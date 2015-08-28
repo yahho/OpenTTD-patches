@@ -40,7 +40,9 @@
 #include "table/strings.h"
 
 #include <utility>
+#include <bitset>
 #include <set>
+#include <map>
 #include <vector>
 
 /**
@@ -1198,59 +1200,130 @@ bool CargoSorter::SortStation(StationID st1, StationID st2) const
 }
 
 
+/** A node in the tree of cached destinations for a cargo type in a station. */
+struct CargoDestNode {
+	typedef std::map <StationID, CargoDestNode> map;
+	typedef map::const_iterator iterator;
+
+	CargoDestNode *const parent; ///< the parent of this entry
+	uint count;                  ///< amount of cargo for this node and children
+	map children;                ///< children of this node
+
+	CargoDestNode (CargoDestNode *p = NULL)
+		: parent(p), count(0), children()
+	{
+	}
+
+	void clear (void)
+	{
+		this->children.clear();
+	}
+
+	iterator begin (void) const
+	{
+		return this->children.begin();
+	}
+
+	iterator end (void) const
+	{
+		return this->children.end();
+	}
+
+	const CargoDestNode *find (StationID id) const
+	{
+		iterator iter (this->children.find (id));
+		return (iter != end()) ? &iter->second : NULL;
+	}
+
+	CargoDestNode *insert (StationID id);
+
+	void update (uint count);
+
+	void estimate (CargoID cargo, StationID source, StationID next,
+		uint count);
+};
+
+/** Find or insert a child node of the current node. */
+CargoDestNode *CargoDestNode::insert (StationID id)
+{
+	const std::pair <map::iterator, map::iterator> range
+		(this->children.equal_range (id));
+
+	if (range.first != range.second) return &range.first->second;
+
+	map::iterator iter (this->children.insert (range.first,
+		std::make_pair (id, CargoDestNode (this))));
+
+	return &iter->second;
+}
+
 /**
- * Estimate the amounts of cargo per final destination for a given cargo, source station and next hop and
- * save the result as children of the given CargoDataEntry.
+ * Update the count for this node and propagate the change uptree.
+ * @param count The amount to be added to this node.
+ */
+void CargoDestNode::update (uint count)
+{
+	CargoDestNode *n = this;
+	do {
+		n->count += count;
+		n = n->parent;
+	} while (n != NULL);
+}
+
+/**
+ * Estimate the amounts of cargo per final destination for a given cargo,
+ * source station and next hop.
  * @param cargo ID of the cargo to estimate destinations for.
  * @param source Source station of the given batch of cargo.
  * @param next Intermediate hop to start the calculation at ("next hop").
  * @param count Size of the batch of cargo.
- * @param dest CargoDataEntry to save the results in.
  */
-static void EstimateDestinations (CargoID cargo, StationID source,
-	StationID next, uint count, CargoDataEntry *dest)
+void CargoDestNode::estimate (CargoID cargo, StationID source,
+	StationID next, uint count)
 {
 	if (!Station::IsValidID(next) || !Station::IsValidID(source)) {
-		dest->InsertOrRetrieve(INVALID_STATION)->Update(count);
+		this->insert (INVALID_STATION)->update (count);
 		return;
 	}
 
-	CargoDataEntry tmp;
+	std::map <StationID, uint> tmp;
+	uint tmp_count = 0;
+
 	const FlowStatMap &flowmap = Station::Get(next)->goods[cargo].flows;
 	FlowStatMap::const_iterator map_it = flowmap.find(source);
 	if (map_it != flowmap.end()) {
 		const FlowStat::SharesMap *shares = map_it->second.GetShares();
 		uint32 prev_count = 0;
 		for (FlowStat::SharesMap::const_iterator i = shares->begin(); i != shares->end(); ++i) {
-			tmp.InsertOrRetrieve(i->second)->Update (i->first - prev_count);
+			uint add = i->first - prev_count;
+			tmp[i->second] += add;
+			tmp_count += add;
 			prev_count = i->first;
 		}
 	}
 
-	if (tmp.GetCount() == 0) {
-		dest->InsertOrRetrieve(INVALID_STATION)->Update(count);
+	if (tmp_count == 0) {
+		this->insert (INVALID_STATION)->update (count);
 		return;
 	}
 
 	uint sum_estimated = 0;
 	while (sum_estimated < count) {
-		for (CargoDataSet::iterator i = tmp.Begin(); i != tmp.End() && sum_estimated < count; ++i) {
-			CargoDataEntry *child = *i;
-			uint estimate = DivideApprox (child->GetCount() * count, tmp.GetCount());
+		for (std::map <StationID, uint>::iterator i = tmp.begin(); i != tmp.end() && sum_estimated < count; ++i) {
+			uint estimate = DivideApprox (i->second * count, tmp_count);
 			if (estimate == 0) estimate = 1;
 
 			sum_estimated += estimate;
 			if (sum_estimated > count) {
 				estimate -= sum_estimated - count;
 				sum_estimated = count;
+				if (estimate == 0) break;
 			}
 
-			if (estimate > 0) {
-				if (child->GetStation() == next) {
-					dest->InsertOrRetrieve(next)->Update(estimate);
-				} else {
-					EstimateDestinations (cargo, source, child->GetStation(), estimate, dest);
-				}
+			if (i->first == next) {
+				this->insert(next)->update(estimate);
+			} else {
+				this->estimate (cargo, source, i->first, estimate);
 			}
 		}
 	}
@@ -1259,32 +1332,33 @@ static void EstimateDestinations (CargoID cargo, StationID source,
 /**
  * Rebuild the cache for estimated destinations which is used to quickly show the "destination" entries
  * even if we actually don't know the destination of a certain packet from just looking at it.
- * @param dest CargoDataEntry to save the results in.
+ * @param dest CargoDestNode to save the results in.
  * @param st Station to recalculate the cache for.
  * @param i Cargo to recalculate the cache for.
  */
-static void RecalcDestinations (CargoDataEntry *dest, const Station *st, CargoID i)
+static void RecalcDestinations (CargoDestNode *dest, const Station *st, CargoID i)
 {
-	dest->Clear();
+	dest->clear();
 
 	const FlowStatMap &flows = st->goods[i].flows;
 	for (FlowStatMap::const_iterator it = flows.begin(); it != flows.end(); ++it) {
 		StationID from = it->first;
-		CargoDataEntry *source_entry = dest->InsertOrRetrieve(from);
+		CargoDestNode *source_entry = dest->insert (from);
 		const FlowStat::SharesMap *shares = it->second.GetShares();
 		uint32 prev_count = 0;
 		for (FlowStat::SharesMap::const_iterator flow_it = shares->begin(); flow_it != shares->end(); ++flow_it) {
 			StationID via = flow_it->second;
-			CargoDataEntry *via_entry = source_entry->InsertOrRetrieve(via);
+			CargoDestNode *via_entry = source_entry->insert (via);
 			if (via == st->index) {
-				via_entry->InsertOrRetrieve(via)->Update (flow_it->first - prev_count);
+				via_entry->insert(via)->update (flow_it->first - prev_count);
 			} else {
-				EstimateDestinations (i, from, via, flow_it->first - prev_count, via_entry);
+				via_entry->estimate (i, from, via, flow_it->first - prev_count);
 			}
 			prev_count = flow_it->first;
 		}
 	}
 }
+
 
 /**
  * The StationView window
@@ -1374,8 +1448,10 @@ struct StationViewWindow : public Window {
 	Mode current_mode;                  ///< Currently selected display mode of cargo view.
 	Grouping groupings[NUM_COLUMNS];    ///< Grouping modes for the different columns.
 
+	CargoDestNode cached_destinations[NUM_CARGO];      ///< Cache for the flows passing through this station.
+	std::bitset <NUM_CARGO> cached_destinations_valid; ///< Bitset of up-to-date cached_destinations entries
+
 	CargoDataEntry expanded_rows;       ///< Parent entry of currently expanded rows.
-	CargoDataEntry cached_destinations; ///< Cache for the flows passing through this station.
 	CargoDataVector displayed_rows;     ///< Parent entry of currently displayed rows (including collapsed ones).
 
 	StationViewWindow(WindowDesc *desc, WindowNumber window_number) : Window(desc),
@@ -1542,16 +1618,15 @@ struct StationViewWindow : public Window {
 	 */
 	void BuildFlowList(CargoID i, const FlowStatMap &flows, CargoDataEntry *cargo)
 	{
-		const CargoDataEntry *source_dest = this->cached_destinations.Retrieve(i);
+		const CargoDestNode *source_dest = &this->cached_destinations[i];
 		for (FlowStatMap::const_iterator it = flows.begin(); it != flows.end(); ++it) {
 			StationID from = it->first;
-			const CargoDataEntry *source_entry = source_dest->Retrieve(from);
+			const CargoDestNode *source_entry = source_dest->find (from);
 			const FlowStat::SharesMap *shares = it->second.GetShares();
 			for (FlowStat::SharesMap::const_iterator flow_it = shares->begin(); flow_it != shares->end(); ++flow_it) {
-				const CargoDataEntry *via_entry = source_entry->Retrieve(flow_it->second);
-				for (CargoDataSet::iterator dest_it = via_entry->Begin(); dest_it != via_entry->End(); ++dest_it) {
-					CargoDataEntry *dest_entry = *dest_it;
-					ShowCargo(cargo, i, from, flow_it->second, dest_entry->GetStation(), dest_entry->GetCount());
+				const CargoDestNode *via_entry = source_entry->find (flow_it->second);
+				for (CargoDestNode::iterator dest_it = via_entry->begin(); dest_it != via_entry->end(); ++dest_it) {
+					ShowCargo (cargo, i, from, flow_it->second, dest_it->first, dest_it->second.count);
 				}
 			}
 		}
@@ -1565,27 +1640,26 @@ struct StationViewWindow : public Window {
 	 */
 	void BuildCargoList(CargoID i, const StationCargoList &packets, CargoDataEntry *cargo)
 	{
-		const CargoDataEntry *source_dest = this->cached_destinations.Retrieve(i);
+		const CargoDestNode *source_dest = &this->cached_destinations[i];
 		for (StationCargoList::ConstIterator it = packets.Packets()->begin(); it != packets.Packets()->end(); it++) {
 			const CargoPacket *cp = *it;
 			StationID next = it.GetKey();
 
-			const CargoDataEntry *source_entry = source_dest->Retrieve(cp->SourceStation());
+			const CargoDestNode *source_entry = source_dest->find (cp->SourceStation());
 			if (source_entry == NULL) {
 				this->ShowCargo(cargo, i, cp->SourceStation(), next, INVALID_STATION, cp->Count());
 				continue;
 			}
 
-			const CargoDataEntry *via_entry = source_entry->Retrieve(next);
+			const CargoDestNode *via_entry = source_entry->find (next);
 			if (via_entry == NULL) {
 				this->ShowCargo(cargo, i, cp->SourceStation(), next, INVALID_STATION, cp->Count());
 				continue;
 			}
 
-			for (CargoDataSet::iterator dest_it = via_entry->Begin(); dest_it != via_entry->End(); ++dest_it) {
-				CargoDataEntry *dest_entry = *dest_it;
-				uint val = DivideApprox(cp->Count() * dest_entry->GetCount(), via_entry->GetCount());
-				this->ShowCargo(cargo, i, cp->SourceStation(), next, dest_entry->GetStation(), val);
+			for (CargoDestNode::iterator dest_it = via_entry->begin(); dest_it != via_entry->end(); ++dest_it) {
+				uint val = DivideApprox (cp->Count() * dest_it->second.count, via_entry->count);
+				this->ShowCargo (cargo, i, cp->SourceStation(), next, dest_it->first, val);
 			}
 		}
 		this->ShowCargo(cargo, i, NEW_STATION, NEW_STATION, NEW_STATION, packets.ReservedCount());
@@ -1599,8 +1673,9 @@ struct StationViewWindow : public Window {
 	void BuildCargoList(CargoDataEntry *cargo, const Station *st)
 	{
 		for (CargoID i = 0; i < NUM_CARGO; i++) {
-			if (this->cached_destinations.Retrieve(i) == NULL) {
-				RecalcDestinations (cached_destinations.InsertOrRetrieve(i), st, i);
+			if (!this->cached_destinations_valid.test (i)) {
+				this->cached_destinations_valid.set (i);
+				RecalcDestinations (&this->cached_destinations[i], st, i);
 			}
 
 			if (this->current_mode == MODE_WAITING) {
@@ -2062,7 +2137,7 @@ struct StationViewWindow : public Window {
 	{
 		if (gui_scope) {
 			if (data >= 0 && data < NUM_CARGO) {
-				this->cached_destinations.Remove((CargoID)data);
+				this->cached_destinations_valid.reset (data);
 			} else {
 				this->ReInit();
 			}
