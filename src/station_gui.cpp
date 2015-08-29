@@ -1364,17 +1364,19 @@ static void RecalcDestinations (CargoDestNode *dest, const Station *st, CargoID 
  * The StationView window
  */
 struct StationViewWindow : public Window {
+	struct expanded_map : std::map <StationID, expanded_map> { };
+
 	/**
 	 * A row being displayed in the cargo view (as opposed to being "hidden" behind a plus sign).
 	 */
 	struct RowDisplay {
-		RowDisplay(CargoDataEntry *f, StationID n) : filter(f), next_station(n) {}
+		RowDisplay(expanded_map *f, StationID n) : filter(f), next_station(n) {}
 		RowDisplay(CargoID n) : filter(NULL), next_cargo(n) {}
 
 		/**
 		 * Parent of the cargo entry belonging to the row.
 		 */
-		CargoDataEntry *filter;
+		expanded_map *filter;
 		union {
 			/**
 			 * ID of the station belonging to the entry actually displayed if it's to/from/via.
@@ -1452,7 +1454,7 @@ struct StationViewWindow : public Window {
 	std::bitset <NUM_CARGO> cached_destinations_valid; ///< Bitset of up-to-date cached_destinations entries
 
 	std::bitset <NUM_CARGO> expanded_cargoes;          ///< Bitset of expanded cargo rows.
-	CargoDataEntry expanded_rows[NUM_CARGO];           ///< Parent entry of currently expanded rows.
+	expanded_map expanded_rows[NUM_CARGO];             ///< Parent entry of currently expanded rows.
 
 	CargoDataVector displayed_rows;     ///< Parent entry of currently displayed rows (including collapsed ones).
 
@@ -1500,8 +1502,8 @@ struct StationViewWindow : public Window {
 		data->SetTransfers (source != this->window_number);
 
 		if (this->expanded_cargoes.test (cargo)) {
-			const CargoDataEntry *expand = &this->expanded_rows[cargo];
-			for (int i = 0; i < NUM_COLUMNS && expand != NULL; ++i) {
+			const expanded_map *expand = &this->expanded_rows[cargo];
+			for (int i = 0; i < NUM_COLUMNS; ++i) {
 				StationID s;
 				switch (groupings[i]) {
 					default: NOT_REACHED();
@@ -1521,7 +1523,9 @@ struct StationViewWindow : public Window {
 						break;
 				}
 				data = data->InsertOrRetrieve(s);
-				expand = expand->Retrieve(s);
+				expanded_map::const_iterator iter = expand->find (s);
+				if (iter == expand->end()) break;
+				expand = &iter->second;
 			}
 		}
 
@@ -1711,9 +1715,11 @@ struct StationViewWindow : public Window {
 		}
 
 		CargoID cargo = parent->GetCargo();
-		CargoDataEntry *filter = &this->expanded_rows[cargo];
+		expanded_map *filter = &this->expanded_rows[cargo];
 		while (!stations.empty()) {
-			filter = filter->Retrieve(stations.back());
+			expanded_map::iterator iter = filter->find (stations.back());
+			assert (iter != filter->end());
+			filter = &iter->second;
 			stations.pop_back();
 		}
 
@@ -1927,15 +1933,16 @@ struct StationViewWindow : public Window {
 			this->scroll_to_row = row;
 		} else {
 			RowDisplay &display = this->displayed_rows[row];
-			CargoDataEntry *filter = display.filter;
+			expanded_map *filter = display.filter;
 			if (filter == NULL) {
 				this->expanded_cargoes.flip (display.next_cargo);
 			} else {
 				StationID next = display.next_station;
-				if (filter->Retrieve(next) != NULL) {
-					filter->Remove(next);
+				expanded_map::iterator iter = filter->find (next);
+				if (iter != filter->end()) {
+					filter->erase (iter);
 				} else {
-					filter->InsertOrRetrieve(next);
+					(*filter)[next];
 				}
 			}
 		}
