@@ -1369,7 +1369,7 @@ struct StationViewWindow : public Window {
 	 */
 	struct RowDisplay {
 		RowDisplay(CargoDataEntry *f, StationID n) : filter(f), next_station(n) {}
-		RowDisplay(CargoDataEntry *f, CargoID n) : filter(f), next_cargo(n) {}
+		RowDisplay(CargoID n) : filter(NULL), next_cargo(n) {}
 
 		/**
 		 * Parent of the cargo entry belonging to the row.
@@ -1695,7 +1695,7 @@ struct StationViewWindow : public Window {
 		std::list<StationID> stations;
 		const CargoDataEntry *parent = data->GetParent();
 		if (parent->GetParent() == NULL) {
-			this->displayed_rows.push_back(RowDisplay(&this->expanded_rows, data->GetCargo()));
+			this->displayed_rows.push_back(RowDisplay(data->GetCargo()));
 			return;
 		}
 
@@ -1937,8 +1937,8 @@ struct StationViewWindow : public Window {
 			this->scroll_to_row = row;
 		} else {
 			RowDisplay &display = this->displayed_rows[row];
-			if (display.filter == &this->expanded_rows) {
-				this->HandleCargoWaitingClick<CargoID>(display.filter, display.next_cargo);
+			if (display.filter == NULL) {
+				this->HandleCargoWaitingClick<CargoID>(&this->expanded_rows, display.next_cargo);
 			} else {
 				this->HandleCargoWaitingClick<StationID>(display.filter, display.next_station);
 			}
