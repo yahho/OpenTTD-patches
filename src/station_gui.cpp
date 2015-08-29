@@ -1451,7 +1451,9 @@ struct StationViewWindow : public Window {
 	CargoDestNode cached_destinations[NUM_CARGO];      ///< Cache for the flows passing through this station.
 	std::bitset <NUM_CARGO> cached_destinations_valid; ///< Bitset of up-to-date cached_destinations entries
 
-	CargoDataEntry expanded_rows;       ///< Parent entry of currently expanded rows.
+	std::bitset <NUM_CARGO> expanded_cargoes;          ///< Bitset of expanded cargo rows.
+	CargoDataEntry expanded_rows[NUM_CARGO];           ///< Parent entry of currently expanded rows.
+
 	CargoDataVector displayed_rows;     ///< Parent entry of currently displayed rows (including collapsed ones).
 
 	StationViewWindow(WindowDesc *desc, WindowNumber window_number) : Window(desc),
@@ -1496,30 +1498,33 @@ struct StationViewWindow : public Window {
 
 		data = data->InsertOrRetrieve (cargo);
 		data->SetTransfers (source != this->window_number);
-		const CargoDataEntry *expand = this->expanded_rows.Retrieve (cargo);
 
-		for (int i = 0; i < NUM_COLUMNS && expand != NULL; ++i) {
-			StationID s;
-			switch (groupings[i]) {
-				default: NOT_REACHED();
-				case GR_SOURCE:
-					if (!auto_distributed && source == this->window_number) {
-						continue;
-					}
-					s = source;
-					break;
-				case GR_NEXT:
-					if (!auto_distributed) continue;
-					s = next;
-					break;
-				case GR_DESTINATION:
-					if (!auto_distributed) continue;
-					s = dest;
-					break;
+		if (this->expanded_cargoes.test (cargo)) {
+			const CargoDataEntry *expand = &this->expanded_rows[cargo];
+			for (int i = 0; i < NUM_COLUMNS && expand != NULL; ++i) {
+				StationID s;
+				switch (groupings[i]) {
+					default: NOT_REACHED();
+					case GR_SOURCE:
+						if (!auto_distributed && source == this->window_number) {
+							continue;
+						}
+						s = source;
+						break;
+					case GR_NEXT:
+						if (!auto_distributed) continue;
+						s = next;
+						break;
+					case GR_DESTINATION:
+						if (!auto_distributed) continue;
+						s = dest;
+						break;
+				}
+				data = data->InsertOrRetrieve(s);
+				expand = expand->Retrieve(s);
 			}
-			data = data->InsertOrRetrieve(s);
-			expand = expand->Retrieve(s);
 		}
+
 		data->Update(count);
 	}
 
@@ -1706,7 +1711,7 @@ struct StationViewWindow : public Window {
 		}
 
 		CargoID cargo = parent->GetCargo();
-		CargoDataEntry *filter = this->expanded_rows.Retrieve(cargo);
+		CargoDataEntry *filter = &this->expanded_rows[cargo];
 		while (!stations.empty()) {
 			filter = filter->Retrieve(stations.back());
 			stations.pop_back();
@@ -1912,21 +1917,6 @@ struct StationViewWindow : public Window {
 	}
 
 	/**
-	 * Expand or collapse a specific row.
-	 * @param filter Parent of the row.
-	 * @param next ID pointing to the row.
-	 */
-	template<class Tid>
-	void HandleCargoWaitingClick(CargoDataEntry *filter, Tid next)
-	{
-		if (filter->Retrieve(next) != NULL) {
-			filter->Remove(next);
-		} else {
-			filter->InsertOrRetrieve(next);
-		}
-	}
-
-	/**
 	 * Handle a click on a specific row in the cargo view.
 	 * @param row Row being clicked.
 	 */
@@ -1937,10 +1927,16 @@ struct StationViewWindow : public Window {
 			this->scroll_to_row = row;
 		} else {
 			RowDisplay &display = this->displayed_rows[row];
-			if (display.filter == NULL) {
-				this->HandleCargoWaitingClick<CargoID>(&this->expanded_rows, display.next_cargo);
+			CargoDataEntry *filter = display.filter;
+			if (filter == NULL) {
+				this->expanded_cargoes.flip (display.next_cargo);
 			} else {
-				this->HandleCargoWaitingClick<StationID>(display.filter, display.next_station);
+				StationID next = display.next_station;
+				if (filter->Retrieve(next) != NULL) {
+					filter->Remove(next);
+				} else {
+					filter->InsertOrRetrieve(next);
+				}
 			}
 		}
 		this->SetWidgetDirty(WID_SV_WAITING);
