@@ -1607,7 +1607,7 @@ struct StationViewWindow : public Window {
 			/* Draw waiting cargo. */
 			NWidgetBase *nwi = this->GetWidget<NWidgetBase>(WID_SV_WAITING);
 			Rect waiting_rect = {nwi->pos_x, nwi->pos_y, nwi->pos_x + nwi->current_x - 1, nwi->pos_y + nwi->current_y - 1};
-			this->DrawEntries(&cargo, waiting_rect, pos, maxrows, 0);
+			this->DrawCargoEntries (&cargo, waiting_rect, pos, maxrows);
 			scroll_to_row = INT_MAX;
 		}
 	}
@@ -1813,20 +1813,20 @@ struct StationViewWindow : public Window {
 	 * @param pos Current row to be drawn to (counted down from 0 to -maxrows, same as vscroll->GetPosition()).
 	 * @param maxrows Maximum row to be drawn.
 	 * @param column Current "column" being drawn.
-	 * @param cargo Current cargo being drawn (if cargo column has been passed).
+	 * @param cargo Current cargo being drawn.
 	 * @return row (in "pos" counting) after the one we have last drawn to.
 	 */
-	int DrawEntries(CargoDataEntry *entry, Rect &r, int pos, int maxrows, int column, CargoID cargo = CT_INVALID)
+	int DrawEntries (CargoDataEntry *entry, const Rect &r, int pos, int maxrows, int column, CargoID cargo)
 	{
-		if (column != 0) {
-			entry->Resort (this->sorting == ST_AS_GROUPING ? ST_STATION_STRING : ST_COUNT, this->sort_order);
-		}
+		assert (column > 0);
+
+		entry->Resort (this->sorting == ST_AS_GROUPING ? ST_STATION_STRING : ST_COUNT, this->sort_order);
 
 		for (CargoDataSet::iterator i = entry->Begin(); i != entry->End(); ++i) {
 			CargoDataEntry *cd = *i;
 
-			if (column == 0) cargo = cd->GetCargo();
 			bool auto_distributed = _settings_game.linkgraph.GetDistributionType(cargo) != DT_MANUAL;
+			assert (auto_distributed || (column == 1));
 
 			if (pos > -maxrows && pos <= 0) {
 				StringID str = STR_EMPTY;
@@ -1834,30 +1834,25 @@ struct StationViewWindow : public Window {
 				SetDParam(0, cargo);
 				SetDParam(1, cd->GetCount());
 
-				if (column == 0) {
-					str = STR_STATION_VIEW_WAITING_CARGO;
-					DrawCargoIcons(cd->GetCargo(), cd->GetCount(), r.left + WD_FRAMERECT_LEFT + this->expand_shrink_width, r.right - WD_FRAMERECT_RIGHT - this->expand_shrink_width, y);
-				} else {
-					Grouping grouping = auto_distributed ? this->groupings[column - 1] : GR_SOURCE;
-					StationID station = cd->GetStation();
+				Grouping grouping = auto_distributed ? this->groupings[column - 1] : GR_SOURCE;
+				StationID station = cd->GetStation();
 
-					switch (grouping) {
-						case GR_SOURCE:
-							str = this->GetEntryString(station, STR_STATION_VIEW_FROM_HERE, STR_STATION_VIEW_FROM, STR_STATION_VIEW_FROM_ANY);
-							break;
-						case GR_NEXT:
-							str = this->GetEntryString(station, STR_STATION_VIEW_VIA_HERE, STR_STATION_VIEW_VIA, STR_STATION_VIEW_VIA_ANY);
-							if (str == STR_STATION_VIEW_VIA) str = this->SearchNonStop(cd, station, column);
-							break;
-						case GR_DESTINATION:
-							str = this->GetEntryString(station, STR_STATION_VIEW_TO_HERE, STR_STATION_VIEW_TO, STR_STATION_VIEW_TO_ANY);
-							break;
-						default:
-							NOT_REACHED();
-					}
-					if (pos == -this->scroll_to_row && Station::IsValidID(station)) {
-						ScrollMainWindowToTile(Station::Get(station)->xy);
-					}
+				switch (grouping) {
+					case GR_SOURCE:
+						str = this->GetEntryString(station, STR_STATION_VIEW_FROM_HERE, STR_STATION_VIEW_FROM, STR_STATION_VIEW_FROM_ANY);
+						break;
+					case GR_NEXT:
+						str = this->GetEntryString(station, STR_STATION_VIEW_VIA_HERE, STR_STATION_VIEW_VIA, STR_STATION_VIEW_VIA_ANY);
+						if (str == STR_STATION_VIEW_VIA) str = this->SearchNonStop(cd, station, column);
+						break;
+					case GR_DESTINATION:
+						str = this->GetEntryString(station, STR_STATION_VIEW_TO_HERE, STR_STATION_VIEW_TO, STR_STATION_VIEW_TO_ANY);
+						break;
+					default:
+						NOT_REACHED();
+				}
+				if (pos == -this->scroll_to_row && Station::IsValidID(station)) {
+					ScrollMainWindowToTile(Station::Get(station)->xy);
 				}
 
 				const char *sym = NULL;
@@ -1866,12 +1861,6 @@ struct StationViewWindow : public Window {
 						sym = "-";
 					} else if (auto_distributed && str != STR_STATION_VIEW_RESERVED) {
 						sym = "+";
-					} else if (column == 0) {
-						/* Only draw '+' if there is something to be shown. */
-						const StationCargoList &list = Station::Get(this->window_number)->goods[cargo].cargo;
-						if (list.ReservedCount() > 0 || cd->HasTransfers()) {
-							sym = "+";
-						}
 					}
 				}
 
@@ -1880,9 +1869,55 @@ struct StationViewWindow : public Window {
 				this->SetDisplayedRow(cd);
 			}
 			--pos;
-			if (auto_distributed || column == 0) {
+			if (auto_distributed) {
 				pos = this->DrawEntries(cd, r, pos, maxrows, column + 1, cargo);
 			}
+		}
+		return pos;
+	}
+
+	/**
+	 * Draw the given cargo entries in the station GUI.
+	 * @param entry Root entry for all cargo to be drawn.
+	 * @param r Screen rectangle to draw into.
+	 * @param pos Current row to be drawn to (counted down from 0 to -maxrows, same as vscroll->GetPosition()).
+	 * @param maxrows Maximum row to be drawn.
+	 * @return row (in "pos" counting) after the one we have last drawn to.
+	 */
+	int DrawCargoEntries (CargoDataEntry *entry, const Rect &r, int pos, int maxrows)
+	{
+		for (CargoDataSet::iterator i = entry->Begin(); i != entry->End(); ++i) {
+			CargoDataEntry *cd = *i;
+
+			CargoID cargo = cd->GetCargo();
+			bool auto_distributed = _settings_game.linkgraph.GetDistributionType(cargo) != DT_MANUAL;
+
+			if (pos > -maxrows && pos <= 0) {
+				int y = r.top + WD_FRAMERECT_TOP - pos * FONT_HEIGHT_NORMAL;
+				SetDParam(0, cargo);
+				SetDParam(1, cd->GetCount());
+				StringID str = STR_STATION_VIEW_WAITING_CARGO;
+				DrawCargoIcons (cargo, cd->GetCount(), r.left + WD_FRAMERECT_LEFT + this->expand_shrink_width, r.right - WD_FRAMERECT_RIGHT - this->expand_shrink_width, y);
+
+				const char *sym = NULL;
+				if (cd->GetNumChildren() > 0) {
+					sym = "-";
+				} else if (auto_distributed) {
+					sym = "+";
+				} else {
+					/* Only draw '+' if there is something to be shown. */
+					const StationCargoList &list = Station::Get(this->window_number)->goods[cargo].cargo;
+					if (list.ReservedCount() > 0 || cd->HasTransfers()) {
+						sym = "+";
+					}
+				}
+
+				this->DrawCargoString (r, y, 0, sym, str);
+
+				this->SetDisplayedRow(cd);
+			}
+			--pos;
+			pos = this->DrawEntries (cd, r, pos, maxrows, 1, cargo);
 		}
 		return pos;
 	}
