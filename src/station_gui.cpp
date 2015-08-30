@@ -1696,37 +1696,6 @@ struct StationViewWindow : public Window {
 	}
 
 	/**
-	 * Mark a specific row, characterized by its CargoDataEntry, as expanded.
-	 * @param data The row to be marked as expanded.
-	 */
-	void SetDisplayedRow(const CargoDataEntry *data)
-	{
-		std::list<StationID> stations;
-		const CargoDataEntry *parent = data->GetParent();
-		if (parent->GetParent() == NULL) {
-			this->displayed_rows.push_back(RowDisplay(data->GetCargo()));
-			return;
-		}
-
-		StationID next = data->GetStation();
-		while (parent->GetParent()->GetParent() != NULL) {
-			stations.push_back(parent->GetStation());
-			parent = parent->GetParent();
-		}
-
-		CargoID cargo = parent->GetCargo();
-		expanded_map *filter = &this->expanded_rows[cargo];
-		while (!stations.empty()) {
-			expanded_map::iterator iter = filter->find (stations.back());
-			assert (iter != filter->end());
-			filter = &iter->second;
-			stations.pop_back();
-		}
-
-		this->displayed_rows.push_back(RowDisplay(filter, next));
-	}
-
-	/**
 	 * Select the correct string for an entry referring to the specified station.
 	 * @param station Station the entry is showing cargo for.
 	 * @param here String to be shown if the entry refers to the same station as this station GUI belongs to.
@@ -1866,7 +1835,26 @@ struct StationViewWindow : public Window {
 
 				this->DrawCargoString (r, y, column, sym, str);
 
-				this->SetDisplayedRow(cd);
+				assert (entry->GetParent() != NULL);
+
+				std::list <StationID> stations;
+				const CargoDataEntry *parent = entry;
+				while (parent->GetParent()->GetParent() != NULL) {
+					stations.push_back (parent->GetStation());
+					parent = parent->GetParent();
+				}
+
+				assert (parent->GetCargo() == cargo);
+
+				expanded_map *filter = &this->expanded_rows[cargo];
+				while (!stations.empty()) {
+					expanded_map::iterator iter = filter->find (stations.back());
+					assert (iter != filter->end());
+					filter = &iter->second;
+					stations.pop_back();
+				}
+
+				this->displayed_rows.push_back (RowDisplay (filter, station));
 			}
 			--pos;
 			if (auto_distributed) {
@@ -1914,7 +1902,7 @@ struct StationViewWindow : public Window {
 
 				this->DrawCargoString (r, y, 0, sym, str);
 
-				this->SetDisplayedRow(cd);
+				this->displayed_rows.push_back (RowDisplay (cargo));
 			}
 			--pos;
 			pos = this->DrawEntries (cd, r, pos, maxrows, 1, cargo);
