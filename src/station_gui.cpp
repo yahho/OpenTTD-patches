@@ -1727,7 +1727,7 @@ struct StationViewWindow : public Window {
 	StringID SearchNonStop(CargoDataEntry *cd, StationID station, int column)
 	{
 		CargoDataEntry *parent = cd->GetParent();
-		for (int i = column - 1; i > 0; --i) {
+		for (int i = column; i > 0; --i) {
 			if (this->groupings[i - 1] == GR_DESTINATION) {
 				if (parent->GetStation() == station) {
 					return STR_STATION_VIEW_NONSTOP;
@@ -1738,7 +1738,7 @@ struct StationViewWindow : public Window {
 			parent = parent->GetParent();
 		}
 
-		if (this->groupings[column] == GR_DESTINATION) {
+		if (this->groupings[column + 1] == GR_DESTINATION) {
 			CargoDataSet::iterator begin = cd->Begin();
 			CargoDataSet::iterator end = cd->End();
 			if (begin != end && ++(cd->Begin()) == end && (*(begin))->GetStation() == station) {
@@ -1787,15 +1787,13 @@ struct StationViewWindow : public Window {
 	 */
 	int DrawEntries (CargoDataEntry *entry, const Rect &r, int pos, int maxrows, int column, CargoID cargo)
 	{
-		assert (column > 0);
-
 		entry->Resort (this->sorting == ST_AS_GROUPING ? ST_STATION_STRING : ST_COUNT, this->sort_order);
 
 		for (CargoDataSet::iterator i = entry->Begin(); i != entry->End(); ++i) {
 			CargoDataEntry *cd = *i;
 
 			bool auto_distributed = _settings_game.linkgraph.GetDistributionType(cargo) != DT_MANUAL;
-			assert (auto_distributed || (column == 1));
+			assert (auto_distributed || (column == 0));
 
 			if (pos > -maxrows && pos <= 0) {
 				StringID str = STR_EMPTY;
@@ -1803,7 +1801,7 @@ struct StationViewWindow : public Window {
 				SetDParam(0, cargo);
 				SetDParam(1, cd->GetCount());
 
-				Grouping grouping = auto_distributed ? this->groupings[column - 1] : GR_SOURCE;
+				Grouping grouping = auto_distributed ? this->groupings[column] : GR_SOURCE;
 				StationID station = cd->GetStation();
 
 				switch (grouping) {
@@ -1825,7 +1823,7 @@ struct StationViewWindow : public Window {
 				}
 
 				const char *sym = NULL;
-				if (column < NUM_COLUMNS) {
+				if (column < NUM_COLUMNS - 1) {
 					if (cd->GetNumChildren() > 0) {
 						sym = "-";
 					} else if (auto_distributed && str != STR_STATION_VIEW_RESERVED) {
@@ -1833,7 +1831,7 @@ struct StationViewWindow : public Window {
 					}
 				}
 
-				this->DrawCargoString (r, y, column, sym, str);
+				this->DrawCargoString (r, y, column + 1, sym, str);
 
 				assert (entry->GetParent() != NULL);
 
@@ -1905,7 +1903,7 @@ struct StationViewWindow : public Window {
 				this->displayed_rows.push_back (RowDisplay (cargo));
 			}
 			--pos;
-			pos = this->DrawEntries (cd, r, pos, maxrows, 1, cargo);
+			pos = this->DrawEntries (cd, r, pos, maxrows, 0, cargo);
 		}
 		return pos;
 	}
