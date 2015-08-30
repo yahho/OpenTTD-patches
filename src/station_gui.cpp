@@ -1783,6 +1783,30 @@ struct StationViewWindow : public Window {
 	}
 
 	/**
+	 * Draw the cargo string for an entry in the station GUI.
+	 * @param r Screen rectangle to draw into.
+	 * @param y Vertical position to draw at.
+	 * @param indent Extra indentation for the string.
+	 * @param sym Symbol to draw at the end of the line, if not null.
+	 * @param str String to draw.
+	 */
+	void DrawCargoString (const Rect &r, int y, int indent,
+		const char *sym, StringID str)
+	{
+		bool rtl = _current_text_dir == TD_RTL;
+
+		int text_left  = rtl ? r.left + this->expand_shrink_width : r.left + WD_FRAMERECT_LEFT + indent * this->expand_shrink_width;
+		int text_right = rtl ? r.right - WD_FRAMERECT_LEFT - indent * this->expand_shrink_width : r.right - this->expand_shrink_width;
+		DrawString (text_left, text_right, y, str);
+
+		if (sym) {
+			int sym_left  = rtl ? r.left + WD_FRAMERECT_LEFT : r.right - this->expand_shrink_width + WD_FRAMERECT_LEFT;
+			int sym_right = rtl ? r.left + this->expand_shrink_width - WD_FRAMERECT_RIGHT : r.right - WD_FRAMERECT_RIGHT;
+			DrawString (sym_left, sym_right, y, sym, TC_YELLOW);
+		}
+	}
+
+	/**
 	 * Draw the given cargo entries in the station GUI.
 	 * @param entry Root entry for all cargo to be drawn.
 	 * @param r Screen rectangle to draw into.
@@ -1836,16 +1860,8 @@ struct StationViewWindow : public Window {
 					}
 				}
 
-				bool rtl = _current_text_dir == TD_RTL;
-				int text_left    = rtl ? r.left + this->expand_shrink_width : r.left + WD_FRAMERECT_LEFT + column * this->expand_shrink_width;
-				int text_right   = rtl ? r.right - WD_FRAMERECT_LEFT - column * this->expand_shrink_width : r.right - this->expand_shrink_width;
-				int shrink_left  = rtl ? r.left + WD_FRAMERECT_LEFT : r.right - this->expand_shrink_width + WD_FRAMERECT_LEFT;
-				int shrink_right = rtl ? r.left + this->expand_shrink_width - WD_FRAMERECT_RIGHT : r.right - WD_FRAMERECT_RIGHT;
-
-				DrawString(text_left, text_right, y, str);
-
+				const char *sym = NULL;
 				if (column < NUM_COLUMNS) {
-					const char *sym = NULL;
 					if (cd->GetNumChildren() > 0) {
 						sym = "-";
 					} else if (auto_distributed && str != STR_STATION_VIEW_RESERVED) {
@@ -1857,8 +1873,10 @@ struct StationViewWindow : public Window {
 							sym = "+";
 						}
 					}
-					if (sym) DrawString(shrink_left, shrink_right, y, sym, TC_YELLOW);
 				}
+
+				this->DrawCargoString (r, y, column, sym, str);
+
 				this->SetDisplayedRow(cd);
 			}
 			--pos;
