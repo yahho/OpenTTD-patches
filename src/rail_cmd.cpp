@@ -3609,6 +3609,12 @@ static void GetTileDesc_Track(TileIndex tile, TileDesc *td)
 		} else {
 			td->str = STR_LAI_RAIL_DESCRIPTION_TRACK;
 		}
+
+		if (td->str != STR_LAI_RAIL_DESCRIPTION_TRACK && IsRestrictedSignal(tile)) {
+			SetDParamX(td->dparam, 0, td->str);
+			SetDParamX(td->dparam, 1, rti->strings.name);
+			td->str = STR_LAI_RAIL_DESCRIPTION_RESTRICTED_SIGNAL;
+		}
 	} else {
 		const BridgeSpec *spec = GetBridgeSpec(GetRailBridgeType(tile));
 		td->str = spec->transport_name[TRANSPORT_RAIL];
