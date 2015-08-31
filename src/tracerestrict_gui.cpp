@@ -367,7 +367,7 @@ static bool IsIntegerValueType(TraceRestrictValueType type)
 }
 
 /**
- * Convert integer values between internal units and display units
+ * Convert integer values or custom penalty values between internal units and display units
  */
 static uint ConvertIntegerValue(TraceRestrictValueType type, uint in, bool to_display)
 {
@@ -379,6 +379,9 @@ static uint ConvertIntegerValue(TraceRestrictValueType type, uint in, bool to_di
 			return to_display
 					? ConvertSpeedToDisplaySpeed(in) * 10 / 16
 					: ConvertDisplaySpeedToSpeed(in) * 16 / 10;
+
+		case TRVT_PF_PENALTY:
+			return in;
 
 		default:
 			NOT_REACHED();
@@ -418,6 +421,41 @@ static const uint _condflags_dropdown_val[] = {
 static const TraceRestrictDropDownListSet _condflags_dropdown = {
 	_condflags_dropdown_str, _condflags_dropdown_val,
 };
+
+static const StringID _pf_penalty_dropdown_str[] = {
+	STR_TRACE_RESTRICT_PF_VALUE_SMALL,
+	STR_TRACE_RESTRICT_PF_VALUE_MEDIUM,
+	STR_TRACE_RESTRICT_PF_VALUE_LARGE,
+	STR_TRACE_RESTRICT_PF_VALUE_CUSTOM,
+	INVALID_STRING_ID,
+};
+static const uint _pf_penalty_dropdown_val[] = {
+	TRPPPI_SMALL,
+	TRPPPI_MEDIUM,
+	TRPPPI_LARGE,
+	TRPPPI_END,  // this is a placeholder for "custom"
+};
+/** Pathfinder penalty dropdown set */
+static const TraceRestrictDropDownListSet _pf_penalty_dropdown = {
+	_pf_penalty_dropdown_str, _pf_penalty_dropdown_val,
+};
+
+static uint GetPathfinderPenaltyDropdownIndex(TraceRestrictItem item)
+{
+	switch (static_cast<TraceRestrictPathfinderPenaltyAuxField>(GetTraceRestrictAuxField(item))) {
+		case TRPPAF_VALUE:
+			return TRPPPI_END;
+
+		case TRPPAF_PRESET: {
+			uint16 index = GetTraceRestrictValue(item);
+			assert(index < TRPPPI_END);
+			return index;
+		}
+
+		default:
+			NOT_REACHED();
+	}
+}
 
 /** Common function for drawing an ordinary conditional instruction */
 static void DrawInstructionStringConditionalCommon(TraceRestrictItem item, const TraceRestrictTypePropertySet &properties)
@@ -553,8 +591,23 @@ static void DrawInstructionString(TraceRestrictItem item, int y, bool selected, 
 				break;
 
 			case TRIT_PF_PENALTY:
-				instruction_string = STR_TRACE_RESTRICT_PF_PENALTY_ITEM;
-				SetDParam(0, GetTraceRestrictValue(item));
+				switch (static_cast<TraceRestrictPathfinderPenaltyAuxField>(GetTraceRestrictAuxField(item))) {
+					case TRPPAF_VALUE:
+						instruction_string = STR_TRACE_RESTRICT_PF_PENALTY_ITEM;
+						SetDParam(0, GetTraceRestrictValue(item));
+						break;
+
+					case TRPPAF_PRESET: {
+						instruction_string = STR_TRACE_RESTRICT_PF_PENALTY_ITEM_PRESET;
+						uint16 index = GetTraceRestrictValue(item);
+						assert(index < TRPPPI_END);
+						SetDParam(0, _pf_penalty_dropdown_str[index]);
+						break;
+					}
+
+					default:
+						NOT_REACHED();
+				}
 				break;
 
 			default:
@@ -745,6 +798,10 @@ public:
 						this->ShowDropDownListWithValue(&_direction_value, GetTraceRestrictValue(item), false, TR_WIDGET_VALUE_DROPDOWN, 0, 0, 0);
 						break;
 
+					case TRVT_PF_PENALTY:
+						this->ShowDropDownListWithValue(&_pf_penalty_dropdown, GetPathfinderPenaltyDropdownIndex(item), false, TR_WIDGET_VALUE_DROPDOWN, 0, 0, 0);
+						break;
+
 					default:
 						break;
 				}
@@ -785,7 +842,7 @@ public:
 
 		TraceRestrictItem item = GetSelected();
 		TraceRestrictValueType type = GetTraceRestrictTypeProperties(item).value_type;
-		if (!IsIntegerValueType(type)) {
+		if (!IsIntegerValueType(type) && type != TRVT_PF_PENALTY) {
 			return;
 		}
 
@@ -794,6 +851,10 @@ public:
 			SetDParam(0, ConvertIntegerValue(type, (1 << TRIFA_VALUE_COUNT) - 1, true));
 			ShowErrorMessage(STR_TRACE_RESTRICT_ERROR_VALUE_TOO_LARGE, STR_EMPTY, WL_INFO);
 			return;
+		}
+
+		if (type == TRVT_PF_PENALTY) {
+			SetTraceRestrictAuxField(item, TRPPAF_VALUE);
 		}
 
 		SetTraceRestrictValue(item, value);
@@ -867,7 +928,24 @@ public:
 			}
 
 			case TR_WIDGET_VALUE_DROPDOWN: {
-				SetTraceRestrictValue(item, value);
+				if (GetTraceRestrictTypeProperties(item).value_type == TRVT_PF_PENALTY) {
+					if (value == TRPPPI_END) {
+						uint16 penalty_value;
+						if (GetTraceRestrictAuxField(item) == TRPPAF_PRESET) {
+							penalty_value = _tracerestrict_pathfinder_penalty_preset_values[GetTraceRestrictValue(item)];
+						} else {
+							penalty_value = GetTraceRestrictValue(item);
+						}
+						SetDParam(0, penalty_value);
+						ShowQueryString(STR_JUST_INT, STR_TRACE_RESTRICT_VALUE_CAPTION, 10, this, CS_NUMERAL, QSF_NONE);
+						return;
+					} else {
+						SetTraceRestrictValue(item, value);
+						SetTraceRestrictAuxField(item, TRPPAF_PRESET);
+					}
+				} else {
+					SetTraceRestrictValue(item, value);
+				}
 				TraceRestrictDoCommandP(this->tile, this->track, TRDCT_MODIFY_ITEM, this->selected_instruction - 1, item, STR_TRACE_RESTRICT_ERROR_CAN_T_MODIFY_ITEM);
 				break;
 			}
@@ -1084,6 +1162,15 @@ public:
 					SetDParam(0, prog->refcount);
 				} else {
 					SetDParam(0, 1);
+				}
+				break;
+			}
+
+			case TR_WIDGET_VALUE_DROPDOWN: {
+				TraceRestrictItem item = this->GetSelected();
+				if (GetTraceRestrictTypeProperties(item).value_type == TRVT_PF_PENALTY &&
+						GetTraceRestrictAuxField(item) == TRPPAF_VALUE) {
+					SetDParam(0, GetTraceRestrictValue(item));
 				}
 				break;
 			}
@@ -1401,6 +1488,17 @@ private:
 							this->EnableWidget(TR_WIDGET_VALUE_DROPDOWN);
 							this->GetWidget<NWidgetCore>(TR_WIDGET_VALUE_DROPDOWN)->widget_data =
 									GetDropDownStringByValue(&_direction_value, GetTraceRestrictValue(item));
+							break;
+
+						case TRVT_PF_PENALTY:
+							right_sel->SetDisplayedPlane(DPR_VALUE_DROPDOWN);
+							this->EnableWidget(TR_WIDGET_VALUE_DROPDOWN);
+							if (GetTraceRestrictAuxField(item) == TRPPAF_VALUE) {
+								this->GetWidget<NWidgetCore>(TR_WIDGET_VALUE_DROPDOWN)->widget_data = STR_BLACK_COMMA;
+							} else {
+								this->GetWidget<NWidgetCore>(TR_WIDGET_VALUE_DROPDOWN)->widget_data =
+										GetDropDownStringByValue(&_pf_penalty_dropdown, GetPathfinderPenaltyDropdownIndex(item));
+							}
 							break;
 
 						default:
