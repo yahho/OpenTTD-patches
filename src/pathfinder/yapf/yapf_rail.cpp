@@ -357,7 +357,7 @@ private:
 	// returns true if ExecuteTraceRestrict should be called
 	inline bool ShouldCheckTraceRestrict(Node& n, TileIndex tile)
 	{
-		return n.m_num_signals_passed < m_sig_look_ahead_costs.Size() &&
+		return n.m_num_signals_passed < m_sig_look_ahead_costs.size() &&
 				IsRestrictedSignal(tile);
 	}
 
@@ -366,9 +366,9 @@ private:
 	{
 		const TraceRestrictProgram *prog = GetExistingTraceRestrictProgram(tile, TrackdirToTrack(trackdir));
 		if (prog) {
-			prog->Execute(Yapf().GetVehicle(), out);
+			prog->Execute(m_veh, out);
 			if (out.flags & TRPRF_DENY) {
-				n.m_segment->m_end_segment_reason |= ESRB_DEAD_END;
+				n.m_segment->m_end_segment_reason.set(ESR_DEAD_END);
 				return true;
 			}
 			cost += out.penalty;
@@ -696,9 +696,9 @@ inline int CYapfRailBaseT<TAstar>::SignalCost(Node *n, const RailPathPos &pos)
 			}
 		}
 
-		if (ShouldCheckTraceRestrict(n, tile)) {
+		if (ShouldCheckTraceRestrict(*n, pos.tile)) {
 			TraceRestrictProgramResult out;
-			if (ExecuteTraceRestrict(n, tile, trackdir, cost, out)) {
+			if (ExecuteTraceRestrict(*n, pos.tile, pos.td, cost, out)) {
 				return -1;
 			}
 		}
@@ -712,9 +712,9 @@ inline int CYapfRailBaseT<TAstar>::SignalCost(Node *n, const RailPathPos &pos)
 		} else {
 			cost += n->m_num_signals_passed < m_settings->rail_look_ahead_max_signals ? m_settings->rail_pbs_signal_back_penalty : 0;
 
-			if (ShouldCheckTraceRestrict(n, tile)) {
+			if (ShouldCheckTraceRestrict(*n, pos.tile)) {
 				TraceRestrictProgramResult out;
-				if (ExecuteTraceRestrict(n, tile, trackdir, cost, out)) {
+				if (ExecuteTraceRestrict(*n, pos.tile, pos.td, cost, out)) {
 					return -1;
 				}
 			}

@@ -20,21 +20,21 @@ static const SaveLoad _trace_restrict_mapping_desc[] = {
   SLE_END()
 };
 
-static void Load_TRRM()
+static void Load_TRRM(LoadBuffer *reader)
 {
 	int index;
-	while ((index = SlIterateArray()) != -1) {
+	while ((index = reader->IterateChunk()) != -1) {
 		TraceRestrictMappingItem &item = _tracerestrictprogram_mapping[index];
-		SlObject(&item, _trace_restrict_mapping_desc);
+		reader->ReadObject(&item, _trace_restrict_mapping_desc);
 	}
 }
 
-static void Save_TRRM()
+static void Save_TRRM(SaveDumper *dumper)
 {
 	for (TraceRestrictMapping::iterator iter = _tracerestrictprogram_mapping.begin();
 			iter != _tracerestrictprogram_mapping.end(); ++iter) {
-		SlSetArrayIndex(iter->first);
-		SlObject(&(iter->second), _trace_restrict_mapping_desc);
+		dumper->WriteElementHeader(iter->first, SlCalcObjLength(&(iter->second), _trace_restrict_mapping_desc));
+		dumper->WriteObject(&(iter->second), _trace_restrict_mapping_desc);
 	}
 }
 
@@ -47,34 +47,31 @@ static const SaveLoad _trace_restrict_program_stub_desc[] = {
 	SLE_END()
 };
 
-static void Load_TRRP()
+static void Load_TRRP(LoadBuffer *reader)
 {
 	int index;
 	TraceRestrictProgramStub stub;
-	while ((index = SlIterateArray()) != -1) {
+	while ((index = reader->IterateChunk()) != -1) {
 		TraceRestrictProgram *prog = new (index) TraceRestrictProgram();
-		SlObject(&stub, _trace_restrict_program_stub_desc);
+		reader->ReadObject(&stub, _trace_restrict_program_stub_desc);
 		prog->items.resize(stub.length);
-		SlArray(&(prog->items[0]), stub.length, SLE_UINT32);
+		reader->ReadArray(&(prog->items[0]), stub.length, SLE_UINT32);
 		assert(prog->Validate().Succeeded());
 	}
 }
 
-static void RealSave_TRRP(TraceRestrictProgram *prog)
-{
-	TraceRestrictProgramStub stub;
-	stub.length = prog->items.size();
-	SlObject(&stub, _trace_restrict_program_stub_desc);
-	SlArray(&(prog->items[0]), stub.length, SLE_UINT32);
-}
-
-static void Save_TRRP()
+static void Save_TRRP(SaveDumper *dumper)
 {
 	TraceRestrictProgram *prog;
 
 	FOR_ALL_TRACE_RESTRICT_PROGRAMS(prog) {
-		SlSetArrayIndex(prog->index);
-		SlAutolength((AutolengthProc*) RealSave_TRRP, prog);
+		SaveDumper temp_dumper(1024);
+		TraceRestrictProgramStub stub;
+		stub.length = prog->items.size();
+		temp_dumper.WriteObject(&stub, _trace_restrict_program_stub_desc);
+		temp_dumper.WriteArray(&(prog->items[0]), stub.length, SLE_UINT32);
+		dumper->WriteElementHeader(prog->index, temp_dumper.GetSize());
+		temp_dumper.Dump(dumper);
 	}
 }
 
@@ -82,7 +79,7 @@ void AfterLoadTraceRestrict()
 {
 	for (TraceRestrictMapping::iterator iter = _tracerestrictprogram_mapping.begin();
 			iter != _tracerestrictprogram_mapping.end(); ++iter) {
-		_tracerestrictprogram_pool.Get(iter->second.program_id)->IncrementRefCount();
+		TraceRestrictProgram::Get(iter->second.program_id)->IncrementRefCount();
 	}
 }
 

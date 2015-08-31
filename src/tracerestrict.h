@@ -15,8 +15,8 @@
 #include "core/enum_type.hpp"
 #include "core/pool_type.hpp"
 #include "command_func.h"
-#include "rail_map.h"
-#include "tile_type.h"
+#include "map/rail.h"
+#include "map/class.h"
 #include <map>
 #include <vector>
 
@@ -27,11 +27,6 @@ typedef uint32 TraceRestrictProgramID;
 struct TraceRestrictProgram;
 
 typedef uint32 TraceRestrictRefId;
-
-/** Type of the pool for trace restrict programs. */
-typedef Pool<TraceRestrictProgram, TraceRestrictProgramID, 16, 256000> TraceRestrictProgramPool;
-/** The actual pool for trace restrict nodes. */
-extern TraceRestrictProgramPool _tracerestrictprogram_pool;
 
 #define FOR_ALL_TRACE_RESTRICT_PROGRAMS_FROM(var, start) FOR_ALL_ITEMS_FROM(TraceRestrictProgram, tr_index, var, start)
 #define FOR_ALL_TRACE_RESTRICT_PROGRAMS(var) FOR_ALL_TRACE_RESTRICT_PROGRAMS_FROM(var, 0)
@@ -121,7 +116,7 @@ struct TraceRestrictProgramResult {
 
 typedef uint32 TraceRestrictItem;
 
-struct TraceRestrictProgram : TraceRestrictProgramPool::PoolItem<&_tracerestrictprogram_pool> {
+struct TraceRestrictProgram : PooledItem <TraceRestrictProgram, TraceRestrictProgramID, 16, 256000> {
 	std::vector<TraceRestrictItem> items;
 	uint32 refcount;
 

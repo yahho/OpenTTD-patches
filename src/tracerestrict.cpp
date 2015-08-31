@@ -16,11 +16,11 @@
 #include "company_func.h"
 #include "viewport_func.h"
 #include "window_func.h"
-#include "pathfinder/yapf/yapf_cache.h"
+#include "pathfinder/yapf/yapf.h"
 #include <vector>
 
-/** Initialize theprogram pool */
-TraceRestrictProgramPool _tracerestrictprogram_pool("TraceRestrictProgram");
+/** Initialize the program pool */
+template<> TraceRestrictProgram::Pool TraceRestrictProgram::PoolItem::pool ("TraceRestrictProgram");
 INSTANTIATE_POOL_METHODS(TraceRestrictProgram)
 
 /**
@@ -278,16 +278,15 @@ void TraceRestrictCreateProgramMapping(TraceRestrictRefId ref, TraceRestrictProg
 	if (!insert_result.second) {
 		// value was not inserted, there is an existing mapping
 		// unref the existing mapping before updating it
-		_tracerestrictprogram_pool.Get(insert_result.first->second.program_id)->DecrementRefCount();
+		TraceRestrictProgram::Get(insert_result.first->second.program_id)->DecrementRefCount();
 		insert_result.first->second = prog->index;
 	}
 	prog->IncrementRefCount();
 
 	TileIndex tile = GetTraceRestrictRefIdTileIndex(ref);
-	Track track = GetTraceRestrictRefIdTrack(ref);
 	SetIsSignalRestrictedBit(tile);
 	MarkTileDirtyByTile(tile);
-	YapfNotifyTrackLayoutChange(tile, track);
+	YapfNotifyTrackLayoutChange();
 }
 
 void TraceRestrictRemoveProgramMapping(TraceRestrictRefId ref)
@@ -295,14 +294,13 @@ void TraceRestrictRemoveProgramMapping(TraceRestrictRefId ref)
 	TraceRestrictMapping::iterator iter = _tracerestrictprogram_mapping.find(ref);
 	if (iter != _tracerestrictprogram_mapping.end()) {
 		// Found
-		_tracerestrictprogram_pool.Get(iter->second.program_id)->DecrementRefCount();
+		TraceRestrictProgram::Get(iter->second.program_id)->DecrementRefCount();
 		_tracerestrictprogram_mapping.erase(iter);
 
 		TileIndex tile = GetTraceRestrictRefIdTileIndex(ref);
-		Track track = GetTraceRestrictRefIdTrack(ref);
 		SetIsSignalRestrictedBit(tile);
 		MarkTileDirtyByTile(tile);
-		YapfNotifyTrackLayoutChange(tile, track);
+		YapfNotifyTrackLayoutChange();
 	}
 }
 
@@ -316,7 +314,7 @@ TraceRestrictProgram *GetTraceRestrictProgram(TraceRestrictRefId ref, bool creat
 	TraceRestrictMapping::iterator iter = _tracerestrictprogram_mapping.find(ref);
 	if (iter != _tracerestrictprogram_mapping.end()) {
 		// Found
-		return _tracerestrictprogram_pool.Get(iter->second.program_id);
+		return TraceRestrictProgram::Get(iter->second.program_id);
 	} else if (create_new) {
 		// Not found
 
@@ -350,7 +348,7 @@ void TraceRestrictDoCommandP(TileIndex tile, Track track, TraceRestrictDoCommand
 	SB(p1, 3, 5, type);
 	assert(offset < (1 << 16));
 	SB(p1, 8, 16, offset);
-	DoCommandP(tile, p1, value, CMD_PROGRAM_TRACERESTRICT_SIGNAL | CMD_MSG(error_msg));
+	DoCommandP(tile, p1, value, CMD_PROGRAM_TRACERESTRICT_SIGNAL);
 }
 
 /**
@@ -375,7 +373,7 @@ CommandCost CmdProgramSignalTraceRestrict(TileIndex tile, DoCommandFlag flags, u
 	}
 
 	// Check that there actually is a signal here
-	if (!IsPlainRailTile(tile) || !HasTrack(tile, track)) {
+	if (!IsRailwayTile(tile) || !HasTrack(tile, track)) {
 		return_cmd_error(STR_ERROR_THERE_IS_NO_RAILROAD_TRACK);
 	}
 	if (!HasSignalOnTrack(tile, track)) {
