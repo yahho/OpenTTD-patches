@@ -16,6 +16,7 @@
 #include "newgrf_station.h"
 #include "waypoint_base.h"
 #include "station_func.h"
+#include "tracerestrict.h"
 
 /**
  * Draw a waypoint
@@ -53,4 +54,5 @@ Waypoint::~Waypoint()
 	if (CleaningPool()) return;
 	DeleteWindowById(WC_WAYPOINT_VIEW, this->index);
 	RemoveOrderFromAllVehicles(OT_GOTO_WAYPOINT, this->index);
+	TraceRestrictRemoveDestinationID(TROCAF_WAYPOINT, this->index);
 }

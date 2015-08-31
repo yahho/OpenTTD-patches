@@ -30,6 +30,7 @@
 #include "linkgraph/linkgraph.h"
 #include "linkgraph/linkgraphschedule.h"
 #include "map/road.h"
+#include "tracerestrict.h"
 
 #include "table/strings.h"
 
@@ -138,6 +139,8 @@ Station::~Station()
 
 	/* Now delete all orders that go to the station */
 	RemoveOrderFromAllVehicles(OT_GOTO_STATION, this->index);
+
+	TraceRestrictRemoveDestinationID(TROCAF_STATION, this->index);
 
 	/* Remove all news items */
 	DeleteStationNews(this->index);
