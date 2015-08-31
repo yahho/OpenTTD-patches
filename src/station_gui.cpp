@@ -1619,9 +1619,9 @@ struct StationViewWindow : public Window {
 
 				if (cargo[i].GetCount() > 0) {
 					cargo_count += cargo[i].GetNumChildren() + 1;
+					pos = this->DrawCargoEntry (&cargo[i], i, waiting_rect, pos, maxrows);
 				}
 			}
-			this->DrawCargoEntries (cargo, waiting_rect, pos, maxrows);
 			this->vscroll->SetCount (cargo_count); // update scrollbar
 
 			scroll_to_row = INT_MAX;
@@ -1892,24 +1892,6 @@ struct StationViewWindow : public Window {
 		}
 
 		return this->DrawEntries (cd, r, pos - 1, maxrows, 0, cargo);
-	}
-
-	/**
-	 * Draw the given cargo entries in the station GUI.
-	 * @param entries Array of entries for all cargoes to be drawn.
-	 * @param r Screen rectangle to draw into.
-	 * @param pos Current row to be drawn to (counted down from 0 to -maxrows, same as vscroll->GetPosition()).
-	 * @param maxrows Maximum row to be drawn.
-	 * @return row (in "pos" counting) after the one we have last drawn to.
-	 */
-	int DrawCargoEntries (CargoDataEntry *entries, const Rect &r, int pos, int maxrows)
-	{
-		for (uint i = 0; i < NUM_CARGO; i++) {
-			if (entries[i].GetCount() > 0) {
-				pos = this->DrawCargoEntry (&entries[i], (CargoID)i, r, pos, maxrows);
-			}
-		}
-		return pos;
 	}
 
 	/**
