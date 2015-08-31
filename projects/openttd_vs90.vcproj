@@ -13067,6 +13067,62 @@
 					/>
 				</FileConfiguration>
 			</File>
+			<File
+				RelativePath=".\..\src\tracerestrict.h"
+				>
+			</File>
+			<File
+				RelativePath=".\..\src\tracerestrict.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\..\src\tracerestrict_gui.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\..\src\saveload\tracerestrict_sl.cpp"
+				>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						AssemblerListingLocation="$(IntDir)\saveload\"
+						ObjectFile="$(IntDir)\saveload\"
+						XMLDocumentationFileName="$(IntDir)\saveload\"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						AssemblerListingLocation="$(IntDir)\saveload\"
+						ObjectFile="$(IntDir)\saveload\"
+						XMLDocumentationFileName="$(IntDir)\saveload\"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|x64"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						AssemblerListingLocation="$(IntDir)\saveload\"
+						ObjectFile="$(IntDir)\saveload\"
+						XMLDocumentationFileName="$(IntDir)\saveload\"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|x64"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						AssemblerListingLocation="$(IntDir)\saveload\"
+						ObjectFile="$(IntDir)\saveload\"
+						XMLDocumentationFileName="$(IntDir)\saveload\"
+					/>
+				</FileConfiguration>
+			</File>
 		</Filter>
 		<File
 			RelativePath=".\..\media\openttd.ico"
