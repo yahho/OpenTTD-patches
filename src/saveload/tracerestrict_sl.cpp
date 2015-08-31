@@ -20,6 +20,9 @@ static const SaveLoad _trace_restrict_mapping_desc[] = {
   SLE_END()
 };
 
+/**
+ * Load mappings
+ */
 static void Load_TRRM(LoadBuffer *reader)
 {
 	int index;
@@ -29,6 +32,9 @@ static void Load_TRRM(LoadBuffer *reader)
 	}
 }
 
+/**
+ * Save mappings
+ */
 static void Save_TRRM(SaveDumper *dumper)
 {
 	for (TraceRestrictMapping::iterator iter = _tracerestrictprogram_mapping.begin();
@@ -38,6 +44,7 @@ static void Save_TRRM(SaveDumper *dumper)
 	}
 }
 
+/** program length save header struct */
 struct TraceRestrictProgramStub {
 	uint32 length;
 };
@@ -47,6 +54,9 @@ static const SaveLoad _trace_restrict_program_stub_desc[] = {
 	SLE_END()
 };
 
+/**
+ * Load program pool
+ */
 static void Load_TRRP(LoadBuffer *reader)
 {
 	int index;
@@ -60,6 +70,9 @@ static void Load_TRRP(LoadBuffer *reader)
 	}
 }
 
+/**
+ * Save program pool
+ */
 static void Save_TRRP(SaveDumper *dumper)
 {
 	TraceRestrictProgram *prog;
@@ -75,6 +88,9 @@ static void Save_TRRP(SaveDumper *dumper)
 	}
 }
 
+/**
+ * Update program reference counts from just-loaded mapping
+ */
 void AfterLoadTraceRestrict()
 {
 	for (TraceRestrictMapping::iterator iter = _tracerestrictprogram_mapping.begin();
@@ -84,6 +100,6 @@ void AfterLoadTraceRestrict()
 }
 
 extern const ChunkHandler _trace_restrict_chunk_handlers[] = {
-	{ 'TRRM', Save_TRRM, Load_TRRM, NULL, NULL, CH_SPARSE_ARRAY},
-	{ 'TRRP', Save_TRRP, Load_TRRP, NULL, NULL, CH_ARRAY | CH_LAST},
+	{ 'TRRM', Save_TRRM, Load_TRRM, NULL, NULL, CH_SPARSE_ARRAY},    // Trace Restrict Mapping chunk
+	{ 'TRRP', Save_TRRP, Load_TRRP, NULL, NULL, CH_ARRAY | CH_LAST}, // Trace Restrict Mapping Program Pool chunk
 };

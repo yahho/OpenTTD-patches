@@ -276,12 +276,21 @@ static inline void SetSignalVariant(TileIndex t, Track track, SignalVariant v)
 	tile_set_signal_variant(&_mc[t], track, v);
 }
 
+/**
+ * Does signal tile have "one or more trace restrict mappings present" bit set
+ * @param t the tile to check
+ */
 static inline bool IsRestrictedSignal(TileIndex t)
 {
 	assert(IsRailwayTile(t));
 	return (bool) GB(_mc[t].m2, 12, 1);
 }
 
+/**
+ * Set signal tile "one or more trace restrict mappings present" bit
+ * @param t the tile to set
+ * @param is_restricted whether to set or clear the bit
+ */
 static inline void SetRestrictedSignal(TileIndex t, bool is_restricted)
 {
 	assert(IsRailwayTile(t));
