@@ -3197,6 +3197,7 @@ static void DrawSingleSignal(TileIndex tile, Trackdir trackdir)
 
 	SpriteID sprite = GetCustomSignalSprite(GetRailTypeInfo(GetRailType(tile, track)), tile, type, variant, condition);
 	SignalOffsets image = SignalData[trackdir].image;
+	bool is_custom_sprite = (sprite != 0);
 	if (sprite != 0) {
 		sprite += image;
 	} else {
@@ -3214,7 +3215,19 @@ static void DrawSingleSignal(TileIndex tile, Trackdir trackdir)
 	uint x = TileX(tile) * TILE_SIZE + SignalData[trackdir].pos[side].x;
 	uint y = TileY(tile) * TILE_SIZE + SignalData[trackdir].pos[side].y;
 
-	AddSortableSpriteToDraw(sprite, PAL_NONE, x, y, 1, 1, BB_HEIGHT_UNDER_BRIDGE, GetSafeSlopePixelZ(tile, x, y, track));
+	if (!is_custom_sprite && variant == SIG_ELECTRIC && IsRestrictedSignal(tile) && GetExistingTraceRestrictProgram(tile, track) != NULL) {
+		if (type == SIGTYPE_PBS || type == SIGTYPE_PBS_ONEWAY) {
+			static const SubSprite lower_part { -50, -10, 50, 50 };
+			static const SubSprite upper_part { -50, -50, 50, -11 };
+
+			AddSortableSpriteToDraw(sprite, SPR_TRACERESTRICT_BASE, x, y, 1, 1, BB_HEIGHT_UNDER_BRIDGE, GetSafeSlopePixelZ(tile, x, y, track), false, 0, 0, 0, &lower_part);
+			AddSortableSpriteToDraw(sprite,               PAL_NONE, x, y, 1, 1, BB_HEIGHT_UNDER_BRIDGE, GetSafeSlopePixelZ(tile, x, y, track), false, 0, 0, 0, &upper_part);
+		} else {
+			AddSortableSpriteToDraw(sprite, SPR_TRACERESTRICT_BASE + 1, x, y, 1, 1, BB_HEIGHT_UNDER_BRIDGE, GetSafeSlopePixelZ(tile, x, y, track));
+		}
+	} else {
+		AddSortableSpriteToDraw(sprite, PAL_NONE, x, y, 1, 1, BB_HEIGHT_UNDER_BRIDGE, GetSafeSlopePixelZ(tile, x, y, track));
+	}
 }
 
 static void DrawSignals(TileIndex tile, TrackBits rails)
