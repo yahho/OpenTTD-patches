@@ -366,7 +366,7 @@ private:
 	{
 		const TraceRestrictProgram *prog = GetExistingTraceRestrictProgram(tile, TrackdirToTrack(trackdir));
 		if (prog) {
-			prog->Execute(m_veh, out);
+			prog->Execute(m_veh, TraceRestrictProgramInput(tile, trackdir), out);
 			if (out.flags & TRPRF_DENY) {
 				n.m_segment->m_end_segment_reason.set(ESR_DEAD_END);
 				return true;
