@@ -1603,7 +1603,6 @@ struct StationViewWindow : public Window {
 			NWidgetBase *nwi = this->GetWidget<NWidgetBase>(WID_SV_WAITING);
 			Rect waiting_rect = {nwi->pos_x, nwi->pos_y, nwi->pos_x + nwi->current_x - 1, nwi->pos_y + nwi->current_y - 1};
 
-			CargoDataEntry cargo[NUM_CARGO];
 			uint cargo_count = 0;
 			for (CargoID i = 0; i < NUM_CARGO; i++) {
 				if (!this->cached_destinations_valid.test (i)) {
@@ -1611,15 +1610,16 @@ struct StationViewWindow : public Window {
 					RecalcDestinations (&this->cached_destinations[i], st, i);
 				}
 
+				CargoDataEntry cargo;
 				if (this->current_mode == MODE_WAITING) {
-					this->BuildCargoList (i, st->goods[i].cargo, &cargo[i]);
+					this->BuildCargoList (i, st->goods[i].cargo, &cargo);
 				} else {
-					this->BuildFlowList (i, st->goods[i].flows, &cargo[i]);
+					this->BuildFlowList (i, st->goods[i].flows, &cargo);
 				}
 
-				if (cargo[i].GetCount() > 0) {
-					cargo_count += cargo[i].GetNumChildren() + 1;
-					pos = this->DrawCargoEntry (&cargo[i], i, waiting_rect, pos, maxrows);
+				if (cargo.GetCount() > 0) {
+					cargo_count += cargo.GetNumChildren() + 1;
+					pos = this->DrawCargoEntry (&cargo, i, waiting_rect, pos, maxrows);
 				}
 			}
 			this->vscroll->SetCount (cargo_count); // update scrollbar
