@@ -1854,6 +1854,47 @@ struct StationViewWindow : public Window {
 	}
 
 	/**
+	 * Draw the given cargo entry in the station GUI.
+	 * @param cd Cargo entry to be drawn.
+	 * @param cargo Cargo type for this entry.
+	 * @param r Screen rectangle to draw into.
+	 * @param pos Current row to be drawn to (counted down from 0 to -maxrows, same as vscroll->GetPosition()).
+	 * @param maxrows Maximum row to be drawn.
+	 * @return row (in "pos" counting) after the one we have last drawn to.
+	 */
+	int DrawCargoEntry (CargoDataEntry *cd, CargoID cargo, const Rect &r, int pos, int maxrows)
+	{
+		bool auto_distributed = _settings_game.linkgraph.GetDistributionType(cargo) != DT_MANUAL;
+
+		if (pos > -maxrows && pos <= 0) {
+			int y = r.top + WD_FRAMERECT_TOP - pos * FONT_HEIGHT_NORMAL;
+			SetDParam(0, cargo);
+			SetDParam(1, cd->GetCount());
+			StringID str = STR_STATION_VIEW_WAITING_CARGO;
+			DrawCargoIcons (cargo, cd->GetCount(), r.left + WD_FRAMERECT_LEFT + this->expand_shrink_width, r.right - WD_FRAMERECT_RIGHT - this->expand_shrink_width, y);
+
+			const char *sym = NULL;
+			if (cd->GetNumChildren() > 0) {
+				sym = "-";
+			} else if (auto_distributed) {
+				sym = "+";
+			} else {
+				/* Only draw '+' if there is something to be shown. */
+				const StationCargoList &list = Station::Get(this->window_number)->goods[cargo].cargo;
+				if (list.ReservedCount() > 0 || cd->HasTransfers()) {
+					sym = "+";
+				}
+			}
+
+			this->DrawCargoString (r, y, 0, sym, str);
+
+			this->displayed_rows.push_back (RowDisplay (cargo));
+		}
+
+		return this->DrawEntries (cd, r, pos - 1, maxrows, 0, cargo);
+	}
+
+	/**
 	 * Draw the given cargo entries in the station GUI.
 	 * @param entries Array of entries for all cargoes to be drawn.
 	 * @param r Screen rectangle to draw into.
@@ -1864,38 +1905,9 @@ struct StationViewWindow : public Window {
 	int DrawCargoEntries (CargoDataEntry *entries, const Rect &r, int pos, int maxrows)
 	{
 		for (uint i = 0; i < NUM_CARGO; i++) {
-			CargoDataEntry *cd = &entries[i];
-			if (cd->GetCount() == 0) continue;
-
-			CargoID cargo = (CargoID)i;
-			bool auto_distributed = _settings_game.linkgraph.GetDistributionType(cargo) != DT_MANUAL;
-
-			if (pos > -maxrows && pos <= 0) {
-				int y = r.top + WD_FRAMERECT_TOP - pos * FONT_HEIGHT_NORMAL;
-				SetDParam(0, cargo);
-				SetDParam(1, cd->GetCount());
-				StringID str = STR_STATION_VIEW_WAITING_CARGO;
-				DrawCargoIcons (cargo, cd->GetCount(), r.left + WD_FRAMERECT_LEFT + this->expand_shrink_width, r.right - WD_FRAMERECT_RIGHT - this->expand_shrink_width, y);
-
-				const char *sym = NULL;
-				if (cd->GetNumChildren() > 0) {
-					sym = "-";
-				} else if (auto_distributed) {
-					sym = "+";
-				} else {
-					/* Only draw '+' if there is something to be shown. */
-					const StationCargoList &list = Station::Get(this->window_number)->goods[cargo].cargo;
-					if (list.ReservedCount() > 0 || cd->HasTransfers()) {
-						sym = "+";
-					}
-				}
-
-				this->DrawCargoString (r, y, 0, sym, str);
-
-				this->displayed_rows.push_back (RowDisplay (cargo));
+			if (entries[i].GetCount() > 0) {
+				pos = this->DrawCargoEntry (&entries[i], (CargoID)i, r, pos, maxrows);
 			}
-			--pos;
-			pos = this->DrawEntries (cd, r, pos, maxrows, 0, cargo);
 		}
 		return pos;
 	}
