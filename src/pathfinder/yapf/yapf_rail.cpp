@@ -25,6 +25,7 @@
 #include "../../pbs.h"
 #include "../../waypoint_base.h"
 #include "../../date_func.h"
+#include "../../tracerestrict.h"
 
 #define DEBUG_YAPF_CACHE 0
 
@@ -352,6 +353,29 @@ protected:
 		}
 	}
 
+private:
+	// returns true if ExecuteTraceRestrict should be called
+	inline bool ShouldCheckTraceRestrict(Node& n, TileIndex tile)
+	{
+		return n.m_num_signals_passed < m_sig_look_ahead_costs.Size() &&
+				IsRestrictedSignal(tile);
+	}
+
+	// returns true if dead end bit has been set
+	inline bool ExecuteTraceRestrict(Node& n, TileIndex tile, Trackdir trackdir, int& cost, TraceRestrictProgramResult &out)
+	{
+		const TraceRestrictProgram *prog = GetExistingTraceRestrictProgram(tile, TrackdirToTrack(trackdir));
+		if (prog) {
+			prog->Execute(Yapf().GetVehicle(), out);
+			if (out.flags & TRPRF_DENY) {
+				n.m_segment->m_end_segment_reason |= ESRB_DEAD_END;
+				return true;
+			}
+			cost += out.penalty;
+		}
+		return false;
+	}
+
 public:
 	inline bool Allow90degTurns (void) const
 	{
@@ -672,6 +696,13 @@ inline int CYapfRailBaseT<TAstar>::SignalCost(Node *n, const RailPathPos &pos)
 			}
 		}
 
+		if (ShouldCheckTraceRestrict(n, tile)) {
+			TraceRestrictProgramResult out;
+			if (ExecuteTraceRestrict(n, tile, trackdir, cost, out)) {
+				return -1;
+			}
+		}
+
 		n->m_num_signals_passed++;
 		n->m_segment->m_last_signal = pos;
 	} else if (pos.has_signal_against()) {
@@ -680,6 +711,13 @@ inline int CYapfRailBaseT<TAstar>::SignalCost(Node *n, const RailPathPos &pos)
 			n->m_segment->m_end_segment_reason.set(ESR_DEAD_END);
 		} else {
 			cost += n->m_num_signals_passed < m_settings->rail_look_ahead_max_signals ? m_settings->rail_pbs_signal_back_penalty : 0;
+
+			if (ShouldCheckTraceRestrict(n, tile)) {
+				TraceRestrictProgramResult out;
+				if (ExecuteTraceRestrict(n, tile, trackdir, cost, out)) {
+					return -1;
+				}
+			}
 		}
 	}
 

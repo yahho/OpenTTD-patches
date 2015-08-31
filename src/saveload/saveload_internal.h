@@ -34,6 +34,7 @@ void AfterLoadLabelMaps();
 void AfterLoadStoryBook(const SavegameTypeVersion *stv);
 void AfterLoadLinkGraphs(const SavegameTypeVersion *stv);
 void AfterLoadCompanyStats();
+void AfterLoadTraceRestrict();
 void UpdateHousesAndTowns();
 
 void UpdateOldAircraft();

@@ -2263,6 +2263,7 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 	InitializeWindowsAndCaches();
 
 	AfterLoadLinkGraphs (stv);
+	AfterLoadTraceRestrict();
 }
 
 /**

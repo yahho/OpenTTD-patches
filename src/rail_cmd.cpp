@@ -37,6 +37,7 @@
 #include "bridge.h"
 #include "signalbuffer.h"
 #include "object.h"
+#include "tracerestrict.h"
 
 #include "table/strings.h"
 #include "table/railtypes.h"
@@ -1915,6 +1916,7 @@ CommandCost CmdRemoveSingleSignal(TileIndex tile, DoCommandFlag flags, uint32 p1
 		Owner owner = GetTileOwner(tile);
 		Company::Get(owner)->infrastructure.signal -= CountBits(signalpair_get_present(signals)) + (other_end != INVALID_TILE ? 1 : 0);
 		DirtyCompanyInfrastructureWindows(owner);
+		TraceRestrictNotifySignalRemoval(tile, track);
 
 		signalpair_clear(signals);
 		AddTrackToSignalBuffer(tile, track, owner);

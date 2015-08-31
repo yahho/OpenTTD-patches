@@ -276,6 +276,18 @@ static inline void SetSignalVariant(TileIndex t, Track track, SignalVariant v)
 	tile_set_signal_variant(&_mc[t], track, v);
 }
 
+static inline bool IsRestrictedSignal(TileIndex t)
+{
+	assert(IsRailwayTile(t));
+	return (bool) GB(_mc[t].m2, 12, 1);
+}
+
+static inline void SetRestrictedSignal(TileIndex t, bool is_restricted)
+{
+	assert(IsRailwayTile(t));
+	SB(_mc[t].m2, 12, 1, is_restricted);
+}
+
 
 static inline RailGroundType GetRailGroundType(TileIndex t)
 {

@@ -198,6 +198,8 @@ CommandProc CmdSetTimetableStart;
 
 CommandProc CmdOpenCloseAirport;
 
+CommandProc CmdProgramSignalTraceRestrict;
+
 template <StringID str>
 StringID GetErrConstant (TileIndex tile, uint32 p1, uint32 p2, const char *text)
 {
@@ -397,6 +399,8 @@ static const CommandClass _command_proc_table[] = {
 	DEF_CMD(CmdSetTimetableStart,                                  0, CMDT_ROUTE_MANAGEMENT,       NULL,               GetErrConstant<STR_ERROR_CAN_T_TIMETABLE_VEHICLE>),         // CMD_SET_TIMETABLE_START
 
 	DEF_CMD(CmdOpenCloseAirport,                                   0, CMDT_ROUTE_MANAGEMENT,       NULL,               NULL),                                                      // CMD_OPEN_CLOSE_AIRPORT
+
+	DEF_CMD(CmdProgramSignalTraceRestrict,                         0, CMDT_OTHER_MANAGEMENT,       NULL,               NULL),                                                      // CMD_PROGRAM_TRACERESTRICT_SIGNAL
 };
 
 /*!
