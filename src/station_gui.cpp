@@ -1604,10 +1604,19 @@ struct StationViewWindow : public Window {
 			Rect waiting_rect = {nwi->pos_x, nwi->pos_y, nwi->pos_x + nwi->current_x - 1, nwi->pos_y + nwi->current_y - 1};
 
 			CargoDataEntry cargo[NUM_CARGO];
-			BuildCargoList (cargo, st);
-
 			uint cargo_count = 0;
-			for (uint i = 0; i < NUM_CARGO; i++) {
+			for (CargoID i = 0; i < NUM_CARGO; i++) {
+				if (!this->cached_destinations_valid.test (i)) {
+					this->cached_destinations_valid.set (i);
+					RecalcDestinations (&this->cached_destinations[i], st, i);
+				}
+
+				if (this->current_mode == MODE_WAITING) {
+					this->BuildCargoList (i, st->goods[i].cargo, &cargo[i]);
+				} else {
+					this->BuildFlowList (i, st->goods[i].flows, &cargo[i]);
+				}
+
 				if (cargo[i].GetCount() > 0) {
 					cargo_count += cargo[i].GetNumChildren() + 1;
 				}
@@ -1679,27 +1688,6 @@ struct StationViewWindow : public Window {
 			}
 		}
 		this->ShowCargo(cargo, i, NEW_STATION, NEW_STATION, NEW_STATION, packets.ReservedCount());
-	}
-
-	/**
-	 * Build up the cargo view for all cargoes.
-	 * @param cargo The root cargo entry to save all results in.
-	 * @param st The station to calculate the cargo view from.
-	 */
-	void BuildCargoList(CargoDataEntry *cargo, const Station *st)
-	{
-		for (CargoID i = 0; i < NUM_CARGO; i++) {
-			if (!this->cached_destinations_valid.test (i)) {
-				this->cached_destinations_valid.set (i);
-				RecalcDestinations (&this->cached_destinations[i], st, i);
-			}
-
-			if (this->current_mode == MODE_WAITING) {
-				this->BuildCargoList (i, st->goods[i].cargo, &cargo[i]);
-			} else {
-				this->BuildFlowList (i, st->goods[i].flows, &cargo[i]);
-			}
-		}
 	}
 
 	/**
