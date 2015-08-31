@@ -1498,7 +1498,6 @@ struct StationViewWindow : public Window {
 		if (count == 0) return;
 		bool auto_distributed = _settings_game.linkgraph.GetDistributionType(cargo) != DT_MANUAL;
 
-		data = data->InsertOrRetrieve (cargo);
 		data->SetTransfers (source != this->window_number);
 
 		if (this->expanded_cargoes.test (cargo)) {
@@ -1559,10 +1558,6 @@ struct StationViewWindow : public Window {
 	virtual void OnPaint()
 	{
 		const Station *st = Station::Get(this->window_number);
-		CargoDataEntry cargo;
-		BuildCargoList(&cargo, st);
-
-		this->vscroll->SetCount(cargo.GetNumChildren()); // update scrollbar
 
 		/* disable some buttons */
 		this->SetWidgetDisabledState(WID_SV_RENAME,   st->owner != _local_company);
@@ -1607,7 +1602,19 @@ struct StationViewWindow : public Window {
 			/* Draw waiting cargo. */
 			NWidgetBase *nwi = this->GetWidget<NWidgetBase>(WID_SV_WAITING);
 			Rect waiting_rect = {nwi->pos_x, nwi->pos_y, nwi->pos_x + nwi->current_x - 1, nwi->pos_y + nwi->current_y - 1};
-			this->DrawCargoEntries (&cargo, waiting_rect, pos, maxrows);
+
+			CargoDataEntry cargo[NUM_CARGO];
+			BuildCargoList (cargo, st);
+
+			uint cargo_count = 0;
+			for (uint i = 0; i < NUM_CARGO; i++) {
+				if (cargo[i].GetCount() > 0) {
+					cargo_count += cargo[i].GetNumChildren() + 1;
+				}
+			}
+			this->DrawCargoEntries (cargo, waiting_rect, pos, maxrows);
+			this->vscroll->SetCount (cargo_count); // update scrollbar
+
 			scroll_to_row = INT_MAX;
 		}
 	}
@@ -1688,9 +1695,9 @@ struct StationViewWindow : public Window {
 			}
 
 			if (this->current_mode == MODE_WAITING) {
-				this->BuildCargoList(i, st->goods[i].cargo, cargo);
+				this->BuildCargoList (i, st->goods[i].cargo, &cargo[i]);
 			} else {
-				this->BuildFlowList(i, st->goods[i].flows, cargo);
+				this->BuildFlowList (i, st->goods[i].flows, &cargo[i]);
 			}
 		}
 	}
@@ -1833,16 +1840,12 @@ struct StationViewWindow : public Window {
 
 				this->DrawCargoString (r, y, column + 1, sym, str);
 
-				assert (entry->GetParent() != NULL);
-
 				std::list <StationID> stations;
 				const CargoDataEntry *parent = entry;
-				while (parent->GetParent()->GetParent() != NULL) {
+				while (parent->GetParent() != NULL) {
 					stations.push_back (parent->GetStation());
 					parent = parent->GetParent();
 				}
-
-				assert (parent->GetCargo() == cargo);
 
 				expanded_map *filter = &this->expanded_rows[cargo];
 				while (!stations.empty()) {
@@ -1864,18 +1867,19 @@ struct StationViewWindow : public Window {
 
 	/**
 	 * Draw the given cargo entries in the station GUI.
-	 * @param entry Root entry for all cargo to be drawn.
+	 * @param entries Array of entries for all cargoes to be drawn.
 	 * @param r Screen rectangle to draw into.
 	 * @param pos Current row to be drawn to (counted down from 0 to -maxrows, same as vscroll->GetPosition()).
 	 * @param maxrows Maximum row to be drawn.
 	 * @return row (in "pos" counting) after the one we have last drawn to.
 	 */
-	int DrawCargoEntries (CargoDataEntry *entry, const Rect &r, int pos, int maxrows)
+	int DrawCargoEntries (CargoDataEntry *entries, const Rect &r, int pos, int maxrows)
 	{
-		for (CargoDataSet::iterator i = entry->Begin(); i != entry->End(); ++i) {
-			CargoDataEntry *cd = *i;
+		for (uint i = 0; i < NUM_CARGO; i++) {
+			CargoDataEntry *cd = &entries[i];
+			if (cd->GetCount() == 0) continue;
 
-			CargoID cargo = cd->GetCargo();
+			CargoID cargo = (CargoID)i;
 			bool auto_distributed = _settings_game.linkgraph.GetDistributionType(cargo) != DT_MANUAL;
 
 			if (pos > -maxrows && pos <= 0) {
