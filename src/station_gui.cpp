@@ -829,11 +829,9 @@ enum SortOrder {
 };
 
 enum CargoSortType {
-	ST_AS_GROUPING,    ///< by the same principle the entries are being grouped
 	ST_COUNT,          ///< by amount of cargo
 	ST_STATION_STRING, ///< by station name
 	ST_STATION_ID,     ///< by station id
-	ST_CARGO_ID,       ///< by cargo id
 };
 
 
@@ -1263,7 +1261,7 @@ struct StationViewWindow : public Window {
 
 	/**
 	 * Sort types of the different 'columns'.
-	 * In fact only ST_COUNT and ST_AS_GROUPING are active and you can only
+	 * In fact only ST_COUNT and ST_STATION_STRING are active and you can only
 	 * sort all the columns in the same way. The other options haven't been
 	 * included in the GUI due to lack of space.
 	 */
@@ -1609,7 +1607,7 @@ struct StationViewWindow : public Window {
 	int DrawEntries (const CargoNodeEntry *entry, const Rect &r, int pos, int maxrows, int column, CargoID cargo)
 	{
 		typedef CargoNodeEntry::vector vector;
-		vector v = entry->sort (this->sorting == ST_AS_GROUPING ? ST_STATION_STRING : ST_COUNT, this->sort_order);
+		vector v = entry->sort (this->sorting, this->sort_order);
 
 		for (vector::const_iterator i = v.begin(); i != v.end(); ++i) {
 			const CargoNodeEntry *cd = *i;
@@ -1896,7 +1894,7 @@ struct StationViewWindow : public Window {
 		switch (_sort_names[index]) {
 			case STR_STATION_VIEW_WAITING_STATION:
 				this->current_mode = MODE_WAITING;
-				this->sorting = ST_AS_GROUPING;
+				this->sorting = ST_STATION_STRING;
 				break;
 			case STR_STATION_VIEW_WAITING_AMOUNT:
 				this->current_mode = MODE_WAITING;
@@ -1904,7 +1902,7 @@ struct StationViewWindow : public Window {
 				break;
 			case STR_STATION_VIEW_PLANNED_STATION:
 				this->current_mode = MODE_PLANNED;
-				this->sorting = ST_AS_GROUPING;
+				this->sorting = ST_STATION_STRING;
 				break;
 			case STR_STATION_VIEW_PLANNED_AMOUNT:
 				this->current_mode = MODE_PLANNED;
