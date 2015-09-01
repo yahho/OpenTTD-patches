@@ -11,6 +11,7 @@
 
 #include "stdafx.h"
 #include "debug.h"
+#include "core/pointer.h"
 #include "gui.h"
 #include "textbuf_gui.h"
 #include "company_func.h"
@@ -44,6 +45,7 @@
 #include <set>
 #include <map>
 #include <vector>
+#include <algorithm>
 
 /**
  * Calculates and draws the accepted or supplied cargo around the selected tile(s)
@@ -826,8 +828,6 @@ enum SortOrder {
 	SO_ASCENDING
 };
 
-class CargoDataEntry;
-
 enum CargoSortType {
 	ST_AS_GROUPING,    ///< by the same principle the entries are being grouped
 	ST_COUNT,          ///< by amount of cargo
@@ -835,369 +835,6 @@ enum CargoSortType {
 	ST_STATION_ID,     ///< by station id
 	ST_CARGO_ID,       ///< by cargo id
 };
-
-class CargoSorter {
-public:
-	CargoSorter(CargoSortType t = ST_STATION_ID, SortOrder o = SO_ASCENDING) : type(t), order(o) {}
-	CargoSortType GetSortType() {return this->type;}
-	bool operator()(const CargoDataEntry *cd1, const CargoDataEntry *cd2) const;
-
-private:
-	CargoSortType type;
-	SortOrder order;
-
-	template<class Tid>
-	bool SortId(Tid st1, Tid st2) const;
-	bool SortCount(const CargoDataEntry *cd1, const CargoDataEntry *cd2) const;
-	bool SortStation (StationID st1, StationID st2) const;
-};
-
-typedef std::set<CargoDataEntry *, CargoSorter> CargoDataSet;
-
-/**
- * A cargo data entry representing one possible row in the station view window's
- * top part. Cargo data entries form a tree where each entry can have several
- * children. Parents keep track of the sums of their childrens' cargo counts.
- */
-class CargoDataEntry {
-public:
-	CargoDataEntry();
-	~CargoDataEntry();
-
-	/**
-	 * Insert a new child or retrieve an existing child using a station ID as ID.
-	 * @param station ID of the station for which an entry shall be created or retrieved
-	 * @return a child entry associated with the given station.
-	 */
-	CargoDataEntry *InsertOrRetrieve(StationID station)
-	{
-		return this->InsertOrRetrieve<StationID>(station);
-	}
-
-	/**
-	 * Insert a new child or retrieve an existing child using a cargo ID as ID.
-	 * @param cargo ID of the cargo for which an entry shall be created or retrieved
-	 * @return a child entry associated with the given cargo.
-	 */
-	CargoDataEntry *InsertOrRetrieve(CargoID cargo)
-	{
-		return this->InsertOrRetrieve<CargoID>(cargo);
-	}
-
-	void Update(uint count);
-
-	/**
-	 * Remove a child associated with the given station.
-	 * @param station ID of the station for which the child should be removed.
-	 */
-	void Remove(StationID station)
-	{
-		CargoDataEntry t(station);
-		this->Remove(&t);
-	}
-
-	/**
-	 * Remove a child associated with the given cargo.
-	 * @param cargo ID of the cargo for which the child should be removed.
-	 */
-	void Remove(CargoID cargo)
-	{
-		CargoDataEntry t(cargo);
-		this->Remove(&t);
-	}
-
-	/**
-	 * Retrieve a child for the given station. Return NULL if it doesn't exist.
-	 * @param station ID of the station the child we're looking for is associated with.
-	 * @return a child entry for the given station or NULL.
-	 */
-	CargoDataEntry *Retrieve(StationID station) const
-	{
-		CargoDataEntry t(station);
-		return this->Retrieve(this->children->find(&t));
-	}
-
-	/**
-	 * Retrieve a child for the given cargo. Return NULL if it doesn't exist.
-	 * @param cargo ID of the cargo the child we're looking for is associated with.
-	 * @return a child entry for the given cargo or NULL.
-	 */
-	CargoDataEntry *Retrieve(CargoID cargo) const
-	{
-		CargoDataEntry t(cargo);
-		return this->Retrieve(this->children->find(&t));
-	}
-
-	void Resort(CargoSortType type, SortOrder order);
-
-	/**
-	 * Get the station ID for this entry.
-	 */
-	StationID GetStation() const { return this->station; }
-
-	/**
-	 * Get the cargo ID for this entry.
-	 */
-	CargoID GetCargo() const { return this->cargo; }
-
-	/**
-	 * Get the cargo count for this entry.
-	 */
-	uint GetCount() const { return this->count; }
-
-	/**
-	 * Get the parent entry for this entry.
-	 */
-	CargoDataEntry *GetParent() const { return this->parent; }
-
-	/**
-	 * Get the number of children for this entry.
-	 */
-	uint GetNumChildren() const { return this->num_children; }
-
-	/**
-	 * Get an iterator pointing to the begin of the set of children.
-	 */
-	CargoDataSet::iterator Begin() const { return this->children->begin(); }
-
-	/**
-	 * Get an iterator pointing to the end of the set of children.
-	 */
-	CargoDataSet::iterator End() const { return this->children->end(); }
-
-	/**
-	 * Has this entry transfers.
-	 */
-	bool HasTransfers() const { return this->transfers; }
-
-	/**
-	 * Set the transfers state.
-	 */
-	void SetTransfers(bool value) { this->transfers = value; }
-
-	void Clear();
-private:
-
-	CargoDataEntry(StationID st, uint c, CargoDataEntry *p);
-	CargoDataEntry(CargoID car, uint c, CargoDataEntry *p);
-	CargoDataEntry(StationID st);
-	CargoDataEntry(CargoID car);
-
-	CargoDataEntry *Retrieve(CargoDataSet::iterator i) const;
-
-	template<class Tid>
-	CargoDataEntry *InsertOrRetrieve(Tid s);
-
-	void Remove(CargoDataEntry *comp);
-	void IncrementSize();
-
-	CargoDataEntry *parent;   ///< the parent of this entry.
-	const union {
-		StationID station;    ///< ID of the station this entry is associated with.
-		struct {
-			CargoID cargo;    ///< ID of the cargo this entry is associated with.
-			bool transfers;   ///< If there are transfers for this cargo.
-		};
-	};
-	uint num_children;        ///< the number of subentries belonging to this entry.
-	uint count;               ///< sum of counts of all children or amount of cargo for this entry.
-	CargoDataSet *children;   ///< the children of this entry.
-};
-
-CargoDataEntry::CargoDataEntry() :
-	parent(NULL),
-	station(INVALID_STATION),
-	num_children(0),
-	count(0),
-	children(new CargoDataSet(CargoSorter(ST_CARGO_ID)))
-{}
-
-CargoDataEntry::CargoDataEntry(CargoID cargo, uint count, CargoDataEntry *parent) :
-	parent(parent),
-	cargo(cargo),
-	num_children(0),
-	count(count),
-	children(new CargoDataSet)
-{}
-
-CargoDataEntry::CargoDataEntry(StationID station, uint count, CargoDataEntry *parent) :
-	parent(parent),
-	station(station),
-	num_children(0),
-	count(count),
-	children(new CargoDataSet)
-{}
-
-CargoDataEntry::CargoDataEntry(StationID station) :
-	parent(NULL),
-	station(station),
-	num_children(0),
-	count(0),
-	children(NULL)
-{}
-
-CargoDataEntry::CargoDataEntry(CargoID cargo) :
-	parent(NULL),
-	cargo(cargo),
-	num_children(0),
-	count(0),
-	children(NULL)
-{}
-
-CargoDataEntry::~CargoDataEntry()
-{
-	this->Clear();
-	delete this->children;
-}
-
-/**
- * Delete all subentries, reset count and num_children and adapt parent's count.
- */
-void CargoDataEntry::Clear()
-{
-	if (this->children != NULL) {
-		for (CargoDataSet::iterator i = this->children->begin(); i != this->children->end(); ++i) {
-			assert(*i != this);
-			delete *i;
-		}
-		this->children->clear();
-	}
-	if (this->parent != NULL) this->parent->count -= this->count;
-	this->count = 0;
-	this->num_children = 0;
-}
-
-/**
- * Remove a subentry from this one and delete it.
- * @param child the entry to be removed. This may also be a synthetic entry
- * which only contains the ID of the entry to be removed. In this case child is
- * not deleted.
- */
-void CargoDataEntry::Remove(CargoDataEntry *child)
-{
-	CargoDataSet::iterator i = this->children->find(child);
-	if (i != this->children->end()) {
-		delete *i;
-		this->children->erase(i);
-	}
-}
-
-/**
- * Retrieve a subentry or insert it if it doesn't exist, yet.
- * @tparam ID type of ID: either StationID or CargoID
- * @param child_id ID of the child to be inserted or retrieved.
- * @return the new or retrieved subentry
- */
-template<class Tid>
-CargoDataEntry *CargoDataEntry::InsertOrRetrieve(Tid child_id)
-{
-	CargoDataEntry tmp(child_id);
-	CargoDataSet::iterator i = this->children->find(&tmp);
-	if (i == this->children->end()) {
-		IncrementSize();
-		return *(this->children->insert(new CargoDataEntry(child_id, 0, this)).first);
-	} else {
-		CargoDataEntry *ret = *i;
-		assert(this->children->value_comp().GetSortType() != ST_COUNT);
-		return ret;
-	}
-}
-
-/**
- * Update the count for this entry and propagate the change to the parent entry
- * if there is one.
- * @param count the amount to be added to this entry
- */
-void CargoDataEntry::Update(uint count)
-{
-	this->count += count;
-	if (this->parent != NULL) this->parent->Update(count);
-}
-
-/**
- * Increment
- */
-void CargoDataEntry::IncrementSize()
-{
-	 ++this->num_children;
-	 if (this->parent != NULL) this->parent->IncrementSize();
-}
-
-void CargoDataEntry::Resort(CargoSortType type, SortOrder order)
-{
-	CargoDataSet *new_subs = new CargoDataSet(this->children->begin(), this->children->end(), CargoSorter(type, order));
-	delete this->children;
-	this->children = new_subs;
-}
-
-CargoDataEntry *CargoDataEntry::Retrieve(CargoDataSet::iterator i) const
-{
-	if (i == this->children->end()) {
-		return NULL;
-	} else {
-		assert(this->children->value_comp().GetSortType() != ST_COUNT);
-		return *i;
-	}
-}
-
-bool CargoSorter::operator()(const CargoDataEntry *cd1, const CargoDataEntry *cd2) const
-{
-	switch (this->type) {
-		case ST_STATION_ID:
-			return this->SortId<StationID>(cd1->GetStation(), cd2->GetStation());
-		case ST_CARGO_ID:
-			return this->SortId<CargoID>(cd1->GetCargo(), cd2->GetCargo());
-		case ST_COUNT:
-			return this->SortCount(cd1, cd2);
-		case ST_STATION_STRING:
-			return this->SortStation(cd1->GetStation(), cd2->GetStation());
-		default:
-			NOT_REACHED();
-	}
-}
-
-template<class Tid>
-bool CargoSorter::SortId(Tid st1, Tid st2) const
-{
-	return (this->order == SO_ASCENDING) ? st1 < st2 : st2 < st1;
-}
-
-bool CargoSorter::SortCount(const CargoDataEntry *cd1, const CargoDataEntry *cd2) const
-{
-	uint c1 = cd1->GetCount();
-	uint c2 = cd2->GetCount();
-	if (c1 == c2) {
-		return this->SortStation(cd1->GetStation(), cd2->GetStation());
-	} else if (this->order == SO_ASCENDING) {
-		return c1 < c2;
-	} else {
-		return c2 < c1;
-	}
-}
-
-bool CargoSorter::SortStation(StationID st1, StationID st2) const
-{
-	static char buf1[MAX_LENGTH_STATION_NAME_CHARS];
-	static char buf2[MAX_LENGTH_STATION_NAME_CHARS];
-
-	if (!Station::IsValidID(st1)) {
-		return Station::IsValidID(st2) ? this->order == SO_ASCENDING : this->SortId(st1, st2);
-	} else if (!Station::IsValidID(st2)) {
-		return order == SO_DESCENDING;
-	}
-
-	SetDParam(0, st1);
-	GetString (buf1, STR_STATION_NAME);
-	SetDParam(0, st2);
-	GetString (buf2, STR_STATION_NAME);
-
-	int res = strnatcmp(buf1, buf2); // Sort by name (natural sorting).
-	if (res == 0) {
-		return this->SortId(st1, st2);
-	} else {
-		return (this->order == SO_ASCENDING) ? res < 0 : res > 0;
-	}
-}
 
 
 /** A node in the tree of cached destinations for a cargo type in a station. */
@@ -1360,6 +997,196 @@ static void RecalcDestinations (CargoDestNode *dest, const Station *st, CargoID 
 }
 
 
+class CargoNodeEntry {
+private:
+	typedef std::map <StationID, ttd_unique_ptr <CargoNodeEntry> > map;
+
+	CargoNodeEntry *const parent;    ///< The parent of this entry.
+	const StationID station;         ///< Station this entry is for.
+	uint count;             ///< Total amount of cargo under this node.
+	uint num_children;      ///< Total amount of nodes under this one.
+	map children;           ///< Children of this node, per station.
+
+protected:
+	CargoNodeEntry (StationID id, CargoNodeEntry *p = NULL)
+		: parent(p), station(id), count(0), num_children(1)
+	{
+	}
+
+public:
+	typedef map::iterator iterator;
+	typedef map::const_iterator const_iterator;
+
+	/** Get the parent of this node. */
+	const CargoNodeEntry *get_parent (void) const
+	{
+		return this->parent;
+	}
+
+	/** Get the station of this node. */
+	StationID get_station (void) const
+	{
+		return this->station;
+	}
+
+	/** Get the total amount of cargo under this node. */
+	uint get_count (void) const
+	{
+		return this->count;
+	}
+
+	/** Get the total amount of nodes below, including this one. */
+	uint get_num_children (void) const
+	{
+		return this->num_children;
+	}
+
+	/** Check if there is a single child with the given id. */
+	bool has_single_child (StationID station) const
+	{
+		return (this->children.size() == 1) &&
+				(this->children.begin()->first == station);
+	}
+
+	CargoNodeEntry *insert (StationID station);
+
+	void update (uint count);
+
+	typedef std::vector <const CargoNodeEntry *> vector;
+	vector sort (CargoSortType type, SortOrder order) const;
+};
+
+/** Find or insert a child node of the current node. */
+CargoNodeEntry *CargoNodeEntry::insert (StationID station)
+{
+	const std::pair <map::iterator, map::iterator> range
+		(this->children.equal_range (station));
+
+	if (range.first != range.second) return range.first->second.get();
+
+	CargoNodeEntry *n = this;
+	do {
+		n->num_children++;
+		n = n->parent;
+	} while (n != NULL);
+
+	n = new CargoNodeEntry (station, this);
+	map::iterator iter (this->children.insert (range.first,
+		std::make_pair (station, ttd_unique_ptr<CargoNodeEntry>(n))));
+
+	return iter->second.get();
+}
+
+/**
+ * Update the count for this node and propagate the change uptree.
+ * @param count The amount to be added to this node.
+ */
+void CargoNodeEntry::update (uint count)
+{
+	CargoNodeEntry *n = this;
+	do {
+		n->count += count;
+		n = n->parent;
+	} while (n != NULL);
+}
+
+/** Compare two numbers in the given order. */
+template<class Tid>
+static inline bool sort_id (Tid st1, Tid st2, SortOrder order)
+{
+	return (order == SO_ASCENDING) ? st1 < st2 : st2 < st1;
+}
+
+/** Compare two stations, as given by their id, by their name. */
+static bool sort_station (StationID st1, StationID st2, SortOrder order)
+{
+	static char buf1[MAX_LENGTH_STATION_NAME_CHARS];
+	static char buf2[MAX_LENGTH_STATION_NAME_CHARS];
+
+	if (!Station::IsValidID(st1)) {
+		return Station::IsValidID(st2) ? (order == SO_ASCENDING) : sort_id (st1, st2, order);
+	} else if (!Station::IsValidID(st2)) {
+		return order == SO_DESCENDING;
+	}
+
+	SetDParam(0, st1);
+	GetString (buf1, STR_STATION_NAME);
+	SetDParam(0, st2);
+	GetString (buf2, STR_STATION_NAME);
+
+	int res = strnatcmp(buf1, buf2); // Sort by name (natural sorting).
+	return (res == 0) ? sort_id (st1, st2, order) :
+		(order == SO_ASCENDING) ? (res < 0) : (res > 0);
+}
+
+struct CargoNodeSorter {
+	const CargoSortType type;
+	const SortOrder order;
+
+	CargoNodeSorter (CargoSortType t, SortOrder o) : type(t), order(o)
+	{
+	}
+
+	bool operator() (const CargoNodeEntry *a, const CargoNodeEntry *b);
+};
+
+bool CargoNodeSorter::operator() (const CargoNodeEntry *a,
+	const CargoNodeEntry *b)
+{
+	switch (this->type) {
+		case ST_COUNT: {
+			uint ca = a->get_count();
+			uint cb = b->get_count();
+			if (ca != cb) {
+				return (this->order == SO_ASCENDING) ?
+						(ca < cb) : (cb < ca);
+			}
+		}       /* fall through */
+		case ST_STATION_STRING:
+			return sort_station (a->get_station(),
+					b->get_station(), this->order);
+		case ST_STATION_ID:
+			return sort_id (a->get_station(), b->get_station(),
+					this->order);
+		default:
+			NOT_REACHED();
+	}
+}
+
+/** Sort the children into a vector. */
+inline CargoNodeEntry::vector CargoNodeEntry::sort (CargoSortType type,
+	SortOrder order) const
+{
+	vector v;
+	v.reserve (this->children.size());
+
+	map::const_iterator iter = this->children.begin();
+	while (iter != this->children.end()) {
+		v.push_back ((iter++)->second.get());
+	}
+
+	std::sort (v.begin(), v.end(), CargoNodeSorter (type, order));
+
+	return v;
+}
+
+class CargoRootEntry : public CargoNodeEntry {
+private:
+	bool transfers; ///< If there are transfers for this cargo.
+
+public:
+	CargoRootEntry (StationID station) : CargoNodeEntry (station)
+	{
+	}
+
+	/** Set the transfers state. */
+	void set_transfers (bool value) { this->transfers = value; }
+
+	/** Get the transfers state. */
+	bool get_transfers (void) const { return this->transfers; }
+};
+
+
 /**
  * The StationView window
  */
@@ -1493,12 +1320,13 @@ struct StationViewWindow : public Window {
 	 * @param dest Final destination of the cargo to be shown.
 	 * @param count Amount of cargo to be shown.
 	 */
-	void ShowCargo(CargoDataEntry *data, CargoID cargo, StationID source, StationID next, StationID dest, uint count)
+	void ShowCargo (CargoRootEntry *root, CargoID cargo, StationID source, StationID next, StationID dest, uint count)
 	{
 		if (count == 0) return;
 		bool auto_distributed = _settings_game.linkgraph.GetDistributionType(cargo) != DT_MANUAL;
 
-		data->SetTransfers (source != this->window_number);
+		root->set_transfers (source != this->window_number);
+		CargoNodeEntry *data = root;
 
 		if (this->expanded_cargoes.test (cargo)) {
 			const expanded_map *expand = &this->expanded_rows[cargo];
@@ -1521,14 +1349,14 @@ struct StationViewWindow : public Window {
 						s = dest;
 						break;
 				}
-				data = data->InsertOrRetrieve(s);
+				data = data->insert (s);
 				expanded_map::const_iterator iter = expand->find (s);
 				if (iter == expand->end()) break;
 				expand = &iter->second;
 			}
 		}
 
-		data->Update(count);
+		data->update (count);
 	}
 
 	virtual void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize)
@@ -1610,15 +1438,15 @@ struct StationViewWindow : public Window {
 					RecalcDestinations (&this->cached_destinations[i], st, i);
 				}
 
-				CargoDataEntry cargo;
+				CargoRootEntry cargo (this->window_number);
 				if (this->current_mode == MODE_WAITING) {
 					this->BuildCargoList (i, st->goods[i].cargo, &cargo);
 				} else {
 					this->BuildFlowList (i, st->goods[i].flows, &cargo);
 				}
 
-				if (cargo.GetCount() > 0) {
-					cargo_count += cargo.GetNumChildren() + 1;
+				if (cargo.get_count() > 0) {
+					cargo_count += cargo.get_num_children();
 					pos = this->DrawCargoEntry (&cargo, i, waiting_rect, pos, maxrows);
 				}
 			}
@@ -1639,9 +1467,9 @@ struct StationViewWindow : public Window {
 	 * Build up the cargo view for PLANNED mode and a specific cargo.
 	 * @param i Cargo to show.
 	 * @param flows The current station's flows for that cargo.
-	 * @param cargo The CargoDataEntry to save the results in.
+	 * @param cargo The CargoRootEntry to save the results in.
 	 */
-	void BuildFlowList(CargoID i, const FlowStatMap &flows, CargoDataEntry *cargo)
+	void BuildFlowList (CargoID i, const FlowStatMap &flows, CargoRootEntry *cargo)
 	{
 		const CargoDestNode *source_dest = &this->cached_destinations[i];
 		for (FlowStatMap::const_iterator it = flows.begin(); it != flows.end(); ++it) {
@@ -1661,9 +1489,9 @@ struct StationViewWindow : public Window {
 	 * Build up the cargo view for WAITING mode and a specific cargo.
 	 * @param i Cargo to show.
 	 * @param packets The current station's cargo list for that cargo.
-	 * @param cargo The CargoDataEntry to save the result in.
+	 * @param cargo The CargoRootEntry to save the result in.
 	 */
-	void BuildCargoList(CargoID i, const StationCargoList &packets, CargoDataEntry *cargo)
+	void BuildCargoList (CargoID i, const StationCargoList &packets, CargoRootEntry *cargo)
 	{
 		const CargoDestNode *source_dest = &this->cached_destinations[i];
 		for (StationCargoList::ConstIterator it = packets.Packets()->begin(); it != packets.Packets()->end(); it++) {
@@ -1719,24 +1547,22 @@ struct StationViewWindow : public Window {
 	 * @param column The "column" the entry will be shown in.
 	 * @return either STR_STATION_VIEW_VIA or STR_STATION_VIEW_NONSTOP.
 	 */
-	StringID SearchNonStop(CargoDataEntry *cd, StationID station, int column)
+	StringID SearchNonStop (const CargoNodeEntry *cd, StationID station, int column)
 	{
-		CargoDataEntry *parent = cd->GetParent();
+		const CargoNodeEntry *parent = cd->get_parent();
 		for (int i = column; i > 0; --i) {
 			if (this->groupings[i - 1] == GR_DESTINATION) {
-				if (parent->GetStation() == station) {
+				if (parent->get_station() == station) {
 					return STR_STATION_VIEW_NONSTOP;
 				} else {
 					return STR_STATION_VIEW_VIA;
 				}
 			}
-			parent = parent->GetParent();
+			parent = parent->get_parent();
 		}
 
 		if (this->groupings[column + 1] == GR_DESTINATION) {
-			CargoDataSet::iterator begin = cd->Begin();
-			CargoDataSet::iterator end = cd->End();
-			if (begin != end && ++(cd->Begin()) == end && (*(begin))->GetStation() == station) {
+			if (cd->has_single_child (station)) {
 				return STR_STATION_VIEW_NONSTOP;
 			} else {
 				return STR_STATION_VIEW_VIA;
@@ -1780,12 +1606,13 @@ struct StationViewWindow : public Window {
 	 * @param cargo Current cargo being drawn.
 	 * @return row (in "pos" counting) after the one we have last drawn to.
 	 */
-	int DrawEntries (CargoDataEntry *entry, const Rect &r, int pos, int maxrows, int column, CargoID cargo)
+	int DrawEntries (const CargoNodeEntry *entry, const Rect &r, int pos, int maxrows, int column, CargoID cargo)
 	{
-		entry->Resort (this->sorting == ST_AS_GROUPING ? ST_STATION_STRING : ST_COUNT, this->sort_order);
+		typedef CargoNodeEntry::vector vector;
+		vector v = entry->sort (this->sorting == ST_AS_GROUPING ? ST_STATION_STRING : ST_COUNT, this->sort_order);
 
-		for (CargoDataSet::iterator i = entry->Begin(); i != entry->End(); ++i) {
-			CargoDataEntry *cd = *i;
+		for (vector::const_iterator i = v.begin(); i != v.end(); ++i) {
+			const CargoNodeEntry *cd = *i;
 
 			bool auto_distributed = _settings_game.linkgraph.GetDistributionType(cargo) != DT_MANUAL;
 			assert (auto_distributed || (column == 0));
@@ -1794,10 +1621,10 @@ struct StationViewWindow : public Window {
 				StringID str = STR_EMPTY;
 				int y = r.top + WD_FRAMERECT_TOP - pos * FONT_HEIGHT_NORMAL;
 				SetDParam(0, cargo);
-				SetDParam(1, cd->GetCount());
+				SetDParam(1, cd->get_count());
 
 				Grouping grouping = auto_distributed ? this->groupings[column] : GR_SOURCE;
-				StationID station = cd->GetStation();
+				StationID station = cd->get_station();
 
 				switch (grouping) {
 					case GR_SOURCE:
@@ -1819,7 +1646,7 @@ struct StationViewWindow : public Window {
 
 				const char *sym = NULL;
 				if (column < NUM_COLUMNS - 1) {
-					if (cd->GetNumChildren() > 0) {
+					if (cd->get_num_children() > 1) {
 						sym = "-";
 					} else if (auto_distributed && str != STR_STATION_VIEW_RESERVED) {
 						sym = "+";
@@ -1829,10 +1656,10 @@ struct StationViewWindow : public Window {
 				this->DrawCargoString (r, y, column + 1, sym, str);
 
 				std::list <StationID> stations;
-				const CargoDataEntry *parent = entry;
-				while (parent->GetParent() != NULL) {
-					stations.push_back (parent->GetStation());
-					parent = parent->GetParent();
+				const CargoNodeEntry *parent = entry;
+				while (parent->get_parent() != NULL) {
+					stations.push_back (parent->get_station());
+					parent = parent->get_parent();
 				}
 
 				expanded_map *filter = &this->expanded_rows[cargo];
@@ -1862,26 +1689,26 @@ struct StationViewWindow : public Window {
 	 * @param maxrows Maximum row to be drawn.
 	 * @return row (in "pos" counting) after the one we have last drawn to.
 	 */
-	int DrawCargoEntry (CargoDataEntry *cd, CargoID cargo, const Rect &r, int pos, int maxrows)
+	int DrawCargoEntry (const CargoRootEntry *cd, CargoID cargo, const Rect &r, int pos, int maxrows)
 	{
 		bool auto_distributed = _settings_game.linkgraph.GetDistributionType(cargo) != DT_MANUAL;
 
 		if (pos > -maxrows && pos <= 0) {
 			int y = r.top + WD_FRAMERECT_TOP - pos * FONT_HEIGHT_NORMAL;
 			SetDParam(0, cargo);
-			SetDParam(1, cd->GetCount());
+			SetDParam(1, cd->get_count());
 			StringID str = STR_STATION_VIEW_WAITING_CARGO;
-			DrawCargoIcons (cargo, cd->GetCount(), r.left + WD_FRAMERECT_LEFT + this->expand_shrink_width, r.right - WD_FRAMERECT_RIGHT - this->expand_shrink_width, y);
+			DrawCargoIcons (cargo, cd->get_count(), r.left + WD_FRAMERECT_LEFT + this->expand_shrink_width, r.right - WD_FRAMERECT_RIGHT - this->expand_shrink_width, y);
 
 			const char *sym = NULL;
-			if (cd->GetNumChildren() > 0) {
+			if (cd->get_num_children() > 1) {
 				sym = "-";
 			} else if (auto_distributed) {
 				sym = "+";
 			} else {
 				/* Only draw '+' if there is something to be shown. */
 				const StationCargoList &list = Station::Get(this->window_number)->goods[cargo].cargo;
-				if (list.ReservedCount() > 0 || cd->HasTransfers()) {
+				if (list.ReservedCount() > 0 || cd->get_transfers()) {
 					sym = "+";
 				}
 			}
