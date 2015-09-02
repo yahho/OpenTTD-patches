@@ -1007,7 +1007,7 @@ private:
 
 protected:
 	CargoNodeEntry (StationID id, CargoNodeEntry *p = NULL)
-		: parent(p), station(id), count(0), num_children(1)
+		: parent(p), station(id), count(0), num_children(0)
 	{
 	}
 
@@ -1033,7 +1033,7 @@ public:
 		return this->count;
 	}
 
-	/** Get the total amount of nodes below, including this one. */
+	/** Get the total amount of nodes under this one. */
 	uint get_num_children (void) const
 	{
 		return this->num_children;
@@ -1171,9 +1171,11 @@ inline CargoNodeEntry::vector CargoNodeEntry::sort (CargoSortType type,
 class CargoRootEntry : public CargoNodeEntry {
 private:
 	bool transfers; ///< If there are transfers for this cargo.
+	uint reserved;  ///< Reserved amount of cargo.
 
 public:
-	CargoRootEntry (StationID station) : CargoNodeEntry (station)
+	CargoRootEntry (StationID station)
+		: CargoNodeEntry (station), reserved (0)
 	{
 	}
 
@@ -1182,6 +1184,19 @@ public:
 
 	/** Get the transfers state. */
 	bool get_transfers (void) const { return this->transfers; }
+
+	/** Update the reserved count. */
+	void update_reserved (uint count)
+	{
+		this->reserved += count;
+		this->update (count);
+	}
+
+	/** Get the reserved count. */
+	uint get_reserved (void) const
+	{
+		return this->reserved;
+	}
 };
 
 
@@ -1444,7 +1459,7 @@ struct StationViewWindow : public Window {
 				}
 
 				if (cargo.get_count() > 0) {
-					cargo_count += cargo.get_num_children();
+					cargo_count += cargo.get_num_children() + ((cargo.get_reserved() != 0) ? 2 : 1);
 					pos = this->DrawCargoEntry (&cargo, i, waiting_rect, pos, maxrows);
 				}
 			}
@@ -1513,7 +1528,16 @@ struct StationViewWindow : public Window {
 				this->ShowCargo (cargo, i, cp->SourceStation(), next, dest_it->first, val);
 			}
 		}
-		this->ShowCargo(cargo, i, NEW_STATION, NEW_STATION, NEW_STATION, packets.ReservedCount());
+
+		uint reserved = packets.ReservedCount();
+		if (reserved != 0) {
+			if (this->expanded_cargoes.test (i)) {
+				cargo->set_transfers (true);
+				cargo->update_reserved (reserved);
+			} else {
+				cargo->update (reserved);
+			}
+		}
 	}
 
 	/**
@@ -1522,7 +1546,7 @@ struct StationViewWindow : public Window {
 	 * @param here String to be shown if the entry refers to the same station as this station GUI belongs to.
 	 * @param other_station String to be shown if the entry refers to a specific other station.
 	 * @param any String to be shown if the entry refers to "any station".
-	 * @return One of the three given strings or STR_STATION_VIEW_RESERVED, depending on what station the entry refers to.
+	 * @return One of the three given strings, depending on what station the entry refers to.
 	 */
 	StringID GetEntryString(StationID station, StringID here, StringID other_station, StringID any)
 	{
@@ -1530,8 +1554,6 @@ struct StationViewWindow : public Window {
 			return here;
 		} else if (station == INVALID_STATION) {
 			return any;
-		} else if (station == NEW_STATION) {
-			return STR_STATION_VIEW_RESERVED;
 		} else {
 			SetDParam(2, station);
 			return other_station;
@@ -1644,9 +1666,9 @@ struct StationViewWindow : public Window {
 
 				const char *sym = NULL;
 				if (column < NUM_COLUMNS - 1) {
-					if (cd->get_num_children() > 1) {
+					if (cd->get_num_children() > 0) {
 						sym = "-";
-					} else if (auto_distributed && str != STR_STATION_VIEW_RESERVED) {
+					} else if (auto_distributed) {
 						sym = "+";
 					}
 				}
@@ -1699,7 +1721,7 @@ struct StationViewWindow : public Window {
 			DrawCargoIcons (cargo, cd->get_count(), r.left + WD_FRAMERECT_LEFT + this->expand_shrink_width, r.right - WD_FRAMERECT_RIGHT - this->expand_shrink_width, y);
 
 			const char *sym = NULL;
-			if (cd->get_num_children() > 1) {
+			if ((cd->get_num_children() > 0) || (cd->get_reserved() > 0)) {
 				sym = "-";
 			} else if (auto_distributed) {
 				sym = "+";
@@ -1716,7 +1738,20 @@ struct StationViewWindow : public Window {
 			this->displayed_rows.push_back (RowDisplay (cargo));
 		}
 
-		return this->DrawEntries (cd, r, pos - 1, maxrows, 0, cargo);
+		pos = this->DrawEntries (cd, r, pos - 1, maxrows, 0, cargo);
+
+		if (cd->get_reserved() != 0) {
+			if (pos > -maxrows && pos <= 0) {
+				int y = r.top + WD_FRAMERECT_TOP - pos * FONT_HEIGHT_NORMAL;
+				SetDParam (0, cargo);
+				SetDParam (1, cd->get_reserved());
+				this->DrawCargoString (r, y, 1, NULL, STR_STATION_VIEW_RESERVED);
+				this->displayed_rows.push_back (RowDisplay (INVALID_CARGO));
+			}
+			pos--;
+		}
+
+		return pos;
 	}
 
 	/**
@@ -1784,9 +1819,7 @@ struct StationViewWindow : public Window {
 		} else {
 			RowDisplay &display = this->displayed_rows[row];
 			expanded_map *filter = display.filter;
-			if (filter == NULL) {
-				this->expanded_cargoes.flip (display.next_cargo);
-			} else {
+			if (filter != NULL) {
 				StationID next = display.next_station;
 				expanded_map::iterator iter = filter->find (next);
 				if (iter != filter->end()) {
@@ -1794,6 +1827,8 @@ struct StationViewWindow : public Window {
 				} else {
 					(*filter)[next];
 				}
+			} else if (display.next_cargo != INVALID_CARGO) {
+				this->expanded_cargoes.flip (display.next_cargo);
 			}
 		}
 		this->SetWidgetDirty(WID_SV_WAITING);
