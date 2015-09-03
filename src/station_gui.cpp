@@ -1249,7 +1249,6 @@ struct StationViewWindow : public Window {
 		GR_SOURCE,      ///< Group by source of cargo ("from").
 		GR_NEXT,        ///< Group by next station ("via").
 		GR_DESTINATION, ///< Group by estimated final destination ("to").
-		GR_CARGO,       ///< Group by cargo type.
 	};
 
 	/**
@@ -1274,6 +1273,8 @@ struct StationViewWindow : public Window {
 	static const StringID _sort_names[];  ///< Names of the sorting options in the dropdown.
 	static const StringID _group_names[]; ///< Names of the grouping options in the dropdown.
 
+	static const Grouping arrangements[6][NUM_COLUMNS]; ///< Possible grouping arrangements.
+
 	/**
 	 * Sort types of the different 'columns'.
 	 * In fact only ST_COUNT and ST_STATION_STRING are active and you can only
@@ -1288,7 +1289,7 @@ struct StationViewWindow : public Window {
 	int scroll_to_row;                  ///< If set, scroll the main viewport to the station pointed to by this row.
 	int grouping_index;                 ///< Currently selected entry in the grouping drop down.
 	Mode current_mode;                  ///< Currently selected display mode of cargo view.
-	Grouping groupings[NUM_COLUMNS];    ///< Grouping modes for the different columns.
+	const Grouping *groupings;          ///< Grouping modes for the different columns.
 
 	CargoDestNode cached_destinations[NUM_CARGO];      ///< Cache for the flows passing through this station.
 	std::bitset <NUM_CARGO> cached_destinations_valid; ///< Bitset of up-to-date cached_destinations entries
@@ -1299,7 +1300,7 @@ struct StationViewWindow : public Window {
 	CargoDataVector displayed_rows;     ///< Parent entry of currently displayed rows (including collapsed ones).
 
 	StationViewWindow(WindowDesc *desc, WindowNumber window_number) : Window(desc),
-		scroll_to_row(INT_MAX), grouping_index(0)
+		scroll_to_row(INT_MAX), grouping_index(0), groupings(NULL)
 	{
 		this->rating_lines  = ALH_RATING;
 		this->accepts_lines = ALH_ACCEPTS;
@@ -1960,38 +1961,7 @@ struct StationViewWindow : public Window {
 		this->grouping_index = index;
 		_settings_client.gui.station_gui_group_order = index;
 		this->GetWidget<NWidgetCore>(WID_SV_GROUP_BY)->widget_data = _group_names[index];
-		switch (_group_names[index]) {
-			case STR_STATION_VIEW_GROUP_S_V_D:
-				this->groupings[0] = GR_SOURCE;
-				this->groupings[1] = GR_NEXT;
-				this->groupings[2] = GR_DESTINATION;
-				break;
-			case STR_STATION_VIEW_GROUP_S_D_V:
-				this->groupings[0] = GR_SOURCE;
-				this->groupings[1] = GR_DESTINATION;
-				this->groupings[2] = GR_NEXT;
-				break;
-			case STR_STATION_VIEW_GROUP_V_S_D:
-				this->groupings[0] = GR_NEXT;
-				this->groupings[1] = GR_SOURCE;
-				this->groupings[2] = GR_DESTINATION;
-				break;
-			case STR_STATION_VIEW_GROUP_V_D_S:
-				this->groupings[0] = GR_NEXT;
-				this->groupings[1] = GR_DESTINATION;
-				this->groupings[2] = GR_SOURCE;
-				break;
-			case STR_STATION_VIEW_GROUP_D_S_V:
-				this->groupings[0] = GR_DESTINATION;
-				this->groupings[1] = GR_SOURCE;
-				this->groupings[2] = GR_NEXT;
-				break;
-			case STR_STATION_VIEW_GROUP_D_V_S:
-				this->groupings[0] = GR_DESTINATION;
-				this->groupings[1] = GR_NEXT;
-				this->groupings[2] = GR_SOURCE;
-				break;
-		}
+		this->groupings = arrangements[index];
 		this->SetDirty();
 	}
 
@@ -2050,6 +2020,17 @@ const StringID StationViewWindow::_group_names[] = {
 	STR_STATION_VIEW_GROUP_D_V_S,
 	INVALID_STRING_ID
 };
+
+const StationViewWindow::Grouping StationViewWindow::arrangements[6][NUM_COLUMNS] = {
+	{ GR_SOURCE, GR_NEXT, GR_DESTINATION }, // S_V_D
+	{ GR_SOURCE, GR_DESTINATION, GR_NEXT }, // S_D_V
+	{ GR_NEXT, GR_SOURCE, GR_DESTINATION }, // V_S_D
+	{ GR_NEXT, GR_DESTINATION, GR_SOURCE }, // V_D_S
+	{ GR_DESTINATION, GR_SOURCE, GR_NEXT }, // D_S_V
+	{ GR_DESTINATION, GR_NEXT, GR_SOURCE }, // D_V_S
+};
+
+assert_compile (lengthof(StationViewWindow::_group_names) == lengthof(StationViewWindow::arrangements) + 1);
 
 static WindowDesc _station_view_desc(
 	WDP_AUTO, "view_station", 249, 117,
