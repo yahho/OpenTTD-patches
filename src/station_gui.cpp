@@ -1337,36 +1337,36 @@ struct StationViewWindow : public Window {
 	void ShowCargo (CargoRootEntry *root, CargoID cargo, StationID source, StationID next, StationID dest, uint count)
 	{
 		if (count == 0) return;
-		bool auto_distributed = _settings_game.linkgraph.GetDistributionType(cargo) != DT_MANUAL;
 
 		root->set_transfers (source != this->window_number);
 		CargoNodeEntry *data = root;
 
 		if (this->expanded_cargoes.test (cargo)) {
-			const expanded_map *expand = &this->expanded_rows[cargo];
-			for (int i = 0; i < NUM_COLUMNS; ++i) {
-				StationID s;
-				switch (groupings[i]) {
-					default: NOT_REACHED();
-					case GR_SOURCE:
-						if (!auto_distributed && source == this->window_number) {
-							continue;
-						}
-						s = source;
-						break;
-					case GR_NEXT:
-						if (!auto_distributed) continue;
-						s = next;
-						break;
-					case GR_DESTINATION:
-						if (!auto_distributed) continue;
-						s = dest;
-						break;
+			if (_settings_game.linkgraph.GetDistributionType(cargo) != DT_MANUAL) {
+				const expanded_map *expand = &this->expanded_rows[cargo];
+				for (int i = 0; i < NUM_COLUMNS; ++i) {
+					StationID s;
+					switch (groupings[i]) {
+						default: NOT_REACHED();
+						case GR_SOURCE:
+							s = source;
+							break;
+						case GR_NEXT:
+							s = next;
+							break;
+						case GR_DESTINATION:
+							s = dest;
+							break;
+					}
+					data = data->insert (s);
+					expanded_map::const_iterator iter = expand->find (s);
+					if (iter == expand->end()) break;
+					expand = &iter->second;
 				}
-				data = data->insert (s);
-				expanded_map::const_iterator iter = expand->find (s);
-				if (iter == expand->end()) break;
-				expand = &iter->second;
+			} else {
+				if (source != this->window_number) {
+					data = data->insert (source);
+				}
 			}
 		}
 
