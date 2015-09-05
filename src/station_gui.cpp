@@ -995,19 +995,22 @@ static void RecalcDestinations (CargoDestNode *dest, const Station *st, CargoID 
 }
 
 
+struct expanded_map : std::map <StationID, expanded_map> { };
+
 class CargoNodeEntry {
 private:
 	typedef std::map <StationID, ttd_unique_ptr <CargoNodeEntry> > map;
 
 	CargoNodeEntry *const parent;    ///< The parent of this entry.
 	const StationID station;         ///< Station this entry is for.
+	expanded_map *const expanded;    ///< Map of expanded nodes, or NULL if this node is not expanded itself.
 	uint count;             ///< Total amount of cargo under this node.
 	uint num_children;      ///< Total amount of nodes under this one.
 	map children;           ///< Children of this node, per station.
 
 protected:
-	CargoNodeEntry (StationID id, CargoNodeEntry *p = NULL)
-		: parent(p), station(id), count(0), num_children(0)
+	CargoNodeEntry (StationID id, expanded_map *expanded, CargoNodeEntry *p = NULL)
+		: parent(p), station(id), expanded(expanded), count(0), num_children(0)
 	{
 	}
 
@@ -1027,6 +1030,12 @@ public:
 		return this->station;
 	}
 
+	/** Get the expanded map of this node. */
+	expanded_map *get_expanded (void) const
+	{
+		return this->expanded;
+	}
+
 	/** Get the total amount of cargo under this node. */
 	uint get_count (void) const
 	{
@@ -1039,6 +1048,12 @@ public:
 		return this->num_children;
 	}
 
+	/** Check if this node has no children. */
+	bool empty (void) const
+	{
+		return this->children.empty();
+	}
+
 	/** Check if there is a single child with the given id. */
 	bool has_single_child (StationID station) const
 	{
@@ -1046,7 +1061,7 @@ public:
 				(this->children.begin()->first == station);
 	}
 
-	CargoNodeEntry *insert (StationID station);
+	CargoNodeEntry *insert (StationID station, expanded_map *expanded);
 
 	void update (uint count);
 
@@ -1055,12 +1070,16 @@ public:
 };
 
 /** Find or insert a child node of the current node. */
-CargoNodeEntry *CargoNodeEntry::insert (StationID station)
+CargoNodeEntry *CargoNodeEntry::insert (StationID station, expanded_map *expanded)
 {
 	const std::pair <map::iterator, map::iterator> range
 		(this->children.equal_range (station));
 
-	if (range.first != range.second) return range.first->second.get();
+	if (range.first != range.second) {
+		CargoNodeEntry *n = range.first->second.get();
+		assert (n->expanded == expanded);
+		return n;
+	}
 
 	CargoNodeEntry *n = this;
 	do {
@@ -1068,7 +1087,7 @@ CargoNodeEntry *CargoNodeEntry::insert (StationID station)
 		n = n->parent;
 	} while (n != NULL);
 
-	n = new CargoNodeEntry (station, this);
+	n = new CargoNodeEntry (station, expanded, this);
 	map::iterator iter (this->children.insert (range.first,
 		std::make_pair (station, ttd_unique_ptr<CargoNodeEntry>(n))));
 
@@ -1174,8 +1193,8 @@ private:
 	uint reserved;  ///< Reserved amount of cargo.
 
 public:
-	CargoRootEntry (StationID station)
-		: CargoNodeEntry (station), reserved (0)
+	CargoRootEntry (StationID station, expanded_map *expanded)
+		: CargoNodeEntry (station, expanded), reserved (0)
 	{
 	}
 
@@ -1204,8 +1223,6 @@ public:
  * The StationView window
  */
 struct StationViewWindow : public Window {
-	struct expanded_map : std::map <StationID, expanded_map> { };
-
 	/**
 	 * A row being displayed in the cargo view (as opposed to being "hidden" behind a plus sign).
 	 */
@@ -1343,7 +1360,6 @@ struct StationViewWindow : public Window {
 
 		if (this->expanded_cargoes.test (cargo)) {
 			if (_settings_game.linkgraph.GetDistributionType(cargo) != DT_MANUAL) {
-				const expanded_map *expand = &this->expanded_rows[cargo];
 				for (int i = 0; i < NUM_COLUMNS; ++i) {
 					StationID s;
 					switch (groupings[i]) {
@@ -1358,14 +1374,18 @@ struct StationViewWindow : public Window {
 							s = dest;
 							break;
 					}
-					data = data->insert (s);
-					expanded_map::const_iterator iter = expand->find (s);
-					if (iter == expand->end()) break;
-					expand = &iter->second;
+					expanded_map *expand = data->get_expanded();
+					expanded_map::iterator iter = expand->find (s);
+					if (iter != expand->end()) {
+						data = data->insert (s, &iter->second);
+					} else {
+						data = data->insert (s, NULL);
+						break;
+					}
 				}
 			} else {
 				if (source != this->window_number) {
-					data = data->insert (source);
+					data = data->insert (source, NULL);
 				}
 			}
 		}
@@ -1452,7 +1472,7 @@ struct StationViewWindow : public Window {
 					RecalcDestinations (&this->cached_destinations[i], st, i);
 				}
 
-				CargoRootEntry cargo (this->window_number);
+				CargoRootEntry cargo (this->window_number, &this->expanded_rows[i]);
 				if (this->current_mode == MODE_WAITING) {
 					this->BuildCargoList (i, st->goods[i].cargo, &cargo);
 				} else {
@@ -1629,6 +1649,8 @@ struct StationViewWindow : public Window {
 	 */
 	int DrawEntries (const CargoNodeEntry *entry, const Rect &r, int pos, int maxrows, int column, CargoID cargo)
 	{
+		assert (entry->empty() || (entry->get_expanded() != NULL));
+
 		typedef CargoNodeEntry::vector vector;
 		vector v = entry->sort (this->sorting, this->sort_order);
 
@@ -1676,22 +1698,9 @@ struct StationViewWindow : public Window {
 
 				this->DrawCargoString (r, y, column + 1, sym, str);
 
-				std::list <StationID> stations;
-				const CargoNodeEntry *parent = entry;
-				while (parent->get_parent() != NULL) {
-					stations.push_back (parent->get_station());
-					parent = parent->get_parent();
-				}
-
-				expanded_map *filter = &this->expanded_rows[cargo];
-				while (!stations.empty()) {
-					expanded_map::iterator iter = filter->find (stations.back());
-					assert (iter != filter->end());
-					filter = &iter->second;
-					stations.pop_back();
-				}
-
-				this->displayed_rows.push_back (RowDisplay (filter, station));
+				expanded_map *expand = entry->get_expanded();
+				assert (expand != NULL);
+				this->displayed_rows.push_back (RowDisplay (expand, station));
 			}
 			--pos;
 			if (auto_distributed) {
