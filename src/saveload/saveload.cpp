@@ -57,7 +57,9 @@
  * savegames of the previous (and earlier) versions.
  */
 
-extern const uint16 SAVEGAME_VERSION = 24; ///< Current savegame version
+extern const uint16 SAVEGAME_VERSION = 23; ///< Current savegame version
+
+extern const uint16 TRACERESTRICT_VERSION = 1; ///< Current trace restrict version
 
 static const uint16 OTTD_SAVEGAME_VERSION = 194; ///< Maximum supported OTTD version
 
@@ -683,7 +685,15 @@ static void LoadSavegameFormat(LoadFilter **chain, SavegameTypeVersion *stv)
 			if (!IsExperimentalSavegameVersion()) throw SlException(STR_GAME_SAVELOAD_ERROR_EXPERIMENTAL_SAVEGAME);
 			stv->fttd.version = SAVEGAME_VERSION;
 		/* Is the version higher than the current? */
-		} else if (stv->fttd.version > SAVEGAME_VERSION || hdr != 0) {
+		} else if (stv->fttd.version > SAVEGAME_VERSION) {
+			throw SlException(STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME);
+		} else if (hdr == TO_BE32X('TRRT')) {
+			uint32 flags;
+			uint32 tr_version;
+			if ((*chain)->Read((byte*)&flags, sizeof(flags)) != sizeof(flags)) throw SlException(STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE);
+			if ((*chain)->Read((byte*)&tr_version, sizeof(tr_version)) != sizeof(tr_version)) throw SlException(STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE);
+			if (tr_version > TRACERESTRICT_VERSION || flags != 0) throw SlException(STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME);
+		} else if (hdr != 0) {
 			throw SlException(STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME);
 		}
 	} else if ((init_load = GetOTTDSavegameLoader(hdr)) != NULL) {

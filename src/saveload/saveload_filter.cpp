@@ -516,6 +516,8 @@ static const SaveLoadFormat *GetSavegameFormat(char *s, byte *compression_level)
  */
 ChainSaveFilter *GetSavegameWriter(char *format, uint version, SaveFilter *writer)
 {
+	extern const uint16 TRACERESTRICT_VERSION;
+
 	static const uint32 magic = TO_BE32X('FTTD');
 
 	byte compression;
@@ -524,7 +526,7 @@ ChainSaveFilter *GetSavegameWriter(char *format, uint version, SaveFilter *write
 	writer->Write((const byte*)&magic, sizeof(magic));
 	writer->Write((const byte*)&fmt->tag, sizeof(fmt->tag));
 
-	uint32 hdr[2] = { TO_BE32(version), 0 };
+	uint32 hdr[4] = { TO_BE32(version), TO_BE32X('TRRT'), 0, TRACERESTRICT_VERSION };
 	writer->Write((byte*)&hdr, sizeof(hdr));
 
 	return fmt->init_write(writer, compression);

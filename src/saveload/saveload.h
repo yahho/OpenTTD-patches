@@ -41,7 +41,7 @@
 /** Return whether the resulting binary produces experimental savegames. */
 inline bool IsExperimentalSavegameVersion()
 {
-	static const bool experimental_savegame = true;
+	static const bool experimental_savegame = false;
 
 	return experimental_savegame;
 }
