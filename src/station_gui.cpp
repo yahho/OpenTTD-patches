@@ -1005,12 +1005,11 @@ private:
 	const StationID station;         ///< Station this entry is for.
 	expanded_map *const expanded;    ///< Map of expanded nodes, or NULL if this node is not expanded itself.
 	uint count;             ///< Total amount of cargo under this node.
-	uint num_children;      ///< Total amount of nodes under this one.
 	map children;           ///< Children of this node, per station.
 
 protected:
 	CargoNodeEntry (StationID id, expanded_map *expanded, CargoNodeEntry *p = NULL)
-		: parent(p), station(id), expanded(expanded), count(0), num_children(0)
+		: parent(p), station(id), expanded(expanded), count(0)
 	{
 	}
 
@@ -1040,12 +1039,6 @@ public:
 	uint get_count (void) const
 	{
 		return this->count;
-	}
-
-	/** Get the total amount of nodes under this one. */
-	uint get_num_children (void) const
-	{
-		return this->num_children;
 	}
 
 	/** Check if this node has no children. */
@@ -1081,13 +1074,7 @@ CargoNodeEntry *CargoNodeEntry::insert (StationID station, expanded_map *expande
 		return n;
 	}
 
-	CargoNodeEntry *n = this;
-	do {
-		n->num_children++;
-		n = n->parent;
-	} while (n != NULL);
-
-	n = new CargoNodeEntry (station, expanded, this);
+	CargoNodeEntry *n = new CargoNodeEntry (station, expanded, this);
 	map::iterator iter (this->children.insert (range.first,
 		std::make_pair (station, ttd_unique_ptr<CargoNodeEntry>(n))));
 
@@ -1465,7 +1452,6 @@ struct StationViewWindow : public Window {
 			NWidgetBase *nwi = this->GetWidget<NWidgetBase>(WID_SV_WAITING);
 			Rect waiting_rect = {nwi->pos_x, nwi->pos_y, nwi->pos_x + nwi->current_x - 1, nwi->pos_y + nwi->current_y - 1};
 
-			uint cargo_count = 0;
 			for (CargoID i = 0; i < NUM_CARGO; i++) {
 				if (!this->cached_destinations_valid.test (i)) {
 					this->cached_destinations_valid.set (i);
@@ -1480,11 +1466,10 @@ struct StationViewWindow : public Window {
 				}
 
 				if (cargo.get_count() > 0) {
-					cargo_count += cargo.get_num_children() + ((cargo.get_reserved() != 0) ? 2 : 1);
 					pos = this->DrawCargoEntry (&cargo, i, waiting_rect, pos, maxrows);
 				}
 			}
-			this->vscroll->SetCount (cargo_count); // update scrollbar
+			this->vscroll->SetCount (this->vscroll->GetPosition() - pos); // update scrollbar
 
 			scroll_to_row = INT_MAX;
 		}
@@ -1689,7 +1674,7 @@ struct StationViewWindow : public Window {
 
 				const char *sym = NULL;
 				if (column < NUM_COLUMNS - 1) {
-					if (cd->get_num_children() > 0) {
+					if (!cd->empty()) {
 						sym = "-";
 					} else if (auto_distributed) {
 						sym = "+";
@@ -1731,7 +1716,7 @@ struct StationViewWindow : public Window {
 			DrawCargoIcons (cargo, cd->get_count(), r.left + WD_FRAMERECT_LEFT + this->expand_shrink_width, r.right - WD_FRAMERECT_RIGHT - this->expand_shrink_width, y);
 
 			const char *sym = NULL;
-			if ((cd->get_num_children() > 0) || (cd->get_reserved() > 0)) {
+			if (!cd->empty() || (cd->get_reserved() > 0)) {
 				sym = "-";
 			} else if (auto_distributed) {
 				sym = "+";
