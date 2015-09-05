@@ -197,7 +197,7 @@ void CcRoadDepot(const CommandCost &result, TileIndex tile, uint32 p1, uint32 p2
  *           bit 2..3: The roadtypes.
  *           bit 5: Allow stations directly adjacent to other stations.
  *           bit 6..7: Entrance direction (#DiagDirection).
- *           bit 16..31: Station ID to join (NEW_STATION if build new one).
+ *           bit 16..31: Station ID to join (INVALID_STATION if build new one).
  * @see CmdBuildRoadStop
  */
 void CcRoadStop(const CommandCost &result, TileIndex tile, uint32 p1, uint32 p2)
