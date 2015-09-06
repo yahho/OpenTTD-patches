@@ -227,7 +227,7 @@ ScriptInstance::~ScriptInstance()
 	} else {
 		/* Create a new fake internal name */
 		char fake_class[1024];
-		bstrfmt (fake_class, "_internalNA%u", engine->loaded_library.size() + 1);
+		bstrfmt (fake_class, "_internalNA%u", (uint)engine->loaded_library.size() + 1);
 
 		/* Load the library in a 'fake' namespace, so we can link it to the name the user requested */
 		sq_pushstring (vm, fake_class, -1);
