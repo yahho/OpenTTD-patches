@@ -1137,7 +1137,7 @@ static void RestoreTrainReservation(Train *v)
  * @param p2 various bitstuffed elements
  * - p2 = (bit  0- 7) - custom station class
  * - p2 = (bit  8-15) - custom station id
- * - p2 = (bit 16-31) - station ID to join (NEW_STATION if build new one)
+ * - p2 = (bit 16-31) - station ID to join (INVALID_STATION if build new one)
  * @param text unused
  * @return the cost of this operation or an error
  */
@@ -1662,7 +1662,7 @@ static CommandCost RemoveRoadStop(TileIndex tile, DoCommandFlag flags);
  *           bit 2..3: The roadtypes.
  *           bit 5: Allow stations directly adjacent to other stations.
  *           bit 6..7: Entrance direction (#DiagDirection).
- *           bit 16..31: Station ID to join (NEW_STATION if build new one).
+ *           bit 16..31: Station ID to join (INVALID_STATION if build new one).
  * @param text Unused.
  * @return The cost of this operation or an error.
  */
@@ -2110,7 +2110,7 @@ static CommandCost CanRemoveAirport(Station *st, DoCommandFlag flags)
  * - p1 = (bit  8-15) - airport layout
  * @param p2 various bitstuffed elements
  * - p2 = (bit     0) - allow airports directly adjacent to other airports.
- * - p2 = (bit 16-31) - station ID to join (NEW_STATION if build new one)
+ * - p2 = (bit 16-31) - station ID to join (INVALID_STATION if build new one)
  * @param text unused
  * @return the cost of this operation or an error
  */
@@ -2420,7 +2420,7 @@ struct DockTileArea {
  * @param tile tile where dock will be built
  * @param flags operation to perform
  * @param p1 (bit 0) - allow docks directly adjacent to other docks.
- * @param p2 bit 16-31: station ID to join (NEW_STATION if build new one)
+ * @param p2 bit 16-31: station ID to join (INVALID_STATION if build new one)
  * @param text unused
  * @return the cost of this operation or an error
  */

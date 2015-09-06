@@ -27,7 +27,6 @@ struct RoadStop;
 struct StationSpec;
 struct Waypoint;
 
-static const StationID NEW_STATION = 0xFFFE;
 static const StationID INVALID_STATION = 0xFFFF;
 
 typedef SmallStack<StationID, StationID, INVALID_STATION, 8, 0xFFFD> StationIDStack;
