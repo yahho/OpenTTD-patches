@@ -3215,7 +3215,7 @@ static void DrawSingleSignal(TileIndex tile, Trackdir trackdir)
 	uint x = TileX(tile) * TILE_SIZE + SignalData[trackdir].pos[side].x;
 	uint y = TileY(tile) * TILE_SIZE + SignalData[trackdir].pos[side].y;
 
-	if (!is_custom_sprite && variant == SIG_ELECTRIC && IsRestrictedSignal(tile) && GetExistingTraceRestrictProgram(tile, track) != NULL) {
+	if (!is_custom_sprite && variant == SIG_ELECTRIC && IsNormalRailTile(tile) && IsRestrictedSignal(tile) && GetExistingTraceRestrictProgram(tile, track) != NULL) {
 		if (type == SIGTYPE_PBS || type == SIGTYPE_PBS_ONEWAY) {
 			static const SubSprite lower_part = { -50, -10, 50, 50 };
 			static const SubSprite upper_part = { -50, -50, 50, -11 };
@@ -3623,7 +3623,7 @@ static void GetTileDesc_Track(TileIndex tile, TileDesc *td)
 			td->str = STR_LAI_RAIL_DESCRIPTION_TRACK;
 		}
 
-		if (td->str != STR_LAI_RAIL_DESCRIPTION_TRACK && IsRestrictedSignal(tile)) {
+		if (td->str != STR_LAI_RAIL_DESCRIPTION_TRACK && IsNormalRailTile(tile) && IsRestrictedSignal(tile)) {
 			SetDParamX(td->dparam, 0, td->str);
 			SetDParamX(td->dparam, 1, rti->strings.name);
 			td->str = STR_LAI_RAIL_DESCRIPTION_RESTRICTED_SIGNAL;

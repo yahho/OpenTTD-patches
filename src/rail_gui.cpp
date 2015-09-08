@@ -229,7 +229,7 @@ static void GenericPlaceSignals(TileIndex tile)
 	if (_remove_button_clicked) {
 		DoCommandP(tile, track, 0, CMD_REMOVE_SIGNALS);
 	} else if (_trace_restrict_button) {
-		if (IsRailwayTile(tile) && HasTrack(tile, track) && HasSignalOnTrack(tile, track)) {
+		if (IsNormalRailTile(tile) && HasTrack(tile, track) && HasSignalOnTrack(tile, track)) {
 			ShowTraceRestrictProgramWindow(tile, track);
 		}
 	} else {

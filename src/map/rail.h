@@ -278,11 +278,12 @@ static inline void SetSignalVariant(TileIndex t, Track track, SignalVariant v)
 
 /**
  * Does signal tile have "one or more trace restrict mappings present" bit set
+ * @pre IsNormalRailTile(t)
  * @param t the tile to check
  */
 static inline bool IsRestrictedSignal(TileIndex t)
 {
-	assert(IsRailwayTile(t));
+	assert(IsNormalRailTile(t));
 	return (bool) GB(_mc[t].m2, 12, 1);
 }
 

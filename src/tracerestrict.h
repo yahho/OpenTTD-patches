@@ -485,7 +485,7 @@ void TraceRestrictNotifySignalRemoval(TileIndex tile, Track track);
  */
 static inline const TraceRestrictProgram *GetExistingTraceRestrictProgram(TileIndex t, Track track)
 {
-	if (IsRestrictedSignal(t)) {
+	if (IsNormalRailTile(t) && IsRestrictedSignal(t)) {
 		return GetTraceRestrictProgram(MakeTraceRestrictRefId(t, track), false);
 	} else {
 		return NULL;

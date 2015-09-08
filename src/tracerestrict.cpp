@@ -668,7 +668,7 @@ void TraceRestrictDoCommandP(TileIndex tile, Track track, TraceRestrictDoCommand
 static CommandCost TraceRestrictCheckTileIsUsable(TileIndex tile, Track track)
 {
 	// Check that there actually is a signal here
-	if (!IsRailwayTile(tile) || !HasTrack(tile, track)) {
+	if (!IsNormalRailTile(tile) || !HasTrack(tile, track)) {
 		return_cmd_error(STR_ERROR_THERE_IS_NO_RAILROAD_TRACK);
 	}
 	if (!HasSignalOnTrack(tile, track)) {

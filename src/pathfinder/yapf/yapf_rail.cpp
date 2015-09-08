@@ -356,7 +356,7 @@ private:
 	inline bool ShouldCheckTraceRestrict(Node& n, TileIndex tile)
 	{
 		return n.m_num_signals_passed < m_sig_look_ahead_costs.size() &&
-				IsRailwayTile(tile) && IsRestrictedSignal(tile);
+				IsNormalRailTile(tile) && IsRestrictedSignal(tile);
 	}
 
 	// returns true if dead end bit has been set

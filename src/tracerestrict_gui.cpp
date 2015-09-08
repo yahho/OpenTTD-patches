@@ -996,7 +996,7 @@ public:
 	 */
 	void OnPlaceObjectSignal(Point pt, TileIndex source_tile, int widget, int error_message)
 	{
-		if (!IsRailwayTile(source_tile)) {
+		if (!IsNormalRailTile(source_tile)) {
 			ShowErrorMessage(error_message, STR_ERROR_THERE_IS_NO_RAILROAD_TRACK, WL_INFO);
 			return;
 		}
