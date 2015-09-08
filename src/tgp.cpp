@@ -619,13 +619,13 @@ static void HeightMapCurves(uint level)
 
 			height_t *h = &_height_map.height(x, y);
 			assert (*h >= 0);
-			assert (*h <= mh);
 
 			/* Do not touch sea level */
 			if (*h < I2H(1)) continue;
 
 			/* Only scale above sea level */
 			*h -= I2H(1);
+			assert (*h <= mh);
 
 			/* Apply all curve maps that are used on this tile. */
 			for (uint t = 0; t < lengthof(curve_maps); t++) {

@@ -52,6 +52,7 @@ ScriptInstance::ScriptInstance(const char *APIName) :
 	Squirrel (APIName, &instance_print_log),
 	instance(),
 	loaded_library(),
+	loaded_library_count(0),
 	state ((1 << STATE_INIT) | (1 << STATE_DOCOMMAND_ALLOWED)),
 	ticks(0),
 	suspend(0),
@@ -225,9 +226,11 @@ ScriptInstance::~ScriptInstance()
 	if (iter != engine->loaded_library.end()) {
 		sq_pushstring (vm, iter->second, -1);
 	} else {
+		uint next_number = ++engine->loaded_library_count;
+
 		/* Create a new fake internal name */
 		char fake_class[1024];
-		bstrfmt (fake_class, "_internalNA%u", (uint)engine->loaded_library.size() + 1);
+		bstrfmt (fake_class, "_internalNA%u", next_number);
 
 		/* Load the library in a 'fake' namespace, so we can link it to the name the user requested */
 		sq_pushstring (vm, fake_class, -1);
