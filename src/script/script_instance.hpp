@@ -47,6 +47,7 @@ private:
 	typedef std::map<const char *, const char *, StringCompare> LoadedLibraryList; ///< The type for loaded libraries.
 
 	LoadedLibraryList loaded_library;     ///< The libraries we loaded.
+	uint loaded_library_count;            ///< The amount of libraries.
 
 	enum {
 		STATE_INIT,     ///< The script engine is initialised.
