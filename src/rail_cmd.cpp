@@ -2581,7 +2581,6 @@ static uint32 _drawtile_track_palette;
 
 /** Offsets for drawing fences */
 struct FenceOffset {
-	Corner height_ref;  //!< Corner to use height offset from.
 	int x_offs;         //!< Bounding box X offset.
 	int y_offs;         //!< Bounding box Y offset.
 	int x_size;         //!< Bounding box X size.
@@ -2589,23 +2588,23 @@ struct FenceOffset {
 };
 
 /** Offsets for drawing fences */
-static FenceOffset _fence_offsets[] = {
-	{ CORNER_INVALID,  0,  1, 16,  1 }, // RFO_FLAT_X_NW
-	{ CORNER_INVALID,  1,  0,  1, 16 }, // RFO_FLAT_Y_NE
-	{ CORNER_W,        8,  8,  1,  1 }, // RFO_FLAT_LEFT
-	{ CORNER_N,        8,  8,  1,  1 }, // RFO_FLAT_UPPER
-	{ CORNER_INVALID,  0,  1, 16,  1 }, // RFO_SLOPE_SW_NW
-	{ CORNER_INVALID,  1,  0,  1, 16 }, // RFO_SLOPE_SE_NE
-	{ CORNER_INVALID,  0,  1, 16,  1 }, // RFO_SLOPE_NE_NW
-	{ CORNER_INVALID,  1,  0,  1, 16 }, // RFO_SLOPE_NW_NE
-	{ CORNER_INVALID,  0, 15, 16,  1 }, // RFO_FLAT_X_SE
-	{ CORNER_INVALID, 15,  0,  1, 16 }, // RFO_FLAT_Y_SW
-	{ CORNER_E,        8,  8,  1,  1 }, // RFO_FLAT_RIGHT
-	{ CORNER_S,        8,  8,  1,  1 }, // RFO_FLAT_LOWER
-	{ CORNER_INVALID,  0, 15, 16,  1 }, // RFO_SLOPE_SW_SE
-	{ CORNER_INVALID, 15,  0,  1, 16 }, // RFO_SLOPE_SE_SW
-	{ CORNER_INVALID,  0, 15, 16,  1 }, // RFO_SLOPE_NE_SE
-	{ CORNER_INVALID, 15,  0,  1, 16 }, // RFO_SLOPE_NW_SW
+static const FenceOffset _fence_offsets[] = {
+	{  0,  1, 16,  1 }, // RFO_FLAT_X_NW
+	{  1,  0,  1, 16 }, // RFO_FLAT_Y_NE
+	{  8,  8,  1,  1 }, // RFO_FLAT_LEFT
+	{  8,  8,  1,  1 }, // RFO_FLAT_UPPER
+	{  0,  1, 16,  1 }, // RFO_SLOPE_SW_NW
+	{  1,  0,  1, 16 }, // RFO_SLOPE_SE_NE
+	{  0,  1, 16,  1 }, // RFO_SLOPE_NE_NW
+	{  1,  0,  1, 16 }, // RFO_SLOPE_NW_NE
+	{  0, 15, 16,  1 }, // RFO_FLAT_X_SE
+	{ 15,  0,  1, 16 }, // RFO_FLAT_Y_SW
+	{  8,  8,  1,  1 }, // RFO_FLAT_RIGHT
+	{  8,  8,  1,  1 }, // RFO_FLAT_LOWER
+	{  0, 15, 16,  1 }, // RFO_SLOPE_SW_SE
+	{ 15,  0,  1, 16 }, // RFO_SLOPE_SE_SW
+	{  0, 15, 16,  1 }, // RFO_SLOPE_NE_SE
+	{ 15,  0,  1, 16 }, // RFO_SLOPE_NW_SW
 };
 
 /**
@@ -2635,10 +2634,14 @@ static void DrawTrackFence (const TileInfo *ti, SpriteID base_image,
  * @param rfo Fence to draw.
  */
 static void DrawCornerTrackFence (const TileInfo *ti, SpriteID base_image,
-	uint num_sprites, RailFenceOffset rfo)
+	uint num_sprites, Corner corner)
 {
-	DrawTrackFence (ti, base_image, num_sprites, rfo,
-			GetSlopePixelZInCorner(RemoveHalftileSlope(ti->tileh), _fence_offsets[rfo].height_ref));
+	static const RailFenceOffset rfo [4] = {
+		RFO_FLAT_LEFT, RFO_FLAT_LOWER, RFO_FLAT_RIGHT, RFO_FLAT_UPPER,
+	};
+
+	DrawTrackFence (ti, base_image, num_sprites, rfo[corner],
+			GetSlopePixelZInCorner (RemoveHalftileSlope (ti->tileh), corner));
 }
 
 /**
@@ -2721,10 +2724,10 @@ static void DrawTrackDetails(const TileInfo *ti, TrackBits tracks)
 		case RAIL_GROUND_FENCE_SW:     DrawTrackFence_SW(ti, base_image, num_sprites); break;
 		case RAIL_GROUND_FENCE_NESW:   DrawTrackFence_NE(ti, base_image, num_sprites);
 		                               DrawTrackFence_SW(ti, base_image, num_sprites); break;
-		case RAIL_GROUND_FENCE_VERT1:  DrawCornerTrackFence (ti, base_image, num_sprites, RFO_FLAT_LEFT);  break;
-		case RAIL_GROUND_FENCE_VERT2:  DrawCornerTrackFence (ti, base_image, num_sprites, RFO_FLAT_RIGHT); break;
-		case RAIL_GROUND_FENCE_HORIZ1: DrawCornerTrackFence (ti, base_image, num_sprites, RFO_FLAT_UPPER); break;
-		case RAIL_GROUND_FENCE_HORIZ2: DrawCornerTrackFence (ti, base_image, num_sprites, RFO_FLAT_LOWER); break;
+		case RAIL_GROUND_FENCE_VERT1:  DrawCornerTrackFence (ti, base_image, num_sprites, CORNER_W); break;
+		case RAIL_GROUND_FENCE_VERT2:  DrawCornerTrackFence (ti, base_image, num_sprites, CORNER_E); break;
+		case RAIL_GROUND_FENCE_HORIZ1: DrawCornerTrackFence (ti, base_image, num_sprites, CORNER_N); break;
+		case RAIL_GROUND_FENCE_HORIZ2: DrawCornerTrackFence (ti, base_image, num_sprites, CORNER_S); break;
 		case RAIL_GROUND_WATER: {
 			Corner track_corner;
 			if (IsHalftileSlope(ti->tileh)) {
@@ -2734,13 +2737,7 @@ static void DrawTrackDetails(const TileInfo *ti, TrackBits tracks)
 				/* Three-corner-raised slope */
 				track_corner = OppositeCorner(GetHighestSlopeCorner(ComplementSlope(ti->tileh)));
 			}
-			switch (track_corner) {
-				case CORNER_W: DrawCornerTrackFence (ti, base_image, num_sprites, RFO_FLAT_LEFT);  break;
-				case CORNER_S: DrawCornerTrackFence (ti, base_image, num_sprites, RFO_FLAT_LOWER); break;
-				case CORNER_E: DrawCornerTrackFence (ti, base_image, num_sprites, RFO_FLAT_RIGHT); break;
-				case CORNER_N: DrawCornerTrackFence (ti, base_image, num_sprites, RFO_FLAT_UPPER); break;
-				default: NOT_REACHED();
-			}
+			DrawCornerTrackFence (ti, base_image, num_sprites, track_corner);
 			break;
 		}
 		default: break;
