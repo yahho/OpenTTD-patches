@@ -22,7 +22,7 @@
 
 #include "table/sprites.h"
 #include "table/strings.h"
-#include "table/palettes.h"
+#include "table/string_colours.h"
 
 /**
  * Compute the vertical position of the draggable part of scrollbar

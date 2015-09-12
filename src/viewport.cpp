@@ -54,7 +54,7 @@
 #include "viewport_sprite_sorter.h"
 
 #include "table/strings.h"
-#include "table/palettes.h"
+#include "table/string_colours.h"
 
 Point _tile_fract_coords;
 

@@ -44,6 +44,7 @@ struct RailTypeResolverObject : public ResolverObject {
 	/* virtual */ const SpriteGroup *ResolveReal(const RealSpriteGroup *group) const;
 };
 
+const SpriteGroup *GetCustomRailSpriteGroup (const RailtypeInfo *rti, TileIndex tile, RailTypeSpriteGroup rtsg, TileContext context = TCX_NORMAL);
 SpriteID GetCustomRailSprite(const RailtypeInfo *rti, TileIndex tile, RailTypeSpriteGroup rtsg, TileContext context = TCX_NORMAL);
 SpriteID GetCustomSignalSprite(const RailtypeInfo *rti, TileIndex tile, SignalType type, SignalVariant var, SignalState state, bool gui = false);
 

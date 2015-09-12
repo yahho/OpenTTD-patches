@@ -94,6 +94,27 @@ RailTypeResolverObject::RailTypeResolverObject(const RailtypeInfo *rti, TileInde
 }
 
 /**
+ * Get the sprite group to draw for the given tile.
+ * @param rti The rail type data (spec).
+ * @param tile The tile to get the sprite for.
+ * @param rtsg The type of sprite to draw.
+ * @param content Where are we drawing the tile?
+ * @return The sprite group to draw.
+ */
+const SpriteGroup *GetCustomRailSpriteGroup (const RailtypeInfo *rti, TileIndex tile, RailTypeSpriteGroup rtsg, TileContext context)
+{
+	assert(rtsg < RTSG_END);
+
+	if (rti->group[rtsg] == NULL) return NULL;
+
+	RailTypeResolverObject object(rti, tile, context, rtsg);
+	const SpriteGroup *group = object.Resolve();
+	if (group == NULL || group->GetNumResults() == 0) return NULL;
+
+	return group;
+}
+
+/**
  * Get the sprite to draw for the given tile.
  * @param rti The rail type data (spec).
  * @param tile The tile to get the sprite for.
@@ -103,15 +124,8 @@ RailTypeResolverObject::RailTypeResolverObject(const RailtypeInfo *rti, TileInde
  */
 SpriteID GetCustomRailSprite(const RailtypeInfo *rti, TileIndex tile, RailTypeSpriteGroup rtsg, TileContext context)
 {
-	assert(rtsg < RTSG_END);
-
-	if (rti->group[rtsg] == NULL) return 0;
-
-	RailTypeResolverObject object(rti, tile, context, rtsg);
-	const SpriteGroup *group = object.Resolve();
-	if (group == NULL || group->GetNumResults() == 0) return 0;
-
-	return group->GetResult();
+	const SpriteGroup *group = GetCustomRailSpriteGroup (rti, tile, rtsg, context);
+	return (group != NULL) ? group->GetResult() : 0;
 }
 
 /**
