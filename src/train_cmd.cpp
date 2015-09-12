@@ -3855,10 +3855,7 @@ static void DeleteLastWagon(Train *v)
 			Vehicle *v = iter.next();
 			if (v->type == VEH_TRAIN && (v->vehstatus & VS_CRASHED) != 0) {
 				Trackdir trackdir = Train::From(v)->trackdir;
-				if (trackdir == TRACKDIR_WORMHOLE) {
-					/* Vehicle is inside a wormhole, v->trackdir contains no useful value then. */
-					remaining_trackbits |= DiagDirToDiagTrackBits(GetTunnelBridgeDirection(v->tile));
-				} else if (trackdir != TRACKDIR_DEPOT) {
+				if (IsValidTrackdir (trackdir)) {
 					remaining_trackbits |= TrackToTrackBits(TrackdirToTrack(trackdir));
 				}
 			}
