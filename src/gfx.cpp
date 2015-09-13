@@ -49,6 +49,9 @@ Palette _cur_palette;
 /** Cache with metrics of some glyphs of a font. */
 struct FontMetrics {
 	byte widths [256 - 32];     ///< Glyph widths of all ASCII characters.
+	byte widest_digit;          ///< Widest digit.
+	byte widest_digit_nonnull;  ///< Widest leading (non-null) digit.
+	byte digit_width;           ///< Width of the widest digit.
 };
 
 static FontMetrics font_metrics_cache [FS_END]; ///< Cache containing width of often used characters. @see GetCharacterWidth()
@@ -1113,6 +1116,25 @@ void LoadStringWidthTable(bool monospace)
 		for (uint i = 0; i != 224; i++) {
 			font_metrics_cache[fs].widths[i] = GetGlyphWidth (fs, i + 32);
 		}
+
+		byte widest_digit = 9;
+		byte digit_width = font_metrics_cache[fs].widths['9' - 32];
+		for (byte i = 8; i > 0; i--) {
+			byte w = font_metrics_cache[fs].widths[i + '0' - 32];
+			if (w > digit_width) {
+				widest_digit = i;
+				digit_width = w;
+			}
+		}
+		font_metrics_cache[fs].widest_digit_nonnull = widest_digit;
+
+		byte w = font_metrics_cache[fs].widths['0' - 32];
+		if (w > digit_width) {
+			widest_digit = 0;
+			digit_width = w;
+		}
+		font_metrics_cache[fs].widest_digit = widest_digit;
+		font_metrics_cache[fs].digit_width = digit_width;
 	}
 
 	ClearFontCache();
@@ -1140,11 +1162,7 @@ byte GetCharacterWidth(FontSize size, WChar key)
  */
 byte GetDigitWidth(FontSize size)
 {
-	byte width = 0;
-	for (char c = '0'; c <= '9'; c++) {
-		width = max(GetCharacterWidth(size, c), width);
-	}
-	return width;
+	return font_metrics_cache[size].digit_width;
 }
 
 /**
@@ -1155,15 +1173,8 @@ byte GetDigitWidth(FontSize size)
  */
 void GetBroadestDigit(uint *front, uint *next, FontSize size)
 {
-	int width = -1;
-	for (char c = '9'; c >= '0'; c--) {
-		int w = GetCharacterWidth(size, c);
-		if (w > width) {
-			width = w;
-			*next = c - '0';
-			if (c != '0') *front = c - '0';
-		}
-	}
+	*front = font_metrics_cache[size].widest_digit_nonnull;
+	*next  = font_metrics_cache[size].widest_digit;
 }
 
 void ScreenSizeChanged()
