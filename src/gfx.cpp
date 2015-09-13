@@ -1165,16 +1165,18 @@ byte GetDigitWidth(FontSize size)
 	return font_metrics_cache[size].digit_width;
 }
 
-/**
- * Determine the broadest digits for guessing the maximum width of a n-digit number.
- * @param [out] front Broadest digit, which is not 0. (Use this digit as first digit for numbers with more than one digit.)
- * @param [out] next Broadest digit, including 0. (Use this digit for all digits, except the first one; or for numbers with only one digit.)
- * @param size  Font of the digit
- */
-void GetBroadestDigit(uint *front, uint *next, FontSize size)
+/** Compute the broadest n-digit value in a given font size. */
+uint64 GetBroadestValue (uint n, FontSize size)
 {
-	*front = font_metrics_cache[size].widest_digit_nonnull;
-	*next  = font_metrics_cache[size].widest_digit;
+	uint d = font_metrics_cache[size].widest_digit;
+
+	if (n <= 1) return d;
+
+	uint64 val = font_metrics_cache[size].widest_digit_nonnull;
+	do {
+		val = 10 * val + d;
+	} while (--n > 1);
+	return val;
 }
 
 void ScreenSizeChanged()

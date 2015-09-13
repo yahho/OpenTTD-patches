@@ -154,7 +154,7 @@ bool ToggleFullScreen(bool fs);
 /* gfx.cpp */
 byte GetCharacterWidth(FontSize size, uint32 key);
 byte GetDigitWidth(FontSize size = FS_NORMAL);
-void GetBroadestDigit(uint *front, uint *next, FontSize size = FS_NORMAL);
+uint64 GetBroadestValue (uint n, FontSize size = FS_NORMAL);
 
 int GetCharacterHeight(FontSize size);
 
