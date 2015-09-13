@@ -46,7 +46,13 @@ SwitchMode _switch_mode;  ///< The next mainloop command.
 PauseModeByte _pause_mode;
 Palette _cur_palette;
 
-static byte _stringwidth_table[FS_END][224]; ///< Cache containing width of often used characters. @see GetCharacterWidth()
+/** Cache with metrics of some glyphs of a font. */
+struct FontMetrics {
+	byte widths [256 - 32];     ///< Glyph widths of all ASCII characters.
+};
+
+static FontMetrics font_metrics_cache [FS_END]; ///< Cache containing width of often used characters. @see GetCharacterWidth()
+
 DrawPixelInfo *_cur_dpi;
 byte _colour_gradient[COLOUR_END][8];
 
@@ -1098,14 +1104,14 @@ TextColour GetContrastColour(uint8 background)
 }
 
 /**
- * Initialize _stringwidth_table cache
+ * Initialize font_metrics_cache
  * @param monospace Whether to load the monospace cache or the normal fonts.
  */
 void LoadStringWidthTable(bool monospace)
 {
 	for (FontSize fs = monospace ? FS_MONO : FS_BEGIN; fs < (monospace ? FS_END : FS_MONO); fs++) {
 		for (uint i = 0; i != 224; i++) {
-			_stringwidth_table[fs][i] = GetGlyphWidth(fs, i + 32);
+			font_metrics_cache[fs].widths[i] = GetGlyphWidth (fs, i + 32);
 		}
 	}
 
@@ -1121,8 +1127,8 @@ void LoadStringWidthTable(bool monospace)
  */
 byte GetCharacterWidth(FontSize size, WChar key)
 {
-	/* Use _stringwidth_table cache if possible */
-	if (key >= 32 && key < 256) return _stringwidth_table[size][key - 32];
+	/* Use font_metrics_cache if possible */
+	if (key >= 32 && key < 256) return font_metrics_cache[size].widths[key - 32];
 
 	return GetGlyphWidth(size, key);
 }
