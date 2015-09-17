@@ -71,19 +71,11 @@ void CcPlaySound1D(const CommandCost &result, TileIndex tile, uint32 p1, uint32 
 	if (result.Succeeded() && _settings_client.sound.confirm) SndPlayTileFx(SND_1F_SPLAT_OTHER, tile);
 }
 
-/**
- * Callback to start placing a bridge.
- * @param tile Start tile of the bridge.
- */
-static void PlaceRoad_Bridge(TileIndex tile, Window *w)
+/** Show the bridge building window between a pair of tiles. */
+static void HandleBuildRoadBridge (TileIndex start_tile, TileIndex end_tile)
 {
-	if (IsBridgeHeadTile(tile)) {
-		TileIndex other_tile = GetOtherBridgeEnd(tile);
-		Point pt = {0, 0};
-		w->OnPlaceMouseUp(VPM_X_OR_Y, DDSP_BUILD_BRIDGE, pt, other_tile, tile);
-	} else {
-		VpStartPlaceSizing(tile, VPM_X_OR_Y, DDSP_BUILD_BRIDGE);
-	}
+	if (!_settings_client.gui.persistent_buildingtools) ResetObjectToPlace();
+	ShowBuildBridgeWindow (start_tile, end_tile, TRANSPORT_ROAD, RoadTypeToRoadTypes(_cur_roadtype));
 }
 
 /**
@@ -533,7 +525,12 @@ struct BuildRoadToolbarWindow : Window {
 				break;
 
 			case WID_ROT_BUILD_BRIDGE:
-				PlaceRoad_Bridge(tile, this);
+				if (IsBridgeHeadTile(tile)) {
+					TileIndex other_tile = GetOtherBridgeEnd (tile);
+					HandleBuildRoadBridge (other_tile, tile);
+				} else {
+					VpStartPlaceSizing (tile, VPM_X_OR_Y, DDSP_BUILD_BRIDGE);
+				}
 				break;
 
 			case WID_ROT_BUILD_TUNNEL:
@@ -610,8 +607,7 @@ struct BuildRoadToolbarWindow : Window {
 			switch (select_proc) {
 				default: NOT_REACHED();
 				case DDSP_BUILD_BRIDGE:
-					if (!_settings_client.gui.persistent_buildingtools) ResetObjectToPlace();
-					ShowBuildBridgeWindow(start_tile, end_tile, TRANSPORT_ROAD, RoadTypeToRoadTypes(_cur_roadtype));
+					HandleBuildRoadBridge (start_tile, end_tile);
 					break;
 
 				case DDSP_DEMOLISH_AREA:
