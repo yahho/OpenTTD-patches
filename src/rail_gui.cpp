@@ -260,20 +260,11 @@ static void GenericPlaceSignals(TileIndex tile)
 	}
 }
 
-/**
- * Start placing a rail bridge.
- * @param tile Position of the first tile of the bridge.
- * @param w    Rail toolbar window.
- */
-static void PlaceRail_Bridge(TileIndex tile, Window *w)
+/** Show the bridge building window between a pair of tiles. */
+static void HandleBuildRailBridge (TileIndex start_tile, TileIndex end_tile)
 {
-	if (IsBridgeHeadTile(tile)) {
-		TileIndex other_tile = GetOtherBridgeEnd(tile);
-		Point pt = {0, 0};
-		w->OnPlaceMouseUp(VPM_X_OR_Y, DDSP_BUILD_BRIDGE, pt, other_tile, tile);
-	} else {
-		VpStartPlaceSizing(tile, VPM_X_OR_Y, DDSP_BUILD_BRIDGE);
-	}
+	if (!_settings_client.gui.persistent_buildingtools) ResetObjectToPlace();
+	ShowBuildBridgeWindow (start_tile, end_tile, TRANSPORT_RAIL, _cur_railtype);
 }
 
 /**
@@ -646,7 +637,12 @@ struct BuildRailToolbarWindow : Window {
 				break;
 
 			case WID_RAT_BUILD_BRIDGE:
-				PlaceRail_Bridge(tile, this);
+				if (IsBridgeHeadTile(tile)) {
+					TileIndex other_tile = GetOtherBridgeEnd (tile);
+					HandleBuildRailBridge (other_tile, tile);
+				} else {
+					VpStartPlaceSizing (tile, VPM_X_OR_Y, DDSP_BUILD_BRIDGE);
+				}
 				break;
 
 			case WID_RAT_BUILD_TUNNEL:
@@ -675,8 +671,7 @@ struct BuildRailToolbarWindow : Window {
 			switch (select_proc) {
 				default: NOT_REACHED();
 				case DDSP_BUILD_BRIDGE:
-					if (!_settings_client.gui.persistent_buildingtools) ResetObjectToPlace();
-					ShowBuildBridgeWindow(start_tile, end_tile, TRANSPORT_RAIL, _cur_railtype);
+					HandleBuildRailBridge (start_tile, end_tile);
 					break;
 
 				case DDSP_PLACE_RAIL:
