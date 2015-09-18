@@ -189,7 +189,7 @@ struct BuildDocksToolbarWindow : Window {
 				break;
 
 			case WID_DT_DEMOLISH: // Demolish aka dynamite button
-				PlaceProc_DemolishArea(tile);
+				VpStartPlaceSizing (tile, VPM_X_AND_Y, DDSP_DEMOLISH_AREA);
 				break;
 
 			case WID_DT_DEPOT: // Build depot button

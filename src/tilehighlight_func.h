@@ -15,7 +15,6 @@
 #include "gfx_type.h"
 #include "tilehighlight_type.h"
 
-void PlaceProc_DemolishArea(TileIndex tile);
 bool GUIPlaceProcDragXY(ViewportDragDropSelectionProcess proc, TileIndex start_tile, TileIndex end_tile);
 
 bool HandlePlacePushButton(Window *w, int widget, CursorID cursor, HighLightStyle mode);

@@ -121,7 +121,7 @@ struct BuildAirToolbarWindow : Window {
 				break;
 
 			case WID_AT_DEMOLISH:
-				PlaceProc_DemolishArea(tile);
+				VpStartPlaceSizing (tile, VPM_X_AND_Y, DDSP_DEMOLISH_AREA);
 				break;
 
 			default: NOT_REACHED();

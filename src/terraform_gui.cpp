@@ -150,15 +150,6 @@ bool GUIPlaceProcDragXY(ViewportDragDropSelectionProcess proc, TileIndex start_t
 	return true;
 }
 
-/**
- * Start a drag for demolishing an area.
- * @param tile Position of one corner.
- */
-void PlaceProc_DemolishArea(TileIndex tile)
-{
-	VpStartPlaceSizing(tile, VPM_X_AND_Y, DDSP_DEMOLISH_AREA);
-}
-
 /** Terra form toolbar managing class. */
 struct TerraformToolbarWindow : Window {
 	int last_user_action; ///< Last started user action.
@@ -245,7 +236,7 @@ struct TerraformToolbarWindow : Window {
 				break;
 
 			case WID_TT_DEMOLISH: // Demolish aka dynamite button
-				PlaceProc_DemolishArea(tile);
+				VpStartPlaceSizing(tile, VPM_X_AND_Y, DDSP_DEMOLISH_AREA);
 				break;
 
 			case WID_TT_BUY_LAND: // Buy land button
@@ -660,7 +651,7 @@ struct ScenarioEditorLandscapeGenerationWindow : Window {
 	{
 		switch (this->last_user_action) {
 			case WID_ETT_DEMOLISH: // Demolish aka dynamite button
-				PlaceProc_DemolishArea(tile);
+				VpStartPlaceSizing(tile, VPM_X_AND_Y, DDSP_DEMOLISH_AREA);
 				break;
 
 			case WID_ETT_LOWER_LAND: // Lower land button
