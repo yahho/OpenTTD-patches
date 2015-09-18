@@ -15,7 +15,7 @@
 #include "gfx_type.h"
 #include "tilehighlight_type.h"
 
-bool GUIPlaceProcDragXY(ViewportDragDropSelectionProcess proc, TileIndex start_tile, TileIndex end_tile);
+void HandleDemolishMouseUp (TileIndex start_tile, TileIndex end_tile);
 
 bool HandlePlacePushButton(Window *w, int widget, CursorID cursor, HighLightStyle mode);
 void SetObjectToPlaceWnd(CursorID icon, PaletteID pal, HighLightStyle mode, Window *w);

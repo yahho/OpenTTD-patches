@@ -115,7 +115,7 @@ static void GenerateRockyArea(TileIndex end, TileIndex start)
  * allows for additional implements that are more local. For example X_Y drag
  * of convertrail which belongs in rail_gui.cpp and not terraform_gui.cpp
  */
-bool GUIPlaceProcDragXY(ViewportDragDropSelectionProcess proc, TileIndex start_tile, TileIndex end_tile)
+static bool GUIPlaceProcDragXY (ViewportDragDropSelectionProcess proc, TileIndex start_tile, TileIndex end_tile)
 {
 	if (!_settings_game.construction.freeform_edges) {
 		/* When end_tile is void, the error tile will not be visible to the
@@ -148,6 +148,11 @@ bool GUIPlaceProcDragXY(ViewportDragDropSelectionProcess proc, TileIndex start_t
 	}
 
 	return true;
+}
+
+void HandleDemolishMouseUp (TileIndex start_tile, TileIndex end_tile)
+{
+	GUIPlaceProcDragXY (DDSP_DEMOLISH_AREA, start_tile, end_tile);
 }
 
 /** Terra form toolbar managing class. */

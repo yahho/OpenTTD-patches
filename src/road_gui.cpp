@@ -611,7 +611,7 @@ struct BuildRoadToolbarWindow : Window {
 					break;
 
 				case DDSP_DEMOLISH_AREA:
-					GUIPlaceProcDragXY(select_proc, start_tile, end_tile);
+					HandleDemolishMouseUp (start_tile, end_tile);
 					break;
 
 				case DDSP_PLACE_ROAD_X_DIR:

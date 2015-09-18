@@ -236,7 +236,7 @@ struct BuildDocksToolbarWindow : Window {
 		if (pt.x != -1) {
 			switch (select_proc) {
 				case DDSP_DEMOLISH_AREA:
-					GUIPlaceProcDragXY(select_proc, start_tile, end_tile);
+					HandleDemolishMouseUp (start_tile, end_tile);
 					break;
 				case DDSP_CREATE_WATER:
 					DoCommandP(end_tile, start_tile, (_game_mode == GM_EDITOR && _ctrl_pressed) ? WATER_CLASS_SEA : WATER_CLASS_CANAL, CMD_BUILD_CANAL);
