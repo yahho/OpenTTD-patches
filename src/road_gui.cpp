@@ -247,42 +247,6 @@ StringID GetErrBuildRoadDepot (TileIndex tile, uint32 p1, uint32 p2, const char 
 	return _road_type_infos[GB(p1, 2, 2)].err_depot;
 }
 
-/**
- * Callback for placing a bus station.
- * @param tile Position to place the station.
- */
-static void PlaceRoad_BusStation(TileIndex tile)
-{
-	if (_remove_button_clicked) {
-		VpStartPlaceSizing(tile, VPM_X_AND_Y, DRAG_REMOVE_BUSSTOP);
-	} else {
-		if (_road_station_picker_orientation < DIAGDIR_END) { // Not a drive-through stop.
-			VpStartPlaceSizing(tile, (DiagDirToAxis(_road_station_picker_orientation) == AXIS_X) ? VPM_X_LIMITED : VPM_Y_LIMITED, DRAG_BUILD_BUSSTOP);
-		} else {
-			VpStartPlaceSizing(tile, VPM_X_AND_Y_LIMITED, DRAG_BUILD_BUSSTOP);
-		}
-		VpSetPlaceSizingLimit(_settings_game.station.station_spread);
-	}
-}
-
-/**
- * Callback for placing a truck station.
- * @param tile Position to place the station.
- */
-static void PlaceRoad_TruckStation(TileIndex tile)
-{
-	if (_remove_button_clicked) {
-		VpStartPlaceSizing(tile, VPM_X_AND_Y, DRAG_REMOVE_TRUCKSTOP);
-	} else {
-		if (_road_station_picker_orientation < DIAGDIR_END) { // Not a drive-through stop.
-			VpStartPlaceSizing(tile, (DiagDirToAxis(_road_station_picker_orientation) == AXIS_X) ? VPM_X_LIMITED : VPM_Y_LIMITED, DRAG_BUILD_TRUCKSTOP);
-		} else {
-			VpStartPlaceSizing(tile, VPM_X_AND_Y_LIMITED, DRAG_BUILD_TRUCKSTOP);
-		}
-		VpSetPlaceSizingLimit(_settings_game.station.station_spread);
-	}
-}
-
 typedef void OnButtonClick(Window *w);
 
 /**
@@ -532,12 +496,20 @@ struct BuildRoadToolbarWindow : Window {
 				break;
 
 			case WID_ROT_BUS_STATION:
-				PlaceRoad_BusStation(tile);
+			case WID_ROT_TRUCK_STATION: {
+				bool bus = this->last_started_action == WID_ROT_BUS_STATION;
+				if (_remove_button_clicked) {
+					VpStartPlaceSizing (tile, VPM_X_AND_Y, bus ? DRAG_REMOVE_BUSSTOP : DRAG_REMOVE_TRUCKSTOP);
+				} else {
+					VpStartPlaceSizing (tile,
+							_road_station_picker_orientation < DIAGDIR_END ? // Not a drive-through stop.
+								(DiagDirToAxis(_road_station_picker_orientation) == AXIS_X) ? VPM_X_LIMITED : VPM_Y_LIMITED :
+								VPM_X_AND_Y_LIMITED,
+						bus ? DRAG_BUILD_BUSSTOP : DRAG_BUILD_TRUCKSTOP);
+					VpSetPlaceSizingLimit (_settings_game.station.station_spread);
+				}
 				break;
-
-			case WID_ROT_TRUCK_STATION:
-				PlaceRoad_TruckStation(tile);
-				break;
+			}
 
 			case WID_ROT_BUILD_BRIDGE:
 				if (IsBridgeHeadTile(tile)) {
