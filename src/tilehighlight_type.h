@@ -72,8 +72,8 @@ struct TileHighlightData {
 	bool make_square_red;          ///< Whether to give a tile a red selection.
 	TileIndex redsq;               ///< The tile that has to get a red selection.
 
-	ViewportPlaceMethod select_method;            ///< The method which governs how tiles are selected.
-	ViewportDragDropSelectionProcess select_proc; ///< The procedure that has to be called when the selection is done.
+	ViewportPlaceMethod select_method; ///< The method which governs how tiles are selected.
+	int                 select_data;   ///< Custom data set by the function that started the selection.
 
 	void Reset();
 

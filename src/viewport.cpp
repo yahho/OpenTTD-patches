@@ -2560,10 +2560,10 @@ static inline void ShowMeasurementTooltips(StringID str, uint paramcount, const 
 }
 
 /** highlighting tiles while only going over them with the mouse */
-void VpStartPlaceSizing(TileIndex tile, ViewportPlaceMethod method, ViewportDragDropSelectionProcess process)
+void VpStartPlaceSizing (TileIndex tile, ViewportPlaceMethod method, int userdata)
 {
 	_thd.select_method = method;
-	_thd.select_proc   = process;
+	_thd.select_data   = userdata;
 	_thd.selend.x = TileX(tile) * TILE_SIZE;
 	_thd.selstart.x = TileX(tile) * TILE_SIZE;
 	_thd.selend.y = TileY(tile) * TILE_SIZE;
@@ -3206,7 +3206,7 @@ EventState VpHandlePlaceSizingDrag()
 
 	/* while dragging execute the drag procedure of the corresponding window (mostly VpSelectTilesWithMethod() ) */
 	if (_left_button_down) {
-		w->OnPlaceDrag(_thd.select_method, _thd.select_proc, GetTileBelowCursor());
+		w->OnPlaceDrag (_thd.select_method, _thd.select_data, GetTileBelowCursor());
 		return ES_HANDLED;
 	}
 
@@ -3225,7 +3225,7 @@ EventState VpHandlePlaceSizingDrag()
 	}
 	SetTileSelectSize(1, 1);
 
-	w->OnPlaceMouseUp(_thd.select_method, _thd.select_proc, _thd.selend, TileVirtXY(_thd.selstart.x, _thd.selstart.y), TileVirtXY(_thd.selend.x, _thd.selend.y));
+	w->OnPlaceMouseUp (_thd.select_method, _thd.select_data, _thd.selend, TileVirtXY(_thd.selstart.x, _thd.selstart.y), TileVirtXY(_thd.selend.x, _thd.selend.y));
 
 	return ES_HANDLED;
 }

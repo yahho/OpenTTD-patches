@@ -115,7 +115,7 @@ static void GenerateRockyArea(TileIndex end, TileIndex start)
  * allows for additional implements that are more local. For example X_Y drag
  * of convertrail which belongs in rail_gui.cpp and not terraform_gui.cpp
  */
-static bool GUIPlaceProcDragXY (ViewportDragDropSelectionProcess proc, TileIndex start_tile, TileIndex end_tile)
+static bool GUIPlaceProcDragXY (int proc, TileIndex start_tile, TileIndex end_tile)
 {
 	if (!_settings_game.construction.freeform_edges) {
 		/* When end_tile is void, the error tile will not be visible to the
@@ -256,7 +256,7 @@ struct TerraformToolbarWindow : Window {
 		}
 	}
 
-	virtual void OnPlaceDrag(ViewportPlaceMethod select_method, ViewportDragDropSelectionProcess select_proc, Point pt)
+	void OnPlaceDrag (ViewportPlaceMethod select_method, int userdata, Point pt) OVERRIDE
 	{
 		VpSelectTilesWithMethod(pt.x, pt.y, select_method);
 	}
@@ -268,16 +268,16 @@ struct TerraformToolbarWindow : Window {
 		return pt;
 	}
 
-	virtual void OnPlaceMouseUp(ViewportPlaceMethod select_method, ViewportDragDropSelectionProcess select_proc, Point pt, TileIndex start_tile, TileIndex end_tile)
+	void OnPlaceMouseUp (ViewportPlaceMethod select_method, int userdata, Point pt, TileIndex start_tile, TileIndex end_tile) OVERRIDE
 	{
 		if (pt.x != -1) {
-			switch (select_proc) {
+			switch (userdata) {
 				default: NOT_REACHED();
 				case DDSP_DEMOLISH_AREA:
 				case DDSP_RAISE_AND_LEVEL_AREA:
 				case DDSP_LOWER_AND_LEVEL_AREA:
 				case DDSP_LEVEL_AREA:
-					GUIPlaceProcDragXY(select_proc, start_tile, end_tile);
+					GUIPlaceProcDragXY (userdata, start_tile, end_tile);
 					break;
 			}
 		}
@@ -683,15 +683,15 @@ struct ScenarioEditorLandscapeGenerationWindow : Window {
 		}
 	}
 
-	virtual void OnPlaceDrag(ViewportPlaceMethod select_method, ViewportDragDropSelectionProcess select_proc, Point pt)
+	void OnPlaceDrag (ViewportPlaceMethod select_method, int userdata, Point pt) OVERRIDE
 	{
 		VpSelectTilesWithMethod(pt.x, pt.y, select_method);
 	}
 
-	virtual void OnPlaceMouseUp(ViewportPlaceMethod select_method, ViewportDragDropSelectionProcess select_proc, Point pt, TileIndex start_tile, TileIndex end_tile)
+	void OnPlaceMouseUp (ViewportPlaceMethod select_method, int userdata, Point pt, TileIndex start_tile, TileIndex end_tile) OVERRIDE
 	{
 		if (pt.x != -1) {
-			switch (select_proc) {
+			switch (userdata) {
 				default: NOT_REACHED();
 				case DDSP_CREATE_ROCKS:
 				case DDSP_CREATE_DESERT:
@@ -699,7 +699,7 @@ struct ScenarioEditorLandscapeGenerationWindow : Window {
 				case DDSP_LOWER_AND_LEVEL_AREA:
 				case DDSP_LEVEL_AREA:
 				case DDSP_DEMOLISH_AREA:
-					GUIPlaceProcDragXY(select_proc, start_tile, end_tile);
+					GUIPlaceProcDragXY (userdata, start_tile, end_tile);
 					break;
 			}
 		}

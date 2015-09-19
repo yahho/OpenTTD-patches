@@ -141,14 +141,14 @@ public:
 		VpStartPlaceSizing(tile, VPM_X_AND_Y, DDSP_PLANT_TREES);
 	}
 
-	virtual void OnPlaceDrag(ViewportPlaceMethod select_method, ViewportDragDropSelectionProcess select_proc, Point pt)
+	void OnPlaceDrag (ViewportPlaceMethod select_method, int userdata, Point pt) OVERRIDE
 	{
 		VpSelectTilesWithMethod(pt.x, pt.y, select_method);
 	}
 
-	virtual void OnPlaceMouseUp(ViewportPlaceMethod select_method, ViewportDragDropSelectionProcess select_proc, Point pt, TileIndex start_tile, TileIndex end_tile)
+	void OnPlaceMouseUp (ViewportPlaceMethod select_method, int userdata, Point pt, TileIndex start_tile, TileIndex end_tile) OVERRIDE
 	{
-		if (pt.x != -1 && select_proc == DDSP_PLANT_TREES) {
+		if (pt.x != -1 && userdata == DDSP_PLANT_TREES) {
 			DoCommandP(end_tile, this->tree_to_plant, start_tile, CMD_PLANT_TREE);
 		}
 	}

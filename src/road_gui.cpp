@@ -558,13 +558,13 @@ struct BuildRoadToolbarWindow : Window {
 		DeleteWindowByClass(WC_BUILD_BRIDGE);
 	}
 
-	virtual void OnPlaceDrag(ViewportPlaceMethod select_method, ViewportDragDropSelectionProcess select_proc, Point pt)
+	void OnPlaceDrag (ViewportPlaceMethod select_method, int userdata, Point pt) OVERRIDE
 	{
 		/* Here we update the end tile flags
 		 * of the road placement actions.
 		 * At first we reset the end halfroad
 		 * bits and if needed we set them again. */
-		switch (select_proc) {
+		switch (userdata) {
 			case DDSP_PLACE_ROAD_X_DIR:
 				_place_road_flag &= ~RF_END_HALFROAD_X;
 				if (pt.x & 8) _place_road_flag |= RF_END_HALFROAD_X;
@@ -601,10 +601,10 @@ struct BuildRoadToolbarWindow : Window {
 		VpSelectTilesWithMethod(pt.x, pt.y, select_method);
 	}
 
-	virtual void OnPlaceMouseUp(ViewportPlaceMethod select_method, ViewportDragDropSelectionProcess select_proc, Point pt, TileIndex start_tile, TileIndex end_tile)
+	void OnPlaceMouseUp (ViewportPlaceMethod select_method, int userdata, Point pt, TileIndex start_tile, TileIndex end_tile) OVERRIDE
 	{
 		if (pt.x != -1) {
-			switch (select_proc) {
+			switch (userdata) {
 				default: NOT_REACHED();
 				case DDSP_BUILD_BRIDGE:
 					HandleBuildRoadBridge (start_tile, end_tile);
@@ -631,7 +631,7 @@ struct BuildRoadToolbarWindow : Window {
 				case DDSP_BUILD_TRUCKSTOP: {
 					uint32 p2 = (INVALID_STATION << 16) | (_ctrl_pressed << 5) |
 							RoadTypeToRoadTypes(_cur_roadtype) << 2 |
-							(select_proc == DDSP_BUILD_TRUCKSTOP ? ROADSTOP_TRUCK : ROADSTOP_BUS);
+							(userdata == DDSP_BUILD_TRUCKSTOP ? ROADSTOP_TRUCK : ROADSTOP_BUS);
 
 					uint8 ddir = _road_station_picker_orientation;
 					if (ddir >= DIAGDIR_END) {

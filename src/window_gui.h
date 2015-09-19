@@ -752,21 +752,21 @@ public:
 	 * The user is dragging over the map when the tile highlight mode
 	 * has been set.
 	 * @param select_method the method of selection (allowed directions)
-	 * @param select_proc   what will be created when the drag is over.
+	 * @param userdata      data set by the function that started the selection
 	 * @param pt            the exact point on the map where the mouse is.
 	 */
-	virtual void OnPlaceDrag(ViewportPlaceMethod select_method, ViewportDragDropSelectionProcess select_proc, Point pt) {}
+	virtual void OnPlaceDrag (ViewportPlaceMethod select_method, int userdata, Point pt) {}
 
 	/**
 	 * The user has dragged over the map when the tile highlight mode
 	 * has been set.
 	 * @param select_method the method of selection (allowed directions)
-	 * @param select_proc   what should be created.
+	 * @param userdata      data set by the function that started the selection
 	 * @param pt            the exact point on the map where the mouse was released.
 	 * @param start_tile    the begin tile of the drag.
 	 * @param end_tile      the end tile of the drag.
 	 */
-	virtual void OnPlaceMouseUp(ViewportPlaceMethod select_method, ViewportDragDropSelectionProcess select_proc, Point pt, TileIndex start_tile, TileIndex end_tile) {}
+	virtual void OnPlaceMouseUp (ViewportPlaceMethod select_method, int userdata, Point pt, TileIndex start_tile, TileIndex end_tile) {}
 
 	/**
 	 * The user moves over the map when a tile highlight mode has been set
