@@ -97,6 +97,13 @@ static TileIndex GetOtherAqueductEnd(TileIndex tile_from, TileIndex *tile_to = N
 
 /** Toolbar window for constructing water infrastructure. */
 struct BuildDocksToolbarWindow : Window {
+	/** Dragging actions for this window. */
+	enum {
+		DRAG_DEMOLISH_AREA,     ///< Clear area
+		DRAG_CREATE_WATER,      ///< Create a canal
+		DRAG_CREATE_RIVER,      ///< Create rivers
+	};
+
 	DockToolbarWidgets last_clicked_widget; ///< Contains the last widget that has been clicked on this toolbar.
 
 	BuildDocksToolbarWindow(WindowDesc *desc, WindowNumber window_number) : Window(desc)
@@ -181,7 +188,7 @@ struct BuildDocksToolbarWindow : Window {
 	{
 		switch (this->last_clicked_widget) {
 			case WID_DT_CANAL: // Build canal button
-				VpStartPlaceSizing(tile, (_game_mode == GM_EDITOR) ? VPM_X_AND_Y : VPM_X_OR_Y, DDSP_CREATE_WATER);
+				VpStartPlaceSizing(tile, (_game_mode == GM_EDITOR) ? VPM_X_AND_Y : VPM_X_OR_Y, DRAG_CREATE_WATER);
 				break;
 
 			case WID_DT_LOCK: // Build lock button
@@ -189,7 +196,7 @@ struct BuildDocksToolbarWindow : Window {
 				break;
 
 			case WID_DT_DEMOLISH: // Demolish aka dynamite button
-				VpStartPlaceSizing (tile, VPM_X_AND_Y, DDSP_DEMOLISH_AREA);
+				VpStartPlaceSizing (tile, VPM_X_AND_Y, DRAG_DEMOLISH_AREA);
 				break;
 
 			case WID_DT_DEPOT: // Build depot button
@@ -215,7 +222,7 @@ struct BuildDocksToolbarWindow : Window {
 				break;
 
 			case WID_DT_RIVER: // Build river button (in scenario editor)
-				VpStartPlaceSizing(tile, VPM_X_AND_Y, DDSP_CREATE_RIVER);
+				VpStartPlaceSizing(tile, VPM_X_AND_Y, DRAG_CREATE_RIVER);
 				break;
 
 			case WID_DT_BUILD_AQUEDUCT: // Build aqueduct button
@@ -235,13 +242,13 @@ struct BuildDocksToolbarWindow : Window {
 	{
 		if (pt.x != -1) {
 			switch (userdata) {
-				case DDSP_DEMOLISH_AREA:
+				case DRAG_DEMOLISH_AREA:
 					HandleDemolishMouseUp (start_tile, end_tile);
 					break;
-				case DDSP_CREATE_WATER:
+				case DRAG_CREATE_WATER:
 					DoCommandP(end_tile, start_tile, (_game_mode == GM_EDITOR && _ctrl_pressed) ? WATER_CLASS_SEA : WATER_CLASS_CANAL, CMD_BUILD_CANAL);
 					break;
-				case DDSP_CREATE_RIVER:
+				case DRAG_CREATE_RIVER:
 					DoCommandP(end_tile, start_tile, WATER_CLASS_RIVER, CMD_BUILD_CANAL);
 					break;
 

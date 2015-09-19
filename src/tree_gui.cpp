@@ -138,7 +138,7 @@ public:
 
 	virtual void OnPlaceObject(Point pt, TileIndex tile)
 	{
-		VpStartPlaceSizing(tile, VPM_X_AND_Y, DDSP_PLANT_TREES);
+		VpStartPlaceSizing (tile, VPM_X_AND_Y);
 	}
 
 	void OnPlaceDrag (ViewportPlaceMethod select_method, int userdata, Point pt) OVERRIDE
@@ -148,7 +148,7 @@ public:
 
 	void OnPlaceMouseUp (ViewportPlaceMethod select_method, int userdata, Point pt, TileIndex start_tile, TileIndex end_tile) OVERRIDE
 	{
-		if (pt.x != -1 && userdata == DDSP_PLANT_TREES) {
+		if (pt.x != -1) {
 			DoCommandP(end_tile, this->tree_to_plant, start_tile, CMD_PLANT_TREE);
 		}
 	}

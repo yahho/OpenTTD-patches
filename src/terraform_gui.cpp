@@ -106,6 +106,16 @@ static void GenerateRockyArea(TileIndex end, TileIndex start)
 	if (success && _settings_client.sound.confirm) SndPlayTileFx(SND_1F_SPLAT_OTHER, end);
 }
 
+/** Dragging actions in the terraform toolbars. */
+enum {
+	DRAG_DEMOLISH_AREA,         ///< Clear area
+	DRAG_RAISE_AND_LEVEL_AREA,  ///< Raise / level area
+	DRAG_LOWER_AND_LEVEL_AREA,  ///< Lower / level area
+	DRAG_LEVEL_AREA,            ///< Level area
+	DRAG_CREATE_ROCKS,          ///< Fill area with rocks
+	DRAG_CREATE_DESERT,         ///< Fill area with desert
+};
+
 /**
  * A central place to handle all X_AND_Y dragged GUI functions.
  * @param proc       Procedure related to the dragging
@@ -125,22 +135,22 @@ static bool GUIPlaceProcDragXY (int proc, TileIndex start_tile, TileIndex end_ti
 	}
 
 	switch (proc) {
-		case DDSP_DEMOLISH_AREA:
+		case DRAG_DEMOLISH_AREA:
 			DoCommandP(end_tile, start_tile, _ctrl_pressed ? 1 : 0, CMD_CLEAR_AREA);
 			break;
-		case DDSP_RAISE_AND_LEVEL_AREA:
+		case DRAG_RAISE_AND_LEVEL_AREA:
 			DoCommandP(end_tile, start_tile, LM_RAISE << 1 | (_ctrl_pressed ? 1 : 0), CMD_LEVEL_LAND);
 			break;
-		case DDSP_LOWER_AND_LEVEL_AREA:
+		case DRAG_LOWER_AND_LEVEL_AREA:
 			DoCommandP(end_tile, start_tile, LM_LOWER << 1 | (_ctrl_pressed ? 1 : 0), CMD_LEVEL_LAND);
 			break;
-		case DDSP_LEVEL_AREA:
+		case DRAG_LEVEL_AREA:
 			DoCommandP(end_tile, start_tile, LM_LEVEL << 1 | (_ctrl_pressed ? 1 : 0), CMD_LEVEL_LAND);
 			break;
-		case DDSP_CREATE_ROCKS:
+		case DRAG_CREATE_ROCKS:
 			GenerateRockyArea(end_tile, start_tile);
 			break;
-		case DDSP_CREATE_DESERT:
+		case DRAG_CREATE_DESERT:
 			GenerateDesertArea(end_tile, start_tile);
 			break;
 		default:
@@ -152,7 +162,7 @@ static bool GUIPlaceProcDragXY (int proc, TileIndex start_tile, TileIndex end_ti
 
 void HandleDemolishMouseUp (TileIndex start_tile, TileIndex end_tile)
 {
-	GUIPlaceProcDragXY (DDSP_DEMOLISH_AREA, start_tile, end_tile);
+	GUIPlaceProcDragXY (DRAG_DEMOLISH_AREA, start_tile, end_tile);
 }
 
 /** Terra form toolbar managing class. */
@@ -229,19 +239,19 @@ struct TerraformToolbarWindow : Window {
 	{
 		switch (this->last_user_action) {
 			case WID_TT_LOWER_LAND: // Lower land button
-				VpStartPlaceSizing(tile, VPM_X_AND_Y, DDSP_LOWER_AND_LEVEL_AREA);
+				VpStartPlaceSizing(tile, VPM_X_AND_Y, DRAG_LOWER_AND_LEVEL_AREA);
 				break;
 
 			case WID_TT_RAISE_LAND: // Raise land button
-				VpStartPlaceSizing(tile, VPM_X_AND_Y, DDSP_RAISE_AND_LEVEL_AREA);
+				VpStartPlaceSizing(tile, VPM_X_AND_Y, DRAG_RAISE_AND_LEVEL_AREA);
 				break;
 
 			case WID_TT_LEVEL_LAND: // Level land button
-				VpStartPlaceSizing(tile, VPM_X_AND_Y, DDSP_LEVEL_AREA);
+				VpStartPlaceSizing(tile, VPM_X_AND_Y, DRAG_LEVEL_AREA);
 				break;
 
 			case WID_TT_DEMOLISH: // Demolish aka dynamite button
-				VpStartPlaceSizing(tile, VPM_X_AND_Y, DDSP_DEMOLISH_AREA);
+				VpStartPlaceSizing(tile, VPM_X_AND_Y, DRAG_DEMOLISH_AREA);
 				break;
 
 			case WID_TT_BUY_LAND: // Buy land button
@@ -273,10 +283,10 @@ struct TerraformToolbarWindow : Window {
 		if (pt.x != -1) {
 			switch (userdata) {
 				default: NOT_REACHED();
-				case DDSP_DEMOLISH_AREA:
-				case DDSP_RAISE_AND_LEVEL_AREA:
-				case DDSP_LOWER_AND_LEVEL_AREA:
-				case DDSP_LEVEL_AREA:
+				case DRAG_DEMOLISH_AREA:
+				case DRAG_RAISE_AND_LEVEL_AREA:
+				case DRAG_LOWER_AND_LEVEL_AREA:
+				case DRAG_LEVEL_AREA:
 					GUIPlaceProcDragXY (userdata, start_tile, end_tile);
 					break;
 			}
@@ -656,7 +666,7 @@ struct ScenarioEditorLandscapeGenerationWindow : Window {
 	{
 		switch (this->last_user_action) {
 			case WID_ETT_DEMOLISH: // Demolish aka dynamite button
-				VpStartPlaceSizing(tile, VPM_X_AND_Y, DDSP_DEMOLISH_AREA);
+				VpStartPlaceSizing(tile, VPM_X_AND_Y, DRAG_DEMOLISH_AREA);
 				break;
 
 			case WID_ETT_LOWER_LAND: // Lower land button
@@ -668,15 +678,15 @@ struct ScenarioEditorLandscapeGenerationWindow : Window {
 				break;
 
 			case WID_ETT_LEVEL_LAND: // Level land button
-				VpStartPlaceSizing(tile, VPM_X_AND_Y, DDSP_LEVEL_AREA);
+				VpStartPlaceSizing(tile, VPM_X_AND_Y, DRAG_LEVEL_AREA);
 				break;
 
 			case WID_ETT_PLACE_ROCKS: // Place rocks button
-				VpStartPlaceSizing(tile, VPM_X_AND_Y, DDSP_CREATE_ROCKS);
+				VpStartPlaceSizing(tile, VPM_X_AND_Y, DRAG_CREATE_ROCKS);
 				break;
 
 			case WID_ETT_PLACE_DESERT: // Place desert button (in tropical climate)
-				VpStartPlaceSizing(tile, VPM_X_AND_Y, DDSP_CREATE_DESERT);
+				VpStartPlaceSizing(tile, VPM_X_AND_Y, DRAG_CREATE_DESERT);
 				break;
 
 			default: NOT_REACHED();
@@ -693,12 +703,12 @@ struct ScenarioEditorLandscapeGenerationWindow : Window {
 		if (pt.x != -1) {
 			switch (userdata) {
 				default: NOT_REACHED();
-				case DDSP_CREATE_ROCKS:
-				case DDSP_CREATE_DESERT:
-				case DDSP_RAISE_AND_LEVEL_AREA:
-				case DDSP_LOWER_AND_LEVEL_AREA:
-				case DDSP_LEVEL_AREA:
-				case DDSP_DEMOLISH_AREA:
+				case DRAG_CREATE_ROCKS:
+				case DRAG_CREATE_DESERT:
+				case DRAG_RAISE_AND_LEVEL_AREA:
+				case DRAG_LOWER_AND_LEVEL_AREA:
+				case DRAG_LEVEL_AREA:
+				case DRAG_DEMOLISH_AREA:
 					GUIPlaceProcDragXY (userdata, start_tile, end_tile);
 					break;
 			}

@@ -66,6 +66,21 @@ static RoadType _cur_roadtype;
 static DiagDirection _road_depot_orientation;
 static DiagDirection _road_station_picker_orientation;
 
+
+/** Dragging actions in the road toolbar. */
+enum {
+	DRAG_DEMOLISH_AREA,     ///< Clear area
+	DRAG_BUILD_BRIDGE,      ///< Bridge placement
+	DRAG_PLACE_ROAD_X_DIR,  ///< Road placement (X axis)
+	DRAG_PLACE_ROAD_Y_DIR,  ///< Road placement (Y axis)
+	DRAG_PLACE_AUTOROAD,    ///< Road placement (auto)
+	DRAG_BUILD_BUSSTOP,     ///< Road stop placement (buses)
+	DRAG_BUILD_TRUCKSTOP,   ///< Road stop placement (trucks)
+	DRAG_REMOVE_BUSSTOP,    ///< Road stop removal (buses)
+	DRAG_REMOVE_TRUCKSTOP,  ///< Road stop removal (trucks)
+};
+
+
 void CcPlaySound1D(const CommandCost &result, TileIndex tile, uint32 p1, uint32 p2)
 {
 	if (result.Succeeded() && _settings_client.sound.confirm) SndPlayTileFx(SND_1F_SPLAT_OTHER, tile);
@@ -239,12 +254,12 @@ StringID GetErrBuildRoadDepot (TileIndex tile, uint32 p1, uint32 p2, const char 
 static void PlaceRoad_BusStation(TileIndex tile)
 {
 	if (_remove_button_clicked) {
-		VpStartPlaceSizing(tile, VPM_X_AND_Y, DDSP_REMOVE_BUSSTOP);
+		VpStartPlaceSizing(tile, VPM_X_AND_Y, DRAG_REMOVE_BUSSTOP);
 	} else {
 		if (_road_station_picker_orientation < DIAGDIR_END) { // Not a drive-through stop.
-			VpStartPlaceSizing(tile, (DiagDirToAxis(_road_station_picker_orientation) == AXIS_X) ? VPM_X_LIMITED : VPM_Y_LIMITED, DDSP_BUILD_BUSSTOP);
+			VpStartPlaceSizing(tile, (DiagDirToAxis(_road_station_picker_orientation) == AXIS_X) ? VPM_X_LIMITED : VPM_Y_LIMITED, DRAG_BUILD_BUSSTOP);
 		} else {
-			VpStartPlaceSizing(tile, VPM_X_AND_Y_LIMITED, DDSP_BUILD_BUSSTOP);
+			VpStartPlaceSizing(tile, VPM_X_AND_Y_LIMITED, DRAG_BUILD_BUSSTOP);
 		}
 		VpSetPlaceSizingLimit(_settings_game.station.station_spread);
 	}
@@ -257,12 +272,12 @@ static void PlaceRoad_BusStation(TileIndex tile)
 static void PlaceRoad_TruckStation(TileIndex tile)
 {
 	if (_remove_button_clicked) {
-		VpStartPlaceSizing(tile, VPM_X_AND_Y, DDSP_REMOVE_TRUCKSTOP);
+		VpStartPlaceSizing(tile, VPM_X_AND_Y, DRAG_REMOVE_TRUCKSTOP);
 	} else {
 		if (_road_station_picker_orientation < DIAGDIR_END) { // Not a drive-through stop.
-			VpStartPlaceSizing(tile, (DiagDirToAxis(_road_station_picker_orientation) == AXIS_X) ? VPM_X_LIMITED : VPM_Y_LIMITED, DDSP_BUILD_TRUCKSTOP);
+			VpStartPlaceSizing(tile, (DiagDirToAxis(_road_station_picker_orientation) == AXIS_X) ? VPM_X_LIMITED : VPM_Y_LIMITED, DRAG_BUILD_TRUCKSTOP);
 		} else {
-			VpStartPlaceSizing(tile, VPM_X_AND_Y_LIMITED, DDSP_BUILD_TRUCKSTOP);
+			VpStartPlaceSizing(tile, VPM_X_AND_Y_LIMITED, DRAG_BUILD_TRUCKSTOP);
 		}
 		VpSetPlaceSizingLimit(_settings_game.station.station_spread);
 	}
@@ -492,24 +507,24 @@ struct BuildRoadToolbarWindow : Window {
 			case WID_ROT_ROAD_X:
 				_place_road_flag = RF_DIR_X;
 				if (_tile_fract_coords.x >= 8) _place_road_flag |= RF_START_HALFROAD_X;
-				VpStartPlaceSizing(tile, VPM_FIX_Y, DDSP_PLACE_ROAD_X_DIR);
+				VpStartPlaceSizing(tile, VPM_FIX_Y, DRAG_PLACE_ROAD_X_DIR);
 				break;
 
 			case WID_ROT_ROAD_Y:
 				_place_road_flag = RF_DIR_Y;
 				if (_tile_fract_coords.y >= 8) _place_road_flag |= RF_START_HALFROAD_Y;
-				VpStartPlaceSizing(tile, VPM_FIX_X, DDSP_PLACE_ROAD_Y_DIR);
+				VpStartPlaceSizing(tile, VPM_FIX_X, DRAG_PLACE_ROAD_Y_DIR);
 				break;
 
 			case WID_ROT_AUTOROAD:
 				_place_road_flag = RF_NONE;
 				if (_tile_fract_coords.x >= 8) _place_road_flag |= RF_START_HALFROAD_X;
 				if (_tile_fract_coords.y >= 8) _place_road_flag |= RF_START_HALFROAD_Y;
-				VpStartPlaceSizing(tile, VPM_X_OR_Y, DDSP_PLACE_AUTOROAD);
+				VpStartPlaceSizing(tile, VPM_X_OR_Y, DRAG_PLACE_AUTOROAD);
 				break;
 
 			case WID_ROT_DEMOLISH:
-				VpStartPlaceSizing (tile, VPM_X_AND_Y, DDSP_DEMOLISH_AREA);
+				VpStartPlaceSizing (tile, VPM_X_AND_Y, DRAG_DEMOLISH_AREA);
 				break;
 
 			case WID_ROT_DEPOT:
@@ -529,7 +544,7 @@ struct BuildRoadToolbarWindow : Window {
 					TileIndex other_tile = GetOtherBridgeEnd (tile);
 					HandleBuildRoadBridge (other_tile, tile);
 				} else {
-					VpStartPlaceSizing (tile, VPM_X_OR_Y, DDSP_BUILD_BRIDGE);
+					VpStartPlaceSizing (tile, VPM_X_OR_Y, DRAG_BUILD_BRIDGE);
 				}
 				break;
 
@@ -565,17 +580,17 @@ struct BuildRoadToolbarWindow : Window {
 		 * At first we reset the end halfroad
 		 * bits and if needed we set them again. */
 		switch (userdata) {
-			case DDSP_PLACE_ROAD_X_DIR:
+			case DRAG_PLACE_ROAD_X_DIR:
 				_place_road_flag &= ~RF_END_HALFROAD_X;
 				if (pt.x & 8) _place_road_flag |= RF_END_HALFROAD_X;
 				break;
 
-			case DDSP_PLACE_ROAD_Y_DIR:
+			case DRAG_PLACE_ROAD_Y_DIR:
 				_place_road_flag &= ~RF_END_HALFROAD_Y;
 				if (pt.y & 8) _place_road_flag |= RF_END_HALFROAD_Y;
 				break;
 
-			case DDSP_PLACE_AUTOROAD:
+			case DRAG_PLACE_AUTOROAD:
 				_place_road_flag &= ~(RF_END_HALFROAD_Y | RF_END_HALFROAD_X);
 				if (pt.y & 8) _place_road_flag |= RF_END_HALFROAD_Y;
 				if (pt.x & 8) _place_road_flag |= RF_END_HALFROAD_X;
@@ -606,17 +621,17 @@ struct BuildRoadToolbarWindow : Window {
 		if (pt.x != -1) {
 			switch (userdata) {
 				default: NOT_REACHED();
-				case DDSP_BUILD_BRIDGE:
+				case DRAG_BUILD_BRIDGE:
 					HandleBuildRoadBridge (start_tile, end_tile);
 					break;
 
-				case DDSP_DEMOLISH_AREA:
+				case DRAG_DEMOLISH_AREA:
 					HandleDemolishMouseUp (start_tile, end_tile);
 					break;
 
-				case DDSP_PLACE_ROAD_X_DIR:
-				case DDSP_PLACE_ROAD_Y_DIR:
-				case DDSP_PLACE_AUTOROAD:
+				case DRAG_PLACE_ROAD_X_DIR:
+				case DRAG_PLACE_ROAD_Y_DIR:
+				case DRAG_PLACE_AUTOROAD:
 					/* Flag description:
 					 * Use the first three bits (0x07) if dir == Y
 					 * else use the last 2 bits (X dir has
@@ -627,11 +642,11 @@ struct BuildRoadToolbarWindow : Window {
 							_remove_button_clicked ? CMD_REMOVE_LONG_ROAD : CMD_BUILD_LONG_ROAD);
 					break;
 
-				case DDSP_BUILD_BUSSTOP:
-				case DDSP_BUILD_TRUCKSTOP: {
+				case DRAG_BUILD_BUSSTOP:
+				case DRAG_BUILD_TRUCKSTOP: {
 					uint32 p2 = (INVALID_STATION << 16) | (_ctrl_pressed << 5) |
 							RoadTypeToRoadTypes(_cur_roadtype) << 2 |
-							(userdata == DDSP_BUILD_TRUCKSTOP ? ROADSTOP_TRUCK : ROADSTOP_BUS);
+							(userdata == DRAG_BUILD_TRUCKSTOP ? ROADSTOP_TRUCK : ROADSTOP_BUS);
 
 					uint8 ddir = _road_station_picker_orientation;
 					if (ddir >= DIAGDIR_END) {
@@ -646,13 +661,13 @@ struct BuildRoadToolbarWindow : Window {
 					break;
 				}
 
-				case DDSP_REMOVE_BUSSTOP: {
+				case DRAG_REMOVE_BUSSTOP: {
 					TileArea ta(start_tile, end_tile);
 					DoCommandP(ta.tile, ta.w | ta.h << 8, (_ctrl_pressed << 1) | ROADSTOP_BUS | (_cur_roadtype << 2), CMD_REMOVE_ROAD_STOP);
 					break;
 				}
 
-				case DDSP_REMOVE_TRUCKSTOP: {
+				case DRAG_REMOVE_TRUCKSTOP: {
 					TileArea ta(start_tile, end_tile);
 					DoCommandP(ta.tile, ta.w | ta.h << 8, (_ctrl_pressed << 1) | ROADSTOP_TRUCK | (_cur_roadtype << 2), CMD_REMOVE_ROAD_STOP);
 					break;

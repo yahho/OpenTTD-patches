@@ -90,37 +90,4 @@ enum ViewportPlaceMethod {
 };
 DECLARE_ENUM_AS_BIT_SET(ViewportPlaceMethod)
 
-/**
- * Drag and drop selection process, or, what to do with an area of land when
- * you've selected it.
- */
-enum ViewportDragDropSelectionProcess {
-	DDSP_DEMOLISH_AREA,        ///< Clear area
-	DDSP_RAISE_AND_LEVEL_AREA, ///< Raise / level area
-	DDSP_LOWER_AND_LEVEL_AREA, ///< Lower / level area
-	DDSP_LEVEL_AREA,           ///< Level area
-	DDSP_CREATE_DESERT,        ///< Fill area with desert
-	DDSP_CREATE_ROCKS,         ///< Fill area with rocks
-	DDSP_CREATE_WATER,         ///< Create a canal
-	DDSP_CREATE_RIVER,         ///< Create rivers
-	DDSP_PLANT_TREES,          ///< Plant trees
-	DDSP_BUILD_BRIDGE,         ///< Bridge placement
-
-	/* Rail specific actions */
-	DDSP_PLACE_RAIL,           ///< Rail placement
-	DDSP_BUILD_SIGNALS,        ///< Signal placement
-	DDSP_BUILD_STATION,        ///< Station placement
-	DDSP_REMOVE_STATION,       ///< Station removal
-	DDSP_CONVERT_RAIL,         ///< Rail conversion
-
-	/* Road specific actions */
-	DDSP_PLACE_ROAD_X_DIR,     ///< Road placement (X axis)
-	DDSP_PLACE_ROAD_Y_DIR,     ///< Road placement (Y axis)
-	DDSP_PLACE_AUTOROAD,       ///< Road placement (auto)
-	DDSP_BUILD_BUSSTOP,        ///< Road stop placement (buses)
-	DDSP_BUILD_TRUCKSTOP,      ///< Road stop placement (trucks)
-	DDSP_REMOVE_BUSSTOP,       ///< Road stop removal (buses)
-	DDSP_REMOVE_TRUCKSTOP,     ///< Road stop removal (trucks)
-};
-
 #endif /* VIEWPORT_TYPE_H */

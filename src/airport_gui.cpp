@@ -121,7 +121,7 @@ struct BuildAirToolbarWindow : Window {
 				break;
 
 			case WID_AT_DEMOLISH:
-				VpStartPlaceSizing (tile, VPM_X_AND_Y, DDSP_DEMOLISH_AREA);
+				VpStartPlaceSizing (tile, VPM_X_AND_Y);
 				break;
 
 			default: NOT_REACHED();
@@ -135,7 +135,7 @@ struct BuildAirToolbarWindow : Window {
 
 	void OnPlaceMouseUp (ViewportPlaceMethod select_method, int userdata, Point pt, TileIndex start_tile, TileIndex end_tile) OVERRIDE
 	{
-		if (pt.x != -1 && userdata == DDSP_DEMOLISH_AREA) {
+		if (pt.x != -1) {
 			HandleDemolishMouseUp (start_tile, end_tile);
 		}
 	}
