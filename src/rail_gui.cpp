@@ -345,6 +345,10 @@ static void BuildRailClick_Remove(Window *w)
 				VpSetPlaceSizingLimit(_settings_game.station.station_spread);
 			}
 		}
+	} else if (w->IsWidgetLowered(WID_RAT_BUILD_WAYPOINT)) {
+		/* Dragging is different for waypoints when removing,
+		 * so reset it. */
+		VpStopPlaceSizing();
 	}
 }
 
