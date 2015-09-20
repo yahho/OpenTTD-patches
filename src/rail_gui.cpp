@@ -75,7 +75,8 @@ enum {
 	DRAG_PLACE_RAIL,        ///< Rail placement
 	DRAG_BUILD_SIGNALS,     ///< Signal placement
 	DRAG_STATION,           ///< Station placement/removal
-	DRAG_BUILD_WAYPOINT,    ///< Waypoint placement
+	DRAG_BUILD_WAYPOINT_X,  ///< Waypoint placement along AXIS_X
+	DRAG_BUILD_WAYPOINT_Y,  ///< Waypoint placement along AXIS_Y
 	DRAG_REMOVE_WAYPOINT,   ///< Waypoint removal
 	DRAG_CONVERT_RAIL,      ///< Rail conversion
 };
@@ -161,14 +162,19 @@ static void PlaceRail_Waypoint(TileIndex tile)
 		return;
 	}
 
-	Axis axis = GetAxisForNewWaypoint(tile);
-	if (IsValidAxis(axis)) {
-		/* Valid tile for waypoints */
-		VpStartPlaceSizing(tile, axis == AXIS_X ? VPM_FIX_X : VPM_FIX_Y, DRAG_BUILD_WAYPOINT);
-	} else {
-		/* Tile where we can't build rail waypoints. This is always going to fail,
-		 * but provides the user with a proper error message. */
-		DoCommandP(tile, 1 << 8 | 1 << 16, STAT_CLASS_WAYP | INVALID_STATION << 16, CMD_BUILD_RAIL_WAYPOINT);
+	switch (GetAxisForNewWaypoint(tile)) {
+		case AXIS_X:
+			VpStartPlaceSizing (tile, VPM_FIX_X, DRAG_BUILD_WAYPOINT_X);
+			break;
+
+		case AXIS_Y:
+			VpStartPlaceSizing (tile, VPM_FIX_Y, DRAG_BUILD_WAYPOINT_Y);
+			break;
+
+		default:
+			/* Tile where we can't build rail waypoints. This is always going to fail,
+			 * but provides the user with a proper error message. */
+			DoCommandP (tile, 1 << 8 | 1 << 16, STAT_CLASS_WAYP | INVALID_STATION << 16, CMD_BUILD_RAIL_WAYPOINT);
 	}
 }
 
@@ -715,9 +721,10 @@ struct BuildRailToolbarWindow : Window {
 					}
 					break;
 
-				case DRAG_BUILD_WAYPOINT: {
+				case DRAG_BUILD_WAYPOINT_X:
+				case DRAG_BUILD_WAYPOINT_Y: {
 					TileArea ta (start_tile, end_tile);
-					uint32 p1 = _cur_railtype | (select_method == VPM_FIX_X ? AXIS_X : AXIS_Y) << 4 | ta.w << 8 | ta.h << 16 | _ctrl_pressed << 24;
+					uint32 p1 = _cur_railtype | (userdata == DRAG_BUILD_WAYPOINT_X ? AXIS_X : AXIS_Y) << 4 | ta.w << 8 | ta.h << 16 | _ctrl_pressed << 24;
 					uint32 p2 = STAT_CLASS_WAYP | _cur_waypoint_type << 8 | INVALID_STATION << 16;
 
 					Command cmdcont (ta.tile, p1, p2, CMD_BUILD_RAIL_WAYPOINT);
