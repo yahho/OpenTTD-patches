@@ -3189,6 +3189,23 @@ calc_heightdiff_single_direction:;
 	_thd.selend.y = y;
 }
 
+/** Abort the current dragging operation, if any. */
+void VpStopPlaceSizing (void)
+{
+	_special_mouse_mode = WSM_NONE;
+	HighLightStyle others = _thd.place_mode & ~(HT_DRAG_MASK | HT_DIR_MASK);
+	if ((_thd.next_drawstyle & HT_DRAG_MASK) == HT_RECT) {
+		_thd.place_mode = HT_RECT | others;
+	} else if (_thd.select_method & VPM_SIGNALDIRS) {
+		_thd.place_mode = HT_RECT | others;
+	} else if (_thd.select_method & VPM_RAILDIRS) {
+		_thd.place_mode = (_thd.select_method & ~VPM_RAILDIRS) ? _thd.next_drawstyle : (HT_RAIL | others);
+	} else {
+		_thd.place_mode = HT_POINT | others;
+	}
+	SetTileSelectSize(1, 1);
+}
+
 /**
  * Handle the mouse while dragging for placement/resizing.
  * @return State of handling the event.
@@ -3212,18 +3229,7 @@ EventState VpHandlePlaceSizingDrag()
 
 	/* mouse button released..
 	 * keep the selected tool, but reset it to the original mode. */
-	_special_mouse_mode = WSM_NONE;
-	HighLightStyle others = _thd.place_mode & ~(HT_DRAG_MASK | HT_DIR_MASK);
-	if ((_thd.next_drawstyle & HT_DRAG_MASK) == HT_RECT) {
-		_thd.place_mode = HT_RECT | others;
-	} else if (_thd.select_method & VPM_SIGNALDIRS) {
-		_thd.place_mode = HT_RECT | others;
-	} else if (_thd.select_method & VPM_RAILDIRS) {
-		_thd.place_mode = (_thd.select_method & ~VPM_RAILDIRS) ? _thd.next_drawstyle : (HT_RAIL | others);
-	} else {
-		_thd.place_mode = HT_POINT | others;
-	}
-	SetTileSelectSize(1, 1);
+	VpStopPlaceSizing();
 
 	w->OnPlaceMouseUp (_thd.select_method, _thd.select_data, _thd.selend, TileVirtXY(_thd.selstart.x, _thd.selstart.y), TileVirtXY(_thd.selend.x, _thd.selend.y));
 
