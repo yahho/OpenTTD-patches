@@ -74,8 +74,7 @@ enum {
 	DRAG_BUILD_BRIDGE,      ///< Bridge placement
 	DRAG_PLACE_RAIL,        ///< Rail placement
 	DRAG_BUILD_SIGNALS,     ///< Signal placement
-	DRAG_BUILD_STATION,     ///< Station placement
-	DRAG_REMOVE_STATION,    ///< Station removal
+	DRAG_STATION,           ///< Station placement/removal
 	DRAG_BUILD_WAYPOINT,    ///< Waypoint placement
 	DRAG_REMOVE_WAYPOINT,   ///< Waypoint removal
 	DRAG_CONVERT_RAIL,      ///< Rail conversion
@@ -189,10 +188,10 @@ void CcStation(const CommandCost &result, TileIndex tile, uint32 p1, uint32 p2)
 static void PlaceRail_Station(TileIndex tile)
 {
 	if (_remove_button_clicked) {
-		VpStartPlaceSizing(tile, VPM_X_AND_Y_LIMITED, DRAG_REMOVE_STATION);
+		VpStartPlaceSizing(tile, VPM_X_AND_Y_LIMITED, DRAG_STATION);
 		VpSetPlaceSizingLimit(-1);
 	} else if (_settings_client.gui.station_dragdrop) {
-		VpStartPlaceSizing(tile, VPM_X_AND_Y_LIMITED, DRAG_BUILD_STATION);
+		VpStartPlaceSizing(tile, VPM_X_AND_Y_LIMITED, DRAG_STATION);
 		VpSetPlaceSizingLimit(_settings_game.station.station_spread);
 	} else {
 		uint32 p1 = _cur_railtype | _railstation.orientation << 4 | _settings_client.gui.station_numtracks << 8 | _settings_client.gui.station_platlength << 16 | _ctrl_pressed << 24;
@@ -704,8 +703,7 @@ struct BuildRailToolbarWindow : Window {
 					DoCommandP(end_tile, start_tile, _cur_railtype | (_ctrl_pressed ? 0x10 : 0), CMD_CONVERT_RAIL);
 					break;
 
-				case DRAG_REMOVE_STATION:
-				case DRAG_BUILD_STATION:
+				case DRAG_STATION:
 					if (_remove_button_clicked) {
 						DoCommandP (end_tile, start_tile, _ctrl_pressed ? 0 : 1, CMD_REMOVE_FROM_RAIL_STATION);
 					} else {
