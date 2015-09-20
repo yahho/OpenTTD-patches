@@ -3231,7 +3231,7 @@ EventState VpHandlePlaceSizingDrag()
 	 * keep the selected tool, but reset it to the original mode. */
 	VpStopPlaceSizing();
 
-	w->OnPlaceMouseUp (_thd.select_method, _thd.select_data, _thd.selend, TileVirtXY(_thd.selstart.x, _thd.selstart.y), TileVirtXY(_thd.selend.x, _thd.selend.y));
+	w->OnPlaceMouseUp (_thd.select_data, _thd.selend, TileVirtXY(_thd.selstart.x, _thd.selstart.y), TileVirtXY(_thd.selend.x, _thd.selend.y));
 
 	return ES_HANDLED;
 }

@@ -133,7 +133,7 @@ struct BuildAirToolbarWindow : Window {
 		VpSelectTilesWithMethod(pt.x, pt.y, select_method);
 	}
 
-	void OnPlaceMouseUp (ViewportPlaceMethod select_method, int userdata, Point pt, TileIndex start_tile, TileIndex end_tile) OVERRIDE
+	void OnPlaceMouseUp (int userdata, Point pt, TileIndex start_tile, TileIndex end_tile) OVERRIDE
 	{
 		if (pt.x != -1) {
 			HandleDemolishMouseUp (start_tile, end_tile);
