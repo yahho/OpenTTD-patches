@@ -76,6 +76,8 @@ enum {
 	DRAG_BUILD_SIGNALS,     ///< Signal placement
 	DRAG_BUILD_STATION,     ///< Station placement
 	DRAG_REMOVE_STATION,    ///< Station removal
+	DRAG_BUILD_WAYPOINT,    ///< Waypoint placement
+	DRAG_REMOVE_WAYPOINT,   ///< Waypoint removal
 	DRAG_CONVERT_RAIL,      ///< Rail conversion
 };
 
@@ -156,14 +158,14 @@ void CcRailDepot(const CommandCost &result, TileIndex tile, uint32 p1, uint32 p2
 static void PlaceRail_Waypoint(TileIndex tile)
 {
 	if (_remove_button_clicked) {
-		VpStartPlaceSizing(tile, VPM_X_AND_Y, DRAG_REMOVE_STATION);
+		VpStartPlaceSizing(tile, VPM_X_AND_Y, DRAG_REMOVE_WAYPOINT);
 		return;
 	}
 
 	Axis axis = GetAxisForNewWaypoint(tile);
 	if (IsValidAxis(axis)) {
 		/* Valid tile for waypoints */
-		VpStartPlaceSizing(tile, axis == AXIS_X ? VPM_FIX_X : VPM_FIX_Y, DRAG_BUILD_STATION);
+		VpStartPlaceSizing(tile, axis == AXIS_X ? VPM_FIX_X : VPM_FIX_Y, DRAG_BUILD_WAYPOINT);
 	} else {
 		/* Tile where we can't build rail waypoints. This is always going to fail,
 		 * but provides the user with a proper error message. */
@@ -704,25 +706,24 @@ struct BuildRailToolbarWindow : Window {
 
 				case DRAG_REMOVE_STATION:
 				case DRAG_BUILD_STATION:
-					if (this->IsWidgetLowered(WID_RAT_BUILD_STATION)) {
-						/* Station */
-						if (_remove_button_clicked) {
-							DoCommandP(end_tile, start_tile, _ctrl_pressed ? 0 : 1, CMD_REMOVE_FROM_RAIL_STATION);
-						} else {
-							HandleStationPlacement(start_tile, end_tile);
-						}
+					if (_remove_button_clicked) {
+						DoCommandP (end_tile, start_tile, _ctrl_pressed ? 0 : 1, CMD_REMOVE_FROM_RAIL_STATION);
 					} else {
-						/* Waypoint */
-						if (_remove_button_clicked) {
-							DoCommandP(end_tile, start_tile, _ctrl_pressed ? 0 : 1, CMD_REMOVE_FROM_RAIL_WAYPOINT);
-						} else {
-							TileArea ta(start_tile, end_tile);
-							uint32 p1 = _cur_railtype | (select_method == VPM_FIX_X ? AXIS_X : AXIS_Y) << 4 | ta.w << 8 | ta.h << 16 | _ctrl_pressed << 24;
-							uint32 p2 = STAT_CLASS_WAYP | _cur_waypoint_type << 8 | INVALID_STATION << 16;
+						HandleStationPlacement (start_tile, end_tile);
+					}
+					break;
 
-							Command cmdcont (ta.tile, p1, p2, CMD_BUILD_RAIL_WAYPOINT);
-							ShowSelectWaypointIfNeeded (&cmdcont, ta);
-						}
+				case DRAG_REMOVE_WAYPOINT:
+				case DRAG_BUILD_WAYPOINT:
+					if (_remove_button_clicked) {
+						DoCommandP (end_tile, start_tile, _ctrl_pressed ? 0 : 1, CMD_REMOVE_FROM_RAIL_WAYPOINT);
+					} else {
+						TileArea ta (start_tile, end_tile);
+						uint32 p1 = _cur_railtype | (select_method == VPM_FIX_X ? AXIS_X : AXIS_Y) << 4 | ta.w << 8 | ta.h << 16 | _ctrl_pressed << 24;
+						uint32 p2 = STAT_CLASS_WAYP | _cur_waypoint_type << 8 | INVALID_STATION << 16;
+
+						Command cmdcont (ta.tile, p1, p2, CMD_BUILD_RAIL_WAYPOINT);
+						ShowSelectWaypointIfNeeded (&cmdcont, ta);
 					}
 					break;
 			}
