@@ -408,36 +408,34 @@ static byte _terraform_size = 1;
  */
 static void CommonRaiseLowerBigLand(TileIndex tile, int mode)
 {
-	if (_terraform_size == 1) {
-		DoCommandP(tile, SLOPE_N, (uint32)mode, CMD_TERRAFORM_LAND);
-	} else {
-		assert(_terraform_size != 0);
-		TileArea ta(tile, _terraform_size, _terraform_size);
-		ta.ClampToMap();
+	assert (_terraform_size != 0);
+	assert (_terraform_size != 1);
 
-		if (ta.w == 0 || ta.h == 0) return;
+	TileArea ta (tile, _terraform_size, _terraform_size);
+	ta.ClampToMap();
 
-		if (_settings_client.sound.confirm) SndPlayTileFx(SND_1F_SPLAT_OTHER, tile);
+	if (ta.w == 0 || ta.h == 0) return;
 
-		uint h;
-		if (mode != 0) {
-			/* Raise land */
-			h = MAX_TILE_HEIGHT;
-			TILE_AREA_LOOP(tile2, ta) {
-				h = min(h, TileHeight(tile2));
-			}
-		} else {
-			/* Lower land */
-			h = 0;
-			TILE_AREA_LOOP(tile2, ta) {
-				h = max(h, TileHeight(tile2));
-			}
-		}
+	if (_settings_client.sound.confirm) SndPlayTileFx (SND_1F_SPLAT_OTHER, tile);
 
+	uint h;
+	if (mode != 0) {
+		/* Raise land */
+		h = MAX_TILE_HEIGHT;
 		TILE_AREA_LOOP(tile2, ta) {
-			if (TileHeight(tile2) == h) {
-				DoCommandP(tile2, SLOPE_N, (uint32)mode | (1 << 31), CMD_TERRAFORM_LAND);
-			}
+			h = min (h, TileHeight(tile2));
+		}
+	} else {
+		/* Lower land */
+		h = 0;
+		TILE_AREA_LOOP(tile2, ta) {
+			h = max (h, TileHeight(tile2));
+		}
+	}
+
+	TILE_AREA_LOOP(tile2, ta) {
+		if (TileHeight(tile2) == h) {
+			DoCommandP (tile2, SLOPE_N, (uint32)mode | (1 << 31), CMD_TERRAFORM_LAND);
 		}
 	}
 }
@@ -596,12 +594,12 @@ struct ScenarioEditorLandscapeGenerationWindow : Window {
 				break;
 
 			case WID_ETT_LOWER_LAND: // Lower land button
-				HandlePlacePushButton(this, WID_ETT_LOWER_LAND, ANIMCURSOR_LOWERLAND, HT_POINT);
+				HandlePlacePushButton(this, WID_ETT_LOWER_LAND, ANIMCURSOR_LOWERLAND, HT_POINT | HT_DIAGONAL);
 				this->last_user_action = widget;
 				break;
 
 			case WID_ETT_RAISE_LAND: // Raise land button
-				HandlePlacePushButton(this, WID_ETT_RAISE_LAND, ANIMCURSOR_RAISELAND, HT_POINT);
+				HandlePlacePushButton(this, WID_ETT_RAISE_LAND, ANIMCURSOR_RAISELAND, HT_POINT | HT_DIAGONAL);
 				this->last_user_action = widget;
 				break;
 
@@ -670,11 +668,19 @@ struct ScenarioEditorLandscapeGenerationWindow : Window {
 				break;
 
 			case WID_ETT_LOWER_LAND: // Lower land button
-				CommonRaiseLowerBigLand(tile, 0);
+				if (_terraform_size != 1) {
+					CommonRaiseLowerBigLand (tile, 0);
+				} else {
+					VpStartPlaceSizing (tile, VPM_X_AND_Y, DRAG_LOWER_AND_LEVEL_AREA);
+				}
 				break;
 
 			case WID_ETT_RAISE_LAND: // Raise land button
-				CommonRaiseLowerBigLand(tile, 1);
+				if (_terraform_size != 1) {
+					CommonRaiseLowerBigLand (tile, 1);
+				} else {
+					VpStartPlaceSizing (tile, VPM_X_AND_Y, DRAG_RAISE_AND_LEVEL_AREA);
+				}
 				break;
 
 			case WID_ETT_LEVEL_LAND: // Level land button
