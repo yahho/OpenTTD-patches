@@ -526,7 +526,7 @@ static void ResetLandscapeConfirmationCallback(Window *w, bool confirmed)
 
 /** Landscape generation window handler in the scenario editor. */
 struct ScenarioEditorLandscapeGenerationWindow : Window {
-	int last_user_action; ///< Last started user action.
+	int placing_action; ///< Currently active placing action.
 
 	ScenarioEditorLandscapeGenerationWindow(WindowDesc *desc, WindowNumber window_number) : Window(desc)
 	{
@@ -534,7 +534,7 @@ struct ScenarioEditorLandscapeGenerationWindow : Window {
 		NWidgetStacked *show_desert = this->GetWidget<NWidgetStacked>(WID_ETT_SHOW_PLACE_DESERT);
 		show_desert->SetDisplayedPlane(_settings_game.game_creation.landscape == LT_TROPIC ? 0 : SZSP_NONE);
 		this->FinishInitNested(window_number);
-		this->last_user_action = WIDGET_LIST_END;
+		this->placing_action = -1;
 	}
 
 	virtual void OnPaint()
@@ -578,32 +578,32 @@ struct ScenarioEditorLandscapeGenerationWindow : Window {
 		switch (widget) {
 			case WID_ETT_DEMOLISH: // Demolish aka dynamite button
 				HandlePlacePushButton(this, WID_ETT_DEMOLISH, ANIMCURSOR_DEMOLISH, HT_RECT | HT_DIAGONAL);
-				this->last_user_action = widget;
+				this->placing_action = PLACE_DEMOLISH_AREA;
 				break;
 
 			case WID_ETT_LOWER_LAND: // Lower land button
 				HandlePlacePushButton(this, WID_ETT_LOWER_LAND, ANIMCURSOR_LOWERLAND, HT_POINT | HT_DIAGONAL);
-				this->last_user_action = widget;
+				this->placing_action = PLACE_LOWER_AREA;
 				break;
 
 			case WID_ETT_RAISE_LAND: // Raise land button
 				HandlePlacePushButton(this, WID_ETT_RAISE_LAND, ANIMCURSOR_RAISELAND, HT_POINT | HT_DIAGONAL);
-				this->last_user_action = widget;
+				this->placing_action = PLACE_RAISE_AREA;
 				break;
 
 			case WID_ETT_LEVEL_LAND: // Level land button
 				HandlePlacePushButton(this, WID_ETT_LEVEL_LAND, SPR_CURSOR_LEVEL_LAND, HT_POINT | HT_DIAGONAL);
-				this->last_user_action = widget;
+				this->placing_action = PLACE_LEVEL_AREA;
 				break;
 
 			case WID_ETT_PLACE_ROCKS: // Place rocks button
 				HandlePlacePushButton(this, WID_ETT_PLACE_ROCKS, SPR_CURSOR_ROCKY_AREA, HT_RECT);
-				this->last_user_action = widget;
+				this->placing_action = PLACE_CREATE_ROCKS;
 				break;
 
 			case WID_ETT_PLACE_DESERT: // Place desert button (in tropical climate)
 				HandlePlacePushButton(this, WID_ETT_PLACE_DESERT, SPR_CURSOR_DESERT, HT_RECT);
-				this->last_user_action = widget;
+				this->placing_action = PLACE_CREATE_DESERT;
 				break;
 
 			case WID_ETT_PLACE_OBJECT: // Place transmitter button
@@ -649,40 +649,17 @@ struct ScenarioEditorLandscapeGenerationWindow : Window {
 
 	virtual void OnPlaceObject(Point pt, TileIndex tile)
 	{
-		switch (this->last_user_action) {
-			case WID_ETT_DEMOLISH: // Demolish aka dynamite button
-				VpStartPlaceSizing(tile, VPM_X_AND_Y, PLACE_DEMOLISH_AREA);
-				break;
-
-			case WID_ETT_LOWER_LAND: // Lower land button
+		switch (this->placing_action) {
+			case PLACE_LOWER_AREA:
+			case PLACE_RAISE_AREA:
 				if (_terraform_size != 1) {
-					CommonRaiseLowerBigLand (tile, 0);
-				} else {
-					VpStartPlaceSizing (tile, VPM_X_AND_Y, PLACE_LOWER_AREA);
+					CommonRaiseLowerBigLand (tile, (this->placing_action == PLACE_RAISE_AREA) ? 1 : 0);
+					break;
 				}
+				/* fall through */
+			default:
+				VpStartPlaceSizing (tile, VPM_X_AND_Y, this->placing_action);
 				break;
-
-			case WID_ETT_RAISE_LAND: // Raise land button
-				if (_terraform_size != 1) {
-					CommonRaiseLowerBigLand (tile, 1);
-				} else {
-					VpStartPlaceSizing (tile, VPM_X_AND_Y, PLACE_RAISE_AREA);
-				}
-				break;
-
-			case WID_ETT_LEVEL_LAND: // Level land button
-				VpStartPlaceSizing(tile, VPM_X_AND_Y, PLACE_LEVEL_AREA);
-				break;
-
-			case WID_ETT_PLACE_ROCKS: // Place rocks button
-				VpStartPlaceSizing(tile, VPM_X_AND_Y, PLACE_CREATE_ROCKS);
-				break;
-
-			case WID_ETT_PLACE_DESERT: // Place desert button (in tropical climate)
-				VpStartPlaceSizing(tile, VPM_X_AND_Y, PLACE_CREATE_DESERT);
-				break;
-
-			default: NOT_REACHED();
 		}
 	}
 
