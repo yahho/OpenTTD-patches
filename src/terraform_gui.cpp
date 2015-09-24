@@ -114,6 +114,8 @@ enum {
 	PLACE_LEVEL_AREA,           ///< Level area
 	PLACE_CREATE_ROCKS,         ///< Fill area with rocks
 	PLACE_CREATE_DESERT,        ///< Fill area with desert
+	PLACE_BUY_LAND,             ///< Buy land
+	PLACE_SIGN,                 ///< Place a sign
 };
 
 /**
@@ -167,14 +169,14 @@ void HandleDemolishMouseUp (TileIndex start_tile, TileIndex end_tile)
 
 /** Terra form toolbar managing class. */
 struct TerraformToolbarWindow : Window {
-	int last_user_action; ///< Last started user action.
+	int placing_action; ///< Currently active placing action.
 
 	TerraformToolbarWindow(WindowDesc *desc, WindowNumber window_number) : Window(desc)
 	{
 		/* This is needed as we like to have the tree available on OnInit. */
 		this->CreateNestedTree();
 		this->FinishInitNested(window_number);
-		this->last_user_action = WIDGET_LIST_END;
+		this->placing_action = -1;
 	}
 
 	~TerraformToolbarWindow()
@@ -195,27 +197,27 @@ struct TerraformToolbarWindow : Window {
 		switch (widget) {
 			case WID_TT_LOWER_LAND: // Lower land button
 				HandlePlacePushButton(this, WID_TT_LOWER_LAND, ANIMCURSOR_LOWERLAND, HT_POINT | HT_DIAGONAL);
-				this->last_user_action = widget;
+				this->placing_action = PLACE_LOWER_AREA;
 				break;
 
 			case WID_TT_RAISE_LAND: // Raise land button
 				HandlePlacePushButton(this, WID_TT_RAISE_LAND, ANIMCURSOR_RAISELAND, HT_POINT | HT_DIAGONAL);
-				this->last_user_action = widget;
+				this->placing_action = PLACE_RAISE_AREA;
 				break;
 
 			case WID_TT_LEVEL_LAND: // Level land button
 				HandlePlacePushButton(this, WID_TT_LEVEL_LAND, SPR_CURSOR_LEVEL_LAND, HT_POINT | HT_DIAGONAL);
-				this->last_user_action = widget;
+				this->placing_action = PLACE_LEVEL_AREA;
 				break;
 
 			case WID_TT_DEMOLISH: // Demolish aka dynamite button
 				HandlePlacePushButton(this, WID_TT_DEMOLISH, ANIMCURSOR_DEMOLISH, HT_RECT | HT_DIAGONAL);
-				this->last_user_action = widget;
+				this->placing_action = PLACE_DEMOLISH_AREA;
 				break;
 
 			case WID_TT_BUY_LAND: // Buy land button
 				HandlePlacePushButton(this, WID_TT_BUY_LAND, SPR_CURSOR_BUY_LAND, HT_RECT);
-				this->last_user_action = widget;
+				this->placing_action = PLACE_BUY_LAND;
 				break;
 
 			case WID_TT_PLANT_TREES: // Plant trees button
@@ -224,7 +226,7 @@ struct TerraformToolbarWindow : Window {
 
 			case WID_TT_PLACE_SIGN: // Place sign button
 				HandlePlacePushButton(this, WID_TT_PLACE_SIGN, SPR_CURSOR_SIGN, HT_RECT);
-				this->last_user_action = widget;
+				this->placing_action = PLACE_SIGN;
 				break;
 
 			case WID_TT_PLACE_OBJECT: // Place object button
@@ -237,32 +239,18 @@ struct TerraformToolbarWindow : Window {
 
 	virtual void OnPlaceObject(Point pt, TileIndex tile)
 	{
-		switch (this->last_user_action) {
-			case WID_TT_LOWER_LAND: // Lower land button
-				VpStartPlaceSizing(tile, VPM_X_AND_Y, PLACE_LOWER_AREA);
+		switch (this->placing_action) {
+			default:
+				VpStartPlaceSizing (tile, VPM_X_AND_Y, this->placing_action);
 				break;
 
-			case WID_TT_RAISE_LAND: // Raise land button
-				VpStartPlaceSizing(tile, VPM_X_AND_Y, PLACE_RAISE_AREA);
-				break;
-
-			case WID_TT_LEVEL_LAND: // Level land button
-				VpStartPlaceSizing(tile, VPM_X_AND_Y, PLACE_LEVEL_AREA);
-				break;
-
-			case WID_TT_DEMOLISH: // Demolish aka dynamite button
-				VpStartPlaceSizing(tile, VPM_X_AND_Y, PLACE_DEMOLISH_AREA);
-				break;
-
-			case WID_TT_BUY_LAND: // Buy land button
+			case PLACE_BUY_LAND:
 				DoCommandP(tile, OBJECT_OWNED_LAND, 0, CMD_BUILD_OBJECT);
 				break;
 
-			case WID_TT_PLACE_SIGN: // Place sign button
+			case PLACE_SIGN:
 				PlaceProc_Sign(tile);
 				break;
-
-			default: NOT_REACHED();
 		}
 	}
 
