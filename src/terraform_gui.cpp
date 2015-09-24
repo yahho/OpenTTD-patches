@@ -392,9 +392,9 @@ static byte _terraform_size = 1;
  * @todo : Incorporate into game itself to allow for ingame raising/lowering of
  *         larger chunks at the same time OR remove altogether, as we have 'level land' ?
  * @param tile The top-left tile where the terraforming will start
- * @param mode 1 for raising, 0 for lowering land
+ * @param mode true for raising, false for lowering land
  */
-static void CommonRaiseLowerBigLand(TileIndex tile, int mode)
+static void CommonRaiseLowerBigLand (TileIndex tile, bool mode)
 {
 	assert (_terraform_size != 0);
 	assert (_terraform_size != 1);
@@ -407,7 +407,7 @@ static void CommonRaiseLowerBigLand(TileIndex tile, int mode)
 	if (_settings_client.sound.confirm) SndPlayTileFx (SND_1F_SPLAT_OTHER, tile);
 
 	uint h;
-	if (mode != 0) {
+	if (mode) {
 		/* Raise land */
 		h = MAX_TILE_HEIGHT;
 		TILE_AREA_LOOP(tile2, ta) {
@@ -423,7 +423,7 @@ static void CommonRaiseLowerBigLand(TileIndex tile, int mode)
 
 	TILE_AREA_LOOP(tile2, ta) {
 		if (TileHeight(tile2) == h) {
-			DoCommandP (tile2, SLOPE_N, (uint32)mode | (1 << 31), CMD_TERRAFORM_LAND);
+			DoCommandP (tile2, SLOPE_N, (mode ? 1 : 0) | (1 << 31), CMD_TERRAFORM_LAND);
 		}
 	}
 }
@@ -653,7 +653,7 @@ struct ScenarioEditorLandscapeGenerationWindow : Window {
 			case PLACE_LOWER_AREA:
 			case PLACE_RAISE_AREA:
 				if (_terraform_size != 1) {
-					CommonRaiseLowerBigLand (tile, (this->placing_action == PLACE_RAISE_AREA) ? 1 : 0);
+					CommonRaiseLowerBigLand (tile, this->placing_action == PLACE_RAISE_AREA);
 					break;
 				}
 				/* fall through */
