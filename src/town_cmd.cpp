@@ -224,7 +224,7 @@ static void DrawTile_Town(TileInfo *ti)
 	}
 
 	/* Retrieve pointer to the draw town tile struct */
-	const DrawBuildingsTileStruct *dcts = &_town_draw_tile_data[house_id << 4 | TileHash2Bit(ti->x, ti->y) << 2 | GetHouseBuildingStage(ti->tile)];
+	const DrawBuildingsTileStruct *dcts = town_draw_tile_data[house_id][TileHash2Bit(ti->x, ti->y)][GetHouseBuildingStage(ti->tile)];
 
 	if (ti->tileh != SLOPE_FLAT) DrawFoundation(ti, FOUNDATION_LEVELED);
 
