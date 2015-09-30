@@ -77,6 +77,24 @@ struct HouseResolverObject : public ResolverObject {
 	}
 };
 
+/** Fake resolver object to be used for houses (feature 07 spritegroups). */
+struct FakeHouseResolverObject : public ResolverObject {
+	FakeHouseScopeResolver house_scope;
+	FakeTownScopeResolver  town_scope;
+
+	FakeHouseResolverObject (HouseID house_id,
+			CallbackID callback = CBID_NO_CALLBACK, uint32 param1 = 0, uint32 param2 = 0);
+
+	ScopeResolver *GetScope (VarSpriteGroupScope scope = VSG_SCOPE_SELF, byte relative = 0) OVERRIDE
+	{
+		switch (scope) {
+			case VSG_SCOPE_SELF:   return &this->house_scope;
+			case VSG_SCOPE_PARENT: return &this->town_scope;
+			default: return ResolverObject::GetScope (scope, relative);
+		}
+	}
+};
+
 /**
  * Makes class IDs unique to each GRF file.
  * Houses can be assigned class IDs which are only comparable within the GRF
@@ -107,6 +125,8 @@ void AnimateNewHouseConstruction(TileIndex tile);
 
 uint16 GetHouseCallback(CallbackID callback, uint32 param1, uint32 param2, HouseID house_id, Town *town, TileIndex tile,
 		bool not_yet_constructed = false, uint8 initial_random_bits = 0, uint32 watched_cargo_triggers = 0);
+uint16 GetHouseCallback(CallbackID callback, uint32 param1, uint32 param2, HouseID house_id);
+
 void WatchedCargoCallback(TileIndex tile, uint32 trigger_cargoes);
 
 bool CanDeleteHouse(TileIndex tile);

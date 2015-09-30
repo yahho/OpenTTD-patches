@@ -84,6 +84,26 @@ HouseResolverObject::HouseResolverObject(HouseID house_id, TileIndex tile, Town 
 	this->root_spritegroup = HouseSpec::Get(house_id)->grf_prop.spritegroup[0];
 }
 
+/**
+ * Construct a fake resolver for a house.
+ * @param house_id House to query.
+ * @param tile %Tile containing the house.
+ * @param town %Town containing the house.
+ * @param callback Callback ID.
+ * @param param1 First parameter (var 10) of the callback.
+ * @param param2 Second parameter (var 18) of the callback.
+ * @param not_yet_constructed House is still under construction.
+ * @param initial_random_bits Random bits during construction checks.
+ * @param watched_cargo_triggers Cargo types that triggered the watched cargo callback.
+ */
+FakeHouseResolverObject::FakeHouseResolverObject (HouseID house_id,
+		CallbackID callback, uint32 param1, uint32 param2)
+	: ResolverObject (GetHouseSpecGrf(house_id), callback, param1, param2),
+	house_scope (*this, house_id), town_scope (*this)
+{
+	this->root_spritegroup = HouseSpec::Get(house_id)->grf_prop.spritegroup[0];
+}
+
 HouseClassID AllocateHouseClassID(byte grf_class_id, uint32 grfid)
 {
 	/* Start from 1 because 0 means that no class has been assigned. */
@@ -456,6 +476,12 @@ uint16 GetHouseCallback(CallbackID callback, uint32 param1, uint32 param2, House
 
 	HouseResolverObject object(house_id, tile, town, callback, param1, param2,
 			not_yet_constructed, initial_random_bits, watched_cargo_triggers);
+	return object.ResolveCallback();
+}
+
+uint16 GetHouseCallback (CallbackID callback, uint32 param1, uint32 param2, HouseID house_id)
+{
+	FakeHouseResolverObject object (house_id, callback, param1, param2);
 	return object.ResolveCallback();
 }
 
