@@ -221,6 +221,8 @@ uint GetMaskOfTownActions(int *nump, CompanyID cid, const Town *t);
 bool GenerateTowns(TownLayout layout);
 const CargoSpec *FindFirstCargoWithTownEffect(TownEffect effect);
 
+void ShowBuildHousePicker (void);
+
 
 /** Town actions of a company. */
 enum TownActions {

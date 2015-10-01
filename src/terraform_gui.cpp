@@ -613,6 +613,7 @@ struct ScenarioEditorLandscapeGenerationWindow : Window {
 				break;
 
 			case WID_ETT_PLACE_HOUSE: // Place house button
+				ShowBuildHousePicker();
 				break;
 
 			case WID_ETT_INCREASE_SIZE:

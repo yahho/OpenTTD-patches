@@ -2513,6 +2513,28 @@ STR_OBJECT_BUILD_SIZE                                           :{BLACK}Size: {G
 STR_OBJECT_CLASS_LTHS                                           :Lighthouses
 STR_OBJECT_CLASS_TRNS                                           :Transmitters
 
+# House construction window (for SE only)
+STR_BUILD_HOUSE_CAPTION                                         :{WHITE}House Selection
+STR_BUILD_HOUSE_CUSTOM_CAPTION                                  :{WHITE}{RAW_STRING}
+STR_BUILD_HOUSE_HOUSESET_LIST_TOOLTIP                           :{BLACK}Select set of houses
+STR_BUILD_HOUSE_SELECT_HOUSE_TOOLTIP                            :{BLACK}Select house to build
+STR_BUILD_HOUSE_NAME                                            :{GOLD}{STRING1}
+STR_BUILD_HOUSE_HISTORICAL_BUILDING                             :{GOLD}(historical building)
+STR_BUILD_HOUSE_POPULATION                                      :{BLACK}Population: {GOLD}{NUM}
+STR_BUILD_HOUSE_ZONES                                           :{BLACK}House zones: {STRING}1 {STRING}2 {STRING}3 {STRING}4 {STRING}5
+STR_BUILD_HOUSE_ZONE_DISABLED                                   :{GRAY}
+STR_BUILD_HOUSE_ZONE_ENABLED                                    :{GOLD}
+STR_BUILD_HOUSE_LANDSCAPE                                       :{BLACK}Landscape: {STRING}
+STR_BUILD_HOUSE_ABOVE_OR_BELOW_SNOWLINE                         :{GOLD}above or below snowline
+STR_BUILD_HOUSE_ABOVE_SNOWLINE                                  :{GOLD}only above snowline
+STR_BUILD_HOUSE_BELOW_SNOWLINE                                  :{GOLD}only below snowline
+STR_BUILD_HOUSE_YEARS                                           :{BLACK}Years: {STRING1}{GOLD} - {STRING1}
+STR_BUILD_HOUSE_BAD_YEAR                                        :{RED}{NUM}
+STR_BUILD_HOUSE_GOOD_YEAR                                       :{GOLD}{NUM}
+STR_BUILD_HOUSE_SUPPLIED_CARGO                                  :{BLACK}Supplies: {GOLD}{CARGO_LIST}
+STR_BUILD_HOUSE_ACCEPTED_CARGO                                  :{BLACK}Accepts: {GOLD}{RAW_STRING}
+STR_BUILD_HOUSE_ORIGINAL_SET_NAME                               :Original houses
+
 # Tree planting window (last two for SE only)
 STR_PLANT_TREE_CAPTION                                          :{WHITE}Trees
 STR_PLANT_TREE_TOOLTIP                                          :{BLACK}Select tree type to plant. If the tile already has a tree, this will add more trees of mixed types independent of the selected type

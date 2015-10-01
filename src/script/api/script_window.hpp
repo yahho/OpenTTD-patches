@@ -454,6 +454,12 @@ public:
 		WC_BUILD_OBJECT                              = ::WC_BUILD_OBJECT,
 
 		/**
+		 * Build house; %Window numbers:
+		 *  - 0 = #BuildHouseWidgets
+		*/
+		WC_BUILD_HOUSE                               = ::WC_BUILD_HOUSE,
+
+		/**
 		 * Build vehicle; %Window numbers:
 		 *   - #VehicleType = #BuildVehicleWidgets
 		 *   - #TileIndex = #BuildVehicleWidgets
@@ -2476,6 +2482,27 @@ public:
 		WID_TF_LAYOUT_GRID2                          = ::WID_TF_LAYOUT_GRID2,                          ///< Selection for the 2x2 grid town layout.
 		WID_TF_LAYOUT_GRID3                          = ::WID_TF_LAYOUT_GRID3,                          ///< Selection for the 3x3 grid town layout.
 		WID_TF_LAYOUT_RANDOM                         = ::WID_TF_LAYOUT_RANDOM,                         ///< Selection for a randomly chosen town layout.
+	};
+
+	/** Widgets of the #HousePickerWindow class. */
+	enum HousePickerWidgets {
+		WID_HP_CAPTION                               = ::WID_HP_CAPTION,
+		WID_HP_MAIN_PANEL_SEL                        = ::WID_HP_MAIN_PANEL_SEL,                        ///< Selection widget to show/hide the main panel.
+		WID_HP_HOUSE_SETS_SEL                        = ::WID_HP_HOUSE_SETS_SEL,                        ///< Selection widget to show/hide the list of house sets.
+		WID_HP_HOUSE_SETS                            = ::WID_HP_HOUSE_SETS,                            ///< List of available house sets.
+		WID_HP_HOUSE_SELECT_MATRIX                   = ::WID_HP_HOUSE_SELECT_MATRIX,                   ///< Matrix with houses to select.
+		WID_HP_HOUSE_SELECT_SCROLL                   = ::WID_HP_HOUSE_SELECT_SCROLL,                   ///< Scrollbar associated with the house matrix.
+		WID_HP_HOUSE_SELECT                          = ::WID_HP_HOUSE_SELECT,                          ///< Panels with house images in the house matrix.
+		WID_HP_HOUSE_PREVIEW                         = ::WID_HP_HOUSE_PREVIEW,                         ///< House preview panel.
+		WID_HP_HOUSE_NAME                            = ::WID_HP_HOUSE_NAME,                            ///< House name display.
+		WID_HP_HISTORICAL_BUILDING                   = ::WID_HP_HISTORICAL_BUILDING,                   ///< "Historical building" label.
+		WID_HP_HOUSE_POPULATION                      = ::WID_HP_HOUSE_POPULATION,                      ///< House population display.
+		WID_HP_HOUSE_ZONES                           = ::WID_HP_HOUSE_ZONES,                           ///< House zones display.
+		WID_HP_HOUSE_LANDSCAPE                       = ::WID_HP_HOUSE_LANDSCAPE,                       ///< Information about house availability against the landscape.
+		WID_HP_HOUSE_LANDSCAPE_SEL                   = ::WID_HP_HOUSE_LANDSCAPE_SEL,                   ///< Selection widget to show/hide the landscape info.
+		WID_HP_HOUSE_YEARS                           = ::WID_HP_HOUSE_YEARS,                           ///< Years display.
+		WID_HP_HOUSE_ACCEPTANCE                      = ::WID_HP_HOUSE_ACCEPTANCE,                      ///< Cargo accepted.
+		WID_HP_HOUSE_SUPPLY                          = ::WID_HP_HOUSE_SUPPLY,                          ///< Cargo supplied.
 	};
 
 	/* automatically generated from ../../widgets/transparency_widget.h */
