@@ -4230,6 +4230,7 @@ STR_ERROR_CAN_T_GENERATE_TOWN                                   :{WHITE}Can't bu
 STR_ERROR_CAN_T_RENAME_TOWN                                     :{WHITE}Can't rename town...
 STR_ERROR_CAN_T_FOUND_TOWN_HERE                                 :{WHITE}Can't found town here...
 STR_ERROR_CAN_T_EXPAND_TOWN                                     :{WHITE}Can't expand town...
+STR_ERROR_CAN_T_BUILD_HOUSE_HERE                                :{WHITE}Can't build house here...
 STR_ERROR_TOO_CLOSE_TO_EDGE_OF_MAP_SUB                          :{WHITE}... too close to edge of map
 STR_ERROR_TOO_CLOSE_TO_ANOTHER_TOWN                             :{WHITE}... too close to another town
 STR_ERROR_TOO_MANY_TOWNS                                        :{WHITE}... too many towns
@@ -4238,6 +4239,8 @@ STR_ERROR_TOWN_EXPAND_WARN_NO_ROADS                             :{WHITE}The town
 STR_ERROR_ROAD_WORKS_IN_PROGRESS                                :{WHITE}Road works in progress
 STR_ERROR_TOWN_CAN_T_DELETE                                     :{WHITE}Can't delete this town...{}A station or depot is referring to the town or a town owned tile can't be removed
 STR_ERROR_STATUE_NO_SUITABLE_PLACE                              :{WHITE}... there is no suitable place for a statue in the centre of this town
+STR_ERROR_BUILDING_NOT_ALLOWED_ABOVE_SNOW_LINE                  :{WHITE}... not allowed above the snow line.
+STR_ERROR_BUILDING_NOT_ALLOWED_BELOW_SNOW_LINE                  :{WHITE}... not allowed below the snow line.
 STR_ERROR_TOO_MANY_HOUSES                                       :{WHITE}... too many houses of this type in the town
 STR_ERROR_TOO_MANY_CLASS_HOUSES                                 :{WHITE}... too many houses of this class in the town
 STR_ERROR_ONLY_ONE_BUILDING_PER_TOWN                            :{WHITE}... only one building of this type allowed per town

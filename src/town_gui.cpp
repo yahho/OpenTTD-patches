@@ -16,6 +16,8 @@
 
 #include "town.h"
 #include "map/zoneheight.h"
+#include "map/slope.h"
+#include "map/bridge.h"
 #include "viewport_func.h"
 #include "error.h"
 #include "gui.h"
@@ -35,6 +37,7 @@
 #include "window_func.h"
 #include "townname_func.h"
 #include "core/geometry_func.hpp"
+#include "core/random_func.hpp"
 #include "genworld.h"
 #include "widgets/dropdown_func.h"
 #include "economy_func.h"
@@ -43,6 +46,7 @@
 #include "newgrf_cargo.h"
 #include "date_func.h"
 #include "zoom_func.h"
+#include "slope_func.h"
 
 #include "widgets/town_widget.h"
 
@@ -1739,9 +1743,7 @@ public:
 		}
 	}
 
-	void OnPlaceObject (Point pt, TileIndex tile) OVERRIDE
-	{
-	}
+	void OnPlaceObject (Point pt, TileIndex tile) OVERRIDE;
 
 	void OnPlaceObjectAbort (void) OVERRIDE
 	{
@@ -1750,6 +1752,72 @@ public:
 		this->SetDirty();
 	}
 };
+
+static StringID CheckPlaceHouse (TileIndex tile, HouseID house, Town *town)
+{
+	if (town == NULL) return STR_ERROR_MUST_FOUND_TOWN_FIRST;
+
+	const HouseSpec *hs = HouseSpec::Get (house);
+
+	int z = GetTileMaxZ (tile);
+
+	if (_settings_game.game_creation.landscape == LT_ARCTIC) {
+		bool above_snowline = z > HighestSnowLine();
+		HouseZones mask = above_snowline ? HZ_SUBARTC_ABOVE : HZ_SUBARTC_BELOW;
+		if ((hs->building_availability & mask) == 0) {
+			return above_snowline ?
+				STR_ERROR_BUILDING_NOT_ALLOWED_ABOVE_SNOW_LINE :
+				STR_ERROR_BUILDING_NOT_ALLOWED_BELOW_SNOW_LINE;
+		}
+	}
+
+	StringID err = IsNewTownHouseAllowed (town, house);
+	if (err != STR_NULL) return err;
+
+	TileArea ta (tile);
+	if (hs->building_flags & BUILDING_2_TILES_X) ta.w++;
+	if (hs->building_flags & BUILDING_2_TILES_Y) ta.h++;
+
+	bool noslope = (hs->building_flags & TILE_NOT_SLOPED) != 0;
+
+	TILE_AREA_LOOP(test, ta) {
+		if (noslope) {
+			if (!IsTileFlat (test)) {
+				return STR_ERROR_FLAT_LAND_REQUIRED;
+			}
+		} else {
+			if (IsSteepSlope (GetTileSlope (test)) || (GetTileMaxZ (test) != z)) {
+				return STR_ERROR_LAND_SLOPED_IN_WRONG_DIRECTION;
+			}
+		}
+
+		if (HasBridgeAbove (test)) {
+			return STR_ERROR_MUST_DEMOLISH_BRIDGE_FIRST;
+		}
+
+		CommandCost clear = DoCommand (test, 0, 0, DC_AUTO | DC_NO_WATER, CMD_LANDSCAPE_CLEAR);
+		if (clear.Failed()) return clear.GetErrorMessage();
+	}
+
+	return STR_NULL;
+}
+
+void HousePickerWindow::OnPlaceObject (Point pt, TileIndex tile)
+{
+	HouseID house = cur_house;
+	if (house == INVALID_HOUSE_ID) return;
+
+	Town *town = CalcClosestTownFromTile (tile);
+
+	StringID err = CheckPlaceHouse (tile, house, town);
+	if (err != STR_NULL) {
+		ShowErrorMessage (STR_ERROR_CAN_T_BUILD_HOUSE_HERE, err,
+				WL_INFO, pt.x, pt.y);
+		return;
+	}
+
+	DoBuildHouse (town, tile, house, InteractiveRandom());
+}
 
 static const NWidgetPart _nested_house_picker_widgets[] = {
 	NWidget(NWID_HORIZONTAL),
