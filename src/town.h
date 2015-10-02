@@ -221,6 +221,7 @@ uint GetMaskOfTownActions(int *nump, CompanyID cid, const Town *t);
 bool GenerateTowns(TownLayout layout);
 const CargoSpec *FindFirstCargoWithTownEffect(TownEffect effect);
 
+StringID IsNewTownHouseAllowed (const Town *t, HouseID house);
 void ShowBuildHousePicker (void);
 
 

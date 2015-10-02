@@ -2248,6 +2248,43 @@ static bool CheckTownBuild2x2House(TileIndex *tile, Town *t, int maxz, bool nosl
 	return false;
 }
 
+/** Get the flag to test/set for building uniqueness in a town. */
+static uint GetHouseUniqueFlags (const HouseSpec *hs)
+{
+	return  (hs->building_flags & BUILDING_IS_CHURCH)  ? (1 << TOWN_HAS_CHURCH)  :
+		(hs->building_flags & BUILDING_IS_STADIUM) ? (1 << TOWN_HAS_STADIUM) :
+		0;
+}
+
+/**
+ * Check if a town can have a new house of a given type.
+ * @param t The town to check.
+ * @param house The house type that we want to add.
+ * @param STR_NULL on success, else an error message.
+ */
+StringID IsNewTownHouseAllowed (const Town *t, HouseID house)
+{
+	const HouseSpec *hs = HouseSpec::Get(house);
+
+	/* Don't let these counters overflow. Global counters are 32bit, there will never be that many houses. */
+	if (hs->class_id != HOUSE_NO_CLASS) {
+		/* id_count is always <= class_count, so it doesn't need to be checked. */
+		if (t->cache.building_counts.class_count[hs->class_id] == UINT16_MAX) {
+			return STR_ERROR_TOO_MANY_CLASS_HOUSES;
+		}
+	} else {
+		/* If the house has no class, check id_count instead. */
+		if (t->cache.building_counts.id_count[house] == UINT16_MAX) {
+			return STR_ERROR_TOO_MANY_HOUSES;
+		}
+	}
+
+	/* Special houses that there can be only one of. */
+	uint oneof = GetHouseUniqueFlags (hs);
+	if (t->flags & oneof) return STR_ERROR_ONLY_ONE_BUILDING_PER_TOWN;
+
+	return STR_NULL;
+}
 
 /**
  * Tries to build a house at this tile
@@ -2291,14 +2328,7 @@ static bool BuildTownHouse(Town *t, TileIndex tile)
 		/* Verify that the candidate house spec matches the current tile status */
 		if ((~hs->building_availability & bitmask) != 0 || !hs->enabled || hs->grf_prop.override != INVALID_HOUSE_ID) continue;
 
-		/* Don't let these counters overflow. Global counters are 32bit, there will never be that many houses. */
-		if (hs->class_id != HOUSE_NO_CLASS) {
-			/* id_count is always <= class_count, so it doesn't need to be checked */
-			if (t->cache.building_counts.class_count[hs->class_id] == UINT16_MAX) continue;
-		} else {
-			/* If the house has no class, check id_count instead */
-			if (t->cache.building_counts.id_count[i] == UINT16_MAX) continue;
-		}
+		if (IsNewTownHouseAllowed (t, i) != STR_NULL) continue;
 
 		/* Without NewHouses, all houses have probability '1' */
 		uint cur_prob = (_loaded_newgrf_features.has_newhouses ? hs->probability : 1);
@@ -2341,17 +2371,6 @@ static bool BuildTownHouse(Town *t, TileIndex tile)
 
 		if (_cur_year < hs->min_year || _cur_year > hs->max_year) continue;
 
-		/* Special houses that there can be only one of. */
-		uint oneof = 0;
-
-		if (hs->building_flags & BUILDING_IS_CHURCH) {
-			SetBit(oneof, TOWN_HAS_CHURCH);
-		} else if (hs->building_flags & BUILDING_IS_STADIUM) {
-			SetBit(oneof, TOWN_HAS_STADIUM);
-		}
-
-		if (t->flags & oneof) continue;
-
 		/* Make sure there is no slope? */
 		bool noslope = (hs->building_flags & TILE_NOT_SLOPED) != 0;
 		if (noslope && slope != SLOPE_FLAT) continue;
@@ -2377,6 +2396,8 @@ static bool BuildTownHouse(Town *t, TileIndex tile)
 		t->cache.num_houses++;
 
 		/* Special houses that there can be only one of. */
+		uint oneof = GetHouseUniqueFlags (hs);
+		assert ((t->flags & oneof) == 0);
 		t->flags |= oneof;
 
 		byte construction_counter = 0;
