@@ -2535,6 +2535,10 @@ STR_BUILD_HOUSE_SUPPLIED_CARGO                                  :{BLACK}Supplies
 STR_BUILD_HOUSE_ACCEPTED_CARGO                                  :{BLACK}Accepts: {GOLD}{RAW_STRING}
 STR_BUILD_HOUSE_ORIGINAL_SET_NAME                               :Original houses
 
+# Town selection window (for SE only)
+STR_SELECT_TOWN_CAPTION                                         :{WHITE}Select town
+STR_SELECT_TOWN_LIST_ITEM                                       :{YELLOW}{TOWN}
+
 # Tree planting window (last two for SE only)
 STR_PLANT_TREE_CAPTION                                          :{WHITE}Trees
 STR_PLANT_TREE_TOOLTIP                                          :{BLACK}Select tree type to plant. If the tile already has a tree, this will add more trees of mixed types independent of the selected type

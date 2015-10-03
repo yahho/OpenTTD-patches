@@ -64,6 +64,7 @@ static void SQGSWindow_Register (Squirrel *engine)
 	engine->AddConst ("WC_COMPANY_COLOUR",                         ScriptWindow::WC_COMPANY_COLOUR);
 	engine->AddConst ("WC_COMPANY_MANAGER_FACE",                   ScriptWindow::WC_COMPANY_MANAGER_FACE);
 	engine->AddConst ("WC_SELECT_STATION",                         ScriptWindow::WC_SELECT_STATION);
+	engine->AddConst ("WC_SELECT_TOWN",                            ScriptWindow::WC_SELECT_TOWN);
 	engine->AddConst ("WC_NEWS_WINDOW",                            ScriptWindow::WC_NEWS_WINDOW);
 	engine->AddConst ("WC_TOWN_DIRECTORY",                         ScriptWindow::WC_TOWN_DIRECTORY);
 	engine->AddConst ("WC_SUBSIDIES_LIST",                         ScriptWindow::WC_SUBSIDIES_LIST);
@@ -1265,6 +1266,9 @@ static void SQGSWindow_Register (Squirrel *engine)
 	engine->AddConst ("WID_HP_HOUSE_YEARS",                        ScriptWindow::WID_HP_HOUSE_YEARS);
 	engine->AddConst ("WID_HP_HOUSE_ACCEPTANCE",                   ScriptWindow::WID_HP_HOUSE_ACCEPTANCE);
 	engine->AddConst ("WID_HP_HOUSE_SUPPLY",                       ScriptWindow::WID_HP_HOUSE_SUPPLY);
+	engine->AddConst ("WID_ST_CAPTION",                            ScriptWindow::WID_ST_CAPTION);
+	engine->AddConst ("WID_ST_PANEL",                              ScriptWindow::WID_ST_PANEL);
+	engine->AddConst ("WID_ST_SCROLLBAR",                          ScriptWindow::WID_ST_SCROLLBAR);
 	engine->AddConst ("WID_TT_BEGIN",                              ScriptWindow::WID_TT_BEGIN);
 	engine->AddConst ("WID_TT_SIGNS",                              ScriptWindow::WID_TT_SIGNS);
 	engine->AddConst ("WID_TT_TREES",                              ScriptWindow::WID_TT_TREES);

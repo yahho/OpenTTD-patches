@@ -84,4 +84,11 @@ enum HousePickerWidgets {
 	WID_HP_HOUSE_SUPPLY,        ///< Cargo supplied.
 };
 
+/** Widgets of the #SelectTownWindow class. */
+enum SelectTownWidgets {
+	WID_ST_CAPTION,   ///< Caption of the window.
+	WID_ST_PANEL,     ///< Main panel.
+	WID_ST_SCROLLBAR, ///< Scrollbar of the panel.
+};
+
 #endif /* WIDGETS_TOWN_WIDGET_H */

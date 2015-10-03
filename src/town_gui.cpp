@@ -38,6 +38,7 @@
 #include "townname_func.h"
 #include "core/geometry_func.hpp"
 #include "core/random_func.hpp"
+#include "core/smallvec_type.hpp"
 #include "genworld.h"
 #include "widgets/dropdown_func.h"
 #include "economy_func.h"
@@ -1247,6 +1248,150 @@ void ShowFoundTownWindow()
 }
 
 
+/**
+ * Window for selecting towns to build a house in.
+ */
+struct SelectTownWindow : Window {
+	const TileIndex tile;       ///< tile where to build the house
+	const HouseID house;        ///< house to build
+	std::vector <Town *> towns; ///< sorted vector of towns
+	Scrollbar *vscroll;         ///< scrollbar for the town list
+	bool rebuild;               ///< town vector must be rebuilt
+
+	void RebuildTownList (void);
+
+	SelectTownWindow(WindowDesc *desc, TileIndex tile, HouseID house)
+		: Window(desc), tile(tile), house(house)
+	{
+		this->CreateNestedTree();
+		this->vscroll = this->GetScrollbar(WID_ST_SCROLLBAR);
+		this->RebuildTownList();
+		this->FinishInitNested();
+	}
+
+	virtual void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize)
+	{
+		if (widget != WID_ST_PANEL) return;
+
+		/* Determine the widest string */
+		Dimension d = { 0, 0 };
+		for (uint i = 0; i < Town::pool.items; i++) {
+			SetDParam(0, i);
+			d = maxdim(d, GetStringBoundingBox(STR_SELECT_TOWN_LIST_ITEM));
+		}
+
+		resize->height = d.height;
+		d.height *= 5;
+		d.width += WD_FRAMERECT_RIGHT + WD_FRAMERECT_LEFT;
+		d.height += WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM;
+		*size = d;
+	}
+
+	virtual void DrawWidget(const Rect &r, int widget) const
+	{
+		if (widget != WID_ST_PANEL) return;
+
+		uint y = r.top + WD_FRAMERECT_TOP;
+		uint end = min(this->vscroll->GetCount(), this->vscroll->GetPosition() + this->vscroll->GetCapacity());
+		for (uint i = this->vscroll->GetPosition(); i < end; i++) {
+			SetDParam(0, this->towns[i]->index);
+			DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_SELECT_TOWN_LIST_ITEM);
+			y += this->resize.step_height;
+		}
+	}
+
+	virtual void OnClick(Point pt, int widget, int click_count)
+	{
+		if (widget != WID_ST_PANEL) return;
+
+		uint pos = this->vscroll->GetScrolledRowFromWidget(pt.y, this, WID_ST_PANEL, WD_FRAMERECT_TOP);
+		if (pos >= this->towns.size()) return;
+
+		Town *town = this->towns[pos];
+
+		StringID err = IsNewTownHouseAllowed (town, this->house);
+		if (err != STR_NULL) {
+			ShowErrorMessage (STR_ERROR_CAN_T_BUILD_HOUSE_HERE,
+					err, WL_INFO, pt.x, pt.y);
+			return;
+		}
+
+		/* Place a house */
+		DoBuildHouse (town, this->tile, this->house, InteractiveRandom());
+
+		/* Close the window */
+		delete this;
+	}
+
+	virtual void OnPaint()
+	{
+		if (this->rebuild) this->RebuildTownList();
+		this->DrawWidgets();
+	}
+
+	virtual void OnResize()
+	{
+		this->vscroll->SetCapacityFromWidget(this, WID_ST_PANEL, WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM);
+	}
+
+	virtual void OnInvalidateData(int data = 0, bool gui_scope = true)
+	{
+		this->rebuild = true;
+	}
+};
+
+struct TownDistanceSorter {
+	const TileIndex tile;
+
+	TownDistanceSorter (TileIndex tile) : tile (tile)
+	{
+	}
+
+	bool operator() (const Town *t1, const Town *t2)
+	{
+		return DistanceSquare (tile, t1->xy) < DistanceSquare (tile, t2->xy);
+	}
+};
+
+void SelectTownWindow::RebuildTownList (void)
+{
+	this->towns.clear();
+
+	Town *t;
+	FOR_ALL_TOWNS(t) {
+		this->towns.push_back (t);
+	}
+
+	TownDistanceSorter sorter (this->tile);
+	std::stable_sort (this->towns.begin(), this->towns.end(), sorter);
+
+	this->rebuild = false;
+	this->vscroll->SetCount (this->towns.size());
+}
+
+static const NWidgetPart _nested_select_town_widgets[] = {
+	NWidget(NWID_HORIZONTAL),
+		NWidget(WWT_CLOSEBOX, COLOUR_DARK_GREEN),
+		NWidget(WWT_CAPTION, COLOUR_DARK_GREEN, WID_ST_CAPTION), SetDataTip(STR_SELECT_TOWN_CAPTION, STR_TOOLTIP_WINDOW_TITLE_DRAG_THIS),
+		NWidget(WWT_DEFSIZEBOX, COLOUR_DARK_GREEN),
+	EndContainer(),
+	NWidget(NWID_HORIZONTAL),
+		NWidget(WWT_PANEL, COLOUR_DARK_GREEN, WID_ST_PANEL), SetResize(1, 0), SetScrollbar(WID_ST_SCROLLBAR), EndContainer(),
+		NWidget(NWID_VERTICAL),
+			NWidget(NWID_VSCROLLBAR, COLOUR_DARK_GREEN, WID_ST_SCROLLBAR),
+			NWidget(WWT_RESIZEBOX, COLOUR_DARK_GREEN),
+		EndContainer(),
+	EndContainer(),
+};
+
+static WindowDesc _select_town_desc(
+	WDP_AUTO, "select_town", 100, 0,
+	WC_SELECT_TOWN, WC_NONE,
+	WDF_CONSTRUCTION,
+	_nested_select_town_widgets, lengthof(_nested_select_town_widgets)
+);
+
+
 /** The window used for building houses. */
 class HousePickerWindow : public Window {
 	std::vector <HouseID> houses; ///< List of available houses.
@@ -1755,8 +1900,6 @@ public:
 
 static StringID CheckPlaceHouse (TileIndex tile, HouseID house, Town *town)
 {
-	if (town == NULL) return STR_ERROR_MUST_FOUND_TOWN_FIRST;
-
 	const HouseSpec *hs = HouseSpec::Get (house);
 
 	int z = GetTileMaxZ (tile);
@@ -1771,8 +1914,10 @@ static StringID CheckPlaceHouse (TileIndex tile, HouseID house, Town *town)
 		}
 	}
 
-	StringID err = IsNewTownHouseAllowed (town, house);
-	if (err != STR_NULL) return err;
+	if (town != NULL) {
+		StringID err = IsNewTownHouseAllowed (town, house);
+		if (err != STR_NULL) return err;
+	}
 
 	TileArea ta (tile);
 	if (hs->building_flags & BUILDING_2_TILES_X) ta.w++;
@@ -1807,16 +1952,35 @@ void HousePickerWindow::OnPlaceObject (Point pt, TileIndex tile)
 	HouseID house = cur_house;
 	if (house == INVALID_HOUSE_ID) return;
 
-	Town *town = CalcClosestTownFromTile (tile);
-
-	StringID err = CheckPlaceHouse (tile, house, town);
-	if (err != STR_NULL) {
-		ShowErrorMessage (STR_ERROR_CAN_T_BUILD_HOUSE_HERE, err,
-				WL_INFO, pt.x, pt.y);
-		return;
+	StringID err;
+	if (!_ctrl_pressed) {
+		/* Add the house to the closest town. */
+		Town *town = CalcClosestTownFromTile (tile);
+		if (town == NULL) {
+			err = STR_ERROR_MUST_FOUND_TOWN_FIRST;
+		} else {
+			err = CheckPlaceHouse (tile, house, town);
+			if (err == STR_NULL) {
+				DoBuildHouse (town, tile, house, InteractiveRandom());
+				return;
+			}
+		}
+	} else {
+		/* Show a list of towns to join. */
+		if (Town::pool.items == 0) {
+			err = STR_ERROR_MUST_FOUND_TOWN_FIRST;
+		} else {
+			err = CheckPlaceHouse (tile, house, NULL);
+			if (err == STR_NULL) {
+				DeleteWindowByClass (WC_SELECT_TOWN);
+				new SelectTownWindow (&_select_town_desc, tile, house);
+				return;
+			}
+		}
 	}
 
-	DoBuildHouse (town, tile, house, InteractiveRandom());
+	ShowErrorMessage (STR_ERROR_CAN_T_BUILD_HOUSE_HERE, err,
+			WL_INFO, pt.x, pt.y);
 }
 
 static const NWidgetPart _nested_house_picker_widgets[] = {

@@ -125,6 +125,7 @@ Town::~Town()
 void Town::PostDestructor(size_t index)
 {
 	InvalidateWindowData(WC_TOWN_DIRECTORY, 0, 0);
+	InvalidateWindowData(WC_SELECT_TOWN, 0);
 	UpdateNearestTownForRoadTiles(false);
 
 	/* Give objects a new home! */
@@ -1655,6 +1656,7 @@ static void DoCreateTown(Town *t, TileIndex tile, uint32 townnameparts, TownSize
 
 	t->UpdateVirtCoord();
 	InvalidateWindowData(WC_TOWN_DIRECTORY, 0, 0);
+	InvalidateWindowData(WC_SELECT_TOWN, 0);
 
 	t->InitializeLayout(layout);
 
@@ -2546,6 +2548,7 @@ CommandCost CmdRenameTown(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32
 
 		t->UpdateVirtCoord();
 		InvalidateWindowData(WC_TOWN_DIRECTORY, 0, 1);
+		SetWindowDirty(WC_SELECT_TOWN, 0);
 		UpdateAllStationVirtCoords();
 	}
 	return CommandCost();

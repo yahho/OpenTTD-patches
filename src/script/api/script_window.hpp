@@ -320,6 +320,12 @@ public:
 		WC_SELECT_STATION                            = ::WC_SELECT_STATION,
 
 		/**
+		 * Select town (when placing a house); %Window numbers:
+		 *   - 0 = #SelectTownWidgets
+		 */
+		WC_SELECT_TOWN                               = ::WC_SELECT_TOWN,
+
+		/**
 		 * News window; %Window numbers:
 		 *   - 0 = #NewsWidgets
 		 */
@@ -2503,6 +2509,13 @@ public:
 		WID_HP_HOUSE_YEARS                           = ::WID_HP_HOUSE_YEARS,                           ///< Years display.
 		WID_HP_HOUSE_ACCEPTANCE                      = ::WID_HP_HOUSE_ACCEPTANCE,                      ///< Cargo accepted.
 		WID_HP_HOUSE_SUPPLY                          = ::WID_HP_HOUSE_SUPPLY,                          ///< Cargo supplied.
+	};
+
+	/** Widgets of the #SelectTownWindow class. */
+	enum SelectTownWidgets {
+		WID_ST_CAPTION                               = ::WID_ST_CAPTION,                               ///< Caption of the window.
+		WID_ST_PANEL                                 = ::WID_ST_PANEL,                                 ///< Main panel.
+		WID_ST_SCROLLBAR                             = ::WID_ST_SCROLLBAR,                             ///< Scrollbar of the panel.
 	};
 
 	/* automatically generated from ../../widgets/transparency_widget.h */
