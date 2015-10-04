@@ -134,6 +134,7 @@ Sprite *Blitter_8bppOptimized::Encode(const SpriteLoader::Sprite *sprite, Alloca
 		zoom_min = _settings_client.gui.zoom_min;
 		zoom_max = _settings_client.gui.zoom_max;
 		if (zoom_max == zoom_min) zoom_max = ZOOM_LVL_MAX;
+		zoom_min = min (zoom_min, (ZoomLevel)_gui_zoom);
 	}
 
 	for (ZoomLevel i = zoom_min; i <= zoom_max; i++) {
