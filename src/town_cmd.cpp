@@ -50,6 +50,7 @@
 #include "game/game.hpp"
 #include "bridge.h"
 #include "map/util.h"
+#include "zoom_func.h"
 
 #include "table/strings.h"
 #include "table/town_land.h"
@@ -124,6 +125,7 @@ Town::~Town()
 void Town::PostDestructor(size_t index)
 {
 	InvalidateWindowData(WC_TOWN_DIRECTORY, 0, 0);
+	InvalidateWindowData(WC_SELECT_TOWN, 0);
 	UpdateNearestTownForRoadTiles(false);
 
 	/* Give objects a new home! */
@@ -224,7 +226,7 @@ static void DrawTile_Town(TileInfo *ti)
 	}
 
 	/* Retrieve pointer to the draw town tile struct */
-	const DrawBuildingsTileStruct *dcts = &_town_draw_tile_data[house_id << 4 | TileHash2Bit(ti->x, ti->y) << 2 | GetHouseBuildingStage(ti->tile)];
+	const DrawBuildingsTileStruct *dcts = town_draw_tile_data[house_id][TileHash2Bit(ti->x, ti->y)][GetHouseBuildingStage(ti->tile)];
 
 	if (ti->tileh != SLOPE_FLAT) DrawFoundation(ti, FOUNDATION_LEVELED);
 
@@ -254,6 +256,88 @@ static void DrawTile_Town(TileInfo *ti)
 
 		if (proc >= 0) _town_draw_tile_procs[proc](ti);
 	}
+}
+
+static void DrawOldHouseTileInGUI(int x, int y, HouseID house_id, bool ground)
+{
+	/* Retrieve pointer to the draw town tile struct */
+	const DrawBuildingsTileStruct *dcts = town_draw_tile_data[house_id][0][TOWN_HOUSE_COMPLETED];
+	if (ground) {
+		/* Draw the ground sprite */
+		DrawSprite(dcts->ground.sprite, dcts->ground.pal, x, y);
+	} else {
+		/* Add a house on top of the ground? */
+		if (dcts->building.sprite != 0) {
+			DrawSprite (dcts->building.sprite, dcts->building.pal,
+					x + ScaleGUITrad (2 * (dcts->subtile_y - dcts->subtile_x)),
+					y + ScaleGUITrad (dcts->subtile_x + dcts->subtile_y));
+		}
+		/* Draw the lift */
+		if (dcts->draw_proc == 1) DrawSprite(SPR_LIFT, PAL_NONE, x - 18, y + 7);
+	}
+}
+
+/**
+ * Draw image of a house. Image will be centered between the \c left and the \c right and verticaly aligned to the \c bottom.
+ *
+ * @param house_id house type
+ * @param left left bound of the drawing area
+ * @param top top bound of the drawing area
+ * @param right right bound of the drawing area
+ * @param bottom bottom bound of the drawing area
+ */
+void DrawHouseImage(HouseID house_id, int left, int top, int right, int bottom)
+{
+	DrawPixelInfo tmp_dpi;
+	if (!FillDrawPixelInfo(&tmp_dpi, left, top, right - left + 1, bottom - top + 1)) return;
+	DrawPixelInfo *old_dpi = _cur_dpi;
+	_cur_dpi = &tmp_dpi;
+
+	const HouseSpec *hs = HouseSpec::Get(house_id);
+
+	/* sprites are relative to the topmost pixel of the ground tile */
+	uint x = (right - left + 1) / 2 - ScaleGUITrad (1);
+	uint y = bottom - top + 1 - ScaleGUITrad (TILE_PIXELS - 1);
+	uint half_tile_offset = ScaleGUITrad (TILE_PIXELS / 2);
+	if (hs->building_flags & TILE_SIZE_1x2) x -= half_tile_offset;
+	if (hs->building_flags & TILE_SIZE_2x1) x += half_tile_offset;
+	if (hs->building_flags & BUILDING_HAS_2_TILES) y -= half_tile_offset;
+	if (hs->building_flags & BUILDING_HAS_4_TILES) y -= half_tile_offset;
+
+	bool new_house = false;
+	if (house_id >= NEW_HOUSE_OFFSET) {
+		/* Houses don't necessarily need new graphics. If they don't
+		 * have a spritegroup associated with them, then the sprite
+		 * for the substitute house id is drawn instead. */
+		if (hs->grf_prop.spritegroup[0] != NULL) {
+			new_house = true;
+		} else {
+			house_id = hs->grf_prop.subst_id;
+		}
+	}
+
+	uint num_row = (hs->building_flags & BUILDING_2_TILES_X) ? 2 : 1;
+	uint num_col = (hs->building_flags & BUILDING_2_TILES_Y) ? 2 : 1;
+
+	for (bool ground = true; ; ground = !ground) {
+		HouseID hid = house_id;
+		for (uint row = 0; row < num_row; row++) {
+			for (uint col = 0; col < num_col; col++) {
+				Point offset = RemapCoords(row * TILE_SIZE, col * TILE_SIZE, 0); // offset for current tile
+				offset.x = UnScaleByZoom(offset.x, ZOOM_LVL_GUI);
+				offset.y = UnScaleByZoom(offset.y, ZOOM_LVL_GUI);
+				if (new_house) {
+					DrawNewHouseTileInGUI(x + offset.x, y + offset.y, hid, ground);
+				} else {
+					DrawOldHouseTileInGUI(x + offset.x, y + offset.y, hid, ground);
+				}
+				hid++;
+			}
+		}
+		if (!ground) break;
+	}
+
+	_cur_dpi = old_dpi;
 }
 
 static int GetSlopePixelZ_Town(TileIndex tile, uint x, uint y)
@@ -1572,6 +1656,7 @@ static void DoCreateTown(Town *t, TileIndex tile, uint32 townnameparts, TownSize
 
 	t->UpdateVirtCoord();
 	InvalidateWindowData(WC_TOWN_DIRECTORY, 0, 0);
+	InvalidateWindowData(WC_SELECT_TOWN, 0);
 
 	t->InitializeLayout(layout);
 
@@ -2165,6 +2250,82 @@ static bool CheckTownBuild2x2House(TileIndex *tile, Town *t, int maxz, bool nosl
 	return false;
 }
 
+/** Get the flag to test/set for building uniqueness in a town. */
+static uint GetHouseUniqueFlags (const HouseSpec *hs)
+{
+	return  (hs->building_flags & BUILDING_IS_CHURCH)  ? (1 << TOWN_HAS_CHURCH)  :
+		(hs->building_flags & BUILDING_IS_STADIUM) ? (1 << TOWN_HAS_STADIUM) :
+		0;
+}
+
+/**
+ * Check if a town can have a new house of a given type.
+ * @param t The town to check.
+ * @param house The house type that we want to add.
+ * @param STR_NULL on success, else an error message.
+ */
+StringID IsNewTownHouseAllowed (const Town *t, HouseID house)
+{
+	const HouseSpec *hs = HouseSpec::Get(house);
+
+	/* Don't let these counters overflow. Global counters are 32bit, there will never be that many houses. */
+	if (hs->class_id != HOUSE_NO_CLASS) {
+		/* id_count is always <= class_count, so it doesn't need to be checked. */
+		if (t->cache.building_counts.class_count[hs->class_id] == UINT16_MAX) {
+			return STR_ERROR_TOO_MANY_CLASS_HOUSES;
+		}
+	} else {
+		/* If the house has no class, check id_count instead. */
+		if (t->cache.building_counts.id_count[house] == UINT16_MAX) {
+			return STR_ERROR_TOO_MANY_HOUSES;
+		}
+	}
+
+	/* Special houses that there can be only one of. */
+	uint oneof = GetHouseUniqueFlags (hs);
+	if (t->flags & oneof) return STR_ERROR_ONLY_ONE_BUILDING_PER_TOWN;
+
+	return STR_NULL;
+}
+
+/**
+ * Really build a house.
+ * @param t town to build house in
+ * @param tile house location
+ * @param house house type
+ * @param random_bits random bits for the house
+ */
+void DoBuildHouse(Town *t, TileIndex tile, HouseID house, byte random_bits)
+{
+	t->cache.num_houses++;
+
+	const HouseSpec *hs = HouseSpec::Get(house);
+
+	/* Special houses that there can be only one of. */
+	uint oneof = GetHouseUniqueFlags (hs);
+	assert ((t->flags & oneof) == 0);
+	t->flags |= oneof;
+
+	byte construction_counter = 0;
+	byte construction_stage = 0;
+
+	if (_generating_world || _game_mode == GM_EDITOR) {
+		uint32 r = Random();
+
+		construction_stage = TOWN_HOUSE_COMPLETED;
+		if (Chance16(1, 7)) construction_stage = GB(r, 0, 2);
+
+		if (construction_stage == TOWN_HOUSE_COMPLETED) {
+			ChangePopulation(t, hs->population);
+		} else {
+			construction_counter = GB(r, 2, 2);
+		}
+	}
+
+	MakeTownHouse(tile, t, construction_counter, construction_stage, house, random_bits);
+	UpdateTownRadius(t);
+	UpdateTownCargoes(t, tile);
+}
 
 /**
  * Tries to build a house at this tile
@@ -2208,14 +2369,7 @@ static bool BuildTownHouse(Town *t, TileIndex tile)
 		/* Verify that the candidate house spec matches the current tile status */
 		if ((~hs->building_availability & bitmask) != 0 || !hs->enabled || hs->grf_prop.override != INVALID_HOUSE_ID) continue;
 
-		/* Don't let these counters overflow. Global counters are 32bit, there will never be that many houses. */
-		if (hs->class_id != HOUSE_NO_CLASS) {
-			/* id_count is always <= class_count, so it doesn't need to be checked */
-			if (t->cache.building_counts.class_count[hs->class_id] == UINT16_MAX) continue;
-		} else {
-			/* If the house has no class, check id_count instead */
-			if (t->cache.building_counts.id_count[i] == UINT16_MAX) continue;
-		}
+		if (IsNewTownHouseAllowed (t, i) != STR_NULL) continue;
 
 		/* Without NewHouses, all houses have probability '1' */
 		uint cur_prob = (_loaded_newgrf_features.has_newhouses ? hs->probability : 1);
@@ -2258,17 +2412,6 @@ static bool BuildTownHouse(Town *t, TileIndex tile)
 
 		if (_cur_year < hs->min_year || _cur_year > hs->max_year) continue;
 
-		/* Special houses that there can be only one of. */
-		uint oneof = 0;
-
-		if (hs->building_flags & BUILDING_IS_CHURCH) {
-			SetBit(oneof, TOWN_HAS_CHURCH);
-		} else if (hs->building_flags & BUILDING_IS_STADIUM) {
-			SetBit(oneof, TOWN_HAS_STADIUM);
-		}
-
-		if (t->flags & oneof) continue;
-
 		/* Make sure there is no slope? */
 		bool noslope = (hs->building_flags & TILE_NOT_SLOPED) != 0;
 		if (noslope && slope != SLOPE_FLAT) continue;
@@ -2290,32 +2433,7 @@ static bool BuildTownHouse(Town *t, TileIndex tile)
 			if (callback_res != CALLBACK_FAILED && !Convert8bitBooleanCallback(hs->grf_prop.grffile, CBID_HOUSE_ALLOW_CONSTRUCTION, callback_res)) continue;
 		}
 
-		/* build the house */
-		t->cache.num_houses++;
-
-		/* Special houses that there can be only one of. */
-		t->flags |= oneof;
-
-		byte construction_counter = 0;
-		byte construction_stage = 0;
-
-		if (_generating_world || _game_mode == GM_EDITOR) {
-			uint32 r = Random();
-
-			construction_stage = TOWN_HOUSE_COMPLETED;
-			if (Chance16(1, 7)) construction_stage = GB(r, 0, 2);
-
-			if (construction_stage == TOWN_HOUSE_COMPLETED) {
-				ChangePopulation(t, hs->population);
-			} else {
-				construction_counter = GB(r, 2, 2);
-			}
-		}
-
-		MakeTownHouse(tile, t, construction_counter, construction_stage, house, random_bits);
-		UpdateTownRadius(t);
-		UpdateTownCargoes(t, tile);
-
+		DoBuildHouse(t, tile, house, random_bits);
 		return true;
 	}
 
@@ -2430,6 +2548,7 @@ CommandCost CmdRenameTown(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32
 
 		t->UpdateVirtCoord();
 		InvalidateWindowData(WC_TOWN_DIRECTORY, 0, 1);
+		SetWindowDirty(WC_SELECT_TOWN, 0);
 		UpdateAllStationVirtCoords();
 	}
 	return CommandCost();

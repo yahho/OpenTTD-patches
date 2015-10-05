@@ -149,4 +149,6 @@ static inline HouseID GetHouseType(TileIndex t)
 	return GetTranslatedHouseID(GetCleanHouseType(t));
 }
 
+void DrawHouseImage(HouseID house_id, int left, int top, int right, int bottom);
+
 #endif /* HOUSE_H */

@@ -15,8 +15,7 @@
 #include "gfx_type.h"
 #include "tilehighlight_type.h"
 
-void PlaceProc_DemolishArea(TileIndex tile);
-bool GUIPlaceProcDragXY(ViewportDragDropSelectionProcess proc, TileIndex start_tile, TileIndex end_tile);
+void HandleDemolishMouseUp (TileIndex start_tile, TileIndex end_tile);
 
 bool HandlePlacePushButton(Window *w, int widget, CursorID cursor, HighLightStyle mode);
 void SetObjectToPlaceWnd(CursorID icon, PaletteID pal, HighLightStyle mode, Window *w);
@@ -24,9 +23,10 @@ void SetObjectToPlace(CursorID icon, PaletteID pal, HighLightStyle mode, WindowC
 void ResetObjectToPlace();
 
 void VpSelectTilesWithMethod(int x, int y, ViewportPlaceMethod method);
-void VpStartPlaceSizing(TileIndex tile, ViewportPlaceMethod method, ViewportDragDropSelectionProcess process);
+void VpStartPlaceSizing(TileIndex tile, ViewportPlaceMethod method, int userdata = 0);
 void VpSetPresizeRange(TileIndex from, TileIndex to);
 void VpSetPlaceSizingLimit(int limit);
+void VpStopPlaceSizing (void);
 
 void UpdateTileSelection();
 

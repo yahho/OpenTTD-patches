@@ -70,6 +70,20 @@ struct RailStationGUISettings {
 static RailStationGUISettings _railstation; ///< Settings of the station builder GUI
 
 
+/** Dragging actions in the rail toolbar. */
+enum {
+	DRAG_DEMOLISH_AREA,     ///< Clear area
+	DRAG_BUILD_BRIDGE,      ///< Bridge placement
+	DRAG_PLACE_RAIL,        ///< Rail placement
+	DRAG_BUILD_SIGNALS,     ///< Signal placement
+	DRAG_STATION,           ///< Station placement/removal
+	DRAG_BUILD_WAYPOINT_X,  ///< Waypoint placement along AXIS_X
+	DRAG_BUILD_WAYPOINT_Y,  ///< Waypoint placement along AXIS_Y
+	DRAG_REMOVE_WAYPOINT,   ///< Waypoint removal
+	DRAG_CONVERT_RAIL,      ///< Rail conversion
+};
+
+
 static void HandleStationPlacement(TileIndex start, TileIndex end);
 static void ShowBuildTrainDepotPicker(Window *parent);
 static void ShowBuildWaypointPicker(Window *parent);
@@ -146,18 +160,23 @@ void CcRailDepot(const CommandCost &result, TileIndex tile, uint32 p1, uint32 p2
 static void PlaceRail_Waypoint(TileIndex tile)
 {
 	if (_remove_button_clicked) {
-		VpStartPlaceSizing(tile, VPM_X_AND_Y, DDSP_REMOVE_STATION);
+		VpStartPlaceSizing(tile, VPM_X_AND_Y, DRAG_REMOVE_WAYPOINT);
 		return;
 	}
 
-	Axis axis = GetAxisForNewWaypoint(tile);
-	if (IsValidAxis(axis)) {
-		/* Valid tile for waypoints */
-		VpStartPlaceSizing(tile, axis == AXIS_X ? VPM_FIX_X : VPM_FIX_Y, DDSP_BUILD_STATION);
-	} else {
-		/* Tile where we can't build rail waypoints. This is always going to fail,
-		 * but provides the user with a proper error message. */
-		DoCommandP(tile, 1 << 8 | 1 << 16, STAT_CLASS_WAYP | INVALID_STATION << 16, CMD_BUILD_RAIL_WAYPOINT);
+	switch (GetAxisForNewWaypoint(tile)) {
+		case AXIS_X:
+			VpStartPlaceSizing (tile, VPM_FIX_X, DRAG_BUILD_WAYPOINT_X);
+			break;
+
+		case AXIS_Y:
+			VpStartPlaceSizing (tile, VPM_FIX_Y, DRAG_BUILD_WAYPOINT_Y);
+			break;
+
+		default:
+			/* Tile where we can't build rail waypoints. This is always going to fail,
+			 * but provides the user with a proper error message. */
+			DoCommandP (tile, 1 << 8 | 1 << 16, STAT_CLASS_WAYP | INVALID_STATION << 16, CMD_BUILD_RAIL_WAYPOINT);
 	}
 }
 
@@ -177,10 +196,10 @@ void CcStation(const CommandCost &result, TileIndex tile, uint32 p1, uint32 p2)
 static void PlaceRail_Station(TileIndex tile)
 {
 	if (_remove_button_clicked) {
-		VpStartPlaceSizing(tile, VPM_X_AND_Y_LIMITED, DDSP_REMOVE_STATION);
+		VpStartPlaceSizing(tile, VPM_X_AND_Y_LIMITED, DRAG_STATION);
 		VpSetPlaceSizingLimit(-1);
 	} else if (_settings_client.gui.station_dragdrop) {
-		VpStartPlaceSizing(tile, VPM_X_AND_Y_LIMITED, DDSP_BUILD_STATION);
+		VpStartPlaceSizing(tile, VPM_X_AND_Y_LIMITED, DRAG_STATION);
 		VpSetPlaceSizingLimit(_settings_game.station.station_spread);
 	} else {
 		uint32 p1 = _cur_railtype | _railstation.orientation << 4 | _settings_client.gui.station_numtracks << 8 | _settings_client.gui.station_platlength << 16 | _ctrl_pressed << 24;
@@ -266,20 +285,11 @@ static void GenericPlaceSignals(TileIndex tile)
 	}
 }
 
-/**
- * Start placing a rail bridge.
- * @param tile Position of the first tile of the bridge.
- * @param w    Rail toolbar window.
- */
-static void PlaceRail_Bridge(TileIndex tile, Window *w)
+/** Show the bridge building window between a pair of tiles. */
+static void HandleBuildRailBridge (TileIndex start_tile, TileIndex end_tile)
 {
-	if (IsBridgeHeadTile(tile)) {
-		TileIndex other_tile = GetOtherBridgeEnd(tile);
-		Point pt = {0, 0};
-		w->OnPlaceMouseUp(VPM_X_OR_Y, DDSP_BUILD_BRIDGE, pt, other_tile, tile);
-	} else {
-		VpStartPlaceSizing(tile, VPM_X_OR_Y, DDSP_BUILD_BRIDGE);
-	}
+	if (!_settings_client.gui.persistent_buildingtools) ResetObjectToPlace();
+	ShowBuildBridgeWindow (start_tile, end_tile, TRANSPORT_RAIL, _cur_railtype);
 }
 
 /**
@@ -347,6 +357,10 @@ static void BuildRailClick_Remove(Window *w)
 				VpSetPlaceSizingLimit(_settings_game.station.station_spread);
 			}
 		}
+	} else if (w->IsWidgetLowered(WID_RAT_BUILD_WAYPOINT)) {
+		/* Dragging is different for waypoints when removing,
+		 * so reset it. */
+		VpStopPlaceSizing();
 	}
 }
 
@@ -612,27 +626,27 @@ struct BuildRailToolbarWindow : Window {
 	{
 		switch (this->last_user_action) {
 			case WID_RAT_BUILD_NS:
-				VpStartPlaceSizing(tile, VPM_FIX_VERTICAL | VPM_RAILDIRS, DDSP_PLACE_RAIL);
+				VpStartPlaceSizing(tile, VPM_FIX_VERTICAL | VPM_RAILDIRS, DRAG_PLACE_RAIL);
 				break;
 
 			case WID_RAT_BUILD_X:
-				VpStartPlaceSizing(tile, VPM_FIX_Y | VPM_RAILDIRS, DDSP_PLACE_RAIL);
+				VpStartPlaceSizing(tile, VPM_FIX_Y | VPM_RAILDIRS, DRAG_PLACE_RAIL);
 				break;
 
 			case WID_RAT_BUILD_EW:
-				VpStartPlaceSizing(tile, VPM_FIX_HORIZONTAL | VPM_RAILDIRS, DDSP_PLACE_RAIL);
+				VpStartPlaceSizing(tile, VPM_FIX_HORIZONTAL | VPM_RAILDIRS, DRAG_PLACE_RAIL);
 				break;
 
 			case WID_RAT_BUILD_Y:
-				VpStartPlaceSizing(tile, VPM_FIX_X | VPM_RAILDIRS, DDSP_PLACE_RAIL);
+				VpStartPlaceSizing(tile, VPM_FIX_X | VPM_RAILDIRS, DRAG_PLACE_RAIL);
 				break;
 
 			case WID_RAT_AUTORAIL:
-				VpStartPlaceSizing(tile, VPM_RAILDIRS, DDSP_PLACE_RAIL);
+				VpStartPlaceSizing(tile, VPM_RAILDIRS, DRAG_PLACE_RAIL);
 				break;
 
 			case WID_RAT_DEMOLISH:
-				PlaceProc_DemolishArea(tile);
+				VpStartPlaceSizing(tile, VPM_X_AND_Y, DRAG_DEMOLISH_AREA);
 				break;
 
 			case WID_RAT_BUILD_DEPOT:
@@ -648,11 +662,16 @@ struct BuildRailToolbarWindow : Window {
 				break;
 
 			case WID_RAT_BUILD_SIGNALS:
-				VpStartPlaceSizing(tile, VPM_SIGNALDIRS, DDSP_BUILD_SIGNALS);
+				VpStartPlaceSizing(tile, VPM_SIGNALDIRS, DRAG_BUILD_SIGNALS);
 				break;
 
 			case WID_RAT_BUILD_BRIDGE:
-				PlaceRail_Bridge(tile, this);
+				if (IsBridgeHeadTile(tile)) {
+					TileIndex other_tile = GetOtherBridgeEnd (tile);
+					HandleBuildRailBridge (other_tile, tile);
+				} else {
+					VpStartPlaceSizing (tile, VPM_X_OR_Y, DRAG_BUILD_BRIDGE);
+				}
 				break;
 
 			case WID_RAT_BUILD_TUNNEL:
@@ -660,14 +679,14 @@ struct BuildRailToolbarWindow : Window {
 				break;
 
 			case WID_RAT_CONVERT_RAIL:
-				VpStartPlaceSizing(tile, VPM_X_AND_Y, DDSP_CONVERT_RAIL);
+				VpStartPlaceSizing(tile, VPM_X_AND_Y, DRAG_CONVERT_RAIL);
 				break;
 
 			default: NOT_REACHED();
 		}
 	}
 
-	virtual void OnPlaceDrag(ViewportPlaceMethod select_method, ViewportDragDropSelectionProcess select_proc, Point pt)
+	void OnPlaceDrag (ViewportPlaceMethod select_method, int userdata, Point pt) OVERRIDE
 	{
 		/* no dragging if you have pressed the convert button */
 		if (FindWindowById(WC_BUILD_SIGNAL, 0) != NULL && _convert_signal_button && this->IsWidgetLowered(WID_RAT_BUILD_SIGNALS)) return;
@@ -675,54 +694,52 @@ struct BuildRailToolbarWindow : Window {
 		VpSelectTilesWithMethod(pt.x, pt.y, select_method);
 	}
 
-	virtual void OnPlaceMouseUp(ViewportPlaceMethod select_method, ViewportDragDropSelectionProcess select_proc, Point pt, TileIndex start_tile, TileIndex end_tile)
+	void OnPlaceMouseUp (int userdata, Point pt, TileIndex start_tile, TileIndex end_tile) OVERRIDE
 	{
 		if (pt.x != -1) {
-			switch (select_proc) {
+			switch (userdata) {
 				default: NOT_REACHED();
-				case DDSP_BUILD_BRIDGE:
-					if (!_settings_client.gui.persistent_buildingtools) ResetObjectToPlace();
-					ShowBuildBridgeWindow(start_tile, end_tile, TRANSPORT_RAIL, _cur_railtype);
+				case DRAG_BUILD_BRIDGE:
+					HandleBuildRailBridge (start_tile, end_tile);
 					break;
 
-				case DDSP_PLACE_RAIL:
+				case DRAG_PLACE_RAIL:
 					HandleAutodirPlacement();
 					break;
 
-				case DDSP_BUILD_SIGNALS:
+				case DRAG_BUILD_SIGNALS:
 					HandleAutoSignalPlacement();
 					break;
 
-				case DDSP_DEMOLISH_AREA:
-					GUIPlaceProcDragXY(select_proc, start_tile, end_tile);
+				case DRAG_DEMOLISH_AREA:
+					HandleDemolishMouseUp (start_tile, end_tile);
 					break;
 
-				case DDSP_CONVERT_RAIL:
+				case DRAG_CONVERT_RAIL:
 					DoCommandP(end_tile, start_tile, _cur_railtype | (_ctrl_pressed ? 0x10 : 0), CMD_CONVERT_RAIL);
 					break;
 
-				case DDSP_REMOVE_STATION:
-				case DDSP_BUILD_STATION:
-					if (this->IsWidgetLowered(WID_RAT_BUILD_STATION)) {
-						/* Station */
-						if (_remove_button_clicked) {
-							DoCommandP(end_tile, start_tile, _ctrl_pressed ? 0 : 1, CMD_REMOVE_FROM_RAIL_STATION);
-						} else {
-							HandleStationPlacement(start_tile, end_tile);
-						}
+				case DRAG_STATION:
+					if (_remove_button_clicked) {
+						DoCommandP (end_tile, start_tile, _ctrl_pressed ? 0 : 1, CMD_REMOVE_FROM_RAIL_STATION);
 					} else {
-						/* Waypoint */
-						if (_remove_button_clicked) {
-							DoCommandP(end_tile, start_tile, _ctrl_pressed ? 0 : 1, CMD_REMOVE_FROM_RAIL_WAYPOINT);
-						} else {
-							TileArea ta(start_tile, end_tile);
-							uint32 p1 = _cur_railtype | (select_method == VPM_FIX_X ? AXIS_X : AXIS_Y) << 4 | ta.w << 8 | ta.h << 16 | _ctrl_pressed << 24;
-							uint32 p2 = STAT_CLASS_WAYP | _cur_waypoint_type << 8 | INVALID_STATION << 16;
-
-							Command cmdcont (ta.tile, p1, p2, CMD_BUILD_RAIL_WAYPOINT);
-							ShowSelectWaypointIfNeeded (&cmdcont, ta);
-						}
+						HandleStationPlacement (start_tile, end_tile);
 					}
+					break;
+
+				case DRAG_BUILD_WAYPOINT_X:
+				case DRAG_BUILD_WAYPOINT_Y: {
+					TileArea ta (start_tile, end_tile);
+					uint32 p1 = _cur_railtype | (userdata == DRAG_BUILD_WAYPOINT_X ? AXIS_X : AXIS_Y) << 4 | ta.w << 8 | ta.h << 16 | _ctrl_pressed << 24;
+					uint32 p2 = STAT_CLASS_WAYP | _cur_waypoint_type << 8 | INVALID_STATION << 16;
+
+					Command cmdcont (ta.tile, p1, p2, CMD_BUILD_RAIL_WAYPOINT);
+					ShowSelectWaypointIfNeeded (&cmdcont, ta);
+					break;
+				}
+
+				case DRAG_REMOVE_WAYPOINT:
+					DoCommandP (end_tile, start_tile, _ctrl_pressed ? 0 : 1, CMD_REMOVE_FROM_RAIL_WAYPOINT);
 					break;
 			}
 		}

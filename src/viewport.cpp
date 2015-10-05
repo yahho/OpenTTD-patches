@@ -2560,10 +2560,10 @@ static inline void ShowMeasurementTooltips(StringID str, uint paramcount, const 
 }
 
 /** highlighting tiles while only going over them with the mouse */
-void VpStartPlaceSizing(TileIndex tile, ViewportPlaceMethod method, ViewportDragDropSelectionProcess process)
+void VpStartPlaceSizing (TileIndex tile, ViewportPlaceMethod method, int userdata)
 {
 	_thd.select_method = method;
-	_thd.select_proc   = process;
+	_thd.select_data   = userdata;
 	_thd.selend.x = TileX(tile) * TILE_SIZE;
 	_thd.selstart.x = TileX(tile) * TILE_SIZE;
 	_thd.selend.y = TileY(tile) * TILE_SIZE;
@@ -3189,6 +3189,23 @@ calc_heightdiff_single_direction:;
 	_thd.selend.y = y;
 }
 
+/** Abort the current dragging operation, if any. */
+void VpStopPlaceSizing (void)
+{
+	_special_mouse_mode = WSM_NONE;
+	HighLightStyle others = _thd.place_mode & ~(HT_DRAG_MASK | HT_DIR_MASK);
+	if ((_thd.next_drawstyle & HT_DRAG_MASK) == HT_RECT) {
+		_thd.place_mode = HT_RECT | others;
+	} else if (_thd.select_method & VPM_SIGNALDIRS) {
+		_thd.place_mode = HT_RECT | others;
+	} else if (_thd.select_method & VPM_RAILDIRS) {
+		_thd.place_mode = (_thd.select_method & ~VPM_RAILDIRS) ? _thd.next_drawstyle : (HT_RAIL | others);
+	} else {
+		_thd.place_mode = HT_POINT | others;
+	}
+	SetTileSelectSize(1, 1);
+}
+
 /**
  * Handle the mouse while dragging for placement/resizing.
  * @return State of handling the event.
@@ -3206,30 +3223,26 @@ EventState VpHandlePlaceSizingDrag()
 
 	/* while dragging execute the drag procedure of the corresponding window (mostly VpSelectTilesWithMethod() ) */
 	if (_left_button_down) {
-		w->OnPlaceDrag(_thd.select_method, _thd.select_proc, GetTileBelowCursor());
+		w->OnPlaceDrag (_thd.select_method, _thd.select_data, GetTileBelowCursor());
 		return ES_HANDLED;
 	}
 
 	/* mouse button released..
 	 * keep the selected tool, but reset it to the original mode. */
-	_special_mouse_mode = WSM_NONE;
-	HighLightStyle others = _thd.place_mode & ~(HT_DRAG_MASK | HT_DIR_MASK);
-	if ((_thd.next_drawstyle & HT_DRAG_MASK) == HT_RECT) {
-		_thd.place_mode = HT_RECT | others;
-	} else if (_thd.select_method & VPM_SIGNALDIRS) {
-		_thd.place_mode = HT_RECT | others;
-	} else if (_thd.select_method & VPM_RAILDIRS) {
-		_thd.place_mode = (_thd.select_method & ~VPM_RAILDIRS) ? _thd.next_drawstyle : (HT_RAIL | others);
-	} else {
-		_thd.place_mode = HT_POINT | others;
-	}
-	SetTileSelectSize(1, 1);
+	VpStopPlaceSizing();
 
-	w->OnPlaceMouseUp(_thd.select_method, _thd.select_proc, _thd.selend, TileVirtXY(_thd.selstart.x, _thd.selstart.y), TileVirtXY(_thd.selend.x, _thd.selend.y));
+	w->OnPlaceMouseUp (_thd.select_data, _thd.selend, TileVirtXY(_thd.selstart.x, _thd.selstart.y), TileVirtXY(_thd.selend.x, _thd.selend.y));
 
 	return ES_HANDLED;
 }
 
+/**
+ * Change the cursor and mouse click/drag handling to a mode for performing special operations like tile area selection, object placement, etc.
+ * @param icon New shape of the mouse cursor.
+ * @param pal Palette to use.
+ * @param mode Mode to perform.
+ * @param w %Window requesting the mode change.
+ */
 void SetObjectToPlaceWnd(CursorID icon, PaletteID pal, HighLightStyle mode, Window *w)
 {
 	SetObjectToPlace(icon, pal, mode, w->window_class, w->window_number);
@@ -3237,6 +3250,14 @@ void SetObjectToPlaceWnd(CursorID icon, PaletteID pal, HighLightStyle mode, Wind
 
 #include "table/animcursors.h"
 
+/**
+ * Change the cursor and mouse click/drag handling to a mode for performing special operations like tile area selection, object placement, etc.
+ * @param icon New shape of the mouse cursor.
+ * @param pal Palette to use.
+ * @param mode Mode to perform.
+ * @param window_class %Window class of the window requesting the mode change.
+ * @param window_num Number of the window in its class requesting the mode change.
+ */
 void SetObjectToPlace(CursorID icon, PaletteID pal, HighLightStyle mode, WindowClass window_class, WindowNumber window_num)
 {
 	if (_thd.window_class != WC_INVALID) {
@@ -3281,6 +3302,7 @@ void SetObjectToPlace(CursorID icon, PaletteID pal, HighLightStyle mode, WindowC
 
 }
 
+/** Reset the cursor and mouse mode handling back to default (normal cursor, only clicking in windows). */
 void ResetObjectToPlace()
 {
 	SetObjectToPlace(SPR_CURSOR_MOUSE, PAL_NONE, HT_NONE, WC_MAIN_WINDOW, 0);

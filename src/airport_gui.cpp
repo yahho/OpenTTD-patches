@@ -121,22 +121,22 @@ struct BuildAirToolbarWindow : Window {
 				break;
 
 			case WID_AT_DEMOLISH:
-				PlaceProc_DemolishArea(tile);
+				VpStartPlaceSizing (tile, VPM_X_AND_Y);
 				break;
 
 			default: NOT_REACHED();
 		}
 	}
 
-	virtual void OnPlaceDrag(ViewportPlaceMethod select_method, ViewportDragDropSelectionProcess select_proc, Point pt)
+	void OnPlaceDrag (ViewportPlaceMethod select_method, int userdata, Point pt) OVERRIDE
 	{
 		VpSelectTilesWithMethod(pt.x, pt.y, select_method);
 	}
 
-	virtual void OnPlaceMouseUp(ViewportPlaceMethod select_method, ViewportDragDropSelectionProcess select_proc, Point pt, TileIndex start_tile, TileIndex end_tile)
+	void OnPlaceMouseUp (int userdata, Point pt, TileIndex start_tile, TileIndex end_tile) OVERRIDE
 	{
-		if (pt.x != -1 && select_proc == DDSP_DEMOLISH_AREA) {
-			GUIPlaceProcDragXY(select_proc, start_tile, end_tile);
+		if (pt.x != -1) {
+			HandleDemolishMouseUp (start_tile, end_tile);
 		}
 	}
 

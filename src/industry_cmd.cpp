@@ -327,7 +327,7 @@ static void DrawTile_Industry(TileInfo *ti)
 		}
 	}
 
-	const DrawBuildingsTileStruct *dits = &_industry_draw_tile_data[gfx << 2 | (indts->anim_state ?
+	const DrawBuildingsTileStruct *dits = industry_draw_tile_data[gfx][(indts->anim_state ?
 			GetAnimationFrame(ti->tile) & INDUSTRY_COMPLETED :
 			GetIndustryConstructionStage(ti->tile))];
 

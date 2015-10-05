@@ -46,7 +46,16 @@ SwitchMode _switch_mode;  ///< The next mainloop command.
 PauseModeByte _pause_mode;
 Palette _cur_palette;
 
-static byte _stringwidth_table[FS_END][224]; ///< Cache containing width of often used characters. @see GetCharacterWidth()
+/** Cache with metrics of some glyphs of a font. */
+struct FontMetrics {
+	byte widths [256 - 32];     ///< Glyph widths of all ASCII characters.
+	byte widest_digit;          ///< Widest digit.
+	byte widest_digit_nonnull;  ///< Widest leading (non-null) digit.
+	byte digit_width;           ///< Width of the widest digit.
+};
+
+static FontMetrics font_metrics_cache [FS_END]; ///< Cache containing width of often used characters. @see GetCharacterWidth()
+
 DrawPixelInfo *_cur_dpi;
 byte _colour_gradient[COLOUR_END][8];
 
@@ -1098,15 +1107,34 @@ TextColour GetContrastColour(uint8 background)
 }
 
 /**
- * Initialize _stringwidth_table cache
+ * Initialize font_metrics_cache
  * @param monospace Whether to load the monospace cache or the normal fonts.
  */
 void LoadStringWidthTable(bool monospace)
 {
 	for (FontSize fs = monospace ? FS_MONO : FS_BEGIN; fs < (monospace ? FS_END : FS_MONO); fs++) {
 		for (uint i = 0; i != 224; i++) {
-			_stringwidth_table[fs][i] = GetGlyphWidth(fs, i + 32);
+			font_metrics_cache[fs].widths[i] = GetGlyphWidth (fs, i + 32);
 		}
+
+		byte widest_digit = 9;
+		byte digit_width = font_metrics_cache[fs].widths['9' - 32];
+		for (byte i = 8; i > 0; i--) {
+			byte w = font_metrics_cache[fs].widths[i + '0' - 32];
+			if (w > digit_width) {
+				widest_digit = i;
+				digit_width = w;
+			}
+		}
+		font_metrics_cache[fs].widest_digit_nonnull = widest_digit;
+
+		byte w = font_metrics_cache[fs].widths['0' - 32];
+		if (w > digit_width) {
+			widest_digit = 0;
+			digit_width = w;
+		}
+		font_metrics_cache[fs].widest_digit = widest_digit;
+		font_metrics_cache[fs].digit_width = digit_width;
 	}
 
 	ClearFontCache();
@@ -1121,8 +1149,8 @@ void LoadStringWidthTable(bool monospace)
  */
 byte GetCharacterWidth(FontSize size, WChar key)
 {
-	/* Use _stringwidth_table cache if possible */
-	if (key >= 32 && key < 256) return _stringwidth_table[size][key - 32];
+	/* Use font_metrics_cache if possible */
+	if (key >= 32 && key < 256) return font_metrics_cache[size].widths[key - 32];
 
 	return GetGlyphWidth(size, key);
 }
@@ -1134,30 +1162,21 @@ byte GetCharacterWidth(FontSize size, WChar key)
  */
 byte GetDigitWidth(FontSize size)
 {
-	byte width = 0;
-	for (char c = '0'; c <= '9'; c++) {
-		width = max(GetCharacterWidth(size, c), width);
-	}
-	return width;
+	return font_metrics_cache[size].digit_width;
 }
 
-/**
- * Determine the broadest digits for guessing the maximum width of a n-digit number.
- * @param [out] front Broadest digit, which is not 0. (Use this digit as first digit for numbers with more than one digit.)
- * @param [out] next Broadest digit, including 0. (Use this digit for all digits, except the first one; or for numbers with only one digit.)
- * @param size  Font of the digit
- */
-void GetBroadestDigit(uint *front, uint *next, FontSize size)
+/** Compute the broadest n-digit value in a given font size. */
+uint64 GetBroadestValue (uint n, FontSize size)
 {
-	int width = -1;
-	for (char c = '9'; c >= '0'; c--) {
-		int w = GetCharacterWidth(size, c);
-		if (w > width) {
-			width = w;
-			*next = c - '0';
-			if (c != '0') *front = c - '0';
-		}
-	}
+	uint d = font_metrics_cache[size].widest_digit;
+
+	if (n <= 1) return d;
+
+	uint64 val = font_metrics_cache[size].widest_digit_nonnull;
+	do {
+		val = 10 * val + d;
+	} while (--n > 1);
+	return val;
 }
 
 void ScreenSizeChanged()

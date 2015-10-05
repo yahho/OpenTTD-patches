@@ -17,6 +17,7 @@
 #include "newgrf_text.h"
 #include "strings_func.h"
 #include "viewport_func.h"
+#include "tilehighlight_func.h"
 #include "window_gui.h"
 #include "window_func.h"
 #include "zoom_func.h"
@@ -30,7 +31,7 @@ static int _selected_object_index;           ///< the index of the selected obje
 static uint8 _selected_object_view;          ///< the view of the selected object
 
 /** The window used for building objects. */
-class BuildObjectWindow : public PickerWindowBase {
+class BuildObjectWindow : public Window {
 	static const int OBJECT_MARGIN = 4; ///< The margin (in pixels) around an object.
 	int line_height;                    ///< The height of a single line.
 	int info_height;                    ///< The height of the info box.
@@ -72,11 +73,13 @@ class BuildObjectWindow : public PickerWindowBase {
 	}
 
 public:
-	BuildObjectWindow(WindowDesc *desc, Window *w) : PickerWindowBase(desc, w), info_height(1)
+	BuildObjectWindow(WindowDesc *desc, WindowNumber number) : Window(desc), info_height(1)
 	{
 		this->CreateNestedTree();
 		this->vscroll = this->GetScrollbar(WID_BO_SCROLLBAR);
-		this->FinishInitNested(0);
+		this->FinishInitNested(number);
+
+		ResetObjectToPlace();
 
 		this->vscroll->SetPosition(0);
 		this->vscroll->SetCount(ObjectClass::GetUIClassCount());
@@ -271,8 +274,7 @@ public:
 						const DrawTileSprites *dts = &_objects[spec->grf_prop.local_id];
 						DrawOrigTileSeqInGUI((r.right - r.left) / 2 - 1, r.bottom - r.top - OBJECT_MARGIN - ScaleGUITrad(TILE_PIXELS), dts, PAL_NONE);
 					} else {
-						DrawNewObjectTileInGUI((r.right - r.left) / 2 - 1, r.bottom - r.top - OBJECT_MARGIN - ScaleGUITrad(TILE_PIXELS), spec,
-								min(_selected_object_view, spec->views - 1));
+						DrawNewObjectTileInGUI((r.right - r.left) / 2 - 1, r.bottom - r.top - OBJECT_MARGIN - ScaleGUITrad(TILE_PIXELS), spec, 0);
 					}
 					_cur_dpi = old_dpi;
 				}
@@ -336,10 +338,11 @@ public:
 			_selected_object_view = 0;
 		}
 
-		this->GetWidget<NWidgetMatrix>(WID_BO_OBJECT_MATRIX)->SetClicked(_selected_object_view);
-		this->GetWidget<NWidgetMatrix>(WID_BO_SELECT_MATRIX)->SetClicked(_selected_object_index != -1 ? ObjectClass::Get(_selected_object_class)->GetUIFromIndex(_selected_object_index) : -1);
-		this->UpdateSelectSize();
-		this->SetDirty();
+		if (_selected_object_index != -1) {
+			SetObjectToPlaceWnd(SPR_CURSOR_TRANSMITTER, PAL_NONE, HT_RECT, this);
+		}
+
+		this->UpdateButtons(_selected_object_class, _selected_object_index, _selected_object_view);
 	}
 
 	void UpdateSelectSize()
@@ -352,6 +355,29 @@ public:
 			int h = GB(spec->size, HasBit(_selected_object_view, 0) ? 0 : 4, 4);
 			SetTileSelectSize(w, h);
 		}
+	}
+
+	/**
+	 * Update buttons to show the selection to the user.
+	 * @param sel_class The class of the selected object.
+	 * @param sel_index Index of the object to select, or \c -1 .
+	 * @param sel_view View of the object to select.
+	 */
+	void UpdateButtons(ObjectClassID sel_class, int sel_index, uint sel_view)
+	{
+		int view_number, object_number;
+		if (sel_index == -1) {
+			view_number = -1; // If no object selected, also hide the selected view.
+			object_number = -1;
+		} else {
+			view_number = sel_view;
+			object_number = ObjectClass::Get(sel_class)->GetUIFromIndex(sel_index);
+		}
+
+		this->GetWidget<NWidgetMatrix>(WID_BO_OBJECT_MATRIX)->SetClicked(view_number);
+		this->GetWidget<NWidgetMatrix>(WID_BO_SELECT_MATRIX)->SetClicked(object_number);
+		this->UpdateSelectSize();
+		this->SetDirty();
 	}
 
 	virtual void OnResize()
@@ -381,12 +407,21 @@ public:
 			case WID_BO_OBJECT_SPRITE:
 				if (_selected_object_index != -1) {
 					_selected_object_view = GB(widget, 16, 16);
-					this->GetWidget<NWidgetMatrix>(WID_BO_OBJECT_MATRIX)->SetClicked(_selected_object_view);
-					this->UpdateSelectSize();
-					this->SetDirty();
+					this->SelectOtherObject(_selected_object_index); // Re-select the object for a different view.
 				}
 				break;
 		}
+	}
+
+	virtual void OnPlaceObject(Point pt, TileIndex tile)
+	{
+		DoCommandP(tile, ObjectClass::Get(_selected_object_class)->GetSpec(_selected_object_index)->Index(),
+				_selected_object_view, CMD_BUILD_OBJECT);
+	}
+
+	virtual void OnPlaceObjectAbort()
+	{
+		this->UpdateButtons(_selected_object_class, -1, _selected_object_view);
 	}
 
 	/**
@@ -487,25 +522,15 @@ static WindowDesc _build_object_desc(
  * Show our object picker.
  * @param w The toolbar window we're associated with.
  */
-void ShowBuildObjectPicker(Window *w)
+void ShowBuildObjectPicker()
 {
-	new BuildObjectWindow(&_build_object_desc, w);
+	AllocateWindowDescFront<BuildObjectWindow>(&_build_object_desc, 0);
 }
 
 /** Reset all data of the object GUI. */
 void InitializeObjectGui()
 {
 	_selected_object_class = (ObjectClassID)0;
-}
-
-/**
- * PlaceProc function, called when someone pressed the button if the
- *  object-tool is selected
- * @param tile on which to place the object
- */
-void PlaceProc_Object(TileIndex tile)
-{
-	DoCommandP(tile, ObjectClass::Get(_selected_object_class)->GetSpec(_selected_object_index)->Index(), _selected_object_view, CMD_BUILD_OBJECT);
 }
 
 /**

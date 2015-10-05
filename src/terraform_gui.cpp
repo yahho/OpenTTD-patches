@@ -106,6 +106,18 @@ static void GenerateRockyArea(TileIndex end, TileIndex start)
 	if (success && _settings_client.sound.confirm) SndPlayTileFx(SND_1F_SPLAT_OTHER, end);
 }
 
+/** Placing actions in the terraform window. */
+enum {
+	PLACE_DEMOLISH_AREA,        ///< Clear area
+	PLACE_LOWER_AREA,           ///< Lower / level area
+	PLACE_RAISE_AREA,           ///< Raise / level area
+	PLACE_LEVEL_AREA,           ///< Level area
+	PLACE_CREATE_ROCKS,         ///< Fill area with rocks
+	PLACE_CREATE_DESERT,        ///< Fill area with desert
+	PLACE_BUY_LAND,             ///< Buy land
+	PLACE_SIGN,                 ///< Place a sign
+};
+
 /**
  * A central place to handle all X_AND_Y dragged GUI functions.
  * @param proc       Procedure related to the dragging
@@ -115,7 +127,7 @@ static void GenerateRockyArea(TileIndex end, TileIndex start)
  * allows for additional implements that are more local. For example X_Y drag
  * of convertrail which belongs in rail_gui.cpp and not terraform_gui.cpp
  */
-bool GUIPlaceProcDragXY(ViewportDragDropSelectionProcess proc, TileIndex start_tile, TileIndex end_tile)
+static bool GUIPlaceProcDragXY (int proc, TileIndex start_tile, TileIndex end_tile)
 {
 	if (!_settings_game.construction.freeform_edges) {
 		/* When end_tile is void, the error tile will not be visible to the
@@ -125,22 +137,22 @@ bool GUIPlaceProcDragXY(ViewportDragDropSelectionProcess proc, TileIndex start_t
 	}
 
 	switch (proc) {
-		case DDSP_DEMOLISH_AREA:
+		case PLACE_DEMOLISH_AREA:
 			DoCommandP(end_tile, start_tile, _ctrl_pressed ? 1 : 0, CMD_CLEAR_AREA);
 			break;
-		case DDSP_RAISE_AND_LEVEL_AREA:
-			DoCommandP(end_tile, start_tile, LM_RAISE << 1 | (_ctrl_pressed ? 1 : 0), CMD_LEVEL_LAND);
-			break;
-		case DDSP_LOWER_AND_LEVEL_AREA:
+		case PLACE_LOWER_AREA:
 			DoCommandP(end_tile, start_tile, LM_LOWER << 1 | (_ctrl_pressed ? 1 : 0), CMD_LEVEL_LAND);
 			break;
-		case DDSP_LEVEL_AREA:
+		case PLACE_RAISE_AREA:
+			DoCommandP(end_tile, start_tile, LM_RAISE << 1 | (_ctrl_pressed ? 1 : 0), CMD_LEVEL_LAND);
+			break;
+		case PLACE_LEVEL_AREA:
 			DoCommandP(end_tile, start_tile, LM_LEVEL << 1 | (_ctrl_pressed ? 1 : 0), CMD_LEVEL_LAND);
 			break;
-		case DDSP_CREATE_ROCKS:
+		case PLACE_CREATE_ROCKS:
 			GenerateRockyArea(end_tile, start_tile);
 			break;
-		case DDSP_CREATE_DESERT:
+		case PLACE_CREATE_DESERT:
 			GenerateDesertArea(end_tile, start_tile);
 			break;
 		default:
@@ -150,25 +162,21 @@ bool GUIPlaceProcDragXY(ViewportDragDropSelectionProcess proc, TileIndex start_t
 	return true;
 }
 
-/**
- * Start a drag for demolishing an area.
- * @param tile Position of one corner.
- */
-void PlaceProc_DemolishArea(TileIndex tile)
+void HandleDemolishMouseUp (TileIndex start_tile, TileIndex end_tile)
 {
-	VpStartPlaceSizing(tile, VPM_X_AND_Y, DDSP_DEMOLISH_AREA);
+	GUIPlaceProcDragXY (PLACE_DEMOLISH_AREA, start_tile, end_tile);
 }
 
 /** Terra form toolbar managing class. */
 struct TerraformToolbarWindow : Window {
-	int last_user_action; ///< Last started user action.
+	int placing_action; ///< Currently active placing action.
 
 	TerraformToolbarWindow(WindowDesc *desc, WindowNumber window_number) : Window(desc)
 	{
 		/* This is needed as we like to have the tree available on OnInit. */
 		this->CreateNestedTree();
 		this->FinishInitNested(window_number);
-		this->last_user_action = WIDGET_LIST_END;
+		this->placing_action = -1;
 	}
 
 	~TerraformToolbarWindow()
@@ -189,27 +197,27 @@ struct TerraformToolbarWindow : Window {
 		switch (widget) {
 			case WID_TT_LOWER_LAND: // Lower land button
 				HandlePlacePushButton(this, WID_TT_LOWER_LAND, ANIMCURSOR_LOWERLAND, HT_POINT | HT_DIAGONAL);
-				this->last_user_action = widget;
+				this->placing_action = PLACE_LOWER_AREA;
 				break;
 
 			case WID_TT_RAISE_LAND: // Raise land button
 				HandlePlacePushButton(this, WID_TT_RAISE_LAND, ANIMCURSOR_RAISELAND, HT_POINT | HT_DIAGONAL);
-				this->last_user_action = widget;
+				this->placing_action = PLACE_RAISE_AREA;
 				break;
 
 			case WID_TT_LEVEL_LAND: // Level land button
 				HandlePlacePushButton(this, WID_TT_LEVEL_LAND, SPR_CURSOR_LEVEL_LAND, HT_POINT | HT_DIAGONAL);
-				this->last_user_action = widget;
+				this->placing_action = PLACE_LEVEL_AREA;
 				break;
 
 			case WID_TT_DEMOLISH: // Demolish aka dynamite button
 				HandlePlacePushButton(this, WID_TT_DEMOLISH, ANIMCURSOR_DEMOLISH, HT_RECT | HT_DIAGONAL);
-				this->last_user_action = widget;
+				this->placing_action = PLACE_DEMOLISH_AREA;
 				break;
 
 			case WID_TT_BUY_LAND: // Buy land button
 				HandlePlacePushButton(this, WID_TT_BUY_LAND, SPR_CURSOR_BUY_LAND, HT_RECT);
-				this->last_user_action = widget;
+				this->placing_action = PLACE_BUY_LAND;
 				break;
 
 			case WID_TT_PLANT_TREES: // Plant trees button
@@ -218,16 +226,11 @@ struct TerraformToolbarWindow : Window {
 
 			case WID_TT_PLACE_SIGN: // Place sign button
 				HandlePlacePushButton(this, WID_TT_PLACE_SIGN, SPR_CURSOR_SIGN, HT_RECT);
-				this->last_user_action = widget;
+				this->placing_action = PLACE_SIGN;
 				break;
 
 			case WID_TT_PLACE_OBJECT: // Place object button
-				/* Don't show the place object button when there are no objects to place. */
-				if (ObjectClass::GetUIClassCount() == 0) return;
-				if (HandlePlacePushButton(this, WID_TT_PLACE_OBJECT, SPR_CURSOR_TRANSMITTER, HT_RECT)) {
-					ShowBuildObjectPicker(this);
-					this->last_user_action = widget;
-				}
+				ShowBuildObjectPicker();
 				break;
 
 			default: NOT_REACHED();
@@ -236,40 +239,22 @@ struct TerraformToolbarWindow : Window {
 
 	virtual void OnPlaceObject(Point pt, TileIndex tile)
 	{
-		switch (this->last_user_action) {
-			case WID_TT_LOWER_LAND: // Lower land button
-				VpStartPlaceSizing(tile, VPM_X_AND_Y, DDSP_LOWER_AND_LEVEL_AREA);
+		switch (this->placing_action) {
+			default:
+				VpStartPlaceSizing (tile, VPM_X_AND_Y, this->placing_action);
 				break;
 
-			case WID_TT_RAISE_LAND: // Raise land button
-				VpStartPlaceSizing(tile, VPM_X_AND_Y, DDSP_RAISE_AND_LEVEL_AREA);
-				break;
-
-			case WID_TT_LEVEL_LAND: // Level land button
-				VpStartPlaceSizing(tile, VPM_X_AND_Y, DDSP_LEVEL_AREA);
-				break;
-
-			case WID_TT_DEMOLISH: // Demolish aka dynamite button
-				PlaceProc_DemolishArea(tile);
-				break;
-
-			case WID_TT_BUY_LAND: // Buy land button
+			case PLACE_BUY_LAND:
 				DoCommandP(tile, OBJECT_OWNED_LAND, 0, CMD_BUILD_OBJECT);
 				break;
 
-			case WID_TT_PLACE_SIGN: // Place sign button
+			case PLACE_SIGN:
 				PlaceProc_Sign(tile);
 				break;
-
-			case WID_TT_PLACE_OBJECT: // Place object button
-				PlaceProc_Object(tile);
-				break;
-
-			default: NOT_REACHED();
 		}
 	}
 
-	virtual void OnPlaceDrag(ViewportPlaceMethod select_method, ViewportDragDropSelectionProcess select_proc, Point pt)
+	void OnPlaceDrag (ViewportPlaceMethod select_method, int userdata, Point pt) OVERRIDE
 	{
 		VpSelectTilesWithMethod(pt.x, pt.y, select_method);
 	}
@@ -281,16 +266,16 @@ struct TerraformToolbarWindow : Window {
 		return pt;
 	}
 
-	virtual void OnPlaceMouseUp(ViewportPlaceMethod select_method, ViewportDragDropSelectionProcess select_proc, Point pt, TileIndex start_tile, TileIndex end_tile)
+	void OnPlaceMouseUp (int userdata, Point pt, TileIndex start_tile, TileIndex end_tile) OVERRIDE
 	{
 		if (pt.x != -1) {
-			switch (select_proc) {
+			switch (userdata) {
 				default: NOT_REACHED();
-				case DDSP_DEMOLISH_AREA:
-				case DDSP_RAISE_AND_LEVEL_AREA:
-				case DDSP_LOWER_AND_LEVEL_AREA:
-				case DDSP_LEVEL_AREA:
-					GUIPlaceProcDragXY(select_proc, start_tile, end_tile);
+				case PLACE_DEMOLISH_AREA:
+				case PLACE_LOWER_AREA:
+				case PLACE_RAISE_AREA:
+				case PLACE_LEVEL_AREA:
+					GUIPlaceProcDragXY (userdata, start_tile, end_tile);
 					break;
 			}
 		}
@@ -298,7 +283,6 @@ struct TerraformToolbarWindow : Window {
 
 	virtual void OnPlaceObjectAbort()
 	{
-		DeleteWindowById(WC_BUILD_OBJECT, 0);
 		this->RaiseButtons();
 	}
 
@@ -356,7 +340,7 @@ static const NWidgetPart _nested_terraform_widgets[] = {
 		NWidget(WWT_IMGBTN, COLOUR_DARK_GREEN, WID_TT_PLACE_SIGN), SetMinimalSize(22, 22),
 								SetFill(0, 1), SetDataTip(SPR_IMG_SIGN, STR_SCENEDIT_TOOLBAR_PLACE_SIGN),
 		NWidget(NWID_SELECTION, INVALID_COLOUR, WID_TT_SHOW_PLACE_OBJECT),
-			NWidget(WWT_IMGBTN, COLOUR_DARK_GREEN, WID_TT_PLACE_OBJECT), SetMinimalSize(22, 22),
+			NWidget(WWT_PUSHIMGBTN, COLOUR_DARK_GREEN, WID_TT_PLACE_OBJECT), SetMinimalSize(22, 22),
 								SetFill(0, 1), SetDataTip(SPR_IMG_TRANSMITTER, STR_SCENEDIT_TOOLBAR_PLACE_OBJECT),
 		EndContainer(),
 	EndContainer(),
@@ -408,40 +392,38 @@ static byte _terraform_size = 1;
  * @todo : Incorporate into game itself to allow for ingame raising/lowering of
  *         larger chunks at the same time OR remove altogether, as we have 'level land' ?
  * @param tile The top-left tile where the terraforming will start
- * @param mode 1 for raising, 0 for lowering land
+ * @param mode true for raising, false for lowering land
  */
-static void CommonRaiseLowerBigLand(TileIndex tile, int mode)
+static void CommonRaiseLowerBigLand (TileIndex tile, bool mode)
 {
-	if (_terraform_size == 1) {
-		DoCommandP(tile, SLOPE_N, (uint32)mode, CMD_TERRAFORM_LAND);
-	} else {
-		assert(_terraform_size != 0);
-		TileArea ta(tile, _terraform_size, _terraform_size);
-		ta.ClampToMap();
+	assert (_terraform_size != 0);
+	assert (_terraform_size != 1);
 
-		if (ta.w == 0 || ta.h == 0) return;
+	TileArea ta (tile, _terraform_size, _terraform_size);
+	ta.ClampToMap();
 
-		if (_settings_client.sound.confirm) SndPlayTileFx(SND_1F_SPLAT_OTHER, tile);
+	if (ta.w == 0 || ta.h == 0) return;
 
-		uint h;
-		if (mode != 0) {
-			/* Raise land */
-			h = MAX_TILE_HEIGHT;
-			TILE_AREA_LOOP(tile2, ta) {
-				h = min(h, TileHeight(tile2));
-			}
-		} else {
-			/* Lower land */
-			h = 0;
-			TILE_AREA_LOOP(tile2, ta) {
-				h = max(h, TileHeight(tile2));
-			}
-		}
+	if (_settings_client.sound.confirm) SndPlayTileFx (SND_1F_SPLAT_OTHER, tile);
 
+	uint h;
+	if (mode) {
+		/* Raise land */
+		h = MAX_TILE_HEIGHT;
 		TILE_AREA_LOOP(tile2, ta) {
-			if (TileHeight(tile2) == h) {
-				DoCommandP(tile2, SLOPE_N, (uint32)mode | (1 << 31), CMD_TERRAFORM_LAND);
-			}
+			h = min (h, TileHeight(tile2));
+		}
+	} else {
+		/* Lower land */
+		h = 0;
+		TILE_AREA_LOOP(tile2, ta) {
+			h = max (h, TileHeight(tile2));
+		}
+	}
+
+	TILE_AREA_LOOP(tile2, ta) {
+		if (TileHeight(tile2) == h) {
+			DoCommandP (tile2, SLOPE_N, (mode ? 1 : 0) | (1 << 31), CMD_TERRAFORM_LAND);
 		}
 	}
 }
@@ -481,8 +463,10 @@ static const NWidgetPart _nested_scen_edit_land_gen_widgets[] = {
 				NWidget(WWT_IMGBTN, COLOUR_GREY, WID_ETT_PLACE_DESERT), SetMinimalSize(22, 22),
 											SetFill(0, 1), SetDataTip(SPR_IMG_DESERT, STR_TERRAFORM_TOOLTIP_DEFINE_DESERT_AREA),
 			EndContainer(),
-			NWidget(WWT_IMGBTN, COLOUR_GREY, WID_ETT_PLACE_OBJECT), SetMinimalSize(23, 22),
+			NWidget(WWT_PUSHIMGBTN, COLOUR_GREY, WID_ETT_PLACE_OBJECT), SetMinimalSize(23, 22),
 										SetFill(0, 1), SetDataTip(SPR_IMG_TRANSMITTER, STR_SCENEDIT_TOOLBAR_PLACE_OBJECT),
+			NWidget(WWT_PUSHIMGBTN, COLOUR_GREY, WID_ETT_PLACE_HOUSE), SetMinimalSize(23, 22),
+										SetFill(0, 1), SetDataTip(SPR_IMG_TOWN, STR_SCENEDIT_TOOLBAR_PLACE_HOUSE),
 			NWidget(NWID_SPACER), SetFill(1, 0),
 		EndContainer(),
 		NWidget(NWID_HORIZONTAL),
@@ -544,7 +528,7 @@ static void ResetLandscapeConfirmationCallback(Window *w, bool confirmed)
 
 /** Landscape generation window handler in the scenario editor. */
 struct ScenarioEditorLandscapeGenerationWindow : Window {
-	int last_user_action; ///< Last started user action.
+	int placing_action; ///< Currently active placing action.
 
 	ScenarioEditorLandscapeGenerationWindow(WindowDesc *desc, WindowNumber window_number) : Window(desc)
 	{
@@ -552,7 +536,7 @@ struct ScenarioEditorLandscapeGenerationWindow : Window {
 		NWidgetStacked *show_desert = this->GetWidget<NWidgetStacked>(WID_ETT_SHOW_PLACE_DESERT);
 		show_desert->SetDisplayedPlane(_settings_game.game_creation.landscape == LT_TROPIC ? 0 : SZSP_NONE);
 		this->FinishInitNested(window_number);
-		this->last_user_action = WIDGET_LIST_END;
+		this->placing_action = -1;
 	}
 
 	virtual void OnPaint()
@@ -596,39 +580,40 @@ struct ScenarioEditorLandscapeGenerationWindow : Window {
 		switch (widget) {
 			case WID_ETT_DEMOLISH: // Demolish aka dynamite button
 				HandlePlacePushButton(this, WID_ETT_DEMOLISH, ANIMCURSOR_DEMOLISH, HT_RECT | HT_DIAGONAL);
-				this->last_user_action = widget;
+				this->placing_action = PLACE_DEMOLISH_AREA;
 				break;
 
 			case WID_ETT_LOWER_LAND: // Lower land button
-				HandlePlacePushButton(this, WID_ETT_LOWER_LAND, ANIMCURSOR_LOWERLAND, HT_POINT);
-				this->last_user_action = widget;
+				HandlePlacePushButton(this, WID_ETT_LOWER_LAND, ANIMCURSOR_LOWERLAND, HT_POINT | HT_DIAGONAL);
+				this->placing_action = PLACE_LOWER_AREA;
 				break;
 
 			case WID_ETT_RAISE_LAND: // Raise land button
-				HandlePlacePushButton(this, WID_ETT_RAISE_LAND, ANIMCURSOR_RAISELAND, HT_POINT);
-				this->last_user_action = widget;
+				HandlePlacePushButton(this, WID_ETT_RAISE_LAND, ANIMCURSOR_RAISELAND, HT_POINT | HT_DIAGONAL);
+				this->placing_action = PLACE_RAISE_AREA;
 				break;
 
 			case WID_ETT_LEVEL_LAND: // Level land button
 				HandlePlacePushButton(this, WID_ETT_LEVEL_LAND, SPR_CURSOR_LEVEL_LAND, HT_POINT | HT_DIAGONAL);
-				this->last_user_action = widget;
+				this->placing_action = PLACE_LEVEL_AREA;
 				break;
 
 			case WID_ETT_PLACE_ROCKS: // Place rocks button
 				HandlePlacePushButton(this, WID_ETT_PLACE_ROCKS, SPR_CURSOR_ROCKY_AREA, HT_RECT);
-				this->last_user_action = widget;
+				this->placing_action = PLACE_CREATE_ROCKS;
 				break;
 
 			case WID_ETT_PLACE_DESERT: // Place desert button (in tropical climate)
 				HandlePlacePushButton(this, WID_ETT_PLACE_DESERT, SPR_CURSOR_DESERT, HT_RECT);
-				this->last_user_action = widget;
+				this->placing_action = PLACE_CREATE_DESERT;
 				break;
 
 			case WID_ETT_PLACE_OBJECT: // Place transmitter button
-				if (HandlePlacePushButton(this, WID_ETT_PLACE_OBJECT, SPR_CURSOR_TRANSMITTER, HT_RECT)) {
-					ShowBuildObjectPicker(this);
-					this->last_user_action = widget;
-				}
+				ShowBuildObjectPicker();
+				break;
+
+			case WID_ETT_PLACE_HOUSE: // Place house button
+				ShowBuildHousePicker();
 				break;
 
 			case WID_ETT_INCREASE_SIZE:
@@ -661,7 +646,6 @@ struct ScenarioEditorLandscapeGenerationWindow : Window {
 	virtual void OnTimeout()
 	{
 		for (uint i = WID_ETT_START; i < this->nested_array_size; i++) {
-			if (i == WID_ETT_BUTTONS_START) i = WID_ETT_BUTTONS_END; // skip the buttons
 			if (this->IsWidgetLowered(i)) {
 				this->RaiseWidget(i);
 				this->SetWidgetDirty(i);
@@ -671,56 +655,37 @@ struct ScenarioEditorLandscapeGenerationWindow : Window {
 
 	virtual void OnPlaceObject(Point pt, TileIndex tile)
 	{
-		switch (this->last_user_action) {
-			case WID_ETT_DEMOLISH: // Demolish aka dynamite button
-				PlaceProc_DemolishArea(tile);
+		switch (this->placing_action) {
+			case PLACE_LOWER_AREA:
+			case PLACE_RAISE_AREA:
+				if (_terraform_size != 1) {
+					CommonRaiseLowerBigLand (tile, this->placing_action == PLACE_RAISE_AREA);
+					break;
+				}
+				/* fall through */
+			default:
+				VpStartPlaceSizing (tile, VPM_X_AND_Y, this->placing_action);
 				break;
-
-			case WID_ETT_LOWER_LAND: // Lower land button
-				CommonRaiseLowerBigLand(tile, 0);
-				break;
-
-			case WID_ETT_RAISE_LAND: // Raise land button
-				CommonRaiseLowerBigLand(tile, 1);
-				break;
-
-			case WID_ETT_LEVEL_LAND: // Level land button
-				VpStartPlaceSizing(tile, VPM_X_AND_Y, DDSP_LEVEL_AREA);
-				break;
-
-			case WID_ETT_PLACE_ROCKS: // Place rocks button
-				VpStartPlaceSizing(tile, VPM_X_AND_Y, DDSP_CREATE_ROCKS);
-				break;
-
-			case WID_ETT_PLACE_DESERT: // Place desert button (in tropical climate)
-				VpStartPlaceSizing(tile, VPM_X_AND_Y, DDSP_CREATE_DESERT);
-				break;
-
-			case WID_ETT_PLACE_OBJECT: // Place transmitter button
-				PlaceProc_Object(tile);
-				break;
-
-			default: NOT_REACHED();
 		}
 	}
 
-	virtual void OnPlaceDrag(ViewportPlaceMethod select_method, ViewportDragDropSelectionProcess select_proc, Point pt)
+	void OnPlaceDrag (ViewportPlaceMethod select_method, int userdata, Point pt) OVERRIDE
 	{
 		VpSelectTilesWithMethod(pt.x, pt.y, select_method);
 	}
 
-	virtual void OnPlaceMouseUp(ViewportPlaceMethod select_method, ViewportDragDropSelectionProcess select_proc, Point pt, TileIndex start_tile, TileIndex end_tile)
+	void OnPlaceMouseUp (int userdata, Point pt, TileIndex start_tile, TileIndex end_tile) OVERRIDE
 	{
 		if (pt.x != -1) {
-			switch (select_proc) {
+			switch (userdata) {
 				default: NOT_REACHED();
-				case DDSP_CREATE_ROCKS:
-				case DDSP_CREATE_DESERT:
-				case DDSP_RAISE_AND_LEVEL_AREA:
-				case DDSP_LOWER_AND_LEVEL_AREA:
-				case DDSP_LEVEL_AREA:
-				case DDSP_DEMOLISH_AREA:
-					GUIPlaceProcDragXY(select_proc, start_tile, end_tile);
+				case PLACE_DEMOLISH_AREA:
+				case PLACE_LOWER_AREA:
+				case PLACE_RAISE_AREA:
+				case PLACE_LEVEL_AREA:
+				case PLACE_CREATE_ROCKS:
+				case PLACE_CREATE_DESERT:
+					GUIPlaceProcDragXY (userdata, start_tile, end_tile);
 					break;
 			}
 		}
@@ -730,7 +695,6 @@ struct ScenarioEditorLandscapeGenerationWindow : Window {
 	{
 		this->RaiseButtons();
 		this->SetDirty();
-		DeleteWindowById(WC_BUILD_OBJECT, 0);
 	}
 
 	static HotkeyList hotkeys;
@@ -757,6 +721,7 @@ static Hotkey terraform_editor_hotkeys[] = {
 	Hotkey('R', "rocky", WID_ETT_PLACE_ROCKS),
 	Hotkey('T', "desert", WID_ETT_PLACE_DESERT),
 	Hotkey('O', "object", WID_ETT_PLACE_OBJECT),
+	Hotkey('H', "house", WID_ETT_PLACE_HOUSE),
 	HOTKEY_LIST_END
 };
 

@@ -359,6 +359,7 @@ STR_SCENEDIT_TOOLBAR_ROAD_CONSTRUCTION                          :{BLACK}Road con
 STR_SCENEDIT_TOOLBAR_PLANT_TREES                                :{BLACK}Plant trees. Shift toggles building/showing cost estimate
 STR_SCENEDIT_TOOLBAR_PLACE_SIGN                                 :{BLACK}Place sign
 STR_SCENEDIT_TOOLBAR_PLACE_OBJECT                               :{BLACK}Place object. Shift toggles building/showing cost estimate
+STR_SCENEDIT_TOOLBAR_PLACE_HOUSE                                :{BLACK}Place house
 
 ############ range for SE file menu starts
 STR_SCENEDIT_FILE_MENU_SAVE_SCENARIO                            :Save scenario
@@ -2604,6 +2605,32 @@ STR_OBJECT_BUILD_SIZE                                           :{BLACK}Size: {G
 STR_OBJECT_CLASS_LTHS                                           :Lighthouses
 STR_OBJECT_CLASS_TRNS                                           :Transmitters
 
+# House construction window (for SE only)
+STR_BUILD_HOUSE_CAPTION                                         :{WHITE}House Selection
+STR_BUILD_HOUSE_CUSTOM_CAPTION                                  :{WHITE}{RAW_STRING}
+STR_BUILD_HOUSE_HOUSESET_LIST_TOOLTIP                           :{BLACK}Select set of houses
+STR_BUILD_HOUSE_SELECT_HOUSE_TOOLTIP                            :{BLACK}Select house to build
+STR_BUILD_HOUSE_NAME                                            :{GOLD}{STRING1}
+STR_BUILD_HOUSE_HISTORICAL_BUILDING                             :{GOLD}(historical building)
+STR_BUILD_HOUSE_POPULATION                                      :{BLACK}Population: {GOLD}{NUM}
+STR_BUILD_HOUSE_ZONES                                           :{BLACK}House zones: {STRING}1 {STRING}2 {STRING}3 {STRING}4 {STRING}5
+STR_BUILD_HOUSE_ZONE_DISABLED                                   :{GRAY}
+STR_BUILD_HOUSE_ZONE_ENABLED                                    :{GOLD}
+STR_BUILD_HOUSE_LANDSCAPE                                       :{BLACK}Landscape: {STRING}
+STR_BUILD_HOUSE_ABOVE_OR_BELOW_SNOWLINE                         :{GOLD}above or below snowline
+STR_BUILD_HOUSE_ABOVE_SNOWLINE                                  :{GOLD}only above snowline
+STR_BUILD_HOUSE_BELOW_SNOWLINE                                  :{GOLD}only below snowline
+STR_BUILD_HOUSE_YEARS                                           :{BLACK}Years: {STRING1}{GOLD} - {STRING1}
+STR_BUILD_HOUSE_BAD_YEAR                                        :{RED}{NUM}
+STR_BUILD_HOUSE_GOOD_YEAR                                       :{GOLD}{NUM}
+STR_BUILD_HOUSE_SUPPLIED_CARGO                                  :{BLACK}Supplies: {GOLD}{CARGO_LIST}
+STR_BUILD_HOUSE_ACCEPTED_CARGO                                  :{BLACK}Accepts: {GOLD}{RAW_STRING}
+STR_BUILD_HOUSE_ORIGINAL_SET_NAME                               :Original houses
+
+# Town selection window (for SE only)
+STR_SELECT_TOWN_CAPTION                                         :{WHITE}Select town
+STR_SELECT_TOWN_LIST_ITEM                                       :{YELLOW}{TOWN}
+
 # Tree planting window (last two for SE only)
 STR_PLANT_TREE_CAPTION                                          :{WHITE}Trees
 STR_PLANT_TREE_TOOLTIP                                          :{BLACK}Select tree type to plant. If the tile already has a tree, this will add more trees of mixed types independent of the selected type
@@ -4301,6 +4328,7 @@ STR_ERROR_CAN_T_GENERATE_TOWN                                   :{WHITE}Can't bu
 STR_ERROR_CAN_T_RENAME_TOWN                                     :{WHITE}Can't rename town...
 STR_ERROR_CAN_T_FOUND_TOWN_HERE                                 :{WHITE}Can't found town here...
 STR_ERROR_CAN_T_EXPAND_TOWN                                     :{WHITE}Can't expand town...
+STR_ERROR_CAN_T_BUILD_HOUSE_HERE                                :{WHITE}Can't build house here...
 STR_ERROR_TOO_CLOSE_TO_EDGE_OF_MAP_SUB                          :{WHITE}... too close to edge of map
 STR_ERROR_TOO_CLOSE_TO_ANOTHER_TOWN                             :{WHITE}... too close to another town
 STR_ERROR_TOO_MANY_TOWNS                                        :{WHITE}... too many towns
@@ -4309,6 +4337,11 @@ STR_ERROR_TOWN_EXPAND_WARN_NO_ROADS                             :{WHITE}The town
 STR_ERROR_ROAD_WORKS_IN_PROGRESS                                :{WHITE}Road works in progress
 STR_ERROR_TOWN_CAN_T_DELETE                                     :{WHITE}Can't delete this town...{}A station or depot is referring to the town or a town owned tile can't be removed
 STR_ERROR_STATUE_NO_SUITABLE_PLACE                              :{WHITE}... there is no suitable place for a statue in the centre of this town
+STR_ERROR_BUILDING_NOT_ALLOWED_ABOVE_SNOW_LINE                  :{WHITE}... not allowed above the snow line.
+STR_ERROR_BUILDING_NOT_ALLOWED_BELOW_SNOW_LINE                  :{WHITE}... not allowed below the snow line.
+STR_ERROR_TOO_MANY_HOUSES                                       :{WHITE}... too many houses of this type in the town
+STR_ERROR_TOO_MANY_CLASS_HOUSES                                 :{WHITE}... too many houses of this class in the town
+STR_ERROR_ONLY_ONE_BUILDING_PER_TOWN                            :{WHITE}... only one building of this type allowed per town
 
 # Industry related errors
 STR_ERROR_TOO_MANY_INDUSTRIES                                   :{WHITE}... too many industries

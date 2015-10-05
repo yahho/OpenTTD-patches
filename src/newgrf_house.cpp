@@ -84,6 +84,26 @@ HouseResolverObject::HouseResolverObject(HouseID house_id, TileIndex tile, Town 
 	this->root_spritegroup = HouseSpec::Get(house_id)->grf_prop.spritegroup[0];
 }
 
+/**
+ * Construct a fake resolver for a house.
+ * @param house_id House to query.
+ * @param tile %Tile containing the house.
+ * @param town %Town containing the house.
+ * @param callback Callback ID.
+ * @param param1 First parameter (var 10) of the callback.
+ * @param param2 Second parameter (var 18) of the callback.
+ * @param not_yet_constructed House is still under construction.
+ * @param initial_random_bits Random bits during construction checks.
+ * @param watched_cargo_triggers Cargo types that triggered the watched cargo callback.
+ */
+FakeHouseResolverObject::FakeHouseResolverObject (HouseID house_id,
+		CallbackID callback, uint32 param1, uint32 param2)
+	: ResolverObject (GetHouseSpecGrf(house_id), callback, param1, param2),
+	house_scope (*this, house_id), town_scope (*this)
+{
+	this->root_spritegroup = HouseSpec::Get(house_id)->grf_prop.spritegroup[0];
+}
+
 HouseClassID AllocateHouseClassID(byte grf_class_id, uint32 grfid)
 {
 	/* Start from 1 because 0 means that no class has been assigned. */
@@ -387,6 +407,68 @@ static uint32 GetDistanceFromNearbyHouse(uint8 parameter, TileIndex tile, HouseI
 	return UINT_MAX;
 }
 
+
+/**
+ * @note Used by the resolver to get values for feature 07 deterministic spritegroups.
+ */
+/* virtual */ uint32 FakeHouseScopeResolver::GetVariable(byte variable, uint32 parameter, bool *available) const
+{
+	switch (variable) {
+		/* Construction stage. */
+		case 0x40: return TOWN_HOUSE_COMPLETED;
+
+		/* Building age. */
+		case 0x41: return 0;
+
+		/* Town zone */
+		case 0x42: return FIND_FIRST_BIT(HouseSpec::Get(this->house_id)->building_availability & HZ_ZONALL); // first available
+
+		/* Terrain type */
+		case 0x43: return _settings_game.game_creation.landscape == LT_ARCTIC && (HouseSpec::Get(house_id)->building_availability & (HZ_SUBARTC_ABOVE | HZ_SUBARTC_BELOW)) == HZ_SUBARTC_ABOVE ? 4 : 0;
+
+		/* Number of this type of building on the map. */
+		case 0x44: return 0;
+
+		/* Whether the town is being created or just expanded. */
+		case 0x45: return 0;
+
+		/* Current animation frame. */
+		case 0x46: return 0;
+
+		/* Position of the house */
+		case 0x47: return 0xFFFFFFFF;
+
+		/* Building counts for old houses with id = parameter. */
+		case 0x60: return 0;
+
+		/* Building counts for new houses with id = parameter. */
+		case 0x61: return 0;
+
+		/* Land info for nearby tiles. */
+		case 0x62: return 0;
+
+		/* Current animation frame of nearby house tiles */
+		case 0x63: return 0;
+
+		/* Cargo acceptance history of nearby stations */
+		case 0x64: return 0;
+
+		/* Distance test for some house types */
+		case 0x65: return 0;
+
+		/* Class and ID of nearby house tile */
+		case 0x66: return 0xFFFFFFFF;
+
+		/* GRFID of nearby house tile */
+		case 0x67: return 0xFFFFFFFF;
+	}
+
+	DEBUG(grf, 1, "Unhandled house variable 0x%X", variable);
+
+	*available = false;
+	return UINT_MAX;
+}
+
 uint16 GetHouseCallback(CallbackID callback, uint32 param1, uint32 param2, HouseID house_id, Town *town, TileIndex tile,
 		bool not_yet_constructed, uint8 initial_random_bits, uint32 watched_cargo_triggers)
 {
@@ -394,6 +476,12 @@ uint16 GetHouseCallback(CallbackID callback, uint32 param1, uint32 param2, House
 
 	HouseResolverObject object(house_id, tile, town, callback, param1, param2,
 			not_yet_constructed, initial_random_bits, watched_cargo_triggers);
+	return object.ResolveCallback();
+}
+
+uint16 GetHouseCallback (CallbackID callback, uint32 param1, uint32 param2, HouseID house_id)
+{
+	FakeHouseResolverObject object (house_id, callback, param1, param2);
 	return object.ResolveCallback();
 }
 
@@ -424,6 +512,34 @@ static void DrawTileLayout(const TileInfo *ti, const TileLayoutSpriteGroup *grou
 	DrawNewGRFTileSeq(ti, dts, TO_HOUSES, stage, palette);
 }
 
+static void DrawTileLayoutInGUI(int x, int y, const TileLayoutSpriteGroup *group, HouseID house_id, bool ground)
+{
+	byte stage = TOWN_HOUSE_COMPLETED;
+	const DrawTileSprites *dts = group->ProcessRegisters(&stage);
+
+	const HouseSpec *hs = HouseSpec::Get(house_id);
+	PaletteID palette = hs->random_colour[0] + PALETTE_RECOLOUR_START;
+	if (HasBit(hs->callback_mask, CBM_HOUSE_COLOUR)) {
+		uint16 callback = GetHouseCallback(CBID_HOUSE_COLOUR, 0, 0, house_id);
+		if (callback != CALLBACK_FAILED) {
+			/* If bit 14 is set, we should use a 2cc colour map, else use the callback value. */
+			palette = HasBit(callback, 14) ? GB(callback, 0, 8) + SPR_2CCMAP_BASE : callback;
+		}
+	}
+
+	if (ground) {
+		PalSpriteID image = dts->ground;
+		if (HasBit(image.sprite, SPRITE_MODIFIER_CUSTOM_SPRITE)) image.sprite += stage;
+		if (HasBit(image.pal, SPRITE_MODIFIER_CUSTOM_SPRITE)) image.pal += stage;
+
+		if (GB(image.sprite, 0, SPRITE_WIDTH) != 0) {
+			DrawSprite(image.sprite, GroundSpritePaletteTransform(image.sprite, image.pal, palette), x, y);
+		}
+	} else {
+		DrawNewGRFTileSeqInGUI(x, y, dts, stage, palette);
+	}
+}
+
 void DrawNewHouseTile(TileInfo *ti, HouseID house_id)
 {
 	const HouseSpec *hs = HouseSpec::Get(house_id);
@@ -447,6 +563,15 @@ void DrawNewHouseTile(TileInfo *ti, HouseID house_id)
 		const TileLayoutSpriteGroup *tlgroup = (const TileLayoutSpriteGroup *)group;
 		byte stage = GetHouseBuildingStage(ti->tile);
 		DrawTileLayout(ti, tlgroup, stage, house_id);
+	}
+}
+
+void DrawNewHouseTileInGUI(int x, int y, HouseID house_id, bool ground)
+{
+	FakeHouseResolverObject object(house_id);
+	const SpriteGroup *group = object.Resolve();
+	if (group != NULL && group->type == SGT_TILELAYOUT) {
+		DrawTileLayoutInGUI(x, y, (const TileLayoutSpriteGroup*)group, house_id, ground);
 	}
 }
 
