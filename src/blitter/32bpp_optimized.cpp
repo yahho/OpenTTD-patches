@@ -375,12 +375,7 @@ Sprite *Blitter_32bppOptimized::Encode(const SpriteLoader::Sprite *sprite, Alloc
 		len += lengths[z][0] + lengths[z][1];
 	}
 
-	Sprite *dest_sprite = (Sprite *)allocator(sizeof(*dest_sprite) + sizeof(SpriteData) + len);
-
-	dest_sprite->height = sprite->height;
-	dest_sprite->width  = sprite->width;
-	dest_sprite->x_offs = sprite->x_offs;
-	dest_sprite->y_offs = sprite->y_offs;
+	Sprite *dest_sprite = AllocateSprite (sprite, allocator, sizeof(SpriteData) + len);
 
 	SpriteData *dst = (SpriteData *)dest_sprite->data;
 	memset(dst, 0, sizeof(*dst));

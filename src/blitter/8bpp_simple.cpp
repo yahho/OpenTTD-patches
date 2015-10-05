@@ -62,13 +62,7 @@ void Blitter_8bppSimple::Draw(Blitter::BlitterParams *bp, BlitterMode mode, Zoom
 
 Sprite *Blitter_8bppSimple::Encode(const SpriteLoader::Sprite *sprite, AllocatorProc *allocator)
 {
-	Sprite *dest_sprite;
-	dest_sprite = (Sprite *)allocator(sizeof(*dest_sprite) + (size_t)sprite->height * (size_t)sprite->width);
-
-	dest_sprite->height = sprite->height;
-	dest_sprite->width  = sprite->width;
-	dest_sprite->x_offs = sprite->x_offs;
-	dest_sprite->y_offs = sprite->y_offs;
+	Sprite *dest_sprite = AllocateSprite (sprite, allocator, (size_t)sprite->height * (size_t)sprite->width);
 
 	/* Copy over only the 'remap' channel, as that is what we care about in 8bpp */
 	for (int i = 0; i < sprite->height * sprite->width; i++) {

@@ -203,6 +203,20 @@ public:
 	virtual void PostResize() { };
 
 	virtual ~Blitter() { }
+
+	/** Helper function to allocate a sprite in Encode. */
+	static Sprite *AllocateSprite (const SpriteLoader::Sprite *sprite,
+		AllocatorProc *allocator, size_t extra = 0)
+	{
+		Sprite *s = (Sprite *) allocator (sizeof(Sprite) + extra);
+
+		s->height = sprite->height;
+		s->width  = sprite->width;
+		s->x_offs = sprite->x_offs;
+		s->y_offs = sprite->y_offs;
+
+		return s;
+	}
 };
 
 #endif /* BLITTER_BASE_HPP */

@@ -219,12 +219,8 @@ Sprite *Blitter_8bppOptimized::Encode(const SpriteLoader::Sprite *sprite, Alloca
 	assert(size < memory);
 
 	/* Allocate the exact amount of memory we need */
-	Sprite *dest_sprite = (Sprite *)allocator(sizeof(*dest_sprite) + size);
+	Sprite *dest_sprite = AllocateSprite (sprite, allocator, size);
 
-	dest_sprite->height = sprite->height;
-	dest_sprite->width  = sprite->width;
-	dest_sprite->x_offs = sprite->x_offs;
-	dest_sprite->y_offs = sprite->y_offs;
 	memcpy(dest_sprite->data, temp_dst, size);
 
 	return dest_sprite;

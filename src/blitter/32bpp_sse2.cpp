@@ -52,11 +52,7 @@ Sprite *Blitter_32bppSSE_Base::Encode(const SpriteLoader::Sprite *sprite, Alloca
 		all_sprites_size += rgba_size + mv_size;
 	}
 
-	Sprite *dst_sprite = (Sprite *) allocator(sizeof(Sprite) + sizeof(SpriteData) + all_sprites_size);
-	dst_sprite->height = sprite->height;
-	dst_sprite->width  = sprite->width;
-	dst_sprite->x_offs = sprite->x_offs;
-	dst_sprite->y_offs = sprite->y_offs;
+	Sprite *dst_sprite = Blitter::AllocateSprite (sprite, allocator, sizeof(SpriteData) + all_sprites_size);
 	memcpy(dst_sprite->data, &sd, sizeof(SpriteData));
 
 	/* Copy colours and determine flags. */
