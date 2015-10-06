@@ -104,12 +104,12 @@ inline void Blitter_32bppSSE4_Anim::Draw(const Blitter::BlitterParams *bp, ZoomL
 						const byte m0 = mvX2;
 						if (m0 >= PALETTE_ANIM_START) {
 							const Colour c0 = (this->LookupColourInPalette(m0).data & 0x00FFFFFF) | (src[0].data & 0xFF000000);
-							InsertFirstUint32(AdjustBrightneSSE(c0, (byte) (mvX2 >> 8)).data, srcABCD);
+							srcABCD = _mm_insert_epi32 (srcABCD, AdjustBrightneSSE(c0, (byte) (mvX2 >> 8)).data, 0);
 						}
 						const byte m1 = mvX2 >> 16;
 						if (m1 >= PALETTE_ANIM_START) {
 							const Colour c1 = (this->LookupColourInPalette(m1).data & 0x00FFFFFF) | (src[1].data & 0xFF000000);
-							InsertSecondUint32(AdjustBrightneSSE(c1, (byte) (mvX2 >> 24)).data, srcABCD);
+							srcABCD = _mm_insert_epi32 (srcABCD, AdjustBrightneSSE(c1, (byte) (mvX2 >> 24)).data, 1);
 						}
 
 						/* Update anim buffer. */

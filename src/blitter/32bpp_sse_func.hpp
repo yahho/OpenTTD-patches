@@ -14,26 +14,6 @@
 
 #ifdef WITH_SSE
 
-static inline void InsertFirstUint32(const uint32 value, __m128i &into)
-{
-#if (SSE_VERSION >= 4)
-	into = _mm_insert_epi32(into, value, 0);
-#else
-	into = _mm_insert_epi16(into, value, 0);
-	into = _mm_insert_epi16(into, value >> 16, 1);
-#endif
-}
-
-static inline void InsertSecondUint32(const uint32 value, __m128i &into)
-{
-#if (SSE_VERSION >= 4)
-	into = _mm_insert_epi32(into, value, 1);
-#else
-	into = _mm_insert_epi16(into, value, 2);
-	into = _mm_insert_epi16(into, value >> 16, 3);
-#endif
-}
-
 static inline void LoadUint64(const uint64 value, __m128i &into)
 {
 #ifdef _SQ64
@@ -41,7 +21,7 @@ static inline void LoadUint64(const uint64 value, __m128i &into)
 #else
 	#if (SSE_VERSION >= 4)
 		into = _mm_cvtsi32_si128(value);
-		InsertSecondUint32(value >> 32, into);
+		into = _mm_insert_epi32(into, value >> 32, 1);
 	#else
 		(*(um128i*) &into).m128i_u64[0] = value;
 	#endif
