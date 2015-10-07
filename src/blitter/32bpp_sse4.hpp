@@ -14,6 +14,8 @@
 
 #ifdef WITH_SSE
 
+#include <smmintrin.h>
+
 #ifndef SSE_VERSION
 #define SSE_VERSION 4
 #endif

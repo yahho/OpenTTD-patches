@@ -15,13 +15,6 @@
 #ifdef WITH_SSE
 
 #include "32bpp_simple.hpp"
-#if (SSE_VERSION == 2)
-#include <emmintrin.h>
-#elif (SSE_VERSION == 3)
-#include <tmmintrin.h>
-#elif (SSE_VERSION == 4)
-#include <smmintrin.h>
-#endif
 
 #define META_LENGTH 2 ///< Number of uint32 inserted before each line of pixels in a sprite.
 #define MARGIN_NORMAL_THRESHOLD (zoom == ZOOM_LVL_OUT_32X ? 8 : 4) ///< Minimum width to use margins with BM_NORMAL.
