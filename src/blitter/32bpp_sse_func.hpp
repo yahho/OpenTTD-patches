@@ -22,21 +22,6 @@
 #define SSE SSE4
 #endif
 
-static inline void LoadUint64(const uint64 value, __m128i &into)
-{
-	SSE::load_u64 (value, into);
-}
-
-static inline __m128i PackUnsaturated(__m128i from, const __m128i &mask)
-{
-	return SSE::pack_unsaturated (from, mask);
-}
-
-static inline __m128i DistributeAlpha(const __m128i from, const __m128i &mask)
-{
-	return SSE::distribute_alpha (from, mask);
-}
-
 static inline __m128i AlphaBlendTwoPixels(__m128i src, __m128i dst, const __m128i &distribution_mask, const __m128i &pack_mask)
 {
 	__m128i srcAB = _mm_unpacklo_epi8(src, _mm_setzero_si128());   // PUNPCKLBW, expand each uint8 into uint16
@@ -45,13 +30,13 @@ static inline __m128i AlphaBlendTwoPixels(__m128i src, __m128i dst, const __m128
 	__m128i alphaAB = _mm_cmpgt_epi16(srcAB, _mm_setzero_si128()); // PCMPGTW, if (alpha > 0) a++;
 	alphaAB = _mm_srli_epi16(alphaAB, 15);
 	alphaAB = _mm_add_epi16(alphaAB, srcAB);
-	alphaAB = DistributeAlpha(alphaAB, distribution_mask);
+	alphaAB = SSE::distribute_alpha (alphaAB, distribution_mask);
 
 	srcAB = _mm_sub_epi16(srcAB, dstAB);     // PSUBW,    (r - Cr)
 	srcAB = _mm_mullo_epi16(srcAB, alphaAB); // PMULLW, a*(r - Cr)
 	srcAB = _mm_srli_epi16(srcAB, 8);        // PSRLW,  a*(r - Cr)/256
 	srcAB = _mm_add_epi16(srcAB, dstAB);     // PADDW,  a*(r - Cr)/256 + Cr
-	return PackUnsaturated(srcAB, pack_mask);
+	return SSE::pack_unsaturated (srcAB, pack_mask);
 }
 
 /* Darken 2 pixels.
@@ -61,7 +46,7 @@ static inline __m128i DarkenTwoPixels(__m128i src, __m128i dst, const __m128i &d
 {
 	__m128i srcAB = _mm_unpacklo_epi8(src, _mm_setzero_si128());
 	__m128i dstAB = _mm_unpacklo_epi8(dst, _mm_setzero_si128());
-	__m128i alphaAB = DistributeAlpha(srcAB, distribution_mask);
+	__m128i alphaAB = SSE::distribute_alpha (srcAB, distribution_mask);
 	alphaAB = _mm_srli_epi16(alphaAB, 2); // Reduce to 64 levels of shades so the max value fits in 16 bits.
 	__m128i nom = _mm_sub_epi16(tr_nom_base, alphaAB);
 	dstAB = _mm_mullo_epi16(dstAB, nom);
@@ -84,7 +69,7 @@ static Colour ReallyAdjustBrightness(Colour colour, uint8 brightness)
 
 	const uint32 alpha32 = colour.data & 0xFF000000;
 	__m128i ret;
-	LoadUint64(c16, ret);
+	SSE::load_u64 (c16, ret);
 	if (ob != 0) {
 		__m128i ob128 = _mm_cvtsi32_si128(ob);
 		ob128 = _mm_shufflelo_epi16(ob128, 0xC0);
