@@ -897,6 +897,9 @@ blitter/32bpp_optimized.hpp
 blitter/32bpp_anim.cpp
 blitter/32bpp_anim.hpp
 #if SSE
+blitter/sse2.h
+blitter/sse3.h
+blitter/sse4.h
 blitter/32bpp_sse_type.h
 blitter/32bpp_sse_func.hpp
 blitter/32bpp_sse2.cpp

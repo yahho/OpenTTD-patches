@@ -14,38 +14,27 @@
 
 #ifdef WITH_SSE
 
+#if (SSE_VERSION == 2)
+#define SSE SSE2
+#elif (SSE_VERSION == 3)
+#define SSE SSE3
+#elif (SSE_VERSION == 4)
+#define SSE SSE4
+#endif
+
 static inline void LoadUint64(const uint64 value, __m128i &into)
 {
-#ifdef _SQ64
-	into = _mm_cvtsi64_si128(value);
-#else
-	#if (SSE_VERSION >= 4)
-		into = _mm_cvtsi32_si128(value);
-		into = _mm_insert_epi32(into, value >> 32, 1);
-	#else
-		(*(um128i*) &into).m128i_u64[0] = value;
-	#endif
-#endif
+	SSE::load_u64 (value, into);
 }
 
 static inline __m128i PackUnsaturated(__m128i from, const __m128i &mask)
 {
-#if (SSE_VERSION == 2)
-	from = _mm_and_si128(from, mask);    // PAND, wipe high bytes to keep low bytes when packing
-	return _mm_packus_epi16(from, from); // PACKUSWB, pack 2 colours (with saturation)
-#else
-	return _mm_shuffle_epi8(from, mask);
-#endif
+	return SSE::pack_unsaturated (from, mask);
 }
 
 static inline __m128i DistributeAlpha(const __m128i from, const __m128i &mask)
 {
-#if (SSE_VERSION == 2)
-	__m128i alphaAB = _mm_shufflelo_epi16(from, 0x3F); // PSHUFLW, put alpha1 in front of each rgb1
-	return _mm_shufflehi_epi16(alphaAB, 0x3F);         // PSHUFHW, put alpha2 in front of each rgb2
-#else
-	return _mm_shuffle_epi8(from, mask);
-#endif
+	return SSE::distribute_alpha (from, mask);
 }
 
 static inline __m128i AlphaBlendTwoPixels(__m128i src, __m128i dst, const __m128i &distribution_mask, const __m128i &pack_mask)

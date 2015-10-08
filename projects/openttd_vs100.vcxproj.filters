@@ -2604,6 +2604,15 @@
     <ClInclude Include="..\src\blitter\32bpp_anim.hpp">
       <Filter>Blitters</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\blitter\sse2.h">
+      <Filter>Blitters</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\blitter\sse3.h">
+      <Filter>Blitters</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\blitter\sse4.h">
+      <Filter>Blitters</Filter>
+    </ClInclude>
     <ClInclude Include="..\src\blitter\32bpp_sse_type.h">
       <Filter>Blitters</Filter>
     </ClInclude>

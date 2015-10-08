@@ -20,20 +20,6 @@
 #define MARGIN_NORMAL_THRESHOLD (zoom == ZOOM_LVL_OUT_32X ? 8 : 4) ///< Minimum width to use margins with BM_NORMAL.
 #define MARGIN_REMAP_THRESHOLD 4 ///< Minimum width to use margins with BM_COLOUR_REMAP.
 
-#ifdef _MSC_VER
-	#define ALIGN(n) __declspec(align(n))
-#else
-	#define ALIGN(n) __attribute__ ((aligned (n)))
-#endif
-
-typedef union ALIGN(16) um128i {
-	__m128i m128i;
-	uint8 m128i_u8[16];
-	uint16 m128i_u16[8];
-	uint32 m128i_u32[4];
-	uint64 m128i_u64[2];
-} um128i;
-
 #define CLEAR_HIGH_BYTE_MASK        _mm_setr_epi8(-1,  0, -1,  0, -1,  0, -1,  0, -1,  0, -1,  0, -1,  0, -1,  0)
 #define ALPHA_CONTROL_MASK          _mm_setr_epi8( 6,  7,  6,  7,  6,  7, -1, -1, 14, 15, 14, 15, 14, 15, -1, -1)
 #define PACK_LOW_CONTROL_MASK       _mm_setr_epi8( 0,  2,  4, -1,  8, 10, 12, -1, -1, -1, -1, -1, -1, -1, -1, -1)

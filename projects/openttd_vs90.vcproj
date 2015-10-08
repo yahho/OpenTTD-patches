@@ -10684,6 +10684,18 @@
 				>
 			</File>
 			<File
+				RelativePath=".\..\src\blitter\sse2.h"
+				>
+			</File>
+			<File
+				RelativePath=".\..\src\blitter\sse3.h"
+				>
+			</File>
+			<File
+				RelativePath=".\..\src\blitter\sse4.h"
+				>
+			</File>
+			<File
 				RelativePath=".\..\src\blitter\32bpp_sse_type.h"
 				>
 			</File>
