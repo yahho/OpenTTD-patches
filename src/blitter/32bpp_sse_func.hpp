@@ -43,11 +43,12 @@ static inline __m128i AlphaBlendTwoPixels(__m128i src, __m128i dst, const __m128
 /* Darken 2 pixels.
  * rgb = rgb * ((256/4) * 4 - (alpha/4)) / ((256/4) * 4)
  */
+template <class T>
 static inline __m128i DarkenTwoPixels(__m128i src, __m128i dst, const __m128i &distribution_mask, const __m128i &tr_nom_base)
 {
 	__m128i srcAB = _mm_unpacklo_epi8(src, _mm_setzero_si128());
 	__m128i dstAB = _mm_unpacklo_epi8(dst, _mm_setzero_si128());
-	__m128i alphaAB = SSE::distribute_alpha (srcAB, distribution_mask);
+	__m128i alphaAB = T::distribute_alpha (srcAB, distribution_mask);
 	alphaAB = _mm_srli_epi16(alphaAB, 2); // Reduce to 64 levels of shades so the max value fits in 16 bits.
 	__m128i nom = _mm_sub_epi16(tr_nom_base, alphaAB);
 	dstAB = _mm_mullo_epi16(dstAB, nom);
@@ -321,7 +322,7 @@ bmcr_alpha_blend_single:
 				for (uint x = (uint) bp->width / 2; x > 0; x--) {
 					__m128i srcABCD = _mm_loadl_epi64((const __m128i*) src);
 					__m128i dstABCD = _mm_loadl_epi64((__m128i*) dst);
-					_mm_storel_epi64((__m128i *) dst, DarkenTwoPixels(srcABCD, dstABCD, DARKEN_PARAM_1, DARKEN_PARAM_2));
+					_mm_storel_epi64 ((__m128i *) dst, DarkenTwoPixels<SSE> (srcABCD, dstABCD, DARKEN_PARAM_1, DARKEN_PARAM_2));
 					src += 2;
 					dst += 2;
 				}
@@ -329,7 +330,7 @@ bmcr_alpha_blend_single:
 				if ((bt_last == BT_NONE && bp->width & 1) || bt_last == BT_ODD) {
 					__m128i srcABCD = _mm_cvtsi32_si128(src->data);
 					__m128i dstABCD = _mm_cvtsi32_si128(dst->data);
-					dst->data = _mm_cvtsi128_si32(DarkenTwoPixels(srcABCD, dstABCD, DARKEN_PARAM_1, DARKEN_PARAM_2));
+					dst->data = _mm_cvtsi128_si32 (DarkenTwoPixels<SSE> (srcABCD, dstABCD, DARKEN_PARAM_1, DARKEN_PARAM_2));
 				}
 				break;
 

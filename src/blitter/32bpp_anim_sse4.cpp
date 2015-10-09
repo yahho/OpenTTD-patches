@@ -298,7 +298,7 @@ bmcr_alpha_blend_single:
 				for (uint x = (uint) bp->width / 2; x > 0; x--) {
 					__m128i srcABCD = _mm_loadl_epi64((const __m128i*) src);
 					__m128i dstABCD = _mm_loadl_epi64((__m128i*) dst);
-					_mm_storel_epi64((__m128i *) dst, DarkenTwoPixels(srcABCD, dstABCD, a_cm, tr_nom_base));
+					_mm_storel_epi64 ((__m128i *) dst, DarkenTwoPixels<SSE4> (srcABCD, dstABCD, a_cm, tr_nom_base));
 					src += 2;
 					dst += 2;
 					anim += 2;
@@ -309,7 +309,7 @@ bmcr_alpha_blend_single:
 				if ((bt_last == BT_NONE && bp->width & 1) || bt_last == BT_ODD) {
 					__m128i srcABCD = _mm_cvtsi32_si128(src->data);
 					__m128i dstABCD = _mm_cvtsi32_si128(dst->data);
-					dst->data = _mm_cvtsi128_si32(DarkenTwoPixels(srcABCD, dstABCD, a_cm, tr_nom_base));
+					dst->data = _mm_cvtsi128_si32 (DarkenTwoPixels<SSE4> (srcABCD, dstABCD, a_cm, tr_nom_base));
 					if (src[0].a) anim[0] = 0;
 				}
 				break;
