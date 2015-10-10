@@ -216,7 +216,7 @@ bmno_full_transparency:
 						srcABCD = _mm_loadl_epi64((__m128i*) &remapped_src);
 #endif
 
-						if ((mvX2 & 0xFF00FF00) != 0x80008000) srcABCD = AdjustBrightnessOfTwoPixels(srcABCD, mvX2);
+						if ((mvX2 & 0xFF00FF00) != 0x80008000) srcABCD = AdjustBrightnessOfTwoPixels<SSE4> (srcABCD, mvX2);
 					}
 
 					/* Update anim buffer. */

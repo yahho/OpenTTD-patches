@@ -101,11 +101,9 @@ static inline Colour AdjustBrightneSSE(Colour colour, uint8 brightness)
 	return ReallyAdjustBrightness<T> (colour, brightness);
 }
 
+template <class T>
 static inline __m128i AdjustBrightnessOfTwoPixels(__m128i from, uint32 brightness)
 {
-#if (SSE_VERSION < 3)
-	NOT_REACHED();
-#else
 	/* The following dataflow differs from the one of AdjustBrightness() only for alpha.
 	 * In order to keep alpha in colAB, insert a 1 in a unused brightness byte (a*1->a).
 	 * OK, not a 1 but DEFAULT_BRIGHTNESS to compensate the div.
@@ -115,7 +113,7 @@ static inline __m128i AdjustBrightnessOfTwoPixels(__m128i from, uint32 brightnes
 
 	__m128i colAB = _mm_unpacklo_epi8(from, _mm_setzero_si128());
 	__m128i briAB = _mm_cvtsi32_si128(brightness);
-	briAB = _mm_shuffle_epi8(briAB, BRIGHTNESS_LOW_CONTROL_MASK); // DEFAULT_BRIGHTNESS in 0, 0x00 in 2.
+	briAB = T::shuffle_epi8 (briAB, BRIGHTNESS_LOW_CONTROL_MASK); // DEFAULT_BRIGHTNESS in 0, 0x00 in 2.
 	colAB = _mm_mullo_epi16(colAB, briAB);
 	__m128i colAB_ob = _mm_srli_epi16(colAB, 8 + 7);
 	colAB = _mm_srli_epi16(colAB, 7);
@@ -128,10 +126,10 @@ static inline __m128i AdjustBrightnessOfTwoPixels(__m128i from, uint32 brightnes
 	colAB_ob = _mm_and_si128(colAB_ob, OVERBRIGHT_PRESENCE_MASK);
 	colAB_ob = _mm_mullo_epi16(colAB_ob, OVERBRIGHT_VALUE_MASK);
 	colAB_ob = _mm_and_si128(colAB_ob, colAB);
-	__m128i obAB = _mm_hadd_epi16(_mm_hadd_epi16(colAB_ob, _mm_setzero_si128()), _mm_setzero_si128());
+	__m128i obAB = T::hadd_epi16 (T::hadd_epi16 (colAB_ob, _mm_setzero_si128()), _mm_setzero_si128());
 
 	obAB = _mm_srli_epi16(obAB, 1);        // Reduce overbright strength.
-	obAB = _mm_shuffle_epi8(obAB, OVERBRIGHT_CONTROL_MASK);
+	obAB = T::shuffle_epi8 (obAB, OVERBRIGHT_CONTROL_MASK);
 	__m128i retAB = OVERBRIGHT_VALUE_MASK; // ob_mask is equal to white.
 	retAB = _mm_subs_epu16(retAB, colAB);  //    (255 - rgb)
 	retAB = _mm_mullo_epi16(retAB, obAB);  // ob*(255 - rgb)
@@ -139,7 +137,6 @@ static inline __m128i AdjustBrightnessOfTwoPixels(__m128i from, uint32 brightnes
 	retAB = _mm_add_epi16(retAB, colAB);   // ob*(255 - rgb)/256 + rgb
 
 	return _mm_packus_epi16(retAB, retAB);
-#endif
 }
 
 #if FULL_ANIMATION == 0
@@ -274,7 +271,7 @@ inline void Blitter_32bppSSE4::Draw(const Blitter::BlitterParams *bp, ZoomLevel 
 						srcABCD = _mm_loadl_epi64((__m128i*) &remapped_src);
 #endif
 
-						if ((mvX2 & 0xFF00FF00) != 0x80008000) srcABCD = AdjustBrightnessOfTwoPixels(srcABCD, mvX2);
+						if ((mvX2 & 0xFF00FF00) != 0x80008000) srcABCD = AdjustBrightnessOfTwoPixels<SSE> (srcABCD, mvX2);
 					}
 
 					/* Blend colours. */

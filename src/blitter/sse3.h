@@ -25,6 +25,16 @@ struct SSE3 : SSE2 {
 	{
 		return _mm_shuffle_epi8 (from, mask);
 	}
+
+	static __m128i shuffle_epi8 (__m128i x, __m128i y)
+	{
+		return _mm_shuffle_epi8 (x, y);
+	}
+
+	static __m128i hadd_epi16 (__m128i x, __m128i y)
+	{
+		return _mm_hadd_epi16 (x, y);
+	}
 };
 
 #endif /* BLITTER_SSE3_H */
