@@ -57,6 +57,7 @@ static inline __m128i DarkenTwoPixels(__m128i src, __m128i dst, const __m128i &d
 }
 
 IGNORE_UNINITIALIZED_WARNING_START
+template <class T>
 static Colour ReallyAdjustBrightness(Colour colour, uint8 brightness)
 {
 	uint64 c16 = colour.b | (uint64) colour.g << 16 | (uint64) colour.r << 32;
@@ -71,7 +72,7 @@ static Colour ReallyAdjustBrightness(Colour colour, uint8 brightness)
 
 	const uint32 alpha32 = colour.data & 0xFF000000;
 	__m128i ret;
-	SSE::load_u64 (c16, ret);
+	T::load_u64 (c16, ret);
 	if (ob != 0) {
 		__m128i ob128 = _mm_cvtsi32_si128(ob);
 		ob128 = _mm_shufflelo_epi16(ob128, 0xC0);
@@ -91,12 +92,13 @@ IGNORE_UNINITIALIZED_WARNING_STOP
 /** ReallyAdjustBrightness() is not called that often.
  * Inlining this function implies a far jump, which has a huge latency.
  */
+template <class T>
 static inline Colour AdjustBrightneSSE(Colour colour, uint8 brightness)
 {
 	/* Shortcut for normal brightness. */
 	if (brightness == Blitter_32bppBase::DEFAULT_BRIGHTNESS) return colour;
 
-	return ReallyAdjustBrightness(colour, brightness);
+	return ReallyAdjustBrightness<T> (colour, brightness);
 }
 
 static inline __m128i AdjustBrightnessOfTwoPixels(__m128i from, uint32 brightness)
@@ -291,7 +293,7 @@ inline void Blitter_32bppSSE4::Draw(const Blitter::BlitterParams *bp, ZoomLevel 
 					if (src_mv->m) {
 						const uint r = remap[src_mv->m];
 						if (r != 0) {
-							Colour remapped_colour = AdjustBrightneSSE(this->LookupColourInPalette(r), src_mv->v);
+							Colour remapped_colour = AdjustBrightneSSE<SSE> (this->LookupColourInPalette(r), src_mv->v);
 							if (src->a == 255) {
 								*dst = remapped_colour;
 							} else {

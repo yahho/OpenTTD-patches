@@ -80,7 +80,7 @@ inline void Blitter_32bppSSE4_Anim::Draw(const Blitter::BlitterParams *bp, ZoomL
 						if (src->a) {
 							if (animated) {
 								*anim = *(const uint16*) src_mv;
-								*dst = (src_mv->m >= PALETTE_ANIM_START) ? AdjustBrightneSSE(this->LookupColourInPalette(src_mv->m), src_mv->v) : src->data;
+								*dst = (src_mv->m >= PALETTE_ANIM_START) ? AdjustBrightneSSE<SSE4> (this->LookupColourInPalette(src_mv->m), src_mv->v) : src->data;
 							} else {
 								*anim = 0;
 								*dst = *src;
@@ -104,12 +104,12 @@ inline void Blitter_32bppSSE4_Anim::Draw(const Blitter::BlitterParams *bp, ZoomL
 						const byte m0 = mvX2;
 						if (m0 >= PALETTE_ANIM_START) {
 							const Colour c0 = (this->LookupColourInPalette(m0).data & 0x00FFFFFF) | (src[0].data & 0xFF000000);
-							srcABCD = _mm_insert_epi32 (srcABCD, AdjustBrightneSSE(c0, (byte) (mvX2 >> 8)).data, 0);
+							srcABCD = _mm_insert_epi32 (srcABCD, AdjustBrightneSSE<SSE4> (c0, (byte) (mvX2 >> 8)).data, 0);
 						}
 						const byte m1 = mvX2 >> 16;
 						if (m1 >= PALETTE_ANIM_START) {
 							const Colour c1 = (this->LookupColourInPalette(m1).data & 0x00FFFFFF) | (src[1].data & 0xFF000000);
-							srcABCD = _mm_insert_epi32 (srcABCD, AdjustBrightneSSE(c1, (byte) (mvX2 >> 24)).data, 1);
+							srcABCD = _mm_insert_epi32 (srcABCD, AdjustBrightneSSE<SSE4> (c1, (byte) (mvX2 >> 24)).data, 1);
 						}
 
 						/* Update anim buffer. */
@@ -157,13 +157,13 @@ bmno_full_transparency:
 					if (src->a == 0) {
 					} else if (src->a == 255) {
 						*anim = *(const uint16*) src_mv;
-						*dst = (src_mv->m >= PALETTE_ANIM_START) ? AdjustBrightneSSE(LookupColourInPalette(src_mv->m), src_mv->v) : *src;
+						*dst = (src_mv->m >= PALETTE_ANIM_START) ? AdjustBrightneSSE<SSE4> (LookupColourInPalette(src_mv->m), src_mv->v) : *src;
 					} else {
 						*anim = 0;
 						__m128i srcABCD;
 						__m128i dstABCD = _mm_cvtsi32_si128(dst->data);
 						if (src_mv->m >= PALETTE_ANIM_START) {
-							Colour colour = AdjustBrightneSSE(LookupColourInPalette(src_mv->m), src_mv->v);
+							Colour colour = AdjustBrightneSSE<SSE4> (LookupColourInPalette(src_mv->m), src_mv->v);
 							colour.a = src->a;
 							srcABCD = _mm_cvtsi32_si128(colour.data);
 						} else {
@@ -271,7 +271,7 @@ bmcr_full_transparency:
 						const uint r = remap[src_mv->m];
 						*anim = (animated && src->a == 255) ? r | ((uint16) src_mv->v << 8 ) : 0;
 						if (r != 0) {
-							Colour remapped_colour = AdjustBrightneSSE(this->LookupColourInPalette(r), src_mv->v);
+							Colour remapped_colour = AdjustBrightneSSE<SSE4> (this->LookupColourInPalette(r), src_mv->v);
 							if (src->a == 255) {
 								*dst = remapped_colour;
 							} else {

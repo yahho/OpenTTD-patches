@@ -81,7 +81,7 @@ Sprite *Blitter_32bppSSE_Base::Encode(const SpriteLoader::Sprite *sprite, Alloca
 						dst_mv->v = (rgb_max == 0) ? Blitter_32bppBase::DEFAULT_BRIGHTNESS : rgb_max;
 
 						/* Pre-convert the mapping channel to a RGB value. */
-						const Colour colour = AdjustBrightneSSE(Blitter_32bppBase::LookupColourInPalette(src->m), dst_mv->v);
+						const Colour colour = AdjustBrightneSSE<SSE2> (Blitter_32bppBase::LookupColourInPalette(src->m), dst_mv->v);
 						dst_rgba->r = colour.r;
 						dst_rgba->g = colour.g;
 						dst_rgba->b = colour.b;
