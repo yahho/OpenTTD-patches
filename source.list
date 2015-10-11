@@ -900,7 +900,7 @@ blitter/32bpp_anim.hpp
 blitter/sse2.h
 blitter/sse3.h
 blitter/sse4.h
-blitter/32bpp_sse_type.h
+blitter/32bpp_sse_common.h
 blitter/32bpp_sse_func.hpp
 blitter/32bpp_sse2.cpp
 blitter/32bpp_sse2.hpp

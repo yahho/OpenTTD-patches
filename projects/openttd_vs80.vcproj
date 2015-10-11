@@ -10699,7 +10699,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\..\src\blitter\32bpp_sse_type.h"
+				RelativePath=".\..\src\blitter\32bpp_sse_common.h"
 				>
 			</File>
 			<File

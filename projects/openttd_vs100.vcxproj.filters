@@ -2613,7 +2613,7 @@
     <ClInclude Include="..\src\blitter\sse4.h">
       <Filter>Blitters</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\blitter\32bpp_sse_type.h">
+    <ClInclude Include="..\src\blitter\32bpp_sse_common.h">
       <Filter>Blitters</Filter>
     </ClInclude>
     <ClInclude Include="..\src\blitter\32bpp_sse_func.hpp">

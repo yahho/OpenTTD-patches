@@ -1813,7 +1813,7 @@
     <ClInclude Include="..\src\blitter\sse2.h" />
     <ClInclude Include="..\src\blitter\sse3.h" />
     <ClInclude Include="..\src\blitter\sse4.h" />
-    <ClInclude Include="..\src\blitter\32bpp_sse_type.h" />
+    <ClInclude Include="..\src\blitter\32bpp_sse_common.h" />
     <ClInclude Include="..\src\blitter\32bpp_sse_func.hpp" />
     <ClCompile Include="..\src\blitter\32bpp_sse2.cpp">
       <AssemblerListingLocation>$(IntDir)\blitter\</AssemblerListingLocation>
