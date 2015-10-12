@@ -20,10 +20,6 @@
 #define SSE_VERSION 3
 #endif
 
-#ifndef FULL_ANIMATION
-#define FULL_ANIMATION 0
-#endif
-
 #include "32bpp_sse2.hpp"
 
 /** The SSSE3 32 bpp blitter (without palette animation). */

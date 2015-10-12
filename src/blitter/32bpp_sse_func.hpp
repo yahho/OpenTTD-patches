@@ -22,7 +22,6 @@
 #define SSE SSE4
 #endif
 
-#if FULL_ANIMATION == 0
 /**
  * Draws a sprite to a (screen) buffer. It is templated to allow faster operation.
  *
@@ -299,7 +298,6 @@ bm_normal:
 		case BM_BLACK_REMAP:  Draw<BM_BLACK_REMAP, RM_NONE, BT_NONE, true>(bp, zoom); return;
 	}
 }
-#endif /* FULL_ANIMATION */
 
 #endif /* WITH_SSE */
 #endif /* BLITTER_32BPP_SSE_FUNC_HPP */

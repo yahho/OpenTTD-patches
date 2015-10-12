@@ -18,10 +18,6 @@
 #define SSE_VERSION 4
 #endif
 
-#ifndef FULL_ANIMATION
-#define FULL_ANIMATION 1
-#endif
-
 #include "32bpp_anim.hpp"
 #include "32bpp_sse4.hpp"
 
