@@ -18,10 +18,6 @@
 
 #include "sse2.h"
 
-#ifndef SSE_VERSION
-#define SSE_VERSION 2
-#endif
-
 #include "32bpp_sse_common.h"
 
 /** Base methods for 32bpp SSE blitters. */

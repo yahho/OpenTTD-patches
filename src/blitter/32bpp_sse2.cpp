@@ -15,6 +15,8 @@
 #include "../zoom_func.h"
 #include "../settings_type.h"
 #include "32bpp_sse2.hpp"
+
+#define SSE_VERSION 2
 #include "32bpp_sse_func.hpp"
 
 /** Instantiation of the SSE2 32bpp blitter factory. */

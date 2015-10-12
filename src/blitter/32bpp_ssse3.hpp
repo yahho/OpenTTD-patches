@@ -16,10 +16,6 @@
 
 #include "sse3.h"
 
-#ifndef SSE_VERSION
-#define SSE_VERSION 3
-#endif
-
 #include "32bpp_sse2.hpp"
 
 /** The SSSE3 32 bpp blitter (without palette animation). */

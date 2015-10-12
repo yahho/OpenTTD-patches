@@ -14,10 +14,6 @@
 
 #ifdef WITH_SSE
 
-#ifndef SSE_VERSION
-#define SSE_VERSION 4
-#endif
-
 #include "32bpp_anim.hpp"
 #include "32bpp_sse4.hpp"
 
