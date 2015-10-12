@@ -15,10 +15,13 @@
 #ifdef WITH_SSE
 
 #if (SSE_VERSION == 2)
+#define BLITTER Blitter_32bppSSE2
 #define SSE SSE2
 #elif (SSE_VERSION == 3)
+#define BLITTER Blitter_32bppSSSE3
 #define SSE SSE3
 #elif (SSE_VERSION == 4)
+#define BLITTER Blitter_32bppSSE4
 #define SSE SSE4
 #endif
 
@@ -31,13 +34,7 @@
  */
 IGNORE_UNINITIALIZED_WARNING_START
 template <BlitterMode mode, Blitter_32bppSSE2::ReadMode read_mode, Blitter_32bppSSE2::BlockType bt_last, bool translucent>
-#if (SSE_VERSION == 2)
-inline void Blitter_32bppSSE2::Draw(const Blitter::BlitterParams *bp, ZoomLevel zoom)
-#elif (SSE_VERSION == 3)
-inline void Blitter_32bppSSSE3::Draw(const Blitter::BlitterParams *bp, ZoomLevel zoom)
-#elif (SSE_VERSION == 4)
-inline void Blitter_32bppSSE4::Draw(const Blitter::BlitterParams *bp, ZoomLevel zoom)
-#endif
+inline void BLITTER::Draw (const Blitter::BlitterParams *bp, ZoomLevel zoom)
 {
 	const byte * const remap = bp->remap;
 	Colour *dst_line = (Colour *) bp->dst + bp->top * bp->pitch + bp->left;
@@ -259,13 +256,7 @@ IGNORE_UNINITIALIZED_WARNING_STOP
  * @param mode blitter mode
  * @param zoom zoom level at which we are drawing
  */
-#if (SSE_VERSION == 2)
-void Blitter_32bppSSE2::Draw(Blitter::BlitterParams *bp, BlitterMode mode, ZoomLevel zoom)
-#elif (SSE_VERSION == 3)
-void Blitter_32bppSSSE3::Draw(Blitter::BlitterParams *bp, BlitterMode mode, ZoomLevel zoom)
-#elif (SSE_VERSION == 4)
-void Blitter_32bppSSE4::Draw(Blitter::BlitterParams *bp, BlitterMode mode, ZoomLevel zoom)
-#endif
+void BLITTER::Draw (Blitter::BlitterParams *bp, BlitterMode mode, ZoomLevel zoom)
 {
 	switch (mode) {
 		default: {
