@@ -26,7 +26,9 @@ private:
 
 public:
 	template <BlitterMode mode, Blitter_32bppSSE_Base::ReadMode read_mode, Blitter_32bppSSE_Base::BlockType bt_last, bool translucent, bool animated>
-	/* virtual */ void Draw(const Blitter::BlitterParams *bp, ZoomLevel zoom);
+	void Draw (const Blitter::BlitterParams *bp, ZoomLevel zoom);
+	template <BlitterMode mode, Blitter_32bppSSE_Base::ReadMode read_mode, Blitter_32bppSSE_Base::BlockType bt_last, bool translucent>
+	void Draw (const Blitter::BlitterParams *bp, ZoomLevel zoom, bool animated);
 	/* virtual */ void Draw(Blitter::BlitterParams *bp, BlitterMode mode, ZoomLevel zoom);
 	/* virtual */ Sprite *Encode(const SpriteLoader::Sprite *sprite, AllocatorProc *allocator) {
 		return Blitter_32bppSSE_Base::Encode(sprite, allocator);

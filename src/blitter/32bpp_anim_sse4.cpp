@@ -359,6 +359,23 @@ IGNORE_UNINITIALIZED_WARNING_STOP
  * Draws a sprite to a (screen) buffer. Calls adequate templated function.
  *
  * @param bp further blitting parameters
+ * @param zoom zoom level at which we are drawing
+ * @param animated sprite has animated pixels
+ */
+template <BlitterMode mode, Blitter_32bppSSE2::ReadMode read_mode, Blitter_32bppSSE2::BlockType bt_last, bool translucent>
+inline void Blitter_32bppSSE4_Anim::Draw (const Blitter::BlitterParams *bp, ZoomLevel zoom, bool animated)
+{
+	if (animated) {
+		this->Draw <mode, read_mode, bt_last, translucent, true>  (bp, zoom);
+	} else {
+		this->Draw <mode, read_mode, bt_last, translucent, false> (bp, zoom);
+	}
+}
+
+/**
+ * Draws a sprite to a (screen) buffer. Calls adequate templated function.
+ *
+ * @param bp further blitting parameters
  * @param mode blitter mode
  * @param zoom zoom level at which we are drawing
  */
@@ -371,24 +388,19 @@ bm_normal:
 			if (bp->skip_left != 0 || bp->width <= MARGIN_NORMAL_THRESHOLD) {
 				const BlockType bt_last = (BlockType) (bp->width & 1);
 				if (bt_last == BT_EVEN) {
-					if (sprite_flags & SF_NO_ANIM) Draw<BM_NORMAL, RM_WITH_SKIP, BT_EVEN, true, false>(bp, zoom);
-					else                           Draw<BM_NORMAL, RM_WITH_SKIP, BT_EVEN, true, true>(bp, zoom);
+					Draw <BM_NORMAL, RM_WITH_SKIP, BT_EVEN, true> (bp, zoom, !(sprite_flags & SF_NO_ANIM));
 				} else {
-					if (sprite_flags & SF_NO_ANIM) Draw<BM_NORMAL, RM_WITH_SKIP, BT_ODD, true, false>(bp, zoom);
-					else                           Draw<BM_NORMAL, RM_WITH_SKIP, BT_ODD, true, true>(bp, zoom);
+					Draw <BM_NORMAL, RM_WITH_SKIP, BT_ODD,  true> (bp, zoom, !(sprite_flags & SF_NO_ANIM));
 				}
 			} else {
 #ifdef _SQ64
 				if (sprite_flags & SF_TRANSLUCENT) {
-					if (sprite_flags & SF_NO_ANIM) Draw<BM_NORMAL, RM_WITH_MARGIN, BT_NONE, true, false>(bp, zoom);
-					else                           Draw<BM_NORMAL, RM_WITH_MARGIN, BT_NONE, true, true>(bp, zoom);
+					Draw <BM_NORMAL, RM_WITH_MARGIN, BT_NONE, true>  (bp, zoom, !(sprite_flags & SF_NO_ANIM));
 				} else {
-					if (sprite_flags & SF_NO_ANIM) Draw<BM_NORMAL, RM_WITH_MARGIN, BT_NONE, false, false>(bp, zoom);
-					else                           Draw<BM_NORMAL, RM_WITH_MARGIN, BT_NONE, false, true>(bp, zoom);
+					Draw <BM_NORMAL, RM_WITH_MARGIN, BT_NONE, false> (bp, zoom, !(sprite_flags & SF_NO_ANIM));
 				}
 #else
-				if (sprite_flags & SF_NO_ANIM) Draw<BM_NORMAL, RM_WITH_MARGIN, BT_NONE, true, false>(bp, zoom);
-				else                           Draw<BM_NORMAL, RM_WITH_MARGIN, BT_NONE, true, true>(bp, zoom);
+				Draw <BM_NORMAL, RM_WITH_MARGIN, BT_NONE, true> (bp, zoom, !(sprite_flags & SF_NO_ANIM));
 #endif
 			}
 			break;
@@ -396,11 +408,9 @@ bm_normal:
 		case BM_COLOUR_REMAP:
 			if (sprite_flags & SF_NO_REMAP) goto bm_normal;
 			if (bp->skip_left != 0 || bp->width <= MARGIN_REMAP_THRESHOLD) {
-				if (sprite_flags & SF_NO_ANIM) Draw<BM_COLOUR_REMAP, RM_WITH_SKIP, BT_NONE, true, false>(bp, zoom);
-				else                           Draw<BM_COLOUR_REMAP, RM_WITH_SKIP, BT_NONE, true, true>(bp, zoom);
+				Draw <BM_COLOUR_REMAP, RM_WITH_SKIP, BT_NONE, true> (bp, zoom, !(sprite_flags & SF_NO_ANIM));
 			} else {
-				if (sprite_flags & SF_NO_ANIM) Draw<BM_COLOUR_REMAP, RM_WITH_MARGIN, BT_NONE, true, false>(bp, zoom);
-				else                           Draw<BM_COLOUR_REMAP, RM_WITH_MARGIN, BT_NONE, true, true>(bp, zoom);
+				Draw <BM_COLOUR_REMAP, RM_WITH_MARGIN, BT_NONE, true> (bp, zoom, !(sprite_flags & SF_NO_ANIM));
 			}
 			break;
 		case BM_TRANSPARENT:  Draw<BM_TRANSPARENT, RM_NONE, BT_NONE, true, true>(bp, zoom); return;
