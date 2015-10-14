@@ -118,7 +118,7 @@ inline void BLITTER::Draw (const Blitter::BlitterParams *bp, ZoomLevel zoom)
 				for (uint x = (uint) effective_width / 2; x > 0; x--) {
 					__m128i srcABCD = _mm_loadl_epi64((const __m128i*) src);
 					__m128i dstABCD = _mm_loadl_epi64((__m128i*) dst);
-					uint32 mvX2 = *((uint32 *) const_cast<MapValue *>(src_mv));
+					uint32 mvX2 = *((const uint32 *) src_mv);
 
 					/* Remap colours. */
 					if (mvX2 & 0x00FF00FF) {

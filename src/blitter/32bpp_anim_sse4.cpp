@@ -94,7 +94,7 @@ inline void Blitter_32bppSSE4_Anim::Draw(const Blitter::BlitterParams *bp, ZoomL
 				}
 
 				for (uint x = (uint) effective_width/2; x != 0; x--) {
-					uint32 mvX2 = *((uint32 *) const_cast<MapValue *>(src_mv));
+					uint32 mvX2 = *((const uint32 *) src_mv);
 					__m128i srcABCD = _mm_loadl_epi64((const __m128i*) src);
 					__m128i dstABCD = _mm_loadl_epi64((__m128i*) dst);
 
@@ -175,7 +175,7 @@ bmno_full_transparency:
 
 			case BM_COLOUR_REMAP:
 				for (uint x = (uint) effective_width / 2; x != 0; x--) {
-					uint32 mvX2 = *((uint32 *) const_cast<MapValue *>(src_mv));
+					uint32 mvX2 = *((const uint32 *) src_mv);
 					__m128i srcABCD = _mm_loadl_epi64((const __m128i*) src);
 					__m128i dstABCD = _mm_loadl_epi64((__m128i*) dst);
 
