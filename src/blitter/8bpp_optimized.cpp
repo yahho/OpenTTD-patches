@@ -22,7 +22,7 @@ static FBlitter_8bppOptimized iFBlitter_8bppOptimized;
 void Blitter_8bppOptimized::Draw(Blitter::BlitterParams *bp, BlitterMode mode, ZoomLevel zoom)
 {
 	/* Find the offset of this zoom-level */
-	const SpriteData *sprite_src = (const SpriteData *)bp->sprite;
+	const SpriteData *sprite_src = (const SpriteData *)bp->sprite->data;
 	uint offset = sprite_src->offset[zoom];
 
 	/* Find where to start reading in the source sprite */

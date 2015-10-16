@@ -24,7 +24,7 @@ void Blitter_32bppSimple::Draw(Blitter::BlitterParams *bp, BlitterMode mode, Zoo
 	Colour *dst, *dst_line;
 
 	/* Find where to start reading in the source sprite */
-	src_line = (const Blitter_32bppSimple::Pixel *)bp->sprite + (bp->skip_top * bp->sprite_width + bp->skip_left) * ScaleByZoom(1, zoom);
+	src_line = (const Blitter_32bppSimple::Pixel *)bp->sprite->data + (bp->skip_top * bp->sprite_width + bp->skip_left) * ScaleByZoom(1, zoom);
 	dst_line = (Colour *)bp->dst + bp->top * bp->pitch + bp->left;
 
 	for (int y = 0; y < bp->height; y++) {

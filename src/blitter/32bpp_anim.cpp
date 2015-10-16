@@ -21,7 +21,7 @@ static FBlitter_32bppAnim iFBlitter_32bppAnim;
 template <BlitterMode mode>
 inline void Blitter_32bppAnim::Draw(const Blitter::BlitterParams *bp, ZoomLevel zoom)
 {
-	const SpriteData *src = (const SpriteData *)bp->sprite;
+	const SpriteData *src = (const SpriteData *)bp->sprite->data;
 
 	const Colour *src_px = (const Colour *)(src->data + src->offset[zoom][0]);
 	const uint16 *src_n  = (const uint16 *)(src->data + src->offset[zoom][1]);

@@ -27,7 +27,7 @@ static FBlitter_32bppOptimized iFBlitter_32bppOptimized;
 template <BlitterMode mode>
 inline void Blitter_32bppOptimized::Draw(const Blitter::BlitterParams *bp, ZoomLevel zoom)
 {
-	const SpriteData *src = (const SpriteData *)bp->sprite;
+	const SpriteData *src = (const SpriteData *)bp->sprite->data;
 
 	/* src_px : each line begins with uint32 n = 'number of bytes in this line',
 	 *          then n times is the Colour struct for this line */

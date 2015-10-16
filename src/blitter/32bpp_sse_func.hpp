@@ -41,7 +41,7 @@ inline void BLITTER::Draw (const Blitter::BlitterParams *bp, ZoomLevel zoom)
 	int effective_width = bp->width;
 
 	/* Find where to start reading in the source sprite. */
-	const SpriteData * const sd = (const SpriteData *) bp->sprite;
+	const SpriteData * const sd = (const SpriteData *) bp->sprite->data;
 	const SpriteInfo * const si = &sd->infos[zoom];
 	const MapValue *src_mv_line = (const MapValue *) &sd->data[si->mv_offset] + bp->skip_top * si->sprite_width;
 	const Colour *src_rgba_line = (const Colour *) ((const byte *) &sd->data[si->sprite_offset] + bp->skip_top * si->sprite_line_size);
@@ -268,7 +268,7 @@ bm_normal:
 					case BT_ODD: Draw<BM_NORMAL, RM_WITH_SKIP, BT_ODD, true>(bp, zoom); return;
 				}
 			} else {
-				if (((const Blitter_32bppSSE_Base::SpriteData *) bp->sprite)->flags & SF_TRANSLUCENT) {
+				if (((const Blitter_32bppSSE_Base::SpriteData *) bp->sprite->data)->flags & SF_TRANSLUCENT) {
 					Draw<BM_NORMAL, RM_WITH_MARGIN, BT_NONE, true>(bp, zoom);
 				} else {
 					Draw<BM_NORMAL, RM_WITH_MARGIN, BT_NONE, false>(bp, zoom);
@@ -278,7 +278,7 @@ bm_normal:
 			break;
 		}
 		case BM_COLOUR_REMAP:
-			if (((const Blitter_32bppSSE_Base::SpriteData *) bp->sprite)->flags & SF_NO_REMAP) goto bm_normal;
+			if (((const Blitter_32bppSSE_Base::SpriteData *) bp->sprite->data)->flags & SF_NO_REMAP) goto bm_normal;
 			if (bp->skip_left != 0 || bp->width <= MARGIN_REMAP_THRESHOLD) {
 				Draw<BM_COLOUR_REMAP, RM_WITH_SKIP, BT_NONE, true>(bp, zoom); return;
 			} else {
