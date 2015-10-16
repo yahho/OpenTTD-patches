@@ -38,8 +38,6 @@ public:
 		int skip_top;       ///< How much pixels of the source to skip on the top (based on zoom of dst)
 		int width;          ///< The width in pixels that needs to be drawn to dst
 		int height;         ///< The height in pixels that needs to be drawn to dst
-		int sprite_width;   ///< Real width of the sprite
-		int sprite_height;  ///< Real height of the sprite
 		int left;           ///< The left offset in the 'dst' in pixels to start drawing
 		int top;            ///< The top offset in the 'dst' in pixels to start drawing
 

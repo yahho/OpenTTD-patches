@@ -885,8 +885,6 @@ static void GfxBlitter(const Sprite * const sprite, int x, int y, BlitterMode mo
 
 	/* Copy the main data directly from the sprite */
 	bp.sprite = sprite;
-	bp.sprite_width = sprite->width;
-	bp.sprite_height = sprite->height;
 	bp.top = 0;
 	bp.left = 0;
 
