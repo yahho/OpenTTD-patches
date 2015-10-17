@@ -20,7 +20,6 @@ struct Sprite {
 	uint16 width;  ///< Width of the sprite.
 	int16 x_offs;  ///< Number of pixels to shift the sprite to the right.
 	int16 y_offs;  ///< Number of pixels to shift the sprite downwards.
-	byte data[];   ///< Sprite data.
 };
 
 extern uint _sprite_cache_size;
@@ -37,6 +36,7 @@ uint GetMaxSpriteID();
 
 static inline const Sprite *GetSprite(SpriteID sprite, SpriteType type)
 {
+	assert(type != ST_MAPGEN);
 	assert(type != ST_RECOLOUR);
 	return (Sprite*)GetRawSprite(sprite, type);
 }
@@ -45,6 +45,16 @@ static inline const byte *GetNonSprite(SpriteID sprite, SpriteType type)
 {
 	assert(type == ST_RECOLOUR);
 	return (byte*)GetRawSprite(sprite, type);
+}
+
+/** Data structure describing a map generator sprite. */
+struct MapGenSprite : Sprite {
+	byte data[];   ///< Sprite data
+};
+
+static inline const MapGenSprite *GetMapGenSprite (SpriteID sprite)
+{
+	return (const MapGenSprite*) GetRawSprite (sprite, ST_MAPGEN);
 }
 
 void GfxInitSpriteMem();

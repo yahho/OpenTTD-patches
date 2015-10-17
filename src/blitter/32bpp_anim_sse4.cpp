@@ -36,7 +36,7 @@ inline void Blitter_32bppSSE4_Anim::Draw(const Blitter::BlitterParams *bp, ZoomL
 	int effective_width = bp->width;
 
 	/* Find where to start reading in the source sprite. */
-	const Blitter_32bppSSE_Base::SpriteData * const sd = (const Blitter_32bppSSE_Base::SpriteData *) bp->sprite->data;
+	const Blitter_32bppSSE_Base::Sprite * const sd = static_cast<const Sprite*> (bp->sprite);
 	const SpriteInfo * const si = &sd->infos[zoom];
 	const MapValue *src_mv_line = (const MapValue *) &sd->data[si->mv_offset] + bp->skip_top * si->sprite_width;
 	const Colour *src_rgba_line = (const Colour *) ((const byte *) &sd->data[si->sprite_offset] + bp->skip_top * si->sprite_line_size);
@@ -381,7 +381,7 @@ inline void Blitter_32bppSSE4_Anim::Draw (const Blitter::BlitterParams *bp, Zoom
  */
 void Blitter_32bppSSE4_Anim::Draw(Blitter::BlitterParams *bp, BlitterMode mode, ZoomLevel zoom)
 {
-	const Blitter_32bppSSE_Base::SpriteFlags sprite_flags = ((const Blitter_32bppSSE_Base::SpriteData *) bp->sprite->data)->flags;
+	const Blitter_32bppSSE_Base::SpriteFlags sprite_flags = static_cast<const Sprite*>(bp->sprite)->flags;
 	switch (mode) {
 		default: {
 bm_normal:

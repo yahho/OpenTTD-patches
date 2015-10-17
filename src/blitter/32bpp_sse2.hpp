@@ -64,13 +64,15 @@ public:
 		uint16 sprite_line_size; ///< The size of a single line (pitch).
 		uint16 sprite_width;     ///< The width of the sprite.
 	};
-	struct SpriteData {
+
+	/** Data structure describing a sprite. */
+	struct Sprite : ::Sprite {
 		SpriteFlags flags;
 		SpriteInfo infos[ZOOM_LVL_COUNT];
 		byte data[]; ///< Data, all zoomlevels.
 	};
 
-	Sprite *Encode(const SpriteLoader::Sprite *sprite, AllocatorProc *allocator);
+	::Sprite *Encode (const SpriteLoader::Sprite *sprite, AllocatorProc *allocator);
 };
 
 DECLARE_ENUM_AS_BIT_SET(Blitter_32bppSSE_Base::SpriteFlags);
@@ -78,11 +80,13 @@ DECLARE_ENUM_AS_BIT_SET(Blitter_32bppSSE_Base::SpriteFlags);
 /** The SSE2 32 bpp blitter (without palette animation). */
 class Blitter_32bppSSE2 : public Blitter_32bppSimple, public Blitter_32bppSSE_Base {
 public:
+	typedef Blitter_32bppSSE_Base::Sprite Sprite;
+
 	/* virtual */ void Draw(Blitter::BlitterParams *bp, BlitterMode mode, ZoomLevel zoom);
 	template <BlitterMode mode, Blitter_32bppSSE_Base::ReadMode read_mode, Blitter_32bppSSE_Base::BlockType bt_last, bool translucent>
 	void Draw(const Blitter::BlitterParams *bp, ZoomLevel zoom);
 
-	/* virtual */ Sprite *Encode(const SpriteLoader::Sprite *sprite, AllocatorProc *allocator) {
+	/* virtual */ ::Sprite *Encode (const SpriteLoader::Sprite *sprite, AllocatorProc *allocator) {
 		return Blitter_32bppSSE_Base::Encode(sprite, allocator);
 	}
 

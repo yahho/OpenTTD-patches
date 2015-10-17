@@ -19,13 +19,13 @@
 class Blitter_8bppOptimized FINAL : public Blitter_8bppBase {
 public:
 	/** Data stored about a (single) sprite. */
-	struct SpriteData {
+	struct Sprite : ::Sprite {
 		uint32 offset[ZOOM_LVL_COUNT]; ///< Offsets (from .data) to streams for different zoom levels.
 		byte data[];                   ///< Data, all zoomlevels.
 	};
 
 	/* virtual */ void Draw(Blitter::BlitterParams *bp, BlitterMode mode, ZoomLevel zoom);
-	/* virtual */ Sprite *Encode(const SpriteLoader::Sprite *sprite, AllocatorProc *allocator);
+	/* virtual */ ::Sprite *Encode (const SpriteLoader::Sprite *sprite, AllocatorProc *allocator);
 
 	/* virtual */ const char *GetName() { return "8bpp-optimized"; }
 };

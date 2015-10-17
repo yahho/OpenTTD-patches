@@ -22,7 +22,8 @@ void Blitter_8bppSimple::Draw(Blitter::BlitterParams *bp, BlitterMode mode, Zoom
 	uint8 *dst, *dst_line;
 
 	/* Find where to start reading in the source sprite */
-	src_line = (const uint8 *)bp->sprite->data + (bp->skip_top * bp->sprite->width + bp->skip_left) * ScaleByZoom(1, zoom);
+	const Sprite *sprite = static_cast<const Sprite*> (bp->sprite);
+	src_line = sprite->data + (bp->skip_top * sprite->width + bp->skip_left) * ScaleByZoom(1, zoom);
 	dst_line = (uint8 *)bp->dst + bp->top * bp->pitch + bp->left;
 
 	for (int y = 0; y < bp->height; y++) {
@@ -30,7 +31,7 @@ void Blitter_8bppSimple::Draw(Blitter::BlitterParams *bp, BlitterMode mode, Zoom
 		dst_line += bp->pitch;
 
 		src = src_line;
-		src_line += bp->sprite->width * ScaleByZoom(1, zoom);
+		src_line += sprite->width * ScaleByZoom(1, zoom);
 
 		for (int x = 0; x < bp->width; x++) {
 			uint colour = 0;
@@ -60,9 +61,9 @@ void Blitter_8bppSimple::Draw(Blitter::BlitterParams *bp, BlitterMode mode, Zoom
 	}
 }
 
-Sprite *Blitter_8bppSimple::Encode(const SpriteLoader::Sprite *sprite, AllocatorProc *allocator)
+::Sprite *Blitter_8bppSimple::Encode (const SpriteLoader::Sprite *sprite, AllocatorProc *allocator)
 {
-	Sprite *dest_sprite = AllocateSprite (sprite, allocator, (size_t)sprite->height * (size_t)sprite->width);
+	Sprite *dest_sprite = AllocateSprite<Sprite> (sprite, allocator, (size_t)sprite->height * (size_t)sprite->width);
 
 	/* Copy over only the 'remap' channel, as that is what we care about in 8bpp */
 	for (int i = 0; i < sprite->height * sprite->width; i++) {

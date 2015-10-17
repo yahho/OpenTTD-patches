@@ -18,8 +18,13 @@
 /** Most trivial 8bpp blitter. */
 class Blitter_8bppSimple FINAL : public Blitter_8bppBase {
 public:
+	/** Data structure describing a sprite. */
+	struct Sprite : ::Sprite {
+		byte data[];   ///< Sprite data
+	};
+
 	/* virtual */ void Draw(Blitter::BlitterParams *bp, BlitterMode mode, ZoomLevel zoom);
-	/* virtual */ Sprite *Encode(const SpriteLoader::Sprite *sprite, AllocatorProc *allocator);
+	/* virtual */ ::Sprite *Encode (const SpriteLoader::Sprite *sprite, AllocatorProc *allocator);
 
 	/* virtual */ const char *GetName() { return "8bpp-simple"; }
 };

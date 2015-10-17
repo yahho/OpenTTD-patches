@@ -203,10 +203,11 @@ public:
 	virtual ~Blitter() { }
 
 	/** Helper function to allocate a sprite in Encode. */
-	static Sprite *AllocateSprite (const SpriteLoader::Sprite *sprite,
+	template <typename T>
+	static T *AllocateSprite (const SpriteLoader::Sprite *sprite,
 		AllocatorProc *allocator, size_t extra = 0)
 	{
-		Sprite *s = (Sprite *) allocator (sizeof(Sprite) + extra);
+		T *s = (T *) allocator (sizeof(T) + extra);
 
 		s->height = sprite->height;
 		s->width  = sprite->width;

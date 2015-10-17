@@ -17,5 +17,5 @@ static FBlitter_Null iFBlitter_Null;
 
 Sprite *Blitter_Null::Encode(const SpriteLoader::Sprite *sprite, AllocatorProc *allocator)
 {
-	return AllocateSprite (sprite, allocator);
+	return AllocateSprite<Sprite> (sprite, allocator);
 }

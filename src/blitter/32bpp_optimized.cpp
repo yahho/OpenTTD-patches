@@ -27,7 +27,7 @@ static FBlitter_32bppOptimized iFBlitter_32bppOptimized;
 template <BlitterMode mode>
 inline void Blitter_32bppOptimized::Draw(const Blitter::BlitterParams *bp, ZoomLevel zoom)
 {
-	const SpriteData *src = (const SpriteData *)bp->sprite->data;
+	const Sprite *src = static_cast<const Sprite*> (bp->sprite);
 
 	/* src_px : each line begins with uint32 n = 'number of bytes in this line',
 	 *          then n times is the Colour struct for this line */
@@ -252,7 +252,7 @@ void Blitter_32bppOptimized::Draw(Blitter::BlitterParams *bp, BlitterMode mode, 
 	}
 }
 
-Sprite *Blitter_32bppOptimized::Encode(const SpriteLoader::Sprite *sprite, AllocatorProc *allocator)
+::Sprite *Blitter_32bppOptimized::Encode (const SpriteLoader::Sprite *sprite, AllocatorProc *allocator)
 {
 	/* streams of pixels (a, r, g, b channels)
 	 *
@@ -375,10 +375,8 @@ Sprite *Blitter_32bppOptimized::Encode(const SpriteLoader::Sprite *sprite, Alloc
 		len += lengths[z][0] + lengths[z][1];
 	}
 
-	Sprite *dest_sprite = AllocateSprite (sprite, allocator, sizeof(SpriteData) + len);
-
-	SpriteData *dst = (SpriteData *)dest_sprite->data;
-	memset(dst, 0, sizeof(*dst));
+	Sprite *dst = AllocateSprite<Sprite> (sprite, allocator, len);
+	memset (dst->offset, 0, sizeof(dst->offset));
 
 	for (ZoomLevel z = zoom_min; z <= zoom_max; z++) {
 		dst->offset[z][0] = z == zoom_min ? 0 : lengths[z - 1][1] + dst->offset[z - 1][1];
@@ -391,5 +389,5 @@ Sprite *Blitter_32bppOptimized::Encode(const SpriteLoader::Sprite *sprite, Alloc
 		free(dst_n_orig[z]);
 	}
 
-	return dest_sprite;
+	return dst;
 }

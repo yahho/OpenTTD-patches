@@ -26,9 +26,14 @@ class Blitter_32bppSimple : public Blitter_32bppBase {
 		uint8 v;  ///< Brightness-channel
 	};
 public:
+	/** Data structure describing a sprite. */
+	struct Sprite : ::Sprite {
+		Pixel data[];  ///< Sprite data
+	};
+
 	/* virtual */ void Draw(Blitter::BlitterParams *bp, BlitterMode mode, ZoomLevel zoom);
 	/* virtual */ void DrawColourMappingRect(void *dst, int width, int height, PaletteID pal);
-	/* virtual */ Sprite *Encode(const SpriteLoader::Sprite *sprite, AllocatorProc *allocator);
+	/* virtual */ ::Sprite *Encode (const SpriteLoader::Sprite *sprite, AllocatorProc *allocator);
 
 	/* virtual */ const char *GetName() { return "32bpp-simple"; }
 };

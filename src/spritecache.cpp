@@ -421,7 +421,7 @@ static void *ReadSprite(const SpriteCache *sc, SpriteID id, SpriteType sprite_ty
 		 *  (so type = 0xFF basically). */
 		uint num = sprite[ZOOM_LVL_NORMAL].width * sprite[ZOOM_LVL_NORMAL].height;
 
-		Sprite *s = (Sprite *)allocator(sizeof(*s) + num);
+		MapGenSprite *s = (MapGenSprite *) allocator (sizeof(*s) + num);
 		s->width  = sprite[ZOOM_LVL_NORMAL].width;
 		s->height = sprite[ZOOM_LVL_NORMAL].height;
 		s->x_offs = sprite[ZOOM_LVL_NORMAL].x_offs;

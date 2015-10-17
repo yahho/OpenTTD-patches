@@ -24,7 +24,8 @@ void Blitter_32bppSimple::Draw(Blitter::BlitterParams *bp, BlitterMode mode, Zoo
 	Colour *dst, *dst_line;
 
 	/* Find where to start reading in the source sprite */
-	src_line = (const Blitter_32bppSimple::Pixel *)bp->sprite->data + (bp->skip_top * bp->sprite->width + bp->skip_left) * ScaleByZoom(1, zoom);
+	const Sprite *sprite = static_cast<const Sprite*> (bp->sprite);
+	src_line = sprite->data + (bp->skip_top * sprite->width + bp->skip_left) * ScaleByZoom(1, zoom);
 	dst_line = (Colour *)bp->dst + bp->top * bp->pitch + bp->left;
 
 	for (int y = 0; y < bp->height; y++) {
@@ -32,7 +33,7 @@ void Blitter_32bppSimple::Draw(Blitter::BlitterParams *bp, BlitterMode mode, Zoo
 		dst_line += bp->pitch;
 
 		src = src_line;
-		src_line += bp->sprite->width * ScaleByZoom(1, zoom);
+		src_line += sprite->width * ScaleByZoom(1, zoom);
 
 		for (int x = 0; x < bp->width; x++) {
 			switch (mode) {
@@ -109,12 +110,12 @@ void Blitter_32bppSimple::DrawColourMappingRect(void *dst, int width, int height
 	DEBUG(misc, 0, "32bpp blitter doesn't know how to draw this colour table ('%d')", pal);
 }
 
-Sprite *Blitter_32bppSimple::Encode(const SpriteLoader::Sprite *sprite, AllocatorProc *allocator)
+::Sprite *Blitter_32bppSimple::Encode (const SpriteLoader::Sprite *sprite, AllocatorProc *allocator)
 {
 	Blitter_32bppSimple::Pixel *dst;
-	Sprite *dest_sprite = AllocateSprite (sprite, allocator, (size_t)sprite->height * (size_t)sprite->width * sizeof(*dst));
+	Sprite *dest_sprite = AllocateSprite<Sprite> (sprite, allocator, (size_t)sprite->height * (size_t)sprite->width * sizeof(*dst));
 
-	dst = (Blitter_32bppSimple::Pixel *)dest_sprite->data;
+	dst = dest_sprite->data;
 	SpriteLoader::CommonPixel *src = (SpriteLoader::CommonPixel *)sprite->data;
 
 	for (int i = 0; i < sprite->height * sprite->width; i++) {
