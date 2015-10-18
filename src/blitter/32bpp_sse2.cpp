@@ -22,7 +22,7 @@
 /** Instantiation of the SSE2 32bpp blitter factory. */
 static FBlitter_32bppSSE2 iFBlitter_32bppSSE2;
 
-::Sprite *Blitter_32bppSSE_Base::Encode (const SpriteLoader::Sprite *sprite, AllocatorProc *allocator)
+SSESprite *SSESprite::encode (const SpriteLoader::Sprite *sprite, AllocatorProc *allocator)
 {
 	/* First uint32 of a line = the number of transparent pixels from the left.
 	 * Second uint32 of a line = the number of transparent pixels from the right.
@@ -54,7 +54,7 @@ static FBlitter_32bppSSE2 iFBlitter_32bppSSE2;
 		all_sprites_size += rgba_size + mv_size;
 	}
 
-	Sprite *dst_sprite = Blitter::AllocateSprite<Sprite> (sprite, allocator, all_sprites_size);
+	SSESprite *dst_sprite = Blitter::AllocateSprite<SSESprite> (sprite, allocator, all_sprites_size);
 	memcpy (dst_sprite->infos, infos, sizeof(infos));
 
 	/* Copy colours and determine flags. */

@@ -27,7 +27,7 @@ static FBlitter_32bppSSE4_Anim iFBlitter_32bppSSE4_Anim;
  * @param zoom zoom level at which we are drawing
  */
 IGNORE_UNINITIALIZED_WARNING_START
-template <BlitterMode mode, Blitter_32bppSSE2::ReadMode read_mode, Blitter_32bppSSE2::BlockType bt_last, bool translucent, bool animated>
+template <BlitterMode mode, SSESprite::ReadMode read_mode, SSESprite::BlockType bt_last, bool translucent, bool animated>
 inline void Blitter_32bppSSE4_Anim::Draw(const Blitter::BlitterParams *bp, ZoomLevel zoom)
 {
 	const byte * const remap = bp->remap;
@@ -36,16 +36,16 @@ inline void Blitter_32bppSSE4_Anim::Draw(const Blitter::BlitterParams *bp, ZoomL
 	int effective_width = bp->width;
 
 	/* Find where to start reading in the source sprite. */
-	const Blitter_32bppSSE_Base::Sprite * const sd = static_cast<const Sprite*> (bp->sprite);
-	const SpriteInfo * const si = &sd->infos[zoom];
-	const MapValue *src_mv_line = (const MapValue *) &sd->data[si->mv_offset] + bp->skip_top * si->sprite_width;
+	const SSESprite * const sd = static_cast<const SSESprite*> (bp->sprite);
+	const SSESprite::SpriteInfo * const si = &sd->infos[zoom];
+	const SSESprite::MapValue *src_mv_line = (const SSESprite::MapValue *) &sd->data[si->mv_offset] + bp->skip_top * si->sprite_width;
 	const Colour *src_rgba_line = (const Colour *) ((const byte *) &sd->data[si->sprite_offset] + bp->skip_top * si->sprite_line_size);
 
-	if (read_mode != RM_WITH_MARGIN) {
+	if (read_mode != SSESprite::RM_WITH_MARGIN) {
 		src_rgba_line += bp->skip_left;
 		src_mv_line += bp->skip_left;
 	}
-	const MapValue *src_mv = src_mv_line;
+	const SSESprite::MapValue *src_mv = src_mv_line;
 
 	/* Load these variables into register before loop. */
 	const __m128i a_cm        = ALPHA_CONTROL_MASK;
@@ -58,8 +58,8 @@ inline void Blitter_32bppSSE4_Anim::Draw(const Blitter::BlitterParams *bp, ZoomL
 		if (mode != BM_TRANSPARENT) src_mv = src_mv_line;
 		uint16 *anim = anim_line;
 
-		if (read_mode == RM_WITH_MARGIN) {
-			assert(bt_last == BT_NONE); // or you must ensure block type is preserved
+		if (read_mode == SSESprite::RM_WITH_MARGIN) {
+			assert (bt_last == SSESprite::BT_NONE); // or you must ensure block type is preserved
 			anim += src_rgba_line[0].data;
 			src += src_rgba_line[0].data;
 			dst += src_rgba_line[0].data;
@@ -152,7 +152,7 @@ bmno_full_transparency:
 					dst += 2;
 				}
 
-				if ((bt_last == BT_NONE && effective_width & 1) || bt_last == BT_ODD) {
+				if ((bt_last == SSESprite::BT_NONE && effective_width & 1) || bt_last == SSESprite::BT_ODD) {
 					if (src->a == 0) {
 					} else if (src->a == 255) {
 						*anim = *(const uint16*) src_mv;
@@ -262,7 +262,7 @@ bmcr_full_transparency:
 					anim += 2;
 				}
 
-				if ((bt_last == BT_NONE && effective_width & 1) || bt_last == BT_ODD) {
+				if ((bt_last == SSESprite::BT_NONE && effective_width & 1) || bt_last == SSESprite::BT_ODD) {
 					/* In case the m-channel is zero, do not remap this pixel in any way. */
 					__m128i srcABCD;
 					if (src->a == 0) break;
@@ -305,7 +305,7 @@ bmcr_alpha_blend_single:
 					if (src[-1].a) anim[-1] = 0;
 				}
 
-				if ((bt_last == BT_NONE && bp->width & 1) || bt_last == BT_ODD) {
+				if ((bt_last == SSESprite::BT_NONE && bp->width & 1) || bt_last == SSESprite::BT_ODD) {
 					__m128i srcABCD = _mm_cvtsi32_si128(src->data);
 					__m128i dstABCD = _mm_cvtsi32_si128(dst->data);
 					dst->data = _mm_cvtsi128_si32 (DarkenTwoPixels<SSE4> (srcABCD, dstABCD, a_cm, tr_nom_base));
@@ -362,7 +362,7 @@ IGNORE_UNINITIALIZED_WARNING_STOP
  * @param zoom zoom level at which we are drawing
  * @param animated sprite has animated pixels
  */
-template <BlitterMode mode, Blitter_32bppSSE2::ReadMode read_mode, Blitter_32bppSSE2::BlockType bt_last, bool translucent>
+template <BlitterMode mode, SSESprite::ReadMode read_mode, SSESprite::BlockType bt_last, bool translucent>
 inline void Blitter_32bppSSE4_Anim::Draw (const Blitter::BlitterParams *bp, ZoomLevel zoom, bool animated)
 {
 	if (animated) {
@@ -381,41 +381,41 @@ inline void Blitter_32bppSSE4_Anim::Draw (const Blitter::BlitterParams *bp, Zoom
  */
 void Blitter_32bppSSE4_Anim::Draw(Blitter::BlitterParams *bp, BlitterMode mode, ZoomLevel zoom)
 {
-	const Blitter_32bppSSE_Base::SpriteFlags sprite_flags = static_cast<const Sprite*>(bp->sprite)->flags;
+	const SSESprite::SpriteFlags sprite_flags = static_cast<const SSESprite*>(bp->sprite)->flags;
 	switch (mode) {
 		default: {
 bm_normal:
 			if (bp->skip_left != 0 || bp->width <= MARGIN_NORMAL_THRESHOLD) {
-				const BlockType bt_last = (BlockType) (bp->width & 1);
-				if (bt_last == BT_EVEN) {
-					Draw <BM_NORMAL, RM_WITH_SKIP, BT_EVEN, true> (bp, zoom, !(sprite_flags & SF_NO_ANIM));
+				const SSESprite::BlockType bt_last = (SSESprite::BlockType) (bp->width & 1);
+				if (bt_last == SSESprite::BT_EVEN) {
+					Draw <BM_NORMAL, SSESprite::RM_WITH_SKIP, SSESprite::BT_EVEN, true> (bp, zoom, !(sprite_flags & SSESprite::SF_NO_ANIM));
 				} else {
-					Draw <BM_NORMAL, RM_WITH_SKIP, BT_ODD,  true> (bp, zoom, !(sprite_flags & SF_NO_ANIM));
+					Draw <BM_NORMAL, SSESprite::RM_WITH_SKIP, SSESprite::BT_ODD,  true> (bp, zoom, !(sprite_flags & SSESprite::SF_NO_ANIM));
 				}
 			} else {
 #ifdef _SQ64
-				if (sprite_flags & SF_TRANSLUCENT) {
-					Draw <BM_NORMAL, RM_WITH_MARGIN, BT_NONE, true>  (bp, zoom, !(sprite_flags & SF_NO_ANIM));
+				if (sprite_flags & SSESprite::SF_TRANSLUCENT) {
+					Draw <BM_NORMAL, SSESprite::RM_WITH_MARGIN, SSESprite::BT_NONE, true>  (bp, zoom, !(sprite_flags & SSESprite::SF_NO_ANIM));
 				} else {
-					Draw <BM_NORMAL, RM_WITH_MARGIN, BT_NONE, false> (bp, zoom, !(sprite_flags & SF_NO_ANIM));
+					Draw <BM_NORMAL, SSESprite::RM_WITH_MARGIN, SSESprite::BT_NONE, false> (bp, zoom, !(sprite_flags & SSESprite::SF_NO_ANIM));
 				}
 #else
-				Draw <BM_NORMAL, RM_WITH_MARGIN, BT_NONE, true> (bp, zoom, !(sprite_flags & SF_NO_ANIM));
+				Draw <BM_NORMAL, SSESprite::RM_WITH_MARGIN, SSESprite::BT_NONE, true> (bp, zoom, !(sprite_flags & SSESprite::SF_NO_ANIM));
 #endif
 			}
 			break;
 		}
 		case BM_COLOUR_REMAP:
-			if (sprite_flags & SF_NO_REMAP) goto bm_normal;
+			if (sprite_flags & SSESprite::SF_NO_REMAP) goto bm_normal;
 			if (bp->skip_left != 0 || bp->width <= MARGIN_REMAP_THRESHOLD) {
-				Draw <BM_COLOUR_REMAP, RM_WITH_SKIP, BT_NONE, true> (bp, zoom, !(sprite_flags & SF_NO_ANIM));
+				Draw <BM_COLOUR_REMAP, SSESprite::RM_WITH_SKIP, SSESprite::BT_NONE, true> (bp, zoom, !(sprite_flags & SSESprite::SF_NO_ANIM));
 			} else {
-				Draw <BM_COLOUR_REMAP, RM_WITH_MARGIN, BT_NONE, true> (bp, zoom, !(sprite_flags & SF_NO_ANIM));
+				Draw <BM_COLOUR_REMAP, SSESprite::RM_WITH_MARGIN, SSESprite::BT_NONE, true> (bp, zoom, !(sprite_flags & SSESprite::SF_NO_ANIM));
 			}
 			break;
-		case BM_TRANSPARENT:  Draw<BM_TRANSPARENT, RM_NONE, BT_NONE, true, true>(bp, zoom); return;
-		case BM_CRASH_REMAP:  Draw<BM_CRASH_REMAP, RM_NONE, BT_NONE, true, true>(bp, zoom); return;
-		case BM_BLACK_REMAP:  Draw<BM_BLACK_REMAP, RM_NONE, BT_NONE, true, true>(bp, zoom); return;
+		case BM_TRANSPARENT:  Draw<BM_TRANSPARENT, SSESprite::RM_NONE, SSESprite::BT_NONE, true, true>(bp, zoom); return;
+		case BM_CRASH_REMAP:  Draw<BM_CRASH_REMAP, SSESprite::RM_NONE, SSESprite::BT_NONE, true, true>(bp, zoom); return;
+		case BM_BLACK_REMAP:  Draw<BM_BLACK_REMAP, SSESprite::RM_NONE, SSESprite::BT_NONE, true, true>(bp, zoom); return;
 	}
 }
 

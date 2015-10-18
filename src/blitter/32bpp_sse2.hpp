@@ -20,11 +20,8 @@
 
 #include "32bpp_sse_common.h"
 
-/** Base methods for 32bpp SSE blitters. */
-class Blitter_32bppSSE_Base {
-public:
-	virtual ~Blitter_32bppSSE_Base() {}
-
+/** Data structure describing a sprite for the SSE blitters. */
+struct SSESprite : Sprite {
 	struct MapValue {
 		uint8 m;
 		uint8 v;
@@ -65,29 +62,26 @@ public:
 		uint16 sprite_width;     ///< The width of the sprite.
 	};
 
-	/** Data structure describing a sprite. */
-	struct Sprite : ::Sprite {
-		SpriteFlags flags;
-		SpriteInfo infos[ZOOM_LVL_COUNT];
-		byte data[]; ///< Data, all zoomlevels.
-	};
+	SpriteFlags flags;
+	SpriteInfo infos[ZOOM_LVL_COUNT];
+	byte data[]; ///< Data, all zoomlevels.
 
-	::Sprite *Encode (const SpriteLoader::Sprite *sprite, AllocatorProc *allocator);
+	static SSESprite *encode (const SpriteLoader::Sprite *sprite, AllocatorProc *allocator);
 };
 
-DECLARE_ENUM_AS_BIT_SET(Blitter_32bppSSE_Base::SpriteFlags);
+DECLARE_ENUM_AS_BIT_SET(SSESprite::SpriteFlags);
 
 /** The SSE2 32 bpp blitter (without palette animation). */
-class Blitter_32bppSSE2 : public Blitter_32bppSimple, public Blitter_32bppSSE_Base {
+class Blitter_32bppSSE2 : public Blitter_32bppSimple {
 public:
-	typedef Blitter_32bppSSE_Base::Sprite Sprite;
+	typedef SSESprite Sprite;
 
 	/* virtual */ void Draw(Blitter::BlitterParams *bp, BlitterMode mode, ZoomLevel zoom);
-	template <BlitterMode mode, Blitter_32bppSSE_Base::ReadMode read_mode, Blitter_32bppSSE_Base::BlockType bt_last, bool translucent>
+	template <BlitterMode mode, SSESprite::ReadMode read_mode, SSESprite::BlockType bt_last, bool translucent>
 	void Draw(const Blitter::BlitterParams *bp, ZoomLevel zoom);
 
 	/* virtual */ ::Sprite *Encode (const SpriteLoader::Sprite *sprite, AllocatorProc *allocator) {
-		return Blitter_32bppSSE_Base::Encode(sprite, allocator);
+		return SSESprite::encode (sprite, allocator);
 	}
 
 	/* virtual */ const char *GetName() { return "32bpp-sse2"; }
