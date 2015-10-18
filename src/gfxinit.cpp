@@ -278,13 +278,14 @@ static bool SwitchNewGRFBlitter()
 		const char *repl_blitter = replacement_blitters[i].name;
 
 		if (strcmp(repl_blitter, cur_blitter) == 0) return false;
-		if (BlitterFactory::GetBlitterFactory(repl_blitter) == NULL) continue;
 
 		DEBUG(misc, 1, "Switching blitter from '%s' to '%s'... ", cur_blitter, repl_blitter);
-		Blitter *new_blitter = BlitterFactory::SelectBlitter(repl_blitter);
-		if (new_blitter == NULL) NOT_REACHED();
-		DEBUG(misc, 1, "Successfully switched to %s.", repl_blitter);
-		break;
+		Blitter *new_blitter = BlitterFactory::SelectBlitter (repl_blitter);
+		if (new_blitter != NULL) {
+			DEBUG(misc, 1, "Successfully switched to %s.", repl_blitter);
+			break;
+		}
+		DEBUG(misc, 1, "Switching failed");
 	}
 
 	if (!VideoDriver::GetInstance()->AfterBlitterChange()) {
