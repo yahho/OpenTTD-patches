@@ -19,8 +19,8 @@
 #define SSE_VERSION 2
 #include "32bpp_sse_func.hpp"
 
-/** Instantiation of the SSE2 32bpp blitter factory. */
-static FBlitter_32bppSSE2 iFBlitter_32bppSSE2;
+const char Blitter_32bppSSE2::name[] = "32bpp-sse2";
+const char Blitter_32bppSSE2::desc[] = "32bpp SSE2 Blitter (no palette animation)";
 
 SSESprite *SSESprite::encode (const SpriteLoader::Sprite *sprite, AllocatorProc *allocator)
 {

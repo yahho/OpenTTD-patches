@@ -14,8 +14,8 @@
 #include "../settings_type.h"
 #include "32bpp_optimized.hpp"
 
-/** Instantiation of the optimized 32bpp blitter factory. */
-static FBlitter_32bppOptimized iFBlitter_32bppOptimized;
+const char Blitter_32bppOptimized::name[] = "32bpp-optimized";
+const char Blitter_32bppOptimized::desc[] = "32bpp Optimized Blitter (no palette animation)";
 
 /**
  * Draws a sprite to a (screen) buffer. It is templated to allow faster operation.

@@ -52,6 +52,12 @@ public:
 		PALETTE_ANIMATION_BLITTER,        ///< The blitter takes care of the palette animation
 	};
 
+	/** Check if this blitter is usable. */
+	static bool usable (void)
+	{
+		return true;
+	}
+
 	/**
 	 * Get the screen depth this blitter works for.
 	 *  This is either: 8, 16, 24 or 32.
@@ -184,11 +190,6 @@ public:
 	 * @return True if it uses palette animation.
 	 */
 	virtual Blitter::PaletteAnimation UsePaletteAnimation() = 0;
-
-	/**
-	 * Get the name of the blitter, the same as the Factory-instance returns.
-	 */
-	virtual const char *GetName() = 0;
 
 	/**
 	 * Get how many bytes are needed to store a pixel.

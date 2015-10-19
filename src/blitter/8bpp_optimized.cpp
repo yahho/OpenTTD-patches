@@ -16,8 +16,8 @@
 #include "../core/mem_func.hpp"
 #include "8bpp_optimized.hpp"
 
-/** Instantiation of the 8bpp optimised blitter factory. */
-static FBlitter_8bppOptimized iFBlitter_8bppOptimized;
+const char Blitter_8bppOptimized::name[] = "8bpp-optimized";
+const char Blitter_8bppOptimized::desc[] = "8bpp Optimized Blitter (compression + all-ZoomLevel cache)";
 
 void Blitter_8bppOptimized::Draw(Blitter::BlitterParams *bp, BlitterMode mode, ZoomLevel zoom)
 {

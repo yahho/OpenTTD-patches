@@ -15,7 +15,7 @@
 #include "date_func.h"
 #include "rev.h"
 #include "strings_func.h"
-#include "blitter/factory.hpp"
+#include "blitter/blitter.h"
 #include "base_media_base.h"
 #include "music/music_driver.hpp"
 #include "sound/sound_driver.hpp"
@@ -125,7 +125,7 @@ static void LogConfiguration (stringb *buffer)
 			" Sound driver: %s\n"
 			" Sound set:    %s (%u)\n"
 			" Video driver: %s\n\n",
-			BlitterFactory::GetCurrentBlitter() == NULL ? "none" : BlitterFactory::GetCurrentBlitter()->GetName(),
+			GetCurrentBlitterName(),
 			BaseGraphics::GetUsedSet() == NULL ? "none" : BaseGraphics::GetUsedSet()->get_name(),
 			BaseGraphics::GetUsedSet() == NULL ? UINT32_MAX : BaseGraphics::GetUsedSet()->version,
 			_current_language == NULL ? "none" : _current_language->file,

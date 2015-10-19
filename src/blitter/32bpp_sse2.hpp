@@ -17,6 +17,7 @@
 #include "32bpp_simple.hpp"
 
 #include "sse2.h"
+#include "../cpu.h"
 
 #include "32bpp_sse_common.h"
 
@@ -76,6 +77,14 @@ class Blitter_32bppSSE2 : public Blitter_32bppSimple {
 public:
 	typedef SSESprite Sprite;
 
+	static const char name[]; ///< Name of the blitter.
+	static const char desc[]; ///< Description of the blitter.
+
+	static bool usable (void)
+	{
+		return HasCPUIDFlag (1, 3, 26);
+	}
+
 	/* virtual */ void Draw(Blitter::BlitterParams *bp, BlitterMode mode, ZoomLevel zoom);
 	template <BlitterMode mode, SSESprite::ReadMode read_mode, SSESprite::BlockType bt_last, bool translucent>
 	void Draw(const Blitter::BlitterParams *bp, ZoomLevel zoom);
@@ -83,15 +92,6 @@ public:
 	/* virtual */ ::Sprite *Encode (const SpriteLoader::Sprite *sprite, AllocatorProc *allocator) {
 		return SSESprite::encode (sprite, allocator);
 	}
-
-	/* virtual */ const char *GetName() { return "32bpp-sse2"; }
-};
-
-/** Factory for the SSE2 32 bpp blitter (without palette animation). */
-class FBlitter_32bppSSE2 : public BlitterFactory {
-public:
-	FBlitter_32bppSSE2() : BlitterFactory("32bpp-sse2", "32bpp SSE2 Blitter (no palette animation)", HasCPUIDFlag(1, 3, 26)) {}
-	/* virtual */ Blitter *CreateInstance() { return new Blitter_32bppSSE2(); }
 };
 
 #endif /* WITH_SSE */

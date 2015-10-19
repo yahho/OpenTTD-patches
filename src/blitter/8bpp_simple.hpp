@@ -13,7 +13,6 @@
 #define BLITTER_8BPP_SIMPLE_HPP
 
 #include "8bpp_base.hpp"
-#include "factory.hpp"
 
 /** Most trivial 8bpp blitter. */
 class Blitter_8bppSimple FINAL : public Blitter_8bppBase {
@@ -23,17 +22,11 @@ public:
 		byte data[];   ///< Sprite data
 	};
 
+	static const char name[]; ///< Name of the blitter.
+	static const char desc[]; ///< Description of the blitter.
+
 	/* virtual */ void Draw(Blitter::BlitterParams *bp, BlitterMode mode, ZoomLevel zoom);
 	/* virtual */ ::Sprite *Encode (const SpriteLoader::Sprite *sprite, AllocatorProc *allocator);
-
-	/* virtual */ const char *GetName() { return "8bpp-simple"; }
-};
-
-/** Factory for the most trivial 8bpp blitter. */
-class FBlitter_8bppSimple : public BlitterFactory {
-public:
-	FBlitter_8bppSimple() : BlitterFactory("8bpp-simple", "8bpp Simple Blitter (relative slow, but never wrong)") {}
-	/* virtual */ Blitter *CreateInstance() { return new Blitter_8bppSimple(); }
 };
 
 #endif /* BLITTER_8BPP_SIMPLE_HPP */

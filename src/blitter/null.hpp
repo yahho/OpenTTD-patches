@@ -12,11 +12,14 @@
 #ifndef BLITTER_NULL_HPP
 #define BLITTER_NULL_HPP
 
-#include "factory.hpp"
+#include "base.hpp"
 
 /** Blitter that does nothing. */
 class Blitter_Null : public Blitter {
 public:
+	static const char name[]; ///< Name of the blitter.
+	static const char desc[]; ///< Description of the blitter.
+
 	/* virtual */ uint8 GetScreenDepth() { return 0; }
 	/* virtual */ void Draw(Blitter::BlitterParams *bp, BlitterMode mode, ZoomLevel zoom) {};
 	/* virtual */ void DrawColourMappingRect(void *dst, int width, int height, PaletteID pal) {};
@@ -33,15 +36,7 @@ public:
 	/* virtual */ void PaletteAnimate(const Palette &palette) { };
 	/* virtual */ Blitter::PaletteAnimation UsePaletteAnimation() { return Blitter::PALETTE_ANIMATION_NONE; };
 
-	/* virtual */ const char *GetName() { return "null"; }
 	/* virtual */ int GetBytesPerPixel() { return 0; }
-};
-
-/** Factory for the blitter that does nothing. */
-class FBlitter_Null : public BlitterFactory {
-public:
-	FBlitter_Null() : BlitterFactory("null", "Null Blitter (does nothing)") {}
-	/* virtual */ Blitter *CreateInstance() { return new Blitter_Null(); }
 };
 
 #endif /* BLITTER_NULL_HPP */

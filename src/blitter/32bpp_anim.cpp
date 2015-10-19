@@ -10,13 +10,14 @@
 /** @file 32bpp_anim.cpp Implementation of the optimized 32 bpp blitter with animation support. */
 
 #include "../stdafx.h"
+#include "../debug.h"
 #include "../video/video_driver.hpp"
 #include "32bpp_anim.hpp"
 
 #include "../table/sprites.h"
 
-/** Instantiation of the 32bpp with animation blitter factory. */
-static FBlitter_32bppAnim iFBlitter_32bppAnim;
+const char Blitter_32bppAnim::name[] = "32bpp-anim";
+const char Blitter_32bppAnim::desc[] = "32bpp Animation Blitter (palette animation)";
 
 template <BlitterMode mode>
 inline void Blitter_32bppAnim::Draw(const Blitter::BlitterParams *bp, ZoomLevel zoom)

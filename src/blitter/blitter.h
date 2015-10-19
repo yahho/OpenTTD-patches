@@ -10,27 +10,22 @@
 #ifndef BLITTER_H
 #define BLITTER_H
 
-#include "factory.hpp"
+#include "../core/pointer.h"
+#include "../string.h"
+#include "base.hpp"
 
-static inline Blitter *SelectBlitter (const char *name)
-{
-	return BlitterFactory::SelectBlitter (name);
-}
+Blitter *SelectBlitter (const char *name);
 
+/** Get the current active blitter (always set by calling SelectBlitter). */
 static inline Blitter *GetCurrentBlitter()
 {
-	return BlitterFactory::GetCurrentBlitter();
+	extern ttd_unique_ptr<Blitter> current_blitter;
+	return current_blitter.get();
 }
 
-static inline const char *GetCurrentBlitterName (void)
-{
-	return GetCurrentBlitter()->GetName();
-}
+const char *GetCurrentBlitterName (void);
 
-static inline void GetBlittersInfo (stringb *buf)
-{
-	BlitterFactory::GetBlittersInfo (buf);
-}
+void GetBlittersInfo (stringb *buf);
 
 extern char *_ini_blitter;
 extern bool _blitter_autodetected;

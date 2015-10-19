@@ -10,13 +10,14 @@
 /** @file 32bpp_simple.cpp Implementation of the simple 32 bpp blitter. */
 
 #include "../stdafx.h"
+#include "../debug.h"
 #include "../zoom_func.h"
 #include "32bpp_simple.hpp"
 
 #include "../table/sprites.h"
 
-/** Instantiation of the simple 32bpp blitter factory. */
-static FBlitter_32bppSimple iFBlitter_32bppSimple;
+const char Blitter_32bppSimple::name[] = "32bpp-simple";
+const char Blitter_32bppSimple::desc[] = "32bpp Simple Blitter (no palette animation)";
 
 void Blitter_32bppSimple::Draw(Blitter::BlitterParams *bp, BlitterMode mode, ZoomLevel zoom)
 {

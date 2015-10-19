@@ -23,19 +23,13 @@ public:
 		byte data[];                      ///< Data, all zoomlevels.
 	};
 
+	static const char name[]; ///< Name of the blitter.
+	static const char desc[]; ///< Description of the blitter.
+
 	/* virtual */ void Draw(Blitter::BlitterParams *bp, BlitterMode mode, ZoomLevel zoom);
 	/* virtual */ ::Sprite *Encode (const SpriteLoader::Sprite *sprite, AllocatorProc *allocator);
 
-	/* virtual */ const char *GetName() { return "32bpp-optimized"; }
-
 	template <BlitterMode mode> void Draw(const Blitter::BlitterParams *bp, ZoomLevel zoom);
-};
-
-/** Factory for the optimised 32 bpp blitter (without palette animation). */
-class FBlitter_32bppOptimized : public BlitterFactory {
-public:
-	FBlitter_32bppOptimized() : BlitterFactory("32bpp-optimized", "32bpp Optimized Blitter (no palette animation)") {}
-	/* virtual */ Blitter *CreateInstance() { return new Blitter_32bppOptimized(); }
 };
 
 #endif /* BLITTER_32BPP_OPTIMIZED_HPP */

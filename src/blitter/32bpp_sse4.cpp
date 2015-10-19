@@ -19,7 +19,7 @@
 #define SSE_VERSION 4
 #include "32bpp_sse_func.hpp"
 
-/** Instantiation of the SSE4 32bpp blitter factory. */
-static FBlitter_32bppSSE4 iFBlitter_32bppSSE4;
+const char Blitter_32bppSSE4::name[] = "32bpp-sse4";
+const char Blitter_32bppSSE4::desc[] = "32bpp SSE4 Blitter (no palette animation)";
 
 #endif /* WITH_SSE */

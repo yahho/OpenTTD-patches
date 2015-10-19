@@ -13,7 +13,6 @@
 #define BLITTER_8BPP_OPTIMIZED_HPP
 
 #include "8bpp_base.hpp"
-#include "factory.hpp"
 
 /** 8bpp blitter optimised for speed. */
 class Blitter_8bppOptimized FINAL : public Blitter_8bppBase {
@@ -24,17 +23,11 @@ public:
 		byte data[];                   ///< Data, all zoomlevels.
 	};
 
+	static const char name[]; ///< Name of the blitter.
+	static const char desc[]; ///< Description of the blitter.
+
 	/* virtual */ void Draw(Blitter::BlitterParams *bp, BlitterMode mode, ZoomLevel zoom);
 	/* virtual */ ::Sprite *Encode (const SpriteLoader::Sprite *sprite, AllocatorProc *allocator);
-
-	/* virtual */ const char *GetName() { return "8bpp-optimized"; }
-};
-
-/** Factory for the 8bpp blitter optimised for speed. */
-class FBlitter_8bppOptimized : public BlitterFactory {
-public:
-	FBlitter_8bppOptimized() : BlitterFactory("8bpp-optimized", "8bpp Optimized Blitter (compression + all-ZoomLevel cache)") {}
-	/* virtual */ Blitter *CreateInstance() { return new Blitter_8bppOptimized(); }
 };
 
 #endif /* BLITTER_8BPP_OPTIMIZED_HPP */

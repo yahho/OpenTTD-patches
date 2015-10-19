@@ -16,8 +16,8 @@
 #include "../table/sprites.h"
 #include "32bpp_anim_sse4.hpp"
 
-/** Instantiation of the SSE4 32bpp blitter factory. */
-static FBlitter_32bppSSE4_Anim iFBlitter_32bppSSE4_Anim;
+const char Blitter_32bppSSE4_Anim::name[] = "32bpp-sse4-anim";
+const char Blitter_32bppSSE4_Anim::desc[] = "SSE4 Blitter (palette animation)";
 
 /**
  * Draws a sprite to a (screen) buffer. It is templated to allow faster operation.

@@ -13,8 +13,8 @@
 #include "../zoom_func.h"
 #include "8bpp_simple.hpp"
 
-/** Instantiation of the simple 8bpp blitter factory. */
-static FBlitter_8bppSimple iFBlitter_8bppSimple;
+const char Blitter_8bppSimple::name[] = "8bpp-simple";
+const char Blitter_8bppSimple::desc[] = "8bpp Simple Blitter (relative slow, but never wrong)";
 
 void Blitter_8bppSimple::Draw(Blitter::BlitterParams *bp, BlitterMode mode, ZoomLevel zoom)
 {
