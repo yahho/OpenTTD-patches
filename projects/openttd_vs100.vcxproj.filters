@@ -2556,6 +2556,9 @@
     <ClInclude Include="..\src\blitter\factory.hpp">
       <Filter>Blitters</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\blitter\blitter.h">
+      <Filter>Blitters</Filter>
+    </ClInclude>
     <ClCompile Include="..\src\blitter\null.cpp">
       <Filter>Blitters</Filter>
     </ClCompile>

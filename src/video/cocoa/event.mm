@@ -30,7 +30,7 @@
 #include "../../core/geometry_type.hpp"
 #include "cocoa_v.h"
 #include "cocoa_keys.h"
-#include "../../blitter/factory.hpp"
+#include "../../blitter/blitter.h"
 #include "../../gfx_func.h"
 #include "../../network/network.h"
 #include "../../core/random_func.hpp"
@@ -110,7 +110,7 @@ static void QZ_WarpCursor(int x, int y)
 static void QZ_CheckPaletteAnim()
 {
 	if (_cur_palette.count_dirty != 0) {
-		Blitter *blitter = BlitterFactory::GetCurrentBlitter();
+		Blitter *blitter = GetCurrentBlitter();
 
 		switch (blitter->UsePaletteAnimation()) {
 			case Blitter::PALETTE_ANIMATION_VIDEO_BACKEND:

@@ -10,12 +10,13 @@
 /** @file screenshot.cpp The creation of screenshots! */
 
 #include "stdafx.h"
+#include "debug.h"
 #include "string.h"
 #include "fileio_func.h"
 #include "viewport_func.h"
 #include "gfx_func.h"
 #include "screenshot.h"
-#include "blitter/factory.hpp"
+#include "blitter/blitter.h"
 #include "zoom_func.h"
 #include "core/endian_func.hpp"
 #include "saveload/saveload.h"
@@ -636,7 +637,7 @@ void SetScreenshotFormat(uint i)
  */
 static void CurrentScreenCallback(void *userdata, void *buf, uint y, uint pitch, uint n)
 {
-	Blitter *blitter = BlitterFactory::GetCurrentBlitter();
+	Blitter *blitter = GetCurrentBlitter();
 	void *src = blitter->MoveTo(_screen.dst_ptr, 0, y);
 	blitter->CopyImageToBuffer(src, buf, _screen.width, n, pitch);
 }
@@ -743,7 +744,7 @@ static bool MakeSmallScreenshot(bool crashlog)
 {
 	const ScreenshotFormat *sf = _screenshot_formats + _cur_screenshot_format;
 	return sf->proc(MakeScreenshotName(SCREENSHOT_NAME, sf->extension, crashlog), CurrentScreenCallback, NULL, _screen.width, _screen.height,
-			BlitterFactory::GetCurrentBlitter()->GetScreenDepth(), _cur_palette.palette);
+			GetCurrentBlitter()->GetScreenDepth(), _cur_palette.palette);
 }
 
 /**
@@ -799,7 +800,7 @@ static bool MakeLargeWorldScreenshot(ScreenshotType t)
 
 	const ScreenshotFormat *sf = _screenshot_formats + _cur_screenshot_format;
 	return sf->proc(MakeScreenshotName(SCREENSHOT_NAME, sf->extension), LargeWorldCallback, &vp, vp.width, vp.height,
-			BlitterFactory::GetCurrentBlitter()->GetScreenDepth(), _cur_palette.palette);
+			GetCurrentBlitter()->GetScreenDepth(), _cur_palette.palette);
 }
 
 /**

@@ -10300,6 +10300,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\..\src\blitter\blitter.h"
+				>
+			</File>
+			<File
 				RelativePath=".\..\src\blitter\null.cpp"
 				>
 				<FileConfiguration

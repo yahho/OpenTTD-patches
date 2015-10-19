@@ -14,7 +14,7 @@
 #include "../../debug.h"
 #include "../../gfx_func.h"
 #include "../../fileio_func.h"
-#include "../../blitter/factory.hpp"
+#include "../../blitter/blitter.h"
 #include "../../core/mem_func.hpp"
 
 #include "splash.h"
@@ -122,7 +122,7 @@ void DisplaySplashImage()
 	uint xoff = (_screen.width - width) / 2;
 	uint yoff = (_screen.height - height) / 2;
 
-	switch (BlitterFactory::GetCurrentBlitter()->GetScreenDepth()) {
+	switch (GetCurrentBlitter()->GetScreenDepth()) {
 		case 8: {
 				uint8 *dst_ptr = (uint8 *)_screen.dst_ptr;
 				/* Initialize buffer */

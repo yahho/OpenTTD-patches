@@ -27,6 +27,7 @@
  */
 
 #include "stdafx.h"
+#include "debug.h"
 #include "map/zoneheight.h"
 #include "map/slope.h"
 #include "map/bridge.h"
@@ -39,7 +40,7 @@
 #include "signs_func.h"
 #include "vehicle_base.h"
 #include "vehicle_gui.h"
-#include "blitter/factory.hpp"
+#include "blitter/blitter.h"
 #include "strings_func.h"
 #include "zoom_func.h"
 #include "vehicle_func.h"
@@ -1565,7 +1566,7 @@ static void ViewportDrawBoundingBoxes(const ParentSpriteToSortVector *psd)
  */
 static void ViewportDrawDirtyBlocks()
 {
-	Blitter *blitter = BlitterFactory::GetCurrentBlitter();
+	Blitter *blitter = GetCurrentBlitter();
 	const DrawPixelInfo *dpi = _cur_dpi;
 	void *dst;
 	int right =  UnScaleByZoom(dpi->width,  dpi->zoom);
@@ -1639,7 +1640,7 @@ void ViewportDoDraw(const ViewPort *vp, int left, int top, int right, int bottom
 	int x = UnScaleByZoom(_vd.dpi.left - (vp->virtual_left & mask), vp->zoom) + vp->left;
 	int y = UnScaleByZoom(_vd.dpi.top - (vp->virtual_top & mask), vp->zoom) + vp->top;
 
-	_vd.dpi.dst_ptr = BlitterFactory::GetCurrentBlitter()->MoveTo(old_dpi->dst_ptr, x - old_dpi->left, y - old_dpi->top);
+	_vd.dpi.dst_ptr = GetCurrentBlitter()->MoveTo (old_dpi->dst_ptr, x - old_dpi->left, y - old_dpi->top);
 
 	ViewportAddLandscape();
 	ViewportAddVehicles(&_vd.dpi);

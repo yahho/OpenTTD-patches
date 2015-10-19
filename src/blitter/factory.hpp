@@ -167,7 +167,4 @@ public:
 	virtual Blitter *CreateInstance() = 0;
 };
 
-extern char *_ini_blitter;
-extern bool _blitter_autodetected;
-
 #endif /* BLITTER_FACTORY_HPP */

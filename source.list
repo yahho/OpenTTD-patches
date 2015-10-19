@@ -878,6 +878,7 @@ script/api/script_window.cpp
 blitter/base.cpp
 blitter/base.hpp
 blitter/factory.hpp
+blitter/blitter.h
 blitter/null.cpp
 blitter/null.hpp
 #if DEDICATED

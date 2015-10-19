@@ -17,10 +17,11 @@
 #ifdef WITH_ALLEGRO
 
 #include "../stdafx.h"
+#include "../debug.h"
 #include "../openttd.h"
 #include "../gfx_func.h"
 #include "../rev.h"
-#include "../blitter/factory.hpp"
+#include "../blitter/blitter.h"
 #include "../network/network.h"
 #include "../core/random_func.hpp"
 #include "../core/math_func.hpp"
@@ -92,7 +93,7 @@ static void InitPalette()
 static void CheckPaletteAnim()
 {
 	if (_cur_palette.count_dirty != 0) {
-		Blitter *blitter = BlitterFactory::GetCurrentBlitter();
+		Blitter *blitter = GetCurrentBlitter();
 
 		switch (blitter->UsePaletteAnimation()) {
 			case Blitter::PALETTE_ANIMATION_VIDEO_BACKEND:
@@ -191,7 +192,7 @@ static void GetAvailableVideoMode(uint *w, uint *h)
 
 static bool CreateMainSurface(uint w, uint h)
 {
-	int bpp = BlitterFactory::GetCurrentBlitter()->GetScreenDepth();
+	int bpp = GetCurrentBlitter()->GetScreenDepth();
 	if (bpp == 0) usererror("Can't use a blitter that blits 0 bpp for normal visuals");
 	set_color_depth(bpp);
 
@@ -217,7 +218,7 @@ static bool CreateMainSurface(uint w, uint h)
 	_cursor.pos.x = mouse_x;
 	_cursor.pos.y = mouse_y;
 
-	BlitterFactory::GetCurrentBlitter()->PostResize();
+	GetCurrentBlitter()->PostResize();
 
 	InitPalette();
 

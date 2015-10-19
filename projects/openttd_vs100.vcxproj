@@ -1762,6 +1762,7 @@
     </ClCompile>
     <ClInclude Include="..\src\blitter\base.hpp" />
     <ClInclude Include="..\src\blitter\factory.hpp" />
+    <ClInclude Include="..\src\blitter\blitter.h" />
     <ClCompile Include="..\src\blitter\null.cpp">
       <AssemblerListingLocation>$(IntDir)\blitter\</AssemblerListingLocation>
       <ObjectFileName>$(IntDir)\blitter\</ObjectFileName>
