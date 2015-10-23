@@ -1286,9 +1286,6 @@ static inline void ViewportDrawString (ZoomLevel zoom, int x, int y,
 	SetDParam (1, params_2);
 
 	if (colour != INVALID_COLOUR) {
-		/* Do not draw signs nor station names if they are set invisible */
-		if (IsInvisibilitySet(TO_SIGNS) && string != STR_WHITE_SIGN) return;
-
 		if (IsTransparencySet(TO_SIGNS) && string != STR_WHITE_SIGN) {
 			/* Don't draw the rectangle.
 			 * Real colours need the TC_IS_PALETTE_COLOUR flag.
@@ -1369,7 +1366,7 @@ static void ViewportAddTownNames(DrawPixelInfo *dpi)
 
 static void ViewportAddStationNames(DrawPixelInfo *dpi)
 {
-	if (!(HasBit(_display_opt, DO_SHOW_STATION_NAMES) || HasBit(_display_opt, DO_SHOW_WAYPOINT_NAMES)) || _game_mode == GM_MENU) return;
+	if (!(HasBit(_display_opt, DO_SHOW_STATION_NAMES) || HasBit(_display_opt, DO_SHOW_WAYPOINT_NAMES)) || IsInvisibilitySet(TO_SIGNS) || _game_mode == GM_MENU) return;
 
 	const BaseStation *st;
 	FOR_ALL_BASE_STATIONS(st) {
