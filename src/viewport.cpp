@@ -1273,12 +1273,10 @@ static void ViewportAddLandscape()
 	}
 }
 
-static void ViewportDrawString (ZoomLevel zoom, int x, int y,
+static inline void ViewportDrawString (ZoomLevel zoom, int x, int y,
 	StringID string, uint64 params_1, uint64 params_2,
 	Colours colour, int width, bool small)
 {
-	assert (width != 0);
-
 	TextColour tc = TC_BLACK;
 	int x0 = UnScaleByZoom (x, zoom);
 	int x1 = x0 + width;
@@ -1329,7 +1327,8 @@ void ViewportAddString(const DrawPixelInfo *dpi, ZoomLevel small_from, const Vie
 	int bottom = top + dpi->height;
 
 	int sign_height     = ScaleByZoom(VPSM_TOP + FONT_HEIGHT_NORMAL + VPSM_BOTTOM, dpi->zoom);
-	int sign_half_width = ScaleByZoom((small ? sign->width_small : sign->width_normal) / 2, dpi->zoom);
+	int sign_width      = small ? sign->width_small : sign->width_normal;
+	int sign_half_width = ScaleByZoom(sign_width / 2, dpi->zoom);
 
 	if (bottom < sign->top ||
 			top   > sign->top + sign_height ||
@@ -1338,17 +1337,20 @@ void ViewportAddString(const DrawPixelInfo *dpi, ZoomLevel small_from, const Vie
 		return;
 	}
 
-	if (!small) {
-		ViewportDrawString (dpi->zoom, sign->center - sign_half_width, sign->top, string_normal, params_1, params_2, colour, sign->width_normal, false);
-	} else {
-		int shadow_offset = 0;
-		if (string_small_shadow != STR_NULL) {
-			shadow_offset = 4;
-			ViewportDrawString (dpi->zoom, sign->center - sign_half_width + shadow_offset, sign->top, string_small_shadow, params_1, params_2, INVALID_COLOUR, sign->width_small, false);
-		}
-		ViewportDrawString (dpi->zoom, sign->center - sign_half_width, sign->top - shadow_offset, string_small, params_1, params_2,
-				colour, sign->width_small, true);
+	assert (sign_width != 0);
+
+	int x = sign->center - sign_half_width;
+	int y = sign->top;
+	if (small && (string_small_shadow != STR_NULL)) {
+		ViewportDrawString (dpi->zoom, x + 4, y,
+				string_small_shadow, params_1, params_2,
+				INVALID_COLOUR, sign_width, false);
+		y -= 4;
 	}
+
+	StringID str = small ? string_small : string_normal;
+	ViewportDrawString (dpi->zoom, x, y, str, params_1, params_2,
+			colour, sign_width, small);
 }
 
 static void ViewportAddTownNames(DrawPixelInfo *dpi)
