@@ -191,10 +191,15 @@ const Order *LinkRefresher::PredictNextOrder(const Order *cur, const Order *next
 
 /**
  * Refresh link stats for the given pair of orders.
+ * @param vehicle Vehicle for which the links should be refreshed.
+ * @param capacities Current added capacities per cargo ID in the consist.
  * @param cur Last stop where the consist could interact with cargo.
  * @param next Next order to be processed.
+ * @param allow_merge If we are allowed to merge or extend link graphs.
+ * @param is_full_loading If the vehicle is full loading.
  */
-void LinkRefresher::RefreshStats(const Order *cur, const Order *next)
+static void RefreshStats (Vehicle *vehicle, const uint *capacities,
+	const Order *cur, const Order *next, bool allow_merge, bool is_full_loading)
 {
 	StationID next_station = next->GetDestination();
 	Station *st = Station::GetIfValid(cur->GetDestination());
@@ -202,12 +207,12 @@ void LinkRefresher::RefreshStats(const Order *cur, const Order *next)
 		for (CargoID c = 0; c != NUM_CARGO; c++) {
 			/* Refresh the link and give it a minimum capacity. */
 
-			uint capacity = this->capacities[c];
+			uint capacity = capacities[c];
 			if (capacity == 0) continue;
 
 			/* If not allowed to merge link graphs, make sure the stations are
 			 * already in the same link graph. */
-			if (!this->allow_merge && st->goods[c].link_graph != Station::Get(next_station)->goods[c].link_graph) {
+			if (!allow_merge && st->goods[c].link_graph != Station::Get(next_station)->goods[c].link_graph) {
 				continue;
 			}
 
@@ -220,16 +225,16 @@ void LinkRefresher::RefreshStats(const Order *cur, const Order *next)
 			 * loading. Don't do that if the vehicle has been waiting for longer than the entire
 			 * order list is supposed to take, though. If that is the case the total duration is
 			 * probably far off and we'd greatly overestimate the capacity by increasing.*/
-			if (this->is_full_loading && this->vehicle->orders.list != NULL &&
+			if (is_full_loading && vehicle->orders.list != NULL &&
 					st->index == vehicle->last_station_visited &&
-					this->vehicle->orders.list->GetTotalDuration() >
-					(Ticks)this->vehicle->current_order_time) {
-				uint effective_capacity = capacity * this->vehicle->load_unload_ticks;
-				if (effective_capacity > (uint)this->vehicle->orders.list->GetTotalDuration()) {
+					vehicle->orders.list->GetTotalDuration() >
+					(Ticks)vehicle->current_order_time) {
+				uint effective_capacity = capacity * vehicle->load_unload_ticks;
+				if (effective_capacity > (uint)vehicle->orders.list->GetTotalDuration()) {
 					IncreaseStats(st, c, next_station, effective_capacity /
-							this->vehicle->orders.list->GetTotalDuration(), 0,
+							vehicle->orders.list->GetTotalDuration(), 0,
 							EUM_INCREASE | restricted_mode);
-				} else if (RandomRange(this->vehicle->orders.list->GetTotalDuration()) < effective_capacity) {
+				} else if (RandomRange(vehicle->orders.list->GetTotalDuration()) < effective_capacity) {
 					IncreaseStats(st, c, next_station, 1, 0, EUM_INCREASE | restricted_mode);
 				} else {
 					IncreaseStats(st, c, next_station, capacity, 0, EUM_REFRESH | restricted_mode);
@@ -305,7 +310,7 @@ void LinkRefresher::RefreshLinks(const Order *cur, const Order *next, uint8 flag
 		if (cur->IsType(OT_GOTO_STATION) || cur->IsType(OT_IMPLICIT)) {
 			if (cur->CanLeaveWithCargo(HasBit(flags, HAS_CARGO))) {
 				SetBit(flags, HAS_CARGO);
-				this->RefreshStats(cur, next);
+				RefreshStats (this->vehicle, this->capacities, cur, next, this->allow_merge, this->is_full_loading);
 			} else {
 				ClrBit(flags, HAS_CARGO);
 			}
