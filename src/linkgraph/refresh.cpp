@@ -71,6 +71,7 @@ LinkRefresher::LinkRefresher(Vehicle *vehicle, HopSet *seen_hops, bool allow_mer
 	is_full_loading(is_full_loading)
 {
 	/* Assemble list of capacities and set last loading stations to 0. */
+	memset (this->capacities, 0, sizeof(this->capacities));
 	for (Vehicle *v = this->vehicle; v != NULL; v = v->Next()) {
 		this->refit_capacities.push_back(RefitDesc(v->cargo_type, v->cargo_cap, v->refit_cap));
 		if (v->refit_cap > 0) this->capacities[v->cargo_type] += v->refit_cap;
@@ -198,11 +199,11 @@ void LinkRefresher::RefreshStats(const Order *cur, const Order *next)
 	StationID next_station = next->GetDestination();
 	Station *st = Station::GetIfValid(cur->GetDestination());
 	if (st != NULL && next_station != INVALID_STATION && next_station != st->index) {
-		for (CapacitiesMap::const_iterator i = this->capacities.begin(); i != this->capacities.end(); ++i) {
+		for (CargoID c = 0; c != NUM_CARGO; c++) {
 			/* Refresh the link and give it a minimum capacity. */
 
-			if (i->second == 0) continue;
-			CargoID c = i->first;
+			uint capacity = this->capacities[c];
+			if (capacity == 0) continue;
 
 			/* If not allowed to merge link graphs, make sure the stations are
 			 * already in the same link graph. */
@@ -223,7 +224,7 @@ void LinkRefresher::RefreshStats(const Order *cur, const Order *next)
 					st->index == vehicle->last_station_visited &&
 					this->vehicle->orders.list->GetTotalDuration() >
 					(Ticks)this->vehicle->current_order_time) {
-				uint effective_capacity = i->second * this->vehicle->load_unload_ticks;
+				uint effective_capacity = capacity * this->vehicle->load_unload_ticks;
 				if (effective_capacity > (uint)this->vehicle->orders.list->GetTotalDuration()) {
 					IncreaseStats(st, c, next_station, effective_capacity /
 							this->vehicle->orders.list->GetTotalDuration(), 0,
@@ -231,10 +232,10 @@ void LinkRefresher::RefreshStats(const Order *cur, const Order *next)
 				} else if (RandomRange(this->vehicle->orders.list->GetTotalDuration()) < effective_capacity) {
 					IncreaseStats(st, c, next_station, 1, 0, EUM_INCREASE | restricted_mode);
 				} else {
-					IncreaseStats(st, c, next_station, i->second, 0, EUM_REFRESH | restricted_mode);
+					IncreaseStats(st, c, next_station, capacity, 0, EUM_REFRESH | restricted_mode);
 				}
 			} else {
-				IncreaseStats(st, c, next_station, i->second, 0, EUM_REFRESH | restricted_mode);
+				IncreaseStats(st, c, next_station, capacity, 0, EUM_REFRESH | restricted_mode);
 			}
 		}
 	}
