@@ -274,11 +274,12 @@ void LinkRefresher::RefreshLinks(const Order *cur, const Order *next, uint8 flag
 				this->HandleRefit(next->GetRefitCargo());
 			} else {
 				SetBit(flags, IN_AUTOREFIT);
-				LinkRefresher backup(*this);
 				for (CargoID c = 0; c != NUM_CARGO; ++c) {
-					if (HasBit (next->GetRefitCargoMask(), c) && CargoSpec::Get(c)->IsValid() && this->HandleRefit(c)) {
-						this->RefreshLinks(cur, next, flags, num_hops);
-						*this = backup;
+					if (HasBit (next->GetRefitCargoMask(), c) && CargoSpec::Get(c)->IsValid()) {
+						LinkRefresher branch (*this);
+						if (branch.HandleRefit (c)) {
+							branch.RefreshLinks (cur, next, flags, num_hops);
+						}
 					}
 				}
 				return;
