@@ -261,11 +261,18 @@ void LinkRefresher::RefreshLinks(const Order *cur, const Order *next, uint8 flag
 {
 	while (next != NULL) {
 
-		if ((next->IsType(OT_GOTO_DEPOT) || next->IsType(OT_GOTO_STATION)) && next->IsRefit()) {
+		if (HasBit (flags, IN_AUTOREFIT)) {
+			assert (next->IsType(OT_GOTO_DEPOT) || next->IsType(OT_GOTO_STATION));
+			assert (next->IsRefit());
+			assert (HasBit (flags, WAS_REFIT));
+			assert (next->IsAutoRefit());
+			assert (HasBit (next->GetRefitCargoMask(), this->cargo));
+			ClrBit (flags, IN_AUTOREFIT);
+		} else if ((next->IsType(OT_GOTO_DEPOT) || next->IsType(OT_GOTO_STATION)) && next->IsRefit()) {
 			SetBit(flags, WAS_REFIT);
 			if (!next->IsAutoRefit()) {
 				this->HandleRefit(next->GetRefitCargo());
-			} else if (!HasBit(flags, IN_AUTOREFIT)) {
+			} else {
 				SetBit(flags, IN_AUTOREFIT);
 				LinkRefresher backup(*this);
 				for (CargoID c = 0; c != NUM_CARGO; ++c) {
@@ -274,6 +281,7 @@ void LinkRefresher::RefreshLinks(const Order *cur, const Order *next, uint8 flag
 						*this = backup;
 					}
 				}
+				return;
 			}
 		}
 
