@@ -298,10 +298,8 @@ void LinkRefresher::RefreshLinks(const Order *cur, const Order *next, uint8 flag
 		next = this->PredictNextOrder(cur, next, flags, num_hops);
 		if (next == NULL) break;
 		Hop hop(cur->index, next->index, this->cargo);
-		if (this->seen_hops->find(hop) != this->seen_hops->end()) {
+		if (!this->seen_hops->insert(hop).second) {
 			break;
-		} else {
-			this->seen_hops->insert(hop);
 		}
 
 		/* Don't use the same order again, but choose a new one in the next round. */
