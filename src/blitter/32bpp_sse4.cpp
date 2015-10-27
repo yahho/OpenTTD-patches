@@ -16,6 +16,8 @@
 #include "../settings_type.h"
 #include "32bpp_sse4.hpp"
 
+#include "sse4.h"
+
 #define SSE_VERSION 4
 #include "32bpp_sse_func.hpp"
 

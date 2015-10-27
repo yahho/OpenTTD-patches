@@ -14,8 +14,6 @@
 
 #ifdef WITH_SSE
 
-#include "sse3.h"
-
 #include "32bpp_sse2.hpp"
 
 /** The SSSE3 32 bpp blitter (without palette animation). */

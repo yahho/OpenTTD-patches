@@ -16,6 +16,8 @@
 #include "../table/sprites.h"
 #include "32bpp_anim_sse4.hpp"
 
+#include "sse4.h"
+
 const char Blitter_32bppSSE4_Anim::name[] = "32bpp-sse4-anim";
 const char Blitter_32bppSSE4_Anim::desc[] = "SSE4 Blitter (palette animation)";
 
