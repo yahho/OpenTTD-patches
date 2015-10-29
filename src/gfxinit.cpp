@@ -16,7 +16,7 @@
 #include "fontcache.h"
 #include "gfx_func.h"
 #include "transparency.h"
-#include "blitter/factory.hpp"
+#include "blitter/blitter.h"
 #include "video/video_driver.hpp"
 #include "window_func.h"
 #include "base_media_func.h"
@@ -237,7 +237,7 @@ static bool SwitchNewGRFBlitter()
 	if (!_blitter_autodetected) return false;
 
 	/* Null driver => dedicated server => do nothing. */
-	if (BlitterFactory::GetCurrentBlitter()->GetScreenDepth() == 0) return false;
+	if (GetCurrentBlitter()->GetScreenDepth() == 0) return false;
 
 	/* Get preferred depth.
 	 *  - depth_wanted_by_base: Depth required by the baseset, i.e. the majority of the sprites.
@@ -270,7 +270,7 @@ static bool SwitchNewGRFBlitter()
 	};
 
 	const bool animation_wanted = HasBit(_display_opt, DO_FULL_ANIMATION);
-	const char *cur_blitter = BlitterFactory::GetCurrentBlitter()->GetName();
+	const char *cur_blitter = GetCurrentBlitterName();
 
 	for (uint i = 0; i < lengthof(replacement_blitters); i++) {
 		if (animation_wanted && (replacement_blitters[i].animation == 0)) continue;
@@ -281,18 +281,19 @@ static bool SwitchNewGRFBlitter()
 		const char *repl_blitter = replacement_blitters[i].name;
 
 		if (strcmp(repl_blitter, cur_blitter) == 0) return false;
-		if (BlitterFactory::GetBlitterFactory(repl_blitter) == NULL) continue;
 
 		DEBUG(misc, 1, "Switching blitter from '%s' to '%s'... ", cur_blitter, repl_blitter);
-		Blitter *new_blitter = BlitterFactory::SelectBlitter(repl_blitter);
-		if (new_blitter == NULL) NOT_REACHED();
-		DEBUG(misc, 1, "Successfully switched to %s.", repl_blitter);
-		break;
+		Blitter *new_blitter = SelectBlitter (repl_blitter);
+		if (new_blitter != NULL) {
+			DEBUG(misc, 1, "Successfully switched to %s.", repl_blitter);
+			break;
+		}
+		DEBUG(misc, 1, "Switching failed");
 	}
 
 	if (!VideoDriver::GetInstance()->AfterBlitterChange()) {
 		/* Failed to switch blitter, let's hope we can return to the old one. */
-		if (BlitterFactory::SelectBlitter(cur_blitter) == NULL || !VideoDriver::GetInstance()->AfterBlitterChange()) usererror("Failed to reinitialize video driver. Specify a fixed blitter in the config");
+		if (SelectBlitter(cur_blitter) == NULL || !VideoDriver::GetInstance()->AfterBlitterChange()) usererror("Failed to reinitialize video driver. Specify a fixed blitter in the config");
 	}
 
 	return true;

@@ -10,8 +10,9 @@
 /** @file null_v.cpp The videio driver that doesn't blit. */
 
 #include "../stdafx.h"
+#include "../debug.h"
 #include "../gfx_func.h"
-#include "../blitter/factory.hpp"
+#include "../blitter/blitter.h"
 #include "null_v.h"
 
 /** Factory for the null video driver. */
@@ -32,7 +33,7 @@ const char *VideoDriver_Null::Start(const char * const *parm)
 
 	/* Do not render, nor blit */
 	DEBUG(misc, 1, "Forcing blitter 'null'...");
-	BlitterFactory::SelectBlitter("null");
+	SelectBlitter("null");
 	return NULL;
 }
 

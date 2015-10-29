@@ -33,7 +33,7 @@ public:
 	 * Destroying this instance will reset the building mode to the mode
 	 * it was active when the instance was created.
 	 */
-	~BaseScriptMode();
+	void FinalRelease() OVERRIDE;
 
 	/** Check if this instance represents a switch to test mode. */
 	bool operator() (void) const

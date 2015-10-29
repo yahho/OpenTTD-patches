@@ -13,7 +13,6 @@
 #define BLITTER_32BPP_SIMPLE_HPP
 
 #include "32bpp_base.hpp"
-#include "factory.hpp"
 
 /** The most trivial 32 bpp blitter (without palette animation). */
 class Blitter_32bppSimple : public Blitter_32bppBase {
@@ -26,18 +25,17 @@ class Blitter_32bppSimple : public Blitter_32bppBase {
 		uint8 v;  ///< Brightness-channel
 	};
 public:
+	/** Data structure describing a sprite. */
+	struct Sprite : ::Sprite {
+		Pixel data[];  ///< Sprite data
+	};
+
+	static const char name[]; ///< Name of the blitter.
+	static const char desc[]; ///< Description of the blitter.
+
 	/* virtual */ void Draw(Blitter::BlitterParams *bp, BlitterMode mode, ZoomLevel zoom);
 	/* virtual */ void DrawColourMappingRect(void *dst, int width, int height, PaletteID pal);
-	/* virtual */ Sprite *Encode(const SpriteLoader::Sprite *sprite, AllocatorProc *allocator);
-
-	/* virtual */ const char *GetName() { return "32bpp-simple"; }
-};
-
-/** Factory for the simple 32 bpp blitter. */
-class FBlitter_32bppSimple : public BlitterFactory {
-public:
-	FBlitter_32bppSimple() : BlitterFactory("32bpp-simple", "32bpp Simple Blitter (no palette animation)") {}
-	/* virtual */ Blitter *CreateInstance() { return new Blitter_32bppSimple(); }
+	/* virtual */ ::Sprite *Encode (const SpriteLoader::Sprite *sprite, AllocatorProc *allocator);
 };
 
 #endif /* BLITTER_32BPP_SIMPLE_HPP */

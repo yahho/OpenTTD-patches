@@ -32,7 +32,7 @@
 #include "viewport_func.h"
 #include "core/geometry_func.hpp"
 #include "ai/ai.hpp"
-#include "blitter/factory.hpp"
+#include "blitter/blitter.h"
 #include "language.h"
 #include "textfile.h"
 #include "stringfilter_type.h"
@@ -312,7 +312,7 @@ struct GameOptionsWindow : Window {
 				list = new DropDownList();
 				*selected_index = _cur_screenshot_format;
 				for (uint i = 0; i < _num_screenshot_formats; i++) {
-					if (!GetScreenshotFormatSupports_32bpp(i) && BlitterFactory::GetCurrentBlitter()->GetScreenDepth() == 32) continue;
+					if (!GetScreenshotFormatSupports_32bpp(i) && GetCurrentBlitter()->GetScreenDepth() == 32) continue;
 					*list->Append() = new DropDownListStringItem(SPECSTR_SCREENSHOT_START + i, i, false);
 				}
 				break;
@@ -1936,13 +1936,13 @@ struct GameSettingsWindow : Window {
 		if (this->warn_missing != WHR_NONE) {
 			const int left = panel->pos_x;
 			const int right = left + panel->current_x - 1;
-			const int top = panel->pos_y;
+			const int top = panel->pos_y + WD_FRAMETEXT_TOP + (SETTING_HEIGHT - FONT_HEIGHT_NORMAL) * this->warn_lines / 2;
 			SetDParam(0, _game_settings_restrict_dropdown[this->filter.min_cat]);
 			if (this->warn_lines == 1) {
 				/* If the warning fits at one line, center it. */
-				DrawString(left + WD_FRAMETEXT_LEFT, right - WD_FRAMETEXT_RIGHT, top + WD_FRAMETEXT_TOP, warn_str, TC_FROMSTRING, SA_HOR_CENTER);
+				DrawString(left + WD_FRAMETEXT_LEFT, right - WD_FRAMETEXT_RIGHT, top, warn_str, TC_FROMSTRING, SA_HOR_CENTER);
 			} else {
-				DrawStringMultiLine(left + WD_FRAMERECT_LEFT, right - WD_FRAMERECT_RIGHT, top + WD_FRAMERECT_TOP, INT32_MAX, warn_str);
+				DrawStringMultiLine(left + WD_FRAMERECT_LEFT, right - WD_FRAMERECT_RIGHT, top, INT32_MAX, warn_str, TC_FROMSTRING, SA_HOR_CENTER);
 			}
 		}
 	}
@@ -1996,7 +1996,7 @@ struct GameSettingsWindow : Window {
 	{
 		switch (widget) {
 			case WID_GS_OPTIONSPANEL: {
-				int top_pos = r.top + SETTINGTREE_TOP_OFFSET + 1 + this->warn_lines * FONT_HEIGHT_NORMAL;
+				int top_pos = r.top + SETTINGTREE_TOP_OFFSET + 1 + this->warn_lines * SETTING_HEIGHT;
 				uint last_row = this->vscroll->GetPosition() + this->vscroll->GetCapacity() - this->warn_lines;
 				int next_row = _settings_main_page.Draw(settings_ptr, r.left + SETTINGTREE_LEFT_OFFSET, r.right - SETTINGTREE_RIGHT_OFFSET, top_pos,
 						this->vscroll->GetPosition(), last_row, this->last_clicked);

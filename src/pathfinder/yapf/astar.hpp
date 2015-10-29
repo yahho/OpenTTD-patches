@@ -53,7 +53,7 @@ struct AstarNodeBase : CHashTableEntryT<Node> {
 	}
 
 	/** Compare estimated final cost with another node */
-	inline bool operator < (const Node& other) const
+	inline bool operator < (const Node &other) const
 	{
 		return m_estimate < other.m_estimate;
 	}
@@ -69,22 +69,15 @@ struct AstarNodeBase : CHashTableEntryT<Node> {
 template <class TNode, int open_hash_bits, int closed_hash_bits>
 struct Astar {
 public:
-	/** make TNode visible from outside of class */
-	typedef TNode Node;
-	/** make TNode::Key a property of HashTable */
-	typedef typename TNode::Key Key;
+	typedef TNode Node;              ///< Make #TNode visible from outside of class.
+	typedef typename TNode::Key Key; ///< Make TNode::Key a property of HashTable.
 
 private:
-	/** here we store full item data (Node) */
-	SmallArray<Node, 65536, 256> m_arr;
-	/** hash table of pointers to open item data */
-	CHashTableT<Node, open_hash_bits  > m_open;
-	/** hash table of pointers to closed item data */
-	CHashTableT<Node, closed_hash_bits> m_closed;
-	/** priority queue of pointers to open item data */
-	CBinaryHeapT<Node> m_open_queue;
-	/** new open node under construction */
-	Node              *m_new_node;
+	SmallArray<Node, 65536, 256> m_arr;           ///< Here we store full item data (Node).
+	CHashTableT<Node, open_hash_bits  > m_open;   ///< Hash table of pointers to open item data.
+	CHashTableT<Node, closed_hash_bits> m_closed; ///< Hash table of pointers to closed item data.
+	CBinaryHeapT<Node> m_open_queue;              ///< Priority queue of pointers to open item data.
+	Node              *m_new_node;                ///< New open node under construction.
 
 public:
 	Node *best;              ///< pointer to the destination node found at last round
@@ -151,7 +144,7 @@ private:
 	/** Remove and return the open node specified by a key. */
 	inline void PopOpenNode (const Key &key)
 	{
-		Node& item = m_open.Pop(key);
+		Node &item = m_open.Pop(key);
 		uint idxPop = m_open_queue.FindIndex(item);
 		m_open_queue.Remove(idxPop);
 	}

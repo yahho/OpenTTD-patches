@@ -10,13 +10,14 @@
 /** @file 32bpp_simple.cpp Implementation of the simple 32 bpp blitter. */
 
 #include "../stdafx.h"
+#include "../debug.h"
 #include "../zoom_func.h"
 #include "32bpp_simple.hpp"
 
 #include "../table/sprites.h"
 
-/** Instantiation of the simple 32bpp blitter factory. */
-static FBlitter_32bppSimple iFBlitter_32bppSimple;
+const char Blitter_32bppSimple::name[] = "32bpp-simple";
+const char Blitter_32bppSimple::desc[] = "32bpp Simple Blitter (no palette animation)";
 
 void Blitter_32bppSimple::Draw(Blitter::BlitterParams *bp, BlitterMode mode, ZoomLevel zoom)
 {
@@ -24,7 +25,8 @@ void Blitter_32bppSimple::Draw(Blitter::BlitterParams *bp, BlitterMode mode, Zoo
 	Colour *dst, *dst_line;
 
 	/* Find where to start reading in the source sprite */
-	src_line = (const Blitter_32bppSimple::Pixel *)bp->sprite + (bp->skip_top * bp->sprite_width + bp->skip_left) * ScaleByZoom(1, zoom);
+	const Sprite *sprite = static_cast<const Sprite*> (bp->sprite);
+	src_line = sprite->data + (bp->skip_top * sprite->width + bp->skip_left) * ScaleByZoom(1, zoom);
 	dst_line = (Colour *)bp->dst + bp->top * bp->pitch + bp->left;
 
 	for (int y = 0; y < bp->height; y++) {
@@ -32,7 +34,7 @@ void Blitter_32bppSimple::Draw(Blitter::BlitterParams *bp, BlitterMode mode, Zoo
 		dst_line += bp->pitch;
 
 		src = src_line;
-		src_line += bp->sprite_width * ScaleByZoom(1, zoom);
+		src_line += sprite->width * ScaleByZoom(1, zoom);
 
 		for (int x = 0; x < bp->width; x++) {
 			switch (mode) {
@@ -109,17 +111,12 @@ void Blitter_32bppSimple::DrawColourMappingRect(void *dst, int width, int height
 	DEBUG(misc, 0, "32bpp blitter doesn't know how to draw this colour table ('%d')", pal);
 }
 
-Sprite *Blitter_32bppSimple::Encode(const SpriteLoader::Sprite *sprite, AllocatorProc *allocator)
+::Sprite *Blitter_32bppSimple::Encode (const SpriteLoader::Sprite *sprite, AllocatorProc *allocator)
 {
 	Blitter_32bppSimple::Pixel *dst;
-	Sprite *dest_sprite = (Sprite *)allocator(sizeof(*dest_sprite) + (size_t)sprite->height * (size_t)sprite->width * sizeof(*dst));
+	Sprite *dest_sprite = AllocateSprite<Sprite> (sprite, allocator, (size_t)sprite->height * (size_t)sprite->width * sizeof(*dst));
 
-	dest_sprite->height = sprite->height;
-	dest_sprite->width  = sprite->width;
-	dest_sprite->x_offs = sprite->x_offs;
-	dest_sprite->y_offs = sprite->y_offs;
-
-	dst = (Blitter_32bppSimple::Pixel *)dest_sprite->data;
+	dst = dest_sprite->data;
 	SpriteLoader::CommonPixel *src = (SpriteLoader::CommonPixel *)sprite->data;
 
 	for (int i = 0; i < sprite->height * sprite->width; i++) {

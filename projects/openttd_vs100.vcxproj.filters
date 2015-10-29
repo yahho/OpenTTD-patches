@@ -2547,58 +2547,22 @@
     <ClCompile Include="..\src\script\api\script_window.cpp">
       <Filter>Script API Implementation</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\blitter\32bpp_anim.cpp">
+    <ClCompile Include="..\src\blitter\base.cpp">
       <Filter>Blitters</Filter>
     </ClCompile>
-    <ClInclude Include="..\src\blitter\32bpp_anim.hpp">
+    <ClInclude Include="..\src\blitter\base.hpp">
       <Filter>Blitters</Filter>
     </ClInclude>
-    <ClCompile Include="..\src\blitter\32bpp_anim_sse4.cpp">
+    <ClCompile Include="..\src\blitter\blitter.cpp">
       <Filter>Blitters</Filter>
     </ClCompile>
-    <ClInclude Include="..\src\blitter\32bpp_anim_sse4.hpp">
+    <ClInclude Include="..\src\blitter\blitter.h">
       <Filter>Blitters</Filter>
     </ClInclude>
-    <ClCompile Include="..\src\blitter\32bpp_base.cpp">
+    <ClCompile Include="..\src\blitter\null.cpp">
       <Filter>Blitters</Filter>
     </ClCompile>
-    <ClInclude Include="..\src\blitter\32bpp_base.hpp">
-      <Filter>Blitters</Filter>
-    </ClInclude>
-    <ClCompile Include="..\src\blitter\32bpp_optimized.cpp">
-      <Filter>Blitters</Filter>
-    </ClCompile>
-    <ClInclude Include="..\src\blitter\32bpp_optimized.hpp">
-      <Filter>Blitters</Filter>
-    </ClInclude>
-    <ClCompile Include="..\src\blitter\32bpp_simple.cpp">
-      <Filter>Blitters</Filter>
-    </ClCompile>
-    <ClInclude Include="..\src\blitter\32bpp_simple.hpp">
-      <Filter>Blitters</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\blitter\32bpp_sse_func.hpp">
-      <Filter>Blitters</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\blitter\32bpp_sse_type.h">
-      <Filter>Blitters</Filter>
-    </ClInclude>
-    <ClCompile Include="..\src\blitter\32bpp_sse2.cpp">
-      <Filter>Blitters</Filter>
-    </ClCompile>
-    <ClInclude Include="..\src\blitter\32bpp_sse2.hpp">
-      <Filter>Blitters</Filter>
-    </ClInclude>
-    <ClCompile Include="..\src\blitter\32bpp_sse4.cpp">
-      <Filter>Blitters</Filter>
-    </ClCompile>
-    <ClInclude Include="..\src\blitter\32bpp_sse4.hpp">
-      <Filter>Blitters</Filter>
-    </ClInclude>
-    <ClCompile Include="..\src\blitter\32bpp_ssse3.cpp">
-      <Filter>Blitters</Filter>
-    </ClCompile>
-    <ClInclude Include="..\src\blitter\32bpp_ssse3.hpp">
+    <ClInclude Include="..\src\blitter\null.hpp">
       <Filter>Blitters</Filter>
     </ClInclude>
     <ClCompile Include="..\src\blitter\8bpp_base.cpp">
@@ -2607,31 +2571,79 @@
     <ClInclude Include="..\src\blitter\8bpp_base.hpp">
       <Filter>Blitters</Filter>
     </ClInclude>
-    <ClCompile Include="..\src\blitter\8bpp_optimized.cpp">
-      <Filter>Blitters</Filter>
-    </ClCompile>
-    <ClInclude Include="..\src\blitter\8bpp_optimized.hpp">
-      <Filter>Blitters</Filter>
-    </ClInclude>
     <ClCompile Include="..\src\blitter\8bpp_simple.cpp">
       <Filter>Blitters</Filter>
     </ClCompile>
     <ClInclude Include="..\src\blitter\8bpp_simple.hpp">
       <Filter>Blitters</Filter>
     </ClInclude>
-    <ClCompile Include="..\src\blitter\base.cpp">
+    <ClCompile Include="..\src\blitter\8bpp_optimized.cpp">
       <Filter>Blitters</Filter>
     </ClCompile>
-    <ClInclude Include="..\src\blitter\base.hpp">
+    <ClInclude Include="..\src\blitter\8bpp_optimized.hpp">
       <Filter>Blitters</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\blitter\factory.hpp">
-      <Filter>Blitters</Filter>
-    </ClInclude>
-    <ClCompile Include="..\src\blitter\null.cpp">
+    <ClCompile Include="..\src\blitter\32bpp_base.cpp">
       <Filter>Blitters</Filter>
     </ClCompile>
-    <ClInclude Include="..\src\blitter\null.hpp">
+    <ClInclude Include="..\src\blitter\32bpp_base.hpp">
+      <Filter>Blitters</Filter>
+    </ClInclude>
+    <ClCompile Include="..\src\blitter\32bpp_simple.cpp">
+      <Filter>Blitters</Filter>
+    </ClCompile>
+    <ClInclude Include="..\src\blitter\32bpp_simple.hpp">
+      <Filter>Blitters</Filter>
+    </ClInclude>
+    <ClCompile Include="..\src\blitter\32bpp_optimized.cpp">
+      <Filter>Blitters</Filter>
+    </ClCompile>
+    <ClInclude Include="..\src\blitter\32bpp_optimized.hpp">
+      <Filter>Blitters</Filter>
+    </ClInclude>
+    <ClCompile Include="..\src\blitter\32bpp_anim.cpp">
+      <Filter>Blitters</Filter>
+    </ClCompile>
+    <ClInclude Include="..\src\blitter\32bpp_anim.hpp">
+      <Filter>Blitters</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\blitter\sse2.h">
+      <Filter>Blitters</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\blitter\sse3.h">
+      <Filter>Blitters</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\blitter\sse4.h">
+      <Filter>Blitters</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\blitter\32bpp_sse_common.h">
+      <Filter>Blitters</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\blitter\32bpp_sse_func.hpp">
+      <Filter>Blitters</Filter>
+    </ClInclude>
+    <ClCompile Include="..\src\blitter\32bpp_sse2.cpp">
+      <Filter>Blitters</Filter>
+    </ClCompile>
+    <ClInclude Include="..\src\blitter\32bpp_sse2.hpp">
+      <Filter>Blitters</Filter>
+    </ClInclude>
+    <ClCompile Include="..\src\blitter\32bpp_ssse3.cpp">
+      <Filter>Blitters</Filter>
+    </ClCompile>
+    <ClInclude Include="..\src\blitter\32bpp_ssse3.hpp">
+      <Filter>Blitters</Filter>
+    </ClInclude>
+    <ClCompile Include="..\src\blitter\32bpp_sse4.cpp">
+      <Filter>Blitters</Filter>
+    </ClCompile>
+    <ClInclude Include="..\src\blitter\32bpp_sse4.hpp">
+      <Filter>Blitters</Filter>
+    </ClInclude>
+    <ClCompile Include="..\src\blitter\32bpp_anim_sse4.cpp">
+      <Filter>Blitters</Filter>
+    </ClCompile>
+    <ClInclude Include="..\src\blitter\32bpp_anim_sse4.hpp">
       <Filter>Blitters</Filter>
     </ClInclude>
     <ClInclude Include="..\src\music\music_driver.hpp">

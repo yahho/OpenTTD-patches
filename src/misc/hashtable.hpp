@@ -42,7 +42,7 @@ struct CHashTableEntryT : ForwardListLink <Titem_, CHashTableEntryT<Titem_> >
  *    - public method that calculates key's hash:
  *        int CalcHash() const;
  *    - public 'equality' operator to compare the key with another one
- *        bool operator == (const Key& other) const;
+ *        bool operator == (const Key &other) const;
  */
 template <class Titem_, int Thash_bits_>
 class CHashTableT {
@@ -69,7 +69,7 @@ public:
 
 protected:
 	/** static helper - return hash for the given key modulo number of slots */
-	inline static int CalcHash(const Tkey& key)
+	inline static int CalcHash(const Tkey &key)
 	{
 		int32 hash = key.CalcHash();
 		if ((8 * Thash_bits) < 32) hash ^= hash >> (min(8 * Thash_bits, 31));
@@ -101,27 +101,33 @@ private:
 
 public:
 	/** item count */
-	inline uint Count() const {return m_num_items;}
+	inline uint Count() const
+	{
+		return m_num_items;
+	}
 
 	/** simple clear - forget all items - used by CSegmentCostCacheT.Flush() */
-	inline void Clear() {for (int i = 0; i < Tcapacity; i++) m_slots[i].detach_all();}
+	inline void Clear()
+	{
+		for (int i = 0; i < Tcapacity; i++) m_slots[i].detach_all();
+	}
 
 	/** const item search */
-	const Titem_ *Find(const Tkey& key) const
+	const Titem_ *Find(const Tkey &key) const
 	{
 		int hash = CalcHash(key);
 		return FindKeyInSlot (&m_slots[hash], key);
 	}
 
 	/** non-const item search */
-	Titem_ *Find(const Tkey& key)
+	Titem_ *Find(const Tkey &key)
 	{
 		int hash = CalcHash(key);
 		return FindKeyInSlot (&m_slots[hash], key);
 	}
 
 	/** non-const item search & optional removal (if found) */
-	Titem_ *TryPop(const Tkey& key)
+	Titem_ *TryPop(const Tkey &key)
 	{
 		int hash = CalcHash(key);
 		Titem_ *item = RemoveKeyFromSlot (&m_slots[hash], key);
@@ -132,7 +138,7 @@ public:
 	}
 
 	/** non-const item search & removal */
-	Titem_& Pop(const Tkey& key)
+	Titem_ &Pop(const Tkey &key)
 	{
 		Titem_ *item = TryPop(key);
 		assert(item != NULL);
@@ -140,9 +146,9 @@ public:
 	}
 
 	/** non-const item search & optional removal (if found) */
-	bool TryPop(Titem_& item)
+	bool TryPop(Titem_ &item)
 	{
-		const Tkey& key = item.GetKey();
+		const Tkey &key = item.GetKey();
 		int hash = CalcHash(key);
 		if (m_slots[hash].remove(&item) == NULL) return false;
 		m_num_items--;
@@ -150,16 +156,16 @@ public:
 	}
 
 	/** non-const item search & removal */
-	void Pop(Titem_& item)
+	void Pop(Titem_ &item)
 	{
 		bool ret = TryPop(item);
 		assert(ret);
 	}
 
 	/** add one item - copy it from the given item */
-	void Push(Titem_& new_item)
+	void Push(Titem_ &new_item)
 	{
-		const Tkey& key = new_item.GetKey();
+		const Tkey &key = new_item.GetKey();
 		int hash = CalcHash(key);
 		assert(FindKeyInSlot (&m_slots[hash], key) == NULL);
 		m_slots[hash].prepend (&new_item);

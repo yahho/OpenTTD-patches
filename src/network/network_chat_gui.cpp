@@ -14,9 +14,10 @@
 #ifdef ENABLE_NETWORK
 
 #include "../stdafx.h"
+#include "../debug.h"
 #include "../string.h"
 #include "../strings_func.h"
-#include "../blitter/factory.hpp"
+#include "../blitter/blitter.h"
 #include "../console_func.h"
 #include "../video/video_driver.hpp"
 #include "../querystring_gui.h"
@@ -110,7 +111,7 @@ void NetworkReInitChatBoxSize()
 {
 	_chatmsg_box.y       = 3 * FONT_HEIGHT_NORMAL;
 	_chatmsg_box.height  = MAX_CHAT_MESSAGES * (FONT_HEIGHT_NORMAL + NETWORK_CHAT_LINE_SPACING) + 2;
-	_chatmessage_backup  = xrealloct (_chatmessage_backup, _chatmsg_box.width * _chatmsg_box.height * BlitterFactory::GetCurrentBlitter()->GetBytesPerPixel());
+	_chatmessage_backup  = xrealloct (_chatmessage_backup, _chatmsg_box.width * _chatmsg_box.height * GetCurrentBlitter()->GetBytesPerPixel());
 }
 
 /** Initialize all buffers of the chat visualisation. */
@@ -151,7 +152,7 @@ void NetworkUndrawChatMessage()
 	}
 
 	if (_chatmessage_visible) {
-		Blitter *blitter = BlitterFactory::GetCurrentBlitter();
+		Blitter *blitter = GetCurrentBlitter();
 		int x      = _chatmsg_box.x;
 		int y      = _screen.height - _chatmsg_box.y - _chatmsg_box.height;
 		int width  = _chatmsg_box.width;
@@ -200,7 +201,7 @@ void NetworkChatMessageLoop()
 /** Draw the chat message-box */
 void NetworkDrawChatMessage()
 {
-	Blitter *blitter = BlitterFactory::GetCurrentBlitter();
+	Blitter *blitter = GetCurrentBlitter();
 	if (!_chatmessage_dirty) return;
 
 	/* First undraw if needed */

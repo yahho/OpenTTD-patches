@@ -875,42 +875,44 @@ script/api/script_waypointlist.cpp
 script/api/script_window.cpp
 
 # Blitters
+blitter/base.cpp
+blitter/base.hpp
+blitter/blitter.cpp
+blitter/blitter.h
+blitter/null.cpp
+blitter/null.hpp
 #if DEDICATED
 #else
+blitter/8bpp_base.cpp
+blitter/8bpp_base.hpp
+blitter/8bpp_simple.cpp
+blitter/8bpp_simple.hpp
+blitter/8bpp_optimized.cpp
+blitter/8bpp_optimized.hpp
+blitter/32bpp_base.cpp
+blitter/32bpp_base.hpp
+blitter/32bpp_simple.cpp
+blitter/32bpp_simple.hpp
+blitter/32bpp_optimized.cpp
+blitter/32bpp_optimized.hpp
 blitter/32bpp_anim.cpp
 blitter/32bpp_anim.hpp
 #if SSE
+blitter/sse2.h
+blitter/sse3.h
+blitter/sse4.h
+blitter/32bpp_sse_common.h
+blitter/32bpp_sse_func.hpp
+blitter/32bpp_sse2.cpp
+blitter/32bpp_sse2.hpp
+blitter/32bpp_ssse3.cpp
+blitter/32bpp_ssse3.hpp
+blitter/32bpp_sse4.cpp
+blitter/32bpp_sse4.hpp
 blitter/32bpp_anim_sse4.cpp
 blitter/32bpp_anim_sse4.hpp
 #end
-blitter/32bpp_base.cpp
-blitter/32bpp_base.hpp
-blitter/32bpp_optimized.cpp
-blitter/32bpp_optimized.hpp
-blitter/32bpp_simple.cpp
-blitter/32bpp_simple.hpp
-#if SSE
-blitter/32bpp_sse_func.hpp
-blitter/32bpp_sse_type.h
-blitter/32bpp_sse2.cpp
-blitter/32bpp_sse2.hpp
-blitter/32bpp_sse4.cpp
-blitter/32bpp_sse4.hpp
-blitter/32bpp_ssse3.cpp
-blitter/32bpp_ssse3.hpp
 #end
-blitter/8bpp_base.cpp
-blitter/8bpp_base.hpp
-blitter/8bpp_optimized.cpp
-blitter/8bpp_optimized.hpp
-blitter/8bpp_simple.cpp
-blitter/8bpp_simple.hpp
-#end
-blitter/base.cpp
-blitter/base.hpp
-blitter/factory.hpp
-blitter/null.cpp
-blitter/null.hpp
 
 # Drivers
 music/music_driver.hpp

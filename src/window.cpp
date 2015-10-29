@@ -11,13 +11,14 @@
 
 #include "stdafx.h"
 #include <stdarg.h>
+#include "debug.h"
 #include "company_func.h"
 #include "gfx_func.h"
 #include "console_func.h"
 #include "console_gui.h"
 #include "viewport_func.h"
 #include "progress.h"
-#include "blitter/factory.hpp"
+#include "blitter/blitter.h"
 #include "zoom_func.h"
 #include "vehicle_base.h"
 #include "map/subcoord.h"
@@ -915,7 +916,7 @@ static void DrawOverlappedWindow(Window *w, int left, int top, int right, int bo
 	dp->left = left - w->left;
 	dp->top = top - w->top;
 	dp->pitch = _screen.pitch;
-	dp->dst_ptr = BlitterFactory::GetCurrentBlitter()->MoveTo(_screen.dst_ptr, left, top);
+	dp->dst_ptr = GetCurrentBlitter()->MoveTo (_screen.dst_ptr, left, top);
 	dp->zoom = ZOOM_LVL_NORMAL;
 	w->OnPaint();
 }
@@ -2933,7 +2934,7 @@ void HandleMouseEvents()
 
 	if (click == MC_LEFT && _newgrf_debug_sprite_picker.mode == SPM_WAIT_CLICK) {
 		/* Mark whole screen dirty, and wait for the next realtime tick, when drawing is finished. */
-		Blitter *blitter = BlitterFactory::GetCurrentBlitter();
+		Blitter *blitter = GetCurrentBlitter();
 		_newgrf_debug_sprite_picker.clicked_pixel = blitter->MoveTo(_screen.dst_ptr, _cursor.pos.x, _cursor.pos.y);
 		_newgrf_debug_sprite_picker.click_time = _realtime_tick;
 		_newgrf_debug_sprite_picker.sprites.Clear();

@@ -5,27 +5,29 @@
  * See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with OpenTTD. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/** @file script_mode.cpp Implementation of ScriptTestMode and ScriptExecMode. */
+/** @file blitter.h Blitter code interface. */
 
-#include "../../stdafx.h"
-#include "script_mode.hpp"
-#include "../script_instance.hpp"
-#include "../script_fatalerror.hpp"
+#ifndef BLITTER_H
+#define BLITTER_H
 
-BaseScriptMode::BaseScriptMode (bool t) : test(t)
+#include "../core/pointer.h"
+#include "../string.h"
+#include "base.hpp"
+
+Blitter *SelectBlitter (const char *name);
+
+/** Get the current active blitter (always set by calling SelectBlitter). */
+static inline Blitter *GetCurrentBlitter()
 {
-	ScriptObject::GetActiveInstance()->PushBuildMode (this);
+	extern ttd_unique_ptr<Blitter> current_blitter;
+	return current_blitter.get();
 }
 
-void BaseScriptMode::FinalRelease()
-{
-	ScriptObject::GetActiveInstance()->PopBuildMode (this);
-}
+const char *GetCurrentBlitterName (void);
 
-ScriptExecMode::ScriptExecMode() : BaseScriptMode (false)
-{
-}
+void GetBlittersInfo (stringb *buf);
 
-ScriptTestMode::ScriptTestMode() : BaseScriptMode (true)
-{
-}
+extern char *_ini_blitter;
+extern bool _blitter_autodetected;
+
+#endif /* BLITTER_H */

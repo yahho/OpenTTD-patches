@@ -1755,87 +1755,95 @@
       <ObjectFileName>$(IntDir)\script\api\</ObjectFileName>
       <XMLDocumentationFileName>$(IntDir)\script\api\</XMLDocumentationFileName>
     </ClCompile>
-    <ClCompile Include="..\src\blitter\32bpp_anim.cpp">
-      <AssemblerListingLocation>$(IntDir)\blitter\</AssemblerListingLocation>
-      <ObjectFileName>$(IntDir)\blitter\</ObjectFileName>
-      <XMLDocumentationFileName>$(IntDir)\blitter\</XMLDocumentationFileName>
-    </ClCompile>
-    <ClInclude Include="..\src\blitter\32bpp_anim.hpp" />
-    <ClCompile Include="..\src\blitter\32bpp_anim_sse4.cpp">
-      <AssemblerListingLocation>$(IntDir)\blitter\</AssemblerListingLocation>
-      <ObjectFileName>$(IntDir)\blitter\</ObjectFileName>
-      <XMLDocumentationFileName>$(IntDir)\blitter\</XMLDocumentationFileName>
-    </ClCompile>
-    <ClInclude Include="..\src\blitter\32bpp_anim_sse4.hpp" />
-    <ClCompile Include="..\src\blitter\32bpp_base.cpp">
-      <AssemblerListingLocation>$(IntDir)\blitter\</AssemblerListingLocation>
-      <ObjectFileName>$(IntDir)\blitter\</ObjectFileName>
-      <XMLDocumentationFileName>$(IntDir)\blitter\</XMLDocumentationFileName>
-    </ClCompile>
-    <ClInclude Include="..\src\blitter\32bpp_base.hpp" />
-    <ClCompile Include="..\src\blitter\32bpp_optimized.cpp">
-      <AssemblerListingLocation>$(IntDir)\blitter\</AssemblerListingLocation>
-      <ObjectFileName>$(IntDir)\blitter\</ObjectFileName>
-      <XMLDocumentationFileName>$(IntDir)\blitter\</XMLDocumentationFileName>
-    </ClCompile>
-    <ClInclude Include="..\src\blitter\32bpp_optimized.hpp" />
-    <ClCompile Include="..\src\blitter\32bpp_simple.cpp">
-      <AssemblerListingLocation>$(IntDir)\blitter\</AssemblerListingLocation>
-      <ObjectFileName>$(IntDir)\blitter\</ObjectFileName>
-      <XMLDocumentationFileName>$(IntDir)\blitter\</XMLDocumentationFileName>
-    </ClCompile>
-    <ClInclude Include="..\src\blitter\32bpp_simple.hpp" />
-    <ClInclude Include="..\src\blitter\32bpp_sse_func.hpp" />
-    <ClInclude Include="..\src\blitter\32bpp_sse_type.h" />
-    <ClCompile Include="..\src\blitter\32bpp_sse2.cpp">
-      <AssemblerListingLocation>$(IntDir)\blitter\</AssemblerListingLocation>
-      <ObjectFileName>$(IntDir)\blitter\</ObjectFileName>
-      <XMLDocumentationFileName>$(IntDir)\blitter\</XMLDocumentationFileName>
-    </ClCompile>
-    <ClInclude Include="..\src\blitter\32bpp_sse2.hpp" />
-    <ClCompile Include="..\src\blitter\32bpp_sse4.cpp">
-      <AssemblerListingLocation>$(IntDir)\blitter\</AssemblerListingLocation>
-      <ObjectFileName>$(IntDir)\blitter\</ObjectFileName>
-      <XMLDocumentationFileName>$(IntDir)\blitter\</XMLDocumentationFileName>
-    </ClCompile>
-    <ClInclude Include="..\src\blitter\32bpp_sse4.hpp" />
-    <ClCompile Include="..\src\blitter\32bpp_ssse3.cpp">
-      <AssemblerListingLocation>$(IntDir)\blitter\</AssemblerListingLocation>
-      <ObjectFileName>$(IntDir)\blitter\</ObjectFileName>
-      <XMLDocumentationFileName>$(IntDir)\blitter\</XMLDocumentationFileName>
-    </ClCompile>
-    <ClInclude Include="..\src\blitter\32bpp_ssse3.hpp" />
-    <ClCompile Include="..\src\blitter\8bpp_base.cpp">
-      <AssemblerListingLocation>$(IntDir)\blitter\</AssemblerListingLocation>
-      <ObjectFileName>$(IntDir)\blitter\</ObjectFileName>
-      <XMLDocumentationFileName>$(IntDir)\blitter\</XMLDocumentationFileName>
-    </ClCompile>
-    <ClInclude Include="..\src\blitter\8bpp_base.hpp" />
-    <ClCompile Include="..\src\blitter\8bpp_optimized.cpp">
-      <AssemblerListingLocation>$(IntDir)\blitter\</AssemblerListingLocation>
-      <ObjectFileName>$(IntDir)\blitter\</ObjectFileName>
-      <XMLDocumentationFileName>$(IntDir)\blitter\</XMLDocumentationFileName>
-    </ClCompile>
-    <ClInclude Include="..\src\blitter\8bpp_optimized.hpp" />
-    <ClCompile Include="..\src\blitter\8bpp_simple.cpp">
-      <AssemblerListingLocation>$(IntDir)\blitter\</AssemblerListingLocation>
-      <ObjectFileName>$(IntDir)\blitter\</ObjectFileName>
-      <XMLDocumentationFileName>$(IntDir)\blitter\</XMLDocumentationFileName>
-    </ClCompile>
-    <ClInclude Include="..\src\blitter\8bpp_simple.hpp" />
     <ClCompile Include="..\src\blitter\base.cpp">
       <AssemblerListingLocation>$(IntDir)\blitter\</AssemblerListingLocation>
       <ObjectFileName>$(IntDir)\blitter\</ObjectFileName>
       <XMLDocumentationFileName>$(IntDir)\blitter\</XMLDocumentationFileName>
     </ClCompile>
     <ClInclude Include="..\src\blitter\base.hpp" />
-    <ClInclude Include="..\src\blitter\factory.hpp" />
+    <ClCompile Include="..\src\blitter\blitter.cpp">
+      <AssemblerListingLocation>$(IntDir)\blitter\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\blitter\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\blitter\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClInclude Include="..\src\blitter\blitter.h" />
     <ClCompile Include="..\src\blitter\null.cpp">
       <AssemblerListingLocation>$(IntDir)\blitter\</AssemblerListingLocation>
       <ObjectFileName>$(IntDir)\blitter\</ObjectFileName>
       <XMLDocumentationFileName>$(IntDir)\blitter\</XMLDocumentationFileName>
     </ClCompile>
     <ClInclude Include="..\src\blitter\null.hpp" />
+    <ClCompile Include="..\src\blitter\8bpp_base.cpp">
+      <AssemblerListingLocation>$(IntDir)\blitter\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\blitter\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\blitter\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClInclude Include="..\src\blitter\8bpp_base.hpp" />
+    <ClCompile Include="..\src\blitter\8bpp_simple.cpp">
+      <AssemblerListingLocation>$(IntDir)\blitter\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\blitter\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\blitter\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClInclude Include="..\src\blitter\8bpp_simple.hpp" />
+    <ClCompile Include="..\src\blitter\8bpp_optimized.cpp">
+      <AssemblerListingLocation>$(IntDir)\blitter\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\blitter\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\blitter\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClInclude Include="..\src\blitter\8bpp_optimized.hpp" />
+    <ClCompile Include="..\src\blitter\32bpp_base.cpp">
+      <AssemblerListingLocation>$(IntDir)\blitter\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\blitter\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\blitter\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClInclude Include="..\src\blitter\32bpp_base.hpp" />
+    <ClCompile Include="..\src\blitter\32bpp_simple.cpp">
+      <AssemblerListingLocation>$(IntDir)\blitter\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\blitter\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\blitter\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClInclude Include="..\src\blitter\32bpp_simple.hpp" />
+    <ClCompile Include="..\src\blitter\32bpp_optimized.cpp">
+      <AssemblerListingLocation>$(IntDir)\blitter\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\blitter\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\blitter\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClInclude Include="..\src\blitter\32bpp_optimized.hpp" />
+    <ClCompile Include="..\src\blitter\32bpp_anim.cpp">
+      <AssemblerListingLocation>$(IntDir)\blitter\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\blitter\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\blitter\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClInclude Include="..\src\blitter\32bpp_anim.hpp" />
+    <ClInclude Include="..\src\blitter\sse2.h" />
+    <ClInclude Include="..\src\blitter\sse3.h" />
+    <ClInclude Include="..\src\blitter\sse4.h" />
+    <ClInclude Include="..\src\blitter\32bpp_sse_common.h" />
+    <ClInclude Include="..\src\blitter\32bpp_sse_func.hpp" />
+    <ClCompile Include="..\src\blitter\32bpp_sse2.cpp">
+      <AssemblerListingLocation>$(IntDir)\blitter\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\blitter\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\blitter\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClInclude Include="..\src\blitter\32bpp_sse2.hpp" />
+    <ClCompile Include="..\src\blitter\32bpp_ssse3.cpp">
+      <AssemblerListingLocation>$(IntDir)\blitter\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\blitter\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\blitter\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClInclude Include="..\src\blitter\32bpp_ssse3.hpp" />
+    <ClCompile Include="..\src\blitter\32bpp_sse4.cpp">
+      <AssemblerListingLocation>$(IntDir)\blitter\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\blitter\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\blitter\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClInclude Include="..\src\blitter\32bpp_sse4.hpp" />
+    <ClCompile Include="..\src\blitter\32bpp_anim_sse4.cpp">
+      <AssemblerListingLocation>$(IntDir)\blitter\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\blitter\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\blitter\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClInclude Include="..\src\blitter\32bpp_anim_sse4.hpp" />
     <ClInclude Include="..\src\music\music_driver.hpp" />
     <ClInclude Include="..\src\sound\sound_driver.hpp" />
     <ClInclude Include="..\src\video\video_driver.hpp" />

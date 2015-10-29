@@ -73,18 +73,17 @@ inline void WriteValueStr(EndSegmentReasonBits bits, FILE *f)
 typedef CYapfNodeKeyTrackDir<RailPathPos> CYapfRailKey;
 
 /** key for cached segment cost for rail YAPF */
-struct CYapfRailSegmentKey
-{
+struct CYapfRailSegmentKey {
 	uint32    m_value;
 
-	inline CYapfRailSegmentKey(const CYapfRailKey& node_key) : m_value(node_key.CalcHash()) { }
+	inline CYapfRailSegmentKey(const CYapfRailKey &node_key) : m_value(node_key.CalcHash()) { }
 
 	inline int32 CalcHash() const
 	{
 		return m_value;
 	}
 
-	inline bool operator == (const CYapfRailSegmentKey& other) const
+	inline bool operator == (const CYapfRailSegmentKey &other) const
 	{
 		return m_value == other.m_value;
 	}
@@ -97,8 +96,7 @@ struct CYapfRailSegmentKey
 };
 
 /** cached segment cost for rail YAPF */
-struct CYapfRailSegment : CHashTableEntryT <CYapfRailSegment>
-{
+struct CYapfRailSegment : CHashTableEntryT <CYapfRailSegment> {
 	typedef CYapfRailSegmentKey Key;
 
 	CYapfRailSegmentKey    m_key;
@@ -142,9 +140,7 @@ struct CYapfRailSegment : CHashTableEntryT <CYapfRailSegment>
 };
 
 /** Yapf Node for rail YAPF */
-struct CYapfRailNodeTrackDir
-	: CYapfNodeT<CYapfRailKey, CYapfRailNodeTrackDir>
-{
+struct CYapfRailNodeTrackDir : CYapfNodeT<CYapfRailKey, CYapfRailNodeTrackDir> {
 	typedef CYapfNodeT<CYapfRailKey, CYapfRailNodeTrackDir> base;
 	typedef CYapfRailSegment CachedData;
 
@@ -228,8 +224,7 @@ void YapfNotifyTrackLayoutChange (void)
  *  Look at CYapfRailSegment for the segment example
  */
 template <class Tsegment>
-struct CSegmentCostCacheT
-{
+struct CSegmentCostCacheT {
 	static const int C_HASH_BITS = 14;
 
 	typedef CHashTableT<Tsegment, C_HASH_BITS> HashTable;
@@ -267,8 +262,7 @@ struct CSegmentCostCacheT
 
 
 template <class TAstar>
-class CYapfRailBaseT : public TAstar
-{
+class CYapfRailBaseT : public TAstar {
 public:
 	typedef typename TAstar::Node Node;           ///< this will be our node type
 	typedef typename Node::Key Key;               ///< key to hash tables
@@ -286,7 +280,7 @@ public:
 	bool          m_stopped_on_first_two_way_signal;
 
 protected:
-	Cache&        m_global_cache;
+	Cache        &m_global_cache;
 	LocalCache    m_local_cache;
 
 	int                  m_max_cost;
@@ -533,7 +527,7 @@ public:
 	}
 
 	/** The cost for reserved tiles, including skipped ones. */
-	inline int ReservationCost(Node& n, const RailPathPos &pos, int skipped) const
+	inline int ReservationCost(Node &n, const RailPathPos &pos, int skipped) const
 	{
 		if (n.m_num_signals_passed >= m_sig_look_ahead_costs.size() / 2) return 0;
 		if (!IsPbsSignal(n.m_last_signal_type)) return 0;
@@ -1183,8 +1177,7 @@ bool CYapfRailBaseT<TAstar>::TryReservePath (TileIndex origin, const NodePos *re
 
 
 template <class TAstar>
-struct CYapfRailOrderT : CYapfRailBaseT <TAstar>
-{
+struct CYapfRailOrderT : CYapfRailBaseT <TAstar> {
 public:
 	typedef CYapfRailBaseT <TAstar> Base;
 	typedef typename TAstar::Node   Node;
@@ -1298,8 +1291,7 @@ public:
 };
 
 template <class TAstar>
-struct CYapfAnyDepotRailT : CYapfRailBaseT <TAstar>
-{
+struct CYapfAnyDepotRailT : CYapfRailBaseT <TAstar> {
 	typedef CYapfRailBaseT <TAstar> Base;
 	typedef typename TAstar::Node   Node;
 
@@ -1322,8 +1314,7 @@ struct CYapfAnyDepotRailT : CYapfRailBaseT <TAstar>
 };
 
 template <class TAstar>
-struct CYapfAnySafeTileRailT : CYapfRailBaseT <TAstar>
-{
+struct CYapfAnySafeTileRailT : CYapfRailBaseT <TAstar> {
 	typedef CYapfRailBaseT <TAstar> Base;
 	typedef typename TAstar::Node   Node;
 
@@ -1347,8 +1338,7 @@ struct CYapfAnySafeTileRailT : CYapfRailBaseT <TAstar>
 
 
 template <class TBase>
-struct CYapfRailT : public TBase
-{
+struct CYapfRailT : public TBase {
 	typedef typename TBase::Node Node; ///< this will be our node type
 
 	CYapfRailT (const Train *v, bool allow_90deg)

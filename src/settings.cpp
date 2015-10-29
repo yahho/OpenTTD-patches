@@ -51,7 +51,7 @@
 #include "video/video_driver.hpp"
 #include "sound/sound_driver.hpp"
 #include "music/music_driver.hpp"
-#include "blitter/factory.hpp"
+#include "blitter/blitter.h"
 #include "base_media_base.h"
 #include "gamelog.h"
 #include "settings_func.h"

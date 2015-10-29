@@ -16,7 +16,7 @@
 #include "company_base.h"
 #include "window_gui.h"
 #include "strings_func.h"
-#include "blitter/factory.hpp"
+#include "blitter/blitter.h"
 #include "linkgraph/linkgraph_gui.h"
 #include "widgets/smallmap_widget.h"
 

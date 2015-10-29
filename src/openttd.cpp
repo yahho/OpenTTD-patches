@@ -11,7 +11,7 @@
 
 #include "stdafx.h"
 
-#include "blitter/factory.hpp"
+#include "blitter/blitter.h"
 #include "sound/sound_driver.hpp"
 #include "music/music_driver.hpp"
 #include "video/video_driver.hpp"
@@ -193,7 +193,7 @@ static void ShowHelp()
 	DriverFactoryBase::GetDriversInfo (&buf);
 
 	/* List the blitters */
-	BlitterFactory::GetBlittersInfo (&buf);
+	GetBlittersInfo (&buf);
 
 	/* List the debug facilities. */
 	DumpDebugFacilityNames (&buf);
@@ -762,8 +762,8 @@ int openttd_main(int argc, char *argv[])
 	 */
 	if (!_blitter_autodetected ||
 			(_support8bpp != S8BPP_NONE && (BaseGraphics::GetUsedSet() == NULL || BaseGraphics::GetUsedSet()->blitter == BLT_8BPP)) ||
-			BlitterFactory::SelectBlitter("32bpp-anim") == NULL) {
-		if (BlitterFactory::SelectBlitter(blitter) == NULL) {
+			SelectBlitter("32bpp-anim") == NULL) {
+		if (SelectBlitter(blitter) == NULL) {
 			StrEmpty(blitter) ?
 				usererror("Failed to autoprobe blitter") :
 				usererror("Failed to select requested blitter '%s'; does it exist?", blitter);

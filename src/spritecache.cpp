@@ -10,6 +10,10 @@
 /** @file spritecache.cpp Caching of sprites. */
 
 #include "stdafx.h"
+
+#include <map>
+
+#include "debug.h"
 #include "string.h"
 #include "fileio_func.h"
 #include "spriteloader.h"
@@ -17,7 +21,7 @@
 #include "error.h"
 #include "zoom_func.h"
 #include "settings_type.h"
-#include "blitter/factory.hpp"
+#include "blitter/blitter.h"
 #include "core/math_func.hpp"
 #include "core/mem_func.hpp"
 
@@ -393,7 +397,7 @@ static void *ReadSprite(const SpriteCache *sc, SpriteID id, SpriteType sprite_ty
 	uint8 sprite_avail = 0;
 	sprite[ZOOM_LVL_NORMAL].type = sprite_type;
 
-	if (sprite_type != ST_MAPGEN && BlitterFactory::GetCurrentBlitter()->GetScreenDepth() == 32) {
+	if (sprite_type != ST_MAPGEN && GetCurrentBlitter()->GetScreenDepth() == 32) {
 		/* Try for 32bpp sprites first. */
 		sprite_avail = LoadGrfSprite (sc->container_ver, sprite,
 				file_slot, file_pos, sprite_type, true);
@@ -421,7 +425,7 @@ static void *ReadSprite(const SpriteCache *sc, SpriteID id, SpriteType sprite_ty
 		 *  (so type = 0xFF basically). */
 		uint num = sprite[ZOOM_LVL_NORMAL].width * sprite[ZOOM_LVL_NORMAL].height;
 
-		Sprite *s = (Sprite *)allocator(sizeof(*s) + num);
+		MapGenSprite *s = (MapGenSprite *) allocator (sizeof(*s) + num);
 		s->width  = sprite[ZOOM_LVL_NORMAL].width;
 		s->height = sprite[ZOOM_LVL_NORMAL].height;
 		s->x_offs = sprite[ZOOM_LVL_NORMAL].x_offs;
@@ -451,7 +455,7 @@ static void *ReadSprite(const SpriteCache *sc, SpriteID id, SpriteType sprite_ty
 		sprite[ZOOM_LVL_NORMAL].data   = sprite[ZOOM_LVL_GUI].data;
 	}
 
-	return BlitterFactory::GetCurrentBlitter()->Encode(sprite, allocator);
+	return GetCurrentBlitter()->Encode (sprite, allocator);
 }
 
 
@@ -856,7 +860,7 @@ void *GetRawSprite(SpriteID sprite, SpriteType type, AllocatorProc *allocator)
 static void GfxInitSpriteCache()
 {
 	/* initialize sprite cache heap */
-	int bpp = BlitterFactory::GetCurrentBlitter()->GetScreenDepth();
+	int bpp = GetCurrentBlitter()->GetScreenDepth();
 	uint target_size = (bpp > 0 ? _sprite_cache_size * bpp / 8 : 1) * 1024 * 1024;
 
 	/* Remember 'target_size' from the previous allocation attempt, so we do not try to reach the target_size multiple times in case of failure. */

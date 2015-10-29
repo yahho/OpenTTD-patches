@@ -31,15 +31,13 @@ class Blitter {
 public:
 	/** Parameters related to blitting. */
 	struct BlitterParams {
-		const void *sprite; ///< Pointer to the sprite how ever the encoder stored it
+		const Sprite *sprite; ///< Pointer to the sprite how ever the encoder stored it
 		const byte *remap;  ///< XXX -- Temporary storage for remap array
 
 		int skip_left;      ///< How much pixels of the source to skip on the left (based on zoom of dst)
 		int skip_top;       ///< How much pixels of the source to skip on the top (based on zoom of dst)
 		int width;          ///< The width in pixels that needs to be drawn to dst
 		int height;         ///< The height in pixels that needs to be drawn to dst
-		int sprite_width;   ///< Real width of the sprite
-		int sprite_height;  ///< Real height of the sprite
 		int left;           ///< The left offset in the 'dst' in pixels to start drawing
 		int top;            ///< The top offset in the 'dst' in pixels to start drawing
 
@@ -53,6 +51,12 @@ public:
 		PALETTE_ANIMATION_VIDEO_BACKEND,  ///< Palette animation should be done by video backend (8bpp only!)
 		PALETTE_ANIMATION_BLITTER,        ///< The blitter takes care of the palette animation
 	};
+
+	/** Check if this blitter is usable. */
+	static bool usable (void)
+	{
+		return true;
+	}
 
 	/**
 	 * Get the screen depth this blitter works for.
@@ -188,11 +192,6 @@ public:
 	virtual Blitter::PaletteAnimation UsePaletteAnimation() = 0;
 
 	/**
-	 * Get the name of the blitter, the same as the Factory-instance returns.
-	 */
-	virtual const char *GetName() = 0;
-
-	/**
 	 * Get how many bytes are needed to store a pixel.
 	 */
 	virtual int GetBytesPerPixel() = 0;
@@ -203,6 +202,21 @@ public:
 	virtual void PostResize() { };
 
 	virtual ~Blitter() { }
+
+	/** Helper function to allocate a sprite in Encode. */
+	template <typename T>
+	static T *AllocateSprite (const SpriteLoader::Sprite *sprite,
+		AllocatorProc *allocator, size_t extra = 0)
+	{
+		T *s = (T *) allocator (sizeof(T) + extra);
+
+		s->height = sprite->height;
+		s->width  = sprite->width;
+		s->x_offs = sprite->x_offs;
+		s->y_offs = sprite->y_offs;
+
+		return s;
+	}
 };
 
 #endif /* BLITTER_BASE_HPP */

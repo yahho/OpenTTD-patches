@@ -13,8 +13,8 @@
 #include "../zoom_func.h"
 #include "8bpp_simple.hpp"
 
-/** Instantiation of the simple 8bpp blitter factory. */
-static FBlitter_8bppSimple iFBlitter_8bppSimple;
+const char Blitter_8bppSimple::name[] = "8bpp-simple";
+const char Blitter_8bppSimple::desc[] = "8bpp Simple Blitter (relative slow, but never wrong)";
 
 void Blitter_8bppSimple::Draw(Blitter::BlitterParams *bp, BlitterMode mode, ZoomLevel zoom)
 {
@@ -22,7 +22,8 @@ void Blitter_8bppSimple::Draw(Blitter::BlitterParams *bp, BlitterMode mode, Zoom
 	uint8 *dst, *dst_line;
 
 	/* Find where to start reading in the source sprite */
-	src_line = (const uint8 *)bp->sprite + (bp->skip_top * bp->sprite_width + bp->skip_left) * ScaleByZoom(1, zoom);
+	const Sprite *sprite = static_cast<const Sprite*> (bp->sprite);
+	src_line = sprite->data + (bp->skip_top * sprite->width + bp->skip_left) * ScaleByZoom(1, zoom);
 	dst_line = (uint8 *)bp->dst + bp->top * bp->pitch + bp->left;
 
 	for (int y = 0; y < bp->height; y++) {
@@ -30,7 +31,7 @@ void Blitter_8bppSimple::Draw(Blitter::BlitterParams *bp, BlitterMode mode, Zoom
 		dst_line += bp->pitch;
 
 		src = src_line;
-		src_line += bp->sprite_width * ScaleByZoom(1, zoom);
+		src_line += sprite->width * ScaleByZoom(1, zoom);
 
 		for (int x = 0; x < bp->width; x++) {
 			uint colour = 0;
@@ -60,15 +61,9 @@ void Blitter_8bppSimple::Draw(Blitter::BlitterParams *bp, BlitterMode mode, Zoom
 	}
 }
 
-Sprite *Blitter_8bppSimple::Encode(const SpriteLoader::Sprite *sprite, AllocatorProc *allocator)
+::Sprite *Blitter_8bppSimple::Encode (const SpriteLoader::Sprite *sprite, AllocatorProc *allocator)
 {
-	Sprite *dest_sprite;
-	dest_sprite = (Sprite *)allocator(sizeof(*dest_sprite) + (size_t)sprite->height * (size_t)sprite->width);
-
-	dest_sprite->height = sprite->height;
-	dest_sprite->width  = sprite->width;
-	dest_sprite->x_offs = sprite->x_offs;
-	dest_sprite->y_offs = sprite->y_offs;
+	Sprite *dest_sprite = AllocateSprite<Sprite> (sprite, allocator, (size_t)sprite->height * (size_t)sprite->width);
 
 	/* Copy over only the 'remap' channel, as that is what we care about in 8bpp */
 	for (int i = 0; i < sprite->height * sprite->width; i++) {

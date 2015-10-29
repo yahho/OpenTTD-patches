@@ -12,11 +12,12 @@
 #ifdef WITH_SDL
 
 #include "../stdafx.h"
+#include "../debug.h"
 #include "../openttd.h"
 #include "../gfx_func.h"
 #include "../sdl.h"
 #include "../rev.h"
-#include "../blitter/factory.hpp"
+#include "../blitter/blitter.h"
 #include "../network/network.h"
 #include "../thread/thread.h"
 #include "../progress.h"
@@ -123,7 +124,7 @@ static void InitPalette()
 static void CheckPaletteAnim()
 {
 	if (_cur_palette.count_dirty != 0) {
-		Blitter *blitter = BlitterFactory::GetCurrentBlitter();
+		Blitter *blitter = GetCurrentBlitter();
 
 		switch (blitter->UsePaletteAnimation()) {
 			case Blitter::PALETTE_ANIMATION_VIDEO_BACKEND:
@@ -270,7 +271,7 @@ bool VideoDriver_SDL::CreateMainSurface(uint w, uint h)
 {
 	SDL_Surface *newscreen, *icon;
 	char caption[50];
-	int bpp = BlitterFactory::GetCurrentBlitter()->GetScreenDepth();
+	int bpp = GetCurrentBlitter()->GetScreenDepth();
 	bool want_hwpalette;
 
 	GetAvailableVideoMode(&w, &h);
@@ -398,7 +399,7 @@ bool VideoDriver_SDL::CreateMainSurface(uint w, uint h)
 	 * appropriate event to know this. */
 	if (_fullscreen) _cursor.in_window = true;
 
-	Blitter *blitter = BlitterFactory::GetCurrentBlitter();
+	Blitter *blitter = GetCurrentBlitter();
 	blitter->PostResize();
 
 	InitPalette();

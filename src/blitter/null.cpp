@@ -12,18 +12,10 @@
 #include "../stdafx.h"
 #include "null.hpp"
 
-/** Instantiation of the null blitter factory. */
-static FBlitter_Null iFBlitter_Null;
+const char Blitter_Null::name[] = "null";
+const char Blitter_Null::desc[] = "Null Blitter (does nothing)";
 
 Sprite *Blitter_Null::Encode(const SpriteLoader::Sprite *sprite, AllocatorProc *allocator)
 {
-	Sprite *dest_sprite;
-	dest_sprite = (Sprite *)allocator(sizeof(*dest_sprite));
-
-	dest_sprite->height = sprite->height;
-	dest_sprite->width  = sprite->width;
-	dest_sprite->x_offs = sprite->x_offs;
-	dest_sprite->y_offs = sprite->y_offs;
-
-	return dest_sprite;
+	return AllocateSprite<Sprite> (sprite, allocator);
 }

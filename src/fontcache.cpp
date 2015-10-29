@@ -10,9 +10,10 @@
 /** @file fontcache.cpp Cache for characters from fonts. */
 
 #include "stdafx.h"
+#include "debug.h"
 #include "fontcache.h"
 #include "fontdetection.h"
-#include "blitter/factory.hpp"
+#include "blitter/blitter.h"
 #include "core/math_func.hpp"
 #include "core/smallmap_type.hpp"
 #include "strings_func.h"
@@ -458,7 +459,7 @@ static void *AllocateFont(size_t size)
 static bool GetFontAAState(FontSize size)
 {
 	/* AA is only supported for 32 bpp */
-	if (BlitterFactory::GetCurrentBlitter()->GetScreenDepth() != 32) return false;
+	if (GetCurrentBlitter()->GetScreenDepth() != 32) return false;
 
 	switch (size) {
 		default: NOT_REACHED();
@@ -513,7 +514,7 @@ const Sprite *FreeTypeFontCache::GetGlyph(GlyphID key)
 				builtin_questionmark_data
 			};
 
-			Sprite *spr = BlitterFactory::GetCurrentBlitter()->Encode(&builtin_questionmark, AllocateFont);
+			Sprite *spr = GetCurrentBlitter()->Encode (&builtin_questionmark, AllocateFont);
 			assert(spr != NULL);
 			new_glyph.sprite = spr;
 			new_glyph.width  = spr->width + (this->fs != FS_NORMAL);
@@ -570,7 +571,7 @@ const Sprite *FreeTypeFontCache::GetGlyph(GlyphID key)
 		}
 	}
 
-	new_glyph.sprite = BlitterFactory::GetCurrentBlitter()->Encode(&sprite, AllocateFont);
+	new_glyph.sprite = GetCurrentBlitter()->Encode (&sprite, AllocateFont);
 	new_glyph.width  = slot->advance.x >> 6;
 
 	this->SetGlyphPtr(key, &new_glyph);

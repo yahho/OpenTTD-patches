@@ -16,17 +16,17 @@
 #include "../core/mem_func.hpp"
 #include "8bpp_optimized.hpp"
 
-/** Instantiation of the 8bpp optimised blitter factory. */
-static FBlitter_8bppOptimized iFBlitter_8bppOptimized;
+const char Blitter_8bppOptimized::name[] = "8bpp-optimized";
+const char Blitter_8bppOptimized::desc[] = "8bpp Optimized Blitter (compression + all-ZoomLevel cache)";
 
 void Blitter_8bppOptimized::Draw(Blitter::BlitterParams *bp, BlitterMode mode, ZoomLevel zoom)
 {
 	/* Find the offset of this zoom-level */
-	const SpriteData *sprite_src = (const SpriteData *)bp->sprite;
-	uint offset = sprite_src->offset[zoom];
+	const Sprite *sprite = static_cast<const Sprite*> (bp->sprite);
+	uint offset = sprite->offset[zoom];
 
 	/* Find where to start reading in the source sprite */
-	const uint8 *src = sprite_src->data + offset;
+	const uint8 *src = sprite->data + offset;
 	uint8 *dst_line = (uint8 *)bp->dst + bp->top * bp->pitch + bp->left;
 
 	/* Skip over the top lines in the source image */
@@ -119,11 +119,9 @@ void Blitter_8bppOptimized::Draw(Blitter::BlitterParams *bp, BlitterMode mode, Z
 	}
 }
 
-Sprite *Blitter_8bppOptimized::Encode(const SpriteLoader::Sprite *sprite, AllocatorProc *allocator)
+::Sprite *Blitter_8bppOptimized::Encode (const SpriteLoader::Sprite *sprite, AllocatorProc *allocator)
 {
 	/* Make memory for all zoom-levels */
-	uint memory = sizeof(SpriteData);
-
 	ZoomLevel zoom_min;
 	ZoomLevel zoom_max;
 
@@ -137,6 +135,7 @@ Sprite *Blitter_8bppOptimized::Encode(const SpriteLoader::Sprite *sprite, Alloca
 		zoom_min = min (zoom_min, (ZoomLevel)_gui_zoom);
 	}
 
+	uint memory = 0;
 	for (ZoomLevel i = zoom_min; i <= zoom_max; i++) {
 		memory += sprite[i].width * sprite[i].height;
 	}
@@ -144,19 +143,21 @@ Sprite *Blitter_8bppOptimized::Encode(const SpriteLoader::Sprite *sprite, Alloca
 	/* We have no idea how much memory we really need, so just guess something */
 	memory *= 5;
 
+	uint32 offsets[ZOOM_LVL_COUNT];
+	memset (offsets, 0, sizeof(offsets));
+
 	/* Don't allocate memory each time, but just keep some
 	 * memory around as this function is called quite often
 	 * and the memory usage is quite low. */
 	static ReusableBuffer<byte> temp_buffer;
-	SpriteData *temp_dst = (SpriteData *)temp_buffer.Allocate(memory);
-	memset(temp_dst, 0, sizeof(*temp_dst));
-	byte *dst = temp_dst->data;
+	byte *temp_dst = temp_buffer.Allocate (memory);
+	byte *dst = temp_dst;
 
 	/* Make the sprites per zoom-level */
 	for (ZoomLevel i = zoom_min; i <= zoom_max; i++) {
 		/* Store the index table */
-		uint offset = dst - temp_dst->data;
-		temp_dst->offset[i] = offset;
+		uint offset = dst - temp_dst;
+		offsets[i] = offset;
 
 		/* cache values, because compiler can't cache it */
 		int scaled_height = sprite[i].height;
@@ -213,19 +214,16 @@ Sprite *Blitter_8bppOptimized::Encode(const SpriteLoader::Sprite *sprite, Alloca
 		}
 	}
 
-	uint size = dst - (byte *)temp_dst;
+	uint size = dst - temp_dst;
 
 	/* Safety check, to make sure we guessed the size correctly */
-	assert(size < memory);
+	assert (size <= memory);
 
 	/* Allocate the exact amount of memory we need */
-	Sprite *dest_sprite = (Sprite *)allocator(sizeof(*dest_sprite) + size);
+	Sprite *dest_sprite = AllocateSprite<Sprite> (sprite, allocator, size);
 
-	dest_sprite->height = sprite->height;
-	dest_sprite->width  = sprite->width;
-	dest_sprite->x_offs = sprite->x_offs;
-	dest_sprite->y_offs = sprite->y_offs;
-	memcpy(dest_sprite->data, temp_dst, size);
+	memcpy (dest_sprite->offset, offsets, sizeof(offsets));
+	memcpy (dest_sprite->data, temp_dst, size);
 
 	return dest_sprite;
 }

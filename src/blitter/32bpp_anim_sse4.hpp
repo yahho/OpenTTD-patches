@@ -14,39 +14,32 @@
 
 #ifdef WITH_SSE
 
-#ifndef SSE_VERSION
-#define SSE_VERSION 4
-#endif
-
-#ifndef FULL_ANIMATION
-#define FULL_ANIMATION 1
-#endif
-
 #include "32bpp_anim.hpp"
 #include "32bpp_sse4.hpp"
 
-#undef MARGIN_NORMAL_THRESHOLD
-#define MARGIN_NORMAL_THRESHOLD 4
-
 /** The SSE4 32 bpp blitter with palette animation. */
-class Blitter_32bppSSE4_Anim FINAL : public Blitter_32bppAnim, public Blitter_32bppSSE_Base {
+class Blitter_32bppSSE4_Anim FINAL : public Blitter_32bppAnim {
 private:
 
 public:
-	template <BlitterMode mode, Blitter_32bppSSE_Base::ReadMode read_mode, Blitter_32bppSSE_Base::BlockType bt_last, bool translucent, bool animated>
-	/* virtual */ void Draw(const Blitter::BlitterParams *bp, ZoomLevel zoom);
-	/* virtual */ void Draw(Blitter::BlitterParams *bp, BlitterMode mode, ZoomLevel zoom);
-	/* virtual */ Sprite *Encode(const SpriteLoader::Sprite *sprite, AllocatorProc *allocator) {
-		return Blitter_32bppSSE_Base::Encode(sprite, allocator);
-	}
-	/* virtual */ const char *GetName() { return "32bpp-sse4-anim"; }
-};
+	typedef SSESprite Sprite;
 
-/** Factory for the SSE4 32 bpp blitter (with palette animation). */
-class FBlitter_32bppSSE4_Anim: public BlitterFactory {
-public:
-	FBlitter_32bppSSE4_Anim() : BlitterFactory("32bpp-sse4-anim", "SSE4 Blitter (palette animation)", HasCPUIDFlag(1, 2, 19)) {}
-	/* virtual */ Blitter *CreateInstance() { return new Blitter_32bppSSE4_Anim(); }
+	static const char name[]; ///< Name of the blitter.
+	static const char desc[]; ///< Description of the blitter.
+
+	static bool usable (void)
+	{
+		return HasCPUIDFlag (1, 2, 19);
+	}
+
+	template <BlitterMode mode, SSESprite::ReadMode read_mode, SSESprite::BlockType bt_last, bool translucent, bool animated>
+	void Draw (const Blitter::BlitterParams *bp, ZoomLevel zoom);
+	template <BlitterMode mode, SSESprite::ReadMode read_mode, SSESprite::BlockType bt_last, bool translucent>
+	void Draw (const Blitter::BlitterParams *bp, ZoomLevel zoom, bool animated);
+	/* virtual */ void Draw(Blitter::BlitterParams *bp, BlitterMode mode, ZoomLevel zoom);
+	/* virtual */ ::Sprite *Encode (const SpriteLoader::Sprite *sprite, AllocatorProc *allocator) {
+		return SSESprite::encode (sprite, allocator);
+	}
 };
 
 #endif /* WITH_SSE */

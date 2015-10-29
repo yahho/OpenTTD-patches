@@ -14,8 +14,8 @@
 #include "../settings_type.h"
 #include "32bpp_optimized.hpp"
 
-/** Instantiation of the optimized 32bpp blitter factory. */
-static FBlitter_32bppOptimized iFBlitter_32bppOptimized;
+const char Blitter_32bppOptimized::name[] = "32bpp-optimized";
+const char Blitter_32bppOptimized::desc[] = "32bpp Optimized Blitter (no palette animation)";
 
 /**
  * Draws a sprite to a (screen) buffer. It is templated to allow faster operation.
@@ -27,7 +27,7 @@ static FBlitter_32bppOptimized iFBlitter_32bppOptimized;
 template <BlitterMode mode>
 inline void Blitter_32bppOptimized::Draw(const Blitter::BlitterParams *bp, ZoomLevel zoom)
 {
-	const SpriteData *src = (const SpriteData *)bp->sprite;
+	const Sprite *src = static_cast<const Sprite*> (bp->sprite);
 
 	/* src_px : each line begins with uint32 n = 'number of bytes in this line',
 	 *          then n times is the Colour struct for this line */
@@ -252,7 +252,7 @@ void Blitter_32bppOptimized::Draw(Blitter::BlitterParams *bp, BlitterMode mode, 
 	}
 }
 
-Sprite *Blitter_32bppOptimized::Encode(const SpriteLoader::Sprite *sprite, AllocatorProc *allocator)
+::Sprite *Blitter_32bppOptimized::Encode (const SpriteLoader::Sprite *sprite, AllocatorProc *allocator)
 {
 	/* streams of pixels (a, r, g, b channels)
 	 *
@@ -375,15 +375,8 @@ Sprite *Blitter_32bppOptimized::Encode(const SpriteLoader::Sprite *sprite, Alloc
 		len += lengths[z][0] + lengths[z][1];
 	}
 
-	Sprite *dest_sprite = (Sprite *)allocator(sizeof(*dest_sprite) + sizeof(SpriteData) + len);
-
-	dest_sprite->height = sprite->height;
-	dest_sprite->width  = sprite->width;
-	dest_sprite->x_offs = sprite->x_offs;
-	dest_sprite->y_offs = sprite->y_offs;
-
-	SpriteData *dst = (SpriteData *)dest_sprite->data;
-	memset(dst, 0, sizeof(*dst));
+	Sprite *dst = AllocateSprite<Sprite> (sprite, allocator, len);
+	memset (dst->offset, 0, sizeof(dst->offset));
 
 	for (ZoomLevel z = zoom_min; z <= zoom_max; z++) {
 		dst->offset[z][0] = z == zoom_min ? 0 : lengths[z - 1][1] + dst->offset[z - 1][1];
@@ -396,5 +389,5 @@ Sprite *Blitter_32bppOptimized::Encode(const SpriteLoader::Sprite *sprite, Alloc
 		free(dst_n_orig[z]);
 	}
 
-	return dest_sprite;
+	return dst;
 }

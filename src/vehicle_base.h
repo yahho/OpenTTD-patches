@@ -157,9 +157,6 @@ struct VehicleHashLink {
 /** %Vehicle data structure. */
 struct Vehicle : PooledItem <Vehicle, VehicleID, 512, 0xFF000>, BaseVehicle, BaseConsist {
 private:
-	typedef std::list<RefitDesc> RefitList;
-	typedef std::map<CargoID, uint> CapacitiesMap;
-
 	Vehicle *next;                      ///< pointer to the next vehicle in the chain
 	Vehicle *previous;                  ///< NOSAVE: pointer to the previous vehicle in the chain
 	Vehicle *first;                     ///< NOSAVE: pointer to the first vehicle in the chain

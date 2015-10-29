@@ -15,9 +15,14 @@
 #include "../zoom_func.h"
 #include "../settings_type.h"
 #include "32bpp_ssse3.hpp"
+
+#include "sse3.h"
+#include "32bpp_sse_common.h"
+
+#define SSE_VERSION 3
 #include "32bpp_sse_func.hpp"
 
-/** Instantiation of the SSSE3 32bpp blitter factory. */
-static FBlitter_32bppSSSE3 iFBlitter_32bppSSSE3;
+const char Blitter_32bppSSSE3::name[] = "32bpp-ssse3";
+const char Blitter_32bppSSSE3::desc[] = "32bpp SSSE3 Blitter (no palette animation)";
 
 #endif /* WITH_SSE */

@@ -23,6 +23,9 @@ protected:
 	Palette palette;     ///< The current palette.
 
 public:
+	static const char name[]; ///< Name of the blitter.
+	static const char desc[]; ///< Description of the blitter.
+
 	Blitter_32bppAnim() :
 		anim_buf(NULL),
 		anim_buf_width(0),
@@ -40,7 +43,6 @@ public:
 	/* virtual */ void PaletteAnimate(const Palette &palette);
 	/* virtual */ Blitter::PaletteAnimation UsePaletteAnimation();
 
-	/* virtual */ const char *GetName() { return "32bpp-anim"; }
 	/* virtual */ int GetBytesPerPixel() { return 6; }
 	/* virtual */ void PostResize();
 
@@ -53,13 +55,6 @@ public:
 	}
 
 	template <BlitterMode mode> void Draw(const Blitter::BlitterParams *bp, ZoomLevel zoom);
-};
-
-/** Factory for the 32bpp blitter with animation. */
-class FBlitter_32bppAnim : public BlitterFactory {
-public:
-	FBlitter_32bppAnim() : BlitterFactory("32bpp-anim", "32bpp Animation Blitter (palette animation)") {}
-	/* virtual */ Blitter *CreateInstance() { return new Blitter_32bppAnim(); }
 };
 
 #endif /* BLITTER_32BPP_ANIM_HPP */

@@ -11,7 +11,7 @@
 
 #include "stdafx.h"
 #include "base_media_base.h"
-#include "blitter/factory.hpp"
+#include "blitter/blitter.h"
 
 #if defined(ENABLE_NETWORK) && defined(WITH_FREETYPE)
 
@@ -215,7 +215,7 @@ bool HandleBootstrap()
 	if (BaseGraphics::GetUsedSet() != NULL) return true;
 
 	/* No user interface, bail out with an error. */
-	if (BlitterFactory::GetCurrentBlitter()->GetScreenDepth() == 0) goto failure;
+	if (GetCurrentBlitter()->GetScreenDepth() == 0) goto failure;
 
 	/* If there is no network or no freetype, then there is nothing we can do. Go straight to failure. */
 #if defined(ENABLE_NETWORK) && defined(WITH_FREETYPE) && (defined(WITH_FONTCONFIG) || defined(WIN32) || defined(__APPLE__))

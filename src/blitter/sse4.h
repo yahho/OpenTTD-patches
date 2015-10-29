@@ -5,27 +5,24 @@
  * See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with OpenTTD. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/** @file script_mode.cpp Implementation of ScriptTestMode and ScriptExecMode. */
+/** @file sse4.h SSE4 blitter functions. */
 
-#include "../../stdafx.h"
-#include "script_mode.hpp"
-#include "../script_instance.hpp"
-#include "../script_fatalerror.hpp"
+#ifndef BLITTER_SSE4_H
+#define BLITTER_SSE4_H
 
-BaseScriptMode::BaseScriptMode (bool t) : test(t)
-{
-	ScriptObject::GetActiveInstance()->PushBuildMode (this);
-}
+#include <smmintrin.h>
 
-void BaseScriptMode::FinalRelease()
-{
-	ScriptObject::GetActiveInstance()->PopBuildMode (this);
-}
+#include "sse3.h"
 
-ScriptExecMode::ScriptExecMode() : BaseScriptMode (false)
-{
-}
+/** SSE4 blitter functions. */
+struct SSE4 : SSE3 {
+#ifndef _SQ64
+	static void load_u64 (uint64 value, __m128i &into)
+	{
+		into = _mm_cvtsi32_si128 (value);
+		into = _mm_insert_epi32 (into, value >> 32, 1);
+	}
+#endif
+};
 
-ScriptTestMode::ScriptTestMode() : BaseScriptMode (true)
-{
-}
+#endif /* BLITTER_SSE4_H */

@@ -18,24 +18,18 @@
 class Blitter_32bppOptimized : public Blitter_32bppSimple {
 public:
 	/** Data stored about a (single) sprite. */
-	struct SpriteData {
+	struct Sprite : ::Sprite {
 		uint32 offset[ZOOM_LVL_COUNT][2]; ///< Offsets (from .data) to streams for different zoom levels, and the normal and remap image information.
 		byte data[];                      ///< Data, all zoomlevels.
 	};
 
-	/* virtual */ void Draw(Blitter::BlitterParams *bp, BlitterMode mode, ZoomLevel zoom);
-	/* virtual */ Sprite *Encode(const SpriteLoader::Sprite *sprite, AllocatorProc *allocator);
+	static const char name[]; ///< Name of the blitter.
+	static const char desc[]; ///< Description of the blitter.
 
-	/* virtual */ const char *GetName() { return "32bpp-optimized"; }
+	/* virtual */ void Draw(Blitter::BlitterParams *bp, BlitterMode mode, ZoomLevel zoom);
+	/* virtual */ ::Sprite *Encode (const SpriteLoader::Sprite *sprite, AllocatorProc *allocator);
 
 	template <BlitterMode mode> void Draw(const Blitter::BlitterParams *bp, ZoomLevel zoom);
-};
-
-/** Factory for the optimised 32 bpp blitter (without palette animation). */
-class FBlitter_32bppOptimized : public BlitterFactory {
-public:
-	FBlitter_32bppOptimized() : BlitterFactory("32bpp-optimized", "32bpp Optimized Blitter (no palette animation)") {}
-	/* virtual */ Blitter *CreateInstance() { return new Blitter_32bppOptimized(); }
 };
 
 #endif /* BLITTER_32BPP_OPTIMIZED_HPP */

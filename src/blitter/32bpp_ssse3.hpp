@@ -14,30 +14,22 @@
 
 #ifdef WITH_SSE
 
-#ifndef SSE_VERSION
-#define SSE_VERSION 3
-#endif
-
-#ifndef FULL_ANIMATION
-#define FULL_ANIMATION 0
-#endif
-
 #include "32bpp_sse2.hpp"
 
 /** The SSSE3 32 bpp blitter (without palette animation). */
 class Blitter_32bppSSSE3 : public Blitter_32bppSSE2 {
 public:
-	/* virtual */ void Draw(Blitter::BlitterParams *bp, BlitterMode mode, ZoomLevel zoom);
-	template <BlitterMode mode, Blitter_32bppSSE_Base::ReadMode read_mode, Blitter_32bppSSE_Base::BlockType bt_last, bool translucent>
-	void Draw(const Blitter::BlitterParams *bp, ZoomLevel zoom);
-	/* virtual */ const char *GetName() { return "32bpp-ssse3"; }
-};
+	static const char name[]; ///< Name of the blitter.
+	static const char desc[]; ///< Description of the blitter.
 
-/** Factory for the SSSE3 32 bpp blitter (without palette animation). */
-class FBlitter_32bppSSSE3: public BlitterFactory {
-public:
-	FBlitter_32bppSSSE3() : BlitterFactory("32bpp-ssse3", "32bpp SSSE3 Blitter (no palette animation)", HasCPUIDFlag(1, 2, 9)) {}
-	/* virtual */ Blitter *CreateInstance() { return new Blitter_32bppSSSE3(); }
+	static bool usable (void)
+	{
+		return HasCPUIDFlag (1, 2, 9);
+	}
+
+	/* virtual */ void Draw(Blitter::BlitterParams *bp, BlitterMode mode, ZoomLevel zoom);
+	template <BlitterMode mode, SSESprite::ReadMode read_mode, SSESprite::BlockType bt_last, bool translucent>
+	void Draw(const Blitter::BlitterParams *bp, ZoomLevel zoom);
 };
 
 #endif /* WITH_SSE */

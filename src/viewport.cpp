@@ -27,6 +27,7 @@
  */
 
 #include "stdafx.h"
+#include "debug.h"
 #include "map/zoneheight.h"
 #include "map/slope.h"
 #include "map/bridge.h"
@@ -39,7 +40,7 @@
 #include "signs_func.h"
 #include "vehicle_base.h"
 #include "vehicle_gui.h"
-#include "blitter/factory.hpp"
+#include "blitter/blitter.h"
 #include "strings_func.h"
 #include "zoom_func.h"
 #include "vehicle_func.h"
@@ -64,15 +65,6 @@ static const int MAX_TILE_EXTENT_LEFT   = ZOOM_LVL_BASE * TILE_PIXELS;          
 static const int MAX_TILE_EXTENT_RIGHT  = ZOOM_LVL_BASE * TILE_PIXELS;                       ///< Maximum right  extent of tile relative to north corner.
 static const int MAX_TILE_EXTENT_TOP    = ZOOM_LVL_BASE * MAX_BUILDING_HEIGHT * TILE_HEIGHT; ///< Maximum top    extent of tile relative to north corner (not considering bridges).
 static const int MAX_TILE_EXTENT_BOTTOM = ZOOM_LVL_BASE * (TILE_PIXELS + 2 * TILE_HEIGHT);   ///< Maximum bottom extent of tile relative to north corner (worst case: #SLOPE_STEEP_N).
-
-struct StringSpriteToDraw {
-	StringID string;
-	Colours colour;
-	int32 x;
-	int32 y;
-	uint64 params[2];
-	uint16 width;
-};
 
 struct TileSpriteToDraw {
 	SpriteID image;
@@ -110,7 +102,6 @@ enum SpriteCombineMode {
 };
 
 typedef SmallVector<TileSpriteToDraw, 64> TileSpriteToDrawVector;
-typedef SmallVector<StringSpriteToDraw, 4> StringSpriteToDrawVector;
 typedef SmallVector<ParentSpriteToDraw, 64> ParentSpriteToDrawVector;
 typedef SmallVector<ChildScreenSpriteToDraw, 16> ChildScreenSpriteToDrawVector;
 
@@ -118,7 +109,6 @@ typedef SmallVector<ChildScreenSpriteToDraw, 16> ChildScreenSpriteToDrawVector;
 struct ViewportDrawer {
 	DrawPixelInfo dpi;
 
-	StringSpriteToDrawVector string_sprites_to_draw;
 	TileSpriteToDrawVector tile_sprites_to_draw;
 	ParentSpriteToDrawVector parent_sprites_to_draw;
 	ParentSpriteToSortVector parent_sprites_to_sort; ///< Parent sprite pointer array used for sorting
@@ -828,19 +818,6 @@ void AddChildSpriteScreen(SpriteID image, PaletteID pal, int x, int y, bool tran
 	_vd.last_child = &cs->next;
 }
 
-static void AddStringToDraw(int x, int y, StringID string, uint64 params_1, uint64 params_2, Colours colour, uint16 width)
-{
-	assert(width != 0);
-	StringSpriteToDraw *ss = _vd.string_sprites_to_draw.Append();
-	ss->string = string;
-	ss->x = x;
-	ss->y = y;
-	ss->params[0] = params_1;
-	ss->params[1] = params_2;
-	ss->width = width;
-	ss->colour = colour;
-}
-
 
 /**
  * Draws sprites between ground sprite and everything above.
@@ -1296,6 +1273,37 @@ static void ViewportAddLandscape()
 	}
 }
 
+static inline void ViewportDrawString (ZoomLevel zoom, int x, int y,
+	StringID string, uint64 params_1, uint64 params_2,
+	Colours colour, int width, bool small)
+{
+	TextColour tc = TC_BLACK;
+	int x0 = UnScaleByZoom (x, zoom);
+	int x1 = x0 + width;
+	int y0 = UnScaleByZoom (y, zoom);
+
+	SetDParam (0, params_1);
+	SetDParam (1, params_2);
+
+	if (colour != INVALID_COLOUR) {
+		if (IsTransparencySet(TO_SIGNS) && string != STR_WHITE_SIGN) {
+			/* Don't draw the rectangle.
+			 * Real colours need the TC_IS_PALETTE_COLOUR flag.
+			 * Otherwise colours from _string_colourmap are assumed. */
+			tc = (TextColour)_colour_gradient[colour][6] | TC_IS_PALETTE_COLOUR;
+		} else {
+			/* Draw the rectangle if 'transparent station signs' is off,
+			 * or if we are drawing a general text sign (STR_WHITE_SIGN). */
+			DrawFrameRect(
+				x0, y0, x1, y0 + VPSM_TOP + (small ? FONT_HEIGHT_SMALL : FONT_HEIGHT_NORMAL) + VPSM_BOTTOM, colour,
+				IsTransparencySet(TO_SIGNS) ? FR_TRANSPARENT : FR_NONE
+			);
+		}
+	}
+
+	DrawString (x0 + VPSM_LEFT, x1 - 1 - VPSM_RIGHT, y0 + VPSM_TOP, string, tc, SA_HOR_CENTER);
+}
+
 /**
  * Add a string to draw in the viewport
  * @param dpi current viewport area
@@ -1316,7 +1324,8 @@ void ViewportAddString(const DrawPixelInfo *dpi, ZoomLevel small_from, const Vie
 	int bottom = top + dpi->height;
 
 	int sign_height     = ScaleByZoom(VPSM_TOP + FONT_HEIGHT_NORMAL + VPSM_BOTTOM, dpi->zoom);
-	int sign_half_width = ScaleByZoom((small ? sign->width_small : sign->width_normal) / 2, dpi->zoom);
+	int sign_width      = small ? sign->width_small : sign->width_normal;
+	int sign_half_width = ScaleByZoom(sign_width / 2, dpi->zoom);
 
 	if (bottom < sign->top ||
 			top   > sign->top + sign_height ||
@@ -1325,17 +1334,20 @@ void ViewportAddString(const DrawPixelInfo *dpi, ZoomLevel small_from, const Vie
 		return;
 	}
 
-	if (!small) {
-		AddStringToDraw(sign->center - sign_half_width, sign->top, string_normal, params_1, params_2, colour, sign->width_normal);
-	} else {
-		int shadow_offset = 0;
-		if (string_small_shadow != STR_NULL) {
-			shadow_offset = 4;
-			AddStringToDraw(sign->center - sign_half_width + shadow_offset, sign->top, string_small_shadow, params_1, params_2, INVALID_COLOUR, sign->width_small);
-		}
-		AddStringToDraw(sign->center - sign_half_width, sign->top - shadow_offset, string_small, params_1, params_2,
-				colour, sign->width_small | 0x8000);
+	assert (sign_width != 0);
+
+	int x = sign->center - sign_half_width;
+	int y = sign->top;
+	if (small && (string_small_shadow != STR_NULL)) {
+		ViewportDrawString (dpi->zoom, x + 4, y,
+				string_small_shadow, params_1, params_2,
+				INVALID_COLOUR, sign_width, false);
+		y -= 4;
 	}
+
+	StringID str = small ? string_small : string_normal;
+	ViewportDrawString (dpi->zoom, x, y, str, params_1, params_2,
+			colour, sign_width, small);
 }
 
 static void ViewportAddTownNames(DrawPixelInfo *dpi)
@@ -1354,7 +1366,7 @@ static void ViewportAddTownNames(DrawPixelInfo *dpi)
 
 static void ViewportAddStationNames(DrawPixelInfo *dpi)
 {
-	if (!(HasBit(_display_opt, DO_SHOW_STATION_NAMES) || HasBit(_display_opt, DO_SHOW_WAYPOINT_NAMES)) || _game_mode == GM_MENU) return;
+	if (!(HasBit(_display_opt, DO_SHOW_STATION_NAMES) || HasBit(_display_opt, DO_SHOW_WAYPOINT_NAMES)) || IsInvisibilitySet(TO_SIGNS) || _game_mode == GM_MENU) return;
 
 	const BaseStation *st;
 	FOR_ALL_BASE_STATIONS(st) {
@@ -1565,7 +1577,7 @@ static void ViewportDrawBoundingBoxes(const ParentSpriteToSortVector *psd)
  */
 static void ViewportDrawDirtyBlocks()
 {
-	Blitter *blitter = BlitterFactory::GetCurrentBlitter();
+	Blitter *blitter = GetCurrentBlitter();
 	const DrawPixelInfo *dpi = _cur_dpi;
 	void *dst;
 	int right =  UnScaleByZoom(dpi->width,  dpi->zoom);
@@ -1580,43 +1592,6 @@ static void ViewportDrawDirtyBlocks()
 		for (int i = (bo ^= 1); i < right; i += 2) blitter->SetPixel(dst, i, 0, (uint8)colour);
 		dst = blitter->MoveTo(dst, 0, 1);
 	} while (--bottom > 0);
-}
-
-static void ViewportDrawStrings(ZoomLevel zoom, const StringSpriteToDrawVector *sstdv)
-{
-	const StringSpriteToDraw *ssend = sstdv->End();
-	for (const StringSpriteToDraw *ss = sstdv->Begin(); ss != ssend; ++ss) {
-		TextColour colour = TC_BLACK;
-		bool small = HasBit(ss->width, 15);
-		int w = GB(ss->width, 0, 15);
-		int x = UnScaleByZoom(ss->x, zoom);
-		int y = UnScaleByZoom(ss->y, zoom);
-		int h = VPSM_TOP + (small ? FONT_HEIGHT_SMALL : FONT_HEIGHT_NORMAL) + VPSM_BOTTOM;
-
-		SetDParam(0, ss->params[0]);
-		SetDParam(1, ss->params[1]);
-
-		if (ss->colour != INVALID_COLOUR) {
-			/* Do not draw signs nor station names if they are set invisible */
-			if (IsInvisibilitySet(TO_SIGNS) && ss->string != STR_WHITE_SIGN) continue;
-
-			if (IsTransparencySet(TO_SIGNS) && ss->string != STR_WHITE_SIGN) {
-				/* Don't draw the rectangle.
-				 * Real colours need the TC_IS_PALETTE_COLOUR flag.
-				 * Otherwise colours from _string_colourmap are assumed. */
-				colour = (TextColour)_colour_gradient[ss->colour][6] | TC_IS_PALETTE_COLOUR;
-			} else {
-				/* Draw the rectangle if 'transparent station signs' is off,
-				 * or if we are drawing a general text sign (STR_WHITE_SIGN). */
-				DrawFrameRect(
-					x, y, x + w, y + h, ss->colour,
-					IsTransparencySet(TO_SIGNS) ? FR_TRANSPARENT : FR_NONE
-				);
-			}
-		}
-
-		DrawString(x + VPSM_LEFT, x + w - 1 - VPSM_RIGHT, y + VPSM_TOP, ss->string, colour, SA_HOR_CENTER);
-	}
 }
 
 void ViewportDoDraw(const ViewPort *vp, int left, int top, int right, int bottom)
@@ -1639,16 +1614,10 @@ void ViewportDoDraw(const ViewPort *vp, int left, int top, int right, int bottom
 	int x = UnScaleByZoom(_vd.dpi.left - (vp->virtual_left & mask), vp->zoom) + vp->left;
 	int y = UnScaleByZoom(_vd.dpi.top - (vp->virtual_top & mask), vp->zoom) + vp->top;
 
-	_vd.dpi.dst_ptr = BlitterFactory::GetCurrentBlitter()->MoveTo(old_dpi->dst_ptr, x - old_dpi->left, y - old_dpi->top);
+	_vd.dpi.dst_ptr = GetCurrentBlitter()->MoveTo (old_dpi->dst_ptr, x - old_dpi->left, y - old_dpi->top);
 
 	ViewportAddLandscape();
 	ViewportAddVehicles(&_vd.dpi);
-
-	ViewportAddTownNames(&_vd.dpi);
-	ViewportAddStationNames(&_vd.dpi);
-	ViewportAddSigns(&_vd.dpi);
-
-	DrawTextEffects(&_vd.dpi);
 
 	if (_vd.tile_sprites_to_draw.Length() != 0) ViewportDrawTileSprites(&_vd.tile_sprites_to_draw);
 
@@ -1677,16 +1646,18 @@ void ViewportDoDraw(const ViewPort *vp, int left, int top, int right, int bottom
 		vp->overlay->Draw(&dp);
 	}
 
-	if (_vd.string_sprites_to_draw.Length() != 0) {
-		/* translate to world coordinates */
-		dp.left = UnScaleByZoom(_vd.dpi.left, zoom);
-		dp.top = UnScaleByZoom(_vd.dpi.top, zoom);
-		ViewportDrawStrings(zoom, &_vd.string_sprites_to_draw);
-	}
+	/* translate to world coordinates */
+	dp.left = UnScaleByZoom(_vd.dpi.left, zoom);
+	dp.top = UnScaleByZoom(_vd.dpi.top, zoom);
+
+	ViewportAddTownNames(&_vd.dpi);
+	ViewportAddStationNames(&_vd.dpi);
+	ViewportAddSigns(&_vd.dpi);
+
+	DrawTextEffects(&_vd.dpi);
 
 	_cur_dpi = old_dpi;
 
-	_vd.string_sprites_to_draw.Clear();
 	_vd.tile_sprites_to_draw.Clear();
 	_vd.parent_sprites_to_draw.Clear();
 	_vd.parent_sprites_to_sort.Clear();

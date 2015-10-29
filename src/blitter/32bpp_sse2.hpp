@@ -14,21 +14,12 @@
 
 #ifdef WITH_SSE
 
-#ifndef SSE_VERSION
-#define SSE_VERSION 2
-#endif
+#include "32bpp_simple.hpp"
 
-#ifndef FULL_ANIMATION
-#define FULL_ANIMATION 0
-#endif
+#include "../cpu.h"
 
-#include "32bpp_sse_type.h"
-
-/** Base methods for 32bpp SSE blitters. */
-class Blitter_32bppSSE_Base {
-public:
-	virtual ~Blitter_32bppSSE_Base() {}
-
+/** Data structure describing a sprite for the SSE blitters. */
+struct SSESprite : Sprite {
 	struct MapValue {
 		uint8 m;
 		uint8 v;
@@ -68,36 +59,36 @@ public:
 		uint16 sprite_line_size; ///< The size of a single line (pitch).
 		uint16 sprite_width;     ///< The width of the sprite.
 	};
-	struct SpriteData {
-		SpriteFlags flags;
-		SpriteInfo infos[ZOOM_LVL_COUNT];
-		byte data[]; ///< Data, all zoomlevels.
-	};
 
-	Sprite *Encode(const SpriteLoader::Sprite *sprite, AllocatorProc *allocator);
+	SpriteFlags flags;
+	SpriteInfo infos[ZOOM_LVL_COUNT];
+	byte data[]; ///< Data, all zoomlevels.
+
+	static SSESprite *encode (const SpriteLoader::Sprite *sprite, AllocatorProc *allocator);
 };
 
-DECLARE_ENUM_AS_BIT_SET(Blitter_32bppSSE_Base::SpriteFlags);
+DECLARE_ENUM_AS_BIT_SET(SSESprite::SpriteFlags);
 
 /** The SSE2 32 bpp blitter (without palette animation). */
-class Blitter_32bppSSE2 : public Blitter_32bppSimple, public Blitter_32bppSSE_Base {
+class Blitter_32bppSSE2 : public Blitter_32bppSimple {
 public:
-	/* virtual */ void Draw(Blitter::BlitterParams *bp, BlitterMode mode, ZoomLevel zoom);
-	template <BlitterMode mode, Blitter_32bppSSE_Base::ReadMode read_mode, Blitter_32bppSSE_Base::BlockType bt_last, bool translucent>
-	void Draw(const Blitter::BlitterParams *bp, ZoomLevel zoom);
+	typedef SSESprite Sprite;
 
-	/* virtual */ Sprite *Encode(const SpriteLoader::Sprite *sprite, AllocatorProc *allocator) {
-		return Blitter_32bppSSE_Base::Encode(sprite, allocator);
+	static const char name[]; ///< Name of the blitter.
+	static const char desc[]; ///< Description of the blitter.
+
+	static bool usable (void)
+	{
+		return HasCPUIDFlag (1, 3, 26);
 	}
 
-	/* virtual */ const char *GetName() { return "32bpp-sse2"; }
-};
+	/* virtual */ void Draw(Blitter::BlitterParams *bp, BlitterMode mode, ZoomLevel zoom);
+	template <BlitterMode mode, SSESprite::ReadMode read_mode, SSESprite::BlockType bt_last, bool translucent>
+	void Draw(const Blitter::BlitterParams *bp, ZoomLevel zoom);
 
-/** Factory for the SSE2 32 bpp blitter (without palette animation). */
-class FBlitter_32bppSSE2 : public BlitterFactory {
-public:
-	FBlitter_32bppSSE2() : BlitterFactory("32bpp-sse2", "32bpp SSE2 Blitter (no palette animation)", HasCPUIDFlag(1, 3, 26)) {}
-	/* virtual */ Blitter *CreateInstance() { return new Blitter_32bppSSE2(); }
+	/* virtual */ ::Sprite *Encode (const SpriteLoader::Sprite *sprite, AllocatorProc *allocator) {
+		return SSESprite::encode (sprite, allocator);
+	}
 };
 
 #endif /* WITH_SSE */

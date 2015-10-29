@@ -1480,7 +1480,12 @@ static void HandleStationRefit (Vehicle *v, CargoArray &consist_capleft,
 		/* Get a refittable cargo type with waiting cargo for next_station or INVALID_STATION. */
 		CargoID cid;
 		new_cid = v_start->cargo_type;
-		FOR_EACH_SET_CARGO_ID(cid, refit_mask & new_mask) {
+		new_mask &= refit_mask;
+		if (!HasBit(new_mask, new_cid) && (new_mask != 0)) {
+			/* Old cargo is not present in the allowed refits. */
+			new_cid = FindFirstBit (new_mask);
+		}
+		FOR_EACH_SET_CARGO_ID(cid, new_mask) {
 			if (st->goods[cid].cargo.HasCargoFor(next_station)) {
 				/* Try to find out if auto-refitting would succeed. In case the refit is allowed,
 				 * the returned refit capacity will be greater than zero. */
