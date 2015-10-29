@@ -16,10 +16,7 @@
 
 #include "32bpp_simple.hpp"
 
-#include "sse2.h"
 #include "../cpu.h"
-
-#include "32bpp_sse_common.h"
 
 /** Data structure describing a sprite for the SSE blitters. */
 struct SSESprite : Sprite {

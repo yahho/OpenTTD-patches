@@ -17,6 +17,7 @@
 #include "32bpp_ssse3.hpp"
 
 #include "sse3.h"
+#include "32bpp_sse_common.h"
 
 #define SSE_VERSION 3
 #include "32bpp_sse_func.hpp"
