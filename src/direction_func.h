@@ -27,11 +27,11 @@ static inline Direction ReverseDir(Direction d)
 
 
 /**
- * Calculate the difference between to directions
+ * Calculate the difference between two directions
  *
  * @param d0 The first direction as the base
  * @param d1 The second direction as the offset from the base
- * @return The difference how the second directions drifts of the first one.
+ * @return The difference how the second direction drifts of the first one.
  */
 static inline DirDiff DirDifference(Direction d0, Direction d1)
 {
@@ -43,7 +43,7 @@ static inline DirDiff DirDifference(Direction d0, Direction d1)
 /**
  * Applies two differences together
  *
- * This function adds two differences together and return the resulting
+ * This function adds two differences together and returns the resulting
  * difference. So adding two DIRDIFF_REVERSE together results in the
  * DIRDIFF_SAME difference.
  *
@@ -85,6 +85,18 @@ static inline DiagDirection ReverseDiagDir(DiagDirection d)
 	return (DiagDirection)(2 ^ d);
 }
 
+/**
+ * Calculate the difference between two DiagDirection values
+ *
+ * @param d0 The first direction as the base
+ * @param d1 The second direction as the offset from the base
+ * @return The difference how the second direction drifts of the first one.
+ */
+static inline DiagDirDiff DiagDirDifference(DiagDirection d0, DiagDirection d1)
+{
+	/* Cast to uint so compiler can use bitmask. Result can never be negative. */
+	return (DiagDirDiff)((uint)(d0 - d1) % 4);
+}
 
 /**
  * Applies a difference on a DiagDirection
