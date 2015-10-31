@@ -46,7 +46,20 @@ struct GenericScopeResolver : public ScopeResolver {
 struct GenericResolverObject : public ResolverObject {
 	GenericScopeResolver generic_scope;
 
-	GenericResolverObject (const GenericScopeResolverData *data, CallbackID callback = CBID_NO_CALLBACK);
+	/**
+	 * Generic resolver.
+	 * @param grffile GRF file.
+	 * @param data Callback data.
+	 * @param callback Callback ID.
+	 * @param param1 Callback param.
+	 */
+	GenericResolverObject (const GRFFile *grffile,
+			const GenericScopeResolverData *data,
+			CallbackID callback, uint32 param1)
+		: ResolverObject (grffile, callback, param1),
+		  generic_scope (*this, data)
+	{
+	}
 
 	/* virtual */ ScopeResolver *GetScope(VarSpriteGroupScope scope = VSG_SCOPE_SELF, byte relative = 0)
 	{
@@ -139,16 +152,6 @@ void AddGenericCallback(uint8 feature, const GRFFile *file, const SpriteGroup *g
 }
 
 /**
- * Generic resolver.
- * @param data Callback data.
- * @param callback Callback ID.
- */
-GenericResolverObject::GenericResolverObject (const GenericScopeResolverData *data, CallbackID callback)
-	: ResolverObject (NULL, callback), generic_scope (*this, data)
-{
-}
-
-/**
  * Generic scope resolver.
  * @param ro Surrounding resolver.
  * @param data Callback data.
@@ -175,14 +178,12 @@ static uint16 GetGenericCallbackResult (uint8 feature, CallbackID callback, uint
 {
 	assert(feature < lengthof(_gcl));
 
-	GenericResolverObject object (data, callback);
-
 	/* Test each feature callback sprite group. */
 	for (GenericCallbackList::const_iterator it = _gcl[feature].begin(); it != _gcl[feature].end(); ++it) {
-		object.grffile = it->file;
-		object.root_spritegroup = it->group;
 		/* Set callback param based on GRF version. */
-		object.callback_param1 = it->file->grf_version >= 8 ? param1_grfv8 : param1_grfv7;
+		GenericResolverObject object (it->file, data, callback,
+				it->file->grf_version >= 8 ? param1_grfv8 : param1_grfv7);
+		object.root_spritegroup = it->group;
 		uint16 result = object.ResolveCallback();
 		if (result == CALLBACK_FAILED) continue;
 
