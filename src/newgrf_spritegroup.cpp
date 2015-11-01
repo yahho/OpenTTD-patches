@@ -142,14 +142,13 @@ ScopeResolver::~ScopeResolver() {}
  * @param callback_param2 Second parameter (var 18) of the callback (only used when \a callback is also set).
  */
 ResolverObject::ResolverObject(const GRFFile *grffile, CallbackID callback, uint32 callback_param1, uint32 callback_param2)
-		: default_scope(*this)
+		: grffile(grffile), default_scope(*this)
 {
 	this->callback = callback;
 	this->callback_param1 = callback_param1;
 	this->callback_param2 = callback_param2;
 	this->ResetState();
 
-	this->grffile = grffile;
 	this->root_spritegroup = NULL;
 }
 

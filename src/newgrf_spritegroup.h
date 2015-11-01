@@ -304,6 +304,8 @@ struct ScopeResolver {
  * to get the results of callbacks, rerandomisations or normal sprite lookups.
  */
 struct ResolverObject {
+	const GRFFile *const grffile;   ///< GRFFile the resolved SpriteGroup belongs to
+
 	ResolverObject(const GRFFile *grffile, CallbackID callback = CBID_NO_CALLBACK, uint32 callback_param1 = 0, uint32 callback_param2 = 0);
 	virtual ~ResolverObject();
 
@@ -318,7 +320,6 @@ struct ResolverObject {
 	uint32 last_value;          ///< Result of most recent DeterministicSpriteGroup (including procedure calls)
 	uint32 reseed[VSG_END];     ///< Collects bits to rerandomise while triggering triggers.
 
-	const GRFFile *grffile;     ///< GRFFile the resolved SpriteGroup belongs to
 	const SpriteGroup *root_spritegroup; ///< Root SpriteGroup to use for resolving
 
 	/**
