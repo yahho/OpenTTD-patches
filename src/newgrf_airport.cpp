@@ -20,11 +20,10 @@
 /** Resolver for the airport scope. */
 struct AirportScopeResolver : public ScopeResolver {
 	struct Station *st; ///< Station of the airport for which the callback is run, or \c NULL for build gui.
-	byte airport_id;    ///< Type of airport for which the callback is run.
 	byte layout;        ///< Layout of the airport to build.
 	TileIndex tile;     ///< Tile for the callback, only valid for airporttile callbacks.
 
-	AirportScopeResolver(ResolverObject &ro, TileIndex tile, Station *st, byte airport_id, byte layout);
+	AirportScopeResolver(ResolverObject &ro, TileIndex tile, Station *st, byte layout);
 
 	/* virtual */ uint32 GetRandomBits() const;
 	/* virtual */ uint32 GetVariable(byte variable, uint32 parameter, bool *available) const;
@@ -235,7 +234,7 @@ void AirportOverrideManager::SetEntitySpec(AirportSpec *as)
  */
 AirportResolverObject::AirportResolverObject(TileIndex tile, Station *st, byte airport_id, byte layout,
 		CallbackID callback, uint32 param1, uint32 param2)
-	: ResolverObject(AirportSpec::Get(airport_id)->grf_prop.grffile, callback, param1, param2), airport_scope(*this, tile, st, airport_id, layout)
+	: ResolverObject(AirportSpec::Get(airport_id)->grf_prop.grffile, callback, param1, param2), airport_scope(*this, tile, st, layout)
 {
 	this->root_spritegroup = AirportSpec::Get(airport_id)->grf_prop.spritegroup[0];
 }
@@ -245,13 +244,11 @@ AirportResolverObject::AirportResolverObject(TileIndex tile, Station *st, byte a
  * @param ro Surrounding resolver.
  * @param tile %Tile for the callback, only valid for airporttile callbacks.
  * @param st %Station of the airport for which the callback is run, or \c NULL for build gui.
- * @param airport_id Type of airport for which the callback is run.
  * @param layout Layout of the airport to build.
  */
-AirportScopeResolver::AirportScopeResolver(ResolverObject &ro, TileIndex tile, Station *st, byte airport_id, byte layout) : ScopeResolver(ro)
+AirportScopeResolver::AirportScopeResolver(ResolverObject &ro, TileIndex tile, Station *st, byte layout) : ScopeResolver(ro)
 {
 	this->st = st;
-	this->airport_id = airport_id;
 	this->layout = layout;
 	this->tile = tile;
 }
