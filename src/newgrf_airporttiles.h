@@ -21,7 +21,6 @@
 /** Scope resolver for handling the tiles of an airport. */
 struct AirportTileScopeResolver : public ScopeResolver {
 	struct Station *st;  ///< %Station of the airport for which the callback is run, or \c NULL for build gui.
-	byte airport_id;     ///< Type of airport for which the callback is run.
 	TileIndex tile;      ///< Tile for the callback, only valid for airporttile callbacks.
 
 	AirportTileScopeResolver(ResolverObject &ro, const AirportTileSpec *ats, TileIndex tile, Station *st);

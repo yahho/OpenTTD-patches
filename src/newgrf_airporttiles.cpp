@@ -231,7 +231,6 @@ AirportTileScopeResolver::AirportTileScopeResolver(ResolverObject &ro, const Air
 	assert(st != NULL);
 
 	this->st = st;
-	this->airport_id = st->airport.type;
 	this->tile = tile;
 }
 
