@@ -24,7 +24,10 @@ WaterFeature _water_feature[CF_END];
 struct CanalScopeResolver : public ScopeResolver {
 	TileIndex tile; ///< Tile containing the canal.
 
-	CanalScopeResolver(ResolverObject &ro, TileIndex tile);
+	CanalScopeResolver (ResolverObject &ro, TileIndex tile)
+		: ScopeResolver(ro), tile(tile)
+	{
+	}
 
 	/* virtual */ uint32 GetRandomBits() const;
 	/* virtual */ uint32 GetVariable(byte variable, uint32 parameter, bool *available) const;
@@ -107,11 +110,6 @@ struct CanalResolverObject : public ResolverObject {
 	if (group->num_loaded == 0) return NULL;
 
 	return group->loaded[0];
-}
-
-CanalScopeResolver::CanalScopeResolver(ResolverObject &ro, TileIndex tile) : ScopeResolver(ro)
-{
-	this->tile = tile;
 }
 
 /**
