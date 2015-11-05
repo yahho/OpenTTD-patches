@@ -37,8 +37,21 @@ struct CanalScopeResolver : public ScopeResolver {
 struct CanalResolverObject : public ResolverObject {
 	CanalScopeResolver canal_scope;
 
+	/**
+	 * Canal resolver constructor.
+	 * @param feature Which canal feature we want.
+	 * @param tile Tile index of canal.
+	 * @param callback Callback ID.
+	 * @param param1 First parameter (var 10) of the callback.
+	 * @param param2 Second parameter (var 18) of the callback.
+	 */
 	CanalResolverObject(CanalFeature feature, TileIndex tile,
-			CallbackID callback = CBID_NO_CALLBACK, uint32 callback_param1 = 0, uint32 callback_param2 = 0);
+			CallbackID callback = CBID_NO_CALLBACK, uint32 param1 = 0, uint32 param2 = 0)
+		: ResolverObject (_water_feature[feature].grffile, callback, param1, param2),
+		  canal_scope (*this, tile)
+	{
+		this->root_spritegroup = _water_feature[feature].group;
+	}
 
 	/* virtual */ ScopeResolver *GetScope(VarSpriteGroupScope scope = VSG_SCOPE_SELF, byte relative = 0)
 	{
@@ -110,21 +123,6 @@ struct CanalResolverObject : public ResolverObject {
 	if (group->num_loaded == 0) return NULL;
 
 	return group->loaded[0];
-}
-
-/**
- * Canal resolver constructor.
- * @param feature Which canal feature we want.
- * @param tile Tile index of canal.
- * @param callback Callback ID.
- * @param callback_param1 First parameter (var 10) of the callback.
- * @param callback_param2 Second parameter (var 18) of the callback.
- */
-CanalResolverObject::CanalResolverObject(CanalFeature feature, TileIndex tile,
-		CallbackID callback, uint32 callback_param1, uint32 callback_param2)
-		: ResolverObject(_water_feature[feature].grffile, callback, callback_param1, callback_param2), canal_scope(*this, tile)
-{
-	this->root_spritegroup = _water_feature[feature].group;
 }
 
 /**
