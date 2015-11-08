@@ -385,10 +385,10 @@ TownScopeResolver *StationResolverObject::GetTown()
 		case 0xFA: return Clamp(this->st->build_date - DAYS_TILL_ORIGINAL_BASE_YEAR, 0, 65535);
 	}
 
-	return this->st->GetNewGRFVariable(this->ro, variable, parameter, available);
+	return this->st->GetNewGRFVariable (this->ro.grffile, variable, parameter, available);
 }
 
-uint32 Station::GetNewGRFVariable(const ResolverObject &object, byte variable, byte parameter, bool *available) const
+uint32 Station::GetNewGRFVariable (const GRFFile *grffile, byte variable, byte parameter, bool *available) const
 {
 	switch (variable) {
 		case 0x48: { // Accepted cargo types
@@ -411,7 +411,7 @@ uint32 Station::GetNewGRFVariable(const ResolverObject &object, byte variable, b
 
 	/* Handle cargo variables with parameter, 0x60 to 0x65 and 0x69 */
 	if ((variable >= 0x60 && variable <= 0x65) || variable == 0x69) {
-		CargoID c = GetCargoTranslation(parameter, object.grffile);
+		CargoID c = GetCargoTranslation (parameter, grffile);
 
 		if (c == CT_INVALID) {
 			switch (variable) {
@@ -459,7 +459,7 @@ uint32 Station::GetNewGRFVariable(const ResolverObject &object, byte variable, b
 	return UINT_MAX;
 }
 
-uint32 Waypoint::GetNewGRFVariable(const ResolverObject &object, byte variable, byte parameter, bool *available) const
+uint32 Waypoint::GetNewGRFVariable (const GRFFile *grffile, byte variable, byte parameter, bool *available) const
 {
 	switch (variable) {
 		case 0x48: return 0; // Accepted cargo types

@@ -207,7 +207,7 @@ void AirportOverrideManager::SetEntitySpec(AirportSpec *as)
 		case 0xFA: return Clamp(this->st->build_date - DAYS_TILL_ORIGINAL_BASE_YEAR, 0, 65535);
 	}
 
-	return this->st->GetNewGRFVariable(this->ro, variable, parameter, available);
+	return this->st->GetNewGRFVariable (this->ro.grffile, variable, parameter, available);
 }
 
 /* virtual */ const SpriteGroup *AirportResolverObject::ResolveReal(const RealSpriteGroup *group) const
