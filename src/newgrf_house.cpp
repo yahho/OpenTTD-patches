@@ -99,7 +99,7 @@ HouseResolverObject::HouseResolverObject(HouseID house_id, TileIndex tile, Town 
 FakeHouseResolverObject::FakeHouseResolverObject (HouseID house_id,
 		CallbackID callback, uint32 param1, uint32 param2)
 	: ResolverObject (GetHouseSpecGrf(house_id), callback, param1, param2),
-	house_scope (*this, house_id), town_scope (*this)
+	  house_scope (house_id), town_scope (*this)
 {
 	this->root_spritegroup = HouseSpec::Get(house_id)->grf_prop.spritegroup[0];
 }

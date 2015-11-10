@@ -53,7 +53,7 @@ struct HouseScopeResolver : public ScopeResolver {
 struct FakeHouseScopeResolver : public ScopeResolver {
 	HouseID house_id; ///< Type of house being queried.
 
-	FakeHouseScopeResolver(ResolverObject &ro, HouseID house_id)
+	FakeHouseScopeResolver (HouseID house_id)
 		: ScopeResolver(), house_id(house_id)
 	{ }
 
