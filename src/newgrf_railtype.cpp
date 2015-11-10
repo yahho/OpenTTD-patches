@@ -68,11 +68,10 @@
 
 /**
  * Constructor of the railtype scope resolvers.
- * @param ro Surrounding resolver.
  * @param tile %Tile containing the track. For track on a bridge this is the southern bridgehead.
  * @param context Are we resolving sprites for the upper halftile, or on a bridge?
  */
-RailTypeScopeResolver::RailTypeScopeResolver(ResolverObject &ro, TileIndex tile, TileContext context)
+RailTypeScopeResolver::RailTypeScopeResolver (TileIndex tile, TileContext context)
 	: ScopeResolver()
 {
 	this->tile = tile;
@@ -89,7 +88,8 @@ RailTypeScopeResolver::RailTypeScopeResolver(ResolverObject &ro, TileIndex tile,
  * @param param2 Extra parameter (second parameter of the callback, except railtypes do not have callbacks).
  */
 RailTypeResolverObject::RailTypeResolverObject(const RailtypeInfo *rti, TileIndex tile, TileContext context, RailTypeSpriteGroup rtsg, uint32 param1, uint32 param2)
-	: ResolverObject(rti != NULL ? rti->grffile[rtsg] : NULL, CBID_NO_CALLBACK, param1, param2), railtype_scope(*this, tile, context)
+	: ResolverObject(rti != NULL ? rti->grffile[rtsg] : NULL, CBID_NO_CALLBACK, param1, param2),
+	  railtype_scope(tile, context)
 {
 	this->root_spritegroup = rti != NULL ? rti->group[rtsg] : NULL;
 }
