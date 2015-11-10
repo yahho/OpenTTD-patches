@@ -20,7 +20,8 @@
  * @param t %Town of the scope.
  * @param readonly Scope may change persistent storage of the town.
  */
-TownScopeResolver::TownScopeResolver(ResolverObject &ro, Town *t, bool readonly) : ScopeResolver(ro)
+TownScopeResolver::TownScopeResolver(ResolverObject &ro, Town *t, bool readonly)
+	: ScopeResolver(), ro(ro)
 {
 	this->t = t;
 	this->readonly = readonly;

@@ -959,7 +959,7 @@ static uint32 VehicleGetVariable(Vehicle *v, const VehicleScopeResolver *object,
  * @param info_view Indicates if the item is being drawn in an info window.
  */
 VehicleScopeResolver::VehicleScopeResolver(ResolverObject &ro, EngineID engine_type, const Vehicle *v, bool info_view)
-		: ScopeResolver(ro)
+	: ScopeResolver(), ro(ro)
 {
 	this->v = v;
 	this->self_type = engine_type;

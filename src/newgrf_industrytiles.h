@@ -18,6 +18,8 @@
 
 /** Resolver for the industry tiles scope. */
 struct IndustryTileScopeResolver : public ScopeResolver {
+	ResolverObject &ro; ///< Surrounding resolver object.
+
 	Industry *industry; ///< Industry owning the tiles.
 	TileIndex tile;     ///< %Tile being resolved.
 

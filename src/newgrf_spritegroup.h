@@ -284,10 +284,9 @@ struct IndustryProductionSpriteGroup : SpriteGroup {
  * to different game entities from a #SpriteGroup-chain (action 1-2-3 chain).
  */
 struct ScopeResolver {
-	ResolverObject &ro; ///< Surrounding resolver object.
-
-	ScopeResolver(ResolverObject &ro);
-	virtual ~ScopeResolver();
+	virtual ~ScopeResolver()
+	{
+	}
 
 	virtual uint32 GetRandomBits() const;
 	virtual uint32 GetTriggers() const;

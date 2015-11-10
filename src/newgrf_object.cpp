@@ -136,7 +136,7 @@ INSTANTIATE_NEWGRF_CLASS_METHODS(ObjectClass)
  * @param view View of the object.
  */
 ObjectScopeResolver::ObjectScopeResolver(ResolverObject &ro, Object *obj, TileIndex tile, uint8 view)
-		: ScopeResolver(ro)
+	: ScopeResolver(), ro(ro)
 {
 	this->obj = obj;
 	this->tile = tile;

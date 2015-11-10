@@ -34,6 +34,8 @@ struct GenericScopeResolverData {
 
 /** Scope resolver for generic objects and properties. */
 struct GenericScopeResolver : public ScopeResolver {
+	ResolverObject &ro; ///< Surrounding resolver object.
+
 	const GenericScopeResolverData *const data;
 
 	GenericScopeResolver (ResolverObject &ro, const GenericScopeResolverData *data);
@@ -157,7 +159,7 @@ void AddGenericCallback(uint8 feature, const GRFFile *file, const SpriteGroup *g
  * @param data Callback data.
  */
 GenericScopeResolver::GenericScopeResolver (ResolverObject &ro, const GenericScopeResolverData *data)
-	: ScopeResolver(ro), data(data)
+	: ScopeResolver(), ro(ro), data(data)
 {
 }
 

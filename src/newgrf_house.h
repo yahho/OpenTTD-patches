@@ -20,6 +20,8 @@
 
 /** Scope resolver for houses. */
 struct HouseScopeResolver : public ScopeResolver {
+	ResolverObject &ro;            ///< Surrounding resolver object.
+
 	HouseID house_id;              ///< Type of house being queried.
 	TileIndex tile;                ///< Tile of this house.
 	Town *town;                    ///< Town of this house.
@@ -52,7 +54,7 @@ struct FakeHouseScopeResolver : public ScopeResolver {
 	HouseID house_id; ///< Type of house being queried.
 
 	FakeHouseScopeResolver(ResolverObject &ro, HouseID house_id)
-		: ScopeResolver(ro), house_id(house_id)
+		: ScopeResolver(), house_id(house_id)
 	{ }
 
 	/* virtual */ uint32 GetVariable(byte variable, uint32 parameter, bool *available) const;

@@ -593,7 +593,7 @@ StationResolverObject::~StationResolverObject()
  * @param tile %Tile of the station.
  */
 StationScopeResolver::StationScopeResolver(ResolverObject &ro, const StationSpec *statspec, BaseStation *st, TileIndex tile)
-	: ScopeResolver(ro)
+	: ScopeResolver(), ro(ro)
 {
 	this->tile = tile;
 	this->st = st;

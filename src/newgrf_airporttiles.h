@@ -20,6 +20,8 @@
 
 /** Scope resolver for handling the tiles of an airport. */
 struct AirportTileScopeResolver : public ScopeResolver {
+	ResolverObject &ro;  ///< Surrounding resolver object.
+
 	struct Station *st;  ///< %Station of the airport for which the callback is run, or \c NULL for build gui.
 	TileIndex tile;      ///< Tile for the callback, only valid for airporttile callbacks.
 

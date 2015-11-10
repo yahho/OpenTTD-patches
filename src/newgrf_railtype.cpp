@@ -72,7 +72,8 @@
  * @param tile %Tile containing the track. For track on a bridge this is the southern bridgehead.
  * @param context Are we resolving sprites for the upper halftile, or on a bridge?
  */
-RailTypeScopeResolver::RailTypeScopeResolver(ResolverObject &ro, TileIndex tile, TileContext context) : ScopeResolver(ro)
+RailTypeScopeResolver::RailTypeScopeResolver(ResolverObject &ro, TileIndex tile, TileContext context)
+	: ScopeResolver()
 {
 	this->tile = tile;
 	this->context = context;

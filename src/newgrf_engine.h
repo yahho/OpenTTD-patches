@@ -22,6 +22,8 @@
 
 /** Resolver for a vehicle scope. */
 struct VehicleScopeResolver : public ScopeResolver {
+	ResolverObject &ro;      ///< Surrounding resolver object.
+
 	const struct Vehicle *v; ///< The vehicle being resolved.
 	EngineID self_type;      ///< Type of the vehicle.
 	bool info_view;          ///< Indicates if the item is being drawn in an info window.

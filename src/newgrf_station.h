@@ -24,6 +24,8 @@
 
 /** Scope resolver for stations. */
 struct StationScopeResolver : public ScopeResolver {
+	ResolverObject &ro;                 ///< Surrounding resolver object.
+
 	TileIndex tile;                     ///< %Tile of the station.
 	struct BaseStation *st;             ///< Instance of the station.
 	const struct StationSpec *statspec; ///< Station (type) specification.

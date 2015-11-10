@@ -100,6 +100,8 @@ struct ObjectSpec {
 
 /** Object scope resolver. */
 struct ObjectScopeResolver : public ScopeResolver {
+	ResolverObject &ro; ///< Surrounding resolver object.
+
 	struct Object *obj; ///< The object the callback is ran for.
 	TileIndex tile;     ///< The tile related to the object.
 	uint8 view;         ///< The view of the object.

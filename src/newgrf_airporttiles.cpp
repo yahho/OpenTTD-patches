@@ -226,7 +226,8 @@ AirportTileResolverObject::AirportTileResolverObject(const AirportTileSpec *ats,
  * @param tile %Tile for the callback, only valid for airporttile callbacks.
  * @param st Station of the airport for which the callback is run, or \c NULL for build gui.
  */
-AirportTileScopeResolver::AirportTileScopeResolver(ResolverObject &ro, const AirportTileSpec *ats, TileIndex tile, Station *st) : ScopeResolver(ro)
+AirportTileScopeResolver::AirportTileScopeResolver(ResolverObject &ro, const AirportTileSpec *ats, TileIndex tile, Station *st)
+	: ScopeResolver(), ro(ro)
 {
 	assert(st != NULL);
 

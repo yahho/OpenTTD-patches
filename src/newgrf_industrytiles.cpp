@@ -157,7 +157,8 @@ IndustryTileResolverObject::IndustryTileResolverObject(IndustryGfx gfx, TileInde
  * @param industry %Industry owning the tile.
  * @param tile %Tile of the industry.
  */
-IndustryTileScopeResolver::IndustryTileScopeResolver(ResolverObject &ro, Industry *industry, TileIndex tile) : ScopeResolver(ro)
+IndustryTileScopeResolver::IndustryTileScopeResolver(ResolverObject &ro, Industry *industry, TileIndex tile)
+	: ScopeResolver(), ro(ro)
 {
 	this->industry = industry;
 	this->tile = tile;

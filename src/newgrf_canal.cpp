@@ -25,7 +25,7 @@ struct CanalScopeResolver : public ScopeResolver {
 	TileIndex tile; ///< Tile containing the canal.
 
 	CanalScopeResolver (ResolverObject &ro, TileIndex tile)
-		: ScopeResolver(ro), tile(tile)
+		: ScopeResolver(), tile(tile)
 	{
 	}
 

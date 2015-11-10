@@ -473,7 +473,7 @@ TownScopeResolver *IndustriesResolverObject::GetTown()
  * @param random_bits Random bits of the new industry.
  */
 IndustriesScopeResolver::IndustriesScopeResolver(ResolverObject &ro, TileIndex tile, Industry *industry, IndustryType type, uint32 random_bits)
-	: ScopeResolver(ro)
+	: ScopeResolver(), ro(ro)
 {
 	this->tile = tile;
 	this->industry = industry;

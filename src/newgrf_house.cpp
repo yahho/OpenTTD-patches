@@ -41,7 +41,7 @@ HouseOverrideManager _house_mngr(NEW_HOUSE_OFFSET, NUM_HOUSES, INVALID_HOUSE_ID)
  */
 HouseScopeResolver::HouseScopeResolver(ResolverObject &ro, HouseID house_id, TileIndex tile, Town *town,
 			bool not_yet_constructed, uint8 initial_random_bits, uint32 watched_cargo_triggers)
-		: ScopeResolver(ro)
+	: ScopeResolver(), ro(ro)
 {
 	this->house_id = house_id;
 	this->tile = tile;

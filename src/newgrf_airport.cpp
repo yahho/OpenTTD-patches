@@ -19,6 +19,8 @@
 
 /** Resolver for the airport scope. */
 struct AirportScopeResolver : public ScopeResolver {
+	ResolverObject &ro; ///< Surrounding resolver object.
+
 	struct Station *st; ///< Station of the airport for which the callback is run, or \c NULL for build gui.
 	byte layout;        ///< Layout of the airport to build.
 	TileIndex tile;     ///< Tile for the callback, only valid for airporttile callbacks.
@@ -31,7 +33,7 @@ struct AirportScopeResolver : public ScopeResolver {
 	 * @param layout Layout of the airport to build.
 	 */
 	AirportScopeResolver (ResolverObject &ro, TileIndex tile, Station *st, byte layout)
-		: ScopeResolver(ro), st(st), layout(layout), tile(tile)
+		: ScopeResolver(), ro(ro), st(st), layout(layout), tile(tile)
 	{
 	}
 

@@ -16,6 +16,8 @@
 
 /** Resolver for industry scopes. */
 struct IndustriesScopeResolver : public ScopeResolver {
+	ResolverObject &ro; ///< Surrounding resolver object.
+
 	TileIndex tile;     ///< Tile owned by the industry.
 	Industry *industry; ///< %Industry being resolved.
 	IndustryType type;  ///< Type of the industry.

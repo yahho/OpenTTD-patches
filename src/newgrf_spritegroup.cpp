@@ -82,13 +82,6 @@ static inline uint32 GetVariable(const ResolverObject &object, ScopeResolver *sc
 	}
 }
 
-ScopeResolver::ScopeResolver(ResolverObject &ro)
-		: ro(ro)
-{
-}
-
-ScopeResolver::~ScopeResolver() {}
-
 /**
  * Get a few random bits. Default implementation has no random bits.
  * @return Random bits.
@@ -142,7 +135,7 @@ ScopeResolver::~ScopeResolver() {}
  * @param callback_param2 Second parameter (var 18) of the callback (only used when \a callback is also set).
  */
 ResolverObject::ResolverObject(const GRFFile *grffile, CallbackID callback, uint32 callback_param1, uint32 callback_param2)
-		: grffile(grffile), default_scope(*this)
+		: grffile(grffile), default_scope()
 {
 	this->callback = callback;
 	this->callback_param1 = callback_param1;

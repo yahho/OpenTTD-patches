@@ -22,6 +22,8 @@
  *       and to check the town's persistent storage.
  */
 struct TownScopeResolver : public ScopeResolver {
+	ResolverObject &ro; ///< Surrounding resolver object.
+
 	Town *t;       ///< %Town of the scope.
 	bool readonly; ///< When set, persistent storage of the town is read-only,
 
@@ -44,7 +46,7 @@ struct TownScopeResolver : public ScopeResolver {
  * values.
  */
 struct FakeTownScopeResolver : public ScopeResolver {
-	FakeTownScopeResolver(ResolverObject &ro) : ScopeResolver(ro)
+	FakeTownScopeResolver(ResolverObject &ro) : ScopeResolver()
 	{ }
 
 	virtual uint32 GetVariable(byte variable, uint32 parameter, bool *available) const;
