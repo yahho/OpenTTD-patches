@@ -46,7 +46,7 @@ struct TownScopeResolver : public ScopeResolver {
  * values.
  */
 struct FakeTownScopeResolver : public ScopeResolver {
-	FakeTownScopeResolver(ResolverObject &ro) : ScopeResolver()
+	FakeTownScopeResolver() : ScopeResolver()
 	{ }
 
 	virtual uint32 GetVariable(byte variable, uint32 parameter, bool *available) const;
