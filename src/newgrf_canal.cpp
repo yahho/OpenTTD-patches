@@ -24,8 +24,7 @@ WaterFeature _water_feature[CF_END];
 struct CanalScopeResolver : public ScopeResolver {
 	TileIndex tile; ///< Tile containing the canal.
 
-	CanalScopeResolver (ResolverObject &ro, TileIndex tile)
-		: ScopeResolver(), tile(tile)
+	CanalScopeResolver (TileIndex tile) : ScopeResolver(), tile(tile)
 	{
 	}
 
@@ -48,7 +47,7 @@ struct CanalResolverObject : public ResolverObject {
 	CanalResolverObject(CanalFeature feature, TileIndex tile,
 			CallbackID callback = CBID_NO_CALLBACK, uint32 param1 = 0, uint32 param2 = 0)
 		: ResolverObject (_water_feature[feature].grffile, callback, param1, param2),
-		  canal_scope (*this, tile)
+		  canal_scope (tile)
 	{
 		this->root_spritegroup = _water_feature[feature].group;
 	}
