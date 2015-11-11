@@ -178,7 +178,7 @@ static uint32 GetAirportTileIDAtOffset(TileIndex tile, const Station *st, uint32
 		case 0x44: return GetAnimationFrame(this->tile);
 
 		/* Land info of nearby tiles */
-		case 0x60: return GetNearbyAirportTileInformation(parameter, this->tile, this->st->index, this->ro.grffile->grf_version >= 8);
+		case 0x60: return GetNearbyAirportTileInformation (parameter, this->tile, this->st->index, this->grffile->grf_version >= 8);
 
 		/* Animation stage of nearby tiles */
 		case 0x61: {
@@ -190,7 +190,7 @@ static uint32 GetAirportTileIDAtOffset(TileIndex tile, const Station *st, uint32
 		}
 
 		/* Get airport tile ID at offset */
-		case 0x62: return GetAirportTileIDAtOffset(GetNearbyTile(parameter, this->tile), this->st, this->ro.grffile->grfid);
+		case 0x62: return GetAirportTileIDAtOffset (GetNearbyTile (parameter, this->tile), this->st, this->grffile->grfid);
 	}
 
 	DEBUG(grf, 1, "Unhandled airport tile variable 0x%X", variable);
@@ -215,19 +215,21 @@ static uint32 GetAirportTileIDAtOffset(TileIndex tile, const Station *st, uint32
  */
 AirportTileResolverObject::AirportTileResolverObject(const AirportTileSpec *ats, TileIndex tile, Station *st,
 		CallbackID callback, uint32 callback_param1, uint32 callback_param2)
-	: ResolverObject(ats->grf_prop.grffile, callback, callback_param1, callback_param2), tiles_scope(*this, ats, tile, st)
+	: ResolverObject (ats->grf_prop.grffile, callback, callback_param1, callback_param2),
+	  tiles_scope (this->grffile, ats, tile, st)
 {
 	this->root_spritegroup = ats->grf_prop.spritegroup[0];
 }
 
 /**
  * Constructor of the scope resolver specific for airport tiles.
+ * @param grffile GRFFile the resolved SpriteGroup belongs to.
  * @param ats Specification of the airport tiles.
  * @param tile %Tile for the callback, only valid for airporttile callbacks.
  * @param st Station of the airport for which the callback is run, or \c NULL for build gui.
  */
-AirportTileScopeResolver::AirportTileScopeResolver(ResolverObject &ro, const AirportTileSpec *ats, TileIndex tile, Station *st)
-	: ScopeResolver(), ro(ro)
+AirportTileScopeResolver::AirportTileScopeResolver (const GRFFile *grffile, const AirportTileSpec *ats, TileIndex tile, Station *st)
+	: ScopeResolver(), grffile(grffile)
 {
 	assert(st != NULL);
 
