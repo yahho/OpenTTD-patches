@@ -19,21 +19,22 @@
 
 /** Resolver for the airport scope. */
 struct AirportScopeResolver : public ScopeResolver {
-	ResolverObject &ro; ///< Surrounding resolver object.
-
+	const GRFFile *const grffile; ///< GRFFile the resolved SpriteGroup belongs to.
 	struct Station *st; ///< Station of the airport for which the callback is run, or \c NULL for build gui.
 	byte layout;        ///< Layout of the airport to build.
 	TileIndex tile;     ///< Tile for the callback, only valid for airporttile callbacks.
 
 	/**
 	 * Constructor of the scope resolver for an airport.
-	 * @param ro Surrounding resolver.
+	 * @param grffile GRFFile the resolved SpriteGroup belongs to.
 	 * @param tile %Tile for the callback, only valid for airporttile callbacks.
 	 * @param st %Station of the airport for which the callback is run, or \c NULL for build gui.
 	 * @param layout Layout of the airport to build.
 	 */
-	AirportScopeResolver (ResolverObject &ro, TileIndex tile, Station *st, byte layout)
-		: ScopeResolver(), ro(ro), st(st), layout(layout), tile(tile)
+	AirportScopeResolver (const GRFFile *grffile, TileIndex tile,
+			Station *st, byte layout)
+		: ScopeResolver(), grffile(grffile),
+		  st(st), layout(layout), tile(tile)
 	{
 	}
 
@@ -59,7 +60,7 @@ struct AirportResolverObject : public ResolverObject {
 	AirportResolverObject (TileIndex tile, Station *st, const AirportSpec *as, byte layout,
 			CallbackID callback = CBID_NO_CALLBACK, uint32 param1 = 0, uint32 param2 = 0)
 		: ResolverObject (as->grf_prop.grffile, callback, param1, param2),
-		  airport_scope (*this, tile, st, layout)
+		  airport_scope (this->grffile, tile, st, layout)
 	{
 		this->root_spritegroup = as->grf_prop.spritegroup[0];
 	}
@@ -209,7 +210,7 @@ void AirportOverrideManager::SetEntitySpec(AirportSpec *as)
 		case 0xFA: return Clamp(this->st->build_date - DAYS_TILL_ORIGINAL_BASE_YEAR, 0, 65535);
 	}
 
-	return this->st->GetNewGRFVariable (this->ro.grffile, variable, parameter, available);
+	return this->st->GetNewGRFVariable (this->grffile, variable, parameter, available);
 }
 
 /* virtual */ const SpriteGroup *AirportResolverObject::ResolveReal(const RealSpriteGroup *group) const
@@ -242,7 +243,7 @@ void AirportOverrideManager::SetEntitySpec(AirportSpec *as)
 		if (value == 0) return;
 
 		/* Create storage on first modification. */
-		uint32 grfid = (this->ro.grffile != NULL) ? this->ro.grffile->grfid : 0;
+		uint32 grfid = (this->grffile != NULL) ? this->grffile->grfid : 0;
 		assert(PersistentStorage::CanAllocateItem());
 		this->st->airport.psa = new PersistentStorage(grfid, GSF_AIRPORTS, this->st->airport.tile);
 	}
