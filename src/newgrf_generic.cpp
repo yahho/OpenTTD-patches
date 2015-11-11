@@ -34,11 +34,18 @@ struct GenericScopeResolverData {
 
 /** Scope resolver for generic objects and properties. */
 struct GenericScopeResolver : public ScopeResolver {
-	ResolverObject &ro; ///< Surrounding resolver object.
-
+	const GRFFile *const grffile; ///< GRFFile the resolved SpriteGroup belongs to.
 	const GenericScopeResolverData *const data;
 
-	GenericScopeResolver (ResolverObject &ro, const GenericScopeResolverData *data);
+	/**
+	 * Generic scope resolver.
+	 * @param grffile GRFFile the resolved SpriteGroup belongs to.
+	 * @param data Callback data.
+	 */
+	GenericScopeResolver (const GRFFile *grffile, const GenericScopeResolverData *data)
+		: ScopeResolver(), grffile(grffile), data(data)
+	{
+	}
 
 	/* virtual */ uint32 GetVariable(byte variable, uint32 parameter, bool *available) const;
 };
@@ -59,7 +66,7 @@ struct GenericResolverObject : public ResolverObject {
 			const GenericScopeResolverData *data,
 			CallbackID callback, uint32 param1)
 		: ResolverObject (grffile, callback, param1),
-		  generic_scope (*this, data)
+		  generic_scope (grffile, data)
 	{
 	}
 
@@ -123,7 +130,7 @@ void AddGenericCallback(uint8 feature, const GRFFile *file, const SpriteGroup *g
 {
 	if (this->data != NULL) {
 		switch (variable) {
-			case 0x40: return this->ro.grffile->cargo_map[this->data->cargo_type];
+			case 0x40: return this->grffile->cargo_map[this->data->cargo_type];
 
 			case 0x80: return this->data->cargo_type;
 			case 0x81: return CargoSpec::Get(this->data->cargo_type)->bitnum;
@@ -151,16 +158,6 @@ void AddGenericCallback(uint8 feature, const GRFFile *file, const SpriteGroup *g
 	if (group->num_loaded == 0) return NULL;
 
 	return group->loaded[0];
-}
-
-/**
- * Generic scope resolver.
- * @param ro Surrounding resolver.
- * @param data Callback data.
- */
-GenericScopeResolver::GenericScopeResolver (ResolverObject &ro, const GenericScopeResolverData *data)
-	: ScopeResolver(), ro(ro), data(data)
-{
 }
 
 
