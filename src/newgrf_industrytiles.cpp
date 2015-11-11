@@ -79,7 +79,7 @@ uint32 GetRelativePosition(TileIndex tile, TileIndex ind_tile)
 
 		/* Land info of nearby tiles */
 		case 0x60: return GetNearbyIndustryTileInformation(parameter, this->tile,
-				this->industry == NULL ? (IndustryID)INVALID_INDUSTRY : this->industry->index, true, this->ro.grffile->grf_version >= 8);
+				this->industry == NULL ? (IndustryID)INVALID_INDUSTRY : this->industry->index, true, this->grffile->grf_version >= 8);
 
 		/* Animation stage of nearby tiles */
 		case 0x61: {
@@ -91,7 +91,7 @@ uint32 GetRelativePosition(TileIndex tile, TileIndex ind_tile)
 		}
 
 		/* Get industry tile ID at offset */
-		case 0x62: return GetIndustryIDAtOffset(GetNearbyTile(parameter, this->tile), this->industry, this->ro.grffile->grfid);
+		case 0x62: return GetIndustryIDAtOffset(GetNearbyTile(parameter, this->tile), this->industry, this->grffile->grfid);
 	}
 
 	DEBUG(grf, 1, "Unhandled industry tile variable 0x%X", variable);
@@ -145,7 +145,7 @@ static const GRFFile *GetIndTileGrffile(IndustryGfx gfx)
 IndustryTileResolverObject::IndustryTileResolverObject(IndustryGfx gfx, TileIndex tile, Industry *indus,
 			CallbackID callback, uint32 callback_param1, uint32 callback_param2)
 	: ResolverObject(GetIndTileGrffile(gfx), callback, callback_param1, callback_param2),
-	indtile_scope(*this, indus, tile),
+	indtile_scope(this->grffile, indus, tile),
 	ind_scope(*this, tile, indus, indus->type)
 {
 	this->root_spritegroup = GetIndustryTileSpec(gfx)->grf_prop.spritegroup[0];
@@ -153,12 +153,12 @@ IndustryTileResolverObject::IndustryTileResolverObject(IndustryGfx gfx, TileInde
 
 /**
  * Constructor of the scope resolver for the industry tile.
- * @param ro Surrounding resolver.
+ * @param grffile GRFFile the resolved SpriteGroup belongs to.
  * @param industry %Industry owning the tile.
  * @param tile %Tile of the industry.
  */
-IndustryTileScopeResolver::IndustryTileScopeResolver(ResolverObject &ro, Industry *industry, TileIndex tile)
-	: ScopeResolver(), ro(ro)
+IndustryTileScopeResolver::IndustryTileScopeResolver (const GRFFile *grffile, Industry *industry, TileIndex tile)
+	: ScopeResolver(), grffile(grffile)
 {
 	this->industry = industry;
 	this->tile = tile;

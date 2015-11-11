@@ -18,12 +18,11 @@
 
 /** Resolver for the industry tiles scope. */
 struct IndustryTileScopeResolver : public ScopeResolver {
-	ResolverObject &ro; ///< Surrounding resolver object.
-
+	const GRFFile *const grffile; ///< GRFFile the resolved SpriteGroup belongs to.
 	Industry *industry; ///< Industry owning the tiles.
 	TileIndex tile;     ///< %Tile being resolved.
 
-	IndustryTileScopeResolver(ResolverObject &ro, Industry *industry, TileIndex tile);
+	IndustryTileScopeResolver (const GRFFile *grffile, Industry *industry, TileIndex tile);
 
 	/* virtual */ uint32 GetRandomBits() const;
 	/* virtual */ uint32 GetVariable(byte variable, uint32 parameter, bool *available) const;
