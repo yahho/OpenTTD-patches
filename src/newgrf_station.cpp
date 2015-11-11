@@ -272,7 +272,7 @@ TownScopeResolver *StationResolverObject::GetTown()
 			t = ClosestTownFromTile(this->station_scope.tile);
 		}
 		if (t == NULL) return NULL;
-		this->town_scope = new TownScopeResolver(*this, t, this->station_scope.st == NULL);
+		this->town_scope = new TownScopeResolver (this->grffile, t, this->station_scope.st == NULL);
 	}
 	return this->town_scope;
 }

@@ -22,12 +22,11 @@
  *       and to check the town's persistent storage.
  */
 struct TownScopeResolver : public ScopeResolver {
-	ResolverObject &ro; ///< Surrounding resolver object.
-
+	const GRFFile *const grffile; ///< GRFFile the resolved SpriteGroup belongs to.
 	Town *t;       ///< %Town of the scope.
 	bool readonly; ///< When set, persistent storage of the town is read-only,
 
-	TownScopeResolver(ResolverObject &ro, Town *t, bool readonly);
+	TownScopeResolver (const GRFFile *grffile, Town *t, bool readonly);
 
 	virtual uint32 GetVariable(byte variable, uint32 parameter, bool *available) const;
 	virtual void StorePSA(uint reg, int32 value);

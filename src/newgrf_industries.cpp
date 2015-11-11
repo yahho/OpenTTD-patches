@@ -459,7 +459,7 @@ TownScopeResolver *IndustriesResolverObject::GetTown()
 			t = ClosestTownFromTile(this->industries_scope.tile);
 		}
 		if (t == NULL) return NULL;
-		this->town_scope = new TownScopeResolver(*this, t, readonly);
+		this->town_scope = new TownScopeResolver (this->grffile, t, readonly);
 	}
 	return this->town_scope;
 }

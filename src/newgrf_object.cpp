@@ -396,7 +396,7 @@ TownScopeResolver *ObjectResolverObject::GetTown()
 			t = ClosestTownFromTile(this->object_scope.tile);
 		}
 		if (t == NULL) return NULL;
-		this->town_scope = new TownScopeResolver(*this, t, this->object_scope.obj == NULL);
+		this->town_scope = new TownScopeResolver (this->grffile, t, this->object_scope.obj == NULL);
 	}
 	return this->town_scope;
 }

@@ -79,7 +79,7 @@ HouseResolverObject::HouseResolverObject(HouseID house_id, TileIndex tile, Town 
 		bool not_yet_constructed, uint8 initial_random_bits, uint32 watched_cargo_triggers)
 	: ResolverObject(GetHouseSpecGrf(house_id), callback, param1, param2),
 	  house_scope (this->grffile, house_id, tile, town, not_yet_constructed, initial_random_bits, watched_cargo_triggers),
-	town_scope(*this, town, not_yet_constructed) // Don't access StorePSA if house is not yet constructed.
+	  town_scope (this->grffile, town, not_yet_constructed) // Don't access StorePSA if house is not yet constructed.
 {
 	this->root_spritegroup = HouseSpec::Get(house_id)->grf_prop.spritegroup[0];
 }
