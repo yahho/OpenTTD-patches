@@ -130,13 +130,13 @@ INSTANTIATE_NEWGRF_CLASS_METHODS(ObjectClass)
 
 /**
  * Constructor of an object scope resolver.
- * @param ro Surrounding resolver.
+ * @param grffile GRFFile the resolved SpriteGroup belongs to.
  * @param obj Object being resolved.
  * @param tile %Tile of the object.
  * @param view View of the object.
  */
-ObjectScopeResolver::ObjectScopeResolver(ResolverObject &ro, Object *obj, TileIndex tile, uint8 view)
-	: ScopeResolver(), ro(ro)
+ObjectScopeResolver::ObjectScopeResolver (const GRFFile *grffile, Object *obj, TileIndex tile, uint8 view)
+	: ScopeResolver(), grffile(grffile)
 {
 	this->obj = obj;
 	this->tile = tile;
@@ -329,7 +329,7 @@ static uint32 GetCountAndDistanceOfClosestInstance(byte local_id, uint32 grfid, 
 		case 0x48: return this->obj->view;
 
 		/* Get object ID at offset param */
-		case 0x60: return GetObjectIDAtOffset(GetNearbyTile(parameter, this->tile), this->ro.grffile->grfid);
+		case 0x60: return GetObjectIDAtOffset (GetNearbyTile (parameter, this->tile), this->grffile->grfid);
 
 		/* Get random tile bits at offset param */
 		case 0x61: {
@@ -338,7 +338,7 @@ static uint32 GetCountAndDistanceOfClosestInstance(byte local_id, uint32 grfid, 
 		}
 
 		/* Land info of nearby tiles */
-		case 0x62: return GetNearbyObjectTileInformation(parameter, this->tile, this->obj == NULL ? INVALID_OBJECT : this->obj->index, this->ro.grffile->grf_version >= 8);
+		case 0x62: return GetNearbyObjectTileInformation (parameter, this->tile, this->obj == NULL ? INVALID_OBJECT : this->obj->index, this->grffile->grf_version >= 8);
 
 		/* Animation counter of nearby tile */
 		case 0x63: {
@@ -347,7 +347,7 @@ static uint32 GetCountAndDistanceOfClosestInstance(byte local_id, uint32 grfid, 
 		}
 
 		/* Count of object, distance of closest instance */
-		case 0x64: return GetCountAndDistanceOfClosestInstance(parameter, this->ro.grffile->grfid, this->tile, this->obj);
+		case 0x64: return GetCountAndDistanceOfClosestInstance (parameter, this->grffile->grfid, this->tile, this->obj);
 	}
 
 unhandled:
@@ -368,7 +368,8 @@ unhandled:
  */
 ObjectResolverObject::ObjectResolverObject(const ObjectSpec *spec, Object *obj, TileIndex tile, uint8 view,
 		CallbackID callback, uint32 param1, uint32 param2)
-	: ResolverObject(spec->grf_prop.grffile, callback, param1, param2), object_scope(*this, obj, tile, view)
+	: ResolverObject (spec->grf_prop.grffile, callback, param1, param2),
+	  object_scope (this->grffile, obj, tile, view)
 {
 	this->town_scope = NULL;
 	this->root_spritegroup = (obj == NULL && spec->grf_prop.spritegroup[CT_PURCHASE_OBJECT] != NULL) ?

@@ -100,13 +100,12 @@ struct ObjectSpec {
 
 /** Object scope resolver. */
 struct ObjectScopeResolver : public ScopeResolver {
-	ResolverObject &ro; ///< Surrounding resolver object.
-
+	const GRFFile *const grffile; ///< GRFFile the resolved SpriteGroup belongs to.
 	struct Object *obj; ///< The object the callback is ran for.
 	TileIndex tile;     ///< The tile related to the object.
 	uint8 view;         ///< The view of the object.
 
-	ObjectScopeResolver(ResolverObject &ro, Object *obj, TileIndex tile, uint8 view = 0);
+	ObjectScopeResolver (const GRFFile *grffile, Object *obj, TileIndex tile, uint8 view = 0);
 
 	/* virtual */ uint32 GetRandomBits() const;
 	/* virtual */ uint32 GetVariable(byte variable, uint32 parameter, bool *available) const;
