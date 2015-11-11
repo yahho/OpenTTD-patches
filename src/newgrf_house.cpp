@@ -31,7 +31,7 @@ HouseOverrideManager _house_mngr(NEW_HOUSE_OFFSET, NUM_HOUSES, INVALID_HOUSE_ID)
 
 /**
  * Constructor of a house scope resolver.
- * @param ro Surrounding resolver.
+ * @param grffile GRFFile the resolved SpriteGroup belongs to.
  * @param house_id House type being queried.
  * @param tile %Tile containing the house.
  * @param town %Town containing the house.
@@ -39,9 +39,9 @@ HouseOverrideManager _house_mngr(NEW_HOUSE_OFFSET, NUM_HOUSES, INVALID_HOUSE_ID)
  * @param initial_random_bits Random bits during construction checks.
  * @param watched_cargo_triggers Cargo types that triggered the watched cargo callback.
  */
-HouseScopeResolver::HouseScopeResolver(ResolverObject &ro, HouseID house_id, TileIndex tile, Town *town,
+HouseScopeResolver::HouseScopeResolver (const GRFFile *grffile, HouseID house_id, TileIndex tile, Town *town,
 			bool not_yet_constructed, uint8 initial_random_bits, uint32 watched_cargo_triggers)
-	: ScopeResolver(), ro(ro)
+	: ScopeResolver(), grffile(grffile)
 {
 	this->house_id = house_id;
 	this->tile = tile;
@@ -78,7 +78,7 @@ HouseResolverObject::HouseResolverObject(HouseID house_id, TileIndex tile, Town 
 		CallbackID callback, uint32 param1, uint32 param2,
 		bool not_yet_constructed, uint8 initial_random_bits, uint32 watched_cargo_triggers)
 	: ResolverObject(GetHouseSpecGrf(house_id), callback, param1, param2),
-	house_scope(*this, house_id, tile, town, not_yet_constructed, initial_random_bits, watched_cargo_triggers),
+	  house_scope (this->grffile, house_id, tile, town, not_yet_constructed, initial_random_bits, watched_cargo_triggers),
 	town_scope(*this, town, not_yet_constructed) // Don't access StorePSA if house is not yet constructed.
 {
 	this->root_spritegroup = HouseSpec::Get(house_id)->grf_prop.spritegroup[0];
@@ -327,7 +327,7 @@ static uint32 GetDistanceFromNearbyHouse(uint8 parameter, TileIndex tile, HouseI
 		}
 
 		/* Land info for nearby tiles. */
-		case 0x62: return GetNearbyTileInformation(parameter, this->tile, this->ro.grffile->grf_version >= 8);
+		case 0x62: return GetNearbyTileInformation (parameter, this->tile, this->grffile->grf_version >= 8);
 
 		/* Current animation frame of nearby house tiles */
 		case 0x63: {
@@ -337,7 +337,7 @@ static uint32 GetDistanceFromNearbyHouse(uint8 parameter, TileIndex tile, HouseI
 
 		/* Cargo acceptance history of nearby stations */
 		case 0x64: {
-			CargoID cid = GetCargoTranslation(parameter, this->ro.grffile);
+			CargoID cid = GetCargoTranslation (parameter, this->grffile);
 			if (cid == CT_INVALID) return 0;
 
 			/* Extract tile offset. */
@@ -375,7 +375,7 @@ static uint32 GetDistanceFromNearbyHouse(uint8 parameter, TileIndex tile, HouseI
 			/* Information about the grf local classid if the house has a class */
 			uint houseclass = 0;
 			if (hs->class_id != HOUSE_NO_CLASS) {
-				houseclass = (hs->grf_prop.grffile == this->ro.grffile ? 1 : 2) << 8;
+				houseclass = (hs->grf_prop.grffile == this->grffile ? 1 : 2) << 8;
 				houseclass |= _class_mapping[hs->class_id].class_id;
 			}
 			/* old house type or grf-local houseid */
@@ -383,7 +383,7 @@ static uint32 GetDistanceFromNearbyHouse(uint8 parameter, TileIndex tile, HouseI
 			if (this->house_id < NEW_HOUSE_OFFSET) {
 				local_houseid = this->house_id;
 			} else {
-				local_houseid = (hs->grf_prop.grffile == this->ro.grffile ? 1 : 2) << 8;
+				local_houseid = (hs->grf_prop.grffile == this->grffile ? 1 : 2) << 8;
 				local_houseid |= hs->grf_prop.local_id;
 			}
 			return houseclass << 16 | local_houseid;
