@@ -298,7 +298,7 @@ TownScopeResolver *StationResolverObject::GetTown()
 					Slope tileh = GetTileSlope(tile);
 					bool swap = (this->axis == AXIS_Y && HasBit(tileh, CORNER_W) != HasBit(tileh, CORNER_E));
 
-					return GetNearbyTileInformation(tile, this->ro.grffile->grf_version >= 8) ^ (swap ? SLOPE_EW : 0);
+					return GetNearbyTileInformation (tile, this->grffile->grf_version >= 8) ^ (swap ? SLOPE_EW : 0);
 				}
 				break;
 
@@ -357,7 +357,7 @@ TownScopeResolver *StationResolverObject::GetTown()
 			Slope tileh = GetTileSlope(tile);
 			bool swap = (axis == AXIS_Y && HasBit(tileh, CORNER_W) != HasBit(tileh, CORNER_E));
 
-			return GetNearbyTileInformation(tile, this->ro.grffile->grf_version >= 8) ^ (swap ? SLOPE_EW : 0);
+			return GetNearbyTileInformation (tile, this->grffile->grf_version >= 8) ^ (swap ? SLOPE_EW : 0);
 		}
 
 		case 0x68: { // Station info of nearby tiles
@@ -385,7 +385,7 @@ TownScopeResolver *StationResolverObject::GetTown()
 		case 0xFA: return Clamp(this->st->build_date - DAYS_TILL_ORIGINAL_BASE_YEAR, 0, 65535);
 	}
 
-	return this->st->GetNewGRFVariable (this->ro.grffile, variable, parameter, available);
+	return this->st->GetNewGRFVariable (this->grffile, variable, parameter, available);
 }
 
 uint32 Station::GetNewGRFVariable (const GRFFile *grffile, byte variable, byte parameter, bool *available) const
@@ -548,7 +548,7 @@ uint32 Waypoint::GetNewGRFVariable (const GRFFile *grffile, byte variable, byte 
 StationResolverObject::StationResolverObject(const StationSpec *statspec, BaseStation *st, TileIndex tile,
 		CallbackID callback, uint32 callback_param1, uint32 callback_param2)
 	: ResolverObject(statspec->grf_prop.grffile, callback, callback_param1, callback_param2),
-	station_scope(*this, statspec, st, tile), town_scope(NULL)
+	  station_scope (this->grffile, statspec, st, tile), town_scope(NULL)
 {
 	/* Invalidate all cached vars */
 	_svc.valid = 0;
@@ -587,13 +587,13 @@ StationResolverObject::~StationResolverObject()
 
 /**
  * Constructor for station scopes.
- * @param ro Surrounding resolver.
+ * @param grffile GRFFile the resolved SpriteGroup belongs to.
  * @param statspec Station (type) specification.
  * @param st Instance of the station.
  * @param tile %Tile of the station.
  */
-StationScopeResolver::StationScopeResolver(ResolverObject &ro, const StationSpec *statspec, BaseStation *st, TileIndex tile)
-	: ScopeResolver(), ro(ro)
+StationScopeResolver::StationScopeResolver (const GRFFile *grffile, const StationSpec *statspec, BaseStation *st, TileIndex tile)
+	: ScopeResolver(), grffile(grffile)
 {
 	this->tile = tile;
 	this->st = st;
