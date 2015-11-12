@@ -494,7 +494,7 @@ IndustriesScopeResolver::IndustriesScopeResolver(ResolverObject &ro, TileIndex t
 uint16 GetIndustryCallback(CallbackID callback, uint32 param1, uint32 param2, Industry *industry, IndustryType type, TileIndex tile)
 {
 	IndustriesResolverObject object(tile, industry, type, 0, callback, param1, param2);
-	return object.ResolveCallback();
+	return SpriteGroup::CallbackResult (object.Resolve());
 }
 
 /**
@@ -524,7 +524,7 @@ CommandCost CheckIfCallBackAllowsCreation(TileIndex tile, IndustryType type, uin
 	ind.psa = NULL;
 
 	IndustriesResolverObject object(tile, &ind, type, seed, CBID_INDUSTRY_LOCATION, 0, creation_type);
-	uint16 result = object.ResolveCallback();
+	uint16 result = SpriteGroup::CallbackResult (object.Resolve());
 
 	/* Unlike the "normal" cases, not having a valid result means we allow
 	 * the building of the industry, as that's how it's done in TTDP. */

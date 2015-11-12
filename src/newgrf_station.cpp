@@ -643,7 +643,7 @@ SpriteID GetCustomStationFoundationRelocation(const StationSpec *statspec, BaseS
 uint16 GetStationCallback(CallbackID callback, uint32 param1, uint32 param2, const StationSpec *statspec, BaseStation *st, TileIndex tile)
 {
 	StationResolverObject object(statspec, st, tile, callback, param1, param2);
-	return object.ResolveCallback();
+	return SpriteGroup::CallbackResult (object.Resolve());
 }
 
 /**
@@ -666,7 +666,7 @@ CommandCost PerformStationTileSlopeCheck(TileIndex north_tile, TileIndex cur_til
 			(numtracks << 24) | (plat_len << 16) | (axis == AXIS_Y ? TileX(diff) << 8 | TileY(diff) : TileY(diff) << 8 | TileX(diff)));
 	object.station_scope.axis = axis;
 
-	uint16 cb_res = object.ResolveCallback();
+	uint16 cb_res = SpriteGroup::CallbackResult (object.Resolve());
 
 	/* Failed callback means success. */
 	if (cb_res == CALLBACK_FAILED) return CommandCost();

@@ -415,7 +415,7 @@ TownScopeResolver *ObjectResolverObject::GetTown()
 uint16 GetObjectCallback(CallbackID callback, uint32 param1, uint32 param2, const ObjectSpec *spec, Object *o, TileIndex tile, uint8 view)
 {
 	ObjectResolverObject object(spec, o, tile, view, callback, param1, param2);
-	return object.ResolveCallback();
+	return SpriteGroup::CallbackResult (object.Resolve());
 }
 
 /**

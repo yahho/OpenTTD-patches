@@ -183,7 +183,7 @@ static uint16 GetGenericCallbackResult (uint8 feature, CallbackID callback, uint
 		GenericResolverObject object (it->file, data, callback,
 				it->file->grf_version >= 8 ? param1_grfv8 : param1_grfv7);
 		object.root_spritegroup = it->group;
-		uint16 result = object.ResolveCallback();
+		uint16 result = SpriteGroup::CallbackResult (object.Resolve());
 		if (result == CALLBACK_FAILED) continue;
 
 		/* Return NewGRF file if necessary */

@@ -69,6 +69,15 @@ public:
 	virtual uint16 GetCallbackResult() const { return CALLBACK_FAILED; }
 
 	static const SpriteGroup *Resolve(const SpriteGroup *group, ResolverObject &object, bool top_level = true);
+
+	/**
+	 * Get a callback result from a SpriteGroup.
+	 * @return Callback result.
+	 */
+	static uint16 CallbackResult (const SpriteGroup *result)
+	{
+		return result != NULL ? result->GetCallbackResult() : CALLBACK_FAILED;
+	}
 };
 
 
@@ -328,16 +337,6 @@ struct ResolverObject {
 	const SpriteGroup *Resolve()
 	{
 		return SpriteGroup::Resolve(this->root_spritegroup, *this);
-	}
-
-	/**
-	 * Resolve callback.
-	 * @return Callback result.
-	 */
-	uint16 ResolveCallback()
-	{
-		const SpriteGroup *result = Resolve();
-		return result != NULL ? result->GetCallbackResult() : CALLBACK_FAILED;
 	}
 
 	virtual const SpriteGroup *ResolveReal(const RealSpriteGroup *group) const;

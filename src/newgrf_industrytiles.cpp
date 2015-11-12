@@ -193,7 +193,7 @@ uint16 GetIndustryTileCallback(CallbackID callback, uint32 param1, uint32 param2
 	assert(industry->index == INVALID_INDUSTRY || IsIndustryTile(tile));
 
 	IndustryTileResolverObject object(gfx_id, tile, industry, callback, param1, param2);
-	return object.ResolveCallback();
+	return SpriteGroup::CallbackResult (object.Resolve());
 }
 
 bool DrawNewIndustryTile(TileInfo *ti, Industry *i, IndustryGfx gfx, const IndustryTileSpec *inds)

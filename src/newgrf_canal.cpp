@@ -151,7 +151,7 @@ SpriteID GetCanalSprite(CanalFeature feature, TileIndex tile)
 static uint16 GetCanalCallback(CallbackID callback, uint32 param1, uint32 param2, CanalFeature feature, TileIndex tile)
 {
 	CanalResolverObject object(feature, tile, callback, param1, param2);
-	return object.ResolveCallback();
+	return SpriteGroup::CallbackResult (object.Resolve());
 }
 
 /**

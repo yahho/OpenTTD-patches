@@ -476,13 +476,13 @@ uint16 GetHouseCallback(CallbackID callback, uint32 param1, uint32 param2, House
 
 	HouseResolverObject object(house_id, tile, town, callback, param1, param2,
 			not_yet_constructed, initial_random_bits, watched_cargo_triggers);
-	return object.ResolveCallback();
+	return SpriteGroup::CallbackResult (object.Resolve());
 }
 
 uint16 GetHouseCallback (CallbackID callback, uint32 param1, uint32 param2, HouseID house_id)
 {
 	FakeHouseResolverObject object (house_id, callback, param1, param2);
-	return object.ResolveCallback();
+	return SpriteGroup::CallbackResult (object.Resolve());
 }
 
 static void DrawTileLayout(const TileInfo *ti, const TileLayoutSpriteGroup *group, byte stage, HouseID house_id)

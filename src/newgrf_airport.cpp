@@ -262,7 +262,7 @@ SpriteID GetCustomAirportSprite(const AirportSpec *as, byte layout)
 uint16 GetAirportCallback(CallbackID callback, uint32 param1, uint32 param2, Station *st, TileIndex tile)
 {
 	AirportResolverObject object (tile, st, AirportSpec::Get (st->airport.type), st->airport.layout, callback, param1, param2);
-	return object.ResolveCallback();
+	return SpriteGroup::CallbackResult (object.Resolve());
 }
 
 /**
@@ -275,7 +275,7 @@ uint16 GetAirportCallback(CallbackID callback, uint32 param1, uint32 param2, Sta
 StringID GetAirportTextCallback(const AirportSpec *as, byte layout, uint16 callback)
 {
 	AirportResolverObject object (INVALID_TILE, NULL, as, layout, (CallbackID)callback);
-	uint16 cb_res = object.ResolveCallback();
+	uint16 cb_res = SpriteGroup::CallbackResult (object.Resolve());
 	if (cb_res == CALLBACK_FAILED || cb_res == 0x400) return STR_UNDEFINED;
 	if (cb_res > 0x400) {
 		ErrorUnknownCallbackResult(as->grf_prop.grffile->grfid, callback, cb_res);

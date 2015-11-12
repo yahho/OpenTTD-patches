@@ -1074,7 +1074,7 @@ bool UsesWagonOverride(const Vehicle *v)
 uint16 GetVehicleCallback(CallbackID callback, uint32 param1, uint32 param2, EngineID engine, const Vehicle *v)
 {
 	VehicleResolverObject object(engine, v, VehicleResolverObject::WO_UNCACHED, false, callback, param1, param2);
-	return object.ResolveCallback();
+	return SpriteGroup::CallbackResult (object.Resolve());
 }
 
 /**
@@ -1091,7 +1091,7 @@ uint16 GetVehicleCallbackParent(CallbackID callback, uint32 param1, uint32 param
 {
 	VehicleResolverObject object(engine, v, VehicleResolverObject::WO_NONE, false, callback, param1, param2);
 	object.parent_scope.SetVehicle(parent);
-	return object.ResolveCallback();
+	return SpriteGroup::CallbackResult (object.Resolve());
 }
 
 

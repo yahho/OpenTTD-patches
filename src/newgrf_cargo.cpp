@@ -59,7 +59,7 @@ SpriteID GetCustomCargoSprite(const CargoSpec *cs)
 uint16 GetCargoCallback(CallbackID callback, uint32 param1, uint32 param2, const CargoSpec *cs)
 {
 	CargoResolverObject object(cs, callback, param1, param2);
-	return object.ResolveCallback();
+	return SpriteGroup::CallbackResult (object.Resolve());
 }
 
 /**
