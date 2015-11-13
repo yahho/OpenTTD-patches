@@ -372,8 +372,6 @@ ObjectResolverObject::ObjectResolverObject(const ObjectSpec *spec, Object *obj, 
 	  object_scope (this->grffile, obj, tile, view)
 {
 	this->town_scope = NULL;
-	this->root_spritegroup = (obj == NULL && spec->grf_prop.spritegroup[CT_PURCHASE_OBJECT] != NULL) ?
-			spec->grf_prop.spritegroup[CT_PURCHASE_OBJECT] : spec->grf_prop.spritegroup[0];
 }
 
 ObjectResolverObject::~ObjectResolverObject()
@@ -406,7 +404,12 @@ static const SpriteGroup *ObjectResolve (const ObjectSpec *spec, Object *o,
 	uint32 param1 = 0, uint32 param2 = 0)
 {
 	ObjectResolverObject object (spec, o, tile, view, callback, param1, param2);
-	return object.Resolve();
+
+	const SpriteGroup *const *group = spec->grf_prop.spritegroup;
+	const SpriteGroup *root = (o == NULL && group[CT_PURCHASE_OBJECT] != NULL) ?
+			group[CT_PURCHASE_OBJECT] : group[0];
+
+	return SpriteGroup::Resolve (root, object);
 }
 
 /**

@@ -116,8 +116,6 @@ struct ObjectResolverObject : public ResolverObject {
 	ObjectScopeResolver object_scope; ///< The object scope resolver.
 	TownScopeResolver *town_scope;    ///< The town scope resolver (created on the first call).
 
-	const SpriteGroup *root_spritegroup; ///< Root SpriteGroup to use for resolving
-
 	ObjectResolverObject(const ObjectSpec *spec, Object *o, TileIndex tile, uint8 view = 0,
 			CallbackID callback = CBID_NO_CALLBACK, uint32 param1 = 0, uint32 param2 = 0);
 	~ObjectResolverObject();
@@ -136,15 +134,6 @@ struct ObjectResolverObject : public ResolverObject {
 
 			default: return ResolverObject::GetScope(scope, relative);
 		}
-	}
-
-	/**
-	 * Resolve SpriteGroup.
-	 * @return Result spritegroup.
-	 */
-	const SpriteGroup *Resolve()
-	{
-		return SpriteGroup::Resolve (this->root_spritegroup, *this);
 	}
 
 private:
