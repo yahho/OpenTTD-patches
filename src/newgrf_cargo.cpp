@@ -52,6 +52,13 @@ struct CargoResolverObject : public ResolverObject {
 	return NULL;
 }
 
+static inline const SpriteGroup *CargoResolve (const CargoSpec *cs,
+	CallbackID callback = CBID_NO_CALLBACK, uint32 param1 = 0, uint32 param2 = 0)
+{
+	CargoResolverObject object (cs, callback, param1, param2);
+	return object.Resolve();
+}
+
 /**
  * Get the custom sprite for the given cargo type.
  * @param cs Cargo being queried.
@@ -59,8 +66,7 @@ struct CargoResolverObject : public ResolverObject {
  */
 SpriteID GetCustomCargoSprite(const CargoSpec *cs)
 {
-	CargoResolverObject object(cs);
-	const SpriteGroup *group = object.Resolve();
+	const SpriteGroup *group = CargoResolve (cs);
 	if (group == NULL) return 0;
 
 	return group->GetResult();
@@ -69,8 +75,7 @@ SpriteID GetCustomCargoSprite(const CargoSpec *cs)
 
 uint16 GetCargoCallback(CallbackID callback, uint32 param1, uint32 param2, const CargoSpec *cs)
 {
-	CargoResolverObject object(cs, callback, param1, param2);
-	return SpriteGroup::CallbackResult (object.Resolve());
+	return SpriteGroup::CallbackResult (CargoResolve (cs, callback, param1, param2));
 }
 
 /**
