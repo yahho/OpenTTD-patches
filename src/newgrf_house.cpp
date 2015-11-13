@@ -479,10 +479,16 @@ uint16 GetHouseCallback(CallbackID callback, uint32 param1, uint32 param2, House
 	return SpriteGroup::CallbackResult (object.Resolve());
 }
 
-uint16 GetHouseCallback (CallbackID callback, uint32 param1, uint32 param2, HouseID house_id)
+static inline const SpriteGroup *FakeHouseResolve (HouseID house_id,
+	CallbackID callback = CBID_NO_CALLBACK, uint32 param1 = 0, uint32 param2 = 0)
 {
 	FakeHouseResolverObject object (house_id, callback, param1, param2);
-	return SpriteGroup::CallbackResult (object.Resolve());
+	return object.Resolve();
+}
+
+uint16 GetHouseCallback (CallbackID callback, uint32 param1, uint32 param2, HouseID house_id)
+{
+	return SpriteGroup::CallbackResult (FakeHouseResolve (house_id, callback, param1, param2));
 }
 
 static void DrawTileLayout(const TileInfo *ti, const TileLayoutSpriteGroup *group, byte stage, HouseID house_id)
@@ -568,8 +574,7 @@ void DrawNewHouseTile(TileInfo *ti, HouseID house_id)
 
 void DrawNewHouseTileInGUI(int x, int y, HouseID house_id, bool ground)
 {
-	FakeHouseResolverObject object(house_id);
-	const SpriteGroup *group = object.Resolve();
+	const SpriteGroup *group = FakeHouseResolve (house_id);
 	if (group != NULL && group->type == SGT_TILELAYOUT) {
 		DrawTileLayoutInGUI(x, y, (const TileLayoutSpriteGroup*)group, house_id, ground);
 	}
