@@ -401,6 +401,14 @@ TownScopeResolver *ObjectResolverObject::GetTown()
 	return this->town_scope;
 }
 
+static const SpriteGroup *ObjectResolve (const ObjectSpec *spec, Object *o,
+	TileIndex tile, uint8 view = 0, CallbackID callback = CBID_NO_CALLBACK,
+	uint32 param1 = 0, uint32 param2 = 0)
+{
+	ObjectResolverObject object (spec, o, tile, view, callback, param1, param2);
+	return object.Resolve();
+}
+
 /**
  * Perform a callback for an object.
  * @param callback The callback to perform.
@@ -414,8 +422,7 @@ TownScopeResolver *ObjectResolverObject::GetTown()
  */
 uint16 GetObjectCallback(CallbackID callback, uint32 param1, uint32 param2, const ObjectSpec *spec, Object *o, TileIndex tile, uint8 view)
 {
-	ObjectResolverObject object(spec, o, tile, view, callback, param1, param2);
-	return SpriteGroup::CallbackResult (object.Resolve());
+	return SpriteGroup::CallbackResult (ObjectResolve (spec, o, tile, view, callback, param1, param2));
 }
 
 /**
@@ -453,9 +460,7 @@ static void DrawTileLayout(const TileInfo *ti, const TileLayoutSpriteGroup *grou
 void DrawNewObjectTile(TileInfo *ti, const ObjectSpec *spec)
 {
 	Object *o = Object::GetByTile(ti->tile);
-	ObjectResolverObject object(spec, o, ti->tile);
-
-	const SpriteGroup *group = object.Resolve();
+	const SpriteGroup *group = ObjectResolve (spec, o, ti->tile);
 	if (group == NULL || group->type != SGT_TILELAYOUT) return;
 
 	DrawTileLayout(ti, (const TileLayoutSpriteGroup *)group, spec);
@@ -470,8 +475,7 @@ void DrawNewObjectTile(TileInfo *ti, const ObjectSpec *spec)
  */
 void DrawNewObjectTileInGUI(int x, int y, const ObjectSpec *spec, uint8 view)
 {
-	ObjectResolverObject object(spec, NULL, INVALID_TILE, view);
-	const SpriteGroup *group = object.Resolve();
+	const SpriteGroup *group = ObjectResolve (spec, NULL, INVALID_TILE, view);
 	if (group == NULL || group->type != SGT_TILELAYOUT) return;
 
 	const DrawTileSprites *dts = ((const TileLayoutSpriteGroup *)group)->ProcessRegisters(NULL);
