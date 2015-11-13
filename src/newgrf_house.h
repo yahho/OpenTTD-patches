@@ -51,10 +51,10 @@ struct HouseScopeResolver : public ScopeResolver {
  * resolver will return fake values.
  */
 struct FakeHouseScopeResolver : public ScopeResolver {
-	HouseID house_id; ///< Type of house being queried.
+	const HouseSpec *hs; ///< HouseSpec of house being queried.
 
-	FakeHouseScopeResolver (HouseID house_id)
-		: ScopeResolver(), house_id(house_id)
+	FakeHouseScopeResolver (const HouseSpec *hs)
+		: ScopeResolver(), hs(hs)
 	{ }
 
 	/* virtual */ uint32 GetVariable(byte variable, uint32 parameter, bool *available) const;

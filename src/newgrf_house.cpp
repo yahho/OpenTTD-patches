@@ -99,7 +99,7 @@ HouseResolverObject::HouseResolverObject(HouseID house_id, TileIndex tile, Town 
 FakeHouseResolverObject::FakeHouseResolverObject (HouseID house_id,
 		CallbackID callback, uint32 param1, uint32 param2)
 	: ResolverObject (GetHouseSpecGrf(house_id), callback, param1, param2),
-	  house_scope (house_id), town_scope()
+	  house_scope (HouseSpec::Get(house_id)), town_scope()
 {
 }
 
@@ -420,10 +420,10 @@ static uint32 GetDistanceFromNearbyHouse(uint8 parameter, TileIndex tile, HouseI
 		case 0x41: return 0;
 
 		/* Town zone */
-		case 0x42: return FIND_FIRST_BIT(HouseSpec::Get(this->house_id)->building_availability & HZ_ZONALL); // first available
+		case 0x42: return FIND_FIRST_BIT(this->hs->building_availability & HZ_ZONALL); // first available
 
 		/* Terrain type */
-		case 0x43: return _settings_game.game_creation.landscape == LT_ARCTIC && (HouseSpec::Get(house_id)->building_availability & (HZ_SUBARTC_ABOVE | HZ_SUBARTC_BELOW)) == HZ_SUBARTC_ABOVE ? 4 : 0;
+		case 0x43: return _settings_game.game_creation.landscape == LT_ARCTIC && (this->hs->building_availability & (HZ_SUBARTC_ABOVE | HZ_SUBARTC_BELOW)) == HZ_SUBARTC_ABOVE ? 4 : 0;
 
 		/* Number of this type of building on the map. */
 		case 0x44: return 0;
