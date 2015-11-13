@@ -91,7 +91,6 @@ RailTypeResolverObject::RailTypeResolverObject(const RailtypeInfo *rti, TileInde
 	: ResolverObject(rti != NULL ? rti->grffile[rtsg] : NULL, CBID_NO_CALLBACK, param1, param2),
 	  railtype_scope(tile, context)
 {
-	this->root_spritegroup = rti != NULL ? rti->group[rtsg] : NULL;
 }
 
 static inline const SpriteGroup *RailTypeResolve (const RailtypeInfo *rti,
@@ -99,7 +98,8 @@ static inline const SpriteGroup *RailTypeResolve (const RailtypeInfo *rti,
 	uint32 param1 = 0, uint32 param2 = 0)
 {
 	RailTypeResolverObject object (rti, tile, context, rtsg, param1, param2);
-	return object.Resolve();
+	const SpriteGroup *root = rti != NULL ? rti->group[rtsg] : NULL;
+	return SpriteGroup::Resolve (root, object);
 }
 
 /**
