@@ -36,8 +36,6 @@ struct CanalScopeResolver : public ScopeResolver {
 struct CanalResolverObject : public ResolverObject {
 	CanalScopeResolver canal_scope;
 
-	const SpriteGroup *root_spritegroup; ///< Root SpriteGroup to use for resolving
-
 	/**
 	 * Canal resolver constructor.
 	 * @param feature Which canal feature we want.
@@ -51,7 +49,6 @@ struct CanalResolverObject : public ResolverObject {
 		: ResolverObject (_water_feature[feature].grffile, callback, param1, param2),
 		  canal_scope (tile)
 	{
-		this->root_spritegroup = _water_feature[feature].group;
 	}
 
 	/* virtual */ ScopeResolver *GetScope(VarSpriteGroupScope scope = VSG_SCOPE_SELF, byte relative = 0)
@@ -63,15 +60,6 @@ struct CanalResolverObject : public ResolverObject {
 	}
 
 	/* virtual */ const SpriteGroup *ResolveReal(const RealSpriteGroup *group) const;
-
-	/**
-	 * Resolve SpriteGroup.
-	 * @return Result spritegroup.
-	 */
-	const SpriteGroup *Resolve()
-	{
-		return SpriteGroup::Resolve (this->root_spritegroup, *this);
-	}
 };
 
 /* virtual */ uint32 CanalScopeResolver::GetRandomBits() const
@@ -139,7 +127,7 @@ static const SpriteGroup *CanalResolve (CanalFeature feature, TileIndex tile,
 	CallbackID callback = CBID_NO_CALLBACK, uint32 param1 = 0, uint32 param2 = 0)
 {
 	CanalResolverObject object (feature, tile, callback, param1, param2);
-	return object.Resolve();
+	return SpriteGroup::Resolve (_water_feature[feature].group, object);
 }
 
 /**
