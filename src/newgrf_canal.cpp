@@ -135,6 +135,13 @@ struct CanalResolverObject : public ResolverObject {
 	return group->loaded[0];
 }
 
+static const SpriteGroup *CanalResolve (CanalFeature feature, TileIndex tile,
+	CallbackID callback = CBID_NO_CALLBACK, uint32 param1 = 0, uint32 param2 = 0)
+{
+	CanalResolverObject object (feature, tile, callback, param1, param2);
+	return object.Resolve();
+}
+
 /**
  * Lookup the base sprite to use for a canal.
  * @param feature Which canal feature we want.
@@ -143,8 +150,7 @@ struct CanalResolverObject : public ResolverObject {
  */
 SpriteID GetCanalSprite(CanalFeature feature, TileIndex tile)
 {
-	CanalResolverObject object(feature, tile);
-	const SpriteGroup *group = object.Resolve();
+	const SpriteGroup *group = CanalResolve (feature, tile);
 	if (group == NULL) return 0;
 
 	return group->GetResult();
@@ -162,7 +168,7 @@ SpriteID GetCanalSprite(CanalFeature feature, TileIndex tile)
 static uint16 GetCanalCallback(CallbackID callback, uint32 param1, uint32 param2, CanalFeature feature, TileIndex tile)
 {
 	CanalResolverObject object(feature, tile, callback, param1, param2);
-	return SpriteGroup::CallbackResult (object.Resolve());
+	return SpriteGroup::CallbackResult (CanalResolve (feature, tile, callback, param1, param2));
 }
 
 /**
