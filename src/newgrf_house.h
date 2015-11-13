@@ -95,8 +95,6 @@ struct FakeHouseResolverObject : public ResolverObject {
 	FakeHouseScopeResolver house_scope;
 	FakeTownScopeResolver  town_scope;
 
-	const SpriteGroup *root_spritegroup; ///< Root SpriteGroup to use for resolving
-
 	FakeHouseResolverObject (HouseID house_id,
 			CallbackID callback = CBID_NO_CALLBACK, uint32 param1 = 0, uint32 param2 = 0);
 
@@ -107,15 +105,6 @@ struct FakeHouseResolverObject : public ResolverObject {
 			case VSG_SCOPE_PARENT: return &this->town_scope;
 			default: return ResolverObject::GetScope (scope, relative);
 		}
-	}
-
-	/**
-	 * Resolve SpriteGroup.
-	 * @return Result spritegroup.
-	 */
-	const SpriteGroup *Resolve()
-	{
-		return SpriteGroup::Resolve (this->root_spritegroup, *this);
 	}
 };
 

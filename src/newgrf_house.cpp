@@ -101,7 +101,6 @@ FakeHouseResolverObject::FakeHouseResolverObject (HouseID house_id,
 	: ResolverObject (GetHouseSpecGrf(house_id), callback, param1, param2),
 	  house_scope (house_id), town_scope()
 {
-	this->root_spritegroup = HouseSpec::Get(house_id)->grf_prop.spritegroup[0];
 }
 
 HouseClassID AllocateHouseClassID(byte grf_class_id, uint32 grfid)
@@ -483,7 +482,8 @@ static inline const SpriteGroup *FakeHouseResolve (HouseID house_id,
 	CallbackID callback = CBID_NO_CALLBACK, uint32 param1 = 0, uint32 param2 = 0)
 {
 	FakeHouseResolverObject object (house_id, callback, param1, param2);
-	return object.Resolve();
+	const SpriteGroup *root = HouseSpec::Get(house_id)->grf_prop.spritegroup[0];
+	return SpriteGroup::Resolve (root, object);
 }
 
 uint16 GetHouseCallback (CallbackID callback, uint32 param1, uint32 param2, HouseID house_id)
