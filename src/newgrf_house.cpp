@@ -86,7 +86,7 @@ HouseResolverObject::HouseResolverObject(HouseID house_id, TileIndex tile, Town 
 
 /**
  * Construct a fake resolver for a house.
- * @param house_id House to query.
+ * @param hs HouseSpec of the house to query.
  * @param tile %Tile containing the house.
  * @param town %Town containing the house.
  * @param callback Callback ID.
@@ -96,10 +96,10 @@ HouseResolverObject::HouseResolverObject(HouseID house_id, TileIndex tile, Town 
  * @param initial_random_bits Random bits during construction checks.
  * @param watched_cargo_triggers Cargo types that triggered the watched cargo callback.
  */
-FakeHouseResolverObject::FakeHouseResolverObject (HouseID house_id,
+FakeHouseResolverObject::FakeHouseResolverObject (const HouseSpec *hs,
 		CallbackID callback, uint32 param1, uint32 param2)
-	: ResolverObject (GetHouseSpecGrf(house_id), callback, param1, param2),
-	  house_scope (HouseSpec::Get(house_id)), town_scope()
+	: ResolverObject ((hs != NULL) ? hs->grf_prop.grffile : NULL, callback, param1, param2),
+	  house_scope (hs), town_scope()
 {
 }
 
@@ -481,9 +481,9 @@ uint16 GetHouseCallback(CallbackID callback, uint32 param1, uint32 param2, House
 static inline const SpriteGroup *FakeHouseResolve (HouseID house_id,
 	CallbackID callback = CBID_NO_CALLBACK, uint32 param1 = 0, uint32 param2 = 0)
 {
-	FakeHouseResolverObject object (house_id, callback, param1, param2);
-	const SpriteGroup *root = HouseSpec::Get(house_id)->grf_prop.spritegroup[0];
-	return SpriteGroup::Resolve (root, object);
+	const HouseSpec *hs = HouseSpec::Get (house_id);
+	FakeHouseResolverObject object (hs, callback, param1, param2);
+	return SpriteGroup::Resolve (hs->grf_prop.spritegroup[0], object);
 }
 
 uint16 GetHouseCallback (CallbackID callback, uint32 param1, uint32 param2, HouseID house_id)

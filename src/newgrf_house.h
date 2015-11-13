@@ -95,7 +95,7 @@ struct FakeHouseResolverObject : public ResolverObject {
 	FakeHouseScopeResolver house_scope;
 	FakeTownScopeResolver  town_scope;
 
-	FakeHouseResolverObject (HouseID house_id,
+	FakeHouseResolverObject (const HouseSpec *hs,
 			CallbackID callback = CBID_NO_CALLBACK, uint32 param1 = 0, uint32 param2 = 0);
 
 	ScopeResolver *GetScope (VarSpriteGroupScope scope = VSG_SCOPE_SELF, byte relative = 0) OVERRIDE
