@@ -55,8 +55,6 @@ struct GenericScopeResolver : public ScopeResolver {
 struct GenericResolverObject : public ResolverObject {
 	GenericScopeResolver generic_scope;
 
-	const SpriteGroup *root_spritegroup; ///< Root SpriteGroup to use for resolving
-
 	/**
 	 * Generic resolver.
 	 * @param grffile GRF file.
@@ -81,15 +79,6 @@ struct GenericResolverObject : public ResolverObject {
 	}
 
 	/* virtual */ const SpriteGroup *ResolveReal(const RealSpriteGroup *group) const;
-
-	/**
-	 * Resolve SpriteGroup.
-	 * @return Result spritegroup.
-	 */
-	const SpriteGroup *Resolve()
-	{
-		return SpriteGroup::Resolve (this->root_spritegroup, *this);
-	}
 };
 
 struct GenericCallback {
@@ -193,8 +182,7 @@ static uint16 GetGenericCallbackResult (uint8 feature, CallbackID callback, uint
 		/* Set callback param based on GRF version. */
 		GenericResolverObject object (it->file, data, callback,
 				it->file->grf_version >= 8 ? param1_grfv8 : param1_grfv7);
-		object.root_spritegroup = it->group;
-		uint16 result = SpriteGroup::CallbackResult (object.Resolve());
+		uint16 result = SpriteGroup::CallbackResult (SpriteGroup::Resolve (it->group, object));
 		if (result == CALLBACK_FAILED) continue;
 
 		/* Return NewGRF file if necessary */
