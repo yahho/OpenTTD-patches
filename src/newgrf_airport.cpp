@@ -261,10 +261,16 @@ void AirportOverrideManager::SetEntitySpec(AirportSpec *as)
 	this->st->airport.psa->StoreValue(pos, value);
 }
 
+static const SpriteGroup *AirportResolve (TileIndex tile, Station *st, const AirportSpec *as, byte layout,
+	CallbackID callback = CBID_NO_CALLBACK, uint32 param1 = 0, uint32 param2 = 0)
+{
+	AirportResolverObject object (tile, st, as, layout, callback, param1, param2);
+	return object.Resolve();
+}
+
 SpriteID GetCustomAirportSprite(const AirportSpec *as, byte layout)
 {
-	AirportResolverObject object (INVALID_TILE, NULL, as, layout);
-	const SpriteGroup *group = object.Resolve();
+	const SpriteGroup *group = AirportResolve (INVALID_TILE, NULL, as, layout);
 	if (group == NULL) return as->preview_sprite;
 
 	return group->GetResult();
@@ -272,8 +278,9 @@ SpriteID GetCustomAirportSprite(const AirportSpec *as, byte layout)
 
 uint16 GetAirportCallback(CallbackID callback, uint32 param1, uint32 param2, Station *st, TileIndex tile)
 {
-	AirportResolverObject object (tile, st, AirportSpec::Get (st->airport.type), st->airport.layout, callback, param1, param2);
-	return SpriteGroup::CallbackResult (object.Resolve());
+	return SpriteGroup::CallbackResult (AirportResolve (tile, st,
+			AirportSpec::Get (st->airport.type), st->airport.layout,
+			callback, param1, param2));
 }
 
 /**
@@ -285,8 +292,8 @@ uint16 GetAirportCallback(CallbackID callback, uint32 param1, uint32 param2, Sta
  */
 StringID GetAirportTextCallback(const AirportSpec *as, byte layout, uint16 callback)
 {
-	AirportResolverObject object (INVALID_TILE, NULL, as, layout, (CallbackID)callback);
-	uint16 cb_res = SpriteGroup::CallbackResult (object.Resolve());
+	uint16 cb_res = SpriteGroup::CallbackResult (AirportResolve (INVALID_TILE,
+			NULL, as, layout, (CallbackID)callback));
 	if (cb_res == CALLBACK_FAILED || cb_res == 0x400) return STR_UNDEFINED;
 	if (cb_res > 0x400) {
 		ErrorUnknownCallbackResult(as->grf_prop.grffile->grfid, callback, cb_res);
