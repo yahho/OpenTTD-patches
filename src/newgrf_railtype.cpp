@@ -94,6 +94,14 @@ RailTypeResolverObject::RailTypeResolverObject(const RailtypeInfo *rti, TileInde
 	this->root_spritegroup = rti != NULL ? rti->group[rtsg] : NULL;
 }
 
+static inline const SpriteGroup *RailTypeResolve (const RailtypeInfo *rti,
+	TileIndex tile, TileContext context, RailTypeSpriteGroup rtsg,
+	uint32 param1 = 0, uint32 param2 = 0)
+{
+	RailTypeResolverObject object (rti, tile, context, rtsg, param1, param2);
+	return object.Resolve();
+}
+
 /**
  * Get the sprite group to draw for the given tile.
  * @param rti The rail type data (spec).
@@ -108,8 +116,7 @@ const SpriteGroup *GetCustomRailSpriteGroup (const RailtypeInfo *rti, TileIndex 
 
 	if (rti->group[rtsg] == NULL) return NULL;
 
-	RailTypeResolverObject object(rti, tile, context, rtsg);
-	const SpriteGroup *group = object.Resolve();
+	const SpriteGroup *group = RailTypeResolve (rti, tile, context, rtsg);
 	if (group == NULL || group->GetNumResults() == 0) return NULL;
 
 	return group;
@@ -145,9 +152,8 @@ SpriteID GetCustomSignalSprite(const RailtypeInfo *rti, TileIndex tile, SignalTy
 
 	uint32 param1 = gui ? 0x10 : 0x00;
 	uint32 param2 = (type << 16) | (var << 8) | state;
-	RailTypeResolverObject object(rti, tile, TCX_NORMAL, RTSG_SIGNALS, param1, param2);
 
-	const SpriteGroup *group = object.Resolve();
+	const SpriteGroup *group = RailTypeResolve (rti, tile, TCX_NORMAL, RTSG_SIGNALS, param1, param2);
 	if (group == NULL || group->GetNumResults() == 0) return 0;
 
 	return group->GetResult();
