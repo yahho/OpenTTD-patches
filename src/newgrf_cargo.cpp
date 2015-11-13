@@ -15,8 +15,6 @@
 
 /** Resolver of cargo. */
 struct CargoResolverObject : public ResolverObject {
-	const SpriteGroup *root_spritegroup; ///< Root SpriteGroup to use for resolving
-
 	/**
 	 * Constructor of the cargo resolver.
 	 * @param cs Cargo being resolved.
@@ -27,19 +25,9 @@ struct CargoResolverObject : public ResolverObject {
 	CargoResolverObject (const CargoSpec *cs, CallbackID callback = CBID_NO_CALLBACK, uint32 param1 = 0, uint32 param2 = 0)
 		: ResolverObject (cs->grffile, callback, param1, param2)
 	{
-		this->root_spritegroup = cs->group;
 	}
 
 	/* virtual */ const SpriteGroup *ResolveReal(const RealSpriteGroup *group) const;
-
-	/**
-	 * Resolve SpriteGroup.
-	 * @return Result spritegroup.
-	 */
-	const SpriteGroup *Resolve()
-	{
-		return SpriteGroup::Resolve (this->root_spritegroup, *this);
-	}
 };
 
 /* virtual */ const SpriteGroup *CargoResolverObject::ResolveReal(const RealSpriteGroup *group) const
@@ -56,7 +44,7 @@ static inline const SpriteGroup *CargoResolve (const CargoSpec *cs,
 	CallbackID callback = CBID_NO_CALLBACK, uint32 param1 = 0, uint32 param2 = 0)
 {
 	CargoResolverObject object (cs, callback, param1, param2);
-	return object.Resolve();
+	return SpriteGroup::Resolve (cs->group, object);
 }
 
 /**
