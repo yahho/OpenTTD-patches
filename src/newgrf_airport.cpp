@@ -47,8 +47,6 @@ struct AirportScopeResolver : public ScopeResolver {
 struct AirportResolverObject : public ResolverObject {
 	AirportScopeResolver airport_scope;
 
-	const SpriteGroup *root_spritegroup; ///< Root SpriteGroup to use for resolving
-
 	/**
 	 * Constructor of the airport resolver.
 	 * @param tile %Tile for the callback, only valid for airporttile callbacks.
@@ -64,7 +62,6 @@ struct AirportResolverObject : public ResolverObject {
 		: ResolverObject (as->grf_prop.grffile, callback, param1, param2),
 		  airport_scope (this->grffile, tile, st, layout)
 	{
-		this->root_spritegroup = as->grf_prop.spritegroup[0];
 	}
 
 	/* virtual */ ScopeResolver *GetScope(VarSpriteGroupScope scope = VSG_SCOPE_SELF, byte relative = 0)
@@ -76,15 +73,6 @@ struct AirportResolverObject : public ResolverObject {
 	}
 
 	/* virtual */ const SpriteGroup *ResolveReal(const RealSpriteGroup *group) const;
-
-	/**
-	 * Resolve SpriteGroup.
-	 * @return Result spritegroup.
-	 */
-	const SpriteGroup *Resolve()
-	{
-		return SpriteGroup::Resolve (this->root_spritegroup, *this);
-	}
 };
 
 /**
@@ -265,7 +253,7 @@ static const SpriteGroup *AirportResolve (TileIndex tile, Station *st, const Air
 	CallbackID callback = CBID_NO_CALLBACK, uint32 param1 = 0, uint32 param2 = 0)
 {
 	AirportResolverObject object (tile, st, as, layout, callback, param1, param2);
-	return object.Resolve();
+	return SpriteGroup::Resolve (as->grf_prop.spritegroup[0], object);
 }
 
 SpriteID GetCustomAirportSprite(const AirportSpec *as, byte layout)
