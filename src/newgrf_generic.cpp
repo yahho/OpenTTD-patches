@@ -55,6 +55,8 @@ struct GenericScopeResolver : public ScopeResolver {
 struct GenericResolverObject : public ResolverObject {
 	GenericScopeResolver generic_scope;
 
+	const SpriteGroup *root_spritegroup; ///< Root SpriteGroup to use for resolving
+
 	/**
 	 * Generic resolver.
 	 * @param grffile GRF file.
@@ -79,6 +81,15 @@ struct GenericResolverObject : public ResolverObject {
 	}
 
 	/* virtual */ const SpriteGroup *ResolveReal(const RealSpriteGroup *group) const;
+
+	/**
+	 * Resolve SpriteGroup.
+	 * @return Result spritegroup.
+	 */
+	const SpriteGroup *Resolve()
+	{
+		return SpriteGroup::Resolve (this->root_spritegroup, *this);
+	}
 };
 
 struct GenericCallback {

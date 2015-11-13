@@ -328,17 +328,6 @@ struct ResolverObject {
 	uint32 last_value;          ///< Result of most recent DeterministicSpriteGroup (including procedure calls)
 	uint32 reseed[VSG_END];     ///< Collects bits to rerandomise while triggering triggers.
 
-	const SpriteGroup *root_spritegroup; ///< Root SpriteGroup to use for resolving
-
-	/**
-	 * Resolve SpriteGroup.
-	 * @return Result spritegroup.
-	 */
-	const SpriteGroup *Resolve()
-	{
-		return SpriteGroup::Resolve(this->root_spritegroup, *this);
-	}
-
 	virtual const SpriteGroup *ResolveReal(const RealSpriteGroup *group) const;
 
 	virtual ScopeResolver *GetScope(VarSpriteGroupScope scope = VSG_SCOPE_SELF, byte relative = 0);

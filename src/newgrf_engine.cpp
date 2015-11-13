@@ -998,6 +998,8 @@ VehicleResolverObject::VehicleResolverObject(EngineID engine_type, const Vehicle
 	if (wagon_override == WO_SELF) {
 		this->root_spritegroup = GetWagonOverrideSpriteSet(engine_type, CT_DEFAULT, engine_type);
 	} else {
+		this->root_spritegroup = NULL;
+
 		if (wagon_override != WO_NONE && v != NULL && v->IsGroundVehicle()) {
 			assert(v->engine_type == engine_type); // overrides make little sense with fake scopes
 

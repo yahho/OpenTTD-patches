@@ -141,8 +141,6 @@ ResolverObject::ResolverObject(const GRFFile *grffile, CallbackID callback, uint
 	this->callback_param1 = callback_param1;
 	this->callback_param2 = callback_param2;
 	this->ResetState();
-
-	this->root_spritegroup = NULL;
 }
 
 ResolverObject::~ResolverObject() {}

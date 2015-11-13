@@ -36,6 +36,8 @@ struct CanalScopeResolver : public ScopeResolver {
 struct CanalResolverObject : public ResolverObject {
 	CanalScopeResolver canal_scope;
 
+	const SpriteGroup *root_spritegroup; ///< Root SpriteGroup to use for resolving
+
 	/**
 	 * Canal resolver constructor.
 	 * @param feature Which canal feature we want.
@@ -61,6 +63,15 @@ struct CanalResolverObject : public ResolverObject {
 	}
 
 	/* virtual */ const SpriteGroup *ResolveReal(const RealSpriteGroup *group) const;
+
+	/**
+	 * Resolve SpriteGroup.
+	 * @return Result spritegroup.
+	 */
+	const SpriteGroup *Resolve()
+	{
+		return SpriteGroup::Resolve (this->root_spritegroup, *this);
+	}
 };
 
 /* virtual */ uint32 CanalScopeResolver::GetRandomBits() const

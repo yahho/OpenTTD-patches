@@ -15,6 +15,8 @@
 
 /** Resolver of cargo. */
 struct CargoResolverObject : public ResolverObject {
+	const SpriteGroup *root_spritegroup; ///< Root SpriteGroup to use for resolving
+
 	/**
 	 * Constructor of the cargo resolver.
 	 * @param cs Cargo being resolved.
@@ -29,6 +31,15 @@ struct CargoResolverObject : public ResolverObject {
 	}
 
 	/* virtual */ const SpriteGroup *ResolveReal(const RealSpriteGroup *group) const;
+
+	/**
+	 * Resolve SpriteGroup.
+	 * @return Result spritegroup.
+	 */
+	const SpriteGroup *Resolve()
+	{
+		return SpriteGroup::Resolve (this->root_spritegroup, *this);
+	}
 };
 
 /* virtual */ const SpriteGroup *CargoResolverObject::ResolveReal(const RealSpriteGroup *group) const

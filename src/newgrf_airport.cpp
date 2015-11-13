@@ -47,6 +47,8 @@ struct AirportScopeResolver : public ScopeResolver {
 struct AirportResolverObject : public ResolverObject {
 	AirportScopeResolver airport_scope;
 
+	const SpriteGroup *root_spritegroup; ///< Root SpriteGroup to use for resolving
+
 	/**
 	 * Constructor of the airport resolver.
 	 * @param tile %Tile for the callback, only valid for airporttile callbacks.
@@ -74,6 +76,15 @@ struct AirportResolverObject : public ResolverObject {
 	}
 
 	/* virtual */ const SpriteGroup *ResolveReal(const RealSpriteGroup *group) const;
+
+	/**
+	 * Resolve SpriteGroup.
+	 * @return Result spritegroup.
+	 */
+	const SpriteGroup *Resolve()
+	{
+		return SpriteGroup::Resolve (this->root_spritegroup, *this);
+	}
 };
 
 /**

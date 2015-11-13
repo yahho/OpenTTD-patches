@@ -35,6 +35,8 @@ struct IndustryTileResolverObject : public ResolverObject {
 	IndustryTileScopeResolver indtile_scope; ///< Scope resolver for the industry tile.
 	IndustriesScopeResolver ind_scope;       ///< Scope resolver for the industry owning the tile.
 
+	const SpriteGroup *root_spritegroup; ///< Root SpriteGroup to use for resolving
+
 	IndustryTileResolverObject(IndustryGfx gfx, TileIndex tile, Industry *indus,
 			CallbackID callback = CBID_NO_CALLBACK, uint32 callback_param1 = 0, uint32 callback_param2 = 0);
 
@@ -45,6 +47,15 @@ struct IndustryTileResolverObject : public ResolverObject {
 			case VSG_SCOPE_PARENT: return &ind_scope;
 			default: return ResolverObject::GetScope(scope, relative);
 		}
+	}
+
+	/**
+	 * Resolve SpriteGroup.
+	 * @return Result spritegroup.
+	 */
+	const SpriteGroup *Resolve()
+	{
+		return SpriteGroup::Resolve (this->root_spritegroup, *this);
 	}
 };
 

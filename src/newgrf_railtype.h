@@ -31,6 +31,8 @@ struct RailTypeScopeResolver : public ScopeResolver {
 struct RailTypeResolverObject : public ResolverObject {
 	RailTypeScopeResolver railtype_scope; ///< Resolver for the railtype scope.
 
+	const SpriteGroup *root_spritegroup; ///< Root SpriteGroup to use for resolving
+
 	RailTypeResolverObject(const RailtypeInfo *rti, TileIndex tile, TileContext context, RailTypeSpriteGroup rtsg, uint32 param1 = 0, uint32 param2 = 0);
 
 	/* virtual */ ScopeResolver *GetScope(VarSpriteGroupScope scope = VSG_SCOPE_SELF, byte relative = 0)
@@ -42,6 +44,15 @@ struct RailTypeResolverObject : public ResolverObject {
 	}
 
 	/* virtual */ const SpriteGroup *ResolveReal(const RealSpriteGroup *group) const;
+
+	/**
+	 * Resolve SpriteGroup.
+	 * @return Result spritegroup.
+	 */
+	const SpriteGroup *Resolve()
+	{
+		return SpriteGroup::Resolve (this->root_spritegroup, *this);
+	}
 };
 
 const SpriteGroup *GetCustomRailSpriteGroup (const RailtypeInfo *rti, TileIndex tile, RailTypeSpriteGroup rtsg, TileContext context = TCX_NORMAL);

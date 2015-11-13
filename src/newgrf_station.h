@@ -45,6 +45,8 @@ struct StationResolverObject : public ResolverObject {
 	StationScopeResolver station_scope; ///< The station scope resolver.
 	TownScopeResolver *town_scope;      ///< The town scope resolver (created on the first call).
 
+	const SpriteGroup *root_spritegroup; ///< Root SpriteGroup to use for resolving
+
 	StationResolverObject(const StationSpec *statspec, BaseStation *st, TileIndex tile,
 			CallbackID callback = CBID_NO_CALLBACK, uint32 callback_param1 = 0, uint32 callback_param2 = 0);
 	~StationResolverObject();
@@ -69,6 +71,15 @@ struct StationResolverObject : public ResolverObject {
 	}
 
 	/* virtual */ const SpriteGroup *ResolveReal(const RealSpriteGroup *group) const;
+
+	/**
+	 * Resolve SpriteGroup.
+	 * @return Result spritegroup.
+	 */
+	const SpriteGroup *Resolve()
+	{
+		return SpriteGroup::Resolve (this->root_spritegroup, *this);
+	}
 };
 
 enum StationClassID {
