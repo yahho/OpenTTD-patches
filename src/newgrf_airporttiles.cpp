@@ -218,7 +218,6 @@ AirportTileResolverObject::AirportTileResolverObject(const AirportTileSpec *ats,
 	: ResolverObject (ats->grf_prop.grffile, callback, callback_param1, callback_param2),
 	  tiles_scope (this->grffile, ats, tile, st)
 {
-	this->root_spritegroup = ats->grf_prop.spritegroup[0];
 }
 
 /**
@@ -242,7 +241,7 @@ static inline const SpriteGroup *AirportTileResolve (const AirportTileSpec *ats,
 	uint32 param1 = 0, uint32 param2 = 0)
 {
 	AirportTileResolverObject object (ats, tile, st, callback, param1, param2);
-	return object.Resolve();
+	return SpriteGroup::Resolve (ats->grf_prop.spritegroup[0], object);
 }
 
 uint16 GetAirportTileCallback(CallbackID callback, uint32 param1, uint32 param2, const AirportTileSpec *ats, Station *st, TileIndex tile, int extra_data = 0)

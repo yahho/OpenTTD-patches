@@ -34,8 +34,6 @@ struct AirportTileScopeResolver : public ScopeResolver {
 struct AirportTileResolverObject : public ResolverObject {
 	AirportTileScopeResolver tiles_scope; ///< Scope resolver for the tiles.
 
-	const SpriteGroup *root_spritegroup;  ///< Root SpriteGroup to use for resolving
-
 	AirportTileResolverObject(const AirportTileSpec *ats, TileIndex tile, Station *st,
 			CallbackID callback = CBID_NO_CALLBACK, uint32 callback_param1 = 0, uint32 callback_param2 = 0);
 
@@ -45,15 +43,6 @@ struct AirportTileResolverObject : public ResolverObject {
 			case VSG_SCOPE_SELF: return &tiles_scope;
 			default: return ResolverObject::GetScope(scope, relative);
 		}
-	}
-
-	/**
-	 * Resolve SpriteGroup.
-	 * @return Result spritegroup.
-	 */
-	const SpriteGroup *Resolve()
-	{
-		return SpriteGroup::Resolve (this->root_spritegroup, *this);
 	}
 };
 
