@@ -983,16 +983,11 @@ enum VehicleRootWagonOverride {
 	WO_NONE,     //!< Resolve no wagon overrides.
 	WO_UNCACHED, //!< Resolve wagon overrides.
 	WO_CACHED,   //!< Resolve wagon overrides using TrainCache::cached_override.
-	WO_SELF,     //!< Resolve self-override (helicopter rotors and such).
 };
 
 static const SpriteGroup *GetVehicleResolverRoot (EngineID engine_type,
 	const Vehicle *v, VehicleRootWagonOverride wagon_override)
 {
-	if (wagon_override == WO_SELF) {
-		return GetWagonOverrideSpriteSet (engine_type, CT_DEFAULT, engine_type);
-	}
-
 	const SpriteGroup *root = NULL;
 
 	if (wagon_override != WO_NONE && v != NULL && v->IsGroundVehicle()) {
@@ -1059,7 +1054,7 @@ SpriteID GetRotorOverrideSprite(EngineID engine, const Aircraft *v, bool info_vi
 	assert(!(e->u.air.subtype & AIR_CTOL));
 
 	VehicleResolverObject object (engine, v, info_view, CBID_NO_CALLBACK, image_type);
-	const SpriteGroup *root = GetVehicleResolverRoot (engine, v, WO_SELF);
+	const SpriteGroup *root = GetWagonOverrideSpriteSet (engine, CT_DEFAULT, engine);
 	const SpriteGroup *group = SpriteGroup::Resolve (root, object);
 
 	if (group == NULL || group->GetNumResults() == 0) return 0;
