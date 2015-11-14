@@ -54,23 +54,12 @@ struct VehicleResolverObject : public ResolverObject {
 	VehicleScopeResolver relative_scope; ///< Scope resolver for an other vehicle in the chain.
 	byte cached_relative_count;          ///< Relative position of the other vehicle.
 
-	const SpriteGroup *root_spritegroup; ///< Root SpriteGroup to use for resolving
-
 	VehicleResolverObject(EngineID engine_type, const Vehicle *v, WagonOverride wagon_override, bool info_view = false,
 			CallbackID callback = CBID_NO_CALLBACK, uint32 callback_param1 = 0, uint32 callback_param2 = 0);
 
 	/* virtual */ ScopeResolver *GetScope(VarSpriteGroupScope scope = VSG_SCOPE_SELF, byte relative = 0);
 
 	/* virtual */ const SpriteGroup *ResolveReal(const RealSpriteGroup *group) const;
-
-	/**
-	 * Resolve SpriteGroup.
-	 * @return Result spritegroup.
-	 */
-	const SpriteGroup *Resolve()
-	{
-		return SpriteGroup::Resolve (this->root_spritegroup, *this);
-	}
 };
 
 static const uint TRAININFO_DEFAULT_VEHICLE_WIDTH   = 29;

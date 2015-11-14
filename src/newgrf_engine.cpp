@@ -1027,7 +1027,6 @@ VehicleResolverObject::VehicleResolverObject(EngineID engine_type, const Vehicle
 	relative_scope(*this, engine_type, v, info_view),
 	cached_relative_count(0)
 {
-	this->root_spritegroup = GetVehicleResolverRoot (engine_type, v, wagon_override);
 }
 
 
@@ -1035,7 +1034,8 @@ VehicleResolverObject::VehicleResolverObject(EngineID engine_type, const Vehicle
 SpriteID GetCustomEngineSprite(EngineID engine, const Vehicle *v, Direction direction, EngineImageType image_type)
 {
 	VehicleResolverObject object(engine, v, VehicleResolverObject::WO_CACHED, false, CBID_NO_CALLBACK, image_type);
-	const SpriteGroup *group = object.Resolve();
+	const SpriteGroup *root = GetVehicleResolverRoot (engine, v, VehicleResolverObject::WO_CACHED);
+	const SpriteGroup *group = SpriteGroup::Resolve (root, object);
 	if (group == NULL || group->GetNumResults() == 0) return 0;
 
 	return group->GetResult() + (direction % group->GetNumResults());
@@ -1051,7 +1051,8 @@ SpriteID GetRotorOverrideSprite(EngineID engine, const Aircraft *v, bool info_vi
 	assert(!(e->u.air.subtype & AIR_CTOL));
 
 	VehicleResolverObject object(engine, v, VehicleResolverObject::WO_SELF, info_view, CBID_NO_CALLBACK, image_type);
-	const SpriteGroup *group = object.Resolve();
+	const SpriteGroup *root = GetVehicleResolverRoot (engine, v, VehicleResolverObject::WO_SELF);
+	const SpriteGroup *group = SpriteGroup::Resolve (root, object);
 
 	if (group == NULL || group->GetNumResults() == 0) return 0;
 
@@ -1084,7 +1085,8 @@ bool UsesWagonOverride(const Vehicle *v)
 uint16 GetVehicleCallback(CallbackID callback, uint32 param1, uint32 param2, EngineID engine, const Vehicle *v)
 {
 	VehicleResolverObject object(engine, v, VehicleResolverObject::WO_UNCACHED, false, callback, param1, param2);
-	return SpriteGroup::CallbackResult (object.Resolve());
+	const SpriteGroup *root = GetVehicleResolverRoot (engine, v, VehicleResolverObject::WO_UNCACHED);
+	return SpriteGroup::CallbackResult (SpriteGroup::Resolve (root, object));
 }
 
 /**
@@ -1101,7 +1103,8 @@ uint16 GetVehicleCallbackParent(CallbackID callback, uint32 param1, uint32 param
 {
 	VehicleResolverObject object(engine, v, VehicleResolverObject::WO_NONE, false, callback, param1, param2);
 	object.parent_scope.SetVehicle(parent);
-	return SpriteGroup::CallbackResult (object.Resolve());
+	const SpriteGroup *root = GetVehicleResolverRoot (engine, v, VehicleResolverObject::WO_NONE);
+	return SpriteGroup::CallbackResult (SpriteGroup::Resolve (root, object));
 }
 
 
@@ -1129,7 +1132,8 @@ static void DoTriggerVehicle(Vehicle *v, VehicleTrigger trigger, byte base_rando
 	VehicleResolverObject object(v->engine_type, v, VehicleResolverObject::WO_CACHED, false, CBID_RANDOM_TRIGGER);
 	object.trigger = trigger;
 
-	const SpriteGroup *group = object.Resolve();
+	const SpriteGroup *root = GetVehicleResolverRoot (v->engine_type, v, VehicleResolverObject::WO_CACHED);
+	const SpriteGroup *group = SpriteGroup::Resolve (root, object);
 	if (group == NULL) return;
 
 	byte new_random_bits = Random();
