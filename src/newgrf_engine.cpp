@@ -1013,13 +1013,12 @@ static const SpriteGroup *GetVehicleResolverRoot (EngineID engine_type,
  * Resolver of a vehicle (chain).
  * @param engine_type Engine type
  * @param v %Vehicle being resolved.
- * @param wagon_override Application of wagon overrides.
  * @param info_view Indicates if the item is being drawn in an info window.
  * @param callback Callback ID.
  * @param callback_param1 First parameter (var 10) of the callback.
  * @param callback_param2 Second parameter (var 18) of the callback.
  */
-VehicleResolverObject::VehicleResolverObject(EngineID engine_type, const Vehicle *v, WagonOverride wagon_override, bool info_view,
+VehicleResolverObject::VehicleResolverObject (EngineID engine_type, const Vehicle *v, bool info_view,
 		CallbackID callback, uint32 callback_param1, uint32 callback_param2)
 	: ResolverObject(GetEngineGrfFile(engine_type), callback, callback_param1, callback_param2),
 	self_scope(*this, engine_type, v, info_view),
@@ -1033,7 +1032,7 @@ VehicleResolverObject::VehicleResolverObject(EngineID engine_type, const Vehicle
 
 SpriteID GetCustomEngineSprite(EngineID engine, const Vehicle *v, Direction direction, EngineImageType image_type)
 {
-	VehicleResolverObject object(engine, v, VehicleResolverObject::WO_CACHED, false, CBID_NO_CALLBACK, image_type);
+	VehicleResolverObject object (engine, v, false, CBID_NO_CALLBACK, image_type);
 	const SpriteGroup *root = GetVehicleResolverRoot (engine, v, VehicleResolverObject::WO_CACHED);
 	const SpriteGroup *group = SpriteGroup::Resolve (root, object);
 	if (group == NULL || group->GetNumResults() == 0) return 0;
@@ -1050,7 +1049,7 @@ SpriteID GetRotorOverrideSprite(EngineID engine, const Aircraft *v, bool info_vi
 	assert(e->type == VEH_AIRCRAFT);
 	assert(!(e->u.air.subtype & AIR_CTOL));
 
-	VehicleResolverObject object(engine, v, VehicleResolverObject::WO_SELF, info_view, CBID_NO_CALLBACK, image_type);
+	VehicleResolverObject object (engine, v, info_view, CBID_NO_CALLBACK, image_type);
 	const SpriteGroup *root = GetVehicleResolverRoot (engine, v, VehicleResolverObject::WO_SELF);
 	const SpriteGroup *group = SpriteGroup::Resolve (root, object);
 
@@ -1084,7 +1083,7 @@ bool UsesWagonOverride(const Vehicle *v)
  */
 uint16 GetVehicleCallback(CallbackID callback, uint32 param1, uint32 param2, EngineID engine, const Vehicle *v)
 {
-	VehicleResolverObject object(engine, v, VehicleResolverObject::WO_UNCACHED, false, callback, param1, param2);
+	VehicleResolverObject object (engine, v, false, callback, param1, param2);
 	const SpriteGroup *root = GetVehicleResolverRoot (engine, v, VehicleResolverObject::WO_UNCACHED);
 	return SpriteGroup::CallbackResult (SpriteGroup::Resolve (root, object));
 }
@@ -1101,7 +1100,7 @@ uint16 GetVehicleCallback(CallbackID callback, uint32 param1, uint32 param2, Eng
  */
 uint16 GetVehicleCallbackParent(CallbackID callback, uint32 param1, uint32 param2, EngineID engine, const Vehicle *v, const Vehicle *parent)
 {
-	VehicleResolverObject object(engine, v, VehicleResolverObject::WO_NONE, false, callback, param1, param2);
+	VehicleResolverObject object (engine, v, false, callback, param1, param2);
 	object.parent_scope.SetVehicle(parent);
 	const SpriteGroup *root = GetVehicleResolverRoot (engine, v, VehicleResolverObject::WO_NONE);
 	return SpriteGroup::CallbackResult (SpriteGroup::Resolve (root, object));
@@ -1129,7 +1128,7 @@ static void DoTriggerVehicle(Vehicle *v, VehicleTrigger trigger, byte base_rando
 	/* We can't trigger a non-existent vehicle... */
 	assert(v != NULL);
 
-	VehicleResolverObject object(v->engine_type, v, VehicleResolverObject::WO_CACHED, false, CBID_RANDOM_TRIGGER);
+	VehicleResolverObject object (v->engine_type, v, false, CBID_RANDOM_TRIGGER);
 	object.trigger = trigger;
 
 	const SpriteGroup *root = GetVehicleResolverRoot (v->engine_type, v, VehicleResolverObject::WO_CACHED);
@@ -1297,7 +1296,7 @@ void CommitVehicleListOrderChanges()
  */
 void FillNewGRFVehicleCache(const Vehicle *v)
 {
-	VehicleResolverObject ro(v->engine_type, v, VehicleResolverObject::WO_NONE);
+	VehicleResolverObject ro (v->engine_type, v);
 
 	/* These variables we have to check; these are the ones with a cache. */
 	static const int cache_entries[][2] = {
