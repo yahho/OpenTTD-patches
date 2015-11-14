@@ -977,6 +977,38 @@ static const GRFFile *GetEngineGrfFile(EngineID engine_type)
 	return (e != NULL) ? e->GetGRF() : NULL;
 }
 
+static const SpriteGroup *GetVehicleResolverRoot (EngineID engine_type,
+	const Vehicle *v, VehicleResolverObject::WagonOverride wagon_override)
+{
+	if (wagon_override == VehicleResolverObject::WO_SELF) {
+		return GetWagonOverrideSpriteSet (engine_type, CT_DEFAULT, engine_type);
+	}
+
+	const SpriteGroup *root = NULL;
+
+	if (wagon_override != VehicleResolverObject::WO_NONE && v != NULL && v->IsGroundVehicle()) {
+		assert (v->engine_type == engine_type); // overrides make little sense with fake scopes
+
+		/* For trains we always use cached value, except for callbacks because the override spriteset
+		 * to use may be different than the one cached. It happens for callback 0x15 (refit engine),
+		 * as v->cargo_type is temporary changed to the new type */
+		if (wagon_override == VehicleResolverObject::WO_CACHED && v->type == VEH_TRAIN) {
+			root = Train::From(v)->tcache.cached_override;
+		} else {
+			root = GetWagonOverrideSpriteSet (v->engine_type, v->cargo_type, v->GetGroundVehicleCache()->first_engine);
+		}
+	}
+
+	if (root == NULL) {
+		const Engine *e = Engine::Get (engine_type);
+		CargoID cargo = v != NULL ? v->cargo_type : CT_PURCHASE;
+		assert (cargo < lengthof(e->grf_prop.spritegroup));
+		root = e->grf_prop.spritegroup[cargo] != NULL ? e->grf_prop.spritegroup[cargo] : e->grf_prop.spritegroup[CT_DEFAULT];
+	}
+
+	return root;
+}
+
 /**
  * Resolver of a vehicle (chain).
  * @param engine_type Engine type
@@ -995,31 +1027,7 @@ VehicleResolverObject::VehicleResolverObject(EngineID engine_type, const Vehicle
 	relative_scope(*this, engine_type, v, info_view),
 	cached_relative_count(0)
 {
-	if (wagon_override == WO_SELF) {
-		this->root_spritegroup = GetWagonOverrideSpriteSet(engine_type, CT_DEFAULT, engine_type);
-	} else {
-		this->root_spritegroup = NULL;
-
-		if (wagon_override != WO_NONE && v != NULL && v->IsGroundVehicle()) {
-			assert(v->engine_type == engine_type); // overrides make little sense with fake scopes
-
-			/* For trains we always use cached value, except for callbacks because the override spriteset
-			 * to use may be different than the one cached. It happens for callback 0x15 (refit engine),
-			 * as v->cargo_type is temporary changed to the new type */
-			if (wagon_override == WO_CACHED && v->type == VEH_TRAIN) {
-				this->root_spritegroup = Train::From(v)->tcache.cached_override;
-			} else {
-				this->root_spritegroup = GetWagonOverrideSpriteSet(v->engine_type, v->cargo_type, v->GetGroundVehicleCache()->first_engine);
-			}
-		}
-
-		if (this->root_spritegroup == NULL) {
-			const Engine *e = Engine::Get(engine_type);
-			CargoID cargo = v != NULL ? v->cargo_type : CT_PURCHASE;
-			assert(cargo < lengthof(e->grf_prop.spritegroup));
-			this->root_spritegroup = e->grf_prop.spritegroup[cargo] != NULL ? e->grf_prop.spritegroup[cargo] : e->grf_prop.spritegroup[CT_DEFAULT];
-		}
-	}
+	this->root_spritegroup = GetVehicleResolverRoot (engine_type, v, wagon_override);
 }
 
 
