@@ -977,22 +977,31 @@ static const GRFFile *GetEngineGrfFile(EngineID engine_type)
 	return (e != NULL) ? e->GetGRF() : NULL;
 }
 
+
+/** Application of 'wagon overrides'. */
+enum VehicleRootWagonOverride {
+	WO_NONE,     //!< Resolve no wagon overrides.
+	WO_UNCACHED, //!< Resolve wagon overrides.
+	WO_CACHED,   //!< Resolve wagon overrides using TrainCache::cached_override.
+	WO_SELF,     //!< Resolve self-override (helicopter rotors and such).
+};
+
 static const SpriteGroup *GetVehicleResolverRoot (EngineID engine_type,
-	const Vehicle *v, VehicleResolverObject::WagonOverride wagon_override)
+	const Vehicle *v, VehicleRootWagonOverride wagon_override)
 {
-	if (wagon_override == VehicleResolverObject::WO_SELF) {
+	if (wagon_override == WO_SELF) {
 		return GetWagonOverrideSpriteSet (engine_type, CT_DEFAULT, engine_type);
 	}
 
 	const SpriteGroup *root = NULL;
 
-	if (wagon_override != VehicleResolverObject::WO_NONE && v != NULL && v->IsGroundVehicle()) {
+	if (wagon_override != WO_NONE && v != NULL && v->IsGroundVehicle()) {
 		assert (v->engine_type == engine_type); // overrides make little sense with fake scopes
 
 		/* For trains we always use cached value, except for callbacks because the override spriteset
 		 * to use may be different than the one cached. It happens for callback 0x15 (refit engine),
 		 * as v->cargo_type is temporary changed to the new type */
-		if (wagon_override == VehicleResolverObject::WO_CACHED && v->type == VEH_TRAIN) {
+		if (wagon_override == WO_CACHED && v->type == VEH_TRAIN) {
 			root = Train::From(v)->tcache.cached_override;
 		} else {
 			root = GetWagonOverrideSpriteSet (v->engine_type, v->cargo_type, v->GetGroundVehicleCache()->first_engine);
@@ -1033,7 +1042,7 @@ VehicleResolverObject::VehicleResolverObject (EngineID engine_type, const Vehicl
 SpriteID GetCustomEngineSprite(EngineID engine, const Vehicle *v, Direction direction, EngineImageType image_type)
 {
 	VehicleResolverObject object (engine, v, false, CBID_NO_CALLBACK, image_type);
-	const SpriteGroup *root = GetVehicleResolverRoot (engine, v, VehicleResolverObject::WO_CACHED);
+	const SpriteGroup *root = GetVehicleResolverRoot (engine, v, WO_CACHED);
 	const SpriteGroup *group = SpriteGroup::Resolve (root, object);
 	if (group == NULL || group->GetNumResults() == 0) return 0;
 
@@ -1050,7 +1059,7 @@ SpriteID GetRotorOverrideSprite(EngineID engine, const Aircraft *v, bool info_vi
 	assert(!(e->u.air.subtype & AIR_CTOL));
 
 	VehicleResolverObject object (engine, v, info_view, CBID_NO_CALLBACK, image_type);
-	const SpriteGroup *root = GetVehicleResolverRoot (engine, v, VehicleResolverObject::WO_SELF);
+	const SpriteGroup *root = GetVehicleResolverRoot (engine, v, WO_SELF);
 	const SpriteGroup *group = SpriteGroup::Resolve (root, object);
 
 	if (group == NULL || group->GetNumResults() == 0) return 0;
@@ -1084,7 +1093,7 @@ bool UsesWagonOverride(const Vehicle *v)
 uint16 GetVehicleCallback(CallbackID callback, uint32 param1, uint32 param2, EngineID engine, const Vehicle *v)
 {
 	VehicleResolverObject object (engine, v, false, callback, param1, param2);
-	const SpriteGroup *root = GetVehicleResolverRoot (engine, v, VehicleResolverObject::WO_UNCACHED);
+	const SpriteGroup *root = GetVehicleResolverRoot (engine, v, WO_UNCACHED);
 	return SpriteGroup::CallbackResult (SpriteGroup::Resolve (root, object));
 }
 
@@ -1102,7 +1111,7 @@ uint16 GetVehicleCallbackParent(CallbackID callback, uint32 param1, uint32 param
 {
 	VehicleResolverObject object (engine, v, false, callback, param1, param2);
 	object.parent_scope.SetVehicle(parent);
-	const SpriteGroup *root = GetVehicleResolverRoot (engine, v, VehicleResolverObject::WO_NONE);
+	const SpriteGroup *root = GetVehicleResolverRoot (engine, v, WO_NONE);
 	return SpriteGroup::CallbackResult (SpriteGroup::Resolve (root, object));
 }
 
@@ -1131,7 +1140,7 @@ static void DoTriggerVehicle(Vehicle *v, VehicleTrigger trigger, byte base_rando
 	VehicleResolverObject object (v->engine_type, v, false, CBID_RANDOM_TRIGGER);
 	object.trigger = trigger;
 
-	const SpriteGroup *root = GetVehicleResolverRoot (v->engine_type, v, VehicleResolverObject::WO_CACHED);
+	const SpriteGroup *root = GetVehicleResolverRoot (v->engine_type, v, WO_CACHED);
 	const SpriteGroup *group = SpriteGroup::Resolve (root, object);
 	if (group == NULL) return;
 

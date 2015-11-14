@@ -40,14 +40,6 @@ struct VehicleScopeResolver : public ScopeResolver {
 
 /** Resolver for a vehicle (chain) */
 struct VehicleResolverObject : public ResolverObject {
-	/** Application of 'wagon overrides'. */
-	enum WagonOverride {
-		WO_NONE,     //!< Resolve no wagon overrides.
-		WO_UNCACHED, //!< Resolve wagon overrides.
-		WO_CACHED,   //!< Resolve wagon overrides using TrainCache::cached_override.
-		WO_SELF,     //!< Resolve self-override (helicopter rotors and such).
-	};
-
 	VehicleScopeResolver self_scope;     ///< Scope resolver for the indicated vehicle.
 	VehicleScopeResolver parent_scope;   ///< Scope resolver for its parent vehicle.
 
