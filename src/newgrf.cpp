@@ -7667,13 +7667,14 @@ AllowedSubtags _tags_parameters[] = {
  */
 static bool HandleParameterInfo(ByteReader *buf)
 {
-	byte type = buf->ReadByte();
-	while (type != 0) {
+	for (;;) {
+		byte type = buf->ReadByte();
+		if (type == 0) break;
+
 		uint32 id = buf->ReadDWord();
 		if (type != 'C' || id >= _cur.grfconfig->num_valid_params) {
 			grfmsg(2, "StaticGRFInfo: all child nodes of 'INFO'->'PARA' should have type 'C' and their parameter number as id");
 			if (!SkipUnknownInfo(buf, type)) return false;
-			type = buf->ReadByte();
 			continue;
 		}
 
@@ -7688,7 +7689,6 @@ static bool HandleParameterInfo(ByteReader *buf)
 		_cur_parameter = _cur.grfconfig->param_info[id];
 		/* Read all parameter-data and process each node. */
 		if (!HandleNodes(buf, _tags_parameters)) return false;
-		type = buf->ReadByte();
 	}
 	return true;
 }
