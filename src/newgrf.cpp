@@ -270,7 +270,7 @@ public:
 
 	inline bool HasData(size_t count = 1) const
 	{
-		return data + count <= end;
+		return Remaining() >= count;
 	}
 
 	inline byte *Data()
