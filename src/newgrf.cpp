@@ -270,6 +270,15 @@ public:
 		 * as there may not be any more data read. */
 		if (data > end) throw out_of_data();
 	}
+
+	byte *Dup (size_t len)
+	{
+		if (!HasData (len)) throw out_of_data();
+
+		byte *p = xmemdupt (data, len);
+		data += len;
+		return p;
+	}
 };
 
 const char *ByteReader::ReadString (void)
@@ -2018,21 +2027,10 @@ static ChangeInfoResult StationChangeInfo(uint stid, int numinfo, int prop, Byte
 						statspec->platforms[l] = number;
 					}
 
-					p = 0;
-					layout = xmalloct<byte>(length * number);
-					try {
-						for (l = 0; l < length; l++) {
-							for (p = 0; p < number; p++) {
-								layout[l * number + p] = buf->ReadByte();
-							}
-						}
-					} catch (...) {
-						free(layout);
-						throw;
-					}
+					layout = buf->Dup (length * number);
 
-					l--;
-					p--;
+					l = length - 1;
+					p = number - 1;
 					free(statspec->layouts[l][p]);
 					statspec->layouts[l][p] = layout;
 				}
@@ -3586,16 +3584,7 @@ static ChangeInfoResult IndustriesChangeInfo(uint indid, int numinfo, int prop, 
 
 			case 0x15: { // Random sound effects
 				indsp->number_of_sounds = buf->ReadByte();
-				uint8 *sounds = xmalloct<uint8>(indsp->number_of_sounds);
-
-				try {
-					for (uint8 j = 0; j < indsp->number_of_sounds; j++) {
-						sounds[j] = buf->ReadByte();
-					}
-				} catch (...) {
-					free(sounds);
-					throw;
-				}
+				uint8 *sounds = buf->Dup (indsp->number_of_sounds);
 
 				if (HasBit(indsp->cleanup_flag, CLEAN_RANDOMSOUNDS)) {
 					free(indsp->random_sounds);
