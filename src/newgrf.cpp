@@ -257,9 +257,10 @@ public:
 		return Remaining() >= count;
 	}
 
-	inline byte *Data()
+	uint32 PeekDWord() const
 	{
-		return data;
+		if (!HasData (4)) throw out_of_data();
+		return data[0] | (data[1] << 8) | (data[2] << 16) | (data[3] << 24);
 	}
 
 	inline void Skip(size_t len)
@@ -1918,7 +1919,7 @@ static ChangeInfoResult StationChangeInfo(uint stid, int numinfo, int prop, Byte
 					NewGRFSpriteLayout *dts = &statspec->renderdata[t];
 					dts->consistent_max_offset = UINT16_MAX; // Spritesets are unknown, so no limit.
 
-					if (buf->HasData(4) && *(uint32*)buf->Data() == 0) {
+					if (buf->HasData(4) && buf->PeekDWord() == 0) {
 						buf->Skip(4);
 						extern const DrawTileSprites _station_display_datas_rail[8];
 						dts->Clone(&_station_display_datas_rail[t % 8]);
