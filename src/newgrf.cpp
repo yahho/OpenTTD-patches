@@ -245,23 +245,7 @@ public:
 		}
 	}
 
-	const char *ReadString()
-	{
-		char *string = reinterpret_cast<char *>(data);
-		size_t string_length = ttd_strnlen(string, Remaining());
-
-		if (string_length == Remaining()) {
-			/* String was not NUL terminated, so make sure it is now. */
-			string[string_length - 1] = '\0';
-			grfmsg(7, "String was not terminated with a zero byte.");
-		} else {
-			/* Increase the string length to include the NUL byte. */
-			string_length++;
-		}
-		Skip(string_length);
-
-		return string;
-	}
+	const char *ReadString (void);
 
 	inline size_t Remaining() const
 	{
@@ -286,6 +270,27 @@ public:
 		if (data > end) throw out_of_data();
 	}
 };
+
+const char *ByteReader::ReadString (void)
+{
+	const char *string = reinterpret_cast<char *>(data);
+
+	size_t remaining = Remaining();
+	size_t string_length = ttd_strnlen (string, remaining);
+
+	if (string_length == remaining) {
+		/* String was not NUL terminated, so make sure it is now. */
+		grfmsg(7, "String was not terminated with a zero byte.");
+		data = end;
+		data[-1] = 0;
+	} else {
+		/* Increase the string length to include the NUL byte. */
+		string_length++;
+		data += string_length;
+	}
+
+	return string;
+}
 
 typedef int (*SpecialSpriteHandler) (ByteReader *buf);
 
