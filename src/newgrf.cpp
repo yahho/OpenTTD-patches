@@ -2778,8 +2778,10 @@ static ChangeInfoResult GlobalVarChangeInfo(uint gvid, int numinfo, int prop, By
 					break;
 				}
 
-				byte newgrf_id = buf->ReadByte(); // The NewGRF (custom) identifier.
-				while (newgrf_id != 0) {
+				for (;;) {
+					byte newgrf_id = buf->ReadByte(); // The NewGRF (custom) identifier.
+					if (newgrf_id == 0) break;
+
 					const char *name = buf->ReadString(); // The name for the OpenTTD identifier.
 
 					/* We'll just ignore the UTF8 identifier character. This is (fairly)
@@ -2807,7 +2809,6 @@ static ChangeInfoResult GlobalVarChangeInfo(uint gvid, int numinfo, int prop, By
 							*_cur.grffile->language_map[curidx].case_map.Append() = map;
 						}
 					}
-					newgrf_id = buf->ReadByte();
 				}
 				break;
 			}
