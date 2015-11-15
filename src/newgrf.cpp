@@ -2001,8 +2001,6 @@ static ChangeInfoResult StationChangeInfo(uint stid, int numinfo, int prop, Byte
 				while (buf->HasData()) {
 					byte length = buf->ReadByte();
 					byte number = buf->ReadByte();
-					StationLayout layout;
-					uint l, p;
 
 					if (length == 0 || number == 0) break;
 
@@ -2016,7 +2014,8 @@ static ChangeInfoResult StationChangeInfo(uint stid, int numinfo, int prop, Byte
 
 						statspec->lengths = length;
 					}
-					l = length - 1; // index is zero-based
+
+					uint l = length - 1; // index is zero-based
 
 					if (number > statspec->platforms[l]) {
 						statspec->layouts[l] = xrealloct (statspec->layouts[l], number);
@@ -2027,12 +2026,11 @@ static ChangeInfoResult StationChangeInfo(uint stid, int numinfo, int prop, Byte
 						statspec->platforms[l] = number;
 					}
 
-					layout = buf->Dup (length * number);
+					StationLayout layout = buf->Dup (length * number);
 
-					l = length - 1;
-					p = number - 1;
-					free(statspec->layouts[l][p]);
-					statspec->layouts[l][p] = layout;
+					StationLayout *p = &statspec->layouts[l][number - 1];
+					free (*p);
+					*p = layout;
 				}
 				break;
 
