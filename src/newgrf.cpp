@@ -2716,7 +2716,7 @@ static ChangeInfoResult GlobalVarChangeInfo(uint gvid, int numinfo, int prop, By
 			case 0x10: // Snow line height table
 				if (numinfo > 1 || IsSnowLineSet()) {
 					grfmsg(1, "GlobalVarChangeInfo: The snowline can only be set once (%d)", numinfo);
-				} else if (buf->Remaining() < SNOW_LINE_MONTHS * SNOW_LINE_DAYS) {
+				} else if (!buf->HasData (SNOW_LINE_MONTHS * SNOW_LINE_DAYS)) {
 					grfmsg(1, "GlobalVarChangeInfo: Not enough entries set in the snowline table (" PRINTF_SIZE ")", buf->Remaining());
 				} else {
 					byte table[SNOW_LINE_MONTHS][SNOW_LINE_DAYS];
@@ -6408,7 +6408,7 @@ static int GRFLoadError (ByteReader *buf)
 	if (message_id >= lengthof(msgstr) && message_id != 0xFF) {
 		grfmsg(7, "GRFLoadError: Invalid message id.");
 
-	} else if (buf->Remaining() <= 1) {
+	} else if (!buf->HasData (2)) {
 		grfmsg(7, "GRFLoadError: No message data supplied.");
 
 	} else if (_cur.grfconfig->error == NULL) {
@@ -6634,7 +6634,7 @@ static int ParamSet (ByteReader *buf)
 	uint32 src2  = buf->ReadByte();
 
 	uint32 data = 0;
-	if (buf->Remaining() >= 4) data = buf->ReadDWord();
+	if (buf->HasData (4)) data = buf->ReadDWord();
 
 	/* You can add 80 to the operation to make it apply only if the target
 	 * is not defined yet.  In this respect, a parameter is taken to be
@@ -7783,7 +7783,7 @@ static bool HandleNode(byte type, uint32 id, ByteReader *buf, AllowedSubtags sub
 
 			case 'B': {
 				size_t len = buf->ReadWord();
-				if (buf->Remaining() < len) return false;
+				if (!buf->HasData (len)) return false;
 				return tag->handler.data(len, buf);
 			}
 
