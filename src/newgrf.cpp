@@ -198,8 +198,6 @@ static inline bool IsValidNewGRFImageIndex(uint8 image_index)
 	return image_index == 0xFD || IsValidImageIndex<T>(image_index);
 }
 
-class OTTDByteReaderSignal { };
-
 /** Class to read from a NewGRF file */
 class ByteReader {
 protected:
@@ -209,10 +207,12 @@ protected:
 public:
 	ByteReader(byte *data, byte *end) : data(data), end(end) { }
 
+	class out_of_data { };
+
 	inline byte ReadByte()
 	{
 		if (data < end) return *(data)++;
-		throw OTTDByteReaderSignal();
+		throw out_of_data();
 	}
 
 	uint16 ReadWord()
@@ -283,7 +283,7 @@ public:
 		data += len;
 		/* It is valid to move the buffer to exactly the end of the data,
 		 * as there may not be any more data read. */
-		if (data > end) throw OTTDByteReaderSignal();
+		if (data > end) throw out_of_data();
 	}
 };
 
