@@ -7799,11 +7799,11 @@ static bool HandleNode(byte type, uint32 id, ByteReader *buf, AllowedSubtags sub
  */
 static bool HandleNodes(ByteReader *buf, AllowedSubtags subtags[])
 {
-	byte type = buf->ReadByte();
-	while (type != 0) {
+	for (;;) {
+		byte type = buf->ReadByte();
+		if (type == 0) break;
 		uint32 id = buf->ReadDWord();
 		if (!HandleNode(type, id, buf, subtags)) return false;
-		type = buf->ReadByte();
 	}
 	return true;
 }
