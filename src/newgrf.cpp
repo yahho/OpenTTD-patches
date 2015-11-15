@@ -7724,15 +7724,14 @@ static bool SkipUnknownInfo(ByteReader *buf, byte type)
 {
 	/* type and id are already read */
 	switch (type) {
-		case 'C': {
-			byte new_type = buf->ReadByte();
-			while (new_type != 0) {
+		case 'C':
+			for (;;) {
+				byte new_type = buf->ReadByte();
+				if (new_type == 0) break;
 				buf->ReadDWord(); // skip the id
 				if (!SkipUnknownInfo(buf, new_type)) return false;
-				new_type = buf->ReadByte();
 			}
 			break;
-		}
 
 		case 'T':
 			buf->ReadByte(); // lang
