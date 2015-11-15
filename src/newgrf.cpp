@@ -7627,13 +7627,14 @@ static bool HandleNodes(ByteReader *buf, AllowedSubtags *tags);
  */
 static bool ChangeGRFParamValueNames(ByteReader *buf)
 {
-	byte type = buf->ReadByte();
-	while (type != 0) {
+	for (;;) {
+		byte type = buf->ReadByte();
+		if (type == 0) break;
+
 		uint32 id = buf->ReadDWord();
 		if (type != 'T' || id > _cur_parameter->max_value) {
 			grfmsg(2, "StaticGRFInfo: all child nodes of 'INFO'->'PARA'->param_num->'VALU' should have type 't' and the value/bit number as id");
 			if (!SkipUnknownInfo(buf, type)) return false;
-			type = buf->ReadByte();
 			continue;
 		}
 
@@ -7642,8 +7643,6 @@ static bool ChangeGRFParamValueNames(ByteReader *buf)
 
 		_cur_parameter->value_names[id].add (langid,
 				_cur.grfconfig->ident.grfid, false, name_string);
-
-		type = buf->ReadByte();
 	}
 	return true;
 }
