@@ -7761,9 +7761,7 @@ static bool SkipUnknownInfo(ByteReader *buf, byte type)
  */
 static bool HandleNode(byte type, uint32 id, ByteReader *buf, AllowedSubtags subtags[])
 {
-	uint i = 0;
-	AllowedSubtags *tag;
-	while ((tag = &subtags[i++])->type != 0) {
+	for (AllowedSubtags *tag = subtags; tag->type != 0; tag++) {
 		if (tag->id != BSWAP32(id) || tag->type != type) continue;
 		switch (type) {
 			default: NOT_REACHED();
