@@ -7533,10 +7533,6 @@ static bool ChangeGRFParamDefault(size_t len, ByteReader *buf)
 	return true;
 }
 
-typedef bool (*DataHandler)(size_t, ByteReader *);  ///< Type of callback function for binary nodes
-typedef bool (*TextHandler)(byte, const char *str); ///< Type of callback function for text nodes
-typedef bool (*BranchHandler)(ByteReader *);        ///< Type of callback function for branch nodes
-
 /**
  * Data structure to store the allowed id/type combinations for action 14. The
  * data can be represented as a tree with 3 types of nodes:
@@ -7545,10 +7541,23 @@ typedef bool (*BranchHandler)(ByteReader *);        ///< Type of callback functi
  * 3. Text leaf nodes (identified by 'T').
  */
 struct AllowedSubtags {
+	typedef bool (*DataHandler) (size_t, ByteReader *);  ///< Type of callback function for binary nodes
+	typedef bool (*TextHandler) (byte, const char *str); ///< Type of callback function for text nodes
+	typedef bool (*BranchHandler) (ByteReader *);        ///< Type of callback function for branch nodes
+
+	uint32 id; ///< The identifier for this node
+	byte type; ///< The type of the node, must be one of 'C', 'B' or 'T'.
+	byte nsub; ///< The number of subtags, or 0 if not applicable
+	union {
+		DataHandler     data;          ///< Callback function for a binary node, only valid if type == 'B'.
+		TextHandler     text;          ///< Callback function for a text node, only valid if type == 'T'.
+		BranchHandler   branch;        ///< Callback function for a branch node, only valid if type == 'C' && nsub == 0.
+		const AllowedSubtags *subtags; ///< Pointer to a list of subtags, only valid if type == 'C' && nsub != 0.
+	};
+
 	/** Create empty subtags object used to identify the end of a list. */
-	AllowedSubtags() :
-		id(0),
-		type(0)
+	CONSTEXPR AllowedSubtags() :
+		id(0), type(0), nsub(0), subtags(NULL)
 	{}
 
 	/**
@@ -7556,11 +7565,9 @@ struct AllowedSubtags {
 	 * @param id The id for this node.
 	 * @param handler The callback function to call.
 	 */
-	AllowedSubtags(uint32 id, DataHandler handler) :
-		id(id),
-		type('B')
+	CONSTEXPR AllowedSubtags (uint32 id, DataHandler handler) :
+		id(id), type('B'), nsub(0), data(handler)
 	{
-		this->handler.data = handler;
 	}
 
 	/**
@@ -7568,11 +7575,9 @@ struct AllowedSubtags {
 	 * @param id The id for this node.
 	 * @param handler The callback function to call.
 	 */
-	AllowedSubtags(uint32 id, TextHandler handler) :
-		id(id),
-		type('T')
+	CONSTEXPR AllowedSubtags (uint32 id, TextHandler handler) :
+		id(id), type('T'), nsub(0), text(handler)
 	{
-		this->handler.text = handler;
 	}
 
 	/**
@@ -7580,12 +7585,9 @@ struct AllowedSubtags {
 	 * @param id The id for this node.
 	 * @param handler The callback function to call.
 	 */
-	AllowedSubtags(uint32 id, BranchHandler handler) :
-		id(id),
-		type('C')
+	CONSTEXPR AllowedSubtags (uint32 id, BranchHandler handler) :
+		id(id), type('C'), nsub(0), branch(handler)
 	{
-		this->handler.call_handler = true;
-		this->handler.u.branch = handler;
 	}
 
 	/**
@@ -7593,27 +7595,13 @@ struct AllowedSubtags {
 	 * @param id The id for this node.
 	 * @param subtags Array with all valid subtags.
 	 */
-	AllowedSubtags(uint32 id, const AllowedSubtags *subtags) :
-		id(id),
-		type('C')
+	template <uint N>
+	CONSTEXPR AllowedSubtags (uint32 id, const AllowedSubtags (&subtags) [N]) :
+		id(id), type('C'), nsub(N), subtags(subtags)
 	{
-		this->handler.call_handler = false;
-		this->handler.u.subtags = subtags;
+		assert_tcompile (N > 0);
+		assert_tcompile (N <= UINT8_MAX);
 	}
-
-	uint32 id; ///< The identifier for this node
-	byte type; ///< The type of the node, must be one of 'C', 'B' or 'T'.
-	union {
-		DataHandler data; ///< Callback function for a binary node, only valid if type == 'B'.
-		TextHandler text; ///< Callback function for a text node, only valid if type == 'T'.
-		struct {
-			union {
-				BranchHandler branch;    ///< Callback function for a branch node, only valid if type == 'C' && call_handler.
-				const AllowedSubtags *subtags; ///< Pointer to a list of subtags, only valid if type == 'C' && !call_handler.
-			} u;
-			bool call_handler; ///< True if there is a callback function for this node, false if there is a list of subnodes.
-		};
-	} handler;
 };
 
 static bool SkipUnknownInfo(ByteReader *buf, byte type);
@@ -7768,20 +7756,20 @@ static bool HandleNode (byte type, uint32 id, ByteReader *buf, const AllowedSubt
 
 			case 'T': {
 				byte langid = buf->ReadByte();
-				return tag->handler.text(langid, buf->ReadString());
+				return tag->text (langid, buf->ReadString());
 			}
 
 			case 'B': {
 				size_t len = buf->ReadWord();
 				if (!buf->HasData (len)) return false;
-				return tag->handler.data(len, buf);
+				return tag->data (len, buf);
 			}
 
 			case 'C': {
-				if (tag->handler.call_handler) {
-					return tag->handler.u.branch(buf);
+				if (tag->nsub == 0) {
+					return tag->branch (buf);
 				}
-				return HandleNodes(buf, tag->handler.u.subtags);
+				return HandleNodes (buf, tag->subtags);
 			}
 		}
 	}
