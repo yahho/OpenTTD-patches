@@ -7593,7 +7593,7 @@ struct AllowedSubtags {
 	 * @param id The id for this node.
 	 * @param subtags Array with all valid subtags.
 	 */
-	AllowedSubtags(uint32 id, AllowedSubtags *subtags) :
+	AllowedSubtags(uint32 id, const AllowedSubtags *subtags) :
 		id(id),
 		type('C')
 	{
@@ -7609,7 +7609,7 @@ struct AllowedSubtags {
 		struct {
 			union {
 				BranchHandler branch;    ///< Callback function for a branch node, only valid if type == 'C' && call_handler.
-				AllowedSubtags *subtags; ///< Pointer to a list of subtags, only valid if type == 'C' && !call_handler.
+				const AllowedSubtags *subtags; ///< Pointer to a list of subtags, only valid if type == 'C' && !call_handler.
 			} u;
 			bool call_handler; ///< True if there is a callback function for this node, false if there is a list of subnodes.
 		};
@@ -7617,7 +7617,7 @@ struct AllowedSubtags {
 };
 
 static bool SkipUnknownInfo(ByteReader *buf, byte type);
-static bool HandleNodes(ByteReader *buf, AllowedSubtags *tags);
+static bool HandleNodes(ByteReader *buf, const AllowedSubtags *tags);
 
 /**
  * Callback function for 'INFO'->'PARA'->param_num->'VALU' to set the names
@@ -7648,7 +7648,7 @@ static bool ChangeGRFParamValueNames(ByteReader *buf)
 }
 
 /** Action14 parameter tags */
-AllowedSubtags _tags_parameters[] = {
+static const AllowedSubtags _tags_parameters[] = {
 	AllowedSubtags('NAME', ChangeGRFParamName),
 	AllowedSubtags('DESC', ChangeGRFParamDescription),
 	AllowedSubtags('TYPE', ChangeGRFParamType),
@@ -7694,7 +7694,7 @@ static bool HandleParameterInfo(ByteReader *buf)
 }
 
 /** Action14 tags for the INFO node */
-AllowedSubtags _tags_info[] = {
+static const AllowedSubtags _tags_info[] = {
 	AllowedSubtags('NAME', ChangeGRFName),
 	AllowedSubtags('DESC', ChangeGRFDescription),
 	AllowedSubtags('URL_', ChangeGRFURL),
@@ -7708,7 +7708,7 @@ AllowedSubtags _tags_info[] = {
 };
 
 /** Action14 root tags */
-AllowedSubtags _tags_root[] = {
+static const AllowedSubtags _tags_root[] = {
 	AllowedSubtags('INFO', _tags_info),
 	AllowedSubtags()
 };
@@ -7759,9 +7759,9 @@ static bool SkipUnknownInfo(ByteReader *buf, byte type)
  * @param subtags Allowed subtags.
  * @return Whether all tags could be handled.
  */
-static bool HandleNode(byte type, uint32 id, ByteReader *buf, AllowedSubtags subtags[])
+static bool HandleNode (byte type, uint32 id, ByteReader *buf, const AllowedSubtags *subtags)
 {
-	for (AllowedSubtags *tag = subtags; tag->type != 0; tag++) {
+	for (const AllowedSubtags *tag = subtags; tag->type != 0; tag++) {
 		if (tag->id != BSWAP32(id) || tag->type != type) continue;
 		switch (type) {
 			default: NOT_REACHED();
@@ -7795,7 +7795,7 @@ static bool HandleNode(byte type, uint32 id, ByteReader *buf, AllowedSubtags sub
  * @param subtags List of subtags.
  * @return Whether the nodes could all be handled.
  */
-static bool HandleNodes(ByteReader *buf, AllowedSubtags subtags[])
+static bool HandleNodes (ByteReader *buf, const AllowedSubtags *subtags)
 {
 	for (;;) {
 		byte type = buf->ReadByte();
