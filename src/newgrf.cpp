@@ -49,6 +49,7 @@
 #include "language.h"
 #include "vehicle_base.h"
 #include "rail.h"
+#include "core/pointer.h"
 
 #include "table/strings.h"
 #include "table/build_industry.h"
@@ -368,7 +369,7 @@ struct GRFLocation {
 };
 
 static std::map<GRFLocation, SpriteID> _grm_sprites;
-typedef std::map<GRFLocation, byte*> GRFLineToSpriteOverride;
+typedef std::map <GRFLocation, ttd_unique_free_ptr <byte> > GRFLineToSpriteOverride;
 static GRFLineToSpriteOverride _grf_line_to_action6_sprite_override;
 
 /**
@@ -5973,14 +5974,15 @@ static int CfgApply (ByteReader *buf)
 
 	GRFLocation location(_cur.grfconfig->ident.grfid, _cur.nfo_line + 1);
 	std::pair <GRFLineToSpriteOverride::iterator, bool> ins =
-		_grf_line_to_action6_sprite_override.insert (std::make_pair (location, (byte*)NULL));
+		_grf_line_to_action6_sprite_override.insert (std::make_pair (location, ttd_unique_free_ptr<byte>()));
 
 	byte *preload_sprite;
 	if (ins.second) {
-		ins.first->second = preload_sprite = xmalloct<byte> (num);
+		preload_sprite = xmalloct<byte> (num);
+		ins.first->second.reset (preload_sprite);
 		FioReadBlock (preload_sprite, num);
 	} else {
-		preload_sprite = ins.first->second;
+		preload_sprite = ins.first->second.get();
 	}
 
 	/* Reset the file position to the start of the next sprite */
@@ -8794,7 +8796,7 @@ static int DecodeSpecialSprite (byte *buf, uint num, GrfLoadingStage stage)
 		FioReadBlock(buf, num);
 	} else {
 		/* Use the preloaded sprite data. */
-		buf = it->second;
+		buf = it->second.get();
 		grfmsg(7, "DecodeSpecialSprite: Using preloaded pseudo sprite data");
 
 		/* Skip the real (original) content of this action. */
@@ -9128,9 +9130,6 @@ static void AfterLoadGRFs()
 	_string_to_grf_mapping.Clear();
 
 	/* Free the action 6 override sprites. */
-	for (GRFLineToSpriteOverride::iterator it = _grf_line_to_action6_sprite_override.begin(); it != _grf_line_to_action6_sprite_override.end(); it++) {
-		free((*it).second);
-	}
 	_grf_line_to_action6_sprite_override.clear();
 
 	/* Polish cargoes */
