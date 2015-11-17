@@ -5961,31 +5961,30 @@ static int CfgApply (ByteReader *buf)
 	size_t pos = FioGetPos();
 	uint32 num = _cur.grf_container_ver >= 2 ? FioReadDword() : FioReadWord();
 	uint8 type = FioReadByte();
-	byte *preload_sprite = NULL;
 
 	/* Check if the sprite is a pseudo sprite. We can't operate on real sprites. */
-	if (type == 0xFF) {
-		preload_sprite = xmalloct<byte>(num);
-		FioReadBlock(preload_sprite, num);
-	}
-
-	/* Reset the file position to the start of the next sprite */
-	FioSeekTo(pos, SEEK_SET);
-
 	if (type != 0xFF) {
+		/* Reset the file position to the start of the next sprite */
+		FioSeekTo(pos, SEEK_SET);
+
 		grfmsg(2, "CfgApply: Ignoring (next sprite is real, unsupported)");
-		free(preload_sprite);
 		return 0;
 	}
 
 	GRFLocation location(_cur.grfconfig->ident.grfid, _cur.nfo_line + 1);
 	GRFLineToSpriteOverride::iterator it = _grf_line_to_action6_sprite_override.find(location);
+
+	byte *preload_sprite;
 	if (it != _grf_line_to_action6_sprite_override.end()) {
-		free(preload_sprite);
 		preload_sprite = _grf_line_to_action6_sprite_override[location];
 	} else {
+		preload_sprite = xmalloct<byte> (num);
 		_grf_line_to_action6_sprite_override[location] = preload_sprite;
+		FioReadBlock (preload_sprite, num);
 	}
+
+	/* Reset the file position to the start of the next sprite */
+	FioSeekTo (pos, SEEK_SET);
 
 	/* Now perform the Action 0x06 on our data. */
 
