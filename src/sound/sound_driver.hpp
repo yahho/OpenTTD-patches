@@ -15,8 +15,14 @@
 #include "../driver.h"
 
 /** Base for all sound drivers. */
-class SoundDriver : public Driver {
+class SoundDriver : public Driver, public SharedDriverSystem <SoundDriver> {
 public:
+	/** Get the name of this type of driver. */
+	static CONSTEXPR const char *GetSystemName (void)
+	{
+		return "sound";
+	}
+
 	/** Called once every tick */
 	virtual void MainLoop() {}
 
@@ -24,13 +30,13 @@ public:
 	 * Get the currently active instance of the sound driver.
 	 */
 	static SoundDriver *GetInstance() {
-		return static_cast<SoundDriver*>(*DriverFactoryBase::GetActiveDriver(Driver::DT_SOUND));
+		return SharedDriverSystem<SoundDriver>::GetActiveDriver();
 	}
 };
 
 /** Sound driver factory. */
 template <class D>
-class SoundDriverFactory : DriverFactoryBase {
+class SoundDriverFactory : DriverFactory <SoundDriver, D> {
 public:
 	/**
 	 * Construct a new SoundDriverFactory.
@@ -39,17 +45,8 @@ public:
 	 * @param description A long-ish description of the driver.
 	 */
 	SoundDriverFactory (int priority, const char *name, const char *description)
-		: DriverFactoryBase (Driver::DT_SOUND, priority, name, description)
+		: DriverFactory <SoundDriver, D> (priority, name, description)
 	{
-	}
-
-	/**
-	 * Create an instance of this driver-class.
-	 * @return The instance.
-	 */
-	Driver *CreateInstance() const FINAL_OVERRIDE
-	{
-		return new D;
 	}
 };
 

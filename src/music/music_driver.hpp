@@ -15,8 +15,14 @@
 #include "../driver.h"
 
 /** Driver for all music playback. */
-class MusicDriver : public Driver {
+class MusicDriver : public Driver, public SharedDriverSystem <MusicDriver> {
 public:
+	/** Get the name of this type of driver. */
+	static CONSTEXPR const char *GetSystemName (void)
+	{
+		return "music";
+	}
+
 	/**
 	 * Play a particular song.
 	 * @param filename The name of file with the song to play.
@@ -44,13 +50,13 @@ public:
 	 * Get the currently active instance of the music driver.
 	 */
 	static MusicDriver *GetInstance() {
-		return static_cast<MusicDriver*>(*DriverFactoryBase::GetActiveDriver(Driver::DT_MUSIC));
+		return SharedDriverSystem<MusicDriver>::GetActiveDriver();
 	}
 };
 
 /** Music driver factory. */
 template <class D>
-class MusicDriverFactory : DriverFactoryBase {
+class MusicDriverFactory : DriverFactory <MusicDriver, D> {
 public:
 	/**
 	 * Construct a new MusicDriverFactory.
@@ -59,17 +65,8 @@ public:
 	 * @param description A long-ish description of the driver.
 	 */
 	MusicDriverFactory (int priority, const char *name, const char *description)
-		: DriverFactoryBase (Driver::DT_MUSIC, priority, name, description)
+		: DriverFactory <MusicDriver, D> (priority, name, description)
 	{
-	}
-
-	/**
-	 * Create an instance of this driver-class.
-	 * @return The instance.
-	 */
-	Driver *CreateInstance() const FINAL_OVERRIDE
-	{
-		return new D;
 	}
 };
 

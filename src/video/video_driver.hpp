@@ -16,8 +16,14 @@
 #include "../core/geometry_type.hpp"
 
 /** The base of all video drivers. */
-class VideoDriver : public Driver {
+class VideoDriver : public Driver, public SharedDriverSystem <VideoDriver> {
 public:
+	/** Get the name of this type of driver. */
+	static CONSTEXPR const char *GetSystemName (void)
+	{
+		return "video";
+	}
+
 	/**
 	 * Mark a particular area dirty.
 	 * @param left   The left most line of the dirty area.
@@ -83,13 +89,13 @@ public:
 	 * Get the currently active instance of the video driver.
 	 */
 	static VideoDriver *GetInstance() {
-		return static_cast<VideoDriver*>(*DriverFactoryBase::GetActiveDriver(Driver::DT_VIDEO));
+		return SharedDriverSystem<VideoDriver>::GetActiveDriver();
 	}
 };
 
 /** Video driver factory. */
 template <class D>
-class VideoDriverFactory : DriverFactoryBase {
+class VideoDriverFactory : DriverFactory <VideoDriver, D> {
 public:
 	/**
 	 * Construct a new VideoDriverFactory.
@@ -98,17 +104,8 @@ public:
 	 * @param description A long-ish description of the driver.
 	 */
 	VideoDriverFactory (int priority, const char *name, const char *description)
-		: DriverFactoryBase (Driver::DT_VIDEO, priority, name, description)
+		: DriverFactory <VideoDriver, D> (priority, name, description)
 	{
-	}
-
-	/**
-	 * Create an instance of this driver-class.
-	 * @return The instance.
-	 */
-	Driver *CreateInstance() const FINAL_OVERRIDE
-	{
-		return new D;
 	}
 };
 

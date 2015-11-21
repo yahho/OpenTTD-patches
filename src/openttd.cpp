@@ -189,7 +189,9 @@ static void ShowHelp()
 	BaseMusic::GetSetsList (&buf);
 
 	/* List the drivers */
-	DriverFactoryBase::GetDriversInfo (&buf);
+	MusicDriver::GetDriversInfo (&buf);
+	SoundDriver::GetDriversInfo (&buf);
+	VideoDriver::GetDriversInfo (&buf);
 
 	/* List the blitters */
 	GetBlittersInfo (&buf);
@@ -282,7 +284,9 @@ static void ShutdownGame()
 
 	if (_network_available) NetworkShutDown(); // Shut down the network and close any open connections
 
-	DriverFactoryBase::ShutdownDrivers();
+	MusicDriver::ShutdownDriver();
+	SoundDriver::ShutdownDriver();
+	VideoDriver::ShutdownDriver();
 
 	UnInitWindowSystem();
 
@@ -770,7 +774,7 @@ int openttd_main(int argc, char *argv[])
 	free(blitter);
 
 	if (videodriver == NULL && _ini_videodriver != NULL) videodriver = xstrdup(_ini_videodriver);
-	DriverFactoryBase::SelectDriver(videodriver, Driver::DT_VIDEO);
+	VideoDriver::SelectDriver (videodriver);
 	free(videodriver);
 
 	InitializeSpriteSorter();
@@ -833,11 +837,11 @@ int openttd_main(int argc, char *argv[])
 	free(music_set);
 
 	if (sounddriver == NULL && _ini_sounddriver != NULL) sounddriver = xstrdup(_ini_sounddriver);
-	DriverFactoryBase::SelectDriver(sounddriver, Driver::DT_SOUND);
+	SoundDriver::SelectDriver (sounddriver);
 	free(sounddriver);
 
 	if (musicdriver == NULL && _ini_musicdriver != NULL) musicdriver = xstrdup(_ini_musicdriver);
-	DriverFactoryBase::SelectDriver(musicdriver, Driver::DT_MUSIC);
+	MusicDriver::SelectDriver (musicdriver);
 	free(musicdriver);
 
 	/* Take our initial lock on whatever we might want to do! */
