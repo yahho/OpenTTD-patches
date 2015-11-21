@@ -425,7 +425,8 @@ static CocoaSubdriver *QZ_CreateSubdriver(int width, int height, int bpp, bool f
 }
 
 
-static FVideoDriver_Cocoa iFVideoDriver_Cocoa;
+static VideoDriverFactory <VideoDriver_Cocoa>
+		iFVideoDriver_Cocoa (10, "cocoa", "Cocoa Video Driver");
 
 /**
  * Stop the cocoa video subdriver.

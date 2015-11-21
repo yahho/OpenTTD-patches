@@ -34,7 +34,9 @@
 #include <signal.h>
 #endif
 
-static FVideoDriver_Allegro iFVideoDriver_Allegro;
+/** Factory for the allegro video driver. */
+static VideoDriverFactory <VideoDriver_Allegro>
+		iFVideoDriver_Allegro (4, "allegro", "Allegro Video Driver");
 
 static BITMAP *_allegro_screen;
 

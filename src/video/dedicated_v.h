@@ -32,18 +32,4 @@ public:
 	/* virtual */ bool HasGUI() const { return false; }
 };
 
-/** Factory for the dedicated server video driver. */
-class FVideoDriver_Dedicated : public DriverFactoryBase {
-public:
-#ifdef DEDICATED
-	/* Automatically select this dedicated driver when making a dedicated
-	 * server build. */
-	static const int PRIORITY = 10;
-#else
-	static const int PRIORITY = 0;
-#endif
-	FVideoDriver_Dedicated() : DriverFactoryBase(Driver::DT_VIDEO, PRIORITY, "dedicated", "Dedicated Video Driver") {}
-	/* virtual */ Driver *CreateInstance() const { return new VideoDriver_Dedicated(); }
-};
-
 #endif /* VIDEO_DEDICATED_H */

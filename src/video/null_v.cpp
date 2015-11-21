@@ -16,7 +16,8 @@
 #include "null_v.h"
 
 /** Factory for the null video driver. */
-static FVideoDriver_Null iFVideoDriver_Null;
+static VideoDriverFactory <VideoDriver_Null>
+		iFVideoDriver_Null (0, "null", "Null Video Driver");
 
 const char *VideoDriver_Null::Start(const char * const *parm)
 {

@@ -36,11 +36,4 @@ public:
 	/* virtual */ const char *GetName() const { return "allegro"; }
 };
 
-/** Factory for the allegro video driver. */
-class FVideoDriver_Allegro : public DriverFactoryBase {
-public:
-	FVideoDriver_Allegro() : DriverFactoryBase(Driver::DT_VIDEO, 4, "allegro", "Allegro Video Driver") {}
-	/* virtual */ Driver *CreateInstance() const { return new VideoDriver_Allegro(); }
-};
-
 #endif /* VIDEO_ALLEGRO_H */

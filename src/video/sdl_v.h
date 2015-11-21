@@ -40,11 +40,4 @@ private:
 	void SetupKeyboard();
 };
 
-/** Factory for the SDL video driver. */
-class FVideoDriver_SDL : public DriverFactoryBase {
-public:
-	FVideoDriver_SDL() : DriverFactoryBase(Driver::DT_VIDEO, 5, "sdl", "SDL Video Driver") {}
-	/* virtual */ Driver *CreateInstance() const { return new VideoDriver_SDL(); }
-};
-
 #endif /* VIDEO_SDL_H */

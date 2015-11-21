@@ -61,12 +61,6 @@ public:
 	/* virtual */ const char *GetName() const { return "cocoa"; }
 };
 
-class FVideoDriver_Cocoa : public DriverFactoryBase {
-public:
-	FVideoDriver_Cocoa() : DriverFactoryBase(Driver::DT_VIDEO, 10, "cocoa", "Cocoa Video Driver") {}
-	/* virtual */ Driver *CreateInstance() const { return new VideoDriver_Cocoa(); }
-};
-
 
 /**
  * Generic display driver for cocoa

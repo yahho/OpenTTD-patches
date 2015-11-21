@@ -1127,7 +1127,9 @@ static void FindResolutions()
 	SortResolutions(_num_resolutions);
 }
 
-static FVideoDriver_Win32 iFVideoDriver_Win32;
+/** The factory for Windows' video driver. */
+static VideoDriverFactory <VideoDriver_Win32>
+		iFVideoDriver_Win32 (10, "win32", "Win32 GDI Video Driver");
 
 const char *VideoDriver_Win32::Start(const char * const *parm)
 {

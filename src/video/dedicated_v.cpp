@@ -144,7 +144,17 @@ bool _dedicated_forks;
 
 extern bool SafeLoad(const char *filename, int mode, GameMode newgm, Subdirectory subdir, struct LoadFilter *lf = NULL);
 
-static FVideoDriver_Dedicated iFVideoDriver_Dedicated;
+/* Automatically select this dedicated driver when making a dedicated
+ * server build. */
+#ifdef DEDICATED
+static const int PRIORITY = 10;
+#else
+static const int PRIORITY = 0;
+#endif
+
+/** Factory for the dedicated server video driver. */
+static VideoDriverFactory <VideoDriver_Dedicated>
+		iFVideoDriver_Dedicated (PRIORITY, "dedicated", "Dedicated Video Driver");
 
 
 const char *VideoDriver_Dedicated::Start(const char * const *parm)

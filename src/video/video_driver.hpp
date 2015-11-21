@@ -87,6 +87,31 @@ public:
 	}
 };
 
+/** Video driver factory. */
+template <class D>
+class VideoDriverFactory : DriverFactoryBase {
+public:
+	/**
+	 * Construct a new VideoDriverFactory.
+	 * @param priority    The priority within the driver class.
+	 * @param name        The name of the driver.
+	 * @param description A long-ish description of the driver.
+	 */
+	VideoDriverFactory (int priority, const char *name, const char *description)
+		: DriverFactoryBase (Driver::DT_VIDEO, priority, name, description)
+	{
+	}
+
+	/**
+	 * Create an instance of this driver-class.
+	 * @return The instance.
+	 */
+	Driver *CreateInstance() const FINAL_OVERRIDE
+	{
+		return new D;
+	}
+};
+
 extern char *_ini_videodriver;
 extern int _num_resolutions;
 extern Dimension _resolutions[32];

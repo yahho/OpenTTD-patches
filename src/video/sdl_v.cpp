@@ -27,7 +27,9 @@
 #include "sdl_v.h"
 #include <SDL.h>
 
-static FVideoDriver_SDL iFVideoDriver_SDL;
+/** Factory for the SDL video driver. */
+static VideoDriverFactory <VideoDriver_SDL>
+		iFVideoDriver_SDL (5, "sdl", "SDL Video Driver");
 
 static SDL_Surface *_sdl_screen;
 static SDL_Surface *_sdl_realscreen;
