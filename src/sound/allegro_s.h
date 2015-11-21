@@ -25,11 +25,4 @@ public:
 	/* virtual */ const char *GetName() const { return "allegro"; }
 };
 
-/** Factory for the allegro sound driver. */
-class FSoundDriver_Allegro : public DriverFactoryBase {
-public:
-	FSoundDriver_Allegro() : DriverFactoryBase(Driver::DT_SOUND, 4, "allegro", "Allegro Sound Driver") {}
-	/* virtual */ Driver *CreateInstance() const { return new SoundDriver_Allegro(); }
-};
-
 #endif /* SOUND_ALLEGRO_H */

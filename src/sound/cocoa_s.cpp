@@ -30,7 +30,8 @@
 #undef Rect
 #undef Point
 
-static FSoundDriver_Cocoa iFSoundDriver_Cocoa;
+static SoundDriverFactory <SoundDriver_Cocoa>
+		iFSoundDriver_Cocoa (10, "cocoa", "Cocoa Sound Driver");
 
 static AudioUnit _outputAudioUnit;
 
