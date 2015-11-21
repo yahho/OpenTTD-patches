@@ -12,9 +12,11 @@
 #ifndef DRIVER_H
 #define DRIVER_H
 
+#include <map>
+
 #include "core/enum_type.hpp"
 #include "core/string_compare_type.hpp"
-#include <map>
+#include "core/pointer.h"
 #include "string.h"
 
 const char *GetDriverParam(const char * const *parm, const char *name);
@@ -57,9 +59,30 @@ public:
 DECLARE_POSTFIX_INCREMENT(Driver::Type)
 
 
+/** Encapsulation of a driver system (music, sound, video). */
+struct DriverSystem {
+	typedef std::map <const char *, class DriverFactoryBase *, StringCompare> map;
+
+	map *drivers;           ///< Map of available drivers.
+	Driver *active;         ///< Currently active driver.
+	const char *const desc; ///< Name of the driver system.
+
+	DriverSystem (const char *desc);
+
+	void insert (const char *name, DriverFactoryBase *factory);
+
+	void erase (const char *name);
+
+	void select (const char *name);
+
+	void list (stringb *buf);
+};
+
+
 /** Base for all driver factories. */
 class DriverFactoryBase {
 private:
+	friend class DriverSystem;
 	friend class MusicDriver;
 	friend class SoundDriver;
 	friend class VideoDriver;
@@ -69,16 +92,15 @@ private:
 	const char *const name;        ///< The name of the drivers of this factory.
 	const char *const description; ///< The description of this driver.
 
-	typedef std::map<const char *, DriverFactoryBase *, StringCompare> Drivers; ///< Type for a map of drivers.
-
-	/**
-	 * Get the map with drivers.
-	 */
-	static Drivers &GetDrivers (Driver::Type type)
+	/** Get the driver system. */
+	static DriverSystem &GetSystem (Driver::Type type)
 	{
-		static Drivers *const s_drivers [Driver::DT_END] =
-			{ new Drivers(), new Drivers(), new Drivers() };
-		return *s_drivers[type];
+		static DriverSystem systems [Driver::DT_END] = {
+			DriverSystem ("music"),
+			DriverSystem ("sound"),
+			DriverSystem ("video"),
+		};
+		return systems[type];
 	}
 
 	/**
@@ -88,25 +110,30 @@ private:
 	 */
 	static Driver **GetActiveDriver(Driver::Type type)
 	{
-		static Driver *s_driver[3] = { NULL, NULL, NULL };
-		return &s_driver[type];
-	}
-
-	/**
-	 * Get the driver type name.
-	 * @param type The type of driver to get the name of.
-	 * @return The name of the type.
-	 */
-	static const char *GetDriverTypeName(Driver::Type type)
-	{
-		static const char * const driver_type_name[] = { "music", "sound", "video" };
-		return driver_type_name[type];
+		return &GetSystem(type).active;
 	}
 
 protected:
-	DriverFactoryBase(Driver::Type type, int priority, const char *name, const char *description);
+	/**
+	 * Construct a new DriverFactory.
+	 * @param type        The type of driver.
+	 * @param priority    The priority within the driver class.
+	 * @param name        The name of the driver.
+	 * @param description A long-ish description of the driver.
+	 */
+	DriverFactoryBase (Driver::Type type, int priority, const char *name, const char *description)
+		: type(type), priority(priority), name(name), description(description)
+	{
+		assert (type < Driver::DT_END);
 
-	virtual ~DriverFactoryBase();
+		GetSystem(type).insert (name, this);
+	}
+
+	/** Destruct a DriverFactory. */
+	virtual ~DriverFactoryBase()
+	{
+		GetSystem(this->type).erase (this->name);
+	}
 
 public:
 	/**
@@ -120,8 +147,29 @@ public:
 		}
 	}
 
-	static void SelectDriver(const char *name, Driver::Type type);
-	static void GetDriversInfo (stringb *buf);
+	/**
+	 * Find the requested driver and return its class.
+	 * @param name the driver to select.
+	 * @param type the type of driver to select
+	 * @post Sets the driver so GetCurrentDriver() returns it too.
+	 */
+	static void SelectDriver(const char *name, Driver::Type type)
+	{
+		assert (type < Driver::DT_END);
+
+		GetSystem(type).select (name);
+	}
+
+	/**
+	 * Build a human readable list of available drivers, grouped by type.
+	 * @param buf The buffer to write to.
+	 */
+	static void GetDriversInfo (stringb *buf)
+	{
+		for (Driver::Type type = Driver::DT_BEGIN; type != Driver::DT_END; type++) {
+			GetSystem(type).list (buf);
+		}
+	}
 
 	/**
 	 * Create an instance of this driver-class.
