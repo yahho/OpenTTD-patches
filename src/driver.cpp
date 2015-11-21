@@ -85,25 +85,13 @@ int GetDriverParamInt(const char * const *parm, const char *name, int def)
  */
 void DriverFactoryBase::SelectDriver(const char *name, Driver::Type type)
 {
-	if (!DriverFactoryBase::SelectDriverImpl(name, type)) {
+	assert (type < Driver::DT_END);
+
+	if (GetDrivers(type).empty()) {
 		StrEmpty(name) ?
 			usererror("Failed to autoprobe %s driver", GetDriverTypeName(type)) :
 			usererror("Failed to select requested %s driver '%s'", GetDriverTypeName(type), name);
 	}
-}
-
-/**
- * Find the requested driver and return its class.
- * @param name the driver to select.
- * @param type the type of driver to select
- * @post Sets the driver so GetCurrentDriver() returns it too.
- * @return True upon success, otherwise false.
- */
-bool DriverFactoryBase::SelectDriverImpl(const char *name, Driver::Type type)
-{
-	assert (type < Driver::DT_END);
-
-	if (GetDrivers(type).empty()) return false;
 
 	if (StrEmpty(name)) {
 		/* Probe for this driver, but do not fall back to dedicated/null! */
@@ -121,7 +109,7 @@ bool DriverFactoryBase::SelectDriverImpl(const char *name, Driver::Type type)
 				if (err == NULL) {
 					DEBUG(driver, 1, "Successfully probed %s driver '%s'", GetDriverTypeName(type), d->name);
 					delete oldd;
-					return true;
+					return;
 				}
 
 				*GetActiveDriver(type) = oldd;
@@ -170,7 +158,7 @@ bool DriverFactoryBase::SelectDriverImpl(const char *name, Driver::Type type)
 			DEBUG(driver, 1, "Successfully loaded %s driver '%s'", GetDriverTypeName(type), d->name);
 			delete *GetActiveDriver(type);
 			*GetActiveDriver(type) = newd;
-			return true;
+			return;
 		}
 		usererror("No such %s driver: %s\n", GetDriverTypeName(type), buffer);
 	}

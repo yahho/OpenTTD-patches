@@ -103,8 +103,6 @@ private:
 		return driver_type_name[type];
 	}
 
-	static bool SelectDriverImpl(const char *name, Driver::Type type);
-
 protected:
 	DriverFactoryBase(Driver::Type type, int priority, const char *name, const char *description);
 
