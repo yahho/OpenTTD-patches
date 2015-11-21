@@ -20,7 +20,8 @@
 static BMidiSynthFile midiSynthFile;
 
 /** Factory for BeOS' midi player. */
-static FMusicDriver_BeMidi iFMusicDriver_BeMidi;
+static MusicDriverFactory <MusicDriver_BeMidi>
+		iFMusicDriver_BeMidi (10, "bemidi", "BeOS MIDI Driver");
 
 const char *MusicDriver_BeMidi::Start(const char * const *parm)
 {

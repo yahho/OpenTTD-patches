@@ -33,11 +33,4 @@ public:
 	/* virtual */ const char *GetName() const { return "dmusic"; }
 };
 
-/** Factory for the DirectX music player. */
-class FMusicDriver_DMusic : public DriverFactoryBase {
-public:
-	FMusicDriver_DMusic() : DriverFactoryBase(Driver::DT_MUSIC, 10, "dmusic", "DirectMusic MIDI Driver") {}
-	/* virtual */ Driver *CreateInstance() const { return new MusicDriver_DMusic(); }
-};
-
 #endif /* MUSIC_DMUSIC_H */

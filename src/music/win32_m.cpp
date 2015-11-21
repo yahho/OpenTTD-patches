@@ -26,7 +26,9 @@ static struct {
 	char start_song[MAX_PATH];
 } _midi;
 
-static FMusicDriver_Win32 iFMusicDriver_Win32;
+/** Factory for Windows' music player. */
+static MusicDriverFactory <MusicDriver_Win32>
+		iFMusicDriver_Win32 (5, "win32", "Win32 Music Driver");
 
 void MusicDriver_Win32::PlaySong(const char *filename)
 {

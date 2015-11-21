@@ -16,7 +16,19 @@
 #include "allegro_m.h"
 #include <allegro.h>
 
-static FMusicDriver_Allegro iFMusicDriver_Allegro;
+/* If SDL is not compiled in but Allegro is, chances are quite big
+ * that Allegro is going to be used. Then favour this sound driver
+ * over extmidi because with extmidi we get crashes. */
+#if !defined(WITH_SDL) && defined(WITH_ALLEGRO)
+static const int PRIORITY = 9;
+#else
+static const int PRIORITY = 2;
+#endif
+
+/** Factory for allegro's music player. */
+static MusicDriverFactory <MusicDriver_Allegro>
+		iFMusicDriver_Allegro (PRIORITY, "allegro", "Allegro MIDI Driver");
+
 static MIDI *_midi = NULL;
 
 /**

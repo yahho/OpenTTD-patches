@@ -31,11 +31,4 @@ public:
 	/* virtual */ const char *GetName() const { return "null"; }
 };
 
-/** Factory for the null music player. */
-class FMusicDriver_Null : public DriverFactoryBase {
-public:
-	FMusicDriver_Null() : DriverFactoryBase(Driver::DT_MUSIC, 1, "null", "Null Music Driver") {}
-	/* virtual */ Driver *CreateInstance() const { return new MusicDriver_Null(); }
-};
-
 #endif /* MUSIC_NULL_H */

@@ -30,10 +30,4 @@ public:
 	/* virtual */ const char *GetName() const { return "qt"; }
 };
 
-class FMusicDriver_QtMidi : public DriverFactoryBase {
-public:
-	FMusicDriver_QtMidi() : DriverFactoryBase(Driver::DT_MUSIC, 5, "qt", "QuickTime MIDI Driver") {}
-	/* virtual */ Driver *CreateInstance() const { return new MusicDriver_QtMidi(); }
-};
-
 #endif /* MUSIC_MACOSX_QUICKTIME_H */

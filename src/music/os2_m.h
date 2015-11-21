@@ -31,11 +31,4 @@ public:
 	/* virtual */ const char *GetName() const { return "os2"; }
 };
 
-/** Factory for OS/2's music player. */
-class FMusicDriver_OS2 : public DriverFactoryBase {
-public:
-	FMusicDriver_OS2() : DriverFactoryBase(Driver::DT_MUSIC, 10, "os2", "OS/2 Music Driver") {}
-	/* virtual */ Driver *CreateInstance() const { return new MusicDriver_OS2(); }
-};
-
 #endif /* MUSIC_OS2_H */

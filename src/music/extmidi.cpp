@@ -30,7 +30,8 @@
 #endif
 
 /** Factory for the midi player that uses external players. */
-static FMusicDriver_ExtMidi iFMusicDriver_ExtMidi;
+static MusicDriverFactory <MusicDriver_ExtMidi>
+		iFMusicDriver_ExtMidi (3, "extmidi", "External MIDI Driver");
 
 const char *MusicDriver_ExtMidi::Start(const char * const * parm)
 {

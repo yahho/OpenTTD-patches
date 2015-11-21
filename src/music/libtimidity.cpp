@@ -53,7 +53,8 @@ static void AudioOutCallback(void *buf, unsigned int _reqn, void *userdata)
 #endif /* PSP */
 
 /** Factory for the libtimidity driver. */
-static FMusicDriver_LibTimidity iFMusicDriver_LibTimidity;
+static MusicDriverFactory <MusicDriver_LibTimidity>
+		iFMusicDriver_LibTimidity (5, "libtimidity", "LibTimidity MIDI Driver");
 
 const char *MusicDriver_LibTimidity::Start(const char * const *param)
 {

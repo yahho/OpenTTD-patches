@@ -30,10 +30,4 @@ public:
 	/* virtual */ const char *GetName() const { return "cocoa"; }
 };
 
-class FMusicDriver_Cocoa : public DriverFactoryBase {
-public:
-	FMusicDriver_Cocoa() : DriverFactoryBase(Driver::DT_MUSIC, 10, "cocoa", "Cocoa MIDI Driver") {}
-	/* virtual */ Driver *CreateInstance() const { return new MusicDriver_Cocoa(); }
-};
-
 #endif /* MUSIC_MACOSX_COCOA_H */

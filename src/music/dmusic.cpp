@@ -27,7 +27,9 @@
 #include <dmusicc.h>
 #include <dmusicf.h>
 
-static FMusicDriver_DMusic iFMusicDriver_DMusic;
+/** Factory for the DirectX music player. */
+static MusicDriverFactory <MusicDriver_DMusic>
+		iFMusicDriver_DMusic (10, "dmusic", "DirectMusic MIDI Driver");
 
 /** the direct music object manages buffers and ports */
 static IDirectMusic *music = NULL;
