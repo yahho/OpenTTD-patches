@@ -27,7 +27,6 @@ public:
 	/* virtual */ bool IsSongPlaying();
 
 	/* virtual */ void SetVolume(byte vol);
-	/* virtual */ const char *GetName() const { return "cocoa"; }
 };
 
 #endif /* MUSIC_MACOSX_COCOA_H */

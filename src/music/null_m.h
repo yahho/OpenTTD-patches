@@ -28,7 +28,6 @@ public:
 	/* virtual */ bool IsSongPlaying() { return true; }
 
 	/* virtual */ void SetVolume(byte vol) { }
-	/* virtual */ const char *GetName() const { return "null"; }
 };
 
 #endif /* MUSIC_NULL_H */

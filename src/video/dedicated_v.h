@@ -28,7 +28,7 @@ public:
 	/* virtual */ bool ChangeResolution(int w, int h);
 
 	/* virtual */ bool ToggleFullscreen(bool fullscreen);
-	/* virtual */ const char *GetName() const { return "dedicated"; }
+
 	/* virtual */ bool HasGUI() const { return false; }
 };
 

@@ -39,12 +39,6 @@ public:
 	virtual void Stop() = 0;
 
 	virtual ~Driver() { }
-
-	/**
-	 * Get the name of this driver.
-	 * @return The name of the driver.
-	 */
-	virtual const char *GetName() const = 0;
 };
 
 
@@ -83,8 +77,9 @@ struct DriverSystem {
 	typedef std::map <const char *, DriverFactoryBase *, StringCompare> map;
 
 	map *drivers;           ///< Map of available drivers.
-	Driver *active;         ///< Currently active driver.
 	const char *const desc; ///< Name of the driver system.
+	Driver *active;         ///< Currently active driver.
+	const char *name;       ///< Name of the currently active driver.
 
 	DriverSystem (const char *desc);
 
@@ -147,6 +142,15 @@ public:
 	static T *GetActiveDriver (void)
 	{
 		return static_cast<T*> (GetSystem().active);
+	}
+
+	/**
+	 * Get the name of the active driver.
+	 * @return The name of the active driver.
+	 */
+	static const char *GetActiveDriverName (void)
+	{
+		return GetSystem().name;
 	}
 
 	/**

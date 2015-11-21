@@ -129,14 +129,14 @@ static void LogConfiguration (stringb *buffer)
 			BaseGraphics::GetUsedSet() == NULL ? "none" : BaseGraphics::GetUsedSet()->get_name(),
 			BaseGraphics::GetUsedSet() == NULL ? UINT32_MAX : BaseGraphics::GetUsedSet()->version,
 			_current_language == NULL ? "none" : _current_language->file,
-			MusicDriver::GetActiveDriver() == NULL ? "none" : MusicDriver::GetActiveDriver()->GetName(),
+			MusicDriver::GetActiveDriver() == NULL ? "none" : MusicDriver::GetActiveDriverName(),
 			BaseMusic::GetUsedSet() == NULL ? "none" : BaseMusic::GetUsedSet()->get_name(),
 			BaseMusic::GetUsedSet() == NULL ? UINT32_MAX : BaseMusic::GetUsedSet()->version,
 			_networking ? (_network_server ? "server" : "client") : "no",
-			SoundDriver::GetActiveDriver() == NULL ? "none" : SoundDriver::GetActiveDriver()->GetName(),
+			SoundDriver::GetActiveDriver() == NULL ? "none" : SoundDriver::GetActiveDriverName(),
 			BaseSounds::GetUsedSet() == NULL ? "none" : BaseSounds::GetUsedSet()->get_name(),
 			BaseSounds::GetUsedSet() == NULL ? UINT32_MAX : BaseSounds::GetUsedSet()->version,
-			VideoDriver::GetActiveDriver() == NULL ? "none" : VideoDriver::GetActiveDriver()->GetName()
+			VideoDriver::GetActiveDriver() == NULL ? "none" : VideoDriver::GetActiveDriverName()
 	);
 
 	buffer->append_fmt (

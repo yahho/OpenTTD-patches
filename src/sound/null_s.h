@@ -20,7 +20,6 @@ public:
 	/* virtual */ const char *Start(const char * const *param) { return NULL; }
 
 	/* virtual */ void Stop() { }
-	/* virtual */ const char *GetName() const { return "null"; }
 };
 
 #endif /* SOUND_NULL_H */

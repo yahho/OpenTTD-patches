@@ -80,7 +80,7 @@ int GetDriverParamInt(const char * const *parm, const char *name, int def)
 
 /** Construct a DriverSystem. */
 DriverSystem::DriverSystem (const char *desc)
-	: drivers (new map), active(NULL), desc(desc)
+	: drivers (new map), desc(desc), active(NULL), name(NULL)
 {
 }
 
@@ -128,8 +128,10 @@ void DriverSystem::select (const char *name)
 				if (d->priority != priority) continue;
 
 				Driver *oldd = this->active;
+				const char *oldn = this->name;
 				Driver *newd = d->CreateInstance();
 				this->active = newd;
+				this->name = d->name;
 
 				const char *err = newd->Start(NULL);
 				if (err == NULL) {
@@ -139,6 +141,7 @@ void DriverSystem::select (const char *name)
 				}
 
 				this->active = oldd;
+				this->name = oldn;
 				DEBUG(driver, 1, "Probing %s driver '%s' failed with error: %s", this->desc, d->name, err);
 				delete newd;
 			}
@@ -184,6 +187,7 @@ void DriverSystem::select (const char *name)
 			DEBUG(driver, 1, "Successfully loaded %s driver '%s'", this->desc, d->name);
 			delete this->active;
 			this->active = newd;
+			this->name = d->name;
 			return;
 		}
 		usererror ("No such %s driver: %s\n", this->desc, buffer);

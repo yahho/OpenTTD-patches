@@ -20,7 +20,6 @@ public:
 	/* virtual */ const char *Start(const char * const *param);
 
 	/* virtual */ void Stop();
-	/* virtual */ const char *GetName() const { return "win32"; }
 };
 
 #endif /* SOUND_WIN32_H */

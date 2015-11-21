@@ -28,7 +28,6 @@ public:
 	/* virtual */ bool IsSongPlaying();
 
 	/* virtual */ void SetVolume(byte vol);
-	/* virtual */ const char *GetName() const { return "win32"; }
 };
 
 #endif /* MUSIC_WIN32_H */

@@ -27,7 +27,6 @@ public:
 	/* virtual */ bool IsSongPlaying();
 
 	/* virtual */ void SetVolume(byte vol);
-	/* virtual */ const char *GetName() const { return "qt"; }
 };
 
 #endif /* MUSIC_MACOSX_QUICKTIME_H */

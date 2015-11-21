@@ -30,7 +30,6 @@ public:
 	/* virtual */ bool IsSongPlaying();
 
 	/* virtual */ void SetVolume(byte vol);
-	/* virtual */ const char *GetName() const { return "dmusic"; }
 };
 
 #endif /* MUSIC_DMUSIC_H */

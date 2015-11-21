@@ -32,8 +32,6 @@ public:
 	/* virtual */ bool AfterBlitterChange();
 
 	/* virtual */ bool ClaimMousePointer();
-
-	/* virtual */ const char *GetName() const { return "allegro"; }
 };
 
 #endif /* VIDEO_ALLEGRO_H */

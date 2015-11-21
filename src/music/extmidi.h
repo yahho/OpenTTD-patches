@@ -35,7 +35,6 @@ public:
 	/* virtual */ bool IsSongPlaying();
 
 	/* virtual */ void SetVolume(byte vol);
-	/* virtual */ const char *GetName() const { return "extmidi"; }
 };
 
 #endif /* MUSIC_EXTERNAL_H */

@@ -22,7 +22,6 @@ public:
 	/* virtual */ void Stop();
 
 	/* virtual */ void MainLoop();
-	/* virtual */ const char *GetName() const { return "allegro"; }
 };
 
 #endif /* SOUND_ALLEGRO_H */
