@@ -598,16 +598,16 @@ void CocoaDialog(const char *title, const char *message, const char *buttonLabel
 	_cocoa_video_dialog = true;
 
 	bool wasstarted = _cocoa_video_started;
-	if (VideoDriver::GetInstance() == NULL) {
+	if (VideoDriver::GetActiveDriver() == NULL) {
 		setupApplication(); // Setup application before showing dialog
-	} else if (!_cocoa_video_started && VideoDriver::GetInstance()->Start(NULL) != NULL) {
+	} else if (!_cocoa_video_started && VideoDriver::GetActiveDriver()->Start(NULL) != NULL) {
 		fprintf(stderr, "%s: %s\n", title, message);
 		return;
 	}
 
 	NSRunAlertPanel([ NSString stringWithUTF8String:title ], [ NSString stringWithUTF8String:message ], [ NSString stringWithUTF8String:buttonLabel ], nil, nil);
 
-	if (!wasstarted && VideoDriver::GetInstance() != NULL) VideoDriver::GetInstance()->Stop();
+	if (!wasstarted && VideoDriver::GetActiveDriver() != NULL) VideoDriver::GetActiveDriver()->Stop();
 
 	_cocoa_video_dialog = false;
 }

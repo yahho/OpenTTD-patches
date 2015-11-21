@@ -492,7 +492,7 @@ void Blitter_32bppAnim::PaletteAnimate(const Palette &palette)
 	}
 
 	/* Make sure the backend redraws the whole screen */
-	VideoDriver::GetInstance()->MakeDirty(0, 0, _screen.width, _screen.height);
+	VideoDriver::GetActiveDriver()->MakeDirty(0, 0, _screen.width, _screen.height);
 }
 
 Blitter::PaletteAnimation Blitter_32bppAnim::UsePaletteAnimation()

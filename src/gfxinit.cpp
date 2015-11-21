@@ -288,9 +288,9 @@ static bool SwitchNewGRFBlitter()
 		DEBUG(misc, 1, "Switching failed");
 	}
 
-	if (!VideoDriver::GetInstance()->AfterBlitterChange()) {
+	if (!VideoDriver::GetActiveDriver()->AfterBlitterChange()) {
 		/* Failed to switch blitter, let's hope we can return to the old one. */
-		if (SelectBlitter(cur_blitter) == NULL || !VideoDriver::GetInstance()->AfterBlitterChange()) usererror("Failed to reinitialize video driver. Specify a fixed blitter in the config");
+		if (SelectBlitter(cur_blitter) == NULL || !VideoDriver::GetActiveDriver()->AfterBlitterChange()) usererror("Failed to reinitialize video driver. Specify a fixed blitter in the config");
 	}
 
 	return true;

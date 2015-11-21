@@ -174,7 +174,7 @@ static void SkipToNextSong()
 
 static void MusicVolumeChanged(byte new_vol)
 {
-	MusicDriver::GetInstance()->SetVolume(new_vol);
+	MusicDriver::GetActiveDriver()->SetVolume(new_vol);
 }
 
 static void DoPlaySong()
@@ -183,13 +183,13 @@ static void DoPlaySong()
 	if (FioFindFullPath(filename, lengthof(filename), BASESET_DIR, BaseMusic::GetUsedSet()->files[_music_wnd_cursong - 1].filename) == NULL) {
 		FioFindFullPath(filename, lengthof(filename), OLD_GM_DIR, BaseMusic::GetUsedSet()->files[_music_wnd_cursong - 1].filename);
 	}
-	MusicDriver::GetInstance()->PlaySong(filename);
+	MusicDriver::GetActiveDriver()->PlaySong(filename);
 	SetWindowDirty(WC_MUSIC_WINDOW, 0);
 }
 
 static void DoStopMusic()
 {
-	MusicDriver::GetInstance()->StopSong();
+	MusicDriver::GetActiveDriver()->StopSong();
 	SetWindowDirty(WC_MUSIC_WINDOW, 0);
 }
 
@@ -278,7 +278,7 @@ void MusicLoop()
 
 	if (!_song_is_active) return;
 
-	if (!MusicDriver::GetInstance()->IsSongPlaying()) {
+	if (!MusicDriver::GetActiveDriver()->IsSongPlaying()) {
 		if (_game_mode != GM_MENU) {
 			StopMusic();
 			SkipToNextSong();

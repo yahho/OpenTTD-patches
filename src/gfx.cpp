@@ -99,7 +99,7 @@ void GfxScroll(int left, int top, int width, int height, int xo, int yo)
 
 	blitter->ScrollBuffer(_screen.dst_ptr, left, top, width, height, xo, yo);
 	/* This part of the screen is now dirty. */
-	VideoDriver::GetInstance()->MakeDirty(left, top, width, height);
+	VideoDriver::GetActiveDriver()->MakeDirty(left, top, width, height);
 }
 
 
@@ -1200,7 +1200,7 @@ void UndrawMouseCursor()
 		Blitter *blitter = GetCurrentBlitter();
 		_cursor.visible = false;
 		blitter->CopyFromBuffer(blitter->MoveTo(_screen.dst_ptr, _cursor.draw_pos.x, _cursor.draw_pos.y), _cursor_backup.GetBuffer(), _cursor.draw_size.x, _cursor.draw_size.y);
-		VideoDriver::GetInstance()->MakeDirty(_cursor.draw_pos.x, _cursor.draw_pos.y, _cursor.draw_size.x, _cursor.draw_size.y);
+		VideoDriver::GetActiveDriver()->MakeDirty(_cursor.draw_pos.x, _cursor.draw_pos.y, _cursor.draw_size.x, _cursor.draw_size.y);
 	}
 }
 
@@ -1260,7 +1260,7 @@ void DrawMouseCursor()
 	_cur_dpi = &_screen;
 	DrawSprite(_cursor.sprite, _cursor.pal, _cursor.pos.x + _cursor.short_vehicle_offset, _cursor.pos.y);
 
-	VideoDriver::GetInstance()->MakeDirty(_cursor.draw_pos.x, _cursor.draw_pos.y, _cursor.draw_size.x, _cursor.draw_size.y);
+	VideoDriver::GetActiveDriver()->MakeDirty(_cursor.draw_pos.x, _cursor.draw_pos.y, _cursor.draw_size.x, _cursor.draw_size.y);
 
 	_cursor.visible = true;
 	_cursor.dirty = false;
@@ -1284,7 +1284,7 @@ void RedrawScreenRect(int left, int top, int right, int bottom)
 
 	DrawOverlappedWindowForAll(left, top, right, bottom);
 
-	VideoDriver::GetInstance()->MakeDirty(left, top, right - left, bottom - top);
+	VideoDriver::GetActiveDriver()->MakeDirty(left, top, right - left, bottom - top);
 }
 
 /**
@@ -1643,12 +1643,12 @@ bool CursorVars::UpdateCursorPosition(int x, int y, bool queued_warp)
 
 bool ChangeResInGame(int width, int height)
 {
-	return (_screen.width == width && _screen.height == height) || VideoDriver::GetInstance()->ChangeResolution(width, height);
+	return (_screen.width == width && _screen.height == height) || VideoDriver::GetActiveDriver()->ChangeResolution(width, height);
 }
 
 bool ToggleFullScreen(bool fs)
 {
-	bool result = VideoDriver::GetInstance()->ToggleFullscreen(fs);
+	bool result = VideoDriver::GetActiveDriver()->ToggleFullscreen(fs);
 	if (_fullscreen != fs && _num_resolutions == 0) {
 		DEBUG(driver, 0, "Could not find a suitable fullscreen resolution");
 	}

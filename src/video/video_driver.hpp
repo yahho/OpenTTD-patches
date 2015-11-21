@@ -84,13 +84,6 @@ public:
 	 * An edit box lost the input focus. Abort character compositing if necessary.
 	 */
 	virtual void EditBoxLostFocus() {}
-
-	/**
-	 * Get the currently active instance of the video driver.
-	 */
-	static VideoDriver *GetInstance() {
-		return SharedDriverSystem<VideoDriver>::GetActiveDriver();
-	}
 };
 
 /** Video driver factory. */

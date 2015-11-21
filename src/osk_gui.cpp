@@ -204,7 +204,7 @@ struct OskWindow : public Window {
 
 	virtual void OnFocusLost()
 	{
-		VideoDriver::GetInstance()->EditBoxLostFocus();
+		VideoDriver::GetActiveDriver()->EditBoxLostFocus();
 		delete this;
 	}
 };

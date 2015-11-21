@@ -25,13 +25,6 @@ public:
 
 	/** Called once every tick */
 	virtual void MainLoop() {}
-
-	/**
-	 * Get the currently active instance of the sound driver.
-	 */
-	static SoundDriver *GetInstance() {
-		return SharedDriverSystem<SoundDriver>::GetActiveDriver();
-	}
 };
 
 /** Sound driver factory. */

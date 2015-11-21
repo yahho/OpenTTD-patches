@@ -97,7 +97,7 @@ void CDECL usererror(const char *s, ...)
 	va_end(va);
 
 	ShowOSErrorBox(buf, false);
-	if (VideoDriver::GetInstance() != NULL) VideoDriver::GetInstance()->Stop();
+	if (VideoDriver::GetActiveDriver() != NULL) VideoDriver::GetActiveDriver()->Stop();
 
 	exit(1);
 }
@@ -343,7 +343,7 @@ static void LoadIntroGame(bool load_newgrfs = true)
 	CheckForMissingGlyphs();
 
 	/* Play main theme */
-	if (MusicDriver::GetInstance()->IsSongPlaying()) ResetMusic();
+	if (MusicDriver::GetActiveDriver()->IsSongPlaying()) ResetMusic();
 }
 
 void MakeNewgameSettingsLive()
@@ -436,7 +436,7 @@ struct AfterNewGRFScan : NewGRFScanCallback {
 		*save_config_ptr = save_config;
 
 		/* restore saved music volume */
-		MusicDriver::GetInstance()->SetVolume(_settings_client.music.music_vol);
+		MusicDriver::GetActiveDriver()->SetVolume(_settings_client.music.music_vol);
 
 		if (startyear != INVALID_YEAR) _settings_newgame.game_creation.starting_year = startyear;
 		if (generation_seed != GENERATE_NEW_SEED) _settings_newgame.game_creation.generation_seed = generation_seed;
@@ -805,7 +805,7 @@ int openttd_main(int argc, char *argv[])
 		goto exit_bootstrap;
 	}
 
-	VideoDriver::GetInstance()->ClaimMousePointer();
+	VideoDriver::GetActiveDriver()->ClaimMousePointer();
 
 	/* initialize screenshot formats */
 	InitializeScreenshotFormats();
@@ -864,7 +864,7 @@ int openttd_main(int argc, char *argv[])
 		ScheduleErrorMessage(msg);
 	}
 
-	VideoDriver::GetInstance()->MainLoop();
+	VideoDriver::GetActiveDriver()->MainLoop();
 
 	WaitTillSaved();
 
@@ -932,7 +932,7 @@ static void MakeNewGameDone()
 	SettingsDisableElrail(_settings_game.vehicle.disable_elrails);
 
 	/* In a dedicated server, the server does not play */
-	if (!VideoDriver::GetInstance()->HasGUI()) {
+	if (!VideoDriver::GetActiveDriver()->HasGUI()) {
 		SetLocalCompany(COMPANY_SPECTATOR);
 		if (_settings_client.gui.pause_on_newgame) DoCommandP(0, PM_PAUSED_NORMAL, 1, CMD_PAUSE);
 		IConsoleCmdExec("exec scripts/game_start.scr 0");
@@ -1487,6 +1487,6 @@ void GameLoop()
 
 	InputLoop();
 
-	SoundDriver::GetInstance()->MainLoop();
+	SoundDriver::GetActiveDriver()->MainLoop();
 	MusicLoop();
 }

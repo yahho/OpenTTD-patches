@@ -287,7 +287,7 @@ static bool QZ_KeyEvent(unsigned short keycode, unsigned short unicode, BOOL dow
 		case QZ_RETURN:
 		case QZ_f:
 			if (down && (_current_mods & NSCommandKeyMask)) {
-				VideoDriver::GetInstance()->ToggleFullscreen(!_fullscreen);
+				VideoDriver::GetActiveDriver()->ToggleFullscreen(!_fullscreen);
 			}
 			break;
 

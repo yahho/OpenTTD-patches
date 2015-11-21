@@ -185,7 +185,7 @@ struct IConsoleWindow : Window
 	~IConsoleWindow()
 	{
 		_iconsole_mode = ICONSOLE_CLOSED;
-		VideoDriver::GetInstance()->EditBoxLostFocus();
+		VideoDriver::GetActiveDriver()->EditBoxLostFocus();
 	}
 
 	/**
@@ -371,7 +371,7 @@ struct IConsoleWindow : Window
 
 	virtual void OnFocusLost()
 	{
-		VideoDriver::GetInstance()->EditBoxLostFocus();
+		VideoDriver::GetActiveDriver()->EditBoxLostFocus();
 	}
 };
 
