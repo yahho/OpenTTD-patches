@@ -95,10 +95,15 @@ void MusicDriver_ExtMidi::StopSong()
 
 bool MusicDriver_ExtMidi::IsSongPlaying()
 {
-	if (this->pid != -1 && waitpid(this->pid, NULL, WNOHANG) == this->pid) {
-		this->pid = -1;
+	if (this->pid != -1) {
+		if (waitpid (this->pid, NULL, WNOHANG) == this->pid) {
+			this->pid = -1;
+		} else {
+			return true;
+		}
 	}
-	if (this->pid == -1 && this->song[0] != '\0') this->DoPlay();
+
+	if (this->song[0] != '\0') this->DoPlay();
 	return this->pid != -1;
 }
 
