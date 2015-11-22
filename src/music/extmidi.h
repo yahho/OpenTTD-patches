@@ -20,8 +20,6 @@ private:
 	char song[MAX_PATH];
 	pid_t pid;
 
-	void DoPlay();
-
 public:
 	/* virtual */ const char *Start(const char * const *param);
 

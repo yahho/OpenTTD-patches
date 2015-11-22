@@ -103,17 +103,8 @@ bool MusicDriver_ExtMidi::IsSongPlaying()
 		}
 	}
 
-	if (this->song[0] != '\0') this->DoPlay();
-	return this->pid != -1;
-}
+	if (this->song[0] == '\0') return false;
 
-void MusicDriver_ExtMidi::SetVolume(byte vol)
-{
-	DEBUG(driver, 1, "extmidi: set volume not implemented");
-}
-
-void MusicDriver_ExtMidi::DoPlay()
-{
 	this->pid = fork();
 	switch (this->pid) {
 		case 0: {
@@ -137,4 +128,11 @@ void MusicDriver_ExtMidi::DoPlay()
 			this->song[0] = '\0';
 			break;
 	}
+
+	return this->pid != -1;
+}
+
+void MusicDriver_ExtMidi::SetVolume(byte vol)
+{
+	DEBUG(driver, 1, "extmidi: set volume not implemented");
 }
