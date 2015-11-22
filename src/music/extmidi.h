@@ -21,7 +21,6 @@ private:
 	pid_t pid;
 
 	void DoPlay();
-	void DoStop();
 
 public:
 	/* virtual */ const char *Start(const char * const *param);

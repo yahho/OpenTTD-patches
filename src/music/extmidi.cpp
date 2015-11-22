@@ -49,23 +49,48 @@ const char *MusicDriver_ExtMidi::Start(const char * const * parm)
 	return NULL;
 }
 
+static void DoStop (pid_t *pid)
+{
+	if (*pid <= 0) return;
+
+	/* First try to gracefully stop for about five seconds;
+	 * 5 seconds = 5000 milliseconds, 10 ms per cycle => 500 cycles. */
+	for (int i = 0; i < 500; i++) {
+		kill (*pid, SIGTERM);
+		if (waitpid (*pid, NULL, WNOHANG) == *pid) {
+			/* It has shut down, so we are done */
+			*pid = -1;
+			return;
+		}
+		/* Wait 10 milliseconds. */
+		CSleep (10);
+	}
+
+	DEBUG(driver, 0, "extmidi: gracefully stopping failed, trying the hard way");
+	/* Gracefully stopping failed. Do it the hard way
+	 * and wait till the process finally died. */
+	kill (*pid, SIGKILL);
+	waitpid (*pid, NULL, 0);
+	*pid = -1;
+}
+
 void MusicDriver_ExtMidi::Stop()
 {
 	free(command);
 	this->song[0] = '\0';
-	this->DoStop();
+	DoStop (&this->pid);
 }
 
 void MusicDriver_ExtMidi::PlaySong(const char *filename)
 {
 	bstrcpy (this->song, filename);
-	this->DoStop();
+	DoStop (&this->pid);
 }
 
 void MusicDriver_ExtMidi::StopSong()
 {
 	this->song[0] = '\0';
-	this->DoStop();
+	DoStop (&this->pid);
 }
 
 bool MusicDriver_ExtMidi::IsSongPlaying()
@@ -107,29 +132,4 @@ void MusicDriver_ExtMidi::DoPlay()
 			this->song[0] = '\0';
 			break;
 	}
-}
-
-void MusicDriver_ExtMidi::DoStop()
-{
-	if (this->pid <= 0) return;
-
-	/* First try to gracefully stop for about five seconds;
-	 * 5 seconds = 5000 milliseconds, 10 ms per cycle => 500 cycles. */
-	for (int i = 0; i < 500; i++) {
-		kill(this->pid, SIGTERM);
-		if (waitpid(this->pid, NULL, WNOHANG) == this->pid) {
-			/* It has shut down, so we are done */
-			this->pid = -1;
-			return;
-		}
-		/* Wait 10 milliseconds. */
-		CSleep(10);
-	}
-
-	DEBUG(driver, 0, "extmidi: gracefully stopping failed, trying the hard way");
-	/* Gracefully stopping failed. Do it the hard way
-	 * and wait till the process finally died. */
-	kill(this->pid, SIGKILL);
-	waitpid(this->pid, NULL, 0);
-	this->pid = -1;
 }
