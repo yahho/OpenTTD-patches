@@ -188,14 +188,13 @@ SQInteger ScriptText::_set(HSQUIRRELVM vm)
 
 bool ScriptText::GetEncodedText (stringb *buf)
 {
-	int param_count = 0;
 	buf->clear();
-	this->_GetEncodedText (buf, param_count);
-	return param_count <= SCRIPT_TEXT_MAX_PARAMETERS;
+	return this->_GetEncodedText (buf) <= SCRIPT_TEXT_MAX_PARAMETERS;
 }
 
-void ScriptText::_GetEncodedText (stringb *buf, int &param_count)
+int ScriptText::_GetEncodedText (stringb *buf)
 {
+	int param_count = 0;
 	buf->append_utf8 (SCC_ENCODED);
 	buf->append_fmt ("%X", this->string);
 	for (int i = 0; i < this->paramc; i++) {
@@ -206,12 +205,13 @@ void ScriptText::_GetEncodedText (stringb *buf, int &param_count)
 		}
 		if (this->paramt[i] != NULL) {
 			buf->append (':');
-			this->paramt[i]->_GetEncodedText (buf, param_count);
+			param_count += this->paramt[i]->_GetEncodedText (buf);
 			continue;
 		}
 		buf->append_fmt (":" OTTD_PRINTFHEX64, this->parami[i]);
 		param_count++;
 	}
+	return param_count;
 }
 
 bool ScriptText::GetDecodedText (stringb *buf)

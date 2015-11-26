@@ -166,9 +166,9 @@ private:
 	 * Internal function for recursive calling this function over multiple
 	 *  instances, while writing in the same buffer.
 	 * @param buf The buffer.
-	 * @param param_count The number of parameters that are in the string.
+	 * @return The number of parameters added to the string.
 	 */
-	void _GetEncodedText (stringb *buf, int &param_count);
+	int _GetEncodedText (stringb *buf);
 
 	/**
 	 * Set a parameter, where the value is the first item on the stack.
