@@ -97,18 +97,7 @@ public:
 	 * The constructor wrapper from Squirrel.
 	 */
 	ScriptText(HSQUIRRELVM vm);
-#else
-	/**
-	 * Generate a text from string. You can set parameters to the instance which
-	 *  can be required for the string.
-	 * @param string The string of the text.
-	 * @param ... Optional arguments for this string.
-	 */
-	ScriptText(StringID string, ...);
-#endif
-	~ScriptText();
 
-#ifndef DOXYGEN_API
 	/**
 	 * Used for .param_N and [] set from Squirrel.
 	 */
@@ -124,6 +113,14 @@ public:
 	 */
 	SQInteger AddParam(HSQUIRRELVM vm);
 #else
+	/**
+	 * Generate a text from string. You can set parameters to the instance which
+	 *  can be required for the string.
+	 * @param string The string of the text.
+	 * @param ... Optional arguments for this string.
+	 */
+	ScriptText(StringID string, ...);
+
 	/**
 	 * Set the parameter to a value.
 	 * @param parameter Which parameter to set.
@@ -156,11 +153,44 @@ public:
 	bool GetDecodedText (stringb *buf) OVERRIDE;
 
 private:
-	StringID string;
-	char *params[SCRIPT_TEXT_MAX_PARAMETERS];
-	int64 parami[SCRIPT_TEXT_MAX_PARAMETERS];
-	ScriptText *paramt[SCRIPT_TEXT_MAX_PARAMETERS];
+	struct Param {
+		enum Type {
+			TYPE_INT,
+			TYPE_STRING,
+			TYPE_TEXT,
+		};
+
+		Type type;
+		union {
+			int64 i;
+			char *s;
+			ScriptText *t;
+		};
+
+		Param() : type(TYPE_INT), i(0)
+		{
+		}
+
+		void destroy (void);
+
+		~Param()
+		{
+			this->destroy();
+		}
+
+		Param (const Param &) DELETED;
+		void operator = (const Param &) DELETED;
+
+		void set_int (int64 value);
+		void set_string (const char *value);
+		void set_text (ScriptText *value);
+
+		int encode (stringb *buf);
+	};
+
+	Param params [SCRIPT_TEXT_MAX_PARAMETERS];
 	int paramc;
+	StringID string;
 
 	/**
 	 * Internal function for recursive calling this function over multiple
