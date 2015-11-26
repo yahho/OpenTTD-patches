@@ -98,7 +98,7 @@ inline int ScriptText::Param::encode (stringb *buf)
 
 
 ScriptText::ScriptText(HSQUIRRELVM vm) :
-	ZeroedMemoryAllocator()
+	params(), paramc(0), string(STR_NULL)
 {
 	int nparam = sq_gettop(vm) - 1;
 	if (nparam < 1) {
