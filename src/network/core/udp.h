@@ -17,6 +17,7 @@
 #include "address.h"
 #include "game.h"
 #include "packet.h"
+#include "core.h"
 
 #ifdef ENABLE_NETWORK
 

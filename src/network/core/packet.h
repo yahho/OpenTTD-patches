@@ -15,7 +15,6 @@
 #define NETWORK_CORE_PACKET_H
 
 #include "config.h"
-#include "core.h"
 #include "../../string.h"
 
 #ifdef ENABLE_NETWORK
@@ -57,7 +56,7 @@ struct Packet {
 
 private:
 	/** Socket we're associated with. */
-	NetworkSocketHandler *cs;
+	class NetworkSocketHandler *cs;
 
 public:
 	Packet(NetworkSocketHandler *cs);

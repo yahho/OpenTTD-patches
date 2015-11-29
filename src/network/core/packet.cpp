@@ -17,6 +17,7 @@
 #include "../../string.h"
 
 #include "packet.h"
+#include "core.h"
 
 /**
  * Create a packet that is used to read from a network socket

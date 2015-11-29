@@ -17,6 +17,7 @@
 #include "os_abstraction.h"
 #include "tcp.h"
 #include "packet.h"
+#include "core.h"
 #include "../../debug.h"
 
 #ifdef ENABLE_NETWORK

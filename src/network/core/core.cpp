@@ -16,6 +16,7 @@
 #include "../../stdafx.h"
 #include "../../debug.h"
 #include "os_abstraction.h"
+#include "core.h"
 #include "packet.h"
 
 
