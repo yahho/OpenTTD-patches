@@ -19,6 +19,8 @@
 
 #ifdef ENABLE_NETWORK
 
+#include "packet.h"
+
 bool NetworkCoreInitialize();
 void NetworkCoreShutdown();
 
@@ -35,9 +37,6 @@ enum NetworkRecvStatus {
 	NETWORK_RECV_STATUS_SERVER_BANNED,    ///< The server has banned us
 	NETWORK_RECV_STATUS_CLOSE_QUERY,      ///< Done querying the server
 };
-
-/** Forward declaration due to circular dependencies */
-struct Packet;
 
 /**
  * SocketHandler for all network sockets in OpenTTD.
