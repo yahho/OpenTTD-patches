@@ -98,16 +98,19 @@ struct PacketWriter : SaveFilter {
 	}
 
 	/**
-	 * Begin the destruction of this packet writer. It can happen in two ways:
-	 * in the first case the client disconnected while saving the map. In this
-	 * case the saving has not finished and killed this PacketWriter. In that
-	 * case we simply set cs to NULL, triggering the appending to fail due to
-	 * the connection problem and eventually triggering the destructor. In the
-	 * second case the destructor is already called, and it is waiting for our
-	 * signal which we will send. Only then the packets will be removed by the
-	 * destructor.
+	 * Release this object from the reading side. When this object is
+	 * passed down to SaveWithFilter, the saveload code will eventually
+	 * call delete on it, but we may need it to stay alive longer until
+	 * we have read all of the packets. To do this, the destructor above
+	 * will check if cs is still non-null and then wait for our signal;
+	 * when we are done reading, we will signal the mutex and let the
+	 * destructor proceed. Also, if the client disconnects while saving
+	 * is in progress, this function is called to set cs to null, which
+	 * tells Write/Finish to throw a saveload exception. In this case,
+	 * we will signal the mutex in advance, before the saveload code gets
+	 * to delete the object, and the destructor will run without blocking.
 	 */
-	void Destroy()
+	void Release (void)
 	{
 		this->mutex->BeginCritical();
 
@@ -242,7 +245,8 @@ ServerNetworkGameSocketHandler::~ServerNetworkGameSocketHandler()
 	OrderBackup::ResetUser(this->client_id);
 
 	if (this->savegame != NULL) {
-		this->savegame->Destroy();
+		/* Release the packet writer from our side. */
+		this->savegame->Release();
 		this->savegame = NULL;
 	}
 }
@@ -620,7 +624,7 @@ NetworkRecvStatus ServerNetworkGameSocketHandler::SendMap()
 
 		if (last_packet) {
 			/* Done reading, make sure saving is done as well */
-			this->savegame->Destroy();
+			this->savegame->Release();
 			this->savegame = NULL;
 
 			/* Set the status to DONE_MAP, no we will wait for the client
