@@ -206,16 +206,15 @@ struct PacketWriter : SaveFilter {
 		/* Make sure the last packet is flushed. */
 		this->AppendQueue();
 
-		/* Add a packet stating that this is the end to the queue. */
-		this->current = new Packet(PACKET_SERVER_MAP_DONE);
-		this->AppendQueue();
-
 		/* Fast-track the size to the client. */
 		Packet *p = new Packet(PACKET_SERVER_MAP_SIZE);
 		p->Send_uint32((uint32)this->total_size);
 		this->cs->NetworkTCPSocketHandler::SendPacket(p);
 
 		this->mutex->EndCritical();
+
+		/* Special marker to signal that saving has finished. */
+		this->total_size = SIZE_MAX;
 	}
 };
 
@@ -610,14 +609,20 @@ NetworkRecvStatus ServerNetworkGameSocketHandler::SendMap()
 		bool last_packet = false;
 		bool has_packets = false;
 
-		for (uint i = 0; (has_packets = this->savegame->HasPackets()) && i < sent_packets; i++) {
-			Packet *p = this->savegame->PopPacket();
-			last_packet = p->buffer[2] == PACKET_SERVER_MAP_DONE;
+		for (uint i = sent_packets; i > 0; i--) {
+			has_packets = this->savegame->HasPackets();
+			if (has_packets) {
+				Packet *p = this->savegame->PopPacket();
+				this->SendPacket(p);
+			} else if (this->savegame->total_size != SIZE_MAX) {
+				break;
+			} else {
+				/* Add a packet stating that this is the end of the map. */
+				Packet *p = new Packet(PACKET_SERVER_MAP_DONE);
+				this->SendPacket(p);
 
-			this->SendPacket(p);
-
-			if (last_packet) {
 				/* There is no more data, so break the for */
+				last_packet = true;
 				break;
 			}
 		}
