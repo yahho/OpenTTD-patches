@@ -16,6 +16,7 @@
 
 #include "config.h"
 #include "../../string.h"
+#include "../../core/forward_list.h"
 
 #ifdef ENABLE_NETWORK
 
@@ -84,6 +85,66 @@ public:
 	uint32 Recv_uint32();
 	uint64 Recv_uint64();
 	void   Recv_string(char *buffer, size_t size, StringValidationSettings settings = SVS_REPLACE_WITH_QUESTION_MARK);
+};
+
+/** Packet as stored in a packet queue. */
+struct QueuedPacket : ForwardListLink<QueuedPacket> {
+	const PacketSize size; ///< Total size of the packet.
+	byte buffer[];         ///< Packet data (const).
+
+private:
+	/** Construct a QueuedPacket from a Packet. */
+	QueuedPacket (PacketSize size, const byte *data)
+		: ForwardListLink<QueuedPacket>(), size (size)
+	{
+		memcpy (this->buffer, data, size);
+	}
+
+	/** Custom operator new to account for the variable-length buffer. */
+	void *operator new (size_t size, size_t extra)
+	{
+		return ::operator new (size + extra);
+	}
+
+	void *operator new (size_t size) DELETED;
+
+public:
+	/** Allocate and construct a QueuedPacket from a Packet. */
+	static QueuedPacket *create (const Packet *p)
+	{
+		return new (p->size) QueuedPacket (p->size, p->buffer);
+	}
+};
+
+/** Queue of packets. */
+struct PacketQueue : ForwardList <QueuedPacket, true> {
+	/** Constant boolean true function. */
+	static inline bool pred_true (const QueuedPacket *)
+	{
+		return true;
+	}
+
+	/** Get but do not remove the first packet in the queue. */
+	const QueuedPacket *peek (void)
+	{
+		return this->find_pred (pred_true);
+	}
+
+	/** Get and remove the first packet in the queue. */
+	QueuedPacket *pop (void)
+	{
+		return this->remove_pred (pred_true);
+	}
+
+	/** Free all packets in the queue. */
+	void clear (void)
+	{
+		for (;;) {
+			QueuedPacket *p = this->pop();
+			if (p == NULL) return;
+			delete p;
+		}
+	}
 };
 
 #endif /* ENABLE_NETWORK */

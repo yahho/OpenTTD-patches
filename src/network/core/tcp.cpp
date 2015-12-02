@@ -24,7 +24,7 @@
  */
 NetworkTCPSocketHandler::NetworkTCPSocketHandler(SOCKET s) :
 		NetworkSocketHandler(),
-		packet_queue(NULL), packet_recv(NULL),
+		packet_queue(), send_pos(0), packet_recv(NULL),
 		sock(s), writable(false)
 {
 }
@@ -43,11 +43,7 @@ NetworkRecvStatus NetworkTCPSocketHandler::CloseConnection(bool error)
 	NetworkSocketHandler::CloseConnection(error);
 
 	/* Free all pending and partially received packets */
-	while (this->packet_queue != NULL) {
-		Packet *p = this->packet_queue->next;
-		delete this->packet_queue;
-		this->packet_queue = p;
-	}
+	this->packet_queue.clear();
 	delete this->packet_recv;
 	this->packet_recv = NULL;
 
@@ -62,7 +58,6 @@ NetworkRecvStatus NetworkTCPSocketHandler::CloseConnection(bool error)
  */
 void NetworkTCPSocketHandler::SendPacket(Packet *packet)
 {
-	Packet *p;
 	assert(packet != NULL);
 
 	packet->PrepareToSend();
@@ -70,18 +65,9 @@ void NetworkTCPSocketHandler::SendPacket(Packet *packet)
 	/* Reallocate the packet as in 99+% of the times we send at most 25 bytes and
 	 * keeping the other 1400+ bytes wastes memory, especially when someone tries
 	 * to do a denial of service attack! */
-	packet->buffer = xrealloct (packet->buffer, packet->size);
+	this->packet_queue.append (QueuedPacket::create (packet));
 
-	/* Locate last packet buffered for the client */
-	p = this->packet_queue;
-	if (p == NULL) {
-		/* No packets yet */
-		this->packet_queue = packet;
-	} else {
-		/* Skip to the last packet */
-		while (p->next != NULL) p = p->next;
-		p->next = packet;
-	}
+	delete packet;
 }
 
 /**
@@ -96,16 +82,17 @@ void NetworkTCPSocketHandler::SendPacket(Packet *packet)
  */
 SendPacketsState NetworkTCPSocketHandler::SendPackets(bool closing_down)
 {
-	ssize_t res;
-	Packet *p;
-
 	/* We can not write to this socket!! */
 	if (!this->writable) return SPS_NONE_SENT;
 	if (!this->IsConnected()) return SPS_CLOSED;
 
-	p = this->packet_queue;
-	while (p != NULL) {
-		res = send(this->sock, (const char*)p->buffer + p->pos, p->size - p->pos, 0);
+	for (;;) {
+		const QueuedPacket *p = this->packet_queue.peek();
+		if (p == NULL) break;
+
+		assert (this->send_pos < p->size);
+		size_t len = p->size - this->send_pos;
+		ssize_t res = send (this->sock, (const char*)p->buffer + this->send_pos, len, 0);
 		if (res == -1) {
 			int err = GET_LAST_ERROR();
 			if (err != EWOULDBLOCK) {
@@ -124,15 +111,14 @@ SendPacketsState NetworkTCPSocketHandler::SendPackets(bool closing_down)
 			return SPS_CLOSED;
 		}
 
-		p->pos += res;
-
 		/* Is this packet sent? */
-		if (p->pos == p->size) {
+		if ((size_t)res == len) {
 			/* Go to the next packet */
-			this->packet_queue = p->next;
+			this->packet_queue.pop();
 			delete p;
-			p = this->packet_queue;
+			this->send_pos = 0;
 		} else {
+			this->send_pos += res;
 			return SPS_PARTLY_SENT;
 		}
 	}

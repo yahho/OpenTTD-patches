@@ -31,7 +31,9 @@ enum SendPacketsState {
 /** Base socket handler for all TCP sockets */
 class NetworkTCPSocketHandler : public NetworkSocketHandler {
 private:
-	Packet *packet_queue;     ///< Packets that are awaiting delivery
+	PacketQueue packet_queue; ///< Packets that are awaiting delivery
+	PacketSize  send_pos;     ///< Position in a partially sent packet
+
 	Packet *packet_recv;      ///< Partially received packet
 public:
 	SOCKET sock;              ///< The socket currently connected to
@@ -50,12 +52,6 @@ public:
 	virtual Packet *ReceivePacket();
 
 	bool CanSendReceive();
-
-	/**
-	 * Whether there is something pending in the send queue.
-	 * @return true when something is pending in the send queue.
-	 */
-	bool HasSendQueue() { return this->packet_queue != NULL; }
 
 	NetworkTCPSocketHandler(SOCKET s = INVALID_SOCKET);
 	~NetworkTCPSocketHandler();
