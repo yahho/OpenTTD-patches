@@ -97,7 +97,12 @@ private:
 	QueuedPacket (PacketSize size, const byte *data)
 		: ForwardListLink<QueuedPacket>(), size (size)
 	{
-		memcpy (this->buffer, data, size);
+		assert_compile (sizeof(PacketSize) == 2);
+		assert (size > sizeof(PacketSize));
+
+		this->buffer[0] = GB(size, 0, 8);
+		this->buffer[1] = GB(size, 8, 8);
+		memcpy (this->buffer + 2, data + 2, size - 2);
 	}
 
 	/** Custom operator new to account for the variable-length buffer. */
