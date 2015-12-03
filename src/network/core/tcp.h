@@ -46,7 +46,8 @@ public:
 	bool IsConnected() const { return this->sock != INVALID_SOCKET; }
 
 	virtual NetworkRecvStatus CloseConnection(bool error = true);
-	virtual void SendPacket(Packet *packet);
+
+	void SendPacket (Packet *packet);
 	SendPacketsState SendPackets(bool closing_down = false);
 
 	virtual Packet *ReceivePacket();
