@@ -73,7 +73,6 @@ void NetworkTCPSocketHandler::SendPacket (QueuedPacket *packet)
 void NetworkTCPSocketHandler::SendPacket(Packet *packet)
 {
 	assert(packet != NULL);
-	assert(packet->next == NULL);
 
 	/* Reallocate the packet as in 99+% of the times we send at most 25 bytes and
 	 * keeping the other 1400+ bytes wastes memory, especially when someone tries

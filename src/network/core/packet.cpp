@@ -28,7 +28,6 @@ Packet::Packet(NetworkSocketHandler *cs)
 	assert(cs != NULL);
 
 	this->cs     = cs;
-	this->next   = NULL;
 	this->pos    = 0; // We start reading from here
 	this->size   = 0;
 	this->buffer = xmalloct<byte>(SEND_MTU);
@@ -41,7 +40,6 @@ Packet::Packet(NetworkSocketHandler *cs)
 Packet::Packet(PacketType type)
 {
 	this->cs                   = NULL;
-	this->next                 = NULL;
 
 	/* Skip the size so we can write that in before sending the packet */
 	this->pos                  = 0;
@@ -63,7 +61,7 @@ Packet::~Packet()
  */
 void Packet::PrepareToSend()
 {
-	assert(this->cs == NULL && this->next == NULL);
+	assert (this->cs == NULL);
 
 	this->buffer[0] = GB(this->size, 0, 8);
 	this->buffer[1] = GB(this->size, 8, 8);
@@ -188,7 +186,7 @@ bool Packet::CanReadFromPacket(uint bytes_to_read)
  */
 void Packet::ReadRawPacketSize()
 {
-	assert(this->cs != NULL && this->next == NULL);
+	assert (this->cs != NULL);
 	this->size  = (PacketSize)this->buffer[0];
 	this->size += (PacketSize)this->buffer[1] << 8;
 }
