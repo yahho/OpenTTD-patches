@@ -47,6 +47,7 @@ public:
 
 	virtual NetworkRecvStatus CloseConnection(bool error = true);
 
+	void SendPacket (QueuedPacket *packet);
 	void SendPacket (Packet *packet);
 	SendPacketsState SendPackets(bool closing_down = false);
 

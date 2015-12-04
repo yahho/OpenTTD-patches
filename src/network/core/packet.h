@@ -114,10 +114,16 @@ private:
 	void *operator new (size_t size) DELETED;
 
 public:
+	/** Allocate and construct a QueuedPacket from raw data. */
+	static QueuedPacket *create (PacketSize size, const byte *data)
+	{
+		return new (size) QueuedPacket (size, data);
+	}
+
 	/** Allocate and construct a QueuedPacket from a Packet. */
 	static QueuedPacket *create (const Packet *p)
 	{
-		return new (p->size) QueuedPacket (p->size, p->buffer);
+		return create (p->size, p->buffer);
 	}
 };
 

@@ -56,6 +56,20 @@ NetworkRecvStatus NetworkTCPSocketHandler::CloseConnection(bool error)
  * if the OS-network-buffer is full)
  * @param packet the packet to send
  */
+void NetworkTCPSocketHandler::SendPacket (QueuedPacket *packet)
+{
+	assert(packet != NULL);
+	assert(packet->next == NULL);
+
+	this->packet_queue.append (packet);
+}
+
+/**
+ * This function puts the packet in the send-queue and it is send as
+ * soon as possible. This is the next tick, or maybe one tick later
+ * if the OS-network-buffer is full)
+ * @param packet the packet to send
+ */
 void NetworkTCPSocketHandler::SendPacket(Packet *packet)
 {
 	assert(packet != NULL);

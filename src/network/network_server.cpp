@@ -56,21 +56,26 @@ template SocketList TCPListenHandler<ServerNetworkGameSocketHandler, PACKET_SERV
 
 /** Writing a savegame directly to a number of packets. */
 struct PacketWriter : SaveFilter {
+	static const PacketSize STARTPOS = sizeof(PacketSize) + 1;
+
 	ServerNetworkGameSocketHandler *cs; ///< Socket we are associated with.
-	Packet *current;                    ///< The packet we're currently writing to.
 	size_t total_size;                  ///< Total size of the compressed savegame.
-	Packet *packets;                    ///< Packet queue of the savegame; send these "slowly" to the client.
 	ThreadMutex *const mutex;           ///< Mutex for making threaded saving safe.
+	PacketQueue packets;                ///< Packet queue of the savegame; send these "slowly" to the client.
+	PacketSize curpos;                  ///< The position in the current packet.
+	byte current[SEND_MTU];             ///< The packet we're currently writing to.
 
 	/**
 	 * Create the packet writer.
 	 * @param cs The socket handler we're making the packets for.
 	 */
 	PacketWriter (ServerNetworkGameSocketHandler *cs)
-		: SaveFilter(), cs(cs), current(NULL), total_size(0),
-		  packets(NULL), mutex (ThreadMutex::New())
+		: SaveFilter(), cs(cs), total_size(0),
+		  mutex (ThreadMutex::New()), packets()
 	{
 		assert (this->mutex != NULL);
+		current[sizeof(PacketSize)] = PACKET_SERVER_MAP_DATA;
+		curpos = STARTPOS;
 	}
 
 	/** Make sure everything is cleaned up. */
@@ -84,13 +89,7 @@ struct PacketWriter : SaveFilter {
 
 		/* This must all wait until the Destroy function is called. */
 
-		while (this->packets != NULL) {
-			Packet *p = this->packets->next;
-			delete this->packets;
-			this->packets = p;
-		}
-
-		delete this->current;
+		packets.clear();
 
 		this->mutex->EndCritical();
 
@@ -128,27 +127,13 @@ struct PacketWriter : SaveFilter {
 	}
 
 	/**
-	 * Checks whether there are packets.
-	 * It's not 100% threading safe, but this is only asked for when checking
-	 * whether there still is something to send. Then another call will be made
-	 * to actually get the Packet, which will be the only one popping packets
-	 * and thus eventually setting this on false.
-	 */
-	bool HasPackets()
-	{
-		return this->packets != NULL;
-	}
-
-	/**
 	 * Pop a single created packet from the queue with packets.
 	 */
-	Packet *PopPacket()
+	QueuedPacket *PopPacket()
 	{
 		this->mutex->BeginCritical();
 
-		Packet *p = this->packets;
-		this->packets = p->next;
-		p->next = NULL;
+		QueuedPacket *p = this->packets.pop();
 
 		this->mutex->EndCritical();
 
@@ -158,15 +143,13 @@ struct PacketWriter : SaveFilter {
 	/** Append the current packet to the queue. */
 	void AppendQueue()
 	{
-		if (this->current == NULL) return;
+		assert (this->curpos >= STARTPOS);
 
-		Packet **p = &this->packets;
-		while (*p != NULL) {
-			p = &(*p)->next;
-		}
-		*p = this->current;
+		if (this->curpos == STARTPOS) return;
 
-		this->current = NULL;
+		this->packets.append (QueuedPacket::create (this->curpos, this->current));
+
+		this->curpos = STARTPOS;
 	}
 
 	/* virtual */ void Write(const byte *buf, size_t size)
@@ -174,20 +157,17 @@ struct PacketWriter : SaveFilter {
 		/* We want to abort the saving when the socket is closed. */
 		if (this->cs == NULL) throw SlException(STR_NETWORK_ERROR_LOSTCONNECTION);
 
-		if (this->current == NULL) this->current = new Packet(PACKET_SERVER_MAP_DATA);
-
 		this->mutex->BeginCritical();
 
 		const byte *bufe = buf + size;
 		while (buf != bufe) {
-			size_t to_write = min(SEND_MTU - this->current->size, bufe - buf);
-			memcpy(this->current->buffer + this->current->size, buf, to_write);
-			this->current->size += (PacketSize)to_write;
+			size_t to_write = min (SEND_MTU - this->curpos, bufe - buf);
+			memcpy (this->current + this->curpos, buf, to_write);
+			this->curpos += (PacketSize)to_write;
 			buf += to_write;
 
-			if (this->current->size == SEND_MTU) {
+			if (this->curpos == SEND_MTU) {
 				this->AppendQueue();
-				if (buf != bufe) this->current = new Packet(PACKET_SERVER_MAP_DATA);
 			}
 		}
 
@@ -610,11 +590,12 @@ NetworkRecvStatus ServerNetworkGameSocketHandler::SendMap()
 		bool has_packets = false;
 
 		for (uint i = sent_packets; i > 0; i--) {
-			has_packets = this->savegame->HasPackets();
+			bool finished = this->savegame->total_size == SIZE_MAX;
+			QueuedPacket *p = this->savegame->PopPacket();
+			has_packets = p != NULL;
 			if (has_packets) {
-				Packet *p = this->savegame->PopPacket();
 				this->SendPacket(p);
-			} else if (this->savegame->total_size != SIZE_MAX) {
+			} else if (!finished) {
 				break;
 			} else {
 				/* Add a packet stating that this is the end of the map. */
