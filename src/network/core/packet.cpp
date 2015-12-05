@@ -23,7 +23,7 @@
  * Create a packet that is used to read from a network socket
  * @param cs the socket handler associated with the socket we are reading from
  */
-Packet::Packet(NetworkSocketHandler *cs)
+RecvPacket::RecvPacket (NetworkSocketHandler *cs)
 {
 	assert(cs != NULL);
 
@@ -38,10 +38,8 @@ Packet::Packet(NetworkSocketHandler *cs)
  */
 Packet::Packet(PacketType type)
 {
-	this->cs                   = NULL;
 
 	/* Skip the size so we can write that in before sending the packet */
-	this->pos                  = 0;
 	this->size                 = sizeof(PacketSize);
 	this->buffer[this->size++] = type;
 }
@@ -51,12 +49,8 @@ Packet::Packet(PacketType type)
  */
 void Packet::PrepareToSend()
 {
-	assert (this->cs == NULL);
-
 	this->buffer[0] = GB(this->size, 0, 8);
 	this->buffer[1] = GB(this->size, 8, 8);
-
-	this->pos  = 0; // We start reading from here
 }
 
 /*
@@ -157,7 +151,7 @@ void Packet::Send_string(const char *data)
  * @param bytes_to_read The amount of bytes we want to try to read.
  * @return True if that is safe, otherwise false.
  */
-bool Packet::CanReadFromPacket(uint bytes_to_read)
+bool RecvPacket::CanReadFromPacket (uint bytes_to_read)
 {
 	/* Don't allow reading from a quit client/client who send bad data */
 	if (this->cs->HasClientQuit()) return false;
@@ -174,7 +168,7 @@ bool Packet::CanReadFromPacket(uint bytes_to_read)
 /**
  * Reads the packet size from the raw packet and stores it in the packet->size
  */
-void Packet::ReadRawPacketSize()
+void RecvPacket::ReadRawPacketSize()
 {
 	assert (this->cs != NULL);
 	this->size  = (PacketSize)this->buffer[0];
@@ -184,7 +178,7 @@ void Packet::ReadRawPacketSize()
 /**
  * Prepares the packet so it can be read
  */
-void Packet::PrepareToRead()
+void RecvPacket::PrepareToRead()
 {
 	this->ReadRawPacketSize();
 
@@ -196,7 +190,7 @@ void Packet::PrepareToRead()
  * Read a boolean from the packet.
  * @return The read data.
  */
-bool Packet::Recv_bool()
+bool RecvPacket::Recv_bool()
 {
 	return this->Recv_uint8() != 0;
 }
@@ -205,7 +199,7 @@ bool Packet::Recv_bool()
  * Read a 8 bits integer from the packet.
  * @return The read data.
  */
-uint8 Packet::Recv_uint8()
+uint8 RecvPacket::Recv_uint8()
 {
 	uint8 n;
 
@@ -219,7 +213,7 @@ uint8 Packet::Recv_uint8()
  * Read a 16 bits integer from the packet.
  * @return The read data.
  */
-uint16 Packet::Recv_uint16()
+uint16 RecvPacket::Recv_uint16()
 {
 	uint16 n;
 
@@ -234,7 +228,7 @@ uint16 Packet::Recv_uint16()
  * Read a 32 bits integer from the packet.
  * @return The read data.
  */
-uint32 Packet::Recv_uint32()
+uint32 RecvPacket::Recv_uint32()
 {
 	uint32 n;
 
@@ -251,7 +245,7 @@ uint32 Packet::Recv_uint32()
  * Read a 64 bits integer from the packet.
  * @return The read data.
  */
-uint64 Packet::Recv_uint64()
+uint64 RecvPacket::Recv_uint64()
 {
 	uint64 n;
 
@@ -274,7 +268,7 @@ uint64 Packet::Recv_uint64()
  * @param size   The size of the buffer.
  * @param settings The string validation settings.
  */
-void Packet::Recv_string(char *buffer, size_t size, StringValidationSettings settings)
+void RecvPacket::Recv_string (char *buffer, size_t size, StringValidationSettings settings)
 {
 	PacketSize pos;
 	char *bufp = buffer;

@@ -43,22 +43,13 @@ typedef uint8  PacketType; ///< Identifier for the packet
  */
 struct Packet {
 	/**
-	 * The size of the whole packet for received packets. For packets
-	 * that will be sent, the value is filled in just before the
-	 * actual transmission.
+	 * The size of the whole packet. The value is filled in just before
+	 * the actual transmission.
 	 */
 	PacketSize size;
-	/** The current read/write position in the packet */
-	PacketSize pos;
 	/** The buffer of this packet. */
 	byte buffer[SEND_MTU];
 
-private:
-	/** Socket we're associated with. */
-	class NetworkSocketHandler *cs;
-
-public:
-	Packet(NetworkSocketHandler *cs);
 	Packet(PacketType type);
 
 	/* Sending/writing of packets */
@@ -70,6 +61,23 @@ public:
 	void Send_uint32(uint32 data);
 	void Send_uint64(uint64 data);
 	void Send_string(const char *data);
+};
+
+/** Packet received from the network. */
+struct RecvPacket {
+	/** The size of the whole packet for received packets. */
+	PacketSize size;
+	/** The current read/write position in the packet */
+	PacketSize pos;
+	/** The buffer of this packet. */
+	byte buffer[SEND_MTU];
+
+private:
+	/** Socket we're associated with. */
+	class NetworkSocketHandler *cs;
+
+public:
+	RecvPacket(NetworkSocketHandler *cs);
 
 	/* Reading/receiving of packets */
 	void ReadRawPacketSize();

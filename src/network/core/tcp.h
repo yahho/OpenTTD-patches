@@ -34,7 +34,7 @@ private:
 	PacketQueue packet_queue; ///< Packets that are awaiting delivery
 	PacketSize  send_pos;     ///< Position in a partially sent packet
 
-	Packet *packet_recv;      ///< Partially received packet
+	RecvPacket *packet_recv;  ///< Partially received packet
 public:
 	SOCKET sock;              ///< The socket currently connected to
 	bool writable;            ///< Can we write to this socket?
@@ -52,7 +52,7 @@ public:
 	void SendPacket (PacketType type);
 	SendPacketsState SendPackets(bool closing_down = false);
 
-	virtual Packet *ReceivePacket();
+	virtual RecvPacket *ReceivePacket();
 
 	bool CanSendReceive();
 

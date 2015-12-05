@@ -118,8 +118,8 @@ void NetworkUDPQueryServer(NetworkAddress address, bool manually)
 /** Helper class for connecting to the master server. */
 class MasterNetworkUDPSocketHandler : public NetworkUDPSocketHandler {
 protected:
-	virtual void Receive_MASTER_ACK_REGISTER(Packet *p, NetworkAddress *client_addr);
-	virtual void Receive_MASTER_SESSION_KEY(Packet *p, NetworkAddress *client_addr);
+	virtual void Receive_MASTER_ACK_REGISTER (RecvPacket *p, NetworkAddress *client_addr);
+	virtual void Receive_MASTER_SESSION_KEY (RecvPacket *p, NetworkAddress *client_addr);
 public:
 	/**
 	 * Create the socket.
@@ -129,7 +129,7 @@ public:
 	virtual ~MasterNetworkUDPSocketHandler() {}
 };
 
-void MasterNetworkUDPSocketHandler::Receive_MASTER_ACK_REGISTER(Packet *p, NetworkAddress *client_addr)
+void MasterNetworkUDPSocketHandler::Receive_MASTER_ACK_REGISTER (RecvPacket *p, NetworkAddress *client_addr)
 {
 	_network_advertise_retries = 0;
 	DEBUG(net, 2, "[udp] advertising on master server successful (%s)", NetworkAddress::AddressFamilyAsString(client_addr->GetAddress()->ss_family));
@@ -138,7 +138,7 @@ void MasterNetworkUDPSocketHandler::Receive_MASTER_ACK_REGISTER(Packet *p, Netwo
 	if (!_settings_client.network.server_advertise) NetworkUDPRemoveAdvertise(false);
 }
 
-void MasterNetworkUDPSocketHandler::Receive_MASTER_SESSION_KEY(Packet *p, NetworkAddress *client_addr)
+void MasterNetworkUDPSocketHandler::Receive_MASTER_SESSION_KEY (RecvPacket *p, NetworkAddress *client_addr)
 {
 	_session_key = p->Recv_uint64();
 	DEBUG(net, 2, "[udp] received new session key from master server (%s)", NetworkAddress::AddressFamilyAsString(client_addr->GetAddress()->ss_family));
@@ -149,9 +149,9 @@ void MasterNetworkUDPSocketHandler::Receive_MASTER_SESSION_KEY(Packet *p, Networ
 /** Helper class for handling all server side communication. */
 class ServerNetworkUDPSocketHandler : public NetworkUDPSocketHandler {
 protected:
-	virtual void Receive_CLIENT_FIND_SERVER(Packet *p, NetworkAddress *client_addr);
-	virtual void Receive_CLIENT_DETAIL_INFO(Packet *p, NetworkAddress *client_addr);
-	virtual void Receive_CLIENT_GET_NEWGRFS(Packet *p, NetworkAddress *client_addr);
+	virtual void Receive_CLIENT_FIND_SERVER (RecvPacket *p, NetworkAddress *client_addr);
+	virtual void Receive_CLIENT_DETAIL_INFO (RecvPacket *p, NetworkAddress *client_addr);
+	virtual void Receive_CLIENT_GET_NEWGRFS (RecvPacket *p, NetworkAddress *client_addr);
 public:
 	/**
 	 * Create the socket.
@@ -161,7 +161,7 @@ public:
 	virtual ~ServerNetworkUDPSocketHandler() {}
 };
 
-void ServerNetworkUDPSocketHandler::Receive_CLIENT_FIND_SERVER(Packet *p, NetworkAddress *client_addr)
+void ServerNetworkUDPSocketHandler::Receive_CLIENT_FIND_SERVER (RecvPacket *p, NetworkAddress *client_addr)
 {
 	/* Just a fail-safe.. should never happen */
 	if (!_network_udp_server) {
@@ -201,7 +201,7 @@ void ServerNetworkUDPSocketHandler::Receive_CLIENT_FIND_SERVER(Packet *p, Networ
 	DEBUG(net, 2, "[udp] queried from %s", client_addr->GetHostname());
 }
 
-void ServerNetworkUDPSocketHandler::Receive_CLIENT_DETAIL_INFO(Packet *p, NetworkAddress *client_addr)
+void ServerNetworkUDPSocketHandler::Receive_CLIENT_DETAIL_INFO (RecvPacket *p, NetworkAddress *client_addr)
 {
 	/* Just a fail-safe.. should never happen */
 	if (!_network_udp_server) return;
@@ -277,7 +277,7 @@ void ServerNetworkUDPSocketHandler::Receive_CLIENT_DETAIL_INFO(Packet *p, Networ
  * in_reply and in_reply_count are used to keep a list of GRFs to
  * send in the reply.
  */
-void ServerNetworkUDPSocketHandler::Receive_CLIENT_GET_NEWGRFS(Packet *p, NetworkAddress *client_addr)
+void ServerNetworkUDPSocketHandler::Receive_CLIENT_GET_NEWGRFS (RecvPacket *p, NetworkAddress *client_addr)
 {
 	uint8 num_grfs;
 	uint i;
@@ -334,15 +334,15 @@ void ServerNetworkUDPSocketHandler::Receive_CLIENT_GET_NEWGRFS(Packet *p, Networ
 /** Helper class for handling all client side communication. */
 class ClientNetworkUDPSocketHandler : public NetworkUDPSocketHandler {
 protected:
-	virtual void Receive_SERVER_RESPONSE(Packet *p, NetworkAddress *client_addr);
-	virtual void Receive_MASTER_RESPONSE_LIST(Packet *p, NetworkAddress *client_addr);
-	virtual void Receive_SERVER_NEWGRFS(Packet *p, NetworkAddress *client_addr);
+	virtual void Receive_SERVER_RESPONSE (RecvPacket *p, NetworkAddress *client_addr);
+	virtual void Receive_MASTER_RESPONSE_LIST (RecvPacket *p, NetworkAddress *client_addr);
+	virtual void Receive_SERVER_NEWGRFS (RecvPacket *p, NetworkAddress *client_addr);
 	virtual void HandleIncomingNetworkGameInfoGRFConfig(GRFConfig *config);
 public:
 	virtual ~ClientNetworkUDPSocketHandler() {}
 };
 
-void ClientNetworkUDPSocketHandler::Receive_SERVER_RESPONSE(Packet *p, NetworkAddress *client_addr)
+void ClientNetworkUDPSocketHandler::Receive_SERVER_RESPONSE (RecvPacket *p, NetworkAddress *client_addr)
 {
 	NetworkGameList *item;
 
@@ -410,7 +410,7 @@ void ClientNetworkUDPSocketHandler::Receive_SERVER_RESPONSE(Packet *p, NetworkAd
 	UpdateNetworkGameWindow();
 }
 
-void ClientNetworkUDPSocketHandler::Receive_MASTER_RESPONSE_LIST(Packet *p, NetworkAddress *client_addr)
+void ClientNetworkUDPSocketHandler::Receive_MASTER_RESPONSE_LIST (RecvPacket *p, NetworkAddress *client_addr)
 {
 	/* packet begins with the protocol version (uint8)
 	 * then an uint16 which indicates how many
@@ -446,7 +446,7 @@ void ClientNetworkUDPSocketHandler::Receive_MASTER_RESPONSE_LIST(Packet *p, Netw
 }
 
 /** The return of the client's request of the names of some NewGRFs */
-void ClientNetworkUDPSocketHandler::Receive_SERVER_NEWGRFS(Packet *p, NetworkAddress *client_addr)
+void ClientNetworkUDPSocketHandler::Receive_SERVER_NEWGRFS (RecvPacket *p, NetworkAddress *client_addr)
 {
 	uint8 num_grfs;
 	uint i;

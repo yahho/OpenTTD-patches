@@ -82,8 +82,8 @@ protected:
 
 	friend class NetworkContentConnecter;
 
-	virtual bool Receive_SERVER_INFO(Packet *p);
-	virtual bool Receive_SERVER_CONTENT(Packet *p);
+	virtual bool Receive_SERVER_INFO (RecvPacket *p);
+	virtual bool Receive_SERVER_CONTENT (RecvPacket *p);
 
 	ContentInfo *GetContent(ContentID cid);
 	void DownloadContentInfo(ContentID cid);

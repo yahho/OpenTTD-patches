@@ -64,7 +64,7 @@ protected:
 	 * @param p           The received packet.
 	 * @param client_addr The origin of the packet.
 	 */
-	virtual void Receive_CLIENT_FIND_SERVER(Packet *p, NetworkAddress *client_addr);
+	virtual void Receive_CLIENT_FIND_SERVER (RecvPacket *p, NetworkAddress *client_addr);
 
 	/**
 	 * Return of server information to the client.
@@ -105,14 +105,14 @@ protected:
 	 * @param p           The received packet.
 	 * @param client_addr The origin of the packet.
 	 */
-	virtual void Receive_SERVER_RESPONSE(Packet *p, NetworkAddress *client_addr);
+	virtual void Receive_SERVER_RESPONSE (RecvPacket *p, NetworkAddress *client_addr);
 
 	/**
 	 * Query for detailed information about companies.
 	 * @param p           The received packet.
 	 * @param client_addr The origin of the packet.
 	 */
-	virtual void Receive_CLIENT_DETAIL_INFO(Packet *p, NetworkAddress *client_addr);
+	virtual void Receive_CLIENT_DETAIL_INFO (RecvPacket *p, NetworkAddress *client_addr);
 
 	/**
 	 * Reply with detailed company information.
@@ -141,7 +141,7 @@ protected:
 	 * @param p           The received packet.
 	 * @param client_addr The origin of the packet.
 	 */
-	virtual void Receive_SERVER_DETAIL_INFO(Packet *p, NetworkAddress *client_addr);
+	virtual void Receive_SERVER_DETAIL_INFO (RecvPacket *p, NetworkAddress *client_addr);
 
 	/**
 	 * Registers the server to the master server.
@@ -152,14 +152,14 @@ protected:
 	 * @param p           The received packet.
 	 * @param client_addr The origin of the packet.
 	 */
-	virtual void Receive_SERVER_REGISTER(Packet *p, NetworkAddress *client_addr);
+	virtual void Receive_SERVER_REGISTER (RecvPacket *p, NetworkAddress *client_addr);
 
 	/**
 	 * The master server acknowledges the registration.
 	 * @param p           The received packet.
 	 * @param client_addr The origin of the packet.
 	 */
-	virtual void Receive_MASTER_ACK_REGISTER(Packet *p, NetworkAddress *client_addr);
+	virtual void Receive_MASTER_ACK_REGISTER (RecvPacket *p, NetworkAddress *client_addr);
 
 	/**
 	 * The client requests a list of servers.
@@ -168,7 +168,7 @@ protected:
 	 * @param p           The received packet.
 	 * @param client_addr The origin of the packet.
 	 */
-	virtual void Receive_CLIENT_GET_LIST(Packet *p, NetworkAddress *client_addr);
+	virtual void Receive_CLIENT_GET_LIST (RecvPacket *p, NetworkAddress *client_addr);
 
 	/**
 	 * The server sends a list of servers.
@@ -179,7 +179,7 @@ protected:
 	 * @param p           The received packet.
 	 * @param client_addr The origin of the packet.
 	 */
-	virtual void Receive_MASTER_RESPONSE_LIST(Packet *p, NetworkAddress *client_addr);
+	virtual void Receive_MASTER_RESPONSE_LIST (RecvPacket *p, NetworkAddress *client_addr);
 
 	/**
 	 * A server unregisters itself at the master server.
@@ -188,7 +188,7 @@ protected:
 	 * @param p           The received packet.
 	 * @param client_addr The origin of the packet.
 	 */
-	virtual void Receive_SERVER_UNREGISTER(Packet *p, NetworkAddress *client_addr);
+	virtual void Receive_SERVER_UNREGISTER (RecvPacket *p, NetworkAddress *client_addr);
 
 	/**
 	 * The client requests information about some NewGRFs.
@@ -199,7 +199,7 @@ protected:
 	 * @param p           The received packet.
 	 * @param client_addr The origin of the packet.
 	 */
-	virtual void Receive_CLIENT_GET_NEWGRFS(Packet *p, NetworkAddress *client_addr);
+	virtual void Receive_CLIENT_GET_NEWGRFS (RecvPacket *p, NetworkAddress *client_addr);
 
 	/**
 	 * The server returns information about some NewGRFs.
@@ -211,7 +211,7 @@ protected:
 	 * @param p           The received packet.
 	 * @param client_addr The origin of the packet.
 	 */
-	virtual void Receive_SERVER_NEWGRFS(Packet *p, NetworkAddress *client_addr);
+	virtual void Receive_SERVER_NEWGRFS (RecvPacket *p, NetworkAddress *client_addr);
 
 	/**
 	 * The master server sends us a session key.
@@ -219,9 +219,9 @@ protected:
 	 * @param p           The received packet.
 	 * @param client_addr The origin of the packet.
 	 */
-	virtual void Receive_MASTER_SESSION_KEY(Packet *p, NetworkAddress *client_addr);
+	virtual void Receive_MASTER_SESSION_KEY (RecvPacket *p, NetworkAddress *client_addr);
 
-	void HandleUDPPacket(Packet *p, NetworkAddress *client_addr);
+	void HandleUDPPacket (RecvPacket *p, NetworkAddress *client_addr);
 
 	/**
 	 * Function that is called for every GRFConfig that is read when receiving
@@ -244,7 +244,7 @@ public:
 	void ReceivePackets();
 
 	void SendNetworkGameInfo(Packet *p, const NetworkGameInfo *info);
-	void ReceiveNetworkGameInfo(Packet *p, NetworkGameInfo *info);
+	void ReceiveNetworkGameInfo (RecvPacket *p, NetworkGameInfo *info);
 };
 
 #endif /* ENABLE_NETWORK */

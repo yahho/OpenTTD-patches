@@ -51,7 +51,7 @@ struct CommandPacket : CommandContainer, ForwardListLink<CommandPacket> {
 
 	void SendTo (Packet *p, bool from_server) const;
 
-	static CommandPacket *ReceiveFrom (Packet *p, bool from_server, const char **err);
+	static CommandPacket *ReceiveFrom (RecvPacket *p, bool from_server, const char **err);
 };
 
 /** A queue of CommandPackets. */

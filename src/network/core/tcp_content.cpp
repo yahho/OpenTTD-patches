@@ -158,7 +158,7 @@ void NetworkContentSocketHandler::Close()
  * @param p the packet to handle
  * @return true if we should immediately handle further packets, false otherwise
  */
-bool NetworkContentSocketHandler::HandlePacket(Packet *p)
+bool NetworkContentSocketHandler::HandlePacket (RecvPacket *p)
 {
 	PacketContentType type = (PacketContentType)p->Recv_uint8();
 
@@ -206,7 +206,7 @@ bool NetworkContentSocketHandler::ReceivePackets()
 	 *
 	 * What arbitrary number to choose is the ultimate question though.
 	 */
-	Packet *p;
+	RecvPacket *p;
 	static const int MAX_PACKETS_TO_RECEIVE = 42;
 	int i = MAX_PACKETS_TO_RECEIVE;
 	while (--i != 0 && (p = this->ReceivePacket()) != NULL) {
@@ -230,13 +230,13 @@ bool NetworkContentSocketHandler::ReceiveInvalidPacket(PacketContentType type)
 	return false;
 }
 
-bool NetworkContentSocketHandler::Receive_CLIENT_INFO_LIST(Packet *p) { return this->ReceiveInvalidPacket(PACKET_CONTENT_CLIENT_INFO_LIST); }
-bool NetworkContentSocketHandler::Receive_CLIENT_INFO_ID(Packet *p) { return this->ReceiveInvalidPacket(PACKET_CONTENT_CLIENT_INFO_ID); }
-bool NetworkContentSocketHandler::Receive_CLIENT_INFO_EXTID(Packet *p) { return this->ReceiveInvalidPacket(PACKET_CONTENT_CLIENT_INFO_EXTID); }
-bool NetworkContentSocketHandler::Receive_CLIENT_INFO_EXTID_MD5(Packet *p) { return this->ReceiveInvalidPacket(PACKET_CONTENT_CLIENT_INFO_EXTID_MD5); }
-bool NetworkContentSocketHandler::Receive_SERVER_INFO(Packet *p) { return this->ReceiveInvalidPacket(PACKET_CONTENT_SERVER_INFO); }
-bool NetworkContentSocketHandler::Receive_CLIENT_CONTENT(Packet *p) { return this->ReceiveInvalidPacket(PACKET_CONTENT_CLIENT_CONTENT); }
-bool NetworkContentSocketHandler::Receive_SERVER_CONTENT(Packet *p) { return this->ReceiveInvalidPacket(PACKET_CONTENT_SERVER_CONTENT); }
+bool NetworkContentSocketHandler::Receive_CLIENT_INFO_LIST (RecvPacket *p) { return this->ReceiveInvalidPacket (PACKET_CONTENT_CLIENT_INFO_LIST); }
+bool NetworkContentSocketHandler::Receive_CLIENT_INFO_ID (RecvPacket *p) { return this->ReceiveInvalidPacket (PACKET_CONTENT_CLIENT_INFO_ID); }
+bool NetworkContentSocketHandler::Receive_CLIENT_INFO_EXTID (RecvPacket *p) { return this->ReceiveInvalidPacket (PACKET_CONTENT_CLIENT_INFO_EXTID); }
+bool NetworkContentSocketHandler::Receive_CLIENT_INFO_EXTID_MD5 (RecvPacket *p) { return this->ReceiveInvalidPacket (PACKET_CONTENT_CLIENT_INFO_EXTID_MD5); }
+bool NetworkContentSocketHandler::Receive_SERVER_INFO (RecvPacket *p) { return this->ReceiveInvalidPacket (PACKET_CONTENT_SERVER_INFO); }
+bool NetworkContentSocketHandler::Receive_CLIENT_CONTENT (RecvPacket *p) { return this->ReceiveInvalidPacket (PACKET_CONTENT_CLIENT_CONTENT); }
+bool NetworkContentSocketHandler::Receive_SERVER_CONTENT (RecvPacket *p) { return this->ReceiveInvalidPacket (PACKET_CONTENT_SERVER_CONTENT); }
 
 #ifndef OPENTTD_MSU
 /**

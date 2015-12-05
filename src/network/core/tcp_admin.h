@@ -127,14 +127,14 @@ protected:
 	 * @param p The packet that was just received.
 	 * @return The state the network should have.
 	 */
-	virtual NetworkRecvStatus Receive_ADMIN_JOIN(Packet *p);
+	virtual NetworkRecvStatus Receive_ADMIN_JOIN (RecvPacket *p);
 
 	/**
 	 * Notification to the server that this admin is quitting.
 	 * @param p The packet that was just received.
 	 * @return The state the network should have.
 	 */
-	virtual NetworkRecvStatus Receive_ADMIN_QUIT(Packet *p);
+	virtual NetworkRecvStatus Receive_ADMIN_QUIT (RecvPacket *p);
 
 	/**
 	 * Register updates to be sent at certain frequencies (as announced in the PROTOCOL packet):
@@ -143,7 +143,7 @@ protected:
 	 * @param p The packet that was just received.
 	 * @return The state the network should have.
 	 */
-	virtual NetworkRecvStatus Receive_ADMIN_UPDATE_FREQUENCY(Packet *p);
+	virtual NetworkRecvStatus Receive_ADMIN_UPDATE_FREQUENCY (RecvPacket *p);
 
 	/**
 	 * Poll the server for certain updates, an invalid poll (e.g. not existent id) gets silently dropped:
@@ -154,7 +154,7 @@ protected:
 	 * @param p The packet that was just received.
 	 * @return The state the network should have.
 	 */
-	virtual NetworkRecvStatus Receive_ADMIN_POLL(Packet *p);
+	virtual NetworkRecvStatus Receive_ADMIN_POLL (RecvPacket *p);
 
 	/**
 	 * Send chat as the server:
@@ -165,7 +165,7 @@ protected:
 	 * @param p The packet that was just received.
 	 * @return The state the network should have.
 	 */
-	virtual NetworkRecvStatus Receive_ADMIN_CHAT(Packet *p);
+	virtual NetworkRecvStatus Receive_ADMIN_CHAT (RecvPacket *p);
 
 	/**
 	 * Execute a command on the servers console:
@@ -173,7 +173,7 @@ protected:
 	 * @param p The packet that was just received.
 	 * @return The state the network should have.
 	 */
-	virtual NetworkRecvStatus Receive_ADMIN_RCON(Packet *p);
+	virtual NetworkRecvStatus Receive_ADMIN_RCON (RecvPacket *p);
 
 	/**
 	 * Send a JSON string to the current active GameScript.
@@ -181,7 +181,7 @@ protected:
 	 * @param p The packet that was just received.
 	 * @return The state the network should have.
 	 */
-	virtual NetworkRecvStatus Receive_ADMIN_GAMESCRIPT(Packet *p);
+	virtual NetworkRecvStatus Receive_ADMIN_GAMESCRIPT (RecvPacket *p);
 
 	/**
 	 * Ping the server, requiring the server to reply with a pong packet.
@@ -189,21 +189,21 @@ protected:
 	 * @param p The packet that was just received.
 	 * @return The state the network should have.
 	 */
-	virtual NetworkRecvStatus Receive_ADMIN_PING(Packet *p);
+	virtual NetworkRecvStatus Receive_ADMIN_PING (RecvPacket *p);
 
 	/**
 	 * The server is full (connection gets closed).
 	 * @param p The packet that was just received.
 	 * @return The state the network should have.
 	 */
-	virtual NetworkRecvStatus Receive_SERVER_FULL(Packet *p);
+	virtual NetworkRecvStatus Receive_SERVER_FULL (RecvPacket *p);
 
 	/**
 	 * The source IP address is banned (connection gets closed).
 	 * @param p The packet that was just received.
 	 * @return The state the network should have.
 	 */
-	virtual NetworkRecvStatus Receive_SERVER_BANNED(Packet *p);
+	virtual NetworkRecvStatus Receive_SERVER_BANNED (RecvPacket *p);
 
 	/**
 	 * An error was caused by this admin connection (connection gets closed).
@@ -211,7 +211,7 @@ protected:
 	 * @param p The packet that was just received.
 	 * @return The state the network should have.
 	 */
-	virtual NetworkRecvStatus Receive_SERVER_ERROR(Packet *p);
+	virtual NetworkRecvStatus Receive_SERVER_ERROR (RecvPacket *p);
 
 	/**
 	 * Inform a just joined admin about the protocol specifics:
@@ -222,7 +222,7 @@ protected:
 	 * @param p The packet that was just received.
 	 * @return The state the network should have.
 	 */
-	virtual NetworkRecvStatus Receive_SERVER_PROTOCOL(Packet *p);
+	virtual NetworkRecvStatus Receive_SERVER_PROTOCOL (RecvPacket *p);
 
 	/**
 	 * Welcome a connected admin to the game:
@@ -238,21 +238,21 @@ protected:
 	 * @param p The packet that was just received.
 	 * @return The state the network should have.
 	 */
-	virtual NetworkRecvStatus Receive_SERVER_WELCOME(Packet *p);
+	virtual NetworkRecvStatus Receive_SERVER_WELCOME (RecvPacket *p);
 
 	/**
 	 * Notification about a newgame.
 	 * @param p The packet that was just received.
 	 * @return The state the network should have.
 	 */
-	virtual NetworkRecvStatus Receive_SERVER_NEWGAME(Packet *p);
+	virtual NetworkRecvStatus Receive_SERVER_NEWGAME (RecvPacket *p);
 
 	/**
 	 * Notification about the server shutting down.
 	 * @param p The packet that was just received.
 	 * @return The state the network should have.
 	 */
-	virtual NetworkRecvStatus Receive_SERVER_SHUTDOWN(Packet *p);
+	virtual NetworkRecvStatus Receive_SERVER_SHUTDOWN (RecvPacket *p);
 
 	/**
 	 * Send the current date of the game:
@@ -260,7 +260,7 @@ protected:
 	 * @param p The packet that was just received.
 	 * @return The state the network should have.
 	 */
-	virtual NetworkRecvStatus Receive_SERVER_DATE(Packet *p);
+	virtual NetworkRecvStatus Receive_SERVER_DATE (RecvPacket *p);
 
 	/**
 	 * Notification of a new client:
@@ -268,7 +268,7 @@ protected:
 	 * @param p The packet that was just received.
 	 * @return The state the network should have.
 	 */
-	virtual NetworkRecvStatus Receive_SERVER_CLIENT_JOIN(Packet *p);
+	virtual NetworkRecvStatus Receive_SERVER_CLIENT_JOIN (RecvPacket *p);
 
 	/**
 	 * Client information of a specific client:
@@ -281,7 +281,7 @@ protected:
 	 * @param p The packet that was just received.
 	 * @return The state the network should have.
 	 */
-	virtual NetworkRecvStatus Receive_SERVER_CLIENT_INFO(Packet *p);
+	virtual NetworkRecvStatus Receive_SERVER_CLIENT_INFO (RecvPacket *p);
 
 	/**
 	 * Client update details on a specific client (e.g. after rename or move):
@@ -291,7 +291,7 @@ protected:
 	 * @param p The packet that was just received.
 	 * @return The state the network should have.
 	 */
-	virtual NetworkRecvStatus Receive_SERVER_CLIENT_UPDATE(Packet *p);
+	virtual NetworkRecvStatus Receive_SERVER_CLIENT_UPDATE (RecvPacket *p);
 
 	/**
 	 * Notification about a client leaving the game.
@@ -299,7 +299,7 @@ protected:
 	 * @param p The packet that was just received.
 	 * @return The state the network should have.
 	 */
-	virtual NetworkRecvStatus Receive_SERVER_CLIENT_QUIT(Packet *p);
+	virtual NetworkRecvStatus Receive_SERVER_CLIENT_QUIT (RecvPacket *p);
 
 	/**
 	 * Notification about a client error (and thus the clients disconnection).
@@ -308,7 +308,7 @@ protected:
 	 * @param p The packet that was just received.
 	 * @return The state the network should have.
 	 */
-	virtual NetworkRecvStatus Receive_SERVER_CLIENT_ERROR(Packet *p);
+	virtual NetworkRecvStatus Receive_SERVER_CLIENT_ERROR (RecvPacket *p);
 
 	/**
 	 * Notification of a new company:
@@ -316,7 +316,7 @@ protected:
 	 * @param p The packet that was just received.
 	 * @return The state the network should have.
 	 */
-	virtual NetworkRecvStatus Receive_SERVER_COMPANY_NEW(Packet *p);
+	virtual NetworkRecvStatus Receive_SERVER_COMPANY_NEW (RecvPacket *p);
 
 	/**
 	 * Company information on a specific company:
@@ -330,7 +330,7 @@ protected:
 	 * @param p The packet that was just received.
 	 * @return The state the network should have.
 	 */
-	virtual NetworkRecvStatus Receive_SERVER_COMPANY_INFO(Packet *p);
+	virtual NetworkRecvStatus Receive_SERVER_COMPANY_INFO (RecvPacket *p);
 
 	/**
 	 * Company information of a specific company:
@@ -347,7 +347,7 @@ protected:
 	 * @param p The packet that was just received.
 	 * @return The state the network should have.
 	 */
-	virtual NetworkRecvStatus Receive_SERVER_COMPANY_UPDATE(Packet *p);
+	virtual NetworkRecvStatus Receive_SERVER_COMPANY_UPDATE (RecvPacket *p);
 
 	/**
 	 * Notification about a removed company (e.g. due to bankruptcy).
@@ -356,7 +356,7 @@ protected:
 	 * @param p The packet that was just received.
 	 * @return The state the network should have.
 	 */
-	virtual NetworkRecvStatus Receive_SERVER_COMPANY_REMOVE(Packet *p);
+	virtual NetworkRecvStatus Receive_SERVER_COMPANY_REMOVE (RecvPacket *p);
 
 	/**
 	 * Economy update of a specific company:
@@ -374,7 +374,7 @@ protected:
 	 * @param p The packet that was just received.
 	 * @return The state the network should have.
 	 */
-	virtual NetworkRecvStatus Receive_SERVER_COMPANY_ECONOMY(Packet *p);
+	virtual NetworkRecvStatus Receive_SERVER_COMPANY_ECONOMY (RecvPacket *p);
 
 	/**
 	 * Company statistics on stations and vehicles:
@@ -392,7 +392,7 @@ protected:
 	 * @param p The packet that was just received.
 	 * @return The state the network should have.
 	 */
-	virtual NetworkRecvStatus Receive_SERVER_COMPANY_STATS(Packet *p);
+	virtual NetworkRecvStatus Receive_SERVER_COMPANY_STATS (RecvPacket *p);
 
 	/**
 	 * Send chat from the game into the admin network:
@@ -404,7 +404,7 @@ protected:
 	 * @param p The packet that was just received.
 	 * @return The state the network should have.
 	 */
-	virtual NetworkRecvStatus Receive_SERVER_CHAT(Packet *p);
+	virtual NetworkRecvStatus Receive_SERVER_CHAT (RecvPacket *p);
 
 	/**
 	 * Result of an rcon command:
@@ -413,7 +413,7 @@ protected:
 	 * @param p The packet that was just received.
 	 * @return The state the network should have.
 	 */
-	virtual NetworkRecvStatus Receive_SERVER_RCON(Packet *p);
+	virtual NetworkRecvStatus Receive_SERVER_RCON (RecvPacket *p);
 
 	/**
 	 * Send what would be printed on the server's console also into the admin network.
@@ -422,7 +422,7 @@ protected:
 	 * @param p The packet that was just received.
 	 * @return The state the network should have.
 	 */
-	virtual NetworkRecvStatus Receive_SERVER_CONSOLE(Packet *p);
+	virtual NetworkRecvStatus Receive_SERVER_CONSOLE (RecvPacket *p);
 
 	/**
 	 * Send DoCommand names to the bot upon request only.
@@ -441,7 +441,7 @@ protected:
 	 * @param p The packet that was just received.
 	 * @return The state the network should have.
 	 */
-	virtual NetworkRecvStatus Receive_SERVER_CMD_NAMES(Packet *p);
+	virtual NetworkRecvStatus Receive_SERVER_CMD_NAMES (RecvPacket *p);
 
 	/**
 	 * Send incoming command packets to the admin network.
@@ -463,7 +463,7 @@ protected:
 	 * @param p The packet that was just received.
 	 * @return The state the network should have.
 	 */
-	virtual NetworkRecvStatus Receive_SERVER_CMD_LOGGING(Packet *p);
+	virtual NetworkRecvStatus Receive_SERVER_CMD_LOGGING (RecvPacket *p);
 
 	/**
 	 * Send a ping-reply (pong) to the admin that sent us the ping packet.
@@ -471,7 +471,7 @@ protected:
 	 * @param p The packet that was just received.
 	 * @return The state the network should have.
 	 */
-	virtual NetworkRecvStatus Receive_SERVER_PONG(Packet *p);
+	virtual NetworkRecvStatus Receive_SERVER_PONG (RecvPacket *p);
 
 	/**
 	 * Notify the admin connection that the rcon command has finished.
@@ -479,9 +479,9 @@ protected:
 	 * @param p The packet that was just received.
 	 * @return The state the network should have.
 	 */
-	virtual NetworkRecvStatus Receive_SERVER_RCON_END(Packet *p);
+	virtual NetworkRecvStatus Receive_SERVER_RCON_END (RecvPacket *p);
 
-	NetworkRecvStatus HandlePacket(Packet *p);
+	NetworkRecvStatus HandlePacket (RecvPacket *p);
 public:
 	NetworkRecvStatus CloseConnection(bool error = true);
 

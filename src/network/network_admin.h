@@ -23,14 +23,14 @@ extern AdminIndex _redirect_console_to_admin;
 /** Class for handling the server side of the game connection. */
 class ServerNetworkAdminSocketHandler : public PooledItem <ServerNetworkAdminSocketHandler, AdminIndex, 2, MAX_ADMINS, PT_NADMIN>, public NetworkAdminSocketHandler, public TCPListenHandler<ServerNetworkAdminSocketHandler, ADMIN_PACKET_SERVER_FULL, ADMIN_PACKET_SERVER_BANNED> {
 protected:
-	virtual NetworkRecvStatus Receive_ADMIN_JOIN(Packet *p);
-	virtual NetworkRecvStatus Receive_ADMIN_QUIT(Packet *p);
-	virtual NetworkRecvStatus Receive_ADMIN_UPDATE_FREQUENCY(Packet *p);
-	virtual NetworkRecvStatus Receive_ADMIN_POLL(Packet *p);
-	virtual NetworkRecvStatus Receive_ADMIN_CHAT(Packet *p);
-	virtual NetworkRecvStatus Receive_ADMIN_RCON(Packet *p);
-	virtual NetworkRecvStatus Receive_ADMIN_GAMESCRIPT(Packet *p);
-	virtual NetworkRecvStatus Receive_ADMIN_PING(Packet *p);
+	virtual NetworkRecvStatus Receive_ADMIN_JOIN (RecvPacket *p);
+	virtual NetworkRecvStatus Receive_ADMIN_QUIT (RecvPacket *p);
+	virtual NetworkRecvStatus Receive_ADMIN_UPDATE_FREQUENCY (RecvPacket *p);
+	virtual NetworkRecvStatus Receive_ADMIN_POLL (RecvPacket *p);
+	virtual NetworkRecvStatus Receive_ADMIN_CHAT (RecvPacket *p);
+	virtual NetworkRecvStatus Receive_ADMIN_RCON (RecvPacket *p);
+	virtual NetworkRecvStatus Receive_ADMIN_GAMESCRIPT (RecvPacket *p);
+	virtual NetworkRecvStatus Receive_ADMIN_PING (RecvPacket *p);
 
 	NetworkRecvStatus SendProtocol();
 	NetworkRecvStatus SendPong(uint32 d1);

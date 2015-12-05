@@ -25,22 +25,22 @@ typedef ServerNetworkGameSocketHandler NetworkClientSocket;
 /** Class for handling the server side of the game connection. */
 class ServerNetworkGameSocketHandler : public PooledItem <NetworkClientSocket, ClientIndex, 8, MAX_CLIENT_SLOTS, PT_NCLIENT>, public NetworkGameSocketHandler, public TCPListenHandler<ServerNetworkGameSocketHandler, PACKET_SERVER_FULL, PACKET_SERVER_BANNED> {
 protected:
-	virtual NetworkRecvStatus Receive_CLIENT_JOIN(Packet *p);
-	virtual NetworkRecvStatus Receive_CLIENT_COMPANY_INFO(Packet *p);
-	virtual NetworkRecvStatus Receive_CLIENT_GAME_PASSWORD(Packet *p);
-	virtual NetworkRecvStatus Receive_CLIENT_COMPANY_PASSWORD(Packet *p);
-	virtual NetworkRecvStatus Receive_CLIENT_GETMAP(Packet *p);
-	virtual NetworkRecvStatus Receive_CLIENT_MAP_OK(Packet *p);
-	virtual NetworkRecvStatus Receive_CLIENT_ACK(Packet *p);
-	virtual NetworkRecvStatus Receive_CLIENT_COMMAND(Packet *p);
-	virtual NetworkRecvStatus Receive_CLIENT_CHAT(Packet *p);
-	virtual NetworkRecvStatus Receive_CLIENT_SET_PASSWORD(Packet *p);
-	virtual NetworkRecvStatus Receive_CLIENT_SET_NAME(Packet *p);
-	virtual NetworkRecvStatus Receive_CLIENT_QUIT(Packet *p);
-	virtual NetworkRecvStatus Receive_CLIENT_ERROR(Packet *p);
-	virtual NetworkRecvStatus Receive_CLIENT_RCON(Packet *p);
-	virtual NetworkRecvStatus Receive_CLIENT_NEWGRFS_CHECKED(Packet *p);
-	virtual NetworkRecvStatus Receive_CLIENT_MOVE(Packet *p);
+	virtual NetworkRecvStatus Receive_CLIENT_JOIN (RecvPacket *p);
+	virtual NetworkRecvStatus Receive_CLIENT_COMPANY_INFO (RecvPacket *p);
+	virtual NetworkRecvStatus Receive_CLIENT_GAME_PASSWORD (RecvPacket *p);
+	virtual NetworkRecvStatus Receive_CLIENT_COMPANY_PASSWORD (RecvPacket *p);
+	virtual NetworkRecvStatus Receive_CLIENT_GETMAP (RecvPacket *p);
+	virtual NetworkRecvStatus Receive_CLIENT_MAP_OK (RecvPacket *p);
+	virtual NetworkRecvStatus Receive_CLIENT_ACK (RecvPacket *p);
+	virtual NetworkRecvStatus Receive_CLIENT_COMMAND (RecvPacket *p);
+	virtual NetworkRecvStatus Receive_CLIENT_CHAT (RecvPacket *p);
+	virtual NetworkRecvStatus Receive_CLIENT_SET_PASSWORD (RecvPacket *p);
+	virtual NetworkRecvStatus Receive_CLIENT_SET_NAME (RecvPacket *p);
+	virtual NetworkRecvStatus Receive_CLIENT_QUIT (RecvPacket *p);
+	virtual NetworkRecvStatus Receive_CLIENT_ERROR (RecvPacket *p);
+	virtual NetworkRecvStatus Receive_CLIENT_RCON (RecvPacket *p);
+	virtual NetworkRecvStatus Receive_CLIENT_NEWGRFS_CHECKED (RecvPacket *p);
+	virtual NetworkRecvStatus Receive_CLIENT_MOVE (RecvPacket *p);
 
 	NetworkRecvStatus SendCompanyInfo();
 	NetworkRecvStatus SendNewGRFCheck();
@@ -78,7 +78,7 @@ public:
 	ServerNetworkGameSocketHandler(SOCKET s);
 	~ServerNetworkGameSocketHandler();
 
-	virtual Packet *ReceivePacket();
+	virtual RecvPacket *ReceivePacket();
 	NetworkRecvStatus CloseConnection(NetworkRecvStatus status);
 	void GetClientName(char *client_name, size_t size) const;
 

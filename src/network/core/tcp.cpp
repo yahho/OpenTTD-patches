@@ -153,17 +153,17 @@ SendPacketsState NetworkTCPSocketHandler::SendPackets(bool closing_down)
  * Receives a packet for the given client
  * @return The received packet (or NULL when it didn't receive one)
  */
-Packet *NetworkTCPSocketHandler::ReceivePacket()
+RecvPacket *NetworkTCPSocketHandler::ReceivePacket()
 {
 	ssize_t res;
 
 	if (!this->IsConnected()) return NULL;
 
 	if (this->packet_recv == NULL) {
-		this->packet_recv = new Packet(this);
+		this->packet_recv = new RecvPacket (this);
 	}
 
-	Packet *p = this->packet_recv;
+	RecvPacket *p = this->packet_recv;
 
 	/* Read packet size */
 	if (p->pos < sizeof(PacketSize)) {
