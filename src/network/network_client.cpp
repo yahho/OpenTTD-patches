@@ -318,8 +318,7 @@ NetworkRecvStatus ClientNetworkGameSocketHandler::SendCompanyInformationQuery()
 	_network_join_status = NETWORK_JOIN_STATUS_GETTING_COMPANY_INFO;
 	SetWindowDirty(WC_NETWORK_STATUS_WINDOW, WN_NETWORK_STATUS_WINDOW_JOIN);
 
-	Packet *p = new Packet(PACKET_CLIENT_COMPANY_INFO);
-	my_client->SendPacket(p);
+	my_client->SendPacket (PACKET_CLIENT_COMPANY_INFO);
 	return NETWORK_RECV_STATUS_OKAY;
 }
 
@@ -343,8 +342,7 @@ NetworkRecvStatus ClientNetworkGameSocketHandler::SendJoin()
 /** Tell the server we got all the NewGRFs. */
 NetworkRecvStatus ClientNetworkGameSocketHandler::SendNewGRFsOk()
 {
-	Packet *p = new Packet(PACKET_CLIENT_NEWGRFS_CHECKED);
-	my_client->SendPacket(p);
+	my_client->SendPacket (PACKET_CLIENT_NEWGRFS_CHECKED);
 	return NETWORK_RECV_STATUS_OKAY;
 }
 
@@ -377,8 +375,7 @@ NetworkRecvStatus ClientNetworkGameSocketHandler::SendGetMap()
 {
 	my_client->status = STATUS_MAP_WAIT;
 
-	Packet *p = new Packet(PACKET_CLIENT_GETMAP);
-	my_client->SendPacket(p);
+	my_client->SendPacket (PACKET_CLIENT_GETMAP);
 	return NETWORK_RECV_STATUS_OKAY;
 }
 
@@ -387,8 +384,7 @@ NetworkRecvStatus ClientNetworkGameSocketHandler::SendMapOk()
 {
 	my_client->status = STATUS_ACTIVE;
 
-	Packet *p = new Packet(PACKET_CLIENT_MAP_OK);
-	my_client->SendPacket(p);
+	my_client->SendPacket (PACKET_CLIENT_MAP_OK);
 	return NETWORK_RECV_STATUS_OKAY;
 }
 
@@ -473,9 +469,7 @@ NetworkRecvStatus ClientNetworkGameSocketHandler::SendSetName(const char *name)
  */
 NetworkRecvStatus ClientNetworkGameSocketHandler::SendQuit()
 {
-	Packet *p = new Packet(PACKET_CLIENT_QUIT);
-
-	my_client->SendPacket(p);
+	my_client->SendPacket (PACKET_CLIENT_QUIT);
 	return NETWORK_RECV_STATUS_OKAY;
 }
 

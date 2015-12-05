@@ -187,16 +187,14 @@ NetworkRecvStatus ServerNetworkAdminSocketHandler::SendWelcome()
 /** Tell the admin we started a new game. */
 NetworkRecvStatus ServerNetworkAdminSocketHandler::SendNewGame()
 {
-	Packet *p = new Packet(ADMIN_PACKET_SERVER_NEWGAME);
-	this->SendPacket(p);
+	this->SendPacket (ADMIN_PACKET_SERVER_NEWGAME);
 	return NETWORK_RECV_STATUS_OKAY;
 }
 
 /** Tell the admin we're shutting down. */
 NetworkRecvStatus ServerNetworkAdminSocketHandler::SendShutdown()
 {
-	Packet *p = new Packet(ADMIN_PACKET_SERVER_SHUTDOWN);
-	this->SendPacket(p);
+	this->SendPacket (ADMIN_PACKET_SERVER_SHUTDOWN);
 	return NETWORK_RECV_STATUS_OKAY;
 }
 

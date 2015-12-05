@@ -483,8 +483,7 @@ NetworkRecvStatus ServerNetworkGameSocketHandler::SendNeedGamePassword()
 	/* Reset 'lag' counters */
 	this->last_frame = this->last_frame_server = _frame_counter;
 
-	Packet *p = new Packet(PACKET_SERVER_NEED_GAME_PASSWORD);
-	this->SendPacket(p);
+	this->SendPacket (PACKET_SERVER_NEED_GAME_PASSWORD);
 	return NETWORK_RECV_STATUS_OKAY;
 }
 
@@ -599,8 +598,7 @@ NetworkRecvStatus ServerNetworkGameSocketHandler::SendMap()
 				break;
 			} else {
 				/* Add a packet stating that this is the end of the map. */
-				Packet *p = new Packet(PACKET_SERVER_MAP_DONE);
-				this->SendPacket(p);
+				this->SendPacket (PACKET_SERVER_MAP_DONE);
 
 				/* There is no more data, so break the for */
 				last_packet = true;
@@ -787,16 +785,14 @@ NetworkRecvStatus ServerNetworkGameSocketHandler::SendQuit(ClientID client_id)
 /** Tell the client we're shutting down. */
 NetworkRecvStatus ServerNetworkGameSocketHandler::SendShutdown()
 {
-	Packet *p = new Packet(PACKET_SERVER_SHUTDOWN);
-	this->SendPacket(p);
+	this->SendPacket (PACKET_SERVER_SHUTDOWN);
 	return NETWORK_RECV_STATUS_OKAY;
 }
 
 /** Tell the client we're starting a new game. */
 NetworkRecvStatus ServerNetworkGameSocketHandler::SendNewGame()
 {
-	Packet *p = new Packet(PACKET_SERVER_NEWGAME);
-	this->SendPacket(p);
+	this->SendPacket (PACKET_SERVER_NEWGAME);
 	return NETWORK_RECV_STATUS_OKAY;
 }
 

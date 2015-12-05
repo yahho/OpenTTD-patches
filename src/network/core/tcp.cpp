@@ -83,6 +83,17 @@ void NetworkTCPSocketHandler::SendPacket(Packet *packet)
 }
 
 /**
+ * This function creates a packet of the given type with no data and puts it
+ * in the send queue.
+ * @param type The type of packet to send.
+ */
+void NetworkTCPSocketHandler::SendPacket (PacketType type)
+{
+	Packet *p = new Packet (type);
+	this->SendPacket (p);
+}
+
+/**
  * Sends all the buffered packets out for this client. It stops when:
  *   1) all packets are send (queue is empty)
  *   2) the OS reports back that it can not send any more
