@@ -201,12 +201,10 @@ void ClientNetworkContentSocketHandler::RequestContentList(ContentType type)
 
 	this->Connect();
 
-	Packet *p = new Packet(PACKET_CONTENT_CLIENT_INFO_LIST);
-	p->Send_uint8 ((byte)type);
-	p->Send_uint32(_openttd_newgrf_version);
-
-	this->SendPacket(p);
-	delete p;
+	Packet p (PACKET_CONTENT_CLIENT_INFO_LIST);
+	p.Send_uint8  ((byte)type);
+	p.Send_uint32 (_openttd_newgrf_version);
+	this->SendPacket (&p);
 }
 
 /**
@@ -226,15 +224,15 @@ void ClientNetworkContentSocketHandler::RequestContentList(uint count, const Con
 		 * used for the IDs. */
 		uint p_count = min(count, (SEND_MTU - sizeof(PacketSize) - sizeof(byte) - sizeof(byte) - sizeof(uint16)) / sizeof(uint32));
 
-		Packet *p = new Packet(PACKET_CONTENT_CLIENT_INFO_ID);
-		p->Send_uint16(p_count);
+		Packet p (PACKET_CONTENT_CLIENT_INFO_ID);
+		p.Send_uint16 (p_count);
 
 		for (uint i = 0; i < p_count; i++) {
-			p->Send_uint32(content_ids[i]);
+			p.Send_uint32 (content_ids[i]);
 		}
 
-		this->SendPacket(p);
-		delete p;
+		this->SendPacket (&p);
+
 		count -= p_count;
 		content_ids += p_count;
 	}
@@ -255,22 +253,21 @@ void ClientNetworkContentSocketHandler::RequestContentList(ContentVector *cv, bo
 	assert(cv->Length() < 255);
 	assert(cv->Length() < (SEND_MTU - sizeof(PacketSize) - sizeof(byte) - sizeof(uint8)) / (send_md5sum ? 20 : sizeof(uint32)));
 
-	Packet *p = new Packet(send_md5sum ? PACKET_CONTENT_CLIENT_INFO_EXTID_MD5 : PACKET_CONTENT_CLIENT_INFO_EXTID);
-	p->Send_uint8(cv->Length());
+	Packet p (send_md5sum ? PACKET_CONTENT_CLIENT_INFO_EXTID_MD5 : PACKET_CONTENT_CLIENT_INFO_EXTID);
+	p.Send_uint8 (cv->Length());
 
 	for (ContentIterator iter = cv->Begin(); iter != cv->End(); iter++) {
 		const ContentInfo *ci = *iter;
-		p->Send_uint8((byte)ci->type);
-		p->Send_uint32(ci->unique_id);
+		p.Send_uint8 ((byte)ci->type);
+		p.Send_uint32 (ci->unique_id);
 		if (!send_md5sum) continue;
 
 		for (uint j = 0; j < sizeof(ci->md5sum); j++) {
-			p->Send_uint8(ci->md5sum[j]);
+			p.Send_uint8 (ci->md5sum[j]);
 		}
 	}
 
-	this->SendPacket(p);
-	delete p;
+	this->SendPacket (&p);
 
 	for (ContentIterator iter = cv->Begin(); iter != cv->End(); iter++) {
 		ContentInfo *ci = *iter;
@@ -366,15 +363,15 @@ void ClientNetworkContentSocketHandler::DownloadSelectedContentFallback(const Co
 		 * The rest of the packet can be used for the IDs. */
 		uint p_count = min(count, (SEND_MTU - sizeof(PacketSize) - sizeof(byte) - sizeof(uint16)) / sizeof(uint32));
 
-		Packet *p = new Packet(PACKET_CONTENT_CLIENT_CONTENT);
-		p->Send_uint16(p_count);
+		Packet p (PACKET_CONTENT_CLIENT_CONTENT);
+		p.Send_uint16 (p_count);
 
 		for (uint i = 0; i < p_count; i++) {
-			p->Send_uint32(content_ids[i]);
+			p.Send_uint32 (content_ids[i]);
 		}
 
-		this->SendPacket(p);
-		delete p;
+		this->SendPacket (&p);
+
 		count -= p_count;
 		content_ids += p_count;
 	}

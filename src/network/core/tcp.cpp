@@ -87,9 +87,8 @@ void NetworkTCPSocketHandler::SendPacket (const Packet *packet)
  */
 void NetworkTCPSocketHandler::SendPacket (PacketType type)
 {
-	Packet *p = new Packet (type);
-	this->SendPacket (p);
-	delete p;
+	Packet p (type);
+	this->SendPacket (&p);
 }
 
 /**

@@ -329,14 +329,13 @@ NetworkRecvStatus ClientNetworkGameSocketHandler::SendJoin()
 	_network_join_status = NETWORK_JOIN_STATUS_AUTHORIZING;
 	SetWindowDirty(WC_NETWORK_STATUS_WINDOW, WN_NETWORK_STATUS_WINDOW_JOIN);
 
-	Packet *p = new Packet(PACKET_CLIENT_JOIN);
-	p->Send_string(_openttd_revision);
-	p->Send_uint32(_openttd_newgrf_version);
-	p->Send_string(_settings_client.network.client_name); // Client name
-	p->Send_uint8 (_network_join_as);     // PlayAs
-	p->Send_uint8 (NETLANG_ANY);          // Language
-	my_client->SendPacket(p);
-	delete p;
+	Packet p (PACKET_CLIENT_JOIN);
+	p.Send_string (_openttd_revision);
+	p.Send_uint32 (_openttd_newgrf_version);
+	p.Send_string (_settings_client.network.client_name); // Client name
+	p.Send_uint8  (_network_join_as);     // PlayAs
+	p.Send_uint8  (NETLANG_ANY);          // Language
+	my_client->SendPacket (&p);
 	return NETWORK_RECV_STATUS_OKAY;
 }
 
@@ -353,10 +352,9 @@ NetworkRecvStatus ClientNetworkGameSocketHandler::SendNewGRFsOk()
  */
 NetworkRecvStatus ClientNetworkGameSocketHandler::SendGamePassword(const char *password)
 {
-	Packet *p = new Packet(PACKET_CLIENT_GAME_PASSWORD);
-	p->Send_string(password);
-	my_client->SendPacket(p);
-	delete p;
+	Packet p (PACKET_CLIENT_GAME_PASSWORD);
+	p.Send_string (password);
+	my_client->SendPacket (&p);
 	return NETWORK_RECV_STATUS_OKAY;
 }
 
@@ -366,10 +364,9 @@ NetworkRecvStatus ClientNetworkGameSocketHandler::SendGamePassword(const char *p
  */
 NetworkRecvStatus ClientNetworkGameSocketHandler::SendCompanyPassword(const char *password)
 {
-	Packet *p = new Packet(PACKET_CLIENT_COMPANY_PASSWORD);
-	p->Send_string(GenerateCompanyPasswordHash(password, _password_server_id, _password_game_seed));
-	my_client->SendPacket(p);
-	delete p;
+	Packet p (PACKET_CLIENT_COMPANY_PASSWORD);
+	p.Send_string (GenerateCompanyPasswordHash (password, _password_server_id, _password_game_seed));
+	my_client->SendPacket (&p);
 	return NETWORK_RECV_STATUS_OKAY;
 }
 
@@ -394,12 +391,10 @@ NetworkRecvStatus ClientNetworkGameSocketHandler::SendMapOk()
 /** Send an acknowledgement from the server's ticks. */
 NetworkRecvStatus ClientNetworkGameSocketHandler::SendAck()
 {
-	Packet *p = new Packet(PACKET_CLIENT_ACK);
-
-	p->Send_uint32(_frame_counter);
-	p->Send_uint8 (my_client->token);
-	my_client->SendPacket(p);
-	delete p;
+	Packet p (PACKET_CLIENT_ACK);
+	p.Send_uint32 (_frame_counter);
+	p.Send_uint8  (my_client->token);
+	my_client->SendPacket (&p);
 	return NETWORK_RECV_STATUS_OKAY;
 }
 
@@ -410,38 +405,34 @@ NetworkRecvStatus ClientNetworkGameSocketHandler::SendAck()
  */
 NetworkRecvStatus ClientNetworkGameSocketHandler::SendCommand(CompanyID company, const Command *c)
 {
-	Packet *p = new Packet(PACKET_CLIENT_COMMAND);
-	CommandPacket::SendTo (company, c, p);
+	Packet p (PACKET_CLIENT_COMMAND);
+	CommandPacket::SendTo (company, c, &p);
 
-	my_client->SendPacket(p);
-	delete p;
+	my_client->SendPacket (&p);
 	return NETWORK_RECV_STATUS_OKAY;
 }
 
 /** Send a chat-packet over the network */
 NetworkRecvStatus ClientNetworkGameSocketHandler::SendChat(NetworkAction action, DestType type, int dest, const char *msg, int64 data)
 {
-	Packet *p = new Packet(PACKET_CLIENT_CHAT);
+	Packet p (PACKET_CLIENT_CHAT);
 
-	p->Send_uint8 (action);
-	p->Send_uint8 (type);
-	p->Send_uint32(dest);
-	p->Send_string(msg);
-	p->Send_uint64(data);
+	p.Send_uint8  (action);
+	p.Send_uint8  (type);
+	p.Send_uint32 (dest);
+	p.Send_string (msg);
+	p.Send_uint64 (data);
 
-	my_client->SendPacket(p);
-	delete p;
+	my_client->SendPacket (&p);
 	return NETWORK_RECV_STATUS_OKAY;
 }
 
 /** Send an error-packet over the network */
 NetworkRecvStatus ClientNetworkGameSocketHandler::SendError(NetworkErrorCode errorno)
 {
-	Packet *p = new Packet(PACKET_CLIENT_ERROR);
-
-	p->Send_uint8(errorno);
-	my_client->SendPacket(p);
-	delete p;
+	Packet p (PACKET_CLIENT_ERROR);
+	p.Send_uint8 (errorno);
+	my_client->SendPacket (&p);
 	return NETWORK_RECV_STATUS_OKAY;
 }
 
@@ -451,11 +442,9 @@ NetworkRecvStatus ClientNetworkGameSocketHandler::SendError(NetworkErrorCode err
  */
 NetworkRecvStatus ClientNetworkGameSocketHandler::SendSetPassword(const char *password)
 {
-	Packet *p = new Packet(PACKET_CLIENT_SET_PASSWORD);
-
-	p->Send_string(GenerateCompanyPasswordHash(password, _password_server_id, _password_game_seed));
-	my_client->SendPacket(p);
-	delete p;
+	Packet p (PACKET_CLIENT_SET_PASSWORD);
+	p.Send_string (GenerateCompanyPasswordHash (password, _password_server_id, _password_game_seed));
+	my_client->SendPacket (&p);
 	return NETWORK_RECV_STATUS_OKAY;
 }
 
@@ -465,11 +454,9 @@ NetworkRecvStatus ClientNetworkGameSocketHandler::SendSetPassword(const char *pa
  */
 NetworkRecvStatus ClientNetworkGameSocketHandler::SendSetName(const char *name)
 {
-	Packet *p = new Packet(PACKET_CLIENT_SET_NAME);
-
-	p->Send_string(name);
-	my_client->SendPacket(p);
-	delete p;
+	Packet p (PACKET_CLIENT_SET_NAME);
+	p.Send_string (name);
+	my_client->SendPacket (&p);
 	return NETWORK_RECV_STATUS_OKAY;
 }
 
@@ -489,11 +476,10 @@ NetworkRecvStatus ClientNetworkGameSocketHandler::SendQuit()
  */
 NetworkRecvStatus ClientNetworkGameSocketHandler::SendRCon(const char *pass, const char *command)
 {
-	Packet *p = new Packet(PACKET_CLIENT_RCON);
-	p->Send_string(pass);
-	p->Send_string(command);
-	my_client->SendPacket(p);
-	delete p;
+	Packet p (PACKET_CLIENT_RCON);
+	p.Send_string (pass);
+	p.Send_string (command);
+	my_client->SendPacket (&p);
 	return NETWORK_RECV_STATUS_OKAY;
 }
 
@@ -504,11 +490,10 @@ NetworkRecvStatus ClientNetworkGameSocketHandler::SendRCon(const char *pass, con
  */
 NetworkRecvStatus ClientNetworkGameSocketHandler::SendMove(CompanyID company, const char *password)
 {
-	Packet *p = new Packet(PACKET_CLIENT_MOVE);
-	p->Send_uint8(company);
-	p->Send_string(GenerateCompanyPasswordHash(password, _password_server_id, _password_game_seed));
-	my_client->SendPacket(p);
-	delete p;
+	Packet p (PACKET_CLIENT_MOVE);
+	p.Send_uint8 (company);
+	p.Send_string (GenerateCompanyPasswordHash (password, _password_server_id, _password_game_seed));
+	my_client->SendPacket (&p);
 	return NETWORK_RECV_STATUS_OKAY;
 }
 
