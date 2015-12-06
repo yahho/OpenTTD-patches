@@ -336,6 +336,7 @@ NetworkRecvStatus ClientNetworkGameSocketHandler::SendJoin()
 	p->Send_uint8 (_network_join_as);     // PlayAs
 	p->Send_uint8 (NETLANG_ANY);          // Language
 	my_client->SendPacket(p);
+	delete p;
 	return NETWORK_RECV_STATUS_OKAY;
 }
 
@@ -355,6 +356,7 @@ NetworkRecvStatus ClientNetworkGameSocketHandler::SendGamePassword(const char *p
 	Packet *p = new Packet(PACKET_CLIENT_GAME_PASSWORD);
 	p->Send_string(password);
 	my_client->SendPacket(p);
+	delete p;
 	return NETWORK_RECV_STATUS_OKAY;
 }
 
@@ -367,6 +369,7 @@ NetworkRecvStatus ClientNetworkGameSocketHandler::SendCompanyPassword(const char
 	Packet *p = new Packet(PACKET_CLIENT_COMPANY_PASSWORD);
 	p->Send_string(GenerateCompanyPasswordHash(password, _password_server_id, _password_game_seed));
 	my_client->SendPacket(p);
+	delete p;
 	return NETWORK_RECV_STATUS_OKAY;
 }
 
@@ -396,6 +399,7 @@ NetworkRecvStatus ClientNetworkGameSocketHandler::SendAck()
 	p->Send_uint32(_frame_counter);
 	p->Send_uint8 (my_client->token);
 	my_client->SendPacket(p);
+	delete p;
 	return NETWORK_RECV_STATUS_OKAY;
 }
 
@@ -410,6 +414,7 @@ NetworkRecvStatus ClientNetworkGameSocketHandler::SendCommand(CompanyID company,
 	CommandPacket::SendTo (company, c, p);
 
 	my_client->SendPacket(p);
+	delete p;
 	return NETWORK_RECV_STATUS_OKAY;
 }
 
@@ -425,6 +430,7 @@ NetworkRecvStatus ClientNetworkGameSocketHandler::SendChat(NetworkAction action,
 	p->Send_uint64(data);
 
 	my_client->SendPacket(p);
+	delete p;
 	return NETWORK_RECV_STATUS_OKAY;
 }
 
@@ -435,6 +441,7 @@ NetworkRecvStatus ClientNetworkGameSocketHandler::SendError(NetworkErrorCode err
 
 	p->Send_uint8(errorno);
 	my_client->SendPacket(p);
+	delete p;
 	return NETWORK_RECV_STATUS_OKAY;
 }
 
@@ -448,6 +455,7 @@ NetworkRecvStatus ClientNetworkGameSocketHandler::SendSetPassword(const char *pa
 
 	p->Send_string(GenerateCompanyPasswordHash(password, _password_server_id, _password_game_seed));
 	my_client->SendPacket(p);
+	delete p;
 	return NETWORK_RECV_STATUS_OKAY;
 }
 
@@ -461,6 +469,7 @@ NetworkRecvStatus ClientNetworkGameSocketHandler::SendSetName(const char *name)
 
 	p->Send_string(name);
 	my_client->SendPacket(p);
+	delete p;
 	return NETWORK_RECV_STATUS_OKAY;
 }
 
@@ -484,6 +493,7 @@ NetworkRecvStatus ClientNetworkGameSocketHandler::SendRCon(const char *pass, con
 	p->Send_string(pass);
 	p->Send_string(command);
 	my_client->SendPacket(p);
+	delete p;
 	return NETWORK_RECV_STATUS_OKAY;
 }
 
@@ -498,6 +508,7 @@ NetworkRecvStatus ClientNetworkGameSocketHandler::SendMove(CompanyID company, co
 	p->Send_uint8(company);
 	p->Send_string(GenerateCompanyPasswordHash(password, _password_server_id, _password_game_seed));
 	my_client->SendPacket(p);
+	delete p;
 	return NETWORK_RECV_STATUS_OKAY;
 }
 

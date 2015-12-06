@@ -70,7 +70,7 @@ void NetworkTCPSocketHandler::SendPacket (QueuedPacket *packet)
  * if the OS-network-buffer is full)
  * @param packet the packet to send
  */
-void NetworkTCPSocketHandler::SendPacket(Packet *packet)
+void NetworkTCPSocketHandler::SendPacket (const Packet *packet)
 {
 	assert(packet != NULL);
 
@@ -78,8 +78,6 @@ void NetworkTCPSocketHandler::SendPacket(Packet *packet)
 	 * keeping the other 1400+ bytes wastes memory, especially when someone tries
 	 * to do a denial of service attack! */
 	this->packet_queue.append (QueuedPacket::create (packet));
-
-	delete packet;
 }
 
 /**
@@ -91,6 +89,7 @@ void NetworkTCPSocketHandler::SendPacket (PacketType type)
 {
 	Packet *p = new Packet (type);
 	this->SendPacket (p);
+	delete p;
 }
 
 /**

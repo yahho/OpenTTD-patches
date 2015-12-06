@@ -190,6 +190,7 @@ struct PacketWriter : SaveFilter {
 		Packet *p = new Packet(PACKET_SERVER_MAP_SIZE);
 		p->Send_uint32((uint32)this->total_size);
 		this->cs->NetworkTCPSocketHandler::SendPacket(p);
+		delete p;
 
 		this->mutex->EndCritical();
 
@@ -341,6 +342,7 @@ NetworkRecvStatus ServerNetworkGameSocketHandler::SendClientInfo(NetworkClientIn
 		p->Send_string(ci->client_name);
 
 		this->SendPacket(p);
+		delete p;
 	}
 	return NETWORK_RECV_STATUS_OKAY;
 }
@@ -396,6 +398,7 @@ NetworkRecvStatus ServerNetworkGameSocketHandler::SendCompanyInfo()
 		}
 
 		this->SendPacket(p);
+		delete p;
 	}
 
 	p = new Packet(PACKET_SERVER_COMPANY_INFO);
@@ -404,6 +407,7 @@ NetworkRecvStatus ServerNetworkGameSocketHandler::SendCompanyInfo()
 	p->Send_bool  (false);
 
 	this->SendPacket(p);
+	delete p;
 	return NETWORK_RECV_STATUS_OKAY;
 }
 
@@ -418,6 +422,7 @@ NetworkRecvStatus ServerNetworkGameSocketHandler::SendError(NetworkErrorCode err
 
 	p->Send_uint8(error);
 	this->SendPacket(p);
+	delete p;
 
 	StringID strid = GetNetworkErrorMsg(error);
 	GetString (str, strid);
@@ -470,6 +475,7 @@ NetworkRecvStatus ServerNetworkGameSocketHandler::SendNewGRFCheck()
 	}
 
 	this->SendPacket(p);
+	delete p;
 	return NETWORK_RECV_STATUS_OKAY;
 }
 
@@ -501,6 +507,7 @@ NetworkRecvStatus ServerNetworkGameSocketHandler::SendNeedCompanyPassword()
 	p->Send_uint32(_settings_game.game_creation.generation_seed);
 	p->Send_string(_settings_client.network.network_id);
 	this->SendPacket(p);
+	delete p;
 	return NETWORK_RECV_STATUS_OKAY;
 }
 
@@ -524,6 +531,7 @@ NetworkRecvStatus ServerNetworkGameSocketHandler::SendWelcome()
 	p->Send_uint32(_settings_game.game_creation.generation_seed);
 	p->Send_string(_settings_client.network.network_id);
 	this->SendPacket(p);
+	delete p;
 
 	/* Transmit info about all the active clients */
 	FOR_ALL_CLIENT_SOCKETS(new_cs) {
@@ -551,6 +559,7 @@ NetworkRecvStatus ServerNetworkGameSocketHandler::SendWait()
 	p = new Packet(PACKET_SERVER_WAIT);
 	p->Send_uint8(waiting);
 	this->SendPacket(p);
+	delete p;
 	return NETWORK_RECV_STATUS_OKAY;
 }
 
@@ -571,6 +580,7 @@ NetworkRecvStatus ServerNetworkGameSocketHandler::SendMap()
 		Packet *p = new Packet(PACKET_SERVER_MAP_BEGIN);
 		p->Send_uint32(_frame_counter);
 		this->SendPacket(p);
+		delete p;
 
 		NetworkSyncCommandQueue(this);
 		this->status = STATUS_MAP;
@@ -672,6 +682,7 @@ NetworkRecvStatus ServerNetworkGameSocketHandler::SendJoin(ClientID client_id)
 	p->Send_uint32(client_id);
 
 	this->SendPacket(p);
+	delete p;
 	return NETWORK_RECV_STATUS_OKAY;
 }
 
@@ -695,6 +706,7 @@ NetworkRecvStatus ServerNetworkGameSocketHandler::SendFrame()
 	}
 
 	this->SendPacket(p);
+	delete p;
 	return NETWORK_RECV_STATUS_OKAY;
 }
 
@@ -709,6 +721,7 @@ NetworkRecvStatus ServerNetworkGameSocketHandler::SendSync()
 	p->Send_uint32(_sync_seed_2);
 #endif
 	this->SendPacket(p);
+	delete p;
 	return NETWORK_RECV_STATUS_OKAY;
 }
 
@@ -725,6 +738,7 @@ NetworkRecvStatus ServerNetworkGameSocketHandler::SendCommand(const CommandPacke
 	cp->SendTo (p, true);
 
 	this->SendPacket(p);
+	delete p;
 	return NETWORK_RECV_STATUS_OKAY;
 }
 
@@ -749,6 +763,7 @@ NetworkRecvStatus ServerNetworkGameSocketHandler::SendChat(NetworkAction action,
 	p->Send_uint64(data);
 
 	this->SendPacket(p);
+	delete p;
 	return NETWORK_RECV_STATUS_OKAY;
 }
 
@@ -765,6 +780,7 @@ NetworkRecvStatus ServerNetworkGameSocketHandler::SendErrorQuit(ClientID client_
 	p->Send_uint8 (errorno);
 
 	this->SendPacket(p);
+	delete p;
 	return NETWORK_RECV_STATUS_OKAY;
 }
 
@@ -779,6 +795,7 @@ NetworkRecvStatus ServerNetworkGameSocketHandler::SendQuit(ClientID client_id)
 	p->Send_uint32(client_id);
 
 	this->SendPacket(p);
+	delete p;
 	return NETWORK_RECV_STATUS_OKAY;
 }
 
@@ -808,6 +825,7 @@ NetworkRecvStatus ServerNetworkGameSocketHandler::SendRConResult(uint16 colour, 
 	p->Send_uint16(colour);
 	p->Send_string(command);
 	this->SendPacket(p);
+	delete p;
 	return NETWORK_RECV_STATUS_OKAY;
 }
 
@@ -823,6 +841,7 @@ NetworkRecvStatus ServerNetworkGameSocketHandler::SendMove(ClientID client_id, C
 	p->Send_uint32(client_id);
 	p->Send_uint8(company_id);
 	this->SendPacket(p);
+	delete p;
 	return NETWORK_RECV_STATUS_OKAY;
 }
 
@@ -833,6 +852,7 @@ NetworkRecvStatus ServerNetworkGameSocketHandler::SendCompanyUpdate()
 
 	p->Send_uint16(_network_company_passworded);
 	this->SendPacket(p);
+	delete p;
 	return NETWORK_RECV_STATUS_OKAY;
 }
 
@@ -844,6 +864,7 @@ NetworkRecvStatus ServerNetworkGameSocketHandler::SendConfigUpdate()
 	p->Send_uint8(_settings_client.network.max_companies);
 	p->Send_uint8(_settings_client.network.max_spectators);
 	this->SendPacket(p);
+	delete p;
 	return NETWORK_RECV_STATUS_OKAY;
 }
 

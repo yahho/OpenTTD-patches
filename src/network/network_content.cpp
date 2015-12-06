@@ -206,6 +206,7 @@ void ClientNetworkContentSocketHandler::RequestContentList(ContentType type)
 	p->Send_uint32(_openttd_newgrf_version);
 
 	this->SendPacket(p);
+	delete p;
 }
 
 /**
@@ -233,6 +234,7 @@ void ClientNetworkContentSocketHandler::RequestContentList(uint count, const Con
 		}
 
 		this->SendPacket(p);
+		delete p;
 		count -= p_count;
 		content_ids += p_count;
 	}
@@ -268,6 +270,7 @@ void ClientNetworkContentSocketHandler::RequestContentList(ContentVector *cv, bo
 	}
 
 	this->SendPacket(p);
+	delete p;
 
 	for (ContentIterator iter = cv->Begin(); iter != cv->End(); iter++) {
 		ContentInfo *ci = *iter;
@@ -371,6 +374,7 @@ void ClientNetworkContentSocketHandler::DownloadSelectedContentFallback(const Co
 		}
 
 		this->SendPacket(p);
+		delete p;
 		count -= p_count;
 		content_ids += p_count;
 	}
