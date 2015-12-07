@@ -309,20 +309,20 @@ NetworkRecvStatus ServerNetworkAdminSocketHandler::SendCompanyNew(CompanyID comp
  */
 NetworkRecvStatus ServerNetworkAdminSocketHandler::SendCompanyInfo(const Company *c)
 {
-	char company_name[NETWORK_COMPANY_NAME_LENGTH];
-	char manager_name[NETWORK_COMPANY_NAME_LENGTH];
-
-	SetDParam(0, c->index);
-	GetString (company_name, STR_COMPANY_NAME);
-
-	SetDParam(0, c->index);
-	GetString (manager_name, STR_PRESIDENT_NAME);
+	char buffer[NETWORK_COMPANY_NAME_LENGTH];
 
 	Packet p (ADMIN_PACKET_SERVER_COMPANY_INFO);
 
 	p.Send_uint8  (c->index);
-	p.Send_string (company_name);
-	p.Send_string (manager_name);
+
+	SetDParam (0, c->index);
+	GetString (buffer, STR_COMPANY_NAME);
+	p.Send_string (buffer);
+
+	SetDParam (0, c->index);
+	GetString (buffer, STR_PRESIDENT_NAME);
+	p.Send_string (buffer);
+
 	p.Send_uint8  (c->colour);
 	p.Send_bool   (NetworkCompanyIsPassworded (c->index));
 	p.Send_uint32 (c->inaugurated_year);
@@ -345,20 +345,20 @@ NetworkRecvStatus ServerNetworkAdminSocketHandler::SendCompanyInfo(const Company
  */
 NetworkRecvStatus ServerNetworkAdminSocketHandler::SendCompanyUpdate(const Company *c)
 {
-	char company_name[NETWORK_COMPANY_NAME_LENGTH];
-	char manager_name[NETWORK_COMPANY_NAME_LENGTH];
-
-	SetDParam(0, c->index);
-	GetString (company_name, STR_COMPANY_NAME);
-
-	SetDParam(0, c->index);
-	GetString (manager_name, STR_PRESIDENT_NAME);
+	char buffer[NETWORK_COMPANY_NAME_LENGTH];
 
 	Packet p (ADMIN_PACKET_SERVER_COMPANY_UPDATE);
 
 	p.Send_uint8  (c->index);
-	p.Send_string (company_name);
-	p.Send_string (manager_name);
+
+	SetDParam (0, c->index);
+	GetString (buffer, STR_COMPANY_NAME);
+	p.Send_string (buffer);
+
+	SetDParam (0, c->index);
+	GetString (buffer, STR_PRESIDENT_NAME);
+	p.Send_string (buffer);
+
 	p.Send_uint8  (c->colour);
 	p.Send_bool   (NetworkCompanyIsPassworded (c->index));
 	p.Send_uint8  (CeilDiv (c->months_of_bankruptcy, 3)); // send as quarters_of_bankruptcy
