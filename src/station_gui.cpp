@@ -739,11 +739,14 @@ static const NWidgetPart _nested_company_stations_widgets[] = {
 	EndContainer(),
 };
 
+static WindowDesc::Prefs _company_stations_prefs ("list_stations");
+
 static WindowDesc _company_stations_desc(
-	WDP_AUTO, "list_stations", 358, 162,
+	WDP_AUTO, 358, 162,
 	WC_STATION_LIST, WC_NONE,
 	0,
-	_nested_company_stations_widgets, lengthof(_nested_company_stations_widgets)
+	_nested_company_stations_widgets, lengthof(_nested_company_stations_widgets),
+	&_company_stations_prefs
 );
 
 /**
@@ -2026,11 +2029,14 @@ const StationViewWindow::Grouping StationViewWindow::arrangements[6][NUM_COLUMNS
 
 assert_compile (lengthof(StationViewWindow::_group_names) == lengthof(StationViewWindow::arrangements) + 1);
 
+static WindowDesc::Prefs _station_view_prefs ("view_station");
+
 static WindowDesc _station_view_desc(
-	WDP_AUTO, "view_station", 249, 117,
+	WDP_AUTO, 249, 117,
 	WC_STATION_VIEW, WC_NONE,
 	0,
-	_nested_station_view_widgets, lengthof(_nested_station_view_widgets)
+	_nested_station_view_widgets, lengthof(_nested_station_view_widgets),
+	&_station_view_prefs
 );
 
 /**
@@ -2261,11 +2267,14 @@ struct SelectStationWindow : Window {
 	}
 };
 
+static WindowDesc::Prefs _select_station_prefs ("build_station_join");
+
 static WindowDesc _select_station_desc(
-	WDP_AUTO, "build_station_join", 200, 180,
+	WDP_AUTO, 200, 180,
 	WC_SELECT_STATION, WC_NONE,
 	WDF_CONSTRUCTION,
-	_nested_select_station_widgets, lengthof(_nested_select_station_widgets)
+	_nested_select_station_widgets, lengthof(_nested_select_station_widgets),
+	&_select_station_prefs
 );
 
 

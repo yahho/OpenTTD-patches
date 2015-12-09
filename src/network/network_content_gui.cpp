@@ -146,7 +146,7 @@ static const NWidgetPart _nested_network_content_download_status_window_widgets[
 
 /** Window description for the download window */
 static WindowDesc _network_content_download_status_window_desc(
-	WDP_CENTER, NULL, 0, 0,
+	WDP_CENTER, 0, 0,
 	WC_NETWORK_STATUS_WINDOW, WC_NONE,
 	WDF_MODAL,
 	_nested_network_content_download_status_window_widgets, lengthof(_nested_network_content_download_status_window_widgets)
@@ -1080,12 +1080,16 @@ static const NWidgetPart _nested_network_content_list_widgets[] = {
 	EndContainer(),
 };
 
+/** Window preferences of the content list */
+static WindowDesc::Prefs _network_content_list_prefs ("list_content");
+
 /** Window description of the content list */
 static WindowDesc _network_content_list_desc(
-	WDP_CENTER, "list_content", 630, 460,
+	WDP_CENTER, 630, 460,
 	WC_NETWORK_WINDOW, WC_NONE,
 	0,
-	_nested_network_content_list_widgets, lengthof(_nested_network_content_list_widgets)
+	_nested_network_content_list_widgets, lengthof(_nested_network_content_list_widgets),
+	&_network_content_list_prefs
 );
 
 /**

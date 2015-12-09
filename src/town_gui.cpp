@@ -295,11 +295,14 @@ public:
 	}
 };
 
+static WindowDesc::Prefs _town_authority_prefs ("view_town_authority");
+
 static WindowDesc _town_authority_desc(
-	WDP_AUTO, "view_town_authority", 317, 222,
+	WDP_AUTO, 317, 222,
 	WC_TOWN_AUTHORITY, WC_NONE,
 	0,
-	_nested_town_authority_widgets, lengthof(_nested_town_authority_widgets)
+	_nested_town_authority_widgets, lengthof(_nested_town_authority_widgets),
+	&_town_authority_prefs
 );
 
 static void ShowTownAuthorityWindow(uint town)
@@ -594,11 +597,14 @@ static const NWidgetPart _nested_town_game_view_widgets[] = {
 	EndContainer(),
 };
 
+static WindowDesc::Prefs _town_game_view_prefs ("view_town");
+
 static WindowDesc _town_game_view_desc(
-	WDP_AUTO, "view_town", 260, TownViewWindow::WID_TV_HEIGHT_NORMAL,
+	WDP_AUTO, 260, TownViewWindow::WID_TV_HEIGHT_NORMAL,
 	WC_TOWN_VIEW, WC_NONE,
 	0,
-	_nested_town_game_view_widgets, lengthof(_nested_town_game_view_widgets)
+	_nested_town_game_view_widgets, lengthof(_nested_town_game_view_widgets),
+	&_town_game_view_prefs
 );
 
 static const NWidgetPart _nested_town_editor_view_widgets[] = {
@@ -630,11 +636,14 @@ static const NWidgetPart _nested_town_editor_view_widgets[] = {
 	EndContainer(),
 };
 
+static WindowDesc::Prefs _town_editor_view_prefs ("view_town_scen");
+
 static WindowDesc _town_editor_view_desc(
-	WDP_AUTO, "view_town_scen", 260, TownViewWindow::WID_TV_HEIGHT_NORMAL,
+	WDP_AUTO, 260, TownViewWindow::WID_TV_HEIGHT_NORMAL,
 	WC_TOWN_VIEW, WC_NONE,
 	0,
-	_nested_town_editor_view_widgets, lengthof(_nested_town_editor_view_widgets)
+	_nested_town_editor_view_widgets, lengthof(_nested_town_editor_view_widgets),
+	&_town_editor_view_prefs
 );
 
 void ShowTownViewWindow(TownID town)
@@ -987,11 +996,14 @@ GUITownList::SortFunction * const TownDirectoryWindow::sorter_funcs[] = {
 	&TownRatingSorter,
 };
 
+static WindowDesc::Prefs _town_directory_prefs ("list_towns");
+
 static WindowDesc _town_directory_desc(
-	WDP_AUTO, "list_towns", 208, 202,
+	WDP_AUTO, 208, 202,
 	WC_TOWN_DIRECTORY, WC_NONE,
 	0,
-	_nested_town_directory_widgets, lengthof(_nested_town_directory_widgets)
+	_nested_town_directory_widgets, lengthof(_nested_town_directory_widgets),
+	&_town_directory_prefs
 );
 
 void ShowTownDirectory()
@@ -1234,11 +1246,14 @@ public:
 	}
 };
 
+static WindowDesc::Prefs _found_town_prefs ("build_town");
+
 static WindowDesc _found_town_desc(
-	WDP_AUTO, "build_town", 160, 162,
+	WDP_AUTO, 160, 162,
 	WC_FOUND_TOWN, WC_NONE,
 	WDF_CONSTRUCTION,
-	_nested_found_town_widgets, lengthof(_nested_found_town_widgets)
+	_nested_found_town_widgets, lengthof(_nested_found_town_widgets),
+	&_found_town_prefs
 );
 
 void ShowFoundTownWindow()
@@ -1384,11 +1399,14 @@ static const NWidgetPart _nested_select_town_widgets[] = {
 	EndContainer(),
 };
 
+static WindowDesc::Prefs _select_town_prefs ("select_town");
+
 static WindowDesc _select_town_desc(
-	WDP_AUTO, "select_town", 100, 0,
+	WDP_AUTO, 100, 0,
 	WC_SELECT_TOWN, WC_NONE,
 	WDF_CONSTRUCTION,
-	_nested_select_town_widgets, lengthof(_nested_select_town_widgets)
+	_nested_select_town_widgets, lengthof(_nested_select_town_widgets),
+	&_select_town_prefs
 );
 
 
@@ -2036,11 +2054,14 @@ static const NWidgetPart _nested_house_picker_widgets[] = {
 	EndContainer(),
 };
 
+static WindowDesc::Prefs _house_picker_prefs ("build_house");
+
 static WindowDesc _house_picker_desc(
-	WDP_AUTO, "build_house", 0, 0,
+	WDP_AUTO, 0, 0,
 	WC_BUILD_HOUSE, WC_BUILD_TOOLBAR,
 	WDF_CONSTRUCTION,
-	_nested_house_picker_widgets, lengthof(_nested_house_picker_widgets)
+	_nested_house_picker_widgets, lengthof(_nested_house_picker_widgets),
+	&_house_picker_prefs
 );
 
 HouseID HousePickerWindow::cur_house = INVALID_HOUSE_ID;

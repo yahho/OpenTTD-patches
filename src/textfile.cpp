@@ -49,12 +49,16 @@ static const NWidgetPart _nested_textfile_widgets[] = {
 	EndContainer(),
 };
 
+/** Window preferences for the textfile window */
+static WindowDesc::Prefs _textfile_prefs ("textfile");
+
 /** Window definition for the textfile window */
 static WindowDesc _textfile_desc(
-	WDP_CENTER, "textfile", 630, 460,
+	WDP_CENTER, 630, 460,
 	WC_TEXTFILE, WC_NONE,
 	0,
-	_nested_textfile_widgets, lengthof(_nested_textfile_widgets)
+	_nested_textfile_widgets, lengthof(_nested_textfile_widgets),
+	&_textfile_prefs
 );
 
 

@@ -519,11 +519,11 @@ static Hotkey global_hotkeys[] = {
 HotkeyList MainWindow::hotkeys("global", global_hotkeys);
 
 static WindowDesc _main_window_desc(
-	WDP_MANUAL, NULL, 0, 0,
+	WDP_MANUAL, 0, 0,
 	WC_MAIN_WINDOW, WC_NONE,
 	0,
 	_nested_main_window_widgets, lengthof(_nested_main_window_widgets),
-	&MainWindow::hotkeys
+	NULL, &MainWindow::hotkeys
 );
 
 /**

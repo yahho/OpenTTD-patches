@@ -1866,11 +1866,14 @@ static const NWidgetPart _nested_smallmap_widgets[] = {
 	EndContainer(),
 };
 
+static WindowDesc::Prefs _smallmap_prefs ("smallmap");
+
 static WindowDesc _smallmap_desc(
-	WDP_AUTO, "smallmap", 484, 314,
+	WDP_AUTO, 484, 314,
 	WC_SMALLMAP, WC_NONE,
 	0,
-	_nested_smallmap_widgets, lengthof(_nested_smallmap_widgets)
+	_nested_smallmap_widgets, lengthof(_nested_smallmap_widgets),
+	&_smallmap_prefs
 );
 
 /**

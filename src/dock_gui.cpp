@@ -339,12 +339,14 @@ static const NWidgetPart _nested_build_docks_toolbar_widgets[] = {
 	EndContainer(),
 };
 
+static WindowDesc::Prefs _build_docks_toolbar_prefs ("toolbar_water");
+
 static WindowDesc _build_docks_toolbar_desc(
-	WDP_ALIGN_TOOLBAR, "toolbar_water", 0, 0,
+	WDP_ALIGN_TOOLBAR, 0, 0,
 	WC_BUILD_TOOLBAR, WC_NONE,
 	WDF_CONSTRUCTION,
 	_nested_build_docks_toolbar_widgets, lengthof(_nested_build_docks_toolbar_widgets),
-	&BuildDocksToolbarWindow::hotkeys
+	&_build_docks_toolbar_prefs, &BuildDocksToolbarWindow::hotkeys
 );
 
 /**
@@ -382,12 +384,16 @@ static const NWidgetPart _nested_build_docks_scen_toolbar_widgets[] = {
 	EndContainer(),
 };
 
+/** Window preferences for the build docks in scenario editor window. */
+static WindowDesc::Prefs _build_docks_scen_toolbar_prefs ("toolbar_water_scen");
+
 /** Window definition for the build docks in scenario editor window. */
 static WindowDesc _build_docks_scen_toolbar_desc(
-	WDP_AUTO, "toolbar_water_scen", 0, 0,
+	WDP_AUTO, 0, 0,
 	WC_SCEN_BUILD_TOOLBAR, WC_NONE,
 	WDF_CONSTRUCTION,
-	_nested_build_docks_scen_toolbar_widgets, lengthof(_nested_build_docks_scen_toolbar_widgets)
+	_nested_build_docks_scen_toolbar_widgets, lengthof(_nested_build_docks_scen_toolbar_widgets),
+	&_build_docks_scen_toolbar_prefs
 );
 
 /**
@@ -486,7 +492,7 @@ static const NWidgetPart _nested_build_dock_station_widgets[] = {
 };
 
 static WindowDesc _build_dock_station_desc(
-	WDP_AUTO, NULL, 0, 0,
+	WDP_AUTO, 0, 0,
 	WC_BUILD_STATION, WC_BUILD_TOOLBAR,
 	WDF_CONSTRUCTION,
 	_nested_build_dock_station_widgets, lengthof(_nested_build_dock_station_widgets)
@@ -579,7 +585,7 @@ static const NWidgetPart _nested_build_docks_depot_widgets[] = {
 };
 
 static WindowDesc _build_docks_depot_desc(
-	WDP_AUTO, NULL, 0, 0,
+	WDP_AUTO, 0, 0,
 	WC_BUILD_DEPOT, WC_BUILD_TOOLBAR,
 	WDF_CONSTRUCTION,
 	_nested_build_docks_depot_widgets, lengthof(_nested_build_docks_depot_widgets)

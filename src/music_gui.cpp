@@ -502,11 +502,14 @@ static const NWidgetPart _nested_music_track_selection_widgets[] = {
 	EndContainer(),
 };
 
+static WindowDesc::Prefs _music_track_selection_prefs ("music_track");
+
 static WindowDesc _music_track_selection_desc(
-	WDP_AUTO, "music_track", 0, 0,
+	WDP_AUTO, 0, 0,
 	WC_MUSIC_TRACK_SELECTION, WC_NONE,
 	0,
-	_nested_music_track_selection_widgets, lengthof(_nested_music_track_selection_widgets)
+	_nested_music_track_selection_widgets, lengthof(_nested_music_track_selection_widgets),
+	&_music_track_selection_prefs
 );
 
 static void ShowMusicTrackSelection()
@@ -767,11 +770,14 @@ static const NWidgetPart _nested_music_window_widgets[] = {
 	EndContainer(),
 };
 
+static WindowDesc::Prefs _music_window_prefs ("music");
+
 static WindowDesc _music_window_desc(
-	WDP_AUTO, "music", 0, 0,
+	WDP_AUTO, 0, 0,
 	WC_MUSIC_WINDOW, WC_NONE,
 	0,
-	_nested_music_window_widgets, lengthof(_nested_music_window_widgets)
+	_nested_music_window_widgets, lengthof(_nested_music_window_widgets),
+	&_music_window_prefs
 );
 
 void ShowMusicWindow()

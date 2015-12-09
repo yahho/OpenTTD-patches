@@ -1021,11 +1021,14 @@ static const NWidgetPart _nested_network_game_widgets[] = {
 	EndContainer(),
 };
 
+static WindowDesc::Prefs _network_game_window_prefs ("list_servers");
+
 static WindowDesc _network_game_window_desc(
-	WDP_CENTER, "list_servers", 1000, 730,
+	WDP_CENTER, 1000, 730,
 	WC_NETWORK_WINDOW, WC_NONE,
 	0,
-	_nested_network_game_widgets, lengthof(_nested_network_game_widgets)
+	_nested_network_game_widgets, lengthof(_nested_network_game_widgets),
+	&_network_game_window_prefs
 );
 
 void ShowNetworkGameWindow()
@@ -1337,7 +1340,7 @@ static const NWidgetPart _nested_network_start_server_window_widgets[] = {
 };
 
 static WindowDesc _network_start_server_window_desc(
-	WDP_CENTER, NULL, 0, 0,
+	WDP_CENTER, 0, 0,
 	WC_NETWORK_WINDOW, WC_NONE,
 	0,
 	_nested_network_start_server_window_widgets, lengthof(_nested_network_start_server_window_widgets)
@@ -1624,7 +1627,7 @@ static const NWidgetPart _nested_network_lobby_window_widgets[] = {
 };
 
 static WindowDesc _network_lobby_window_desc(
-	WDP_CENTER, NULL, 0, 0,
+	WDP_CENTER, 0, 0,
 	WC_NETWORK_WINDOW, WC_NONE,
 	0,
 	_nested_network_lobby_window_widgets, lengthof(_nested_network_lobby_window_widgets)
@@ -1673,7 +1676,7 @@ static const NWidgetPart _nested_client_list_popup_widgets[] = {
 };
 
 static WindowDesc _client_list_popup_desc(
-	WDP_AUTO, NULL, 0, 0,
+	WDP_AUTO, 0, 0,
 	WC_CLIENT_LIST_POPUP, WC_CLIENT_LIST,
 	0,
 	_nested_client_list_popup_widgets, lengthof(_nested_client_list_popup_widgets)
@@ -1848,11 +1851,14 @@ static const NWidgetPart _nested_client_list_widgets[] = {
 	NWidget(WWT_PANEL, COLOUR_GREY, WID_CL_PANEL), SetMinimalSize(250, WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM), SetResize(1, 1), EndContainer(),
 };
 
+static WindowDesc::Prefs _client_list_prefs ("list_clients");
+
 static WindowDesc _client_list_desc(
-	WDP_AUTO, "list_clients", 0, 0,
+	WDP_AUTO, 0, 0,
 	WC_CLIENT_LIST, WC_NONE,
 	0,
-	_nested_client_list_widgets, lengthof(_nested_client_list_widgets)
+	_nested_client_list_widgets, lengthof(_nested_client_list_widgets),
+	&_client_list_prefs
 );
 
 /**
@@ -2121,7 +2127,7 @@ static const NWidgetPart _nested_network_join_status_window_widgets[] = {
 };
 
 static WindowDesc _network_join_status_window_desc(
-	WDP_CENTER, NULL, 0, 0,
+	WDP_CENTER, 0, 0,
 	WC_NETWORK_STATUS_WINDOW, WC_NONE,
 	WDF_MODAL,
 	_nested_network_join_status_window_widgets, lengthof(_nested_network_join_status_window_widgets)
@@ -2215,7 +2221,7 @@ static const NWidgetPart _nested_network_company_password_window_widgets[] = {
 };
 
 static WindowDesc _network_company_password_window_desc(
-	WDP_AUTO, NULL, 0, 0,
+	WDP_AUTO, 0, 0,
 	WC_COMPANY_PASSWORD_WINDOW, WC_NONE,
 	0,
 	_nested_network_company_password_window_widgets, lengthof(_nested_network_company_password_window_widgets)

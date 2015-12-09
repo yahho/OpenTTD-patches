@@ -257,12 +257,16 @@ static const NWidgetPart _nested_ai_list_widgets[] = {
 	EndContainer(),
 };
 
+/** Window preferences for the ai list window. */
+static WindowDesc::Prefs _ai_list_prefs ("settings_script_list");
+
 /** Window definition for the ai list window. */
 static WindowDesc _ai_list_desc(
-	WDP_CENTER, "settings_script_list", 200, 234,
+	WDP_CENTER, 200, 234,
 	WC_AI_LIST, WC_NONE,
 	0,
-	_nested_ai_list_widgets, lengthof(_nested_ai_list_widgets)
+	_nested_ai_list_widgets, lengthof(_nested_ai_list_widgets),
+	&_ai_list_prefs
 );
 
 /**
@@ -603,12 +607,16 @@ static const NWidgetPart _nested_ai_settings_widgets[] = {
 	EndContainer(),
 };
 
+/** Window preferences for the AI settings window. */
+static WindowDesc::Prefs _ai_settings_prefs ("settings_script");
+
 /** Window definition for the AI settings window. */
 static WindowDesc _ai_settings_desc(
-	WDP_CENTER, "settings_script", 500, 208,
+	WDP_CENTER, 500, 208,
 	WC_AI_SETTINGS, WC_NONE,
 	0,
-	_nested_ai_settings_widgets, lengthof(_nested_ai_settings_widgets)
+	_nested_ai_settings_widgets, lengthof(_nested_ai_settings_widgets),
+	&_ai_settings_prefs
 );
 
 /**
@@ -698,12 +706,16 @@ static const NWidgetPart _nested_ai_config_widgets[] = {
 	EndContainer(),
 };
 
+/** Window preferences for the configure AI window. */
+static WindowDesc::Prefs _ai_config_prefs ("settings_script_config");
+
 /** Window definition for the configure AI window. */
 static WindowDesc _ai_config_desc(
-	WDP_CENTER, "settings_script_config", 0, 0,
+	WDP_CENTER, 0, 0,
 	WC_GAME_OPTIONS, WC_NONE,
 	0,
-	_nested_ai_config_widgets, lengthof(_nested_ai_config_widgets)
+	_nested_ai_config_widgets, lengthof(_nested_ai_config_widgets),
+	&_ai_config_prefs
 );
 
 /**
@@ -1483,13 +1495,16 @@ static const NWidgetPart _nested_ai_debug_widgets[] = {
 	EndContainer(),
 };
 
+/** Window preferences for the AI debug window. */
+static WindowDesc::Prefs _ai_debug_prefs ("script_debug");
+
 /** Window definition for the AI debug window. */
 static WindowDesc _ai_debug_desc(
-	WDP_AUTO, "script_debug", 600, 450,
+	WDP_AUTO, 600, 450,
 	WC_AI_DEBUG, WC_NONE,
 	0,
 	_nested_ai_debug_widgets, lengthof(_nested_ai_debug_widgets),
-	&AIDebugWindow::hotkeys
+	&_ai_debug_prefs, &AIDebugWindow::hotkeys
 );
 
 /**

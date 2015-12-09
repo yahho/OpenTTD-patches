@@ -399,11 +399,14 @@ static const NWidgetPart _nested_linkgraph_legend_widgets[] = {
 assert_compile(WID_LGL_SATURATION_LAST - WID_LGL_SATURATION_FIRST ==
 		lengthof(LinkGraphOverlay::LINK_COLOURS) - 1);
 
+static WindowDesc::Prefs _linkgraph_legend_prefs ("toolbar_linkgraph");
+
 static WindowDesc _linkgraph_legend_desc(
-	WDP_AUTO, "toolbar_linkgraph", 0, 0,
+	WDP_AUTO, 0, 0,
 	WC_LINKGRAPH_LEGEND, WC_NONE,
 	0,
-	_nested_linkgraph_legend_widgets, lengthof(_nested_linkgraph_legend_widgets)
+	_nested_linkgraph_legend_widgets, lengthof(_nested_linkgraph_legend_widgets),
+	&_linkgraph_legend_prefs
 );
 
 /**

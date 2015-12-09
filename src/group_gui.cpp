@@ -884,18 +884,24 @@ public:
 };
 
 
+static WindowDesc::Prefs _other_group_prefs ("list_groups");
+
 static WindowDesc _other_group_desc(
-	WDP_AUTO, "list_groups", 460, 246,
+	WDP_AUTO, 460, 246,
 	WC_INVALID, WC_NONE,
 	0,
-	_nested_group_widgets, lengthof(_nested_group_widgets)
+	_nested_group_widgets, lengthof(_nested_group_widgets),
+	&_other_group_prefs
 );
 
+static WindowDesc::Prefs _train_group_prefs ("list_groups_train");
+
 static WindowDesc _train_group_desc(
-	WDP_AUTO, "list_groups_train", 525, 246,
+	WDP_AUTO, 525, 246,
 	WC_TRAINS_LIST, WC_NONE,
 	0,
-	_nested_group_widgets, lengthof(_nested_group_widgets)
+	_nested_group_widgets, lengthof(_nested_group_widgets),
+	&_train_group_prefs
 );
 
 /**

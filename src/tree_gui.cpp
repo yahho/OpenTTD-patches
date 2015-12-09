@@ -232,11 +232,14 @@ static const NWidgetPart _nested_build_trees_widgets[] = {
 	EndContainer(),
 };
 
+static WindowDesc::Prefs _build_trees_prefs ("build_tree");
+
 static WindowDesc _build_trees_desc(
-	WDP_AUTO, "build_tree", 0, 0,
+	WDP_AUTO, 0, 0,
 	WC_BUILD_TREES, WC_NONE,
 	WDF_CONSTRUCTION,
-	_nested_build_trees_widgets, lengthof(_nested_build_trees_widgets)
+	_nested_build_trees_widgets, lengthof(_nested_build_trees_widgets),
+	&_build_trees_prefs
 );
 
 void ShowBuildTreesToolbar()

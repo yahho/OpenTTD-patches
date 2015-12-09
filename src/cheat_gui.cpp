@@ -403,12 +403,16 @@ struct CheatWindow : Window {
 	}
 };
 
+/** Window preferences of the cheats GUI. */
+static WindowDesc::Prefs _cheats_prefs ("cheats");
+
 /** Window description of the cheats GUI. */
 static WindowDesc _cheats_desc(
-	WDP_AUTO, "cheats", 0, 0,
+	WDP_AUTO, 0, 0,
 	WC_CHEATS, WC_NONE,
 	0,
-	_nested_cheat_widgets, lengthof(_nested_cheat_widgets)
+	_nested_cheat_widgets, lengthof(_nested_cheat_widgets),
+	&_cheats_prefs
 );
 
 /** Open cheat window. */

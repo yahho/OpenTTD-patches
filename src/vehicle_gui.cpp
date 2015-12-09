@@ -1067,11 +1067,14 @@ static const NWidgetPart _nested_vehicle_refit_widgets[] = {
 	EndContainer(),
 };
 
+static WindowDesc::Prefs _vehicle_refit_prefs ("view_vehicle_refit");
+
 static WindowDesc _vehicle_refit_desc(
-	WDP_AUTO, "view_vehicle_refit", 240, 174,
+	WDP_AUTO, 240, 174,
 	WC_VEHICLE_REFIT, WC_VEHICLE_VIEW,
 	WDF_CONSTRUCTION,
-	_nested_vehicle_refit_widgets, lengthof(_nested_vehicle_refit_widgets)
+	_nested_vehicle_refit_widgets, lengthof(_nested_vehicle_refit_widgets),
+	&_vehicle_refit_prefs
 );
 
 /**
@@ -1768,18 +1771,24 @@ public:
 	}
 };
 
+static WindowDesc::Prefs _vehicle_list_other_prefs ("list_vehicles");
+
 static WindowDesc _vehicle_list_other_desc(
-	WDP_AUTO, "list_vehicles", 260, 246,
+	WDP_AUTO, 260, 246,
 	WC_INVALID, WC_NONE,
 	0,
-	_nested_vehicle_list, lengthof(_nested_vehicle_list)
+	_nested_vehicle_list, lengthof(_nested_vehicle_list),
+	&_vehicle_list_other_prefs
 );
 
+static WindowDesc::Prefs _vehicle_list_train_prefs ("list_vehicles_train");
+
 static WindowDesc _vehicle_list_train_desc(
-	WDP_AUTO, "list_vehicles_train", 325, 246,
+	WDP_AUTO, 325, 246,
 	WC_TRAINS_LIST, WC_NONE,
 	0,
-	_nested_vehicle_list, lengthof(_nested_vehicle_list)
+	_nested_vehicle_list, lengthof(_nested_vehicle_list),
+	&_vehicle_list_train_prefs
 );
 
 static void ShowVehicleListWindowLocal(CompanyID company, VehicleListType vlt, VehicleType vehicle_type, uint32 unique_number)
@@ -2286,20 +2295,28 @@ struct VehicleDetailsWindow : Window {
 	}
 };
 
+/** Vehicle details window preferences. */
+static WindowDesc::Prefs _train_vehicle_details_prefs ("view_vehicle_details_train");
+
 /** Vehicle details window descriptor. */
 static WindowDesc _train_vehicle_details_desc(
-	WDP_AUTO, "view_vehicle_details_train", 405, 178,
+	WDP_AUTO, 405, 178,
 	WC_VEHICLE_DETAILS, WC_VEHICLE_VIEW,
 	0,
-	_nested_train_vehicle_details_widgets, lengthof(_nested_train_vehicle_details_widgets)
+	_nested_train_vehicle_details_widgets, lengthof(_nested_train_vehicle_details_widgets),
+	&_train_vehicle_details_prefs
 );
+
+/** Vehicle details window preferences for other vehicles than a train. */
+static WindowDesc::Prefs _nontrain_vehicle_details_prefs ("view_vehicle_details");
 
 /** Vehicle details window descriptor for other vehicles than a train. */
 static WindowDesc _nontrain_vehicle_details_desc(
-	WDP_AUTO, "view_vehicle_details", 405, 113,
+	WDP_AUTO, 405, 113,
 	WC_VEHICLE_DETAILS, WC_VEHICLE_VIEW,
 	0,
-	_nested_nontrain_vehicle_details_widgets, lengthof(_nested_nontrain_vehicle_details_widgets)
+	_nested_nontrain_vehicle_details_widgets, lengthof(_nested_nontrain_vehicle_details_widgets),
+	&_nontrain_vehicle_details_prefs
 );
 
 /** Shows the vehicle details window of the given vehicle. */
@@ -2354,23 +2371,31 @@ static const NWidgetPart _nested_vehicle_view_widgets[] = {
 	EndContainer(),
 };
 
+/** Vehicle view window preferences for all vehicles but trains. */
+static WindowDesc::Prefs _vehicle_view_prefs ("view_vehicle");
+
 /** Vehicle view window descriptor for all vehicles but trains. */
 static WindowDesc _vehicle_view_desc(
-	WDP_AUTO, "view_vehicle", 250, 116,
+	WDP_AUTO, 250, 116,
 	WC_VEHICLE_VIEW, WC_NONE,
 	0,
-	_nested_vehicle_view_widgets, lengthof(_nested_vehicle_view_widgets)
+	_nested_vehicle_view_widgets, lengthof(_nested_vehicle_view_widgets),
+	&_vehicle_view_prefs
 );
+
+/** Vehicle view window preferences for trains. */
+static WindowDesc::Prefs _train_view_prefs ("view_vehicle_train");
 
 /**
  * Vehicle view window descriptor for trains. Only minimum_height and
  *  default_height are different for train view.
  */
 static WindowDesc _train_view_desc(
-	WDP_AUTO, "view_vehicle_train", 250, 134,
+	WDP_AUTO, 250, 134,
 	WC_VEHICLE_VIEW, WC_NONE,
 	0,
-	_nested_vehicle_view_widgets, lengthof(_nested_vehicle_view_widgets)
+	_nested_vehicle_view_widgets, lengthof(_nested_vehicle_view_widgets),
+	&_train_view_prefs
 );
 
 

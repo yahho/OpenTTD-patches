@@ -693,11 +693,14 @@ static const NWidgetPart _nested_timetable_widgets[] = {
 	EndContainer(),
 };
 
+static WindowDesc::Prefs _timetable_prefs ("view_vehicle_timetable");
+
 static WindowDesc _timetable_desc(
-	WDP_AUTO, "view_vehicle_timetable", 400, 130,
+	WDP_AUTO, 400, 130,
 	WC_VEHICLE_TIMETABLE, WC_VEHICLE_VIEW,
 	WDF_CONSTRUCTION,
-	_nested_timetable_widgets, lengthof(_nested_timetable_widgets)
+	_nested_timetable_widgets, lengthof(_nested_timetable_widgets),
+	&_timetable_prefs
 );
 
 /**

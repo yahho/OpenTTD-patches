@@ -692,11 +692,14 @@ static const NWidgetPart _nested_game_options_widgets[] = {
 	EndContainer(),
 };
 
+static WindowDesc::Prefs _game_options_prefs ("settings_game");
+
 static WindowDesc _game_options_desc(
-	WDP_CENTER, "settings_game", 0, 0,
+	WDP_CENTER, 0, 0,
 	WC_GAME_OPTIONS, WC_NONE,
 	0,
-	_nested_game_options_widgets, lengthof(_nested_game_options_widgets)
+	_nested_game_options_widgets, lengthof(_nested_game_options_widgets),
+	&_game_options_prefs
 );
 
 /** Open the game options window. */
@@ -2413,11 +2416,14 @@ static const NWidgetPart _nested_settings_selection_widgets[] = {
 	EndContainer(),
 };
 
+static WindowDesc::Prefs _settings_selection_prefs ("settings");
+
 static WindowDesc _settings_selection_desc(
-	WDP_CENTER, "settings", 510, 450,
+	WDP_CENTER, 510, 450,
 	WC_GAME_OPTIONS, WC_NONE,
 	0,
-	_nested_settings_selection_widgets, lengthof(_nested_settings_selection_widgets)
+	_nested_settings_selection_widgets, lengthof(_nested_settings_selection_widgets),
+	&_settings_selection_prefs
 );
 
 /** Open advanced settings window. */
@@ -2708,7 +2714,7 @@ static const NWidgetPart _nested_cust_currency_widgets[] = {
 };
 
 static WindowDesc _cust_currency_desc(
-	WDP_CENTER, NULL, 0, 0,
+	WDP_CENTER, 0, 0,
 	WC_CUSTOM_CURRENCY, WC_NONE,
 	0,
 	_nested_cust_currency_widgets, lengthof(_nested_cust_currency_widgets)

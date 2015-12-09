@@ -845,12 +845,14 @@ static const NWidgetPart _nested_build_rail_widgets[] = {
 	EndContainer(),
 };
 
+static WindowDesc::Prefs _build_rail_prefs ("toolbar_rail");
+
 static WindowDesc _build_rail_desc(
-	WDP_ALIGN_TOOLBAR, "toolbar_rail", 0, 0,
+	WDP_ALIGN_TOOLBAR, 0, 0,
 	WC_BUILD_TOOLBAR, WC_NONE,
 	WDF_CONSTRUCTION,
 	_nested_build_rail_widgets, lengthof(_nested_build_rail_widgets),
-	&BuildRailToolbarWindow::hotkeys
+	&_build_rail_prefs, &BuildRailToolbarWindow::hotkeys
 );
 
 
@@ -1465,12 +1467,16 @@ static const NWidgetPart _nested_station_builder_widgets[] = {
 	EndContainer(),
 };
 
+/** Window preferences of the station-build window (default & newGRF) */
+static WindowDesc::Prefs _station_builder_prefs ("build_station_rail");
+
 /** High level window description of the station-build window (default & newGRF) */
 static WindowDesc _station_builder_desc(
-	WDP_AUTO, "build_station_rail", 350, 0,
+	WDP_AUTO, 350, 0,
 	WC_BUILD_STATION, WC_BUILD_TOOLBAR,
 	WDF_CONSTRUCTION,
-	_nested_station_builder_widgets, lengthof(_nested_station_builder_widgets)
+	_nested_station_builder_widgets, lengthof(_nested_station_builder_widgets),
+	&_station_builder_prefs
 );
 
 /** Open station build window */
@@ -1677,12 +1683,16 @@ static const NWidgetPart _nested_signal_builder_widgets[] = {
 	EndContainer(),
 };
 
+/** Signal selection window preferences */
+static WindowDesc::Prefs _signal_builder_prefs ("build_signal");
+
 /** Signal selection window description */
 static WindowDesc _signal_builder_desc(
-	WDP_AUTO, "build_signal", 0, 0,
+	WDP_AUTO, 0, 0,
 	WC_BUILD_SIGNAL, WC_BUILD_TOOLBAR,
 	WDF_CONSTRUCTION,
-	_nested_signal_builder_widgets, lengthof(_nested_signal_builder_widgets)
+	_nested_signal_builder_widgets, lengthof(_nested_signal_builder_widgets),
+	&_signal_builder_prefs
 );
 
 /**
@@ -1764,7 +1774,7 @@ static const NWidgetPart _nested_build_depot_widgets[] = {
 };
 
 static WindowDesc _build_depot_desc(
-	WDP_AUTO, NULL, 0, 0,
+	WDP_AUTO, 0, 0,
 	WC_BUILD_DEPOT, WC_BUILD_TOOLBAR,
 	WDF_CONSTRUCTION,
 	_nested_build_depot_widgets, lengthof(_nested_build_depot_widgets)
@@ -1862,11 +1872,14 @@ static const NWidgetPart _nested_build_waypoint_widgets[] = {
 	EndContainer(),
 };
 
+static WindowDesc::Prefs _build_waypoint_prefs ("build_waypoint");
+
 static WindowDesc _build_waypoint_desc(
-	WDP_AUTO, "build_waypoint", 0, 0,
+	WDP_AUTO, 0, 0,
 	WC_BUILD_WAYPOINT, WC_BUILD_TOOLBAR,
 	WDF_CONSTRUCTION,
-	_nested_build_waypoint_widgets, lengthof(_nested_build_waypoint_widgets)
+	_nested_build_waypoint_widgets, lengthof(_nested_build_waypoint_widgets),
+	&_build_waypoint_prefs
 );
 
 static void ShowBuildWaypointPicker(Window *parent)

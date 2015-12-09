@@ -50,11 +50,14 @@ static const NWidgetPart _nested_land_info_widgets[] = {
 	NWidget(WWT_PANEL, COLOUR_GREY, WID_LI_BACKGROUND), EndContainer(),
 };
 
+static WindowDesc::Prefs _land_info_prefs ("land_info");
+
 static WindowDesc _land_info_desc(
-	WDP_AUTO, "land_info", 0, 0,
+	WDP_AUTO, 0, 0,
 	WC_LAND_INFO, WC_NONE,
 	0,
-	_nested_land_info_widgets, lengthof(_nested_land_info_widgets)
+	_nested_land_info_widgets, lengthof(_nested_land_info_widgets),
+	&_land_info_prefs
 );
 
 class LandInfoWindow : public Window {
@@ -357,7 +360,7 @@ static const NWidgetPart _nested_about_widgets[] = {
 };
 
 static WindowDesc _about_desc(
-	WDP_CENTER, NULL, 0, 0,
+	WDP_CENTER, 0, 0,
 	WC_GAME_OPTIONS, WC_NONE,
 	0,
 	_nested_about_widgets, lengthof(_nested_about_widgets)
@@ -609,7 +612,7 @@ static const NWidgetPart _nested_tooltips_widgets[] = {
 };
 
 static WindowDesc _tool_tips_desc(
-	WDP_MANUAL, NULL, 0, 0, // Coordinates and sizes are not used,
+	WDP_MANUAL, 0, 0, // Coordinates and sizes are not used,
 	WC_TOOLTIPS, WC_NONE,
 	WDF_NO_FOCUS,
 	_nested_tooltips_widgets, lengthof(_nested_tooltips_widgets)
@@ -1001,11 +1004,14 @@ static const NWidgetPart _nested_query_string_widgets[] = {
 	EndContainer(),
 };
 
+static WindowDesc::Prefs _query_string_prefs ("query_string");
+
 static WindowDesc _query_string_desc(
-	WDP_CENTER, "query_string", 0, 0,
+	WDP_CENTER, 0, 0,
 	WC_QUERY_STRING, WC_NONE,
 	0,
-	_nested_query_string_widgets, lengthof(_nested_query_string_widgets)
+	_nested_query_string_widgets, lengthof(_nested_query_string_widgets),
+	&_query_string_prefs
 );
 
 /**
@@ -1142,7 +1148,7 @@ static const NWidgetPart _nested_query_widgets[] = {
 };
 
 static WindowDesc _query_desc(
-	WDP_CENTER, NULL, 0, 0,
+	WDP_CENTER, 0, 0,
 	WC_CONFIRM_POPUP_QUERY, WC_NONE,
 	WDF_MODAL,
 	_nested_query_widgets, lengthof(_nested_query_widgets)

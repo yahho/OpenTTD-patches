@@ -1488,11 +1488,14 @@ struct BuildVehicleWindow : Window {
 	}
 };
 
+static WindowDesc::Prefs _build_vehicle_prefs ("build_vehicle");
+
 static WindowDesc _build_vehicle_desc(
-	WDP_AUTO, "build_vehicle", 240, 268,
+	WDP_AUTO, 240, 268,
 	WC_BUILD_VEHICLE, WC_NONE,
 	WDF_CONSTRUCTION,
-	_nested_build_vehicle_widgets, lengthof(_nested_build_vehicle_widgets)
+	_nested_build_vehicle_widgets, lengthof(_nested_build_vehicle_widgets),
+	&_build_vehicle_prefs
 );
 
 void ShowBuildVehicleWindow(TileIndex tile, VehicleType type)

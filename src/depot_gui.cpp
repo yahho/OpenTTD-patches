@@ -79,32 +79,44 @@ static const NWidgetPart _nested_train_depot_widgets[] = {
 	EndContainer(),
 };
 
+static WindowDesc::Prefs _train_depot_prefs ("depot_train");
+
 static WindowDesc _train_depot_desc(
-	WDP_AUTO, "depot_train", 362, 123,
+	WDP_AUTO, 362, 123,
 	WC_VEHICLE_DEPOT, WC_NONE,
 	0,
-	_nested_train_depot_widgets, lengthof(_nested_train_depot_widgets)
+	_nested_train_depot_widgets, lengthof(_nested_train_depot_widgets),
+	&_train_depot_prefs
 );
+
+static WindowDesc::Prefs _road_depot_prefs ("depot_roadveh");
 
 static WindowDesc _road_depot_desc(
-	WDP_AUTO, "depot_roadveh", 316, 97,
+	WDP_AUTO, 316, 97,
 	WC_VEHICLE_DEPOT, WC_NONE,
 	0,
-	_nested_train_depot_widgets, lengthof(_nested_train_depot_widgets)
+	_nested_train_depot_widgets, lengthof(_nested_train_depot_widgets),
+	&_road_depot_prefs
 );
+
+static WindowDesc::Prefs _ship_depot_prefs ("depot_ship");
 
 static WindowDesc _ship_depot_desc(
-	WDP_AUTO, "depot_ship", 306, 99,
+	WDP_AUTO, 306, 99,
 	WC_VEHICLE_DEPOT, WC_NONE,
 	0,
-	_nested_train_depot_widgets, lengthof(_nested_train_depot_widgets)
+	_nested_train_depot_widgets, lengthof(_nested_train_depot_widgets),
+	&_ship_depot_prefs
 );
 
+static WindowDesc::Prefs _aircraft_depot_prefs ("depot_aircraft");
+
 static WindowDesc _aircraft_depot_desc(
-	WDP_AUTO, "depot_aircraft", 332, 99,
+	WDP_AUTO, 332, 99,
 	WC_VEHICLE_DEPOT, WC_NONE,
 	0,
-	_nested_train_depot_widgets, lengthof(_nested_train_depot_widgets)
+	_nested_train_depot_widgets, lengthof(_nested_train_depot_widgets),
+	&_aircraft_depot_prefs
 );
 
 extern void DepotSortList(VehicleList *list);

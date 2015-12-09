@@ -39,11 +39,14 @@ static const NWidgetPart _nested_errmsg_widgets[] = {
 	EndContainer(),
 };
 
+static WindowDesc::Prefs _errmsg_prefs ("error");
+
 static WindowDesc _errmsg_desc(
-	WDP_MANUAL, "error", 0, 0,
+	WDP_MANUAL, 0, 0,
 	WC_ERRMSG, WC_NONE,
 	0,
-	_nested_errmsg_widgets, lengthof(_nested_errmsg_widgets)
+	_nested_errmsg_widgets, lengthof(_nested_errmsg_widgets),
+	&_errmsg_prefs
 );
 
 static const NWidgetPart _nested_errmsg_face_widgets[] = {
@@ -59,11 +62,14 @@ static const NWidgetPart _nested_errmsg_face_widgets[] = {
 	EndContainer(),
 };
 
+static WindowDesc::Prefs _errmsg_face_prefs ("error_face");
+
 static WindowDesc _errmsg_face_desc(
-	WDP_MANUAL, "error_face", 0, 0,
+	WDP_MANUAL, 0, 0,
 	WC_ERRMSG, WC_NONE,
 	0,
-	_nested_errmsg_face_widgets, lengthof(_nested_errmsg_face_widgets)
+	_nested_errmsg_face_widgets, lengthof(_nested_errmsg_face_widgets),
+	&_errmsg_face_prefs
 );
 
 /**

@@ -10,7 +10,10 @@
 /** @file window.cpp Windowing system, widgets and events */
 
 #include "stdafx.h"
+
 #include <stdarg.h>
+#include <set>
+
 #include "debug.h"
 #include "company_func.h"
 #include "gfx_func.h"
@@ -77,40 +80,23 @@ bool _mouse_hovering;      ///< The mouse is hovering over the same point.
 
 SpecialMouseMode _special_mouse_mode; ///< Mode of the mouse.
 
-/**
- * List of all WindowDescs.
- * This is a pointer to ensure initialisation order with the various static WindowDesc instances.
- */
-static SmallVector<WindowDesc*, 16> *_window_descs = NULL;
-
-/** Config file to store WindowDesc */
-char *_windows_file;
 
 /** Window description constructor. */
-WindowDesc::WindowDesc(WindowPosition def_pos, const char *ini_key, int16 def_width_trad, int16 def_height_trad,
+WindowDesc::WindowDesc (WindowPosition def_pos, int16 def_width_trad, int16 def_height_trad,
 			WindowClass window_class, WindowClass parent_class, uint32 flags,
-			const NWidgetPart *nwid_parts, int16 nwid_length, HotkeyList *hotkeys) :
+			const NWidgetPart *nwid_parts, int16 nwid_length,
+			Prefs *prefs, HotkeyList *hotkeys) :
 	default_pos(def_pos),
 	cls(window_class),
 	parent_cls(parent_class),
-	ini_key(ini_key),
 	flags(flags),
 	nwid_parts(nwid_parts),
 	nwid_length(nwid_length),
+	prefs(prefs),
 	hotkeys(hotkeys),
-	pref_sticky(false),
-	pref_width(0),
-	pref_height(0),
 	default_width_trad(def_width_trad),
 	default_height_trad(def_height_trad)
 {
-	if (_window_descs == NULL) _window_descs = new SmallVector<WindowDesc*, 16>();
-	*_window_descs->Append() = this;
-}
-
-WindowDesc::~WindowDesc()
-{
-	_window_descs->Erase(_window_descs->Find(this));
 }
 
 /**
@@ -120,7 +106,8 @@ WindowDesc::~WindowDesc()
  */
 int16 WindowDesc::GetDefaultWidth() const
 {
-	return this->pref_width != 0 ? this->pref_width : ScaleGUITrad(this->default_width_trad);
+	return ((this->prefs != NULL) && (this->prefs->pref_width != 0)) ?
+		this->prefs->pref_width : ScaleGUITrad (this->default_width_trad);
 }
 
 /**
@@ -130,8 +117,49 @@ int16 WindowDesc::GetDefaultWidth() const
  */
 int16 WindowDesc::GetDefaultHeight() const
 {
-	return this->pref_height != 0 ? this->pref_height : ScaleGUITrad(this->default_height_trad);
+	return ((this->prefs != NULL) && (this->prefs->pref_height != 0)) ?
+		this->prefs->pref_height : ScaleGUITrad (this->default_height_trad);
 }
+
+/** Comparison object for WindowDesc::Prefs keys. */
+struct key_compare {
+	bool operator() (const WindowDesc::Prefs *a, const WindowDesc::Prefs *b)
+	{
+		return strcmp (a->key, b->key) < 0;
+	}
+};
+
+/** WindowDesc::Prefs set type. */
+typedef std::set <WindowDesc::Prefs*, key_compare> WindowPrefsSet;
+
+/**
+ * List of all WindowDesc::Prefs.
+ * This is a pointer to ensure initialisation order with the various static WindowDesc instances.
+ */
+static WindowPrefsSet *_window_prefs = NULL;
+
+WindowDesc::Prefs::Prefs (const char *key)
+	: key (key), pref_width (0), pref_height (0), pref_sticky (false)
+{
+	assert (key != NULL);
+
+	if (_window_prefs == NULL) {
+		_window_prefs = new WindowPrefsSet;
+	}
+
+	bool inserted = _window_prefs->insert(this).second;
+
+	/* There shouldn't be any duplicate keys. */
+	assert (inserted);
+}
+
+WindowDesc::Prefs::~Prefs()
+{
+	_window_prefs->erase (this);
+}
+
+/** Config file to store WindowDesc::Prefs. */
+char *_windows_file;
 
 /**
  * Load all WindowDesc settings from _windows_file.
@@ -140,20 +168,10 @@ void WindowDesc::LoadFromConfig()
 {
 	IniFile *ini = new IniFile();
 	ini->LoadFromDisk(_windows_file, BASE_DIR);
-	for (WindowDesc **it = _window_descs->Begin(); it != _window_descs->End(); ++it) {
-		if ((*it)->ini_key == NULL) continue;
-		IniLoadWindowSettings(ini, (*it)->ini_key, *it);
+	for (WindowPrefsSet::iterator it = _window_prefs->begin(); it != _window_prefs->end(); ++it) {
+		IniLoadWindowSettings (ini, (*it)->key, *it);
 	}
 	delete ini;
-}
-
-/**
- * Sort WindowDesc by ini_key.
- */
-static int CDECL DescSorter(WindowDesc * const *a, WindowDesc * const *b)
-{
-	if ((*a)->ini_key != NULL && (*b)->ini_key != NULL) return strcmp((*a)->ini_key, (*b)->ini_key);
-	return ((*b)->ini_key != NULL ? 1 : 0) - ((*a)->ini_key != NULL ? 1 : 0);
 }
 
 /**
@@ -161,29 +179,29 @@ static int CDECL DescSorter(WindowDesc * const *a, WindowDesc * const *b)
  */
 void WindowDesc::SaveToConfig()
 {
-	/* Sort the stuff to get a nice ini file on first write */
-	QSortT(_window_descs->Begin(), _window_descs->Length(), DescSorter);
-
 	IniFile *ini = new IniFile();
 	ini->LoadFromDisk(_windows_file, BASE_DIR);
-	for (WindowDesc **it = _window_descs->Begin(); it != _window_descs->End(); ++it) {
-		if ((*it)->ini_key == NULL) continue;
-		IniSaveWindowSettings(ini, (*it)->ini_key, *it);
+	for (WindowPrefsSet::iterator it = _window_prefs->begin(); it != _window_prefs->end(); ++it) {
+		IniSaveWindowSettings (ini, (*it)->key, *it);
 	}
 	ini->SaveToDisk(_windows_file);
 	delete ini;
 }
+
 
 /**
  * Read default values from WindowDesc configuration an apply them to the window.
  */
 void Window::ApplyDefaults()
 {
+	WindowDesc::Prefs *prefs = this->window_desc->prefs;
+	if (prefs == NULL) return;
+
 	if (this->nested_root != NULL && this->nested_root->GetWidgetOfType(WWT_STICKYBOX) != NULL) {
-		if (this->window_desc->pref_sticky) this->flags |= WF_STICKY;
+		if (prefs->pref_sticky) this->flags |= WF_STICKY;
 	} else {
 		/* There is no stickybox; clear the preference in case someone tried to be funny */
-		this->window_desc->pref_sticky = false;
+		prefs->pref_sticky = false;
 	}
 }
 
@@ -703,8 +721,11 @@ static void DispatchLeftClickEvent(Window *w, int x, int y, int click_count)
 
 		case WWT_DEFSIZEBOX: {
 			if (_ctrl_pressed) {
-				w->window_desc->pref_width = w->width;
-				w->window_desc->pref_height = w->height;
+				WindowDesc::Prefs *prefs = w->window_desc->prefs;
+				if (prefs != NULL) {
+					prefs->pref_width  = w->width;
+					prefs->pref_height = w->height;
+				}
 			} else {
 				int16 def_width = max<int16>(min(w->window_desc->GetDefaultWidth(), _screen.width), w->nested_root->smallest_x);
 				int16 def_height = max<int16>(min(w->window_desc->GetDefaultHeight(), _screen.height - 50), w->nested_root->smallest_y);
@@ -736,7 +757,12 @@ static void DispatchLeftClickEvent(Window *w, int x, int y, int click_count)
 		case WWT_STICKYBOX:
 			w->flags ^= WF_STICKY;
 			nw->SetDirty(w);
-			if (_ctrl_pressed) w->window_desc->pref_sticky = (w->flags & WF_STICKY) != 0;
+			if (_ctrl_pressed) {
+				WindowDesc::Prefs *prefs = w->window_desc->prefs;
+				if (prefs != NULL) {
+					prefs->pref_sticky = (w->flags & WF_STICKY) != 0;
+				}
+			}
 			return;
 
 		default:

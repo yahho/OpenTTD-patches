@@ -533,12 +533,16 @@ static const NWidgetPart _nested_newgrf_parameter_widgets[] = {
 	EndContainer(),
 };
 
+/** Window preferences for the change grf parameters window */
+static WindowDesc::Prefs _newgrf_parameters_prefs ("settings_newgrf_config");
+
 /** Window definition for the change grf parameters window */
 static WindowDesc _newgrf_parameters_desc(
-	WDP_CENTER, "settings_newgrf_config", 500, 208,
+	WDP_CENTER, 500, 208,
 	WC_GRF_PARAMETERS, WC_NONE,
 	0,
-	_nested_newgrf_parameter_widgets, lengthof(_nested_newgrf_parameter_widgets)
+	_nested_newgrf_parameter_widgets, lengthof(_nested_newgrf_parameter_widgets),
+	&_newgrf_parameters_prefs
 );
 
 static void OpenGRFParameterWindow(GRFConfig *c, bool editable)
@@ -1956,12 +1960,16 @@ static const NWidgetPart _nested_newgrf_widgets[] = {
 	EndContainer(),
 };
 
+/* Window preferences of the manage newgrfs window */
+static WindowDesc::Prefs _newgrf_prefs ("settings_newgrf");
+
 /* Window definition of the manage newgrfs window */
 static WindowDesc _newgrf_desc(
-	WDP_CENTER, "settings_newgrf", 300, 263,
+	WDP_CENTER, 300, 263,
 	WC_GAME_OPTIONS, WC_NONE,
 	0,
-	_nested_newgrf_widgets, lengthof(_nested_newgrf_widgets)
+	_nested_newgrf_widgets, lengthof(_nested_newgrf_widgets),
+	&_newgrf_prefs
 );
 
 /**
@@ -2036,12 +2044,16 @@ static const NWidgetPart _nested_save_preset_widgets[] = {
 	EndContainer(),
 };
 
+/** Window preferences of the preset save window. */
+static WindowDesc::Prefs _save_preset_prefs ("save_preset");
+
 /** Window description of the preset save window. */
 static WindowDesc _save_preset_desc(
-	WDP_CENTER, "save_preset", 140, 110,
+	WDP_CENTER, 140, 110,
 	WC_SAVE_PRESET, WC_GAME_OPTIONS,
 	WDF_MODAL,
-	_nested_save_preset_widgets, lengthof(_nested_save_preset_widgets)
+	_nested_save_preset_widgets, lengthof(_nested_save_preset_widgets),
+	&_save_preset_prefs
 );
 
 /** Class for the save preset window. */
@@ -2185,7 +2197,7 @@ static const NWidgetPart _nested_scan_progress_widgets[] = {
 
 /** Description of the widgets and other settings of the window. */
 static WindowDesc _scan_progress_desc(
-	WDP_CENTER, NULL, 0, 0,
+	WDP_CENTER, 0, 0,
 	WC_MODAL_PROGRESS, WC_NONE,
 	0,
 	_nested_scan_progress_widgets, lengthof(_nested_scan_progress_widgets)

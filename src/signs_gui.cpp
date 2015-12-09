@@ -385,12 +385,14 @@ static const NWidgetPart _nested_sign_list_widgets[] = {
 	EndContainer(),
 };
 
+static WindowDesc::Prefs _sign_list_prefs ("list_signs");
+
 static WindowDesc _sign_list_desc(
-	WDP_AUTO, "list_signs", 358, 138,
+	WDP_AUTO, 358, 138,
 	WC_SIGN_LIST, WC_NONE,
 	0,
 	_nested_sign_list_widgets, lengthof(_nested_sign_list_widgets),
-	&SignListWindow::hotkeys
+	&_sign_list_prefs, &SignListWindow::hotkeys
 );
 
 /**
@@ -544,11 +546,14 @@ static const NWidgetPart _nested_query_sign_edit_widgets[] = {
 	EndContainer(),
 };
 
+static WindowDesc::Prefs _query_sign_edit_prefs ("query_sign");
+
 static WindowDesc _query_sign_edit_desc(
-	WDP_CENTER, "query_sign", 0, 0,
+	WDP_CENTER, 0, 0,
 	WC_QUERY_STRING, WC_NONE,
 	WDF_CONSTRUCTION,
-	_nested_query_sign_edit_widgets, lengthof(_nested_query_sign_edit_widgets)
+	_nested_query_sign_edit_widgets, lengthof(_nested_query_sign_edit_widgets),
+	&_query_sign_edit_prefs
 );
 
 /**

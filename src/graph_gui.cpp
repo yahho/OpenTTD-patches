@@ -140,11 +140,14 @@ static const NWidgetPart _nested_graph_legend_widgets[] = {
 	EndContainer(),
 };
 
+static WindowDesc::Prefs _graph_legend_prefs ("graph_legend");
+
 static WindowDesc _graph_legend_desc(
-	WDP_AUTO, "graph_legend", 0, 0,
+	WDP_AUTO, 0, 0,
 	WC_GRAPH_LEGEND, WC_NONE,
 	0,
-	_nested_graph_legend_widgets, lengthof(_nested_graph_legend_widgets)
+	_nested_graph_legend_widgets, lengthof(_nested_graph_legend_widgets),
+	&_graph_legend_prefs
 );
 
 static void ShowGraphLegend()
@@ -645,11 +648,14 @@ static const NWidgetPart _nested_operating_profit_widgets[] = {
 	EndContainer(),
 };
 
+static WindowDesc::Prefs _operating_profit_prefs ("graph_operating_profit");
+
 static WindowDesc _operating_profit_desc(
-	WDP_AUTO, "graph_operating_profit", 0, 0,
+	WDP_AUTO, 0, 0,
 	WC_OPERATING_PROFIT, WC_NONE,
 	0,
-	_nested_operating_profit_widgets, lengthof(_nested_operating_profit_widgets)
+	_nested_operating_profit_widgets, lengthof(_nested_operating_profit_widgets),
+	&_operating_profit_prefs
 );
 
 
@@ -696,11 +702,14 @@ static const NWidgetPart _nested_income_graph_widgets[] = {
 	EndContainer(),
 };
 
+static WindowDesc::Prefs _income_graph_prefs ("graph_income");
+
 static WindowDesc _income_graph_desc(
-	WDP_AUTO, "graph_income", 0, 0,
+	WDP_AUTO, 0, 0,
 	WC_INCOME_GRAPH, WC_NONE,
 	0,
-	_nested_income_graph_widgets, lengthof(_nested_income_graph_widgets)
+	_nested_income_graph_widgets, lengthof(_nested_income_graph_widgets),
+	&_income_graph_prefs
 );
 
 void ShowIncomeGraph()
@@ -745,11 +754,14 @@ static const NWidgetPart _nested_delivered_cargo_graph_widgets[] = {
 	EndContainer(),
 };
 
+static WindowDesc::Prefs _delivered_cargo_graph_prefs ("graph_delivered_cargo");
+
 static WindowDesc _delivered_cargo_graph_desc(
-	WDP_AUTO, "graph_delivered_cargo", 0, 0,
+	WDP_AUTO, 0, 0,
 	WC_DELIVERED_CARGO, WC_NONE,
 	0,
-	_nested_delivered_cargo_graph_widgets, lengthof(_nested_delivered_cargo_graph_widgets)
+	_nested_delivered_cargo_graph_widgets, lengthof(_nested_delivered_cargo_graph_widgets),
+	&_delivered_cargo_graph_prefs
 );
 
 void ShowDeliveredCargoGraph()
@@ -801,11 +813,14 @@ static const NWidgetPart _nested_performance_history_widgets[] = {
 	EndContainer(),
 };
 
+static WindowDesc::Prefs _performance_history_prefs ("graph_performance");
+
 static WindowDesc _performance_history_desc(
-	WDP_AUTO, "graph_performance", 0, 0,
+	WDP_AUTO, 0, 0,
 	WC_PERFORMANCE_HISTORY, WC_NONE,
 	0,
-	_nested_performance_history_widgets, lengthof(_nested_performance_history_widgets)
+	_nested_performance_history_widgets, lengthof(_nested_performance_history_widgets),
+	&_performance_history_prefs
 );
 
 void ShowPerformanceHistoryGraph()
@@ -850,11 +865,14 @@ static const NWidgetPart _nested_company_value_graph_widgets[] = {
 	EndContainer(),
 };
 
+static WindowDesc::Prefs _company_value_graph_prefs ("graph_company_value");
+
 static WindowDesc _company_value_graph_desc(
-	WDP_AUTO, "graph_company_value", 0, 0,
+	WDP_AUTO, 0, 0,
 	WC_COMPANY_VALUE, WC_NONE,
 	0,
-	_nested_company_value_graph_widgets, lengthof(_nested_company_value_graph_widgets)
+	_nested_company_value_graph_widgets, lengthof(_nested_company_value_graph_widgets),
+	&_company_value_graph_prefs
 );
 
 void ShowCompanyValueGraph()
@@ -1081,11 +1099,14 @@ static const NWidgetPart _nested_cargo_payment_rates_widgets[] = {
 	EndContainer(),
 };
 
+static WindowDesc::Prefs _cargo_payment_rates_prefs ("graph_cargo_payment_rates");
+
 static WindowDesc _cargo_payment_rates_desc(
-	WDP_AUTO, "graph_cargo_payment_rates", 0, 0,
+	WDP_AUTO, 0, 0,
 	WC_PAYMENT_RATES, WC_NONE,
 	0,
-	_nested_cargo_payment_rates_widgets, lengthof(_nested_cargo_payment_rates_widgets)
+	_nested_cargo_payment_rates_widgets, lengthof(_nested_cargo_payment_rates_widgets),
+	&_cargo_payment_rates_prefs
 );
 
 
@@ -1270,11 +1291,14 @@ static const NWidgetPart _nested_company_league_widgets[] = {
 	NWidget(WWT_PANEL, COLOUR_GREY, WID_CL_BACKGROUND), SetMinimalSize(400, 0), SetMinimalTextLines(15, WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM),
 };
 
+static WindowDesc::Prefs _company_league_prefs ("league");
+
 static WindowDesc _company_league_desc(
-	WDP_AUTO, "league", 0, 0,
+	WDP_AUTO, 0, 0,
 	WC_COMPANY_LEAGUE, WC_NONE,
 	0,
-	_nested_company_league_widgets, lengthof(_nested_company_league_widgets)
+	_nested_company_league_widgets, lengthof(_nested_company_league_widgets),
+	&_company_league_prefs
 );
 
 void ShowCompanyLeagueTable()
@@ -1569,11 +1593,14 @@ static const NWidgetPart _nested_performance_rating_detail_widgets[] = {
 	NWidgetFunction(MakePerformanceDetailPanels),
 };
 
+static WindowDesc::Prefs _performance_rating_detail_prefs ("league_details");
+
 static WindowDesc _performance_rating_detail_desc(
-	WDP_AUTO, "league_details", 0, 0,
+	WDP_AUTO, 0, 0,
 	WC_PERFORMANCE_DETAIL, WC_NONE,
 	0,
-	_nested_performance_rating_detail_widgets, lengthof(_nested_performance_rating_detail_widgets)
+	_nested_performance_rating_detail_widgets, lengthof(_nested_performance_rating_detail_widgets),
+	&_performance_rating_detail_prefs
 );
 
 void ShowPerformanceRatingDetail()

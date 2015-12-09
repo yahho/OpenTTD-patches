@@ -747,11 +747,14 @@ static const NWidgetPart _nested_story_book_widgets[] = {
 	EndContainer(),
 };
 
+static WindowDesc::Prefs _story_book_prefs ("view_story");
+
 static WindowDesc _story_book_desc(
-	WDP_CENTER, "view_story", 400, 300,
+	WDP_CENTER, 400, 300,
 	WC_STORY_BOOK, WC_NONE,
 	0,
-	_nested_story_book_widgets, lengthof(_nested_story_book_widgets)
+	_nested_story_book_widgets, lengthof(_nested_story_book_widgets),
+	&_story_book_prefs
 );
 
 /**

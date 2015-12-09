@@ -464,11 +464,14 @@ struct CompanyFinancesWindow : Window {
 /** First conservative estimate of the maximum amount of money */
 Money CompanyFinancesWindow::max_money = INT32_MAX;
 
+static WindowDesc::Prefs _company_finances_prefs ("company_finances");
+
 static WindowDesc _company_finances_desc(
-	WDP_AUTO, "company_finances", 0, 0,
+	WDP_AUTO, 0, 0,
 	WC_FINANCES, WC_NONE,
 	0,
-	_nested_company_finances_widgets, lengthof(_nested_company_finances_widgets)
+	_nested_company_finances_widgets, lengthof(_nested_company_finances_widgets),
+	&_company_finances_prefs
 );
 
 /**
@@ -853,11 +856,14 @@ static const NWidgetPart _nested_select_company_livery_widgets [] = {
 	NWidget(WWT_MATRIX, COLOUR_GREY, WID_SCL_MATRIX), SetMinimalSize(275, 15), SetFill(1, 0), SetMatrixDataTip(1, 1, STR_LIVERY_PANEL_TOOLTIP),
 };
 
+static WindowDesc::Prefs _select_company_livery_prefs ("company_livery");
+
 static WindowDesc _select_company_livery_desc(
-	WDP_AUTO, "company_livery", 0, 0,
+	WDP_AUTO, 0, 0,
 	WC_COMPANY_COLOUR, WC_NONE,
 	0,
-	_nested_select_company_livery_widgets, lengthof(_nested_select_company_livery_widgets)
+	_nested_select_company_livery_widgets, lengthof(_nested_select_company_livery_widgets),
+	&_select_company_livery_prefs
 );
 
 /**
@@ -1490,12 +1496,16 @@ public:
 	}
 };
 
+/** Company manager face selection window preferences */
+static WindowDesc::Prefs _select_company_manager_face_prefs ("company_face");
+
 /** Company manager face selection window description */
 static WindowDesc _select_company_manager_face_desc(
-	WDP_AUTO, "company_face", 0, 0,
+	WDP_AUTO, 0, 0,
 	WC_COMPANY_MANAGER_FACE, WC_NONE,
 	WDF_CONSTRUCTION,
-	_nested_select_company_manager_face_widgets, lengthof(_nested_select_company_manager_face_widgets)
+	_nested_select_company_manager_face_widgets, lengthof(_nested_select_company_manager_face_widgets),
+	&_select_company_manager_face_prefs
 );
 
 /**
@@ -1855,11 +1865,14 @@ struct CompanyInfrastructureWindow : Window
 	}
 };
 
+static WindowDesc::Prefs _company_infrastructure_prefs ("company_infrastructure");
+
 static WindowDesc _company_infrastructure_desc(
-	WDP_AUTO, "company_infrastructure", 0, 0,
+	WDP_AUTO, 0, 0,
 	WC_COMPANY_INFRASTRUCTURE, WC_NONE,
 	0,
-	_nested_company_infrastructure_widgets, lengthof(_nested_company_infrastructure_widgets)
+	_nested_company_infrastructure_widgets, lengthof(_nested_company_infrastructure_widgets),
+	&_company_infrastructure_prefs
 );
 
 /**
@@ -2439,11 +2452,14 @@ struct CompanyWindow : Window
 	}
 };
 
+static WindowDesc::Prefs _company_prefs ("company");
+
 static WindowDesc _company_desc(
-	WDP_AUTO, "company", 0, 0,
+	WDP_AUTO, 0, 0,
 	WC_COMPANY, WC_NONE,
 	0,
-	_nested_company_widgets, lengthof(_nested_company_widgets)
+	_nested_company_widgets, lengthof(_nested_company_widgets),
+	&_company_prefs
 );
 
 /**
@@ -2552,7 +2568,7 @@ static const NWidgetPart _nested_buy_company_widgets[] = {
 };
 
 static WindowDesc _buy_company_desc(
-	WDP_AUTO, NULL, 0, 0,
+	WDP_AUTO, 0, 0,
 	WC_BUY_COMPANY, WC_NONE,
 	WDF_CONSTRUCTION,
 	_nested_buy_company_widgets, lengthof(_nested_buy_company_widgets)

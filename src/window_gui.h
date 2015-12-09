@@ -166,25 +166,29 @@ struct HotkeyList;
  * High level window description
  */
 struct WindowDesc {
+	struct Prefs {
+		const char *const key; ///< Key to store window defaults in the config file.
+		int16 pref_width;      ///< User-preferred width of the window. Zero if unset.
+		int16 pref_height;     ///< User-preferred height of the window. Zero if unset.
+		bool  pref_sticky;     ///< Preferred stickyness.
 
-	WindowDesc(WindowPosition default_pos, const char *ini_key, int16 def_width_trad, int16 def_height_trad,
+		Prefs (const char *key);
+		~Prefs();
+	};
+
+	WindowDesc (WindowPosition default_pos, int16 def_width_trad, int16 def_height_trad,
 			WindowClass window_class, WindowClass parent_class, uint32 flags,
-			const NWidgetPart *nwid_parts, int16 nwid_length, HotkeyList *hotkeys = NULL);
-
-	~WindowDesc();
+			const NWidgetPart *nwid_parts, int16 nwid_length,
+			Prefs *prefs = NULL, HotkeyList *hotkeys = NULL);
 
 	WindowPosition default_pos;    ///< Preferred position of the window. @see WindowPosition()
 	WindowClass cls;               ///< Class of the window, @see WindowClass.
 	WindowClass parent_cls;        ///< Class of the parent window. @see WindowClass
-	const char *ini_key;           ///< Key to store window defaults in openttd.cfg. \c NULL if nothing shall be stored.
 	uint32 flags;                  ///< Flags. @see WindowDefaultFlag
 	const NWidgetPart *nwid_parts; ///< Nested widget parts describing the window.
 	int16 nwid_length;             ///< Length of the #nwid_parts array.
+	Prefs *prefs;                  ///< Preferred dimensions and state.
 	HotkeyList *hotkeys;           ///< Hotkeys for the window.
-
-	bool pref_sticky;              ///< Preferred stickyness.
-	int16 pref_width;              ///< User-preferred width of the window. Zero if unset.
-	int16 pref_height;             ///< User-preferred height of the window. Zero if unset.
 
 	int16 GetDefaultWidth() const;
 	int16 GetDefaultHeight() const;

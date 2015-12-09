@@ -346,12 +346,14 @@ static const NWidgetPart _nested_terraform_widgets[] = {
 	EndContainer(),
 };
 
+static WindowDesc::Prefs _terraform_prefs ("toolbar_landscape");
+
 static WindowDesc _terraform_desc(
-	WDP_MANUAL, "toolbar_landscape", 0, 0,
+	WDP_MANUAL, 0, 0,
 	WC_SCEN_LAND_GEN, WC_NONE,
 	WDF_CONSTRUCTION,
 	_nested_terraform_widgets, lengthof(_nested_terraform_widgets),
-	&TerraformToolbarWindow::hotkeys
+	&_terraform_prefs, &TerraformToolbarWindow::hotkeys
 );
 
 /**
@@ -727,12 +729,14 @@ static Hotkey terraform_editor_hotkeys[] = {
 
 HotkeyList ScenarioEditorLandscapeGenerationWindow::hotkeys("terraform_editor", terraform_editor_hotkeys, TerraformToolbarEditorGlobalHotkeys);
 
+static WindowDesc::Prefs _scen_edit_land_gen_prefs ("toolbar_landscape_scen");
+
 static WindowDesc _scen_edit_land_gen_desc(
-	WDP_AUTO, "toolbar_landscape_scen", 0, 0,
+	WDP_AUTO, 0, 0,
 	WC_SCEN_LAND_GEN, WC_NONE,
 	WDF_CONSTRUCTION,
 	_nested_scen_edit_land_gen_widgets, lengthof(_nested_scen_edit_land_gen_widgets),
-	&ScenarioEditorLandscapeGenerationWindow::hotkeys
+	&_scen_edit_land_gen_prefs, &ScenarioEditorLandscapeGenerationWindow::hotkeys
 );
 
 /**
