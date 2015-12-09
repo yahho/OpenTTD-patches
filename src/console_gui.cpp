@@ -159,7 +159,7 @@ static const struct NWidgetPart _nested_console_window_widgets[] = {
 	NWidget(WWT_EMPTY, INVALID_COLOUR, WID_C_BACKGROUND), SetResize(1, 1),
 };
 
-static WindowDesc _console_window_desc(
+static const WindowDesc _console_window_desc(
 	WDP_MANUAL, 0, 0,
 	WC_CONSOLE, WC_NONE,
 	0,

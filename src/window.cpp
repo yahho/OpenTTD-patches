@@ -1802,7 +1802,8 @@ void Window::InitNested(WindowNumber window_number)
  * Empty constructor, initialization has been moved to #InitNested() called from the constructor of the derived class.
  * @param desc The description of the window.
  */
-Window::Window(WindowDesc *desc) : window_desc(desc), scrolling_scrollbar(-1)
+Window::Window (const WindowDesc *desc)
+	: window_desc (desc), scrolling_scrollbar (-1)
 {
 }
 

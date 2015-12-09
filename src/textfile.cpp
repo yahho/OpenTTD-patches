@@ -53,7 +53,7 @@ static const NWidgetPart _nested_textfile_widgets[] = {
 static WindowDesc::Prefs _textfile_prefs ("textfile");
 
 /** Window definition for the textfile window */
-static WindowDesc _textfile_desc(
+static const WindowDesc _textfile_desc(
 	WDP_CENTER, 630, 460,
 	WC_TEXTFILE, WC_NONE,
 	0,

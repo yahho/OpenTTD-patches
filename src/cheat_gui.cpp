@@ -212,7 +212,7 @@ struct CheatWindow : Window {
 	uint line_height;
 	int box_width;
 
-	CheatWindow(WindowDesc *desc) : Window(desc)
+	CheatWindow (const WindowDesc *desc) : Window(desc)
 	{
 		this->box_width = GetSpriteSize(SPR_BOX_EMPTY).width;
 		this->InitNested();
@@ -407,7 +407,7 @@ struct CheatWindow : Window {
 static WindowDesc::Prefs _cheats_prefs ("cheats");
 
 /** Window description of the cheats GUI. */
-static WindowDesc _cheats_desc(
+static const WindowDesc _cheats_desc(
 	WDP_AUTO, 0, 0,
 	WC_CHEATS, WC_NONE,
 	0,

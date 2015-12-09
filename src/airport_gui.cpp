@@ -69,7 +69,7 @@ static void PlaceAirport(TileIndex tile)
 struct BuildAirToolbarWindow : Window {
 	int last_user_action; // Last started user action.
 
-	BuildAirToolbarWindow(WindowDesc *desc, WindowNumber window_number) : Window(desc)
+	BuildAirToolbarWindow (const WindowDesc *desc, WindowNumber window_number) : Window(desc)
 	{
 		this->InitNested(window_number);
 		if (_settings_client.gui.link_terraform_toolbar) ShowTerraformToolbar(this);
@@ -186,7 +186,7 @@ static const NWidgetPart _nested_air_toolbar_widgets[] = {
 
 static WindowDesc::Prefs _air_toolbar_prefs ("toolbar_air");
 
-static WindowDesc _air_toolbar_desc(
+static const WindowDesc _air_toolbar_desc(
 	WDP_ALIGN_TOOLBAR, 0, 0,
 	WC_BUILD_TOOLBAR, WC_NONE,
 	WDF_CONSTRUCTION,
@@ -227,7 +227,7 @@ class BuildAirportWindow : public PickerWindowBase {
 	}
 
 public:
-	BuildAirportWindow(WindowDesc *desc, Window *parent) : PickerWindowBase(desc, parent)
+	BuildAirportWindow (const WindowDesc *desc, Window *parent) : PickerWindowBase(desc, parent)
 	{
 		this->CreateNestedTree();
 
@@ -589,7 +589,7 @@ static const NWidgetPart _nested_build_airport_widgets[] = {
 
 static WindowDesc::Prefs _build_airport_prefs ("build_station_air");
 
-static WindowDesc _build_airport_desc(
+static const WindowDesc _build_airport_desc(
 	WDP_AUTO, 0, 0,
 	WC_BUILD_STATION, WC_BUILD_TOOLBAR,
 	WDF_CONSTRUCTION,

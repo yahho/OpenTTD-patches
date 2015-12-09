@@ -65,7 +65,7 @@ static const NWidgetPart _nested_engine_preview_widgets[] = {
 struct EnginePreviewWindow : Window {
 	int vehicle_space; // The space to show the vehicle image
 
-	EnginePreviewWindow(WindowDesc *desc, WindowNumber window_number) : Window(desc)
+	EnginePreviewWindow (const WindowDesc *desc, WindowNumber window_number) : Window(desc)
 	{
 		this->InitNested(window_number);
 
@@ -142,7 +142,7 @@ struct EnginePreviewWindow : Window {
 
 static WindowDesc::Prefs _engine_preview_prefs ("engine_preview");
 
-static WindowDesc _engine_preview_desc(
+static const WindowDesc _engine_preview_desc(
 	WDP_CENTER, 0, 0,
 	WC_ENGINE_PREVIEW, WC_NONE,
 	WDF_CONSTRUCTION,

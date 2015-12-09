@@ -304,7 +304,7 @@ private:
 	}
 
 public:
-	VehicleGroupWindow(WindowDesc *desc, WindowNumber window_number) : BaseVehicleListWindow(desc, window_number)
+	VehicleGroupWindow (const WindowDesc *desc, WindowNumber window_number) : BaseVehicleListWindow(desc, window_number)
 	{
 		this->CreateNestedTree();
 
@@ -888,7 +888,7 @@ static WindowDesc::Prefs _other_group_prefs ("list_groups");
 
 static WindowDesc::Prefs _train_group_prefs ("list_groups_train");
 
-static WindowDesc _train_group_desc(
+static const WindowDesc _train_group_desc(
 	WDP_AUTO, 525, 246,
 	WC_TRAINS_LIST, WC_NONE,
 	0,
@@ -896,7 +896,7 @@ static WindowDesc _train_group_desc(
 	&_train_group_prefs
 );
 
-static WindowDesc _roadveh_group_desc(
+static const WindowDesc _roadveh_group_desc(
 	WDP_AUTO, 460, 246,
 	WC_ROADVEH_LIST, WC_NONE,
 	0,
@@ -904,7 +904,7 @@ static WindowDesc _roadveh_group_desc(
 	&_other_group_prefs
 );
 
-static WindowDesc _ship_group_desc(
+static const WindowDesc _ship_group_desc(
 	WDP_AUTO, 460, 246,
 	WC_SHIPS_LIST, WC_NONE,
 	0,
@@ -912,7 +912,7 @@ static WindowDesc _ship_group_desc(
 	&_other_group_prefs
 );
 
-static WindowDesc _aircraft_group_desc(
+static const WindowDesc _aircraft_group_desc(
 	WDP_AUTO, 460, 246,
 	WC_AIRCRAFT_LIST, WC_NONE,
 	0,
@@ -927,7 +927,7 @@ static WindowDesc _aircraft_group_desc(
  */
 void ShowCompanyGroup(CompanyID company, VehicleType vehicle_type)
 {
-	static WindowDesc *const descs[VEH_COMPANY_END] = {
+	static const WindowDesc *const descs[VEH_COMPANY_END] = {
 		&_train_group_desc,     // VEH_TRAIN
 		&_roadveh_group_desc,   // VEH_ROAD
 		&_ship_group_desc,      // VEH_SHIP

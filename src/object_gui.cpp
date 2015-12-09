@@ -73,7 +73,7 @@ class BuildObjectWindow : public Window {
 	}
 
 public:
-	BuildObjectWindow(WindowDesc *desc, WindowNumber number) : Window(desc), info_height(1)
+	BuildObjectWindow (const WindowDesc *desc, WindowNumber number) : Window(desc), info_height(1)
 	{
 		this->CreateNestedTree();
 		this->vscroll = this->GetScrollbar(WID_BO_SCROLLBAR);
@@ -513,7 +513,7 @@ static const NWidgetPart _nested_build_object_widgets[] = {
 
 static WindowDesc::Prefs _build_object_prefs ("build_object");
 
-static WindowDesc _build_object_desc(
+static const WindowDesc _build_object_desc(
 	WDP_AUTO, 0, 0,
 	WC_BUILD_OBJECT, WC_BUILD_TOOLBAR,
 	WDF_CONSTRUCTION,

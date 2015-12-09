@@ -455,7 +455,7 @@ protected:
 	}
 
 public:
-	NetworkGameWindow(WindowDesc *desc) : Window(desc), name_editbox(NETWORK_CLIENT_NAME_LENGTH), filter_editbox(120)
+	NetworkGameWindow (const WindowDesc *desc) : Window(desc), name_editbox(NETWORK_CLIENT_NAME_LENGTH), filter_editbox(120)
 	{
 		this->list_pos = SLP_INVALID;
 		this->server = NULL;
@@ -1023,7 +1023,7 @@ static const NWidgetPart _nested_network_game_widgets[] = {
 
 static WindowDesc::Prefs _network_game_window_prefs ("list_servers");
 
-static WindowDesc _network_game_window_desc(
+static const WindowDesc _network_game_window_desc(
 	WDP_CENTER, 1000, 730,
 	WC_NETWORK_WINDOW, WC_NONE,
 	0,
@@ -1053,7 +1053,7 @@ struct NetworkStartServerWindow : public Window {
 	byte widget_id;              ///< The widget that has the pop-up input menu
 	QueryString name_editbox;    ///< Server name editbox.
 
-	NetworkStartServerWindow(WindowDesc *desc) : Window(desc), name_editbox(NETWORK_NAME_LENGTH)
+	NetworkStartServerWindow (const WindowDesc *desc) : Window(desc), name_editbox(NETWORK_NAME_LENGTH)
 	{
 		this->InitNested(WN_NETWORK_WINDOW_START);
 
@@ -1339,7 +1339,7 @@ static const NWidgetPart _nested_network_start_server_window_widgets[] = {
 	EndContainer(),
 };
 
-static WindowDesc _network_start_server_window_desc(
+static const WindowDesc _network_start_server_window_desc(
 	WDP_CENTER, 0, 0,
 	WC_NETWORK_WINDOW, WC_NONE,
 	0,
@@ -1360,7 +1360,7 @@ struct NetworkLobbyWindow : public Window {
 	NetworkCompanyInfo company_info[MAX_COMPANIES];
 	Scrollbar *vscroll;
 
-	NetworkLobbyWindow(WindowDesc *desc, NetworkGameList *ngl) :
+	NetworkLobbyWindow (const WindowDesc *desc, NetworkGameList *ngl) :
 			Window(desc), company(INVALID_COMPANY), server(ngl)
 	{
 		this->CreateNestedTree();
@@ -1626,7 +1626,7 @@ static const NWidgetPart _nested_network_lobby_window_widgets[] = {
 	EndContainer(),
 };
 
-static WindowDesc _network_lobby_window_desc(
+static const WindowDesc _network_lobby_window_desc(
 	WDP_CENTER, 0, 0,
 	WC_NETWORK_WINDOW, WC_NONE,
 	0,
@@ -1675,7 +1675,7 @@ static const NWidgetPart _nested_client_list_popup_widgets[] = {
 	NWidget(WWT_PANEL, COLOUR_GREY, WID_CLP_PANEL), EndContainer(),
 };
 
-static WindowDesc _client_list_popup_desc(
+static const WindowDesc _client_list_popup_desc(
 	WDP_AUTO, 0, 0,
 	WC_CLIENT_LIST_POPUP, WC_CLIENT_LIST,
 	0,
@@ -1738,7 +1738,7 @@ struct NetworkClientListPopupWindow : Window {
 		action->proc = proc;
 	}
 
-	NetworkClientListPopupWindow(WindowDesc *desc, int x, int y, ClientID client_id) :
+	NetworkClientListPopupWindow (const WindowDesc *desc, int x, int y, ClientID client_id) :
 			Window(desc),
 			sel_index(0), client_id(client_id)
 	{
@@ -1853,7 +1853,7 @@ static const NWidgetPart _nested_client_list_widgets[] = {
 
 static WindowDesc::Prefs _client_list_prefs ("list_clients");
 
-static WindowDesc _client_list_desc(
+static const WindowDesc _client_list_desc(
 	WDP_AUTO, 0, 0,
 	WC_CLIENT_LIST, WC_NONE,
 	0,
@@ -1870,7 +1870,7 @@ struct NetworkClientListWindow : Window {
 	uint server_client_width;
 	uint company_icon_width;
 
-	NetworkClientListWindow(WindowDesc *desc, WindowNumber window_number) :
+	NetworkClientListWindow (const WindowDesc *desc, WindowNumber window_number) :
 			Window(desc),
 			selected_item(-1)
 	{
@@ -2023,7 +2023,7 @@ uint32 _network_join_bytes_total;       ///< The total number of bytes to downlo
 struct NetworkJoinStatusWindow : Window {
 	NetworkPasswordType password_type;
 
-	NetworkJoinStatusWindow(WindowDesc *desc) : Window(desc)
+	NetworkJoinStatusWindow (const WindowDesc *desc) : Window(desc)
 	{
 		this->parent = FindWindowById(WC_NETWORK_WINDOW, WN_NETWORK_WINDOW_GAME);
 		this->InitNested(WN_NETWORK_STATUS_WINDOW_JOIN);
@@ -2126,7 +2126,7 @@ static const NWidgetPart _nested_network_join_status_window_widgets[] = {
 	EndContainer(),
 };
 
-static WindowDesc _network_join_status_window_desc(
+static const WindowDesc _network_join_status_window_desc(
 	WDP_CENTER, 0, 0,
 	WC_NETWORK_STATUS_WINDOW, WC_NONE,
 	WDF_MODAL,
@@ -2157,7 +2157,7 @@ void ShowNetworkNeedPassword(NetworkPasswordType npt)
 struct NetworkCompanyPasswordWindow : public Window {
 	QueryString password_editbox; ///< Password editbox.
 
-	NetworkCompanyPasswordWindow(WindowDesc *desc, Window *parent) : Window(desc), password_editbox(lengthof(_settings_client.network.default_company_pass))
+	NetworkCompanyPasswordWindow (const WindowDesc *desc, Window *parent) : Window(desc), password_editbox(lengthof(_settings_client.network.default_company_pass))
 	{
 		this->InitNested(0);
 
@@ -2220,7 +2220,7 @@ static const NWidgetPart _nested_network_company_password_window_widgets[] = {
 	EndContainer(),
 };
 
-static WindowDesc _network_company_password_window_desc(
+static const WindowDesc _network_company_password_window_desc(
 	WDP_AUTO, 0, 0,
 	WC_COMPANY_PASSWORD_WINDOW, WC_NONE,
 	0,

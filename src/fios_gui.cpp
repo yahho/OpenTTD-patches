@@ -246,7 +246,7 @@ public:
 		this->filename_editbox.UpdateSize();
 	}
 
-	SaveLoadWindow(WindowDesc *desc, SaveLoadDialogMode mode) : Window(desc), filename_editbox(64)
+	SaveLoadWindow (const WindowDesc *desc, SaveLoadDialogMode mode) : Window(desc), filename_editbox(64)
 	{
 		static const StringID saveload_captions[] = {
 			STR_SAVELOAD_LOAD_CAPTION,
@@ -710,7 +710,7 @@ public:
 static WindowDesc::Prefs _load_dialog_prefs ("load_game");
 
 /** Load game/scenario */
-static WindowDesc _load_dialog_desc(
+static const WindowDesc _load_dialog_desc(
 	WDP_CENTER, 500, 294,
 	WC_SAVELOAD, WC_NONE,
 	0,
@@ -722,7 +722,7 @@ static WindowDesc _load_dialog_desc(
 static WindowDesc::Prefs _load_heightmap_dialog_prefs ("load_heightmap");
 
 /** Load heightmap */
-static WindowDesc _load_heightmap_dialog_desc(
+static const WindowDesc _load_heightmap_dialog_desc(
 	WDP_CENTER, 257, 320,
 	WC_SAVELOAD, WC_NONE,
 	0,
@@ -734,7 +734,7 @@ static WindowDesc _load_heightmap_dialog_desc(
 static WindowDesc::Prefs _save_dialog_prefs ("save_game");
 
 /** Save game/scenario */
-static WindowDesc _save_dialog_desc(
+static const WindowDesc _save_dialog_desc(
 	WDP_CENTER, 500, 294,
 	WC_SAVELOAD, WC_NONE,
 	0,
@@ -763,7 +763,7 @@ void ShowSaveLoadDialog(SaveLoadDialogMode mode)
 {
 	DeleteWindowById(WC_SAVELOAD, 0);
 
-	WindowDesc *sld;
+	const WindowDesc *sld;
 	switch (mode) {
 		case SLD_SAVE_GAME:
 		case SLD_SAVE_SCENARIO:

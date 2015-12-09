@@ -307,7 +307,7 @@ protected:
 	}
 
 public:
-	CompanyStationsWindow(WindowDesc *desc, WindowNumber window_number) : Window(desc)
+	CompanyStationsWindow (const WindowDesc *desc, WindowNumber window_number) : Window(desc)
 	{
 		this->stations.SetListing(this->last_sorting);
 		this->stations.SetSortFuncs(this->sorter_funcs);
@@ -741,7 +741,7 @@ static const NWidgetPart _nested_company_stations_widgets[] = {
 
 static WindowDesc::Prefs _company_stations_prefs ("list_stations");
 
-static WindowDesc _company_stations_desc(
+static const WindowDesc _company_stations_desc(
 	WDP_AUTO, 358, 162,
 	WC_STATION_LIST, WC_NONE,
 	0,
@@ -1306,7 +1306,7 @@ struct StationViewWindow : public Window {
 
 	CargoDataVector displayed_rows;     ///< Parent entry of currently displayed rows (including collapsed ones).
 
-	StationViewWindow(WindowDesc *desc, WindowNumber window_number) : Window(desc),
+	StationViewWindow (const WindowDesc *desc, WindowNumber window_number) : Window(desc),
 		scroll_to_row(INT_MAX), grouping_index(0), groupings(NULL)
 	{
 		this->rating_lines  = ALH_RATING;
@@ -2031,7 +2031,7 @@ assert_compile (lengthof(StationViewWindow::_group_names) == lengthof(StationVie
 
 static WindowDesc::Prefs _station_view_prefs ("view_station");
 
-static WindowDesc _station_view_desc(
+static const WindowDesc _station_view_desc(
 	WDP_AUTO, 249, 117,
 	WC_STATION_VIEW, WC_NONE,
 	0,
@@ -2161,7 +2161,7 @@ struct SelectStationWindow : Window {
 	std::vector<StationID> list; ///< List of nearby stations
 	Scrollbar *vscroll;
 
-	SelectStationWindow (WindowDesc *desc, const Command &cmd, const TileArea &ta, bool waypoint, const std::vector<StationID> &list) :
+	SelectStationWindow (const WindowDesc *desc, const Command &cmd, const TileArea &ta, bool waypoint, const std::vector<StationID> &list) :
 		Window(desc),
 		select_station_cmd(cmd),
 		area(ta),
@@ -2269,7 +2269,7 @@ struct SelectStationWindow : Window {
 
 static WindowDesc::Prefs _select_station_prefs ("build_station_join");
 
-static WindowDesc _select_station_desc(
+static const WindowDesc _select_station_desc(
 	WDP_AUTO, 200, 180,
 	WC_SELECT_STATION, WC_NONE,
 	WDF_CONSTRUCTION,

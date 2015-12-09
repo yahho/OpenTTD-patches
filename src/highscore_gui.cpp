@@ -29,7 +29,7 @@ struct EndGameHighScoreBaseWindow : Window {
 	uint32 background_img;
 	int8 rank;
 
-	EndGameHighScoreBaseWindow(WindowDesc *desc) : Window(desc)
+	EndGameHighScoreBaseWindow (const WindowDesc *desc) : Window(desc)
 	{
 		this->InitNested();
 		CLRBITS(this->flags, WF_WHITE_BORDER);
@@ -92,7 +92,7 @@ struct EndGameHighScoreBaseWindow : Window {
 
 /** End game window shown at the end of the game */
 struct EndGameWindow : EndGameHighScoreBaseWindow {
-	EndGameWindow(WindowDesc *desc) : EndGameHighScoreBaseWindow(desc)
+	EndGameWindow (const WindowDesc *desc) : EndGameHighScoreBaseWindow(desc)
 	{
 		/* Pause in single-player to have a look at the highscore at your own leisure */
 		if (!_networking) DoCommandP(0, PM_PAUSED_NORMAL, 1, CMD_PAUSE);
@@ -153,7 +153,7 @@ struct EndGameWindow : EndGameHighScoreBaseWindow {
 struct HighScoreWindow : EndGameHighScoreBaseWindow {
 	bool game_paused_by_player; ///< True if the game was paused by the player when the highscore window was opened.
 
-	HighScoreWindow(WindowDesc *desc, int difficulty, int8 ranking) : EndGameHighScoreBaseWindow(desc)
+	HighScoreWindow (const WindowDesc *desc, int difficulty, int8 ranking) : EndGameHighScoreBaseWindow(desc)
 	{
 		/* pause game to show the chart */
 		this->game_paused_by_player = _pause_mode == PM_PAUSED_NORMAL;
@@ -207,14 +207,14 @@ static const NWidgetPart _nested_highscore_widgets[] = {
 	NWidget(WWT_PANEL, COLOUR_BROWN, WID_H_BACKGROUND), SetMinimalSize(641, 481), SetResize(1, 1), EndContainer(),
 };
 
-static WindowDesc _highscore_desc(
+static const WindowDesc _highscore_desc(
 	WDP_MANUAL, 0, 0,
 	WC_HIGHSCORE, WC_NONE,
 	0,
 	_nested_highscore_widgets, lengthof(_nested_highscore_widgets)
 );
 
-static WindowDesc _endgame_desc(
+static const WindowDesc _endgame_desc(
 	WDP_MANUAL, 0, 0,
 	WC_ENDSCREEN, WC_NONE,
 	0,

@@ -292,7 +292,7 @@ struct NetworkChatWindow : public Window {
 	 * @param type The type of destination.
 	 * @param dest The actual destination index.
 	 */
-	NetworkChatWindow(WindowDesc *desc, DestType type, int dest) : Window(desc), message_editbox(NETWORK_CHAT_LENGTH)
+	NetworkChatWindow (const WindowDesc *desc, DestType type, int dest) : Window(desc), message_editbox(NETWORK_CHAT_LENGTH)
 	{
 		this->dtype   = type;
 		this->dest    = dest;
@@ -541,7 +541,7 @@ static const NWidgetPart _nested_chat_window_widgets[] = {
 };
 
 /** The description of the chat window. */
-static WindowDesc _chat_window_desc(
+static const WindowDesc _chat_window_desc(
 	WDP_MANUAL, 0, 0,
 	WC_SEND_NETWORK_MSG, WC_NONE,
 	0,

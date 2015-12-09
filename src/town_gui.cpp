@@ -105,7 +105,7 @@ private:
 	}
 
 public:
-	TownAuthorityWindow(WindowDesc *desc, WindowNumber window_number) : Window(desc), sel_index(-1), displayed_actions_on_previous_painting(0)
+	TownAuthorityWindow (const WindowDesc *desc, WindowNumber window_number) : Window(desc), sel_index(-1), displayed_actions_on_previous_painting(0)
 	{
 		this->town = Town::Get(window_number);
 		this->InitNested(window_number);
@@ -297,7 +297,7 @@ public:
 
 static WindowDesc::Prefs _town_authority_prefs ("view_town_authority");
 
-static WindowDesc _town_authority_desc(
+static const WindowDesc _town_authority_desc(
 	WDP_AUTO, 317, 222,
 	WC_TOWN_AUTHORITY, WC_NONE,
 	0,
@@ -319,7 +319,7 @@ private:
 public:
 	static const int WID_TV_HEIGHT_NORMAL = 162;
 
-	TownViewWindow(WindowDesc *desc, WindowNumber window_number) : Window(desc)
+	TownViewWindow (const WindowDesc *desc, WindowNumber window_number) : Window(desc)
 	{
 		this->CreateNestedTree();
 
@@ -599,7 +599,7 @@ static const NWidgetPart _nested_town_game_view_widgets[] = {
 
 static WindowDesc::Prefs _town_game_view_prefs ("view_town");
 
-static WindowDesc _town_game_view_desc(
+static const WindowDesc _town_game_view_desc(
 	WDP_AUTO, 260, TownViewWindow::WID_TV_HEIGHT_NORMAL,
 	WC_TOWN_VIEW, WC_NONE,
 	0,
@@ -638,7 +638,7 @@ static const NWidgetPart _nested_town_editor_view_widgets[] = {
 
 static WindowDesc::Prefs _town_editor_view_prefs ("view_town_scen");
 
-static WindowDesc _town_editor_view_desc(
+static const WindowDesc _town_editor_view_desc(
 	WDP_AUTO, 260, TownViewWindow::WID_TV_HEIGHT_NORMAL,
 	WC_TOWN_VIEW, WC_NONE,
 	0,
@@ -770,7 +770,7 @@ private:
 	}
 
 public:
-	TownDirectoryWindow(WindowDesc *desc) : Window(desc)
+	TownDirectoryWindow (const WindowDesc *desc) : Window(desc)
 	{
 		this->CreateNestedTree();
 
@@ -998,7 +998,7 @@ GUITownList::SortFunction * const TownDirectoryWindow::sorter_funcs[] = {
 
 static WindowDesc::Prefs _town_directory_prefs ("list_towns");
 
-static WindowDesc _town_directory_desc(
+static const WindowDesc _town_directory_desc(
 	WDP_AUTO, 208, 202,
 	WC_TOWN_DIRECTORY, WC_NONE,
 	0,
@@ -1107,7 +1107,7 @@ private:
 	TownNameParams params;  ///< Town name parameters
 
 public:
-	FoundTownWindow(WindowDesc *desc, WindowNumber window_number) :
+	FoundTownWindow (const WindowDesc *desc, WindowNumber window_number) :
 			Window(desc),
 			town_size(TSZ_MEDIUM),
 			town_layout(_settings_game.economy.town_layout),
@@ -1248,7 +1248,7 @@ public:
 
 static WindowDesc::Prefs _found_town_prefs ("build_town");
 
-static WindowDesc _found_town_desc(
+static const WindowDesc _found_town_desc(
 	WDP_AUTO, 160, 162,
 	WC_FOUND_TOWN, WC_NONE,
 	WDF_CONSTRUCTION,
@@ -1275,7 +1275,7 @@ struct SelectTownWindow : Window {
 
 	void RebuildTownList (void);
 
-	SelectTownWindow(WindowDesc *desc, TileIndex tile, HouseID house)
+	SelectTownWindow (const WindowDesc *desc, TileIndex tile, HouseID house)
 		: Window(desc), tile(tile), house(house)
 	{
 		this->CreateNestedTree();
@@ -1401,7 +1401,7 @@ static const NWidgetPart _nested_select_town_widgets[] = {
 
 static WindowDesc::Prefs _select_town_prefs ("select_town");
 
-static WindowDesc _select_town_desc(
+static const WindowDesc _select_town_desc(
 	WDP_AUTO, 100, 0,
 	WC_SELECT_TOWN, WC_NONE,
 	WDF_CONSTRUCTION,
@@ -1584,7 +1584,7 @@ class HousePickerWindow : public Window {
 	}
 
 public:
-	HousePickerWindow (WindowDesc *desc, WindowNumber number) : Window (desc)
+	HousePickerWindow (const WindowDesc *desc, WindowNumber number) : Window (desc)
 	{
 		this->CreateNestedTree();
 		/* there is no shade box but we will shade the window if there is no house to show */
@@ -2056,7 +2056,7 @@ static const NWidgetPart _nested_house_picker_widgets[] = {
 
 static WindowDesc::Prefs _house_picker_prefs ("build_house");
 
-static WindowDesc _house_picker_desc(
+static const WindowDesc _house_picker_desc(
 	WDP_AUTO, 0, 0,
 	WC_BUILD_HOUSE, WC_BUILD_TOOLBAR,
 	WDF_CONSTRUCTION,

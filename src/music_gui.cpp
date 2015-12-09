@@ -297,7 +297,7 @@ static void SelectPlaylist(byte list)
 }
 
 struct MusicTrackSelectionWindow : public Window {
-	MusicTrackSelectionWindow(WindowDesc *desc, WindowNumber number) : Window(desc)
+	MusicTrackSelectionWindow (const WindowDesc *desc, WindowNumber number) : Window(desc)
 	{
 		this->InitNested(number);
 		this->LowerWidget(WID_MTS_LIST_LEFT);
@@ -504,7 +504,7 @@ static const NWidgetPart _nested_music_track_selection_widgets[] = {
 
 static WindowDesc::Prefs _music_track_selection_prefs ("music_track");
 
-static WindowDesc _music_track_selection_desc(
+static const WindowDesc _music_track_selection_desc(
 	WDP_AUTO, 0, 0,
 	WC_MUSIC_TRACK_SELECTION, WC_NONE,
 	0,
@@ -520,7 +520,7 @@ static void ShowMusicTrackSelection()
 struct MusicWindow : public Window {
 	static const int slider_width = 3;
 
-	MusicWindow(WindowDesc *desc, WindowNumber number) : Window(desc)
+	MusicWindow (const WindowDesc *desc, WindowNumber number) : Window(desc)
 	{
 		this->InitNested(number);
 		this->LowerWidget(_settings_client.music.playlist + WID_M_ALL);
@@ -772,7 +772,7 @@ static const NWidgetPart _nested_music_window_widgets[] = {
 
 static WindowDesc::Prefs _music_window_prefs ("music");
 
-static WindowDesc _music_window_desc(
+static const WindowDesc _music_window_desc(
 	WDP_AUTO, 0, 0,
 	WC_MUSIC_WINDOW, WC_NONE,
 	0,

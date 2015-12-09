@@ -350,7 +350,7 @@ struct NewGRFInspectWindow : Window {
 		if (v == NULL) this->chain_index = 0;
 	}
 
-	NewGRFInspectWindow(WindowDesc *desc, WindowNumber wno) : Window(desc)
+	NewGRFInspectWindow (const WindowDesc *desc, WindowNumber wno) : Window(desc)
 	{
 		this->CreateNestedTree();
 		this->vscroll = this->GetScrollbar(WID_NGRFI_SCROLLBAR);
@@ -675,7 +675,7 @@ static const NWidgetPart _nested_newgrf_inspect_widgets[] = {
 
 static WindowDesc::Prefs _newgrf_inspect_chain_prefs ("newgrf_inspect_chain");
 
-static WindowDesc _newgrf_inspect_chain_desc(
+static const WindowDesc _newgrf_inspect_chain_desc(
 	WDP_AUTO, 400, 300,
 	WC_NEWGRF_INSPECT, WC_NONE,
 	0,
@@ -685,7 +685,7 @@ static WindowDesc _newgrf_inspect_chain_desc(
 
 static WindowDesc::Prefs _newgrf_inspect_prefs ("newgrf_inspect");
 
-static WindowDesc _newgrf_inspect_desc(
+static const WindowDesc _newgrf_inspect_desc(
 	WDP_AUTO, 400, 300,
 	WC_NEWGRF_INSPECT, WC_NONE,
 	0,
@@ -707,7 +707,7 @@ void ShowNewGRFInspectWindow(GrfSpecFeature feature, uint index, const uint32 gr
 	if (!IsNewGRFInspectable(feature, index)) return;
 
 	WindowNumber wno = GetInspectWindowNumber(feature, index);
-	WindowDesc *desc = (feature == GSF_TRAINS || feature == GSF_ROADVEHICLES) ? &_newgrf_inspect_chain_desc : &_newgrf_inspect_desc;
+	const WindowDesc *desc = (feature == GSF_TRAINS || feature == GSF_ROADVEHICLES) ? &_newgrf_inspect_chain_desc : &_newgrf_inspect_desc;
 	NewGRFInspectWindow *w = AllocateWindowDescFront<NewGRFInspectWindow>(desc, wno, true);
 	w->SetCallerGRFID(grfid);
 }
@@ -821,7 +821,7 @@ struct SpriteAlignerWindow : Window {
 	Scrollbar *vscroll;
 	SmallMap<SpriteID, XyOffs> offs_start_map; ///< Mapping of starting offsets for the sprites which have been aligned in the sprite aligner window.
 
-	SpriteAlignerWindow(WindowDesc *desc, WindowNumber wno) : Window(desc)
+	SpriteAlignerWindow (const WindowDesc *desc, WindowNumber wno) : Window(desc)
 	{
 		this->CreateNestedTree();
 		this->vscroll = this->GetScrollbar(WID_SA_SCROLLBAR);
@@ -1093,7 +1093,7 @@ static const NWidgetPart _nested_sprite_aligner_widgets[] = {
 
 static WindowDesc::Prefs _sprite_aligner_prefs ("sprite_aligner");
 
-static WindowDesc _sprite_aligner_desc(
+static const WindowDesc _sprite_aligner_desc(
 	WDP_AUTO, 400, 300,
 	WC_SPRITE_ALIGNER, WC_NONE,
 	0,

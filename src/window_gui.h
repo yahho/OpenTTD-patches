@@ -294,7 +294,7 @@ protected:
 	SmallVector<int, 4> scheduled_invalidation_data;  ///< Data of scheduled OnInvalidateData() calls.
 
 public:
-	Window(WindowDesc *desc);
+	Window (const WindowDesc *desc);
 
 	virtual ~Window();
 
@@ -318,7 +318,7 @@ public:
 	{
 	}
 
-	WindowDesc *window_desc;    ///< Window description
+	const WindowDesc *window_desc; ///< Window description
 	WindowFlags flags;          ///< Window flags
 	WindowClass window_class;   ///< Window class
 	WindowNumber window_number; ///< Window number within the window class
@@ -852,7 +852,8 @@ inline const NWID *Window::GetWidget(uint widnum) const
 class PickerWindowBase : public Window {
 
 public:
-	PickerWindowBase(WindowDesc *desc, Window *parent) : Window(desc)
+	PickerWindowBase (const WindowDesc *desc, Window *parent)
+		: Window(desc)
 	{
 		this->parent = parent;
 	}
@@ -872,7 +873,7 @@ Window *FindWindowFromPt(int x, int y);
  * @return %Window pointer of the newly created window, or the existing one if \a return_existing is set, or \c NULL.
  */
 template <typename Wcls>
-Wcls *AllocateWindowDescFront(WindowDesc *desc, int window_number, bool return_existing = false)
+Wcls *AllocateWindowDescFront (const WindowDesc *desc, int window_number, bool return_existing = false)
 {
 	Wcls *w = static_cast<Wcls *>(BringWindowToFrontById(desc->cls, window_number));
 	if (w != NULL) return return_existing ? w : NULL;

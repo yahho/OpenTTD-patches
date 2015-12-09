@@ -162,7 +162,7 @@ struct NewGRFParametersWindow : public Window {
 	bool action14present;  ///< True if action14 information is present.
 	bool editable;         ///< Allow editing parameters.
 
-	NewGRFParametersWindow(WindowDesc *desc, GRFConfig *c, bool editable) : Window(desc),
+	NewGRFParametersWindow (const WindowDesc *desc, GRFConfig *c, bool editable) : Window(desc),
 		grf_config(c),
 		clicked_button(UINT_MAX),
 		clicked_dropdown(false),
@@ -537,7 +537,7 @@ static const NWidgetPart _nested_newgrf_parameter_widgets[] = {
 static WindowDesc::Prefs _newgrf_parameters_prefs ("settings_newgrf_config");
 
 /** Window definition for the change grf parameters window */
-static WindowDesc _newgrf_parameters_desc(
+static const WindowDesc _newgrf_parameters_desc(
 	WDP_CENTER, 500, 208,
 	WC_GRF_PARAMETERS, WC_NONE,
 	0,
@@ -647,7 +647,7 @@ struct NewGRFWindow : public Window, NewGRFScanCallback {
 	Scrollbar *vscroll;
 	Scrollbar *vscroll2;
 
-	NewGRFWindow(WindowDesc *desc, bool editable, bool show_params, bool execute, GRFConfig **orig_list) : Window(desc), filter_editbox(EDITBOX_MAX_SIZE)
+	NewGRFWindow (const WindowDesc *desc, bool editable, bool show_params, bool execute, GRFConfig **orig_list) : Window(desc), filter_editbox(EDITBOX_MAX_SIZE)
 	{
 		this->avail_sel   = NULL;
 		this->avail_pos   = -1;
@@ -1964,7 +1964,7 @@ static const NWidgetPart _nested_newgrf_widgets[] = {
 static WindowDesc::Prefs _newgrf_prefs ("settings_newgrf");
 
 /* Window definition of the manage newgrfs window */
-static WindowDesc _newgrf_desc(
+static const WindowDesc _newgrf_desc(
 	WDP_CENTER, 300, 263,
 	WC_GAME_OPTIONS, WC_NONE,
 	0,
@@ -2048,7 +2048,7 @@ static const NWidgetPart _nested_save_preset_widgets[] = {
 static WindowDesc::Prefs _save_preset_prefs ("save_preset");
 
 /** Window description of the preset save window. */
-static WindowDesc _save_preset_desc(
+static const WindowDesc _save_preset_desc(
 	WDP_CENTER, 140, 110,
 	WC_SAVE_PRESET, WC_GAME_OPTIONS,
 	WDF_MODAL,
@@ -2196,7 +2196,7 @@ static const NWidgetPart _nested_scan_progress_widgets[] = {
 };
 
 /** Description of the widgets and other settings of the window. */
-static WindowDesc _scan_progress_desc(
+static const WindowDesc _scan_progress_desc(
 	WDP_CENTER, 0, 0,
 	WC_MODAL_PROGRESS, WC_NONE,
 	0,

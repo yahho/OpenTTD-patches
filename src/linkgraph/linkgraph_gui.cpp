@@ -401,7 +401,7 @@ assert_compile(WID_LGL_SATURATION_LAST - WID_LGL_SATURATION_FIRST ==
 
 static WindowDesc::Prefs _linkgraph_legend_prefs ("toolbar_linkgraph");
 
-static WindowDesc _linkgraph_legend_desc(
+static const WindowDesc _linkgraph_legend_desc(
 	WDP_AUTO, 0, 0,
 	WC_LINKGRAPH_LEGEND, WC_NONE,
 	0,
@@ -417,7 +417,7 @@ void ShowLinkGraphLegend()
 	AllocateWindowDescFront<LinkGraphLegendWindow>(&_linkgraph_legend_desc, 0);
 }
 
-LinkGraphLegendWindow::LinkGraphLegendWindow(WindowDesc *desc, int window_number) : Window(desc)
+LinkGraphLegendWindow::LinkGraphLegendWindow (const WindowDesc *desc, int window_number) : Window(desc)
 {
 	this->InitNested(window_number);
 	this->InvalidateData(0);

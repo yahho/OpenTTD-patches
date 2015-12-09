@@ -177,7 +177,7 @@ struct GameOptionsWindow : Window {
 	GameSettings *opt;
 	bool reload;
 
-	GameOptionsWindow(WindowDesc *desc) : Window(desc)
+	GameOptionsWindow (const WindowDesc *desc) : Window(desc)
 	{
 		this->opt = &GetGameSettings();
 		this->reload = false;
@@ -694,7 +694,7 @@ static const NWidgetPart _nested_game_options_widgets[] = {
 
 static WindowDesc::Prefs _game_options_prefs ("settings_game");
 
-static WindowDesc _game_options_desc(
+static const WindowDesc _game_options_desc(
 	WDP_CENTER, 0, 0,
 	WC_GAME_OPTIONS, WC_NONE,
 	0,
@@ -1835,7 +1835,7 @@ struct GameSettingsWindow : Window {
 
 	Scrollbar *vscroll;
 
-	GameSettingsWindow(WindowDesc *desc) : Window(desc), filter_editbox(50)
+	GameSettingsWindow (const WindowDesc *desc) : Window(desc), filter_editbox(50)
 	{
 		static bool first_time = true;
 
@@ -2418,7 +2418,7 @@ static const NWidgetPart _nested_settings_selection_widgets[] = {
 
 static WindowDesc::Prefs _settings_selection_prefs ("settings");
 
-static WindowDesc _settings_selection_desc(
+static const WindowDesc _settings_selection_desc(
 	WDP_CENTER, 510, 450,
 	WC_GAME_OPTIONS, WC_NONE,
 	0,
@@ -2499,7 +2499,7 @@ void DrawBoolButton(int x, int y, bool state, bool clickable)
 struct CustomCurrencyWindow : Window {
 	int query_widget;
 
-	CustomCurrencyWindow(WindowDesc *desc) : Window(desc)
+	CustomCurrencyWindow (const WindowDesc *desc) : Window(desc)
 	{
 		this->InitNested();
 
@@ -2713,7 +2713,7 @@ static const NWidgetPart _nested_cust_currency_widgets[] = {
 	EndContainer(),
 };
 
-static WindowDesc _cust_currency_desc(
+static const WindowDesc _cust_currency_desc(
 	WDP_CENTER, 0, 0,
 	WC_CUSTOM_CURRENCY, WC_NONE,
 	0,

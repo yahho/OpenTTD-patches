@@ -417,7 +417,7 @@ struct BuildRailToolbarWindow : Window {
 	RailType railtype;    ///< Rail type to build.
 	int last_user_action; ///< Last started user action.
 
-	BuildRailToolbarWindow(WindowDesc *desc, RailType railtype) : Window(desc)
+	BuildRailToolbarWindow (const WindowDesc *desc, RailType railtype) : Window(desc)
 	{
 		this->InitNested(TRANSPORT_RAIL);
 		this->SetupRailToolbar(railtype);
@@ -847,7 +847,7 @@ static const NWidgetPart _nested_build_rail_widgets[] = {
 
 static WindowDesc::Prefs _build_rail_prefs ("toolbar_rail");
 
-static WindowDesc _build_rail_desc(
+static const WindowDesc _build_rail_desc(
 	WDP_ALIGN_TOOLBAR, 0, 0,
 	WC_BUILD_TOOLBAR, WC_NONE,
 	WDF_CONSTRUCTION,
@@ -934,7 +934,7 @@ private:
 	}
 
 public:
-	BuildRailStationWindow(WindowDesc *desc, Window *parent, bool newstation) : PickerWindowBase(desc, parent)
+	BuildRailStationWindow (const WindowDesc *desc, Window *parent, bool newstation) : PickerWindowBase(desc, parent)
 	{
 		this->coverage_height = 2 * FONT_HEIGHT_NORMAL + 3 * WD_PAR_VSEP_NORMAL;
 		this->vscroll = NULL;
@@ -1471,7 +1471,7 @@ static const NWidgetPart _nested_station_builder_widgets[] = {
 static WindowDesc::Prefs _station_builder_prefs ("build_station_rail");
 
 /** High level window description of the station-build window (default & newGRF) */
-static WindowDesc _station_builder_desc(
+static const WindowDesc _station_builder_desc(
 	WDP_AUTO, 350, 0,
 	WC_BUILD_STATION, WC_BUILD_TOOLBAR,
 	WDF_CONSTRUCTION,
@@ -1514,7 +1514,7 @@ private:
 	}
 
 public:
-	BuildSignalWindow(WindowDesc *desc, Window *parent) : PickerWindowBase(desc, parent)
+	BuildSignalWindow (const WindowDesc *desc, Window *parent) : PickerWindowBase(desc, parent)
 	{
 		this->InitNested(TRANSPORT_RAIL);
 		this->OnInvalidateData();
@@ -1687,7 +1687,7 @@ static const NWidgetPart _nested_signal_builder_widgets[] = {
 static WindowDesc::Prefs _signal_builder_prefs ("build_signal");
 
 /** Signal selection window description */
-static WindowDesc _signal_builder_desc(
+static const WindowDesc _signal_builder_desc(
 	WDP_AUTO, 0, 0,
 	WC_BUILD_SIGNAL, WC_BUILD_TOOLBAR,
 	WDF_CONSTRUCTION,
@@ -1704,7 +1704,7 @@ static void ShowSignalBuilder(Window *parent)
 }
 
 struct BuildRailDepotWindow : public PickerWindowBase {
-	BuildRailDepotWindow(WindowDesc *desc, Window *parent) : PickerWindowBase(desc, parent)
+	BuildRailDepotWindow (const WindowDesc *desc, Window *parent) : PickerWindowBase(desc, parent)
 	{
 		this->InitNested(TRANSPORT_RAIL);
 		this->LowerWidget(_build_depot_direction + WID_BRAD_DEPOT_NE);
@@ -1773,7 +1773,7 @@ static const NWidgetPart _nested_build_depot_widgets[] = {
 	EndContainer(),
 };
 
-static WindowDesc _build_depot_desc(
+static const WindowDesc _build_depot_desc(
 	WDP_AUTO, 0, 0,
 	WC_BUILD_DEPOT, WC_BUILD_TOOLBAR,
 	WDF_CONSTRUCTION,
@@ -1786,7 +1786,7 @@ static void ShowBuildTrainDepotPicker(Window *parent)
 }
 
 struct BuildRailWaypointWindow : PickerWindowBase {
-	BuildRailWaypointWindow(WindowDesc *desc, Window *parent) : PickerWindowBase(desc, parent)
+	BuildRailWaypointWindow (const WindowDesc *desc, Window *parent) : PickerWindowBase(desc, parent)
 	{
 		this->CreateNestedTree();
 
@@ -1874,7 +1874,7 @@ static const NWidgetPart _nested_build_waypoint_widgets[] = {
 
 static WindowDesc::Prefs _build_waypoint_prefs ("build_waypoint");
 
-static WindowDesc _build_waypoint_desc(
+static const WindowDesc _build_waypoint_desc(
 	WDP_AUTO, 0, 0,
 	WC_BUILD_WAYPOINT, WC_BUILD_TOOLBAR,
 	WDF_CONSTRUCTION,

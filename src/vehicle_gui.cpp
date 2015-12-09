@@ -518,7 +518,7 @@ struct RefitWindow : public Window {
 		return &l[this->sel_subcargo];
 	}
 
-	RefitWindow (WindowDesc *desc, const Vehicle *v, VehicleOrderID order,
+	RefitWindow (const WindowDesc *desc, const Vehicle *v, VehicleOrderID order,
 			bool auto_refit, CargoMask cargo_mask = 0) : Window(desc)
 	{
 		assert (!auto_refit || (order != INVALID_VEH_ORDER_ID));
@@ -1069,7 +1069,7 @@ static const NWidgetPart _nested_vehicle_refit_widgets[] = {
 
 static WindowDesc::Prefs _vehicle_refit_prefs ("view_vehicle_refit");
 
-static WindowDesc _vehicle_refit_desc(
+static const WindowDesc _vehicle_refit_desc(
 	WDP_AUTO, 240, 174,
 	WC_VEHICLE_REFIT, WC_VEHICLE_VIEW,
 	WDF_CONSTRUCTION,
@@ -1499,7 +1499,7 @@ private:
 	};
 
 public:
-	VehicleListWindow(WindowDesc *desc, WindowNumber window_number) : BaseVehicleListWindow(desc, window_number)
+	VehicleListWindow (const WindowDesc *desc, WindowNumber window_number) : BaseVehicleListWindow(desc, window_number)
 	{
 		/* Set up sorting. Make the window-specific _sorting variable
 		 * point to the correct global _sorting struct so we are freed
@@ -1775,7 +1775,7 @@ static WindowDesc::Prefs _vehicle_list_other_prefs ("list_vehicles");
 
 static WindowDesc::Prefs _vehicle_list_train_prefs ("list_vehicles_train");
 
-static WindowDesc _vehicle_list_train_desc(
+static const WindowDesc _vehicle_list_train_desc(
 	WDP_AUTO, 325, 246,
 	WC_TRAINS_LIST, WC_NONE,
 	0,
@@ -1783,7 +1783,7 @@ static WindowDesc _vehicle_list_train_desc(
 	&_vehicle_list_train_prefs
 );
 
-static WindowDesc _vehicle_list_roadveh_desc(
+static const WindowDesc _vehicle_list_roadveh_desc(
 	WDP_AUTO, 260, 246,
 	WC_ROADVEH_LIST, WC_NONE,
 	0,
@@ -1791,7 +1791,7 @@ static WindowDesc _vehicle_list_roadveh_desc(
 	&_vehicle_list_other_prefs
 );
 
-static WindowDesc _vehicle_list_ship_desc(
+static const WindowDesc _vehicle_list_ship_desc(
 	WDP_AUTO, 260, 246,
 	WC_SHIPS_LIST, WC_NONE,
 	0,
@@ -1799,7 +1799,7 @@ static WindowDesc _vehicle_list_ship_desc(
 	&_vehicle_list_other_prefs
 );
 
-static WindowDesc _vehicle_list_aircraft_desc(
+static const WindowDesc _vehicle_list_aircraft_desc(
 	WDP_AUTO, 260, 246,
 	WC_AIRCRAFT_LIST, WC_NONE,
 	0,
@@ -1809,7 +1809,7 @@ static WindowDesc _vehicle_list_aircraft_desc(
 
 static void ShowVehicleListWindowLocal(CompanyID company, VehicleListType vlt, VehicleType vehicle_type, uint32 unique_number)
 {
-	static WindowDesc *const descs[VEH_COMPANY_END] = {
+	static const WindowDesc *const descs[VEH_COMPANY_END] = {
 		&_vehicle_list_train_desc,      // VEH_TRAIN
 		&_vehicle_list_roadveh_desc,    // VEH_ROAD
 		&_vehicle_list_ship_desc,       // VEH_SHIP
@@ -1947,7 +1947,7 @@ struct VehicleDetailsWindow : Window {
 	Scrollbar *vscroll;
 
 	/** Initialize a newly created vehicle details window */
-	VehicleDetailsWindow(WindowDesc *desc, WindowNumber window_number) : Window(desc)
+	VehicleDetailsWindow (const WindowDesc *desc, WindowNumber window_number) : Window(desc)
 	{
 		const Vehicle *v = Vehicle::Get(window_number);
 
@@ -2317,7 +2317,7 @@ struct VehicleDetailsWindow : Window {
 static WindowDesc::Prefs _train_vehicle_details_prefs ("view_vehicle_details_train");
 
 /** Vehicle details window descriptor. */
-static WindowDesc _train_vehicle_details_desc(
+static const WindowDesc _train_vehicle_details_desc(
 	WDP_AUTO, 405, 178,
 	WC_VEHICLE_DETAILS, WC_VEHICLE_VIEW,
 	0,
@@ -2329,7 +2329,7 @@ static WindowDesc _train_vehicle_details_desc(
 static WindowDesc::Prefs _nontrain_vehicle_details_prefs ("view_vehicle_details");
 
 /** Vehicle details window descriptor for other vehicles than a train. */
-static WindowDesc _nontrain_vehicle_details_desc(
+static const WindowDesc _nontrain_vehicle_details_desc(
 	WDP_AUTO, 405, 113,
 	WC_VEHICLE_DETAILS, WC_VEHICLE_VIEW,
 	0,
@@ -2393,7 +2393,7 @@ static const NWidgetPart _nested_vehicle_view_widgets[] = {
 static WindowDesc::Prefs _vehicle_view_prefs ("view_vehicle");
 
 /** Vehicle view window descriptor for all vehicles but trains. */
-static WindowDesc _vehicle_view_desc(
+static const WindowDesc _vehicle_view_desc(
 	WDP_AUTO, 250, 116,
 	WC_VEHICLE_VIEW, WC_NONE,
 	0,
@@ -2408,7 +2408,7 @@ static WindowDesc::Prefs _train_view_prefs ("view_vehicle_train");
  * Vehicle view window descriptor for trains. Only minimum_height and
  *  default_height are different for train view.
  */
-static WindowDesc _train_view_desc(
+static const WindowDesc _train_view_desc(
 	WDP_AUTO, 250, 134,
 	WC_VEHICLE_VIEW, WC_NONE,
 	0,
@@ -2527,7 +2527,7 @@ private:
 	}
 
 public:
-	VehicleViewWindow(WindowDesc *desc, WindowNumber window_number) : Window(desc)
+	VehicleViewWindow (const WindowDesc *desc, WindowNumber window_number) : Window(desc)
 	{
 		this->CreateNestedTree();
 

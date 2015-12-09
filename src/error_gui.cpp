@@ -41,7 +41,7 @@ static const NWidgetPart _nested_errmsg_widgets[] = {
 
 static WindowDesc::Prefs _errmsg_prefs ("error");
 
-static WindowDesc _errmsg_desc(
+static const WindowDesc _errmsg_desc(
 	WDP_MANUAL, 0, 0,
 	WC_ERRMSG, WC_NONE,
 	0,
@@ -64,7 +64,7 @@ static const NWidgetPart _nested_errmsg_face_widgets[] = {
 
 static WindowDesc::Prefs _errmsg_face_prefs ("error_face");
 
-static WindowDesc _errmsg_face_desc(
+static const WindowDesc _errmsg_face_desc(
 	WDP_MANUAL, 0, 0,
 	WC_ERRMSG, WC_NONE,
 	0,

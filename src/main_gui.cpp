@@ -237,7 +237,7 @@ struct MainWindow : Window
 	static const uint LINKGRAPH_REFRESH_PERIOD = 0xff;
 	static const uint LINKGRAPH_DELAY = 0xf;
 
-	MainWindow(WindowDesc *desc) : Window(desc)
+	MainWindow (const WindowDesc *desc) : Window(desc)
 	{
 		this->InitNested(0);
 		CLRBITS(this->flags, WF_WHITE_BORDER);
@@ -518,7 +518,7 @@ static Hotkey global_hotkeys[] = {
 };
 HotkeyList MainWindow::hotkeys("global", global_hotkeys);
 
-static WindowDesc _main_window_desc(
+static const WindowDesc _main_window_desc(
 	WDP_MANUAL, 0, 0,
 	WC_MAIN_WINDOW, WC_NONE,
 	0,

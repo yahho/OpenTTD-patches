@@ -149,7 +149,7 @@ struct SignListWindow : Window, SignList {
 	int text_offset; ///< Offset of the sign text relative to the left edge of the WID_SIL_LIST widget.
 	Scrollbar *vscroll;
 
-	SignListWindow(WindowDesc *desc, WindowNumber window_number) : Window(desc), filter_editbox(MAX_LENGTH_SIGN_NAME_CHARS * MAX_CHAR_LENGTH, MAX_LENGTH_SIGN_NAME_CHARS)
+	SignListWindow (const WindowDesc *desc, WindowNumber window_number) : Window(desc), filter_editbox(MAX_LENGTH_SIGN_NAME_CHARS * MAX_CHAR_LENGTH, MAX_LENGTH_SIGN_NAME_CHARS)
 	{
 		this->CreateNestedTree();
 		this->vscroll = this->GetScrollbar(WID_SIL_SCROLLBAR);
@@ -387,7 +387,7 @@ static const NWidgetPart _nested_sign_list_widgets[] = {
 
 static WindowDesc::Prefs _sign_list_prefs ("list_signs");
 
-static WindowDesc _sign_list_desc(
+static const WindowDesc _sign_list_desc(
 	WDP_AUTO, 358, 138,
 	WC_SIGN_LIST, WC_NONE,
 	0,
@@ -427,7 +427,7 @@ struct SignWindow : Window, SignList {
 	QueryString name_editbox;
 	SignID cur_sign;
 
-	SignWindow(WindowDesc *desc, const Sign *si) : Window(desc), name_editbox(MAX_LENGTH_SIGN_NAME_CHARS * MAX_CHAR_LENGTH, MAX_LENGTH_SIGN_NAME_CHARS)
+	SignWindow (const WindowDesc *desc, const Sign *si) : Window(desc), name_editbox(MAX_LENGTH_SIGN_NAME_CHARS * MAX_CHAR_LENGTH, MAX_LENGTH_SIGN_NAME_CHARS)
 	{
 		this->querystrings[WID_QES_TEXT] = &this->name_editbox;
 		this->name_editbox.caption = STR_EDIT_SIGN_CAPTION;
@@ -548,7 +548,7 @@ static const NWidgetPart _nested_query_sign_edit_widgets[] = {
 
 static WindowDesc::Prefs _query_sign_edit_prefs ("query_sign");
 
-static WindowDesc _query_sign_edit_desc(
+static const WindowDesc _query_sign_edit_desc(
 	WDP_CENTER, 0, 0,
 	WC_QUERY_STRING, WC_NONE,
 	WDF_CONSTRUCTION,

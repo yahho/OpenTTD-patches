@@ -38,7 +38,7 @@ enum GoalColumn {
 struct GoalListWindow : public Window {
 	Scrollbar *vscroll; ///< Reference to the scrollbar widget.
 
-	GoalListWindow(WindowDesc *desc, WindowNumber window_number) : Window(desc)
+	GoalListWindow (const WindowDesc *desc, WindowNumber window_number) : Window(desc)
 	{
 		this->CreateNestedTree();
 		this->vscroll = this->GetScrollbar(WID_GOAL_SCROLLBAR);
@@ -336,7 +336,7 @@ static const NWidgetPart _nested_goals_list_widgets[] = {
 
 static WindowDesc::Prefs _goals_list_prefs ("list_goals");
 
-static WindowDesc _goals_list_desc(
+static const WindowDesc _goals_list_desc(
 	WDP_AUTO, 500, 127,
 	WC_GOALS_LIST, WC_NONE,
 	0,
@@ -362,7 +362,7 @@ struct GoalQuestionWindow : public Window {
 	int button[3];  ///< Buttons to display.
 	byte type;      ///< Type of question.
 
-	GoalQuestionWindow(WindowDesc *desc, WindowNumber window_number, byte type, uint32 button_mask, const char *question) : Window(desc), type(type)
+	GoalQuestionWindow (const WindowDesc *desc, WindowNumber window_number, byte type, uint32 button_mask, const char *question) : Window(desc), type(type)
 	{
 		assert(type < GOAL_QUESTION_TYPE_COUNT);
 		this->question = xstrdup(question);
@@ -472,7 +472,7 @@ static const NWidgetPart _nested_goal_question_widgets[] = {
 	EndContainer(),
 };
 
-static WindowDesc _goal_question_list_desc(
+static const WindowDesc _goal_question_list_desc(
 	WDP_CENTER, 0, 0,
 	WC_GOAL_QUESTION, WC_NONE,
 	WDF_CONSTRUCTION,

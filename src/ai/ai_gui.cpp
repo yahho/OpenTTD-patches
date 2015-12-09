@@ -67,7 +67,7 @@ struct AIListWindow : public Window {
 	 * @param desc The description of the window.
 	 * @param slot The company we're changing the AI for.
 	 */
-	AIListWindow(WindowDesc *desc, CompanyID slot) : Window(desc),
+	AIListWindow (const WindowDesc *desc, CompanyID slot) : Window(desc),
 		slot(slot)
 	{
 		if (slot == OWNER_DEITY) {
@@ -261,7 +261,7 @@ static const NWidgetPart _nested_ai_list_widgets[] = {
 static WindowDesc::Prefs _ai_list_prefs ("settings_script_list");
 
 /** Window definition for the ai list window. */
-static WindowDesc _ai_list_desc(
+static const WindowDesc _ai_list_desc(
 	WDP_CENTER, 200, 234,
 	WC_AI_LIST, WC_NONE,
 	0,
@@ -301,7 +301,7 @@ struct AISettingsWindow : public Window {
 	 * @param desc The description of the window.
 	 * @param slot The company we're changing the settings for.
 	 */
-	AISettingsWindow(WindowDesc *desc, CompanyID slot) : Window(desc),
+	AISettingsWindow (const WindowDesc *desc, CompanyID slot) : Window(desc),
 		slot(slot),
 		clicked_button(-1),
 		clicked_dropdown(false),
@@ -611,7 +611,7 @@ static const NWidgetPart _nested_ai_settings_widgets[] = {
 static WindowDesc::Prefs _ai_settings_prefs ("settings_script");
 
 /** Window definition for the AI settings window. */
-static WindowDesc _ai_settings_desc(
+static const WindowDesc _ai_settings_desc(
 	WDP_CENTER, 500, 208,
 	WC_AI_SETTINGS, WC_NONE,
 	0,
@@ -710,7 +710,7 @@ static const NWidgetPart _nested_ai_config_widgets[] = {
 static WindowDesc::Prefs _ai_config_prefs ("settings_script_config");
 
 /** Window definition for the configure AI window. */
-static WindowDesc _ai_config_desc(
+static const WindowDesc _ai_config_desc(
 	WDP_CENTER, 0, 0,
 	WC_GAME_OPTIONS, WC_NONE,
 	0,
@@ -1061,7 +1061,7 @@ struct AIDebugWindow : public Window {
 	 * @param desc The description of the window.
 	 * @param number The window number (actually unused).
 	 */
-	AIDebugWindow(WindowDesc *desc, WindowNumber number) : Window(desc), break_editbox(MAX_BREAK_STR_STRING_LENGTH)
+	AIDebugWindow (const WindowDesc *desc, WindowNumber number) : Window(desc), break_editbox(MAX_BREAK_STR_STRING_LENGTH)
 	{
 		this->CreateNestedTree();
 		this->vscroll = this->GetScrollbar(WID_AID_SCROLLBAR);
@@ -1499,7 +1499,7 @@ static const NWidgetPart _nested_ai_debug_widgets[] = {
 static WindowDesc::Prefs _ai_debug_prefs ("script_debug");
 
 /** Window definition for the AI debug window. */
-static WindowDesc _ai_debug_desc(
+static const WindowDesc _ai_debug_desc(
 	WDP_AUTO, 600, 450,
 	WC_AI_DEBUG, WC_NONE,
 	0,

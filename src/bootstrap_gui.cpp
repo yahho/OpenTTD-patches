@@ -37,7 +37,7 @@ static const struct NWidgetPart _background_widgets[] = {
 /**
  * Window description for the background window to prevent smearing.
  */
-static WindowDesc _background_desc(
+static const WindowDesc _background_desc(
 	WDP_MANUAL, 0, 0,
 	WC_BOOTSTRAP, WC_NONE,
 	0,
@@ -70,7 +70,7 @@ static const NWidgetPart _nested_boostrap_download_status_window_widgets[] = {
 };
 
 /** Window description for the download window */
-static WindowDesc _bootstrap_download_status_window_desc(
+static const WindowDesc _bootstrap_download_status_window_desc(
 	WDP_CENTER, 0, 0,
 	WC_NETWORK_STATUS_WINDOW, WC_NONE,
 	WDF_MODAL,
@@ -115,7 +115,7 @@ static const NWidgetPart _bootstrap_query_widgets[] = {
 };
 
 /** The window description for the query. */
-static WindowDesc _bootstrap_query_desc(
+static const WindowDesc _bootstrap_query_desc(
 	WDP_CENTER, 0, 0,
 	WC_CONFIRM_POPUP_QUERY, WC_NONE,
 	0,

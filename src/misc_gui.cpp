@@ -52,7 +52,7 @@ static const NWidgetPart _nested_land_info_widgets[] = {
 
 static WindowDesc::Prefs _land_info_prefs ("land_info");
 
-static WindowDesc _land_info_desc(
+static const WindowDesc _land_info_desc(
 	WDP_AUTO, 0, 0,
 	WC_LAND_INFO, WC_NONE,
 	0,
@@ -359,7 +359,7 @@ static const NWidgetPart _nested_about_widgets[] = {
 	EndContainer(),
 };
 
-static WindowDesc _about_desc(
+static const WindowDesc _about_desc(
 	WDP_CENTER, 0, 0,
 	WC_GAME_OPTIONS, WC_NONE,
 	0,
@@ -611,7 +611,7 @@ static const NWidgetPart _nested_tooltips_widgets[] = {
 	NWidget(WWT_PANEL, COLOUR_GREY, WID_TT_BACKGROUND), SetMinimalSize(200, 32), EndContainer(),
 };
 
-static WindowDesc _tool_tips_desc(
+static const WindowDesc _tool_tips_desc(
 	WDP_MANUAL, 0, 0, // Coordinates and sizes are not used,
 	WC_TOOLTIPS, WC_NONE,
 	WDF_NO_FOCUS,
@@ -912,7 +912,7 @@ struct QueryStringWindow : public Window
 	QueryString editbox;    ///< Editbox.
 	QueryStringFlags flags; ///< Flags controlling behaviour of the window.
 
-	QueryStringWindow(StringID str, StringID caption, uint max_bytes, uint max_chars, WindowDesc *desc, Window *parent, CharSetFilter afilter, QueryStringFlags flags) :
+	QueryStringWindow (StringID str, StringID caption, uint max_bytes, uint max_chars, const WindowDesc *desc, Window *parent, CharSetFilter afilter, QueryStringFlags flags) :
 			Window(desc), editbox(max_bytes, max_chars)
 	{
 		GetString (&this->editbox, str);
@@ -1006,7 +1006,7 @@ static const NWidgetPart _nested_query_string_widgets[] = {
 
 static WindowDesc::Prefs _query_string_prefs ("query_string");
 
-static WindowDesc _query_string_desc(
+static const WindowDesc _query_string_desc(
 	WDP_CENTER, 0, 0,
 	WC_QUERY_STRING, WC_NONE,
 	0,
@@ -1039,7 +1039,7 @@ struct QueryWindow : public Window {
 	StringID message;        ///< message shown for query window
 	StringID caption;        ///< title of window
 
-	QueryWindow(WindowDesc *desc, StringID caption, StringID message, Window *parent, QueryCallbackProc *callback) : Window(desc)
+	QueryWindow (const WindowDesc *desc, StringID caption, StringID message, Window *parent, QueryCallbackProc *callback) : Window(desc)
 	{
 		/* Create a backup of the variadic arguments to strings because it will be
 		 * overridden pretty often. We will copy these back for drawing */
@@ -1147,7 +1147,7 @@ static const NWidgetPart _nested_query_widgets[] = {
 	EndContainer(),
 };
 
-static WindowDesc _query_desc(
+static const WindowDesc _query_desc(
 	WDP_CENTER, 0, 0,
 	WC_CONFIRM_POPUP_QUERY, WC_NONE,
 	WDF_MODAL,

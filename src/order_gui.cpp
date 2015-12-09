@@ -768,7 +768,7 @@ private:
 	}
 
 public:
-	OrdersWindow(WindowDesc *desc, const Vehicle *v) : Window(desc)
+	OrdersWindow (const WindowDesc *desc, const Vehicle *v) : Window(desc)
 	{
 		this->vehicle = v;
 
@@ -1591,7 +1591,7 @@ static const NWidgetPart _nested_orders_train_widgets[] = {
 
 static WindowDesc::Prefs _orders_train_prefs ("view_vehicle_orders_train");
 
-static WindowDesc _orders_train_desc(
+static const WindowDesc _orders_train_desc(
 	WDP_AUTO, 384, 100,
 	WC_VEHICLE_ORDERS, WC_VEHICLE_VIEW,
 	WDF_CONSTRUCTION,
@@ -1666,7 +1666,7 @@ static const NWidgetPart _nested_orders_widgets[] = {
 
 static WindowDesc::Prefs _orders_prefs ("view_vehicle_orders");
 
-static WindowDesc _orders_desc(
+static const WindowDesc _orders_desc(
 	WDP_AUTO, 384, 100,
 	WC_VEHICLE_ORDERS, WC_VEHICLE_VIEW,
 	WDF_CONSTRUCTION,
@@ -1695,7 +1695,7 @@ static const NWidgetPart _nested_other_orders_widgets[] = {
 
 static WindowDesc::Prefs _other_orders_prefs ("view_vehicle_orders_competitor");
 
-static WindowDesc _other_orders_desc(
+static const WindowDesc _other_orders_desc(
 	WDP_AUTO, 384, 86,
 	WC_VEHICLE_ORDERS, WC_VEHICLE_VIEW,
 	WDF_CONSTRUCTION,

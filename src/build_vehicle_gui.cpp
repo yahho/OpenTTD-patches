@@ -981,7 +981,7 @@ struct BuildVehicleWindow : Window {
 	int details_height;                         ///< Minimal needed height of the details panels (found so far).
 	Scrollbar *vscroll;
 
-	BuildVehicleWindow(WindowDesc *desc, TileIndex tile, VehicleType type) : Window(desc)
+	BuildVehicleWindow (const WindowDesc *desc, TileIndex tile, VehicleType type) : Window(desc)
 	{
 		this->vehicle_type = type;
 		this->window_number = tile == INVALID_TILE ? (int)type : tile;
@@ -1490,7 +1490,7 @@ struct BuildVehicleWindow : Window {
 
 static WindowDesc::Prefs _build_vehicle_prefs ("build_vehicle");
 
-static WindowDesc _build_vehicle_desc(
+static const WindowDesc _build_vehicle_desc(
 	WDP_AUTO, 240, 268,
 	WC_BUILD_VEHICLE, WC_NONE,
 	WDF_CONSTRUCTION,

@@ -81,7 +81,7 @@ static const NWidgetPart _nested_train_depot_widgets[] = {
 
 static WindowDesc::Prefs _train_depot_prefs ("depot_train");
 
-static WindowDesc _train_depot_desc(
+static const WindowDesc _train_depot_desc(
 	WDP_AUTO, 362, 123,
 	WC_VEHICLE_DEPOT, WC_NONE,
 	0,
@@ -91,7 +91,7 @@ static WindowDesc _train_depot_desc(
 
 static WindowDesc::Prefs _road_depot_prefs ("depot_roadveh");
 
-static WindowDesc _road_depot_desc(
+static const WindowDesc _road_depot_desc(
 	WDP_AUTO, 316, 97,
 	WC_VEHICLE_DEPOT, WC_NONE,
 	0,
@@ -101,7 +101,7 @@ static WindowDesc _road_depot_desc(
 
 static WindowDesc::Prefs _ship_depot_prefs ("depot_ship");
 
-static WindowDesc _ship_depot_desc(
+static const WindowDesc _ship_depot_desc(
 	WDP_AUTO, 306, 99,
 	WC_VEHICLE_DEPOT, WC_NONE,
 	0,
@@ -111,7 +111,7 @@ static WindowDesc _ship_depot_desc(
 
 static WindowDesc::Prefs _aircraft_depot_prefs ("depot_aircraft");
 
-static WindowDesc _aircraft_depot_desc(
+static const WindowDesc _aircraft_depot_desc(
 	WDP_AUTO, 332, 99,
 	WC_VEHICLE_DEPOT, WC_NONE,
 	0,
@@ -253,7 +253,7 @@ struct DepotWindow : Window {
 	Scrollbar *hscroll;     ///< Only for trains.
 	Scrollbar *vscroll;
 
-	DepotWindow(WindowDesc *desc, TileIndex tile, VehicleType type) : Window(desc)
+	DepotWindow (const WindowDesc *desc, TileIndex tile, VehicleType type) : Window(desc)
 	{
 		assert(IsCompanyBuildableVehicleType(type)); // ensure that we make the call with a valid type
 
@@ -1031,7 +1031,7 @@ void ShowDepotWindow(TileIndex tile, VehicleType type)
 {
 	if (BringWindowToFrontById(WC_VEHICLE_DEPOT, tile) != NULL) return;
 
-	WindowDesc *desc;
+	const WindowDesc *desc;
 	switch (type) {
 		default: NOT_REACHED();
 		case VEH_TRAIN:    desc = &_train_depot_desc;    break;

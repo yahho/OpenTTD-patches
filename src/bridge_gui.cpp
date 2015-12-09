@@ -156,7 +156,7 @@ private:
 	}
 
 public:
-	BuildBridgeWindow(WindowDesc *desc, TileIndex start, TileIndex end, uint32 br_type, GUIBridgeList *bl) : Window(desc),
+	BuildBridgeWindow (const WindowDesc *desc, TileIndex start, TileIndex end, uint32 br_type, GUIBridgeList *bl) : Window(desc),
 		start_tile(start),
 		end_tile(end),
 		type(br_type),
@@ -365,7 +365,7 @@ static const NWidgetPart _nested_build_bridge_widgets[] = {
 static WindowDesc::Prefs _build_bridge_prefs ("build_bridge");
 
 /** Window definition for the rail bridge selection window. */
-static WindowDesc _build_bridge_desc(
+static const WindowDesc _build_bridge_desc(
 	WDP_AUTO, 200, 114,
 	WC_BUILD_BRIDGE, WC_BUILD_TOOLBAR,
 	WDF_CONSTRUCTION,

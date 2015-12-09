@@ -1656,7 +1656,7 @@ enum MainToolbarHotkeys {
 struct MainToolbarWindow : Window {
 	CallBackFunction last_started_action; ///< Last started user action.
 
-	MainToolbarWindow(WindowDesc *desc) : Window(desc)
+	MainToolbarWindow (const WindowDesc *desc) : Window(desc)
 	{
 		this->InitNested(0);
 
@@ -1906,7 +1906,7 @@ static const NWidgetPart _nested_toolbar_normal_widgets[] = {
 	NWidgetFunction(MakeMainToolbar),
 };
 
-static WindowDesc _toolb_normal_desc(
+static const WindowDesc _toolb_normal_desc(
 	WDP_MANUAL, 0, 0,
 	WC_MAIN_TOOLBAR, WC_NONE,
 	WDF_NO_FOCUS,
@@ -1978,7 +1978,7 @@ enum MainToolbarEditorHotkeys {
 struct ScenarioEditorToolbarWindow : Window {
 	CallBackFunction last_started_action; ///< Last started user action.
 
-	ScenarioEditorToolbarWindow(WindowDesc *desc) : Window(desc)
+	ScenarioEditorToolbarWindow (const WindowDesc *desc) : Window(desc)
 	{
 		this->InitNested(0);
 
@@ -2222,7 +2222,7 @@ static const NWidgetPart _nested_toolb_scen_widgets[] = {
 	NWidgetFunction(MakeScenarioToolbar),
 };
 
-static WindowDesc _toolb_scen_desc(
+static const WindowDesc _toolb_scen_desc(
 	WDP_MANUAL, 0, 0,
 	WC_MAIN_TOOLBAR, WC_NONE,
 	WDF_NO_FOCUS,

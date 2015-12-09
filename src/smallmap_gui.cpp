@@ -1089,7 +1089,7 @@ void SmallMapWindow::SetupWidgetData()
 	this->GetWidget<NWidgetStacked>(WID_SM_SELECT_BUTTONS)->SetDisplayedPlane(plane);
 }
 
-SmallMapWindow::SmallMapWindow(WindowDesc *desc, int window_number) : Window(desc), refresh(FORCE_REFRESH_PERIOD)
+SmallMapWindow::SmallMapWindow (const WindowDesc *desc, int window_number) : Window(desc), refresh(FORCE_REFRESH_PERIOD)
 {
 	_smallmap_industry_highlight = INVALID_INDUSTRYTYPE;
 	this->overlay = new LinkGraphOverlay(this, WID_SM_MAP, 0, this->GetOverlayCompanyMask(), 1);
@@ -1868,7 +1868,7 @@ static const NWidgetPart _nested_smallmap_widgets[] = {
 
 static WindowDesc::Prefs _smallmap_prefs ("smallmap");
 
-static WindowDesc _smallmap_desc(
+static const WindowDesc _smallmap_desc(
 	WDP_AUTO, 484, 314,
 	WC_SMALLMAP, WC_NONE,
 	0,

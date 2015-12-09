@@ -40,7 +40,7 @@ struct OskWindow : public Window {
 	char *orig_str_buf;    ///< Original string.
 	bool shift;            ///< Is the shift effectively pressed?
 
-	OskWindow(WindowDesc *desc, Window *parent, int button) : Window(desc)
+	OskWindow (const WindowDesc *desc, Window *parent, int button) : Window(desc)
 	{
 		this->parent = parent;
 		assert(parent != NULL);
@@ -341,7 +341,7 @@ static const NWidgetPart _nested_osk_widgets[] = {
 
 static WindowDesc::Prefs _osk_prefs ("query_osk");
 
-static WindowDesc _osk_desc(
+static const WindowDesc _osk_desc(
 	WDP_CENTER, 0, 0,
 	WC_OSK, WC_NONE,
 	0,

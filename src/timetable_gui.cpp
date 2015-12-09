@@ -155,7 +155,7 @@ struct TimetableWindow : Window {
 	Scrollbar *vscroll;
 	bool query_is_speed_query; ///< The currently open query window is a speed query and not a time query.
 
-	TimetableWindow(WindowDesc *desc, WindowNumber window_number) :
+	TimetableWindow (const WindowDesc *desc, WindowNumber window_number) :
 			Window(desc),
 			sel_index(-1),
 			vehicle(Vehicle::Get(window_number)),
@@ -695,7 +695,7 @@ static const NWidgetPart _nested_timetable_widgets[] = {
 
 static WindowDesc::Prefs _timetable_prefs ("view_vehicle_timetable");
 
-static WindowDesc _timetable_desc(
+static const WindowDesc _timetable_desc(
 	WDP_AUTO, 400, 130,
 	WC_VEHICLE_TIMETABLE, WC_VEHICLE_VIEW,
 	WDF_CONSTRUCTION,

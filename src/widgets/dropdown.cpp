@@ -77,7 +77,7 @@ static const NWidgetPart _nested_dropdown_menu_widgets[] = {
 	EndContainer(),
 };
 
-static WindowDesc _dropdown_desc(
+static const WindowDesc _dropdown_desc(
 	WDP_MANUAL, 0, 0,
 	WC_DROPDOWN_MENU, WC_NONE,
 	WDF_NO_FOCUS,

@@ -53,7 +53,7 @@ public:
 	 * @param desc The description of the window.
 	 * @param window_number The window number, in this case the waypoint's ID.
 	 */
-	WaypointWindow(WindowDesc *desc, WindowNumber window_number) : Window(desc)
+	WaypointWindow (const WindowDesc *desc, WindowNumber window_number) : Window(desc)
 	{
 		this->wp = Waypoint::Get(window_number);
 		this->vt = (wp->string_id == STR_SV_STNAME_WAYPOINT) ? VEH_TRAIN : VEH_SHIP;
@@ -169,7 +169,7 @@ static const NWidgetPart _nested_waypoint_view_widgets[] = {
 static WindowDesc::Prefs _waypoint_view_prefs ("view_waypoint");
 
 /** The description of the waypoint view. */
-static WindowDesc _waypoint_view_desc(
+static const WindowDesc _waypoint_view_desc(
 	WDP_AUTO, 260, 118,
 	WC_WAYPOINT_VIEW, WC_NONE,
 	0,

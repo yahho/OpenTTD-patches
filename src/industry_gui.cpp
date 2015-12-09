@@ -168,7 +168,7 @@ static const NWidgetPart _nested_build_industry_widgets[] = {
 static WindowDesc::Prefs _build_industry_prefs ("build_industry");
 
 /** Window definition of the dynamic place industries gui */
-static WindowDesc _build_industry_desc(
+static const WindowDesc _build_industry_desc(
 	WDP_AUTO, 170, 212,
 	WC_BUILD_INDUSTRY, WC_NONE,
 	WDF_CONSTRUCTION,
@@ -652,7 +652,7 @@ class IndustryViewWindow : public Window
 	int info_height;          ///< Height needed for the #WID_IV_INFO panel
 
 public:
-	IndustryViewWindow(WindowDesc *desc, WindowNumber window_number) : Window(desc)
+	IndustryViewWindow (const WindowDesc *desc, WindowNumber window_number) : Window(desc)
 	{
 		this->flags |= WF_DISABLE_VP_SCROLL;
 		this->editbox_line = IL_NONE;
@@ -1022,7 +1022,7 @@ static const NWidgetPart _nested_industry_view_widgets[] = {
 static WindowDesc::Prefs _industry_view_prefs ("view_industry");
 
 /** Window definition of the view industry gui */
-static WindowDesc _industry_view_desc(
+static const WindowDesc _industry_view_desc(
 	WDP_AUTO, 260, 120,
 	WC_INDUSTRY_VIEW, WC_NONE,
 	0,
@@ -1220,7 +1220,7 @@ protected:
 	}
 
 public:
-	IndustryDirectoryWindow(WindowDesc *desc, WindowNumber number) : Window(desc)
+	IndustryDirectoryWindow (const WindowDesc *desc, WindowNumber number) : Window(desc)
 	{
 		this->CreateNestedTree();
 		this->vscroll = this->GetScrollbar(WID_ID_SCROLLBAR);
@@ -1398,7 +1398,7 @@ const StringID IndustryDirectoryWindow::sorter_names[] = {
 static WindowDesc::Prefs _industry_directory_prefs ("list_industries");
 
 /** Window definition of the industry directory gui */
-static WindowDesc _industry_directory_desc(
+static const WindowDesc _industry_directory_desc(
 	WDP_AUTO, 428, 190,
 	WC_INDUSTRY_DIRECTORY, WC_NONE,
 	0,
@@ -1444,7 +1444,7 @@ static const NWidgetPart _nested_industry_cargoes_widgets[] = {
 static WindowDesc::Prefs _industry_cargoes_prefs ("industry_cargoes");
 
 /** Window description for the industry cargoes window. */
-static WindowDesc _industry_cargoes_desc(
+static const WindowDesc _industry_cargoes_desc(
 	WDP_AUTO, 300, 210,
 	WC_INDUSTRY_CARGOES, WC_NONE,
 	0,

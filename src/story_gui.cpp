@@ -412,7 +412,7 @@ protected:
 	}
 
 public:
-	StoryBookWindow(WindowDesc *desc, WindowNumber window_number) : Window(desc)
+	StoryBookWindow (const WindowDesc *desc, WindowNumber window_number) : Window(desc)
 	{
 		this->CreateNestedTree();
 		this->vscroll = this->GetScrollbar(WID_SB_SCROLLBAR);
@@ -749,7 +749,7 @@ static const NWidgetPart _nested_story_book_widgets[] = {
 
 static WindowDesc::Prefs _story_book_prefs ("view_story");
 
-static WindowDesc _story_book_desc(
+static const WindowDesc _story_book_desc(
 	WDP_CENTER, 400, 300,
 	WC_STORY_BOOK, WC_NONE,
 	0,

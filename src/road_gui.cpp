@@ -285,7 +285,7 @@ static bool RoadToolbar_CtrlChanged(Window *w)
 struct BuildRoadToolbarWindow : Window {
 	int last_started_action; ///< Last started user action.
 
-	BuildRoadToolbarWindow(WindowDesc *desc, WindowNumber window_number) : Window(desc)
+	BuildRoadToolbarWindow (const WindowDesc *desc, WindowNumber window_number) : Window(desc)
 	{
 		this->InitNested(window_number);
 		this->SetWidgetsDisabledState(true,
@@ -742,7 +742,7 @@ static const NWidgetPart _nested_build_road_widgets[] = {
 
 static WindowDesc::Prefs _build_road_prefs ("toolbar_road");
 
-static WindowDesc _build_road_desc(
+static const WindowDesc _build_road_desc(
 	WDP_ALIGN_TOOLBAR, 0, 0,
 	WC_BUILD_TOOLBAR, WC_NONE,
 	WDF_CONSTRUCTION,
@@ -784,7 +784,7 @@ static const NWidgetPart _nested_build_tramway_widgets[] = {
 
 static WindowDesc::Prefs _build_tramway_prefs ("toolbar_tramway");
 
-static WindowDesc _build_tramway_desc(
+static const WindowDesc _build_tramway_desc(
 	WDP_ALIGN_TOOLBAR, 0, 0,
 	WC_BUILD_TOOLBAR, WC_NONE,
 	WDF_CONSTRUCTION,
@@ -837,7 +837,7 @@ static const NWidgetPart _nested_build_road_scen_widgets[] = {
 
 static WindowDesc::Prefs _build_road_scen_prefs ("toolbar_road_scen");
 
-static WindowDesc _build_road_scen_desc(
+static const WindowDesc _build_road_scen_desc(
 	WDP_AUTO, 0, 0,
 	WC_SCEN_BUILD_TOOLBAR, WC_NONE,
 	WDF_CONSTRUCTION,
@@ -856,7 +856,7 @@ Window *ShowBuildRoadScenToolbar()
 }
 
 struct BuildRoadDepotWindow : public PickerWindowBase {
-	BuildRoadDepotWindow(WindowDesc *desc, Window *parent) : PickerWindowBase(desc, parent)
+	BuildRoadDepotWindow (const WindowDesc *desc, Window *parent) : PickerWindowBase(desc, parent)
 	{
 		this->CreateNestedTree();
 
@@ -934,7 +934,7 @@ static const NWidgetPart _nested_build_road_depot_widgets[] = {
 	EndContainer(),
 };
 
-static WindowDesc _build_road_depot_desc(
+static const WindowDesc _build_road_depot_desc(
 	WDP_AUTO, 0, 0,
 	WC_BUILD_DEPOT, WC_BUILD_TOOLBAR,
 	WDF_CONSTRUCTION,
@@ -947,7 +947,7 @@ static void ShowRoadDepotPicker(Window *parent)
 }
 
 struct BuildRoadStationWindow : public PickerWindowBase {
-	BuildRoadStationWindow(WindowDesc *desc, Window *parent, RoadStopType rs) : PickerWindowBase(desc, parent)
+	BuildRoadStationWindow (const WindowDesc *desc, Window *parent, RoadStopType rs) : PickerWindowBase(desc, parent)
 	{
 		this->CreateNestedTree();
 
@@ -1098,7 +1098,7 @@ static const NWidgetPart _nested_rv_station_picker_widgets[] = {
 	EndContainer(),
 };
 
-static WindowDesc _rv_station_picker_desc(
+static const WindowDesc _rv_station_picker_desc(
 	WDP_AUTO, 0, 0,
 	WC_BUS_STATION, WC_BUILD_TOOLBAR,
 	WDF_CONSTRUCTION,

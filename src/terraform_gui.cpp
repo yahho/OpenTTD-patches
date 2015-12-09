@@ -171,7 +171,7 @@ void HandleDemolishMouseUp (TileIndex start_tile, TileIndex end_tile)
 struct TerraformToolbarWindow : Window {
 	int placing_action; ///< Currently active placing action.
 
-	TerraformToolbarWindow(WindowDesc *desc, WindowNumber window_number) : Window(desc)
+	TerraformToolbarWindow (const WindowDesc *desc, WindowNumber window_number) : Window(desc)
 	{
 		/* This is needed as we like to have the tree available on OnInit. */
 		this->CreateNestedTree();
@@ -348,7 +348,7 @@ static const NWidgetPart _nested_terraform_widgets[] = {
 
 static WindowDesc::Prefs _terraform_prefs ("toolbar_landscape");
 
-static WindowDesc _terraform_desc(
+static const WindowDesc _terraform_desc(
 	WDP_MANUAL, 0, 0,
 	WC_SCEN_LAND_GEN, WC_NONE,
 	WDF_CONSTRUCTION,
@@ -532,7 +532,7 @@ static void ResetLandscapeConfirmationCallback(Window *w, bool confirmed)
 struct ScenarioEditorLandscapeGenerationWindow : Window {
 	int placing_action; ///< Currently active placing action.
 
-	ScenarioEditorLandscapeGenerationWindow(WindowDesc *desc, WindowNumber window_number) : Window(desc)
+	ScenarioEditorLandscapeGenerationWindow (const WindowDesc *desc, WindowNumber window_number) : Window(desc)
 	{
 		this->CreateNestedTree();
 		NWidgetStacked *show_desert = this->GetWidget<NWidgetStacked>(WID_ETT_SHOW_PLACE_DESERT);
@@ -731,7 +731,7 @@ HotkeyList ScenarioEditorLandscapeGenerationWindow::hotkeys("terraform_editor", 
 
 static WindowDesc::Prefs _scen_edit_land_gen_prefs ("toolbar_landscape_scen");
 
-static WindowDesc _scen_edit_land_gen_desc(
+static const WindowDesc _scen_edit_land_gen_desc(
 	WDP_AUTO, 0, 0,
 	WC_SCEN_LAND_GEN, WC_NONE,
 	WDF_CONSTRUCTION,

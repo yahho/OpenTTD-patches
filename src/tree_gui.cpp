@@ -52,7 +52,7 @@ class BuildTreesWindow : public Window
 	TreeType tree_to_plant; ///< Tree number to plant, \c TREE_INVALID for a random tree.
 
 public:
-	BuildTreesWindow(WindowDesc *desc, WindowNumber window_number) : Window(desc)
+	BuildTreesWindow (const WindowDesc *desc, WindowNumber window_number) : Window(desc)
 	{
 		this->InitNested(window_number);
 		ResetObjectToPlace();
@@ -234,7 +234,7 @@ static const NWidgetPart _nested_build_trees_widgets[] = {
 
 static WindowDesc::Prefs _build_trees_prefs ("build_tree");
 
-static WindowDesc _build_trees_desc(
+static const WindowDesc _build_trees_desc(
 	WDP_AUTO, 0, 0,
 	WC_BUILD_TREES, WC_NONE,
 	WDF_CONSTRUCTION,

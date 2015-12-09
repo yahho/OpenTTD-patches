@@ -219,7 +219,7 @@ class ReplaceVehicleWindow : public Window {
 	}
 
 public:
-	ReplaceVehicleWindow(WindowDesc *desc, VehicleType vehicletype, GroupID id_g) : Window(desc)
+	ReplaceVehicleWindow (const WindowDesc *desc, VehicleType vehicletype, GroupID id_g) : Window(desc)
 	{
 		if (vehicletype == VEH_TRAIN) {
 			/* For rail vehicles find the most used vehicle type, which is usually
@@ -680,7 +680,7 @@ static const NWidgetPart _nested_replace_rail_vehicle_widgets[] = {
 
 static WindowDesc::Prefs _replace_rail_vehicle_prefs ("replace_vehicle_train");
 
-static WindowDesc _replace_rail_vehicle_desc(
+static const WindowDesc _replace_rail_vehicle_desc(
 	WDP_AUTO, 500, 140,
 	WC_REPLACE_VEHICLE, WC_NONE,
 	WDF_CONSTRUCTION,
@@ -741,7 +741,7 @@ static const NWidgetPart _nested_replace_vehicle_widgets[] = {
 
 static WindowDesc::Prefs _replace_vehicle_prefs ("replace_vehicle");
 
-static WindowDesc _replace_vehicle_desc(
+static const WindowDesc _replace_vehicle_desc(
 	WDP_AUTO, 456, 118,
 	WC_REPLACE_VEHICLE, WC_NONE,
 	WDF_CONSTRUCTION,

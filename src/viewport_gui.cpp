@@ -53,7 +53,7 @@ static const NWidgetPart _nested_extra_view_port_widgets[] = {
 
 class ExtraViewportWindow : public Window {
 public:
-	ExtraViewportWindow(WindowDesc *desc, int window_number, TileIndex tile) : Window(desc)
+	ExtraViewportWindow (const WindowDesc *desc, int window_number, TileIndex tile) : Window(desc)
 	{
 		this->InitNested(window_number);
 
@@ -157,7 +157,7 @@ public:
 
 static WindowDesc::Prefs _extra_view_port_prefs ("extra_viewport");
 
-static WindowDesc _extra_view_port_desc(
+static const WindowDesc _extra_view_port_desc(
 	WDP_AUTO, 300, 268,
 	WC_EXTRA_VIEW_PORT, WC_NONE,
 	0,
