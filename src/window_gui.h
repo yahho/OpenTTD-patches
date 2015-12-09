@@ -176,10 +176,23 @@ struct WindowDesc {
 		~Prefs();
 	};
 
-	WindowDesc (WindowPosition default_pos, int16 def_width_trad, int16 def_height_trad,
+	/** Window description constructor. */
+	CONSTEXPR WindowDesc (WindowPosition def_pos, int16 def_width_trad, int16 def_height_trad,
 			WindowClass window_class, WindowClass parent_class, uint32 flags,
 			const NWidgetPart *nwid_parts, int16 nwid_length,
-			Prefs *prefs = NULL, HotkeyList *hotkeys = NULL);
+			Prefs *prefs = NULL, HotkeyList *hotkeys = NULL) :
+		default_pos(def_pos),
+		cls(window_class),
+		parent_cls(parent_class),
+		flags(flags),
+		nwid_parts(nwid_parts),
+		nwid_length(nwid_length),
+		prefs(prefs),
+		hotkeys(hotkeys),
+		default_width_trad(def_width_trad),
+		default_height_trad(def_height_trad)
+	{
+	}
 
 	WindowPosition default_pos;    ///< Preferred position of the window. @see WindowPosition()
 	WindowClass cls;               ///< Class of the window, @see WindowClass.
