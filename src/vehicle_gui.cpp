@@ -1773,14 +1773,6 @@ public:
 
 static WindowDesc::Prefs _vehicle_list_other_prefs ("list_vehicles");
 
-static WindowDesc _vehicle_list_other_desc(
-	WDP_AUTO, 260, 246,
-	WC_INVALID, WC_NONE,
-	0,
-	_nested_vehicle_list, lengthof(_nested_vehicle_list),
-	&_vehicle_list_other_prefs
-);
-
 static WindowDesc::Prefs _vehicle_list_train_prefs ("list_vehicles_train");
 
 static WindowDesc _vehicle_list_train_desc(
@@ -1791,17 +1783,43 @@ static WindowDesc _vehicle_list_train_desc(
 	&_vehicle_list_train_prefs
 );
 
+static WindowDesc _vehicle_list_roadveh_desc(
+	WDP_AUTO, 260, 246,
+	WC_ROADVEH_LIST, WC_NONE,
+	0,
+	_nested_vehicle_list, lengthof(_nested_vehicle_list),
+	&_vehicle_list_other_prefs
+);
+
+static WindowDesc _vehicle_list_ship_desc(
+	WDP_AUTO, 260, 246,
+	WC_SHIPS_LIST, WC_NONE,
+	0,
+	_nested_vehicle_list, lengthof(_nested_vehicle_list),
+	&_vehicle_list_other_prefs
+);
+
+static WindowDesc _vehicle_list_aircraft_desc(
+	WDP_AUTO, 260, 246,
+	WC_AIRCRAFT_LIST, WC_NONE,
+	0,
+	_nested_vehicle_list, lengthof(_nested_vehicle_list),
+	&_vehicle_list_other_prefs
+);
+
 static void ShowVehicleListWindowLocal(CompanyID company, VehicleListType vlt, VehicleType vehicle_type, uint32 unique_number)
 {
+	static WindowDesc *const descs[VEH_COMPANY_END] = {
+		&_vehicle_list_train_desc,      // VEH_TRAIN
+		&_vehicle_list_roadveh_desc,    // VEH_ROAD
+		&_vehicle_list_ship_desc,       // VEH_SHIP
+		&_vehicle_list_aircraft_desc,   // VEH_AIRCRAFT
+	};
+
 	if (!Company::IsValidID(company) && company != OWNER_NONE) return;
 
 	WindowNumber num = VehicleListIdentifier(vlt, vehicle_type, company, unique_number).Pack();
-	if (vehicle_type == VEH_TRAIN) {
-		AllocateWindowDescFront<VehicleListWindow>(&_vehicle_list_train_desc, num);
-	} else {
-		_vehicle_list_other_desc.cls = GetWindowClassForVehicleType(vehicle_type);
-		AllocateWindowDescFront<VehicleListWindow>(&_vehicle_list_other_desc, num);
-	}
+	AllocateWindowDescFront<VehicleListWindow> (descs[vehicle_type], num);
 }
 
 void ShowVehicleListWindow(CompanyID company, VehicleType vehicle_type)
