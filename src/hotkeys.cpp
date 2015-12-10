@@ -161,6 +161,29 @@ static void ParseHotkeys(Hotkey *hotkey, const char *value)
 }
 
 /**
+ * Append the description of a keycode to a string.
+ * @param buf The buffer to append the description to.
+ * @param keycode The keycode whose description to append
+ */
+static void AppendKeycodeDescription (stringb *buf, uint16 keycode)
+{
+	if (keycode & WKC_GLOBAL_HOTKEY) buf->append ("GLOBAL+");
+	if (keycode & WKC_SHIFT) buf->append ("SHIFT+");
+	if (keycode & WKC_CTRL)  buf->append ("CTRL+");
+	if (keycode & WKC_ALT)   buf->append ("ALT+");
+	if (keycode & WKC_META)  buf->append ("META+");
+
+	keycode &= ~WKC_SPECIAL_KEYS;
+	const KeycodeName *key = find_special_key_by_keycode (keycode);
+	if (key != NULL) {
+		buf->append (key->name);
+	} else {
+		assert (keycode < 128);
+		buf->append (keycode);
+	}
+}
+
+/**
  * Convert all keycodes attached to a hotkey to a single string. If multiple
  * keycodes are attached to the hotkey they are split by a comma.
  * @param hotkey The keycodes of this hotkey need to be converted to a string.
@@ -174,23 +197,7 @@ const char *SaveKeycodes(const Hotkey *hotkey)
 	stringb sb (buf);
 	for (uint i = 0; i < hotkey->keycodes.Length(); i++) {
 		if (i > 0) sb.append (',');
-
-		uint16 keycode = hotkey->keycodes[i];
-
-		if (keycode & WKC_GLOBAL_HOTKEY) sb.append ("GLOBAL+");
-		if (keycode & WKC_SHIFT) sb.append ("SHIFT+");
-		if (keycode & WKC_CTRL)  sb.append ("CTRL+");
-		if (keycode & WKC_ALT)   sb.append ("ALT+");
-		if (keycode & WKC_META)  sb.append ("META+");
-
-		keycode &= ~WKC_SPECIAL_KEYS;
-		const KeycodeName *key = find_special_key_by_keycode (keycode);
-		if (key != NULL) {
-			sb.append (key->name);
-		} else {
-			assert(keycode < 128);
-			sb.append (keycode);
-		}
+		AppendKeycodeDescription (&sb, hotkey->keycodes[i]);
 	}
 	return buf;
 }
