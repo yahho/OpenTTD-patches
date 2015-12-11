@@ -12,6 +12,8 @@
 #ifndef HOTKEYS_H
 #define HOTKEYS_H
 
+#include <vector>
+
 #include "core/smallvec_type.hpp"
 #include "gfx_type.h"
 #include "window_type.h"
@@ -40,7 +42,25 @@ struct IniFile;
  * List of hotkeys for a window.
  */
 struct HotkeyList {
+private:
 	typedef EventState (*GlobalHotkeyHandlerFunc)(int hotkey);
+
+	struct Mapping {
+		uint16 keycode;
+		int value;
+
+		CONSTEXPR Mapping (uint16 keycode, int value)
+			: keycode (keycode), value (value)
+		{
+		}
+	};
+
+	std::vector <Mapping> mappings;
+	const char   *const ini_group;
+	const Hotkey *const descs;
+
+public:
+	GlobalHotkeyHandlerFunc global_hotkey_handler;
 
 	HotkeyList(const char *ini_group, Hotkey *items, GlobalHotkeyHandlerFunc global_hotkey_handler = NULL);
 	~HotkeyList();
@@ -50,16 +70,18 @@ struct HotkeyList {
 
 	int CheckMatch(uint16 keycode, bool global_only = false) const;
 
-	GlobalHotkeyHandlerFunc global_hotkey_handler;
 private:
-	const char *ini_group;
-	Hotkey *items;
-
 	/**
 	 * Dummy private copy constructor to prevent compilers from
 	 * copying the structure, which fails due to _hotkey_lists.
 	 */
 	HotkeyList(const HotkeyList &other);
+
+	/** Helper function to push a mapping. */
+	void push_mapping (uint16 keycode, int value)
+	{
+		this->mappings.push_back (Mapping (keycode, value));
+	}
 };
 
 bool IsQuitKey(uint16 keycode);
