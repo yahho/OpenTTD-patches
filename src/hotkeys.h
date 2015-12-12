@@ -24,14 +24,21 @@
  * a list of keycodes and a number to help identifying this hotkey.
  */
 struct Hotkey {
-	Hotkey(uint16 default_keycode, const char *name, int num);
-	Hotkey(const uint16 *default_keycodes, const char *name, int num);
+	const char *const name; ///< Name of the hotkey in the config file.
+	const int num;          ///< Hotkey identifier in its group.
+	/* We cannot make the default hotkeys an array because not all the
+	 * compilers we support allow to statically construct an array. */
+	uint16 default0;        ///< First default keycode for the hotkey.
+	uint16 default1;        ///< First default keycode for the hotkey.
+	uint16 default2;        ///< First default keycode for the hotkey.
+	uint16 default3;        ///< First default keycode for the hotkey.
 
-	void AddKeycode(uint16 keycode);
-
-	const char *name;
-	int num;
-	SmallVector<uint16, 1> keycodes;
+	CONSTEXPR Hotkey (const char *name, const int num, uint16 k0 = 0,
+			uint16 k1 = 0, uint16 k2 = 0, uint16 k3 = 0)
+		: name(name), num(num),
+		  default0(k0), default1(k1), default2(k2), default3(k3)
+	{
+	}
 };
 
 

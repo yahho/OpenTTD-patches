@@ -162,47 +162,6 @@ static void AppendKeycodeDescription (stringb *buf, uint16 keycode)
 
 
 /**
- * Create a new Hotkey object with a single default keycode.
- * @param default_keycode The default keycode for this hotkey.
- * @param name The name of this hotkey.
- * @param num Number of this hotkey, should be unique within the hotkey list.
- */
-Hotkey::Hotkey(uint16 default_keycode, const char *name, int num) :
-	name(name),
-	num(num)
-{
-	if (default_keycode != 0) this->AddKeycode(default_keycode);
-}
-
-/**
- * Create a new Hotkey object with multiple default keycodes.
- * @param default_keycodes An array of default keycodes terminated with 0.
- * @param name The name of this hotkey.
- * @param num Number of this hotkey, should be unique within the hotkey list.
- */
-Hotkey::Hotkey(const uint16 *default_keycodes, const char *name, int num) :
-	name(name),
-	num(num)
-{
-	const uint16 *keycode = default_keycodes;
-	while (*keycode != 0) {
-		this->AddKeycode(*keycode);
-		keycode++;
-	}
-}
-
-/**
- * Add a keycode to this hotkey, from now that keycode will be matched
- * in addition to any previously added keycodes.
- * @param keycode The keycode to add.
- */
-void Hotkey::AddKeycode(uint16 keycode)
-{
-	this->keycodes.Include(keycode);
-}
-
-
-/**
  * List of all HotkeyLists.
  * This is a pointer to ensure initialisation order with the various static HotkeyList instances.
  */
@@ -240,8 +199,11 @@ void HotkeyList::Load(IniFile *ini)
 
 		const IniItem *item = group->find (hotkey->name);
 		if (item == NULL) {
-			for (const uint16 *p = hotkey->keycodes.Begin(); p != hotkey->keycodes.End(); p++) {
-				this->push_mapping (*p, hotkey->num);
+			static const uint16 Hotkey::* const defaults [] = { &Hotkey::default0, &Hotkey::default1, &Hotkey::default2, &Hotkey::default3 };
+			for (uint i = 0; i < lengthof(defaults); i++) {
+				uint16 keycode = hotkey->*defaults[i];
+				if (keycode == 0) break;
+				this->push_mapping (keycode, hotkey->num);
 			}
 		} else if (item->value != NULL) {
 			const char *start = item->value;

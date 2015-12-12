@@ -1504,18 +1504,18 @@ public:
 	static HotkeyList hotkeys;
 };
 
-static Hotkey order_hotkeys[] = {
-	Hotkey('D', "skip", OHK_SKIP),
-	Hotkey('F', "delete", OHK_DELETE),
-	Hotkey('G', "goto", OHK_GOTO),
-	Hotkey('H', "nonstop", OHK_NONSTOP),
-	Hotkey('J', "fullload", OHK_FULLLOAD),
-	Hotkey('K', "unload", OHK_UNLOAD),
-	Hotkey((uint16)0, "nearest_depot", OHK_NEAREST_DEPOT),
-	Hotkey((uint16)0, "always_service", OHK_ALWAYS_SERVICE),
-	Hotkey((uint16)0, "transfer", OHK_TRANSFER),
-	Hotkey((uint16)0, "no_unload", OHK_NO_UNLOAD),
-	Hotkey((uint16)0, "no_load", OHK_NO_LOAD),
+static const Hotkey order_hotkeys[] = {
+	Hotkey ("skip",           OHK_SKIP,       'D'),
+	Hotkey ("delete",         OHK_DELETE,     'F'),
+	Hotkey ("goto",           OHK_GOTO,       'G'),
+	Hotkey ("nonstop",        OHK_NONSTOP,    'H'),
+	Hotkey ("fullload",       OHK_FULLLOAD,   'J'),
+	Hotkey ("unload",         OHK_UNLOAD,     'K'),
+	Hotkey ("nearest_depot",  OHK_NEAREST_DEPOT),
+	Hotkey ("always_service", OHK_ALWAYS_SERVICE),
+	Hotkey ("transfer",       OHK_TRANSFER),
+	Hotkey ("no_unload",      OHK_NO_UNLOAD),
+	Hotkey ("no_load",        OHK_NO_LOAD),
 };
 HotkeyList OrdersWindow::hotkeys("order", order_hotkeys);
 

@@ -465,54 +465,47 @@ struct MainWindow : Window
 	static HotkeyList hotkeys;
 };
 
-const uint16 _ghk_quit_keys[] = {'Q' | WKC_CTRL, 'Q' | WKC_META, 0};
-const uint16 _ghk_abandon_keys[] = {'W' | WKC_CTRL, 'W' | WKC_META, 0};
-const uint16 _ghk_chat_keys[] = {WKC_RETURN, 'T', 0};
-const uint16 _ghk_chat_all_keys[] = {WKC_SHIFT | WKC_RETURN, WKC_SHIFT | 'T', 0};
-const uint16 _ghk_chat_company_keys[] = {WKC_CTRL | WKC_RETURN, WKC_CTRL | 'T', 0};
-const uint16 _ghk_chat_server_keys[] = {WKC_CTRL | WKC_SHIFT | WKC_RETURN, WKC_CTRL | WKC_SHIFT | 'T', 0};
-
-static Hotkey global_hotkeys[] = {
-	Hotkey(_ghk_quit_keys, "quit", GHK_QUIT),
-	Hotkey(_ghk_abandon_keys, "abandon", GHK_ABANDON),
-	Hotkey(WKC_BACKQUOTE, "console", GHK_CONSOLE),
-	Hotkey('B' | WKC_CTRL, "bounding_boxes", GHK_BOUNDING_BOXES),
-	Hotkey('I' | WKC_CTRL, "dirty_blocks", GHK_DIRTY_BLOCKS),
-	Hotkey('C', "center", GHK_CENTER),
-	Hotkey('Z', "center_zoom", GHK_CENTER_ZOOM),
-	Hotkey(WKC_ESC, "reset_object_to_place", GHK_RESET_OBJECT_TO_PLACE),
-	Hotkey(WKC_DELETE, "delete_windows", GHK_DELETE_WINDOWS),
-	Hotkey(WKC_DELETE | WKC_SHIFT, "delete_all_windows", GHK_DELETE_NONVITAL_WINDOWS),
-	Hotkey('R' | WKC_CTRL, "refresh_screen", GHK_REFRESH_SCREEN),
+static const Hotkey global_hotkeys[] = {
+	Hotkey ("quit",         GHK_QUIT,    'Q' | WKC_CTRL, 'Q' | WKC_META),
+	Hotkey ("abandon",      GHK_ABANDON, 'W' | WKC_CTRL, 'W' | WKC_META),
+	Hotkey ("console",                 GHK_CONSOLE,        WKC_BACKQUOTE),
+	Hotkey ("bounding_boxes",          GHK_BOUNDING_BOXES, 'B' | WKC_CTRL),
+	Hotkey ("dirty_blocks",            GHK_DIRTY_BLOCKS,   'I' | WKC_CTRL),
+	Hotkey ("center",                  GHK_CENTER,         'C'),
+	Hotkey ("center_zoom",             GHK_CENTER_ZOOM,    'Z'),
+	Hotkey ("reset_object_to_place",   GHK_RESET_OBJECT_TO_PLACE,   WKC_ESC),
+	Hotkey ("delete_windows",          GHK_DELETE_WINDOWS,          WKC_DELETE),
+	Hotkey ("delete_all_windows",      GHK_DELETE_NONVITAL_WINDOWS, WKC_DELETE | WKC_SHIFT),
+	Hotkey ("refresh_screen",          GHK_REFRESH_SCREEN, 'R' | WKC_CTRL),
 #if defined(_DEBUG)
-	Hotkey('0' | WKC_ALT, "crash_game", GHK_CRASH),
-	Hotkey('1' | WKC_ALT, "money", GHK_MONEY),
-	Hotkey('2' | WKC_ALT, "update_coordinates", GHK_UPDATE_COORDS),
+	Hotkey ("crash_game",              GHK_CRASH,          '0' | WKC_ALT),
+	Hotkey ("money",                   GHK_MONEY,          '1' | WKC_ALT),
+	Hotkey ("update_coordinates",      GHK_UPDATE_COORDS,  '2' | WKC_ALT),
 #endif
-	Hotkey('1' | WKC_CTRL, "transparency_signs", GHK_TOGGLE_TRANSPARENCY),
-	Hotkey('2' | WKC_CTRL, "transparency_trees", GHK_TOGGLE_TRANSPARENCY + 1),
-	Hotkey('3' | WKC_CTRL, "transparency_houses", GHK_TOGGLE_TRANSPARENCY + 2),
-	Hotkey('4' | WKC_CTRL, "transparency_industries", GHK_TOGGLE_TRANSPARENCY + 3),
-	Hotkey('5' | WKC_CTRL, "transparency_buildings", GHK_TOGGLE_TRANSPARENCY + 4),
-	Hotkey('6' | WKC_CTRL, "transparency_bridges", GHK_TOGGLE_TRANSPARENCY + 5),
-	Hotkey('7' | WKC_CTRL, "transparency_structures", GHK_TOGGLE_TRANSPARENCY + 6),
-	Hotkey('8' | WKC_CTRL, "transparency_catenary", GHK_TOGGLE_TRANSPARENCY + 7),
-	Hotkey('9' | WKC_CTRL, "transparency_loading", GHK_TOGGLE_TRANSPARENCY + 8),
-	Hotkey('1' | WKC_CTRL | WKC_SHIFT, "invisibility_signs", GHK_TOGGLE_INVISIBILITY),
-	Hotkey('2' | WKC_CTRL | WKC_SHIFT, "invisibility_trees", GHK_TOGGLE_INVISIBILITY + 1),
-	Hotkey('3' | WKC_CTRL | WKC_SHIFT, "invisibility_houses", GHK_TOGGLE_INVISIBILITY + 2),
-	Hotkey('4' | WKC_CTRL | WKC_SHIFT, "invisibility_industries", GHK_TOGGLE_INVISIBILITY + 3),
-	Hotkey('5' | WKC_CTRL | WKC_SHIFT, "invisibility_buildings", GHK_TOGGLE_INVISIBILITY + 4),
-	Hotkey('6' | WKC_CTRL | WKC_SHIFT, "invisibility_bridges", GHK_TOGGLE_INVISIBILITY + 5),
-	Hotkey('7' | WKC_CTRL | WKC_SHIFT, "invisibility_structures", GHK_TOGGLE_INVISIBILITY + 6),
-	Hotkey('8' | WKC_CTRL | WKC_SHIFT, "invisibility_catenary", GHK_TOGGLE_INVISIBILITY + 7),
-	Hotkey('X' | WKC_CTRL, "transparency_toolbar", GHK_TRANSPARENCY_TOOLBAR),
-	Hotkey('X', "toggle_transparency", GHK_TRANSPARANCY),
+	Hotkey ("transparency_signs",      GHK_TOGGLE_TRANSPARENCY,     '1' | WKC_CTRL),
+	Hotkey ("transparency_trees",      GHK_TOGGLE_TRANSPARENCY + 1, '2' | WKC_CTRL),
+	Hotkey ("transparency_houses",     GHK_TOGGLE_TRANSPARENCY + 2, '3' | WKC_CTRL),
+	Hotkey ("transparency_industries", GHK_TOGGLE_TRANSPARENCY + 3, '4' | WKC_CTRL),
+	Hotkey ("transparency_buildings",  GHK_TOGGLE_TRANSPARENCY + 4, '5' | WKC_CTRL),
+	Hotkey ("transparency_bridges",    GHK_TOGGLE_TRANSPARENCY + 5, '6' | WKC_CTRL),
+	Hotkey ("transparency_structures", GHK_TOGGLE_TRANSPARENCY + 6, '7' | WKC_CTRL),
+	Hotkey ("transparency_catenary",   GHK_TOGGLE_TRANSPARENCY + 7, '8' | WKC_CTRL),
+	Hotkey ("transparency_loading",    GHK_TOGGLE_TRANSPARENCY + 8, '9' | WKC_CTRL),
+	Hotkey ("invisibility_signs",      GHK_TOGGLE_INVISIBILITY,     '1' | WKC_CTRL | WKC_SHIFT),
+	Hotkey ("invisibility_trees",      GHK_TOGGLE_INVISIBILITY + 1, '2' | WKC_CTRL | WKC_SHIFT),
+	Hotkey ("invisibility_houses",     GHK_TOGGLE_INVISIBILITY + 2, '3' | WKC_CTRL | WKC_SHIFT),
+	Hotkey ("invisibility_industries", GHK_TOGGLE_INVISIBILITY + 3, '4' | WKC_CTRL | WKC_SHIFT),
+	Hotkey ("invisibility_buildings",  GHK_TOGGLE_INVISIBILITY + 4, '5' | WKC_CTRL | WKC_SHIFT),
+	Hotkey ("invisibility_bridges",    GHK_TOGGLE_INVISIBILITY + 5, '6' | WKC_CTRL | WKC_SHIFT),
+	Hotkey ("invisibility_structures", GHK_TOGGLE_INVISIBILITY + 6, '7' | WKC_CTRL | WKC_SHIFT),
+	Hotkey ("invisibility_catenary",   GHK_TOGGLE_INVISIBILITY + 7, '8' | WKC_CTRL | WKC_SHIFT),
+	Hotkey ("transparency_toolbar",    GHK_TRANSPARENCY_TOOLBAR,    'X' | WKC_CTRL),
+	Hotkey ("toggle_transparency",     GHK_TRANSPARANCY,            'X'),
 #ifdef ENABLE_NETWORK
-	Hotkey(_ghk_chat_keys, "chat", GHK_CHAT),
-	Hotkey(_ghk_chat_all_keys, "chat_all", GHK_CHAT_ALL),
-	Hotkey(_ghk_chat_company_keys, "chat_company", GHK_CHAT_COMPANY),
-	Hotkey(_ghk_chat_server_keys, "chat_server", GHK_CHAT_SERVER),
+	Hotkey ("chat",         GHK_CHAT,         WKC_RETURN, 'T'),
+	Hotkey ("chat_all",     GHK_CHAT_ALL,     WKC_RETURN | WKC_SHIFT, 'T' | WKC_SHIFT),
+	Hotkey ("chat_company", GHK_CHAT_COMPANY, WKC_RETURN | WKC_CTRL,  'T' | WKC_CTRL),
+	Hotkey ("chat_server",  GHK_CHAT_SERVER,  WKC_RETURN | WKC_CTRL | WKC_SHIFT, 'T' | WKC_CTRL | WKC_SHIFT),
 #endif
 };
 HotkeyList MainWindow::hotkeys("global", global_hotkeys);

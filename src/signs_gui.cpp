@@ -350,8 +350,8 @@ static EventState SignListGlobalHotkeys(int hotkey)
 	return w->OnHotkey(hotkey);
 }
 
-static Hotkey signlist_hotkeys[] = {
-	Hotkey('F', "focus_filter_box", SLHK_FOCUS_FILTER_BOX),
+static const Hotkey signlist_hotkeys[] = {
+	Hotkey ("focus_filter_box", SLHK_FOCUS_FILTER_BOX, 'F'),
 };
 HotkeyList SignListWindow::hotkeys("signlist", signlist_hotkeys, SignListGlobalHotkeys);
 

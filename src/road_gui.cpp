@@ -690,18 +690,18 @@ static EventState RoadToolbarGlobalHotkeys(int hotkey)
 	return w->OnHotkey(hotkey);
 }
 
-static Hotkey roadtoolbar_hotkeys[] = {
-	Hotkey('1', "build_x", WID_ROT_ROAD_X),
-	Hotkey('2', "build_y", WID_ROT_ROAD_Y),
-	Hotkey('3', "autoroad", WID_ROT_AUTOROAD),
-	Hotkey('4', "demolish", WID_ROT_DEMOLISH),
-	Hotkey('5', "depot", WID_ROT_DEPOT),
-	Hotkey('6', "bus_station", WID_ROT_BUS_STATION),
-	Hotkey('7', "truck_station", WID_ROT_TRUCK_STATION),
-	Hotkey('8', "oneway", WID_ROT_ONE_WAY),
-	Hotkey('B', "bridge", WID_ROT_BUILD_BRIDGE),
-	Hotkey('T', "tunnel", WID_ROT_BUILD_TUNNEL),
-	Hotkey('R', "remove", WID_ROT_REMOVE),
+static const Hotkey roadtoolbar_hotkeys[] = {
+	Hotkey ("build_x",       WID_ROT_ROAD_X,        '1'),
+	Hotkey ("build_y",       WID_ROT_ROAD_Y,        '2'),
+	Hotkey ("autoroad",      WID_ROT_AUTOROAD,      '3'),
+	Hotkey ("demolish",      WID_ROT_DEMOLISH,      '4'),
+	Hotkey ("depot",         WID_ROT_DEPOT,         '5'),
+	Hotkey ("bus_station",   WID_ROT_BUS_STATION,   '6'),
+	Hotkey ("truck_station", WID_ROT_TRUCK_STATION, '7'),
+	Hotkey ("oneway",        WID_ROT_ONE_WAY,       '8'),
+	Hotkey ("bridge",        WID_ROT_BUILD_BRIDGE,  'B'),
+	Hotkey ("tunnel",        WID_ROT_BUILD_TUNNEL,  'T'),
+	Hotkey ("remove",        WID_ROT_REMOVE,        'R'),
 };
 HotkeyList BuildRoadToolbarWindow::hotkeys("roadtoolbar", roadtoolbar_hotkeys, RoadToolbarGlobalHotkeys);
 

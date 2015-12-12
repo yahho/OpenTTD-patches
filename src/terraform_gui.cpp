@@ -302,15 +302,15 @@ static EventState TerraformToolbarGlobalHotkeys(int hotkey)
 	return w->OnHotkey(hotkey);
 }
 
-static Hotkey terraform_hotkeys[] = {
-	Hotkey('Q' | WKC_GLOBAL_HOTKEY, "lower", WID_TT_LOWER_LAND),
-	Hotkey('W' | WKC_GLOBAL_HOTKEY, "raise", WID_TT_RAISE_LAND),
-	Hotkey('E' | WKC_GLOBAL_HOTKEY, "level", WID_TT_LEVEL_LAND),
-	Hotkey('D' | WKC_GLOBAL_HOTKEY, "dynamite", WID_TT_DEMOLISH),
-	Hotkey('U', "buyland", WID_TT_BUY_LAND),
-	Hotkey('I', "trees", WID_TT_PLANT_TREES),
-	Hotkey('O', "placesign", WID_TT_PLACE_SIGN),
-	Hotkey('P', "placeobject", WID_TT_PLACE_OBJECT),
+static const Hotkey terraform_hotkeys[] = {
+	Hotkey ("lower",       WID_TT_LOWER_LAND,   'Q' | WKC_GLOBAL_HOTKEY),
+	Hotkey ("raise",       WID_TT_RAISE_LAND,   'W' | WKC_GLOBAL_HOTKEY),
+	Hotkey ("level",       WID_TT_LEVEL_LAND,   'E' | WKC_GLOBAL_HOTKEY),
+	Hotkey ("dynamite",    WID_TT_DEMOLISH,     'D' | WKC_GLOBAL_HOTKEY),
+	Hotkey ("buyland",     WID_TT_BUY_LAND,     'U'),
+	Hotkey ("trees",       WID_TT_PLANT_TREES,  'I'),
+	Hotkey ("placesign",   WID_TT_PLACE_SIGN,   'O'),
+	Hotkey ("placeobject", WID_TT_PLACE_OBJECT, 'P'),
 };
 HotkeyList TerraformToolbarWindow::hotkeys("terraform", terraform_hotkeys, TerraformToolbarGlobalHotkeys);
 
@@ -714,15 +714,15 @@ static EventState TerraformToolbarEditorGlobalHotkeys(int hotkey)
 	return w->OnHotkey(hotkey);
 }
 
-static Hotkey terraform_editor_hotkeys[] = {
-	Hotkey('D' | WKC_GLOBAL_HOTKEY, "dynamite", WID_ETT_DEMOLISH),
-	Hotkey('Q' | WKC_GLOBAL_HOTKEY, "lower", WID_ETT_LOWER_LAND),
-	Hotkey('W' | WKC_GLOBAL_HOTKEY, "raise", WID_ETT_RAISE_LAND),
-	Hotkey('E' | WKC_GLOBAL_HOTKEY, "level", WID_ETT_LEVEL_LAND),
-	Hotkey('R', "rocky", WID_ETT_PLACE_ROCKS),
-	Hotkey('T', "desert", WID_ETT_PLACE_DESERT),
-	Hotkey('O', "object", WID_ETT_PLACE_OBJECT),
-	Hotkey('H', "house", WID_ETT_PLACE_HOUSE),
+static const Hotkey terraform_editor_hotkeys[] = {
+	Hotkey ("dynamite", WID_ETT_DEMOLISH,     'D' | WKC_GLOBAL_HOTKEY),
+	Hotkey ("lower",    WID_ETT_LOWER_LAND,   'Q' | WKC_GLOBAL_HOTKEY),
+	Hotkey ("raise",    WID_ETT_RAISE_LAND,   'W' | WKC_GLOBAL_HOTKEY),
+	Hotkey ("level",    WID_ETT_LEVEL_LAND,   'E' | WKC_GLOBAL_HOTKEY),
+	Hotkey ("rocky",    WID_ETT_PLACE_ROCKS,  'R'),
+	Hotkey ("desert",   WID_ETT_PLACE_DESERT, 'T'),
+	Hotkey ("object",   WID_ETT_PLACE_OBJECT, 'O'),
+	Hotkey ("house",    WID_ETT_PLACE_HOUSE,  'H'),
 };
 
 HotkeyList ScenarioEditorLandscapeGenerationWindow::hotkeys("terraform_editor", terraform_editor_hotkeys, TerraformToolbarEditorGlobalHotkeys);

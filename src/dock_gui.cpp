@@ -302,17 +302,15 @@ static EventState DockToolbarGlobalHotkeys(int hotkey)
 	return w->OnHotkey(hotkey);
 }
 
-const uint16 _dockstoolbar_aqueduct_keys[] = {'B', '8', 0};
-
-static Hotkey dockstoolbar_hotkeys[] = {
-	Hotkey('1', "canal", WID_DT_CANAL),
-	Hotkey('2', "lock", WID_DT_LOCK),
-	Hotkey('3', "demolish", WID_DT_DEMOLISH),
-	Hotkey('4', "depot", WID_DT_DEPOT),
-	Hotkey('5', "dock", WID_DT_STATION),
-	Hotkey('6', "buoy", WID_DT_BUOY),
-	Hotkey('7', "river", WID_DT_RIVER),
-	Hotkey(_dockstoolbar_aqueduct_keys, "aqueduct", WID_DT_BUILD_AQUEDUCT),
+static const Hotkey dockstoolbar_hotkeys[] = {
+	Hotkey ("canal",    WID_DT_CANAL,    '1'),
+	Hotkey ("lock",     WID_DT_LOCK,     '2'),
+	Hotkey ("demolish", WID_DT_DEMOLISH, '3'),
+	Hotkey ("depot",    WID_DT_DEPOT,    '4'),
+	Hotkey ("dock",     WID_DT_STATION,  '5'),
+	Hotkey ("buoy",     WID_DT_BUOY,     '6'),
+	Hotkey ("river",    WID_DT_RIVER,    '7'),
+	Hotkey ("aqueduct", WID_DT_BUILD_AQUEDUCT, '8', 'B'),
 };
 HotkeyList BuildDocksToolbarWindow::hotkeys("dockstoolbar", dockstoolbar_hotkeys, DockToolbarGlobalHotkeys);
 

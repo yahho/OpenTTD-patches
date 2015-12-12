@@ -783,23 +783,21 @@ static EventState RailToolbarGlobalHotkeys(int hotkey)
 	return w->OnHotkey(hotkey);
 }
 
-const uint16 _railtoolbar_autorail_keys[] = {'5', 'A' | WKC_GLOBAL_HOTKEY, 0};
-
-static Hotkey railtoolbar_hotkeys[] = {
-	Hotkey('1', "build_ns", WID_RAT_BUILD_NS),
-	Hotkey('2', "build_x", WID_RAT_BUILD_X),
-	Hotkey('3', "build_ew", WID_RAT_BUILD_EW),
-	Hotkey('4', "build_y", WID_RAT_BUILD_Y),
-	Hotkey(_railtoolbar_autorail_keys, "autorail", WID_RAT_AUTORAIL),
-	Hotkey('6', "demolish", WID_RAT_DEMOLISH),
-	Hotkey('7', "depot", WID_RAT_BUILD_DEPOT),
-	Hotkey('8', "waypoint", WID_RAT_BUILD_WAYPOINT),
-	Hotkey('9', "station", WID_RAT_BUILD_STATION),
-	Hotkey('S', "signal", WID_RAT_BUILD_SIGNALS),
-	Hotkey('B', "bridge", WID_RAT_BUILD_BRIDGE),
-	Hotkey('T', "tunnel", WID_RAT_BUILD_TUNNEL),
-	Hotkey('R', "remove", WID_RAT_REMOVE),
-	Hotkey('C', "convert", WID_RAT_CONVERT_RAIL),
+static const Hotkey railtoolbar_hotkeys[] = {
+	Hotkey ("build_ns", WID_RAT_BUILD_NS,       '1'),
+	Hotkey ("build_x",  WID_RAT_BUILD_X,        '2'),
+	Hotkey ("build_ew", WID_RAT_BUILD_EW,       '3'),
+	Hotkey ("build_y",  WID_RAT_BUILD_Y,        '4'),
+	Hotkey ("autorail", WID_RAT_AUTORAIL,       '5', 'A' | WKC_GLOBAL_HOTKEY),
+	Hotkey ("demolish", WID_RAT_DEMOLISH,       '6'),
+	Hotkey ("depot",    WID_RAT_BUILD_DEPOT,    '7'),
+	Hotkey ("waypoint", WID_RAT_BUILD_WAYPOINT, '8'),
+	Hotkey ("station",  WID_RAT_BUILD_STATION,  '9'),
+	Hotkey ("signal",   WID_RAT_BUILD_SIGNALS,  'S'),
+	Hotkey ("bridge",   WID_RAT_BUILD_BRIDGE,   'B'),
+	Hotkey ("tunnel",   WID_RAT_BUILD_TUNNEL,   'T'),
+	Hotkey ("remove",   WID_RAT_REMOVE,         'R'),
+	Hotkey ("convert",  WID_RAT_CONVERT_RAIL,   'C'),
 };
 HotkeyList BuildRailToolbarWindow::hotkeys("railtoolbar", railtoolbar_hotkeys, RailToolbarGlobalHotkeys);
 
