@@ -1516,7 +1516,6 @@ static Hotkey order_hotkeys[] = {
 	Hotkey((uint16)0, "transfer", OHK_TRANSFER),
 	Hotkey((uint16)0, "no_unload", OHK_NO_UNLOAD),
 	Hotkey((uint16)0, "no_load", OHK_NO_LOAD),
-	HOTKEY_LIST_END
 };
 HotkeyList OrdersWindow::hotkeys("order", order_hotkeys);
 

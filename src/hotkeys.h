@@ -34,7 +34,6 @@ struct Hotkey {
 	SmallVector<uint16, 1> keycodes;
 };
 
-#define HOTKEY_LIST_END Hotkey((uint16)0, NULL, -1)
 
 struct IniFile;
 
@@ -58,11 +57,21 @@ private:
 	std::vector <Mapping> mappings;
 	const char   *const ini_group;
 	const Hotkey *const descs;
+	const uint    ndescs;
+
+	void init (void);
 
 public:
 	GlobalHotkeyHandlerFunc global_hotkey_handler;
 
-	HotkeyList(const char *ini_group, Hotkey *items, GlobalHotkeyHandlerFunc global_hotkey_handler = NULL);
+	template <uint N>
+	HotkeyList (const char *ini_group, const Hotkey (&items) [N], GlobalHotkeyHandlerFunc global_hotkey_handler = NULL)
+		: mappings(), ini_group(ini_group), descs(items), ndescs(N),
+		  global_hotkey_handler(global_hotkey_handler)
+	{
+		this->init();
+	}
+
 	~HotkeyList();
 
 	void Load(IniFile *ini);

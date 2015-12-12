@@ -208,9 +208,7 @@ void Hotkey::AddKeycode(uint16 keycode)
  */
 static std::vector <HotkeyList *> *_hotkey_lists = NULL;
 
-HotkeyList::HotkeyList (const char *ini_group, Hotkey *items, GlobalHotkeyHandlerFunc global_hotkey_handler)
-	: mappings(), ini_group(ini_group), descs(items),
-	  global_hotkey_handler(global_hotkey_handler)
+void HotkeyList::init (void)
 {
 	if (_hotkey_lists == NULL) _hotkey_lists = new std::vector <HotkeyList *>;
 	_hotkey_lists->push_back (this);
@@ -237,7 +235,9 @@ void HotkeyList::Load(IniFile *ini)
 
 	this->mappings.clear();
 
-	for (const Hotkey *hotkey = this->descs; hotkey->name != NULL; hotkey++) {
+	for (uint i = 0; i < this->ndescs; i++) {
+		const Hotkey *hotkey = &this->descs[i];
+
 		const IniItem *item = group->find (hotkey->name);
 		if (item == NULL) {
 			for (const uint16 *p = hotkey->keycodes.Begin(); p != hotkey->keycodes.End(); p++) {
@@ -264,7 +264,9 @@ void HotkeyList::Save(IniFile *ini) const
 {
 	IniGroup *group = ini->get_group (this->ini_group);
 
-	for (const Hotkey *hotkey = this->descs; hotkey->name != NULL; hotkey++) {
+	for (uint i = 0; i < this->ndescs; i++) {
+		const Hotkey *hotkey = &this->descs[i];
+
 		sstring<128> buf;
 		std::vector<Mapping>::const_iterator it = this->mappings.begin();
 		for (; it != this->mappings.end(); it++) {

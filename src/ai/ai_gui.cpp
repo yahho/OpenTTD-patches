@@ -1446,7 +1446,6 @@ static Hotkey aidebug_hotkeys[] = {
 	Hotkey('F', "break_string", WID_AID_BREAK_STR_EDIT_BOX),
 	Hotkey('C', "match_case", WID_AID_MATCH_CASE_BTN),
 	Hotkey(WKC_RETURN, "continue", WID_AID_CONTINUE_BTN),
-	HOTKEY_LIST_END
 };
 HotkeyList AIDebugWindow::hotkeys("aidebug", aidebug_hotkeys, AIDebugGlobalHotkeys);
 

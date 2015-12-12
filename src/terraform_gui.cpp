@@ -311,7 +311,6 @@ static Hotkey terraform_hotkeys[] = {
 	Hotkey('I', "trees", WID_TT_PLANT_TREES),
 	Hotkey('O', "placesign", WID_TT_PLACE_SIGN),
 	Hotkey('P', "placeobject", WID_TT_PLACE_OBJECT),
-	HOTKEY_LIST_END
 };
 HotkeyList TerraformToolbarWindow::hotkeys("terraform", terraform_hotkeys, TerraformToolbarGlobalHotkeys);
 
@@ -724,7 +723,6 @@ static Hotkey terraform_editor_hotkeys[] = {
 	Hotkey('T', "desert", WID_ETT_PLACE_DESERT),
 	Hotkey('O', "object", WID_ETT_PLACE_OBJECT),
 	Hotkey('H', "house", WID_ETT_PLACE_HOUSE),
-	HOTKEY_LIST_END
 };
 
 HotkeyList ScenarioEditorLandscapeGenerationWindow::hotkeys("terraform_editor", terraform_editor_hotkeys, TerraformToolbarEditorGlobalHotkeys);

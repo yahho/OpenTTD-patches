@@ -1850,7 +1850,6 @@ static Hotkey maintoolbar_hotkeys[] = {
 	Hotkey((uint16)0, "client_list", MTHK_CLIENT_LIST),
 #endif
 	Hotkey((uint16)0, "sign_list", MTHK_SIGN_LIST),
-	HOTKEY_LIST_END
 };
 HotkeyList MainToolbarWindow::hotkeys("maintoolbar", maintoolbar_hotkeys);
 
@@ -2175,7 +2174,6 @@ static Hotkey scenedit_maintoolbar_hotkeys[] = {
 	Hotkey('L', "terraform", MTEHK_TERRAFORM),
 	Hotkey('M', "smallmap", MTEHK_SMALLMAP),
 	Hotkey('V', "extra_viewport", MTEHK_EXTRA_VIEWPORT),
-	HOTKEY_LIST_END
 };
 HotkeyList ScenarioEditorToolbarWindow::hotkeys("scenedit_maintoolbar", scenedit_maintoolbar_hotkeys);
 
