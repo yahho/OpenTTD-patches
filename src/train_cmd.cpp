@@ -3698,12 +3698,9 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 				if (crossing != INVALID_TILE && HasCrossingReservation(crossing) && _settings_client.sound.ambient) SndPlayTileFx(SND_0E_LEVEL_CROSSING, crossing);
 
 				check_next_tile = enterdir != INVALID_DIAGDIR;
-			} else if (old_in_wormhole) {
-				TileIndex last_wormhole_tile = TileAddByDiagDir(v->tile, GetTunnelBridgeDirection(v->tile));
-				check_next_tile = (gp.tile == last_wormhole_tile) && (gp.tile != old_tile);
 			} else {
-				TileIndexDiff diff = TileOffsByDiagDir(GetTunnelBridgeDirection(v->tile));
-				check_next_tile = (old_tile == TILE_ADD(v->tile, 2*diff));
+				check_next_tile = (gp.tile != old_tile) &&
+						DistanceAlongAxis (old_tile, v->tile) == 2;
 			}
 
 			if (check_next_tile) CheckNextTrainTile(v);
