@@ -3769,7 +3769,8 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 		}
 
 		/* Do not check on every tick to save some computing time. */
-		if (v->IsFrontEngine() && v->tick_counter % _settings_game.pf.path_backoff_interval == 0) {
+		if (v->IsFrontEngine() && v->tick_counter % _settings_game.pf.path_backoff_interval == 0
+				&& (!old_in_wormhole || (DistanceAlongAxis (old_tile, v->tile) == 1))) {
 			CheckNextTrainTile(v);
 		}
 	}
