@@ -411,12 +411,9 @@ static bool FindNearestDepotOrigin (const RoadVehicle *v, PathMPos<RoadPathPos> 
 }
 
 template <class Tpf>
-static TileIndex FindNearestDepot(const RoadVehicle *v, int max_distance)
+static TileIndex FindNearestDepot (const RoadVehicle *v,
+	const PathMPos<RoadPathPos> &origin, int max_distance)
 {
-	/* set origin node */
-	PathMPos<RoadPathPos> origin;
-	if (!FindNearestDepotOrigin (v, &origin)) return INVALID_TILE;
-
 	Tpf pf (v, true);
 	pf.InsertInitialNode (pf.CreateNewNode (NULL, RoadPathPos(), origin));
 
@@ -435,8 +432,12 @@ static TileIndex FindNearestDepot(const RoadVehicle *v, int max_distance)
 
 TileIndex YapfRoadVehicleFindNearestDepot(const RoadVehicle *v, uint max_distance)
 {
+	/* set origin node */
+	PathMPos<RoadPathPos> origin;
+	if (!FindNearestDepotOrigin (v, &origin)) return INVALID_TILE;
+
 	/* default is YAPF type 2 */
-	typedef TileIndex (*PfnFindNearestDepot)(const RoadVehicle*, int);
+	typedef TileIndex (*PfnFindNearestDepot) (const RoadVehicle*, const PathMPos<RoadPathPos> &, int);
 	PfnFindNearestDepot pfnFindNearestDepot = &FindNearestDepot<CYapfRoad2>;
 
 	/* check if non-default YAPF type should be used */
@@ -444,5 +445,5 @@ TileIndex YapfRoadVehicleFindNearestDepot(const RoadVehicle *v, uint max_distanc
 		pfnFindNearestDepot = &FindNearestDepot<CYapfRoad1>; // Trackdir, allow 90-deg
 	}
 
-	return pfnFindNearestDepot(v, max_distance);
+	return pfnFindNearestDepot (v, origin, max_distance);
 }
