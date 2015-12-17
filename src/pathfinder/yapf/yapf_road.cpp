@@ -368,23 +368,18 @@ Trackdir YapfRoadVehicleChooseTrack(const RoadVehicle *v, TileIndex tile, DiagDi
 }
 
 
-template <class Tpf>
-static TileIndex FindNearestDepot(const RoadVehicle *v, int max_distance)
+static bool FindNearestDepotOrigin (const RoadVehicle *v, PathMPos<RoadPathPos> *origin)
 {
-	Tpf pf (v, true);
-
-	/* set origin node */
-	PathMPos<RoadPathPos> origin;
 	if (v->state == RVSB_WORMHOLE) {
 		if ((v->vehstatus & VS_HIDDEN) == 0) {
 			/* on a bridge */
 			TrackdirBits trackdirs = TrackStatusToTrackdirBits(GetTileRoadStatus (v->tile, v->compatible_roadtypes)) & DiagdirReachesTrackdirs(DirToDiagDir(v->direction));
 			assert (trackdirs != TRACKDIR_BIT_NONE);
-			origin.set (v->tile, trackdirs);
+			origin->set (v->tile, trackdirs);
 		} else {
 			/* in a tunnel */
 			Trackdir td = DiagDirToDiagTrackdir(DirToDiagDir(v->direction));
-			origin.set (v->tile, td);
+			origin->set (v->tile, td);
 		}
 	} else {
 		Trackdir td;
@@ -405,13 +400,24 @@ static TileIndex FindNearestDepot(const RoadVehicle *v, int max_distance)
 			td = (Trackdir)((IsReversingRoadTrackdir((Trackdir)v->state)) ? (v->state - 6) : v->state);
 
 			if ((TrackStatusToTrackdirBits (GetTileRoadStatus (v->tile, v->compatible_roadtypes)) & TrackdirToTrackdirBits (td)) == 0) {
-				return INVALID_TILE;
+				return false;
 			}
 		}
 
-		origin.set (v->tile, td);
+		origin->set (v->tile, td);
 	}
 
+	return true;
+}
+
+template <class Tpf>
+static TileIndex FindNearestDepot(const RoadVehicle *v, int max_distance)
+{
+	/* set origin node */
+	PathMPos<RoadPathPos> origin;
+	if (!FindNearestDepotOrigin (v, &origin)) return INVALID_TILE;
+
+	Tpf pf (v, true);
 	pf.InsertInitialNode (pf.CreateNewNode (NULL, RoadPathPos(), origin));
 
 	/* find the best path */
