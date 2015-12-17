@@ -402,10 +402,10 @@ static TileIndex FindNearestDepot(const RoadVehicle *v, int max_distance)
 			/* If vehicle's state is a valid track direction (vehicle is not turning around) return it,
 			 * otherwise transform it into a valid track direction */
 			td = (Trackdir)((IsReversingRoadTrackdir((Trackdir)v->state)) ? (v->state - 6) : v->state);
-		}
 
-		if ((TrackStatusToTrackdirBits (GetTileRoadStatus (v->tile, v->compatible_roadtypes)) & TrackdirToTrackdirBits (td)) == 0) {
-			return INVALID_TILE;
+			if ((TrackStatusToTrackdirBits (GetTileRoadStatus (v->tile, v->compatible_roadtypes)) & TrackdirToTrackdirBits (td)) == 0) {
+				return INVALID_TILE;
+			}
 		}
 
 		pf.InsertInitialNode (pf.CreateNewNode (NULL, RoadPathPos(), PathMPos<RoadPathPos> (v->tile, td)));
