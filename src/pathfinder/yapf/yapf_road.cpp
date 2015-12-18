@@ -368,7 +368,7 @@ Trackdir YapfRoadVehicleChooseTrack(const RoadVehicle *v, TileIndex tile, DiagDi
 }
 
 
-static bool FindNearestDepotOrigin (const RoadVehicle *v, PathMPos<RoadPathPos> *origin)
+static PathMPos<RoadPathPos> FindNearestDepotOrigin (const RoadVehicle *v)
 {
 	DiagDirection dir;
 	Trackdir      td;
@@ -430,15 +430,13 @@ static bool FindNearestDepotOrigin (const RoadVehicle *v, PathMPos<RoadPathPos> 
 			td = DiagDirToDiagTrackdir (dir);
 			/* fall through */
 		case SEL_TRACKDIR:
-			origin->set (v->tile, td);
-			break;
+			return PathMPos<RoadPathPos> (v->tile, td);
 
 		case SEL_TRACKDIRBITS:
-			origin->set (v->tile, trackdirs);
-			break;
+			return PathMPos<RoadPathPos> (v->tile, trackdirs);
 	};
 
-	return true;
+	NOT_REACHED();
 }
 
 template <class Tpf>
@@ -464,8 +462,7 @@ static TileIndex FindNearestDepot (const RoadVehicle *v,
 TileIndex YapfRoadVehicleFindNearestDepot(const RoadVehicle *v, uint max_distance)
 {
 	/* set origin node */
-	PathMPos<RoadPathPos> origin;
-	if (!FindNearestDepotOrigin (v, &origin)) return INVALID_TILE;
+	PathMPos<RoadPathPos> origin (FindNearestDepotOrigin (v));
 
 	/* default is YAPF type 2 */
 	typedef TileIndex (*PfnFindNearestDepot) (const RoadVehicle*, const PathMPos<RoadPathPos> &, int);
