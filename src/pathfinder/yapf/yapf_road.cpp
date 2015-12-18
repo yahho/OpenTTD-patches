@@ -405,15 +405,22 @@ static bool FindNearestDepotOrigin (const RoadVehicle *v, PathMPos<RoadPathPos> 
 			/* Drive-through road stops */
 			dir = DirToDiagDir (v->direction);
 			sel = SEL_DIAGDIR;
-		} else {
-			/* If vehicle's state is a valid track direction (vehicle is not turning around) return it,
-			 * otherwise transform it into a valid track direction */
-			td = (Trackdir)((IsReversingRoadTrackdir((Trackdir)v->state)) ? (v->state - 6) : v->state);
-
-			if ((TrackStatusToTrackdirBits (GetTileRoadStatus (v->tile, v->compatible_roadtypes)) & TrackdirToTrackdirBits (td)) == 0) {
-				return false;
+		} else if (IsReversingRoadTrackdir ((Trackdir)v->state)) {
+			/* If the vehicle is turning around, it will call the
+			 * pathfinder after reversing, so we can use any
+			 * available trackdir. */
+			trackdirs = TrackStatusToTrackdirBits (GetTileRoadStatus (v->tile, v->compatible_roadtypes));
+			dir = TrackdirToExitdir ((Trackdir)v->state);
+			trackdirs &= DiagdirReachesTrackdirs (dir);
+			if (trackdirs == TRACKDIR_BIT_NONE) {
+				/* Long turn at a single-piece road. */
+				sel = SEL_DIAGDIR;
+			} else {
+				sel = SEL_TRACKDIRBITS;
 			}
-
+		} else {
+			/* Not turning, so use current trackdir. */
+			td = (Trackdir)v->state;
 			sel = SEL_TRACKDIR;
 		}
 	}
