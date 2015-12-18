@@ -370,30 +370,41 @@ Trackdir YapfRoadVehicleChooseTrack(const RoadVehicle *v, TileIndex tile, DiagDi
 
 static bool FindNearestDepotOrigin (const RoadVehicle *v, PathMPos<RoadPathPos> *origin)
 {
+	DiagDirection dir;
+	Trackdir      td;
+	TrackdirBits  trackdirs;
+
+	enum {
+		SEL_DIAGDIR,
+		SEL_TRACKDIR,
+		SEL_TRACKDIRBITS,
+	} sel;
+
 	if (v->state == RVSB_WORMHOLE) {
 		if ((v->vehstatus & VS_HIDDEN) == 0) {
 			/* on a bridge */
-			TrackdirBits trackdirs = TrackStatusToTrackdirBits(GetTileRoadStatus (v->tile, v->compatible_roadtypes)) & DiagdirReachesTrackdirs(DirToDiagDir(v->direction));
+			trackdirs = TrackStatusToTrackdirBits(GetTileRoadStatus (v->tile, v->compatible_roadtypes)) & DiagdirReachesTrackdirs(DirToDiagDir(v->direction));
 			assert (trackdirs != TRACKDIR_BIT_NONE);
-			origin->set (v->tile, trackdirs);
+			sel = SEL_TRACKDIRBITS;
 		} else {
 			/* in a tunnel */
-			Trackdir td = DiagDirToDiagTrackdir(DirToDiagDir(v->direction));
-			origin->set (v->tile, td);
+			dir = DirToDiagDir (v->direction);
+			sel = SEL_DIAGDIR;
 		}
 	} else {
-		Trackdir td;
-
 		if (v->state == RVSB_IN_DEPOT) {
 			/* We'll assume the road vehicle is facing outwards */
 			assert (IsRoadDepotTile (v->tile));
-			td = DiagDirToDiagTrackdir(GetGroundDepotDirection(v->tile));
+			dir = GetGroundDepotDirection (v->tile);
+			sel = SEL_DIAGDIR;
 		} else if (IsStandardRoadStopTile(v->tile)) {
 			/* We'll assume the road vehicle is facing outwards */
-			td = DiagDirToDiagTrackdir(GetRoadStopDir(v->tile)); // Road vehicle in a station
+			dir = GetRoadStopDir (v->tile); // Road vehicle in a station
+			sel = SEL_DIAGDIR;
 		} else if (v->state > RVSB_TRACKDIR_MASK) {
 			/* Drive-through road stops */
-			td = DiagDirToDiagTrackdir(DirToDiagDir(v->direction));
+			dir = DirToDiagDir (v->direction);
+			sel = SEL_DIAGDIR;
 		} else {
 			/* If vehicle's state is a valid track direction (vehicle is not turning around) return it,
 			 * otherwise transform it into a valid track direction */
@@ -402,10 +413,23 @@ static bool FindNearestDepotOrigin (const RoadVehicle *v, PathMPos<RoadPathPos> 
 			if ((TrackStatusToTrackdirBits (GetTileRoadStatus (v->tile, v->compatible_roadtypes)) & TrackdirToTrackdirBits (td)) == 0) {
 				return false;
 			}
-		}
 
-		origin->set (v->tile, td);
+			sel = SEL_TRACKDIR;
+		}
 	}
+
+	switch (sel) {
+		case SEL_DIAGDIR:
+			td = DiagDirToDiagTrackdir (dir);
+			/* fall through */
+		case SEL_TRACKDIR:
+			origin->set (v->tile, td);
+			break;
+
+		case SEL_TRACKDIRBITS:
+			origin->set (v->tile, trackdirs);
+			break;
+	};
 
 	return true;
 }
