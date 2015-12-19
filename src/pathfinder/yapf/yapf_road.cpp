@@ -113,6 +113,17 @@ static int OneTileCost(const YAPFSettings *settings, const RoadPathPos &pos)
 	return cost;
 }
 
+/** Compute the speed penalty for a tile. */
+static int SpeedPenalty (const RoadVehicle *v, const RoadPathPos &pos)
+{
+	if (!IsRoadBridgeTile (pos.tile)) return 0;
+
+	int max_veh_speed = v->GetDisplayMaxSpeed();
+	int max_bridge_speed = GetBridgeSpec (GetRoadBridgeType (pos.tile))->speed;
+	int speed_penalty = max_veh_speed - max_bridge_speed;
+	return (speed_penalty > 0) ? speed_penalty : 0;
+}
+
 
 template <class TAstar>
 class CYapfRoadT : public TAstar {
@@ -194,19 +205,8 @@ public:
 				segment_cost += OneTileCost (m_settings, tf.m_new);
 
 				/* add max speed penalty */
-				int speed_penalty;
-				if (IsRoadBridgeTile (tf.m_new.tile)) {
-					int max_veh_speed = m_veh->GetDisplayMaxSpeed();
-					int max_speed = GetBridgeSpec (GetRoadBridgeType (tf.m_new.tile))->speed;
-					speed_penalty = max_veh_speed - max_speed;
-					if (speed_penalty > 0) {
-						segment_cost += speed_penalty;
-					} else {
-						speed_penalty = 0;
-					}
-				} else {
-					speed_penalty = 0;
-				}
+				int speed_penalty = SpeedPenalty (m_veh, tf.m_new);
+				segment_cost += speed_penalty;
 
 				/* we have reached the vehicle's destination - segment should end here to avoid target skipping */
 				if (IsDestination(tf.m_new)) {
