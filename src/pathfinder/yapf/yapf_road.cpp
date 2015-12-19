@@ -67,49 +67,49 @@ static inline bool IsUphill (const RoadPathPos &pos)
 /** return one tile cost */
 static int OneTileCost(const YAPFSettings *settings, const RoadPathPos &pos)
 {
-	int cost = 0;
-	/* set base cost */
-	if (IsDiagonalTrackdir(pos.td)) {
-		cost += YAPF_TILE_LENGTH;
-		switch (GetTileType(pos.tile)) {
-			case TT_MISC:
-				/* Increase the cost for level crossings */
-				if (IsLevelCrossingTile(pos.tile)) {
-					cost += settings->road_crossing_penalty;
-				}
-				break;
-
-			case TT_STATION: {
-				const RoadStop *rs = RoadStop::GetByTile(pos.tile, GetRoadStopType(pos.tile));
-				if (IsDriveThroughStopTile(pos.tile)) {
-					/* Increase the cost for drive-through road stops */
-					cost += settings->road_stop_penalty;
-					DiagDirection dir = TrackdirToExitdir(pos.td);
-					if (!RoadStop::IsDriveThroughRoadStopContinuation(pos.tile, pos.tile - TileOffsByDiagDir(dir))) {
-						/* When we're the first road stop in a 'queue' of them we increase
-						 * cost based on the fill percentage of the whole queue. */
-						const RoadStop::Platform *platform = rs->GetPlatform();
-						cost += platform->GetOccupied(dir) * settings->road_stop_occupied_penalty / platform->GetLength();
-					}
-				} else {
-					/* Increase cost for filled road stops */
-					cost += settings->road_stop_bay_occupied_penalty * (!rs->IsFreeBay(0) + !rs->IsFreeBay(1)) / 2;
-				}
-				break;
-			}
-
-			default:
-				break;
-		}
-
-		/* add slope cost */
-		if (IsUphill (pos)) {
-			cost += settings->road_slope_penalty;
-		}
-	} else {
+	if (!IsDiagonalTrackdir(pos.td)) {
 		/* non-diagonal trackdir */
-		cost = YAPF_TILE_CORNER_LENGTH + settings->road_curve_penalty;
+		return YAPF_TILE_CORNER_LENGTH + settings->road_curve_penalty;
 	}
+
+	/* set base cost */
+	int cost = YAPF_TILE_LENGTH;
+	switch (GetTileType(pos.tile)) {
+		case TT_MISC:
+			/* Increase the cost for level crossings */
+			if (IsLevelCrossingTile(pos.tile)) {
+				cost += settings->road_crossing_penalty;
+			}
+			break;
+
+		case TT_STATION: {
+			const RoadStop *rs = RoadStop::GetByTile(pos.tile, GetRoadStopType(pos.tile));
+			if (IsDriveThroughStopTile(pos.tile)) {
+				/* Increase the cost for drive-through road stops */
+				cost += settings->road_stop_penalty;
+				DiagDirection dir = TrackdirToExitdir(pos.td);
+				if (!RoadStop::IsDriveThroughRoadStopContinuation(pos.tile, pos.tile - TileOffsByDiagDir(dir))) {
+					/* When we're the first road stop in a 'queue' of them we increase
+					 * cost based on the fill percentage of the whole queue. */
+					const RoadStop::Platform *platform = rs->GetPlatform();
+					cost += platform->GetOccupied(dir) * settings->road_stop_occupied_penalty / platform->GetLength();
+				}
+			} else {
+				/* Increase cost for filled road stops */
+				cost += settings->road_stop_bay_occupied_penalty * (!rs->IsFreeBay(0) + !rs->IsFreeBay(1)) / 2;
+			}
+			break;
+		}
+
+		default:
+			break;
+	}
+
+	/* add slope cost */
+	if (IsUphill (pos)) {
+		cost += settings->road_slope_penalty;
+	}
+
 	return cost;
 }
 
