@@ -125,6 +125,64 @@ static int SpeedPenalty (const RoadVehicle *v, const RoadPathPos &pos)
 }
 
 
+/** Destination of a road vehicle. */
+struct CYapfRoadDest {
+	const union {
+		StationID station; ///< destination station id, or INVALID_STATION if target is not a station
+		OwnerByte owner;   ///< owner, if searching for any depot
+	};
+	const bool      is_bus;    ///< whether we want a bus stop (as opposed to a truck stop)
+	const bool      is_artic;  ///< whether the vehicle is articulated (so we must use a drive-through stop)
+	const TileIndex tile;      ///< destination tile, or the special marker INVALID_TILE to search for any depot
+
+	/** Construct a CYapfRoadDest for the current order of a vehicle. */
+	CYapfRoadDest (const RoadVehicle *rv)
+		: station  (rv->current_order.IsType(OT_GOTO_STATION) ? rv->current_order.GetDestination() : INVALID_STATION),
+		  is_bus   (rv->IsBus()),
+		  is_artic (rv->HasArticulatedPart()),
+		  tile     (rv->current_order.IsType(OT_GOTO_STATION) ?
+				Station::Get(station)->GetClosestTile (rv->tile, is_bus ? STATION_BUS : STATION_TRUCK) :
+				rv->dest_tile)
+	{
+		assert (this->tile != INVALID_TILE);
+	}
+
+	/** Construct a CYapfRoadDest to look for any depot. */
+	CYapfRoadDest (const RoadVehicle *rv, bool ignored)
+		: owner    (rv->owner),
+		  is_bus   (rv->IsBus()),
+		  is_artic (rv->HasArticulatedPart()),
+		  tile     (INVALID_TILE)
+	{
+	}
+
+	bool is_destination_tile (TileIndex t) const
+	{
+		if (this->tile == INVALID_TILE) {
+			return IsRoadDepotTile (t) && IsTileOwner (t, this->owner);
+		} else if (this->station == INVALID_STATION) {
+			return t == this->tile;
+		} else {
+			return IsStationTile (t) &&
+				GetStationIndex (t) == this->station &&
+				(this->is_bus ? IsBusStop (t) : IsTruckStop (t)) &&
+				(!this->is_artic || IsDriveThroughStopTile (t));
+		}
+	}
+
+	bool is_destination (const RoadPathPos &pos) const
+	{
+		return this->is_destination_tile (pos.tile);
+	}
+
+	int calc_estimate (TileIndex src, DiagDirection dir) const
+	{
+		return (this->tile == INVALID_TILE) ? 0 :
+				YapfCalcEstimate (src, dir, this->tile);
+	}
+};
+
+
 template <class TAstar>
 class CYapfRoadT : public TAstar {
 public:
@@ -133,49 +191,33 @@ public:
 protected:
 	const YAPFSettings *const m_settings; ///< current settings (_settings_game.yapf)
 	const RoadVehicle  *const m_veh;      ///< vehicle that we are trying to drive
-	const bool          m_bus;            ///< whether m_veh is a bus
-	const bool          m_artic;          ///< whether m_veh is articulated
-	const StationID     m_dest_station;   ///< destination station id, or INVALID_STATION if target is not a station
-	const TileIndex     m_dest_tile;      ///< destination tile, or the special marker INVALID_TILE to search for any depot
+	const CYapfRoadDest m_dest;           ///< pathfinding destination
 	CFollowTrackRoad    tf;               ///< track follower
 
 public:
 	/**
 	 * Construct an instance of CYapfRoadT
 	 * @param rv The road vehicle to pathfind for
-	 * @param depot Look for any depot, else use current vehicle order
 	 */
-	CYapfRoadT (const RoadVehicle *rv, bool depot = false)
+	CYapfRoadT (const RoadVehicle *rv)
 		: m_settings(&_settings_game.pf.yapf)
 		, m_veh(rv)
-		, m_bus(rv->IsBus())
-		, m_artic(rv->HasArticulatedPart())
-		, m_dest_station(!depot && rv->current_order.IsType(OT_GOTO_STATION) ? rv->current_order.GetDestination() : INVALID_STATION)
-		, m_dest_tile(depot ? INVALID_TILE :
-			rv->current_order.IsType(OT_GOTO_STATION) ?
-				Station::Get(m_dest_station)->GetClosestTile(rv->tile, m_bus ? STATION_BUS : STATION_TRUCK) :
-				rv->dest_tile)
+		, m_dest(rv)
 		, tf(rv)
 	{
 	}
 
-	inline bool IsDestinationTile(TileIndex tile) const
+	/**
+	 * Construct an instance of CYapfRoadT to look for any depot
+	 * @param rv The road vehicle to pathfind for
+	 * @param ignored Ignored
+	 */
+	CYapfRoadT (const RoadVehicle *rv, bool ignored)
+		: m_settings(&_settings_game.pf.yapf)
+		, m_veh(rv)
+		, m_dest(rv, true)
+		, tf(rv)
 	{
-		if (m_dest_station != INVALID_STATION) {
-			return IsStationTile(tile) &&
-				GetStationIndex(tile) == m_dest_station &&
-				(m_bus ? IsBusStop(tile) : IsTruckStop(tile)) &&
-				(!m_artic || IsDriveThroughStopTile(tile));
-		} else if (m_dest_tile != INVALID_TILE) {
-			return tile == m_dest_tile;
-		} else {
-			return IsRoadDepotTile(tile) && IsTileOwner(tile, m_veh->owner);
-		}
-	}
-
-	inline bool IsDestination(const RoadPathPos &pos) const
-	{
-		return IsDestinationTile(pos.tile);
 	}
 
 	/** Called by the A-star underlying class to find the neighbours of a node. */
@@ -209,7 +251,7 @@ public:
 				segment_cost += speed_penalty;
 
 				/* we have reached the vehicle's destination - segment should end here to avoid target skipping */
-				if (IsDestination(tf.m_new)) {
+				if (m_dest.is_destination (tf.m_new)) {
 					n->m_next = tf.m_new;
 					is_target = true;
 					break;
@@ -258,13 +300,8 @@ public:
 				n->m_estimate = n->m_cost;
 				TAstar::FoundTarget(n);
 			} else {
-				if (m_dest_tile == INVALID_TILE) {
-					n->m_estimate = n->m_cost;
-				} else {
-					n->m_estimate = n->m_cost + YapfCalcEstimate (last_tile, last_dir, m_dest_tile);
-					assert(n->m_estimate >= old_node->m_estimate);
-				}
-
+				n->m_estimate = n->m_cost + this->m_dest.calc_estimate (last_tile, last_dir);
+				assert (n->m_estimate >= old_node->m_estimate);
 				TAstar::InsertNode(n);
 			}
 		}
