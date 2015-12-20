@@ -133,12 +133,13 @@ private:
 	/** Insert given node as open node (into m_open and m_open_queue). */
 	inline void InsertOpenNode (Node *n)
 	{
+		/* node to insert should be a newly created one */
+		assert (n == m_new_node);
 		assert (m_closed.Find(n->GetKey()) == NULL);
+
 		m_open.Push(*n);
 		m_open_queue.Include(n);
-		if (n == m_new_node) {
-			m_new_node = NULL;
-		}
+		m_new_node = NULL;
 	}
 
 	/** Remove and return the open node specified by a key. */
@@ -152,13 +153,17 @@ private:
 	/** Possibly replace an existing (open) node. */
 	inline void ReplaceNode (const Key &key, Node *n1, const Node *n2)
 	{
+		/* node to substitute should be a newly created one */
+		assert (n2 == m_new_node);
+
 		if (n2->GetCostEstimate() < n1->GetCostEstimate()) {
 			/* pop old node from open list and queue */
 			PopOpenNode (key);
 			/* update old node with new data */
 			*n1 = *n2;
 			/* add updated node to open list and queue */
-			InsertOpenNode (n1);
+			m_open.Push(*n1);
+			m_open_queue.Include(n1);
 		}
 	}
 
@@ -199,6 +204,7 @@ public:
 		/* check new node against open list */
 		Node *m = m_open.Find (key);
 		if (m != NULL) {
+			assert (m_closed.Find (key) == NULL);
 			/* another node exists with the same key in the open list
 			 * is it better than new one? */
 			ReplaceNode (key, m, n);
