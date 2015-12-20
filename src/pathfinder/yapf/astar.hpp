@@ -284,10 +284,12 @@ public:
 		return (best != NULL) ? best : best_intermediate;
 	}
 
-	/** Grant (const) access to the item array for debugging purposes. */
-	const SmallArray<Node, 65536, 256> *GetArray() const
+	/** Dump the current state of the pathfinder. */
+	template <typename D>
+	void DumpState (D &dmp) const
 	{
-		return &m_arr;
+		dmp.WriteLine ("num_steps = %d", num_steps);
+		dmp.WriteStructT ("array", &m_arr);
 	}
 };
 

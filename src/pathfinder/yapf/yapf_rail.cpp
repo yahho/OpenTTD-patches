@@ -929,8 +929,7 @@ inline void CYapfRailBaseT<TAstar>::CalcNode (Node *n)
 					/* m_num_signals_passed can differ when cached */
 					if (!(*n->m_segment == *test.m_segment) || n->flags != test.flags || n->m_last_signal_type != test.m_last_signal_type) {
 						DumpTarget dmp ("yapf.txt");
-						dmp.WriteLine ("num_steps = %d", TAstar::num_steps);
-						dmp.WriteStructT ("array", TAstar::GetArray());
+						TAstar::DumpState (dmp);
 						dmp.WriteStructT ("test_node", &test);
 						NOT_REACHED();
 					}
