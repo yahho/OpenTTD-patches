@@ -10,6 +10,8 @@
 #ifndef ASTAR_HPP
 #define ASTAR_HPP
 
+#include <deque>
+
 #include "../../misc/array.hpp"
 #include "../../misc/hashtable.hpp"
 #include "../../misc/binaryheap.hpp"
@@ -73,11 +75,44 @@ public:
 	typedef typename TNode::Key Key; ///< Make TNode::Key a property of HashTable.
 
 private:
-	SmallArray<Node, 65536, 256> m_arr;           ///< Here we store full item data (Node).
+	/** List of nodes. Note that elements are never removed. */
+	struct NodeList : private std::deque <Node> {
+		/** Get a reference the last element in the list. */
+		Node &top (void)
+		{
+			return this->back();
+		}
+
+		/** Push a node onto the list. */
+		void push (const Node &n)
+		{
+			this->push_back (n);
+		}
+
+		/** Pop the last node from the list. */
+		void pop (void)
+		{
+			this->pop_back();
+		}
+
+		/** Dump list for debugging. */
+		template <typename D>
+		void Dump (D &dmp) const
+		{
+			uint size = this->size();
+			dmp.WriteLine ("size = %d", size);
+			char name [24];
+			for (uint i = 0; i < size; i++) {
+				bstrfmt (name, "item[%d]", i);
+				dmp.WriteStructT (name, &(*this)[i]);
+			}
+		}
+	};
+
+	NodeList nodes;                               ///< Here we store full item data (Node).
 	CHashTableT<Node, open_hash_bits  > m_open;   ///< Hash table of pointers to open item data.
 	CHashTableT<Node, closed_hash_bits> m_closed; ///< Hash table of pointers to closed item data.
 	CBinaryHeapT<Node> m_open_queue;              ///< Priority queue of pointers to open item data.
-	Node              *m_new_node;                ///< New open node under construction.
 
 public:
 	Node *best;              ///< pointer to the destination node found at last round
@@ -86,7 +121,7 @@ public:
 	int   num_steps;         ///< this is there for debugging purposes (hope it doesn't hurt)
 
 	/** default constructor */
-	Astar() : m_open_queue(2048), m_new_node(NULL), best(NULL),
+	Astar() : m_open_queue(2048), best(NULL),
 		best_intermediate(NULL), max_search_nodes(0), num_steps(0)
 	{
 	}
@@ -106,27 +141,30 @@ public:
 	/** Create a new node */
 	inline Node *CreateNewNode (Node *parent)
 	{
-		if (m_new_node == NULL) m_new_node = m_arr.AppendC();
-		m_new_node->Set (parent);
-		return m_new_node;
+		nodes.push (Node());
+		Node *n = &nodes.top();
+		n->Set (parent);
+		return n;
 	}
 
 	/** Create a new node, one parameter */
 	template <class T1>
 	inline Node *CreateNewNode (Node *parent, T1 t1)
 	{
-		if (m_new_node == NULL) m_new_node = m_arr.AppendC();
-		m_new_node->Set (parent, t1);
-		return m_new_node;
+		nodes.push (Node());
+		Node *n = &nodes.top();
+		n->Set (parent, t1);
+		return n;
 	}
 
 	/** Create a new node, two parameters */
 	template <class T1, class T2>
 	inline Node *CreateNewNode (Node *parent, T1 t1, T2 t2)
 	{
-		if (m_new_node == NULL) m_new_node = m_arr.AppendC();
-		m_new_node->Set (parent, t1, t2);
-		return m_new_node;
+		nodes.push (Node());
+		Node *n = &nodes.top();
+		n->Set (parent, t1, t2);
+		return n;
 	}
 
 private:
@@ -134,12 +172,11 @@ private:
 	inline void InsertOpenNode (Node *n)
 	{
 		/* node to insert should be a newly created one */
-		assert (n == m_new_node);
+		assert (n == &nodes.top());
 		assert (m_closed.Find(n->GetKey()) == NULL);
 
 		m_open.Push(*n);
 		m_open_queue.Include(n);
-		m_new_node = NULL;
 	}
 
 	/** Remove and return the open node specified by a key. */
@@ -154,7 +191,7 @@ private:
 	inline void ReplaceNode (const Key &key, Node *n1, const Node *n2)
 	{
 		/* node to substitute should be a newly created one */
-		assert (n2 == m_new_node);
+		assert (n2 == &nodes.top());
 
 		if (n2->GetCostEstimate() < n1->GetCostEstimate()) {
 			/* pop old node from open list and queue */
@@ -172,7 +209,7 @@ public:
 	inline void InsertInitialNode (Node *n)
 	{
 		/* node to insert should be a newly created one */
-		assert (n == m_new_node);
+		assert (n == &nodes.top());
 
 		/* closed list should be empty when adding initial nodes */
 		assert (m_closed.Count() == 0);
@@ -186,6 +223,7 @@ public:
 			/* two initial nodes with same key;
 			 * pick the one with the lowest cost */
 			ReplaceNode (key, m, n);
+			nodes.pop();
 		}
 	}
 
@@ -193,7 +231,7 @@ public:
 	inline void InsertNode (Node *n)
 	{
 		/* node to insert should be a newly created one */
-		assert (n == m_new_node);
+		assert (n == &nodes.top());
 
 		if (max_search_nodes > 0 && (best_intermediate == NULL || (best_intermediate->GetCostEstimate() - best_intermediate->GetCost()) > (n->GetCostEstimate() - n->GetCost()))) {
 			best_intermediate = n;
@@ -208,6 +246,7 @@ public:
 			/* another node exists with the same key in the open list
 			 * is it better than new one? */
 			ReplaceNode (key, m, n);
+			nodes.pop();
 			return;
 		}
 
@@ -217,6 +256,7 @@ public:
 			/* another node exists with the same key in the closed list
 			 * is it better than new one? */
 			assert (m->GetCostEstimate() <= n->GetCostEstimate());
+			nodes.pop();
 			return;
 		}
 
@@ -229,11 +269,9 @@ public:
 	inline void FoundTarget (Node *n)
 	{
 		/* node should be a newly created one */
-		assert (n == m_new_node);
+		assert (n == &nodes.top());
 
 		if (best == NULL || *n < *best) best = n;
-
-		m_new_node = NULL;
 	}
 
 	/**
@@ -293,7 +331,7 @@ public:
 	void DumpState (D &dmp) const
 	{
 		dmp.WriteLine ("num_steps = %d", num_steps);
-		dmp.WriteStructT ("array", &m_arr);
+		dmp.WriteStructT ("array", &nodes);
 	}
 };
 
