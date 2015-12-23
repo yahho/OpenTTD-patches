@@ -89,12 +89,6 @@ private:
 			this->push_back (n);
 		}
 
-		/** Pop the last node from the list. */
-		void pop (void)
-		{
-			this->pop_back();
-		}
-
 		/** Dump list for debugging. */
 		template <typename D>
 		void Dump (D &dmp) const
