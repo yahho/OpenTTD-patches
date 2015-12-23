@@ -138,35 +138,6 @@ public:
 		return m_closed.Count();
 	}
 
-	/** Create a new node */
-	inline Node *CreateNewNode (Node *parent)
-	{
-		nodes.push (Node());
-		Node *n = &nodes.top();
-		n->Set (parent);
-		return n;
-	}
-
-	/** Create a new node, one parameter */
-	template <class T1>
-	inline Node *CreateNewNode (Node *parent, T1 t1)
-	{
-		nodes.push (Node());
-		Node *n = &nodes.top();
-		n->Set (parent, t1);
-		return n;
-	}
-
-	/** Create a new node, two parameters */
-	template <class T1, class T2>
-	inline Node *CreateNewNode (Node *parent, T1 t1, T2 t2)
-	{
-		nodes.push (Node());
-		Node *n = &nodes.top();
-		n->Set (parent, t1, t2);
-		return n;
-	}
-
 private:
 	/** Insert given node as open node (into m_open and m_open_queue). */
 	inline void InsertOpenNode (Node *n)
@@ -271,11 +242,10 @@ public:
 	 * after all initial nodes have been added with InsertInitialNode.
 	 * Function follow will be called with this Astar instance as
 	 * first argument and the node to follow as second argument, and
-	 * should find the neigbours of the given node, create a node
-	 * for each of them through CreateNewNode, compute their current
-	 * cost and estimated final cost to destination and then call
-	 * InsertNode to add them as open nodes; or, if one of them is a
-	 * destination, call FoundTarget.
+	 * should find the neigbours of the given node, create a node for
+	 * each of them, compute their current cost and estimated final
+	 * cost to destination and then call InsertNode to add them as open
+	 * nodes; or, if one of them is a destination, call InsertTarget.
 	 */
 	template <class T>
 	inline bool FindPath (void (*follow) (T*, Node*), uint max_nodes = 0)
