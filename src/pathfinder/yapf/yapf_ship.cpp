@@ -117,19 +117,20 @@ public:
 			}
 
 			/* create the node */
-			Node *n = TAstar::CreateNewNode (old_node, ShipPathPos (new_tile, td));
-			n->m_cost = cc + c;
+			Node n;
+			n.Set (old_node, ShipPathPos (new_tile, td));
+			n.m_cost = cc + c;
 
 			/* compute estimated cost */
 			if (is_target) {
-				n->m_estimate = n->m_cost;
-				TAstar::FoundTarget(n);
+				n.m_estimate = n.m_cost;
+				TAstar::InsertTarget (n);
 			} else {
 				if (m_dest_tile == INVALID_TILE) {
-					n->m_estimate = n->m_cost;
+					n.m_estimate = n.m_cost;
 				} else {
-					n->m_estimate = n->m_cost + YapfCalcEstimate (n->GetPos(), m_dest_tile);
-					assert(n->m_estimate >= n->m_parent->m_estimate);
+					n.m_estimate = n.m_cost + YapfCalcEstimate (n.GetPos(), m_dest_tile);
+					assert (n.m_estimate >= n.m_parent->m_estimate);
 				}
 
 				TAstar::InsertNode(n);

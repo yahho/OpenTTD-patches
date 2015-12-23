@@ -234,7 +234,8 @@ public:
 
 		for (TrackdirBits rtds = old_node->m_next.trackdirs; rtds != TRACKDIR_BIT_NONE; rtds = KillFirstBit(rtds)) {
 			pos.set_trackdir (FindFirstTrackdir(rtds));
-			Node *n = TAstar::CreateNewNode(old_node, pos);
+			Node n;
+			n.Set (old_node, pos);
 
 			/* start at pos and walk to the end of segment */
 			tf.SetPos (pos);
@@ -252,7 +253,7 @@ public:
 
 				/* we have reached the vehicle's destination - segment should end here to avoid target skipping */
 				if (m_dest.is_destination (tf.m_new)) {
-					n->m_next = tf.m_new;
+					n.m_next = tf.m_new;
 					is_target = true;
 					break;
 				}
@@ -260,7 +261,7 @@ public:
 				/* stop if we have just entered the depot */
 				if (IsRoadDepotTile(tf.m_new.tile) && tf.m_new.td == DiagDirToDiagTrackdir(ReverseDiagDir(GetGroundDepotDirection(tf.m_new.tile)))) {
 					/* next time we will reverse and leave the depot */
-					n->m_next.set (tf.m_new.tile, ReverseTrackdir (tf.m_new.td));
+					n.m_next.set (tf.m_new.tile, ReverseTrackdir (tf.m_new.td));
 					last_tile = tf.m_new.tile;
 					last_dir = ReverseDiagDir (GetGroundDepotDirection (tf.m_new.tile));
 					break;
@@ -283,7 +284,7 @@ public:
 
 				/* if there are more trackdirs available & reachable, we are at the end of segment */
 				if (!tf.m_new.is_single() || tiles > MAX_MAP_SIZE) {
-					n->m_next = tf.m_new;
+					n.m_next = tf.m_new;
 					last_dir = tf.m_exitdir;
 					last_tile = TileAddByDiagDir (tf.m_new.tile, ReverseDiagDir (last_dir));
 					break;
@@ -293,15 +294,15 @@ public:
 			}
 
 			/* save also tile cost */
-			n->m_cost = old_node->m_cost + segment_cost;
+			n.m_cost = old_node->m_cost + segment_cost;
 
 			/* compute estimated cost */
 			if (is_target) {
-				n->m_estimate = n->m_cost;
-				TAstar::FoundTarget(n);
+				n.m_estimate = n.m_cost;
+				TAstar::InsertTarget (n);
 			} else {
-				n->m_estimate = n->m_cost + this->m_dest.calc_estimate (last_tile, last_dir);
-				assert (n->m_estimate >= old_node->m_estimate);
+				n.m_estimate = n.m_cost + this->m_dest.calc_estimate (last_tile, last_dir);
+				assert (n.m_estimate >= old_node->m_estimate);
 				TAstar::InsertNode(n);
 			}
 		}

@@ -222,16 +222,9 @@ public:
 	}
 
 	/** Insert a new node */
-	inline void InsertNode (Node *n)
+	inline void InsertNode (const Node &n)
 	{
-		/* node to insert should be a newly created one */
-		assert (n == &nodes.top());
-
-		if (max_search_nodes > 0 && (best_intermediate == NULL || (best_intermediate->GetCostEstimate() - best_intermediate->GetCost()) > (n->GetCostEstimate() - n->GetCost()))) {
-			best_intermediate = n;
-		}
-
-		const Key key = n->GetKey();
+		const Key key = n.GetKey();
 
 		/* check new node against open list */
 		Node *m = m_open.Find (key);
@@ -239,33 +232,35 @@ public:
 			assert (m_closed.Find (key) == NULL);
 			/* another node exists with the same key in the open list
 			 * is it better than new one? */
-			ReplaceNode (key, m, n);
-			nodes.pop();
-			return;
+			ReplaceNode (key, m, &n);
+		} else {
+			/* check new node against closed list */
+			m = m_closed.Find (key);
+			if (m != NULL) {
+				/* another node exists with the same key in the closed list
+				 * is it better than new one? */
+				assert (m->GetCostEstimate() <= n.GetCostEstimate());
+				return;
+			}
+
+			/* the new node is really new
+			 * add it to the open list */
+			nodes.push (n);
+			m = &nodes.top();
+			InsertOpenNode (m);
 		}
 
-		/* check new node against closed list */
-		m = m_closed.Find(key);
-		if (m != NULL) {
-			/* another node exists with the same key in the closed list
-			 * is it better than new one? */
-			assert (m->GetCostEstimate() <= n->GetCostEstimate());
-			nodes.pop();
-			return;
+		if (max_search_nodes > 0 && (best_intermediate == NULL || (best_intermediate->GetCostEstimate() - best_intermediate->GetCost()) > (m->GetCostEstimate() - m->GetCost()))) {
+			best_intermediate = m;
 		}
-
-		/* the new node is really new
-		 * add it to the open list */
-		InsertOpenNode(n);
 	}
 
 	/** Found target. */
-	inline void FoundTarget (Node *n)
+	inline void InsertTarget (const Node &n)
 	{
-		/* node should be a newly created one */
-		assert (n == &nodes.top());
-
-		if (best == NULL || *n < *best) best = n;
+		nodes.push (n);
+		Node *m = &nodes.top();
+		if (best == NULL || *m < *best) best = m;
 	}
 
 	/**

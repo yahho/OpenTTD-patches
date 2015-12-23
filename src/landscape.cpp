@@ -1061,13 +1061,14 @@ static void RiverFollowDir (RiverAstar *a, RiverNode *n, DiagDirection d)
 
 	Slope slope = GetTileSlope (tile);
 	if (FlowsDown (d, slope)) {
-		RiverNode *m = a->CreateNewNode (n, tile, slope);
-		m->m_cost = n->m_cost + 1 + RandomRange (_settings_game.game_creation.river_route_random);
+		RiverNode m;
+		m.Set (n, tile, slope);
+		m.m_cost = n->m_cost + 1 + RandomRange (_settings_game.game_creation.river_route_random);
 		if (tile == a->target) {
-			m->m_estimate = m->m_cost;
-			a->FoundTarget(m);
+			m.m_estimate = m.m_cost;
+			a->InsertTarget(m);
 		} else {
-			m->m_estimate = m->m_cost + DistanceManhattan (tile, a->target);
+			m.m_estimate = m.m_cost + DistanceManhattan (tile, a->target);
 			a->InsertNode(m);
 		}
 	}

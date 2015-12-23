@@ -1323,24 +1323,25 @@ struct CYapfRailT : public TBase {
 		RailPathPos pos = TBase::tf.m_new;
 		for (TrackdirBits rtds = TBase::tf.m_new.trackdirs; rtds != TRACKDIR_BIT_NONE; rtds = KillFirstBit(rtds)) {
 			pos.set_trackdir (FindFirstTrackdir(rtds));
-			Node *n = TBase::CreateNewNode(old_node, pos, is_choice);
+			Node n;
+			n.Set (old_node, pos, is_choice);
 
 			/* evaluate the node */
 			CPerfStart perf_cost(TBase::m_perf_cost);
 
-			TBase::CalcNode(n);
+			TBase::CalcNode (&n);
 
-			uint end_reason = n->m_segment->m_end_segment_reason.to_ulong();
+			uint end_reason = n.m_segment->m_end_segment_reason.to_ulong();
 			assert (end_reason != 0);
 
 			if (((end_reason & ESRB_POSSIBLE_TARGET) != 0) &&
-					TBase::IsDestination(n->GetLastPos())) {
-				TBase::SetTarget (n);
+					TBase::IsDestination(n.GetLastPos())) {
+				TBase::SetTarget (&n);
 				/* Special costs for the case we have reached our target. */
-				TBase::AddTargetCost (n);
+				TBase::AddTargetCost (&n);
 				perf_cost.Stop();
-				n->m_estimate = n->m_cost;
-				this->FoundTarget(n);
+				n.m_estimate = n.m_cost;
+				this->InsertTarget (n);
 
 			} else if ((end_reason & ESRB_ABORT_PF_MASK) != 0) {
 				/* Reason to not continue. Stop this PF branch. */
@@ -1348,7 +1349,7 @@ struct CYapfRailT : public TBase {
 
 			} else {
 				perf_cost.Stop();
-				TBase::CalcEstimate(n);
+				TBase::CalcEstimate(&n);
 				this->InsertNode(n);
 			}
 		}
