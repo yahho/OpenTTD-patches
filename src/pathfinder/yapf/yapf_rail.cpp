@@ -378,10 +378,11 @@ public:
 	/** Create and add a new node */
 	inline void AddStartupNode (const RailPathPos &pos, int cost = 0)
 	{
-		Node *node = TAstar::CreateNewNode (NULL, pos, false);
-		node->m_cost = cost;
+		Node node;
+		node.Set (NULL, pos, false);
+		node.m_cost = cost;
 		/* initial nodes can never be used from the cache */
-		AttachLocalSegment(node);
+		AttachLocalSegment (&node);
 		TAstar::InsertInitialNode(node);
 	}
 

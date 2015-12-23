@@ -190,9 +190,6 @@ private:
 	/** Possibly replace an existing (open) node. */
 	inline void ReplaceNode (const Key &key, Node *n1, const Node *n2)
 	{
-		/* node to substitute should be a newly created one */
-		assert (n2 == &nodes.top());
-
 		if (n2->GetCostEstimate() < n1->GetCostEstimate()) {
 			/* pop old node from open list and queue */
 			PopOpenNode (key);
@@ -206,24 +203,21 @@ private:
 
 public:
 	/** Insert a new initial node. */
-	inline void InsertInitialNode (Node *n)
+	inline void InsertInitialNode (const Node &n)
 	{
-		/* node to insert should be a newly created one */
-		assert (n == &nodes.top());
-
 		/* closed list should be empty when adding initial nodes */
 		assert (m_closed.Count() == 0);
 
 		/* insert the new node only if it is not there yet */
-		const Key key = n->GetKey();
+		const Key key = n.GetKey();
 		Node *m = m_open.Find (key);
 		if (m == NULL) {
-			InsertOpenNode(n);
+			nodes.push (n);
+			InsertOpenNode (&nodes.top());
 		} else {
 			/* two initial nodes with same key;
 			 * pick the one with the lowest cost */
-			ReplaceNode (key, m, n);
-			nodes.pop();
+			ReplaceNode (key, m, &n);
 		}
 	}
 

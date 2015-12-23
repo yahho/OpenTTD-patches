@@ -200,7 +200,9 @@ static Trackdir ChooseShipTrack(const Ship *v, const ShipPathPos &pos, TrackdirB
 	/* create pathfinder instance */
 	Tpf pf (v);
 	/* set origin node */
-	pf.InsertInitialNode (pf.CreateNewNode (NULL, pos));
+	typename Tpf::Node origin;
+	origin.Set (NULL, pos);
+	pf.InsertInitialNode (origin);
 	/* find best path */
 	path_found = pf.FindPath();
 
@@ -263,8 +265,12 @@ static bool CheckShipReverse(const Ship *v, const ShipPathPos &pos)
 	/* create pathfinder instance */
 	Tpf pf (v);
 	/* set origin nodes */
-	pf.InsertInitialNode (pf.CreateNewNode (NULL, pos));
-	pf.InsertInitialNode (pf.CreateNewNode (NULL, ShipPathPos(pos.tile, ReverseTrackdir(pos.td))));
+	typename Tpf::Node origin1;
+	origin1.Set (NULL, pos);
+	pf.InsertInitialNode (origin1);
+	typename Tpf::Node origin2;
+	origin2.Set (NULL, ShipPathPos (pos.tile, ReverseTrackdir (pos.td)));
+	pf.InsertInitialNode (origin2);
 	/* find best path */
 	if (!pf.FindPath()) return false;
 
@@ -311,7 +317,9 @@ template <class Tpf>
 static TileIndex FindNearestDepot (const Ship *v, uint max_distance)
 {
 	Tpf pf (v, true);
-	pf.InsertInitialNode (pf.CreateNewNode (NULL, v->GetPos()));
+	typename Tpf::Node origin;
+	origin.Set (NULL, v->GetPos());
+	pf.InsertInitialNode (origin);
 	if (!pf.FindPath()) return INVALID_TILE;
 
 	/* some path found; get found depot tile */

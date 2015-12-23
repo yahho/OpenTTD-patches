@@ -1101,7 +1101,9 @@ static void BuildRiver(TileIndex begin, TileIndex end)
 	assert (IsTileFlat (begin));
 
 	RiverAstar finder (end);
-	finder.InsertInitialNode (finder.CreateNewNode (NULL, begin, SLOPE_FLAT));
+	RiverNode n;
+	n.Set (NULL, begin, SLOPE_FLAT);
+	finder.InsertInitialNode (n);
 
 	if (finder.FindPath(&RiverFollow)) {
 		for (RiverNode *n = finder.best; n != NULL; n = n->m_parent) {

@@ -355,8 +355,9 @@ static Trackdir ChooseRoadTrack(const RoadVehicle *v, TileIndex tile, TrackdirBi
 	Tpf pf (v);
 
 	/* set origin node */
-	pf.InsertInitialNode (pf.CreateNewNode (NULL, RoadPathPos(),
-			PathMPos<RoadPathPos> (tile, trackdirs)));
+	typename Tpf::Node origin;
+	origin.Set (NULL, RoadPathPos(), PathMPos<RoadPathPos> (tile, trackdirs));
+	pf.InsertInitialNode (origin);
 
 	/* find the best path */
 	path_found = pf.FindPath();
@@ -481,7 +482,9 @@ static TileIndex FindNearestDepot (const RoadVehicle *v,
 	const PathMPos<RoadPathPos> &origin, int max_distance)
 {
 	Tpf pf (v, true);
-	pf.InsertInitialNode (pf.CreateNewNode (NULL, RoadPathPos(), origin));
+	typename Tpf::Node m;
+	m.Set (NULL, RoadPathPos(), origin);
+	pf.InsertInitialNode (m);
 
 	/* find the best path */
 	if (!pf.FindPath()) return INVALID_TILE;
