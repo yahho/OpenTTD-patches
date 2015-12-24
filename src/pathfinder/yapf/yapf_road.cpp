@@ -20,16 +20,14 @@ struct CYapfRoadNodeT : CYapfNodeT<Tkey_, CYapfRoadNodeT<Tkey_> > {
 
 	PathMPos<RoadPathPos> m_next; ///< next pos after segment end, invalid if this segment is a dead end
 
-	void Set(CYapfRoadNodeT *parent, const RoadPathPos &pos)
+	CYapfRoadNodeT (CYapfRoadNodeT *parent, const RoadPathPos &pos)
+		: base (parent, pos), m_next()
 	{
-		base::Set(parent, pos);
-		m_next = PathMPos<RoadPathPos>();
 	}
 
-	void Set (CYapfRoadNodeT *parent, const RoadPathPos &pos, const PathMPos<RoadPathPos> &next)
+	CYapfRoadNodeT (CYapfRoadNodeT *parent, const RoadPathPos &pos, const PathMPos<RoadPathPos> &next)
+		: base (parent, pos), m_next (next)
 	{
-		base::Set(parent, pos);
-		m_next.set (next);
 	}
 };
 
@@ -234,8 +232,7 @@ public:
 
 		for (TrackdirBits rtds = old_node->m_next.trackdirs; rtds != TRACKDIR_BIT_NONE; rtds = KillFirstBit(rtds)) {
 			pos.set_trackdir (FindFirstTrackdir(rtds));
-			Node n;
-			n.Set (old_node, pos);
+			Node n (old_node, pos);
 
 			/* start at pos and walk to the end of segment */
 			tf.SetPos (pos);
@@ -356,9 +353,8 @@ static Trackdir ChooseRoadTrack(const RoadVehicle *v, TileIndex tile, TrackdirBi
 	Tpf pf (v);
 
 	/* set origin node */
-	typename Tpf::Node origin;
-	origin.Set (NULL, RoadPathPos(), PathMPos<RoadPathPos> (tile, trackdirs));
-	pf.InsertInitialNode (origin);
+	pf.InsertInitialNode (typename Tpf::Node (NULL, RoadPathPos(),
+				PathMPos<RoadPathPos> (tile, trackdirs)));
 
 	/* find the best path */
 	path_found = pf.FindPath();
@@ -483,9 +479,7 @@ static TileIndex FindNearestDepot (const RoadVehicle *v,
 	const PathMPos<RoadPathPos> &origin, int max_distance)
 {
 	Tpf pf (v, true);
-	typename Tpf::Node m;
-	m.Set (NULL, RoadPathPos(), origin);
-	pf.InsertInitialNode (m);
+	pf.InsertInitialNode (typename Tpf::Node (NULL, RoadPathPos(), origin));
 
 	/* find the best path */
 	if (!pf.FindPath()) return INVALID_TILE;

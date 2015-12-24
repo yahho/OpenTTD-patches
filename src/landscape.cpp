@@ -1011,11 +1011,9 @@ struct RiverNode : AstarNodeBase<RiverNode> {
 	TileIndex tile;
 	Slope slope;
 
-	void Set (RiverNode *parent, TileIndex t, Slope s)
+	RiverNode (RiverNode *parent, TileIndex t, Slope s)
+		: Base (parent), tile (t), slope (s)
 	{
-		Base::Set (parent);
-		tile = t;
-		slope = s;
 	}
 
 	bool operator == (const RiverNode &other) const
@@ -1061,8 +1059,7 @@ static void RiverFollowDir (RiverAstar *a, RiverNode *n, DiagDirection d)
 
 	Slope slope = GetTileSlope (tile);
 	if (FlowsDown (d, slope)) {
-		RiverNode m;
-		m.Set (n, tile, slope);
+		RiverNode m (n, tile, slope);
 		m.m_cost = n->m_cost + 1 + RandomRange (_settings_game.game_creation.river_route_random);
 		if (tile == a->target) {
 			m.m_estimate = m.m_cost;
@@ -1102,9 +1099,7 @@ static void BuildRiver(TileIndex begin, TileIndex end)
 	assert (IsTileFlat (begin));
 
 	RiverAstar finder (end);
-	RiverNode n;
-	n.Set (NULL, begin, SLOPE_FLAT);
-	finder.InsertInitialNode (n);
+	finder.InsertInitialNode (RiverNode (NULL, begin, SLOPE_FLAT));
 
 	if (finder.FindPath(&RiverFollow)) {
 		for (RiverNode *n = finder.best; n != NULL; n = n->m_parent) {

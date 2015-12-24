@@ -155,10 +155,9 @@ struct CYapfRailNodeTrackDir : CYapfNodeT<CYapfRailKey, CYapfRailNodeTrackDir> {
 	std::bitset<NFLAGS> flags;
 	SignalType        m_last_signal_type;
 
-	inline void Set(CYapfRailNodeTrackDir *parent, const RailPathPos &pos, bool is_choice)
+	CYapfRailNodeTrackDir (CYapfRailNodeTrackDir *parent, const RailPathPos &pos, bool is_choice)
+		: base (parent, pos), m_segment (NULL)
 	{
-		base::Set(parent, pos);
-		m_segment = NULL;
 		if (parent == NULL) {
 			m_num_signals_passed      = 0;
 			flags                     = 0;
@@ -378,8 +377,7 @@ public:
 	/** Create and add a new node */
 	inline void AddStartupNode (const RailPathPos &pos, int cost = 0)
 	{
-		Node node;
-		node.Set (NULL, pos, false);
+		Node node (NULL, pos, false);
 		node.m_cost = cost;
 		/* initial nodes can never be used from the cache */
 		AttachLocalSegment (&node);
@@ -1323,8 +1321,7 @@ struct CYapfRailT : public TBase {
 		RailPathPos pos = TBase::tf.m_new;
 		for (TrackdirBits rtds = TBase::tf.m_new.trackdirs; rtds != TRACKDIR_BIT_NONE; rtds = KillFirstBit(rtds)) {
 			pos.set_trackdir (FindFirstTrackdir(rtds));
-			Node n;
-			n.Set (old_node, pos, is_choice);
+			Node n (old_node, pos, is_choice);
 
 			/* evaluate the node */
 			CPerfStart perf_cost(TBase::m_perf_cost);

@@ -23,10 +23,7 @@
  * requires a node to have. Users of the A-star pathfinder must define a
  * node class that derives from this struct, using that node class itself
  * as template argument. Such a class must define a Key type to be used in
- * hashes, and a GetKey method to get the key for a particular node. It
- * may also define a Set method to initalise the node, which must take a
- * parent Node as first argument; if defined, it must hook into this base
- * class's own Set method.
+ * hashes, and a GetKey method to get the key for a particular node.
  */
 template <class Node>
 struct AstarNodeBase : CHashTableEntryT<Node> {
@@ -34,12 +31,10 @@ struct AstarNodeBase : CHashTableEntryT<Node> {
 	int   m_cost;      ///< cost of this node
 	int   m_estimate;  ///< estimated cost to target
 
-	/** Initialise this node */
-	inline void Set (Node *parent)
+	/** Construct a node */
+	AstarNodeBase (Node *parent)
+		: m_parent (parent), m_cost (0), m_estimate (0)
 	{
-		m_parent = parent;
-		m_cost = 0;
-		m_estimate = 0;
 	}
 
 	/** Get the cost of this node */

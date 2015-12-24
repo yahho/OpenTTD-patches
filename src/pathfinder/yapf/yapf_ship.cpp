@@ -16,7 +16,12 @@
 
 /** Yapf Node for ships */
 template <class Tkey_>
-struct CYapfShipNodeT : CYapfNodeT<Tkey_, CYapfShipNodeT<Tkey_> > { };
+struct CYapfShipNodeT : CYapfNodeT<Tkey_, CYapfShipNodeT<Tkey_> > {
+	CYapfShipNodeT (CYapfShipNodeT *parent, const ShipPathPos &pos)
+		: CYapfNodeT<Tkey_, CYapfShipNodeT<Tkey_> > (parent, pos)
+	{
+	}
+};
 
 /* now define two major node types (that differ by key type) */
 typedef CYapfShipNodeT<CYapfNodeKeyExitDir <ShipPathPos> > CYapfShipNodeExitDir;
@@ -117,8 +122,7 @@ public:
 			}
 
 			/* create the node */
-			Node n;
-			n.Set (old_node, ShipPathPos (new_tile, td));
+			Node n (old_node, ShipPathPos (new_tile, td));
 			n.m_cost = cc + c;
 
 			/* compute estimated cost */
@@ -201,9 +205,7 @@ static Trackdir ChooseShipTrack(const Ship *v, const ShipPathPos &pos, TrackdirB
 	/* create pathfinder instance */
 	Tpf pf (v);
 	/* set origin node */
-	typename Tpf::Node origin;
-	origin.Set (NULL, pos);
-	pf.InsertInitialNode (origin);
+	pf.InsertInitialNode (typename Tpf::Node (NULL, pos));
 	/* find best path */
 	path_found = pf.FindPath();
 
@@ -266,12 +268,9 @@ static bool CheckShipReverse(const Ship *v, const ShipPathPos &pos)
 	/* create pathfinder instance */
 	Tpf pf (v);
 	/* set origin nodes */
-	typename Tpf::Node origin1;
-	origin1.Set (NULL, pos);
-	pf.InsertInitialNode (origin1);
-	typename Tpf::Node origin2;
-	origin2.Set (NULL, ShipPathPos (pos.tile, ReverseTrackdir (pos.td)));
-	pf.InsertInitialNode (origin2);
+	pf.InsertInitialNode (typename Tpf::Node (NULL, pos));
+	pf.InsertInitialNode (typename Tpf::Node (NULL,
+			ShipPathPos (pos.tile, ReverseTrackdir (pos.td))));
 	/* find best path */
 	if (!pf.FindPath()) return false;
 
@@ -318,9 +317,7 @@ template <class Tpf>
 static TileIndex FindNearestDepot (const Ship *v, uint max_distance)
 {
 	Tpf pf (v, true);
-	typename Tpf::Node origin;
-	origin.Set (NULL, v->GetPos());
-	pf.InsertInitialNode (origin);
+	pf.InsertInitialNode (typename Tpf::Node (NULL, v->GetPos()));
 	if (!pf.FindPath()) return INVALID_TILE;
 
 	/* some path found; get found depot tile */
