@@ -33,9 +33,8 @@ template <class PPos>
 struct CYapfNodeKey : PPos {
 	typedef PPos Pos;
 
-	inline void Set(const Pos &pos)
+	CYapfNodeKey (const Pos &pos) : Pos (pos)
 	{
-		Pos::set(pos);
 	}
 
 	void Dump(DumpTarget &dmp) const
@@ -50,10 +49,10 @@ template <class PPos>
 struct CYapfNodeKeyExitDir : public CYapfNodeKey<PPos> {
 	DiagDirection  exitdir;
 
-	inline void Set(const PPos &pos)
+	CYapfNodeKeyExitDir (const PPos &pos)
+		: CYapfNodeKey<PPos> (pos),
+		  exitdir ((pos.td == INVALID_TRACKDIR) ? INVALID_DIAGDIR : TrackdirToExitdir (pos.td))
 	{
-		CYapfNodeKey<PPos>::Set(pos);
-		exitdir = (pos.td == INVALID_TRACKDIR) ? INVALID_DIAGDIR : TrackdirToExitdir(pos.td);
 	}
 
 	inline int CalcHash() const
@@ -76,6 +75,11 @@ struct CYapfNodeKeyExitDir : public CYapfNodeKey<PPos> {
 /** Yapf Node Key that evaluates hash from (and compares) tile & track dir. */
 template <class PPos>
 struct CYapfNodeKeyTrackDir : public CYapfNodeKey<PPos> {
+	CYapfNodeKeyTrackDir (const PPos &pos)
+		: CYapfNodeKey<PPos> (pos)
+	{
+	}
+
 	inline int CalcHash() const
 	{
 		return (PPos::in_wormhole() ? (PPos::td + 6) : PPos::td) | (PPos::tile << 4);
@@ -98,9 +102,8 @@ struct CYapfNodeT : AstarNodeBase<Tnode> {
 	Tkey_       m_key;
 
 	CYapfNodeT (Node *parent, const Pos &pos)
-		: ABase (parent)
+		: ABase (parent), m_key (pos)
 	{
-		m_key.Set(pos);
 	}
 
 	inline const Pos& GetPos() const
