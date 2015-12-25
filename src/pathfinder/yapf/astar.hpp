@@ -185,19 +185,13 @@ private:
 		m_open_queue.insert (n);
 	}
 
-	/** Remove and return the open node specified by a key. */
-	inline void PopOpenNode (const Key &key)
-	{
-		Node &item = m_open.Pop(key);
-		m_open_queue.remove (&item);
-	}
-
 	/** Possibly replace an existing (open) node. */
 	inline void ReplaceNode (const Key &key, Node *n1, const Node *n2)
 	{
 		if (n2->GetCostEstimate() < n1->GetCostEstimate()) {
 			/* pop old node from open list and queue */
-			PopOpenNode (key);
+			Node &item = m_open.Pop (key);
+			m_open_queue.remove (&item);
 			/* update old node with new data */
 			*n1 = *n2;
 			/* add updated node to open list and queue */
