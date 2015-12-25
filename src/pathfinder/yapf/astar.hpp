@@ -11,10 +11,10 @@
 #define ASTAR_HPP
 
 #include <deque>
+#include <set>
 
 #include "../../misc/array.hpp"
 #include "../../misc/hashtable.hpp"
-#include "../../misc/binaryheap.hpp"
 
 /**
  * A-star node template common base
@@ -98,10 +98,56 @@ private:
 		}
 	};
 
+	/** Sorting struct for pointer to nodes. */
+	struct NodePtrLess {
+		bool operator() (const Node *n1, const Node *n2) const
+		{
+			return *n1 < *n2;
+		}
+	};
+
+	/** Priority queue of open nodes. */
+	struct PriorityQueue : private std::multiset <Node *, NodePtrLess> {
+		typedef std::multiset <Node *, NodePtrLess> base;
+		typedef typename base::iterator iterator;
+
+		/** Check if the queue is empty. */
+		bool empty (void) const
+		{
+			return base::empty();
+		}
+
+		void insert (Node *n)
+		{
+			base::insert (n);
+		}
+
+		void remove (Node *n)
+		{
+			iterator it (base::lower_bound (n));
+			for (;;) {
+				/* It should really be there. */
+				assert (it != base::end());
+				assert (n->GetCostEstimate() == (*it)->GetCostEstimate());
+				if (n == *it) break;
+				it++;
+			}
+			base::erase (it);
+		}
+
+		Node *pop (void)
+		{
+			iterator it (base::begin());
+			Node *n = *it;
+			base::erase (it);
+			return n;
+		}
+	};
+
 	NodeList nodes;                               ///< Here we store full item data (Node).
 	CHashTableT<Node, open_hash_bits  > m_open;   ///< Hash table of pointers to open item data.
 	CHashTableT<Node, closed_hash_bits> m_closed; ///< Hash table of pointers to closed item data.
-	CBinaryHeapT<Node> m_open_queue;              ///< Priority queue of pointers to open item data.
+	PriorityQueue m_open_queue;                   ///< Priority queue of pointers to open item data.
 
 public:
 	Node *best;              ///< pointer to the destination node found at last round
@@ -110,7 +156,7 @@ public:
 	int   num_steps;         ///< this is there for debugging purposes (hope it doesn't hurt)
 
 	/** default constructor */
-	Astar() : m_open_queue(2048), best(NULL),
+	Astar() : best(NULL),
 		best_intermediate(NULL), max_search_nodes(0), num_steps(0)
 	{
 	}
@@ -136,15 +182,14 @@ private:
 		assert (m_closed.Find(n->GetKey()) == NULL);
 
 		m_open.Push(*n);
-		m_open_queue.Include(n);
+		m_open_queue.insert (n);
 	}
 
 	/** Remove and return the open node specified by a key. */
 	inline void PopOpenNode (const Key &key)
 	{
 		Node &item = m_open.Pop(key);
-		uint idxPop = m_open_queue.FindIndex(item);
-		m_open_queue.Remove(idxPop);
+		m_open_queue.remove (&item);
 	}
 
 	/** Possibly replace an existing (open) node. */
@@ -157,7 +202,7 @@ private:
 			*n1 = *n2;
 			/* add updated node to open list and queue */
 			m_open.Push(*n1);
-			m_open_queue.Include(n1);
+			m_open_queue.insert (n1);
 		}
 	}
 
@@ -243,11 +288,11 @@ public:
 
 		for (;;) {
 			num_steps++;
-			if (m_open_queue.IsEmpty()) {
+			if (m_open_queue.empty()) {
 				return best != NULL;
 			}
 
-			Node *n = m_open_queue.Begin();
+			Node *n = m_open_queue.pop();
 
 			/* if the best open node was worse than the best path found, we can finish */
 			if (best != NULL && best->GetCost() < n->GetCostEstimate()) {
@@ -260,7 +305,7 @@ public:
 				return best != NULL;
 			}
 
-			PopOpenNode(n->GetKey());
+			m_open.Pop (n->GetKey());
 			m_closed.Push (*n);
 		}
 	}
