@@ -93,8 +93,8 @@ struct CYapfNodeKeyTrackDir : public CYapfNodeKey<PPos> {
 
 /** Yapf Node base */
 template <class Tkey_, class Tnode>
-struct CYapfNodeT : AstarNodeBase<Tnode> {
-	typedef AstarNodeBase<Tnode> ABase;
+struct CYapfNodeT : AstarNode <Tnode> {
+	typedef AstarNode <Tnode> ABase;
 	typedef Tkey_ Key;
 	typedef typename Key::Pos Pos;
 	typedef Tnode Node;

@@ -26,13 +26,13 @@
  * hashes, and a GetKey method to get the key for a particular node.
  */
 template <class Node>
-struct AstarNodeBase : CHashTableEntryT<Node> {
+struct AstarNode : CHashTableEntryT<Node> {
 	Node *m_parent;    ///< parent node in path
 	int   m_cost;      ///< cost of this node
 	int   m_estimate;  ///< estimated cost to target
 
 	/** Construct a node */
-	AstarNodeBase (Node *parent)
+	AstarNode (Node *parent)
 		: m_parent (parent), m_cost (0), m_estimate (0)
 	{
 	}
@@ -60,7 +60,7 @@ struct AstarNodeBase : CHashTableEntryT<Node> {
  * A-star pathfinder implementation class
  *
  * Instantiate this class by supplying your node class as template argument;
- * such a class must derive from AstarNodeBase above, and provide a Key type
+ * such a class must derive from AstarNode above, and provide a Key type
  * for hashes and a GetKey method to retrieve the key for a node.
  */
 template <class TNode, int open_hash_bits, int closed_hash_bits>

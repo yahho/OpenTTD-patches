@@ -1004,8 +1004,8 @@ static void MakeLake (TileIndex tile, uint height)
 }
 
 /** River node struct for Astar. */
-struct RiverNode : AstarNodeBase<RiverNode> {
-	typedef AstarNodeBase<RiverNode> Base;
+struct RiverNode : AstarNode <RiverNode> {
+	typedef AstarNode <RiverNode> Base;
 	typedef RiverNode Key; // we are our own key
 
 	TileIndex tile;
