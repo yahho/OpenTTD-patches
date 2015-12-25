@@ -1952,7 +1952,6 @@
     </ClCompile>
     <ClInclude Include="..\src\map\util.h" />
     <ClInclude Include="..\src\misc\array.hpp" />
-    <ClInclude Include="..\src\misc\binaryheap.hpp" />
     <ClCompile Include="..\src\misc\countedobj.cpp">
       <AssemblerListingLocation>$(IntDir)\misc\</AssemblerListingLocation>
       <ObjectFileName>$(IntDir)\misc\</ObjectFileName>

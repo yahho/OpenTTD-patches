@@ -11615,10 +11615,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\..\src\misc\binaryheap.hpp"
-				>
-			</File>
-			<File
 				RelativePath=".\..\src\misc\countedobj.cpp"
 				>
 				<FileConfiguration
