@@ -150,10 +150,10 @@ private:
 	PriorityQueue m_open_queue;                   ///< Priority queue of pointers to open item data.
 
 public:
-	Node *best;              ///< pointer to the destination node found at last round
-	Node *best_intermediate; ///< here should be node closest to the destination if path not found
-	int   max_search_nodes;  ///< maximum number of nodes we are allowed to visit before we give up
-	int   num_steps;         ///< this is there for debugging purposes (hope it doesn't hurt)
+	const Node *best;              ///< pointer to the destination node found at last round
+	const Node *best_intermediate; ///< here should be node closest to the destination if path not found
+	int         max_search_nodes;  ///< maximum number of nodes we are allowed to visit before we give up
+	int         num_steps;         ///< this is there for debugging purposes (hope it doesn't hurt)
 
 	/** default constructor */
 	Astar() : best(NULL),
@@ -308,7 +308,7 @@ public:
 	 * If path was found return the best node that has reached the destination.
 	 * Otherwise return the best visited node (which was nearest to the destination).
 	 */
-	inline Node *GetBestNode() const
+	inline const Node *GetBestNode() const
 	{
 		return (best != NULL) ? best : best_intermediate;
 	}

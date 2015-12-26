@@ -1102,7 +1102,7 @@ static void BuildRiver(TileIndex begin, TileIndex end)
 	finder.InsertInitialNode (RiverNode (NULL, begin, SLOPE_FLAT));
 
 	if (finder.FindPath(&RiverFollow)) {
-		for (RiverNode *n = finder.best; n != NULL; n = n->m_parent) {
+		for (const RiverNode *n = finder.best; n != NULL; n = n->m_parent) {
 			TileIndex tile = n->tile;
 			if (!IsPlainWaterTile(tile)) {
 				MakeRiver(tile, Random());

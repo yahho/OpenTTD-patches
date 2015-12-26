@@ -1387,7 +1387,7 @@ Trackdir YapfTrainChooseTrack(const Train *v, const RailPathPos &origin, bool re
 
 	/* if path not found - return INVALID_TRACKDIR */
 	Trackdir next_trackdir = INVALID_TRACKDIR;
-	CYapfRail::Node *node = pf.GetBestNode();
+	const CYapfRail::Node *node = pf.GetBestNode();
 	if (node != NULL) {
 		if (reserve_track && path_found) {
 			CYapfRail::NodePos res;
@@ -1461,7 +1461,7 @@ bool YapfTrainCheckReverse(const Train *v)
 	if (!pf.FindPath()) return false;
 
 	/* path found; walk through the path back to the origin */
-	CYapfRail::Node *node = pf.GetBestNode();
+	const CYapfRail::Node *node = pf.GetBestNode();
 	while (node->m_parent != NULL) {
 		node = node->m_parent;
 	}
@@ -1488,7 +1488,7 @@ bool YapfTrainFindNearestDepot (const Train *v, const RailPathPos &origin,
 	if (!pf.FindPath()) return false;
 
 	/* path found; get found target tile */
-	CYapfAnyDepotRail::Node *n = pf.GetBestNode();
+	const CYapfAnyDepotRail::Node *n = pf.GetBestNode();
 	res->tile = n->GetLastPos().tile;
 
 	/* walk through the path back to the origin */
@@ -1517,7 +1517,7 @@ bool YapfTrainFindNearestSafeTile(const Train *v, const RailPathPos &pos, bool o
 	if (!pf.FindPath()) return false;
 
 	/* Found a destination, search for a reservation target. */
-	CYapfAnySafeTileRail::Node *node = pf.GetBestNode();
+	const CYapfAnySafeTileRail::Node *node = pf.GetBestNode();
 	CYapfAnySafeTileRail::NodePos res;
 	node = pf.FindSafePositionOnPath(node, &res)->m_parent;
 	assert (node->GetPos() == pos);

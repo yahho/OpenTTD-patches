@@ -360,7 +360,7 @@ static Trackdir ChooseRoadTrack(const RoadVehicle *v, TileIndex tile, TrackdirBi
 	path_found = pf.FindPath();
 
 	/* if path not found - return INVALID_TRACKDIR */
-	typename Tpf::Node *n = pf.GetBestNode();
+	const typename Tpf::Node *n = pf.GetBestNode();
 	if ((n == NULL) || (n->m_parent == NULL)) return INVALID_TRACKDIR;
 
 	/* path was found or at least suggested
@@ -485,7 +485,7 @@ static TileIndex FindNearestDepot (const RoadVehicle *v,
 	if (!pf.FindPath()) return INVALID_TILE;
 
 	/* some path found; get found depot tile */
-	typename Tpf::Node *n = pf.GetBestNode();
+	const typename Tpf::Node *n = pf.GetBestNode();
 
 	if (max_distance > 0 && n->m_cost > max_distance) return INVALID_TILE;
 

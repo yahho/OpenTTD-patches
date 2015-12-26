@@ -209,7 +209,7 @@ static Trackdir ChooseShipTrack(const Ship *v, const ShipPathPos &pos, TrackdirB
 	/* find best path */
 	path_found = pf.FindPath();
 
-	typename Tpf::Node *n = pf.GetBestNode();
+	const typename Tpf::Node *n = pf.GetBestNode();
 	if (n == NULL) return INVALID_TRACKDIR; // path not found
 	assert (n->m_parent != NULL);
 
@@ -274,7 +274,7 @@ static bool CheckShipReverse(const Ship *v, const ShipPathPos &pos)
 	/* find best path */
 	if (!pf.FindPath()) return false;
 
-	typename Tpf::Node *n = pf.GetBestNode();
+	const typename Tpf::Node *n = pf.GetBestNode();
 	if (n == NULL) return false;
 
 	/* path was found; walk through the path back to the origin */
@@ -321,7 +321,7 @@ static TileIndex FindNearestDepot (const Ship *v, uint max_distance)
 	if (!pf.FindPath()) return INVALID_TILE;
 
 	/* some path found; get found depot tile */
-	typename Tpf::Node *n = pf.GetBestNode();
+	const typename Tpf::Node *n = pf.GetBestNode();
 	if (max_distance > 0 && n->m_cost > 0 && (uint)n->m_cost > max_distance) return INVALID_TILE;
 	return n->GetPos().tile;
 }
