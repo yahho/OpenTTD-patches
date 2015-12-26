@@ -592,7 +592,7 @@ public:
 	};
 
 	/* Find the earliest safe position on a path. */
-	Node *FindSafePositionOnPath (Node *node, NodePos *res);
+	const Node *FindSafePositionOnPath (const Node *node, NodePos *res);
 
 	/* Try to reserve the path up to a given position. */
 	bool TryReservePath (TileIndex origin, const NodePos *res);
@@ -981,7 +981,7 @@ inline void CYapfRailBaseT<TAstar>::SetTarget (Node *n)
  * @return The first node in the path after the initial node.
  */
 template <class TAstar>
-inline typename TAstar::Node *CYapfRailBaseT<TAstar>::FindSafePositionOnPath (Node *node, NodePos *res)
+inline const typename TAstar::Node *CYapfRailBaseT<TAstar>::FindSafePositionOnPath (const Node *node, NodePos *res)
 {
 	/* We will never pass more than two signals, no need to check for a safe tile. */
 	assert (node->m_parent != NULL);
@@ -1001,7 +1001,7 @@ inline typename TAstar::Node *CYapfRailBaseT<TAstar>::FindSafePositionOnPath (No
 	CFollowTrackRail ft (m_veh, Allow90degTurns(), m_compatible_railtypes);
 
 	for (;;) {
-		Node *parent = node->m_parent;
+		const Node *parent = node->m_parent;
 		assert (parent != NULL);
 
 		/* Search node for a safe position. */
@@ -1391,7 +1391,7 @@ Trackdir YapfTrainChooseTrack(const Train *v, const RailPathPos &origin, bool re
 	if (node != NULL) {
 		if (reserve_track && path_found) {
 			CYapfRail::NodePos res;
-			CYapfRail::Node *best_next_node = pf.FindSafePositionOnPath (node, &res);
+			const CYapfRail::Node *best_next_node = pf.FindSafePositionOnPath (node, &res);
 			if (target != NULL) target->pos = res.pos;
 			/* return trackdir from the best origin node (one of start nodes) */
 			next_trackdir = best_next_node->GetPos().td;
