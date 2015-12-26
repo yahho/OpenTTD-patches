@@ -588,7 +588,7 @@ public:
 	/** Struct to store a position in a path (node and path position). */
 	struct NodePos {
 		RailPathPos pos;  ///< position (tile and trackdir)
-		Node       *node; ///< node where the position is
+		const Node *node; ///< node where the position is
 	};
 
 	/* Find the earliest safe position on a path. */
@@ -1098,12 +1098,12 @@ bool CYapfRailBaseT<TAstar>::TryReservePath (TileIndex origin, const NodePos *re
 
 	CFollowTrackRail ft (m_veh, Allow90degTurns(), m_compatible_railtypes);
 
-	for (Node *node = res->node; node->m_parent != NULL; node = node->m_parent) {
+	for (const Node *node = res->node; node->m_parent != NULL; node = node->m_parent) {
 		ft.SetPos (node->GetPos());
 		for (;;) {
 			if (!ReserveSingleTrack (ft.m_new, origin)) {
 				/* Reservation failed, undo. */
-				Node *failed_node = node;
+				const Node *failed_node = node;
 				RailPathPos res_fail = ft.m_new;
 				for (node = res->node; node != failed_node; node = node->m_parent) {
 					ft.SetPos (node->GetPos());
