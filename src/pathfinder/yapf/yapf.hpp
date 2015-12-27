@@ -101,7 +101,7 @@ struct CYapfNodeT : AstarNode <Tnode> {
 
 	Tkey_       m_key;
 
-	CYapfNodeT (Node *parent, const Pos &pos)
+	CYapfNodeT (const Node *parent, const Pos &pos)
 		: ABase (parent), m_key (pos)
 	{
 	}

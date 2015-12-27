@@ -17,7 +17,7 @@
 /** Yapf Node for ships */
 template <class Tkey_>
 struct CYapfShipNodeT : CYapfNodeT<Tkey_, CYapfShipNodeT<Tkey_> > {
-	CYapfShipNodeT (CYapfShipNodeT *parent, const ShipPathPos &pos)
+	CYapfShipNodeT (const CYapfShipNodeT *parent, const ShipPathPos &pos)
 		: CYapfNodeT<Tkey_, CYapfShipNodeT<Tkey_> > (parent, pos)
 	{
 	}

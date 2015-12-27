@@ -27,12 +27,12 @@
  */
 template <class Node>
 struct AstarNode : CHashTableEntryT<Node> {
-	Node *m_parent;    ///< parent node in path
-	int   m_cost;      ///< cost of this node
-	int   m_estimate;  ///< estimated cost to target
+	const Node *m_parent;   ///< parent node in path
+	int         m_cost;     ///< cost of this node
+	int         m_estimate; ///< estimated cost to target
 
 	/** Construct a node */
-	AstarNode (Node *parent)
+	AstarNode (const Node *parent)
 		: m_parent (parent), m_cost (0), m_estimate (0)
 	{
 	}

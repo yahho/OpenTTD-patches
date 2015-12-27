@@ -20,12 +20,12 @@ struct CYapfRoadNodeT : CYapfNodeT<Tkey_, CYapfRoadNodeT<Tkey_> > {
 
 	PathMPos<RoadPathPos> m_next; ///< next pos after segment end, invalid if this segment is a dead end
 
-	CYapfRoadNodeT (CYapfRoadNodeT *parent, const RoadPathPos &pos)
+	CYapfRoadNodeT (const CYapfRoadNodeT *parent, const RoadPathPos &pos)
 		: base (parent, pos), m_next()
 	{
 	}
 
-	CYapfRoadNodeT (CYapfRoadNodeT *parent, const RoadPathPos &pos, const PathMPos<RoadPathPos> &next)
+	CYapfRoadNodeT (const CYapfRoadNodeT *parent, const RoadPathPos &pos, const PathMPos<RoadPathPos> &next)
 		: base (parent, pos), m_next (next)
 	{
 	}

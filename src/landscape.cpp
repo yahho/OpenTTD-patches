@@ -1011,7 +1011,7 @@ struct RiverNode : AstarNode <RiverNode> {
 	TileIndex tile;
 	Slope slope;
 
-	RiverNode (RiverNode *parent, TileIndex t, Slope s)
+	RiverNode (const RiverNode *parent, TileIndex t, Slope s)
 		: Base (parent), tile (t), slope (s)
 	{
 	}

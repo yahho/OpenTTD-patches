@@ -155,7 +155,7 @@ struct CYapfRailNodeTrackDir : CYapfNodeT<CYapfRailKey, CYapfRailNodeTrackDir> {
 	std::bitset<NFLAGS> flags;
 	SignalType        m_last_signal_type;
 
-	CYapfRailNodeTrackDir (CYapfRailNodeTrackDir *parent, const RailPathPos &pos, bool is_choice)
+	CYapfRailNodeTrackDir (const CYapfRailNodeTrackDir *parent, const RailPathPos &pos, bool is_choice)
 		: base (parent, pos), m_segment (NULL)
 	{
 		if (parent == NULL) {
@@ -637,10 +637,12 @@ inline int CYapfRailBaseT<TAstar>::SignalCost(Node *n, const RailPathPos &pos)
 				/* prune this branch, so that we will not follow a best
 				 * intermediate node that heads straight into this one */
 				bool found_intermediate = false;
-				for (n = n->m_parent; n != NULL && !n->m_segment->m_end_segment_reason.test(ESR_CHOICE); n = n->m_parent) {
-					if (n == TAstar::best_intermediate) found_intermediate = true;
+				const Node *p = n->m_parent;
+				while (p != NULL && !p->m_segment->m_end_segment_reason.test(ESR_CHOICE)) {
+					if (p == TAstar::best_intermediate) found_intermediate = true;
+					p = p->m_parent;
 				}
-				if (found_intermediate) TAstar::best_intermediate = n;
+				if (found_intermediate) TAstar::best_intermediate = p;
 				return -1;
 			}
 			n->flags.set (n->FLAG_LAST_SIGNAL_WAS_RED);
