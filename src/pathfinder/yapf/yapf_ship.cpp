@@ -58,7 +58,7 @@ protected:
 
 public:
 	/** Called by the A-star underlying class to find the neighbours of a node. */
-	inline void Follow (Node *old_node)
+	inline void Follow (const Node *old_node)
 	{
 		const ShipPathPos &old_pos = old_node->GetPos();
 		DiagDirection exitdir = TrackdirToExitdir (old_pos.td);
@@ -144,7 +144,7 @@ public:
 
 
 	/** Call the node follower */
-	static inline void Follow (CYapfShipT *pf, Node *n)
+	static inline void Follow (CYapfShipT *pf, const Node *n)
 	{
 		pf->Follow(n);
 	}

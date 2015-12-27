@@ -219,7 +219,7 @@ public:
 	}
 
 	/** Called by the A-star underlying class to find the neighbours of a node. */
-	inline void Follow (Node *old_node)
+	inline void Follow (const Node *old_node)
 	{
 		/* Previous segment is a dead end? */
 		if (!old_node->m_next.is_valid()) return;
@@ -306,7 +306,7 @@ public:
 	}
 
 	/** call the node follower */
-	static inline void Follow (CYapfRoadT *pf, Node *n)
+	static inline void Follow (CYapfRoadT *pf, const Node *n)
 	{
 		pf->Follow(n);
 	}

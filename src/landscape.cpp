@@ -1052,7 +1052,7 @@ static bool FlowsDown (DiagDirection dir, Slope slope)
 }
 
 /** River neighbour finder for the A-star algorithm in a given direction. */
-static void RiverFollowDir (RiverAstar *a, RiverNode *n, DiagDirection d)
+static void RiverFollowDir (RiverAstar *a, const RiverNode *n, DiagDirection d)
 {
 	TileIndex tile = TileAddByDiagDir (n->tile, d);
 	if (!IsValidTile (tile)) return;
@@ -1074,7 +1074,7 @@ static void RiverFollowDir (RiverAstar *a, RiverNode *n, DiagDirection d)
 /**
  * River neighbour finder for the A-star algorithm
  */
-static void RiverFollow (RiverAstar *a, RiverNode *n)
+static void RiverFollow (RiverAstar *a, const RiverNode *n)
 {
 	if (n->slope == SLOPE_FLAT) {
 		/* We can flow in all four direction from a flat tile. */

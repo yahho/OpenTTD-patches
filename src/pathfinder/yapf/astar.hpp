@@ -276,7 +276,7 @@ public:
 	 * nodes; or, if one of them is a destination, call InsertTarget.
 	 */
 	template <class T>
-	inline bool FindPath (void (*follow) (T*, Node*), uint max_nodes = 0)
+	inline bool FindPath (void (*follow) (T*, const Node*), uint max_nodes = 0)
 	{
 		max_search_nodes = max_nodes;
 

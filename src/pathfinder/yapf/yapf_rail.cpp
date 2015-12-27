@@ -552,7 +552,7 @@ public:
 	 * @return true if the path was found
 	 */
 	template <class T>
-	inline bool FindPath (void (*follow) (T*, Node*))
+	inline bool FindPath (void (*follow) (T*, const Node*))
 	{
 #ifndef NO_DEBUG_MESSAGES
 		CPerformanceTimer perf;
@@ -1314,7 +1314,7 @@ struct CYapfRailT : public TBase {
 	}
 
 	/** Called by the A-star underlying class to find the neighbours of a node. */
-	inline void Follow (Node *old_node)
+	inline void Follow (const Node *old_node)
 	{
 		if (!TBase::tf.Follow(old_node->GetLastPos())) return;
 		if (TBase::mask_reserved_tracks && !TBase::tf.MaskReservedTracks()) return;
@@ -1355,7 +1355,7 @@ struct CYapfRailT : public TBase {
 	}
 
 	/** call the node follower */
-	static inline void Follow (CYapfRailT *pf, Node *n)
+	static inline void Follow (CYapfRailT *pf, const Node *n)
 	{
 		pf->Follow(n);
 	}
