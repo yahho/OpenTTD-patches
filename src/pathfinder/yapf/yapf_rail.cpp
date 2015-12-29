@@ -1138,19 +1138,14 @@ bool CYapfRailBaseT<TAstar>::TryReservePath (TileIndex origin, const NodePos *re
 }
 
 
-template <class TAstar>
-struct CYapfRailOrderT : CYapfRailBaseT <TAstar> {
-public:
-	typedef CYapfRailBaseT <TAstar> Base;
-	typedef typename TAstar::Node   Node;
-
+struct CYapfRailOrderT : CYapfRailBaseT <AstarRailTrackDir> {
 private:
 	TileIndex m_dest_tile;
 	StationID m_dest_station_id;
 
 public:
 	CYapfRailOrderT (const Train *v, bool allow_90deg)
-		: Base (v, allow_90deg, false, false)
+		: CYapfRailBaseT <AstarRailTrackDir> (v, allow_90deg, false, false)
 	{
 		switch (v->current_order.GetType()) {
 			case OT_GOTO_WAYPOINT:
@@ -1188,7 +1183,7 @@ public:
 	/** Add special extra cost when the segment reaches our target. */
 	inline void AddTargetCost (Node *n)
 	{
-		const Train *v = Base::m_veh;
+		const Train *v = m_veh;
 		/* Station platform-length penalty. */
 		if (v->current_order.GetType() == OT_GOTO_STATION) {
 			const RailPathPos &pos = n->GetLastPos();
@@ -1197,16 +1192,16 @@ public:
 			assert(st != NULL);
 			uint platform_length = st->GetPlatformLength(pos.tile, ReverseDiagDir(TrackdirToExitdir(pos.td)));
 			/* Reduce the extra cost caused by passing-station penalty (each station receives it in the segment cost). */
-			n->m_cost -= Base::m_settings->rail_station_penalty * platform_length;
+			n->m_cost -= m_settings->rail_station_penalty * platform_length;
 			/* Add penalty for the inappropriate platform length. */
 			assert (v->gcache.cached_total_length != 0);
 			int missing_platform_length = CeilDiv(v->gcache.cached_total_length, TILE_SIZE) - platform_length;
 			if (missing_platform_length < 0) {
 				/* apply penalty for longer platform than needed */
-				n->m_cost += Base::m_settings->rail_longer_platform_penalty + Base::m_settings->rail_longer_platform_per_tile_penalty * -missing_platform_length;
+				n->m_cost += m_settings->rail_longer_platform_penalty + m_settings->rail_longer_platform_per_tile_penalty * -missing_platform_length;
 			} else if (missing_platform_length > 0) {
 				/* apply penalty for shorter platform than needed */
-				n->m_cost += Base::m_settings->rail_shorter_platform_penalty + Base::m_settings->rail_shorter_platform_per_tile_penalty * missing_platform_length;
+				n->m_cost += m_settings->rail_shorter_platform_penalty + m_settings->rail_shorter_platform_per_tile_penalty * missing_platform_length;
 			}
 		} else if (v->current_order.IsType(OT_GOTO_WAYPOINT)) {
 			const RailPathPos &pos = n->GetLastPos();
@@ -1246,7 +1241,7 @@ public:
 				/* In the case this platform is (possibly) occupied we add penalty so the
 				 * other platforms of this waypoint are evaluated as well, i.e. we assume
 				 * that there is a red signal in the waypoint when it's occupied. */
-				if (add_extra_cost) n->m_cost += Base::m_settings->rail_lastred_penalty;
+				if (add_extra_cost) n->m_cost += m_settings->rail_lastred_penalty;
 			}
 		}
 	}
@@ -1372,7 +1367,7 @@ struct CYapfRailT : public TBase {
 };
 
 
-typedef CYapfRailT <CYapfRailOrderT <AstarRailTrackDir> > CYapfRail;
+typedef CYapfRailT <CYapfRailOrderT> CYapfRail;
 
 Trackdir YapfTrainChooseTrack(const Train *v, const RailPathPos &origin, bool reserve_track, PFResult *target)
 {
