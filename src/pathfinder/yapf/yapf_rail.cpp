@@ -269,8 +269,9 @@ protected:
 	const YAPFSettings *const m_settings; ///< current settings (_settings_game.yapf)
 	const Train        *const m_veh;      ///< vehicle that we are trying to drive
 	const RailTypes           m_compatible_railtypes;
+	const int                 m_max_cost;
 	const bool                mask_reserved_tracks;
-	bool          m_treat_first_red_two_way_signal_as_eol; ///< in some cases (leaving station) we need to handle first two-way signal differently
+	const bool                m_treat_first_red_two_way_signal_as_eol; ///< in some cases (leaving station) we need to handle first two-way signal differently
 public:
 	bool          m_stopped_on_first_two_way_signal;
 
@@ -278,7 +279,6 @@ protected:
 	Cache        &m_global_cache;
 	LocalCache    m_local_cache;
 
-	int                  m_max_cost;
 	std::vector<int>     m_sig_look_ahead_costs;
 
 	int                  m_stats_cost_calcs;   ///< stats - how many node's costs were calculated
@@ -316,15 +316,15 @@ protected:
 		return C;
 	}
 
-	CYapfRailBase (const Train *v, bool allow_90deg, bool override_rail_type, bool mask_reserved_tracks)
+	CYapfRailBase (const Train *v, bool allow_90deg, bool override_rail_type, int max_cost, bool mask_reserved_tracks, bool first_red_eol)
 		: m_settings(&_settings_game.pf.yapf)
 		, m_veh(v)
 		, m_compatible_railtypes(v->compatible_railtypes | (override_rail_type ? GetRailTypeInfo(v->railtype)->compatible_railtypes : RAILTYPES_NONE))
+		, m_max_cost(max_cost)
 		, mask_reserved_tracks(mask_reserved_tracks)
-		, m_treat_first_red_two_way_signal_as_eol(true)
+		, m_treat_first_red_two_way_signal_as_eol(first_red_eol)
 		, m_stopped_on_first_two_way_signal(false)
 		, m_global_cache(stGetGlobalCache())
-		, m_max_cost(0)
 		, m_sig_look_ahead_costs(m_settings->rail_look_ahead_max_signals)
 		, m_stats_cost_calcs(0)
 		, m_stats_cache_hits(0)
@@ -388,17 +388,10 @@ public:
 	}
 
 	/** set origin */
-	void SetOrigin(const RailPathPos &pos, const RailPathPos &rev, int reverse_penalty, bool treat_first_red_two_way_signal_as_eol)
+	void SetOrigin(const RailPathPos &pos, const RailPathPos &rev, int reverse_penalty)
 	{
-		m_treat_first_red_two_way_signal_as_eol = treat_first_red_two_way_signal_as_eol;
-
 		AddStartupNode (pos);
 		AddStartupNode (rev, reverse_penalty);
-	}
-
-	inline void SetMaxCost (int max_cost)
-	{
-		m_max_cost = max_cost;
 	}
 
 	/** Return the transition cost from one tile to another. */
@@ -1133,8 +1126,8 @@ private:
 	StationID m_dest_station_id;
 
 public:
-	CYapfRailOrderT (const Train *v, bool allow_90deg)
-		: CYapfRailBase (v, allow_90deg, false, false)
+	CYapfRailOrderT (const Train *v, bool allow_90deg, bool first_red_eol = true)
+		: CYapfRailBase (v, allow_90deg, false, 0, false, first_red_eol)
 	{
 		switch (v->current_order.GetType()) {
 			case OT_GOTO_WAYPOINT:
@@ -1237,8 +1230,8 @@ public:
 };
 
 struct CYapfAnyDepotRailT : CYapfRailBase {
-	CYapfAnyDepotRailT (const Train *v, bool allow_90deg)
-		: CYapfRailBase (v, allow_90deg, false, false)
+	CYapfAnyDepotRailT (const Train *v, bool allow_90deg, int max_cost)
+		: CYapfRailBase (v, allow_90deg, false, max_cost, false, true)
 	{
 	}
 
@@ -1257,7 +1250,7 @@ struct CYapfAnyDepotRailT : CYapfRailBase {
 
 struct CYapfAnySafeTileRailT : CYapfRailBase {
 	CYapfAnySafeTileRailT (const Train *v, bool allow_90deg, bool override_railtype)
-		: CYapfRailBase (v, allow_90deg, override_railtype, true)
+		: CYapfRailBase (v, allow_90deg, override_railtype, 0, true, true)
 	{
 	}
 
@@ -1284,8 +1277,9 @@ struct CYapfRailT : public TBase {
 	{
 	}
 
-	CYapfRailT (const Train *v, bool allow_90deg, bool override_rail_type)
-		: TBase (v, allow_90deg, override_rail_type)
+	template <typename Param>
+	CYapfRailT (const Train *v, bool allow_90deg, Param param)
+		: TBase (v, allow_90deg, param)
 	{
 	}
 
@@ -1430,10 +1424,10 @@ bool YapfTrainCheckReverse(const Train *v)
 	/* slightly hackish: If the pathfinders finds a path, the cost of the first node is tested to distinguish between forward- and reverse-path. */
 	if (reverse_penalty == 0) reverse_penalty = 1;
 
-	CYapfRail pf (v, !_settings_game.pf.forbid_90_deg);
+	CYapfRail pf (v, !_settings_game.pf.forbid_90_deg, false);
 
 	/* set origin nodes */
-	pf.SetOrigin (pos, rev, reverse_penalty, false);
+	pf.SetOrigin (pos, rev, reverse_penalty);
 
 	/* find the best path */
 	if (!pf.FindPath()) return false;
@@ -1456,11 +1450,10 @@ bool YapfTrainFindNearestDepot (const Train *v, const RailPathPos &origin,
 {
 	RailPathPos rev = v->Last()->GetReversePos();
 
-	CYapfAnyDepotRail pf (v, !_settings_game.pf.forbid_90_deg);
+	CYapfAnyDepotRail pf (v, !_settings_game.pf.forbid_90_deg, max_penalty);
 
 	/* set origin node */
-	pf.SetOrigin (origin, rev, YAPF_INFINITE_PENALTY, true);
-	pf.SetMaxCost(max_penalty);
+	pf.SetOrigin (origin, rev, YAPF_INFINITE_PENALTY);
 
 	/* find the best path */
 	if (!pf.FindPath()) return false;
