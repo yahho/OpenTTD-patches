@@ -1247,13 +1247,9 @@ public:
 	}
 };
 
-template <class TAstar>
-struct CYapfAnyDepotRailT : CYapfRailBaseT <TAstar> {
-	typedef CYapfRailBaseT <TAstar> Base;
-	typedef typename TAstar::Node   Node;
-
+struct CYapfAnyDepotRailT : CYapfRailBaseT <AstarRailTrackDir> {
 	CYapfAnyDepotRailT (const Train *v, bool allow_90deg)
-		: Base (v, allow_90deg, false, false)
+		: CYapfRailBaseT <AstarRailTrackDir> (v, allow_90deg, false, false)
 	{
 	}
 
@@ -1468,7 +1464,7 @@ bool YapfTrainCheckReverse(const Train *v)
 }
 
 
-typedef CYapfRailT <CYapfAnyDepotRailT <AstarRailTrackDir> > CYapfAnyDepotRail;
+typedef CYapfRailT <CYapfAnyDepotRailT> CYapfAnyDepotRail;
 
 bool YapfTrainFindNearestDepot (const Train *v, const RailPathPos &origin,
 	uint max_penalty, FindDepotData *res)
