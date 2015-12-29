@@ -1266,20 +1266,16 @@ struct CYapfAnyDepotRailT : CYapfRailBaseT <AstarRailTrackDir> {
 	}
 };
 
-template <class TAstar>
-struct CYapfAnySafeTileRailT : CYapfRailBaseT <TAstar> {
-	typedef CYapfRailBaseT <TAstar> Base;
-	typedef typename TAstar::Node   Node;
-
+struct CYapfAnySafeTileRailT : CYapfRailBaseT <AstarRailTrackDir> {
 	CYapfAnySafeTileRailT (const Train *v, bool allow_90deg, bool override_railtype)
-		: Base (v, allow_90deg, override_railtype, true)
+		: CYapfRailBaseT <AstarRailTrackDir> (v, allow_90deg, override_railtype, true)
 	{
 	}
 
 	/** Check if a position is a destination. */
 	inline bool IsDestination (const RailPathPos &pos) const
 	{
-		return IsFreeSafeWaitingPosition (Base::m_veh, pos, Base::Allow90degTurns());
+		return IsFreeSafeWaitingPosition (m_veh, pos, Allow90degTurns());
 	}
 
 	/** Estimate the cost from a node to the destination. */
@@ -1497,7 +1493,7 @@ bool YapfTrainFindNearestDepot (const Train *v, const RailPathPos &origin,
 }
 
 
-typedef CYapfRailT <CYapfAnySafeTileRailT <AstarRailTrackDir> > CYapfAnySafeTileRail;
+typedef CYapfRailT <CYapfAnySafeTileRailT> CYapfAnySafeTileRail;
 
 bool YapfTrainFindNearestSafeTile(const Train *v, const RailPathPos &pos, bool override_railtype)
 {
