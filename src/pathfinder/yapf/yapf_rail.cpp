@@ -266,9 +266,12 @@ static int TransitionCost (const YAPFSettings *settings,
 	assert(IsValidTrackdir(pos1.td));
 	assert(IsValidTrackdir(pos2.td));
 
-	if (pos1.in_wormhole() || !IsRailwayTile(pos1.tile)) {
+	bool rail2 = !pos2.in_wormhole() && IsRailwayTile (pos2.tile);
+	bool rail1 = !pos1.in_wormhole() && IsRailwayTile (pos1.tile);
+
+	if (!rail1) {
 		assert(IsDiagonalTrackdir(pos1.td));
-		if (pos2.in_wormhole() || !IsRailwayTile(pos2.tile)) {
+		if (!rail2) {
 			/* compare only the tracks, as depots cause reversing */
 			assert(TrackdirToTrack(pos1.td) == TrackdirToTrack(pos2.td));
 			return 0;
@@ -276,7 +279,7 @@ static int TransitionCost (const YAPFSettings *settings,
 			return (pos1.td == pos2.td) ? 0 : settings->rail_curve45_penalty;
 		}
 	} else {
-		if (pos2.in_wormhole() || !IsRailwayTile(pos2.tile)) {
+		if (!rail2) {
 			assert(IsDiagonalTrackdir(pos2.td));
 			return (pos1.td == pos2.td) ? 0 : settings->rail_curve45_penalty;
 		}
