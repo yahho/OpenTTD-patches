@@ -867,6 +867,8 @@ inline void CYapfRailBase::CalcSegment (Node *n, const CFollowTrackRail *tf)
 /** Compute all costs for a segment or retrieve it from cache. */
 inline void CYapfRailBase::CalcNode (Node *n)
 {
+	bool attach_cached;
+
 	/* Disable the cache if the node is within the signal lookahead
 	 * threshold; if we are masking reserved tracks (because that makes
 	 * segments end prematurely at the first signal); or if we have a
@@ -914,15 +916,21 @@ inline void CYapfRailBase::CalcNode (Node *n)
 		/* segment not found, or not usable */
 		if (m_max_cost == 0) {
 			/* segment not found, but we can cache it for next time */
-			AttachCachedSegment(n);
+			attach_cached = true;
 		} else {
 			/* If m_max_cost is not zero, CalcSegment may abort
 			 * early without reaching the end of the segment;
 			 * do not store it in the cache. */
-			AttachLocalSegment(n);
+			attach_cached = false;
 		}
 	} else {
 		/* segment not cacheable */
+		attach_cached = false;
+	}
+
+	if (attach_cached) {
+		AttachCachedSegment(n);
+	} else {
 		AttachLocalSegment(n);
 	}
 
