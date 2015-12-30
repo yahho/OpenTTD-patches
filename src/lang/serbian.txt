@@ -896,6 +896,7 @@ STR_SMALLMAP_CAPTION                                            :{WHITE}Karta - 
 STR_SMALLMAP_TYPE_CONTOURS                                      :Reljef
 STR_SMALLMAP_TYPE_VEHICLES                                      :Vozila
 STR_SMALLMAP_TYPE_INDUSTRIES                                    :Fabrike
+STR_SMALLMAP_TYPE_ROUTEMAP                                      :Protok tereta
 STR_SMALLMAP_TYPE_ROUTES                                        :Rute
 STR_SMALLMAP_TYPE_VEGETATION                                    :Vegetacija
 STR_SMALLMAP_TYPE_OWNERS                                        :Vlasnici
@@ -908,6 +909,7 @@ STR_SMALLMAP_TOOLTIP_SHOW_VEGETATION_ON_MAP                     :{BLACK}Prikazuj
 STR_SMALLMAP_TOOLTIP_SHOW_LAND_OWNERS_ON_MAP                    :{BLACK}Prikazuje vlasništva na karti
 STR_SMALLMAP_TOOLTIP_INDUSTRY_SELECTION                         :{BLACK}Klikom na industriju se prikazuju/ne prikazuju njene fabrike. Ctrl+Klik prikazuje fabrike samo odabrane. Sa ponovnim Ctrl+Klik prikazuju se fabrike svih industrija
 STR_SMALLMAP_TOOLTIP_COMPANY_SELECTION                          :{BLACK}Klikom na preduzeće se prikazuje/ne prikazuje njeno vlasništvo. Ctrl+Klik prikazuje vlasništvo samo odabranog. Sa ponovnim Ctrl+Klik prikazuju se vlasništva svih preduzeća
+STR_SMALLMAP_TOOLTIP_CARGO_SELECTION                            :{BLACK}Klikom na teret se prikazuje/neprikazuje vlasnik tereta. Ctrl+Klik onemogućava sve terete osim odabranog. Sa ponovnim Ctrl+Klik omogućava sve terete.
 
 STR_SMALLMAP_LEGENDA_ROADS                                      :{TINY_FONT}{BLACK}Putevi
 STR_SMALLMAP_LEGENDA_RAILROADS                                  :{TINY_FONT}{BLACK}Pruge
@@ -1486,6 +1488,7 @@ STR_CONFIG_SETTING_POPULATION_IN_LABEL_HELPTEXT                 :Prikazuje broj 
 STR_CONFIG_SETTING_GRAPH_LINE_THICKNESS                         :Debljina linija u grafikonima: {STRING}
 STR_CONFIG_SETTING_GRAPH_LINE_THICKNESS_HELPTEXT                :Širina linije na grafiku. Tanka linija je preciznija a debelu je lakše videti i lakše je razlikovati boje
 
+STR_CONFIG_SETTING_LANDSCAPE                                    :Reljef:{STRING}
 STR_CONFIG_SETTING_LAND_GENERATOR                               :Oblikovanje reljefa: {STRING}
 STR_CONFIG_SETTING_LAND_GENERATOR_ORIGINAL                      :Originalno
 STR_CONFIG_SETTING_LAND_GENERATOR_TERRA_GENESIS                 :TerraGenesis
@@ -1496,6 +1499,7 @@ STR_CONFIG_SETTING_ROUGHNESS_OF_TERRAIN_VERY_SMOOTH             :Ravnomerna
 STR_CONFIG_SETTING_ROUGHNESS_OF_TERRAIN_SMOOTH                  :Malo valovita
 STR_CONFIG_SETTING_ROUGHNESS_OF_TERRAIN_ROUGH                   :Valovita
 STR_CONFIG_SETTING_ROUGHNESS_OF_TERRAIN_VERY_ROUGH              :Vrlo valovita
+STR_CONFIG_SETTING_RIVER_AMOUNT_HELPTEXT                        :Izaberite količinu generiranih reka
 STR_CONFIG_SETTING_TREE_PLACER                                  :Posađivanje drveća: {STRING}
 STR_CONFIG_SETTING_TREE_PLACER_NONE                             :Nikakav
 STR_CONFIG_SETTING_TREE_PLACER_ORIGINAL                         :Originalni
@@ -1564,6 +1568,7 @@ STR_CONFIG_SETTING_COMMAND_PAUSE_LEVEL_ALL_NON_LANDSCAPING      :sve aktivnosti 
 STR_CONFIG_SETTING_COMMAND_PAUSE_LEVEL_ALL_ACTIONS              :sve aktivnosti
 STR_CONFIG_SETTING_ADVANCED_VEHICLE_LISTS                       :Koristiti napredan spisak vozila: {STRING}
 STR_CONFIG_SETTING_LOADING_INDICATORS                           :Koristiti pokazatelj utovarivanja: {STRING}
+STR_CONFIG_SETTING_LOADING_INDICATORS_HELPTEXT                  :Izbor da li će biti prikazani indikatori utovara i istovara iznad vozila
 STR_CONFIG_SETTING_TIMETABLE_IN_TICKS                           :Prikazati red vožnje u diskretnim otkucajima: {STRING}
 STR_CONFIG_SETTING_TIMETABLE_SHOW_ARRIVAL_DEPARTURE             :Prikazivanje polaska i dolaska u rasporedima: {STRING}
 STR_CONFIG_SETTING_QUICKGOTO                                    :Zadržati aktivno 'Idi do' dugme: {STRING}
@@ -1594,6 +1599,7 @@ STR_CONFIG_SETTING_SOUND_AMBIENT                                :Okruženje: {ST
 STR_CONFIG_SETTING_SOUND_AMBIENT_HELPTEXT                       :Reprodukuj ambijentalne zvučne efekte za teren, industrije i gradove
 
 STR_CONFIG_SETTING_DISABLE_UNSUITABLE_BUILDING                  :Onemogućena izgradnja infrastrukture kada nema odgovarajućih vozila: {STRING}
+STR_CONFIG_SETTING_DISABLE_UNSUITABLE_BUILDING_HELPTEXT         :Ako je omogućeno, infrastruktura je dostupna samo ako su dostupna i vozila, sprečavajući troškove vremena i novca na neupotrebljivu infrastrukturu
 STR_CONFIG_SETTING_MAX_TRAINS                                   :Najviše vozova po preduzeću: {STRING}
 STR_CONFIG_SETTING_MAX_TRAINS_HELPTEXT                          :Najveći broj vozova koje preduzeće može da ima
 STR_CONFIG_SETTING_MAX_ROAD_VEHICLES                            :Najviše drumskih vozila po preduzeću: {STRING}
@@ -1634,6 +1640,7 @@ STR_CONFIG_SETTING_SERVINT_SHIPS                                :Podrazumevani s
 STR_CONFIG_SETTING_NOSERVICE                                    :Isključeno servisiranje kada ne postoje kvarovi: {STRING}
 STR_CONFIG_SETTING_WAGONSPEEDLIMITS                             :Uključeno ograničenje brzine kod vagona: {STRING}
 STR_CONFIG_SETTING_DISABLE_ELRAILS                              :Ne postoji posebna električna pruga: {STRING}
+STR_CONFIG_SETTING_DISABLE_ELRAILS_HELPTEXT                     :Omogućavanje ovog podešavanja onemogućava potrebu elektrifikacije pruge da bi električni vozovi mogli voziti po njoj
 
 STR_CONFIG_SETTING_NEWS_ARRIVAL_FIRST_VEHICLE_OWN               :Dolazak prvog vozila na igračevu stanicu: {STRING}
 STR_CONFIG_SETTING_NEWS_ARRIVAL_FIRST_VEHICLE_OWN_HELPTEXT      :Prikazuje novinske naslove kada prvo vozilo pristigne u novu stanicu igrača
@@ -1688,6 +1695,7 @@ STR_CONFIG_SETTING_DEFAULT_SIGNAL_NORMAL                        :Blok signalizac
 STR_CONFIG_SETTING_DEFAULT_SIGNAL_PBS                           :Putna signalizacija
 STR_CONFIG_SETTING_DEFAULT_SIGNAL_PBSOWAY                       :Jednosmerna putna signalizacija
 STR_CONFIG_SETTING_CYCLE_SIGNAL_TYPES                           :Ciklični izbor vrste signalizacije: {STRING}
+STR_CONFIG_SETTING_CYCLE_SIGNAL_TYPES_HELPTEXT                  :Ciklični izbor vrste signalizacije, kada Ctrl+Klik na izgradnju signala sa alatom signala
 STR_CONFIG_SETTING_CYCLE_SIGNAL_NORMAL                          :Samo blok
 STR_CONFIG_SETTING_CYCLE_SIGNAL_PBS                             :Samo putna
 STR_CONFIG_SETTING_CYCLE_SIGNAL_ALL                             :Sva
@@ -1711,6 +1719,7 @@ STR_CONFIG_SETTING_TOWN_FOUNDING_ALLOWED                        :dozvoljeno
 STR_CONFIG_SETTING_TOWN_FOUNDING_ALLOWED_CUSTOM_LAYOUT          :dozvoljeno, zaseban plan gradnje
 
 STR_CONFIG_SETTING_EXTRA_TREE_PLACEMENT                         :Rasejavanje drveća tokom partije: {STRING}
+STR_CONFIG_SETTING_EXTRA_TREE_PLACEMENT_HELPTEXT                :Kontrola nasumične pojave drveća u toku igre. Ovo može uticati na industrije koje zavise o rastu drveća, na primer pilana
 STR_CONFIG_SETTING_EXTRA_TREE_PLACEMENT_NONE                    :{G=srednji}nikakvo {RED}(onesposobljava rad drvnih kombinata)
 STR_CONFIG_SETTING_EXTRA_TREE_PLACEMENT_RAINFOREST              :samo u tropskim šumama
 STR_CONFIG_SETTING_EXTRA_TREE_PLACEMENT_ALL                     :svuda
@@ -1751,8 +1760,10 @@ STR_CONFIG_SETTING_MODIFIED_ROAD_REBUILD_HELPTEXT               :Ukloni slepe ul
 STR_CONFIG_SETTING_DISTRIBUTION_MANUAL                          :ručno
 STR_CONFIG_SETTING_DISTRIBUTION_ASYMMETRIC                      :asimetrično
 STR_CONFIG_SETTING_DISTRIBUTION_SYMMETRIC                       :simetrično
+STR_CONFIG_SETTING_DISTRIBUTION_DEFAULT_HELPTEXT                :"asimetrično" znači da odabrana količina tereta može biti poslana u svim smerovima. "ručno" znači da neće biti automatske distribucije za odabrane terete
 STR_CONFIG_SETTING_DEMAND_DISTANCE                              :Uticaj daljine na zahteve: {STRING}
 STR_CONFIG_SETTING_DEMAND_DISTANCE_HELPTEXT                     :Ako podesite ovu vrednost veće od 0, daljina između porekla stanice A nekog tereta i moguće destinacije B će imati uticaj na iznos poslatog tereta od A do B. Što daljnije B je od A, smaniće se iznos tereta što će biti poslat. Ako vrednost povećavate, manji iznos tereta će biti poslat dalekim mestima i veći iznos tereta će biti poslat bližnjim stanicama.
+STR_CONFIG_SETTING_SHORT_PATH_SATURATION                        :Zasićenje kratkih putova pre korišćenja putova velikih kapaciteta: {STRING}
 
 STR_CONFIG_SETTING_LOCALISATION_UNITS_VELOCITY                  :Mere brzine: {STRING}
 STR_CONFIG_SETTING_LOCALISATION_UNITS_VELOCITY_HELPTEXT         :Kada brzina bude pokazana u interfejsu, pokaži u željenoj meri
@@ -1791,6 +1802,7 @@ STR_CONFIG_SETTING_LOCALISATION                                 :{ORANGE}Prevod
 STR_CONFIG_SETTING_SOUND                                        :{ORANGE}Zvučni efekti
 STR_CONFIG_SETTING_INTERFACE                                    :{ORANGE}Okruženje
 STR_CONFIG_SETTING_INTERFACE_CONSTRUCTION                       :{ORANGE}Izgradnja
+STR_CONFIG_SETTING_ADVISORS                                     :{ORANGE}Vesti / Savetnici
 STR_CONFIG_SETTING_VEHICLES                                     :{ORANGE}Vozila
 STR_CONFIG_SETTING_STATIONS_CARGOHANDLING                       :{ORANGE}Baratanje teretom
 STR_CONFIG_SETTING_STATIONS                                     :{ORANGE}Stanice
@@ -2933,6 +2945,9 @@ STR_NEWGRF_SETTINGS_DISABLED                                    :{RED}Isključen
 STR_NEWGRF_SETTINGS_INCOMPATIBLE                                :{RED}Nije kompatibilno sa ovom OpenTTD verzijom
 
 # NewGRF save preset window
+STR_SAVE_PRESET_CAPTION                                         :{WHITE} Sačuvajte postavku
+STR_SAVE_PRESET_TITLE                                           :{BLACK} Unesite ime postavke
+STR_SAVE_PRESET_SAVE                                            :{BLACK}Sačuvaj
 
 # NewGRF parameters window
 STR_NEWGRF_PARAMETERS_CAPTION                                   :{WHITE}Promena NewGRF parametara
@@ -2963,7 +2978,7 @@ STR_SPRITE_ALIGNER_GOTO_TOOLTIP                                 :{BLACK}Ide na d
 STR_SPRITE_ALIGNER_PREVIOUS_BUTTON                              :{BLACK}Prethodni sprajt
 STR_SPRITE_ALIGNER_PREVIOUS_TOOLTIP                             :{BLACK}Vraća se na prethodni normalan sprajt, preskačući sve pseudo/prebojavajuće/font sprajtove i prelazi na kraj posle početnog
 STR_SPRITE_ALIGNER_SPRITE_TOOLTIP                               :{BLACK}Prikaz trenutno odabranog sprajta. Poravnanje se ignoriše tokom iscrtavanja ovog sprajta
-STR_SPRITE_ALIGNER_MOVE_TOOLTIP                                 :{BLACK}Premeštanje sprajta po kordinatama, menjanjem X i Y pomeraja
+STR_SPRITE_ALIGNER_MOVE_TOOLTIP                                 :{BLACK}Premeštanje sprajta po kordinatama, menjanjem X i Y pomeraja. Ctrl+Klik za pomeranje sprajta osam jedinica odjednom
 STR_SPRITE_ALIGNER_PICKER_BUTTON                                :{BLACK}Odabiranje sprajta
 STR_SPRITE_ALIGNER_PICKER_TOOLTIP                               :{BLACK}Odabiranje sprajta bilo gde sa ekrana
 
@@ -3498,6 +3513,11 @@ STR_BUY_VEHICLE_ROAD_VEHICLE_RENAME_TOOLTIP                     :{BLACK}Promenit
 STR_BUY_VEHICLE_SHIP_RENAME_TOOLTIP                             :{BLACK}Promenite naziv vrste broda
 STR_BUY_VEHICLE_AIRCRAFT_RENAME_TOOLTIP                         :{BLACK}Promenite naziv vrste letilice
 
+STR_BUY_VEHICLE_SHIP_HIDE_TOGGLE_BUTTON                         :Sakriti
+STR_BUY_VEHICLE_AIRCRAFT_HIDE_TOGGLE_BUTTON                     :Sakriti
+
+STR_BUY_VEHICLE_AIRCRAFT_SHOW_TOGGLE_BUTTON                     :{BLACK}Prikaži
+
 STR_BUY_VEHICLE_TRAIN_HIDE_SHOW_TOGGLE_TOOLTIP                  :{BLACK}Uključi skrivanje/prikazivanje tip voza
 STR_BUY_VEHICLE_ROAD_VEHICLE_HIDE_SHOW_TOGGLE_TOOLTIP           :{BLACK}Uključi skrivanje/prikazivanje tip drumskog vozila
 STR_BUY_VEHICLE_SHIP_HIDE_SHOW_TOGGLE_TOOLTIP                   :{BLACK}Uključi skrivanje/prikazivanje tip broda
@@ -3625,6 +3645,7 @@ STR_REPLACE_VEHICLE_AIRCRAFT.aku                                :letelicu
 
 STR_REPLACE_VEHICLE_VEHICLES_IN_USE                             :{YELLOW}Upotrebljena vozila
 STR_REPLACE_VEHICLE_AVAILABLE_VEHICLES                          :{YELLOW}Dostupna vozila
+STR_REPLACE_VEHICLE_AVAILABLE_VEHICLES_TOOLTIP                  :{BLACK} Kolona sa vozilima dostupnima za zamenu
 
 STR_REPLACE_HELP_LEFT_ARRAY                                     :{BLACK}Izaberite vrstu lokomotive za zamenu
 STR_REPLACE_HELP_RIGHT_ARRAY                                    :{BLACK}Izaberite novu vrstu lokomotive koju biste želeli da koristite umesto obeležene s leve strane
@@ -4108,6 +4129,7 @@ STR_AI_SETTINGS_START_DELAY                                     :Broj dana za po
 STR_TEXTFILE_README_CAPTION                                     :{WHITE}{STRING} uputstvo za {STRING}
 STR_TEXTFILE_CHANGELOG_CAPTION                                  :{WHITE}{STRING} izmene od {STRING}
 STR_TEXTFILE_LICENCE_CAPTION                                    :{WHITE}{STRING} licenca od {STRING}
+STR_TEXTFILE_WRAP_TEXT                                          :{WHITE}Prelomiti tekst
 STR_TEXTFILE_VIEW_README                                        :{BLACK}Prikaži uputstvo
 STR_TEXTFILE_VIEW_CHANGELOG                                     :{BLACK}Izmene
 STR_TEXTFILE_VIEW_LICENCE                                       :{BLACK}Licenca
