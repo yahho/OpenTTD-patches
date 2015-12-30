@@ -381,19 +381,6 @@ public:
 		InsertInitialNode (node);
 	}
 
-	/** set origin */
-	void SetOrigin(const RailPathPos &pos)
-	{
-		AddStartupNode (pos);
-	}
-
-	/** set origin */
-	void SetOrigin(const RailPathPos &pos, const RailPathPos &rev, int reverse_penalty)
-	{
-		AddStartupNode (pos);
-		AddStartupNode (rev, reverse_penalty);
-	}
-
 	/** Return the transition cost from one tile to another. */
 	inline int TransitionCost (const RailPathPos &pos1, const RailPathPos &pos2) const
 	{
@@ -1352,7 +1339,7 @@ Trackdir YapfTrainChooseTrack(const Train *v, const RailPathPos &origin, bool re
 	CYapfRail pf (v, !_settings_game.pf.forbid_90_deg);
 
 	/* set origin node */
-	pf.SetOrigin(origin);
+	pf.AddStartupNode (origin);
 
 	/* find the best path */
 	bool path_found = pf.FindPath();
@@ -1427,7 +1414,8 @@ bool YapfTrainCheckReverse(const Train *v)
 	CYapfRail pf (v, !_settings_game.pf.forbid_90_deg, false);
 
 	/* set origin nodes */
-	pf.SetOrigin (pos, rev, reverse_penalty);
+	pf.AddStartupNode (pos);
+	pf.AddStartupNode (rev, reverse_penalty);
 
 	/* find the best path */
 	if (!pf.FindPath()) return false;
@@ -1448,12 +1436,11 @@ typedef CYapfRailT <CYapfAnyDepotRailT> CYapfAnyDepotRail;
 bool YapfTrainFindNearestDepot (const Train *v, const RailPathPos &origin,
 	uint max_penalty, FindDepotData *res)
 {
-	RailPathPos rev = v->Last()->GetReversePos();
-
 	CYapfAnyDepotRail pf (v, !_settings_game.pf.forbid_90_deg, max_penalty);
 
 	/* set origin node */
-	pf.SetOrigin (origin, rev, YAPF_INFINITE_PENALTY);
+	pf.AddStartupNode (origin);
+	pf.AddStartupNode (v->Last()->GetReversePos(), YAPF_INFINITE_PENALTY);
 
 	/* find the best path */
 	if (!pf.FindPath()) return false;
@@ -1483,7 +1470,7 @@ bool YapfTrainFindNearestSafeTile(const Train *v, const RailPathPos &pos, bool o
 	CYapfAnySafeTileRail pf (v, !_settings_game.pf.forbid_90_deg, override_railtype);
 
 	/* Set origin. */
-	pf.SetOrigin(pos);
+	pf.AddStartupNode (pos);
 
 	if (!pf.FindPath()) return false;
 
