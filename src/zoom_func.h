@@ -41,18 +41,6 @@ static inline int UnScaleByZoom(int value, ZoomLevel zoom)
 }
 
 /**
- * Scale by zoom level, usually shift left (when zoom > ZOOM_LVL_NORMAL)
- * @param value value to shift
- * @param zoom  zoom level to shift to
- * @return shifted value
- */
-static inline int ScaleByZoomLower(int value, ZoomLevel zoom)
-{
-	assert(zoom >= 0);
-	return value << zoom;
-}
-
-/**
  * Scale by zoom level, usually shift right (when zoom > ZOOM_LVL_NORMAL)
  * @param value value to shift
  * @param zoom  zoom level to shift to
