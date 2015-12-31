@@ -92,8 +92,8 @@ public:
 	virtual void OnClick(Point pt, int widget, int click_count)
 	{
 		switch (widget) {
-			case WID_EV_ZOOM_IN: DoZoomInOutWindow(ZOOM_IN,  this); break;
-			case WID_EV_ZOOM_OUT: DoZoomInOutWindow(ZOOM_OUT, this); break;
+			case WID_EV_ZOOM_IN:  DoZoomInOutWindow (true,  this); break;
+			case WID_EV_ZOOM_OUT: DoZoomInOutWindow (false, this); break;
 
 			case WID_EV_MAIN_TO_VIEW: { // location button (move main view to same spot as this view) 'Paste Location'
 				Window *w = FindWindowById(WC_MAIN_WINDOW, 0);

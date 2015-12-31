@@ -58,8 +58,8 @@ void ResetViewportAfterLoadGame()
 	/* If zoom_max is ZOOM_LVL_MIN then the setting has not been loaded yet, therefore all levels are allowed. */
 	if (_settings_client.gui.zoom_max != ZOOM_LVL_MIN) {
 		/* Ensure zoom level is allowed */
-		while (vp->zoom < _settings_client.gui.zoom_min) DoZoomInOutWindow(ZOOM_OUT, w);
-		while (vp->zoom > _settings_client.gui.zoom_max) DoZoomInOutWindow(ZOOM_IN, w);
+		while (vp->zoom < _settings_client.gui.zoom_min) DoZoomInOutWindow (false, w);
+		while (vp->zoom > _settings_client.gui.zoom_max) DoZoomInOutWindow (true,  w);
 	}
 
 	vp->virtual_left = w->viewport->scrollpos_x;

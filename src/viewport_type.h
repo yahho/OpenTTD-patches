@@ -56,15 +56,6 @@ struct ViewportSign {
 };
 
 /**
- * Directions of zooming.
- * @see DoZoomInOutWindow
- */
-enum ZoomStateChange {
-	ZOOM_IN   = 0, ///< Zoom in (get more detailed view).
-	ZOOM_OUT  = 1, ///< Zoom out (get helicopter view).
-};
-
-/**
  * Some values for constructing bounding boxes (BB). The Z positions under bridges are:
  * z=0..5  Everything that can be built under low bridges.
  * z=6     reserved, currently unused.

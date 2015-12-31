@@ -1910,8 +1910,8 @@ void ConstrainAllViewportsZoom()
 
 		ZoomLevel zoom = static_cast<ZoomLevel>(Clamp(w->viewport->zoom, _settings_client.gui.zoom_min, _settings_client.gui.zoom_max));
 		if (zoom != w->viewport->zoom) {
-			while (w->viewport->zoom < zoom) DoZoomInOutWindow(ZOOM_OUT, w);
-			while (w->viewport->zoom > zoom) DoZoomInOutWindow(ZOOM_IN, w);
+			while (w->viewport->zoom < zoom) DoZoomInOutWindow (false, w);
+			while (w->viewport->zoom > zoom) DoZoomInOutWindow (true,  w);
 		}
 	}
 }
