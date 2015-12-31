@@ -331,7 +331,9 @@ struct MainWindow : Window
 				Point pt = GetTileBelowCursor();
 				if (pt.x != -1) {
 					bool instant = (hotkey == GHK_CENTER_ZOOM && this->viewport->zoom != _settings_client.gui.zoom_min);
-					if (hotkey == GHK_CENTER_ZOOM) MaxZoomInOut(ZOOM_IN, this);
+					if (hotkey == GHK_CENTER_ZOOM) {
+						while (DoZoomInOutWindow (ZOOM_IN, this)) {};
+					}
 					ScrollMainWindowTo(pt.x, pt.y, -1, instant);
 				}
 				break;

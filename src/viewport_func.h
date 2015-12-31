@@ -38,17 +38,6 @@ void ZoomInOrOutToCursorWindow(bool in, Window * w);
 Point GetTileZoomCenterWindow(bool in, Window * w);
 void HandleZoomMessage(Window *w, const ViewPort *vp, byte widget_zoom_in, byte widget_zoom_out);
 
-/**
- * Zoom a viewport as far as possible in the given direction.
- * @param how Zooming direction.
- * @param w   Window owning the viewport.
- * @pre \a how should not be #ZOOM_NONE.
- */
-static inline void MaxZoomInOut(ZoomStateChange how, Window *w)
-{
-	while (DoZoomInOutWindow(how, w)) {};
-}
-
 void OffsetGroundSprite(int x, int y);
 
 void DrawGroundSprite(SpriteID image, PaletteID pal, const SubSprite *sub = NULL, int extra_offs_x = 0, int extra_offs_y = 0);
