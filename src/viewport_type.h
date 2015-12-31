@@ -62,7 +62,6 @@ struct ViewportSign {
 enum ZoomStateChange {
 	ZOOM_IN   = 0, ///< Zoom in (get more detailed view).
 	ZOOM_OUT  = 1, ///< Zoom out (get helicopter view).
-	ZOOM_NONE = 2, ///< Hack, used to update the button status.
 };
 
 /**

@@ -1665,7 +1665,7 @@ struct MainToolbarWindow : Window {
 		this->SetWidgetDisabledState(WID_TN_PAUSE, _networking && !_network_server); // if not server, disable pause button
 		this->SetWidgetDisabledState(WID_TN_FAST_FORWARD, _networking); // if networking, disable fast-forward button
 		PositionMainToolbar(this);
-		DoZoomInOutWindow(ZOOM_NONE, this);
+		this->InvalidateData();
 	}
 
 	virtual void FindWindowPlacementAndResize(int def_width, int def_height)
@@ -1979,7 +1979,7 @@ struct ScenarioEditorToolbarWindow : Window {
 		this->last_started_action = CBF_NONE;
 		CLRBITS(this->flags, WF_WHITE_BORDER);
 		PositionMainToolbar(this);
-		DoZoomInOutWindow(ZOOM_NONE, this);
+		this->InvalidateData();
 	}
 
 	virtual void FindWindowPlacementAndResize(int def_width, int def_height)

@@ -62,7 +62,9 @@ void ResetViewportAfterLoadGame()
 		while (vp->zoom > _settings_client.gui.zoom_max) DoZoomInOutWindow(ZOOM_IN, w);
 	}
 
-	DoZoomInOutWindow(ZOOM_NONE, w); // update button status
+	vp->virtual_left = w->viewport->scrollpos_x;
+	vp->virtual_top = w->viewport->scrollpos_y;
+	w->InvalidateData(); // update button status
 	MarkWholeScreenDirty();
 }
 

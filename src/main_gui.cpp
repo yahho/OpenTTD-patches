@@ -145,10 +145,6 @@ bool DoZoomInOutWindow(ZoomStateChange how, Window *w)
 	vp = w->viewport;
 
 	switch (how) {
-		case ZOOM_NONE:
-			/* On initialisation of the viewport we don't do anything. */
-			break;
-
 		case ZOOM_IN:
 			if (vp->zoom <= _settings_client.gui.zoom_min) return false;
 			vp->zoom = (ZoomLevel)((int)vp->zoom - 1);
@@ -175,10 +171,10 @@ bool DoZoomInOutWindow(ZoomStateChange how, Window *w)
 			w->viewport->follow_vehicle = INVALID_VEHICLE;
 			break;
 	}
-	if (vp != NULL) { // the vp can be null when how == ZOOM_NONE
-		vp->virtual_left = w->viewport->scrollpos_x;
-		vp->virtual_top = w->viewport->scrollpos_y;
-	}
+
+	vp->virtual_left = w->viewport->scrollpos_x;
+	vp->virtual_top = w->viewport->scrollpos_y;
+
 	/* Update the windows that have zoom-buttons to perhaps disable their buttons */
 	w->InvalidateData();
 	return true;
