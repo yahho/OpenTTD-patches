@@ -378,12 +378,12 @@ static void HandleAutodirPlacement (TileIndex start, TileIndex end)
  * If one tile marked abort and use GenericPlaceSignals()
  * else use CmdBuildSingleSignal() or CmdRemoveSingleSignal() in rail_cmd.cpp to build many signals
  */
-static void HandleAutoSignalPlacement()
+static void HandleAutoSignalPlacement (TileIndex start, TileIndex end)
 {
 	uint32 p2 = GB(_thd.drawstyle, 0, 3); // 0..5
 
-	if ((_thd.drawstyle & HT_DRAG_MASK) == HT_RECT) { // one tile case
-		GenericPlaceSignals(TileVirtXY(_thd.selend.x, _thd.selend.y));
+	if (start == end) { // one-tile case
+		GenericPlaceSignals (end);
 		return;
 	}
 
@@ -406,7 +406,7 @@ static void HandleAutoSignalPlacement()
 
 	/* _settings_client.gui.drag_signals_density is given as a parameter such that each user
 	 * in a network game can specify his/her own signal density */
-	DoCommandP(TileVirtXY(_thd.selstart.x, _thd.selstart.y), TileVirtXY(_thd.selend.x, _thd.selend.y), p2,
+	DoCommandP (start, end, p2,
 			_remove_button_clicked ? CMD_REMOVE_SIGNAL_TRACK : CMD_BUILD_SIGNAL_TRACK);
 }
 
@@ -701,7 +701,7 @@ struct BuildRailToolbarWindow : Window {
 					break;
 
 				case DRAG_BUILD_SIGNALS:
-					HandleAutoSignalPlacement();
+					HandleAutoSignalPlacement (start_tile, end_tile);
 					break;
 
 				case DRAG_DEMOLISH_AREA:
