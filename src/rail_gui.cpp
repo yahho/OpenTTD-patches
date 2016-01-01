@@ -358,18 +358,17 @@ static void BuildRailClick_Remove(Window *w)
 	}
 }
 
-static void HandleAutodirPlacement()
+static void HandleAutodirPlacement (TileIndex start, TileIndex end)
 {
-	TileIndex endtile = TileVirtXY(_thd.selend.x, _thd.selend.y);
 	Track track = (Track)(_thd.drawstyle & HT_DIR_MASK); // 0..5
 
-	if (_thd.drawstyle & HT_RAIL) { // one tile case
-		DoCommandP(endtile, _cur_railtype, track,
+	if (start == end) { // one-tile case
+		DoCommandP (end, _cur_railtype, track,
 				_remove_button_clicked ? CMD_REMOVE_SINGLE_RAIL : CMD_BUILD_SINGLE_RAIL);
 		return;
 	}
 
-	DoCommandP(TileVirtXY(_thd.selstart.x, _thd.selstart.y), endtile, _cur_railtype | (track << 4),
+	DoCommandP (start, end, _cur_railtype | (track << 4),
 			_remove_button_clicked ? CMD_REMOVE_RAILROAD_TRACK : CMD_BUILD_RAILROAD_TRACK);
 }
 
@@ -698,7 +697,7 @@ struct BuildRailToolbarWindow : Window {
 					break;
 
 				case DRAG_PLACE_RAIL:
-					HandleAutodirPlacement();
+					HandleAutodirPlacement (start_tile, end_tile);
 					break;
 
 				case DRAG_BUILD_SIGNALS:
