@@ -1928,7 +1928,10 @@ static void HandlePlacePresize()
 		return;
 	}
 
-	w->OnPlacePresize(pt, TileVirtXY(pt.x, pt.y));
+	TileIndex tile = TileVirtXY (pt.x, pt.y);
+	TileIndex tile2 = tile;
+	w->OnPlacePresize (&tile, &tile2);
+	VpSetPresizeRange (tile, tile2);
 }
 
 /**

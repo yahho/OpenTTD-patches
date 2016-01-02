@@ -267,23 +267,20 @@ struct BuildDocksToolbarWindow : Window {
 		DeleteWindowByClass(WC_BUILD_BRIDGE);
 	}
 
-	virtual void OnPlacePresize(Point pt, TileIndex tile_from)
+	void OnPlacePresize (TileIndex *tile1, TileIndex *tile2) OVERRIDE
 	{
-		TileIndex tile_to = tile_from;
-
 		if (this->last_clicked_widget == WID_DT_BUILD_AQUEDUCT) {
-			GetOtherAqueductEnd(tile_from, &tile_to);
+			GetOtherAqueductEnd (*tile1, tile2);
 		} else {
+			TileIndex tile_from = *tile1;
 			DiagDirection dir = GetInclinedSlopeDirection(GetTileSlope(tile_from));
 			if (IsValidDiagDirection(dir)) {
 				/* Locks and docks always select the tile "down" the slope. */
-				tile_to = TileAddByDiagDir(tile_from, ReverseDiagDir(dir));
+				*tile2 = TileAddByDiagDir (tile_from, ReverseDiagDir(dir));
 				/* Locks also select the tile "up" the slope. */
-				if (this->last_clicked_widget == WID_DT_LOCK) tile_from = TileAddByDiagDir(tile_from, dir);
+				if (this->last_clicked_widget == WID_DT_LOCK) *tile1 = TileAddByDiagDir (tile_from, dir);
 			}
 		}
-
-		VpSetPresizeRange(tile_from, tile_to);
 	}
 
 	static HotkeyList hotkeys;

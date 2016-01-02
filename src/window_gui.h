@@ -788,10 +788,10 @@ public:
 	 * The user moves over the map when a tile highlight mode has been set
 	 * when the special mouse mode has been set to 'PRESIZE' mode. An
 	 * example of this is the tile highlight for dock building.
-	 * @param pt   the exact point on the map where the mouse is.
-	 * @param tile the tile on the map where the mouse is.
+	 * @param tile  the tile on the map where the mouse is (in), start of selection (out)
+	 * @param tile2 the tile on the map where the mouse is (in), end of selection (out)
 	 */
-	virtual void OnPlacePresize(Point pt, TileIndex tile) {}
+	virtual void OnPlacePresize (TileIndex *tile, TileIndex *tile2) {}
 
 	/*** End of the event handling ***/
 
