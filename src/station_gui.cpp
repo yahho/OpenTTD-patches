@@ -2292,7 +2292,6 @@ void ShowSelectBaseStationIfNeeded (Command *cmd, const TileArea &ta, bool waypo
 	if (selection_window != NULL) {
 		/* Abort current distant-join and start new one */
 		delete selection_window;
-		UpdateTileSelection();
 	}
 
 	/* Only show the popup if we press ctrl and we can build there. */
