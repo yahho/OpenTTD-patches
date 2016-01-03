@@ -2421,6 +2421,21 @@ void UpdateTileSelection()
 	bool new_diagonal = false;
 
 	if ((_thd.place_mode & HT_DRAG_MASK) == HT_SPECIAL) {
+		if (_special_mouse_mode == WSM_PRESIZE) {
+			Window *w = _thd.GetCallbackWnd();
+			if (w != NULL) {
+				Point pt = GetTileBelowCursor();
+				if (pt.x == -1) {
+					_thd.selend.x = -1;
+				} else {
+					TileIndex tile = TileVirtXY (pt.x, pt.y);
+					TileIndex tile2 = tile;
+					w->OnPlacePresize (&tile, &tile2);
+					VpSetPresizeRange (tile, tile2);
+				}
+			}
+		}
+
 		int x1 = _thd.selend.x;
 		int y1 = _thd.selend.y;
 		if (x1 != -1) {
@@ -2446,6 +2461,7 @@ void UpdateTileSelection()
 			new_drawstyle = _thd.next_drawstyle;
 		}
 	} else if ((_thd.place_mode & HT_DRAG_MASK) != HT_NONE) {
+		assert (_special_mouse_mode != WSM_PRESIZE);
 		Point pt = GetTileBelowCursor();
 		int x1 = pt.x;
 		int y1 = pt.y;

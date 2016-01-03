@@ -1915,25 +1915,6 @@ static void DecreaseWindowCounters()
 	}
 }
 
-static void HandlePlacePresize()
-{
-	if (_special_mouse_mode != WSM_PRESIZE) return;
-
-	Window *w = _thd.GetCallbackWnd();
-	if (w == NULL) return;
-
-	Point pt = GetTileBelowCursor();
-	if (pt.x == -1) {
-		_thd.selend.x = -1;
-		return;
-	}
-
-	TileIndex tile = TileVirtXY (pt.x, pt.y);
-	TileIndex tile2 = tile;
-	w->OnPlacePresize (&tile, &tile2);
-	VpSetPresizeRange (tile, tile2);
-}
-
 /**
  * Handle dragging and dropping in mouse dragging mode (#WSM_DRAGDROP).
  * @return State of handling the event.
@@ -2799,7 +2780,6 @@ static void MouseLoop(MouseClick click, int mousewheel)
 	 * But there is no company related window open anyway, so _current_company is not used. */
 	assert(HasModalProgress() || IsLocalCompany());
 
-	HandlePlacePresize();
 	UpdateTileSelection();
 
 	if (VpHandlePlaceSizingDrag()  == ES_HANDLED) return;
