@@ -2417,15 +2417,12 @@ Window *TileHighlightData::GetCallbackWnd()
  */
 void UpdateTileSelection()
 {
-	int x1;
-	int y1;
-
 	HighLightStyle new_drawstyle = HT_NONE;
 	bool new_diagonal = false;
 
 	if ((_thd.place_mode & HT_DRAG_MASK) == HT_SPECIAL) {
-		x1 = _thd.selend.x;
-		y1 = _thd.selend.y;
+		int x1 = _thd.selend.x;
+		int y1 = _thd.selend.y;
 		if (x1 != -1) {
 			int x2 = _thd.selstart.x & ~TILE_UNIT_MASK;
 			int y2 = _thd.selstart.y & ~TILE_UNIT_MASK;
@@ -2450,8 +2447,8 @@ void UpdateTileSelection()
 		}
 	} else if ((_thd.place_mode & HT_DRAG_MASK) != HT_NONE) {
 		Point pt = GetTileBelowCursor();
-		x1 = pt.x;
-		y1 = pt.y;
+		int x1 = pt.x;
+		int y1 = pt.y;
 		if (x1 != -1) {
 			switch (_thd.place_mode & HT_DRAG_MASK) {
 				case HT_RECT:
