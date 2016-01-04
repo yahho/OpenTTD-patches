@@ -2217,7 +2217,7 @@ static void PlaceObject()
 	pt = GetTileBelowCursor();
 	if (pt.x == -1) return;
 
-	if ((_thd.place_mode & HT_DRAG_MASK) == HT_POINT) {
+	if (_pointer_mode == POINTER_CORNER) {
 		pt.x += TILE_SIZE / 2;
 		pt.y += TILE_SIZE / 2;
 	}
@@ -2234,12 +2234,14 @@ bool HandleViewportClicked(const ViewPort *vp, int x, int y)
 {
 	const Vehicle *v = CheckClickOnVehicle(vp, x, y);
 
-	if (_thd.place_mode & HT_VEHICLE) {
+	PointerMode mode = _pointer_mode;
+	if (mode >= POINTER_VEHICLE) {
 		if (v != NULL && VehicleClicked(v)) return true;
+		mode = (PointerMode)(mode - POINTER_VEHICLE);
 	}
 
 	/* Vehicle placement mode already handled above. */
-	if ((_thd.place_mode & HT_DRAG_MASK) != HT_NONE) {
+	if (mode != POINTER_NONE) {
 		PlaceObject();
 		return true;
 	}
@@ -2410,7 +2412,7 @@ Window *TileHighlightData::GetCallbackWnd()
 
 /**
  * Updates tile highlighting for all cases.
- * Uses _thd.selstart and _thd.selend and _thd.place_mode (set elsewhere) to determine _thd.pos and _thd.size
+ * Uses _thd.selstart and _thd.selend (set elsewhere) to determine _thd.pos and _thd.size
  * Also drawstyle is determined. Uses _thd.new.* as a buffer and calls SetSelectionTilesDirty() twice,
  * Once for the old and once for the new selection.
  * _thd is TileHighlightData, found in viewport.h
@@ -2420,8 +2422,11 @@ void UpdateTileSelection()
 	HighLightStyle new_drawstyle = HT_NONE;
 	bool new_diagonal = false;
 
-	if ((_thd.place_mode & HT_DRAG_MASK) == HT_SPECIAL) {
-		if (_special_mouse_mode == WSM_PRESIZE) {
+	PointerMode mode = _pointer_mode;
+	if (mode >= POINTER_VEHICLE) mode = (PointerMode)(mode - POINTER_VEHICLE);
+
+	if ((mode == POINTER_AREA) || (_thd.select_method != VPM_NONE)) {
+		if (mode == POINTER_AREA) {
 			Window *w = _thd.GetCallbackWnd();
 			if (w != NULL) {
 				Point pt = GetTileBelowCursor();
@@ -2460,37 +2465,34 @@ void UpdateTileSelection()
 			}
 			new_drawstyle = _thd.next_drawstyle;
 		}
-	} else if ((_thd.place_mode & HT_DRAG_MASK) != HT_NONE) {
-		assert (_special_mouse_mode != WSM_PRESIZE);
+	} else if ((mode != POINTER_NONE) && (mode != POINTER_DRAG)) {
 		Point pt = GetTileBelowCursor();
 		int x1 = pt.x;
 		int y1 = pt.y;
 		if (x1 != -1) {
-			switch (_thd.place_mode & HT_DRAG_MASK) {
-				case HT_RECT:
+			switch (mode) {
+				case POINTER_TILE:
 					new_drawstyle = HT_RECT;
 					break;
-				case HT_POINT:
+				case POINTER_CORNER:
 					new_drawstyle = HT_POINT;
 					x1 += TILE_SIZE / 2;
 					y1 += TILE_SIZE / 2;
 					break;
-				case HT_RAIL:
+				case POINTER_RAIL_AUTO:
 					/* Draw one highlighted tile in any direction */
 					new_drawstyle = GetAutorailHT(pt.x, pt.y);
 					break;
-				case HT_LINE:
-					switch (_thd.place_mode & HT_DIR_MASK) {
-						case HT_DIR_X: new_drawstyle = HT_LINE | HT_DIR_X; break;
-						case HT_DIR_Y: new_drawstyle = HT_LINE | HT_DIR_Y; break;
+				default:
+					switch (mode) {
+						case POINTER_RAIL_X: new_drawstyle = HT_LINE | HT_DIR_X; break;
+						case POINTER_RAIL_Y: new_drawstyle = HT_LINE | HT_DIR_Y; break;
 
-						case HT_DIR_HU:
-						case HT_DIR_HL:
+						case POINTER_RAIL_H:
 							new_drawstyle = (pt.x & TILE_UNIT_MASK) + (pt.y & TILE_UNIT_MASK) <= TILE_SIZE ? HT_LINE | HT_DIR_HU : HT_LINE | HT_DIR_HL;
 							break;
 
-						case HT_DIR_VL:
-						case HT_DIR_VR:
+						case POINTER_RAIL_V:
 							new_drawstyle = (pt.x & TILE_UNIT_MASK) > (pt.y & TILE_UNIT_MASK) ? HT_LINE | HT_DIR_VL : HT_LINE | HT_DIR_VR;
 							break;
 
@@ -2498,9 +2500,6 @@ void UpdateTileSelection()
 					}
 					_thd.selstart.x = x1 & ~TILE_UNIT_MASK;
 					_thd.selstart.y = y1 & ~TILE_UNIT_MASK;
-					break;
-				default:
-					NOT_REACHED();
 					break;
 			}
 			_thd.new_pos.x = x1 & ~TILE_UNIT_MASK;
@@ -2546,6 +2545,8 @@ static inline void ShowMeasurementTooltips(StringID str, uint paramcount, const 
 /** highlighting tiles while only going over them with the mouse */
 void VpStartPlaceSizing (TileIndex tile, ViewportPlaceMethod method, int userdata)
 {
+	assert (method != VPM_NONE);
+
 	_thd.select_method = method;
 	_thd.select_data   = userdata;
 	_thd.selend.x = TileX(tile) * TILE_SIZE;
@@ -2563,18 +2564,21 @@ void VpStartPlaceSizing (TileIndex tile, ViewportPlaceMethod method, int userdat
 		_thd.selstart.y += TILE_SIZE / 2;
 	}
 
-	HighLightStyle others = _thd.place_mode & ~(HT_DRAG_MASK | HT_DIR_MASK);
-	if ((_thd.place_mode & HT_DRAG_MASK) == HT_RECT) {
-		_thd.place_mode = HT_SPECIAL | others;
-		_thd.next_drawstyle = HT_RECT;
-	} else if (_thd.place_mode & (HT_RAIL | HT_LINE)) {
-		_thd.place_mode = HT_SPECIAL | others;
-		_thd.next_drawstyle = _thd.drawstyle;
-	} else {
-		_thd.place_mode = HT_SPECIAL | others;
-		_thd.next_drawstyle = HT_POINT;
+	switch (_pointer_mode) {
+		case POINTER_TILE:
+			_thd.next_drawstyle = HT_RECT;
+			break;
+
+		case POINTER_CORNER:
+			_thd.next_drawstyle = HT_POINT;
+			break;
+
+		default:
+			assert (_pointer_mode >= POINTER_RAIL_FIRST);
+			assert (_pointer_mode <= POINTER_RAIL_LAST);
+			_thd.next_drawstyle = _thd.drawstyle;
+			break;
 	}
-	_special_mouse_mode = WSM_SIZING;
 }
 
 void VpSetPlaceSizingLimit(int limit)
@@ -2599,12 +2603,6 @@ void VpSetPresizeRange(TileIndex from, TileIndex to)
 
 	/* show measurement only if there is any length to speak of */
 	if (distance > 1) ShowMeasurementTooltips(STR_MEASURE_LENGTH, 1, &distance, TCC_HOVER);
-}
-
-static void VpStartPreSizing()
-{
-	_thd.selend.x = -1;
-	_special_mouse_mode = WSM_PRESIZE;
 }
 
 /**
@@ -3012,6 +3010,8 @@ static void CalcRaildirsDrawstyle(int x, int y, int method)
  */
 void VpSelectTilesWithMethod(int x, int y, ViewportPlaceMethod method)
 {
+	assert (method != VPM_NONE);
+
 	int sx, sy;
 	HighLightStyle style;
 
@@ -3177,17 +3177,7 @@ calc_heightdiff_single_direction:;
 /** Abort the current dragging operation, if any. */
 void VpStopPlaceSizing (void)
 {
-	_special_mouse_mode = WSM_NONE;
-	HighLightStyle others = _thd.place_mode & ~(HT_DRAG_MASK | HT_DIR_MASK);
-	if ((_thd.next_drawstyle & HT_DRAG_MASK) == HT_RECT) {
-		_thd.place_mode = HT_RECT | others;
-	} else if (_thd.select_method & VPM_SIGNALDIRS) {
-		_thd.place_mode = HT_RECT | others;
-	} else if (_thd.select_method & VPM_RAILDIRS) {
-		_thd.place_mode = (_thd.select_method & ~VPM_RAILDIRS) ? _thd.next_drawstyle : (HT_RAIL | others);
-	} else {
-		_thd.place_mode = HT_POINT | others;
-	}
+	_thd.select_method = VPM_NONE;
 	SetTileSelectSize(1, 1);
 }
 
@@ -3197,7 +3187,7 @@ void VpStopPlaceSizing (void)
  */
 EventState VpHandlePlaceSizingDrag()
 {
-	if (_special_mouse_mode != WSM_SIZING) return ES_NOT_HANDLED;
+	if (_thd.select_method == VPM_NONE) return ES_NOT_HANDLED;
 
 	/* stop drag mode if the window has been closed */
 	Window *w = _thd.GetCallbackWnd();
@@ -3224,29 +3214,18 @@ EventState VpHandlePlaceSizingDrag()
 	return ES_HANDLED;
 }
 
-/**
- * Change the cursor and mouse click/drag handling to a mode for performing special operations like tile area selection, object placement, etc.
- * @param icon New shape of the mouse cursor.
- * @param pal Palette to use.
- * @param mode Mode to perform.
- * @param w %Window requesting the mode change.
- */
-void SetObjectToPlaceWnd(CursorID icon, PaletteID pal, HighLightStyle mode, Window *w)
-{
-	SetObjectToPlace(icon, pal, mode, w->window_class, w->window_number);
-}
-
 #include "table/animcursors.h"
 
 /**
  * Change the cursor and mouse click/drag handling to a mode for performing special operations like tile area selection, object placement, etc.
- * @param icon New shape of the mouse cursor.
- * @param pal Palette to use.
  * @param mode Mode to perform.
  * @param window_class %Window class of the window requesting the mode change.
  * @param window_num Number of the window in its class requesting the mode change.
+ * @param icon New shape of the mouse cursor.
+ * @param pal Palette to use.
  */
-void SetObjectToPlace(CursorID icon, PaletteID pal, HighLightStyle mode, WindowClass window_class, WindowNumber window_num)
+void SetPointerMode (PointerMode mode, WindowClass window_class,
+	WindowNumber window_num, CursorID icon, PaletteID pal)
 {
 	if (_thd.window_class != WC_INVALID) {
 		/* Undo clicking on button and drag & drop */
@@ -3267,19 +3246,13 @@ void SetObjectToPlace(CursorID icon, PaletteID pal, HighLightStyle mode, WindowC
 
 	_thd.make_square_red = false;
 
-	if (mode == HT_DRAG) { // HT_DRAG is for dragdropping trains in the depot window
-		mode = HT_NONE;
-		_special_mouse_mode = WSM_DRAGDROP;
-	} else {
-		_special_mouse_mode = WSM_NONE;
-	}
+	_pointer_mode = mode;
 
-	_thd.place_mode = mode;
 	_thd.window_class = window_class;
 	_thd.window_number = window_num;
 
-	if ((mode & HT_DRAG_MASK) == HT_SPECIAL) { // special tools, like tunnels or docks start with presizing mode
-		VpStartPreSizing();
+	if (mode == POINTER_AREA) { // special tools, like tunnels or docks start with presizing mode
+		_thd.selend.x = -1;
 	}
 
 	if ((icon & ANIMCURSOR_FLAG) != 0) {
@@ -3293,7 +3266,7 @@ void SetObjectToPlace(CursorID icon, PaletteID pal, HighLightStyle mode, WindowC
 /** Reset the cursor and mouse mode handling back to default (normal cursor, only clicking in windows). */
 void ResetObjectToPlace()
 {
-	SetObjectToPlace(SPR_CURSOR_MOUSE, PAL_NONE, HT_NONE, WC_MAIN_WINDOW, 0);
+	SetPointerMode (POINTER_NONE, WC_MAIN_WINDOW, 0, SPR_CURSOR_MOUSE);
 }
 
 Point GetViewportStationMiddle(const ViewPort *vp, const Station *st)

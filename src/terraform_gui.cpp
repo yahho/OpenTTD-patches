@@ -196,27 +196,27 @@ struct TerraformToolbarWindow : Window {
 
 		switch (widget) {
 			case WID_TT_LOWER_LAND: // Lower land button
-				HandlePlacePushButton(this, WID_TT_LOWER_LAND, ANIMCURSOR_LOWERLAND, HT_POINT);
+				HandlePlacePushButton (this, WID_TT_LOWER_LAND, ANIMCURSOR_LOWERLAND, POINTER_CORNER);
 				this->placing_action = PLACE_LOWER_AREA;
 				break;
 
 			case WID_TT_RAISE_LAND: // Raise land button
-				HandlePlacePushButton(this, WID_TT_RAISE_LAND, ANIMCURSOR_RAISELAND, HT_POINT);
+				HandlePlacePushButton (this, WID_TT_RAISE_LAND, ANIMCURSOR_RAISELAND, POINTER_CORNER);
 				this->placing_action = PLACE_RAISE_AREA;
 				break;
 
 			case WID_TT_LEVEL_LAND: // Level land button
-				HandlePlacePushButton(this, WID_TT_LEVEL_LAND, SPR_CURSOR_LEVEL_LAND, HT_POINT);
+				HandlePlacePushButton (this, WID_TT_LEVEL_LAND, SPR_CURSOR_LEVEL_LAND, POINTER_CORNER);
 				this->placing_action = PLACE_LEVEL_AREA;
 				break;
 
 			case WID_TT_DEMOLISH: // Demolish aka dynamite button
-				HandlePlacePushButton(this, WID_TT_DEMOLISH, ANIMCURSOR_DEMOLISH, HT_RECT);
+				HandlePlacePushButton (this, WID_TT_DEMOLISH, ANIMCURSOR_DEMOLISH, POINTER_TILE);
 				this->placing_action = PLACE_DEMOLISH_AREA;
 				break;
 
 			case WID_TT_BUY_LAND: // Buy land button
-				HandlePlacePushButton(this, WID_TT_BUY_LAND, SPR_CURSOR_BUY_LAND, HT_RECT);
+				HandlePlacePushButton (this, WID_TT_BUY_LAND, SPR_CURSOR_BUY_LAND, POINTER_TILE);
 				this->placing_action = PLACE_BUY_LAND;
 				break;
 
@@ -225,7 +225,7 @@ struct TerraformToolbarWindow : Window {
 				break;
 
 			case WID_TT_PLACE_SIGN: // Place sign button
-				HandlePlacePushButton(this, WID_TT_PLACE_SIGN, SPR_CURSOR_SIGN, HT_RECT);
+				HandlePlacePushButton (this, WID_TT_PLACE_SIGN, SPR_CURSOR_SIGN, POINTER_TILE);
 				this->placing_action = PLACE_SIGN;
 				break;
 
@@ -575,32 +575,32 @@ struct ScenarioEditorLandscapeGenerationWindow : Window {
 
 		switch (widget) {
 			case WID_ETT_DEMOLISH: // Demolish aka dynamite button
-				HandlePlacePushButton(this, WID_ETT_DEMOLISH, ANIMCURSOR_DEMOLISH, HT_RECT);
+				HandlePlacePushButton (this, WID_ETT_DEMOLISH, ANIMCURSOR_DEMOLISH, POINTER_TILE);
 				this->placing_action = PLACE_DEMOLISH_AREA;
 				break;
 
 			case WID_ETT_LOWER_LAND: // Lower land button
-				HandlePlacePushButton(this, WID_ETT_LOWER_LAND, ANIMCURSOR_LOWERLAND, HT_POINT);
+				HandlePlacePushButton (this, WID_ETT_LOWER_LAND, ANIMCURSOR_LOWERLAND, POINTER_CORNER);
 				this->placing_action = PLACE_LOWER_AREA;
 				break;
 
 			case WID_ETT_RAISE_LAND: // Raise land button
-				HandlePlacePushButton(this, WID_ETT_RAISE_LAND, ANIMCURSOR_RAISELAND, HT_POINT);
+				HandlePlacePushButton (this, WID_ETT_RAISE_LAND, ANIMCURSOR_RAISELAND, POINTER_CORNER);
 				this->placing_action = PLACE_RAISE_AREA;
 				break;
 
 			case WID_ETT_LEVEL_LAND: // Level land button
-				HandlePlacePushButton(this, WID_ETT_LEVEL_LAND, SPR_CURSOR_LEVEL_LAND, HT_POINT);
+				HandlePlacePushButton (this, WID_ETT_LEVEL_LAND, SPR_CURSOR_LEVEL_LAND, POINTER_CORNER);
 				this->placing_action = PLACE_LEVEL_AREA;
 				break;
 
 			case WID_ETT_PLACE_ROCKS: // Place rocks button
-				HandlePlacePushButton(this, WID_ETT_PLACE_ROCKS, SPR_CURSOR_ROCKY_AREA, HT_RECT);
+				HandlePlacePushButton (this, WID_ETT_PLACE_ROCKS, SPR_CURSOR_ROCKY_AREA, POINTER_TILE);
 				this->placing_action = PLACE_CREATE_ROCKS;
 				break;
 
 			case WID_ETT_PLACE_DESERT: // Place desert button (in tropical climate)
-				HandlePlacePushButton(this, WID_ETT_PLACE_DESERT, SPR_CURSOR_DESERT, HT_RECT);
+				HandlePlacePushButton (this, WID_ETT_PLACE_DESERT, SPR_CURSOR_DESERT, POINTER_TILE);
 				this->placing_action = PLACE_CREATE_DESERT;
 				break;
 

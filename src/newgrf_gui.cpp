@@ -1040,7 +1040,7 @@ struct NewGRFWindow : public Window, NewGRFScanCallback {
 
 				this->InvalidateData();
 				if (click_count == 1) {
-					if (this->editable && this->active_sel != NULL) SetObjectToPlaceWnd(SPR_CURSOR_MOUSE, PAL_NONE, HT_DRAG, this);
+					if (this->editable && this->active_sel != NULL) SetPointerMode (POINTER_DRAG, this, SPR_CURSOR_MOUSE);
 					break;
 				}
 				/* FALL THROUGH, with double click. */
@@ -1095,7 +1095,7 @@ struct NewGRFWindow : public Window, NewGRFScanCallback {
 				}
 				this->InvalidateData();
 				if (click_count == 1) {
-					if (this->editable && this->avail_sel != NULL && !HasBit(this->avail_sel->flags, GCF_INVALID)) SetObjectToPlaceWnd(SPR_CURSOR_MOUSE, PAL_NONE, HT_DRAG, this);
+					if (this->editable && this->avail_sel != NULL && !HasBit(this->avail_sel->flags, GCF_INVALID)) SetPointerMode (POINTER_DRAG, this, SPR_CURSOR_MOUSE);
 					break;
 				}
 				/* FALL THROUGH, with double click. */

@@ -284,7 +284,7 @@ public:
 		if (_game_mode != GM_MENU && !_networking && _game_mode != GM_EDITOR) {
 			DoCommandP(0, PM_PAUSED_SAVELOAD, 1, CMD_PAUSE);
 		}
-		SetObjectToPlace(SPR_CURSOR_ZZZ, PAL_NONE, HT_NONE, WC_MAIN_WINDOW, 0);
+		SetPointerMode (POINTER_NONE, WC_MAIN_WINDOW, 0, SPR_CURSOR_ZZZ);
 
 		this->OnInvalidateData(0);
 

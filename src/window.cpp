@@ -78,7 +78,7 @@ byte _scroller_click_timeout = 0;
 bool _scrolling_viewport;  ///< A viewport is being scrolled with the mouse.
 bool _mouse_hovering;      ///< The mouse is hovering over the same point.
 
-SpecialMouseMode _special_mouse_mode; ///< Mode of the mouse.
+PointerMode _pointer_mode; ///< Pointer mode.
 
 
 /**
@@ -1921,7 +1921,7 @@ static void DecreaseWindowCounters()
  */
 static EventState HandleMouseDragDrop()
 {
-	if (_special_mouse_mode != WSM_DRAGDROP) return ES_NOT_HANDLED;
+	if (_pointer_mode != POINTER_DRAG) return ES_NOT_HANDLED;
 
 	if (_left_button_down && _cursor.delta.x == 0 && _cursor.delta.y == 0) return ES_HANDLED; // Dragging, but the mouse did not move.
 

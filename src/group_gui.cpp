@@ -609,7 +609,7 @@ public:
 
 				this->group_sel = this->vli.index = this->groups[id_g]->index;
 
-				SetObjectToPlaceWnd(SPR_CURSOR_MOUSE, PAL_NONE, HT_DRAG, this);
+				SetPointerMode (POINTER_DRAG, this, SPR_CURSOR_MOUSE);
 
 				this->vehicles.ForceRebuild();
 				this->SetDirty();
@@ -626,7 +626,7 @@ public:
 				this->vehicle_sel = v->index;
 
 				int image = v->GetImage(_current_text_dir == TD_RTL ? DIR_E : DIR_W, EIT_IN_LIST);
-				SetObjectToPlaceWnd(image, GetVehiclePalette(v), HT_DRAG, this);
+				SetPointerMode (POINTER_DRAG, this, image, GetVehiclePalette(v));
 				_cursor.vehchain = true;
 
 				this->SetDirty();
@@ -1018,7 +1018,7 @@ void DeleteGroupHighlightOfVehicle(const Vehicle *v)
 	/* If we haven't got any vehicles on the mouse pointer, we haven't got any highlighted in any group windows either
 	 * If that is the case, we can skip looping though the windows and save time
 	 */
-	if (_special_mouse_mode != WSM_DRAGDROP) return;
+	if (_pointer_mode != POINTER_DRAG) return;
 
 	VehicleGroupWindow *w = FindVehicleGroupWindow(v->type, v->owner);
 	if (w != NULL) w->UnselectVehicle(v->index);

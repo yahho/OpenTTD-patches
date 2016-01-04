@@ -23,11 +23,8 @@ enum HighLightStyle {
 	HT_NONE      = 0x000, ///< default
 	HT_RECT      = 0x010, ///< rectangle (stations, depots, ...)
 	HT_POINT     = 0x020, ///< point (lower land, raise land, level land, ...)
-	HT_SPECIAL   = 0x030, ///< special mode used for highlighting while dragging (and for tunnels/docks)
-	HT_DRAG      = 0x040, ///< dragging items in the depot windows
 	HT_LINE      = 0x008, ///< used for autorail highlighting (longer stretches), lower bits: direction
 	HT_RAIL      = 0x080, ///< autorail (one piece), lower bits: direction
-	HT_VEHICLE   = 0x100, ///< vehicle is accepted as target as well (bitmask)
 	HT_DRAG_MASK = 0x0F8, ///< Mask for the tile drag-type modes.
 
 	/* lower bits (used with HT_LINE and HT_RAIL):
@@ -64,7 +61,6 @@ struct TileHighlightData {
 	HighLightStyle drawstyle;      ///< Lower bits 0-3 are reserved for detailed highlight information.
 	HighLightStyle next_drawstyle; ///< Queued, but not yet drawn style.
 
-	HighLightStyle place_mode;     ///< Method which is used to place the selection.
 	WindowClass window_class;      ///< The \c WindowClass of the window that is responsible for the selection mode.
 	WindowNumber window_number;    ///< The \c WindowNumber of the window that is responsible for the selection mode.
 

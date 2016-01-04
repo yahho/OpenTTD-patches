@@ -947,7 +947,7 @@ struct RefitWindow : public Window {
 				this->SetSelectedVehicles(pt.x - nwi->pos_x);
 				this->SetWidgetDirty(WID_VR_VEHICLE_PANEL_DISPLAY);
 				if (!_ctrl_pressed) {
-					SetObjectToPlaceWnd(SPR_CURSOR_MOUSE, PAL_NONE, HT_DRAG, this);
+					SetPointerMode (POINTER_DRAG, this, SPR_CURSOR_MOUSE);
 				} else {
 					/* The vehicle selection has changed. */
 					this->InvalidateData(2);
@@ -2872,7 +2872,7 @@ void ShowVehicleViewWindow(const Vehicle *v)
 bool VehicleClicked(const Vehicle *v)
 {
 	assert(v != NULL);
-	if (!(_thd.place_mode & HT_VEHICLE)) return false;
+	if (_pointer_mode < POINTER_VEHICLE) return false;
 
 	v = v->First();
 	if (!v->IsPrimaryVehicle()) return false;

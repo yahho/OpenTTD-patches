@@ -522,7 +522,7 @@ struct DepotWindow : Window {
 				} else if (v != NULL) {
 					bool rtl = _current_text_dir == TD_RTL;
 					int image = v->GetImage(rtl ? DIR_E : DIR_W, EIT_IN_DEPOT);
-					SetObjectToPlaceWnd(image, GetVehiclePalette(v), HT_DRAG, this);
+					SetPointerMode (POINTER_DRAG, this, image, GetVehiclePalette(v));
 
 					this->sel = v->index;
 					this->SetDirty();
@@ -742,7 +742,7 @@ struct DepotWindow : Window {
 						SPR_CURSOR_CLONE_SHIP, SPR_CURSOR_CLONE_AIRPLANE
 					};
 
-					SetObjectToPlaceWnd(clone_icons[this->type], PAL_NONE, HT_VEHICLE, this);
+					SetPointerMode (POINTER_VEHICLE, this, clone_icons[this->type]);
 				} else {
 					ResetObjectToPlace();
 				}
@@ -1054,7 +1054,7 @@ void DeleteDepotHighlightOfVehicle(const Vehicle *v)
 	/* If we haven't got any vehicles on the mouse pointer, we haven't got any highlighted in any depots either
 	 * If that is the case, we can skip looping though the windows and save time
 	 */
-	if (_special_mouse_mode != WSM_DRAGDROP) return;
+	if (_pointer_mode != POINTER_DRAG) return;
 
 	w = dynamic_cast<DepotWindow*>(FindWindowById(WC_VEHICLE_DEPOT, v->tile));
 	if (w != NULL) {

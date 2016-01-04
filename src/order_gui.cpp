@@ -577,12 +577,12 @@ private:
 	{
 		assert(type > OPOS_NONE && type < OPOS_END);
 
-		static const HighLightStyle goto_place_style[OPOS_END - 1] = {
-			HT_RECT | HT_VEHICLE, // OPOS_GOTO
-			HT_NONE,              // OPOS_CONDITIONAL
-			HT_VEHICLE,           // OPOS_SHARE
+		static const PointerMode goto_mode[OPOS_END - 1] = {
+			POINTER_TILE_VEHICLE, // OPOS_GOTO
+			POINTER_NONE,         // OPOS_CONDITIONAL
+			POINTER_VEHICLE,      // OPOS_SHARE
 		};
-		SetObjectToPlaceWnd(ANIMCURSOR_PICKSTATION, PAL_NONE, goto_place_style[type - 1], this);
+		SetPointerMode (goto_mode[type - 1], this, ANIMCURSOR_PICKSTATION);
 		this->goto_type = type;
 		this->SetWidgetDirty(WID_O_GOTO);
 	}
@@ -1198,7 +1198,7 @@ public:
 
 					if (this->vehicle->owner == _local_company) {
 						/* Activate drag and drop */
-						SetObjectToPlaceWnd(SPR_CURSOR_MOUSE, PAL_NONE, HT_DRAG, this);
+						SetPointerMode (POINTER_DRAG, this, SPR_CURSOR_MOUSE);
 					}
 				}
 

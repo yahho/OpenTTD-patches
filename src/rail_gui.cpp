@@ -524,37 +524,37 @@ struct BuildRailToolbarWindow : Window {
 		_remove_button_clicked = false;
 		switch (widget) {
 			case WID_RAT_BUILD_NS:
-				HandlePlacePushButton(this, WID_RAT_BUILD_NS, GetRailTypeInfo(_cur_railtype)->cursor.rail_ns, HT_LINE | HT_DIR_VL);
+				HandlePlacePushButton (this, WID_RAT_BUILD_NS, GetRailTypeInfo(_cur_railtype)->cursor.rail_ns, POINTER_RAIL_V);
 				this->last_user_action = widget;
 				break;
 
 			case WID_RAT_BUILD_X:
-				HandlePlacePushButton(this, WID_RAT_BUILD_X, GetRailTypeInfo(_cur_railtype)->cursor.rail_swne, HT_LINE | HT_DIR_X);
+				HandlePlacePushButton (this, WID_RAT_BUILD_X, GetRailTypeInfo(_cur_railtype)->cursor.rail_swne, POINTER_RAIL_X);
 				this->last_user_action = widget;
 				break;
 
 			case WID_RAT_BUILD_EW:
-				HandlePlacePushButton(this, WID_RAT_BUILD_EW, GetRailTypeInfo(_cur_railtype)->cursor.rail_ew, HT_LINE | HT_DIR_HL);
+				HandlePlacePushButton (this, WID_RAT_BUILD_EW, GetRailTypeInfo(_cur_railtype)->cursor.rail_ew, POINTER_RAIL_H);
 				this->last_user_action = widget;
 				break;
 
 			case WID_RAT_BUILD_Y:
-				HandlePlacePushButton(this, WID_RAT_BUILD_Y, GetRailTypeInfo(_cur_railtype)->cursor.rail_nwse, HT_LINE | HT_DIR_Y);
+				HandlePlacePushButton (this, WID_RAT_BUILD_Y, GetRailTypeInfo(_cur_railtype)->cursor.rail_nwse, POINTER_RAIL_Y);
 				this->last_user_action = widget;
 				break;
 
 			case WID_RAT_AUTORAIL:
-				HandlePlacePushButton(this, WID_RAT_AUTORAIL, GetRailTypeInfo(_cur_railtype)->cursor.autorail, HT_RAIL);
+				HandlePlacePushButton (this, WID_RAT_AUTORAIL, GetRailTypeInfo(_cur_railtype)->cursor.autorail, POINTER_RAIL_AUTO);
 				this->last_user_action = widget;
 				break;
 
 			case WID_RAT_DEMOLISH:
-				HandlePlacePushButton(this, WID_RAT_DEMOLISH, ANIMCURSOR_DEMOLISH, HT_RECT);
+				HandlePlacePushButton (this, WID_RAT_DEMOLISH, ANIMCURSOR_DEMOLISH, POINTER_TILE);
 				this->last_user_action = widget;
 				break;
 
 			case WID_RAT_BUILD_DEPOT:
-				if (HandlePlacePushButton(this, WID_RAT_BUILD_DEPOT, GetRailTypeInfo(_cur_railtype)->cursor.depot, HT_RECT)) {
+				if (HandlePlacePushButton (this, WID_RAT_BUILD_DEPOT, GetRailTypeInfo(_cur_railtype)->cursor.depot, POINTER_TILE)) {
 					ShowBuildTrainDepotPicker(this);
 					this->last_user_action = widget;
 				}
@@ -563,13 +563,13 @@ struct BuildRailToolbarWindow : Window {
 			case WID_RAT_BUILD_WAYPOINT:
 				this->last_user_action = widget;
 				_waypoint_count = StationClass::Get(STAT_CLASS_WAYP)->GetSpecCount();
-				if (HandlePlacePushButton(this, WID_RAT_BUILD_WAYPOINT, SPR_CURSOR_WAYPOINT, HT_RECT) && _waypoint_count > 1) {
+				if (HandlePlacePushButton (this, WID_RAT_BUILD_WAYPOINT, SPR_CURSOR_WAYPOINT, POINTER_TILE) && _waypoint_count > 1) {
 					ShowBuildWaypointPicker(this);
 				}
 				break;
 
 			case WID_RAT_BUILD_STATION:
-				if (HandlePlacePushButton(this, WID_RAT_BUILD_STATION, SPR_CURSOR_RAIL_STATION, HT_RECT)) {
+				if (HandlePlacePushButton (this, WID_RAT_BUILD_STATION, SPR_CURSOR_RAIL_STATION, POINTER_TILE)) {
 					ShowStationBuilder(this);
 					this->last_user_action = widget;
 				}
@@ -577,7 +577,7 @@ struct BuildRailToolbarWindow : Window {
 
 			case WID_RAT_BUILD_SIGNALS: {
 				this->last_user_action = widget;
-				bool started = HandlePlacePushButton(this, WID_RAT_BUILD_SIGNALS, ANIMCURSOR_BUILDSIGNALS, HT_RECT);
+				bool started = HandlePlacePushButton (this, WID_RAT_BUILD_SIGNALS, ANIMCURSOR_BUILDSIGNALS, POINTER_TILE);
 				if (started && _settings_client.gui.enable_signal_gui != _ctrl_pressed) {
 					ShowSignalBuilder(this);
 				}
@@ -585,12 +585,12 @@ struct BuildRailToolbarWindow : Window {
 			}
 
 			case WID_RAT_BUILD_BRIDGE:
-				HandlePlacePushButton(this, WID_RAT_BUILD_BRIDGE, SPR_CURSOR_BRIDGE, HT_RECT);
+				HandlePlacePushButton (this, WID_RAT_BUILD_BRIDGE, SPR_CURSOR_BRIDGE, POINTER_TILE);
 				this->last_user_action = widget;
 				break;
 
 			case WID_RAT_BUILD_TUNNEL:
-				HandlePlacePushButton(this, WID_RAT_BUILD_TUNNEL, GetRailTypeInfo(_cur_railtype)->cursor.tunnel, HT_SPECIAL);
+				HandlePlacePushButton (this, WID_RAT_BUILD_TUNNEL, GetRailTypeInfo(_cur_railtype)->cursor.tunnel, POINTER_AREA);
 				this->last_user_action = widget;
 				break;
 
@@ -599,7 +599,7 @@ struct BuildRailToolbarWindow : Window {
 				break;
 
 			case WID_RAT_CONVERT_RAIL:
-				HandlePlacePushButton(this, WID_RAT_CONVERT_RAIL, GetRailTypeInfo(_cur_railtype)->cursor.convert, HT_RECT);
+				HandlePlacePushButton (this, WID_RAT_CONVERT_RAIL, GetRailTypeInfo(_cur_railtype)->cursor.convert, POINTER_TILE);
 				this->last_user_action = widget;
 				break;
 

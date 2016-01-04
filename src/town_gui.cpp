@@ -1182,7 +1182,7 @@ public:
 	{
 		switch (widget) {
 			case WID_TF_NEW_TOWN:
-				HandlePlacePushButton(this, WID_TF_NEW_TOWN, SPR_CURSOR_TOWN, HT_RECT);
+				HandlePlacePushButton (this, WID_TF_NEW_TOWN, SPR_CURSOR_TOWN, POINTER_TILE);
 				break;
 
 			case WID_TF_RANDOM_TOWN:
@@ -1508,7 +1508,7 @@ class HousePickerWindow : public Window {
 
 	void SetObjectToPlace (void)
 	{
-		SetObjectToPlaceWnd (SPR_CURSOR_TOWN, PAL_NONE, HT_RECT, this);
+		SetPointerMode (POINTER_TILE, this, SPR_CURSOR_TOWN);
 	}
 
 	void UpdateCache (void)

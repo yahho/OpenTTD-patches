@@ -2325,7 +2325,7 @@ struct CompanyWindow : Window
 					this->RaiseButtons();
 					break;
 				}
-				SetObjectToPlaceWnd(SPR_CURSOR_HQ, PAL_NONE, HT_RECT, this);
+				SetPointerMode (POINTER_TILE, this, SPR_CURSOR_HQ);
 				SetTileSelectSize(2, 2);
 				this->LowerWidget(WID_C_BUILD_HQ);
 				this->SetWidgetDirty(WID_C_BUILD_HQ);
@@ -2337,7 +2337,7 @@ struct CompanyWindow : Window
 					this->RaiseButtons();
 					break;
 				}
-				SetObjectToPlaceWnd(SPR_CURSOR_HQ, PAL_NONE, HT_RECT, this);
+				SetPointerMode (POINTER_TILE, this, SPR_CURSOR_HQ);
 				SetTileSelectSize(2, 2);
 				this->LowerWidget(WID_C_RELOCATE_HQ);
 				this->SetWidgetDirty(WID_C_RELOCATE_HQ);

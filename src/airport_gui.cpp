@@ -97,14 +97,14 @@ struct BuildAirToolbarWindow : Window {
 	{
 		switch (widget) {
 			case WID_AT_AIRPORT:
-				if (HandlePlacePushButton(this, WID_AT_AIRPORT, SPR_CURSOR_AIRPORT, HT_RECT)) {
+				if (HandlePlacePushButton (this, WID_AT_AIRPORT, SPR_CURSOR_AIRPORT, POINTER_TILE)) {
 					ShowBuildAirportPicker(this);
 					this->last_user_action = widget;
 				}
 				break;
 
 			case WID_AT_DEMOLISH:
-				HandlePlacePushButton(this, WID_AT_DEMOLISH, ANIMCURSOR_DEMOLISH, HT_RECT);
+				HandlePlacePushButton (this, WID_AT_DEMOLISH, ANIMCURSOR_DEMOLISH, POINTER_TILE);
 				this->last_user_action = widget;
 				break;
 

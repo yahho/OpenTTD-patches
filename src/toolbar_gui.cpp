@@ -249,7 +249,7 @@ static CallBackFunction SelectSignTool()
 		ResetObjectToPlace();
 		return CBF_NONE;
 	} else {
-		SetObjectToPlace(SPR_CURSOR_SIGN, PAL_NONE, HT_RECT, WC_MAIN_TOOLBAR, 0);
+		SetPointerMode (POINTER_TILE, WC_MAIN_TOOLBAR, 0, SPR_CURSOR_SIGN);
 		return CBF_PLACE_SIGN;
 	}
 }
@@ -1033,7 +1033,7 @@ static CallBackFunction PlaceLandBlockInfo()
 		ResetObjectToPlace();
 		return CBF_NONE;
 	} else {
-		SetObjectToPlace(SPR_CURSOR_QUERY, PAL_NONE, HT_RECT, WC_MAIN_TOOLBAR, 0);
+		SetPointerMode (POINTER_TILE, WC_MAIN_TOOLBAR, 0, SPR_CURSOR_QUERY);
 		return CBF_PLACE_LANDINFO;
 	}
 }

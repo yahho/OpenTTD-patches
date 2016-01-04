@@ -66,16 +66,17 @@ static const uint BB_Z_SEPARATOR         = 7; ///< Separates the bridge/tunnel f
 
 /** Viewport place method (type of highlighted area and placed objects) */
 enum ViewportPlaceMethod {
-	VPM_X_OR_Y          =    0, ///< drag in X or Y direction
-	VPM_FIX_X           =    1, ///< drag only in X axis
-	VPM_FIX_Y           =    2, ///< drag only in Y axis
-	VPM_X_AND_Y         =    3, ///< area of land in X and Y directions
-	VPM_X_AND_Y_ROTATED =    4, ///< area of land, allow rotation
-	VPM_X_AND_Y_LIMITED =    5, ///< area of land of limited size
-	VPM_FIX_HORIZONTAL  =    6, ///< drag only in horizontal direction
-	VPM_FIX_VERTICAL    =    7, ///< drag only in vertical direction
-	VPM_X_LIMITED       =    8, ///< Drag only in X axis with limited size
-	VPM_Y_LIMITED       =    9, ///< Drag only in Y axis with limited size
+	VPM_NONE            =    0, ///< no selection currently in progress
+	VPM_X_OR_Y          =    1, ///< drag in X or Y direction
+	VPM_FIX_X           =    2, ///< drag only in X axis
+	VPM_FIX_Y           =    3, ///< drag only in Y axis
+	VPM_X_AND_Y         =    4, ///< area of land in X and Y directions
+	VPM_X_AND_Y_ROTATED =    5, ///< area of land, allow rotation
+	VPM_X_AND_Y_LIMITED =    6, ///< area of land of limited size
+	VPM_FIX_HORIZONTAL  =    7, ///< drag only in horizontal direction
+	VPM_FIX_VERTICAL    =    8, ///< drag only in vertical direction
+	VPM_X_LIMITED       =    9, ///< Drag only in X axis with limited size
+	VPM_Y_LIMITED       =   10, ///< Drag only in Y axis with limited size
 	VPM_RAILDIRS        = 0x40, ///< all rail directions
 	VPM_SIGNALDIRS      = 0x80, ///< similar to VMP_RAILDIRS, but with different cursor
 };

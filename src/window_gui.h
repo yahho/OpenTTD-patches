@@ -753,7 +753,7 @@ public:
 	virtual void OnPlaceObject(Point pt, TileIndex tile) {}
 
 	/**
-	 * The user clicked on a vehicle while HT_VEHICLE has been set.
+	 * The user clicked on a vehicle.
 	 * @param v clicked vehicle. It is guaranteed to be v->IsPrimaryVehicle() == true
 	 * @return True if the click is handled, false if it is ignored.
 	 */
@@ -909,14 +909,25 @@ extern byte _scroller_click_timeout;
 extern bool _scrolling_viewport;
 extern bool _mouse_hovering;
 
-/** Mouse modes. */
-enum SpecialMouseMode {
-	WSM_NONE,     ///< No special mouse mode.
-	WSM_DRAGDROP, ///< Dragging an object.
-	WSM_SIZING,   ///< Sizing mode.
-	WSM_PRESIZE,  ///< Presizing mode (docks, tunnels).
+/** Pointer modes. */
+enum PointerMode {
+	POINTER_NONE,      ///< Normal pointer mode.
+	POINTER_TILE,      ///< Highlight the tile under the pointer.
+	POINTER_CORNER,    ///< Highlight the corner under the pointer.
+	POINTER_AREA,      ///< Highlight a custom tile area (docks, tunnels).
+	POINTER_RAIL_X,    ///< Rail construction highlighting, X axis.
+	POINTER_RAIL_Y,    ///< Rail construction highlighting, Y axis.
+	POINTER_RAIL_H,    ///< Rail construction highlighting, horizontal.
+	POINTER_RAIL_V,    ///< Rail construction highlighting, vertical.
+	POINTER_RAIL_AUTO, ///< Autorail highlighting.
+	POINTER_DRAG,      ///< Drag a vehicle.
+	POINTER_VEHICLE,      ///< Normal pointer mode, but allow to select a vehicle.
+	POINTER_TILE_VEHICLE, ///< Highlight the tile under the pointer and allow to select a vehicle.
+
+	POINTER_RAIL_FIRST = POINTER_RAIL_X,
+	POINTER_RAIL_LAST  = POINTER_RAIL_AUTO,
 };
-extern SpecialMouseMode _special_mouse_mode;
+extern PointerMode _pointer_mode;
 
 void SetFocusedWindow(Window *w);
 

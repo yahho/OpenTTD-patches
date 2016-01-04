@@ -94,10 +94,10 @@ void HandleOnEditText(const char *str)
  * @param w Window which called the function
  * @param widget ID of the widget (=button) that called this function
  * @param cursor How should the cursor image change? E.g. cursor with depot image in it
- * @param mode Tile highlighting mode, e.g. drawing a rectangle or a dot on the ground
  * @return true if the button is clicked, false if it's unclicked
+ * @param mode Pointer mode to set.
  */
-bool HandlePlacePushButton(Window *w, int widget, CursorID cursor, HighLightStyle mode)
+bool HandlePlacePushButton (Window *w, int widget, CursorID cursor, PointerMode mode)
 {
 	if (w->IsWidgetDisabled(widget)) return false;
 
@@ -109,7 +109,7 @@ bool HandlePlacePushButton(Window *w, int widget, CursorID cursor, HighLightStyl
 		return false;
 	}
 
-	SetObjectToPlace(cursor, PAL_NONE, mode, w->window_class, w->window_number);
+	SetPointerMode (mode, w->window_class, w->window_number, cursor);
 	w->LowerWidget(widget);
 	return true;
 }

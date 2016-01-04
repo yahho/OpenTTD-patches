@@ -515,7 +515,7 @@ public:
 					DoCommandP(0, this->selected_type, InteractiveRandom(), CMD_BUILD_INDUSTRY);
 					this->HandleButtonClick(WID_DPI_FUND_WIDGET);
 				} else {
-					HandlePlacePushButton(this, WID_DPI_FUND_WIDGET, SPR_CURSOR_INDUSTRY, HT_RECT);
+					HandlePlacePushButton (this, WID_DPI_FUND_WIDGET, SPR_CURSOR_INDUSTRY, POINTER_TILE);
 				}
 				break;
 			}
