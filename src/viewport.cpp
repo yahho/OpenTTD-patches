@@ -3205,9 +3205,12 @@ EventState VpHandlePlaceSizingDrag()
 		return ES_HANDLED;
 	}
 
-	/* while dragging execute the drag procedure of the corresponding window (mostly VpSelectTilesWithMethod() ) */
+	/* while dragging execute the drag procedure of the corresponding window */
 	if (_left_button_down) {
-		w->OnPlaceDrag (_thd.select_method, _thd.select_data, GetTileBelowCursor());
+		Point pt = GetTileBelowCursor();
+		if (w->OnPlaceDrag (_thd.select_data, pt)) {
+			VpSelectTilesWithMethod (pt.x, pt.y, _thd.select_method);
+		}
 		return ES_HANDLED;
 	}
 

@@ -128,11 +128,6 @@ struct BuildAirToolbarWindow : Window {
 		}
 	}
 
-	void OnPlaceDrag (ViewportPlaceMethod select_method, int userdata, Point pt) OVERRIDE
-	{
-		VpSelectTilesWithMethod(pt.x, pt.y, select_method);
-	}
-
 	void OnPlaceMouseUp (int userdata, Point pt, TileIndex start_tile, TileIndex end_tile) OVERRIDE
 	{
 		if (pt.x != -1) {

@@ -545,7 +545,7 @@ struct BuildRoadToolbarWindow : Window {
 		DeleteWindowByClass(WC_BUILD_BRIDGE);
 	}
 
-	void OnPlaceDrag (ViewportPlaceMethod select_method, int userdata, Point pt) OVERRIDE
+	bool OnPlaceDrag (int userdata, Point pt) OVERRIDE
 	{
 		/* Here we update the end tile flags
 		 * of the road placement actions.
@@ -585,7 +585,7 @@ struct BuildRoadToolbarWindow : Window {
 				break;
 		}
 
-		VpSelectTilesWithMethod(pt.x, pt.y, select_method);
+		return true;
 	}
 
 	void OnPlaceMouseUp (int userdata, Point pt, TileIndex start_tile, TileIndex end_tile) OVERRIDE

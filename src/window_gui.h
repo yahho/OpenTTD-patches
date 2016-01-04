@@ -768,11 +768,11 @@ public:
 	/**
 	 * The user is dragging over the map when the tile highlight mode
 	 * has been set.
-	 * @param select_method the method of selection (allowed directions)
 	 * @param userdata      data set by the function that started the selection
 	 * @param pt            the exact point on the map where the mouse is.
+	 * @return Whether the tile selection should be updated.
 	 */
-	virtual void OnPlaceDrag (ViewportPlaceMethod select_method, int userdata, Point pt) {}
+	virtual bool OnPlaceDrag (int userdata, Point pt) { return true; }
 
 	/**
 	 * The user has dragged over the map when the tile highlight mode

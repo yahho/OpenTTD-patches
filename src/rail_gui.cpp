@@ -679,12 +679,12 @@ struct BuildRailToolbarWindow : Window {
 		}
 	}
 
-	void OnPlaceDrag (ViewportPlaceMethod select_method, int userdata, Point pt) OVERRIDE
+	bool OnPlaceDrag (int userdata, Point pt) OVERRIDE
 	{
 		/* no dragging if you have pressed the convert button */
-		if (FindWindowById(WC_BUILD_SIGNAL, 0) != NULL && _convert_signal_button && this->IsWidgetLowered(WID_RAT_BUILD_SIGNALS)) return;
-
-		VpSelectTilesWithMethod(pt.x, pt.y, select_method);
+		return (FindWindowById (WC_BUILD_SIGNAL, 0) == NULL)
+				|| !_convert_signal_button
+				|| !this->IsWidgetLowered (WID_RAT_BUILD_SIGNALS);
 	}
 
 	void OnPlaceMouseUp (int userdata, Point pt, TileIndex start_tile, TileIndex end_tile) OVERRIDE

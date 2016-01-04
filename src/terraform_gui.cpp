@@ -254,11 +254,6 @@ struct TerraformToolbarWindow : Window {
 		}
 	}
 
-	void OnPlaceDrag (ViewportPlaceMethod select_method, int userdata, Point pt) OVERRIDE
-	{
-		VpSelectTilesWithMethod(pt.x, pt.y, select_method);
-	}
-
 	virtual Point OnInitialPosition(int16 sm_width, int16 sm_height, int window_number)
 	{
 		Point pt = GetToolbarAlignedWindowPosition(sm_width);
@@ -668,11 +663,6 @@ struct ScenarioEditorLandscapeGenerationWindow : Window {
 				VpStartPlaceSizing (tile, VPM_X_AND_Y, this->placing_action);
 				break;
 		}
-	}
-
-	void OnPlaceDrag (ViewportPlaceMethod select_method, int userdata, Point pt) OVERRIDE
-	{
-		VpSelectTilesWithMethod(pt.x, pt.y, select_method);
 	}
 
 	void OnPlaceMouseUp (int userdata, Point pt, TileIndex start_tile, TileIndex end_tile) OVERRIDE
