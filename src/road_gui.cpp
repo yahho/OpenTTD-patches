@@ -398,7 +398,7 @@ struct BuildRoadToolbarWindow : Window {
 				break;
 
 			case WID_ROT_DEMOLISH:
-				HandlePlacePushButton(this, WID_ROT_DEMOLISH, ANIMCURSOR_DEMOLISH, HT_RECT | HT_DIAGONAL);
+				HandlePlacePushButton(this, WID_ROT_DEMOLISH, ANIMCURSOR_DEMOLISH, HT_RECT);
 				this->last_started_action = widget;
 				break;
 
@@ -488,7 +488,7 @@ struct BuildRoadToolbarWindow : Window {
 				break;
 
 			case WID_ROT_DEMOLISH:
-				VpStartPlaceSizing (tile, VPM_X_AND_Y, DRAG_DEMOLISH_AREA);
+				VpStartPlaceSizing (tile, VPM_X_AND_Y_ROTATED, DRAG_DEMOLISH_AREA);
 				break;
 
 			case WID_ROT_DEPOT:

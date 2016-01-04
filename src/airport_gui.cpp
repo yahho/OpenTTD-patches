@@ -104,7 +104,7 @@ struct BuildAirToolbarWindow : Window {
 				break;
 
 			case WID_AT_DEMOLISH:
-				HandlePlacePushButton(this, WID_AT_DEMOLISH, ANIMCURSOR_DEMOLISH, HT_RECT | HT_DIAGONAL);
+				HandlePlacePushButton(this, WID_AT_DEMOLISH, ANIMCURSOR_DEMOLISH, HT_RECT);
 				this->last_user_action = widget;
 				break;
 
@@ -121,7 +121,7 @@ struct BuildAirToolbarWindow : Window {
 				break;
 
 			case WID_AT_DEMOLISH:
-				VpStartPlaceSizing (tile, VPM_X_AND_Y);
+				VpStartPlaceSizing (tile, VPM_X_AND_Y_ROTATED);
 				break;
 
 			default: NOT_REACHED();

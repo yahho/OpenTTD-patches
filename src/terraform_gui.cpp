@@ -196,22 +196,22 @@ struct TerraformToolbarWindow : Window {
 
 		switch (widget) {
 			case WID_TT_LOWER_LAND: // Lower land button
-				HandlePlacePushButton(this, WID_TT_LOWER_LAND, ANIMCURSOR_LOWERLAND, HT_POINT | HT_DIAGONAL);
+				HandlePlacePushButton(this, WID_TT_LOWER_LAND, ANIMCURSOR_LOWERLAND, HT_POINT);
 				this->placing_action = PLACE_LOWER_AREA;
 				break;
 
 			case WID_TT_RAISE_LAND: // Raise land button
-				HandlePlacePushButton(this, WID_TT_RAISE_LAND, ANIMCURSOR_RAISELAND, HT_POINT | HT_DIAGONAL);
+				HandlePlacePushButton(this, WID_TT_RAISE_LAND, ANIMCURSOR_RAISELAND, HT_POINT);
 				this->placing_action = PLACE_RAISE_AREA;
 				break;
 
 			case WID_TT_LEVEL_LAND: // Level land button
-				HandlePlacePushButton(this, WID_TT_LEVEL_LAND, SPR_CURSOR_LEVEL_LAND, HT_POINT | HT_DIAGONAL);
+				HandlePlacePushButton(this, WID_TT_LEVEL_LAND, SPR_CURSOR_LEVEL_LAND, HT_POINT);
 				this->placing_action = PLACE_LEVEL_AREA;
 				break;
 
 			case WID_TT_DEMOLISH: // Demolish aka dynamite button
-				HandlePlacePushButton(this, WID_TT_DEMOLISH, ANIMCURSOR_DEMOLISH, HT_RECT | HT_DIAGONAL);
+				HandlePlacePushButton(this, WID_TT_DEMOLISH, ANIMCURSOR_DEMOLISH, HT_RECT);
 				this->placing_action = PLACE_DEMOLISH_AREA;
 				break;
 
@@ -241,7 +241,7 @@ struct TerraformToolbarWindow : Window {
 	{
 		switch (this->placing_action) {
 			default:
-				VpStartPlaceSizing (tile, VPM_X_AND_Y, this->placing_action);
+				VpStartPlaceSizing (tile, VPM_X_AND_Y_ROTATED, this->placing_action);
 				break;
 
 			case PLACE_BUY_LAND:
@@ -575,22 +575,22 @@ struct ScenarioEditorLandscapeGenerationWindow : Window {
 
 		switch (widget) {
 			case WID_ETT_DEMOLISH: // Demolish aka dynamite button
-				HandlePlacePushButton(this, WID_ETT_DEMOLISH, ANIMCURSOR_DEMOLISH, HT_RECT | HT_DIAGONAL);
+				HandlePlacePushButton(this, WID_ETT_DEMOLISH, ANIMCURSOR_DEMOLISH, HT_RECT);
 				this->placing_action = PLACE_DEMOLISH_AREA;
 				break;
 
 			case WID_ETT_LOWER_LAND: // Lower land button
-				HandlePlacePushButton(this, WID_ETT_LOWER_LAND, ANIMCURSOR_LOWERLAND, HT_POINT | HT_DIAGONAL);
+				HandlePlacePushButton(this, WID_ETT_LOWER_LAND, ANIMCURSOR_LOWERLAND, HT_POINT);
 				this->placing_action = PLACE_LOWER_AREA;
 				break;
 
 			case WID_ETT_RAISE_LAND: // Raise land button
-				HandlePlacePushButton(this, WID_ETT_RAISE_LAND, ANIMCURSOR_RAISELAND, HT_POINT | HT_DIAGONAL);
+				HandlePlacePushButton(this, WID_ETT_RAISE_LAND, ANIMCURSOR_RAISELAND, HT_POINT);
 				this->placing_action = PLACE_RAISE_AREA;
 				break;
 
 			case WID_ETT_LEVEL_LAND: // Level land button
-				HandlePlacePushButton(this, WID_ETT_LEVEL_LAND, SPR_CURSOR_LEVEL_LAND, HT_POINT | HT_DIAGONAL);
+				HandlePlacePushButton(this, WID_ETT_LEVEL_LAND, SPR_CURSOR_LEVEL_LAND, HT_POINT);
 				this->placing_action = PLACE_LEVEL_AREA;
 				break;
 
@@ -660,6 +660,11 @@ struct ScenarioEditorLandscapeGenerationWindow : Window {
 				}
 				/* fall through */
 			default:
+				VpStartPlaceSizing (tile, VPM_X_AND_Y_ROTATED, this->placing_action);
+				break;
+
+			case PLACE_CREATE_ROCKS:
+			case PLACE_CREATE_DESERT:
 				VpStartPlaceSizing (tile, VPM_X_AND_Y, this->placing_action);
 				break;
 		}

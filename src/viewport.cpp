@@ -2394,7 +2394,7 @@ void TileHighlightData::Reset()
  */
 bool TileHighlightData::IsDraggingDiagonal()
 {
-	return (this->place_mode & HT_DIAGONAL) != 0 && _ctrl_pressed && _left_button_down;
+	return (this->select_method == VPM_X_AND_Y_ROTATED) && _ctrl_pressed && _left_button_down;
 }
 
 /**
@@ -2566,13 +2566,13 @@ void VpStartPlaceSizing (TileIndex tile, ViewportPlaceMethod method, int userdat
 	HighLightStyle others = _thd.place_mode & ~(HT_DRAG_MASK | HT_DIR_MASK);
 	if ((_thd.place_mode & HT_DRAG_MASK) == HT_RECT) {
 		_thd.place_mode = HT_SPECIAL | others;
-		_thd.next_drawstyle = HT_RECT | others;
+		_thd.next_drawstyle = HT_RECT;
 	} else if (_thd.place_mode & (HT_RAIL | HT_LINE)) {
 		_thd.place_mode = HT_SPECIAL | others;
-		_thd.next_drawstyle = _thd.drawstyle | others;
+		_thd.next_drawstyle = _thd.drawstyle;
 	} else {
 		_thd.place_mode = HT_SPECIAL | others;
-		_thd.next_drawstyle = HT_POINT | others;
+		_thd.next_drawstyle = HT_POINT;
 	}
 	_special_mouse_mode = WSM_SIZING;
 }
@@ -3102,6 +3102,7 @@ calc_heightdiff_single_direction:;
 			/* FALL THROUGH */
 
 		case VPM_X_AND_Y: // drag an X by Y area
+		case VPM_X_AND_Y_ROTATED:
 			if (_settings_client.gui.measure_tooltip) {
 				static const StringID measure_strings_area[] = {
 					STR_NULL, STR_NULL, STR_MEASURE_AREA, STR_MEASURE_AREA_HEIGHTDIFF

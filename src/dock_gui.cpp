@@ -152,7 +152,7 @@ struct BuildDocksToolbarWindow : Window {
 				break;
 
 			case WID_DT_DEMOLISH: // Demolish aka dynamite button
-				HandlePlacePushButton(this, WID_DT_DEMOLISH, ANIMCURSOR_DEMOLISH, HT_RECT | HT_DIAGONAL);
+				HandlePlacePushButton(this, WID_DT_DEMOLISH, ANIMCURSOR_DEMOLISH, HT_RECT);
 				break;
 
 			case WID_DT_DEPOT: // Build depot button
@@ -196,7 +196,7 @@ struct BuildDocksToolbarWindow : Window {
 				break;
 
 			case WID_DT_DEMOLISH: // Demolish aka dynamite button
-				VpStartPlaceSizing (tile, VPM_X_AND_Y, DRAG_DEMOLISH_AREA);
+				VpStartPlaceSizing (tile, VPM_X_AND_Y_ROTATED, DRAG_DEMOLISH_AREA);
 				break;
 
 			case WID_DT_DEPOT: // Build depot button

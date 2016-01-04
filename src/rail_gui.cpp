@@ -549,7 +549,7 @@ struct BuildRailToolbarWindow : Window {
 				break;
 
 			case WID_RAT_DEMOLISH:
-				HandlePlacePushButton(this, WID_RAT_DEMOLISH, ANIMCURSOR_DEMOLISH, HT_RECT | HT_DIAGONAL);
+				HandlePlacePushButton(this, WID_RAT_DEMOLISH, ANIMCURSOR_DEMOLISH, HT_RECT);
 				this->last_user_action = widget;
 				break;
 
@@ -599,7 +599,7 @@ struct BuildRailToolbarWindow : Window {
 				break;
 
 			case WID_RAT_CONVERT_RAIL:
-				HandlePlacePushButton(this, WID_RAT_CONVERT_RAIL, GetRailTypeInfo(_cur_railtype)->cursor.convert, HT_RECT | HT_DIAGONAL);
+				HandlePlacePushButton(this, WID_RAT_CONVERT_RAIL, GetRailTypeInfo(_cur_railtype)->cursor.convert, HT_RECT);
 				this->last_user_action = widget;
 				break;
 
@@ -639,7 +639,7 @@ struct BuildRailToolbarWindow : Window {
 				break;
 
 			case WID_RAT_DEMOLISH:
-				VpStartPlaceSizing(tile, VPM_X_AND_Y, DRAG_DEMOLISH_AREA);
+				VpStartPlaceSizing(tile, VPM_X_AND_Y_ROTATED, DRAG_DEMOLISH_AREA);
 				break;
 
 			case WID_RAT_BUILD_DEPOT:
@@ -672,7 +672,7 @@ struct BuildRailToolbarWindow : Window {
 				break;
 
 			case WID_RAT_CONVERT_RAIL:
-				VpStartPlaceSizing(tile, VPM_X_AND_Y, DRAG_CONVERT_RAIL);
+				VpStartPlaceSizing(tile, VPM_X_AND_Y_ROTATED, DRAG_CONVERT_RAIL);
 				break;
 
 			default: NOT_REACHED();
