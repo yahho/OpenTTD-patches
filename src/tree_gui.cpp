@@ -55,7 +55,7 @@ public:
 	BuildTreesWindow (const WindowDesc *desc, WindowNumber window_number) : Window(desc)
 	{
 		this->InitNested(window_number);
-		ResetObjectToPlace();
+		ResetPointerMode();
 	}
 
 	/**

@@ -2321,7 +2321,7 @@ struct CompanyWindow : Window
 			case WID_C_BUILD_HQ:
 				if ((byte)this->window_number != _local_company) return;
 				if (this->IsWidgetLowered(WID_C_BUILD_HQ)) {
-					ResetObjectToPlace();
+					ResetPointerMode();
 					this->RaiseButtons();
 					break;
 				}
@@ -2333,7 +2333,7 @@ struct CompanyWindow : Window
 
 			case WID_C_RELOCATE_HQ:
 				if (this->IsWidgetLowered(WID_C_RELOCATE_HQ)) {
-					ResetObjectToPlace();
+					ResetPointerMode();
 					this->RaiseButtons();
 					break;
 				}
@@ -2388,7 +2388,7 @@ struct CompanyWindow : Window
 	virtual void OnPlaceObject(Point pt, TileIndex tile)
 	{
 		if (DoCommandP(tile, OBJECT_HQ, 0, CMD_BUILD_OBJECT)) {
-			ResetObjectToPlace();
+			ResetPointerMode();
 			this->RaiseButtons();
 		}
 	}

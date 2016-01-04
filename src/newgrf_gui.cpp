@@ -1026,7 +1026,7 @@ struct NewGRFWindow : public Window, NewGRFScanCallback {
 			}
 
 			case WID_NS_FILE_LIST: { // Select an active GRF.
-				ResetObjectToPlace();
+				ResetPointerMode();
 
 				uint i = this->vscroll->GetScrolledRowFromWidget(pt.y, this, WID_NS_FILE_LIST);
 
@@ -1084,7 +1084,7 @@ struct NewGRFWindow : public Window, NewGRFScanCallback {
 			}
 
 			case WID_NS_AVAIL_LIST: { // Select a non-active GRF.
-				ResetObjectToPlace();
+				ResetPointerMode();
 
 				uint i = this->vscroll2->GetScrolledRowFromWidget(pt.y, this, WID_NS_AVAIL_LIST);
 				this->active_sel = NULL;
@@ -1180,7 +1180,7 @@ struct NewGRFWindow : public Window, NewGRFScanCallback {
 		}
 		this->avails.ForceRebuild();
 
-		ResetObjectToPlace();
+		ResetPointerMode();
 		DeleteWindowByClass(WC_GRF_PARAMETERS);
 		this->active_sel = NULL;
 		this->InvalidateData(GOID_NEWGRF_PRESET_LOADED);
@@ -1413,7 +1413,7 @@ struct NewGRFWindow : public Window, NewGRFScanCallback {
 			this->OnClick(dummy, WID_NS_REMOVE, 1);
 		}
 
-		ResetObjectToPlace();
+		ResetPointerMode();
 
 		if (this->active_over != -1) {
 			/* End of drag-and-drop, hide dragged destination highlight. */

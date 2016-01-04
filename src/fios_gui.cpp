@@ -288,7 +288,7 @@ public:
 
 		this->OnInvalidateData(0);
 
-		ResetObjectToPlace();
+		ResetPointerMode();
 
 		o_dir.type = FIOS_TYPE_DIRECT;
 		switch (_saveload_mode) {

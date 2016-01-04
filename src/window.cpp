@@ -1063,7 +1063,7 @@ Window::~Window()
 {
 	if (_thd.window_class == this->window_class &&
 			_thd.window_number == this->window_number) {
-		ResetObjectToPlace();
+		ResetPointerMode();
 	}
 
 	/* Prevent Mouseover() from resetting mouse-over coordinates on a non-existing window */
@@ -1938,7 +1938,7 @@ static EventState HandleMouseDragDrop()
 		}
 	}
 
-	if (!_left_button_down) ResetObjectToPlace(); // Button released, finished dragging.
+	if (!_left_button_down) ResetPointerMode(); // Button released, finished dragging.
 	return ES_HANDLED;
 }
 
@@ -3463,10 +3463,10 @@ void RelocateAllWindows(int neww, int newh)
 /**
  * Destructor of the base class PickerWindowBase
  * Main utility is to stop the base Window destructor from triggering
- * a free while the child will already be free, in this case by the ResetObjectToPlace().
+ * a free while the child will already be free, in this case by the ResetPointerMode().
  */
 PickerWindowBase::~PickerWindowBase()
 {
 	this->window_class = WC_INVALID; // stop the ancestor from freeing the already (to be) child
-	ResetObjectToPlace();
+	ResetPointerMode();
 }

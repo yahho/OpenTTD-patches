@@ -3192,7 +3192,7 @@ EventState VpHandlePlaceSizingDrag()
 	/* stop drag mode if the window has been closed */
 	Window *w = _thd.GetCallbackWnd();
 	if (w == NULL) {
-		ResetObjectToPlace();
+		ResetPointerMode();
 		return ES_HANDLED;
 	}
 
@@ -3264,7 +3264,7 @@ void SetPointerMode (PointerMode mode, WindowClass window_class,
 }
 
 /** Reset the cursor and mouse mode handling back to default (normal cursor, only clicking in windows). */
-void ResetObjectToPlace()
+void ResetPointerMode (void)
 {
 	SetPointerMode (POINTER_NONE, WC_MAIN_WINDOW, 0, SPR_CURSOR_MOUSE);
 }

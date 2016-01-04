@@ -728,7 +728,7 @@ struct DepotWindow : Window {
 			}
 
 			case WID_D_BUILD: // Build vehicle
-				ResetObjectToPlace();
+				ResetPointerMode();
 				ShowBuildVehicleWindow(this->window_number, this->type);
 				break;
 
@@ -744,7 +744,7 @@ struct DepotWindow : Window {
 
 					SetPointerMode (POINTER_VEHICLE, this, clone_icons[this->type]);
 				} else {
-					ResetObjectToPlace();
+					ResetPointerMode();
 				}
 				break;
 
@@ -868,7 +868,7 @@ struct DepotWindow : Window {
 	virtual bool OnVehicleSelect(const Vehicle *v)
 	{
 		if (DoCommandP(this->window_number, v->index, _ctrl_pressed ? 1 : 0, CMD_CLONE_VEHICLE)) {
-			ResetObjectToPlace();
+			ResetPointerMode();
 		}
 		return true;
 	}
@@ -1058,6 +1058,6 @@ void DeleteDepotHighlightOfVehicle(const Vehicle *v)
 
 	w = dynamic_cast<DepotWindow*>(FindWindowById(WC_VEHICLE_DEPOT, v->tile));
 	if (w != NULL) {
-		if (w->sel == v->index) ResetObjectToPlace();
+		if (w->sel == v->index) ResetPointerMode();
 	}
 }

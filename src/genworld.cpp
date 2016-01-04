@@ -182,7 +182,7 @@ static void _GenerateWorld(void *)
 
 		BasePersistentStorageArray::SwitchMode(PSM_LEAVE_GAMELOOP);
 
-		ResetObjectToPlace();
+		ResetPointerMode();
 		_cur_company.Trash();
 		_current_company = _local_company = _gw.lc;
 

@@ -879,7 +879,7 @@ public:
 	 */
 	void UnselectVehicle(VehicleID vehicle)
 	{
-		if (this->vehicle_sel == vehicle) ResetObjectToPlace();
+		if (this->vehicle_sel == vehicle) ResetPointerMode();
 	}
 };
 

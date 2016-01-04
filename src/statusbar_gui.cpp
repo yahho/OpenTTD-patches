@@ -211,7 +211,7 @@ struct StatusBarWindow : Window {
 		switch (widget) {
 			case WID_S_MIDDLE: ShowLastNewsMessage(); break;
 			case WID_S_RIGHT:  if (_local_company != COMPANY_SPECTATOR) ShowCompanyFinances(_local_company); break;
-			default: ResetObjectToPlace();
+			default: ResetPointerMode();
 		}
 	}
 

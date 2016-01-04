@@ -1020,7 +1020,7 @@ void CcFoundTown(const CommandCost &result, TileIndex tile, uint32 p1, uint32 p2
 		ScrollMainWindowToTile(Town::Get(_new_town_id)->xy);
 	} else {
 		if (_settings_client.sound.confirm) SndPlayTileFx(SND_1F_SPLAT_OTHER, tile);
-		if (!_settings_client.gui.persistent_buildingtools) ResetObjectToPlace();
+		if (!_settings_client.gui.persistent_buildingtools) ResetPointerMode();
 	}
 }
 
@@ -1597,7 +1597,7 @@ public:
 			matrix->SetClicked (this->sel_offset); // set clicked item again to make it visible
 			this->SetObjectToPlace();
 		} else {
-			ResetObjectToPlace();
+			ResetPointerMode();
 		}
 	}
 

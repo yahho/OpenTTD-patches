@@ -118,7 +118,7 @@ void CcPlaceSign(const CommandCost &result, TileIndex tile, uint32 p1, uint32 p2
 	if (result.Failed()) return;
 
 	ShowRenameSignWindow(Sign::Get(_new_sign_id));
-	ResetObjectToPlace();
+	ResetPointerMode();
 }
 
 /**

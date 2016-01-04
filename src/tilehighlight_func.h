@@ -32,11 +32,11 @@ static inline void SetPointerMode (PointerMode mode, Window *w,
 	SetPointerMode (mode, w->window_class, w->window_number, icon, pal);
 }
 
+void ResetPointerMode (void);
+
 bool HandlePlacePushButton (Window *w, int widget, CursorID cursor, PointerMode mode);
 
 void HandleDemolishMouseUp (TileIndex start_tile, TileIndex end_tile);
-
-void ResetObjectToPlace();
 
 void VpSelectTilesWithMethod(int x, int y, ViewportPlaceMethod method);
 void VpStartPlaceSizing(TileIndex tile, ViewportPlaceMethod method, int userdata = 0);

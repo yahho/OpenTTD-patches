@@ -246,7 +246,7 @@ static ToolbarMode _toolbar_mode;
 static CallBackFunction SelectSignTool()
 {
 	if (_cursor.sprite == SPR_CURSOR_SIGN) {
-		ResetObjectToPlace();
+		ResetPointerMode();
 		return CBF_NONE;
 	} else {
 		SetPointerMode (POINTER_TILE, WC_MAIN_TOOLBAR, 0, SPR_CURSOR_SIGN);
@@ -1030,7 +1030,7 @@ static CallBackFunction MenuClickNewspaper(int index)
 static CallBackFunction PlaceLandBlockInfo()
 {
 	if (_cursor.sprite == SPR_CURSOR_QUERY) {
-		ResetObjectToPlace();
+		ResetPointerMode();
 		return CBF_NONE;
 	} else {
 		SetPointerMode (POINTER_TILE, WC_MAIN_TOOLBAR, 0, SPR_CURSOR_QUERY);

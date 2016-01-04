@@ -1167,7 +1167,7 @@ public:
 
 						DoCommandP(this->vehicle->tile, this->vehicle->index + (this->OrderGetSel() << 20), order.Pack(), CMD_INSERT_ORDER);
 					}
-					ResetObjectToPlace();
+					ResetPointerMode();
 					break;
 				}
 
@@ -1231,7 +1231,7 @@ public:
 			case WID_O_GOTO:
 				if (this->GetWidget<NWidgetLeaf>(widget)->ButtonHit(pt)) {
 					if (this->goto_type != OPOS_NONE) {
-						ResetObjectToPlace();
+						ResetPointerMode();
 					} else {
 						this->OrderClick_Goto(OPOS_GOTO);
 					}
@@ -1403,7 +1403,7 @@ public:
 				break;
 		}
 
-		ResetObjectToPlace();
+		ResetPointerMode();
 
 		if (this->order_over != INVALID_VEH_ORDER_ID) {
 			/* End of drag-and-drop, hide dragged order destination highlight. */
@@ -1441,7 +1441,7 @@ public:
 
 			if (DoCommandP(this->vehicle->tile, this->vehicle->index + (this->OrderGetSel() << 20), cmd.Pack(), CMD_INSERT_ORDER)) {
 				/* With quick goto the Go To button stays active */
-				if (!_settings_client.gui.quick_goto) ResetObjectToPlace();
+				if (!_settings_client.gui.quick_goto) ResetPointerMode();
 			}
 		}
 	}
@@ -1458,7 +1458,7 @@ public:
 
 		if (DoCommandP(this->vehicle->tile, this->vehicle->index | (share_order ? CO_SHARE : CO_COPY) << 30, v->index, CMD_CLONE_ORDER)) {
 			this->selected_order = -1;
-			ResetObjectToPlace();
+			ResetPointerMode();
 		}
 		return true;
 	}

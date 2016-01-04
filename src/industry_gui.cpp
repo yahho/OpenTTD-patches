@@ -486,7 +486,7 @@ public:
 							!this->enabled[this->selected_index])) {
 						/* Reset the button state if going to prospecting or "build many industries" */
 						this->RaiseButtons();
-						ResetObjectToPlace();
+						ResetPointerMode();
 					}
 
 					this->SetButtons();
@@ -557,7 +557,7 @@ public:
 		}
 
 		/* If an industry has been built, just reset the cursor and the system */
-		if (success && !_settings_client.gui.persistent_buildingtools) ResetObjectToPlace();
+		if (success && !_settings_client.gui.persistent_buildingtools) ResetPointerMode();
 	}
 
 	virtual void OnTick()

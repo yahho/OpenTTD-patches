@@ -2304,7 +2304,7 @@ void ShowSelectBaseStationIfNeeded (Command *cmd, const TileArea &ta, bool waypo
 		std::vector<StationID> list;
 		FindStationsNearby (&list, ta, false, waypoint);
 		if (list.size() == 0 ? _settings_game.station.distant_join_stations : _settings_game.station.adjacent_stations) {
-			if (!_settings_client.gui.persistent_buildingtools) ResetObjectToPlace();
+			if (!_settings_client.gui.persistent_buildingtools) ResetPointerMode();
 			new SelectStationWindow (&_select_station_desc, *cmd, ta, waypoint, list);
 			return;
 		}

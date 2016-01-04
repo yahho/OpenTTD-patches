@@ -79,7 +79,7 @@ public:
 		this->vscroll = this->GetScrollbar(WID_BO_SCROLLBAR);
 		this->FinishInitNested(number);
 
-		ResetObjectToPlace();
+		ResetPointerMode();
 
 		this->vscroll->SetPosition(0);
 		this->vscroll->SetCount(ObjectClass::GetUIClassCount());

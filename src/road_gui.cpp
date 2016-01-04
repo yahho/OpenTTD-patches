@@ -89,7 +89,7 @@ void CcPlaySound1D(const CommandCost &result, TileIndex tile, uint32 p1, uint32 
 /** Show the bridge building window between a pair of tiles. */
 static void HandleBuildRoadBridge (TileIndex start_tile, TileIndex end_tile)
 {
-	if (!_settings_client.gui.persistent_buildingtools) ResetObjectToPlace();
+	if (!_settings_client.gui.persistent_buildingtools) ResetPointerMode();
 	ShowBuildBridgeWindow (start_tile, end_tile, TRANSPORT_ROAD, RoadTypeToRoadTypes(_cur_roadtype));
 }
 
@@ -108,7 +108,7 @@ void CcBuildTunnel(const CommandCost &result, TileIndex start_tile, uint32 p1, u
 		bool road = ((TransportType)GB(p1, 8, 2) == TRANSPORT_ROAD);
 
 		if (_settings_client.sound.confirm) SndPlayTileFx (road ? SND_1F_SPLAT_OTHER : SND_20_SPLAT_RAIL, start_tile);
-		if (!_settings_client.gui.persistent_buildingtools) ResetObjectToPlace();
+		if (!_settings_client.gui.persistent_buildingtools) ResetPointerMode();
 
 		if (road) {
 			DiagDirection start_direction = ReverseDiagDir(GetTunnelBridgeDirection(start_tile));
@@ -189,7 +189,7 @@ void CcRoadDepot(const CommandCost &result, TileIndex tile, uint32 p1, uint32 p2
 
 	DiagDirection dir = (DiagDirection)GB(p1, 0, 2);
 	if (_settings_client.sound.confirm) SndPlayTileFx(SND_1F_SPLAT_OTHER, tile);
-	if (!_settings_client.gui.persistent_buildingtools) ResetObjectToPlace();
+	if (!_settings_client.gui.persistent_buildingtools) ResetPointerMode();
 	ConnectRoadToStructure(tile, dir);
 }
 
@@ -213,7 +213,7 @@ void CcRoadStop(const CommandCost &result, TileIndex tile, uint32 p1, uint32 p2)
 
 	DiagDirection dir = (DiagDirection)GB(p2, 6, 2);
 	if (_settings_client.sound.confirm) SndPlayTileFx(SND_1F_SPLAT_OTHER, tile);
-	if (!_settings_client.gui.persistent_buildingtools) ResetObjectToPlace();
+	if (!_settings_client.gui.persistent_buildingtools) ResetPointerMode();
 	TileArea roadstop_area(tile, GB(p1, 0, 8), GB(p1, 8, 8));
 	TILE_AREA_LOOP(cur_tile, roadstop_area) {
 		ConnectRoadToStructure(cur_tile, dir);
