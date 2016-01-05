@@ -871,25 +871,6 @@ static void DrawTileSelectionRect(const TileInfo *ti, PaletteID pal)
 	DrawSelectionSprite(sel, pal, ti, 7, FOUNDATION_PART_NORMAL);
 }
 
-static bool IsPartOfAutoLine(int px, int py)
-{
-	px -= _thd.selstart.x;
-	py -= _thd.selstart.y;
-
-	if ((_thd.drawstyle & HT_DRAG_MASK) != HT_LINE) return false;
-
-	switch (_thd.drawstyle & HT_DIR_MASK) {
-		case HT_DIR_X:  return py == 0; // x direction
-		case HT_DIR_Y:  return px == 0; // y direction
-		case HT_DIR_HU: return px == -py || px == -py - 16; // horizontal upper
-		case HT_DIR_HL: return px == -py || px == -py + 16; // horizontal lower
-		case HT_DIR_VL: return px == py || px == py + 16; // vertical left
-		case HT_DIR_VR: return px == py || px == py - 16; // vertical right
-		default:
-			NOT_REACHED();
-	}
-}
-
 /* [direction][side] */
 static const HighLightStyle _autorail_type[6][2] = {
 	{ HT_DIR_X,  HT_DIR_X },
@@ -984,19 +965,39 @@ draw_inner:
 			HighLightStyle type = _thd.drawstyle & HT_DIR_MASK;
 			assert(type < HT_DIR_END);
 			DrawAutorailSelection(ti, _autorail_type[type][0]);
-		} else if (IsPartOfAutoLine(ti->x, ti->y)) {
+		} else if ((_thd.drawstyle & HT_DRAG_MASK) == HT_LINE) {
 			/* autorail highlighting long line */
-			HighLightStyle dir = _thd.drawstyle & HT_DIR_MASK;
-			uint side;
+			int px = ti->x - _thd.selstart.x;
+			int py = ti->y - _thd.selstart.y;
 
-			if (dir == HT_DIR_X || dir == HT_DIR_Y) {
-				side = 0;
-			} else {
-				TileIndex start = TileVirtXY(_thd.selstart.x, _thd.selstart.y);
-				side = Delta(Delta(TileX(start), TileX(ti->tile)), Delta(TileY(start), TileY(ti->tile)));
+			int type;
+			switch (_thd.drawstyle & HT_DIR_MASK) {
+				case HT_DIR_X: // x direction
+					type = (py == 0) ? HT_DIR_X : -1;
+					break;
+				case HT_DIR_Y: // y direction
+					type = (px == 0) ? HT_DIR_Y : -1;
+					break;
+				case HT_DIR_HU: // horizontal upper
+					type = (px == -py) ? HT_DIR_HU :
+						(px == -py - 16) ? HT_DIR_HL : -1;
+					break;
+				case HT_DIR_HL: // horizontal lower
+					type = (px == -py) ? HT_DIR_HL :
+						(px == -py + 16) ? HT_DIR_HU : -1;
+					break;
+				case HT_DIR_VL: // vertical left
+					type = (px == py) ? HT_DIR_VL :
+						(px == py + 16) ? HT_DIR_VR : -1;
+					break;
+				case HT_DIR_VR: // vertical right
+					type = (px == py) ? HT_DIR_VR :
+						(px == py - 16) ? HT_DIR_VL : -1;
+					break;
+				default: NOT_REACHED();
 			}
 
-			DrawAutorailSelection(ti, _autorail_type[dir][side]);
+			if (type >= 0) DrawAutorailSelection (ti, type);
 		}
 		return;
 	}
