@@ -881,9 +881,43 @@ static void DrawTileSelectionRect(const TileInfo *ti, PaletteID pal)
  */
 static void DrawAutorailSelection(const TileInfo *ti, uint autorail_type)
 {
-	SpriteID image;
-	PaletteID pal;
-	int offset;
+	static const byte RED = 0x80; // flag for invalid tracks
+
+	/* table maps each of the six rail directions and tileh combinations to a sprite
+	 * invalid entries are required to make sure that this array can be quickly accessed */
+	static const byte autorail_sprites[][6] = {
+		{  0,   8,     16,     25,     34,     42 }, // tileh = 0
+		{  5,  13, RED|22, RED|31,     35,     42 }, // tileh = 1
+		{  5,  10,     16,     26, RED|38, RED|46 }, // tileh = 2
+		{  5,   9, RED|23,     26,     35, RED|46 }, // tileh = 3
+		{  2,  10, RED|19, RED|28,     34,     43 }, // tileh = 4
+		{  1,   9,     17,     26,     35,     43 }, // tileh = 5
+		{  1,  10, RED|20,     26, RED|38,     43 }, // tileh = 6
+		{  1,   9,     17,     26,     35,     43 }, // tileh = 7
+		{  2,  13,     17,     25, RED|40, RED|48 }, // tileh = 8
+		{  1,  13,     17, RED|32,     35, RED|48 }, // tileh = 9
+		{  1,   9,     17,     26,     35,     43 }, // tileh = 10
+		{  1,   9,     17,     26,     35,     43 }, // tileh = 11
+		{  2,   9,     17, RED|29, RED|40,     43 }, // tileh = 12
+		{  1,   9,     17,     26,     35,     43 }, // tileh = 13
+		{  1,   9,     17,     26,     35,     43 }, // tileh = 14
+		{  0,   1,      2,      3,      4,      5 }, // invalid (15)
+		{  0,   1,      2,      3,      4,      5 }, // invalid (16)
+		{  0,   1,      2,      3,      4,      5 }, // invalid (17)
+		{  0,   1,      2,      3,      4,      5 }, // invalid (18)
+		{  0,   1,      2,      3,      4,      5 }, // invalid (19)
+		{  0,   1,      2,      3,      4,      5 }, // invalid (20)
+		{  0,   1,      2,      3,      4,      5 }, // invalid (21)
+		{  0,   1,      2,      3,      4,      5 }, // invalid (22)
+		{  6,  11,     17,     27, RED|39, RED|47 }, // tileh = 23
+		{  0,   1,      2,      3,      4,      5 }, // invalid (24)
+		{  0,   1,      2,      3,      4,      5 }, // invalid (25)
+		{  0,   1,      2,      3,      4,      5 }, // invalid (26)
+		{  7,  15, RED|24, RED|33,     36,     44 }, // tileh = 27
+		{  0,   1,      2,      3,      4,      5 }, // invalid (28)
+		{  3,  14,     18,     26, RED|41, RED|49 }, // tileh = 29
+		{  4,  12, RED|21, RED|30,     37,     45 }  // tileh = 30
+	};
 
 	FoundationPart foundation_part = FOUNDATION_PART_NORMAL;
 	Slope autorail_tileh = RemoveHalftileSlope(ti->tileh);
@@ -897,16 +931,12 @@ static void DrawAutorailSelection(const TileInfo *ti, uint autorail_type)
 		}
 	}
 
-	offset = _AutorailTilehSprite[autorail_tileh][autorail_type];
-	if (offset >= 0) {
-		image = SPR_AUTORAIL_BASE + offset;
-		pal = PAL_NONE;
-	} else {
-		image = SPR_AUTORAIL_BASE - offset;
-		pal = PALETTE_SEL_TILE_RED;
-	}
+	uint offset = autorail_sprites[autorail_tileh][autorail_type];
 
-	DrawSelectionSprite(image, _thd.make_square_red ? PALETTE_SEL_TILE_RED : pal, ti, 7, foundation_part);
+	DrawSelectionSprite (SPR_AUTORAIL_BASE + (offset & 0x7F),
+			(_thd.make_square_red || (offset & 0x80) != 0) ?
+					PALETTE_SEL_TILE_RED : PAL_NONE,
+			ti, 7, foundation_part);
 }
 
 /**
