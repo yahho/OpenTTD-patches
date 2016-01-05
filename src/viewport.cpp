@@ -871,16 +871,6 @@ static void DrawTileSelectionRect(const TileInfo *ti, PaletteID pal)
 	DrawSelectionSprite(sel, pal, ti, 7, FOUNDATION_PART_NORMAL);
 }
 
-/* [direction][side] */
-static const HighLightStyle _autorail_type[6][2] = {
-	{ HT_DIR_X,  HT_DIR_X },
-	{ HT_DIR_Y,  HT_DIR_Y },
-	{ HT_DIR_HU, HT_DIR_HL },
-	{ HT_DIR_HL, HT_DIR_HU },
-	{ HT_DIR_VL, HT_DIR_VR },
-	{ HT_DIR_VR, HT_DIR_VL }
-};
-
 #include "table/autorail.h"
 
 /**
@@ -964,7 +954,7 @@ draw_inner:
 			/* autorail highlight piece under cursor */
 			HighLightStyle type = _thd.drawstyle & HT_DIR_MASK;
 			assert(type < HT_DIR_END);
-			DrawAutorailSelection(ti, _autorail_type[type][0]);
+			DrawAutorailSelection (ti, type);
 		} else if ((_thd.drawstyle & HT_DRAG_MASK) == HT_LINE) {
 			/* autorail highlighting long line */
 			int px = ti->x - _thd.selstart.x;
