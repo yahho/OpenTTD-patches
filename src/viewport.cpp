@@ -2428,6 +2428,38 @@ Window *TileHighlightData::GetCallbackWnd()
 
 
 /**
+ * Displays the measurement tooltips when selecting multiple tiles
+ * @param str String to be displayed
+ * @param paramcount number of params to deal with
+ * @param params (optional) up to 5 pieces of additional information that may be added to a tooltip
+ * @param close_cond Condition for closing this tooltip.
+ */
+static inline void ShowMeasurementTooltips(StringID str, uint paramcount, const uint64 params[], TooltipCloseCondition close_cond = TCC_LEFT_CLICK)
+{
+	if (!_settings_client.gui.measure_tooltip) return;
+	GuiShowTooltips(_thd.GetCallbackWnd(), str, paramcount, params, close_cond);
+}
+
+/**
+ * Highlights all tiles between a set of two tiles. Used in dock and tunnel placement
+ * @param from TileIndex of the first tile to highlight
+ * @param to TileIndex of the last tile to highlight
+ */
+static void VpSetPresizeRange (TileIndex from, TileIndex to)
+{
+	uint64 distance = DistanceManhattan(from, to) + 1;
+
+	_thd.selend.x = TileX(to) * TILE_SIZE;
+	_thd.selend.y = TileY(to) * TILE_SIZE;
+	_thd.selstart.x = TileX(from) * TILE_SIZE;
+	_thd.selstart.y = TileY(from) * TILE_SIZE;
+	_thd.next_drawstyle = HT_RECT;
+
+	/* show measurement only if there is any length to speak of */
+	if (distance > 1) ShowMeasurementTooltips(STR_MEASURE_LENGTH, 1, &distance, TCC_HOVER);
+}
+
+/**
  * Updates tile highlighting for all cases.
  * Uses _thd.selstart and _thd.selend (set elsewhere) to determine _thd.pos and _thd.size
  * Also drawstyle is determined. Uses _thd.new.* as a buffer and calls SetSelectionTilesDirty() twice,
@@ -2546,19 +2578,6 @@ void UpdateTileSelection()
 	}
 }
 
-/**
- * Displays the measurement tooltips when selecting multiple tiles
- * @param str String to be displayed
- * @param paramcount number of params to deal with
- * @param params (optional) up to 5 pieces of additional information that may be added to a tooltip
- * @param close_cond Condition for closing this tooltip.
- */
-static inline void ShowMeasurementTooltips(StringID str, uint paramcount, const uint64 params[], TooltipCloseCondition close_cond = TCC_LEFT_CLICK)
-{
-	if (!_settings_client.gui.measure_tooltip) return;
-	GuiShowTooltips(_thd.GetCallbackWnd(), str, paramcount, params, close_cond);
-}
-
 /** highlighting tiles while only going over them with the mouse */
 void VpStartPlaceSizing (TileIndex tile, ViewportPlaceMethod method, int userdata)
 {
@@ -2601,25 +2620,6 @@ void VpStartPlaceSizing (TileIndex tile, ViewportPlaceMethod method, int userdat
 void VpSetPlaceSizingLimit(int limit)
 {
 	_thd.sizelimit = limit;
-}
-
-/**
- * Highlights all tiles between a set of two tiles. Used in dock and tunnel placement
- * @param from TileIndex of the first tile to highlight
- * @param to TileIndex of the last tile to highlight
- */
-void VpSetPresizeRange(TileIndex from, TileIndex to)
-{
-	uint64 distance = DistanceManhattan(from, to) + 1;
-
-	_thd.selend.x = TileX(to) * TILE_SIZE;
-	_thd.selend.y = TileY(to) * TILE_SIZE;
-	_thd.selstart.x = TileX(from) * TILE_SIZE;
-	_thd.selstart.y = TileY(from) * TILE_SIZE;
-	_thd.next_drawstyle = HT_RECT;
-
-	/* show measurement only if there is any length to speak of */
-	if (distance > 1) ShowMeasurementTooltips(STR_MEASURE_LENGTH, 1, &distance, TCC_HOVER);
 }
 
 /**
@@ -3025,7 +3025,7 @@ static void CalcRaildirsDrawstyle(int x, int y, int method)
  * @param method modifies the way tiles are selected. Possible
  * methods are VPM_* in viewport.h
  */
-void VpSelectTilesWithMethod(int x, int y, ViewportPlaceMethod method)
+static void VpSelectTilesWithMethod (int x, int y, ViewportPlaceMethod method)
 {
 	assert (method != VPM_NONE);
 
