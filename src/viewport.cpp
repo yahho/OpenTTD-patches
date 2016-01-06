@@ -953,82 +953,78 @@ static void DrawTileSelection(const TileInfo *ti)
 	if ((_thd.drawstyle & HT_DRAG_MASK) == HT_NONE) return;
 
 	if (_thd.diagonal) { // We're drawing a 45 degrees rotated (diagonal) rectangle
-		if (IsInsideRotatedRectangle((int)ti->x, (int)ti->y)) goto draw_inner;
-		return;
-	}
-
-	/* Inside the inner area? */
-	if (IsInsideBS(ti->x, _thd.pos.x, _thd.size.x) &&
-			IsInsideBS(ti->y, _thd.pos.y, _thd.size.y)) {
-draw_inner:
-		if (_thd.drawstyle & HT_RECT) {
-			if (!is_redsq) DrawTileSelectionRect(ti, _thd.make_square_red ? PALETTE_SEL_TILE_RED : PAL_NONE);
-		} else if (_thd.drawstyle & HT_POINT) {
-			/* Figure out the Z coordinate for the single dot. */
-			int z = 0;
-			FoundationPart foundation_part = FOUNDATION_PART_NORMAL;
-			if (ti->tileh & SLOPE_N) {
-				z += TILE_HEIGHT;
-				if (RemoveHalftileSlope(ti->tileh) == SLOPE_STEEP_N) z += TILE_HEIGHT;
-			}
-			if (IsHalftileSlope(ti->tileh)) {
-				Corner halftile_corner = GetHalftileSlopeCorner(ti->tileh);
-				if ((halftile_corner == CORNER_W) || (halftile_corner == CORNER_E)) z += TILE_HEIGHT;
-				if (halftile_corner != CORNER_S) {
-					foundation_part = FOUNDATION_PART_HALFTILE;
-					if (IsSteepSlope(ti->tileh)) z -= TILE_HEIGHT;
-				}
-			}
-			DrawSelectionSprite(_cur_dpi->zoom <= ZOOM_LVL_DETAIL ? SPR_DOT : SPR_DOT_SMALL, PAL_NONE, ti, z, foundation_part);
-		} else if (_thd.drawstyle & HT_RAIL) {
-			/* autorail highlight piece under cursor */
-			HighLightStyle type = _thd.drawstyle & HT_DIR_MASK;
-			assert(type < HT_DIR_END);
-			DrawAutorailSelection (ti, type);
-		} else if ((_thd.drawstyle & HT_DRAG_MASK) == HT_LINE) {
-			/* autorail highlighting long line */
-			int px = ti->x - _thd.selstart.x;
-			int py = ti->y - _thd.selstart.y;
-
-			int type;
-			switch (_thd.drawstyle & HT_DIR_MASK) {
-				case HT_DIR_X: // x direction
-					type = (py == 0) ? HT_DIR_X : -1;
-					break;
-				case HT_DIR_Y: // y direction
-					type = (px == 0) ? HT_DIR_Y : -1;
-					break;
-				case HT_DIR_HU: // horizontal upper
-					type = (px == -py) ? HT_DIR_HU :
-						(px == -py - 16) ? HT_DIR_HL : -1;
-					break;
-				case HT_DIR_HL: // horizontal lower
-					type = (px == -py) ? HT_DIR_HL :
-						(px == -py + 16) ? HT_DIR_HU : -1;
-					break;
-				case HT_DIR_VL: // vertical left
-					type = (px == py) ? HT_DIR_VL :
-						(px == py + 16) ? HT_DIR_VR : -1;
-					break;
-				case HT_DIR_VR: // vertical right
-					type = (px == py) ? HT_DIR_VR :
-						(px == py - 16) ? HT_DIR_VL : -1;
-					break;
-				default: NOT_REACHED();
-			}
-
-			if (type >= 0) DrawAutorailSelection (ti, type);
+		if (!IsInsideRotatedRectangle ((int)ti->x, (int)ti->y)) return;
+	} else if (!IsInsideBS (ti->x, _thd.pos.x, _thd.size.x) ||
+			!IsInsideBS (ti->y, _thd.pos.y, _thd.size.y)) {
+		/* Check if it's inside the outer area? */
+		if (!is_redsq && _thd.outersize.x > 0 &&
+				IsInsideBS (ti->x, _thd.pos.x + _thd.offs.x, _thd.size.x + _thd.outersize.x) &&
+				IsInsideBS (ti->y, _thd.pos.y + _thd.offs.y, _thd.size.y + _thd.outersize.y)) {
+			/* Draw a blue rect. */
+			DrawTileSelectionRect (ti, PALETTE_SEL_TILE_BLUE);
 		}
 		return;
 	}
 
-	/* Check if it's inside the outer area? */
-	if (!is_redsq && _thd.outersize.x > 0 &&
-			IsInsideBS(ti->x, _thd.pos.x + _thd.offs.x, _thd.size.x + _thd.outersize.x) &&
-			IsInsideBS(ti->y, _thd.pos.y + _thd.offs.y, _thd.size.y + _thd.outersize.y)) {
-		/* Draw a blue rect. */
-		DrawTileSelectionRect(ti, PALETTE_SEL_TILE_BLUE);
-		return;
+	/* Inside the inner area. */
+
+	if (_thd.drawstyle & HT_RECT) {
+		if (!is_redsq) DrawTileSelectionRect(ti, _thd.make_square_red ? PALETTE_SEL_TILE_RED : PAL_NONE);
+	} else if (_thd.drawstyle & HT_POINT) {
+		/* Figure out the Z coordinate for the single dot. */
+		int z = 0;
+		FoundationPart foundation_part = FOUNDATION_PART_NORMAL;
+		if (ti->tileh & SLOPE_N) {
+			z += TILE_HEIGHT;
+			if (RemoveHalftileSlope(ti->tileh) == SLOPE_STEEP_N) z += TILE_HEIGHT;
+		}
+		if (IsHalftileSlope(ti->tileh)) {
+			Corner halftile_corner = GetHalftileSlopeCorner(ti->tileh);
+			if ((halftile_corner == CORNER_W) || (halftile_corner == CORNER_E)) z += TILE_HEIGHT;
+			if (halftile_corner != CORNER_S) {
+				foundation_part = FOUNDATION_PART_HALFTILE;
+				if (IsSteepSlope(ti->tileh)) z -= TILE_HEIGHT;
+			}
+		}
+		DrawSelectionSprite(_cur_dpi->zoom <= ZOOM_LVL_DETAIL ? SPR_DOT : SPR_DOT_SMALL, PAL_NONE, ti, z, foundation_part);
+	} else if (_thd.drawstyle & HT_RAIL) {
+		/* autorail highlight piece under cursor */
+		HighLightStyle type = _thd.drawstyle & HT_DIR_MASK;
+		assert(type < HT_DIR_END);
+		DrawAutorailSelection (ti, type);
+	} else if ((_thd.drawstyle & HT_DRAG_MASK) == HT_LINE) {
+		/* autorail highlighting long line */
+		int px = ti->x - _thd.selstart.x;
+		int py = ti->y - _thd.selstart.y;
+
+		int type;
+		switch (_thd.drawstyle & HT_DIR_MASK) {
+			case HT_DIR_X: // x direction
+				type = (py == 0) ? HT_DIR_X : -1;
+				break;
+			case HT_DIR_Y: // y direction
+				type = (px == 0) ? HT_DIR_Y : -1;
+				break;
+			case HT_DIR_HU: // horizontal upper
+				type = (px == -py) ? HT_DIR_HU :
+					(px == -py - 16) ? HT_DIR_HL : -1;
+				break;
+			case HT_DIR_HL: // horizontal lower
+				type = (px == -py) ? HT_DIR_HL :
+					(px == -py + 16) ? HT_DIR_HU : -1;
+				break;
+			case HT_DIR_VL: // vertical left
+				type = (px == py) ? HT_DIR_VL :
+					(px == py + 16) ? HT_DIR_VR : -1;
+				break;
+			case HT_DIR_VR: // vertical right
+				type = (px == py) ? HT_DIR_VR :
+					(px == py - 16) ? HT_DIR_VL : -1;
+				break;
+			default: NOT_REACHED();
+		}
+
+		if (type >= 0) DrawAutorailSelection (ti, type);
 	}
 }
 
