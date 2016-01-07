@@ -2579,7 +2579,8 @@ void UpdateTileSelection()
 }
 
 /** highlighting tiles while only going over them with the mouse */
-void VpStartPlaceSizing (TileIndex tile, ViewportPlaceMethod method, int userdata)
+void VpStartPlaceSizing (TileIndex tile, ViewportPlaceMethod method,
+	int userdata, uint limit)
 {
 	assert (method != VPM_NONE);
 
@@ -2593,7 +2594,7 @@ void VpStartPlaceSizing (TileIndex tile, ViewportPlaceMethod method, int userdat
 	/* Needed so several things (road, autoroad, bridges, ...) are placed correctly.
 	 * In effect, placement starts from the centre of a tile
 	 */
-	if (method == VPM_X_OR_Y || method == VPM_FIX_X || method == VPM_FIX_Y) {
+	if (method == VPM_X_OR_Y || method == VPM_X || method == VPM_Y) {
 		_thd.selend.x += TILE_SIZE / 2;
 		_thd.selend.y += TILE_SIZE / 2;
 		_thd.selstart.x += TILE_SIZE / 2;
@@ -2615,9 +2616,13 @@ void VpStartPlaceSizing (TileIndex tile, ViewportPlaceMethod method, int userdat
 			_thd.next_drawstyle = _thd.drawstyle;
 			break;
 	}
+
+	/* You shouldn't be using this function if dragging is not possible. */
+	assert (limit != 1);
+	_thd.sizelimit = limit;
 }
 
-void VpSetPlaceSizingLimit(int limit)
+void VpSetPlaceSizingLimit (uint limit)
 {
 	_thd.sizelimit = limit;
 }
@@ -2805,7 +2810,7 @@ static void CheckOverflow(int &test, int &other, int max, int mult)
 }
 
 /** while dragging */
-static void CalcRaildirsDrawstyle(int x, int y, int method)
+static void CalcRaildirsDrawstyle (int x, int y)
 {
 	HighLightStyle b;
 
@@ -2814,23 +2819,24 @@ static void CalcRaildirsDrawstyle(int x, int y, int method)
 	uint w = abs(dx) + TILE_SIZE;
 	uint h = abs(dy) + TILE_SIZE;
 
-	if (method & ~(VPM_RAILDIRS | VPM_SIGNALDIRS)) {
+	assert_compile (POINTER_RAIL_LAST == POINTER_RAIL_AUTO);
+
+	if ((_pointer_mode >= POINTER_RAIL_FIRST) && (_pointer_mode < POINTER_RAIL_LAST)) {
 		/* We 'force' a selection direction; first four rail buttons. */
-		method &= ~(VPM_RAILDIRS | VPM_SIGNALDIRS);
 		int raw_dx = _thd.selstart.x - _thd.selend.x;
 		int raw_dy = _thd.selstart.y - _thd.selend.y;
-		switch (method) {
-			case VPM_FIX_X:
+		switch (_pointer_mode) {
+			case POINTER_RAIL_Y:
 				b = HT_LINE | HT_DIR_Y;
 				x = _thd.selstart.x;
 				break;
 
-			case VPM_FIX_Y:
+			case POINTER_RAIL_X:
 				b = HT_LINE | HT_DIR_X;
 				y = _thd.selstart.y;
 				break;
 
-			case VPM_FIX_HORIZONTAL:
+			case POINTER_RAIL_H:
 				if (dx == -dy) {
 					/* We are on a straight horizontal line. Determine the 'rail'
 					 * to build based the sub tile location. */
@@ -2865,7 +2871,7 @@ static void CalcRaildirsDrawstyle(int x, int y, int method)
 				}
 				break;
 
-			case VPM_FIX_VERTICAL:
+			case POINTER_RAIL_V:
 				if (dx == dy) {
 					/* We are on a straight vertical line. Determine the 'rail'
 					 * to build based the sub tile location. */
@@ -2904,7 +2910,7 @@ static void CalcRaildirsDrawstyle(int x, int y, int method)
 				NOT_REACHED();
 		}
 	} else if (TileVirtXY(_thd.selstart.x, _thd.selstart.y) == TileVirtXY(x, y)) { // check if we're only within one tile
-		if (method & VPM_RAILDIRS) {
+		if (_pointer_mode == POINTER_RAIL_AUTO) {
 			b = GetAutorailHT(x, y);
 		} else { // rect for autosignals on one tile
 			b = HT_RECT;
@@ -3038,10 +3044,10 @@ static void VpSelectTilesWithMethod (int x, int y, ViewportPlaceMethod method)
 	}
 
 	/* Special handling of drag in any (8-way) direction */
-	if (method & (VPM_RAILDIRS | VPM_SIGNALDIRS)) {
+	if (method == VPM_RAILDIRS) {
 		_thd.selend.x = x;
 		_thd.selend.y = y;
-		CalcRaildirsDrawstyle(x, y, method);
+		CalcRaildirsDrawstyle (x, y);
 		return;
 	}
 
@@ -3054,7 +3060,9 @@ static void VpSelectTilesWithMethod (int x, int y, ViewportPlaceMethod method)
 	sx = _thd.selstart.x;
 	sy = _thd.selstart.y;
 
-	int limit = 0;
+	int limit = (_thd.sizelimit != 0) ? (_thd.sizelimit - 1) * TILE_SIZE : 0;
+	/* Limited size does not work with rotation. */
+	assert ((limit == 0) || (method != VPM_X_AND_Y_ROTATED));
 
 	switch (method) {
 		case VPM_X_OR_Y: // drag in X or Y direction
@@ -3067,20 +3075,12 @@ static void VpSelectTilesWithMethod (int x, int y, ViewportPlaceMethod method)
 			}
 			goto calc_heightdiff_single_direction;
 
-		case VPM_X_LIMITED: // Drag in X direction (limited size).
-			limit = (_thd.sizelimit - 1) * TILE_SIZE;
-			/* FALL THROUGH */
-
-		case VPM_FIX_X: // drag in Y direction
+		case VPM_Y: // drag in Y direction
 			x = sx;
 			style = HT_DIR_Y;
 			goto calc_heightdiff_single_direction;
 
-		case VPM_Y_LIMITED: // Drag in Y direction (limited size).
-			limit = (_thd.sizelimit - 1) * TILE_SIZE;
-			/* FALL THROUGH */
-
-		case VPM_FIX_Y: // drag in X direction
+		case VPM_X: // drag in X direction
 			y = sy;
 			style = HT_DIR_X;
 
@@ -3112,13 +3112,12 @@ calc_heightdiff_single_direction:;
 			}
 			break;
 
-		case VPM_X_AND_Y_LIMITED: // Drag an X by Y constrained rect area.
-			limit = (_thd.sizelimit - 1) * TILE_SIZE;
-			x = sx + Clamp(x - sx, -limit, limit);
-			y = sy + Clamp(y - sy, -limit, limit);
-			/* FALL THROUGH */
-
 		case VPM_X_AND_Y: // drag an X by Y area
+			if (limit > 0) {
+				x = sx + Clamp (x - sx, -limit, limit);
+				y = sy + Clamp (y - sy, -limit, limit);
+			}
+			/* fall through */
 		case VPM_X_AND_Y_ROTATED:
 			if (_settings_client.gui.measure_tooltip) {
 				static const StringID measure_strings_area[] = {

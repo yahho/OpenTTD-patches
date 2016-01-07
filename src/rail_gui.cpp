@@ -164,11 +164,11 @@ static void PlaceRail_Waypoint(TileIndex tile)
 
 	switch (GetAxisForNewWaypoint(tile)) {
 		case AXIS_X:
-			VpStartPlaceSizing (tile, VPM_FIX_X, DRAG_BUILD_WAYPOINT_X);
+			VpStartPlaceSizing (tile, VPM_Y, DRAG_BUILD_WAYPOINT_X);
 			break;
 
 		case AXIS_Y:
-			VpStartPlaceSizing (tile, VPM_FIX_Y, DRAG_BUILD_WAYPOINT_Y);
+			VpStartPlaceSizing (tile, VPM_X, DRAG_BUILD_WAYPOINT_Y);
 			break;
 
 		default:
@@ -194,11 +194,9 @@ void CcStation(const CommandCost &result, TileIndex tile, uint32 p1, uint32 p2)
 static void PlaceRail_Station(TileIndex tile)
 {
 	if (_remove_button_clicked) {
-		VpStartPlaceSizing(tile, VPM_X_AND_Y_LIMITED, DRAG_STATION);
-		VpSetPlaceSizingLimit(-1);
+		VpStartPlaceSizing (tile, VPM_X_AND_Y, DRAG_STATION);
 	} else if (_settings_client.gui.station_dragdrop) {
-		VpStartPlaceSizing(tile, VPM_X_AND_Y_LIMITED, DRAG_STATION);
-		VpSetPlaceSizingLimit(_settings_game.station.station_spread);
+		VpStartPlaceSizing (tile, VPM_X_AND_Y, DRAG_STATION, _settings_game.station.station_spread);
 	} else {
 		uint32 p1 = _cur_railtype | _railstation.orientation << 4 | _settings_client.gui.station_numtracks << 8 | _settings_client.gui.station_platlength << 16 | _ctrl_pressed << 24;
 		uint32 p2 = _railstation.station_class | _railstation.station_type << 8 | INVALID_STATION << 16;
@@ -338,7 +336,7 @@ static void BuildRailClick_Remove(Window *w)
 			if (!_settings_client.gui.station_dragdrop) {
 				SetTileSelectSize(1, 1);
 			} else {
-				VpSetPlaceSizingLimit(-1);
+				VpSetPlaceSizingLimit (0);
 			}
 		} else {
 			/* starting station build mode */
@@ -619,21 +617,9 @@ struct BuildRailToolbarWindow : Window {
 	{
 		switch (this->last_user_action) {
 			case WID_RAT_BUILD_NS:
-				VpStartPlaceSizing(tile, VPM_FIX_VERTICAL | VPM_RAILDIRS, DRAG_PLACE_RAIL);
-				break;
-
 			case WID_RAT_BUILD_X:
-				VpStartPlaceSizing(tile, VPM_FIX_Y | VPM_RAILDIRS, DRAG_PLACE_RAIL);
-				break;
-
 			case WID_RAT_BUILD_EW:
-				VpStartPlaceSizing(tile, VPM_FIX_HORIZONTAL | VPM_RAILDIRS, DRAG_PLACE_RAIL);
-				break;
-
 			case WID_RAT_BUILD_Y:
-				VpStartPlaceSizing(tile, VPM_FIX_X | VPM_RAILDIRS, DRAG_PLACE_RAIL);
-				break;
-
 			case WID_RAT_AUTORAIL:
 				VpStartPlaceSizing(tile, VPM_RAILDIRS, DRAG_PLACE_RAIL);
 				break;
@@ -655,7 +641,7 @@ struct BuildRailToolbarWindow : Window {
 				break;
 
 			case WID_RAT_BUILD_SIGNALS:
-				VpStartPlaceSizing(tile, VPM_SIGNALDIRS, DRAG_BUILD_SIGNALS);
+				VpStartPlaceSizing (tile, VPM_RAILDIRS, DRAG_BUILD_SIGNALS);
 				break;
 
 			case WID_RAT_BUILD_BRIDGE:

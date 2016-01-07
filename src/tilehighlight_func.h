@@ -38,8 +38,9 @@ bool HandlePlacePushButton (Window *w, int widget, CursorID cursor, PointerMode 
 
 void HandleDemolishMouseUp (TileIndex start_tile, TileIndex end_tile);
 
-void VpStartPlaceSizing(TileIndex tile, ViewportPlaceMethod method, int userdata = 0);
-void VpSetPlaceSizingLimit(int limit);
+void VpStartPlaceSizing (TileIndex tile, ViewportPlaceMethod method,
+	int userdata = 0, uint limit = 0);
+void VpSetPlaceSizingLimit (uint limit);
 void VpStopPlaceSizing (void);
 
 void UpdateTileSelection();

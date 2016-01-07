@@ -471,13 +471,13 @@ struct BuildRoadToolbarWindow : Window {
 			case WID_ROT_ROAD_X:
 				_place_road_flag = RF_DIR_X;
 				if (_tile_fract_coords.x >= 8) _place_road_flag |= RF_START_HALFROAD_X;
-				VpStartPlaceSizing(tile, VPM_FIX_Y, DRAG_PLACE_ROAD_X_DIR);
+				VpStartPlaceSizing (tile, VPM_X, DRAG_PLACE_ROAD_X_DIR);
 				break;
 
 			case WID_ROT_ROAD_Y:
 				_place_road_flag = RF_DIR_Y;
 				if (_tile_fract_coords.y >= 8) _place_road_flag |= RF_START_HALFROAD_Y;
-				VpStartPlaceSizing(tile, VPM_FIX_X, DRAG_PLACE_ROAD_Y_DIR);
+				VpStartPlaceSizing (tile, VPM_Y, DRAG_PLACE_ROAD_Y_DIR);
 				break;
 
 			case WID_ROT_AUTOROAD:
@@ -502,11 +502,10 @@ struct BuildRoadToolbarWindow : Window {
 					VpStartPlaceSizing (tile, VPM_X_AND_Y, bus ? DRAG_REMOVE_BUSSTOP : DRAG_REMOVE_TRUCKSTOP);
 				} else {
 					VpStartPlaceSizing (tile,
-							_road_station_picker_orientation < DIAGDIR_END ? // Not a drive-through stop.
-								(DiagDirToAxis(_road_station_picker_orientation) == AXIS_X) ? VPM_X_LIMITED : VPM_Y_LIMITED :
-								VPM_X_AND_Y_LIMITED,
-						bus ? DRAG_BUILD_BUSSTOP : DRAG_BUILD_TRUCKSTOP);
-					VpSetPlaceSizingLimit (_settings_game.station.station_spread);
+						(_road_station_picker_orientation >= DIAGDIR_END) ? VPM_X_AND_Y : // drive-through stop
+							(DiagDirToAxis(_road_station_picker_orientation) == AXIS_X) ? VPM_Y : VPM_X,
+						bus ? DRAG_BUILD_BUSSTOP : DRAG_BUILD_TRUCKSTOP,
+						_settings_game.station.station_spread);
 				}
 				break;
 			}
