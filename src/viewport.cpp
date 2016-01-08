@@ -2734,42 +2734,42 @@ static int CalcHeightdiff(HighLightStyle style, uint distance, TileIndex start_t
 			h1 = TileHeight(end_tile);
 			break;
 		default: { // All other types, this is mostly only line/autorail
-			static const HighLightStyle flip_style_direction[] = {
-				HT_DIR_X, HT_DIR_Y, HT_DIR_HL, HT_DIR_HU, HT_DIR_VR, HT_DIR_VL
+			static const Track flip_track [TRACK_END] = {
+				TRACK_X, TRACK_Y, TRACK_LOWER, TRACK_UPPER, TRACK_RIGHT, TRACK_LEFT,
 			};
-			static const CoordDiff heightdiff_line_by_dir_start[][2] = {
-				/* Start */ { {1, 0}, {1, 1} }, /* HT_DIR_X  */ { {0, 1}, {1, 1} }, // HT_DIR_Y
-				/* Start */ { {1, 0}, {0, 0} }, /* HT_DIR_HU */ { {1, 0}, {1, 1} }, // HT_DIR_HL
-				/* Start */ { {1, 0}, {1, 1} }, /* HT_DIR_VL */ { {0, 1}, {1, 1} }, // HT_DIR_VR
-			};
-			static const CoordDiff heightdiff_line_by_dir_end[][2] = {
-				/* End   */ { {0, 1}, {0, 0} }, /* HT_DIR_X  */ { {1, 0}, {0, 0} }, // HT_DIR_Y
-				/* End   */ { {0, 1}, {0, 0} }, /* HT_DIR_HU */ { {1, 1}, {0, 1} }, // HT_DIR_HL
-				/* End   */ { {1, 0}, {0, 0} }, /* HT_DIR_VL */ { {0, 0}, {0, 1} }, // HT_DIR_VR
+			static const CoordDiff coorddiff_by_track[TRACK_END][2][2] = {
+				/*  Start               End  */
+				{ { {1, 0}, {1, 1} }, { {0, 1}, {0, 0} } }, // TRACK_X
+				{ { {0, 1}, {1, 1} }, { {1, 0}, {0, 0} } }, // TRACK_Y
+				{ { {1, 0}, {0, 0} }, { {0, 1}, {0, 0} } }, // TRACK_UPPER
+				{ { {1, 0}, {1, 1} }, { {1, 1}, {0, 1} } }, // TRACK_LOWER
+				{ { {1, 0}, {1, 1} }, { {1, 0}, {0, 0} } }, // TRACK_LEFT
+				{ { {0, 1}, {1, 1} }, { {0, 0}, {0, 1} } }, // TRACK_RIGHT
 			};
 
-			distance %= 2; // we're only interested if the distance is even or uneven
-			style &= HT_DIR_MASK;
+			bool even = ((distance % 2) == 0); // we're only interested in whether the distance is even or odd
+			Track track = (Track)(style & HT_DIR_MASK);
+			assert (IsValidTrack (track));
 
 			/* To handle autorail, we do some magic to be able to use a lookup table.
 			 * Firstly if we drag the other way around, we switch start&end, and if needed
 			 * also flip the drag-position. Eg if it was on the left, and the distance is even
 			 * that means the end, which is now the start is on the right */
-			if (swap && distance == 0) style = flip_style_direction[style];
+			if (swap && even) track = flip_track[track];
 
 			/* Use lookup table for start-tile based on HighLightStyle direction */
-			assert(style < lengthof(heightdiff_line_by_dir_start));
-			h0 = TileHeight(TILE_ADD(start_tile, ToTileIndexDiff(heightdiff_line_by_dir_start[style][0])));
-			uint ht = TileHeight(TILE_ADD(start_tile, ToTileIndexDiff(heightdiff_line_by_dir_start[style][1])));
-			h0 = max(h0, ht);
+			h0 = max (
+				TileHeight (TILE_ADD (start_tile, ToTileIndexDiff (coorddiff_by_track[track][0][0]))),
+				TileHeight (TILE_ADD (start_tile, ToTileIndexDiff (coorddiff_by_track[track][0][1])))
+			);
 
 			/* Use lookup table for end-tile based on HighLightStyle direction
 			 * flip around side (lower/upper, left/right) based on distance */
-			if (distance == 0) style = flip_style_direction[style];
-			assert(style < lengthof(heightdiff_line_by_dir_end));
-			h1 = TileHeight(TILE_ADD(end_tile, ToTileIndexDiff(heightdiff_line_by_dir_end[style][0])));
-			ht = TileHeight(TILE_ADD(end_tile, ToTileIndexDiff(heightdiff_line_by_dir_end[style][1])));
-			h1 = max(h1, ht);
+			if (even) track = flip_track[track];
+			h1 = max (
+				TileHeight (TILE_ADD (end_tile, ToTileIndexDiff (coorddiff_by_track[track][1][0]))),
+				TileHeight (TILE_ADD (end_tile, ToTileIndexDiff (coorddiff_by_track[track][1][1])))
+			);
 			break;
 		}
 	}
