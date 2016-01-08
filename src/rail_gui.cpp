@@ -358,7 +358,8 @@ static void BuildRailClick_Remove(Window *w)
 
 static void HandleAutodirPlacement (TileIndex start, TileIndex end)
 {
-	Track track = (Track)(_thd.drawstyle & HT_DIR_MASK); // 0..5
+	Track track = (Track)(_thd.drawstyle & HT_TRACK_MASK); // 0..5
+	assert (IsValidTrack (track));
 
 	if (start == end) { // one-tile case
 		DoCommandP (end, _cur_railtype, track,
