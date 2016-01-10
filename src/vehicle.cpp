@@ -1447,6 +1447,9 @@ void AgeVehicle(Vehicle *v)
  * @param front The front vehicle of the consist to check.
  * @param colour The string to show depending on if we are unloading or loading
  * @return A percentage of how full the Vehicle is.
+ *         Rounding is done in such a way that 0% and 100% are only returned
+ *         if the vehicle is completely empty or full, respectively.
+ *         This is useful for both display and conditional orders.
  */
 uint8 CalcPercentVehicleFilled(const Vehicle *front, StringID *colour)
 {
@@ -1494,8 +1497,22 @@ uint8 CalcPercentVehicleFilled(const Vehicle *front, StringID *colour)
 	/* Train without capacity */
 	if (max == 0) return 100;
 
-	/* Return the percentage */
-	return (count * 100) / max;
+	/* Compute and return the percentage */
+
+	/* Correction to use for the percentage.
+	 * It is an affine, decreasing function on count that satisfies:
+	 *   k == max - 1  if count == 0
+	 *   k == 0        if count == max
+	 *   max - count - 1 <= k <= max - count
+	 */
+	uint k = ((max - count) * (max - 1)) / max;
+
+	/* Percentage to return.
+	 * It is an affine, increasing function on count that satisfies:
+	 *   p ==   0  iff count == 0
+	 *   p == 100  iff count == max
+	 */
+	return (100 * count + k) / max;
 }
 
 /**
