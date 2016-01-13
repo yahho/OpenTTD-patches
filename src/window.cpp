@@ -172,22 +172,6 @@ void WindowDesc::SaveToConfig()
 
 
 /**
- * Read default values from WindowDesc configuration an apply them to the window.
- */
-void Window::ApplyDefaults()
-{
-	WindowDesc::Prefs *prefs = this->window_desc->prefs;
-	if (prefs == NULL) return;
-
-	if (this->nested_root != NULL && this->nested_root->GetWidgetOfType(WWT_STICKYBOX) != NULL) {
-		if (prefs->pref_sticky) this->flags |= WF_STICKY;
-	} else {
-		/* There is no stickybox; clear the preference in case someone tried to be funny */
-		prefs->pref_sticky = false;
-	}
-}
-
-/**
  * Compute the row of a widget that a user clicked in.
  * @param clickpos    Vertical position of the mouse click.
  * @param widget      Widget number of the widget clicked in.
@@ -1783,7 +1767,17 @@ void Window::CreateNestedTree(bool fill_nested)
 void Window::FinishInitNested(WindowNumber window_number)
 {
 	this->InitializeData(window_number);
-	this->ApplyDefaults();
+
+	WindowDesc::Prefs *prefs = this->window_desc->prefs;
+	if (prefs != NULL) {
+		if (this->nested_root != NULL && this->nested_root->GetWidgetOfType(WWT_STICKYBOX) != NULL) {
+			if (prefs->pref_sticky) this->flags |= WF_STICKY;
+		} else {
+			/* There is no stickybox; clear the preference in case someone tried to be funny */
+			prefs->pref_sticky = false;
+		}
+	}
+
 	Point pt = this->OnInitialPosition(this->nested_root->smallest_x, this->nested_root->smallest_y, window_number);
 	this->InitializePositionSize(pt.x, pt.y, this->nested_root->smallest_x, this->nested_root->smallest_y);
 	this->FindWindowPlacementAndResize(this->window_desc->GetDefaultWidth(), this->window_desc->GetDefaultHeight());

@@ -552,8 +552,6 @@ public:
 	 */
 	virtual void OnInit() { }
 
-	virtual void ApplyDefaults();
-
 	/**
 	 * Compute the initial position of the window.
 	 * @param sm_width      Smallest width of the window.
