@@ -1049,10 +1049,10 @@ static Window *FindChildWindow(const Window *w, WindowClass wc)
  */
 void Window::DeleteChildWindows(WindowClass wc) const
 {
-	Window *child = FindChildWindow(this, wc);
-	while (child != NULL) {
+	for (;;) {
+		Window *child = FindChildWindow (this, wc);
+		if (child == NULL) break;
 		delete child;
-		child = FindChildWindow(this, wc);
 	}
 }
 
