@@ -224,7 +224,7 @@ public:
 	}
 
 	/** Free whatever we've allocated */
-	~NetworkContentDownloadStatusWindow()
+	void OnDelete (void) FINAL_OVERRIDE
 	{
 		TarScanner::Mode mode = TarScanner::NONE;
 		for (ContentType *iter = this->receivedTypes.Begin(); iter != this->receivedTypes.End(); iter++) {
@@ -313,7 +313,7 @@ public:
 		if (widget == WID_NCDS_CANCELOK) {
 			if (this->downloaded_bytes != this->total_bytes) {
 				_network_content_client.Close();
-				delete this;
+				this->Delete();
 			} else {
 				/* If downloading succeeded, close the online content window. This will close
 				 * the current window as well. */
@@ -821,7 +821,7 @@ public:
 				break;
 
 			case WID_NCL_CANCEL:
-				delete this;
+				this->Delete();
 				break;
 
 			case WID_NCL_OPEN_URL:
@@ -936,7 +936,7 @@ public:
 	{
 		if (!success) {
 			ShowErrorMessage(STR_CONTENT_ERROR_COULD_NOT_CONNECT, INVALID_STRING_ID, WL_ERROR);
-			delete this;
+			this->Delete();
 			return;
 		}
 

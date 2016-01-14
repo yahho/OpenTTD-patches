@@ -156,7 +156,7 @@ struct DropdownWindow : Window {
 		this->instant_close    = instant_close;
 	}
 
-	~DropdownWindow()
+	void OnDelete (void) FINAL_OVERRIDE
 	{
 		/* Make the dropdown "invisible", so it doesn't affect new window placement.
 		 * Also mark it dirty in case the callback deals with the screen. (e.g. screenshots). */
@@ -271,7 +271,7 @@ struct DropdownWindow : Window {
 	{
 		Window *w2 = FindWindowById(this->parent_wnd_class, this->parent_wnd_num);
 		if (w2 == NULL) {
-			delete this;
+			this->Delete();
 			return;
 		}
 
@@ -282,7 +282,7 @@ struct DropdownWindow : Window {
 			this->SetDirty();
 
 			w2->OnDropdownSelect(this->parent_button, this->selected_index);
-			delete this;
+			this->Delete();
 			return;
 		}
 
@@ -292,7 +292,7 @@ struct DropdownWindow : Window {
 			if (!_left_button_clicked) {
 				this->drag_mode = false;
 				if (!this->GetDropDownItem(item)) {
-					if (this->instant_close) delete this;
+					if (this->instant_close) this->Delete();
 					return;
 				}
 				this->click_delay = 2;
@@ -472,7 +472,7 @@ int HideDropDownMenu(Window *pw)
 		if (pw->window_class == dw->parent_wnd_class &&
 				pw->window_number == dw->parent_wnd_num) {
 			int parent_button = dw->parent_button;
-			delete dw;
+			dw->Delete();
 			return parent_button;
 		}
 	}

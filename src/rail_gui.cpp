@@ -425,7 +425,7 @@ struct BuildRailToolbarWindow : Window {
 		if (_settings_client.gui.link_terraform_toolbar) ShowTerraformToolbar(this);
 	}
 
-	~BuildRailToolbarWindow()
+	void OnDelete (void) FINAL_OVERRIDE
 	{
 		if (_settings_client.gui.link_terraform_toolbar) DeleteWindowById(WC_SCEN_LAND_GEN, 0, false);
 	}
@@ -439,7 +439,7 @@ struct BuildRailToolbarWindow : Window {
 	{
 		if (!gui_scope) return;
 
-		if (!CanBuildVehicleInfrastructure(VEH_TRAIN)) delete this;
+		if (!CanBuildVehicleInfrastructure(VEH_TRAIN)) this->Delete();
 	}
 
 	/**
@@ -974,9 +974,10 @@ public:
 		}
 	}
 
-	virtual ~BuildRailStationWindow()
+	void OnDelete (void) FINAL_OVERRIDE
 	{
 		DeleteWindowById(WC_SELECT_STATION, 0);
+		this->PickerWindowBase::OnDelete();
 	}
 
 	virtual void OnPaint()
@@ -1503,9 +1504,10 @@ public:
 		this->OnInvalidateData();
 	}
 
-	~BuildSignalWindow()
+	void OnDelete (void) FINAL_OVERRIDE
 	{
 		_convert_signal_button = false;
+		this->PickerWindowBase::OnDelete();
 	}
 
 	virtual void OnInit()

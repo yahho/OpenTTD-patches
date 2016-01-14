@@ -690,16 +690,16 @@ struct TooltipsWindow : public Window
 	{
 		/* Always close tooltips when the cursor is not in our window. */
 		if (!_cursor.in_window) {
-			delete this;
+			this->Delete();
 			return;
 		}
 
 		/* We can show tooltips while dragging tools. These are shown as long as
 		 * we are dragging the tool. Normal tooltips work with hover or rmb. */
 		switch (this->close_cond) {
-			case TCC_RIGHT_CLICK: if (!_right_button_down) delete this; break;
-			case TCC_LEFT_CLICK: if (!_left_button_down) delete this; break;
-			case TCC_HOVER: if (!_mouse_hovering) delete this; break;
+			case TCC_RIGHT_CLICK: if (!_right_button_down) this->Delete(); break;
+			case TCC_LEFT_CLICK: if (!_left_button_down) this->Delete(); break;
+			case TCC_HOVER: if (!_mouse_hovering) this->Delete(); break;
 		}
 	}
 };
@@ -974,12 +974,12 @@ struct QueryStringWindow : public Window
 				this->OnOk();
 				/* FALL THROUGH */
 			case WID_QS_CANCEL:
-				delete this;
+				this->Delete();
 				break;
 		}
 	}
 
-	~QueryStringWindow()
+	void OnDelete (void) FINAL_OVERRIDE
 	{
 		if (!this->editbox.handled && this->parent != NULL) {
 			Window *parent = this->parent;
@@ -1055,7 +1055,7 @@ struct QueryWindow : public Window {
 		this->top = parent->top + (parent->height / 2) - (this->height / 2);
 	}
 
-	~QueryWindow()
+	void OnDelete (void) FINAL_OVERRIDE
 	{
 		if (this->proc != NULL) this->proc(this->parent, false);
 	}
@@ -1101,7 +1101,7 @@ struct QueryWindow : public Window {
 				Window *parent = this->parent;
 				/* Prevent the destructor calling the callback function */
 				this->proc = NULL;
-				delete this;
+				this->Delete();
 				if (proc != NULL) {
 					proc(parent, true);
 					proc = NULL;
@@ -1109,7 +1109,7 @@ struct QueryWindow : public Window {
 				break;
 			}
 			case WID_Q_NO:
-				delete this;
+				this->Delete();
 				break;
 		}
 	}
@@ -1126,7 +1126,7 @@ struct QueryWindow : public Window {
 				}
 				/* FALL THROUGH */
 			case WKC_ESC:
-				delete this;
+				this->Delete();
 				return ES_HANDLED;
 		}
 		return ES_NOT_HANDLED;
@@ -1167,14 +1167,14 @@ void ShowQuery(StringID caption, StringID message, Window *parent, QueryCallback
 {
 	if (parent == NULL) parent = FindWindowById(WC_MAIN_WINDOW, 0);
 
-	const Window *w;
+	Window *w;
 	FOR_ALL_WINDOWS_FROM_BACK(w) {
 		if (w->window_class != WC_CONFIRM_POPUP_QUERY) continue;
 
-		const QueryWindow *qw = (const QueryWindow *)w;
+		QueryWindow *qw = (QueryWindow *)w;
 		if (qw->parent != parent || qw->proc != callback) continue;
 
-		delete qw;
+		qw->Delete();
 		break;
 	}
 

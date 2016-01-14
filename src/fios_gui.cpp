@@ -317,7 +317,7 @@ public:
 		}
 	}
 
-	virtual ~SaveLoadWindow()
+	void OnDelete (void) FINAL_OVERRIDE
 	{
 		/* pause is only used in single-player, non-editor mode, non menu mode */
 		if (!_networking && _game_mode != GM_EDITOR && _game_mode != GM_MENU) {
@@ -529,12 +529,12 @@ public:
 					bstrcpy (_file_to_saveload.title, this->selected->title);
 
 					if (_saveload_mode == SLD_LOAD_HEIGHTMAP) {
-						delete this;
+						this->Delete();
 						ShowHeightmapLoad();
 					} else if (!_load_check_data.HasNewGrfs() || _load_check_data.grf_compatibility != GLC_NOT_FOUND || _settings_client.gui.UserIsAllowedToChangeNewGRFs()) {
 						_switch_mode = (_game_mode == GM_EDITOR) ? SM_LOAD_SCENARIO : SM_LOAD_GAME;
 						ClearErrorMessages();
-						delete this;
+						this->Delete();
 					}
 				}
 				break;
@@ -588,7 +588,7 @@ public:
 							bstrcpy (_file_to_saveload.name, name);
 							bstrcpy (_file_to_saveload.title, file->title);
 
-							delete this;
+							this->Delete();
 							ShowHeightmapLoad();
 						}
 					}
@@ -626,7 +626,7 @@ public:
 	virtual EventState OnKeyPress(WChar key, uint16 keycode)
 	{
 		if (keycode == WKC_ESC) {
-			delete this;
+			this->Delete();
 			return ES_HANDLED;
 		}
 

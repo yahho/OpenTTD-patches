@@ -63,7 +63,7 @@ struct EndGameHighScoreBaseWindow : Window {
 
 	virtual void OnClick(Point pt, int widget, int click_count)
 	{
-		delete this;
+		this->Delete();
 	}
 
 	virtual EventState OnKeyPress(WChar key, uint16 keycode)
@@ -78,7 +78,7 @@ struct EndGameHighScoreBaseWindow : Window {
 			case WKC_RETURN:
 			case WKC_ESC:
 			case WKC_SPACE:
-				delete this;
+				this->Delete();
 				return ES_HANDLED;
 
 			default:
@@ -121,7 +121,7 @@ struct EndGameWindow : EndGameHighScoreBaseWindow {
 		MarkWholeScreenDirty();
 	}
 
-	~EndGameWindow()
+	void OnDelete (void) FINAL_OVERRIDE
 	{
 		if (!_networking) DoCommandP(0, PM_PAUSED_NORMAL, 0, CMD_PAUSE); // unpause
 		ShowHighscoreTable(this->window_number, this->rank);
@@ -168,7 +168,7 @@ struct HighScoreWindow : EndGameHighScoreBaseWindow {
 		this->rank = ranking;
 	}
 
-	~HighScoreWindow()
+	void OnDelete (void) FINAL_OVERRIDE
 	{
 		if (_game_mode != GM_MENU) ShowVitalWindows();
 

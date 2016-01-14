@@ -126,7 +126,7 @@ struct EnginePreviewWindow : Window {
 				DoCommandP(0, this->window_number, 0, CMD_WANT_ENGINE_PREVIEW);
 				/* FALL THROUGH */
 			case WID_EP_NO:
-				delete this;
+				this->Delete();
 				break;
 		}
 	}
@@ -136,7 +136,7 @@ struct EnginePreviewWindow : Window {
 		if (!gui_scope) return;
 
 		EngineID engine = this->window_number;
-		if (Engine::Get(engine)->preview_company != _local_company) delete this;
+		if (Engine::Get(engine)->preview_company != _local_company) this->Delete();
 	}
 };
 

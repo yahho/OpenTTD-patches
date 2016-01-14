@@ -671,7 +671,7 @@ static void DispatchLeftClickEvent(Window *w, int x, int y, int click_count)
 		}
 
 		case WWT_CLOSEBOX: // 'X'
-			delete w;
+			w->Delete();
 			return;
 
 		case WWT_CAPTION: // 'Title bar'
@@ -1036,14 +1036,14 @@ void Window::DeleteChildWindows(WindowClass wc) const
 	for (;;) {
 		Window *child = FindChildWindow (this, wc);
 		if (child == NULL) break;
-		delete child;
+		child->Delete();
 	}
 }
 
 /**
  * Remove window and all its child windows from the window stack.
  */
-Window::~Window()
+void Window::Delete (void)
 {
 	if (_thd.window_class == this->window_class &&
 			_thd.window_number == this->window_number) {
@@ -1064,23 +1064,21 @@ Window::~Window()
 
 	this->DeleteChildWindows();
 
-	if (this->viewport != NULL) DeleteWindowViewport(this);
-
 	this->SetDirty();
+
+	/* Mark the window as deleted. */
+	this->window_class = WC_INVALID;
+
+	/* Do any child-specific processing. */
+	this->OnDelete();
+}
+
+Window::~Window()
+{
+	if (this->viewport != NULL) DeleteWindowViewport(this);
 
 	free(this->nested_array); // Contents is released through deletion of #nested_root.
 	delete this->nested_root;
-
-	/*
-	 * Make fairly sure that this is written, and not "optimized" away.
-	 * The delete operator is overwritten to not delete it; the deletion
-	 * happens at a later moment in time after the window has been
-	 * removed from the list of windows to prevent issues with items
-	 * being removed during the iteration as not one but more windows
-	 * may be removed by a single call to ~Window by means of the
-	 * DeleteChildWindows function.
-	 */
-	const_cast<volatile WindowClass &>(this->window_class) = WC_INVALID;
 }
 
 /**
@@ -1124,9 +1122,8 @@ Window *FindWindowByClass(WindowClass cls)
 void DeleteWindowById(WindowClass cls, WindowNumber number, bool force)
 {
 	Window *w = FindWindowById(cls, number);
-	if (force || w == NULL ||
-			(w->flags & WF_STICKY) == 0) {
-		delete w;
+	if (w != NULL && (force || (w->flags & WF_STICKY) == 0)) {
+		w->Delete();
 	}
 }
 
@@ -1144,7 +1141,7 @@ restart_search:
 	 * anywhere in the z-array */
 	FOR_ALL_WINDOWS_FROM_BACK(w) {
 		if (w->window_class == cls) {
-			delete w;
+			w->Delete();
 			goto restart_search;
 		}
 	}
@@ -1166,7 +1163,7 @@ restart_search:
 	 * anywhere in the z-array */
 	FOR_ALL_WINDOWS_FROM_BACK(w) {
 		if (w->owner == id) {
-			delete w;
+			w->Delete();
 			goto restart_search;
 		}
 	}
@@ -1850,7 +1847,7 @@ void UnInitWindowSystem()
 	UnshowCriticalError();
 
 	Window *w;
-	FOR_ALL_WINDOWS_FROM_FRONT(w) delete w;
+	FOR_ALL_WINDOWS_FROM_FRONT(w) w->Delete();
 
 	for (w = _z_front_window; w != NULL; /* nothing */) {
 		Window *to_del = w;
@@ -2958,7 +2955,7 @@ static void CheckSoftLimit()
 		if (deletable_count <= _settings_client.gui.window_soft_limit) break;
 
 		assert(last_deletable != NULL);
-		delete last_deletable;
+		last_deletable->Delete();
 	}
 }
 
@@ -2982,7 +2979,7 @@ void InputLoop()
 		if (w->window_class != WC_INVALID) continue;
 
 		RemoveWindowFromZOrdering(w);
-		free(w);
+		delete w;
 	}
 
 	if (_scroller_click_timeout != 0) _scroller_click_timeout--;
@@ -3214,7 +3211,7 @@ restart_search:
 				w->window_class != WC_TOOLTIPS &&
 				(w->flags & WF_STICKY) == 0) { // do not delete windows which are 'pinned'
 
-			delete w;
+			w->Delete();
 			goto restart_search;
 		}
 	}
@@ -3240,7 +3237,7 @@ restart_search:
 	 * anywhere in the z-array */
 	FOR_ALL_WINDOWS_FROM_BACK(w) {
 		if (w->flags & WF_STICKY) {
-			delete w;
+			w->Delete();
 			goto restart_search;
 		}
 	}
@@ -3260,7 +3257,7 @@ restart_search:
 	 * anywhere in the z-array */
 	FOR_ALL_WINDOWS_FROM_BACK(w) {
 		if (w->window_desc->flags & WDF_CONSTRUCTION) {
-			delete w;
+			w->Delete();
 			goto restart_search;
 		}
 	}
@@ -3460,7 +3457,7 @@ void RelocateAllWindows(int neww, int newh)
  * Main utility is to stop the base Window destructor from triggering
  * a free while the child will already be free, in this case by the ResetPointerMode().
  */
-PickerWindowBase::~PickerWindowBase()
+void PickerWindowBase::OnDelete (void)
 {
 	this->window_class = WC_INVALID; // stop the ancestor from freeing the already (to be) child
 	ResetPointerMode();

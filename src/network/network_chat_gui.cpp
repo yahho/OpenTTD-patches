@@ -317,7 +317,7 @@ struct NetworkChatWindow : public Window {
 		PositionNetworkChatWindow(this);
 	}
 
-	~NetworkChatWindow()
+	void OnDelete (void) FINAL_OVERRIDE
 	{
 		InvalidateWindowData(WC_NEWS_WINDOW, 0, 0);
 	}
@@ -495,7 +495,7 @@ struct NetworkChatWindow : public Window {
 			/* Send */
 			case WID_NC_SENDBUTTON: SendChat(this->message_editbox.GetText(), this->dtype, this->dest);
 				/* FALL THROUGH */
-			case WID_NC_CLOSE: /* Cancel */ delete this; break;
+			case WID_NC_CLOSE: /* Cancel */ this->Delete(); break;
 		}
 	}
 
@@ -521,7 +521,7 @@ struct NetworkChatWindow : public Window {
 	 */
 	virtual void OnInvalidateData(int data = 0, bool gui_scope = true)
 	{
-		if (data == this->dest) delete this;
+		if (data == this->dest) this->Delete();
 	}
 };
 

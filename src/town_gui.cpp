@@ -1335,7 +1335,7 @@ struct SelectTownWindow : Window {
 		DoBuildHouse (town, this->tile, this->house, InteractiveRandom());
 
 		/* Close the window */
-		delete this;
+		this->Delete();
 	}
 
 	virtual void OnPaint()

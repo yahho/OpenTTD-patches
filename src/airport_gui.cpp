@@ -76,7 +76,7 @@ struct BuildAirToolbarWindow : Window {
 		this->last_user_action = WIDGET_LIST_END;
 	}
 
-	~BuildAirToolbarWindow()
+	void OnDelete (void) FINAL_OVERRIDE
 	{
 		if (_settings_client.gui.link_terraform_toolbar) DeleteWindowById(WC_SCEN_LAND_GEN, 0, false);
 	}
@@ -90,7 +90,7 @@ struct BuildAirToolbarWindow : Window {
 	{
 		if (!gui_scope) return;
 
-		if (!CanBuildVehicleInfrastructure(VEH_AIRCRAFT)) delete this;
+		if (!CanBuildVehicleInfrastructure(VEH_AIRCRAFT)) this->Delete();
 	}
 
 	virtual void OnClick(Point pt, int widget, int click_count)
@@ -258,9 +258,10 @@ public:
 		if (selectFirstAirport) this->SelectFirstAvailableAirport(true);
 	}
 
-	virtual ~BuildAirportWindow()
+	void OnDelete (void) FINAL_OVERRIDE
 	{
 		DeleteWindowById(WC_SELECT_STATION, 0);
+		this->PickerWindowBase::OnDelete();
 	}
 
 	virtual void SetStringParameters(int widget) const

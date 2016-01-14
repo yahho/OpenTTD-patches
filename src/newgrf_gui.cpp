@@ -429,7 +429,7 @@ struct NewGRFParametersWindow : public Window {
 				break;
 
 			case WID_NP_ACCEPT:
-				delete this;
+				this->Delete();
 				break;
 		}
 	}
@@ -688,7 +688,7 @@ struct NewGRFWindow : public Window, NewGRFScanCallback {
 		this->OnInvalidateData(GOID_NEWGRF_LIST_EDITED);
 	}
 
-	~NewGRFWindow()
+	void OnDelete (void) FINAL_OVERRIDE
 	{
 		DeleteWindowByClass(WC_GRF_PARAMETERS);
 		DeleteWindowByClass(WC_TEXTFILE);
@@ -2153,13 +2153,13 @@ struct SavePresetWindow : public Window {
 			}
 
 			case WID_SVP_CANCEL:
-				delete this;
+				this->Delete();
 				break;
 
 			case WID_SVP_SAVE: {
 				Window *w = FindWindowById(WC_GAME_OPTIONS, WN_GAME_OPTIONS_NEWGRF_STATE);
 				if (w != NULL && !StrEmpty(this->presetname_editbox.GetText())) w->OnQueryTextFinished(this->presetname_editbox.buffer);
-				delete this;
+				this->Delete();
 				break;
 			}
 		}

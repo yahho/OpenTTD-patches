@@ -280,7 +280,7 @@ struct DepotWindow : Window {
 		OrderBackup::Reset();
 	}
 
-	~DepotWindow()
+	void OnDelete (void) FINAL_OVERRIDE
 	{
 		DeleteWindowById(WC_BUILD_VEHICLE, this->window_number);
 		OrderBackup::Reset(this->window_number);

@@ -485,7 +485,7 @@ public:
 		this->servers.ForceRebuild();
 	}
 
-	~NetworkGameWindow()
+	void OnDelete (void) FINAL_OVERRIDE
 	{
 		this->last_sorting = this->servers.GetListing();
 	}
@@ -2190,7 +2190,7 @@ struct NetworkCompanyPasswordWindow : public Window {
 				/* FALL THROUGH */
 
 			case WID_NCP_CANCEL:
-				delete this;
+				this->Delete();
 				break;
 
 			case WID_NCP_SAVE_AS_DEFAULT_PASSWORD:

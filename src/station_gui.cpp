@@ -336,7 +336,7 @@ public:
 		this->GetWidget<NWidgetCore>(WID_STL_SORTDROPBTN)->widget_data = this->sorter_names[this->stations.SortType()];
 	}
 
-	~CompanyStationsWindow()
+	void OnDelete (void) FINAL_OVERRIDE
 	{
 		this->last_sorting = this->stations.GetListing();
 	}
@@ -1323,7 +1323,7 @@ struct StationViewWindow : public Window {
 		this->owner = Station::Get(window_number)->owner;
 	}
 
-	~StationViewWindow()
+	void OnDelete (void) FINAL_OVERRIDE
 	{
 		DeleteWindowById(WC_TRAINS_LIST,   VehicleListIdentifier(VL_STATION_LIST, VEH_TRAIN,    this->owner, this->window_number).Pack(), false);
 		DeleteWindowById(WC_ROADVEH_LIST,  VehicleListIdentifier(VL_STATION_LIST, VEH_ROAD,     this->owner, this->window_number).Pack(), false);
@@ -2291,7 +2291,7 @@ void ShowSelectBaseStationIfNeeded (Command *cmd, const TileArea &ta, bool waypo
 	Window *selection_window = FindWindowById(WC_SELECT_STATION, 0);
 	if (selection_window != NULL) {
 		/* Abort current distant-join and start new one */
-		delete selection_window;
+		selection_window->Delete();
 	}
 
 	/* Only show the popup if we press ctrl and we can build there. */

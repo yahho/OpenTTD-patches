@@ -990,15 +990,15 @@ struct RefitWindow : public Window {
 			case WID_VR_REFIT: // refit button
 				if (this->auto_refit) {
 					const Vehicle *v = Vehicle::Get(this->window_number);
-					if (DoCommandP(v->tile, v->index | this->order << 24, this->cargo_mask, CMD_ORDER_REFIT)) delete this;
+					if (DoCommandP(v->tile, v->index | this->order << 24, this->cargo_mask, CMD_ORDER_REFIT)) this->Delete();
 				} else if (this->cargo != NULL) {
 					const Vehicle *v = Vehicle::Get(this->window_number);
 
 					if (this->order == INVALID_VEH_ORDER_ID) {
 						bool delete_window = this->selected_vehicle == v->index && this->num_vehicles == UINT8_MAX;
-						if (DoCommandP(v->tile, this->selected_vehicle, this->cargo->cargo | this->cargo->subtype << 8 | this->num_vehicles << 16, CMD_REFIT_VEHICLE) && delete_window) delete this;
+						if (DoCommandP(v->tile, this->selected_vehicle, this->cargo->cargo | this->cargo->subtype << 8 | this->num_vehicles << 16, CMD_REFIT_VEHICLE) && delete_window) this->Delete();
 					} else {
-						if (DoCommandP(v->tile, v->index | this->order << 24, 1 << this->cargo->cargo, CMD_ORDER_REFIT)) delete this;
+						if (DoCommandP(v->tile, v->index | this->order << 24, 1 << this->cargo->cargo, CMD_ORDER_REFIT)) this->Delete();
 					}
 				}
 				break;
@@ -1542,7 +1542,7 @@ public:
 		if (this->vli.company != OWNER_NONE) this->owner = this->vli.company;
 	}
 
-	~VehicleListWindow()
+	void OnDelete (void) FINAL_OVERRIDE
 	{
 		*this->sorting = this->vehicles.GetListing();
 	}
@@ -2585,7 +2585,7 @@ public:
 		this->GetWidget<NWidgetCore>(WID_VV_CLONE)->tool_tip            = STR_VEHICLE_VIEW_CLONE_TRAIN_INFO + v->type;
 	}
 
-	~VehicleViewWindow()
+	void OnDelete (void) FINAL_OVERRIDE
 	{
 		DeleteWindowById(WC_VEHICLE_ORDERS, this->window_number, false);
 		DeleteWindowById(WC_VEHICLE_REFIT, this->window_number, false);

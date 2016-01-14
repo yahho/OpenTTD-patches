@@ -521,7 +521,7 @@ struct SignWindow : Window, SignList {
 				/* FALL THROUGH */
 
 			case WID_QES_CANCEL:
-				delete this;
+				this->Delete();
 				break;
 		}
 	}
@@ -588,5 +588,5 @@ void DeleteRenameSignWindow(SignID sign)
 {
 	SignWindow *w = dynamic_cast<SignWindow *>(FindWindowById(WC_QUERY_STRING, WN_QUERY_STRING_SIGN));
 
-	if (w != NULL && w->cur_sign == sign) delete w;
+	if (w != NULL && w->cur_sign == sign) w->Delete();
 }

@@ -417,7 +417,7 @@ struct NewsWindow : Window {
 		switch (widget) {
 			case WID_N_CLOSEBOX:
 				NewsWindow::duration = 0;
-				delete this;
+				this->Delete();
 				_forced_news = NULL;
 				break;
 
@@ -455,7 +455,7 @@ struct NewsWindow : Window {
 	{
 		if (keycode == WKC_SPACE) {
 			/* Don't continue. */
-			delete this;
+			this->Delete();
 			return ES_HANDLED;
 		}
 		return ES_NOT_HANDLED;

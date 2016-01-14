@@ -191,7 +191,7 @@ struct AIListWindow : public Window {
 					this->SetDirty();
 					if (click_count > 1) {
 						this->ChangeAI();
-						delete this;
+						this->Delete();
 					}
 				}
 				break;
@@ -199,12 +199,12 @@ struct AIListWindow : public Window {
 
 			case WID_AIL_ACCEPT: {
 				this->ChangeAI();
-				delete this;
+				this->Delete();
 				break;
 			}
 
 			case WID_AIL_CANCEL:
-				delete this;
+				this->Delete();
 				break;
 		}
 	}
@@ -222,7 +222,7 @@ struct AIListWindow : public Window {
 	virtual void OnInvalidateData(int data = 0, bool gui_scope = true)
 	{
 		if (_game_mode == GM_NORMAL && Company::IsValidID(this->slot)) {
-			delete this;
+			this->Delete();
 			return;
 		}
 
@@ -519,7 +519,7 @@ struct AISettingsWindow : public Window {
 			}
 
 			case WID_AIS_ACCEPT:
-				delete this;
+				this->Delete();
 				break;
 
 			case WID_AIS_RESET:
@@ -737,7 +737,7 @@ struct AIConfigWindow : public Window {
 		this->OnInvalidateData(0);
 	}
 
-	~AIConfigWindow()
+	void OnDelete (void) FINAL_OVERRIDE
 	{
 		DeleteWindowByClass(WC_AI_LIST);
 		DeleteWindowByClass(WC_AI_SETTINGS);
@@ -906,7 +906,7 @@ struct AIConfigWindow : public Window {
 				break;
 
 			case WID_AIC_CLOSE:
-				delete this;
+				this->Delete();
 				break;
 
 			case WID_AIC_CONTENT_DOWNLOAD:

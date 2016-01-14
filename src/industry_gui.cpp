@@ -1233,7 +1233,7 @@ public:
 		this->FinishInitNested(0);
 	}
 
-	~IndustryDirectoryWindow()
+	void OnDelete (void) FINAL_OVERRIDE
 	{
 		this->last_sorting = this->industries.GetListing();
 	}

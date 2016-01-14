@@ -348,7 +348,7 @@ public:
 		this->owner = vli.company;
 	}
 
-	~VehicleGroupWindow()
+	void OnDelete (void) FINAL_OVERRIDE
 	{
 		*this->sorting = this->vehicles.GetListing();
 	}

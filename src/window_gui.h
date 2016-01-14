@@ -309,15 +309,6 @@ public:
 		NOT_REACHED();
 	}
 
-	/**
-	 * Helper allocation function to disallow something.
-	 * Don't free the window directly; it corrupts the linked list when iterating
-	 * @param ptr the pointer not to free
-	 */
-	inline void operator delete(void *ptr)
-	{
-	}
-
 	const WindowDesc *window_desc; ///< Window description
 	WindowFlags flags;          ///< Window flags
 	WindowClass window_class;   ///< Window class
@@ -371,6 +362,8 @@ public:
 	void InitNested(WindowNumber number = 0);
 	void CreateNestedTree(bool fill_nested = true);
 	void FinishInitNested(WindowNumber window_number = 0);
+
+	void Delete (void);
 
 	/**
 	 * Set the timeout flag of the window and initiate the timer.
@@ -551,6 +544,9 @@ public:
 	 * @note #nested_root and/or #nested_array (normally accessed via #GetWidget()) may not exist during this call.
 	 */
 	virtual void OnInit() { }
+
+	/** Notification that the window is about to be deleted. */
+	virtual void OnDelete (void) { }
 
 	/**
 	 * Compute the initial position of the window.
@@ -856,7 +852,7 @@ public:
 		this->parent = parent;
 	}
 
-	virtual ~PickerWindowBase();
+	void OnDelete (void) OVERRIDE;
 };
 
 Window *BringWindowToFrontById(WindowClass cls, WindowNumber number);

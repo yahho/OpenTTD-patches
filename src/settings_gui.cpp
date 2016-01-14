@@ -186,7 +186,7 @@ struct GameOptionsWindow : Window {
 		this->OnInvalidateData(0);
 	}
 
-	~GameOptionsWindow()
+	void OnDelete (void) FINAL_OVERRIDE
 	{
 		DeleteWindowById(WC_CUSTOM_CURRENCY, 0);
 		if (this->reload) _switch_mode = SM_MENU;

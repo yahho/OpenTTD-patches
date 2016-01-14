@@ -96,7 +96,7 @@ public:
 
 		/* _exit_game is used to break out of the outer video driver's MainLoop. */
 		_exit_game = true;
-		delete this;
+		this->Delete();
 	}
 };
 
@@ -198,7 +198,7 @@ public:
 		/* And once the meta data is received, start downloading it. */
 		_network_content_client.Select(ci->id);
 		new BootstrapContentDownloadStatusWindow();
-		delete this;
+		this->Delete();
 	}
 };
 
