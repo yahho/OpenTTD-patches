@@ -768,17 +768,16 @@ private:
 	}
 
 public:
-	OrdersWindow (const WindowDesc *desc, const Vehicle *v) : Window(desc)
+	OrdersWindow (const WindowDesc *desc, const Vehicle *v) :
+		Window (desc), selected_order (-1),
+		order_over (INVALID_VEH_ORDER_ID),
+		goto_type (OPOS_NONE), vehicle (v), vscroll (NULL),
+		can_do_refit (false), can_do_autorefit (false)
 	{
-		this->vehicle = v;
-
 		this->CreateNestedTree();
 		this->vscroll = this->GetScrollbar(WID_O_SCROLLBAR);
 		this->FinishInitNested(v->index);
 
-		this->selected_order = -1;
-		this->order_over = INVALID_VEH_ORDER_ID;
-		this->goto_type = OPOS_NONE;
 		this->owner = v->owner;
 
 		this->UpdateAutoRefitState();

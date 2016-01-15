@@ -160,7 +160,9 @@ public:
 		start_tile(start),
 		end_tile(end),
 		type(br_type),
-		bridges(bl)
+		bridges(bl),
+		bridgetext_offset(0),
+		vscroll(NULL)
 	{
 		this->CreateNestedTree();
 		this->vscroll = this->GetScrollbar(WID_BBS_SCROLLBAR);

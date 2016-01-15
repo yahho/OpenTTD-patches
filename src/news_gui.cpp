@@ -262,7 +262,8 @@ struct NewsWindow : Window {
 	const NewsItem *ni;   ///< News item to display.
 	static uint duration; ///< Remaining time for showing current news message (may only be accessed while a news item is displayed).
 
-	NewsWindow (const WindowDesc *desc, const NewsItem *ni) : Window(desc), ni(ni)
+	NewsWindow (const WindowDesc *desc, const NewsItem *ni) :
+		Window (desc), chat_height (0), status_height (0), ni(ni)
 	{
 		NewsWindow::duration = 555;
 		const Window *w = FindWindowByClass(WC_SEND_NETWORK_MSG);
@@ -1156,7 +1157,8 @@ struct MessageHistoryWindow : Window {
 
 	Scrollbar *vscroll;
 
-	MessageHistoryWindow (const WindowDesc *desc) : Window(desc)
+	MessageHistoryWindow (const WindowDesc *desc) :
+		Window (desc), line_height (0), date_width (0)
 	{
 		this->CreateNestedTree();
 		this->vscroll = this->GetScrollbar(WID_MH_SCROLLBAR);

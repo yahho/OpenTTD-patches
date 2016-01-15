@@ -219,8 +219,16 @@ class ReplaceVehicleWindow : public Window {
 	}
 
 public:
-	ReplaceVehicleWindow (const WindowDesc *desc, VehicleType vehicletype, GroupID id_g) : Window(desc)
+	ReplaceVehicleWindow (const WindowDesc *desc, VehicleType vehicletype, GroupID id_g)
+		: Window (desc), sel_engine(), engines(),
+		  replace_engines (false), reset_sel_engine (false),
+		  sel_group (0), details_height (0), sort_criteria (0),
+		  descending_sort_order (false), show_hidden_engines (false),
+		  sel_railtype ((RailType)0), vscroll()
 	{
+		this->sel_engine[0] = this->sel_engine[1] = (EngineID)0;
+		this->vscroll[0] = this->vscroll[1] = NULL;
+
 		if (vehicletype == VEH_TRAIN) {
 			/* For rail vehicles find the most used vehicle type, which is usually
 			 * better than 'just' the first/previous vehicle type. */

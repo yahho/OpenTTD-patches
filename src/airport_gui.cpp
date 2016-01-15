@@ -69,11 +69,11 @@ static void PlaceAirport(TileIndex tile)
 struct BuildAirToolbarWindow : Window {
 	int last_user_action; // Last started user action.
 
-	BuildAirToolbarWindow (const WindowDesc *desc, WindowNumber window_number) : Window(desc)
+	BuildAirToolbarWindow (const WindowDesc *desc, WindowNumber window_number)
+		: Window (desc), last_user_action (WIDGET_LIST_END)
 	{
 		this->InitNested(window_number);
 		if (_settings_client.gui.link_terraform_toolbar) ShowTerraformToolbar(this);
-		this->last_user_action = WIDGET_LIST_END;
 	}
 
 	void OnDelete (void) FINAL_OVERRIDE
@@ -221,7 +221,9 @@ class BuildAirportWindow : public PickerWindowBase {
 	}
 
 public:
-	BuildAirportWindow (const WindowDesc *desc, Window *parent) : PickerWindowBase(desc, parent)
+	BuildAirportWindow (const WindowDesc *desc, Window *parent)
+		: PickerWindowBase (desc, parent),
+		  preview_sprite (0), line_height (0), vscroll (NULL)
 	{
 		this->CreateNestedTree();
 

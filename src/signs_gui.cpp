@@ -149,7 +149,10 @@ struct SignListWindow : Window, SignList {
 	int text_offset; ///< Offset of the sign text relative to the left edge of the WID_SIL_LIST widget.
 	Scrollbar *vscroll;
 
-	SignListWindow (const WindowDesc *desc, WindowNumber window_number) : Window(desc), filter_editbox(MAX_LENGTH_SIGN_NAME_CHARS * MAX_CHAR_LENGTH, MAX_LENGTH_SIGN_NAME_CHARS)
+	SignListWindow (const WindowDesc *desc, WindowNumber window_number) :
+		Window (desc), SignList(),
+		filter_editbox (MAX_LENGTH_SIGN_NAME_CHARS * MAX_CHAR_LENGTH, MAX_LENGTH_SIGN_NAME_CHARS),
+		text_offset (0), vscroll (NULL)
 	{
 		this->CreateNestedTree();
 		this->vscroll = this->GetScrollbar(WID_SIL_SCROLLBAR);
@@ -426,7 +429,10 @@ struct SignWindow : Window, SignList {
 	QueryString name_editbox;
 	SignID cur_sign;
 
-	SignWindow (const WindowDesc *desc, const Sign *si) : Window(desc), name_editbox(MAX_LENGTH_SIGN_NAME_CHARS * MAX_CHAR_LENGTH, MAX_LENGTH_SIGN_NAME_CHARS)
+	SignWindow (const WindowDesc *desc, const Sign *si) :
+		Window (desc), SignList(),
+		name_editbox (MAX_LENGTH_SIGN_NAME_CHARS * MAX_CHAR_LENGTH, MAX_LENGTH_SIGN_NAME_CHARS),
+		cur_sign (0)
 	{
 		this->querystrings[WID_QES_TEXT] = &this->name_editbox;
 		this->name_editbox.caption = STR_EDIT_SIGN_CAPTION;

@@ -165,14 +165,16 @@ struct NewGRFParametersWindow : public Window {
 	NewGRFParametersWindow (const WindowDesc *desc, GRFConfig *c, bool editable) : Window(desc),
 		grf_config(c),
 		clicked_button(UINT_MAX),
+		clicked_increase(false),
 		clicked_dropdown(false),
 		closing_dropdown(false),
 		timeout(0),
 		clicked_row(UINT_MAX),
+		line_height(0),
+		vscroll(NULL),
+		action14present ((c->num_valid_params != lengthof(c->param) || c->param_info.Length() != 0)),
 		editable(editable)
 	{
-		this->action14present = (c->num_valid_params != lengthof(c->param) || c->param_info.Length() != 0);
-
 		this->CreateNestedTree();
 		this->vscroll = this->GetScrollbar(WID_NP_SCROLLBAR);
 		this->GetWidget<NWidgetStacked>(WID_NP_SHOW_NUMPAR)->SetDisplayedPlane(this->action14present ? SZSP_HORIZONTAL : 0);
@@ -647,19 +649,14 @@ struct NewGRFWindow : public Window, NewGRFScanCallback {
 	Scrollbar *vscroll;
 	Scrollbar *vscroll2;
 
-	NewGRFWindow (const WindowDesc *desc, bool editable, bool show_params, bool execute, GRFConfig **orig_list) : Window(desc), filter_editbox(EDITBOX_MAX_SIZE)
+	NewGRFWindow (const WindowDesc *desc, bool editable, bool show_params, bool execute, GRFConfig **orig_list) :
+		Window (desc), NewGRFScanCallback(),
+		avails(), avail_sel (NULL), avail_pos (-1),
+		string_filter(), filter_editbox (EDITBOX_MAX_SIZE),
+		actives (NULL), active_sel (NULL), orig_list (orig_list),
+		editable (editable), show_params (show_params),
+		execute (execute), preset (-1), active_over (-1)
 	{
-		this->avail_sel   = NULL;
-		this->avail_pos   = -1;
-		this->active_sel  = NULL;
-		this->actives     = NULL;
-		this->orig_list   = orig_list;
-		this->editable    = editable;
-		this->execute     = execute;
-		this->show_params = show_params;
-		this->preset      = -1;
-		this->active_over = -1;
-
 		CopyGRFConfigList(&this->actives, *orig_list, false);
 		GetGRFPresetList(&_grf_preset_list);
 
@@ -2067,10 +2064,11 @@ struct SavePresetWindow : public Window {
 	 * Constructor of the save preset window.
 	 * @param initial_text Initial text to display in the edit box, or \c NULL.
 	 */
-	SavePresetWindow(const char *initial_text) : Window(&_save_preset_desc), presetname_editbox(32)
+	SavePresetWindow (const char *initial_text) :
+		Window (&_save_preset_desc), presetname_editbox (32),
+		presets(), vscroll (NULL), selected (-1)
 	{
 		GetGRFPresetList(&this->presets);
-		this->selected = -1;
 		if (initial_text != NULL) {
 			for (uint i = 0; i < this->presets.Length(); i++) {
 				if (!strcmp(initial_text, this->presets[i])) {

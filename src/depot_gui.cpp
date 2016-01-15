@@ -253,16 +253,16 @@ struct DepotWindow : Window {
 	Scrollbar *hscroll;     ///< Only for trains.
 	Scrollbar *vscroll;
 
-	DepotWindow (const WindowDesc *desc, TileIndex tile, VehicleType type) : Window(desc)
+	DepotWindow (const WindowDesc *desc, TileIndex tile, VehicleType type)
+		: Window (desc), sel (INVALID_VEHICLE),
+		  vehicle_over (INVALID_VEHICLE), type (type),
+		  generate_list (true), vehicle_list(), wagon_list(),
+		  unitnumber_digits (2), num_columns (1),
+		  hscroll (NULL), vscroll (NULL),
+		  count_width (0), header_width (0),
+		  flag_width (0), flag_height (0)
 	{
 		assert(IsCompanyBuildableVehicleType(type)); // ensure that we make the call with a valid type
-
-		this->sel = INVALID_VEHICLE;
-		this->vehicle_over = INVALID_VEHICLE;
-		this->generate_list = true;
-		this->type = type;
-		this->num_columns = 1; // for non-trains this gets set in FinishInitNested()
-		this->unitnumber_digits = 2;
 
 		this->CreateNestedTree();
 		this->hscroll = (this->type == VEH_TRAIN ? this->GetScrollbar(WID_D_H_SCROLL) : NULL);

@@ -285,7 +285,7 @@ struct QueryString;
 /**
  * Data structure for an opened window
  */
-struct Window : ZeroedMemoryAllocator {
+struct Window {
 protected:
 	void InitializeData(WindowNumber window_number);
 	void InitializePositionSize(int x, int y, int min_width, int min_height);
@@ -305,6 +305,15 @@ public:
 	 * @param size the amount of space not to allocate
 	 */
 	inline void *operator new[](size_t size)
+	{
+		NOT_REACHED();
+	}
+
+	/**
+	 * Memory release for an array of class instances.
+	 * @param ptr  the memory to free.
+	 */
+	inline void operator delete[](void *ptr)
 	{
 		NOT_REACHED();
 	}

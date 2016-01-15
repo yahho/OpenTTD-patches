@@ -1656,7 +1656,8 @@ enum MainToolbarHotkeys {
 struct MainToolbarWindow : Window {
 	CallBackFunction last_started_action; ///< Last started user action.
 
-	MainToolbarWindow (const WindowDesc *desc) : Window(desc)
+	MainToolbarWindow (const WindowDesc *desc) :
+		Window (desc), last_started_action (CBF_NONE)
 	{
 		this->InitNested(0);
 
@@ -1972,7 +1973,8 @@ enum MainToolbarEditorHotkeys {
 struct ScenarioEditorToolbarWindow : Window {
 	CallBackFunction last_started_action; ///< Last started user action.
 
-	ScenarioEditorToolbarWindow (const WindowDesc *desc) : Window(desc)
+	ScenarioEditorToolbarWindow (const WindowDesc *desc) :
+		Window (desc), last_started_action (CBF_NONE)
 	{
 		this->InitNested(0);
 

@@ -291,8 +291,9 @@ char *TextfileDesc::read (size_t *len) const
 	}
 }
 
-TextfileWindow::TextfileWindow (const TextfileDesc &txt)
-	: Window(&_textfile_desc), file_type(txt.type)
+TextfileWindow::TextfileWindow (const TextfileDesc &txt) :
+	Window (&_textfile_desc), file_type (txt.type),
+	vscroll (NULL), hscroll (NULL), text (NULL), lines ()
 {
 	this->CreateNestedTree();
 	this->vscroll = this->GetScrollbar(WID_TF_VSCROLLBAR);

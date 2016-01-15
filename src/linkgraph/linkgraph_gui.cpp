@@ -417,7 +417,8 @@ void ShowLinkGraphLegend()
 	AllocateWindowDescFront<LinkGraphLegendWindow>(&_linkgraph_legend_desc, 0);
 }
 
-LinkGraphLegendWindow::LinkGraphLegendWindow (const WindowDesc *desc, int window_number) : Window(desc)
+LinkGraphLegendWindow::LinkGraphLegendWindow (const WindowDesc *desc, int window_number)
+	: Window (desc), overlay (NULL)
 {
 	this->InitNested(window_number);
 	this->InvalidateData(0);

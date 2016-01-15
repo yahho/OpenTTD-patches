@@ -179,7 +179,10 @@ private:
 	uint height_detailed;           ///< Height of the #detailed_msg string in pixels in the #WID_EM_MESSAGE widget.
 
 public:
-	ErrmsgWindow(const ErrorMessageData &data) : Window(data.HasFace() ? &_errmsg_face_desc : &_errmsg_desc), ErrorMessageData(data)
+	ErrmsgWindow(const ErrorMessageData &data)
+		: Window (data.HasFace() ? &_errmsg_face_desc : &_errmsg_desc),
+		  ErrorMessageData (data),
+		  height_summary (0), height_detailed (0)
 	{
 		this->InitNested();
 	}

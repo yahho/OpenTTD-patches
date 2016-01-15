@@ -412,7 +412,9 @@ protected:
 	}
 
 public:
-	StoryBookWindow (const WindowDesc *desc, WindowNumber window_number) : Window(desc)
+	StoryBookWindow (const WindowDesc *desc, WindowNumber window_number) :
+		Window (desc), vscroll (NULL),
+		story_pages(), story_page_elements(), selected_page_id (0)
 	{
 		this->CreateNestedTree();
 		this->vscroll = this->GetScrollbar(WID_SB_SCROLLBAR);

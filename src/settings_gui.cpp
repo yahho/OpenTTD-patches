@@ -177,11 +177,9 @@ struct GameOptionsWindow : Window {
 	GameSettings *opt;
 	bool reload;
 
-	GameOptionsWindow (const WindowDesc *desc) : Window(desc)
+	GameOptionsWindow (const WindowDesc *desc) :
+		Window (desc), opt (&GetGameSettings()), reload (false)
 	{
-		this->opt = &GetGameSettings();
-		this->reload = false;
-
 		this->InitNested(WN_GAME_OPTIONS_GAME_OPTIONS);
 		this->OnInvalidateData(0);
 	}
@@ -1835,7 +1833,12 @@ struct GameSettingsWindow : Window {
 
 	Scrollbar *vscroll;
 
-	GameSettingsWindow (const WindowDesc *desc) : Window(desc), filter_editbox(50)
+	GameSettingsWindow (const WindowDesc *desc) : Window (desc),
+		valuewindow_entry (NULL), clicked_entry (NULL),
+		last_clicked (NULL), valuedropdown_entry (NULL),
+		closing_dropdown (false), filter(), filter_editbox (50),
+		manually_changed_folding (false), warn_missing (WHR_NONE),
+		warn_lines (0), vscroll (NULL)
 	{
 		static bool first_time = true;
 
@@ -2499,7 +2502,8 @@ void DrawBoolButton(int x, int y, bool state, bool clickable)
 struct CustomCurrencyWindow : Window {
 	int query_widget;
 
-	CustomCurrencyWindow (const WindowDesc *desc) : Window(desc)
+	CustomCurrencyWindow (const WindowDesc *desc) :
+		Window (desc), query_widget (0)
 	{
 		this->InitNested();
 

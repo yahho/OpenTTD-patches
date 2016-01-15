@@ -52,7 +52,8 @@ class BuildTreesWindow : public Window
 	TreeType tree_to_plant; ///< Tree number to plant, \c TREE_INVALID for a random tree.
 
 public:
-	BuildTreesWindow (const WindowDesc *desc, WindowNumber window_number) : Window(desc)
+	BuildTreesWindow (const WindowDesc *desc, WindowNumber window_number) :
+		Window (desc), base (0), count (0), tree_to_plant (TREE_INVALID)
 	{
 		this->InitNested(window_number);
 		ResetPointerMode();

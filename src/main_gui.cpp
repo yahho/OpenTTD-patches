@@ -229,7 +229,7 @@ struct MainWindow : Window
 	static const uint LINKGRAPH_REFRESH_PERIOD = 0xff;
 	static const uint LINKGRAPH_DELAY = 0xf;
 
-	MainWindow (const WindowDesc *desc) : Window(desc)
+	MainWindow (const WindowDesc *desc) : Window (desc), refresh (0)
 	{
 		this->InitNested(0);
 		CLRBITS(this->flags, WF_WHITE_BORDER);

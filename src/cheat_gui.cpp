@@ -212,9 +212,11 @@ struct CheatWindow : Window {
 	uint line_height;
 	int box_width;
 
-	CheatWindow (const WindowDesc *desc) : Window(desc)
+	CheatWindow (const WindowDesc *desc)
+		: Window (desc), clicked (0), header_height (0),
+		  clicked_widget (0), line_height (0),
+		  box_width (GetSpriteSize(SPR_BOX_EMPTY).width)
 	{
-		this->box_width = GetSpriteSize(SPR_BOX_EMPTY).width;
 		this->InitNested();
 	}
 

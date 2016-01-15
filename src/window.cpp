@@ -1795,8 +1795,19 @@ void Window::InitNested(WindowNumber window_number)
  * @param desc The description of the window.
  */
 Window::Window (const WindowDesc *desc)
-	: window_desc (desc), scrolling_scrollbar (-1)
+	: window_desc (desc), flags ((WindowFlags)0),
+	  window_class (WC_NONE), window_number (0), timeout_timer (0),
+	  white_border_timer (0), left (0), top (0), width (0), height (0),
+	  resize(), owner ((Owner)0),
+	  viewport (NULL), nested_focus (NULL), querystrings(),
+	  nested_root (NULL), nested_array (NULL), nested_array_size (0),
+	  shade_select (NULL), unshaded_size(), scrolling_scrollbar (-1),
+	  parent (NULL), z_front (NULL), z_back (NULL)
 {
+	this->resize.step_width  = 0;
+	this->resize.step_height = 0;
+	this->unshaded_size.width  = 0;
+	this->unshaded_size.height = 0;
 }
 
 /**

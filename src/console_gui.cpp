@@ -172,11 +172,11 @@ struct IConsoleWindow : Window
 	int line_height;   ///< Height of one line of text in the console.
 	int line_offset;
 
-	IConsoleWindow() : Window(&_console_window_desc)
+	IConsoleWindow() : Window (&_console_window_desc),
+		line_height (FONT_HEIGHT_NORMAL + ICON_LINE_SPACING),
+		line_offset (GetStringBoundingBox("] ").width + 5)
 	{
 		_iconsole_mode = ICONSOLE_OPENED;
-		this->line_height = FONT_HEIGHT_NORMAL + ICON_LINE_SPACING;
-		this->line_offset = GetStringBoundingBox("] ").width + 5;
 
 		this->InitNested(0);
 		ResizeWindow(this, _screen.width, _screen.height / 3);

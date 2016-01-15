@@ -455,7 +455,11 @@ protected:
 	}
 
 public:
-	NetworkGameWindow (const WindowDesc *desc) : Window(desc), name_editbox(NETWORK_CLIENT_NAME_LENGTH), filter_editbox(120)
+	NetworkGameWindow (const WindowDesc *desc) : Window (desc),
+		server (NULL), last_joined (NULL), servers(), list_pos (0),
+		vscroll (NULL), name_editbox (NETWORK_CLIENT_NAME_LENGTH),
+		filter_editbox (120),
+		lock_offset (0), blot_offset (0), flag_offset (0)
 	{
 		this->list_pos = SLP_INVALID;
 		this->server = NULL;
@@ -1053,7 +1057,8 @@ struct NetworkStartServerWindow : public Window {
 	byte widget_id;              ///< The widget that has the pop-up input menu
 	QueryString name_editbox;    ///< Server name editbox.
 
-	NetworkStartServerWindow (const WindowDesc *desc) : Window(desc), name_editbox(NETWORK_NAME_LENGTH)
+	NetworkStartServerWindow (const WindowDesc *desc) : Window (desc),
+		widget_id (0), name_editbox (NETWORK_NAME_LENGTH)
 	{
 		this->InitNested(WN_NETWORK_WINDOW_START);
 
@@ -1361,8 +1366,10 @@ struct NetworkLobbyWindow : public Window {
 	Scrollbar *vscroll;
 
 	NetworkLobbyWindow (const WindowDesc *desc, NetworkGameList *ngl) :
-			Window(desc), company(INVALID_COMPANY), server(ngl)
+		Window (desc), company (INVALID_COMPANY), server (ngl),
+		vscroll (NULL)
 	{
+		memset (this->company_info, 0, sizeof(this->company_info));
 		this->CreateNestedTree();
 		this->vscroll = this->GetScrollbar(WID_NL_SCROLLBAR);
 		this->FinishInitNested(WN_NETWORK_WINDOW_LOBBY);
@@ -1874,7 +1881,9 @@ struct NetworkClientListWindow : Window {
 
 	NetworkClientListWindow (const WindowDesc *desc, WindowNumber window_number) :
 			Window(desc),
-			selected_item(-1)
+			selected_item(-1),
+			server_client_width(0),
+			line_height(0)
 	{
 		this->InitNested(window_number);
 	}
@@ -2028,7 +2037,8 @@ uint32 _network_join_bytes_total;       ///< The total number of bytes to downlo
 struct NetworkJoinStatusWindow : Window {
 	NetworkPasswordType password_type;
 
-	NetworkJoinStatusWindow (const WindowDesc *desc) : Window(desc)
+	NetworkJoinStatusWindow (const WindowDesc *desc) : Window(desc),
+		password_type((NetworkPasswordType)0)
 	{
 		this->parent = FindWindowById(WC_NETWORK_WINDOW, WN_NETWORK_WINDOW_GAME);
 		this->InitNested(WN_NETWORK_STATUS_WINDOW_JOIN);

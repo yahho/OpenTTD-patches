@@ -73,7 +73,8 @@ class BuildObjectWindow : public Window {
 	}
 
 public:
-	BuildObjectWindow (const WindowDesc *desc, WindowNumber number) : Window(desc), info_height(1)
+	BuildObjectWindow (const WindowDesc *desc, WindowNumber number) :
+		Window(desc), line_height(0), info_height(1), vscroll(NULL)
 	{
 		this->CreateNestedTree();
 		this->vscroll = this->GetScrollbar(WID_BO_SCROLLBAR);

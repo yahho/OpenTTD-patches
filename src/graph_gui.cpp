@@ -470,11 +470,20 @@ protected:
 
 	BaseGraphWindow (const WindowDesc *desc, int widget, StringID format_str_y_axis) :
 			Window(desc),
+			excluded_data(0),
+			num_dataset(0),
+			num_on_x_axis(0),
+			num_vert_lines(24),
+			month(0),
+			year(0),
+			x_values_start(0),
+			x_values_increment(0),
+			graph_widget(widget),
 			format_str_y_axis(format_str_y_axis)
 	{
+		memset (this->colours, 0, sizeof(this->colours));
+		memset (this->cost, 0, sizeof(this->cost));
 		SetWindowDirty(WC_GRAPH_LEGEND, 0);
-		this->num_vert_lines = 24;
-		this->graph_widget = widget;
 	}
 
 	void InitializeWindow(WindowNumber number)
@@ -1176,7 +1185,9 @@ private:
 	}
 
 public:
-	CompanyLeagueWindow (const WindowDesc *desc, WindowNumber window_number) : Window(desc)
+	CompanyLeagueWindow (const WindowDesc *desc, WindowNumber window_number)
+		: Window (desc), companies(), ordinal_width (0),
+		  text_width (0), icon_width (0), line_height (0)
 	{
 		this->InitNested(window_number);
 		this->companies.ForceRebuild();
@@ -1314,7 +1325,8 @@ struct PerformanceRatingDetailWindow : Window {
 	static CompanyID company;
 	int timeout;
 
-	PerformanceRatingDetailWindow (const WindowDesc *desc, WindowNumber window_number) : Window(desc)
+	PerformanceRatingDetailWindow (const WindowDesc *desc, WindowNumber window_number)
+		: Window (desc), timeout (0)
 	{
 		this->UpdateCompanyStats();
 

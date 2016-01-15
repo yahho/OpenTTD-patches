@@ -321,8 +321,11 @@ struct GenerateLandscapeWindow : public Window {
 	GenerateLandscapeWindowMode mode;
 	QueryString seed_editbox;
 
-	GenerateLandscapeWindow (const WindowDesc *desc, WindowNumber number = 0) : Window(desc), seed_editbox(11)
+	GenerateLandscapeWindow (const WindowDesc *desc, WindowNumber number = 0)
+		: Window (desc), widget_id (0), x (0), y (0), seed_editbox (11)
 	{
+		this->name[0] = '\0';
+
 		this->InitNested(number);
 
 		this->LowerWidget(_settings_newgame.game_creation.landscape + WID_GL_TEMPERATE);
@@ -910,7 +913,8 @@ struct CreateScenarioWindow : public Window
 {
 	uint widget_id;
 
-	CreateScenarioWindow (const WindowDesc *desc, WindowNumber window_number) : Window(desc)
+	CreateScenarioWindow (const WindowDesc *desc, WindowNumber window_number)
+		: Window (desc), widget_id (0)
 	{
 		this->InitNested(window_number);
 		this->LowerWidget(_settings_newgame.game_creation.landscape + WID_CS_TEMPERATE);

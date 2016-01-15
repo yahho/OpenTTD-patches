@@ -415,12 +415,13 @@ struct BuildRailToolbarWindow : Window {
 	RailType railtype;    ///< Rail type to build.
 	int last_user_action; ///< Last started user action.
 
-	BuildRailToolbarWindow (const WindowDesc *desc, RailType railtype) : Window(desc)
+	BuildRailToolbarWindow (const WindowDesc *desc, RailType railtype) :
+		Window (desc), railtype ((RailType)0),
+		last_user_action (WIDGET_LIST_END)
 	{
 		this->InitNested(TRANSPORT_RAIL);
 		this->SetupRailToolbar(railtype);
 		this->DisableWidget(WID_RAT_REMOVE);
-		this->last_user_action = WIDGET_LIST_END;
 
 		if (_settings_client.gui.link_terraform_toolbar) ShowTerraformToolbar(this);
 	}
@@ -917,10 +918,11 @@ private:
 	}
 
 public:
-	BuildRailStationWindow (const WindowDesc *desc, Window *parent, bool newstation) : PickerWindowBase(desc, parent)
+	BuildRailStationWindow (const WindowDesc *desc, Window *parent, bool newstation) :
+		PickerWindowBase (desc, parent), line_height (0),
+		coverage_height (2 * FONT_HEIGHT_NORMAL + 3 * WD_PAR_VSEP_NORMAL),
+		vscroll (NULL), vscroll2 (NULL)
 	{
-		this->coverage_height = 2 * FONT_HEIGHT_NORMAL + 3 * WD_PAR_VSEP_NORMAL;
-		this->vscroll = NULL;
 		_railstation.newstations = newstation;
 
 		this->CreateNestedTree();
@@ -1498,8 +1500,12 @@ private:
 	}
 
 public:
-	BuildSignalWindow (const WindowDesc *desc, Window *parent) : PickerWindowBase(desc, parent)
+	BuildSignalWindow (const WindowDesc *desc, Window *parent) :
+		PickerWindowBase (desc, parent), sig_sprite_bottom_offset (0)
 	{
+		this->sig_sprite_size.width  = 0;
+		this->sig_sprite_size.height = 0;
+
 		this->InitNested(TRANSPORT_RAIL);
 		this->OnInvalidateData();
 	}

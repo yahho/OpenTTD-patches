@@ -247,14 +247,15 @@ class BuildIndustryWindow : public Window {
 	}
 
 public:
-	BuildIndustryWindow() : Window(&_build_industry_desc)
+	BuildIndustryWindow() : Window (&_build_industry_desc),
+		selected_index (-1),
+		selected_type (INVALID_INDUSTRYTYPE),
+		callback_timer (DAY_TICKS),
+		timer_enabled (_loaded_newgrf_features.has_newindustries),
+		count (0), vscroll (NULL)
 	{
-		this->timer_enabled = _loaded_newgrf_features.has_newindustries;
-
-		this->selected_index = -1;
-		this->selected_type = INVALID_INDUSTRYTYPE;
-
-		this->callback_timer = DAY_TICKS;
+		memset (this->index, 0, sizeof(this->index));
+		memset (this->enabled, 0, sizeof(this->enabled));
 
 		this->CreateNestedTree();
 		this->vscroll = this->GetScrollbar(WID_DPI_SCROLLBAR);
@@ -652,13 +653,13 @@ class IndustryViewWindow : public Window
 	int info_height;          ///< Height needed for the #WID_IV_INFO panel
 
 public:
-	IndustryViewWindow (const WindowDesc *desc, WindowNumber window_number) : Window(desc)
+	IndustryViewWindow (const WindowDesc *desc, WindowNumber window_number)
+		: Window (desc), editable (EA_NONE),
+		  editbox_line (IL_NONE), clicked_line (IL_NONE),
+		  clicked_button (0), production_offset_y (0),
+		  info_height (WD_FRAMERECT_TOP + 2 * FONT_HEIGHT_NORMAL + WD_FRAMERECT_BOTTOM + 1) // Info panel has at least two lines text.
 	{
 		this->flags |= WF_DISABLE_VP_SCROLL;
-		this->editbox_line = IL_NONE;
-		this->clicked_line = IL_NONE;
-		this->clicked_button = 0;
-		this->info_height = WD_FRAMERECT_TOP + 2 * FONT_HEIGHT_NORMAL + WD_FRAMERECT_BOTTOM + 1; // Info panel has at least two lines text.
 
 		this->InitNested(window_number);
 		NWidgetViewport *nvp = this->GetWidget<NWidgetViewport>(WID_IV_VIEWPORT);
@@ -1220,7 +1221,8 @@ protected:
 	}
 
 public:
-	IndustryDirectoryWindow (const WindowDesc *desc, WindowNumber number) : Window(desc)
+	IndustryDirectoryWindow (const WindowDesc *desc, WindowNumber number)
+		: Window (desc), industries(), vscroll (NULL)
 	{
 		this->CreateNestedTree();
 		this->vscroll = this->GetScrollbar(WID_ID_SCROLLBAR);
@@ -2051,8 +2053,14 @@ struct IndustryCargoesWindow : public Window {
 	Dimension ind_textsize;   ///< Size to hold any industry type text, as well as STR_INDUSTRY_CARGOES_SELECT_INDUSTRY.
 	Scrollbar *vscroll;
 
-	IndustryCargoesWindow(int id) : Window(&_industry_cargoes_desc)
+	IndustryCargoesWindow (int id) : Window (&_industry_cargoes_desc),
+		fields(), ind_cargo (0), vscroll (NULL), type (CFT_EMPTY)
 	{
+		this->cargo_textsize.width  = 0;
+		this->cargo_textsize.height = 0;
+		this->ind_textsize.width  = 0;
+		this->ind_textsize.height = 0;
+
 		this->OnInit();
 		this->CreateNestedTree();
 		this->vscroll = this->GetScrollbar(WID_IC_SCROLLBAR);

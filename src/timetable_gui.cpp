@@ -159,7 +159,11 @@ struct TimetableWindow : Window {
 			Window(desc),
 			sel_index(-1),
 			vehicle(Vehicle::Get(window_number)),
-			show_expected(true)
+			show_expected(true),
+			deparr_time_width(0),
+			deparr_abbr_width(0),
+			vscroll(NULL),
+			query_is_speed_query(false)
 	{
 		this->CreateNestedTree();
 		this->vscroll = this->GetScrollbar(WID_VT_SCROLLBAR);

@@ -112,11 +112,15 @@ struct DropdownWindow : Window {
 	 * @param widget        Widgets of the dropdown menu window.
 	 */
 	DropdownWindow(Window *parent, const DropDownList *list, int selected, int button, bool instant_close, const Point &position, const Dimension &size, Colours wi_colour, bool scroll)
-			: Window(&_dropdown_desc)
+		: Window (&_dropdown_desc),
+		  parent_wnd_class (parent->window_class),
+		  parent_wnd_num (parent->window_number),
+		  parent_button (button), list (list),
+		  selected_index (selected), click_delay (0),
+		  drag_mode (true), instant_close (instant_close),
+		  scrolling (0), position (position), vscroll (NULL)
 	{
 		assert(list->Length() > 0);
-
-		this->position = position;
 
 		this->CreateNestedTree();
 
@@ -145,15 +149,6 @@ struct DropdownWindow : Window {
 		/* Capacity is the average number of items visible */
 		this->vscroll->SetCapacity(size.height * (uint16)list->Length() / list_height);
 		this->vscroll->SetCount((uint16)list->Length());
-
-		this->parent_wnd_class = parent->window_class;
-		this->parent_wnd_num   = parent->window_number;
-		this->parent_button    = button;
-		this->list             = list;
-		this->selected_index   = selected;
-		this->click_delay      = 0;
-		this->drag_mode        = true;
-		this->instant_close    = instant_close;
 	}
 
 	void OnDelete (void) FINAL_OVERRIDE

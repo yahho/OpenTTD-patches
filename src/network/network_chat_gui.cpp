@@ -292,10 +292,10 @@ struct NetworkChatWindow : public Window {
 	 * @param type The type of destination.
 	 * @param dest The actual destination index.
 	 */
-	NetworkChatWindow (const WindowDesc *desc, DestType type, int dest) : Window(desc), message_editbox(NETWORK_CHAT_LENGTH)
+	NetworkChatWindow (const WindowDesc *desc, DestType type, int dest) :
+		Window (desc), dtype (type), dest_string (STR_NULL),
+		dest (dest), message_editbox (NETWORK_CHAT_LENGTH)
 	{
-		this->dtype   = type;
-		this->dest    = dest;
 		this->querystrings[WID_NC_TEXTBOX] = &this->message_editbox;
 		this->message_editbox.cancel_button = WID_NC_CLOSE;
 		this->message_editbox.ok_button = WID_NC_SENDBUTTON;

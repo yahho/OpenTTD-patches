@@ -31,8 +31,8 @@
 /** GUI for accessing waypoints and buoys. */
 struct WaypointWindow : Window {
 private:
-	VehicleType vt; ///< Vehicle type using the waypoint.
 	Waypoint *wp;   ///< Waypoint displayed by the window.
+	VehicleType vt; ///< Vehicle type using the waypoint.
 
 	/**
 	 * Get the center tile of the waypoint.
@@ -53,11 +53,10 @@ public:
 	 * @param desc The description of the window.
 	 * @param window_number The window number, in this case the waypoint's ID.
 	 */
-	WaypointWindow (const WindowDesc *desc, WindowNumber window_number) : Window(desc)
+	WaypointWindow (const WindowDesc *desc, WindowNumber window_number) :
+		Window (desc), wp (Waypoint::Get (window_number)),
+		vt ((wp->string_id == STR_SV_STNAME_WAYPOINT) ? VEH_TRAIN : VEH_SHIP)
 	{
-		this->wp = Waypoint::Get(window_number);
-		this->vt = (wp->string_id == STR_SV_STNAME_WAYPOINT) ? VEH_TRAIN : VEH_SHIP;
-
 		this->CreateNestedTree();
 		if (this->vt == VEH_TRAIN) {
 			this->GetWidget<NWidgetCore>(WID_W_SHOW_VEHICLES)->SetDataTip(STR_TRAIN, STR_STATION_VIEW_SCHEDULED_TRAINS_TOOLTIP);

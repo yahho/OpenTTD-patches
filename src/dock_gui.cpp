@@ -106,9 +106,9 @@ struct BuildDocksToolbarWindow : Window {
 
 	DockToolbarWidgets last_clicked_widget; ///< Contains the last widget that has been clicked on this toolbar.
 
-	BuildDocksToolbarWindow (const WindowDesc *desc, WindowNumber window_number) : Window(desc)
+	BuildDocksToolbarWindow (const WindowDesc *desc, WindowNumber window_number)
+		: Window (desc), last_clicked_widget (WID_DT_INVALID)
 	{
-		this->last_clicked_widget = WID_DT_INVALID;
 		this->InitNested(window_number);
 		this->OnInvalidateData();
 		if (_settings_client.gui.link_terraform_toolbar) ShowTerraformToolbar(this);

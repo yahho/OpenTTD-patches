@@ -171,12 +171,12 @@ void HandleDemolishMouseUp (TileIndex start_tile, TileIndex end_tile)
 struct TerraformToolbarWindow : Window {
 	int placing_action; ///< Currently active placing action.
 
-	TerraformToolbarWindow (const WindowDesc *desc, WindowNumber window_number) : Window(desc)
+	TerraformToolbarWindow (const WindowDesc *desc, WindowNumber window_number) :
+		Window (desc), placing_action (-1)
 	{
 		/* This is needed as we like to have the tree available on OnInit. */
 		this->CreateNestedTree();
 		this->FinishInitNested(window_number);
-		this->placing_action = -1;
 	}
 
 	~TerraformToolbarWindow()
@@ -526,13 +526,13 @@ static void ResetLandscapeConfirmationCallback(Window *w, bool confirmed)
 struct ScenarioEditorLandscapeGenerationWindow : Window {
 	int placing_action; ///< Currently active placing action.
 
-	ScenarioEditorLandscapeGenerationWindow (const WindowDesc *desc, WindowNumber window_number) : Window(desc)
+	ScenarioEditorLandscapeGenerationWindow (const WindowDesc *desc, WindowNumber window_number) :
+		Window (desc), placing_action (-1)
 	{
 		this->CreateNestedTree();
 		NWidgetStacked *show_desert = this->GetWidget<NWidgetStacked>(WID_ETT_SHOW_PLACE_DESERT);
 		show_desert->SetDisplayedPlane(_settings_game.game_creation.landscape == LT_TROPIC ? 0 : SZSP_NONE);
 		this->FinishInitNested(window_number);
-		this->placing_action = -1;
 	}
 
 	virtual void OnPaint()

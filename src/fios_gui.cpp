@@ -246,7 +246,9 @@ public:
 		this->filename_editbox.UpdateSize();
 	}
 
-	SaveLoadWindow (const WindowDesc *desc, SaveLoadDialogMode mode) : Window(desc), filename_editbox(64)
+	SaveLoadWindow (const WindowDesc *desc, SaveLoadDialogMode mode)
+		: Window (desc), filename_editbox (64), o_dir(),
+		  selected (NULL), vscroll (NULL)
 	{
 		static const StringID saveload_captions[] = {
 			STR_SAVELOAD_LOAD_CAPTION,
@@ -291,6 +293,8 @@ public:
 		ResetPointerMode();
 
 		o_dir.type = FIOS_TYPE_DIRECT;
+		o_dir.mtime = 0;
+		o_dir.title[0] = '\0';
 		switch (_saveload_mode) {
 			case SLD_SAVE_GAME:
 			case SLD_LOAD_GAME:

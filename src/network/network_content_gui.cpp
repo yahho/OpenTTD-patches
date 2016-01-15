@@ -153,8 +153,11 @@ static const WindowDesc _network_content_download_status_window_desc(
 );
 
 BaseNetworkContentDownloadStatusWindow::BaseNetworkContentDownloadStatusWindow (const WindowDesc *desc) :
-		Window(desc), cur_id(UINT32_MAX)
+	Window (desc), total_bytes (0), downloaded_bytes (0), total_files (0),
+	downloaded_files (0), cur_id (UINT32_MAX)
 {
+	memset (this->name, 0, sizeof(this->name));
+
 	_network_content_client.AddCallback(this);
 	_network_content_client.DownloadSelectedContent(this->total_files, this->total_bytes);
 
@@ -518,13 +521,17 @@ public:
 	 */
 	NetworkContentListWindow (const WindowDesc *desc, bool select_all) :
 			Window(desc),
+			ContentCallback(),
+			content(),
 			auto_select(select_all),
+			string_filter(),
 			filter_editbox(EDITBOX_MAX_SIZE),
+			checkbox_size (maxdim (maxdim (GetSpriteSize (SPR_BOX_EMPTY), GetSpriteSize (SPR_BOX_CHECKED)), GetSpriteSize (SPR_BLOT))),
 			selected(NULL),
-			list_pos(0)
+			list_pos(0),
+			filesize_sum(0),
+			vscroll(NULL)
 	{
-		this->checkbox_size = maxdim(maxdim(GetSpriteSize(SPR_BOX_EMPTY), GetSpriteSize(SPR_BOX_CHECKED)), GetSpriteSize(SPR_BLOT));
-
 		this->CreateNestedTree();
 		this->vscroll = this->GetScrollbar(WID_NCL_SCROLLBAR);
 		this->FinishInitNested(WN_NETWORK_WINDOW_CONTENT_LIST);

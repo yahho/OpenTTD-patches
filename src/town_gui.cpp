@@ -105,7 +105,9 @@ private:
 	}
 
 public:
-	TownAuthorityWindow (const WindowDesc *desc, WindowNumber window_number) : Window(desc), sel_index(-1), displayed_actions_on_previous_painting(0)
+	TownAuthorityWindow (const WindowDesc *desc, WindowNumber window_number) :
+		Window (desc), town (NULL), sel_index(-1), vscroll (NULL),
+		displayed_actions_on_previous_painting (0)
 	{
 		this->town = Town::Get(window_number);
 		this->InitNested(window_number);
@@ -319,7 +321,8 @@ private:
 public:
 	static const int WID_TV_HEIGHT_NORMAL = 162;
 
-	TownViewWindow (const WindowDesc *desc, WindowNumber window_number) : Window(desc)
+	TownViewWindow (const WindowDesc *desc, WindowNumber window_number) :
+		Window (desc), town (NULL)
 	{
 		this->CreateNestedTree();
 
@@ -770,7 +773,8 @@ private:
 	}
 
 public:
-	TownDirectoryWindow (const WindowDesc *desc) : Window(desc)
+	TownDirectoryWindow (const WindowDesc *desc) :
+		Window (desc), towns(), vscroll (NULL)
 	{
 		this->CreateNestedTree();
 
@@ -1111,7 +1115,10 @@ public:
 			Window(desc),
 			town_size(TSZ_MEDIUM),
 			town_layout(_settings_game.economy.town_layout),
+			city(false),
 			townname_editbox(MAX_LENGTH_TOWN_NAME_CHARS * MAX_CHAR_LENGTH, MAX_LENGTH_TOWN_NAME_CHARS),
+			townnamevalid(false),
+			townnameparts(0),
 			params(_settings_game.game_creation.town_name)
 	{
 		this->InitNested(window_number);
@@ -1276,7 +1283,8 @@ struct SelectTownWindow : Window {
 	void RebuildTownList (void);
 
 	SelectTownWindow (const WindowDesc *desc, TileIndex tile, HouseID house)
-		: Window(desc), tile(tile), house(house)
+		: Window(desc), tile(tile), house(house), towns(),
+		  vscroll(NULL), rebuild(false)
 	{
 		this->CreateNestedTree();
 		this->vscroll = this->GetScrollbar(WID_ST_SCROLLBAR);
@@ -1584,8 +1592,12 @@ class HousePickerWindow : public Window {
 	}
 
 public:
-	HousePickerWindow (const WindowDesc *desc, WindowNumber number) : Window (desc)
+	HousePickerWindow (const WindowDesc *desc, WindowNumber number) :
+		Window (desc), houses(), sets(), sel_set (0), sel_offset (0),
+		name (STR_NULL), supply (0), line_height (0)
 	{
+		memset (this->acceptance, 0, sizeof(this->acceptance));
+
 		this->CreateNestedTree();
 		/* there is no shade box but we will shade the window if there is no house to show */
 		this->shade_select = this->GetWidget<NWidgetStacked> (WID_HP_MAIN_PANEL_SEL);

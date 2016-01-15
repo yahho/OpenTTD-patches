@@ -285,7 +285,8 @@ static bool RoadToolbar_CtrlChanged(Window *w)
 struct BuildRoadToolbarWindow : Window {
 	int last_started_action; ///< Last started user action.
 
-	BuildRoadToolbarWindow (const WindowDesc *desc, WindowNumber window_number) : Window(desc)
+	BuildRoadToolbarWindow (const WindowDesc *desc, WindowNumber window_number) :
+		Window (desc), last_started_action (WIDGET_LIST_END)
 	{
 		this->InitNested(window_number);
 		this->SetWidgetsDisabledState(true,
@@ -294,7 +295,6 @@ struct BuildRoadToolbarWindow : Window {
 				WIDGET_LIST_END);
 
 		this->OnInvalidateData();
-		this->last_started_action = WIDGET_LIST_END;
 
 		if (_settings_client.gui.link_terraform_toolbar) ShowTerraformToolbar(this);
 	}

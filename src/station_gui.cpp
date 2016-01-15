@@ -307,7 +307,8 @@ protected:
 	}
 
 public:
-	CompanyStationsWindow (const WindowDesc *desc, WindowNumber window_number) : Window(desc)
+	CompanyStationsWindow (const WindowDesc *desc, WindowNumber window_number) :
+		Window (desc), stations(), vscroll (NULL)
 	{
 		this->stations.SetListing(this->last_sorting);
 		this->stations.SetSortFuncs(this->sorter_funcs);
@@ -1306,12 +1307,16 @@ struct StationViewWindow : public Window {
 
 	CargoDataVector displayed_rows;     ///< Parent entry of currently displayed rows (including collapsed ones).
 
-	StationViewWindow (const WindowDesc *desc, WindowNumber window_number) : Window(desc),
-		scroll_to_row(INT_MAX), grouping_index(0), groupings(NULL)
+	StationViewWindow (const WindowDesc *desc, WindowNumber window_number) :
+		Window (desc), expand_shrink_width (0),
+		rating_lines (ALH_RATING), accepts_lines (ALH_ACCEPTS),
+		vscroll (NULL),
+		sorting (ST_COUNT), sort_order (SO_DESCENDING),
+		scroll_to_row (INT_MAX), grouping_index (0),
+		current_mode (MODE_WAITING), groupings (NULL),
+		cached_destinations(), cached_destinations_valid(),
+		expanded_cargoes(), expanded_rows(), displayed_rows()
 	{
-		this->rating_lines  = ALH_RATING;
-		this->accepts_lines = ALH_ACCEPTS;
-
 		this->CreateNestedTree();
 		this->vscroll = this->GetScrollbar(WID_SV_SCROLLBAR);
 		/* Nested widget tree creation is done in two steps to ensure that this->GetWidget<NWidgetCore>(WID_SV_ACCEPTS_RATINGS) exists in UpdateWidgetSize(). */
@@ -2166,7 +2171,8 @@ struct SelectStationWindow : Window {
 		select_station_cmd(cmd),
 		area(ta),
 		waypoint(waypoint),
-		list(list)
+		list(list),
+		vscroll(NULL)
 	{
 		this->CreateNestedTree();
 		this->vscroll = this->GetScrollbar(WID_JS_SCROLLBAR);

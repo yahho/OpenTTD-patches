@@ -304,8 +304,14 @@ private:
 	}
 
 public:
-	VehicleGroupWindow (const WindowDesc *desc, WindowNumber window_number) : BaseVehicleListWindow(desc, window_number)
+	VehicleGroupWindow (const WindowDesc *desc, WindowNumber window_number)
+		: BaseVehicleListWindow  (desc, window_number),
+		  vehicle_sel (0), group_sel (0), group_rename (0),
+		  group_over (0), group_confirm (0), groups(),
+		  tiny_step_height (0), group_sb (NULL), indents()
 	{
+		memset (this->column_size, 0, sizeof(this->column_size));
+
 		this->CreateNestedTree();
 
 		this->vscroll = this->GetScrollbar(WID_GL_LIST_VEHICLE_SCROLLBAR);

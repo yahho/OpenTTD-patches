@@ -128,8 +128,11 @@ class BootstrapAskForDownloadWindow : public Window, ContentCallback {
 
 public:
 	/** Start listening to the content client events. */
-	BootstrapAskForDownloadWindow() : Window(&_bootstrap_query_desc)
+	BootstrapAskForDownloadWindow()
+		: Window (&_bootstrap_query_desc), button_size()
 	{
+		this->button_size.width  = 0;
+		this->button_size.height = 0;
 		this->InitNested(WN_CONFIRM_POPUP_QUERY_BOOTSTRAP);
 		_network_content_client.AddCallback(this);
 	}

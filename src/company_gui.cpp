@@ -274,9 +274,9 @@ struct CompanyFinancesWindow : Window {
 	static Money max_money; ///< The maximum amount of money a company has had this 'run'
 	bool small;             ///< Window is toggled to 'small'.
 
-	CompanyFinancesWindow (const WindowDesc *desc, CompanyID company) : Window(desc)
+	CompanyFinancesWindow (const WindowDesc *desc, CompanyID company)
+		: Window (desc), small (false)
 	{
-		this->small = false;
 		this->CreateNestedTree();
 		this->SetupWidgets();
 		this->FinishInitNested(company);
@@ -603,11 +603,9 @@ private:
 	}
 
 public:
-	SelectCompanyLiveryWindow (const WindowDesc *desc, CompanyID company) : Window(desc)
+	SelectCompanyLiveryWindow (const WindowDesc *desc, CompanyID company)
+		: Window (desc), sel (1), livery_class (LC_OTHER)
 	{
-		this->livery_class = LC_OTHER;
-		this->sel = 1;
-
 		this->square = GetSpriteSize(SPR_SQUARE);
 		this->box    = maxdim(GetSpriteSize(SPR_BOX_CHECKED), GetSpriteSize(SPR_BOX_EMPTY));
 		this->line_height = max(max(this->square.height, this->box.height), (uint)FONT_HEIGHT_NORMAL) + 4;
@@ -1112,9 +1110,16 @@ class SelectCompanyManagerFaceWindow : public Window
 	}
 
 public:
-	SelectCompanyManagerFaceWindow (const WindowDesc *desc, Window *parent) : Window(desc)
+	SelectCompanyManagerFaceWindow (const WindowDesc *desc, Window *parent)
+		: Window (desc), face (0), advanced (false),
+		  ge ((GenderEthnicity)0), is_female (false),
+		  is_moust_male (false)
 	{
-		this->advanced = false;
+		this->yesno_dim.width   = 0;
+		this->yesno_dim.height  = 0;
+		this->number_dim.width  = 0;
+		this->number_dim.height = 0;
+
 		this->CreateNestedTree();
 		this->SelectDisplayPlanes(this->advanced);
 		this->FinishInitNested(parent->window_number);
@@ -1567,7 +1572,9 @@ struct CompanyInfrastructureWindow : Window
 
 	uint total_width; ///< String width of the total cost line.
 
-	CompanyInfrastructureWindow (const WindowDesc *desc, WindowNumber window_number) : Window(desc)
+	CompanyInfrastructureWindow (const WindowDesc *desc, WindowNumber window_number)
+		: Window (desc), railtypes (RAILTYPES_NONE),
+		  roadtypes (ROADTYPES_NONE), total_width (0)
 	{
 		this->UpdateRailRoadTypes();
 
@@ -2020,7 +2027,8 @@ struct CompanyWindow : Window
 		CWP_BUTTONS_OTHER,     ///< Buttons of the other companies.
 	};
 
-	CompanyWindow (const WindowDesc *desc, WindowNumber window_number) : Window(desc)
+	CompanyWindow (const WindowDesc *desc, WindowNumber window_number)
+		: Window (desc), query_widget ((CompanyWidgets)0)
 	{
 		this->InitNested(window_number);
 		this->owner = (Owner)this->window_number;

@@ -84,11 +84,10 @@ struct StatusBarWindow : Window {
 	static const int REMINDER_STOP  =    0; ///< reminder disappears when counter reaches this value
 	static const int COUNTER_STEP   =    2; ///< this is subtracted from active counters every tick
 
-	StatusBarWindow (const WindowDesc *desc) : Window(desc)
+	StatusBarWindow (const WindowDesc *desc) :
+		Window (desc), saving (false),
+		ticker_scroll (TICKER_STOP), reminder_timeout (REMINDER_STOP)
 	{
-		this->ticker_scroll    =   TICKER_STOP;
-		this->reminder_timeout = REMINDER_STOP;
-
 		this->InitNested();
 		CLRBITS(this->flags, WF_WHITE_BORDER);
 		PositionStatusbar(this);

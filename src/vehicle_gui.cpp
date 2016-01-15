@@ -519,15 +519,19 @@ struct RefitWindow : public Window {
 	}
 
 	RefitWindow (const WindowDesc *desc, const Vehicle *v, VehicleOrderID order,
-			bool auto_refit, CargoMask cargo_mask = 0) : Window(desc)
+			bool auto_refit, CargoMask cargo_mask = 0) :
+		Window (desc),
+		sel_cargo (CT_INVALID), sel_subcargo (0), cargo (NULL),
+		order (order), information_width (0),
+		vscroll (NULL), hscroll (NULL), vehicle_width (0),
+		sprite_left (0), sprite_right (0), vehicle_margin (0),
+		click_x (0), selected_vehicle (0), num_vehicles (0),
+		auto_refit (auto_refit), cargo_mask (cargo_mask)
 	{
 		assert (!auto_refit || (order != INVALID_VEH_ORDER_ID));
 
-		this->sel_cargo = CT_INVALID;
-		this->sel_subcargo = 0;
-		this->auto_refit = auto_refit;
-		this->cargo_mask = cargo_mask;
-		this->order = order;
+		memset (this->list, 0, sizeof(this->list));
+
 		this->CreateNestedTree();
 
 		this->vscroll = this->GetScrollbar(WID_VR_SCROLLBAR);
@@ -1954,7 +1958,8 @@ struct VehicleDetailsWindow : Window {
 	Scrollbar *vscroll;
 
 	/** Initialize a newly created vehicle details window */
-	VehicleDetailsWindow (const WindowDesc *desc, WindowNumber window_number) : Window(desc)
+	VehicleDetailsWindow (const WindowDesc *desc, WindowNumber window_number) :
+		Window (desc), tab (TDW_TAB_CARGO), vscroll (NULL)
 	{
 		const Vehicle *v = Vehicle::Get(window_number);
 
@@ -1965,7 +1970,6 @@ struct VehicleDetailsWindow : Window {
 		this->GetWidget<NWidgetCore>(WID_VD_RENAME_VEHICLE)->tool_tip = STR_VEHICLE_DETAILS_TRAIN_RENAME + v->type;
 
 		this->owner = v->owner;
-		this->tab = TDW_TAB_CARGO;
 	}
 
 	/**

@@ -114,6 +114,8 @@ public:
 
 	LandInfoWindow(TileIndex tile) : Window(&_land_info_desc), tile(tile)
 	{
+		memset (this->landinfo_data, 0, sizeof(this->landinfo_data));
+
 		this->InitNested();
 
 #if defined(_DEBUG)
@@ -435,11 +437,11 @@ struct AboutWindow : public Window {
 	int line_height;                         ///< The height of a single line
 	static const int num_visible_lines = 19; ///< The number of lines visible simultaneously
 
-	AboutWindow() : Window(&_about_desc)
+	AboutWindow() : Window (&_about_desc),
+		text_position (0), counter (5), line_height (0)
 	{
 		this->InitNested(WN_GAME_OPTIONS_ABOUT);
 
-		this->counter = 5;
 		this->text_position = this->GetWidget<NWidgetBase>(WID_A_SCROLLING_TEXT)->pos_y + this->GetWidget<NWidgetBase>(WID_A_SCROLLING_TEXT)->current_y;
 	}
 
@@ -626,15 +628,14 @@ struct TooltipsWindow : public Window
 	uint64 params[5];                 ///< The string parameters.
 	TooltipCloseCondition close_cond; ///< Condition for closing the window.
 
-	TooltipsWindow(Window *parent, StringID str, uint paramcount, const uint64 params[], TooltipCloseCondition close_tooltip) : Window(&_tool_tips_desc)
+	TooltipsWindow (Window *parent, StringID str, uint paramcount, const uint64 params[], TooltipCloseCondition close_tooltip)
+		: Window (&_tool_tips_desc), string_id (str),
+		  paramcount (paramcount), close_cond (close_tooltip)
 	{
 		this->parent = parent;
-		this->string_id = str;
 		assert_compile(sizeof(this->params[0]) == sizeof(params[0]));
 		assert(paramcount <= lengthof(this->params));
 		memcpy(this->params, params, sizeof(this->params[0]) * paramcount);
-		this->paramcount = paramcount;
-		this->close_cond = close_tooltip;
 
 		this->InitNested();
 
@@ -913,7 +914,7 @@ struct QueryStringWindow : public Window
 	QueryStringFlags flags; ///< Flags controlling behaviour of the window.
 
 	QueryStringWindow (StringID str, StringID caption, uint max_bytes, uint max_chars, const WindowDesc *desc, Window *parent, CharSetFilter afilter, QueryStringFlags flags) :
-			Window(desc), editbox(max_bytes, max_chars)
+		Window (desc), editbox (max_bytes, max_chars), flags (QSF_NONE)
 	{
 		GetString (&this->editbox, str);
 		this->editbox.validate (SVS_NONE);
@@ -1039,14 +1040,13 @@ struct QueryWindow : public Window {
 	StringID message;        ///< message shown for query window
 	StringID caption;        ///< title of window
 
-	QueryWindow (const WindowDesc *desc, StringID caption, StringID message, Window *parent, QueryCallbackProc *callback) : Window(desc)
+	QueryWindow (const WindowDesc *desc, StringID caption, StringID message, Window *parent, QueryCallbackProc *callback)
+		: Window (desc), proc (callback),
+		  message (message), caption (caption)
 	{
 		/* Create a backup of the variadic arguments to strings because it will be
 		 * overridden pretty often. We will copy these back for drawing */
 		CopyOutDParam(this->params, 0, lengthof(this->params));
-		this->caption = caption;
-		this->message = message;
-		this->proc    = callback;
 
 		this->InitNested(WN_CONFIRM_POPUP_QUERY);
 

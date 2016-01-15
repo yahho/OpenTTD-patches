@@ -29,7 +29,8 @@ struct EndGameHighScoreBaseWindow : Window {
 	uint32 background_img;
 	int8 rank;
 
-	EndGameHighScoreBaseWindow (const WindowDesc *desc) : Window(desc)
+	EndGameHighScoreBaseWindow (const WindowDesc *desc)
+		: Window (desc), background_img (0), rank (0)
 	{
 		this->InitNested();
 		CLRBITS(this->flags, WF_WHITE_BORDER);
@@ -153,10 +154,11 @@ struct EndGameWindow : EndGameHighScoreBaseWindow {
 struct HighScoreWindow : EndGameHighScoreBaseWindow {
 	bool game_paused_by_player; ///< True if the game was paused by the player when the highscore window was opened.
 
-	HighScoreWindow (const WindowDesc *desc, int difficulty, int8 ranking) : EndGameHighScoreBaseWindow(desc)
+	HighScoreWindow (const WindowDesc *desc, int difficulty, int8 ranking)
+		: EndGameHighScoreBaseWindow (desc),
+		  game_paused_by_player (_pause_mode == PM_PAUSED_NORMAL)
 	{
 		/* pause game to show the chart */
-		this->game_paused_by_player = _pause_mode == PM_PAUSED_NORMAL;
 		if (!_networking && !this->game_paused_by_player) DoCommandP(0, PM_PAUSED_NORMAL, 1, CMD_PAUSE);
 
 		/* Close all always on-top windows to get a clean screen */

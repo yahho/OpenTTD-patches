@@ -68,14 +68,10 @@ struct AIListWindow : public Window {
 	 * @param slot The company we're changing the AI for.
 	 */
 	AIListWindow (const WindowDesc *desc, CompanyID slot) : Window(desc),
-		slot(slot)
+		info_list (slot == OWNER_DEITY ?
+			Game::GetUniqueInfoList() : AI::GetUniqueInfoList()),
+		selected (-1), slot (slot), line_height (0), vscroll (NULL)
 	{
-		if (slot == OWNER_DEITY) {
-			this->info_list = Game::GetUniqueInfoList();
-		} else {
-			this->info_list = AI::GetUniqueInfoList();
-		}
-
 		this->CreateNestedTree();
 		this->vscroll = this->GetScrollbar(WID_AIL_SCROLLBAR);
 		this->FinishInitNested(); // Initializes 'this->line_height' as side effect.
@@ -83,7 +79,6 @@ struct AIListWindow : public Window {
 		this->vscroll->SetCount((int)this->info_list->size() + 1);
 
 		/* Try if we can find the currently selected AI */
-		this->selected = -1;
 		if (GetConfig(slot)->HasScript()) {
 			const ScriptInfo *info = GetConfig(slot)->GetInfo();
 			int i = 0;
@@ -302,11 +297,11 @@ struct AISettingsWindow : public Window {
 	 * @param slot The company we're changing the settings for.
 	 */
 	AISettingsWindow (const WindowDesc *desc, CompanyID slot) : Window(desc),
-		slot(slot),
-		clicked_button(-1),
-		clicked_dropdown(false),
-		closing_dropdown(false),
-		timeout(0)
+		slot (slot), ai_config (NULL),
+		clicked_button (-1), clicked_increase (false),
+		clicked_dropdown (false), closing_dropdown (false),
+		timeout (0), clicked_row (0), line_height (0),
+		vscroll (NULL), visible_settings()
 	{
 		this->ai_config = GetConfig(slot);
 		this->RebuildVisibleSettings();
@@ -726,7 +721,8 @@ struct AIConfigWindow : public Window {
 	int line_height;         ///< Height of a single AI-name line.
 	Scrollbar *vscroll;      ///< Cache of the vertical scrollbar.
 
-	AIConfigWindow() : Window(&_ai_config_desc)
+	AIConfigWindow() : Window (&_ai_config_desc),
+		selected_slot ((Owner)0), line_height (0), vscroll (NULL)
 	{
 		this->InitNested(WN_GAME_OPTIONS_AI); // Initializes 'this->line_height' as a side effect.
 		this->vscroll = this->GetScrollbar(WID_AIC_SCROLLBAR);
@@ -1061,7 +1057,11 @@ struct AIDebugWindow : public Window {
 	 * @param desc The description of the window.
 	 * @param number The window number (actually unused).
 	 */
-	AIDebugWindow (const WindowDesc *desc, WindowNumber number) : Window(desc), break_editbox(MAX_BREAK_STR_STRING_LENGTH)
+	AIDebugWindow (const WindowDesc *desc, WindowNumber number)
+		: Window (desc), redraw_timer (0), last_vscroll_pos (0),
+		  autoscroll (false), show_break_box (0),
+		  break_editbox(MAX_BREAK_STR_STRING_LENGTH),
+		  highlight_row (0), vscroll (NULL)
 	{
 		this->CreateNestedTree();
 		this->vscroll = this->GetScrollbar(WID_AID_SCROLLBAR);

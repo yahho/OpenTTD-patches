@@ -51,7 +51,8 @@ static void SetupSubsidyDecodeParams (const Subsidy *s)
 struct SubsidyListWindow : Window {
 	Scrollbar *vscroll;
 
-	SubsidyListWindow (const WindowDesc *desc, WindowNumber window_number) : Window(desc)
+	SubsidyListWindow (const WindowDesc *desc, WindowNumber window_number) :
+		Window (desc), vscroll (NULL)
 	{
 		this->CreateNestedTree();
 		this->vscroll = this->GetScrollbar(WID_SUL_SCROLLBAR);

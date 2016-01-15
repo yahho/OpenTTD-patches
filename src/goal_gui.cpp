@@ -38,7 +38,8 @@ enum GoalColumn {
 struct GoalListWindow : public Window {
 	Scrollbar *vscroll; ///< Reference to the scrollbar widget.
 
-	GoalListWindow (const WindowDesc *desc, WindowNumber window_number) : Window(desc)
+	GoalListWindow (const WindowDesc *desc, WindowNumber window_number)
+		: Window (desc), vscroll (NULL)
 	{
 		this->CreateNestedTree();
 		this->vscroll = this->GetScrollbar(WID_GOAL_SCROLLBAR);
@@ -362,10 +363,10 @@ struct GoalQuestionWindow : public Window {
 	int button[3];  ///< Buttons to display.
 	byte type;      ///< Type of question.
 
-	GoalQuestionWindow (const WindowDesc *desc, WindowNumber window_number, byte type, uint32 button_mask, const char *question) : Window(desc), type(type)
+	GoalQuestionWindow (const WindowDesc *desc, WindowNumber window_number, byte type, uint32 button_mask, const char *question)
+		: Window (desc), question (xstrdup (question)), type (type)
 	{
 		assert(type < GOAL_QUESTION_TYPE_COUNT);
-		this->question = xstrdup(question);
 
 		/* Figure out which buttons we have to enable. */
 		uint bit;

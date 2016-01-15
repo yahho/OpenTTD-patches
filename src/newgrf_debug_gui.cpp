@@ -350,7 +350,9 @@ struct NewGRFInspectWindow : Window {
 		if (v == NULL) this->chain_index = 0;
 	}
 
-	NewGRFInspectWindow (const WindowDesc *desc, WindowNumber wno) : Window(desc)
+	NewGRFInspectWindow (const WindowDesc *desc, WindowNumber wno) :
+		Window (desc), caller_grfid (0), chain_index (0),
+		current_edit_param (0), vscroll (NULL)
 	{
 		this->CreateNestedTree();
 		this->vscroll = this->GetScrollbar(WID_NGRFI_SCROLLBAR);
@@ -821,7 +823,8 @@ struct SpriteAlignerWindow : Window {
 	Scrollbar *vscroll;
 	SmallMap<SpriteID, XyOffs> offs_start_map; ///< Mapping of starting offsets for the sprites which have been aligned in the sprite aligner window.
 
-	SpriteAlignerWindow (const WindowDesc *desc, WindowNumber wno) : Window(desc)
+	SpriteAlignerWindow (const WindowDesc *desc, WindowNumber wno) :
+		Window (desc), current_sprite (0), vscroll (NULL)
 	{
 		this->CreateNestedTree();
 		this->vscroll = this->GetScrollbar(WID_SA_SCROLLBAR);

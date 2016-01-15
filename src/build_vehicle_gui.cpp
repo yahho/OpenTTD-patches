@@ -981,16 +981,20 @@ struct BuildVehicleWindow : Window {
 	int details_height;                         ///< Minimal needed height of the details panels (found so far).
 	Scrollbar *vscroll;
 
-	BuildVehicleWindow (const WindowDesc *desc, TileIndex tile, VehicleType type) : Window(desc)
+	BuildVehicleWindow (const WindowDesc *desc, TileIndex tile, VehicleType type)
+		: Window (desc), vehicle_type (type),
+		  descending_sort_order (_engine_sort_last_order[type]),
+		  sort_criteria (_engine_sort_last_criteria[type]),
+		  show_hidden_engines (_engine_sort_show_hidden_engines[type]),
+		  listview_mode (tile == INVALID_TILE),
+		  sel_engine (INVALID_ENGINE), rename_engine (0), eng_list(),
+		  cargo_filter_criteria (false), details_height (0),
+		  vscroll (NULL)
 	{
-		this->vehicle_type = type;
+		memset (this->cargo_filter, 0, sizeof(this->cargo_filter));
+		memset (this->cargo_filter_texts, 0, sizeof(this->cargo_filter_texts));
+
 		this->window_number = tile == INVALID_TILE ? (int)type : tile;
-
-		this->sel_engine      = INVALID_ENGINE;
-
-		this->sort_criteria         = _engine_sort_last_criteria[type];
-		this->descending_sort_order = _engine_sort_last_order[type];
-		this->show_hidden_engines   = _engine_sort_show_hidden_engines[type];
 
 		switch (type) {
 			default: NOT_REACHED();
@@ -1003,8 +1007,6 @@ struct BuildVehicleWindow : Window {
 			case VEH_AIRCRAFT:
 				break;
 		}
-
-		this->listview_mode = (this->window_number <= VEH_END);
 
 		this->CreateNestedTree();
 
