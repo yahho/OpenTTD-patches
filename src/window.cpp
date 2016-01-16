@@ -1745,16 +1745,10 @@ static Point LocalGetWindowPlacement(const WindowDesc *desc, int16 sm_width, int
  * @param fill_nested Fill the #nested_array (enabling is expensive!).
  * @note Filling the nested array requires an additional traversal through the nested widget tree, and is best performed by #FinishInitNested rather than here.
  */
-void Window::CreateNestedTree(bool fill_nested)
+void Window::CreateNestedTree (void)
 {
-	int biggest_index = -1;
-	this->nested_root = MakeWindowNWidgetTree(this->window_desc->nwid_parts, this->window_desc->nwid_length, &biggest_index, &this->shade_select);
-	this->nested_array_size = (uint)(biggest_index + 1);
-
-	if (fill_nested) {
-		this->nested_array = xcalloct<NWidgetBase *>(this->nested_array_size);
-		this->nested_root->FillNestedArray(this->nested_array, this->nested_array_size);
-	}
+	this->nested_array = xcalloct<NWidgetBase *>(this->nested_array_size);
+	this->nested_root->FillNestedArray(this->nested_array, this->nested_array_size);
 }
 
 /**
@@ -1786,7 +1780,6 @@ void Window::FinishInitNested(WindowNumber window_number)
  */
 void Window::InitNested(WindowNumber window_number)
 {
-	this->CreateNestedTree(false);
 	this->FinishInitNested(window_number);
 }
 
@@ -1808,6 +1801,10 @@ Window::Window (const WindowDesc *desc)
 	this->resize.step_height = 0;
 	this->unshaded_size.width  = 0;
 	this->unshaded_size.height = 0;
+
+	int biggest_index = -1;
+	this->nested_root = MakeWindowNWidgetTree(this->window_desc->nwid_parts, this->window_desc->nwid_length, &biggest_index, &this->shade_select);
+	this->nested_array_size = (uint)(biggest_index + 1);
 }
 
 /**

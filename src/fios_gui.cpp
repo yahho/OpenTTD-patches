@@ -272,7 +272,7 @@ public:
 		this->querystrings[WID_SL_SAVE_OSK_TITLE] = &this->filename_editbox;
 		this->filename_editbox.ok_button = WID_SL_SAVE_GAME;
 
-		this->CreateNestedTree(true);
+		this->CreateNestedTree();
 		if (mode == SLD_LOAD_GAME) this->GetWidget<NWidgetStacked>(WID_SL_CONTENT_DOWNLOAD_SEL)->SetDisplayedPlane(SZSP_HORIZONTAL);
 		this->GetWidget<NWidgetCore>(WID_SL_CAPTION)->widget_data = saveload_captions[mode];
 		this->vscroll = this->GetScrollbar(WID_SL_SCROLLBAR);

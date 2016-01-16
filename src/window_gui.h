@@ -369,7 +369,7 @@ public:
 	virtual const char *GetTextCharacterAtPosition(const Point &pt) const;
 
 	void InitNested(WindowNumber number = 0);
-	void CreateNestedTree(bool fill_nested = true);
+	void CreateNestedTree(void);
 	void FinishInitNested(WindowNumber window_number = 0);
 
 	void Delete (void);
