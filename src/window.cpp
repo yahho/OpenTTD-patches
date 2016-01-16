@@ -1400,21 +1400,6 @@ static void BringWindowToFront(Window *w)
 }
 
 /**
- * Set the position and smallest size of the window.
- * @param x          Offset in pixels from the left of the screen of the new window.
- * @param y          Offset in pixels from the top of the screen of the new window.
- * @param sm_width   Smallest width in pixels of the window.
- * @param sm_height  Smallest height in pixels of the window.
- */
-void Window::InitializePositionSize(int x, int y, int sm_width, int sm_height)
-{
-	this->left = x;
-	this->top = y;
-	this->width = sm_width;
-	this->height = sm_height;
-}
-
-/**
  * Resize window towards the default size.
  * Prior to construction, a position for the new window (for its default size)
  * has been found with LocalGetWindowPlacement(). Initially, the window is
@@ -1422,7 +1407,7 @@ void Window::InitializePositionSize(int x, int y, int sm_width, int sm_height)
  * done here.
  * @param def_width default width in pixels of the window
  * @param def_height default height in pixels of the window
- * @see Window::Window(), Window::InitNested(), Window::InitializePositionSize()
+ * @see Window::Window(), Window::InitNested()
  */
 void Window::FindWindowPlacementAndResize(int def_width, int def_height)
 {
@@ -1757,7 +1742,12 @@ void Window::InitNested (WindowNumber window_number)
 	}
 
 	Point pt = this->OnInitialPosition(this->nested_root->smallest_x, this->nested_root->smallest_y, window_number);
-	this->InitializePositionSize(pt.x, pt.y, this->nested_root->smallest_x, this->nested_root->smallest_y);
+
+	this->left = pt.x;
+	this->top  = pt.y;
+	this->width  = this->nested_root->smallest_x;
+	this->height = this->nested_root->smallest_y;
+
 	this->FindWindowPlacementAndResize(this->window_desc->GetDefaultWidth(), this->window_desc->GetDefaultHeight());
 }
 
