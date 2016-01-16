@@ -318,7 +318,7 @@ public:
 
 		this->CreateNestedTree();
 		this->vscroll = this->GetScrollbar(WID_STL_SCROLLBAR);
-		this->FinishInitNested(window_number);
+		this->InitNested(window_number);
 		this->owner = (Owner)this->window_number;
 
 		const CargoSpec *cs;
@@ -1320,7 +1320,7 @@ struct StationViewWindow : public Window {
 		this->CreateNestedTree();
 		this->vscroll = this->GetScrollbar(WID_SV_SCROLLBAR);
 		/* Nested widget tree creation is done in two steps to ensure that this->GetWidget<NWidgetCore>(WID_SV_ACCEPTS_RATINGS) exists in UpdateWidgetSize(). */
-		this->FinishInitNested(window_number);
+		this->InitNested(window_number);
 
 		this->SelectGroupBy(_settings_client.gui.station_gui_group_order);
 		this->SelectSortBy(_settings_client.gui.station_gui_sort_by);
@@ -2177,7 +2177,7 @@ struct SelectStationWindow : Window {
 		this->CreateNestedTree();
 		this->vscroll = this->GetScrollbar(WID_JS_SCROLLBAR);
 		this->GetWidget<NWidgetCore>(WID_JS_CAPTION)->widget_data = waypoint ? STR_JOIN_WAYPOINT_CAPTION : STR_JOIN_STATION_CAPTION;
-		this->FinishInitNested(0);
+		this->InitNested(0);
 		this->OnInvalidateData(0);
 	}
 

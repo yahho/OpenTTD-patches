@@ -1868,7 +1868,7 @@ struct GameSettingsWindow : Window {
 
 		this->CreateNestedTree();
 		this->vscroll = this->GetScrollbar(WID_GS_SCROLLBAR);
-		this->FinishInitNested(WN_GAME_OPTIONS_GAME_SETTINGS);
+		this->InitNested(WN_GAME_OPTIONS_GAME_SETTINGS);
 
 		this->querystrings[WID_GS_FILTER] = &this->filter_editbox;
 		this->filter_editbox.cancel_button = QueryString::ACTION_CLEAR;

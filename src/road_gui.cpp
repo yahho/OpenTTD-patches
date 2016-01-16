@@ -864,7 +864,7 @@ struct BuildRoadDepotWindow : public PickerWindowBase {
 			for (int i = WID_BROD_DEPOT_NE; i <= WID_BROD_DEPOT_NW; i++) this->GetWidget<NWidgetCore>(i)->tool_tip = STR_BUILD_DEPOT_TRAM_ORIENTATION_SELECT_TOOLTIP;
 		}
 
-		this->FinishInitNested(TRANSPORT_ROAD);
+		this->InitNested(TRANSPORT_ROAD);
 	}
 
 	virtual void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize)
@@ -966,7 +966,7 @@ struct BuildRoadStationWindow : public PickerWindowBase {
 		this->LowerWidget(_road_station_picker_orientation + WID_BROS_STATION_NE);
 		this->LowerWidget(_settings_client.gui.station_show_coverage + WID_BROS_LT_OFF);
 
-		this->FinishInitNested(TRANSPORT_ROAD);
+		this->InitNested(TRANSPORT_ROAD);
 
 		this->window_class = (rs == ROADSTOP_BUS) ? WC_BUS_STATION : WC_TRUCK_STATION;
 	}

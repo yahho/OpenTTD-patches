@@ -74,7 +74,7 @@ struct AIListWindow : public Window {
 	{
 		this->CreateNestedTree();
 		this->vscroll = this->GetScrollbar(WID_AIL_SCROLLBAR);
-		this->FinishInitNested(); // Initializes 'this->line_height' as side effect.
+		this->InitNested(); // Initializes 'this->line_height' as side effect.
 
 		this->vscroll->SetCount((int)this->info_list->size() + 1);
 
@@ -308,7 +308,7 @@ struct AISettingsWindow : public Window {
 
 		this->CreateNestedTree();
 		this->vscroll = this->GetScrollbar(WID_AIS_SCROLLBAR);
-		this->FinishInitNested(slot);  // Initializes 'this->line_height' as side effect.
+		this->InitNested(slot);  // Initializes 'this->line_height' as side effect.
 
 		this->SetWidgetDisabledState(WID_AIS_RESET, _game_mode != GM_MENU && Company::IsValidID(this->slot));
 
@@ -1067,7 +1067,7 @@ struct AIDebugWindow : public Window {
 		this->vscroll = this->GetScrollbar(WID_AID_SCROLLBAR);
 		this->show_break_box = _settings_client.gui.ai_developer_tools;
 		this->GetWidget<NWidgetStacked>(WID_AID_BREAK_STRING_WIDGETS)->SetDisplayedPlane(this->show_break_box ? 0 : SZSP_HORIZONTAL);
-		this->FinishInitNested(number);
+		this->InitNested(number);
 
 		if (!this->show_break_box) break_check_enabled = false;
 

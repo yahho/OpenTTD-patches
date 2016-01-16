@@ -56,7 +56,7 @@ struct SubsidyListWindow : Window {
 	{
 		this->CreateNestedTree();
 		this->vscroll = this->GetScrollbar(WID_SUL_SCROLLBAR);
-		this->FinishInitNested(window_number);
+		this->InitNested(window_number);
 		this->OnInvalidateData(0);
 	}
 

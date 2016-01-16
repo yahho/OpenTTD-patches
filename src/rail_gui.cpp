@@ -938,7 +938,7 @@ public:
 			this->vscroll = this->GetScrollbar(WID_BRAS_NEWST_SCROLL);
 			this->vscroll2 = this->GetScrollbar(WID_BRAS_MATRIX_SCROLL);
 		}
-		this->FinishInitNested(TRANSPORT_RAIL);
+		this->InitNested(TRANSPORT_RAIL);
 
 		this->LowerWidget(_railstation.orientation + WID_BRAS_PLATFORM_DIR_X);
 		if (_settings_client.gui.station_dragdrop) {
@@ -1784,7 +1784,7 @@ struct BuildRailWaypointWindow : PickerWindowBase {
 		NWidgetMatrix *matrix = this->GetWidget<NWidgetMatrix>(WID_BRW_WAYPOINT_MATRIX);
 		matrix->SetScrollbar(this->GetScrollbar(WID_BRW_SCROLL));
 
-		this->FinishInitNested(TRANSPORT_RAIL);
+		this->InitNested(TRANSPORT_RAIL);
 
 		matrix->SetCount(_waypoint_count);
 		matrix->SetClicked(_cur_waypoint_type);

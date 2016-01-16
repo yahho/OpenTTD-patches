@@ -168,7 +168,7 @@ public:
 		this->vscroll = this->GetScrollbar(WID_BBS_SCROLLBAR);
 		/* Change the data, or the caption of the gui. Set it to road or rail, accordingly. */
 		this->GetWidget<NWidgetCore>(WID_BBS_CAPTION)->widget_data = (GB(this->type, 15, 2) == TRANSPORT_ROAD) ? STR_SELECT_ROAD_BRIDGE_CAPTION : STR_SELECT_RAIL_BRIDGE_CAPTION;
-		this->FinishInitNested(GB(br_type, 12, 2)); // Initializes 'this->bridgetext_offset'.
+		this->InitNested(GB(br_type, 12, 2)); // Initializes 'this->bridgetext_offset'.
 
 		this->parent = FindWindowById(WC_BUILD_TOOLBAR, GB(this->type, 12, 2));
 		this->bridges->SetListing(this->last_sorting);

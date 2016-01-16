@@ -156,7 +156,7 @@ struct SignListWindow : Window, SignList {
 	{
 		this->CreateNestedTree();
 		this->vscroll = this->GetScrollbar(WID_SIL_SCROLLBAR);
-		this->FinishInitNested(window_number);
+		this->InitNested(window_number);
 		this->SetWidgetLoweredState(WID_SIL_FILTER_MATCH_CASE_BTN, SignList::match_case);
 
 		/* Initialize the text edit widget */

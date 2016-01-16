@@ -38,7 +38,7 @@ struct SelectGameWindow : public Window {
 	SelectGameWindow (const WindowDesc *desc) : Window(desc)
 	{
 		this->CreateNestedTree();
-		this->FinishInitNested(0);
+		this->InitNested(0);
 		this->OnInvalidateData();
 	}
 

@@ -370,7 +370,6 @@ public:
 
 	void InitNested(WindowNumber number = 0);
 	void CreateNestedTree(void);
-	void FinishInitNested(WindowNumber window_number = 0);
 
 	void Delete (void);
 

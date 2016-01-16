@@ -470,7 +470,7 @@ public:
 
 		this->CreateNestedTree();
 		this->vscroll = this->GetScrollbar(WID_NG_SCROLLBAR);
-		this->FinishInitNested(WN_NETWORK_WINDOW_GAME);
+		this->InitNested(WN_NETWORK_WINDOW_GAME);
 
 		this->querystrings[WID_NG_CLIENT] = &this->name_editbox;
 		this->name_editbox.Assign(_settings_client.network.client_name);
@@ -1372,7 +1372,7 @@ struct NetworkLobbyWindow : public Window {
 		memset (this->company_info, 0, sizeof(this->company_info));
 		this->CreateNestedTree();
 		this->vscroll = this->GetScrollbar(WID_NL_SCROLLBAR);
-		this->FinishInitNested(WN_NETWORK_WINDOW_LOBBY);
+		this->InitNested(WN_NETWORK_WINDOW_LOBBY);
 	}
 
 	CompanyID NetworkLobbyFindCompanyIndex(byte pos) const

@@ -179,7 +179,7 @@ struct NewGRFParametersWindow : public Window {
 		this->vscroll = this->GetScrollbar(WID_NP_SCROLLBAR);
 		this->GetWidget<NWidgetStacked>(WID_NP_SHOW_NUMPAR)->SetDisplayedPlane(this->action14present ? SZSP_HORIZONTAL : 0);
 		this->GetWidget<NWidgetStacked>(WID_NP_SHOW_DESCRIPTION)->SetDisplayedPlane(this->action14present ? 0 : SZSP_HORIZONTAL);
-		this->FinishInitNested();  // Initializes 'this->line_height' as side effect.
+		this->InitNested();  // Initializes 'this->line_height' as side effect.
 
 		this->SetWidgetDisabledState(WID_NP_RESET, !this->editable);
 
@@ -666,7 +666,7 @@ struct NewGRFWindow : public Window, NewGRFScanCallback {
 
 		this->GetWidget<NWidgetStacked>(WID_NS_SHOW_REMOVE)->SetDisplayedPlane(this->editable ? 0 : 1);
 		this->GetWidget<NWidgetStacked>(WID_NS_SHOW_APPLY)->SetDisplayedPlane(this->editable ? 0 : this->show_params ? 1 : SZSP_HORIZONTAL);
-		this->FinishInitNested(WN_GAME_OPTIONS_NEWGRF_STATE);
+		this->InitNested(WN_GAME_OPTIONS_NEWGRF_STATE);
 
 		this->querystrings[WID_NS_FILTER] = &this->filter_editbox;
 		this->filter_editbox.cancel_button = QueryString::ACTION_CLEAR;
@@ -2084,7 +2084,7 @@ struct SavePresetWindow : public Window {
 
 		this->CreateNestedTree();
 		this->vscroll = this->GetScrollbar(WID_SVP_SCROLLBAR);
-		this->FinishInitNested(0);
+		this->InitNested(0);
 
 		this->vscroll->SetCount(this->presets.Length());
 		this->SetFocusedWidget(WID_SVP_EDITBOX);

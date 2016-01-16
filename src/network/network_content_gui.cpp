@@ -534,7 +534,7 @@ public:
 	{
 		this->CreateNestedTree();
 		this->vscroll = this->GetScrollbar(WID_NCL_SCROLLBAR);
-		this->FinishInitNested(WN_NETWORK_WINDOW_CONTENT_LIST);
+		this->InitNested(WN_NETWORK_WINDOW_CONTENT_LIST);
 
 		this->GetWidget<NWidgetStacked>(WID_NCL_SEL_ALL_UPDATE)->SetDisplayedPlane(select_all);
 

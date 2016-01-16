@@ -176,7 +176,7 @@ struct TerraformToolbarWindow : Window {
 	{
 		/* This is needed as we like to have the tree available on OnInit. */
 		this->CreateNestedTree();
-		this->FinishInitNested(window_number);
+		this->InitNested(window_number);
 	}
 
 	~TerraformToolbarWindow()
@@ -532,7 +532,7 @@ struct ScenarioEditorLandscapeGenerationWindow : Window {
 		this->CreateNestedTree();
 		NWidgetStacked *show_desert = this->GetWidget<NWidgetStacked>(WID_ETT_SHOW_PLACE_DESERT);
 		show_desert->SetDisplayedPlane(_settings_game.game_creation.landscape == LT_TROPIC ? 0 : SZSP_NONE);
-		this->FinishInitNested(window_number);
+		this->InitNested(window_number);
 	}
 
 	virtual void OnPaint()

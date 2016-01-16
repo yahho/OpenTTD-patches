@@ -78,7 +78,7 @@ public:
 	{
 		this->CreateNestedTree();
 		this->vscroll = this->GetScrollbar(WID_BO_SCROLLBAR);
-		this->FinishInitNested(number);
+		this->InitNested(number);
 
 		ResetPointerMode();
 

@@ -544,7 +544,7 @@ struct RefitWindow : public Window {
 		this->GetWidget<NWidgetStacked>(WID_VR_SHOW_HSCROLLBAR)->SetDisplayedPlane(v->IsGroundVehicle() ? 0 : SZSP_HORIZONTAL);
 		this->GetWidget<NWidgetCore>(WID_VR_VEHICLE_PANEL_DISPLAY)->tool_tip = (v->type == VEH_TRAIN) ? STR_REFIT_SELECT_VEHICLES_TOOLTIP : STR_NULL;
 
-		this->FinishInitNested(v->index);
+		this->InitNested(v->index);
 		this->owner = v->owner;
 
 		this->SetWidgetDisabledState (WID_VR_REFIT, !auto_refit && (this->sel_cargo == CT_INVALID));
@@ -1542,7 +1542,7 @@ public:
 			this->GetWidget<NWidgetCore>(WID_VL_CAPTION)->widget_data = STR_VEHICLE_LIST_TRAIN_CAPTION + this->vli.vtype;
 		}
 
-		this->FinishInitNested(window_number);
+		this->InitNested(window_number);
 		if (this->vli.company != OWNER_NONE) this->owner = this->vli.company;
 	}
 
@@ -1965,7 +1965,7 @@ struct VehicleDetailsWindow : Window {
 
 		this->CreateNestedTree();
 		this->vscroll = (v->type == VEH_TRAIN ? this->GetScrollbar(WID_VD_SCROLLBAR) : NULL);
-		this->FinishInitNested(window_number);
+		this->InitNested(window_number);
 
 		this->GetWidget<NWidgetCore>(WID_VD_RENAME_VEHICLE)->tool_tip = STR_VEHICLE_DETAILS_TRAIN_RENAME + v->type;
 
@@ -2576,7 +2576,7 @@ public:
 
 			default: NOT_REACHED();
 		}
-		this->FinishInitNested(window_number);
+		this->InitNested(window_number);
 		this->owner = v->owner;
 		this->GetWidget<NWidgetViewport>(WID_VV_VIEWPORT)->InitializeViewport(this, this->window_number | (1 << 31), _vehicle_view_zoom_levels[v->type]);
 

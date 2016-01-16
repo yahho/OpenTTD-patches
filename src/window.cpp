@@ -1743,7 +1743,7 @@ static Point LocalGetWindowPlacement(const WindowDesc *desc, int16 sm_width, int
  * Construct a nested widget tree in #nested_root, and optionally fill the #nested_array array to provide quick access to the uninitialized widgets.
  * This is mainly useful for setting very basic properties.
  * @param fill_nested Fill the #nested_array (enabling is expensive!).
- * @note Filling the nested array requires an additional traversal through the nested widget tree, and is best performed by #FinishInitNested rather than here.
+ * @note Filling the nested array requires an additional traversal through the nested widget tree, and is best performed by #InitNested rather than here.
  */
 void Window::CreateNestedTree (void)
 {
@@ -1755,7 +1755,7 @@ void Window::CreateNestedTree (void)
  * Perform the second part of the initialization of a nested widget tree.
  * @param window_number Number of the new window.
  */
-void Window::FinishInitNested(WindowNumber window_number)
+void Window::InitNested (WindowNumber window_number)
 {
 	this->InitializeData(window_number);
 
@@ -1772,15 +1772,6 @@ void Window::FinishInitNested(WindowNumber window_number)
 	Point pt = this->OnInitialPosition(this->nested_root->smallest_x, this->nested_root->smallest_y, window_number);
 	this->InitializePositionSize(pt.x, pt.y, this->nested_root->smallest_x, this->nested_root->smallest_y);
 	this->FindWindowPlacementAndResize(this->window_desc->GetDefaultWidth(), this->window_desc->GetDefaultHeight());
-}
-
-/**
- * Perform complete initialization of the #Window with nested widgets, to allow use.
- * @param window_number Number of the new window.
- */
-void Window::InitNested(WindowNumber window_number)
-{
-	this->FinishInitNested(window_number);
 }
 
 /**

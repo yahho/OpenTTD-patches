@@ -776,7 +776,7 @@ public:
 	{
 		this->CreateNestedTree();
 		this->vscroll = this->GetScrollbar(WID_O_SCROLLBAR);
-		this->FinishInitNested(v->index);
+		this->InitNested(v->index);
 
 		this->owner = v->owner;
 

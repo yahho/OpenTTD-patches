@@ -279,7 +279,7 @@ struct CompanyFinancesWindow : Window {
 	{
 		this->CreateNestedTree();
 		this->SetupWidgets();
-		this->FinishInitNested(company);
+		this->InitNested(company);
 
 		this->owner = (Owner)this->window_number;
 	}
@@ -1122,7 +1122,7 @@ public:
 
 		this->CreateNestedTree();
 		this->SelectDisplayPlanes(this->advanced);
-		this->FinishInitNested(parent->window_number);
+		this->InitNested(parent->window_number);
 		this->parent = parent;
 		this->owner = (Owner)this->window_number;
 		this->face = Company::Get((CompanyID)this->window_number)->face;

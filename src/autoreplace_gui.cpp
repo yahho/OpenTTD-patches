@@ -264,7 +264,7 @@ public:
 		widget->widget_data = STR_SHOW_HIDDEN_ENGINES_VEHICLE_TRAIN + vehicletype;
 		widget->tool_tip    = STR_SHOW_HIDDEN_ENGINES_VEHICLE_TRAIN_TOOLTIP + vehicletype;
 		widget->SetLowered(this->show_hidden_engines);
-		this->FinishInitNested(vehicletype);
+		this->InitNested(vehicletype);
 
 		this->sort_criteria = _engine_sort_last_criteria[vehicletype];
 		this->descending_sort_order = _engine_sort_last_order[vehicletype];

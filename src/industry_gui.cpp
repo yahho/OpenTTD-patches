@@ -259,7 +259,7 @@ public:
 
 		this->CreateNestedTree();
 		this->vscroll = this->GetScrollbar(WID_DPI_SCROLLBAR);
-		this->FinishInitNested(0);
+		this->InitNested(0);
 
 		this->SetButtons();
 	}
@@ -1232,7 +1232,7 @@ public:
 		this->industries.ForceRebuild();
 		this->BuildSortIndustriesList();
 
-		this->FinishInitNested(0);
+		this->InitNested(0);
 	}
 
 	void OnDelete (void) FINAL_OVERRIDE
@@ -2064,7 +2064,7 @@ struct IndustryCargoesWindow : public Window {
 		this->OnInit();
 		this->CreateNestedTree();
 		this->vscroll = this->GetScrollbar(WID_IC_SCROLLBAR);
-		this->FinishInitNested(0);
+		this->InitNested(0);
 		this->OnInvalidateData(id);
 	}
 

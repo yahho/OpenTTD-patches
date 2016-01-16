@@ -63,7 +63,7 @@ public:
 			this->GetWidget<NWidgetCore>(WID_W_CENTER_VIEW)->tool_tip = STR_WAYPOINT_VIEW_CENTER_TOOLTIP;
 			this->GetWidget<NWidgetCore>(WID_W_RENAME)->tool_tip = STR_WAYPOINT_VIEW_CHANGE_WAYPOINT_NAME;
 		}
-		this->FinishInitNested(window_number);
+		this->InitNested(window_number);
 
 		this->owner = this->wp->owner;
 		this->flags |= WF_DISABLE_VP_SCROLL;

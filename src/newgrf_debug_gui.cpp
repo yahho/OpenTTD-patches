@@ -356,7 +356,7 @@ struct NewGRFInspectWindow : Window {
 	{
 		this->CreateNestedTree();
 		this->vscroll = this->GetScrollbar(WID_NGRFI_SCROLLBAR);
-		this->FinishInitNested(wno);
+		this->InitNested(wno);
 
 		this->vscroll->SetCount(0);
 		this->SetWidgetDisabledState(WID_NGRFI_PARENT, GetFeatureHelper(this->window_number)->GetParent(this->GetFeatureIndex()) == UINT32_MAX);
@@ -828,7 +828,7 @@ struct SpriteAlignerWindow : Window {
 	{
 		this->CreateNestedTree();
 		this->vscroll = this->GetScrollbar(WID_SA_SCROLLBAR);
-		this->FinishInitNested(wno);
+		this->InitNested(wno);
 
 		/* Oh yes, we assume there is at least one normal sprite! */
 		while (GetSpriteType(this->current_sprite) != ST_NORMAL) this->current_sprite++;

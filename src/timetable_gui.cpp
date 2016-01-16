@@ -168,7 +168,7 @@ struct TimetableWindow : Window {
 		this->CreateNestedTree();
 		this->vscroll = this->GetScrollbar(WID_VT_SCROLLBAR);
 		this->UpdateSelectionStates();
-		this->FinishInitNested(window_number);
+		this->InitNested(window_number);
 
 		this->owner = this->vehicle->owner;
 	}

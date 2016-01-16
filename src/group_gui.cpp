@@ -350,7 +350,7 @@ public:
 		this->GetWidget<NWidgetCore>(WID_GL_DELETE_GROUP)->widget_data += this->vli.vtype;
 		this->GetWidget<NWidgetCore>(WID_GL_REPLACE_PROTECTION)->widget_data += this->vli.vtype;
 
-		this->FinishInitNested(window_number);
+		this->InitNested(window_number);
 		this->owner = vli.company;
 	}
 

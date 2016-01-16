@@ -277,7 +277,7 @@ struct NewsWindow : Window {
 		/* For company news with a face we have a separate headline in param[0] */
 		if (desc == &_company_news_desc) this->GetWidget<NWidgetCore>(WID_N_TITLE)->widget_data = this->ni->params[0];
 
-		this->FinishInitNested(0);
+		this->InitNested(0);
 
 		/* Initialize viewport if it exists. */
 		NWidgetViewport *nvp = this->GetWidget<NWidgetViewport>(WID_N_VIEWPORT);
@@ -1162,7 +1162,7 @@ struct MessageHistoryWindow : Window {
 	{
 		this->CreateNestedTree();
 		this->vscroll = this->GetScrollbar(WID_MH_SCROLLBAR);
-		this->FinishInitNested(); // Initializes 'this->line_height' and 'this->date_width'.
+		this->InitNested(); // Initializes 'this->line_height' and 'this->date_width'.
 		this->OnInvalidateData(0);
 	}
 

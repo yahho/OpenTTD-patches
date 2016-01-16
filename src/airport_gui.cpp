@@ -231,7 +231,7 @@ public:
 		this->vscroll->SetCapacity(5);
 		this->vscroll->SetPosition(0);
 
-		this->FinishInitNested(TRANSPORT_AIR);
+		this->InitNested(TRANSPORT_AIR);
 
 		this->SetWidgetLoweredState(WID_AP_BTN_DONTHILIGHT, !_settings_client.gui.station_show_coverage);
 		this->SetWidgetLoweredState(WID_AP_BTN_DOHILIGHT, _settings_client.gui.station_show_coverage);

@@ -427,7 +427,7 @@ public:
 		this->story_page_elements.SetSortFuncs(StoryBookWindow::page_element_sorter_funcs);
 		/* story_page_elements will get built by SetSelectedPage */
 
-		this->FinishInitNested(window_number);
+		this->InitNested(window_number);
 		this->owner = (Owner)this->window_number;
 
 		/* Initialize selected vars. */

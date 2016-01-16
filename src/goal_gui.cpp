@@ -43,7 +43,7 @@ struct GoalListWindow : public Window {
 	{
 		this->CreateNestedTree();
 		this->vscroll = this->GetScrollbar(WID_GOAL_SCROLLBAR);
-		this->FinishInitNested(window_number);
+		this->InitNested(window_number);
 		this->owner = (Owner)this->window_number;
 		this->OnInvalidateData(0);
 	}
@@ -381,7 +381,7 @@ struct GoalQuestionWindow : public Window {
 
 		this->CreateNestedTree();
 		this->GetWidget<NWidgetStacked>(WID_GQ_BUTTONS)->SetDisplayedPlane(this->buttons - 1);
-		this->FinishInitNested(window_number);
+		this->InitNested(window_number);
 	}
 
 	~GoalQuestionWindow()

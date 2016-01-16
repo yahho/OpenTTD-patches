@@ -277,7 +277,7 @@ public:
 		this->GetWidget<NWidgetCore>(WID_SL_CAPTION)->widget_data = saveload_captions[mode];
 		this->vscroll = this->GetScrollbar(WID_SL_SCROLLBAR);
 
-		this->FinishInitNested(0);
+		this->InitNested(0);
 
 		this->LowerWidget(WID_SL_DRIVES_DIRECTORIES_LIST);
 

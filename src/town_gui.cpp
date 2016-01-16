@@ -329,7 +329,7 @@ public:
 		this->town = Town::Get(window_number);
 		if (this->town->larger_town) this->GetWidget<NWidgetCore>(WID_TV_CAPTION)->widget_data = STR_TOWN_VIEW_CITY_CAPTION;
 
-		this->FinishInitNested(window_number);
+		this->InitNested(window_number);
 
 		this->flags |= WF_DISABLE_VP_SCROLL;
 		NWidgetViewport *nvp = this->GetWidget<NWidgetViewport>(WID_TV_VIEWPORT);
@@ -785,7 +785,7 @@ public:
 		this->towns.ForceRebuild();
 		this->BuildSortTownList();
 
-		this->FinishInitNested(0);
+		this->InitNested(0);
 	}
 
 	virtual void SetStringParameters(int widget) const
@@ -1289,7 +1289,7 @@ struct SelectTownWindow : Window {
 		this->CreateNestedTree();
 		this->vscroll = this->GetScrollbar(WID_ST_SCROLLBAR);
 		this->RebuildTownList();
-		this->FinishInitNested();
+		this->InitNested();
 	}
 
 	virtual void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize)
@@ -1603,7 +1603,7 @@ public:
 		this->shade_select = this->GetWidget<NWidgetStacked> (WID_HP_MAIN_PANEL_SEL);
 		NWidgetMatrix *matrix = this->GetWidget<NWidgetMatrix> (WID_HP_HOUSE_SELECT_MATRIX);
 		matrix->SetScrollbar (this->GetScrollbar (WID_HP_HOUSE_SELECT_SCROLL));
-		this->FinishInitNested (number);
+		this->InitNested (number);
 
 		if (cur_house != INVALID_HOUSE_ID) {
 			matrix->SetClicked (this->sel_offset); // set clicked item again to make it visible
