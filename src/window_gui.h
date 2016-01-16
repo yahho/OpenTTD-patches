@@ -287,7 +287,6 @@ struct QueryString;
  */
 struct Window {
 protected:
-	void InitializeData(WindowNumber window_number);
 	void InitializePositionSize(int x, int y, int min_width, int min_height);
 	virtual void FindWindowPlacementAndResize(int def_width, int def_height);
 

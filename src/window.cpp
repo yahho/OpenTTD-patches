@@ -1400,49 +1400,6 @@ static void BringWindowToFront(Window *w)
 }
 
 /**
- * Initializes the data (except the position and initial size) of a new Window.
- * @param desc          Window description.
- * @param window_number Number being assigned to the new window
- * @return Window pointer of the newly created window
- * @pre If nested widgets are used (\a widget is \c NULL), #nested_root and #nested_array_size must be initialized.
- *      In addition, #nested_array is either \c NULL, or already initialized.
- */
-void Window::InitializeData(WindowNumber window_number)
-{
-	/* Set up window properties; some of them are needed to set up smallest size below */
-	this->window_class = this->window_desc->cls;
-	this->SetWhiteBorder();
-	if (this->window_desc->default_pos == WDP_CENTER) this->flags |= WF_CENTERED;
-	this->owner = INVALID_OWNER;
-	this->nested_focus = NULL;
-	this->window_number = window_number;
-
-	this->OnInit();
-	/* Initialize nested widget tree. */
-	if (this->nested_array == NULL) {
-		this->nested_array = xcalloct<NWidgetBase *>(this->nested_array_size);
-		this->nested_root->SetupSmallestSize(this, true);
-	} else {
-		this->nested_root->SetupSmallestSize(this, false);
-	}
-	/* Initialize to smallest size. */
-	this->nested_root->AssignSizePosition(ST_SMALLEST, 0, 0, this->nested_root->smallest_x, this->nested_root->smallest_y, _current_text_dir == TD_RTL);
-
-	/* Further set up window properties,
-	 * this->left, this->top, this->width, this->height, this->resize.width, and this->resize.height are initialized later. */
-	this->resize.step_width  = this->nested_root->resize_x;
-	this->resize.step_height = this->nested_root->resize_y;
-
-	/* Give focus to the opened window unless a text box
-	 * of focused window has focus (so we don't interrupt typing). But if the new
-	 * window has a text box, then take focus anyway. */
-	if (!EditBoxInGlobalFocus() || this->nested_root->GetWidgetOfType(WWT_EDITBOX) != NULL) SetFocusedWindow(this);
-
-	/* Insert the window into the correct location in the z-ordering. */
-	AddWindowToZOrdering(this);
-}
-
-/**
  * Set the position and smallest size of the window.
  * @param x          Offset in pixels from the left of the screen of the new window.
  * @param y          Offset in pixels from the top of the screen of the new window.
@@ -1465,7 +1422,7 @@ void Window::InitializePositionSize(int x, int y, int sm_width, int sm_height)
  * done here.
  * @param def_width default width in pixels of the window
  * @param def_height default height in pixels of the window
- * @see Window::Window(), Window::InitializeData(), Window::InitializePositionSize()
+ * @see Window::Window(), Window::InitNested(), Window::InitializePositionSize()
  */
 void Window::FindWindowPlacementAndResize(int def_width, int def_height)
 {
@@ -1743,7 +1700,7 @@ static Point LocalGetWindowPlacement(const WindowDesc *desc, int16 sm_width, int
  * Construct a nested widget tree in #nested_root, and optionally fill the #nested_array array to provide quick access to the uninitialized widgets.
  * This is mainly useful for setting very basic properties.
  * @param fill_nested Fill the #nested_array (enabling is expensive!).
- * @note Filling the nested array requires an additional traversal through the nested widget tree, and is best performed by #InitNested rather than here.
+ * @note Filling the nested array requires an additional traversal through the nested widget tree, and is best performed by #FinishInitNested rather than here.
  */
 void Window::CreateNestedTree (void)
 {
@@ -1757,7 +1714,37 @@ void Window::CreateNestedTree (void)
  */
 void Window::InitNested (WindowNumber window_number)
 {
-	this->InitializeData(window_number);
+	/* Set up window properties; some of them are needed to set up smallest size below */
+	this->window_class = this->window_desc->cls;
+	this->SetWhiteBorder();
+	if (this->window_desc->default_pos == WDP_CENTER) this->flags |= WF_CENTERED;
+	this->owner = INVALID_OWNER;
+	this->nested_focus = NULL;
+	this->window_number = window_number;
+
+	this->OnInit();
+	/* Initialize nested widget tree. */
+	if (this->nested_array == NULL) {
+		this->nested_array = xcalloct<NWidgetBase *>(this->nested_array_size);
+		this->nested_root->SetupSmallestSize(this, true);
+	} else {
+		this->nested_root->SetupSmallestSize(this, false);
+	}
+	/* Initialize to smallest size. */
+	this->nested_root->AssignSizePosition(ST_SMALLEST, 0, 0, this->nested_root->smallest_x, this->nested_root->smallest_y, _current_text_dir == TD_RTL);
+
+	/* Further set up window properties,
+	 * this->left, this->top, this->width, this->height, this->resize.width, and this->resize.height are initialized later. */
+	this->resize.step_width  = this->nested_root->resize_x;
+	this->resize.step_height = this->nested_root->resize_y;
+
+	/* Give focus to the opened window unless a text box
+	 * of focused window has focus (so we don't interrupt typing). But if the new
+	 * window has a text box, then take focus anyway. */
+	if (!EditBoxInGlobalFocus() || this->nested_root->GetWidgetOfType(WWT_EDITBOX) != NULL) SetFocusedWindow(this);
+
+	/* Insert the window into the correct location in the z-ordering. */
+	AddWindowToZOrdering(this);
 
 	WindowDesc::Prefs *prefs = this->window_desc->prefs;
 	if (prefs != NULL) {
