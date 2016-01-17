@@ -379,10 +379,9 @@ static void *ReadRecolourSprite(uint16 file_slot, uint num)
  * @param sc          Location of sprite.
  * @param id          Sprite number.
  * @param sprite_type Type of sprite.
- * @param allocator   Allocator function to use.
  * @return Read sprite data.
  */
-static void *ReadSprite(const SpriteCache *sc, SpriteID id, SpriteType sprite_type, AllocatorProc *allocator)
+static void *ReadSprite (const SpriteCache *sc, SpriteID id, SpriteType sprite_type)
 {
 	uint8 file_slot = sc->file_slot;
 	size_t file_pos = sc->file_pos;
@@ -410,7 +409,7 @@ static void *ReadSprite(const SpriteCache *sc, SpriteID id, SpriteType sprite_ty
 	if (sprite_avail == 0) {
 		if (sprite_type == ST_MAPGEN) return NULL;
 		if (id == SPR_IMG_QUERY) usererror("Okay... something went horribly wrong. I couldn't load the fallback sprite. What should I do?");
-		return (void*)GetRawSprite(SPR_IMG_QUERY, ST_NORMAL, allocator);
+		return (void*) GetRawSprite (SPR_IMG_QUERY, ST_NORMAL, AllocSprite);
 	}
 
 	if (sprite_type == ST_MAPGEN) {
@@ -425,7 +424,7 @@ static void *ReadSprite(const SpriteCache *sc, SpriteID id, SpriteType sprite_ty
 		 *  (so type = 0xFF basically). */
 		uint num = sprite[ZOOM_LVL_NORMAL].width * sprite[ZOOM_LVL_NORMAL].height;
 
-		MapGenSprite *s = (MapGenSprite *) allocator (sizeof(*s) + num);
+		MapGenSprite *s = (MapGenSprite *) AllocSprite (sizeof(*s) + num);
 		s->width  = sprite[ZOOM_LVL_NORMAL].width;
 		s->height = sprite[ZOOM_LVL_NORMAL].height;
 		s->x_offs = sprite[ZOOM_LVL_NORMAL].x_offs;
@@ -443,7 +442,7 @@ static void *ReadSprite(const SpriteCache *sc, SpriteID id, SpriteType sprite_ty
 
 	if (!ResizeSprites(sprite, sprite_avail, file_slot, sc->id)) {
 		if (id == SPR_IMG_QUERY) usererror("Okay... something went horribly wrong. I couldn't resize the fallback sprite. What should I do?");
-		return (void*)GetRawSprite(SPR_IMG_QUERY, ST_NORMAL, allocator);
+		return (void*) GetRawSprite (SPR_IMG_QUERY, ST_NORMAL, AllocSprite);
 	}
 
 	if (sprite->type == ST_FONT && ZOOM_LVL_GUI != ZOOM_LVL_NORMAL) {
@@ -455,7 +454,7 @@ static void *ReadSprite(const SpriteCache *sc, SpriteID id, SpriteType sprite_ty
 		sprite[ZOOM_LVL_NORMAL].data   = sprite[ZOOM_LVL_GUI].data;
 	}
 
-	return GetCurrentBlitter()->Encode (sprite, allocator);
+	return GetCurrentBlitter()->Encode (sprite, AllocSprite);
 }
 
 
@@ -847,12 +846,12 @@ void *GetRawSprite(SpriteID sprite, SpriteType type, AllocatorProc *allocator)
 		sc->lru = ++_sprite_lru_counter;
 
 		/* Load the sprite, if it is not loaded, yet */
-		if (sc->ptr == NULL) sc->ptr = ReadSprite(sc, sprite, type, AllocSprite);
+		if (sc->ptr == NULL) sc->ptr = ReadSprite (sc, sprite, type);
 
 		return sc->ptr;
 	} else {
 		/* Do not use the spritecache, but a different allocator. */
-		return ReadSprite(sc, sprite, type, allocator);
+		return ReadSprite (sc, sprite, type);
 	}
 }
 
