@@ -409,7 +409,7 @@ static void *ReadSprite (const SpriteCache *sc, SpriteID id, SpriteType sprite_t
 	if (sprite_avail == 0) {
 		if (sprite_type == ST_MAPGEN) return NULL;
 		if (id == SPR_IMG_QUERY) usererror("Okay... something went horribly wrong. I couldn't load the fallback sprite. What should I do?");
-		return (void*) GetRawSprite (SPR_IMG_QUERY, ST_NORMAL, AllocSprite);
+		return (void*) GetRawSprite (SPR_IMG_QUERY, ST_NORMAL, false);
 	}
 
 	if (sprite_type == ST_MAPGEN) {
@@ -442,7 +442,7 @@ static void *ReadSprite (const SpriteCache *sc, SpriteID id, SpriteType sprite_t
 
 	if (!ResizeSprites(sprite, sprite_avail, file_slot, sc->id)) {
 		if (id == SPR_IMG_QUERY) usererror("Okay... something went horribly wrong. I couldn't resize the fallback sprite. What should I do?");
-		return (void*) GetRawSprite (SPR_IMG_QUERY, ST_NORMAL, AllocSprite);
+		return (void*) GetRawSprite (SPR_IMG_QUERY, ST_NORMAL, false);
 	}
 
 	if (sprite->type == ST_FONT && ZOOM_LVL_GUI != ZOOM_LVL_NORMAL) {
@@ -776,10 +776,11 @@ static void *AllocSprite(size_t mem_req)
  * @param sprite ID of loaded sprite
  * @param requested requested sprite type
  * @param sc the currently known sprite cache for the requested sprite
+ * @param cache Cache the sprite
  * @return fallback sprite
  * @note this function will do usererror() in the case the fallback sprite isn't available
  */
-static void *HandleInvalidSpriteRequest(SpriteID sprite, SpriteType requested, SpriteCache *sc, AllocatorProc *allocator)
+static void *HandleInvalidSpriteRequest (SpriteID sprite, SpriteType requested, SpriteCache *sc, bool cache)
 {
 	static const char * const sprite_types[] = {
 		"normal",        // ST_NORMAL
@@ -791,7 +792,7 @@ static void *HandleInvalidSpriteRequest(SpriteID sprite, SpriteType requested, S
 	SpriteType available = sc->type;
 	if (requested == ST_FONT && available == ST_NORMAL) {
 		if (sc->ptr == NULL) sc->type = ST_FONT;
-		return GetRawSprite(sprite, sc->type, allocator);
+		return GetRawSprite (sprite, sc->type, cache);
 	}
 
 	byte warning_level = sc->warned ? 6 : 0;
@@ -803,10 +804,10 @@ static void *HandleInvalidSpriteRequest(SpriteID sprite, SpriteType requested, S
 			if (sprite == SPR_IMG_QUERY) usererror("Uhm, would you be so kind not to load a NewGRF that makes the 'query' sprite a non-normal sprite?");
 			/* FALL THROUGH */
 		case ST_FONT:
-			return GetRawSprite(SPR_IMG_QUERY, ST_NORMAL, allocator);
+			return GetRawSprite (SPR_IMG_QUERY, ST_NORMAL, cache);
 		case ST_RECOLOUR:
 			if (sprite == PALETTE_TO_DARK_BLUE) usererror("Uhm, would you be so kind not to load a NewGRF that makes the 'PALETTE_TO_DARK_BLUE' sprite a non-remap sprite?");
-			return GetRawSprite(PALETTE_TO_DARK_BLUE, ST_RECOLOUR, allocator);
+			return GetRawSprite (PALETTE_TO_DARK_BLUE, ST_RECOLOUR, cache);
 		case ST_MAPGEN:
 			/* this shouldn't happen, overriding of ST_MAPGEN sprites is checked in LoadNextSprite()
 			 * (the only case the check fails is when these sprites weren't even loaded...) */
@@ -820,10 +821,10 @@ static void *HandleInvalidSpriteRequest(SpriteID sprite, SpriteType requested, S
  * If the sprite is not available or of wrong type, a fallback sprite is returned.
  * @param sprite Sprite to read.
  * @param type Expected sprite type.
- * @param allocator Allocator function to use. Set to NULL to use the usual sprite cache.
+ * @param cache Cache the sprite (external callers should leave this to true)
  * @return Sprite raw data
  */
-void *GetRawSprite(SpriteID sprite, SpriteType type, AllocatorProc *allocator)
+void *GetRawSprite (SpriteID sprite, SpriteType type, bool cache)
 {
 	assert(type != ST_MAPGEN || IsMapgenSpriteID(sprite));
 	assert(type < ST_INVALID);
@@ -837,9 +838,9 @@ void *GetRawSprite(SpriteID sprite, SpriteType type, AllocatorProc *allocator)
 
 	SpriteCache *sc = GetSpriteCache(sprite);
 
-	if (sc->type != type) return HandleInvalidSpriteRequest(sprite, type, sc, allocator);
+	if (sc->type != type) return HandleInvalidSpriteRequest (sprite, type, sc, cache);
 
-	if (allocator == NULL) {
+	if (cache) {
 		/* Load sprite into/from spritecache */
 
 		/* Update LRU */
