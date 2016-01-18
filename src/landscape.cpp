@@ -795,14 +795,14 @@ void InitializeLandscape()
 	for (uint x = 0; x < sizex; x++) MakeVoid(sizex * y + x);
 }
 
-static const byte _genterrain_tbl_1[5] = { 10, 22, 33, 37, 4  };
-static const byte _genterrain_tbl_2[5] = {  0,  0,  0,  0, 33 };
-
 static void GenerateTerrain(int type, uint flag)
 {
+	static const byte genterrain_tbl[5][2] =
+		{ { 10, 0 }, { 22, 0 }, { 33, 0 }, { 37, 0 }, { 4, 33 } };
+
 	uint32 r = Random();
 
-	const MapGenSprite *templ = GetMapGenSprite ((((r >> 24) * _genterrain_tbl_1[type]) >> 8) + _genterrain_tbl_2[type] + 4845);
+	const MapGenSprite *templ = GetMapGenSprite ((((r >> 24) * genterrain_tbl[type][0]) >> 8) + genterrain_tbl[type][1] + 4845);
 	if (templ == NULL) usererror("Map generator sprites could not be loaded");
 
 	uint x = r & MapMaxX();
