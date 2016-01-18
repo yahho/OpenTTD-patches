@@ -387,7 +387,8 @@ static void *ReadSprite (const SpriteCache *sc, SpriteID id, SpriteType sprite_t
 	size_t file_pos = sc->file_pos;
 
 	assert(sprite_type != ST_RECOLOUR);
-	assert(IsMapgenSpriteID(id) == (sprite_type == ST_MAPGEN));
+	assert(sprite_type != ST_MAPGEN);
+	assert(!IsMapgenSpriteID(id));
 	assert(sc->type == sprite_type);
 
 	DEBUG(sprite, 9, "Load sprite %d", id);
@@ -396,7 +397,7 @@ static void *ReadSprite (const SpriteCache *sc, SpriteID id, SpriteType sprite_t
 	uint8 sprite_avail = 0;
 	sprite[ZOOM_LVL_NORMAL].type = sprite_type;
 
-	if (sprite_type != ST_MAPGEN && GetCurrentBlitter()->GetScreenDepth() == 32) {
+	if (GetCurrentBlitter()->GetScreenDepth() == 32) {
 		/* Try for 32bpp sprites first. */
 		sprite_avail = LoadGrfSprite (sc->container_ver, sprite,
 				file_slot, file_pos, sprite_type, true);
@@ -407,37 +408,8 @@ static void *ReadSprite (const SpriteCache *sc, SpriteID id, SpriteType sprite_t
 	}
 
 	if (sprite_avail == 0) {
-		if (sprite_type == ST_MAPGEN) return NULL;
 		if (id == SPR_IMG_QUERY) usererror("Okay... something went horribly wrong. I couldn't load the fallback sprite. What should I do?");
 		return (void*) GetRawSprite (SPR_IMG_QUERY, ST_NORMAL, false);
-	}
-
-	if (sprite_type == ST_MAPGEN) {
-		/* Ugly hack to work around the problem that the old landscape
-		 *  generator assumes that those sprites are stored uncompressed in
-		 *  the memory, and they are only read directly by the code, never
-		 *  send to the blitter. So do not send it to the blitter (which will
-		 *  result in a data array in the format the blitter likes most), but
-		 *  extract the data directly and store that as sprite.
-		 * Ugly: yes. Other solution: no. Blame the original author or
-		 *  something ;) The image should really have been a data-stream
-		 *  (so type = 0xFF basically). */
-		uint num = sprite[ZOOM_LVL_NORMAL].width * sprite[ZOOM_LVL_NORMAL].height;
-
-		MapGenSprite *s = (MapGenSprite *) AllocSprite (sizeof(*s) + num);
-		s->width  = sprite[ZOOM_LVL_NORMAL].width;
-		s->height = sprite[ZOOM_LVL_NORMAL].height;
-		s->x_offs = sprite[ZOOM_LVL_NORMAL].x_offs;
-		s->y_offs = sprite[ZOOM_LVL_NORMAL].y_offs;
-
-		SpriteLoader::CommonPixel *src = sprite[ZOOM_LVL_NORMAL].data;
-		byte *dest = s->data;
-		while (num-- > 0) {
-			*dest++ = src->m;
-			src++;
-		}
-
-		return s;
 	}
 
 	if (!ResizeSprites(sprite, sprite_avail, file_slot, sc->id)) {
@@ -808,9 +780,6 @@ static void *HandleInvalidSpriteRequest (SpriteID sprite, SpriteType requested, 
 		case ST_RECOLOUR:
 			if (sprite == PALETTE_TO_DARK_BLUE) usererror("Uhm, would you be so kind not to load a NewGRF that makes the 'PALETTE_TO_DARK_BLUE' sprite a non-remap sprite?");
 			return GetRawSprite (PALETTE_TO_DARK_BLUE, ST_RECOLOUR, cache);
-		case ST_MAPGEN:
-			/* this shouldn't happen, overriding of ST_MAPGEN sprites is checked in LoadNextSprite()
-			 * (the only case the check fails is when these sprites weren't even loaded...) */
 		default:
 			NOT_REACHED();
 	}
@@ -826,8 +795,9 @@ static void *HandleInvalidSpriteRequest (SpriteID sprite, SpriteType requested, 
  */
 void *GetRawSprite (SpriteID sprite, SpriteType type, bool cache)
 {
-	assert(type != ST_MAPGEN || IsMapgenSpriteID(sprite));
+	assert(type != ST_MAPGEN);
 	assert(type < ST_INVALID);
+	assert (!IsMapgenSpriteID (sprite));
 
 	if (!SpriteExists(sprite)) {
 		DEBUG(sprite, 1, "Tried to load non-existing sprite #%d. Probable cause: Wrong/missing NewGRFs", sprite);
@@ -854,6 +824,69 @@ void *GetRawSprite (SpriteID sprite, SpriteType type, bool cache)
 		/* Do not use the spritecache, but a different allocator. */
 		return ReadSprite (sc, sprite, type);
 	}
+}
+
+
+/**
+ * Reads a map generator sprite (from disk or sprite cache).
+ * @param sprite Sprite to read.
+ * @return Sprite data
+ */
+const MapGenSprite *GetMapGenSprite (SpriteID sprite)
+{
+	assert (IsMapgenSpriteID (sprite));
+
+	if (!SpriteExists (sprite)) {
+		DEBUG(sprite, 1, "Tried to load non-existing map generator sprite #%d. Probable cause: Wrong/missing NewGRFs", sprite);
+		return NULL;
+	}
+
+
+	SpriteCache *sc = GetSpriteCache (sprite);
+
+	/* this shouldn't happen, overriding of ST_MAPGEN sprites is checked
+	 * in LoadNextSprite() (the only case the check fails is when these
+	 * sprites weren't even loaded...) */
+	assert (sc->type == ST_MAPGEN);
+
+	/* Load sprite into/from spritecache */
+
+	/* Update LRU */
+	sc->lru = ++_sprite_lru_counter;
+
+	/* Load the sprite, if it is not loaded yet */
+	if (sc->ptr != NULL) return (MapGenSprite *) sc->ptr;
+
+	DEBUG (sprite, 9, "Load map generator sprite %d", sprite);
+
+	SpriteLoader::Sprite sp;
+	sp.type = ST_MAPGEN;
+
+	if (LoadGrfSprite (sc->container_ver, &sp,
+			sc->file_slot, sc->file_pos, ST_MAPGEN, false) == 0) {
+		return NULL;
+	}
+
+	/* The old landscape generator assumes that these sprites are stored
+	 * uncompressed in memory, so convert them to the expected format. */
+	uint num = sp.width * sp.height;
+
+	MapGenSprite *s = (MapGenSprite *) AllocSprite (sizeof(*s) + num);
+	sc->ptr = s;
+
+	s->width  = sp.width;
+	s->height = sp.height;
+	s->x_offs = sp.x_offs;
+	s->y_offs = sp.y_offs;
+
+	const SpriteLoader::CommonPixel *src = sp.data;
+	byte *dest = s->data;
+	while (num-- > 0) {
+		*dest++ = src->m;
+		src++;
+	}
+
+	return s;
 }
 
 

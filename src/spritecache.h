@@ -52,10 +52,7 @@ struct MapGenSprite : Sprite {
 	byte data[];   ///< Sprite data
 };
 
-static inline const MapGenSprite *GetMapGenSprite (SpriteID sprite)
-{
-	return (const MapGenSprite*) GetRawSprite (sprite, ST_MAPGEN);
-}
+const MapGenSprite *GetMapGenSprite (SpriteID sprite);
 
 void GfxInitSpriteMem();
 void GfxClearSpriteCache();
