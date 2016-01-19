@@ -814,13 +814,12 @@ void *GetRawSprite (SpriteID sprite, SpriteType type, bool cache)
 		sc->lru = ++_sprite_lru_counter;
 
 		/* Load the sprite, if it is not loaded, yet */
-		if (sc->ptr == NULL) sc->ptr = ReadSprite (sc, sprite);
-
-		return sc->ptr;
-	} else {
-		/* Do not use the spritecache, but a different allocator. */
-		return ReadSprite (sc, sprite);
+		if (sc->ptr != NULL) return sc->ptr;
 	}
+
+	void *sp = ReadSprite (sc, sprite);
+	if (cache) sc->ptr = sp;
+	return sp;
 }
 
 
