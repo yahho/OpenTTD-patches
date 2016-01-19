@@ -378,18 +378,16 @@ static void *ReadRecolourSprite(uint16 file_slot, uint num)
  * Read a sprite from disk.
  * @param sc          Location of sprite.
  * @param id          Sprite number.
- * @param sprite_type Type of sprite.
  * @return Read sprite data.
  */
-static void *ReadSprite (const SpriteCache *sc, SpriteID id, SpriteType sprite_type)
+static void *ReadSprite (const SpriteCache *sc, SpriteID id)
 {
 	uint8 file_slot = sc->file_slot;
 	size_t file_pos = sc->file_pos;
 
-	assert(sprite_type != ST_RECOLOUR);
-	assert(sprite_type != ST_MAPGEN);
+	assert(sc->type != ST_RECOLOUR);
+	assert(sc->type != ST_MAPGEN);
 	assert(!IsMapgenSpriteID(id));
-	assert(sc->type == sprite_type);
 
 	DEBUG(sprite, 9, "Load sprite %d", id);
 
@@ -399,11 +397,11 @@ static void *ReadSprite (const SpriteCache *sc, SpriteID id, SpriteType sprite_t
 	if (GetCurrentBlitter()->GetScreenDepth() == 32) {
 		/* Try for 32bpp sprites first. */
 		sprite_avail = LoadGrfSprite (sc->container_ver, sprite,
-				file_slot, file_pos, sprite_type, true);
+				file_slot, file_pos, sc->type, true);
 	}
 	if (sprite_avail == 0) {
 		sprite_avail = LoadGrfSprite (sc->container_ver, sprite,
-				file_slot, file_pos, sprite_type, false);
+				file_slot, file_pos, sc->type, false);
 	}
 
 	if (sprite_avail == 0) {
@@ -416,7 +414,7 @@ static void *ReadSprite (const SpriteCache *sc, SpriteID id, SpriteType sprite_t
 		return (void*) GetRawSprite (SPR_IMG_QUERY, ST_NORMAL, false);
 	}
 
-	if (sprite_type == ST_FONT && ZOOM_LVL_GUI != ZOOM_LVL_NORMAL) {
+	if (sc->type == ST_FONT && ZOOM_LVL_GUI != ZOOM_LVL_NORMAL) {
 		/* Make ZOOM_LVL_GUI be ZOOM_LVL_NORMAL */
 		sprite[ZOOM_LVL_NORMAL].width  = sprite[ZOOM_LVL_GUI].width;
 		sprite[ZOOM_LVL_NORMAL].height = sprite[ZOOM_LVL_GUI].height;
@@ -425,7 +423,7 @@ static void *ReadSprite (const SpriteCache *sc, SpriteID id, SpriteType sprite_t
 		sprite[ZOOM_LVL_NORMAL].data   = sprite[ZOOM_LVL_GUI].data;
 	}
 
-	return GetCurrentBlitter()->Encode (sprite, sprite_type, AllocSprite);
+	return GetCurrentBlitter()->Encode (sprite, sc->type, AllocSprite);
 }
 
 
@@ -816,12 +814,12 @@ void *GetRawSprite (SpriteID sprite, SpriteType type, bool cache)
 		sc->lru = ++_sprite_lru_counter;
 
 		/* Load the sprite, if it is not loaded, yet */
-		if (sc->ptr == NULL) sc->ptr = ReadSprite (sc, sprite, type);
+		if (sc->ptr == NULL) sc->ptr = ReadSprite (sc, sprite);
 
 		return sc->ptr;
 	} else {
 		/* Do not use the spritecache, but a different allocator. */
-		return ReadSprite (sc, sprite, type);
+		return ReadSprite (sc, sprite);
 	}
 }
 
