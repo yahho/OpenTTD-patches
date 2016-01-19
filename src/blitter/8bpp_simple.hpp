@@ -26,7 +26,7 @@ public:
 	static const char desc[]; ///< Description of the blitter.
 
 	/* virtual */ void Draw(Blitter::BlitterParams *bp, BlitterMode mode, ZoomLevel zoom);
-	/* virtual */ ::Sprite *Encode (const SpriteLoader::Sprite *sprite, AllocatorProc *allocator);
+	/* virtual */ ::Sprite *Encode (const SpriteLoader::Sprite *sprite, SpriteType type, AllocatorProc *allocator);
 };
 
 #endif /* BLITTER_8BPP_SIMPLE_HPP */

@@ -37,8 +37,10 @@ public:
 	template <BlitterMode mode, SSESprite::ReadMode read_mode, SSESprite::BlockType bt_last, bool translucent>
 	void Draw (const Blitter::BlitterParams *bp, ZoomLevel zoom, bool animated);
 	/* virtual */ void Draw(Blitter::BlitterParams *bp, BlitterMode mode, ZoomLevel zoom);
-	/* virtual */ ::Sprite *Encode (const SpriteLoader::Sprite *sprite, AllocatorProc *allocator) {
-		return SSESprite::encode (sprite, allocator);
+
+	::Sprite *Encode (const SpriteLoader::Sprite *sprite, SpriteType type, AllocatorProc *allocator) OVERRIDE
+	{
+		return SSESprite::encode (sprite, type, allocator);
 	}
 };
 

@@ -119,13 +119,13 @@ void Blitter_8bppOptimized::Draw(Blitter::BlitterParams *bp, BlitterMode mode, Z
 	}
 }
 
-::Sprite *Blitter_8bppOptimized::Encode (const SpriteLoader::Sprite *sprite, AllocatorProc *allocator)
+::Sprite *Blitter_8bppOptimized::Encode (const SpriteLoader::Sprite *sprite, SpriteType type, AllocatorProc *allocator)
 {
 	/* Make memory for all zoom-levels */
 	ZoomLevel zoom_min;
 	ZoomLevel zoom_max;
 
-	if (sprite->type == ST_FONT) {
+	if (type == ST_FONT) {
 		zoom_min = ZOOM_LVL_NORMAL;
 		zoom_max = ZOOM_LVL_NORMAL;
 	} else {

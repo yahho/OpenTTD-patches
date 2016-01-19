@@ -395,7 +395,6 @@ static void *ReadSprite (const SpriteCache *sc, SpriteID id, SpriteType sprite_t
 
 	SpriteLoader::Sprite sprite[ZOOM_LVL_COUNT];
 	uint8 sprite_avail = 0;
-	sprite[ZOOM_LVL_NORMAL].type = sprite_type;
 
 	if (GetCurrentBlitter()->GetScreenDepth() == 32) {
 		/* Try for 32bpp sprites first. */
@@ -417,7 +416,7 @@ static void *ReadSprite (const SpriteCache *sc, SpriteID id, SpriteType sprite_t
 		return (void*) GetRawSprite (SPR_IMG_QUERY, ST_NORMAL, false);
 	}
 
-	if (sprite->type == ST_FONT && ZOOM_LVL_GUI != ZOOM_LVL_NORMAL) {
+	if (sprite_type == ST_FONT && ZOOM_LVL_GUI != ZOOM_LVL_NORMAL) {
 		/* Make ZOOM_LVL_GUI be ZOOM_LVL_NORMAL */
 		sprite[ZOOM_LVL_NORMAL].width  = sprite[ZOOM_LVL_GUI].width;
 		sprite[ZOOM_LVL_NORMAL].height = sprite[ZOOM_LVL_GUI].height;
@@ -426,7 +425,7 @@ static void *ReadSprite (const SpriteCache *sc, SpriteID id, SpriteType sprite_t
 		sprite[ZOOM_LVL_NORMAL].data   = sprite[ZOOM_LVL_GUI].data;
 	}
 
-	return GetCurrentBlitter()->Encode (sprite, AllocSprite);
+	return GetCurrentBlitter()->Encode (sprite, sprite_type, AllocSprite);
 }
 
 
@@ -860,8 +859,6 @@ const MapGenSprite *GetMapGenSprite (SpriteID sprite)
 	DEBUG (sprite, 9, "Load map generator sprite %d", sprite);
 
 	SpriteLoader::Sprite sp;
-	sp.type = ST_MAPGEN;
-
 	if (LoadGrfSprite (sc->container_ver, &sp,
 			sc->file_slot, sc->file_pos, ST_MAPGEN, false) == 0) {
 		return NULL;

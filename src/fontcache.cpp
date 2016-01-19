@@ -510,11 +510,10 @@ const Sprite *FreeTypeFontCache::GetGlyph(GlyphID key)
 				8,  // width
 				0,  // x_offs
 				0,  // y_offs
-				ST_FONT,
 				builtin_questionmark_data
 			};
 
-			Sprite *spr = GetCurrentBlitter()->Encode (&builtin_questionmark, AllocateFont);
+			Sprite *spr = GetCurrentBlitter()->Encode (&builtin_questionmark, ST_FONT, AllocateFont);
 			assert(spr != NULL);
 			new_glyph.sprite = spr;
 			new_glyph.width  = spr->width + (this->fs != FS_NORMAL);
@@ -544,7 +543,6 @@ const Sprite *FreeTypeFontCache::GetGlyph(GlyphID key)
 	/* FreeType has rendered the glyph, now we allocate a sprite and copy the image into it */
 	SpriteLoader::Sprite sprite;
 	sprite.AllocateData(ZOOM_LVL_NORMAL, width * height);
-	sprite.type = ST_FONT;
 	sprite.width = width;
 	sprite.height = height;
 	sprite.x_offs = slot->bitmap_left;
@@ -571,7 +569,7 @@ const Sprite *FreeTypeFontCache::GetGlyph(GlyphID key)
 		}
 	}
 
-	new_glyph.sprite = GetCurrentBlitter()->Encode (&sprite, AllocateFont);
+	new_glyph.sprite = GetCurrentBlitter()->Encode (&sprite, ST_FONT, AllocateFont);
 	new_glyph.width  = slot->advance.x >> 6;
 
 	this->SetGlyphPtr(key, &new_glyph);
