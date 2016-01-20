@@ -23,7 +23,7 @@ public:
 	/* virtual */ uint8 GetScreenDepth() { return 0; }
 	/* virtual */ void Draw(Blitter::BlitterParams *bp, BlitterMode mode, ZoomLevel zoom) {};
 	/* virtual */ void DrawColourMappingRect(void *dst, int width, int height, PaletteID pal) {};
-	/* virtual */ Sprite *Encode (const SpriteLoader::Sprite *sprite, SpriteType type, AllocatorProc *allocator);
+	/* virtual */ Sprite *Encode (const SpriteLoader::Sprite *sprite, bool is_font, AllocatorProc *allocator);
 	/* virtual */ void *MoveTo(void *video, int x, int y) { return NULL; };
 	/* virtual */ void SetPixel(void *video, int x, int y, uint8 colour) {};
 	/* virtual */ void DrawRect(void *video, int width, int height, uint8 colour) {};

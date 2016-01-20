@@ -64,7 +64,7 @@ struct SSESprite : Sprite {
 	SpriteInfo infos[ZOOM_LVL_COUNT];
 	byte data[]; ///< Data, all zoomlevels.
 
-	static SSESprite *encode (const SpriteLoader::Sprite *sprite, SpriteType type, AllocatorProc *allocator);
+	static SSESprite *encode (const SpriteLoader::Sprite *sprite, bool is_font, AllocatorProc *allocator);
 };
 
 DECLARE_ENUM_AS_BIT_SET(SSESprite::SpriteFlags);
@@ -86,9 +86,9 @@ public:
 	template <BlitterMode mode, SSESprite::ReadMode read_mode, SSESprite::BlockType bt_last, bool translucent>
 	void Draw(const Blitter::BlitterParams *bp, ZoomLevel zoom);
 
-	::Sprite *Encode (const SpriteLoader::Sprite *sprite, SpriteType type, AllocatorProc *allocator) OVERRIDE
+	::Sprite *Encode (const SpriteLoader::Sprite *sprite, bool is_font, AllocatorProc *allocator) OVERRIDE
 	{
-		return SSESprite::encode (sprite, type, allocator);
+		return SSESprite::encode (sprite, is_font, allocator);
 	}
 };
 

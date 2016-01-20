@@ -27,7 +27,7 @@ public:
 	static const char desc[]; ///< Description of the blitter.
 
 	/* virtual */ void Draw(Blitter::BlitterParams *bp, BlitterMode mode, ZoomLevel zoom);
-	/* virtual */ ::Sprite *Encode (const SpriteLoader::Sprite *sprite, SpriteType type, AllocatorProc *allocator);
+	/* virtual */ ::Sprite *Encode (const SpriteLoader::Sprite *sprite, bool is_font, AllocatorProc *allocator);
 
 	template <BlitterMode mode> void Draw(const Blitter::BlitterParams *bp, ZoomLevel zoom);
 };

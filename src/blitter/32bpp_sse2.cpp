@@ -25,7 +25,7 @@
 const char Blitter_32bppSSE2::name[] = "32bpp-sse2";
 const char Blitter_32bppSSE2::desc[] = "32bpp SSE2 Blitter (no palette animation)";
 
-SSESprite *SSESprite::encode (const SpriteLoader::Sprite *sprite, SpriteType type, AllocatorProc *allocator)
+SSESprite *SSESprite::encode (const SpriteLoader::Sprite *sprite, bool is_font, AllocatorProc *allocator)
 {
 	/* First uint32 of a line = the number of transparent pixels from the left.
 	 * Second uint32 of a line = the number of transparent pixels from the right.
@@ -33,7 +33,7 @@ SSESprite *SSESprite::encode (const SpriteLoader::Sprite *sprite, SpriteType typ
 	 */
 	ZoomLevel zoom_min = ZOOM_LVL_NORMAL;
 	ZoomLevel zoom_max = ZOOM_LVL_NORMAL;
-	if (type != ST_FONT) {
+	if (!is_font) {
 		zoom_min = _settings_client.gui.zoom_min;
 		zoom_max = _settings_client.gui.zoom_max;
 		if (zoom_max == zoom_min) zoom_max = ZOOM_LVL_MAX;

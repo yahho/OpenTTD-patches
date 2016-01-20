@@ -513,7 +513,7 @@ const Sprite *FreeTypeFontCache::GetGlyph(GlyphID key)
 				builtin_questionmark_data
 			};
 
-			Sprite *spr = GetCurrentBlitter()->Encode (&builtin_questionmark, ST_FONT, AllocateFont);
+			Sprite *spr = GetCurrentBlitter()->Encode (&builtin_questionmark, true, AllocateFont);
 			assert(spr != NULL);
 			new_glyph.sprite = spr;
 			new_glyph.width  = spr->width + (this->fs != FS_NORMAL);
@@ -569,7 +569,7 @@ const Sprite *FreeTypeFontCache::GetGlyph(GlyphID key)
 		}
 	}
 
-	new_glyph.sprite = GetCurrentBlitter()->Encode (&sprite, ST_FONT, AllocateFont);
+	new_glyph.sprite = GetCurrentBlitter()->Encode (&sprite, true, AllocateFont);
 	new_glyph.width  = slot->advance.x >> 6;
 
 	this->SetGlyphPtr(key, &new_glyph);

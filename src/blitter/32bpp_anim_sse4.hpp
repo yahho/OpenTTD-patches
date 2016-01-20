@@ -38,9 +38,9 @@ public:
 	void Draw (const Blitter::BlitterParams *bp, ZoomLevel zoom, bool animated);
 	/* virtual */ void Draw(Blitter::BlitterParams *bp, BlitterMode mode, ZoomLevel zoom);
 
-	::Sprite *Encode (const SpriteLoader::Sprite *sprite, SpriteType type, AllocatorProc *allocator) OVERRIDE
+	::Sprite *Encode (const SpriteLoader::Sprite *sprite, bool is_font, AllocatorProc *allocator) OVERRIDE
 	{
-		return SSESprite::encode (sprite, type, allocator);
+		return SSESprite::encode (sprite, is_font, allocator);
 	}
 };
 

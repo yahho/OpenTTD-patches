@@ -423,7 +423,7 @@ static void *ReadSprite (const SpriteCache *sc, SpriteID id)
 		sprite[ZOOM_LVL_NORMAL].data   = sprite[ZOOM_LVL_GUI].data;
 	}
 
-	return GetCurrentBlitter()->Encode (sprite, sc->type, AllocSprite);
+	return GetCurrentBlitter()->Encode (sprite, sc->type == ST_FONT, AllocSprite);
 }
 
 
