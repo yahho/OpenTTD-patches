@@ -1755,12 +1755,6 @@
       <ObjectFileName>$(IntDir)\script\api\</ObjectFileName>
       <XMLDocumentationFileName>$(IntDir)\script\api\</XMLDocumentationFileName>
     </ClCompile>
-    <ClCompile Include="..\src\blitter\base.cpp">
-      <AssemblerListingLocation>$(IntDir)\blitter\</AssemblerListingLocation>
-      <ObjectFileName>$(IntDir)\blitter\</ObjectFileName>
-      <XMLDocumentationFileName>$(IntDir)\blitter\</XMLDocumentationFileName>
-    </ClCompile>
-    <ClInclude Include="..\src\blitter\base.hpp" />
     <ClCompile Include="..\src\blitter\blitter.cpp">
       <AssemblerListingLocation>$(IntDir)\blitter\</AssemblerListingLocation>
       <ObjectFileName>$(IntDir)\blitter\</ObjectFileName>

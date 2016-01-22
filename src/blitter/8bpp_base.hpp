@@ -12,7 +12,7 @@
 #ifndef BLITTER_8BPP_BASE_HPP
 #define BLITTER_8BPP_BASE_HPP
 
-#include "base.hpp"
+#include "blitter.h"
 
 /** Base for all 8bpp blitters. */
 class Blitter_8bppBase : public Blitter {

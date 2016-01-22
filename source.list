@@ -875,8 +875,6 @@ script/api/script_waypointlist.cpp
 script/api/script_window.cpp
 
 # Blitters
-blitter/base.cpp
-blitter/base.hpp
 blitter/blitter.cpp
 blitter/blitter.h
 blitter/null.cpp

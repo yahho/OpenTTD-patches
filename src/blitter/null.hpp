@@ -12,7 +12,7 @@
 #ifndef BLITTER_NULL_HPP
 #define BLITTER_NULL_HPP
 
-#include "base.hpp"
+#include "blitter.h"
 
 /** Blitter that does nothing. */
 class Blitter_Null : public Blitter {

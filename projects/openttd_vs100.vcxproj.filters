@@ -2547,12 +2547,6 @@
     <ClCompile Include="..\src\script\api\script_window.cpp">
       <Filter>Script API Implementation</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\blitter\base.cpp">
-      <Filter>Blitters</Filter>
-    </ClCompile>
-    <ClInclude Include="..\src\blitter\base.hpp">
-      <Filter>Blitters</Filter>
-    </ClInclude>
     <ClCompile Include="..\src\blitter\blitter.cpp">
       <Filter>Blitters</Filter>
     </ClCompile>

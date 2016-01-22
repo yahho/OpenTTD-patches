@@ -12,7 +12,7 @@
 #ifndef BLITTER_32BPP_BASE_HPP
 #define BLITTER_32BPP_BASE_HPP
 
-#include "base.hpp"
+#include "blitter.h"
 #include "../core/bitmath_func.hpp"
 #include "../core/math_func.hpp"
 #include "../gfx_func.h"
