@@ -219,6 +219,8 @@ public:
 	}
 
 	/* Static stuff (active blitter). */
+	static char *ini;
+	static bool autodetected;
 
 	/* Select a blitter. */
 	static Blitter *select (const char *name);
@@ -236,8 +238,5 @@ public:
 	/* Fill a buffer with information about available blitters. */
 	static void list (stringb *buf);
 };
-
-extern char *_ini_blitter;
-extern bool _blitter_autodetected;
 
 #endif /* BLITTER_H */

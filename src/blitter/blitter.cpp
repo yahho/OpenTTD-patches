@@ -93,11 +93,18 @@ static BlitterSet get_usable_blitters (void)
 /** Set of usable blitters. */
 BlitterSet usable_blitters = get_usable_blitters();
 
+
+/** The blitter as stored in the configuration file. */
+char *Blitter::ini;
+
 /** Current blitter info. */
 static const BlitterInfo *current_info;
 
 /** Current blitter instance. */
 ttd_unique_ptr<Blitter> current_blitter;
+
+/** Whether the current blitter was autodetected or specified by the user. */
+bool Blitter::autodetected;
 
 /**
  * Get the blitter data with the given name.

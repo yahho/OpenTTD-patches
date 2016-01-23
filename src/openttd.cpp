@@ -754,15 +754,15 @@ int openttd_main(int argc, char *argv[])
 	GfxInitPalettes();
 
 	DEBUG(misc, 1, "Loading blitter...");
-	if (blitter == NULL && _ini_blitter != NULL) blitter = xstrdup(_ini_blitter);
-	_blitter_autodetected = StrEmpty(blitter);
+	if (blitter == NULL && Blitter::ini != NULL) blitter = xstrdup (Blitter::ini);
+	Blitter::autodetected = StrEmpty (blitter);
 	/* Activate the initial blitter.
 	 * This is only some initial guess, after NewGRFs have been loaded SwitchNewGRFBlitter may switch to a different one.
-	 *  - Never guess anything, if the user specified a blitter. (_blitter_autodetected)
+	 *  - Never guess anything, if the user specified a blitter. (Blitter::autodetected)
 	 *  - Use 32bpp blitter if baseset or 8bpp-support settings says so.
 	 *  - Use 8bpp blitter otherwise.
 	 */
-	if (!_blitter_autodetected ||
+	if (!Blitter::autodetected ||
 			(_support8bpp != S8BPP_NONE && (BaseGraphics::GetUsedSet() == NULL || BaseGraphics::GetUsedSet()->blitter == BLT_8BPP)) ||
 			Blitter::select ("32bpp-anim") == NULL) {
 		if (Blitter::select (blitter) == NULL) {
@@ -901,7 +901,7 @@ exit_normal:
 	free(_ini_musicdriver);
 	free(_ini_sounddriver);
 	free(_ini_videodriver);
-	free(_ini_blitter);
+	free (Blitter::ini);
 
 	delete scanner;
 

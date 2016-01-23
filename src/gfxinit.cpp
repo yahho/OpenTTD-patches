@@ -231,7 +231,7 @@ static void LoadSpriteTables()
 static bool SwitchNewGRFBlitter()
 {
 	/* Never switch if the blitter was specified by the user. */
-	if (!_blitter_autodetected) return false;
+	if (!Blitter::autodetected) return false;
 
 	/* Null driver => dedicated server => do nothing. */
 	if (Blitter::get()->GetScreenDepth() == 0) return false;
