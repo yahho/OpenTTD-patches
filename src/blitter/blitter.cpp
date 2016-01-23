@@ -154,7 +154,7 @@ Blitter *Blitter::select (const char *name)
 }
 
 /** Get the name of the current blitter. */
-const char *GetCurrentBlitterName (void)
+const char *Blitter::get_name (void)
 {
 	return current_info == NULL ? "none" : current_info->name;
 }

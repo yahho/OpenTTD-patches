@@ -125,7 +125,7 @@ static void LogConfiguration (stringb *buffer)
 			" Sound driver: %s\n"
 			" Sound set:    %s (%u)\n"
 			" Video driver: %s\n\n",
-			GetCurrentBlitterName(),
+			Blitter::get_name(),
 			BaseGraphics::GetUsedSet() == NULL ? "none" : BaseGraphics::GetUsedSet()->get_name(),
 			BaseGraphics::GetUsedSet() == NULL ? UINT32_MAX : BaseGraphics::GetUsedSet()->version,
 			_current_language == NULL ? "none" : _current_language->file,

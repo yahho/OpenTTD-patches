@@ -229,9 +229,10 @@ public:
 		extern ttd_unique_ptr<Blitter> current_blitter;
 		return current_blitter.get();
 	}
-};
 
-const char *GetCurrentBlitterName (void);
+	/* Get the name of the current blitter. */
+	static const char *get_name (void);
+};
 
 void GetBlittersInfo (stringb *buf);
 

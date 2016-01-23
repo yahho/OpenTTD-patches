@@ -267,7 +267,7 @@ static bool SwitchNewGRFBlitter()
 	};
 
 	const bool animation_wanted = HasBit(_display_opt, DO_FULL_ANIMATION);
-	const char *cur_blitter = GetCurrentBlitterName();
+	const char *cur_blitter = Blitter::get_name();
 
 	for (uint i = 0; i < lengthof(replacement_blitters); i++) {
 		if (animation_wanted && (replacement_blitters[i].animation == 0)) continue;
