@@ -91,7 +91,7 @@ static BlitterSet get_usable_blitters (void)
 }
 
 /** Set of usable blitters. */
-BlitterSet usable_blitters = get_usable_blitters();
+static const BlitterSet usable_blitters (get_usable_blitters());
 
 
 /** The blitter as stored in the configuration file. */
