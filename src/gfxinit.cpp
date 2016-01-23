@@ -280,7 +280,7 @@ static bool SwitchNewGRFBlitter()
 		if (strcmp(repl_blitter, cur_blitter) == 0) return false;
 
 		DEBUG(misc, 1, "Switching blitter from '%s' to '%s'... ", cur_blitter, repl_blitter);
-		Blitter *new_blitter = SelectBlitter (repl_blitter);
+		Blitter *new_blitter = Blitter::select (repl_blitter);
 		if (new_blitter != NULL) {
 			DEBUG(misc, 1, "Successfully switched to %s.", repl_blitter);
 			break;
@@ -290,7 +290,9 @@ static bool SwitchNewGRFBlitter()
 
 	if (!VideoDriver::GetActiveDriver()->AfterBlitterChange()) {
 		/* Failed to switch blitter, let's hope we can return to the old one. */
-		if (SelectBlitter(cur_blitter) == NULL || !VideoDriver::GetActiveDriver()->AfterBlitterChange()) usererror("Failed to reinitialize video driver. Specify a fixed blitter in the config");
+		if (Blitter::select (cur_blitter) == NULL || !VideoDriver::GetActiveDriver()->AfterBlitterChange()) {
+			usererror("Failed to reinitialize video driver. Specify a fixed blitter in the config");
+		}
 	}
 
 	return true;

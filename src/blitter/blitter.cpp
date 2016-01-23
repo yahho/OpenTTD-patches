@@ -140,7 +140,7 @@ static const BlitterInfo *find_blitter (const char *name)
  * @param name the blitter to select.
  * @post Sets the blitter so GetCurrentBlitter() returns it too.
  */
-Blitter *SelectBlitter (const char *name)
+Blitter *Blitter::select (const char *name)
 {
 	const BlitterInfo *data = find_blitter (name);
 	if (data == NULL) return NULL;

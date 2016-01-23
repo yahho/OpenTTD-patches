@@ -217,11 +217,14 @@ public:
 
 		return s;
 	}
+
+	/* Static stuff (active blitter). */
+
+	/* Select a blitter. */
+	static Blitter *select (const char *name);
 };
 
-Blitter *SelectBlitter (const char *name);
-
-/** Get the current active blitter (always set by calling SelectBlitter). */
+/** Get the current active blitter (always set by calling Blitter::select). */
 static inline Blitter *GetCurrentBlitter()
 {
 	extern ttd_unique_ptr<Blitter> current_blitter;

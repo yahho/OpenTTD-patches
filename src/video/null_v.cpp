@@ -34,7 +34,7 @@ const char *VideoDriver_Null::Start(const char * const *parm)
 
 	/* Do not render, nor blit */
 	DEBUG(misc, 1, "Forcing blitter 'null'...");
-	SelectBlitter("null");
+	Blitter::select ("null");
 	return NULL;
 }
 

@@ -764,8 +764,8 @@ int openttd_main(int argc, char *argv[])
 	 */
 	if (!_blitter_autodetected ||
 			(_support8bpp != S8BPP_NONE && (BaseGraphics::GetUsedSet() == NULL || BaseGraphics::GetUsedSet()->blitter == BLT_8BPP)) ||
-			SelectBlitter("32bpp-anim") == NULL) {
-		if (SelectBlitter(blitter) == NULL) {
+			Blitter::select ("32bpp-anim") == NULL) {
+		if (Blitter::select (blitter) == NULL) {
 			StrEmpty(blitter) ?
 				usererror("Failed to autoprobe blitter") :
 				usererror("Failed to select requested blitter '%s'; does it exist?", blitter);
