@@ -222,14 +222,14 @@ public:
 
 	/* Select a blitter. */
 	static Blitter *select (const char *name);
-};
 
-/** Get the current active blitter (always set by calling Blitter::select). */
-static inline Blitter *GetCurrentBlitter()
-{
-	extern ttd_unique_ptr<Blitter> current_blitter;
-	return current_blitter.get();
-}
+	/** Get the current active blitter (always set by calling select). */
+	static Blitter *get (void)
+	{
+		extern ttd_unique_ptr<Blitter> current_blitter;
+		return current_blitter.get();
+	}
+};
 
 const char *GetCurrentBlitterName (void);
 

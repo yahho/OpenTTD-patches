@@ -126,7 +126,7 @@ static void InitPalette()
 static void CheckPaletteAnim()
 {
 	if (_cur_palette.count_dirty != 0) {
-		Blitter *blitter = GetCurrentBlitter();
+		Blitter *blitter = Blitter::get();
 
 		switch (blitter->UsePaletteAnimation()) {
 			case Blitter::PALETTE_ANIMATION_VIDEO_BACKEND:
@@ -273,7 +273,7 @@ bool VideoDriver_SDL::CreateMainSurface(uint w, uint h)
 {
 	SDL_Surface *newscreen, *icon;
 	char caption[50];
-	int bpp = GetCurrentBlitter()->GetScreenDepth();
+	int bpp = Blitter::get()->GetScreenDepth();
 	bool want_hwpalette;
 
 	GetAvailableVideoMode(&w, &h);
@@ -401,7 +401,7 @@ bool VideoDriver_SDL::CreateMainSurface(uint w, uint h)
 	 * appropriate event to know this. */
 	if (_fullscreen) _cursor.in_window = true;
 
-	Blitter *blitter = GetCurrentBlitter();
+	Blitter *blitter = Blitter::get();
 	blitter->PostResize();
 
 	InitPalette();

@@ -191,7 +191,7 @@ static void ClientSizeChanged(int w, int h)
 		_cur_palette.count_dirty = 256;
 		_local_palette = _cur_palette;
 
-		GetCurrentBlitter()->PostResize();
+		Blitter::get()->PostResize();
 
 		GameSizeChanged();
 	}
@@ -277,7 +277,7 @@ bool VideoDriver_Win32::MakeWindow(bool full_screen)
 			DM_PELSWIDTH |
 			DM_PELSHEIGHT |
 			(_display_hz != 0 ? DM_DISPLAYFREQUENCY : 0);
-		settings.dmBitsPerPel = GetCurrentBlitter()->GetScreenDepth();
+		settings.dmBitsPerPel = Blitter::get()->GetScreenDepth();
 		settings.dmPelsWidth  = _wnd.width_org;
 		settings.dmPelsHeight = _wnd.height_org;
 		settings.dmDisplayFrequency = _display_hz;
@@ -350,7 +350,7 @@ bool VideoDriver_Win32::MakeWindow(bool full_screen)
 		}
 	}
 
-	GetCurrentBlitter()->PostResize();
+	Blitter::get()->PostResize();
 
 	GameSizeChanged(); // invalidate all windows, force redraw
 	return true; // the request succeeded
@@ -364,7 +364,7 @@ static void PaintWindow(HDC dc)
 	HPALETTE old_palette = SelectPalette(dc, _wnd.gdi_palette, FALSE);
 
 	if (_cur_palette.count_dirty != 0) {
-		Blitter *blitter = GetCurrentBlitter();
+		Blitter *blitter = Blitter::get();
 
 		switch (blitter->UsePaletteAnimation()) {
 			case Blitter::PALETTE_ANIMATION_VIDEO_BACKEND:
@@ -1030,7 +1030,7 @@ static bool AllocateDibSection(int w, int h, bool force)
 {
 	BITMAPINFO *bi;
 	HDC dc;
-	uint bpp = GetCurrentBlitter()->GetScreenDepth();
+	uint bpp = Blitter::get()->GetScreenDepth();
 
 	w = max(w, 64);
 	h = max(h, 64);
@@ -1047,7 +1047,7 @@ static bool AllocateDibSection(int w, int h, bool force)
 	bi->bmiHeader.biHeight = -(_wnd.height = h);
 
 	bi->bmiHeader.biPlanes = 1;
-	bi->bmiHeader.biBitCount = GetCurrentBlitter()->GetScreenDepth();
+	bi->bmiHeader.biBitCount = Blitter::get()->GetScreenDepth();
 	bi->bmiHeader.biCompression = BI_RGB;
 
 	if (_wnd.dib_sect) DeleteObject(_wnd.dib_sect);
@@ -1090,7 +1090,7 @@ static void FindResolutions()
 	DEVMODEA dm;
 
 	/* Check modes for the relevant fullscreen bpp */
-	uint bpp = _support8bpp != S8BPP_HARDWARE ? 32 : GetCurrentBlitter()->GetScreenDepth();
+	uint bpp = _support8bpp != S8BPP_HARDWARE ? 32 : Blitter::get()->GetScreenDepth();
 
 	/* XXX - EnumDisplaySettingsW crashes with unicows.dll on Windows95
 	 * Doesn't really matter since we don't pass a string anyways, but still

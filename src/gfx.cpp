@@ -87,7 +87,7 @@ extern uint _dirty_block_colour;
 
 void GfxScroll(int left, int top, int width, int height, int xo, int yo)
 {
-	Blitter *blitter = GetCurrentBlitter();
+	Blitter *blitter = Blitter::get();
 
 	if (xo == 0 && yo == 0) return;
 
@@ -119,7 +119,7 @@ void GfxScroll(int left, int top, int width, int height, int xo, int yo)
  */
 void GfxFillRect(int left, int top, int right, int bottom, int colour, FillRectMode mode)
 {
-	Blitter *blitter = GetCurrentBlitter();
+	Blitter *blitter = Blitter::get();
 	const DrawPixelInfo *dpi = _cur_dpi;
 	void *dst;
 	const int otop = top;
@@ -180,7 +180,7 @@ void GfxFillRect(int left, int top, int right, int bottom, int colour, FillRectM
  */
 static inline void GfxDoDrawLine(void *video, int x, int y, int x2, int y2, int screen_width, int screen_height, uint8 colour, int width, int dash = 0)
 {
-	Blitter *blitter = GetCurrentBlitter();
+	Blitter *blitter = Blitter::get();
 
 	assert(width > 0);
 
@@ -942,7 +942,7 @@ static void GfxBlitter(const Sprite * const sprite, int x, int y, BlitterMode mo
 
 	/* We do not want to catch the mouse. However we also use that spritenumber for unknown (text) sprites. */
 	if (_newgrf_debug_sprite_picker.mode == SPM_REDRAW && sprite_id != SPR_CURSOR_MOUSE) {
-		Blitter *blitter = GetCurrentBlitter();
+		Blitter *blitter = Blitter::get();
 		void *topleft = blitter->MoveTo(bp.dst, bp.left, bp.top);
 		void *bottomright = blitter->MoveTo(topleft, bp.width - 1, bp.height - 1);
 
@@ -956,7 +956,7 @@ static void GfxBlitter(const Sprite * const sprite, int x, int y, BlitterMode mo
 		}
 	}
 
-	GetCurrentBlitter()->Draw(&bp, mode, zoom);
+	Blitter::get()->Draw(&bp, mode, zoom);
 }
 
 static void GfxMainBlitterViewport(const Sprite *sprite, int x, int y, BlitterMode mode, const SubSprite *sub, SpriteID sprite_id)
@@ -986,7 +986,7 @@ void DoPaletteAnimations()
 	static int palette_animation_counter = 0;
 	palette_animation_counter += 8;
 
-	Blitter *blitter = GetCurrentBlitter();
+	Blitter *blitter = Blitter::get();
 	const Colour *s;
 	const ExtraPaletteValues *ev = &_extra_palette_values;
 	Colour old_val[PALETTE_ANIM_SIZE];
@@ -1197,7 +1197,7 @@ void UndrawMouseCursor()
 	if (_screen.dst_ptr == NULL) return;
 
 	if (_cursor.visible) {
-		Blitter *blitter = GetCurrentBlitter();
+		Blitter *blitter = Blitter::get();
 		_cursor.visible = false;
 		blitter->CopyFromBuffer(blitter->MoveTo(_screen.dst_ptr, _cursor.draw_pos.x, _cursor.draw_pos.y), _cursor_backup.GetBuffer(), _cursor.draw_size.x, _cursor.draw_size.y);
 		VideoDriver::GetActiveDriver()->MakeDirty(_cursor.draw_pos.x, _cursor.draw_pos.y, _cursor.draw_size.x, _cursor.draw_size.y);
@@ -1214,7 +1214,7 @@ void DrawMouseCursor()
 	/* Don't draw the mouse cursor if the screen is not ready */
 	if (_screen.dst_ptr == NULL) return;
 
-	Blitter *blitter = GetCurrentBlitter();
+	Blitter *blitter = Blitter::get();
 	int x;
 	int y;
 	int w;
@@ -1467,7 +1467,7 @@ void MarkWholeScreenDirty()
  */
 bool FillDrawPixelInfo(DrawPixelInfo *n, int left, int top, int width, int height)
 {
-	Blitter *blitter = GetCurrentBlitter();
+	Blitter *blitter = Blitter::get();
 	const DrawPixelInfo *o = _cur_dpi;
 
 	n->zoom = ZOOM_LVL_NORMAL;

@@ -234,7 +234,7 @@ static bool SwitchNewGRFBlitter()
 	if (!_blitter_autodetected) return false;
 
 	/* Null driver => dedicated server => do nothing. */
-	if (GetCurrentBlitter()->GetScreenDepth() == 0) return false;
+	if (Blitter::get()->GetScreenDepth() == 0) return false;
 
 	/* Get preferred depth.
 	 *  - depth_wanted_by_base: Depth required by the baseset, i.e. the majority of the sprites.

@@ -985,7 +985,7 @@ void SmallMapWindow::DrawMapIndicators() const
  */
 void SmallMapWindow::DrawSmallMap(DrawPixelInfo *dpi) const
 {
-	Blitter *blitter = GetCurrentBlitter();
+	Blitter *blitter = Blitter::get();
 	DrawPixelInfo *old_dpi;
 
 	old_dpi = _cur_dpi;

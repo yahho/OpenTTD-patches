@@ -138,7 +138,7 @@ static const BlitterInfo *find_blitter (const char *name)
 /**
  * Find the requested blitter and return his class.
  * @param name the blitter to select.
- * @post Sets the blitter so GetCurrentBlitter() returns it too.
+ * @post Sets the blitter so Blitter::get() returns it too.
  */
 Blitter *Blitter::select (const char *name)
 {

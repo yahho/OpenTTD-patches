@@ -394,7 +394,7 @@ static void *ReadSprite (const SpriteCache *sc, SpriteID id)
 	SpriteLoader::Sprite sprite[ZOOM_LVL_COUNT];
 	uint8 sprite_avail = 0;
 
-	if (GetCurrentBlitter()->GetScreenDepth() == 32) {
+	if (Blitter::get()->GetScreenDepth() == 32) {
 		/* Try for 32bpp sprites first. */
 		sprite_avail = LoadGrfSprite (sc->container_ver, sprite,
 				file_slot, file_pos, sc->type, true);
@@ -423,7 +423,7 @@ static void *ReadSprite (const SpriteCache *sc, SpriteID id)
 		sprite[ZOOM_LVL_NORMAL].data   = sprite[ZOOM_LVL_GUI].data;
 	}
 
-	return GetCurrentBlitter()->Encode (sprite, sc->type == ST_FONT, AllocSprite);
+	return Blitter::get()->Encode (sprite, sc->type == ST_FONT, AllocSprite);
 }
 
 
@@ -887,7 +887,7 @@ const MapGenSprite *GetMapGenSprite (SpriteID sprite)
 static void GfxInitSpriteCache()
 {
 	/* initialize sprite cache heap */
-	int bpp = GetCurrentBlitter()->GetScreenDepth();
+	int bpp = Blitter::get()->GetScreenDepth();
 	uint target_size = (bpp > 0 ? _sprite_cache_size * bpp / 8 : 1) * 1024 * 1024;
 
 	/* Remember 'target_size' from the previous allocation attempt, so we do not try to reach the target_size multiple times in case of failure. */
