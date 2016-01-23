@@ -232,9 +232,10 @@ public:
 
 	/* Get the name of the current blitter. */
 	static const char *get_name (void);
-};
 
-void GetBlittersInfo (stringb *buf);
+	/* Fill a buffer with information about available blitters. */
+	static void list (stringb *buf);
+};
 
 extern char *_ini_blitter;
 extern bool _blitter_autodetected;

@@ -194,7 +194,7 @@ static void ShowHelp()
 	VideoDriver::GetDriversInfo (&buf);
 
 	/* List the blitters */
-	GetBlittersInfo (&buf);
+	Blitter::list (&buf);
 
 	/* List the debug facilities. */
 	DumpDebugFacilityNames (&buf);

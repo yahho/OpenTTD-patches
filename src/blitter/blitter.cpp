@@ -163,7 +163,7 @@ const char *Blitter::get_name (void)
  * Fill a buffer with information about the blitters.
  * @param buf The buffer to fill.
  */
-void GetBlittersInfo (stringb *buf)
+void Blitter::list (stringb *buf)
 {
 	buf->append ("List of blitters:\n");
 	for (uint i = 0; i < lengthof(blitter_data); i++) {
