@@ -17,6 +17,8 @@
 /** Driver for all music playback. */
 class MusicDriver : public Driver, public SharedDriverSystem <MusicDriver> {
 public:
+	static char *ini; ///< The music driver as stored in the configuration file.
+
 	/** Get the name of this type of driver. */
 	static CONSTEXPR const char *GetSystemName (void)
 	{
@@ -62,7 +64,5 @@ public:
 	{
 	}
 };
-
-extern char *_ini_musicdriver;
 
 #endif /* MUSIC_MUSIC_DRIVER_HPP */

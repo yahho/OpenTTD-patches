@@ -17,6 +17,8 @@
 /** Base for all sound drivers. */
 class SoundDriver : public Driver, public SharedDriverSystem <SoundDriver> {
 public:
+	static char *ini; ///< The sound driver as stored in the configuration file.
+
 	/** Get the name of this type of driver. */
 	static CONSTEXPR const char *GetSystemName (void)
 	{
@@ -42,7 +44,5 @@ public:
 	{
 	}
 };
-
-extern char *_ini_sounddriver;
 
 #endif /* SOUND_SOUND_DRIVER_HPP */

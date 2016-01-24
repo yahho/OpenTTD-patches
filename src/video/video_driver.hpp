@@ -18,6 +18,8 @@
 /** The base of all video drivers. */
 class VideoDriver : public Driver, public SharedDriverSystem <VideoDriver> {
 public:
+	static char *ini; ///< The video driver as stored in the configuration file.
+
 	/** Get the name of this type of driver. */
 	static CONSTEXPR const char *GetSystemName (void)
 	{
@@ -102,7 +104,6 @@ public:
 	}
 };
 
-extern char *_ini_videodriver;
 extern int _num_resolutions;
 extern Dimension _resolutions[32];
 extern Dimension _cur_resolution;

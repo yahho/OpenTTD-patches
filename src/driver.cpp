@@ -16,15 +16,19 @@
 #include "video/video_driver.hpp"
 #include "string.h"
 
-char *_ini_videodriver;     ///< The video driver a stored in the configuration file.
+/** The video driver as stored in the configuration file. */
+char *VideoDriver::ini;
+
 int _num_resolutions;       ///< The number of resolutions.
 Dimension _resolutions[32]; ///< List of resolutions.
 Dimension _cur_resolution;  ///< The current resolution.
 bool _rightclick_emulate;   ///< Whether right clicking is emulated.
 
-char *_ini_sounddriver;     ///< The sound driver a stored in the configuration file.
+/** The sound driver as stored in the configuration file. */
+char *SoundDriver::ini;
 
-char *_ini_musicdriver;     ///< The music driver a stored in the configuration file.
+/** The music driver as stored in the configuration file. */
+char *MusicDriver::ini;
 
 /**
  * Get a string parameter the list of parameters.
