@@ -776,8 +776,7 @@ int openttd_main(int argc, char *argv[])
 	}
 	free(blitter);
 
-	if (videodriver == NULL && _ini_videodriver != NULL) videodriver = xstrdup(_ini_videodriver);
-	VideoDriver::SelectDriver (videodriver);
+	VideoDriver::SelectDriver ((videodriver != NULL) ? videodriver : _ini_videodriver);
 	free(videodriver);
 
 	InitializeSpriteSorter();
@@ -839,12 +838,10 @@ int openttd_main(int argc, char *argv[])
 	}
 	free(music_set);
 
-	if (sounddriver == NULL && _ini_sounddriver != NULL) sounddriver = xstrdup(_ini_sounddriver);
-	SoundDriver::SelectDriver (sounddriver);
+	SoundDriver::SelectDriver ((sounddriver != NULL) ? sounddriver : _ini_sounddriver);
 	free(sounddriver);
 
-	if (musicdriver == NULL && _ini_musicdriver != NULL) musicdriver = xstrdup(_ini_musicdriver);
-	MusicDriver::SelectDriver (musicdriver);
+	MusicDriver::SelectDriver ((musicdriver != NULL) ? musicdriver : _ini_musicdriver);
 	free(musicdriver);
 
 	/* Take our initial lock on whatever we might want to do! */
