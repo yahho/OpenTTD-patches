@@ -754,21 +754,24 @@ int openttd_main(int argc, char *argv[])
 	GfxInitPalettes();
 
 	DEBUG(misc, 1, "Loading blitter...");
-	if (blitter == NULL && Blitter::ini != NULL) blitter = xstrdup (Blitter::ini);
-	Blitter::autodetected = StrEmpty (blitter);
-	/* Activate the initial blitter.
-	 * This is only some initial guess, after NewGRFs have been loaded SwitchNewGRFBlitter may switch to a different one.
-	 *  - Never guess anything, if the user specified a blitter. (Blitter::autodetected)
-	 *  - Use 32bpp blitter if baseset or 8bpp-support settings says so.
-	 *  - Use 8bpp blitter otherwise.
-	 */
-	if (!Blitter::autodetected ||
-			(_support8bpp != S8BPP_NONE && (BaseGraphics::GetUsedSet() == NULL || BaseGraphics::GetUsedSet()->blitter == BLT_8BPP)) ||
-			Blitter::select ("32bpp-anim") == NULL) {
-		if (Blitter::select (blitter) == NULL) {
-			StrEmpty(blitter) ?
-				usererror("Failed to autoprobe blitter") :
-				usererror("Failed to select requested blitter '%s'; does it exist?", blitter);
+	{
+		const char *sel = (blitter != NULL) ? blitter : Blitter::ini;
+		bool autodetected = StrEmpty (sel);
+		Blitter::autodetected = autodetected;
+		/* Activate the initial blitter.
+		 * This is only some initial guess, after NewGRFs have been loaded SwitchNewGRFBlitter may switch to a different one.
+		 *  - Never guess anything, if the user specified a blitter. (Blitter::autodetected)
+		 *  - Use 32bpp blitter if baseset or 8bpp-support settings says so.
+		 *  - Use 8bpp blitter otherwise.
+		 */
+		if (!autodetected ||
+				(_support8bpp != S8BPP_NONE && (BaseGraphics::GetUsedSet() == NULL || BaseGraphics::GetUsedSet()->blitter == BLT_8BPP)) ||
+				Blitter::select ("32bpp-anim") == NULL) {
+			if (Blitter::select (sel) == NULL) {
+				autodetected ?
+					usererror("Failed to autoprobe blitter") :
+					usererror("Failed to select requested blitter '%s'; does it exist?", sel);
+			}
 		}
 	}
 	free(blitter);
