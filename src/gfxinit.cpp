@@ -231,33 +231,42 @@ static void LoadSpriteTables()
 static const char *SelectNewGRFBlitter (void)
 {
 	/* Get preferred depth.
-	 *  - depth_wanted_by_base: Depth required by the baseset, i.e. the majority of the sprites.
-	 *  - depth_wanted_by_grf:  Depth required by some NewGRF.
-	 * Both can force using a 32bpp blitter. depth_wanted_by_base is used to select
+	 *  - base_wants_32bpp: Depth required by the baseset, i.e. the majority of the sprites.
+	 *  - grf_wants_32bpp:  Depth required by some NewGRF.
+	 * Both can force using a 32bpp blitter. base_wants_32bpp is used to select
 	 * between multiple 32bpp blitters, which perform differently with 8bpp sprites.
 	 */
-	uint depth_wanted_by_base = BaseGraphics::GetUsedSet()->blitter == BLT_32BPP ? 32 : 8;
-	uint depth_wanted_by_grf = _support8bpp == S8BPP_NONE ? 32 : 8;
-	for (GRFConfig *c = _grfconfig; c != NULL; c = c->next) {
-		if (c->status == GCS_DISABLED || c->status == GCS_NOT_FOUND || HasBit(c->flags, GCF_INIT_ONLY)) continue;
-		if (c->palette & GRFP_BLT_32BPP) depth_wanted_by_grf = 32;
+	bool base_wants_32bpp = BaseGraphics::GetUsedSet()->blitter == BLT_32BPP;
+	bool grf_wants_32bpp;
+	if (_support8bpp == S8BPP_NONE) {
+		grf_wants_32bpp = true;
+	} else {
+		grf_wants_32bpp = false;
+		for (GRFConfig *c = _grfconfig; c != NULL; c = c->next) {
+			if (c->status == GCS_DISABLED || c->status == GCS_NOT_FOUND || HasBit(c->flags, GCF_INIT_ONLY)) continue;
+			if (c->palette & GRFP_BLT_32BPP) {
+				grf_wants_32bpp = true;
+				break;
+			}
+		}
 	}
 
 	/* Search the best blitter. */
 	static const struct {
 		const char *name;
-		uint animation; ///< 0: no support, 1: do support, 2: both
-		uint min_base_depth, max_base_depth, min_grf_depth, max_grf_depth;
+		byte animation;   ///< 0: no support, 1: do support, 2: both
+		byte base_depth;  ///< 0: 8bpp, 1: 32bpp, 2: both
+		byte grf_depth;   ///< 0: 8bpp, 1: 32bpp, 2: both
 	} replacement_blitters[] = {
 #ifdef WITH_SSE
-		{ "32bpp-sse4",      0, 32, 32,  8, 32 },
-		{ "32bpp-ssse3",     0, 32, 32,  8, 32 },
-		{ "32bpp-sse2",      0, 32, 32,  8, 32 },
-		{ "32bpp-sse4-anim", 1, 32, 32,  8, 32 },
+		{ "32bpp-sse4",       0,  1,  2 },
+		{ "32bpp-ssse3",      0,  1,  2 },
+		{ "32bpp-sse2",       0,  1,  2 },
+		{ "32bpp-sse4-anim",  1,  1,  2 },
 #endif
-		{ "8bpp-optimized",  2,  8,  8,  8,  8 },
-		{ "32bpp-optimized", 0,  8, 32,  8, 32 },
-		{ "32bpp-anim",      1,  8, 32,  8, 32 },
+		{ "8bpp-optimized",   2,  0,  0 },
+		{ "32bpp-optimized",  0,  2,  2 },
+		{ "32bpp-anim",       1,  2,  2 },
 	};
 
 	const bool animation_wanted = HasBit(_display_opt, DO_FULL_ANIMATION);
@@ -266,11 +275,10 @@ static const char *SelectNewGRFBlitter (void)
 		/* One of the last two blitters should always match. */
 		assert (i < lengthof(replacement_blitters));
 
-		if (animation_wanted && (replacement_blitters[i].animation == 0)) continue;
-		if (!animation_wanted && (replacement_blitters[i].animation == 1)) continue;
+		if (replacement_blitters[i].animation  == (animation_wanted ? 0 : 1)) continue;
+		if (replacement_blitters[i].base_depth == (base_wants_32bpp ? 0 : 1)) continue;
+		if (replacement_blitters[i].grf_depth  == (grf_wants_32bpp  ? 0 : 1)) continue;
 
-		if (!IsInsideMM(depth_wanted_by_base, replacement_blitters[i].min_base_depth, replacement_blitters[i].max_base_depth + 1)) continue;
-		if (!IsInsideMM(depth_wanted_by_grf, replacement_blitters[i].min_grf_depth, replacement_blitters[i].max_grf_depth + 1)) continue;
 		return replacement_blitters[i].name;
 	}
 }
