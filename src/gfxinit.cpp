@@ -225,17 +225,11 @@ static void LoadSpriteTables()
 
 
 /**
- * Check blitter needed by NewGRF config and switch if needed.
- * @return False when nothing changed, true otherwise.
+ * Select the blitter needed by NewGRF config.
+ * @return The blitter to switch to.
  */
-static bool SwitchNewGRFBlitter()
+static const char *SelectNewGRFBlitter (void)
 {
-	/* Never switch if the blitter was specified by the user. */
-	if (!Blitter::autodetected) return false;
-
-	/* Null driver => dedicated server => do nothing. */
-	if (Blitter::get()->GetScreenDepth() == 0) return false;
-
 	/* Get preferred depth.
 	 *  - depth_wanted_by_base: Depth required by the baseset, i.e. the majority of the sprites.
 	 *  - depth_wanted_by_grf:  Depth required by some NewGRF.
@@ -268,7 +262,6 @@ static bool SwitchNewGRFBlitter()
 
 	const bool animation_wanted = HasBit(_display_opt, DO_FULL_ANIMATION);
 
-	const char *repl_blitter;
 	for (uint i = 0; ; i++) {
 		/* One of the last two blitters should always match. */
 		assert (i < lengthof(replacement_blitters));
@@ -278,18 +271,31 @@ static bool SwitchNewGRFBlitter()
 
 		if (!IsInsideMM(depth_wanted_by_base, replacement_blitters[i].min_base_depth, replacement_blitters[i].max_base_depth + 1)) continue;
 		if (!IsInsideMM(depth_wanted_by_grf, replacement_blitters[i].min_grf_depth, replacement_blitters[i].max_grf_depth + 1)) continue;
-		repl_blitter = replacement_blitters[i].name;
-		break;
+		return replacement_blitters[i].name;
 	}
+}
 
+/**
+ * Check blitter needed by NewGRF config and switch if needed.
+ * @return False when nothing changed, true otherwise.
+ */
+static bool SwitchNewGRFBlitter()
+{
+	/* Never switch if the blitter was specified by the user. */
+	if (!Blitter::autodetected) return false;
+
+	/* Null driver => dedicated server => do nothing. */
+	if (Blitter::get()->GetScreenDepth() == 0) return false;
+
+	const char *repl_blitter = SelectNewGRFBlitter();
 	const char *cur_blitter = Blitter::get_name();
 	if (strcmp (repl_blitter, cur_blitter) == 0) return false;
 
 	DEBUG(misc, 1, "Switching blitter from '%s' to '%s'... ", cur_blitter, repl_blitter);
 	Blitter *new_blitter = Blitter::select (repl_blitter);
 	/* Blitter::select only fails if it cannot find a blitter by
-	 * the given name, and all of the replacement blitters in our
-	 * list should be available. */
+	 * the given name, and all of the replacement blitters in the
+	 * replacement list should be available. */
 	assert (new_blitter != NULL);
 	DEBUG(misc, 1, "Successfully switched to %s.", repl_blitter);
 
