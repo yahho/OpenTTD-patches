@@ -267,27 +267,31 @@ static bool SwitchNewGRFBlitter()
 	};
 
 	const bool animation_wanted = HasBit(_display_opt, DO_FULL_ANIMATION);
-	const char *cur_blitter = Blitter::get_name();
 
-	for (uint i = 0; i < lengthof(replacement_blitters); i++) {
+	const char *repl_blitter;
+	for (uint i = 0; ; i++) {
+		/* One of the last two blitters should always match. */
+		assert (i < lengthof(replacement_blitters));
+
 		if (animation_wanted && (replacement_blitters[i].animation == 0)) continue;
 		if (!animation_wanted && (replacement_blitters[i].animation == 1)) continue;
 
 		if (!IsInsideMM(depth_wanted_by_base, replacement_blitters[i].min_base_depth, replacement_blitters[i].max_base_depth + 1)) continue;
 		if (!IsInsideMM(depth_wanted_by_grf, replacement_blitters[i].min_grf_depth, replacement_blitters[i].max_grf_depth + 1)) continue;
-		const char *repl_blitter = replacement_blitters[i].name;
-
-		if (strcmp(repl_blitter, cur_blitter) == 0) return false;
-
-		DEBUG(misc, 1, "Switching blitter from '%s' to '%s'... ", cur_blitter, repl_blitter);
-		Blitter *new_blitter = Blitter::select (repl_blitter);
-		/* Blitter::select only fails if it cannot find a blitter by
-		 * the given name, and all of the replacement blitters in our
-		 * list should be available. */
-		assert (new_blitter != NULL);
-		DEBUG(misc, 1, "Successfully switched to %s.", repl_blitter);
+		repl_blitter = replacement_blitters[i].name;
 		break;
 	}
+
+	const char *cur_blitter = Blitter::get_name();
+	if (strcmp (repl_blitter, cur_blitter) == 0) return false;
+
+	DEBUG(misc, 1, "Switching blitter from '%s' to '%s'... ", cur_blitter, repl_blitter);
+	Blitter *new_blitter = Blitter::select (repl_blitter);
+	/* Blitter::select only fails if it cannot find a blitter by
+	 * the given name, and all of the replacement blitters in our
+	 * list should be available. */
+	assert (new_blitter != NULL);
+	DEBUG(misc, 1, "Successfully switched to %s.", repl_blitter);
 
 	if (!VideoDriver::GetActiveDriver()->AfterBlitterChange()) {
 		/* Failed to switch blitter, let's hope we can return to the old one. */
