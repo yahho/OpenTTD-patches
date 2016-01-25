@@ -281,11 +281,12 @@ static bool SwitchNewGRFBlitter()
 
 		DEBUG(misc, 1, "Switching blitter from '%s' to '%s'... ", cur_blitter, repl_blitter);
 		Blitter *new_blitter = Blitter::select (repl_blitter);
-		if (new_blitter != NULL) {
-			DEBUG(misc, 1, "Successfully switched to %s.", repl_blitter);
-			break;
-		}
-		DEBUG(misc, 1, "Switching failed");
+		/* Blitter::select only fails if it cannot find a blitter by
+		 * the given name, and all of the replacement blitters in our
+		 * list should be available. */
+		assert (new_blitter != NULL);
+		DEBUG(misc, 1, "Successfully switched to %s.", repl_blitter);
+		break;
 	}
 
 	if (!VideoDriver::GetActiveDriver()->AfterBlitterChange()) {
