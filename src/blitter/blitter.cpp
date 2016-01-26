@@ -32,10 +32,6 @@
 #endif
 #endif
 
-#ifdef WITH_COCOA
-bool QZ_CanDisplay8bpp();
-#endif
-
 /** Blitter creation function template. */
 template <typename B>
 static Blitter *create_blitter (void)
@@ -113,25 +109,6 @@ bool Blitter::autodetected;
  */
 static const BlitterInfo *find_blitter (const char *name)
 {
-	if (StrEmpty (name)) {
-#if defined(DEDICATED)
-		name = "null";
-#else
-		name = "8bpp-optimized";
-
-#if defined(WITH_COCOA)
-		/* Some people reported lack of fullscreen support in 8 bpp
-		 * mode. While we prefer 8 bpp since it's faster, we will
-		 * still have to test for support. */
-		if (!QZ_CanDisplay8bpp()) {
-			/* The main display can't go to 8 bpp fullscreen mode.
-			 * We will have to switch to 32 bpp by default. */
-			name = "32bpp-anim";
-		}
-#endif /* defined(WITH_COCOA) */
-#endif /* defined(DEDICATED) */
-	}
-
 	for (uint i = 0; i < lengthof(blitter_data); i++) {
 		if (usable_blitters.test (i)) {
 			const BlitterInfo *data = &blitter_data[i];
@@ -149,6 +126,8 @@ static const BlitterInfo *find_blitter (const char *name)
  */
 Blitter *Blitter::select (const char *name)
 {
+	assert (!StrEmpty (name));
+
 	const BlitterInfo *data = find_blitter (name);
 	if (data == NULL) return NULL;
 
@@ -156,7 +135,7 @@ Blitter *Blitter::select (const char *name)
 	current_blitter.reset (blitter);
 	current_info = data;
 
-	DEBUG(driver, 1, "Successfully %s blitter %s", StrEmpty(name) ? "probed" : "loaded", data->name);
+	DEBUG(driver, 1, "Successfully loaded blitter %s", data->name);
 	return blitter;
 }
 

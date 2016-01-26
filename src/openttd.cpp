@@ -756,22 +756,41 @@ int openttd_main(int argc, char *argv[])
 	DEBUG(misc, 1, "Loading blitter...");
 	{
 		const char *sel = (blitter != NULL) ? blitter : Blitter::ini;
-		bool autodetected = StrEmpty (sel);
-		Blitter::autodetected = autodetected;
+		bool autodetect = StrEmpty (sel);
+		Blitter::autodetected = autodetect;
 		/* Activate the initial blitter.
 		 * This is only some initial guess, after NewGRFs have been loaded SwitchNewGRFBlitter may switch to a different one.
 		 *  - Never guess anything, if the user specified a blitter. (Blitter::autodetected)
 		 *  - Use 32bpp blitter if baseset or 8bpp-support settings says so.
 		 *  - Use 8bpp blitter otherwise.
 		 */
-		if (!autodetected ||
-				(_support8bpp != S8BPP_NONE && (BaseGraphics::GetUsedSet() == NULL || BaseGraphics::GetUsedSet()->blitter == BLT_8BPP)) ||
-				Blitter::select ("32bpp-anim") == NULL) {
-			if (Blitter::select (sel) == NULL) {
-				autodetected ?
-					usererror("Failed to autoprobe blitter") :
-					usererror("Failed to select requested blitter '%s'; does it exist?", sel);
+		if (autodetect) {
+#ifdef DEDICATED
+			sel = "null";
+#else
+			bool use_32bpp = (_support8bpp == S8BPP_NONE)
+					|| (BaseGraphics::GetUsedSet() != NULL && BaseGraphics::GetUsedSet()->blitter != BLT_8BPP);
+#ifdef WITH_COCOA
+			/* Some people reported lack of fullscreen support in
+			 * 8 bpp mode. While we prefer 8 bpp since it's
+			 * faster, we will still have to test for support. */
+			bool QZ_CanDisplay8bpp();
+			if (!use_32bpp && !QZ_CanDisplay8bpp()) {
+				/* The main display can't go to 8 bpp fullscreen mode.
+				 * We will have to switch to 32 bpp by default. */
+				use_32bpp = true;
 			}
+#endif /* WITH_COCOA */
+			sel = use_32bpp ? "32bpp-anim" : "8bpp-optimized";
+#endif /* DEDICATED */
+			DEBUG(driver, 1, "Probing blitter %s", sel);
+		}
+
+		if (Blitter::select (sel) == NULL) {
+			/* Blitter::select only fails if it cannot find
+			 * a blitter by the given name. */
+			assert (!autodetect);
+			usererror ("Failed to select requested blitter '%s'; does it exist?", sel);
 		}
 	}
 	free(blitter);
