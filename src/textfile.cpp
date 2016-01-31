@@ -73,6 +73,8 @@ enum StreamResult {
 	STREAM_ERROR, ///< error
 };
 
+#ifdef WITH_ZLIB
+
 /** Zlib stream struct. */
 template <>
 struct stream <TextfileDesc::FORMAT_GZ> {
@@ -113,6 +115,10 @@ struct stream <TextfileDesc::FORMAT_GZ> {
 	}
 };
 
+#endif /* WITH_ZLIB */
+
+#ifdef WITH_LZMA
+
 /** LZMA stream struct. */
 template <>
 struct stream <TextfileDesc::FORMAT_XZ> {
@@ -142,6 +148,8 @@ struct stream <TextfileDesc::FORMAT_XZ> {
 		lzma_end (z);
 	}
 };
+
+#endif /* WITH_LZMA */
 
 /**
  * Read in data from file and update stream.
