@@ -12,6 +12,8 @@
 #ifndef NETWORK_CONTENT_GUI_H
 #define NETWORK_CONTENT_GUI_H
 
+#ifdef ENABLE_NETWORK
+
 #include "network_content.h"
 #include "../window_gui.h"
 #include "../widgets/network_content_widget.h"
@@ -44,5 +46,13 @@ public:
 };
 
 void BuildContentTypeStringList();
+
+#else /* ENABLE_NETWORK */
+
+static inline void BuildContentTypeStringList()
+{
+}
+
+#endif /* ENABLE_NETWORK */
 
 #endif /* NETWORK_CONTENT_GUI_H */
