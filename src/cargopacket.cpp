@@ -230,13 +230,7 @@ void CargoList<Tinst, Tcont>::InvalidateCache()
 template <class Tinst, class Tcont>
 /* static */ bool CargoList<Tinst, Tcont>::TryMerge(CargoPacket *icp, CargoPacket *cp)
 {
-	if (Tinst::AreMergable(icp, cp) &&
-			icp->count + cp->count <= CargoPacket::MAX_COUNT) {
-		icp->Merge(cp);
-		return true;
-	} else {
-		return false;
-	}
+	return Tinst::AreMergable (icp, cp) && icp->TryMerge (cp);
 }
 
 /*

@@ -73,6 +73,18 @@ public:
 	void Reduce(uint count);
 
 	/**
+	 * Try to merge another packet into this one, if the total count allows it.
+	 * @param cp Packet to merge.
+	 * @return Whether merging was possible (and done).
+	 */
+	bool TryMerge (CargoPacket *cp)
+	{
+		if (this->count + cp->count > MAX_COUNT) return false;
+		this->Merge (cp);
+		return true;
+	}
+
+	/**
 	 * Sets the tile where the packet was loaded last.
 	 * @param load_place Tile where the packet was loaded last.
 	 */
