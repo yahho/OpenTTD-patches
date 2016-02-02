@@ -243,8 +243,6 @@ protected:
 
 	void RemoveFromCache(const CargoPacket *cp, uint count);
 
-	static bool TryMerge(CargoPacket *cp, CargoPacket *icp);
-
 public:
 	/** Create the cargo list. */
 	CargoList() {}

@@ -220,19 +220,6 @@ void CargoList<Tinst, Tcont>::InvalidateCache()
 	}
 }
 
-/**
- * Tries to merge the second packet into the first and return if that was
- * successful.
- * @param icp Packet to be merged into.
- * @param cp Packet to be eliminated.
- * @return If the packets could be merged.
- */
-template <class Tinst, class Tcont>
-/* static */ bool CargoList<Tinst, Tcont>::TryMerge(CargoPacket *icp, CargoPacket *cp)
-{
-	return Tinst::AreMergable (icp, cp) && icp->TryMerge (cp);
-}
-
 /*
  *
  * Vehicle cargo list implementation.
@@ -269,7 +256,12 @@ void VehicleCargoList::Append(CargoPacket *cp, MoveToAction action)
 	uint sum = cp->count;
 	for (ReverseIterator it(this->packets.rbegin()); it != this->packets.rend(); it++) {
 		CargoPacket *icp = *it;
-		if (VehicleCargoList::TryMerge(icp, cp)) return;
+
+		if (VehicleCargoList::AreMergable (icp, cp)
+				&& icp->TryMerge (cp)) {
+			return;
+		}
+
 		sum += icp->count;
 		if (sum >= this->action_counts[action]) {
 			this->packets.push_back(cp);
@@ -702,7 +694,11 @@ void StationCargoList::Append(CargoPacket *cp, StationID next)
 	StationCargoPacketMap::List &list = this->packets[next];
 	for (StationCargoPacketMap::List::reverse_iterator it(list.rbegin());
 			it != list.rend(); it++) {
-		if (StationCargoList::TryMerge(*it, cp)) return;
+		CargoPacket *icp = *it;
+		if (StationCargoList::AreMergable (icp, cp)
+				&& icp->TryMerge (cp)) {
+			return;
+		}
 	}
 
 	/* The packet could not be merged with another one */
