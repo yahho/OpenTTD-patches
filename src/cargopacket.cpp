@@ -698,7 +698,9 @@ void StationCargoList::Append(CargoPacket *cp, StationID next)
 	for (StationCargoPacketMap::List::reverse_iterator it(list.rbegin());
 			it != list.rend(); it++) {
 		CargoPacket *icp = *it;
-		if (StationCargoList::AreMergable (icp, cp)
+		if (icp->source_xy    == cp->source_xy
+				&& icp->days_in_transit == cp->days_in_transit
+				&& icp->source          == cp->source
 				&& icp->TryMerge (cp)) {
 			return;
 		}

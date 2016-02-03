@@ -530,20 +530,6 @@ public:
 	uint Load(uint max_move, VehicleCargoList *dest, TileIndex load_place, StationIDStack next);
 	uint Truncate(uint max_move = UINT_MAX, StationCargoAmountMap *cargo_per_source = NULL);
 	uint Reroute(uint max_move, StationCargoList *dest, StationID avoid, StationID avoid2, const GoodsEntry *ge);
-
-	/**
-	 * Are two the two CargoPackets mergeable in the context of
-	 * a list of CargoPackets for a Vehicle?
-	 * @param cp1 First CargoPacket.
-	 * @param cp2 Second CargoPacket.
-	 * @return True if they are mergeable.
-	 */
-	static bool AreMergable(const CargoPacket *cp1, const CargoPacket *cp2)
-	{
-		return cp1->source_xy    == cp2->source_xy &&
-				cp1->days_in_transit == cp2->days_in_transit &&
-				cp1->source          == cp2->source;
-	}
 };
 
 #endif /* CARGOPACKET_H */
