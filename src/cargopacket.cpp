@@ -257,7 +257,10 @@ void VehicleCargoList::Append(CargoPacket *cp, MoveToAction action)
 	for (ReverseIterator it(this->packets.rbegin()); it != this->packets.rend(); it++) {
 		CargoPacket *icp = *it;
 
-		if (VehicleCargoList::AreMergable (icp, cp)
+		if (icp->source_xy    == cp->source_xy
+				&& icp->days_in_transit == cp->days_in_transit
+				&& icp->source          == cp->source
+				&& icp->loaded_at_xy    == cp->loaded_at_xy
 				&& icp->TryMerge (cp)) {
 			return;
 		}
