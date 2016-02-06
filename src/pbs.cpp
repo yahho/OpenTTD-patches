@@ -105,8 +105,16 @@ bool TryReserveRailTrack(TileIndex tile, Track t, bool trigger_stations)
 	}
 
 	switch (GetTileType(tile)) {
-		case TT_RAILWAY:
-			return TryReserveTrack(tile, t);
+		case TT_RAILWAY: {
+			assert (HasTrack (tile, t));
+			TrackBits bit = TrackToTrackBits (t);
+			TrackBits res = GetRailReservationTrackBits (tile);
+			if ((res & bit) != TRACK_BIT_NONE) return false;  // already reserved
+			res |= bit;
+			if (TracksOverlap (res)) return false;  // crossing reservation present
+			SetTrackReservation (tile, res);
+			return true;
+		}
 
 		case TT_MISC:
 			switch (GetTileSubtype(tile)) {
