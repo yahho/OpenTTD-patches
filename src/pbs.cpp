@@ -173,9 +173,13 @@ void UnreserveRailTrack(TileIndex tile, Track t)
 	}
 
 	switch (GetTileType(tile)) {
-		case TT_RAILWAY:
-			UnreserveTrack(tile, t);
+		case TT_RAILWAY: {
+			assert (HasTrack (tile, t));
+			TrackBits res = GetRailReservationTrackBits (tile);
+			res &= ~TrackToTrackBits (t);
+			SetTrackReservation (tile, res);
 			break;
+		}
 
 		case TT_MISC:
 			switch (GetTileSubtype(tile)) {

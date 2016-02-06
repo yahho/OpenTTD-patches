@@ -123,21 +123,6 @@ static inline void SetTrackReservation(TileIndex t, TrackBits b)
 	tile_set_reservation_trackbits(&_mc[t], b);
 }
 
-/**
- * Lift the reservation of a specific track on a tile
- * @pre IsRailwayTile(t) && HasTrack(tile, t)
- * @param tile the tile
- * @param t the track to free
- */
-static inline void UnreserveTrack(TileIndex tile, Track t)
-{
-	assert(IsRailwayTile(tile));
-	assert(HasTrack(tile, t));
-	TrackBits res = GetRailReservationTrackBits(tile);
-	res &= ~TrackToTrackBits(t);
-	SetTrackReservation(tile, res);
-}
-
 
 /**
  * Get the signal byte for a signal
