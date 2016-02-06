@@ -53,6 +53,50 @@ TrackBits GetReservedTrackbits(TileIndex t)
 }
 
 /**
+ * Check whether a non-wormhole position is reserved.
+ * @param pos the position
+ * @return true if the track is reserved
+ */
+bool HasReservedMapPos (const RailPathPos &pos)
+{
+	assert (!pos.in_wormhole());
+
+	TileIndex tile = pos.tile;
+	switch (GetTileType (tile)) {
+		case TT_RAILWAY: {
+			TrackBits res = GetRailReservationTrackBits (tile);
+			return (res & TrackToTrackBits (TrackdirToTrack (pos.td))) != TRACK_BIT_NONE;
+		}
+
+		case TT_MISC:
+			switch (GetTileSubtype (tile)) {
+				case TT_MISC_CROSSING:
+					assert (TrackdirToTrack (pos.td) == GetCrossingRailTrack (tile));
+					return HasCrossingReservation (tile);
+
+				case TT_MISC_TUNNEL:
+					assert (GetTunnelTransportType (tile) == TRANSPORT_RAIL);
+					return HasTunnelHeadReservation (tile);
+
+				case TT_MISC_DEPOT:
+					assert (IsRailDepot (tile));
+					return HasDepotReservation (tile);
+
+				default:
+					NOT_REACHED();
+			}
+
+		case TT_STATION:
+			assert (HasStationRail (tile));
+			return HasStationReservation (tile);
+
+		default:
+			NOT_REACHED();
+	}
+}
+
+
+/**
  * Set the reservation for a complete station platform.
  * @pre IsRailStationTile(start)
  * @param start starting tile of the platform
