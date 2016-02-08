@@ -62,12 +62,10 @@ int DrawStationCoverageAreaText(int left, int right, int top, StationCoverageTyp
 	TileIndex tile = TileVirtXY(_thd.pos.x, _thd.pos.y);
 	uint32 cargo_mask = 0;
 	if (_thd.drawstyle == HT_RECT && tile < MapSize()) {
-		CargoArray cargoes;
-		if (supplies) {
-			cargoes = GetProductionAroundTiles(tile, _thd.size.x / TILE_SIZE, _thd.size.y / TILE_SIZE, rad);
-		} else {
-			cargoes = GetAcceptanceAroundTiles(tile, _thd.size.x / TILE_SIZE, _thd.size.y / TILE_SIZE, rad);
-		}
+		TileArea ta (tile, _thd.size.x / TILE_SIZE, _thd.size.y / TILE_SIZE);
+		CargoArray cargoes = supplies ?
+				GetAreaProduction (ta, rad) :
+				GetAreaAcceptance (ta, rad);
 
 		/* Convert cargo counts to a set of cargo bits, and draw the result. */
 		for (CargoID i = 0; i < NUM_CARGO; i++) {
