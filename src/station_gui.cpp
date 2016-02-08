@@ -48,6 +48,39 @@
 #include <algorithm>
 
 /**
+ * Get the cargo mask of accepted or supplied cargo around the selected tile(s)
+ * @param sct which type of cargo is to be displayed (passengers/non-passengers)
+ * @param rad radius around selected tile(s) to be searched
+ * @param supplies if supplied cargoes should be drawn, else accepted cargoes
+ */
+static uint32 GetStationCoverageAreaCargoMask (StationCoverageType sct, int rad, bool supplies)
+{
+	if (_thd.drawstyle != HT_RECT) return 0;
+
+	TileIndex tile = TileVirtXY (_thd.pos.x, _thd.pos.y);
+	if (tile >= MapSize()) return 0;
+
+	TileArea ta (tile, _thd.size.x / TILE_SIZE, _thd.size.y / TILE_SIZE);
+	CargoArray cargoes = supplies ?
+			GetAreaProduction (ta, rad) :
+			GetAreaAcceptance (ta, rad);
+
+	/* Convert cargo counts to a set of cargo bits, and draw the result. */
+	uint32 cargo_mask = 0;
+	for (CargoID i = 0; i < NUM_CARGO; i++) {
+		switch (sct) {
+			case SCT_PASSENGERS_ONLY: if (!IsCargoInClass(i, CC_PASSENGERS)) continue; break;
+			case SCT_NON_PASSENGERS_ONLY: if (IsCargoInClass(i, CC_PASSENGERS)) continue; break;
+			case SCT_ALL: break;
+			default: NOT_REACHED();
+		}
+		if (cargoes[i] >= (supplies ? 1U : 8U)) SetBit(cargo_mask, i);
+	}
+
+	return cargo_mask;
+}
+
+/**
  * Calculates and draws the accepted or supplied cargo around the selected tile(s)
  * @param left x position where the string is to be drawn
  * @param right the right most position to draw on
@@ -59,26 +92,7 @@
  */
 int DrawStationCoverageAreaText(int left, int right, int top, StationCoverageType sct, int rad, bool supplies)
 {
-	TileIndex tile = TileVirtXY(_thd.pos.x, _thd.pos.y);
-	uint32 cargo_mask = 0;
-	if (_thd.drawstyle == HT_RECT && tile < MapSize()) {
-		TileArea ta (tile, _thd.size.x / TILE_SIZE, _thd.size.y / TILE_SIZE);
-		CargoArray cargoes = supplies ?
-				GetAreaProduction (ta, rad) :
-				GetAreaAcceptance (ta, rad);
-
-		/* Convert cargo counts to a set of cargo bits, and draw the result. */
-		for (CargoID i = 0; i < NUM_CARGO; i++) {
-			switch (sct) {
-				case SCT_PASSENGERS_ONLY: if (!IsCargoInClass(i, CC_PASSENGERS)) continue; break;
-				case SCT_NON_PASSENGERS_ONLY: if (IsCargoInClass(i, CC_PASSENGERS)) continue; break;
-				case SCT_ALL: break;
-				default: NOT_REACHED();
-			}
-			if (cargoes[i] >= (supplies ? 1U : 8U)) SetBit(cargo_mask, i);
-		}
-	}
-	SetDParam(0, cargo_mask);
+	SetDParam (0, GetStationCoverageAreaCargoMask (sct, rad, supplies));
 	return DrawStringMultiLine(left, right, top, INT32_MAX, supplies ? STR_STATION_BUILD_SUPPLIES_CARGO : STR_STATION_BUILD_ACCEPTS_CARGO);
 }
 
