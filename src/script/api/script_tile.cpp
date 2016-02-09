@@ -218,7 +218,8 @@
 {
 	if (!::IsValidTile(tile) || width <= 0 || height <= 0 || radius < 0 || !ScriptCargo::IsValidCargo(cargo_type)) return -1;
 
-	CargoArray produced = ::GetProductionAroundTiles(tile, width, height, _settings_game.station.modified_catchment ? radius : (int)CA_UNMODIFIED);
+	CargoArray produced = GetAreaProduction (TileArea (tile, width, height),
+			_settings_game.station.modified_catchment ? radius : (int)CA_UNMODIFIED);
 	return produced[cargo_type];
 }
 
