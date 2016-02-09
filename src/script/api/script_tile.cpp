@@ -210,7 +210,8 @@
 {
 	if (!::IsValidTile(tile) || width <= 0 || height <= 0 || radius < 0 || !ScriptCargo::IsValidCargo(cargo_type)) return -1;
 
-	CargoArray acceptance = ::GetAcceptanceAroundTiles(tile, width, height, _settings_game.station.modified_catchment ? radius : (int)CA_UNMODIFIED);
+	CargoArray acceptance = GetAreaAcceptance (TileArea (tile, width, height),
+			_settings_game.station.modified_catchment ? radius : (int)CA_UNMODIFIED);
 	return acceptance[cargo_type];
 }
 

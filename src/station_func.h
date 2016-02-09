@@ -48,19 +48,6 @@ void UpdateAllStationVirtCoords();
 CargoArray GetAreaProduction (const TileArea &area, int rad = 0);
 CargoArray GetAreaAcceptance (const TileArea &area, int rad = 0, uint32 *always_accepted = NULL);
 
-/**
- * Get the acceptance of cargoes around the tile in 1/8.
- * @param tile Center of the search area
- * @param w X extent of area
- * @param h Y extent of area
- * @param rad Search radius in addition to given area
- */
-static inline CargoArray GetAcceptanceAroundTiles(TileIndex tile, int w, int h, int rad)
-{
-	TileArea ta (tile, w, h);
-	return GetAreaAcceptance (ta, rad);
-}
-
 void UpdateStationAcceptance(Station *st, bool show_msg);
 
 const DrawTileSprites *GetStationTileLayout(StationType st, byte gfx);
