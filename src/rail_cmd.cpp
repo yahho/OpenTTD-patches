@@ -38,6 +38,7 @@
 #include "signalbuffer.h"
 #include "object.h"
 #include "tracerestrict.h"
+#include "spritecache.h"
 
 #include "table/strings.h"
 #include "table/railtypes.h"
@@ -3242,6 +3243,8 @@ static void DrawSingleSignal(TileIndex tile, Trackdir trackdir)
 		sprite = (type == SIGTYPE_NORMAL && variant == SIG_ELECTRIC) ? SPR_ORIGINAL_SIGNALS_BASE : SPR_SIGNALS_BASE - 16;
 		sprite += type * 16 + variant * 64 + image * 2 + condition + (IsPbsSignal(type) ? 64 : 0);
 	}
+	extern uint _first_user_grf_file_index;
+	if (!is_custom_sprite) is_custom_sprite = (GetOriginFileSlot(sprite) >= _first_user_grf_file_index);
 
 	bool side;
 	switch (_settings_game.construction.train_signal_side) {
