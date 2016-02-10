@@ -1455,6 +1455,7 @@ static SettingEntry _settings_graphics[] = {
 	SettingEntry("gui.zoom_max"),
 	SettingEntry("gui.smallmap_land_colour"),
 	SettingEntry("gui.graph_line_thickness"),
+	SettingEntry("gui.show_restricted_signal_default"),
 };
 /** Graphics options sub-page */
 static SettingsPage _settings_graphics_page = {_settings_graphics, lengthof(_settings_graphics)};

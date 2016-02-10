@@ -3233,6 +3233,8 @@ static void DrawSingleSignal(TileIndex tile, Trackdir trackdir)
 	SignalVariant variant = GetSignalVariant(tile, track);
 	SignalState condition = GetSignalStateByTrackdir(tile, trackdir);
 
+	bool show_restricted = (variant == SIG_ELECTRIC) && IsRestrictedSignal(tile) && (GetExistingTraceRestrictProgram(tile, track) != NULL);
+
 	SpriteID sprite = GetCustomSignalSprite(GetRailTypeInfo(GetRailType(tile, track)), tile, type, variant, condition);
 	SignalOffsets image = SignalData[trackdir].image;
 	bool is_custom_sprite = (sprite != 0);
@@ -3257,7 +3259,14 @@ static void DrawSingleSignal(TileIndex tile, Trackdir trackdir)
 	uint x = TileX(tile) * TILE_SIZE + SignalData[trackdir].pos[side].x;
 	uint y = TileY(tile) * TILE_SIZE + SignalData[trackdir].pos[side].y;
 
-	if (!is_custom_sprite && variant == SIG_ELECTRIC && IsNormalRailTile(tile) && IsRestrictedSignal(tile) && GetExistingTraceRestrictProgram(tile, track) != NULL) {
+	if (is_custom_sprite && show_restricted && _settings_client.gui.show_restricted_signal_default) {
+		/* Use duplicate sprite block, instead of GRF-specified signals */
+		sprite = (type == SIGTYPE_NORMAL && variant == SIG_ELECTRIC) ? SPR_DUP_ORIGINAL_SIGNALS_BASE : SPR_DUP_SIGNALS_BASE - 16;
+		sprite += type * 16 + variant * 64 + image * 2 + condition + (IsPbsSignal(type) ? 64 : 0);
+		is_custom_sprite = false;
+	}
+
+	if (!is_custom_sprite && show_restricted) {
 		if (type == SIGTYPE_PBS || type == SIGTYPE_PBS_ONEWAY) {
 			static const SubSprite lower_part = { -50, -10, 50, 50 };
 			static const SubSprite upper_part = { -50, -50, 50, -11 };
