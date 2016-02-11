@@ -3233,7 +3233,7 @@ static void DrawSingleSignal(TileIndex tile, Trackdir trackdir)
 	SignalVariant variant = GetSignalVariant(tile, track);
 	SignalState condition = GetSignalStateByTrackdir(tile, trackdir);
 
-	bool show_restricted = (variant == SIG_ELECTRIC) && IsRestrictedSignal(tile) && (GetExistingTraceRestrictProgram(tile, track) != NULL);
+	bool show_restricted = (variant == SIG_ELECTRIC) && IsNormalRailTile(tile) && IsRestrictedSignal(tile) && (GetExistingTraceRestrictProgram(tile, track) != NULL);
 
 	SpriteID sprite = GetCustomSignalSprite(GetRailTypeInfo(GetRailType(tile, track)), tile, type, variant, condition);
 	SignalOffsets image = SignalData[trackdir].image;
