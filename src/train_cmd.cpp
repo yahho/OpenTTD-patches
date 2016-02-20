@@ -3909,12 +3909,9 @@ static void ChangeTrainDirRandomly(Train *v)
 			v->direction = ChangeDir(v->direction, delta[GB(Random(), 0, 2)]);
 			v->UpdateDeltaXY(v->direction);
 			v->cur_image = v->GetImage(v->direction, EIT_ON_MAP);
-			/* Refrain from updating the z position of the vehicle when on
-			 * a bridge, because UpdateInclination() will put the vehicle under
-			 * the bridge in that case */
 			if (v->trackdir != TRACKDIR_WORMHOLE) {
 				v->UpdatePosition();
-				v->UpdateInclination(false, false);
+				v->UpdateViewport (true, false);
 			}
 		}
 	} while ((v = v->Next()) != NULL);
