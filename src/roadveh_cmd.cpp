@@ -1451,7 +1451,7 @@ static bool controller_standard_stop (RoadVehicle *v)
 		if (new_dir != v->direction) {
 			/* Vehicle is still turning around, so wait. */
 			v->direction = new_dir;
-			v->UpdateInclination (false, true);
+			v->UpdateViewport (true, true);
 			return true;
 		}
 
