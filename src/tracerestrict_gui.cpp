@@ -643,7 +643,7 @@ public:
 
 		this->CreateNestedTree();
 		this->vscroll = this->GetScrollbar(TR_WIDGET_SCROLLBAR);
-		this->FinishInitNested(MakeTraceRestrictRefId(tile, track));
+		this->InitNested(MakeTraceRestrictRefId(tile, track));
 
 		this->ReloadProgramme();
 	}
@@ -966,7 +966,7 @@ public:
 		this->current_placement_widget = -1;
 
 		this->RaiseButtons();
-		ResetObjectToPlace();
+		ResetPointerMode();
 
 		if (widget < 0) {
 			return;
@@ -1540,15 +1540,15 @@ private:
 	void SetObjectToPlaceAction(int widget, CursorID cursor)
 	{
 		if (this->current_placement_widget != -1 && widget != this->current_placement_widget) {
-			ResetObjectToPlace();
+			ResetPointerMode();
 		}
 		this->ToggleWidgetLoweredState(widget);
 		this->SetWidgetDirty(widget);
 		if (this->IsWidgetLowered(widget)) {
-			SetObjectToPlaceWnd(cursor, PAL_NONE, HT_RECT, this);
+			SetPointerMode (POINTER_TILE, this, cursor);
 			this->current_placement_widget = widget;
 		} else {
-			ResetObjectToPlace();
+			ResetPointerMode();
 			this->current_placement_widget = -1;
 		}
 	}
@@ -1677,11 +1677,15 @@ static const NWidgetPart _nested_program_widgets[] = {
 	EndContainer(),
 };
 
+/** Window preferences. */
+static WindowDesc::Prefs _settings_prefs ("trace_restrict_gui");
+
 static WindowDesc _program_desc(
-	WDP_AUTO, "trace_restrict_gui", 384, 100,
+	WDP_AUTO, 384, 100,
 	WC_TRACE_RESTRICT, WC_BUILD_SIGNAL,
 	WDF_CONSTRUCTION,
-	_nested_program_widgets, lengthof(_nested_program_widgets)
+	_nested_program_widgets, lengthof(_nested_program_widgets),
+	&_settings_prefs
 );
 
 /**
