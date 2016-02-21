@@ -1013,7 +1013,8 @@ static bool RoadVehLeaveDepot(RoadVehicle *v, bool first)
 	v->x_pos = x;
 	v->y_pos = y;
 	v->UpdatePosition();
-	v->UpdateInclination(true, true);
+	v->z_pos = GetSlopePixelZ (x, y);
+	v->UpdateViewport (true, true);
 
 	InvalidateWindowData(WC_VEHICLE_DEPOT, v->tile);
 
