@@ -226,26 +226,6 @@ struct GroundVehicle : public SpecializedVehicle<T, Type> {
 	}
 
 	/**
-	 * Checks if the vehicle is in a slope and sets the required flags in that case.
-	 * @param new_tile True if the vehicle reached a new tile.
-	 * @param update_delta Indicates to also update the delta.
-	 * @return Old height of the vehicle.
-	 */
-	inline int UpdateInclination(bool new_tile, bool update_delta)
-	{
-		int old_z = this->z_pos;
-
-		if (new_tile) {
-			this->UpdateZPositionAndInclination();
-		} else {
-			this->UpdateZPosition();
-		}
-
-		this->UpdateViewport(true, update_delta);
-		return old_z;
-	}
-
-	/**
 	 * Set front engine state.
 	 */
 	inline void SetFrontEngine() { SetBit(this->subtype, GVSF_FRONT); }

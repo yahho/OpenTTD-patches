@@ -3726,7 +3726,15 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 			v->Vehicle::UpdateViewport (true);
 		} else if (new_in_wormhole == WORMHOLE_NONE) {
 			/* update the Z position of the vehicle */
-			int old_z = v->UpdateInclination(enterdir != INVALID_DIAGDIR, false);
+			int old_z = v->z_pos;
+
+			if (enterdir != INVALID_DIAGDIR) {
+				v->UpdateZPositionAndInclination();
+			} else {
+				v->UpdateZPosition();
+			}
+
+			v->UpdateViewport (true, false);
 
 			if (prev == NULL) {
 				/* This is the first vehicle in the train */

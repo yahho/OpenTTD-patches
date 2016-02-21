@@ -843,7 +843,15 @@ static void controller_set_pos (RoadVehicle *v, int x, int y, bool new_tile, boo
 	v->y_pos = y;
 	v->UpdatePosition();
 
-	int old_z = v->UpdateInclination (new_tile, update_delta);
+	int old_z = v->z_pos;
+
+	if (new_tile) {
+		v->UpdateZPositionAndInclination();
+	} else {
+		v->UpdateZPosition();
+	}
+
+	v->UpdateViewport (true, update_delta);
 
 	if (old_z == v->z_pos || _settings_game.vehicle.roadveh_acceleration_model != AM_ORIGINAL) return;
 
