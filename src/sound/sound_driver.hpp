@@ -15,19 +15,34 @@
 #include "../driver.h"
 
 /** Base for all sound drivers. */
-class SoundDriver : public Driver {
+class SoundDriver : public Driver, public SharedDriverSystem <SoundDriver> {
 public:
+	static char *ini; ///< The sound driver as stored in the configuration file.
+
+	/** Get the name of this type of driver. */
+	static CONSTEXPR const char *GetSystemName (void)
+	{
+		return "sound";
+	}
+
 	/** Called once every tick */
 	virtual void MainLoop() {}
-
-	/**
-	 * Get the currently active instance of the sound driver.
-	 */
-	static SoundDriver *GetInstance() {
-		return static_cast<SoundDriver*>(*DriverFactoryBase::GetActiveDriver(Driver::DT_SOUND));
-	}
 };
 
-extern char *_ini_sounddriver;
+/** Sound driver factory. */
+template <class D>
+class SoundDriverFactory : DriverFactory <SoundDriver, D> {
+public:
+	/**
+	 * Construct a new SoundDriverFactory.
+	 * @param priority    The priority within the driver class.
+	 * @param name        The name of the driver.
+	 * @param description A long-ish description of the driver.
+	 */
+	SoundDriverFactory (int priority, const char *name, const char *description)
+		: DriverFactory <SoundDriver, D> (priority, name, description)
+	{
+	}
+};
 
 #endif /* SOUND_SOUND_DRIVER_HPP */

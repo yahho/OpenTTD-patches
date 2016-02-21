@@ -13,4 +13,5 @@
 #include "null_s.h"
 
 /** The factory for the null sound driver. */
-static FSoundDriver_Null iFSoundDriver_Null;
+static SoundDriverFactory <SoundDriver_Null>
+		iFSoundDriver_Null (1, "null", "Null Sound Driver");

@@ -48,6 +48,39 @@
 #include <algorithm>
 
 /**
+ * Get the cargo mask of accepted or supplied cargo around the selected tile(s)
+ * @param sct which type of cargo is to be displayed (passengers/non-passengers)
+ * @param rad radius around selected tile(s) to be searched
+ * @param supplies if supplied cargoes should be drawn, else accepted cargoes
+ */
+static uint32 GetStationCoverageAreaCargoMask (StationCoverageType sct, int rad, bool supplies)
+{
+	if (_thd.drawstyle != HT_RECT) return 0;
+
+	TileIndex tile = TileVirtXY (_thd.pos.x, _thd.pos.y);
+	if (tile >= MapSize()) return 0;
+
+	TileArea ta (tile, _thd.size.x / TILE_SIZE, _thd.size.y / TILE_SIZE);
+	CargoArray cargoes = supplies ?
+			GetAreaProduction (ta, rad) :
+			GetAreaAcceptance (ta, rad);
+
+	/* Convert cargo counts to a set of cargo bits, and draw the result. */
+	uint32 cargo_mask = 0;
+	for (CargoID i = 0; i < NUM_CARGO; i++) {
+		switch (sct) {
+			case SCT_PASSENGERS_ONLY: if (!IsCargoInClass(i, CC_PASSENGERS)) continue; break;
+			case SCT_NON_PASSENGERS_ONLY: if (IsCargoInClass(i, CC_PASSENGERS)) continue; break;
+			case SCT_ALL: break;
+			default: NOT_REACHED();
+		}
+		if (cargoes[i] >= (supplies ? 1U : 8U)) SetBit(cargo_mask, i);
+	}
+
+	return cargo_mask;
+}
+
+/**
  * Calculates and draws the accepted or supplied cargo around the selected tile(s)
  * @param left x position where the string is to be drawn
  * @param right the right most position to draw on
@@ -59,28 +92,7 @@
  */
 int DrawStationCoverageAreaText(int left, int right, int top, StationCoverageType sct, int rad, bool supplies)
 {
-	TileIndex tile = TileVirtXY(_thd.pos.x, _thd.pos.y);
-	uint32 cargo_mask = 0;
-	if (_thd.drawstyle == HT_RECT && tile < MapSize()) {
-		CargoArray cargoes;
-		if (supplies) {
-			cargoes = GetProductionAroundTiles(tile, _thd.size.x / TILE_SIZE, _thd.size.y / TILE_SIZE, rad);
-		} else {
-			cargoes = GetAcceptanceAroundTiles(tile, _thd.size.x / TILE_SIZE, _thd.size.y / TILE_SIZE, rad);
-		}
-
-		/* Convert cargo counts to a set of cargo bits, and draw the result. */
-		for (CargoID i = 0; i < NUM_CARGO; i++) {
-			switch (sct) {
-				case SCT_PASSENGERS_ONLY: if (!IsCargoInClass(i, CC_PASSENGERS)) continue; break;
-				case SCT_NON_PASSENGERS_ONLY: if (IsCargoInClass(i, CC_PASSENGERS)) continue; break;
-				case SCT_ALL: break;
-				default: NOT_REACHED();
-			}
-			if (cargoes[i] >= (supplies ? 1U : 8U)) SetBit(cargo_mask, i);
-		}
-	}
-	SetDParam(0, cargo_mask);
+	SetDParam (0, GetStationCoverageAreaCargoMask (sct, rad, supplies));
 	return DrawStringMultiLine(left, right, top, INT32_MAX, supplies ? STR_STATION_BUILD_SUPPLIES_CARGO : STR_STATION_BUILD_ACCEPTS_CARGO);
 }
 
@@ -307,7 +319,8 @@ protected:
 	}
 
 public:
-	CompanyStationsWindow(WindowDesc *desc, WindowNumber window_number) : Window(desc)
+	CompanyStationsWindow (const WindowDesc *desc, WindowNumber window_number) :
+		Window (desc), stations(), vscroll (NULL)
 	{
 		this->stations.SetListing(this->last_sorting);
 		this->stations.SetSortFuncs(this->sorter_funcs);
@@ -317,7 +330,7 @@ public:
 
 		this->CreateNestedTree();
 		this->vscroll = this->GetScrollbar(WID_STL_SCROLLBAR);
-		this->FinishInitNested(window_number);
+		this->InitNested(window_number);
 		this->owner = (Owner)this->window_number;
 
 		const CargoSpec *cs;
@@ -336,7 +349,7 @@ public:
 		this->GetWidget<NWidgetCore>(WID_STL_SORTDROPBTN)->widget_data = this->sorter_names[this->stations.SortType()];
 	}
 
-	~CompanyStationsWindow()
+	void OnDelete (void) FINAL_OVERRIDE
 	{
 		this->last_sorting = this->stations.GetListing();
 	}
@@ -739,11 +752,14 @@ static const NWidgetPart _nested_company_stations_widgets[] = {
 	EndContainer(),
 };
 
-static WindowDesc _company_stations_desc(
-	WDP_AUTO, "list_stations", 358, 162,
+static WindowDesc::Prefs _company_stations_prefs ("list_stations");
+
+static const WindowDesc _company_stations_desc(
+	WDP_AUTO, 358, 162,
 	WC_STATION_LIST, WC_NONE,
 	0,
-	_nested_company_stations_widgets, lengthof(_nested_company_stations_widgets)
+	_nested_company_stations_widgets, lengthof(_nested_company_stations_widgets),
+	&_company_stations_prefs
 );
 
 /**
@@ -1303,16 +1319,20 @@ struct StationViewWindow : public Window {
 
 	CargoDataVector displayed_rows;     ///< Parent entry of currently displayed rows (including collapsed ones).
 
-	StationViewWindow(WindowDesc *desc, WindowNumber window_number) : Window(desc),
-		scroll_to_row(INT_MAX), grouping_index(0), groupings(NULL)
+	StationViewWindow (const WindowDesc *desc, WindowNumber window_number) :
+		Window (desc), expand_shrink_width (0),
+		rating_lines (ALH_RATING), accepts_lines (ALH_ACCEPTS),
+		vscroll (NULL),
+		sorting (ST_COUNT), sort_order (SO_DESCENDING),
+		scroll_to_row (INT_MAX), grouping_index (0),
+		current_mode (MODE_WAITING), groupings (NULL),
+		cached_destinations(), cached_destinations_valid(),
+		expanded_cargoes(), expanded_rows(), displayed_rows()
 	{
-		this->rating_lines  = ALH_RATING;
-		this->accepts_lines = ALH_ACCEPTS;
-
 		this->CreateNestedTree();
 		this->vscroll = this->GetScrollbar(WID_SV_SCROLLBAR);
 		/* Nested widget tree creation is done in two steps to ensure that this->GetWidget<NWidgetCore>(WID_SV_ACCEPTS_RATINGS) exists in UpdateWidgetSize(). */
-		this->FinishInitNested(window_number);
+		this->InitNested(window_number);
 
 		this->SelectGroupBy(_settings_client.gui.station_gui_group_order);
 		this->SelectSortBy(_settings_client.gui.station_gui_sort_by);
@@ -1320,7 +1340,7 @@ struct StationViewWindow : public Window {
 		this->owner = Station::Get(window_number)->owner;
 	}
 
-	~StationViewWindow()
+	void OnDelete (void) FINAL_OVERRIDE
 	{
 		DeleteWindowById(WC_TRAINS_LIST,   VehicleListIdentifier(VL_STATION_LIST, VEH_TRAIN,    this->owner, this->window_number).Pack(), false);
 		DeleteWindowById(WC_ROADVEH_LIST,  VehicleListIdentifier(VL_STATION_LIST, VEH_ROAD,     this->owner, this->window_number).Pack(), false);
@@ -2026,11 +2046,14 @@ const StationViewWindow::Grouping StationViewWindow::arrangements[6][NUM_COLUMNS
 
 assert_compile (lengthof(StationViewWindow::_group_names) == lengthof(StationViewWindow::arrangements) + 1);
 
-static WindowDesc _station_view_desc(
-	WDP_AUTO, "view_station", 249, 117,
+static WindowDesc::Prefs _station_view_prefs ("view_station");
+
+static const WindowDesc _station_view_desc(
+	WDP_AUTO, 249, 117,
 	WC_STATION_VIEW, WC_NONE,
 	0,
-	_nested_station_view_widgets, lengthof(_nested_station_view_widgets)
+	_nested_station_view_widgets, lengthof(_nested_station_view_widgets),
+	&_station_view_prefs
 );
 
 /**
@@ -2155,17 +2178,18 @@ struct SelectStationWindow : Window {
 	std::vector<StationID> list; ///< List of nearby stations
 	Scrollbar *vscroll;
 
-	SelectStationWindow (WindowDesc *desc, const Command &cmd, const TileArea &ta, bool waypoint, const std::vector<StationID> &list) :
+	SelectStationWindow (const WindowDesc *desc, const Command &cmd, const TileArea &ta, bool waypoint, const std::vector<StationID> &list) :
 		Window(desc),
 		select_station_cmd(cmd),
 		area(ta),
 		waypoint(waypoint),
-		list(list)
+		list(list),
+		vscroll(NULL)
 	{
 		this->CreateNestedTree();
 		this->vscroll = this->GetScrollbar(WID_JS_SCROLLBAR);
 		this->GetWidget<NWidgetCore>(WID_JS_CAPTION)->widget_data = waypoint ? STR_JOIN_WAYPOINT_CAPTION : STR_JOIN_STATION_CAPTION;
-		this->FinishInitNested(0);
+		this->InitNested(0);
 		this->OnInvalidateData(0);
 	}
 
@@ -2261,11 +2285,14 @@ struct SelectStationWindow : Window {
 	}
 };
 
-static WindowDesc _select_station_desc(
-	WDP_AUTO, "build_station_join", 200, 180,
+static WindowDesc::Prefs _select_station_prefs ("build_station_join");
+
+static const WindowDesc _select_station_desc(
+	WDP_AUTO, 200, 180,
 	WC_SELECT_STATION, WC_NONE,
 	WDF_CONSTRUCTION,
-	_nested_select_station_widgets, lengthof(_nested_select_station_widgets)
+	_nested_select_station_widgets, lengthof(_nested_select_station_widgets),
+	&_select_station_prefs
 );
 
 
@@ -2282,8 +2309,7 @@ void ShowSelectBaseStationIfNeeded (Command *cmd, const TileArea &ta, bool waypo
 	Window *selection_window = FindWindowById(WC_SELECT_STATION, 0);
 	if (selection_window != NULL) {
 		/* Abort current distant-join and start new one */
-		delete selection_window;
-		UpdateTileSelection();
+		selection_window->Delete();
 	}
 
 	/* Only show the popup if we press ctrl and we can build there. */
@@ -2296,7 +2322,7 @@ void ShowSelectBaseStationIfNeeded (Command *cmd, const TileArea &ta, bool waypo
 		std::vector<StationID> list;
 		FindStationsNearby (&list, ta, false, waypoint);
 		if (list.size() == 0 ? _settings_game.station.distant_join_stations : _settings_game.station.adjacent_stations) {
-			if (!_settings_client.gui.persistent_buildingtools) ResetObjectToPlace();
+			if (!_settings_client.gui.persistent_buildingtools) ResetPointerMode();
 			new SelectStationWindow (&_select_station_desc, *cmd, ta, waypoint, list);
 			return;
 		}

@@ -40,7 +40,9 @@ struct OskWindow : public Window {
 	char *orig_str_buf;    ///< Original string.
 	bool shift;            ///< Is the shift effectively pressed?
 
-	OskWindow(WindowDesc *desc, Window *parent, int button) : Window(desc)
+	OskWindow (const WindowDesc *desc, Window *parent, int button) :
+		Window (desc), caption (STR_NULL), qs (NULL), text_btn (0),
+		orig_str_buf (NULL), shift (false)
 	{
 		this->parent = parent;
 		assert(parent != NULL);
@@ -170,7 +172,7 @@ struct OskWindow : public Window {
 						return;
 					}
 				}
-				delete this;
+				this->Delete();
 				break;
 
 			case WID_OSK_CANCEL:
@@ -182,7 +184,7 @@ struct OskWindow : public Window {
 					qs->Assign(this->orig_str_buf);
 					qs->MovePos(WKC_END);
 					this->OnEditboxChanged(WID_OSK_TEXT);
-					delete this;
+					this->Delete();
 				}
 				break;
 		}
@@ -204,8 +206,8 @@ struct OskWindow : public Window {
 
 	virtual void OnFocusLost()
 	{
-		VideoDriver::GetInstance()->EditBoxLostFocus();
-		delete this;
+		VideoDriver::GetActiveDriver()->EditBoxLostFocus();
+		this->Delete();
 	}
 };
 
@@ -339,11 +341,14 @@ static const NWidgetPart _nested_osk_widgets[] = {
 	EndContainer(),
 };
 
-static WindowDesc _osk_desc(
-	WDP_CENTER, "query_osk", 0, 0,
+static WindowDesc::Prefs _osk_prefs ("query_osk");
+
+static const WindowDesc _osk_desc(
+	WDP_CENTER, 0, 0,
 	WC_OSK, WC_NONE,
 	0,
-	_nested_osk_widgets, lengthof(_nested_osk_widgets)
+	_nested_osk_widgets, lengthof(_nested_osk_widgets),
+	&_osk_prefs
 );
 
 /**

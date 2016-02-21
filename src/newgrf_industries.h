@@ -16,6 +16,8 @@
 
 /** Resolver for industry scopes. */
 struct IndustriesScopeResolver : public ScopeResolver {
+	ResolverObject &ro; ///< Surrounding resolver object.
+
 	TileIndex tile;     ///< Tile owned by the industry.
 	Industry *industry; ///< %Industry being resolved.
 	IndustryType type;  ///< Type of the industry.
@@ -35,6 +37,8 @@ struct IndustriesResolverObject : public ResolverObject {
 	IndustriesScopeResolver industries_scope; ///< Scope resolver for the industry.
 	TownScopeResolver *town_scope;            ///< Scope resolver for the associated town (if needed and available, else \c NULL).
 
+	const SpriteGroup *root_spritegroup; ///< Root SpriteGroup to use for resolving
+
 	IndustriesResolverObject(TileIndex tile, Industry *indus, IndustryType type, uint32 random_bits = 0,
 			CallbackID callback = CBID_NO_CALLBACK, uint32 callback_param1 = 0, uint32 callback_param2 = 0);
 	~IndustriesResolverObject();
@@ -52,6 +56,15 @@ struct IndustriesResolverObject : public ResolverObject {
 			}
 			default: return ResolverObject::GetScope(scope, relative);
 		}
+	}
+
+	/**
+	 * Resolve SpriteGroup.
+	 * @return Result spritegroup.
+	 */
+	const SpriteGroup *Resolve()
+	{
+		return SpriteGroup::Resolve (this->root_spritegroup, *this);
 	}
 };
 

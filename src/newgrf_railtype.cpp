@@ -68,11 +68,11 @@
 
 /**
  * Constructor of the railtype scope resolvers.
- * @param ro Surrounding resolver.
  * @param tile %Tile containing the track. For track on a bridge this is the southern bridgehead.
  * @param context Are we resolving sprites for the upper halftile, or on a bridge?
  */
-RailTypeScopeResolver::RailTypeScopeResolver(ResolverObject &ro, TileIndex tile, TileContext context) : ScopeResolver(ro)
+RailTypeScopeResolver::RailTypeScopeResolver (TileIndex tile, TileContext context)
+	: ScopeResolver()
 {
 	this->tile = tile;
 	this->context = context;
@@ -88,9 +88,18 @@ RailTypeScopeResolver::RailTypeScopeResolver(ResolverObject &ro, TileIndex tile,
  * @param param2 Extra parameter (second parameter of the callback, except railtypes do not have callbacks).
  */
 RailTypeResolverObject::RailTypeResolverObject(const RailtypeInfo *rti, TileIndex tile, TileContext context, RailTypeSpriteGroup rtsg, uint32 param1, uint32 param2)
-	: ResolverObject(rti != NULL ? rti->grffile[rtsg] : NULL, CBID_NO_CALLBACK, param1, param2), railtype_scope(*this, tile, context)
+	: ResolverObject(rti != NULL ? rti->grffile[rtsg] : NULL, CBID_NO_CALLBACK, param1, param2),
+	  railtype_scope(tile, context)
 {
-	this->root_spritegroup = rti != NULL ? rti->group[rtsg] : NULL;
+}
+
+static inline const SpriteGroup *RailTypeResolve (const RailtypeInfo *rti,
+	TileIndex tile, TileContext context, RailTypeSpriteGroup rtsg,
+	uint32 param1 = 0, uint32 param2 = 0)
+{
+	RailTypeResolverObject object (rti, tile, context, rtsg, param1, param2);
+	const SpriteGroup *root = rti != NULL ? rti->group[rtsg] : NULL;
+	return SpriteGroup::Resolve (root, object);
 }
 
 /**
@@ -107,8 +116,7 @@ const SpriteGroup *GetCustomRailSpriteGroup (const RailtypeInfo *rti, TileIndex 
 
 	if (rti->group[rtsg] == NULL) return NULL;
 
-	RailTypeResolverObject object(rti, tile, context, rtsg);
-	const SpriteGroup *group = object.Resolve();
+	const SpriteGroup *group = RailTypeResolve (rti, tile, context, rtsg);
 	if (group == NULL || group->GetNumResults() == 0) return NULL;
 
 	return group;
@@ -144,9 +152,8 @@ SpriteID GetCustomSignalSprite(const RailtypeInfo *rti, TileIndex tile, SignalTy
 
 	uint32 param1 = gui ? 0x10 : 0x00;
 	uint32 param2 = (type << 16) | (var << 8) | state;
-	RailTypeResolverObject object(rti, tile, TCX_NORMAL, RTSG_SIGNALS, param1, param2);
 
-	const SpriteGroup *group = object.Resolve();
+	const SpriteGroup *group = RailTypeResolve (rti, tile, TCX_NORMAL, RTSG_SIGNALS, param1, param2);
 	if (group == NULL || group->GetNumResults() == 0) return 0;
 
 	return group->GetResult();

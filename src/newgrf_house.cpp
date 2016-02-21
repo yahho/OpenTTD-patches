@@ -31,7 +31,7 @@ HouseOverrideManager _house_mngr(NEW_HOUSE_OFFSET, NUM_HOUSES, INVALID_HOUSE_ID)
 
 /**
  * Constructor of a house scope resolver.
- * @param ro Surrounding resolver.
+ * @param grffile GRFFile the resolved SpriteGroup belongs to.
  * @param house_id House type being queried.
  * @param tile %Tile containing the house.
  * @param town %Town containing the house.
@@ -39,9 +39,9 @@ HouseOverrideManager _house_mngr(NEW_HOUSE_OFFSET, NUM_HOUSES, INVALID_HOUSE_ID)
  * @param initial_random_bits Random bits during construction checks.
  * @param watched_cargo_triggers Cargo types that triggered the watched cargo callback.
  */
-HouseScopeResolver::HouseScopeResolver(ResolverObject &ro, HouseID house_id, TileIndex tile, Town *town,
+HouseScopeResolver::HouseScopeResolver (const GRFFile *grffile, HouseID house_id, TileIndex tile, Town *town,
 			bool not_yet_constructed, uint8 initial_random_bits, uint32 watched_cargo_triggers)
-		: ScopeResolver(ro)
+	: ScopeResolver(), grffile(grffile)
 {
 	this->house_id = house_id;
 	this->tile = tile;
@@ -78,15 +78,15 @@ HouseResolverObject::HouseResolverObject(HouseID house_id, TileIndex tile, Town 
 		CallbackID callback, uint32 param1, uint32 param2,
 		bool not_yet_constructed, uint8 initial_random_bits, uint32 watched_cargo_triggers)
 	: ResolverObject(GetHouseSpecGrf(house_id), callback, param1, param2),
-	house_scope(*this, house_id, tile, town, not_yet_constructed, initial_random_bits, watched_cargo_triggers),
-	town_scope(*this, town, not_yet_constructed) // Don't access StorePSA if house is not yet constructed.
+	  house_scope (this->grffile, house_id, tile, town, not_yet_constructed, initial_random_bits, watched_cargo_triggers),
+	  town_scope (this->grffile, town, not_yet_constructed) // Don't access StorePSA if house is not yet constructed.
 {
 	this->root_spritegroup = HouseSpec::Get(house_id)->grf_prop.spritegroup[0];
 }
 
 /**
  * Construct a fake resolver for a house.
- * @param house_id House to query.
+ * @param hs HouseSpec of the house to query.
  * @param tile %Tile containing the house.
  * @param town %Town containing the house.
  * @param callback Callback ID.
@@ -96,12 +96,11 @@ HouseResolverObject::HouseResolverObject(HouseID house_id, TileIndex tile, Town 
  * @param initial_random_bits Random bits during construction checks.
  * @param watched_cargo_triggers Cargo types that triggered the watched cargo callback.
  */
-FakeHouseResolverObject::FakeHouseResolverObject (HouseID house_id,
+FakeHouseResolverObject::FakeHouseResolverObject (const HouseSpec *hs,
 		CallbackID callback, uint32 param1, uint32 param2)
-	: ResolverObject (GetHouseSpecGrf(house_id), callback, param1, param2),
-	house_scope (*this, house_id), town_scope (*this)
+	: ResolverObject ((hs != NULL) ? hs->grf_prop.grffile : NULL, callback, param1, param2),
+	  house_scope (hs), town_scope()
 {
-	this->root_spritegroup = HouseSpec::Get(house_id)->grf_prop.spritegroup[0];
 }
 
 HouseClassID AllocateHouseClassID(byte grf_class_id, uint32 grfid)
@@ -327,7 +326,7 @@ static uint32 GetDistanceFromNearbyHouse(uint8 parameter, TileIndex tile, HouseI
 		}
 
 		/* Land info for nearby tiles. */
-		case 0x62: return GetNearbyTileInformation(parameter, this->tile, this->ro.grffile->grf_version >= 8);
+		case 0x62: return GetNearbyTileInformation (parameter, this->tile, this->grffile->grf_version >= 8);
 
 		/* Current animation frame of nearby house tiles */
 		case 0x63: {
@@ -337,7 +336,7 @@ static uint32 GetDistanceFromNearbyHouse(uint8 parameter, TileIndex tile, HouseI
 
 		/* Cargo acceptance history of nearby stations */
 		case 0x64: {
-			CargoID cid = GetCargoTranslation(parameter, this->ro.grffile);
+			CargoID cid = GetCargoTranslation (parameter, this->grffile);
 			if (cid == CT_INVALID) return 0;
 
 			/* Extract tile offset. */
@@ -375,7 +374,7 @@ static uint32 GetDistanceFromNearbyHouse(uint8 parameter, TileIndex tile, HouseI
 			/* Information about the grf local classid if the house has a class */
 			uint houseclass = 0;
 			if (hs->class_id != HOUSE_NO_CLASS) {
-				houseclass = (hs->grf_prop.grffile == this->ro.grffile ? 1 : 2) << 8;
+				houseclass = (hs->grf_prop.grffile == this->grffile ? 1 : 2) << 8;
 				houseclass |= _class_mapping[hs->class_id].class_id;
 			}
 			/* old house type or grf-local houseid */
@@ -383,7 +382,7 @@ static uint32 GetDistanceFromNearbyHouse(uint8 parameter, TileIndex tile, HouseI
 			if (this->house_id < NEW_HOUSE_OFFSET) {
 				local_houseid = this->house_id;
 			} else {
-				local_houseid = (hs->grf_prop.grffile == this->ro.grffile ? 1 : 2) << 8;
+				local_houseid = (hs->grf_prop.grffile == this->grffile ? 1 : 2) << 8;
 				local_houseid |= hs->grf_prop.local_id;
 			}
 			return houseclass << 16 | local_houseid;
@@ -421,10 +420,10 @@ static uint32 GetDistanceFromNearbyHouse(uint8 parameter, TileIndex tile, HouseI
 		case 0x41: return 0;
 
 		/* Town zone */
-		case 0x42: return FIND_FIRST_BIT(HouseSpec::Get(this->house_id)->building_availability & HZ_ZONALL); // first available
+		case 0x42: return FIND_FIRST_BIT(this->hs->building_availability & HZ_ZONALL); // first available
 
 		/* Terrain type */
-		case 0x43: return _settings_game.game_creation.landscape == LT_ARCTIC && (HouseSpec::Get(house_id)->building_availability & (HZ_SUBARTC_ABOVE | HZ_SUBARTC_BELOW)) == HZ_SUBARTC_ABOVE ? 4 : 0;
+		case 0x43: return _settings_game.game_creation.landscape == LT_ARCTIC && (this->hs->building_availability & (HZ_SUBARTC_ABOVE | HZ_SUBARTC_BELOW)) == HZ_SUBARTC_ABOVE ? 4 : 0;
 
 		/* Number of this type of building on the map. */
 		case 0x44: return 0;
@@ -476,13 +475,20 @@ uint16 GetHouseCallback(CallbackID callback, uint32 param1, uint32 param2, House
 
 	HouseResolverObject object(house_id, tile, town, callback, param1, param2,
 			not_yet_constructed, initial_random_bits, watched_cargo_triggers);
-	return object.ResolveCallback();
+	return SpriteGroup::CallbackResult (object.Resolve());
+}
+
+static inline const SpriteGroup *FakeHouseResolve (HouseID house_id,
+	CallbackID callback = CBID_NO_CALLBACK, uint32 param1 = 0, uint32 param2 = 0)
+{
+	const HouseSpec *hs = HouseSpec::Get (house_id);
+	FakeHouseResolverObject object (hs, callback, param1, param2);
+	return SpriteGroup::Resolve (hs->grf_prop.spritegroup[0], object);
 }
 
 uint16 GetHouseCallback (CallbackID callback, uint32 param1, uint32 param2, HouseID house_id)
 {
-	FakeHouseResolverObject object (house_id, callback, param1, param2);
-	return object.ResolveCallback();
+	return SpriteGroup::CallbackResult (FakeHouseResolve (house_id, callback, param1, param2));
 }
 
 static void DrawTileLayout(const TileInfo *ti, const TileLayoutSpriteGroup *group, byte stage, HouseID house_id)
@@ -568,8 +574,7 @@ void DrawNewHouseTile(TileInfo *ti, HouseID house_id)
 
 void DrawNewHouseTileInGUI(int x, int y, HouseID house_id, bool ground)
 {
-	FakeHouseResolverObject object(house_id);
-	const SpriteGroup *group = object.Resolve();
+	const SpriteGroup *group = FakeHouseResolve (house_id);
 	if (group != NULL && group->type == SGT_TILELAYOUT) {
 		DrawTileLayoutInGUI(x, y, (const TileLayoutSpriteGroup*)group, house_id, ground);
 	}

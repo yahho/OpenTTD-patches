@@ -245,7 +245,7 @@ void NetworkDistributeCommands()
  * @param err pointer to store an error message
  * @return the received packet, or NULL on error
  */
-CommandPacket *CommandPacket::ReceiveFrom (Packet *p, bool from_server, const char **err)
+CommandPacket *CommandPacket::ReceiveFrom (RecvPacket *p, bool from_server, const char **err)
 {
 	CompanyID company = (CompanyID) p->Recv_uint8();
 	CommandID cmd     = (CommandID) p->Recv_uint8();

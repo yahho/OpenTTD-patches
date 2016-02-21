@@ -304,8 +304,14 @@ private:
 	}
 
 public:
-	VehicleGroupWindow(WindowDesc *desc, WindowNumber window_number) : BaseVehicleListWindow(desc, window_number)
+	VehicleGroupWindow (const WindowDesc *desc, WindowNumber window_number)
+		: BaseVehicleListWindow  (desc, window_number),
+		  vehicle_sel (0), group_sel (0), group_rename (0),
+		  group_over (0), group_confirm (0), groups(),
+		  tiny_step_height (0), group_sb (NULL), indents()
 	{
+		memset (this->column_size, 0, sizeof(this->column_size));
+
 		this->CreateNestedTree();
 
 		this->vscroll = this->GetScrollbar(WID_GL_LIST_VEHICLE_SCROLLBAR);
@@ -344,11 +350,11 @@ public:
 		this->GetWidget<NWidgetCore>(WID_GL_DELETE_GROUP)->widget_data += this->vli.vtype;
 		this->GetWidget<NWidgetCore>(WID_GL_REPLACE_PROTECTION)->widget_data += this->vli.vtype;
 
-		this->FinishInitNested(window_number);
+		this->InitNested(window_number);
 		this->owner = vli.company;
 	}
 
-	~VehicleGroupWindow()
+	void OnDelete (void) FINAL_OVERRIDE
 	{
 		*this->sorting = this->vehicles.GetListing();
 	}
@@ -609,7 +615,7 @@ public:
 
 				this->group_sel = this->vli.index = this->groups[id_g]->index;
 
-				SetObjectToPlaceWnd(SPR_CURSOR_MOUSE, PAL_NONE, HT_DRAG, this);
+				SetPointerMode (POINTER_DRAG, this, SPR_CURSOR_MOUSE);
 
 				this->vehicles.ForceRebuild();
 				this->SetDirty();
@@ -626,7 +632,7 @@ public:
 				this->vehicle_sel = v->index;
 
 				int image = v->GetImage(_current_text_dir == TD_RTL ? DIR_E : DIR_W, EIT_IN_LIST);
-				SetObjectToPlaceWnd(image, GetVehiclePalette(v), HT_DRAG, this);
+				SetPointerMode (POINTER_DRAG, this, image, GetVehiclePalette(v));
 				_cursor.vehchain = true;
 
 				this->SetDirty();
@@ -879,23 +885,45 @@ public:
 	 */
 	void UnselectVehicle(VehicleID vehicle)
 	{
-		if (this->vehicle_sel == vehicle) ResetObjectToPlace();
+		if (this->vehicle_sel == vehicle) ResetPointerMode();
 	}
 };
 
 
-static WindowDesc _other_group_desc(
-	WDP_AUTO, "list_groups", 460, 246,
-	WC_INVALID, WC_NONE,
-	0,
-	_nested_group_widgets, lengthof(_nested_group_widgets)
-);
+static WindowDesc::Prefs _other_group_prefs ("list_groups");
 
-static WindowDesc _train_group_desc(
-	WDP_AUTO, "list_groups_train", 525, 246,
+static WindowDesc::Prefs _train_group_prefs ("list_groups_train");
+
+static const WindowDesc _train_group_desc(
+	WDP_AUTO, 525, 246,
 	WC_TRAINS_LIST, WC_NONE,
 	0,
-	_nested_group_widgets, lengthof(_nested_group_widgets)
+	_nested_group_widgets, lengthof(_nested_group_widgets),
+	&_train_group_prefs
+);
+
+static const WindowDesc _roadveh_group_desc(
+	WDP_AUTO, 460, 246,
+	WC_ROADVEH_LIST, WC_NONE,
+	0,
+	_nested_group_widgets, lengthof(_nested_group_widgets),
+	&_other_group_prefs
+);
+
+static const WindowDesc _ship_group_desc(
+	WDP_AUTO, 460, 246,
+	WC_SHIPS_LIST, WC_NONE,
+	0,
+	_nested_group_widgets, lengthof(_nested_group_widgets),
+	&_other_group_prefs
+);
+
+static const WindowDesc _aircraft_group_desc(
+	WDP_AUTO, 460, 246,
+	WC_AIRCRAFT_LIST, WC_NONE,
+	0,
+	_nested_group_widgets, lengthof(_nested_group_widgets),
+	&_other_group_prefs
 );
 
 /**
@@ -905,15 +933,17 @@ static WindowDesc _train_group_desc(
  */
 void ShowCompanyGroup(CompanyID company, VehicleType vehicle_type)
 {
+	static const WindowDesc *const descs[VEH_COMPANY_END] = {
+		&_train_group_desc,     // VEH_TRAIN
+		&_roadveh_group_desc,   // VEH_ROAD
+		&_ship_group_desc,      // VEH_SHIP
+		&_aircraft_group_desc,  // VEH_AIRCRAFT
+	};
+
 	if (!Company::IsValidID(company)) return;
 
 	WindowNumber num = VehicleListIdentifier(VL_GROUP_LIST, vehicle_type, company).Pack();
-	if (vehicle_type == VEH_TRAIN) {
-		AllocateWindowDescFront<VehicleGroupWindow>(&_train_group_desc, num);
-	} else {
-		_other_group_desc.cls = GetWindowClassForVehicleType(vehicle_type);
-		AllocateWindowDescFront<VehicleGroupWindow>(&_other_group_desc, num);
-	}
+	AllocateWindowDescFront<VehicleGroupWindow> (descs[vehicle_type], num);
 }
 
 /**
@@ -994,7 +1024,7 @@ void DeleteGroupHighlightOfVehicle(const Vehicle *v)
 	/* If we haven't got any vehicles on the mouse pointer, we haven't got any highlighted in any group windows either
 	 * If that is the case, we can skip looping though the windows and save time
 	 */
-	if (_special_mouse_mode != WSM_DRAGDROP) return;
+	if (_pointer_mode != POINTER_DRAG) return;
 
 	VehicleGroupWindow *w = FindVehicleGroupWindow(v->type, v->owner);
 	if (w != NULL) w->UnselectVehicle(v->index);

@@ -46,7 +46,8 @@ static long CDECL MidiSendCommand(const char *cmd, ...)
 }
 
 /** OS/2's music player's factory. */
-static FMusicDriver_OS2 iFMusicDriver_OS2;
+static MusicDriverFactory <MusicDriver_OS2>
+		iFMusicDriver_OS2 (10, "os2", "OS/2 Music Driver");
 
 void MusicDriver_OS2::PlaySong(const char *filename)
 {

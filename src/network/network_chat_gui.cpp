@@ -111,7 +111,7 @@ void NetworkReInitChatBoxSize()
 {
 	_chatmsg_box.y       = 3 * FONT_HEIGHT_NORMAL;
 	_chatmsg_box.height  = MAX_CHAT_MESSAGES * (FONT_HEIGHT_NORMAL + NETWORK_CHAT_LINE_SPACING) + 2;
-	_chatmessage_backup  = xrealloct (_chatmessage_backup, _chatmsg_box.width * _chatmsg_box.height * GetCurrentBlitter()->GetBytesPerPixel());
+	_chatmessage_backup  = xrealloct (_chatmessage_backup, _chatmsg_box.width * _chatmsg_box.height * Blitter::get()->GetBytesPerPixel());
 }
 
 /** Initialize all buffers of the chat visualisation. */
@@ -152,7 +152,7 @@ void NetworkUndrawChatMessage()
 	}
 
 	if (_chatmessage_visible) {
-		Blitter *blitter = GetCurrentBlitter();
+		Blitter *blitter = Blitter::get();
 		int x      = _chatmsg_box.x;
 		int y      = _screen.height - _chatmsg_box.y - _chatmsg_box.height;
 		int width  = _chatmsg_box.width;
@@ -170,7 +170,7 @@ void NetworkUndrawChatMessage()
 		/* Put our 'shot' back to the screen */
 		blitter->CopyFromBuffer(blitter->MoveTo(_screen.dst_ptr, x, y), _chatmessage_backup, width, height);
 		/* And make sure it is updated next time */
-		VideoDriver::GetInstance()->MakeDirty(x, y, width, height);
+		VideoDriver::GetActiveDriver()->MakeDirty(x, y, width, height);
 
 		_chatmessage_dirty = true;
 	}
@@ -201,7 +201,7 @@ void NetworkChatMessageLoop()
 /** Draw the chat message-box */
 void NetworkDrawChatMessage()
 {
-	Blitter *blitter = GetCurrentBlitter();
+	Blitter *blitter = Blitter::get();
 	if (!_chatmessage_dirty) return;
 
 	/* First undraw if needed */
@@ -257,7 +257,7 @@ void NetworkDrawChatMessage()
 	}
 
 	/* Make sure the data is updated next flush */
-	VideoDriver::GetInstance()->MakeDirty(x, y, width, height);
+	VideoDriver::GetActiveDriver()->MakeDirty(x, y, width, height);
 
 	_chatmessage_visible = true;
 	_chatmessage_dirty = false;
@@ -292,10 +292,10 @@ struct NetworkChatWindow : public Window {
 	 * @param type The type of destination.
 	 * @param dest The actual destination index.
 	 */
-	NetworkChatWindow(WindowDesc *desc, DestType type, int dest) : Window(desc), message_editbox(NETWORK_CHAT_LENGTH)
+	NetworkChatWindow (const WindowDesc *desc, DestType type, int dest) :
+		Window (desc), dtype (type), dest_string (STR_NULL),
+		dest (dest), message_editbox (NETWORK_CHAT_LENGTH)
 	{
-		this->dtype   = type;
-		this->dest    = dest;
 		this->querystrings[WID_NC_TEXTBOX] = &this->message_editbox;
 		this->message_editbox.cancel_button = WID_NC_CLOSE;
 		this->message_editbox.ok_button = WID_NC_SENDBUTTON;
@@ -317,7 +317,7 @@ struct NetworkChatWindow : public Window {
 		PositionNetworkChatWindow(this);
 	}
 
-	~NetworkChatWindow()
+	void OnDelete (void) FINAL_OVERRIDE
 	{
 		InvalidateWindowData(WC_NEWS_WINDOW, 0, 0);
 	}
@@ -495,7 +495,7 @@ struct NetworkChatWindow : public Window {
 			/* Send */
 			case WID_NC_SENDBUTTON: SendChat(this->message_editbox.GetText(), this->dtype, this->dest);
 				/* FALL THROUGH */
-			case WID_NC_CLOSE: /* Cancel */ delete this; break;
+			case WID_NC_CLOSE: /* Cancel */ this->Delete(); break;
 		}
 	}
 
@@ -521,7 +521,7 @@ struct NetworkChatWindow : public Window {
 	 */
 	virtual void OnInvalidateData(int data = 0, bool gui_scope = true)
 	{
-		if (data == this->dest) delete this;
+		if (data == this->dest) this->Delete();
 	}
 };
 
@@ -541,8 +541,8 @@ static const NWidgetPart _nested_chat_window_widgets[] = {
 };
 
 /** The description of the chat window. */
-static WindowDesc _chat_window_desc(
-	WDP_MANUAL, NULL, 0, 0,
+static const WindowDesc _chat_window_desc(
+	WDP_MANUAL, 0, 0,
 	WC_SEND_NETWORK_MSG, WC_NONE,
 	0,
 	_nested_chat_window_widgets, lengthof(_nested_chat_window_widgets)

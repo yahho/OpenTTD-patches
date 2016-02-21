@@ -795,14 +795,14 @@ void InitializeLandscape()
 	for (uint x = 0; x < sizex; x++) MakeVoid(sizex * y + x);
 }
 
-static const byte _genterrain_tbl_1[5] = { 10, 22, 33, 37, 4  };
-static const byte _genterrain_tbl_2[5] = {  0,  0,  0,  0, 33 };
-
 static void GenerateTerrain(int type, uint flag)
 {
+	static const byte genterrain_tbl[5][2] =
+		{ { 10, 0 }, { 22, 0 }, { 33, 0 }, { 37, 0 }, { 4, 33 } };
+
 	uint32 r = Random();
 
-	const MapGenSprite *templ = GetMapGenSprite ((((r >> 24) * _genterrain_tbl_1[type]) >> 8) + _genterrain_tbl_2[type] + 4845);
+	const MapGenSprite *templ = GetMapGenSprite ((((r >> 24) * genterrain_tbl[type][0]) >> 8) + genterrain_tbl[type][1] + 4845);
 	if (templ == NULL) usererror("Map generator sprites could not be loaded");
 
 	uint x = r & MapMaxX();
@@ -1004,18 +1004,16 @@ static void MakeLake (TileIndex tile, uint height)
 }
 
 /** River node struct for Astar. */
-struct RiverNode : AstarNodeBase<RiverNode> {
-	typedef AstarNodeBase<RiverNode> Base;
+struct RiverNode : AstarNode <RiverNode> {
+	typedef AstarNode <RiverNode> Base;
 	typedef RiverNode Key; // we are our own key
 
 	TileIndex tile;
 	Slope slope;
 
-	void Set (RiverNode *parent, TileIndex t, Slope s)
+	RiverNode (const RiverNode *parent, TileIndex t, Slope s)
+		: Base (parent), tile (t), slope (s)
 	{
-		Base::Set (parent);
-		tile = t;
-		slope = s;
 	}
 
 	bool operator == (const RiverNode &other) const
@@ -1054,20 +1052,20 @@ static bool FlowsDown (DiagDirection dir, Slope slope)
 }
 
 /** River neighbour finder for the A-star algorithm in a given direction. */
-static void RiverFollowDir (RiverAstar *a, RiverNode *n, DiagDirection d)
+static void RiverFollowDir (RiverAstar *a, const RiverNode *n, DiagDirection d)
 {
 	TileIndex tile = TileAddByDiagDir (n->tile, d);
 	if (!IsValidTile (tile)) return;
 
 	Slope slope = GetTileSlope (tile);
 	if (FlowsDown (d, slope)) {
-		RiverNode *m = a->CreateNewNode (n, tile, slope);
-		m->m_cost = n->m_cost + 1 + RandomRange (_settings_game.game_creation.river_route_random);
+		RiverNode m (n, tile, slope);
+		m.m_cost = n->m_cost + 1 + RandomRange (_settings_game.game_creation.river_route_random);
 		if (tile == a->target) {
-			m->m_estimate = m->m_cost;
-			a->FoundTarget(m);
+			m.m_estimate = m.m_cost;
+			a->InsertTarget(m);
 		} else {
-			m->m_estimate = m->m_cost + DistanceManhattan (tile, a->target);
+			m.m_estimate = m.m_cost + DistanceManhattan (tile, a->target);
 			a->InsertNode(m);
 		}
 	}
@@ -1076,7 +1074,7 @@ static void RiverFollowDir (RiverAstar *a, RiverNode *n, DiagDirection d)
 /**
  * River neighbour finder for the A-star algorithm
  */
-static void RiverFollow (RiverAstar *a, RiverNode *n)
+static void RiverFollow (RiverAstar *a, const RiverNode *n)
 {
 	if (n->slope == SLOPE_FLAT) {
 		/* We can flow in all four direction from a flat tile. */
@@ -1101,10 +1099,10 @@ static void BuildRiver(TileIndex begin, TileIndex end)
 	assert (IsTileFlat (begin));
 
 	RiverAstar finder (end);
-	finder.InsertInitialNode (finder.CreateNewNode (NULL, begin, SLOPE_FLAT));
+	finder.InsertInitialNode (RiverNode (NULL, begin, SLOPE_FLAT));
 
 	if (finder.FindPath(&RiverFollow)) {
-		for (RiverNode *n = finder.best; n != NULL; n = n->m_parent) {
+		for (const RiverNode *n = finder.best; n != NULL; n = n->m_parent) {
 			TileIndex tile = n->tile;
 			if (!IsPlainWaterTile(tile)) {
 				MakeRiver(tile, Random());

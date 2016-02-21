@@ -34,7 +34,9 @@
 #include <signal.h>
 #endif
 
-static FVideoDriver_Allegro iFVideoDriver_Allegro;
+/** Factory for the allegro video driver. */
+static VideoDriverFactory <VideoDriver_Allegro>
+		iFVideoDriver_Allegro (4, "allegro", "Allegro Video Driver");
 
 static BITMAP *_allegro_screen;
 
@@ -93,7 +95,7 @@ static void InitPalette()
 static void CheckPaletteAnim()
 {
 	if (_cur_palette.count_dirty != 0) {
-		Blitter *blitter = GetCurrentBlitter();
+		Blitter *blitter = Blitter::get();
 
 		switch (blitter->UsePaletteAnimation()) {
 			case Blitter::PALETTE_ANIMATION_VIDEO_BACKEND:
@@ -192,7 +194,7 @@ static void GetAvailableVideoMode(uint *w, uint *h)
 
 static bool CreateMainSurface(uint w, uint h)
 {
-	int bpp = GetCurrentBlitter()->GetScreenDepth();
+	int bpp = Blitter::get()->GetScreenDepth();
 	if (bpp == 0) usererror("Can't use a blitter that blits 0 bpp for normal visuals");
 	set_color_depth(bpp);
 
@@ -218,7 +220,7 @@ static bool CreateMainSurface(uint w, uint h)
 	_cursor.pos.x = mouse_x;
 	_cursor.pos.y = mouse_y;
 
-	GetCurrentBlitter()->PostResize();
+	Blitter::get()->PostResize();
 
 	InitPalette();
 

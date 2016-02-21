@@ -212,9 +212,11 @@ struct CheatWindow : Window {
 	uint line_height;
 	int box_width;
 
-	CheatWindow(WindowDesc *desc) : Window(desc)
+	CheatWindow (const WindowDesc *desc)
+		: Window (desc), clicked (0), header_height (0),
+		  clicked_widget (0), line_height (0),
+		  box_width (GetSpriteSize(SPR_BOX_EMPTY).width)
 	{
-		this->box_width = GetSpriteSize(SPR_BOX_EMPTY).width;
 		this->InitNested();
 	}
 
@@ -403,12 +405,16 @@ struct CheatWindow : Window {
 	}
 };
 
+/** Window preferences of the cheats GUI. */
+static WindowDesc::Prefs _cheats_prefs ("cheats");
+
 /** Window description of the cheats GUI. */
-static WindowDesc _cheats_desc(
-	WDP_AUTO, "cheats", 0, 0,
+static const WindowDesc _cheats_desc(
+	WDP_AUTO, 0, 0,
 	WC_CHEATS, WC_NONE,
 	0,
-	_nested_cheat_widgets, lengthof(_nested_cheat_widgets)
+	_nested_cheat_widgets, lengthof(_nested_cheat_widgets),
+	&_cheats_prefs
 );
 
 /** Open cheat window. */

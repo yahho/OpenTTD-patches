@@ -246,7 +246,9 @@ public:
 		this->filename_editbox.UpdateSize();
 	}
 
-	SaveLoadWindow(WindowDesc *desc, SaveLoadDialogMode mode) : Window(desc), filename_editbox(64)
+	SaveLoadWindow (const WindowDesc *desc, SaveLoadDialogMode mode)
+		: Window (desc), filename_editbox (64), o_dir(),
+		  selected (NULL), vscroll (NULL)
 	{
 		static const StringID saveload_captions[] = {
 			STR_SAVELOAD_LOAD_CAPTION,
@@ -270,12 +272,12 @@ public:
 		this->querystrings[WID_SL_SAVE_OSK_TITLE] = &this->filename_editbox;
 		this->filename_editbox.ok_button = WID_SL_SAVE_GAME;
 
-		this->CreateNestedTree(true);
+		this->CreateNestedTree();
 		if (mode == SLD_LOAD_GAME) this->GetWidget<NWidgetStacked>(WID_SL_CONTENT_DOWNLOAD_SEL)->SetDisplayedPlane(SZSP_HORIZONTAL);
 		this->GetWidget<NWidgetCore>(WID_SL_CAPTION)->widget_data = saveload_captions[mode];
 		this->vscroll = this->GetScrollbar(WID_SL_SCROLLBAR);
 
-		this->FinishInitNested(0);
+		this->InitNested(0);
 
 		this->LowerWidget(WID_SL_DRIVES_DIRECTORIES_LIST);
 
@@ -284,13 +286,15 @@ public:
 		if (_game_mode != GM_MENU && !_networking && _game_mode != GM_EDITOR) {
 			DoCommandP(0, PM_PAUSED_SAVELOAD, 1, CMD_PAUSE);
 		}
-		SetObjectToPlace(SPR_CURSOR_ZZZ, PAL_NONE, HT_NONE, WC_MAIN_WINDOW, 0);
+		SetPointerMode (POINTER_NONE, WC_MAIN_WINDOW, 0, SPR_CURSOR_ZZZ);
 
 		this->OnInvalidateData(0);
 
-		ResetObjectToPlace();
+		ResetPointerMode();
 
 		o_dir.type = FIOS_TYPE_DIRECT;
+		o_dir.mtime = 0;
+		o_dir.title[0] = '\0';
 		switch (_saveload_mode) {
 			case SLD_SAVE_GAME:
 			case SLD_LOAD_GAME:
@@ -317,7 +321,7 @@ public:
 		}
 	}
 
-	virtual ~SaveLoadWindow()
+	void OnDelete (void) FINAL_OVERRIDE
 	{
 		/* pause is only used in single-player, non-editor mode, non menu mode */
 		if (!_networking && _game_mode != GM_EDITOR && _game_mode != GM_MENU) {
@@ -529,12 +533,12 @@ public:
 					bstrcpy (_file_to_saveload.title, this->selected->title);
 
 					if (_saveload_mode == SLD_LOAD_HEIGHTMAP) {
-						delete this;
+						this->Delete();
 						ShowHeightmapLoad();
 					} else if (!_load_check_data.HasNewGrfs() || _load_check_data.grf_compatibility != GLC_NOT_FOUND || _settings_client.gui.UserIsAllowedToChangeNewGRFs()) {
 						_switch_mode = (_game_mode == GM_EDITOR) ? SM_LOAD_SCENARIO : SM_LOAD_GAME;
 						ClearErrorMessages();
-						delete this;
+						this->Delete();
 					}
 				}
 				break;
@@ -588,7 +592,7 @@ public:
 							bstrcpy (_file_to_saveload.name, name);
 							bstrcpy (_file_to_saveload.title, file->title);
 
-							delete this;
+							this->Delete();
 							ShowHeightmapLoad();
 						}
 					}
@@ -626,7 +630,7 @@ public:
 	virtual EventState OnKeyPress(WChar key, uint16 keycode)
 	{
 		if (keycode == WKC_ESC) {
-			delete this;
+			this->Delete();
 			return ES_HANDLED;
 		}
 
@@ -707,27 +711,39 @@ public:
 };
 
 /** Load game/scenario */
-static WindowDesc _load_dialog_desc(
-	WDP_CENTER, "load_game", 500, 294,
+static WindowDesc::Prefs _load_dialog_prefs ("load_game");
+
+/** Load game/scenario */
+static const WindowDesc _load_dialog_desc(
+	WDP_CENTER, 500, 294,
 	WC_SAVELOAD, WC_NONE,
 	0,
-	_nested_load_dialog_widgets, lengthof(_nested_load_dialog_widgets)
+	_nested_load_dialog_widgets, lengthof(_nested_load_dialog_widgets),
+	&_load_dialog_prefs
 );
 
 /** Load heightmap */
-static WindowDesc _load_heightmap_dialog_desc(
-	WDP_CENTER, "load_heightmap", 257, 320,
+static WindowDesc::Prefs _load_heightmap_dialog_prefs ("load_heightmap");
+
+/** Load heightmap */
+static const WindowDesc _load_heightmap_dialog_desc(
+	WDP_CENTER, 257, 320,
 	WC_SAVELOAD, WC_NONE,
 	0,
-	_nested_load_heightmap_dialog_widgets, lengthof(_nested_load_heightmap_dialog_widgets)
+	_nested_load_heightmap_dialog_widgets, lengthof(_nested_load_heightmap_dialog_widgets),
+	&_load_heightmap_dialog_prefs
 );
 
 /** Save game/scenario */
-static WindowDesc _save_dialog_desc(
-	WDP_CENTER, "save_game", 500, 294,
+static WindowDesc::Prefs _save_dialog_prefs ("save_game");
+
+/** Save game/scenario */
+static const WindowDesc _save_dialog_desc(
+	WDP_CENTER, 500, 294,
 	WC_SAVELOAD, WC_NONE,
 	0,
-	_nested_save_dialog_widgets, lengthof(_nested_save_dialog_widgets)
+	_nested_save_dialog_widgets, lengthof(_nested_save_dialog_widgets),
+	&_save_dialog_prefs
 );
 
 /**
@@ -751,7 +767,7 @@ void ShowSaveLoadDialog(SaveLoadDialogMode mode)
 {
 	DeleteWindowById(WC_SAVELOAD, 0);
 
-	WindowDesc *sld;
+	const WindowDesc *sld;
 	switch (mode) {
 		case SLD_SAVE_GAME:
 		case SLD_SAVE_SCENARIO:

@@ -164,12 +164,16 @@ static const NWidgetPart _nested_build_industry_widgets[] = {
 	EndContainer(),
 };
 
+/** Window preferences of the dynamic place industries gui */
+static WindowDesc::Prefs _build_industry_prefs ("build_industry");
+
 /** Window definition of the dynamic place industries gui */
-static WindowDesc _build_industry_desc(
-	WDP_AUTO, "build_industry", 170, 212,
+static const WindowDesc _build_industry_desc(
+	WDP_AUTO, 170, 212,
 	WC_BUILD_INDUSTRY, WC_NONE,
 	WDF_CONSTRUCTION,
-	_nested_build_industry_widgets, lengthof(_nested_build_industry_widgets)
+	_nested_build_industry_widgets, lengthof(_nested_build_industry_widgets),
+	&_build_industry_prefs
 );
 
 /** Build (fund or prospect) a new industry, */
@@ -243,18 +247,19 @@ class BuildIndustryWindow : public Window {
 	}
 
 public:
-	BuildIndustryWindow() : Window(&_build_industry_desc)
+	BuildIndustryWindow() : Window (&_build_industry_desc),
+		selected_index (-1),
+		selected_type (INVALID_INDUSTRYTYPE),
+		callback_timer (DAY_TICKS),
+		timer_enabled (_loaded_newgrf_features.has_newindustries),
+		count (0), vscroll (NULL)
 	{
-		this->timer_enabled = _loaded_newgrf_features.has_newindustries;
-
-		this->selected_index = -1;
-		this->selected_type = INVALID_INDUSTRYTYPE;
-
-		this->callback_timer = DAY_TICKS;
+		memset (this->index, 0, sizeof(this->index));
+		memset (this->enabled, 0, sizeof(this->enabled));
 
 		this->CreateNestedTree();
 		this->vscroll = this->GetScrollbar(WID_DPI_SCROLLBAR);
-		this->FinishInitNested(0);
+		this->InitNested(0);
 
 		this->SetButtons();
 	}
@@ -482,7 +487,7 @@ public:
 							!this->enabled[this->selected_index])) {
 						/* Reset the button state if going to prospecting or "build many industries" */
 						this->RaiseButtons();
-						ResetObjectToPlace();
+						ResetPointerMode();
 					}
 
 					this->SetButtons();
@@ -511,7 +516,7 @@ public:
 					DoCommandP(0, this->selected_type, InteractiveRandom(), CMD_BUILD_INDUSTRY);
 					this->HandleButtonClick(WID_DPI_FUND_WIDGET);
 				} else {
-					HandlePlacePushButton(this, WID_DPI_FUND_WIDGET, SPR_CURSOR_INDUSTRY, HT_RECT);
+					HandlePlacePushButton (this, WID_DPI_FUND_WIDGET, SPR_CURSOR_INDUSTRY, POINTER_TILE);
 				}
 				break;
 			}
@@ -553,7 +558,7 @@ public:
 		}
 
 		/* If an industry has been built, just reset the cursor and the system */
-		if (success && !_settings_client.gui.persistent_buildingtools) ResetObjectToPlace();
+		if (success && !_settings_client.gui.persistent_buildingtools) ResetPointerMode();
 	}
 
 	virtual void OnTick()
@@ -648,13 +653,13 @@ class IndustryViewWindow : public Window
 	int info_height;          ///< Height needed for the #WID_IV_INFO panel
 
 public:
-	IndustryViewWindow(WindowDesc *desc, WindowNumber window_number) : Window(desc)
+	IndustryViewWindow (const WindowDesc *desc, WindowNumber window_number)
+		: Window (desc), editable (EA_NONE),
+		  editbox_line (IL_NONE), clicked_line (IL_NONE),
+		  clicked_button (0), production_offset_y (0),
+		  info_height (WD_FRAMERECT_TOP + 2 * FONT_HEIGHT_NORMAL + WD_FRAMERECT_BOTTOM + 1) // Info panel has at least two lines text.
 	{
 		this->flags |= WF_DISABLE_VP_SCROLL;
-		this->editbox_line = IL_NONE;
-		this->clicked_line = IL_NONE;
-		this->clicked_button = 0;
-		this->info_height = WD_FRAMERECT_TOP + 2 * FONT_HEIGHT_NORMAL + WD_FRAMERECT_BOTTOM + 1; // Info panel has at least two lines text.
 
 		this->InitNested(window_number);
 		NWidgetViewport *nvp = this->GetWidget<NWidgetViewport>(WID_IV_VIEWPORT);
@@ -1014,12 +1019,16 @@ static const NWidgetPart _nested_industry_view_widgets[] = {
 	EndContainer(),
 };
 
+/** Window preferences of the view industry gui */
+static WindowDesc::Prefs _industry_view_prefs ("view_industry");
+
 /** Window definition of the view industry gui */
-static WindowDesc _industry_view_desc(
-	WDP_AUTO, "view_industry", 260, 120,
+static const WindowDesc _industry_view_desc(
+	WDP_AUTO, 260, 120,
 	WC_INDUSTRY_VIEW, WC_NONE,
 	0,
-	_nested_industry_view_widgets, lengthof(_nested_industry_view_widgets)
+	_nested_industry_view_widgets, lengthof(_nested_industry_view_widgets),
+	&_industry_view_prefs
 );
 
 void ShowIndustryViewWindow(int industry)
@@ -1212,7 +1221,8 @@ protected:
 	}
 
 public:
-	IndustryDirectoryWindow(WindowDesc *desc, WindowNumber number) : Window(desc)
+	IndustryDirectoryWindow (const WindowDesc *desc, WindowNumber number)
+		: Window (desc), industries(), vscroll (NULL)
 	{
 		this->CreateNestedTree();
 		this->vscroll = this->GetScrollbar(WID_ID_SCROLLBAR);
@@ -1222,10 +1232,10 @@ public:
 		this->industries.ForceRebuild();
 		this->BuildSortIndustriesList();
 
-		this->FinishInitNested(0);
+		this->InitNested(0);
 	}
 
-	~IndustryDirectoryWindow()
+	void OnDelete (void) FINAL_OVERRIDE
 	{
 		this->last_sorting = this->industries.GetListing();
 	}
@@ -1386,12 +1396,16 @@ const StringID IndustryDirectoryWindow::sorter_names[] = {
 };
 
 
+/** Window preferences of the industry directory gui */
+static WindowDesc::Prefs _industry_directory_prefs ("list_industries");
+
 /** Window definition of the industry directory gui */
-static WindowDesc _industry_directory_desc(
-	WDP_AUTO, "list_industries", 428, 190,
+static const WindowDesc _industry_directory_desc(
+	WDP_AUTO, 428, 190,
 	WC_INDUSTRY_DIRECTORY, WC_NONE,
 	0,
-	_nested_industry_directory_widgets, lengthof(_nested_industry_directory_widgets)
+	_nested_industry_directory_widgets, lengthof(_nested_industry_directory_widgets),
+	&_industry_directory_prefs
 );
 
 void ShowIndustryDirectory()
@@ -1428,12 +1442,16 @@ static const NWidgetPart _nested_industry_cargoes_widgets[] = {
 	EndContainer(),
 };
 
+/** Window preferences for the industry cargoes window. */
+static WindowDesc::Prefs _industry_cargoes_prefs ("industry_cargoes");
+
 /** Window description for the industry cargoes window. */
-static WindowDesc _industry_cargoes_desc(
-	WDP_AUTO, "industry_cargoes", 300, 210,
+static const WindowDesc _industry_cargoes_desc(
+	WDP_AUTO, 300, 210,
 	WC_INDUSTRY_CARGOES, WC_NONE,
 	0,
-	_nested_industry_cargoes_widgets, lengthof(_nested_industry_cargoes_widgets)
+	_nested_industry_cargoes_widgets, lengthof(_nested_industry_cargoes_widgets),
+	&_industry_cargoes_prefs
 );
 
 /** Available types of field. */
@@ -2035,12 +2053,18 @@ struct IndustryCargoesWindow : public Window {
 	Dimension ind_textsize;   ///< Size to hold any industry type text, as well as STR_INDUSTRY_CARGOES_SELECT_INDUSTRY.
 	Scrollbar *vscroll;
 
-	IndustryCargoesWindow(int id) : Window(&_industry_cargoes_desc)
+	IndustryCargoesWindow (int id) : Window (&_industry_cargoes_desc),
+		fields(), ind_cargo (0), vscroll (NULL), type (CFT_EMPTY)
 	{
+		this->cargo_textsize.width  = 0;
+		this->cargo_textsize.height = 0;
+		this->ind_textsize.width  = 0;
+		this->ind_textsize.height = 0;
+
 		this->OnInit();
 		this->CreateNestedTree();
 		this->vscroll = this->GetScrollbar(WID_IC_SCROLLBAR);
-		this->FinishInitNested(0);
+		this->InitNested(0);
 		this->OnInvalidateData(id);
 	}
 

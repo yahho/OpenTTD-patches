@@ -149,11 +149,14 @@ struct SignListWindow : Window, SignList {
 	int text_offset; ///< Offset of the sign text relative to the left edge of the WID_SIL_LIST widget.
 	Scrollbar *vscroll;
 
-	SignListWindow(WindowDesc *desc, WindowNumber window_number) : Window(desc), filter_editbox(MAX_LENGTH_SIGN_NAME_CHARS * MAX_CHAR_LENGTH, MAX_LENGTH_SIGN_NAME_CHARS)
+	SignListWindow (const WindowDesc *desc, WindowNumber window_number) :
+		Window (desc), SignList(),
+		filter_editbox (MAX_LENGTH_SIGN_NAME_CHARS * MAX_CHAR_LENGTH, MAX_LENGTH_SIGN_NAME_CHARS),
+		text_offset (0), vscroll (NULL)
 	{
 		this->CreateNestedTree();
 		this->vscroll = this->GetScrollbar(WID_SIL_SCROLLBAR);
-		this->FinishInitNested(window_number);
+		this->InitNested(window_number);
 		this->SetWidgetLoweredState(WID_SIL_FILTER_MATCH_CASE_BTN, SignList::match_case);
 
 		/* Initialize the text edit widget */
@@ -350,9 +353,8 @@ static EventState SignListGlobalHotkeys(int hotkey)
 	return w->OnHotkey(hotkey);
 }
 
-static Hotkey signlist_hotkeys[] = {
-	Hotkey('F', "focus_filter_box", SLHK_FOCUS_FILTER_BOX),
-	HOTKEY_LIST_END
+static const Hotkey signlist_hotkeys[] = {
+	Hotkey ("focus_filter_box", SLHK_FOCUS_FILTER_BOX, 'F'),
 };
 HotkeyList SignListWindow::hotkeys("signlist", signlist_hotkeys, SignListGlobalHotkeys);
 
@@ -385,12 +387,14 @@ static const NWidgetPart _nested_sign_list_widgets[] = {
 	EndContainer(),
 };
 
-static WindowDesc _sign_list_desc(
-	WDP_AUTO, "list_signs", 358, 138,
+static WindowDesc::Prefs _sign_list_prefs ("list_signs");
+
+static const WindowDesc _sign_list_desc(
+	WDP_AUTO, 358, 138,
 	WC_SIGN_LIST, WC_NONE,
 	0,
 	_nested_sign_list_widgets, lengthof(_nested_sign_list_widgets),
-	&SignListWindow::hotkeys
+	&_sign_list_prefs, &SignListWindow::hotkeys
 );
 
 /**
@@ -425,7 +429,10 @@ struct SignWindow : Window, SignList {
 	QueryString name_editbox;
 	SignID cur_sign;
 
-	SignWindow(WindowDesc *desc, const Sign *si) : Window(desc), name_editbox(MAX_LENGTH_SIGN_NAME_CHARS * MAX_CHAR_LENGTH, MAX_LENGTH_SIGN_NAME_CHARS)
+	SignWindow (const WindowDesc *desc, const Sign *si) :
+		Window (desc), SignList(),
+		name_editbox (MAX_LENGTH_SIGN_NAME_CHARS * MAX_CHAR_LENGTH, MAX_LENGTH_SIGN_NAME_CHARS),
+		cur_sign (0)
 	{
 		this->querystrings[WID_QES_TEXT] = &this->name_editbox;
 		this->name_editbox.caption = STR_EDIT_SIGN_CAPTION;
@@ -520,7 +527,7 @@ struct SignWindow : Window, SignList {
 				/* FALL THROUGH */
 
 			case WID_QES_CANCEL:
-				delete this;
+				this->Delete();
 				break;
 		}
 	}
@@ -544,11 +551,14 @@ static const NWidgetPart _nested_query_sign_edit_widgets[] = {
 	EndContainer(),
 };
 
-static WindowDesc _query_sign_edit_desc(
-	WDP_CENTER, "query_sign", 0, 0,
+static WindowDesc::Prefs _query_sign_edit_prefs ("query_sign");
+
+static const WindowDesc _query_sign_edit_desc(
+	WDP_CENTER, 0, 0,
 	WC_QUERY_STRING, WC_NONE,
 	WDF_CONSTRUCTION,
-	_nested_query_sign_edit_widgets, lengthof(_nested_query_sign_edit_widgets)
+	_nested_query_sign_edit_widgets, lengthof(_nested_query_sign_edit_widgets),
+	&_query_sign_edit_prefs
 );
 
 /**
@@ -584,5 +594,5 @@ void DeleteRenameSignWindow(SignID sign)
 {
 	SignWindow *w = dynamic_cast<SignWindow *>(FindWindowById(WC_QUERY_STRING, WN_QUERY_STRING_SIGN));
 
-	if (w != NULL && w->cur_sign == sign) delete w;
+	if (w != NULL && w->cur_sign == sign) w->Delete();
 }

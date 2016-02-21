@@ -49,6 +49,7 @@
 #include "language.h"
 #include "vehicle_base.h"
 #include "rail.h"
+#include "core/pointer.h"
 
 #include "table/strings.h"
 #include "table/build_industry.h"
@@ -198,8 +199,6 @@ static inline bool IsValidNewGRFImageIndex(uint8 image_index)
 	return image_index == 0xFD || IsValidImageIndex<T>(image_index);
 }
 
-class OTTDByteReaderSignal { };
-
 /** Class to read from a NewGRF file */
 class ByteReader {
 protected:
@@ -209,10 +208,12 @@ protected:
 public:
 	ByteReader(byte *data, byte *end) : data(data), end(end) { }
 
+	class out_of_data { };
+
 	inline byte ReadByte()
 	{
 		if (data < end) return *(data)++;
-		throw OTTDByteReaderSignal();
+		throw out_of_data();
 	}
 
 	uint16 ReadWord()
@@ -245,23 +246,7 @@ public:
 		}
 	}
 
-	const char *ReadString()
-	{
-		char *string = reinterpret_cast<char *>(data);
-		size_t string_length = ttd_strnlen(string, Remaining());
-
-		if (string_length == Remaining()) {
-			/* String was not NUL terminated, so make sure it is now. */
-			string[string_length - 1] = '\0';
-			grfmsg(7, "String was not terminated with a zero byte.");
-		} else {
-			/* Increase the string length to include the NUL byte. */
-			string_length++;
-		}
-		Skip(string_length);
-
-		return string;
-	}
+	const char *ReadString (void);
 
 	inline size_t Remaining() const
 	{
@@ -270,12 +255,13 @@ public:
 
 	inline bool HasData(size_t count = 1) const
 	{
-		return data + count <= end;
+		return Remaining() >= count;
 	}
 
-	inline byte *Data()
+	uint32 PeekDWord() const
 	{
-		return data;
+		if (!HasData (4)) throw out_of_data();
+		return data[0] | (data[1] << 8) | (data[2] << 16) | (data[3] << 24);
 	}
 
 	inline void Skip(size_t len)
@@ -283,9 +269,39 @@ public:
 		data += len;
 		/* It is valid to move the buffer to exactly the end of the data,
 		 * as there may not be any more data read. */
-		if (data > end) throw OTTDByteReaderSignal();
+		if (data > end) throw out_of_data();
+	}
+
+	byte *Dup (size_t len)
+	{
+		if (!HasData (len)) throw out_of_data();
+
+		byte *p = xmemdupt (data, len);
+		data += len;
+		return p;
 	}
 };
+
+const char *ByteReader::ReadString (void)
+{
+	const char *string = reinterpret_cast<char *>(data);
+
+	size_t remaining = Remaining();
+	size_t string_length = ttd_strnlen (string, remaining);
+
+	if (string_length == remaining) {
+		/* String was not NUL terminated, so make sure it is now. */
+		grfmsg(7, "String was not terminated with a zero byte.");
+		data = end;
+		data[-1] = 0;
+	} else {
+		/* Increase the string length to include the NUL byte. */
+		string_length++;
+		data += string_length;
+	}
+
+	return string;
+}
 
 typedef int (*SpecialSpriteHandler) (ByteReader *buf);
 
@@ -353,7 +369,7 @@ struct GRFLocation {
 };
 
 static std::map<GRFLocation, SpriteID> _grm_sprites;
-typedef std::map<GRFLocation, byte*> GRFLineToSpriteOverride;
+typedef std::map <GRFLocation, ttd_unique_free_ptr <byte> > GRFLineToSpriteOverride;
 static GRFLineToSpriteOverride _grf_line_to_action6_sprite_override;
 
 /**
@@ -1913,7 +1929,7 @@ static ChangeInfoResult StationChangeInfo(uint stid, int numinfo, int prop, Byte
 					NewGRFSpriteLayout *dts = &statspec->renderdata[t];
 					dts->consistent_max_offset = UINT16_MAX; // Spritesets are unknown, so no limit.
 
-					if (buf->HasData(4) && *(uint32*)buf->Data() == 0) {
+					if (buf->HasData(4) && buf->PeekDWord() == 0) {
 						buf->Skip(4);
 						extern const DrawTileSprites _station_display_datas_rail[8];
 						dts->Clone(&_station_display_datas_rail[t % 8]);
@@ -1986,8 +2002,6 @@ static ChangeInfoResult StationChangeInfo(uint stid, int numinfo, int prop, Byte
 				while (buf->HasData()) {
 					byte length = buf->ReadByte();
 					byte number = buf->ReadByte();
-					StationLayout layout;
-					uint l, p;
 
 					if (length == 0 || number == 0) break;
 
@@ -2001,7 +2015,8 @@ static ChangeInfoResult StationChangeInfo(uint stid, int numinfo, int prop, Byte
 
 						statspec->lengths = length;
 					}
-					l = length - 1; // index is zero-based
+
+					uint l = length - 1; // index is zero-based
 
 					if (number > statspec->platforms[l]) {
 						statspec->layouts[l] = xrealloct (statspec->layouts[l], number);
@@ -2012,23 +2027,11 @@ static ChangeInfoResult StationChangeInfo(uint stid, int numinfo, int prop, Byte
 						statspec->platforms[l] = number;
 					}
 
-					p = 0;
-					layout = xmalloct<byte>(length * number);
-					try {
-						for (l = 0; l < length; l++) {
-							for (p = 0; p < number; p++) {
-								layout[l * number + p] = buf->ReadByte();
-							}
-						}
-					} catch (...) {
-						free(layout);
-						throw;
-					}
+					StationLayout layout = buf->Dup (length * number);
 
-					l--;
-					p--;
-					free(statspec->layouts[l][p]);
-					statspec->layouts[l][p] = layout;
+					StationLayout *p = &statspec->layouts[l][number - 1];
+					free (*p);
+					*p = layout;
 				}
 				break;
 
@@ -2716,7 +2719,7 @@ static ChangeInfoResult GlobalVarChangeInfo(uint gvid, int numinfo, int prop, By
 			case 0x10: // Snow line height table
 				if (numinfo > 1 || IsSnowLineSet()) {
 					grfmsg(1, "GlobalVarChangeInfo: The snowline can only be set once (%d)", numinfo);
-				} else if (buf->Remaining() < SNOW_LINE_MONTHS * SNOW_LINE_DAYS) {
+				} else if (!buf->HasData (SNOW_LINE_MONTHS * SNOW_LINE_DAYS)) {
 					grfmsg(1, "GlobalVarChangeInfo: Not enough entries set in the snowline table (" PRINTF_SIZE ")", buf->Remaining());
 				} else {
 					byte table[SNOW_LINE_MONTHS][SNOW_LINE_DAYS];
@@ -2776,8 +2779,10 @@ static ChangeInfoResult GlobalVarChangeInfo(uint gvid, int numinfo, int prop, By
 					break;
 				}
 
-				byte newgrf_id = buf->ReadByte(); // The NewGRF (custom) identifier.
-				while (newgrf_id != 0) {
+				for (;;) {
+					byte newgrf_id = buf->ReadByte(); // The NewGRF (custom) identifier.
+					if (newgrf_id == 0) break;
+
 					const char *name = buf->ReadString(); // The name for the OpenTTD identifier.
 
 					/* We'll just ignore the UTF8 identifier character. This is (fairly)
@@ -2805,7 +2810,6 @@ static ChangeInfoResult GlobalVarChangeInfo(uint gvid, int numinfo, int prop, By
 							*_cur.grffile->language_map[curidx].case_map.Append() = map;
 						}
 					}
-					newgrf_id = buf->ReadByte();
 				}
 				break;
 			}
@@ -3580,16 +3584,7 @@ static ChangeInfoResult IndustriesChangeInfo(uint indid, int numinfo, int prop, 
 
 			case 0x15: { // Random sound effects
 				indsp->number_of_sounds = buf->ReadByte();
-				uint8 *sounds = xmalloct<uint8>(indsp->number_of_sounds);
-
-				try {
-					for (uint8 j = 0; j < indsp->number_of_sounds; j++) {
-						sounds[j] = buf->ReadByte();
-					}
-				} catch (...) {
-					free(sounds);
-					throw;
-				}
+				uint8 *sounds = buf->Dup (indsp->number_of_sounds);
 
 				if (HasBit(indsp->cleanup_flag, CLEAN_RANDOMSOUNDS)) {
 					free(indsp->random_sounds);
@@ -5975,31 +5970,31 @@ static int CfgApply (ByteReader *buf)
 	size_t pos = FioGetPos();
 	uint32 num = _cur.grf_container_ver >= 2 ? FioReadDword() : FioReadWord();
 	uint8 type = FioReadByte();
-	byte *preload_sprite = NULL;
 
 	/* Check if the sprite is a pseudo sprite. We can't operate on real sprites. */
-	if (type == 0xFF) {
-		preload_sprite = xmalloct<byte>(num);
-		FioReadBlock(preload_sprite, num);
-	}
-
-	/* Reset the file position to the start of the next sprite */
-	FioSeekTo(pos, SEEK_SET);
-
 	if (type != 0xFF) {
+		/* Reset the file position to the start of the next sprite */
+		FioSeekTo(pos, SEEK_SET);
+
 		grfmsg(2, "CfgApply: Ignoring (next sprite is real, unsupported)");
-		free(preload_sprite);
 		return 0;
 	}
 
 	GRFLocation location(_cur.grfconfig->ident.grfid, _cur.nfo_line + 1);
-	GRFLineToSpriteOverride::iterator it = _grf_line_to_action6_sprite_override.find(location);
-	if (it != _grf_line_to_action6_sprite_override.end()) {
-		free(preload_sprite);
-		preload_sprite = _grf_line_to_action6_sprite_override[location];
+	std::pair <GRFLineToSpriteOverride::iterator, bool> ins =
+		_grf_line_to_action6_sprite_override.insert (std::make_pair (location, ttd_unique_free_ptr<byte>()));
+
+	byte *preload_sprite;
+	if (ins.second) {
+		preload_sprite = xmalloct<byte> (num);
+		ins.first->second.reset (preload_sprite);
+		FioReadBlock (preload_sprite, num);
 	} else {
-		_grf_line_to_action6_sprite_override[location] = preload_sprite;
+		preload_sprite = ins.first->second.get();
 	}
+
+	/* Reset the file position to the start of the next sprite */
+	FioSeekTo (pos, SEEK_SET);
 
 	/* Now perform the Action 0x06 on our data. */
 
@@ -6416,7 +6411,7 @@ static int GRFLoadError (ByteReader *buf)
 	if (message_id >= lengthof(msgstr) && message_id != 0xFF) {
 		grfmsg(7, "GRFLoadError: Invalid message id.");
 
-	} else if (buf->Remaining() <= 1) {
+	} else if (!buf->HasData (2)) {
 		grfmsg(7, "GRFLoadError: No message data supplied.");
 
 	} else if (_cur.grfconfig->error == NULL) {
@@ -6642,7 +6637,7 @@ static int ParamSet (ByteReader *buf)
 	uint32 src2  = buf->ReadByte();
 
 	uint32 data = 0;
-	if (buf->Remaining() >= 4) data = buf->ReadDWord();
+	if (buf->HasData (4)) data = buf->ReadDWord();
 
 	/* You can add 80 to the operation to make it apply only if the target
 	 * is not defined yet.  In this respect, a parameter is taken to be
@@ -7547,10 +7542,6 @@ static bool ChangeGRFParamDefault(size_t len, ByteReader *buf)
 	return true;
 }
 
-typedef bool (*DataHandler)(size_t, ByteReader *);  ///< Type of callback function for binary nodes
-typedef bool (*TextHandler)(byte, const char *str); ///< Type of callback function for text nodes
-typedef bool (*BranchHandler)(ByteReader *);        ///< Type of callback function for branch nodes
-
 /**
  * Data structure to store the allowed id/type combinations for action 14. The
  * data can be represented as a tree with 3 types of nodes:
@@ -7559,10 +7550,23 @@ typedef bool (*BranchHandler)(ByteReader *);        ///< Type of callback functi
  * 3. Text leaf nodes (identified by 'T').
  */
 struct AllowedSubtags {
+	typedef bool (*DataHandler) (size_t, ByteReader *);  ///< Type of callback function for binary nodes
+	typedef bool (*TextHandler) (byte, const char *str); ///< Type of callback function for text nodes
+	typedef bool (*BranchHandler) (ByteReader *);        ///< Type of callback function for branch nodes
+
+	uint32 id; ///< The identifier for this node
+	byte type; ///< The type of the node, must be one of 'C', 'B' or 'T'.
+	byte nsub; ///< The number of subtags, or 0 if not applicable
+	union {
+		DataHandler     data;          ///< Callback function for a binary node, only valid if type == 'B'.
+		TextHandler     text;          ///< Callback function for a text node, only valid if type == 'T'.
+		BranchHandler   branch;        ///< Callback function for a branch node, only valid if type == 'C' && nsub == 0.
+		const AllowedSubtags *subtags; ///< Pointer to a list of subtags, only valid if type == 'C' && nsub != 0.
+	};
+
 	/** Create empty subtags object used to identify the end of a list. */
-	AllowedSubtags() :
-		id(0),
-		type(0)
+	CONSTEXPR AllowedSubtags() :
+		id(0), type(0), nsub(0), subtags(NULL)
 	{}
 
 	/**
@@ -7570,11 +7574,9 @@ struct AllowedSubtags {
 	 * @param id The id for this node.
 	 * @param handler The callback function to call.
 	 */
-	AllowedSubtags(uint32 id, DataHandler handler) :
-		id(id),
-		type('B')
+	CONSTEXPR AllowedSubtags (uint32 id, DataHandler handler) :
+		id(id), type('B'), nsub(0), data(handler)
 	{
-		this->handler.data = handler;
 	}
 
 	/**
@@ -7582,11 +7584,9 @@ struct AllowedSubtags {
 	 * @param id The id for this node.
 	 * @param handler The callback function to call.
 	 */
-	AllowedSubtags(uint32 id, TextHandler handler) :
-		id(id),
-		type('T')
+	CONSTEXPR AllowedSubtags (uint32 id, TextHandler handler) :
+		id(id), type('T'), nsub(0), text(handler)
 	{
-		this->handler.text = handler;
 	}
 
 	/**
@@ -7594,12 +7594,9 @@ struct AllowedSubtags {
 	 * @param id The id for this node.
 	 * @param handler The callback function to call.
 	 */
-	AllowedSubtags(uint32 id, BranchHandler handler) :
-		id(id),
-		type('C')
+	CONSTEXPR AllowedSubtags (uint32 id, BranchHandler handler) :
+		id(id), type('C'), nsub(0), branch(handler)
 	{
-		this->handler.call_handler = true;
-		this->handler.u.branch = handler;
 	}
 
 	/**
@@ -7607,31 +7604,17 @@ struct AllowedSubtags {
 	 * @param id The id for this node.
 	 * @param subtags Array with all valid subtags.
 	 */
-	AllowedSubtags(uint32 id, AllowedSubtags *subtags) :
-		id(id),
-		type('C')
+	template <uint N>
+	CONSTEXPR AllowedSubtags (uint32 id, const AllowedSubtags (&subtags) [N]) :
+		id(id), type('C'), nsub(N), subtags(subtags)
 	{
-		this->handler.call_handler = false;
-		this->handler.u.subtags = subtags;
+		assert_tcompile (N > 0);
+		assert_tcompile (N <= UINT8_MAX);
 	}
-
-	uint32 id; ///< The identifier for this node
-	byte type; ///< The type of the node, must be one of 'C', 'B' or 'T'.
-	union {
-		DataHandler data; ///< Callback function for a binary node, only valid if type == 'B'.
-		TextHandler text; ///< Callback function for a text node, only valid if type == 'T'.
-		struct {
-			union {
-				BranchHandler branch;    ///< Callback function for a branch node, only valid if type == 'C' && call_handler.
-				AllowedSubtags *subtags; ///< Pointer to a list of subtags, only valid if type == 'C' && !call_handler.
-			} u;
-			bool call_handler; ///< True if there is a callback function for this node, false if there is a list of subnodes.
-		};
-	} handler;
 };
 
 static bool SkipUnknownInfo(ByteReader *buf, byte type);
-static bool HandleNodes(ByteReader *buf, AllowedSubtags *tags);
+static bool HandleNodes(ByteReader *buf, const AllowedSubtags *tags);
 
 /**
  * Callback function for 'INFO'->'PARA'->param_num->'VALU' to set the names
@@ -7641,13 +7624,14 @@ static bool HandleNodes(ByteReader *buf, AllowedSubtags *tags);
  */
 static bool ChangeGRFParamValueNames(ByteReader *buf)
 {
-	byte type = buf->ReadByte();
-	while (type != 0) {
+	for (;;) {
+		byte type = buf->ReadByte();
+		if (type == 0) break;
+
 		uint32 id = buf->ReadDWord();
 		if (type != 'T' || id > _cur_parameter->max_value) {
 			grfmsg(2, "StaticGRFInfo: all child nodes of 'INFO'->'PARA'->param_num->'VALU' should have type 't' and the value/bit number as id");
 			if (!SkipUnknownInfo(buf, type)) return false;
-			type = buf->ReadByte();
 			continue;
 		}
 
@@ -7656,14 +7640,12 @@ static bool ChangeGRFParamValueNames(ByteReader *buf)
 
 		_cur_parameter->value_names[id].add (langid,
 				_cur.grfconfig->ident.grfid, false, name_string);
-
-		type = buf->ReadByte();
 	}
 	return true;
 }
 
 /** Action14 parameter tags */
-AllowedSubtags _tags_parameters[] = {
+static const AllowedSubtags _tags_parameters[] = {
 	AllowedSubtags('NAME', ChangeGRFParamName),
 	AllowedSubtags('DESC', ChangeGRFParamDescription),
 	AllowedSubtags('TYPE', ChangeGRFParamType),
@@ -7682,13 +7664,14 @@ AllowedSubtags _tags_parameters[] = {
  */
 static bool HandleParameterInfo(ByteReader *buf)
 {
-	byte type = buf->ReadByte();
-	while (type != 0) {
+	for (;;) {
+		byte type = buf->ReadByte();
+		if (type == 0) break;
+
 		uint32 id = buf->ReadDWord();
 		if (type != 'C' || id >= _cur.grfconfig->num_valid_params) {
 			grfmsg(2, "StaticGRFInfo: all child nodes of 'INFO'->'PARA' should have type 'C' and their parameter number as id");
 			if (!SkipUnknownInfo(buf, type)) return false;
-			type = buf->ReadByte();
 			continue;
 		}
 
@@ -7703,13 +7686,12 @@ static bool HandleParameterInfo(ByteReader *buf)
 		_cur_parameter = _cur.grfconfig->param_info[id];
 		/* Read all parameter-data and process each node. */
 		if (!HandleNodes(buf, _tags_parameters)) return false;
-		type = buf->ReadByte();
 	}
 	return true;
 }
 
 /** Action14 tags for the INFO node */
-AllowedSubtags _tags_info[] = {
+static const AllowedSubtags _tags_info[] = {
 	AllowedSubtags('NAME', ChangeGRFName),
 	AllowedSubtags('DESC', ChangeGRFDescription),
 	AllowedSubtags('URL_', ChangeGRFURL),
@@ -7723,7 +7705,7 @@ AllowedSubtags _tags_info[] = {
 };
 
 /** Action14 root tags */
-AllowedSubtags _tags_root[] = {
+static const AllowedSubtags _tags_root[] = {
 	AllowedSubtags('INFO', _tags_info),
 	AllowedSubtags()
 };
@@ -7739,15 +7721,14 @@ static bool SkipUnknownInfo(ByteReader *buf, byte type)
 {
 	/* type and id are already read */
 	switch (type) {
-		case 'C': {
-			byte new_type = buf->ReadByte();
-			while (new_type != 0) {
+		case 'C':
+			for (;;) {
+				byte new_type = buf->ReadByte();
+				if (new_type == 0) break;
 				buf->ReadDWord(); // skip the id
 				if (!SkipUnknownInfo(buf, new_type)) return false;
-				new_type = buf->ReadByte();
 			}
 			break;
-		}
 
 		case 'T':
 			buf->ReadByte(); // lang
@@ -7775,31 +7756,29 @@ static bool SkipUnknownInfo(ByteReader *buf, byte type)
  * @param subtags Allowed subtags.
  * @return Whether all tags could be handled.
  */
-static bool HandleNode(byte type, uint32 id, ByteReader *buf, AllowedSubtags subtags[])
+static bool HandleNode (byte type, uint32 id, ByteReader *buf, const AllowedSubtags *subtags)
 {
-	uint i = 0;
-	AllowedSubtags *tag;
-	while ((tag = &subtags[i++])->type != 0) {
+	for (const AllowedSubtags *tag = subtags; tag->type != 0; tag++) {
 		if (tag->id != BSWAP32(id) || tag->type != type) continue;
 		switch (type) {
 			default: NOT_REACHED();
 
 			case 'T': {
 				byte langid = buf->ReadByte();
-				return tag->handler.text(langid, buf->ReadString());
+				return tag->text (langid, buf->ReadString());
 			}
 
 			case 'B': {
 				size_t len = buf->ReadWord();
-				if (buf->Remaining() < len) return false;
-				return tag->handler.data(len, buf);
+				if (!buf->HasData (len)) return false;
+				return tag->data (len, buf);
 			}
 
 			case 'C': {
-				if (tag->handler.call_handler) {
-					return tag->handler.u.branch(buf);
+				if (tag->nsub == 0) {
+					return tag->branch (buf);
 				}
-				return HandleNodes(buf, tag->handler.u.subtags);
+				return HandleNodes (buf, tag->subtags);
 			}
 		}
 	}
@@ -7813,13 +7792,13 @@ static bool HandleNode(byte type, uint32 id, ByteReader *buf, AllowedSubtags sub
  * @param subtags List of subtags.
  * @return Whether the nodes could all be handled.
  */
-static bool HandleNodes(ByteReader *buf, AllowedSubtags subtags[])
+static bool HandleNodes (ByteReader *buf, const AllowedSubtags *subtags)
 {
-	byte type = buf->ReadByte();
-	while (type != 0) {
+	for (;;) {
+		byte type = buf->ReadByte();
+		if (type == 0) break;
 		uint32 id = buf->ReadDWord();
 		if (!HandleNode(type, id, buf, subtags)) return false;
-		type = buf->ReadByte();
 	}
 	return true;
 }
@@ -8825,7 +8804,7 @@ static int DecodeSpecialSprite (byte *buf, uint num, GrfLoadingStage stage)
 		FioReadBlock(buf, num);
 	} else {
 		/* Use the preloaded sprite data. */
-		buf = _grf_line_to_action6_sprite_override[location];
+		buf = it->second.get();
 		grfmsg(7, "DecodeSpecialSprite: Using preloaded pseudo sprite data");
 
 		/* Skip the real (original) content of this action. */
@@ -9159,9 +9138,6 @@ static void AfterLoadGRFs()
 	_string_to_grf_mapping.Clear();
 
 	/* Free the action 6 override sprites. */
-	for (GRFLineToSpriteOverride::iterator it = _grf_line_to_action6_sprite_override.begin(); it != _grf_line_to_action6_sprite_override.end(); it++) {
-		free((*it).second);
-	}
 	_grf_line_to_action6_sprite_override.clear();
 
 	/* Polish cargoes */

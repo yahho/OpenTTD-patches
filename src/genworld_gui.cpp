@@ -321,8 +321,11 @@ struct GenerateLandscapeWindow : public Window {
 	GenerateLandscapeWindowMode mode;
 	QueryString seed_editbox;
 
-	GenerateLandscapeWindow(WindowDesc *desc, WindowNumber number = 0) : Window(desc), seed_editbox(11)
+	GenerateLandscapeWindow (const WindowDesc *desc, WindowNumber number = 0)
+		: Window (desc), widget_id (0), x (0), y (0), seed_editbox (11)
 	{
+		this->name[0] = '\0';
+
 		this->InitNested(number);
 
 		this->LowerWidget(_settings_newgame.game_creation.landscape + WID_GL_TEMPERATE);
@@ -835,15 +838,15 @@ struct GenerateLandscapeWindow : public Window {
 	}
 };
 
-static WindowDesc _generate_landscape_desc(
-	WDP_CENTER, NULL, 0, 0,
+static const WindowDesc _generate_landscape_desc(
+	WDP_CENTER, 0, 0,
 	WC_GENERATE_LANDSCAPE, WC_NONE,
 	0,
 	_nested_generate_landscape_widgets, lengthof(_nested_generate_landscape_widgets)
 );
 
-static WindowDesc _heightmap_load_desc(
-	WDP_CENTER, NULL, 0, 0,
+static const WindowDesc _heightmap_load_desc(
+	WDP_CENTER, 0, 0,
 	WC_GENERATE_LANDSCAPE, WC_NONE,
 	0,
 	_nested_heightmap_load_widgets, lengthof(_nested_heightmap_load_widgets)
@@ -864,7 +867,7 @@ static void _ShowGenerateLandscape(GenerateLandscapeWindowMode mode)
 		if (!GetHeightmapDimensions(_file_to_saveload.name, &x, &y)) return;
 	}
 
-	WindowDesc *desc = (mode == GLWM_HEIGHTMAP) ? &_heightmap_load_desc : &_generate_landscape_desc;
+	const WindowDesc *desc = (mode == GLWM_HEIGHTMAP) ? &_heightmap_load_desc : &_generate_landscape_desc;
 	GenerateLandscapeWindow *w = AllocateWindowDescFront<GenerateLandscapeWindow>(desc, mode, true);
 
 	if (mode == GLWM_HEIGHTMAP) {
@@ -910,7 +913,8 @@ struct CreateScenarioWindow : public Window
 {
 	uint widget_id;
 
-	CreateScenarioWindow(WindowDesc *desc, WindowNumber window_number) : Window(desc)
+	CreateScenarioWindow (const WindowDesc *desc, WindowNumber window_number)
+		: Window (desc), widget_id (0)
 	{
 		this->InitNested(window_number);
 		this->LowerWidget(_settings_newgame.game_creation.landscape + WID_CS_TEMPERATE);
@@ -1137,8 +1141,8 @@ static const NWidgetPart _nested_create_scenario_widgets[] = {
 	EndContainer(),
 };
 
-static WindowDesc _create_scenario_desc(
-	WDP_CENTER, NULL, 0, 0,
+static const WindowDesc _create_scenario_desc(
+	WDP_CENTER, 0, 0,
 	WC_GENERATE_LANDSCAPE, WC_NONE,
 	0,
 	_nested_create_scenario_widgets, lengthof(_nested_create_scenario_widgets)
@@ -1165,8 +1169,8 @@ static const NWidgetPart _nested_generate_progress_widgets[] = {
 };
 
 
-static WindowDesc _generate_progress_desc(
-	WDP_CENTER, NULL, 0, 0,
+static const WindowDesc _generate_progress_desc(
+	WDP_CENTER, 0, 0,
 	WC_MODAL_PROGRESS, WC_NONE,
 	0,
 	_nested_generate_progress_widgets, lengthof(_nested_generate_progress_widgets)

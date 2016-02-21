@@ -18,7 +18,10 @@
 #include "allegro_s.h"
 #include <allegro.h>
 
-static FSoundDriver_Allegro iFSoundDriver_Allegro;
+/** Factory for the allegro sound driver. */
+static SoundDriverFactory <SoundDriver_Allegro>
+		iFSoundDriver_Allegro (4, "allegro", "Allegro Sound Driver");
+
 /** The stream we are writing too */
 static AUDIOSTREAM *_stream = NULL;
 /** The number of samples in the buffer */

@@ -38,7 +38,7 @@ struct SetDateWindow : Window {
 	 * @param max_year the maximum year (inclusive) to show in the year dropdown
 	 * @param callback the callback to call once a date has been selected
 	 */
-	SetDateWindow(WindowDesc *desc, WindowNumber window_number, Window *parent, Date initial_date, Year min_year, Year max_year, SetDateCallback *callback) :
+	SetDateWindow (const WindowDesc *desc, WindowNumber window_number, Window *parent, Date initial_date, Year min_year, Year max_year, SetDateCallback *callback) :
 			Window(desc),
 			callback(callback),
 			min_year(max(MIN_YEAR, min_year)),
@@ -147,7 +147,7 @@ struct SetDateWindow : Window {
 
 			case WID_SD_SET_DATE:
 				if (this->callback != NULL) this->callback(this, ConvertYMDToDate(this->date.year, this->date.month, this->date.day));
-				delete this;
+				this->Delete();
 				break;
 		}
 	}
@@ -194,8 +194,8 @@ static const NWidgetPart _nested_set_date_widgets[] = {
 };
 
 /** Description of the date setting window. */
-static WindowDesc _set_date_desc(
-	WDP_CENTER, NULL, 0, 0,
+static const WindowDesc _set_date_desc(
+	WDP_CENTER, 0, 0,
 	WC_SET_DATE, WC_NONE,
 	0,
 	_nested_set_date_widgets, lengthof(_nested_set_date_widgets)

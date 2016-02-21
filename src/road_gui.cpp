@@ -89,7 +89,7 @@ void CcPlaySound1D(const CommandCost &result, TileIndex tile, uint32 p1, uint32 
 /** Show the bridge building window between a pair of tiles. */
 static void HandleBuildRoadBridge (TileIndex start_tile, TileIndex end_tile)
 {
-	if (!_settings_client.gui.persistent_buildingtools) ResetObjectToPlace();
+	if (!_settings_client.gui.persistent_buildingtools) ResetPointerMode();
 	ShowBuildBridgeWindow (start_tile, end_tile, TRANSPORT_ROAD, RoadTypeToRoadTypes(_cur_roadtype));
 }
 
@@ -108,7 +108,7 @@ void CcBuildTunnel(const CommandCost &result, TileIndex start_tile, uint32 p1, u
 		bool road = ((TransportType)GB(p1, 8, 2) == TRANSPORT_ROAD);
 
 		if (_settings_client.sound.confirm) SndPlayTileFx (road ? SND_1F_SPLAT_OTHER : SND_20_SPLAT_RAIL, start_tile);
-		if (!_settings_client.gui.persistent_buildingtools) ResetObjectToPlace();
+		if (!_settings_client.gui.persistent_buildingtools) ResetPointerMode();
 
 		if (road) {
 			DiagDirection start_direction = ReverseDiagDir(GetTunnelBridgeDirection(start_tile));
@@ -189,7 +189,7 @@ void CcRoadDepot(const CommandCost &result, TileIndex tile, uint32 p1, uint32 p2
 
 	DiagDirection dir = (DiagDirection)GB(p1, 0, 2);
 	if (_settings_client.sound.confirm) SndPlayTileFx(SND_1F_SPLAT_OTHER, tile);
-	if (!_settings_client.gui.persistent_buildingtools) ResetObjectToPlace();
+	if (!_settings_client.gui.persistent_buildingtools) ResetPointerMode();
 	ConnectRoadToStructure(tile, dir);
 }
 
@@ -213,7 +213,7 @@ void CcRoadStop(const CommandCost &result, TileIndex tile, uint32 p1, uint32 p2)
 
 	DiagDirection dir = (DiagDirection)GB(p2, 6, 2);
 	if (_settings_client.sound.confirm) SndPlayTileFx(SND_1F_SPLAT_OTHER, tile);
-	if (!_settings_client.gui.persistent_buildingtools) ResetObjectToPlace();
+	if (!_settings_client.gui.persistent_buildingtools) ResetPointerMode();
 	TileArea roadstop_area(tile, GB(p1, 0, 8), GB(p1, 8, 8));
 	TILE_AREA_LOOP(cur_tile, roadstop_area) {
 		ConnectRoadToStructure(cur_tile, dir);
@@ -285,7 +285,8 @@ static bool RoadToolbar_CtrlChanged(Window *w)
 struct BuildRoadToolbarWindow : Window {
 	int last_started_action; ///< Last started user action.
 
-	BuildRoadToolbarWindow(WindowDesc *desc, WindowNumber window_number) : Window(desc)
+	BuildRoadToolbarWindow (const WindowDesc *desc, WindowNumber window_number) :
+		Window (desc), last_started_action (WIDGET_LIST_END)
 	{
 		this->InitNested(window_number);
 		this->SetWidgetsDisabledState(true,
@@ -294,12 +295,11 @@ struct BuildRoadToolbarWindow : Window {
 				WIDGET_LIST_END);
 
 		this->OnInvalidateData();
-		this->last_started_action = WIDGET_LIST_END;
 
 		if (_settings_client.gui.link_terraform_toolbar) ShowTerraformToolbar(this);
 	}
 
-	~BuildRoadToolbarWindow()
+	void OnDelete (void) FINAL_OVERRIDE
 	{
 		if (_settings_client.gui.link_terraform_toolbar) DeleteWindowById(WC_SCEN_LAND_GEN, 0, false);
 	}
@@ -383,28 +383,28 @@ struct BuildRoadToolbarWindow : Window {
 		_one_way_button_clicked = false;
 		switch (widget) {
 			case WID_ROT_ROAD_X:
-				HandlePlacePushButton(this, WID_ROT_ROAD_X, _road_type_infos[_cur_roadtype].cursor_nwse, HT_RECT);
+				HandlePlacePushButton (this, WID_ROT_ROAD_X, _road_type_infos[_cur_roadtype].cursor_nwse, POINTER_TILE);
 				this->last_started_action = widget;
 				break;
 
 			case WID_ROT_ROAD_Y:
-				HandlePlacePushButton(this, WID_ROT_ROAD_Y, _road_type_infos[_cur_roadtype].cursor_nesw, HT_RECT);
+				HandlePlacePushButton (this, WID_ROT_ROAD_Y, _road_type_infos[_cur_roadtype].cursor_nesw, POINTER_TILE);
 				this->last_started_action = widget;
 				break;
 
 			case WID_ROT_AUTOROAD:
-				HandlePlacePushButton(this, WID_ROT_AUTOROAD, _road_type_infos[_cur_roadtype].cursor_autoroad, HT_RECT);
+				HandlePlacePushButton (this, WID_ROT_AUTOROAD, _road_type_infos[_cur_roadtype].cursor_autoroad, POINTER_TILE);
 				this->last_started_action = widget;
 				break;
 
 			case WID_ROT_DEMOLISH:
-				HandlePlacePushButton(this, WID_ROT_DEMOLISH, ANIMCURSOR_DEMOLISH, HT_RECT | HT_DIAGONAL);
+				HandlePlacePushButton (this, WID_ROT_DEMOLISH, ANIMCURSOR_DEMOLISH, POINTER_TILE);
 				this->last_started_action = widget;
 				break;
 
 			case WID_ROT_DEPOT:
 				if (_game_mode == GM_EDITOR || !CanBuildVehicleInfrastructure(VEH_ROAD)) return;
-				if (HandlePlacePushButton(this, WID_ROT_DEPOT, SPR_CURSOR_ROAD_DEPOT, HT_RECT)) {
+				if (HandlePlacePushButton (this, WID_ROT_DEPOT, SPR_CURSOR_ROAD_DEPOT, POINTER_TILE)) {
 					ShowRoadDepotPicker(this);
 					this->last_started_action = widget;
 				}
@@ -412,7 +412,7 @@ struct BuildRoadToolbarWindow : Window {
 
 			case WID_ROT_BUS_STATION:
 				if (_game_mode == GM_EDITOR || !CanBuildVehicleInfrastructure(VEH_ROAD)) return;
-				if (HandlePlacePushButton(this, WID_ROT_BUS_STATION, SPR_CURSOR_BUS_STATION, HT_RECT)) {
+				if (HandlePlacePushButton (this, WID_ROT_BUS_STATION, SPR_CURSOR_BUS_STATION, POINTER_TILE)) {
 					ShowRVStationPicker(this, ROADSTOP_BUS);
 					this->last_started_action = widget;
 				}
@@ -420,7 +420,7 @@ struct BuildRoadToolbarWindow : Window {
 
 			case WID_ROT_TRUCK_STATION:
 				if (_game_mode == GM_EDITOR || !CanBuildVehicleInfrastructure(VEH_ROAD)) return;
-				if (HandlePlacePushButton(this, WID_ROT_TRUCK_STATION, SPR_CURSOR_TRUCK_STATION, HT_RECT)) {
+				if (HandlePlacePushButton (this, WID_ROT_TRUCK_STATION, SPR_CURSOR_TRUCK_STATION, POINTER_TILE)) {
 					ShowRVStationPicker(this, ROADSTOP_TRUCK);
 					this->last_started_action = widget;
 				}
@@ -434,12 +434,12 @@ struct BuildRoadToolbarWindow : Window {
 				break;
 
 			case WID_ROT_BUILD_BRIDGE:
-				HandlePlacePushButton(this, WID_ROT_BUILD_BRIDGE, SPR_CURSOR_BRIDGE, HT_RECT);
+				HandlePlacePushButton (this, WID_ROT_BUILD_BRIDGE, SPR_CURSOR_BRIDGE, POINTER_TILE);
 				this->last_started_action = widget;
 				break;
 
 			case WID_ROT_BUILD_TUNNEL:
-				HandlePlacePushButton(this, WID_ROT_BUILD_TUNNEL, SPR_CURSOR_ROAD_TUNNEL, HT_SPECIAL);
+				HandlePlacePushButton (this, WID_ROT_BUILD_TUNNEL, SPR_CURSOR_ROAD_TUNNEL, POINTER_AREA);
 				this->last_started_action = widget;
 				break;
 
@@ -471,13 +471,13 @@ struct BuildRoadToolbarWindow : Window {
 			case WID_ROT_ROAD_X:
 				_place_road_flag = RF_DIR_X;
 				if (_tile_fract_coords.x >= 8) _place_road_flag |= RF_START_HALFROAD_X;
-				VpStartPlaceSizing(tile, VPM_FIX_Y, DRAG_PLACE_ROAD_X_DIR);
+				VpStartPlaceSizing (tile, VPM_X, DRAG_PLACE_ROAD_X_DIR);
 				break;
 
 			case WID_ROT_ROAD_Y:
 				_place_road_flag = RF_DIR_Y;
 				if (_tile_fract_coords.y >= 8) _place_road_flag |= RF_START_HALFROAD_Y;
-				VpStartPlaceSizing(tile, VPM_FIX_X, DRAG_PLACE_ROAD_Y_DIR);
+				VpStartPlaceSizing (tile, VPM_Y, DRAG_PLACE_ROAD_Y_DIR);
 				break;
 
 			case WID_ROT_AUTOROAD:
@@ -488,7 +488,7 @@ struct BuildRoadToolbarWindow : Window {
 				break;
 
 			case WID_ROT_DEMOLISH:
-				VpStartPlaceSizing (tile, VPM_X_AND_Y, DRAG_DEMOLISH_AREA);
+				VpStartPlaceSizing (tile, VPM_X_AND_Y_ROTATED, DRAG_DEMOLISH_AREA);
 				break;
 
 			case WID_ROT_DEPOT:
@@ -502,11 +502,10 @@ struct BuildRoadToolbarWindow : Window {
 					VpStartPlaceSizing (tile, VPM_X_AND_Y, bus ? DRAG_REMOVE_BUSSTOP : DRAG_REMOVE_TRUCKSTOP);
 				} else {
 					VpStartPlaceSizing (tile,
-							_road_station_picker_orientation < DIAGDIR_END ? // Not a drive-through stop.
-								(DiagDirToAxis(_road_station_picker_orientation) == AXIS_X) ? VPM_X_LIMITED : VPM_Y_LIMITED :
-								VPM_X_AND_Y_LIMITED,
-						bus ? DRAG_BUILD_BUSSTOP : DRAG_BUILD_TRUCKSTOP);
-					VpSetPlaceSizingLimit (_settings_game.station.station_spread);
+						(_road_station_picker_orientation >= DIAGDIR_END) ? VPM_X_AND_Y : // drive-through stop
+							(DiagDirToAxis(_road_station_picker_orientation) == AXIS_X) ? VPM_Y : VPM_X,
+						bus ? DRAG_BUILD_BUSSTOP : DRAG_BUILD_TRUCKSTOP,
+						_settings_game.station.station_spread);
 				}
 				break;
 			}
@@ -545,7 +544,7 @@ struct BuildRoadToolbarWindow : Window {
 		DeleteWindowByClass(WC_BUILD_BRIDGE);
 	}
 
-	void OnPlaceDrag (ViewportPlaceMethod select_method, int userdata, Point pt) OVERRIDE
+	bool OnPlaceDrag (int userdata, Point pt) OVERRIDE
 	{
 		/* Here we update the end tile flags
 		 * of the road placement actions.
@@ -585,7 +584,7 @@ struct BuildRoadToolbarWindow : Window {
 				break;
 		}
 
-		VpSelectTilesWithMethod(pt.x, pt.y, select_method);
+		return true;
 	}
 
 	void OnPlaceMouseUp (int userdata, Point pt, TileIndex start_tile, TileIndex end_tile) OVERRIDE
@@ -648,10 +647,10 @@ struct BuildRoadToolbarWindow : Window {
 		}
 	}
 
-	virtual void OnPlacePresize(Point pt, TileIndex tile)
+	void OnPlacePresize (TileIndex *tile, TileIndex *tile2) OVERRIDE
 	{
-		DoCommand(tile, RoadTypeToRoadTypes(_cur_roadtype) | (TRANSPORT_ROAD << 8), 0, DC_AUTO, CMD_BUILD_TUNNEL);
-		VpSetPresizeRange(tile, _build_tunnel_endtile == 0 ? tile : _build_tunnel_endtile);
+		DoCommand (*tile, RoadTypeToRoadTypes(_cur_roadtype) | (TRANSPORT_ROAD << 8), 0, DC_AUTO, CMD_BUILD_TUNNEL);
+		if (_build_tunnel_endtile != 0) *tile2 = _build_tunnel_endtile;
 	}
 
 	virtual EventState OnCTRLStateChange()
@@ -690,19 +689,18 @@ static EventState RoadToolbarGlobalHotkeys(int hotkey)
 	return w->OnHotkey(hotkey);
 }
 
-static Hotkey roadtoolbar_hotkeys[] = {
-	Hotkey('1', "build_x", WID_ROT_ROAD_X),
-	Hotkey('2', "build_y", WID_ROT_ROAD_Y),
-	Hotkey('3', "autoroad", WID_ROT_AUTOROAD),
-	Hotkey('4', "demolish", WID_ROT_DEMOLISH),
-	Hotkey('5', "depot", WID_ROT_DEPOT),
-	Hotkey('6', "bus_station", WID_ROT_BUS_STATION),
-	Hotkey('7', "truck_station", WID_ROT_TRUCK_STATION),
-	Hotkey('8', "oneway", WID_ROT_ONE_WAY),
-	Hotkey('B', "bridge", WID_ROT_BUILD_BRIDGE),
-	Hotkey('T', "tunnel", WID_ROT_BUILD_TUNNEL),
-	Hotkey('R', "remove", WID_ROT_REMOVE),
-	HOTKEY_LIST_END
+static const Hotkey roadtoolbar_hotkeys[] = {
+	Hotkey ("build_x",       WID_ROT_ROAD_X,        '1'),
+	Hotkey ("build_y",       WID_ROT_ROAD_Y,        '2'),
+	Hotkey ("autoroad",      WID_ROT_AUTOROAD,      '3'),
+	Hotkey ("demolish",      WID_ROT_DEMOLISH,      '4'),
+	Hotkey ("depot",         WID_ROT_DEPOT,         '5'),
+	Hotkey ("bus_station",   WID_ROT_BUS_STATION,   '6'),
+	Hotkey ("truck_station", WID_ROT_TRUCK_STATION, '7'),
+	Hotkey ("oneway",        WID_ROT_ONE_WAY,       '8'),
+	Hotkey ("bridge",        WID_ROT_BUILD_BRIDGE,  'B'),
+	Hotkey ("tunnel",        WID_ROT_BUILD_TUNNEL,  'T'),
+	Hotkey ("remove",        WID_ROT_REMOVE,        'R'),
 };
 HotkeyList BuildRoadToolbarWindow::hotkeys("roadtoolbar", roadtoolbar_hotkeys, RoadToolbarGlobalHotkeys);
 
@@ -740,12 +738,14 @@ static const NWidgetPart _nested_build_road_widgets[] = {
 	EndContainer(),
 };
 
-static WindowDesc _build_road_desc(
-	WDP_ALIGN_TOOLBAR, "toolbar_road", 0, 0,
+static WindowDesc::Prefs _build_road_prefs ("toolbar_road");
+
+static const WindowDesc _build_road_desc(
+	WDP_ALIGN_TOOLBAR, 0, 0,
 	WC_BUILD_TOOLBAR, WC_NONE,
 	WDF_CONSTRUCTION,
 	_nested_build_road_widgets, lengthof(_nested_build_road_widgets),
-	&BuildRoadToolbarWindow::hotkeys
+	&_build_road_prefs, &BuildRoadToolbarWindow::hotkeys
 );
 
 static const NWidgetPart _nested_build_tramway_widgets[] = {
@@ -780,12 +780,14 @@ static const NWidgetPart _nested_build_tramway_widgets[] = {
 	EndContainer(),
 };
 
-static WindowDesc _build_tramway_desc(
-	WDP_ALIGN_TOOLBAR, "toolbar_tramway", 0, 0,
+static WindowDesc::Prefs _build_tramway_prefs ("toolbar_tramway");
+
+static const WindowDesc _build_tramway_desc(
+	WDP_ALIGN_TOOLBAR, 0, 0,
 	WC_BUILD_TOOLBAR, WC_NONE,
 	WDF_CONSTRUCTION,
 	_nested_build_tramway_widgets, lengthof(_nested_build_tramway_widgets),
-	&BuildRoadToolbarWindow::hotkeys
+	&_build_tramway_prefs, &BuildRoadToolbarWindow::hotkeys
 );
 
 /**
@@ -831,12 +833,14 @@ static const NWidgetPart _nested_build_road_scen_widgets[] = {
 	EndContainer(),
 };
 
-static WindowDesc _build_road_scen_desc(
-	WDP_AUTO, "toolbar_road_scen", 0, 0,
+static WindowDesc::Prefs _build_road_scen_prefs ("toolbar_road_scen");
+
+static const WindowDesc _build_road_scen_desc(
+	WDP_AUTO, 0, 0,
 	WC_SCEN_BUILD_TOOLBAR, WC_NONE,
 	WDF_CONSTRUCTION,
 	_nested_build_road_scen_widgets, lengthof(_nested_build_road_scen_widgets),
-	&BuildRoadToolbarWindow::hotkeys
+	&_build_road_scen_prefs, &BuildRoadToolbarWindow::hotkeys
 );
 
 /**
@@ -850,7 +854,7 @@ Window *ShowBuildRoadScenToolbar()
 }
 
 struct BuildRoadDepotWindow : public PickerWindowBase {
-	BuildRoadDepotWindow(WindowDesc *desc, Window *parent) : PickerWindowBase(desc, parent)
+	BuildRoadDepotWindow (const WindowDesc *desc, Window *parent) : PickerWindowBase(desc, parent)
 	{
 		this->CreateNestedTree();
 
@@ -860,7 +864,7 @@ struct BuildRoadDepotWindow : public PickerWindowBase {
 			for (int i = WID_BROD_DEPOT_NE; i <= WID_BROD_DEPOT_NW; i++) this->GetWidget<NWidgetCore>(i)->tool_tip = STR_BUILD_DEPOT_TRAM_ORIENTATION_SELECT_TOOLTIP;
 		}
 
-		this->FinishInitNested(TRANSPORT_ROAD);
+		this->InitNested(TRANSPORT_ROAD);
 	}
 
 	virtual void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize)
@@ -928,8 +932,8 @@ static const NWidgetPart _nested_build_road_depot_widgets[] = {
 	EndContainer(),
 };
 
-static WindowDesc _build_road_depot_desc(
-	WDP_AUTO, NULL, 0, 0,
+static const WindowDesc _build_road_depot_desc(
+	WDP_AUTO, 0, 0,
 	WC_BUILD_DEPOT, WC_BUILD_TOOLBAR,
 	WDF_CONSTRUCTION,
 	_nested_build_road_depot_widgets, lengthof(_nested_build_road_depot_widgets)
@@ -941,7 +945,7 @@ static void ShowRoadDepotPicker(Window *parent)
 }
 
 struct BuildRoadStationWindow : public PickerWindowBase {
-	BuildRoadStationWindow(WindowDesc *desc, Window *parent, RoadStopType rs) : PickerWindowBase(desc, parent)
+	BuildRoadStationWindow (const WindowDesc *desc, Window *parent, RoadStopType rs) : PickerWindowBase(desc, parent)
 	{
 		this->CreateNestedTree();
 
@@ -962,14 +966,15 @@ struct BuildRoadStationWindow : public PickerWindowBase {
 		this->LowerWidget(_road_station_picker_orientation + WID_BROS_STATION_NE);
 		this->LowerWidget(_settings_client.gui.station_show_coverage + WID_BROS_LT_OFF);
 
-		this->FinishInitNested(TRANSPORT_ROAD);
+		this->InitNested(TRANSPORT_ROAD);
 
 		this->window_class = (rs == ROADSTOP_BUS) ? WC_BUS_STATION : WC_TRUCK_STATION;
 	}
 
-	virtual ~BuildRoadStationWindow()
+	void OnDelete (void) FINAL_OVERRIDE
 	{
 		DeleteWindowById(WC_SELECT_STATION, 0);
+		this->PickerWindowBase::OnDelete();
 	}
 
 	virtual void OnPaint()
@@ -1092,8 +1097,8 @@ static const NWidgetPart _nested_rv_station_picker_widgets[] = {
 	EndContainer(),
 };
 
-static WindowDesc _rv_station_picker_desc(
-	WDP_AUTO, NULL, 0, 0,
+static const WindowDesc _rv_station_picker_desc(
+	WDP_AUTO, 0, 0,
 	WC_BUS_STATION, WC_BUILD_TOOLBAR,
 	WDF_CONSTRUCTION,
 	_nested_rv_station_picker_widgets, lengthof(_nested_rv_station_picker_widgets)

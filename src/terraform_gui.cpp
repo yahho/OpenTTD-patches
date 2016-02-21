@@ -171,12 +171,12 @@ void HandleDemolishMouseUp (TileIndex start_tile, TileIndex end_tile)
 struct TerraformToolbarWindow : Window {
 	int placing_action; ///< Currently active placing action.
 
-	TerraformToolbarWindow(WindowDesc *desc, WindowNumber window_number) : Window(desc)
+	TerraformToolbarWindow (const WindowDesc *desc, WindowNumber window_number) :
+		Window (desc), placing_action (-1)
 	{
 		/* This is needed as we like to have the tree available on OnInit. */
 		this->CreateNestedTree();
-		this->FinishInitNested(window_number);
-		this->placing_action = -1;
+		this->InitNested(window_number);
 	}
 
 	~TerraformToolbarWindow()
@@ -196,27 +196,27 @@ struct TerraformToolbarWindow : Window {
 
 		switch (widget) {
 			case WID_TT_LOWER_LAND: // Lower land button
-				HandlePlacePushButton(this, WID_TT_LOWER_LAND, ANIMCURSOR_LOWERLAND, HT_POINT | HT_DIAGONAL);
+				HandlePlacePushButton (this, WID_TT_LOWER_LAND, ANIMCURSOR_LOWERLAND, POINTER_CORNER);
 				this->placing_action = PLACE_LOWER_AREA;
 				break;
 
 			case WID_TT_RAISE_LAND: // Raise land button
-				HandlePlacePushButton(this, WID_TT_RAISE_LAND, ANIMCURSOR_RAISELAND, HT_POINT | HT_DIAGONAL);
+				HandlePlacePushButton (this, WID_TT_RAISE_LAND, ANIMCURSOR_RAISELAND, POINTER_CORNER);
 				this->placing_action = PLACE_RAISE_AREA;
 				break;
 
 			case WID_TT_LEVEL_LAND: // Level land button
-				HandlePlacePushButton(this, WID_TT_LEVEL_LAND, SPR_CURSOR_LEVEL_LAND, HT_POINT | HT_DIAGONAL);
+				HandlePlacePushButton (this, WID_TT_LEVEL_LAND, SPR_CURSOR_LEVEL_LAND, POINTER_CORNER);
 				this->placing_action = PLACE_LEVEL_AREA;
 				break;
 
 			case WID_TT_DEMOLISH: // Demolish aka dynamite button
-				HandlePlacePushButton(this, WID_TT_DEMOLISH, ANIMCURSOR_DEMOLISH, HT_RECT | HT_DIAGONAL);
+				HandlePlacePushButton (this, WID_TT_DEMOLISH, ANIMCURSOR_DEMOLISH, POINTER_TILE);
 				this->placing_action = PLACE_DEMOLISH_AREA;
 				break;
 
 			case WID_TT_BUY_LAND: // Buy land button
-				HandlePlacePushButton(this, WID_TT_BUY_LAND, SPR_CURSOR_BUY_LAND, HT_RECT);
+				HandlePlacePushButton (this, WID_TT_BUY_LAND, SPR_CURSOR_BUY_LAND, POINTER_TILE);
 				this->placing_action = PLACE_BUY_LAND;
 				break;
 
@@ -225,7 +225,7 @@ struct TerraformToolbarWindow : Window {
 				break;
 
 			case WID_TT_PLACE_SIGN: // Place sign button
-				HandlePlacePushButton(this, WID_TT_PLACE_SIGN, SPR_CURSOR_SIGN, HT_RECT);
+				HandlePlacePushButton (this, WID_TT_PLACE_SIGN, SPR_CURSOR_SIGN, POINTER_TILE);
 				this->placing_action = PLACE_SIGN;
 				break;
 
@@ -241,7 +241,7 @@ struct TerraformToolbarWindow : Window {
 	{
 		switch (this->placing_action) {
 			default:
-				VpStartPlaceSizing (tile, VPM_X_AND_Y, this->placing_action);
+				VpStartPlaceSizing (tile, VPM_X_AND_Y_ROTATED, this->placing_action);
 				break;
 
 			case PLACE_BUY_LAND:
@@ -252,11 +252,6 @@ struct TerraformToolbarWindow : Window {
 				PlaceProc_Sign(tile);
 				break;
 		}
-	}
-
-	void OnPlaceDrag (ViewportPlaceMethod select_method, int userdata, Point pt) OVERRIDE
-	{
-		VpSelectTilesWithMethod(pt.x, pt.y, select_method);
 	}
 
 	virtual Point OnInitialPosition(int16 sm_width, int16 sm_height, int window_number)
@@ -302,16 +297,15 @@ static EventState TerraformToolbarGlobalHotkeys(int hotkey)
 	return w->OnHotkey(hotkey);
 }
 
-static Hotkey terraform_hotkeys[] = {
-	Hotkey('Q' | WKC_GLOBAL_HOTKEY, "lower", WID_TT_LOWER_LAND),
-	Hotkey('W' | WKC_GLOBAL_HOTKEY, "raise", WID_TT_RAISE_LAND),
-	Hotkey('E' | WKC_GLOBAL_HOTKEY, "level", WID_TT_LEVEL_LAND),
-	Hotkey('D' | WKC_GLOBAL_HOTKEY, "dynamite", WID_TT_DEMOLISH),
-	Hotkey('U', "buyland", WID_TT_BUY_LAND),
-	Hotkey('I', "trees", WID_TT_PLANT_TREES),
-	Hotkey('O', "placesign", WID_TT_PLACE_SIGN),
-	Hotkey('P', "placeobject", WID_TT_PLACE_OBJECT),
-	HOTKEY_LIST_END
+static const Hotkey terraform_hotkeys[] = {
+	Hotkey ("lower",       WID_TT_LOWER_LAND,   'Q' | WKC_GLOBAL_HOTKEY),
+	Hotkey ("raise",       WID_TT_RAISE_LAND,   'W' | WKC_GLOBAL_HOTKEY),
+	Hotkey ("level",       WID_TT_LEVEL_LAND,   'E' | WKC_GLOBAL_HOTKEY),
+	Hotkey ("dynamite",    WID_TT_DEMOLISH,     'D' | WKC_GLOBAL_HOTKEY),
+	Hotkey ("buyland",     WID_TT_BUY_LAND,     'U'),
+	Hotkey ("trees",       WID_TT_PLANT_TREES,  'I'),
+	Hotkey ("placesign",   WID_TT_PLACE_SIGN,   'O'),
+	Hotkey ("placeobject", WID_TT_PLACE_OBJECT, 'P'),
 };
 HotkeyList TerraformToolbarWindow::hotkeys("terraform", terraform_hotkeys, TerraformToolbarGlobalHotkeys);
 
@@ -346,12 +340,14 @@ static const NWidgetPart _nested_terraform_widgets[] = {
 	EndContainer(),
 };
 
-static WindowDesc _terraform_desc(
-	WDP_MANUAL, "toolbar_landscape", 0, 0,
+static WindowDesc::Prefs _terraform_prefs ("toolbar_landscape");
+
+static const WindowDesc _terraform_desc(
+	WDP_MANUAL, 0, 0,
 	WC_SCEN_LAND_GEN, WC_NONE,
 	WDF_CONSTRUCTION,
 	_nested_terraform_widgets, lengthof(_nested_terraform_widgets),
-	&TerraformToolbarWindow::hotkeys
+	&_terraform_prefs, &TerraformToolbarWindow::hotkeys
 );
 
 /**
@@ -530,13 +526,13 @@ static void ResetLandscapeConfirmationCallback(Window *w, bool confirmed)
 struct ScenarioEditorLandscapeGenerationWindow : Window {
 	int placing_action; ///< Currently active placing action.
 
-	ScenarioEditorLandscapeGenerationWindow(WindowDesc *desc, WindowNumber window_number) : Window(desc)
+	ScenarioEditorLandscapeGenerationWindow (const WindowDesc *desc, WindowNumber window_number) :
+		Window (desc), placing_action (-1)
 	{
 		this->CreateNestedTree();
 		NWidgetStacked *show_desert = this->GetWidget<NWidgetStacked>(WID_ETT_SHOW_PLACE_DESERT);
 		show_desert->SetDisplayedPlane(_settings_game.game_creation.landscape == LT_TROPIC ? 0 : SZSP_NONE);
-		this->FinishInitNested(window_number);
-		this->placing_action = -1;
+		this->InitNested(window_number);
 	}
 
 	virtual void OnPaint()
@@ -579,32 +575,32 @@ struct ScenarioEditorLandscapeGenerationWindow : Window {
 
 		switch (widget) {
 			case WID_ETT_DEMOLISH: // Demolish aka dynamite button
-				HandlePlacePushButton(this, WID_ETT_DEMOLISH, ANIMCURSOR_DEMOLISH, HT_RECT | HT_DIAGONAL);
+				HandlePlacePushButton (this, WID_ETT_DEMOLISH, ANIMCURSOR_DEMOLISH, POINTER_TILE);
 				this->placing_action = PLACE_DEMOLISH_AREA;
 				break;
 
 			case WID_ETT_LOWER_LAND: // Lower land button
-				HandlePlacePushButton(this, WID_ETT_LOWER_LAND, ANIMCURSOR_LOWERLAND, HT_POINT | HT_DIAGONAL);
+				HandlePlacePushButton (this, WID_ETT_LOWER_LAND, ANIMCURSOR_LOWERLAND, POINTER_CORNER);
 				this->placing_action = PLACE_LOWER_AREA;
 				break;
 
 			case WID_ETT_RAISE_LAND: // Raise land button
-				HandlePlacePushButton(this, WID_ETT_RAISE_LAND, ANIMCURSOR_RAISELAND, HT_POINT | HT_DIAGONAL);
+				HandlePlacePushButton (this, WID_ETT_RAISE_LAND, ANIMCURSOR_RAISELAND, POINTER_CORNER);
 				this->placing_action = PLACE_RAISE_AREA;
 				break;
 
 			case WID_ETT_LEVEL_LAND: // Level land button
-				HandlePlacePushButton(this, WID_ETT_LEVEL_LAND, SPR_CURSOR_LEVEL_LAND, HT_POINT | HT_DIAGONAL);
+				HandlePlacePushButton (this, WID_ETT_LEVEL_LAND, SPR_CURSOR_LEVEL_LAND, POINTER_CORNER);
 				this->placing_action = PLACE_LEVEL_AREA;
 				break;
 
 			case WID_ETT_PLACE_ROCKS: // Place rocks button
-				HandlePlacePushButton(this, WID_ETT_PLACE_ROCKS, SPR_CURSOR_ROCKY_AREA, HT_RECT);
+				HandlePlacePushButton (this, WID_ETT_PLACE_ROCKS, SPR_CURSOR_ROCKY_AREA, POINTER_TILE);
 				this->placing_action = PLACE_CREATE_ROCKS;
 				break;
 
 			case WID_ETT_PLACE_DESERT: // Place desert button (in tropical climate)
-				HandlePlacePushButton(this, WID_ETT_PLACE_DESERT, SPR_CURSOR_DESERT, HT_RECT);
+				HandlePlacePushButton (this, WID_ETT_PLACE_DESERT, SPR_CURSOR_DESERT, POINTER_TILE);
 				this->placing_action = PLACE_CREATE_DESERT;
 				break;
 
@@ -664,14 +660,14 @@ struct ScenarioEditorLandscapeGenerationWindow : Window {
 				}
 				/* fall through */
 			default:
+				VpStartPlaceSizing (tile, VPM_X_AND_Y_ROTATED, this->placing_action);
+				break;
+
+			case PLACE_CREATE_ROCKS:
+			case PLACE_CREATE_DESERT:
 				VpStartPlaceSizing (tile, VPM_X_AND_Y, this->placing_action);
 				break;
 		}
-	}
-
-	void OnPlaceDrag (ViewportPlaceMethod select_method, int userdata, Point pt) OVERRIDE
-	{
-		VpSelectTilesWithMethod(pt.x, pt.y, select_method);
 	}
 
 	void OnPlaceMouseUp (int userdata, Point pt, TileIndex start_tile, TileIndex end_tile) OVERRIDE
@@ -713,26 +709,27 @@ static EventState TerraformToolbarEditorGlobalHotkeys(int hotkey)
 	return w->OnHotkey(hotkey);
 }
 
-static Hotkey terraform_editor_hotkeys[] = {
-	Hotkey('D' | WKC_GLOBAL_HOTKEY, "dynamite", WID_ETT_DEMOLISH),
-	Hotkey('Q' | WKC_GLOBAL_HOTKEY, "lower", WID_ETT_LOWER_LAND),
-	Hotkey('W' | WKC_GLOBAL_HOTKEY, "raise", WID_ETT_RAISE_LAND),
-	Hotkey('E' | WKC_GLOBAL_HOTKEY, "level", WID_ETT_LEVEL_LAND),
-	Hotkey('R', "rocky", WID_ETT_PLACE_ROCKS),
-	Hotkey('T', "desert", WID_ETT_PLACE_DESERT),
-	Hotkey('O', "object", WID_ETT_PLACE_OBJECT),
-	Hotkey('H', "house", WID_ETT_PLACE_HOUSE),
-	HOTKEY_LIST_END
+static const Hotkey terraform_editor_hotkeys[] = {
+	Hotkey ("dynamite", WID_ETT_DEMOLISH,     'D' | WKC_GLOBAL_HOTKEY),
+	Hotkey ("lower",    WID_ETT_LOWER_LAND,   'Q' | WKC_GLOBAL_HOTKEY),
+	Hotkey ("raise",    WID_ETT_RAISE_LAND,   'W' | WKC_GLOBAL_HOTKEY),
+	Hotkey ("level",    WID_ETT_LEVEL_LAND,   'E' | WKC_GLOBAL_HOTKEY),
+	Hotkey ("rocky",    WID_ETT_PLACE_ROCKS,  'R'),
+	Hotkey ("desert",   WID_ETT_PLACE_DESERT, 'T'),
+	Hotkey ("object",   WID_ETT_PLACE_OBJECT, 'O'),
+	Hotkey ("house",    WID_ETT_PLACE_HOUSE,  'H'),
 };
 
 HotkeyList ScenarioEditorLandscapeGenerationWindow::hotkeys("terraform_editor", terraform_editor_hotkeys, TerraformToolbarEditorGlobalHotkeys);
 
-static WindowDesc _scen_edit_land_gen_desc(
-	WDP_AUTO, "toolbar_landscape_scen", 0, 0,
+static WindowDesc::Prefs _scen_edit_land_gen_prefs ("toolbar_landscape_scen");
+
+static const WindowDesc _scen_edit_land_gen_desc(
+	WDP_AUTO, 0, 0,
 	WC_SCEN_LAND_GEN, WC_NONE,
 	WDF_CONSTRUCTION,
 	_nested_scen_edit_land_gen_widgets, lengthof(_nested_scen_edit_land_gen_widgets),
-	&ScenarioEditorLandscapeGenerationWindow::hotkeys
+	&_scen_edit_land_gen_prefs, &ScenarioEditorLandscapeGenerationWindow::hotkeys
 );
 
 /**

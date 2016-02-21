@@ -30,12 +30,13 @@
 #endif
 
 /** Factory for the midi player that uses external players. */
-static FMusicDriver_ExtMidi iFMusicDriver_ExtMidi;
+static MusicDriverFactory <MusicDriver_ExtMidi>
+		iFMusicDriver_ExtMidi (3, "extmidi", "External MIDI Driver");
 
 const char *MusicDriver_ExtMidi::Start(const char * const * parm)
 {
-	if (strcmp(VideoDriver::GetInstance()->GetName(), "allegro") == 0 ||
-			strcmp(SoundDriver::GetInstance()->GetName(), "allegro") == 0) {
+	if (strcmp (VideoDriver::GetActiveDriverName(), "allegro") == 0 ||
+			strcmp (SoundDriver::GetActiveDriverName(), "allegro") == 0) {
 		return "the extmidi driver does not work when Allegro is loaded.";
 	}
 
@@ -48,41 +49,62 @@ const char *MusicDriver_ExtMidi::Start(const char * const * parm)
 	return NULL;
 }
 
+static void DoStop (pid_t *pid)
+{
+	if (*pid <= 0) return;
+
+	/* First try to gracefully stop for about five seconds;
+	 * 5 seconds = 5000 milliseconds, 10 ms per cycle => 500 cycles. */
+	for (int i = 0; i < 500; i++) {
+		kill (*pid, SIGTERM);
+		if (waitpid (*pid, NULL, WNOHANG) == *pid) {
+			/* It has shut down, so we are done */
+			*pid = -1;
+			return;
+		}
+		/* Wait 10 milliseconds. */
+		CSleep (10);
+	}
+
+	DEBUG(driver, 0, "extmidi: gracefully stopping failed, trying the hard way");
+	/* Gracefully stopping failed. Do it the hard way
+	 * and wait till the process finally died. */
+	kill (*pid, SIGKILL);
+	waitpid (*pid, NULL, 0);
+	*pid = -1;
+}
+
 void MusicDriver_ExtMidi::Stop()
 {
 	free(command);
 	this->song[0] = '\0';
-	this->DoStop();
+	DoStop (&this->pid);
 }
 
 void MusicDriver_ExtMidi::PlaySong(const char *filename)
 {
 	bstrcpy (this->song, filename);
-	this->DoStop();
+	DoStop (&this->pid);
 }
 
 void MusicDriver_ExtMidi::StopSong()
 {
 	this->song[0] = '\0';
-	this->DoStop();
+	DoStop (&this->pid);
 }
 
 bool MusicDriver_ExtMidi::IsSongPlaying()
 {
-	if (this->pid != -1 && waitpid(this->pid, NULL, WNOHANG) == this->pid) {
-		this->pid = -1;
+	if (this->pid != -1) {
+		if (waitpid (this->pid, NULL, WNOHANG) == this->pid) {
+			this->pid = -1;
+		} else {
+			return true;
+		}
 	}
-	if (this->pid == -1 && this->song[0] != '\0') this->DoPlay();
-	return this->pid != -1;
-}
 
-void MusicDriver_ExtMidi::SetVolume(byte vol)
-{
-	DEBUG(driver, 1, "extmidi: set volume not implemented");
-}
+	if (this->song[0] == '\0') return false;
 
-void MusicDriver_ExtMidi::DoPlay()
-{
 	this->pid = fork();
 	switch (this->pid) {
 		case 0: {
@@ -106,29 +128,11 @@ void MusicDriver_ExtMidi::DoPlay()
 			this->song[0] = '\0';
 			break;
 	}
+
+	return this->pid != -1;
 }
 
-void MusicDriver_ExtMidi::DoStop()
+void MusicDriver_ExtMidi::SetVolume(byte vol)
 {
-	if (this->pid <= 0) return;
-
-	/* First try to gracefully stop for about five seconds;
-	 * 5 seconds = 5000 milliseconds, 10 ms per cycle => 500 cycles. */
-	for (int i = 0; i < 500; i++) {
-		kill(this->pid, SIGTERM);
-		if (waitpid(this->pid, NULL, WNOHANG) == this->pid) {
-			/* It has shut down, so we are done */
-			this->pid = -1;
-			return;
-		}
-		/* Wait 10 milliseconds. */
-		CSleep(10);
-	}
-
-	DEBUG(driver, 0, "extmidi: gracefully stopping failed, trying the hard way");
-	/* Gracefully stopping failed. Do it the hard way
-	 * and wait till the process finally died. */
-	kill(this->pid, SIGKILL);
-	waitpid(this->pid, NULL, 0);
-	this->pid = -1;
+	DEBUG(driver, 1, "extmidi: set volume not implemented");
 }

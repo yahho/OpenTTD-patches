@@ -20,14 +20,6 @@ public:
 	/* virtual */ const char *Start(const char * const *param);
 
 	/* virtual */ void Stop();
-	/* virtual */ const char *GetName() const { return "sdl"; }
-};
-
-/** Factory for the SDL sound driver. */
-class FSoundDriver_SDL : public DriverFactoryBase {
-public:
-	FSoundDriver_SDL() : DriverFactoryBase(Driver::DT_SOUND, 5, "sdl", "SDL Sound Driver") {}
-	/* virtual */ Driver *CreateInstance() const { return new SoundDriver_SDL(); }
 };
 
 #endif /* SOUND_SDL_H */

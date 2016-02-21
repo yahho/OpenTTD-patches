@@ -43,7 +43,7 @@ static const uint INVALID_DATAPOINT_POS = UINT_MAX;  // Used to determine if the
 /****************/
 
 struct GraphLegendWindow : Window {
-	GraphLegendWindow(WindowDesc *desc, WindowNumber window_number) : Window(desc)
+	GraphLegendWindow (const WindowDesc *desc, WindowNumber window_number) : Window(desc)
 	{
 		this->InitNested(window_number);
 
@@ -140,11 +140,14 @@ static const NWidgetPart _nested_graph_legend_widgets[] = {
 	EndContainer(),
 };
 
-static WindowDesc _graph_legend_desc(
-	WDP_AUTO, "graph_legend", 0, 0,
+static WindowDesc::Prefs _graph_legend_prefs ("graph_legend");
+
+static const WindowDesc _graph_legend_desc(
+	WDP_AUTO, 0, 0,
 	WC_GRAPH_LEGEND, WC_NONE,
 	0,
-	_nested_graph_legend_widgets, lengthof(_nested_graph_legend_widgets)
+	_nested_graph_legend_widgets, lengthof(_nested_graph_legend_widgets),
+	&_graph_legend_prefs
 );
 
 static void ShowGraphLegend()
@@ -465,13 +468,22 @@ protected:
 	}
 
 
-	BaseGraphWindow(WindowDesc *desc, int widget, StringID format_str_y_axis) :
+	BaseGraphWindow (const WindowDesc *desc, int widget, StringID format_str_y_axis) :
 			Window(desc),
+			excluded_data(0),
+			num_dataset(0),
+			num_on_x_axis(0),
+			num_vert_lines(24),
+			month(0),
+			year(0),
+			x_values_start(0),
+			x_values_increment(0),
+			graph_widget(widget),
 			format_str_y_axis(format_str_y_axis)
 	{
+		memset (this->colours, 0, sizeof(this->colours));
+		memset (this->cost, 0, sizeof(this->cost));
 		SetWindowDirty(WC_GRAPH_LEGEND, 0);
-		this->num_vert_lines = 24;
-		this->graph_widget = widget;
 	}
 
 	void InitializeWindow(WindowNumber number)
@@ -613,7 +625,7 @@ public:
 /********************/
 
 struct OperatingProfitGraphWindow : BaseGraphWindow {
-	OperatingProfitGraphWindow(WindowDesc *desc, WindowNumber window_number) :
+	OperatingProfitGraphWindow (const WindowDesc *desc, WindowNumber window_number) :
 			BaseGraphWindow(desc, WID_CV_GRAPH, STR_JUST_CURRENCY_SHORT)
 	{
 		this->InitializeWindow(window_number);
@@ -645,11 +657,14 @@ static const NWidgetPart _nested_operating_profit_widgets[] = {
 	EndContainer(),
 };
 
-static WindowDesc _operating_profit_desc(
-	WDP_AUTO, "graph_operating_profit", 0, 0,
+static WindowDesc::Prefs _operating_profit_prefs ("graph_operating_profit");
+
+static const WindowDesc _operating_profit_desc(
+	WDP_AUTO, 0, 0,
 	WC_OPERATING_PROFIT, WC_NONE,
 	0,
-	_nested_operating_profit_widgets, lengthof(_nested_operating_profit_widgets)
+	_nested_operating_profit_widgets, lengthof(_nested_operating_profit_widgets),
+	&_operating_profit_prefs
 );
 
 
@@ -664,7 +679,7 @@ void ShowOperatingProfitGraph()
 /****************/
 
 struct IncomeGraphWindow : BaseGraphWindow {
-	IncomeGraphWindow(WindowDesc *desc, WindowNumber window_number) :
+	IncomeGraphWindow (const WindowDesc *desc, WindowNumber window_number) :
 			BaseGraphWindow(desc, WID_CV_GRAPH, STR_JUST_CURRENCY_SHORT)
 	{
 		this->InitializeWindow(window_number);
@@ -696,11 +711,14 @@ static const NWidgetPart _nested_income_graph_widgets[] = {
 	EndContainer(),
 };
 
-static WindowDesc _income_graph_desc(
-	WDP_AUTO, "graph_income", 0, 0,
+static WindowDesc::Prefs _income_graph_prefs ("graph_income");
+
+static const WindowDesc _income_graph_desc(
+	WDP_AUTO, 0, 0,
 	WC_INCOME_GRAPH, WC_NONE,
 	0,
-	_nested_income_graph_widgets, lengthof(_nested_income_graph_widgets)
+	_nested_income_graph_widgets, lengthof(_nested_income_graph_widgets),
+	&_income_graph_prefs
 );
 
 void ShowIncomeGraph()
@@ -713,7 +731,7 @@ void ShowIncomeGraph()
 /*******************/
 
 struct DeliveredCargoGraphWindow : BaseGraphWindow {
-	DeliveredCargoGraphWindow(WindowDesc *desc, WindowNumber window_number) :
+	DeliveredCargoGraphWindow (const WindowDesc *desc, WindowNumber window_number) :
 			BaseGraphWindow(desc, WID_CV_GRAPH, STR_JUST_COMMA)
 	{
 		this->InitializeWindow(window_number);
@@ -745,11 +763,14 @@ static const NWidgetPart _nested_delivered_cargo_graph_widgets[] = {
 	EndContainer(),
 };
 
-static WindowDesc _delivered_cargo_graph_desc(
-	WDP_AUTO, "graph_delivered_cargo", 0, 0,
+static WindowDesc::Prefs _delivered_cargo_graph_prefs ("graph_delivered_cargo");
+
+static const WindowDesc _delivered_cargo_graph_desc(
+	WDP_AUTO, 0, 0,
 	WC_DELIVERED_CARGO, WC_NONE,
 	0,
-	_nested_delivered_cargo_graph_widgets, lengthof(_nested_delivered_cargo_graph_widgets)
+	_nested_delivered_cargo_graph_widgets, lengthof(_nested_delivered_cargo_graph_widgets),
+	&_delivered_cargo_graph_prefs
 );
 
 void ShowDeliveredCargoGraph()
@@ -762,7 +783,7 @@ void ShowDeliveredCargoGraph()
 /***********************/
 
 struct PerformanceHistoryGraphWindow : BaseGraphWindow {
-	PerformanceHistoryGraphWindow(WindowDesc *desc, WindowNumber window_number) :
+	PerformanceHistoryGraphWindow (const WindowDesc *desc, WindowNumber window_number) :
 			BaseGraphWindow(desc, WID_PHG_GRAPH, STR_JUST_COMMA)
 	{
 		this->InitializeWindow(window_number);
@@ -801,11 +822,14 @@ static const NWidgetPart _nested_performance_history_widgets[] = {
 	EndContainer(),
 };
 
-static WindowDesc _performance_history_desc(
-	WDP_AUTO, "graph_performance", 0, 0,
+static WindowDesc::Prefs _performance_history_prefs ("graph_performance");
+
+static const WindowDesc _performance_history_desc(
+	WDP_AUTO, 0, 0,
 	WC_PERFORMANCE_HISTORY, WC_NONE,
 	0,
-	_nested_performance_history_widgets, lengthof(_nested_performance_history_widgets)
+	_nested_performance_history_widgets, lengthof(_nested_performance_history_widgets),
+	&_performance_history_prefs
 );
 
 void ShowPerformanceHistoryGraph()
@@ -818,7 +842,7 @@ void ShowPerformanceHistoryGraph()
 /*****************/
 
 struct CompanyValueGraphWindow : BaseGraphWindow {
-	CompanyValueGraphWindow(WindowDesc *desc, WindowNumber window_number) :
+	CompanyValueGraphWindow (const WindowDesc *desc, WindowNumber window_number) :
 			BaseGraphWindow(desc, WID_CV_GRAPH, STR_JUST_CURRENCY_SHORT)
 	{
 		this->InitializeWindow(window_number);
@@ -850,11 +874,14 @@ static const NWidgetPart _nested_company_value_graph_widgets[] = {
 	EndContainer(),
 };
 
-static WindowDesc _company_value_graph_desc(
-	WDP_AUTO, "graph_company_value", 0, 0,
+static WindowDesc::Prefs _company_value_graph_prefs ("graph_company_value");
+
+static const WindowDesc _company_value_graph_desc(
+	WDP_AUTO, 0, 0,
 	WC_COMPANY_VALUE, WC_NONE,
 	0,
-	_nested_company_value_graph_widgets, lengthof(_nested_company_value_graph_widgets)
+	_nested_company_value_graph_widgets, lengthof(_nested_company_value_graph_widgets),
+	&_company_value_graph_prefs
 );
 
 void ShowCompanyValueGraph()
@@ -868,7 +895,7 @@ void ShowCompanyValueGraph()
 
 struct PaymentRatesGraphWindow : BaseGraphWindow {
 	bool first_init; ///< This value is true until the first initialization of the window has finished.
-	PaymentRatesGraphWindow(WindowDesc *desc, WindowNumber window_number) :
+	PaymentRatesGraphWindow (const WindowDesc *desc, WindowNumber window_number) :
 			BaseGraphWindow(desc, WID_CPR_GRAPH, STR_JUST_CURRENCY_SHORT)
 	{
 		this->first_init = true;
@@ -1081,11 +1108,14 @@ static const NWidgetPart _nested_cargo_payment_rates_widgets[] = {
 	EndContainer(),
 };
 
-static WindowDesc _cargo_payment_rates_desc(
-	WDP_AUTO, "graph_cargo_payment_rates", 0, 0,
+static WindowDesc::Prefs _cargo_payment_rates_prefs ("graph_cargo_payment_rates");
+
+static const WindowDesc _cargo_payment_rates_desc(
+	WDP_AUTO, 0, 0,
 	WC_PAYMENT_RATES, WC_NONE,
 	0,
-	_nested_cargo_payment_rates_widgets, lengthof(_nested_cargo_payment_rates_widgets)
+	_nested_cargo_payment_rates_widgets, lengthof(_nested_cargo_payment_rates_widgets),
+	&_cargo_payment_rates_prefs
 );
 
 
@@ -1155,7 +1185,9 @@ private:
 	}
 
 public:
-	CompanyLeagueWindow(WindowDesc *desc, WindowNumber window_number) : Window(desc)
+	CompanyLeagueWindow (const WindowDesc *desc, WindowNumber window_number)
+		: Window (desc), companies(), ordinal_width (0),
+		  text_width (0), icon_width (0), line_height (0)
 	{
 		this->InitNested(window_number);
 		this->companies.ForceRebuild();
@@ -1270,11 +1302,14 @@ static const NWidgetPart _nested_company_league_widgets[] = {
 	NWidget(WWT_PANEL, COLOUR_GREY, WID_CL_BACKGROUND), SetMinimalSize(400, 0), SetMinimalTextLines(15, WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM),
 };
 
-static WindowDesc _company_league_desc(
-	WDP_AUTO, "league", 0, 0,
+static WindowDesc::Prefs _company_league_prefs ("league");
+
+static const WindowDesc _company_league_desc(
+	WDP_AUTO, 0, 0,
 	WC_COMPANY_LEAGUE, WC_NONE,
 	0,
-	_nested_company_league_widgets, lengthof(_nested_company_league_widgets)
+	_nested_company_league_widgets, lengthof(_nested_company_league_widgets),
+	&_company_league_prefs
 );
 
 void ShowCompanyLeagueTable()
@@ -1290,7 +1325,8 @@ struct PerformanceRatingDetailWindow : Window {
 	static CompanyID company;
 	int timeout;
 
-	PerformanceRatingDetailWindow(WindowDesc *desc, WindowNumber window_number) : Window(desc)
+	PerformanceRatingDetailWindow (const WindowDesc *desc, WindowNumber window_number)
+		: Window (desc), timeout (0)
 	{
 		this->UpdateCompanyStats();
 
@@ -1569,11 +1605,14 @@ static const NWidgetPart _nested_performance_rating_detail_widgets[] = {
 	NWidgetFunction(MakePerformanceDetailPanels),
 };
 
-static WindowDesc _performance_rating_detail_desc(
-	WDP_AUTO, "league_details", 0, 0,
+static WindowDesc::Prefs _performance_rating_detail_prefs ("league_details");
+
+static const WindowDesc _performance_rating_detail_desc(
+	WDP_AUTO, 0, 0,
 	WC_PERFORMANCE_DETAIL, WC_NONE,
 	0,
-	_nested_performance_rating_detail_widgets, lengthof(_nested_performance_rating_detail_widgets)
+	_nested_performance_rating_detail_widgets, lengthof(_nested_performance_rating_detail_widgets),
+	&_performance_rating_detail_prefs
 );
 
 void ShowPerformanceRatingDetail()

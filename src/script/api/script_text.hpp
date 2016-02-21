@@ -88,7 +88,7 @@ public:
  *
  * @api game
  */
-class ScriptText : public Text , public ZeroedMemoryAllocator {
+class ScriptText : public Text {
 public:
 	static const int SCRIPT_TEXT_MAX_PARAMETERS = 20; ///< The maximum amount of parameters you can give to one object.
 
@@ -97,18 +97,7 @@ public:
 	 * The constructor wrapper from Squirrel.
 	 */
 	ScriptText(HSQUIRRELVM vm);
-#else
-	/**
-	 * Generate a text from string. You can set parameters to the instance which
-	 *  can be required for the string.
-	 * @param string The string of the text.
-	 * @param ... Optional arguments for this string.
-	 */
-	ScriptText(StringID string, ...);
-#endif
-	~ScriptText();
 
-#ifndef DOXYGEN_API
 	/**
 	 * Used for .param_N and [] set from Squirrel.
 	 */
@@ -124,6 +113,14 @@ public:
 	 */
 	SQInteger AddParam(HSQUIRRELVM vm);
 #else
+	/**
+	 * Generate a text from string. You can set parameters to the instance which
+	 *  can be required for the string.
+	 * @param string The string of the text.
+	 * @param ... Optional arguments for this string.
+	 */
+	ScriptText(StringID string, ...);
+
 	/**
 	 * Set the parameter to a value.
 	 * @param parameter Which parameter to set.
@@ -156,19 +153,52 @@ public:
 	bool GetDecodedText (stringb *buf) OVERRIDE;
 
 private:
-	StringID string;
-	char *params[SCRIPT_TEXT_MAX_PARAMETERS];
-	int64 parami[SCRIPT_TEXT_MAX_PARAMETERS];
-	ScriptText *paramt[SCRIPT_TEXT_MAX_PARAMETERS];
+	struct Param {
+		enum Type {
+			TYPE_INT,
+			TYPE_STRING,
+			TYPE_TEXT,
+		};
+
+		Type type;
+		union {
+			int64 i;
+			char *s;
+			ScriptText *t;
+		};
+
+		Param() : type(TYPE_INT), i(0)
+		{
+		}
+
+		void destroy (void);
+
+		~Param()
+		{
+			this->destroy();
+		}
+
+		Param (const Param &) DELETED;
+		void operator = (const Param &) DELETED;
+
+		void set_int (int64 value);
+		void set_string (const char *value);
+		void set_text (ScriptText *value);
+
+		int encode (stringb *buf);
+	};
+
+	Param params [SCRIPT_TEXT_MAX_PARAMETERS];
 	int paramc;
+	StringID string;
 
 	/**
 	 * Internal function for recursive calling this function over multiple
 	 *  instances, while writing in the same buffer.
 	 * @param buf The buffer.
-	 * @param param_count The number of parameters that are in the string.
+	 * @return The number of parameters added to the string.
 	 */
-	void _GetEncodedText (stringb *buf, int &param_count);
+	int _GetEncodedText (stringb *buf);
 
 	/**
 	 * Set a parameter, where the value is the first item on the stack.

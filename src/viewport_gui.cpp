@@ -53,7 +53,7 @@ static const NWidgetPart _nested_extra_view_port_widgets[] = {
 
 class ExtraViewportWindow : public Window {
 public:
-	ExtraViewportWindow(WindowDesc *desc, int window_number, TileIndex tile) : Window(desc)
+	ExtraViewportWindow (const WindowDesc *desc, int window_number, TileIndex tile) : Window(desc)
 	{
 		this->InitNested(window_number);
 
@@ -92,8 +92,8 @@ public:
 	virtual void OnClick(Point pt, int widget, int click_count)
 	{
 		switch (widget) {
-			case WID_EV_ZOOM_IN: DoZoomInOutWindow(ZOOM_IN,  this); break;
-			case WID_EV_ZOOM_OUT: DoZoomInOutWindow(ZOOM_OUT, this); break;
+			case WID_EV_ZOOM_IN:  DoZoomInOutWindow (true,  this); break;
+			case WID_EV_ZOOM_OUT: DoZoomInOutWindow (false, this); break;
 
 			case WID_EV_MAIN_TO_VIEW: { // location button (move main view to same spot as this view) 'Paste Location'
 				Window *w = FindWindowById(WC_MAIN_WINDOW, 0);
@@ -155,11 +155,14 @@ public:
 	}
 };
 
-static WindowDesc _extra_view_port_desc(
-	WDP_AUTO, "extra_viewport", 300, 268,
+static WindowDesc::Prefs _extra_view_port_prefs ("extra_viewport");
+
+static const WindowDesc _extra_view_port_desc(
+	WDP_AUTO, 300, 268,
 	WC_EXTRA_VIEW_PORT, WC_NONE,
 	0,
-	_nested_extra_view_port_widgets, lengthof(_nested_extra_view_port_widgets)
+	_nested_extra_view_port_widgets, lengthof(_nested_extra_view_port_widgets),
+	&_extra_view_port_prefs
 );
 
 /**

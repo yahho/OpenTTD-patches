@@ -104,7 +104,7 @@ static void _GenerateWorld(void *)
 		if (_settings_game.game_creation.generation_seed == GENERATE_NEW_SEED) _settings_game.game_creation.generation_seed = _settings_newgame.game_creation.generation_seed = InteractiveRandom();
 		_random.SetSeed(_settings_game.game_creation.generation_seed);
 		SetGeneratingWorldProgress(GWP_MAP_INIT, 2);
-		SetObjectToPlace(SPR_CURSOR_ZZZ, PAL_NONE, HT_NONE, WC_MAIN_WINDOW, 0);
+		SetPointerMode (POINTER_NONE, WC_MAIN_WINDOW, 0, SPR_CURSOR_ZZZ);
 
 		BasePersistentStorageArray::SwitchMode(PSM_ENTER_GAMELOOP);
 
@@ -182,7 +182,7 @@ static void _GenerateWorld(void *)
 
 		BasePersistentStorageArray::SwitchMode(PSM_LEAVE_GAMELOOP);
 
-		ResetObjectToPlace();
+		ResetPointerMode();
 		_cur_company.Trash();
 		_current_company = _local_company = _gw.lc;
 
@@ -321,7 +321,7 @@ void GenerateWorld(GenWorldMode mode, uint size_x, uint size_y, bool reset_setti
 
 	/* Create toolbars */
 	SetupColoursAndInitialWindow();
-	SetObjectToPlace(SPR_CURSOR_ZZZ, PAL_NONE, HT_NONE, WC_MAIN_WINDOW, 0);
+	SetPointerMode (POINTER_NONE, WC_MAIN_WINDOW, 0, SPR_CURSOR_ZZZ);
 
 	if (_gw.thread != NULL) {
 		_gw.thread->Join();
@@ -329,7 +329,7 @@ void GenerateWorld(GenWorldMode mode, uint size_x, uint size_y, bool reset_setti
 		_gw.thread = NULL;
 	}
 
-	if (!VideoDriver::GetInstance()->HasGUI() || !ThreadObject::New(&_GenerateWorld, NULL, &_gw.thread)) {
+	if (!VideoDriver::GetActiveDriver()->HasGUI() || !ThreadObject::New(&_GenerateWorld, NULL, &_gw.thread)) {
 		DEBUG(misc, 1, "Cannot create genworld thread, reverting to single-threaded mode");
 		_gw.threaded = false;
 		_modal_progress_work_mutex->EndCritical();

@@ -20,7 +20,9 @@
 #include <windows.h>
 #include <mmsystem.h>
 
-static FSoundDriver_Win32 iFSoundDriver_Win32;
+/** Factory for the sound driver for Windows. */
+static SoundDriverFactory <SoundDriver_Win32>
+		iFSoundDriver_Win32 (10, "win32", "Win32 WaveOut Sound Driver");
 
 static HWAVEOUT _waveout;
 static WAVEHDR _wave_hdr[2];
@@ -79,7 +81,7 @@ const char *SoundDriver_Win32::Start(const char * const *parm)
 		PrepareHeader(&_wave_hdr[1]);
 
 		if (NULL == (_thread = CreateThread(NULL, 8192, SoundThread, 0, 0, &_threadId))) throw "Failed to create thread";
-	} catch (char *error) {
+	} catch (const char *error) {
 		this->Stop();
 		return error;
 	}

@@ -156,17 +156,19 @@ private:
 	}
 
 public:
-	BuildBridgeWindow(WindowDesc *desc, TileIndex start, TileIndex end, uint32 br_type, GUIBridgeList *bl) : Window(desc),
+	BuildBridgeWindow (const WindowDesc *desc, TileIndex start, TileIndex end, uint32 br_type, GUIBridgeList *bl) : Window(desc),
 		start_tile(start),
 		end_tile(end),
 		type(br_type),
-		bridges(bl)
+		bridges(bl),
+		bridgetext_offset(0),
+		vscroll(NULL)
 	{
 		this->CreateNestedTree();
 		this->vscroll = this->GetScrollbar(WID_BBS_SCROLLBAR);
 		/* Change the data, or the caption of the gui. Set it to road or rail, accordingly. */
 		this->GetWidget<NWidgetCore>(WID_BBS_CAPTION)->widget_data = (GB(this->type, 15, 2) == TRANSPORT_ROAD) ? STR_SELECT_ROAD_BRIDGE_CAPTION : STR_SELECT_RAIL_BRIDGE_CAPTION;
-		this->FinishInitNested(GB(br_type, 12, 2)); // Initializes 'this->bridgetext_offset'.
+		this->InitNested(GB(br_type, 12, 2)); // Initializes 'this->bridgetext_offset'.
 
 		this->parent = FindWindowById(WC_BUILD_TOOLBAR, GB(this->type, 12, 2));
 		this->bridges->SetListing(this->last_sorting);
@@ -179,9 +181,12 @@ public:
 
 	~BuildBridgeWindow()
 	{
-		this->last_sorting = this->bridges->GetListing();
-
 		delete bridges;
+	}
+
+	void OnDelete (void) FINAL_OVERRIDE
+	{
+		this->last_sorting = this->bridges->GetListing();
 	}
 
 	virtual void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize)
@@ -270,7 +275,7 @@ public:
 		if (i < 9 && i < this->bridges->Length()) {
 			/* Build the requested bridge */
 			this->BuildBridge(i);
-			delete this;
+			this->Delete();
 			return ES_HANDLED;
 		}
 		return ES_NOT_HANDLED;
@@ -284,7 +289,7 @@ public:
 				uint i = this->vscroll->GetScrolledRowFromWidget(pt.y, this, WID_BBS_BRIDGE_LIST);
 				if (i < this->bridges->Length()) {
 					this->BuildBridge(i);
-					delete this;
+					this->Delete();
 				}
 				break;
 			}
@@ -361,12 +366,16 @@ static const NWidgetPart _nested_build_bridge_widgets[] = {
 	EndContainer(),
 };
 
+/** Window preferences for the rail bridge selection window. */
+static WindowDesc::Prefs _build_bridge_prefs ("build_bridge");
+
 /** Window definition for the rail bridge selection window. */
-static WindowDesc _build_bridge_desc(
-	WDP_AUTO, "build_bridge", 200, 114,
+static const WindowDesc _build_bridge_desc(
+	WDP_AUTO, 200, 114,
 	WC_BUILD_BRIDGE, WC_BUILD_TOOLBAR,
 	WDF_CONSTRUCTION,
-	_nested_build_bridge_widgets, lengthof(_nested_build_bridge_widgets)
+	_nested_build_bridge_widgets, lengthof(_nested_build_bridge_widgets),
+	&_build_bridge_prefs
 );
 
 /**

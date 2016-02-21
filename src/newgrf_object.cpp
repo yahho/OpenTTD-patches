@@ -130,13 +130,13 @@ INSTANTIATE_NEWGRF_CLASS_METHODS(ObjectClass)
 
 /**
  * Constructor of an object scope resolver.
- * @param ro Surrounding resolver.
+ * @param grffile GRFFile the resolved SpriteGroup belongs to.
  * @param obj Object being resolved.
  * @param tile %Tile of the object.
  * @param view View of the object.
  */
-ObjectScopeResolver::ObjectScopeResolver(ResolverObject &ro, Object *obj, TileIndex tile, uint8 view)
-		: ScopeResolver(ro)
+ObjectScopeResolver::ObjectScopeResolver (const GRFFile *grffile, Object *obj, TileIndex tile, uint8 view)
+	: ScopeResolver(), grffile(grffile)
 {
 	this->obj = obj;
 	this->tile = tile;
@@ -329,7 +329,7 @@ static uint32 GetCountAndDistanceOfClosestInstance(byte local_id, uint32 grfid, 
 		case 0x48: return this->obj->view;
 
 		/* Get object ID at offset param */
-		case 0x60: return GetObjectIDAtOffset(GetNearbyTile(parameter, this->tile), this->ro.grffile->grfid);
+		case 0x60: return GetObjectIDAtOffset (GetNearbyTile (parameter, this->tile), this->grffile->grfid);
 
 		/* Get random tile bits at offset param */
 		case 0x61: {
@@ -338,7 +338,7 @@ static uint32 GetCountAndDistanceOfClosestInstance(byte local_id, uint32 grfid, 
 		}
 
 		/* Land info of nearby tiles */
-		case 0x62: return GetNearbyObjectTileInformation(parameter, this->tile, this->obj == NULL ? INVALID_OBJECT : this->obj->index, this->ro.grffile->grf_version >= 8);
+		case 0x62: return GetNearbyObjectTileInformation (parameter, this->tile, this->obj == NULL ? INVALID_OBJECT : this->obj->index, this->grffile->grf_version >= 8);
 
 		/* Animation counter of nearby tile */
 		case 0x63: {
@@ -347,7 +347,7 @@ static uint32 GetCountAndDistanceOfClosestInstance(byte local_id, uint32 grfid, 
 		}
 
 		/* Count of object, distance of closest instance */
-		case 0x64: return GetCountAndDistanceOfClosestInstance(parameter, this->ro.grffile->grfid, this->tile, this->obj);
+		case 0x64: return GetCountAndDistanceOfClosestInstance (parameter, this->grffile->grfid, this->tile, this->obj);
 	}
 
 unhandled:
@@ -368,11 +368,10 @@ unhandled:
  */
 ObjectResolverObject::ObjectResolverObject(const ObjectSpec *spec, Object *obj, TileIndex tile, uint8 view,
 		CallbackID callback, uint32 param1, uint32 param2)
-	: ResolverObject(spec->grf_prop.grffile, callback, param1, param2), object_scope(*this, obj, tile, view)
+	: ResolverObject (spec->grf_prop.grffile, callback, param1, param2),
+	  object_scope (this->grffile, obj, tile, view)
 {
 	this->town_scope = NULL;
-	this->root_spritegroup = (obj == NULL && spec->grf_prop.spritegroup[CT_PURCHASE_OBJECT] != NULL) ?
-			spec->grf_prop.spritegroup[CT_PURCHASE_OBJECT] : spec->grf_prop.spritegroup[0];
 }
 
 ObjectResolverObject::~ObjectResolverObject()
@@ -395,9 +394,22 @@ TownScopeResolver *ObjectResolverObject::GetTown()
 			t = ClosestTownFromTile(this->object_scope.tile);
 		}
 		if (t == NULL) return NULL;
-		this->town_scope = new TownScopeResolver(*this, t, this->object_scope.obj == NULL);
+		this->town_scope = new TownScopeResolver (this->grffile, t, this->object_scope.obj == NULL);
 	}
 	return this->town_scope;
+}
+
+static const SpriteGroup *ObjectResolve (const ObjectSpec *spec, Object *o,
+	TileIndex tile, uint8 view = 0, CallbackID callback = CBID_NO_CALLBACK,
+	uint32 param1 = 0, uint32 param2 = 0)
+{
+	ObjectResolverObject object (spec, o, tile, view, callback, param1, param2);
+
+	const SpriteGroup *const *group = spec->grf_prop.spritegroup;
+	const SpriteGroup *root = (o == NULL && group[CT_PURCHASE_OBJECT] != NULL) ?
+			group[CT_PURCHASE_OBJECT] : group[0];
+
+	return SpriteGroup::Resolve (root, object);
 }
 
 /**
@@ -413,8 +425,7 @@ TownScopeResolver *ObjectResolverObject::GetTown()
  */
 uint16 GetObjectCallback(CallbackID callback, uint32 param1, uint32 param2, const ObjectSpec *spec, Object *o, TileIndex tile, uint8 view)
 {
-	ObjectResolverObject object(spec, o, tile, view, callback, param1, param2);
-	return object.ResolveCallback();
+	return SpriteGroup::CallbackResult (ObjectResolve (spec, o, tile, view, callback, param1, param2));
 }
 
 /**
@@ -452,9 +463,7 @@ static void DrawTileLayout(const TileInfo *ti, const TileLayoutSpriteGroup *grou
 void DrawNewObjectTile(TileInfo *ti, const ObjectSpec *spec)
 {
 	Object *o = Object::GetByTile(ti->tile);
-	ObjectResolverObject object(spec, o, ti->tile);
-
-	const SpriteGroup *group = object.Resolve();
+	const SpriteGroup *group = ObjectResolve (spec, o, ti->tile);
 	if (group == NULL || group->type != SGT_TILELAYOUT) return;
 
 	DrawTileLayout(ti, (const TileLayoutSpriteGroup *)group, spec);
@@ -469,8 +478,7 @@ void DrawNewObjectTile(TileInfo *ti, const ObjectSpec *spec)
  */
 void DrawNewObjectTileInGUI(int x, int y, const ObjectSpec *spec, uint8 view)
 {
-	ObjectResolverObject object(spec, NULL, INVALID_TILE, view);
-	const SpriteGroup *group = object.Resolve();
+	const SpriteGroup *group = ObjectResolve (spec, NULL, INVALID_TILE, view);
 	if (group == NULL || group->type != SGT_TILELAYOUT) return;
 
 	const DrawTileSprites *dts = ((const TileLayoutSpriteGroup *)group)->ProcessRegisters(NULL);

@@ -512,22 +512,23 @@ typedef CFollowTrack<CFollowTrackRailBase> CFollowTrackRail;
  */
 struct CFollowTrackRoadBase : CFollowTrackBase<RoadPathPos>
 {
-	const RoadVehicle *const m_veh; ///< moving vehicle
+	const Owner     m_veh_owner;     ///< owner of the vehicle
+	const RoadTypes m_veh_roadtypes; ///< roadtypes of the vehicle
 
 	static inline bool Allow90deg() { return true; }
 
 	inline CFollowTrackRoadBase(const RoadVehicle *v)
-		: m_veh(v)
+		: m_veh_owner (v->owner), m_veh_roadtypes (v->compatible_roadtypes)
 	{
 		assert(v != NULL);
 	}
 
 	inline TrackdirBits GetTrackStatusTrackdirBits(TileIndex tile) const
 	{
-		return TrackStatusToTrackdirBits(GetTileRoadStatus(tile, m_veh->compatible_roadtypes));
+		return TrackStatusToTrackdirBits(GetTileRoadStatus(tile, m_veh_roadtypes));
 	}
 
-	inline bool IsTram() { return HasBit(m_veh->compatible_roadtypes, ROADTYPE_TRAM); }
+	inline bool IsTram() { return HasBit(m_veh_roadtypes, ROADTYPE_TRAM); }
 
 	/** check old tile */
 	inline TileResult CheckOldTile()
@@ -618,7 +619,7 @@ struct CFollowTrackRoadBase : CFollowTrackBase<RoadPathPos>
 				return false;
 			}
 			/* don't try to enter other company's depots */
-			if (GetTileOwner(m_new.tile) != m_veh->owner) {
+			if (GetTileOwner(m_new.tile) != m_veh_owner) {
 				m_err = EC_OWNER;
 				return false;
 			}

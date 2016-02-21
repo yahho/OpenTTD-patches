@@ -412,7 +412,9 @@ protected:
 	}
 
 public:
-	StoryBookWindow(WindowDesc *desc, WindowNumber window_number) : Window(desc)
+	StoryBookWindow (const WindowDesc *desc, WindowNumber window_number) :
+		Window (desc), vscroll (NULL),
+		story_pages(), story_page_elements(), selected_page_id (0)
 	{
 		this->CreateNestedTree();
 		this->vscroll = this->GetScrollbar(WID_SB_SCROLLBAR);
@@ -425,7 +427,7 @@ public:
 		this->story_page_elements.SetSortFuncs(StoryBookWindow::page_element_sorter_funcs);
 		/* story_page_elements will get built by SetSelectedPage */
 
-		this->FinishInitNested(window_number);
+		this->InitNested(window_number);
 		this->owner = (Owner)this->window_number;
 
 		/* Initialize selected vars. */
@@ -747,11 +749,14 @@ static const NWidgetPart _nested_story_book_widgets[] = {
 	EndContainer(),
 };
 
-static WindowDesc _story_book_desc(
-	WDP_CENTER, "view_story", 400, 300,
+static WindowDesc::Prefs _story_book_prefs ("view_story");
+
+static const WindowDesc _story_book_desc(
+	WDP_CENTER, 400, 300,
 	WC_STORY_BOOK, WC_NONE,
 	0,
-	_nested_story_book_widgets, lengthof(_nested_story_book_widgets)
+	_nested_story_book_widgets, lengthof(_nested_story_book_widgets),
+	&_story_book_prefs
 );
 
 /**

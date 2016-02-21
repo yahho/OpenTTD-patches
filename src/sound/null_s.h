@@ -20,14 +20,6 @@ public:
 	/* virtual */ const char *Start(const char * const *param) { return NULL; }
 
 	/* virtual */ void Stop() { }
-	/* virtual */ const char *GetName() const { return "null"; }
-};
-
-/** Factory for the null sound driver. */
-class FSoundDriver_Null : public DriverFactoryBase {
-public:
-	FSoundDriver_Null() : DriverFactoryBase(Driver::DT_SOUND, 1, "null", "Null Sound Driver") {}
-	/* virtual */ Driver *CreateInstance() const { return new SoundDriver_Null(); }
 };
 
 #endif /* SOUND_NULL_H */

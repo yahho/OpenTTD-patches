@@ -144,19 +144,29 @@ bool _dedicated_forks;
 
 extern bool SafeLoad(const char *filename, int mode, GameMode newgm, Subdirectory subdir, struct LoadFilter *lf = NULL);
 
-static FVideoDriver_Dedicated iFVideoDriver_Dedicated;
+/* Automatically select this dedicated driver when making a dedicated
+ * server build. */
+#ifdef DEDICATED
+static const int PRIORITY = 10;
+#else
+static const int PRIORITY = 0;
+#endif
+
+/** Factory for the dedicated server video driver. */
+static VideoDriverFactory <VideoDriver_Dedicated>
+		iFVideoDriver_Dedicated (PRIORITY, "dedicated", "Dedicated Video Driver");
 
 
 const char *VideoDriver_Dedicated::Start(const char * const *parm)
 {
-	int bpp = GetCurrentBlitter()->GetScreenDepth();
+	int bpp = Blitter::get()->GetScreenDepth();
 	_dedicated_video_mem = (bpp == 0) ? NULL : xmalloct<byte>(_cur_resolution.width * _cur_resolution.height * (bpp / 8));
 
 	_screen.width  = _screen.pitch = _cur_resolution.width;
 	_screen.height = _cur_resolution.height;
 	_screen.dst_ptr = _dedicated_video_mem;
 	ScreenSizeChanged();
-	GetCurrentBlitter()->PostResize();
+	Blitter::get()->PostResize();
 
 #if defined(WINCE)
 	/* WinCE doesn't support console stuff */

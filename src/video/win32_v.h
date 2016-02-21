@@ -35,16 +35,7 @@ public:
 
 	/* virtual */ void EditBoxLostFocus();
 
-	/* virtual */ const char *GetName() const { return "win32"; }
-
 	bool MakeWindow(bool full_screen);
-};
-
-/** The factory for Windows' video driver. */
-class FVideoDriver_Win32 : public DriverFactoryBase {
-public:
-	FVideoDriver_Win32() : DriverFactoryBase(Driver::DT_VIDEO, 10, "win32", "Win32 GDI Video Driver") {}
-	/* virtual */ Driver *CreateInstance() const { return new VideoDriver_Win32(); }
 };
 
 #endif /* VIDEO_WIN32_H */

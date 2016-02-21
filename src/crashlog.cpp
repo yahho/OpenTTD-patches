@@ -125,18 +125,18 @@ static void LogConfiguration (stringb *buffer)
 			" Sound driver: %s\n"
 			" Sound set:    %s (%u)\n"
 			" Video driver: %s\n\n",
-			GetCurrentBlitterName(),
+			Blitter::get_name(),
 			BaseGraphics::GetUsedSet() == NULL ? "none" : BaseGraphics::GetUsedSet()->get_name(),
 			BaseGraphics::GetUsedSet() == NULL ? UINT32_MAX : BaseGraphics::GetUsedSet()->version,
 			_current_language == NULL ? "none" : _current_language->file,
-			MusicDriver::GetInstance() == NULL ? "none" : MusicDriver::GetInstance()->GetName(),
+			MusicDriver::GetActiveDriver() == NULL ? "none" : MusicDriver::GetActiveDriverName(),
 			BaseMusic::GetUsedSet() == NULL ? "none" : BaseMusic::GetUsedSet()->get_name(),
 			BaseMusic::GetUsedSet() == NULL ? UINT32_MAX : BaseMusic::GetUsedSet()->version,
 			_networking ? (_network_server ? "server" : "client") : "no",
-			SoundDriver::GetInstance() == NULL ? "none" : SoundDriver::GetInstance()->GetName(),
+			SoundDriver::GetActiveDriver() == NULL ? "none" : SoundDriver::GetActiveDriverName(),
 			BaseSounds::GetUsedSet() == NULL ? "none" : BaseSounds::GetUsedSet()->get_name(),
 			BaseSounds::GetUsedSet() == NULL ? UINT32_MAX : BaseSounds::GetUsedSet()->version,
-			VideoDriver::GetInstance() == NULL ? "none" : VideoDriver::GetInstance()->GetName()
+			VideoDriver::GetActiveDriver() == NULL ? "none" : VideoDriver::GetActiveDriverName()
 	);
 
 	buffer->append_fmt (
@@ -451,7 +451,7 @@ bool CrashLog::MakeCrashLog() const
  */
 /* static */ void CrashLog::AfterCrashLogCleanup()
 {
-	if (MusicDriver::GetInstance() != NULL) MusicDriver::GetInstance()->Stop();
-	if (SoundDriver::GetInstance() != NULL) SoundDriver::GetInstance()->Stop();
-	if (VideoDriver::GetInstance() != NULL) VideoDriver::GetInstance()->Stop();
+	if (MusicDriver::GetActiveDriver() != NULL) MusicDriver::GetActiveDriver()->Stop();
+	if (SoundDriver::GetActiveDriver() != NULL) SoundDriver::GetActiveDriver()->Stop();
+	if (VideoDriver::GetActiveDriver() != NULL) VideoDriver::GetActiveDriver()->Stop();
 }

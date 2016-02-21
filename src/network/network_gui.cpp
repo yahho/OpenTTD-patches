@@ -455,7 +455,11 @@ protected:
 	}
 
 public:
-	NetworkGameWindow(WindowDesc *desc) : Window(desc), name_editbox(NETWORK_CLIENT_NAME_LENGTH), filter_editbox(120)
+	NetworkGameWindow (const WindowDesc *desc) : Window (desc),
+		server (NULL), last_joined (NULL), servers(), list_pos (0),
+		vscroll (NULL), name_editbox (NETWORK_CLIENT_NAME_LENGTH),
+		filter_editbox (120),
+		lock_offset (0), blot_offset (0), flag_offset (0)
 	{
 		this->list_pos = SLP_INVALID;
 		this->server = NULL;
@@ -466,7 +470,7 @@ public:
 
 		this->CreateNestedTree();
 		this->vscroll = this->GetScrollbar(WID_NG_SCROLLBAR);
-		this->FinishInitNested(WN_NETWORK_WINDOW_GAME);
+		this->InitNested(WN_NETWORK_WINDOW_GAME);
 
 		this->querystrings[WID_NG_CLIENT] = &this->name_editbox;
 		this->name_editbox.Assign(_settings_client.network.client_name);
@@ -485,7 +489,7 @@ public:
 		this->servers.ForceRebuild();
 	}
 
-	~NetworkGameWindow()
+	void OnDelete (void) FINAL_OVERRIDE
 	{
 		this->last_sorting = this->servers.GetListing();
 	}
@@ -1021,11 +1025,14 @@ static const NWidgetPart _nested_network_game_widgets[] = {
 	EndContainer(),
 };
 
-static WindowDesc _network_game_window_desc(
-	WDP_CENTER, "list_servers", 1000, 730,
+static WindowDesc::Prefs _network_game_window_prefs ("list_servers");
+
+static const WindowDesc _network_game_window_desc(
+	WDP_CENTER, 1000, 730,
 	WC_NETWORK_WINDOW, WC_NONE,
 	0,
-	_nested_network_game_widgets, lengthof(_nested_network_game_widgets)
+	_nested_network_game_widgets, lengthof(_nested_network_game_widgets),
+	&_network_game_window_prefs
 );
 
 void ShowNetworkGameWindow()
@@ -1050,7 +1057,8 @@ struct NetworkStartServerWindow : public Window {
 	byte widget_id;              ///< The widget that has the pop-up input menu
 	QueryString name_editbox;    ///< Server name editbox.
 
-	NetworkStartServerWindow(WindowDesc *desc) : Window(desc), name_editbox(NETWORK_NAME_LENGTH)
+	NetworkStartServerWindow (const WindowDesc *desc) : Window (desc),
+		widget_id (0), name_editbox (NETWORK_NAME_LENGTH)
 	{
 		this->InitNested(WN_NETWORK_WINDOW_START);
 
@@ -1336,8 +1344,8 @@ static const NWidgetPart _nested_network_start_server_window_widgets[] = {
 	EndContainer(),
 };
 
-static WindowDesc _network_start_server_window_desc(
-	WDP_CENTER, NULL, 0, 0,
+static const WindowDesc _network_start_server_window_desc(
+	WDP_CENTER, 0, 0,
 	WC_NETWORK_WINDOW, WC_NONE,
 	0,
 	_nested_network_start_server_window_widgets, lengthof(_nested_network_start_server_window_widgets)
@@ -1357,12 +1365,14 @@ struct NetworkLobbyWindow : public Window {
 	NetworkCompanyInfo company_info[MAX_COMPANIES];
 	Scrollbar *vscroll;
 
-	NetworkLobbyWindow(WindowDesc *desc, NetworkGameList *ngl) :
-			Window(desc), company(INVALID_COMPANY), server(ngl)
+	NetworkLobbyWindow (const WindowDesc *desc, NetworkGameList *ngl) :
+		Window (desc), company (INVALID_COMPANY), server (ngl),
+		vscroll (NULL)
 	{
+		memset (this->company_info, 0, sizeof(this->company_info));
 		this->CreateNestedTree();
 		this->vscroll = this->GetScrollbar(WID_NL_SCROLLBAR);
-		this->FinishInitNested(WN_NETWORK_WINDOW_LOBBY);
+		this->InitNested(WN_NETWORK_WINDOW_LOBBY);
 	}
 
 	CompanyID NetworkLobbyFindCompanyIndex(byte pos) const
@@ -1623,8 +1633,8 @@ static const NWidgetPart _nested_network_lobby_window_widgets[] = {
 	EndContainer(),
 };
 
-static WindowDesc _network_lobby_window_desc(
-	WDP_CENTER, NULL, 0, 0,
+static const WindowDesc _network_lobby_window_desc(
+	WDP_CENTER, 0, 0,
 	WC_NETWORK_WINDOW, WC_NONE,
 	0,
 	_nested_network_lobby_window_widgets, lengthof(_nested_network_lobby_window_widgets)
@@ -1672,8 +1682,8 @@ static const NWidgetPart _nested_client_list_popup_widgets[] = {
 	NWidget(WWT_PANEL, COLOUR_GREY, WID_CLP_PANEL), EndContainer(),
 };
 
-static WindowDesc _client_list_popup_desc(
-	WDP_AUTO, NULL, 0, 0,
+static const WindowDesc _client_list_popup_desc(
+	WDP_AUTO, 0, 0,
 	WC_CLIENT_LIST_POPUP, WC_CLIENT_LIST,
 	0,
 	_nested_client_list_popup_widgets, lengthof(_nested_client_list_popup_widgets)
@@ -1735,7 +1745,7 @@ struct NetworkClientListPopupWindow : Window {
 		action->proc = proc;
 	}
 
-	NetworkClientListPopupWindow(WindowDesc *desc, int x, int y, ClientID client_id) :
+	NetworkClientListPopupWindow (const WindowDesc *desc, int x, int y, ClientID client_id) :
 			Window(desc),
 			sel_index(0), client_id(client_id)
 	{
@@ -1848,11 +1858,14 @@ static const NWidgetPart _nested_client_list_widgets[] = {
 	NWidget(WWT_PANEL, COLOUR_GREY, WID_CL_PANEL), SetMinimalSize(250, WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM), SetResize(1, 1), EndContainer(),
 };
 
-static WindowDesc _client_list_desc(
-	WDP_AUTO, "list_clients", 0, 0,
+static WindowDesc::Prefs _client_list_prefs ("list_clients");
+
+static const WindowDesc _client_list_desc(
+	WDP_AUTO, 0, 0,
 	WC_CLIENT_LIST, WC_NONE,
 	0,
-	_nested_client_list_widgets, lengthof(_nested_client_list_widgets)
+	_nested_client_list_widgets, lengthof(_nested_client_list_widgets),
+	&_client_list_prefs
 );
 
 /**
@@ -1862,11 +1875,15 @@ struct NetworkClientListWindow : Window {
 	int selected_item;
 
 	uint server_client_width;
-	uint company_icon_width;
+	uint line_height;
 
-	NetworkClientListWindow(WindowDesc *desc, WindowNumber window_number) :
+	Dimension icon_size;
+
+	NetworkClientListWindow (const WindowDesc *desc, WindowNumber window_number) :
 			Window(desc),
-			selected_item(-1)
+			selected_item(-1),
+			server_client_width(0),
+			line_height(0)
 	{
 		this->InitNested(window_number);
 	}
@@ -1884,7 +1901,7 @@ struct NetworkClientListWindow : Window {
 			if (ci->client_playas != COMPANY_INACTIVE_CLIENT) num++;
 		}
 
-		num *= FONT_HEIGHT_NORMAL;
+		num *= this->line_height;
 
 		int diff = (num + WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM) - (this->GetWidget<NWidgetBase>(WID_CL_PANEL)->current_y);
 		/* If height is changed */
@@ -1900,7 +1917,8 @@ struct NetworkClientListWindow : Window {
 		if (widget != WID_CL_PANEL) return;
 
 		this->server_client_width = max(GetStringBoundingBox(STR_NETWORK_SERVER).width, GetStringBoundingBox(STR_NETWORK_CLIENT).width) + WD_FRAMERECT_RIGHT;
-		this->company_icon_width = GetSpriteSize(SPR_COMPANY_ICON).width + WD_FRAMERECT_LEFT;
+		this->icon_size = GetSpriteSize(SPR_COMPANY_ICON);
+		this->line_height = max(this->icon_size.height + 2U, (uint)FONT_HEIGHT_NORMAL);
 
 		uint width = 100; // Default width
 		const NetworkClientInfo *ci;
@@ -1908,7 +1926,7 @@ struct NetworkClientListWindow : Window {
 			width = max(width, GetStringBoundingBox(ci->client_name).width);
 		}
 
-		size->width = WD_FRAMERECT_LEFT + this->server_client_width + this->company_icon_width + width + WD_FRAMERECT_RIGHT;
+		size->width = WD_FRAMERECT_LEFT + this->server_client_width + this->icon_size.width + WD_FRAMERECT_LEFT + width + WD_FRAMERECT_RIGHT;
 	}
 
 	virtual void OnPaint()
@@ -1924,11 +1942,13 @@ struct NetworkClientListWindow : Window {
 		if (widget != WID_CL_PANEL) return;
 
 		bool rtl = _current_text_dir == TD_RTL;
-		int icon_y_offset = 1 + (FONT_HEIGHT_NORMAL - 10) / 2;
+		int icon_offset = (this->line_height - icon_size.height) / 2;
+		int text_offset = (this->line_height - FONT_HEIGHT_NORMAL) / 2;
+
 		uint y = r.top + WD_FRAMERECT_TOP;
 		uint left = r.left + WD_FRAMERECT_LEFT;
 		uint right = r.right - WD_FRAMERECT_RIGHT;
-		uint type_icon_width = this->server_client_width + this->company_icon_width;
+		uint type_icon_width = this->server_client_width + this->icon_size.width + WD_FRAMERECT_LEFT;
 
 
 		uint type_left  = rtl ? right - this->server_client_width : left;
@@ -1942,24 +1962,24 @@ struct NetworkClientListWindow : Window {
 		FOR_ALL_CLIENT_INFOS(ci) {
 			TextColour colour;
 			if (this->selected_item == i++) { // Selected item, highlight it
-				GfxFillRect(r.left + 1, y, r.right - 1, y + FONT_HEIGHT_NORMAL - 1, PC_BLACK);
+				GfxFillRect(r.left + 1, y, r.right - 1, y + this->line_height - 1, PC_BLACK);
 				colour = TC_WHITE;
 			} else {
 				colour = TC_BLACK;
 			}
 
 			if (ci->client_id == CLIENT_ID_SERVER) {
-				DrawString(type_left, type_right, y, STR_NETWORK_SERVER, colour);
+				DrawString(type_left, type_right, y + text_offset, STR_NETWORK_SERVER, colour);
 			} else {
-				DrawString(type_left, type_right, y, STR_NETWORK_CLIENT, colour);
+				DrawString(type_left, type_right, y + text_offset, STR_NETWORK_CLIENT, colour);
 			}
 
 			/* Filter out spectators */
-			if (Company::IsValidID(ci->client_playas)) DrawCompanyIcon(ci->client_playas, icon_left, y + icon_y_offset);
+			if (Company::IsValidID(ci->client_playas)) DrawCompanyIcon(ci->client_playas, icon_left, y + icon_offset);
 
-			DrawString(name_left, name_right, y, ci->client_name, colour);
+			DrawString(name_left, name_right, y + text_offset, ci->client_name, colour);
 
-			y += FONT_HEIGHT_NORMAL;
+			y += line_height;
 		}
 	}
 
@@ -1992,7 +2012,7 @@ struct NetworkClientListWindow : Window {
 		pt.y -= this->GetWidget<NWidgetBase>(WID_CL_PANEL)->pos_y;
 		int item = -1;
 		if (IsInsideMM(pt.y, WD_FRAMERECT_TOP, this->GetWidget<NWidgetBase>(WID_CL_PANEL)->current_y - WD_FRAMERECT_BOTTOM)) {
-			item = (pt.y - WD_FRAMERECT_TOP) / FONT_HEIGHT_NORMAL;
+			item = (pt.y - WD_FRAMERECT_TOP) / this->line_height;
 		}
 
 		/* It did not change.. no update! */
@@ -2017,7 +2037,8 @@ uint32 _network_join_bytes_total;       ///< The total number of bytes to downlo
 struct NetworkJoinStatusWindow : Window {
 	NetworkPasswordType password_type;
 
-	NetworkJoinStatusWindow(WindowDesc *desc) : Window(desc)
+	NetworkJoinStatusWindow (const WindowDesc *desc) : Window(desc),
+		password_type((NetworkPasswordType)0)
 	{
 		this->parent = FindWindowById(WC_NETWORK_WINDOW, WN_NETWORK_WINDOW_GAME);
 		this->InitNested(WN_NETWORK_STATUS_WINDOW_JOIN);
@@ -2120,8 +2141,8 @@ static const NWidgetPart _nested_network_join_status_window_widgets[] = {
 	EndContainer(),
 };
 
-static WindowDesc _network_join_status_window_desc(
-	WDP_CENTER, NULL, 0, 0,
+static const WindowDesc _network_join_status_window_desc(
+	WDP_CENTER, 0, 0,
 	WC_NETWORK_STATUS_WINDOW, WC_NONE,
 	WDF_MODAL,
 	_nested_network_join_status_window_widgets, lengthof(_nested_network_join_status_window_widgets)
@@ -2151,7 +2172,7 @@ void ShowNetworkNeedPassword(NetworkPasswordType npt)
 struct NetworkCompanyPasswordWindow : public Window {
 	QueryString password_editbox; ///< Password editbox.
 
-	NetworkCompanyPasswordWindow(WindowDesc *desc, Window *parent) : Window(desc), password_editbox(lengthof(_settings_client.network.default_company_pass))
+	NetworkCompanyPasswordWindow (const WindowDesc *desc, Window *parent) : Window(desc), password_editbox(lengthof(_settings_client.network.default_company_pass))
 	{
 		this->InitNested(0);
 
@@ -2179,7 +2200,7 @@ struct NetworkCompanyPasswordWindow : public Window {
 				/* FALL THROUGH */
 
 			case WID_NCP_CANCEL:
-				delete this;
+				this->Delete();
 				break;
 
 			case WID_NCP_SAVE_AS_DEFAULT_PASSWORD:
@@ -2214,8 +2235,8 @@ static const NWidgetPart _nested_network_company_password_window_widgets[] = {
 	EndContainer(),
 };
 
-static WindowDesc _network_company_password_window_desc(
-	WDP_AUTO, NULL, 0, 0,
+static const WindowDesc _network_company_password_window_desc(
+	WDP_AUTO, 0, 0,
 	WC_COMPANY_PASSWORD_WINDOW, WC_NONE,
 	0,
 	_nested_network_company_password_window_widgets, lengthof(_nested_network_company_password_window_widgets)

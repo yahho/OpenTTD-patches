@@ -31,8 +31,8 @@
 /** GUI for accessing waypoints and buoys. */
 struct WaypointWindow : Window {
 private:
-	VehicleType vt; ///< Vehicle type using the waypoint.
 	Waypoint *wp;   ///< Waypoint displayed by the window.
+	VehicleType vt; ///< Vehicle type using the waypoint.
 
 	/**
 	 * Get the center tile of the waypoint.
@@ -53,18 +53,17 @@ public:
 	 * @param desc The description of the window.
 	 * @param window_number The window number, in this case the waypoint's ID.
 	 */
-	WaypointWindow(WindowDesc *desc, WindowNumber window_number) : Window(desc)
+	WaypointWindow (const WindowDesc *desc, WindowNumber window_number) :
+		Window (desc), wp (Waypoint::Get (window_number)),
+		vt ((wp->string_id == STR_SV_STNAME_WAYPOINT) ? VEH_TRAIN : VEH_SHIP)
 	{
-		this->wp = Waypoint::Get(window_number);
-		this->vt = (wp->string_id == STR_SV_STNAME_WAYPOINT) ? VEH_TRAIN : VEH_SHIP;
-
 		this->CreateNestedTree();
 		if (this->vt == VEH_TRAIN) {
 			this->GetWidget<NWidgetCore>(WID_W_SHOW_VEHICLES)->SetDataTip(STR_TRAIN, STR_STATION_VIEW_SCHEDULED_TRAINS_TOOLTIP);
 			this->GetWidget<NWidgetCore>(WID_W_CENTER_VIEW)->tool_tip = STR_WAYPOINT_VIEW_CENTER_TOOLTIP;
 			this->GetWidget<NWidgetCore>(WID_W_RENAME)->tool_tip = STR_WAYPOINT_VIEW_CHANGE_WAYPOINT_NAME;
 		}
-		this->FinishInitNested(window_number);
+		this->InitNested(window_number);
 
 		this->owner = this->wp->owner;
 		this->flags |= WF_DISABLE_VP_SCROLL;
@@ -75,7 +74,7 @@ public:
 		this->OnInvalidateData(0);
 	}
 
-	~WaypointWindow()
+	void OnDelete (void) FINAL_OVERRIDE
 	{
 		DeleteWindowById(GetWindowClassForVehicleType(this->vt), VehicleListIdentifier(VL_STATION_LIST, this->vt, this->owner, this->window_number).Pack(), false);
 	}
@@ -165,12 +164,16 @@ static const NWidgetPart _nested_waypoint_view_widgets[] = {
 	EndContainer(),
 };
 
+/** The preferences of the waypoint view. */
+static WindowDesc::Prefs _waypoint_view_prefs ("view_waypoint");
+
 /** The description of the waypoint view. */
-static WindowDesc _waypoint_view_desc(
-	WDP_AUTO, "view_waypoint", 260, 118,
+static const WindowDesc _waypoint_view_desc(
+	WDP_AUTO, 260, 118,
 	WC_WAYPOINT_VIEW, WC_NONE,
 	0,
-	_nested_waypoint_view_widgets, lengthof(_nested_waypoint_view_widgets)
+	_nested_waypoint_view_widgets, lengthof(_nested_waypoint_view_widgets),
+	&_waypoint_view_prefs
 );
 
 /**

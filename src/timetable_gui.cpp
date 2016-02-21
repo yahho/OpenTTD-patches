@@ -155,16 +155,20 @@ struct TimetableWindow : Window {
 	Scrollbar *vscroll;
 	bool query_is_speed_query; ///< The currently open query window is a speed query and not a time query.
 
-	TimetableWindow(WindowDesc *desc, WindowNumber window_number) :
+	TimetableWindow (const WindowDesc *desc, WindowNumber window_number) :
 			Window(desc),
 			sel_index(-1),
 			vehicle(Vehicle::Get(window_number)),
-			show_expected(true)
+			show_expected(true),
+			deparr_time_width(0),
+			deparr_abbr_width(0),
+			vscroll(NULL),
+			query_is_speed_query(false)
 	{
 		this->CreateNestedTree();
 		this->vscroll = this->GetScrollbar(WID_VT_SCROLLBAR);
 		this->UpdateSelectionStates();
-		this->FinishInitNested(window_number);
+		this->InitNested(window_number);
 
 		this->owner = this->vehicle->owner;
 	}
@@ -693,11 +697,14 @@ static const NWidgetPart _nested_timetable_widgets[] = {
 	EndContainer(),
 };
 
-static WindowDesc _timetable_desc(
-	WDP_AUTO, "view_vehicle_timetable", 400, 130,
+static WindowDesc::Prefs _timetable_prefs ("view_vehicle_timetable");
+
+static const WindowDesc _timetable_desc(
+	WDP_AUTO, 400, 130,
 	WC_VEHICLE_TIMETABLE, WC_VEHICLE_VIEW,
 	WDF_CONSTRUCTION,
-	_nested_timetable_widgets, lengthof(_nested_timetable_widgets)
+	_nested_timetable_widgets, lengthof(_nested_timetable_widgets),
+	&_timetable_prefs
 );
 
 /**

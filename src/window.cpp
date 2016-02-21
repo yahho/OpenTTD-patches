@@ -10,7 +10,10 @@
 /** @file window.cpp Windowing system, widgets and events */
 
 #include "stdafx.h"
+
 #include <stdarg.h>
+#include <set>
+
 #include "debug.h"
 #include "company_func.h"
 #include "gfx_func.h"
@@ -75,43 +78,8 @@ byte _scroller_click_timeout = 0;
 bool _scrolling_viewport;  ///< A viewport is being scrolled with the mouse.
 bool _mouse_hovering;      ///< The mouse is hovering over the same point.
 
-SpecialMouseMode _special_mouse_mode; ///< Mode of the mouse.
+PointerMode _pointer_mode; ///< Pointer mode.
 
-/**
- * List of all WindowDescs.
- * This is a pointer to ensure initialisation order with the various static WindowDesc instances.
- */
-static SmallVector<WindowDesc*, 16> *_window_descs = NULL;
-
-/** Config file to store WindowDesc */
-char *_windows_file;
-
-/** Window description constructor. */
-WindowDesc::WindowDesc(WindowPosition def_pos, const char *ini_key, int16 def_width_trad, int16 def_height_trad,
-			WindowClass window_class, WindowClass parent_class, uint32 flags,
-			const NWidgetPart *nwid_parts, int16 nwid_length, HotkeyList *hotkeys) :
-	default_pos(def_pos),
-	cls(window_class),
-	parent_cls(parent_class),
-	ini_key(ini_key),
-	flags(flags),
-	nwid_parts(nwid_parts),
-	nwid_length(nwid_length),
-	hotkeys(hotkeys),
-	pref_sticky(false),
-	pref_width(0),
-	pref_height(0),
-	default_width_trad(def_width_trad),
-	default_height_trad(def_height_trad)
-{
-	if (_window_descs == NULL) _window_descs = new SmallVector<WindowDesc*, 16>();
-	*_window_descs->Append() = this;
-}
-
-WindowDesc::~WindowDesc()
-{
-	_window_descs->Erase(_window_descs->Find(this));
-}
 
 /**
  * Determine default width of window.
@@ -120,7 +88,8 @@ WindowDesc::~WindowDesc()
  */
 int16 WindowDesc::GetDefaultWidth() const
 {
-	return this->pref_width != 0 ? this->pref_width : ScaleGUITrad(this->default_width_trad);
+	return ((this->prefs != NULL) && (this->prefs->pref_width != 0)) ?
+		this->prefs->pref_width : ScaleGUITrad (this->default_width_trad);
 }
 
 /**
@@ -130,8 +99,49 @@ int16 WindowDesc::GetDefaultWidth() const
  */
 int16 WindowDesc::GetDefaultHeight() const
 {
-	return this->pref_height != 0 ? this->pref_height : ScaleGUITrad(this->default_height_trad);
+	return ((this->prefs != NULL) && (this->prefs->pref_height != 0)) ?
+		this->prefs->pref_height : ScaleGUITrad (this->default_height_trad);
 }
+
+/** Comparison object for WindowDesc::Prefs keys. */
+struct key_compare {
+	bool operator() (const WindowDesc::Prefs *a, const WindowDesc::Prefs *b)
+	{
+		return strcmp (a->key, b->key) < 0;
+	}
+};
+
+/** WindowDesc::Prefs set type. */
+typedef std::set <WindowDesc::Prefs*, key_compare> WindowPrefsSet;
+
+/**
+ * List of all WindowDesc::Prefs.
+ * This is a pointer to ensure initialisation order with the various static WindowDesc instances.
+ */
+static WindowPrefsSet *_window_prefs = NULL;
+
+WindowDesc::Prefs::Prefs (const char *key)
+	: key (key), pref_width (0), pref_height (0), pref_sticky (false)
+{
+	assert (key != NULL);
+
+	if (_window_prefs == NULL) {
+		_window_prefs = new WindowPrefsSet;
+	}
+
+	bool inserted = _window_prefs->insert(this).second;
+
+	/* There shouldn't be any duplicate keys. */
+	assert (inserted);
+}
+
+WindowDesc::Prefs::~Prefs()
+{
+	_window_prefs->erase (this);
+}
+
+/** Config file to store WindowDesc::Prefs. */
+char *_windows_file;
 
 /**
  * Load all WindowDesc settings from _windows_file.
@@ -140,20 +150,10 @@ void WindowDesc::LoadFromConfig()
 {
 	IniFile *ini = new IniFile();
 	ini->LoadFromDisk(_windows_file, BASE_DIR);
-	for (WindowDesc **it = _window_descs->Begin(); it != _window_descs->End(); ++it) {
-		if ((*it)->ini_key == NULL) continue;
-		IniLoadWindowSettings(ini, (*it)->ini_key, *it);
+	for (WindowPrefsSet::iterator it = _window_prefs->begin(); it != _window_prefs->end(); ++it) {
+		IniLoadWindowSettings (ini, (*it)->key, *it);
 	}
 	delete ini;
-}
-
-/**
- * Sort WindowDesc by ini_key.
- */
-static int CDECL DescSorter(WindowDesc * const *a, WindowDesc * const *b)
-{
-	if ((*a)->ini_key != NULL && (*b)->ini_key != NULL) return strcmp((*a)->ini_key, (*b)->ini_key);
-	return ((*b)->ini_key != NULL ? 1 : 0) - ((*a)->ini_key != NULL ? 1 : 0);
 }
 
 /**
@@ -161,31 +161,15 @@ static int CDECL DescSorter(WindowDesc * const *a, WindowDesc * const *b)
  */
 void WindowDesc::SaveToConfig()
 {
-	/* Sort the stuff to get a nice ini file on first write */
-	QSortT(_window_descs->Begin(), _window_descs->Length(), DescSorter);
-
 	IniFile *ini = new IniFile();
 	ini->LoadFromDisk(_windows_file, BASE_DIR);
-	for (WindowDesc **it = _window_descs->Begin(); it != _window_descs->End(); ++it) {
-		if ((*it)->ini_key == NULL) continue;
-		IniSaveWindowSettings(ini, (*it)->ini_key, *it);
+	for (WindowPrefsSet::iterator it = _window_prefs->begin(); it != _window_prefs->end(); ++it) {
+		IniSaveWindowSettings (ini, (*it)->key, *it);
 	}
 	ini->SaveToDisk(_windows_file);
 	delete ini;
 }
 
-/**
- * Read default values from WindowDesc configuration an apply them to the window.
- */
-void Window::ApplyDefaults()
-{
-	if (this->nested_root != NULL && this->nested_root->GetWidgetOfType(WWT_STICKYBOX) != NULL) {
-		if (this->window_desc->pref_sticky) this->flags |= WF_STICKY;
-	} else {
-		/* There is no stickybox; clear the preference in case someone tried to be funny */
-		this->window_desc->pref_sticky = false;
-	}
-}
 
 /**
  * Compute the row of a widget that a user clicked in.
@@ -468,7 +452,7 @@ bool EditBoxInGlobalFocus()
 void Window::UnfocusFocusedWidget()
 {
 	if (this->nested_focus != NULL) {
-		if (this->nested_focus->type == WWT_EDITBOX) VideoDriver::GetInstance()->EditBoxLostFocus();
+		if (this->nested_focus->type == WWT_EDITBOX) VideoDriver::GetActiveDriver()->EditBoxLostFocus();
 
 		/* Repaint the widget that lost focus. A focused edit box may else leave the caret on the screen. */
 		this->nested_focus->SetDirty(this);
@@ -492,7 +476,7 @@ bool Window::SetFocusedWidget(int widget_index)
 
 		/* Repaint the widget that lost focus. A focused edit box may else leave the caret on the screen. */
 		this->nested_focus->SetDirty(this);
-		if (this->nested_focus->type == WWT_EDITBOX) VideoDriver::GetInstance()->EditBoxLostFocus();
+		if (this->nested_focus->type == WWT_EDITBOX) VideoDriver::GetActiveDriver()->EditBoxLostFocus();
 	}
 	this->nested_focus = this->GetWidget<NWidgetCore>(widget_index);
 	return true;
@@ -503,7 +487,7 @@ bool Window::SetFocusedWidget(int widget_index)
  */
 void Window::OnFocusLost()
 {
-	if (this->nested_focus != NULL && this->nested_focus->type == WWT_EDITBOX) VideoDriver::GetInstance()->EditBoxLostFocus();
+	if (this->nested_focus != NULL && this->nested_focus->type == WWT_EDITBOX) VideoDriver::GetActiveDriver()->EditBoxLostFocus();
 }
 
 /**
@@ -687,7 +671,7 @@ static void DispatchLeftClickEvent(Window *w, int x, int y, int click_count)
 		}
 
 		case WWT_CLOSEBOX: // 'X'
-			delete w;
+			w->Delete();
 			return;
 
 		case WWT_CAPTION: // 'Title bar'
@@ -703,8 +687,11 @@ static void DispatchLeftClickEvent(Window *w, int x, int y, int click_count)
 
 		case WWT_DEFSIZEBOX: {
 			if (_ctrl_pressed) {
-				w->window_desc->pref_width = w->width;
-				w->window_desc->pref_height = w->height;
+				WindowDesc::Prefs *prefs = w->window_desc->prefs;
+				if (prefs != NULL) {
+					prefs->pref_width  = w->width;
+					prefs->pref_height = w->height;
+				}
 			} else {
 				int16 def_width = max<int16>(min(w->window_desc->GetDefaultWidth(), _screen.width), w->nested_root->smallest_x);
 				int16 def_height = max<int16>(min(w->window_desc->GetDefaultHeight(), _screen.height - 50), w->nested_root->smallest_y);
@@ -736,7 +723,12 @@ static void DispatchLeftClickEvent(Window *w, int x, int y, int click_count)
 		case WWT_STICKYBOX:
 			w->flags ^= WF_STICKY;
 			nw->SetDirty(w);
-			if (_ctrl_pressed) w->window_desc->pref_sticky = (w->flags & WF_STICKY) != 0;
+			if (_ctrl_pressed) {
+				WindowDesc::Prefs *prefs = w->window_desc->prefs;
+				if (prefs != NULL) {
+					prefs->pref_sticky = (w->flags & WF_STICKY) != 0;
+				}
+			}
 			return;
 
 		default:
@@ -916,7 +908,7 @@ static void DrawOverlappedWindow(Window *w, int left, int top, int right, int bo
 	dp->left = left - w->left;
 	dp->top = top - w->top;
 	dp->pitch = _screen.pitch;
-	dp->dst_ptr = GetCurrentBlitter()->MoveTo (_screen.dst_ptr, left, top);
+	dp->dst_ptr = Blitter::get()->MoveTo (_screen.dst_ptr, left, top);
 	dp->zoom = ZOOM_LVL_NORMAL;
 	w->OnPaint();
 }
@@ -1041,21 +1033,21 @@ static Window *FindChildWindow(const Window *w, WindowClass wc)
  */
 void Window::DeleteChildWindows(WindowClass wc) const
 {
-	Window *child = FindChildWindow(this, wc);
-	while (child != NULL) {
-		delete child;
-		child = FindChildWindow(this, wc);
+	for (;;) {
+		Window *child = FindChildWindow (this, wc);
+		if (child == NULL) break;
+		child->Delete();
 	}
 }
 
 /**
  * Remove window and all its child windows from the window stack.
  */
-Window::~Window()
+void Window::Delete (void)
 {
 	if (_thd.window_class == this->window_class &&
 			_thd.window_number == this->window_number) {
-		ResetObjectToPlace();
+		ResetPointerMode();
 	}
 
 	/* Prevent Mouseover() from resetting mouse-over coordinates on a non-existing window */
@@ -1072,23 +1064,21 @@ Window::~Window()
 
 	this->DeleteChildWindows();
 
-	if (this->viewport != NULL) DeleteWindowViewport(this);
-
 	this->SetDirty();
+
+	/* Mark the window as deleted. */
+	this->window_class = WC_INVALID;
+
+	/* Do any child-specific processing. */
+	this->OnDelete();
+}
+
+Window::~Window()
+{
+	if (this->viewport != NULL) DeleteWindowViewport(this);
 
 	free(this->nested_array); // Contents is released through deletion of #nested_root.
 	delete this->nested_root;
-
-	/*
-	 * Make fairly sure that this is written, and not "optimized" away.
-	 * The delete operator is overwritten to not delete it; the deletion
-	 * happens at a later moment in time after the window has been
-	 * removed from the list of windows to prevent issues with items
-	 * being removed during the iteration as not one but more windows
-	 * may be removed by a single call to ~Window by means of the
-	 * DeleteChildWindows function.
-	 */
-	const_cast<volatile WindowClass &>(this->window_class) = WC_INVALID;
 }
 
 /**
@@ -1132,9 +1122,8 @@ Window *FindWindowByClass(WindowClass cls)
 void DeleteWindowById(WindowClass cls, WindowNumber number, bool force)
 {
 	Window *w = FindWindowById(cls, number);
-	if (force || w == NULL ||
-			(w->flags & WF_STICKY) == 0) {
-		delete w;
+	if (w != NULL && (force || (w->flags & WF_STICKY) == 0)) {
+		w->Delete();
 	}
 }
 
@@ -1152,7 +1141,7 @@ restart_search:
 	 * anywhere in the z-array */
 	FOR_ALL_WINDOWS_FROM_BACK(w) {
 		if (w->window_class == cls) {
-			delete w;
+			w->Delete();
 			goto restart_search;
 		}
 	}
@@ -1174,7 +1163,7 @@ restart_search:
 	 * anywhere in the z-array */
 	FOR_ALL_WINDOWS_FROM_BACK(w) {
 		if (w->owner == id) {
-			delete w;
+			w->Delete();
 			goto restart_search;
 		}
 	}
@@ -1207,6 +1196,7 @@ void ChangeWindowOwner(Owner old_owner, Owner new_owner)
 			case WC_BUY_COMPANY:
 			case WC_COMPANY:
 			case WC_COMPANY_INFRASTRUCTURE:
+			case WC_VEHICLE_ORDERS: // Changing owner would also require changing WindowDesc, which is not possible; however keeping the old one crashes because of missing widgets etc.. See ShowOrdersWindow().
 				continue;
 
 			default:
@@ -1410,64 +1400,6 @@ static void BringWindowToFront(Window *w)
 }
 
 /**
- * Initializes the data (except the position and initial size) of a new Window.
- * @param desc          Window description.
- * @param window_number Number being assigned to the new window
- * @return Window pointer of the newly created window
- * @pre If nested widgets are used (\a widget is \c NULL), #nested_root and #nested_array_size must be initialized.
- *      In addition, #nested_array is either \c NULL, or already initialized.
- */
-void Window::InitializeData(WindowNumber window_number)
-{
-	/* Set up window properties; some of them are needed to set up smallest size below */
-	this->window_class = this->window_desc->cls;
-	this->SetWhiteBorder();
-	if (this->window_desc->default_pos == WDP_CENTER) this->flags |= WF_CENTERED;
-	this->owner = INVALID_OWNER;
-	this->nested_focus = NULL;
-	this->window_number = window_number;
-
-	this->OnInit();
-	/* Initialize nested widget tree. */
-	if (this->nested_array == NULL) {
-		this->nested_array = xcalloct<NWidgetBase *>(this->nested_array_size);
-		this->nested_root->SetupSmallestSize(this, true);
-	} else {
-		this->nested_root->SetupSmallestSize(this, false);
-	}
-	/* Initialize to smallest size. */
-	this->nested_root->AssignSizePosition(ST_SMALLEST, 0, 0, this->nested_root->smallest_x, this->nested_root->smallest_y, _current_text_dir == TD_RTL);
-
-	/* Further set up window properties,
-	 * this->left, this->top, this->width, this->height, this->resize.width, and this->resize.height are initialized later. */
-	this->resize.step_width  = this->nested_root->resize_x;
-	this->resize.step_height = this->nested_root->resize_y;
-
-	/* Give focus to the opened window unless a text box
-	 * of focused window has focus (so we don't interrupt typing). But if the new
-	 * window has a text box, then take focus anyway. */
-	if (!EditBoxInGlobalFocus() || this->nested_root->GetWidgetOfType(WWT_EDITBOX) != NULL) SetFocusedWindow(this);
-
-	/* Insert the window into the correct location in the z-ordering. */
-	AddWindowToZOrdering(this);
-}
-
-/**
- * Set the position and smallest size of the window.
- * @param x          Offset in pixels from the left of the screen of the new window.
- * @param y          Offset in pixels from the top of the screen of the new window.
- * @param sm_width   Smallest width in pixels of the window.
- * @param sm_height  Smallest height in pixels of the window.
- */
-void Window::InitializePositionSize(int x, int y, int sm_width, int sm_height)
-{
-	this->left = x;
-	this->top = y;
-	this->width = sm_width;
-	this->height = sm_height;
-}
-
-/**
  * Resize window towards the default size.
  * Prior to construction, a position for the new window (for its default size)
  * has been found with LocalGetWindowPlacement(). Initially, the window is
@@ -1475,7 +1407,7 @@ void Window::InitializePositionSize(int x, int y, int sm_width, int sm_height)
  * done here.
  * @param def_width default width in pixels of the window
  * @param def_height default height in pixels of the window
- * @see Window::Window(), Window::InitializeData(), Window::InitializePositionSize()
+ * @see Window::Window(), Window::InitNested()
  */
 void Window::FindWindowPlacementAndResize(int def_width, int def_height)
 {
@@ -1755,47 +1687,92 @@ static Point LocalGetWindowPlacement(const WindowDesc *desc, int16 sm_width, int
  * @param fill_nested Fill the #nested_array (enabling is expensive!).
  * @note Filling the nested array requires an additional traversal through the nested widget tree, and is best performed by #FinishInitNested rather than here.
  */
-void Window::CreateNestedTree(bool fill_nested)
+void Window::CreateNestedTree (void)
 {
-	int biggest_index = -1;
-	this->nested_root = MakeWindowNWidgetTree(this->window_desc->nwid_parts, this->window_desc->nwid_length, &biggest_index, &this->shade_select);
-	this->nested_array_size = (uint)(biggest_index + 1);
-
-	if (fill_nested) {
-		this->nested_array = xcalloct<NWidgetBase *>(this->nested_array_size);
-		this->nested_root->FillNestedArray(this->nested_array, this->nested_array_size);
-	}
+	this->nested_array = xcalloct<NWidgetBase *>(this->nested_array_size);
+	this->nested_root->FillNestedArray(this->nested_array, this->nested_array_size);
 }
 
 /**
  * Perform the second part of the initialization of a nested widget tree.
  * @param window_number Number of the new window.
  */
-void Window::FinishInitNested(WindowNumber window_number)
+void Window::InitNested (WindowNumber window_number)
 {
-	this->InitializeData(window_number);
-	this->ApplyDefaults();
-	Point pt = this->OnInitialPosition(this->nested_root->smallest_x, this->nested_root->smallest_y, window_number);
-	this->InitializePositionSize(pt.x, pt.y, this->nested_root->smallest_x, this->nested_root->smallest_y);
-	this->FindWindowPlacementAndResize(this->window_desc->GetDefaultWidth(), this->window_desc->GetDefaultHeight());
-}
+	/* Set up window properties; some of them are needed to set up smallest size below */
+	this->window_class = this->window_desc->cls;
+	this->SetWhiteBorder();
+	if (this->window_desc->default_pos == WDP_CENTER) this->flags |= WF_CENTERED;
+	this->owner = INVALID_OWNER;
+	this->nested_focus = NULL;
+	this->window_number = window_number;
 
-/**
- * Perform complete initialization of the #Window with nested widgets, to allow use.
- * @param window_number Number of the new window.
- */
-void Window::InitNested(WindowNumber window_number)
-{
-	this->CreateNestedTree(false);
-	this->FinishInitNested(window_number);
+	this->OnInit();
+	/* Initialize nested widget tree. */
+	if (this->nested_array == NULL) {
+		this->nested_array = xcalloct<NWidgetBase *>(this->nested_array_size);
+		this->nested_root->SetupSmallestSize(this, true);
+	} else {
+		this->nested_root->SetupSmallestSize(this, false);
+	}
+	/* Initialize to smallest size. */
+	this->nested_root->AssignSizePosition(ST_SMALLEST, 0, 0, this->nested_root->smallest_x, this->nested_root->smallest_y, _current_text_dir == TD_RTL);
+
+	/* Further set up window properties,
+	 * this->left, this->top, this->width, this->height, this->resize.width, and this->resize.height are initialized later. */
+	this->resize.step_width  = this->nested_root->resize_x;
+	this->resize.step_height = this->nested_root->resize_y;
+
+	/* Give focus to the opened window unless a text box
+	 * of focused window has focus (so we don't interrupt typing). But if the new
+	 * window has a text box, then take focus anyway. */
+	if (!EditBoxInGlobalFocus() || this->nested_root->GetWidgetOfType(WWT_EDITBOX) != NULL) SetFocusedWindow(this);
+
+	/* Insert the window into the correct location in the z-ordering. */
+	AddWindowToZOrdering(this);
+
+	WindowDesc::Prefs *prefs = this->window_desc->prefs;
+	if (prefs != NULL) {
+		if (this->nested_root != NULL && this->nested_root->GetWidgetOfType(WWT_STICKYBOX) != NULL) {
+			if (prefs->pref_sticky) this->flags |= WF_STICKY;
+		} else {
+			/* There is no stickybox; clear the preference in case someone tried to be funny */
+			prefs->pref_sticky = false;
+		}
+	}
+
+	Point pt = this->OnInitialPosition(this->nested_root->smallest_x, this->nested_root->smallest_y, window_number);
+
+	this->left = pt.x;
+	this->top  = pt.y;
+	this->width  = this->nested_root->smallest_x;
+	this->height = this->nested_root->smallest_y;
+
+	this->FindWindowPlacementAndResize(this->window_desc->GetDefaultWidth(), this->window_desc->GetDefaultHeight());
 }
 
 /**
  * Empty constructor, initialization has been moved to #InitNested() called from the constructor of the derived class.
  * @param desc The description of the window.
  */
-Window::Window(WindowDesc *desc) : window_desc(desc), scrolling_scrollbar(-1)
+Window::Window (const WindowDesc *desc)
+	: window_desc (desc), flags ((WindowFlags)0),
+	  window_class (WC_NONE), window_number (0), timeout_timer (0),
+	  white_border_timer (0), left (0), top (0), width (0), height (0),
+	  resize(), owner ((Owner)0),
+	  viewport (NULL), nested_focus (NULL), querystrings(),
+	  nested_root (NULL), nested_array (NULL), nested_array_size (0),
+	  shade_select (NULL), unshaded_size(), scrolling_scrollbar (-1),
+	  parent (NULL), z_front (NULL), z_back (NULL)
 {
+	this->resize.step_width  = 0;
+	this->resize.step_height = 0;
+	this->unshaded_size.width  = 0;
+	this->unshaded_size.height = 0;
+
+	int biggest_index = -1;
+	this->nested_root = MakeWindowNWidgetTree(this->window_desc->nwid_parts, this->window_desc->nwid_length, &biggest_index, &this->shade_select);
+	this->nested_array_size = (uint)(biggest_index + 1);
 }
 
 /**
@@ -1846,7 +1823,7 @@ void UnInitWindowSystem()
 	UnshowCriticalError();
 
 	Window *w;
-	FOR_ALL_WINDOWS_FROM_FRONT(w) delete w;
+	FOR_ALL_WINDOWS_FROM_FRONT(w) w->Delete();
 
 	for (w = _z_front_window; w != NULL; /* nothing */) {
 		Window *to_del = w;
@@ -1906,29 +1883,13 @@ static void DecreaseWindowCounters()
 	}
 }
 
-static void HandlePlacePresize()
-{
-	if (_special_mouse_mode != WSM_PRESIZE) return;
-
-	Window *w = _thd.GetCallbackWnd();
-	if (w == NULL) return;
-
-	Point pt = GetTileBelowCursor();
-	if (pt.x == -1) {
-		_thd.selend.x = -1;
-		return;
-	}
-
-	w->OnPlacePresize(pt, TileVirtXY(pt.x, pt.y));
-}
-
 /**
  * Handle dragging and dropping in mouse dragging mode (#WSM_DRAGDROP).
  * @return State of handling the event.
  */
 static EventState HandleMouseDragDrop()
 {
-	if (_special_mouse_mode != WSM_DRAGDROP) return ES_NOT_HANDLED;
+	if (_pointer_mode != POINTER_DRAG) return ES_NOT_HANDLED;
 
 	if (_left_button_down && _cursor.delta.x == 0 && _cursor.delta.y == 0) return ES_HANDLED; // Dragging, but the mouse did not move.
 
@@ -1945,7 +1906,7 @@ static EventState HandleMouseDragDrop()
 		}
 	}
 
-	if (!_left_button_down) ResetObjectToPlace(); // Button released, finished dragging.
+	if (!_left_button_down) ResetPointerMode(); // Button released, finished dragging.
 	return ES_HANDLED;
 }
 
@@ -2787,7 +2748,6 @@ static void MouseLoop(MouseClick click, int mousewheel)
 	 * But there is no company related window open anyway, so _current_company is not used. */
 	assert(HasModalProgress() || IsLocalCompany());
 
-	HandlePlacePresize();
 	UpdateTileSelection();
 
 	if (VpHandlePlaceSizingDrag()  == ES_HANDLED) return;
@@ -2934,7 +2894,7 @@ void HandleMouseEvents()
 
 	if (click == MC_LEFT && _newgrf_debug_sprite_picker.mode == SPM_WAIT_CLICK) {
 		/* Mark whole screen dirty, and wait for the next realtime tick, when drawing is finished. */
-		Blitter *blitter = GetCurrentBlitter();
+		Blitter *blitter = Blitter::get();
 		_newgrf_debug_sprite_picker.clicked_pixel = blitter->MoveTo(_screen.dst_ptr, _cursor.pos.x, _cursor.pos.y);
 		_newgrf_debug_sprite_picker.click_time = _realtime_tick;
 		_newgrf_debug_sprite_picker.sprites.Clear();
@@ -2971,7 +2931,7 @@ static void CheckSoftLimit()
 		if (deletable_count <= _settings_client.gui.window_soft_limit) break;
 
 		assert(last_deletable != NULL);
-		delete last_deletable;
+		last_deletable->Delete();
 	}
 }
 
@@ -2995,7 +2955,7 @@ void InputLoop()
 		if (w->window_class != WC_INVALID) continue;
 
 		RemoveWindowFromZOrdering(w);
-		free(w);
+		delete w;
 	}
 
 	if (_scroller_click_timeout != 0) _scroller_click_timeout--;
@@ -3227,7 +3187,7 @@ restart_search:
 				w->window_class != WC_TOOLTIPS &&
 				(w->flags & WF_STICKY) == 0) { // do not delete windows which are 'pinned'
 
-			delete w;
+			w->Delete();
 			goto restart_search;
 		}
 	}
@@ -3253,7 +3213,7 @@ restart_search:
 	 * anywhere in the z-array */
 	FOR_ALL_WINDOWS_FROM_BACK(w) {
 		if (w->flags & WF_STICKY) {
-			delete w;
+			w->Delete();
 			goto restart_search;
 		}
 	}
@@ -3273,7 +3233,7 @@ restart_search:
 	 * anywhere in the z-array */
 	FOR_ALL_WINDOWS_FROM_BACK(w) {
 		if (w->window_desc->flags & WDF_CONSTRUCTION) {
-			delete w;
+			w->Delete();
 			goto restart_search;
 		}
 	}
@@ -3471,10 +3431,10 @@ void RelocateAllWindows(int neww, int newh)
 /**
  * Destructor of the base class PickerWindowBase
  * Main utility is to stop the base Window destructor from triggering
- * a free while the child will already be free, in this case by the ResetObjectToPlace().
+ * a free while the child will already be free, in this case by the ResetPointerMode().
  */
-PickerWindowBase::~PickerWindowBase()
+void PickerWindowBase::OnDelete (void)
 {
 	this->window_class = WC_INVALID; // stop the ancestor from freeing the already (to be) child
-	ResetObjectToPlace();
+	ResetPointerMode();
 }

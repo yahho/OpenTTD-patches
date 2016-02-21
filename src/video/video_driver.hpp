@@ -16,8 +16,16 @@
 #include "../core/geometry_type.hpp"
 
 /** The base of all video drivers. */
-class VideoDriver : public Driver {
+class VideoDriver : public Driver, public SharedDriverSystem <VideoDriver> {
 public:
+	static char *ini; ///< The video driver as stored in the configuration file.
+
+	/** Get the name of this type of driver. */
+	static CONSTEXPR const char *GetSystemName (void)
+	{
+		return "video";
+	}
+
 	/**
 	 * Mark a particular area dirty.
 	 * @param left   The left most line of the dirty area.
@@ -78,16 +86,24 @@ public:
 	 * An edit box lost the input focus. Abort character compositing if necessary.
 	 */
 	virtual void EditBoxLostFocus() {}
+};
 
+/** Video driver factory. */
+template <class D>
+class VideoDriverFactory : DriverFactory <VideoDriver, D> {
+public:
 	/**
-	 * Get the currently active instance of the video driver.
+	 * Construct a new VideoDriverFactory.
+	 * @param priority    The priority within the driver class.
+	 * @param name        The name of the driver.
+	 * @param description A long-ish description of the driver.
 	 */
-	static VideoDriver *GetInstance() {
-		return static_cast<VideoDriver*>(*DriverFactoryBase::GetActiveDriver(Driver::DT_VIDEO));
+	VideoDriverFactory (int priority, const char *name, const char *description)
+		: DriverFactory <VideoDriver, D> (priority, name, description)
+	{
 	}
 };
 
-extern char *_ini_videodriver;
 extern int _num_resolutions;
 extern Dimension _resolutions[32];
 extern Dimension _cur_resolution;

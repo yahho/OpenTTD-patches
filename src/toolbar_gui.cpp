@@ -246,10 +246,10 @@ static ToolbarMode _toolbar_mode;
 static CallBackFunction SelectSignTool()
 {
 	if (_cursor.sprite == SPR_CURSOR_SIGN) {
-		ResetObjectToPlace();
+		ResetPointerMode();
 		return CBF_NONE;
 	} else {
-		SetObjectToPlace(SPR_CURSOR_SIGN, PAL_NONE, HT_RECT, WC_MAIN_TOOLBAR, 0);
+		SetPointerMode (POINTER_TILE, WC_MAIN_TOOLBAR, 0, SPR_CURSOR_SIGN);
 		return CBF_PLACE_SIGN;
 	}
 }
@@ -841,7 +841,7 @@ static CallBackFunction MenuClickShowAir(int index)
 
 static CallBackFunction ToolbarZoomInClick(Window *w)
 {
-	if (DoZoomInOutWindow(ZOOM_IN, FindWindowById(WC_MAIN_WINDOW, 0))) {
+	if (DoZoomInOutWindow (true, FindWindowById(WC_MAIN_WINDOW, 0))) {
 		w->HandleButtonClick((_game_mode == GM_EDITOR) ? (byte)WID_TE_ZOOM_IN : (byte)WID_TN_ZOOM_IN);
 		if (_settings_client.sound.click_beep) SndPlayFx(SND_15_BEEP);
 	}
@@ -852,7 +852,7 @@ static CallBackFunction ToolbarZoomInClick(Window *w)
 
 static CallBackFunction ToolbarZoomOutClick(Window *w)
 {
-	if (DoZoomInOutWindow(ZOOM_OUT, FindWindowById(WC_MAIN_WINDOW, 0))) {
+	if (DoZoomInOutWindow (false, FindWindowById(WC_MAIN_WINDOW, 0))) {
 		w->HandleButtonClick((_game_mode == GM_EDITOR) ? (byte)WID_TE_ZOOM_OUT : (byte)WID_TN_ZOOM_OUT);
 		if (_settings_client.sound.click_beep) SndPlayFx(SND_15_BEEP);
 	}
@@ -1030,10 +1030,10 @@ static CallBackFunction MenuClickNewspaper(int index)
 static CallBackFunction PlaceLandBlockInfo()
 {
 	if (_cursor.sprite == SPR_CURSOR_QUERY) {
-		ResetObjectToPlace();
+		ResetPointerMode();
 		return CBF_NONE;
 	} else {
-		SetObjectToPlace(SPR_CURSOR_QUERY, PAL_NONE, HT_RECT, WC_MAIN_TOOLBAR, 0);
+		SetPointerMode (POINTER_TILE, WC_MAIN_TOOLBAR, 0, SPR_CURSOR_QUERY);
 		return CBF_PLACE_LANDINFO;
 	}
 }
@@ -1656,7 +1656,8 @@ enum MainToolbarHotkeys {
 struct MainToolbarWindow : Window {
 	CallBackFunction last_started_action; ///< Last started user action.
 
-	MainToolbarWindow(WindowDesc *desc) : Window(desc)
+	MainToolbarWindow (const WindowDesc *desc) :
+		Window (desc), last_started_action (CBF_NONE)
 	{
 		this->InitNested(0);
 
@@ -1665,7 +1666,7 @@ struct MainToolbarWindow : Window {
 		this->SetWidgetDisabledState(WID_TN_PAUSE, _networking && !_network_server); // if not server, disable pause button
 		this->SetWidgetDisabledState(WID_TN_FAST_FORWARD, _networking); // if networking, disable fast-forward button
 		PositionMainToolbar(this);
-		DoZoomInOutWindow(ZOOM_NONE, this);
+		this->InvalidateData();
 	}
 
 	virtual void FindWindowPlacementAndResize(int def_width, int def_height)
@@ -1804,53 +1805,47 @@ struct MainToolbarWindow : Window {
 	static HotkeyList hotkeys;
 };
 
-const uint16 _maintoolbar_pause_keys[] = {WKC_F1, WKC_PAUSE, 0};
-const uint16 _maintoolbar_zoomin_keys[] = {WKC_NUM_PLUS, WKC_EQUALS, WKC_SHIFT | WKC_EQUALS, WKC_SHIFT | WKC_F5, 0};
-const uint16 _maintoolbar_zoomout_keys[] = {WKC_NUM_MINUS, WKC_MINUS, WKC_SHIFT | WKC_MINUS, WKC_SHIFT | WKC_F6, 0};
-const uint16 _maintoolbar_smallmap_keys[] = {WKC_F4, 'M', 0};
-
-static Hotkey maintoolbar_hotkeys[] = {
-	Hotkey(_maintoolbar_pause_keys, "pause", MTHK_PAUSE),
-	Hotkey((uint16)0, "fastforward", MTHK_FASTFORWARD),
-	Hotkey(WKC_F2, "settings", MTHK_SETTINGS),
-	Hotkey(WKC_F3, "saveload", MTHK_SAVEGAME),
-	Hotkey((uint16)0, "load_game", MTHK_LOADGAME),
-	Hotkey(_maintoolbar_smallmap_keys, "smallmap", MTHK_SMALLMAP),
-	Hotkey(WKC_F5, "town_list", MTHK_TOWNDIRECTORY),
-	Hotkey(WKC_F6, "subsidies", MTHK_SUBSIDIES),
-	Hotkey(WKC_F7, "station_list", MTHK_STATIONS),
-	Hotkey(WKC_F8, "finances", MTHK_FINANCES),
-	Hotkey(WKC_F9, "companies", MTHK_COMPANIES),
-	Hotkey((uint16)0, "story_book", MTHK_STORY),
-	Hotkey((uint16)0, "goal_list", MTHK_GOAL),
-	Hotkey(WKC_F10, "graphs", MTHK_GRAPHS),
-	Hotkey(WKC_F11, "league", MTHK_LEAGUE),
-	Hotkey(WKC_F12, "industry_list", MTHK_INDUSTRIES),
-	Hotkey(WKC_SHIFT | WKC_F1, "train_list", MTHK_TRAIN_LIST),
-	Hotkey(WKC_SHIFT | WKC_F2, "roadveh_list", MTHK_ROADVEH_LIST),
-	Hotkey(WKC_SHIFT | WKC_F3, "ship_list", MTHK_SHIP_LIST),
-	Hotkey(WKC_SHIFT | WKC_F4, "aircraft_list", MTHK_AIRCRAFT_LIST),
-	Hotkey(_maintoolbar_zoomin_keys, "zoomin", MTHK_ZOOM_IN),
-	Hotkey(_maintoolbar_zoomout_keys, "zoomout", MTHK_ZOOM_OUT),
-	Hotkey(WKC_SHIFT | WKC_F7, "build_rail", MTHK_BUILD_RAIL),
-	Hotkey(WKC_SHIFT | WKC_F8, "build_road", MTHK_BUILD_ROAD),
-	Hotkey(WKC_SHIFT | WKC_F9, "build_docks", MTHK_BUILD_DOCKS),
-	Hotkey(WKC_SHIFT | WKC_F10, "build_airport", MTHK_BUILD_AIRPORT),
-	Hotkey(WKC_SHIFT | WKC_F11, "build_trees", MTHK_BUILD_TREES),
-	Hotkey(WKC_SHIFT | WKC_F12, "music", MTHK_MUSIC),
-	Hotkey((uint16)0, "ai_debug", MTHK_AI_DEBUG),
-	Hotkey(WKC_CTRL  | 'S', "small_screenshot", MTHK_SMALL_SCREENSHOT),
-	Hotkey(WKC_CTRL  | 'P', "zoomedin_screenshot", MTHK_ZOOMEDIN_SCREENSHOT),
-	Hotkey(WKC_CTRL  | 'D', "defaultzoom_screenshot", MTHK_DEFAULTZOOM_SCREENSHOT),
-	Hotkey((uint16)0, "giant_screenshot", MTHK_GIANT_SCREENSHOT),
-	Hotkey(WKC_CTRL | WKC_ALT | 'C', "cheats", MTHK_CHEATS),
-	Hotkey('L', "terraform", MTHK_TERRAFORM),
-	Hotkey('V', "extra_viewport", MTHK_EXTRA_VIEWPORT),
+static const Hotkey maintoolbar_hotkeys[] = {
+	Hotkey ("pause",          MTHK_PAUSE,          WKC_F1, WKC_PAUSE),
+	Hotkey ("fastforward",    MTHK_FASTFORWARD),
+	Hotkey ("settings",       MTHK_SETTINGS,       WKC_F2),
+	Hotkey ("saveload",       MTHK_SAVEGAME,       WKC_F3),
+	Hotkey ("load_game",      MTHK_LOADGAME),
+	Hotkey ("smallmap",       MTHK_SMALLMAP,       WKC_F4, 'M'),
+	Hotkey ("town_list",      MTHK_TOWNDIRECTORY,  WKC_F5),
+	Hotkey ("subsidies",      MTHK_SUBSIDIES,      WKC_F6),
+	Hotkey ("station_list",   MTHK_STATIONS,       WKC_F7),
+	Hotkey ("finances",       MTHK_FINANCES,       WKC_F8),
+	Hotkey ("companies",      MTHK_COMPANIES,      WKC_F9),
+	Hotkey ("story_book",     MTHK_STORY),
+	Hotkey ("goal_list",      MTHK_GOAL),
+	Hotkey ("graphs",         MTHK_GRAPHS,         WKC_F10),
+	Hotkey ("league",         MTHK_LEAGUE,         WKC_F11),
+	Hotkey ("industry_list",  MTHK_INDUSTRIES,     WKC_F12),
+	Hotkey ("train_list",     MTHK_TRAIN_LIST,     WKC_SHIFT | WKC_F1),
+	Hotkey ("roadveh_list",   MTHK_ROADVEH_LIST,   WKC_SHIFT | WKC_F2),
+	Hotkey ("ship_list",      MTHK_SHIP_LIST,      WKC_SHIFT | WKC_F3),
+	Hotkey ("aircraft_list",  MTHK_AIRCRAFT_LIST,  WKC_SHIFT | WKC_F4),
+	Hotkey ("zoomin",         MTHK_ZOOM_IN,        WKC_SHIFT | WKC_F5, WKC_NUM_PLUS,  WKC_EQUALS, WKC_SHIFT | WKC_EQUALS),
+	Hotkey ("zoomout",        MTHK_ZOOM_OUT,       WKC_SHIFT | WKC_F6, WKC_NUM_MINUS, WKC_MINUS,  WKC_SHIFT | WKC_MINUS),
+	Hotkey ("build_rail",     MTHK_BUILD_RAIL,     WKC_SHIFT | WKC_F7),
+	Hotkey ("build_road",     MTHK_BUILD_ROAD,     WKC_SHIFT | WKC_F8),
+	Hotkey ("build_docks",    MTHK_BUILD_DOCKS,    WKC_SHIFT | WKC_F9),
+	Hotkey ("build_airport",  MTHK_BUILD_AIRPORT,  WKC_SHIFT | WKC_F10),
+	Hotkey ("build_trees",    MTHK_BUILD_TREES,    WKC_SHIFT | WKC_F11),
+	Hotkey ("music",          MTHK_MUSIC,          WKC_SHIFT | WKC_F12),
+	Hotkey ("ai_debug",       MTHK_AI_DEBUG),
+	Hotkey ("small_screenshot",       MTHK_SMALL_SCREENSHOT,       WKC_CTRL | 'S'),
+	Hotkey ("zoomedin_screenshot",    MTHK_ZOOMEDIN_SCREENSHOT,    WKC_CTRL | 'P'),
+	Hotkey ("defaultzoom_screenshot", MTHK_DEFAULTZOOM_SCREENSHOT, WKC_CTRL | 'D'),
+	Hotkey ("giant_screenshot",       MTHK_GIANT_SCREENSHOT),
+	Hotkey ("cheats",         MTHK_CHEATS,         WKC_CTRL | WKC_ALT | 'C'),
+	Hotkey ("terraform",      MTHK_TERRAFORM,      'L'),
+	Hotkey ("extra_viewport", MTHK_EXTRA_VIEWPORT, 'V'),
 #ifdef ENABLE_NETWORK
-	Hotkey((uint16)0, "client_list", MTHK_CLIENT_LIST),
+	Hotkey ("client_list",    MTHK_CLIENT_LIST),
 #endif
-	Hotkey((uint16)0, "sign_list", MTHK_SIGN_LIST),
-	HOTKEY_LIST_END
+	Hotkey ("sign_list",      MTHK_SIGN_LIST),
 };
 HotkeyList MainToolbarWindow::hotkeys("maintoolbar", maintoolbar_hotkeys);
 
@@ -1906,12 +1901,12 @@ static const NWidgetPart _nested_toolbar_normal_widgets[] = {
 	NWidgetFunction(MakeMainToolbar),
 };
 
-static WindowDesc _toolb_normal_desc(
-	WDP_MANUAL, NULL, 0, 0,
+static const WindowDesc _toolb_normal_desc(
+	WDP_MANUAL, 0, 0,
 	WC_MAIN_TOOLBAR, WC_NONE,
 	WDF_NO_FOCUS,
 	_nested_toolbar_normal_widgets, lengthof(_nested_toolbar_normal_widgets),
-	&MainToolbarWindow::hotkeys
+	NULL, &MainToolbarWindow::hotkeys
 );
 
 
@@ -1978,14 +1973,15 @@ enum MainToolbarEditorHotkeys {
 struct ScenarioEditorToolbarWindow : Window {
 	CallBackFunction last_started_action; ///< Last started user action.
 
-	ScenarioEditorToolbarWindow(WindowDesc *desc) : Window(desc)
+	ScenarioEditorToolbarWindow (const WindowDesc *desc) :
+		Window (desc), last_started_action (CBF_NONE)
 	{
 		this->InitNested(0);
 
 		this->last_started_action = CBF_NONE;
 		CLRBITS(this->flags, WF_WHITE_BORDER);
 		PositionMainToolbar(this);
-		DoZoomInOutWindow(ZOOM_NONE, this);
+		this->InvalidateData();
 	}
 
 	virtual void FindWindowPlacementAndResize(int def_width, int def_height)
@@ -2152,30 +2148,29 @@ struct ScenarioEditorToolbarWindow : Window {
 	static HotkeyList hotkeys;
 };
 
-static Hotkey scenedit_maintoolbar_hotkeys[] = {
-	Hotkey(_maintoolbar_pause_keys, "pause", MTEHK_PAUSE),
-	Hotkey((uint16)0, "fastforward", MTEHK_FASTFORWARD),
-	Hotkey(WKC_F2, "settings", MTEHK_SETTINGS),
-	Hotkey(WKC_F3, "saveload", MTEHK_SAVEGAME),
-	Hotkey(WKC_F4, "gen_land", MTEHK_GENLAND),
-	Hotkey(WKC_F5, "gen_town", MTEHK_GENTOWN),
-	Hotkey(WKC_F6, "gen_industry", MTEHK_GENINDUSTRY),
-	Hotkey(WKC_F7, "build_road", MTEHK_BUILD_ROAD),
-	Hotkey(WKC_F8, "build_docks", MTEHK_BUILD_DOCKS),
-	Hotkey(WKC_F9, "build_trees", MTEHK_BUILD_TREES),
-	Hotkey(WKC_F10, "build_sign", MTEHK_SIGN),
-	Hotkey(WKC_F11, "music", MTEHK_MUSIC),
-	Hotkey(WKC_F12, "land_info", MTEHK_LANDINFO),
-	Hotkey(WKC_CTRL  | 'S', "small_screenshot", MTEHK_SMALL_SCREENSHOT),
-	Hotkey(WKC_CTRL  | 'P', "zoomedin_screenshot", MTEHK_ZOOMEDIN_SCREENSHOT),
-	Hotkey(WKC_CTRL  | 'D', "defaultzoom_screenshot", MTEHK_DEFAULTZOOM_SCREENSHOT),
-	Hotkey((uint16)0, "giant_screenshot", MTEHK_GIANT_SCREENSHOT),
-	Hotkey(_maintoolbar_zoomin_keys, "zoomin", MTEHK_ZOOM_IN),
-	Hotkey(_maintoolbar_zoomout_keys, "zoomout", MTEHK_ZOOM_OUT),
-	Hotkey('L', "terraform", MTEHK_TERRAFORM),
-	Hotkey('M', "smallmap", MTEHK_SMALLMAP),
-	Hotkey('V', "extra_viewport", MTEHK_EXTRA_VIEWPORT),
-	HOTKEY_LIST_END
+static const Hotkey scenedit_maintoolbar_hotkeys[] = {
+	Hotkey ("pause",          MTEHK_PAUSE,          WKC_F1, WKC_PAUSE),
+	Hotkey ("fastforward",    MTEHK_FASTFORWARD),
+	Hotkey ("settings",       MTEHK_SETTINGS,       WKC_F2),
+	Hotkey ("saveload",       MTEHK_SAVEGAME,       WKC_F3),
+	Hotkey ("gen_land",       MTEHK_GENLAND,        WKC_F4),
+	Hotkey ("gen_town",       MTEHK_GENTOWN,        WKC_F5),
+	Hotkey ("gen_industry",   MTEHK_GENINDUSTRY,    WKC_F6),
+	Hotkey ("build_road",     MTEHK_BUILD_ROAD,     WKC_F7),
+	Hotkey ("build_docks",    MTEHK_BUILD_DOCKS,    WKC_F8),
+	Hotkey ("build_trees",    MTEHK_BUILD_TREES,    WKC_F9),
+	Hotkey ("build_sign",     MTEHK_SIGN,           WKC_F10),
+	Hotkey ("music",          MTEHK_MUSIC,          WKC_F11),
+	Hotkey ("land_info",      MTEHK_LANDINFO,       WKC_F12),
+	Hotkey ("small_screenshot",       MTEHK_SMALL_SCREENSHOT,       WKC_CTRL | 'S'),
+	Hotkey ("zoomedin_screenshot",    MTEHK_ZOOMEDIN_SCREENSHOT,    WKC_CTRL | 'P'),
+	Hotkey ("defaultzoom_screenshot", MTEHK_DEFAULTZOOM_SCREENSHOT, WKC_CTRL | 'D'),
+	Hotkey ("giant_screenshot",       MTEHK_GIANT_SCREENSHOT),
+	Hotkey ("zoomin",         MTEHK_ZOOM_IN,        WKC_SHIFT | WKC_F5, WKC_NUM_PLUS,  WKC_EQUALS, WKC_SHIFT | WKC_EQUALS),
+	Hotkey ("zoomout",        MTEHK_ZOOM_OUT,       WKC_SHIFT | WKC_F6, WKC_NUM_MINUS, WKC_MINUS,  WKC_SHIFT | WKC_MINUS),
+	Hotkey ("terraform",      MTEHK_TERRAFORM,      'L'),
+	Hotkey ("smallmap",       MTEHK_SMALLMAP,       'M'),
+	Hotkey ("extra_viewport", MTEHK_EXTRA_VIEWPORT, 'V'),
 };
 HotkeyList ScenarioEditorToolbarWindow::hotkeys("scenedit_maintoolbar", scenedit_maintoolbar_hotkeys);
 
@@ -2222,12 +2217,12 @@ static const NWidgetPart _nested_toolb_scen_widgets[] = {
 	NWidgetFunction(MakeScenarioToolbar),
 };
 
-static WindowDesc _toolb_scen_desc(
-	WDP_MANUAL, NULL, 0, 0,
+static const WindowDesc _toolb_scen_desc(
+	WDP_MANUAL, 0, 0,
 	WC_MAIN_TOOLBAR, WC_NONE,
 	WDF_NO_FOCUS,
 	_nested_toolb_scen_widgets, lengthof(_nested_toolb_scen_widgets),
-	&ScenarioEditorToolbarWindow::hotkeys
+	NULL, &ScenarioEditorToolbarWindow::hotkeys
 );
 
 /** Allocate the toolbar. */

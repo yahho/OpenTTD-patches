@@ -53,6 +53,50 @@ TrackBits GetReservedTrackbits(TileIndex t)
 }
 
 /**
+ * Check whether a non-wormhole position is reserved.
+ * @param pos the position
+ * @return true if the track is reserved
+ */
+bool HasReservedMapPos (const RailPathPos &pos)
+{
+	assert (!pos.in_wormhole());
+
+	TileIndex tile = pos.tile;
+	switch (GetTileType (tile)) {
+		case TT_RAILWAY: {
+			TrackBits res = GetRailReservationTrackBits (tile);
+			return (res & TrackToTrackBits (TrackdirToTrack (pos.td))) != TRACK_BIT_NONE;
+		}
+
+		case TT_MISC:
+			switch (GetTileSubtype (tile)) {
+				case TT_MISC_CROSSING:
+					assert (TrackdirToTrack (pos.td) == GetCrossingRailTrack (tile));
+					return HasCrossingReservation (tile);
+
+				case TT_MISC_TUNNEL:
+					assert (GetTunnelTransportType (tile) == TRANSPORT_RAIL);
+					return HasTunnelHeadReservation (tile);
+
+				case TT_MISC_DEPOT:
+					assert (IsRailDepot (tile));
+					return HasDepotReservation (tile);
+
+				default:
+					NOT_REACHED();
+			}
+
+		case TT_STATION:
+			assert (HasStationRail (tile));
+			return HasStationReservation (tile);
+
+		default:
+			NOT_REACHED();
+	}
+}
+
+
+/**
  * Set the reservation for a complete station platform.
  * @pre IsRailStationTile(start)
  * @param start starting tile of the platform
@@ -105,8 +149,16 @@ bool TryReserveRailTrack(TileIndex tile, Track t, bool trigger_stations)
 	}
 
 	switch (GetTileType(tile)) {
-		case TT_RAILWAY:
-			return TryReserveTrack(tile, t);
+		case TT_RAILWAY: {
+			assert (HasTrack (tile, t));
+			TrackBits bit = TrackToTrackBits (t);
+			TrackBits res = GetRailReservationTrackBits (tile);
+			if ((res & bit) != TRACK_BIT_NONE) return false;  // already reserved
+			res |= bit;
+			if (TracksOverlap (res)) return false;  // crossing reservation present
+			SetTrackReservation (tile, res);
+			return true;
+		}
 
 		case TT_MISC:
 			switch (GetTileSubtype(tile)) {
@@ -165,9 +217,13 @@ void UnreserveRailTrack(TileIndex tile, Track t)
 	}
 
 	switch (GetTileType(tile)) {
-		case TT_RAILWAY:
-			UnreserveTrack(tile, t);
+		case TT_RAILWAY: {
+			assert (HasTrack (tile, t));
+			TrackBits res = GetRailReservationTrackBits (tile);
+			res &= ~TrackToTrackBits (t);
+			SetTrackReservation (tile, res);
 			break;
+		}
 
 		case TT_MISC:
 			switch (GetTileSubtype(tile)) {
@@ -406,17 +462,6 @@ Train *GetTrainForReservation (TileIndex tile, Track track, bool free)
 	return NULL;
 }
 
-/**
- * Free the reservation to which a given reserved track belongs.
- * @param tile A tile on the path.
- * @param track A reserved track on the tile.
- * @return The vehicle that held the reservation, if it could be unreserved, else NULL.
- */
-Train *FreeTrainReservation (TileIndex tile, Track track)
-{
-	Train *t = GetTrainForReservation (tile, track);
-	return ((t != NULL) && FreeTrainTrackReservation(t)) ? t : NULL;
-}
 
 /**
  * Analyse a waiting position, to check if it is safe and/or if it is free.

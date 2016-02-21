@@ -13,19 +13,34 @@
 #define TILEHIGHLIGHT_FUNC_H
 
 #include "gfx_type.h"
+#include "window_gui.h"
 #include "tilehighlight_type.h"
+
+void SetPointerMode (PointerMode mode, WindowClass window_class,
+	WindowNumber window_num, CursorID icon, PaletteID pal = PAL_NONE);
+
+/**
+ * Change the cursor and mouse click/drag handling to a mode for performing special operations like tile area selection, object placement, etc.
+ * @param mode Mode to perform.
+ * @param w %Window requesting the mode change.
+ * @param icon New shape of the mouse cursor.
+ * @param pal Palette to use.
+ */
+static inline void SetPointerMode (PointerMode mode, Window *w,
+	CursorID icon, PaletteID pal = PAL_NONE)
+{
+	SetPointerMode (mode, w->window_class, w->window_number, icon, pal);
+}
+
+void ResetPointerMode (void);
+
+bool HandlePlacePushButton (Window *w, int widget, CursorID cursor, PointerMode mode);
 
 void HandleDemolishMouseUp (TileIndex start_tile, TileIndex end_tile);
 
-bool HandlePlacePushButton(Window *w, int widget, CursorID cursor, HighLightStyle mode);
-void SetObjectToPlaceWnd(CursorID icon, PaletteID pal, HighLightStyle mode, Window *w);
-void SetObjectToPlace(CursorID icon, PaletteID pal, HighLightStyle mode, WindowClass window_class, WindowNumber window_num);
-void ResetObjectToPlace();
-
-void VpSelectTilesWithMethod(int x, int y, ViewportPlaceMethod method);
-void VpStartPlaceSizing(TileIndex tile, ViewportPlaceMethod method, int userdata = 0);
-void VpSetPresizeRange(TileIndex from, TileIndex to);
-void VpSetPlaceSizingLimit(int limit);
+void VpStartPlaceSizing (TileIndex tile, ViewportPlaceMethod method,
+	int userdata = 0, uint limit = 0);
+void VpSetPlaceSizingLimit (uint limit);
 void VpStopPlaceSizing (void);
 
 void UpdateTileSelection();

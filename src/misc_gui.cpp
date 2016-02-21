@@ -50,11 +50,14 @@ static const NWidgetPart _nested_land_info_widgets[] = {
 	NWidget(WWT_PANEL, COLOUR_GREY, WID_LI_BACKGROUND), EndContainer(),
 };
 
-static WindowDesc _land_info_desc(
-	WDP_AUTO, "land_info", 0, 0,
+static WindowDesc::Prefs _land_info_prefs ("land_info");
+
+static const WindowDesc _land_info_desc(
+	WDP_AUTO, 0, 0,
 	WC_LAND_INFO, WC_NONE,
 	0,
-	_nested_land_info_widgets, lengthof(_nested_land_info_widgets)
+	_nested_land_info_widgets, lengthof(_nested_land_info_widgets),
+	&_land_info_prefs
 );
 
 class LandInfoWindow : public Window {
@@ -111,6 +114,8 @@ public:
 
 	LandInfoWindow(TileIndex tile) : Window(&_land_info_desc), tile(tile)
 	{
+		memset (this->landinfo_data, 0, sizeof(this->landinfo_data));
+
 		this->InitNested();
 
 #if defined(_DEBUG)
@@ -357,8 +362,8 @@ static const NWidgetPart _nested_about_widgets[] = {
 	EndContainer(),
 };
 
-static WindowDesc _about_desc(
-	WDP_CENTER, NULL, 0, 0,
+static const WindowDesc _about_desc(
+	WDP_CENTER, 0, 0,
 	WC_GAME_OPTIONS, WC_NONE,
 	0,
 	_nested_about_widgets, lengthof(_nested_about_widgets)
@@ -433,11 +438,11 @@ struct AboutWindow : public Window {
 	int line_height;                         ///< The height of a single line
 	static const int num_visible_lines = 19; ///< The number of lines visible simultaneously
 
-	AboutWindow() : Window(&_about_desc)
+	AboutWindow() : Window (&_about_desc),
+		text_position (0), counter (5), line_height (0)
 	{
 		this->InitNested(WN_GAME_OPTIONS_ABOUT);
 
-		this->counter = 5;
 		this->text_position = this->GetWidget<NWidgetBase>(WID_A_SCROLLING_TEXT)->pos_y + this->GetWidget<NWidgetBase>(WID_A_SCROLLING_TEXT)->current_y;
 	}
 
@@ -609,8 +614,8 @@ static const NWidgetPart _nested_tooltips_widgets[] = {
 	NWidget(WWT_PANEL, COLOUR_GREY, WID_TT_BACKGROUND), SetMinimalSize(200, 32), EndContainer(),
 };
 
-static WindowDesc _tool_tips_desc(
-	WDP_MANUAL, NULL, 0, 0, // Coordinates and sizes are not used,
+static const WindowDesc _tool_tips_desc(
+	WDP_MANUAL, 0, 0, // Coordinates and sizes are not used,
 	WC_TOOLTIPS, WC_NONE,
 	WDF_NO_FOCUS,
 	_nested_tooltips_widgets, lengthof(_nested_tooltips_widgets)
@@ -624,15 +629,14 @@ struct TooltipsWindow : public Window
 	uint64 params[5];                 ///< The string parameters.
 	TooltipCloseCondition close_cond; ///< Condition for closing the window.
 
-	TooltipsWindow(Window *parent, StringID str, uint paramcount, const uint64 params[], TooltipCloseCondition close_tooltip) : Window(&_tool_tips_desc)
+	TooltipsWindow (Window *parent, StringID str, uint paramcount, const uint64 params[], TooltipCloseCondition close_tooltip)
+		: Window (&_tool_tips_desc), string_id (str),
+		  paramcount (paramcount), close_cond (close_tooltip)
 	{
 		this->parent = parent;
-		this->string_id = str;
 		assert_compile(sizeof(this->params[0]) == sizeof(params[0]));
 		assert(paramcount <= lengthof(this->params));
 		memcpy(this->params, params, sizeof(this->params[0]) * paramcount);
-		this->paramcount = paramcount;
-		this->close_cond = close_tooltip;
 
 		this->InitNested();
 
@@ -688,16 +692,16 @@ struct TooltipsWindow : public Window
 	{
 		/* Always close tooltips when the cursor is not in our window. */
 		if (!_cursor.in_window) {
-			delete this;
+			this->Delete();
 			return;
 		}
 
 		/* We can show tooltips while dragging tools. These are shown as long as
 		 * we are dragging the tool. Normal tooltips work with hover or rmb. */
 		switch (this->close_cond) {
-			case TCC_RIGHT_CLICK: if (!_right_button_down) delete this; break;
-			case TCC_LEFT_CLICK: if (!_left_button_down) delete this; break;
-			case TCC_HOVER: if (!_mouse_hovering) delete this; break;
+			case TCC_RIGHT_CLICK: if (!_right_button_down) this->Delete(); break;
+			case TCC_LEFT_CLICK: if (!_left_button_down) this->Delete(); break;
+			case TCC_HOVER: if (!_mouse_hovering) this->Delete(); break;
 		}
 	}
 };
@@ -910,8 +914,8 @@ struct QueryStringWindow : public Window
 	QueryString editbox;    ///< Editbox.
 	QueryStringFlags flags; ///< Flags controlling behaviour of the window.
 
-	QueryStringWindow(StringID str, StringID caption, uint max_bytes, uint max_chars, WindowDesc *desc, Window *parent, CharSetFilter afilter, QueryStringFlags flags) :
-			Window(desc), editbox(max_bytes, max_chars)
+	QueryStringWindow (StringID str, StringID caption, uint max_bytes, uint max_chars, const WindowDesc *desc, Window *parent, CharSetFilter afilter, QueryStringFlags flags) :
+		Window (desc), editbox (max_bytes, max_chars), flags (QSF_NONE)
 	{
 		GetString (&this->editbox, str);
 		this->editbox.validate (SVS_NONE);
@@ -972,12 +976,12 @@ struct QueryStringWindow : public Window
 				this->OnOk();
 				/* FALL THROUGH */
 			case WID_QS_CANCEL:
-				delete this;
+				this->Delete();
 				break;
 		}
 	}
 
-	~QueryStringWindow()
+	void OnDelete (void) FINAL_OVERRIDE
 	{
 		if (!this->editbox.handled && this->parent != NULL) {
 			Window *parent = this->parent;
@@ -1002,11 +1006,14 @@ static const NWidgetPart _nested_query_string_widgets[] = {
 	EndContainer(),
 };
 
-static WindowDesc _query_string_desc(
-	WDP_CENTER, "query_string", 0, 0,
+static WindowDesc::Prefs _query_string_prefs ("query_string");
+
+static const WindowDesc _query_string_desc(
+	WDP_CENTER, 0, 0,
 	WC_QUERY_STRING, WC_NONE,
 	0,
-	_nested_query_string_widgets, lengthof(_nested_query_string_widgets)
+	_nested_query_string_widgets, lengthof(_nested_query_string_widgets),
+	&_query_string_prefs
 );
 
 /**
@@ -1034,14 +1041,13 @@ struct QueryWindow : public Window {
 	StringID message;        ///< message shown for query window
 	StringID caption;        ///< title of window
 
-	QueryWindow(WindowDesc *desc, StringID caption, StringID message, Window *parent, QueryCallbackProc *callback) : Window(desc)
+	QueryWindow (const WindowDesc *desc, StringID caption, StringID message, Window *parent, QueryCallbackProc *callback)
+		: Window (desc), proc (callback),
+		  message (message), caption (caption)
 	{
 		/* Create a backup of the variadic arguments to strings because it will be
 		 * overridden pretty often. We will copy these back for drawing */
 		CopyOutDParam(this->params, 0, lengthof(this->params));
-		this->caption = caption;
-		this->message = message;
-		this->proc    = callback;
 
 		this->InitNested(WN_CONFIRM_POPUP_QUERY);
 
@@ -1050,7 +1056,7 @@ struct QueryWindow : public Window {
 		this->top = parent->top + (parent->height / 2) - (this->height / 2);
 	}
 
-	~QueryWindow()
+	void OnDelete (void) FINAL_OVERRIDE
 	{
 		if (this->proc != NULL) this->proc(this->parent, false);
 	}
@@ -1096,7 +1102,7 @@ struct QueryWindow : public Window {
 				Window *parent = this->parent;
 				/* Prevent the destructor calling the callback function */
 				this->proc = NULL;
-				delete this;
+				this->Delete();
 				if (proc != NULL) {
 					proc(parent, true);
 					proc = NULL;
@@ -1104,7 +1110,7 @@ struct QueryWindow : public Window {
 				break;
 			}
 			case WID_Q_NO:
-				delete this;
+				this->Delete();
 				break;
 		}
 	}
@@ -1121,7 +1127,7 @@ struct QueryWindow : public Window {
 				}
 				/* FALL THROUGH */
 			case WKC_ESC:
-				delete this;
+				this->Delete();
 				return ES_HANDLED;
 		}
 		return ES_NOT_HANDLED;
@@ -1142,8 +1148,8 @@ static const NWidgetPart _nested_query_widgets[] = {
 	EndContainer(),
 };
 
-static WindowDesc _query_desc(
-	WDP_CENTER, NULL, 0, 0,
+static const WindowDesc _query_desc(
+	WDP_CENTER, 0, 0,
 	WC_CONFIRM_POPUP_QUERY, WC_NONE,
 	WDF_MODAL,
 	_nested_query_widgets, lengthof(_nested_query_widgets)
@@ -1162,14 +1168,14 @@ void ShowQuery(StringID caption, StringID message, Window *parent, QueryCallback
 {
 	if (parent == NULL) parent = FindWindowById(WC_MAIN_WINDOW, 0);
 
-	const Window *w;
+	Window *w;
 	FOR_ALL_WINDOWS_FROM_BACK(w) {
 		if (w->window_class != WC_CONFIRM_POPUP_QUERY) continue;
 
-		const QueryWindow *qw = (const QueryWindow *)w;
+		QueryWindow *qw = (QueryWindow *)w;
 		if (qw->parent != parent || qw->proc != callback) continue;
 
-		delete qw;
+		qw->Delete();
 		break;
 	}
 

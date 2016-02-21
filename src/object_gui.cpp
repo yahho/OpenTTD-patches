@@ -73,13 +73,14 @@ class BuildObjectWindow : public Window {
 	}
 
 public:
-	BuildObjectWindow(WindowDesc *desc, WindowNumber number) : Window(desc), info_height(1)
+	BuildObjectWindow (const WindowDesc *desc, WindowNumber number) :
+		Window(desc), line_height(0), info_height(1), vscroll(NULL)
 	{
 		this->CreateNestedTree();
 		this->vscroll = this->GetScrollbar(WID_BO_SCROLLBAR);
-		this->FinishInitNested(number);
+		this->InitNested(number);
 
-		ResetObjectToPlace();
+		ResetPointerMode();
 
 		this->vscroll->SetPosition(0);
 		this->vscroll->SetCount(ObjectClass::GetUIClassCount());
@@ -339,7 +340,7 @@ public:
 		}
 
 		if (_selected_object_index != -1) {
-			SetObjectToPlaceWnd(SPR_CURSOR_TRANSMITTER, PAL_NONE, HT_RECT, this);
+			SetPointerMode (POINTER_TILE, this, SPR_CURSOR_TRANSMITTER);
 		}
 
 		this->UpdateButtons(_selected_object_class, _selected_object_index, _selected_object_view);
@@ -511,11 +512,14 @@ static const NWidgetPart _nested_build_object_widgets[] = {
 	EndContainer(),
 };
 
-static WindowDesc _build_object_desc(
-	WDP_AUTO, "build_object", 0, 0,
+static WindowDesc::Prefs _build_object_prefs ("build_object");
+
+static const WindowDesc _build_object_desc(
+	WDP_AUTO, 0, 0,
 	WC_BUILD_OBJECT, WC_BUILD_TOOLBAR,
 	WDF_CONSTRUCTION,
-	_nested_build_object_widgets, lengthof(_nested_build_object_widgets)
+	_nested_build_object_widgets, lengthof(_nested_build_object_widgets),
+	&_build_object_prefs
 );
 
 /**
@@ -524,7 +528,10 @@ static WindowDesc _build_object_desc(
  */
 void ShowBuildObjectPicker()
 {
-	AllocateWindowDescFront<BuildObjectWindow>(&_build_object_desc, 0);
+	/* Don't show the place object button when there are no objects to place. */
+	if (ObjectClass::GetUIClassCount() > 0) {
+		AllocateWindowDescFront<BuildObjectWindow>(&_build_object_desc, 0);
+	}
 }
 
 /** Reset all data of the object GUI. */

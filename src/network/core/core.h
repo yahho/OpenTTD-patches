@@ -19,6 +19,8 @@
 
 #ifdef ENABLE_NETWORK
 
+#include "packet.h"
+
 bool NetworkCoreInitialize();
 void NetworkCoreShutdown();
 
@@ -35,9 +37,6 @@ enum NetworkRecvStatus {
 	NETWORK_RECV_STATUS_SERVER_BANNED,    ///< The server has banned us
 	NETWORK_RECV_STATUS_CLOSE_QUERY,      ///< Done querying the server
 };
-
-/** Forward declaration due to circular dependencies */
-struct Packet;
 
 /**
  * SocketHandler for all network sockets in OpenTTD.
@@ -76,7 +75,7 @@ public:
 	void Reopen() { this->has_quit = false; }
 
 	void SendGRFIdentifier(Packet *p, const GRFIdentifier *grf);
-	void ReceiveGRFIdentifier(Packet *p, GRFIdentifier *grf);
+	void ReceiveGRFIdentifier(RecvPacket *p, GRFIdentifier *grf);
 	void SendCompanyInformation(Packet *p, const struct Company *c, const struct NetworkCompanyStats *stats, uint max_len = NETWORK_COMPANY_NAME_LENGTH);
 };
 

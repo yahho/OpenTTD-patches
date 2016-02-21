@@ -959,7 +959,7 @@ static uint32 VehicleGetVariable(Vehicle *v, const VehicleScopeResolver *object,
  * @param info_view Indicates if the item is being drawn in an info window.
  */
 VehicleScopeResolver::VehicleScopeResolver(ResolverObject &ro, EngineID engine_type, const Vehicle *v, bool info_view)
-		: ScopeResolver(ro)
+	: ScopeResolver(), ro(ro)
 {
 	this->v = v;
 	this->self_type = engine_type;
@@ -977,17 +977,52 @@ static const GRFFile *GetEngineGrfFile(EngineID engine_type)
 	return (e != NULL) ? e->GetGRF() : NULL;
 }
 
+
+/** Application of 'wagon overrides'. */
+enum VehicleRootWagonOverride {
+	WO_NONE,     //!< Resolve no wagon overrides.
+	WO_UNCACHED, //!< Resolve wagon overrides.
+	WO_CACHED,   //!< Resolve wagon overrides using TrainCache::cached_override.
+};
+
+static const SpriteGroup *GetVehicleResolverRoot (EngineID engine_type,
+	const Vehicle *v, VehicleRootWagonOverride wagon_override)
+{
+	const SpriteGroup *root = NULL;
+
+	if (wagon_override != WO_NONE && v != NULL && v->IsGroundVehicle()) {
+		assert (v->engine_type == engine_type); // overrides make little sense with fake scopes
+
+		/* For trains we always use cached value, except for callbacks because the override spriteset
+		 * to use may be different than the one cached. It happens for callback 0x15 (refit engine),
+		 * as v->cargo_type is temporary changed to the new type */
+		if (wagon_override == WO_CACHED && v->type == VEH_TRAIN) {
+			root = Train::From(v)->tcache.cached_override;
+		} else {
+			root = GetWagonOverrideSpriteSet (v->engine_type, v->cargo_type, v->GetGroundVehicleCache()->first_engine);
+		}
+	}
+
+	if (root == NULL) {
+		const Engine *e = Engine::Get (engine_type);
+		CargoID cargo = v != NULL ? v->cargo_type : CT_PURCHASE;
+		assert (cargo < lengthof(e->grf_prop.spritegroup));
+		root = e->grf_prop.spritegroup[cargo] != NULL ? e->grf_prop.spritegroup[cargo] : e->grf_prop.spritegroup[CT_DEFAULT];
+	}
+
+	return root;
+}
+
 /**
  * Resolver of a vehicle (chain).
  * @param engine_type Engine type
  * @param v %Vehicle being resolved.
- * @param wagon_override Application of wagon overrides.
  * @param info_view Indicates if the item is being drawn in an info window.
  * @param callback Callback ID.
  * @param callback_param1 First parameter (var 10) of the callback.
  * @param callback_param2 Second parameter (var 18) of the callback.
  */
-VehicleResolverObject::VehicleResolverObject(EngineID engine_type, const Vehicle *v, WagonOverride wagon_override, bool info_view,
+VehicleResolverObject::VehicleResolverObject (EngineID engine_type, const Vehicle *v, bool info_view,
 		CallbackID callback, uint32 callback_param1, uint32 callback_param2)
 	: ResolverObject(GetEngineGrfFile(engine_type), callback, callback_param1, callback_param2),
 	self_scope(*this, engine_type, v, info_view),
@@ -995,37 +1030,15 @@ VehicleResolverObject::VehicleResolverObject(EngineID engine_type, const Vehicle
 	relative_scope(*this, engine_type, v, info_view),
 	cached_relative_count(0)
 {
-	if (wagon_override == WO_SELF) {
-		this->root_spritegroup = GetWagonOverrideSpriteSet(engine_type, CT_DEFAULT, engine_type);
-	} else {
-		if (wagon_override != WO_NONE && v != NULL && v->IsGroundVehicle()) {
-			assert(v->engine_type == engine_type); // overrides make little sense with fake scopes
-
-			/* For trains we always use cached value, except for callbacks because the override spriteset
-			 * to use may be different than the one cached. It happens for callback 0x15 (refit engine),
-			 * as v->cargo_type is temporary changed to the new type */
-			if (wagon_override == WO_CACHED && v->type == VEH_TRAIN) {
-				this->root_spritegroup = Train::From(v)->tcache.cached_override;
-			} else {
-				this->root_spritegroup = GetWagonOverrideSpriteSet(v->engine_type, v->cargo_type, v->GetGroundVehicleCache()->first_engine);
-			}
-		}
-
-		if (this->root_spritegroup == NULL) {
-			const Engine *e = Engine::Get(engine_type);
-			CargoID cargo = v != NULL ? v->cargo_type : CT_PURCHASE;
-			assert(cargo < lengthof(e->grf_prop.spritegroup));
-			this->root_spritegroup = e->grf_prop.spritegroup[cargo] != NULL ? e->grf_prop.spritegroup[cargo] : e->grf_prop.spritegroup[CT_DEFAULT];
-		}
-	}
 }
 
 
 
 SpriteID GetCustomEngineSprite(EngineID engine, const Vehicle *v, Direction direction, EngineImageType image_type)
 {
-	VehicleResolverObject object(engine, v, VehicleResolverObject::WO_CACHED, false, CBID_NO_CALLBACK, image_type);
-	const SpriteGroup *group = object.Resolve();
+	VehicleResolverObject object (engine, v, false, CBID_NO_CALLBACK, image_type);
+	const SpriteGroup *root = GetVehicleResolverRoot (engine, v, WO_CACHED);
+	const SpriteGroup *group = SpriteGroup::Resolve (root, object);
 	if (group == NULL || group->GetNumResults() == 0) return 0;
 
 	return group->GetResult() + (direction % group->GetNumResults());
@@ -1040,8 +1053,9 @@ SpriteID GetRotorOverrideSprite(EngineID engine, const Aircraft *v, bool info_vi
 	assert(e->type == VEH_AIRCRAFT);
 	assert(!(e->u.air.subtype & AIR_CTOL));
 
-	VehicleResolverObject object(engine, v, VehicleResolverObject::WO_SELF, info_view, CBID_NO_CALLBACK, image_type);
-	const SpriteGroup *group = object.Resolve();
+	VehicleResolverObject object (engine, v, info_view, CBID_NO_CALLBACK, image_type);
+	const SpriteGroup *root = GetWagonOverrideSpriteSet (engine, CT_DEFAULT, engine);
+	const SpriteGroup *group = SpriteGroup::Resolve (root, object);
 
 	if (group == NULL || group->GetNumResults() == 0) return 0;
 
@@ -1073,8 +1087,9 @@ bool UsesWagonOverride(const Vehicle *v)
  */
 uint16 GetVehicleCallback(CallbackID callback, uint32 param1, uint32 param2, EngineID engine, const Vehicle *v)
 {
-	VehicleResolverObject object(engine, v, VehicleResolverObject::WO_UNCACHED, false, callback, param1, param2);
-	return object.ResolveCallback();
+	VehicleResolverObject object (engine, v, false, callback, param1, param2);
+	const SpriteGroup *root = GetVehicleResolverRoot (engine, v, WO_UNCACHED);
+	return SpriteGroup::CallbackResult (SpriteGroup::Resolve (root, object));
 }
 
 /**
@@ -1089,9 +1104,10 @@ uint16 GetVehicleCallback(CallbackID callback, uint32 param1, uint32 param2, Eng
  */
 uint16 GetVehicleCallbackParent(CallbackID callback, uint32 param1, uint32 param2, EngineID engine, const Vehicle *v, const Vehicle *parent)
 {
-	VehicleResolverObject object(engine, v, VehicleResolverObject::WO_NONE, false, callback, param1, param2);
+	VehicleResolverObject object (engine, v, false, callback, param1, param2);
 	object.parent_scope.SetVehicle(parent);
-	return object.ResolveCallback();
+	const SpriteGroup *root = GetVehicleResolverRoot (engine, v, WO_NONE);
+	return SpriteGroup::CallbackResult (SpriteGroup::Resolve (root, object));
 }
 
 
@@ -1116,10 +1132,11 @@ static void DoTriggerVehicle(Vehicle *v, VehicleTrigger trigger, byte base_rando
 	/* We can't trigger a non-existent vehicle... */
 	assert(v != NULL);
 
-	VehicleResolverObject object(v->engine_type, v, VehicleResolverObject::WO_CACHED, false, CBID_RANDOM_TRIGGER);
+	VehicleResolverObject object (v->engine_type, v, false, CBID_RANDOM_TRIGGER);
 	object.trigger = trigger;
 
-	const SpriteGroup *group = object.Resolve();
+	const SpriteGroup *root = GetVehicleResolverRoot (v->engine_type, v, WO_CACHED);
+	const SpriteGroup *group = SpriteGroup::Resolve (root, object);
 	if (group == NULL) return;
 
 	byte new_random_bits = Random();
@@ -1283,7 +1300,7 @@ void CommitVehicleListOrderChanges()
  */
 void FillNewGRFVehicleCache(const Vehicle *v)
 {
-	VehicleResolverObject ro(v->engine_type, v, VehicleResolverObject::WO_NONE);
+	VehicleResolverObject ro (v->engine_type, v);
 
 	/* These variables we have to check; these are the ones with a cache. */
 	static const int cache_entries[][2] = {

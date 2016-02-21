@@ -19,7 +19,8 @@
 #include <SDL.h>
 
 /** Factory for the SDL sound driver. */
-static FSoundDriver_SDL iFSoundDriver_SDL;
+static SoundDriverFactory <SoundDriver_SDL>
+		iFSoundDriver_SDL (5, "sdl", "SDL Sound Driver");
 
 /**
  * Callback that fills the sound buffer.

@@ -54,17 +54,6 @@ public:
 	 * An edit box lost the input focus. Abort character compositing if necessary.
 	 */
 	/* virtual */ void EditBoxLostFocus();
-
-	/** Return driver name
-	 * @return driver name
-	 */
-	/* virtual */ const char *GetName() const { return "cocoa"; }
-};
-
-class FVideoDriver_Cocoa : public DriverFactoryBase {
-public:
-	FVideoDriver_Cocoa() : DriverFactoryBase(Driver::DT_VIDEO, 10, "cocoa", "Cocoa Video Driver") {}
-	/* virtual */ Driver *CreateInstance() const { return new VideoDriver_Cocoa(); }
 };
 
 

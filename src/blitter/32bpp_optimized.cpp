@@ -252,7 +252,7 @@ void Blitter_32bppOptimized::Draw(Blitter::BlitterParams *bp, BlitterMode mode, 
 	}
 }
 
-::Sprite *Blitter_32bppOptimized::Encode (const SpriteLoader::Sprite *sprite, AllocatorProc *allocator)
+::Sprite *Blitter_32bppOptimized::Encode (const SpriteLoader::Sprite *sprite, bool is_font, AllocatorProc *allocator)
 {
 	/* streams of pixels (a, r, g, b channels)
 	 *
@@ -273,7 +273,7 @@ void Blitter_32bppOptimized::Draw(Blitter::BlitterParams *bp, BlitterMode mode, 
 	ZoomLevel zoom_min;
 	ZoomLevel zoom_max;
 
-	if (sprite->type == ST_FONT) {
+	if (is_font) {
 		zoom_min = ZOOM_LVL_NORMAL;
 		zoom_max = ZOOM_LVL_NORMAL;
 	} else {

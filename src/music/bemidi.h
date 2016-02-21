@@ -28,14 +28,6 @@ public:
 	/* virtual */ bool IsSongPlaying();
 
 	/* virtual */ void SetVolume(byte vol);
-	/* virtual */ const char *GetName() const { return "bemidi"; }
-};
-
-/** Factory for the BeOS midi player. */
-class FMusicDriver_BeMidi : public DriverFactoryBase {
-public:
-	FMusicDriver_BeMidi() : DriverFactoryBase(Driver::DT_MUSIC, 10, "bemidi", "BeOS MIDI Driver") {}
-	/* virtual */ Driver *CreateInstance() const { return new MusicDriver_BeMidi(); }
 };
 
 #endif /* MUSIC_BEMIDI_H */

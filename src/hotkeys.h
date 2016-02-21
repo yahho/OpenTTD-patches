@@ -12,6 +12,8 @@
 #ifndef HOTKEYS_H
 #define HOTKEYS_H
 
+#include <vector>
+
 #include "core/smallvec_type.hpp"
 #include "gfx_type.h"
 #include "window_type.h"
@@ -22,17 +24,23 @@
  * a list of keycodes and a number to help identifying this hotkey.
  */
 struct Hotkey {
-	Hotkey(uint16 default_keycode, const char *name, int num);
-	Hotkey(const uint16 *default_keycodes, const char *name, int num);
+	const char *const name; ///< Name of the hotkey in the config file.
+	const int num;          ///< Hotkey identifier in its group.
+	/* We cannot make the default hotkeys an array because not all the
+	 * compilers we support allow to statically construct an array. */
+	uint16 default0;        ///< First default keycode for the hotkey.
+	uint16 default1;        ///< First default keycode for the hotkey.
+	uint16 default2;        ///< First default keycode for the hotkey.
+	uint16 default3;        ///< First default keycode for the hotkey.
 
-	void AddKeycode(uint16 keycode);
-
-	const char *name;
-	int num;
-	SmallVector<uint16, 1> keycodes;
+	CONSTEXPR Hotkey (const char *name, const int num, uint16 k0 = 0,
+			uint16 k1 = 0, uint16 k2 = 0, uint16 k3 = 0)
+		: name(name), num(num),
+		  default0(k0), default1(k1), default2(k2), default3(k3)
+	{
+	}
 };
 
-#define HOTKEY_LIST_END Hotkey((uint16)0, NULL, -1)
 
 struct IniFile;
 
@@ -40,9 +48,37 @@ struct IniFile;
  * List of hotkeys for a window.
  */
 struct HotkeyList {
+private:
 	typedef EventState (*GlobalHotkeyHandlerFunc)(int hotkey);
 
-	HotkeyList(const char *ini_group, Hotkey *items, GlobalHotkeyHandlerFunc global_hotkey_handler = NULL);
+	struct Mapping {
+		uint16 keycode;
+		int value;
+
+		CONSTEXPR Mapping (uint16 keycode, int value)
+			: keycode (keycode), value (value)
+		{
+		}
+	};
+
+	std::vector <Mapping> mappings;
+	const char   *const ini_group;
+	const Hotkey *const descs;
+	const uint    ndescs;
+
+	void init (void);
+
+public:
+	GlobalHotkeyHandlerFunc global_hotkey_handler;
+
+	template <uint N>
+	HotkeyList (const char *ini_group, const Hotkey (&items) [N], GlobalHotkeyHandlerFunc global_hotkey_handler = NULL)
+		: mappings(), ini_group(ini_group), descs(items), ndescs(N),
+		  global_hotkey_handler(global_hotkey_handler)
+	{
+		this->init();
+	}
+
 	~HotkeyList();
 
 	void Load(IniFile *ini);
@@ -50,16 +86,18 @@ struct HotkeyList {
 
 	int CheckMatch(uint16 keycode, bool global_only = false) const;
 
-	GlobalHotkeyHandlerFunc global_hotkey_handler;
 private:
-	const char *ini_group;
-	Hotkey *items;
-
 	/**
 	 * Dummy private copy constructor to prevent compilers from
 	 * copying the structure, which fails due to _hotkey_lists.
 	 */
 	HotkeyList(const HotkeyList &other);
+
+	/** Helper function to push a mapping. */
+	void push_mapping (uint16 keycode, int value)
+	{
+		this->mappings.push_back (Mapping (keycode, value));
+	}
 };
 
 bool IsQuitKey(uint16 keycode);

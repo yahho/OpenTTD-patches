@@ -66,17 +66,6 @@ void WriteValueStr(SignalType t, FILE *f)
 	return last_type_id;
 }
 
-/** Return structured name of the current class/structure. */
-std::string DumpTarget::GetCurrentStructName()
-{
-	std::string out;
-	if (!m_cur_struct.empty()) {
-		/* we are inside some named struct, return its name */
-		out = m_cur_struct.top();
-	}
-	return out;
-}
-
 /**
  * Find the given instance in our anti-recursion repository.
  * Return a pointer to the name if found, else NULL.
@@ -133,8 +122,10 @@ void DumpTarget::WriteTile(const char *name, TileIndex tile)
 void DumpTarget::BeginStruct(size_t type_id, const char *name, const void *ptr)
 {
 	/* make composite name */
-	std::string cur_name = GetCurrentStructName();
-	if (cur_name.size() > 0) {
+	std::string cur_name;
+	if (!m_cur_struct.empty()) {
+		/* we are inside some named struct, prepend its name */
+		cur_name = m_cur_struct.top();
 		/* add name delimiter (we use structured names) */
 		cur_name.append(".");
 	}

@@ -77,8 +77,8 @@ static const NWidgetPart _nested_dropdown_menu_widgets[] = {
 	EndContainer(),
 };
 
-static WindowDesc _dropdown_desc(
-	WDP_MANUAL, NULL, 0, 0,
+static const WindowDesc _dropdown_desc(
+	WDP_MANUAL, 0, 0,
 	WC_DROPDOWN_MENU, WC_NONE,
 	WDF_NO_FOCUS,
 	_nested_dropdown_menu_widgets, lengthof(_nested_dropdown_menu_widgets)
@@ -112,11 +112,15 @@ struct DropdownWindow : Window {
 	 * @param widget        Widgets of the dropdown menu window.
 	 */
 	DropdownWindow(Window *parent, const DropDownList *list, int selected, int button, bool instant_close, const Point &position, const Dimension &size, Colours wi_colour, bool scroll)
-			: Window(&_dropdown_desc)
+		: Window (&_dropdown_desc),
+		  parent_wnd_class (parent->window_class),
+		  parent_wnd_num (parent->window_number),
+		  parent_button (button), list (list),
+		  selected_index (selected), click_delay (0),
+		  drag_mode (true), instant_close (instant_close),
+		  scrolling (0), position (position), vscroll (NULL)
 	{
 		assert(list->Length() > 0);
-
-		this->position = position;
 
 		this->CreateNestedTree();
 
@@ -132,7 +136,7 @@ struct DropdownWindow : Window {
 
 		this->GetWidget<NWidgetStacked>(WID_DM_SHOW_SCROLL)->SetDisplayedPlane(scroll ? 0 : SZSP_NONE);
 
-		this->FinishInitNested(0);
+		this->InitNested(0);
 		CLRBITS(this->flags, WF_WHITE_BORDER);
 
 		/* Total length of list */
@@ -145,18 +149,9 @@ struct DropdownWindow : Window {
 		/* Capacity is the average number of items visible */
 		this->vscroll->SetCapacity(size.height * (uint16)list->Length() / list_height);
 		this->vscroll->SetCount((uint16)list->Length());
-
-		this->parent_wnd_class = parent->window_class;
-		this->parent_wnd_num   = parent->window_number;
-		this->parent_button    = button;
-		this->list             = list;
-		this->selected_index   = selected;
-		this->click_delay      = 0;
-		this->drag_mode        = true;
-		this->instant_close    = instant_close;
 	}
 
-	~DropdownWindow()
+	void OnDelete (void) FINAL_OVERRIDE
 	{
 		/* Make the dropdown "invisible", so it doesn't affect new window placement.
 		 * Also mark it dirty in case the callback deals with the screen. (e.g. screenshots). */
@@ -271,7 +266,7 @@ struct DropdownWindow : Window {
 	{
 		Window *w2 = FindWindowById(this->parent_wnd_class, this->parent_wnd_num);
 		if (w2 == NULL) {
-			delete this;
+			this->Delete();
 			return;
 		}
 
@@ -282,7 +277,7 @@ struct DropdownWindow : Window {
 			this->SetDirty();
 
 			w2->OnDropdownSelect(this->parent_button, this->selected_index);
-			delete this;
+			this->Delete();
 			return;
 		}
 
@@ -292,7 +287,7 @@ struct DropdownWindow : Window {
 			if (!_left_button_clicked) {
 				this->drag_mode = false;
 				if (!this->GetDropDownItem(item)) {
-					if (this->instant_close) delete this;
+					if (this->instant_close) this->Delete();
 					return;
 				}
 				this->click_delay = 2;
@@ -472,7 +467,7 @@ int HideDropDownMenu(Window *pw)
 		if (pw->window_class == dw->parent_wnd_class &&
 				pw->window_number == dw->parent_wnd_num) {
 			int parent_button = dw->parent_button;
-			delete dw;
+			dw->Delete();
 			return parent_button;
 		}
 	}

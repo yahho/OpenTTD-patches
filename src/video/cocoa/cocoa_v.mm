@@ -333,7 +333,7 @@ void QZ_GameSizeChanged()
 	_screen.dst_ptr = _cocoa_subdriver->GetPixelBuffer();
 	_fullscreen = _cocoa_subdriver->IsFullscreen();
 
-	GetCurrentBlitter()->PostResize();
+	Blitter::get()->PostResize();
 
 	GameSizeChanged();
 }
@@ -425,7 +425,8 @@ static CocoaSubdriver *QZ_CreateSubdriver(int width, int height, int bpp, bool f
 }
 
 
-static FVideoDriver_Cocoa iFVideoDriver_Cocoa;
+static VideoDriverFactory <VideoDriver_Cocoa>
+		iFVideoDriver_Cocoa (10, "cocoa", "Cocoa Video Driver");
 
 /**
  * Stop the cocoa video subdriver.
@@ -461,7 +462,7 @@ const char *VideoDriver_Cocoa::Start(const char * const *parm)
 
 	int width  = _cur_resolution.width;
 	int height = _cur_resolution.height;
-	int bpp = GetCurrentBlitter()->GetScreenDepth();
+	int bpp = Blitter::get()->GetScreenDepth();
 
 	_cocoa_subdriver = QZ_CreateSubdriver(width, height, bpp, _fullscreen, true);
 	if (_cocoa_subdriver == NULL) {
@@ -514,7 +515,7 @@ bool VideoDriver_Cocoa::ChangeResolution(int w, int h)
 {
 	assert(_cocoa_subdriver != NULL);
 
-	bool ret = _cocoa_subdriver->ChangeResolution(w, h, GetCurrentBlitter()->GetScreenDepth());
+	bool ret = _cocoa_subdriver->ChangeResolution(w, h, Blitter::get()->GetScreenDepth());
 
 	QZ_GameSizeChanged();
 	QZ_UpdateVideoModes();
@@ -539,7 +540,7 @@ bool VideoDriver_Cocoa::ToggleFullscreen(bool full_screen)
 	if (full_screen != oldfs) {
 		int width  = _cocoa_subdriver->GetWidth();
 		int height = _cocoa_subdriver->GetHeight();
-		int bpp    = GetCurrentBlitter()->GetScreenDepth();
+		int bpp    = Blitter::get()->GetScreenDepth();
 
 		delete _cocoa_subdriver;
 		_cocoa_subdriver = NULL;
@@ -597,16 +598,16 @@ void CocoaDialog(const char *title, const char *message, const char *buttonLabel
 	_cocoa_video_dialog = true;
 
 	bool wasstarted = _cocoa_video_started;
-	if (VideoDriver::GetInstance() == NULL) {
+	if (VideoDriver::GetActiveDriver() == NULL) {
 		setupApplication(); // Setup application before showing dialog
-	} else if (!_cocoa_video_started && VideoDriver::GetInstance()->Start(NULL) != NULL) {
+	} else if (!_cocoa_video_started && VideoDriver::GetActiveDriver()->Start(NULL) != NULL) {
 		fprintf(stderr, "%s: %s\n", title, message);
 		return;
 	}
 
 	NSRunAlertPanel([ NSString stringWithUTF8String:title ], [ NSString stringWithUTF8String:message ], [ NSString stringWithUTF8String:buttonLabel ], nil, nil);
 
-	if (!wasstarted && VideoDriver::GetInstance() != NULL) VideoDriver::GetInstance()->Stop();
+	if (!wasstarted && VideoDriver::GetActiveDriver() != NULL) VideoDriver::GetActiveDriver()->Stop();
 
 	_cocoa_video_dialog = false;
 }

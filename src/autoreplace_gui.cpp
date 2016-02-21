@@ -219,8 +219,16 @@ class ReplaceVehicleWindow : public Window {
 	}
 
 public:
-	ReplaceVehicleWindow(WindowDesc *desc, VehicleType vehicletype, GroupID id_g) : Window(desc)
+	ReplaceVehicleWindow (const WindowDesc *desc, VehicleType vehicletype, GroupID id_g)
+		: Window (desc), sel_engine(), engines(),
+		  replace_engines (false), reset_sel_engine (false),
+		  sel_group (0), details_height (0), sort_criteria (0),
+		  descending_sort_order (false), show_hidden_engines (false),
+		  sel_railtype ((RailType)0), vscroll()
 	{
+		this->sel_engine[0] = this->sel_engine[1] = (EngineID)0;
+		this->vscroll[0] = this->vscroll[1] = NULL;
+
 		if (vehicletype == VEH_TRAIN) {
 			/* For rail vehicles find the most used vehicle type, which is usually
 			 * better than 'just' the first/previous vehicle type. */
@@ -256,7 +264,7 @@ public:
 		widget->widget_data = STR_SHOW_HIDDEN_ENGINES_VEHICLE_TRAIN + vehicletype;
 		widget->tool_tip    = STR_SHOW_HIDDEN_ENGINES_VEHICLE_TRAIN_TOOLTIP + vehicletype;
 		widget->SetLowered(this->show_hidden_engines);
-		this->FinishInitNested(vehicletype);
+		this->InitNested(vehicletype);
 
 		this->sort_criteria = _engine_sort_last_criteria[vehicletype];
 		this->descending_sort_order = _engine_sort_last_order[vehicletype];
@@ -678,11 +686,14 @@ static const NWidgetPart _nested_replace_rail_vehicle_widgets[] = {
 	EndContainer(),
 };
 
-static WindowDesc _replace_rail_vehicle_desc(
-	WDP_AUTO, "replace_vehicle_train", 500, 140,
+static WindowDesc::Prefs _replace_rail_vehicle_prefs ("replace_vehicle_train");
+
+static const WindowDesc _replace_rail_vehicle_desc(
+	WDP_AUTO, 500, 140,
 	WC_REPLACE_VEHICLE, WC_NONE,
 	WDF_CONSTRUCTION,
-	_nested_replace_rail_vehicle_widgets, lengthof(_nested_replace_rail_vehicle_widgets)
+	_nested_replace_rail_vehicle_widgets, lengthof(_nested_replace_rail_vehicle_widgets),
+	&_replace_rail_vehicle_prefs
 );
 
 static const NWidgetPart _nested_replace_vehicle_widgets[] = {
@@ -736,11 +747,14 @@ static const NWidgetPart _nested_replace_vehicle_widgets[] = {
 	EndContainer(),
 };
 
-static WindowDesc _replace_vehicle_desc(
-	WDP_AUTO, "replace_vehicle", 456, 118,
+static WindowDesc::Prefs _replace_vehicle_prefs ("replace_vehicle");
+
+static const WindowDesc _replace_vehicle_desc(
+	WDP_AUTO, 456, 118,
 	WC_REPLACE_VEHICLE, WC_NONE,
 	WDF_CONSTRUCTION,
-	_nested_replace_vehicle_widgets, lengthof(_nested_replace_vehicle_widgets)
+	_nested_replace_vehicle_widgets, lengthof(_nested_replace_vehicle_widgets),
+	&_replace_vehicle_prefs
 );
 
 /**

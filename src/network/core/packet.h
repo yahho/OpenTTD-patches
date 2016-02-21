@@ -15,8 +15,8 @@
 #define NETWORK_CORE_PACKET_H
 
 #include "config.h"
-#include "core.h"
 #include "../../string.h"
+#include "../../core/forward_list.h"
 
 #ifdef ENABLE_NETWORK
 
@@ -42,27 +42,15 @@ typedef uint8  PacketType; ///< Identifier for the packet
  *     (year % 4 == 0) and ((year % 100 != 0) or (year % 400 == 0))
  */
 struct Packet {
-	/** The next packet. Used for queueing packets before sending. */
-	Packet *next;
 	/**
-	 * The size of the whole packet for received packets. For packets
-	 * that will be sent, the value is filled in just before the
-	 * actual transmission.
+	 * The size of the whole packet. The value is filled in just before
+	 * the actual transmission.
 	 */
 	PacketSize size;
-	/** The current read/write position in the packet */
-	PacketSize pos;
-	/** The buffer of this packet, of basically variable length up to SEND_MTU. */
-	byte *buffer;
+	/** The buffer of this packet. */
+	byte buffer[SEND_MTU];
 
-private:
-	/** Socket we're associated with. */
-	NetworkSocketHandler *cs;
-
-public:
-	Packet(NetworkSocketHandler *cs);
 	Packet(PacketType type);
-	~Packet();
 
 	/* Sending/writing of packets */
 	void PrepareToSend();
@@ -73,6 +61,23 @@ public:
 	void Send_uint32(uint32 data);
 	void Send_uint64(uint64 data);
 	void Send_string(const char *data);
+};
+
+/** Packet received from the network. */
+struct RecvPacket {
+	/** The size of the whole packet for received packets. */
+	PacketSize size;
+	/** The current read/write position in the packet */
+	PacketSize pos;
+	/** The buffer of this packet. */
+	byte buffer[SEND_MTU];
+
+private:
+	/** Socket we're associated with. */
+	class NetworkSocketHandler *cs;
+
+public:
+	RecvPacket(NetworkSocketHandler *cs);
 
 	/* Reading/receiving of packets */
 	void ReadRawPacketSize();
@@ -85,6 +90,77 @@ public:
 	uint32 Recv_uint32();
 	uint64 Recv_uint64();
 	void   Recv_string(char *buffer, size_t size, StringValidationSettings settings = SVS_REPLACE_WITH_QUESTION_MARK);
+};
+
+/** Packet as stored in a packet queue. */
+struct QueuedPacket : ForwardListLink<QueuedPacket> {
+	const PacketSize size; ///< Total size of the packet.
+	byte buffer[];         ///< Packet data (const).
+
+private:
+	/** Construct a QueuedPacket from a Packet. */
+	QueuedPacket (PacketSize size, const byte *data)
+		: ForwardListLink<QueuedPacket>(), size (size)
+	{
+		assert_compile (sizeof(PacketSize) == 2);
+		assert (size > sizeof(PacketSize));
+
+		this->buffer[0] = GB(size, 0, 8);
+		this->buffer[1] = GB(size, 8, 8);
+		memcpy (this->buffer + 2, data + 2, size - 2);
+	}
+
+	/** Custom operator new to account for the variable-length buffer. */
+	void *operator new (size_t size, size_t extra)
+	{
+		return ::operator new (size + extra);
+	}
+
+	void *operator new (size_t size) DELETED;
+
+public:
+	/** Allocate and construct a QueuedPacket from raw data. */
+	static QueuedPacket *create (PacketSize size, const byte *data)
+	{
+		return new (size) QueuedPacket (size, data);
+	}
+
+	/** Allocate and construct a QueuedPacket from a Packet. */
+	static QueuedPacket *create (const Packet *p)
+	{
+		return create (p->size, p->buffer);
+	}
+};
+
+/** Queue of packets. */
+struct PacketQueue : ForwardList <QueuedPacket, true> {
+	/** Constant boolean true function. */
+	static inline bool pred_true (const QueuedPacket *)
+	{
+		return true;
+	}
+
+	/** Get but do not remove the first packet in the queue. */
+	const QueuedPacket *peek (void)
+	{
+		return this->find_pred (pred_true);
+	}
+
+	/** Get and remove the first packet in the queue. */
+	QueuedPacket *pop (void)
+	{
+		return this->remove_pred (pred_true);
+	}
+
+	/** Free all packets in the queue. */
+	void clear (void)
+	{
+		for (;;) {
+			QueuedPacket *p = this->pop();
+			if (p == NULL) return;
+			delete p;
+		}
+	}
 };
 
 #endif /* ENABLE_NETWORK */

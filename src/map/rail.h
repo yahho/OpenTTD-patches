@@ -123,41 +123,6 @@ static inline void SetTrackReservation(TileIndex t, TrackBits b)
 	tile_set_reservation_trackbits(&_mc[t], b);
 }
 
-/**
- * Try to reserve a specific track on a tile
- * @pre IsRailwayTile(t) && HasTrack(tile, t)
- * @param tile the tile
- * @param t the rack to reserve
- * @return true if successful
- */
-static inline bool TryReserveTrack(TileIndex tile, Track t)
-{
-	assert(IsRailwayTile(tile));
-	assert(HasTrack(tile, t));
-	TrackBits bits = TrackToTrackBits(t);
-	TrackBits res = GetRailReservationTrackBits(tile);
-	if ((res & bits) != TRACK_BIT_NONE) return false;  // already reserved
-	res |= bits;
-	if (TracksOverlap(res)) return false;  // crossing reservation present
-	SetTrackReservation(tile, res);
-	return true;
-}
-
-/**
- * Lift the reservation of a specific track on a tile
- * @pre IsRailwayTile(t) && HasTrack(tile, t)
- * @param tile the tile
- * @param t the track to free
- */
-static inline void UnreserveTrack(TileIndex tile, Track t)
-{
-	assert(IsRailwayTile(tile));
-	assert(HasTrack(tile, t));
-	TrackBits res = GetRailReservationTrackBits(tile);
-	res &= ~TrackToTrackBits(t);
-	SetTrackReservation(tile, res);
-}
-
 
 /**
  * Get the signal byte for a signal

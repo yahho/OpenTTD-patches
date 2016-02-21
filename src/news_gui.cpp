@@ -91,8 +91,8 @@ static const NWidgetPart _nested_normal_news_widgets[] = {
 	EndContainer(),
 };
 
-static WindowDesc _normal_news_desc(
-	WDP_MANUAL, NULL, 0, 0,
+static const WindowDesc _normal_news_desc(
+	WDP_MANUAL, 0, 0,
 	WC_NEWS_WINDOW, WC_NONE,
 	0,
 	_nested_normal_news_widgets, lengthof(_nested_normal_news_widgets)
@@ -118,8 +118,8 @@ static const NWidgetPart _nested_vehicle_news_widgets[] = {
 	EndContainer(),
 };
 
-static WindowDesc _vehicle_news_desc(
-	WDP_MANUAL, NULL, 0, 0,
+static const WindowDesc _vehicle_news_desc(
+	WDP_MANUAL, 0, 0,
 	WC_NEWS_WINDOW, WC_NONE,
 	0,
 	_nested_vehicle_news_widgets, lengthof(_nested_vehicle_news_widgets)
@@ -146,8 +146,8 @@ static const NWidgetPart _nested_company_news_widgets[] = {
 	EndContainer(),
 };
 
-static WindowDesc _company_news_desc(
-	WDP_MANUAL, NULL, 0, 0,
+static const WindowDesc _company_news_desc(
+	WDP_MANUAL, 0, 0,
 	WC_NEWS_WINDOW, WC_NONE,
 	0,
 	_nested_company_news_widgets, lengthof(_nested_company_news_widgets)
@@ -169,8 +169,8 @@ static const NWidgetPart _nested_thin_news_widgets[] = {
 	EndContainer(),
 };
 
-static WindowDesc _thin_news_desc(
-	WDP_MANUAL, NULL, 0, 0,
+static const WindowDesc _thin_news_desc(
+	WDP_MANUAL, 0, 0,
 	WC_NEWS_WINDOW, WC_NONE,
 	0,
 	_nested_thin_news_widgets, lengthof(_nested_thin_news_widgets)
@@ -193,8 +193,8 @@ static const NWidgetPart _nested_small_news_widgets[] = {
 	EndContainer(),
 };
 
-static WindowDesc _small_news_desc(
-	WDP_MANUAL, NULL, 0, 0,
+static const WindowDesc _small_news_desc(
+	WDP_MANUAL, 0, 0,
 	WC_NEWS_WINDOW, WC_NONE,
 	0,
 	_nested_small_news_widgets, lengthof(_nested_small_news_widgets)
@@ -203,7 +203,7 @@ static WindowDesc _small_news_desc(
 /**
  * Window layouts for news items.
  */
-static WindowDesc* const _news_window_layout[] = {
+static const WindowDesc* const _news_window_layout[] = {
 	&_thin_news_desc,    ///< NF_THIN
 	&_small_news_desc,   ///< NF_SMALL
 	&_normal_news_desc,  ///< NF_NORMAL
@@ -211,7 +211,7 @@ static WindowDesc* const _news_window_layout[] = {
 	&_company_news_desc, ///< NF_COMPANY
 };
 
-WindowDesc* GetNewsWindowLayout(NewsFlag flags)
+static const WindowDesc* GetNewsWindowLayout (NewsFlag flags)
 {
 	uint layout = GB(flags, NFB_WINDOW_LAYOUT, NFB_WINDOW_LAYOUT_COUNT);
 	assert(layout < lengthof(_news_window_layout));
@@ -262,7 +262,8 @@ struct NewsWindow : Window {
 	const NewsItem *ni;   ///< News item to display.
 	static uint duration; ///< Remaining time for showing current news message (may only be accessed while a news item is displayed).
 
-	NewsWindow(WindowDesc *desc, const NewsItem *ni) : Window(desc), ni(ni)
+	NewsWindow (const WindowDesc *desc, const NewsItem *ni) :
+		Window (desc), chat_height (0), status_height (0), ni(ni)
 	{
 		NewsWindow::duration = 555;
 		const Window *w = FindWindowByClass(WC_SEND_NETWORK_MSG);
@@ -276,7 +277,7 @@ struct NewsWindow : Window {
 		/* For company news with a face we have a separate headline in param[0] */
 		if (desc == &_company_news_desc) this->GetWidget<NWidgetCore>(WID_N_TITLE)->widget_data = this->ni->params[0];
 
-		this->FinishInitNested(0);
+		this->InitNested(0);
 
 		/* Initialize viewport if it exists. */
 		NWidgetViewport *nvp = this->GetWidget<NWidgetViewport>(WID_N_VIEWPORT);
@@ -417,7 +418,7 @@ struct NewsWindow : Window {
 		switch (widget) {
 			case WID_N_CLOSEBOX:
 				NewsWindow::duration = 0;
-				delete this;
+				this->Delete();
 				_forced_news = NULL;
 				break;
 
@@ -455,7 +456,7 @@ struct NewsWindow : Window {
 	{
 		if (keycode == WKC_SPACE) {
 			/* Don't continue. */
-			delete this;
+			this->Delete();
 			return ES_HANDLED;
 		}
 		return ES_NOT_HANDLED;
@@ -1156,11 +1157,12 @@ struct MessageHistoryWindow : Window {
 
 	Scrollbar *vscroll;
 
-	MessageHistoryWindow(WindowDesc *desc) : Window(desc)
+	MessageHistoryWindow (const WindowDesc *desc) :
+		Window (desc), line_height (0), date_width (0)
 	{
 		this->CreateNestedTree();
 		this->vscroll = this->GetScrollbar(WID_MH_SCROLLBAR);
-		this->FinishInitNested(); // Initializes 'this->line_height' and 'this->date_width'.
+		this->InitNested(); // Initializes 'this->line_height' and 'this->date_width'.
 		this->OnInvalidateData(0);
 	}
 
@@ -1270,11 +1272,14 @@ static const NWidgetPart _nested_message_history[] = {
 	EndContainer(),
 };
 
-static WindowDesc _message_history_desc(
-	WDP_AUTO, "list_news", 400, 140,
+static WindowDesc::Prefs _message_history_prefs ("list_news");
+
+static const WindowDesc _message_history_desc(
+	WDP_AUTO, 400, 140,
 	WC_MESSAGE_HISTORY, WC_NONE,
 	0,
-	_nested_message_history, lengthof(_nested_message_history)
+	_nested_message_history, lengthof(_nested_message_history),
+	&_message_history_prefs
 );
 
 /** Display window with news messages history */

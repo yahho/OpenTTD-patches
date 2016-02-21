@@ -79,7 +79,7 @@ class NIHVehicle : public NIHelper {
 	/* virtual */ uint Resolve(uint index, uint var, uint param, bool *avail) const
 	{
 		Vehicle *v = Vehicle::Get(index);
-		VehicleResolverObject ro(v->engine_type, v, VehicleResolverObject::WO_CACHED);
+		VehicleResolverObject ro (v->engine_type, v);
 		return ro.GetScope(VSG_SCOPE_SELF)->GetVariable(var, param, avail);
 	}
 };

@@ -16,6 +16,7 @@
 
 #include "address.h"
 #include "packet.h"
+#include "core.h"
 
 #ifdef ENABLE_NETWORK
 
@@ -30,8 +31,10 @@ enum SendPacketsState {
 /** Base socket handler for all TCP sockets */
 class NetworkTCPSocketHandler : public NetworkSocketHandler {
 private:
-	Packet *packet_queue;     ///< Packets that are awaiting delivery
-	Packet *packet_recv;      ///< Partially received packet
+	PacketQueue packet_queue; ///< Packets that are awaiting delivery
+	PacketSize  send_pos;     ///< Position in a partially sent packet
+
+	RecvPacket *packet_recv;  ///< Partially received packet
 public:
 	SOCKET sock;              ///< The socket currently connected to
 	bool writable;            ///< Can we write to this socket?
@@ -43,18 +46,15 @@ public:
 	bool IsConnected() const { return this->sock != INVALID_SOCKET; }
 
 	virtual NetworkRecvStatus CloseConnection(bool error = true);
-	virtual void SendPacket(Packet *packet);
+
+	void SendPacket (QueuedPacket *packet);
+	void SendPacket (const Packet *packet);
+	void SendPacket (PacketType type);
 	SendPacketsState SendPackets(bool closing_down = false);
 
-	virtual Packet *ReceivePacket();
+	virtual RecvPacket *ReceivePacket();
 
 	bool CanSendReceive();
-
-	/**
-	 * Whether there is something pending in the send queue.
-	 * @return true when something is pending in the send queue.
-	 */
-	bool HasSendQueue() { return this->packet_queue != NULL; }
 
 	NetworkTCPSocketHandler(SOCKET s = INVALID_SOCKET);
 	~NetworkTCPSocketHandler();

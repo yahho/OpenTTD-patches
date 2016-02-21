@@ -28,7 +28,8 @@
 #undef Rect
 #undef Point
 
-static FMusicDriver_Cocoa iFMusicDriver_Cocoa;
+static MusicDriverFactory <MusicDriver_Cocoa>
+		iFMusicDriver_Cocoa (10, "cocoa", "Cocoa MIDI Driver");
 
 
 static MusicPlayer    _player = NULL;

@@ -16,18 +16,19 @@
 #include "video/video_driver.hpp"
 #include "string.h"
 
-char *_ini_videodriver;     ///< The video driver a stored in the configuration file.
+/** The video driver as stored in the configuration file. */
+char *VideoDriver::ini;
+
 int _num_resolutions;       ///< The number of resolutions.
 Dimension _resolutions[32]; ///< List of resolutions.
 Dimension _cur_resolution;  ///< The current resolution.
 bool _rightclick_emulate;   ///< Whether right clicking is emulated.
 
-char *_ini_sounddriver;     ///< The sound driver a stored in the configuration file.
+/** The sound driver as stored in the configuration file. */
+char *SoundDriver::ini;
 
-char *_ini_musicdriver;     ///< The music driver a stored in the configuration file.
-
-char *_ini_blitter;         ///< The blitter as stored in the configuration file.
-bool _blitter_autodetected; ///< Was the blitter autodetected or specified by the user?
+/** The music driver as stored in the configuration file. */
+char *MusicDriver::ini;
 
 /**
  * Get a string parameter the list of parameters.
@@ -77,59 +78,76 @@ int GetDriverParamInt(const char * const *parm, const char *name, int def)
 	return p != NULL ? atoi(p) : def;
 }
 
-/**
- * Find the requested driver and return its class.
- * @param name the driver to select.
- * @param type the type of driver to select
- * @post Sets the driver so GetCurrentDriver() returns it too.
- */
-void DriverFactoryBase::SelectDriver(const char *name, Driver::Type type)
+
+/** Construct a DriverSystem. */
+DriverSystem::DriverSystem (const char *desc)
+	: drivers (new map), desc(desc), active(NULL), name(NULL)
 {
-	if (!DriverFactoryBase::SelectDriverImpl(name, type)) {
-		StrEmpty(name) ?
-			usererror("Failed to autoprobe %s driver", GetDriverTypeName(type)) :
-			usererror("Failed to select requested %s driver '%s'", GetDriverTypeName(type), name);
-	}
+}
+
+/**
+ * Insert a driver factory into the list.
+ * @param name    The name of the driver.
+ * @param factory The factory of the driver.
+ */
+void DriverSystem::insert (const char *name, DriverFactoryBase *factory)
+{
+	std::pair <map::iterator, bool> ins = this->drivers->insert (map::value_type (name, factory));
+	assert (ins.second);
+}
+
+/** Remove a driver factory from the list. */
+void DriverSystem::erase (const char *name)
+{
+	map::iterator it = this->drivers->find (name);
+	assert (it != this->drivers->end());
+
+	this->drivers->erase (it);
+
+	if (this->drivers->empty()) delete this->drivers;
 }
 
 /**
  * Find the requested driver and return its class.
  * @param name the driver to select.
- * @param type the type of driver to select
  * @post Sets the driver so GetCurrentDriver() returns it too.
- * @return True upon success, otherwise false.
  */
-bool DriverFactoryBase::SelectDriverImpl(const char *name, Driver::Type type)
+void DriverSystem::select (const char *name)
 {
-	assert (type < Driver::DT_END);
-
-	if (GetDrivers(type).empty()) return false;
+	if (this->drivers->empty()) {
+		StrEmpty(name) ?
+			usererror ("Failed to autoprobe %s driver", this->desc) :
+			usererror ("Failed to select requested %s driver '%s'", this->desc, name);
+	}
 
 	if (StrEmpty(name)) {
 		/* Probe for this driver, but do not fall back to dedicated/null! */
 		for (int priority = 10; priority > 0; priority--) {
-			Drivers::iterator it = GetDrivers(type).begin();
-			for (; it != GetDrivers(type).end(); ++it) {
+			map::iterator it = this->drivers->begin();
+			for (; it != this->drivers->end(); ++it) {
 				DriverFactoryBase *d = (*it).second;
 				if (d->priority != priority) continue;
 
-				Driver *oldd = *GetActiveDriver(type);
+				Driver *oldd = this->active;
+				const char *oldn = this->name;
 				Driver *newd = d->CreateInstance();
-				*GetActiveDriver(type) = newd;
+				this->active = newd;
+				this->name = d->name;
 
 				const char *err = newd->Start(NULL);
 				if (err == NULL) {
-					DEBUG(driver, 1, "Successfully probed %s driver '%s'", GetDriverTypeName(type), d->name);
+					DEBUG(driver, 1, "Successfully probed %s driver '%s'", this->desc, d->name);
 					delete oldd;
-					return true;
+					return;
 				}
 
-				*GetActiveDriver(type) = oldd;
-				DEBUG(driver, 1, "Probing %s driver '%s' failed with error: %s", GetDriverTypeName(type), d->name, err);
+				this->active = oldd;
+				this->name = oldn;
+				DEBUG(driver, 1, "Probing %s driver '%s' failed with error: %s", this->desc, d->name, err);
 				delete newd;
 			}
 		}
-		usererror("Couldn't find any suitable %s driver", GetDriverTypeName(type));
+		usererror ("Couldn't find any suitable %s driver", this->desc);
 	} else {
 		char *parm;
 		char buffer[256];
@@ -151,8 +169,8 @@ bool DriverFactoryBase::SelectDriverImpl(const char *name, Driver::Type type)
 		}
 
 		/* Find this driver */
-		Drivers::iterator it = GetDrivers(type).begin();
-		for (; it != GetDrivers(type).end(); ++it) {
+		map::iterator it = this->drivers->begin();
+		for (; it != this->drivers->end(); ++it) {
 			DriverFactoryBase *d = (*it).second;
 
 			/* Check driver name */
@@ -167,61 +185,32 @@ bool DriverFactoryBase::SelectDriverImpl(const char *name, Driver::Type type)
 				usererror("Unable to load driver '%s'. The error was: %s", d->name, err);
 			}
 
-			DEBUG(driver, 1, "Successfully loaded %s driver '%s'", GetDriverTypeName(type), d->name);
-			delete *GetActiveDriver(type);
-			*GetActiveDriver(type) = newd;
-			return true;
+			DEBUG(driver, 1, "Successfully loaded %s driver '%s'", this->desc, d->name);
+			delete this->active;
+			this->active = newd;
+			this->name = d->name;
+			return;
 		}
-		usererror("No such %s driver: %s\n", GetDriverTypeName(type), buffer);
+		usererror ("No such %s driver: %s\n", this->desc, buffer);
 	}
 }
 
 /**
- * Build a human readable list of available drivers, grouped by type.
+ * Build a human readable list of available drivers.
  * @param buf The buffer to write to.
  */
-void DriverFactoryBase::GetDriversInfo (stringb *buf)
+void DriverSystem::list (stringb *buf)
 {
-	for (Driver::Type type = Driver::DT_BEGIN; type != Driver::DT_END; type++) {
-		buf->append_fmt ("List of %s drivers:\n", GetDriverTypeName(type));
+	buf->append_fmt ("List of %s drivers:\n", this->desc);
 
-		for (int priority = 10; priority >= 0; priority--) {
-			Drivers::iterator it = GetDrivers(type).begin();
-			for (; it != GetDrivers(type).end(); it++) {
-				DriverFactoryBase *d = (*it).second;
-				if (d->type != type) continue;
-				if (d->priority != priority) continue;
-				buf->append_fmt ("%18s: %s\n", d->name, d->description);
-			}
+	for (int priority = 10; priority >= 0; priority--) {
+		map::iterator it = this->drivers->begin();
+		for (; it != this->drivers->end(); it++) {
+			DriverFactoryBase *d = (*it).second;
+			if (d->priority != priority) continue;
+			buf->append_fmt ("%18s: %s\n", d->name, d->description);
 		}
-
-		buf->append ('\n');
 	}
-}
 
-/**
- * Construct a new DriverFactory.
- * @param type        The type of driver.
- * @param priority    The priority within the driver class.
- * @param name        The name of the driver.
- * @param description A long-ish description of the driver.
- */
-DriverFactoryBase::DriverFactoryBase(Driver::Type type, int priority, const char *name, const char *description) :
-	type(type), priority(priority), name(name), description(description)
-{
-	assert (type < Driver::DT_END);
-
-	std::pair<Drivers::iterator, bool> P = GetDrivers(type).insert(Drivers::value_type(name, this));
-	assert(P.second);
-}
-
-/** Destruct a DriverFactory. */
-DriverFactoryBase::~DriverFactoryBase()
-{
-	Drivers::iterator it = GetDrivers(this->type).find(this->name);
-	assert(it != GetDrivers(this->type).end());
-
-	GetDrivers(this->type).erase(it);
-
-	if (GetDrivers(this->type).empty()) delete &GetDrivers(this->type);
+	buf->append ('\n');
 }

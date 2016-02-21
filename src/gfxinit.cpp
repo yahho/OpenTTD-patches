@@ -249,72 +249,93 @@ static void LoadSpriteTables()
 
 
 /**
+ * Select the blitter needed by NewGRF config.
+ * @return The blitter to switch to.
+ */
+static const char *SelectNewGRFBlitter (void)
+{
+	/* Get preferred depth.
+	 *  - base_wants_32bpp: Depth required by the baseset, i.e. the majority of the sprites.
+	 *  - grf_wants_32bpp:  Depth required by some NewGRF.
+	 * Both can force using a 32bpp blitter. base_wants_32bpp is used to select
+	 * between multiple 32bpp blitters, which perform differently with 8bpp sprites.
+	 */
+	bool base_wants_32bpp = BaseGraphics::GetUsedSet()->blitter == BLT_32BPP;
+	bool grf_wants_32bpp;
+	if (_support8bpp == S8BPP_NONE) {
+		grf_wants_32bpp = true;
+	} else {
+		grf_wants_32bpp = false;
+		for (GRFConfig *c = _grfconfig; c != NULL; c = c->next) {
+			if (c->status == GCS_DISABLED || c->status == GCS_NOT_FOUND || HasBit(c->flags, GCF_INIT_ONLY)) continue;
+			if (c->palette & GRFP_BLT_32BPP) {
+				grf_wants_32bpp = true;
+				break;
+			}
+		}
+	}
+
+	/* Search the best blitter. */
+	static const struct {
+		const char *name;
+		byte animation;   ///< 0: no support, 1: do support, 2: both
+		byte base_depth;  ///< 0: 8bpp, 1: 32bpp, 2: both
+		byte grf_depth;   ///< 0: 8bpp, 1: 32bpp, 2: both
+	} replacement_blitters[] = {
+#ifdef WITH_SSE
+		{ "32bpp-sse4",       0,  1,  2 },
+		{ "32bpp-ssse3",      0,  1,  2 },
+		{ "32bpp-sse2",       0,  1,  2 },
+		{ "32bpp-sse4-anim",  1,  1,  2 },
+#endif
+		{ "8bpp-optimized",   2,  0,  0 },
+		{ "32bpp-optimized",  0,  2,  2 },
+		{ "32bpp-anim",       1,  2,  2 },
+	};
+
+	const bool animation_wanted = HasBit(_display_opt, DO_FULL_ANIMATION);
+
+	for (uint i = 0; ; i++) {
+		/* One of the last two blitters should always match. */
+		assert (i < lengthof(replacement_blitters));
+
+		if (replacement_blitters[i].animation  == (animation_wanted ? 0 : 1)) continue;
+		if (replacement_blitters[i].base_depth == (base_wants_32bpp ? 0 : 1)) continue;
+		if (replacement_blitters[i].grf_depth  == (grf_wants_32bpp  ? 0 : 1)) continue;
+
+		return replacement_blitters[i].name;
+	}
+}
+
+/**
  * Check blitter needed by NewGRF config and switch if needed.
  * @return False when nothing changed, true otherwise.
  */
 static bool SwitchNewGRFBlitter()
 {
 	/* Never switch if the blitter was specified by the user. */
-	if (!_blitter_autodetected) return false;
+	if (!Blitter::autodetected) return false;
 
 	/* Null driver => dedicated server => do nothing. */
-	if (GetCurrentBlitter()->GetScreenDepth() == 0) return false;
+	if (Blitter::get()->GetScreenDepth() == 0) return false;
 
-	/* Get preferred depth.
-	 *  - depth_wanted_by_base: Depth required by the baseset, i.e. the majority of the sprites.
-	 *  - depth_wanted_by_grf:  Depth required by some NewGRF.
-	 * Both can force using a 32bpp blitter. depth_wanted_by_base is used to select
-	 * between multiple 32bpp blitters, which perform differently with 8bpp sprites.
-	 */
-	uint depth_wanted_by_base = BaseGraphics::GetUsedSet()->blitter == BLT_32BPP ? 32 : 8;
-	uint depth_wanted_by_grf = _support8bpp == S8BPP_NONE ? 32 : 8;
-	for (GRFConfig *c = _grfconfig; c != NULL; c = c->next) {
-		if (c->status == GCS_DISABLED || c->status == GCS_NOT_FOUND || HasBit(c->flags, GCF_INIT_ONLY)) continue;
-		if (c->palette & GRFP_BLT_32BPP) depth_wanted_by_grf = 32;
-	}
+	const char *repl_blitter = SelectNewGRFBlitter();
+	const char *cur_blitter = Blitter::get_name();
+	if (strcmp (repl_blitter, cur_blitter) == 0) return false;
 
-	/* Search the best blitter. */
-	static const struct {
-		const char *name;
-		uint animation; ///< 0: no support, 1: do support, 2: both
-		uint min_base_depth, max_base_depth, min_grf_depth, max_grf_depth;
-	} replacement_blitters[] = {
-#ifdef WITH_SSE
-		{ "32bpp-sse4",      0, 32, 32,  8, 32 },
-		{ "32bpp-ssse3",     0, 32, 32,  8, 32 },
-		{ "32bpp-sse2",      0, 32, 32,  8, 32 },
-		{ "32bpp-sse4-anim", 1, 32, 32,  8, 32 },
-#endif
-		{ "8bpp-optimized",  2,  8,  8,  8,  8 },
-		{ "32bpp-optimized", 0,  8, 32,  8, 32 },
-		{ "32bpp-anim",      1,  8, 32,  8, 32 },
-	};
+	DEBUG(misc, 1, "Switching blitter from '%s' to '%s'... ", cur_blitter, repl_blitter);
+	Blitter *new_blitter = Blitter::select (repl_blitter);
+	/* Blitter::select only fails if it cannot find a blitter by
+	 * the given name, and all of the replacement blitters in the
+	 * replacement list should be available. */
+	assert (new_blitter != NULL);
+	DEBUG(misc, 1, "Successfully switched to %s.", repl_blitter);
 
-	const bool animation_wanted = HasBit(_display_opt, DO_FULL_ANIMATION);
-	const char *cur_blitter = GetCurrentBlitterName();
-
-	for (uint i = 0; i < lengthof(replacement_blitters); i++) {
-		if (animation_wanted && (replacement_blitters[i].animation == 0)) continue;
-		if (!animation_wanted && (replacement_blitters[i].animation == 1)) continue;
-
-		if (!IsInsideMM(depth_wanted_by_base, replacement_blitters[i].min_base_depth, replacement_blitters[i].max_base_depth + 1)) continue;
-		if (!IsInsideMM(depth_wanted_by_grf, replacement_blitters[i].min_grf_depth, replacement_blitters[i].max_grf_depth + 1)) continue;
-		const char *repl_blitter = replacement_blitters[i].name;
-
-		if (strcmp(repl_blitter, cur_blitter) == 0) return false;
-
-		DEBUG(misc, 1, "Switching blitter from '%s' to '%s'... ", cur_blitter, repl_blitter);
-		Blitter *new_blitter = SelectBlitter (repl_blitter);
-		if (new_blitter != NULL) {
-			DEBUG(misc, 1, "Successfully switched to %s.", repl_blitter);
-			break;
-		}
-		DEBUG(misc, 1, "Switching failed");
-	}
-
-	if (!VideoDriver::GetInstance()->AfterBlitterChange()) {
+	if (!VideoDriver::GetActiveDriver()->AfterBlitterChange()) {
 		/* Failed to switch blitter, let's hope we can return to the old one. */
-		if (SelectBlitter(cur_blitter) == NULL || !VideoDriver::GetInstance()->AfterBlitterChange()) usererror("Failed to reinitialize video driver. Specify a fixed blitter in the config");
+		if (Blitter::select (cur_blitter) == NULL || !VideoDriver::GetActiveDriver()->AfterBlitterChange()) {
+			usererror("Failed to reinitialize video driver. Specify a fixed blitter in the config");
+		}
 	}
 
 	return true;

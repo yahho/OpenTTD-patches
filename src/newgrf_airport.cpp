@@ -19,12 +19,24 @@
 
 /** Resolver for the airport scope. */
 struct AirportScopeResolver : public ScopeResolver {
+	const GRFFile *const grffile; ///< GRFFile the resolved SpriteGroup belongs to.
 	struct Station *st; ///< Station of the airport for which the callback is run, or \c NULL for build gui.
-	byte airport_id;    ///< Type of airport for which the callback is run.
 	byte layout;        ///< Layout of the airport to build.
 	TileIndex tile;     ///< Tile for the callback, only valid for airporttile callbacks.
 
-	AirportScopeResolver(ResolverObject &ro, TileIndex tile, Station *st, byte airport_id, byte layout);
+	/**
+	 * Constructor of the scope resolver for an airport.
+	 * @param grffile GRFFile the resolved SpriteGroup belongs to.
+	 * @param tile %Tile for the callback, only valid for airporttile callbacks.
+	 * @param st %Station of the airport for which the callback is run, or \c NULL for build gui.
+	 * @param layout Layout of the airport to build.
+	 */
+	AirportScopeResolver (const GRFFile *grffile, TileIndex tile,
+			Station *st, byte layout)
+		: ScopeResolver(), grffile(grffile),
+		  st(st), layout(layout), tile(tile)
+	{
+	}
 
 	/* virtual */ uint32 GetRandomBits() const;
 	/* virtual */ uint32 GetVariable(byte variable, uint32 parameter, bool *available) const;
@@ -35,8 +47,22 @@ struct AirportScopeResolver : public ScopeResolver {
 struct AirportResolverObject : public ResolverObject {
 	AirportScopeResolver airport_scope;
 
-	AirportResolverObject(TileIndex tile, Station *st, byte airport_id, byte layout,
-			CallbackID callback = CBID_NO_CALLBACK, uint32 callback_param1 = 0, uint32 callback_param2 = 0);
+	/**
+	 * Constructor of the airport resolver.
+	 * @param tile %Tile for the callback, only valid for airporttile callbacks.
+	 * @param st %Station of the airport for which the callback is run, or \c NULL for build gui.
+	 * @param as AirportSpec for which the callback is run.
+	 * @param layout Layout of the airport to build.
+	 * @param callback Callback ID.
+	 * @param param1 First parameter (var 10) of the callback.
+	 * @param param2 Second parameter (var 18) of the callback.
+	 */
+	AirportResolverObject (TileIndex tile, Station *st, const AirportSpec *as, byte layout,
+			CallbackID callback = CBID_NO_CALLBACK, uint32 param1 = 0, uint32 param2 = 0)
+		: ResolverObject (as->grf_prop.grffile, callback, param1, param2),
+		  airport_scope (this->grffile, tile, st, layout)
+	{
+	}
 
 	/* virtual */ ScopeResolver *GetScope(VarSpriteGroupScope scope = VSG_SCOPE_SELF, byte relative = 0)
 	{
@@ -183,7 +209,7 @@ void AirportOverrideManager::SetEntitySpec(AirportSpec *as)
 		case 0xFA: return Clamp(this->st->build_date - DAYS_TILL_ORIGINAL_BASE_YEAR, 0, 65535);
 	}
 
-	return this->st->GetNewGRFVariable(this->ro, variable, parameter, available);
+	return this->st->GetNewGRFVariable (this->grffile, variable, parameter, available);
 }
 
 /* virtual */ const SpriteGroup *AirportResolverObject::ResolveReal(const RealSpriteGroup *group) const
@@ -216,50 +242,23 @@ void AirportOverrideManager::SetEntitySpec(AirportSpec *as)
 		if (value == 0) return;
 
 		/* Create storage on first modification. */
-		uint32 grfid = (this->ro.grffile != NULL) ? this->ro.grffile->grfid : 0;
+		uint32 grfid = (this->grffile != NULL) ? this->grffile->grfid : 0;
 		assert(PersistentStorage::CanAllocateItem());
 		this->st->airport.psa = new PersistentStorage(grfid, GSF_AIRPORTS, this->st->airport.tile);
 	}
 	this->st->airport.psa->StoreValue(pos, value);
 }
 
-/**
- * Constructor of the airport resolver.
- * @param tile %Tile for the callback, only valid for airporttile callbacks.
- * @param st %Station of the airport for which the callback is run, or \c NULL for build gui.
- * @param airport_id Type of airport for which the callback is run.
- * @param layout Layout of the airport to build.
- * @param callback Callback ID.
- * @param param1 First parameter (var 10) of the callback.
- * @param param2 Second parameter (var 18) of the callback.
- */
-AirportResolverObject::AirportResolverObject(TileIndex tile, Station *st, byte airport_id, byte layout,
-		CallbackID callback, uint32 param1, uint32 param2)
-	: ResolverObject(AirportSpec::Get(airport_id)->grf_prop.grffile, callback, param1, param2), airport_scope(*this, tile, st, airport_id, layout)
+static const SpriteGroup *AirportResolve (TileIndex tile, Station *st, const AirportSpec *as, byte layout,
+	CallbackID callback = CBID_NO_CALLBACK, uint32 param1 = 0, uint32 param2 = 0)
 {
-	this->root_spritegroup = AirportSpec::Get(airport_id)->grf_prop.spritegroup[0];
-}
-
-/**
- * Constructor of the scope resolver for an airport.
- * @param ro Surrounding resolver.
- * @param tile %Tile for the callback, only valid for airporttile callbacks.
- * @param st %Station of the airport for which the callback is run, or \c NULL for build gui.
- * @param airport_id Type of airport for which the callback is run.
- * @param layout Layout of the airport to build.
- */
-AirportScopeResolver::AirportScopeResolver(ResolverObject &ro, TileIndex tile, Station *st, byte airport_id, byte layout) : ScopeResolver(ro)
-{
-	this->st = st;
-	this->airport_id = airport_id;
-	this->layout = layout;
-	this->tile = tile;
+	AirportResolverObject object (tile, st, as, layout, callback, param1, param2);
+	return SpriteGroup::Resolve (as->grf_prop.spritegroup[0], object);
 }
 
 SpriteID GetCustomAirportSprite(const AirportSpec *as, byte layout)
 {
-	AirportResolverObject object(INVALID_TILE, NULL, as->GetIndex(), layout);
-	const SpriteGroup *group = object.Resolve();
+	const SpriteGroup *group = AirportResolve (INVALID_TILE, NULL, as, layout);
 	if (group == NULL) return as->preview_sprite;
 
 	return group->GetResult();
@@ -267,8 +266,9 @@ SpriteID GetCustomAirportSprite(const AirportSpec *as, byte layout)
 
 uint16 GetAirportCallback(CallbackID callback, uint32 param1, uint32 param2, Station *st, TileIndex tile)
 {
-	AirportResolverObject object(tile, st, st->airport.type, st->airport.layout, callback, param1, param2);
-	return object.ResolveCallback();
+	return SpriteGroup::CallbackResult (AirportResolve (tile, st,
+			AirportSpec::Get (st->airport.type), st->airport.layout,
+			callback, param1, param2));
 }
 
 /**
@@ -280,8 +280,8 @@ uint16 GetAirportCallback(CallbackID callback, uint32 param1, uint32 param2, Sta
  */
 StringID GetAirportTextCallback(const AirportSpec *as, byte layout, uint16 callback)
 {
-	AirportResolverObject object(INVALID_TILE, NULL, as->GetIndex(), layout, (CallbackID)callback);
-	uint16 cb_res = object.ResolveCallback();
+	uint16 cb_res = SpriteGroup::CallbackResult (AirportResolve (INVALID_TILE,
+			NULL, as, layout, (CallbackID)callback));
 	if (cb_res == CALLBACK_FAILED || cb_res == 0x400) return STR_UNDEFINED;
 	if (cb_res > 0x400) {
 		ErrorUnknownCallbackResult(as->grf_prop.grffile->grfid, callback, cb_res);

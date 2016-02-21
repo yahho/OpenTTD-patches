@@ -1447,15 +1447,12 @@ void AgeVehicle(Vehicle *v)
  * @param front The front vehicle of the consist to check.
  * @param colour The string to show depending on if we are unloading or loading
  * @return A percentage of how full the Vehicle is.
+ *         Rounding is done in such a way that 0% and 100% are only returned
+ *         if the vehicle is completely empty or full, respectively.
+ *         This is useful for both display and conditional orders.
  */
 uint8 CalcPercentVehicleFilled(const Vehicle *front, StringID *colour)
 {
-	int count = 0;
-	int max = 0;
-	int cars = 0;
-	int unloading = 0;
-	bool loading = false;
-
 	bool is_loading = front->current_order.IsType(OT_LOADING);
 
 	/* The station may be NULL when the (colour) string does not need to be set. */
@@ -1466,24 +1463,31 @@ uint8 CalcPercentVehicleFilled(const Vehicle *front, StringID *colour)
 	bool order_full_load = is_loading && (front->current_order.GetLoadType() & OLFB_FULL_LOAD);
 
 	/* Count up max and used */
+	uint count = 0;             // Total cargo count
+	uint max   = 0;             // Total capacity
+	bool loading   = false;     // Any vehicle is loading
+	bool unloading = false;     // Any vehicle is unloading
+	bool all_unloading = true;  // All vehicles are unloading, if any is
 	for (const Vehicle *v = front; v != NULL; v = v->Next()) {
 		count += v->cargo.StoredCount();
 		max += v->cargo_cap;
 		if (v->cargo_cap != 0 && colour != NULL) {
-			unloading += HasBit(v->vehicle_flags, VF_CARGO_UNLOADING) ? 1 : 0;
+			if (HasBit(v->vehicle_flags, VF_CARGO_UNLOADING)) {
+				unloading = true;
+			} else {
+				all_unloading = false;
+			}
+
 			loading |= !order_no_load &&
 					(order_full_load || st->goods[v->cargo_type].HasRating()) &&
 					!HasBit(v->vehicle_flags, VF_LOADING_FINISHED) && !HasBit(v->vehicle_flags, VF_STOP_LOADING);
-			cars++;
 		}
 	}
 
 	if (colour != NULL) {
-		if (unloading == 0 && loading) {
-			*colour = STR_PERCENT_UP;
-		} else if (unloading == 0 && !loading) {
-			*colour = STR_PERCENT_NONE;
-		} else if (cars == unloading || !loading) {
+		if (!unloading) {
+			*colour = loading ? STR_PERCENT_UP : STR_PERCENT_NONE;
+		} else if (all_unloading || !loading) {
 			*colour = STR_PERCENT_DOWN;
 		} else {
 			*colour = STR_PERCENT_UP_DOWN;
@@ -1493,8 +1497,22 @@ uint8 CalcPercentVehicleFilled(const Vehicle *front, StringID *colour)
 	/* Train without capacity */
 	if (max == 0) return 100;
 
-	/* Return the percentage */
-	return (count * 100) / max;
+	/* Compute and return the percentage */
+
+	/* Correction to use for the percentage.
+	 * It is an affine, decreasing function on count that satisfies:
+	 *   k == max - 1  if count == 0
+	 *   k == 0        if count == max
+	 *   max - count - 1 <= k <= max - count
+	 */
+	uint k = ((max - count) * (max - 1)) / max;
+
+	/* Percentage to return.
+	 * It is an affine, increasing function on count that satisfies:
+	 *   p ==   0  iff count == 0
+	 *   p == 100  iff count == max
+	 */
+	return (100 * count + k) / max;
 }
 
 /**

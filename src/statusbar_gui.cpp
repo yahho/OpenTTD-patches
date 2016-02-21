@@ -84,11 +84,10 @@ struct StatusBarWindow : Window {
 	static const int REMINDER_STOP  =    0; ///< reminder disappears when counter reaches this value
 	static const int COUNTER_STEP   =    2; ///< this is subtracted from active counters every tick
 
-	StatusBarWindow(WindowDesc *desc) : Window(desc)
+	StatusBarWindow (const WindowDesc *desc) :
+		Window (desc), saving (false),
+		ticker_scroll (TICKER_STOP), reminder_timeout (REMINDER_STOP)
 	{
-		this->ticker_scroll    =   TICKER_STOP;
-		this->reminder_timeout = REMINDER_STOP;
-
 		this->InitNested();
 		CLRBITS(this->flags, WF_WHITE_BORDER);
 		PositionStatusbar(this);
@@ -211,7 +210,7 @@ struct StatusBarWindow : Window {
 		switch (widget) {
 			case WID_S_MIDDLE: ShowLastNewsMessage(); break;
 			case WID_S_RIGHT:  if (_local_company != COMPANY_SPECTATOR) ShowCompanyFinances(_local_company); break;
-			default: ResetObjectToPlace();
+			default: ResetPointerMode();
 		}
 	}
 
@@ -241,8 +240,8 @@ static const NWidgetPart _nested_main_status_widgets[] = {
 	EndContainer(),
 };
 
-static WindowDesc _main_status_desc(
-	WDP_MANUAL, NULL, 0, 0,
+static const WindowDesc _main_status_desc(
+	WDP_MANUAL, 0, 0,
 	WC_STATUS_BAR, WC_NONE,
 	WDF_NO_FOCUS,
 	_nested_main_status_widgets, lengthof(_nested_main_status_widgets)

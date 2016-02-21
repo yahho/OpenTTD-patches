@@ -1755,12 +1755,6 @@
       <ObjectFileName>$(IntDir)\script\api\</ObjectFileName>
       <XMLDocumentationFileName>$(IntDir)\script\api\</XMLDocumentationFileName>
     </ClCompile>
-    <ClCompile Include="..\src\blitter\base.cpp">
-      <AssemblerListingLocation>$(IntDir)\blitter\</AssemblerListingLocation>
-      <ObjectFileName>$(IntDir)\blitter\</ObjectFileName>
-      <XMLDocumentationFileName>$(IntDir)\blitter\</XMLDocumentationFileName>
-    </ClCompile>
-    <ClInclude Include="..\src\blitter\base.hpp" />
     <ClCompile Include="..\src\blitter\blitter.cpp">
       <AssemblerListingLocation>$(IntDir)\blitter\</AssemblerListingLocation>
       <ObjectFileName>$(IntDir)\blitter\</ObjectFileName>
@@ -1952,7 +1946,6 @@
     </ClCompile>
     <ClInclude Include="..\src\map\util.h" />
     <ClInclude Include="..\src\misc\array.hpp" />
-    <ClInclude Include="..\src\misc\binaryheap.hpp" />
     <ClCompile Include="..\src\misc\countedobj.cpp">
       <AssemblerListingLocation>$(IntDir)\misc\</AssemblerListingLocation>
       <ObjectFileName>$(IntDir)\misc\</ObjectFileName>

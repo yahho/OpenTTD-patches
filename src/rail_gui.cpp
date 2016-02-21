@@ -140,7 +140,7 @@ void CcRailDepot(const CommandCost &result, TileIndex tile, uint32 p1, uint32 p2
 	DiagDirection dir = (DiagDirection)p2;
 
 	if (_settings_client.sound.confirm) SndPlayTileFx(SND_20_SPLAT_RAIL, tile);
-	if (!_settings_client.gui.persistent_buildingtools) ResetObjectToPlace();
+	if (!_settings_client.gui.persistent_buildingtools) ResetPointerMode();
 
 	tile += TileOffsByDiagDir(dir);
 
@@ -166,11 +166,11 @@ static void PlaceRail_Waypoint(TileIndex tile)
 
 	switch (GetAxisForNewWaypoint(tile)) {
 		case AXIS_X:
-			VpStartPlaceSizing (tile, VPM_FIX_X, DRAG_BUILD_WAYPOINT_X);
+			VpStartPlaceSizing (tile, VPM_Y, DRAG_BUILD_WAYPOINT_X);
 			break;
 
 		case AXIS_Y:
-			VpStartPlaceSizing (tile, VPM_FIX_Y, DRAG_BUILD_WAYPOINT_Y);
+			VpStartPlaceSizing (tile, VPM_X, DRAG_BUILD_WAYPOINT_Y);
 			break;
 
 		default:
@@ -186,7 +186,7 @@ void CcStation(const CommandCost &result, TileIndex tile, uint32 p1, uint32 p2)
 
 	if (_settings_client.sound.confirm) SndPlayTileFx(SND_20_SPLAT_RAIL, tile);
 	/* Only close the station builder window if the default station and non persistent building is chosen. */
-	if (_railstation.station_class == STAT_CLASS_DFLT && _railstation.station_type == 0 && !_settings_client.gui.persistent_buildingtools) ResetObjectToPlace();
+	if (_railstation.station_class == STAT_CLASS_DFLT && _railstation.station_type == 0 && !_settings_client.gui.persistent_buildingtools) ResetPointerMode();
 }
 
 /**
@@ -196,11 +196,9 @@ void CcStation(const CommandCost &result, TileIndex tile, uint32 p1, uint32 p2)
 static void PlaceRail_Station(TileIndex tile)
 {
 	if (_remove_button_clicked) {
-		VpStartPlaceSizing(tile, VPM_X_AND_Y_LIMITED, DRAG_STATION);
-		VpSetPlaceSizingLimit(-1);
+		VpStartPlaceSizing (tile, VPM_X_AND_Y, DRAG_STATION);
 	} else if (_settings_client.gui.station_dragdrop) {
-		VpStartPlaceSizing(tile, VPM_X_AND_Y_LIMITED, DRAG_STATION);
-		VpSetPlaceSizingLimit(_settings_game.station.station_spread);
+		VpStartPlaceSizing (tile, VPM_X_AND_Y, DRAG_STATION, _settings_game.station.station_spread);
 	} else {
 		uint32 p1 = _cur_railtype | _railstation.orientation << 4 | _settings_client.gui.station_numtracks << 8 | _settings_client.gui.station_platlength << 16 | _ctrl_pressed << 24;
 		uint32 p2 = _railstation.station_class | _railstation.station_type << 8 | INVALID_STATION << 16;
@@ -288,7 +286,7 @@ static void GenericPlaceSignals(TileIndex tile)
 /** Show the bridge building window between a pair of tiles. */
 static void HandleBuildRailBridge (TileIndex start_tile, TileIndex end_tile)
 {
-	if (!_settings_client.gui.persistent_buildingtools) ResetObjectToPlace();
+	if (!_settings_client.gui.persistent_buildingtools) ResetPointerMode();
 	ShowBuildBridgeWindow (start_tile, end_tile, TRANSPORT_RAIL, _cur_railtype);
 }
 
@@ -344,7 +342,7 @@ static void BuildRailClick_Remove(Window *w)
 			if (!_settings_client.gui.station_dragdrop) {
 				SetTileSelectSize(1, 1);
 			} else {
-				VpSetPlaceSizingLimit(-1);
+				VpSetPlaceSizingLimit (0);
 			}
 		} else {
 			/* starting station build mode */
@@ -364,18 +362,18 @@ static void BuildRailClick_Remove(Window *w)
 	}
 }
 
-static void HandleAutodirPlacement()
+static void HandleAutodirPlacement (TileIndex start, TileIndex end)
 {
-	TileIndex endtile = TileVirtXY(_thd.selend.x, _thd.selend.y);
-	Track track = (Track)(_thd.drawstyle & HT_DIR_MASK); // 0..5
+	Track track = (Track)(_thd.drawstyle & HT_TRACK_MASK); // 0..5
+	assert (IsValidTrack (track));
 
-	if (_thd.drawstyle & HT_RAIL) { // one tile case
-		DoCommandP(endtile, _cur_railtype, track,
+	if (start == end) { // one-tile case
+		DoCommandP (end, _cur_railtype, track,
 				_remove_button_clicked ? CMD_REMOVE_SINGLE_RAIL : CMD_BUILD_SINGLE_RAIL);
 		return;
 	}
 
-	DoCommandP(TileVirtXY(_thd.selstart.x, _thd.selstart.y), endtile, _cur_railtype | (track << 4),
+	DoCommandP (start, end, _cur_railtype | (track << 4),
 			_remove_button_clicked ? CMD_REMOVE_RAILROAD_TRACK : CMD_BUILD_RAILROAD_TRACK);
 }
 
@@ -385,12 +383,12 @@ static void HandleAutodirPlacement()
  * If one tile marked abort and use GenericPlaceSignals()
  * else use CmdBuildSingleSignal() or CmdRemoveSingleSignal() in rail_cmd.cpp to build many signals
  */
-static void HandleAutoSignalPlacement()
+static void HandleAutoSignalPlacement (TileIndex start, TileIndex end)
 {
 	uint32 p2 = GB(_thd.drawstyle, 0, 3); // 0..5
 
-	if ((_thd.drawstyle & HT_DRAG_MASK) == HT_RECT) { // one tile case
-		GenericPlaceSignals(TileVirtXY(_thd.selend.x, _thd.selend.y));
+	if (start == end) { // one-tile case
+		GenericPlaceSignals (end);
 		return;
 	}
 
@@ -413,7 +411,7 @@ static void HandleAutoSignalPlacement()
 
 	/* _settings_client.gui.drag_signals_density is given as a parameter such that each user
 	 * in a network game can specify his/her own signal density */
-	DoCommandP(TileVirtXY(_thd.selstart.x, _thd.selstart.y), TileVirtXY(_thd.selend.x, _thd.selend.y), p2,
+	DoCommandP (start, end, p2,
 			_remove_button_clicked ? CMD_REMOVE_SIGNAL_TRACK : CMD_BUILD_SIGNAL_TRACK);
 }
 
@@ -423,17 +421,18 @@ struct BuildRailToolbarWindow : Window {
 	RailType railtype;    ///< Rail type to build.
 	int last_user_action; ///< Last started user action.
 
-	BuildRailToolbarWindow(WindowDesc *desc, RailType railtype) : Window(desc)
+	BuildRailToolbarWindow (const WindowDesc *desc, RailType railtype) :
+		Window (desc), railtype ((RailType)0),
+		last_user_action (WIDGET_LIST_END)
 	{
 		this->InitNested(TRANSPORT_RAIL);
 		this->SetupRailToolbar(railtype);
 		this->DisableWidget(WID_RAT_REMOVE);
-		this->last_user_action = WIDGET_LIST_END;
 
 		if (_settings_client.gui.link_terraform_toolbar) ShowTerraformToolbar(this);
 	}
 
-	~BuildRailToolbarWindow()
+	void OnDelete (void) FINAL_OVERRIDE
 	{
 		if (_settings_client.gui.link_terraform_toolbar) DeleteWindowById(WC_SCEN_LAND_GEN, 0, false);
 	}
@@ -447,7 +446,7 @@ struct BuildRailToolbarWindow : Window {
 	{
 		if (!gui_scope) return;
 
-		if (!CanBuildVehicleInfrastructure(VEH_TRAIN)) delete this;
+		if (!CanBuildVehicleInfrastructure(VEH_TRAIN)) this->Delete();
 	}
 
 	/**
@@ -531,37 +530,37 @@ struct BuildRailToolbarWindow : Window {
 		_remove_button_clicked = false;
 		switch (widget) {
 			case WID_RAT_BUILD_NS:
-				HandlePlacePushButton(this, WID_RAT_BUILD_NS, GetRailTypeInfo(_cur_railtype)->cursor.rail_ns, HT_LINE | HT_DIR_VL);
+				HandlePlacePushButton (this, WID_RAT_BUILD_NS, GetRailTypeInfo(_cur_railtype)->cursor.rail_ns, POINTER_RAIL_V);
 				this->last_user_action = widget;
 				break;
 
 			case WID_RAT_BUILD_X:
-				HandlePlacePushButton(this, WID_RAT_BUILD_X, GetRailTypeInfo(_cur_railtype)->cursor.rail_swne, HT_LINE | HT_DIR_X);
+				HandlePlacePushButton (this, WID_RAT_BUILD_X, GetRailTypeInfo(_cur_railtype)->cursor.rail_swne, POINTER_RAIL_X);
 				this->last_user_action = widget;
 				break;
 
 			case WID_RAT_BUILD_EW:
-				HandlePlacePushButton(this, WID_RAT_BUILD_EW, GetRailTypeInfo(_cur_railtype)->cursor.rail_ew, HT_LINE | HT_DIR_HL);
+				HandlePlacePushButton (this, WID_RAT_BUILD_EW, GetRailTypeInfo(_cur_railtype)->cursor.rail_ew, POINTER_RAIL_H);
 				this->last_user_action = widget;
 				break;
 
 			case WID_RAT_BUILD_Y:
-				HandlePlacePushButton(this, WID_RAT_BUILD_Y, GetRailTypeInfo(_cur_railtype)->cursor.rail_nwse, HT_LINE | HT_DIR_Y);
+				HandlePlacePushButton (this, WID_RAT_BUILD_Y, GetRailTypeInfo(_cur_railtype)->cursor.rail_nwse, POINTER_RAIL_Y);
 				this->last_user_action = widget;
 				break;
 
 			case WID_RAT_AUTORAIL:
-				HandlePlacePushButton(this, WID_RAT_AUTORAIL, GetRailTypeInfo(_cur_railtype)->cursor.autorail, HT_RAIL);
+				HandlePlacePushButton (this, WID_RAT_AUTORAIL, GetRailTypeInfo(_cur_railtype)->cursor.autorail, POINTER_RAIL_AUTO);
 				this->last_user_action = widget;
 				break;
 
 			case WID_RAT_DEMOLISH:
-				HandlePlacePushButton(this, WID_RAT_DEMOLISH, ANIMCURSOR_DEMOLISH, HT_RECT | HT_DIAGONAL);
+				HandlePlacePushButton (this, WID_RAT_DEMOLISH, ANIMCURSOR_DEMOLISH, POINTER_TILE);
 				this->last_user_action = widget;
 				break;
 
 			case WID_RAT_BUILD_DEPOT:
-				if (HandlePlacePushButton(this, WID_RAT_BUILD_DEPOT, GetRailTypeInfo(_cur_railtype)->cursor.depot, HT_RECT)) {
+				if (HandlePlacePushButton (this, WID_RAT_BUILD_DEPOT, GetRailTypeInfo(_cur_railtype)->cursor.depot, POINTER_TILE)) {
 					ShowBuildTrainDepotPicker(this);
 					this->last_user_action = widget;
 				}
@@ -570,13 +569,13 @@ struct BuildRailToolbarWindow : Window {
 			case WID_RAT_BUILD_WAYPOINT:
 				this->last_user_action = widget;
 				_waypoint_count = StationClass::Get(STAT_CLASS_WAYP)->GetSpecCount();
-				if (HandlePlacePushButton(this, WID_RAT_BUILD_WAYPOINT, SPR_CURSOR_WAYPOINT, HT_RECT) && _waypoint_count > 1) {
+				if (HandlePlacePushButton (this, WID_RAT_BUILD_WAYPOINT, SPR_CURSOR_WAYPOINT, POINTER_TILE) && _waypoint_count > 1) {
 					ShowBuildWaypointPicker(this);
 				}
 				break;
 
 			case WID_RAT_BUILD_STATION:
-				if (HandlePlacePushButton(this, WID_RAT_BUILD_STATION, SPR_CURSOR_RAIL_STATION, HT_RECT)) {
+				if (HandlePlacePushButton (this, WID_RAT_BUILD_STATION, SPR_CURSOR_RAIL_STATION, POINTER_TILE)) {
 					ShowStationBuilder(this);
 					this->last_user_action = widget;
 				}
@@ -584,7 +583,7 @@ struct BuildRailToolbarWindow : Window {
 
 			case WID_RAT_BUILD_SIGNALS: {
 				this->last_user_action = widget;
-				bool started = HandlePlacePushButton(this, WID_RAT_BUILD_SIGNALS, ANIMCURSOR_BUILDSIGNALS, HT_RECT);
+				bool started = HandlePlacePushButton (this, WID_RAT_BUILD_SIGNALS, ANIMCURSOR_BUILDSIGNALS, POINTER_TILE);
 				if (started && _settings_client.gui.enable_signal_gui != _ctrl_pressed) {
 					ShowSignalBuilder(this);
 				}
@@ -592,12 +591,12 @@ struct BuildRailToolbarWindow : Window {
 			}
 
 			case WID_RAT_BUILD_BRIDGE:
-				HandlePlacePushButton(this, WID_RAT_BUILD_BRIDGE, SPR_CURSOR_BRIDGE, HT_RECT);
+				HandlePlacePushButton (this, WID_RAT_BUILD_BRIDGE, SPR_CURSOR_BRIDGE, POINTER_TILE);
 				this->last_user_action = widget;
 				break;
 
 			case WID_RAT_BUILD_TUNNEL:
-				HandlePlacePushButton(this, WID_RAT_BUILD_TUNNEL, GetRailTypeInfo(_cur_railtype)->cursor.tunnel, HT_SPECIAL);
+				HandlePlacePushButton (this, WID_RAT_BUILD_TUNNEL, GetRailTypeInfo(_cur_railtype)->cursor.tunnel, POINTER_AREA);
 				this->last_user_action = widget;
 				break;
 
@@ -606,7 +605,7 @@ struct BuildRailToolbarWindow : Window {
 				break;
 
 			case WID_RAT_CONVERT_RAIL:
-				HandlePlacePushButton(this, WID_RAT_CONVERT_RAIL, GetRailTypeInfo(_cur_railtype)->cursor.convert, HT_RECT | HT_DIAGONAL);
+				HandlePlacePushButton (this, WID_RAT_CONVERT_RAIL, GetRailTypeInfo(_cur_railtype)->cursor.convert, POINTER_TILE);
 				this->last_user_action = widget;
 				break;
 
@@ -626,27 +625,15 @@ struct BuildRailToolbarWindow : Window {
 	{
 		switch (this->last_user_action) {
 			case WID_RAT_BUILD_NS:
-				VpStartPlaceSizing(tile, VPM_FIX_VERTICAL | VPM_RAILDIRS, DRAG_PLACE_RAIL);
-				break;
-
 			case WID_RAT_BUILD_X:
-				VpStartPlaceSizing(tile, VPM_FIX_Y | VPM_RAILDIRS, DRAG_PLACE_RAIL);
-				break;
-
 			case WID_RAT_BUILD_EW:
-				VpStartPlaceSizing(tile, VPM_FIX_HORIZONTAL | VPM_RAILDIRS, DRAG_PLACE_RAIL);
-				break;
-
 			case WID_RAT_BUILD_Y:
-				VpStartPlaceSizing(tile, VPM_FIX_X | VPM_RAILDIRS, DRAG_PLACE_RAIL);
-				break;
-
 			case WID_RAT_AUTORAIL:
 				VpStartPlaceSizing(tile, VPM_RAILDIRS, DRAG_PLACE_RAIL);
 				break;
 
 			case WID_RAT_DEMOLISH:
-				VpStartPlaceSizing(tile, VPM_X_AND_Y, DRAG_DEMOLISH_AREA);
+				VpStartPlaceSizing(tile, VPM_X_AND_Y_ROTATED, DRAG_DEMOLISH_AREA);
 				break;
 
 			case WID_RAT_BUILD_DEPOT:
@@ -662,7 +649,7 @@ struct BuildRailToolbarWindow : Window {
 				break;
 
 			case WID_RAT_BUILD_SIGNALS:
-				VpStartPlaceSizing(tile, VPM_SIGNALDIRS, DRAG_BUILD_SIGNALS);
+				VpStartPlaceSizing (tile, VPM_RAILDIRS, DRAG_BUILD_SIGNALS);
 				break;
 
 			case WID_RAT_BUILD_BRIDGE:
@@ -679,19 +666,19 @@ struct BuildRailToolbarWindow : Window {
 				break;
 
 			case WID_RAT_CONVERT_RAIL:
-				VpStartPlaceSizing(tile, VPM_X_AND_Y, DRAG_CONVERT_RAIL);
+				VpStartPlaceSizing(tile, VPM_X_AND_Y_ROTATED, DRAG_CONVERT_RAIL);
 				break;
 
 			default: NOT_REACHED();
 		}
 	}
 
-	void OnPlaceDrag (ViewportPlaceMethod select_method, int userdata, Point pt) OVERRIDE
+	bool OnPlaceDrag (int userdata, Point pt) OVERRIDE
 	{
 		/* no dragging if you have pressed the convert button */
-		if (FindWindowById(WC_BUILD_SIGNAL, 0) != NULL && _convert_signal_button && this->IsWidgetLowered(WID_RAT_BUILD_SIGNALS)) return;
-
-		VpSelectTilesWithMethod(pt.x, pt.y, select_method);
+		return (FindWindowById (WC_BUILD_SIGNAL, 0) == NULL)
+				|| !_convert_signal_button
+				|| !this->IsWidgetLowered (WID_RAT_BUILD_SIGNALS);
 	}
 
 	void OnPlaceMouseUp (int userdata, Point pt, TileIndex start_tile, TileIndex end_tile) OVERRIDE
@@ -704,11 +691,11 @@ struct BuildRailToolbarWindow : Window {
 					break;
 
 				case DRAG_PLACE_RAIL:
-					HandleAutodirPlacement();
+					HandleAutodirPlacement (start_tile, end_tile);
 					break;
 
 				case DRAG_BUILD_SIGNALS:
-					HandleAutoSignalPlacement();
+					HandleAutoSignalPlacement (start_tile, end_tile);
 					break;
 
 				case DRAG_DEMOLISH_AREA:
@@ -759,10 +746,10 @@ struct BuildRailToolbarWindow : Window {
 		DeleteWindowByClass(WC_BUILD_BRIDGE);
 	}
 
-	virtual void OnPlacePresize(Point pt, TileIndex tile)
+	void OnPlacePresize (TileIndex *tile, TileIndex *tile2) OVERRIDE
 	{
-		DoCommand(tile, _cur_railtype | (TRANSPORT_RAIL << 8), 0, DC_AUTO, CMD_BUILD_TUNNEL);
-		VpSetPresizeRange(tile, _build_tunnel_endtile == 0 ? tile : _build_tunnel_endtile);
+		DoCommand (*tile, _cur_railtype | (TRANSPORT_RAIL << 8), 0, DC_AUTO, CMD_BUILD_TUNNEL);
+		if (_build_tunnel_endtile != 0) *tile2 = _build_tunnel_endtile;
 	}
 
 	virtual EventState OnCTRLStateChange()
@@ -789,24 +776,21 @@ static EventState RailToolbarGlobalHotkeys(int hotkey)
 	return w->OnHotkey(hotkey);
 }
 
-const uint16 _railtoolbar_autorail_keys[] = {'5', 'A' | WKC_GLOBAL_HOTKEY, 0};
-
-static Hotkey railtoolbar_hotkeys[] = {
-	Hotkey('1', "build_ns", WID_RAT_BUILD_NS),
-	Hotkey('2', "build_x", WID_RAT_BUILD_X),
-	Hotkey('3', "build_ew", WID_RAT_BUILD_EW),
-	Hotkey('4', "build_y", WID_RAT_BUILD_Y),
-	Hotkey(_railtoolbar_autorail_keys, "autorail", WID_RAT_AUTORAIL),
-	Hotkey('6', "demolish", WID_RAT_DEMOLISH),
-	Hotkey('7', "depot", WID_RAT_BUILD_DEPOT),
-	Hotkey('8', "waypoint", WID_RAT_BUILD_WAYPOINT),
-	Hotkey('9', "station", WID_RAT_BUILD_STATION),
-	Hotkey('S', "signal", WID_RAT_BUILD_SIGNALS),
-	Hotkey('B', "bridge", WID_RAT_BUILD_BRIDGE),
-	Hotkey('T', "tunnel", WID_RAT_BUILD_TUNNEL),
-	Hotkey('R', "remove", WID_RAT_REMOVE),
-	Hotkey('C', "convert", WID_RAT_CONVERT_RAIL),
-	HOTKEY_LIST_END
+static const Hotkey railtoolbar_hotkeys[] = {
+	Hotkey ("build_ns", WID_RAT_BUILD_NS,       '1'),
+	Hotkey ("build_x",  WID_RAT_BUILD_X,        '2'),
+	Hotkey ("build_ew", WID_RAT_BUILD_EW,       '3'),
+	Hotkey ("build_y",  WID_RAT_BUILD_Y,        '4'),
+	Hotkey ("autorail", WID_RAT_AUTORAIL,       '5', 'A' | WKC_GLOBAL_HOTKEY),
+	Hotkey ("demolish", WID_RAT_DEMOLISH,       '6'),
+	Hotkey ("depot",    WID_RAT_BUILD_DEPOT,    '7'),
+	Hotkey ("waypoint", WID_RAT_BUILD_WAYPOINT, '8'),
+	Hotkey ("station",  WID_RAT_BUILD_STATION,  '9'),
+	Hotkey ("signal",   WID_RAT_BUILD_SIGNALS,  'S'),
+	Hotkey ("bridge",   WID_RAT_BUILD_BRIDGE,   'B'),
+	Hotkey ("tunnel",   WID_RAT_BUILD_TUNNEL,   'T'),
+	Hotkey ("remove",   WID_RAT_REMOVE,         'R'),
+	Hotkey ("convert",  WID_RAT_CONVERT_RAIL,   'C'),
 };
 HotkeyList BuildRailToolbarWindow::hotkeys("railtoolbar", railtoolbar_hotkeys, RailToolbarGlobalHotkeys);
 
@@ -851,12 +835,14 @@ static const NWidgetPart _nested_build_rail_widgets[] = {
 	EndContainer(),
 };
 
-static WindowDesc _build_rail_desc(
-	WDP_ALIGN_TOOLBAR, "toolbar_rail", 0, 0,
+static WindowDesc::Prefs _build_rail_prefs ("toolbar_rail");
+
+static const WindowDesc _build_rail_desc(
+	WDP_ALIGN_TOOLBAR, 0, 0,
 	WC_BUILD_TOOLBAR, WC_NONE,
 	WDF_CONSTRUCTION,
 	_nested_build_rail_widgets, lengthof(_nested_build_rail_widgets),
-	&BuildRailToolbarWindow::hotkeys
+	&_build_rail_prefs, &BuildRailToolbarWindow::hotkeys
 );
 
 
@@ -938,10 +924,11 @@ private:
 	}
 
 public:
-	BuildRailStationWindow(WindowDesc *desc, Window *parent, bool newstation) : PickerWindowBase(desc, parent)
+	BuildRailStationWindow (const WindowDesc *desc, Window *parent, bool newstation) :
+		PickerWindowBase (desc, parent), line_height (0),
+		coverage_height (2 * FONT_HEIGHT_NORMAL + 3 * WD_PAR_VSEP_NORMAL),
+		vscroll (NULL), vscroll2 (NULL)
 	{
-		this->coverage_height = 2 * FONT_HEIGHT_NORMAL + 3 * WD_PAR_VSEP_NORMAL;
-		this->vscroll = NULL;
 		_railstation.newstations = newstation;
 
 		this->CreateNestedTree();
@@ -957,7 +944,7 @@ public:
 			this->vscroll = this->GetScrollbar(WID_BRAS_NEWST_SCROLL);
 			this->vscroll2 = this->GetScrollbar(WID_BRAS_MATRIX_SCROLL);
 		}
-		this->FinishInitNested(TRANSPORT_RAIL);
+		this->InitNested(TRANSPORT_RAIL);
 
 		this->LowerWidget(_railstation.orientation + WID_BRAS_PLATFORM_DIR_X);
 		if (_settings_client.gui.station_dragdrop) {
@@ -995,9 +982,10 @@ public:
 		}
 	}
 
-	virtual ~BuildRailStationWindow()
+	void OnDelete (void) FINAL_OVERRIDE
 	{
 		DeleteWindowById(WC_SELECT_STATION, 0);
+		this->PickerWindowBase::OnDelete();
 	}
 
 	virtual void OnPaint()
@@ -1471,12 +1459,16 @@ static const NWidgetPart _nested_station_builder_widgets[] = {
 	EndContainer(),
 };
 
+/** Window preferences of the station-build window (default & newGRF) */
+static WindowDesc::Prefs _station_builder_prefs ("build_station_rail");
+
 /** High level window description of the station-build window (default & newGRF) */
-static WindowDesc _station_builder_desc(
-	WDP_AUTO, "build_station_rail", 350, 0,
+static const WindowDesc _station_builder_desc(
+	WDP_AUTO, 350, 0,
 	WC_BUILD_STATION, WC_BUILD_TOOLBAR,
 	WDF_CONSTRUCTION,
-	_nested_station_builder_widgets, lengthof(_nested_station_builder_widgets)
+	_nested_station_builder_widgets, lengthof(_nested_station_builder_widgets),
+	&_station_builder_prefs
 );
 
 /** Open station build window */
@@ -1514,16 +1506,21 @@ private:
 	}
 
 public:
-	BuildSignalWindow(WindowDesc *desc, Window *parent) : PickerWindowBase(desc, parent)
+	BuildSignalWindow (const WindowDesc *desc, Window *parent) :
+		PickerWindowBase (desc, parent), sig_sprite_bottom_offset (0)
 	{
+		this->sig_sprite_size.width  = 0;
+		this->sig_sprite_size.height = 0;
+
 		this->InitNested(TRANSPORT_RAIL);
 		this->OnInvalidateData();
 	}
 
-	~BuildSignalWindow()
+	void OnDelete (void) FINAL_OVERRIDE
 	{
 		_convert_signal_button = false;
 		_trace_restrict_button = false;
+		this->PickerWindowBase::OnDelete();
 	}
 
 	virtual void OnInit()
@@ -1693,12 +1690,16 @@ static const NWidgetPart _nested_signal_builder_widgets[] = {
 	EndContainer(),
 };
 
+/** Signal selection window preferences */
+static WindowDesc::Prefs _signal_builder_prefs ("build_signal");
+
 /** Signal selection window description */
-static WindowDesc _signal_builder_desc(
-	WDP_AUTO, "build_signal", 0, 0,
+static const WindowDesc _signal_builder_desc(
+	WDP_AUTO, 0, 0,
 	WC_BUILD_SIGNAL, WC_BUILD_TOOLBAR,
 	WDF_CONSTRUCTION,
-	_nested_signal_builder_widgets, lengthof(_nested_signal_builder_widgets)
+	_nested_signal_builder_widgets, lengthof(_nested_signal_builder_widgets),
+	&_signal_builder_prefs
 );
 
 /**
@@ -1710,7 +1711,7 @@ static void ShowSignalBuilder(Window *parent)
 }
 
 struct BuildRailDepotWindow : public PickerWindowBase {
-	BuildRailDepotWindow(WindowDesc *desc, Window *parent) : PickerWindowBase(desc, parent)
+	BuildRailDepotWindow (const WindowDesc *desc, Window *parent) : PickerWindowBase(desc, parent)
 	{
 		this->InitNested(TRANSPORT_RAIL);
 		this->LowerWidget(_build_depot_direction + WID_BRAD_DEPOT_NE);
@@ -1779,8 +1780,8 @@ static const NWidgetPart _nested_build_depot_widgets[] = {
 	EndContainer(),
 };
 
-static WindowDesc _build_depot_desc(
-	WDP_AUTO, NULL, 0, 0,
+static const WindowDesc _build_depot_desc(
+	WDP_AUTO, 0, 0,
 	WC_BUILD_DEPOT, WC_BUILD_TOOLBAR,
 	WDF_CONSTRUCTION,
 	_nested_build_depot_widgets, lengthof(_nested_build_depot_widgets)
@@ -1792,14 +1793,14 @@ static void ShowBuildTrainDepotPicker(Window *parent)
 }
 
 struct BuildRailWaypointWindow : PickerWindowBase {
-	BuildRailWaypointWindow(WindowDesc *desc, Window *parent) : PickerWindowBase(desc, parent)
+	BuildRailWaypointWindow (const WindowDesc *desc, Window *parent) : PickerWindowBase(desc, parent)
 	{
 		this->CreateNestedTree();
 
 		NWidgetMatrix *matrix = this->GetWidget<NWidgetMatrix>(WID_BRW_WAYPOINT_MATRIX);
 		matrix->SetScrollbar(this->GetScrollbar(WID_BRW_SCROLL));
 
-		this->FinishInitNested(TRANSPORT_RAIL);
+		this->InitNested(TRANSPORT_RAIL);
 
 		matrix->SetCount(_waypoint_count);
 		matrix->SetClicked(_cur_waypoint_type);
@@ -1878,11 +1879,14 @@ static const NWidgetPart _nested_build_waypoint_widgets[] = {
 	EndContainer(),
 };
 
-static WindowDesc _build_waypoint_desc(
-	WDP_AUTO, "build_waypoint", 0, 0,
+static WindowDesc::Prefs _build_waypoint_prefs ("build_waypoint");
+
+static const WindowDesc _build_waypoint_desc(
+	WDP_AUTO, 0, 0,
 	WC_BUILD_WAYPOINT, WC_BUILD_TOOLBAR,
 	WDF_CONSTRUCTION,
-	_nested_build_waypoint_widgets, lengthof(_nested_build_waypoint_widgets)
+	_nested_build_waypoint_widgets, lengthof(_nested_build_waypoint_widgets),
+	&_build_waypoint_prefs
 );
 
 static void ShowBuildWaypointPicker(Window *parent)
@@ -1995,17 +1999,6 @@ void InitializeRailGUI()
 }
 
 /**
- * Compare railtypes based on their sorting order.
- * @param first  The railtype to compare to.
- * @param second The railtype to compare.
- * @return True iff the first should be sorted before the second.
- */
-static int CDECL CompareRailTypes(const DropDownListItem * const *first, const DropDownListItem * const *second)
-{
-	return GetRailTypeInfo((RailType)(*first)->result)->sorting_order - GetRailTypeInfo((RailType)(*second)->result)->sorting_order;
-}
-
-/**
  * Create a drop down list for all the rail types of the local company.
  * @param for_replacement Whether this list is for the replacement window.
  * @return The populated and sorted #DropDownList.
@@ -2027,13 +2020,12 @@ DropDownList *GetRailTypeDropDownList(bool for_replacement)
 
 	const Company *c = Company::Get(_local_company);
 	DropDownList *list = new DropDownList();
-	for (RailType rt = RAILTYPE_BEGIN; rt != RAILTYPE_END; rt++) {
+	RailType rt;
+	FOR_ALL_SORTED_RAILTYPES(rt) {
 		/* If it's not used ever, don't show it to the user. */
 		if (!HasBit(used_railtypes, rt)) continue;
 
 		const RailtypeInfo *rti = GetRailTypeInfo(rt);
-		/* Skip rail type if it has no label */
-		if (rti->label == 0) continue;
 
 		StringID str = for_replacement ? rti->strings.replace_text : (rti->max_speed > 0 ? STR_TOOLBAR_RAILTYPE_VELOCITY : STR_JUST_STRING);
 		DropDownListParamStringItem *item = new DropDownListParamStringItem(str, rt, !HasBit(c->avail_railtypes, rt));
@@ -2041,6 +2033,5 @@ DropDownList *GetRailTypeDropDownList(bool for_replacement)
 		item->SetParam(1, rti->max_speed);
 		*list->Append() = item;
 	}
-	QSortT(list->Begin(), list->Length(), CompareRailTypes);
 	return list;
 }

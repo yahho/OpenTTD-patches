@@ -69,6 +69,15 @@ public:
 	virtual uint16 GetCallbackResult() const { return CALLBACK_FAILED; }
 
 	static const SpriteGroup *Resolve(const SpriteGroup *group, ResolverObject &object, bool top_level = true);
+
+	/**
+	 * Get a callback result from a SpriteGroup.
+	 * @return Callback result.
+	 */
+	static uint16 CallbackResult (const SpriteGroup *result)
+	{
+		return result != NULL ? result->GetCallbackResult() : CALLBACK_FAILED;
+	}
 };
 
 
@@ -284,10 +293,9 @@ struct IndustryProductionSpriteGroup : SpriteGroup {
  * to different game entities from a #SpriteGroup-chain (action 1-2-3 chain).
  */
 struct ScopeResolver {
-	ResolverObject &ro; ///< Surrounding resolver object.
-
-	ScopeResolver(ResolverObject &ro);
-	virtual ~ScopeResolver();
+	virtual ~ScopeResolver()
+	{
+	}
 
 	virtual uint32 GetRandomBits() const;
 	virtual uint32 GetTriggers() const;
@@ -304,6 +312,8 @@ struct ScopeResolver {
  * to get the results of callbacks, rerandomisations or normal sprite lookups.
  */
 struct ResolverObject {
+	const GRFFile *const grffile;   ///< GRFFile the resolved SpriteGroup belongs to
+
 	ResolverObject(const GRFFile *grffile, CallbackID callback = CBID_NO_CALLBACK, uint32 callback_param1 = 0, uint32 callback_param2 = 0);
 	virtual ~ResolverObject();
 
@@ -317,28 +327,6 @@ struct ResolverObject {
 
 	uint32 last_value;          ///< Result of most recent DeterministicSpriteGroup (including procedure calls)
 	uint32 reseed[VSG_END];     ///< Collects bits to rerandomise while triggering triggers.
-
-	const GRFFile *grffile;     ///< GRFFile the resolved SpriteGroup belongs to
-	const SpriteGroup *root_spritegroup; ///< Root SpriteGroup to use for resolving
-
-	/**
-	 * Resolve SpriteGroup.
-	 * @return Result spritegroup.
-	 */
-	const SpriteGroup *Resolve()
-	{
-		return SpriteGroup::Resolve(this->root_spritegroup, *this);
-	}
-
-	/**
-	 * Resolve callback.
-	 * @return Callback result.
-	 */
-	uint16 ResolveCallback()
-	{
-		const SpriteGroup *result = Resolve();
-		return result != NULL ? result->GetCallbackResult() : CALLBACK_FAILED;
-	}
 
 	virtual const SpriteGroup *ResolveReal(const RealSpriteGroup *group) const;
 

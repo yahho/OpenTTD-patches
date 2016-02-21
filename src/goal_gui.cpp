@@ -38,11 +38,12 @@ enum GoalColumn {
 struct GoalListWindow : public Window {
 	Scrollbar *vscroll; ///< Reference to the scrollbar widget.
 
-	GoalListWindow(WindowDesc *desc, WindowNumber window_number) : Window(desc)
+	GoalListWindow (const WindowDesc *desc, WindowNumber window_number)
+		: Window (desc), vscroll (NULL)
 	{
 		this->CreateNestedTree();
 		this->vscroll = this->GetScrollbar(WID_GOAL_SCROLLBAR);
-		this->FinishInitNested(window_number);
+		this->InitNested(window_number);
 		this->owner = (Owner)this->window_number;
 		this->OnInvalidateData(0);
 	}
@@ -334,11 +335,14 @@ static const NWidgetPart _nested_goals_list_widgets[] = {
 	EndContainer(),
 };
 
-static WindowDesc _goals_list_desc(
-	WDP_AUTO, "list_goals", 500, 127,
+static WindowDesc::Prefs _goals_list_prefs ("list_goals");
+
+static const WindowDesc _goals_list_desc(
+	WDP_AUTO, 500, 127,
 	WC_GOALS_LIST, WC_NONE,
 	0,
-	_nested_goals_list_widgets, lengthof(_nested_goals_list_widgets)
+	_nested_goals_list_widgets, lengthof(_nested_goals_list_widgets),
+	&_goals_list_prefs
 );
 
 /**
@@ -359,10 +363,10 @@ struct GoalQuestionWindow : public Window {
 	int button[3];  ///< Buttons to display.
 	byte type;      ///< Type of question.
 
-	GoalQuestionWindow(WindowDesc *desc, WindowNumber window_number, byte type, uint32 button_mask, const char *question) : Window(desc), type(type)
+	GoalQuestionWindow (const WindowDesc *desc, WindowNumber window_number, byte type, uint32 button_mask, const char *question)
+		: Window (desc), question (xstrdup (question)), type (type)
 	{
 		assert(type < GOAL_QUESTION_TYPE_COUNT);
-		this->question = xstrdup(question);
 
 		/* Figure out which buttons we have to enable. */
 		uint bit;
@@ -377,7 +381,7 @@ struct GoalQuestionWindow : public Window {
 
 		this->CreateNestedTree();
 		this->GetWidget<NWidgetStacked>(WID_GQ_BUTTONS)->SetDisplayedPlane(this->buttons - 1);
-		this->FinishInitNested(window_number);
+		this->InitNested(window_number);
 	}
 
 	~GoalQuestionWindow()
@@ -411,17 +415,17 @@ struct GoalQuestionWindow : public Window {
 		switch (widget) {
 			case WID_GQ_BUTTON_1:
 				DoCommandP(0, this->window_number, this->button[0], CMD_GOAL_QUESTION_ANSWER);
-				delete this;
+				this->Delete();
 				break;
 
 			case WID_GQ_BUTTON_2:
 				DoCommandP(0, this->window_number, this->button[1], CMD_GOAL_QUESTION_ANSWER);
-				delete this;
+				this->Delete();
 				break;
 
 			case WID_GQ_BUTTON_3:
 				DoCommandP(0, this->window_number, this->button[2], CMD_GOAL_QUESTION_ANSWER);
-				delete this;
+				this->Delete();
 				break;
 		}
 	}
@@ -469,8 +473,8 @@ static const NWidgetPart _nested_goal_question_widgets[] = {
 	EndContainer(),
 };
 
-static WindowDesc _goal_question_list_desc(
-	WDP_CENTER, NULL, 0, 0,
+static const WindowDesc _goal_question_list_desc(
+	WDP_CENTER, 0, 0,
 	WC_GOAL_QUESTION, WC_NONE,
 	WDF_CONSTRUCTION,
 	_nested_goal_question_widgets, lengthof(_nested_goal_question_widgets)

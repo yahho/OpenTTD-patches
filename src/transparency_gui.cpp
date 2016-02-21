@@ -28,7 +28,7 @@ byte _display_opt; ///< What do we want to draw/do?
 class TransparenciesWindow : public Window
 {
 public:
-	TransparenciesWindow(WindowDesc *desc, int window_number) : Window(desc)
+	TransparenciesWindow (const WindowDesc *desc, int window_number) : Window(desc)
 	{
 		this->InitNested(window_number);
 	}
@@ -146,11 +146,14 @@ static const NWidgetPart _nested_transparency_widgets[] = {
 	EndContainer(),
 };
 
-static WindowDesc _transparency_desc(
-	WDP_MANUAL, "toolbar_transparency", 0, 0,
+static WindowDesc::Prefs _transparency_prefs ("toolbar_transparency");
+
+static const WindowDesc _transparency_desc(
+	WDP_MANUAL, 0, 0,
 	WC_TRANSPARENCY_TOOLBAR, WC_NONE,
 	0,
-	_nested_transparency_widgets, lengthof(_nested_transparency_widgets)
+	_nested_transparency_widgets, lengthof(_nested_transparency_widgets),
+	&_transparency_prefs
 );
 
 /**

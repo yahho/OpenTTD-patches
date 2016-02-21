@@ -98,7 +98,7 @@ void CDECL usererror(const char *s, ...)
 	va_end(va);
 
 	ShowOSErrorBox(buf, false);
-	if (VideoDriver::GetInstance() != NULL) VideoDriver::GetInstance()->Stop();
+	if (VideoDriver::GetActiveDriver() != NULL) VideoDriver::GetActiveDriver()->Stop();
 
 	exit(1);
 }
@@ -190,10 +190,12 @@ static void ShowHelp()
 	BaseMusic::GetSetsList (&buf);
 
 	/* List the drivers */
-	DriverFactoryBase::GetDriversInfo (&buf);
+	MusicDriver::GetDriversInfo (&buf);
+	SoundDriver::GetDriversInfo (&buf);
+	VideoDriver::GetDriversInfo (&buf);
 
 	/* List the blitters */
-	GetBlittersInfo (&buf);
+	Blitter::list (&buf);
 
 	/* List the debug facilities. */
 	DumpDebugFacilityNames (&buf);
@@ -283,7 +285,9 @@ static void ShutdownGame()
 
 	if (_network_available) NetworkShutDown(); // Shut down the network and close any open connections
 
-	DriverFactoryBase::ShutdownDrivers();
+	MusicDriver::ShutdownDriver();
+	SoundDriver::ShutdownDriver();
+	VideoDriver::ShutdownDriver();
 
 	UnInitWindowSystem();
 
@@ -341,7 +345,7 @@ static void LoadIntroGame(bool load_newgrfs = true)
 	CheckForMissingGlyphs();
 
 	/* Play main theme */
-	if (MusicDriver::GetInstance()->IsSongPlaying()) ResetMusic();
+	if (MusicDriver::GetActiveDriver()->IsSongPlaying()) ResetMusic();
 }
 
 void MakeNewgameSettingsLive()
@@ -434,7 +438,7 @@ struct AfterNewGRFScan : NewGRFScanCallback {
 		*save_config_ptr = save_config;
 
 		/* restore saved music volume */
-		MusicDriver::GetInstance()->SetVolume(_settings_client.music.music_vol);
+		MusicDriver::GetActiveDriver()->SetVolume(_settings_client.music.music_vol);
 
 		if (startyear != INVALID_YEAR) _settings_newgame.game_creation.starting_year = startyear;
 		if (generation_seed != GENERATE_NEW_SEED) _settings_newgame.game_creation.generation_seed = generation_seed;
@@ -752,27 +756,48 @@ int openttd_main(int argc, char *argv[])
 	GfxInitPalettes();
 
 	DEBUG(misc, 1, "Loading blitter...");
-	if (blitter == NULL && _ini_blitter != NULL) blitter = xstrdup(_ini_blitter);
-	_blitter_autodetected = StrEmpty(blitter);
-	/* Activate the initial blitter.
-	 * This is only some initial guess, after NewGRFs have been loaded SwitchNewGRFBlitter may switch to a different one.
-	 *  - Never guess anything, if the user specified a blitter. (_blitter_autodetected)
-	 *  - Use 32bpp blitter if baseset or 8bpp-support settings says so.
-	 *  - Use 8bpp blitter otherwise.
-	 */
-	if (!_blitter_autodetected ||
-			(_support8bpp != S8BPP_NONE && (BaseGraphics::GetUsedSet() == NULL || BaseGraphics::GetUsedSet()->blitter == BLT_8BPP)) ||
-			SelectBlitter("32bpp-anim") == NULL) {
-		if (SelectBlitter(blitter) == NULL) {
-			StrEmpty(blitter) ?
-				usererror("Failed to autoprobe blitter") :
-				usererror("Failed to select requested blitter '%s'; does it exist?", blitter);
+	{
+		const char *sel = (blitter != NULL) ? blitter : Blitter::ini;
+		bool autodetect = StrEmpty (sel);
+		Blitter::autodetected = autodetect;
+		/* Activate the initial blitter.
+		 * This is only some initial guess, after NewGRFs have been loaded SwitchNewGRFBlitter may switch to a different one.
+		 *  - Never guess anything, if the user specified a blitter. (Blitter::autodetected)
+		 *  - Use 32bpp blitter if baseset or 8bpp-support settings says so.
+		 *  - Use 8bpp blitter otherwise.
+		 */
+		if (autodetect) {
+#ifdef DEDICATED
+			sel = "null";
+#else
+			bool use_32bpp = (_support8bpp == S8BPP_NONE)
+					|| (BaseGraphics::GetUsedSet() != NULL && BaseGraphics::GetUsedSet()->blitter != BLT_8BPP);
+#ifdef WITH_COCOA
+			/* Some people reported lack of fullscreen support in
+			 * 8 bpp mode. While we prefer 8 bpp since it's
+			 * faster, we will still have to test for support. */
+			bool QZ_CanDisplay8bpp();
+			if (!use_32bpp && !QZ_CanDisplay8bpp()) {
+				/* The main display can't go to 8 bpp fullscreen mode.
+				 * We will have to switch to 32 bpp by default. */
+				use_32bpp = true;
+			}
+#endif /* WITH_COCOA */
+			sel = use_32bpp ? "32bpp-anim" : "8bpp-optimized";
+#endif /* DEDICATED */
+			DEBUG(driver, 1, "Probing blitter %s", sel);
+		}
+
+		if (Blitter::select (sel) == NULL) {
+			/* Blitter::select only fails if it cannot find
+			 * a blitter by the given name. */
+			assert (!autodetect);
+			usererror ("Failed to select requested blitter '%s'; does it exist?", sel);
 		}
 	}
 	free(blitter);
 
-	if (videodriver == NULL && _ini_videodriver != NULL) videodriver = xstrdup(_ini_videodriver);
-	DriverFactoryBase::SelectDriver(videodriver, Driver::DT_VIDEO);
+	VideoDriver::SelectDriver ((videodriver != NULL) ? videodriver : VideoDriver::ini);
 	free(videodriver);
 
 	InitializeSpriteSorter();
@@ -803,7 +828,7 @@ int openttd_main(int argc, char *argv[])
 		goto exit_bootstrap;
 	}
 
-	VideoDriver::GetInstance()->ClaimMousePointer();
+	VideoDriver::GetActiveDriver()->ClaimMousePointer();
 
 	/* initialize screenshot formats */
 	InitializeScreenshotFormats();
@@ -834,12 +859,10 @@ int openttd_main(int argc, char *argv[])
 	}
 	free(music_set);
 
-	if (sounddriver == NULL && _ini_sounddriver != NULL) sounddriver = xstrdup(_ini_sounddriver);
-	DriverFactoryBase::SelectDriver(sounddriver, Driver::DT_SOUND);
+	SoundDriver::SelectDriver ((sounddriver != NULL) ? sounddriver : SoundDriver::ini);
 	free(sounddriver);
 
-	if (musicdriver == NULL && _ini_musicdriver != NULL) musicdriver = xstrdup(_ini_musicdriver);
-	DriverFactoryBase::SelectDriver(musicdriver, Driver::DT_MUSIC);
+	MusicDriver::SelectDriver ((musicdriver != NULL) ? musicdriver : MusicDriver::ini);
 	free(musicdriver);
 
 	/* Take our initial lock on whatever we might want to do! */
@@ -862,7 +885,7 @@ int openttd_main(int argc, char *argv[])
 		ScheduleErrorMessage(msg);
 	}
 
-	VideoDriver::GetInstance()->MainLoop();
+	VideoDriver::GetActiveDriver()->MainLoop();
 
 	WaitTillSaved();
 
@@ -896,10 +919,10 @@ exit_normal:
 	free(BaseSounds::ini_set);
 	free(BaseMusic::ini_set);
 
-	free(_ini_musicdriver);
-	free(_ini_sounddriver);
-	free(_ini_videodriver);
-	free(_ini_blitter);
+	free (MusicDriver::ini);
+	free (SoundDriver::ini);
+	free (VideoDriver::ini);
+	free (Blitter::ini);
 
 	delete scanner;
 
@@ -930,7 +953,7 @@ static void MakeNewGameDone()
 	SettingsDisableElrail(_settings_game.vehicle.disable_elrails);
 
 	/* In a dedicated server, the server does not play */
-	if (!VideoDriver::GetInstance()->HasGUI()) {
+	if (!VideoDriver::GetActiveDriver()->HasGUI()) {
 		SetLocalCompany(COMPANY_SPECTATOR);
 		if (_settings_client.gui.pause_on_newgame) DoCommandP(0, PM_PAUSED_NORMAL, 1, CMD_PAUSE);
 		IConsoleCmdExec("exec scripts/game_start.scr 0");
@@ -1485,6 +1508,6 @@ void GameLoop()
 
 	InputLoop();
 
-	SoundDriver::GetInstance()->MainLoop();
+	SoundDriver::GetActiveDriver()->MainLoop();
 	MusicLoop();
 }

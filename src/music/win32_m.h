@@ -28,14 +28,6 @@ public:
 	/* virtual */ bool IsSongPlaying();
 
 	/* virtual */ void SetVolume(byte vol);
-	/* virtual */ const char *GetName() const { return "win32"; }
-};
-
-/** Factory for Windows' music player. */
-class FMusicDriver_Win32 : public DriverFactoryBase {
-public:
-	FMusicDriver_Win32() : DriverFactoryBase(Driver::DT_MUSIC, 5, "win32", "Win32 Music Driver") {}
-	/* virtual */ Driver *CreateInstance() const { return new MusicDriver_Win32(); }
 };
 
 #endif /* MUSIC_WIN32_H */

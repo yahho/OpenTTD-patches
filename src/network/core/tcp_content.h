@@ -17,6 +17,7 @@
 #include "os_abstraction.h"
 #include "tcp.h"
 #include "packet.h"
+#include "core.h"
 #include "../../debug.h"
 
 #ifdef ENABLE_NETWORK
@@ -111,7 +112,7 @@ protected:
 	 * @param p The packet that was just received.
 	 * @return True upon success, otherwise false.
 	 */
-	virtual bool Receive_CLIENT_INFO_LIST(Packet *p);
+	virtual bool Receive_CLIENT_INFO_LIST (RecvPacket *p);
 
 	/**
 	 * Client requesting a list of content info:
@@ -120,7 +121,7 @@ protected:
 	 * @param p The packet that was just received.
 	 * @return True upon success, otherwise false.
 	 */
-	virtual bool Receive_CLIENT_INFO_ID(Packet *p);
+	virtual bool Receive_CLIENT_INFO_ID (RecvPacket *p);
 
 	/**
 	 * Client requesting a list of content info based on an external
@@ -134,7 +135,7 @@ protected:
 	 * @param p The packet that was just received.
 	 * @return True upon success, otherwise false.
 	 */
-	virtual bool Receive_CLIENT_INFO_EXTID(Packet *p);
+	virtual bool Receive_CLIENT_INFO_EXTID (RecvPacket *p);
 
 	/**
 	 * Client requesting a list of content info based on an external
@@ -149,7 +150,7 @@ protected:
 	 * @param p The packet that was just received.
 	 * @return True upon success, otherwise false.
 	 */
-	virtual bool Receive_CLIENT_INFO_EXTID_MD5(Packet *p);
+	virtual bool Receive_CLIENT_INFO_EXTID_MD5 (RecvPacket *p);
 
 	/**
 	 * Server sending list of content info:
@@ -167,7 +168,7 @@ protected:
 	 * @param p The packet that was just received.
 	 * @return True upon success, otherwise false.
 	 */
-	virtual bool Receive_SERVER_INFO(Packet *p);
+	virtual bool Receive_SERVER_INFO (RecvPacket *p);
 
 	/**
 	 * Client requesting the actual content:
@@ -176,7 +177,7 @@ protected:
 	 * @param p The packet that was just received.
 	 * @return True upon success, otherwise false.
 	 */
-	virtual bool Receive_CLIENT_CONTENT(Packet *p);
+	virtual bool Receive_CLIENT_CONTENT (RecvPacket *p);
 
 	/**
 	 * Server sending list of content info:
@@ -188,9 +189,9 @@ protected:
 	 * @param p The packet that was just received.
 	 * @return True upon success, otherwise false.
 	 */
-	virtual bool Receive_SERVER_CONTENT(Packet *p);
+	virtual bool Receive_SERVER_CONTENT (RecvPacket *p);
 
-	bool HandlePacket(Packet *p);
+	bool HandlePacket (RecvPacket *p);
 public:
 	/**
 	 * Create a new cs socket handler for a given cs

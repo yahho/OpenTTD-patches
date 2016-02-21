@@ -27,7 +27,9 @@
 #include "sdl_v.h"
 #include <SDL.h>
 
-static FVideoDriver_SDL iFVideoDriver_SDL;
+/** Factory for the SDL video driver. */
+static VideoDriverFactory <VideoDriver_SDL>
+		iFVideoDriver_SDL (5, "sdl", "SDL Video Driver");
 
 static SDL_Surface *_sdl_screen;
 static SDL_Surface *_sdl_realscreen;
@@ -124,7 +126,7 @@ static void InitPalette()
 static void CheckPaletteAnim()
 {
 	if (_cur_palette.count_dirty != 0) {
-		Blitter *blitter = GetCurrentBlitter();
+		Blitter *blitter = Blitter::get();
 
 		switch (blitter->UsePaletteAnimation()) {
 			case Blitter::PALETTE_ANIMATION_VIDEO_BACKEND:
@@ -271,7 +273,7 @@ bool VideoDriver_SDL::CreateMainSurface(uint w, uint h)
 {
 	SDL_Surface *newscreen, *icon;
 	char caption[50];
-	int bpp = GetCurrentBlitter()->GetScreenDepth();
+	int bpp = Blitter::get()->GetScreenDepth();
 	bool want_hwpalette;
 
 	GetAvailableVideoMode(&w, &h);
@@ -399,7 +401,7 @@ bool VideoDriver_SDL::CreateMainSurface(uint w, uint h)
 	 * appropriate event to know this. */
 	if (_fullscreen) _cursor.in_window = true;
 
-	Blitter *blitter = GetCurrentBlitter();
+	Blitter *blitter = Blitter::get();
 	blitter->PostResize();
 
 	InitPalette();
@@ -410,7 +412,7 @@ bool VideoDriver_SDL::CreateMainSurface(uint w, uint h)
 			break;
 
 		case Blitter::PALETTE_ANIMATION_BLITTER:
-			if (VideoDriver::GetInstance() != NULL) blitter->PaletteAnimate(_local_palette);
+			if (VideoDriver::GetActiveDriver() != NULL) blitter->PaletteAnimate(_local_palette);
 			break;
 
 		default:

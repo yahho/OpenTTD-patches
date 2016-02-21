@@ -16,7 +16,7 @@
 #include "../../stdafx.h"
 #include "../../debug.h"
 #include "os_abstraction.h"
-#include "packet.h"
+#include "core.h"
 
 
 #ifdef __MORPHOS__
@@ -117,7 +117,7 @@ void NetworkSocketHandler::SendGRFIdentifier(Packet *p, const GRFIdentifier *grf
  * @param p   the packet to read the data from
  * @param grf the GRFIdentifier to deserialize
  */
-void NetworkSocketHandler::ReceiveGRFIdentifier(Packet *p, GRFIdentifier *grf)
+void NetworkSocketHandler::ReceiveGRFIdentifier (RecvPacket *p, GRFIdentifier *grf)
 {
 	uint j;
 	grf->grfid = p->Recv_uint32();

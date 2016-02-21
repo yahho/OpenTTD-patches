@@ -52,10 +52,11 @@ class BuildTreesWindow : public Window
 	TreeType tree_to_plant; ///< Tree number to plant, \c TREE_INVALID for a random tree.
 
 public:
-	BuildTreesWindow(WindowDesc *desc, WindowNumber window_number) : Window(desc)
+	BuildTreesWindow (const WindowDesc *desc, WindowNumber window_number) :
+		Window (desc), base (0), count (0), tree_to_plant (TREE_INVALID)
 	{
 		this->InitNested(window_number);
-		ResetObjectToPlace();
+		ResetPointerMode();
 	}
 
 	/**
@@ -117,13 +118,13 @@ public:
 			case WID_BT_TYPE_31: case WID_BT_TYPE_32: case WID_BT_TYPE_33: case WID_BT_TYPE_34:
 				if (widget - WID_BT_TYPE_11 >= this->count) break;
 
-				if (HandlePlacePushButton(this, widget, SPR_CURSOR_TREE, HT_RECT)) {
+				if (HandlePlacePushButton (this, widget, SPR_CURSOR_TREE, POINTER_TILE)) {
 					this->tree_to_plant = (TreeType)(this->base + widget - WID_BT_TYPE_11);
 				}
 				break;
 
 			case WID_BT_TYPE_RANDOM: // tree of random type.
-				if (HandlePlacePushButton(this, WID_BT_TYPE_RANDOM, SPR_CURSOR_TREE, HT_RECT)) {
+				if (HandlePlacePushButton (this, WID_BT_TYPE_RANDOM, SPR_CURSOR_TREE, POINTER_TILE)) {
 					this->tree_to_plant = TREE_INVALID;
 				}
 				break;
@@ -139,11 +140,6 @@ public:
 	virtual void OnPlaceObject(Point pt, TileIndex tile)
 	{
 		VpStartPlaceSizing (tile, VPM_X_AND_Y);
-	}
-
-	void OnPlaceDrag (ViewportPlaceMethod select_method, int userdata, Point pt) OVERRIDE
-	{
-		VpSelectTilesWithMethod(pt.x, pt.y, select_method);
 	}
 
 	void OnPlaceMouseUp (int userdata, Point pt, TileIndex start_tile, TileIndex end_tile) OVERRIDE
@@ -232,11 +228,14 @@ static const NWidgetPart _nested_build_trees_widgets[] = {
 	EndContainer(),
 };
 
-static WindowDesc _build_trees_desc(
-	WDP_AUTO, "build_tree", 0, 0,
+static WindowDesc::Prefs _build_trees_prefs ("build_tree");
+
+static const WindowDesc _build_trees_desc(
+	WDP_AUTO, 0, 0,
 	WC_BUILD_TREES, WC_NONE,
 	WDF_CONSTRUCTION,
-	_nested_build_trees_widgets, lengthof(_nested_build_trees_widgets)
+	_nested_build_trees_widgets, lengthof(_nested_build_trees_widgets),
+	&_build_trees_prefs
 );
 
 void ShowBuildTreesToolbar()

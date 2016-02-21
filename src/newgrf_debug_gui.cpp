@@ -350,11 +350,13 @@ struct NewGRFInspectWindow : Window {
 		if (v == NULL) this->chain_index = 0;
 	}
 
-	NewGRFInspectWindow(WindowDesc *desc, WindowNumber wno) : Window(desc)
+	NewGRFInspectWindow (const WindowDesc *desc, WindowNumber wno) :
+		Window (desc), caller_grfid (0), chain_index (0),
+		current_edit_param (0), vscroll (NULL)
 	{
 		this->CreateNestedTree();
 		this->vscroll = this->GetScrollbar(WID_NGRFI_SCROLLBAR);
-		this->FinishInitNested(wno);
+		this->InitNested(wno);
 
 		this->vscroll->SetCount(0);
 		this->SetWidgetDisabledState(WID_NGRFI_PARENT, GetFeatureHelper(this->window_number)->GetParent(this->GetFeatureIndex()) == UINT32_MAX);
@@ -673,18 +675,24 @@ static const NWidgetPart _nested_newgrf_inspect_widgets[] = {
 	EndContainer(),
 };
 
-static WindowDesc _newgrf_inspect_chain_desc(
-	WDP_AUTO, "newgrf_inspect_chain", 400, 300,
+static WindowDesc::Prefs _newgrf_inspect_chain_prefs ("newgrf_inspect_chain");
+
+static const WindowDesc _newgrf_inspect_chain_desc(
+	WDP_AUTO, 400, 300,
 	WC_NEWGRF_INSPECT, WC_NONE,
 	0,
-	_nested_newgrf_inspect_chain_widgets, lengthof(_nested_newgrf_inspect_chain_widgets)
+	_nested_newgrf_inspect_chain_widgets, lengthof(_nested_newgrf_inspect_chain_widgets),
+	&_newgrf_inspect_chain_prefs
 );
 
-static WindowDesc _newgrf_inspect_desc(
-	WDP_AUTO, "newgrf_inspect", 400, 300,
+static WindowDesc::Prefs _newgrf_inspect_prefs ("newgrf_inspect");
+
+static const WindowDesc _newgrf_inspect_desc(
+	WDP_AUTO, 400, 300,
 	WC_NEWGRF_INSPECT, WC_NONE,
 	0,
-	_nested_newgrf_inspect_widgets, lengthof(_nested_newgrf_inspect_widgets)
+	_nested_newgrf_inspect_widgets, lengthof(_nested_newgrf_inspect_widgets),
+	&_newgrf_inspect_prefs
 );
 
 /**
@@ -701,7 +709,7 @@ void ShowNewGRFInspectWindow(GrfSpecFeature feature, uint index, const uint32 gr
 	if (!IsNewGRFInspectable(feature, index)) return;
 
 	WindowNumber wno = GetInspectWindowNumber(feature, index);
-	WindowDesc *desc = (feature == GSF_TRAINS || feature == GSF_ROADVEHICLES) ? &_newgrf_inspect_chain_desc : &_newgrf_inspect_desc;
+	const WindowDesc *desc = (feature == GSF_TRAINS || feature == GSF_ROADVEHICLES) ? &_newgrf_inspect_chain_desc : &_newgrf_inspect_desc;
 	NewGRFInspectWindow *w = AllocateWindowDescFront<NewGRFInspectWindow>(desc, wno, true);
 	w->SetCallerGRFID(grfid);
 }
@@ -815,11 +823,12 @@ struct SpriteAlignerWindow : Window {
 	Scrollbar *vscroll;
 	SmallMap<SpriteID, XyOffs> offs_start_map; ///< Mapping of starting offsets for the sprites which have been aligned in the sprite aligner window.
 
-	SpriteAlignerWindow(WindowDesc *desc, WindowNumber wno) : Window(desc)
+	SpriteAlignerWindow (const WindowDesc *desc, WindowNumber wno) :
+		Window (desc), current_sprite (0), vscroll (NULL)
 	{
 		this->CreateNestedTree();
 		this->vscroll = this->GetScrollbar(WID_SA_SCROLLBAR);
-		this->FinishInitNested(wno);
+		this->InitNested(wno);
 
 		/* Oh yes, we assume there is at least one normal sprite! */
 		while (GetSpriteType(this->current_sprite) != ST_NORMAL) this->current_sprite++;
@@ -975,10 +984,11 @@ struct SpriteAlignerWindow : Window {
 					this->offs_start_map.Insert(this->current_sprite, XyOffs(spr->x_offs, spr->y_offs));
 				}
 				switch (widget) {
-					case WID_SA_UP:    spr->y_offs--; break;
-					case WID_SA_DOWN:  spr->y_offs++; break;
-					case WID_SA_LEFT:  spr->x_offs--; break;
-					case WID_SA_RIGHT: spr->x_offs++; break;
+					/* Move eight units at a time if ctrl is pressed. */
+					case WID_SA_UP:    spr->y_offs -= _ctrl_pressed ? 8 : 1; break;
+					case WID_SA_DOWN:  spr->y_offs += _ctrl_pressed ? 8 : 1; break;
+					case WID_SA_LEFT:  spr->x_offs -= _ctrl_pressed ? 8 : 1; break;
+					case WID_SA_RIGHT: spr->x_offs += _ctrl_pressed ? 8 : 1; break;
 				}
 				/* Of course, we need to redraw the sprite, but where is it used?
 				 * Everywhere is a safe bet. */
@@ -1085,11 +1095,14 @@ static const NWidgetPart _nested_sprite_aligner_widgets[] = {
 	EndContainer(),
 };
 
-static WindowDesc _sprite_aligner_desc(
-	WDP_AUTO, "sprite_aligner", 400, 300,
+static WindowDesc::Prefs _sprite_aligner_prefs ("sprite_aligner");
+
+static const WindowDesc _sprite_aligner_desc(
+	WDP_AUTO, 400, 300,
 	WC_SPRITE_ALIGNER, WC_NONE,
 	0,
-	_nested_sprite_aligner_widgets, lengthof(_nested_sprite_aligner_widgets)
+	_nested_sprite_aligner_widgets, lengthof(_nested_sprite_aligner_widgets),
+	&_sprite_aligner_prefs
 );
 
 /**

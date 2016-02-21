@@ -16,7 +16,12 @@
 
 /** Yapf Node for ships */
 template <class Tkey_>
-struct CYapfShipNodeT : CYapfNodeT<Tkey_, CYapfShipNodeT<Tkey_> > { };
+struct CYapfShipNodeT : CYapfNodeT<Tkey_, CYapfShipNodeT<Tkey_> > {
+	CYapfShipNodeT (const CYapfShipNodeT *parent, const ShipPathPos &pos)
+		: CYapfNodeT<Tkey_, CYapfShipNodeT<Tkey_> > (parent, pos)
+	{
+	}
+};
 
 /* now define two major node types (that differ by key type) */
 typedef CYapfShipNodeT<CYapfNodeKeyExitDir <ShipPathPos> > CYapfShipNodeExitDir;
@@ -53,7 +58,7 @@ protected:
 
 public:
 	/** Called by the A-star underlying class to find the neighbours of a node. */
-	inline void Follow (Node *old_node)
+	inline void Follow (const Node *old_node)
 	{
 		const ShipPathPos &old_pos = old_node->GetPos();
 		DiagDirection exitdir = TrackdirToExitdir (old_pos.td);
@@ -117,19 +122,19 @@ public:
 			}
 
 			/* create the node */
-			Node *n = TAstar::CreateNewNode (old_node, ShipPathPos (new_tile, td));
-			n->m_cost = cc + c;
+			Node n (old_node, ShipPathPos (new_tile, td));
+			n.m_cost = cc + c;
 
 			/* compute estimated cost */
 			if (is_target) {
-				n->m_estimate = n->m_cost;
-				TAstar::FoundTarget(n);
+				n.m_estimate = n.m_cost;
+				TAstar::InsertTarget (n);
 			} else {
 				if (m_dest_tile == INVALID_TILE) {
-					n->m_estimate = n->m_cost;
+					n.m_estimate = n.m_cost;
 				} else {
-					n->m_estimate = n->m_cost + YapfCalcEstimate (n->GetPos(), m_dest_tile);
-					assert(n->m_estimate >= n->m_parent->m_estimate);
+					n.m_estimate = n.m_cost + YapfCalcEstimate (n.GetPos(), m_dest_tile);
+					assert (n.m_estimate >= n.m_parent->m_estimate);
 				}
 
 				TAstar::InsertNode(n);
@@ -139,7 +144,7 @@ public:
 
 
 	/** Call the node follower */
-	static inline void Follow (CYapfShipT *pf, Node *n)
+	static inline void Follow (CYapfShipT *pf, const Node *n)
 	{
 		pf->Follow(n);
 	}
@@ -200,11 +205,11 @@ static Trackdir ChooseShipTrack(const Ship *v, const ShipPathPos &pos, TrackdirB
 	/* create pathfinder instance */
 	Tpf pf (v);
 	/* set origin node */
-	pf.InsertInitialNode (pf.CreateNewNode (NULL, pos));
+	pf.InsertInitialNode (typename Tpf::Node (NULL, pos));
 	/* find best path */
 	path_found = pf.FindPath();
 
-	typename Tpf::Node *n = pf.GetBestNode();
+	const typename Tpf::Node *n = pf.GetBestNode();
 	if (n == NULL) return INVALID_TRACKDIR; // path not found
 	assert (n->m_parent != NULL);
 
@@ -263,12 +268,13 @@ static bool CheckShipReverse(const Ship *v, const ShipPathPos &pos)
 	/* create pathfinder instance */
 	Tpf pf (v);
 	/* set origin nodes */
-	pf.InsertInitialNode (pf.CreateNewNode (NULL, pos));
-	pf.InsertInitialNode (pf.CreateNewNode (NULL, ShipPathPos(pos.tile, ReverseTrackdir(pos.td))));
+	pf.InsertInitialNode (typename Tpf::Node (NULL, pos));
+	pf.InsertInitialNode (typename Tpf::Node (NULL,
+			ShipPathPos (pos.tile, ReverseTrackdir (pos.td))));
 	/* find best path */
 	if (!pf.FindPath()) return false;
 
-	typename Tpf::Node *n = pf.GetBestNode();
+	const typename Tpf::Node *n = pf.GetBestNode();
 	if (n == NULL) return false;
 
 	/* path was found; walk through the path back to the origin */
@@ -311,11 +317,11 @@ template <class Tpf>
 static TileIndex FindNearestDepot (const Ship *v, uint max_distance)
 {
 	Tpf pf (v, true);
-	pf.InsertInitialNode (pf.CreateNewNode (NULL, v->GetPos()));
+	pf.InsertInitialNode (typename Tpf::Node (NULL, v->GetPos()));
 	if (!pf.FindPath()) return INVALID_TILE;
 
 	/* some path found; get found depot tile */
-	typename Tpf::Node *n = pf.GetBestNode();
+	const typename Tpf::Node *n = pf.GetBestNode();
 	if (max_distance > 0 && n->m_cost > 0 && (uint)n->m_cost > max_distance) return INVALID_TILE;
 	return n->GetPos().tile;
 }

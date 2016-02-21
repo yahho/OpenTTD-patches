@@ -174,7 +174,7 @@ static void SkipToNextSong()
 
 static void MusicVolumeChanged(byte new_vol)
 {
-	MusicDriver::GetInstance()->SetVolume(new_vol);
+	MusicDriver::GetActiveDriver()->SetVolume(new_vol);
 }
 
 static void DoPlaySong()
@@ -183,13 +183,13 @@ static void DoPlaySong()
 	if (FioFindFullPath(filename, lengthof(filename), BASESET_DIR, BaseMusic::GetUsedSet()->files[_music_wnd_cursong - 1].filename) == NULL) {
 		FioFindFullPath(filename, lengthof(filename), OLD_GM_DIR, BaseMusic::GetUsedSet()->files[_music_wnd_cursong - 1].filename);
 	}
-	MusicDriver::GetInstance()->PlaySong(filename);
+	MusicDriver::GetActiveDriver()->PlaySong(filename);
 	SetWindowDirty(WC_MUSIC_WINDOW, 0);
 }
 
 static void DoStopMusic()
 {
-	MusicDriver::GetInstance()->StopSong();
+	MusicDriver::GetActiveDriver()->StopSong();
 	SetWindowDirty(WC_MUSIC_WINDOW, 0);
 }
 
@@ -278,7 +278,7 @@ void MusicLoop()
 
 	if (!_song_is_active) return;
 
-	if (!MusicDriver::GetInstance()->IsSongPlaying()) {
+	if (!MusicDriver::GetActiveDriver()->IsSongPlaying()) {
 		if (_game_mode != GM_MENU) {
 			StopMusic();
 			SkipToNextSong();
@@ -297,7 +297,7 @@ static void SelectPlaylist(byte list)
 }
 
 struct MusicTrackSelectionWindow : public Window {
-	MusicTrackSelectionWindow(WindowDesc *desc, WindowNumber number) : Window(desc)
+	MusicTrackSelectionWindow (const WindowDesc *desc, WindowNumber number) : Window(desc)
 	{
 		this->InitNested(number);
 		this->LowerWidget(WID_MTS_LIST_LEFT);
@@ -502,11 +502,14 @@ static const NWidgetPart _nested_music_track_selection_widgets[] = {
 	EndContainer(),
 };
 
-static WindowDesc _music_track_selection_desc(
-	WDP_AUTO, "music_track", 0, 0,
+static WindowDesc::Prefs _music_track_selection_prefs ("music_track");
+
+static const WindowDesc _music_track_selection_desc(
+	WDP_AUTO, 0, 0,
 	WC_MUSIC_TRACK_SELECTION, WC_NONE,
 	0,
-	_nested_music_track_selection_widgets, lengthof(_nested_music_track_selection_widgets)
+	_nested_music_track_selection_widgets, lengthof(_nested_music_track_selection_widgets),
+	&_music_track_selection_prefs
 );
 
 static void ShowMusicTrackSelection()
@@ -517,7 +520,7 @@ static void ShowMusicTrackSelection()
 struct MusicWindow : public Window {
 	static const int slider_width = 3;
 
-	MusicWindow(WindowDesc *desc, WindowNumber number) : Window(desc)
+	MusicWindow (const WindowDesc *desc, WindowNumber number) : Window(desc)
 	{
 		this->InitNested(number);
 		this->LowerWidget(_settings_client.music.playlist + WID_M_ALL);
@@ -767,11 +770,14 @@ static const NWidgetPart _nested_music_window_widgets[] = {
 	EndContainer(),
 };
 
-static WindowDesc _music_window_desc(
-	WDP_AUTO, "music", 0, 0,
+static WindowDesc::Prefs _music_window_prefs ("music");
+
+static const WindowDesc _music_window_desc(
+	WDP_AUTO, 0, 0,
 	WC_MUSIC_WINDOW, WC_NONE,
 	0,
-	_nested_music_window_widgets, lengthof(_nested_music_window_widgets)
+	_nested_music_window_widgets, lengthof(_nested_music_window_widgets),
+	&_music_window_prefs
 );
 
 void ShowMusicWindow()

@@ -67,23 +67,18 @@ struct AIListWindow : public Window {
 	 * @param desc The description of the window.
 	 * @param slot The company we're changing the AI for.
 	 */
-	AIListWindow(WindowDesc *desc, CompanyID slot) : Window(desc),
-		slot(slot)
+	AIListWindow (const WindowDesc *desc, CompanyID slot) : Window(desc),
+		info_list (slot == OWNER_DEITY ?
+			Game::GetUniqueInfoList() : AI::GetUniqueInfoList()),
+		selected (-1), slot (slot), line_height (0), vscroll (NULL)
 	{
-		if (slot == OWNER_DEITY) {
-			this->info_list = Game::GetUniqueInfoList();
-		} else {
-			this->info_list = AI::GetUniqueInfoList();
-		}
-
 		this->CreateNestedTree();
 		this->vscroll = this->GetScrollbar(WID_AIL_SCROLLBAR);
-		this->FinishInitNested(); // Initializes 'this->line_height' as side effect.
+		this->InitNested(); // Initializes 'this->line_height' as side effect.
 
 		this->vscroll->SetCount((int)this->info_list->size() + 1);
 
 		/* Try if we can find the currently selected AI */
-		this->selected = -1;
 		if (GetConfig(slot)->HasScript()) {
 			const ScriptInfo *info = GetConfig(slot)->GetInfo();
 			int i = 0;
@@ -191,7 +186,7 @@ struct AIListWindow : public Window {
 					this->SetDirty();
 					if (click_count > 1) {
 						this->ChangeAI();
-						delete this;
+						this->Delete();
 					}
 				}
 				break;
@@ -199,12 +194,12 @@ struct AIListWindow : public Window {
 
 			case WID_AIL_ACCEPT: {
 				this->ChangeAI();
-				delete this;
+				this->Delete();
 				break;
 			}
 
 			case WID_AIL_CANCEL:
-				delete this;
+				this->Delete();
 				break;
 		}
 	}
@@ -222,7 +217,7 @@ struct AIListWindow : public Window {
 	virtual void OnInvalidateData(int data = 0, bool gui_scope = true)
 	{
 		if (_game_mode == GM_NORMAL && Company::IsValidID(this->slot)) {
-			delete this;
+			this->Delete();
 			return;
 		}
 
@@ -257,12 +252,16 @@ static const NWidgetPart _nested_ai_list_widgets[] = {
 	EndContainer(),
 };
 
+/** Window preferences for the ai list window. */
+static WindowDesc::Prefs _ai_list_prefs ("settings_script_list");
+
 /** Window definition for the ai list window. */
-static WindowDesc _ai_list_desc(
-	WDP_CENTER, "settings_script_list", 200, 234,
+static const WindowDesc _ai_list_desc(
+	WDP_CENTER, 200, 234,
 	WC_AI_LIST, WC_NONE,
 	0,
-	_nested_ai_list_widgets, lengthof(_nested_ai_list_widgets)
+	_nested_ai_list_widgets, lengthof(_nested_ai_list_widgets),
+	&_ai_list_prefs
 );
 
 /**
@@ -297,19 +296,19 @@ struct AISettingsWindow : public Window {
 	 * @param desc The description of the window.
 	 * @param slot The company we're changing the settings for.
 	 */
-	AISettingsWindow(WindowDesc *desc, CompanyID slot) : Window(desc),
-		slot(slot),
-		clicked_button(-1),
-		clicked_dropdown(false),
-		closing_dropdown(false),
-		timeout(0)
+	AISettingsWindow (const WindowDesc *desc, CompanyID slot) : Window(desc),
+		slot (slot), ai_config (NULL),
+		clicked_button (-1), clicked_increase (false),
+		clicked_dropdown (false), closing_dropdown (false),
+		timeout (0), clicked_row (0), line_height (0),
+		vscroll (NULL), visible_settings()
 	{
 		this->ai_config = GetConfig(slot);
 		this->RebuildVisibleSettings();
 
 		this->CreateNestedTree();
 		this->vscroll = this->GetScrollbar(WID_AIS_SCROLLBAR);
-		this->FinishInitNested(slot);  // Initializes 'this->line_height' as side effect.
+		this->InitNested(slot);  // Initializes 'this->line_height' as side effect.
 
 		this->SetWidgetDisabledState(WID_AIS_RESET, _game_mode != GM_MENU && Company::IsValidID(this->slot));
 
@@ -515,7 +514,7 @@ struct AISettingsWindow : public Window {
 			}
 
 			case WID_AIS_ACCEPT:
-				delete this;
+				this->Delete();
 				break;
 
 			case WID_AIS_RESET:
@@ -603,12 +602,16 @@ static const NWidgetPart _nested_ai_settings_widgets[] = {
 	EndContainer(),
 };
 
+/** Window preferences for the AI settings window. */
+static WindowDesc::Prefs _ai_settings_prefs ("settings_script");
+
 /** Window definition for the AI settings window. */
-static WindowDesc _ai_settings_desc(
-	WDP_CENTER, "settings_script", 500, 208,
+static const WindowDesc _ai_settings_desc(
+	WDP_CENTER, 500, 208,
 	WC_AI_SETTINGS, WC_NONE,
 	0,
-	_nested_ai_settings_widgets, lengthof(_nested_ai_settings_widgets)
+	_nested_ai_settings_widgets, lengthof(_nested_ai_settings_widgets),
+	&_ai_settings_prefs
 );
 
 /**
@@ -698,12 +701,16 @@ static const NWidgetPart _nested_ai_config_widgets[] = {
 	EndContainer(),
 };
 
+/** Window preferences for the configure AI window. */
+static WindowDesc::Prefs _ai_config_prefs ("settings_script_config");
+
 /** Window definition for the configure AI window. */
-static WindowDesc _ai_config_desc(
-	WDP_CENTER, "settings_script_config", 0, 0,
+static const WindowDesc _ai_config_desc(
+	WDP_CENTER, 0, 0,
 	WC_GAME_OPTIONS, WC_NONE,
 	0,
-	_nested_ai_config_widgets, lengthof(_nested_ai_config_widgets)
+	_nested_ai_config_widgets, lengthof(_nested_ai_config_widgets),
+	&_ai_config_prefs
 );
 
 /**
@@ -714,7 +721,8 @@ struct AIConfigWindow : public Window {
 	int line_height;         ///< Height of a single AI-name line.
 	Scrollbar *vscroll;      ///< Cache of the vertical scrollbar.
 
-	AIConfigWindow() : Window(&_ai_config_desc)
+	AIConfigWindow() : Window (&_ai_config_desc),
+		selected_slot ((Owner)0), line_height (0), vscroll (NULL)
 	{
 		this->InitNested(WN_GAME_OPTIONS_AI); // Initializes 'this->line_height' as a side effect.
 		this->vscroll = this->GetScrollbar(WID_AIC_SCROLLBAR);
@@ -725,7 +733,7 @@ struct AIConfigWindow : public Window {
 		this->OnInvalidateData(0);
 	}
 
-	~AIConfigWindow()
+	void OnDelete (void) FINAL_OVERRIDE
 	{
 		DeleteWindowByClass(WC_AI_LIST);
 		DeleteWindowByClass(WC_AI_SETTINGS);
@@ -894,7 +902,7 @@ struct AIConfigWindow : public Window {
 				break;
 
 			case WID_AIC_CLOSE:
-				delete this;
+				this->Delete();
 				break;
 
 			case WID_AIC_CONTENT_DOWNLOAD:
@@ -902,8 +910,7 @@ struct AIConfigWindow : public Window {
 					ShowErrorMessage(STR_NETWORK_ERROR_NOTAVAILABLE, INVALID_STRING_ID, WL_ERROR);
 				} else {
 #if defined(ENABLE_NETWORK)
-					ShowNetworkContentListWindow(NULL, CONTENT_TYPE_AI);
-					_network_content_client.RequestContentList(CONTENT_TYPE_GAME);
+					ShowNetworkContentListWindow(NULL, CONTENT_TYPE_AI, CONTENT_TYPE_GAME);
 #endif
 				}
 				break;
@@ -1049,13 +1056,17 @@ struct AIDebugWindow : public Window {
 	 * @param desc The description of the window.
 	 * @param number The window number (actually unused).
 	 */
-	AIDebugWindow(WindowDesc *desc, WindowNumber number) : Window(desc), break_editbox(MAX_BREAK_STR_STRING_LENGTH)
+	AIDebugWindow (const WindowDesc *desc, WindowNumber number)
+		: Window (desc), redraw_timer (0), last_vscroll_pos (0),
+		  autoscroll (false), show_break_box (0),
+		  break_editbox(MAX_BREAK_STR_STRING_LENGTH),
+		  highlight_row (0), vscroll (NULL)
 	{
 		this->CreateNestedTree();
 		this->vscroll = this->GetScrollbar(WID_AID_SCROLLBAR);
 		this->show_break_box = _settings_client.gui.ai_developer_tools;
 		this->GetWidget<NWidgetStacked>(WID_AID_BREAK_STRING_WIDGETS)->SetDisplayedPlane(this->show_break_box ? 0 : SZSP_HORIZONTAL);
-		this->FinishInitNested(number);
+		this->InitNested(number);
 
 		if (!this->show_break_box) break_check_enabled = false;
 
@@ -1411,30 +1422,29 @@ static EventState AIDebugGlobalHotkeys(int hotkey)
 	return w->OnHotkey(hotkey);
 }
 
-static Hotkey aidebug_hotkeys[] = {
-	Hotkey('1', "company_1", WID_AID_COMPANY_BUTTON_START),
-	Hotkey('2', "company_2", WID_AID_COMPANY_BUTTON_START + 1),
-	Hotkey('3', "company_3", WID_AID_COMPANY_BUTTON_START + 2),
-	Hotkey('4', "company_4", WID_AID_COMPANY_BUTTON_START + 3),
-	Hotkey('5', "company_5", WID_AID_COMPANY_BUTTON_START + 4),
-	Hotkey('6', "company_6", WID_AID_COMPANY_BUTTON_START + 5),
-	Hotkey('7', "company_7", WID_AID_COMPANY_BUTTON_START + 6),
-	Hotkey('8', "company_8", WID_AID_COMPANY_BUTTON_START + 7),
-	Hotkey('9', "company_9", WID_AID_COMPANY_BUTTON_START + 8),
-	Hotkey((uint16)0, "company_10", WID_AID_COMPANY_BUTTON_START + 9),
-	Hotkey((uint16)0, "company_11", WID_AID_COMPANY_BUTTON_START + 10),
-	Hotkey((uint16)0, "company_12", WID_AID_COMPANY_BUTTON_START + 11),
-	Hotkey((uint16)0, "company_13", WID_AID_COMPANY_BUTTON_START + 12),
-	Hotkey((uint16)0, "company_14", WID_AID_COMPANY_BUTTON_START + 13),
-	Hotkey((uint16)0, "company_15", WID_AID_COMPANY_BUTTON_START + 14),
-	Hotkey('S', "settings", WID_AID_SETTINGS),
-	Hotkey('0', "game_script", WID_AID_SCRIPT_GAME),
-	Hotkey((uint16)0, "reload", WID_AID_RELOAD_TOGGLE),
-	Hotkey('B', "break_toggle", WID_AID_BREAK_STR_ON_OFF_BTN),
-	Hotkey('F', "break_string", WID_AID_BREAK_STR_EDIT_BOX),
-	Hotkey('C', "match_case", WID_AID_MATCH_CASE_BTN),
-	Hotkey(WKC_RETURN, "continue", WID_AID_CONTINUE_BTN),
-	HOTKEY_LIST_END
+static const Hotkey aidebug_hotkeys[] = {
+	Hotkey ("company_1",    WID_AID_COMPANY_BUTTON_START,     '1'),
+	Hotkey ("company_2",    WID_AID_COMPANY_BUTTON_START + 1, '2'),
+	Hotkey ("company_3",    WID_AID_COMPANY_BUTTON_START + 2, '3'),
+	Hotkey ("company_4",    WID_AID_COMPANY_BUTTON_START + 3, '4'),
+	Hotkey ("company_5",    WID_AID_COMPANY_BUTTON_START + 4, '5'),
+	Hotkey ("company_6",    WID_AID_COMPANY_BUTTON_START + 5, '6'),
+	Hotkey ("company_7",    WID_AID_COMPANY_BUTTON_START + 6, '7'),
+	Hotkey ("company_8",    WID_AID_COMPANY_BUTTON_START + 7, '8'),
+	Hotkey ("company_9",    WID_AID_COMPANY_BUTTON_START + 8, '9'),
+	Hotkey ("company_10",   WID_AID_COMPANY_BUTTON_START + 9),
+	Hotkey ("company_11",   WID_AID_COMPANY_BUTTON_START + 10),
+	Hotkey ("company_12",   WID_AID_COMPANY_BUTTON_START + 11),
+	Hotkey ("company_13",   WID_AID_COMPANY_BUTTON_START + 12),
+	Hotkey ("company_14",   WID_AID_COMPANY_BUTTON_START + 13),
+	Hotkey ("company_15",   WID_AID_COMPANY_BUTTON_START + 14),
+	Hotkey ("settings",     WID_AID_SETTINGS,                 'S'),
+	Hotkey ("game_script",  WID_AID_SCRIPT_GAME,              '0'),
+	Hotkey ("reload",       WID_AID_RELOAD_TOGGLE),
+	Hotkey ("break_toggle", WID_AID_BREAK_STR_ON_OFF_BTN,     'B'),
+	Hotkey ("break_string", WID_AID_BREAK_STR_EDIT_BOX,       'F'),
+	Hotkey ("match_case",   WID_AID_MATCH_CASE_BTN,           'C'),
+	Hotkey ("continue",     WID_AID_CONTINUE_BTN,             WKC_RETURN),
 };
 HotkeyList AIDebugWindow::hotkeys("aidebug", aidebug_hotkeys, AIDebugGlobalHotkeys);
 
@@ -1483,13 +1493,16 @@ static const NWidgetPart _nested_ai_debug_widgets[] = {
 	EndContainer(),
 };
 
+/** Window preferences for the AI debug window. */
+static WindowDesc::Prefs _ai_debug_prefs ("script_debug");
+
 /** Window definition for the AI debug window. */
-static WindowDesc _ai_debug_desc(
-	WDP_AUTO, "script_debug", 600, 450,
+static const WindowDesc _ai_debug_desc(
+	WDP_AUTO, 600, 450,
 	WC_AI_DEBUG, WC_NONE,
 	0,
 	_nested_ai_debug_widgets, lengthof(_nested_ai_debug_widgets),
-	&AIDebugWindow::hotkeys
+	&_ai_debug_prefs, &AIDebugWindow::hotkeys
 );
 
 /**

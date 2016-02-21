@@ -46,7 +46,7 @@ void CcBuildAirport(const CommandCost &result, TileIndex tile, uint32 p1, uint32
 	if (result.Failed()) return;
 
 	if (_settings_client.sound.confirm) SndPlayTileFx(SND_1F_SPLAT_OTHER, tile);
-	if (!_settings_client.gui.persistent_buildingtools) ResetObjectToPlace();
+	if (!_settings_client.gui.persistent_buildingtools) ResetPointerMode();
 }
 
 /**
@@ -69,14 +69,14 @@ static void PlaceAirport(TileIndex tile)
 struct BuildAirToolbarWindow : Window {
 	int last_user_action; // Last started user action.
 
-	BuildAirToolbarWindow(WindowDesc *desc, WindowNumber window_number) : Window(desc)
+	BuildAirToolbarWindow (const WindowDesc *desc, WindowNumber window_number)
+		: Window (desc), last_user_action (WIDGET_LIST_END)
 	{
 		this->InitNested(window_number);
 		if (_settings_client.gui.link_terraform_toolbar) ShowTerraformToolbar(this);
-		this->last_user_action = WIDGET_LIST_END;
 	}
 
-	~BuildAirToolbarWindow()
+	void OnDelete (void) FINAL_OVERRIDE
 	{
 		if (_settings_client.gui.link_terraform_toolbar) DeleteWindowById(WC_SCEN_LAND_GEN, 0, false);
 	}
@@ -90,21 +90,21 @@ struct BuildAirToolbarWindow : Window {
 	{
 		if (!gui_scope) return;
 
-		if (!CanBuildVehicleInfrastructure(VEH_AIRCRAFT)) delete this;
+		if (!CanBuildVehicleInfrastructure(VEH_AIRCRAFT)) this->Delete();
 	}
 
 	virtual void OnClick(Point pt, int widget, int click_count)
 	{
 		switch (widget) {
 			case WID_AT_AIRPORT:
-				if (HandlePlacePushButton(this, WID_AT_AIRPORT, SPR_CURSOR_AIRPORT, HT_RECT)) {
+				if (HandlePlacePushButton (this, WID_AT_AIRPORT, SPR_CURSOR_AIRPORT, POINTER_TILE)) {
 					ShowBuildAirportPicker(this);
 					this->last_user_action = widget;
 				}
 				break;
 
 			case WID_AT_DEMOLISH:
-				HandlePlacePushButton(this, WID_AT_DEMOLISH, ANIMCURSOR_DEMOLISH, HT_RECT | HT_DIAGONAL);
+				HandlePlacePushButton (this, WID_AT_DEMOLISH, ANIMCURSOR_DEMOLISH, POINTER_TILE);
 				this->last_user_action = widget;
 				break;
 
@@ -121,16 +121,11 @@ struct BuildAirToolbarWindow : Window {
 				break;
 
 			case WID_AT_DEMOLISH:
-				VpStartPlaceSizing (tile, VPM_X_AND_Y);
+				VpStartPlaceSizing (tile, VPM_X_AND_Y_ROTATED);
 				break;
 
 			default: NOT_REACHED();
 		}
-	}
-
-	void OnPlaceDrag (ViewportPlaceMethod select_method, int userdata, Point pt) OVERRIDE
-	{
-		VpSelectTilesWithMethod(pt.x, pt.y, select_method);
 	}
 
 	void OnPlaceMouseUp (int userdata, Point pt, TileIndex start_tile, TileIndex end_tile) OVERRIDE
@@ -164,10 +159,9 @@ static EventState AirportToolbarGlobalHotkeys(int hotkey)
 	return w->OnHotkey(hotkey);
 }
 
-static Hotkey airtoolbar_hotkeys[] = {
-	Hotkey('1', "airport", WID_AT_AIRPORT),
-	Hotkey('2', "demolish", WID_AT_DEMOLISH),
-	HOTKEY_LIST_END
+static const Hotkey airtoolbar_hotkeys[] = {
+	Hotkey ("airport",  WID_AT_AIRPORT,  '1'),
+	Hotkey ("demolish", WID_AT_DEMOLISH, '2'),
 };
 HotkeyList BuildAirToolbarWindow::hotkeys("airtoolbar", airtoolbar_hotkeys, AirportToolbarGlobalHotkeys);
 
@@ -184,12 +178,14 @@ static const NWidgetPart _nested_air_toolbar_widgets[] = {
 	EndContainer(),
 };
 
-static WindowDesc _air_toolbar_desc(
-	WDP_ALIGN_TOOLBAR, "toolbar_air", 0, 0,
+static WindowDesc::Prefs _air_toolbar_prefs ("toolbar_air");
+
+static const WindowDesc _air_toolbar_desc(
+	WDP_ALIGN_TOOLBAR, 0, 0,
 	WC_BUILD_TOOLBAR, WC_NONE,
 	WDF_CONSTRUCTION,
 	_nested_air_toolbar_widgets, lengthof(_nested_air_toolbar_widgets),
-	&BuildAirToolbarWindow::hotkeys
+	&_air_toolbar_prefs, &BuildAirToolbarWindow::hotkeys
 );
 
 /**
@@ -225,7 +221,9 @@ class BuildAirportWindow : public PickerWindowBase {
 	}
 
 public:
-	BuildAirportWindow(WindowDesc *desc, Window *parent) : PickerWindowBase(desc, parent)
+	BuildAirportWindow (const WindowDesc *desc, Window *parent)
+		: PickerWindowBase (desc, parent),
+		  preview_sprite (0), line_height (0), vscroll (NULL)
 	{
 		this->CreateNestedTree();
 
@@ -233,7 +231,7 @@ public:
 		this->vscroll->SetCapacity(5);
 		this->vscroll->SetPosition(0);
 
-		this->FinishInitNested(TRANSPORT_AIR);
+		this->InitNested(TRANSPORT_AIR);
 
 		this->SetWidgetLoweredState(WID_AP_BTN_DONTHILIGHT, !_settings_client.gui.station_show_coverage);
 		this->SetWidgetLoweredState(WID_AP_BTN_DOHILIGHT, _settings_client.gui.station_show_coverage);
@@ -262,9 +260,10 @@ public:
 		if (selectFirstAirport) this->SelectFirstAvailableAirport(true);
 	}
 
-	virtual ~BuildAirportWindow()
+	void OnDelete (void) FINAL_OVERRIDE
 	{
 		DeleteWindowById(WC_SELECT_STATION, 0);
+		this->PickerWindowBase::OnDelete();
 	}
 
 	virtual void SetStringParameters(int widget) const
@@ -585,11 +584,14 @@ static const NWidgetPart _nested_build_airport_widgets[] = {
 	EndContainer(),
 };
 
-static WindowDesc _build_airport_desc(
-	WDP_AUTO, "build_station_air", 0, 0,
+static WindowDesc::Prefs _build_airport_prefs ("build_station_air");
+
+static const WindowDesc _build_airport_desc(
+	WDP_AUTO, 0, 0,
 	WC_BUILD_STATION, WC_BUILD_TOOLBAR,
 	WDF_CONSTRUCTION,
-	_nested_build_airport_widgets, lengthof(_nested_build_airport_widgets)
+	_nested_build_airport_widgets, lengthof(_nested_build_airport_widgets),
+	&_build_airport_prefs
 );
 
 static void ShowBuildAirportPicker(Window *parent)

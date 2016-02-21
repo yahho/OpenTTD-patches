@@ -105,7 +105,9 @@ private:
 	}
 
 public:
-	TownAuthorityWindow(WindowDesc *desc, WindowNumber window_number) : Window(desc), sel_index(-1), displayed_actions_on_previous_painting(0)
+	TownAuthorityWindow (const WindowDesc *desc, WindowNumber window_number) :
+		Window (desc), town (NULL), sel_index(-1), vscroll (NULL),
+		displayed_actions_on_previous_painting (0)
 	{
 		this->town = Town::Get(window_number);
 		this->InitNested(window_number);
@@ -295,11 +297,14 @@ public:
 	}
 };
 
-static WindowDesc _town_authority_desc(
-	WDP_AUTO, "view_town_authority", 317, 222,
+static WindowDesc::Prefs _town_authority_prefs ("view_town_authority");
+
+static const WindowDesc _town_authority_desc(
+	WDP_AUTO, 317, 222,
 	WC_TOWN_AUTHORITY, WC_NONE,
 	0,
-	_nested_town_authority_widgets, lengthof(_nested_town_authority_widgets)
+	_nested_town_authority_widgets, lengthof(_nested_town_authority_widgets),
+	&_town_authority_prefs
 );
 
 static void ShowTownAuthorityWindow(uint town)
@@ -316,14 +321,15 @@ private:
 public:
 	static const int WID_TV_HEIGHT_NORMAL = 162;
 
-	TownViewWindow(WindowDesc *desc, WindowNumber window_number) : Window(desc)
+	TownViewWindow (const WindowDesc *desc, WindowNumber window_number) :
+		Window (desc), town (NULL)
 	{
 		this->CreateNestedTree();
 
 		this->town = Town::Get(window_number);
 		if (this->town->larger_town) this->GetWidget<NWidgetCore>(WID_TV_CAPTION)->widget_data = STR_TOWN_VIEW_CITY_CAPTION;
 
-		this->FinishInitNested(window_number);
+		this->InitNested(window_number);
 
 		this->flags |= WF_DISABLE_VP_SCROLL;
 		NWidgetViewport *nvp = this->GetWidget<NWidgetViewport>(WID_TV_VIEWPORT);
@@ -594,11 +600,14 @@ static const NWidgetPart _nested_town_game_view_widgets[] = {
 	EndContainer(),
 };
 
-static WindowDesc _town_game_view_desc(
-	WDP_AUTO, "view_town", 260, TownViewWindow::WID_TV_HEIGHT_NORMAL,
+static WindowDesc::Prefs _town_game_view_prefs ("view_town");
+
+static const WindowDesc _town_game_view_desc(
+	WDP_AUTO, 260, TownViewWindow::WID_TV_HEIGHT_NORMAL,
 	WC_TOWN_VIEW, WC_NONE,
 	0,
-	_nested_town_game_view_widgets, lengthof(_nested_town_game_view_widgets)
+	_nested_town_game_view_widgets, lengthof(_nested_town_game_view_widgets),
+	&_town_game_view_prefs
 );
 
 static const NWidgetPart _nested_town_editor_view_widgets[] = {
@@ -630,11 +639,14 @@ static const NWidgetPart _nested_town_editor_view_widgets[] = {
 	EndContainer(),
 };
 
-static WindowDesc _town_editor_view_desc(
-	WDP_AUTO, "view_town_scen", 260, TownViewWindow::WID_TV_HEIGHT_NORMAL,
+static WindowDesc::Prefs _town_editor_view_prefs ("view_town_scen");
+
+static const WindowDesc _town_editor_view_desc(
+	WDP_AUTO, 260, TownViewWindow::WID_TV_HEIGHT_NORMAL,
 	WC_TOWN_VIEW, WC_NONE,
 	0,
-	_nested_town_editor_view_widgets, lengthof(_nested_town_editor_view_widgets)
+	_nested_town_editor_view_widgets, lengthof(_nested_town_editor_view_widgets),
+	&_town_editor_view_prefs
 );
 
 void ShowTownViewWindow(TownID town)
@@ -761,7 +773,8 @@ private:
 	}
 
 public:
-	TownDirectoryWindow(WindowDesc *desc) : Window(desc)
+	TownDirectoryWindow (const WindowDesc *desc) :
+		Window (desc), towns(), vscroll (NULL)
 	{
 		this->CreateNestedTree();
 
@@ -772,7 +785,7 @@ public:
 		this->towns.ForceRebuild();
 		this->BuildSortTownList();
 
-		this->FinishInitNested(0);
+		this->InitNested(0);
 	}
 
 	virtual void SetStringParameters(int widget) const
@@ -987,11 +1000,14 @@ GUITownList::SortFunction * const TownDirectoryWindow::sorter_funcs[] = {
 	&TownRatingSorter,
 };
 
-static WindowDesc _town_directory_desc(
-	WDP_AUTO, "list_towns", 208, 202,
+static WindowDesc::Prefs _town_directory_prefs ("list_towns");
+
+static const WindowDesc _town_directory_desc(
+	WDP_AUTO, 208, 202,
 	WC_TOWN_DIRECTORY, WC_NONE,
 	0,
-	_nested_town_directory_widgets, lengthof(_nested_town_directory_widgets)
+	_nested_town_directory_widgets, lengthof(_nested_town_directory_widgets),
+	&_town_directory_prefs
 );
 
 void ShowTownDirectory()
@@ -1008,7 +1024,7 @@ void CcFoundTown(const CommandCost &result, TileIndex tile, uint32 p1, uint32 p2
 		ScrollMainWindowToTile(Town::Get(_new_town_id)->xy);
 	} else {
 		if (_settings_client.sound.confirm) SndPlayTileFx(SND_1F_SPLAT_OTHER, tile);
-		if (!_settings_client.gui.persistent_buildingtools) ResetObjectToPlace();
+		if (!_settings_client.gui.persistent_buildingtools) ResetPointerMode();
 	}
 }
 
@@ -1095,11 +1111,14 @@ private:
 	TownNameParams params;  ///< Town name parameters
 
 public:
-	FoundTownWindow(WindowDesc *desc, WindowNumber window_number) :
+	FoundTownWindow (const WindowDesc *desc, WindowNumber window_number) :
 			Window(desc),
 			town_size(TSZ_MEDIUM),
 			town_layout(_settings_game.economy.town_layout),
+			city(false),
 			townname_editbox(MAX_LENGTH_TOWN_NAME_CHARS * MAX_CHAR_LENGTH, MAX_LENGTH_TOWN_NAME_CHARS),
+			townnamevalid(false),
+			townnameparts(0),
 			params(_settings_game.game_creation.town_name)
 	{
 		this->InitNested(window_number);
@@ -1170,7 +1189,7 @@ public:
 	{
 		switch (widget) {
 			case WID_TF_NEW_TOWN:
-				HandlePlacePushButton(this, WID_TF_NEW_TOWN, SPR_CURSOR_TOWN, HT_RECT);
+				HandlePlacePushButton (this, WID_TF_NEW_TOWN, SPR_CURSOR_TOWN, POINTER_TILE);
 				break;
 
 			case WID_TF_RANDOM_TOWN:
@@ -1234,11 +1253,14 @@ public:
 	}
 };
 
-static WindowDesc _found_town_desc(
-	WDP_AUTO, "build_town", 160, 162,
+static WindowDesc::Prefs _found_town_prefs ("build_town");
+
+static const WindowDesc _found_town_desc(
+	WDP_AUTO, 160, 162,
 	WC_FOUND_TOWN, WC_NONE,
 	WDF_CONSTRUCTION,
-	_nested_found_town_widgets, lengthof(_nested_found_town_widgets)
+	_nested_found_town_widgets, lengthof(_nested_found_town_widgets),
+	&_found_town_prefs
 );
 
 void ShowFoundTownWindow()
@@ -1260,13 +1282,14 @@ struct SelectTownWindow : Window {
 
 	void RebuildTownList (void);
 
-	SelectTownWindow(WindowDesc *desc, TileIndex tile, HouseID house)
-		: Window(desc), tile(tile), house(house)
+	SelectTownWindow (const WindowDesc *desc, TileIndex tile, HouseID house)
+		: Window(desc), tile(tile), house(house), towns(),
+		  vscroll(NULL), rebuild(false)
 	{
 		this->CreateNestedTree();
 		this->vscroll = this->GetScrollbar(WID_ST_SCROLLBAR);
 		this->RebuildTownList();
-		this->FinishInitNested();
+		this->InitNested();
 	}
 
 	virtual void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize)
@@ -1320,7 +1343,7 @@ struct SelectTownWindow : Window {
 		DoBuildHouse (town, this->tile, this->house, InteractiveRandom());
 
 		/* Close the window */
-		delete this;
+		this->Delete();
 	}
 
 	virtual void OnPaint()
@@ -1384,11 +1407,14 @@ static const NWidgetPart _nested_select_town_widgets[] = {
 	EndContainer(),
 };
 
-static WindowDesc _select_town_desc(
-	WDP_AUTO, "select_town", 100, 0,
+static WindowDesc::Prefs _select_town_prefs ("select_town");
+
+static const WindowDesc _select_town_desc(
+	WDP_AUTO, 100, 0,
 	WC_SELECT_TOWN, WC_NONE,
 	WDF_CONSTRUCTION,
-	_nested_select_town_widgets, lengthof(_nested_select_town_widgets)
+	_nested_select_town_widgets, lengthof(_nested_select_town_widgets),
+	&_select_town_prefs
 );
 
 
@@ -1490,7 +1516,7 @@ class HousePickerWindow : public Window {
 
 	void SetObjectToPlace (void)
 	{
-		SetObjectToPlaceWnd (SPR_CURSOR_TOWN, PAL_NONE, HT_RECT, this);
+		SetPointerMode (POINTER_TILE, this, SPR_CURSOR_TOWN);
 	}
 
 	void UpdateCache (void)
@@ -1566,20 +1592,24 @@ class HousePickerWindow : public Window {
 	}
 
 public:
-	HousePickerWindow (WindowDesc *desc, WindowNumber number) : Window (desc)
+	HousePickerWindow (const WindowDesc *desc, WindowNumber number) :
+		Window (desc), houses(), sets(), sel_set (0), sel_offset (0),
+		name (STR_NULL), supply (0), line_height (0)
 	{
+		memset (this->acceptance, 0, sizeof(this->acceptance));
+
 		this->CreateNestedTree();
 		/* there is no shade box but we will shade the window if there is no house to show */
 		this->shade_select = this->GetWidget<NWidgetStacked> (WID_HP_MAIN_PANEL_SEL);
 		NWidgetMatrix *matrix = this->GetWidget<NWidgetMatrix> (WID_HP_HOUSE_SELECT_MATRIX);
 		matrix->SetScrollbar (this->GetScrollbar (WID_HP_HOUSE_SELECT_SCROLL));
-		this->FinishInitNested (number);
+		this->InitNested (number);
 
 		if (cur_house != INVALID_HOUSE_ID) {
 			matrix->SetClicked (this->sel_offset); // set clicked item again to make it visible
 			this->SetObjectToPlace();
 		} else {
-			ResetObjectToPlace();
+			ResetPointerMode();
 		}
 	}
 
@@ -2036,11 +2066,14 @@ static const NWidgetPart _nested_house_picker_widgets[] = {
 	EndContainer(),
 };
 
-static WindowDesc _house_picker_desc(
-	WDP_AUTO, "build_house", 0, 0,
+static WindowDesc::Prefs _house_picker_prefs ("build_house");
+
+static const WindowDesc _house_picker_desc(
+	WDP_AUTO, 0, 0,
 	WC_BUILD_HOUSE, WC_BUILD_TOOLBAR,
 	WDF_CONSTRUCTION,
-	_nested_house_picker_widgets, lengthof(_nested_house_picker_widgets)
+	_nested_house_picker_widgets, lengthof(_nested_house_picker_widgets),
+	&_house_picker_prefs
 );
 
 HouseID HousePickerWindow::cur_house = INVALID_HOUSE_ID;

@@ -39,11 +39,14 @@ static const NWidgetPart _nested_errmsg_widgets[] = {
 	EndContainer(),
 };
 
-static WindowDesc _errmsg_desc(
-	WDP_MANUAL, "error", 0, 0,
+static WindowDesc::Prefs _errmsg_prefs ("error");
+
+static const WindowDesc _errmsg_desc(
+	WDP_MANUAL, 0, 0,
 	WC_ERRMSG, WC_NONE,
 	0,
-	_nested_errmsg_widgets, lengthof(_nested_errmsg_widgets)
+	_nested_errmsg_widgets, lengthof(_nested_errmsg_widgets),
+	&_errmsg_prefs
 );
 
 static const NWidgetPart _nested_errmsg_face_widgets[] = {
@@ -59,11 +62,14 @@ static const NWidgetPart _nested_errmsg_face_widgets[] = {
 	EndContainer(),
 };
 
-static WindowDesc _errmsg_face_desc(
-	WDP_MANUAL, "error_face", 0, 0,
+static WindowDesc::Prefs _errmsg_face_prefs ("error_face");
+
+static const WindowDesc _errmsg_face_desc(
+	WDP_MANUAL, 0, 0,
 	WC_ERRMSG, WC_NONE,
 	0,
-	_nested_errmsg_face_widgets, lengthof(_nested_errmsg_face_widgets)
+	_nested_errmsg_face_widgets, lengthof(_nested_errmsg_face_widgets),
+	&_errmsg_face_prefs
 );
 
 /**
@@ -173,7 +179,10 @@ private:
 	uint height_detailed;           ///< Height of the #detailed_msg string in pixels in the #WID_EM_MESSAGE widget.
 
 public:
-	ErrmsgWindow(const ErrorMessageData &data) : Window(data.HasFace() ? &_errmsg_face_desc : &_errmsg_desc), ErrorMessageData(data)
+	ErrmsgWindow(const ErrorMessageData &data)
+		: Window (data.HasFace() ? &_errmsg_face_desc : &_errmsg_desc),
+		  ErrorMessageData (data),
+		  height_summary (0), height_detailed (0)
 	{
 		this->InitNested();
 	}
@@ -245,7 +254,7 @@ public:
 	virtual void OnInvalidateData(int data = 0, bool gui_scope = true)
 	{
 		/* If company gets shut down, while displaying an error about it, remove the error message. */
-		if (this->face != INVALID_COMPANY && !Company::IsValidID(this->face)) delete this;
+		if (this->face != INVALID_COMPANY && !Company::IsValidID(this->face)) this->Delete();
 	}
 
 	virtual void SetStringParameters(int widget) const
@@ -293,7 +302,7 @@ public:
 	virtual void OnMouseLoop()
 	{
 		/* Disallow closing the window too easily, if timeout is disabled */
-		if (_right_button_down && this->duration != 0) delete this;
+		if (_right_button_down && this->duration != 0) this->Delete();
 	}
 
 	virtual void OnHundredthTick()
@@ -301,11 +310,11 @@ public:
 		/* Timeout enabled? */
 		if (this->duration != 0) {
 			this->duration--;
-			if (this->duration == 0) delete this;
+			if (this->duration == 0) this->Delete();
 		}
 	}
 
-	~ErrmsgWindow()
+	void OnDelete (void) FINAL_OVERRIDE
 	{
 		SetRedErrorSquare(INVALID_TILE);
 		if (_window_system_initialized) ShowFirstError();
@@ -314,7 +323,7 @@ public:
 	virtual EventState OnKeyPress(WChar key, uint16 keycode)
 	{
 		if (keycode != WKC_SPACE) return ES_NOT_HANDLED;
-		delete this;
+		this->Delete();
 		return ES_HANDLED;
 	}
 
@@ -358,7 +367,7 @@ void UnshowCriticalError()
 	if (_window_system_initialized && w != NULL) {
 		if (w->IsCritical()) _error_list.push_front(*w);
 		_window_system_initialized = false;
-		delete w;
+		w->Delete();
 	}
 }
 
@@ -415,7 +424,7 @@ void ShowErrorMessage(StringID summary_msg, StringID detailed_msg, WarningLevel 
 		}
 	} else {
 		/* Nothing or a non-critical error was shown. */
-		delete w;
+		if (w != NULL) w->Delete();
 		new ErrmsgWindow(data);
 	}
 }

@@ -577,12 +577,12 @@ private:
 	{
 		assert(type > OPOS_NONE && type < OPOS_END);
 
-		static const HighLightStyle goto_place_style[OPOS_END - 1] = {
-			HT_RECT | HT_VEHICLE, // OPOS_GOTO
-			HT_NONE,              // OPOS_CONDITIONAL
-			HT_VEHICLE,           // OPOS_SHARE
+		static const PointerMode goto_mode[OPOS_END - 1] = {
+			POINTER_TILE_VEHICLE, // OPOS_GOTO
+			POINTER_NONE,         // OPOS_CONDITIONAL
+			POINTER_VEHICLE,      // OPOS_SHARE
 		};
-		SetObjectToPlaceWnd(ANIMCURSOR_PICKSTATION, PAL_NONE, goto_place_style[type - 1], this);
+		SetPointerMode (goto_mode[type - 1], this, ANIMCURSOR_PICKSTATION);
 		this->goto_type = type;
 		this->SetWidgetDirty(WID_O_GOTO);
 	}
@@ -768,17 +768,16 @@ private:
 	}
 
 public:
-	OrdersWindow(WindowDesc *desc, const Vehicle *v) : Window(desc)
+	OrdersWindow (const WindowDesc *desc, const Vehicle *v) :
+		Window (desc), selected_order (-1),
+		order_over (INVALID_VEH_ORDER_ID),
+		goto_type (OPOS_NONE), vehicle (v), vscroll (NULL),
+		can_do_refit (false), can_do_autorefit (false)
 	{
-		this->vehicle = v;
-
 		this->CreateNestedTree();
 		this->vscroll = this->GetScrollbar(WID_O_SCROLLBAR);
-		this->FinishInitNested(v->index);
+		this->InitNested(v->index);
 
-		this->selected_order = -1;
-		this->order_over = INVALID_VEH_ORDER_ID;
-		this->goto_type = OPOS_NONE;
 		this->owner = v->owner;
 
 		this->UpdateAutoRefitState();
@@ -1167,7 +1166,7 @@ public:
 
 						DoCommandP(this->vehicle->tile, this->vehicle->index + (this->OrderGetSel() << 20), order.Pack(), CMD_INSERT_ORDER);
 					}
-					ResetObjectToPlace();
+					ResetPointerMode();
 					break;
 				}
 
@@ -1198,7 +1197,7 @@ public:
 
 					if (this->vehicle->owner == _local_company) {
 						/* Activate drag and drop */
-						SetObjectToPlaceWnd(SPR_CURSOR_MOUSE, PAL_NONE, HT_DRAG, this);
+						SetPointerMode (POINTER_DRAG, this, SPR_CURSOR_MOUSE);
 					}
 				}
 
@@ -1231,7 +1230,7 @@ public:
 			case WID_O_GOTO:
 				if (this->GetWidget<NWidgetLeaf>(widget)->ButtonHit(pt)) {
 					if (this->goto_type != OPOS_NONE) {
-						ResetObjectToPlace();
+						ResetPointerMode();
 					} else {
 						this->OrderClick_Goto(OPOS_GOTO);
 					}
@@ -1403,7 +1402,7 @@ public:
 				break;
 		}
 
-		ResetObjectToPlace();
+		ResetPointerMode();
 
 		if (this->order_over != INVALID_VEH_ORDER_ID) {
 			/* End of drag-and-drop, hide dragged order destination highlight. */
@@ -1441,7 +1440,7 @@ public:
 
 			if (DoCommandP(this->vehicle->tile, this->vehicle->index + (this->OrderGetSel() << 20), cmd.Pack(), CMD_INSERT_ORDER)) {
 				/* With quick goto the Go To button stays active */
-				if (!_settings_client.gui.quick_goto) ResetObjectToPlace();
+				if (!_settings_client.gui.quick_goto) ResetPointerMode();
 			}
 		}
 	}
@@ -1458,7 +1457,7 @@ public:
 
 		if (DoCommandP(this->vehicle->tile, this->vehicle->index | (share_order ? CO_SHARE : CO_COPY) << 30, v->index, CMD_CLONE_ORDER)) {
 			this->selected_order = -1;
-			ResetObjectToPlace();
+			ResetPointerMode();
 		}
 		return true;
 	}
@@ -1504,19 +1503,18 @@ public:
 	static HotkeyList hotkeys;
 };
 
-static Hotkey order_hotkeys[] = {
-	Hotkey('D', "skip", OHK_SKIP),
-	Hotkey('F', "delete", OHK_DELETE),
-	Hotkey('G', "goto", OHK_GOTO),
-	Hotkey('H', "nonstop", OHK_NONSTOP),
-	Hotkey('J', "fullload", OHK_FULLLOAD),
-	Hotkey('K', "unload", OHK_UNLOAD),
-	Hotkey((uint16)0, "nearest_depot", OHK_NEAREST_DEPOT),
-	Hotkey((uint16)0, "always_service", OHK_ALWAYS_SERVICE),
-	Hotkey((uint16)0, "transfer", OHK_TRANSFER),
-	Hotkey((uint16)0, "no_unload", OHK_NO_UNLOAD),
-	Hotkey((uint16)0, "no_load", OHK_NO_LOAD),
-	HOTKEY_LIST_END
+static const Hotkey order_hotkeys[] = {
+	Hotkey ("skip",           OHK_SKIP,       'D'),
+	Hotkey ("delete",         OHK_DELETE,     'F'),
+	Hotkey ("goto",           OHK_GOTO,       'G'),
+	Hotkey ("nonstop",        OHK_NONSTOP,    'H'),
+	Hotkey ("fullload",       OHK_FULLLOAD,   'J'),
+	Hotkey ("unload",         OHK_UNLOAD,     'K'),
+	Hotkey ("nearest_depot",  OHK_NEAREST_DEPOT),
+	Hotkey ("always_service", OHK_ALWAYS_SERVICE),
+	Hotkey ("transfer",       OHK_TRANSFER),
+	Hotkey ("no_unload",      OHK_NO_UNLOAD),
+	Hotkey ("no_load",        OHK_NO_LOAD),
 };
 HotkeyList OrdersWindow::hotkeys("order", order_hotkeys);
 
@@ -1589,12 +1587,14 @@ static const NWidgetPart _nested_orders_train_widgets[] = {
 	EndContainer(),
 };
 
-static WindowDesc _orders_train_desc(
-	WDP_AUTO, "view_vehicle_orders_train", 384, 100,
+static WindowDesc::Prefs _orders_train_prefs ("view_vehicle_orders_train");
+
+static const WindowDesc _orders_train_desc(
+	WDP_AUTO, 384, 100,
 	WC_VEHICLE_ORDERS, WC_VEHICLE_VIEW,
 	WDF_CONSTRUCTION,
 	_nested_orders_train_widgets, lengthof(_nested_orders_train_widgets),
-	&OrdersWindow::hotkeys
+	&_orders_train_prefs, &OrdersWindow::hotkeys
 );
 
 /** Nested widget definition for "your" orders (non-train). */
@@ -1662,12 +1662,14 @@ static const NWidgetPart _nested_orders_widgets[] = {
 	EndContainer(),
 };
 
-static WindowDesc _orders_desc(
-	WDP_AUTO, "view_vehicle_orders", 384, 100,
+static WindowDesc::Prefs _orders_prefs ("view_vehicle_orders");
+
+static const WindowDesc _orders_desc(
+	WDP_AUTO, 384, 100,
 	WC_VEHICLE_ORDERS, WC_VEHICLE_VIEW,
 	WDF_CONSTRUCTION,
 	_nested_orders_widgets, lengthof(_nested_orders_widgets),
-	&OrdersWindow::hotkeys
+	&_orders_prefs, &OrdersWindow::hotkeys
 );
 
 /** Nested widget definition for competitor orders. */
@@ -1689,12 +1691,14 @@ static const NWidgetPart _nested_other_orders_widgets[] = {
 	EndContainer(),
 };
 
-static WindowDesc _other_orders_desc(
-	WDP_AUTO, "view_vehicle_orders_competitor", 384, 86,
+static WindowDesc::Prefs _other_orders_prefs ("view_vehicle_orders_competitor");
+
+static const WindowDesc _other_orders_desc(
+	WDP_AUTO, 384, 86,
 	WC_VEHICLE_ORDERS, WC_VEHICLE_VIEW,
 	WDF_CONSTRUCTION,
 	_nested_other_orders_widgets, lengthof(_nested_other_orders_widgets),
-	&OrdersWindow::hotkeys
+	&_other_orders_prefs, &OrdersWindow::hotkeys
 );
 
 void ShowOrdersWindow(const Vehicle *v)
@@ -1703,6 +1707,12 @@ void ShowOrdersWindow(const Vehicle *v)
 	DeleteWindowById(WC_VEHICLE_TIMETABLE, v->index, false);
 	if (BringWindowToFrontById(WC_VEHICLE_ORDERS, v->index) != NULL) return;
 
+	/* Using a different WindowDescs for _local_company causes problems.
+	 * Due to this we have to close order windows in ChangeWindowOwner/DeleteCompanyWindows,
+	 * because we cannot change switch the WindowDescs and keeping the old WindowDesc results
+	 * in crashed due to missing widges.
+	 * TODO Rewrite the order GUI to not use different WindowDescs.
+	 */
 	if (v->owner != _local_company) {
 		new OrdersWindow(&_other_orders_desc, v);
 	} else {

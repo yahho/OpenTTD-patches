@@ -15,8 +15,16 @@
 #include "../driver.h"
 
 /** Driver for all music playback. */
-class MusicDriver : public Driver {
+class MusicDriver : public Driver, public SharedDriverSystem <MusicDriver> {
 public:
+	static char *ini; ///< The music driver as stored in the configuration file.
+
+	/** Get the name of this type of driver. */
+	static CONSTEXPR const char *GetSystemName (void)
+	{
+		return "music";
+	}
+
 	/**
 	 * Play a particular song.
 	 * @param filename The name of file with the song to play.
@@ -39,15 +47,22 @@ public:
 	 * @param vol The new volume.
 	 */
 	virtual void SetVolume(byte vol) = 0;
-
-	/**
-	 * Get the currently active instance of the music driver.
-	 */
-	static MusicDriver *GetInstance() {
-		return static_cast<MusicDriver*>(*DriverFactoryBase::GetActiveDriver(Driver::DT_MUSIC));
-	}
 };
 
-extern char *_ini_musicdriver;
+/** Music driver factory. */
+template <class D>
+class MusicDriverFactory : DriverFactory <MusicDriver, D> {
+public:
+	/**
+	 * Construct a new MusicDriverFactory.
+	 * @param priority    The priority within the driver class.
+	 * @param name        The name of the driver.
+	 * @param description A long-ish description of the driver.
+	 */
+	MusicDriverFactory (int priority, const char *name, const char *description)
+		: DriverFactory <MusicDriver, D> (priority, name, description)
+	{
+	}
+};
 
 #endif /* MUSIC_MUSIC_DRIVER_HPP */

@@ -10,9 +10,11 @@
 #ifndef ASTAR_HPP
 #define ASTAR_HPP
 
+#include <deque>
+#include <set>
+
 #include "../../misc/array.hpp"
 #include "../../misc/hashtable.hpp"
-#include "../../misc/binaryheap.hpp"
 
 /**
  * A-star node template common base
@@ -21,23 +23,18 @@
  * requires a node to have. Users of the A-star pathfinder must define a
  * node class that derives from this struct, using that node class itself
  * as template argument. Such a class must define a Key type to be used in
- * hashes, and a GetKey method to get the key for a particular node. It
- * may also define a Set method to initalise the node, which must take a
- * parent Node as first argument; if defined, it must hook into this base
- * class's own Set method.
+ * hashes, and a GetKey method to get the key for a particular node.
  */
 template <class Node>
-struct AstarNodeBase : CHashTableEntryT<Node> {
-	Node *m_parent;    ///< parent node in path
-	int   m_cost;      ///< cost of this node
-	int   m_estimate;  ///< estimated cost to target
+struct AstarNode : CHashTableEntryT<Node> {
+	const Node *m_parent;   ///< parent node in path
+	int         m_cost;     ///< cost of this node
+	int         m_estimate; ///< estimated cost to target
 
-	/** Initialise this node */
-	inline void Set (Node *parent)
+	/** Construct a node */
+	AstarNode (const Node *parent)
+		: m_parent (parent), m_cost (0), m_estimate (0)
 	{
-		m_parent = parent;
-		m_cost = 0;
-		m_estimate = 0;
 	}
 
 	/** Get the cost of this node */
@@ -63,7 +60,7 @@ struct AstarNodeBase : CHashTableEntryT<Node> {
  * A-star pathfinder implementation class
  *
  * Instantiate this class by supplying your node class as template argument;
- * such a class must derive from AstarNodeBase above, and provide a Key type
+ * such a class must derive from AstarNode above, and provide a Key type
  * for hashes and a GetKey method to retrieve the key for a node.
  */
 template <class TNode, int open_hash_bits, int closed_hash_bits>
@@ -73,20 +70,93 @@ public:
 	typedef typename TNode::Key Key; ///< Make TNode::Key a property of HashTable.
 
 private:
-	SmallArray<Node, 65536, 256> m_arr;           ///< Here we store full item data (Node).
+	/** List of nodes. Note that elements are never removed. */
+	struct NodeList : private std::deque <Node> {
+		/** Get a reference the last element in the list. */
+		Node &top (void)
+		{
+			return this->back();
+		}
+
+		/** Push a node onto the list. */
+		void push (const Node &n)
+		{
+			this->push_back (n);
+		}
+
+		/** Dump list for debugging. */
+		template <typename D>
+		void Dump (D &dmp) const
+		{
+			uint size = this->size();
+			dmp.WriteLine ("size = %d", size);
+			char name [24];
+			for (uint i = 0; i < size; i++) {
+				bstrfmt (name, "item[%d]", i);
+				dmp.WriteStructT (name, &(*this)[i]);
+			}
+		}
+	};
+
+	/** Sorting struct for pointer to nodes. */
+	struct NodePtrLess {
+		bool operator() (const Node *n1, const Node *n2) const
+		{
+			return *n1 < *n2;
+		}
+	};
+
+	/** Priority queue of open nodes. */
+	struct PriorityQueue : private std::multiset <Node *, NodePtrLess> {
+		typedef std::multiset <Node *, NodePtrLess> base;
+		typedef typename base::iterator iterator;
+
+		/** Check if the queue is empty. */
+		bool empty (void) const
+		{
+			return base::empty();
+		}
+
+		void insert (Node *n)
+		{
+			base::insert (n);
+		}
+
+		void remove (Node *n)
+		{
+			iterator it (base::lower_bound (n));
+			for (;;) {
+				/* It should really be there. */
+				assert (it != base::end());
+				assert (n->GetCostEstimate() == (*it)->GetCostEstimate());
+				if (n == *it) break;
+				it++;
+			}
+			base::erase (it);
+		}
+
+		Node *pop (void)
+		{
+			iterator it (base::begin());
+			Node *n = *it;
+			base::erase (it);
+			return n;
+		}
+	};
+
+	NodeList nodes;                               ///< Here we store full item data (Node).
 	CHashTableT<Node, open_hash_bits  > m_open;   ///< Hash table of pointers to open item data.
 	CHashTableT<Node, closed_hash_bits> m_closed; ///< Hash table of pointers to closed item data.
-	CBinaryHeapT<Node> m_open_queue;              ///< Priority queue of pointers to open item data.
-	Node              *m_new_node;                ///< New open node under construction.
+	PriorityQueue m_open_queue;                   ///< Priority queue of pointers to open item data.
 
 public:
-	Node *best;              ///< pointer to the destination node found at last round
-	Node *best_intermediate; ///< here should be node closest to the destination if path not found
-	int   max_search_nodes;  ///< maximum number of nodes we are allowed to visit before we give up
-	int   num_steps;         ///< this is there for debugging purposes (hope it doesn't hurt)
+	const Node *best;              ///< pointer to the destination node found at last round
+	const Node *best_intermediate; ///< here should be node closest to the destination if path not found
+	int         max_search_nodes;  ///< maximum number of nodes we are allowed to visit before we give up
+	int         num_steps;         ///< this is there for debugging purposes (hope it doesn't hurt)
 
 	/** default constructor */
-	Astar() : m_open_queue(2048), m_new_node(NULL), best(NULL),
+	Astar() : best(NULL),
 		best_intermediate(NULL), max_search_nodes(0), num_steps(0)
 	{
 	}
@@ -103,133 +173,93 @@ public:
 		return m_closed.Count();
 	}
 
-	/** Create a new node */
-	inline Node *CreateNewNode (Node *parent)
-	{
-		if (m_new_node == NULL) m_new_node = m_arr.AppendC();
-		m_new_node->Set (parent);
-		return m_new_node;
-	}
-
-	/** Create a new node, one parameter */
-	template <class T1>
-	inline Node *CreateNewNode (Node *parent, T1 t1)
-	{
-		if (m_new_node == NULL) m_new_node = m_arr.AppendC();
-		m_new_node->Set (parent, t1);
-		return m_new_node;
-	}
-
-	/** Create a new node, two parameters */
-	template <class T1, class T2>
-	inline Node *CreateNewNode (Node *parent, T1 t1, T2 t2)
-	{
-		if (m_new_node == NULL) m_new_node = m_arr.AppendC();
-		m_new_node->Set (parent, t1, t2);
-		return m_new_node;
-	}
-
 private:
 	/** Insert given node as open node (into m_open and m_open_queue). */
 	inline void InsertOpenNode (Node *n)
 	{
+		/* node to insert should be a newly created one */
+		assert (n == &nodes.top());
 		assert (m_closed.Find(n->GetKey()) == NULL);
+
 		m_open.Push(*n);
-		m_open_queue.Include(n);
-		if (n == m_new_node) {
-			m_new_node = NULL;
-		}
+		m_open_queue.insert (n);
 	}
 
-	/** Remove and return the open node specified by a key. */
-	inline void PopOpenNode (const Key &key)
-	{
-		Node &item = m_open.Pop(key);
-		uint idxPop = m_open_queue.FindIndex(item);
-		m_open_queue.Remove(idxPop);
-	}
-
-	/** Replace an existing (open) node. */
+	/** Possibly replace an existing (open) node. */
 	inline void ReplaceNode (const Key &key, Node *n1, const Node *n2)
 	{
-		/* pop old node from open list and queue */
-		PopOpenNode (key);
-		/* update old node with new data */
-		*n1 = *n2;
-		/* add updated node to open list and queue */
-		InsertOpenNode (n1);
+		if (n2->GetCostEstimate() < n1->GetCostEstimate()) {
+			/* pop old node from open list and queue */
+			Node &item = m_open.Pop (key);
+			m_open_queue.remove (&item);
+			/* update old node with new data */
+			*n1 = *n2;
+			/* add updated node to open list and queue */
+			m_open.Push(*n1);
+			m_open_queue.insert (n1);
+		}
 	}
 
 public:
 	/** Insert a new initial node. */
-	inline void InsertInitialNode (Node *n)
+	inline void InsertInitialNode (const Node &n)
 	{
-		/* node to insert should be a newly created one */
-		assert (n == m_new_node);
-
 		/* closed list should be empty when adding initial nodes */
 		assert (m_closed.Count() == 0);
 
 		/* insert the new node only if it is not there yet */
-		const Key key = n->GetKey();
+		const Key key = n.GetKey();
 		Node *m = m_open.Find (key);
 		if (m == NULL) {
-			InsertOpenNode(n);
+			nodes.push (n);
+			InsertOpenNode (&nodes.top());
 		} else {
 			/* two initial nodes with same key;
 			 * pick the one with the lowest cost */
-			if (n->GetCostEstimate() < m->GetCostEstimate()) {
-				ReplaceNode (key, m, n);
-			}
+			ReplaceNode (key, m, &n);
 		}
 	}
 
 	/** Insert a new node */
-	inline void InsertNode (Node *n)
+	inline void InsertNode (const Node &n)
 	{
-		/* node to insert should be a newly created one */
-		assert (n == m_new_node);
-
-		if (max_search_nodes > 0 && (best_intermediate == NULL || (best_intermediate->GetCostEstimate() - best_intermediate->GetCost()) > (n->GetCostEstimate() - n->GetCost()))) {
-			best_intermediate = n;
-		}
-
-		const Key key = n->GetKey();
+		const Key key = n.GetKey();
 
 		/* check new node against open list */
 		Node *m = m_open.Find (key);
 		if (m != NULL) {
+			assert (m_closed.Find (key) == NULL);
 			/* another node exists with the same key in the open list
 			 * is it better than new one? */
-			if (n->GetCostEstimate() < m->GetCostEstimate()) {
-				ReplaceNode (key, m, n);
+			ReplaceNode (key, m, &n);
+		} else {
+			/* check new node against closed list */
+			m = m_closed.Find (key);
+			if (m != NULL) {
+				/* another node exists with the same key in the closed list
+				 * is it better than new one? */
+				assert (m->GetCostEstimate() <= n.GetCostEstimate());
+				return;
 			}
-			return;
+
+			/* the new node is really new
+			 * add it to the open list */
+			nodes.push (n);
+			m = &nodes.top();
+			InsertOpenNode (m);
 		}
 
-		/* check new node against closed list */
-		m = m_closed.Find(key);
-		if (m != NULL) {
-			/* another node exists with the same key in the closed list
-			 * is it better than new one? */
-			assert (m->GetCostEstimate() <= n->GetCostEstimate());
-			return;
+		if (max_search_nodes > 0 && (best_intermediate == NULL || (best_intermediate->GetCostEstimate() - best_intermediate->GetCost()) > (m->GetCostEstimate() - m->GetCost()))) {
+			best_intermediate = m;
 		}
-
-		/* the new node is really new
-		 * add it to the open list */
-		InsertOpenNode(n);
 	}
 
 	/** Found target. */
-	inline void FoundTarget (Node *n)
+	inline void InsertTarget (const Node &n)
 	{
-		/* node should be a newly created one */
-		assert (n == m_new_node);
-
-		if (best == NULL || *n < *best) best = n;
-
-		m_new_node = NULL;
+		nodes.push (n);
+		Node *m = &nodes.top();
+		if (best == NULL || *m < *best) best = m;
 	}
 
 	/**
@@ -240,24 +270,23 @@ public:
 	 * after all initial nodes have been added with InsertInitialNode.
 	 * Function follow will be called with this Astar instance as
 	 * first argument and the node to follow as second argument, and
-	 * should find the neigbours of the given node, create a node
-	 * for each of them through CreateNewNode, compute their current
-	 * cost and estimated final cost to destination and then call
-	 * InsertNode to add them as open nodes; or, if one of them is a
-	 * destination, call FoundTarget.
+	 * should find the neigbours of the given node, create a node for
+	 * each of them, compute their current cost and estimated final
+	 * cost to destination and then call InsertNode to add them as open
+	 * nodes; or, if one of them is a destination, call InsertTarget.
 	 */
 	template <class T>
-	inline bool FindPath (void (*follow) (T*, Node*), uint max_nodes = 0)
+	inline bool FindPath (void (*follow) (T*, const Node*), uint max_nodes = 0)
 	{
 		max_search_nodes = max_nodes;
 
 		for (;;) {
 			num_steps++;
-			if (m_open_queue.IsEmpty()) {
+			if (m_open_queue.empty()) {
 				return best != NULL;
 			}
 
-			Node *n = m_open_queue.Begin();
+			Node *n = m_open_queue.pop();
 
 			/* if the best open node was worse than the best path found, we can finish */
 			if (best != NULL && best->GetCost() < n->GetCostEstimate()) {
@@ -270,7 +299,7 @@ public:
 				return best != NULL;
 			}
 
-			PopOpenNode(n->GetKey());
+			m_open.Pop (n->GetKey());
 			m_closed.Push (*n);
 		}
 	}
@@ -279,15 +308,17 @@ public:
 	 * If path was found return the best node that has reached the destination.
 	 * Otherwise return the best visited node (which was nearest to the destination).
 	 */
-	inline Node *GetBestNode() const
+	inline const Node *GetBestNode() const
 	{
 		return (best != NULL) ? best : best_intermediate;
 	}
 
-	/** Grant (const) access to the item array for debugging purposes. */
-	const SmallArray<Node, 65536, 256> *GetArray() const
+	/** Dump the current state of the pathfinder. */
+	template <typename D>
+	void DumpState (D &dmp) const
 	{
-		return &m_arr;
+		dmp.WriteLine ("num_steps = %d", num_steps);
+		dmp.WriteStructT ("array", &nodes);
 	}
 };
 

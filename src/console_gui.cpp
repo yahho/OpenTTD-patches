@@ -159,8 +159,8 @@ static const struct NWidgetPart _nested_console_window_widgets[] = {
 	NWidget(WWT_EMPTY, INVALID_COLOUR, WID_C_BACKGROUND), SetResize(1, 1),
 };
 
-static WindowDesc _console_window_desc(
-	WDP_MANUAL, NULL, 0, 0,
+static const WindowDesc _console_window_desc(
+	WDP_MANUAL, 0, 0,
 	WC_CONSOLE, WC_NONE,
 	0,
 	_nested_console_window_widgets, lengthof(_nested_console_window_widgets)
@@ -172,20 +172,20 @@ struct IConsoleWindow : Window
 	int line_height;   ///< Height of one line of text in the console.
 	int line_offset;
 
-	IConsoleWindow() : Window(&_console_window_desc)
+	IConsoleWindow() : Window (&_console_window_desc),
+		line_height (FONT_HEIGHT_NORMAL + ICON_LINE_SPACING),
+		line_offset (GetStringBoundingBox("] ").width + 5)
 	{
 		_iconsole_mode = ICONSOLE_OPENED;
-		this->line_height = FONT_HEIGHT_NORMAL + ICON_LINE_SPACING;
-		this->line_offset = GetStringBoundingBox("] ").width + 5;
 
 		this->InitNested(0);
 		ResizeWindow(this, _screen.width, _screen.height / 3);
 	}
 
-	~IConsoleWindow()
+	void OnDelete (void) FINAL_OVERRIDE
 	{
 		_iconsole_mode = ICONSOLE_CLOSED;
-		VideoDriver::GetInstance()->EditBoxLostFocus();
+		VideoDriver::GetActiveDriver()->EditBoxLostFocus();
 	}
 
 	/**
@@ -371,7 +371,7 @@ struct IConsoleWindow : Window
 
 	virtual void OnFocusLost()
 	{
-		VideoDriver::GetInstance()->EditBoxLostFocus();
+		VideoDriver::GetActiveDriver()->EditBoxLostFocus();
 	}
 };
 

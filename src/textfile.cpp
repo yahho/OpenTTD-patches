@@ -49,12 +49,16 @@ static const NWidgetPart _nested_textfile_widgets[] = {
 	EndContainer(),
 };
 
+/** Window preferences for the textfile window */
+static WindowDesc::Prefs _textfile_prefs ("textfile");
+
 /** Window definition for the textfile window */
-static WindowDesc _textfile_desc(
-	WDP_CENTER, "textfile", 630, 460,
+static const WindowDesc _textfile_desc(
+	WDP_CENTER, 630, 460,
 	WC_TEXTFILE, WC_NONE,
 	0,
-	_nested_textfile_widgets, lengthof(_nested_textfile_widgets)
+	_nested_textfile_widgets, lengthof(_nested_textfile_widgets),
+	&_textfile_prefs
 );
 
 
@@ -68,6 +72,8 @@ enum StreamResult {
 	STREAM_END,   ///< success, decoding finished
 	STREAM_ERROR, ///< error
 };
+
+#ifdef WITH_ZLIB
 
 /** Zlib stream struct. */
 template <>
@@ -109,6 +115,10 @@ struct stream <TextfileDesc::FORMAT_GZ> {
 	}
 };
 
+#endif /* WITH_ZLIB */
+
+#ifdef WITH_LZMA
+
 /** LZMA stream struct. */
 template <>
 struct stream <TextfileDesc::FORMAT_XZ> {
@@ -138,6 +148,8 @@ struct stream <TextfileDesc::FORMAT_XZ> {
 		lzma_end (z);
 	}
 };
+
+#endif /* WITH_LZMA */
 
 /**
  * Read in data from file and update stream.
@@ -287,13 +299,14 @@ char *TextfileDesc::read (size_t *len) const
 	}
 }
 
-TextfileWindow::TextfileWindow (const TextfileDesc &txt)
-	: Window(&_textfile_desc), file_type(txt.type)
+TextfileWindow::TextfileWindow (const TextfileDesc &txt) :
+	Window (&_textfile_desc), file_type (txt.type),
+	vscroll (NULL), hscroll (NULL), text (NULL), lines ()
 {
 	this->CreateNestedTree();
 	this->vscroll = this->GetScrollbar(WID_TF_VSCROLLBAR);
 	this->hscroll = this->GetScrollbar(WID_TF_HSCROLLBAR);
-	this->FinishInitNested();
+	this->InitNested();
 	this->GetWidget<NWidgetCore>(WID_TF_CAPTION)->SetDataTip(STR_TEXTFILE_README_CAPTION + txt.type, STR_TOOLTIP_WINDOW_TITLE_DRAG_THIS);
 
 	this->hscroll->SetStepSize(10); // Speed up horizontal scrollbar

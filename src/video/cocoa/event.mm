@@ -110,7 +110,7 @@ static void QZ_WarpCursor(int x, int y)
 static void QZ_CheckPaletteAnim()
 {
 	if (_cur_palette.count_dirty != 0) {
-		Blitter *blitter = GetCurrentBlitter();
+		Blitter *blitter = Blitter::get();
 
 		switch (blitter->UsePaletteAnimation()) {
 			case Blitter::PALETTE_ANIMATION_VIDEO_BACKEND:
@@ -287,7 +287,7 @@ static bool QZ_KeyEvent(unsigned short keycode, unsigned short unicode, BOOL dow
 		case QZ_RETURN:
 		case QZ_f:
 			if (down && (_current_mods & NSCommandKeyMask)) {
-				VideoDriver::GetInstance()->ToggleFullscreen(!_fullscreen);
+				VideoDriver::GetActiveDriver()->ToggleFullscreen(!_fullscreen);
 			}
 			break;
 

@@ -165,26 +165,43 @@ struct HotkeyList;
 /**
  * High level window description
  */
-struct WindowDesc : ZeroedMemoryAllocator {
+struct WindowDesc {
+	struct Prefs {
+		const char *const key; ///< Key to store window defaults in the config file.
+		int16 pref_width;      ///< User-preferred width of the window. Zero if unset.
+		int16 pref_height;     ///< User-preferred height of the window. Zero if unset.
+		bool  pref_sticky;     ///< Preferred stickyness.
 
-	WindowDesc(WindowPosition default_pos, const char *ini_key, int16 def_width_trad, int16 def_height_trad,
+		Prefs (const char *key);
+		~Prefs();
+	};
+
+	/** Window description constructor. */
+	CONSTEXPR WindowDesc (WindowPosition def_pos, int16 def_width_trad, int16 def_height_trad,
 			WindowClass window_class, WindowClass parent_class, uint32 flags,
-			const NWidgetPart *nwid_parts, int16 nwid_length, HotkeyList *hotkeys = NULL);
-
-	~WindowDesc();
+			const NWidgetPart *nwid_parts, int16 nwid_length,
+			Prefs *prefs = NULL, HotkeyList *hotkeys = NULL) :
+		default_pos(def_pos),
+		cls(window_class),
+		parent_cls(parent_class),
+		flags(flags),
+		nwid_parts(nwid_parts),
+		nwid_length(nwid_length),
+		prefs(prefs),
+		hotkeys(hotkeys),
+		default_width_trad(def_width_trad),
+		default_height_trad(def_height_trad)
+	{
+	}
 
 	WindowPosition default_pos;    ///< Preferred position of the window. @see WindowPosition()
 	WindowClass cls;               ///< Class of the window, @see WindowClass.
 	WindowClass parent_cls;        ///< Class of the parent window. @see WindowClass
-	const char *ini_key;           ///< Key to store window defaults in openttd.cfg. \c NULL if nothing shall be stored.
 	uint32 flags;                  ///< Flags. @see WindowDefaultFlag
 	const NWidgetPart *nwid_parts; ///< Nested widget parts describing the window.
 	int16 nwid_length;             ///< Length of the #nwid_parts array.
+	Prefs *prefs;                  ///< Preferred dimensions and state.
 	HotkeyList *hotkeys;           ///< Hotkeys for the window.
-
-	bool pref_sticky;              ///< Preferred stickyness.
-	int16 pref_width;              ///< User-preferred width of the window. Zero if unset.
-	int16 pref_height;             ///< User-preferred height of the window. Zero if unset.
 
 	int16 GetDefaultWidth() const;
 	int16 GetDefaultHeight() const;
@@ -268,16 +285,14 @@ struct QueryString;
 /**
  * Data structure for an opened window
  */
-struct Window : ZeroedMemoryAllocator {
+struct Window {
 protected:
-	void InitializeData(WindowNumber window_number);
-	void InitializePositionSize(int x, int y, int min_width, int min_height);
 	virtual void FindWindowPlacementAndResize(int def_width, int def_height);
 
 	SmallVector<int, 4> scheduled_invalidation_data;  ///< Data of scheduled OnInvalidateData() calls.
 
 public:
-	Window(WindowDesc *desc);
+	Window (const WindowDesc *desc);
 
 	virtual ~Window();
 
@@ -293,15 +308,15 @@ public:
 	}
 
 	/**
-	 * Helper allocation function to disallow something.
-	 * Don't free the window directly; it corrupts the linked list when iterating
-	 * @param ptr the pointer not to free
+	 * Memory release for an array of class instances.
+	 * @param ptr  the memory to free.
 	 */
-	inline void operator delete(void *ptr)
+	inline void operator delete[](void *ptr)
 	{
+		NOT_REACHED();
 	}
 
-	WindowDesc *window_desc;    ///< Window description
+	const WindowDesc *window_desc; ///< Window description
 	WindowFlags flags;          ///< Window flags
 	WindowClass window_class;   ///< Window class
 	WindowNumber window_number; ///< Window number within the window class
@@ -352,8 +367,9 @@ public:
 	virtual const char *GetTextCharacterAtPosition(const Point &pt) const;
 
 	void InitNested(WindowNumber number = 0);
-	void CreateNestedTree(bool fill_nested = true);
-	void FinishInitNested(WindowNumber window_number = 0);
+	void CreateNestedTree(void);
+
+	void Delete (void);
 
 	/**
 	 * Set the timeout flag of the window and initiate the timer.
@@ -535,7 +551,8 @@ public:
 	 */
 	virtual void OnInit() { }
 
-	virtual void ApplyDefaults();
+	/** Notification that the window is about to be deleted. */
+	virtual void OnDelete (void) { }
 
 	/**
 	 * Compute the initial position of the window.
@@ -736,7 +753,7 @@ public:
 	virtual void OnPlaceObject(Point pt, TileIndex tile) {}
 
 	/**
-	 * The user clicked on a vehicle while HT_VEHICLE has been set.
+	 * The user clicked on a vehicle.
 	 * @param v clicked vehicle. It is guaranteed to be v->IsPrimaryVehicle() == true
 	 * @return True if the click is handled, false if it is ignored.
 	 */
@@ -751,11 +768,11 @@ public:
 	/**
 	 * The user is dragging over the map when the tile highlight mode
 	 * has been set.
-	 * @param select_method the method of selection (allowed directions)
 	 * @param userdata      data set by the function that started the selection
 	 * @param pt            the exact point on the map where the mouse is.
+	 * @return Whether the tile selection should be updated.
 	 */
-	virtual void OnPlaceDrag (ViewportPlaceMethod select_method, int userdata, Point pt) {}
+	virtual bool OnPlaceDrag (int userdata, Point pt) { return true; }
 
 	/**
 	 * The user has dragged over the map when the tile highlight mode
@@ -771,10 +788,10 @@ public:
 	 * The user moves over the map when a tile highlight mode has been set
 	 * when the special mouse mode has been set to 'PRESIZE' mode. An
 	 * example of this is the tile highlight for dock building.
-	 * @param pt   the exact point on the map where the mouse is.
-	 * @param tile the tile on the map where the mouse is.
+	 * @param tile  the tile on the map where the mouse is (in), start of selection (out)
+	 * @param tile2 the tile on the map where the mouse is (in), end of selection (out)
 	 */
-	virtual void OnPlacePresize(Point pt, TileIndex tile) {}
+	virtual void OnPlacePresize (TileIndex *tile, TileIndex *tile2) {}
 
 	/*** End of the event handling ***/
 
@@ -835,12 +852,13 @@ inline const NWID *Window::GetWidget(uint widnum) const
 class PickerWindowBase : public Window {
 
 public:
-	PickerWindowBase(WindowDesc *desc, Window *parent) : Window(desc)
+	PickerWindowBase (const WindowDesc *desc, Window *parent)
+		: Window(desc)
 	{
 		this->parent = parent;
 	}
 
-	virtual ~PickerWindowBase();
+	void OnDelete (void) OVERRIDE;
 };
 
 Window *BringWindowToFrontById(WindowClass cls, WindowNumber number);
@@ -855,7 +873,7 @@ Window *FindWindowFromPt(int x, int y);
  * @return %Window pointer of the newly created window, or the existing one if \a return_existing is set, or \c NULL.
  */
 template <typename Wcls>
-Wcls *AllocateWindowDescFront(WindowDesc *desc, int window_number, bool return_existing = false)
+Wcls *AllocateWindowDescFront (const WindowDesc *desc, int window_number, bool return_existing = false)
 {
 	Wcls *w = static_cast<Wcls *>(BringWindowToFrontById(desc->cls, window_number));
 	if (w != NULL) return return_existing ? w : NULL;
@@ -891,14 +909,25 @@ extern byte _scroller_click_timeout;
 extern bool _scrolling_viewport;
 extern bool _mouse_hovering;
 
-/** Mouse modes. */
-enum SpecialMouseMode {
-	WSM_NONE,     ///< No special mouse mode.
-	WSM_DRAGDROP, ///< Dragging an object.
-	WSM_SIZING,   ///< Sizing mode.
-	WSM_PRESIZE,  ///< Presizing mode (docks, tunnels).
+/** Pointer modes. */
+enum PointerMode {
+	POINTER_NONE,      ///< Normal pointer mode.
+	POINTER_TILE,      ///< Highlight the tile under the pointer.
+	POINTER_CORNER,    ///< Highlight the corner under the pointer.
+	POINTER_AREA,      ///< Highlight a custom tile area (docks, tunnels).
+	POINTER_RAIL_X,    ///< Rail construction highlighting, X axis.
+	POINTER_RAIL_Y,    ///< Rail construction highlighting, Y axis.
+	POINTER_RAIL_H,    ///< Rail construction highlighting, horizontal.
+	POINTER_RAIL_V,    ///< Rail construction highlighting, vertical.
+	POINTER_RAIL_AUTO, ///< Autorail highlighting.
+	POINTER_DRAG,      ///< Drag a vehicle.
+	POINTER_VEHICLE,      ///< Normal pointer mode, but allow to select a vehicle.
+	POINTER_TILE_VEHICLE, ///< Highlight the tile under the pointer and allow to select a vehicle.
+
+	POINTER_RAIL_FIRST = POINTER_RAIL_X,
+	POINTER_RAIL_LAST  = POINTER_RAIL_AUTO,
 };
-extern SpecialMouseMode _special_mouse_mode;
+extern PointerMode _pointer_mode;
 
 void SetFocusedWindow(Window *w);
 

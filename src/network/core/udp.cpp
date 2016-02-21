@@ -123,7 +123,7 @@ void NetworkUDPSocketHandler::ReceivePackets()
 			struct sockaddr_storage client_addr;
 			memset(&client_addr, 0, sizeof(client_addr));
 
-			Packet p(this);
+			RecvPacket p (this);
 			socklen_t client_len = sizeof(client_addr);
 
 			/* Try to receive anything */
@@ -218,7 +218,7 @@ void NetworkUDPSocketHandler::SendNetworkGameInfo(Packet *p, const NetworkGameIn
  * @param p    the packet to read the data from
  * @param info the NetworkGameInfo to deserialize into
  */
-void NetworkUDPSocketHandler::ReceiveNetworkGameInfo(Packet *p, NetworkGameInfo *info)
+void NetworkUDPSocketHandler::ReceiveNetworkGameInfo (RecvPacket *p, NetworkGameInfo *info)
 {
 	static const Date MAX_DATE = ConvertYMDToDate(MAX_YEAR, 11, 31); // December is month 11
 
@@ -289,7 +289,7 @@ void NetworkUDPSocketHandler::ReceiveNetworkGameInfo(Packet *p, NetworkGameInfo 
  * @param p the received packet
  * @param client_addr the sender of the packet
  */
-void NetworkUDPSocketHandler::HandleUDPPacket(Packet *p, NetworkAddress *client_addr)
+void NetworkUDPSocketHandler::HandleUDPPacket (RecvPacket *p, NetworkAddress *client_addr)
 {
 	PacketUDPType type;
 
@@ -332,17 +332,17 @@ void NetworkUDPSocketHandler::ReceiveInvalidPacket(PacketUDPType type, NetworkAd
 	DEBUG(net, 0, "[udp] received packet type %d on wrong port from %s", type, client_addr->GetAddressAsString());
 }
 
-void NetworkUDPSocketHandler::Receive_CLIENT_FIND_SERVER(Packet *p, NetworkAddress *client_addr) { this->ReceiveInvalidPacket(PACKET_UDP_CLIENT_FIND_SERVER, client_addr); }
-void NetworkUDPSocketHandler::Receive_SERVER_RESPONSE(Packet *p, NetworkAddress *client_addr) { this->ReceiveInvalidPacket(PACKET_UDP_SERVER_RESPONSE, client_addr); }
-void NetworkUDPSocketHandler::Receive_CLIENT_DETAIL_INFO(Packet *p, NetworkAddress *client_addr) { this->ReceiveInvalidPacket(PACKET_UDP_CLIENT_DETAIL_INFO, client_addr); }
-void NetworkUDPSocketHandler::Receive_SERVER_DETAIL_INFO(Packet *p, NetworkAddress *client_addr) { this->ReceiveInvalidPacket(PACKET_UDP_SERVER_DETAIL_INFO, client_addr); }
-void NetworkUDPSocketHandler::Receive_SERVER_REGISTER(Packet *p, NetworkAddress *client_addr) { this->ReceiveInvalidPacket(PACKET_UDP_SERVER_REGISTER, client_addr); }
-void NetworkUDPSocketHandler::Receive_MASTER_ACK_REGISTER(Packet *p, NetworkAddress *client_addr) { this->ReceiveInvalidPacket(PACKET_UDP_MASTER_ACK_REGISTER, client_addr); }
-void NetworkUDPSocketHandler::Receive_CLIENT_GET_LIST(Packet *p, NetworkAddress *client_addr) { this->ReceiveInvalidPacket(PACKET_UDP_CLIENT_GET_LIST, client_addr); }
-void NetworkUDPSocketHandler::Receive_MASTER_RESPONSE_LIST(Packet *p, NetworkAddress *client_addr) { this->ReceiveInvalidPacket(PACKET_UDP_MASTER_RESPONSE_LIST, client_addr); }
-void NetworkUDPSocketHandler::Receive_SERVER_UNREGISTER(Packet *p, NetworkAddress *client_addr) { this->ReceiveInvalidPacket(PACKET_UDP_SERVER_UNREGISTER, client_addr); }
-void NetworkUDPSocketHandler::Receive_CLIENT_GET_NEWGRFS(Packet *p, NetworkAddress *client_addr) { this->ReceiveInvalidPacket(PACKET_UDP_CLIENT_GET_NEWGRFS, client_addr); }
-void NetworkUDPSocketHandler::Receive_SERVER_NEWGRFS(Packet *p, NetworkAddress *client_addr) { this->ReceiveInvalidPacket(PACKET_UDP_SERVER_NEWGRFS, client_addr); }
-void NetworkUDPSocketHandler::Receive_MASTER_SESSION_KEY(Packet *p, NetworkAddress *client_addr) { this->ReceiveInvalidPacket(PACKET_UDP_MASTER_SESSION_KEY, client_addr); }
+void NetworkUDPSocketHandler::Receive_CLIENT_FIND_SERVER (RecvPacket *p, NetworkAddress *client_addr) { this->ReceiveInvalidPacket (PACKET_UDP_CLIENT_FIND_SERVER, client_addr); }
+void NetworkUDPSocketHandler::Receive_SERVER_RESPONSE (RecvPacket *p, NetworkAddress *client_addr) { this->ReceiveInvalidPacket (PACKET_UDP_SERVER_RESPONSE, client_addr); }
+void NetworkUDPSocketHandler::Receive_CLIENT_DETAIL_INFO (RecvPacket *p, NetworkAddress *client_addr) { this->ReceiveInvalidPacket (PACKET_UDP_CLIENT_DETAIL_INFO, client_addr); }
+void NetworkUDPSocketHandler::Receive_SERVER_DETAIL_INFO (RecvPacket *p, NetworkAddress *client_addr) { this->ReceiveInvalidPacket (PACKET_UDP_SERVER_DETAIL_INFO, client_addr); }
+void NetworkUDPSocketHandler::Receive_SERVER_REGISTER (RecvPacket *p, NetworkAddress *client_addr) { this->ReceiveInvalidPacket (PACKET_UDP_SERVER_REGISTER, client_addr); }
+void NetworkUDPSocketHandler::Receive_MASTER_ACK_REGISTER (RecvPacket *p, NetworkAddress *client_addr) { this->ReceiveInvalidPacket (PACKET_UDP_MASTER_ACK_REGISTER, client_addr); }
+void NetworkUDPSocketHandler::Receive_CLIENT_GET_LIST (RecvPacket *p, NetworkAddress *client_addr) { this->ReceiveInvalidPacket (PACKET_UDP_CLIENT_GET_LIST, client_addr); }
+void NetworkUDPSocketHandler::Receive_MASTER_RESPONSE_LIST (RecvPacket *p, NetworkAddress *client_addr) { this->ReceiveInvalidPacket (PACKET_UDP_MASTER_RESPONSE_LIST, client_addr); }
+void NetworkUDPSocketHandler::Receive_SERVER_UNREGISTER (RecvPacket *p, NetworkAddress *client_addr) { this->ReceiveInvalidPacket (PACKET_UDP_SERVER_UNREGISTER, client_addr); }
+void NetworkUDPSocketHandler::Receive_CLIENT_GET_NEWGRFS (RecvPacket *p, NetworkAddress *client_addr) { this->ReceiveInvalidPacket (PACKET_UDP_CLIENT_GET_NEWGRFS, client_addr); }
+void NetworkUDPSocketHandler::Receive_SERVER_NEWGRFS (RecvPacket *p, NetworkAddress *client_addr) { this->ReceiveInvalidPacket (PACKET_UDP_SERVER_NEWGRFS, client_addr); }
+void NetworkUDPSocketHandler::Receive_MASTER_SESSION_KEY (RecvPacket *p, NetworkAddress *client_addr) { this->ReceiveInvalidPacket (PACKET_UDP_MASTER_SESSION_KEY, client_addr); }
 
 #endif /* ENABLE_NETWORK */

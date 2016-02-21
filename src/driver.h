@@ -12,9 +12,11 @@
 #ifndef DRIVER_H
 #define DRIVER_H
 
+#include <map>
+
 #include "core/enum_type.hpp"
 #include "core/string_compare_type.hpp"
-#include <map>
+#include "core/pointer.h"
 #include "string.h"
 
 const char *GetDriverParam(const char * const *parm, const char *name);
@@ -37,99 +39,161 @@ public:
 	virtual void Stop() = 0;
 
 	virtual ~Driver() { }
-
-	/** The type of driver */
-	enum Type {
-		DT_BEGIN = 0, ///< Helper for iteration
-		DT_MUSIC = 0, ///< A music driver, needs to be before sound to properly shut down extmidi forked music players
-		DT_SOUND,     ///< A sound driver
-		DT_VIDEO,     ///< A video driver
-		DT_END,       ///< Helper for iteration
-	};
-
-	/**
-	 * Get the name of this driver.
-	 * @return The name of the driver.
-	 */
-	virtual const char *GetName() const = 0;
 };
-
-DECLARE_POSTFIX_INCREMENT(Driver::Type)
 
 
 /** Base for all driver factories. */
-class DriverFactoryBase {
-private:
-	friend class MusicDriver;
-	friend class SoundDriver;
-	friend class VideoDriver;
-
-	Driver::Type type;             ///< The type of driver.
-	int priority;                  ///< The priority of this factory.
+struct DriverFactoryBase {
 	const char *const name;        ///< The name of the drivers of this factory.
 	const char *const description; ///< The description of this driver.
-
-	typedef std::map<const char *, DriverFactoryBase *, StringCompare> Drivers; ///< Type for a map of drivers.
-
-	/**
-	 * Get the map with drivers.
-	 */
-	static Drivers &GetDrivers (Driver::Type type)
-	{
-		static Drivers *const s_drivers [Driver::DT_END] =
-			{ new Drivers(), new Drivers(), new Drivers() };
-		return *s_drivers[type];
-	}
+	const int priority;            ///< The priority of this factory.
 
 	/**
-	 * Get the active driver for the given type.
-	 * @param type The type to get the driver for.
-	 * @return The active driver.
+	 * Construct a new DriverFactory.
+	 * @param name        The name of the driver.
+	 * @param description A long-ish description of the driver.
+	 * @param priority    The priority within the driver class.
 	 */
-	static Driver **GetActiveDriver(Driver::Type type)
+	CONSTEXPR DriverFactoryBase (const char *name, const char *description, int priority)
+		: name(name), description(description), priority(priority)
 	{
-		static Driver *s_driver[3] = { NULL, NULL, NULL };
-		return &s_driver[type];
 	}
 
-	/**
-	 * Get the driver type name.
-	 * @param type The type of driver to get the name of.
-	 * @return The name of the type.
-	 */
-	static const char *GetDriverTypeName(Driver::Type type)
+	/** Destruct a DriverFactory. */
+	virtual ~DriverFactoryBase()
 	{
-		static const char * const driver_type_name[] = { "music", "sound", "video" };
-		return driver_type_name[type];
 	}
-
-	static bool SelectDriverImpl(const char *name, Driver::Type type);
-
-protected:
-	DriverFactoryBase(Driver::Type type, int priority, const char *name, const char *description);
-
-	virtual ~DriverFactoryBase();
-
-public:
-	/**
-	 * Shuts down all active drivers
-	 */
-	static void ShutdownDrivers()
-	{
-		for (Driver::Type dt = Driver::DT_BEGIN; dt < Driver::DT_END; dt++) {
-			Driver *driver = *GetActiveDriver(dt);
-			if (driver != NULL) driver->Stop();
-		}
-	}
-
-	static void SelectDriver(const char *name, Driver::Type type);
-	static void GetDriversInfo (stringb *buf);
 
 	/**
 	 * Create an instance of this driver-class.
 	 * @return The instance.
 	 */
 	virtual Driver *CreateInstance() const = 0;
+};
+
+
+/** Encapsulation of a driver system (music, sound, video). */
+struct DriverSystem {
+	typedef std::map <const char *, DriverFactoryBase *, StringCompare> map;
+
+	map *drivers;           ///< Map of available drivers.
+	const char *const desc; ///< Name of the driver system.
+	Driver *active;         ///< Currently active driver.
+	const char *name;       ///< Name of the currently active driver.
+
+	DriverSystem (const char *desc);
+
+	void insert (const char *name, DriverFactoryBase *factory);
+
+	void erase (const char *name);
+
+	void select (const char *name);
+
+	void list (stringb *buf);
+};
+
+
+/** Driver system struct to share a common static DriverSystem. */
+template <class T>
+class SharedDriverSystem {
+private:
+	/** Get the driver system. */
+	static DriverSystem &GetSystem (void)
+	{
+		static DriverSystem system (T::GetSystemName());
+		return system;
+	}
+
+protected:
+	/** Insert a driver factory into the list. */
+	static void insert (const char *name, DriverFactoryBase *factory)
+	{
+		GetSystem().insert (name, factory);
+	}
+
+	/** Remove a driver factory from the list. */
+	static void erase (const char *name)
+	{
+		GetSystem().erase (name);
+	}
+
+public:
+	/** Shuts down the active driver. */
+	static void ShutdownDriver (void)
+	{
+		Driver *driver = GetSystem().active;
+		if (driver != NULL) driver->Stop();
+	}
+
+	/**
+	 * Find the requested driver and return its class.
+	 * @param name the driver to select.
+	 * @post Sets the driver so GetCurrentDriver() returns it too.
+	 */
+	static void SelectDriver (const char *name)
+	{
+		GetSystem().select (name);
+	}
+
+	/**
+	 * Get the active driver.
+	 * @return The active driver.
+	 */
+	static T *GetActiveDriver (void)
+	{
+		return static_cast<T*> (GetSystem().active);
+	}
+
+	/**
+	 * Get the name of the active driver.
+	 * @return The name of the active driver.
+	 */
+	static const char *GetActiveDriverName (void)
+	{
+		return GetSystem().name;
+	}
+
+	/**
+	 * Build a human readable list of available drivers.
+	 * @param buf The buffer to write to.
+	 */
+	static void GetDriversInfo (stringb *buf)
+	{
+		GetSystem().list (buf);
+	}
+};
+
+
+/** Specialised driver factory helper class. */
+template <class T, class D>
+class DriverFactory : DriverFactoryBase, public SharedDriverSystem <T> {
+public:
+	/**
+	 * Construct a new DriverFactory.
+	 * @param priority    The priority within the driver class.
+	 * @param name        The name of the driver.
+	 * @param description A long-ish description of the driver.
+	 */
+	DriverFactory (int priority, const char *name, const char *description)
+		: DriverFactoryBase (name, description, priority)
+	{
+		SharedDriverSystem<T>::insert (name, this);
+	}
+
+	/** Destruct a DriverFactory. */
+	~DriverFactory()
+	{
+		SharedDriverSystem<T>::erase (this->name);
+	}
+
+	/**
+	 * Create an instance of this driver-class.
+	 * @return The instance.
+	 */
+	D *CreateInstance (void) const FINAL_OVERRIDE
+	{
+		return new D;
+	}
 };
 
 #endif /* DRIVER_H */

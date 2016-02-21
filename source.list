@@ -875,8 +875,6 @@ script/api/script_waypointlist.cpp
 script/api/script_window.cpp
 
 # Blitters
-blitter/base.cpp
-blitter/base.hpp
 blitter/blitter.cpp
 blitter/blitter.h
 blitter/null.cpp
@@ -997,7 +995,6 @@ map/util.h
 
 # Misc
 misc/array.hpp
-misc/binaryheap.hpp
 misc/countedobj.cpp
 misc/countedptr.hpp
 misc/dbg_helpers.cpp

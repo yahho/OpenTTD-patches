@@ -51,11 +51,12 @@ static void SetupSubsidyDecodeParams (const Subsidy *s)
 struct SubsidyListWindow : Window {
 	Scrollbar *vscroll;
 
-	SubsidyListWindow(WindowDesc *desc, WindowNumber window_number) : Window(desc)
+	SubsidyListWindow (const WindowDesc *desc, WindowNumber window_number) :
+		Window (desc), vscroll (NULL)
 	{
 		this->CreateNestedTree();
 		this->vscroll = this->GetScrollbar(WID_SUL_SCROLLBAR);
-		this->FinishInitNested(window_number);
+		this->InitNested(window_number);
 		this->OnInvalidateData(0);
 	}
 
@@ -262,11 +263,14 @@ static const NWidgetPart _nested_subsidies_list_widgets[] = {
 	EndContainer(),
 };
 
-static WindowDesc _subsidies_list_desc(
-	WDP_AUTO, "list_subsidies", 500, 127,
+static WindowDesc::Prefs _subsidies_list_prefs ("list_subsidies");
+
+static const WindowDesc _subsidies_list_desc(
+	WDP_AUTO, 500, 127,
 	WC_SUBSIDIES_LIST, WC_NONE,
 	0,
-	_nested_subsidies_list_widgets, lengthof(_nested_subsidies_list_widgets)
+	_nested_subsidies_list_widgets, lengthof(_nested_subsidies_list_widgets),
+	&_subsidies_list_prefs
 );
 
 

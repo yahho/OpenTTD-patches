@@ -24,7 +24,7 @@
  */
 NetworkTCPSocketHandler::NetworkTCPSocketHandler(SOCKET s) :
 		NetworkSocketHandler(),
-		packet_queue(NULL), packet_recv(NULL),
+		packet_queue(), send_pos(0), packet_recv(NULL),
 		sock(s), writable(false)
 {
 }
@@ -43,11 +43,7 @@ NetworkRecvStatus NetworkTCPSocketHandler::CloseConnection(bool error)
 	NetworkSocketHandler::CloseConnection(error);
 
 	/* Free all pending and partially received packets */
-	while (this->packet_queue != NULL) {
-		Packet *p = this->packet_queue->next;
-		delete this->packet_queue;
-		this->packet_queue = p;
-	}
+	this->packet_queue.clear();
 	delete this->packet_recv;
 	this->packet_recv = NULL;
 
@@ -60,28 +56,39 @@ NetworkRecvStatus NetworkTCPSocketHandler::CloseConnection(bool error)
  * if the OS-network-buffer is full)
  * @param packet the packet to send
  */
-void NetworkTCPSocketHandler::SendPacket(Packet *packet)
+void NetworkTCPSocketHandler::SendPacket (QueuedPacket *packet)
 {
-	Packet *p;
 	assert(packet != NULL);
+	assert(packet->next == NULL);
 
-	packet->PrepareToSend();
+	this->packet_queue.append (packet);
+}
+
+/**
+ * This function puts the packet in the send-queue and it is send as
+ * soon as possible. This is the next tick, or maybe one tick later
+ * if the OS-network-buffer is full)
+ * @param packet the packet to send
+ */
+void NetworkTCPSocketHandler::SendPacket (const Packet *packet)
+{
+	assert(packet != NULL);
 
 	/* Reallocate the packet as in 99+% of the times we send at most 25 bytes and
 	 * keeping the other 1400+ bytes wastes memory, especially when someone tries
 	 * to do a denial of service attack! */
-	packet->buffer = xrealloct (packet->buffer, packet->size);
+	this->packet_queue.append (QueuedPacket::create (packet));
+}
 
-	/* Locate last packet buffered for the client */
-	p = this->packet_queue;
-	if (p == NULL) {
-		/* No packets yet */
-		this->packet_queue = packet;
-	} else {
-		/* Skip to the last packet */
-		while (p->next != NULL) p = p->next;
-		p->next = packet;
-	}
+/**
+ * This function creates a packet of the given type with no data and puts it
+ * in the send queue.
+ * @param type The type of packet to send.
+ */
+void NetworkTCPSocketHandler::SendPacket (PacketType type)
+{
+	Packet p (type);
+	this->SendPacket (&p);
 }
 
 /**
@@ -96,16 +103,17 @@ void NetworkTCPSocketHandler::SendPacket(Packet *packet)
  */
 SendPacketsState NetworkTCPSocketHandler::SendPackets(bool closing_down)
 {
-	ssize_t res;
-	Packet *p;
-
 	/* We can not write to this socket!! */
 	if (!this->writable) return SPS_NONE_SENT;
 	if (!this->IsConnected()) return SPS_CLOSED;
 
-	p = this->packet_queue;
-	while (p != NULL) {
-		res = send(this->sock, (const char*)p->buffer + p->pos, p->size - p->pos, 0);
+	for (;;) {
+		const QueuedPacket *p = this->packet_queue.peek();
+		if (p == NULL) break;
+
+		assert (this->send_pos < p->size);
+		size_t len = p->size - this->send_pos;
+		ssize_t res = send (this->sock, (const char*)p->buffer + this->send_pos, len, 0);
 		if (res == -1) {
 			int err = GET_LAST_ERROR();
 			if (err != EWOULDBLOCK) {
@@ -124,15 +132,14 @@ SendPacketsState NetworkTCPSocketHandler::SendPackets(bool closing_down)
 			return SPS_CLOSED;
 		}
 
-		p->pos += res;
-
 		/* Is this packet sent? */
-		if (p->pos == p->size) {
+		if ((size_t)res == len) {
 			/* Go to the next packet */
-			this->packet_queue = p->next;
+			this->packet_queue.pop();
 			delete p;
-			p = this->packet_queue;
+			this->send_pos = 0;
 		} else {
+			this->send_pos += res;
 			return SPS_PARTLY_SENT;
 		}
 	}
@@ -144,17 +151,17 @@ SendPacketsState NetworkTCPSocketHandler::SendPackets(bool closing_down)
  * Receives a packet for the given client
  * @return The received packet (or NULL when it didn't receive one)
  */
-Packet *NetworkTCPSocketHandler::ReceivePacket()
+RecvPacket *NetworkTCPSocketHandler::ReceivePacket()
 {
 	ssize_t res;
 
 	if (!this->IsConnected()) return NULL;
 
 	if (this->packet_recv == NULL) {
-		this->packet_recv = new Packet(this);
+		this->packet_recv = new RecvPacket (this);
 	}
 
-	Packet *p = this->packet_recv;
+	RecvPacket *p = this->packet_recv;
 
 	/* Read packet size */
 	if (p->pos < sizeof(PacketSize)) {

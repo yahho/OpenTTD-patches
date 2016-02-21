@@ -73,6 +73,18 @@ public:
 	void Reduce(uint count);
 
 	/**
+	 * Try to merge another packet into this one, if the total count allows it.
+	 * @param cp Packet to merge.
+	 * @return Whether merging was possible (and done).
+	 */
+	bool TryMerge (CargoPacket *cp)
+	{
+		if (this->count + cp->count > MAX_COUNT) return false;
+		this->Merge (cp);
+		return true;
+	}
+
+	/**
 	 * Sets the tile where the packet was loaded last.
 	 * @param load_place Tile where the packet was loaded last.
 	 */
@@ -230,8 +242,6 @@ protected:
 	void AddToCache(const CargoPacket *cp);
 
 	void RemoveFromCache(const CargoPacket *cp, uint count);
-
-	static bool TryMerge(CargoPacket *cp, CargoPacket *icp);
 
 public:
 	/** Create the cargo list. */
@@ -423,21 +433,6 @@ public:
 	uint Shift(uint max_move, VehicleCargoList *dest);
 	uint Truncate(uint max_move = UINT_MAX);
 	uint Reroute(uint max_move, VehicleCargoList *dest, StationID avoid, StationID avoid2, const GoodsEntry *ge);
-
-	/**
-	 * Are two the two CargoPackets mergeable in the context of
-	 * a list of CargoPackets for a Vehicle?
-	 * @param cp1 First CargoPacket.
-	 * @param cp2 Second CargoPacket.
-	 * @return True if they are mergeable.
-	 */
-	static bool AreMergable(const CargoPacket *cp1, const CargoPacket *cp2)
-	{
-		return cp1->source_xy    == cp2->source_xy &&
-				cp1->days_in_transit == cp2->days_in_transit &&
-				cp1->source          == cp2->source &&
-				cp1->loaded_at_xy    == cp2->loaded_at_xy;
-	}
 };
 
 typedef MultiMap<StationID, CargoPacket *> StationCargoPacketMap;
@@ -535,20 +530,6 @@ public:
 	uint Load(uint max_move, VehicleCargoList *dest, TileIndex load_place, StationIDStack next);
 	uint Truncate(uint max_move = UINT_MAX, StationCargoAmountMap *cargo_per_source = NULL);
 	uint Reroute(uint max_move, StationCargoList *dest, StationID avoid, StationID avoid2, const GoodsEntry *ge);
-
-	/**
-	 * Are two the two CargoPackets mergeable in the context of
-	 * a list of CargoPackets for a Vehicle?
-	 * @param cp1 First CargoPacket.
-	 * @param cp2 Second CargoPacket.
-	 * @return True if they are mergeable.
-	 */
-	static bool AreMergable(const CargoPacket *cp1, const CargoPacket *cp2)
-	{
-		return cp1->source_xy    == cp2->source_xy &&
-				cp1->days_in_transit == cp2->days_in_transit &&
-				cp1->source          == cp2->source;
-	}
 };
 
 #endif /* CARGOPACKET_H */

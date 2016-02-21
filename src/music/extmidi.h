@@ -20,9 +20,6 @@ private:
 	char song[MAX_PATH];
 	pid_t pid;
 
-	void DoPlay();
-	void DoStop();
-
 public:
 	/* virtual */ const char *Start(const char * const *param);
 
@@ -35,13 +32,6 @@ public:
 	/* virtual */ bool IsSongPlaying();
 
 	/* virtual */ void SetVolume(byte vol);
-	/* virtual */ const char *GetName() const { return "extmidi"; }
-};
-
-class FMusicDriver_ExtMidi : public DriverFactoryBase {
-public:
-	FMusicDriver_ExtMidi() : DriverFactoryBase(Driver::DT_MUSIC, 3, "extmidi", "External MIDI Driver") {}
-	/* virtual */ Driver *CreateInstance() const { return new MusicDriver_ExtMidi(); }
 };
 
 #endif /* MUSIC_EXTERNAL_H */

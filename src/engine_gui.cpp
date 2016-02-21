@@ -65,7 +65,8 @@ static const NWidgetPart _nested_engine_preview_widgets[] = {
 struct EnginePreviewWindow : Window {
 	int vehicle_space; // The space to show the vehicle image
 
-	EnginePreviewWindow(WindowDesc *desc, WindowNumber window_number) : Window(desc)
+	EnginePreviewWindow (const WindowDesc *desc, WindowNumber window_number)
+		: Window (desc), vehicle_space (0)
 	{
 		this->InitNested(window_number);
 
@@ -126,7 +127,7 @@ struct EnginePreviewWindow : Window {
 				DoCommandP(0, this->window_number, 0, CMD_WANT_ENGINE_PREVIEW);
 				/* FALL THROUGH */
 			case WID_EP_NO:
-				delete this;
+				this->Delete();
 				break;
 		}
 	}
@@ -136,15 +137,18 @@ struct EnginePreviewWindow : Window {
 		if (!gui_scope) return;
 
 		EngineID engine = this->window_number;
-		if (Engine::Get(engine)->preview_company != _local_company) delete this;
+		if (Engine::Get(engine)->preview_company != _local_company) this->Delete();
 	}
 };
 
-static WindowDesc _engine_preview_desc(
-	WDP_CENTER, "engine_preview", 0, 0,
+static WindowDesc::Prefs _engine_preview_prefs ("engine_preview");
+
+static const WindowDesc _engine_preview_desc(
+	WDP_CENTER, 0, 0,
 	WC_ENGINE_PREVIEW, WC_NONE,
 	WDF_CONSTRUCTION,
-	_nested_engine_preview_widgets, lengthof(_nested_engine_preview_widgets)
+	_nested_engine_preview_widgets, lengthof(_nested_engine_preview_widgets),
+	&_engine_preview_prefs
 );
 
 

@@ -82,8 +82,8 @@ protected:
 
 	friend class NetworkContentConnecter;
 
-	virtual bool Receive_SERVER_INFO(Packet *p);
-	virtual bool Receive_SERVER_CONTENT(Packet *p);
+	virtual bool Receive_SERVER_INFO (RecvPacket *p);
+	virtual bool Receive_SERVER_CONTENT (RecvPacket *p);
 
 	ContentInfo *GetContent(ContentID cid);
 	void DownloadContentInfo(ContentID cid);
@@ -149,7 +149,7 @@ public:
 
 extern ClientNetworkContentSocketHandler _network_content_client;
 
-void ShowNetworkContentListWindow(ContentVector *cv = NULL, ContentType type = CONTENT_TYPE_END);
+void ShowNetworkContentListWindow(ContentVector *cv = NULL, ContentType type1 = CONTENT_TYPE_END, ContentType type2 = CONTENT_TYPE_END);
 
 void ShowMissingContentWindow(const struct GRFConfig *list);
 

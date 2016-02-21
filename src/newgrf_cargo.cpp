@@ -15,7 +15,17 @@
 
 /** Resolver of cargo. */
 struct CargoResolverObject : public ResolverObject {
-	CargoResolverObject(const CargoSpec *cs, CallbackID callback = CBID_NO_CALLBACK, uint32 callback_param1 = 0, uint32 callback_param2 = 0);
+	/**
+	 * Constructor of the cargo resolver.
+	 * @param cs Cargo being resolved.
+	 * @param callback Callback ID.
+	 * @param param1 First parameter (var 10) of the callback.
+	 * @param param2 Second parameter (var 18) of the callback.
+	 */
+	CargoResolverObject (const CargoSpec *cs, CallbackID callback = CBID_NO_CALLBACK, uint32 param1 = 0, uint32 param2 = 0)
+		: ResolverObject (cs->grffile, callback, param1, param2)
+	{
+	}
 
 	/* virtual */ const SpriteGroup *ResolveReal(const RealSpriteGroup *group) const;
 };
@@ -30,17 +40,11 @@ struct CargoResolverObject : public ResolverObject {
 	return NULL;
 }
 
-/**
- * Constructor of the cargo resolver.
- * @param cs Cargo being resolved.
- * @param callback Callback ID.
- * @param callback_param1 First parameter (var 10) of the callback.
- * @param callback_param2 Second parameter (var 18) of the callback.
- */
-CargoResolverObject::CargoResolverObject(const CargoSpec *cs, CallbackID callback, uint32 callback_param1, uint32 callback_param2)
-		: ResolverObject(cs->grffile, callback, callback_param1, callback_param2)
+static inline const SpriteGroup *CargoResolve (const CargoSpec *cs,
+	CallbackID callback = CBID_NO_CALLBACK, uint32 param1 = 0, uint32 param2 = 0)
 {
-	this->root_spritegroup = cs->group;
+	CargoResolverObject object (cs, callback, param1, param2);
+	return SpriteGroup::Resolve (cs->group, object);
 }
 
 /**
@@ -50,8 +54,7 @@ CargoResolverObject::CargoResolverObject(const CargoSpec *cs, CallbackID callbac
  */
 SpriteID GetCustomCargoSprite(const CargoSpec *cs)
 {
-	CargoResolverObject object(cs);
-	const SpriteGroup *group = object.Resolve();
+	const SpriteGroup *group = CargoResolve (cs);
 	if (group == NULL) return 0;
 
 	return group->GetResult();
@@ -60,8 +63,7 @@ SpriteID GetCustomCargoSprite(const CargoSpec *cs)
 
 uint16 GetCargoCallback(CallbackID callback, uint32 param1, uint32 param2, const CargoSpec *cs)
 {
-	CargoResolverObject object(cs, callback, param1, param2);
-	return object.ResolveCallback();
+	return SpriteGroup::CallbackResult (CargoResolve (cs, callback, param1, param2));
 }
 
 /**

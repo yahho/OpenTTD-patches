@@ -26,7 +26,7 @@ extern uint _sprite_cache_size;
 
 typedef void *AllocatorProc(size_t size);
 
-void *GetRawSprite(SpriteID sprite, SpriteType type, AllocatorProc *allocator = NULL);
+void *GetRawSprite (SpriteID sprite, SpriteType type, bool cache = true);
 bool SpriteExists(SpriteID sprite);
 
 SpriteType GetSpriteType(SpriteID sprite);
@@ -52,10 +52,7 @@ struct MapGenSprite : Sprite {
 	byte data[];   ///< Sprite data
 };
 
-static inline const MapGenSprite *GetMapGenSprite (SpriteID sprite)
-{
-	return (const MapGenSprite*) GetRawSprite (sprite, ST_MAPGEN);
-}
+const MapGenSprite *GetMapGenSprite (SpriteID sprite);
 
 void GfxInitSpriteMem();
 void GfxClearSpriteCache();

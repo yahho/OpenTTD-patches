@@ -37,8 +37,8 @@ static const struct NWidgetPart _background_widgets[] = {
 /**
  * Window description for the background window to prevent smearing.
  */
-static WindowDesc _background_desc(
-	WDP_MANUAL, NULL, 0, 0,
+static const WindowDesc _background_desc(
+	WDP_MANUAL, 0, 0,
 	WC_BOOTSTRAP, WC_NONE,
 	0,
 	_background_widgets, lengthof(_background_widgets)
@@ -70,8 +70,8 @@ static const NWidgetPart _nested_boostrap_download_status_window_widgets[] = {
 };
 
 /** Window description for the download window */
-static WindowDesc _bootstrap_download_status_window_desc(
-	WDP_CENTER, NULL, 0, 0,
+static const WindowDesc _bootstrap_download_status_window_desc(
+	WDP_CENTER, 0, 0,
 	WC_NETWORK_STATUS_WINDOW, WC_NONE,
 	WDF_MODAL,
 	_nested_boostrap_download_status_window_widgets, lengthof(_nested_boostrap_download_status_window_widgets)
@@ -96,7 +96,7 @@ public:
 
 		/* _exit_game is used to break out of the outer video driver's MainLoop. */
 		_exit_game = true;
-		delete this;
+		this->Delete();
 	}
 };
 
@@ -115,8 +115,8 @@ static const NWidgetPart _bootstrap_query_widgets[] = {
 };
 
 /** The window description for the query. */
-static WindowDesc _bootstrap_query_desc(
-	WDP_CENTER, NULL, 0, 0,
+static const WindowDesc _bootstrap_query_desc(
+	WDP_CENTER, 0, 0,
 	WC_CONFIRM_POPUP_QUERY, WC_NONE,
 	0,
 	_bootstrap_query_widgets, lengthof(_bootstrap_query_widgets)
@@ -128,8 +128,11 @@ class BootstrapAskForDownloadWindow : public Window, ContentCallback {
 
 public:
 	/** Start listening to the content client events. */
-	BootstrapAskForDownloadWindow() : Window(&_bootstrap_query_desc)
+	BootstrapAskForDownloadWindow()
+		: Window (&_bootstrap_query_desc), button_size()
 	{
+		this->button_size.width  = 0;
+		this->button_size.height = 0;
 		this->InitNested(WN_CONFIRM_POPUP_QUERY_BOOTSTRAP);
 		_network_content_client.AddCallback(this);
 	}
@@ -198,7 +201,7 @@ public:
 		/* And once the meta data is received, start downloading it. */
 		_network_content_client.Select(ci->id);
 		new BootstrapContentDownloadStatusWindow();
-		delete this;
+		this->Delete();
 	}
 };
 
@@ -215,7 +218,7 @@ bool HandleBootstrap()
 	if (BaseGraphics::GetUsedSet() != NULL) return true;
 
 	/* No user interface, bail out with an error. */
-	if (GetCurrentBlitter()->GetScreenDepth() == 0) goto failure;
+	if (Blitter::get()->GetScreenDepth() == 0) goto failure;
 
 	/* If there is no network or no freetype, then there is nothing we can do. Go straight to failure. */
 #if defined(ENABLE_NETWORK) && defined(WITH_FREETYPE) && (defined(WITH_FONTCONFIG) || defined(WIN32) || defined(__APPLE__))
@@ -244,7 +247,7 @@ bool HandleBootstrap()
 	new BootstrapAskForDownloadWindow();
 
 	/* Process the user events. */
-	VideoDriver::GetInstance()->MainLoop();
+	VideoDriver::GetActiveDriver()->MainLoop();
 
 	/* _exit_game is used to get out of the video driver's main loop.
 	 * In case GM_BOOTSTRAP is still set we did not exit it via the

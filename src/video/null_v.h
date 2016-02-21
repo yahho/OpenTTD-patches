@@ -31,15 +31,8 @@ public:
 	/* virtual */ bool ChangeResolution(int w, int h);
 
 	/* virtual */ bool ToggleFullscreen(bool fullscreen);
-	/* virtual */ const char *GetName() const { return "null"; }
-	/* virtual */ bool HasGUI() const { return false; }
-};
 
-/** Factory the null video driver. */
-class FVideoDriver_Null : public DriverFactoryBase {
-public:
-	FVideoDriver_Null() : DriverFactoryBase(Driver::DT_VIDEO, 0, "null", "Null Video Driver") {}
-	/* virtual */ Driver *CreateInstance() const { return new VideoDriver_Null(); }
+	/* virtual */ bool HasGUI() const { return false; }
 };
 
 #endif /* VIDEO_NULL_H */

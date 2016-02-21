@@ -37,8 +37,68 @@ bool RawText::GetDecodedText (stringb *buf)
 }
 
 
+void ScriptText::Param::destroy (void)
+{
+	switch (this->type) {
+		default: NOT_REACHED();
+		case TYPE_INT:                        break;
+		case TYPE_STRING: free (this->s);     break;
+		case TYPE_TEXT:   this->t->Release(); break;
+	}
+
+	this->type = TYPE_INT;
+	this->i = 0;
+}
+
+inline void ScriptText::Param::set_int (int64 value)
+{
+	this->destroy();
+	this->type = TYPE_INT;
+	this->i = value;
+}
+
+inline void ScriptText::Param::set_string (const char *value)
+{
+	this->destroy();
+	this->type = TYPE_STRING;
+	this->s = xstrdup (value);
+	ValidateString (this->s);
+}
+
+inline void ScriptText::Param::set_text (ScriptText *value)
+{
+	this->destroy();
+	this->type = TYPE_TEXT;
+	value->AddRef();
+	this->t = value;
+}
+
+/**
+ * Encode this param into a string buffer.Internal function for recursive calling this function over multiple
+ * @param buf The buffer.
+ * @return The number of parameters added to the string.
+ */
+inline int ScriptText::Param::encode (stringb *buf)
+{
+	switch (this->type) {
+		default: NOT_REACHED();
+
+		case TYPE_INT:
+			buf->append_fmt (OTTD_PRINTFHEX64, this->i);
+			return 1;
+
+		case TYPE_STRING:
+			buf->append_fmt ("\"%s\"", this->s);
+			return 1;
+
+		case TYPE_TEXT:
+			return this->t->_GetEncodedText (buf);
+	}
+}
+
+
 ScriptText::ScriptText(HSQUIRRELVM vm) :
-	ZeroedMemoryAllocator()
+	params(), paramc(0), string(STR_NULL)
 {
 	int nparam = sq_gettop(vm) - 1;
 	if (nparam < 1) {
@@ -58,7 +118,6 @@ ScriptText::ScriptText(HSQUIRRELVM vm) :
 		sq_push(vm, i + 3);
 
 		if (SQ_FAILED(this->_SetParam(i, vm))) {
-			this->~ScriptText();
 			throw sq_throwerror(vm, "Invalid parameter");
 		}
 
@@ -67,40 +126,22 @@ ScriptText::ScriptText(HSQUIRRELVM vm) :
 	}
 }
 
-ScriptText::~ScriptText()
-{
-	for (int i = 0; i < SCRIPT_TEXT_MAX_PARAMETERS; i++) {
-		free(this->params[i]);
-		if (this->paramt[i] != NULL) this->paramt[i]->Release();
-	}
-}
-
 SQInteger ScriptText::_SetParam(int parameter, HSQUIRRELVM vm)
 {
 	if (parameter >= SCRIPT_TEXT_MAX_PARAMETERS) return SQ_ERROR;
-
-	free(this->params[parameter]);
-	if (this->paramt[parameter] != NULL) this->paramt[parameter]->Release();
-
-	this->parami[parameter] = 0;
-	this->params[parameter] = NULL;
-	this->paramt[parameter] = NULL;
 
 	switch (sq_gettype(vm, -1)) {
 		case OT_STRING: {
 			const char *value;
 			sq_getstring(vm, -1, &value);
-
-			this->params[parameter] = xstrdup(value);
-			ValidateString(this->params[parameter]);
+			this->params[parameter].set_string (value);
 			break;
 		}
 
 		case OT_INTEGER: {
 			SQInteger value;
 			sq_getinteger(vm, -1, &value);
-
-			this->parami[parameter] = value;
+			this->params[parameter].set_int (value);
 			break;
 		}
 
@@ -123,8 +164,7 @@ SQInteger ScriptText::_SetParam(int parameter, HSQUIRRELVM vm)
 			if (real_instance == NULL) return SQ_ERROR;
 
 			ScriptText *value = static_cast<ScriptText *>(real_instance);
-			value->AddRef();
-			this->paramt[parameter] = value;
+			this->params[parameter].set_text (value);
 			break;
 		}
 
@@ -188,30 +228,20 @@ SQInteger ScriptText::_set(HSQUIRRELVM vm)
 
 bool ScriptText::GetEncodedText (stringb *buf)
 {
-	int param_count = 0;
 	buf->clear();
-	this->_GetEncodedText (buf, param_count);
-	return param_count <= SCRIPT_TEXT_MAX_PARAMETERS;
+	return this->_GetEncodedText (buf) <= SCRIPT_TEXT_MAX_PARAMETERS;
 }
 
-void ScriptText::_GetEncodedText (stringb *buf, int &param_count)
+int ScriptText::_GetEncodedText (stringb *buf)
 {
+	int param_count = 0;
 	buf->append_utf8 (SCC_ENCODED);
 	buf->append_fmt ("%X", this->string);
 	for (int i = 0; i < this->paramc; i++) {
-		if (this->params[i] != NULL) {
-			buf->append_fmt (":\"%s\"", this->params[i]);
-			param_count++;
-			continue;
-		}
-		if (this->paramt[i] != NULL) {
-			buf->append (':');
-			this->paramt[i]->_GetEncodedText (buf, param_count);
-			continue;
-		}
-		buf->append_fmt (":" OTTD_PRINTFHEX64, this->parami[i]);
-		param_count++;
+		buf->append (':');
+		param_count += this->params[i].encode (buf);
 	}
+	return param_count;
 }
 
 bool ScriptText::GetDecodedText (stringb *buf)

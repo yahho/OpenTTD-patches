@@ -18,10 +18,11 @@
 
 /** Resolver for the industry tiles scope. */
 struct IndustryTileScopeResolver : public ScopeResolver {
+	const GRFFile *const grffile; ///< GRFFile the resolved SpriteGroup belongs to.
 	Industry *industry; ///< Industry owning the tiles.
 	TileIndex tile;     ///< %Tile being resolved.
 
-	IndustryTileScopeResolver(ResolverObject &ro, Industry *industry, TileIndex tile);
+	IndustryTileScopeResolver (const GRFFile *grffile, Industry *industry, TileIndex tile);
 
 	/* virtual */ uint32 GetRandomBits() const;
 	/* virtual */ uint32 GetVariable(byte variable, uint32 parameter, bool *available) const;
@@ -34,6 +35,8 @@ struct IndustryTileResolverObject : public ResolverObject {
 	IndustryTileScopeResolver indtile_scope; ///< Scope resolver for the industry tile.
 	IndustriesScopeResolver ind_scope;       ///< Scope resolver for the industry owning the tile.
 
+	const SpriteGroup *root_spritegroup; ///< Root SpriteGroup to use for resolving
+
 	IndustryTileResolverObject(IndustryGfx gfx, TileIndex tile, Industry *indus,
 			CallbackID callback = CBID_NO_CALLBACK, uint32 callback_param1 = 0, uint32 callback_param2 = 0);
 
@@ -44,6 +47,15 @@ struct IndustryTileResolverObject : public ResolverObject {
 			case VSG_SCOPE_PARENT: return &ind_scope;
 			default: return ResolverObject::GetScope(scope, relative);
 		}
+	}
+
+	/**
+	 * Resolve SpriteGroup.
+	 * @return Result spritegroup.
+	 */
+	const SpriteGroup *Resolve()
+	{
+		return SpriteGroup::Resolve (this->root_spritegroup, *this);
 	}
 };
 

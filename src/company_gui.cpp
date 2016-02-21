@@ -274,12 +274,12 @@ struct CompanyFinancesWindow : Window {
 	static Money max_money; ///< The maximum amount of money a company has had this 'run'
 	bool small;             ///< Window is toggled to 'small'.
 
-	CompanyFinancesWindow(WindowDesc *desc, CompanyID company) : Window(desc)
+	CompanyFinancesWindow (const WindowDesc *desc, CompanyID company)
+		: Window (desc), small (false)
 	{
-		this->small = false;
 		this->CreateNestedTree();
 		this->SetupWidgets();
-		this->FinishInitNested(company);
+		this->InitNested(company);
 
 		this->owner = (Owner)this->window_number;
 	}
@@ -464,11 +464,14 @@ struct CompanyFinancesWindow : Window {
 /** First conservative estimate of the maximum amount of money */
 Money CompanyFinancesWindow::max_money = INT32_MAX;
 
-static WindowDesc _company_finances_desc(
-	WDP_AUTO, "company_finances", 0, 0,
+static WindowDesc::Prefs _company_finances_prefs ("company_finances");
+
+static const WindowDesc _company_finances_desc(
+	WDP_AUTO, 0, 0,
 	WC_FINANCES, WC_NONE,
 	0,
-	_nested_company_finances_widgets, lengthof(_nested_company_finances_widgets)
+	_nested_company_finances_widgets, lengthof(_nested_company_finances_widgets),
+	&_company_finances_prefs
 );
 
 /**
@@ -600,11 +603,9 @@ private:
 	}
 
 public:
-	SelectCompanyLiveryWindow(WindowDesc *desc, CompanyID company) : Window(desc)
+	SelectCompanyLiveryWindow (const WindowDesc *desc, CompanyID company)
+		: Window (desc), sel (1), livery_class (LC_OTHER)
 	{
-		this->livery_class = LC_OTHER;
-		this->sel = 1;
-
 		this->square = GetSpriteSize(SPR_SQUARE);
 		this->box    = maxdim(GetSpriteSize(SPR_BOX_CHECKED), GetSpriteSize(SPR_BOX_EMPTY));
 		this->line_height = max(max(this->square.height, this->box.height), (uint)FONT_HEIGHT_NORMAL) + 4;
@@ -853,11 +854,14 @@ static const NWidgetPart _nested_select_company_livery_widgets [] = {
 	NWidget(WWT_MATRIX, COLOUR_GREY, WID_SCL_MATRIX), SetMinimalSize(275, 15), SetFill(1, 0), SetMatrixDataTip(1, 1, STR_LIVERY_PANEL_TOOLTIP),
 };
 
-static WindowDesc _select_company_livery_desc(
-	WDP_AUTO, "company_livery", 0, 0,
+static WindowDesc::Prefs _select_company_livery_prefs ("company_livery");
+
+static const WindowDesc _select_company_livery_desc(
+	WDP_AUTO, 0, 0,
 	WC_COMPANY_COLOUR, WC_NONE,
 	0,
-	_nested_select_company_livery_widgets, lengthof(_nested_select_company_livery_widgets)
+	_nested_select_company_livery_widgets, lengthof(_nested_select_company_livery_widgets),
+	&_select_company_livery_prefs
 );
 
 /**
@@ -1106,12 +1110,19 @@ class SelectCompanyManagerFaceWindow : public Window
 	}
 
 public:
-	SelectCompanyManagerFaceWindow(WindowDesc *desc, Window *parent) : Window(desc)
+	SelectCompanyManagerFaceWindow (const WindowDesc *desc, Window *parent)
+		: Window (desc), face (0), advanced (false),
+		  ge ((GenderEthnicity)0), is_female (false),
+		  is_moust_male (false)
 	{
-		this->advanced = false;
+		this->yesno_dim.width   = 0;
+		this->yesno_dim.height  = 0;
+		this->number_dim.width  = 0;
+		this->number_dim.height = 0;
+
 		this->CreateNestedTree();
 		this->SelectDisplayPlanes(this->advanced);
-		this->FinishInitNested(parent->window_number);
+		this->InitNested(parent->window_number);
 		this->parent = parent;
 		this->owner = (Owner)this->window_number;
 		this->face = Company::Get((CompanyID)this->window_number)->face;
@@ -1383,7 +1394,7 @@ public:
 
 			/* Cancel button */
 			case WID_SCMF_CANCEL:
-				delete this;
+				this->Delete();
 				break;
 
 			/* Load button */
@@ -1490,12 +1501,16 @@ public:
 	}
 };
 
+/** Company manager face selection window preferences */
+static WindowDesc::Prefs _select_company_manager_face_prefs ("company_face");
+
 /** Company manager face selection window description */
-static WindowDesc _select_company_manager_face_desc(
-	WDP_AUTO, "company_face", 0, 0,
+static const WindowDesc _select_company_manager_face_desc(
+	WDP_AUTO, 0, 0,
 	WC_COMPANY_MANAGER_FACE, WC_NONE,
 	WDF_CONSTRUCTION,
-	_nested_select_company_manager_face_widgets, lengthof(_nested_select_company_manager_face_widgets)
+	_nested_select_company_manager_face_widgets, lengthof(_nested_select_company_manager_face_widgets),
+	&_select_company_manager_face_prefs
 );
 
 /**
@@ -1557,7 +1572,9 @@ struct CompanyInfrastructureWindow : Window
 
 	uint total_width; ///< String width of the total cost line.
 
-	CompanyInfrastructureWindow(WindowDesc *desc, WindowNumber window_number) : Window(desc)
+	CompanyInfrastructureWindow (const WindowDesc *desc, WindowNumber window_number)
+		: Window (desc), railtypes (RAILTYPES_NONE),
+		  roadtypes (ROADTYPES_NONE), total_width (0)
 	{
 		this->UpdateRailRoadTypes();
 
@@ -1759,7 +1776,8 @@ struct CompanyInfrastructureWindow : Window
 
 				if (this->railtypes != RAILTYPES_NONE) {
 					/* Draw name of each valid railtype. */
-					for (RailType rt = RAILTYPE_BEGIN; rt != RAILTYPE_END; rt++) {
+					RailType rt;
+					FOR_ALL_SORTED_RAILTYPES(rt) {
 						if (HasBit(this->railtypes, rt)) {
 							SetDParam(0, GetRailTypeInfo(rt)->strings.name);
 							DrawString(r.left + offs_left, r.right - offs_right, y += FONT_HEIGHT_NORMAL, STR_WHITE_STRING);
@@ -1776,7 +1794,8 @@ struct CompanyInfrastructureWindow : Window
 			case WID_CI_RAIL_COUNT: {
 				/* Draw infrastructure count for each valid railtype. */
 				uint32 rail_total = c->infrastructure.GetRailTotal();
-				for (RailType rt = RAILTYPE_BEGIN; rt != RAILTYPE_END; rt++) {
+				RailType rt;
+				FOR_ALL_SORTED_RAILTYPES(rt) {
 					if (HasBit(this->railtypes, rt)) {
 						this->DrawCountLine(r, y, c->infrastructure.rail[rt], RailMaintenanceCost(rt, c->infrastructure.rail[rt], rail_total));
 					}
@@ -1855,11 +1874,14 @@ struct CompanyInfrastructureWindow : Window
 	}
 };
 
-static WindowDesc _company_infrastructure_desc(
-	WDP_AUTO, "company_infrastructure", 0, 0,
+static WindowDesc::Prefs _company_infrastructure_prefs ("company_infrastructure");
+
+static const WindowDesc _company_infrastructure_desc(
+	WDP_AUTO, 0, 0,
 	WC_COMPANY_INFRASTRUCTURE, WC_NONE,
 	0,
-	_nested_company_infrastructure_widgets, lengthof(_nested_company_infrastructure_widgets)
+	_nested_company_infrastructure_widgets, lengthof(_nested_company_infrastructure_widgets),
+	&_company_infrastructure_prefs
 );
 
 /**
@@ -2005,7 +2027,8 @@ struct CompanyWindow : Window
 		CWP_BUTTONS_OTHER,     ///< Buttons of the other companies.
 	};
 
-	CompanyWindow(WindowDesc *desc, WindowNumber window_number) : Window(desc)
+	CompanyWindow (const WindowDesc *desc, WindowNumber window_number)
+		: Window (desc), query_widget ((CompanyWidgets)0)
 	{
 		this->InitNested(window_number);
 		this->owner = (Owner)this->window_number;
@@ -2308,11 +2331,11 @@ struct CompanyWindow : Window
 			case WID_C_BUILD_HQ:
 				if ((byte)this->window_number != _local_company) return;
 				if (this->IsWidgetLowered(WID_C_BUILD_HQ)) {
-					ResetObjectToPlace();
+					ResetPointerMode();
 					this->RaiseButtons();
 					break;
 				}
-				SetObjectToPlaceWnd(SPR_CURSOR_HQ, PAL_NONE, HT_RECT, this);
+				SetPointerMode (POINTER_TILE, this, SPR_CURSOR_HQ);
 				SetTileSelectSize(2, 2);
 				this->LowerWidget(WID_C_BUILD_HQ);
 				this->SetWidgetDirty(WID_C_BUILD_HQ);
@@ -2320,11 +2343,11 @@ struct CompanyWindow : Window
 
 			case WID_C_RELOCATE_HQ:
 				if (this->IsWidgetLowered(WID_C_RELOCATE_HQ)) {
-					ResetObjectToPlace();
+					ResetPointerMode();
 					this->RaiseButtons();
 					break;
 				}
-				SetObjectToPlaceWnd(SPR_CURSOR_HQ, PAL_NONE, HT_RECT, this);
+				SetPointerMode (POINTER_TILE, this, SPR_CURSOR_HQ);
 				SetTileSelectSize(2, 2);
 				this->LowerWidget(WID_C_RELOCATE_HQ);
 				this->SetWidgetDirty(WID_C_RELOCATE_HQ);
@@ -2375,7 +2398,7 @@ struct CompanyWindow : Window
 	virtual void OnPlaceObject(Point pt, TileIndex tile)
 	{
 		if (DoCommandP(tile, OBJECT_HQ, 0, CMD_BUILD_OBJECT)) {
-			ResetObjectToPlace();
+			ResetPointerMode();
 			this->RaiseButtons();
 		}
 	}
@@ -2439,11 +2462,14 @@ struct CompanyWindow : Window
 	}
 };
 
-static WindowDesc _company_desc(
-	WDP_AUTO, "company", 0, 0,
+static WindowDesc::Prefs _company_prefs ("company");
+
+static const WindowDesc _company_desc(
+	WDP_AUTO, 0, 0,
 	WC_COMPANY, WC_NONE,
 	0,
-	_nested_company_widgets, lengthof(_nested_company_widgets)
+	_nested_company_widgets, lengthof(_nested_company_widgets),
+	&_company_prefs
 );
 
 /**
@@ -2468,7 +2494,7 @@ void DirtyCompanyInfrastructureWindows(CompanyID company)
 }
 
 struct BuyCompanyWindow : Window {
-	BuyCompanyWindow(WindowDesc *desc, WindowNumber window_number) : Window(desc)
+	BuyCompanyWindow (const WindowDesc *desc, WindowNumber window_number) : Window(desc)
 	{
 		this->InitNested(window_number);
 	}
@@ -2522,7 +2548,7 @@ struct BuyCompanyWindow : Window {
 	{
 		switch (widget) {
 			case WID_BC_NO:
-				delete this;
+				this->Delete();
 				break;
 
 			case WID_BC_YES:
@@ -2551,8 +2577,8 @@ static const NWidgetPart _nested_buy_company_widgets[] = {
 	EndContainer(),
 };
 
-static WindowDesc _buy_company_desc(
-	WDP_AUTO, NULL, 0, 0,
+static const WindowDesc _buy_company_desc(
+	WDP_AUTO, 0, 0,
 	WC_BUY_COMPANY, WC_NONE,
 	WDF_CONSTRUCTION,
 	_nested_buy_company_widgets, lengthof(_nested_buy_company_widgets)

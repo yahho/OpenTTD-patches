@@ -86,13 +86,13 @@ struct BaseStation : PooledItem <BaseStation, StationID, 32, 64000> {
 
 	/**
 	 * Helper function to get a NewGRF variable that isn't implemented by the base class.
-	 * @param object the resolver object related to this query
+	 * @param grffile GRF file related to this query
 	 * @param variable that is queried
 	 * @param parameter parameter for that variable
 	 * @param available will return false if ever the variable asked for does not exist
 	 * @return the value stored in the corresponding variable
 	 */
-	virtual uint32 GetNewGRFVariable(const struct ResolverObject &object, byte variable, byte parameter, bool *available) const = 0;
+	virtual uint32 GetNewGRFVariable (const struct GRFFile *grffile, byte variable, byte parameter, bool *available) const = 0;
 
 	/**
 	 * Update the coordinated of the sign (as shown in the viewport).

@@ -20,16 +20,14 @@ struct CYapfRoadNodeT : CYapfNodeT<Tkey_, CYapfRoadNodeT<Tkey_> > {
 
 	PathMPos<RoadPathPos> m_next; ///< next pos after segment end, invalid if this segment is a dead end
 
-	void Set(CYapfRoadNodeT *parent, const RoadPathPos &pos)
+	CYapfRoadNodeT (const CYapfRoadNodeT *parent, const RoadPathPos &pos)
+		: base (parent, pos), m_next()
 	{
-		base::Set(parent, pos);
-		m_next = PathMPos<RoadPathPos>();
 	}
 
-	void Set (CYapfRoadNodeT *parent, const RoadPathPos &pos, const PathMPos<RoadPathPos> &next)
+	CYapfRoadNodeT (const CYapfRoadNodeT *parent, const RoadPathPos &pos, const PathMPos<RoadPathPos> &next)
+		: base (parent, pos), m_next (next)
 	{
-		base::Set(parent, pos);
-		m_next.set (next);
 	}
 };
 
@@ -67,51 +65,120 @@ static inline bool IsUphill (const RoadPathPos &pos)
 /** return one tile cost */
 static int OneTileCost(const YAPFSettings *settings, const RoadPathPos &pos)
 {
-	int cost = 0;
-	/* set base cost */
-	if (IsDiagonalTrackdir(pos.td)) {
-		cost += YAPF_TILE_LENGTH;
-		switch (GetTileType(pos.tile)) {
-			case TT_MISC:
-				/* Increase the cost for level crossings */
-				if (IsLevelCrossingTile(pos.tile)) {
-					cost += settings->road_crossing_penalty;
-				}
-				break;
-
-			case TT_STATION: {
-				const RoadStop *rs = RoadStop::GetByTile(pos.tile, GetRoadStopType(pos.tile));
-				if (IsDriveThroughStopTile(pos.tile)) {
-					/* Increase the cost for drive-through road stops */
-					cost += settings->road_stop_penalty;
-					DiagDirection dir = TrackdirToExitdir(pos.td);
-					if (!RoadStop::IsDriveThroughRoadStopContinuation(pos.tile, pos.tile - TileOffsByDiagDir(dir))) {
-						/* When we're the first road stop in a 'queue' of them we increase
-						 * cost based on the fill percentage of the whole queue. */
-						const RoadStop::Platform *platform = rs->GetPlatform();
-						cost += platform->GetOccupied(dir) * settings->road_stop_occupied_penalty / platform->GetLength();
-					}
-				} else {
-					/* Increase cost for filled road stops */
-					cost += settings->road_stop_bay_occupied_penalty * (!rs->IsFreeBay(0) + !rs->IsFreeBay(1)) / 2;
-				}
-				break;
-			}
-
-			default:
-				break;
-		}
-
-		/* add slope cost */
-		if (IsUphill (pos)) {
-			cost += settings->road_slope_penalty;
-		}
-	} else {
+	if (!IsDiagonalTrackdir(pos.td)) {
 		/* non-diagonal trackdir */
-		cost = YAPF_TILE_CORNER_LENGTH + settings->road_curve_penalty;
+		return YAPF_TILE_CORNER_LENGTH + settings->road_curve_penalty;
 	}
+
+	/* set base cost */
+	int cost = YAPF_TILE_LENGTH;
+	switch (GetTileType(pos.tile)) {
+		case TT_MISC:
+			/* Increase the cost for level crossings */
+			if (IsLevelCrossingTile(pos.tile)) {
+				cost += settings->road_crossing_penalty;
+			}
+			break;
+
+		case TT_STATION: {
+			const RoadStop *rs = RoadStop::GetByTile(pos.tile, GetRoadStopType(pos.tile));
+			if (IsDriveThroughStopTile(pos.tile)) {
+				/* Increase the cost for drive-through road stops */
+				cost += settings->road_stop_penalty;
+				DiagDirection dir = TrackdirToExitdir(pos.td);
+				if (!RoadStop::IsDriveThroughRoadStopContinuation(pos.tile, pos.tile - TileOffsByDiagDir(dir))) {
+					/* When we're the first road stop in a 'queue' of them we increase
+					 * cost based on the fill percentage of the whole queue. */
+					const RoadStop::Platform *platform = rs->GetPlatform();
+					cost += platform->GetOccupied(dir) * settings->road_stop_occupied_penalty / platform->GetLength();
+				}
+			} else {
+				/* Increase cost for filled road stops */
+				cost += settings->road_stop_bay_occupied_penalty * (!rs->IsFreeBay(0) + !rs->IsFreeBay(1)) / 2;
+			}
+			break;
+		}
+
+		default:
+			break;
+	}
+
+	/* add slope cost */
+	if (IsUphill (pos)) {
+		cost += settings->road_slope_penalty;
+	}
+
 	return cost;
 }
+
+/** Compute the speed penalty for a tile. */
+static int SpeedPenalty (const RoadVehicle *v, const RoadPathPos &pos)
+{
+	if (!IsRoadBridgeTile (pos.tile)) return 0;
+
+	int max_veh_speed = v->GetDisplayMaxSpeed();
+	int max_bridge_speed = GetBridgeSpec (GetRoadBridgeType (pos.tile))->speed;
+	int speed_penalty = max_veh_speed - max_bridge_speed;
+	return (speed_penalty > 0) ? speed_penalty : 0;
+}
+
+
+/** Destination of a road vehicle. */
+struct CYapfRoadDest {
+	const union {
+		StationID station; ///< destination station id, or INVALID_STATION if target is not a station
+		OwnerByte owner;   ///< owner, if searching for any depot
+	};
+	const bool      is_bus;    ///< whether we want a bus stop (as opposed to a truck stop)
+	const bool      is_artic;  ///< whether the vehicle is articulated (so we must use a drive-through stop)
+	const TileIndex tile;      ///< destination tile, or the special marker INVALID_TILE to search for any depot
+
+	/** Construct a CYapfRoadDest for the current order of a vehicle. */
+	CYapfRoadDest (const RoadVehicle *rv)
+		: station  (rv->current_order.IsType(OT_GOTO_STATION) ? rv->current_order.GetDestination() : INVALID_STATION),
+		  is_bus   (rv->IsBus()),
+		  is_artic (rv->HasArticulatedPart()),
+		  tile     (rv->current_order.IsType(OT_GOTO_STATION) ?
+				Station::Get(station)->GetClosestTile (rv->tile, is_bus ? STATION_BUS : STATION_TRUCK) :
+				rv->dest_tile)
+	{
+		assert (this->tile != INVALID_TILE);
+	}
+
+	/** Construct a CYapfRoadDest to look for any depot. */
+	CYapfRoadDest (const RoadVehicle *rv, bool ignored)
+		: owner    (rv->owner),
+		  is_bus   (rv->IsBus()),
+		  is_artic (rv->HasArticulatedPart()),
+		  tile     (INVALID_TILE)
+	{
+	}
+
+	bool is_destination_tile (TileIndex t) const
+	{
+		if (this->tile == INVALID_TILE) {
+			return IsRoadDepotTile (t) && IsTileOwner (t, this->owner);
+		} else if (this->station == INVALID_STATION) {
+			return t == this->tile;
+		} else {
+			return IsStationTile (t) &&
+				GetStationIndex (t) == this->station &&
+				(this->is_bus ? IsBusStop (t) : IsTruckStop (t)) &&
+				(!this->is_artic || IsDriveThroughStopTile (t));
+		}
+	}
+
+	bool is_destination (const RoadPathPos &pos) const
+	{
+		return this->is_destination_tile (pos.tile);
+	}
+
+	int calc_estimate (TileIndex src, DiagDirection dir) const
+	{
+		return (this->tile == INVALID_TILE) ? 0 :
+				YapfCalcEstimate (src, dir, this->tile);
+	}
+};
 
 
 template <class TAstar>
@@ -122,53 +189,37 @@ public:
 protected:
 	const YAPFSettings *const m_settings; ///< current settings (_settings_game.yapf)
 	const RoadVehicle  *const m_veh;      ///< vehicle that we are trying to drive
-	const bool          m_bus;            ///< whether m_veh is a bus
-	const bool          m_artic;          ///< whether m_veh is articulated
-	const StationID     m_dest_station;   ///< destination station id, or INVALID_STATION if target is not a station
-	const TileIndex     m_dest_tile;      ///< destination tile, or the special marker INVALID_TILE to search for any depot
+	const CYapfRoadDest m_dest;           ///< pathfinding destination
 	CFollowTrackRoad    tf;               ///< track follower
 
 public:
 	/**
 	 * Construct an instance of CYapfRoadT
 	 * @param rv The road vehicle to pathfind for
-	 * @param depot Look for any depot, else use current vehicle order
 	 */
-	CYapfRoadT (const RoadVehicle *rv, bool depot = false)
+	CYapfRoadT (const RoadVehicle *rv)
 		: m_settings(&_settings_game.pf.yapf)
 		, m_veh(rv)
-		, m_bus(rv->IsBus())
-		, m_artic(rv->HasArticulatedPart())
-		, m_dest_station(!depot && rv->current_order.IsType(OT_GOTO_STATION) ? rv->current_order.GetDestination() : INVALID_STATION)
-		, m_dest_tile(depot ? INVALID_TILE :
-			rv->current_order.IsType(OT_GOTO_STATION) ?
-				Station::Get(m_dest_station)->GetClosestTile(rv->tile, m_bus ? STATION_BUS : STATION_TRUCK) :
-				rv->dest_tile)
+		, m_dest(rv)
 		, tf(rv)
 	{
 	}
 
-	inline bool IsDestinationTile(TileIndex tile) const
+	/**
+	 * Construct an instance of CYapfRoadT to look for any depot
+	 * @param rv The road vehicle to pathfind for
+	 * @param ignored Ignored
+	 */
+	CYapfRoadT (const RoadVehicle *rv, bool ignored)
+		: m_settings(&_settings_game.pf.yapf)
+		, m_veh(rv)
+		, m_dest(rv, true)
+		, tf(rv)
 	{
-		if (m_dest_station != INVALID_STATION) {
-			return IsStationTile(tile) &&
-				GetStationIndex(tile) == m_dest_station &&
-				(m_bus ? IsBusStop(tile) : IsTruckStop(tile)) &&
-				(!m_artic || IsDriveThroughStopTile(tile));
-		} else if (m_dest_tile != INVALID_TILE) {
-			return tile == m_dest_tile;
-		} else {
-			return IsRoadDepotTile(tile) && IsTileOwner(tile, m_veh->owner);
-		}
-	}
-
-	inline bool IsDestination(const RoadPathPos &pos) const
-	{
-		return IsDestinationTile(pos.tile);
 	}
 
 	/** Called by the A-star underlying class to find the neighbours of a node. */
-	inline void Follow (Node *old_node)
+	inline void Follow (const Node *old_node)
 	{
 		/* Previous segment is a dead end? */
 		if (!old_node->m_next.is_valid()) return;
@@ -181,7 +232,7 @@ public:
 
 		for (TrackdirBits rtds = old_node->m_next.trackdirs; rtds != TRACKDIR_BIT_NONE; rtds = KillFirstBit(rtds)) {
 			pos.set_trackdir (FindFirstTrackdir(rtds));
-			Node *n = TAstar::CreateNewNode(old_node, pos);
+			Node n (old_node, pos);
 
 			/* start at pos and walk to the end of segment */
 			tf.SetPos (pos);
@@ -194,23 +245,12 @@ public:
 				segment_cost += OneTileCost (m_settings, tf.m_new);
 
 				/* add max speed penalty */
-				int speed_penalty;
-				if (IsRoadBridgeTile (tf.m_new.tile)) {
-					int max_veh_speed = m_veh->GetDisplayMaxSpeed();
-					int max_speed = GetBridgeSpec (GetRoadBridgeType (tf.m_new.tile))->speed;
-					speed_penalty = max_veh_speed - max_speed;
-					if (speed_penalty > 0) {
-						segment_cost += speed_penalty;
-					} else {
-						speed_penalty = 0;
-					}
-				} else {
-					speed_penalty = 0;
-				}
+				int speed_penalty = SpeedPenalty (m_veh, tf.m_new);
+				segment_cost += speed_penalty;
 
 				/* we have reached the vehicle's destination - segment should end here to avoid target skipping */
-				if (IsDestination(tf.m_new)) {
-					n->m_next = tf.m_new;
+				if (m_dest.is_destination (tf.m_new)) {
+					n.m_next = tf.m_new;
 					is_target = true;
 					break;
 				}
@@ -218,7 +258,7 @@ public:
 				/* stop if we have just entered the depot */
 				if (IsRoadDepotTile(tf.m_new.tile) && tf.m_new.td == DiagDirToDiagTrackdir(ReverseDiagDir(GetGroundDepotDirection(tf.m_new.tile)))) {
 					/* next time we will reverse and leave the depot */
-					n->m_next.set (tf.m_new.tile, ReverseTrackdir (tf.m_new.td));
+					n.m_next.set (tf.m_new.tile, ReverseTrackdir (tf.m_new.td));
 					last_tile = tf.m_new.tile;
 					last_dir = ReverseDiagDir (GetGroundDepotDirection (tf.m_new.tile));
 					break;
@@ -241,7 +281,7 @@ public:
 
 				/* if there are more trackdirs available & reachable, we are at the end of segment */
 				if (!tf.m_new.is_single() || tiles > MAX_MAP_SIZE) {
-					n->m_next = tf.m_new;
+					n.m_next = tf.m_new;
 					last_dir = tf.m_exitdir;
 					last_tile = TileAddByDiagDir (tf.m_new.tile, ReverseDiagDir (last_dir));
 					break;
@@ -251,27 +291,22 @@ public:
 			}
 
 			/* save also tile cost */
-			n->m_cost = old_node->m_cost + segment_cost;
+			n.m_cost = old_node->m_cost + segment_cost;
 
 			/* compute estimated cost */
 			if (is_target) {
-				n->m_estimate = n->m_cost;
-				TAstar::FoundTarget(n);
+				n.m_estimate = n.m_cost;
+				TAstar::InsertTarget (n);
 			} else {
-				if (m_dest_tile == INVALID_TILE) {
-					n->m_estimate = n->m_cost;
-				} else {
-					n->m_estimate = n->m_cost + YapfCalcEstimate (last_tile, last_dir, m_dest_tile);
-					assert(n->m_estimate >= old_node->m_estimate);
-				}
-
+				n.m_estimate = n.m_cost + this->m_dest.calc_estimate (last_tile, last_dir);
+				assert (n.m_estimate >= old_node->m_estimate);
 				TAstar::InsertNode(n);
 			}
 		}
 	}
 
 	/** call the node follower */
-	static inline void Follow (CYapfRoadT *pf, Node *n)
+	static inline void Follow (CYapfRoadT *pf, const Node *n)
 	{
 		pf->Follow(n);
 	}
@@ -318,14 +353,14 @@ static Trackdir ChooseRoadTrack(const RoadVehicle *v, TileIndex tile, TrackdirBi
 	Tpf pf (v);
 
 	/* set origin node */
-	pf.InsertInitialNode (pf.CreateNewNode (NULL, RoadPathPos(),
-			PathMPos<RoadPathPos> (tile, trackdirs)));
+	pf.InsertInitialNode (typename Tpf::Node (NULL, RoadPathPos(),
+				PathMPos<RoadPathPos> (tile, trackdirs)));
 
 	/* find the best path */
 	path_found = pf.FindPath();
 
 	/* if path not found - return INVALID_TRACKDIR */
-	typename Tpf::Node *n = pf.GetBestNode();
+	const typename Tpf::Node *n = pf.GetBestNode();
 	if ((n == NULL) || (n->m_parent == NULL)) return INVALID_TRACKDIR;
 
 	/* path was found or at least suggested
@@ -368,54 +403,89 @@ Trackdir YapfRoadVehicleChooseTrack(const RoadVehicle *v, TileIndex tile, DiagDi
 }
 
 
-template <class Tpf>
-static TileIndex FindNearestDepot(const RoadVehicle *v, int max_distance)
+static PathMPos<RoadPathPos> FindNearestDepotOrigin (const RoadVehicle *v)
 {
-	Tpf pf (v, true);
+	DiagDirection dir;
+	Trackdir      td;
+	TrackdirBits  trackdirs;
 
-	/* set origin node */
+	enum {
+		SEL_DIAGDIR,
+		SEL_TRACKDIR,
+		SEL_TRACKDIRBITS,
+	} sel;
+
 	if (v->state == RVSB_WORMHOLE) {
 		if ((v->vehstatus & VS_HIDDEN) == 0) {
 			/* on a bridge */
-			TrackdirBits trackdirs = TrackStatusToTrackdirBits(GetTileRoadStatus (v->tile, v->compatible_roadtypes)) & DiagdirReachesTrackdirs(DirToDiagDir(v->direction));
+			trackdirs = TrackStatusToTrackdirBits(GetTileRoadStatus (v->tile, v->compatible_roadtypes)) & DiagdirReachesTrackdirs(DirToDiagDir(v->direction));
 			assert (trackdirs != TRACKDIR_BIT_NONE);
-			pf.InsertInitialNode (pf.CreateNewNode (NULL, RoadPathPos(), PathMPos<RoadPathPos> (v->tile, trackdirs)));
+			sel = SEL_TRACKDIRBITS;
 		} else {
 			/* in a tunnel */
-			Trackdir td = DiagDirToDiagTrackdir(DirToDiagDir(v->direction));
-			pf.InsertInitialNode (pf.CreateNewNode (NULL, RoadPathPos(), PathMPos<RoadPathPos> (v->tile, td)));
+			dir = DirToDiagDir (v->direction);
+			sel = SEL_DIAGDIR;
 		}
 	} else {
-		Trackdir td;
-
 		if (v->state == RVSB_IN_DEPOT) {
 			/* We'll assume the road vehicle is facing outwards */
 			assert (IsRoadDepotTile (v->tile));
-			td = DiagDirToDiagTrackdir(GetGroundDepotDirection(v->tile));
+			dir = GetGroundDepotDirection (v->tile);
+			sel = SEL_DIAGDIR;
 		} else if (IsStandardRoadStopTile(v->tile)) {
 			/* We'll assume the road vehicle is facing outwards */
-			td = DiagDirToDiagTrackdir(GetRoadStopDir(v->tile)); // Road vehicle in a station
+			dir = GetRoadStopDir (v->tile); // Road vehicle in a station
+			sel = SEL_DIAGDIR;
 		} else if (v->state > RVSB_TRACKDIR_MASK) {
 			/* Drive-through road stops */
-			td = DiagDirToDiagTrackdir(DirToDiagDir(v->direction));
+			dir = DirToDiagDir (v->direction);
+			sel = SEL_DIAGDIR;
+		} else if (IsReversingRoadTrackdir ((Trackdir)v->state)) {
+			/* If the vehicle is turning around, it will call the
+			 * pathfinder after reversing, so we can use any
+			 * available trackdir. */
+			trackdirs = TrackStatusToTrackdirBits (GetTileRoadStatus (v->tile, v->compatible_roadtypes));
+			dir = TrackdirToExitdir ((Trackdir)v->state);
+			trackdirs &= DiagdirReachesTrackdirs (dir);
+			if (trackdirs == TRACKDIR_BIT_NONE) {
+				/* Long turn at a single-piece road. */
+				sel = SEL_DIAGDIR;
+			} else {
+				sel = SEL_TRACKDIRBITS;
+			}
 		} else {
-			/* If vehicle's state is a valid track direction (vehicle is not turning around) return it,
-			 * otherwise transform it into a valid track direction */
-			td = (Trackdir)((IsReversingRoadTrackdir((Trackdir)v->state)) ? (v->state - 6) : v->state);
+			/* Not turning, so use current trackdir. */
+			td = (Trackdir)v->state;
+			sel = SEL_TRACKDIR;
 		}
-
-		if ((TrackStatusToTrackdirBits (GetTileRoadStatus (v->tile, v->compatible_roadtypes)) & TrackdirToTrackdirBits (td)) == 0) {
-			return INVALID_TILE;
-		}
-
-		pf.InsertInitialNode (pf.CreateNewNode (NULL, RoadPathPos(), PathMPos<RoadPathPos> (v->tile, td)));
 	}
+
+	switch (sel) {
+		case SEL_DIAGDIR:
+			td = DiagDirToDiagTrackdir (dir);
+			/* fall through */
+		case SEL_TRACKDIR:
+			return PathMPos<RoadPathPos> (v->tile, td);
+
+		case SEL_TRACKDIRBITS:
+			return PathMPos<RoadPathPos> (v->tile, trackdirs);
+	};
+
+	NOT_REACHED();
+}
+
+template <class Tpf>
+static TileIndex FindNearestDepot (const RoadVehicle *v,
+	const PathMPos<RoadPathPos> &origin, int max_distance)
+{
+	Tpf pf (v, true);
+	pf.InsertInitialNode (typename Tpf::Node (NULL, RoadPathPos(), origin));
 
 	/* find the best path */
 	if (!pf.FindPath()) return INVALID_TILE;
 
 	/* some path found; get found depot tile */
-	typename Tpf::Node *n = pf.GetBestNode();
+	const typename Tpf::Node *n = pf.GetBestNode();
 
 	if (max_distance > 0 && n->m_cost > max_distance) return INVALID_TILE;
 
@@ -426,8 +496,11 @@ static TileIndex FindNearestDepot(const RoadVehicle *v, int max_distance)
 
 TileIndex YapfRoadVehicleFindNearestDepot(const RoadVehicle *v, uint max_distance)
 {
+	/* set origin node */
+	PathMPos<RoadPathPos> origin (FindNearestDepotOrigin (v));
+
 	/* default is YAPF type 2 */
-	typedef TileIndex (*PfnFindNearestDepot)(const RoadVehicle*, int);
+	typedef TileIndex (*PfnFindNearestDepot) (const RoadVehicle*, const PathMPos<RoadPathPos> &, int);
 	PfnFindNearestDepot pfnFindNearestDepot = &FindNearestDepot<CYapfRoad2>;
 
 	/* check if non-default YAPF type should be used */
@@ -435,5 +508,5 @@ TileIndex YapfRoadVehicleFindNearestDepot(const RoadVehicle *v, uint max_distanc
 		pfnFindNearestDepot = &FindNearestDepot<CYapfRoad1>; // Trackdir, allow 90-deg
 	}
 
-	return pfnFindNearestDepot(v, max_distance);
+	return pfnFindNearestDepot (v, origin, max_distance);
 }

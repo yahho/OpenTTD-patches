@@ -985,7 +985,7 @@ void SmallMapWindow::DrawMapIndicators() const
  */
 void SmallMapWindow::DrawSmallMap(DrawPixelInfo *dpi) const
 {
-	Blitter *blitter = GetCurrentBlitter();
+	Blitter *blitter = Blitter::get();
 	DrawPixelInfo *old_dpi;
 
 	old_dpi = _cur_dpi;
@@ -1089,10 +1089,14 @@ void SmallMapWindow::SetupWidgetData()
 	this->GetWidget<NWidgetStacked>(WID_SM_SELECT_BUTTONS)->SetDisplayedPlane(plane);
 }
 
-SmallMapWindow::SmallMapWindow(WindowDesc *desc, int window_number) : Window(desc), refresh(FORCE_REFRESH_PERIOD)
+SmallMapWindow::SmallMapWindow (const WindowDesc *desc, int window_number) :
+	Window (desc),
+	min_number_of_columns (0), min_number_of_fixed_rows (0),
+	column_width (0), scroll_x (0), scroll_y (0), subscroll (0),
+	zoom (0), refresh (FORCE_REFRESH_PERIOD),
+	overlay (new LinkGraphOverlay(this, WID_SM_MAP, 0, this->GetOverlayCompanyMask(), 1))
 {
 	_smallmap_industry_highlight = INVALID_INDUSTRYTYPE;
-	this->overlay = new LinkGraphOverlay(this, WID_SM_MAP, 0, this->GetOverlayCompanyMask(), 1);
 	this->InitNested(window_number);
 	this->LowerWidget(this->map_type + WID_SM_CONTOUR);
 
@@ -1866,11 +1870,14 @@ static const NWidgetPart _nested_smallmap_widgets[] = {
 	EndContainer(),
 };
 
-static WindowDesc _smallmap_desc(
-	WDP_AUTO, "smallmap", 484, 314,
+static WindowDesc::Prefs _smallmap_prefs ("smallmap");
+
+static const WindowDesc _smallmap_desc(
+	WDP_AUTO, 484, 314,
 	WC_SMALLMAP, WC_NONE,
 	0,
-	_nested_smallmap_widgets, lengthof(_nested_smallmap_widgets)
+	_nested_smallmap_widgets, lengthof(_nested_smallmap_widgets),
+	&_smallmap_prefs
 );
 
 /**

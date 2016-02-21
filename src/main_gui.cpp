@@ -94,10 +94,10 @@ void HandleOnEditText(const char *str)
  * @param w Window which called the function
  * @param widget ID of the widget (=button) that called this function
  * @param cursor How should the cursor image change? E.g. cursor with depot image in it
- * @param mode Tile highlighting mode, e.g. drawing a rectangle or a dot on the ground
  * @return true if the button is clicked, false if it's unclicked
+ * @param mode Pointer mode to set.
  */
-bool HandlePlacePushButton(Window *w, int widget, CursorID cursor, HighLightStyle mode)
+bool HandlePlacePushButton (Window *w, int widget, CursorID cursor, PointerMode mode)
 {
 	if (w->IsWidgetDisabled(widget)) return false;
 
@@ -105,11 +105,11 @@ bool HandlePlacePushButton(Window *w, int widget, CursorID cursor, HighLightStyl
 	w->SetDirty();
 
 	if (w->IsWidgetLowered(widget)) {
-		ResetObjectToPlace();
+		ResetPointerMode();
 		return false;
 	}
 
-	SetObjectToPlace(cursor, PAL_NONE, mode, w->window_class, w->window_number);
+	SetPointerMode (mode, w->window_class, w->window_number, cursor);
 	w->LowerWidget(widget);
 	return true;
 }
@@ -132,53 +132,45 @@ void ShowNetworkGiveMoneyWindow(CompanyID company)
 
 /**
  * Zooms a viewport in a window in or out.
- * @param how Zooming direction.
+ * @param in  Whether to zoom in, else out.
  * @param w   Window owning the viewport.
  * @return Returns \c true if zooming step could be done, \c false if further zooming is not possible.
  * @note No button handling or what so ever is done.
  */
-bool DoZoomInOutWindow(ZoomStateChange how, Window *w)
+bool DoZoomInOutWindow (bool in, Window *w)
 {
 	ViewPort *vp;
 
 	assert(w != NULL);
 	vp = w->viewport;
 
-	switch (how) {
-		case ZOOM_NONE:
-			/* On initialisation of the viewport we don't do anything. */
-			break;
+	if (in) {
+		if (vp->zoom <= _settings_client.gui.zoom_min) return false;
+		vp->zoom = (ZoomLevel)((int)vp->zoom - 1);
+		vp->virtual_width >>= 1;
+		vp->virtual_height >>= 1;
 
-		case ZOOM_IN:
-			if (vp->zoom <= _settings_client.gui.zoom_min) return false;
-			vp->zoom = (ZoomLevel)((int)vp->zoom - 1);
-			vp->virtual_width >>= 1;
-			vp->virtual_height >>= 1;
+		w->viewport->scrollpos_x += vp->virtual_width >> 1;
+		w->viewport->scrollpos_y += vp->virtual_height >> 1;
+	} else {
+		if (vp->zoom >= _settings_client.gui.zoom_max) return false;
+		vp->zoom = (ZoomLevel)((int)vp->zoom + 1);
 
-			w->viewport->scrollpos_x += vp->virtual_width >> 1;
-			w->viewport->scrollpos_y += vp->virtual_height >> 1;
-			w->viewport->dest_scrollpos_x = w->viewport->scrollpos_x;
-			w->viewport->dest_scrollpos_y = w->viewport->scrollpos_y;
-			w->viewport->follow_vehicle = INVALID_VEHICLE;
-			break;
-		case ZOOM_OUT:
-			if (vp->zoom >= _settings_client.gui.zoom_max) return false;
-			vp->zoom = (ZoomLevel)((int)vp->zoom + 1);
+		w->viewport->scrollpos_x -= vp->virtual_width >> 1;
+		w->viewport->scrollpos_y -= vp->virtual_height >> 1;
 
-			w->viewport->scrollpos_x -= vp->virtual_width >> 1;
-			w->viewport->scrollpos_y -= vp->virtual_height >> 1;
-			w->viewport->dest_scrollpos_x = w->viewport->scrollpos_x;
-			w->viewport->dest_scrollpos_y = w->viewport->scrollpos_y;
-
-			vp->virtual_width <<= 1;
-			vp->virtual_height <<= 1;
-			w->viewport->follow_vehicle = INVALID_VEHICLE;
-			break;
+		vp->virtual_width <<= 1;
+		vp->virtual_height <<= 1;
 	}
-	if (vp != NULL) { // the vp can be null when how == ZOOM_NONE
-		vp->virtual_left = w->viewport->scrollpos_x;
-		vp->virtual_top = w->viewport->scrollpos_y;
-	}
+
+	w->viewport->dest_scrollpos_x = w->viewport->scrollpos_x;
+	w->viewport->dest_scrollpos_y = w->viewport->scrollpos_y;
+
+	w->viewport->follow_vehicle = INVALID_VEHICLE;
+
+	vp->virtual_left = w->viewport->scrollpos_x;
+	vp->virtual_top = w->viewport->scrollpos_y;
+
 	/* Update the windows that have zoom-buttons to perhaps disable their buttons */
 	w->InvalidateData();
 	return true;
@@ -196,7 +188,7 @@ void ZoomInOrOutToCursorWindow(bool in, Window *w)
 		if (pt.x != -1) {
 			ScrollWindowTo(pt.x, pt.y, -1, w, true);
 
-			DoZoomInOutWindow(in ? ZOOM_IN : ZOOM_OUT, w);
+			DoZoomInOutWindow (in, w);
 		}
 	}
 }
@@ -237,7 +229,7 @@ struct MainWindow : Window
 	static const uint LINKGRAPH_REFRESH_PERIOD = 0xff;
 	static const uint LINKGRAPH_DELAY = 0xf;
 
-	MainWindow(WindowDesc *desc) : Window(desc)
+	MainWindow (const WindowDesc *desc) : Window (desc), refresh (0)
 	{
 		this->InitNested(0);
 		CLRBITS(this->flags, WF_WHITE_BORDER);
@@ -331,13 +323,15 @@ struct MainWindow : Window
 				Point pt = GetTileBelowCursor();
 				if (pt.x != -1) {
 					bool instant = (hotkey == GHK_CENTER_ZOOM && this->viewport->zoom != _settings_client.gui.zoom_min);
-					if (hotkey == GHK_CENTER_ZOOM) MaxZoomInOut(ZOOM_IN, this);
+					if (hotkey == GHK_CENTER_ZOOM) {
+						while (DoZoomInOutWindow (true, this)) {};
+					}
 					ScrollMainWindowTo(pt.x, pt.y, -1, instant);
 				}
 				break;
 			}
 
-			case GHK_RESET_OBJECT_TO_PLACE: ResetObjectToPlace(); break;
+			case GHK_RESET_OBJECT_TO_PLACE: ResetPointerMode(); break;
 			case GHK_DELETE_WINDOWS: DeleteNonVitalWindows(); break;
 			case GHK_DELETE_NONVITAL_WINDOWS: DeleteAllNonVitalWindows(); break;
 			case GHK_REFRESH_SCREEN: MarkWholeScreenDirty(); break;
@@ -465,65 +459,57 @@ struct MainWindow : Window
 	static HotkeyList hotkeys;
 };
 
-const uint16 _ghk_quit_keys[] = {'Q' | WKC_CTRL, 'Q' | WKC_META, 0};
-const uint16 _ghk_abandon_keys[] = {'W' | WKC_CTRL, 'W' | WKC_META, 0};
-const uint16 _ghk_chat_keys[] = {WKC_RETURN, 'T', 0};
-const uint16 _ghk_chat_all_keys[] = {WKC_SHIFT | WKC_RETURN, WKC_SHIFT | 'T', 0};
-const uint16 _ghk_chat_company_keys[] = {WKC_CTRL | WKC_RETURN, WKC_CTRL | 'T', 0};
-const uint16 _ghk_chat_server_keys[] = {WKC_CTRL | WKC_SHIFT | WKC_RETURN, WKC_CTRL | WKC_SHIFT | 'T', 0};
-
-static Hotkey global_hotkeys[] = {
-	Hotkey(_ghk_quit_keys, "quit", GHK_QUIT),
-	Hotkey(_ghk_abandon_keys, "abandon", GHK_ABANDON),
-	Hotkey(WKC_BACKQUOTE, "console", GHK_CONSOLE),
-	Hotkey('B' | WKC_CTRL, "bounding_boxes", GHK_BOUNDING_BOXES),
-	Hotkey('I' | WKC_CTRL, "dirty_blocks", GHK_DIRTY_BLOCKS),
-	Hotkey('C', "center", GHK_CENTER),
-	Hotkey('Z', "center_zoom", GHK_CENTER_ZOOM),
-	Hotkey(WKC_ESC, "reset_object_to_place", GHK_RESET_OBJECT_TO_PLACE),
-	Hotkey(WKC_DELETE, "delete_windows", GHK_DELETE_WINDOWS),
-	Hotkey(WKC_DELETE | WKC_SHIFT, "delete_all_windows", GHK_DELETE_NONVITAL_WINDOWS),
-	Hotkey('R' | WKC_CTRL, "refresh_screen", GHK_REFRESH_SCREEN),
+static const Hotkey global_hotkeys[] = {
+	Hotkey ("quit",         GHK_QUIT,    'Q' | WKC_CTRL, 'Q' | WKC_META),
+	Hotkey ("abandon",      GHK_ABANDON, 'W' | WKC_CTRL, 'W' | WKC_META),
+	Hotkey ("console",                 GHK_CONSOLE,        WKC_BACKQUOTE),
+	Hotkey ("bounding_boxes",          GHK_BOUNDING_BOXES, 'B' | WKC_CTRL),
+	Hotkey ("dirty_blocks",            GHK_DIRTY_BLOCKS,   'I' | WKC_CTRL),
+	Hotkey ("center",                  GHK_CENTER,         'C'),
+	Hotkey ("center_zoom",             GHK_CENTER_ZOOM,    'Z'),
+	Hotkey ("reset_object_to_place",   GHK_RESET_OBJECT_TO_PLACE,   WKC_ESC),
+	Hotkey ("delete_windows",          GHK_DELETE_WINDOWS,          WKC_DELETE),
+	Hotkey ("delete_all_windows",      GHK_DELETE_NONVITAL_WINDOWS, WKC_DELETE | WKC_SHIFT),
+	Hotkey ("refresh_screen",          GHK_REFRESH_SCREEN, 'R' | WKC_CTRL),
 #if defined(_DEBUG)
-	Hotkey('0' | WKC_ALT, "crash_game", GHK_CRASH),
-	Hotkey('1' | WKC_ALT, "money", GHK_MONEY),
-	Hotkey('2' | WKC_ALT, "update_coordinates", GHK_UPDATE_COORDS),
+	Hotkey ("crash_game",              GHK_CRASH,          '0' | WKC_ALT),
+	Hotkey ("money",                   GHK_MONEY,          '1' | WKC_ALT),
+	Hotkey ("update_coordinates",      GHK_UPDATE_COORDS,  '2' | WKC_ALT),
 #endif
-	Hotkey('1' | WKC_CTRL, "transparency_signs", GHK_TOGGLE_TRANSPARENCY),
-	Hotkey('2' | WKC_CTRL, "transparency_trees", GHK_TOGGLE_TRANSPARENCY + 1),
-	Hotkey('3' | WKC_CTRL, "transparency_houses", GHK_TOGGLE_TRANSPARENCY + 2),
-	Hotkey('4' | WKC_CTRL, "transparency_industries", GHK_TOGGLE_TRANSPARENCY + 3),
-	Hotkey('5' | WKC_CTRL, "transparency_buildings", GHK_TOGGLE_TRANSPARENCY + 4),
-	Hotkey('6' | WKC_CTRL, "transparency_bridges", GHK_TOGGLE_TRANSPARENCY + 5),
-	Hotkey('7' | WKC_CTRL, "transparency_structures", GHK_TOGGLE_TRANSPARENCY + 6),
-	Hotkey('8' | WKC_CTRL, "transparency_catenary", GHK_TOGGLE_TRANSPARENCY + 7),
-	Hotkey('9' | WKC_CTRL, "transparency_loading", GHK_TOGGLE_TRANSPARENCY + 8),
-	Hotkey('1' | WKC_CTRL | WKC_SHIFT, "invisibility_signs", GHK_TOGGLE_INVISIBILITY),
-	Hotkey('2' | WKC_CTRL | WKC_SHIFT, "invisibility_trees", GHK_TOGGLE_INVISIBILITY + 1),
-	Hotkey('3' | WKC_CTRL | WKC_SHIFT, "invisibility_houses", GHK_TOGGLE_INVISIBILITY + 2),
-	Hotkey('4' | WKC_CTRL | WKC_SHIFT, "invisibility_industries", GHK_TOGGLE_INVISIBILITY + 3),
-	Hotkey('5' | WKC_CTRL | WKC_SHIFT, "invisibility_buildings", GHK_TOGGLE_INVISIBILITY + 4),
-	Hotkey('6' | WKC_CTRL | WKC_SHIFT, "invisibility_bridges", GHK_TOGGLE_INVISIBILITY + 5),
-	Hotkey('7' | WKC_CTRL | WKC_SHIFT, "invisibility_structures", GHK_TOGGLE_INVISIBILITY + 6),
-	Hotkey('8' | WKC_CTRL | WKC_SHIFT, "invisibility_catenary", GHK_TOGGLE_INVISIBILITY + 7),
-	Hotkey('X' | WKC_CTRL, "transparency_toolbar", GHK_TRANSPARENCY_TOOLBAR),
-	Hotkey('X', "toggle_transparency", GHK_TRANSPARANCY),
+	Hotkey ("transparency_signs",      GHK_TOGGLE_TRANSPARENCY,     '1' | WKC_CTRL),
+	Hotkey ("transparency_trees",      GHK_TOGGLE_TRANSPARENCY + 1, '2' | WKC_CTRL),
+	Hotkey ("transparency_houses",     GHK_TOGGLE_TRANSPARENCY + 2, '3' | WKC_CTRL),
+	Hotkey ("transparency_industries", GHK_TOGGLE_TRANSPARENCY + 3, '4' | WKC_CTRL),
+	Hotkey ("transparency_buildings",  GHK_TOGGLE_TRANSPARENCY + 4, '5' | WKC_CTRL),
+	Hotkey ("transparency_bridges",    GHK_TOGGLE_TRANSPARENCY + 5, '6' | WKC_CTRL),
+	Hotkey ("transparency_structures", GHK_TOGGLE_TRANSPARENCY + 6, '7' | WKC_CTRL),
+	Hotkey ("transparency_catenary",   GHK_TOGGLE_TRANSPARENCY + 7, '8' | WKC_CTRL),
+	Hotkey ("transparency_loading",    GHK_TOGGLE_TRANSPARENCY + 8, '9' | WKC_CTRL),
+	Hotkey ("invisibility_signs",      GHK_TOGGLE_INVISIBILITY,     '1' | WKC_CTRL | WKC_SHIFT),
+	Hotkey ("invisibility_trees",      GHK_TOGGLE_INVISIBILITY + 1, '2' | WKC_CTRL | WKC_SHIFT),
+	Hotkey ("invisibility_houses",     GHK_TOGGLE_INVISIBILITY + 2, '3' | WKC_CTRL | WKC_SHIFT),
+	Hotkey ("invisibility_industries", GHK_TOGGLE_INVISIBILITY + 3, '4' | WKC_CTRL | WKC_SHIFT),
+	Hotkey ("invisibility_buildings",  GHK_TOGGLE_INVISIBILITY + 4, '5' | WKC_CTRL | WKC_SHIFT),
+	Hotkey ("invisibility_bridges",    GHK_TOGGLE_INVISIBILITY + 5, '6' | WKC_CTRL | WKC_SHIFT),
+	Hotkey ("invisibility_structures", GHK_TOGGLE_INVISIBILITY + 6, '7' | WKC_CTRL | WKC_SHIFT),
+	Hotkey ("invisibility_catenary",   GHK_TOGGLE_INVISIBILITY + 7, '8' | WKC_CTRL | WKC_SHIFT),
+	Hotkey ("transparency_toolbar",    GHK_TRANSPARENCY_TOOLBAR,    'X' | WKC_CTRL),
+	Hotkey ("toggle_transparency",     GHK_TRANSPARANCY,            'X'),
 #ifdef ENABLE_NETWORK
-	Hotkey(_ghk_chat_keys, "chat", GHK_CHAT),
-	Hotkey(_ghk_chat_all_keys, "chat_all", GHK_CHAT_ALL),
-	Hotkey(_ghk_chat_company_keys, "chat_company", GHK_CHAT_COMPANY),
-	Hotkey(_ghk_chat_server_keys, "chat_server", GHK_CHAT_SERVER),
+	Hotkey ("chat",         GHK_CHAT,         WKC_RETURN, 'T'),
+	Hotkey ("chat_all",     GHK_CHAT_ALL,     WKC_RETURN | WKC_SHIFT, 'T' | WKC_SHIFT),
+	Hotkey ("chat_company", GHK_CHAT_COMPANY, WKC_RETURN | WKC_CTRL,  'T' | WKC_CTRL),
+	Hotkey ("chat_server",  GHK_CHAT_SERVER,  WKC_RETURN | WKC_CTRL | WKC_SHIFT, 'T' | WKC_CTRL | WKC_SHIFT),
 #endif
-	HOTKEY_LIST_END
 };
 HotkeyList MainWindow::hotkeys("global", global_hotkeys);
 
-static WindowDesc _main_window_desc(
-	WDP_MANUAL, NULL, 0, 0,
+static const WindowDesc _main_window_desc(
+	WDP_MANUAL, 0, 0,
 	WC_MAIN_WINDOW, WC_NONE,
 	0,
 	_nested_main_window_widgets, lengthof(_nested_main_window_widgets),
-	&MainWindow::hotkeys
+	NULL, &MainWindow::hotkeys
 );
 
 /**

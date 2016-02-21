@@ -28,14 +28,6 @@ public:
 	/* virtual */ bool IsSongPlaying();
 
 	/* virtual */ void SetVolume(byte vol);
-	/* virtual */ const char *GetName() const { return "libtimidity"; }
-};
-
-/** Factory for the libtimidity driver. */
-class FMusicDriver_LibTimidity : public DriverFactoryBase {
-public:
-	FMusicDriver_LibTimidity() : DriverFactoryBase(Driver::DT_MUSIC, 5, "libtimidity", "LibTimidity MIDI Driver") {}
-	/* virtual */ Driver *CreateInstance() const { return new MusicDriver_LibTimidity(); }
 };
 
 #endif /* MUSIC_LIBTIMIDITY_H */

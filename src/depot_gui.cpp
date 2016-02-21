@@ -79,32 +79,44 @@ static const NWidgetPart _nested_train_depot_widgets[] = {
 	EndContainer(),
 };
 
-static WindowDesc _train_depot_desc(
-	WDP_AUTO, "depot_train", 362, 123,
+static WindowDesc::Prefs _train_depot_prefs ("depot_train");
+
+static const WindowDesc _train_depot_desc(
+	WDP_AUTO, 362, 123,
 	WC_VEHICLE_DEPOT, WC_NONE,
 	0,
-	_nested_train_depot_widgets, lengthof(_nested_train_depot_widgets)
+	_nested_train_depot_widgets, lengthof(_nested_train_depot_widgets),
+	&_train_depot_prefs
 );
 
-static WindowDesc _road_depot_desc(
-	WDP_AUTO, "depot_roadveh", 316, 97,
+static WindowDesc::Prefs _road_depot_prefs ("depot_roadveh");
+
+static const WindowDesc _road_depot_desc(
+	WDP_AUTO, 316, 97,
 	WC_VEHICLE_DEPOT, WC_NONE,
 	0,
-	_nested_train_depot_widgets, lengthof(_nested_train_depot_widgets)
+	_nested_train_depot_widgets, lengthof(_nested_train_depot_widgets),
+	&_road_depot_prefs
 );
 
-static WindowDesc _ship_depot_desc(
-	WDP_AUTO, "depot_ship", 306, 99,
+static WindowDesc::Prefs _ship_depot_prefs ("depot_ship");
+
+static const WindowDesc _ship_depot_desc(
+	WDP_AUTO, 306, 99,
 	WC_VEHICLE_DEPOT, WC_NONE,
 	0,
-	_nested_train_depot_widgets, lengthof(_nested_train_depot_widgets)
+	_nested_train_depot_widgets, lengthof(_nested_train_depot_widgets),
+	&_ship_depot_prefs
 );
 
-static WindowDesc _aircraft_depot_desc(
-	WDP_AUTO, "depot_aircraft", 332, 99,
+static WindowDesc::Prefs _aircraft_depot_prefs ("depot_aircraft");
+
+static const WindowDesc _aircraft_depot_desc(
+	WDP_AUTO, 332, 99,
 	WC_VEHICLE_DEPOT, WC_NONE,
 	0,
-	_nested_train_depot_widgets, lengthof(_nested_train_depot_widgets)
+	_nested_train_depot_widgets, lengthof(_nested_train_depot_widgets),
+	&_aircraft_depot_prefs
 );
 
 extern void DepotSortList(VehicleList *list);
@@ -234,6 +246,7 @@ struct DepotWindow : Window {
 	VehicleID vehicle_over; ///< Rail vehicle over which another one is dragged, \c INVALID_VEHICLE if none.
 	VehicleType type;
 	bool generate_list;
+	int hovered_widget; ///< Index of the widget being hovered during drag/drop. -1 if no drag is in progress.
 	VehicleList vehicle_list;
 	VehicleList wagon_list;
 	uint unitnumber_digits;
@@ -241,16 +254,17 @@ struct DepotWindow : Window {
 	Scrollbar *hscroll;     ///< Only for trains.
 	Scrollbar *vscroll;
 
-	DepotWindow(WindowDesc *desc, TileIndex tile, VehicleType type) : Window(desc)
+	DepotWindow (const WindowDesc *desc, TileIndex tile, VehicleType type)
+		: Window (desc), sel (INVALID_VEHICLE),
+		  vehicle_over (INVALID_VEHICLE), type (type),
+		  generate_list (true), hovered_widget (-1),
+		  vehicle_list(), wagon_list(),
+		  unitnumber_digits (2), num_columns (1),
+		  hscroll (NULL), vscroll (NULL),
+		  count_width (0), header_width (0),
+		  flag_width (0), flag_height (0)
 	{
 		assert(IsCompanyBuildableVehicleType(type)); // ensure that we make the call with a valid type
-
-		this->sel = INVALID_VEHICLE;
-		this->vehicle_over = INVALID_VEHICLE;
-		this->generate_list = true;
-		this->type = type;
-		this->num_columns = 1; // for non-trains this gets set in FinishInitNested()
-		this->unitnumber_digits = 2;
 
 		this->CreateNestedTree();
 		this->hscroll = (this->type == VEH_TRAIN ? this->GetScrollbar(WID_D_H_SCROLL) : NULL);
@@ -262,13 +276,13 @@ struct DepotWindow : Window {
 		this->GetWidget<NWidgetStacked>(WID_D_SHOW_H_SCROLL)->SetDisplayedPlane(type == VEH_TRAIN ? 0 : SZSP_HORIZONTAL);
 		this->GetWidget<NWidgetStacked>(WID_D_SHOW_SELL_CHAIN)->SetDisplayedPlane(type == VEH_TRAIN ? 0 : SZSP_NONE);
 		this->SetupWidgetData(type);
-		this->FinishInitNested(tile);
+		this->InitNested(tile);
 
 		this->owner = GetTileOwner(tile);
 		OrderBackup::Reset();
 	}
 
-	~DepotWindow()
+	void OnDelete (void) FINAL_OVERRIDE
 	{
 		DeleteWindowById(WC_BUILD_VEHICLE, this->window_number);
 		OrderBackup::Reset(this->window_number);
@@ -510,7 +524,7 @@ struct DepotWindow : Window {
 				} else if (v != NULL) {
 					bool rtl = _current_text_dir == TD_RTL;
 					int image = v->GetImage(rtl ? DIR_E : DIR_W, EIT_IN_DEPOT);
-					SetObjectToPlaceWnd(image, GetVehiclePalette(v), HT_DRAG, this);
+					SetPointerMode (POINTER_DRAG, this, image, GetVehiclePalette(v));
 
 					this->sel = v->index;
 					this->SetDirty();
@@ -716,7 +730,7 @@ struct DepotWindow : Window {
 			}
 
 			case WID_D_BUILD: // Build vehicle
-				ResetObjectToPlace();
+				ResetPointerMode();
 				ShowBuildVehicleWindow(this->window_number, this->type);
 				break;
 
@@ -730,9 +744,9 @@ struct DepotWindow : Window {
 						SPR_CURSOR_CLONE_SHIP, SPR_CURSOR_CLONE_AIRPLANE
 					};
 
-					SetObjectToPlaceWnd(clone_icons[this->type], PAL_NONE, HT_VEHICLE, this);
+					SetPointerMode (POINTER_VEHICLE, this, clone_icons[this->type]);
 				} else {
-					ResetObjectToPlace();
+					ResetPointerMode();
 				}
 				break;
 
@@ -856,7 +870,7 @@ struct DepotWindow : Window {
 	virtual bool OnVehicleSelect(const Vehicle *v)
 	{
 		if (DoCommandP(this->window_number, v->index, _ctrl_pressed ? 1 : 0, CMD_CLONE_VEHICLE)) {
-			ResetObjectToPlace();
+			ResetPointerMode();
 		}
 		return true;
 	}
@@ -871,11 +885,29 @@ struct DepotWindow : Window {
 		this->sel = INVALID_VEHICLE;
 		this->vehicle_over = INVALID_VEHICLE;
 		this->SetWidgetDirty(WID_D_MATRIX);
+
+		if (this->hovered_widget != -1) {
+			this->SetWidgetLoweredState(this->hovered_widget, false);
+			this->SetWidgetDirty(this->hovered_widget);
+			this->hovered_widget = -1;
+		}
 	}
 
 	virtual void OnMouseDrag(Point pt, int widget)
 	{
-		if (this->type != VEH_TRAIN || this->sel == INVALID_VEHICLE) return;
+		if (this->sel == INVALID_VEHICLE) return;
+		if (widget != this->hovered_widget) {
+			if (this->hovered_widget == WID_D_SELL || this->hovered_widget == WID_D_SELL_CHAIN) {
+				this->SetWidgetLoweredState(this->hovered_widget, false);
+				this->SetWidgetDirty(this->hovered_widget);
+			}
+			this->hovered_widget = widget;
+			if (this->hovered_widget == WID_D_SELL || this->hovered_widget == WID_D_SELL_CHAIN) {
+				this->SetWidgetLoweredState(this->hovered_widget, true);
+				this->SetWidgetDirty(this->hovered_widget);
+			}
+		}
+		if (this->type != VEH_TRAIN) return;
 
 		/* A rail vehicle is dragged.. */
 		if (widget != WID_D_MATRIX) { // ..outside of the depot matrix.
@@ -961,7 +993,9 @@ struct DepotWindow : Window {
 			default:
 				this->sel = INVALID_VEHICLE;
 				this->SetDirty();
+				break;
 		}
+		this->hovered_widget = -1;
 		_cursor.vehchain = false;
 	}
 
@@ -1019,7 +1053,7 @@ void ShowDepotWindow(TileIndex tile, VehicleType type)
 {
 	if (BringWindowToFrontById(WC_VEHICLE_DEPOT, tile) != NULL) return;
 
-	WindowDesc *desc;
+	const WindowDesc *desc;
 	switch (type) {
 		default: NOT_REACHED();
 		case VEH_TRAIN:    desc = &_train_depot_desc;    break;
@@ -1042,10 +1076,10 @@ void DeleteDepotHighlightOfVehicle(const Vehicle *v)
 	/* If we haven't got any vehicles on the mouse pointer, we haven't got any highlighted in any depots either
 	 * If that is the case, we can skip looping though the windows and save time
 	 */
-	if (_special_mouse_mode != WSM_DRAGDROP) return;
+	if (_pointer_mode != POINTER_DRAG) return;
 
 	w = dynamic_cast<DepotWindow*>(FindWindowById(WC_VEHICLE_DEPOT, v->tile));
 	if (w != NULL) {
-		if (w->sel == v->index) ResetObjectToPlace();
+		if (w->sel == v->index) ResetPointerMode();
 	}
 }

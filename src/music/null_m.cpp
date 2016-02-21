@@ -13,4 +13,5 @@
 #include "null_m.h"
 
 /** The factory for the music player that does nothing. */
-static FMusicDriver_Null iFMusicDriver_Null;
+static MusicDriverFactory <MusicDriver_Null>
+		iFMusicDriver_Null (1, "null", "Null Music Driver");

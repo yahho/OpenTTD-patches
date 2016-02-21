@@ -177,16 +177,14 @@ struct GameOptionsWindow : Window {
 	GameSettings *opt;
 	bool reload;
 
-	GameOptionsWindow(WindowDesc *desc) : Window(desc)
+	GameOptionsWindow (const WindowDesc *desc) :
+		Window (desc), opt (&GetGameSettings()), reload (false)
 	{
-		this->opt = &GetGameSettings();
-		this->reload = false;
-
 		this->InitNested(WN_GAME_OPTIONS_GAME_OPTIONS);
 		this->OnInvalidateData(0);
 	}
 
-	~GameOptionsWindow()
+	void OnDelete (void) FINAL_OVERRIDE
 	{
 		DeleteWindowById(WC_CUSTOM_CURRENCY, 0);
 		if (this->reload) _switch_mode = SM_MENU;
@@ -312,7 +310,7 @@ struct GameOptionsWindow : Window {
 				list = new DropDownList();
 				*selected_index = _cur_screenshot_format;
 				for (uint i = 0; i < _num_screenshot_formats; i++) {
-					if (!GetScreenshotFormatSupports_32bpp(i) && GetCurrentBlitter()->GetScreenDepth() == 32) continue;
+					if (!GetScreenshotFormatSupports_32bpp(i) && Blitter::get()->GetScreenDepth() == 32) continue;
 					*list->Append() = new DropDownListStringItem(SPECSTR_SCREENSHOT_START + i, i, false);
 				}
 				break;
@@ -692,11 +690,14 @@ static const NWidgetPart _nested_game_options_widgets[] = {
 	EndContainer(),
 };
 
-static WindowDesc _game_options_desc(
-	WDP_CENTER, "settings_game", 0, 0,
+static WindowDesc::Prefs _game_options_prefs ("settings_game");
+
+static const WindowDesc _game_options_desc(
+	WDP_CENTER, 0, 0,
 	WC_GAME_OPTIONS, WC_NONE,
 	0,
-	_nested_game_options_widgets, lengthof(_nested_game_options_widgets)
+	_nested_game_options_widgets, lengthof(_nested_game_options_widgets),
+	&_game_options_prefs
 );
 
 /** Open the game options window. */
@@ -1833,7 +1834,12 @@ struct GameSettingsWindow : Window {
 
 	Scrollbar *vscroll;
 
-	GameSettingsWindow(WindowDesc *desc) : Window(desc), filter_editbox(50)
+	GameSettingsWindow (const WindowDesc *desc) : Window (desc),
+		valuewindow_entry (NULL), clicked_entry (NULL),
+		last_clicked (NULL), valuedropdown_entry (NULL),
+		closing_dropdown (false), filter(), filter_editbox (50),
+		manually_changed_folding (false), warn_missing (WHR_NONE),
+		warn_lines (0), vscroll (NULL)
 	{
 		static bool first_time = true;
 
@@ -1863,7 +1869,7 @@ struct GameSettingsWindow : Window {
 
 		this->CreateNestedTree();
 		this->vscroll = this->GetScrollbar(WID_GS_SCROLLBAR);
-		this->FinishInitNested(WN_GAME_OPTIONS_GAME_SETTINGS);
+		this->InitNested(WN_GAME_OPTIONS_GAME_SETTINGS);
 
 		this->querystrings[WID_GS_FILTER] = &this->filter_editbox;
 		this->filter_editbox.cancel_button = QueryString::ACTION_CLEAR;
@@ -2414,11 +2420,14 @@ static const NWidgetPart _nested_settings_selection_widgets[] = {
 	EndContainer(),
 };
 
-static WindowDesc _settings_selection_desc(
-	WDP_CENTER, "settings", 510, 450,
+static WindowDesc::Prefs _settings_selection_prefs ("settings");
+
+static const WindowDesc _settings_selection_desc(
+	WDP_CENTER, 510, 450,
 	WC_GAME_OPTIONS, WC_NONE,
 	0,
-	_nested_settings_selection_widgets, lengthof(_nested_settings_selection_widgets)
+	_nested_settings_selection_widgets, lengthof(_nested_settings_selection_widgets),
+	&_settings_selection_prefs
 );
 
 /** Open advanced settings window. */
@@ -2494,7 +2503,8 @@ void DrawBoolButton(int x, int y, bool state, bool clickable)
 struct CustomCurrencyWindow : Window {
 	int query_widget;
 
-	CustomCurrencyWindow(WindowDesc *desc) : Window(desc)
+	CustomCurrencyWindow (const WindowDesc *desc) :
+		Window (desc), query_widget (0)
 	{
 		this->InitNested();
 
@@ -2708,8 +2718,8 @@ static const NWidgetPart _nested_cust_currency_widgets[] = {
 	EndContainer(),
 };
 
-static WindowDesc _cust_currency_desc(
-	WDP_CENTER, NULL, 0, 0,
+static const WindowDesc _cust_currency_desc(
+	WDP_CENTER, 0, 0,
 	WC_CUSTOM_CURRENCY, WC_NONE,
 	0,
 	_nested_cust_currency_widgets, lengthof(_nested_cust_currency_widgets)

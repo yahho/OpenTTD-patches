@@ -24,6 +24,19 @@
 
 TrackBits GetReservedTrackbits(TileIndex t);
 
+bool HasReservedMapPos (const RailPathPos &pos);
+
+/**
+ * Check whether a position is reserved.
+ * @param pos the position
+ * @return true if the track is reserved
+ */
+static inline bool HasReservedPos(const RailPathPos &pos)
+{
+	return !pos.in_wormhole() ? HasReservedMapPos (pos) :
+		IsRailwayTile (pos.wormhole) ? HasBridgeMiddleReservation (pos.wormhole) : HasTunnelMiddleReservation (pos.wormhole);
+}
+
 void SetRailStationPlatformReservation(TileIndex start, DiagDirection dir, bool b);
 void SetRailStationPlatformReservation(const RailPathPos &pos, bool b);
 
@@ -122,18 +135,6 @@ static inline bool HasReservedTracks(TileIndex tile, TrackBits tracks)
 static inline bool HasReservedTrack(TileIndex tile, Track track)
 {
 	return HasReservedTracks(tile, TrackToTrackBits(track));
-}
-
-/**
- * Check whether a position is reserved.
- *
- * @param pos the position
- * @return true if the track is reserved
- */
-static inline bool HasReservedPos(const RailPathPos &pos)
-{
-	return !pos.in_wormhole() ? HasReservedTrack(pos.tile, TrackdirToTrack(pos.td)) :
-		IsRailwayTile(pos.wormhole) ? HasBridgeMiddleReservation(pos.wormhole) : HasTunnelMiddleReservation(pos.wormhole);
 }
 
 #endif /* PBS_H */
