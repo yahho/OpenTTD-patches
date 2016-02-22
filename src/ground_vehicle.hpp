@@ -75,7 +75,6 @@ enum GroundVehicleFlags {
  * virtual int32       GetSlopeSteepness() const = 0;
  * virtual int         GetDisplayMaxSpeed() const = 0;
  * virtual uint16      GetMaxTrackSpeed() const = 0;
- * virtual bool        TileMayHaveSlopedTrack() const = 0;
  */
 template <class T, VehicleType Type>
 struct GroundVehicle : public SpecializedVehicle<T, Type> {
@@ -150,21 +149,6 @@ struct GroundVehicle : public SpecializedVehicle<T, Type> {
 
 		if (middle_z != this->z_pos) {
 			SetBit(this->gv_flags, (middle_z > this->z_pos) ? GVF_GOINGUP_BIT : GVF_GOINGDOWN_BIT);
-		}
-	}
-
-	/**
-	 * Updates vehicle's Z position and inclination.
-	 * Used when the vehicle entered given tile.
-	 * @pre The vehicle has to be at (or near to) a border of the tile,
-	 *      directed towards tile centre
-	 */
-	inline void UpdateZPositionAndInclination()
-	{
-		this->ResetZPosition();
-
-		if (T::From(this)->TileMayHaveSlopedTrack()) {
-			this->UpdateInclination();
 		}
 	}
 

@@ -330,16 +330,6 @@ protected: // These functions should not be called outside acceleration code.
 	}
 
 	/**
-	 * Checks if the vehicle is at a tile that can be sloped.
-	 * @return True if the tile can be sloped.
-	 */
-	inline bool TileMayHaveSlopedTrack() const
-	{
-		/* Any track that isn't TRACK_X or TRACK_Y cannot be sloped. */
-		return IsDiagonalTrackdir(this->trackdir);
-	}
-
-	/**
 	 * Trains can always use the faster algorithm because they
 	 * have always the same direction as the track under them.
 	 * @return false

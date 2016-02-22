@@ -3729,7 +3729,11 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 			int old_z = v->z_pos;
 
 			if (enterdir != INVALID_DIAGDIR) {
-				v->UpdateZPositionAndInclination();
+				v->ResetZPosition();
+				/* Any track that isn't TRACK_X or TRACK_Y cannot be sloped. */
+				if (IsDiagonalTrackdir (v->trackdir)) {
+					v->UpdateInclination();
+				}
 			} else {
 				v->UpdateZPosition();
 			}

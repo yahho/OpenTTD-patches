@@ -259,18 +259,6 @@ protected: // These functions should not be called outside acceleration code.
 	}
 
 	/**
-	 * Checks if the vehicle is at a tile that can be sloped.
-	 * @return True if the tile can be sloped.
-	 */
-	inline bool TileMayHaveSlopedTrack() const
-	{
-		TrackStatus ts = GetTileRoadStatus(this->tile, this->compatible_roadtypes);
-		TrackBits trackbits = TrackStatusToTrackBits(ts);
-
-		return trackbits == TRACK_BIT_X || trackbits == TRACK_BIT_Y;
-	}
-
-	/**
 	 * Road vehicles have to use GetSlopePixelZ() to compute their height
 	 * if they are reversing because in that case, their direction
 	 * is not parallel with the road. It is safe to return \c true

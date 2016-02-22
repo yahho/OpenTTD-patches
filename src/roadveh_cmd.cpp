@@ -846,7 +846,14 @@ static void controller_set_pos (RoadVehicle *v, int x, int y, bool new_tile, boo
 	int old_z = v->z_pos;
 
 	if (new_tile) {
-		v->UpdateZPositionAndInclination();
+		v->ResetZPosition();
+
+		TrackStatus ts = GetTileRoadStatus (v->tile, v->compatible_roadtypes);
+		TrackBits trackbits = TrackStatusToTrackBits (ts);
+
+		if (trackbits == TRACK_BIT_X || trackbits == TRACK_BIT_Y) {
+			v->UpdateInclination();
+		}
 	} else {
 		v->UpdateZPosition();
 	}
