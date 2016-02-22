@@ -129,6 +129,31 @@ struct GroundVehicle : public SpecializedVehicle<T, Type> {
 	}
 
 	/**
+	 * Reset the Z position of a vehicle when entering a new tile,
+	 * and clear inclination flags.
+	 */
+	void ResetZPosition (void)
+	{
+		this->z_pos = GetSlopePixelZ (this->x_pos, this->y_pos);
+		ClrBit(this->gv_flags, GVF_GOINGUP_BIT);
+		ClrBit(this->gv_flags, GVF_GOINGDOWN_BIT);
+	}
+
+	/** Update the inclination when entering a new tile. */
+	void UpdateInclination (void)
+	{
+		/* To check whether the current tile is sloped, and in which
+		 * direction it is sloped, we get the 'z' at the center of
+		 * the tile (middle_z) and the edge of the tile (old_z),
+		 * which we then can compare. */
+		int middle_z = GetSlopePixelZ((this->x_pos & ~TILE_UNIT_MASK) | (TILE_SIZE / 2), (this->y_pos & ~TILE_UNIT_MASK) | (TILE_SIZE / 2));
+
+		if (middle_z != this->z_pos) {
+			SetBit(this->gv_flags, (middle_z > this->z_pos) ? GVF_GOINGUP_BIT : GVF_GOINGDOWN_BIT);
+		}
+	}
+
+	/**
 	 * Updates vehicle's Z position and inclination.
 	 * Used when the vehicle entered given tile.
 	 * @pre The vehicle has to be at (or near to) a border of the tile,
@@ -136,20 +161,10 @@ struct GroundVehicle : public SpecializedVehicle<T, Type> {
 	 */
 	inline void UpdateZPositionAndInclination()
 	{
-		this->z_pos = GetSlopePixelZ(this->x_pos, this->y_pos);
-		ClrBit(this->gv_flags, GVF_GOINGUP_BIT);
-		ClrBit(this->gv_flags, GVF_GOINGDOWN_BIT);
+		this->ResetZPosition();
 
 		if (T::From(this)->TileMayHaveSlopedTrack()) {
-			/* To check whether the current tile is sloped, and in which
-			 * direction it is sloped, we get the 'z' at the center of
-			 * the tile (middle_z) and the edge of the tile (old_z),
-			 * which we then can compare. */
-			int middle_z = GetSlopePixelZ((this->x_pos & ~TILE_UNIT_MASK) | (TILE_SIZE / 2), (this->y_pos & ~TILE_UNIT_MASK) | (TILE_SIZE / 2));
-
-			if (middle_z != this->z_pos) {
-				SetBit(this->gv_flags, (middle_z > this->z_pos) ? GVF_GOINGUP_BIT : GVF_GOINGDOWN_BIT);
-			}
+			this->UpdateInclination();
 		}
 	}
 
