@@ -267,25 +267,7 @@ protected: // These functions should not be called outside acceleration code.
 	 */
 	inline bool HasToUseGetSlopePixelZ()
 	{
-		const RoadVehicle *rv = this->First();
-
-		/* Check if this vehicle is in the same direction as the road under.
-		 * We already know it has either GVF_GOINGUP_BIT or GVF_GOINGDOWN_BIT set. */
-
-		if (rv->state <= RVSB_TRACKDIR_MASK && IsReversingRoadTrackdir((Trackdir)rv->state)) {
-			/* If the first vehicle is reversing, this vehicle may be reversing too
-			 * (especially if this is the first, and maybe the only, vehicle).*/
-			return true;
-		}
-
-		while (rv != this) {
-			/* If any previous vehicle has different direction,
-			 * we may be in the middle of reversing. */
-			if (this->direction != rv->direction) return true;
-			rv = rv->Next();
-		}
-
-		return false;
+		return (this->state <= RVSB_TRACKDIR_MASK) && IsReversingRoadTrackdir ((Trackdir)this->state);
 	}
 };
 
