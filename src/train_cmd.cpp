@@ -3735,7 +3735,10 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 					v->UpdateInclination();
 				}
 			} else {
-				v->UpdateZPosition();
+				if (HasBit(v->gv_flags, GVF_GOINGUP_BIT) || HasBit(v->gv_flags, GVF_GOINGDOWN_BIT)) {
+					v->UpdateZPosition();
+				}
+				assert (v->z_pos == GetSlopePixelZ (v->x_pos, v->y_pos));
 			}
 
 			v->UpdateViewport (true, false);

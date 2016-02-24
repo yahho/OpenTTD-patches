@@ -328,16 +328,6 @@ protected: // These functions should not be called outside acceleration code.
 	{
 		return GetRailTypeInfo(this->GetTrackRailType())->max_speed;
 	}
-
-	/**
-	 * Trains can always use the faster algorithm because they
-	 * have always the same direction as the track under them.
-	 * @return false
-	 */
-	inline bool HasToUseGetSlopePixelZ()
-	{
-		return false;
-	}
 };
 
 #define FOR_ALL_TRAINS(var) FOR_ALL_VEHICLES_OF_TYPE(Train, var)

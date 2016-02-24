@@ -175,7 +175,7 @@ struct GroundVehicle : public SpecializedVehicle<T, Type> {
 					this->z_pos += (this->y_pos & 1) ^ 1; break;
 				default: break;
 			}
-		} else if (HasBit(this->gv_flags, GVF_GOINGDOWN_BIT)) {
+		} else {
 			switch (this->direction) {
 				case DIR_NE:
 					this->z_pos -= (this->x_pos & 1); break;
@@ -198,30 +198,21 @@ struct GroundVehicle : public SpecializedVehicle<T, Type> {
 		 * we know the Z position changes by +/-1 at certain moments - when x_pos, y_pos is odd/even,
 		 * depending on orientation of the slope and vehicle's direction */
 
-		if (HasBit(this->gv_flags, GVF_GOINGUP_BIT) || HasBit(this->gv_flags, GVF_GOINGDOWN_BIT)) {
-			if (T::From(this)->HasToUseGetSlopePixelZ()) {
-				/* In some cases, we have to use GetSlopePixelZ() */
-				this->z_pos = GetSlopePixelZ(this->x_pos, this->y_pos);
-				return;
-			}
-			/* DirToDiagDir() is a simple right shift */
-			DiagDirection dir = DirToDiagDir(this->direction);
-			/* Read variables, so the compiler knows the access doesn't trap */
-			int8 x_pos = this->x_pos;
-			int8 y_pos = this->y_pos;
-			/* DiagDirToAxis() is a simple mask */
-			int8 d = DiagDirToAxis(dir) == AXIS_X ? x_pos : y_pos;
-			/* We need only the least significant bit */
-			d &= 1;
-			/* Conditional "^ 1". Optimised to "(dir - 1) <= 1". */
-			d ^= (int8)(dir == DIAGDIR_SW || dir == DIAGDIR_SE);
-			/* Subtraction instead of addition because we are testing for GVF_GOINGUP_BIT.
-			 * GVF_GOINGUP_BIT is used because it's bit 0, so simple AND can be used,
-			 * without any shift */
-			this->z_pos += HasBit(this->gv_flags, GVF_GOINGUP_BIT) ? d : -d;
-		}
-
-		assert(this->z_pos == GetSlopePixelZ(this->x_pos, this->y_pos));
+		/* DirToDiagDir() is a simple right shift */
+		DiagDirection dir = DirToDiagDir(this->direction);
+		/* Read variables, so the compiler knows the access doesn't trap */
+		int8 x_pos = this->x_pos;
+		int8 y_pos = this->y_pos;
+		/* DiagDirToAxis() is a simple mask */
+		int8 d = DiagDirToAxis(dir) == AXIS_X ? x_pos : y_pos;
+		/* We need only the least significant bit */
+		d &= 1;
+		/* Conditional "^ 1". Optimised to "(dir - 1) <= 1". */
+		d ^= (int8)(dir == DIAGDIR_SW || dir == DIAGDIR_SE);
+		/* Subtraction instead of addition because we are testing for GVF_GOINGUP_BIT.
+		 * GVF_GOINGUP_BIT is used because it's bit 0, so simple AND can be used,
+		 * without any shift */
+		this->z_pos += HasBit(this->gv_flags, GVF_GOINGUP_BIT) ? d : -d;
 	}
 
 	/**

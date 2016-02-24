@@ -257,18 +257,6 @@ protected: // These functions should not be called outside acceleration code.
 	{
 		return 0;
 	}
-
-	/**
-	 * Road vehicles have to use GetSlopePixelZ() to compute their height
-	 * if they are reversing because in that case, their direction
-	 * is not parallel with the road. It is safe to return \c true
-	 * even if it is not reversing.
-	 * @return are we (possibly) reversing?
-	 */
-	inline bool HasToUseGetSlopePixelZ()
-	{
-		return (this->state <= RVSB_TRACKDIR_MASK) && IsReversingRoadTrackdir ((Trackdir)this->state);
-	}
 };
 
 #define FOR_ALL_ROADVEHICLES(var) FOR_ALL_VEHICLES_OF_TYPE(RoadVehicle, var)

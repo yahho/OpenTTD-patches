@@ -855,7 +855,16 @@ static void controller_set_pos (RoadVehicle *v, int x, int y, bool new_tile, boo
 			v->UpdateInclination();
 		}
 	} else {
-		v->UpdateZPosition();
+		if (HasBit(v->gv_flags, GVF_GOINGUP_BIT) || HasBit(v->gv_flags, GVF_GOINGDOWN_BIT)) {
+			if ((v->state <= RVSB_TRACKDIR_MASK) && IsReversingRoadTrackdir ((Trackdir)v->state)) {
+				/* In some cases, we have to use GetSlopePixelZ() */
+				v->z_pos = GetSlopePixelZ (v->x_pos, v->y_pos);
+			} else {
+				v->UpdateZPosition();
+			}
+		}
+
+		assert (v->z_pos == GetSlopePixelZ (v->x_pos, v->y_pos));
 	}
 
 	v->UpdateViewport (true, update_delta);
