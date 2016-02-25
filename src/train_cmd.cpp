@@ -3730,9 +3730,16 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 
 			if (enterdir != INVALID_DIAGDIR) {
 				v->ResetZPosition();
-				/* Any track that isn't TRACK_X or TRACK_Y cannot be sloped. */
-				if (IsDiagonalTrackdir (v->trackdir)) {
-					v->UpdateInclination();
+
+				/* Only rail tiles can be sloped, and only
+				 * if they have a single trackbit and it is
+				 * along an axis. */
+				if (IsRailwayTile (v->tile)) {
+					assert_compile (TRACK_BIT_X == 1);
+					assert_compile (TRACK_BIT_Y == 2);
+					if (GetTrackBits (v->tile) < 3) {
+						v->UpdateInclination();
+					}
 				}
 			} else {
 				if (HasBit(v->gv_flags, GVF_GOINGUP_BIT) || HasBit(v->gv_flags, GVF_GOINGDOWN_BIT)) {
