@@ -848,11 +848,12 @@ static void controller_set_pos (RoadVehicle *v, int x, int y, bool new_tile, boo
 	if (new_tile) {
 		v->ResetZPosition();
 
-		TrackStatus ts = GetTileRoadStatus (v->tile, v->compatible_roadtypes);
-		TrackBits trackbits = TrackStatusToTrackBits (ts);
+		if (IsRoadTile (v->tile)) {
+			RoadBits bits = GetAllRoadBits (v->tile);
 
-		if (trackbits == TRACK_BIT_X || trackbits == TRACK_BIT_Y) {
-			v->UpdateInclination();
+			if (bits == ROAD_X || bits == ROAD_Y) {
+				v->UpdateInclination();
+			}
 		}
 	} else {
 		if (HasBit(v->gv_flags, GVF_GOINGUP_BIT) || HasBit(v->gv_flags, GVF_GOINGDOWN_BIT)) {
