@@ -1964,18 +1964,24 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 
 					if (rv->state == RVSB_IN_DEPOT || rv->state == RVSB_WORMHOLE) break;
 
-					TrackStatus ts = GetTileRoadStatus(rv->tile, rv->compatible_roadtypes);
-					TrackBits trackbits = TrackStatusToTrackBits(ts);
+					/* Only road tiles can be sloped. */
+					if (!IsRoadTile (rv->tile)) break;
 
-					/* Only X/Y tracks can be sloped. */
-					if (trackbits != TRACK_BIT_X && trackbits != TRACK_BIT_Y) break;
+					RoadBits bits = GetAllRoadBits (rv->tile);
+					Direction a;
+					if (bits == ROAD_X) {
+						a = AxisToDirection (AXIS_X);
+					} else if (bits == ROAD_Y) {
+						a = AxisToDirection (AXIS_Y);
+					} else {
+						/* Only X/Y tracks can be sloped. */
+						break;
+					}
 
 					Direction dir = rv->direction;
 
 					/* Test if we are reversing. */
-					Axis a = trackbits == TRACK_BIT_X ? AXIS_X : AXIS_Y;
-					if (AxisToDirection(a) != dir &&
-							AxisToDirection(a) != ReverseDir(dir)) {
+					if (dir != a && dir != ReverseDir(a)) {
 						/* When reversing, the road vehicle is on the edge of the tile,
 						 * so it can be safely compared to the middle of the tile. */
 						dir = INVALID_DIR;
