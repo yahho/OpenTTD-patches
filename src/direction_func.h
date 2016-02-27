@@ -192,22 +192,6 @@ static inline DiagDirection AxisToDiagDir(Axis a)
 }
 
 /**
- * Converts an Axis to a Direction
- *
- * This function returns the Direction which
- * belongs to the axis. As 2 directions are mapped to an axis
- * this function returns the one which points to south,
- * either south-west (on X axis) or south-east (on Y axis)
- *
- * @param a The axis
- * @return The direction pointed to south
- */
-static inline Direction AxisToDirection(Axis a)
-{
-	return (Direction)(5 - 2 * a);
-}
-
-/**
  * Checks if an integer value is a valid DiagDirection
  *
  * @param d The value to check

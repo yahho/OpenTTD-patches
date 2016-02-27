@@ -1970,9 +1970,9 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 					RoadBits bits = GetAllRoadBits (rv->tile);
 					Direction a;
 					if (bits == ROAD_X) {
-						a = AxisToDirection (AXIS_X);
+						a = DIR_SW;
 					} else if (bits == ROAD_Y) {
-						a = AxisToDirection (AXIS_Y);
+						a = DIR_SE;
 					} else {
 						/* Only X/Y tracks can be sloped. */
 						break;
