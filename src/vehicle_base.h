@@ -990,12 +990,107 @@ public:
 	}
 };
 
+/** Helper class to define several cast methods. */
+template <class T, class B>
+struct VehicleAdapter : public B {
+private:
+	/** Cast to the right class (non-const version). */
+	static T *cast (B *p)
+	{
+		return static_cast <T *> (p);
+	}
+
+	/** Cast to the right class (const version). */
+	static const T *cast (const B *p)
+	{
+		return static_cast <const T *> (p);
+	}
+
+public:
+	/** Constructor. */
+	VehicleAdapter (VehicleType type) : B (type)
+	{
+	}
+
+	/** Get the first vehicle in the chain. */
+	T *First (void) const
+	{
+		return this->cast (this->B::First());
+	}
+
+	/** Get the last vehicle in the chain. */
+	T *Last (void)
+	{
+		return this->cast (this->B::Last());
+	}
+
+	/** Get the last vehicle in the chain. */
+	const T *Last (void) const
+	{
+		return this->cast (this->B::Last());
+	}
+
+	/** Get next vehicle in the chain. */
+	T *Next (void) const
+	{
+		return this->cast (this->B::Next());
+	}
+
+	/** Get previous vehicle in the chain. */
+	T *Previous (void) const
+	{
+		return this->cast (this->B::Previous());
+	}
+
+	/** Get the next part of an articulated engine. */
+	T *GetNextArticulatedPart (void)
+	{
+		return this->cast (this->B::GetNextArticulatedPart());
+	}
+
+	/** Get the next part of an articulated engine. */
+	T *GetNextArticulatedPart (void) const
+	{
+		return this->cast (this->B::GetNextArticulatedPart());
+	}
+
+	/** Get the first part of an articulated engine. */
+	T *GetFirstEnginePart (void)
+	{
+		return this->cast (this->B::GetFirstEnginePart());
+	}
+
+	/** Get the first part of an articulated engine. */
+	const T *GetFirstEnginePart (void) const
+	{
+		return this->cast (this->B::GetFirstEnginePart());
+	}
+
+	/** Get the last part of an articulated engine. */
+	T *GetLastEnginePart (void)
+	{
+		return this->cast (this->B::GetLastEnginePart());
+	}
+
+	/** Get the next real (non-articulated part) vehicle in the consist. */
+	T *GetNextVehicle (void) const
+	{
+		return this->cast (this->B::GetNextVehicle());
+	}
+
+	/** Get the previous real (non-articulated part) vehicle in the consist. */
+	T *GetPrevVehicle (void) const
+	{
+		return this->cast (this->B::GetPrevVehicle());
+	}
+};
+
 /**
  * Class defining several overloaded accessors so we don't
  * have to cast vehicle types that often
  */
 template <class T, VehicleType Type>
-struct SpecializedVehicle : public Vehicle {
+struct SpecializedVehicle : public VehicleAdapter <T, Vehicle> {
 	static const VehicleType EXPECTED_TYPE = Type; ///< Specialized type
 
 	typedef SpecializedVehicle<T, Type> SpecializedVehicleBase; ///< Our type
@@ -1003,81 +1098,7 @@ struct SpecializedVehicle : public Vehicle {
 	/**
 	 * Set vehicle type correctly
 	 */
-	inline SpecializedVehicle<T, Type>() : Vehicle(Type) { }
-
-	/**
-	 * Get the first vehicle in the chain
-	 * @return first vehicle in the chain
-	 */
-	inline T *First() const { return (T *)this->Vehicle::First(); }
-
-	/**
-	 * Get the last vehicle in the chain
-	 * @return last vehicle in the chain
-	 */
-	inline T *Last() { return (T *)this->Vehicle::Last(); }
-
-	/**
-	 * Get the last vehicle in the chain
-	 * @return last vehicle in the chain
-	 */
-	inline const T *Last() const { return (const T *)this->Vehicle::Last(); }
-
-	/**
-	 * Get next vehicle in the chain
-	 * @return next vehicle in the chain
-	 */
-	inline T *Next() const { return (T *)this->Vehicle::Next(); }
-
-	/**
-	 * Get previous vehicle in the chain
-	 * @return previous vehicle in the chain
-	 */
-	inline T *Previous() const { return (T *)this->Vehicle::Previous(); }
-
-	/**
-	 * Get the next part of an articulated engine.
-	 * @return Next part of the articulated engine.
-	 * @pre The vehicle is an articulated engine.
-	 */
-	inline T *GetNextArticulatedPart() { return (T *)this->Vehicle::GetNextArticulatedPart(); }
-
-	/**
-	 * Get the next part of an articulated engine.
-	 * @return Next part of the articulated engine.
-	 * @pre The vehicle is an articulated engine.
-	 */
-	inline T *GetNextArticulatedPart() const { return (T *)this->Vehicle::GetNextArticulatedPart(); }
-
-	/**
-	 * Get the first part of an articulated engine.
-	 * @return First part of the engine.
-	 */
-	inline T *GetFirstEnginePart() { return (T *)this->Vehicle::GetFirstEnginePart(); }
-
-	/**
-	 * Get the first part of an articulated engine.
-	 * @return First part of the engine.
-	 */
-	inline const T *GetFirstEnginePart() const { return (const T *)this->Vehicle::GetFirstEnginePart(); }
-
-	/**
-	 * Get the last part of an articulated engine.
-	 * @return Last part of the engine.
-	 */
-	inline T *GetLastEnginePart() { return (T *)this->Vehicle::GetLastEnginePart(); }
-
-	/**
-	 * Get the next real (non-articulated part) vehicle in the consist.
-	 * @return Next vehicle in the consist.
-	 */
-	inline T *GetNextVehicle() const { return (T *)this->Vehicle::GetNextVehicle(); }
-
-	/**
-	 * Get the previous real (non-articulated part) vehicle in the consist.
-	 * @return Previous vehicle in the consist.
-	 */
-	inline T *GetPrevVehicle() const { return (T *)this->Vehicle::GetPrevVehicle(); }
+	SpecializedVehicle<T, Type>() : VehicleAdapter <T, Vehicle> (Type) { }
 
 	/**
 	 * Tests whether given index is a valid index for vehicle of this type
