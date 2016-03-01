@@ -104,7 +104,7 @@ struct Train FINAL : public GroundVehicle<Train, VEH_TRAIN> {
 	uint16 wait_counter;
 
 	/** We don't want GCC to zero our struct! It already is zeroed and has an index! */
-	Train() : GroundVehicleBase() {}
+	Train() : GroundVehicle <Train, VEH_TRAIN> () {}
 	/** We want to 'destruct' the right class. */
 	virtual ~Train() { this->PreDestructor(); }
 

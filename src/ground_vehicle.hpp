@@ -56,67 +56,41 @@ enum GroundVehicleFlags {
 	GVF_SUPPRESS_IMPLICIT_ORDERS = 2,  ///< Disable insertion and removal of automatic orders until the vehicle completes the real order.
 };
 
-/**
- * Base class for all vehicles that move through ground.
- *
- * Child classes must define all of the following functions.
- * These functions are not defined as pure virtual functions at this class to improve performance.
- *
- * virtual uint16      GetPower() const = 0;
- * virtual uint16      GetPoweredPartPower(const T *head) const = 0;
- * virtual uint16      GetWeight() const = 0;
- * virtual byte        GetTractiveEffort() const = 0;
- * virtual byte        GetAirDrag() const = 0;
- * virtual byte        GetAirDragArea() const = 0;
- * virtual AccelStatus GetAccelerationStatus() const = 0;
- * virtual uint16      GetCurrentSpeed() const = 0;
- * virtual uint32      GetRollingFriction() const = 0;
- * virtual int         GetAccelerationType() const = 0;
- * virtual int32       GetSlopeSteepness() const = 0;
- * virtual int         GetDisplayMaxSpeed() const = 0;
- * virtual uint16      GetMaxTrackSpeed() const = 0;
- */
-template <class T, VehicleType Type>
-struct GroundVehicle : public SpecializedVehicle<T, Type> {
+/** Base class for all vehicles that move through ground. */
+struct GroundVehicleBase : public VehicleAdapter <GroundVehicleBase, Vehicle> {
 	GroundVehicleCache gcache; ///< Cache of often calculated values.
 	uint16 gv_flags;           ///< @see GroundVehicleFlags.
 
-	typedef GroundVehicle<T, Type> GroundVehicleBase; ///< Our type
-
-	/**
-	 * The constructor at SpecializedVehicle must be called.
-	 */
-	GroundVehicle() : SpecializedVehicle<T, Type>() {}
-
-	void PowerChanged();
-	void CargoChanged();
-	int GetAcceleration() const;
-	bool IsChainInDepot() const;
+	/** Constructor. */
+	GroundVehicleBase (VehicleType type)
+		: VehicleAdapter <GroundVehicleBase, Vehicle> (type)
+	{
+	}
 
 	/**
 	 * Common code executed for crashed ground vehicles
 	 * @param flooded was this vehicle flooded?
 	 * @return number of victims
 	 */
-	/* virtual */ uint Crash(bool flooded)
+	uint Crash (bool flooded) OVERRIDE
 	{
 		/* Crashed vehicles aren't going up or down */
-		for (T *v = T::From(this); v != NULL; v = v->Next()) {
+		for (GroundVehicleBase *v = this; v != NULL; v = v->Next()) {
 			ClrBit(v->gv_flags, GVF_GOINGUP_BIT);
 			ClrBit(v->gv_flags, GVF_GOINGDOWN_BIT);
 		}
-		return this->Vehicle::Crash(flooded);
+		return this->Vehicle::Crash (flooded);
 	}
 
 	/**
 	 * Calculates the total slope resistance for this vehicle.
 	 * @return Slope resistance.
 	 */
-	inline int64 GetSlopeResistance() const
+	int64 GetSlopeResistance (void) const
 	{
 		int64 incl = 0;
 
-		for (const T *u = T::From(this); u != NULL; u = u->Next()) {
+		for (const GroundVehicleBase *u = this; u != NULL; u = u->Next()) {
 			if (HasBit(u->gv_flags, GVF_GOINGUP_BIT)) {
 				incl += u->gcache.cached_slope_resistance;
 			} else if (HasBit(u->gv_flags, GVF_GOINGDOWN_BIT)) {
@@ -357,6 +331,39 @@ protected:
 		this->progress = 0; // set later in *Handler or *Controller
 		return scaled_spd;
 	}
+};
+
+/**
+ * Base class for all vehicles that move through ground.
+ *
+ * Child classes must define all of the following functions.
+ * These functions are not defined as pure virtual functions at this class to improve performance.
+ *
+ * virtual uint16      GetPower() const = 0;
+ * virtual uint16      GetPoweredPartPower(const T *head) const = 0;
+ * virtual uint16      GetWeight() const = 0;
+ * virtual byte        GetTractiveEffort() const = 0;
+ * virtual byte        GetAirDrag() const = 0;
+ * virtual byte        GetAirDragArea() const = 0;
+ * virtual AccelStatus GetAccelerationStatus() const = 0;
+ * virtual uint16      GetCurrentSpeed() const = 0;
+ * virtual uint32      GetRollingFriction() const = 0;
+ * virtual int         GetAccelerationType() const = 0;
+ * virtual int32       GetSlopeSteepness() const = 0;
+ * virtual int         GetDisplayMaxSpeed() const = 0;
+ * virtual uint16      GetMaxTrackSpeed() const = 0;
+ */
+template <class T, VehicleType Type>
+struct GroundVehicle : public SpecializedVehicle <T, Type, GroundVehicleBase> {
+	/**
+	 * The constructor at SpecializedVehicle must be called.
+	 */
+	GroundVehicle() : SpecializedVehicle <T, Type, GroundVehicleBase> () {}
+
+	void PowerChanged();
+	void CargoChanged();
+	int GetAcceleration() const;
+	bool IsChainInDepot() const;
 };
 
 #endif /* GROUND_VEHICLE_HPP */
