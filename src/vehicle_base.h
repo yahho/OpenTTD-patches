@@ -1089,16 +1089,16 @@ public:
  * Class defining several overloaded accessors so we don't
  * have to cast vehicle types that often
  */
-template <class T, VehicleType Type>
-struct SpecializedVehicle : public VehicleAdapter <T, Vehicle> {
+template <class T, VehicleType Type, class B = Vehicle>
+struct SpecializedVehicle : public VehicleAdapter <T, B> {
 	static const VehicleType EXPECTED_TYPE = Type; ///< Specialized type
 
-	typedef SpecializedVehicle<T, Type> SpecializedVehicleBase; ///< Our type
+	typedef SpecializedVehicle <T, Type, B> SpecializedVehicleBase; ///< Our type
 
 	/**
 	 * Set vehicle type correctly
 	 */
-	SpecializedVehicle<T, Type>() : VehicleAdapter <T, Vehicle> (Type) { }
+	SpecializedVehicle <T, Type, B> () : VehicleAdapter <T, B> (Type) { }
 
 	/**
 	 * Tests whether given index is a valid index for vehicle of this type
