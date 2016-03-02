@@ -982,8 +982,7 @@ void InsertOrder(Vehicle *v, Order *new_o, VehicleOrderID sel_ord)
 			/* We are inserting an order just before the current implicit order.
 			 * We do not know whether we will reach current implicit or the newly inserted order first.
 			 * So, disable creation of implicit orders until we are on track again. */
-			uint16 &gv_flags = u->GetGroundVehicleFlags();
-			SetBit(gv_flags, GVF_SUPPRESS_IMPLICIT_ORDERS);
+			SetBit(GroundVehicleBase::From(u)->gv_flags, GVF_SUPPRESS_IMPLICIT_ORDERS);
 		}
 		if (sel_ord <= u->cur_implicit_order_index) {
 			uint cur = u->cur_implicit_order_index + 1;
@@ -2113,8 +2112,7 @@ bool UpdateOrderDest(Vehicle *v, const Order *order, int conditional_depth, bool
 				/* Disable creation of implicit orders.
 				 * When inserting them we do not know that we would have to make the conditional orders point to them. */
 				if (v->IsGroundVehicle()) {
-					uint16 &gv_flags = v->GetGroundVehicleFlags();
-					SetBit(gv_flags, GVF_SUPPRESS_IMPLICIT_ORDERS);
+					SetBit(GroundVehicleBase::From(v)->gv_flags, GVF_SUPPRESS_IMPLICIT_ORDERS);
 				}
 			} else {
 				UpdateVehicleTimetable(v, true);

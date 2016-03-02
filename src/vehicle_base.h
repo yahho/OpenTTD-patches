@@ -278,9 +278,6 @@ public:
 	void CancelReservation(StationID next, Station *st);
 	void LeaveStation();
 
-	uint16 &GetGroundVehicleFlags();
-	const uint16 &GetGroundVehicleFlags() const;
-
 	void DeleteUnreachedImplicitOrders();
 
 	void HandleLoading(bool mode = false);

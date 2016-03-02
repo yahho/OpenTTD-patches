@@ -2040,10 +2040,10 @@ PaletteID GetVehiclePalette(const Vehicle *v)
 void Vehicle::DeleteUnreachedImplicitOrders()
 {
 	if (this->IsGroundVehicle()) {
-		uint16 &gv_flags = this->GetGroundVehicleFlags();
-		if (HasBit(gv_flags, GVF_SUPPRESS_IMPLICIT_ORDERS)) {
+		GroundVehicleBase *gv = GroundVehicleBase::From (this);
+		if (HasBit(gv->gv_flags, GVF_SUPPRESS_IMPLICIT_ORDERS)) {
 			/* Do not delete orders, only skip them */
-			ClrBit(gv_flags, GVF_SUPPRESS_IMPLICIT_ORDERS);
+			ClrBit(gv->gv_flags, GVF_SUPPRESS_IMPLICIT_ORDERS);
 			this->cur_implicit_order_index = this->cur_real_order_index;
 			InvalidateVehicleOrder(this, 0);
 			return;
@@ -2104,7 +2104,7 @@ void Vehicle::BeginLoading()
 		if (this->IsGroundVehicle() &&
 				(in_list == NULL || !in_list->IsType(OT_IMPLICIT) ||
 				in_list->GetDestination() != this->last_station_visited)) {
-			bool suppress_implicit_orders = HasBit(this->GetGroundVehicleFlags(), GVF_SUPPRESS_IMPLICIT_ORDERS);
+			bool suppress_implicit_orders = HasBit(GroundVehicleBase::From(this)->gv_flags, GVF_SUPPRESS_IMPLICIT_ORDERS);
 			/* Do not create consecutive duplicates of implicit orders */
 			Order *prev_order = this->cur_implicit_order_index > 0 ? this->GetOrder(this->cur_implicit_order_index - 1) : (this->GetNumOrders() > 1 ? this->GetLastOrder() : NULL);
 			if (prev_order == NULL ||
@@ -2174,8 +2174,7 @@ void Vehicle::BeginLoading()
 
 					/* InsertOrder disabled creation of implicit orders for all vehicles with the same implicit order.
 					 * Reenable it for this vehicle */
-					uint16 &gv_flags = this->GetGroundVehicleFlags();
-					ClrBit(gv_flags, GVF_SUPPRESS_IMPLICIT_ORDERS);
+					ClrBit(GroundVehicleBase::From(this)->gv_flags, GVF_SUPPRESS_IMPLICIT_ORDERS);
 				}
 			}
 		}
@@ -2377,8 +2376,7 @@ CommandCost Vehicle::SendToDepot(DoCommandFlag flags, DepotCommand command)
 			if (this->current_order.GetDepotOrderType() & ODTFB_PART_OF_ORDERS) this->IncrementRealOrderIndex();
 
 			if (this->IsGroundVehicle()) {
-				uint16 &gv_flags = this->GetGroundVehicleFlags();
-				SetBit(gv_flags, GVF_SUPPRESS_IMPLICIT_ORDERS);
+				SetBit(GroundVehicleBase::From(this)->gv_flags, GVF_SUPPRESS_IMPLICIT_ORDERS);
 			}
 
 			this->current_order.MakeDummy();
@@ -2397,8 +2395,7 @@ CommandCost Vehicle::SendToDepot(DoCommandFlag flags, DepotCommand command)
 		if (this->current_order.IsType(OT_LOADING)) this->LeaveStation();
 
 		if (this->IsGroundVehicle() && this->GetNumManualOrders() > 0) {
-			uint16 &gv_flags = this->GetGroundVehicleFlags();
-			SetBit(gv_flags, GVF_SUPPRESS_IMPLICIT_ORDERS);
+			SetBit(GroundVehicleBase::From(this)->gv_flags, GVF_SUPPRESS_IMPLICIT_ORDERS);
 		}
 
 		this->dest_tile = location;
@@ -2858,36 +2855,6 @@ bool CanVehicleUseStation(const Vehicle *v, const Station *st)
 	if (v->type == VEH_ROAD) return st->GetPrimaryRoadStop(RoadVehicle::From(v)) != NULL;
 
 	return CanVehicleUseStation(v->engine_type, st);
-}
-
-/**
- * Access the ground vehicle flags of the vehicle.
- * @pre The vehicle is a #GroundVehicle.
- * @return #GroundVehicleFlags of the vehicle.
- */
-uint16 &Vehicle::GetGroundVehicleFlags()
-{
-	assert(this->IsGroundVehicle());
-	if (this->type == VEH_TRAIN) {
-		return Train::From(this)->gv_flags;
-	} else {
-		return RoadVehicle::From(this)->gv_flags;
-	}
-}
-
-/**
- * Access the ground vehicle flags of the vehicle.
- * @pre The vehicle is a #GroundVehicle.
- * @return #GroundVehicleFlags of the vehicle.
- */
-const uint16 &Vehicle::GetGroundVehicleFlags() const
-{
-	assert(this->IsGroundVehicle());
-	if (this->type == VEH_TRAIN) {
-		return Train::From(this)->gv_flags;
-	} else {
-		return RoadVehicle::From(this)->gv_flags;
-	}
 }
 
 /**
