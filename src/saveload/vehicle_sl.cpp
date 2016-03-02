@@ -256,7 +256,7 @@ void AfterLoadVehicles(const SavegameTypeVersion *stv)
 
 		if (stv != NULL) v->fill_percent_te_id = INVALID_TE_ID;
 		v->first = NULL;
-		if (v->IsGroundVehicle()) v->GetGroundVehicleCache()->first_engine = INVALID_ENGINE;
+		if (v->IsGroundVehicle()) GroundVehicleBase::From(v)->gcache.first_engine = INVALID_ENGINE;
 	}
 
 	/* AfterLoadVehicles may also be called in case of NewGRF reload, in this

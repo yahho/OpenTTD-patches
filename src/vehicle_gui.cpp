@@ -1254,7 +1254,7 @@ static int CDECL VehicleValueSorter(const Vehicle * const *a, const Vehicle * co
 /** Sort vehicles by their length */
 static int CDECL VehicleLengthSorter(const Vehicle * const *a, const Vehicle * const *b)
 {
-	int r = (*a)->GetGroundVehicleCache()->cached_total_length - (*b)->GetGroundVehicleCache()->cached_total_length;
+	int r = GroundVehicleBase::From(*a)->gcache.cached_total_length - GroundVehicleBase::From(*b)->gcache.cached_total_length;
 	return (r != 0) ? r : VehicleNumberSorter(a, b);
 }
 
@@ -2146,7 +2146,7 @@ struct VehicleDetailsWindow : Window {
 				StringID string;
 				if (v->type == VEH_TRAIN ||
 						(v->type == VEH_ROAD && _settings_game.vehicle.roadveh_acceleration_model != AM_ORIGINAL)) {
-					const GroundVehicleCache *gcache = v->GetGroundVehicleCache();
+					const GroundVehicleCache *gcache = &GroundVehicleBase::From(v)->gcache;
 					SetDParam(2, v->GetDisplayMaxSpeed());
 					SetDParam(1, gcache->cached_power);
 					SetDParam(0, gcache->cached_weight);

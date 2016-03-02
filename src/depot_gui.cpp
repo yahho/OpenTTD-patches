@@ -529,7 +529,7 @@ struct DepotWindow : Window {
 					this->sel = v->index;
 					this->SetDirty();
 
-					_cursor.short_vehicle_offset = v->IsGroundVehicle() ? (16 - v->GetGroundVehicleCache()->cached_veh_length * 2) * (rtl ? -1 : 1) : 0;
+					_cursor.short_vehicle_offset = v->IsGroundVehicle() ? (16 - GroundVehicleBase::From(v)->gcache.cached_veh_length * 2) * (rtl ? -1 : 1) : 0;
 					_cursor.vehchain = _ctrl_pressed;
 				}
 				break;

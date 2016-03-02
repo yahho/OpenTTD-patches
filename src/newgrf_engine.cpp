@@ -424,7 +424,7 @@ static const Livery *LiveryHelper(EngineID engine, const Vehicle *v)
 		if (!Company::IsValidID(_current_company)) return NULL;
 		l = GetEngineLivery(engine, _current_company, INVALID_ENGINE, NULL, LIT_ALL);
 	} else if (v->IsGroundVehicle()) {
-		l = GetEngineLivery(v->engine_type, v->owner, v->GetGroundVehicleCache()->first_engine, v, LIT_ALL);
+		l = GetEngineLivery(v->engine_type, v->owner, GroundVehicleBase::From(v)->gcache.first_engine, v, LIT_ALL);
 	} else {
 		l = GetEngineLivery(v->engine_type, v->owner, INVALID_ENGINE, v, LIT_ALL);
 	}
@@ -999,7 +999,7 @@ static const SpriteGroup *GetVehicleResolverRoot (EngineID engine_type,
 		if (wagon_override == WO_CACHED && v->type == VEH_TRAIN) {
 			root = Train::From(v)->tcache.cached_override;
 		} else {
-			root = GetWagonOverrideSpriteSet (v->engine_type, v->cargo_type, v->GetGroundVehicleCache()->first_engine);
+			root = GetWagonOverrideSpriteSet (v->engine_type, v->cargo_type, GroundVehicleBase::From(v)->gcache.first_engine);
 		}
 	}
 

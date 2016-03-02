@@ -127,7 +127,6 @@ struct VehicleCache {
 
 /* Some declarations of functions, so we can make them friendly */
 struct SaveLoad;
-struct GroundVehicleCache;
 extern const SaveLoad *GetVehicleDescription(VehicleType vt);
 struct LoadgameState;
 extern bool LoadOldVehicle(LoadgameState *ls, int num);
@@ -278,9 +277,6 @@ public:
 	void BeginLoading();
 	void CancelReservation(StationID next, Station *st);
 	void LeaveStation();
-
-	GroundVehicleCache *GetGroundVehicleCache();
-	const GroundVehicleCache *GetGroundVehicleCache() const;
 
 	uint16 &GetGroundVehicleFlags();
 	const uint16 &GetGroundVehicleFlags() const;

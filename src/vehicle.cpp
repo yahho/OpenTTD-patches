@@ -2028,7 +2028,7 @@ PaletteID GetEnginePalette(EngineID engine_type, CompanyID company)
 PaletteID GetVehiclePalette(const Vehicle *v)
 {
 	if (v->IsGroundVehicle()) {
-		return GetEngineColourMap(v->engine_type, v->owner, v->GetGroundVehicleCache()->first_engine, v);
+		return GetEngineColourMap(v->engine_type, v->owner, GroundVehicleBase::From(v)->gcache.first_engine, v);
 	}
 
 	return GetEngineColourMap(v->engine_type, v->owner, INVALID_ENGINE, v);
@@ -2858,36 +2858,6 @@ bool CanVehicleUseStation(const Vehicle *v, const Station *st)
 	if (v->type == VEH_ROAD) return st->GetPrimaryRoadStop(RoadVehicle::From(v)) != NULL;
 
 	return CanVehicleUseStation(v->engine_type, st);
-}
-
-/**
- * Access the ground vehicle cache of the vehicle.
- * @pre The vehicle is a #GroundVehicle.
- * @return #GroundVehicleCache of the vehicle.
- */
-GroundVehicleCache *Vehicle::GetGroundVehicleCache()
-{
-	assert(this->IsGroundVehicle());
-	if (this->type == VEH_TRAIN) {
-		return &Train::From(this)->gcache;
-	} else {
-		return &RoadVehicle::From(this)->gcache;
-	}
-}
-
-/**
- * Access the ground vehicle cache of the vehicle.
- * @pre The vehicle is a #GroundVehicle.
- * @return #GroundVehicleCache of the vehicle.
- */
-const GroundVehicleCache *Vehicle::GetGroundVehicleCache() const
-{
-	assert(this->IsGroundVehicle());
-	if (this->type == VEH_TRAIN) {
-		return &Train::From(this)->gcache;
-	} else {
-		return &RoadVehicle::From(this)->gcache;
-	}
 }
 
 /**

@@ -365,7 +365,7 @@ void AddArticulatedParts(Vehicle *first)
 		 * and we run out of available vehicles, bail out. */
 		if (!Vehicle::CanAllocateItem()) return;
 
-		GroundVehicleCache *gcache = v->GetGroundVehicleCache();
+		GroundVehicleCache *gcache = &GroundVehicleBase::From(v)->gcache;
 		gcache->first_engine = v->engine_type; // Needs to be set before first callback
 
 		const Engine *e_artic = Engine::Get(engine_type);
