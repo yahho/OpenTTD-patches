@@ -68,6 +68,28 @@ struct GroundVehicleBase : public VehicleAdapter <GroundVehicleBase, Vehicle> {
 	}
 
 	/**
+	 * Converts a Vehicle to a GroundVehicleBase with type checking.
+	 * @param v Vehicle pointer
+	 * @return pointer to GroundVehicleBase
+	 */
+	static GroundVehicleBase *From (Vehicle *v)
+	{
+		assert (v->IsGroundVehicle());
+		return static_cast <GroundVehicleBase *> (v);
+	}
+
+	/**
+	 * Converts a const Vehicle to const GroundVehicleBase with type checking.
+	 * @param v Vehicle pointer
+	 * @return pointer to GroundVehicleBase
+	 */
+	static const GroundVehicleBase *From (const Vehicle *v)
+	{
+		assert (v->IsGroundVehicle());
+		return static_cast <const GroundVehicleBase *> (v);
+	}
+
+	/**
 	 * Common code executed for crashed ground vehicles
 	 * @param flooded was this vehicle flooded?
 	 * @return number of victims
