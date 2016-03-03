@@ -926,6 +926,10 @@ CommandCost CmdProgramSignalTraceRestrictProgMgmt(TileIndex tile, DoCommandFlag 
 		}
 	}
 
+	if (type != TRDCT_PROG_RESET && !TraceRestrictProgram::CanAllocateItem()) {
+		return CMD_ERROR;
+	}
+
 	if (!(flags & DC_EXEC)) {
 		return CommandCost();
 	}
