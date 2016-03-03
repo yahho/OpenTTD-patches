@@ -2027,11 +2027,11 @@ PaletteID GetEnginePalette(EngineID engine_type, CompanyID company)
  */
 PaletteID GetVehiclePalette(const Vehicle *v)
 {
-	if (v->IsGroundVehicle()) {
-		return GetEngineColourMap(v->engine_type, v->owner, GroundVehicleBase::From(v)->gcache.first_engine, v);
-	}
+	EngineID parent = v->IsGroundVehicle() ?
+			GroundVehicleBase::From(v)->gcache.first_engine :
+			INVALID_ENGINE;
 
-	return GetEngineColourMap(v->engine_type, v->owner, INVALID_ENGINE, v);
+	return GetEngineColourMap (v->engine_type, v->owner, parent, v);
 }
 
 /**
