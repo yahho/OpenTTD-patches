@@ -408,31 +408,6 @@ static byte MapAircraftMovementAction(const Aircraft *v)
 }
 
 /**
- * Determines the livery of an engine.
- *
- * This always uses dual company colours independent of GUI settings. So it is desync-safe.
- *
- * @param engine Engine type
- * @param v Vehicle, NULL in purchase list.
- * @return Livery to use
- */
-static const Livery *LiveryHelper(EngineID engine, const Vehicle *v)
-{
-	const Livery *l;
-
-	if (v == NULL) {
-		if (!Company::IsValidID(_current_company)) return NULL;
-		l = GetEngineLivery(engine, _current_company, INVALID_ENGINE, NULL, LIT_ALL);
-	} else if (v->IsGroundVehicle()) {
-		l = GetEngineLivery(v->engine_type, v->owner, GroundVehicleBase::From(v)->gcache.first_engine, v, LIT_ALL);
-	} else {
-		l = GetEngineLivery(v->engine_type, v->owner, INVALID_ENGINE, v, LIT_ALL);
-	}
-
-	return l;
-}
-
-/**
  * Helper to get the position of a vehicle within a chain of vehicles.
  * @param v the vehicle to get the position of.
  * @param consecutive whether to look at the whole chain or the vehicles
@@ -555,7 +530,11 @@ static uint32 VehicleGetVariable(Vehicle *v, const VehicleScopeResolver *object,
 
 		case 0x43: // Company information
 			if (!HasBit(v->grf_cache.cache_valid, NCVV_COMPANY_INFORMATION)) {
-				v->grf_cache.company_information = GetCompanyInfo(v->owner, LiveryHelper(v->engine_type, v));
+				/* Always use dual company colours independently of GUI settings (desync-safe). */
+				const Livery *l = GetEngineLivery (v->engine_type, v->owner,
+						v->IsGroundVehicle() ? GroundVehicleBase::From(v)->gcache.first_engine : INVALID_ENGINE,
+						v, LIT_ALL);
+				v->grf_cache.company_information = GetCompanyInfo (v->owner, l);
 				SetBit(v->grf_cache.cache_valid, NCVV_COMPANY_INFORMATION);
 			}
 			return v->grf_cache.company_information;
@@ -899,7 +878,11 @@ static uint32 VehicleGetVariable(Vehicle *v, const VehicleScopeResolver *object,
 	if (this->v == NULL) {
 		/* Vehicle does not exist, so we're in a purchase list */
 		switch (variable) {
-			case 0x43: return GetCompanyInfo(_current_company, LiveryHelper(this->self_type, NULL)); // Owner information
+			case 0x43: { // Owner information
+				const Livery *l = !Company::IsValidID (_current_company) ? NULL :
+						GetEngineLivery (this->self_type, _current_company, INVALID_ENGINE, NULL, LIT_ALL);
+				return GetCompanyInfo (_current_company, l);
+			}
 			case 0x46: return 0;               // Motion counter
 			case 0x47: { // Vehicle cargo info
 				const Engine *e = Engine::Get(this->self_type);
