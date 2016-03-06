@@ -525,26 +525,6 @@ void SetAircraftPosition(Aircraft *v, int x, int y, int z)
 	}
 }
 
-/**
- * Handle Aircraft specific tasks when an Aircraft enters a hangar
- * @param *v Vehicle that enters the hangar
- */
-void HandleAircraftEnterHangar(Aircraft *v)
-{
-	v->subspeed = 0;
-	v->progress = 0;
-
-	Aircraft *u = v->Next();
-	u->vehstatus |= VS_HIDDEN;
-	u = u->Next();
-	if (u != NULL) {
-		u->vehstatus |= VS_HIDDEN;
-		u->cur_speed = 0;
-	}
-
-	SetAircraftPosition(v, v->x_pos, v->y_pos, v->z_pos);
-}
-
 static void PlayAircraftSound(const Vehicle *v)
 {
 	if (!PlayVehicleSound(v, VSE_START)) {
@@ -1368,7 +1348,19 @@ void AircraftLeaveHangar(Aircraft *v, Direction exit_dir)
 static void AircraftEnterDepot (Aircraft *v)
 {
 	SetWindowClassesDirty (WC_AIRCRAFT_LIST);
-	HandleAircraftEnterHangar (v);
+
+	v->subspeed = 0;
+	v->progress = 0;
+
+	Aircraft *u = v->Next();
+	u->vehstatus |= VS_HIDDEN;
+	u = u->Next();
+	if (u != NULL) {
+		u->vehstatus |= VS_HIDDEN;
+		u->cur_speed = 0;
+	}
+
+	SetAircraftPosition (v, v->x_pos, v->y_pos, v->z_pos);
 
 	VehicleEnterDepot (v);
 }
