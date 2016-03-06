@@ -304,6 +304,22 @@ void Ship::UpdateDeltaXY(Direction direction)
 	this->z_extent      = 6;
 }
 
+/**
+ * Ship entirely entered the depot, update its status, orders, vehicle windows, service it, etc.
+ * @param v Ship that entered a depot.
+ */
+static void ShipEnterDepot (Ship *v)
+{
+	SetWindowClassesDirty (WC_SHIPS_LIST);
+
+	v->trackdir = TRACKDIR_DEPOT;
+	v->UpdateCache();
+	v->UpdateViewport (true, true);
+	SetWindowDirty (WC_VEHICLE_DEPOT, v->tile);
+
+	VehicleEnterDepot (v);
+}
+
 static bool CheckShipLeaveDepot(Ship *v)
 {
 	if (!v->IsChainInDepot()) return false;
@@ -311,7 +327,7 @@ static bool CheckShipLeaveDepot(Ship *v)
 	/* We are leaving a depot, but have to go to the exact same one; re-enter */
 	if (v->current_order.IsType(OT_GOTO_DEPOT) &&
 			IsShipDepotTile(v->tile) && GetDepotIndex(v->tile) == v->current_order.GetDestination()) {
-		VehicleEnterDepot(v);
+		ShipEnterDepot (v);
 		return true;
 	}
 
@@ -485,7 +501,7 @@ static void ShipController(Ship *v)
 				v->current_order.MakeDummy();
 			} else if (v->current_order.IsType(OT_GOTO_DEPOT)) {
 				if (v->dest_tile == gp.tile && (gp.xx & 0xF) == 8 && (gp.yy & 0xF) == 8) {
-					VehicleEnterDepot(v);
+					ShipEnterDepot (v);
 					return;
 				}
 			} else if (v->current_order.IsType(OT_GOTO_STATION)) {

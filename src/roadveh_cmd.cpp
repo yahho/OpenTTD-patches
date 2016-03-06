@@ -996,6 +996,16 @@ static RoadChoosePathEnum RoadChoosePath (RoadVehicle *v, TileIndex tile,
 	return (RoadChoosePathEnum) DiagDirToDiagTrackdir (enterdir);
 }
 
+/**
+ * Road vehicle entirely entered the depot, update its status, orders, vehicle windows, service it, etc.
+ * @param v Road vehicle that entered a depot.
+ */
+static void RoadVehicleEnterDepot (RoadVehicle *v)
+{
+	SetWindowClassesDirty (WC_ROADVEH_LIST);
+	VehicleEnterDepot (v);
+}
+
 #include "table/roadveh_movement.h"
 
 static bool RoadVehLeaveDepot(RoadVehicle *v, bool first)
@@ -1017,7 +1027,7 @@ static bool RoadVehLeaveDepot(RoadVehicle *v, bool first)
 	if (first) {
 		/* We are leaving a depot, but have to go to the exact same one; re-enter */
 		if (v->current_order.IsType(OT_GOTO_DEPOT) && v->tile == v->dest_tile) {
-			VehicleEnterDepot(v);
+			RoadVehicleEnterDepot (v);
 			return true;
 		}
 
@@ -1400,7 +1410,7 @@ static void controller_midtile (RoadVehicle *v, int x, int y, Direction dir)
 				v->state = RVSB_IN_DEPOT;
 				v->vehstatus |= VS_HIDDEN;
 				v->direction = ReverseDir (v->direction);
-				if (v->Next() == NULL) VehicleEnterDepot (v->First());
+				if (v->Next() == NULL) RoadVehicleEnterDepot (v->First());
 
 				InvalidateWindowData (WC_VEHICLE_DEPOT, v->tile);
 			}

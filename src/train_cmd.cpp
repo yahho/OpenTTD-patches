@@ -2166,6 +2166,28 @@ static void CheckNextTrainTile(Train *v)
 }
 
 /**
+ * Train entirely entered the depot, update its status, orders, vehicle windows, service it, etc.
+ * @param v Train that entered a depot.
+ */
+static void TrainEnterDepot (Train *v)
+{
+	SetWindowClassesDirty (WC_TRAINS_LIST);
+	/* Clear path reservation */
+	SetDepotReservation (v->tile, false);
+	if (_settings_client.gui.show_track_reservation) MarkTileDirtyByTile (v->tile);
+
+	assert (IsSignalBufferEmpty());
+	AddDepotToSignalBuffer (v->tile, v->owner);
+	UpdateSignalsInBuffer();
+	v->wait_counter = 0;
+	v->force_proceed = TFP_NONE;
+	ClrBit(v->flags, VRF_TOGGLE_REVERSE);
+	v->ConsistChanged (CCF_ARRANGE);
+
+	VehicleEnterDepot (v);
+}
+
+/**
  * Will the train stay in the depot the next tick?
  * @param v %Train to check.
  * @return True if it stays in the depot, false otherwise.
@@ -2227,7 +2249,7 @@ static bool CheckTrainStayInDepot(Train *v)
 		/* We need to have a reservation for this to work. */
 		if (HasDepotReservation(v->tile)) return true;
 		SetDepotReservation(v->tile, true);
-		VehicleEnterDepot(v);
+		TrainEnterDepot (v);
 		return true;
 	}
 
@@ -3213,7 +3235,7 @@ static void TrainEnter_Misc(Train *u, TileIndex tile, int x, int y)
 					u->trackdir = TRACKDIR_DEPOT,
 					u->vehstatus |= VS_HIDDEN; // hide it
 					u->direction = ReverseDir(u->direction);
-					if (u->Next() == NULL) VehicleEnterDepot(u->First());
+					if (u->Next() == NULL) TrainEnterDepot (u->First());
 					u->tile = tile;
 
 					InvalidateWindowData(WC_VEHICLE_DEPOT, u->tile);

@@ -1524,44 +1524,6 @@ void VehicleEnterDepot(Vehicle *v)
 	/* Always work with the front of the vehicle */
 	assert(v == v->First());
 
-	switch (v->type) {
-		case VEH_TRAIN: {
-			Train *t = Train::From(v);
-			SetWindowClassesDirty(WC_TRAINS_LIST);
-			/* Clear path reservation */
-			SetDepotReservation(t->tile, false);
-			if (_settings_client.gui.show_track_reservation) MarkTileDirtyByTile(t->tile);
-
-			assert(IsSignalBufferEmpty());
-			AddDepotToSignalBuffer(t->tile, t->owner);
-			UpdateSignalsInBuffer();
-			t->wait_counter = 0;
-			t->force_proceed = TFP_NONE;
-			ClrBit(t->flags, VRF_TOGGLE_REVERSE);
-			t->ConsistChanged(CCF_ARRANGE);
-			break;
-		}
-
-		case VEH_ROAD:
-			SetWindowClassesDirty(WC_ROADVEH_LIST);
-			break;
-
-		case VEH_SHIP: {
-			SetWindowClassesDirty(WC_SHIPS_LIST);
-			Ship *ship = Ship::From(v);
-			ship->trackdir = TRACKDIR_DEPOT;
-			ship->UpdateCache();
-			ship->UpdateViewport(true, true);
-			SetWindowDirty(WC_VEHICLE_DEPOT, v->tile);
-			break;
-		}
-
-		case VEH_AIRCRAFT:
-			SetWindowClassesDirty(WC_AIRCRAFT_LIST);
-			HandleAircraftEnterHangar(Aircraft::From(v));
-			break;
-		default: NOT_REACHED();
-	}
 	SetWindowDirty(WC_VEHICLE_VIEW, v->index);
 
 	if (v->type != VEH_TRAIN) {
