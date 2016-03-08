@@ -576,8 +576,9 @@ void TraceRestrictCreateProgramMapping(TraceRestrictRefId ref, TraceRestrictProg
 
 /**
  * Remove a program mapping
+ * @return true if a mapping was actually removed
  */
-void TraceRestrictRemoveProgramMapping(TraceRestrictRefId ref)
+bool TraceRestrictRemoveProgramMapping(TraceRestrictRefId ref)
 {
 	TraceRestrictMapping::iterator iter = _tracerestrictprogram_mapping.find(ref);
 	if (iter != _tracerestrictprogram_mapping.end()) {
@@ -606,6 +607,9 @@ void TraceRestrictRemoveProgramMapping(TraceRestrictRefId ref)
 				}
 			}
 		}
+		return true;
+	} else {
+		return false;
 	}
 }
 
@@ -645,8 +649,9 @@ TraceRestrictProgram *GetTraceRestrictProgram(TraceRestrictRefId ref, bool creat
 void TraceRestrictNotifySignalRemoval(TileIndex tile, Track track)
 {
 	TraceRestrictRefId ref = MakeTraceRestrictRefId(tile, track);
-	TraceRestrictRemoveProgramMapping(ref);
+	bool removed = TraceRestrictRemoveProgramMapping(ref);
 	DeleteWindowById(WC_TRACE_RESTRICT, ref);
+	if (removed) InvalidateWindowClassesData(WC_TRACE_RESTRICT);
 }
 
 /**
