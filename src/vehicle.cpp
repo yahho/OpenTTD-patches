@@ -147,8 +147,14 @@ bool Vehicle::NeedsServicing() const
 		bool replace_when_old = false;
 		EngineID new_engine = EngineReplacementForCompany(c, v->engine_type, v->group_id, &replace_when_old);
 
+		if (new_engine == INVALID_ENGINE) {
+			if (!c->settings.engine_renew) continue;
+			new_engine = v->engine_type;
+			replace_when_old = true;
+		}
+
 		/* Check engine availability */
-		if (new_engine == INVALID_ENGINE || !HasBit(Engine::Get(new_engine)->company_avail, v->owner)) continue;
+		if (!HasBit(Engine::Get(new_engine)->company_avail, v->owner)) continue;
 		/* Is the vehicle old if we are not always replacing? */
 		if (replace_when_old && !v->NeedsAutorenewing(c, false)) continue;
 
