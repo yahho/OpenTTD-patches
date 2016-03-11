@@ -472,31 +472,24 @@ public:
 				break;
 			}
 
-			case WID_STL_NOCARGOWAITING: {
-				int cg_ofst = this->IsWidgetLowered(widget) ? 2 : 1;
-				DrawString(r.left + cg_ofst, r.right + cg_ofst, r.top + cg_ofst, STR_ABBREV_NONE, TC_BLACK, SA_HOR_CENTER);
+			case WID_STL_NOCARGOWAITING:
+				DrawString (r.left + 1, r.right + 1, r.top + 1, STR_ABBREV_NONE, TC_BLACK, SA_HOR_CENTER);
 				break;
-			}
 
-			case WID_STL_CARGOALL: {
-				int cg_ofst = this->IsWidgetLowered(widget) ? 2 : 1;
-				DrawString(r.left + cg_ofst, r.right + cg_ofst, r.top + cg_ofst, STR_ABBREV_ALL, TC_BLACK, SA_HOR_CENTER);
+			case WID_STL_CARGOALL:
+				DrawString (r.left + 1, r.right + 1, r.top + 1, STR_ABBREV_ALL, TC_BLACK, SA_HOR_CENTER);
 				break;
-			}
 
-			case WID_STL_FACILALL: {
-				int cg_ofst = this->IsWidgetLowered(widget) ? 2 : 1;
-				DrawString(r.left + cg_ofst, r.right + cg_ofst, r.top + cg_ofst, STR_ABBREV_ALL, TC_BLACK, SA_HOR_CENTER);
+			case WID_STL_FACILALL:
+				DrawString (r.left + 1, r.right + 1, r.top + 1, STR_ABBREV_ALL, TC_BLACK, SA_HOR_CENTER);
 				break;
-			}
 
 			default:
 				if (widget >= WID_STL_CARGOSTART) {
 					const CargoSpec *cs = _sorted_cargo_specs[widget - WID_STL_CARGOSTART];
-					int cg_ofst = HasBit(this->cargo_filter, cs->Index()) ? 2 : 1;
-					GfxFillRect(r.left + cg_ofst, r.top + cg_ofst, r.right - 2 + cg_ofst, r.bottom - 2 + cg_ofst, cs->rating_colour);
+					GfxFillRect (r.left + 1, r.top + 1, r.right - 1, r.bottom - 1, cs->rating_colour);
 					TextColour tc = GetContrastColour(cs->rating_colour);
-					DrawString(r.left + cg_ofst, r.right + cg_ofst, r.top + cg_ofst, cs->abbrev, tc, SA_HOR_CENTER);
+					DrawString (r.left + 1, r.right + 1, r.top + 1, cs->abbrev, tc, SA_HOR_CENTER);
 				}
 				break;
 		}
