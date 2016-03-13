@@ -659,7 +659,7 @@ private:
 		DoCommandP(this->vehicle->tile, this->vehicle->index + (sel_ord << 20), MOF_UNLOAD | (unload_type << 4), CMD_MODIFY_ORDER);
 
 		/* Transfer orders with leave empty as default */
-		if (unload_type == OUFB_TRANSFER && order->GetLoadType() != OLFB_NO_LOAD) {
+		if (unload_type == OUFB_TRANSFER && order->GetLoadType() != OLFB_NO_LOAD && !order->IsRefit()) {
 			DoCommandP(this->vehicle->tile, this->vehicle->index + (sel_ord << 20), MOF_LOAD | (OLFB_NO_LOAD << 4), CMD_MODIFY_ORDER);
 			this->SetWidgetDirty(WID_O_FULL_LOAD);
 		}
