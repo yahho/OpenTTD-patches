@@ -446,22 +446,23 @@ void CircularTileIterator::Next()
 
 		if (--this->j == 0) {
 			this->d++;
-			if (this->d < DIAGDIR_END) {
-				/* prepare for next side */
-				this->j = this->extent[DiagDirToAxis(this->d)];
-			} else if (--this->r == 0) {
-				/* all done */
-				this->tile = INVALID_TILE;
-				return;
-			} else {
+			if (this->d == DIAGDIR_END) {
+				if (--this->r == 0) {
+					/* all done */
+					this->tile = INVALID_TILE;
+					return;
+				}
+
 				/* next circle */
 				this->x++; /* move west */
 				this->y--;
 				this->extent[AXIS_X] += 2;
 				this->extent[AXIS_Y] += 2;
 				this->d = DIAGDIR_BEGIN;
-				this->j = this->extent[DiagDirToAxis(this->d)];
 			}
+
+			/* prepare for next side */
+			this->j = this->extent[DiagDirToAxis(this->d)];
 		}
 	} while (this->x >= MapSizeX() || this->y >= MapSizeY());
 
