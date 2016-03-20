@@ -2063,7 +2063,7 @@ void UpdateAirportsNoise()
 	FOR_ALL_STATIONS(st) {
 		if (st->airport.tile != INVALID_TILE && st->airport.type != AT_OILRIG) {
 			const AirportSpec *as = st->airport.GetSpec();
-			AirportTileIterator it(st);
+			AirportTileTableIterator it (as->table[st->airport.layout], st->airport.tile);
 			Town *nearest = AirportGetNearestTown(as, it);
 			nearest->noise_reached += GetAirportNoiseLevelForTown(as, it, nearest->xy);
 		}
@@ -2317,7 +2317,7 @@ static CommandCost RemoveAirport(TileIndex tile, DoCommandFlag flags)
 		/* The noise level is the noise from the airport and reduce it to account for the distance to the town center.
 		 * And as for construction, always remove it, even if the setting is not set, in order to avoid the
 		 * need of recalculation */
-		AirportTileIterator it(st);
+		AirportTileTableIterator it (as->table[st->airport.layout], st->airport.tile);
 		Town *nearest = AirportGetNearestTown(as, it);
 		nearest->noise_reached -= GetAirportNoiseLevelForTown(as, it, nearest->xy);
 
