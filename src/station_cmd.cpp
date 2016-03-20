@@ -1977,16 +1977,18 @@ CommandCost CmdRemoveRoadStop(TileIndex tile, DoCommandFlag flags, uint32 p1, ui
 
 /**
  * Computes the minimal distance from town's xy to any airport's tile.
- * @param it An iterator over all airport tiles.
+ * @param att Airport tile table
+ * @param airport_tile Airport reference tile
  * @param town_tile town's tile (t->xy)
  * @return minimal manhattan distance from town_tile to any airport's tile
  */
-static uint GetMinimalAirportDistanceToTile(TileIterator &it, TileIndex town_tile)
+static uint GetMinimalAirportDistanceToTile (const AirportTileTable *att,
+	TileIndex airport_tile, TileIndex town_tile)
 {
 	uint mindist = UINT_MAX;
 
-	for (TileIndex cur_tile = it; cur_tile != INVALID_TILE; cur_tile = ++it) {
-		mindist = min(mindist, DistanceManhattan(town_tile, cur_tile));
+	for (AirportTileTableIterator iter (att, airport_tile); iter != INVALID_TILE; ++iter) {
+		mindist = min (mindist, DistanceManhattan (town_tile, iter));
 	}
 
 	return mindist;
@@ -2009,8 +2011,7 @@ uint8 GetAirportNoiseLevelForTown (const AirportSpec *as, uint layout,
 	 * So no need to go any further*/
 	if (as->noise_level < 2) return as->noise_level;
 
-	AirportTileTableIterator it (as->table[layout], airport_tile);
-	uint distance = GetMinimalAirportDistanceToTile(it, town_tile);
+	uint distance = GetMinimalAirportDistanceToTile (as->table[layout], airport_tile, town_tile);
 
 	/* The steps for measuring noise reduction are based on the "magical" (and arbitrary) 8 base distance
 	 * adding the town_council_tolerance 4 times, as a way to graduate, depending of the tolerance.
@@ -2043,8 +2044,7 @@ Town *AirportGetNearestTown (const AirportSpec *as, uint layout, TileIndex tile)
 	const AirportTileTable *att = as->table[layout];
 	FOR_ALL_TOWNS(t) {
 		if (DistanceManhattan (t->xy, tile) < mindist + add) { // avoid calling GetMinimalAirportDistanceToTile too often
-			AirportTileTableIterator it (att, tile);
-			uint dist = GetMinimalAirportDistanceToTile (it, t->xy);
+			uint dist = GetMinimalAirportDistanceToTile (att, tile, t->xy);
 			if (dist < mindist) {
 				nearest = t;
 				mindist = dist;
