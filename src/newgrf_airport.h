@@ -59,11 +59,6 @@ public:
 	{
 		return this->att->gfx;
 	}
-
-	virtual AirportTileTableIterator *Clone() const
-	{
-		return new AirportTileTableIterator(*this);
-	}
 };
 
 /** List of default airport classes. */
