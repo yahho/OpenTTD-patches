@@ -3200,7 +3200,8 @@ static void DrawTrack(TileInfo *ti, TrackBits track)
  * Get surface height in point (x,y)
  * On tiles with halftile foundations move (x,y) to a safe point wrt. track
  */
-static uint GetSafeSlopePixelZ(TileIndex tile, uint x, uint y, Track track)
+static uint GetSafeSlopePixelZ (TileIndex tile, uint x, uint y, Track track,
+	DiagDirection bridge)
 {
 	switch (track) {
 		case TRACK_UPPER: x &= ~0xF; y &= ~0xF; break;
@@ -3212,15 +3213,16 @@ static uint GetSafeSlopePixelZ(TileIndex tile, uint x, uint y, Track track)
 
 	uint z = GetSlopePixelZ_Track(tile, x, y);
 
-	if (IsTileSubtype(tile, TT_BRIDGE) && !IsExtendedRailBridge(tile)) {
+	if (bridge != INVALID_DIAGDIR) {
 		assert(IsDiagonalTrack(track));
-		z += GetBridgePartialPixelZ(GetTunnelBridgeDirection(tile), x & 0xF, y & 0xF);
+		z += GetBridgePartialPixelZ (bridge, x & 0xF, y & 0xF);
 	}
 
 	return z;
 }
 
-static inline void DrawSignalPair (TileIndex tile, Track track)
+static inline void DrawSignalPair (TileIndex tile, Track track,
+	DiagDirection bridge = INVALID_DIAGDIR)
 {
 	static const struct {
 		Point pos[2];        // signal position (left side, right side)
@@ -3270,7 +3272,7 @@ static inline void DrawSignalPair (TileIndex tile, Track track)
 		uint x = TileX(tile) * TILE_SIZE + SignalData[track][along].pos[side].x;
 		uint y = TileY(tile) * TILE_SIZE + SignalData[track][along].pos[side].y;
 
-		AddSortableSpriteToDraw (sprite, PAL_NONE, x, y, 1, 1, BB_HEIGHT_UNDER_BRIDGE, GetSafeSlopePixelZ (tile, x, y, track));
+		AddSortableSpriteToDraw (sprite, PAL_NONE, x, y, 1, 1, BB_HEIGHT_UNDER_BRIDGE, GetSafeSlopePixelZ (tile, x, y, track, bridge));
 
 	} while ((along = !along));
 }
@@ -3370,7 +3372,7 @@ static void DrawTile_Track(TileInfo *ti)
 			DrawCatenary(ti);
 		}
 
-		DrawSignalPair (ti->tile, DiagDirToDiagTrack (dir));
+		DrawSignalPair (ti->tile, DiagDirToDiagTrack (dir), dir);
 	}
 
 	DrawBridgeMiddle(ti);
