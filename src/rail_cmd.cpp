@@ -3273,30 +3273,31 @@ static void DrawSingleSignal(TileIndex tile, Trackdir trackdir)
 	AddSortableSpriteToDraw(sprite, PAL_NONE, x, y, 1, 1, BB_HEIGHT_UNDER_BRIDGE, GetSafeSlopePixelZ(tile, x, y, track));
 }
 
+static inline void DrawSignalPair (TileIndex tile, Track track)
+{
+	Trackdir trackdir = TrackToTrackdir (track);
+	DrawSingleSignal (tile, trackdir);
+	DrawSingleSignal (tile, ReverseTrackdir (trackdir));
+}
+
 static void DrawSignals(TileIndex tile, TrackBits rails)
 {
 	if (rails & TRACK_BIT_Y) {
-		DrawSingleSignal(tile, TRACKDIR_Y_SE);
-		DrawSingleSignal(tile, TRACKDIR_Y_NW);
+		DrawSignalPair (tile, TRACK_Y);
 	} else if (rails & TRACK_BIT_X) {
-		DrawSingleSignal(tile, TRACKDIR_X_NE);
-		DrawSingleSignal(tile, TRACKDIR_X_SW);
+		DrawSignalPair (tile, TRACK_X);
 	} else {
 		if (rails & TRACK_BIT_LEFT) {
-			DrawSingleSignal(tile, TRACKDIR_LEFT_S);
-			DrawSingleSignal(tile, TRACKDIR_LEFT_N);
+			DrawSignalPair (tile, TRACK_LEFT);
 		}
 		if (rails & TRACK_BIT_RIGHT) {
-			DrawSingleSignal(tile, TRACKDIR_RIGHT_S);
-			DrawSingleSignal(tile, TRACKDIR_RIGHT_N);
+			DrawSignalPair (tile, TRACK_RIGHT);
 		}
 		if (rails & TRACK_BIT_UPPER) {
-			DrawSingleSignal(tile, TRACKDIR_UPPER_E);
-			DrawSingleSignal(tile, TRACKDIR_UPPER_W);
+			DrawSignalPair (tile, TRACK_UPPER);
 		}
 		if (rails & TRACK_BIT_LOWER) {
-			DrawSingleSignal(tile, TRACKDIR_LOWER_E);
-			DrawSingleSignal(tile, TRACKDIR_LOWER_W);
+			DrawSignalPair (tile, TRACK_LOWER);
 		}
 	}
 }
@@ -3374,13 +3375,7 @@ static void DrawTile_Track(TileInfo *ti)
 			DrawCatenary(ti);
 		}
 
-		if (DiagDirToAxis(dir) == AXIS_Y) {
-			DrawSingleSignal(ti->tile, TRACKDIR_Y_SE);
-			DrawSingleSignal(ti->tile, TRACKDIR_Y_NW);
-		} else {
-			DrawSingleSignal(ti->tile, TRACKDIR_X_NE);
-			DrawSingleSignal(ti->tile, TRACKDIR_X_SW);
-		}
+		DrawSignalPair (ti->tile, DiagDirToDiagTrack (dir));
 	}
 
 	DrawBridgeMiddle(ti);
