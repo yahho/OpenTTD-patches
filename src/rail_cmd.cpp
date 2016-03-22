@@ -3220,61 +3220,59 @@ static uint GetSafeSlopePixelZ(TileIndex tile, uint x, uint y, Track track)
 	return z;
 }
 
-static void DrawSingleSignal(TileIndex tile, Trackdir trackdir)
+static inline void DrawSignalPair (TileIndex tile, Track track)
 {
 	static const struct {
 		Point pos[2];        // signal position (left side, right side)
 		SignalOffsets image; // offset from base signal sprite
-	} SignalData[] = {
-		{ { {11,  3}, {11, 13} }, SIGNAL_TO_NORTHEAST }, // TRACKDIR_X_NE
-		{ { { 3,  4}, {13,  4} }, SIGNAL_TO_SOUTHEAST }, // TRACKDIR_Y_SE
-		{ { { 1,  0}, {10,  4} }, SIGNAL_TO_EAST      }, // TRACKDIR_UPPER_E
-		{ { {11,  4}, {14, 14} }, SIGNAL_TO_EAST      }, // TRACKDIR_LOWER_E
-		{ { { 8,  5}, {14,  1} }, SIGNAL_TO_SOUTH     }, // TRACKDIR_LEFT_S
-		{ { { 1, 14}, { 4,  6} }, SIGNAL_TO_SOUTH     }, // TRACKDIR_RIGHT_S
-		{ { { 0,  0}, { 0,  0} }, SIGNAL_TO_NORTHEAST }, // TRACKDIR_RVREV_NE
-		{ { { 0,  0}, { 0,  0} }, SIGNAL_TO_NORTHEAST }, // TRACKDIR_RVREV_SE
-		{ { { 4, 13}, { 4,  3} }, SIGNAL_TO_SOUTHWEST }, // TRACKDIR_X_SW
-		{ { {11, 13}, { 3, 11} }, SIGNAL_TO_NORTHWEST }, // TRACKDIR_Y_NW
-		{ { { 3, 10}, { 0,  1} }, SIGNAL_TO_WEST      }, // TRACKDIR_UPPER_W
-		{ { {14, 14}, { 5, 12} }, SIGNAL_TO_WEST      }, // TRACKDIR_LOWER_W
-		{ { {14,  1}, {12, 10} }, SIGNAL_TO_NORTH     }, // TRACKDIR_LEFT_N
-		{ { { 9, 11}, { 1, 14} }, SIGNAL_TO_NORTH     }, // TRACKDIR_RIGHT_N
-	//	{ { { 0,  0}, { 0,  0} }, SIGNAL_TO_NORTHEAST }, // TRACKDIR_RVREV_SW
-	//	{ { { 0,  0}, { 0,  0} }, SIGNAL_TO_NORTHEAST }, // TRACKDIR_RVREV_NW
+	} SignalData[TRACK_END][2] = {
+		{ { { { 4, 13}, { 4,  3} }, SIGNAL_TO_SOUTHWEST }, // TRACK_X
+		  { { {11,  3}, {11, 13} }, SIGNAL_TO_NORTHEAST } },
+		{ { { {11, 13}, { 3, 11} }, SIGNAL_TO_NORTHWEST }, // TRACK_Y
+		  { { { 3,  4}, {13,  4} }, SIGNAL_TO_SOUTHEAST } },
+		{ { { { 3, 10}, { 0,  1} }, SIGNAL_TO_WEST      }, // TRACK_UPPER
+		  { { { 1,  0}, {10,  4} }, SIGNAL_TO_EAST      } },
+		{ { { {14, 14}, { 5, 12} }, SIGNAL_TO_WEST      }, // TRACK_LOWER
+		  { { {11,  4}, {14, 14} }, SIGNAL_TO_EAST      } },
+		{ { { { 8,  5}, {14,  1} }, SIGNAL_TO_SOUTH     }, // TRACK_LEFT
+		  { { {14,  1}, {12, 10} }, SIGNAL_TO_NORTH     } },
+		{ { { { 1, 14}, { 4,  6} }, SIGNAL_TO_SOUTH     }, // TRACK_RIGHT
+		  { { { 9, 11}, { 1, 14} }, SIGNAL_TO_NORTH     } },
 	};
 
-	if (!HasSignalOnTrackdir(tile, trackdir)) return;
+	SignalPair signals = *maptile_signalpair (tile, track);
+	if (!signalpair_has_signals (&signals)) return;
 
-	Track track = TrackdirToTrack(trackdir);
-	SignalType type       = GetSignalType(tile, track);
-	SignalVariant variant = GetSignalVariant(tile, track);
-	SignalState condition = GetSignalStateByTrackdir(tile, trackdir);
+	const RailtypeInfo *rti = GetRailTypeInfo (GetRailType (tile, track));
 
-	SpriteID sprite = GetCustomSignalSprite(GetRailTypeInfo(GetRailType(tile, track)), tile, type, variant, condition);
-	SignalOffsets image = SignalData[trackdir].image;
-	if (sprite != 0) {
-		sprite += image;
-	} else {
-		/* Normal electric signals are stored in a different sprite block than all other signals. */
-		sprite = (type == SIGTYPE_NORMAL && variant == SIG_ELECTRIC) ? SPR_ORIGINAL_SIGNALS_BASE : SPR_SIGNALS_BASE - 16;
-		sprite += type * 16 + variant * 64 + image * 2 + condition + (IsPbsSignal(type) ? 64 : 0);
-	}
+	SignalType type       = signalpair_get_type (&signals);
+	SignalVariant variant = signalpair_get_variant (&signals);
 
 	bool side = (_settings_game.construction.train_signal_side +
 			(_settings_game.vehicle.road_side != 0)) > 1;
 
-	uint x = TileX(tile) * TILE_SIZE + SignalData[trackdir].pos[side].x;
-	uint y = TileY(tile) * TILE_SIZE + SignalData[trackdir].pos[side].y;
+	bool along = false;
+	do {
+		if (!signalpair_has_signal (&signals, along)) continue;
 
-	AddSortableSpriteToDraw(sprite, PAL_NONE, x, y, 1, 1, BB_HEIGHT_UNDER_BRIDGE, GetSafeSlopePixelZ(tile, x, y, track));
-}
+		SignalState condition = signalpair_get_state (&signals, along);
 
-static inline void DrawSignalPair (TileIndex tile, Track track)
-{
-	Trackdir trackdir = TrackToTrackdir (track);
-	DrawSingleSignal (tile, trackdir);
-	DrawSingleSignal (tile, ReverseTrackdir (trackdir));
+		SpriteID sprite = GetCustomSignalSprite (rti, tile, type, variant, condition);
+		SignalOffsets image = SignalData[track][along].image;
+		if (sprite != 0) {
+			sprite += image;
+		} else {
+			/* Normal electric signals are stored in a different sprite block than all other signals. */
+			sprite = (type == SIGTYPE_NORMAL && variant == SIG_ELECTRIC) ? SPR_ORIGINAL_SIGNALS_BASE : SPR_SIGNALS_BASE - 16;
+			sprite += type * 16 + variant * 64 + image * 2 + condition + (IsPbsSignal(type) ? 64 : 0);
+		}
+
+		uint x = TileX(tile) * TILE_SIZE + SignalData[track][along].pos[side].x;
+		uint y = TileY(tile) * TILE_SIZE + SignalData[track][along].pos[side].y;
+
+		AddSortableSpriteToDraw (sprite, PAL_NONE, x, y, 1, 1, BB_HEIGHT_UNDER_BRIDGE, GetSafeSlopePixelZ (tile, x, y, track));
+
+	} while ((along = !along));
 }
 
 static void DrawSignals(TileIndex tile, TrackBits rails)
