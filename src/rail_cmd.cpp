@@ -3203,22 +3203,20 @@ static void DrawTrack(TileInfo *ti, TrackBits track)
 static uint GetSafeSlopePixelZ (TileIndex tile, uint x, uint y, Track track,
 	DiagDirection bridge)
 {
+	uint z = 0;
 	switch (track) {
 		case TRACK_UPPER: x &= ~0xF; y &= ~0xF; break;
 		case TRACK_LOWER: x |=  0xF; y |=  0xF; break;
 		case TRACK_LEFT:  x |=  0xF; y &= ~0xF; break;
 		case TRACK_RIGHT: x &= ~0xF; y |=  0xF; break;
-		default: break;
+		default:
+			if (bridge != INVALID_DIAGDIR) {
+				z = GetBridgePartialPixelZ (bridge, x & 0xF, y & 0xF);
+			}
+			break;
 	}
 
-	uint z = GetSlopePixelZ_Track(tile, x, y);
-
-	if (bridge != INVALID_DIAGDIR) {
-		assert(IsDiagonalTrack(track));
-		z += GetBridgePartialPixelZ (bridge, x & 0xF, y & 0xF);
-	}
-
-	return z;
+	return z + GetSlopePixelZ_Track (tile, x, y);
 }
 
 static inline void DrawSignalPair (TileIndex tile, Track track,
