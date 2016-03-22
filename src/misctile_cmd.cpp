@@ -171,12 +171,9 @@ static void DrawTunnel(TileInfo *ti)
 				sprite += (type == SIGTYPE_NORMAL ? SIGTYPE_NORMAL * 16 : SIGTYPE_PBS_ONEWAY * 16 + 64) + variant * 64 + image * 2 + condition;
 			}
 
-			bool side;
-			switch (_settings_game.construction.train_signal_side) {
-				case 0:  side = false;                                 break; // left
-				case 2:  side = true;                                  break; // right
-				default: side = _settings_game.vehicle.road_side != 0; break; // driving side
-			}
+			bool side = (_settings_game.construction.train_signal_side +
+					(_settings_game.vehicle.road_side != 0)) > 1;
+
 			uint x = TileX(ti->tile) * TILE_SIZE + SignalData[dd].pos[inwards][side].x;
 			uint y = TileY(ti->tile) * TILE_SIZE + SignalData[dd].pos[inwards][side].y;
 

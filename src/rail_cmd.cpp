@@ -3261,12 +3261,9 @@ static void DrawSingleSignal(TileIndex tile, Trackdir trackdir)
 		sprite += type * 16 + variant * 64 + image * 2 + condition + (IsPbsSignal(type) ? 64 : 0);
 	}
 
-	bool side;
-	switch (_settings_game.construction.train_signal_side) {
-		case 0:  side = false;                                 break; // left
-		case 2:  side = true;                                  break; // right
-		default: side = _settings_game.vehicle.road_side != 0; break; // driving side
-	}
+	bool side = (_settings_game.construction.train_signal_side +
+			(_settings_game.vehicle.road_side != 0)) > 1;
+
 	uint x = TileX(tile) * TILE_SIZE + SignalData[trackdir].pos[side].x;
 	uint y = TileY(tile) * TILE_SIZE + SignalData[trackdir].pos[side].y;
 
