@@ -2957,18 +2957,16 @@ static void DrawTrackBitsNonOverlay(TileInfo *ti, TrackBits track, const Railtyp
 		/* Get reservation, but mask track on halftile slope */
 		TrackBits pbs = GetRailReservationTrackBits(ti->tile) & track;
 		if (pbs & TRACK_BIT_X) {
-			if (ti->tileh == SLOPE_FLAT || ti->tileh == SLOPE_ELEVATED) {
-				DrawGroundSprite (rti->base_sprites.single[TRACK_X], PALETTE_CRASH);
-			} else {
-				DrawGroundSprite(_track_sloped_sprites[ti->tileh - 1] + rti->base_sprites.single_sloped - 20, PALETTE_CRASH);
-			}
+			SpriteID image = (ti->tileh == SLOPE_FLAT || ti->tileh == SLOPE_ELEVATED) ?
+					rti->base_sprites.single[TRACK_X] :
+					_track_sloped_sprites[ti->tileh - 1] + rti->base_sprites.single_sloped - 20;
+			DrawGroundSprite (image, PALETTE_CRASH);
 		}
 		if (pbs & TRACK_BIT_Y) {
-			if (ti->tileh == SLOPE_FLAT || ti->tileh == SLOPE_ELEVATED) {
-				DrawGroundSprite (rti->base_sprites.single[TRACK_Y], PALETTE_CRASH);
-			} else {
-				DrawGroundSprite(_track_sloped_sprites[ti->tileh - 1] + rti->base_sprites.single_sloped - 20, PALETTE_CRASH);
-			}
+			SpriteID image = (ti->tileh == SLOPE_FLAT || ti->tileh == SLOPE_ELEVATED) ?
+					rti->base_sprites.single[TRACK_Y] :
+					_track_sloped_sprites[ti->tileh - 1] + rti->base_sprites.single_sloped - 20;
+			DrawGroundSprite (image, PALETTE_CRASH);
 		}
 		if (pbs & TRACK_BIT_UPPER) DrawGroundSprite (rti->base_sprites.single[TRACK_UPPER], PALETTE_CRASH, NULL, 0, ti->tileh & SLOPE_N ? -(int)TILE_HEIGHT : 0);
 		if (pbs & TRACK_BIT_LOWER) DrawGroundSprite (rti->base_sprites.single[TRACK_LOWER], PALETTE_CRASH, NULL, 0, ti->tileh & SLOPE_S ? -(int)TILE_HEIGHT : 0);
