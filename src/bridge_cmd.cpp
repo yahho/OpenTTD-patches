@@ -728,7 +728,7 @@ void DrawBridgeMiddle(const TileInfo *ti)
 		if (_game_mode != GM_MENU && _settings_client.gui.show_track_reservation && !IsInvisibilitySet(TO_BRIDGES) && HasBridgeMiddleReservation(rampnorth)) {
 			SpriteID image = rti->UsesOverlay() ?
 					GetCustomRailSprite (rti, ti->tile, RTSG_OVERLAY) + RTO_X + axis :
-					axis == AXIS_X ? rti->base_sprites.single_x : rti->base_sprites.single_y;
+					rti->base_sprites.single[AxisToTrack(axis)];
 			AddSortableSpriteToDraw (image, PALETTE_CRASH, ti->x, ti->y, 16, 16, 0, bridge_z, IsTransparencySet (TO_BRIDGES));
 		}
 

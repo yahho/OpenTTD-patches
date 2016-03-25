@@ -2903,7 +2903,7 @@ draw_default_foundation:
 			/* PBS debugging, draw reserved tracks darker */
 			if (_game_mode != GM_MENU && _settings_client.gui.show_track_reservation && HasStationRail(ti->tile) && HasStationReservation(ti->tile)) {
 				const RailtypeInfo *rti = GetRailTypeInfo(GetRailType(ti->tile));
-				DrawGroundSprite(GetRailStationAxis(ti->tile) == AXIS_X ? rti->base_sprites.single_x : rti->base_sprites.single_y, PALETTE_CRASH);
+				DrawGroundSprite (rti->base_sprites.single[GetRailStationTrack(ti->tile)], PALETTE_CRASH);
 			}
 		}
 	}

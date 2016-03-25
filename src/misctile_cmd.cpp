@@ -101,7 +101,7 @@ static void DrawTunnel(TileInfo *ti)
 		Axis axis = DiagDirToAxis (tunnelbridge_direction);
 		SpriteID image = rti->UsesOverlay() ?
 				GetCustomRailSprite (rti, ti->tile, RTSG_OVERLAY) + RTO_X + axis :
-				axis == AXIS_X ? rti->base_sprites.single_x : rti->base_sprites.single_y;
+				rti->base_sprites.single[AxisToTrack(axis)];
 		DrawGroundSprite (image, PALETTE_CRASH);
 	}
 
@@ -264,9 +264,9 @@ static void DrawTrainDepot(TileInfo *ti)
 		if (_game_mode != GM_MENU && _settings_client.gui.show_track_reservation && HasDepotReservation(ti->tile)) {
 			switch (GetGroundDepotDirection(ti->tile)) {
 				case DIAGDIR_NE: if (!IsInvisibilitySet(TO_BUILDINGS)) break; // else FALL THROUGH
-				case DIAGDIR_SW: DrawGroundSprite(rti->base_sprites.single_x, PALETTE_CRASH); break;
+				case DIAGDIR_SW: DrawGroundSprite(rti->base_sprites.single[TRACK_X], PALETTE_CRASH); break;
 				case DIAGDIR_NW: if (!IsInvisibilitySet(TO_BUILDINGS)) break; // else FALL THROUGH
-				case DIAGDIR_SE: DrawGroundSprite(rti->base_sprites.single_y, PALETTE_CRASH); break;
+				case DIAGDIR_SE: DrawGroundSprite(rti->base_sprites.single[TRACK_Y], PALETTE_CRASH); break;
 				default: break;
 			}
 		}

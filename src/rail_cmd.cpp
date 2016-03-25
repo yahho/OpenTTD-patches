@@ -2947,12 +2947,9 @@ static void DrawTrackBitsNonOverlay(TileInfo *ti, TrackBits track, const Railtyp
 
 	/* Draw track pieces individually for junction tiles */
 	if (junction) {
-		if (track & TRACK_BIT_X)     DrawGroundSprite(rti->base_sprites.single_x, PAL_NONE);
-		if (track & TRACK_BIT_Y)     DrawGroundSprite(rti->base_sprites.single_y, PAL_NONE);
-		if (track & TRACK_BIT_UPPER) DrawGroundSprite(rti->base_sprites.single_n, PAL_NONE);
-		if (track & TRACK_BIT_LOWER) DrawGroundSprite(rti->base_sprites.single_s, PAL_NONE);
-		if (track & TRACK_BIT_LEFT)  DrawGroundSprite(rti->base_sprites.single_w, PAL_NONE);
-		if (track & TRACK_BIT_RIGHT) DrawGroundSprite(rti->base_sprites.single_e, PAL_NONE);
+		for (Track t = TRACK_BEGIN; t < TRACK_END; t++) {
+			if (HasBit (track, t)) DrawGroundSprite (rti->base_sprites.single[t], PAL_NONE);
+		}
 	}
 
 	/* PBS debugging, draw reserved tracks darker */
@@ -2961,22 +2958,22 @@ static void DrawTrackBitsNonOverlay(TileInfo *ti, TrackBits track, const Railtyp
 		TrackBits pbs = GetRailReservationTrackBits(ti->tile) & track;
 		if (pbs & TRACK_BIT_X) {
 			if (ti->tileh == SLOPE_FLAT || ti->tileh == SLOPE_ELEVATED) {
-				DrawGroundSprite(rti->base_sprites.single_x, PALETTE_CRASH);
+				DrawGroundSprite (rti->base_sprites.single[TRACK_X], PALETTE_CRASH);
 			} else {
 				DrawGroundSprite(_track_sloped_sprites[ti->tileh - 1] + rti->base_sprites.single_sloped - 20, PALETTE_CRASH);
 			}
 		}
 		if (pbs & TRACK_BIT_Y) {
 			if (ti->tileh == SLOPE_FLAT || ti->tileh == SLOPE_ELEVATED) {
-				DrawGroundSprite(rti->base_sprites.single_y, PALETTE_CRASH);
+				DrawGroundSprite (rti->base_sprites.single[TRACK_Y], PALETTE_CRASH);
 			} else {
 				DrawGroundSprite(_track_sloped_sprites[ti->tileh - 1] + rti->base_sprites.single_sloped - 20, PALETTE_CRASH);
 			}
 		}
-		if (pbs & TRACK_BIT_UPPER) DrawGroundSprite(rti->base_sprites.single_n, PALETTE_CRASH, NULL, 0, ti->tileh & SLOPE_N ? -(int)TILE_HEIGHT : 0);
-		if (pbs & TRACK_BIT_LOWER) DrawGroundSprite(rti->base_sprites.single_s, PALETTE_CRASH, NULL, 0, ti->tileh & SLOPE_S ? -(int)TILE_HEIGHT : 0);
-		if (pbs & TRACK_BIT_LEFT)  DrawGroundSprite(rti->base_sprites.single_w, PALETTE_CRASH, NULL, 0, ti->tileh & SLOPE_W ? -(int)TILE_HEIGHT : 0);
-		if (pbs & TRACK_BIT_RIGHT) DrawGroundSprite(rti->base_sprites.single_e, PALETTE_CRASH, NULL, 0, ti->tileh & SLOPE_E ? -(int)TILE_HEIGHT : 0);
+		if (pbs & TRACK_BIT_UPPER) DrawGroundSprite (rti->base_sprites.single[TRACK_UPPER], PALETTE_CRASH, NULL, 0, ti->tileh & SLOPE_N ? -(int)TILE_HEIGHT : 0);
+		if (pbs & TRACK_BIT_LOWER) DrawGroundSprite (rti->base_sprites.single[TRACK_LOWER], PALETTE_CRASH, NULL, 0, ti->tileh & SLOPE_S ? -(int)TILE_HEIGHT : 0);
+		if (pbs & TRACK_BIT_LEFT)  DrawGroundSprite (rti->base_sprites.single[TRACK_LEFT],  PALETTE_CRASH, NULL, 0, ti->tileh & SLOPE_W ? -(int)TILE_HEIGHT : 0);
+		if (pbs & TRACK_BIT_RIGHT) DrawGroundSprite (rti->base_sprites.single[TRACK_RIGHT], PALETTE_CRASH, NULL, 0, ti->tileh & SLOPE_E ? -(int)TILE_HEIGHT : 0);
 	}
 }
 
@@ -3031,7 +3028,7 @@ static void DrawHalftileNonOverlay(TileInfo *ti, Corner corner, const RailtypeIn
 
 	/* PBS debugging, draw reserved tracks darker */
 	if (_game_mode != GM_MENU && _settings_client.gui.show_track_reservation && HasReservedTracks(ti->tile, CornerToTrackBits(corner))) {
-		DrawGroundSprite(_corner_to_track_sprite[corner] + rti->base_sprites.single_n, PALETTE_CRASH, NULL, 0, 0);
+		DrawGroundSprite (_corner_to_track_sprite[corner] + rti->base_sprites.single[TRACK_UPPER], PALETTE_CRASH, NULL, 0, 0);
 	}
 }
 
@@ -3098,7 +3095,7 @@ static void DrawUpperHalftileNonOverlay(TileInfo *ti, Corner corner, const Railt
 	DrawGroundSprite(image, pal, &_halftile_sub_sprite_upper[corner]);
 
 	if (_game_mode != GM_MENU && _settings_client.gui.show_track_reservation && HasReservedTracks(ti->tile, CornerToTrackBits(corner))) {
-		DrawGroundSprite(_corner_to_track_sprite[corner] + rti->base_sprites.single_n, PALETTE_CRASH, NULL, 0, -(int)TILE_HEIGHT);
+		DrawGroundSprite (_corner_to_track_sprite[corner] + rti->base_sprites.single[TRACK_UPPER], PALETTE_CRASH, NULL, 0, -(int)TILE_HEIGHT);
 	}
 }
 
@@ -3355,7 +3352,7 @@ static void DrawTile_Track(TileInfo *ti)
 						(dz != 0 ? RTO_X + DiagDirToAxis (dir) : RTO_SLOPE_NE + dir);
 			} else {
 				image = (dz != 0) ?
-						DiagDirToAxis (dir) == AXIS_X ? rti->base_sprites.single_x : rti->base_sprites.single_y :
+						rti->base_sprites.single[DiagDirToDiagTrack(dir)] :
 						rti->base_sprites.single_sloped + dir;
 			}
 			AddSortableSpriteToDraw (image, PALETTE_CRASH, ti->x, ti->y, 16, 16, 8 - dz, ti->z + dz);
