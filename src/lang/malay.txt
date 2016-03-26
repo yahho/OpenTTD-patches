@@ -239,6 +239,10 @@ STR_TOOLTIP_VSCROLL_BAR_SCROLLS_LIST                            :{BLACK}Palang S
 STR_TOOLTIP_HSCROLL_BAR_SCROLLS_LIST                            :{BLACK}Bar Skrol - gerakkan senarai ke kiri/kanan
 STR_TOOLTIP_DEMOLISH_BUILDINGS_ETC                              :{BLACK}Musnahkan bangunan dll. dari dataran tanah. Ctrl memilih kawasan menyerong. Shift bangunan/tunjukkan anggaran kos.
 
+# Show engines button
+
+STR_SHOW_HIDDEN_ENGINES_VEHICLE_SHIP_TOOLTIP                    :{BLACK}Dengan membenarkan pilihan ini, kapal tersembunyi turut ditunjukkan
+
 # Query window
 STR_BUTTON_DEFAULT                                              :{BLACK}Asal
 STR_BUTTON_CANCEL                                               :{BLACK}Batal
@@ -4098,6 +4102,7 @@ STR_DESKTOP_SHORTCUT_COMMENT                                    :Sebuah permaina
 
 # Translatable descriptions in media/baseset/*.ob* files
 STR_BASEGRAPHICS_DOS_DESCRIPTION                                :Grafik asal Transport Tycoon Deluxe DOS edition.
+STR_BASEGRAPHICS_WIN_DESCRIPTION                                :Grafik asal Transport Tycoon Deluxe edisi Windows.
 
 ##id 0x2000
 # Town building names
