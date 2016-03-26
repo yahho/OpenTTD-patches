@@ -195,6 +195,18 @@ static void DrawTunnel(TileInfo *ti)
 	DrawBridgeMiddle(ti);
 }
 
+static void DrawTrainDepotGroundSprite (DiagDirection dir, SpriteID image_x,
+	SpriteID image_y, PaletteID pal)
+{
+	switch (dir) {
+		case DIAGDIR_NE: if (!IsInvisibilitySet (TO_BUILDINGS)) break; // else FALL THROUGH
+		case DIAGDIR_SW: DrawGroundSprite (image_x, pal); break;
+		case DIAGDIR_NW: if (!IsInvisibilitySet (TO_BUILDINGS)) break; // else FALL THROUGH
+		case DIAGDIR_SE: DrawGroundSprite (image_y, pal); break;
+		default: break;
+	}
+}
+
 static void DrawTrainDepot(TileInfo *ti)
 {
 	assert(IsRailDepotTile(ti->tile));
@@ -239,36 +251,19 @@ static void DrawTrainDepot(TileInfo *ti)
 
 	if (rti->UsesOverlay()) {
 		SpriteID ground = GetCustomRailSprite(rti, ti->tile, RTSG_GROUND);
-
-		switch (GetGroundDepotDirection(ti->tile)) {
-			case DIAGDIR_NE: if (!IsInvisibilitySet(TO_BUILDINGS)) break; // else FALL THROUGH
-			case DIAGDIR_SW: DrawGroundSprite(ground + RTO_X, PAL_NONE); break;
-			case DIAGDIR_NW: if (!IsInvisibilitySet(TO_BUILDINGS)) break; // else FALL THROUGH
-			case DIAGDIR_SE: DrawGroundSprite(ground + RTO_Y, PAL_NONE); break;
-			default: break;
-		}
+		DrawTrainDepotGroundSprite (GetGroundDepotDirection (ti->tile),
+				ground + RTO_X, ground + RTO_Y, PAL_NONE);
 
 		if (_settings_client.gui.show_track_reservation && HasDepotReservation(ti->tile)) {
 			SpriteID overlay = GetCustomRailSprite(rti, ti->tile, RTSG_OVERLAY);
-
-			switch (GetGroundDepotDirection(ti->tile)) {
-				case DIAGDIR_NE: if (!IsInvisibilitySet(TO_BUILDINGS)) break; // else FALL THROUGH
-				case DIAGDIR_SW: DrawGroundSprite(overlay + RTO_X, PALETTE_CRASH); break;
-				case DIAGDIR_NW: if (!IsInvisibilitySet(TO_BUILDINGS)) break; // else FALL THROUGH
-				case DIAGDIR_SE: DrawGroundSprite(overlay + RTO_Y, PALETTE_CRASH); break;
-				default: break;
-			}
+			DrawTrainDepotGroundSprite (GetGroundDepotDirection (ti->tile),
+					overlay + RTO_X, overlay + RTO_Y, PALETTE_CRASH);
 		}
 	} else {
 		/* PBS debugging, draw reserved tracks darker */
 		if (_game_mode != GM_MENU && _settings_client.gui.show_track_reservation && HasDepotReservation(ti->tile)) {
-			switch (GetGroundDepotDirection(ti->tile)) {
-				case DIAGDIR_NE: if (!IsInvisibilitySet(TO_BUILDINGS)) break; // else FALL THROUGH
-				case DIAGDIR_SW: DrawGroundSprite(rti->base_sprites.single[TRACK_X], PALETTE_CRASH); break;
-				case DIAGDIR_NW: if (!IsInvisibilitySet(TO_BUILDINGS)) break; // else FALL THROUGH
-				case DIAGDIR_SE: DrawGroundSprite(rti->base_sprites.single[TRACK_Y], PALETTE_CRASH); break;
-				default: break;
-			}
+			DrawTrainDepotGroundSprite (GetGroundDepotDirection (ti->tile),
+					rti->base_sprites.single[TRACK_X], rti->base_sprites.single[TRACK_Y], PALETTE_CRASH);
 		}
 	}
 
