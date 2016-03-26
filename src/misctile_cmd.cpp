@@ -217,7 +217,6 @@ static void DrawTrainDepot(TileInfo *ti)
 
 	/* draw depot */
 	const DrawTileSprites *dts;
-	PaletteID pal = PAL_NONE;
 	SpriteID relocation;
 
 	if (ti->tileh != SLOPE_FLAT) DrawFoundation(ti, FOUNDATION_LEVELED);
@@ -247,7 +246,7 @@ static void DrawTrainDepot(TileInfo *ti)
 		}
 	}
 
-	DrawGroundSprite(image, GroundSpritePaletteTransform(image, pal, palette));
+	DrawGroundSprite (image, GroundSpritePaletteTransform (image, PAL_NONE, palette));
 
 	if (rti->UsesOverlay()) {
 		SpriteID ground = GetCustomRailSprite(rti, ti->tile, RTSG_GROUND);
