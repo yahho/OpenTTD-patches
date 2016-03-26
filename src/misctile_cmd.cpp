@@ -216,17 +216,15 @@ static void DrawTrainDepot(TileInfo *ti)
 	uint32 palette = COMPANY_SPRITE_COLOUR(GetTileOwner(ti->tile));
 
 	/* draw depot */
-	const DrawTileSprites *dts;
-	SpriteID relocation;
 
 	if (ti->tileh != SLOPE_FLAT) DrawFoundation(ti, FOUNDATION_LEVELED);
 
-	if (IsInvisibilitySet(TO_BUILDINGS)) {
+	DiagDirection dir = GetGroundDepotDirection (ti->tile);
+
+	const DrawTileSprites *dts = IsInvisibilitySet(TO_BUILDINGS) ?
 		/* Draw rail instead of depot */
-		dts = &_depot_invisible_gfx_table[GetGroundDepotDirection(ti->tile)];
-	} else {
-		dts = &_depot_gfx_table[GetGroundDepotDirection(ti->tile)];
-	}
+		_depot_invisible_gfx_table : _depot_gfx_table;
+	dts = &dts[dir];
 
 	SpriteID image;
 	if (rti->UsesOverlay()) {
@@ -250,27 +248,26 @@ static void DrawTrainDepot(TileInfo *ti)
 
 	if (rti->UsesOverlay()) {
 		SpriteID ground = GetCustomRailSprite(rti, ti->tile, RTSG_GROUND);
-		DrawTrainDepotGroundSprite (GetGroundDepotDirection (ti->tile),
+		DrawTrainDepotGroundSprite (dir,
 				ground + RTO_X, ground + RTO_Y, PAL_NONE);
 
 		if (_settings_client.gui.show_track_reservation && HasDepotReservation(ti->tile)) {
 			SpriteID overlay = GetCustomRailSprite(rti, ti->tile, RTSG_OVERLAY);
-			DrawTrainDepotGroundSprite (GetGroundDepotDirection (ti->tile),
+			DrawTrainDepotGroundSprite (dir,
 					overlay + RTO_X, overlay + RTO_Y, PALETTE_CRASH);
 		}
 	} else {
 		/* PBS debugging, draw reserved tracks darker */
 		if (_game_mode != GM_MENU && _settings_client.gui.show_track_reservation && HasDepotReservation(ti->tile)) {
-			DrawTrainDepotGroundSprite (GetGroundDepotDirection (ti->tile),
+			DrawTrainDepotGroundSprite (dir,
 					rti->base_sprites.single[TRACK_X], rti->base_sprites.single[TRACK_Y], PALETTE_CRASH);
 		}
 	}
 
-	int depot_sprite = GetCustomRailSprite(rti, ti->tile, RTSG_DEPOT);
-	relocation = depot_sprite != 0 ? depot_sprite - SPR_RAIL_DEPOT_SE_1 : rti->GetRailtypeSpriteOffset();
-
 	if (HasCatenaryDrawn(GetRailType(ti->tile))) DrawCatenary(ti);
 
+	int depot_sprite = GetCustomRailSprite(rti, ti->tile, RTSG_DEPOT);
+	SpriteID relocation = depot_sprite != 0 ? depot_sprite - SPR_RAIL_DEPOT_SE_1 : rti->GetRailtypeSpriteOffset();
 	DrawRailTileSeq(ti, dts, TO_BUILDINGS, relocation, 0, palette);
 }
 
