@@ -734,7 +734,7 @@ void DrawBridgeMiddle(const TileInfo *ti)
 
 		EndSpriteCombine();
 
-		if (HasCatenaryDrawn(GetBridgeRailType(rampsouth))) {
+		if (HasCatenaryDrawn (rti)) {
 			DrawCatenaryOnBridge(ti);
 		}
 	}

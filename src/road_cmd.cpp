@@ -1948,7 +1948,7 @@ void DrawLevelCrossing(TileInfo *ti)
 		DrawTramCatenary(ti, GetCrossingRoadBits(ti->tile));
 	}
 
-	if (HasCatenaryDrawn(GetRailType(ti->tile))) DrawCatenary(ti);
+	if (HasCatenaryDrawn (rti)) DrawCatenary (ti);
 
 	DrawBridgeMiddle(ti);
 }

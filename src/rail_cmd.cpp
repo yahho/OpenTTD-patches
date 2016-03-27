@@ -3358,7 +3358,7 @@ static void DrawTile_Track(TileInfo *ti)
 
 		EndSpriteCombine();
 
-		if (HasCatenaryDrawn(GetRailType(ti->tile))) {
+		if (HasCatenaryDrawn (rti)) {
 			DrawCatenary(ti);
 		}
 

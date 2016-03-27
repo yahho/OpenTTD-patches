@@ -18,11 +18,20 @@
 
 /**
  * Test if a rail type has catenary
+ * @param rti Rail type to test
+ */
+static inline bool HasCatenary (const RailtypeInfo *rti)
+{
+	return HasBit (rti->flags, RTF_CATENARY);
+}
+
+/**
+ * Test if a rail type has catenary
  * @param rt Rail type to test
  */
 static inline bool HasCatenary(RailType rt)
 {
-	return HasBit(GetRailTypeInfo(rt)->flags, RTF_CATENARY);
+	return HasCatenary (GetRailTypeInfo (rt));
 }
 
 /**
@@ -37,9 +46,9 @@ static inline bool IsCatenaryDrawn()
  * Test if we should draw rail catenary
  * @param rt Rail type to test
  */
-static inline bool HasCatenaryDrawn(RailType rt)
+static inline bool HasCatenaryDrawn (const RailtypeInfo *rti)
 {
-	return HasCatenary(rt) && IsCatenaryDrawn();
+	return HasCatenary (rti) && IsCatenaryDrawn();
 }
 
 void DrawCatenary(const TileInfo *ti);

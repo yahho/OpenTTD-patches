@@ -2908,7 +2908,7 @@ draw_default_foundation:
 		}
 	}
 
-	if (HasStationRail(ti->tile) && HasCatenaryDrawn(GetRailType(ti->tile))) DrawCatenary(ti);
+	if (HasStationRail (ti->tile) && HasCatenaryDrawn (rti)) DrawCatenary (ti);
 
 	if (HasBit(roadtypes, ROADTYPE_TRAM)) {
 		Axis axis = GetRoadStopAxis(ti->tile); // tram stops are always drive-through
