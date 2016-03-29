@@ -1559,6 +1559,15 @@ static GRFConfig *GRFLoadConfig(IniFile *ini, const char *grpname, bool is_stati
 	return first;
 }
 
+static void ScriptSaveConfig (const ScriptConfig *config, IniGroup *group)
+{
+	char value[1024];
+	config->SettingsToString (value, lengthof(value));
+
+	const char *name = config->HasScript() ? config->GetName() : "none";
+	group->append(name)->SetValue (value);
+}
+
 static void AISaveConfig(IniFile *ini, const char *grpname)
 {
 	IniGroup *group = ini->get_group (grpname);
@@ -1568,18 +1577,7 @@ static void AISaveConfig(IniFile *ini, const char *grpname)
 
 	for (CompanyID c = COMPANY_FIRST; c < MAX_COMPANIES; c++) {
 		AIConfig *config = AIConfig::GetConfig(c, AIConfig::SSS_FORCE_NEWGAME);
-		const char *name;
-		char value[1024];
-		config->SettingsToString(value, lengthof(value));
-
-		if (config->HasScript()) {
-			name = config->GetName();
-		} else {
-			name = "none";
-		}
-
-		IniItem *item = group->append (name);
-		item->SetValue(value);
+		ScriptSaveConfig (config, group);
 	}
 }
 
@@ -1591,18 +1589,7 @@ static void GameSaveConfig(IniFile *ini, const char *grpname)
 	group->clear();
 
 	GameConfig *config = GameConfig::GetConfig(AIConfig::SSS_FORCE_NEWGAME);
-	const char *name;
-	char value[1024];
-	config->SettingsToString(value, lengthof(value));
-
-	if (config->HasScript()) {
-		name = config->GetName();
-	} else {
-		name = "none";
-	}
-
-	IniItem *item = group->append (name);
-	item->SetValue(value);
+	ScriptSaveConfig (config, group);
 }
 
 /**
