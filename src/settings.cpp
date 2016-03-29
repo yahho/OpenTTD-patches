@@ -1378,6 +1378,17 @@ static void HandleOldDiffCustom(const SavegameTypeVersion *stv)
 	}
 }
 
+static bool ScriptLoadConfig (ScriptConfig *config, const IniItem *item)
+{
+	config->Change (item->get_name());
+
+	if (!config->HasScript() && !item->is_name("none")) return false;
+
+	if (item->value != NULL) config->StringToSettings (item->value);
+
+	return true;
+}
+
 static void AILoadConfig(IniFile *ini, const char *grpname)
 {
 	const IniGroup *group = ini->get_group (grpname);
@@ -1393,15 +1404,9 @@ static void AILoadConfig(IniFile *ini, const char *grpname)
 	CompanyID c = COMPANY_FIRST;
 	for (IniItem::const_iterator item = group->cbegin(); c < MAX_COMPANIES && item != group->cend(); c++, item++) {
 		AIConfig *config = AIConfig::GetConfig(c, AIConfig::SSS_FORCE_NEWGAME);
-
-		config->Change(item->get_name());
-		if (!config->HasScript()) {
-			if (!item->is_name("none")) {
-				DEBUG(script, 0, "The AI by the name '%s' was no longer found, and removed from the list.", item->get_name());
-				continue;
-			}
+		if (!ScriptLoadConfig (config, &*item)) {
+			DEBUG(script, 0, "The AI by the name '%s' was no longer found, and removed from the list.", item->get_name());
 		}
-		if (item->value != NULL) config->StringToSettings(item->value);
 	}
 }
 
@@ -1419,15 +1424,9 @@ static void GameLoadConfig(IniFile *ini, const char *grpname)
 	if (item == group->cend()) return;
 
 	GameConfig *config = GameConfig::GetConfig(AIConfig::SSS_FORCE_NEWGAME);
-
-	config->Change(item->get_name());
-	if (!config->HasScript()) {
-		if (!item->is_name("none")) {
-			DEBUG(script, 0, "The GameScript by the name '%s' was no longer found, and removed from the list.", item->get_name());
-			return;
-		}
+	if (!ScriptLoadConfig (config, &*item)) {
+		DEBUG(script, 0, "The GameScript by the name '%s' was no longer found, and removed from the list.", item->get_name());
 	}
-	if (item->value != NULL) config->StringToSettings(item->value);
 }
 
 /**
