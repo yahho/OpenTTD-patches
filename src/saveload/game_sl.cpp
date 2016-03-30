@@ -104,7 +104,7 @@ static void Save_GSDT(SaveDumper *dumper)
 
 	gsl.is_random = config->IsRandom();
 	gsl.settings[0] = '\0';
-	config->SettingsToString(gsl.settings, lengthof(gsl.settings));
+	config->SettingsToString (gsl.settings);
 
 	SaveDumper temp(1024);
 

@@ -1562,7 +1562,7 @@ static GRFConfig *GRFLoadConfig(IniFile *ini, const char *grpname, bool is_stati
 static void ScriptSaveConfig (const ScriptConfig *config, IniGroup *group)
 {
 	char value[1024];
-	config->SettingsToString (value, lengthof(value));
+	config->SettingsToString (value);
 
 	const char *name = config->HasScript() ? config->GetName() : "none";
 	group->append(name)->SetValue (value);

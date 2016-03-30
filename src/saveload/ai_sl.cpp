@@ -113,7 +113,7 @@ static void Save_AIPL(SaveDumper *dumper)
 
 		aisl.is_random = config->IsRandom();
 		aisl.settings[0] = '\0';
-		config->SettingsToString(aisl.settings, lengthof(aisl.settings));
+		config->SettingsToString (aisl.settings);
 
 		/* If the AI was active, store his data too */
 		aisl.id = (CompanyID)(Company::IsValidAiID(i) ? i : -1);
