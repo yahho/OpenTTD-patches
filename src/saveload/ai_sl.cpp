@@ -26,7 +26,6 @@ struct AiSaveload {
 	char settings[1024];
 	int  version;
 	bool is_random;
-	CompanyID id;
 };
 
 static const SaveLoad _ai_company[] = {
@@ -45,19 +44,20 @@ static void Load_AIPL(LoadBuffer *reader)
 	}
 
 	AiSaveload aisl;
-	while ((aisl.id = (CompanyID)reader->IterateChunk()) != (CompanyID)-1) {
-		if (aisl.id >= MAX_COMPANIES) throw SlCorrupt("Too many AI configs");
+	CompanyID id;
+	while ((id = (CompanyID)reader->IterateChunk()) != (CompanyID)-1) {
+		if (id >= MAX_COMPANIES) throw SlCorrupt("Too many AI configs");
 
 		aisl.is_random = 0;
 		aisl.version = -1;
 		reader->ReadObject(&aisl, _ai_company);
 
 		if (_networking && !_network_server) {
-			if (Company::IsValidAiID(aisl.id)) AIInstance::LoadEmpty(reader);
+			if (Company::IsValidAiID (id)) AIInstance::LoadEmpty (reader);
 			continue;
 		}
 
-		AIConfig *config = AIConfig::GetConfig(aisl.id, AIConfig::SSS_FORCE_GAME);
+		AIConfig *config = AIConfig::GetConfig (id, AIConfig::SSS_FORCE_GAME);
 		if (StrEmpty(aisl.name)) {
 			/* A random AI. */
 			config->Change(NULL, -1, false, true);
@@ -88,9 +88,9 @@ static void Load_AIPL(LoadBuffer *reader)
 		config->StringToSettings(aisl.settings);
 
 		/* Start the AI directly if it was active in the savegame */
-		if (Company::IsValidAiID(aisl.id)) {
-			AI::StartNew(aisl.id, false);
-			AI::Load(reader, aisl.id, aisl.version);
+		if (Company::IsValidAiID (id)) {
+			AI::StartNew (id, false);
+			AI::Load (reader, id, aisl.version);
 		}
 	}
 }
@@ -116,13 +116,13 @@ static void Save_AIPL(SaveDumper *dumper)
 		config->SettingsToString (aisl.settings);
 
 		/* If the AI was active, store his data too */
-		aisl.id = (CompanyID)(Company::IsValidAiID(i) ? i : -1);
+		CompanyID id = (CompanyID)(Company::IsValidAiID(i) ? i : -1);
 
 		SaveDumper temp(1024);
 
 		temp.WriteObject(&aisl, _ai_company);
 		/* If the AI was active, store his data too */
-		if (aisl.id != (CompanyID)-1) AI::Save(&temp, aisl.id);
+		if (id != (CompanyID)-1) AI::Save (&temp, id);
 
 		dumper->WriteElementHeader(i, temp.GetSize());
 		temp.Dump(dumper);
