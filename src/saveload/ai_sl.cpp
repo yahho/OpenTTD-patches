@@ -115,14 +115,12 @@ static void Save_AIPL(SaveDumper *dumper)
 		aisl.settings[0] = '\0';
 		config->SettingsToString (aisl.settings);
 
-		/* If the AI was active, store his data too */
-		CompanyID id = (CompanyID)(Company::IsValidAiID(i) ? i : -1);
-
 		SaveDumper temp(1024);
 
 		temp.WriteObject(&aisl, _ai_company);
+
 		/* If the AI was active, store his data too */
-		if (id != (CompanyID)-1) AI::Save (&temp, id);
+		if (Company::IsValidAiID (i)) AI::Save (&temp, (CompanyID)i);
 
 		dumper->WriteElementHeader(i, temp.GetSize());
 		temp.Dump(dumper);
