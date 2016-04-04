@@ -231,7 +231,7 @@ static int GetRefitCostFactor(const Vehicle *v, EngineID engine_type, CargoID ne
  * @param [out] auto_refit_allowed The refit is allowed as an auto-refit.
  * @return Price for refitting
  */
-static CommandCost GetRefitCost(const Vehicle *v, EngineID engine_type, CargoID new_cid, byte new_subtype, bool *auto_refit_allowed)
+static Money GetRefitCost (const Vehicle *v, EngineID engine_type, CargoID new_cid, byte new_subtype, bool *auto_refit_allowed)
 {
 	ExpensesType expense_type;
 	const Engine *e = Engine::Get(engine_type);
@@ -262,9 +262,9 @@ static CommandCost GetRefitCost(const Vehicle *v, EngineID engine_type, CargoID 
 		default: NOT_REACHED();
 	}
 	if (cost_factor < 0) {
-		return CommandCost(expense_type, -GetPrice(base_price, -cost_factor, e->GetGRF(), -10));
+		return -GetPrice (base_price, -cost_factor, e->GetGRF(), -10);
 	} else {
-		return CommandCost(expense_type, GetPrice(base_price, cost_factor, e->GetGRF(), -10));
+		return GetPrice (base_price, cost_factor, e->GetGRF(), -10);
 	}
 }
 
@@ -347,7 +347,7 @@ static CommandCost RefitVehicle(Vehicle *v, bool only_this, uint8 num_vehicles, 
 		v->cargo_subtype = temp_subtype;
 
 		bool auto_refit_allowed;
-		CommandCost refit_cost = GetRefitCost(v, v->engine_type, new_cid, actual_subtype, &auto_refit_allowed);
+		Money refit_cost = GetRefitCost (v, v->engine_type, new_cid, actual_subtype, &auto_refit_allowed);
 		if (auto_refit && (flags & DC_QUERY_COST) == 0 && !auto_refit_allowed) {
 			/* Sorry, auto-refitting not allowed, subtract the cargo amount again from the total.
 			 * When querrying cost/capacity (for example in order refit GUI), we always assume 'allowed'.
