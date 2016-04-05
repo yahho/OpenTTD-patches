@@ -223,19 +223,26 @@ static int GetRefitCostFactor(const Vehicle *v, EngineID engine_type, CargoID ne
 }
 
 /**
- * Learn the price of refitting a certain engine
+ * Add the price of refitting a certain engine to a given cost.
+ * @param cost The cost to add the price to.
  * @param v The vehicle we are refitting, can be NULL.
  * @param engine_type Which engine to refit
  * @param new_cid Cargo type we are refitting to.
  * @param new_subtype New cargo subtype.
- * @param [out] auto_refit_allowed The refit is allowed as an auto-refit.
- * @return Price for refitting
+ * @param auto_refit Whether this is an auto-refit.
+ * @return Whether refitting succeeded (otherwise, cost is not changed).
  */
-static Money GetRefitCost (const Vehicle *v, EngineID engine_type, CargoID new_cid, byte new_subtype, bool *auto_refit_allowed)
+static bool AddRefitCost (CommandCost *cost, const Vehicle *v,
+	EngineID engine_type, CargoID new_cid, byte new_subtype,
+	bool auto_refit = false)
 {
+	bool auto_refit_allowed;
+	int cost_factor = GetRefitCostFactor (v, engine_type, new_cid, new_subtype, &auto_refit_allowed);
+
+	if (auto_refit && !auto_refit_allowed) return false;
+
 	const Engine *e = Engine::Get(engine_type);
 	Price base_price;
-	int cost_factor = GetRefitCostFactor(v, engine_type, new_cid, new_subtype, auto_refit_allowed);
 	switch (e->type) {
 		case VEH_SHIP:
 			base_price = PR_BUILD_VEHICLE_SHIP;
@@ -256,31 +263,13 @@ static Money GetRefitCost (const Vehicle *v, EngineID engine_type, CargoID new_c
 
 		default: NOT_REACHED();
 	}
+
+	Money refit_cost;
 	if (cost_factor < 0) {
-		return -GetPrice (base_price, -cost_factor, e->GetGRF(), -10);
+		refit_cost = -GetPrice (base_price, -cost_factor, e->GetGRF(), -10);
 	} else {
-		return GetPrice (base_price, cost_factor, e->GetGRF(), -10);
+		refit_cost = GetPrice (base_price, cost_factor, e->GetGRF(), -10);
 	}
-}
-
-/**
- * Add the price of refitting a certain engine to a given cost.
- * @param cost The cost to add the price to.
- * @param v The vehicle we are refitting, can be NULL.
- * @param engine_type Which engine to refit
- * @param new_cid Cargo type we are refitting to.
- * @param new_subtype New cargo subtype.
- * @param auto_refit Whether this is an auto-refit.
- * @return Whether refitting succeeded (otherwise, cost is not changed).
- */
-static bool AddRefitCost (CommandCost *cost, const Vehicle *v,
-	EngineID engine_type, CargoID new_cid, byte new_subtype,
-	bool auto_refit = false)
-{
-	bool auto_refit_allowed;
-	Money refit_cost = GetRefitCost (v, engine_type, new_cid, new_subtype, &auto_refit_allowed);
-
-	if (auto_refit && !auto_refit_allowed) return false;
 
 	cost->AddCost (refit_cost);
 	return true;
