@@ -263,6 +263,29 @@ static Money GetRefitCost (const Vehicle *v, EngineID engine_type, CargoID new_c
 	}
 }
 
+/**
+ * Add the price of refitting a certain engine to a given cost.
+ * @param cost The cost to add the price to.
+ * @param v The vehicle we are refitting, can be NULL.
+ * @param engine_type Which engine to refit
+ * @param new_cid Cargo type we are refitting to.
+ * @param new_subtype New cargo subtype.
+ * @param auto_refit Whether this is an auto-refit.
+ * @return Whether refitting succeeded (otherwise, cost is not changed).
+ */
+static bool AddRefitCost (CommandCost *cost, const Vehicle *v,
+	EngineID engine_type, CargoID new_cid, byte new_subtype,
+	bool auto_refit = false)
+{
+	bool auto_refit_allowed;
+	Money refit_cost = GetRefitCost (v, engine_type, new_cid, new_subtype, &auto_refit_allowed);
+
+	if (auto_refit && !auto_refit_allowed) return false;
+
+	cost->AddCost (refit_cost);
+	return true;
+}
+
 /** Helper structure for RefitVehicle() */
 struct RefitResult {
 	Vehicle *v;         ///< Vehicle to refit
@@ -341,9 +364,8 @@ static CommandCost RefitVehicle(Vehicle *v, bool only_this, uint8 num_vehicles, 
 		v->cargo_type = temp_cid;
 		v->cargo_subtype = temp_subtype;
 
-		bool auto_refit_allowed;
-		Money refit_cost = GetRefitCost (v, v->engine_type, new_cid, actual_subtype, &auto_refit_allowed);
-		if (auto_refit && (flags & DC_QUERY_COST) == 0 && !auto_refit_allowed) {
+		if (!AddRefitCost (&cost, v, v->engine_type, new_cid, actual_subtype,
+				auto_refit && (flags & DC_QUERY_COST) == 0)) {
 			/* Sorry, auto-refitting not allowed, subtract the cargo amount again from the total.
 			 * When querrying cost/capacity (for example in order refit GUI), we always assume 'allowed'.
 			 * It is not predictable. */
@@ -357,7 +379,6 @@ static CommandCost RefitVehicle(Vehicle *v, bool only_this, uint8 num_vehicles, 
 			}
 			continue;
 		}
-		cost.AddCost(refit_cost);
 
 		/* Record the refitting.
 		 * Do not execute the refitting immediately, so DetermineCapacity and GetRefitCost do the same in test and exec run.
@@ -896,8 +917,7 @@ CommandCost CmdCloneVehicle(TileIndex tile, DoCommandFlag flags, uint32 p1, uint
 				CargoID initial_cargo = (e->CanCarryCargo() ? e->GetDefaultCargoType() : (CargoID)CT_INVALID);
 
 				if (v->cargo_type != initial_cargo && initial_cargo != CT_INVALID) {
-					bool dummy;
-					total_cost.AddCost(GetRefitCost(NULL, v->engine_type, v->cargo_type, v->cargo_subtype, &dummy));
+					AddRefitCost (&total_cost, NULL, v->engine_type, v->cargo_type, v->cargo_subtype);
 				}
 			}
 
