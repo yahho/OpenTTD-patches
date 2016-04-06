@@ -264,14 +264,10 @@ static bool AddRefitCost (CommandCost *cost, const Vehicle *v,
 		default: NOT_REACHED();
 	}
 
-	Money refit_cost;
-	if (cost_factor < 0) {
-		refit_cost = -GetPrice (base_price, -cost_factor, e->GetGRF(), -10);
-	} else {
-		refit_cost = GetPrice (base_price, cost_factor, e->GetGRF(), -10);
-	}
-
-	cost->AddCost (refit_cost);
+	bool neg = (cost_factor < 0);
+	Money refit = GetPrice (base_price, neg ? -cost_factor : cost_factor,
+				e->GetGRF(), -10);
+	cost->AddCost (neg ? -refit : refit);
 	return true;
 }
 
