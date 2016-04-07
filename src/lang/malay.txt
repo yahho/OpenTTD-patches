@@ -1436,6 +1436,7 @@ STR_CONFIG_SETTING_VEHICLES                                     :{ORANGE}Kendera
 STR_CONFIG_SETTING_STATIONS_CARGOHANDLING                       :{ORANGE}Pengendalian kargo
 STR_CONFIG_SETTING_STATIONS                                     :{ORANGE}Stesen
 STR_CONFIG_SETTING_VEHICLES_ROUTING                             :{ORANGE}Laluan
+STR_CONFIG_SETTING_ACCIDENTS                                    :{ORANGE}Kecelakaan / Kemalangan
 STR_CONFIG_SETTING_ENVIRONMENT_TOWNS                            :{ORANGE}Bandar-bandar
 STR_CONFIG_SETTING_ENVIRONMENT_INDUSTRIES                       :{ORANGE}Industri-industri
 STR_CONFIG_SETTING_AI                                           :{ORANGE}Pesaing
