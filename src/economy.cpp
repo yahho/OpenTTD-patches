@@ -1474,50 +1474,64 @@ static void HandleStationRefit (Vehicle *v, CargoArray &consist_capleft,
 	IterateVehicleParts(v_start, PrepareRefitAction(consist_capleft, refit_mask));
 
 	bool is_auto_refit = !HasAtMostOneBit (new_mask);
-	CargoID new_cid;
+	new_mask &= refit_mask;
 
-	if (is_auto_refit) {
-		/* Get a refittable cargo type with waiting cargo for next_station or INVALID_STATION. */
-		CargoID cid;
-		new_cid = v_start->cargo_type;
-		new_mask &= refit_mask;
-		if (!HasBit(new_mask, new_cid) && (new_mask != 0)) {
-			/* Old cargo is not present in the allowed refits. */
+	for (;;) {
+		CargoID new_cid;
+		if (new_mask == 0) {
+			/* no refit possible */
+			break;
+		} else if (HasAtMostOneBit (new_mask)) {
 			new_cid = FindFirstBit (new_mask);
-		}
-		FOR_EACH_SET_CARGO_ID(cid, new_mask) {
-			if (st->goods[cid].cargo.HasCargoFor(next_station)) {
-				/* Try to find out if auto-refitting would succeed. In case the refit is allowed,
-				 * the returned refit capacity will be greater than zero. */
-				DoCommand(v_start->tile, v_start->index, cid | 1U << 6 | 0xFF << 8 | 1U << 16, DC_QUERY_COST, CMD_REFIT_VEHICLE); // Auto-refit and only this vehicle including artic parts.
-				/* Try to balance different loadable cargoes between parts of the consist, so that
-				 * all of them can be loaded. Avoid a situation where all vehicles suddenly switch
-				 * to the first loadable cargo for which there is only one packet. If the capacities
-				 * are equal refit to the cargo of which most is available. This is important for
-				 * consists of only a single vehicle as those will generally have a consist_capleft
-				 * of 0 for all cargoes. */
-				if (_returned_refit_capacity > 0 && (consist_capleft[cid] < consist_capleft[new_cid] ||
-						(consist_capleft[cid] == consist_capleft[new_cid] &&
-						st->goods[cid].cargo.AvailableCount() > st->goods[new_cid].cargo.AvailableCount()))) {
-					new_cid = cid;
+		} else {
+			/* Get a refittable cargo type with waiting cargo for next_station or INVALID_STATION. */
+			new_cid = v_start->cargo_type;
+			if (!HasBit(new_mask, new_cid)) {
+				/* Old cargo is not present in the allowed refits. */
+				new_cid = FindFirstBit (new_mask);
+			}
+			CargoID cid;
+			FOR_EACH_SET_CARGO_ID(cid, new_mask) {
+				if (st->goods[cid].cargo.HasCargoFor (next_station)) {
+					/* Try to find out if auto-refitting would succeed. In case the refit is allowed,
+					 * the returned refit capacity will be greater than zero. */
+					DoCommand (v_start->tile, v_start->index, cid | 1U << 6 | 0xFF << 8 | 1U << 16, DC_QUERY_COST, CMD_REFIT_VEHICLE); // Auto-refit and only this vehicle including artic parts.
+					/* Try to balance different loadable cargoes between parts of the consist, so that
+					 * all of them can be loaded. Avoid a situation where all vehicles suddenly switch
+					 * to the first loadable cargo for which there is only one packet. If the capacities
+					 * are equal refit to the cargo of which most is available. This is important for
+					 * consists of only a single vehicle as those will generally have a consist_capleft
+					 * of 0 for all cargoes. */
+					if (_returned_refit_capacity > 0 && (consist_capleft[cid] < consist_capleft[new_cid] ||
+							(consist_capleft[cid] == consist_capleft[new_cid] &&
+							st->goods[cid].cargo.AvailableCount() > st->goods[new_cid].cargo.AvailableCount()))) {
+						new_cid = cid;
+					}
 				}
 			}
 		}
-	} else if (new_mask != 0) {
-		new_cid = FindFirstBit (new_mask);
-	} else {
-		new_cid = CT_INVALID;
-	}
 
-	/* Refit if given a valid cargo. */
-	if (new_cid < NUM_CARGO && new_cid != v_start->cargo_type) {
+		assert (new_cid < NUM_CARGO);
+		assert (HasBit(new_mask, new_cid));
+
+		/* Refit if given a different cargo. */
+		if (new_cid == v_start->cargo_type) break;
+
 		/* INVALID_STATION because in the DT_MANUAL case that's correct and in the DT_(A)SYMMETRIC
 		 * cases the next hop of the vehicle doesn't really tell us anything if the cargo had been
 		 * "via any station" before reserving. We rather produce some more "any station" cargo than
 		 * misrouting it. */
 		IterateVehicleParts(v_start, ReturnCargoAction(st, INVALID_STATION));
 		CommandCost cost = DoCommand(v_start->tile, v_start->index, new_cid | 1U << 6 | 0xFF << 8 | 1U << 16, DC_EXEC, CMD_REFIT_VEHICLE); // Auto-refit and only this vehicle including artic parts.
-		if (cost.Succeeded()) v->First()->profit_this_year -= cost.GetCost() << 8;
+		/* The command may return a success status even if it
+		 * actually fails to refit the vehicle, so we also have
+		 * to check _returned_refit_capacity. */
+		if (cost.Succeeded() && (_returned_refit_capacity > 0)) {
+			v->First()->profit_this_year -= cost.GetCost() << 8;
+			break;
+		}
+
+		ClrBit(new_mask, new_cid);
 	}
 
 	/* Add new capacity to consist capacity and reserve cargo */
