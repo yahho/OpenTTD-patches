@@ -445,6 +445,7 @@
     <ClCompile Include="..\src\texteff.cpp" />
     <ClCompile Include="..\src\tgp.cpp" />
     <ClCompile Include="..\src\townname.cpp" />
+    <ClCompile Include="..\src\townnamegen.cpp" />
     <ClCompile Include="..\src\vehicle.cpp" />
     <ClCompile Include="..\src\vehiclelist.cpp" />
     <ClCompile Include="..\src\viewport.cpp" />
@@ -684,6 +685,7 @@
     <ClInclude Include="..\src\town_type.h" />
     <ClInclude Include="..\src\townname_func.h" />
     <ClInclude Include="..\src\townname_type.h" />
+    <ClInclude Include="..\src\townnamegen.h" />
     <ClInclude Include="..\src\track_func.h" />
     <ClInclude Include="..\src\track_type.h" />
     <ClInclude Include="..\src\train.h" />

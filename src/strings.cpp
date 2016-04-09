@@ -29,6 +29,7 @@
 #include "vehicle_base.h"
 #include "engine_base.h"
 #include "language.h"
+#include "townnamegen.h"
 #include "townname_func.h"
 #include "string.h"
 #include "company_base.h"

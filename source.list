@@ -91,6 +91,7 @@ textbuf.cpp
 texteff.cpp
 tgp.cpp
 townname.cpp
+townnamegen.cpp
 vehicle.cpp
 vehiclelist.cpp
 viewport.cpp
@@ -339,6 +340,7 @@ town.h
 town_type.h
 townname_func.h
 townname_type.h
+townnamegen.h
 track_func.h
 track_type.h
 train.h

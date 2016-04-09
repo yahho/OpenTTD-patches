@@ -1435,6 +1435,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\..\src\townnamegen.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\..\src\vehicle.cpp"
 				>
 			</File>
@@ -2392,6 +2396,10 @@
 			</File>
 			<File
 				RelativePath=".\..\src\townname_type.h"
+				>
+			</File>
+			<File
+				RelativePath=".\..\src\townnamegen.h"
 				>
 			</File>
 			<File

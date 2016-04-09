@@ -1,5 +1,3 @@
-/* $Id$ */
-
 /*
  * This file is part of OpenTTD.
  * OpenTTD is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, version 2.
@@ -7,17 +5,13 @@
  * See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with OpenTTD. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/** @file townname_func.h %Town name generator stuff. */
+/** @file townnamegen.h Original town name generators. */
 
-#ifndef TOWNNAME_FUNC_H
-#define TOWNNAME_FUNC_H
+#ifndef TOWNNAMEGEN_H
+#define TOWNNAMEGEN_H
 
 #include "string.h"
-#include "townname_type.h"
 
-void AppendTownName (stringb *buf, const TownNameParams *par, uint32 townnameparts);
-void AppendTownName (stringb *buf, const Town *t);
-bool VerifyTownName(uint32 r, const TownNameParams *par, TownNames *town_names = NULL);
-bool GenerateTownName(uint32 *townnameparts, TownNames *town_names = NULL);
+void GenerateTownNameString (stringb *buf, uint lang, uint32 seed);
 
-#endif /* TOWNNAME_FUNC_H */
+#endif /* TOWNNAMEGEN_H */
