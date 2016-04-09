@@ -157,7 +157,6 @@ void CopyOutDParam(uint64 *dst, const char **strings, StringID string, int num)
 }
 
 static void AppendStationSpecialString (stringb *buf, int x);
-static void AppendSpecialTownNameString (stringb *buf, int ind, uint32 seed);
 static void AppendSpecialNameString (stringb *buf, int ind, StringParameters *args);
 
 static void FormatString (stringb *buf, const char *str, StringParameters *args, uint case_index = 0, bool game_script = false, bool dry_run = false);
@@ -207,7 +206,7 @@ void AppendStringWithArgs (stringb *buf, StringID string, StringParameters *args
 	switch (tab) {
 		case 4:
 			if (index >= 0xC0 && !game_script) {
-				AppendSpecialTownNameString (buf, index - 0xC0, args->GetInt32());
+				GenerateTownNameString (buf, index - 0xC0, args->GetInt32());
 				return;
 			}
 			break;
@@ -1482,10 +1481,6 @@ static void AppendStationSpecialString (stringb *buf, int x)
 	if (x & FACIL_AIRPORT   ) buf->append_utf8 (SCC_PLANE);
 }
 
-static void AppendSpecialTownNameString (stringb *buf, int ind, uint32 seed)
-{
-	GenerateTownNameString (buf, ind, seed);
-}
 
 static const char * const _silly_company_names[] = {
 	"Bloggs Brothers",
@@ -1617,7 +1612,7 @@ static void AppendSpecialNameString (stringb *buf, int ind, StringParameters *ar
 
 	/* town name? */
 	if (IsInsideMM(ind - 6, 0, SPECSTR_TOWNNAME_LAST - SPECSTR_TOWNNAME_START + 1)) {
-		AppendSpecialTownNameString (buf, ind - 6, args->GetInt32());
+		GenerateTownNameString (buf, ind - 6, args->GetInt32());
 		buf->append (" Transport");
 		return;
 	}
