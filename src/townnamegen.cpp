@@ -75,6 +75,20 @@ static inline const char *choose_str (const char * const (&strs) [N],
 	return strs [SeedChance (shift_by, N, seed)];
 }
 
+/**
+ * Choose a string from a string array.
+ * @param strs The string array to choose from.
+ * @param seed The random seed.
+ * @param shift_by The number of bits that the seed is shifted to the right.
+ * @return A random string from the array.
+ */
+template <uint N>
+static inline const char *choose_str_mod (const char * const (&strs) [N],
+	uint32 seed, uint shift_by)
+{
+	return strs [SeedModChance (shift_by, N, seed)];
+}
+
 
 /**
  * Replaces english curses and ugly letter combinations by nicer ones.
@@ -451,7 +465,7 @@ static void MakeCzechTownName (stringb *buf, uint32 seed)
 {
 	/* 1:3 chance to use a real name. */
 	if (SeedModChance(0, 4, seed) == 0) {
-		buf->append (_name_czech_real[SeedModChance(4, lengthof(_name_czech_real), seed)]);
+		buf->append (choose_str_mod (_name_czech_real, seed, 4));
 		return;
 	}
 
@@ -735,24 +749,24 @@ static void MakeTurkishTownName (stringb *buf, uint32 seed)
 
 	switch (i) {
 		case 0:
-			buf->append (_name_turkish_prefix[SeedModChance( 2, lengthof(_name_turkish_prefix), seed)]);
+			buf->append (choose_str_mod (_name_turkish_prefix, seed, 2));
 
 			/* middle segment */
-			buf->append (_name_turkish_middle[SeedModChance( 4, lengthof(_name_turkish_middle), seed)]);
+			buf->append (choose_str_mod (_name_turkish_middle, seed, 4));
 
 			/* optional suffix */
 			if (SeedModChance(0, 7, seed) == 0) {
-				buf->append (_name_turkish_suffix[SeedModChance(10, lengthof(_name_turkish_suffix), seed)]);
+				buf->append (choose_str_mod (_name_turkish_suffix, seed, 10));
 			}
 			break;
 
 		case 1: case 2:
-			buf->append (_name_turkish_prefix[SeedModChance( 2, lengthof(_name_turkish_prefix), seed)]);
-			buf->append (_name_turkish_suffix[SeedModChance( 4, lengthof(_name_turkish_suffix), seed)]);
+			buf->append (choose_str_mod (_name_turkish_prefix, seed, 2));
+			buf->append (choose_str_mod (_name_turkish_suffix, seed, 4));
 			break;
 
 		default:
-			buf->append (_name_turkish_real[SeedModChance( 4, lengthof(_name_turkish_real), seed)]);
+			buf->append (choose_str_mod (_name_turkish_real, seed, 4));
 			break;
 	}
 }
@@ -766,36 +780,36 @@ static void MakeTurkishTownName (stringb *buf, uint32 seed)
 static void MakeItalianTownName (stringb *buf, uint32 seed)
 {
 	if (SeedModChance(0, 6, seed) == 0) { // real city names
-		buf->append (_name_italian_real[SeedModChance(4, lengthof(_name_italian_real), seed)]);
+		buf->append (choose_str_mod (_name_italian_real, seed, 4));
 		return;
 	}
 
 	static const char mascul_femin_italian[2] = { 'o', 'a' };
 
 	if (SeedModChance(0, 8, seed) == 0) { // prefix
-		buf->append (_name_italian_pref[SeedModChance(11, lengthof(_name_italian_pref), seed)]);
+		buf->append (choose_str_mod (_name_italian_pref, seed, 11));
 	}
 
 	uint i = SeedChance(0, 2, seed);
 	if (i == 0) { // masculine form
-		buf->append (_name_italian_1m[SeedModChance(4, lengthof(_name_italian_1m), seed)]);
+		buf->append (choose_str_mod (_name_italian_1m, seed, 4));
 	} else { // feminine form
-		buf->append (_name_italian_1f[SeedModChance(4, lengthof(_name_italian_1f), seed)]);
+		buf->append (choose_str_mod (_name_italian_1f, seed, 4));
 	}
 
 	if (SeedModChance(3, 3, seed) == 0) {
-		buf->append (_name_italian_2[SeedModChance(11, lengthof(_name_italian_2), seed)]);
+		buf->append (choose_str_mod (_name_italian_2, seed, 11));
 		buf->append (mascul_femin_italian[i]);
 	} else {
-		buf->append (_name_italian_2i[SeedModChance(16, lengthof(_name_italian_2i), seed)]);
+		buf->append (choose_str_mod (_name_italian_2i, seed, 16));
 	}
 
 	if (SeedModChance(15, 4, seed) == 0) {
 		if (SeedModChance(5, 2, seed) == 0) { // generic suffix
-			buf->append (_name_italian_3[SeedModChance(4, lengthof(_name_italian_3), seed)]);
+			buf->append (choose_str_mod (_name_italian_3, seed, 4));
 		} else { // river name suffix
-			buf->append (_name_italian_river1[SeedModChance( 4, lengthof(_name_italian_river1), seed)]);
-			buf->append (_name_italian_river2[SeedModChance(16, lengthof(_name_italian_river2), seed)]);
+			buf->append (choose_str_mod (_name_italian_river1, seed,  4));
+			buf->append (choose_str_mod (_name_italian_river2, seed, 16));
 		}
 	}
 }
@@ -809,28 +823,28 @@ static void MakeItalianTownName (stringb *buf, uint32 seed)
 static void MakeCatalanTownName (stringb *buf, uint32 seed)
 {
 	if (SeedModChance(0, 3, seed) == 0) { // real city names
-		buf->append (_name_catalan_real[SeedModChance(4, lengthof(_name_catalan_real), seed)]);
+		buf->append (choose_str_mod (_name_catalan_real, seed, 4));
 		return;
 	}
 
 	if (SeedModChance(0, 2, seed) == 0) { // prefix
-		buf->append (_name_catalan_pref[SeedModChance(11, lengthof(_name_catalan_pref), seed)]);
+		buf->append (choose_str_mod (_name_catalan_pref, seed, 11));
 	}
 
 	uint i = SeedChance(0, 2, seed);
 	if (i == 0) { // masculine form
-		buf->append (_name_catalan_1m[SeedModChance( 4, lengthof(_name_catalan_1m), seed)]);
-		buf->append (_name_catalan_2m[SeedModChance(11, lengthof(_name_catalan_2m), seed)]);
+		buf->append (choose_str_mod (_name_catalan_1m, seed,  4));
+		buf->append (choose_str_mod (_name_catalan_2m, seed, 11));
 	} else { // feminine form
-		buf->append (_name_catalan_1f[SeedModChance( 4, lengthof(_name_catalan_1f), seed)]);
-		buf->append (_name_catalan_2f[SeedModChance(11, lengthof(_name_catalan_2f), seed)]);
+		buf->append (choose_str_mod (_name_catalan_1f, seed,  4));
+		buf->append (choose_str_mod (_name_catalan_2f, seed, 11));
 	}
 
 	if (SeedModChance(15, 5, seed) == 0) {
 		if (SeedModChance(5, 2, seed) == 0) { // generic suffix
-			buf->append (_name_catalan_3[SeedModChance(4, lengthof(_name_catalan_3), seed)]);
+			buf->append (choose_str_mod (_name_catalan_3, seed, 4));
 		} else { // river name suffix
-			buf->append (_name_catalan_river1[SeedModChance(4, lengthof(_name_catalan_river1), seed)]);
+			buf->append (choose_str_mod (_name_catalan_river1, seed, 4));
 		}
 	}
 }
