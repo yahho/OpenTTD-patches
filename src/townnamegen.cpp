@@ -62,6 +62,21 @@ static inline int32 SeedChanceBias(byte shift_by, int max, uint32 seed, int bias
 
 
 /**
+ * Choose a string from a string array.
+ * @param strs The string array to choose from.
+ * @param seed The random seed.
+ * @param shift_by The number of bits that the seed is shifted to the right.
+ * @return A random string from the array.
+ */
+template <uint N>
+static inline const char *choose_str (const char * const (&strs) [N],
+	uint32 seed, uint shift_by)
+{
+	return strs [SeedChance (shift_by, N, seed)];
+}
+
+
+/**
  * Replaces english curses and ugly letter combinations by nicer ones.
  * @param buf buffer with town name
  * @param original English (Original) generator was used
@@ -110,10 +125,10 @@ static void MakeEnglishOriginalTownName (stringb *buf, uint32 seed)
 	if (i >= 0) buf->append (_name_original_english_1[i]);
 
 	/* mandatory middle segments */
-	buf->append (_name_original_english_2[SeedChance( 4, lengthof(_name_original_english_2), seed)]);
-	buf->append (_name_original_english_3[SeedChance( 7, lengthof(_name_original_english_3), seed)]);
-	buf->append (_name_original_english_4[SeedChance(10, lengthof(_name_original_english_4), seed)]);
-	buf->append (_name_original_english_5[SeedChance(13, lengthof(_name_original_english_5), seed)]);
+	buf->append (choose_str (_name_original_english_2, seed,  4));
+	buf->append (choose_str (_name_original_english_3, seed,  7));
+	buf->append (choose_str (_name_original_english_4, seed, 10));
+	buf->append (choose_str (_name_original_english_5, seed, 13));
 
 	/* optional last segment */
 	i = SeedChanceBias(15, lengthof(_name_original_english_6), seed, 60);
@@ -142,18 +157,18 @@ static void MakeEnglishAdditionalTownName (stringb *buf, uint32 seed)
 	if (i >= 0) buf->append (_name_additional_english_prefix[i]);
 
 	if (SeedChance(3, 20, seed) >= 14) {
-		buf->append (_name_additional_english_1a[SeedChance(6, lengthof(_name_additional_english_1a), seed)]);
+		buf->append (choose_str (_name_additional_english_1a, seed, 6));
 	} else {
-		buf->append (_name_additional_english_1b1[SeedChance(6, lengthof(_name_additional_english_1b1), seed)]);
-		buf->append (_name_additional_english_1b2[SeedChance(9, lengthof(_name_additional_english_1b2), seed)]);
+		buf->append (choose_str (_name_additional_english_1b1, seed, 6));
+		buf->append (choose_str (_name_additional_english_1b2, seed, 9));
 		if (SeedChance(11, 20, seed) >= 4) {
-			buf->append (_name_additional_english_1b3a[SeedChance(12, lengthof(_name_additional_english_1b3a), seed)]);
+			buf->append (choose_str (_name_additional_english_1b3a, seed, 12));
 		} else {
-			buf->append (_name_additional_english_1b3b[SeedChance(12, lengthof(_name_additional_english_1b3b), seed)]);
+			buf->append (choose_str (_name_additional_english_1b3b, seed, 12));
 		}
 	}
 
-	buf->append (_name_additional_english_2[SeedChance(14, lengthof(_name_additional_english_2), seed)]);
+	buf->append (choose_str (_name_additional_english_2, seed, 14));
 
 	/* optional last segment */
 	i = SeedChanceBias(15, lengthof(_name_additional_english_3), seed, 60);
@@ -180,27 +195,27 @@ static void MakeAustrianTownName (stringb *buf, uint32 seed)
 	i = SeedChance(4, 6, seed);
 	if (i >= 4) {
 		/* Kaisers-kirchen */
-		buf->append (_name_austrian_a2[SeedChance( 7, lengthof(_name_austrian_a2), seed)]);
-		buf->append (_name_austrian_a3[SeedChance(13, lengthof(_name_austrian_a3), seed)]);
+		buf->append (choose_str (_name_austrian_a2, seed,  7));
+		buf->append (choose_str (_name_austrian_a3, seed, 13));
 	} else if (i >= 2) {
 		/* St. Johann */
-		buf->append (_name_austrian_a5[SeedChance( 7, lengthof(_name_austrian_a5), seed)]);
-		buf->append (_name_austrian_a6[SeedChance( 9, lengthof(_name_austrian_a6), seed)]);
+		buf->append (choose_str (_name_austrian_a5, seed, 7));
+		buf->append (choose_str (_name_austrian_a6, seed, 9));
 		j = 1; // More likely to have a " an der " or " am "
 	} else {
 		/* Zell */
-		buf->append (_name_austrian_a4[SeedChance( 7, lengthof(_name_austrian_a4), seed)]);
+		buf->append (choose_str (_name_austrian_a4, seed, 7));
 	}
 
 	i = SeedChance(1, 6, seed);
 	if (i >= 4 - j) {
 		/* an der Donau (rivers) */
-		buf->append (_name_austrian_f1[SeedChance(4, lengthof(_name_austrian_f1), seed)]);
-		buf->append (_name_austrian_f2[SeedChance(5, lengthof(_name_austrian_f2), seed)]);
+		buf->append (choose_str (_name_austrian_f1, seed, 4));
+		buf->append (choose_str (_name_austrian_f2, seed, 5));
 	} else if (i >= 2 - j) {
 		/* am Dachstein (mountains) */
-		buf->append (_name_austrian_b1[SeedChance(4, lengthof(_name_austrian_b1), seed)]);
-		buf->append (_name_austrian_b2[SeedChance(5, lengthof(_name_austrian_b2), seed)]);
+		buf->append (choose_str (_name_austrian_b1, seed, 4));
+		buf->append (choose_str (_name_austrian_b2, seed, 5));
 	}
 }
 
@@ -216,8 +231,7 @@ static void MakeGermanTownName (stringb *buf, uint32 seed)
 
 	/* optional prefix */
 	if (seed_derivative == 12 || seed_derivative == 19) {
-		uint i = SeedChance(2, lengthof(_name_german_pre), seed);
-		buf->append (_name_german_pre[i]);
+		buf->append (choose_str (_name_german_pre, seed, 2));
 	}
 
 	/* mandatory middle segments including option of hardcoded name */
@@ -226,9 +240,7 @@ static void MakeGermanTownName (stringb *buf, uint32 seed)
 		buf->append (_name_german_real[i]);
 	} else {
 		buf->append (_name_german_1[i - lengthof(_name_german_real)]);
-
-		i = SeedChance(5, lengthof(_name_german_2), seed);
-		buf->append (_name_german_2[i]);
+		buf->append (choose_str (_name_german_2, seed, 5));
 	}
 
 	/* optional suffix */
@@ -252,7 +264,7 @@ static void MakeGermanTownName (stringb *buf, uint32 seed)
  */
 static void MakeSpanishTownName (stringb *buf, uint32 seed)
 {
-	buf->append (_name_spanish_real[SeedChance(0, lengthof(_name_spanish_real), seed)]);
+	buf->append (choose_str (_name_spanish_real, seed, 0));
 }
 
 
@@ -263,7 +275,7 @@ static void MakeSpanishTownName (stringb *buf, uint32 seed)
  */
 static void MakeFrenchTownName (stringb *buf, uint32 seed)
 {
-	buf->append (_name_french_real[SeedChance(0, lengthof(_name_french_real), seed)]);
+	buf->append (choose_str (_name_french_real, seed, 0));
 }
 
 
@@ -274,8 +286,8 @@ static void MakeFrenchTownName (stringb *buf, uint32 seed)
  */
 static void MakeSillyTownName (stringb *buf, uint32 seed)
 {
-	buf->append (_name_silly_1[SeedChance( 0, lengthof(_name_silly_1), seed)]);
-	buf->append (_name_silly_2[SeedChance(16, lengthof(_name_silly_2), seed)]);
+	buf->append (choose_str (_name_silly_1, seed,  0));
+	buf->append (choose_str (_name_silly_2, seed, 16));
 }
 
 
@@ -292,14 +304,14 @@ static void MakeSwedishTownName (stringb *buf, uint32 seed)
 
 	/* mandatory middle segments including option of hardcoded name */
 	if (SeedChance(4, 5, seed) >= 3) {
-		buf->append (_name_swedish_2[SeedChance( 7, lengthof(_name_swedish_2), seed)]);
+		buf->append (choose_str (_name_swedish_2, seed, 7));
 	} else {
-		buf->append (_name_swedish_2a[SeedChance( 7, lengthof(_name_swedish_2a), seed)]);
-		buf->append (_name_swedish_2b[SeedChance(10, lengthof(_name_swedish_2b), seed)]);
-		buf->append (_name_swedish_2c[SeedChance(13, lengthof(_name_swedish_2c), seed)]);
+		buf->append (choose_str (_name_swedish_2a, seed,  7));
+		buf->append (choose_str (_name_swedish_2b, seed, 10));
+		buf->append (choose_str (_name_swedish_2c, seed, 13));
 	}
 
-	buf->append (_name_swedish_3[SeedChance(16, lengthof(_name_swedish_3), seed)]);
+	buf->append (choose_str (_name_swedish_3, seed, 16));
 }
 
 
@@ -316,13 +328,13 @@ static void MakeDutchTownName (stringb *buf, uint32 seed)
 
 	/* mandatory middle segments including option of hardcoded name */
 	if (SeedChance(6, 9, seed) > 4) {
-		buf->append (_name_dutch_2[SeedChance( 9, lengthof(_name_dutch_2), seed)]);
+		buf->append (choose_str (_name_dutch_2, seed,  9));
 	} else {
-		buf->append (_name_dutch_3[SeedChance( 9, lengthof(_name_dutch_3), seed)]);
-		buf->append (_name_dutch_4[SeedChance(12, lengthof(_name_dutch_4), seed)]);
+		buf->append (choose_str (_name_dutch_3, seed,  9));
+		buf->append (choose_str (_name_dutch_4, seed, 12));
 	}
 
-	buf->append (_name_dutch_5[SeedChance(15, lengthof(_name_dutch_5), seed)]);
+	buf->append (choose_str (_name_dutch_5, seed, 15));
 }
 
 
@@ -335,7 +347,7 @@ static void MakeFinnishTownName (stringb *buf, uint32 seed)
 {
 	/* Select randomly if town name should consists of one or two parts. */
 	if (SeedChance(0, 15, seed) >= 10) {
-		buf->append (_name_finnish_real[SeedChance(2, lengthof(_name_finnish_real), seed)]);
+		buf->append (choose_str (_name_finnish_real, seed, 2));
 		return;
 	}
 
@@ -345,8 +357,7 @@ static void MakeFinnishTownName (stringb *buf, uint32 seed)
 		/* A two-part name by combining one of _name_finnish_1 + "la"/"lä"
 		 * The reason for not having the contents of _name_finnish_{1,2} in the same table is
 		 * that the ones in _name_finnish_2 are not good for this purpose. */
-		uint sel = SeedChance( 0, lengthof(_name_finnish_1), seed);
-		buf->append (_name_finnish_1[sel]);
+		buf->append (choose_str (_name_finnish_1, seed, 0));
 		assert (!buf->empty());
 		char *end = &buf->buffer[buf->length() - 1];
 		assert(end >= orig);
@@ -369,7 +380,7 @@ static void MakeFinnishTownName (stringb *buf, uint32 seed)
 		buf->append (_name_finnish_1[sel]);
 	}
 
-	buf->append (_name_finnish_3[SeedChance(10, lengthof(_name_finnish_3), seed)]);
+	buf->append (choose_str (_name_finnish_3, seed, 10));
 }
 
 
@@ -389,44 +400,44 @@ static void MakePolishTownName (stringb *buf, uint32 seed)
 
 
 	if (i < lengthof(_name_polish_2_o)) {
-		buf->append (_name_polish_2_o[SeedChance(3, lengthof(_name_polish_2_o), seed)]);
+		buf->append (choose_str (_name_polish_2_o, seed, 3));
 		return;
 	}
 
 	if (i < lengthof(_name_polish_2_m) + lengthof(_name_polish_2_o)) {
 		if (j < 4) {
-			buf->append (_name_polish_1_m[SeedChance(5, lengthof(_name_polish_1_m), seed)]);
+			buf->append (choose_str (_name_polish_1_m, seed, 5));
 		}
 
-		buf->append (_name_polish_2_m[SeedChance(7, lengthof(_name_polish_2_m), seed)]);
+		buf->append (choose_str (_name_polish_2_m, seed, 7));
 
 		if (j >= 4 && j < 16) {
-			buf->append (_name_polish_3_m[SeedChance(10, lengthof(_name_polish_3_m), seed)]);
+			buf->append (choose_str (_name_polish_3_m, seed, 10));
 		}
 	}
 
 	if (i < lengthof(_name_polish_2_f) + lengthof(_name_polish_2_m) + lengthof(_name_polish_2_o)) {
 		if (j < 4) {
-			buf->append (_name_polish_1_f[SeedChance(5, lengthof(_name_polish_1_f), seed)]);
+			buf->append (choose_str (_name_polish_1_f, seed, 5));
 		}
 
-		buf->append (_name_polish_2_f[SeedChance(7, lengthof(_name_polish_2_f), seed)]);
+		buf->append (choose_str (_name_polish_2_f, seed, 7));
 
 		if (j >= 4 && j < 16) {
-			buf->append (_name_polish_3_f[SeedChance(10, lengthof(_name_polish_3_f), seed)]);
+			buf->append (choose_str (_name_polish_3_f, seed, 10));
 		}
 
 		return;
 	}
 
 	if (j < 4) {
-		buf->append (_name_polish_1_n[SeedChance(5, lengthof(_name_polish_1_n), seed)]);
+		buf->append (choose_str (_name_polish_1_n, seed, 5));
 	}
 
-	buf->append (_name_polish_2_n[SeedChance(7, lengthof(_name_polish_2_n), seed)]);
+	buf->append (choose_str (_name_polish_2_n, seed, 7));
 
 	if (j >= 4 && j < 16) {
-		buf->append (_name_polish_3_n[SeedChance(10, lengthof(_name_polish_3_n), seed)]);
+		buf->append (choose_str (_name_polish_3_n, seed, 10));
 	}
 }
 
@@ -620,7 +631,7 @@ static void MakeCzechTownName (stringb *buf, uint32 seed)
  */
 static void MakeRomanianTownName (stringb *buf, uint32 seed)
 {
-	buf->append (_name_romanian_real[SeedChance(0, lengthof(_name_romanian_real), seed)]);
+	buf->append (choose_str (_name_romanian_real, seed, 0));
 }
 
 
@@ -631,7 +642,7 @@ static void MakeRomanianTownName (stringb *buf, uint32 seed)
  */
 static void MakeSlovakTownName (stringb *buf, uint32 seed)
 {
-	buf->append (_name_slovak_real[SeedChance(0, lengthof(_name_slovak_real), seed)]);
+	buf->append (choose_str (_name_slovak_real, seed, 0));
 }
 
 
@@ -646,14 +657,14 @@ static void MakeNorwegianTownName (stringb *buf, uint32 seed)
 	 * have a real name 3/16 chance.  Bit 0-3 */
 	if (SeedChance(0, 15, seed) < 3) {
 		/* Use 7bit for the realname table index.  Bit 4-10 */
-		buf->append (_name_norwegian_real[SeedChance(4, lengthof(_name_norwegian_real), seed)]);
+		buf->append (choose_str (_name_norwegian_real, seed, 4));
 		return;
 	}
 
 	/* Use 7bit for the first fake part.  Bit 4-10 */
-	buf->append (_name_norwegian_1[SeedChance( 4, lengthof(_name_norwegian_1), seed)]);
+	buf->append (choose_str (_name_norwegian_1, seed,  4));
 	/* Use 7bit for the last fake part.  Bit 11-17 */
-	buf->append (_name_norwegian_2[SeedChance(11, lengthof(_name_norwegian_2), seed)]);
+	buf->append (choose_str (_name_norwegian_2, seed, 11));
 }
 
 
@@ -665,7 +676,7 @@ static void MakeNorwegianTownName (stringb *buf, uint32 seed)
 static void MakeHungarianTownName (stringb *buf, uint32 seed)
 {
 	if (SeedChance(12, 15, seed) < 3) {
-		buf->append (_name_hungarian_real[SeedChance(0, lengthof(_name_hungarian_real), seed)]);
+		buf->append (choose_str (_name_hungarian_real, seed, 0));
 		return;
 	}
 
@@ -674,8 +685,8 @@ static void MakeHungarianTownName (stringb *buf, uint32 seed)
 	if (i < lengthof(_name_hungarian_1)) buf->append (_name_hungarian_1[i]);
 
 	/* mandatory middle segments */
-	buf->append (_name_hungarian_2[SeedChance(3, lengthof(_name_hungarian_2), seed)]);
-	buf->append (_name_hungarian_3[SeedChance(6, lengthof(_name_hungarian_3), seed)]);
+	buf->append (choose_str (_name_hungarian_2, seed, 3));
+	buf->append (choose_str (_name_hungarian_3, seed, 6));
 
 	/* optional last segment */
 	i = SeedChance(10, lengthof(_name_hungarian_4) * 3, seed);
@@ -692,7 +703,7 @@ static void MakeHungarianTownName (stringb *buf, uint32 seed)
  */
 static void MakeSwissTownName (stringb *buf, uint32 seed)
 {
-	buf->append (_name_swiss_real[SeedChance(0, lengthof(_name_swiss_real), seed)]);
+	buf->append (choose_str (_name_swiss_real, seed, 0));
 }
 
 
@@ -708,8 +719,8 @@ static void MakeDanishTownName (stringb *buf, uint32 seed)
 	if (i >= 0) buf->append (_name_danish_1[i]);
 
 	/* middle segments removed as this algorithm seems to create much more realistic names */
-	buf->append (_name_danish_2[SeedChance( 7, lengthof(_name_danish_2), seed)]);
-	buf->append (_name_danish_3[SeedChance(16, lengthof(_name_danish_3), seed)]);
+	buf->append (choose_str (_name_danish_2, seed,  7));
+	buf->append (choose_str (_name_danish_3, seed, 16));
 }
 
 
