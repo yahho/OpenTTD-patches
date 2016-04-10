@@ -47,19 +47,6 @@ static inline uint32 SeedModChance(byte shift_by, int max, uint32 seed)
 	return (seed >> shift_by) % max;
 }
 
-/**
- * Generates a number from given seed.
- * @param shift_by number of bits seed is shifted to the right
- * @param max generated number is in interval -bias...max-1
- * @param seed seed
- * @param bias minimum value that can be returned
- * @return seed transformed to a number from given range
- */
-static inline int32 SeedChanceBias(byte shift_by, int max, uint32 seed, int bias)
-{
-	return SeedChance(shift_by, max + bias, seed) - bias;
-}
-
 
 /**
  * Choose a string from a string array.
@@ -87,6 +74,23 @@ static inline const char *choose_str_mod (const char * const (&strs) [N],
 	uint32 seed, uint shift_by)
 {
 	return strs [SeedModChance (shift_by, N, seed)];
+}
+
+
+/**
+ * Optionally append a string from an array to a buffer.
+ * @param buf The buffer to append the string to.
+ * @param strs The string array to choose from.
+ * @param seed The random seed.
+ * @param shift_by The number of bits that the seed is shifted to the right.
+ * @param threshold The threshold value to actually append a string.
+ */
+template <uint N>
+static inline void append_opt (stringb *buf, const char * const (&strs) [N],
+	uint32 seed, uint shift_by, uint threshold)
+{
+	uint i = SeedChance (shift_by, N + threshold, seed);
+	if (i >= threshold) buf->append (strs [i - threshold]);
 }
 
 
@@ -135,8 +139,7 @@ static void MakeEnglishOriginalTownName (stringb *buf, uint32 seed)
 	size_t orig_length = buf->length();
 
 	/* optional first segment */
-	int i = SeedChanceBias(0, lengthof(_name_original_english_1), seed, 50);
-	if (i >= 0) buf->append (_name_original_english_1[i]);
+	append_opt (buf, _name_original_english_1, seed, 0, 50);
 
 	/* mandatory middle segments */
 	buf->append (choose_str (_name_original_english_2, seed,  4));
@@ -145,8 +148,7 @@ static void MakeEnglishOriginalTownName (stringb *buf, uint32 seed)
 	buf->append (choose_str (_name_original_english_5, seed, 13));
 
 	/* optional last segment */
-	i = SeedChanceBias(15, lengthof(_name_original_english_6), seed, 60);
-	if (i >= 0) buf->append (_name_original_english_6[i]);
+	append_opt (buf, _name_original_english_6, seed, 15, 60);
 
 	/* Ce, Ci => Ke, Ki */
 	if (buf->buffer[orig_length] == 'C' && (buf->buffer[orig_length + 1] == 'e' || buf->buffer[orig_length + 1] == 'i')) {
@@ -167,8 +169,7 @@ static void MakeEnglishAdditionalTownName (stringb *buf, uint32 seed)
 	size_t orig_length = buf->length();
 
 	/* optional first segment */
-	int i = SeedChanceBias(0, lengthof(_name_additional_english_prefix), seed, 50);
-	if (i >= 0) buf->append (_name_additional_english_prefix[i]);
+	append_opt (buf, _name_additional_english_prefix, seed, 0, 50);
 
 	if (SeedChance(3, 20, seed) >= 14) {
 		buf->append (choose_str (_name_additional_english_1a, seed, 6));
@@ -185,8 +186,7 @@ static void MakeEnglishAdditionalTownName (stringb *buf, uint32 seed)
 	buf->append (choose_str (_name_additional_english_2, seed, 14));
 
 	/* optional last segment */
-	i = SeedChanceBias(15, lengthof(_name_additional_english_3), seed, 60);
-	if (i >= 0) buf->append (_name_additional_english_3[i]);
+	append_opt (buf, _name_additional_english_3, seed, 15, 60);
 
 	assert (buf->length() - orig_length >= 4);
 	ReplaceEnglishWords (&buf->buffer[orig_length], false);
@@ -201,12 +201,11 @@ static void MakeEnglishAdditionalTownName (stringb *buf, uint32 seed)
 static void MakeAustrianTownName (stringb *buf, uint32 seed)
 {
 	/* Bad, Maria, Gross, ... */
-	int i = SeedChanceBias(0, lengthof(_name_austrian_a1), seed, 15);
-	if (i >= 0) buf->append (_name_austrian_a1[i]);
+	append_opt (buf, _name_austrian_a1, seed, 0, 15);
 
 	int j = 0;
 
-	i = SeedChance(4, 6, seed);
+	int i = SeedChance(4, 6, seed);
 	if (i >= 4) {
 		/* Kaisers-kirchen */
 		buf->append (choose_str (_name_austrian_a2, seed,  7));
@@ -313,8 +312,7 @@ static void MakeSillyTownName (stringb *buf, uint32 seed)
 static void MakeSwedishTownName (stringb *buf, uint32 seed)
 {
 	/* optional first segment */
-	int i = SeedChanceBias(0, lengthof(_name_swedish_1), seed, 50);
-	if (i >= 0) buf->append (_name_swedish_1[i]);
+	append_opt (buf, _name_swedish_1, seed, 0, 50);
 
 	/* mandatory middle segments including option of hardcoded name */
 	if (SeedChance(4, 5, seed) >= 3) {
@@ -337,8 +335,7 @@ static void MakeSwedishTownName (stringb *buf, uint32 seed)
 static void MakeDutchTownName (stringb *buf, uint32 seed)
 {
 	/* optional first segment */
-	int i = SeedChanceBias(0, lengthof(_name_dutch_1), seed, 50);
-	if (i >= 0) buf->append (_name_dutch_1[i]);
+	append_opt (buf, _name_dutch_1, seed, 0, 50);
 
 	/* mandatory middle segments including option of hardcoded name */
 	if (SeedChance(6, 9, seed) > 4) {
@@ -729,8 +726,7 @@ static void MakeSwissTownName (stringb *buf, uint32 seed)
 static void MakeDanishTownName (stringb *buf, uint32 seed)
 {
 	/* optional first segment */
-	int i = SeedChanceBias(0, lengthof(_name_danish_1), seed, 50);
-	if (i >= 0) buf->append (_name_danish_1[i]);
+	append_opt (buf, _name_danish_1, seed, 0, 50);
 
 	/* middle segments removed as this algorithm seems to create much more realistic names */
 	buf->append (choose_str (_name_danish_2, seed,  7));
