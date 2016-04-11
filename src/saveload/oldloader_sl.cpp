@@ -34,7 +34,6 @@
 
 #include "table/strings.h"
 #include "../table/engines.h"
-#include "../table/townname.h"
 
 enum OldTileType {
 	OLD_MP_CLEAR,           ///< A tile without any structures, i.e. grass, docks, farm fields etc.
@@ -174,7 +173,7 @@ static uint32 RemapOldTownName(uint32 townnameparts, byte old_town_name_type)
 		case 1: // French
 			/* For some reason 86 needs to be subtracted from townnameparts
 			 * 0000 0000 0000 0000 0000 0000 1111 1111 */
-			return FIXNUM(townnameparts - 86, lengthof(_name_french_real), 0);
+			return FIXNUM(townnameparts - 86, 70, 0);
 
 		case 2: // German
 			DEBUG(misc, 0, "German Townnames are buggy (%d)", townnameparts);
@@ -182,13 +181,13 @@ static uint32 RemapOldTownName(uint32 townnameparts, byte old_town_name_type)
 
 		case 4: // Latin-American
 			/* 0000 0000 0000 0000 0000 0000 1111 1111 */
-			return FIXNUM(townnameparts, lengthof(_name_spanish_real), 0);
+			return FIXNUM(townnameparts, 86, 0);
 
 		case 5: // Silly
 			/* NUM_SILLY_1 - lower 16 bits
 			 * NUM_SILLY_2 - upper 16 bits without leading 1 (first 8 bytes)
 			 * 1000 0000 2222 2222 0000 0000 1111 1111 */
-			return FIXNUM(townnameparts, lengthof(_name_silly_1), 0) | FIXNUM(GB(townnameparts, 16, 8), lengthof(_name_silly_2), 16);
+			return FIXNUM(townnameparts, 88, 0) | FIXNUM(GB(townnameparts, 16, 8), 15, 16);
 	}
 	return 0;
 }
