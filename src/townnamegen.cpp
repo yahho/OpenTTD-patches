@@ -196,27 +196,76 @@ static void MakeEnglishOriginalTownName (stringb *buf, uint32 seed)
  */
 static void MakeEnglishAdditionalTownName (stringb *buf, uint32 seed)
 {
+	static const char * const names_prefix[] = {
+		"Great ", "Little ", "New ", "Fort ", "St. ", "Old ",
+	};
+
+	static const char * const names_1a[] = {
+		"Pen", "Lough", "Stam", "Aber", "Acc", "Ex", "Ax", "Bre",
+		"Cum", "Dun", "Fin", "Inver", "Kin", "Mon", "Nan", "Nant",
+		"Pit", "Pol", "Pont", "Strath", "Tre", "Tilly", "Beck",
+		"Canter", "Bath", "Liver", "Mal", "Ox", "Bletch", "Maccles",
+		"Grim", "Wind", "Sher", "Gates", "Orp", "Brom", "Lewis",
+		"Whit", "White", "Worm", "Tyne", "Avon", "Stan",
+	};
+
+	static const char * const names_1b1[] = {
+		"Wr", "B", "C",  "Ch", "Br", "D", "Dr", "F", "Fr",
+		"Fl", "G", "Gr", "H",  "L",  "M", "N",  "P", "Pr",
+		"Pl", "R", "S",  "S",  "Sl", "T", "Tr", "W",
+	};
+
+	static const char * const names_1b2[] = {
+		"ar", "a",  "e",  "in", "on", "u",
+		"o",  "ee", "es", "ea", "un", "en",
+	};
+
+	static const char * const names_1b3a[] = {
+		"n", "d", "", "t", "", "",
+	};
+
+	static const char * const names_1b3b[] = {
+		"ning", "ding", "fing",
+	};
+
+	static const char * const names_2[] = {
+		"ville", "ham", "field", "ton", "town", "borough", "bridge",
+		"bury", "wood", "ditch", "ford", "hall", "dean", "leigh",
+		"dore", "ston", "stow", "church", "wich", "low", "way",
+		"stone", "minster", "ley", "head", "bourne", "pool", "worth",
+		"hill", "well", "hattan", "burg", "berg", "burgh", "port",
+		"stoke", "haven", "stable", "stock", "side", "brook", "don",
+		"den", "down", "nor", "grove", "combe", "by", "say", "ney",
+		"chester", "dale", "ness", "shaw", "thwaite",
+	};
+
+	static const char * const names_3[] = {
+		"-on-sea", " Bay", " Market", " Beeches", " Common", " Park",
+		" Heath", " Marsh", " Green", " Castle", " End", " Rivers",
+		" Cross", " Bridge", " Falls", " City", " Ridge", " Springs",
+	};
+
 	size_t orig_length = buf->length();
 
 	/* optional first segment */
-	append_opt (buf, _name_additional_english_prefix, seed, 0, 50);
+	append_opt (buf, names_prefix, seed, 0, 50);
 
 	if (SeedChance(3, 20, seed) >= 14) {
-		buf->append (choose_str (_name_additional_english_1a, seed, 6));
+		buf->append (choose_str (names_1a, seed, 6));
 	} else {
-		buf->append (choose_str (_name_additional_english_1b1, seed, 6));
-		buf->append (choose_str (_name_additional_english_1b2, seed, 9));
+		buf->append (choose_str (names_1b1, seed, 6));
+		buf->append (choose_str (names_1b2, seed, 9));
 		if (SeedChance(11, 20, seed) >= 4) {
-			buf->append (choose_str (_name_additional_english_1b3a, seed, 12));
+			buf->append (choose_str (names_1b3a, seed, 12));
 		} else {
-			buf->append (choose_str (_name_additional_english_1b3b, seed, 12));
+			buf->append (choose_str (names_1b3b, seed, 12));
 		}
 	}
 
-	buf->append (choose_str (_name_additional_english_2, seed, 14));
+	buf->append (choose_str (names_2, seed, 14));
 
 	/* optional last segment */
-	append_opt (buf, _name_additional_english_3, seed, 15, 60);
+	append_opt (buf, names_3, seed, 15, 60);
 
 	assert (buf->length() - orig_length >= 4);
 	ReplaceEnglishWords (&buf->buffer[orig_length], false);
