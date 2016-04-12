@@ -136,19 +136,49 @@ static void ReplaceEnglishWords(char *buf, bool original)
  */
 static void MakeEnglishOriginalTownName (stringb *buf, uint32 seed)
 {
+	static const char * const names_1[] = {
+		"Great ", "Little ", "New ", "Fort ",
+	};
+
+	static const char * const names_2[] = {
+		"Wr", "B", "C",  "Ch", "Br", "D", "Dr", "F", "Fr",
+		"Fl", "G", "Gr", "H",  "L",  "M", "N",  "P", "Pr",
+		"Pl", "R", "S",  "S",  "Sl", "T", "Tr", "W",
+	};
+
+	static const char * const names_3[] = {
+		"ar", "a", "e", "in", "on", "u", "un", "en",
+	};
+
+	static const char * const names_4[] = {
+		"n", "ning", "ding", "d", "", "t", "fing",
+	};
+
+	static const char * const names_5[] = {
+		"ville", "ham",     "field", "ton",    "town",   "bridge",
+		"bury",  "wood",    "ford",  "hall",   "ston",   "way",
+		"stone", "borough", "ley",   "head",   "bourne", "pool",
+		"worth", "hill",    "well",  "hattan", "burg",
+	};
+
+	static const char * const names_6[] = {
+		"-on-sea", " Bay",  " Market", " Cross", " Bridge",
+		" Falls",  " City", " Ridge",  " Springs",
+	};
+
 	size_t orig_length = buf->length();
 
 	/* optional first segment */
-	append_opt (buf, _name_original_english_1, seed, 0, 50);
+	append_opt (buf, names_1, seed, 0, 50);
 
 	/* mandatory middle segments */
-	buf->append (choose_str (_name_original_english_2, seed,  4));
-	buf->append (choose_str (_name_original_english_3, seed,  7));
-	buf->append (choose_str (_name_original_english_4, seed, 10));
-	buf->append (choose_str (_name_original_english_5, seed, 13));
+	buf->append (choose_str (names_2, seed,  4));
+	buf->append (choose_str (names_3, seed,  7));
+	buf->append (choose_str (names_4, seed, 10));
+	buf->append (choose_str (names_5, seed, 13));
 
 	/* optional last segment */
-	append_opt (buf, _name_original_english_6, seed, 15, 60);
+	append_opt (buf, names_6, seed, 15, 60);
 
 	/* Ce, Ci => Ke, Ki */
 	if (buf->buffer[orig_length] == 'C' && (buf->buffer[orig_length + 1] == 'e' || buf->buffer[orig_length + 1] == 'i')) {
