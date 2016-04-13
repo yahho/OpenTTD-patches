@@ -524,8 +524,32 @@ static void MakeFrenchTownName (stringb *buf, uint32 seed)
  */
 static void MakeSillyTownName (stringb *buf, uint32 seed)
 {
-	buf->append (choose_str (_name_silly_1, seed,  0));
-	buf->append (choose_str (_name_silly_2, seed, 16));
+	static const char * const names_1[] = {
+		"Binky", "Blubber", "Bumble", "Crinkle", "Crusty", "Dangle",
+		"Dribble", "Flippety", "Google", "Muffin", "Nosey", "Pinker",
+		"Quack", "Rumble", "Sleepy", "Sliggles", "Snooze", "Teddy",
+		"Tinkle", "Twister", "Pinker", "Hippo", "Itchy", "Jelly",
+		"Jingle", "Jolly", "Kipper", "Lazy", "Frogs", "Mouse",
+		"Quack", "Cheeky", "Lumpy", "Grumpy", "Mangle", "Fiddle",
+		"Slugs", "Noodles", "Poodles", "Shiver", "Rumble", "Pixie",
+		"Puddle", "Riddle", "Rattle", "Rickety", "Waffle", "Sagging",
+		"Sausage", "Egg", "Sleepy", "Scatter", "Scramble", "Silly",
+		"Simple", "Trickle", "Slippery", "Slimey", "Slumber", "Soggy",
+		"Sliggles", "Splutter", "Sulky", "Swindle", "Swivel", "Tasty",
+		"Tangle", "Toggle", "Trotting", "Tumble", "Snooze", "Water",
+		"Windy", "Amble", "Bubble", "Cheery", "Cheese", "Cockle",
+		"Cracker", "Crumple", "Teddy", "Evil", "Fairy", "Falling",
+		"Fishy", "Fizzle", "Frosty", "Griddle",
+	};
+
+	static const char * const names_2[] = {
+		"ton", "bury", "bottom", "ville", "well", "weed", "worth",
+		"wig", "wick", "wood", "pool", "head", "burg", "gate",
+		"bridge",
+	};
+
+	buf->append (choose_str (names_1, seed,  0));
+	buf->append (choose_str (names_2, seed, 16));
 }
 
 
