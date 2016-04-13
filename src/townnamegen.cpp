@@ -279,35 +279,89 @@ static void MakeEnglishAdditionalTownName (stringb *buf, uint32 seed)
  */
 static void MakeAustrianTownName (stringb *buf, uint32 seed)
 {
+	static const char * const names_a1[] = {
+		"Bad ", "Deutsch ", "Gross ", "Klein ", "Markt ", "Maria ",
+	};
+
+	static const char * const names_a2[] = {
+		"Aus", "Alten", "Braun", "V\xC3\xB6sl", "Mittern", "Nuss",
+		"Neu", "Walters", "Breiten", "Eisen", "Feld", "Mittern",
+		"Gall", "Obern", "Grat", "Heiligen", "Hof", "Holla", "Stein",
+		"Eber", "Eggen", "Enzers", "Frauen", "Herren", "Hof",
+		"H\xC3\xBCtt", "Kaisers", "K\xC3\xB6nigs", "Knittel", "Lang",
+		"Ober", "Ollers", "Pfaffen", "Potten", "Salz", "Schwarz",
+		"Stocker", "Unter", "Utten", "V\xC3\xB6sen", "Vill", "Weissen",
+	};
+
+	static const char * const names_a3[] = {
+		"see", "bach", "dorf", "ach", "stein", "hofen", "au", "ach",
+		"kirch", "kirchen", "kreuz", "brunn", "siedl", "markt",
+		"wang", "haag",
+	};
+
+	static const char * const names_a4[] = {
+		"Bruck", "Brunn", "Gams", "Grein", "Ried", "Faak", "Zell",
+		"Spital", "Kirchberg", "Saal", "Taferl", "Wald",
+	};
+
+	static const char * const names_a5[] = {
+		"St. ", "Sankt ",
+	};
+
+	static const char * const names_a6[] = {
+		"Aegyd", "Andr\xC3\xA4", "Georgen", "Jakob", "Johann",
+		"Leonhard", "Marein", "Lorenzen", "Margarethen", "Martin",
+		"Michael", "Nikolai", "Oswald", "Peter", "P\xC3\xB6lten",
+		"Stefan", "Stephan", "Thomas", "Veit", "Wolfgang",
+	};
+
+	static const char * const names_f1[] = {
+		" an der ", " ob der ",
+	};
+
+	static const char * const names_f2[] = {
+		"Donau", "Steyr", "Lafnitz", "Leitha", "Thaya", "Gail",
+		"Drau", "Salzach", "Ybbs", "Traisen", "Enns", "Mur", "Ill",
+	};
+
+	static const char * const names_b1[] = {
+		" am ",
+	};
+
+	static const char * const names_b2[] = {
+		"Brenner", "Dachstein", "Gebirge", "Grossglockner", "Hausruck",
+		"Semmering", "Wagram", "Wechsel", "Wilden Kaiser", "Ziller",
+	};
+
 	/* Bad, Maria, Gross, ... */
-	append_opt (buf, _name_austrian_a1, seed, 0, 15);
+	append_opt (buf, names_a1, seed, 0, 15);
 
 	int j = 0;
 
 	int i = SeedChance(4, 6, seed);
 	if (i >= 4) {
 		/* Kaisers-kirchen */
-		buf->append (choose_str (_name_austrian_a2, seed,  7));
-		buf->append (choose_str (_name_austrian_a3, seed, 13));
+		buf->append (choose_str (names_a2, seed,  7));
+		buf->append (choose_str (names_a3, seed, 13));
 	} else if (i >= 2) {
 		/* St. Johann */
-		buf->append (choose_str (_name_austrian_a5, seed, 7));
-		buf->append (choose_str (_name_austrian_a6, seed, 9));
+		buf->append (choose_str (names_a5, seed, 7));
+		buf->append (choose_str (names_a6, seed, 9));
 		j = 1; // More likely to have a " an der " or " am "
 	} else {
 		/* Zell */
-		buf->append (choose_str (_name_austrian_a4, seed, 7));
+		buf->append (choose_str (names_a4, seed, 7));
 	}
 
 	i = SeedChance(1, 6, seed);
 	if (i >= 4 - j) {
 		/* an der Donau (rivers) */
-		buf->append (choose_str (_name_austrian_f1, seed, 4));
-		buf->append (choose_str (_name_austrian_f2, seed, 5));
+		buf->append (choose_str (names_f1, seed, 4));
+		buf->append (choose_str (names_f2, seed, 5));
 	} else if (i >= 2 - j) {
 		/* am Dachstein (mountains) */
-		buf->append (choose_str (_name_austrian_b1, seed, 4));
-		buf->append (choose_str (_name_austrian_b2, seed, 5));
+		buf->append (choose_str (names_b1, seed, 4));
+		buf->append (choose_str (names_b2, seed, 5));
 	}
 }
 
