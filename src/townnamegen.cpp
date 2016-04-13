@@ -373,31 +373,83 @@ static void MakeAustrianTownName (stringb *buf, uint32 seed)
  */
 static void MakeGermanTownName (stringb *buf, uint32 seed)
 {
+	static const char * const names_real[] = {
+		"Berlin", "Bonn", "Bremen", "Cottbus", "Chemnitz", "Dortmund",
+		"Dresden", "Erfurt", "Erlangen", "Essen", "Fulda", "Gera",
+		"Kassel", "Kiel", "K\xC3\xB6ln", "L\xC3\xBC""beck",
+		"Magdeburg", "M\xC3\xBCnchen", "Potsdam", "Stuttgart",
+		"Wiesbaden",
+	};
+
+	static const char * const names_pre[] = {
+		"Bad ", "Klein ", "Neu ",
+	};
+
+	static const char * const names_1[] = {
+		"Alb", "Als", "Ander", "Arns", "Bruns", "Bam", "Biele",
+		"Cloppen", "Co", "Duis", "D\xC3\xBCssel", "Dannen", "Elb",
+		"Els", "Elster", "Eichen", "Ems", "Fahr", "Falken", "Flens",
+		"Frank", "Frei", "Freuden", "Fried", "F\xC3\xBCrsten", "Hahn",
+		"Ham", "Harz", "Heidel", "Hers", "Herz", "Holz", "Hildes",
+		"Inns", "Ilsen", "Ingols", "Kel", "Kies", "Korn", "Kor",
+		"Kreuz", "Kulm", "Langen", "Lim", "Lohr", "L\xC3\xBCne",
+		"Mel", "Michels", "M\xC3\xBChl", "Naum", "Nest", "Nord",
+		"Nort", "Nien", "Nidda", "Nieder", "N\xC3\xBCrn", "Ober",
+		"Offen", "Osna", "Olden", "Ols", "Oranien", "Pader",
+		"Quedlin", "Quer", "Ravens", "Regens", "Rott", "Ros",
+		"R\xC3\xBCssels", "Saal", "Saar", "Salz", "Sch\xC3\xB6ne",
+		"Schwein", "Sonder", "Sonnen", "Stein", "Strals", "Straus",
+		"S\xC3\xBC""d", "Ton", "Unter", "Ur", "Vor", "Wald", "War",
+		"Wert", "Wester", "Witten", "Wolfs", "W\xC3\xBCrz",
+	};
+
+	static const char * const names_2[] = {
+		"bach", "berg", "br\xC3\xBC""ck", "br\xC3\xBC""cken", "burg",
+		"dorf", "feld", "furt", "hausen", "haven", "heim", "horst",
+		"mund", "m\xC3\xBCnster", "stadt", "wald",
+	};
+
+	static const char * const names_3_an_der[] = {
+		" an der ",
+	};
+
+	static const char * const names_3_am[] = {
+		" am ",
+	};
+
+	static const char * const names_4_an_der[] = {
+		"Oder", "Spree", "Donau", "Saale", "Elbe",
+	};
+
+	static const char * const names_4_am[] = {
+		"Main",
+	};
+
 	uint seed_derivative = SeedChance(7, 28, seed);
 
 	/* optional prefix */
 	if (seed_derivative == 12 || seed_derivative == 19) {
-		buf->append (choose_str (_name_german_pre, seed, 2));
+		buf->append (choose_str (names_pre, seed, 2));
 	}
 
 	/* mandatory middle segments including option of hardcoded name */
-	uint i = SeedChance(3, lengthof(_name_german_real) + lengthof(_name_german_1), seed);
-	if (i < lengthof(_name_german_real)) {
-		buf->append (_name_german_real[i]);
+	uint i = SeedChance (3, lengthof(names_real) + lengthof(names_1), seed);
+	if (i < lengthof(names_real)) {
+		buf->append (names_real[i]);
 	} else {
-		buf->append (_name_german_1[i - lengthof(_name_german_real)]);
-		buf->append (choose_str (_name_german_2, seed, 5));
+		buf->append (names_1 [i - lengthof(names_real)]);
+		buf->append (choose_str (names_2, seed, 5));
 	}
 
 	/* optional suffix */
 	if (seed_derivative == 24) {
-		i = SeedChance(9, lengthof(_name_german_4_an_der) + lengthof(_name_german_4_am), seed);
-		if (i < lengthof(_name_german_4_an_der)) {
-			buf->append (_name_german_3_an_der[0]);
-			buf->append (_name_german_4_an_der[i]);
+		i = SeedChance (9, lengthof(names_4_an_der) + lengthof(names_4_am), seed);
+		if (i < lengthof(names_4_an_der)) {
+			buf->append (names_3_an_der[0]);
+			buf->append (names_4_an_der[i]);
 		} else {
-			buf->append (_name_german_3_am[0]);
-			buf->append (_name_german_4_am[i - lengthof(_name_german_4_an_der)]);
+			buf->append (names_3_am[0]);
+			buf->append (names_4_am [i - lengthof(names_4_an_der)]);
 		}
 	}
 }
