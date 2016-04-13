@@ -462,7 +462,29 @@ static void MakeGermanTownName (stringb *buf, uint32 seed)
  */
 static void MakeSpanishTownName (stringb *buf, uint32 seed)
 {
-	buf->append (choose_str (_name_spanish_real, seed, 0));
+	static const char * const names_real[] = {
+		"Caracas", "Maracay", "Maracaibo", "Valencia", "El Dorado",
+		"Morrocoy", "Cata", "Cataito", "Ciudad Bol\xC3\xADvar",
+		"Barquisimeto", "M\xC3\xA9rida", "Puerto Ordaz",
+		"Santa Elena", "San Juan", "San Luis", "San Rafael",
+		"Santiago", "Barcelona", "Barinas", "San Crist\xC3\xB3""bal",
+		"San Fransisco", "San Mart\xC3\xADn", "Guayana", "San Carlos",
+		"El Lim\xC3\xB3n", "Coro", "Corocoro", "Puerto Ayacucho",
+		"Elorza", "Arismendi", "Trujillo", "Carupano", "Anaco",
+		"Lima", "Cuzco", "Iquitos", "Callao", "Huacho", "Camana",
+		"Puerto Chala", "Santa Cruz", "Quito", "Cuenca", "Huacho",
+		"Tulc\xC3\xA1n", "Esmeraldas", "Ibarra", "San Lorenzo",
+		"Macas", "Morana", "Machala", "Zamora", "Latacunga", "Tena",
+		"Cochabamba", "Ascensi\xC3\xB3n", "Magdalena", "Santa Ana",
+		"Manoa", "Sucre", "Oruro", "Uyuni", "Potos\xC3\xAD", "Tupiza",
+		"La Quiaca", "Yacuiba", "San Borja", "Fuerte Olimpio",
+		"Fort\xC3\xADn Esteros", "Campo Grande", "Bogota", "El Banco",
+		"Zaragoza", "Neiva", "Mariano", "Cali", "La Palma", "Andoas",
+		"Barranca", "Montevideo", "Valdivia", "Arica", "Temuco",
+		"Tocopilla", "Mendoza", "Santa Rosa",
+	};
+
+	buf->append (choose_str (names_real, seed, 0));
 }
 
 
