@@ -495,7 +495,25 @@ static void MakeSpanishTownName (stringb *buf, uint32 seed)
  */
 static void MakeFrenchTownName (stringb *buf, uint32 seed)
 {
-	buf->append (choose_str (_name_french_real, seed, 0));
+	static const char * const names_real[] = {
+		"Agincourt", "Lille", "Dinan", "Aubusson", "Rodez",
+		"Bergerac", "Bordeaux", "Bayonne", "Montpellier",
+		"Mont\xC3\xA9limar", "Valence", "Digne", "Nice", "Cannes",
+		"St. Tropez", "Marseille", "Narbonne", "S\xC3\xA8te",
+		"Aurillac", "Gu\xC3\xA9ret", "Le Creusot", "Nevers",
+		"Auxerre", "Versailles", "Meaux", "Ch\xC3\xA2lons",
+		"Compi\xC3\xA8gne", "Metz", "Chaumont", "Langres", "Bourg",
+		"Lyon", "Vienne", "Grenoble", "Toulon", "Rennes", "Le Mans",
+		"Angers", "Nantes", "Ch\xC3\xA2teauroux", "Orl\xC3\xA9""ans",
+		"Lisieux", "Cherbourg", "Morlaix", "Cognac", "Agen", "Tulle",
+		"Blois", "Troyes", "Charolles", "Grenoble", "Chamb\xC3\xA9ry",
+		"Tours", "St. Brieuc", "St. Malo", "La Rochelle", "St. Flour",
+		"Le Puy", "Vichy", "St. Valery", "Beaujolais", "Narbonne",
+		"Albi", "Paris", "Biarritz", "B\xC3\xA9ziers", "N\xC3\xAEmes",
+		"Chamonix", "Angoul\xC3\xA8me", "Alen\xC3\xA7on",
+	};
+
+	buf->append (choose_str (names_real, seed, 0));
 }
 
 
