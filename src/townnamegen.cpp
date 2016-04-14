@@ -682,19 +682,49 @@ static void MakeDutchTownName (stringb *buf, uint32 seed)
  */
 static void MakeFinnishTownName (stringb *buf, uint32 seed)
 {
+	static const char * const names_real[] = {
+		"Aijala", "Kisko", "Espoo", "Helsinki", "Tapiola",
+		"J\xC3\xA4rvel\xC3\xA4", "Lahti", "Kotka", "Hamina",
+		"Loviisa", "Kouvola", "Tampere", "Oulu", "Salo", "Malmi",
+		"Pelto", "Koski", "Iisalmi", "Raisio", "Taavetti", "Joensuu",
+		"Imatra", "Tapanila", "Pasila", "Turku", "Kupittaa", "Vaasa",
+		"Pori", "Rauma", "Kolari", "Lieksa",
+	};
+
+	static const char * const names_1[] = {
+		"Hiekka", "Haapa", "Mylly", "Sauna", "Uusi", "Vanha",
+		"Kes\xC3\xA4", "Kuusi", "Pelto", "Tuomi", "Terva", "Olki",
+		"Hein\xC3\xA4", "Sein\xC3\xA4", "Rova", "Koivu", "Kokko",
+		"M\xC3\xA4nty", "Pihlaja", "Pet\xC3\xA4j\xC3\xA4", "Kielo",
+		"Kauha", "Viita", "Kivi", "Riihi", "\xC3\x84\xC3\xA4ne",
+		"Niini",
+	};
+
+	static const char * const names_2[] = {
+		"Lappeen", "Lohjan", "Savon", "Lapin", "Pit\xC3\xA4j\xC3\xA4n",
+		"Martin", "Kuusan", "Kemi", "Keri", "H\xC3\xA4meen", "Kangas",
+	};
+
+	static const char * const names_3[] = {
+		"harju", "linna", "j\xC3\xA4rvi", "kallio", "m\xC3\xA4ki",
+		"nummi", "joki", "kyl\xC3\xA4", "lampi", "lahti",
+		"mets\xC3\xA4", "suo", "laakso", "niitty", "luoto", "hovi",
+		"ranta", "koski", "salo",
+	};
+
 	/* Select randomly if town name should consists of one or two parts. */
 	if (SeedChance(0, 15, seed) >= 10) {
-		buf->append (choose_str (_name_finnish_real, seed, 2));
+		buf->append (choose_str (names_real, seed, 2));
 		return;
 	}
 
 	if (SeedChance(0, 15, seed) >= 5) {
 		const char *orig = &buf->buffer[buf->length()];
 
-		/* A two-part name by combining one of _name_finnish_1 + "la"/"lä"
-		 * The reason for not having the contents of _name_finnish_{1,2} in the same table is
-		 * that the ones in _name_finnish_2 are not good for this purpose. */
-		buf->append (choose_str (_name_finnish_1, seed, 0));
+		/* A two-part name by combining one of names_1 + "la"/"lä"
+		 * The reason for not having the contents of names_{1,2} in the same table is
+		 * that the ones in names_2 are not good for this purpose. */
+		buf->append (choose_str (names_1, seed, 0));
 		assert (!buf->empty());
 		char *end = &buf->buffer[buf->length() - 1];
 		assert(end >= orig);
@@ -708,16 +738,16 @@ static void MakeFinnishTownName (stringb *buf, uint32 seed)
 		return;
 	}
 
-	/* A two-part name by combining one of _name_finnish_{1,2} + _name_finnish_3.
-	 * Why aren't _name_finnish_{1,2} just one table? See above. */
-	uint sel = SeedChance(2, lengthof(_name_finnish_1) + lengthof(_name_finnish_2), seed);
-	if (sel >= lengthof(_name_finnish_1)) {
-		buf->append (_name_finnish_2[sel - lengthof(_name_finnish_1)]);
+	/* A two-part name by combining one of names_{1,2} + names_3.
+	 * Why aren't names_{1,2} just one table? See above. */
+	uint sel = SeedChance(2, lengthof(names_1) + lengthof(names_2), seed);
+	if (sel >= lengthof(names_1)) {
+		buf->append (names_2 [sel - lengthof(names_1)]);
 	} else {
-		buf->append (_name_finnish_1[sel]);
+		buf->append (names_1[sel]);
 	}
 
-	buf->append (choose_str (_name_finnish_3, seed, 10));
+	buf->append (choose_str (names_3, seed, 10));
 }
 
 
@@ -1195,7 +1225,7 @@ static const TownNameGeneratorParams _town_name_generators[] = {
 	{  0, MakeSillyTownName},
 	{  0, MakeSwedishTownName},
 	{  0, MakeDutchTownName},
-	{  8, MakeFinnishTownName}, // _name_finnish_1
+	{  8, MakeFinnishTownName}, // names_1
 	{  0, MakePolishTownName},
 	{  0, MakeSlovakTownName},
 	{  0, MakeNorwegianTownName},
@@ -1223,7 +1253,7 @@ void GenerateTownNameString (stringb *buf, size_t lang, uint32 seed)
 
 	/* Some generators need at least 9 bytes in buffer.  English generators need 5 for
 	 * string replacing, others use constructions like strlen(buf)-3 and so on.
-	 * Finnish generator needs to fit all strings from _name_finnish_1.
+	 * Finnish generator needs to fit all strings from names_1.
 	 * Czech generator needs to fit almost whole town name...
 	 * These would break. Using another temporary buffer results in ~40% slower code,
 	 * so use it only when really needed. */
