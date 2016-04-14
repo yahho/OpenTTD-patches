@@ -758,53 +758,151 @@ static void MakeFinnishTownName (stringb *buf, uint32 seed)
  */
 static void MakePolishTownName (stringb *buf, uint32 seed)
 {
+	static const char * const names_1_m[] = {
+		"Wielki ", "Ma\xC5\x82y ", "Z\xC5\x82y ", "Dobry ",
+		"Nowy ", "Stary ", "Z\xC5\x82oty ", "Zielony ",
+		"Bia\xC5\x82y ", "Modry ", "D\xC4\x99""bowy ",
+	};
+
+	static const char * const names_1_f[] = {
+		"Wielka ", "Ma\xC5\x82""a ", "Z\xC5\x82""a ", "Dobra ",
+		"Nowa ", "Stara ", "Z\xC5\x82ota ", "Zielona ",
+		"Bia\xC5\x82""a ", "Modra ", "D\xC4\x99""bowa ",
+	};
+
+	static const char * const names_1_n[] = {
+		"Wielkie ", "Ma\xC5\x82""e ", "Z\xC5\x82""e ", "Dobre ",
+		"Nowe ", "Stare ", "Z\xC5\x82ote ", "Zielone ",
+		"Bia\xC5\x82""e ", "Modre ", "D\xC4\x99""bowe ",
+	};
+
+	static const char * const names_2_o[] = {
+		"Frombork", "Gniezno", "Olsztyn", "Toru\xC5\x84",
+		"Bydgoszcz", "Terespol", "Krak\xC3\xB3w", "Pozna\xC5\x84",
+		"Wroc\xC5\x82""aw", "Katowice", "Cieszyn", "Bytom",
+		"Frombork", "Hel", "Konin", "Lublin", "Malbork", "Sopot",
+		"Sosnowiec", "Gda\xC5\x84sk", "Gdynia", "Sieradz",
+		"Sandomierz", "Szczyrk", "Szczytno", "Szczecin", "Zakopane",
+		"Szklarska Por\xC4\x99""ba", "Bochnia", "Golub-Dobrzyn",
+		"Chojnice", "Ostrowiec", "Otwock", "Wolsztyn",
+	};
+
+	static const char * const names_2_m[] = {
+		"Jarocin", "Gogolin", "Tomasz\xC3\xB3w", "Piotrk\xC3\xB3w",
+		"Lidzbark", "Rypin", "Radzymin", "Wo\xC5\x82omin",
+		"Pruszk\xC3\xB3w", "Olsztynek", "Rypin", "Cisek",
+		"Krotoszyn", "Stoczek", "Lubin", "Lubicz", "Milicz", "Targ",
+		"Ostr\xC3\xB3w", "Ozimek", "Puck", "Rzepin", "Siewierz",
+		"Stargard", "Starogard", "Turek", "Tymbark", "Wolsztyn",
+		"Strzepcz", "Strzebielin", "Sochaczew", "Gr\xC4\x99""bocin",
+		"Gniew", "Lubliniec", "Lubasz", "Lutomiersk", "Niemodlin",
+		"Przeworsk", "Ursus", "Tyczyn", "Sztum", "Szczebrzeszyn",
+		"Wolin", "Wrzeszcz", "Zgierz", "Zieleniec", "Drobin",
+		"Garwolin",
+	};
+
+	static const char * const names_2_f[] = {
+		"Szprotawa", "Pogorzelica", "Mot\xC5\x82""awa", "Lubawa",
+		"Nidzica", "Kruszwica", "Bierawa", "Brodnica", "Chojna",
+		"Krzepica", "Ruda", "Rumia", "Tuchola", "Trzebinia", "Ustka",
+		"Warszawa", "Bobowa", "Dukla", "Krynica", "Murowana",
+		"Niemcza", "Zaspa", "Zawoja", "Wola", "Limanowa", "Rabka",
+		"Skawina", "Pilawa",
+	};
+
+	static const char * const names_2_n[] = {
+		"Lipsko", "Pilzno", "Przodkowo", "Strzelno", "Susz",
+		"Jaworzno", "Choszczno", "Mogilno", "Luzino", "Miasto",
+		"Dziadowo", "Kowalewo", "Legionowo", "Miastko", "Zabrze",
+		"Zawiercie", "Kochanowo", "Miechucino", "Mirachowo",
+		"Robakowo", "Kosakowo", "Borne", "Braniewo", "Sulinowo",
+		"Chmielno", "Jastrz\xC4\x99""bie", "Gryfino", "Koronowo",
+		"Lubichowo", "Opoczno",
+	};
+
+	static const char * const names_3_m[] = {
+		" Wybudowanie", " \xC5\x9Awi\xC4\x99tokrzyski",
+		" G\xC3\xB3rski", " Morski", " Zdr\xC3\xB3j", " Wody",
+		" Bajoro", " Kraje\xC5\x84ski", " \xC5\x9Al\xC4\x85ski",
+		" Mazowiecki", " Pomorski", " Wielki", " Maly",
+		" Warmi\xC5\x84ski", " Mazurski", " Mniejszy",
+		" Wi\xC4\x99kszy", " G\xC3\xB3rny", " Dolny", " Wielki",
+		" Stary", " Nowy", " Wielkopolski", " Wzg\xC3\xB3rze",
+		" Mosty", " Kujawski", " Ma\xC5\x82opolski", " Podlaski",
+		" Lesny",
+	};
+
+	static const char * const names_3_f[] = {
+		" Wybudowanie", " \xC5\x9Awi\xC4\x99tokrzyska",
+		" G\xC3\xB3rska", " Morska", " Zdr\xC3\xB3j", " Woda",
+		" Bajoro", " Kraje\xC5\x84ska", " \xC5\x9Al\xC4\x85ska",
+		" Mazowiecka", " Pomorska", " Wielka", " Ma\xC5\x82""a",
+		" Warmi\xC5\x84ska", " Mazurska", " Mniejsza",
+		" Wi\xC4\x99ksza", " G\xC3\xB3rna", " Dolna", " Wielka",
+		" Stara", " Nowa", " Wielkopolska", " Wzg\xC3\xB3rza",
+		" Mosty", " Kujawska", " Malopolska", " Podlaska",
+		" Le\xC5\x9Bna",
+	};
+
+	static const char * const names_3_n[] = {
+		" Wybudowanie", " \xC5\x9Awietokrzyskie",
+		" G\xC3\xB3rskie", " Morskie", " Zdr\xC3\xB3j", " Wody",
+		" Bajoro", " Kraje\xC5\x84skie", " \xC5\x9Al\xC4\x85skie",
+		" Mazowieckie", " Pomorskie", " Wielkie", " Ma\xC5\x82""e",
+		" Warmi\xC5\x84skie ", " Mazurskie ", " Mniejsze",
+		" Wi\xC4\x99ksze", " G\xC3\xB3rne", " Dolne", " Wielkie",
+		" Stare", " Nowe", " Wielkopolskie", " Wzg\xC3\xB3rze",
+		" Mosty", " Kujawskie", " Ma\xC5\x82opolskie", " Podlaskie",
+		" Le\xC5\x9Bne",
+	};
+
 	/* optional first segment */
 	uint i = SeedChance(0,
-			lengthof(_name_polish_2_o) + lengthof(_name_polish_2_m) +
-			lengthof(_name_polish_2_f) + lengthof(_name_polish_2_n),
+			lengthof(names_2_o) + lengthof(names_2_m) +
+			lengthof(names_2_f) + lengthof(names_2_n),
 			seed);
 	uint j = SeedChance(2, 20, seed);
 
 
-	if (i < lengthof(_name_polish_2_o)) {
-		buf->append (choose_str (_name_polish_2_o, seed, 3));
+	if (i < lengthof(names_2_o)) {
+		buf->append (choose_str (names_2_o, seed, 3));
 		return;
 	}
 
-	if (i < lengthof(_name_polish_2_m) + lengthof(_name_polish_2_o)) {
+	if (i < lengthof(names_2_m) + lengthof(names_2_o)) {
 		if (j < 4) {
-			buf->append (choose_str (_name_polish_1_m, seed, 5));
+			buf->append (choose_str (names_1_m, seed, 5));
 		}
 
-		buf->append (choose_str (_name_polish_2_m, seed, 7));
+		buf->append (choose_str (names_2_m, seed, 7));
 
 		if (j >= 4 && j < 16) {
-			buf->append (choose_str (_name_polish_3_m, seed, 10));
+			buf->append (choose_str (names_3_m, seed, 10));
 		}
 	}
 
-	if (i < lengthof(_name_polish_2_f) + lengthof(_name_polish_2_m) + lengthof(_name_polish_2_o)) {
+	if (i < lengthof(names_2_f) + lengthof(names_2_m) + lengthof(names_2_o)) {
 		if (j < 4) {
-			buf->append (choose_str (_name_polish_1_f, seed, 5));
+			buf->append (choose_str (names_1_f, seed, 5));
 		}
 
-		buf->append (choose_str (_name_polish_2_f, seed, 7));
+		buf->append (choose_str (names_2_f, seed, 7));
 
 		if (j >= 4 && j < 16) {
-			buf->append (choose_str (_name_polish_3_f, seed, 10));
+			buf->append (choose_str (names_3_f, seed, 10));
 		}
 
 		return;
 	}
 
 	if (j < 4) {
-		buf->append (choose_str (_name_polish_1_n, seed, 5));
+		buf->append (choose_str (names_1_n, seed, 5));
 	}
 
-	buf->append (choose_str (_name_polish_2_n, seed, 7));
+	buf->append (choose_str (names_2_n, seed, 7));
 
 	if (j >= 4 && j < 16) {
-		buf->append (choose_str (_name_polish_3_n, seed, 10));
+		buf->append (choose_str (names_3_n, seed, 10));
 	}
 }
 
