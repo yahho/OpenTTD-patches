@@ -623,18 +623,55 @@ static void MakeSwedishTownName (stringb *buf, uint32 seed)
  */
 static void MakeDutchTownName (stringb *buf, uint32 seed)
 {
+	static const char * const names_1[] = {
+		"Nieuw ", "Oud ",  "Groot ", "Zuid ",
+		"Noord ", "Oost ", "West ",  "Klein ",
+	};
+
+	static const char * const names_2[] = {
+		"Hoog", "Laag", "Zuider", "Zuid", "Ooster", "Oost", "Wester",
+		"West", "Hoofd", "Midden", "Eind", "Amster", "Amstel", "Dord",
+		"Rotter", "Haar", "Til", "Enk", "Dok", "Veen", "Leidsch",
+		"Lely", "En", "Kaats", "U", "Maas", "Mar", "Bla", "Al", "Alk",
+		"Eer", "Drie", "Ter", "Groes", "Goes", "Soest", "Coe", "Uit",
+		"Zwaag", "Hellen", "Slie", "IJ", "Grubben", "Groen", "Lek",
+		"Ridder", "Schie", "Olde", "Roose", "Haar", "Til", "Loos",
+		"Hil",
+	};
+
+	static const char * const names_3[] = {
+		"Drog", "Nat", "Valk", "Bob", "Dedem", "Kollum", "Best",
+		"Hoend", "Leeuw", "Graaf", "Uithuis", "Purm", "Hard", "Hell",
+		"Werk", "Spijk", "Vink", "Wams", "Heerhug", "Koning",
+	};
+
+	static const char * const names_4[] = {
+		"e", "er", "el", "en", "o", "s",
+	};
+
+	static const char * const names_5[] = {
+		"stad", "vorst", "dorp", "dam", "beek", "doorn", "zijl",
+		"zijlen", "lo", "muiden", "meden", "vliet", "nisse", "daal",
+		"vorden", "vaart", "mond", "zaal", "water", "duinen", "heuvel",
+		"geest", "kerk", "meer", "maar", "hoorn", "rade", "wijk",
+		"berg", "heim", "sum", "richt", "burg", "recht", "drecht",
+		"trecht", "tricht", "dricht", "lum", "rum", "halen", "oever",
+		"wolde", "veen", "hoven", "gast", "kum", "hage", "dijk",
+		"zwaag", "pomp", "huizen", "bergen", "schede", "mere", "end",
+	};
+
 	/* optional first segment */
-	append_opt (buf, _name_dutch_1, seed, 0, 50);
+	append_opt (buf, names_1, seed, 0, 50);
 
 	/* mandatory middle segments including option of hardcoded name */
 	if (SeedChance(6, 9, seed) > 4) {
-		buf->append (choose_str (_name_dutch_2, seed,  9));
+		buf->append (choose_str (names_2, seed,  9));
 	} else {
-		buf->append (choose_str (_name_dutch_3, seed,  9));
-		buf->append (choose_str (_name_dutch_4, seed, 12));
+		buf->append (choose_str (names_3, seed,  9));
+		buf->append (choose_str (names_4, seed, 12));
 	}
 
-	buf->append (choose_str (_name_dutch_5, seed, 15));
+	buf->append (choose_str (names_5, seed, 15));
 }
 
 
