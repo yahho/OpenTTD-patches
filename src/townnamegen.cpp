@@ -1746,37 +1746,109 @@ static void MakeTurkishTownName (stringb *buf, uint32 seed)
  */
 static void MakeItalianTownName (stringb *buf, uint32 seed)
 {
+	static const char * const names_real[] = {
+		"Roma", "Milano", "Napoli", "Torino", "Venezia", "Firenze",
+		"Palermo", "Genova", "Parma", "Bologna", "Bari", "Cagliari",
+		"Sassari", "Pisa", "Aosta", "Brescia", "Verona", "Bolzano",
+		"Padova", "Udine", "Trieste", "Livorno", "Ancona", "Perugia",
+		"Pescara", "L'Aquila", "Campobasso", "Potenza", "Cosenza",
+		"Reggio Calabria", "Catania", "Caltanisetta", "Agrigento",
+		"La Spezia", "Modena", "Vicenza", "Mantova", "Cremona",
+		"Piacenza", "Reggio Emilia", "Foggia", "Benevento", "Salerno",
+		"Catanzaro", "Lecce", "Como", "Lecco", "Sondrio", "Trento",
+		"Desenzano", "Cuneo", "Asti", "Lodi", "Novara", "Biella",
+		"Vercelli", "Rieti", "Nuoro", "Oristano", "Matera", "Taranto",
+		"Varese", "Bergamo", "Pavia", "Caserta", "Frosinone",
+		"Latina", "Enna", "Ragusa", "Siracusa", "Pordenone",
+		"Imperia", "Verbania", "Alessandria", "Messina", "Siena",
+		"Arezzo", "Grosseto",
+	};
+
+	static const char * const names_pref[] = {
+		"Alpe ", "Borgo ", "Cascina ", "Castel ", "Fonte ", "Forte ",
+		"Malga ", "Pieve ", "Poggio ", "Rocca ", "Villa ", "Villar ",
+	};
+
+	static const char * const names_1m[] = {
+		"Bel", "Borgo", "Bosco", "Campo", "Capo", "Casal", "Castel",
+		"Colle", "Fiume", "Fonte", "Lago", "Mezzo", "Monte", "Mon",
+		"Orto", "Passo", "Prato", "Poggio", "Ponte", "Pozzo", "Sasso",
+		"Tra", "Tre", "Ver", "Vico",
+	};
+
+	static const char * const names_1f[] = {
+		"Acqua", "Bra", "Cala", "Casa", "Chiesa", "Citta", "Civita",
+		"Corte", "Costa", "Croce", "Fontana", "Grotta", "Guardia",
+		"Mezza", "Palma", "Pietra", "Ripa", "Rocca", "Serra", "Torre",
+		"Val", "Valle", "Villa",
+	};
+
+	static const char * const names_2[] = {
+		"bell", "bianc", "cald", "chiar", "cort", "ferrat", "fier",
+		"fredd", "gioios", "grec", "guzz", "lung", "long", "migli",
+		"negr", "ner", "nov", "nuov", "ross", "rotond", "scur",
+		"secc", "sett", "vecchi", "ventos", "vers", "viv",
+	};
+
+	static const char * const names_2i[] = {
+		"", "breve", "brevi", "chiari", "ferro", "fieschi", "fiore",
+		"fonte", "forte", "gate", "leone", "maggiore", "minore",
+		"mole", "monte", "poli", "scuri", "terra", "te", "torrione",
+		"vento", "verde", "versiere",
+	};
+
+
+	static const char * const names_3[] = {
+		" Marittimo", " Marittima", " del Capo", " del Monte",
+		" di Sopra", " di Sotto", " sui Monti", " dei Marmi",
+		" dei Sassi", " delle Fonti", " sui Prati", " a Mare",
+		" Superiore", " Inferiore", " Terme", " Alta", " Bassa",
+		" Brianza", " Vesuviano", " Scrivia", " Ticino",
+	};
+
+	static const char * const names_river1[] = {
+		" del", " sul", " al", " nel",
+	};
+
+	static const char * const names_river2[] = {
+		"l'Adda", "l'Adige", "le Alpi", "l'Arno", " Bormida",
+		" Brenta", "la Dora Baltea", " Lambro", " Mincio",
+		" Naviglio", "l'Oglio", "l'Olona", "l'Ombrone", " Panaro",
+		" Piave", " Po", " Reno", " Scrivia", " Secchia", " Serio",
+		" Tagliamento", " Tanaro", " Taro", " Ticino", " Tevere",
+	};
+
 	if (SeedModChance(0, 6, seed) == 0) { // real city names
-		buf->append (choose_str_mod (_name_italian_real, seed, 4));
+		buf->append (choose_str_mod (names_real, seed, 4));
 		return;
 	}
 
 	static const char mascul_femin_italian[2] = { 'o', 'a' };
 
 	if (SeedModChance(0, 8, seed) == 0) { // prefix
-		buf->append (choose_str_mod (_name_italian_pref, seed, 11));
+		buf->append (choose_str_mod (names_pref, seed, 11));
 	}
 
 	uint i = SeedChance(0, 2, seed);
 	if (i == 0) { // masculine form
-		buf->append (choose_str_mod (_name_italian_1m, seed, 4));
+		buf->append (choose_str_mod (names_1m, seed, 4));
 	} else { // feminine form
-		buf->append (choose_str_mod (_name_italian_1f, seed, 4));
+		buf->append (choose_str_mod (names_1f, seed, 4));
 	}
 
 	if (SeedModChance(3, 3, seed) == 0) {
-		buf->append (choose_str_mod (_name_italian_2, seed, 11));
+		buf->append (choose_str_mod (names_2, seed, 11));
 		buf->append (mascul_femin_italian[i]);
 	} else {
-		buf->append (choose_str_mod (_name_italian_2i, seed, 16));
+		buf->append (choose_str_mod (names_2i, seed, 16));
 	}
 
 	if (SeedModChance(15, 4, seed) == 0) {
 		if (SeedModChance(5, 2, seed) == 0) { // generic suffix
-			buf->append (choose_str_mod (_name_italian_3, seed, 4));
+			buf->append (choose_str_mod (names_3, seed, 4));
 		} else { // river name suffix
-			buf->append (choose_str_mod (_name_italian_river1, seed,  4));
-			buf->append (choose_str_mod (_name_italian_river2, seed, 16));
+			buf->append (choose_str_mod (names_river1, seed,  4));
+			buf->append (choose_str_mod (names_river2, seed, 16));
 		}
 	}
 }
