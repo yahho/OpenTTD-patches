@@ -1364,7 +1364,34 @@ static void MakeCzechTownName (stringb *buf, uint32 seed)
  */
 static void MakeRomanianTownName (stringb *buf, uint32 seed)
 {
-	buf->append (choose_str (_name_romanian_real, seed, 0));
+	static const char * const names_real[] = {
+		"Adjud", "Alba Iulia", "Alexandria", "Babadag", "Bac\xC3\xA3u",
+		"Baia Mare", "B\xC3\xA3ile Herculane", "B\xC3\xA3ilesti",
+		"B\xC3\xA2rlad", "Bicaz", "Bistrita", "Blaj", "Borsec",
+		"Botosani", "Br\xC3\xA3ila", "Brasov", "Bucuresti", "Buftea",
+		"Buz\xC3\xA3u", "C\xC3\xA3l\xC3\xA3rasi", "Caransebes",
+		"Cernavod\xC3\xA3", "Cluj-Napoca", "Constanta", "Covasna",
+		"Craiova", "Dej", "Deva", "Dorohoi", "Dr.-Tr. Severin",
+		"Dr\xC3\xA3g\xC3\xA3sani", "F\xC3\xA3g\xC3\xA3ras",
+		"F\xC3\xA3lticeni", "Fetesti", "Focsani", "Galati",
+		"Gheorgheni", "Giurgiu", "H\xC3\xA2rsova", "Hunedoara",
+		"Husi", "Iasi", "Isaccea", "Lugoj", "M\xC3\xA3""cin",
+		"Mangalia", "Medgidia", "Medias", "Miercurea Ciuc", "Mizil",
+		"Motru", "N\xC3\xA3s\xC3\xA3ud", "N\xC3\xA3vodari",
+		"Odobesti", "Oltenita", "Onesti", "Oradea", "Orsova",
+		"Petrosani", "Piatra Neamt", "Pitesti", "Ploiesti", "Predeal",
+		"R\xC3\xA2mnicu V\xC3\xA2lcea", "Reghin", "Resita", "Roman",
+		"Rosiorii de Vede", "Satu Mare", "Sebes",
+		"Sf\xC3\xA2ntu Gheorghe", "Sibiu", "Sighisoara", "Sinaia",
+		"Slatina", "Slobozia", "Sovata", "Suceava", "Sulina",
+		"T\xC3\xA3nd\xC3\xA3rei", "T\xC3\xA2rgoviste",
+		"T\xC3\xA2rgu Jiu", "T\xC3\xA2rgu Mures", "Tecuci",
+		"Timisoara", "Tulcea", "Turda", "Turnu M\xC3\xA3gurele",
+		"Urziceni", "Vaslui", "Vatra Dornei", "Victoria", "Videle",
+		"Zal\xC3\xA3u",
+	};
+
+	buf->append (choose_str (names_real, seed, 0));
 }
 
 
