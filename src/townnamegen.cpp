@@ -907,6 +907,66 @@ static void MakePolishTownName (stringb *buf, uint32 seed)
 }
 
 
+/* The advanced hyperintelligent Czech town names generator!
+ * The tables and MakeCzechTownName() is (c) Petr Baudis 2005 (GPL'd)
+ * Feel free to ask me about anything unclear or if you need help
+ * with cloning this for your own language. */
+
+/* Sing., pl. */
+enum CzechGender {
+	CZG_SMASC,
+	CZG_SFEM,
+	CZG_SNEUT,
+	CZG_PMASC,
+	CZG_PFEM,
+	CZG_PNEUT,
+	/* Special for substantive stems - the ending chooses the gender. */
+	CZG_FREE,
+	/* Like CZG_FREE, but disallow CZG_SNEUT. */
+	CZG_NFREE
+};
+
+enum CzechPattern {
+	CZP_JARNI,
+	CZP_MLADY,
+	CZP_PRIVL
+};
+
+/* This way the substantive can choose only some adjectives/endings:
+ * At least one of these flags must be satisfied: */
+enum CzechAllow {
+	CZA_SHORT = 1,
+	CZA_MIDDLE = 2,
+	CZA_LONG = 4,
+	CZA_ALL = ~0
+};
+
+DECLARE_ENUM_AS_BIT_SET(CzechAllow)
+
+/* All these flags must be satisfied (in the stem->others direction): */
+enum CzechChoose {
+	CZC_NONE = 0, // No requirements.
+	CZC_COLOR = 1,
+	CZC_POSTFIX = 2, // Matched if postfix was inserted.
+	CZC_NOPOSTFIX = 4, // Matched if no postfix was inserted.
+	CZC_ANY = ~0
+};
+
+DECLARE_ENUM_AS_BIT_SET(CzechChoose)
+
+struct CzechNameSubst {
+	CzechGender gender;
+	CzechAllow allow;
+	CzechChoose choose;
+	const char *name;
+};
+
+struct CzechNameAdj {
+	CzechPattern pattern;
+	CzechChoose choose;
+	const char *name;
+};
+
 /**
  * Generates Czech town name from given seed.
  * @param buf output buffer
@@ -914,9 +974,217 @@ static void MakePolishTownName (stringb *buf, uint32 seed)
  */
 static void MakeCzechTownName (stringb *buf, uint32 seed)
 {
+	static const char * const names_real[] = {
+		"A\xC5\xA1", "Bene\xC5\xA1ov", "Beroun", "Bezdru\xC5\xBEice",
+		"Blansko", "B\xC5\x99""eclav", "Brno", "Brunt\xC3\xA1l",
+		"\xC4\x8C""esk\xC3\xA1 L\xC3\xADpa",
+		"\xC4\x8C""esk\xC3\xA9 Bud\xC4\x9Bjovice",
+		"\xC4\x8C""esk\xC3\xBD Krumlov", "D\xC4\x9B\xC4\x8D\xC3\xADn",
+		"Doma\xC5\xBElice", "Dub\xC3\xAD",
+		"Fr\xC3\xBD""dek-M\xC3\xADstek",
+		"Havl\xC3\xAD\xC4\x8Dk\xC5\xAFv Brod", "Hodon\xC3\xADn",
+		"Hradec Kr\xC3\xA1lov\xC3\xA9", "Humpolec", "Cheb",
+		"Chomutov", "Chrudim", "Jablonec nad Nisou",
+		"Jesen\xC3\xADk", "Ji\xC4\x8D\xC3\xADn", "Jihlava",
+		"Jind\xC5\x99ich\xC5\xAFv Hradec", "Karlovy Vary",
+		"Karvin\xC3\xA1", "Kladno", "Klatovy", "Kol\xC3\xADn",
+		"Kosmonosy", "Krom\xC4\x9B\xC5\x99\xC3\xAD\xC5\xBE",
+		"Kutn\xC3\xA1 Hora", "Liberec", "Litom\xC4\x9B\xC5\x99ice",
+		"Louny", "Man\xC4\x9Bt\xC3\xADn", "M\xC4\x9Bln\xC3\xADk",
+		"Mlad\xC3\xA1 Boleslav", "Most", "N\xC3\xA1""chod",
+		"Nov\xC3\xBD Ji\xC4\x8D\xC3\xADn", "Nymburk", "Olomouc",
+		"Opava", "Or\xC3\xA1\xC4\x8Dov", "Ostrava", "Pardubice",
+		"Pelh\xC5\x99imov", "Pol\xC5\xBEice", "P\xC3\xADsek",
+		"Plze\xC5\x88", "Praha", "Prachatice", "P\xC5\x99""erov",
+		"P\xC5\x99\xC3\xAD""bram", "Prost\xC4\x9Bjov",
+		"Rakovn\xC3\xADk", "Rokycany", "Rudn\xC3\xA1",
+		"Rychnov nad Kn\xC4\x9B\xC5\xBEnou", "Semily", "Sokolov",
+		"Strakonice", "St\xC5\x99""edokluky", "\xC5\xA0umperk",
+		"Svitavy", "T\xC3\xA1""bor", "Tachov", "Teplice",
+		"T\xC5\x99""eb\xC3\xAD\xC4\x8D", "Trutnov",
+		"Uhersk\xC3\xA9 Hradi\xC5\xA1t\xC4\x9B",
+		"\xC3\x9Ast\xC3\xAD nad Labem",
+		"\xC3\x9Ast\xC3\xAD nad Orlic\xC3\xAD",
+		"Vset\xC3\xADn", "Vy\xC5\xA1kov",
+		"\xC5\xBD\xC4\x8F\xC3\xA1r nad S\xC3\xA1zavou",
+		"Zl\xC3\xADn", "Znojmo",
+	};
+
+	/* [CzechGender][CzechPattern] - replaces the last character of the adjective
+	 * by this.
+	 * XXX: [CZG_SMASC][CZP_PRIVL] needs special handling: -ovX -> -uv. */
+	static const char * const names_patmod[][3] = {
+		/* CZG_SMASC */ { "\xC3\xAD", "\xC3\xBD", "X" },
+		/* CZG_SFEM  */ { "\xC3\xAD", "\xC3\xA1", "a" },
+		/* CZG_SNEUT */ { "\xC3\xAD", "\xC3\xA9", "o" },
+		/* CZG_PMASC */ { "\xC3\xAD", "\xC3\xA9", "y" },
+		/* CZG_PFEM  */ { "\xC3\xAD", "\xC3\xA9", "y" },
+		/* CZG_PNEUT */ { "\xC3\xAD", "\xC3\xA1", "a" }
+	};
+
+	/* Some of items which should be common are doubled. */
+	static const CzechNameAdj names_adj[] = {
+		{ CZP_JARNI, CZC_ANY,   "Horn\xC3\xAD" },
+		{ CZP_JARNI, CZC_ANY,   "Horn\xC3\xAD" },
+		{ CZP_JARNI, CZC_ANY,   "Doln\xC3\xAD" },
+		{ CZP_JARNI, CZC_ANY,   "Doln\xC3\xAD" },
+		{ CZP_JARNI, CZC_ANY,   "P\xC5\x99""edn\xC3\xAD" },
+		{ CZP_JARNI, CZC_ANY,   "Zadn\xC3\xAD" },
+		{ CZP_JARNI, CZC_ANY,   "Kosteln\xC3\xAD" },
+		{ CZP_JARNI, CZC_ANY,   "Havran\xC3\xAD" },
+		{ CZP_JARNI, CZC_ANY,   "\xC5\x98\xC3\xAD\xC4\x8Dn\xC3\xAD" },
+		{ CZP_JARNI, CZC_ANY,   "Jezern\xC3\xAD" },
+		{ CZP_MLADY, CZC_ANY,   "Velk\xC3\xBD" },
+		{ CZP_MLADY, CZC_ANY,   "Velk\xC3\xBD" },
+		{ CZP_MLADY, CZC_ANY,   "Mal\xC3\xBD" },
+		{ CZP_MLADY, CZC_ANY,   "Mal\xC3\xBD" },
+		{ CZP_MLADY, CZC_ANY,   "Vysok\xC3\xBD" },
+		{ CZP_MLADY, CZC_ANY,   "\xC4\x8C""esk\xC3\xBD" },
+		{ CZP_MLADY, CZC_ANY,   "Moravsk\xC3\xBD" },
+		{ CZP_MLADY, CZC_ANY,   "Slov\xC3\xA1""ck\xC3\xBD" },
+		{ CZP_MLADY, CZC_ANY,   "Slezsk\xC3\xBD" },
+		{ CZP_MLADY, CZC_ANY,   "Uhersk\xC3\xBD" },
+		{ CZP_MLADY, CZC_ANY,   "Star\xC3\xBD" },
+		{ CZP_MLADY, CZC_ANY,   "Star\xC3\xBD" },
+		{ CZP_MLADY, CZC_ANY,   "Nov\xC3\xBD" },
+		{ CZP_MLADY, CZC_ANY,   "Nov\xC3\xBD" },
+		{ CZP_MLADY, CZC_ANY,   "Mlad\xC3\xBD" },
+		{ CZP_MLADY, CZC_ANY,   "Kr\xC3\xA1lovsk\xC3\xBD" },
+		{ CZP_MLADY, CZC_ANY,   "Kamenn\xC3\xBD" },
+		{ CZP_MLADY, CZC_ANY,   "Cihlov\xC3\xBD" },
+		{ CZP_MLADY, CZC_ANY,   "Divn\xC3\xBD" },
+		{ CZP_MLADY, CZC_COLOR, "\xC4\x8C""erven\xC3\xA1" },
+		{ CZP_MLADY, CZC_COLOR, "\xC4\x8C""erven\xC3\xA1" },
+		{ CZP_MLADY, CZC_COLOR, "\xC4\x8C""erven\xC3\xA1" },
+		{ CZP_MLADY, CZC_COLOR, "Zelen\xC3\xA1" },
+		{ CZP_MLADY, CZC_COLOR, "\xC5\xBDlut\xC3\xA1" },
+		{ CZP_MLADY, CZC_COLOR, "Siv\xC3\xA1" },
+		{ CZP_MLADY, CZC_COLOR, "\xC5\xA0""ed\xC3\xA1" },
+		{ CZP_MLADY, CZC_COLOR, "B\xC3\xADl\xC3\xA1" },
+		{ CZP_MLADY, CZC_COLOR, "B\xC3\xADl\xC3\xA1" },
+		{ CZP_MLADY, CZC_COLOR, "Modr\xC3\xA1" },
+		{ CZP_MLADY, CZC_COLOR, "R\xC5\xAF\xC5\xBEov\xC3\xA1" },
+		{ CZP_MLADY, CZC_COLOR, "\xC4\x8C""ern\xC3\xA1" },
+		{ CZP_PRIVL, CZC_ANY,   "Kr\xC3\xA1lova" },
+		{ CZP_PRIVL, CZC_ANY,   "Janova" },
+		{ CZP_PRIVL, CZC_ANY,   "Karlova" },
+		{ CZP_PRIVL, CZC_ANY,   "Kry\xC5\xA1tofova" },
+		{ CZP_PRIVL, CZC_ANY,   "Ji\xC5\x99\xC3\xADkova" },
+		{ CZP_PRIVL, CZC_ANY,   "Petrova" },
+		{ CZP_PRIVL, CZC_ANY,   "Sudovo" },
+	};
+
+	/* Considered a stem for choose/allow matching purposes. */
+	static const CzechNameSubst names_subst_full[] = {
+		{ CZG_SMASC, CZA_ALL, CZC_COLOR, "Sedlec" },
+		{ CZG_SMASC, CZA_ALL, CZC_COLOR, "Brod" },
+		{ CZG_SMASC, CZA_ALL, CZC_COLOR, "Brod" },
+		{ CZG_SMASC, CZA_ALL, CZC_NONE,  "\xC3\x9Aval" },
+		{ CZG_SMASC, CZA_ALL, CZC_COLOR, "\xC5\xBD\xC4\x8F\xC3\xA1r" },
+		{ CZG_SMASC, CZA_ALL, CZC_COLOR, "Smrk" },
+		{ CZG_SFEM,  CZA_ALL, CZC_COLOR, "Hora" },
+		{ CZG_SFEM,  CZA_ALL, CZC_COLOR, "Lhota" },
+		{ CZG_SFEM,  CZA_ALL, CZC_COLOR, "Lhota" },
+		{ CZG_SFEM,  CZA_ALL, CZC_COLOR, "Hlava" },
+		{ CZG_SFEM,  CZA_ALL, CZC_COLOR, "L\xC3\xADpa" },
+		{ CZG_SNEUT, CZA_ALL, CZC_COLOR, "Pole" },
+		{ CZG_SNEUT, CZA_ALL, CZC_COLOR, "\xC3\x9A""dol\xC3\xAD" },
+		{ CZG_PMASC, CZA_ALL, CZC_NONE,  "\xC3\x9Avaly" },
+		{ CZG_PFEM,  CZA_ALL, CZC_COLOR, "Luka" },
+		{ CZG_PNEUT, CZA_ALL, CZC_COLOR, "Pole" },
+	};
+
+	/* TODO: More stems needed. --pasky */
+	static const CzechNameSubst names_subst_stem[] = {
+		{ CZG_SMASC,             CZA_MIDDLE,            CZC_COLOR, "Kostel" },
+		{ CZG_SMASC,             CZA_MIDDLE,            CZC_COLOR, "Kl\xC3\xA1\xC5\xA1ter" },
+		{ CZG_SMASC, CZA_SHORT,                         CZC_COLOR, "Lhot" },
+		{ CZG_SFEM,  CZA_SHORT,                         CZC_COLOR, "Lhot" },
+		{ CZG_SFEM,  CZA_SHORT,                         CZC_COLOR, "Hur" },
+		{ CZG_FREE,              CZA_MIDDLE | CZA_LONG, CZC_NONE,  "Sedl" },
+		{ CZG_FREE,  CZA_SHORT | CZA_MIDDLE | CZA_LONG, CZC_COLOR, "Hrad" },
+		{ CZG_NFREE,             CZA_MIDDLE,            CZC_NONE,  "Pras" },
+		{ CZG_NFREE,             CZA_MIDDLE,            CZC_NONE,  "Ba\xC5\xBE" },
+		{ CZG_NFREE,             CZA_MIDDLE,            CZC_NONE,  "Tes" },
+		{ CZG_NFREE,             CZA_MIDDLE,            CZC_NONE,  "U\xC5\xBE" },
+		{ CZG_NFREE,             CZA_MIDDLE | CZA_LONG, CZC_POSTFIX, "B\xC5\x99" },
+		{ CZG_NFREE,             CZA_MIDDLE | CZA_LONG, CZC_NONE,  "Vod" },
+		{ CZG_NFREE,             CZA_MIDDLE | CZA_LONG, CZC_NONE,  "Jan" },
+		{ CZG_NFREE,                          CZA_LONG, CZC_NONE,  "Prach" },
+		{ CZG_NFREE,                          CZA_LONG, CZC_NONE,  "Kunr" },
+		{ CZG_NFREE,                          CZA_LONG, CZC_NONE,  "Strak" },
+		{ CZG_NFREE,                          CZA_LONG, CZC_NONE,  "V\xC3\xADt" },
+		{ CZG_NFREE,                          CZA_LONG, CZC_NONE,  "Vy\xC5\xA1" },
+		{ CZG_NFREE,                          CZA_LONG, CZC_NONE,  "\xC5\xBD""at" },
+		{ CZG_NFREE,                          CZA_LONG, CZC_NONE,  "\xC5\xBD""er" },
+		{ CZG_NFREE,                          CZA_LONG, CZC_NONE,  "St\xC5\x99""ed" },
+		{ CZG_NFREE,                          CZA_LONG, CZC_NONE,  "Harv" },
+		{ CZG_NFREE,                          CZA_LONG, CZC_NONE,  "Pruh" },
+		{ CZG_NFREE,                          CZA_LONG, CZC_NONE,  "Tach" },
+		{ CZG_NFREE,                          CZA_LONG, CZC_NONE,  "P\xC3\xADsn" },
+		{ CZG_NFREE,                          CZA_LONG, CZC_NONE,  "Jin" },
+		{ CZG_NFREE,                          CZA_LONG, CZC_NONE,  "Jes" },
+		{ CZG_NFREE,                          CZA_LONG, CZC_NONE,  "Jar" },
+		{ CZG_NFREE,                          CZA_LONG, CZC_NONE,  "Sok" },
+		{ CZG_NFREE,                          CZA_LONG, CZC_NONE,  "Hod" },
+		{ CZG_NFREE,                          CZA_LONG, CZC_NONE,  "Net" },
+		{ CZG_FREE,                           CZA_LONG, CZC_NONE,  "Pra\xC5\xBE" },
+		{ CZG_FREE,                           CZA_LONG, CZC_NONE,  "Nerat" },
+		{ CZG_FREE,                           CZA_LONG, CZC_NONE,  "Kral" },
+		{ CZG_FREE,                           CZA_LONG, CZC_NONE,  "Hut" },
+		{ CZG_FREE,                           CZA_LONG, CZC_NOPOSTFIX, "Pan" },
+		{ CZG_FREE,  CZA_SHORT | CZA_MIDDLE | CZA_LONG, CZC_NOPOSTFIX, "Odst\xC5\x99""ed" },
+		{ CZG_FREE,  CZA_SHORT | CZA_MIDDLE | CZA_LONG, CZC_COLOR, "Mrat" },
+		{ CZG_FREE,                           CZA_LONG, CZC_COLOR, "Hlav" },
+		{ CZG_FREE,  CZA_SHORT | CZA_MIDDLE,            CZC_NONE,  "M\xC4\x9B\xC5\x99" },
+		{ CZG_FREE,              CZA_MIDDLE | CZA_LONG, CZC_NONE,  "Lip" },
+	};
+
+	/* Optional postfix inserted between stem and ending. */
+	static const char * const names_subst_postfix[] = {
+		"av", "an", "at",
+		"ov", "on", "ot",
+		"ev", "en", "et",
+	};
+
+	/* This array must have the both neutral genders at the end! */
+	static const CzechNameSubst names_subst_ending[] = {
+		{ CZG_SMASC, CZA_SHORT | CZA_MIDDLE,            CZC_ANY, "ec" },
+		{ CZG_SMASC, CZA_SHORT | CZA_MIDDLE,            CZC_ANY, "\xC3\xADn" },
+		{ CZG_SMASC, CZA_SHORT | CZA_MIDDLE | CZA_LONG, CZC_ANY, "ov" },
+		{ CZG_SMASC, CZA_SHORT       |        CZA_LONG, CZC_ANY, "kov" },
+		{ CZG_SMASC,                          CZA_LONG, CZC_POSTFIX, "\xC3\xADn" },
+		{ CZG_SMASC,                          CZA_LONG, CZC_POSTFIX, "n\xC3\xADk" },
+		{ CZG_SMASC,                          CZA_LONG, CZC_ANY, "burk" },
+		{ CZG_SFEM,  CZA_SHORT,                         CZC_ANY, "ka" },
+		{ CZG_SFEM,              CZA_MIDDLE,            CZC_ANY, "inka" },
+		{ CZG_SFEM,              CZA_MIDDLE,            CZC_ANY, "n\xC3\xA1" },
+		{ CZG_SFEM,                           CZA_LONG, CZC_ANY, "ava" },
+		{ CZG_PMASC,                          CZA_LONG, CZC_POSTFIX, "\xC3\xADky" },
+		{ CZG_PMASC,                          CZA_LONG, CZC_ANY, "upy" },
+		{ CZG_PMASC,                          CZA_LONG, CZC_ANY, "olupy" },
+		{ CZG_PFEM,                           CZA_LONG, CZC_ANY, "avy" },
+		{ CZG_PFEM,  CZA_SHORT | CZA_MIDDLE | CZA_LONG, CZC_ANY, "ice" },
+		{ CZG_PFEM,  CZA_SHORT | CZA_MIDDLE | CZA_LONG, CZC_ANY, "i\xC4\x8Dky" },
+		{ CZG_PNEUT, CZA_SHORT | CZA_MIDDLE,            CZC_ANY, "na" },
+		{ CZG_SNEUT, CZA_SHORT | CZA_MIDDLE,            CZC_ANY, "no" },
+		{ CZG_SNEUT,                          CZA_LONG, CZC_ANY, "i\xC5\xA1t\xC4\x9B" },
+	};
+
+	static const char * const names_suffix[] = {
+		"nad Cidlinou", "nad Dyj\xC3\xAD", "nad Jihlavou",
+		"nad Labem", "nad Lesy", "nad Moravou", "nad Nisou",
+		"nad Odrou", "nad Ostravic\xC3\xAD", "nad S\xC3\xA1zavou",
+		"nad Vltavou", "pod Prad\xC4\x9B""dem",
+		"pod Radho\xC5\xA1t\xC4\x9Bm", "pod \xC5\x98\xC3\xADpem",
+		"pod Sn\xC4\x9B\xC5\xBEkou",
+		"pod \xC5\xA0pi\xC4\x8D\xC3\xA1kem", "pod Sedlem",
+		"v \xC4\x8C""ech\xC3\xA1""ch", "na Morav\xC4\x9B",
+	};
+
 	/* 1:3 chance to use a real name. */
 	if (SeedModChance(0, 4, seed) == 0) {
-		buf->append (choose_str_mod (_name_czech_real, seed, 4));
+		buf->append (choose_str_mod (names_real, seed, 4));
 		return;
 	}
 
@@ -937,50 +1205,50 @@ static void MakeCzechTownName (stringb *buf, uint32 seed)
 	CzechChoose choose;
 	CzechAllow allow;
 
-	if (do_prefix) prefix = SeedModChance(5, lengthof(_name_czech_adj) * 12, seed) / 12;
-	if (do_suffix) suffix = SeedModChance(7, lengthof(_name_czech_suffix), seed);
+	if (do_prefix) prefix = SeedModChance(5, lengthof(names_adj) * 12, seed) / 12;
+	if (do_suffix) suffix = SeedModChance(7, lengthof(names_suffix), seed);
 	/* 3:1 chance 3:1 to use dynamic substantive */
 	stem = SeedModChance(9,
-			lengthof(_name_czech_subst_full) + 3 * lengthof(_name_czech_subst_stem),
+			lengthof(names_subst_full) + 3 * lengthof(names_subst_stem),
 			seed);
-	if (stem < lengthof(_name_czech_subst_full)) {
+	if (stem < lengthof(names_subst_full)) {
 		/* That was easy! */
 		dynamic_subst = false;
-		gender = _name_czech_subst_full[stem].gender;
-		choose = _name_czech_subst_full[stem].choose;
-		allow = _name_czech_subst_full[stem].allow;
+		gender = names_subst_full[stem].gender;
+		choose = names_subst_full[stem].choose;
+		allow  = names_subst_full[stem].allow;
 	} else {
-		unsigned int map[lengthof(_name_czech_subst_ending)];
+		unsigned int map[lengthof(names_subst_ending)];
 		int ending_start = -1, ending_stop = -1;
 
 		/* Load the substantive */
 		dynamic_subst = true;
-		stem -= lengthof(_name_czech_subst_full);
-		stem %= lengthof(_name_czech_subst_stem);
-		gender = _name_czech_subst_stem[stem].gender;
-		choose = _name_czech_subst_stem[stem].choose;
-		allow = _name_czech_subst_stem[stem].allow;
+		stem -= lengthof(names_subst_full);
+		stem %= lengthof(names_subst_stem);
+		gender = names_subst_stem[stem].gender;
+		choose = names_subst_stem[stem].choose;
+		allow  = names_subst_stem[stem].allow;
 
 		/* Load the postfix (1:1 chance that a postfix will be inserted) */
-		postfix = SeedModChance(14, lengthof(_name_czech_subst_postfix) * 2, seed);
+		postfix = SeedModChance(14, lengthof(names_subst_postfix) * 2, seed);
 
 		if (choose & CZC_POSTFIX) {
 			/* Always get a real postfix. */
-			postfix %= lengthof(_name_czech_subst_postfix);
+			postfix %= lengthof(names_subst_postfix);
 		}
 		if (choose & CZC_NOPOSTFIX) {
 			/* Always drop a postfix. */
-			postfix += lengthof(_name_czech_subst_postfix);
+			postfix += lengthof(names_subst_postfix);
 		}
-		if (postfix < lengthof(_name_czech_subst_postfix)) {
+		if (postfix < lengthof(names_subst_postfix)) {
 			choose |= CZC_POSTFIX;
 		} else {
 			choose |= CZC_NOPOSTFIX;
 		}
 
 		/* Localize the array segment containing a good gender */
-		for (ending = 0; ending < (int)lengthof(_name_czech_subst_ending); ending++) {
-			const CzechNameSubst *e = &_name_czech_subst_ending[ending];
+		for (ending = 0; ending < (int)lengthof(names_subst_ending); ending++) {
+			const CzechNameSubst *e = &names_subst_ending[ending];
 
 			if (gender == CZG_FREE ||
 					(gender == CZG_NFREE && e->gender != CZG_SNEUT && e->gender != CZG_PNEUT) ||
@@ -1001,7 +1269,7 @@ static void MakeCzechTownName (stringb *buf, uint32 seed)
 		/* Make a sequential map of the items with good mask */
 		size_t i = 0;
 		for (ending = ending_start; ending <= ending_stop; ending++) {
-			const CzechNameSubst *e = &_name_czech_subst_ending[ending];
+			const CzechNameSubst *e = &names_subst_ending[ending];
 
 			if ((e->choose & choose) == choose && (e->allow & allow) != 0) {
 				map[i++] = ending;
@@ -1013,11 +1281,11 @@ static void MakeCzechTownName (stringb *buf, uint32 seed)
 		ending = map[SeedModChance(16, (int)i, seed)];
 		/* Override possible CZG_*FREE; this must be a real gender,
 		 * otherwise we get overflow when modifying the adjectivum. */
-		gender = _name_czech_subst_ending[ending].gender;
+		gender = names_subst_ending[ending].gender;
 		assert(gender != CZG_FREE && gender != CZG_NFREE);
 	}
 
-	if (do_prefix && (_name_czech_adj[prefix].choose & choose) != choose) {
+	if (do_prefix && (names_adj[prefix].choose & choose) != choose) {
 		/* Throw away non-matching prefix. */
 		do_prefix = false;
 	}
@@ -1026,9 +1294,9 @@ static void MakeCzechTownName (stringb *buf, uint32 seed)
 	if (do_prefix) {
 		size_t orig_length = buf->length();
 
-		CzechPattern pattern = _name_czech_adj[prefix].pattern;
+		CzechPattern pattern = names_adj[prefix].pattern;
 
-		buf->append (_name_czech_adj[prefix].name);
+		buf->append (names_adj[prefix].name);
 
 		assert (!buf->empty());
 		size_t end_length = buf->length() - 1;
@@ -1043,17 +1311,17 @@ static void MakeCzechTownName (stringb *buf, uint32 seed)
 			buf->truncate (end_length);
 		} else {
 			assert (end_length >= orig_length);
-			buf->append (_name_czech_patmod[gender][pattern]);
+			buf->append (names_patmod[gender][pattern]);
 		}
 
 		buf->append (' ');
 	}
 
 	if (dynamic_subst) {
-		buf->append (_name_czech_subst_stem[stem].name);
-		if (postfix < lengthof(_name_czech_subst_postfix)) {
-			const char *poststr = _name_czech_subst_postfix[postfix];
-			const char *endstr = _name_czech_subst_ending[ending].name;
+		buf->append (names_subst_stem[stem].name);
+		if (postfix < lengthof(names_subst_postfix)) {
+			const char *poststr = names_subst_postfix[postfix];
+			const char *endstr  = names_subst_ending[ending].name;
 
 			size_t postlen = strlen(poststr);
 			size_t endlen = strlen(endstr);
@@ -1077,14 +1345,14 @@ static void MakeCzechTownName (stringb *buf, uint32 seed)
 				}
 			}
 		}
-		buf->append (_name_czech_subst_ending[ending].name);
+		buf->append (names_subst_ending[ending].name);
 	} else {
-		buf->append (_name_czech_subst_full[stem].name);
+		buf->append (names_subst_full[stem].name);
 	}
 
 	if (do_suffix) {
 		buf->append (' ');
-		buf->append (_name_czech_suffix[suffix]);
+		buf->append (names_suffix[suffix]);
 	}
 }
 
@@ -1330,7 +1598,7 @@ static const TownNameGeneratorParams _town_name_generators[] = {
 	{  0, MakeHungarianTownName},
 	{  0, MakeAustrianTownName},
 	{  0, MakeRomanianTownName},
-	{ 28, MakeCzechTownName}, // _name_czech_adj + _name_czech_patmod + 1 + _name_czech_subst_stem + _name_czech_subst_postfix
+	{ 28, MakeCzechTownName}, // names_adj + names_patmod + 1 + names_subst_stem + names_subst_postfix
 	{  0, MakeSwissTownName},
 	{  0, MakeDanishTownName},
 	{  0, MakeTurkishTownName},
