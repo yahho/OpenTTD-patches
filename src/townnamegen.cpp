@@ -1673,28 +1673,67 @@ static void MakeDanishTownName (stringb *buf, uint32 seed)
  */
 static void MakeTurkishTownName (stringb *buf, uint32 seed)
 {
+	static const char * const names_prefix[] = {
+		"Ak\xC3\xA7""a", "Alt\xC4\xB1n", "Bah\xC3\xA7""e", "Boz",
+		"B\xC3\xBCy\xC3\xBCk", "\xC3\x87""ay", "Do\xC4\x9Fu",
+		"Eski", "G\xC3\xBCzel", "K\xC4\xB1z\xC4\xB1l",
+		"K\xC3\xBC\xC3\xA7\xC3\xBCk", "Orta", "Sar\xC4\xB1",
+		"Sultan", "Ulu", "Yeni",
+	};
+
+	static const char * const names_middle[] = {
+		"aga\xC3\xA7", "ayva", "\xC3\xA7""am", "elma", "kurt",
+		"pazar", "yal\xC4\xB1",
+	};
+
+	static const char * const names_suffix[] = {
+		"dere", "hisar", "kale", "kaya", "kent", "k\xC3\xB6y",
+		"ova", "\xC3\xB6z\xC3\xBC", "\xC3\xB6ren", "pazar",
+		"saray", "tepe", "yer", "yurt",
+	};
+
+	static const char * const names_real[] = {
+		"Adana", "Ad\xC4\xB1yaman", "Afyon", "A\xC4\x9Fr\xC4\xB1",
+		"Amasya", "Antalya", "Artvin", "Bal\xC4\xB1kesir",
+		"Bilecik", "Bitlis", "Bolu", "Burdur", "Bursa",
+		"\xC3\x87""anakkale", "\xC3\x87""ank\xC4\xB1r\xC4\xB1",
+		"Denizli", "Diyarbak\xC4\xB1r", "Edirne",
+		"Elaz\xC4\xB1\xC4\x9F", "Erzurum", "Eskisehir", "Giresun",
+		"G\xC3\xBCm\xC3\xBC\xC5\x9Fhane", "Hatay", "Isparta",
+		"\xC4\xB0\xC3\xA7""el", "\xC4\xB0stanbul", "\xC4\xB0zmir",
+		"Kars", "Kastamonu", "Kayseri", "Kirklareli", "Kocaeli",
+		"Konya", "K\xC3\xBCtahya", "Malatya", "Manisa",
+		"Kahramanmara\xC5\x9F", "Mardin", "Mu\xC4\x9Fla",
+		"Mu\xC5\x9F", "Nev\xC5\x9F""ehir", "Ni\xC4\x9F""de", "Rize",
+		"Sakarya", "Samsun", "Siirt", "Sinop", "Sivas", "Trabzon",
+		"\xC5\x9E""anl\xC4\xB1urfa", "Van", "Yozgat", "Zonguldak",
+		"Aksaray", "Bayburt", "Karaman", "\xC5\x9E\xC4\xB1rnak",
+		"Bart\xC4\xB1n", "Ardahan", "I\xC4\x9F""d\xC4\xB1r",
+		"Yalova", "Karab\xC3\xBCk", "Osmaniye", "D\xC3\xBCzce",
+	};
+
 	uint i = SeedModChance(0, 5, seed);
 
 	switch (i) {
 		case 0:
-			buf->append (choose_str_mod (_name_turkish_prefix, seed, 2));
+			buf->append (choose_str_mod (names_prefix, seed, 2));
 
 			/* middle segment */
-			buf->append (choose_str_mod (_name_turkish_middle, seed, 4));
+			buf->append (choose_str_mod (names_middle, seed, 4));
 
 			/* optional suffix */
 			if (SeedModChance(0, 7, seed) == 0) {
-				buf->append (choose_str_mod (_name_turkish_suffix, seed, 10));
+				buf->append (choose_str_mod (names_suffix, seed, 10));
 			}
 			break;
 
 		case 1: case 2:
-			buf->append (choose_str_mod (_name_turkish_prefix, seed, 2));
-			buf->append (choose_str_mod (_name_turkish_suffix, seed, 4));
+			buf->append (choose_str_mod (names_prefix, seed, 2));
+			buf->append (choose_str_mod (names_suffix, seed, 4));
 			break;
 
 		default:
-			buf->append (choose_str_mod (_name_turkish_real, seed, 4));
+			buf->append (choose_str_mod (names_real, seed, 4));
 			break;
 	}
 }
