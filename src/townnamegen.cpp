@@ -1402,7 +1402,30 @@ static void MakeRomanianTownName (stringb *buf, uint32 seed)
  */
 static void MakeSlovakTownName (stringb *buf, uint32 seed)
 {
-	buf->append (choose_str (_name_slovak_real, seed, 0));
+	static const char * const names_real[] = {
+		"Bratislava", "Banovce nad Bebravou", "Banska Bystrica",
+		"Banska Stiavnica", "Bardejov", "Brezno",
+		"Brezova pod Bradlom", "Bytca", "Cadca", "Cierna nad Tisou",
+		"Detva", "Detva", "Dolny Kubin", "Dolny Kubin",
+		"Dunajska Streda", "Gabcikovo", "Galanta", "Gbely", "Gelnica",
+		"Handlova", "Hlohovec", "Holic", "Humenne", "Hurbanovo",
+		"Kezmarok", "Komarno", "Kosice", "Kremnica", "Krompachy",
+		"Kuty", "Leopoldov", "Levoca", "Liptovsky Mikulas",
+		"Lucenec", "Malacky", "Martin", "Medzilaborce", "Michalovce",
+		"Modra", "Myjava", "Namestovo", "Nitra", "Nova Bana",
+		"Nove Mesto nad Vahom", "Nove Zamky", "Partizanske",
+		"Pezinok", "Piestany", "Poltar", "Poprad", "Povazska Bystrica",
+		"Prievidza", "Puchov", "Revuca", "Rimavska Sobota", "Roznava",
+		"Ruzomberok", "Sabinov", "Sala", "Senec", "Senica", "Sered",
+		"Skalica", "Sladkovicovo", "Smolenice", "Snina",
+		"Stara Lubovna", "Stara Tura", "Strazske", "Stropkov",
+		"Stupava", "Sturovo", "Sulekovo", "Topolcany", "Trebisov",
+		"Trencin", "Trnava", "Turcianske Teplice", "Tvrdosin",
+		"Vrable", "Vranov nad Toplou", "Zahorska Bystrica", "Zdiar",
+		"Ziar nad Hronom", "Zilina", "Zlate Moravce", "Zvolen",
+	};
+
+	buf->append (choose_str (names_real, seed, 0));
 }
 
 
