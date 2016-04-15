@@ -1626,12 +1626,43 @@ static void MakeSwissTownName (stringb *buf, uint32 seed)
  */
 static void MakeDanishTownName (stringb *buf, uint32 seed)
 {
+	static const char * const names_1[] = {
+		"Gamle ", "Lille ", "Nye ", "Store ", "Kirke ",
+		"N\xC3\xB8rre ", "Vester ", "S\xC3\xB8nder ",
+		"\xC3\x98ster ", "Hvide ", "H\xC3\xB8je ", "Kongens ",
+	};
+
+	static const char * const names_2[] = {
+		"Ager", "Alle", "Aske", "Balle", "Bede", "Birke", "Bjerring",
+		"Bj\xC3\xA6ver", "Blommens", "Blok", "Bolder", "Bred",
+		"Charlotten", "Christians", "Danne", "Diana", "Es", "Fredens",
+		"Frederiks", "Fugle", "F\xC3\xA5re", "Gille", "Gis", "Givs",
+		"Glams", "Glo", "Guld", "Had", "Haralds", "Hassel", "Hede",
+		"Helle", "Hessel", "Hjorts", "Hol", "Horn", "Humle",
+		"H\xC3\xB8j", "H\xC3\xB8r", "Is", "Jyde", "J\xC3\xA6gers",
+		"Karls", "Klov", "Kokke", "Kvist", "Lang", "Lange", "Mari",
+		"Nord", "Ny", "Oks", "Ring", "R\xC3\xB8""de", "Rung",
+		"R\xC3\xB8r", "Rud", "Saks", "Salt", "Skam", "Silke", "Skod",
+		"Sk\xC3\xA6l", "Sk\xC3\xA6r", "Sol", "Svend", "Svine",
+		"Strand", "Stubbe", "Ting", "Tj\xC3\xA6re", "Tore", "Uger",
+		"Ulf", "Val", "Vand", "Vej", "Vor", "V\xC3\xA6r", "\xC3\x98r",
+		"\xC3\x85l",
+	};
+
+	static const char * const names_3[] = {
+		"basse", "borg", "berg", "bro", "by", "havn", "strup",
+		"holm", "hus", "k\xC3\xB8""bing", "lund", "lunde", "sund",
+		"ovre", "h\xC3\xB8j", "dal", "sted", "sten", "l\xC3\xB8se",
+		"r\xC3\xB8""d", "magle", "s\xC3\xB8", "bjerg", "b\xC3\xA6k",
+		"drup", "lev", "bo", "lyst", "feld", "skov",
+	};
+
 	/* optional first segment */
-	append_opt (buf, _name_danish_1, seed, 0, 50);
+	append_opt (buf, names_1, seed, 0, 50);
 
 	/* middle segments removed as this algorithm seems to create much more realistic names */
-	buf->append (choose_str (_name_danish_2, seed,  7));
-	buf->append (choose_str (_name_danish_3, seed, 16));
+	buf->append (choose_str (names_2, seed,  7));
+	buf->append (choose_str (names_3, seed, 16));
 }
 
 
