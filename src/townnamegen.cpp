@@ -1514,24 +1514,67 @@ static void MakeNorwegianTownName (stringb *buf, uint32 seed)
  */
 static void MakeHungarianTownName (stringb *buf, uint32 seed)
 {
+	static const char * const names_1[] = {
+		"Nagy-", "Kis-", "Fels\xC5\x91-", "Als\xC3\xB3-", "\xC3\x9Aj-",
+	};
+
+	static const char * const names_2[] = {
+		"Bodrog", "Dr\xC3\xA1va", "Duna", "Hej\xC5\x91",
+		"Hern\xC3\xA1""d", "R\xC3\xA1""ba", "Saj\xC3\xB3", "Szamos",
+		"Tisza", "Zala", "Balaton", "Fert\xC5\x91", "Bakony",
+		"Cserh\xC3\xA1t", "Bihar", "Hajd\xC3\xBA", "J\xC3\xA1sz",
+		"Kun", "Magyar", "N\xC3\xB3gr\xC3\xA1""d", "Ny\xC3\xADr",
+		"Somogy", "Sz\xC3\xA9kely", "Buda", "Gy\xC5\x91r", "Pest",
+		"Feh\xC3\xA9r", "Cser\xC3\xA9p", "Erd\xC5\x91", "Hegy",
+		"Homok", "Mez\xC5\x91", "Puszta", "S\xC3\xA1r",
+		"Cs\xC3\xA1sz\xC3\xA1r", "Herceg", "Kir\xC3\xA1ly", "Nemes",
+		"P\xC3\xBCsp\xC3\xB6k", "Szent", "Alm\xC3\xA1s",
+		"Szilv\xC3\xA1s", "Agg", "Aranyos", "B\xC3\xA9k\xC3\xA9s",
+		"Egyh\xC3\xA1zas", "Gagy", "Heves", "Kapos",
+		"T\xC3\xA1pi\xC3\xB3", "Torna", "Vas", "V\xC3\xA1mos",
+		"V\xC3\xA1s\xC3\xA1ros",
+	};
+
+	static const char * const names_3[] = {
+		"ap\xC3\xA1ti", "b\xC3\xA1""ba", "bikk", "dob", "fa",
+		"f\xC3\xB6ld", "hegyes", "kak", "kereszt", "k\xC3\xBCrt",
+		"lad\xC3\xA1ny", "m\xC3\xA9rges", "szalonta", "telek",
+		"vas", "v\xC3\xB6lgy",
+	};
+
+	static const char * const names_4[] = {
+		"alja", "egyh\xC3\xA1za", "h\xC3\xA1za",
+		"\xC3\xBAr", "v\xC3\xA1r",
+	};
+
+	static const char * const names_real[] = {
+		"Ajka", "Asz\xC3\xB3""d", "Badacsony", "Baja",
+		"Budapest", "Debrecen", "Eger", "Fony\xC3\xB3""d",
+		"G\xC3\xB6""d\xC3\xB6ll\xC5\x91", "Gy\xC5\x91r", "Gyula",
+		"Karcag", "Kecskem\xC3\xA9t", "Keszthely", "Kisk\xC3\xB6re",
+		"Kocsord", "Kom\xC3\xA1rom", "K\xC5\x91szeg", "Mak\xC3\xB3",
+		"Moh\xC3\xA1""cs", "Miskolc", "\xC3\x93zd", "Paks",
+		"P\xC3\xA1pa", "P\xC3\xA9""cs", "Polg\xC3\xA1r", "Sarkad",
+		"Si\xC3\xB3""fok", "Szeged", "Szentes", "Szolnok", "Tihany",
+		"Tokaj", "V\xC3\xA1""c", "Z\xC3\xA1hony", "Zirc",
+	};
+
 	if (SeedChance(12, 15, seed) < 3) {
-		buf->append (choose_str (_name_hungarian_real, seed, 0));
+		buf->append (choose_str (names_real, seed, 0));
 		return;
 	}
 
 	/* optional first segment */
-	uint i = SeedChance(3, lengthof(_name_hungarian_1) * 3, seed);
-	if (i < lengthof(_name_hungarian_1)) buf->append (_name_hungarian_1[i]);
+	uint i = SeedChance(3, lengthof(names_1) * 3, seed);
+	if (i < lengthof(names_1)) buf->append (names_1[i]);
 
 	/* mandatory middle segments */
-	buf->append (choose_str (_name_hungarian_2, seed, 3));
-	buf->append (choose_str (_name_hungarian_3, seed, 6));
+	buf->append (choose_str (names_2, seed, 3));
+	buf->append (choose_str (names_3, seed, 6));
 
 	/* optional last segment */
-	i = SeedChance(10, lengthof(_name_hungarian_4) * 3, seed);
-	if (i < lengthof(_name_hungarian_4)) {
-		buf->append (_name_hungarian_4[i]);
-	}
+	i = SeedChance(10, lengthof(names_4) * 3, seed);
+	if (i < lengthof(names_4)) buf->append (names_4[i]);
 }
 
 
