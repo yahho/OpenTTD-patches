@@ -5628,10 +5628,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\..\src\table\townname.h"
-				>
-			</File>
-			<File
 				RelativePath=".\..\src\table\track_land.h"
 				>
 			</File>

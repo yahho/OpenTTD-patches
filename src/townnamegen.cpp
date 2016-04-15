@@ -11,8 +11,6 @@
 #include "townnamegen.h"
 #include "core/random_func.hpp"
 
-#include "table/townname.h"
-
 
 /**
  * Generates a number from given seed.
