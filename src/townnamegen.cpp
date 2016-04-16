@@ -727,8 +727,7 @@ static void MakeFinnishTownName (stringb *buf, uint32 seed)
 		char *end = &buf->buffer[buf->length() - 1];
 		assert(end >= orig);
 		if (*end == 'i') *end = 'e';
-		if (strstr(orig, "a") != NULL || strstr(orig, "o") != NULL || strstr(orig, "u") != NULL ||
-				strstr(orig, "A") != NULL || strstr(orig, "O") != NULL || strstr(orig, "U")  != NULL) {
+		if (strpbrk (orig, "aouAOU") != NULL) {
 			buf->append ("la");
 		} else {
 			buf->append ("l\xC3\xA4");
