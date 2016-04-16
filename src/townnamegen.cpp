@@ -717,15 +717,15 @@ static void MakeFinnishTownName (stringb *buf, uint32 seed)
 	}
 
 	if (SeedChance(0, 15, seed) >= 5) {
-		const char *orig = &buf->buffer[buf->length()];
-
+		assert (!buf->full());
 		/* A two-part name by combining one of names_1 + "la"/"lä"
 		 * The reason for not having the contents of names_{1,2} in the same table is
 		 * that the ones in names_2 are not good for this purpose. */
-		buf->append (choose_str (names_1, seed, 0));
+		const char *orig = choose_str (names_1, seed, 0);
+		bool fit = buf->append (orig);
+		assert (fit);
 		assert (!buf->empty());
 		char *end = &buf->buffer[buf->length() - 1];
-		assert(end >= orig);
 		if (*end == 'i') *end = 'e';
 		if (strpbrk (orig, "aouAOU") != NULL) {
 			buf->append ("la");
