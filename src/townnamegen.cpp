@@ -334,9 +334,9 @@ static void MakeAustrianTownName (stringb *buf, uint32 seed)
 	/* Bad, Maria, Gross, ... */
 	append_opt (buf, names_a1, seed, 0, 15);
 
-	int j = 0;
+	uint j = 0;
 
-	int i = SeedChance(4, 6, seed);
+	uint i = SeedChance (4, 6, seed);
 	if (i >= 4) {
 		/* Kaisers-kirchen */
 		buf->append (choose_str (names_a2, seed,  7));
@@ -351,12 +351,12 @@ static void MakeAustrianTownName (stringb *buf, uint32 seed)
 		buf->append (choose_str (names_a4, seed, 7));
 	}
 
-	i = SeedChance(1, 6, seed);
-	if (i >= 4 - j) {
+	j += SeedChance (1, 6, seed);
+	if (j >= 4) {
 		/* an der Donau (rivers) */
 		buf->append (choose_str (names_f1, seed, 4));
 		buf->append (choose_str (names_f2, seed, 5));
-	} else if (i >= 2 - j) {
+	} else if (j >= 2) {
 		/* am Dachstein (mountains) */
 		buf->append (choose_str (names_b1, seed, 4));
 		buf->append (choose_str (names_b2, seed, 5));
