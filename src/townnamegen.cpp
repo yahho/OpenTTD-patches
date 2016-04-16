@@ -708,12 +708,10 @@ static void MakeFinnishTownName (stringb *buf, uint32 seed)
 	};
 
 	/* Select randomly if town name should consists of one or two parts. */
-	if (SeedChance(0, 15, seed) >= 10) {
+	uint i = SeedChance (0, 15, seed);
+	if (i >= 10) {
 		buf->append (choose_str (names_real, seed, 2));
-		return;
-	}
-
-	if (SeedChance(0, 15, seed) >= 5) {
+	} else if (i >= 5) {
 		assert (!buf->full());
 		/* A two-part name by combining one of names_1 + "la"/"lä".
 		 * Only the first strings are good for this purpose. */
@@ -724,17 +722,13 @@ static void MakeFinnishTownName (stringb *buf, uint32 seed)
 		assert (!buf->empty());
 		char *end = &buf->buffer[buf->length() - 1];
 		if (*end == 'i') *end = 'e';
-		if (strpbrk (orig, "aouAOU") != NULL) {
-			buf->append ("la");
-		} else {
-			buf->append ("l\xC3\xA4");
-		}
-		return;
+		buf->append ((strpbrk (orig, "aouAOU") != NULL) ?
+							"la" : "l\xC3\xA4");
+	} else {
+		/* A two-part name by combining one of names_1 + names_3. */
+		buf->append (choose_str (names_1, seed,  2));
+		buf->append (choose_str (names_3, seed, 10));
 	}
-
-	/* A two-part name by combining one of names_1 + names_3. */
-	buf->append (choose_str (names_1, seed,  2));
-	buf->append (choose_str (names_3, seed, 10));
 }
 
 
