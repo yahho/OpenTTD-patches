@@ -696,9 +696,6 @@ static void MakeFinnishTownName (stringb *buf, uint32 seed)
 		"M\xC3\xA4nty", "Pihlaja", "Pet\xC3\xA4j\xC3\xA4", "Kielo",
 		"Kauha", "Viita", "Kivi", "Riihi", "\xC3\x84\xC3\xA4ne",
 		"Niini",
-	};
-
-	static const char * const names_2[] = {
 		"Lappeen", "Lohjan", "Savon", "Lapin", "Pit\xC3\xA4j\xC3\xA4n",
 		"Martin", "Kuusan", "Kemi", "Keri", "H\xC3\xA4meen", "Kangas",
 	};
@@ -718,10 +715,10 @@ static void MakeFinnishTownName (stringb *buf, uint32 seed)
 
 	if (SeedChance(0, 15, seed) >= 5) {
 		assert (!buf->full());
-		/* A two-part name by combining one of names_1 + "la"/"lä"
-		 * The reason for not having the contents of names_{1,2} in the same table is
-		 * that the ones in names_2 are not good for this purpose. */
-		const char *orig = choose_str (names_1, seed, 0);
+		/* A two-part name by combining one of names_1 + "la"/"lä".
+		 * Only the first strings are good for this purpose. */
+		assert_compile (lengthof(names_1) >= 27);
+		const char *orig = names_1 [SeedChance (0, 27, seed)];
 		bool fit = buf->append (orig);
 		assert (fit);
 		assert (!buf->empty());
@@ -735,15 +732,8 @@ static void MakeFinnishTownName (stringb *buf, uint32 seed)
 		return;
 	}
 
-	/* A two-part name by combining one of names_{1,2} + names_3.
-	 * Why aren't names_{1,2} just one table? See above. */
-	uint sel = SeedChance(2, lengthof(names_1) + lengthof(names_2), seed);
-	if (sel >= lengthof(names_1)) {
-		buf->append (names_2 [sel - lengthof(names_1)]);
-	} else {
-		buf->append (names_1[sel]);
-	}
-
+	/* A two-part name by combining one of names_1 + names_3. */
+	buf->append (choose_str (names_1, seed,  2));
 	buf->append (choose_str (names_3, seed, 10));
 }
 
@@ -1999,7 +1989,7 @@ void GenerateTownNameString (stringb *buf, size_t lang, uint32 seed)
 
 	/* Some generators need at least 9 bytes in buffer.  English generators need 5 for
 	 * string replacing, others use constructions like strlen(buf)-3 and so on.
-	 * Finnish generator needs to fit all strings from names_1.
+	 * Finnish generator needs to fit most strings from names_1.
 	 * Czech generator needs to fit almost whole town name...
 	 * These would break. Using another temporary buffer results in ~40% slower code,
 	 * so use it only when really needed. */
