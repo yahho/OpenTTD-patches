@@ -739,22 +739,22 @@ static void MakeFinnishTownName (stringb *buf, uint32 seed)
  */
 static void MakePolishTownName (stringb *buf, uint32 seed)
 {
-	static const char * const names_1_m[] = {
-		"Wielki ", "Ma\xC5\x82y ", "Z\xC5\x82y ", "Dobry ",
-		"Nowy ", "Stary ", "Z\xC5\x82oty ", "Zielony ",
-		"Bia\xC5\x82y ", "Modry ", "D\xC4\x99""bowy ",
+	struct StringTriple {
+		const char *m, *f, *n;
 	};
 
-	static const char * const names_1_f[] = {
-		"Wielka ", "Ma\xC5\x82""a ", "Z\xC5\x82""a ", "Dobra ",
-		"Nowa ", "Stara ", "Z\xC5\x82ota ", "Zielona ",
-		"Bia\xC5\x82""a ", "Modra ", "D\xC4\x99""bowa ",
-	};
-
-	static const char * const names_1_n[] = {
-		"Wielkie ", "Ma\xC5\x82""e ", "Z\xC5\x82""e ", "Dobre ",
-		"Nowe ", "Stare ", "Z\xC5\x82ote ", "Zielone ",
-		"Bia\xC5\x82""e ", "Modre ", "D\xC4\x99""bowe ",
+	static const StringTriple names_1[] = {
+		{ "Wielki ",          "Wielka ",          "Wielkie "         },
+		{ "Ma\xC5\x82y ",     "Ma\xC5\x82""a ",   "Ma\xC5\x82""e "   },
+		{ "Z\xC5\x82y ",      "Z\xC5\x82""a ",    "Z\xC5\x82""e "    },
+		{ "Dobry ",           "Dobra ",           "Dobre "           },
+		{ "Nowy ",            "Nowa ",            "Nowe "            },
+		{ "Stary ",           "Stara ",           "Stare "           },
+		{ "Z\xC5\x82oty ",    "Z\xC5\x82ota ",    "Z\xC5\x82ote "    },
+		{ "Zielony ",         "Zielona ",         "Zielone "         },
+		{ "Bia\xC5\x82y ",    "Bia\xC5\x82""a ",  "Bia\xC5\x82""e "  },
+		{ "Modry ",           "Modra ",           "Modre "           },
+		{ "D\xC4\x99""bowy ", "D\xC4\x99""bowa ", "D\xC4\x99""bowe " },
 	};
 
 	static const char * const names_2_o[] = {
@@ -801,40 +801,36 @@ static void MakePolishTownName (stringb *buf, uint32 seed)
 		"Lubichowo", "Opoczno",
 	};
 
-	static const char * const names_3_m[] = {
-		" Wybudowanie", " \xC5\x9Awi\xC4\x99tokrzyski",
-		" G\xC3\xB3rski", " Morski", " Zdr\xC3\xB3j", " Wody",
-		" Bajoro", " Kraje\xC5\x84ski", " \xC5\x9Al\xC4\x85ski",
-		" Mazowiecki", " Pomorski", " Wielki", " Maly",
-		" Warmi\xC5\x84ski", " Mazurski", " Mniejszy",
-		" Wi\xC4\x99kszy", " G\xC3\xB3rny", " Dolny", " Wielki",
-		" Stary", " Nowy", " Wielkopolski", " Wzg\xC3\xB3rze",
-		" Mosty", " Kujawski", " Ma\xC5\x82opolski", " Podlaski",
-		" Lesny",
-	};
-
-	static const char * const names_3_f[] = {
-		" Wybudowanie", " \xC5\x9Awi\xC4\x99tokrzyska",
-		" G\xC3\xB3rska", " Morska", " Zdr\xC3\xB3j", " Woda",
-		" Bajoro", " Kraje\xC5\x84ska", " \xC5\x9Al\xC4\x85ska",
-		" Mazowiecka", " Pomorska", " Wielka", " Ma\xC5\x82""a",
-		" Warmi\xC5\x84ska", " Mazurska", " Mniejsza",
-		" Wi\xC4\x99ksza", " G\xC3\xB3rna", " Dolna", " Wielka",
-		" Stara", " Nowa", " Wielkopolska", " Wzg\xC3\xB3rza",
-		" Mosty", " Kujawska", " Malopolska", " Podlaska",
-		" Le\xC5\x9Bna",
-	};
-
-	static const char * const names_3_n[] = {
-		" Wybudowanie", " \xC5\x9Awietokrzyskie",
-		" G\xC3\xB3rskie", " Morskie", " Zdr\xC3\xB3j", " Wody",
-		" Bajoro", " Kraje\xC5\x84skie", " \xC5\x9Al\xC4\x85skie",
-		" Mazowieckie", " Pomorskie", " Wielkie", " Ma\xC5\x82""e",
-		" Warmi\xC5\x84skie ", " Mazurskie ", " Mniejsze",
-		" Wi\xC4\x99ksze", " G\xC3\xB3rne", " Dolne", " Wielkie",
-		" Stare", " Nowe", " Wielkopolskie", " Wzg\xC3\xB3rze",
-		" Mosty", " Kujawskie", " Ma\xC5\x82opolskie", " Podlaskie",
-		" Le\xC5\x9Bne",
+	static const StringTriple names_3[] = {
+		{ " Wybudowanie",    " Wybudowanie",    " Wybudowanie" },
+		{ " \xC5\x9Awi\xC4\x99tokrzyski", " \xC5\x9Awi\xC4\x99tokrzyska", " \xC5\x9Awietokrzyskie" },
+		{ " G\xC3\xB3rski",  " G\xC3\xB3rska",  " G\xC3\xB3rskie" },
+		{ " Morski",         " Morska",         " Morskie" },
+		{ " Zdr\xC3\xB3j",   " Zdr\xC3\xB3j",   " Zdr\xC3\xB3j" },
+		{ " Wody",           " Woda",           " Wody" },
+		{ " Bajoro",         " Bajoro",         " Bajoro" },
+		{ " Kraje\xC5\x84ski", " Kraje\xC5\x84ska", " Kraje\xC5\x84skie" },
+		{ " \xC5\x9Al\xC4\x85ski", " \xC5\x9Al\xC4\x85ska", " \xC5\x9Al\xC4\x85skie" },
+		{ " Mazowiecki",     " Mazowiecka",     " Mazowieckie" },
+		{ " Pomorski",       " Pomorska",       " Pomorskie" },
+		{ " Wielki",         " Wielka",         " Wielkie" },
+		{ " Maly",           " Ma\xC5\x82""a",  " Ma\xC5\x82""e" },
+		{ " Warmi\xC5\x84ski", " Warmi\xC5\x84ska", " Warmi\xC5\x84skie " },
+		{ " Mazurski",       " Mazurska",       " Mazurskie " },
+		{ " Mniejszy",       " Mniejsza",       " Mniejsze" },
+		{ " Wi\xC4\x99kszy", " Wi\xC4\x99ksza", " Wi\xC4\x99ksze" },
+		{ " G\xC3\xB3rny",   " G\xC3\xB3rna",   " G\xC3\xB3rne" },
+		{ " Dolny",          " Dolna",          " Dolne" },
+		{ " Wielki",         " Wielka",         " Wielkie" },
+		{ " Stary",          " Stara",          " Stare" },
+		{ " Nowy",           " Nowa",           " Nowe" },
+		{ " Wielkopolski",   " Wielkopolska",   " Wielkopolskie" },
+		{ " Wzg\xC3\xB3rze", " Wzg\xC3\xB3rza", " Wzg\xC3\xB3rze" },
+		{ " Mosty",          " Mosty",          " Mosty" },
+		{ " Kujawski",       " Kujawska",       " Kujawskie" },
+		{ " Ma\xC5\x82opolski", " Malopolska",  " Ma\xC5\x82opolskie" },
+		{ " Podlaski",       " Podlaska",       " Podlaskie" },
+		{ " Lesny",          " Le\xC5\x9Bna",   " Le\xC5\x9Bne" },
 	};
 
 	/* optional first segment */
@@ -842,51 +838,36 @@ static void MakePolishTownName (stringb *buf, uint32 seed)
 			lengthof(names_2_o) + lengthof(names_2_m) +
 			lengthof(names_2_f) + lengthof(names_2_n),
 			seed);
-	uint j = SeedChance(2, 20, seed);
-
 
 	if (i < lengthof(names_2_o)) {
 		buf->append (choose_str (names_2_o, seed, 3));
 		return;
 	}
 
-	if (i < lengthof(names_2_m) + lengthof(names_2_o)) {
-		if (j < 4) {
-			buf->append (choose_str (names_1_m, seed, 5));
-		}
-
-		buf->append (choose_str (names_2_m, seed, 7));
-
-		if (j >= 4 && j < 16) {
-			buf->append (choose_str (names_3_m, seed, 10));
-		}
-
-		return;
-	}
-
-	if (i < lengthof(names_2_f) + lengthof(names_2_m) + lengthof(names_2_o)) {
-		if (j < 4) {
-			buf->append (choose_str (names_1_f, seed, 5));
-		}
-
-		buf->append (choose_str (names_2_f, seed, 7));
-
-		if (j >= 4 && j < 16) {
-			buf->append (choose_str (names_3_f, seed, 10));
-		}
-
-		return;
-	}
-
+	uint j = SeedChance(2, 20, seed);
+	const StringTriple *pre = NULL, *post = NULL;
 	if (j < 4) {
-		buf->append (choose_str (names_1_n, seed, 5));
+		pre  = &names_1 [SeedChance ( 5, lengthof(names_1), seed)];
+	} else if (j < 16) {
+		post = &names_3 [SeedChance (10, lengthof(names_3), seed)];
 	}
 
-	buf->append (choose_str (names_2_n, seed, 7));
+	const char *s;
+	const char * StringTriple::* g;
 
-	if (j >= 4 && j < 16) {
-		buf->append (choose_str (names_3_n, seed, 10));
+	if (i < lengthof(names_2_m) + lengthof(names_2_o)) {
+		s = choose_str (names_2_m, seed, 7);
+		g = &StringTriple::m;
+	} else if (i < lengthof(names_2_f) + lengthof(names_2_m) + lengthof(names_2_o)) {
+		s = choose_str (names_2_f, seed, 7);
+		g = &StringTriple::f;
+	} else {
+		s = choose_str (names_2_n, seed, 7);
+		g = &StringTriple::n;
 	}
+
+	buf->append_fmt ("%s%s%s", (pre  != NULL) ? pre->*g  : "", s,
+				   (post != NULL) ? post->*g : "");
 }
 
 
