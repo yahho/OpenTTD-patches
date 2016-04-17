@@ -860,6 +860,8 @@ static void MakePolishTownName (stringb *buf, uint32 seed)
 		if (j >= 4 && j < 16) {
 			buf->append (choose_str (names_3_m, seed, 10));
 		}
+
+		return;
 	}
 
 	if (i < lengthof(names_2_f) + lengthof(names_2_m) + lengthof(names_2_o)) {
