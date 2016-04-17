@@ -50,7 +50,6 @@ function reset_reader()
 	struct_size = 0
 	method_size = 0
 	static_method_size = 0
-	virtual_class = "false"
 	cls = ""
 	start_squirrel_define_on_next_line = "false"
 	cls_level = 0
@@ -66,7 +65,6 @@ BEGIN {
 	struct_size = 0
 	method_size = 0
 	static_method_size = 0
-	virtual_class = "false"
 	super_cls = ""
 	cls = ""
 	api_selected = ""
@@ -256,7 +254,7 @@ BEGIN {
 	} else {
 		print "	engine->AddClassBegin (\"" api_cls "\", \"" api_super_cls "\");"
 	}
-	if (virtual_class == "false" && super_cls != "ScriptEvent") {
+	if (super_cls != "ScriptEvent") {
 		if (cls_param[2] == "v") {
 			print "	SQConvert::AddSQAdvancedConstructor <" cls "> (engine);"
 		} else {
@@ -325,22 +323,21 @@ BEGIN {
 	}
 	if (static_method_size != 0) print ""
 
-	if (virtual_class == "false") {
-		# Non-static methods
-		mlen = 0
-		for (i = 1; i <= method_size; i++) {
-			if (mlen <= length(methods[i, 0])) mlen = length(methods[i, 0])
-		}
-		for (i = 1; i <= method_size; i++) {
-			if (methods[i, 2] == "v") {
-				print "	SQConvert::DefSQAdvancedMethod (engine, \"" api_cls "\", &" cls "::" methods[i, 0] ", " substr(spaces, 1, mlen - length(methods[i, 0]) - 8) "\""  methods[i, 0] "\");"
-			} else {
-				print "	SQConvert::DefSQMethod (engine, \"" api_cls "\", &" cls "::" methods[i, 0] ", " substr(spaces, 1, mlen - length(methods[i, 0])) "\""  methods[i, 0] "\", " substr(spaces, 1, mlen - length(methods[i, 0])) "" methods[i, 1] ", \"" methods[i, 2] "\");"
-			}
-			delete methods[i]
-		}
-		if (method_size != 0) print ""
+	# Non-static methods
+	mlen = 0
+	for (i = 1; i <= method_size; i++) {
+		if (mlen <= length(methods[i, 0])) mlen = length(methods[i, 0])
 	}
+	for (i = 1; i <= method_size; i++) {
+		if (methods[i, 2] == "v") {
+			print "	SQConvert::DefSQAdvancedMethod (engine, \"" api_cls "\", &" cls "::" methods[i, 0] ", " substr(spaces, 1, mlen - length(methods[i, 0]) - 8) "\""  methods[i, 0] "\");"
+		} else {
+			print "	SQConvert::DefSQMethod (engine, \"" api_cls "\", &" cls "::" methods[i, 0] ", " substr(spaces, 1, mlen - length(methods[i, 0])) "\""  methods[i, 0] "\", " substr(spaces, 1, mlen - length(methods[i, 0])) "" methods[i, 1] ", \"" methods[i, 2] "\");"
+		}
+		delete methods[i]
+	}
+	if (method_size != 0) print ""
+
 	print "	engine->AddClassEnd();"
 	print "}"
 
@@ -405,9 +402,6 @@ BEGIN {
 	}
 
 	is_static = match($0, "static")
-	if (match($0, "virtual")) {
-		virtual_class = "true"
-	}
 	gsub("\\yvirtual\\y", "", $0)
 	gsub("\\ystatic\\y", "", $0)
 	gsub("\\yconst\\y", "", $0)
