@@ -1160,7 +1160,7 @@ static void MakeCzechTownName (stringb *buf, uint32 seed)
 	bool dynamic_subst;
 
 	/* IDs of the respective parts */
-	int prefix = 0, ending = 0, suffix = 0;
+	int prefix = 0, ending = 0;
 	uint postfix = 0;
 	uint stem;
 
@@ -1170,7 +1170,8 @@ static void MakeCzechTownName (stringb *buf, uint32 seed)
 	CzechAllow allow;
 
 	if (do_prefix) prefix = SeedModChance(5, lengthof(names_adj) * 12, seed) / 12;
-	if (do_suffix) suffix = SeedModChance(7, lengthof(names_suffix), seed);
+	const char *suffix = do_suffix ? choose_str_mod (names_suffix, seed, 7) : NULL;
+
 	/* 3:1 chance 3:1 to use dynamic substantive */
 	stem = SeedModChance(9,
 			lengthof(names_subst_full) + 3 * lengthof(names_subst_stem),
@@ -1314,7 +1315,7 @@ static void MakeCzechTownName (stringb *buf, uint32 seed)
 		buf->append (names_subst_full[stem].name);
 	}
 
-	if (do_suffix) buf->append_fmt (" %s", names_suffix[suffix]);
+	if (suffix != NULL) buf->append_fmt (" %s", suffix);
 }
 
 
