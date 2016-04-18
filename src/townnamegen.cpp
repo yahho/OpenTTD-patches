@@ -1272,13 +1272,13 @@ static void MakeCzechTownName (stringb *buf, uint32 seed)
 			/* -ovX -> -uv */
 			buf->buffer[end_length - 2] = 'u';
 			assert(buf->buffer[end_length - 1] == 'v');
-			buf->truncate (end_length);
+			assert (end_length < buf->length());
+			buf->buffer[end_length] = ' ';
+			buf->truncate (end_length + 1);
 		} else {
 			assert (end_length >= orig_length);
-			buf->append (names_patmod[gender][pattern]);
+			buf->append_fmt ("%s ", names_patmod[gender][pattern]);
 		}
-
-		buf->append (' ');
 	}
 
 	if (dynamic_subst) {
@@ -1314,10 +1314,7 @@ static void MakeCzechTownName (stringb *buf, uint32 seed)
 		buf->append (names_subst_full[stem].name);
 	}
 
-	if (do_suffix) {
-		buf->append (' ');
-		buf->append (names_suffix[suffix]);
-	}
+	if (do_suffix) buf->append_fmt (" %s", names_suffix[suffix]);
 }
 
 
