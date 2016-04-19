@@ -265,7 +265,7 @@ static const CommandClass _command_proc_table[] = {
 	DEF_CMD(CmdBuildObject,                CMDF_NO_WATER | CMDF_AUTO, CMDT_LANDSCAPE_CONSTRUCTION, CcBuildObject,      GetErrBuildObject),                                         // CMD_BUILD_OBJECT
 	DEF_CMD(CmdBuildTunnel,                   CMDF_DEITY | CMDF_AUTO, CMDT_LANDSCAPE_CONSTRUCTION, CcBuildTunnel,      GetErrConstant<STR_ERROR_CAN_T_BUILD_TUNNEL_HERE>),         // CMD_BUILD_TUNNEL
 	DEF_CMD(CmdRemoveFromRailStation,                              0, CMDT_LANDSCAPE_CONSTRUCTION, CcPlaySound1E,      GetErrConstant<STR_ERROR_CAN_T_REMOVE_PART_OF_STATION>),    // CMD_REMOVE_FROM_RAIL_STATION
-	DEF_CMD(CmdConvertRail,                                        0, CMDT_LANDSCAPE_CONSTRUCTION, CcPlaySound10,      GetErrConstant<STR_ERROR_CAN_T_CONVERT_RAIL>),              // CMD_CONVERT_RAIL
+	DEF_CMD(CmdConvertRail,                                        0, CMDT_LANDSCAPE_CONSTRUCTION, CcPlaySound1E,      GetErrConstant<STR_ERROR_CAN_T_CONVERT_RAIL>),              // CMD_CONVERT_RAIL
 	DEF_CMD(CmdBuildRailWaypoint,                                  0, CMDT_LANDSCAPE_CONSTRUCTION, CcPlaySound1E,      GetErrConstant<STR_ERROR_CAN_T_BUILD_TRAIN_WAYPOINT>),      // CMD_BUILD_RAIL_WAYPOINT
 	DEF_CMD(CmdRenameWaypoint,                                     0, CMDT_OTHER_MANAGEMENT,       NULL,               GetErrConstant<STR_ERROR_CAN_T_CHANGE_WAYPOINT_NAME>),      // CMD_RENAME_WAYPOINT
 	DEF_CMD(CmdRemoveFromRailWaypoint,                             0, CMDT_LANDSCAPE_CONSTRUCTION, CcPlaySound1E,      GetErrConstant<STR_ERROR_CAN_T_REMOVE_TRAIN_WAYPOINT>),     // CMD_REMOVE_FROM_RAIL_WAYPOINT
