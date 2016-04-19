@@ -407,20 +407,8 @@ static void MakeGermanTownName (stringb *buf, uint32 seed)
 		"mund", "m\xC3\xBCnster", "stadt", "wald",
 	};
 
-	static const char * const names_3_an_der[] = {
-		" an der ",
-	};
-
-	static const char * const names_3_am[] = {
-		" am ",
-	};
-
 	static const char * const names_4_an_der[] = {
 		"Oder", "Spree", "Donau", "Saale", "Elbe",
-	};
-
-	static const char * const names_4_am[] = {
-		"Main",
 	};
 
 	uint seed_derivative = SeedChance(7, 28, seed);
@@ -441,13 +429,12 @@ static void MakeGermanTownName (stringb *buf, uint32 seed)
 
 	/* optional suffix */
 	if (seed_derivative == 24) {
-		i = SeedChance (9, lengthof(names_4_an_der) + lengthof(names_4_am), seed);
+		i = SeedChance (9, lengthof(names_4_an_der) + 1, seed);
 		if (i < lengthof(names_4_an_der)) {
-			buf->append (names_3_an_der[0]);
+			buf->append (" an der ");
 			buf->append (names_4_an_der[i]);
 		} else {
-			buf->append (names_3_am[0]);
-			buf->append (names_4_am [i - lengthof(names_4_an_der)]);
+			buf->append (" am Main");
 		}
 	}
 }
