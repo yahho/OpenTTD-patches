@@ -74,21 +74,20 @@ static inline const char *choose_str_mod (const char * const (&strs) [N],
 	return strs [SeedModChance (shift_by, N, seed)];
 }
 
-
 /**
- * Optionally append a string from an array to a buffer.
- * @param buf The buffer to append the string to.
+ * Optionally choose a string from an array.
  * @param strs The string array to choose from.
  * @param seed The random seed.
  * @param shift_by The number of bits that the seed is shifted to the right.
- * @param threshold The threshold value to actually append a string.
+ * @param threshold The threshold value to actually choose a string.
+ * @return A random string from the array or the null string.
  */
 template <uint N>
-static inline void append_opt (stringb *buf, const char * const (&strs) [N],
+static inline const char *choose_str_opt (const char * const (&strs) [N],
 	uint32 seed, uint shift_by, uint threshold)
 {
 	uint i = SeedChance (shift_by, N + threshold, seed);
-	if (i >= threshold) buf->append (strs [i - threshold]);
+	return (i >= threshold) ? strs [i - threshold] : "";
 }
 
 
@@ -166,17 +165,16 @@ static void MakeEnglishOriginalTownName (stringb *buf, uint32 seed)
 
 	size_t orig_length = buf->length();
 
-	/* optional first segment */
-	append_opt (buf, names_1, seed, 0, 50);
-
-	/* mandatory middle segments */
-	buf->append (choose_str (names_2, seed,  4));
-	buf->append (choose_str (names_3, seed,  7));
-	buf->append (choose_str (names_4, seed, 10));
-	buf->append (choose_str (names_5, seed, 13));
-
-	/* optional last segment */
-	append_opt (buf, names_6, seed, 15, 60);
+	buf->append_fmt ("%s%s%s%s%s%s",
+				/* optional first segment */
+				choose_str_opt (names_1, seed, 0, 50),
+				/* mandatory middle segments */
+				choose_str (names_2, seed,  4),
+				choose_str (names_3, seed,  7),
+				choose_str (names_4, seed, 10),
+				choose_str (names_5, seed, 13),
+				/* optional last segment */
+				choose_str_opt (names_6, seed, 15, 60));
 
 	/* Ce, Ci => Ke, Ki */
 	if (buf->buffer[orig_length] == 'C' && (buf->buffer[orig_length + 1] == 'e' || buf->buffer[orig_length + 1] == 'i')) {
@@ -246,24 +244,26 @@ static void MakeEnglishAdditionalTownName (stringb *buf, uint32 seed)
 	size_t orig_length = buf->length();
 
 	/* optional first segment */
-	append_opt (buf, names_prefix, seed, 0, 50);
+	const char *prefix = choose_str_opt (names_prefix, seed, 0, 50);
 
+	const char *s11, *s12, *s13;
 	if (SeedChance(3, 20, seed) >= 14) {
-		buf->append (choose_str (names_1a, seed, 6));
+		s11 = choose_str (names_1a, seed, 6);
+		s12 = s13 = "";
 	} else {
-		buf->append (choose_str (names_1b1, seed, 6));
-		buf->append (choose_str (names_1b2, seed, 9));
-		if (SeedChance(11, 20, seed) >= 4) {
-			buf->append (choose_str (names_1b3a, seed, 12));
-		} else {
-			buf->append (choose_str (names_1b3b, seed, 12));
-		}
+		s11 = choose_str (names_1b1, seed, 6);
+		s12 = choose_str (names_1b2, seed, 9);
+		s13 = (SeedChance (11, 20, seed) >= 4) ?
+					choose_str (names_1b3a, seed, 12) :
+					choose_str (names_1b3b, seed, 12);
 	}
 
-	buf->append (choose_str (names_2, seed, 14));
+	const char *s2 = choose_str (names_2, seed, 14);
 
 	/* optional last segment */
-	append_opt (buf, names_3, seed, 15, 60);
+	const char *s3 = choose_str_opt (names_3, seed, 15, 60);
+
+	buf->append_fmt ("%s%s%s%s%s%s", prefix, s11, s12, s13, s2, s3);
 
 	assert (buf->length() - orig_length >= 4);
 	ReplaceEnglishWords (&buf->buffer[orig_length], false);
@@ -332,35 +332,42 @@ static void MakeAustrianTownName (stringb *buf, uint32 seed)
 	};
 
 	/* Bad, Maria, Gross, ... */
-	append_opt (buf, names_a1, seed, 0, 15);
+	const char *s1 = choose_str_opt (names_a1, seed, 0, 15);
 
 	uint j = 0;
 
 	uint i = SeedChance (4, 6, seed);
+	const char *s2, *s3;
 	if (i >= 4) {
 		/* Kaisers-kirchen */
-		buf->append (choose_str (names_a2, seed,  7));
-		buf->append (choose_str (names_a3, seed, 13));
+		s2 = choose_str (names_a2, seed,  7);
+		s3 = choose_str (names_a3, seed, 13);
 	} else if (i >= 2) {
 		/* St. Johann */
-		buf->append (choose_str (names_a5, seed, 7));
-		buf->append (choose_str (names_a6, seed, 9));
+		s2 = choose_str (names_a5, seed, 7);
+		s3 = choose_str (names_a6, seed, 9);
 		j = 1; // More likely to have a " an der " or " am "
 	} else {
 		/* Zell */
-		buf->append (choose_str (names_a4, seed, 7));
+		s2 = choose_str (names_a4, seed, 7);
+		s3 = "";
 	}
 
 	j += SeedChance (1, 6, seed);
+	const char *s4, *s5;
 	if (j >= 4) {
 		/* an der Donau (rivers) */
-		buf->append (choose_str (names_f1, seed, 4));
-		buf->append (choose_str (names_f2, seed, 5));
+		s4 = choose_str (names_f1, seed, 4);
+		s5 = choose_str (names_f2, seed, 5);
 	} else if (j >= 2) {
 		/* am Dachstein (mountains) */
-		buf->append (choose_str (names_b1, seed, 4));
-		buf->append (choose_str (names_b2, seed, 5));
+		s4 = choose_str (names_b1, seed, 4);
+		s5 = choose_str (names_b2, seed, 5);
+	} else {
+		s4 = s5 = "";
 	}
+
+	buf->append_fmt ("%s%s%s%s%s", s1, s2, s3, s4, s5);
 }
 
 
@@ -414,29 +421,36 @@ static void MakeGermanTownName (stringb *buf, uint32 seed)
 	uint seed_derivative = SeedChance(7, 28, seed);
 
 	/* optional prefix */
-	if (seed_derivative == 12 || seed_derivative == 19) {
-		buf->append (choose_str (names_pre, seed, 2));
-	}
+	const char *pre = (seed_derivative == 12 || seed_derivative == 19) ?
+				choose_str (names_pre, seed, 2) : "";
 
 	/* mandatory middle segments including option of hardcoded name */
 	uint i = SeedChance (3, lengthof(names_real) + lengthof(names_1), seed);
+	const char *s1, *s2;
 	if (i < lengthof(names_real)) {
-		buf->append (names_real[i]);
+		s1 = names_real[i];
+		s2 = "";
 	} else {
-		buf->append (names_1 [i - lengthof(names_real)]);
-		buf->append (choose_str (names_2, seed, 5));
+		s1 = names_1 [i - lengthof(names_real)];
+		s2 = choose_str (names_2, seed, 5);
 	}
 
 	/* optional suffix */
+	const char *s3, *s4;
 	if (seed_derivative == 24) {
 		i = SeedChance (9, lengthof(names_4_an_der) + 1, seed);
 		if (i < lengthof(names_4_an_der)) {
-			buf->append (" an der ");
-			buf->append (names_4_an_der[i]);
+			s3 = " an der ";
+			s4 = names_4_an_der[i];
 		} else {
-			buf->append (" am Main");
+			s3 = " am Main";
+			s4 = "";
 		}
+	} else {
+		s3 = s4 = "";
 	}
+
+	buf->append_fmt ("%s%s%s%s%s", pre, s1, s2, s3, s4);
 }
 
 
@@ -533,8 +547,8 @@ static void MakeSillyTownName (stringb *buf, uint32 seed)
 		"bridge",
 	};
 
-	buf->append (choose_str (names_1, seed,  0));
-	buf->append (choose_str (names_2, seed, 16));
+	buf->append_fmt ("%s%s", choose_str (names_1, seed,  0),
+				 choose_str (names_2, seed, 16));
 }
 
 
@@ -586,18 +600,22 @@ static void MakeSwedishTownName (stringb *buf, uint32 seed)
 	};
 
 	/* optional first segment */
-	append_opt (buf, names_1, seed, 0, 50);
+	const char *s1 = choose_str_opt (names_1, seed, 0, 50);
 
 	/* mandatory middle segments including option of hardcoded name */
+	const char *s2a, *s2b, *s2c;
 	if (SeedChance(4, 5, seed) >= 3) {
-		buf->append (choose_str (names_2, seed, 7));
+		s2a = choose_str (names_2, seed, 7);
+		s2b = s2c = "";
 	} else {
-		buf->append (choose_str (names_2a, seed,  7));
-		buf->append (choose_str (names_2b, seed, 10));
-		buf->append (choose_str (names_2c, seed, 13));
+		s2a = choose_str (names_2a, seed,  7);
+		s2b = choose_str (names_2b, seed, 10);
+		s2c = choose_str (names_2c, seed, 13);
 	}
 
-	buf->append (choose_str (names_3, seed, 16));
+	const char *s3 = choose_str (names_3, seed, 16);
+
+	buf->append_fmt ("%s%s%s%s%s", s1, s2a, s2b, s2c, s3);
 }
 
 
@@ -646,17 +664,21 @@ static void MakeDutchTownName (stringb *buf, uint32 seed)
 	};
 
 	/* optional first segment */
-	append_opt (buf, names_1, seed, 0, 50);
+	const char *s1 = choose_str_opt (names_1, seed, 0, 50);
 
 	/* mandatory middle segments including option of hardcoded name */
+	const char *s3, *s4;
 	if (SeedChance(6, 9, seed) > 4) {
-		buf->append (choose_str (names_2, seed,  9));
+		s3 = choose_str (names_2, seed,  9);
+		s4 = "";
 	} else {
-		buf->append (choose_str (names_3, seed,  9));
-		buf->append (choose_str (names_4, seed, 12));
+		s3 = choose_str (names_3, seed,  9);
+		s4 = choose_str (names_4, seed, 12);
 	}
 
-	buf->append (choose_str (names_5, seed, 15));
+	const char *s5 = choose_str (names_5, seed, 15);
+
+	buf->append_fmt ("%s%s%s%s", s1, s3, s4, s5);
 }
 
 
@@ -713,8 +735,8 @@ static void MakeFinnishTownName (stringb *buf, uint32 seed)
 							"la" : "l\xC3\xA4");
 	} else {
 		/* A two-part name by combining one of names_1 + names_3. */
-		buf->append (choose_str (names_1, seed,  2));
-		buf->append (choose_str (names_3, seed, 10));
+		buf->append_fmt ("%s%s", choose_str (names_1, seed,  2),
+					 choose_str (names_3, seed, 10));
 	}
 }
 
@@ -1449,10 +1471,11 @@ static void MakeNorwegianTownName (stringb *buf, uint32 seed)
 		return;
 	}
 
-	/* Use 7bit for the first fake part.  Bit 4-10 */
-	buf->append (choose_str (names_1, seed,  4));
-	/* Use 7bit for the last fake part.  Bit 11-17 */
-	buf->append (choose_str (names_2, seed, 11));
+	buf->append_fmt ("%s%s",
+			/* Use 7bit for the first fake part. Bit 4-10 */
+			choose_str (names_1, seed,  4),
+			/* Use 7bit for the last fake part. Bit 11-17 */
+			choose_str (names_2, seed, 11));
 }
 
 
@@ -1515,15 +1538,17 @@ static void MakeHungarianTownName (stringb *buf, uint32 seed)
 
 	/* optional first segment */
 	uint i = SeedChance(3, lengthof(names_1) * 3, seed);
-	if (i < lengthof(names_1)) buf->append (names_1[i]);
+	const char *s1 = (i < lengthof(names_1)) ? names_1[i] : "";
 
 	/* mandatory middle segments */
-	buf->append (choose_str (names_2, seed, 3));
-	buf->append (choose_str (names_3, seed, 6));
+	const char *s2 = choose_str (names_2, seed, 3);
+	const char *s3 = choose_str (names_3, seed, 6);
 
 	/* optional last segment */
 	i = SeedChance(10, lengthof(names_4) * 3, seed);
-	if (i < lengthof(names_4)) buf->append (names_4[i]);
+	const char *s4 = (i < lengthof(names_4)) ? names_4[i] : "";
+
+	buf->append_fmt ("%s%s%s%s", s1, s2, s3, s4);
 }
 
 
@@ -1606,12 +1631,13 @@ static void MakeDanishTownName (stringb *buf, uint32 seed)
 		"drup", "lev", "bo", "lyst", "feld", "skov",
 	};
 
-	/* optional first segment */
-	append_opt (buf, names_1, seed, 0, 50);
-
-	/* middle segments removed as this algorithm seems to create much more realistic names */
-	buf->append (choose_str (names_2, seed,  7));
-	buf->append (choose_str (names_3, seed, 16));
+	buf->append_fmt ("%s%s%s",
+			/* optional first segment */
+			choose_str_opt (names_1, seed, 0, 50),
+			/* middle segments removed as this algorithm seems
+			 * to create much more realistic names */
+			choose_str (names_2, seed,  7),
+			choose_str (names_3, seed, 16));
 }
 
 
@@ -1665,20 +1691,19 @@ static void MakeTurkishTownName (stringb *buf, uint32 seed)
 
 	switch (i) {
 		case 0:
-			buf->append (choose_str_mod (names_prefix, seed, 2));
-
-			/* middle segment */
-			buf->append (choose_str_mod (names_middle, seed, 4));
-
-			/* optional suffix */
-			if (SeedModChance(0, 7, seed) == 0) {
-				buf->append (choose_str_mod (names_suffix, seed, 10));
-			}
+			buf->append_fmt ("%s%s%s",
+					choose_str_mod (names_prefix, seed, 2),
+					/* middle segment */
+					choose_str_mod (names_middle, seed, 4),
+					/* optional suffix */
+					(SeedModChance (0, 7, seed) == 0) ?
+						choose_str_mod (names_suffix, seed, 10) : "");
 			break;
 
 		case 1: case 2:
-			buf->append (choose_str_mod (names_prefix, seed, 2));
-			buf->append (choose_str_mod (names_suffix, seed, 4));
+			buf->append_fmt ("%s%s",
+					choose_str_mod (names_prefix, seed, 2),
+					choose_str_mod (names_suffix, seed, 4));
 			break;
 
 		default:
@@ -1772,34 +1797,39 @@ static void MakeItalianTownName (stringb *buf, uint32 seed)
 		return;
 	}
 
-	static const char mascul_femin_italian[2] = { 'o', 'a' };
+	static const char * const mascul_femin_italian[2] = { "o", "a" };
 
-	if (SeedModChance(0, 8, seed) == 0) { // prefix
-		buf->append (choose_str_mod (names_pref, seed, 11));
-	}
+	const char *prefix = (SeedModChance (0, 8, seed) == 0) ? // prefix
+			choose_str_mod (names_pref, seed, 11) : "";
 
 	uint i = SeedChance(0, 2, seed);
-	if (i == 0) { // masculine form
-		buf->append (choose_str_mod (names_1m, seed, 4));
-	} else { // feminine form
-		buf->append (choose_str_mod (names_1f, seed, 4));
-	}
+	const char *s1 = (i == 0) ?
+		choose_str_mod (names_1m, seed, 4) :  // masculine form
+		choose_str_mod (names_1f, seed, 4);   // feminine form
 
+	const char *s2a, *s2b;
 	if (SeedModChance(3, 3, seed) == 0) {
-		buf->append (choose_str_mod (names_2, seed, 11));
-		buf->append (mascul_femin_italian[i]);
+		s2a = choose_str_mod (names_2, seed, 11);
+		s2b = mascul_femin_italian[i];
 	} else {
-		buf->append (choose_str_mod (names_2i, seed, 16));
+		s2a = choose_str_mod (names_2i, seed, 16);
+		s2b = "";
 	}
 
+	const char *s3a, *s3b;
 	if (SeedModChance(15, 4, seed) == 0) {
 		if (SeedModChance(5, 2, seed) == 0) { // generic suffix
-			buf->append (choose_str_mod (names_3, seed, 4));
+			s3a = choose_str_mod (names_3, seed, 4);
+			s3b = "";
 		} else { // river name suffix
-			buf->append (choose_str_mod (names_river1, seed,  4));
-			buf->append (choose_str_mod (names_river2, seed, 16));
+			s3a = choose_str_mod (names_river1, seed,  4);
+			s3b = choose_str_mod (names_river2, seed, 16);
 		}
+	} else {
+		s3a = s3b = "";
 	}
+
+	buf->append_fmt ("%s%s%s%s%s%s", prefix, s1, s2a, s2b, s3a, s3b);
 }
 
 
@@ -1877,26 +1907,29 @@ static void MakeCatalanTownName (stringb *buf, uint32 seed)
 		return;
 	}
 
-	if (SeedModChance(0, 2, seed) == 0) { // prefix
-		buf->append (choose_str_mod (names_pref, seed, 11));
-	}
+	const char *prefix = (SeedModChance (0, 2, seed) == 0) ? // prefix
+		choose_str_mod (names_pref, seed, 11) : "";
 
 	uint i = SeedChance(0, 2, seed);
+	const char *s1, *s2;
 	if (i == 0) { // masculine form
-		buf->append (choose_str_mod (names_1m, seed,  4));
-		buf->append (choose_str_mod (names_2m, seed, 11));
+		s1 = choose_str_mod (names_1m, seed,  4);
+		s2 = choose_str_mod (names_2m, seed, 11);
 	} else { // feminine form
-		buf->append (choose_str_mod (names_1f, seed,  4));
-		buf->append (choose_str_mod (names_2f, seed, 11));
+		s1 = choose_str_mod (names_1f, seed,  4);
+		s2 = choose_str_mod (names_2f, seed, 11);
 	}
 
+	const char *s3;
 	if (SeedModChance(15, 5, seed) == 0) {
-		if (SeedModChance(5, 2, seed) == 0) { // generic suffix
-			buf->append (choose_str_mod (names_3, seed, 4));
-		} else { // river name suffix
-			buf->append (choose_str_mod (names_river1, seed, 4));
-		}
+		s3 = (SeedModChance (5, 2, seed) == 0) ?
+			choose_str_mod (names_3, seed, 4) : // generic suffix
+			choose_str_mod (names_river1, seed, 4); // river name suffix
+	} else {
+		s3 = "";
 	}
+
+	buf->append_fmt ("%s%s%s%s", prefix, s1, s2, s3);
 }
 
 
