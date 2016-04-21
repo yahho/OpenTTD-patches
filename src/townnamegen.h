@@ -12,6 +12,9 @@
 
 #include "string.h"
 
+/** Number of original town name generators. */
+static const uint N_ORIG_TOWN_NAME_GEN = 21;
+
 void GenerateTownNameString (stringb *buf, uint lang, uint32 seed);
 
 #endif /* TOWNNAMEGEN_H */

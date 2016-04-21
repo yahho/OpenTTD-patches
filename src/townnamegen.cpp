@@ -1971,6 +1971,8 @@ static const TownNameGeneratorParams _town_name_generators[] = {
 	{  0, MakeCatalanTownName},
 };
 
+assert_compile (lengthof(_town_name_generators) == N_ORIG_TOWN_NAME_GEN);
+
 
 /**
  * Generates town name from given seed. a language.

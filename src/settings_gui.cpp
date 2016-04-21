@@ -19,6 +19,7 @@
 #include "network/network.h"
 #include "town.h"
 #include "settings_internal.h"
+#include "townnamegen.h"
 #include "newgrf_townname.h"
 #include "strings_func.h"
 #include "window_func.h"
@@ -61,7 +62,6 @@ static const StringID _gui_zoom_dropdown[] = {
 	INVALID_STRING_ID,
 };
 
-int _nb_orig_names = SPECSTR_TOWNNAME_LAST - SPECSTR_TOWNNAME_START + 1; ///< Number of original town names.
 static StringID *_grf_names = NULL; ///< Pointer to town names defined by NewGRFs.
 static int _nb_grf_names = 0;       ///< Number of town names defined by NewGRFs.
 
@@ -99,8 +99,8 @@ void InitGRFTownGeneratorNames()
  */
 static inline StringID TownName(int town_name)
 {
-	if (town_name < _nb_orig_names) return STR_GAME_OPTIONS_TOWN_NAME_ORIGINAL_ENGLISH + town_name;
-	town_name -= _nb_orig_names;
+	if (town_name < (int)N_ORIG_TOWN_NAME_GEN) return STR_GAME_OPTIONS_TOWN_NAME_ORIGINAL_ENGLISH + town_name;
+	town_name -= N_ORIG_TOWN_NAME_GEN;
 	if (town_name < _nb_grf_names) return _grf_names[town_name];
 	return STR_UNDEFINED;
 }
@@ -246,8 +246,8 @@ struct GameOptionsWindow : Window {
 
 				/* Add and sort newgrf townnames generators */
 				for (int i = 0; i < _nb_grf_names; i++) {
-					int result = _nb_orig_names + i;
-					*list->Append() = new DropDownListStringItem(_grf_names[i], result, enabled_item != result && enabled_item >= 0);
+					int result = N_ORIG_TOWN_NAME_GEN + i;
+					*list->Append() = new DropDownListStringItem (_grf_names[i], result, enabled_item != result && enabled_item >= 0);
 				}
 				QSortT(list->Begin(), list->Length(), DropDownListStringItem::NatSortFunc);
 
@@ -259,8 +259,8 @@ struct GameOptionsWindow : Window {
 				}
 
 				/* Add and sort original townnames generators */
-				for (int i = 0; i < _nb_orig_names; i++) {
-					*list->Append() = new DropDownListStringItem(STR_GAME_OPTIONS_TOWN_NAME_ORIGINAL_ENGLISH + i, i, enabled_item != i && enabled_item >= 0);
+				for (uint i = 0; i < N_ORIG_TOWN_NAME_GEN; i++) {
+					*list->Append() = new DropDownListStringItem(STR_GAME_OPTIONS_TOWN_NAME_ORIGINAL_ENGLISH + i, i, enabled_item != (int)i && enabled_item >= 0);
 				}
 				QSortT(list->Begin() + newgrf_size, list->Length() - newgrf_size, DropDownListStringItem::NatSortFunc);
 				break;

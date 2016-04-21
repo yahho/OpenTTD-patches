@@ -15,6 +15,7 @@
 #ifndef TOWNNAME_TYPE_H
 #define TOWNNAME_TYPE_H
 
+#include "townnamegen.h"
 #include "newgrf_townname.h"
 #include "town_type.h"
 #include <set>
@@ -36,10 +37,11 @@ struct TownNameParams {
 	 */
 	TownNameParams(byte town_name)
 	{
-		extern int _nb_orig_names;
-		bool grf = town_name >= _nb_orig_names;
-		this->grfid = grf ? GetGRFTownNameId(town_name - _nb_orig_names) : 0;
-		this->type = grf ? GetGRFTownNameType(town_name - _nb_orig_names) : SPECSTR_TOWNNAME_START + town_name;
+		assert_compile (SPECSTR_TOWNNAME_LAST - SPECSTR_TOWNNAME_START + 1 == N_ORIG_TOWN_NAME_GEN);
+
+		bool grf = town_name >= N_ORIG_TOWN_NAME_GEN;
+		this->grfid = grf ? GetGRFTownNameId (town_name - N_ORIG_TOWN_NAME_GEN) : 0;
+		this->type = grf ? GetGRFTownNameType (town_name - N_ORIG_TOWN_NAME_GEN) : SPECSTR_TOWNNAME_START + town_name;
 	}
 
 	TownNameParams(const Town *t);

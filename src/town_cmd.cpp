@@ -40,6 +40,7 @@
 #include "subsidy_func.h"
 #include "core/pool_func.hpp"
 #include "town.h"
+#include "townnamegen.h"
 #include "townname_func.h"
 #include "core/random_func.hpp"
 #include "core/backup_type.hpp"
@@ -1642,15 +1643,16 @@ static void DoCreateTown(Town *t, TileIndex tile, uint32 townnameparts, TownSize
 	t->exclusive_counter = 0;
 	t->statues = 0;
 
-	extern int _nb_orig_names;
-	if (_settings_game.game_creation.town_name < _nb_orig_names) {
+	assert_compile (SPECSTR_TOWNNAME_LAST - SPECSTR_TOWNNAME_START + 1 == N_ORIG_TOWN_NAME_GEN);
+
+	if (_settings_game.game_creation.town_name < N_ORIG_TOWN_NAME_GEN) {
 		/* Original town name */
 		t->townnamegrfid = 0;
 		t->townnametype = SPECSTR_TOWNNAME_START + _settings_game.game_creation.town_name;
 	} else {
 		/* Newgrf town name */
-		t->townnamegrfid = GetGRFTownNameId(_settings_game.game_creation.town_name  - _nb_orig_names);
-		t->townnametype  = GetGRFTownNameType(_settings_game.game_creation.town_name - _nb_orig_names);
+		t->townnamegrfid = GetGRFTownNameId (_settings_game.game_creation.town_name  - N_ORIG_TOWN_NAME_GEN);
+		t->townnametype  = GetGRFTownNameType (_settings_game.game_creation.town_name - N_ORIG_TOWN_NAME_GEN);
 	}
 	t->townnameparts = townnameparts;
 
