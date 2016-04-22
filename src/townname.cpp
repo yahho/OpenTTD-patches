@@ -13,7 +13,7 @@
 #include "string.h"
 #include "townname_type.h"
 #include "town.h"
-#include "strings_func.h"
+#include "townnamegen.h"
 #include "core/random_func.hpp"
 #include "genworld.h"
 #include "gfx_layout.h"
@@ -45,9 +45,7 @@ TownNameParams::TownNameParams(const Town *t) :
 void AppendTownName (stringb *buf, const TownNameParams *par, uint32 townnameparts)
 {
 	if (par->grfid == 0) {
-		int64 args_array[1] = { townnameparts };
-		StringParameters tmp_params(args_array);
-		AppendStringWithArgs (buf, par->type, &tmp_params);
+		GenerateTownNameString (buf, par->type - SPECSTR_TOWNNAME_START, townnameparts);
 	} else {
 		GRFTownNameGenerate (buf, par->grfid, par->type, townnameparts);
 	}
