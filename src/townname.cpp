@@ -24,15 +24,9 @@
  * @param t town for which we will be printing name later
  */
 TownNameParams::TownNameParams(const Town *t) :
-		grfid(t->townnamegrfid), // by default, use supplied data
+		grfid(t->townnamegrfid), // use supplied data
 		type(t->townnametype)
 {
-	if (t->townnamegrfid != 0 && GetGRFTownName(t->townnamegrfid) == NULL) {
-		/* Fallback to english original */
-		this->grfid = 0;
-		this->type = SPECSTR_TOWNNAME_ENGLISH;
-		return;
-	}
 }
 
 
@@ -59,8 +53,13 @@ void AppendTownName (stringb *buf, const TownNameParams *par, uint32 townnamepar
  */
 void AppendTownName (stringb *buf, const Town *t)
 {
-	TownNameParams par(t);
-	AppendTownName (buf, &par, t->townnameparts);
+	if (t->townnamegrfid != 0 && GetGRFTownName (t->townnamegrfid) == NULL) {
+		/* Fallback to english original */
+		GenerateTownNameString (buf, SPECSTR_TOWNNAME_ENGLISH - SPECSTR_TOWNNAME_START, t->townnameparts);
+	} else {
+		TownNameParams par (t);
+		AppendTownName (buf, &par, t->townnameparts);
+	}
 }
 
 
