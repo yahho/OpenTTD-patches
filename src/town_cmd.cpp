@@ -1674,26 +1674,26 @@ static void DoCreateTown(Town *t, TileIndex tile, uint32 townnameparts, TownSize
 /**
  * Checks if it's possible to place a town at given tile
  * @param tile tile to check
- * @return error value or zero cost
+ * @return error string or STR_NULL on success
  */
-static CommandCost TownCanBePlacedHere(TileIndex tile)
+static StringID TownCanBePlacedHere (TileIndex tile)
 {
 	/* Check if too close to the edge of map */
 	if (DistanceFromEdge(tile) < 12) {
-		return_cmd_error(STR_ERROR_TOO_CLOSE_TO_EDGE_OF_MAP_SUB);
+		return STR_ERROR_TOO_CLOSE_TO_EDGE_OF_MAP_SUB;
 	}
 
 	/* Check distance to all other towns. */
 	if (Town::find_any<DistanceManhattan> (tile, 19)) {
-		return_cmd_error(STR_ERROR_TOO_CLOSE_TO_ANOTHER_TOWN);
+		return STR_ERROR_TOO_CLOSE_TO_ANOTHER_TOWN;
 	}
 
 	/* Can only build on clear flat areas, possibly with trees. */
 	if (!IsGroundTile(tile) || !IsTileFlat(tile)) {
-		return_cmd_error(STR_ERROR_SITE_UNSUITABLE);
+		return STR_ERROR_SITE_UNSUITABLE;
 	}
 
-	return CommandCost(EXPENSES_OTHER);
+	return STR_NULL;
 }
 
 /**
@@ -1762,8 +1762,8 @@ CommandCost CmdFoundTown(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 
 	if (!Town::CanAllocateItem()) return_cmd_error(STR_ERROR_TOO_MANY_TOWNS);
 
 	if (!random) {
-		CommandCost ret = TownCanBePlacedHere(tile);
-		if (ret.Failed()) return ret;
+		StringID str = TownCanBePlacedHere (tile);
+		if (str != STR_NULL) return_cmd_error(str);
 	}
 
 	static const byte price_mult[][TSZ_RANDOM + 1] = {{ 15, 25, 40, 25 }, { 20, 35, 55, 35 }};
@@ -1911,7 +1911,7 @@ static Town *CreateRandomTown(uint attempts, uint32 townnameparts, TownSize size
 		}
 
 		/* Make sure town can be placed here */
-		if (TownCanBePlacedHere(tile).Failed()) continue;
+		if (TownCanBePlacedHere (tile) != STR_NULL) continue;
 
 		/* Allocate a town struct */
 		Town *t = new Town(tile);
