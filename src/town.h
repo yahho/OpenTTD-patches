@@ -120,8 +120,6 @@ struct Town : PooledItem <Town, TownID, 64, 64000>, TileSetObject <Town, get_tow
 	/** Destroy the town. */
 	~Town();
 
-	void InitializeLayout(TownLayout layout);
-
 	/**
 	 * Calculate the max town noise.
 	 * The value is counted using the population divided by the content of the
