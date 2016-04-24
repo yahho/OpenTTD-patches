@@ -1588,6 +1588,58 @@ void UpdateTownMaxPass(Town *t)
 }
 
 /**
+ * Town constructor.
+ * @param tile Center tile of the town.
+ * @param townnameparts Town name.
+ * @param city Whether the town is a city.
+ * @param layout Road layout of the town.
+ */
+Town::Town (TileIndex tile, uint32 townnameparts, bool city, TownLayout layout) :
+	xy (tile), townnameparts (townnameparts), name (NULL), flags (0),
+	noise_reached (0), statues (0), have_ratings (0), text (NULL),
+	time_until_rebuild (10), grow_counter (0), growth_rate (250),
+	fund_buildings_months (0), larger_town (city)
+{
+	add_to_tileset();
+
+	this->cache.num_houses = 0;
+	this->cache.population = 0;
+	UpdateTownRadius (this);
+
+	assert_compile (SPECSTR_TOWNNAME_LAST - SPECSTR_TOWNNAME_START + 1 == N_ORIG_TOWN_NAME_GEN);
+
+	if (_settings_game.game_creation.town_name < N_ORIG_TOWN_NAME_GEN) {
+		/* Original town name */
+		this->townnamegrfid = 0;
+		this->townnametype = SPECSTR_TOWNNAME_START + _settings_game.game_creation.town_name;
+	} else {
+		/* Newgrf town name */
+		this->townnamegrfid = GetGRFTownNameId (_settings_game.game_creation.town_name  - N_ORIG_TOWN_NAME_GEN);
+		this->townnametype  = GetGRFTownNameType (_settings_game.game_creation.town_name - N_ORIG_TOWN_NAME_GEN);
+	}
+
+	this->exclusivity = INVALID_COMPANY;
+	this->exclusive_counter = 0;
+
+	for (uint i = 0; i != MAX_COMPANIES; i++) this->ratings[i] = RATING_INITIAL;
+
+	/* Set the default cargo requirement for town growth */
+	switch (_settings_game.game_creation.landscape) {
+		case LT_ARCTIC:
+			if (FindFirstCargoWithTownEffect(TE_FOOD) != NULL) this->goal[TE_FOOD] = TOWN_GROWTH_WINTER;
+			break;
+
+		case LT_TROPIC:
+			if (FindFirstCargoWithTownEffect(TE_FOOD) != NULL) this->goal[TE_FOOD] = TOWN_GROWTH_DESERT;
+			if (FindFirstCargoWithTownEffect(TE_WATER) != NULL) this->goal[TE_WATER] = TOWN_GROWTH_DESERT;
+			break;
+	}
+
+	this->layout = (layout != TL_RANDOM) ? layout :
+			(TownLayout) (TileHash (TileX(tile), TileY(tile)) % (NUM_TLS - 1));
+}
+
+/**
  * Does the actual town creation.
  * @param tile Where to put it
  * @param townnameparts The town name
@@ -1600,59 +1652,7 @@ void UpdateTownMaxPass(Town *t)
 static Town *DoCreateTown (TileIndex tile, uint32 townnameparts,
 	TownSize size, bool city, TownLayout layout, bool manual)
 {
-	Town *t = new Town (tile);
-
-	t->xy = tile;
-	t->cache.num_houses = 0;
-	t->time_until_rebuild = 10;
-	UpdateTownRadius(t);
-	t->flags = 0;
-	t->cache.population = 0;
-	t->grow_counter = 0;
-	t->growth_rate = 250;
-
-	/* Set the default cargo requirement for town growth */
-	switch (_settings_game.game_creation.landscape) {
-		case LT_ARCTIC:
-			if (FindFirstCargoWithTownEffect(TE_FOOD) != NULL) t->goal[TE_FOOD] = TOWN_GROWTH_WINTER;
-			break;
-
-		case LT_TROPIC:
-			if (FindFirstCargoWithTownEffect(TE_FOOD) != NULL) t->goal[TE_FOOD] = TOWN_GROWTH_DESERT;
-			if (FindFirstCargoWithTownEffect(TE_WATER) != NULL) t->goal[TE_WATER] = TOWN_GROWTH_DESERT;
-			break;
-	}
-
-	t->fund_buildings_months = 0;
-
-	for (uint i = 0; i != MAX_COMPANIES; i++) t->ratings[i] = RATING_INITIAL;
-
-	t->have_ratings = 0;
-	t->exclusivity = INVALID_COMPANY;
-	t->exclusive_counter = 0;
-	t->statues = 0;
-
-	assert_compile (SPECSTR_TOWNNAME_LAST - SPECSTR_TOWNNAME_START + 1 == N_ORIG_TOWN_NAME_GEN);
-
-	if (_settings_game.game_creation.town_name < N_ORIG_TOWN_NAME_GEN) {
-		/* Original town name */
-		t->townnamegrfid = 0;
-		t->townnametype = SPECSTR_TOWNNAME_START + _settings_game.game_creation.town_name;
-	} else {
-		/* Newgrf town name */
-		t->townnamegrfid = GetGRFTownNameId (_settings_game.game_creation.town_name  - N_ORIG_TOWN_NAME_GEN);
-		t->townnametype  = GetGRFTownNameType (_settings_game.game_creation.town_name - N_ORIG_TOWN_NAME_GEN);
-	}
-	t->townnameparts = townnameparts;
-
-	t->UpdateVirtCoord();
-	InvalidateWindowData(WC_TOWN_DIRECTORY, 0, 0);
-	InvalidateWindowData(WC_SELECT_TOWN, 0);
-
-	t->layout = (layout != TL_RANDOM) ? layout :
-			(TownLayout) (TileHash (TileX(tile), TileY(tile)) % (NUM_TLS - 1));
-
-	t->larger_town = city;
+	Town *t = new Town (tile, townnameparts, city, layout);
 
 	int x = (int)size * 16 + 3;
 	if (size == TSZ_RANDOM) x = (Random() & 0xF) + 8;
@@ -1671,6 +1671,10 @@ static Town *DoCreateTown (TileIndex tile, uint32 townnameparts,
 	UpdateTownRadius(t);
 	UpdateTownMaxPass(t);
 	UpdateAirportsNoise();
+
+	t->UpdateVirtCoord();
+	InvalidateWindowData(WC_TOWN_DIRECTORY, 0, 0);
+	InvalidateWindowData(WC_SELECT_TOWN, 0);
 
 	return t;
 }

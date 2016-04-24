@@ -103,14 +103,7 @@ struct Town : PooledItem <Town, TownID, 64, 64000>, TileSetObject <Town, get_tow
 
 	std::list<PersistentStorage *> psa_list;
 
-	/**
-	 * Creates a new town.
-	 * @param tile center tile of the town
-	 */
-	Town(TileIndex tile) : xy(tile)
-	{
-		add_to_tileset();
-	}
+	Town (TileIndex tile, uint32 townnameparts, bool city, TownLayout layout);
 
 	/**
 	 * Creates an unplaced town (during game loading)
