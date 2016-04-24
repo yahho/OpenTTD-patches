@@ -1589,17 +1589,19 @@ void UpdateTownMaxPass(Town *t)
 
 /**
  * Does the actual town creation.
- *
- * @param t The town
  * @param tile Where to put it
  * @param townnameparts The town name
  * @param size Parameter for size determination
  * @param city whether to build a city or town
  * @param layout the (road) layout of the town
  * @param manual was the town placed manually?
+ * @return The created town
  */
-static void DoCreateTown(Town *t, TileIndex tile, uint32 townnameparts, TownSize size, bool city, TownLayout layout, bool manual)
+static Town *DoCreateTown (TileIndex tile, uint32 townnameparts,
+	TownSize size, bool city, TownLayout layout, bool manual)
 {
+	Town *t = new Town (tile);
+
 	t->xy = tile;
 	t->cache.num_houses = 0;
 	t->time_until_rebuild = 10;
@@ -1669,6 +1671,8 @@ static void DoCreateTown(Town *t, TileIndex tile, uint32 townnameparts, TownSize
 	UpdateTownRadius(t);
 	UpdateTownMaxPass(t);
 	UpdateAirportsNoise();
+
+	return t;
 }
 
 /**
@@ -1793,8 +1797,7 @@ CommandCost CmdFoundTown(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 
 				_new_town_id = t->index;
 			}
 		} else {
-			t = new Town(tile);
-			DoCreateTown(t, tile, townnameparts, size, city, layout, true);
+			t = DoCreateTown (tile, townnameparts, size, city, layout, true);
 		}
 		UpdateNearestTownForRoadTiles(false);
 		old_generating_world.Restore();
@@ -1914,9 +1917,7 @@ static Town *CreateRandomTown(uint attempts, uint32 townnameparts, TownSize size
 		if (TownCanBePlacedHere (tile) != STR_NULL) continue;
 
 		/* Allocate a town struct */
-		Town *t = new Town(tile);
-
-		DoCreateTown(t, tile, townnameparts, size, city, layout, false);
+		Town *t = DoCreateTown (tile, townnameparts, size, city, layout, false);
 
 		/* if the population is still 0 at the point, then the
 		 * placement is so bad it couldn't grow at all */
