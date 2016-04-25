@@ -17,7 +17,7 @@
 
 #include "townnamegen.h"
 #include "newgrf_townname.h"
-#include "town_type.h"
+
 #include <set>
 #include <string>
 
@@ -48,8 +48,6 @@ struct TownNameParams {
 		this->grfid = grf ? GetGRFTownNameId (town_name - N_ORIG_TOWN_NAME_GEN) : 0;
 		this->type = grf ? GetGRFTownNameType (town_name - N_ORIG_TOWN_NAME_GEN) : SPECSTR_TOWNNAME_START + town_name;
 	}
-
-	TownNameParams(const Town *t);
 };
 
 #endif /* TOWNNAME_TYPE_H */

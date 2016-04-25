@@ -20,17 +20,6 @@
 
 
 /**
- * Initializes this struct from town data
- * @param t town for which we will be printing name later
- */
-TownNameParams::TownNameParams(const Town *t) :
-		grfid(t->townnameparams.grfid), // use supplied data
-		type(t->townnameparams.type)
-{
-}
-
-
-/**
  * Fills buffer with specified town name
  * @param buf buffer
  * @param par town name parameters
@@ -57,8 +46,7 @@ void AppendTownName (stringb *buf, const Town *t)
 		/* Fallback to english original */
 		GenerateTownNameString (buf, SPECSTR_TOWNNAME_ENGLISH - SPECSTR_TOWNNAME_START, t->townnameparts);
 	} else {
-		TownNameParams par (t);
-		AppendTownName (buf, &par, t->townnameparts);
+		AppendTownName (buf, &t->townnameparams, t->townnameparts);
 	}
 }
 
