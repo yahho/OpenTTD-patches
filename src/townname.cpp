@@ -14,6 +14,7 @@
 #include "townname_type.h"
 #include "town.h"
 #include "townnamegen.h"
+#include "newgrf_townname.h"
 #include "core/random_func.hpp"
 #include "genworld.h"
 #include "gfx_layout.h"

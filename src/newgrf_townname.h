@@ -50,7 +50,5 @@ void DelGRFTownName(uint32 grfid);
 void CleanUpGRFTownNames();
 StringID *GetGRFTownNameList();
 void GRFTownNameGenerate (stringb *buf, uint32 grfid, uint16 gen, uint32 seed);
-uint32 GetGRFTownNameId(int gen);
-uint16 GetGRFTownNameType(int gen);
 
 #endif /* NEWGRF_TOWNNAME_H */

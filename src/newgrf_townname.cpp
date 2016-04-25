@@ -16,6 +16,8 @@
 
 #include "stdafx.h"
 #include "newgrf_townname.h"
+#include "townnamegen.h"
+#include "townname_type.h"
 #include "core/alloc_func.hpp"
 #include "string.h"
 
@@ -115,22 +117,28 @@ void CleanUpGRFTownNames()
 	while (_grf_townnames != NULL) DelGRFTownName(_grf_townnames->grfid);
 }
 
-uint32 GetGRFTownNameId(int gen)
+/**
+ * Initializes this struct from language ID
+ * @param town_name town name 'language' ID
+ */
+TownNameParams::TownNameParams (byte town_name)
 {
-	for (GRFTownName *t = _grf_townnames; t != NULL; t = t->next) {
-		if (gen < t->nb_gen) return t->grfid;
-		gen -= t->nb_gen;
-	}
-	/* Fallback to no NewGRF */
-	return 0;
-}
+	assert_compile (SPECSTR_TOWNNAME_LAST - SPECSTR_TOWNNAME_START + 1 == N_ORIG_TOWN_NAME_GEN);
 
-uint16 GetGRFTownNameType(int gen)
-{
-	for (GRFTownName *t = _grf_townnames; t != NULL; t = t->next) {
-		if (gen < t->nb_gen) return gen;
-		gen -= t->nb_gen;
+	if (town_name >= N_ORIG_TOWN_NAME_GEN) {
+		int gen = town_name - N_ORIG_TOWN_NAME_GEN;
+		for (GRFTownName *t = _grf_townnames; t != NULL; t = t->next) {
+			if (gen < t->nb_gen) {
+				this->grfid = t->grfid;
+				this->type  = gen;
+				return;
+			}
+			gen -= t->nb_gen;
+		}
+		/* Fallback to english original */
+		town_name = SPECSTR_TOWNNAME_ENGLISH - SPECSTR_TOWNNAME_START;
 	}
-	/* Fallback to english original */
-	return SPECSTR_TOWNNAME_ENGLISH;
+
+	this->grfid = 0;
+	this->type  = SPECSTR_TOWNNAME_START + town_name;
 }
