@@ -19,6 +19,7 @@
 #include "cargotype.h"
 #include "tilematrix_type.hpp"
 #include "map/tileset.h"
+#include "townname_type.h"
 #include <list>
 
 template <typename T>
@@ -59,8 +60,7 @@ struct Town : PooledItem <Town, TownID, 64, 64000>, TileSetObject <Town, get_tow
 	TownCache cache; ///< Container for all cacheable data.
 
 	/* Town name */
-	uint32 townnamegrfid;
-	uint16 townnametype;
+	TownNameParams townnameparams;
 	uint32 townnameparts;
 	char *name;                    ///< Custom town name. If NULL, the town was not renamed and uses the generated name.
 

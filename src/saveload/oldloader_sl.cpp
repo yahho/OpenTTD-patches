@@ -200,8 +200,8 @@ static void FixOldTowns()
 
 	/* Convert town-names if needed */
 	FOR_ALL_TOWNS(town) {
-		if (IsInsideMM(town->townnametype, 0x20C1, 0x20C3)) {
-			town->townnametype = SPECSTR_TOWNNAME_ENGLISH + _settings_game.game_creation.town_name;
+		if (IsInsideMM (town->townnameparams.type, 0x20C1, 0x20C3)) {
+			town->townnameparams.type = SPECSTR_TOWNNAME_ENGLISH + _settings_game.game_creation.town_name;
 			town->townnameparts = RemapOldTownName(town->townnameparts, _settings_game.game_creation.town_name);
 		}
 	}
@@ -576,7 +576,7 @@ static void ReadTTDPatchFlags(SavegameTypeVersion *stv)
 static const OldChunks town_chunk[] = {
 	OCL_SVAR(   OC_TILE, Town, xy ),
 	OCL_NULL( 2 ),         ///< population,        no longer in use
-	OCL_SVAR( OC_UINT16, Town, townnametype ),
+	OCL_SVAR( OC_UINT16, Town, townnameparams.type ),
 	OCL_SVAR( OC_UINT32, Town, townnameparts ),
 	OCL_SVAR(  OC_FILE_U8 | OC_VAR_U16, Town, grow_counter ),
 	OCL_NULL( 1 ),         ///< sort_index,        no longer in use
@@ -632,7 +632,7 @@ static bool LoadOldTown(LoadgameState *ls, int num)
 	if (t->xy != 0) {
 		if (ls->stv->type == SGT_TTO) {
 			/* 0x10B6 is auto-generated name, others are custom names */
-			t->townnametype = t->townnametype == 0x10B6 ? 0x20C1 : t->townnametype + 0x2A00;
+			t->townnameparams.type = t->townnameparams.type == 0x10B6 ? 0x20C1 : t->townnameparams.type + 0x2A00;
 		}
 		t->add_to_tileset();
 	} else {

@@ -1595,7 +1595,8 @@ void UpdateTownMaxPass(Town *t)
  * @param layout Road layout of the town.
  */
 Town::Town (TileIndex tile, uint32 townnameparts, bool city, TownLayout layout) :
-	xy (tile), townnameparts (townnameparts), name (NULL), flags (0),
+	xy (tile), townnameparams (_settings_game.game_creation.town_name),
+	townnameparts (townnameparts), name (NULL), flags (0),
 	noise_reached (0), statues (0), have_ratings (0), text (NULL),
 	time_until_rebuild (10), grow_counter (0), growth_rate (250),
 	fund_buildings_months (0), larger_town (city)
@@ -1605,18 +1606,6 @@ Town::Town (TileIndex tile, uint32 townnameparts, bool city, TownLayout layout) 
 	this->cache.num_houses = 0;
 	this->cache.population = 0;
 	UpdateTownRadius (this);
-
-	assert_compile (SPECSTR_TOWNNAME_LAST - SPECSTR_TOWNNAME_START + 1 == N_ORIG_TOWN_NAME_GEN);
-
-	if (_settings_game.game_creation.town_name < N_ORIG_TOWN_NAME_GEN) {
-		/* Original town name */
-		this->townnamegrfid = 0;
-		this->townnametype = SPECSTR_TOWNNAME_START + _settings_game.game_creation.town_name;
-	} else {
-		/* Newgrf town name */
-		this->townnamegrfid = GetGRFTownNameId (_settings_game.game_creation.town_name  - N_ORIG_TOWN_NAME_GEN);
-		this->townnametype  = GetGRFTownNameType (_settings_game.game_creation.town_name - N_ORIG_TOWN_NAME_GEN);
-	}
 
 	this->exclusivity = INVALID_COMPANY;
 	this->exclusive_counter = 0;

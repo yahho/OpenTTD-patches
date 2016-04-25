@@ -31,6 +31,11 @@ struct TownNameParams {
 	uint32 grfid; ///< newgrf ID (0 if not used)
 	uint16 type;  ///< town name style
 
+	/** Empty constructor. */
+	TownNameParams (void) : grfid (0), type (0)
+	{
+	}
+
 	/**
 	 * Initializes this struct from language ID
 	 * @param town_name town name 'language' ID

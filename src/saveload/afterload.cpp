@@ -439,8 +439,8 @@ void AfterLoadGame(const SavegameTypeVersion *stv)
 
 		Town *t;
 		FOR_ALL_TOWNS(t) {
-			t->name = CopyFromOldName(stv, t->townnametype);
-			if (t->name != NULL) t->townnametype = SPECSTR_TOWNNAME_START + _settings_game.game_creation.town_name;
+			t->name = CopyFromOldName (stv, t->townnameparams.type);
+			if (t->name != NULL) t->townnameparams.type = SPECSTR_TOWNNAME_START + _settings_game.game_creation.town_name;
 		}
 	}
 
