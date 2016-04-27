@@ -403,9 +403,7 @@ static const void *StringToVal(const SettingDescBase *desc, const char *orig_str
 			return desc->def;
 		}
 
-		case SDT_STRING: return orig_str;
-		case SDT_INTLIST: return str;
-		default: break;
+		default: NOT_REACHED();
 	}
 
 	return NULL;
@@ -508,29 +506,34 @@ static void IniLoadSettings(IniFile *ini, const SettingDesc *sd, const char *grp
 			if (sc != NULL) item = ini->get_group (s, sc - s)->find (sc + 1);
 		}
 
-		const void *p = (item == NULL) ? sdb->def : StringToVal(sdb, item->value);
 		void *ptr = sld->get_variable_address (object);
 
 		switch (sdb->cmd) {
 			case SDT_BOOLX: // All four are various types of (integer) numbers
 			case SDT_NUMX:
 			case SDT_ONEOFMANY:
-			case SDT_MANYOFMANY:
+			case SDT_MANYOFMANY: {
+				const void *p = (item == NULL) ? sdb->def : StringToVal (sdb, item->value);
 				Write_ValidateSetting(ptr, sd, (int32)(size_t)p);
 				break;
+			}
 
-			case SDT_STRING:
+			case SDT_STRING: {
 				assert (sld->type == SL_STR);
+				const char *str = (item == NULL) ? (const char*)sdb->def : item->value;
 				if (sld->length == 0) {
 					free(*(char**)ptr);
-					*(char**)ptr = p == NULL ? NULL : xstrdup((const char*)p);
+					*(char**)ptr = str == NULL ? NULL : xstrdup (str);
 				} else {
-					if (p != NULL) ttd_strlcpy((char*)ptr, (const char*)p, sld->length);
+					if (str != NULL) ttd_strlcpy ((char*)ptr, str, sld->length);
 				}
 				break;
+			}
 
 			case SDT_INTLIST: {
-				if (!LoadIntList((const char*)p, ptr, sld->length, GetVarMemType(sld->conv))) {
+				const char *str = (item == NULL) ? (const char*)sdb->def :
+						(item->value == NULL) ? "" : item->value;
+				if (!LoadIntList (str, ptr, sld->length, GetVarMemType (sld->conv))) {
 					ErrorMessageData msg(STR_CONFIG_ERROR, STR_CONFIG_ERROR_ARRAY);
 					msg.SetDParamStr(0, sdb->name);
 					_settings_error_list.push_back(msg);
@@ -538,7 +541,7 @@ static void IniLoadSettings(IniFile *ini, const SettingDesc *sd, const char *grp
 					/* Use default */
 					LoadIntList((const char*)sdb->def, ptr, sld->length, GetVarMemType(sld->conv));
 				} else if (sd->desc.proc_cnvt != NULL) {
-					sd->desc.proc_cnvt((const char*)p);
+					sd->desc.proc_cnvt (str);
 				}
 				break;
 			}
