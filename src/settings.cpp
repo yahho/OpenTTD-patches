@@ -587,17 +587,19 @@ static void IniSaveSettings(IniFile *ini, const SettingDesc *sd, const char *grp
 		IniItem *item = group->get_item (s);
 		void *ptr = sld->get_variable_address (object);
 
-		if (item->value != NULL) {
-			/* check if the value is the same as the old value */
-			const void *p = StringToVal(sdb, item->value);
+		/* Get the new value and put it into a buffer. */
+		char *new_value;
+		switch (sdb->cmd) {
+			case SDT_BOOLX:
+			case SDT_NUMX:
+			case SDT_ONEOFMANY:
+			case SDT_MANYOFMANY: {
+				if (item->value != NULL) {
+					/* check if the value is the same as the old value */
+					const void *p = StringToVal (sdb, item->value);
 
-			/* The main type of a variable/setting is in bytes 8-15
-			 * The subtype (what kind of numbers do we have there) is in 0-7 */
-			switch (sdb->cmd) {
-				case SDT_BOOLX:
-				case SDT_NUMX:
-				case SDT_ONEOFMANY:
-				case SDT_MANYOFMANY:
+					/* The main type of a variable/setting is in bytes 8-15
+					 * The subtype (what kind of numbers do we have there) is in 0-7 */
 					assert(sld->type == SL_VAR);
 					switch (GetVarMemType(sld->conv)) {
 						case SLE_VAR_BL:
@@ -621,19 +623,8 @@ static void IniSaveSettings(IniFile *ini, const SettingDesc *sd, const char *grp
 
 						default: NOT_REACHED();
 					}
-					break;
+				}
 
-				default: break; // Assume the other types are always changed
-			}
-		}
-
-		/* Value has changed, get the new value and put it into a buffer */
-		char *new_value;
-		switch (sdb->cmd) {
-			case SDT_BOOLX:
-			case SDT_NUMX:
-			case SDT_ONEOFMANY:
-			case SDT_MANYOFMANY: {
 				uint32 i = (uint32)ReadValue(ptr, sld->conv);
 
 				switch (sdb->cmd) {
