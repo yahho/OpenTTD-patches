@@ -345,7 +345,7 @@ static char *MakeManyOfMany (const char *many, uint32 x)
  * @param orig_str input string that will be parsed based on the type of desc
  * @return return the parsed value of the setting
  */
-static const void *StringToVal(const SettingDescBase *desc, const char *orig_str)
+static size_t StringToVal (const SettingDescBase *desc, const char *orig_str)
 {
 	const char *str = orig_str == NULL ? "" : orig_str;
 
@@ -359,7 +359,7 @@ static const void *StringToVal(const SettingDescBase *desc, const char *orig_str
 				msg.SetDParamStr(0, desc->name);
 				_settings_error_list.push_back(msg);
 			}
-			return (void*)val;
+			return val;
 		}
 
 		case SDT_ONEOFMANY: {
@@ -367,19 +367,19 @@ static const void *StringToVal(const SettingDescBase *desc, const char *orig_str
 			/* if the first attempt of conversion from string to the appropriate value fails,
 			 * look if we have defined a converter from old value to new value. */
 			if (r == (size_t)-1 && desc->proc_cnvt != NULL) r = desc->proc_cnvt(str);
-			if (r != (size_t)-1) return (void*)r; // and here goes converted value
+			if (r != (size_t)-1) return r; // and here goes converted value
 			break;
 		}
 
 		case SDT_MANYOFMANY: {
 			size_t r = LookupManyOfMany(desc->many, str);
-			if (r != (size_t)-1) return (void*)r;
+			if (r != (size_t)-1) return r;
 			break;
 		}
 
 		case SDT_BOOLX:
-			if (strcmp(str, "true")  == 0 || strcmp(str, "on")  == 0 || strcmp(str, "1") == 0) return (void*)true;
-			if (strcmp(str, "false") == 0 || strcmp(str, "off") == 0 || strcmp(str, "0") == 0) return (void*)false;
+			if (strcmp(str, "true")  == 0 || strcmp(str, "on")  == 0 || strcmp(str, "1") == 0) return 1;
+			if (strcmp(str, "false") == 0 || strcmp(str, "off") == 0 || strcmp(str, "0") == 0) return 0;
 			break;
 
 		default: NOT_REACHED();
@@ -389,7 +389,7 @@ static const void *StringToVal(const SettingDescBase *desc, const char *orig_str
 	msg.SetDParamStr (0, str);
 	msg.SetDParamStr (1, desc->name);
 	_settings_error_list.push_back (msg);
-	return desc->def;
+	return (size_t)desc->def;
 }
 
 /**
@@ -496,8 +496,8 @@ static void IniLoadSettings(IniFile *ini, const SettingDesc *sd, const char *grp
 			case SDT_NUMX:
 			case SDT_ONEOFMANY:
 			case SDT_MANYOFMANY: {
-				const void *p = (item == NULL) ? sdb->def : StringToVal (sdb, item->value);
-				Write_ValidateSetting(ptr, sd, (int32)(size_t)p);
+				size_t p = (item == NULL) ? (size_t)sdb->def : StringToVal (sdb, item->value);
+				Write_ValidateSetting (ptr, sd, (int32)p);
 				break;
 			}
 
@@ -582,29 +582,29 @@ static void IniSaveSettings(IniFile *ini, const SettingDesc *sd, const char *grp
 			case SDT_MANYOFMANY: {
 				if (item->value != NULL) {
 					/* check if the value is the same as the old value */
-					const void *p = StringToVal (sdb, item->value);
+					size_t p = StringToVal (sdb, item->value);
 
 					/* The main type of a variable/setting is in bytes 8-15
 					 * The subtype (what kind of numbers do we have there) is in 0-7 */
 					assert(sld->type == SL_VAR);
 					switch (GetVarMemType(sld->conv)) {
 						case SLE_VAR_BL:
-							if (*(bool*)ptr == (p != NULL)) continue;
+							if (*(bool*)ptr == (p != 0)) continue;
 							break;
 
 						case SLE_VAR_I8:
 						case SLE_VAR_U8:
-							if (*(byte*)ptr == (byte)(size_t)p) continue;
+							if (*(byte*)ptr == (byte)p) continue;
 							break;
 
 						case SLE_VAR_I16:
 						case SLE_VAR_U16:
-							if (*(uint16*)ptr == (uint16)(size_t)p) continue;
+							if (*(uint16*)ptr == (uint16)p) continue;
 							break;
 
 						case SLE_VAR_I32:
 						case SLE_VAR_U32:
-							if (*(uint32*)ptr == (uint32)(size_t)p) continue;
+							if (*(uint32*)ptr == (uint32)p) continue;
 							break;
 
 						default: NOT_REACHED();
