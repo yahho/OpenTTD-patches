@@ -353,13 +353,7 @@ static const void *StringToVal(const SettingDescBase *desc, const char *orig_str
 		case SDT_NUMX: {
 			char *end;
 			size_t val = strtoul(str, &end, 0);
-			if (end == str) {
-				ErrorMessageData msg(STR_CONFIG_ERROR, STR_CONFIG_ERROR_INVALID_VALUE);
-				msg.SetDParamStr(0, str);
-				msg.SetDParamStr(1, desc->name);
-				_settings_error_list.push_back(msg);
-				return desc->def;
-			}
+			if (end == str) break;
 			if (*end != '\0') {
 				ErrorMessageData msg(STR_CONFIG_ERROR, STR_CONFIG_ERROR_TRAILING_CHARACTERS);
 				msg.SetDParamStr(0, desc->name);
@@ -374,39 +368,28 @@ static const void *StringToVal(const SettingDescBase *desc, const char *orig_str
 			 * look if we have defined a converter from old value to new value. */
 			if (r == (size_t)-1 && desc->proc_cnvt != NULL) r = desc->proc_cnvt(str);
 			if (r != (size_t)-1) return (void*)r; // and here goes converted value
-
-			ErrorMessageData msg(STR_CONFIG_ERROR, STR_CONFIG_ERROR_INVALID_VALUE);
-			msg.SetDParamStr(0, str);
-			msg.SetDParamStr(1, desc->name);
-			_settings_error_list.push_back(msg);
-			return desc->def;
+			break;
 		}
 
 		case SDT_MANYOFMANY: {
 			size_t r = LookupManyOfMany(desc->many, str);
 			if (r != (size_t)-1) return (void*)r;
-			ErrorMessageData msg(STR_CONFIG_ERROR, STR_CONFIG_ERROR_INVALID_VALUE);
-			msg.SetDParamStr(0, str);
-			msg.SetDParamStr(1, desc->name);
-			_settings_error_list.push_back(msg);
-			return desc->def;
+			break;
 		}
 
-		case SDT_BOOLX: {
+		case SDT_BOOLX:
 			if (strcmp(str, "true")  == 0 || strcmp(str, "on")  == 0 || strcmp(str, "1") == 0) return (void*)true;
 			if (strcmp(str, "false") == 0 || strcmp(str, "off") == 0 || strcmp(str, "0") == 0) return (void*)false;
-
-			ErrorMessageData msg(STR_CONFIG_ERROR, STR_CONFIG_ERROR_INVALID_VALUE);
-			msg.SetDParamStr(0, str);
-			msg.SetDParamStr(1, desc->name);
-			_settings_error_list.push_back(msg);
-			return desc->def;
-		}
+			break;
 
 		default: NOT_REACHED();
 	}
 
-	return NULL;
+	ErrorMessageData msg (STR_CONFIG_ERROR, STR_CONFIG_ERROR_INVALID_VALUE);
+	msg.SetDParamStr (0, str);
+	msg.SetDParamStr (1, desc->name);
+	_settings_error_list.push_back (msg);
+	return desc->def;
 }
 
 /**
