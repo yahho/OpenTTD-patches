@@ -1768,6 +1768,36 @@ const SettingDesc *GetSettingDescription(uint index)
 }
 
 /**
+ * Actually change a setting.
+ * @param sd Description of the setting to change.
+ * @param settings Settings structure where to look for the setting.
+ * @param newval New value to set.
+ * @param log Whether to log the change.
+ */
+static void ChangeSetting (const SettingDesc *sd, void *settings, int32 newval, bool log)
+{
+	void *var = sd->save.get_variable_address (settings);
+
+	int32 oldval = (int32)ReadValue (var, sd->save.conv);
+
+	Write_ValidateSetting (var, sd, newval);
+	newval = (int32)ReadValue (var, sd->save.conv);
+
+	if (oldval == newval) return;
+
+	if (sd->desc.proc != NULL && !sd->desc.proc (newval)) {
+		WriteValue (var, sd->save.conv, (int64)oldval);
+		return;
+	}
+
+	if (log && (sd->desc.flags & SGF_NO_NETWORK)) {
+		GamelogSetting (sd->desc.name, oldval, newval);
+	}
+
+	SetWindowClassesDirty (WC_GAME_OPTIONS);
+}
+
+/**
  * Network-safe changing of settings (server-only).
  * @param tile unused
  * @param flags operation to perform
@@ -1788,26 +1818,7 @@ CommandCost CmdChangeSetting(TileIndex tile, DoCommandFlag flags, uint32 p1, uin
 	if (!sd->IsEditable(true)) return CMD_ERROR;
 
 	if (flags & DC_EXEC) {
-		void *var = sd->save.get_variable_address (&GetGameSettings());
-
-		int32 oldval = (int32)ReadValue(var, sd->save.conv);
-		int32 newval = (int32)p2;
-
-		Write_ValidateSetting(var, sd, newval);
-		newval = (int32)ReadValue(var, sd->save.conv);
-
-		if (oldval == newval) return CommandCost();
-
-		if (sd->desc.proc != NULL && !sd->desc.proc(newval)) {
-			WriteValue(var, sd->save.conv, (int64)oldval);
-			return CommandCost();
-		}
-
-		if (sd->desc.flags & SGF_NO_NETWORK) {
-			GamelogSetting(sd->desc.name, oldval, newval);
-		}
-
-		SetWindowClassesDirty(WC_GAME_OPTIONS);
+		ChangeSetting (sd, &GetGameSettings(), p2, true);
 	}
 
 	return CommandCost();
@@ -1826,25 +1837,11 @@ CommandCost CmdChangeSetting(TileIndex tile, DoCommandFlag flags, uint32 p1, uin
 CommandCost CmdChangeCompanySetting(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 p2, const char *text)
 {
 	if (p1 >= lengthof(_company_settings)) return CMD_ERROR;
-	const SettingDesc *sd = &_company_settings[p1];
 
 	if (flags & DC_EXEC) {
-		void *var = sd->save.get_variable_address (&Company::Get(_current_company)->settings);
-
-		int32 oldval = (int32)ReadValue(var, sd->save.conv);
-		int32 newval = (int32)p2;
-
-		Write_ValidateSetting(var, sd, newval);
-		newval = (int32)ReadValue(var, sd->save.conv);
-
-		if (oldval == newval) return CommandCost();
-
-		if (sd->desc.proc != NULL && !sd->desc.proc(newval)) {
-			WriteValue(var, sd->save.conv, (int64)oldval);
-			return CommandCost();
-		}
-
-		SetWindowClassesDirty(WC_GAME_OPTIONS);
+		ChangeSetting (&_company_settings[p1],
+				&Company::Get(_current_company)->settings,
+				p2, false);
 	}
 
 	return CommandCost();
