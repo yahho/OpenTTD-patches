@@ -29,8 +29,10 @@
  * Create a new ini file with given group names.
  * @param list_group_names A \c NULL terminated list with group names that should be loaded as lists instead of variables. @see IGT_LIST
  */
-IniFile::IniFile(const char * const *list_group_names) : IniLoadFile(list_group_names)
+IniFile::IniFile (const char *filename, Subdirectory subdir, const char * const *list_group_names)
+	: IniLoadFile (list_group_names)
 {
+	this->LoadFromDisk (filename, subdir);
 }
 
 /**

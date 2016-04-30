@@ -1642,9 +1642,9 @@ struct ConfigIniFile : IniFile {
 	}
 };
 
-ConfigIniFile::ConfigIniFile() : IniFile (_list_group_names)
+ConfigIniFile::ConfigIniFile()
+	: IniFile (_config_file, BASE_DIR, _list_group_names)
 {
-	this->LoadFromDisk (_config_file, BASE_DIR);
 }
 
 /**

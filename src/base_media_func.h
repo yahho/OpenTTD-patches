@@ -189,8 +189,7 @@ bool BaseMedia<Tbase_set>::Scanner::AddFile (const char *filename, size_t basepa
 		*path = '\0';
 	}
 
-	IniFile ini;
-	ini.LoadFromDisk (filename, BASESET_DIR);
+	IniFile ini (filename, BASESET_DIR);
 
 	if (set->FillSetDetails (&ini, path, filename)) {
 		Tbase_set *duplicate = NULL;

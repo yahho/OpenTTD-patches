@@ -206,7 +206,7 @@ struct IniLoadFile : IniList<IniGroup> {
 
 /** Ini file that supports both loading and saving. */
 struct IniFile : IniLoadFile {
-	IniFile(const char * const *list_group_names = NULL);
+	IniFile (const char *filename, Subdirectory subdir, const char * const *list_group_names = NULL);
 
 	bool SaveToDisk(const char *filename);
 
