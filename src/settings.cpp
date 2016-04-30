@@ -1633,11 +1633,13 @@ static void HandleSettingDescs(IniFile *ini, SettingDescProc *proc, SettingDescP
 	}
 }
 
-static IniFile *IniLoadConfig()
+struct ConfigIniFile : IniFile {
+	ConfigIniFile();
+};
+
+ConfigIniFile::ConfigIniFile() : IniFile (_list_group_names)
 {
-	IniFile *ini = new IniFile(_list_group_names);
-	ini->LoadFromDisk(_config_file, BASE_DIR);
-	return ini;
+	this->LoadFromDisk (_config_file, BASE_DIR);
 }
 
 /**
@@ -1646,20 +1648,21 @@ static IniFile *IniLoadConfig()
  */
 void LoadFromConfig(bool minimal)
 {
-	IniFile *ini = IniLoadConfig();
+	ConfigIniFile ini;
+
 	if (!minimal) ResetCurrencies(false); // Initialize the array of currencies, without preserving the custom one
 
 	/* Load basic settings only during bootstrap, load other settings not during bootstrap */
-	HandleSettingDescs(ini, IniLoadSettings, IniLoadSettingList, minimal, !minimal);
+	HandleSettingDescs (&ini, IniLoadSettings, IniLoadSettingList, minimal, !minimal);
 
 	if (!minimal) {
-		_grfconfig_newgame = GRFLoadConfig(ini, "newgrf", false);
-		_grfconfig_static  = GRFLoadConfig(ini, "newgrf-static", true);
-		AILoadConfig(ini, "ai_players");
-		GameLoadConfig(ini, "game_scripts");
+		_grfconfig_newgame = GRFLoadConfig (&ini, "newgrf", false);
+		_grfconfig_static  = GRFLoadConfig (&ini, "newgrf-static", true);
+		AILoadConfig (&ini, "ai_players");
+		GameLoadConfig (&ini, "game_scripts");
 
 		PrepareOldDiffCustom();
-		IniLoadSettings(ini, _gameopt_settings, "gameopt", &_settings_newgame);
+		IniLoadSettings (&ini, _gameopt_settings, "gameopt", &_settings_newgame);
 		HandleOldDiffCustom(NULL);
 
 		ValidateSettings();
@@ -1669,28 +1672,25 @@ void LoadFromConfig(bool minimal)
 		ScheduleErrorMessage(_settings_error_list);
 		if (FindWindowById(WC_ERRMSG, 0) == NULL) ShowFirstError();
 	}
-
-	delete ini;
 }
 
 /** Save the values to the configuration file */
 void SaveToConfig()
 {
-	IniFile *ini = IniLoadConfig();
+	ConfigIniFile ini;
 
 	/* Remove some obsolete groups. These have all been loaded into other groups. */
-	ini->remove ("patches");
-	ini->remove ("yapf");
-	ini->remove ("gameopt");
+	ini.remove ("patches");
+	ini.remove ("yapf");
+	ini.remove ("gameopt");
 
-	HandleSettingDescs(ini, IniSaveSettings, IniSaveSettingList);
-	GRFSaveConfig(ini, "newgrf", _grfconfig_newgame);
-	GRFSaveConfig(ini, "newgrf-static", _grfconfig_static);
-	AISaveConfig(ini, "ai_players");
-	GameSaveConfig(ini, "game_scripts");
-	SaveVersionInConfig(ini);
-	ini->SaveToDisk(_config_file);
-	delete ini;
+	HandleSettingDescs (&ini, IniSaveSettings, IniSaveSettingList);
+	GRFSaveConfig (&ini, "newgrf", _grfconfig_newgame);
+	GRFSaveConfig (&ini, "newgrf-static", _grfconfig_static);
+	AISaveConfig (&ini, "ai_players");
+	GameSaveConfig (&ini, "game_scripts");
+	SaveVersionInConfig (&ini);
+	ini.SaveToDisk (_config_file);
 }
 
 /**
@@ -1701,14 +1701,12 @@ void GetGRFPresetList(GRFPresetList *list)
 {
 	list->Clear();
 
-	IniFile *ini = IniLoadConfig();
-	for (IniGroup::const_iterator group = ini->cbegin(); group != ini->cend(); group++) {
+	ConfigIniFile ini;
+	for (IniGroup::const_iterator group = ini.cbegin(); group != ini.cend(); group++) {
 		if (strncmp(group->get_name(), "preset-", 7) == 0) {
 			*list->Append() = xstrdup(group->get_name() + 7);
 		}
 	}
-
-	delete ini;
 }
 
 /**
@@ -1722,11 +1720,8 @@ GRFConfig *LoadGRFPresetFromConfig(const char *config_name)
 	char *section = (char*)alloca(strlen(config_name) + 8);
 	sprintf(section, "preset-%s", config_name);
 
-	IniFile *ini = IniLoadConfig();
-	GRFConfig *config = GRFLoadConfig(ini, section, false);
-	delete ini;
-
-	return config;
+	ConfigIniFile ini;
+	return GRFLoadConfig (&ini, section, false);
 }
 
 /**
@@ -1740,10 +1735,9 @@ void SaveGRFPresetToConfig(const char *config_name, GRFConfig *config)
 	char *section = (char*)alloca(strlen(config_name) + 8);
 	sprintf(section, "preset-%s", config_name);
 
-	IniFile *ini = IniLoadConfig();
-	GRFSaveConfig(ini, section, config);
-	ini->SaveToDisk(_config_file);
-	delete ini;
+	ConfigIniFile ini;
+	GRFSaveConfig (&ini, section, config);
+	ini.SaveToDisk (_config_file);
 }
 
 /**
@@ -1755,10 +1749,9 @@ void DeleteGRFPresetFromConfig(const char *config_name)
 	char *section = (char*)alloca(strlen(config_name) + 8);
 	sprintf(section, "preset-%s", config_name);
 
-	IniFile *ini = IniLoadConfig();
-	ini->remove (section);
-	ini->SaveToDisk(_config_file);
-	delete ini;
+	ConfigIniFile ini;
+	ini.remove (section);
+	ini.SaveToDisk (_config_file);
 }
 
 const SettingDesc *GetSettingDescription(uint index)
