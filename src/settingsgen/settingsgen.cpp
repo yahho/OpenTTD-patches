@@ -409,12 +409,11 @@ static void ProcessIniFile(const char *fname)
 {
 	static const char * const seq_groups[] = {PREAMBLE_GROUP_NAME, POSTAMBLE_GROUP_NAME, NULL};
 
-	IniLoadFile *ini_data = new SettingsIniFile (NULL, seq_groups);
-	ini_data->LoadFromDisk (fname, NO_DIRECTORY);
-	DumpGroup(ini_data, PREAMBLE_GROUP_NAME);
-	DumpSections(ini_data);
-	DumpGroup(ini_data, POSTAMBLE_GROUP_NAME);
-	delete ini_data;
+	SettingsIniFile ini_data (NULL, seq_groups);
+	ini_data.LoadFromDisk (fname, NO_DIRECTORY);
+	DumpGroup (&ini_data, PREAMBLE_GROUP_NAME);
+	DumpSections (&ini_data);
+	DumpGroup (&ini_data, POSTAMBLE_GROUP_NAME);
 }
 
 /**
