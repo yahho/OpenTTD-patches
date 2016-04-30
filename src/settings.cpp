@@ -1635,6 +1635,11 @@ static void HandleSettingDescs(IniFile *ini, SettingDescProc *proc, SettingDescP
 
 struct ConfigIniFile : IniFile {
 	ConfigIniFile();
+
+	void save (void)
+	{
+		this->SaveToDisk (_config_file);
+	}
 };
 
 ConfigIniFile::ConfigIniFile() : IniFile (_list_group_names)
@@ -1690,7 +1695,7 @@ void SaveToConfig()
 	AISaveConfig (&ini, "ai_players");
 	GameSaveConfig (&ini, "game_scripts");
 	SaveVersionInConfig (&ini);
-	ini.SaveToDisk (_config_file);
+	ini.save();
 }
 
 /**
@@ -1737,7 +1742,7 @@ void SaveGRFPresetToConfig(const char *config_name, GRFConfig *config)
 
 	ConfigIniFile ini;
 	GRFSaveConfig (&ini, section, config);
-	ini.SaveToDisk (_config_file);
+	ini.save();
 }
 
 /**
@@ -1751,7 +1756,7 @@ void DeleteGRFPresetFromConfig(const char *config_name)
 
 	ConfigIniFile ini;
 	ini.remove (section);
-	ini.SaveToDisk (_config_file);
+	ini.save();
 }
 
 const SettingDesc *GetSettingDescription(uint index)
