@@ -201,21 +201,6 @@ static const char *TEMPLATES_GROUP_NAME = "templates";  ///< Name of the group c
 static const char *DEFAULTS_GROUP_NAME  = "defaults";   ///< Name of the group containing default values for the template variables.
 
 /**
- * Load the INI file.
- * @param filename Name of the file to load.
- * @param subdir   The subdirectory to load from.
- * @return         Loaded INI data.
- */
-static IniLoadFile *LoadIniFile(const char *filename)
-{
-	static const char * const seq_groups[] = {PREAMBLE_GROUP_NAME, POSTAMBLE_GROUP_NAME, NULL};
-
-	IniLoadFile *ini = new SettingsIniFile(NULL, seq_groups);
-	ini->LoadFromDisk(filename, NO_DIRECTORY);
-	return ini;
-}
-
-/**
  * Dump a #IGT_SEQUENCE group into #_stored_output.
  * @param ifile      Loaded INI data.
  * @param group_name Name of the group to copy.
@@ -422,7 +407,10 @@ static const OptionData _opts[] = {
  */
 static void ProcessIniFile(const char *fname)
 {
-	const IniLoadFile *ini_data = LoadIniFile(fname);
+	static const char * const seq_groups[] = {PREAMBLE_GROUP_NAME, POSTAMBLE_GROUP_NAME, NULL};
+
+	IniLoadFile *ini_data = new SettingsIniFile (NULL, seq_groups);
+	ini_data->LoadFromDisk (fname, NO_DIRECTORY);
 	DumpGroup(ini_data, PREAMBLE_GROUP_NAME);
 	DumpSections(ini_data);
 	DumpGroup(ini_data, POSTAMBLE_GROUP_NAME);
