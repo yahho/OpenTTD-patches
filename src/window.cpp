@@ -148,12 +148,11 @@ char *_windows_file;
  */
 void WindowDesc::LoadFromConfig()
 {
-	IniFile *ini = new IniFile();
-	ini->LoadFromDisk(_windows_file, BASE_DIR);
+	IniFile ini;
+	ini.LoadFromDisk (_windows_file, BASE_DIR);
 	for (WindowPrefsSet::iterator it = _window_prefs->begin(); it != _window_prefs->end(); ++it) {
-		IniLoadWindowSettings (ini, (*it)->key, *it);
+		IniLoadWindowSettings (&ini, (*it)->key, *it);
 	}
-	delete ini;
 }
 
 /**
@@ -161,13 +160,12 @@ void WindowDesc::LoadFromConfig()
  */
 void WindowDesc::SaveToConfig()
 {
-	IniFile *ini = new IniFile();
-	ini->LoadFromDisk(_windows_file, BASE_DIR);
+	IniFile ini;
+	ini.LoadFromDisk (_windows_file, BASE_DIR);
 	for (WindowPrefsSet::iterator it = _window_prefs->begin(); it != _window_prefs->end(); ++it) {
-		IniSaveWindowSettings (ini, (*it)->key, *it);
+		IniSaveWindowSettings (&ini, (*it)->key, *it);
 	}
-	ini->SaveToDisk(_windows_file);
-	delete ini;
+	ini.SaveToDisk (_windows_file);
 }
 
 

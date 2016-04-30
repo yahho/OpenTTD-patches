@@ -180,8 +180,6 @@ bool BaseMedia<Tbase_set>::Scanner::AddFile (const char *filename, size_t basepa
 	DEBUG(grf, 1, "Checking %s for base %s set", filename, Tbase_set::set_type);
 
 	Tbase_set *set = new Tbase_set();
-	IniFile *ini = new IniFile();
-	ini->LoadFromDisk(filename, BASESET_DIR);
 
 	char *path = xstrdup(filename + basepath_length);
 	char *psep = strrchr(path, PATHSEPCHAR);
@@ -191,7 +189,10 @@ bool BaseMedia<Tbase_set>::Scanner::AddFile (const char *filename, size_t basepa
 		*path = '\0';
 	}
 
-	if (set->FillSetDetails(ini, path, filename)) {
+	IniFile ini;
+	ini.LoadFromDisk (filename, BASESET_DIR);
+
+	if (set->FillSetDetails (&ini, path, filename)) {
 		Tbase_set *duplicate = NULL;
 		for (Tbase_set *c = BaseMedia<Tbase_set>::available_sets; c != NULL; c = c->next) {
 			if (strcmp(c->get_name(), set->get_name()) == 0 || c->shortname == set->shortname) {
@@ -242,7 +243,6 @@ bool BaseMedia<Tbase_set>::Scanner::AddFile (const char *filename, size_t basepa
 	}
 	free(path);
 
-	delete ini;
 	return ret;
 }
 
