@@ -631,82 +631,57 @@ struct SaveLoad {
 /** Substitute first paramenter if non-empty, else second. */
 #define SLE_DEFAULT_IF_EMPTY(value, default) ((sizeof(#value) != 1) ? (value + 0) : (default))
 
-/**
- * Generic SaveLoad object, with version range and legacy version range.
- * @param cons     Constructor macro
- * @param pointer  Random pointer to variable type (value will never be used).
- * @param address  Address of variable or offset of variable in the struct
- * @param flags    Save/load flags
- * @param conv     Subtype/conversion of the data between memory and savegame.
- * @param length   Length of object (for arrays and strings)
- * @param from     First savegame version that has the field.
- * @param to       Last savegame version that has the field, empty for maximum possible value.
- * @param lfrom    First legacy savegame version that has the field.
- * @param lto      Last legacy savegame version that has the field, empty for maximum possible value.
- * @note This macro should not be used directly.
- */
-#define SLE_ANY_2(cons, pointer, address, flags, conv, length, from, to, lfrom, lto) cons (pointer, address, flags, conv, length, SLE_DEFAULT_IF_EMPTY(from, SL_MAX_VERSION), SLE_DEFAULT_IF_EMPTY(to, SL_MAX_VERSION), lfrom, SLE_DEFAULT_IF_EMPTY(lto, SL_MAX_VERSION))
-
-/**
- * Generic SaveLoad object, with version range.
- * @param cons     Constructor macro
- * @param pointer  Random pointer to variable type (value will never be used).
- * @param address  Address of variable or offset of variable in the struct
- * @param flags    Save/load flags
- * @param conv     Subtype/conversion of the data between memory and savegame.
- * @param length   Length of object (for arrays and strings)
- * @param from     First savegame version that has the field.
- * @param to       Last savegame version that has the field, empty for maximum possible value.
- * @note This macro should not be used directly.
- */
-#define SLE_ANY_1(cons, pointer, address, flags, conv, length, from, to, ...) SLE_ANY_2(cons, pointer, address, flags, conv, length, from, to, SL_MAX_VERSION, 0)
-
-/**
- * Generic SaveLoad object, without version range.
- * @param cons     Constructor macro
- * @param pointer  Random pointer to variable type (value will never be used).
- * @param address  Address of variable or offset of variable in the struct
- * @param flags    Save/load flags
- * @param conv     Subtype/conversion of the data between memory and savegame.
- * @param length   Length of object (for arrays and strings)
- * @note This macro should not be used directly.
- */
-#define SLE_ANY_0(cons, pointer, address, flags, conv, length, ...) SLE_ANY_2(cons, pointer, address, flags, conv, length, 0, , 0, )
-
-/**
- * Generic SaveLoad object, with or without version range.
- * @param cons     Constructor macro
- * @param pointer  Random pointer to variable type (value will never be used).
- * @param address  Address of variable or offset of variable in the struct
- * @param global   Global flag, or 0.
- * @param flags    Save/load flags (other than the global flag)
- * @param conv     Subtype/conversion of the data between memory and savegame.
- * @param length   Length of object (for arrays and strings)
- * @param from     First savegame version that has the field (optional).
- * @param to       Last savegame version that has the field (optional).
- * @param lfrom    First legacy savegame version that has the field (optional).
- * @param lto      Last legacy savegame version that has the field (optional).
- * @note Both savegame version interval endpoints must be present for any given range.
- * @note There should be a trailing empty argument to this macro.
- * @note This macro should not be used directly.
- */
-#define SLE_ANY_(cons, pointer, address, global, flags, ...) \
-    SLE_EXPAND(SLE_ANY__(cons, pointer, address, global, flags, __VA_ARGS__ 2, INVALID, 1, INVALID, 0, INVALID, ))
-#define SLE_ANY__(cons, pointer, address, global, flags, conv, length, from, to, lfrom, lto, n, ...) \
-    SLE_ANY_##n (cons, pointer, address, (global) | (flags), conv, length, from, to, lfrom, lto)
+/** Invoke a callback macro depending on the number of arguments passed in. */
+#define SLE_VMPX(...) \
+        SLE_EXPAND(SLE_VMPX_(__VA_ARGS__, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, ))
+#define SLE_VMPX_(callback, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, n, ...) \
+        SLE_VMPX_##n (callback##_##n, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, )
+#define SLE_VMPX_0(callback, ...) \
+        callback()
+#define SLE_VMPX_1(callback, a1, ...) \
+        callback (a1)
+#define SLE_VMPX_2(callback, a1, a2, ...) \
+        callback (a1, a2)
+#define SLE_VMPX_3(callback, a1, a2, a3, ...) \
+        callback (a1, a2, a3)
+#define SLE_VMPX_4(callback, a1, a2, a3, a4, ...) \
+        callback (a1, a2, a3, a4)
+#define SLE_VMPX_5(callback, a1, a2, a3, a4, a5, ...) \
+        callback (a1, a2, a3, a4, a5)
+#define SLE_VMPX_6(callback, a1, a2, a3, a4, a5, a6, ...) \
+        callback (a1, a2, a3, a4, a5, a6)
+#define SLE_VMPX_7(callback, a1, a2, a3, a4, a5, a6, a7, ...) \
+        callback (a1, a2, a3, a4, a5, a6, a7)
+#define SLE_VMPX_8(callback, a1, a2, a3, a4, a5, a6, a7, a8, ...) \
+        callback (a1, a2, a3, a4, a5, a6, a7, a8)
+#define SLE_VMPX_9(callback, a1, a2, a3, a4, a5, a6, a7, a8, a9, ...) \
+        callback (a1, a2, a3, a4, a5, a6, a7, a8, a9)
+#define SLE_VMPX_10(callback, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, ...) \
+        callback (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10)
 
 /** Struct variable pointer-address-global helper. */
-#define SLE_HELPER(callback, base, variable, ...) SLE_EXPAND (callback (cpp_pointer(base, variable), cpp_offsetof(base, variable), 0, __VA_ARGS__, ))
+#define SLE_HELPER(callback, base, variable, ...) SLE_EXPAND (callback (cpp_pointer(base, variable), cpp_offsetof(base, variable), 0, __VA_ARGS__))
 
 /** Global variable pointer-address-global helper. */
-#define SLEG_HELPER(callback, variable, ...) SLE_EXPAND (callback (&variable, &variable, SLF_GLOBAL, __VA_ARGS__, ))
+#define SLEG_HELPER(callback, variable, ...) SLE_EXPAND (callback (&variable, &variable, SLF_GLOBAL, __VA_ARGS__))
+
+/** Version range construction helpers. */
+#define SLE_VRANGE_5(from, to, lfrom, lto, ...) \
+	SLE_DEFAULT_IF_EMPTY (from, SL_MAX_VERSION), \
+	SLE_DEFAULT_IF_EMPTY (to, SL_MAX_VERSION),   \
+	lfrom,                                       \
+	SLE_DEFAULT_IF_EMPTY (lto, SL_MAX_VERSION)
+#define SLE_VRANGE_3(from, to, ...) SLE_VRANGE_5 (from, to, SL_MAX_VERSION, 0)
+#define SLE_VRANGE_1(...)           SLE_VRANGE_5 (0, , 0, )
+#define SLE_VRANGE(...) SLE_EXPAND (SLE_VMPX (SLE_VRANGE, __VA_ARGS__))
 
 
-/** Variable construction callback macros. */
-#define SLC_VAR(pointer, address, flags, conv, length, ...) \
-	SaveLoad (CDIS<SaveLoadTypes>::VAL<SL_VAR>::null(), pointer, address, flags, CDIS<VarTypes>::VAL<(VarTypes)(conv)>::null(), __VA_ARGS__)
-#define SLEX_VAR_(pointer, address, global, flags, conv, ...) \
-	SLE_EXPAND (SLE_ANY_ (SLC_VAR, pointer, address, global, flags, conv, UNUSED, __VA_ARGS__))
+/** Variable construction callback macro. */
+#define SLEX_VAR_(pointer, address, global, flags, conv, ...)  \
+	SaveLoad (CDIS<SaveLoadTypes>::VAL<SL_VAR>::null(),    \
+		pointer, address, (global) | (flags),          \
+		CDIS<VarTypes>::VAL<(VarTypes)(conv)>::null(), \
+		SLE_VRANGE (__VA_ARGS__))
 
 /**
  * Storage of a variable.
@@ -720,16 +695,17 @@ struct SaveLoad {
  * @param lto      Last legacy savegame version that has the field (optional).
  * @note Both savegame version interval endpoints must be present for any given range.
  */
-#define SLEF_VAR(...)  SLE_EXPAND (SLE_HELPER  (SLEX_VAR_, __VA_ARGS__))
-#define SLEGF_VAR(...) SLE_EXPAND (SLEG_HELPER (SLEX_VAR_, __VA_ARGS__))
+#define SLEF_VAR(...)  SLE_EXPAND (SLE_HELPER  (SLEX_VAR_, __VA_ARGS__, ))
+#define SLEGF_VAR(...) SLE_EXPAND (SLEG_HELPER (SLEX_VAR_, __VA_ARGS__, ))
 #define SLE_VAR(base, variable, ...) SLEF_VAR(base, variable, 0, __VA_ARGS__)
 #define SLEG_VAR(variable, ...) SLEGF_VAR(variable, 0, __VA_ARGS__)
 
-/** Reference construction callback macros. */
-#define SLC_REF(pointer, address, flags, reftype, length, ...) \
-	SaveLoad (CDIS<SaveLoadTypes>::VAL<SL_REF>::null(), pointer, address, flags, CDIS<SLRefType>::VAL<reftype>::null(), __VA_ARGS__)
+/** Reference construction callback macro. */
 #define SLEX_REF_(pointer, address, global, flags, reftype, ...) \
-	SLE_EXPAND (SLE_ANY_ (SLC_REF, pointer, address, global, flags, reftype, UNUSED, __VA_ARGS__))
+	SaveLoad (CDIS<SaveLoadTypes>::VAL<SL_REF>::null(),      \
+		pointer, address, (global) | (flags),            \
+		CDIS<SLRefType>::VAL<reftype>::null(),           \
+		SLE_VRANGE (__VA_ARGS__))
 
 /**
  * Storage of a reference.
@@ -743,16 +719,18 @@ struct SaveLoad {
  * @param lto      Last legacy savegame version that has the field (optional).
  * @note Both savegame version interval endpoints must be present for any given range.
  */
-#define SLEF_REF(...)  SLE_EXPAND (SLE_HELPER  (SLEX_REF_, __VA_ARGS__))
-#define SLEGF_REF(...) SLE_EXPAND (SLEG_HELPER (SLEX_REF_, __VA_ARGS__))
+#define SLEF_REF(...)  SLE_EXPAND (SLE_HELPER  (SLEX_REF_, __VA_ARGS__, ))
+#define SLEGF_REF(...) SLE_EXPAND (SLEG_HELPER (SLEX_REF_, __VA_ARGS__, ))
 #define SLE_REF(base, variable, ...) SLEF_REF(base, variable, 0, __VA_ARGS__)
 #define SLEG_REF(variable, ...) SLEGF_REF(variable, 0, __VA_ARGS__)
 
-/** Array construction callback macros. */
-#define SLC_ARR(pointer, address, flags, conv, length, ...) \
-	SaveLoad (CDIS<SaveLoadTypes>::VAL<SL_ARR>::null(), pointer, address, flags, CDIS<VarTypes>::VAL<(VarTypes)(conv)>::null(), CDIS<uint>::VAL<length>::null(), __VA_ARGS__)
+/** Array construction callback macro. */
 #define SLEX_ARR_(pointer, address, global, flags, conv, length, ...) \
-	SLE_EXPAND (SLE_ANY_ (SLC_ARR, pointer, address, global, flags, conv, length, __VA_ARGS__))
+	SaveLoad (CDIS<SaveLoadTypes>::VAL<SL_ARR>::null(),           \
+		pointer, address, (global) | (flags),                 \
+		CDIS<VarTypes>::VAL<(VarTypes)(conv)>::null(),        \
+		CDIS<uint>::VAL<length>::null(),                      \
+		SLE_VRANGE (__VA_ARGS__))
 
 /**
  * Storage of an array.
@@ -767,16 +745,16 @@ struct SaveLoad {
  * @param lto      Last legacy savegame version that has the array (optional).
  * @note Both savegame version interval endpoints must be present for any given range.
  */
-#define SLEF_ARR(...)  SLE_EXPAND (SLE_HELPER  (SLEX_ARR_, __VA_ARGS__))
-#define SLEGF_ARR(...) SLE_EXPAND (SLEG_HELPER (SLEX_ARR_, __VA_ARGS__))
+#define SLEF_ARR(...)  SLE_EXPAND (SLE_HELPER  (SLEX_ARR_, __VA_ARGS__, ))
+#define SLEGF_ARR(...) SLE_EXPAND (SLEG_HELPER (SLEX_ARR_, __VA_ARGS__, ))
 #define SLE_ARR(base, variable, ...) SLEF_ARR(base, variable, 0, __VA_ARGS__)
 #define SLEG_ARR(variable, ...) SLEGF_ARR(variable, 0, __VA_ARGS__)
 
-/** String construction callback macros. */
-#define SLC_STR(pointer, address, flags, conv, length, ...) \
-	SaveLoad (CDIS<SaveLoadTypes>::VAL<SL_STR>::null(), pointer, address, flags, (StrTypes)(conv), __VA_ARGS__)
+/** String construction callback macro. */
 #define SLEX_STR_(pointer, address, global, flags, conv, ...) \
-	SLE_EXPAND (SLE_ANY_ (SLC_STR, pointer, address, global, flags, conv, UNUSED, __VA_ARGS__))
+	SaveLoad (CDIS<SaveLoadTypes>::VAL<SL_STR>::null(),             \
+		pointer, address, (global) | (flags), (StrTypes)(conv), \
+		SLE_VRANGE (__VA_ARGS__))
 
 /**
  * Storage of a string.
@@ -791,16 +769,17 @@ struct SaveLoad {
  * @param lto      Last legacy savegame version that has the string (optional).
  * @note Both savegame version interval endpoints must be present for any given range.
  */
-#define SLEF_STR(...)  SLE_EXPAND (SLE_HELPER  (SLEX_STR_, __VA_ARGS__))
-#define SLEGF_STR(...) SLE_EXPAND (SLEG_HELPER (SLEX_STR_, __VA_ARGS__))
+#define SLEF_STR(...)  SLE_EXPAND (SLE_HELPER  (SLEX_STR_, __VA_ARGS__, ))
+#define SLEGF_STR(...) SLE_EXPAND (SLEG_HELPER (SLEX_STR_, __VA_ARGS__, ))
 #define SLE_STR(base, variable, ...) SLEF_STR(base, variable, 0, __VA_ARGS__)
 #define SLEG_STR(variable, ...) SLEGF_STR(variable, 0, __VA_ARGS__)
 
-/** List construction callback macros. */
-#define SLC_LST(pointer, address, flags, reftype, length, ...) \
-	SaveLoad (CDIS<SaveLoadTypes>::VAL<SL_LST>::null(), pointer, address, flags, CDIS<SLRefType>::VAL<reftype>::null(), __VA_ARGS__)
+/** List construction callback macro. */
 #define SLEX_LST_(pointer, address, global, flags, reftype, ...) \
-	SLE_EXPAND (SLE_ANY_ (SLC_LST, pointer, address, global, flags, reftype, UNUSED, __VA_ARGS__))
+	SaveLoad (CDIS<SaveLoadTypes>::VAL<SL_LST>::null(),      \
+		pointer, address, (global) | (flags),            \
+		CDIS<SLRefType>::VAL<reftype>::null(),           \
+		SLE_VRANGE (__VA_ARGS__))
 
 /**
  * Storage of a list.
@@ -814,14 +793,10 @@ struct SaveLoad {
  * @param lto      Last legacy savegame version that has the list (optional).
  * @note Both savegame version interval endpoints must be present for any given range.
  */
-#define SLEF_LST(...)  SLE_EXPAND (SLE_HELPER  (SLEX_LST_, __VA_ARGS__))
-#define SLEGF_LST(...) SLE_EXPAND (SLEG_HELPER (SLEX_LST_, __VA_ARGS__))
+#define SLEF_LST(...)  SLE_EXPAND (SLE_HELPER  (SLEX_LST_, __VA_ARGS__, ))
+#define SLEGF_LST(...) SLE_EXPAND (SLEG_HELPER (SLEX_LST_, __VA_ARGS__, ))
 #define SLE_LST(base, variable, ...) SLEF_LST(base, variable, 0, __VA_ARGS__)
 #define SLEG_LST(variable, ...) SLEGF_LST(variable, 0, __VA_ARGS__)
-
-/** Empty space construction callback macro. */
-#define SLC_NULL(pointer, address, flags, conv, length, ...) \
-	SaveLoad (CDIS<SaveLoadTypes>::VAL<SL_NULL>::null(), CDIS<uint>::VAL<length>::null(), __VA_ARGS__)
 
 /**
  * Empty space.
@@ -833,13 +808,17 @@ struct SaveLoad {
  * @note Both savegame version interval endpoints must be present for any given range.
  */
 #define SLE_NULL(...) SLE_EXPAND(SLE_NULL_(__VA_ARGS__, ))
-#define SLE_NULL_(length, ...) SLE_EXPAND(SLE_ANY_(SLC_NULL, UNUSED, UNUSED, UNUSED, UNUSED, UNUSED, length, __VA_ARGS__))
+#define SLE_NULL_(length, ...) \
+	SaveLoad (CDIS<SaveLoadTypes>::VAL<SL_NULL>::null(), \
+		CDIS<uint>::VAL<length>::null(),             \
+		SLE_VRANGE (__VA_ARGS__))
 
 /** Translate values ingame to different values in the savegame and vv. */
 #define SLE_WRITEBYTE(base, variable, value) \
-	SLE_ANY_ (SLC_WRITEBYTE, cpp_pointer(base, variable), cpp_offsetof(base, variable), UNUSED, UNUSED, value, UNUSED, )
-#define SLC_WRITEBYTE(pointer, address, flags, conv, length, ...) \
-	SaveLoad (CDIS<SaveLoadTypes>::VAL<SL_WRITEBYTE>::null(), pointer, address, conv, __VA_ARGS__)
+	SaveLoad (CDIS<SaveLoadTypes>::VAL<SL_WRITEBYTE>::null(), \
+		cpp_pointer (base, variable),                     \
+		cpp_offsetof (base, variable),                    \
+		value, SLE_VRANGE())
 
 /** Include another SaveLoad object. */
 #define SLE_INCLUDE(include) SaveLoad(include)
