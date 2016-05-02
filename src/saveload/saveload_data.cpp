@@ -79,16 +79,6 @@ void WriteValue(void *ptr, VarType conv, int64 val)
 static const size_t REF_LENGTH = 4;
 
 /**
- * Return the size in bytes of a certain type of atomic array
- * @param length The length of the array counted in elements
- * @param conv VarType type of the variable that is used in calculating the size
- */
-static inline size_t SlCalcArrayLen(size_t length, VarType conv)
-{
-	return SlCalcConvFileLen(conv) * length;
-}
-
-/**
  * Calculate the gross length of the string that it
  * will occupy in the savegame. This includes the real length
  * and the length that the index will occupy.
@@ -143,7 +133,7 @@ size_t SlCalcObjLength(const void *object, const SaveLoad *sld)
 		switch (sld->type) {
 			case SL_VAR: length += SlCalcConvFileLen(sld->conv); break;
 			case SL_REF: length += REF_LENGTH; break;
-			case SL_ARR: length += SlCalcArrayLen(sld->length, sld->conv); break;
+			case SL_ARR: length += SlCalcConvFileLen(sld->conv) * sld->length; break;
 			case SL_STR: length += SlCalcStringLen(sld->get_variable_address(object), sld->length); break;
 			case SL_LST: length += SlCalcListLen(sld->get_variable_address(object)); break;
 			case SL_NULL: length += sld->length; break;
