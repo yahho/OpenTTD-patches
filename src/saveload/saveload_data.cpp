@@ -89,13 +89,12 @@ static const size_t REF_LENGTH = 4;
 static inline size_t SlCalcStringLen (const void *ptr, size_t length)
 {
 	size_t len;
-	const char *str;
 
 	if (length == 0) {
-		str = *(const char * const *)ptr;
+		const char *str = *(const char * const *)ptr;
 		len = (str != NULL) ? strlen(str) : 0;
 	} else {
-		str = (const char *)ptr;
+		const char *str = (const char *)ptr;
 		len = ttd_strnlen(str, length - 1);
 	}
 
