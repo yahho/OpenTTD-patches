@@ -557,24 +557,6 @@ void SaveDumper::WriteArray(const void *ptr, size_t length, VarType conv)
 }
 
 /**
- * Save a list.
- * @param list The list being manipulated
- * @param conv SLRefType type of the list (Vehicle *, Station *, etc)
- */
-void SaveDumper::WriteList(const void *ptr, SLRefType conv)
-{
-	typedef const std::list<const void *> PtrList;
-	PtrList *l = (PtrList *)ptr;
-
-	this->WriteUint32(l->size());
-
-	PtrList::const_iterator iter;
-	for (iter = l->begin(); iter != l->end(); ++iter) {
-		this->WriteRef(*iter, conv);
-	}
-}
-
-/**
  * Begin writing of a chunk
  */
 void SaveDumper::BeginChunk(uint type)
@@ -641,7 +623,19 @@ void SaveDumper::WriteObjectMember(const void *object, const SaveLoad *sld)
 		case SL_REF: this->WriteRef(*(const void * const*)ptr, (SLRefType)sld->conv); break;
 		case SL_ARR: this->WriteArray(ptr, sld->length, sld->conv); break;
 		case SL_STR: this->WriteString(ptr, sld->length); break;
-		case SL_LST: this->WriteList(ptr, (SLRefType)sld->conv); break;
+
+		case SL_LST: {
+			typedef const std::list<const void *> PtrList;
+			PtrList *l = (PtrList *)ptr;
+
+			this->WriteUint32 (l->size());
+
+			PtrList::const_iterator iter;
+			for (iter = l->begin(); iter != l->end(); ++iter) {
+				this->WriteRef (*iter, (SLRefType)sld->conv);
+			}
+			break;
+		}
 
 		case SL_NULL:
 			/* Writing nulls to savegames should be rare enough;
