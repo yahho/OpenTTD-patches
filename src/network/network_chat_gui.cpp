@@ -133,23 +133,25 @@ void NetworkInitChatMessage()
 /** Compute the chat area to copy to/from the blitter buffer. */
 static inline bool ComputeChatArea (int *px, int *py, int *pw, int *ph)
 {
-	int x      = _chatmsg_box.x;
 	int y      = _screen.height - _chatmsg_box.y - _chatmsg_box.height;
-	int width  = _chatmsg_box.width;
 	int height = _chatmsg_box.height;
 	if (y < 0) {
 		height = max(height + y, min(_chatmsg_box.height, _screen.height));
 		y = 0;
 	}
+	if (height <= 0) return false;
+	*py = y;
+	*ph = height;
+
+	const int x = _chatmsg_box.x;
+	int width   = _chatmsg_box.width;
 	if (x + width >= _screen.width) {
 		width = _screen.width - x;
 	}
-	if (width <= 0 || height <= 0) return false;
-
+	if (width <= 0) return false;
 	*px = x;
-	*py = y;
 	*pw = width;
-	*ph = height;
+
 	return true;
 }
 
