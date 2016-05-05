@@ -130,6 +130,29 @@ void NetworkInitChatMessage()
 	}
 }
 
+/** Compute the chat area to copy to/from the blitter buffer. */
+static inline bool ComputeChatArea (int *px, int *py, int *pw, int *ph)
+{
+	int x      = _chatmsg_box.x;
+	int y      = _screen.height - _chatmsg_box.y - _chatmsg_box.height;
+	int width  = _chatmsg_box.width;
+	int height = _chatmsg_box.height;
+	if (y < 0) {
+		height = max(height + y, min(_chatmsg_box.height, _screen.height));
+		y = 0;
+	}
+	if (x + width >= _screen.width) {
+		width = _screen.width - x;
+	}
+	if (width <= 0 || height <= 0) return false;
+
+	*px = x;
+	*py = y;
+	*pw = width;
+	*ph = height;
+	return true;
+}
+
 /** Hide the chatbox */
 void NetworkUndrawChatMessage()
 {
@@ -152,19 +175,10 @@ void NetworkUndrawChatMessage()
 	}
 
 	if (_chatmessage_visible) {
+		int x, y, width, height;
+		if (!ComputeChatArea (&x, &y, &width, &height)) return;
+
 		Blitter *blitter = Blitter::get();
-		int x      = _chatmsg_box.x;
-		int y      = _screen.height - _chatmsg_box.y - _chatmsg_box.height;
-		int width  = _chatmsg_box.width;
-		int height = _chatmsg_box.height;
-		if (y < 0) {
-			height = max(height + y, min(_chatmsg_box.height, _screen.height));
-			y = 0;
-		}
-		if (x + width >= _screen.width) {
-			width = _screen.width - x;
-		}
-		if (width <= 0 || height <= 0) return;
 
 		_chatmessage_visible = false;
 		/* Put our 'shot' back to the screen */
@@ -213,18 +227,8 @@ void NetworkDrawChatMessage()
 	uint count = GetChatMessageCount();
 	if (count == 0) return;
 
-	int x      = _chatmsg_box.x;
-	int y      = _screen.height - _chatmsg_box.y - _chatmsg_box.height;
-	int width  = _chatmsg_box.width;
-	int height = _chatmsg_box.height;
-	if (y < 0) {
-		height = max(height + y, min(_chatmsg_box.height, _screen.height));
-		y = 0;
-	}
-	if (x + width >= _screen.width) {
-		width = _screen.width - x;
-	}
-	if (width <= 0 || height <= 0) return;
+	int x, y, width, height;
+	if (!ComputeChatArea (&x, &y, &width, &height)) return;
 
 	assert(blitter->BufferSize(width, height) <= (int)(_chatmsg_box.width * _chatmsg_box.height * blitter->GetBytesPerPixel()));
 
