@@ -136,7 +136,7 @@ static inline bool ComputeChatArea (int *px, int *py, int *pw, int *ph)
 	int y      = _screen.height - _chatmsg_box.y - _chatmsg_box.height;
 	int height = _chatmsg_box.height;
 	if (y < 0) {
-		height = max(height + y, min(_chatmsg_box.height, _screen.height));
+		height = min (height, _screen.height);
 		y = 0;
 	}
 	if (height <= 0) return false;
