@@ -84,14 +84,7 @@ static inline uint GetChatMessageCount()
  */
 void CDECL NetworkAddChatMessage(TextColour colour, uint duration, const char *message, ...)
 {
-	char buf[DRAW_STRING_BUFFER];
 	va_list va;
-
-	va_start(va, message);
-	bstrvfmt (buf, message, va);
-	va_end(va);
-
-	Utf8TrimString(buf, DRAW_STRING_BUFFER);
 
 	uint msg_count = GetChatMessageCount();
 	if (MAX_CHAT_MESSAGES == msg_count) {
@@ -100,7 +93,12 @@ void CDECL NetworkAddChatMessage(TextColour colour, uint duration, const char *m
 	}
 
 	ChatMessage *cmsg = &_chatmsg_list[msg_count++];
-	bstrcpy (cmsg->message, buf);
+
+	va_start(va, message);
+	bstrvfmt (cmsg->message, message, va);
+	va_end(va);
+	Utf8TrimString (cmsg->message, lengthof(cmsg->message));
+
 	cmsg->colour = (colour & TC_IS_PALETTE_COLOUR) ? colour : TC_WHITE;
 	cmsg->remove_time = _realtime_tick + duration * 1000;
 
