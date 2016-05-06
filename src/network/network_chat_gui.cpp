@@ -247,10 +247,10 @@ void NetworkDrawChatMessage()
 
 	string_height = min(string_height, MAX_CHAT_MESSAGES * (FONT_HEIGHT_NORMAL + NETWORK_CHAT_LINE_SPACING));
 
-	int bottom = _screen.height - _chatmsg_box_y - 2;
+	int bottom = _screen.height - _chatmsg_box_y;
 	int top = bottom - string_height;
 	/* Paint a half-transparent box behind the chat messages */
-	GfxFillRect (_chatmsg_box_x, top - 2, _chatmsg_box_x + _chatmsg_box_width - 1, bottom,
+	GfxFillRect (_chatmsg_box_x, top - 2, _chatmsg_box_x + _chatmsg_box_width - 1, bottom - 1,
 			PALETTE_TO_TRANSPARENT, FILLRECT_RECOLOUR // black, but with some alpha for background
 		);
 
