@@ -699,10 +699,10 @@ Dimension Layouter::GetBounds()
 /**
  * Get the position of a character in the layout.
  * @param ch Character to get the position of.
- * @return Upper left corner of the character relative to the start of the string.
+ * @return Left position of the character relative to the start of the string.
  * @note Will only work right for single-line strings.
  */
-Point Layouter::GetCharPosition(const char *ch) const
+int Layouter::GetCharPosition (const char *ch) const
 {
 	/* Find the code point index which corresponds to the char
 	 * pointer into our UTF-8 source string. */
@@ -722,8 +722,7 @@ Point Layouter::GetCharPosition(const char *ch) const
 
 		/* Pointer to the end-of-string/line marker? Return total line width. */
 		if (*ch == '\0' || *ch == '\n') {
-			Point p = { line->GetWidth(), 0 };
-			return p;
+			return line->GetWidth();
 		}
 
 		/* Scan all runs until we've found our code point index. */
@@ -733,15 +732,13 @@ Point Layouter::GetCharPosition(const char *ch) const
 			for (int i = 0; i < run->GetGlyphCount(); i++) {
 				/* Matching glyph? Return position. */
 				if ((size_t)run->GetGlyphToCharMap()[i] == index) {
-					Point p = { (int)run->GetPositions()[i * 2], (int)run->GetPositions()[i * 2 + 1] };
-					return p;
+					return run->GetPositions()[i * 2];
 				}
 			}
 		}
 	}
 
-	Point p = { 0, 0 };
-	return p;
+	return 0;
 }
 
 /**

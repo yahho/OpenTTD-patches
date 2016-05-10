@@ -710,7 +710,7 @@ Dimension GetStringBoundingBox(StringID strid)
 int GetCharPosInString(const char *str, const char *ch, FontSize start_fontsize)
 {
 	Layouter layout(str, INT32_MAX, TC_FROMSTRING, start_fontsize);
-	return layout.GetCharPosition(ch).x;
+	return layout.GetCharPosition(ch);
 }
 
 /**
