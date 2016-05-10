@@ -568,15 +568,15 @@ void Textbuf::UpdateWidth()
 /** Update pixel position of the caret. */
 void Textbuf::UpdateCaretPosition()
 {
-	this->caretxoffs = this->chars > 1 ? GetCharPosInString(this->buffer, this->buffer + this->caretpos, FS_NORMAL).x : 0;
+	this->caretxoffs = this->chars > 1 ? GetCharPosInString (this->buffer, this->buffer + this->caretpos, FS_NORMAL) : 0;
 }
 
 /** Update pixel positions of the marked text area. */
 void Textbuf::UpdateMarkedText()
 {
 	if (this->markend != 0) {
-		this->markxoffs  = GetCharPosInString(this->buffer, this->buffer + this->markpos, FS_NORMAL).x;
-		this->marklength = GetCharPosInString(this->buffer, this->buffer + this->markend, FS_NORMAL).x - this->markxoffs;
+		this->markxoffs  = GetCharPosInString (this->buffer, this->buffer + this->markpos, FS_NORMAL);
+		this->marklength = GetCharPosInString (this->buffer, this->buffer + this->markend, FS_NORMAL) - this->markxoffs;
 	} else {
 		this->markxoffs = this->marklength = 0;
 	}
