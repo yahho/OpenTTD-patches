@@ -701,19 +701,6 @@ Dimension GetStringBoundingBox(StringID strid)
 }
 
 /**
- * Get the position of a character relative to the start of the string.
- * @param str String containing the character.
- * @param ch Pointer to the character in the string.
- * @param start_fontsize Font size to start the text with.
- * @return Left position of the glyph associated with the character.
- */
-int GetCharPosInString(const char *str, const char *ch, FontSize start_fontsize)
-{
-	Layouter layout(str, INT32_MAX, TC_FROMSTRING, start_fontsize);
-	return layout.GetCharPosition(ch);
-}
-
-/**
  * Get the character from a string that is drawn at a specific position.
  * @param str String to test.
  * @param x Position relative to the start of the string.

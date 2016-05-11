@@ -17,6 +17,7 @@
 #include "strings_func.h"
 #include "gfx_type.h"
 #include "gfx_func.h"
+#include "gfx_layout.h"
 #include "window_func.h"
 #include "core/alloc_func.hpp"
 #include "core/smallvec_type.hpp"
@@ -304,6 +305,17 @@ public:
 
 #endif
 
+
+/**
+ * Get the position of a character relative to the start of the string.
+ * @param ch Pointer to the character in the string.
+ * @return Left position of the glyph associated with the character.
+ */
+int Textbuf::GetCharPosition (const char *ch) const
+{
+	Layouter layout (this->GetText());
+	return layout.GetCharPosition (ch);
+}
 
 /**
  * Checks if it is possible to delete a character.

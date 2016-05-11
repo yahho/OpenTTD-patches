@@ -104,15 +104,7 @@ struct Textbuf : stringp {
 		return this->c_str() + this->markpos;
 	}
 
-	/**
-	 * Get the position of a character relative to the start of the string.
-	 * @param ch Pointer to the character in the string.
-	 * @return Left position of the glyph associated with the character.
-	 */
-	int GetCharPosition (const char *ch) const
-	{
-		return GetCharPosInString (this->GetText(), ch);
-	}
+	int GetCharPosition (const char *ch) const;
 
 	/**
 	 * Get the character that is drawn at a specific position.
