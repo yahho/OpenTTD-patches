@@ -114,6 +114,16 @@ struct Textbuf : stringp {
 		return GetCharPosInString (this->GetText(), ch);
 	}
 
+	/**
+	 * Get the character that is drawn at a specific position.
+	 * @param x Position relative to the start of the string.
+	 * @return Pointer to the character at the position or NULL if no character is at the position.
+	 */
+	const char *GetCharAtPosition (int x) const
+	{
+		return ::GetCharAtPosition (this->GetText(), x);
+	}
+
 private:
 	StringIterator *char_iter;
 

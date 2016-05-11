@@ -876,7 +876,7 @@ const char *QueryString::GetCharAtPosition(const Window *w, int wid, const Point
 	int delta = min(0, (right - left) - this->pixels - 10);
 	if (this->caretxoffs + delta < 0) delta = -this->caretxoffs;
 
-	return ::GetCharAtPosition(this->GetText(), pt.x - delta - left);
+	return this->Textbuf::GetCharAtPosition (pt.x - delta - left);
 }
 
 void QueryString::ClickEditBox(Window *w, Point pt, int wid, int click_count, bool focus_changed)

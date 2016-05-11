@@ -361,7 +361,7 @@ struct IConsoleWindow : Window
 
 		if (!IsInsideMM(pt.y, this->height - this->line_height, this->height)) return NULL;
 
-		return GetCharAtPosition(_iconsole_cmdline.GetText(), pt.x - delta);
+		return _iconsole_cmdline.GetCharAtPosition (pt.x - delta);
 	}
 
 	virtual void OnMouseWheel(int wheel)
