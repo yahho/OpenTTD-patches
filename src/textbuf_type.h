@@ -14,6 +14,7 @@
 
 #include "string.h"
 #include "strings_type.h"
+#include "gfx_func.h"
 
 #ifdef WITH_ICU
 class IcuStringIterator;
@@ -101,6 +102,16 @@ struct Textbuf : stringp {
 
 		*length = this->markend - this->markpos;
 		return this->c_str() + this->markpos;
+	}
+
+	/**
+	 * Get the position of a character relative to the start of the string.
+	 * @param ch Pointer to the character in the string.
+	 * @return Left position of the glyph associated with the character.
+	 */
+	int GetCharPosition (const char *ch) const
+	{
+		return GetCharPosInString (this->GetText(), ch);
 	}
 
 private:

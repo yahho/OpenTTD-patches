@@ -348,8 +348,8 @@ struct IConsoleWindow : Window
 	{
 		int delta = min(this->width - this->line_offset - _iconsole_cmdline.pixels - ICON_RIGHT_BORDERWIDTH, 0);
 
-		int x1 = GetCharPosInString (_iconsole_cmdline.GetText(), from, FS_NORMAL);
-		int x2 = from != to ? GetCharPosInString (_iconsole_cmdline.GetText(), to) : x1;
+		int x1 = _iconsole_cmdline.GetCharPosition (from);
+		int x2 = from != to ? _iconsole_cmdline.GetCharPosition (to) : x1;
 
 		Rect r = { this->line_offset + delta + x1, this->height - this->line_height, this->line_offset + delta + x2, this->height };
 		return r;
