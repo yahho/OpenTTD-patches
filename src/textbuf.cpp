@@ -318,6 +318,19 @@ int Textbuf::GetCharPosition (const char *ch) const
 }
 
 /**
+ * Get the character that is drawn at a specific position.
+ * @param x Position relative to the start of the string.
+ * @return Pointer to the character at the position or NULL if no character is at the position.
+ */
+const char *Textbuf::GetCharAtPosition (int x) const
+{
+	if (x < 0) return NULL;
+
+	Layouter layout (this->GetText());
+	return layout.GetCharAtPosition (x);
+}
+
+/**
  * Checks if it is possible to delete a character.
  * @param backspace if set, delete the character before the caret,
  * otherwise, delete the character after it.
