@@ -593,7 +593,12 @@ void Textbuf::UpdateWidth()
 /** Update pixel position of the caret. */
 void Textbuf::UpdateCaretPosition()
 {
-	this->caretxoffs = this->chars > 1 ? this->GetCharPosition (this->buffer + this->caretpos) : 0;
+	if (this->chars > 1) {
+		Layouter layout (this->GetText());
+		this->caretxoffs = layout.GetCharPosition (this->buffer + this->caretpos);
+	} else {
+		this->caretxoffs = 0;
+	}
 }
 
 /** Update pixel positions of the marked text area. */
