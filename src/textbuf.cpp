@@ -307,14 +307,17 @@ public:
 
 
 /**
- * Get the position of a character relative to the start of the string.
- * @param ch Pointer to the character in the string.
- * @return Left position of the glyph associated with the character.
+ * Get the positions of two characters relative to the start of the string.
+ * @param c1 Pointer to the first character in the string.
+ * @param[out] x1 Left position of the glyph associated with c1.
+ * @param c2 Pointer to the second character in the string.
+ * @param[out] x2 Left position of the glyph associated with c2.
  */
-int Textbuf::GetCharPosition (const char *ch) const
+void Textbuf::GetCharPositions (const char *c1, int *x1, const char *c2, int *x2) const
 {
 	Layouter layout (this->GetText());
-	return layout.GetCharPosition (ch);
+	*x1 = layout.GetCharPosition (c1);
+	*x2 = (c2 == c1) ? *x1 : layout.GetCharPosition (c2);
 }
 
 /**
@@ -605,8 +608,11 @@ void Textbuf::UpdateCaretPosition()
 void Textbuf::UpdateMarkedText()
 {
 	if (this->markend != 0) {
-		this->markxoffs  = this->GetCharPosition (this->buffer + this->markpos);
-		this->marklength = this->GetCharPosition (this->buffer + this->markend) - this->markxoffs;
+		int x1, x2;
+		this->GetCharPositions (this->buffer + this->markpos, &x1,
+					this->buffer + this->markend, &x2);
+		this->markxoffs  = x1;
+		this->marklength = x2 - x1;
 	} else {
 		this->markxoffs = this->marklength = 0;
 	}

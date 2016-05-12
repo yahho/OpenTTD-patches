@@ -103,7 +103,7 @@ struct Textbuf : stringp {
 		return this->c_str() + this->markpos;
 	}
 
-	int GetCharPosition (const char *ch) const;
+	void GetCharPositions (const char *c1, int *x1, const char *c2, int *x2) const;
 
 	const char *GetCharAtPosition (int x) const;
 

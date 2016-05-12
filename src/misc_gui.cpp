@@ -839,8 +839,8 @@ Rect QueryString::GetBoundingRect(const Window *w, int wid, const char *from, co
 	if (this->caretxoffs + delta < 0) delta = -this->caretxoffs;
 
 	/* Get location of first and last character. */
-	int x1 = this->GetCharPosition (from);
-	int x2 = from != to ? this->GetCharPosition (to) : x1;
+	int x1, x2;
+	this->GetCharPositions (from, &x1, to, &x2);
 
 	Rect r = { Clamp (left + x1 + delta + WD_FRAMERECT_LEFT, left, right), top, Clamp (left + x2 + delta + WD_FRAMERECT_LEFT, left, right - WD_FRAMERECT_RIGHT), bottom };
 
