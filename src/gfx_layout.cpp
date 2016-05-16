@@ -636,6 +636,12 @@ typedef std::map <LineCacheKey, LineCacheItem> LineCache;
 /** Cache of ParagraphLayout lines. */
 static LineCache *linecache;
 
+/** Clear line cache. */
+static void ResetLineCache (void)
+{
+	if (linecache != NULL) linecache->clear();
+}
+
 /**
  * Helper for getting a ParagraphLayouter of the given type.
  *
@@ -888,14 +894,6 @@ void Layouter::ResetFontCache(FontSize size)
 
 	/* We must reset the linecache since it references the just freed fonts */
 	ResetLineCache();
-}
-
-/**
- * Clear line cache.
- */
-void Layouter::ResetLineCache()
-{
-	if (linecache != NULL) linecache->clear();
 }
 
 /**

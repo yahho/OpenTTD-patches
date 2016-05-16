@@ -105,7 +105,6 @@ public:
 	const char *GetCharAtPosition(int x) const;
 
 	static void ResetFontCache(FontSize size);
-	static void ResetLineCache();
 	static void ReduceLineCache();
 };
 
