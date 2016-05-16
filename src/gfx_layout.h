@@ -16,54 +16,12 @@
 #include "gfx_func.h"
 #include "core/smallmap_type.hpp"
 
-#include <map>
-#include <string>
-
 #ifdef WITH_ICU_LAYOUT
 #include "layout/ParagraphLayout.h"
 #define ICU_FONTINSTANCE : public LEFontInstance
 #else /* WITH_ICU_LAYOUT */
 #define ICU_FONTINSTANCE
 #endif /* WITH_ICU_LAYOUT */
-
-/**
- * Text drawing parameters, which can change while drawing a line, but are kept between multiple parts
- * of the same text, e.g. on line breaks.
- */
-struct FontState {
-	FontSize fontsize;       ///< Current font size.
-	TextColour cur_colour;   ///< Current text colour.
-	TextColour prev_colour;  ///< Text colour from before the last colour switch.
-
-	FontState() : fontsize(FS_END), cur_colour(TC_INVALID), prev_colour(TC_INVALID) {}
-	FontState(TextColour colour, FontSize fontsize) : fontsize(fontsize), cur_colour(colour), prev_colour(colour) {}
-
-	/**
-	 * Switch to new colour \a c.
-	 * @param c New colour to use.
-	 */
-	inline void SetColour(TextColour c)
-	{
-		assert(c >= TC_BLUE && c <= TC_BLACK);
-		this->prev_colour = this->cur_colour;
-		this->cur_colour = c;
-	}
-
-	/** Switch to previous colour. */
-	inline void SetPreviousColour()
-	{
-		Swap(this->cur_colour, this->prev_colour);
-	}
-
-	/**
-	 * Switch to using a new font \a f.
-	 * @param f New font to use.
-	 */
-	inline void SetFontSize(FontSize f)
-	{
-		this->fontsize = f;
-	}
-};
 
 /**
  * Container with information about a font.
@@ -93,9 +51,6 @@ public:
 	le_bool getGlyphPoint(LEGlyphID glyph, le_int32 pointNumber, LEPoint &point) const;
 #endif /* WITH_ICU_LAYOUT */
 };
-
-/** Mapping from index to font. */
-typedef SmallMap<int, Font *> FontMap;
 
 /**
  * Interface to glue fallback and normal layouter into one.
@@ -138,37 +93,6 @@ public:
  */
 class Layouter : public AutoDeleteSmallVector<const ParagraphLayouter::Line *, 4> {
 	const char *string; ///< Pointer to the original string.
-
-	/** Key into the linecache */
-	struct LineCacheKey {
-		FontState state_before;  ///< Font state at the beginning of the line.
-		std::string str;         ///< Source string of the line (including colour and font size codes).
-
-		/** Comparison operator for std::map */
-		bool operator<(const LineCacheKey &other) const
-		{
-			if (this->state_before.fontsize != other.state_before.fontsize) return this->state_before.fontsize < other.state_before.fontsize;
-			if (this->state_before.cur_colour != other.state_before.cur_colour) return this->state_before.cur_colour < other.state_before.cur_colour;
-			if (this->state_before.prev_colour != other.state_before.prev_colour) return this->state_before.prev_colour < other.state_before.prev_colour;
-			return this->str < other.str;
-		}
-	};
-public:
-	/** Item in the linecache */
-	struct LineCacheItem {
-		/* Stuff that cannot be freed until the ParagraphLayout is freed */
-		void *buffer;              ///< Accessed by both ICU's and our ParagraphLayout::nextLine.
-		FontMap runs;              ///< Accessed by our ParagraphLayout::nextLine.
-
-		FontState state_after;     ///< Font state after the line.
-		ParagraphLayouter *layout; ///< Layout of the line.
-
-		LineCacheItem() : buffer(NULL), layout(NULL) {}
-		~LineCacheItem() { delete layout; free(buffer); }
-	};
-private:
-	typedef std::map<LineCacheKey, LineCacheItem> LineCache;
-	static LineCache *linecache;
 
 	typedef SmallMap<TextColour, Font *> FontColourMap;
 	static FontColourMap fonts[FS_END];

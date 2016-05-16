@@ -10,6 +10,10 @@
 /** @file gfx_layout.cpp Handling of laying out text. */
 
 #include "stdafx.h"
+
+#include <map>
+#include <string>
+
 #include "gfx_layout.h"
 #include "string.h"
 #include "strings_func.h"
@@ -22,8 +26,8 @@
 #endif /* WITH_ICU_LAYOUT */
 
 
-/** Cache of ParagraphLayout lines. */
-Layouter::LineCache *Layouter::linecache;
+/** Mapping from index to font. */
+typedef SmallMap<int, Font *> FontMap;
 
 /** Cache of Font instances. */
 Layouter::FontColourMap Layouter::fonts[FS_END];
@@ -559,6 +563,79 @@ static FallbackParagraphLayout *GetParagraphLayout(WChar *buff, WChar *buff_end,
 	return new FallbackParagraphLayout(buff, buff_end - buff, fontMapping);
 }
 
+
+/**
+ * Text drawing parameters, which can change while drawing a line, but are
+ * kept between multiple parts of the same text, e.g. on line breaks.
+ */
+struct FontState {
+	FontSize fontsize;       ///< Current font size.
+	TextColour cur_colour;   ///< Current text colour.
+	TextColour prev_colour;  ///< Text colour from before the last colour switch.
+
+	FontState() : fontsize(FS_END), cur_colour(TC_INVALID), prev_colour(TC_INVALID) {}
+	FontState(TextColour colour, FontSize fontsize) : fontsize(fontsize), cur_colour(colour), prev_colour(colour) {}
+
+	/**
+	 * Switch to new colour \a c.
+	 * @param c New colour to use.
+	 */
+	inline void SetColour(TextColour c)
+	{
+		assert(c >= TC_BLUE && c <= TC_BLACK);
+		this->prev_colour = this->cur_colour;
+		this->cur_colour = c;
+	}
+
+	/** Switch to previous colour. */
+	inline void SetPreviousColour()
+	{
+		Swap(this->cur_colour, this->prev_colour);
+	}
+
+	/**
+	 * Switch to using a new font \a f.
+	 * @param f New font to use.
+	 */
+	inline void SetFontSize(FontSize f)
+	{
+		this->fontsize = f;
+	}
+};
+
+/** Key into the linecache */
+struct LineCacheKey {
+	FontState state_before; ///< Font state at the beginning of the line.
+	std::string str;        ///< Source string of the line (including colour and font size codes).
+
+	/** Comparison operator for std::map */
+	bool operator < (const LineCacheKey &other) const
+	{
+		if (this->state_before.fontsize    != other.state_before.fontsize)    return this->state_before.fontsize    < other.state_before.fontsize;
+		if (this->state_before.cur_colour  != other.state_before.cur_colour)  return this->state_before.cur_colour  < other.state_before.cur_colour;
+		if (this->state_before.prev_colour != other.state_before.prev_colour) return this->state_before.prev_colour < other.state_before.prev_colour;
+		return this->str < other.str;
+	}
+};
+
+/** Item in the linecache */
+struct LineCacheItem {
+	/* Stuff that cannot be freed until the ParagraphLayout is freed */
+	void *buffer;              ///< Accessed by both ICU's and our ParagraphLayout::nextLine.
+	FontMap runs;              ///< Accessed by our ParagraphLayout::nextLine.
+
+	FontState state_after;     ///< Font state after the line.
+	ParagraphLayouter *layout; ///< Layout of the line.
+
+	LineCacheItem() : buffer(NULL), layout(NULL) {}
+	~LineCacheItem() { delete layout; free(buffer); }
+};
+
+typedef std::map <LineCacheKey, LineCacheItem> LineCache;
+
+/** Cache of ParagraphLayout lines. */
+static LineCache *linecache;
+
 /**
  * Helper for getting a ParagraphLayouter of the given type.
  *
@@ -569,7 +646,7 @@ static FallbackParagraphLayout *GetParagraphLayout(WChar *buff, WChar *buff_end,
  * @tparam T The type of layouter we want.
  */
 template <typename T>
-static inline void GetLayouter(Layouter::LineCacheItem &line, const char *&str, FontState &state)
+static inline void GetLayouter (LineCacheItem &line, const char *&str, FontState &state)
 {
 	if (line.buffer != NULL) free(line.buffer);
 
