@@ -170,8 +170,6 @@ private:
 	typedef std::map<LineCacheKey, LineCacheItem> LineCache;
 	static LineCache *linecache;
 
-	static LineCacheItem &GetCachedParagraphLayout(const char *str, size_t len, const FontState &state);
-
 	typedef SmallMap<TextColour, Font *> FontColourMap;
 	static FontColourMap fonts[FS_END];
 public:

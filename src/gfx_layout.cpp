@@ -644,7 +644,14 @@ Layouter::Layouter(const char *str, int maxw, TextColour colour, FontSize fontsi
 			lineend += len;
 		}
 
-		LineCacheItem& line = GetCachedParagraphLayout(str, lineend - str, state);
+		/* Create linecache on first access to avoid trouble with initialisation order of static variables. */
+		if (linecache == NULL) linecache = new LineCache();
+
+		LineCacheKey key;
+		key.state_before = state;
+		key.str.assign (str, lineend - str);
+		LineCacheItem& line = (*linecache)[key];
+
 		if (line.layout != NULL) {
 			/* Line is in cache */
 			str = lineend + 1;
@@ -804,27 +811,6 @@ void Layouter::ResetFontCache(FontSize size)
 
 	/* We must reset the linecache since it references the just freed fonts */
 	ResetLineCache();
-}
-
-/**
- * Get reference to cache item.
- * If the item does not exist yet, it is default constructed.
- * @param str Source string of the line (including colour and font size codes).
- * @param len Length of \a str in bytes (no termination).
- * @param state State of the font at the beginning of the line.
- * @return Reference to cache item.
- */
-Layouter::LineCacheItem &Layouter::GetCachedParagraphLayout(const char *str, size_t len, const FontState &state)
-{
-	if (linecache == NULL) {
-		/* Create linecache on first access to avoid trouble with initialisation order of static variables. */
-		linecache = new LineCache();
-	}
-
-	LineCacheKey key;
-	key.state_before = state;
-	key.str.assign(str, len);
-	return (*linecache)[key];
 }
 
 /**
