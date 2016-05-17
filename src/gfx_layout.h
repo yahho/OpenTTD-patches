@@ -14,7 +14,7 @@
 
 #include "fontcache.h"
 #include "gfx_func.h"
-#include "core/smallmap_type.hpp"
+#include "core/smallvec_type.hpp"
 
 #ifdef WITH_ICU_LAYOUT
 #include "layout/ParagraphLayout.h"
@@ -93,9 +93,6 @@ public:
  */
 class Layouter : public AutoDeleteSmallVector<const ParagraphLayouter::Line *, 4> {
 	const char *string; ///< Pointer to the original string.
-
-	typedef SmallMap<TextColour, Font *> FontColourMap;
-	static FontColourMap fonts[FS_END];
 public:
 	static Font *GetFont(FontSize size, TextColour colour);
 

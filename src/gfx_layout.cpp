@@ -18,6 +18,7 @@
 #include "string.h"
 #include "strings_func.h"
 #include "debug.h"
+#include "core/smallmap_type.hpp"
 
 #include "table/control_codes.h"
 
@@ -29,8 +30,11 @@
 /** Mapping from index to font. */
 typedef SmallMap<int, Font *> FontMap;
 
+
+typedef SmallMap<TextColour, Font *> FontColourMap;
+
 /** Cache of Font instances. */
-Layouter::FontColourMap Layouter::fonts[FS_END];
+static FontColourMap fonts[FS_END];
 
 
 /**
