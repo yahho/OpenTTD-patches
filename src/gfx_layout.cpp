@@ -36,6 +36,17 @@ typedef SmallMap<TextColour, Font *> FontColourMap;
 /** Cache of Font instances. */
 static FontColourMap fonts[FS_END];
 
+/** Get a static font instance. */
+static Font *GetFont (FontSize size, TextColour colour)
+{
+	FontColourMap::iterator it = fonts[size].Find(colour);
+	if (it != fonts[size].End()) return it->second;
+
+	Font *f = new Font(size, colour);
+	*fonts[size].Append() = FontColourMap::Pair (colour, f);
+	return f;
+}
+
 
 /**
  * Construct a new font.
@@ -664,7 +675,7 @@ static inline void GetLayouter (LineCacheItem &line, const char *&str, FontState
 	const typename T::CharType *buffer_last = buff_begin + DRAW_STRING_BUFFER;
 	typename T::CharType *buff = buff_begin;
 	FontMap &fontMapping = line.runs;
-	Font *f = Layouter::GetFont(state.fontsize, state.cur_colour);
+	Font *f = GetFont (state.fontsize, state.cur_colour);
 
 	line.buffer = buff_begin;
 
@@ -697,7 +708,7 @@ static inline void GetLayouter (LineCacheItem &line, const char *&str, FontState
 		if (!fontMapping.Contains(buff - buff_begin)) {
 			fontMapping.Insert(buff - buff_begin, f);
 		}
-		f = Layouter::GetFont(state.fontsize, state.cur_colour);
+		f = GetFont (state.fontsize, state.cur_colour);
 	}
 
 	/* Better safe than sorry. */
@@ -870,19 +881,6 @@ const char *Layouter::GetCharAtPosition(int x) const
 	}
 
 	return NULL;
-}
-
-/**
- * Get a static font instance.
- */
-Font *Layouter::GetFont(FontSize size, TextColour colour)
-{
-	FontColourMap::iterator it = fonts[size].Find(colour);
-	if (it != fonts[size].End()) return it->second;
-
-	Font *f = new Font(size, colour);
-	*fonts[size].Append() = FontColourMap::Pair(colour, f);
-	return f;
 }
 
 /**

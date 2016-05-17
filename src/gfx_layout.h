@@ -94,8 +94,6 @@ public:
 class Layouter : public AutoDeleteSmallVector<const ParagraphLayouter::Line *, 4> {
 	const char *string; ///< Pointer to the original string.
 public:
-	static Font *GetFont(FontSize size, TextColour colour);
-
 	Layouter(const char *str, int maxw = INT32_MAX, TextColour colour = TC_FROMSTRING, FontSize fontsize = FS_NORMAL);
 	Dimension GetBounds();
 	int GetCharPosition (const char *ch) const;
