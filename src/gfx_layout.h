@@ -18,20 +18,28 @@
 
 #ifdef WITH_ICU_LAYOUT
 #include "layout/ParagraphLayout.h"
-#define ICU_FONTINSTANCE : public LEFontInstance
-#else /* WITH_ICU_LAYOUT */
-#define ICU_FONTINSTANCE
 #endif /* WITH_ICU_LAYOUT */
+
+/** Common information about a font. */
+struct FontBase {
+	FontCache *fc;     ///< The font we are using.
+	TextColour colour; ///< The colour this font has to be.
+
+	FontBase (FontSize size, TextColour colour);
+};
 
 /**
  * Container with information about a font.
  */
-class Font ICU_FONTINSTANCE {
+class Font :
+#ifdef WITH_ICU_LAYOUT
+	public LEFontInstance,
+#endif
+	public FontBase {
 public:
-	FontCache *fc;     ///< The font we are using.
-	TextColour colour; ///< The colour this font has to be.
-
-	Font(FontSize size, TextColour colour);
+	Font (FontSize size, TextColour colour) : FontBase (size, colour)
+	{
+	}
 
 #ifdef WITH_ICU_LAYOUT
 	/* Implementation details of LEFontInstance */

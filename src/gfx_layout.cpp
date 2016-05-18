@@ -53,7 +53,7 @@ static Font *GetFont (FontSize size, TextColour colour)
  * @param size   The font size to use for this font.
  * @param colour The colour to draw this font in.
  */
-Font::Font(FontSize size, TextColour colour) :
+FontBase::FontBase (FontSize size, TextColour colour) :
 		fc(FontCache::Get(size)), colour(colour)
 {
 	assert(size < FS_END);
