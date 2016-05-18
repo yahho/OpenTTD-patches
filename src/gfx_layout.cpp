@@ -157,7 +157,7 @@ public:
 	public:
 		ICUVisualRun(const ParagraphLayout::VisualRun *vr) : vr(vr) { }
 
-		const Font *GetFont() const          { return (const Font*)vr->getFont(); }
+		const FontBase *GetFont() const      { return (const Font*)vr->getFont(); }
 		int GetGlyphCount() const            { return vr->getGlyphCount(); }
 		const GlyphID *GetGlyphs() const     { return vr->getGlyphs(); }
 		const float *GetPositions() const    { return vr->getPositions(); }
@@ -269,7 +269,7 @@ public:
 	public:
 		FallbackVisualRun(Font *font, const WChar *chars, int glyph_count, int x);
 		~FallbackVisualRun();
-		const Font *GetFont() const;
+		const FontBase *GetFont() const;
 		int GetGlyphCount() const;
 		const GlyphID *GetGlyphs() const;
 		const float *GetPositions() const;
@@ -335,7 +335,7 @@ FallbackParagraphLayout::FallbackVisualRun::~FallbackVisualRun()
  * Get the font associated with this run.
  * @return The font.
  */
-const Font *FallbackParagraphLayout::FallbackVisualRun::GetFont() const
+const FontBase *FallbackParagraphLayout::FallbackVisualRun::GetFont() const
 {
 	return this->font;
 }

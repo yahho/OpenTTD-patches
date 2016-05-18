@@ -71,7 +71,7 @@ public:
 	class VisualRun {
 	public:
 		virtual ~VisualRun() {}
-		virtual const Font *GetFont() const = 0;
+		virtual const FontBase *GetFont() const = 0;
 		virtual int GetGlyphCount() const = 0;
 		virtual const GlyphID *GetGlyphs() const = 0;
 		virtual const float *GetPositions() const = 0;
