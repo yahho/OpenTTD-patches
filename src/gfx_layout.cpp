@@ -24,7 +24,39 @@
 
 #ifdef WITH_ICU_LAYOUT
 #include <unicode/ustring.h>
+#include "layout/ParagraphLayout.h"
 #endif /* WITH_ICU_LAYOUT */
+
+
+/** Container with information about a font. */
+class Font :
+#ifdef WITH_ICU_LAYOUT
+	public LEFontInstance,
+#endif
+	public FontBase {
+public:
+	Font (FontSize size, TextColour colour) : FontBase (size, colour)
+	{
+	}
+
+#ifdef WITH_ICU_LAYOUT
+	/* Implementation details of LEFontInstance */
+
+	le_int32 getUnitsPerEM() const;
+	le_int32 getAscent() const;
+	le_int32 getDescent() const;
+	le_int32 getLeading() const;
+	float getXPixelsPerEm() const;
+	float getYPixelsPerEm() const;
+	float getScaleFactorX() const;
+	float getScaleFactorY() const;
+	const void *getFontTable(LETag tableTag) const;
+	const void *getFontTable(LETag tableTag, size_t &length) const;
+	LEGlyphID mapCharToGlyph(LEUnicode32 ch) const;
+	void getGlyphAdvance(LEGlyphID glyph, LEPoint &advance) const;
+	le_bool getGlyphPoint(LEGlyphID glyph, le_int32 pointNumber, LEPoint &point) const;
+#endif /* WITH_ICU_LAYOUT */
+};
 
 
 /** Mapping from index to font. */
