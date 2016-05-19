@@ -41,19 +41,73 @@ public:
 
 	/* Implementation details of LEFontInstance */
 
-	le_int32 getUnitsPerEM() const;
-	le_int32 getAscent() const;
-	le_int32 getDescent() const;
-	le_int32 getLeading() const;
-	float getXPixelsPerEm() const;
-	float getYPixelsPerEm() const;
-	float getScaleFactorX() const;
-	float getScaleFactorY() const;
-	const void *getFontTable(LETag tableTag) const;
-	const void *getFontTable(LETag tableTag, size_t &length) const;
-	LEGlyphID mapCharToGlyph(LEUnicode32 ch) const;
-	void getGlyphAdvance(LEGlyphID glyph, LEPoint &advance) const;
-	le_bool getGlyphPoint(LEGlyphID glyph, le_int32 pointNumber, LEPoint &point) const;
+	le_int32 getUnitsPerEM() const OVERRIDE
+	{
+		return this->fc->GetUnitsPerEM();
+	}
+
+	le_int32 getAscent() const OVERRIDE
+	{
+		return this->fc->GetAscender();
+	}
+
+	le_int32 getDescent() const OVERRIDE
+	{
+		return -this->fc->GetDescender();
+	}
+
+	le_int32 getLeading() const OVERRIDE
+	{
+		return this->fc->GetHeight();
+	}
+
+	float getXPixelsPerEm() const OVERRIDE
+	{
+		return (float)this->fc->GetHeight();
+	}
+
+	float getYPixelsPerEm() const OVERRIDE
+	{
+		return (float)this->fc->GetHeight();
+	}
+
+	float getScaleFactorX() const OVERRIDE
+	{
+		return 1.0f;
+	}
+
+	float getScaleFactorY() const OVERRIDE
+	{
+		return 1.0f;
+	}
+
+	const void *getFontTable (LETag tableTag) const OVERRIDE
+	{
+		size_t length;
+		return this->getFontTable (tableTag, length);
+	}
+
+	const void *getFontTable (LETag tableTag, size_t &length) const OVERRIDE
+	{
+		return this->fc->GetFontTable(tableTag, length);
+	}
+
+	LEGlyphID mapCharToGlyph (LEUnicode32 ch) const OVERRIDE
+	{
+		if (IsTextDirectionChar (ch)) return 0;
+		return this->fc->MapCharToGlyph (ch);
+	}
+
+	void getGlyphAdvance (LEGlyphID glyph, LEPoint &advance) const OVERRIDE
+	{
+		advance.fX = glyph == 0xFFFF ? 0 : this->fc->GetGlyphWidth (glyph);
+		advance.fY = 0;
+	}
+
+	le_bool getGlyphPoint (LEGlyphID glyph, le_int32 pointNumber, LEPoint &point) const OVERRIDE
+	{
+		return FALSE;
+	}
 };
 
 typedef ICUFont Font;
@@ -98,76 +152,6 @@ FontBase::FontBase (FontSize size, TextColour colour) :
 }
 
 #ifdef WITH_ICU_LAYOUT
-/* Implementation details of LEFontInstance */
-
-le_int32 Font::getUnitsPerEM() const
-{
-	return this->fc->GetUnitsPerEM();
-}
-
-le_int32 Font::getAscent() const
-{
-	return this->fc->GetAscender();
-}
-
-le_int32 Font::getDescent() const
-{
-	return -this->fc->GetDescender();
-}
-
-le_int32 Font::getLeading() const
-{
-	return this->fc->GetHeight();
-}
-
-float Font::getXPixelsPerEm() const
-{
-	return (float)this->fc->GetHeight();
-}
-
-float Font::getYPixelsPerEm() const
-{
-	return (float)this->fc->GetHeight();
-}
-
-float Font::getScaleFactorX() const
-{
-	return 1.0f;
-}
-
-float Font::getScaleFactorY() const
-{
-	return 1.0f;
-}
-
-const void *Font::getFontTable(LETag tableTag) const
-{
-	size_t length;
-	return this->getFontTable(tableTag, length);
-}
-
-const void *Font::getFontTable(LETag tableTag, size_t &length) const
-{
-	return this->fc->GetFontTable(tableTag, length);
-}
-
-LEGlyphID Font::mapCharToGlyph(LEUnicode32 ch) const
-{
-	if (IsTextDirectionChar(ch)) return 0;
-	return this->fc->MapCharToGlyph(ch);
-}
-
-void Font::getGlyphAdvance(LEGlyphID glyph, LEPoint &advance) const
-{
-	advance.fX = glyph == 0xFFFF ? 0 : this->fc->GetGlyphWidth(glyph);
-	advance.fY = 0;
-}
-
-le_bool Font::getGlyphPoint(LEGlyphID glyph, le_int32 pointNumber, LEPoint &point) const
-{
-	return FALSE;
-}
-
 static size_t AppendToBuffer(UChar *buff, const UChar *buffer_last, WChar c)
 {
 	/* Transform from UTF-32 to internal ICU format of UTF-16. */
