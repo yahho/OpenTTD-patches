@@ -246,19 +246,25 @@ public:
 /**
  * Wrapper for doing layouts with ICU.
  */
-class ICUParagraphLayout : public AutoDeleteSmallVector<ParagraphLayouter::Line *, 4>, public ParagraphLayouter {
-	ParagraphLayout *p; ///< The actual ICU paragraph layout.
+class ICUParagraphLayout : public ParagraphLayouter {
+	ttd_unique_ptr <ParagraphLayout> p; ///< The actual ICU paragraph layout.
+
 public:
 	/** Helper for GetLayouter, to get the right type. */
 	typedef UChar CharType;
 	/** Helper for GetLayouter, to get whether the layouter supports RTL. */
 	static const bool SUPPORTS_RTL = true;
 
-	ICUParagraphLayout(ParagraphLayout *p) : p(p) { }
-	~ICUParagraphLayout() { delete p; }
-	void Reflow() { p->reflow(); }
+	ICUParagraphLayout (ParagraphLayout *p) : p(p)
+	{
+	}
 
-	ParagraphLayouter::Line *NextLine(int max_width)
+	void Reflow (void) OVERRIDE
+	{
+		p->reflow();
+	}
+
+	ParagraphLayouter::Line *NextLine (int max_width) OVERRIDE
 	{
 		ParagraphLayout::Line *l = p->nextLine(max_width);
 		return l == NULL ? NULL : new ICULine(l);
