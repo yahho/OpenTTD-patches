@@ -161,6 +161,46 @@ static size_t AppendToBuffer(UChar *buff, const UChar *buffer_last, WChar c)
 	return length;
 }
 
+/** Visual run contains data about the bit of text with the same font. */
+class ICUVisualRun : public ParagraphLayouter::VisualRun {
+	const ParagraphLayout::VisualRun *vr; ///< The actual ICU vr.
+
+public:
+	ICUVisualRun (const ParagraphLayout::VisualRun *vr) : vr(vr)
+	{
+	}
+
+	const FontBase *GetFont (void) const OVERRIDE
+	{
+		return (const Font*)vr->getFont();
+	}
+
+	int GetGlyphCount (void) const OVERRIDE
+	{
+		return vr->getGlyphCount();
+	}
+
+	const GlyphID *GetGlyphs (void) const OVERRIDE
+	{
+		return vr->getGlyphs();
+	}
+
+	const float *GetPositions (void) const OVERRIDE
+	{
+		return vr->getPositions();
+	}
+
+	int GetLeading (void) const OVERRIDE
+	{
+		return vr->getLeading();
+	}
+
+	const int *GetGlyphToCharMap (void) const OVERRIDE
+	{
+		return vr->getGlyphToCharMap();
+	}
+};
+
 /**
  * Wrapper for doing layouts with ICU.
  */
@@ -171,21 +211,6 @@ public:
 	typedef UChar CharType;
 	/** Helper for GetLayouter, to get whether the layouter supports RTL. */
 	static const bool SUPPORTS_RTL = true;
-
-	/** Visual run contains data about the bit of text with the same font. */
-	class ICUVisualRun : public ParagraphLayouter::VisualRun {
-		const ParagraphLayout::VisualRun *vr; ///< The actual ICU vr.
-
-	public:
-		ICUVisualRun(const ParagraphLayout::VisualRun *vr) : vr(vr) { }
-
-		const FontBase *GetFont() const      { return (const Font*)vr->getFont(); }
-		int GetGlyphCount() const            { return vr->getGlyphCount(); }
-		const GlyphID *GetGlyphs() const     { return vr->getGlyphs(); }
-		const float *GetPositions() const    { return vr->getPositions(); }
-		int GetLeading() const               { return vr->getLeading(); }
-		const int *GetGlyphToCharMap() const { return vr->getGlyphToCharMap(); }
-	};
 
 	/** A single line worth of VisualRuns. */
 	class ICULine : public AutoDeleteSmallVector<ICUVisualRun *, 4>, public ParagraphLayouter::Line {
