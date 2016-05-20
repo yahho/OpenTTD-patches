@@ -11,6 +11,7 @@
 
 #include "stdafx.h"
 
+#include <vector>
 #include <map>
 #include <string>
 
@@ -18,6 +19,7 @@
 #include "string.h"
 #include "strings_func.h"
 #include "debug.h"
+#include "core/pointer.h"
 #include "core/smallmap_type.hpp"
 
 #include "table/control_codes.h"
@@ -201,6 +203,46 @@ public:
 	}
 };
 
+/** A single line worth of VisualRuns. */
+class ICULine : public ParagraphLayouter::Line {
+	ttd_unique_ptr <ParagraphLayout::Line> l; ///< The actual ICU line.
+	std::vector <ttd_unique_ptr <ICUVisualRun> > runs;
+
+public:
+	ICULine (ParagraphLayout::Line *l) : l (l), runs (l->countRuns())
+	{
+		for (int i = 0; i < l->countRuns(); i++) {
+			this->runs[i].reset (new ICUVisualRun (l->getVisualRun (i)));
+		}
+	}
+
+	int GetLeading (void) const OVERRIDE
+	{
+		return l->getLeading();
+	}
+
+	int GetWidth (void) const OVERRIDE
+	{
+		return l->getWidth();
+	}
+
+	int CountRuns (void) const OVERRIDE
+	{
+		return l->countRuns();
+	}
+
+	const ParagraphLayouter::VisualRun *GetVisualRun (int run) const OVERRIDE
+	{
+		return this->runs[run].get();
+	}
+
+	int GetInternalCharLength (WChar c) const OVERRIDE
+	{
+		/* ICU uses UTF-16 internally which means we need to account for surrogate pairs. */
+		return Utf8CharLen(c) < 4 ? 1 : 2;
+	}
+};
+
 /**
  * Wrapper for doing layouts with ICU.
  */
@@ -211,31 +253,6 @@ public:
 	typedef UChar CharType;
 	/** Helper for GetLayouter, to get whether the layouter supports RTL. */
 	static const bool SUPPORTS_RTL = true;
-
-	/** A single line worth of VisualRuns. */
-	class ICULine : public AutoDeleteSmallVector<ICUVisualRun *, 4>, public ParagraphLayouter::Line {
-		ParagraphLayout::Line *l; ///< The actual ICU line.
-
-	public:
-		ICULine(ParagraphLayout::Line *l) : l(l)
-		{
-			for (int i = 0; i < l->countRuns(); i++) {
-				*this->Append() = new ICUVisualRun(l->getVisualRun(i));
-			}
-		}
-		~ICULine() { delete l; }
-
-		int GetLeading() const { return l->getLeading(); }
-		int GetWidth() const   { return l->getWidth(); }
-		int CountRuns() const  { return l->countRuns(); }
-		const ParagraphLayouter::VisualRun *GetVisualRun(int run) const { return *this->Get(run); }
-
-		int GetInternalCharLength(WChar c) const
-		{
-			/* ICU uses UTF-16 internally which means we need to account for surrogate pairs. */
-			return Utf8CharLen(c) < 4 ? 1 : 2;
-		}
-	};
 
 	ICUParagraphLayout(ParagraphLayout *p) : p(p) { }
 	~ICUParagraphLayout() { delete p; }
