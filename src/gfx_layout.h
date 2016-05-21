@@ -12,9 +12,11 @@
 #ifndef GFX_LAYOUT_H
 #define GFX_LAYOUT_H
 
+#include <vector>
+
+#include "core/pointer.h"
 #include "fontcache.h"
 #include "gfx_func.h"
-#include "core/smallvec_type.hpp"
 
 /** Common information about a font. */
 struct FontBase {
@@ -63,7 +65,7 @@ public:
  *
  * It also accounts for the memory allocations and frees.
  */
-class Layouter : public AutoDeleteSmallVector<const ParagraphLayouter::Line *, 4> {
+class Layouter : public std::vector <ttd_unique_ptr <const ParagraphLayouter::Line> > {
 	const char *string; ///< Pointer to the original string.
 public:
 	Layouter(const char *str, int maxw = INT32_MAX, TextColour colour = TC_FROMSTRING, FontSize fontsize = FS_NORMAL);

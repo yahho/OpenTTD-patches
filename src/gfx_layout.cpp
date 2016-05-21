@@ -856,7 +856,7 @@ Layouter::Layouter(const char *str, int maxw, TextColour colour, FontSize fontsi
 		/* Copy all lines into a local cache so we can reuse them later on more easily. */
 		const ParagraphLayouter::Line *l;
 		while ((l = line.layout->NextLine(maxw)) != NULL) {
-			*this->Append() = l;
+			this->push_back (ttd_unique_ptr <const ParagraphLayouter::Line> (l));
 		}
 
 	} while (c != '\0');
@@ -869,7 +869,7 @@ Layouter::Layouter(const char *str, int maxw, TextColour colour, FontSize fontsi
 Dimension Layouter::GetBounds()
 {
 	Dimension d = { 0, 0 };
-	for (const ParagraphLayouter::Line **l = this->Begin(); l != this->End(); l++) {
+	for (Layouter::const_iterator l (this->begin()); l != this->end(); l++) {
 		d.width = max<uint>(d.width, (*l)->GetWidth());
 		d.height += (*l)->GetLeading();
 	}
@@ -893,12 +893,12 @@ int Layouter::GetCharPosition (const char *ch) const
 		size_t len = Utf8Decode(&c, str);
 		if (c == '\0' || c == '\n') break;
 		str += len;
-		index += (*this->Begin())->GetInternalCharLength(c);
+		index += this->front()->GetInternalCharLength(c);
 	}
 
 	if (str == ch) {
 		/* Valid character. */
-		const ParagraphLayouter::Line *line = *this->Begin();
+		const ParagraphLayouter::Line *line = this->front().get();
 
 		/* Pointer to the end-of-string/line marker? Return total line width. */
 		if (*ch == '\0' || *ch == '\n') {
@@ -928,7 +928,7 @@ int Layouter::GetCharPosition (const char *ch) const
  */
 const char *Layouter::GetCharAtPosition(int x) const
 {
-	const ParagraphLayouter::Line *line = *this->Begin();
+	const ParagraphLayouter::Line *line = this->front().get();
 
 	for (int run_index = 0; run_index < line->CountRuns(); run_index++) {
 		const ParagraphLayouter::VisualRun *run = line->GetVisualRun(run_index);

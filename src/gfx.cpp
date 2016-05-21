@@ -518,9 +518,9 @@ int DrawString(int left, int right, int top, const char *str, TextColour colour,
 	}
 
 	Layouter layout(str, INT32_MAX, colour, fontsize);
-	if (layout.Length() == 0) return 0;
+	if (layout.empty()) return 0;
 
-	return DrawLayoutLine(*layout.Begin(), top, left, right, align, underline, true);
+	return DrawLayoutLine (layout.front().get(), top, left, right, align, underline, true);
 }
 
 /**
@@ -583,7 +583,7 @@ int GetStringLineCount(StringID str, int maxw)
 	GetString (buffer, str);
 
 	Layouter layout(buffer, maxw);
-	return layout.Length();
+	return layout.size();
 }
 
 /**
@@ -632,8 +632,8 @@ int DrawStringMultiLine(int left, int right, int top, int bottom, const char *st
 	int last_line = top;
 	int first_line = bottom;
 
-	for (const ParagraphLayouter::Line **iter = layout.Begin(); iter != layout.End(); iter++) {
-		const ParagraphLayouter::Line *line = *iter;
+	for (Layouter::const_iterator iter (layout.begin()); iter != layout.end(); iter++) {
+		const ParagraphLayouter::Line *line = iter->get();
 
 		int line_height = line->GetLeading();
 		if (y >= top && y < bottom) {
