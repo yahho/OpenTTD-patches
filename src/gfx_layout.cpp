@@ -502,7 +502,7 @@ public:
 
 	const WChar *buffer_begin; ///< Begin of the buffer.
 	const WChar *buffer;       ///< The current location in the buffer.
-	FontMap &runs;             ///< The fonts we have to use for this paragraph.
+	FontMap runs;              ///< The fonts we have to use for this paragraph.
 
 	FallbackParagraphLayout(WChar *buffer, int length, FontMap &runs);
 	void Reflow();
@@ -515,10 +515,12 @@ public:
  * @param length The length of the paragraph.
  * @param runs   The font mapping of this paragraph.
  */
-FallbackParagraphLayout::FallbackParagraphLayout(WChar *buffer, int length, FontMap &runs) : buffer_begin(buffer), buffer(buffer), runs(runs)
+FallbackParagraphLayout::FallbackParagraphLayout (WChar *buffer, int length, FontMap &runs)
+	: buffer_begin(buffer), buffer(buffer), runs()
 {
 	assert (!runs.empty());
 	assert (runs.back().first == length);
+	this->runs.swap (runs);
 }
 
 /**
@@ -713,7 +715,6 @@ struct LineCacheKey {
 struct LineCacheItem {
 	/* Stuff that cannot be freed until the ParagraphLayout is freed */
 	void *buffer;              ///< Accessed by both ICU's and our ParagraphLayout::nextLine.
-	FontMap runs;              ///< Accessed by our ParagraphLayout::nextLine.
 
 	FontState state_after;     ///< Font state after the line.
 	ParagraphLayouter *layout; ///< Layout of the line.
@@ -750,7 +751,7 @@ static inline void GetLayouter (LineCacheItem &line, const char *&str, FontState
 	typename T::CharType *buff_begin = xmalloct<typename T::CharType>(DRAW_STRING_BUFFER);
 	const typename T::CharType *buffer_last = buff_begin + DRAW_STRING_BUFFER;
 	typename T::CharType *buff = buff_begin;
-	FontMap &fontMapping = line.runs;
+	FontMap fontMapping;
 	Font *f = GetFont (state.fontsize, state.cur_colour);
 
 	line.buffer = buff_begin;
