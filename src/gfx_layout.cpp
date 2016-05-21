@@ -122,7 +122,7 @@ typedef FontBase Font;
 
 
 /** Mapping from index to font. */
-typedef SmallMap<int, Font *> FontMap;
+typedef std::vector <std::pair <int, Font *> > FontMap;
 
 
 typedef SmallMap<TextColour, Font *> FontColourMap;
@@ -279,12 +279,12 @@ static ParagraphLayouter *GetParagraphLayout(UChar *buff, UChar *buff_end, FontM
 		/* ICU's ParagraphLayout cannot handle empty strings, so fake one. */
 		buff[0] = ' ';
 		length = 1;
-		fontMapping.End()[-1].first++;
+		fontMapping.back().first++;
 	}
 
 	/* Fill ICU's FontRuns with the right data. */
-	FontRuns runs(fontMapping.Length());
-	for (FontMap::iterator iter = fontMapping.Begin(); iter != fontMapping.End(); iter++) {
+	FontRuns runs (fontMapping.size());
+	for (FontMap::iterator iter = fontMapping.begin(); iter != fontMapping.end(); iter++) {
 		runs.add(iter->second, iter->first);
 	}
 
@@ -517,7 +517,8 @@ public:
  */
 FallbackParagraphLayout::FallbackParagraphLayout(WChar *buffer, int length, FontMap &runs) : buffer_begin(buffer), buffer(buffer), runs(runs)
 {
-	assert(runs.End()[-1].first == length);
+	assert (!runs.empty());
+	assert (runs.back().first == length);
 }
 
 /**
@@ -546,7 +547,7 @@ const ParagraphLayouter::Line *FallbackParagraphLayout::NextLine(int max_width)
 	if (*this->buffer == '\0') {
 		/* Only a newline. */
 		this->buffer = NULL;
-		l->append (this->runs.Begin()->second, this->buffer, 0, 0);
+		l->append (this->runs.front().second, this->buffer, 0, 0);
 		return l;
 	}
 
@@ -556,10 +557,10 @@ const ParagraphLayouter::Line *FallbackParagraphLayout::NextLine(int max_width)
 	int width = 0;
 
 	int offset = this->buffer - this->buffer_begin;
-	FontMap::iterator iter = this->runs.Begin();
+	FontMap::const_iterator iter = this->runs.begin();
 	while (iter->first <= offset) {
 		iter++;
-		assert(iter != this->runs.End());
+		assert (iter != this->runs.end());
 	}
 
 	const FontCache *fc = iter->second->fc;
@@ -578,7 +579,7 @@ const ParagraphLayouter::Line *FallbackParagraphLayout::NextLine(int max_width)
 			int w = l->GetWidth();
 			l->append (iter->second, begin, this->buffer - begin, w);
 			iter++;
-			assert(iter != this->runs.End());
+			assert (iter != this->runs.end());
 
 			next_run = this->buffer_begin + iter->first;
 			begin = this->buffer;
@@ -785,9 +786,8 @@ static inline void GetLayouter (LineCacheItem &line, const char *&str, FontState
 			continue;
 		}
 
-		assert (just_inserted == fontMapping.Contains (buff - buff_begin));
-		if (!fontMapping.Contains(buff - buff_begin)) {
-			fontMapping.Insert(buff - buff_begin, f);
+		if (!just_inserted) {
+			fontMapping.push_back (std::make_pair (buff - buff_begin, f));
 			just_inserted = true;
 		}
 		f = GetFont (state.fontsize, state.cur_colour);
@@ -796,10 +796,13 @@ static inline void GetLayouter (LineCacheItem &line, const char *&str, FontState
 	/* Better safe than sorry. */
 	*buff = '\0';
 
-	assert (just_inserted == fontMapping.Contains (buff - buff_begin));
-	if (!fontMapping.Contains(buff - buff_begin)) {
-		fontMapping.Insert(buff - buff_begin, f);
+	if (!just_inserted) {
+		fontMapping.push_back (std::make_pair (buff - buff_begin, f));
+	} else {
+		assert (!fontMapping.empty());
+		assert (fontMapping.back().first == buff - buff_begin);
 	}
+
 	line.layout = GetParagraphLayout(buff_begin, buff, fontMapping);
 	line.state_after = state;
 }
