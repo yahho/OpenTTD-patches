@@ -405,6 +405,67 @@ FallbackVisualRun::~FallbackVisualRun()
 	free(this->glyphs);
 }
 
+/** A single line worth of VisualRuns. */
+class FallbackLine : public AutoDeleteSmallVector<FallbackVisualRun *, 4>, public ParagraphLayouter::Line {
+public:
+	int GetLeading (void) const OVERRIDE;
+	int GetWidth (void) const OVERRIDE;
+
+	/**
+	 * Get the number of runs in this line.
+	 * @return The number of runs.
+	 */
+	int CountRuns (void) const OVERRIDE
+	{
+		return this->Length();
+	}
+
+	/**
+	 * Get a specific visual run.
+	 * @return The visual run.
+	 */
+	const ParagraphLayouter::VisualRun *GetVisualRun (int run) const OVERRIDE
+	{
+		return *this->Get(run);
+	}
+
+	int GetInternalCharLength (WChar c) const OVERRIDE
+	{
+		return 1;
+	}
+};
+
+/**
+ * Get the height of the line.
+ * @return The maximum height of the line.
+ */
+int FallbackLine::GetLeading (void) const
+{
+	int leading = 0;
+	for (const FallbackVisualRun * const *run = this->Begin(); run != this->End(); run++) {
+		leading = max(leading, (*run)->GetLeading());
+	}
+
+	return leading;
+}
+
+/**
+ * Get the width of this line.
+ * @return The width of the line.
+ */
+int FallbackLine::GetWidth (void) const
+{
+	if (this->Length() == 0) return 0;
+
+	/*
+	 * The last X position of a run contains is the end of that run.
+	 * Since there is no left-to-right support, taking this value of
+	 * the last run gives us the end of the line and thus the width.
+	 */
+	const ParagraphLayouter::VisualRun *run = this->GetVisualRun(this->CountRuns() - 1);
+	return (int)run->GetPositions()[run->GetGlyphCount() * 2];
+}
+
 /**
  * Class handling the splitting of a paragraph of text into lines and
  * visual runs.
@@ -430,17 +491,6 @@ public:
 	/** Helper for GetLayouter, to get whether the layouter supports RTL. */
 	static const bool SUPPORTS_RTL = false;
 
-	/** A single line worth of VisualRuns. */
-	class FallbackLine : public AutoDeleteSmallVector<FallbackVisualRun *, 4>, public ParagraphLayouter::Line {
-	public:
-		int GetLeading() const;
-		int GetWidth() const;
-		int CountRuns() const;
-		const ParagraphLayouter::VisualRun *GetVisualRun(int run) const;
-
-		int GetInternalCharLength(WChar c) const { return 1; }
-	};
-
 	const WChar *buffer_begin; ///< Begin of the buffer.
 	const WChar *buffer;       ///< The current location in the buffer.
 	FontMap &runs;             ///< The fonts we have to use for this paragraph.
@@ -449,55 +499,6 @@ public:
 	void Reflow();
 	const ParagraphLayouter::Line *NextLine(int max_width);
 };
-
-/**
- * Get the height of the line.
- * @return The maximum height of the line.
- */
-int FallbackParagraphLayout::FallbackLine::GetLeading() const
-{
-	int leading = 0;
-	for (const FallbackVisualRun * const *run = this->Begin(); run != this->End(); run++) {
-		leading = max(leading, (*run)->GetLeading());
-	}
-
-	return leading;
-}
-
-/**
- * Get the width of this line.
- * @return The width of the line.
- */
-int FallbackParagraphLayout::FallbackLine::GetWidth() const
-{
-	if (this->Length() == 0) return 0;
-
-	/*
-	 * The last X position of a run contains is the end of that run.
-	 * Since there is no left-to-right support, taking this value of
-	 * the last run gives us the end of the line and thus the width.
-	 */
-	const ParagraphLayouter::VisualRun *run = this->GetVisualRun(this->CountRuns() - 1);
-	return (int)run->GetPositions()[run->GetGlyphCount() * 2];
-}
-
-/**
- * Get the number of runs in this line.
- * @return The number of runs.
- */
-int FallbackParagraphLayout::FallbackLine::CountRuns() const
-{
-	return this->Length();
-}
-
-/**
- * Get a specific visual run.
- * @return The visual run.
- */
-const ParagraphLayouter::VisualRun *FallbackParagraphLayout::FallbackLine::GetVisualRun(int run) const
-{
-	return *this->Get(run);
-}
 
 /**
  * Create a new paragraph layouter.
