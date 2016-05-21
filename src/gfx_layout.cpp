@@ -303,6 +303,108 @@ static ParagraphLayouter *GetParagraphLayout(UChar *buff, UChar *buff_end, FontM
 #endif /* WITH_ICU_LAYOUT */
 
 /*** Paragraph layout ***/
+
+/** Visual run contains data about the bit of text with the same font. */
+class FallbackVisualRun : public ParagraphLayouter::VisualRun {
+	Font *font;       ///< The font used to layout these.
+	GlyphID *glyphs;  ///< The glyphs we're drawing.
+	float *positions; ///< The positions of the glyphs.
+	int *glyph_to_char; ///< The char index of the glyphs.
+	int glyph_count;  ///< The number of glyphs.
+
+public:
+	FallbackVisualRun(Font *font, const WChar *chars, int glyph_count, int x);
+	~FallbackVisualRun();
+
+	/**
+	 * Get the font associated with this run.
+	 * @return The font.
+	 */
+	const FontBase *GetFont (void) const OVERRIDE
+	{
+		return this->font;
+	}
+
+	/**
+	 * Get the number of glyphs in this run.
+	 * @return The number of glyphs.
+	 */
+	int GetGlyphCount (void) const OVERRIDE
+	{
+		return this->glyph_count;
+	}
+
+	/**
+	 * Get the glyphs of this run.
+	 * @return The glyphs.
+	 */
+	const GlyphID *GetGlyphs() const OVERRIDE
+	{
+		return this->glyphs;
+	}
+
+	/**
+	 * Get the positions of this run.
+	 * @return The positions.
+	 */
+	const float *GetPositions() const OVERRIDE
+	{
+		return this->positions;
+	}
+
+	/**
+	 * Get the height of this font.
+	 * @return The height of the font.
+	 */
+	int GetLeading() const OVERRIDE
+	{
+		return this->GetFont()->fc->GetHeight();
+	}
+
+	/**
+	 * Get the glyph-to-character map for this visual run.
+	 * @return The glyph-to-character map.
+	 */
+	const int *GetGlyphToCharMap() const OVERRIDE
+	{
+		return this->glyph_to_char;
+	}
+};
+
+/**
+ * Create the visual run.
+ * @param font       The font to use for this run.
+ * @param chars      The characters to use for this run.
+ * @param char_count The number of characters in this run.
+ * @param x          The initial x position for this run.
+ */
+FallbackVisualRun::FallbackVisualRun(Font *font, const WChar *chars, int char_count, int x) :
+		font(font), glyph_count(char_count)
+{
+	this->glyphs = xmalloct<GlyphID>(this->glyph_count);
+	this->glyph_to_char = xmalloct<int>(this->glyph_count);
+
+	/* Positions contains the location of the begin of each of the glyphs, and the end of the last one. */
+	this->positions = xmalloct<float>(this->glyph_count * 2 + 2);
+	this->positions[0] = x;
+	this->positions[1] = 0;
+
+	for (int i = 0; i < this->glyph_count; i++) {
+		this->glyphs[i] = font->fc->MapCharToGlyph(chars[i]);
+		this->positions[2 * i + 2] = this->positions[2 * i] + font->fc->GetGlyphWidth(this->glyphs[i]);
+		this->positions[2 * i + 3] = 0;
+		this->glyph_to_char[i] = i;
+	}
+}
+
+/** Free all data. */
+FallbackVisualRun::~FallbackVisualRun()
+{
+	free(this->positions);
+	free(this->glyph_to_char);
+	free(this->glyphs);
+}
+
 /**
  * Class handling the splitting of a paragraph of text into lines and
  * visual runs.
@@ -328,25 +430,6 @@ public:
 	/** Helper for GetLayouter, to get whether the layouter supports RTL. */
 	static const bool SUPPORTS_RTL = false;
 
-	/** Visual run contains data about the bit of text with the same font. */
-	class FallbackVisualRun : public ParagraphLayouter::VisualRun {
-		Font *font;       ///< The font used to layout these.
-		GlyphID *glyphs;  ///< The glyphs we're drawing.
-		float *positions; ///< The positions of the glyphs.
-		int *glyph_to_char; ///< The char index of the glyphs.
-		int glyph_count;  ///< The number of glyphs.
-
-	public:
-		FallbackVisualRun(Font *font, const WChar *chars, int glyph_count, int x);
-		~FallbackVisualRun();
-		const FontBase *GetFont() const;
-		int GetGlyphCount() const;
-		const GlyphID *GetGlyphs() const;
-		const float *GetPositions() const;
-		int GetLeading() const;
-		const int *GetGlyphToCharMap() const;
-	};
-
 	/** A single line worth of VisualRuns. */
 	class FallbackLine : public AutoDeleteSmallVector<FallbackVisualRun *, 4>, public ParagraphLayouter::Line {
 	public:
@@ -366,94 +449,6 @@ public:
 	void Reflow();
 	const ParagraphLayouter::Line *NextLine(int max_width);
 };
-
-/**
- * Create the visual run.
- * @param font       The font to use for this run.
- * @param chars      The characters to use for this run.
- * @param char_count The number of characters in this run.
- * @param x          The initial x position for this run.
- */
-FallbackParagraphLayout::FallbackVisualRun::FallbackVisualRun(Font *font, const WChar *chars, int char_count, int x) :
-		font(font), glyph_count(char_count)
-{
-	this->glyphs = xmalloct<GlyphID>(this->glyph_count);
-	this->glyph_to_char = xmalloct<int>(this->glyph_count);
-
-	/* Positions contains the location of the begin of each of the glyphs, and the end of the last one. */
-	this->positions = xmalloct<float>(this->glyph_count * 2 + 2);
-	this->positions[0] = x;
-	this->positions[1] = 0;
-
-	for (int i = 0; i < this->glyph_count; i++) {
-		this->glyphs[i] = font->fc->MapCharToGlyph(chars[i]);
-		this->positions[2 * i + 2] = this->positions[2 * i] + font->fc->GetGlyphWidth(this->glyphs[i]);
-		this->positions[2 * i + 3] = 0;
-		this->glyph_to_char[i] = i;
-	}
-}
-
-/** Free all data. */
-FallbackParagraphLayout::FallbackVisualRun::~FallbackVisualRun()
-{
-	free(this->positions);
-	free(this->glyph_to_char);
-	free(this->glyphs);
-}
-
-/**
- * Get the font associated with this run.
- * @return The font.
- */
-const FontBase *FallbackParagraphLayout::FallbackVisualRun::GetFont() const
-{
-	return this->font;
-}
-
-/**
- * Get the number of glyphs in this run.
- * @return The number of glyphs.
- */
-int FallbackParagraphLayout::FallbackVisualRun::GetGlyphCount() const
-{
-	return this->glyph_count;
-}
-
-/**
- * Get the glyphs of this run.
- * @return The glyphs.
- */
-const GlyphID *FallbackParagraphLayout::FallbackVisualRun::GetGlyphs() const
-{
-	return this->glyphs;
-}
-
-/**
- * Get the positions of this run.
- * @return The positions.
- */
-const float *FallbackParagraphLayout::FallbackVisualRun::GetPositions() const
-{
-	return this->positions;
-}
-
-/**
- * Get the glyph-to-character map for this visual run.
- * @return The glyph-to-character map.
- */
-const int *FallbackParagraphLayout::FallbackVisualRun::GetGlyphToCharMap() const
-{
-	return this->glyph_to_char;
-}
-
-/**
- * Get the height of this font.
- * @return The height of the font.
- */
-int FallbackParagraphLayout::FallbackVisualRun::GetLeading() const
-{
-	return this->GetFont()->fc->GetHeight();
-}
 
 /**
  * Get the height of the line.
