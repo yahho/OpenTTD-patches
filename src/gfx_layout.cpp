@@ -406,8 +406,16 @@ FallbackVisualRun::~FallbackVisualRun()
 }
 
 /** A single line worth of VisualRuns. */
-class FallbackLine : public AutoDeleteSmallVector<FallbackVisualRun *, 4>, public ParagraphLayouter::Line {
+class FallbackLine : public ParagraphLayouter::Line {
+	std::vector <ttd_unique_ptr <FallbackVisualRun> > runs;
+
 public:
+	void append (Font *font, const WChar *chars, int glyph_count, int x)
+	{
+		FallbackVisualRun *run = new FallbackVisualRun (font, chars, glyph_count, x);
+		this->runs.push_back (ttd_unique_ptr <FallbackVisualRun> (run));
+	}
+
 	int GetLeading (void) const OVERRIDE;
 	int GetWidth (void) const OVERRIDE;
 
@@ -417,7 +425,7 @@ public:
 	 */
 	int CountRuns (void) const OVERRIDE
 	{
-		return this->Length();
+		return this->runs.size();
 	}
 
 	/**
@@ -426,7 +434,7 @@ public:
 	 */
 	const ParagraphLayouter::VisualRun *GetVisualRun (int run) const OVERRIDE
 	{
-		return *this->Get(run);
+		return this->runs[run].get();
 	}
 
 	int GetInternalCharLength (WChar c) const OVERRIDE
@@ -442,10 +450,11 @@ public:
 int FallbackLine::GetLeading (void) const
 {
 	int leading = 0;
-	for (const FallbackVisualRun * const *run = this->Begin(); run != this->End(); run++) {
-		leading = max(leading, (*run)->GetLeading());
+	std::vector <ttd_unique_ptr <FallbackVisualRun> >::const_iterator
+			iter (this->runs.begin());
+	while (iter != this->runs.end()) {
+		leading = max (leading, (*iter++)->GetLeading());
 	}
-
 	return leading;
 }
 
@@ -455,14 +464,14 @@ int FallbackLine::GetLeading (void) const
  */
 int FallbackLine::GetWidth (void) const
 {
-	if (this->Length() == 0) return 0;
+	if (this->runs.empty()) return 0;
 
 	/*
 	 * The last X position of a run contains is the end of that run.
 	 * Since there is no left-to-right support, taking this value of
 	 * the last run gives us the end of the line and thus the width.
 	 */
-	const ParagraphLayouter::VisualRun *run = this->GetVisualRun(this->CountRuns() - 1);
+	const FallbackVisualRun *run = this->runs.back().get();
 	return (int)run->GetPositions()[run->GetGlyphCount() * 2];
 }
 
@@ -537,7 +546,7 @@ const ParagraphLayouter::Line *FallbackParagraphLayout::NextLine(int max_width)
 	if (*this->buffer == '\0') {
 		/* Only a newline. */
 		this->buffer = NULL;
-		*l->Append() = new FallbackVisualRun(this->runs.Begin()->second, this->buffer, 0, 0);
+		l->append (this->runs.Begin()->second, this->buffer, 0, 0);
 		return l;
 	}
 
@@ -567,7 +576,7 @@ const ParagraphLayouter::Line *FallbackParagraphLayout::NextLine(int max_width)
 
 		if (this->buffer == next_run) {
 			int w = l->GetWidth();
-			*l->Append() = new FallbackVisualRun(iter->second, begin, this->buffer - begin, w);
+			l->append (iter->second, begin, this->buffer - begin, w);
 			iter++;
 			assert(iter != this->runs.End());
 
@@ -612,9 +621,9 @@ const ParagraphLayouter::Line *FallbackParagraphLayout::NextLine(int max_width)
 		this->buffer++;
 	}
 
-	if (l->Length() == 0 || last_char - begin != 0) {
+	if (l->CountRuns() == 0 || last_char - begin != 0) {
 		int w = l->GetWidth();
-		*l->Append() = new FallbackVisualRun(iter->second, begin, last_char - begin, w);
+		l->append (iter->second, begin, last_char - begin, w);
 	}
 	return l;
 }
