@@ -759,6 +759,7 @@ static inline void GetLayouter (LineCacheItem &line, const char *&str, FontState
 	 * whenever the font changes, and convert the wide characters into a format
 	 * usable by ParagraphLayout.
 	 */
+	bool just_inserted = false;
 	for (; buff < buffer_last;) {
 		WChar c = Utf8Consume(const_cast<const char **>(&str));
 		if (c == '\0' || c == '\n') {
@@ -776,12 +777,18 @@ static inline void GetLayouter (LineCacheItem &line, const char *&str, FontState
 			 * will not be handled in the fallback non ICU case because they are
 			 * mostly needed for RTL languages which need more ICU support. */
 			if (!T::SUPPORTS_RTL && IsTextDirectionChar(c)) continue;
-			buff += AppendToBuffer(buff, buffer_last, c);
+			size_t length = AppendToBuffer (buff, buffer_last, c);
+			if (length > 0) {
+				buff += length;
+				just_inserted = false;
+			}
 			continue;
 		}
 
+		assert (just_inserted == fontMapping.Contains (buff - buff_begin));
 		if (!fontMapping.Contains(buff - buff_begin)) {
 			fontMapping.Insert(buff - buff_begin, f);
+			just_inserted = true;
 		}
 		f = GetFont (state.fontsize, state.cur_colour);
 	}
@@ -789,6 +796,7 @@ static inline void GetLayouter (LineCacheItem &line, const char *&str, FontState
 	/* Better safe than sorry. */
 	*buff = '\0';
 
+	assert (just_inserted == fontMapping.Contains (buff - buff_begin));
 	if (!fontMapping.Contains(buff - buff_begin)) {
 		fontMapping.Insert(buff - buff_begin, f);
 	}
