@@ -247,6 +247,7 @@ public:
  * Wrapper for doing layouts with ICU.
  */
 class ICUParagraphLayout : public ParagraphLayouter {
+	ttd_unique_free_ptr <UChar> buffer; ///< The buffer.
 	ttd_unique_ptr <ParagraphLayout> p; ///< The actual ICU paragraph layout.
 
 public:
@@ -255,7 +256,7 @@ public:
 	/** Helper for GetLayouter, to get whether the layouter supports RTL. */
 	static const bool SUPPORTS_RTL = true;
 
-	ICUParagraphLayout (ParagraphLayout *p) : p(p)
+	ICUParagraphLayout (UChar *b, ParagraphLayout *p) : buffer(b), p(p)
 	{
 	}
 
@@ -271,14 +272,18 @@ public:
 	}
 };
 
-static ParagraphLayouter *GetParagraphLayout (UChar *buff, int32 length, FontMap &fontMapping)
+static ParagraphLayouter *GetParagraphLayout (const UChar *buffer, int32 length, FontMap &fontMapping)
 {
 	if (length == 0) {
 		/* ICU's ParagraphLayout cannot handle empty strings, so fake one. */
-		buff[0] = ' ';
+		static const UChar empty[2] = { ' ', '\0' };
+		buffer = empty;
 		length = 1;
 		fontMapping.back().first++;
 	}
+
+	/* Include trailing null char. */
+	UChar *buff = xmemdupt <UChar> (buffer, length + 1);
 
 	/* Fill ICU's FontRuns with the right data. */
 	FontRuns runs (fontMapping.size());
@@ -292,10 +297,11 @@ static ParagraphLayouter *GetParagraphLayout (UChar *buff, int32 length, FontMap
 	ParagraphLayout *p = new ParagraphLayout(buff, length, &runs, NULL, NULL, NULL, _current_text_dir == TD_RTL ? UBIDI_DEFAULT_RTL : UBIDI_DEFAULT_LTR, false, status);
 	if (status != LE_NO_ERROR) {
 		delete p;
+		free (buff);
 		return NULL;
 	}
 
-	return new ICUParagraphLayout(p);
+	return new ICUParagraphLayout (buff, p);
 }
 
 #endif /* WITH_ICU_LAYOUT */
@@ -498,7 +504,7 @@ public:
 	/** Helper for GetLayouter, to get whether the layouter supports RTL. */
 	static const bool SUPPORTS_RTL = false;
 
-	const WChar *buffer_begin; ///< Begin of the buffer.
+	ttd_unique_free_ptr <WChar> buffer_begin; ///< Begin of the buffer.
 	const WChar *buffer;       ///< The current location in the buffer.
 	FontMap runs;              ///< The fonts we have to use for this paragraph.
 
@@ -514,7 +520,9 @@ public:
  * @param runs   The font mapping of this paragraph.
  */
 FallbackParagraphLayout::FallbackParagraphLayout (WChar *buffer, int length, FontMap &runs)
-	: buffer_begin(buffer), buffer(buffer), runs()
+	/* Include trailing null char. */
+	: buffer_begin (xmemdupt <WChar> (buffer, length + 1)),
+	  buffer (buffer_begin.get()), runs()
 {
 	assert (!runs.empty());
 	assert (runs.back().first == length);
@@ -526,7 +534,7 @@ FallbackParagraphLayout::FallbackParagraphLayout (WChar *buffer, int length, Fon
  */
 void FallbackParagraphLayout::Reflow()
 {
-	this->buffer = this->buffer_begin;
+	this->buffer = this->buffer_begin.get();
 }
 
 /**
@@ -556,7 +564,7 @@ const ParagraphLayouter::Line *FallbackParagraphLayout::NextLine(int max_width)
 	const WChar *last_char = begin;
 	int width = 0;
 
-	int offset = this->buffer - this->buffer_begin;
+	int offset = this->buffer - this->buffer_begin.get();
 	FontMap::const_iterator iter = this->runs.begin();
 	while (iter->first <= offset) {
 		iter++;
@@ -564,7 +572,7 @@ const ParagraphLayouter::Line *FallbackParagraphLayout::NextLine(int max_width)
 	}
 
 	const FontCache *fc = iter->second->fc;
-	const WChar *next_run = this->buffer_begin + iter->first;
+	const WChar *next_run = this->buffer_begin.get() + iter->first;
 
 	for (;;) {
 		WChar c = *this->buffer;
@@ -581,7 +589,7 @@ const ParagraphLayouter::Line *FallbackParagraphLayout::NextLine(int max_width)
 			iter++;
 			assert (iter != this->runs.end());
 
-			next_run = this->buffer_begin + iter->first;
+			next_run = this->buffer_begin.get() + iter->first;
 			begin = this->buffer;
 
 			last_space = NULL;
@@ -711,14 +719,11 @@ struct LineCacheKey {
 
 /** Item in the linecache */
 struct LineCacheItem {
-	/* Stuff that cannot be freed until the ParagraphLayout is freed */
-	void *buffer;              ///< Accessed by both ICU's and our ParagraphLayout::nextLine.
-
 	FontState state_after;     ///< Font state after the line.
 	ParagraphLayouter *layout; ///< Layout of the line.
 
-	LineCacheItem() : buffer(NULL), layout(NULL) {}
-	~LineCacheItem() { delete layout; free(buffer); }
+	LineCacheItem() : layout(NULL) {}
+	~LineCacheItem() { delete layout; }
 };
 
 typedef std::map <LineCacheKey, LineCacheItem> LineCache;
@@ -799,10 +804,7 @@ static inline void GetLayouter (LineCacheItem &line, const char *&str, FontState
 		assert (fontMapping.back().first == buff - buffer);
 	}
 
-	if (line.buffer != NULL) free (line.buffer);
-	typename T::CharType *lb = xmemdupt <typename T::CharType> (buffer, buff + 1 - buffer);
-	line.buffer = lb;
-	line.layout = GetParagraphLayout (lb, buff - buffer, fontMapping);
+	line.layout = GetParagraphLayout (buffer, buff - buffer, fontMapping);
 	line.state_after = state;
 }
 
