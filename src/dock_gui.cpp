@@ -47,7 +47,7 @@ void CcBuildDocks(const CommandCost &result, TileIndex tile, uint32 p1, uint32 p
 	if (!_settings_client.gui.persistent_buildingtools) ResetPointerMode();
 }
 
-void CcBuildCanal(const CommandCost &result, TileIndex tile, uint32 p1, uint32 p2)
+void CcPlaySound_SPLAT_WATER(const CommandCost &result, TileIndex tile, uint32 p1, uint32 p2)
 {
 	if (result.Succeeded() && _settings_client.sound.confirm) SndPlayTileFx(SND_02_SPLAT_WATER, tile);
 }

@@ -259,21 +259,21 @@ static const CommandClass _command_proc_table[] = {
 	DEF_CMD(CmdBuildBridge,   CMDF_DEITY | CMDF_NO_WATER | CMDF_AUTO, CMDT_LANDSCAPE_CONSTRUCTION, CcBuildBridge,      GetErrBuildBridge),                                         // CMD_BUILD_BRIDGE
 	DEF_CMD(CmdBuildRailStation,           CMDF_NO_WATER | CMDF_AUTO, CMDT_LANDSCAPE_CONSTRUCTION, CcStation,          GetErrConstant<STR_ERROR_CAN_T_BUILD_RAILROAD_STATION>),    // CMD_BUILD_RAIL_STATION
 	DEF_CMD(CmdBuildTrainDepot,            CMDF_NO_WATER | CMDF_AUTO, CMDT_LANDSCAPE_CONSTRUCTION, CcRailDepot,        GetErrConstant<STR_ERROR_CAN_T_BUILD_TRAIN_DEPOT>),         // CMD_BUILD_TRAIN_DEPOT
-	DEF_CMD(CmdBuildSingleSignal,                          CMDF_AUTO, CMDT_LANDSCAPE_CONSTRUCTION, CcPlaySound1E,      GetErrBuildSignals),                                        // CMD_BUILD_SIGNALS
-	DEF_CMD(CmdRemoveSingleSignal,                         CMDF_AUTO, CMDT_LANDSCAPE_CONSTRUCTION, CcPlaySound1E,      GetErrConstant<STR_ERROR_CAN_T_REMOVE_SIGNALS_FROM>),       // CMD_REMOVE_SIGNALS
+	DEF_CMD(CmdBuildSingleSignal,                          CMDF_AUTO, CMDT_LANDSCAPE_CONSTRUCTION, CcPlaySound_SPLAT_RAIL, GetErrBuildSignals),                                    // CMD_BUILD_SIGNALS
+	DEF_CMD(CmdRemoveSingleSignal,                         CMDF_AUTO, CMDT_LANDSCAPE_CONSTRUCTION, CcPlaySound_SPLAT_RAIL, GetErrConstant<STR_ERROR_CAN_T_REMOVE_SIGNALS_FROM>),   // CMD_REMOVE_SIGNALS
 	DEF_CMD(CmdTerraformLand,             CMDF_ALL_TILES | CMDF_AUTO, CMDT_LANDSCAPE_CONSTRUCTION, CcTerraformLand,    GetErrTerraformLand),                                       // CMD_TERRAFORM_LAND
 	DEF_CMD(CmdBuildObject,                CMDF_NO_WATER | CMDF_AUTO, CMDT_LANDSCAPE_CONSTRUCTION, CcBuildObject,      GetErrBuildObject),                                         // CMD_BUILD_OBJECT
 	DEF_CMD(CmdBuildTunnel,                   CMDF_DEITY | CMDF_AUTO, CMDT_LANDSCAPE_CONSTRUCTION, CcBuildTunnel,      GetErrConstant<STR_ERROR_CAN_T_BUILD_TUNNEL_HERE>),         // CMD_BUILD_TUNNEL
-	DEF_CMD(CmdRemoveFromRailStation,                              0, CMDT_LANDSCAPE_CONSTRUCTION, CcPlaySound1E,      GetErrConstant<STR_ERROR_CAN_T_REMOVE_PART_OF_STATION>),    // CMD_REMOVE_FROM_RAIL_STATION
-	DEF_CMD(CmdConvertRail,                                        0, CMDT_LANDSCAPE_CONSTRUCTION, CcPlaySound1E,      GetErrConstant<STR_ERROR_CAN_T_CONVERT_RAIL>),              // CMD_CONVERT_RAIL
-	DEF_CMD(CmdBuildRailWaypoint,                                  0, CMDT_LANDSCAPE_CONSTRUCTION, CcPlaySound1E,      GetErrConstant<STR_ERROR_CAN_T_BUILD_TRAIN_WAYPOINT>),      // CMD_BUILD_RAIL_WAYPOINT
+	DEF_CMD(CmdRemoveFromRailStation,                              0, CMDT_LANDSCAPE_CONSTRUCTION, CcPlaySound_SPLAT_RAIL, GetErrConstant<STR_ERROR_CAN_T_REMOVE_PART_OF_STATION>),// CMD_REMOVE_FROM_RAIL_STATION
+	DEF_CMD(CmdConvertRail,                                        0, CMDT_LANDSCAPE_CONSTRUCTION, CcPlaySound_SPLAT_RAIL, GetErrConstant<STR_ERROR_CAN_T_CONVERT_RAIL>),          // CMD_CONVERT_RAIL
+	DEF_CMD(CmdBuildRailWaypoint,                                  0, CMDT_LANDSCAPE_CONSTRUCTION, CcPlaySound_SPLAT_RAIL, GetErrConstant<STR_ERROR_CAN_T_BUILD_TRAIN_WAYPOINT>),  // CMD_BUILD_RAIL_WAYPOINT
 	DEF_CMD(CmdRenameWaypoint,                                     0, CMDT_OTHER_MANAGEMENT,       NULL,               GetErrConstant<STR_ERROR_CAN_T_CHANGE_WAYPOINT_NAME>),      // CMD_RENAME_WAYPOINT
-	DEF_CMD(CmdRemoveFromRailWaypoint,                             0, CMDT_LANDSCAPE_CONSTRUCTION, CcPlaySound1E,      GetErrConstant<STR_ERROR_CAN_T_REMOVE_TRAIN_WAYPOINT>),     // CMD_REMOVE_FROM_RAIL_WAYPOINT
+	DEF_CMD(CmdRemoveFromRailWaypoint,                             0, CMDT_LANDSCAPE_CONSTRUCTION, CcPlaySound_SPLAT_RAIL, GetErrConstant<STR_ERROR_CAN_T_REMOVE_TRAIN_WAYPOINT>), // CMD_REMOVE_FROM_RAIL_WAYPOINT
 
 	DEF_CMD(CmdBuildRoadStop,              CMDF_NO_WATER | CMDF_AUTO, CMDT_LANDSCAPE_CONSTRUCTION, CcRoadStop,         GetErrBuildRoadStop),                                       // CMD_BUILD_ROAD_STOP
-	DEF_CMD(CmdRemoveRoadStop,                                     0, CMDT_LANDSCAPE_CONSTRUCTION, CcPlaySound1D,      GetErrRemoveRoadStop),                                      // CMD_REMOVE_ROAD_STOP
-	DEF_CMD(CmdBuildLongRoad, CMDF_DEITY | CMDF_NO_WATER | CMDF_AUTO, CMDT_LANDSCAPE_CONSTRUCTION, CcPlaySound1D,      GetErrBuildRoad),                                           // CMD_BUILD_LONG_ROAD
-	DEF_CMD(CmdRemoveLongRoad,              CMDF_NO_TEST | CMDF_AUTO, CMDT_LANDSCAPE_CONSTRUCTION, CcPlaySound1D,      GetErrRemoveRoad),                                          // CMD_REMOVE_LONG_ROAD; towns may disallow removing road bits (as they are connected) in test, but in exec they're removed and thus removing is allowed.
+	DEF_CMD(CmdRemoveRoadStop,                                     0, CMDT_LANDSCAPE_CONSTRUCTION, CcPlaySound_SPLAT_OTHER, GetErrRemoveRoadStop),                                 // CMD_REMOVE_ROAD_STOP
+	DEF_CMD(CmdBuildLongRoad, CMDF_DEITY | CMDF_NO_WATER | CMDF_AUTO, CMDT_LANDSCAPE_CONSTRUCTION, CcPlaySound_SPLAT_OTHER, GetErrBuildRoad),                                      // CMD_BUILD_LONG_ROAD
+	DEF_CMD(CmdRemoveLongRoad,              CMDF_NO_TEST | CMDF_AUTO, CMDT_LANDSCAPE_CONSTRUCTION, CcPlaySound_SPLAT_OTHER, GetErrRemoveRoad),                                     // CMD_REMOVE_LONG_ROAD; towns may disallow removing road bits (as they are connected) in test, but in exec they're removed and thus removing is allowed.
 	DEF_CMD(CmdBuildRoad,     CMDF_DEITY | CMDF_NO_WATER | CMDF_AUTO, CMDT_LANDSCAPE_CONSTRUCTION, NULL,               NULL),                                                      // CMD_BUILD_ROAD
 	DEF_CMD(CmdBuildRoadDepot,             CMDF_NO_WATER | CMDF_AUTO, CMDT_LANDSCAPE_CONSTRUCTION, CcRoadDepot,        GetErrBuildRoadDepot),                                      // CMD_BUILD_ROAD_DEPOT
 
@@ -342,11 +342,11 @@ static const CommandClass _command_proc_table[] = {
 	DEF_CMD(CmdOrderRefit,                                         0, CMDT_ROUTE_MANAGEMENT,       NULL,               NULL),                                                      // CMD_ORDER_REFIT
 	DEF_CMD(CmdCloneOrder,                                         0, CMDT_ROUTE_MANAGEMENT,       NULL,               GetErrCloneOrder),                                          // CMD_CLONE_ORDER
 
-	DEF_CMD(CmdClearArea,                               CMDF_NO_TEST, CMDT_LANDSCAPE_CONSTRUCTION, CcPlaySound10,      GetErrConstant<STR_ERROR_CAN_T_CLEAR_THIS_AREA>),           // CMD_CLEAR_AREA; destroying multi-tile houses makes town rating differ between test and execution
+	DEF_CMD(CmdClearArea,                               CMDF_NO_TEST, CMDT_LANDSCAPE_CONSTRUCTION, CcPlaySound_EXPLOSION, GetErrConstant<STR_ERROR_CAN_T_CLEAR_THIS_AREA>),        // CMD_CLEAR_AREA; destroying multi-tile houses makes town rating differ between test and execution
 
 	DEF_CMD(CmdMoneyCheat,                              CMDF_OFFLINE, CMDT_CHEAT,                  NULL,               NULL),                                                      // CMD_MONEY_CHEAT
 	DEF_CMD(CmdChangeBankBalance,                         CMDF_DEITY, CMDT_MONEY_MANAGEMENT,       NULL,               NULL /* unused */),                                         // CMD_CHANGE_BANK_BALANCE
-	DEF_CMD(CmdBuildCanal,                                 CMDF_AUTO, CMDT_LANDSCAPE_CONSTRUCTION, CcBuildCanal,       GetErrBuildCanal),                                          // CMD_BUILD_CANAL
+	DEF_CMD(CmdBuildCanal,                                 CMDF_AUTO, CMDT_LANDSCAPE_CONSTRUCTION, CcPlaySound_SPLAT_WATER, GetErrBuildCanal),                                     // CMD_BUILD_CANAL
 	DEF_CMD(CmdCreateSubsidy,                             CMDF_DEITY, CMDT_OTHER_MANAGEMENT,       NULL,               NULL /* unused */),                                         // CMD_CREATE_SUBSIDY
 	DEF_CMD(CmdCompanyCtrl,          CMDF_SPECTATOR | CMDF_CLIENT_ID, CMDT_SERVER_SETTING,         NULL,               NULL),                                                      // CMD_COMPANY_CTRL
 	DEF_CMD(CmdCustomNewsItem,            CMDF_STR_CTRL | CMDF_DEITY, CMDT_OTHER_MANAGEMENT,       NULL,               NULL /* unused */),                                         // CMD_CUSTOM_NEWS_ITEM
@@ -370,8 +370,8 @@ static const CommandClass _command_proc_table[] = {
 
 	DEF_CMD(CmdBuildLock,                                  CMDF_AUTO, CMDT_LANDSCAPE_CONSTRUCTION, CcBuildDocks,       GetErrConstant<STR_ERROR_CAN_T_BUILD_LOCKS>),               // CMD_BUILD_LOCK
 
-	DEF_CMD(CmdBuildSignalTrack,                           CMDF_AUTO, CMDT_LANDSCAPE_CONSTRUCTION, CcPlaySound1E,      GetErrConstant<STR_ERROR_CAN_T_BUILD_SIGNALS_HERE>),        // CMD_BUILD_SIGNAL_TRACK
-	DEF_CMD(CmdRemoveSignalTrack,                          CMDF_AUTO, CMDT_LANDSCAPE_CONSTRUCTION, CcPlaySound1E,      GetErrConstant<STR_ERROR_CAN_T_REMOVE_SIGNALS_FROM>),       // CMD_REMOVE_SIGNAL_TRACK
+	DEF_CMD(CmdBuildSignalTrack,                           CMDF_AUTO, CMDT_LANDSCAPE_CONSTRUCTION, CcPlaySound_SPLAT_RAIL, GetErrConstant<STR_ERROR_CAN_T_BUILD_SIGNALS_HERE>),    // CMD_BUILD_SIGNAL_TRACK
+	DEF_CMD(CmdRemoveSignalTrack,                          CMDF_AUTO, CMDT_LANDSCAPE_CONSTRUCTION, CcPlaySound_SPLAT_RAIL, GetErrConstant<STR_ERROR_CAN_T_REMOVE_SIGNALS_FROM>),   // CMD_REMOVE_SIGNAL_TRACK
 
 	DEF_CMD(CmdGiveMoney,                                          0, CMDT_MONEY_MANAGEMENT,       CcGiveMoney,        GetErrConstant<STR_ERROR_INSUFFICIENT_FUNDS>),              // CMD_GIVE_MONEY
 	DEF_CMD(CmdChangeSetting,                            CMDF_SERVER, CMDT_SERVER_SETTING,         NULL,               NULL),                                                      // CMD_CHANGE_SETTING

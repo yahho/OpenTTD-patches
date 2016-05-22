@@ -102,7 +102,7 @@ static bool IsStationAvailable(const StationSpec *statspec)
 	return Convert8bitBooleanCallback(statspec->grf_prop.grffile, CBID_STATION_AVAILABILITY, cb_res);
 }
 
-void CcPlaySound1E(const CommandCost &result, TileIndex tile, uint32 p1, uint32 p2)
+void CcPlaySound_SPLAT_RAIL(const CommandCost &result, TileIndex tile, uint32 p1, uint32 p2)
 {
 	if (result.Succeeded() && _settings_client.sound.confirm) SndPlayTileFx(SND_20_SPLAT_RAIL, tile);
 }
@@ -111,7 +111,7 @@ void CcSingleRail(const CommandCost &result, TileIndex tile, uint32 p1, uint32 p
 {
 	if (HasBit(p1, 31)) return;
 
-	CcPlaySound1E(result, tile, p1, p2);
+	CcPlaySound_SPLAT_RAIL(result, tile, p1, p2);
 }
 
 StringID GetErrBuildSingleRail (TileIndex tile, uint32 p1, uint32 p2, const char *text)

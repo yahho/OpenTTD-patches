@@ -81,7 +81,7 @@ enum {
 };
 
 
-void CcPlaySound1D(const CommandCost &result, TileIndex tile, uint32 p1, uint32 p2)
+void CcPlaySound_SPLAT_OTHER(const CommandCost &result, TileIndex tile, uint32 p1, uint32 p2)
 {
 	if (result.Succeeded() && _settings_client.sound.confirm) SndPlayTileFx(SND_1F_SPLAT_OTHER, tile);
 }

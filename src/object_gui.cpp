@@ -571,7 +571,7 @@ void CcBuildObject(const CommandCost &result, TileIndex tile, uint32 p1, uint32 
 			break;
 
 		case OBJECT_OWNED_LAND:
-			CcPlaySound1E(result, tile, p1, p2);
+			CcPlaySound_SPLAT_RAIL(result, tile, p1, p2);
 			break;
 
 		default:
