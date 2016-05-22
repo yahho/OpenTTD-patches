@@ -515,28 +515,47 @@ public:
 	/** Helper for GetLayouter, to get whether the layouter supports RTL. */
 	static const bool SUPPORTS_RTL = false;
 
-	ttd_unique_free_ptr <WChar> buffer_begin; ///< Begin of the buffer.
 	FontMap runs;              ///< The fonts we have to use for this paragraph.
+	WChar data[];              ///< The buffer.
 
-	FallbackParagraphLayout(WChar *buffer, int length, FontMap &runs);
+private:
+	/**
+	 * Construct a new paragraph layout.
+	 * @param buffer The characters of the paragraph.
+	 * @param length The length of the paragraph.
+	 * @param runs   The font mapping of this paragraph.
+	 */
+	FallbackParagraphLayout (const WChar *buffer, int length, FontMap &runs)
+	{
+		/* Include trailing null char. */
+		assert (buffer[length] == '\0');
+		memcpy (this->data, buffer, (length + 1) * sizeof(WChar));
+		assert (!runs.empty());
+		assert (runs.back().first == length);
+		this->runs.swap (runs);
+	}
+
+	void *operator new (size_t size, size_t extra)
+	{
+		return ::operator new (size + extra * sizeof(WChar));
+	}
+
+	void *operator new (size_t size) DELETED;
+
+public:
+	/**
+	 * Create a new paragraph layout.
+	 * @param buffer The characters of the paragraph.
+	 * @param length The length of the paragraph.
+	 * @param runs   The font mapping of this paragraph.
+	 */
+	static FallbackParagraphLayout *create (const WChar *buffer, size_t length, FontMap &runs)
+	{
+		return new (length + 1) FallbackParagraphLayout (buffer, length, runs);
+	}
+
 	void build (LineVector *v, int max_width, bool reflow) OVERRIDE;
 };
-
-/**
- * Create a new paragraph layouter.
- * @param buffer The characters of the paragraph.
- * @param length The length of the paragraph.
- * @param runs   The font mapping of this paragraph.
- */
-FallbackParagraphLayout::FallbackParagraphLayout (WChar *buffer, int length, FontMap &runs)
-	/* Include trailing null char. */
-	: buffer_begin (xmemdupt <WChar> (buffer, length + 1)), runs()
-{
-	assert (buffer[length] == '\0');
-	assert (!runs.empty());
-	assert (runs.back().first == length);
-	this->runs.swap (runs);
-}
 
 /**
  * Build the paragraph with a maximum width.
@@ -546,7 +565,7 @@ FallbackParagraphLayout::FallbackParagraphLayout (WChar *buffer, int length, Fon
  */
 void FallbackParagraphLayout::build (LineVector *v, int max_width, bool)
 {
-	const WChar *buffer = this->buffer_begin.get();
+	const WChar *buffer = this->data;
 
 	if (*buffer == '\0') {
 		/* Only a newline. */
@@ -568,7 +587,7 @@ void FallbackParagraphLayout::build (LineVector *v, int max_width, bool)
 		const WChar *last_char = begin;
 		int width = 0;
 
-		int offset = buffer - this->buffer_begin.get();
+		int offset = buffer - this->data;
 		FontMap::const_iterator iter = this->runs.begin();
 		while (iter->first <= offset) {
 			iter++;
@@ -576,7 +595,7 @@ void FallbackParagraphLayout::build (LineVector *v, int max_width, bool)
 		}
 
 		const FontCache *fc = iter->second->fc;
-		const WChar *next_run = this->buffer_begin.get() + iter->first;
+		const WChar *next_run = this->data + iter->first;
 
 		for (;;) {
 			WChar c = *buffer;
@@ -593,7 +612,7 @@ void FallbackParagraphLayout::build (LineVector *v, int max_width, bool)
 				iter++;
 				assert (iter != this->runs.end());
 
-				next_run = this->buffer_begin.get() + iter->first;
+				next_run = this->data + iter->first;
 				begin = buffer;
 
 				last_space = NULL;
@@ -665,7 +684,7 @@ static size_t AppendToBuffer(WChar *buff, const WChar *buffer_last, WChar c)
  */
 static FallbackParagraphLayout *GetParagraphLayout (WChar *buff, int length, FontMap &fontMapping)
 {
-	return new FallbackParagraphLayout (buff, length, fontMapping);
+	return FallbackParagraphLayout::create (buff, length, fontMapping);
 }
 
 
