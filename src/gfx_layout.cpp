@@ -157,10 +157,22 @@ FontBase::FontBase (FontSize size, TextColour colour) :
 /** Interface to glue fallback and normal layouter into one. */
 class ParagraphBuilder {
 public:
+	typedef std::vector <ttd_unique_ptr <const ParagraphLayouter::Line> > LineVector;
+
 	virtual ~ParagraphBuilder() {}
 
 	virtual void Reflow() = 0;
 	virtual const ParagraphLayouter::Line *NextLine (int max_width) = 0;
+
+	void build (LineVector *v, int maxw, bool reflow)
+	{
+		if (reflow) this->Reflow();
+
+		const ParagraphLayouter::Line *l;
+		while ((l = this->NextLine(maxw)) != NULL) {
+			v->push_back (ttd_unique_ptr <const ParagraphLayouter::Line> (l));
+		}
+	}
 };
 
 
@@ -846,11 +858,12 @@ Layouter::Layouter(const char *str, int maxw, TextColour colour, FontSize fontsi
 		key.str.assign (str, lineend - str);
 		LineCacheItem& line = (*linecache)[key];
 
+		bool reflow;
 		if (line.layout != NULL) {
 			/* Line is in cache */
 			str = lineend + 1;
 			state = line.state_after;
-			line.layout->Reflow();
+			reflow = true;
 		} else {
 			/* Line is new, layout it */
 			ParagraphBuilder *layout;
@@ -877,13 +890,12 @@ Layouter::Layouter(const char *str, int maxw, TextColour colour, FontSize fontsi
 			assert (layout != NULL);
 			line.layout = layout;
 			line.state_after = state;
+
+			reflow = false;
 		}
 
 		/* Copy all lines into a local cache so we can reuse them later on more easily. */
-		const ParagraphLayouter::Line *l;
-		while ((l = line.layout->NextLine(maxw)) != NULL) {
-			this->push_back (ttd_unique_ptr <const ParagraphLayouter::Line> (l));
-		}
+		line.layout->build (this, maxw, reflow);
 
 	} while (c != '\0');
 }
