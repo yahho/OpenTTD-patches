@@ -740,14 +740,13 @@ static void ResetLineCache (void)
 /**
  * Helper for getting a ParagraphLayouter of the given type.
  *
- * @note In case no ParagraphLayouter could be constructed, line.layout will be NULL.
- * @param line The cache item to store our layouter in.
  * @param str The string to create a layouter for.
  * @param state The state of the font and color.
  * @tparam T The type of layouter we want.
+ * @return The ParagraphLayouter constructed, or NULL on error.
  */
 template <typename T>
-static inline void GetLayouter (LineCacheItem &line, const char *&str, FontState &state)
+static inline ParagraphLayouter *GetLayouter (const char *&str, FontState &state)
 {
 	typename T::CharType buffer [DRAW_STRING_BUFFER + 1];
 	const typename T::CharType *const buffer_last = lastof(buffer);
@@ -804,8 +803,7 @@ static inline void GetLayouter (LineCacheItem &line, const char *&str, FontState
 		assert (fontMapping.back().first == buff - buffer);
 	}
 
-	line.layout = GetParagraphLayout (buffer, buff - buffer, fontMapping);
-	line.state_after = state;
+	return GetParagraphLayout (buffer, buff - buffer, fontMapping);
 }
 
 /**
@@ -844,12 +842,13 @@ Layouter::Layouter(const char *str, int maxw, TextColour colour, FontSize fontsi
 			line.layout->Reflow();
 		} else {
 			/* Line is new, layout it */
+			ParagraphLayouter *layout;
 #ifdef WITH_ICU_LAYOUT
 			FontState old_state = state;
 			const char *old_str = str;
 
-			GetLayouter<ICUParagraphLayout>(line, str, state);
-			if (line.layout == NULL) {
+			layout = GetLayouter<ICUParagraphLayout> (str, state);
+			if (layout == NULL) {
 				static bool warned = false;
 				if (!warned) {
 					DEBUG(misc, 0, "ICU layouter bailed on the font. Falling back to the fallback layouter");
@@ -858,11 +857,15 @@ Layouter::Layouter(const char *str, int maxw, TextColour colour, FontSize fontsi
 
 				state = old_state;
 				str = old_str;
-				GetLayouter<FallbackParagraphLayout>(line, str, state);
+				layout = GetLayouter<FallbackParagraphLayout> (str, state);
 			}
 #else
-			GetLayouter<FallbackParagraphLayout>(line, str, state);
+			layout = GetLayouter<FallbackParagraphLayout> (str, state);
 #endif
+			/* The fallback layout should never fail. */
+			assert (layout != NULL);
+			line.layout = layout;
+			line.state_after = state;
 		}
 
 		/* Copy all lines into a local cache so we can reuse them later on more easily. */
