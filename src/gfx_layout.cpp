@@ -153,6 +153,17 @@ FontBase::FontBase (FontSize size, TextColour colour) :
 	assert(size < FS_END);
 }
 
+
+/** Interface to glue fallback and normal layouter into one. */
+class ParagraphBuilder {
+public:
+	virtual ~ParagraphBuilder() {}
+
+	virtual void Reflow() = 0;
+	virtual const ParagraphLayouter::Line *NextLine (int max_width) = 0;
+};
+
+
 #ifdef WITH_ICU_LAYOUT
 static size_t AppendToBuffer(UChar *buff, const UChar *buffer_last, WChar c)
 {
@@ -246,7 +257,7 @@ public:
 /**
  * Wrapper for doing layouts with ICU.
  */
-class ICUParagraphLayout : public ParagraphLayouter {
+class ICUParagraphLayout : public ParagraphBuilder {
 	ttd_unique_free_ptr <UChar> buffer; ///< The buffer.
 	ttd_unique_ptr <ParagraphLayout> p; ///< The actual ICU paragraph layout.
 
@@ -272,7 +283,7 @@ public:
 	}
 };
 
-static ParagraphLayouter *GetParagraphLayout (const UChar *buffer, int32 length, FontMap &fontMapping)
+static ICUParagraphLayout *GetParagraphLayout (const UChar *buffer, int32 length, FontMap &fontMapping)
 {
 	if (length == 0) {
 		/* ICU's ParagraphLayout cannot handle empty strings, so fake one. */
@@ -497,7 +508,7 @@ int FallbackLine::GetWidth (void) const
  * @note This variant does not handle left-to-right properly. This
  *       is supported in the one ParagraphLayout coming from ICU.
  */
-class FallbackParagraphLayout : public ParagraphLayouter {
+class FallbackParagraphLayout : public ParagraphBuilder {
 public:
 	/** Helper for GetLayouter, to get the right type. */
 	typedef WChar CharType;
@@ -720,7 +731,7 @@ struct LineCacheKey {
 /** Item in the linecache */
 struct LineCacheItem {
 	FontState state_after;     ///< Font state after the line.
-	ParagraphLayouter *layout; ///< Layout of the line.
+	ParagraphBuilder *layout;  ///< Layout of the line.
 
 	LineCacheItem() : layout(NULL) {}
 	~LineCacheItem() { delete layout; }
@@ -738,15 +749,15 @@ static void ResetLineCache (void)
 }
 
 /**
- * Helper for getting a ParagraphLayouter of the given type.
+ * Helper for getting a ParagraphBuilder of the given type.
  *
  * @param str The string to create a layouter for.
  * @param state The state of the font and color.
  * @tparam T The type of layouter we want.
- * @return The ParagraphLayouter constructed, or NULL on error.
+ * @return The ParagraphBuilder constructed, or NULL on error.
  */
 template <typename T>
-static inline ParagraphLayouter *GetLayouter (const char *&str, FontState &state)
+static inline ParagraphBuilder *GetLayouter (const char *&str, FontState &state)
 {
 	typename T::CharType buffer [DRAW_STRING_BUFFER + 1];
 	const typename T::CharType *const buffer_last = lastof(buffer);
@@ -842,7 +853,7 @@ Layouter::Layouter(const char *str, int maxw, TextColour colour, FontSize fontsi
 			line.layout->Reflow();
 		} else {
 			/* Line is new, layout it */
-			ParagraphLayouter *layout;
+			ParagraphBuilder *layout;
 #ifdef WITH_ICU_LAYOUT
 			FontState old_state = state;
 			const char *old_str = str;

@@ -26,13 +26,8 @@ struct FontBase {
 	FontBase (FontSize size, TextColour colour);
 };
 
-/**
- * Interface to glue fallback and normal layouter into one.
- */
-class ParagraphLayouter {
-public:
-	virtual ~ParagraphLayouter() {}
-
+/** Namespace for paragraph layout-related types. */
+namespace ParagraphLayouter {
 	/** Visual run contains data about the bit of text with the same font. */
 	class VisualRun {
 	public:
@@ -55,9 +50,6 @@ public:
 		virtual const VisualRun *GetVisualRun(int run) const = 0;
 		virtual int GetInternalCharLength(WChar c) const = 0;
 	};
-
-	virtual void Reflow() = 0;
-	virtual const Line *NextLine(int max_width) = 0;
 };
 
 /**
