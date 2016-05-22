@@ -271,10 +271,8 @@ public:
 	}
 };
 
-static ParagraphLayouter *GetParagraphLayout(UChar *buff, UChar *buff_end, FontMap &fontMapping)
+static ParagraphLayouter *GetParagraphLayout (UChar *buff, int32 length, FontMap &fontMapping)
 {
-	int32 length = buff_end - buff;
-
 	if (length == 0) {
 		/* ICU's ParagraphLayout cannot handle empty strings, so fake one. */
 		buff[0] = ' ';
@@ -647,13 +645,13 @@ static size_t AppendToBuffer(WChar *buff, const WChar *buffer_last, WChar c)
 /**
  * Get the actual ParagraphLayout for the given buffer.
  * @param buff The begin of the buffer.
- * @param buff_end The location after the last element in the buffer.
+ * @param length The length of the buffer.
  * @param fontMapping THe mapping of the fonts.
  * @return The ParagraphLayout instance.
  */
-static FallbackParagraphLayout *GetParagraphLayout(WChar *buff, WChar *buff_end, FontMap &fontMapping)
+static FallbackParagraphLayout *GetParagraphLayout (WChar *buff, int length, FontMap &fontMapping)
 {
-	return new FallbackParagraphLayout(buff, buff_end - buff, fontMapping);
+	return new FallbackParagraphLayout (buff, length, fontMapping);
 }
 
 
@@ -804,7 +802,7 @@ static inline void GetLayouter (LineCacheItem &line, const char *&str, FontState
 		assert (fontMapping.back().first == buff - buff_begin);
 	}
 
-	line.layout = GetParagraphLayout(buff_begin, buff, fontMapping);
+	line.layout = GetParagraphLayout (buff_begin, buff - buff_begin, fontMapping);
 	line.state_after = state;
 }
 
