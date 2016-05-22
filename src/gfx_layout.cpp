@@ -744,15 +744,12 @@ static void ResetLineCache (void)
 template <typename T>
 static inline void GetLayouter (LineCacheItem &line, const char *&str, FontState &state)
 {
-	if (line.buffer != NULL) free(line.buffer);
+	typename T::CharType buffer [DRAW_STRING_BUFFER + 1];
+	const typename T::CharType *const buffer_last = lastof(buffer);
 
-	typename T::CharType *buff_begin = xmalloct<typename T::CharType>(DRAW_STRING_BUFFER);
-	const typename T::CharType *buffer_last = buff_begin + DRAW_STRING_BUFFER;
-	typename T::CharType *buff = buff_begin;
+	typename T::CharType *buff = buffer;
 	FontMap fontMapping;
 	Font *f = GetFont (state.fontsize, state.cur_colour);
-
-	line.buffer = buff_begin;
 
 	/*
 	 * Go through the whole string while adding Font instances to the font map
@@ -786,7 +783,7 @@ static inline void GetLayouter (LineCacheItem &line, const char *&str, FontState
 		}
 
 		if (!just_inserted) {
-			fontMapping.push_back (std::make_pair (buff - buff_begin, f));
+			fontMapping.push_back (std::make_pair (buff - buffer, f));
 			just_inserted = true;
 		}
 		f = GetFont (state.fontsize, state.cur_colour);
@@ -796,13 +793,16 @@ static inline void GetLayouter (LineCacheItem &line, const char *&str, FontState
 	*buff = '\0';
 
 	if (!just_inserted) {
-		fontMapping.push_back (std::make_pair (buff - buff_begin, f));
+		fontMapping.push_back (std::make_pair (buff - buffer, f));
 	} else {
 		assert (!fontMapping.empty());
-		assert (fontMapping.back().first == buff - buff_begin);
+		assert (fontMapping.back().first == buff - buffer);
 	}
 
-	line.layout = GetParagraphLayout (buff_begin, buff - buff_begin, fontMapping);
+	if (line.buffer != NULL) free (line.buffer);
+	typename T::CharType *lb = xmemdupt <typename T::CharType> (buffer, buff + 1 - buffer);
+	line.buffer = lb;
+	line.layout = GetParagraphLayout (lb, buff - buffer, fontMapping);
 	line.state_after = state;
 }
 
