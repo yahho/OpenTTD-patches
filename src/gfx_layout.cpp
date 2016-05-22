@@ -161,18 +161,7 @@ public:
 
 	virtual ~ParagraphBuilder() {}
 
-	virtual void Reflow() = 0;
-	virtual const ParagraphLayouter::Line *NextLine (int max_width) = 0;
-
-	void build (LineVector *v, int maxw, bool reflow)
-	{
-		if (reflow) this->Reflow();
-
-		const ParagraphLayouter::Line *l;
-		while ((l = this->NextLine(maxw)) != NULL) {
-			v->push_back (ttd_unique_ptr <const ParagraphLayouter::Line> (l));
-		}
-	}
+	virtual void build (LineVector *v, int maxw, bool reflow) = 0;
 };
 
 
@@ -283,15 +272,14 @@ public:
 	{
 	}
 
-	void Reflow (void) OVERRIDE
+	void build (LineVector *v, int max_width, bool reflow) OVERRIDE
 	{
-		p->reflow();
-	}
+		if (reflow) this->p->reflow();
 
-	ParagraphLayouter::Line *NextLine (int max_width) OVERRIDE
-	{
-		ParagraphLayout::Line *l = p->nextLine(max_width);
-		return l == NULL ? NULL : new ICULine(l);
+		ParagraphLayout::Line *l;
+		while ((l = this->p->nextLine (max_width)) != NULL) {
+			v->push_back (ttd_unique_ptr <const ParagraphLayouter::Line> (new ICULine (l)));
+		}
 	}
 };
 
@@ -532,8 +520,9 @@ public:
 	FontMap runs;              ///< The fonts we have to use for this paragraph.
 
 	FallbackParagraphLayout(WChar *buffer, int length, FontMap &runs);
-	void Reflow();
 	const ParagraphLayouter::Line *NextLine(int max_width);
+
+	void build (LineVector *v, int max_width, bool reflow) OVERRIDE;
 };
 
 /**
@@ -552,12 +541,15 @@ FallbackParagraphLayout::FallbackParagraphLayout (WChar *buffer, int length, Fon
 	this->runs.swap (runs);
 }
 
-/**
- * Reset the position to the start of the paragraph.
- */
-void FallbackParagraphLayout::Reflow()
+void FallbackParagraphLayout::build (LineVector *v, int max_width, bool reflow)
 {
-	this->buffer = this->buffer_begin.get();
+	if (reflow) this->buffer = this->buffer_begin.get();
+
+	for (;;) {
+		const ParagraphLayouter::Line *l = this->NextLine (max_width);
+		if (l == NULL) break;
+		v->push_back (ttd_unique_ptr <const ParagraphLayouter::Line> (l));
+	}
 }
 
 /**
