@@ -166,15 +166,6 @@ public:
 
 
 #ifdef WITH_ICU_LAYOUT
-static size_t AppendToBuffer(UChar *buff, const UChar *buffer_last, WChar c)
-{
-	/* Transform from UTF-32 to internal ICU format of UTF-16. */
-	int32 length = 0;
-	UErrorCode err = U_ZERO_ERROR;
-	u_strFromUTF32(buff, buffer_last - buff, &length, (UChar32*)&c, 1, &err);
-	return length;
-}
-
 /** Visual run contains data about the bit of text with the same font. */
 class ICUVisualRun : public ParagraphLayouter::VisualRun {
 	const ParagraphLayout::VisualRun *vr; ///< The actual ICU vr.
@@ -265,8 +256,6 @@ class ICUParagraphLayout : public ParagraphBuilder {
 public:
 	/** Helper for GetLayouter, to get the right type. */
 	typedef UChar CharType;
-	/** Helper for GetLayouter, to get whether the layouter supports RTL. */
-	static const bool SUPPORTS_RTL = true;
 
 	ICUParagraphLayout (UChar *b, ParagraphLayout *p) : buffer(b), p(p)
 	{
@@ -280,6 +269,15 @@ public:
 		while ((l = this->p->nextLine (max_width)) != NULL) {
 			v->push_back (ttd_unique_ptr <const ParagraphLayouter::Line> (new ICULine (l)));
 		}
+	}
+
+	static size_t append_char (UChar *buff, const UChar *buffer_last, WChar c)
+	{
+		/* Transform from UTF-32 to internal ICU format of UTF-16. */
+		int32 length = 0;
+		UErrorCode err = U_ZERO_ERROR;
+		u_strFromUTF32 (buff, buffer_last - buff, &length, (UChar32*)&c, 1, &err);
+		return length;
 	}
 };
 
@@ -512,8 +510,6 @@ class FallbackParagraphLayout : public ParagraphBuilder {
 public:
 	/** Helper for GetLayouter, to get the right type. */
 	typedef WChar CharType;
-	/** Helper for GetLayouter, to get whether the layouter supports RTL. */
-	static const bool SUPPORTS_RTL = false;
 
 	FontMap runs;              ///< The fonts we have to use for this paragraph.
 	WChar data[];              ///< The buffer.
@@ -555,6 +551,24 @@ public:
 	}
 
 	void build (LineVector *v, int max_width, bool reflow) OVERRIDE;
+
+	/**
+	 * Append a wide character to the internal buffer.
+	 * @param buff        The buffer to append to.
+	 * @param buffer_last The end of the buffer.
+	 * @param c           The character to add.
+	 * @return The number of buffer spaces that were used.
+	 */
+	static size_t append_char (WChar *buff, const WChar *buffer_last, WChar c)
+	{
+		/* Filter out text direction characters that shouldn't be drawn, and
+		 * will not be handled in the fallback non ICU case because they are
+		 * mostly needed for RTL languages which need more ICU support. */
+		if (IsTextDirectionChar (c)) return 0;
+
+		*buff = c;
+		return 1;
+	}
 };
 
 /**
@@ -660,19 +674,6 @@ void FallbackParagraphLayout::build (LineVector *v, int max_width, bool)
 
 		v->push_back (ttd_unique_ptr <const ParagraphLayouter::Line> (l));
 	}
-}
-
-/**
- * Appand a wide character to the internal buffer.
- * @param buff        The buffer to append to.
- * @param buffer_last The end of the buffer.
- * @param c           The character to add.
- * @return The number of buffer spaces that were used.
- */
-static size_t AppendToBuffer(WChar *buff, const WChar *buffer_last, WChar c)
-{
-	*buff = c;
-	return 1;
 }
 
 /**
@@ -799,11 +800,7 @@ static inline ParagraphBuilder *GetLayouter (const char *&str, FontState &state)
 		} else if (c == SCC_BIGFONT) {
 			state.SetFontSize(FS_LARGE);
 		} else {
-			/* Filter out text direction characters that shouldn't be drawn, and
-			 * will not be handled in the fallback non ICU case because they are
-			 * mostly needed for RTL languages which need more ICU support. */
-			if (!T::SUPPORTS_RTL && IsTextDirectionChar(c)) continue;
-			size_t length = AppendToBuffer (buff, buffer_last, c);
+			size_t length = T::append_char (buff, buffer_last, c);
 			if (length > 0) {
 				buff += length;
 				just_inserted = false;
