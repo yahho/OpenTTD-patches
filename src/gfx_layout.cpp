@@ -957,15 +957,14 @@ int ParagraphLayouter::Line::GetCharPosition (const char *str, const char *ch) c
 
 /**
  * Get the character that is at a position.
+ * @param str Layout string.
  * @param x Position in the string.
  * @return Pointer to the character at the position or NULL if no character is at the position.
  */
-const char *Layouter::GetCharAtPosition(int x) const
+const char *ParagraphLayouter::Line::GetCharAtPosition (const char *str, int x) const
 {
-	const ParagraphLayouter::Line *line = this->front().get();
-
-	for (int run_index = 0; run_index < line->CountRuns(); run_index++) {
-		const ParagraphLayouter::VisualRun *run = line->GetVisualRun(run_index);
+	for (int run_index = 0; run_index < this->CountRuns(); run_index++) {
+		const ParagraphLayouter::VisualRun *run = this->GetVisualRun(run_index);
 
 		for (int i = 0; i < run->GetGlyphCount(); i++) {
 			/* Not a valid glyph (empty). */
@@ -978,17 +977,27 @@ const char *Layouter::GetCharAtPosition(int x) const
 				/* Found our glyph, now convert to UTF-8 string index. */
 				size_t index = run->GetGlyphToCharMap()[i];
 
-				for (const char *str = this->string; *str != '\0'; ) {
+				while (*str != '\0') {
 					if (index == 0) return str;
 
 					WChar c = Utf8Consume(&str);
-					index -= line->GetInternalCharLength(c);
+					index -= this->GetInternalCharLength(c);
 				}
 			}
 		}
 	}
 
 	return NULL;
+}
+
+/**
+ * Get the character that is at a position.
+ * @param x Position in the string.
+ * @return Pointer to the character at the position or NULL if no character is at the position.
+ */
+const char *Layouter::GetCharAtPosition(int x) const
+{
+	return this->front()->GetCharAtPosition (this->string, x);
 }
 
 /**

@@ -50,6 +50,7 @@ namespace ParagraphLayouter {
 		virtual const VisualRun *GetVisualRun(int run) const = 0;
 		virtual int GetInternalCharLength(WChar c) const = 0;
 		int GetCharPosition (const char *str, const char *ch) const;
+		const char *GetCharAtPosition (const char *str, int x) const;
 	};
 };
 
