@@ -978,12 +978,11 @@ const char *Layouter::GetCharAtPosition(int x) const
 				/* Found our glyph, now convert to UTF-8 string index. */
 				size_t index = run->GetGlyphToCharMap()[i];
 
-				size_t cur_idx = 0;
 				for (const char *str = this->string; *str != '\0'; ) {
-					if (cur_idx == index) return str;
+					if (index == 0) return str;
 
 					WChar c = Utf8Consume(&str);
-					cur_idx += line->GetInternalCharLength(c);
+					index -= line->GetInternalCharLength(c);
 				}
 			}
 		}
