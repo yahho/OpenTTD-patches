@@ -956,17 +956,6 @@ int ParagraphLayouter::Line::GetCharPosition (const char *str, const char *ch) c
 }
 
 /**
- * Get the position of a character in the layout.
- * @param ch Character to get the position of.
- * @return Left position of the character relative to the start of the string.
- * @note Will only work right for single-line strings.
- */
-int Layouter::GetCharPosition (const char *ch) const
-{
-	return this->front()->GetCharPosition (this->string, ch);
-}
-
-/**
  * Get the character that is at a position.
  * @param x Position in the string.
  * @return Pointer to the character at the position or NULL if no character is at the position.

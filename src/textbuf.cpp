@@ -316,8 +316,8 @@ public:
 void Textbuf::GetCharPositions (const char *c1, int *x1, const char *c2, int *x2) const
 {
 	Layouter layout (this->GetText());
-	*x1 = layout.GetCharPosition (c1);
-	*x2 = (c2 == c1) ? *x1 : layout.GetCharPosition (c2);
+	*x1 = layout.front()->GetCharPosition (this->GetText(), c1);
+	*x2 = (c2 == c1) ? *x1 : layout.front()->GetCharPosition (this->GetText(), c2);
 }
 
 /**
@@ -598,7 +598,7 @@ void Textbuf::UpdateCaretPosition()
 {
 	if (this->chars > 1) {
 		Layouter layout (this->GetText());
-		this->caretxoffs = layout.GetCharPosition (this->buffer + this->caretpos);
+		this->caretxoffs = layout.front()->GetCharPosition (this->GetText(), this->buffer + this->caretpos);
 	} else {
 		this->caretxoffs = 0;
 	}
