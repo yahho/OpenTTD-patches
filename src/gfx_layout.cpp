@@ -928,29 +928,27 @@ int Layouter::GetCharPosition (const char *ch) const
 	while (str < ch) {
 		WChar c;
 		size_t len = Utf8Decode(&c, str);
-		if (c == '\0' || c == '\n') break;
+		if (c == '\0' || c == '\n') return 0;
 		str += len;
 		index += this->front()->GetInternalCharLength(c);
 	}
 
-	if (str == ch) {
-		/* Valid character. */
-		const ParagraphLayouter::Line *line = this->front().get();
+	/* Valid character. */
+	const ParagraphLayouter::Line *line = this->front().get();
 
-		/* Pointer to the end-of-string/line marker? Return total line width. */
-		if (*ch == '\0' || *ch == '\n') {
-			return line->GetWidth();
-		}
+	/* Pointer to the end-of-string/line marker? Return total line width. */
+	if (*ch == '\0' || *ch == '\n') {
+		return line->GetWidth();
+	}
 
-		/* Scan all runs until we've found our code point index. */
-		for (int run_index = 0; run_index < line->CountRuns(); run_index++) {
-			const ParagraphLayouter::VisualRun *run = line->GetVisualRun(run_index);
+	/* Scan all runs until we've found our code point index. */
+	for (int run_index = 0; run_index < line->CountRuns(); run_index++) {
+		const ParagraphLayouter::VisualRun *run = line->GetVisualRun(run_index);
 
-			for (int i = 0; i < run->GetGlyphCount(); i++) {
-				/* Matching glyph? Return position. */
-				if ((size_t)run->GetGlyphToCharMap()[i] == index) {
-					return run->GetPositions()[i * 2];
-				}
+		for (int i = 0; i < run->GetGlyphCount(); i++) {
+			/* Matching glyph? Return position. */
+			if ((size_t)run->GetGlyphToCharMap()[i] == index) {
+				return run->GetPositions()[i * 2];
 			}
 		}
 	}
