@@ -991,16 +991,6 @@ const char *ParagraphLayouter::Line::GetCharAtPosition (const char *str, int x) 
 }
 
 /**
- * Get the character that is at a position.
- * @param x Position in the string.
- * @return Pointer to the character at the position or NULL if no character is at the position.
- */
-const char *Layouter::GetCharAtPosition(int x) const
-{
-	return this->front()->GetCharAtPosition (this->string, x);
-}
-
-/**
  * Reset cached font information.
  * @param size Font size to reset.
  */

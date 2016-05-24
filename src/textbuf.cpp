@@ -330,7 +330,7 @@ const char *Textbuf::GetCharAtPosition (int x) const
 	if (x < 0) return NULL;
 
 	Layouter layout (this->GetText());
-	return layout.GetCharAtPosition (x);
+	return layout.front()->GetCharAtPosition (this->GetText(), x);
 }
 
 /**
