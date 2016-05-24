@@ -915,35 +915,34 @@ Dimension Layouter::GetBounds()
 
 /**
  * Get the position of a character in the layout.
+ * @param str Layout string.
  * @param ch Character to get the position of.
  * @return Left position of the character relative to the start of the string.
  * @note Will only work right for single-line strings.
  */
-int Layouter::GetCharPosition (const char *ch) const
+int ParagraphLayouter::Line::GetCharPosition (const char *str, const char *ch) const
 {
 	/* Find the code point index which corresponds to the char
 	 * pointer into our UTF-8 source string. */
 	size_t index = 0;
-	const char *str = this->string;
 	while (str < ch) {
 		WChar c;
 		size_t len = Utf8Decode(&c, str);
 		if (c == '\0' || c == '\n') return 0;
 		str += len;
-		index += this->front()->GetInternalCharLength(c);
+		index += this->GetInternalCharLength(c);
 	}
 
 	/* Valid character. */
-	const ParagraphLayouter::Line *line = this->front().get();
 
 	/* Pointer to the end-of-string/line marker? Return total line width. */
 	if (*ch == '\0' || *ch == '\n') {
-		return line->GetWidth();
+		return this->GetWidth();
 	}
 
 	/* Scan all runs until we've found our code point index. */
-	for (int run_index = 0; run_index < line->CountRuns(); run_index++) {
-		const ParagraphLayouter::VisualRun *run = line->GetVisualRun(run_index);
+	for (int run_index = 0; run_index < this->CountRuns(); run_index++) {
+		const ParagraphLayouter::VisualRun *run = this->GetVisualRun(run_index);
 
 		for (int i = 0; i < run->GetGlyphCount(); i++) {
 			/* Matching glyph? Return position. */
@@ -954,6 +953,17 @@ int Layouter::GetCharPosition (const char *ch) const
 	}
 
 	return 0;
+}
+
+/**
+ * Get the position of a character in the layout.
+ * @param ch Character to get the position of.
+ * @return Left position of the character relative to the start of the string.
+ * @note Will only work right for single-line strings.
+ */
+int Layouter::GetCharPosition (const char *ch) const
+{
+	return this->front()->GetCharPosition (this->string, ch);
 }
 
 /**
