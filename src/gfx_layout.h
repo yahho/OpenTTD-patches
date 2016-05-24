@@ -60,7 +60,6 @@ namespace ParagraphLayouter {
  * It also accounts for the memory allocations and frees.
  */
 class Layouter : public std::vector <ttd_unique_ptr <const ParagraphLayouter::Line> > {
-	const char *string; ///< Pointer to the original string.
 public:
 	Layouter(const char *str, int maxw = INT32_MAX, TextColour colour = TC_FROMSTRING, FontSize fontsize = FS_NORMAL);
 	Dimension GetBounds();

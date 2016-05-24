@@ -835,7 +835,7 @@ static inline ParagraphBuilder *GetLayouter (const char *&str, FontState &state)
  * @param colour   The colour of the font.
  * @param fontsize The size of font to use.
  */
-Layouter::Layouter(const char *str, int maxw, TextColour colour, FontSize fontsize) : string(str)
+Layouter::Layouter(const char *str, int maxw, TextColour colour, FontSize fontsize)
 {
 	FontState state(colour, fontsize);
 	WChar c = 0;
