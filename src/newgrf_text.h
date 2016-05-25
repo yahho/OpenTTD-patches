@@ -16,6 +16,7 @@
 
 #include "string.h"
 #include "strings_type.h"
+#include "core/flexarray.h"
 #include "core/smallvec_type.hpp"
 #include "table/control_codes.h"
 
@@ -28,7 +29,7 @@ static const WChar NFO_UTF8_IDENTIFIER = 0x00DE;
  * Each of those elements represent the string,
  * but according to a different lang.
  */
-struct GRFText {
+struct GRFText : FlexArray<char> {
 public:
 	/**
 	 * Allocate and assign a new GRFText with the given text.
@@ -59,15 +60,6 @@ public:
 		return GRFText::create (this->text, this->len);
 	}
 
-	/**
-	 * Free the memory we allocated.
-	 * @param p memory to free.
-	 */
-	void operator delete (void *p)
-	{
-		free (p);
-	}
-
 private:
 	/**
 	 * Actually construct the GRFText.
@@ -81,24 +73,6 @@ private:
 		 * intermediate string terminators. */
 		memcpy (this->text, text_, len);
 	}
-
-	/**
-	 * Allocate memory for this class.
-	 * @param size the size of the instance
-	 * @param extra the extra memory for the text
-	 * @return the requested amount of memory for both the instance and the text
-	 */
-	void *operator new (size_t size, size_t extra)
-	{
-		return xmalloc (size + extra);
-	}
-
-	/**
-	 * Helper allocation function to disallow something.
-	 * Don't allow simple 'news'; they wouldn't have enough memory.
-	 * @param size the amount of space not to allocate.
-	 */
-	void *operator new (size_t size) DELETED;
 
 public:
 	size_t len;    ///< The length of the stored string, used for copying.

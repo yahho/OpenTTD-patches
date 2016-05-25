@@ -20,6 +20,7 @@
 #include "strings_func.h"
 #include "debug.h"
 #include "core/pointer.h"
+#include "core/flexarray.h"
 #include "core/smallmap_type.hpp"
 
 #include "table/control_codes.h"
@@ -506,7 +507,7 @@ int FallbackLine::GetWidth (void) const
  * @note This variant does not handle left-to-right properly. This
  *       is supported in the one ParagraphLayout coming from ICU.
  */
-class FallbackParagraphLayout : public ParagraphBuilder {
+class FallbackParagraphLayout : public ParagraphBuilder, FlexArray<WChar> {
 public:
 	/** Helper for GetLayouter, to get the right type. */
 	typedef WChar CharType;
@@ -530,13 +531,6 @@ private:
 		assert (runs.back().first == length);
 		this->runs.swap (runs);
 	}
-
-	void *operator new (size_t size, size_t extra)
-	{
-		return ::operator new (size + extra * sizeof(WChar));
-	}
-
-	void *operator new (size_t size) DELETED;
 
 public:
 	/**

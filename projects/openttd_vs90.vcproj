@@ -2636,6 +2636,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\..\src\core\flexarray.h"
+				>
+			</File>
+			<File
 				RelativePath=".\..\src\core\forward_list.h"
 				>
 			</File>

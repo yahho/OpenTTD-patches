@@ -1206,6 +1206,9 @@
     <ClInclude Include="..\src\core\enum_type.hpp">
       <Filter>Core Source Code</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\core\flexarray.h">
+      <Filter>Core Source Code</Filter>
+    </ClInclude>
     <ClInclude Include="..\src\core\forward_list.h">
       <Filter>Core Source Code</Filter>
     </ClInclude>
