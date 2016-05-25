@@ -31,6 +31,24 @@ static const WChar NFO_UTF8_IDENTIFIER = 0x00DE;
  */
 struct GRFText : FlexArray<char> {
 public:
+	const size_t len; ///< The length of the stored string, used for copying.
+	char text[];      ///< The actual (translated) text.
+
+private:
+	/**
+	 * Actually construct the GRFText.
+	 * @param text The text to store in this GRFText.
+	 * @param len  The length of the text to store.
+	 */
+	GRFText (const char *text, size_t len) : len (len)
+	{
+		/* We need to use memcpy instead of strcpy due to
+		 * the possibility of "choice lists" and therefore
+		 * intermediate string terminators. */
+		memcpy (this->text, text, len);
+	}
+
+public:
 	/**
 	 * Allocate and assign a new GRFText with the given text.
 	 * As these strings can have string terminations in them, e.g.
@@ -59,24 +77,6 @@ public:
 	{
 		return GRFText::create (this->text, this->len);
 	}
-
-private:
-	/**
-	 * Actually construct the GRFText.
-	 * @param text_   The text to store in this GRFText.
-	 * @param len_    The length of the text to store.
-	 */
-	GRFText (const char *text_, size_t len_) : len(len_)
-	{
-		/* We need to use memcpy instead of strcpy due to
-		 * the possibility of "choice lists" and therefore
-		 * intermediate string terminators. */
-		memcpy (this->text, text_, len);
-	}
-
-public:
-	size_t len;    ///< The length of the stored string, used for copying.
-	char text[];   ///< The actual (translated) text.
 };
 
 
