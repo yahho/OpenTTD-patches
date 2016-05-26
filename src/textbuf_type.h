@@ -36,7 +36,7 @@ enum HandleKeyPressResult
 };
 
 /** Helper/buffer for input fields. */
-struct Textbuf : stringp {
+struct Textbuf : stringb {
 	CharSetFilter afilter;    ///< Allowed characters
 	const uint16 max_chars;   ///< the maximum size of the buffer in characters (including terminating '\0')
 	uint16 chars;             ///< the current size of the string in characters (including terminating '\0')
