@@ -677,8 +677,8 @@ bool Textbuf::MovePos(uint16 keycode)
  * @param max_bytes maximum size in bytes, including terminating '\0'
  * @param max_chars maximum size in chars, including terminating '\0'
  */
-Textbuf::Textbuf(uint16 max_bytes, uint16 max_chars)
-	: stringb (max_bytes, xmalloc (max_bytes)),
+Textbuf::Textbuf (uint16 max_bytes, char *buf, uint16 max_chars)
+	: stringb (max_bytes, buf),
 	  max_chars(max_chars == UINT16_MAX ? max_bytes : max_chars)
 {
 	assert(max_bytes != 0);
@@ -695,7 +695,6 @@ Textbuf::Textbuf(uint16 max_bytes, uint16 max_chars)
 Textbuf::~Textbuf()
 {
 	delete this->char_iter;
-	free (this->buffer);
 }
 
 /**

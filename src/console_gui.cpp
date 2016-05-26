@@ -127,7 +127,8 @@ struct IConsoleLine {
 
 
 /* ** main console cmd buffer ** */
-static Textbuf _iconsole_cmdline(ICON_CMDLN_SIZE);
+static char _iconsole_buffer [ICON_CMDLN_SIZE];
+static Textbuf _iconsole_cmdline (lengthof(_iconsole_buffer), _iconsole_buffer);
 static char *_iconsole_history[ICON_HISTORY_SIZE];
 static int _iconsole_historypos;
 IConsoleModes _iconsole_mode;

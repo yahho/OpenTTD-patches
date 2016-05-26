@@ -49,7 +49,7 @@ struct Textbuf : stringb {
 	uint16 markxoffs;         ///< the start position of the marked area in pixels
 	uint16 marklength;        ///< the length of the marked area in pixels
 
-	explicit Textbuf(uint16 max_bytes, uint16 max_chars = UINT16_MAX);
+	explicit Textbuf (uint16 max_bytes, char *buf, uint16 max_chars = UINT16_MAX);
 	~Textbuf();
 
 	void Assign(StringID string);

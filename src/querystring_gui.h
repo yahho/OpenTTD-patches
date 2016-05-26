@@ -36,7 +36,10 @@ struct QueryString : Textbuf {
 	 * @param size Maximum size in bytes.
 	 * @param chars Maximum size in chars.
 	 */
-	QueryString(uint16 size, uint16 chars = UINT16_MAX) : Textbuf(size, chars), ok_button(ACTION_NOTHING), cancel_button(ACTION_DESELECT), orig(NULL)
+	QueryString (uint16 size, uint16 chars = UINT16_MAX) :
+		Textbuf (size, xmalloc (size), chars),
+		ok_button (ACTION_NOTHING), cancel_button (ACTION_DESELECT),
+		orig (NULL)
 	{
 	}
 
@@ -46,6 +49,7 @@ struct QueryString : Textbuf {
 	~QueryString()
 	{
 		free(this->orig);
+		free(this->buffer);
 	}
 
 public:
