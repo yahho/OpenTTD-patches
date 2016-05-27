@@ -15,13 +15,7 @@
 #include "string.h"
 #include "strings_type.h"
 
-#ifdef WITH_ICU_SORT
-class IcuStringIterator;
-typedef IcuStringIterator StringIterator;
-#else
-class DefaultStringIterator;
-typedef DefaultStringIterator StringIterator;
-#endif
+class StringIterator;
 
 /**
  * Return values for Textbuf::HandleKeypress

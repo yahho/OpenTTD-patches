@@ -53,7 +53,7 @@ struct BaseStringIterator {
 #include <unicode/brkiter.h>
 
 /** String iterator using ICU as a backend. */
-class IcuStringIterator : public BaseStringIterator
+class StringIterator : public BaseStringIterator
 {
 	icu::BreakIterator *char_itr; ///< ICU iterator for characters.
 	icu::BreakIterator *word_itr; ///< ICU iterator for words.
@@ -62,7 +62,7 @@ class IcuStringIterator : public BaseStringIterator
 	SmallVector<size_t, 32> utf16_to_utf8; ///< Mapping from UTF-16 code point position to index in the UTF-8 source string.
 
 public:
-	IcuStringIterator() : char_itr(NULL), word_itr(NULL)
+	StringIterator() : char_itr(NULL), word_itr(NULL)
 	{
 		UErrorCode status = U_ZERO_ERROR;
 		this->char_itr = icu::BreakIterator::createCharacterInstance(icu::Locale(_current_language != NULL ? _current_language->isocode : "en"), status);
@@ -72,7 +72,7 @@ public:
 		*this->utf16_to_utf8.Append() = 0;
 	}
 
-	~IcuStringIterator()
+	~StringIterator()
 	{
 		delete this->char_itr;
 		delete this->word_itr;
@@ -201,14 +201,14 @@ public:
 #else
 
 /** Fallback simple string iterator. */
-class DefaultStringIterator : public BaseStringIterator
+class StringIterator : public BaseStringIterator
 {
 	const char *string; ///< Current string.
 	size_t len;         ///< String length.
 	size_t cur_pos;     ///< Current iteration position.
 
 public:
-	DefaultStringIterator() : string(NULL), len(0), cur_pos(0)
+	StringIterator() : string(NULL), len(0), cur_pos(0)
 	{
 	}
 
