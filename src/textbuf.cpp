@@ -34,11 +34,8 @@ bool GetClipboardContents(char *buffer, size_t buff_len);
 int _caret_timer;
 
 
-/** Base class for iterating over different kind of parts of a string. */
-struct BaseStringIterator {
-	/** Sentinel to indicate end-of-iteration. */
-	static const size_t END = SIZE_MAX;
-};
+/** Sentinel to indicate end-of-iteration. */
+static const size_t END = SIZE_MAX;
 
 
 #ifdef WITH_ICU_SORT
@@ -47,7 +44,7 @@ struct BaseStringIterator {
 #include <unicode/brkiter.h>
 
 /** String iterator using ICU as a backend. */
-class Textbuf::StringIterator : public BaseStringIterator
+class Textbuf::StringIterator
 {
 	icu::BreakIterator *char_itr; ///< ICU iterator for characters.
 	icu::BreakIterator *word_itr; ///< ICU iterator for words.
@@ -185,7 +182,7 @@ public:
 #else
 
 /** Fallback simple string iterator. */
-class Textbuf::StringIterator : public BaseStringIterator
+class Textbuf::StringIterator
 {
 	const char *string; ///< Current string.
 	size_t len;         ///< String length.
@@ -553,7 +550,7 @@ void Textbuf::UpdateStringIter()
 {
 	this->char_iter->SetString(this->buffer);
 	size_t pos = this->char_iter->SetCurPosition(this->caretpos);
-	this->caretpos = pos == StringIterator::END ? 0 : (uint16)pos;
+	this->caretpos = pos == END ? 0 : (uint16)pos;
 }
 
 /** Update pixel width of the text. */
@@ -601,7 +598,7 @@ bool Textbuf::MovePos(uint16 keycode)
 			if (this->caretpos == 0) break;
 
 			size_t pos = this->char_iter->Prev (keycode & WKC_CTRL);
-			if (pos == StringIterator::END) return true;
+			if (pos == END) return true;
 
 			this->caretpos = (uint16)pos;
 			this->UpdateCaretPosition();
@@ -613,7 +610,7 @@ bool Textbuf::MovePos(uint16 keycode)
 			if (this->caretpos >= this->length()) break;
 
 			size_t pos = this->char_iter->Next (keycode & WKC_CTRL);
-			if (pos == StringIterator::END) return true;
+			if (pos == END) return true;
 
 			this->caretpos = (uint16)pos;
 			this->UpdateCaretPosition();
