@@ -36,12 +36,6 @@ int _caret_timer;
 
 /** Base class for iterating over different kind of parts of a string. */
 struct BaseStringIterator {
-	/** Type of the iterator. */
-	enum IterType {
-		ITER_CHARACTER, ///< Iterate over characters (or more exactly grapheme clusters).
-		ITER_WORD,      ///< Iterate over words.
-	};
-
 	/** Sentinel to indicate end-of-iteration. */
 	static const size_t END = SIZE_MAX;
 };
@@ -133,65 +127,55 @@ public:
 		return this->utf16_to_utf8[this->char_itr->current()];
 	}
 
-	size_t Next(IterType what)
+	size_t Next (bool word)
 	{
 		int32_t pos;
-		switch (what) {
-			case ITER_CHARACTER:
-				pos = this->char_itr->next();
-				break;
 
-			case ITER_WORD:
-				pos = this->word_itr->following(this->char_itr->current());
-				/* The ICU word iterator considers both the start and the end of a word a valid
-				 * break point, but we only want word starts. Move to the next location in
-				 * case the new position points to whitespace. */
-				while (pos != icu::BreakIterator::DONE &&
-						IsWhitespace(Utf16DecodeChar((const uint16 *)&this->utf16_str[pos]))) {
-					int32_t new_pos = this->word_itr->next();
-					/* Don't set it to DONE if it was valid before. Otherwise we'll return END
-					 * even though the iterator wasn't at the end of the string before. */
-					if (new_pos == icu::BreakIterator::DONE) break;
-					pos = new_pos;
-				}
+		if (word) {
+			pos = this->word_itr->following (this->char_itr->current());
+			/* The ICU word iterator considers both the start and the end of a word a valid
+			 * break point, but we only want word starts. Move to the next location in
+			 * case the new position points to whitespace. */
+			while (pos != icu::BreakIterator::DONE &&
+					IsWhitespace (Utf16DecodeChar ((const uint16 *)&this->utf16_str[pos]))) {
+				int32_t new_pos = this->word_itr->next();
+				/* Don't set it to DONE if it was valid before. Otherwise we'll return END
+				 * even though the iterator wasn't at the end of the string before. */
+				if (new_pos == icu::BreakIterator::DONE) break;
+				pos = new_pos;
+			}
 
-				this->char_itr->isBoundary(pos);
-				break;
+			this->char_itr->isBoundary (pos);
 
-			default:
-				NOT_REACHED();
+		} else {
+			pos = this->char_itr->next();
 		}
 
 		return pos == icu::BreakIterator::DONE ? END : this->utf16_to_utf8[pos];
 	}
 
-	size_t Prev(IterType what)
+	size_t Prev (bool word)
 	{
 		int32_t pos;
-		switch (what) {
-			case ITER_CHARACTER:
-				pos = this->char_itr->previous();
-				break;
 
-			case ITER_WORD:
-				pos = this->word_itr->preceding(this->char_itr->current());
-				/* The ICU word iterator considers both the start and the end of a word a valid
-				 * break point, but we only want word starts. Move to the previous location in
-				 * case the new position points to whitespace. */
-				while (pos != icu::BreakIterator::DONE &&
-						IsWhitespace(Utf16DecodeChar((const uint16 *)&this->utf16_str[pos]))) {
-					int32_t new_pos = this->word_itr->previous();
-					/* Don't set it to DONE if it was valid before. Otherwise we'll return END
-					 * even though the iterator wasn't at the start of the string before. */
-					if (new_pos == icu::BreakIterator::DONE) break;
-					pos = new_pos;
-				}
+		if (word) {
+			pos = this->word_itr->preceding (this->char_itr->current());
+			/* The ICU word iterator considers both the start and the end of a word a valid
+			 * break point, but we only want word starts. Move to the previous location in
+			 * case the new position points to whitespace. */
+			while (pos != icu::BreakIterator::DONE &&
+					IsWhitespace (Utf16DecodeChar ((const uint16 *)&this->utf16_str[pos]))) {
+				int32_t new_pos = this->word_itr->previous();
+				/* Don't set it to DONE if it was valid before. Otherwise we'll return END
+				 * even though the iterator wasn't at the start of the string before. */
+				if (new_pos == icu::BreakIterator::DONE) break;
+				pos = new_pos;
+			}
 
-				this->char_itr->isBoundary(pos);
-				break;
+			this->char_itr->isBoundary (pos);
 
-			default:
-				NOT_REACHED();
+		} else {
+			pos = this->char_itr->previous();
 		}
 
 		return pos == icu::BreakIterator::DONE ? END : this->utf16_to_utf8[pos];
@@ -227,79 +211,64 @@ public:
 		return this->cur_pos = pos;
 	}
 
-	size_t Next(IterType what)
+	size_t Next (bool word)
 	{
 		assert(this->string != NULL);
 
 		/* Already at the end? */
 		if (this->cur_pos >= this->len) return END;
 
-		switch (what) {
-			case ITER_CHARACTER: {
-				WChar c;
-				this->cur_pos += Utf8Decode(&c, this->string + this->cur_pos);
-				return this->cur_pos;
+		if (word) {
+			WChar c;
+			/* Consume current word. */
+			size_t offs = Utf8Decode (&c, this->string + this->cur_pos);
+			while (this->cur_pos < this->len && !IsWhitespace(c)) {
+				this->cur_pos += offs;
+				offs = Utf8Decode (&c, this->string + this->cur_pos);
+			}
+			/* Consume whitespace to the next word. */
+			while (this->cur_pos < this->len && IsWhitespace(c)) {
+				this->cur_pos += offs;
+				offs = Utf8Decode (&c, this->string + this->cur_pos);
 			}
 
-			case ITER_WORD: {
-				WChar c;
-				/* Consume current word. */
-				size_t offs = Utf8Decode(&c, this->string + this->cur_pos);
-				while (this->cur_pos < this->len && !IsWhitespace(c)) {
-					this->cur_pos += offs;
-					offs = Utf8Decode(&c, this->string + this->cur_pos);
-				}
-				/* Consume whitespace to the next word. */
-				while (this->cur_pos < this->len && IsWhitespace(c)) {
-					this->cur_pos += offs;
-					offs = Utf8Decode(&c, this->string + this->cur_pos);
-				}
+			return this->cur_pos;
 
-				return this->cur_pos;
-			}
-
-			default:
-				NOT_REACHED();
+		} else {
+			WChar c;
+			this->cur_pos += Utf8Decode (&c, this->string + this->cur_pos);
+			return this->cur_pos;
 		}
-
-		return END;
 	}
 
-	size_t Prev(IterType what)
+	size_t Prev (bool word)
 	{
 		assert(this->string != NULL);
 
 		/* Already at the beginning? */
 		if (this->cur_pos == 0) return END;
 
-		switch (what) {
-			case ITER_CHARACTER:
-				return this->cur_pos = Utf8PrevChar(this->string + this->cur_pos) - this->string;
-
-			case ITER_WORD: {
-				const char *s = this->string + this->cur_pos;
-				WChar c;
-				/* Consume preceding whitespace. */
-				do {
-					s = Utf8PrevChar(s);
-					Utf8Decode(&c, s);
-				} while (s > this->string && IsWhitespace(c));
-				/* Consume preceding word. */
-				while (s > this->string && !IsWhitespace(c)) {
-					s = Utf8PrevChar(s);
-					Utf8Decode(&c, s);
-				}
-				/* Move caret back to the beginning of the word. */
-				if (IsWhitespace(c)) Utf8Consume(&s);
-
-				return this->cur_pos = s - this->string;
+		if (word) {
+			const char *s = this->string + this->cur_pos;
+			WChar c;
+			/* Consume preceding whitespace. */
+			do {
+				s = Utf8PrevChar (s);
+				Utf8Decode (&c, s);
+			} while (s > this->string && IsWhitespace(c));
+			/* Consume preceding word. */
+			while (s > this->string && !IsWhitespace(c)) {
+				s = Utf8PrevChar (s);
+				Utf8Decode (&c, s);
 			}
+			/* Move caret back to the beginning of the word. */
+			if (IsWhitespace(c)) Utf8Consume (&s);
 
-			default:
-				NOT_REACHED();
+			return this->cur_pos = s - this->string;
+
+		} else {
+			return this->cur_pos = Utf8PrevChar (this->string + this->cur_pos) - this->string;
 		}
-
-		return END;
 	}
 };
 
@@ -368,11 +337,11 @@ bool Textbuf::DeleteChar(uint16 keycode)
 		/* Delete a complete word. */
 		if (backspace) {
 			/* Delete whitespace and word in front of the caret. */
-			len = this->caretpos - (uint16)this->char_iter->Prev(StringIterator::ITER_WORD);
+			len = this->caretpos - (uint16)this->char_iter->Prev(true);
 			s -= len;
 		} else {
 			/* Delete word and following whitespace following the caret. */
-			len = (uint16)this->char_iter->Next(StringIterator::ITER_WORD) - this->caretpos;
+			len = (uint16)this->char_iter->Next(true) - this->caretpos;
 		}
 		/* Update character count. */
 		for (const char *ss = s; ss < s + len; Utf8Consume(&ss)) {
@@ -388,7 +357,7 @@ bool Textbuf::DeleteChar(uint16 keycode)
 			this->chars--;
 		} else {
 			/* Delete the complete character following the caret. */
-			len = (uint16)this->char_iter->Next(StringIterator::ITER_CHARACTER) - this->caretpos;
+			len = (uint16)this->char_iter->Next(false) - this->caretpos;
 			/* Update character count. */
 			for (const char *ss = s; ss < s + len; Utf8Consume(&ss)) {
 				this->chars--;
@@ -631,7 +600,7 @@ bool Textbuf::MovePos(uint16 keycode)
 		case WKC_CTRL | WKC_LEFT: {
 			if (this->caretpos == 0) break;
 
-			size_t pos = this->char_iter->Prev(keycode & WKC_CTRL ? StringIterator::ITER_WORD : StringIterator::ITER_CHARACTER);
+			size_t pos = this->char_iter->Prev (keycode & WKC_CTRL);
 			if (pos == StringIterator::END) return true;
 
 			this->caretpos = (uint16)pos;
@@ -643,7 +612,7 @@ bool Textbuf::MovePos(uint16 keycode)
 		case WKC_CTRL | WKC_RIGHT: {
 			if (this->caretpos >= this->length()) break;
 
-			size_t pos = this->char_iter->Next(keycode & WKC_CTRL ? StringIterator::ITER_WORD : StringIterator::ITER_CHARACTER);
+			size_t pos = this->char_iter->Next (keycode & WKC_CTRL);
 			if (pos == StringIterator::END) return true;
 
 			this->caretpos = (uint16)pos;
