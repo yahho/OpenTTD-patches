@@ -15,8 +15,6 @@
 #include "string.h"
 #include "strings_type.h"
 
-class StringIterator;
-
 /**
  * Return values for Textbuf::HandleKeypress
  */
@@ -102,6 +100,8 @@ struct Textbuf : stringb {
 	const char *GetCharAtPosition (int x) const;
 
 private:
+	class StringIterator;
+
 	StringIterator *char_iter;
 
 	bool CanDelChar(bool backspace);

@@ -53,7 +53,7 @@ struct BaseStringIterator {
 #include <unicode/brkiter.h>
 
 /** String iterator using ICU as a backend. */
-class StringIterator : public BaseStringIterator
+class Textbuf::StringIterator : public BaseStringIterator
 {
 	icu::BreakIterator *char_itr; ///< ICU iterator for characters.
 	icu::BreakIterator *word_itr; ///< ICU iterator for words.
@@ -201,7 +201,7 @@ public:
 #else
 
 /** Fallback simple string iterator. */
-class StringIterator : public BaseStringIterator
+class Textbuf::StringIterator : public BaseStringIterator
 {
 	const char *string; ///< Current string.
 	size_t len;         ///< String length.
