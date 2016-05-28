@@ -14,6 +14,12 @@
 
 #include "string.h"
 #include "strings_type.h"
+#include "core/smallvec_type.hpp"
+
+#ifdef WITH_ICU_SORT
+#include <unicode/utext.h>
+#include <unicode/brkiter.h>
+#endif
 
 /**
  * Return values for Textbuf::HandleKeypress
@@ -100,9 +106,16 @@ struct Textbuf : stringb {
 	const char *GetCharAtPosition (int x) const;
 
 private:
-	class StringIterator;
-
-	StringIterator *char_iter;
+#ifdef WITH_ICU_SORT
+	icu::BreakIterator *char_itr; ///< ICU iterator for characters.
+	icu::BreakIterator *word_itr; ///< ICU iterator for words.
+	SmallVector<UChar, 32> utf16_str;      ///< UTF-16 copy of the string.
+	SmallVector<size_t, 32> utf16_to_utf8; ///< Mapping from UTF-16 code point position to index in the UTF-8 source string.
+#else
+	const char *string; ///< Current string.
+	size_t len;         ///< String length.
+	size_t cur_pos;     ///< Current iteration position.
+#endif
 
 	void SetString (const char *s);
 	size_t SetCurPosition (size_t pos);
