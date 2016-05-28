@@ -19,7 +19,6 @@
 #include "gfx_func.h"
 #include "gfx_layout.h"
 #include "window_func.h"
-#include "core/alloc_func.hpp"
 #include "language.h"
 
 /**
@@ -604,8 +603,8 @@ Textbuf::Textbuf (uint16 max_bytes, char *buf, uint16 max_chars)
 #ifdef WITH_ICU_SORT
 	const char *isocode = _current_language != NULL ? _current_language->isocode : "en";
 	UErrorCode status = U_ZERO_ERROR;
-	this->char_itr = icu::BreakIterator::createCharacterInstance (icu::Locale(isocode), status);
-	this->word_itr = icu::BreakIterator::createWordInstance (icu::Locale(isocode), status);
+	this->char_itr.reset (icu::BreakIterator::createCharacterInstance (icu::Locale(isocode), status));
+	this->word_itr.reset (icu::BreakIterator::createWordInstance (icu::Locale(isocode), status));
 
 	*this->utf16_str.Append() = '\0';
 	*this->utf16_to_utf8.Append() = 0;
@@ -617,14 +616,6 @@ Textbuf::Textbuf (uint16 max_bytes, char *buf, uint16 max_chars)
 	this->afilter    = CS_ALPHANUMERAL;
 	this->caret      = true;
 	this->DeleteAll();
-}
-
-Textbuf::~Textbuf()
-{
-#ifdef WITH_ICU_SORT
-	delete this->char_itr;
-	delete this->word_itr;
-#endif
 }
 
 /**

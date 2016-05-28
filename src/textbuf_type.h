@@ -14,6 +14,7 @@
 
 #include "string.h"
 #include "strings_type.h"
+#include "core/pointer.h"
 #include "core/smallvec_type.hpp"
 
 #ifdef WITH_ICU_SORT
@@ -48,7 +49,6 @@ struct Textbuf : stringb {
 	uint16 marklength;        ///< the length of the marked area in pixels
 
 	explicit Textbuf (uint16 max_bytes, char *buf, uint16 max_chars = UINT16_MAX);
-	~Textbuf();
 
 	void Assign(StringID string);
 	void Assign(const char *text);
@@ -107,8 +107,8 @@ struct Textbuf : stringb {
 
 private:
 #ifdef WITH_ICU_SORT
-	icu::BreakIterator *char_itr; ///< ICU iterator for characters.
-	icu::BreakIterator *word_itr; ///< ICU iterator for words.
+	ttd_unique_ptr<icu::BreakIterator> char_itr; ///< ICU iterator for characters.
+	ttd_unique_ptr<icu::BreakIterator> word_itr; ///< ICU iterator for words.
 	SmallVector<UChar, 32> utf16_str;      ///< UTF-16 copy of the string.
 	SmallVector<size_t, 32> utf16_to_utf8; ///< Mapping from UTF-16 code point position to index in the UTF-8 source string.
 #else
