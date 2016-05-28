@@ -272,6 +272,26 @@ public:
 #endif
 
 
+inline void Textbuf::SetString (const char *s)
+{
+	this->char_iter->SetString (s);
+}
+
+inline size_t Textbuf::SetCurPosition (size_t pos)
+{
+	return this->char_iter->SetCurPosition (pos);
+}
+
+inline size_t Textbuf::Next (bool word)
+{
+	return this->char_iter->Next (word);
+}
+
+inline size_t Textbuf::Prev (bool word)
+{
+	return this->char_iter->Prev (word);
+}
+
 /**
  * Get the positions of two characters relative to the start of the string.
  * @param c1 Pointer to the first character in the string.
@@ -334,11 +354,11 @@ bool Textbuf::DeleteChar(uint16 keycode)
 		/* Delete a complete word. */
 		if (backspace) {
 			/* Delete whitespace and word in front of the caret. */
-			len = this->caretpos - (uint16)this->char_iter->Prev(true);
+			len = this->caretpos - (uint16)this->Prev(true);
 			s -= len;
 		} else {
 			/* Delete word and following whitespace following the caret. */
-			len = (uint16)this->char_iter->Next(true) - this->caretpos;
+			len = (uint16)this->Next(true) - this->caretpos;
 		}
 		/* Update character count. */
 		for (const char *ss = s; ss < s + len; Utf8Consume(&ss)) {
@@ -354,7 +374,7 @@ bool Textbuf::DeleteChar(uint16 keycode)
 			this->chars--;
 		} else {
 			/* Delete the complete character following the caret. */
-			len = (uint16)this->char_iter->Next(false) - this->caretpos;
+			len = (uint16)this->Next(false) - this->caretpos;
 			/* Update character count. */
 			for (const char *ss = s; ss < s + len; Utf8Consume(&ss)) {
 				this->chars--;
@@ -548,8 +568,8 @@ void Textbuf::DiscardMarkedText(bool update)
 /** Update the character iter after the text has changed. */
 void Textbuf::UpdateStringIter()
 {
-	this->char_iter->SetString(this->buffer);
-	size_t pos = this->char_iter->SetCurPosition(this->caretpos);
+	this->SetString (this->buffer);
+	size_t pos = this->SetCurPosition (this->caretpos);
 	this->caretpos = pos == END ? 0 : (uint16)pos;
 }
 
@@ -597,7 +617,7 @@ bool Textbuf::MovePos(uint16 keycode)
 		case WKC_CTRL | WKC_LEFT: {
 			if (this->caretpos == 0) break;
 
-			size_t pos = this->char_iter->Prev (keycode & WKC_CTRL);
+			size_t pos = this->Prev (keycode & WKC_CTRL);
 			if (pos == END) return true;
 
 			this->caretpos = (uint16)pos;
@@ -609,7 +629,7 @@ bool Textbuf::MovePos(uint16 keycode)
 		case WKC_CTRL | WKC_RIGHT: {
 			if (this->caretpos >= this->length()) break;
 
-			size_t pos = this->char_iter->Next (keycode & WKC_CTRL);
+			size_t pos = this->Next (keycode & WKC_CTRL);
 			if (pos == END) return true;
 
 			this->caretpos = (uint16)pos;
@@ -619,13 +639,13 @@ bool Textbuf::MovePos(uint16 keycode)
 
 		case WKC_HOME:
 			this->caretpos = 0;
-			this->char_iter->SetCurPosition(this->caretpos);
+			this->SetCurPosition (this->caretpos);
 			this->UpdateCaretPosition();
 			return true;
 
 		case WKC_END:
 			this->caretpos = this->length();
-			this->char_iter->SetCurPosition(this->caretpos);
+			this->SetCurPosition (this->caretpos);
 			this->UpdateCaretPosition();
 			return true;
 

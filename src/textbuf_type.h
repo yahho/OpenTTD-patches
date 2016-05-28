@@ -104,6 +104,11 @@ private:
 
 	StringIterator *char_iter;
 
+	void SetString (const char *s);
+	size_t SetCurPosition (size_t pos);
+	size_t Next (bool word);
+	size_t Prev (bool word);
+
 	bool CanDelChar(bool backspace);
 
 	void DeleteText(uint16 from, uint16 to, bool update);
