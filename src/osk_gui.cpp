@@ -128,7 +128,7 @@ struct OskWindow : public Window {
 
 		switch (widget) {
 			case WID_OSK_BACKSPACE:
-				if (this->qs->DeleteChar(WKC_BACKSPACE)) this->OnEditboxChanged(WID_OSK_TEXT);
+				if (this->qs->DeleteChar()) this->OnEditboxChanged(WID_OSK_TEXT);
 				break;
 
 			case WID_OSK_SPECIAL:

@@ -60,7 +60,7 @@ struct Textbuf : stringb {
 	bool InsertChar(uint32 key);
 	bool InsertString(const char *str, bool marked, const char *caret = NULL, const char *insert_location = NULL, const char *replacement_end = NULL);
 
-	bool DeleteChar(uint16 keycode);
+	bool DeleteChar (bool backspace = true, bool word = false);
 	bool MovePos(uint16 keycode);
 
 	HandleKeyPressResult HandleKeyPress(WChar key, uint16 keycode);

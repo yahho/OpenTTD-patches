@@ -251,18 +251,12 @@ const char *Textbuf::GetCharAtPosition (int x) const
 /**
  * Delete a character from a textbuffer, either with 'Delete' or 'Backspace'
  * The character is delete from the position the caret is at
- * @param keycode Type of deletion, either WKC_BACKSPACE or WKC_DELETE
+ * @param backspace Delete backwards
+ * @param word Delete a whole word
  * @return Return true on successful change of Textbuf, or false otherwise
  */
-bool Textbuf::DeleteChar(uint16 keycode)
+bool Textbuf::DeleteChar (bool backspace, bool word)
 {
-	bool word = (keycode & WKC_CTRL) != 0;
-
-	keycode &= ~WKC_SPECIAL_KEYS;
-	if (keycode != WKC_BACKSPACE && keycode != WKC_DELETE) return false;
-
-	bool backspace = keycode == WKC_BACKSPACE;
-
 	if (this->caretpos == (backspace ? 0 : this->length())) return false;
 
 	char *s = this->buffer + this->caretpos;
@@ -708,9 +702,12 @@ HandleKeyPressResult Textbuf::HandleKeyPress(WChar key, uint16 keycode)
 			break;
 
 		case WKC_BACKSPACE: case WKC_DELETE:
-		case WKC_CTRL | WKC_BACKSPACE: case WKC_CTRL | WKC_DELETE:
-			edited = this->DeleteChar(keycode);
+		case WKC_CTRL | WKC_BACKSPACE: case WKC_CTRL | WKC_DELETE: {
+			bool word = (keycode & WKC_CTRL) != 0;
+			bool backspace = (keycode & ~WKC_SPECIAL_KEYS) == WKC_BACKSPACE;
+			edited = this->DeleteChar (backspace, word);
 			break;
+		}
 
 		case WKC_LEFT: case WKC_RIGHT: case WKC_END: case WKC_HOME:
 		case WKC_CTRL | WKC_LEFT: case WKC_CTRL | WKC_RIGHT:
