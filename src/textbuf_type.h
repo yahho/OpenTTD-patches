@@ -70,8 +70,6 @@ struct Textbuf : stringb {
 	bool HandleCaret();
 	void UpdateSize();
 
-	void DiscardMarkedText(bool update = true);
-
 	/**
 	 * Get the current text.
 	 * @return Current text.

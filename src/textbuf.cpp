@@ -368,7 +368,10 @@ bool Textbuf::InsertString(const char *str, bool marked, const char *caret, cons
 			this->DeleteText(insertpos, replacement_end - this->buffer, str == NULL);
 		}
 	} else {
-		if (marked) this->DiscardMarkedText(str == NULL);
+		if (marked && (this->markend != 0)) {
+			this->DeleteText (this->markpos, this->markend, str == NULL);
+			this->markpos = this->markend = this->markxoffs = this->marklength = 0;
+		}
 	}
 
 	if (str == NULL) return false;
@@ -463,18 +466,6 @@ void Textbuf::DeleteText(uint16 from, uint16 to, bool update)
 		this->UpdateCaretPosition();
 		this->UpdateMarkedText();
 	}
-}
-
-/**
- * Discard any marked text.
- * @param update Set to true if the internal state should be updated.
- */
-void Textbuf::DiscardMarkedText(bool update)
-{
-	if (this->markend == 0) return;
-
-	this->DeleteText(this->markpos, this->markend, update);
-	this->markpos = this->markend = this->markxoffs = this->marklength = 0;
 }
 
 /** Update the character iter after the text has changed. */
