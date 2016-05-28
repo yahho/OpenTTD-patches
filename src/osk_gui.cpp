@@ -156,11 +156,11 @@ struct OskWindow : public Window {
 				break;
 
 			case WID_OSK_LEFT:
-				if (this->qs->MovePos(WKC_LEFT)) this->InvalidateData();
+				if (this->qs->MoveLeft()) this->InvalidateData();
 				break;
 
 			case WID_OSK_RIGHT:
-				if (this->qs->MovePos(WKC_RIGHT)) this->InvalidateData();
+				if (this->qs->MoveRight()) this->InvalidateData();
 				break;
 
 			case WID_OSK_OK:
@@ -182,7 +182,7 @@ struct OskWindow : public Window {
 					return;
 				} else { // or reset to original string
 					qs->Assign(this->orig_str_buf);
-					qs->MovePos(WKC_END);
+					qs->MoveEnd();
 					this->OnEditboxChanged(WID_OSK_TEXT);
 					this->Delete();
 				}

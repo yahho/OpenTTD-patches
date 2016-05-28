@@ -517,55 +517,49 @@ void Textbuf::UpdateMarkedText()
 }
 
 /**
- * Handle text navigation with arrow keys left/right.
- * This defines where the caret will blink and the next character interaction will occur
- * @param keycode Direction in which navigation occurs (WKC_CTRL |) WKC_LEFT, (WKC_CTRL |) WKC_RIGHT, WKC_END, WKC_HOME
+ * Handle text navigation to the left.
+ * @param word Whether to move a whole word left.
  * @return Return true on successful change of Textbuf, or false otherwise
  */
-bool Textbuf::MovePos(uint16 keycode)
+bool Textbuf::MoveLeft (bool word)
 {
-	switch (keycode) {
-		case WKC_LEFT:
-		case WKC_CTRL | WKC_LEFT: {
-			if (this->caretpos == 0) break;
+	if (this->caretpos == 0) return false;
 
-			size_t pos = this->Prev (keycode & WKC_CTRL);
-			if (pos == END) return true;
+	size_t pos = this->Prev (word);
+	if (pos == END) return true;
 
-			this->caretpos = (uint16)pos;
-			this->UpdateCaretPosition();
-			return true;
-		}
+	this->caretpos = (uint16)pos;
+	this->UpdateCaretPosition();
+	return true;
+}
 
-		case WKC_RIGHT:
-		case WKC_CTRL | WKC_RIGHT: {
-			if (this->caretpos >= this->length()) break;
+/**
+ * Handle text navigation to the right.
+ * @param word Whether to move a whole word right.
+ * @return Return true on successful change of Textbuf, or false otherwise
+ */
+bool Textbuf::MoveRight (bool word)
+{
+	if (this->caretpos >= this->length()) return false;
 
-			size_t pos = this->Next (keycode & WKC_CTRL);
-			if (pos == END) return true;
+	size_t pos = this->Next (word);
+	if (pos == END) return true;
 
-			this->caretpos = (uint16)pos;
-			this->UpdateCaretPosition();
-			return true;
-		}
+	this->caretpos = (uint16)pos;
+	this->UpdateCaretPosition();
+	return true;
+}
 
-		case WKC_HOME:
-			this->caretpos = 0;
-			this->SetCurPosition (this->caretpos);
-			this->UpdateCaretPosition();
-			return true;
-
-		case WKC_END:
-			this->caretpos = this->length();
-			this->SetCurPosition (this->caretpos);
-			this->UpdateCaretPosition();
-			return true;
-
-		default:
-			break;
-	}
-
-	return false;
+/**
+ * Handle text navigation to the end of the text.
+ * @return Return true on successful change of Textbuf, or false otherwise
+ */
+bool Textbuf::MoveEnd (void)
+{
+	this->caretpos = this->length();
+	this->SetCurPosition (this->caretpos);
+	this->UpdateCaretPosition();
+	return true;
 }
 
 /**
@@ -709,9 +703,24 @@ HandleKeyPressResult Textbuf::HandleKeyPress(WChar key, uint16 keycode)
 			break;
 		}
 
-		case WKC_LEFT: case WKC_RIGHT: case WKC_END: case WKC_HOME:
-		case WKC_CTRL | WKC_LEFT: case WKC_CTRL | WKC_RIGHT:
-			this->MovePos(keycode);
+		case WKC_LEFT:
+		case WKC_CTRL | WKC_LEFT:
+			this->MoveLeft (keycode & WKC_CTRL);
+			break;
+
+		case WKC_RIGHT:
+		case WKC_CTRL | WKC_RIGHT:
+			this->MoveRight (keycode & WKC_CTRL);
+			break;
+
+		case WKC_HOME:
+			this->caretpos = 0;
+			this->SetCurPosition (this->caretpos);
+			this->UpdateCaretPosition();
+			break;
+
+		case WKC_END:
+			this->MoveEnd();
 			break;
 
 		default:
