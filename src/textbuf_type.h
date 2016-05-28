@@ -112,8 +112,6 @@ private:
 	SmallVector<UChar, 32> utf16_str;      ///< UTF-16 copy of the string.
 	SmallVector<size_t, 32> utf16_to_utf8; ///< Mapping from UTF-16 code point position to index in the UTF-8 source string.
 #else
-	const char *string; ///< Current string.
-	size_t len;         ///< String length.
 	size_t cur_pos;     ///< Current iteration position.
 #endif
 

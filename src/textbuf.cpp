@@ -150,78 +150,72 @@ size_t Textbuf::Prev (bool word)
 
 #else
 
-void Textbuf::SetString (const char *s)
+inline void Textbuf::SetString (const char *s)
 {
-	this->string = s;
-	this->len = strlen(s);
 	this->cur_pos = 0;
 }
 
 size_t Textbuf::SetCurPosition (size_t pos)
 {
-	assert(this->string != NULL && pos <= this->len);
+	assert (pos <= this->len);
 	/* Sanitize in case we get a position inside an UTF-8 sequence. */
-	while (pos > 0 && IsUtf8Part(this->string[pos])) pos--;
+	while (pos > 0 && IsUtf8Part(this->buffer[pos])) pos--;
 	return this->cur_pos = pos;
 }
 
 size_t Textbuf::Next (bool word)
 {
-	assert(this->string != NULL);
-
 	/* Already at the end? */
 	if (this->cur_pos >= this->len) return END;
 
 	if (word) {
 		WChar c;
 		/* Consume current word. */
-		size_t offs = Utf8Decode (&c, this->string + this->cur_pos);
+		size_t offs = Utf8Decode (&c, this->buffer + this->cur_pos);
 		while (this->cur_pos < this->len && !IsWhitespace(c)) {
 			this->cur_pos += offs;
-			offs = Utf8Decode (&c, this->string + this->cur_pos);
+			offs = Utf8Decode (&c, this->buffer + this->cur_pos);
 		}
 		/* Consume whitespace to the next word. */
 		while (this->cur_pos < this->len && IsWhitespace(c)) {
 			this->cur_pos += offs;
-			offs = Utf8Decode (&c, this->string + this->cur_pos);
+			offs = Utf8Decode (&c, this->buffer + this->cur_pos);
 		}
 
 		return this->cur_pos;
 
 	} else {
 		WChar c;
-		this->cur_pos += Utf8Decode (&c, this->string + this->cur_pos);
+		this->cur_pos += Utf8Decode (&c, this->buffer + this->cur_pos);
 		return this->cur_pos;
 	}
 }
 
 size_t Textbuf::Prev (bool word)
 {
-	assert(this->string != NULL);
-
 	/* Already at the beginning? */
 	if (this->cur_pos == 0) return END;
 
 	if (word) {
-		const char *s = this->string + this->cur_pos;
+		const char *s = this->buffer + this->cur_pos;
 		WChar c;
 		/* Consume preceding whitespace. */
 		do {
 			s = Utf8PrevChar (s);
 			Utf8Decode (&c, s);
-		} while (s > this->string && IsWhitespace(c));
+		} while (s > this->buffer && IsWhitespace(c));
 		/* Consume preceding word. */
-		while (s > this->string && !IsWhitespace(c)) {
+		while (s > this->buffer && !IsWhitespace(c)) {
 			s = Utf8PrevChar (s);
 			Utf8Decode (&c, s);
 		}
 		/* Move caret back to the beginning of the word. */
 		if (IsWhitespace(c)) Utf8Consume (&s);
 
-		return this->cur_pos = s - this->string;
+		return this->cur_pos = s - this->buffer;
 
 	} else {
-		return this->cur_pos = Utf8PrevChar (this->string + this->cur_pos) - this->string;
+		return this->cur_pos = Utf8PrevChar (this->buffer + this->cur_pos) - this->buffer;
 	}
 }
 
@@ -616,7 +610,6 @@ Textbuf::Textbuf (uint16 max_bytes, char *buf, uint16 max_chars)
 	*this->utf16_str.Append() = '\0';
 	*this->utf16_to_utf8.Append() = 0;
 #else
-	this->string = NULL;
 	this->len = 0;
 	this->cur_pos = 0;
 #endif
