@@ -249,17 +249,6 @@ const char *Textbuf::GetCharAtPosition (int x) const
 }
 
 /**
- * Checks if it is possible to delete a character.
- * @param backspace if set, delete the character before the caret,
- * otherwise, delete the character after it.
- * @return true if a character can be deleted in the given direction.
- */
-bool Textbuf::CanDelChar(bool backspace)
-{
-	return backspace ? this->caretpos != 0 : this->caretpos < this->length();
-}
-
-/**
  * Delete a character from a textbuffer, either with 'Delete' or 'Backspace'
  * The character is delete from the position the caret is at
  * @param keycode Type of deletion, either WKC_BACKSPACE or WKC_DELETE
@@ -274,7 +263,7 @@ bool Textbuf::DeleteChar(uint16 keycode)
 
 	bool backspace = keycode == WKC_BACKSPACE;
 
-	if (!CanDelChar(backspace)) return false;
+	if (this->caretpos == (backspace ? 0 : this->length())) return false;
 
 	char *s = this->buffer + this->caretpos;
 	uint16 len = 0;
