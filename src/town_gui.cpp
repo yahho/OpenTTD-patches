@@ -1105,7 +1105,7 @@ private:
 	TownSize town_size;     ///< Selected town size
 	TownLayout town_layout; ///< Selected town layout
 	bool city;              ///< Are we building a city?
-	QueryString townname_editbox; ///< Townname editbox
+	QueryStringC <MAX_LENGTH_TOWN_NAME_CHARS> townname_editbox; ///< Townname editbox
 	bool townnamevalid;     ///< Is generated town name valid?
 	uint32 townnameparts;   ///< Generated town name
 	TownNameParams params;  ///< Town name parameters
@@ -1116,7 +1116,7 @@ public:
 			town_size(TSZ_MEDIUM),
 			town_layout(_settings_game.economy.town_layout),
 			city(false),
-			townname_editbox(MAX_LENGTH_TOWN_NAME_CHARS * MAX_CHAR_LENGTH, MAX_LENGTH_TOWN_NAME_CHARS),
+			townname_editbox(),
 			townnamevalid(false),
 			townnameparts(0),
 			params(_settings_game.game_creation.town_name)

@@ -145,13 +145,12 @@ enum SignListHotkeys {
 };
 
 struct SignListWindow : Window, SignList {
-	QueryString filter_editbox; ///< Filter editbox;
+	QueryStringC <MAX_LENGTH_SIGN_NAME_CHARS> filter_editbox; ///< Filter editbox;
 	int text_offset; ///< Offset of the sign text relative to the left edge of the WID_SIL_LIST widget.
 	Scrollbar *vscroll;
 
 	SignListWindow (const WindowDesc *desc, WindowNumber window_number) :
-		Window (desc), SignList(),
-		filter_editbox (MAX_LENGTH_SIGN_NAME_CHARS * MAX_CHAR_LENGTH, MAX_LENGTH_SIGN_NAME_CHARS),
+		Window (desc), SignList(), filter_editbox (),
 		text_offset (0), vscroll (NULL)
 	{
 		this->CreateNestedTree();
@@ -426,13 +425,11 @@ static bool RenameSign(SignID index, const char *text)
 }
 
 struct SignWindow : Window, SignList {
-	QueryString name_editbox;
+	QueryStringC <MAX_LENGTH_SIGN_NAME_CHARS> name_editbox;
 	SignID cur_sign;
 
 	SignWindow (const WindowDesc *desc, const Sign *si) :
-		Window (desc), SignList(),
-		name_editbox (MAX_LENGTH_SIGN_NAME_CHARS * MAX_CHAR_LENGTH, MAX_LENGTH_SIGN_NAME_CHARS),
-		cur_sign (0)
+		Window (desc), SignList(), name_editbox (), cur_sign (0)
 	{
 		this->querystrings[WID_QES_TEXT] = &this->name_editbox;
 		this->name_editbox.caption = STR_EDIT_SIGN_CAPTION;

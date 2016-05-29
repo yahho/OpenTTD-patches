@@ -34,10 +34,11 @@ struct QueryString : Textbuf {
 	/**
 	 * Initialize string.
 	 * @param size Maximum size in bytes.
+	 * @param buffer String buffer.
 	 * @param chars Maximum size in chars.
 	 */
-	QueryString (uint16 size, uint16 chars = UINT16_MAX) :
-		Textbuf (size, xmalloc (size), chars),
+	QueryString (uint16 size, char *buffer, uint16 chars = UINT16_MAX) :
+		Textbuf (size, buffer, chars),
 		ok_button (ACTION_NOTHING), cancel_button (ACTION_DESELECT),
 		orig (NULL)
 	{
@@ -49,7 +50,6 @@ struct QueryString : Textbuf {
 	~QueryString()
 	{
 		free(this->orig);
-		free(this->buffer);
 	}
 
 public:
@@ -60,6 +60,21 @@ public:
 	Point GetCaretPosition(const Window *w, int wid) const;
 	Rect GetBoundingRect(const Window *w, int wid, const char *from, const char *to) const;
 	const char *GetCharAtPosition(const Window *w, int wid, const Point &pt) const;
+};
+
+/** QueryString with integrated buffer. */
+template <uint16 N, uint16 M = UINT16_MAX>
+struct QueryStringN : QueryString {
+	char data [N];
+
+	QueryStringN (void) : QueryString (N, this->data, M)
+	{
+	}
+};
+
+/** QueryString with integrated buffer in chars. */
+template <uint16 C>
+struct QueryStringC : QueryStringN <C * MAX_CHAR_LENGTH, C> {
 };
 
 void ShowOnScreenKeyboard(Window *parent, int button);

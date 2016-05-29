@@ -11,6 +11,7 @@
 
 #include "stdafx.h"
 #include "debug.h"
+#include "core/flexarray.h"
 #include "landscape.h"
 #include "error.h"
 #include "gui.h"
@@ -908,13 +909,15 @@ void QueryString::ClickEditBox(Window *w, Point pt, int wid, int click_count, bo
 }
 
 /** Class for the string query window. */
-struct QueryStringWindow : public Window
+struct QueryStringWindow : public Window, FlexArray<char>
 {
 	QueryString editbox;    ///< Editbox.
 	QueryStringFlags flags; ///< Flags controlling behaviour of the window.
+	char data[];            ///< Editbox buffer.
 
+private:
 	QueryStringWindow (StringID str, StringID caption, uint max_bytes, uint max_chars, const WindowDesc *desc, Window *parent, CharSetFilter afilter, QueryStringFlags flags) :
-		Window (desc), editbox (max_bytes, max_chars), flags (QSF_NONE)
+		Window (desc), editbox (max_bytes, this->data, max_chars), flags (QSF_NONE)
 	{
 		GetString (&this->editbox, str);
 		this->editbox.validate (SVS_NONE);
@@ -934,6 +937,15 @@ struct QueryStringWindow : public Window
 		this->parent = parent;
 
 		this->SetFocusedWidget(WID_QS_TEXT);
+	}
+
+public:
+	static QueryStringWindow *create (StringID str, StringID caption,
+		uint max_bytes, uint max_chars, const WindowDesc *desc,
+		Window *parent, CharSetFilter afilter, QueryStringFlags flags)
+	{
+		return new (max_bytes) QueryStringWindow (str, caption,
+			max_bytes, max_chars, desc, parent, afilter, flags);
 	}
 
 	virtual void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize)
@@ -1028,7 +1040,9 @@ static const WindowDesc _query_string_desc(
 void ShowQueryString(StringID str, StringID caption, uint maxsize, Window *parent, CharSetFilter afilter, QueryStringFlags flags)
 {
 	DeleteWindowByClass(WC_QUERY_STRING);
-	new QueryStringWindow(str, caption, ((flags & QSF_LEN_IN_CHARS) ? MAX_CHAR_LENGTH : 1) * maxsize, maxsize, &_query_string_desc, parent, afilter, flags);
+	QueryStringWindow::create (str, caption,
+		((flags & QSF_LEN_IN_CHARS) ? MAX_CHAR_LENGTH : 1) * maxsize,
+		maxsize, &_query_string_desc, parent, afilter, flags);
 }
 
 /**

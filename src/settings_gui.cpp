@@ -1826,7 +1826,7 @@ struct GameSettingsWindow : Window {
 	bool closing_dropdown;             ///< True, if the dropdown list is currently closing.
 
 	SettingFilter filter;              ///< Filter for the list.
-	QueryString filter_editbox;        ///< Filter editbox;
+	QueryStringN<50> filter_editbox;   ///< Filter editbox;
 	bool manually_changed_folding;     ///< Whether the user expanded/collapsed something manually.
 	WarnHiddenResult warn_missing;     ///< Whether and how to warn about missing search results.
 	int warn_lines;                    ///< Number of lines used for warning about missing search results.
@@ -1836,7 +1836,7 @@ struct GameSettingsWindow : Window {
 	GameSettingsWindow (const WindowDesc *desc) : Window (desc),
 		valuewindow_entry (NULL), clicked_entry (NULL),
 		last_clicked (NULL), valuedropdown_entry (NULL),
-		closing_dropdown (false), filter(), filter_editbox (50),
+		closing_dropdown (false), filter(), filter_editbox(),
 		manually_changed_folding (false), warn_missing (WHR_NONE),
 		warn_lines (0), vscroll (NULL)
 	{

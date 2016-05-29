@@ -288,7 +288,7 @@ struct NetworkChatWindow : public Window {
 	DestType dtype;       ///< The type of destination.
 	StringID dest_string; ///< String representation of the destination.
 	int dest;             ///< The identifier of the destination.
-	QueryString message_editbox; ///< Message editbox.
+	QueryStringN<NETWORK_CHAT_LENGTH> message_editbox; ///< Message editbox.
 
 	/**
 	 * Create a chat input window.
@@ -298,7 +298,7 @@ struct NetworkChatWindow : public Window {
 	 */
 	NetworkChatWindow (const WindowDesc *desc, DestType type, int dest) :
 		Window (desc), dtype (type), dest_string (STR_NULL),
-		dest (dest), message_editbox (NETWORK_CHAT_LENGTH)
+		dest (dest), message_editbox()
 	{
 		this->querystrings[WID_NC_TEXTBOX] = &this->message_editbox;
 		this->message_editbox.cancel_button = WID_NC_CLOSE;

@@ -365,7 +365,7 @@ class NetworkContentListWindow : public Window, ContentCallback {
 	GUIContentList content;      ///< List with content
 	bool auto_select;            ///< Automatically select all content when the meta-data becomes available
 	ContentListFilterData filter_data; ///< Filter for content list
-	QueryString filter_editbox;  ///< Filter editbox;
+	QueryStringN<EDITBOX_MAX_SIZE> filter_editbox;  ///< Filter editbox;
 	Dimension checkbox_size;     ///< Size of checkbox/"blot" sprite
 
 	const ContentInfo *selected; ///< The selected content info
@@ -575,7 +575,7 @@ public:
 			content(),
 			auto_select(select_all),
 			filter_data(),
-			filter_editbox(EDITBOX_MAX_SIZE),
+			filter_editbox(),
 			checkbox_size (maxdim (maxdim (GetSpriteSize (SPR_BOX_EMPTY), GetSpriteSize (SPR_BOX_CHECKED)), GetSpriteSize (SPR_BLOT))),
 			selected(NULL),
 			list_pos(0),

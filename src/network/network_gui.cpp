@@ -231,8 +231,8 @@ protected:
 	GUIGameServerList servers;    ///< list with game servers.
 	ServerListPosition list_pos;  ///< position of the selected server
 	Scrollbar *vscroll;           ///< vertical scrollbar of the list of servers
-	QueryString name_editbox;     ///< Client name editbox.
-	QueryString filter_editbox;   ///< Editbox for filter on servers
+	QueryStringN<NETWORK_CLIENT_NAME_LENGTH> name_editbox; ///< Client name editbox.
+	QueryStringN<120> filter_editbox; ///< Editbox for filter on servers
 
 	int lock_offset; ///< Left offset for lock icon.
 	int blot_offset; ///< Left offset for green/yellow/red compatibility icon.
@@ -457,8 +457,7 @@ protected:
 public:
 	NetworkGameWindow (const WindowDesc *desc) : Window (desc),
 		server (NULL), last_joined (NULL), servers(), list_pos (0),
-		vscroll (NULL), name_editbox (NETWORK_CLIENT_NAME_LENGTH),
-		filter_editbox (120),
+		vscroll (NULL), name_editbox(), filter_editbox(),
 		lock_offset (0), blot_offset (0), flag_offset (0)
 	{
 		this->list_pos = SLP_INVALID;
@@ -1055,10 +1054,10 @@ void ShowNetworkGameWindow()
 
 struct NetworkStartServerWindow : public Window {
 	byte widget_id;              ///< The widget that has the pop-up input menu
-	QueryString name_editbox;    ///< Server name editbox.
+	QueryStringN<NETWORK_NAME_LENGTH> name_editbox; ///< Server name editbox.
 
 	NetworkStartServerWindow (const WindowDesc *desc) : Window (desc),
-		widget_id (0), name_editbox (NETWORK_NAME_LENGTH)
+		widget_id (0), name_editbox()
 	{
 		this->InitNested(WN_NETWORK_WINDOW_START);
 
@@ -2170,9 +2169,10 @@ void ShowNetworkNeedPassword(NetworkPasswordType npt)
 }
 
 struct NetworkCompanyPasswordWindow : public Window {
-	QueryString password_editbox; ///< Password editbox.
+	QueryStringN<lengthof(_settings_client.network.default_company_pass)> password_editbox; ///< Password editbox.
 
-	NetworkCompanyPasswordWindow (const WindowDesc *desc, Window *parent) : Window(desc), password_editbox(lengthof(_settings_client.network.default_company_pass))
+	NetworkCompanyPasswordWindow (const WindowDesc *desc, Window *parent)
+		: Window(desc), password_editbox()
 	{
 		this->InitNested(0);
 

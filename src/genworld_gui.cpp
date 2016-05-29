@@ -319,10 +319,10 @@ struct GenerateLandscapeWindow : public Window {
 	uint y;
 	char name[64];
 	GenerateLandscapeWindowMode mode;
-	QueryString seed_editbox;
+	QueryStringN<11> seed_editbox;
 
 	GenerateLandscapeWindow (const WindowDesc *desc, WindowNumber number = 0)
-		: Window (desc), widget_id (0), x (0), y (0), seed_editbox (11)
+		: Window (desc), widget_id (0), x (0), y (0), seed_editbox ()
 	{
 		this->name[0] = '\0';
 
