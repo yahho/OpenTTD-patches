@@ -10,6 +10,7 @@
 /** @file osk_gui.cpp The On Screen Keyboard GUI */
 
 #include "stdafx.h"
+#include "core/pointer.h"
 #include "string.h"
 #include "strings_func.h"
 #include "debug.h"
@@ -37,7 +38,7 @@ struct OskWindow : public Window {
 	StringID caption;      ///< the caption for this window.
 	QueryString *qs;       ///< text-input
 	int text_btn;          ///< widget number of parent's text field
-	char *orig_str_buf;    ///< Original string.
+	ttd_unique_free_ptr<char> orig_str_buf; ///< Original string.
 	bool shift;            ///< Is the shift effectively pressed?
 
 	OskWindow (const WindowDesc *desc, Window *parent, int button) :
@@ -57,7 +58,7 @@ struct OskWindow : public Window {
 		this->querystrings[WID_OSK_TEXT] = this->qs;
 
 		/* make a copy in case we need to reset later */
-		this->orig_str_buf = xstrdup(this->qs->GetText());
+		this->orig_str_buf.reset (xstrdup (this->qs->GetText()));
 
 		this->InitNested(0);
 		this->SetFocusedWidget(WID_OSK_TEXT);
@@ -66,11 +67,6 @@ struct OskWindow : public Window {
 		this->DisableWidget(WID_OSK_SPECIAL);
 
 		this->UpdateOskState();
-	}
-
-	~OskWindow()
-	{
-		free(this->orig_str_buf);
 	}
 
 	/**
@@ -181,7 +177,7 @@ struct OskWindow : public Window {
 					/* Window gets deleted when the parent window removes itself. */
 					return;
 				} else { // or reset to original string
-					qs->Assign(this->orig_str_buf);
+					qs->Assign(this->orig_str_buf.get());
 					qs->MoveEnd();
 					this->OnEditboxChanged(WID_OSK_TEXT);
 					this->Delete();
@@ -430,8 +426,7 @@ void UpdateOSKOriginalText(const Window *parent, int button)
 	OskWindow *osk = dynamic_cast<OskWindow *>(FindWindowById(WC_OSK, 0));
 	if (osk == NULL || osk->parent != parent || osk->text_btn != button) return;
 
-	free(osk->orig_str_buf);
-	osk->orig_str_buf = xstrdup(osk->qs->GetText());
+	osk->orig_str_buf.reset (xstrdup (osk->qs->GetText()));
 
 	osk->SetDirty();
 }
