@@ -164,7 +164,7 @@ struct OskWindow : public Window {
 				break;
 
 			case WID_OSK_OK:
-				if (this->qs->orig == NULL || strcmp(this->qs->GetText(), this->qs->orig) != 0) {
+				if (!this->qs->orig || strcmp (this->qs->GetText(), this->qs->orig.get()) != 0) {
 					/* pass information by simulating a button press on parent window */
 					if (this->qs->ok_button >= 0) {
 						this->parent->OnClick(pt, this->qs->ok_button, 1);

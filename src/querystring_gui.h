@@ -12,6 +12,7 @@
 #ifndef QUERYSTRING_GUI_H
 #define QUERYSTRING_GUI_H
 
+#include "core/pointer.h"
 #include "textbuf_type.h"
 #include "textbuf_gui.h"
 #include "window_gui.h"
@@ -28,7 +29,7 @@ struct QueryString : Textbuf {
 	StringID caption;
 	int ok_button;      ///< Widget button of parent window to simulate when pressing OK in OSK.
 	int cancel_button;  ///< Widget button of parent window to simulate when pressing CANCEL in OSK.
-	const char *orig;
+	ttd_unique_free_ptr<char> orig;
 	bool handled;
 
 	/**
@@ -39,17 +40,8 @@ struct QueryString : Textbuf {
 	 */
 	QueryString (uint16 size, char *buffer, uint16 chars = UINT16_MAX) :
 		Textbuf (size, buffer, chars),
-		ok_button (ACTION_NOTHING), cancel_button (ACTION_DESELECT),
-		orig (NULL)
+		ok_button (ACTION_NOTHING), cancel_button (ACTION_DESELECT)
 	{
-	}
-
-	/**
-	 * Make sure everything gets freed.
-	 */
-	~QueryString()
-	{
-		free(this->orig);
 	}
 
 public:

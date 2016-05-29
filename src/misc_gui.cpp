@@ -923,7 +923,7 @@ private:
 		this->editbox.validate (SVS_NONE);
 		this->editbox.UpdateSize();
 
-		if ((flags & QSF_ACCEPT_UNCHANGED) == 0) this->editbox.orig = xstrdup(this->editbox.buffer);
+		if ((flags & QSF_ACCEPT_UNCHANGED) == 0) this->editbox.orig.reset (xstrdup (this->editbox.buffer));
 
 		this->querystrings[WID_QS_TEXT] = &this->editbox;
 		this->editbox.caption = caption;
@@ -965,7 +965,7 @@ public:
 
 	void OnOk()
 	{
-		if (this->editbox.orig == NULL || strcmp(this->editbox.c_str(), this->editbox.orig) != 0) {
+		if (!this->editbox.orig || strcmp (this->editbox.c_str(), this->editbox.orig.get()) != 0) {
 			/* If the parent is NULL, the editbox is handled by general function
 			 * HandleOnEditText */
 			if (this->parent != NULL) {
