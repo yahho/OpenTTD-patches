@@ -628,37 +628,37 @@ void FallbackParagraphLayout::build (LineVector *v, int max_width, bool)
 
 			if (IsWhitespace(c)) last_space = buffer;
 
-			if (IsPrintable(c) && !IsTextDirectionChar(c)) {
-				int char_width = GetCharacterWidth(fc->GetSize(), c);
-				width += char_width;
-				if (width > max_width) {
-					/* The string is longer than maximum width so we need to decide
-					 * what to do with it. */
-					if (width == char_width) {
-						/* The character is wider than allowed width; don't know
-						 * what to do with this case... bail out! */
-						v->push_back (ttd_unique_ptr <const ParagraphLayouter::Line> (l));
-						return;
-					}
+			buffer++;
 
-					if (last_space == NULL) {
-						/* No space has been found. Just terminate at our current
-						 * location. This usually happens for languages that do not
-						 * require spaces in strings, like Chinese, Japanese and
-						 * Korean. For other languages terminating mid-word might
-						 * not be the best, but terminating the whole string instead
-						 * of continuing the word at the next line is worse. */
-						last_char = buffer;
-					} else {
-						/* A space is found; perfect place to terminate */
-						buffer = last_space + 1;
-						last_char = last_space;
-					}
-					break;
-				}
+			if (!IsPrintable(c) || IsTextDirectionChar(c)) continue;
+
+			int char_width = GetCharacterWidth (fc->GetSize(), c);
+			width += char_width;
+			if (width <= max_width) continue;
+
+			/* The string is longer than maximum width so we need
+			 * to decide what to do with it. */
+			if (width == char_width) {
+				/* The character is wider than allowed width; don't know
+				 * what to do with this case... bail out! */
+				v->push_back (ttd_unique_ptr <const ParagraphLayouter::Line> (l));
+				return;
 			}
 
-			buffer++;
+			if (last_space == NULL) {
+				/* No space has been found. Just terminate at our current
+				 * location. This usually happens for languages that do not
+				 * require spaces in strings, like Chinese, Japanese and
+				 * Korean. For other languages terminating mid-word might
+				 * not be the best, but terminating the whole string instead
+				 * of continuing the word at the next line is worse. */
+			} else {
+				/* A space is found; perfect place to terminate */
+				buffer = last_space + 1;
+				last_char = last_space;
+			}
+
+			break;
 		}
 
 		if (l->CountRuns() == 0 || last_char - begin != 0) {
