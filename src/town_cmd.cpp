@@ -1435,7 +1435,7 @@ static bool GrowTownFromTile (Town *t, TileIndex tile)
 					continue;
 				}
 
-				if (_settings_game.economy.allow_town_roads) {
+				if (_settings_game.economy.allow_town_roads || _generating_world) {
 					if (GrowTownTileUsable (target_tile)) break;
 				} else {
 					connect_rb = MirrorRoadBits (connect_rb);
