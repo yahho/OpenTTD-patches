@@ -722,11 +722,16 @@ EngineID GetNewEngineID(const GRFFile *file, VehicleType type, uint16 internal_i
 }
 
 /**
- * Map the colour modifiers of TTDPatch to those that Open is using.
- * @param grf_sprite Pointer to the structure been modified.
+ * Read a sprite and paletteD from the GRF and map the colour modifiers
+ * of TTDPatch to those that Open is using.
+ * @param buf Input stream.
+ * @param grf_sprite Pointer to the structure to read.
  */
-static void MapSpriteMappingRecolour(PalSpriteID *grf_sprite)
+static void ReadPalSprite (ByteReader *buf, PalSpriteID *grf_sprite)
 {
+	grf_sprite->sprite = buf->ReadWord();
+	grf_sprite->pal    = buf->ReadWord();
+
 	if (HasBit(grf_sprite->pal, 14)) {
 		ClrBit(grf_sprite->pal, 14);
 		SetBit(grf_sprite->sprite, SPRITE_MODIFIER_OPAQUE);
@@ -762,12 +767,10 @@ static bool ReadSpriteLayoutSprite (ByteReader *buf, bool read_flags,
 	PalSpriteID *grf_sprite, TileLayoutFlags *pflags = NULL,
 	uint16 *max_sprite_offset = NULL, uint16 *max_palette_offset = NULL)
 {
-	grf_sprite->sprite = buf->ReadWord();
-	grf_sprite->pal = buf->ReadWord();
+	ReadPalSprite (buf, grf_sprite);
+
 	TileLayoutFlags flags = read_flags ? (TileLayoutFlags)buf->ReadWord() : TLF_NOTHING;
 	if (pflags != NULL) *pflags = flags;
-
-	MapSpriteMappingRecolour(grf_sprite);
 
 	bool custom_sprite = HasBit(grf_sprite->pal, 15) != invert_action1_flag;
 	ClrBit(grf_sprite->pal, 15);
@@ -2219,13 +2222,7 @@ static ChangeInfoResult BridgeChangeInfo(uint brid, int numinfo, int prop, ByteR
 					}
 
 					for (byte sprite = 0; sprite < 32; sprite++) {
-						SpriteID image = buf->ReadWord();
-						PaletteID pal  = buf->ReadWord();
-
-						bridge->sprite_table[tableid][sprite].sprite = image;
-						bridge->sprite_table[tableid][sprite].pal    = pal;
-
-						MapSpriteMappingRecolour(&bridge->sprite_table[tableid][sprite]);
+						ReadPalSprite (buf, &bridge->sprite_table[tableid][sprite]);
 					}
 				}
 				break;
