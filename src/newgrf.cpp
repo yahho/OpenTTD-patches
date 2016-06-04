@@ -729,23 +729,26 @@ EngineID GetNewEngineID(const GRFFile *file, VehicleType type, uint16 internal_i
  */
 static void ReadPalSprite (ByteReader *buf, PalSpriteID *grf_sprite)
 {
-	grf_sprite->sprite = buf->ReadWord();
-	grf_sprite->pal    = buf->ReadWord();
+	SpriteID  sprite = buf->ReadWord();
+	PaletteID pal    = buf->ReadWord();
 
-	if (HasBit(grf_sprite->pal, 14)) {
-		ClrBit(grf_sprite->pal, 14);
-		SetBit(grf_sprite->sprite, SPRITE_MODIFIER_OPAQUE);
+	if (HasBit(pal, 14)) {
+		ClrBit(pal, 14);
+		SetBit(sprite, SPRITE_MODIFIER_OPAQUE);
 	}
 
-	if (HasBit(grf_sprite->sprite, 14)) {
-		ClrBit(grf_sprite->sprite, 14);
-		SetBit(grf_sprite->sprite, PALETTE_MODIFIER_TRANSPARENT);
+	if (HasBit(sprite, 14)) {
+		ClrBit(sprite, 14);
+		SetBit(sprite, PALETTE_MODIFIER_TRANSPARENT);
 	}
 
-	if (HasBit(grf_sprite->sprite, 15)) {
-		ClrBit(grf_sprite->sprite, 15);
-		SetBit(grf_sprite->sprite, PALETTE_MODIFIER_COLOUR);
+	if (HasBit(sprite, 15)) {
+		ClrBit(sprite, 15);
+		SetBit(sprite, PALETTE_MODIFIER_COLOUR);
 	}
+
+	grf_sprite->sprite = sprite;
+	grf_sprite->pal    = pal;
 }
 
 /**
