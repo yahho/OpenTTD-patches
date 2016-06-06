@@ -671,7 +671,7 @@ static CommandCost CheckFlatLandRailStation (TileArea tile_area, DoCommandFlag f
 
 				if (GetTrackBits(tile_cur) == TrackToTrackBits(track) && !HasSignalOnTrack(tile_cur, track)) {
 					/* Check for trains having a reservation for this tile. */
-					if (HasBit(GetRailReservationTrackBits(tile_cur), track)) {
+					if (GetRailReservationTrackBits (tile_cur) != TRACK_BIT_NONE) {
 						Train *v = GetTrainForReservation(tile_cur, track);
 						if (v != NULL) {
 							*affected_vehicles.Append() = v;

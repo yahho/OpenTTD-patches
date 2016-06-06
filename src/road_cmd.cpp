@@ -1115,7 +1115,7 @@ static CommandCost BuildRoad_Railway(TileIndex tile, DoCommandFlag flags, RoadTy
 		}
 
 		/* Always add road to the roadtypes (can't draw without it) */
-		bool reserved = HasBit(GetRailReservationTrackBits(tile), AxisToTrack(OtherAxis(roaddir)));
+		bool reserved = GetRailReservationTrackBits (tile) != TRACK_BIT_NONE;
 		MakeRoadCrossing(tile, company, company, GetTileOwner(tile), roaddir, GetRailType(tile), RoadTypeToRoadTypes(rt) | ROADTYPES_ROAD, town);
 		SetCrossingReservation(tile, reserved);
 		UpdateLevelCrossing(tile, false);
