@@ -1304,38 +1304,33 @@ CommandCost CmdBuildRailStation(TileIndex tile_org, DoCommandFlag flags, uint32 
 		}
 
 		/* Check whether we need to expand the reservation of trains already on the station. */
-		TileArea update_reservation_area;
-		if (axis == AXIS_X) {
-			update_reservation_area = TileArea (tile_org, 1, numtracks);
-		} else {
-			update_reservation_area = TileArea (tile_org, numtracks, 1);
-		}
-
-		TILE_AREA_LOOP(tile, update_reservation_area) {
+		TileIndex tile = tile_org;
+		for (uint i = 0; i < numtracks; i++, tile += delta_across) {
 			/* Don't even try to make eye candy parts reserved. */
 			if (IsStationTileBlocked(tile)) continue;
 
-			DiagDirection dir = AxisToDiagDir(axis);
-			TileIndexDiff tile_offset = TileOffsByDiagDir(dir);
-			TileIndex platform_begin = tile;
-			TileIndex platform_end = tile;
+			bool reservation = false;
 
 			/* We can only account for tiles that are reachable from this tile, so ignore primarily blocked tiles while finding the platform begin and end. */
-			for (TileIndex next_tile = platform_begin - tile_offset; IsCompatibleTrainStationTile(next_tile, platform_begin); next_tile -= tile_offset) {
-				platform_begin = next_tile;
+			TileIndex platform_begin = tile;
+			for (;;) {
+				reservation |= HasStationReservation (platform_begin);
+				TileIndex prev = platform_begin - delta_along;
+				if (!IsCompatibleTrainStationTile (prev, platform_begin)) break;
+				platform_begin = prev;
 			}
-			for (TileIndex next_tile = platform_end + tile_offset; IsCompatibleTrainStationTile(next_tile, platform_end); next_tile += tile_offset) {
-				platform_end = next_tile;
+
+			TileIndex platform_end = tile;
+			while (!reservation) {
+				TileIndex next = platform_end + delta_along;
+				if (!IsCompatibleTrainStationTile (next, platform_end)) break;
+				platform_end = next;
+				reservation = HasStationReservation (next);
 			}
 
 			/* If there is at least on reservation on the platform, we reserve the whole platform. */
-			bool reservation = false;
-			for (TileIndex t = platform_begin; !reservation && t <= platform_end; t += tile_offset) {
-				reservation = HasStationReservation(t);
-			}
-
 			if (reservation) {
-				SetRailStationPlatformReservation(platform_begin, dir, true);
+				SetRailStationPlatformReservation (platform_begin, AxisToDiagDir(axis), true);
 			}
 		}
 
