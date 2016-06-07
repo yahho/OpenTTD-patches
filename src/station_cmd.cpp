@@ -1223,11 +1223,6 @@ CommandCost CmdBuildRailStation(TileIndex tile_org, DoCommandFlag flags, uint32 
 	}
 
 	if (flags & DC_EXEC) {
-		TileIndexDiff tile_delta;
-		byte *layout_ptr;
-		byte numtracks_orig;
-		Track track;
-
 		st->train_station = new_location;
 		st->AddFacility(FACIL_TRAIN, new_location.tile);
 
@@ -1239,20 +1234,18 @@ CommandCost CmdBuildRailStation(TileIndex tile_org, DoCommandFlag flags, uint32 
 			st->cached_anim_triggers |= statspec->animation.triggers;
 		}
 
-		tile_delta = (axis == AXIS_X ? TileDiffXY(1, 0) : TileDiffXY(0, 1));
-		track = AxisToTrack(axis);
-
-		layout_ptr = AllocaM(byte, numtracks * plat_len);
+		byte *layout_ptr = AllocaM(byte, numtracks * plat_len);
 		GetStationLayout(layout_ptr, numtracks, plat_len, statspec);
 
-		numtracks_orig = numtracks;
-
 		Company *c = Company::Get(st->owner);
+
+		TileIndexDiff delta_along  = (axis == AXIS_X ? TileDiffXY (1, 0) : TileDiffXY (0, 1));
+		TileIndexDiff delta_across = delta_along ^ TileDiffXY (1, 1); // perpendicular to delta_along
+
 		TileIndex tile_track = tile_org;
-		do {
+		for (uint i = 0; i < numtracks; i++, tile_track += delta_across) {
 			TileIndex tile = tile_track;
-			int w = plat_len;
-			do {
+			for (uint j = 0; j < plat_len; j++, tile += delta_along) {
 				byte layout = *layout_ptr++;
 				if (IsRailStationTile(tile) && HasStationReservation(tile)) {
 					/* Check for trains having a reservation for this tile. */
@@ -1285,7 +1278,7 @@ CommandCost CmdBuildRailStation(TileIndex tile_org, DoCommandFlag flags, uint32 
 
 				if (statspec != NULL) {
 					/* Use a fixed axis for GetPlatformInfo as our platforms / numtracks are always the right way around */
-					uint32 platinfo = GetPlatformInfo(AXIS_X, GetStationGfx(tile), plat_len, numtracks_orig, plat_len - w, numtracks_orig - numtracks, false);
+					uint32 platinfo = GetPlatformInfo (AXIS_X, GetStationGfx(tile), plat_len, numtracks, j, i, false);
 
 					/* As the station is not yet completely finished, the station does not yet exist. */
 					uint16 callback = GetStationCallback(CBID_STATION_TILE_LAYOUT, platinfo, 0, statspec, NULL, tile);
@@ -1300,13 +1293,11 @@ CommandCost CmdBuildRailStation(TileIndex tile_org, DoCommandFlag flags, uint32 
 					/* Trigger station animation -- after building? */
 					TriggerStationAnimation(st, tile, SAT_BUILT);
 				}
+			}
 
-				tile += tile_delta;
-			} while (--w);
-			AddTrackToSignalBuffer(tile_track, track, _current_company);
+			AddTrackToSignalBuffer (tile_track, AxisToTrack(axis), _current_company);
 			YapfNotifyTrackLayoutChange();
-			tile_track += tile_delta ^ TileDiffXY(1, 1); // perpendicular to tile_delta
-		} while (--numtracks);
+		}
 
 		for (uint i = 0; i < affected_vehicles.Length(); ++i) {
 			RestoreTrainReservation(affected_vehicles[i]);
@@ -1315,9 +1306,9 @@ CommandCost CmdBuildRailStation(TileIndex tile_org, DoCommandFlag flags, uint32 
 		/* Check whether we need to expand the reservation of trains already on the station. */
 		TileArea update_reservation_area;
 		if (axis == AXIS_X) {
-			update_reservation_area = TileArea(tile_org, 1, numtracks_orig);
+			update_reservation_area = TileArea (tile_org, 1, numtracks);
 		} else {
-			update_reservation_area = TileArea(tile_org, numtracks_orig, 1);
+			update_reservation_area = TileArea (tile_org, numtracks, 1);
 		}
 
 		TILE_AREA_LOOP(tile, update_reservation_area) {
