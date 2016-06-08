@@ -587,30 +587,6 @@ CommandCost CheckBuildableTile(TileIndex tile, uint invalid_dirs, int &allowed_z
 }
 
 /**
- * Tries to clear the given area.
- * @param tile_area Area to check.
- * @param flags Operation to perform.
- * @return The cost in case of success, or an error code if it failed.
- */
-CommandCost CheckFlatLand(TileArea tile_area, DoCommandFlag flags)
-{
-	CommandCost cost(EXPENSES_CONSTRUCTION);
-	int allowed_z = -1;
-
-	TILE_AREA_LOOP(tile_cur, tile_area) {
-		CommandCost ret = CheckBuildableTile(tile_cur, 0, allowed_z, true);
-		if (ret.Failed()) return ret;
-		cost.AddCost(ret);
-
-		ret = DoCommand(tile_cur, 0, 0, flags, CMD_LANDSCAPE_CLEAR);
-		if (ret.Failed()) return ret;
-		cost.AddCost(ret);
-	}
-
-	return cost;
-}
-
-/**
  * Checks if a rail station can be built at the given area.
  * @param tile_area Area to check.
  * @param flags Operation to perform.
