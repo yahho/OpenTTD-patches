@@ -2663,10 +2663,11 @@ static void DrawTile_Station(TileInfo *ti)
 		roadtypes = ROADTYPES_NONE;
 		total_offset = rti->GetRailtypeSpriteOffset();
 
-		if (IsCustomStationSpecIndex(ti->tile)) {
+		uint spec_index = GetCustomStationSpecIndex (ti->tile);
+		if (spec_index != 0) {
 			/* look for customization */
 			st = BaseStation::GetByTile(ti->tile);
-			statspec = st->speclist[GetCustomStationSpecIndex(ti->tile)].spec;
+			statspec = st->speclist[spec_index].spec;
 
 			if (statspec != NULL) {
 				tile_layout = GetStationGfx(ti->tile);

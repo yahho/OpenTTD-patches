@@ -364,17 +364,6 @@ static inline void SetCustomStationSpecIndex(TileIndex t, byte specindex)
 	tile_set_station_spec(&_mc[t], specindex);
 }
 
-/**
- * Is there a custom rail station spec on this tile?
- * @param t Tile to query
- * @pre HasStationTileRail(t)
- * @return True if this station is part of a newgrf station.
- */
-static inline bool IsCustomStationSpecIndex(TileIndex t)
-{
-	return tile_has_custom_station_spec(&_mc[t]);
-}
-
 
 /**
  * Is tile \a t a standard (non-drive through) road stop station?
