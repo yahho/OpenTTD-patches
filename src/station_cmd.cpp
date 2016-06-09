@@ -2406,8 +2406,6 @@ CommandCost CmdBuildDock(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 
 
 		direction = ReverseDiagDir(direction);
 
-		if (HasBridgeAbove(tile)) return_cmd_error(STR_ERROR_MUST_DEMOLISH_BRIDGE_FIRST);
-
 		CommandCost ret = CheckIfAuthorityAllowsNewStation(tile, flags);
 		if (ret.Failed()) return ret;
 
@@ -2416,11 +2414,15 @@ CommandCost CmdBuildDock(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 
 
 		TileIndex tile_cur = tile + TileOffsByDiagDir(direction);
 
-		if (!IsWaterTile(tile_cur) || !IsTileFlat(tile_cur)) {
+		int h;
+		if (!IsWaterTile (tile_cur) || !IsTileFlat (tile_cur, &h)) {
 			return_cmd_error(STR_ERROR_SITE_UNSUITABLE);
 		}
 
-		if (HasBridgeAbove(tile_cur)) return_cmd_error(STR_ERROR_MUST_DEMOLISH_BRIDGE_FIRST);
+		if (HasBridgeAbove (tile_cur)
+				&& (GetBridgeHeight (GetSouthernBridgeEnd (tile_cur)) < h + 2)) {
+			return_cmd_error(STR_ERROR_MUST_DEMOLISH_BRIDGE_FIRST);
+		}
 
 		/* Get the water class of the water tile before it is cleared.*/
 		wc = GetWaterClass (tile_cur);
@@ -2437,8 +2439,6 @@ CommandCost CmdBuildDock(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 
 				dock_tilearea[direction].width, dock_tilearea[direction].height);
 	} else if (slope == SLOPE_FLAT) {
 		if (!HasTileWaterGround(tile)) return_cmd_error(STR_ERROR_SITE_UNSUITABLE);
-
-		if (HasBridgeAbove(tile)) return_cmd_error(STR_ERROR_MUST_DEMOLISH_BRIDGE_FIRST);
 
 		CommandCost ret = CheckIfAuthorityAllowsNewStation(tile, flags);
 		if (ret.Failed()) return ret;
