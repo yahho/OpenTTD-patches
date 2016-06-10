@@ -190,7 +190,8 @@ void UpdateObjectColours(const Company *c)
 	}
 }
 
-extern CommandCost CheckBuildableTile(TileIndex tile, uint invalid_dirs, int &allowed_z, bool allow_steep, bool check_bridge);
+extern CommandCost CheckBuildableTile (TileIndex tile, uint invalid_dirs,
+	int &allowed_z, bool allow_steep, int check_bridge);
 static CommandCost ClearTile_Object(TileIndex tile, DoCommandFlag flags);
 
 /**
@@ -267,7 +268,7 @@ CommandCost CmdBuildObject(TileIndex tile, DoCommandFlag flags, uint32 p1, uint3
 			}
 
 			if (callback == CALLBACK_FAILED) {
-				cost.AddCost(CheckBuildableTile(t, 0, allowed_z, false, false));
+				cost.AddCost (CheckBuildableTile (t, 0, allowed_z, false, 1));
 			} else {
 				/* The meaning of bit 10 is inverted for a grf version < 8. */
 				if (spec->grf_prop.grffile->grf_version < 8) ToggleBit(callback, 10);

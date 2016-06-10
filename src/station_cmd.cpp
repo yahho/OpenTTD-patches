@@ -539,20 +539,23 @@ CommandCost ClearTile_Station(TileIndex tile, DoCommandFlag flags);
  * @param invalid_dirs Prohibited directions for slopes (set of #DiagDirection).
  * @param allowed_z Height allowed for the tile. If allowed_z is negative, it will be set to the height of this tile.
  * @param allow_steep Whether steep slopes are allowed.
- * @param check_bridge Check for the existence of a bridge.
+ * @param check_bridge Minimum allowed height for a bridge, 0 for none.
  * @return The cost in case of success, or an error code if it failed.
  */
-CommandCost CheckBuildableTile(TileIndex tile, uint invalid_dirs, int &allowed_z, bool allow_steep, bool check_bridge = true)
+CommandCost CheckBuildableTile (TileIndex tile, uint invalid_dirs,
+	int &allowed_z, bool allow_steep, int check_bridge = 0)
 {
-	if (check_bridge && HasBridgeAbove(tile)) {
+	int z;
+	Slope tileh = GetTileSlope (tile, &z);
+	z += GetSlopeMaxZ (tileh);
+
+	if (HasBridgeAbove (tile) && ((check_bridge == 0)
+			|| (GetBridgeHeight (GetSouthernBridgeEnd (tile)) < z + check_bridge))) {
 		return_cmd_error(STR_ERROR_MUST_DEMOLISH_BRIDGE_FIRST);
 	}
 
 	CommandCost ret = EnsureNoVehicleOnGround(tile);
 	if (ret.Failed()) return ret;
-
-	int z;
-	Slope tileh = GetTileSlope(tile, &z);
 
 	/* Prohibit building if
 	 *   1) The tile is "steep" (i.e. stretches two height levels).
@@ -564,7 +567,6 @@ CommandCost CheckBuildableTile(TileIndex tile, uint invalid_dirs, int &allowed_z
 	}
 
 	CommandCost cost(EXPENSES_CONSTRUCTION);
-	int flat_z = z + GetSlopeMaxZ(tileh);
 	if (tileh != SLOPE_FLAT) {
 		/* Forbid building if the tile faces a slope in a invalid direction. */
 		for (DiagDirection dir = DIAGDIR_BEGIN; dir != DIAGDIR_END; dir++) {
@@ -578,8 +580,8 @@ CommandCost CheckBuildableTile(TileIndex tile, uint invalid_dirs, int &allowed_z
 	/* The level of this tile must be equal to allowed_z. */
 	if (allowed_z < 0) {
 		/* First tile. */
-		allowed_z = flat_z;
-	} else if (allowed_z != flat_z) {
+		allowed_z = z;
+	} else if (allowed_z != z) {
 		return_cmd_error(STR_ERROR_FLAT_LAND_REQUIRED);
 	}
 
