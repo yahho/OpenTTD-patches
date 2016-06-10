@@ -689,7 +689,7 @@ static CommandCost CheckFlatLandRoadStop(TileArea tile_area, DoCommandFlag flags
 	int allowed_z = -1;
 
 	TILE_AREA_LOOP(cur_tile, tile_area) {
-		CommandCost ret = CheckBuildableTile(cur_tile, invalid_dirs, allowed_z, !is_drive_through);
+		CommandCost ret = CheckBuildableTile (cur_tile, invalid_dirs, allowed_z, !is_drive_through, 2);
 		if (ret.Failed()) return ret;
 		cost.AddCost(ret);
 
