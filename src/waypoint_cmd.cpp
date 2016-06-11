@@ -17,6 +17,7 @@
 #include "map/rail.h"
 #include "map/slope.h"
 #include "map/bridge.h"
+#include "bridge.h"
 #include "town.h"
 #include "waypoint_base.h"
 #include "pathfinder/yapf/yapf.h"
@@ -101,9 +102,10 @@ extern CommandCost ClearTile_Station(TileIndex tile, DoCommandFlag flags);
  * Check whether the given tile is suitable for a waypoint.
  * @param tile the tile to check for suitability
  * @param axis the axis of the waypoint
+ * @param check_bridge Minimum allowed height for a bridge, 0 for none.
  * @param waypoint Waypoint the waypoint to check for is already joined to. If we find another waypoint it can join to it will throw an error.
  */
-static CommandCost IsValidTileForWaypoint(TileIndex tile, Axis axis, StationID *waypoint)
+static CommandCost IsValidTileForWaypoint (TileIndex tile, Axis axis, int check_bridge, StationID *waypoint)
 {
 	/* if waypoint is set, then we have special handling to allow building on top of already existing waypoints.
 	 * so waypoint points to INVALID_STATION if we can build on any waypoint.
@@ -134,7 +136,11 @@ static CommandCost IsValidTileForWaypoint(TileIndex tile, Axis axis, StationID *
 		return_cmd_error(STR_ERROR_FLAT_LAND_REQUIRED);
 	}
 
-	if (HasBridgeAbove(tile)) return_cmd_error(STR_ERROR_MUST_DEMOLISH_BRIDGE_FIRST);
+	if (HasBridgeAbove (tile) && ((check_bridge == 0)
+			|| (GetBridgeHeight (GetSouthernBridgeEnd (tile)) < GetTileMaxZ (tile) + check_bridge))) {
+		return_cmd_error(STR_ERROR_MUST_DEMOLISH_BRIDGE_FIRST);
+	}
+
 
 	return CommandCost();
 }
@@ -181,6 +187,8 @@ CommandCost CmdBuildRailWaypoint(TileIndex start_tile, DoCommandFlag flags, uint
 	if ((axis == AXIS_X ? width : height) != 1) return CMD_ERROR;
 	if (count == 0 || count > _settings_game.station.station_spread) return CMD_ERROR;
 
+	const StationSpec *spec = StationClass::Get(spec_class)->GetSpec(spec_index);
+
 	/* Make sure the area below consists of clear tiles. (OR tiles belonging to a certain rail station) */
 	StationID est = INVALID_STATION;
 
@@ -188,7 +196,7 @@ CommandCost CmdBuildRailWaypoint(TileIndex start_tile, DoCommandFlag flags, uint
 	TileIndexDiff offset = TileOffsByDiagDir(AxisToDiagDir(OtherAxis(axis)));
 	for (int i = 0; i < count; i++) {
 		TileIndex tile = start_tile + i * offset;
-		CommandCost ret = IsValidTileForWaypoint(tile, axis, &est);
+		CommandCost ret = IsValidTileForWaypoint (tile, axis, (spec == NULL) ? 3 : 0, &est);
 		if (ret.Failed()) return ret;
 	}
 
@@ -242,7 +250,6 @@ CommandCost CmdBuildRailWaypoint(TileIndex start_tile, DoCommandFlag flags, uint
 
 		wp->UpdateVirtCoord();
 
-		const StationSpec *spec = StationClass::Get(spec_class)->GetSpec(spec_index);
 		byte *layout_ptr = AllocaM(byte, count);
 		if (spec == NULL) {
 			/* The layout must be 0 for the 'normal' waypoints by design. */
