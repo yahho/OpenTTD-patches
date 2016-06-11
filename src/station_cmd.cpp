@@ -599,9 +599,14 @@ CommandCost CheckBuildableTile (TileIndex tile, uint invalid_dirs,
  * @param statspec Station spec.
  * @param plat_len Platform length.
  * @param numtracks Number of platforms.
+ * @param layout Station layout.
  * @return The cost in case of success, or an error code if it failed.
  */
-static CommandCost CheckFlatLandRailStation (TileArea tile_area, DoCommandFlag flags, Axis axis, StationID *station, RailType rt, SmallVector<Train *, 4> &affected_vehicles, const StationSpec *statspec, byte plat_len, byte numtracks)
+static CommandCost CheckFlatLandRailStation (TileArea tile_area,
+	DoCommandFlag flags, Axis axis, StationID *station, RailType rt,
+	SmallVector <Train *, 4> &affected_vehicles,
+	const StationSpec *statspec, byte plat_len, byte numtracks,
+	const byte *layout)
 {
 	CommandCost cost(EXPENSES_CONSTRUCTION);
 	int allowed_z = -1;
@@ -610,7 +615,25 @@ static CommandCost CheckFlatLandRailStation (TileArea tile_area, DoCommandFlag f
 	bool slope_cb = statspec != NULL && HasBit(statspec->callback_mask, CBM_STATION_SLOPE_CHECK);
 
 	TILE_AREA_LOOP(tile_cur, tile_area) {
-		CommandCost ret = CheckBuildableTile(tile_cur, invalid_dirs, allowed_z, false);
+		uint check_bridge;
+		if (statspec != NULL) {
+			/* Disallow bridges over custom station tiles for now. */
+			check_bridge = 0;
+		} else {
+			uint dx = TileX (tile_cur) - TileX (tile_area.tile);
+			uint dy = TileY (tile_cur) - TileY (tile_area.tile);
+			uint platform, offset;
+			if (axis == AXIS_X) {
+				platform = dy;
+				offset = dx;
+			} else {
+				platform = dx;
+				offset = dy;
+			}
+			uint gfx = layout[platform * plat_len + offset];
+			check_bridge = (gfx < 2 ? 1 : gfx < 4 ? 2 : 4);
+		}
+		CommandCost ret = CheckBuildableTile (tile_cur, invalid_dirs, allowed_z, false, check_bridge);
 		if (ret.Failed()) return ret;
 		cost.AddCost(ret);
 
@@ -1157,6 +1180,9 @@ CommandCost CmdBuildRailStation(TileIndex tile_org, DoCommandFlag flags, uint32 
 
 	if (h_org > _settings_game.station.station_spread || w_org > _settings_game.station.station_spread) return CMD_ERROR;
 
+	byte *layout_ptr = AllocaM(byte, numtracks * plat_len);
+	GetStationLayout (layout_ptr, numtracks, plat_len, statspec);
+
 	/* these values are those that will be stored in train_tile and station_platforms */
 	TileArea new_location(tile_org, w_org, h_org);
 
@@ -1164,7 +1190,7 @@ CommandCost CmdBuildRailStation(TileIndex tile_org, DoCommandFlag flags, uint32 
 	StationID est = INVALID_STATION;
 	SmallVector<Train *, 4> affected_vehicles;
 	/* Clear the land below the station. */
-	CommandCost cost = CheckFlatLandRailStation (new_location, flags, axis, &est, rt, affected_vehicles, statspec, plat_len, numtracks);
+	CommandCost cost = CheckFlatLandRailStation (new_location, flags, axis, &est, rt, affected_vehicles, statspec, plat_len, numtracks, layout_ptr);
 	if (cost.Failed()) return cost;
 	/* Add construction expenses. */
 	cost.AddCost((numtracks * _price[PR_BUILD_STATION_RAIL] + _price[PR_BUILD_STATION_RAIL_LENGTH]) * plat_len);
@@ -1211,9 +1237,6 @@ CommandCost CmdBuildRailStation(TileIndex tile_org, DoCommandFlag flags, uint32 
 			 * in the station's cached copy. */
 			st->cached_anim_triggers |= statspec->animation.triggers;
 		}
-
-		byte *layout_ptr = AllocaM(byte, numtracks * plat_len);
-		GetStationLayout(layout_ptr, numtracks, plat_len, statspec);
 
 		Company *c = Company::Get(st->owner);
 
