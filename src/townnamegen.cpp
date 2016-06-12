@@ -1980,7 +1980,7 @@ assert_compile (lengthof(_town_name_generators) == N_ORIG_TOWN_NAME_GEN);
  * @param lang town name language
  * @param seed generation seed
  */
-void GenerateTownNameString (stringb *buf, size_t lang, uint32 seed)
+void GenerateTownNameString (stringb *buf, uint lang, uint32 seed)
 {
 	assert(lang < lengthof(_town_name_generators));
 
