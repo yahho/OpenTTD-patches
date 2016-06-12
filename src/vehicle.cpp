@@ -69,10 +69,9 @@ INSTANTIATE_POOL_METHODS(Vehicle)
 /**
  * Function to tell if a vehicle needs to be autorenewed
  * @param *c The vehicle owner
- * @param use_renew_setting Should the company renew setting be considered?
  * @return true if the vehicle is old enough for replacement
  */
-bool Vehicle::NeedsAutorenewing(const Company *c, bool use_renew_setting) const
+bool Vehicle::NeedsAutorenewing (const Company *c) const
 {
 	/* We can always generate the Company pointer when we have the vehicle.
 	 * However this takes time and since the Company pointer is often present
@@ -80,7 +79,6 @@ bool Vehicle::NeedsAutorenewing(const Company *c, bool use_renew_setting) const
 	 * argument rather than finding it again. */
 	assert(c == Company::Get(this->owner));
 
-	if (use_renew_setting && !c->settings.engine_renew) return false;
 	if (this->age - this->max_age < (c->settings.engine_renew_months * 30)) return false;
 
 	/* Only engines need renewing */
@@ -147,10 +145,16 @@ bool Vehicle::NeedsServicing() const
 		bool replace_when_old = false;
 		EngineID new_engine = EngineReplacementForCompany(c, v->engine_type, v->group_id, &replace_when_old);
 
+		if (new_engine == INVALID_ENGINE) {
+			if (!c->settings.engine_renew) continue;
+			new_engine = v->engine_type;
+			replace_when_old = true;
+		}
+
 		/* Check engine availability */
-		if (new_engine == INVALID_ENGINE || !HasBit(Engine::Get(new_engine)->company_avail, v->owner)) continue;
+		if (!HasBit(Engine::Get(new_engine)->company_avail, v->owner)) continue;
 		/* Is the vehicle old if we are not always replacing? */
-		if (replace_when_old && !v->NeedsAutorenewing(c, false)) continue;
+		if (replace_when_old && !v->NeedsAutorenewing(c)) continue;
 
 		/* Check refittability */
 		uint32 available_cargo_types, union_mask;
@@ -1524,44 +1528,6 @@ void VehicleEnterDepot(Vehicle *v)
 	/* Always work with the front of the vehicle */
 	assert(v == v->First());
 
-	switch (v->type) {
-		case VEH_TRAIN: {
-			Train *t = Train::From(v);
-			SetWindowClassesDirty(WC_TRAINS_LIST);
-			/* Clear path reservation */
-			SetDepotReservation(t->tile, false);
-			if (_settings_client.gui.show_track_reservation) MarkTileDirtyByTile(t->tile);
-
-			assert(IsSignalBufferEmpty());
-			AddDepotToSignalBuffer(t->tile, t->owner);
-			UpdateSignalsInBuffer();
-			t->wait_counter = 0;
-			t->force_proceed = TFP_NONE;
-			ClrBit(t->flags, VRF_TOGGLE_REVERSE);
-			t->ConsistChanged(CCF_ARRANGE);
-			break;
-		}
-
-		case VEH_ROAD:
-			SetWindowClassesDirty(WC_ROADVEH_LIST);
-			break;
-
-		case VEH_SHIP: {
-			SetWindowClassesDirty(WC_SHIPS_LIST);
-			Ship *ship = Ship::From(v);
-			ship->trackdir = TRACKDIR_DEPOT;
-			ship->UpdateCache();
-			ship->UpdateViewport(true, true);
-			SetWindowDirty(WC_VEHICLE_DEPOT, v->tile);
-			break;
-		}
-
-		case VEH_AIRCRAFT:
-			SetWindowClassesDirty(WC_AIRCRAFT_LIST);
-			HandleAircraftEnterHangar(Aircraft::From(v));
-			break;
-		default: NOT_REACHED();
-	}
 	SetWindowDirty(WC_VEHICLE_VIEW, v->index);
 
 	if (v->type != VEH_TRAIN) {
@@ -2027,11 +1993,11 @@ PaletteID GetEnginePalette(EngineID engine_type, CompanyID company)
  */
 PaletteID GetVehiclePalette(const Vehicle *v)
 {
-	if (v->IsGroundVehicle()) {
-		return GetEngineColourMap(v->engine_type, v->owner, v->GetGroundVehicleCache()->first_engine, v);
-	}
+	EngineID parent = v->IsGroundVehicle() ?
+			GroundVehicleBase::From(v)->gcache.first_engine :
+			INVALID_ENGINE;
 
-	return GetEngineColourMap(v->engine_type, v->owner, INVALID_ENGINE, v);
+	return GetEngineColourMap (v->engine_type, v->owner, parent, v);
 }
 
 /**
@@ -2040,10 +2006,10 @@ PaletteID GetVehiclePalette(const Vehicle *v)
 void Vehicle::DeleteUnreachedImplicitOrders()
 {
 	if (this->IsGroundVehicle()) {
-		uint16 &gv_flags = this->GetGroundVehicleFlags();
-		if (HasBit(gv_flags, GVF_SUPPRESS_IMPLICIT_ORDERS)) {
+		GroundVehicleBase *gv = GroundVehicleBase::From (this);
+		if (HasBit(gv->gv_flags, GVF_SUPPRESS_IMPLICIT_ORDERS)) {
 			/* Do not delete orders, only skip them */
-			ClrBit(gv_flags, GVF_SUPPRESS_IMPLICIT_ORDERS);
+			ClrBit(gv->gv_flags, GVF_SUPPRESS_IMPLICIT_ORDERS);
 			this->cur_implicit_order_index = this->cur_real_order_index;
 			InvalidateVehicleOrder(this, 0);
 			return;
@@ -2104,7 +2070,7 @@ void Vehicle::BeginLoading()
 		if (this->IsGroundVehicle() &&
 				(in_list == NULL || !in_list->IsType(OT_IMPLICIT) ||
 				in_list->GetDestination() != this->last_station_visited)) {
-			bool suppress_implicit_orders = HasBit(this->GetGroundVehicleFlags(), GVF_SUPPRESS_IMPLICIT_ORDERS);
+			bool suppress_implicit_orders = HasBit(GroundVehicleBase::From(this)->gv_flags, GVF_SUPPRESS_IMPLICIT_ORDERS);
 			/* Do not create consecutive duplicates of implicit orders */
 			Order *prev_order = this->cur_implicit_order_index > 0 ? this->GetOrder(this->cur_implicit_order_index - 1) : (this->GetNumOrders() > 1 ? this->GetLastOrder() : NULL);
 			if (prev_order == NULL ||
@@ -2174,8 +2140,7 @@ void Vehicle::BeginLoading()
 
 					/* InsertOrder disabled creation of implicit orders for all vehicles with the same implicit order.
 					 * Reenable it for this vehicle */
-					uint16 &gv_flags = this->GetGroundVehicleFlags();
-					ClrBit(gv_flags, GVF_SUPPRESS_IMPLICIT_ORDERS);
+					ClrBit(GroundVehicleBase::From(this)->gv_flags, GVF_SUPPRESS_IMPLICIT_ORDERS);
 				}
 			}
 		}
@@ -2315,34 +2280,6 @@ void Vehicle::HandleLoading(bool mode)
 }
 
 /**
- * Get a map of cargoes and free capacities in the consist.
- * @param capacities Map to be filled with cargoes and capacities.
- */
-void Vehicle::GetConsistFreeCapacities(SmallMap<CargoID, uint> &capacities) const
-{
-	for (const Vehicle *v = this; v != NULL; v = v->Next()) {
-		if (v->cargo_cap == 0) continue;
-		SmallPair<CargoID, uint> *pair = capacities.Find(v->cargo_type);
-		if (pair == capacities.End()) {
-			pair = capacities.Append();
-			pair->first = v->cargo_type;
-			pair->second = v->cargo_cap - v->cargo.StoredCount();
-		} else {
-			pair->second += v->cargo_cap - v->cargo.StoredCount();
-		}
-	}
-}
-
-uint Vehicle::GetConsistTotalCapacity() const
-{
-	uint result = 0;
-	for (const Vehicle *v = this; v != NULL; v = v->Next()) {
-		result += v->cargo_cap;
-	}
-	return result;
-}
-
-/**
  * Send this vehicle to the depot using the given command(s).
  * @param flags   the command flags (like execute and such).
  * @param command the command to execute.
@@ -2377,8 +2314,7 @@ CommandCost Vehicle::SendToDepot(DoCommandFlag flags, DepotCommand command)
 			if (this->current_order.GetDepotOrderType() & ODTFB_PART_OF_ORDERS) this->IncrementRealOrderIndex();
 
 			if (this->IsGroundVehicle()) {
-				uint16 &gv_flags = this->GetGroundVehicleFlags();
-				SetBit(gv_flags, GVF_SUPPRESS_IMPLICIT_ORDERS);
+				SetBit(GroundVehicleBase::From(this)->gv_flags, GVF_SUPPRESS_IMPLICIT_ORDERS);
 			}
 
 			this->current_order.MakeDummy();
@@ -2397,8 +2333,7 @@ CommandCost Vehicle::SendToDepot(DoCommandFlag flags, DepotCommand command)
 		if (this->current_order.IsType(OT_LOADING)) this->LeaveStation();
 
 		if (this->IsGroundVehicle() && this->GetNumManualOrders() > 0) {
-			uint16 &gv_flags = this->GetGroundVehicleFlags();
-			SetBit(gv_flags, GVF_SUPPRESS_IMPLICIT_ORDERS);
+			SetBit(GroundVehicleBase::From(this)->gv_flags, GVF_SUPPRESS_IMPLICIT_ORDERS);
 		}
 
 		this->dest_tile = location;
@@ -2858,66 +2793,6 @@ bool CanVehicleUseStation(const Vehicle *v, const Station *st)
 	if (v->type == VEH_ROAD) return st->GetPrimaryRoadStop(RoadVehicle::From(v)) != NULL;
 
 	return CanVehicleUseStation(v->engine_type, st);
-}
-
-/**
- * Access the ground vehicle cache of the vehicle.
- * @pre The vehicle is a #GroundVehicle.
- * @return #GroundVehicleCache of the vehicle.
- */
-GroundVehicleCache *Vehicle::GetGroundVehicleCache()
-{
-	assert(this->IsGroundVehicle());
-	if (this->type == VEH_TRAIN) {
-		return &Train::From(this)->gcache;
-	} else {
-		return &RoadVehicle::From(this)->gcache;
-	}
-}
-
-/**
- * Access the ground vehicle cache of the vehicle.
- * @pre The vehicle is a #GroundVehicle.
- * @return #GroundVehicleCache of the vehicle.
- */
-const GroundVehicleCache *Vehicle::GetGroundVehicleCache() const
-{
-	assert(this->IsGroundVehicle());
-	if (this->type == VEH_TRAIN) {
-		return &Train::From(this)->gcache;
-	} else {
-		return &RoadVehicle::From(this)->gcache;
-	}
-}
-
-/**
- * Access the ground vehicle flags of the vehicle.
- * @pre The vehicle is a #GroundVehicle.
- * @return #GroundVehicleFlags of the vehicle.
- */
-uint16 &Vehicle::GetGroundVehicleFlags()
-{
-	assert(this->IsGroundVehicle());
-	if (this->type == VEH_TRAIN) {
-		return Train::From(this)->gv_flags;
-	} else {
-		return RoadVehicle::From(this)->gv_flags;
-	}
-}
-
-/**
- * Access the ground vehicle flags of the vehicle.
- * @pre The vehicle is a #GroundVehicle.
- * @return #GroundVehicleFlags of the vehicle.
- */
-const uint16 &Vehicle::GetGroundVehicleFlags() const
-{
-	assert(this->IsGroundVehicle());
-	if (this->type == VEH_TRAIN) {
-		return Train::From(this)->gv_flags;
-	} else {
-		return RoadVehicle::From(this)->gv_flags;
-	}
 }
 
 /**

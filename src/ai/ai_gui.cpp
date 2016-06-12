@@ -989,7 +989,7 @@ struct AIDebugWindow : public Window {
 	bool show_break_box;                                   ///< Whether the break/debug box is visible.
 	static bool break_check_enabled;                       ///< Stop an AI when it prints a matching string
 	static char break_string[MAX_BREAK_STR_STRING_LENGTH]; ///< The string to match to the AI output
-	QueryString break_editbox;                             ///< Break editbox
+	QueryStringN<MAX_BREAK_STR_STRING_LENGTH> break_editbox; ///< Break editbox
 	static StringFilter break_string_filter;               ///< Log filter for break.
 	static bool case_sensitive_break_check;                ///< Is the matching done case-sensitive
 	uint highlight_row;                                    ///< The output row that matches the given string, or -1
@@ -1058,8 +1058,7 @@ struct AIDebugWindow : public Window {
 	 */
 	AIDebugWindow (const WindowDesc *desc, WindowNumber number)
 		: Window (desc), redraw_timer (0), last_vscroll_pos (0),
-		  autoscroll (false), show_break_box (0),
-		  break_editbox(MAX_BREAK_STR_STRING_LENGTH),
+		  autoscroll (false), show_break_box (0), break_editbox(),
 		  highlight_row (0), vscroll (NULL)
 	{
 		this->CreateNestedTree();

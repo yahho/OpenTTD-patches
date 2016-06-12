@@ -190,6 +190,18 @@ public:
 	 */
 	void SettingsToString(char *string, size_t size) const;
 
+	template <size_t N>
+	void SettingsToString (char (*string) [N]) const
+	{
+		return this->SettingsToString (&(*string)[0], N);
+	}
+
+	template <size_t N>
+	void SettingsToString (char (&string) [N]) const
+	{
+		return this->SettingsToString (&string[0], N);
+	}
+
 	/**
 	 * Search a textfile file next to this script.
 	 * @param type The type of the textfile to search for.

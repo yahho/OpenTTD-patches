@@ -121,8 +121,8 @@ static const SaveLoad _town_desc[] = {
 	SLE_NULL(4, , , 3, 84),      ///< population, no longer in use
 	SLE_NULL(2, , , 0, 91),      ///< num_houses, no longer in use
 
-	SLE_VAR(Town, townnamegrfid, SLE_UINT32, 0, , 66, ),
-	SLE_VAR(Town, townnametype,  SLE_UINT16),
+	SLE_VAR(Town, townnameparams.grfid, SLE_UINT32, 0, , 66, ),
+	SLE_VAR(Town, townnameparams.type,  SLE_UINT16),
 	SLE_VAR(Town, townnameparts, SLE_UINT32),
 	SLE_STR(Town, name,          SLS_ALLOW_CONTROL,          0, ,  84,    ),
 
@@ -281,7 +281,9 @@ static void Load_TOWN(LoadBuffer *reader)
 			reader->ReadObject(&t->received[i], _town_received_desc);
 		}
 
-		if (t->townnamegrfid == 0 && !IsInsideMM(t->townnametype, SPECSTR_TOWNNAME_START, SPECSTR_TOWNNAME_LAST + 1) && GB(t->townnametype, 11, 5) != 15) {
+		if (t->townnameparams.grfid == 0
+				&& !IsInsideMM (t->townnameparams.type, SPECSTR_TOWNNAME_START, SPECSTR_TOWNNAME_LAST + 1)
+				&& GB(t->townnameparams.type, 11, 5) != 15) {
 			throw SlCorrupt("Invalid town name generator");
 		}
 

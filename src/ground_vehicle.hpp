@@ -56,68 +56,63 @@ enum GroundVehicleFlags {
 	GVF_SUPPRESS_IMPLICIT_ORDERS = 2,  ///< Disable insertion and removal of automatic orders until the vehicle completes the real order.
 };
 
-/**
- * Base class for all vehicles that move through ground.
- *
- * Child classes must define all of the following functions.
- * These functions are not defined as pure virtual functions at this class to improve performance.
- *
- * virtual uint16      GetPower() const = 0;
- * virtual uint16      GetPoweredPartPower(const T *head) const = 0;
- * virtual uint16      GetWeight() const = 0;
- * virtual byte        GetTractiveEffort() const = 0;
- * virtual byte        GetAirDrag() const = 0;
- * virtual byte        GetAirDragArea() const = 0;
- * virtual AccelStatus GetAccelerationStatus() const = 0;
- * virtual uint16      GetCurrentSpeed() const = 0;
- * virtual uint32      GetRollingFriction() const = 0;
- * virtual int         GetAccelerationType() const = 0;
- * virtual int32       GetSlopeSteepness() const = 0;
- * virtual int         GetDisplayMaxSpeed() const = 0;
- * virtual uint16      GetMaxTrackSpeed() const = 0;
- * virtual bool        TileMayHaveSlopedTrack() const = 0;
- */
-template <class T, VehicleType Type>
-struct GroundVehicle : public SpecializedVehicle<T, Type> {
+/** Base class for all vehicles that move through ground. */
+struct GroundVehicleBase : public VehicleAdapter <GroundVehicleBase, Vehicle> {
 	GroundVehicleCache gcache; ///< Cache of often calculated values.
 	uint16 gv_flags;           ///< @see GroundVehicleFlags.
 
-	typedef GroundVehicle<T, Type> GroundVehicleBase; ///< Our type
+	/** Constructor. */
+	GroundVehicleBase (VehicleType type)
+		: VehicleAdapter <GroundVehicleBase, Vehicle> (type)
+	{
+	}
 
 	/**
-	 * The constructor at SpecializedVehicle must be called.
+	 * Converts a Vehicle to a GroundVehicleBase with type checking.
+	 * @param v Vehicle pointer
+	 * @return pointer to GroundVehicleBase
 	 */
-	GroundVehicle() : SpecializedVehicle<T, Type>() {}
+	static GroundVehicleBase *From (Vehicle *v)
+	{
+		assert (v->IsGroundVehicle());
+		return static_cast <GroundVehicleBase *> (v);
+	}
 
-	void PowerChanged();
-	void CargoChanged();
-	int GetAcceleration() const;
-	bool IsChainInDepot() const;
+	/**
+	 * Converts a const Vehicle to const GroundVehicleBase with type checking.
+	 * @param v Vehicle pointer
+	 * @return pointer to GroundVehicleBase
+	 */
+	static const GroundVehicleBase *From (const Vehicle *v)
+	{
+		assert (v->IsGroundVehicle());
+		return static_cast <const GroundVehicleBase *> (v);
+	}
 
 	/**
 	 * Common code executed for crashed ground vehicles
 	 * @param flooded was this vehicle flooded?
 	 * @return number of victims
 	 */
-	/* virtual */ uint Crash(bool flooded)
+	uint Crash (bool flooded) OVERRIDE
 	{
 		/* Crashed vehicles aren't going up or down */
-		for (T *v = T::From(this); v != NULL; v = v->Next()) {
+		for (GroundVehicleBase *v = this; v != NULL; v = v->Next()) {
 			ClrBit(v->gv_flags, GVF_GOINGUP_BIT);
 			ClrBit(v->gv_flags, GVF_GOINGDOWN_BIT);
 		}
-		return this->Vehicle::Crash(flooded);
+		return this->Vehicle::Crash (flooded);
 	}
 
 	/**
 	 * Calculates the total slope resistance for this vehicle.
 	 * @return Slope resistance.
 	 */
-	inline int64 GetSlopeResistance() const
+	int64 GetSlopeResistance (void) const
 	{
 		int64 incl = 0;
 
-		for (const T *u = T::From(this); u != NULL; u = u->Next()) {
+		for (const GroundVehicleBase *u = this; u != NULL; u = u->Next()) {
 			if (HasBit(u->gv_flags, GVF_GOINGUP_BIT)) {
 				incl += u->gcache.cached_slope_resistance;
 			} else if (HasBit(u->gv_flags, GVF_GOINGDOWN_BIT)) {
@@ -129,27 +124,27 @@ struct GroundVehicle : public SpecializedVehicle<T, Type> {
 	}
 
 	/**
-	 * Updates vehicle's Z position and inclination.
-	 * Used when the vehicle entered given tile.
-	 * @pre The vehicle has to be at (or near to) a border of the tile,
-	 *      directed towards tile centre
+	 * Reset the Z position of a vehicle when entering a new tile,
+	 * and clear inclination flags.
 	 */
-	inline void UpdateZPositionAndInclination()
+	void ResetZPosition (void)
 	{
-		this->z_pos = GetSlopePixelZ(this->x_pos, this->y_pos);
+		this->z_pos = GetSlopePixelZ (this->x_pos, this->y_pos);
 		ClrBit(this->gv_flags, GVF_GOINGUP_BIT);
 		ClrBit(this->gv_flags, GVF_GOINGDOWN_BIT);
+	}
 
-		if (T::From(this)->TileMayHaveSlopedTrack()) {
-			/* To check whether the current tile is sloped, and in which
-			 * direction it is sloped, we get the 'z' at the center of
-			 * the tile (middle_z) and the edge of the tile (old_z),
-			 * which we then can compare. */
-			int middle_z = GetSlopePixelZ((this->x_pos & ~TILE_UNIT_MASK) | (TILE_SIZE / 2), (this->y_pos & ~TILE_UNIT_MASK) | (TILE_SIZE / 2));
+	/** Update the inclination when entering a new tile. */
+	void UpdateInclination (void)
+	{
+		/* To check whether the current tile is sloped, and in which
+		 * direction it is sloped, we get the 'z' at the center of
+		 * the tile (middle_z) and the edge of the tile (old_z),
+		 * which we then can compare. */
+		int middle_z = GetSlopePixelZ((this->x_pos & ~TILE_UNIT_MASK) | (TILE_SIZE / 2), (this->y_pos & ~TILE_UNIT_MASK) | (TILE_SIZE / 2));
 
-			if (middle_z != this->z_pos) {
-				SetBit(this->gv_flags, (middle_z > this->z_pos) ? GVF_GOINGUP_BIT : GVF_GOINGDOWN_BIT);
-			}
+		if (middle_z != this->z_pos) {
+			SetBit(this->gv_flags, (middle_z > this->z_pos) ? GVF_GOINGUP_BIT : GVF_GOINGDOWN_BIT);
 		}
 	}
 
@@ -176,7 +171,7 @@ struct GroundVehicle : public SpecializedVehicle<T, Type> {
 					this->z_pos += (this->y_pos & 1) ^ 1; break;
 				default: break;
 			}
-		} else if (HasBit(this->gv_flags, GVF_GOINGDOWN_BIT)) {
+		} else {
 			switch (this->direction) {
 				case DIR_NE:
 					this->z_pos -= (this->x_pos & 1); break;
@@ -199,50 +194,21 @@ struct GroundVehicle : public SpecializedVehicle<T, Type> {
 		 * we know the Z position changes by +/-1 at certain moments - when x_pos, y_pos is odd/even,
 		 * depending on orientation of the slope and vehicle's direction */
 
-		if (HasBit(this->gv_flags, GVF_GOINGUP_BIT) || HasBit(this->gv_flags, GVF_GOINGDOWN_BIT)) {
-			if (T::From(this)->HasToUseGetSlopePixelZ()) {
-				/* In some cases, we have to use GetSlopePixelZ() */
-				this->z_pos = GetSlopePixelZ(this->x_pos, this->y_pos);
-				return;
-			}
-			/* DirToDiagDir() is a simple right shift */
-			DiagDirection dir = DirToDiagDir(this->direction);
-			/* Read variables, so the compiler knows the access doesn't trap */
-			int8 x_pos = this->x_pos;
-			int8 y_pos = this->y_pos;
-			/* DiagDirToAxis() is a simple mask */
-			int8 d = DiagDirToAxis(dir) == AXIS_X ? x_pos : y_pos;
-			/* We need only the least significant bit */
-			d &= 1;
-			/* Conditional "^ 1". Optimised to "(dir - 1) <= 1". */
-			d ^= (int8)(dir == DIAGDIR_SW || dir == DIAGDIR_SE);
-			/* Subtraction instead of addition because we are testing for GVF_GOINGUP_BIT.
-			 * GVF_GOINGUP_BIT is used because it's bit 0, so simple AND can be used,
-			 * without any shift */
-			this->z_pos += HasBit(this->gv_flags, GVF_GOINGUP_BIT) ? d : -d;
-		}
-
-		assert(this->z_pos == GetSlopePixelZ(this->x_pos, this->y_pos));
-	}
-
-	/**
-	 * Checks if the vehicle is in a slope and sets the required flags in that case.
-	 * @param new_tile True if the vehicle reached a new tile.
-	 * @param update_delta Indicates to also update the delta.
-	 * @return Old height of the vehicle.
-	 */
-	inline int UpdateInclination(bool new_tile, bool update_delta)
-	{
-		int old_z = this->z_pos;
-
-		if (new_tile) {
-			this->UpdateZPositionAndInclination();
-		} else {
-			this->UpdateZPosition();
-		}
-
-		this->UpdateViewport(true, update_delta);
-		return old_z;
+		/* DirToDiagDir() is a simple right shift */
+		DiagDirection dir = DirToDiagDir(this->direction);
+		/* Read variables, so the compiler knows the access doesn't trap */
+		int8 x_pos = this->x_pos;
+		int8 y_pos = this->y_pos;
+		/* DiagDirToAxis() is a simple mask */
+		int8 d = DiagDirToAxis(dir) == AXIS_X ? x_pos : y_pos;
+		/* We need only the least significant bit */
+		d &= 1;
+		/* Conditional "^ 1". Optimised to "(dir - 1) <= 1". */
+		d ^= (int8)(dir == DIAGDIR_SW || dir == DIAGDIR_SE);
+		/* Subtraction instead of addition because we are testing for GVF_GOINGUP_BIT.
+		 * GVF_GOINGUP_BIT is used because it's bit 0, so simple AND can be used,
+		 * without any shift */
+		this->z_pos += HasBit(this->gv_flags, GVF_GOINGUP_BIT) ? d : -d;
 	}
 
 	/**
@@ -387,6 +353,39 @@ protected:
 		this->progress = 0; // set later in *Handler or *Controller
 		return scaled_spd;
 	}
+};
+
+/**
+ * Base class for all vehicles that move through ground.
+ *
+ * Child classes must define all of the following functions.
+ * These functions are not defined as pure virtual functions at this class to improve performance.
+ *
+ * virtual uint16      GetPower() const = 0;
+ * virtual uint16      GetPoweredPartPower(const T *head) const = 0;
+ * virtual uint16      GetWeight() const = 0;
+ * virtual byte        GetTractiveEffort() const = 0;
+ * virtual byte        GetAirDrag() const = 0;
+ * virtual byte        GetAirDragArea() const = 0;
+ * virtual AccelStatus GetAccelerationStatus() const = 0;
+ * virtual uint16      GetCurrentSpeed() const = 0;
+ * virtual uint32      GetRollingFriction() const = 0;
+ * virtual int         GetAccelerationType() const = 0;
+ * virtual int32       GetSlopeSteepness() const = 0;
+ * virtual int         GetDisplayMaxSpeed() const = 0;
+ * virtual uint16      GetMaxTrackSpeed() const = 0;
+ */
+template <class T, VehicleType Type>
+struct GroundVehicle : public SpecializedVehicle <T, Type, GroundVehicleBase> {
+	/**
+	 * The constructor at SpecializedVehicle must be called.
+	 */
+	GroundVehicle() : SpecializedVehicle <T, Type, GroundVehicleBase> () {}
+
+	void PowerChanged();
+	void CargoChanged();
+	int GetAcceleration() const;
+	bool IsChainInDepot() const;
 };
 
 #endif /* GROUND_VEHICLE_HPP */

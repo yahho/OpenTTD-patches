@@ -36,6 +36,7 @@
 #include "newgrf_commons.h"
 #include "newgrf_railtype.h"
 #include "newgrf_object.h"
+#include "newgrf_station.h"
 
 #include "table/sprites.h"
 #include "table/strings.h"
@@ -169,6 +170,81 @@ CommandCost CheckBridgeTiles(TileIndex tile1, TileIndex tile2, Axis *axis)
 }
 
 /**
+ * Check if a bridge can be built over a tile.
+ * @param tile The tile to check.
+ * @param dir The direction of the bridge to be built.
+ * @param z The height at which the bridge will be built.
+ * @param Whether a bridge is buildable over the tile.
+ */
+static bool CheckBridgeTileBuildable (TileIndex tile, DiagDirection dir, int z)
+{
+	switch (GetTileType (tile)) {
+		case TT_WATER:
+			return IsPlainWater (tile) || IsCoast (tile);
+
+		case TT_MISC:
+			if (IsTileSubtype (tile, TT_MISC_TUNNEL)) return true;
+			if (IsTileSubtype (tile, TT_MISC_DEPOT)) return false;
+			assert_compile (TT_BRIDGE == TT_MISC_AQUEDUCT);
+			/* fall through */
+		case TT_RAILWAY:
+		case TT_ROAD:
+			if (!IsTileSubtype (tile, TT_BRIDGE)) return true;
+			if (DiagDirToAxis (dir) == DiagDirToAxis (GetTunnelBridgeDirection (tile))) return false;
+			return z >= GetBridgeHeight (tile);
+
+		case TT_OBJECT: {
+			const ObjectSpec *spec = ObjectSpec::GetByTile(tile);
+			if ((spec->flags & OBJECT_FLAG_ALLOW_UNDER_BRIDGE) == 0) return false;
+			return z >= GetTileMaxZ (tile) + spec->height;
+		}
+
+		case TT_GROUND:
+			assert (IsGroundTile (tile));
+			return !IsTileSubtype (tile, TT_GROUND_TREES);
+
+		case TT_STATION:
+			switch (GetStationType(tile)) {
+				case STATION_RAIL: {
+					if (GetStationSpec (tile) != NULL) return false;
+					uint gfx = GetStationGfx (tile);
+					int h = (gfx < 2 ? 0 : gfx < 4 ? 1 : 3);
+					return z >= (GetTileMaxZ (tile) + h);
+				}
+
+				case STATION_WAYPOINT:
+					if (GetStationSpec (tile) != NULL) return false;
+					return z >= (GetTileMaxZ (tile) + 2);
+
+				case STATION_DOCK:
+					if (IsInsideMM (GetStationGfx (tile),
+							GFX_DOCK_BASE_WATER_PART,
+							GFX_DOCK_BUOY)) {
+						/* water part */
+						assert (IsTileFlat (tile));
+						return z > GetTileZ (tile);
+					} else {
+						return z >= GetTileMaxZ (tile);
+					}
+
+				case STATION_TRUCK:
+				case STATION_BUS:
+					return z > GetTileMaxZ (tile);
+
+				case STATION_BUOY:
+					assert (IsTileFlat (tile));
+					return z >= GetTileZ (tile);
+
+				default:
+					return false;
+			}
+
+		default:
+			return false;
+	}
+}
+
+/**
  * Check if a bridge can be built.
  *
  * @param tile1 Start tile
@@ -257,43 +333,12 @@ CommandCost CheckBridgeBuildable (TileIndex tile1, TileIndex tile2,
 			return_cmd_error(STR_ERROR_MUST_DEMOLISH_BRIDGE_FIRST);
 		}
 
-		switch (GetTileType(tile)) {
-			case TT_WATER:
-				if (IsPlainWater(tile) || IsCoast(tile)) continue;
-				break;
-
-			case TT_MISC:
-				if (IsTileSubtype(tile, TT_MISC_TUNNEL)) continue;
-				if (IsTileSubtype(tile, TT_MISC_DEPOT)) break;
-				assert(TT_BRIDGE == TT_MISC_AQUEDUCT);
-				/* fall through */
-			case TT_RAILWAY:
-			case TT_ROAD:
-				if (!IsTileSubtype(tile, TT_BRIDGE)) continue;
-				if (DiagDirToAxis(dir) == DiagDirToAxis(GetTunnelBridgeDirection(tile))) break;
-				if (z1 >= GetBridgeHeight(tile)) continue;
-				break;
-
-			case TT_OBJECT: {
-				const ObjectSpec *spec = ObjectSpec::GetByTile(tile);
-				if ((spec->flags & OBJECT_FLAG_ALLOW_UNDER_BRIDGE) == 0) break;
-				if (z1 >= GetTileMaxZ(tile) + spec->height) continue;
-				break;
-			}
-
-			case TT_GROUND:
-				assert(IsGroundTile(tile));
-				if (!IsTileSubtype(tile, TT_GROUND_TREES)) continue;
-				break;
-
-			default:
-				break;
+		if (!CheckBridgeTileBuildable (tile, dir, z1)) {
+			/* try and clear the middle landscape */
+			CommandCost ret = DoCommand (tile, 0, 0, flags, CMD_LANDSCAPE_CLEAR);
+			if (ret.Failed()) return ret;
+			cost.AddCost (ret);
 		}
-
-		/* try and clear the middle landscape */
-		CommandCost ret = DoCommand(tile, 0, 0, flags, CMD_LANDSCAPE_CLEAR);
-		if (ret.Failed()) return ret;
-		cost.AddCost(ret);
 	}
 
 	*height = z1 + 1;
@@ -726,17 +771,15 @@ void DrawBridgeMiddle(const TileInfo *ti)
 		}
 
 		if (_game_mode != GM_MENU && _settings_client.gui.show_track_reservation && !IsInvisibilitySet(TO_BRIDGES) && HasBridgeMiddleReservation(rampnorth)) {
-			if (rti->UsesOverlay()) {
-				SpriteID overlay = GetCustomRailSprite(rti, ti->tile, RTSG_OVERLAY);
-				AddSortableSpriteToDraw(overlay + RTO_X + axis, PALETTE_CRASH, ti->x, ti->y, 16, 16, 0, bridge_z, IsTransparencySet(TO_BRIDGES));
-			} else {
-				AddSortableSpriteToDraw(axis == AXIS_X ? rti->base_sprites.single_x : rti->base_sprites.single_y, PALETTE_CRASH, ti->x, ti->y, 16, 16, 0, bridge_z, IsTransparencySet(TO_BRIDGES));
-			}
+			SpriteID image = rti->UsesOverlay() ?
+					GetCustomRailSprite (rti, ti->tile, RTSG_OVERLAY) + RTO_X + axis :
+					rti->base_sprites.single[AxisToTrack(axis)];
+			AddSortableSpriteToDraw (image, PALETTE_CRASH, ti->x, ti->y, 16, 16, 0, bridge_z, IsTransparencySet (TO_BRIDGES));
 		}
 
 		EndSpriteCombine();
 
-		if (HasCatenaryDrawn(GetBridgeRailType(rampsouth))) {
+		if (HasCatenaryDrawn (rti)) {
 			DrawCatenaryOnBridge(ti);
 		}
 	}

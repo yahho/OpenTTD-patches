@@ -640,9 +640,8 @@ void Window::DrawSortButtonState(int widget, SortButtonState state) const
 
 	/* Sort button uses the same sprites as vertical scrollbar */
 	Dimension dim = NWidgetScrollbar::GetVerticalDimension();
-	int offset = this->IsWidgetLowered(widget) ? 1 : 0;
-	int x = offset + nwid->pos_x + (_current_text_dir == TD_LTR ? nwid->current_x - dim.width : 0);
-	int y = offset + nwid->pos_y + (nwid->current_y - dim.height) / 2;
+	int x = nwid->pos_x + (_current_text_dir == TD_LTR ? nwid->current_x - dim.width : 0);
+	int y = nwid->pos_y + (nwid->current_y - dim.height) / 2;
 
 	DrawSprite(state == SBS_DOWN ? SPR_ARROW_DOWN : SPR_ARROW_UP, PAL_NONE, x, y);
 }
@@ -1542,7 +1541,7 @@ void NWidgetMatrix::SetupSmallestSize(Window *w, bool init_array)
 	SB(nw->index, 16, 16, 0);
 	this->head->SetupSmallestSize(w, init_array);
 
-	Dimension padding = {this->pip_pre + this->pip_post, this->pip_pre + this->pip_post};
+	Dimension padding = { (uint)this->pip_pre + this->pip_post, (uint)this->pip_pre + this->pip_post};
 	Dimension size    = {this->head->smallest_x + padding.width, this->head->smallest_y + padding.height};
 	Dimension fill    = {0, 0};
 	Dimension resize  = {this->pip_inter + this->head->smallest_x, this->pip_inter + this->head->smallest_y};

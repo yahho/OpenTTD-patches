@@ -128,8 +128,6 @@ uint GetStringHeight (const char *str, int maxw, FontSize fontsize = FS_NORMAL);
 uint GetStringHeight (StringID str, int maxw);
 int GetStringLineCount(StringID str, int maxw);
 void LoadStringWidthTable(bool monospace = false);
-Point GetCharPosInString(const char *str, const char *ch, FontSize start_fontsize = FS_NORMAL);
-const char *GetCharAtPosition(const char *str, int x, FontSize start_fontsize = FS_NORMAL);
 
 void DrawDirtyBlocks();
 void SetDirtyBlocks(int left, int top, int right, int bottom);

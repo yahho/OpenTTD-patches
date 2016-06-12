@@ -15,7 +15,6 @@
 #include "string.h"
 #include "townname_type.h"
 
-void GenerateTownNameString (stringb *buf, size_t lang, uint32 seed);
 void AppendTownName (stringb *buf, const TownNameParams *par, uint32 townnameparts);
 void AppendTownName (stringb *buf, const Town *t);
 bool VerifyTownName(uint32 r, const TownNameParams *par, TownNames *town_names = NULL);

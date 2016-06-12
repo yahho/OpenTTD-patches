@@ -306,17 +306,6 @@ static inline void tile_set_station_spec(Tile *t, uint spec)
 	t->m4 = spec;
 }
 
-/**
- * Check if a rail station tile has a custom spec
- * @param t The tile to check
- * @pre tile_has_rail_station(t)
- * @return Whether the tile as a custom spec
- */
-static inline bool tile_has_custom_station_spec(const Tile *t)
-{
-	return tile_get_station_spec(t) != 0;
-}
-
 
 /**
  * Check if a road stop is a standard stop (not drive-through)

@@ -194,7 +194,7 @@ static inline void GfxDoDrawLine(void *video, int x, int y, int x2, int y2, int 
 	int grade_x = x2 - x;
 
 	/* Clipping rectangle. Slightly extended so we can ignore the width of the line. */
-	uint extra = CeilDiv(3 * width, 4); // not less then "width * sqrt(2) / 2"
+	int extra = (int)CeilDiv(3 * width, 4); // not less then "width * sqrt(2) / 2"
 	Rect clip = { -extra, -extra, screen_width - 1 + extra, screen_height - 1 + extra };
 
 	/* prevent integer overflows. */
@@ -384,7 +384,7 @@ static int DrawLayoutLine(const ParagraphLayouter::Line *line, int y, int left, 
 		 * another size would be chosen it won't have truncated too little for
 		 * the truncation dots.
 		 */
-		FontCache *fc = ((const Font*)line->GetVisualRun(0)->GetFont())->fc;
+		FontCache *fc = line->GetVisualRun(0)->GetFont()->fc;
 		GlyphID dot_glyph = fc->MapCharToGlyph('.');
 		dot_width = fc->GetGlyphWidth(dot_glyph);
 		dot_sprite = fc->GetGlyph(dot_glyph);
@@ -431,7 +431,7 @@ static int DrawLayoutLine(const ParagraphLayouter::Line *line, int y, int left, 
 	bool draw_shadow = false;
 	for (int run_index = 0; run_index < line->CountRuns(); run_index++) {
 		const ParagraphLayouter::VisualRun *run = line->GetVisualRun(run_index);
-		const Font *f = (const Font*)run->GetFont();
+		const FontBase *f = run->GetFont();
 
 		FontCache *fc = f->fc;
 		colour = f->colour;
@@ -518,9 +518,9 @@ int DrawString(int left, int right, int top, const char *str, TextColour colour,
 	}
 
 	Layouter layout(str, INT32_MAX, colour, fontsize);
-	if (layout.Length() == 0) return 0;
+	if (layout.empty()) return 0;
 
-	return DrawLayoutLine(*layout.Begin(), top, left, right, align, underline, true);
+	return DrawLayoutLine (layout.front().get(), top, left, right, align, underline, true);
 }
 
 /**
@@ -583,7 +583,7 @@ int GetStringLineCount(StringID str, int maxw)
 	GetString (buffer, str);
 
 	Layouter layout(buffer, maxw);
-	return layout.Length();
+	return layout.size();
 }
 
 /**
@@ -632,8 +632,8 @@ int DrawStringMultiLine(int left, int right, int top, int bottom, const char *st
 	int last_line = top;
 	int first_line = bottom;
 
-	for (const ParagraphLayouter::Line **iter = layout.Begin(); iter != layout.End(); iter++) {
-		const ParagraphLayouter::Line *line = *iter;
+	for (Layouter::const_iterator iter (layout.begin()); iter != layout.end(); iter++) {
+		const ParagraphLayouter::Line *line = iter->get();
 
 		int line_height = line->GetLeading();
 		if (y >= top && y < bottom) {
@@ -698,35 +698,6 @@ Dimension GetStringBoundingBox(StringID strid)
 
 	GetString (buffer, strid);
 	return GetStringBoundingBox(buffer);
-}
-
-/**
- * Get the leading corner of a character in a single-line string relative
- * to the start of the string.
- * @param str String containing the character.
- * @param ch Pointer to the character in the string.
- * @param start_fontsize Font size to start the text with.
- * @return Upper left corner of the glyph associated with the character.
- */
-Point GetCharPosInString(const char *str, const char *ch, FontSize start_fontsize)
-{
-	Layouter layout(str, INT32_MAX, TC_FROMSTRING, start_fontsize);
-	return layout.GetCharPosition(ch);
-}
-
-/**
- * Get the character from a string that is drawn at a specific position.
- * @param str String to test.
- * @param x Position relative to the start of the string.
- * @param start_fontsize Font size to start the text with.
- * @return Pointer to the character at the position or NULL if there is no character at the position.
- */
-const char *GetCharAtPosition(const char *str, int x, FontSize start_fontsize)
-{
-	if (x < 0) return NULL;
-
-	Layouter layout(str, INT32_MAX, TC_FROMSTRING, start_fontsize);
-	return layout.GetCharAtPosition(x);
 }
 
 /**

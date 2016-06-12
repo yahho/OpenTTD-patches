@@ -104,7 +104,7 @@ struct CompanyProperties {
 	}
 };
 
-struct Company : PooledItem <Company, CompanyByte, 1, MAX_COMPANIES>, CompanyProperties {
+struct Company : PooledItem <Company, CompanyID, 1, MAX_COMPANIES>, CompanyProperties {
 	Company(uint16 name_1 = 0, bool is_ai = false);
 	~Company();
 

@@ -16,6 +16,7 @@
 
 #include "config.h"
 #include "../../string.h"
+#include "../../core/flexarray.h"
 #include "../../core/forward_list.h"
 
 #ifdef ENABLE_NETWORK
@@ -93,7 +94,7 @@ public:
 };
 
 /** Packet as stored in a packet queue. */
-struct QueuedPacket : ForwardListLink<QueuedPacket> {
+struct QueuedPacket : ForwardListLink<QueuedPacket>, FlexArray<byte> {
 	const PacketSize size; ///< Total size of the packet.
 	byte buffer[];         ///< Packet data (const).
 
@@ -109,14 +110,6 @@ private:
 		this->buffer[1] = GB(size, 8, 8);
 		memcpy (this->buffer + 2, data + 2, size - 2);
 	}
-
-	/** Custom operator new to account for the variable-length buffer. */
-	void *operator new (size_t size, size_t extra)
-	{
-		return ::operator new (size + extra);
-	}
-
-	void *operator new (size_t size) DELETED;
 
 public:
 	/** Allocate and construct a QueuedPacket from raw data. */

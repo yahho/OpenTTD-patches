@@ -1115,7 +1115,7 @@ static CommandCost BuildRoad_Railway(TileIndex tile, DoCommandFlag flags, RoadTy
 		}
 
 		/* Always add road to the roadtypes (can't draw without it) */
-		bool reserved = HasBit(GetRailReservationTrackBits(tile), AxisToTrack(OtherAxis(roaddir)));
+		bool reserved = GetRailReservationTrackBits (tile) != TRACK_BIT_NONE;
 		MakeRoadCrossing(tile, company, company, GetTileOwner(tile), roaddir, GetRailType(tile), RoadTypeToRoadTypes(rt) | ROADTYPES_ROAD, town);
 		SetCrossingReservation(tile, reserved);
 		UpdateLevelCrossing(tile, false);
@@ -1939,7 +1939,7 @@ void DrawLevelCrossing(TileInfo *ti)
 
 		/* PBS debugging, draw reserved tracks darker */
 		if (_game_mode != GM_MENU && _settings_client.gui.show_track_reservation && HasCrossingReservation(ti->tile)) {
-			DrawGroundSprite(GetCrossingRoadAxis(ti->tile) == AXIS_Y ? GetRailTypeInfo(GetRailType(ti->tile))->base_sprites.single_x : GetRailTypeInfo(GetRailType(ti->tile))->base_sprites.single_y, PALETTE_CRASH);
+			DrawGroundSprite (GetRailTypeInfo(GetRailType(ti->tile))->base_sprites.single[GetCrossingRailTrack(ti->tile)], PALETTE_CRASH);
 		}
 	}
 
@@ -1948,7 +1948,7 @@ void DrawLevelCrossing(TileInfo *ti)
 		DrawTramCatenary(ti, GetCrossingRoadBits(ti->tile));
 	}
 
-	if (HasCatenaryDrawn(GetRailType(ti->tile))) DrawCatenary(ti);
+	if (HasCatenaryDrawn (rti)) DrawCatenary (ti);
 
 	DrawBridgeMiddle(ti);
 }

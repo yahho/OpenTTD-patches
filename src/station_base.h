@@ -541,32 +541,4 @@ public:
 
 #define FOR_ALL_STATIONS(var) FOR_ALL_BASE_STATIONS_OF_TYPE(Station, var)
 
-/** Iterator to iterate over all tiles belonging to an airport. */
-class AirportTileIterator : public OrthogonalTileIterator {
-private:
-	const Station *st; ///< The station the airport is a part of.
-
-protected:
-	inline void Next() OVERRIDE
-	{
-		do this->OrthogonalTileIterator::Next();
-		while (this->tile != INVALID_TILE && !st->TileBelongsToAirport(this->tile));
-	}
-
-public:
-	/**
-	 * Construct the iterator.
-	 * @param ta Area, i.e. begin point and width/height of to-be-iterated area.
-	 */
-	AirportTileIterator(const Station *st) : OrthogonalTileIterator(st->airport), st(st)
-	{
-		if (!st->TileBelongsToAirport(this->tile)) this->Next();
-	}
-
-	AirportTileIterator *Clone() const OVERRIDE
-	{
-		return new AirportTileIterator(*this);
-	}
-};
-
 #endif /* STATION_BASE_H */

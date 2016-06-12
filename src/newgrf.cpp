@@ -722,25 +722,33 @@ EngineID GetNewEngineID(const GRFFile *file, VehicleType type, uint16 internal_i
 }
 
 /**
- * Map the colour modifiers of TTDPatch to those that Open is using.
- * @param grf_sprite Pointer to the structure been modified.
+ * Read a sprite and paletteD from the GRF and map the colour modifiers
+ * of TTDPatch to those that Open is using.
+ * @param buf Input stream.
+ * @param grf_sprite Pointer to the structure to read.
  */
-static void MapSpriteMappingRecolour(PalSpriteID *grf_sprite)
+static void ReadPalSprite (ByteReader *buf, PalSpriteID *grf_sprite)
 {
-	if (HasBit(grf_sprite->pal, 14)) {
-		ClrBit(grf_sprite->pal, 14);
-		SetBit(grf_sprite->sprite, SPRITE_MODIFIER_OPAQUE);
+	SpriteID  sprite = buf->ReadWord();
+	PaletteID pal    = buf->ReadWord();
+
+	if (HasBit(pal, 14)) {
+		ClrBit(pal, 14);
+		SetBit(sprite, SPRITE_MODIFIER_OPAQUE);
 	}
 
-	if (HasBit(grf_sprite->sprite, 14)) {
-		ClrBit(grf_sprite->sprite, 14);
-		SetBit(grf_sprite->sprite, PALETTE_MODIFIER_TRANSPARENT);
+	if (HasBit(sprite, 14)) {
+		ClrBit(sprite, 14);
+		SetBit(sprite, PALETTE_MODIFIER_TRANSPARENT);
 	}
 
-	if (HasBit(grf_sprite->sprite, 15)) {
-		ClrBit(grf_sprite->sprite, 15);
-		SetBit(grf_sprite->sprite, PALETTE_MODIFIER_COLOUR);
+	if (HasBit(sprite, 15)) {
+		ClrBit(sprite, 15);
+		SetBit(sprite, PALETTE_MODIFIER_COLOUR);
 	}
+
+	grf_sprite->sprite = sprite;
+	grf_sprite->pal    = pal;
 }
 
 /**
@@ -762,12 +770,10 @@ static bool ReadSpriteLayoutSprite (ByteReader *buf, bool read_flags,
 	PalSpriteID *grf_sprite, TileLayoutFlags *pflags = NULL,
 	uint16 *max_sprite_offset = NULL, uint16 *max_palette_offset = NULL)
 {
-	grf_sprite->sprite = buf->ReadWord();
-	grf_sprite->pal = buf->ReadWord();
+	ReadPalSprite (buf, grf_sprite);
+
 	TileLayoutFlags flags = read_flags ? (TileLayoutFlags)buf->ReadWord() : TLF_NOTHING;
 	if (pflags != NULL) *pflags = flags;
-
-	MapSpriteMappingRecolour(grf_sprite);
 
 	bool custom_sprite = HasBit(grf_sprite->pal, 15) != invert_action1_flag;
 	ClrBit(grf_sprite->pal, 15);
@@ -1443,7 +1449,7 @@ static ChangeInfoResult RoadVehicleChangeInfo(uint engine, int numinfo, int prop
 				break;
 
 			case 0x12: // SFX
-				rvi->sfx = buf->ReadByte();
+				rvi->sfx = GetNewGRFSoundID(_cur.grffile, buf->ReadByte());
 				break;
 
 			case PROP_ROADVEH_POWER: // Power in units of 10 HP.
@@ -1631,7 +1637,7 @@ static ChangeInfoResult ShipVehicleChangeInfo(uint engine, int numinfo, int prop
 				break;
 
 			case 0x10: // SFX
-				svi->sfx = buf->ReadByte();
+				svi->sfx = GetNewGRFSoundID(_cur.grffile, buf->ReadByte());
 				break;
 
 			case 0x11: { // Cargoes available for refitting
@@ -1799,7 +1805,7 @@ static ChangeInfoResult AircraftVehicleChangeInfo(uint engine, int numinfo, int 
 				break;
 
 			case 0x12: // SFX
-				avi->sfx = buf->ReadByte();
+				avi->sfx = GetNewGRFSoundID(_cur.grffile, buf->ReadByte());
 				break;
 
 			case 0x13: { // Cargoes available for refitting
@@ -2219,13 +2225,7 @@ static ChangeInfoResult BridgeChangeInfo(uint brid, int numinfo, int prop, ByteR
 					}
 
 					for (byte sprite = 0; sprite < 32; sprite++) {
-						SpriteID image = buf->ReadWord();
-						PaletteID pal  = buf->ReadWord();
-
-						bridge->sprite_table[tableid][sprite].sprite = image;
-						bridge->sprite_table[tableid][sprite].pal    = pal;
-
-						MapSpriteMappingRecolour(&bridge->sprite_table[tableid][sprite]);
+						ReadPalSprite (buf, &bridge->sprite_table[tableid][sprite]);
 					}
 				}
 				break;
@@ -2254,6 +2254,11 @@ static ChangeInfoResult BridgeChangeInfo(uint brid, int numinfo, int prop, ByteR
 
 			case 0x13: // 16 bits cost multiplier
 				bridge->price = buf->ReadWord();
+				break;
+
+			case 0x14: // purchase sprite
+				bridge->sprite = buf->ReadWord();
+				bridge->pal    = buf->ReadWord();
 				break;
 
 			default:
@@ -6466,8 +6471,8 @@ static int SafeParamSet (ByteReader *buf)
 {
 	uint8 target = buf->ReadByte();
 
-	/* Only writing GRF parameters is considered safe */
-	if (target < 0x80) return 0;
+	/* Writing GRF parameters and some bits of 'misc GRF features' are safe. */
+	if (target < 0x80 || target == 0x9E) return 0;
 
 	/* GRM could be unsafe, but as here it can only happen after other GRFs
 	 * are loaded, it should be okay. If the GRF tried to use the slots it
@@ -6885,7 +6890,15 @@ static int ParamSet (ByteReader *buf)
 			/* Remove the local flags from the global flags */
 			ClrBit(res, GMB_TRAIN_WIDTH_32_PIXELS);
 
-			_misc_grf_features = res;
+			/* Only copy safe bits for static grfs */
+			if (HasBit(_cur.grfconfig->flags, GCF_STATIC)) {
+				uint32 safe_bits = 0;
+				SetBit(safe_bits, GMB_SECOND_ROCKY_TILE_SET);
+
+				_misc_grf_features = (_misc_grf_features & ~safe_bits) | (res & safe_bits);
+			} else {
+				_misc_grf_features = res;
+			}
 			break;
 
 		case 0x9F: // locale-dependent settings

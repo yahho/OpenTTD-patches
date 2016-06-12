@@ -233,7 +233,7 @@ static void MakeSortedSaveGameList()
 
 struct SaveLoadWindow : public Window {
 private:
-	QueryString filename_editbox; ///< Filename editbox.
+	QueryStringN<64> filename_editbox; ///< Filename editbox.
 	FiosItem o_dir;
 	const FiosItem *selected;
 	Scrollbar *vscroll;
@@ -247,7 +247,7 @@ public:
 	}
 
 	SaveLoadWindow (const WindowDesc *desc, SaveLoadDialogMode mode)
-		: Window (desc), filename_editbox (64), o_dir(),
+		: Window (desc), filename_editbox(), o_dir(),
 		  selected (NULL), vscroll (NULL)
 	{
 		static const StringID saveload_captions[] = {

@@ -127,7 +127,8 @@ struct IConsoleLine {
 
 
 /* ** main console cmd buffer ** */
-static Textbuf _iconsole_cmdline(ICON_CMDLN_SIZE);
+static char _iconsole_buffer [ICON_CMDLN_SIZE];
+static Textbuf _iconsole_cmdline (lengthof(_iconsole_buffer), _iconsole_buffer);
 static char *_iconsole_history[ICON_HISTORY_SIZE];
 static int _iconsole_historypos;
 IConsoleModes _iconsole_mode;
@@ -348,10 +349,10 @@ struct IConsoleWindow : Window
 	{
 		int delta = min(this->width - this->line_offset - _iconsole_cmdline.pixels - ICON_RIGHT_BORDERWIDTH, 0);
 
-		Point p1 = GetCharPosInString(_iconsole_cmdline.GetText(), from, FS_NORMAL);
-		Point p2 = from != to ? GetCharPosInString(_iconsole_cmdline.GetText(), from) : p1;
+		int x1, x2;
+		_iconsole_cmdline.GetCharPositions (from, &x1, to, &x2);
 
-		Rect r = {this->line_offset + delta + p1.x, this->height - this->line_height, this->line_offset + delta + p2.x, this->height};
+		Rect r = { this->line_offset + delta + x1, this->height - this->line_height, this->line_offset + delta + x2, this->height };
 		return r;
 	}
 
@@ -361,7 +362,7 @@ struct IConsoleWindow : Window
 
 		if (!IsInsideMM(pt.y, this->height - this->line_height, this->height)) return NULL;
 
-		return GetCharAtPosition(_iconsole_cmdline.GetText(), pt.x - delta);
+		return _iconsole_cmdline.GetCharAtPosition (pt.x - delta);
 	}
 
 	virtual void OnMouseWheel(int wheel)

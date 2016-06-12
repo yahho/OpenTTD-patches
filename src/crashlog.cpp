@@ -183,9 +183,9 @@ static void LogConfiguration (stringb *buffer)
 #	include <ft2build.h>
 #	include FT_FREETYPE_H
 #endif /* WITH_FREETYPE */
-#ifdef WITH_ICU
+#if defined(WITH_ICU_LAYOUT) || defined(WITH_ICU_SORT)
 #	include <unicode/uversion.h>
-#endif /* WITH_ICU */
+#endif /* WITH_ICU_SORT || WITH_ICU_LAYOUT */
 #ifdef WITH_LZMA
 #	include <lzma.h>
 #endif
@@ -226,14 +226,19 @@ static void LogLibraries (stringb *buffer)
 	buffer->append_fmt (" FreeType:   %d.%d.%d\n", major, minor, patch);
 #endif /* WITH_FREETYPE */
 
-#ifdef WITH_ICU
+#if defined(WITH_ICU_LAYOUT) || defined(WITH_ICU_SORT)
 	/* 4 times 0-255, separated by dots (.) and a trailing '\0' */
 	char buf[4 * 3 + 3 + 1];
 	UVersionInfo ver;
 	u_getVersion(ver);
 	u_versionToString(ver, buf);
-	buffer->append_fmt (" ICU:        %s\n", buf);
-#endif /* WITH_ICU */
+#ifdef WITH_ICU_SORT
+	buffer->append_fmt (" ICU i18n:   %s\n", buf);
+#endif
+#ifdef WITH_ICU_LAYOUT
+	buffer->append_fmt (" ICU lx:     %s\n", buf);
+#endif
+#endif /* WITH_ICU_SORT || WITH_ICU_LAYOUT */
 
 #ifdef WITH_LZMA
 	buffer->append_fmt (" LZMA:       %s\n", lzma_version_string());

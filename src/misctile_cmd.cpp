@@ -98,12 +98,11 @@ static void DrawTunnel(TileInfo *ti)
 	/* PBS debugging, draw reserved tracks darker */
 	if (_game_mode != GM_MENU && _settings_client.gui.show_track_reservation && (transport_type == TRANSPORT_RAIL && HasTunnelHeadReservation(ti->tile))) {
 		const RailtypeInfo *rti = GetRailTypeInfo(GetRailType(ti->tile));
-		if (rti->UsesOverlay()) {
-			SpriteID overlay = GetCustomRailSprite(rti, ti->tile, RTSG_OVERLAY);
-			DrawGroundSprite(overlay + RTO_X + DiagDirToAxis(tunnelbridge_direction), PALETTE_CRASH);
-		} else {
-			DrawGroundSprite(DiagDirToAxis(tunnelbridge_direction) == AXIS_X ? rti->base_sprites.single_x : rti->base_sprites.single_y, PALETTE_CRASH);
-		}
+		Axis axis = DiagDirToAxis (tunnelbridge_direction);
+		SpriteID image = rti->UsesOverlay() ?
+				GetCustomRailSprite (rti, ti->tile, RTSG_OVERLAY) + RTO_X + axis :
+				rti->base_sprites.single[AxisToTrack(axis)];
+		DrawGroundSprite (image, PALETTE_CRASH);
 	}
 
 	if (transport_type == TRANSPORT_ROAD) {
@@ -128,7 +127,7 @@ static void DrawTunnel(TileInfo *ti)
 			if (surface != 0) DrawGroundSprite(surface + tunnelbridge_direction, PAL_NONE);
 		}
 
-		if (HasCatenaryDrawn(GetRailType(ti->tile))) {
+		if (HasCatenaryDrawn (rti)) {
 			/* Maybe draw pylons on the entry side */
 			DrawCatenary(ti);
 
@@ -171,12 +170,9 @@ static void DrawTunnel(TileInfo *ti)
 				sprite += (type == SIGTYPE_NORMAL ? SIGTYPE_NORMAL * 16 : SIGTYPE_PBS_ONEWAY * 16 + 64) + variant * 64 + image * 2 + condition;
 			}
 
-			bool side;
-			switch (_settings_game.construction.train_signal_side) {
-				case 0:  side = false;                                 break; // left
-				case 2:  side = true;                                  break; // right
-				default: side = _settings_game.vehicle.road_side != 0; break; // driving side
-			}
+			bool side = (_settings_game.construction.train_signal_side +
+					(_settings_game.vehicle.road_side != 0)) > 1;
+
 			uint x = TileX(ti->tile) * TILE_SIZE + SignalData[dd].pos[inwards][side].x;
 			uint y = TileY(ti->tile) * TILE_SIZE + SignalData[dd].pos[inwards][side].y;
 
@@ -199,6 +195,18 @@ static void DrawTunnel(TileInfo *ti)
 	DrawBridgeMiddle(ti);
 }
 
+static void DrawTrainDepotGroundSprite (DiagDirection dir, SpriteID image_x,
+	SpriteID image_y, PaletteID pal)
+{
+	switch (dir) {
+		case DIAGDIR_NE: if (!IsInvisibilitySet (TO_BUILDINGS)) break; // else FALL THROUGH
+		case DIAGDIR_SW: DrawGroundSprite (image_x, pal); break;
+		case DIAGDIR_NW: if (!IsInvisibilitySet (TO_BUILDINGS)) break; // else FALL THROUGH
+		case DIAGDIR_SE: DrawGroundSprite (image_y, pal); break;
+		default: break;
+	}
+}
+
 static void DrawTrainDepot(TileInfo *ti)
 {
 	assert(IsRailDepotTile(ti->tile));
@@ -208,18 +216,15 @@ static void DrawTrainDepot(TileInfo *ti)
 	uint32 palette = COMPANY_SPRITE_COLOUR(GetTileOwner(ti->tile));
 
 	/* draw depot */
-	const DrawTileSprites *dts;
-	PaletteID pal = PAL_NONE;
-	SpriteID relocation;
 
 	if (ti->tileh != SLOPE_FLAT) DrawFoundation(ti, FOUNDATION_LEVELED);
 
-	if (IsInvisibilitySet(TO_BUILDINGS)) {
+	DiagDirection dir = GetGroundDepotDirection (ti->tile);
+
+	const DrawTileSprites *dts = IsInvisibilitySet(TO_BUILDINGS) ?
 		/* Draw rail instead of depot */
-		dts = &_depot_invisible_gfx_table[GetGroundDepotDirection(ti->tile)];
-	} else {
-		dts = &_depot_gfx_table[GetGroundDepotDirection(ti->tile)];
-	}
+		_depot_invisible_gfx_table : _depot_gfx_table;
+	dts = &dts[dir];
 
 	SpriteID image;
 	if (rti->UsesOverlay()) {
@@ -239,48 +244,30 @@ static void DrawTrainDepot(TileInfo *ti)
 		}
 	}
 
-	DrawGroundSprite(image, GroundSpritePaletteTransform(image, pal, palette));
+	DrawGroundSprite (image, GroundSpritePaletteTransform (image, PAL_NONE, palette));
 
 	if (rti->UsesOverlay()) {
 		SpriteID ground = GetCustomRailSprite(rti, ti->tile, RTSG_GROUND);
-
-		switch (GetGroundDepotDirection(ti->tile)) {
-			case DIAGDIR_NE: if (!IsInvisibilitySet(TO_BUILDINGS)) break; // else FALL THROUGH
-			case DIAGDIR_SW: DrawGroundSprite(ground + RTO_X, PAL_NONE); break;
-			case DIAGDIR_NW: if (!IsInvisibilitySet(TO_BUILDINGS)) break; // else FALL THROUGH
-			case DIAGDIR_SE: DrawGroundSprite(ground + RTO_Y, PAL_NONE); break;
-			default: break;
-		}
+		DrawTrainDepotGroundSprite (dir,
+				ground + RTO_X, ground + RTO_Y, PAL_NONE);
 
 		if (_settings_client.gui.show_track_reservation && HasDepotReservation(ti->tile)) {
 			SpriteID overlay = GetCustomRailSprite(rti, ti->tile, RTSG_OVERLAY);
-
-			switch (GetGroundDepotDirection(ti->tile)) {
-				case DIAGDIR_NE: if (!IsInvisibilitySet(TO_BUILDINGS)) break; // else FALL THROUGH
-				case DIAGDIR_SW: DrawGroundSprite(overlay + RTO_X, PALETTE_CRASH); break;
-				case DIAGDIR_NW: if (!IsInvisibilitySet(TO_BUILDINGS)) break; // else FALL THROUGH
-				case DIAGDIR_SE: DrawGroundSprite(overlay + RTO_Y, PALETTE_CRASH); break;
-				default: break;
-			}
+			DrawTrainDepotGroundSprite (dir,
+					overlay + RTO_X, overlay + RTO_Y, PALETTE_CRASH);
 		}
 	} else {
 		/* PBS debugging, draw reserved tracks darker */
 		if (_game_mode != GM_MENU && _settings_client.gui.show_track_reservation && HasDepotReservation(ti->tile)) {
-			switch (GetGroundDepotDirection(ti->tile)) {
-				case DIAGDIR_NE: if (!IsInvisibilitySet(TO_BUILDINGS)) break; // else FALL THROUGH
-				case DIAGDIR_SW: DrawGroundSprite(rti->base_sprites.single_x, PALETTE_CRASH); break;
-				case DIAGDIR_NW: if (!IsInvisibilitySet(TO_BUILDINGS)) break; // else FALL THROUGH
-				case DIAGDIR_SE: DrawGroundSprite(rti->base_sprites.single_y, PALETTE_CRASH); break;
-				default: break;
-			}
+			DrawTrainDepotGroundSprite (dir,
+					rti->base_sprites.single[TRACK_X], rti->base_sprites.single[TRACK_Y], PALETTE_CRASH);
 		}
 	}
 
+	if (HasCatenaryDrawn (rti)) DrawCatenary (ti);
+
 	int depot_sprite = GetCustomRailSprite(rti, ti->tile, RTSG_DEPOT);
-	relocation = depot_sprite != 0 ? depot_sprite - SPR_RAIL_DEPOT_SE_1 : rti->GetRailtypeSpriteOffset();
-
-	if (HasCatenaryDrawn(GetRailType(ti->tile))) DrawCatenary(ti);
-
+	SpriteID relocation = depot_sprite != 0 ? depot_sprite - SPR_RAIL_DEPOT_SE_1 : rti->GetRailtypeSpriteOffset();
 	DrawRailTileSeq(ti, dts, TO_BUILDINGS, relocation, 0, palette);
 }
 

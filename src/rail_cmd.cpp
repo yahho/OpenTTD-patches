@@ -2950,12 +2950,9 @@ static void DrawTrackBitsNonOverlay(TileInfo *ti, TrackBits track, const Railtyp
 
 	/* Draw track pieces individually for junction tiles */
 	if (junction) {
-		if (track & TRACK_BIT_X)     DrawGroundSprite(rti->base_sprites.single_x, PAL_NONE);
-		if (track & TRACK_BIT_Y)     DrawGroundSprite(rti->base_sprites.single_y, PAL_NONE);
-		if (track & TRACK_BIT_UPPER) DrawGroundSprite(rti->base_sprites.single_n, PAL_NONE);
-		if (track & TRACK_BIT_LOWER) DrawGroundSprite(rti->base_sprites.single_s, PAL_NONE);
-		if (track & TRACK_BIT_LEFT)  DrawGroundSprite(rti->base_sprites.single_w, PAL_NONE);
-		if (track & TRACK_BIT_RIGHT) DrawGroundSprite(rti->base_sprites.single_e, PAL_NONE);
+		for (Track t = TRACK_BEGIN; t < TRACK_END; t++) {
+			if (HasBit (track, t)) DrawGroundSprite (rti->base_sprites.single[t], PAL_NONE);
+		}
 	}
 
 	/* PBS debugging, draw reserved tracks darker */
@@ -2963,23 +2960,21 @@ static void DrawTrackBitsNonOverlay(TileInfo *ti, TrackBits track, const Railtyp
 		/* Get reservation, but mask track on halftile slope */
 		TrackBits pbs = GetRailReservationTrackBits(ti->tile) & track;
 		if (pbs & TRACK_BIT_X) {
-			if (ti->tileh == SLOPE_FLAT || ti->tileh == SLOPE_ELEVATED) {
-				DrawGroundSprite(rti->base_sprites.single_x, PALETTE_CRASH);
-			} else {
-				DrawGroundSprite(_track_sloped_sprites[ti->tileh - 1] + rti->base_sprites.single_sloped - 20, PALETTE_CRASH);
-			}
+			SpriteID image = (ti->tileh == SLOPE_FLAT || ti->tileh == SLOPE_ELEVATED) ?
+					rti->base_sprites.single[TRACK_X] :
+					_track_sloped_sprites[ti->tileh - 1] + rti->base_sprites.single_sloped - 20;
+			DrawGroundSprite (image, PALETTE_CRASH);
 		}
 		if (pbs & TRACK_BIT_Y) {
-			if (ti->tileh == SLOPE_FLAT || ti->tileh == SLOPE_ELEVATED) {
-				DrawGroundSprite(rti->base_sprites.single_y, PALETTE_CRASH);
-			} else {
-				DrawGroundSprite(_track_sloped_sprites[ti->tileh - 1] + rti->base_sprites.single_sloped - 20, PALETTE_CRASH);
-			}
+			SpriteID image = (ti->tileh == SLOPE_FLAT || ti->tileh == SLOPE_ELEVATED) ?
+					rti->base_sprites.single[TRACK_Y] :
+					_track_sloped_sprites[ti->tileh - 1] + rti->base_sprites.single_sloped - 20;
+			DrawGroundSprite (image, PALETTE_CRASH);
 		}
-		if (pbs & TRACK_BIT_UPPER) DrawGroundSprite(rti->base_sprites.single_n, PALETTE_CRASH, NULL, 0, ti->tileh & SLOPE_N ? -(int)TILE_HEIGHT : 0);
-		if (pbs & TRACK_BIT_LOWER) DrawGroundSprite(rti->base_sprites.single_s, PALETTE_CRASH, NULL, 0, ti->tileh & SLOPE_S ? -(int)TILE_HEIGHT : 0);
-		if (pbs & TRACK_BIT_LEFT)  DrawGroundSprite(rti->base_sprites.single_w, PALETTE_CRASH, NULL, 0, ti->tileh & SLOPE_W ? -(int)TILE_HEIGHT : 0);
-		if (pbs & TRACK_BIT_RIGHT) DrawGroundSprite(rti->base_sprites.single_e, PALETTE_CRASH, NULL, 0, ti->tileh & SLOPE_E ? -(int)TILE_HEIGHT : 0);
+		if (pbs & TRACK_BIT_UPPER) DrawGroundSprite (rti->base_sprites.single[TRACK_UPPER], PALETTE_CRASH, NULL, 0, ti->tileh & SLOPE_N ? -(int)TILE_HEIGHT : 0);
+		if (pbs & TRACK_BIT_LOWER) DrawGroundSprite (rti->base_sprites.single[TRACK_LOWER], PALETTE_CRASH, NULL, 0, ti->tileh & SLOPE_S ? -(int)TILE_HEIGHT : 0);
+		if (pbs & TRACK_BIT_LEFT)  DrawGroundSprite (rti->base_sprites.single[TRACK_LEFT],  PALETTE_CRASH, NULL, 0, ti->tileh & SLOPE_W ? -(int)TILE_HEIGHT : 0);
+		if (pbs & TRACK_BIT_RIGHT) DrawGroundSprite (rti->base_sprites.single[TRACK_RIGHT], PALETTE_CRASH, NULL, 0, ti->tileh & SLOPE_E ? -(int)TILE_HEIGHT : 0);
 	}
 }
 
@@ -3034,7 +3029,7 @@ static void DrawHalftileNonOverlay(TileInfo *ti, Corner corner, const RailtypeIn
 
 	/* PBS debugging, draw reserved tracks darker */
 	if (_game_mode != GM_MENU && _settings_client.gui.show_track_reservation && HasReservedTracks(ti->tile, CornerToTrackBits(corner))) {
-		DrawGroundSprite(_corner_to_track_sprite[corner] + rti->base_sprites.single_n, PALETTE_CRASH, NULL, 0, 0);
+		DrawGroundSprite (_corner_to_track_sprite[corner] + rti->base_sprites.single[TRACK_UPPER], PALETTE_CRASH, NULL, 0, 0);
 	}
 }
 
@@ -3101,7 +3096,7 @@ static void DrawUpperHalftileNonOverlay(TileInfo *ti, Corner corner, const Railt
 	DrawGroundSprite(image, pal, &_halftile_sub_sprite_upper[corner]);
 
 	if (_game_mode != GM_MENU && _settings_client.gui.show_track_reservation && HasReservedTracks(ti->tile, CornerToTrackBits(corner))) {
-		DrawGroundSprite(_corner_to_track_sprite[corner] + rti->base_sprites.single_n, PALETTE_CRASH, NULL, 0, -(int)TILE_HEIGHT);
+		DrawGroundSprite (_corner_to_track_sprite[corner] + rti->base_sprites.single[TRACK_UPPER], PALETTE_CRASH, NULL, 0, -(int)TILE_HEIGHT);
 	}
 }
 
@@ -3203,129 +3198,123 @@ static void DrawTrack(TileInfo *ti, TrackBits track)
  * Get surface height in point (x,y)
  * On tiles with halftile foundations move (x,y) to a safe point wrt. track
  */
-static uint GetSafeSlopePixelZ(TileIndex tile, uint x, uint y, Track track)
+static uint GetSafeSlopePixelZ (TileIndex tile, uint x, uint y, Track track,
+	DiagDirection bridge)
 {
+	uint z = 0;
 	switch (track) {
 		case TRACK_UPPER: x &= ~0xF; y &= ~0xF; break;
 		case TRACK_LOWER: x |=  0xF; y |=  0xF; break;
 		case TRACK_LEFT:  x |=  0xF; y &= ~0xF; break;
 		case TRACK_RIGHT: x &= ~0xF; y |=  0xF; break;
-		default: break;
+		default:
+			if (bridge != INVALID_DIAGDIR) {
+				z = GetBridgePartialPixelZ (bridge, x & 0xF, y & 0xF);
+			}
+			break;
 	}
 
-	uint z = GetSlopePixelZ_Track(tile, x, y);
-
-	if (IsTileSubtype(tile, TT_BRIDGE) && !IsExtendedRailBridge(tile)) {
-		assert(IsDiagonalTrack(track));
-		z += GetBridgePartialPixelZ(GetTunnelBridgeDirection(tile), x & 0xF, y & 0xF);
-	}
-
-	return z;
+	return z + GetSlopePixelZ_Track (tile, x, y);
 }
 
-static void DrawSingleSignal(TileIndex tile, Trackdir trackdir)
+static inline void DrawSignalPair (TileIndex tile, Track track,
+	DiagDirection bridge = INVALID_DIAGDIR)
 {
 	static const struct {
 		Point pos[2];        // signal position (left side, right side)
 		SignalOffsets image; // offset from base signal sprite
-	} SignalData[] = {
-		{ { {11,  3}, {11, 13} }, SIGNAL_TO_NORTHEAST }, // TRACKDIR_X_NE
-		{ { { 3,  4}, {13,  4} }, SIGNAL_TO_SOUTHEAST }, // TRACKDIR_Y_SE
-		{ { { 1,  0}, {10,  4} }, SIGNAL_TO_EAST      }, // TRACKDIR_UPPER_E
-		{ { {11,  4}, {14, 14} }, SIGNAL_TO_EAST      }, // TRACKDIR_LOWER_E
-		{ { { 8,  5}, {14,  1} }, SIGNAL_TO_SOUTH     }, // TRACKDIR_LEFT_S
-		{ { { 1, 14}, { 4,  6} }, SIGNAL_TO_SOUTH     }, // TRACKDIR_RIGHT_S
-		{ { { 0,  0}, { 0,  0} }, SIGNAL_TO_NORTHEAST }, // TRACKDIR_RVREV_NE
-		{ { { 0,  0}, { 0,  0} }, SIGNAL_TO_NORTHEAST }, // TRACKDIR_RVREV_SE
-		{ { { 4, 13}, { 4,  3} }, SIGNAL_TO_SOUTHWEST }, // TRACKDIR_X_SW
-		{ { {11, 13}, { 3, 11} }, SIGNAL_TO_NORTHWEST }, // TRACKDIR_Y_NW
-		{ { { 3, 10}, { 0,  1} }, SIGNAL_TO_WEST      }, // TRACKDIR_UPPER_W
-		{ { {14, 14}, { 5, 12} }, SIGNAL_TO_WEST      }, // TRACKDIR_LOWER_W
-		{ { {14,  1}, {12, 10} }, SIGNAL_TO_NORTH     }, // TRACKDIR_LEFT_N
-		{ { { 9, 11}, { 1, 14} }, SIGNAL_TO_NORTH     }, // TRACKDIR_RIGHT_N
-	//	{ { { 0,  0}, { 0,  0} }, SIGNAL_TO_NORTHEAST }, // TRACKDIR_RVREV_SW
-	//	{ { { 0,  0}, { 0,  0} }, SIGNAL_TO_NORTHEAST }, // TRACKDIR_RVREV_NW
+	} SignalData[TRACK_END][2] = {
+		{ { { { 4, 13}, { 4,  3} }, SIGNAL_TO_SOUTHWEST }, // TRACK_X
+		  { { {11,  3}, {11, 13} }, SIGNAL_TO_NORTHEAST } },
+		{ { { {11, 13}, { 3, 11} }, SIGNAL_TO_NORTHWEST }, // TRACK_Y
+		  { { { 3,  4}, {13,  4} }, SIGNAL_TO_SOUTHEAST } },
+		{ { { { 3, 10}, { 0,  1} }, SIGNAL_TO_WEST      }, // TRACK_UPPER
+		  { { { 1,  0}, {10,  4} }, SIGNAL_TO_EAST      } },
+		{ { { {14, 14}, { 5, 12} }, SIGNAL_TO_WEST      }, // TRACK_LOWER
+		  { { {11,  4}, {14, 14} }, SIGNAL_TO_EAST      } },
+		{ { { { 8,  5}, {14,  1} }, SIGNAL_TO_SOUTH     }, // TRACK_LEFT
+		  { { {14,  1}, {12, 10} }, SIGNAL_TO_NORTH     } },
+		{ { { { 1, 14}, { 4,  6} }, SIGNAL_TO_SOUTH     }, // TRACK_RIGHT
+		  { { { 9, 11}, { 1, 14} }, SIGNAL_TO_NORTH     } },
 	};
 
-	if (!HasSignalOnTrackdir(tile, trackdir)) return;
+	SignalPair signals = *maptile_signalpair (tile, track);
+	if (!signalpair_has_signals (&signals)) return;
 
-	Track track = TrackdirToTrack(trackdir);
-	SignalType type       = GetSignalType(tile, track);
-	SignalVariant variant = GetSignalVariant(tile, track);
-	SignalState condition = GetSignalStateByTrackdir(tile, trackdir);
+	const RailtypeInfo *rti = GetRailTypeInfo (GetRailType (tile, track));
 
+	SignalType type       = signalpair_get_type (&signals);
+	SignalVariant variant = signalpair_get_variant (&signals);
 	bool show_restricted = (variant == SIG_ELECTRIC) && IsNormalRailTile(tile) && IsRestrictedSignal(tile) && (GetExistingTraceRestrictProgram(tile, track) != NULL);
 
-	SpriteID sprite = GetCustomSignalSprite(GetRailTypeInfo(GetRailType(tile, track)), tile, type, variant, condition);
-	SignalOffsets image = SignalData[trackdir].image;
-	bool is_custom_sprite = (sprite != 0);
-	if (sprite != 0) {
-		sprite += image;
-	} else {
-		/* Normal electric signals are stored in a different sprite block than all other signals. */
-		sprite = (type == SIGTYPE_NORMAL && variant == SIG_ELECTRIC) ? SPR_ORIGINAL_SIGNALS_BASE : SPR_SIGNALS_BASE - 16;
-		sprite += type * 16 + variant * 64 + image * 2 + condition + (IsPbsSignal(type) ? 64 : 0);
-	}
-	uint origin_slot = GetOriginFileSlot(sprite);
-	extern uint _first_user_grf_file_index;
-	extern uint _opengfx_grf_file_index;
-	if (!is_custom_sprite) is_custom_sprite = origin_slot != _opengfx_grf_file_index && (origin_slot >= _first_user_grf_file_index);
+	bool side = (_settings_game.construction.train_signal_side +
+			(_settings_game.vehicle.road_side != 0)) > 1;
 
-	bool side;
-	switch (_settings_game.construction.train_signal_side) {
-		case 0:  side = false;                                 break; // left
-		case 2:  side = true;                                  break; // right
-		default: side = _settings_game.vehicle.road_side != 0; break; // driving side
-	}
-	uint x = TileX(tile) * TILE_SIZE + SignalData[trackdir].pos[side].x;
-	uint y = TileY(tile) * TILE_SIZE + SignalData[trackdir].pos[side].y;
+	bool along = false;
+	do {
+		if (!signalpair_has_signal (&signals, along)) continue;
 
-	if (is_custom_sprite && show_restricted && _settings_client.gui.show_restricted_signal_default) {
-		/* Use duplicate sprite block, instead of GRF-specified signals */
-		sprite = (type == SIGTYPE_NORMAL && variant == SIG_ELECTRIC) ? SPR_DUP_ORIGINAL_SIGNALS_BASE : SPR_DUP_SIGNALS_BASE - 16;
-		sprite += type * 16 + variant * 64 + image * 2 + condition + (IsPbsSignal(type) ? 64 : 0);
-		is_custom_sprite = false;
-	}
+		SignalState condition = signalpair_get_state (&signals, along);
 
-	if (!is_custom_sprite && show_restricted) {
-		if (type == SIGTYPE_PBS || type == SIGTYPE_PBS_ONEWAY) {
-			static const SubSprite lower_part = { -50, -10, 50, 50 };
-			static const SubSprite upper_part = { -50, -50, 50, -11 };
-
-			AddSortableSpriteToDraw(sprite, SPR_TRACERESTRICT_BASE, x, y, 1, 1, BB_HEIGHT_UNDER_BRIDGE, GetSafeSlopePixelZ(tile, x, y, track), false, 0, 0, 0, &lower_part);
-			AddSortableSpriteToDraw(sprite,               PAL_NONE, x, y, 1, 1, BB_HEIGHT_UNDER_BRIDGE, GetSafeSlopePixelZ(tile, x, y, track), false, 0, 0, 0, &upper_part);
+		SpriteID sprite = GetCustomSignalSprite (rti, tile, type, variant, condition);
+		SignalOffsets image = SignalData[track][along].image;
+		bool is_custom_sprite = (sprite != 0);
+		if (sprite != 0) {
+			sprite += image;
 		} else {
-			AddSortableSpriteToDraw(sprite, SPR_TRACERESTRICT_BASE + 1, x, y, 1, 1, BB_HEIGHT_UNDER_BRIDGE, GetSafeSlopePixelZ(tile, x, y, track));
+			/* Normal electric signals are stored in a different sprite block than all other signals. */
+			sprite = (type == SIGTYPE_NORMAL && variant == SIG_ELECTRIC) ? SPR_ORIGINAL_SIGNALS_BASE : SPR_SIGNALS_BASE - 16;
+			sprite += type * 16 + variant * 64 + image * 2 + condition + (IsPbsSignal(type) ? 64 : 0);
 		}
-	} else {
-		AddSortableSpriteToDraw(sprite, PAL_NONE, x, y, 1, 1, BB_HEIGHT_UNDER_BRIDGE, GetSafeSlopePixelZ(tile, x, y, track));
-	}
+		uint origin_slot = GetOriginFileSlot(sprite);
+		extern uint _first_user_grf_file_index;
+		extern uint _opengfx_grf_file_index;
+		if (!is_custom_sprite) is_custom_sprite = origin_slot != _opengfx_grf_file_index && (origin_slot >= _first_user_grf_file_index);
+
+		if (is_custom_sprite && show_restricted && _settings_client.gui.show_restricted_signal_default) {
+			/* Use duplicate sprite block, instead of GRF-specified signals */
+			sprite = (type == SIGTYPE_NORMAL && variant == SIG_ELECTRIC) ? SPR_DUP_ORIGINAL_SIGNALS_BASE : SPR_DUP_SIGNALS_BASE - 16;
+			sprite += type * 16 + variant * 64 + image * 2 + condition + (IsPbsSignal(type) ? 64 : 0);
+			is_custom_sprite = false;
+		}
+
+		uint x = TileX(tile) * TILE_SIZE + SignalData[track][along].pos[side].x;
+		uint y = TileY(tile) * TILE_SIZE + SignalData[track][along].pos[side].y;
+
+		if (!is_custom_sprite && show_restricted) {
+			if (type == SIGTYPE_PBS || type == SIGTYPE_PBS_ONEWAY) {
+				static const SubSprite lower_part = { -50, -10, 50, 50 };
+				static const SubSprite upper_part = { -50, -50, 50, -11 };
+
+				AddSortableSpriteToDraw(sprite, SPR_TRACERESTRICT_BASE, x, y, 1, 1, BB_HEIGHT_UNDER_BRIDGE, GetSafeSlopePixelZ(tile, x, y, track, bridge), false, 0, 0, 0, &lower_part);
+				AddSortableSpriteToDraw(sprite,               PAL_NONE, x, y, 1, 1, BB_HEIGHT_UNDER_BRIDGE, GetSafeSlopePixelZ(tile, x, y, track, bridge), false, 0, 0, 0, &upper_part);
+			} else {
+				AddSortableSpriteToDraw(sprite, SPR_TRACERESTRICT_BASE + 1, x, y, 1, 1, BB_HEIGHT_UNDER_BRIDGE, GetSafeSlopePixelZ(tile, x, y, track, bridge));
+			}
+		} else {
+			AddSortableSpriteToDraw(sprite, PAL_NONE, x, y, 1, 1, BB_HEIGHT_UNDER_BRIDGE, GetSafeSlopePixelZ(tile, x, y, track, bridge));
+		}
+	} while ((along = !along));
 }
 
 static void DrawSignals(TileIndex tile, TrackBits rails)
 {
 	if (rails & TRACK_BIT_Y) {
-		DrawSingleSignal(tile, TRACKDIR_Y_SE);
-		DrawSingleSignal(tile, TRACKDIR_Y_NW);
+		DrawSignalPair (tile, TRACK_Y);
 	} else if (rails & TRACK_BIT_X) {
-		DrawSingleSignal(tile, TRACKDIR_X_NE);
-		DrawSingleSignal(tile, TRACKDIR_X_SW);
+		DrawSignalPair (tile, TRACK_X);
 	} else {
 		if (rails & TRACK_BIT_LEFT) {
-			DrawSingleSignal(tile, TRACKDIR_LEFT_S);
-			DrawSingleSignal(tile, TRACKDIR_LEFT_N);
+			DrawSignalPair (tile, TRACK_LEFT);
 		}
 		if (rails & TRACK_BIT_RIGHT) {
-			DrawSingleSignal(tile, TRACKDIR_RIGHT_S);
-			DrawSingleSignal(tile, TRACKDIR_RIGHT_N);
+			DrawSignalPair (tile, TRACK_RIGHT);
 		}
 		if (rails & TRACK_BIT_UPPER) {
-			DrawSingleSignal(tile, TRACKDIR_UPPER_E);
-			DrawSingleSignal(tile, TRACKDIR_UPPER_W);
+			DrawSignalPair (tile, TRACK_UPPER);
 		}
 		if (rails & TRACK_BIT_LOWER) {
-			DrawSingleSignal(tile, TRACKDIR_LOWER_E);
-			DrawSingleSignal(tile, TRACKDIR_LOWER_W);
+			DrawSignalPair (tile, TRACK_LOWER);
 		}
 	}
 }
@@ -3381,35 +3370,26 @@ static void DrawTile_Track(TileInfo *ti)
 
 		/* PBS debugging, draw reserved tracks darker */
 		if (_game_mode != GM_MENU && _settings_client.gui.show_track_reservation && GetRailReservationTrackBits(ti->tile) != TRACK_BIT_NONE) {
+			int dz = HasBridgeFlatRamp (ti->tileh, DiagDirToAxis (dir)) ? 8 : 0;
+			SpriteID image;
 			if (rti->UsesOverlay()) {
-				SpriteID overlay = GetCustomRailSprite(rti, ti->tile, RTSG_OVERLAY);
-				if (HasBridgeFlatRamp(ti->tileh, DiagDirToAxis(dir))) {
-					AddSortableSpriteToDraw(overlay + RTO_X + DiagDirToAxis(dir), PALETTE_CRASH, ti->x, ti->y, 16, 16, 0, ti->z + 8);
-				} else {
-					AddSortableSpriteToDraw(overlay + RTO_SLOPE_NE + dir, PALETTE_CRASH, ti->x, ti->y, 16, 16, 8, ti->z);
-				}
+				image = GetCustomRailSprite (rti, ti->tile, RTSG_OVERLAY) +
+						(dz != 0 ? RTO_X + DiagDirToAxis (dir) : RTO_SLOPE_NE + dir);
 			} else {
-				if (HasBridgeFlatRamp(ti->tileh, DiagDirToAxis(dir))) {
-					AddSortableSpriteToDraw(DiagDirToAxis(dir) == AXIS_X ? rti->base_sprites.single_x : rti->base_sprites.single_y, PALETTE_CRASH, ti->x, ti->y, 16, 16, 0, ti->z + 8);
-				} else {
-					AddSortableSpriteToDraw(rti->base_sprites.single_sloped + dir, PALETTE_CRASH, ti->x, ti->y, 16, 16, 8, ti->z);
-				}
+				image = (dz != 0) ?
+						rti->base_sprites.single[DiagDirToDiagTrack(dir)] :
+						rti->base_sprites.single_sloped + dir;
 			}
+			AddSortableSpriteToDraw (image, PALETTE_CRASH, ti->x, ti->y, 16, 16, 8 - dz, ti->z + dz);
 		}
 
 		EndSpriteCombine();
 
-		if (HasCatenaryDrawn(GetRailType(ti->tile))) {
+		if (HasCatenaryDrawn (rti)) {
 			DrawCatenary(ti);
 		}
 
-		if (DiagDirToAxis(dir) == AXIS_Y) {
-			DrawSingleSignal(ti->tile, TRACKDIR_Y_SE);
-			DrawSingleSignal(ti->tile, TRACKDIR_Y_NW);
-		} else {
-			DrawSingleSignal(ti->tile, TRACKDIR_X_NE);
-			DrawSingleSignal(ti->tile, TRACKDIR_X_SW);
-		}
+		DrawSignalPair (ti->tile, DiagDirToDiagTrack (dir), dir);
 	}
 
 	DrawBridgeMiddle(ti);

@@ -102,7 +102,7 @@ struct RoadVehicle FINAL : public GroundVehicle<RoadVehicle, VEH_ROAD> {
 	RoadTypes compatible_roadtypes;
 
 	/** We don't want GCC to zero our struct! It already is zeroed and has an index! */
-	RoadVehicle() : GroundVehicleBase() {}
+	RoadVehicle() : GroundVehicle <RoadVehicle, VEH_ROAD> () {}
 	/** We want to 'destruct' the right class. */
 	virtual ~RoadVehicle() { this->PreDestructor(); }
 
@@ -256,48 +256,6 @@ protected: // These functions should not be called outside acceleration code.
 	inline uint16 GetMaxTrackSpeed() const
 	{
 		return 0;
-	}
-
-	/**
-	 * Checks if the vehicle is at a tile that can be sloped.
-	 * @return True if the tile can be sloped.
-	 */
-	inline bool TileMayHaveSlopedTrack() const
-	{
-		TrackStatus ts = GetTileRoadStatus(this->tile, this->compatible_roadtypes);
-		TrackBits trackbits = TrackStatusToTrackBits(ts);
-
-		return trackbits == TRACK_BIT_X || trackbits == TRACK_BIT_Y;
-	}
-
-	/**
-	 * Road vehicles have to use GetSlopePixelZ() to compute their height
-	 * if they are reversing because in that case, their direction
-	 * is not parallel with the road. It is safe to return \c true
-	 * even if it is not reversing.
-	 * @return are we (possibly) reversing?
-	 */
-	inline bool HasToUseGetSlopePixelZ()
-	{
-		const RoadVehicle *rv = this->First();
-
-		/* Check if this vehicle is in the same direction as the road under.
-		 * We already know it has either GVF_GOINGUP_BIT or GVF_GOINGDOWN_BIT set. */
-
-		if (rv->state <= RVSB_TRACKDIR_MASK && IsReversingRoadTrackdir((Trackdir)rv->state)) {
-			/* If the first vehicle is reversing, this vehicle may be reversing too
-			 * (especially if this is the first, and maybe the only, vehicle).*/
-			return true;
-		}
-
-		while (rv != this) {
-			/* If any previous vehicle has different direction,
-			 * we may be in the middle of reversing. */
-			if (this->direction != rv->direction) return true;
-			rv = rv->Next();
-		}
-
-		return false;
 	}
 };
 

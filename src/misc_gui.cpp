@@ -11,6 +11,7 @@
 
 #include "stdafx.h"
 #include "debug.h"
+#include "core/flexarray.h"
 #include "landscape.h"
 #include "error.h"
 #include "gui.h"
@@ -807,7 +808,7 @@ Point QueryString::GetCaretPosition(const Window *w, int wid) const
 	int delta = min(0, (right - left) - this->pixels - 10);
 	if (this->caretxoffs + delta < 0) delta = -this->caretxoffs;
 
-	Point pt = {left + WD_FRAMERECT_LEFT + this->caretxoffs + delta, wi->pos_y + WD_FRAMERECT_TOP};
+	Point pt = {left + WD_FRAMERECT_LEFT + this->caretxoffs + delta, (int)wi->pos_y + WD_FRAMERECT_TOP};
 	return pt;
 }
 
@@ -840,10 +841,10 @@ Rect QueryString::GetBoundingRect(const Window *w, int wid, const char *from, co
 	if (this->caretxoffs + delta < 0) delta = -this->caretxoffs;
 
 	/* Get location of first and last character. */
-	Point p1 = GetCharPosInString(this->GetText(), from, FS_NORMAL);
-	Point p2 = from != to ? GetCharPosInString(this->GetText(), to, FS_NORMAL) : p1;
+	int x1, x2;
+	this->GetCharPositions (from, &x1, to, &x2);
 
-	Rect r = { Clamp(left + p1.x + delta + WD_FRAMERECT_LEFT, left, right), top, Clamp(left + p2.x + delta + WD_FRAMERECT_LEFT, left, right - WD_FRAMERECT_RIGHT), bottom };
+	Rect r = { Clamp (left + x1 + delta + WD_FRAMERECT_LEFT, left, right), top, Clamp (left + x2 + delta + WD_FRAMERECT_LEFT, left, right - WD_FRAMERECT_RIGHT), bottom };
 
 	return r;
 }
@@ -877,7 +878,7 @@ const char *QueryString::GetCharAtPosition(const Window *w, int wid, const Point
 	int delta = min(0, (right - left) - this->pixels - 10);
 	if (this->caretxoffs + delta < 0) delta = -this->caretxoffs;
 
-	return ::GetCharAtPosition(this->GetText(), pt.x - delta - left);
+	return this->Textbuf::GetCharAtPosition (pt.x - delta - left);
 }
 
 void QueryString::ClickEditBox(Window *w, Point pt, int wid, int click_count, bool focus_changed)
@@ -909,19 +910,21 @@ void QueryString::ClickEditBox(Window *w, Point pt, int wid, int click_count, bo
 }
 
 /** Class for the string query window. */
-struct QueryStringWindow : public Window
+struct QueryStringWindow : public Window, FlexArray<char>
 {
 	QueryString editbox;    ///< Editbox.
 	QueryStringFlags flags; ///< Flags controlling behaviour of the window.
+	char data[];            ///< Editbox buffer.
 
+private:
 	QueryStringWindow (StringID str, StringID caption, uint max_bytes, uint max_chars, const WindowDesc *desc, Window *parent, CharSetFilter afilter, QueryStringFlags flags) :
-		Window (desc), editbox (max_bytes, max_chars), flags (QSF_NONE)
+		Window (desc), editbox (max_bytes, this->data, max_chars), flags (QSF_NONE)
 	{
 		GetString (&this->editbox, str);
 		this->editbox.validate (SVS_NONE);
 		this->editbox.UpdateSize();
 
-		if ((flags & QSF_ACCEPT_UNCHANGED) == 0) this->editbox.orig = xstrdup(this->editbox.buffer);
+		if ((flags & QSF_ACCEPT_UNCHANGED) == 0) this->editbox.orig.reset (xstrdup (this->editbox.buffer));
 
 		this->querystrings[WID_QS_TEXT] = &this->editbox;
 		this->editbox.caption = caption;
@@ -935,6 +938,15 @@ struct QueryStringWindow : public Window
 		this->parent = parent;
 
 		this->SetFocusedWidget(WID_QS_TEXT);
+	}
+
+public:
+	static QueryStringWindow *create (StringID str, StringID caption,
+		uint max_bytes, uint max_chars, const WindowDesc *desc,
+		Window *parent, CharSetFilter afilter, QueryStringFlags flags)
+	{
+		return new (max_bytes) QueryStringWindow (str, caption,
+			max_bytes, max_chars, desc, parent, afilter, flags);
 	}
 
 	virtual void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize)
@@ -954,7 +966,7 @@ struct QueryStringWindow : public Window
 
 	void OnOk()
 	{
-		if (this->editbox.orig == NULL || strcmp(this->editbox.c_str(), this->editbox.orig) != 0) {
+		if (!this->editbox.orig || strcmp (this->editbox.c_str(), this->editbox.orig.get()) != 0) {
 			/* If the parent is NULL, the editbox is handled by general function
 			 * HandleOnEditText */
 			if (this->parent != NULL) {
@@ -1029,7 +1041,9 @@ static const WindowDesc _query_string_desc(
 void ShowQueryString(StringID str, StringID caption, uint maxsize, Window *parent, CharSetFilter afilter, QueryStringFlags flags)
 {
 	DeleteWindowByClass(WC_QUERY_STRING);
-	new QueryStringWindow(str, caption, ((flags & QSF_LEN_IN_CHARS) ? MAX_CHAR_LENGTH : 1) * maxsize, maxsize, &_query_string_desc, parent, afilter, flags);
+	QueryStringWindow::create (str, caption,
+		((flags & QSF_LEN_IN_CHARS) ? MAX_CHAR_LENGTH : 1) * maxsize,
+		maxsize, &_query_string_desc, parent, afilter, flags);
 }
 
 /**

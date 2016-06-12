@@ -14,13 +14,12 @@
 
 #include "string.h"
 #include "strings_type.h"
+#include "core/pointer.h"
+#include "core/smallvec_type.hpp"
 
-#ifdef WITH_ICU
-class IcuStringIterator;
-typedef IcuStringIterator StringIterator;
-#else
-class DefaultStringIterator;
-typedef DefaultStringIterator StringIterator;
+#ifdef WITH_ICU_SORT
+#include <unicode/utext.h>
+#include <unicode/brkiter.h>
 #endif
 
 /**
@@ -36,7 +35,7 @@ enum HandleKeyPressResult
 };
 
 /** Helper/buffer for input fields. */
-struct Textbuf : stringp {
+struct Textbuf : stringb {
 	CharSetFilter afilter;    ///< Allowed characters
 	const uint16 max_chars;   ///< the maximum size of the buffer in characters (including terminating '\0')
 	uint16 chars;             ///< the current size of the string in characters (including terminating '\0')
@@ -49,8 +48,7 @@ struct Textbuf : stringp {
 	uint16 markxoffs;         ///< the start position of the marked area in pixels
 	uint16 marklength;        ///< the length of the marked area in pixels
 
-	explicit Textbuf(uint16 max_bytes, uint16 max_chars = UINT16_MAX);
-	~Textbuf();
+	explicit Textbuf (uint16 max_bytes, char *buf, uint16 max_chars = UINT16_MAX);
 
 	void Assign(StringID string);
 	void Assign(const char *text);
@@ -62,15 +60,15 @@ struct Textbuf : stringp {
 	bool InsertChar(uint32 key);
 	bool InsertString(const char *str, bool marked, const char *caret = NULL, const char *insert_location = NULL, const char *replacement_end = NULL);
 
-	bool DeleteChar(uint16 keycode);
-	bool MovePos(uint16 keycode);
+	bool DeleteChar (bool backspace = true, bool word = false);
+	bool MoveLeft (bool word = false);
+	bool MoveRight (bool word = false);
+	bool MoveEnd (void);
 
 	HandleKeyPressResult HandleKeyPress(WChar key, uint16 keycode);
 
 	bool HandleCaret();
 	void UpdateSize();
-
-	void DiscardMarkedText(bool update = true);
 
 	/**
 	 * Get the current text.
@@ -103,10 +101,24 @@ struct Textbuf : stringp {
 		return this->c_str() + this->markpos;
 	}
 
-private:
-	StringIterator *char_iter;
+	void GetCharPositions (const char *c1, int *x1, const char *c2, int *x2) const;
 
-	bool CanDelChar(bool backspace);
+	const char *GetCharAtPosition (int x) const;
+
+private:
+#ifdef WITH_ICU_SORT
+	ttd_unique_ptr<icu::BreakIterator> char_itr; ///< ICU iterator for characters.
+	ttd_unique_ptr<icu::BreakIterator> word_itr; ///< ICU iterator for words.
+	SmallVector<UChar, 32> utf16_str;      ///< UTF-16 copy of the string.
+	SmallVector<size_t, 32> utf16_to_utf8; ///< Mapping from UTF-16 code point position to index in the UTF-8 source string.
+#else
+	size_t cur_pos;     ///< Current iteration position.
+#endif
+
+	void SetString (const char *s);
+	size_t SetCurPosition (size_t pos);
+	size_t Next (bool word);
+	size_t Prev (bool word);
 
 	void DeleteText(uint16 from, uint16 to, bool update);
 

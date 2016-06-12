@@ -616,19 +616,6 @@ template <uint N>
 struct sstring : stringt<sstring_<N> > {
 };
 
-/** Fixed allocated string with (some) built-in bounds checking. */
-struct stringp : stringb {
-	stringp (size_t capacity) : stringb (capacity, xmalloc(capacity))
-	{
-		assert (buffer[0] == '\0'); // should have been set by stringb constructor
-	}
-
-	~stringp()
-	{
-		free (buffer);
-	}
-};
-
 
 /** Convert the md5sum to a hexadecimal string representation, pointer version. */
 template <uint N>

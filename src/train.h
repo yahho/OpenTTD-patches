@@ -104,7 +104,7 @@ struct Train FINAL : public GroundVehicle<Train, VEH_TRAIN> {
 	uint16 wait_counter;
 
 	/** We don't want GCC to zero our struct! It already is zeroed and has an index! */
-	Train() : GroundVehicleBase() {}
+	Train() : GroundVehicle <Train, VEH_TRAIN> () {}
 	/** We want to 'destruct' the right class. */
 	virtual ~Train() { this->PreDestructor(); }
 
@@ -327,26 +327,6 @@ protected: // These functions should not be called outside acceleration code.
 	inline uint16 GetMaxTrackSpeed() const
 	{
 		return GetRailTypeInfo(this->GetTrackRailType())->max_speed;
-	}
-
-	/**
-	 * Checks if the vehicle is at a tile that can be sloped.
-	 * @return True if the tile can be sloped.
-	 */
-	inline bool TileMayHaveSlopedTrack() const
-	{
-		/* Any track that isn't TRACK_X or TRACK_Y cannot be sloped. */
-		return IsDiagonalTrackdir(this->trackdir);
-	}
-
-	/**
-	 * Trains can always use the faster algorithm because they
-	 * have always the same direction as the track under them.
-	 * @return false
-	 */
-	inline bool HasToUseGetSlopePixelZ()
-	{
-		return false;
 	}
 };
 

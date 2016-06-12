@@ -843,7 +843,32 @@ static void controller_set_pos (RoadVehicle *v, int x, int y, bool new_tile, boo
 	v->y_pos = y;
 	v->UpdatePosition();
 
-	int old_z = v->UpdateInclination (new_tile, update_delta);
+	int old_z = v->z_pos;
+
+	if (new_tile) {
+		v->ResetZPosition();
+
+		if (IsRoadTile (v->tile)) {
+			RoadBits bits = GetAllRoadBits (v->tile);
+
+			if (bits == ROAD_X || bits == ROAD_Y) {
+				v->UpdateInclination();
+			}
+		}
+	} else {
+		if (HasBit(v->gv_flags, GVF_GOINGUP_BIT) || HasBit(v->gv_flags, GVF_GOINGDOWN_BIT)) {
+			if ((v->state <= RVSB_TRACKDIR_MASK) && IsReversingRoadTrackdir ((Trackdir)v->state)) {
+				/* In some cases, we have to use GetSlopePixelZ() */
+				v->z_pos = GetSlopePixelZ (v->x_pos, v->y_pos);
+			} else {
+				v->UpdateZPosition();
+			}
+		}
+
+		assert (v->z_pos == GetSlopePixelZ (v->x_pos, v->y_pos));
+	}
+
+	v->UpdateViewport (true, update_delta);
 
 	if (old_z == v->z_pos || _settings_game.vehicle.roadveh_acceleration_model != AM_ORIGINAL) return;
 
@@ -971,6 +996,16 @@ static RoadChoosePathEnum RoadChoosePath (RoadVehicle *v, TileIndex tile,
 	return (RoadChoosePathEnum) DiagDirToDiagTrackdir (enterdir);
 }
 
+/**
+ * Road vehicle entirely entered the depot, update its status, orders, vehicle windows, service it, etc.
+ * @param v Road vehicle that entered a depot.
+ */
+static void RoadVehicleEnterDepot (RoadVehicle *v)
+{
+	SetWindowClassesDirty (WC_ROADVEH_LIST);
+	VehicleEnterDepot (v);
+}
+
 #include "table/roadveh_movement.h"
 
 static bool RoadVehLeaveDepot(RoadVehicle *v, bool first)
@@ -992,7 +1027,7 @@ static bool RoadVehLeaveDepot(RoadVehicle *v, bool first)
 	if (first) {
 		/* We are leaving a depot, but have to go to the exact same one; re-enter */
 		if (v->current_order.IsType(OT_GOTO_DEPOT) && v->tile == v->dest_tile) {
-			VehicleEnterDepot(v);
+			RoadVehicleEnterDepot (v);
 			return true;
 		}
 
@@ -1013,7 +1048,8 @@ static bool RoadVehLeaveDepot(RoadVehicle *v, bool first)
 	v->x_pos = x;
 	v->y_pos = y;
 	v->UpdatePosition();
-	v->UpdateInclination(true, true);
+	v->z_pos = GetSlopePixelZ (x, y);
+	v->UpdateViewport (true, true);
 
 	InvalidateWindowData(WC_VEHICLE_DEPOT, v->tile);
 
@@ -1374,7 +1410,7 @@ static void controller_midtile (RoadVehicle *v, int x, int y, Direction dir)
 				v->state = RVSB_IN_DEPOT;
 				v->vehstatus |= VS_HIDDEN;
 				v->direction = ReverseDir (v->direction);
-				if (v->Next() == NULL) VehicleEnterDepot (v->First());
+				if (v->Next() == NULL) RoadVehicleEnterDepot (v->First());
 
 				InvalidateWindowData (WC_VEHICLE_DEPOT, v->tile);
 			}
@@ -1451,7 +1487,7 @@ static bool controller_standard_stop (RoadVehicle *v)
 		if (new_dir != v->direction) {
 			/* Vehicle is still turning around, so wait. */
 			v->direction = new_dir;
-			v->UpdateInclination (false, true);
+			v->UpdateViewport (true, true);
 			return true;
 		}
 

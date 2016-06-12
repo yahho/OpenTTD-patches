@@ -286,11 +286,6 @@ public:
 		this->Next();
 		return *this;
 	}
-
-	/**
-	 * Allocate a new iterator that is a copy of this one.
-	 */
-	virtual TileIterator *Clone() const = 0;
 };
 
 /** Iterator to iterate over a tile area (rectangle) of the map. */
@@ -329,11 +324,6 @@ public:
 			w(ta.w), rowdiff(TileDiffXY(1, 1) - ta.w), x(ta.w), y(ta.h)
 	{
 	}
-
-	OrthogonalTileIterator *Clone() const OVERRIDE
-	{
-		return new OrthogonalTileIterator(*this);
-	}
 };
 
 /** Iterator to iterate over a diagonal area of the map. */
@@ -354,11 +344,6 @@ protected:
 
 public:
 	DiagonalTileIterator(TileIndex begin, TileIndex end);
-
-	DiagonalTileIterator *Clone() const OVERRIDE
-	{
-		return new DiagonalTileIterator(*this);
-	}
 };
 
 /**
@@ -380,11 +365,6 @@ public:
 	CircularTileIterator (TileIndex tile, uint size);
 
 	CircularTileIterator (const TileArea &ta, uint radius);
-
-	CircularTileIterator *Clone() const OVERRIDE
-	{
-		return new CircularTileIterator(*this);
-	}
 };
 
 

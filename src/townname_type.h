@@ -15,8 +15,6 @@
 #ifndef TOWNNAME_TYPE_H
 #define TOWNNAME_TYPE_H
 
-#include "newgrf_townname.h"
-#include "town_type.h"
 #include <set>
 #include <string>
 
@@ -30,19 +28,12 @@ struct TownNameParams {
 	uint32 grfid; ///< newgrf ID (0 if not used)
 	uint16 type;  ///< town name style
 
-	/**
-	 * Initializes this struct from language ID
-	 * @param town_name town name 'language' ID
-	 */
-	TownNameParams(byte town_name)
+	/** Empty constructor. */
+	TownNameParams (void) : grfid (0), type (0)
 	{
-		extern int _nb_orig_names;
-		bool grf = town_name >= _nb_orig_names;
-		this->grfid = grf ? GetGRFTownNameId(town_name - _nb_orig_names) : 0;
-		this->type = grf ? GetGRFTownNameType(town_name - _nb_orig_names) : SPECSTR_TOWNNAME_START + town_name;
 	}
 
-	TownNameParams(const Town *t);
+	TownNameParams (byte town_name);
 };
 
 #endif /* TOWNNAME_TYPE_H */

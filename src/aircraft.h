@@ -38,7 +38,6 @@ enum AirVehicleFlags {
 
 static const int ROTOR_Z_OFFSET         = 5;    ///< Z Offset between helicopter- and rotorsprite.
 
-void HandleAircraftEnterHangar(Aircraft *v);
 void GetAircraftSpriteSize(EngineID engine, uint &width, uint &height, int &xoffs, int &yoffs, EngineImageType image_type);
 void UpdateAirplanesOnNewStation(const Station *st);
 void UpdateAircraftCache(Aircraft *v, bool update_range = false);

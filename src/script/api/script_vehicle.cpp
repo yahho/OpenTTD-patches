@@ -56,7 +56,7 @@
 	if (!IsValidVehicle(vehicle_id)) return -1;
 
 	const Vehicle *v = ::Vehicle::Get(vehicle_id);
-	return v->IsGroundVehicle() ? v->GetGroundVehicleCache()->cached_total_length : -1;
+	return v->IsGroundVehicle() ? GroundVehicleBase::From(v)->gcache.cached_total_length : -1;
 }
 
 /* static */ VehicleID ScriptVehicle::BuildVehicle(TileIndex depot, EngineID engine_id)

@@ -634,7 +634,7 @@ struct NewGRFWindow : public Window, NewGRFScanCallback {
 	const GRFConfig *avail_sel; ///< Currently selected available grf. \c NULL is none is selected.
 	int avail_pos;              ///< Index of #avail_sel if existing, else \c -1.
 	StringFilter string_filter; ///< Filter for available grf.
-	QueryString filter_editbox; ///< Filter editbox;
+	QueryStringN<EDITBOX_MAX_SIZE> filter_editbox; ///< Filter editbox;
 
 	GRFConfig *actives;         ///< Temporary active grf list to which changes are made.
 	GRFConfig *active_sel;      ///< Selected active grf item.
@@ -652,7 +652,7 @@ struct NewGRFWindow : public Window, NewGRFScanCallback {
 	NewGRFWindow (const WindowDesc *desc, bool editable, bool show_params, bool execute, GRFConfig **orig_list) :
 		Window (desc), NewGRFScanCallback(),
 		avails(), avail_sel (NULL), avail_pos (-1),
-		string_filter(), filter_editbox (EDITBOX_MAX_SIZE),
+		string_filter(), filter_editbox(),
 		actives (NULL), active_sel (NULL), orig_list (orig_list),
 		editable (editable), show_params (show_params),
 		execute (execute), preset (-1), active_over (-1)
@@ -2055,7 +2055,7 @@ static const WindowDesc _save_preset_desc(
 
 /** Class for the save preset window. */
 struct SavePresetWindow : public Window {
-	QueryString presetname_editbox; ///< Edit box of the save preset.
+	QueryStringN<32> presetname_editbox; ///< Edit box of the save preset.
 	GRFPresetList presets; ///< Available presets.
 	Scrollbar *vscroll; ///< Pointer to the scrollbar widget.
 	int selected; ///< Selected entry in the preset list, or \c -1 if none selected.
@@ -2065,7 +2065,7 @@ struct SavePresetWindow : public Window {
 	 * @param initial_text Initial text to display in the edit box, or \c NULL.
 	 */
 	SavePresetWindow (const char *initial_text) :
-		Window (&_save_preset_desc), presetname_editbox (32),
+		Window (&_save_preset_desc), presetname_editbox(),
 		presets(), vscroll (NULL), selected (-1)
 	{
 		GetGRFPresetList(&this->presets);

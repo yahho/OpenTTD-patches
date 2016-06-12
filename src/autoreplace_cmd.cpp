@@ -252,7 +252,7 @@ static CommandCost GetNewEngineType(const Vehicle *v, const Company *c, bool alw
 
 	bool replace_when_old;
 	e = EngineReplacementForCompany(c, v->engine_type, v->group_id, &replace_when_old);
-	if (!always_replace && replace_when_old && !v->NeedsAutorenewing(c, false)) e = INVALID_ENGINE;
+	if (!always_replace && replace_when_old && !v->NeedsAutorenewing(c)) e = INVALID_ENGINE;
 
 	/* Autoreplace, if engine is available */
 	if (e != INVALID_ENGINE && IsEngineBuildable(e, v->type, _current_company)) {
@@ -260,7 +260,7 @@ static CommandCost GetNewEngineType(const Vehicle *v, const Company *c, bool alw
 	}
 
 	/* Autorenew if needed */
-	if (v->NeedsAutorenewing(c)) e = v->engine_type;
+	if (c->settings.engine_renew && v->NeedsAutorenewing(c)) e = v->engine_type;
 
 	/* Nothing to do or all is fine? */
 	if (e == INVALID_ENGINE || IsEngineBuildable(e, v->type, _current_company)) return CommandCost();

@@ -370,8 +370,9 @@ TownScopeResolver *StationResolverObject::GetTown()
 			bool same_station = this->st->TileBelongsToRailStation(nearby_tile);
 			uint32 res = GB(GetStationGfx(nearby_tile), 1, 2) << 12 | !!perpendicular << 11 | !!same_station << 10;
 
-			if (IsCustomStationSpecIndex(nearby_tile)) {
-				const StationSpecList ssl = BaseStation::GetByTile(nearby_tile)->speclist[GetCustomStationSpecIndex(nearby_tile)];
+			uint spec_index = GetCustomStationSpecIndex (nearby_tile);
+			if (spec_index != 0) {
+				const StationSpecList ssl = BaseStation::GetByTile(nearby_tile)->speclist[spec_index];
 				res |= 1 << (ssl.grfid != grfid ? 9 : 8) | ssl.localidx;
 			}
 			return res;
@@ -858,10 +859,10 @@ bool DrawStationTile(int x, int y, RailType railtype, Axis axis, StationClassID 
 
 const StationSpec *GetStationSpec(TileIndex t)
 {
-	if (!IsCustomStationSpecIndex(t)) return NULL;
+	uint specindex = GetCustomStationSpecIndex(t);
+	if (specindex == 0) return NULL;
 
 	const BaseStation *st = BaseStation::GetByTile(t);
-	uint specindex = GetCustomStationSpecIndex(t);
 	return specindex < st->num_specs ? st->speclist[specindex].spec : NULL;
 }
 

@@ -539,20 +539,23 @@ CommandCost ClearTile_Station(TileIndex tile, DoCommandFlag flags);
  * @param invalid_dirs Prohibited directions for slopes (set of #DiagDirection).
  * @param allowed_z Height allowed for the tile. If allowed_z is negative, it will be set to the height of this tile.
  * @param allow_steep Whether steep slopes are allowed.
- * @param check_bridge Check for the existence of a bridge.
+ * @param check_bridge Minimum allowed height for a bridge, 0 for none.
  * @return The cost in case of success, or an error code if it failed.
  */
-CommandCost CheckBuildableTile(TileIndex tile, uint invalid_dirs, int &allowed_z, bool allow_steep, bool check_bridge = true)
+CommandCost CheckBuildableTile (TileIndex tile, uint invalid_dirs,
+	int &allowed_z, bool allow_steep, int check_bridge = 0)
 {
-	if (check_bridge && HasBridgeAbove(tile)) {
+	int z;
+	Slope tileh = GetTileSlope (tile, &z);
+	z += GetSlopeMaxZ (tileh);
+
+	if (HasBridgeAbove (tile) && ((check_bridge == 0)
+			|| (GetBridgeHeight (GetSouthernBridgeEnd (tile)) < z + check_bridge))) {
 		return_cmd_error(STR_ERROR_MUST_DEMOLISH_BRIDGE_FIRST);
 	}
 
 	CommandCost ret = EnsureNoVehicleOnGround(tile);
 	if (ret.Failed()) return ret;
-
-	int z;
-	Slope tileh = GetTileSlope(tile, &z);
 
 	/* Prohibit building if
 	 *   1) The tile is "steep" (i.e. stretches two height levels).
@@ -564,7 +567,6 @@ CommandCost CheckBuildableTile(TileIndex tile, uint invalid_dirs, int &allowed_z
 	}
 
 	CommandCost cost(EXPENSES_CONSTRUCTION);
-	int flat_z = z + GetSlopeMaxZ(tileh);
 	if (tileh != SLOPE_FLAT) {
 		/* Forbid building if the tile faces a slope in a invalid direction. */
 		for (DiagDirection dir = DIAGDIR_BEGIN; dir != DIAGDIR_END; dir++) {
@@ -578,33 +580,9 @@ CommandCost CheckBuildableTile(TileIndex tile, uint invalid_dirs, int &allowed_z
 	/* The level of this tile must be equal to allowed_z. */
 	if (allowed_z < 0) {
 		/* First tile. */
-		allowed_z = flat_z;
-	} else if (allowed_z != flat_z) {
+		allowed_z = z;
+	} else if (allowed_z != z) {
 		return_cmd_error(STR_ERROR_FLAT_LAND_REQUIRED);
-	}
-
-	return cost;
-}
-
-/**
- * Tries to clear the given area.
- * @param tile_area Area to check.
- * @param flags Operation to perform.
- * @return The cost in case of success, or an error code if it failed.
- */
-CommandCost CheckFlatLand(TileArea tile_area, DoCommandFlag flags)
-{
-	CommandCost cost(EXPENSES_CONSTRUCTION);
-	int allowed_z = -1;
-
-	TILE_AREA_LOOP(tile_cur, tile_area) {
-		CommandCost ret = CheckBuildableTile(tile_cur, 0, allowed_z, true);
-		if (ret.Failed()) return ret;
-		cost.AddCost(ret);
-
-		ret = DoCommand(tile_cur, 0, 0, flags, CMD_LANDSCAPE_CLEAR);
-		if (ret.Failed()) return ret;
-		cost.AddCost(ret);
 	}
 
 	return cost;
@@ -621,9 +599,14 @@ CommandCost CheckFlatLand(TileArea tile_area, DoCommandFlag flags)
  * @param statspec Station spec.
  * @param plat_len Platform length.
  * @param numtracks Number of platforms.
+ * @param layout Station layout.
  * @return The cost in case of success, or an error code if it failed.
  */
-static CommandCost CheckFlatLandRailStation (TileArea tile_area, DoCommandFlag flags, Axis axis, StationID *station, RailType rt, SmallVector<Train *, 4> &affected_vehicles, const StationSpec *statspec, byte plat_len, byte numtracks)
+static CommandCost CheckFlatLandRailStation (TileArea tile_area,
+	DoCommandFlag flags, Axis axis, StationID *station, RailType rt,
+	SmallVector <Train *, 4> &affected_vehicles,
+	const StationSpec *statspec, byte plat_len, byte numtracks,
+	const byte *layout)
 {
 	CommandCost cost(EXPENSES_CONSTRUCTION);
 	int allowed_z = -1;
@@ -632,7 +615,25 @@ static CommandCost CheckFlatLandRailStation (TileArea tile_area, DoCommandFlag f
 	bool slope_cb = statspec != NULL && HasBit(statspec->callback_mask, CBM_STATION_SLOPE_CHECK);
 
 	TILE_AREA_LOOP(tile_cur, tile_area) {
-		CommandCost ret = CheckBuildableTile(tile_cur, invalid_dirs, allowed_z, false);
+		uint check_bridge;
+		if (statspec != NULL) {
+			/* Disallow bridges over custom station tiles for now. */
+			check_bridge = 0;
+		} else {
+			uint dx = TileX (tile_cur) - TileX (tile_area.tile);
+			uint dy = TileY (tile_cur) - TileY (tile_area.tile);
+			uint platform, offset;
+			if (axis == AXIS_X) {
+				platform = dy;
+				offset = dx;
+			} else {
+				platform = dx;
+				offset = dy;
+			}
+			uint gfx = layout[platform * plat_len + offset];
+			check_bridge = (gfx < 2 ? 1 : gfx < 4 ? 2 : 4);
+		}
+		CommandCost ret = CheckBuildableTile (tile_cur, invalid_dirs, allowed_z, false, check_bridge);
 		if (ret.Failed()) return ret;
 		cost.AddCost(ret);
 
@@ -671,7 +672,7 @@ static CommandCost CheckFlatLandRailStation (TileArea tile_area, DoCommandFlag f
 
 				if (GetTrackBits(tile_cur) == TrackToTrackBits(track) && !HasSignalOnTrack(tile_cur, track)) {
 					/* Check for trains having a reservation for this tile. */
-					if (HasBit(GetRailReservationTrackBits(tile_cur), track)) {
+					if (GetRailReservationTrackBits (tile_cur) != TRACK_BIT_NONE) {
 						Train *v = GetTrainForReservation(tile_cur, track);
 						if (v != NULL) {
 							*affected_vehicles.Append() = v;
@@ -711,7 +712,7 @@ static CommandCost CheckFlatLandRoadStop(TileArea tile_area, DoCommandFlag flags
 	int allowed_z = -1;
 
 	TILE_AREA_LOOP(cur_tile, tile_area) {
-		CommandCost ret = CheckBuildableTile(cur_tile, invalid_dirs, allowed_z, !is_drive_through);
+		CommandCost ret = CheckBuildableTile (cur_tile, invalid_dirs, allowed_z, !is_drive_through, 2);
 		if (ret.Failed()) return ret;
 		cost.AddCost(ret);
 
@@ -1179,6 +1180,9 @@ CommandCost CmdBuildRailStation(TileIndex tile_org, DoCommandFlag flags, uint32 
 
 	if (h_org > _settings_game.station.station_spread || w_org > _settings_game.station.station_spread) return CMD_ERROR;
 
+	byte *layout_ptr = AllocaM(byte, numtracks * plat_len);
+	GetStationLayout (layout_ptr, numtracks, plat_len, statspec);
+
 	/* these values are those that will be stored in train_tile and station_platforms */
 	TileArea new_location(tile_org, w_org, h_org);
 
@@ -1186,7 +1190,7 @@ CommandCost CmdBuildRailStation(TileIndex tile_org, DoCommandFlag flags, uint32 
 	StationID est = INVALID_STATION;
 	SmallVector<Train *, 4> affected_vehicles;
 	/* Clear the land below the station. */
-	CommandCost cost = CheckFlatLandRailStation (new_location, flags, axis, &est, rt, affected_vehicles, statspec, plat_len, numtracks);
+	CommandCost cost = CheckFlatLandRailStation (new_location, flags, axis, &est, rt, affected_vehicles, statspec, plat_len, numtracks, layout_ptr);
 	if (cost.Failed()) return cost;
 	/* Add construction expenses. */
 	cost.AddCost((numtracks * _price[PR_BUILD_STATION_RAIL] + _price[PR_BUILD_STATION_RAIL_LENGTH]) * plat_len);
@@ -1223,11 +1227,6 @@ CommandCost CmdBuildRailStation(TileIndex tile_org, DoCommandFlag flags, uint32 
 	}
 
 	if (flags & DC_EXEC) {
-		TileIndexDiff tile_delta;
-		byte *layout_ptr;
-		byte numtracks_orig;
-		Track track;
-
 		st->train_station = new_location;
 		st->AddFacility(FACIL_TRAIN, new_location.tile);
 
@@ -1239,20 +1238,15 @@ CommandCost CmdBuildRailStation(TileIndex tile_org, DoCommandFlag flags, uint32 
 			st->cached_anim_triggers |= statspec->animation.triggers;
 		}
 
-		tile_delta = (axis == AXIS_X ? TileDiffXY(1, 0) : TileDiffXY(0, 1));
-		track = AxisToTrack(axis);
-
-		layout_ptr = AllocaM(byte, numtracks * plat_len);
-		GetStationLayout(layout_ptr, numtracks, plat_len, statspec);
-
-		numtracks_orig = numtracks;
-
 		Company *c = Company::Get(st->owner);
+
+		TileIndexDiff delta_along  = (axis == AXIS_X ? TileDiffXY (1, 0) : TileDiffXY (0, 1));
+		TileIndexDiff delta_across = delta_along ^ TileDiffXY (1, 1); // perpendicular to delta_along
+
 		TileIndex tile_track = tile_org;
-		do {
+		for (uint i = 0; i < numtracks; i++, tile_track += delta_across) {
 			TileIndex tile = tile_track;
-			int w = plat_len;
-			do {
+			for (uint j = 0; j < plat_len; j++, tile += delta_along) {
 				byte layout = *layout_ptr++;
 				if (IsRailStationTile(tile) && HasStationReservation(tile)) {
 					/* Check for trains having a reservation for this tile. */
@@ -1285,7 +1279,7 @@ CommandCost CmdBuildRailStation(TileIndex tile_org, DoCommandFlag flags, uint32 
 
 				if (statspec != NULL) {
 					/* Use a fixed axis for GetPlatformInfo as our platforms / numtracks are always the right way around */
-					uint32 platinfo = GetPlatformInfo(AXIS_X, GetStationGfx(tile), plat_len, numtracks_orig, plat_len - w, numtracks_orig - numtracks, false);
+					uint32 platinfo = GetPlatformInfo (AXIS_X, GetStationGfx(tile), plat_len, numtracks, j, i, false);
 
 					/* As the station is not yet completely finished, the station does not yet exist. */
 					uint16 callback = GetStationCallback(CBID_STATION_TILE_LAYOUT, platinfo, 0, statspec, NULL, tile);
@@ -1300,51 +1294,44 @@ CommandCost CmdBuildRailStation(TileIndex tile_org, DoCommandFlag flags, uint32 
 					/* Trigger station animation -- after building? */
 					TriggerStationAnimation(st, tile, SAT_BUILT);
 				}
+			}
 
-				tile += tile_delta;
-			} while (--w);
-			AddTrackToSignalBuffer(tile_track, track, _current_company);
+			AddTrackToSignalBuffer (tile_track, AxisToTrack(axis), _current_company);
 			YapfNotifyTrackLayoutChange();
-			tile_track += tile_delta ^ TileDiffXY(1, 1); // perpendicular to tile_delta
-		} while (--numtracks);
+		}
 
 		for (uint i = 0; i < affected_vehicles.Length(); ++i) {
 			RestoreTrainReservation(affected_vehicles[i]);
 		}
 
 		/* Check whether we need to expand the reservation of trains already on the station. */
-		TileArea update_reservation_area;
-		if (axis == AXIS_X) {
-			update_reservation_area = TileArea(tile_org, 1, numtracks_orig);
-		} else {
-			update_reservation_area = TileArea(tile_org, numtracks_orig, 1);
-		}
-
-		TILE_AREA_LOOP(tile, update_reservation_area) {
+		TileIndex tile = tile_org;
+		for (uint i = 0; i < numtracks; i++, tile += delta_across) {
 			/* Don't even try to make eye candy parts reserved. */
 			if (IsStationTileBlocked(tile)) continue;
 
-			DiagDirection dir = AxisToDiagDir(axis);
-			TileIndexDiff tile_offset = TileOffsByDiagDir(dir);
-			TileIndex platform_begin = tile;
-			TileIndex platform_end = tile;
+			bool reservation = false;
 
 			/* We can only account for tiles that are reachable from this tile, so ignore primarily blocked tiles while finding the platform begin and end. */
-			for (TileIndex next_tile = platform_begin - tile_offset; IsCompatibleTrainStationTile(next_tile, platform_begin); next_tile -= tile_offset) {
-				platform_begin = next_tile;
+			TileIndex platform_begin = tile;
+			for (;;) {
+				reservation |= HasStationReservation (platform_begin);
+				TileIndex prev = platform_begin - delta_along;
+				if (!IsCompatibleTrainStationTile (prev, platform_begin)) break;
+				platform_begin = prev;
 			}
-			for (TileIndex next_tile = platform_end + tile_offset; IsCompatibleTrainStationTile(next_tile, platform_end); next_tile += tile_offset) {
-				platform_end = next_tile;
+
+			TileIndex platform_end = tile;
+			while (!reservation) {
+				TileIndex next = platform_end + delta_along;
+				if (!IsCompatibleTrainStationTile (next, platform_end)) break;
+				platform_end = next;
+				reservation = HasStationReservation (next);
 			}
 
 			/* If there is at least on reservation on the platform, we reserve the whole platform. */
-			bool reservation = false;
-			for (TileIndex t = platform_begin; !reservation && t <= platform_end; t += tile_offset) {
-				reservation = HasStationReservation(t);
-			}
-
 			if (reservation) {
-				SetRailStationPlatformReservation(platform_begin, dir, true);
+				SetRailStationPlatformReservation (platform_begin, AxisToDiagDir(axis), true);
 			}
 		}
 
@@ -1977,16 +1964,18 @@ CommandCost CmdRemoveRoadStop(TileIndex tile, DoCommandFlag flags, uint32 p1, ui
 
 /**
  * Computes the minimal distance from town's xy to any airport's tile.
- * @param it An iterator over all airport tiles.
+ * @param att Airport tile table
+ * @param airport_tile Airport reference tile
  * @param town_tile town's tile (t->xy)
  * @return minimal manhattan distance from town_tile to any airport's tile
  */
-static uint GetMinimalAirportDistanceToTile(TileIterator &it, TileIndex town_tile)
+static uint GetMinimalAirportDistanceToTile (const AirportTileTable *att,
+	TileIndex airport_tile, TileIndex town_tile)
 {
 	uint mindist = UINT_MAX;
 
-	for (TileIndex cur_tile = it; cur_tile != INVALID_TILE; cur_tile = ++it) {
-		mindist = min(mindist, DistanceManhattan(town_tile, cur_tile));
+	for (AirportTileTableIterator iter (att, airport_tile); iter != INVALID_TILE; ++iter) {
+		mindist = min (mindist, DistanceManhattan (town_tile, iter));
 	}
 
 	return mindist;
@@ -1997,17 +1986,19 @@ static uint GetMinimalAirportDistanceToTile(TileIterator &it, TileIndex town_til
  * The further you get, the less noise you generate.
  * So all those folks at city council can now happily slee...  work in their offices
  * @param as airport information
- * @param it An iterator over all airport tiles.
+ * @param layout Airport layout
+ * @param airport_tile Airport reference tile
  * @param town_tile TileIndex of town's center, the one who will receive the airport's candidature
  * @return the noise that will be generated, according to distance
  */
-uint8 GetAirportNoiseLevelForTown(const AirportSpec *as, TileIterator &it, TileIndex town_tile)
+uint8 GetAirportNoiseLevelForTown (const AirportSpec *as, uint layout,
+	TileIndex airport_tile, TileIndex town_tile)
 {
 	/* 0 cannot be accounted, and 1 is the lowest that can be reduced from town.
 	 * So no need to go any further*/
 	if (as->noise_level < 2) return as->noise_level;
 
-	uint distance = GetMinimalAirportDistanceToTile(it, town_tile);
+	uint distance = GetMinimalAirportDistanceToTile (as->table[layout], airport_tile, town_tile);
 
 	/* The steps for measuring noise reduction are based on the "magical" (and arbitrary) 8 base distance
 	 * adding the town_council_tolerance 4 times, as a way to graduate, depending of the tolerance.
@@ -2028,19 +2019,19 @@ uint8 GetAirportNoiseLevelForTown(const AirportSpec *as, TileIterator &it, TileI
  * Finds the town nearest to given airport. Based on minimal manhattan distance to any airport's tile.
  * If two towns have the same distance, town with lower index is returned.
  * @param as airport's description
- * @param it An iterator over all airport tiles
+ * @param layout Airport layout
+ * @param tile Airport reference tile
  * @return nearest town to airport
  */
-Town *AirportGetNearestTown(const AirportSpec *as, const TileIterator &it)
+Town *AirportGetNearestTown (const AirportSpec *as, uint layout, TileIndex tile)
 {
 	Town *t, *nearest = NULL;
 	uint add = as->size_x + as->size_y - 2; // GetMinimalAirportDistanceToTile can differ from DistanceManhattan by this much
 	uint mindist = UINT_MAX - add; // prevent overflow
+	const AirportTileTable *att = as->table[layout];
 	FOR_ALL_TOWNS(t) {
-		if (DistanceManhattan(t->xy, it) < mindist + add) { // avoid calling GetMinimalAirportDistanceToTile too often
-			TileIterator *copy = it.Clone();
-			uint dist = GetMinimalAirportDistanceToTile(*copy, t->xy);
-			delete copy;
+		if (DistanceManhattan (t->xy, tile) < mindist + add) { // avoid calling GetMinimalAirportDistanceToTile too often
+			uint dist = GetMinimalAirportDistanceToTile (att, tile, t->xy);
 			if (dist < mindist) {
 				nearest = t;
 				mindist = dist;
@@ -2063,9 +2054,8 @@ void UpdateAirportsNoise()
 	FOR_ALL_STATIONS(st) {
 		if (st->airport.tile != INVALID_TILE && st->airport.type != AT_OILRIG) {
 			const AirportSpec *as = st->airport.GetSpec();
-			AirportTileIterator it(st);
-			Town *nearest = AirportGetNearestTown(as, it);
-			nearest->noise_reached += GetAirportNoiseLevelForTown(as, it, nearest->xy);
+			Town *nearest = AirportGetNearestTown (as, st->airport.layout, st->airport.tile);
+			nearest->noise_reached += GetAirportNoiseLevelForTown (as, st->airport.layout, st->airport.tile, nearest->xy);
 		}
 	}
 }
@@ -2163,16 +2153,14 @@ CommandCost CmdBuildAirport(TileIndex tile, DoCommandFlag flags, uint32 p1, uint
 	}
 
 	/* The noise level is the noise from the airport and reduce it to account for the distance to the town center. */
-	AirportTileTableIterator iter(as->table[layout], tile);
-	Town *nearest = AirportGetNearestTown(as, iter);
-	uint newnoise_level = nearest->noise_reached + GetAirportNoiseLevelForTown(as, iter, nearest->xy);
+	Town *nearest = AirportGetNearestTown (as, layout, tile);
+	uint newnoise_level = nearest->noise_reached + GetAirportNoiseLevelForTown (as, layout, tile, nearest->xy);
 
 	if (action == AIRPORT_UPGRADE) {
 		const AirportSpec *old_as = st->airport.GetSpec();
-		AirportTileTableIterator old_iter(old_as->table[st->airport.layout], st->airport.tile);
-		Town *old_nearest = AirportGetNearestTown(old_as, old_iter);
+		Town *old_nearest = AirportGetNearestTown (old_as, st->airport.layout, st->airport.tile);
 		if (old_nearest == nearest) {
-			newnoise_level -= GetAirportNoiseLevelForTown(old_as, old_iter, nearest->xy);
+			newnoise_level -= GetAirportNoiseLevelForTown (old_as, st->airport.layout, st->airport.tile, nearest->xy);
 		}
 	}
 
@@ -2219,11 +2207,10 @@ CommandCost CmdBuildAirport(TileIndex tile, DoCommandFlag flags, uint32 p1, uint
 		if (action == AIRPORT_UPGRADE) {
 			/* delete old airport if upgrading */
 			const AirportSpec *old_as = st->airport.GetSpec();
-			AirportTileTableIterator old_iter(old_as->table[st->airport.layout], st->airport.tile);
-			Town *old_nearest = AirportGetNearestTown(old_as, old_iter);
+			Town *old_nearest = AirportGetNearestTown (old_as, st->airport.layout, st->airport.tile);
 
 			if (old_nearest != nearest) {
-				old_nearest->noise_reached -= GetAirportNoiseLevelForTown(old_as, old_iter, old_nearest->xy);
+				old_nearest->noise_reached -= GetAirportNoiseLevelForTown (old_as, st->airport.layout, st->airport.tile, old_nearest->xy);
 				if (_settings_game.economy.station_noise_level) {
 					SetWindowDirty(WC_TOWN_VIEW, st->town->index);
 				}
@@ -2317,9 +2304,8 @@ static CommandCost RemoveAirport(TileIndex tile, DoCommandFlag flags)
 		/* The noise level is the noise from the airport and reduce it to account for the distance to the town center.
 		 * And as for construction, always remove it, even if the setting is not set, in order to avoid the
 		 * need of recalculation */
-		AirportTileIterator it(st);
-		Town *nearest = AirportGetNearestTown(as, it);
-		nearest->noise_reached -= GetAirportNoiseLevelForTown(as, it, nearest->xy);
+		Town *nearest = AirportGetNearestTown (as, st->airport.layout, st->airport.tile);
+		nearest->noise_reached -= GetAirportNoiseLevelForTown (as, st->airport.layout, st->airport.tile, nearest->xy);
 
 		TILE_AREA_LOOP(tile_cur, st->airport) {
 			if (IsHangarTile(tile_cur)) OrderBackup::Reset(tile_cur, false);
@@ -2445,8 +2431,6 @@ CommandCost CmdBuildDock(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 
 
 		direction = ReverseDiagDir(direction);
 
-		if (HasBridgeAbove(tile)) return_cmd_error(STR_ERROR_MUST_DEMOLISH_BRIDGE_FIRST);
-
 		CommandCost ret = CheckIfAuthorityAllowsNewStation(tile, flags);
 		if (ret.Failed()) return ret;
 
@@ -2455,11 +2439,15 @@ CommandCost CmdBuildDock(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 
 
 		TileIndex tile_cur = tile + TileOffsByDiagDir(direction);
 
-		if (!IsWaterTile(tile_cur) || !IsTileFlat(tile_cur)) {
+		int h;
+		if (!IsWaterTile (tile_cur) || !IsTileFlat (tile_cur, &h)) {
 			return_cmd_error(STR_ERROR_SITE_UNSUITABLE);
 		}
 
-		if (HasBridgeAbove(tile_cur)) return_cmd_error(STR_ERROR_MUST_DEMOLISH_BRIDGE_FIRST);
+		if (HasBridgeAbove (tile_cur)
+				&& (GetBridgeHeight (GetSouthernBridgeEnd (tile_cur)) < h + 2)) {
+			return_cmd_error(STR_ERROR_MUST_DEMOLISH_BRIDGE_FIRST);
+		}
 
 		/* Get the water class of the water tile before it is cleared.*/
 		wc = GetWaterClass (tile_cur);
@@ -2476,8 +2464,6 @@ CommandCost CmdBuildDock(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 
 				dock_tilearea[direction].width, dock_tilearea[direction].height);
 	} else if (slope == SLOPE_FLAT) {
 		if (!HasTileWaterGround(tile)) return_cmd_error(STR_ERROR_SITE_UNSUITABLE);
-
-		if (HasBridgeAbove(tile)) return_cmd_error(STR_ERROR_MUST_DEMOLISH_BRIDGE_FIRST);
 
 		CommandCost ret = CheckIfAuthorityAllowsNewStation(tile, flags);
 		if (ret.Failed()) return ret;
@@ -2702,10 +2688,11 @@ static void DrawTile_Station(TileInfo *ti)
 		roadtypes = ROADTYPES_NONE;
 		total_offset = rti->GetRailtypeSpriteOffset();
 
-		if (IsCustomStationSpecIndex(ti->tile)) {
+		uint spec_index = GetCustomStationSpecIndex (ti->tile);
+		if (spec_index != 0) {
 			/* look for customization */
 			st = BaseStation::GetByTile(ti->tile);
-			statspec = st->speclist[GetCustomStationSpecIndex(ti->tile)].spec;
+			statspec = st->speclist[spec_index].spec;
 
 			if (statspec != NULL) {
 				tile_layout = GetStationGfx(ti->tile);
@@ -2904,12 +2891,12 @@ draw_default_foundation:
 			/* PBS debugging, draw reserved tracks darker */
 			if (_game_mode != GM_MENU && _settings_client.gui.show_track_reservation && HasStationRail(ti->tile) && HasStationReservation(ti->tile)) {
 				const RailtypeInfo *rti = GetRailTypeInfo(GetRailType(ti->tile));
-				DrawGroundSprite(GetRailStationAxis(ti->tile) == AXIS_X ? rti->base_sprites.single_x : rti->base_sprites.single_y, PALETTE_CRASH);
+				DrawGroundSprite (rti->base_sprites.single[GetRailStationTrack(ti->tile)], PALETTE_CRASH);
 			}
 		}
 	}
 
-	if (HasStationRail(ti->tile) && HasCatenaryDrawn(GetRailType(ti->tile))) DrawCatenary(ti);
+	if (HasStationRail (ti->tile) && HasCatenaryDrawn (rti)) DrawCatenary (ti);
 
 	if (HasBit(roadtypes, ROADTYPE_TRAM)) {
 		Axis axis = GetRoadStopAxis(ti->tile); // tram stops are always drive-through
@@ -2923,6 +2910,8 @@ draw_default_foundation:
 	}
 
 	DrawRailTileSeq(ti, t, TO_BUILDINGS, total_offset, relocation, palette);
+
+	DrawBridgeMiddle (ti);
 }
 
 void StationPickerDrawSprite(int x, int y, StationType st, RailType railtype, RoadType roadtype, int image)

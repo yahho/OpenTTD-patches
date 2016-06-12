@@ -2166,6 +2166,28 @@ static void CheckNextTrainTile(Train *v)
 }
 
 /**
+ * Train entirely entered the depot, update its status, orders, vehicle windows, service it, etc.
+ * @param v Train that entered a depot.
+ */
+static void TrainEnterDepot (Train *v)
+{
+	SetWindowClassesDirty (WC_TRAINS_LIST);
+	/* Clear path reservation */
+	SetDepotReservation (v->tile, false);
+	if (_settings_client.gui.show_track_reservation) MarkTileDirtyByTile (v->tile);
+
+	assert (IsSignalBufferEmpty());
+	AddDepotToSignalBuffer (v->tile, v->owner);
+	UpdateSignalsInBuffer();
+	v->wait_counter = 0;
+	v->force_proceed = TFP_NONE;
+	ClrBit(v->flags, VRF_TOGGLE_REVERSE);
+	v->ConsistChanged (CCF_ARRANGE);
+
+	VehicleEnterDepot (v);
+}
+
+/**
  * Will the train stay in the depot the next tick?
  * @param v %Train to check.
  * @return True if it stays in the depot, false otherwise.
@@ -2227,7 +2249,7 @@ static bool CheckTrainStayInDepot(Train *v)
 		/* We need to have a reservation for this to work. */
 		if (HasDepotReservation(v->tile)) return true;
 		SetDepotReservation(v->tile, true);
-		VehicleEnterDepot(v);
+		TrainEnterDepot (v);
 		return true;
 	}
 
@@ -3213,7 +3235,7 @@ static void TrainEnter_Misc(Train *u, TileIndex tile, int x, int y)
 					u->trackdir = TRACKDIR_DEPOT,
 					u->vehstatus |= VS_HIDDEN; // hide it
 					u->direction = ReverseDir(u->direction);
-					if (u->Next() == NULL) VehicleEnterDepot(u->First());
+					if (u->Next() == NULL) TrainEnterDepot (u->First());
 					u->tile = tile;
 
 					InvalidateWindowData(WC_VEHICLE_DEPOT, u->tile);
@@ -3726,7 +3748,29 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 			v->Vehicle::UpdateViewport (true);
 		} else if (new_in_wormhole == WORMHOLE_NONE) {
 			/* update the Z position of the vehicle */
-			int old_z = v->UpdateInclination(enterdir != INVALID_DIAGDIR, false);
+			int old_z = v->z_pos;
+
+			if (enterdir != INVALID_DIAGDIR) {
+				v->ResetZPosition();
+
+				/* Only rail tiles can be sloped, and only
+				 * if they have a single trackbit and it is
+				 * along an axis. */
+				if (IsRailwayTile (v->tile)) {
+					assert_compile (TRACK_BIT_X == 1);
+					assert_compile (TRACK_BIT_Y == 2);
+					if (GetTrackBits (v->tile) < 3) {
+						v->UpdateInclination();
+					}
+				}
+			} else {
+				if (HasBit(v->gv_flags, GVF_GOINGUP_BIT) || HasBit(v->gv_flags, GVF_GOINGDOWN_BIT)) {
+					v->UpdateZPosition();
+				}
+				assert (v->z_pos == GetSlopePixelZ (v->x_pos, v->y_pos));
+			}
+
+			v->UpdateViewport (true, false);
 
 			if (prev == NULL) {
 				/* This is the first vehicle in the train */
@@ -3909,12 +3953,9 @@ static void ChangeTrainDirRandomly(Train *v)
 			v->direction = ChangeDir(v->direction, delta[GB(Random(), 0, 2)]);
 			v->UpdateDeltaXY(v->direction);
 			v->cur_image = v->GetImage(v->direction, EIT_ON_MAP);
-			/* Refrain from updating the z position of the vehicle when on
-			 * a bridge, because UpdateInclination() will put the vehicle under
-			 * the bridge in that case */
 			if (v->trackdir != TRACKDIR_WORMHOLE) {
 				v->UpdatePosition();
-				v->UpdateInclination(false, false);
+				v->UpdateViewport (true, false);
 			}
 		}
 	} while ((v = v->Next()) != NULL);

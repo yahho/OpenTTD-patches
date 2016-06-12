@@ -29,6 +29,7 @@
 #include "vehicle_base.h"
 #include "engine_base.h"
 #include "language.h"
+#include "townnamegen.h"
 #include "townname_func.h"
 #include "string.h"
 #include "company_base.h"
@@ -48,9 +49,9 @@ const LanguageMetadata *_current_language = NULL; ///< The currently loaded lang
 
 TextDirection _current_text_dir; ///< Text direction of the currently selected language.
 
-#ifdef WITH_ICU
+#ifdef WITH_ICU_SORT
 Collator *_current_collator = NULL;               ///< Collator for the language currently in use.
-#endif /* WITH_ICU */
+#endif /* WITH_ICU_SORT */
 
 static uint64 _global_string_params_data[20];     ///< Global array of string parameters. To access, use #SetDParam.
 static WChar _global_string_params_type[20];      ///< Type of parameters stored in #_decode_parameters
@@ -157,7 +158,6 @@ void CopyOutDParam(uint64 *dst, const char **strings, StringID string, int num)
 }
 
 static void AppendStationSpecialString (stringb *buf, int x);
-static void AppendSpecialTownNameString (stringb *buf, int ind, uint32 seed);
 static void AppendSpecialNameString (stringb *buf, int ind, StringParameters *args);
 
 static void FormatString (stringb *buf, const char *str, StringParameters *args, uint case_index = 0, bool game_script = false, bool dry_run = false);
@@ -207,7 +207,7 @@ void AppendStringWithArgs (stringb *buf, StringID string, StringParameters *args
 	switch (tab) {
 		case 4:
 			if (index >= 0xC0 && !game_script) {
-				AppendSpecialTownNameString (buf, index - 0xC0, args->GetInt32());
+				GenerateTownNameString (buf, index - 0xC0, args->GetInt32());
 				return;
 			}
 			break;
@@ -1235,7 +1235,7 @@ static void FormatString (stringb *buf, const char *str_arg, StringParameters *a
 				if (c == NULL) break;
 
 				if (c->name != NULL) {
-					int64 args_array[] = {(uint64)(size_t)c->name};
+					int64 args_array[] = {(int64)(size_t)c->name};
 					StringParameters tmp_params(args_array);
 					AppendStringWithArgs (buf, STR_JUST_RAW_STRING, &tmp_params);
 				} else {
@@ -1261,7 +1261,7 @@ static void FormatString (stringb *buf, const char *str_arg, StringParameters *a
 			case SCC_DEPOT_NAME: { // {DEPOT}
 				VehicleType vt = (VehicleType)args->GetInt32(SCC_DEPOT_NAME);
 				if (vt == VEH_AIRCRAFT) {
-					uint64 args_array[] = {args->GetInt32()};
+					uint64 args_array[] = {(uint64)args->GetInt32()};
 					WChar types_array[] = {SCC_STATION_NAME};
 					StringParameters tmp_params(args_array, 1, types_array);
 					AppendStringWithArgs (buf, STR_FORMAT_DEPOT_NAME_AIRCRAFT, &tmp_params);
@@ -1270,7 +1270,7 @@ static void FormatString (stringb *buf, const char *str_arg, StringParameters *a
 
 				const Depot *d = Depot::Get(args->GetInt32());
 				if (d->name != NULL) {
-					int64 args_array[] = {(uint64)(size_t)d->name};
+					int64 args_array[] = {(int64)(size_t)d->name};
 					StringParameters tmp_params(args_array);
 					AppendStringWithArgs (buf, STR_JUST_RAW_STRING, &tmp_params);
 				} else {
@@ -1286,7 +1286,7 @@ static void FormatString (stringb *buf, const char *str_arg, StringParameters *a
 				if (e == NULL) break;
 
 				if (e->name != NULL && e->IsEnabled()) {
-					int64 args_array[] = {(uint64)(size_t)e->name};
+					int64 args_array[] = {(int64)(size_t)e->name};
 					StringParameters tmp_params(args_array);
 					AppendStringWithArgs (buf, STR_JUST_RAW_STRING, &tmp_params);
 				} else {
@@ -1301,7 +1301,7 @@ static void FormatString (stringb *buf, const char *str_arg, StringParameters *a
 				if (g == NULL) break;
 
 				if (g->name != NULL) {
-					int64 args_array[] = {(uint64)(size_t)g->name};
+					int64 args_array[] = {(int64)(size_t)g->name};
 					StringParameters tmp_params(args_array);
 					AppendStringWithArgs (buf, STR_JUST_RAW_STRING, &tmp_params);
 				} else {
@@ -1338,7 +1338,7 @@ static void FormatString (stringb *buf, const char *str_arg, StringParameters *a
 				if (c == NULL) break;
 
 				if (c->president_name != NULL) {
-					int64 args_array[] = {(uint64)(size_t)c->president_name};
+					int64 args_array[] = {(int64)(size_t)c->president_name};
 					StringParameters tmp_params(args_array);
 					AppendStringWithArgs (buf, STR_JUST_RAW_STRING, &tmp_params);
 				} else {
@@ -1363,7 +1363,7 @@ static void FormatString (stringb *buf, const char *str_arg, StringParameters *a
 				}
 
 				if (st->name != NULL) {
-					int64 args_array[] = {(uint64)(size_t)st->name};
+					int64 args_array[] = {(int64)(size_t)st->name};
 					StringParameters tmp_params(args_array);
 					AppendStringWithArgs (buf, STR_JUST_RAW_STRING, &tmp_params);
 				} else {
@@ -1392,7 +1392,7 @@ static void FormatString (stringb *buf, const char *str_arg, StringParameters *a
 				if (t == NULL) break;
 
 				if (t->name != NULL) {
-					int64 args_array[] = {(uint64)(size_t)t->name};
+					int64 args_array[] = {(int64)(size_t)t->name};
 					StringParameters tmp_params(args_array);
 					AppendStringWithArgs (buf, STR_JUST_RAW_STRING, &tmp_params);
 				} else {
@@ -1406,7 +1406,7 @@ static void FormatString (stringb *buf, const char *str_arg, StringParameters *a
 				if (wp == NULL) break;
 
 				if (wp->name != NULL) {
-					int64 args_array[] = {(uint64)(size_t)wp->name};
+					int64 args_array[] = {(int64)(size_t)wp->name};
 					StringParameters tmp_params(args_array);
 					AppendStringWithArgs (buf, STR_JUST_RAW_STRING, &tmp_params);
 				} else {
@@ -1424,7 +1424,7 @@ static void FormatString (stringb *buf, const char *str_arg, StringParameters *a
 				if (v == NULL) break;
 
 				if (v->name != NULL) {
-					int64 args_array[] = {(uint64)(size_t)v->name};
+					int64 args_array[] = {(int64)(size_t)v->name};
 					StringParameters tmp_params(args_array);
 					AppendStringWithArgs (buf, STR_JUST_RAW_STRING, &tmp_params);
 				} else {
@@ -1450,7 +1450,7 @@ static void FormatString (stringb *buf, const char *str_arg, StringParameters *a
 				if (si == NULL) break;
 
 				if (si->name != NULL) {
-					int64 args_array[] = {(uint64)(size_t)si->name};
+					int64 args_array[] = {(int64)(size_t)si->name};
 					StringParameters tmp_params(args_array);
 					AppendStringWithArgs (buf, STR_JUST_RAW_STRING, &tmp_params);
 				} else {
@@ -1482,10 +1482,6 @@ static void AppendStationSpecialString (stringb *buf, int x)
 	if (x & FACIL_AIRPORT   ) buf->append_utf8 (SCC_PLANE);
 }
 
-static void AppendSpecialTownNameString (stringb *buf, int ind, uint32 seed)
-{
-	GenerateTownNameString (buf, ind, seed);
-}
 
 static const char * const _silly_company_names[] = {
 	"Bloggs Brothers",
@@ -1617,7 +1613,7 @@ static void AppendSpecialNameString (stringb *buf, int ind, StringParameters *ar
 
 	/* town name? */
 	if (IsInsideMM(ind - 6, 0, SPECSTR_TOWNNAME_LAST - SPECSTR_TOWNNAME_START + 1)) {
-		AppendSpecialTownNameString (buf, ind - 6, args->GetInt32());
+		GenerateTownNameString (buf, ind - 6, args->GetInt32());
 		buf->append (" Transport");
 		return;
 	}
@@ -1751,7 +1747,7 @@ bool ReadLanguagePack(const LanguageMetadata *lang)
 	bstrcpy (_config_language_file, c_file);
 	SetCurrentGrfLangID(_current_language->newgrflangid);
 
-#ifdef WITH_ICU
+#ifdef WITH_ICU_SORT
 	/* Delete previous collator. */
 	if (_current_collator != NULL) {
 		delete _current_collator;
@@ -1768,7 +1764,7 @@ bool ReadLanguagePack(const LanguageMetadata *lang)
 		delete _current_collator;
 		_current_collator = NULL;
 	}
-#endif /* WITH_ICU */
+#endif /* WITH_ICU_SORT */
 
 	/* Some lists need to be sorted again after a language change. */
 	ReconsiderGameScriptLanguage();
@@ -2096,7 +2092,7 @@ void CheckForMissingGlyphs(bool base_font, MissingGlyphSearcher *searcher)
 	/* Update the font with cache */
 	LoadStringWidthTable(searcher->Monospace());
 
-#if !defined(WITH_ICU)
+#if !defined(WITH_ICU_LAYOUT)
 	/*
 	 * For right-to-left languages we need the ICU library. If
 	 * we do not have support for that library we warn the user
@@ -2109,5 +2105,5 @@ void CheckForMissingGlyphs(bool base_font, MissingGlyphSearcher *searcher)
 			"Recompile with icu enabled.");
 		ShowErrorMessage(STR_JUST_RAW_STRING, INVALID_STRING_ID, WL_ERROR);
 	}
-#endif
+#endif /* !WITH_ICU_LAYOUT */
 }

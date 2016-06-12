@@ -58,7 +58,8 @@ static uint MAX_CHAT_MESSAGES = 0;        ///< The limit of chat messages to sho
  * The chatbox grows from the bottom so the coordinates are pixels from
  * the left and pixels from the bottom. The height is the maximum height.
  */
-static PointDimension _chatmsg_box;
+static const int _chatmsg_box_x = 10;
+static int _chatmsg_box_y, _chatmsg_box_width, _chatmsg_box_height;
 static uint8 *_chatmessage_backup = NULL; ///< Backup in case text is moved.
 
 /**
@@ -83,14 +84,7 @@ static inline uint GetChatMessageCount()
  */
 void CDECL NetworkAddChatMessage(TextColour colour, uint duration, const char *message, ...)
 {
-	char buf[DRAW_STRING_BUFFER];
 	va_list va;
-
-	va_start(va, message);
-	bstrvfmt (buf, message, va);
-	va_end(va);
-
-	Utf8TrimString(buf, DRAW_STRING_BUFFER);
 
 	uint msg_count = GetChatMessageCount();
 	if (MAX_CHAT_MESSAGES == msg_count) {
@@ -99,7 +93,12 @@ void CDECL NetworkAddChatMessage(TextColour colour, uint duration, const char *m
 	}
 
 	ChatMessage *cmsg = &_chatmsg_list[msg_count++];
-	bstrcpy (cmsg->message, buf);
+
+	va_start(va, message);
+	bstrvfmt (cmsg->message, message, va);
+	va_end(va);
+	Utf8TrimString (cmsg->message, lengthof(cmsg->message));
+
 	cmsg->colour = (colour & TC_IS_PALETTE_COLOUR) ? colour : TC_WHITE;
 	cmsg->remove_time = _realtime_tick + duration * 1000;
 
@@ -109,9 +108,9 @@ void CDECL NetworkAddChatMessage(TextColour colour, uint duration, const char *m
 /** Initialize all font-dependent chat box sizes. */
 void NetworkReInitChatBoxSize()
 {
-	_chatmsg_box.y       = 3 * FONT_HEIGHT_NORMAL;
-	_chatmsg_box.height  = MAX_CHAT_MESSAGES * (FONT_HEIGHT_NORMAL + NETWORK_CHAT_LINE_SPACING) + 2;
-	_chatmessage_backup  = xrealloct (_chatmessage_backup, _chatmsg_box.width * _chatmsg_box.height * Blitter::get()->GetBytesPerPixel());
+	_chatmsg_box_y       = 3 * FONT_HEIGHT_NORMAL;
+	_chatmsg_box_height  = MAX_CHAT_MESSAGES * (FONT_HEIGHT_NORMAL + NETWORK_CHAT_LINE_SPACING) + 2;
+	_chatmessage_backup  = xrealloct (_chatmessage_backup, _chatmsg_box_width * _chatmsg_box_height * Blitter::get()->GetBytesPerPixel());
 }
 
 /** Initialize all buffers of the chat visualisation. */
@@ -120,14 +119,38 @@ void NetworkInitChatMessage()
 	MAX_CHAT_MESSAGES    = _settings_client.gui.network_chat_box_height;
 
 	_chatmsg_list        = xrealloct (_chatmsg_list, _settings_client.gui.network_chat_box_height);
-	_chatmsg_box.x       = 10;
-	_chatmsg_box.width   = _settings_client.gui.network_chat_box_width_pct * _screen.width / 100;
+	_chatmsg_box_width   = _settings_client.gui.network_chat_box_width_pct * _screen.width / 100;
 	NetworkReInitChatBoxSize();
 	_chatmessage_visible = false;
 
 	for (uint i = 0; i < MAX_CHAT_MESSAGES; i++) {
 		_chatmsg_list[i].message[0] = '\0';
 	}
+}
+
+/** Compute the chat area to copy to/from the blitter buffer. */
+static inline bool ComputeChatArea (int *px, int *py, int *pw, int *ph)
+{
+	int y      = _screen.height - _chatmsg_box_y - _chatmsg_box_height;
+	int height = _chatmsg_box_height;
+	if (y < 0) {
+		height = min (height, _screen.height);
+		y = 0;
+	}
+	if (height <= 0) return false;
+	*py = y;
+	*ph = height;
+
+	const int x = _chatmsg_box_x;
+	int width   = _chatmsg_box_width;
+	if (x + width >= _screen.width) {
+		width = _screen.width - x;
+	}
+	if (width <= 0) return false;
+	*px = x;
+	*pw = width;
+
+	return true;
 }
 
 /** Hide the chatbox */
@@ -144,27 +167,18 @@ void NetworkUndrawChatMessage()
 	 * (and now hope this story above makes sense to you ;))
 	 */
 	if (_cursor.visible &&
-			_cursor.draw_pos.x + _cursor.draw_size.x >= _chatmsg_box.x &&
-			_cursor.draw_pos.x <= _chatmsg_box.x + _chatmsg_box.width &&
-			_cursor.draw_pos.y + _cursor.draw_size.y >= _screen.height - _chatmsg_box.y - _chatmsg_box.height &&
-			_cursor.draw_pos.y <= _screen.height - _chatmsg_box.y) {
+			_cursor.draw_pos.x + _cursor.draw_size.x >= _chatmsg_box_x &&
+			_cursor.draw_pos.x <= _chatmsg_box_x + _chatmsg_box_width &&
+			_cursor.draw_pos.y + _cursor.draw_size.y >= _screen.height - _chatmsg_box_y - _chatmsg_box_height &&
+			_cursor.draw_pos.y <= _screen.height - _chatmsg_box_y) {
 		UndrawMouseCursor();
 	}
 
 	if (_chatmessage_visible) {
+		int x, y, width, height;
+		if (!ComputeChatArea (&x, &y, &width, &height)) return;
+
 		Blitter *blitter = Blitter::get();
-		int x      = _chatmsg_box.x;
-		int y      = _screen.height - _chatmsg_box.y - _chatmsg_box.height;
-		int width  = _chatmsg_box.width;
-		int height = _chatmsg_box.height;
-		if (y < 0) {
-			height = max(height + y, min(_chatmsg_box.height, _screen.height));
-			y = 0;
-		}
-		if (x + width >= _screen.width) {
-			width = _screen.width - x;
-		}
-		if (width <= 0 || height <= 0) return;
 
 		_chatmessage_visible = false;
 		/* Put our 'shot' back to the screen */
@@ -213,20 +227,10 @@ void NetworkDrawChatMessage()
 	uint count = GetChatMessageCount();
 	if (count == 0) return;
 
-	int x      = _chatmsg_box.x;
-	int y      = _screen.height - _chatmsg_box.y - _chatmsg_box.height;
-	int width  = _chatmsg_box.width;
-	int height = _chatmsg_box.height;
-	if (y < 0) {
-		height = max(height + y, min(_chatmsg_box.height, _screen.height));
-		y = 0;
-	}
-	if (x + width >= _screen.width) {
-		width = _screen.width - x;
-	}
-	if (width <= 0 || height <= 0) return;
+	int x, y, width, height;
+	if (!ComputeChatArea (&x, &y, &width, &height)) return;
 
-	assert(blitter->BufferSize(width, height) <= (int)(_chatmsg_box.width * _chatmsg_box.height * blitter->GetBytesPerPixel()));
+	assert (blitter->BufferSize (width, height) <= (int)(_chatmsg_box_width * _chatmsg_box_height * blitter->GetBytesPerPixel()));
 
 	/* Make a copy of the screen as it is before painting (for undraw) */
 	blitter->CopyToBuffer(blitter->MoveTo(_screen.dst_ptr, x, y), _chatmessage_backup, width, height);
@@ -241,10 +245,10 @@ void NetworkDrawChatMessage()
 
 	string_height = min(string_height, MAX_CHAT_MESSAGES * (FONT_HEIGHT_NORMAL + NETWORK_CHAT_LINE_SPACING));
 
-	int top = _screen.height - _chatmsg_box.y - string_height - 2;
-	int bottom = _screen.height - _chatmsg_box.y - 2;
+	int bottom = _screen.height - _chatmsg_box_y;
+	int top = bottom - string_height;
 	/* Paint a half-transparent box behind the chat messages */
-	GfxFillRect(_chatmsg_box.x, top - 2, _chatmsg_box.x + _chatmsg_box.width - 1, bottom,
+	GfxFillRect (_chatmsg_box_x, top - 2, _chatmsg_box_x + _chatmsg_box_width - 1, bottom - 1,
 			PALETTE_TO_TRANSPARENT, FILLRECT_RECOLOUR // black, but with some alpha for background
 		);
 
@@ -252,7 +256,7 @@ void NetworkDrawChatMessage()
 	int ypos = bottom - 2;
 
 	for (int i = count - 1; i >= 0; i--) {
-		ypos = DrawStringMultiLine(_chatmsg_box.x + 3, _chatmsg_box.x + _chatmsg_box.width - 1, top, ypos, _chatmsg_list[i].message, _chatmsg_list[i].colour, SA_LEFT | SA_BOTTOM | SA_FORCE) - NETWORK_CHAT_LINE_SPACING;
+		ypos = DrawStringMultiLine (_chatmsg_box_x + 3, _chatmsg_box_x + _chatmsg_box_width - 1, top, ypos, _chatmsg_list[i].message, _chatmsg_list[i].colour, SA_LEFT | SA_BOTTOM | SA_FORCE) - NETWORK_CHAT_LINE_SPACING;
 		if (ypos < top) break;
 	}
 
@@ -284,7 +288,7 @@ struct NetworkChatWindow : public Window {
 	DestType dtype;       ///< The type of destination.
 	StringID dest_string; ///< String representation of the destination.
 	int dest;             ///< The identifier of the destination.
-	QueryString message_editbox; ///< Message editbox.
+	QueryStringN<NETWORK_CHAT_LENGTH> message_editbox; ///< Message editbox.
 
 	/**
 	 * Create a chat input window.
@@ -294,7 +298,7 @@ struct NetworkChatWindow : public Window {
 	 */
 	NetworkChatWindow (const WindowDesc *desc, DestType type, int dest) :
 		Window (desc), dtype (type), dest_string (STR_NULL),
-		dest (dest), message_editbox (NETWORK_CHAT_LENGTH)
+		dest (dest), message_editbox()
 	{
 		this->querystrings[WID_NC_TEXTBOX] = &this->message_editbox;
 		this->message_editbox.cancel_button = WID_NC_CLOSE;

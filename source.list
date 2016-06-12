@@ -91,6 +91,7 @@ textbuf.cpp
 texteff.cpp
 tgp.cpp
 townname.cpp
+townnamegen.cpp
 vehicle.cpp
 vehiclelist.cpp
 viewport.cpp
@@ -339,6 +340,7 @@ town.h
 town_type.h
 townname_func.h
 townname_type.h
+townnamegen.h
 track_func.h
 track_type.h
 train.h
@@ -394,6 +396,7 @@ core/bitmath_func.hpp
 core/endian_func.hpp
 core/endian_type.hpp
 core/enum_type.hpp
+core/flexarray.h
 core/forward_list.h
 core/geometry_func.cpp
 core/geometry_func.hpp
@@ -647,7 +650,6 @@ table/strgen_tables.h
 table/string_colours.h
 ../objs/langs/table/strings.h
 table/town_land.h
-table/townname.h
 table/track_land.h
 table/train_cmd.h
 table/tree_land.h

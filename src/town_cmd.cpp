@@ -10,6 +10,9 @@
 /** @file town_cmd.cpp Handling of town tiles. */
 
 #include "stdafx.h"
+
+#include <bitset>
+
 #include "road_internal.h" /* Cleaning up road bits */
 #include "road_cmd.h"
 #include "landscape.h"
@@ -40,6 +43,7 @@
 #include "subsidy_func.h"
 #include "core/pool_func.hpp"
 #include "town.h"
+#include "townnamegen.h"
 #include "townname_func.h"
 #include "core/random_func.hpp"
 #include "core/backup_type.hpp"
@@ -133,19 +137,6 @@ void Town::PostDestructor(size_t index)
 	FOR_ALL_OBJECTS(o) {
 		if (o->town == NULL) o->town = CalcClosestTownFromTile(o->location.tile);
 	}
-}
-
-/**
- * Assigns town layout. If Random, generates one based on TileHash.
- */
-void Town::InitializeLayout(TownLayout layout)
-{
-	if (layout != TL_RANDOM) {
-		this->layout = layout;
-		return;
-	}
-
-	this->layout = TileHash(TileX(this->xy), TileY(this->xy)) % (NUM_TLS - 1);
 }
 
 /**
@@ -1104,16 +1095,32 @@ static bool GrowTownWithBridge(const Town *t, const TileIndex tile, const DiagDi
 	/* no water tiles in between? */
 	if (bridge_length == 0) return false;
 
-	for (uint8 times = 0; times <= 22; times++) {
-		byte bridge_type = RandomRange(MAX_BRIDGES - 1);
+	std::bitset <MAX_BRIDGES> tried;
+	uint n = MAX_BRIDGES;
+	byte bridge_type = RandomRange (n);
 
+	for (;;) {
 		/* Can we actually build the bridge? */
 		if (DoCommand(tile, bridge_tile, bridge_type | ROADTYPES_ROAD << 8 | TRANSPORT_ROAD << 12 | t->index << 16, CommandFlagsToDCFlags(GetCommandFlags(CMD_BUILD_BRIDGE)), CMD_BUILD_BRIDGE).Succeeded()) {
 			DoCommand(tile, bridge_tile, bridge_type | ROADTYPES_ROAD << 8 | TRANSPORT_ROAD << 12 | t->index << 16, DC_EXEC | CommandFlagsToDCFlags(GetCommandFlags(CMD_BUILD_BRIDGE)), CMD_BUILD_BRIDGE);
 			return true;
 		}
+
+		/* Try a different bridge. */
+		tried[bridge_type] = true;
+		n--;
+		assert (n + tried.count() == MAX_BRIDGES);
+		if (n == 0) break;
+
+		bridge_type = 0;
+		uint i = RandomRange (n);
+		while (tried[bridge_type] || (i-- > 0)) {
+			bridge_type++;
+			assert (bridge_type < MAX_BRIDGES);
+		}
 	}
-	/* Quit if it selecting an appropriate bridge type fails a large number of times. */
+
+	/* Quit if no bridge can be built. */
 	return false;
 }
 
@@ -1447,7 +1454,7 @@ static bool GrowTownFromTile (Town *t, TileIndex tile)
 					continue;
 				}
 
-				if (_settings_game.economy.allow_town_roads) {
+				if (_settings_game.economy.allow_town_roads || _generating_world) {
 					if (GrowTownTileUsable (target_tile)) break;
 				} else {
 					connect_rb = MirrorRoadBits (connect_rb);
@@ -1600,67 +1607,60 @@ void UpdateTownMaxPass(Town *t)
 }
 
 /**
+ * Town constructor.
+ * @param tile Center tile of the town.
+ * @param townnameparts Town name.
+ * @param city Whether the town is a city.
+ * @param layout Road layout of the town.
+ */
+Town::Town (TileIndex tile, uint32 townnameparts, bool city, TownLayout layout) :
+	xy (tile), townnameparams (_settings_game.game_creation.town_name),
+	townnameparts (townnameparts), name (NULL), flags (0),
+	noise_reached (0), statues (0), have_ratings (0), text (NULL),
+	time_until_rebuild (10), grow_counter (0), growth_rate (250),
+	fund_buildings_months (0), larger_town (city)
+{
+	add_to_tileset();
+
+	this->cache.num_houses = 0;
+	this->cache.population = 0;
+	UpdateTownRadius (this);
+
+	this->exclusivity = INVALID_COMPANY;
+	this->exclusive_counter = 0;
+
+	for (uint i = 0; i != MAX_COMPANIES; i++) this->ratings[i] = RATING_INITIAL;
+
+	/* Set the default cargo requirement for town growth */
+	switch (_settings_game.game_creation.landscape) {
+		case LT_ARCTIC:
+			if (FindFirstCargoWithTownEffect(TE_FOOD) != NULL) this->goal[TE_FOOD] = TOWN_GROWTH_WINTER;
+			break;
+
+		case LT_TROPIC:
+			if (FindFirstCargoWithTownEffect(TE_FOOD) != NULL) this->goal[TE_FOOD] = TOWN_GROWTH_DESERT;
+			if (FindFirstCargoWithTownEffect(TE_WATER) != NULL) this->goal[TE_WATER] = TOWN_GROWTH_DESERT;
+			break;
+	}
+
+	this->layout = (layout != TL_RANDOM) ? layout :
+			(TownLayout) (TileHash (TileX(tile), TileY(tile)) % (NUM_TLS - 1));
+}
+
+/**
  * Does the actual town creation.
- *
- * @param t The town
  * @param tile Where to put it
  * @param townnameparts The town name
  * @param size Parameter for size determination
  * @param city whether to build a city or town
  * @param layout the (road) layout of the town
  * @param manual was the town placed manually?
+ * @return The created town
  */
-static void DoCreateTown(Town *t, TileIndex tile, uint32 townnameparts, TownSize size, bool city, TownLayout layout, bool manual)
+static Town *DoCreateTown (TileIndex tile, uint32 townnameparts,
+	TownSize size, bool city, TownLayout layout, bool manual)
 {
-	t->xy = tile;
-	t->cache.num_houses = 0;
-	t->time_until_rebuild = 10;
-	UpdateTownRadius(t);
-	t->flags = 0;
-	t->cache.population = 0;
-	t->grow_counter = 0;
-	t->growth_rate = 250;
-
-	/* Set the default cargo requirement for town growth */
-	switch (_settings_game.game_creation.landscape) {
-		case LT_ARCTIC:
-			if (FindFirstCargoWithTownEffect(TE_FOOD) != NULL) t->goal[TE_FOOD] = TOWN_GROWTH_WINTER;
-			break;
-
-		case LT_TROPIC:
-			if (FindFirstCargoWithTownEffect(TE_FOOD) != NULL) t->goal[TE_FOOD] = TOWN_GROWTH_DESERT;
-			if (FindFirstCargoWithTownEffect(TE_WATER) != NULL) t->goal[TE_WATER] = TOWN_GROWTH_DESERT;
-			break;
-	}
-
-	t->fund_buildings_months = 0;
-
-	for (uint i = 0; i != MAX_COMPANIES; i++) t->ratings[i] = RATING_INITIAL;
-
-	t->have_ratings = 0;
-	t->exclusivity = INVALID_COMPANY;
-	t->exclusive_counter = 0;
-	t->statues = 0;
-
-	extern int _nb_orig_names;
-	if (_settings_game.game_creation.town_name < _nb_orig_names) {
-		/* Original town name */
-		t->townnamegrfid = 0;
-		t->townnametype = SPECSTR_TOWNNAME_START + _settings_game.game_creation.town_name;
-	} else {
-		/* Newgrf town name */
-		t->townnamegrfid = GetGRFTownNameId(_settings_game.game_creation.town_name  - _nb_orig_names);
-		t->townnametype  = GetGRFTownNameType(_settings_game.game_creation.town_name - _nb_orig_names);
-	}
-	t->townnameparts = townnameparts;
-
-	t->UpdateVirtCoord();
-	InvalidateWindowData(WC_TOWN_DIRECTORY, 0, 0);
-	InvalidateWindowData(WC_SELECT_TOWN, 0);
-
-	t->InitializeLayout(layout);
-
-	t->larger_town = city;
+	Town *t = new Town (tile, townnameparts, city, layout);
 
 	int x = (int)size * 16 + 3;
 	if (size == TSZ_RANDOM) x = (Random() & 0xF) + 8;
@@ -1679,31 +1679,37 @@ static void DoCreateTown(Town *t, TileIndex tile, uint32 townnameparts, TownSize
 	UpdateTownRadius(t);
 	UpdateTownMaxPass(t);
 	UpdateAirportsNoise();
+
+	t->UpdateVirtCoord();
+	InvalidateWindowData(WC_TOWN_DIRECTORY, 0, 0);
+	InvalidateWindowData(WC_SELECT_TOWN, 0);
+
+	return t;
 }
 
 /**
  * Checks if it's possible to place a town at given tile
  * @param tile tile to check
- * @return error value or zero cost
+ * @return error string or STR_NULL on success
  */
-static CommandCost TownCanBePlacedHere(TileIndex tile)
+static StringID TownCanBePlacedHere (TileIndex tile)
 {
 	/* Check if too close to the edge of map */
 	if (DistanceFromEdge(tile) < 12) {
-		return_cmd_error(STR_ERROR_TOO_CLOSE_TO_EDGE_OF_MAP_SUB);
+		return STR_ERROR_TOO_CLOSE_TO_EDGE_OF_MAP_SUB;
 	}
 
 	/* Check distance to all other towns. */
 	if (Town::find_any<DistanceManhattan> (tile, 19)) {
-		return_cmd_error(STR_ERROR_TOO_CLOSE_TO_ANOTHER_TOWN);
+		return STR_ERROR_TOO_CLOSE_TO_ANOTHER_TOWN;
 	}
 
 	/* Can only build on clear flat areas, possibly with trees. */
 	if (!IsGroundTile(tile) || !IsTileFlat(tile)) {
-		return_cmd_error(STR_ERROR_SITE_UNSUITABLE);
+		return STR_ERROR_SITE_UNSUITABLE;
 	}
 
-	return CommandCost(EXPENSES_OTHER);
+	return STR_NULL;
 }
 
 /**
@@ -1772,8 +1778,8 @@ CommandCost CmdFoundTown(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 
 	if (!Town::CanAllocateItem()) return_cmd_error(STR_ERROR_TOO_MANY_TOWNS);
 
 	if (!random) {
-		CommandCost ret = TownCanBePlacedHere(tile);
-		if (ret.Failed()) return ret;
+		StringID str = TownCanBePlacedHere (tile);
+		if (str != STR_NULL) return_cmd_error(str);
 	}
 
 	static const byte price_mult[][TSZ_RANDOM + 1] = {{ 15, 25, 40, 25 }, { 20, 35, 55, 35 }};
@@ -1803,8 +1809,7 @@ CommandCost CmdFoundTown(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 
 				_new_town_id = t->index;
 			}
 		} else {
-			t = new Town(tile);
-			DoCreateTown(t, tile, townnameparts, size, city, layout, true);
+			t = DoCreateTown (tile, townnameparts, size, city, layout, true);
 		}
 		UpdateNearestTownForRoadTiles(false);
 		old_generating_world.Restore();
@@ -1921,12 +1926,10 @@ static Town *CreateRandomTown(uint attempts, uint32 townnameparts, TownSize size
 		}
 
 		/* Make sure town can be placed here */
-		if (TownCanBePlacedHere(tile).Failed()) continue;
+		if (TownCanBePlacedHere (tile) != STR_NULL) continue;
 
 		/* Allocate a town struct */
-		Town *t = new Town(tile);
-
-		DoCreateTown(t, tile, townnameparts, size, city, layout, false);
+		Town *t = DoCreateTown (tile, townnameparts, size, city, layout, false);
 
 		/* if the population is still 0 at the point, then the
 		 * placement is so bad it couldn't grow at all */

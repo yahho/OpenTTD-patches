@@ -223,49 +223,52 @@ static int GetRefitCostFactor(const Vehicle *v, EngineID engine_type, CargoID ne
 }
 
 /**
- * Learn the price of refitting a certain engine
+ * Add the price of refitting a certain engine to a given cost.
+ * @param cost The cost to add the price to.
  * @param v The vehicle we are refitting, can be NULL.
  * @param engine_type Which engine to refit
  * @param new_cid Cargo type we are refitting to.
  * @param new_subtype New cargo subtype.
- * @param [out] auto_refit_allowed The refit is allowed as an auto-refit.
- * @return Price for refitting
+ * @param auto_refit Whether this is an auto-refit.
+ * @return Whether refitting succeeded (otherwise, cost is not changed).
  */
-static CommandCost GetRefitCost(const Vehicle *v, EngineID engine_type, CargoID new_cid, byte new_subtype, bool *auto_refit_allowed)
+static bool AddRefitCost (CommandCost *cost, const Vehicle *v,
+	EngineID engine_type, CargoID new_cid, byte new_subtype,
+	bool auto_refit = false)
 {
-	ExpensesType expense_type;
+	bool auto_refit_allowed;
+	int cost_factor = GetRefitCostFactor (v, engine_type, new_cid, new_subtype, &auto_refit_allowed);
+
+	if (auto_refit && !auto_refit_allowed) return false;
+
 	const Engine *e = Engine::Get(engine_type);
 	Price base_price;
-	int cost_factor = GetRefitCostFactor(v, engine_type, new_cid, new_subtype, auto_refit_allowed);
 	switch (e->type) {
 		case VEH_SHIP:
 			base_price = PR_BUILD_VEHICLE_SHIP;
-			expense_type = EXPENSES_SHIP_RUN;
 			break;
 
 		case VEH_ROAD:
 			base_price = PR_BUILD_VEHICLE_ROAD;
-			expense_type = EXPENSES_ROADVEH_RUN;
 			break;
 
 		case VEH_AIRCRAFT:
 			base_price = PR_BUILD_VEHICLE_AIRCRAFT;
-			expense_type = EXPENSES_AIRCRAFT_RUN;
 			break;
 
 		case VEH_TRAIN:
 			base_price = (e->u.rail.railveh_type == RAILVEH_WAGON) ? PR_BUILD_VEHICLE_WAGON : PR_BUILD_VEHICLE_TRAIN;
 			cost_factor <<= 1;
-			expense_type = EXPENSES_TRAIN_RUN;
 			break;
 
 		default: NOT_REACHED();
 	}
-	if (cost_factor < 0) {
-		return CommandCost(expense_type, -GetPrice(base_price, -cost_factor, e->GetGRF(), -10));
-	} else {
-		return CommandCost(expense_type, GetPrice(base_price, cost_factor, e->GetGRF(), -10));
-	}
+
+	bool neg = (cost_factor < 0);
+	Money refit = GetPrice (base_price, neg ? -cost_factor : cost_factor,
+				e->GetGRF(), -10);
+	cost->AddCost (neg ? -refit : refit);
+	return true;
 }
 
 /** Helper structure for RefitVehicle() */
@@ -346,9 +349,8 @@ static CommandCost RefitVehicle(Vehicle *v, bool only_this, uint8 num_vehicles, 
 		v->cargo_type = temp_cid;
 		v->cargo_subtype = temp_subtype;
 
-		bool auto_refit_allowed;
-		CommandCost refit_cost = GetRefitCost(v, v->engine_type, new_cid, actual_subtype, &auto_refit_allowed);
-		if (auto_refit && (flags & DC_QUERY_COST) == 0 && !auto_refit_allowed) {
+		if (!AddRefitCost (&cost, v, v->engine_type, new_cid, actual_subtype,
+				auto_refit && (flags & DC_QUERY_COST) == 0)) {
 			/* Sorry, auto-refitting not allowed, subtract the cargo amount again from the total.
 			 * When querrying cost/capacity (for example in order refit GUI), we always assume 'allowed'.
 			 * It is not predictable. */
@@ -362,7 +364,6 @@ static CommandCost RefitVehicle(Vehicle *v, bool only_this, uint8 num_vehicles, 
 			}
 			continue;
 		}
-		cost.AddCost(refit_cost);
 
 		/* Record the refitting.
 		 * Do not execute the refitting immediately, so DetermineCapacity and GetRefitCost do the same in test and exec run.
@@ -901,8 +902,7 @@ CommandCost CmdCloneVehicle(TileIndex tile, DoCommandFlag flags, uint32 p1, uint
 				CargoID initial_cargo = (e->CanCarryCargo() ? e->GetDefaultCargoType() : (CargoID)CT_INVALID);
 
 				if (v->cargo_type != initial_cargo && initial_cargo != CT_INVALID) {
-					bool dummy;
-					total_cost.AddCost(GetRefitCost(NULL, v->engine_type, v->cargo_type, v->cargo_subtype, &dummy));
+					AddRefitCost (&total_cost, NULL, v->engine_type, v->cargo_type, v->cargo_subtype);
 				}
 			}
 

@@ -317,7 +317,9 @@ static void PrintModuleInfo (stringb *output, HMODULE mod)
 }
 
 #if defined(_MSC_VER)
+#pragma warning(disable:4091)
 #include <dbghelp.h>
+#pragma warning(default:4091)
 
 void CrashLogWindows::AppendDecodedStacktrace (stringb *buffer) const
 {

@@ -10,6 +10,7 @@
 /** @file osk_gui.cpp The On Screen Keyboard GUI */
 
 #include "stdafx.h"
+#include "core/pointer.h"
 #include "string.h"
 #include "strings_func.h"
 #include "debug.h"
@@ -37,7 +38,7 @@ struct OskWindow : public Window {
 	StringID caption;      ///< the caption for this window.
 	QueryString *qs;       ///< text-input
 	int text_btn;          ///< widget number of parent's text field
-	char *orig_str_buf;    ///< Original string.
+	ttd_unique_free_ptr<char> orig_str_buf; ///< Original string.
 	bool shift;            ///< Is the shift effectively pressed?
 
 	OskWindow (const WindowDesc *desc, Window *parent, int button) :
@@ -57,7 +58,7 @@ struct OskWindow : public Window {
 		this->querystrings[WID_OSK_TEXT] = this->qs;
 
 		/* make a copy in case we need to reset later */
-		this->orig_str_buf = xstrdup(this->qs->GetText());
+		this->orig_str_buf.reset (xstrdup (this->qs->GetText()));
 
 		this->InitNested(0);
 		this->SetFocusedWidget(WID_OSK_TEXT);
@@ -66,11 +67,6 @@ struct OskWindow : public Window {
 		this->DisableWidget(WID_OSK_SPECIAL);
 
 		this->UpdateOskState();
-	}
-
-	~OskWindow()
-	{
-		free(this->orig_str_buf);
 	}
 
 	/**
@@ -128,7 +124,7 @@ struct OskWindow : public Window {
 
 		switch (widget) {
 			case WID_OSK_BACKSPACE:
-				if (this->qs->DeleteChar(WKC_BACKSPACE)) this->OnEditboxChanged(WID_OSK_TEXT);
+				if (this->qs->DeleteChar()) this->OnEditboxChanged(WID_OSK_TEXT);
 				break;
 
 			case WID_OSK_SPECIAL:
@@ -156,15 +152,15 @@ struct OskWindow : public Window {
 				break;
 
 			case WID_OSK_LEFT:
-				if (this->qs->MovePos(WKC_LEFT)) this->InvalidateData();
+				if (this->qs->MoveLeft()) this->InvalidateData();
 				break;
 
 			case WID_OSK_RIGHT:
-				if (this->qs->MovePos(WKC_RIGHT)) this->InvalidateData();
+				if (this->qs->MoveRight()) this->InvalidateData();
 				break;
 
 			case WID_OSK_OK:
-				if (this->qs->orig == NULL || strcmp(this->qs->GetText(), this->qs->orig) != 0) {
+				if (!this->qs->orig || strcmp (this->qs->GetText(), this->qs->orig.get()) != 0) {
 					/* pass information by simulating a button press on parent window */
 					if (this->qs->ok_button >= 0) {
 						this->parent->OnClick(pt, this->qs->ok_button, 1);
@@ -181,8 +177,8 @@ struct OskWindow : public Window {
 					/* Window gets deleted when the parent window removes itself. */
 					return;
 				} else { // or reset to original string
-					qs->Assign(this->orig_str_buf);
-					qs->MovePos(WKC_END);
+					qs->Assign(this->orig_str_buf.get());
+					qs->MoveEnd();
 					this->OnEditboxChanged(WID_OSK_TEXT);
 					this->Delete();
 				}
@@ -207,7 +203,6 @@ struct OskWindow : public Window {
 	virtual void OnFocusLost()
 	{
 		VideoDriver::GetActiveDriver()->EditBoxLostFocus();
-		this->Delete();
 	}
 };
 
@@ -430,8 +425,7 @@ void UpdateOSKOriginalText(const Window *parent, int button)
 	OskWindow *osk = dynamic_cast<OskWindow *>(FindWindowById(WC_OSK, 0));
 	if (osk == NULL || osk->parent != parent || osk->text_btn != button) return;
 
-	free(osk->orig_str_buf);
-	osk->orig_str_buf = xstrdup(osk->qs->GetText());
+	osk->orig_str_buf.reset (xstrdup (osk->qs->GetText()));
 
 	osk->SetDirty();
 }

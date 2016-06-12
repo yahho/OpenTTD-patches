@@ -367,8 +367,8 @@ static void GenerateCompanyName(Company *c)
 
 	StringID str;
 	uint32 strp;
-	if (t->name == NULL && IsInsideMM(t->townnametype, SPECSTR_TOWNNAME_START, SPECSTR_TOWNNAME_LAST + 1)) {
-		str = t->townnametype - SPECSTR_TOWNNAME_START + SPECSTR_COMPANY_NAME_START;
+	if (t->name == NULL && IsInsideMM (t->townnameparams.type, SPECSTR_TOWNNAME_START, SPECSTR_TOWNNAME_LAST + 1)) {
+		str = t->townnameparams.type - SPECSTR_TOWNNAME_START + SPECSTR_COMPANY_NAME_START;
 		strp = t->townnameparts;
 
 		/* No companies must have this name already */

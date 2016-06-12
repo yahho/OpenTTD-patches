@@ -218,24 +218,6 @@ void LoadBuffer::ReadArray(void *ptr, size_t length, VarType conv)
 }
 
 /**
- * Load a list.
- * @param list The list being manipulated
- * @param conv SLRefType type of the list (Vehicle *, Station *, etc)
- */
-void LoadBuffer::ReadList(void *ptr, SLRefType conv)
-{
-	std::list<void *> *l = (std::list<void *> *) ptr;
-
-	size_t length = this->ReadRef();
-
-	/* Load each reference and push to the end of the list */
-	for (size_t i = 0; i < length; i++) {
-		size_t data = this->ReadRef();
-		l->push_back((void *)data);
-	}
-}
-
-/**
  * Begin reading of a chunk
  */
 void LoadBuffer::BeginChunk()
@@ -351,8 +333,21 @@ bool LoadBuffer::ReadObjectMember(void *object, const SaveLoad *sld)
 		case SL_REF: *(size_t *)ptr = this->ReadRef(); break;
 		case SL_ARR: this->ReadArray(ptr, sld->length, sld->conv); break;
 		case SL_STR: this->ReadString(ptr, sld->conv, sld->length); break;
-		case SL_LST: this->ReadList(ptr, (SLRefType)sld->conv); break;
-		case SL_NULL: this->Skip (sld->length); break;
+
+		case SL_LST: {
+			std::list<void *> *l = (std::list<void *> *) ptr;
+
+			/* Load each reference and push to the end of the list */
+			for (size_t n = this->ReadRef(); n > 0; n--) {
+				size_t data = this->ReadRef();
+				l->push_back ((void *)data);
+			}
+			break;
+		}
+
+		case SL_NULL:
+			this->Skip (sld->length);
+			break;
 
 		case SL_WRITEBYTE:
 			*(byte *)ptr = sld->conv;
@@ -562,24 +557,6 @@ void SaveDumper::WriteArray(const void *ptr, size_t length, VarType conv)
 }
 
 /**
- * Save a list.
- * @param list The list being manipulated
- * @param conv SLRefType type of the list (Vehicle *, Station *, etc)
- */
-void SaveDumper::WriteList(const void *ptr, SLRefType conv)
-{
-	typedef const std::list<const void *> PtrList;
-	PtrList *l = (PtrList *)ptr;
-
-	this->WriteUint32(l->size());
-
-	PtrList::const_iterator iter;
-	for (iter = l->begin(); iter != l->end(); ++iter) {
-		this->WriteRef(*iter, conv);
-	}
-}
-
-/**
  * Begin writing of a chunk
  */
 void SaveDumper::BeginChunk(uint type)
@@ -646,7 +623,19 @@ void SaveDumper::WriteObjectMember(const void *object, const SaveLoad *sld)
 		case SL_REF: this->WriteRef(*(const void * const*)ptr, (SLRefType)sld->conv); break;
 		case SL_ARR: this->WriteArray(ptr, sld->length, sld->conv); break;
 		case SL_STR: this->WriteString(ptr, sld->length); break;
-		case SL_LST: this->WriteList(ptr, (SLRefType)sld->conv); break;
+
+		case SL_LST: {
+			typedef const std::list<const void *> PtrList;
+			PtrList *l = (PtrList *)ptr;
+
+			this->WriteUint32 (l->size());
+
+			PtrList::const_iterator iter;
+			for (iter = l->begin(); iter != l->end(); ++iter) {
+				this->WriteRef (*iter, (SLRefType)sld->conv);
+			}
+			break;
+		}
 
 		case SL_NULL:
 			/* Writing nulls to savegames should be rare enough;

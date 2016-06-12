@@ -369,6 +369,9 @@
     <ClCompile Include="..\src\townname.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\townnamegen.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\vehicle.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -1086,6 +1089,9 @@
     <ClInclude Include="..\src\townname_type.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\townnamegen.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="..\src\track_func.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -1198,6 +1204,9 @@
       <Filter>Core Source Code</Filter>
     </ClInclude>
     <ClInclude Include="..\src\core\enum_type.hpp">
+      <Filter>Core Source Code</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\core\flexarray.h">
       <Filter>Core Source Code</Filter>
     </ClInclude>
     <ClInclude Include="..\src\core\forward_list.h">
@@ -1927,9 +1936,6 @@
       <Filter>Tables</Filter>
     </ClInclude>
     <ClInclude Include="..\src\table\town_land.h">
-      <Filter>Tables</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\table\townname.h">
       <Filter>Tables</Filter>
     </ClInclude>
     <ClInclude Include="..\src\table\track_land.h">

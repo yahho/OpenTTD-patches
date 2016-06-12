@@ -141,7 +141,6 @@ struct LoadBuffer {
 	void ReadVar(void *ptr, VarType conv);
 	void ReadString(void *ptr, StrType conv, size_t length);
 	void ReadArray(void *ptr, size_t length, VarType conv);
-	void ReadList(void *ptr, SLRefType conv);
 
 	/** Helper to read a string stored through a pointer. */
 	inline char *ReadString (StrType conv)
@@ -260,7 +259,6 @@ struct SaveDumper {
 	void WriteVar(const void *ptr, VarType conv);
 	void WriteString(const void *ptr, size_t length);
 	void WriteArray(const void *ptr, size_t length, VarType conv);
-	void WriteList(const void *ptr, SLRefType conv);
 
 	void WriteString (const char *s);
 
