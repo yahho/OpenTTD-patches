@@ -84,7 +84,7 @@ public:
 		return 1.0f;
 	}
 
-	const void *getFontTable (LETag tableTag) const OVERRIDE
+	const void *getFontTable (LETag tableTag) const
 	{
 		size_t length;
 		return this->getFontTable (tableTag, length);
