@@ -36,6 +36,7 @@
 #include "newgrf_commons.h"
 #include "newgrf_railtype.h"
 #include "newgrf_object.h"
+#include "newgrf_station.h"
 
 #include "table/sprites.h"
 #include "table/strings.h"
@@ -201,6 +202,42 @@ static bool CheckBridgeTileBuildable (TileIndex tile, DiagDirection dir, int z)
 		case TT_GROUND:
 			assert (IsGroundTile (tile));
 			return !IsTileSubtype (tile, TT_GROUND_TREES);
+
+		case TT_STATION:
+			switch (GetStationType(tile)) {
+				case STATION_RAIL: {
+					if (GetStationSpec (tile) != NULL) return false;
+					uint gfx = GetStationGfx (tile);
+					int h = (gfx < 2 ? 0 : gfx < 4 ? 1 : 3);
+					return z >= (GetTileMaxZ (tile) + h);
+				}
+
+				case STATION_WAYPOINT:
+					if (GetStationSpec (tile) != NULL) return false;
+					return z >= (GetTileMaxZ (tile) + 2);
+
+				case STATION_DOCK:
+					if (IsInsideMM (GetStationGfx (tile),
+							GFX_DOCK_BASE_WATER_PART,
+							GFX_DOCK_BUOY)) {
+						/* water part */
+						assert (IsTileFlat (tile));
+						return z > GetTileZ (tile);
+					} else {
+						return z >= GetTileMaxZ (tile);
+					}
+
+				case STATION_TRUCK:
+				case STATION_BUS:
+					return z > GetTileMaxZ (tile);
+
+				case STATION_BUOY:
+					assert (IsTileFlat (tile));
+					return z >= GetTileZ (tile);
+
+				default:
+					return false;
+			}
 
 		default:
 			return false;
