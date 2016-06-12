@@ -605,7 +605,7 @@ void FallbackParagraphLayout::build (LineVector *v, int max_width, bool)
 		const FontCache *fc = iter->second->fc;
 		const WChar *next_run = this->data + iter->first;
 
-		for (;;) {
+		for (;; buffer++) {
 			WChar c = *buffer;
 			last_char = buffer;
 
@@ -627,8 +627,6 @@ void FallbackParagraphLayout::build (LineVector *v, int max_width, bool)
 			}
 
 			if (IsWhitespace(c)) last_space = buffer;
-
-			buffer++;
 
 			if (!IsPrintable(c) || IsTextDirectionChar(c)) continue;
 
