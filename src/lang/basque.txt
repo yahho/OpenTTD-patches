@@ -1440,8 +1440,6 @@ STR_CONFIG_SETTING_SERVINT_AIRCRAFT                             :Hegazkinen mant
 STR_CONFIG_SETTING_SERVINT_AIRCRAFT_HELPTEXT                    :Ezarri hegazkin berrientzako lehenetsiko diren mantenimendu denbora tarteak, ez bada ezartzen denbora tarte esplizituak ezarriko dira
 STR_CONFIG_SETTING_SERVINT_SHIPS                                :Itsaontzien mantenimendurako lehenetsitako denbora tarteak: {STRING}
 STR_CONFIG_SETTING_SERVINT_SHIPS_HELPTEXT                       :Ezarri itsasontzi berrientzako lehenetsiko diren mantenimendu denbora tarteak, ez bada ezartzen denbora tarte esplizituak ezarriko dira
-STR_CONFIG_SETTING_NOSERVICE                                    :Mantenimendua desgaitu ibilgailuen matxurak kenduta daudenean: {STRING}
-STR_CONFIG_SETTING_NOSERVICE_HELPTEXT                           :Gaitua dagoenean, ibilgailuek ez dute mantenimendurik jasoko ezin badira matxuratu
 STR_CONFIG_SETTING_WAGONSPEEDLIMITS                             :Bagoiaren abiadura mugak aktibatu: {STRING}
 STR_CONFIG_SETTING_WAGONSPEEDLIMITS_HELPTEXT                    :Gaitua dagoenean, bagoien gehienezko abiadura erabili trenen geheienezko abiadura zehazteko
 STR_CONFIG_SETTING_DISABLE_ELRAILS                              :Trenbide elektrikoa desaktibatu: {STRING}

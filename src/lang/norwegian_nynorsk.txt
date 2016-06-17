@@ -1440,7 +1440,6 @@ STR_CONFIG_SETTING_SERVINT_DISABLED                             :Deaktivert
 STR_CONFIG_SETTING_SERVINT_ROAD_VEHICLES                        :Standard vedlikehaldsintervall for veg-køyrety: {STRING}
 STR_CONFIG_SETTING_SERVINT_AIRCRAFT                             :Standard vedlikehaldsintervall for fly: {STRING}
 STR_CONFIG_SETTING_SERVINT_SHIPS                                :Standard vedlikehaldsintervall for skip: {STRING}
-STR_CONFIG_SETTING_NOSERVICE                                    :Deaktiver vedlikehald når havari er slått av: {STRING}
 STR_CONFIG_SETTING_WAGONSPEEDLIMITS                             :Aktiver fartsgrenser for vogner: {STRING}
 STR_CONFIG_SETTING_DISABLE_ELRAILS                              :Deaktiver elektriske tog: {STRING}
 

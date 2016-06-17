@@ -632,7 +632,7 @@ public:
 
 	bool NeedsAutorenewing (const Company *c) const;
 
-	bool NeedsServicing() const;
+	bool NeedsServicing (bool scheduled = true) const;
 	bool NeedsAutomaticServicing() const;
 
 	/**

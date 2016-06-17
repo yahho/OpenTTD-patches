@@ -1448,8 +1448,6 @@ STR_CONFIG_SETTING_SERVINT_AIRCRAFT                             :ตั้งค
 STR_CONFIG_SETTING_SERVINT_AIRCRAFT_HELPTEXT                    :ตั้งค่าแรกเริ่มสำหรับการเข้าซ่อมบำรุงสำหรับอากาศยาน เป็นหน่วยวัน หรือหากเลือกการตั้งค่าโดยคิดจากเปอร์เซนต์ของประสิทธิภาพ จะเปลี่ยนไปใช้่หน่วยเปอร์เซนต์แทน
 STR_CONFIG_SETTING_SERVINT_SHIPS                                :ตั้งค่าแรกเริ่มสำหรับการเข้าซ่อมบำรุงของพาหนะทางน้ำ: {STRING}
 STR_CONFIG_SETTING_SERVINT_SHIPS_HELPTEXT                       :ตั้งค่าแรกเริ่มสำหรับการเข้าซ่อมบำรุงสำหรับพาหนะทางน้ำ เป็นหน่วยวัน หรือหากเลือกการตั้งค่าโดยคิดจากเปอร์เซนต์ของประสิทธิ์ภาพ จะเปลี่ยนไปใช้่หน่วยเปอร์เซนต์แทน
-STR_CONFIG_SETTING_NOSERVICE                                    :ไม่ใช้งานการซ่อมบำรุงเมื่อตั้งเป็นไม่มีการขัดข้อง: {STRING}
-STR_CONFIG_SETTING_NOSERVICE_HELPTEXT                           :เมื่อเปิดใช้งาน ยานพาหนะจะไม่เข้ารับการซ่อมบำรุงหากตั้งค่าไว้ไม่ให้มีการชำรุด
 STR_CONFIG_SETTING_WAGONSPEEDLIMITS                             :จำกัดความเร็วของรถจักร/รถพ่วง: {STRING}
 STR_CONFIG_SETTING_WAGONSPEEDLIMITS_HELPTEXT                    :เมื่อเปิดใช้งาน จะทำให้มีจำกัดความเร็วสูงสุดของยานพาหนะและรถพ่วงต่างๆ
 STR_CONFIG_SETTING_DISABLE_ELRAILS                              :ปิดระบบสายส่งไฟฟ้า(Electricfield): {STRING}

@@ -1496,8 +1496,6 @@ STR_CONFIG_SETTING_SERVINT_AIRCRAFT                             :Tần suất b�
 STR_CONFIG_SETTING_SERVINT_AIRCRAFT_HELPTEXT                    :Thiết lập khoảng thời gian bảo trì tùy chọn đối với các máy bay, nếu phương tiện không có riêng thời gian bảo trì này
 STR_CONFIG_SETTING_SERVINT_SHIPS                                :Tần suất bảo trì mặc định đối với tàu thủy: {STRING}
 STR_CONFIG_SETTING_SERVINT_SHIPS_HELPTEXT                       :Thiết lập khoảng thời gian bảo trì tùy chọn đối với các tàu thủy, nếu phương tiện không có riêng thời gian bảo trì này
-STR_CONFIG_SETTING_NOSERVICE                                    :Tắt bảo trì khi đặt tắt tuỳ chọn hỏng hóc: {STRING}
-STR_CONFIG_SETTING_NOSERVICE_HELPTEXT                           :Nếu bật, phương tiện sẽ không cần bảo trì nếu chúng không thể bị hỏng
 STR_CONFIG_SETTING_WAGONSPEEDLIMITS                             :Bật giới hạn tốc độ toa tàu: {STRING}
 STR_CONFIG_SETTING_WAGONSPEEDLIMITS_HELPTEXT                    :Nếu bật, sử dụng giới hạn tốc độ của toa xe để hạn chế tốc độ của cả đoàn tàu
 STR_CONFIG_SETTING_DISABLE_ELRAILS                              :Không dùng tàu điện: {STRING}

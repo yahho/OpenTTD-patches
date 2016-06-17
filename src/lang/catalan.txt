@@ -1497,8 +1497,6 @@ STR_CONFIG_SETTING_SERVINT_AIRCRAFT                             :Interval per de
 STR_CONFIG_SETTING_SERVINT_AIRCRAFT_HELPTEXT                    :Estableix l'interval de revisió predeterminat pels nous avions, si no hi ha un interval de revisió explícit pel vehicle
 STR_CONFIG_SETTING_SERVINT_SHIPS                                :Interval per defecte de servei per als vaixells: {STRING}
 STR_CONFIG_SETTING_SERVINT_SHIPS_HELPTEXT                       :Estableix l'interval de revisió predeterminat pels nous vaixells, si no hi ha un interval de revisió explícit pel vehicle
-STR_CONFIG_SETTING_NOSERVICE                                    :Desactiva les revisions quan les avaries s'estableixen a cap: {STRING}
-STR_CONFIG_SETTING_NOSERVICE_HELPTEXT                           :Quan està activat, els vehicles no són revisats si no es poden espatllar
 STR_CONFIG_SETTING_WAGONSPEEDLIMITS                             :Activa límits de velocitat per als vagons: {STRING}
 STR_CONFIG_SETTING_WAGONSPEEDLIMITS_HELPTEXT                    :Quan està activat, també utilitza els límits de velocitat dels vagons per decidir la velocitat màxima del tren
 STR_CONFIG_SETTING_DISABLE_ELRAILS                              :Desactiva vies electrificades: {STRING}

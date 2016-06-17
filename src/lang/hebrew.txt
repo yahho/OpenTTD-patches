@@ -1510,8 +1510,6 @@ STR_CONFIG_SETTING_SERVINT_AIRCRAFT                             :ברירת מח
 STR_CONFIG_SETTING_SERVINT_AIRCRAFT_HELPTEXT                    :קבע את ברירת המחדל למרווח הזמן בין תחזוקות עבור מטוסים חדשים, אם לא נקבע באופן מפורש מרווח זמן עבור כלי הרכב
 STR_CONFIG_SETTING_SERVINT_SHIPS                                :ברירת מחדל למרווח הזמן בין תחזוקות עבור אוניות: {STRING}
 STR_CONFIG_SETTING_SERVINT_SHIPS_HELPTEXT                       :קבע את ברירת המחדל למרווח הזמן בין תחזוקות עבור אוניות חדשות, אם לא נקבע באופן מפורש מרווח זמן עבור כלי הרכב
-STR_CONFIG_SETTING_NOSERVICE                                    :{STRING} :בטל טיפולים כאשר האפשרות לביטול תקלות נבחרה
-STR_CONFIG_SETTING_NOSERVICE_HELPTEXT                           :כאשר מאופשר, כלי רכב אינם מתוחזקים אם הם אינם יכולים להתקלקל
 STR_CONFIG_SETTING_WAGONSPEEDLIMITS                             :{STRING} :אפשר הגבלת מהירות עבור קרונות רכבת
 STR_CONFIG_SETTING_WAGONSPEEDLIMITS_HELPTEXT                    :כאשר מאופשר, השתמש גם במגבלות מהירות של קרונות לצורך קביעות המהירות המירבית של רכבת
 STR_CONFIG_SETTING_DISABLE_ELRAILS                              :{STRING} : בטל פסים חשמליים

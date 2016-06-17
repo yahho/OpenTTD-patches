@@ -361,6 +361,7 @@ void MakeNewgameSettingsLive()
 	 * Also initialise old settings needed for savegame conversion. */
 	_settings_game = _settings_newgame;
 	_old_vds = _settings_client.company.vehicle;
+	_old_no_servicing_if_no_breakdowns = true;
 
 	for (CompanyID c = COMPANY_FIRST; c < MAX_COMPANIES; c++) {
 		_settings_game.ai_config[c] = NULL;

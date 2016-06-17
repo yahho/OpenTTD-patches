@@ -1698,8 +1698,6 @@ STR_CONFIG_SETTING_SERVINT_AIRCRAFT                             :Tricead bunaite
 STR_CONFIG_SETTING_SERVINT_AIRCRAFT_HELPTEXT                    :Tagh dè cho tric ’s a thèid obair-chàraidh a dhèanamh air carbadan-adhair ùra mura deach tricead a’ chàraidh sònraichte a shuidheachadh airson a' charbaid
 STR_CONFIG_SETTING_SERVINT_SHIPS                                :Tricead bunaiteach na h-obrach-càraidh air longan: {STRING}
 STR_CONFIG_SETTING_SERVINT_SHIPS_HELPTEXT                       :Tagh dè cho tric ’s a thèid obair-chàraidh a dhèanamh air longan ùra mura deach tricead a’ chàraidh sònraichte a shuidheachadh airson na luinge
-STR_CONFIG_SETTING_NOSERVICE                                    :Cuir obair-chàraidh à comas ma chaidh briseadh a chur gu “Cha tachair seo idir”: {STRING}
-STR_CONFIG_SETTING_NOSERVICE_HELPTEXT                           :Ma tha seo air, chan fhaigh carbadan obair-chàraidh mur urrainn dhaibh briseadh
 STR_CONFIG_SETTING_WAGONSPEEDLIMITS                             :Cuir crìochan-luaiths nan carbadan-rèile an comas: {STRING}
 STR_CONFIG_SETTING_WAGONSPEEDLIMITS_HELPTEXT                    :Ma tha seo air, cleachd crìochan-luaiths nan carbadan cuideachd gus an luaths as motha aig trèan a shuidheachadh
 STR_CONFIG_SETTING_DISABLE_ELRAILS                              :Cuir rèilean dealain à comas: {STRING}

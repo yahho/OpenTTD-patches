@@ -1307,7 +1307,6 @@ STR_CONFIG_SETTING_AI_IN_MULTIPLAYER                            :امکان حض
 STR_CONFIG_SETTING_SCRIPT_MAX_OPCODES                           :#opcodes before scripts are suspended: {STRING}
 
 STR_CONFIG_SETTING_SERVINT_ISPERCENT                            :درصد زمان برای تعمیر/نگهداری به نسبت زمان کار: {STRING}
-STR_CONFIG_SETTING_NOSERVICE                                    :غیرفعال کردن تعمیر/بازنگری کلیه وسایل نقلیه وقتی که طبق تنظیمات بازی خودرو ها خراب نشوند : {STRING}
 STR_CONFIG_SETTING_WAGONSPEEDLIMITS                             :فعال کردن حد برای سرعت واگن: {STRING}
 STR_CONFIG_SETTING_DISABLE_ELRAILS                              :غیر فعال کردن ریل برقی: {STRING}
 

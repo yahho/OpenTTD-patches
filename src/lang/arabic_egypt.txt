@@ -1268,7 +1268,6 @@ STR_CONFIG_SETTING_AI_IN_MULTIPLAYER                            :السماح ب
 STR_CONFIG_SETTING_SCRIPT_MAX_OPCODES                           :#opcodes قبل تعليق الاسكربت: {STRING}
 
 STR_CONFIG_SETTING_SERVINT_ISPERCENT                            :فترات الصيانة بالنسبة المئوية : {STRING}
-STR_CONFIG_SETTING_NOSERVICE                                    :الغاء الصيانة عندما يكون التعطيل للمركبات غير مفعل: {STRING}
 STR_CONFIG_SETTING_WAGONSPEEDLIMITS                             :السماح بتحديد سرعة العربات: {STRING}
 STR_CONFIG_SETTING_DISABLE_ELRAILS                              :تعطيل سكة القطار الكهربائي: {STRING}
 

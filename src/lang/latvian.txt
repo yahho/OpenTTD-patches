@@ -1455,8 +1455,6 @@ STR_CONFIG_SETTING_SERVINT_AIRCRAFT                             :Lidaparātu apk
 STR_CONFIG_SETTING_SERVINT_AIRCRAFT_HELPTEXT                    :Izvēlēties jauniem lidaparātiem apkopju noklusējuma starplaiku, ja transportlīdzeklim tas nav noteikts
 STR_CONFIG_SETTING_SERVINT_SHIPS                                :Kuģu apkopju noklusējuma starplaiks: {STRING}
 STR_CONFIG_SETTING_SERVINT_SHIPS_HELPTEXT                       :Izvēlēties jauniem kuģiem apkopju noklusējuma starplaiku, ja transportlīdzeklim tas nav noteikts
-STR_CONFIG_SETTING_NOSERVICE                                    :Aizliegt apkopi, kad bojāšanās ir izslēgta: {STRING}
-STR_CONFIG_SETTING_NOSERVICE_HELPTEXT                           :Ja ieslēgts, transportlīdzekļiem netiek veikta apkope. Jo tie nebojājas
 STR_CONFIG_SETTING_WAGONSPEEDLIMITS                             :Ieslēgt vagonu ātruma ierobežojumus: {STRING}
 STR_CONFIG_SETTING_WAGONSPEEDLIMITS_HELPTEXT                    :Ja ieslēgts, var izmantot vagonu ātruma ierobežojumus, lai lemtu par vilcienu maksimālo ātrumu
 STR_CONFIG_SETTING_DISABLE_ELRAILS                              :Atspējot elektrificēto dzelzceļu: {STRING}

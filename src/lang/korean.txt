@@ -1497,8 +1497,6 @@ STR_CONFIG_SETTING_SERVINT_AIRCRAFT                             :항공기에 �
 STR_CONFIG_SETTING_SERVINT_AIRCRAFT_HELPTEXT                    :항공기에 따로 점검 기간이 설정되어있지 않은 경우에 사용할 기본 점검 기간을 설정합니다.
 STR_CONFIG_SETTING_SERVINT_SHIPS                                :선박에 대한 기본 점검 기준: {STRING}
 STR_CONFIG_SETTING_SERVINT_SHIPS_HELPTEXT                       :선박에 따로 점검 기간이 설정되어있지 않은 경우에 사용할 기본 점검 기간을 설정합니다.
-STR_CONFIG_SETTING_NOSERVICE                                    :차량 고장 설정이 비활성화된 경우 정비하지 않음: {STRING}
-STR_CONFIG_SETTING_NOSERVICE_HELPTEXT                           :'차량고장'이 비활성화되었을 때 이 옵션을 켜면, 차량 정비 설정을 무시합니다.
 STR_CONFIG_SETTING_WAGONSPEEDLIMITS                             :화물차 속력 제한 적용: {STRING}
 STR_CONFIG_SETTING_WAGONSPEEDLIMITS_HELPTEXT                    :이 옵션을 켜면 화물차의 속력 제한값을 적용하여 열차의 최대 속력을 감소시킵니다.
 STR_CONFIG_SETTING_DISABLE_ELRAILS                              :전기 철도를 사용하지 않음: {STRING}

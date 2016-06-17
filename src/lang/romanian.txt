@@ -1470,8 +1470,6 @@ STR_CONFIG_SETTING_SERVINT_AIRCRAFT                             :Intervalul de �
 STR_CONFIG_SETTING_SERVINT_AIRCRAFT_HELPTEXT                    :Alege perioada de întreținere implicită pentru noi aeronave, dacă nu există un interval de întreținere stabilit pentru aeronave
 STR_CONFIG_SETTING_SERVINT_SHIPS                                :Intervalul de întreținere implicit al navelor: {STRING}
 STR_CONFIG_SETTING_SERVINT_SHIPS_HELPTEXT                       :Alege perioada de întreținere implicită pentru noi nave, dacă nu există un interval de întreținere stabilit pentru nave
-STR_CONFIG_SETTING_NOSERVICE                                    :Deactivare service când defecţiunile nu sunt active: {STRING}
-STR_CONFIG_SETTING_NOSERVICE_HELPTEXT                           :Dacă este activată, vehiculele nu vor întreținute dacă nu se pot defecta
 STR_CONFIG_SETTING_WAGONSPEEDLIMITS                             :Activează limite de viteză pentru vagoane: {STRING}
 STR_CONFIG_SETTING_WAGONSPEEDLIMITS_HELPTEXT                    :Dacă este activată, folosește și limita de viteză a vagoanelor pentru a stabili viteza maximă a trenului
 STR_CONFIG_SETTING_DISABLE_ELRAILS                              :Dezactivează şinele electrice: {STRING}

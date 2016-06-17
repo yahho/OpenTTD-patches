@@ -1479,8 +1479,6 @@ STR_CONFIG_SETTING_SERVINT_AIRCRAFT                             :Intervalo de ma
 STR_CONFIG_SETTING_SERVINT_AIRCRAFT_HELPTEXT                    :Fixa o intervalo de mantemento por defecto para avións novos, o cal se empregará no caso de que non se defina explicitamente un novo intervalo de mantemento para o vehículo
 STR_CONFIG_SETTING_SERVINT_SHIPS                                :Intervalo de mantemento por defecto para navíos: {STRING}
 STR_CONFIG_SETTING_SERVINT_SHIPS_HELPTEXT                       :Fixa o intervalo de mantemento por defecto para navíos novos, o cal se empregará no caso de que non se defina explicitamente un novo intervalo de mantemento para o vehículo
-STR_CONFIG_SETTING_NOSERVICE                                    :Deshabilita-lo mantemento cando as avarías están desactivadas: {STRING}
-STR_CONFIG_SETTING_NOSERVICE_HELPTEXT                           :Cando estea activado, os vehículos non teñen mantemento no caso de que non poidan ter avarías
 STR_CONFIG_SETTING_WAGONSPEEDLIMITS                             :Activa-los límites de velocidade dos vagóns: {STRING}
 STR_CONFIG_SETTING_WAGONSPEEDLIMITS_HELPTEXT                    :Cando estea activado, usar tamén os límites de velocidade dos vagóns para decidir a máxima velocidade do tren
 STR_CONFIG_SETTING_DISABLE_ELRAILS                              :Desactivar vías electrificadas: {STRING}

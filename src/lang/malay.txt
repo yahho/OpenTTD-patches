@@ -1344,7 +1344,6 @@ STR_CONFIG_SETTING_AI_IN_MULTIPLAYER                            :Benarkan Kepint
 STR_CONFIG_SETTING_SCRIPT_MAX_OPCODES                           :#opcodes sebelum skrip adalah digantung: {STRING}
 
 STR_CONFIG_SETTING_SERVINT_ISPERCENT                            :Tempoh waktu servis dalam peratusan: {STRING}
-STR_CONFIG_SETTING_NOSERVICE                                    :Servis tidak diperlukan apabila kerosakan kenderaan ditetapkan kepada tiada: {STRING}
 STR_CONFIG_SETTING_WAGONSPEEDLIMITS                             :Benarkan had kelajuan untuk gerabak: {STRING}
 STR_CONFIG_SETTING_DISABLE_ELRAILS                              :Tiada landasan elektrik: {STRING}
 

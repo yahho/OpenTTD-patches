@@ -1496,8 +1496,6 @@ STR_CONFIG_SETTING_SERVINT_AIRCRAFT                             :預設的飛機
 STR_CONFIG_SETTING_SERVINT_AIRCRAFT_HELPTEXT                    :設定預設的飛機維護作業時距。所有沒有指定維護作業時距的飛機都會使用這個預設值
 STR_CONFIG_SETTING_SERVINT_SHIPS                                :預設的船舶維護作業時距： {STRING}
 STR_CONFIG_SETTING_SERVINT_SHIPS_HELPTEXT                       :設定預設的船舶維護作業時距。所有沒有指定維護作業時距的船舶都會使用這個預設值
-STR_CONFIG_SETTING_NOSERVICE                                    :如果停用故障，運輸工具不進行自動維護：{STRING}
-STR_CONFIG_SETTING_NOSERVICE_HELPTEXT                           :如果啟用此選項，而且運輸工具設定為不故障，它們將不會進入機廠接受維護
 STR_CONFIG_SETTING_WAGONSPEEDLIMITS                             :開啟列車車廂速限：{STRING}
 STR_CONFIG_SETTING_WAGONSPEEDLIMITS_HELPTEXT                    :如啟用此選項，無動力車廂的限速會影響列車的極速
 STR_CONFIG_SETTING_DISABLE_ELRAILS                              :停用電氣化鐵路：{STRING}

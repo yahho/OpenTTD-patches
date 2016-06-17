@@ -1470,8 +1470,6 @@ STR_CONFIG_SETTING_SERVINT_AIRCRAFT                             :Default service
 STR_CONFIG_SETTING_SERVINT_AIRCRAFT_HELPTEXT                    :Set the default service interval for new aircraft, if no explicit service interval is set for the vehicle
 STR_CONFIG_SETTING_SERVINT_SHIPS                                :Default service interval for ships: {STRING}
 STR_CONFIG_SETTING_SERVINT_SHIPS_HELPTEXT                       :Set the default service interval for new ships, if no explicit service interval is set for the vehicle
-STR_CONFIG_SETTING_NOSERVICE                                    :Disable servicing when breakdowns set to none: {STRING}
-STR_CONFIG_SETTING_NOSERVICE_HELPTEXT                           :When enabled, vehicles do not get serviced if they cannot break down
 STR_CONFIG_SETTING_WAGONSPEEDLIMITS                             :Enable wagon speed limits: {STRING}
 STR_CONFIG_SETTING_WAGONSPEEDLIMITS_HELPTEXT                    :When enabled, also use speed limits of wagons for deciding the maximum speed of a train
 STR_CONFIG_SETTING_DISABLE_ELRAILS                              :Disable electric rails: {STRING}

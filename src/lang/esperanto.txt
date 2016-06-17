@@ -1292,7 +1292,6 @@ STR_CONFIG_SETTING_AI_PROFILE_HARD                              :Malfacila
 STR_CONFIG_SETTING_AI_IN_MULTIPLAYER                            :Permesu ArtefaritajnIntelektojn en pluropaj ludoj: {STRING}
 
 STR_CONFIG_SETTING_SERVINT_ISPERCENT                            :Prizorgintervala procentaĵo: {STRING}
-STR_CONFIG_SETTING_NOSERVICE                                    :Malŝaltu prizorgadon se rompiĝoj ne okazas: {STRING}
 STR_CONFIG_SETTING_WAGONSPEEDLIMITS                             :Aktivigu vagonajn rapideclimojn: {STRING}
 STR_CONFIG_SETTING_WAGONSPEEDLIMITS_HELPTEXT                    :Kiam ebligita, ankaŭ uzu rapideco-limigojn de vagonoj por decidi la maksimuman rapidecon de trajno
 STR_CONFIG_SETTING_DISABLE_ELRAILS                              :Malŝaltu elektrajn relojn: {STRING}

@@ -1687,8 +1687,6 @@ STR_CONFIG_SETTING_SERVINT_AIRCRAFT                             :Podrazumevani s
 STR_CONFIG_SETTING_SERVINT_AIRCRAFT_HELPTEXT                    :Postavite podrazumevani servisni interval za avione, ako nema zadanog servisnog intervala za vozilo
 STR_CONFIG_SETTING_SERVINT_SHIPS                                :Podrazumevani servisni interval za brodove: {STRING}
 STR_CONFIG_SETTING_SERVINT_SHIPS_HELPTEXT                       :Postavite podrazumevani servisni interval za nove brodove, ako nema zadanog servisnog intervala za vozilo
-STR_CONFIG_SETTING_NOSERVICE                                    :Isključeno servisiranje kada ne postoje kvarovi: {STRING}
-STR_CONFIG_SETTING_NOSERVICE_HELPTEXT                           :Kada je uključeno, vozila se ne servisiraju ako ne mogu da se pokvare
 STR_CONFIG_SETTING_WAGONSPEEDLIMITS                             :Uključeno ograničenje brzine kod vagona: {STRING}
 STR_CONFIG_SETTING_WAGONSPEEDLIMITS_HELPTEXT                    :Kada je omogućeno, takođe upotrebi ograničenje brzine vagona za određivanje maksimalne brzine voza
 STR_CONFIG_SETTING_DISABLE_ELRAILS                              :Ne postoji posebna električna pruga: {STRING}

@@ -1485,8 +1485,6 @@ STR_CONFIG_SETTING_SERVINT_AIRCRAFT                             :Standert repara
 STR_CONFIG_SETTING_SERVINT_AIRCRAFT_HELPTEXT                    :Stel it standert reparaasjeskema yn foar nije fleantugen dy't gjin eigen reparaasjeskema kenne
 STR_CONFIG_SETTING_SERVINT_SHIPS                                :Standerd reparaasjeskema foar skippen: {STRING}
 STR_CONFIG_SETTING_SERVINT_SHIPS_HELPTEXT                       :Stel it standerd reparaasjeskema yn foar nije skippen dy't gjin eigen reparaasjeskema kenne
-STR_CONFIG_SETTING_NOSERVICE                                    :Gjin ûnderhald as stikken gean út steat: {STRING}
-STR_CONFIG_SETTING_NOSERVICE_HELPTEXT                           :By ynskeakeljen sille fiertugen gjin ûnderhâld krije at sy net kapot gean kinne
 STR_CONFIG_SETTING_WAGONSPEEDLIMITS                             :Wagon snelheids limiet: {STRING}
 STR_CONFIG_SETTING_WAGONSPEEDLIMITS_HELPTEXT                    :By ynskeakeljen sille de faasjelimyten fan de weinen meinaam wurde by it bepalen fan de maksimale faasje foar in trein
 STR_CONFIG_SETTING_DISABLE_ELRAILS                              :skeakelje elektryske spoaren út: {STRING}

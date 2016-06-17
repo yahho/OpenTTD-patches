@@ -1473,8 +1473,6 @@ STR_CONFIG_SETTING_SERVINT_AIRCRAFT                             :Intervalo de ma
 STR_CONFIG_SETTING_SERVINT_AIRCRAFT_HELPTEXT                    :Intervalo de mantenimiento predeterminado para nuevas aeronaves, en caso de no definirse otro explícitamente
 STR_CONFIG_SETTING_SERVINT_SHIPS                                :Intervalo de mantenimiento predeterminado para barcos: {STRING}
 STR_CONFIG_SETTING_SERVINT_SHIPS_HELPTEXT                       :Intervalo de mantenimiento predeterminado para nuevos barcos, en caso de no definirse otro explícitamente
-STR_CONFIG_SETTING_NOSERVICE                                    :Desactivar mantenimiento si las descomposturas están desactivadas: {STRING}
-STR_CONFIG_SETTING_NOSERVICE_HELPTEXT                           :Al activarse, los vehículos no recibirán mantenimiento si no pueden descomponerse
 STR_CONFIG_SETTING_WAGONSPEEDLIMITS                             :Activar límites de velocidad para vagones: {STRING}
 STR_CONFIG_SETTING_WAGONSPEEDLIMITS_HELPTEXT                    :Al activarse, se tienen en cuenta los límites de velocidad de los vagones para decidir la máxima velocidad de un tren
 STR_CONFIG_SETTING_DISABLE_ELRAILS                              :Desactivar ferrocarriles eléctricos: {STRING}

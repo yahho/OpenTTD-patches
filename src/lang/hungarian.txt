@@ -1560,8 +1560,6 @@ STR_CONFIG_SETTING_SERVINT_AIRCRAFT                             :Alapértelmezet
 STR_CONFIG_SETTING_SERVINT_AIRCRAFT_HELPTEXT                    :Alapértelmezett javítási intervallum beállítása új repülőgépeknek, ha nincs külön javítási intervallum beállítva a járműre
 STR_CONFIG_SETTING_SERVINT_SHIPS                                :Alapértelmezett javítási intervallum hajóknak: {STRING}
 STR_CONFIG_SETTING_SERVINT_SHIPS_HELPTEXT                       :Alapértelmezett javítási intervallum beállítása új hajóknak, ha nincs külön javítási intervallum beállítva a járműre
-STR_CONFIG_SETTING_NOSERVICE                                    :Ne legyen javítás ha lerobbanások sincsenek: {STRING}
-STR_CONFIG_SETTING_NOSERVICE_HELPTEXT                           :Bekapcsolva a járművek nem kerülnek javításra, ha nem tudnak lerobbanni
 STR_CONFIG_SETTING_WAGONSPEEDLIMITS                             :A vagonok sebessége korlátozható: {STRING}
 STR_CONFIG_SETTING_WAGONSPEEDLIMITS_HELPTEXT                    :Bekapcsolva a szerelvényben lévő vasúti kocsik maximális sebessége is korlátozza a vonat maximális sebességét
 STR_CONFIG_SETTING_DISABLE_ELRAILS                              :Villamosított vágányok letiltása: {STRING}

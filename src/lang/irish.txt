@@ -1484,8 +1484,6 @@ STR_CONFIG_SETTING_SERVINT_AIRCRAFT                             :Eatramh seirbh�
 STR_CONFIG_SETTING_SERVINT_AIRCRAFT_HELPTEXT                    :Socraigh an t-eatramh seirbhísithe réamhshocraithe d'aerárthaigh nua, mura bhfuil eatramh seirbhísithe sainráite socraithe don fheithicil
 STR_CONFIG_SETTING_SERVINT_SHIPS                                :Eatramh seirbhíse réamhshocraithe do longa: {STRING}
 STR_CONFIG_SETTING_SERVINT_SHIPS_HELPTEXT                       :Socraigh an t-eatramh seirbhísithe réamhshocraithe do longa nua, mura bhfuil eatramh seirbhísithe sainráite socraithe don fheithicil
-STR_CONFIG_SETTING_NOSERVICE                                    :Díchumasaigh seirbhísiú nuair nach mbíonn aon bhriseadh síos: {STRING}
-STR_CONFIG_SETTING_NOSERVICE_HELPTEXT                           :Má tá sé cumasaithe, ní dhéantar feithiclí a sheirbhísí má rud é nach féidir leo briseadh síos
 STR_CONFIG_SETTING_WAGONSPEEDLIMITS                             :Cumasaigh teorainneacha luais vaigíní: {STRING}
 STR_CONFIG_SETTING_WAGONSPEEDLIMITS_HELPTEXT                    :Má tá sé cumasaithe, úsáid teorainneacha luais na vaigíní freisin chun luas uasta traenacha a shocrú
 STR_CONFIG_SETTING_DISABLE_ELRAILS                              :Díchumasaigh ráillí leictreacha: {STRING}
