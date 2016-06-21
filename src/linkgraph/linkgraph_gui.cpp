@@ -33,18 +33,6 @@ const uint8 LinkGraphOverlay::LINK_COLOURS[] = {
 };
 
 /**
- * Get a DPI for the widget we will be drawing to.
- * @param dpi DrawPixelInfo to fill with the desired dimensions.
- */
-void LinkGraphOverlay::GetWidgetDpi(DrawPixelInfo *dpi) const
-{
-	const NWidgetBase *wi = this->window->GetWidget<NWidgetBase>(this->widget_id);
-	dpi->left = dpi->top = 0;
-	dpi->width = wi->current_x;
-	dpi->height = wi->current_y;
-}
-
-/**
  * Rebuild the cache and recalculate which links and stations to be shown.
  */
 void LinkGraphOverlay::RebuildCache()
@@ -53,8 +41,11 @@ void LinkGraphOverlay::RebuildCache()
 	this->cached_stations.clear();
 	if (this->company_mask == 0) return;
 
+	const NWidgetBase *wi = this->window->GetWidget<NWidgetBase>(this->widget_id);
 	DrawPixelInfo dpi;
-	this->GetWidgetDpi(&dpi);
+	dpi.left = dpi.top = 0;
+	dpi.width = wi->current_x;
+	dpi.height = wi->current_y;
 
 	const Station *sta;
 	FOR_ALL_STATIONS(sta) {
