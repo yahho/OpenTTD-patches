@@ -145,6 +145,9 @@
     <CustomBuild Include="..\src\lang\spanish.txt">
       <Filter>Translations</Filter>
     </CustomBuild>
+    <CustomBuild Include="..\src\lang\spanish_MX.txt">
+      <Filter>Translations</Filter>
+    </CustomBuild>
     <CustomBuild Include="..\src\lang\swedish.txt">
       <Filter>Translations</Filter>
     </CustomBuild>

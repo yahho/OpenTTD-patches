@@ -111,9 +111,10 @@ void VehicleServiceInDepot(Vehicle *v)
  * Check if the vehicle needs to go to a depot in near future (if a opportunity presents itself) for service or replacement.
  *
  * @see NeedsAutomaticServicing()
+ * @param scheduled Whether the check is part of a scheduled order.
  * @return true if the vehicle should go to a depot if a opportunity presents itself.
  */
-bool Vehicle::NeedsServicing() const
+bool Vehicle::NeedsServicing (bool scheduled) const
 {
 	/* Stopped or crashed vehicles will not move, as such making unmovable
 	 * vehicles to go for service is lame. */
@@ -127,11 +128,15 @@ bool Vehicle::NeedsServicing() const
 		return false;
 	}
 
-	/* If we're servicing anyway, because we have not disabled servicing when
-	 * there are no breakdowns or we are playing with breakdowns, bail out. */
-	if (!_settings_game.order.no_servicing_if_no_breakdowns ||
-			_settings_game.difficulty.vehicle_breakdowns != 0) {
-		return true;
+	/* Service if playing with breakdowns. */
+	if (_settings_game.difficulty.vehicle_breakdowns != 0) return true;
+
+	/* Check company setting for servicing when breakdowns are disabled. */
+	bool autorenew = c->settings.engine_renew;
+	switch (c->settings.servicing_if_no_breakdowns) {
+		case 0:  autorenew &= scheduled; break;
+		case 1:  break;
+		default: return true;
 	}
 
 	/* Test whether there is some pending autoreplace.
@@ -146,7 +151,7 @@ bool Vehicle::NeedsServicing() const
 		EngineID new_engine = EngineReplacementForCompany(c, v->engine_type, v->group_id, &replace_when_old);
 
 		if (new_engine == INVALID_ENGINE) {
-			if (!c->settings.engine_renew) continue;
+			if (!autorenew) continue;
 			new_engine = v->engine_type;
 			replace_when_old = true;
 		}
@@ -192,7 +197,7 @@ bool Vehicle::NeedsAutomaticServicing() const
 	if (this->HasDepotOrder()) return false;
 	if (this->current_order.IsType(OT_LOADING)) return false;
 	if (this->current_order.IsType(OT_GOTO_DEPOT) && this->current_order.GetDepotOrderType() != ODTFB_SERVICE) return false;
-	return NeedsServicing();
+	return this->NeedsServicing (false);
 }
 
 uint Vehicle::Crash(bool flooded)

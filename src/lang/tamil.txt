@@ -1335,7 +1335,6 @@ STR_CONFIG_SETTING_SERVINT_DISABLED                             :செயலி
 STR_CONFIG_SETTING_SERVINT_ROAD_VEHICLES                        :சாலை வாகனங்களின் பழுதுபார்த்தல் இடைவேளி: {STRING}
 STR_CONFIG_SETTING_SERVINT_AIRCRAFT                             :விமாங்களின் பழுதுபார்த்தல் இடைவேளி: {STRING}
 STR_CONFIG_SETTING_SERVINT_SHIPS                                :கப்பல்களின் பழுதுபார்த்தல் இடைவேளி: {STRING}
-STR_CONFIG_SETTING_NOSERVICE                                    :பழுதுகள் இல்லையெனில் பழுதுபார்த்தலினை செயலிழக்கவும்: {STRING}
 STR_CONFIG_SETTING_WAGONSPEEDLIMITS                             :பெட்டி வேக கட்டுப்பாட்டினை செயல்படுத்தவும்: {STRING}
 STR_CONFIG_SETTING_DISABLE_ELRAILS                              :மின்சார இரயில்களை அனுமதிக்காதே: {STRING}
 

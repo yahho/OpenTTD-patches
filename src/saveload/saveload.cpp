@@ -57,7 +57,7 @@
  * savegames of the previous (and earlier) versions.
  */
 
-extern const uint16 SAVEGAME_VERSION = 23; ///< Current savegame version
+extern const uint16 SAVEGAME_VERSION = 24; ///< Current savegame version
 
 extern const uint16 TRACERESTRICT_VERSION = 1; ///< Current trace restrict version
 

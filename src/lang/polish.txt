@@ -1876,8 +1876,6 @@ STR_CONFIG_SETTING_SERVINT_AIRCRAFT                             :Domyślny inter
 STR_CONFIG_SETTING_SERVINT_AIRCRAFT_HELPTEXT                    :Ustaw domyślny okres serwisowania dla nowych maszyn latających, jeśli takowy nie istnieje dla określonego pojazdu
 STR_CONFIG_SETTING_SERVINT_SHIPS                                :Domyślny interwał serwisowania statków: {STRING}
 STR_CONFIG_SETTING_SERVINT_SHIPS_HELPTEXT                       :Ustaw domyślny okres serwisowania dla nowych statków, jeśli takowy nie istnieje dla określonego pojazdu
-STR_CONFIG_SETTING_NOSERVICE                                    :Wyłącz serwisowanie jeśli awarie pojazdów są wyłączone: {STRING}
-STR_CONFIG_SETTING_NOSERVICE_HELPTEXT                           :Kiedy włączone, pojazdy nie są serwisowane, jeśli nie mogą się popsuć
 STR_CONFIG_SETTING_WAGONSPEEDLIMITS                             :Włącz limity prędkości wagonów: {STRING}
 STR_CONFIG_SETTING_WAGONSPEEDLIMITS_HELPTEXT                    :Kiedy włączone, użyj także ograniczenia prędkości dla wagonów do obliczenia maksymalnej prędkości pociągu
 STR_CONFIG_SETTING_DISABLE_ELRAILS                              :Zabroń korzystania z kolei elektrycznych: {STRING}

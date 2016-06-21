@@ -1496,8 +1496,6 @@ STR_CONFIG_SETTING_SERVINT_AIRCRAFT                             :Ystod gwasanaet
 STR_CONFIG_SETTING_SERVINT_AIRCRAFT_HELPTEXT                    :Gosod yr ystod gwasanaethu rhagosodedig ar gyfer awyrennau newydd, os na ddynodir ystod gwasanaethu penodol ar gyfer y cerbyd
 STR_CONFIG_SETTING_SERVINT_SHIPS                                :Ystod gwasanaethu rhagosodedig ar gyfer llongau: {STRING}
 STR_CONFIG_SETTING_SERVINT_SHIPS_HELPTEXT                       :Gosod yr ystod gwasanaethu rhagosodedig ar gyfer llongau newydd, os na ddynodir ystod gwasanaethu penodol ar gyfer y cerbyd
-STR_CONFIG_SETTING_NOSERVICE                                    :Analluogi gwasanaethau pan fydd torri i lawr wedi ei osod i Ddim: {STRING}
-STR_CONFIG_SETTING_NOSERVICE_HELPTEXT                           :Pan y galluogir, ni wasanaethir cerbydau os na allent dorri i lawr
 STR_CONFIG_SETTING_WAGONSPEEDLIMITS                             :Galluogi terfynau cyflymder wagenni: {STRING}
 STR_CONFIG_SETTING_WAGONSPEEDLIMITS_HELPTEXT                    :Pan y galluogir, fe ddefnyddir terfynnau cyflymder pob cerbyd mewn trên pan yn cyfrifo ei gyflymder uchafsymol
 STR_CONFIG_SETTING_DISABLE_ELRAILS                              :Analluogi cledrau trydan: {STRING}

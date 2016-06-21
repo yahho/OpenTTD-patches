@@ -1492,8 +1492,6 @@ STR_CONFIG_SETTING_SERVINT_AIRCRAFT                             :Intervalo de se
 STR_CONFIG_SETTING_SERVINT_AIRCRAFT_HELPTEXT                    :Definir o intervalo de manutenção por omissão para novas aeronaves, se não for configurado um intervalo de manutenção explícito para o veículo
 STR_CONFIG_SETTING_SERVINT_SHIPS                                :Intervalo de serviço para navios por omissão: {STRING}
 STR_CONFIG_SETTING_SERVINT_SHIPS_HELPTEXT                       :Definir o intervalo de manutenção por omissão para novos navios, se não for configurado um intervalo de manutenção explícito para o veículo
-STR_CONFIG_SETTING_NOSERVICE                                    :Não fazer manutenção quando não há avarias: {STRING}
-STR_CONFIG_SETTING_NOSERVICE_HELPTEXT                           :Quando activo, os veículos não farão manutenção se não puderem avariar
 STR_CONFIG_SETTING_WAGONSPEEDLIMITS                             :Activar limites de velocidade para vagões: {STRING}
 STR_CONFIG_SETTING_WAGONSPEEDLIMITS_HELPTEXT                    :Quando activo, usar também os limites de velocidade das carruagens para decidir a velocidade máxima de um comboio
 STR_CONFIG_SETTING_DISABLE_ELRAILS                              :Desactivar carris electrificados: {STRING}

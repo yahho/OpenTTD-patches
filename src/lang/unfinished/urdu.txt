@@ -1230,7 +1230,6 @@ STR_CONFIG_SETTING_AI_IN_MULTIPLAYER                            :زیادہ کھ
 STR_CONFIG_SETTING_SCRIPT_MAX_OPCODES                           :اسکرپٹس کے معطل ہونے سے پہلے #opcodes: {STRING}
 
 STR_CONFIG_SETTING_SERVINT_ISPERCENT                            :مرمتی وقفے فیصد میں ہیں: {STRING}
-STR_CONFIG_SETTING_NOSERVICE                                    :گاڑیوں کی خرابی غیر فعال ہونے کی صورت میں مرمت بھی غیر فعال کر دیں: {STRING}
 STR_CONFIG_SETTING_WAGONSPEEDLIMITS                             :مال گاڑی کی حد رفتار فعال کریں: {STRING}
 STR_CONFIG_SETTING_DISABLE_ELRAILS                              :الیلٹرک ریل گاڑیاں غیر فعال کریں: {STRING}
 

@@ -1497,8 +1497,6 @@ STR_CONFIG_SETTING_SERVINT_AIRCRAFT                             :Standard-Wartun
 STR_CONFIG_SETTING_SERVINT_AIRCRAFT_HELPTEXT                    :Setze das Standardwartungsintervall für Luftfahrzeuge. Dieses Wartungsintervall wird von allen Luftfahrzeugen eingehalten, denen kein individuelles Wartungsintervall zugewiesen worden ist
 STR_CONFIG_SETTING_SERVINT_SHIPS                                :Standard-Wartungsintervall für Schiffe: {STRING}
 STR_CONFIG_SETTING_SERVINT_SHIPS_HELPTEXT                       :Setze das Standardwartungsintervall für Schiffe. Dieses Wartungsintervall wird von allen Schiffen eingehalten, denen kein individuelles Wartungsintervall zugewiesen worden ist
-STR_CONFIG_SETTING_NOSERVICE                                    :Wartung deaktivieren, wenn Pannen abgeschaltet: {STRING}
-STR_CONFIG_SETTING_NOSERVICE_HELPTEXT                           :Schicke Fahrzeuge nicht zur Wartung, wenn Pannen ausgeschaltet sind
 STR_CONFIG_SETTING_WAGONSPEEDLIMITS                             :Berücksichtige Waggonhöchstgeschwindigkeit: {STRING}
 STR_CONFIG_SETTING_WAGONSPEEDLIMITS_HELPTEXT                    :Begrenze die Höchstgeschwindigkeit eines Zuges durch die jeweiligen Höchstgeschwindigkeiten der mitgeführten Waggons
 STR_CONFIG_SETTING_DISABLE_ELRAILS                              :Deaktiviere elektrifizierte Strecken: {STRING}

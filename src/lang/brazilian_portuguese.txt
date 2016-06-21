@@ -1497,8 +1497,6 @@ STR_CONFIG_SETTING_SERVINT_AIRCRAFT                             :Intervalo padr�
 STR_CONFIG_SETTING_SERVINT_AIRCRAFT_HELPTEXT                    :Define o intervalo padrão de manutenção para novos aeronaves, se não for definido individualmente
 STR_CONFIG_SETTING_SERVINT_SHIPS                                :Intervalo padrão de manutenção para embarcações: {STRING}
 STR_CONFIG_SETTING_SERVINT_SHIPS_HELPTEXT                       :Define o intervalo padrão de manutenção para novas embarcações, se não for definido individualmente
-STR_CONFIG_SETTING_NOSERVICE                                    :Desativar manutenção quando as quebras estão desativadas: {STRING}
-STR_CONFIG_SETTING_NOSERVICE_HELPTEXT                           :Quando ativado, veículos não sofrem manutenção se não puderem quebrar
 STR_CONFIG_SETTING_WAGONSPEEDLIMITS                             :Ativar limite de velocidade dos vagões: {STRING}
 STR_CONFIG_SETTING_WAGONSPEEDLIMITS_HELPTEXT                    :Ativado, usa limites de velocidade para vagões para decidir a velocidade máxima de um trem
 STR_CONFIG_SETTING_DISABLE_ELRAILS                              :Desativar ferrovias elétricas: {STRING}

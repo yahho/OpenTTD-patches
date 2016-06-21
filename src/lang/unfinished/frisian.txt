@@ -1485,8 +1485,6 @@ STR_CONFIG_SETTING_SERVINT_AIRCRAFT                             :Standert repara
 STR_CONFIG_SETTING_SERVINT_AIRCRAFT_HELPTEXT                    :Stel it standert reparaasjeskema yn foar nije fleantugen dy't gjin eigen reparaasjeskema kenne
 STR_CONFIG_SETTING_SERVINT_SHIPS                                :Standerd reparaasjeskema foar skippen: {STRING}
 STR_CONFIG_SETTING_SERVINT_SHIPS_HELPTEXT                       :Stel it standerd reparaasjeskema yn foar nije skippen dy't gjin eigen reparaasjeskema kenne
-STR_CONFIG_SETTING_NOSERVICE                                    :Gjin ûnderhald as stikken gean út steat: {STRING}
-STR_CONFIG_SETTING_NOSERVICE_HELPTEXT                           :By ynskeakeljen sille fiertugen gjin ûnderhâld krije at sy net kapot gean kinne
 STR_CONFIG_SETTING_WAGONSPEEDLIMITS                             :Wagon snelheids limiet: {STRING}
 STR_CONFIG_SETTING_WAGONSPEEDLIMITS_HELPTEXT                    :By ynskeakeljen sille de faasjelimyten fan de weinen meinaam wurde by it bepalen fan de maksimale faasje foar in trein
 STR_CONFIG_SETTING_DISABLE_ELRAILS                              :skeakelje elektryske spoaren út: {STRING}
@@ -2001,6 +1999,7 @@ STR_NETWORK_COMPANY_LIST_NEW_COMPANY                            :{WHITE}Nei Bedr
 STR_NETWORK_CLIENTLIST_KICK                                     :Skoppe
 STR_NETWORK_CLIENTLIST_GIVE_MONEY                               :Jouw jild
 STR_NETWORK_CLIENTLIST_SPEAK_TO_ALL                             :Tsjin elkenien prate
+STR_NETWORK_CLIENTLIST_SPEAK_TO_COMPANY                         :Praat mei bedriuw
 STR_NETWORK_CLIENTLIST_SPEAK_TO_CLIENT                          :Priveeberjocht
 
 STR_NETWORK_SERVER                                              :Tsjinner
@@ -3005,6 +3004,7 @@ STR_COMPANY_VIEW_VEHICLES_TITLE                                 :{GOLD}Fiertúch
 STR_COMPANY_VIEW_TRAINS                                         :{WHITE}{COMMA} trein{P "" en}
 STR_COMPANY_VIEW_ROAD_VEHICLES                                  :{WHITE}{COMMA} Wein{P "" en}
 STR_COMPANY_VIEW_AIRCRAFT                                       :{WHITE}{COMMA} fleantugen
+STR_COMPANY_VIEW_SHIPS                                          :{WHITE}{COMMA} sk{P ip epen}
 STR_COMPANY_VIEW_VEHICLES_NONE                                  :{WHITE}Gjin
 STR_COMPANY_VIEW_COMPANY_VALUE                                  :{GOLD}Bedriuwswearde: {WHITE}{CURRENCY_LONG}
 STR_COMPANY_VIEW_SHARES_OWNED_BY                                :{WHITE}({COMMA}% besit fan {COMPANY})
@@ -3115,6 +3115,7 @@ STR_GROUP_ALL_ROAD_VEHICLES                                     :Alle weinen
 STR_GROUP_ALL_SHIPS                                             :Alle skepen
 STR_GROUP_ALL_AIRCRAFTS                                         :Alle fleantugen
 
+STR_GROUP_DEFAULT_SHIPS                                         :Net groepearre skepen
 
 STR_GROUP_CREATE_TOOLTIP                                        :{BLACK}Klik om in groep oan te meitsje
 STR_GROUP_DELETE_TOOLTIP                                        :{BLACK}Smit de selektearre groep fuort
@@ -3127,6 +3128,7 @@ STR_GROUP_REMOVE_ALL_VEHICLES                                   :Alle fiertugen 
 # Build vehicle window
 STR_BUY_VEHICLE_TRAIN_RAIL_CAPTION                              :Nije spoar weinen
 STR_BUY_VEHICLE_TRAIN_ELRAIL_CAPTION                            :Nije elektryske treinen
+STR_BUY_VEHICLE_TRAIN_MAGLEV_CAPTION                            :Nije Maglev Treinen
 
 STR_BUY_VEHICLE_ROAD_VEHICLE_CAPTION                            :Nije Weinen
 STR_BUY_VEHICLE_SHIP_CAPTION                                    :Nije Skepen
@@ -3134,6 +3136,7 @@ STR_BUY_VEHICLE_AIRCRAFT_CAPTION                                :Nije fleantugen
 
 STR_PURCHASE_INFO_SPEED_POWER                                   :{BLACK}Snelheid: {GOLD}{VELOCITY}{BLACK} Kracht: {GOLD}{POWER}
 STR_PURCHASE_INFO_SPEED                                         :{BLACK}Snelheid: {GOLD}{VELOCITY}
+STR_PURCHASE_INFO_SPEED_OCEAN                                   :{BLACK}Faasje op see: {GOLD}{VELOCITY}
 STR_PURCHASE_INFO_RUNNINGCOST                                   :{BLACK}Underhâldskosten: {GOLD}{CURRENCY_LONG}/jr
 STR_PURCHASE_INFO_CAPACITY                                      :{BLACK}Kapasiteit: {GOLD}{CARGO_LONG} {STRING}
 STR_PURCHASE_INFO_REFITTABLE                                    :(kin omboud wurde)
@@ -3231,6 +3234,7 @@ STR_DEPOT_MASS_STOP_DEPOT_TRAIN_TOOLTIP                         :{BLACK}Klik om 
 STR_DEPOT_MASS_STOP_DEPOT_ROAD_VEHICLE_TOOLTIP                  :{BLACK}Klik om alle weinen yn dizze garaazje te stopjen
 STR_DEPOT_MASS_STOP_HANGAR_TOOLTIP                              :{BLACK}Klik om alle fleantugen yn dizze hangar te stopje
 
+STR_DEPOT_MASS_START_DEPOT_SHIP_TOOLTIP                         :{BLACK}Klik om alle skepen te starte
 
 
 # Engine preview window
@@ -3393,6 +3397,7 @@ STR_REFIT_AIRCRAFT_REFIT_BUTTON                                 :{BLACK}Fleantú
 STR_REFIT_TRAIN_REFIT_TOOLTIP                                   :{BLACK}Trein ombouwe nei selektearre fracht
 STR_REFIT_ROAD_VEHICLE_REFIT_TOOLTIP                            :{BLACK}Wein ombouwe nij selektearre fracht
 STR_REFIT_SHIP_REFIT_TOOLTIP                                    :{BLACK}Skip ombouwe nei selektearre fracht
+STR_REFIT_AIRCRAFT_REFIT_TOOLTIP                                :{BLACK}Fleantúch ombouwe nei selektearre fracht
 
 # Order view
 STR_ORDERS_TIMETABLE_VIEW                                       :{BLACK}Tjinstregeling

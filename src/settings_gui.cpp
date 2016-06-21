@@ -1568,6 +1568,7 @@ static SettingEntry _settings_company[] = {
 	SettingEntry("gui.drag_signals_fixed_distance"),
 	SettingEntry("gui.new_nonstop"),
 	SettingEntry("gui.stop_location"),
+	SettingEntry("company.servicing_if_no_breakdowns"),
 	SettingEntry("company.engine_renew"),
 	SettingEntry("company.engine_renew_months"),
 	SettingEntry("company.engine_renew_money"),
@@ -1620,7 +1621,6 @@ static SettingsPage _settings_vehicles_routing_page = {_settings_vehicles_routin
 static SettingEntry _settings_vehicles[] = {
 	SettingEntry(&_settings_vehicles_physics_page, STR_CONFIG_SETTING_VEHICLES_PHYSICS),
 	SettingEntry(&_settings_vehicles_routing_page, STR_CONFIG_SETTING_VEHICLES_ROUTING),
-	SettingEntry("order.no_servicing_if_no_breakdowns"),
 	SettingEntry("order.serviceathelipad"),
 	SettingEntry("vehicle.never_expire_vehicles"),
 	SettingEntry("vehicle.max_trains"),

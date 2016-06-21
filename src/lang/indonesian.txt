@@ -1496,8 +1496,6 @@ STR_CONFIG_SETTING_SERVINT_AIRCRAFT                             :Interval perbai
 STR_CONFIG_SETTING_SERVINT_AIRCRAFT_HELPTEXT                    :Setel interval perbaikan untuk pesawat baru, jika tidak ada interval asli yang disetel
 STR_CONFIG_SETTING_SERVINT_SHIPS                                :Interval dasar untuk kapal: {STRING}
 STR_CONFIG_SETTING_SERVINT_SHIPS_HELPTEXT                       :Mengatur interval perbaikan untuk kapal baru, jika tidak ada interval perbaikan, setelan dasar akan diatur untuk kendaraan
-STR_CONFIG_SETTING_NOSERVICE                                    :Tidak perlu perbaikan jika tidak pernah mogok: {STRING}
-STR_CONFIG_SETTING_NOSERVICE_HELPTEXT                           :Jika diaktifkan, kendaraan tidak akan diperbaiki jika tidak pernah mogok
 STR_CONFIG_SETTING_WAGONSPEEDLIMITS                             :Aktifkan batas kecepatan gerbong: {STRING}
 STR_CONFIG_SETTING_WAGONSPEEDLIMITS_HELPTEXT                    :Jika diaktifkan, batas kecepatan gerbong juga digunakan untuk menentukan kecepatan maksimum kereta
 STR_CONFIG_SETTING_DISABLE_ELRAILS                              :Non-aktifkan rel listrik: {STRING}

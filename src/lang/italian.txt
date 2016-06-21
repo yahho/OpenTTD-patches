@@ -1520,8 +1520,6 @@ STR_CONFIG_SETTING_SERVINT_AIRCRAFT                             :Intervallo manu
 STR_CONFIG_SETTING_SERVINT_AIRCRAFT_HELPTEXT                    :Imposta l'intervallo di manutenzione predefinito per i nuovi aeromobili, quando non viene impostato nessun intervallo esplicito
 STR_CONFIG_SETTING_SERVINT_SHIPS                                :Intervallo manutenzione predefinito navi: {STRING}
 STR_CONFIG_SETTING_SERVINT_SHIPS_HELPTEXT                       :Imposta l'intervallo di manutenzione predefinito per le nuove navi, quando non viene impostato nessun intervallo esplicito
-STR_CONFIG_SETTING_NOSERVICE                                    :Disabilita manutenzione con i guasti veicoli disattivati: {STRING}
-STR_CONFIG_SETTING_NOSERVICE_HELPTEXT                           :Se abilitata, non vengono manutenuti i veicoli se non possono guastarsi
 STR_CONFIG_SETTING_WAGONSPEEDLIMITS                             :Abilita limiti di velocità dei vagoni: {STRING}
 STR_CONFIG_SETTING_WAGONSPEEDLIMITS_HELPTEXT                    :Se abilitata, utilizza anche i limiti di velocità dei vagono per determinare la velocità massima di un treno
 STR_CONFIG_SETTING_DISABLE_ELRAILS                              :Disabilita ferrovie elettrificate: {STRING}

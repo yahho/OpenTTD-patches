@@ -1496,8 +1496,6 @@ STR_CONFIG_SETTING_SERVINT_AIRCRAFT                             :Standard servic
 STR_CONFIG_SETTING_SERVINT_AIRCRAFT_HELPTEXT                    :Sæt serviceintervallets standardværdi for nye fly.
 STR_CONFIG_SETTING_SERVINT_SHIPS                                :Standard serviceinterval for skibe: {STRING}
 STR_CONFIG_SETTING_SERVINT_SHIPS_HELPTEXT                       :Sæt serviceintervallets standardværdi for nye skibe.
-STR_CONFIG_SETTING_NOSERVICE                                    :Slå service fra, når nedbrud er sat til ingen: {STRING}
-STR_CONFIG_SETTING_NOSERVICE_HELPTEXT                           :Når tilladt, bliver køretøjer ikke serviceret, hvis de ikke kan bryde ned
 STR_CONFIG_SETTING_WAGONSPEEDLIMITS                             :Aktiver hastighedsbegrænsning for vogne: {STRING}
 STR_CONFIG_SETTING_WAGONSPEEDLIMITS_HELPTEXT                    :Når tilladt, brug også fartgrænse på vogne, for at bestemme makshastigheden på tog
 STR_CONFIG_SETTING_DISABLE_ELRAILS                              :Slå elektriske jernbaner fra: {STRING}

@@ -368,6 +368,8 @@ static const SaveLoad _company_desc[] = {
 };
 
 static const SaveLoad _company_settings_desc[] = {
+	SLE_VAR(Company, settings.servicing_if_no_breakdowns, SLE_UINT8,  24, ),
+
 	/* Engine renewal settings */
 	SLE_NULL(512, , , 16, 18),
 	SLE_REF(Company, engine_renew_list,            REF_ENGINE_RENEWS,  0, ,  19, ),
@@ -389,6 +391,8 @@ static const SaveLoad _company_settings_desc[] = {
 };
 
 static const SaveLoad _company_settings_skip_desc[] = {
+	SLE_NULL(1,  24, ),
+
 	/* Engine renewal settings */
 	SLE_NULL(512, , , 16, 18),
 	SLE_NULL(2,  , , 19, 68),  // engine_renew_list
@@ -485,6 +489,11 @@ static void Load_PLYR_common(LoadBuffer *reader, Company *c, CompanyProperties *
 	reader->ReadObject(cprops, _company_desc);
 	if (c != NULL) {
 		reader->ReadObject(c, _company_settings_desc);
+
+		if (reader->IsVersionBefore (24)) {
+			c->settings.servicing_if_no_breakdowns =
+				_old_no_servicing_if_no_breakdowns ? 0 : 2;
+		}
 	} else {
 		reader->ReadObject(NULL, _company_settings_skip_desc);
 	}

@@ -405,7 +405,6 @@ struct OrderSettings {
 	bool   improved_load;                    ///< improved loading algorithm
 	bool   gradual_loading;                  ///< load vehicles gradually
 	bool   selectgoods;                      ///< only send the goods to station if a train has been there
-	bool   no_servicing_if_no_breakdowns;    ///< don't send vehicles to depot when breakdowns are disabled
 	bool   serviceathelipad;                 ///< service helicopters at helipads automatically (no need to send to depot)
 };
 
@@ -498,6 +497,7 @@ struct VehicleDefaultSettings {
 
 /** Settings that can be set per company. */
 struct CompanySettings {
+	byte servicing_if_no_breakdowns;         ///< servicing behaviour when breakdowns are disabled
 	bool engine_renew;                       ///< is autorenew enabled
 	int16 engine_renew_months;               ///< months before/after the maximum vehicle age a vehicle should be renewed
 	uint32 engine_renew_money;               ///< minimum amount of money before autorenew is used
@@ -544,6 +544,9 @@ extern GameSettings _settings_newgame;
 
 /** Old vehicle settings, which were game settings before, and are company settings now. (Needed for savegame conversion) */
 extern VehicleDefaultSettings _old_vds;
+
+/** Old servicing setting, which was a game setting before, and is a company setting now. (Needed for savegame conversion) */
+extern bool _old_no_servicing_if_no_breakdowns;
 
 /**
  * Get the settings-object applicable for the current situation: the newgame settings
