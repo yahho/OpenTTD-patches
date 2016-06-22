@@ -65,6 +65,28 @@ static inline bool IsLinkVisible (Point pta, Point ptb, const DrawPixelInfo *dpi
 }
 
 /**
+ * Add information from a given pair of link stat and flow stat to the given
+ * link properties. The shown usage or plan is always the maximum of all link
+ * stats involved.
+ * @param new_cap Capacity of the new link.
+ * @param new_usg Usage of the new link.
+ * @param new_plan Planned flow for the new link.
+ * @param new_shared If the new link is shared.
+ * @param cargo LinkProperties to write the information to.
+ */
+static void AddStats (uint new_cap, uint new_usg, uint new_plan, bool new_shared, LinkProperties &cargo)
+{
+	/* multiply the numbers by 32 in order to avoid comparing to 0 too often. */
+	if (cargo.capacity == 0 ||
+			max(cargo.usage, cargo.planned) * 32 / (cargo.capacity + 1) < max(new_usg, new_plan) * 32 / (new_cap + 1)) {
+		cargo.capacity = new_cap;
+		cargo.usage = new_usg;
+		cargo.planned = new_plan;
+	}
+	if (new_shared) cargo.shared = true;
+}
+
+/**
  * Rebuild the cache and recalculate which links and stations to be shown.
  */
 void LinkGraphOverlay::RebuildCache()
@@ -140,33 +162,11 @@ void LinkGraphOverlay::AddLinks(const Station *from, const Station *to)
 		const LinkGraph &lg = *LinkGraph::Get(ge.link_graph);
 		const LinkGraph::Edge &edge = lg[ge.node][to->goods[c].node];
 		if (edge.Capacity() > 0) {
-			this->AddStats(lg.Monthly(edge.Capacity()), lg.Monthly(edge.Usage()),
+			AddStats (lg.Monthly(edge.Capacity()), lg.Monthly(edge.Usage()),
 					ge.flows.GetFlowVia(to->index), from->owner == OWNER_NONE || to->owner == OWNER_NONE,
 					this->cached_links[from->index][to->index]);
 		}
 	}
-}
-
-/**
- * Add information from a given pair of link stat and flow stat to the given
- * link properties. The shown usage or plan is always the maximum of all link
- * stats involved.
- * @param new_cap Capacity of the new link.
- * @param new_usg Usage of the new link.
- * @param new_plan Planned flow for the new link.
- * @param new_shared If the new link is shared.
- * @param cargo LinkProperties to write the information to.
- */
-/* static */ void LinkGraphOverlay::AddStats(uint new_cap, uint new_usg, uint new_plan, bool new_shared, LinkProperties &cargo)
-{
-	/* multiply the numbers by 32 in order to avoid comparing to 0 too often. */
-	if (cargo.capacity == 0 ||
-			max(cargo.usage, cargo.planned) * 32 / (cargo.capacity + 1) < max(new_usg, new_plan) * 32 / (new_cap + 1)) {
-		cargo.capacity = new_cap;
-		cargo.usage = new_usg;
-		cargo.planned = new_plan;
-	}
-	if (new_shared) cargo.shared = true;
 }
 
 /**
