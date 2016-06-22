@@ -33,6 +33,38 @@ const uint8 LinkGraphOverlay::LINK_COLOURS[] = {
 };
 
 /**
+ * Determine if a certain point is inside the given DPI, with some lee way.
+ * @param pt Point we are looking for.
+ * @param dpi Visible area.
+ * @param padding Extent of the point.
+ * @return If the point or any of its 'extent' is inside the dpi.
+ */
+static inline bool IsPointVisible (Point pt, const DrawPixelInfo *dpi, int padding = 0)
+{
+	return pt.x > dpi->left - padding && pt.y > dpi->top - padding &&
+			pt.x < dpi->left + dpi->width + padding &&
+			pt.y < dpi->top + dpi->height + padding;
+}
+
+/**
+ * Determine if a certain link crosses through the area given by the dpi with some lee way.
+ * @param pta First end of the link.
+ * @param ptb Second end of the link.
+ * @param dpi Visible area.
+ * @param padding Width or thickness of the link.
+ * @return If the link or any of its "thickness" is visible. This may return false positives.
+ */
+static inline bool IsLinkVisible (Point pta, Point ptb, const DrawPixelInfo *dpi, int padding = 0)
+{
+	return !((pta.x < dpi->left - padding && ptb.x < dpi->left - padding) ||
+			(pta.y < dpi->top - padding && ptb.y < dpi->top - padding) ||
+			(pta.x > dpi->left + dpi->width + padding &&
+					ptb.x > dpi->left + dpi->width + padding) ||
+			(pta.y > dpi->top + dpi->height + padding &&
+					ptb.y > dpi->top + dpi->height + padding));
+}
+
+/**
  * Rebuild the cache and recalculate which links and stations to be shown.
  */
 void LinkGraphOverlay::RebuildCache()
@@ -78,48 +110,16 @@ void LinkGraphOverlay::RebuildCache()
 				if (stb->owner != OWNER_NONE && sta->owner != OWNER_NONE && !HasBit(this->company_mask, stb->owner)) continue;
 				if (stb->rect.empty()) continue;
 
-				if (!this->IsLinkVisible(pta, this->GetStationMiddle(stb), &dpi)) continue;
+				if (!IsLinkVisible (pta, this->GetStationMiddle(stb), &dpi)) continue;
 
 				this->AddLinks(sta, stb);
 				seen_links[to]; // make sure it is created and marked as seen
 			}
 		}
-		if (this->IsPointVisible(pta, &dpi)) {
+		if (IsPointVisible (pta, &dpi)) {
 			this->cached_stations.push_back(std::make_pair(from, supply));
 		}
 	}
-}
-
-/**
- * Determine if a certain point is inside the given DPI, with some lee way.
- * @param pt Point we are looking for.
- * @param dpi Visible area.
- * @param padding Extent of the point.
- * @return If the point or any of its 'extent' is inside the dpi.
- */
-inline bool LinkGraphOverlay::IsPointVisible(Point pt, const DrawPixelInfo *dpi, int padding) const
-{
-	return pt.x > dpi->left - padding && pt.y > dpi->top - padding &&
-			pt.x < dpi->left + dpi->width + padding &&
-			pt.y < dpi->top + dpi->height + padding;
-}
-
-/**
- * Determine if a certain link crosses through the area given by the dpi with some lee way.
- * @param pta First end of the link.
- * @param ptb Second end of the link.
- * @param dpi Visible area.
- * @param padding Width or thickness of the link.
- * @return If the link or any of its "thickness" is visible. This may return false positives.
- */
-inline bool LinkGraphOverlay::IsLinkVisible(Point pta, Point ptb, const DrawPixelInfo *dpi, int padding) const
-{
-	return !((pta.x < dpi->left - padding && ptb.x < dpi->left - padding) ||
-			(pta.y < dpi->top - padding && ptb.y < dpi->top - padding) ||
-			(pta.x > dpi->left + dpi->width + padding &&
-					ptb.x > dpi->left + dpi->width + padding) ||
-			(pta.y > dpi->top + dpi->height + padding &&
-					ptb.y > dpi->top + dpi->height + padding));
 }
 
 /**
@@ -191,7 +191,7 @@ void LinkGraphOverlay::DrawLinks(const DrawPixelInfo *dpi) const
 		for (StationLinkMap::const_iterator j(i->second.begin()); j != i->second.end(); ++j) {
 			if (!Station::IsValidID(j->first)) continue;
 			Point ptb = this->GetStationMiddle(Station::Get(j->first));
-			if (!this->IsLinkVisible(pta, ptb, dpi, this->scale + 2)) continue;
+			if (!IsLinkVisible (pta, ptb, dpi, this->scale + 2)) continue;
 			this->DrawContent(pta, ptb, j->second);
 		}
 	}
@@ -233,7 +233,7 @@ void LinkGraphOverlay::DrawStationDots(const DrawPixelInfo *dpi) const
 		const Station *st = Station::GetIfValid(i->first);
 		if (st == NULL) continue;
 		Point pt = this->GetStationMiddle(st);
-		if (!this->IsPointVisible(pt, dpi, 3 * this->scale)) continue;
+		if (!IsPointVisible (pt, dpi, 3 * this->scale)) continue;
 
 		uint r = this->scale * 2 + this->scale * 2 * min(200, i->second) / 200;
 
