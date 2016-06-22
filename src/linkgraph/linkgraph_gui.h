@@ -83,8 +83,6 @@ protected:
 	void DrawLinks(const DrawPixelInfo *dpi) const;
 	void DrawStationDots(const DrawPixelInfo *dpi) const;
 	void DrawContent(Point pta, Point ptb, const LinkProperties &cargo) const;
-
-	static void DrawVertex(int x, int y, int size, int colour, int border_colour);
 };
 
 void ShowLinkGraphLegend();

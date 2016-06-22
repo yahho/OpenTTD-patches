@@ -170,6 +170,30 @@ void LinkGraphOverlay::AddLinks(const Station *from, const Station *to)
 }
 
 /**
+ * Draw a square symbolizing a producer of cargo.
+ * @param x X coordinate of the middle of the vertex.
+ * @param y Y coordinate of the middle of the vertex.
+ * @param size Y and y extend of the vertex.
+ * @param colour Colour with which the vertex will be filled.
+ * @param border_colour Colour for the border of the vertex.
+ */
+static void DrawVertex (int x, int y, int size, int colour, int border_colour)
+{
+	size--;
+	int w1 = size / 2;
+	int w2 = size / 2 + size % 2;
+
+	GfxFillRect(x - w1, y - w1, x + w2, y + w2, colour);
+
+	w1++;
+	w2++;
+	GfxDrawLine(x - w1, y - w1, x + w2, y - w1, border_colour);
+	GfxDrawLine(x - w1, y + w2, x + w2, y + w2, border_colour);
+	GfxDrawLine(x - w1, y - w1, x - w1, y + w2, border_colour);
+	GfxDrawLine(x + w2, y - w1, x + w2, y + w2, border_colour);
+}
+
+/**
  * Draw the linkgraph overlay or some part of it, in the area given.
  * @param dpi Area to be drawn to.
  */
@@ -237,35 +261,11 @@ void LinkGraphOverlay::DrawStationDots(const DrawPixelInfo *dpi) const
 
 		uint r = this->scale * 2 + this->scale * 2 * min(200, i->second) / 200;
 
-		LinkGraphOverlay::DrawVertex(pt.x, pt.y, r,
+		DrawVertex (pt.x, pt.y, r,
 				_colour_gradient[st->owner != OWNER_NONE ?
 						(Colours)Company::Get(st->owner)->colour : COLOUR_GREY][5],
 				_colour_gradient[COLOUR_GREY][1]);
 	}
-}
-
-/**
- * Draw a square symbolizing a producer of cargo.
- * @param x X coordinate of the middle of the vertex.
- * @param y Y coordinate of the middle of the vertex.
- * @param size Y and y extend of the vertex.
- * @param colour Colour with which the vertex will be filled.
- * @param border_colour Colour for the border of the vertex.
- */
-/* static */ void LinkGraphOverlay::DrawVertex(int x, int y, int size, int colour, int border_colour)
-{
-	size--;
-	int w1 = size / 2;
-	int w2 = size / 2 + size % 2;
-
-	GfxFillRect(x - w1, y - w1, x + w2, y + w2, colour);
-
-	w1++;
-	w2++;
-	GfxDrawLine(x - w1, y - w1, x + w2, y - w1, border_colour);
-	GfxDrawLine(x - w1, y + w2, x + w2, y + w2, border_colour);
-	GfxDrawLine(x - w1, y - w1, x - w1, y + w2, border_colour);
-	GfxDrawLine(x + w2, y - w1, x + w2, y + w2, border_colour);
 }
 
 /**
