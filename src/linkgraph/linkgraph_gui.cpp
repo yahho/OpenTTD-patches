@@ -208,13 +208,15 @@ static void DrawContent (Point pta, Point ptb, const LinkProperties &cargo, uint
 	/* Move line a bit 90° against its dominant direction to prevent it from
 	 * being hidden below the grey line. */
 	int side = _settings_game.vehicle.road_side ? 1 : -1;
+	int offset_x, offset_y;
 	if (abs(pta.x - ptb.x) < abs(pta.y - ptb.y)) {
-		int offset_x = (pta.y > ptb.y ? 1 : -1) * side * scale;
-		GfxDrawLine (pta.x + offset_x, pta.y, ptb.x + offset_x, ptb.y, colour, scale, dash);
+		offset_x = (pta.y > ptb.y ? 1 : -1) * side * scale;
+		offset_y = 0;
 	} else {
-		int offset_y = (pta.x < ptb.x ? 1 : -1) * side * scale;
-		GfxDrawLine (pta.x, pta.y + offset_y, ptb.x, ptb.y + offset_y, colour, scale, dash);
+		offset_y = (pta.x < ptb.x ? 1 : -1) * side * scale;
+		offset_x = 0;
 	}
+	GfxDrawLine (pta.x + offset_x, pta.y + offset_y, ptb.x + offset_x, ptb.y + offset_y, colour, scale, dash);
 
 	GfxDrawLine (pta.x, pta.y, ptb.x, ptb.y, _colour_gradient[COLOUR_GREY][1], scale);
 }
