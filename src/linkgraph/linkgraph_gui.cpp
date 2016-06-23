@@ -194,6 +194,32 @@ static void DrawVertex (int x, int y, int size, int colour, int border_colour)
 }
 
 /**
+ * Draw one specific link.
+ * @param pta Source of the link.
+ * @param ptb Destination of the link.
+ * @param cargo Properties of the link.
+ */
+static void DrawContent (Point pta, Point ptb, const LinkProperties &cargo, uint scale)
+{
+	uint usage_or_plan = min(cargo.capacity * 2 + 1, max(cargo.usage, cargo.planned));
+	int colour = LinkGraphOverlay::LINK_COLOURS[usage_or_plan * lengthof(LinkGraphOverlay::LINK_COLOURS) / (cargo.capacity * 2 + 2)];
+	int dash = cargo.shared ? scale * 4 : 0;
+
+	/* Move line a bit 90° against its dominant direction to prevent it from
+	 * being hidden below the grey line. */
+	int side = _settings_game.vehicle.road_side ? 1 : -1;
+	if (abs(pta.x - ptb.x) < abs(pta.y - ptb.y)) {
+		int offset_x = (pta.y > ptb.y ? 1 : -1) * side * scale;
+		GfxDrawLine (pta.x + offset_x, pta.y, ptb.x + offset_x, ptb.y, colour, scale, dash);
+	} else {
+		int offset_y = (pta.x < ptb.x ? 1 : -1) * side * scale;
+		GfxDrawLine (pta.x, pta.y + offset_y, ptb.x, ptb.y + offset_y, colour, scale, dash);
+	}
+
+	GfxDrawLine (pta.x, pta.y, ptb.x, ptb.y, _colour_gradient[COLOUR_GREY][1], scale);
+}
+
+/**
  * Draw the linkgraph overlay or some part of it, in the area given.
  * @param dpi Area to be drawn to.
  */
@@ -216,35 +242,9 @@ void LinkGraphOverlay::DrawLinks(const DrawPixelInfo *dpi) const
 			if (!Station::IsValidID(j->first)) continue;
 			Point ptb = this->GetStationMiddle(Station::Get(j->first));
 			if (!IsLinkVisible (pta, ptb, dpi, this->scale + 2)) continue;
-			this->DrawContent(pta, ptb, j->second);
+			DrawContent (pta, ptb, j->second, this->scale);
 		}
 	}
-}
-
-/**
- * Draw one specific link.
- * @param pta Source of the link.
- * @param ptb Destination of the link.
- * @param cargo Properties of the link.
- */
-void LinkGraphOverlay::DrawContent(Point pta, Point ptb, const LinkProperties &cargo) const
-{
-	uint usage_or_plan = min(cargo.capacity * 2 + 1, max(cargo.usage, cargo.planned));
-	int colour = LinkGraphOverlay::LINK_COLOURS[usage_or_plan * lengthof(LinkGraphOverlay::LINK_COLOURS) / (cargo.capacity * 2 + 2)];
-	int dash = cargo.shared ? this->scale * 4 : 0;
-
-	/* Move line a bit 90° against its dominant direction to prevent it from
-	 * being hidden below the grey line. */
-	int side = _settings_game.vehicle.road_side ? 1 : -1;
-	if (abs(pta.x - ptb.x) < abs(pta.y - ptb.y)) {
-		int offset_x = (pta.y > ptb.y ? 1 : -1) * side * this->scale;
-		GfxDrawLine(pta.x + offset_x, pta.y, ptb.x + offset_x, ptb.y, colour, this->scale, dash);
-	} else {
-		int offset_y = (pta.x < ptb.x ? 1 : -1) * side * this->scale;
-		GfxDrawLine(pta.x, pta.y + offset_y, ptb.x, ptb.y + offset_y, colour, this->scale, dash);
-	}
-
-	GfxDrawLine(pta.x, pta.y, ptb.x, ptb.y, _colour_gradient[COLOUR_GREY][1], this->scale);
 }
 
 /**

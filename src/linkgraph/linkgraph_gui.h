@@ -82,7 +82,6 @@ protected:
 	void AddLinks(const Station *sta, const Station *stb);
 	void DrawLinks(const DrawPixelInfo *dpi) const;
 	void DrawStationDots(const DrawPixelInfo *dpi) const;
-	void DrawContent(Point pta, Point ptb, const LinkProperties &cargo) const;
 };
 
 void ShowLinkGraphLegend();
