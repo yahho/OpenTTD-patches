@@ -227,16 +227,7 @@ static void DrawContent (Point pta, Point ptb, const LinkProperties &cargo, uint
  */
 void LinkGraphOverlay::Draw(const DrawPixelInfo *dpi) const
 {
-	this->DrawLinks(dpi);
-	this->DrawStationDots(dpi);
-}
-
-/**
- * Draw the cached links or part of them into the given area.
- * @param dpi Area to be drawn to.
- */
-void LinkGraphOverlay::DrawLinks(const DrawPixelInfo *dpi) const
-{
+	/* Draw the cached links or part of them into the given area. */
 	for (LinkMap::const_iterator i(this->cached_links.begin()); i != this->cached_links.end(); ++i) {
 		if (!Station::IsValidID(i->first)) continue;
 		Point pta = this->GetStationMiddle(Station::Get(i->first));
@@ -247,14 +238,10 @@ void LinkGraphOverlay::DrawLinks(const DrawPixelInfo *dpi) const
 			DrawContent (pta, ptb, j->second, this->scale);
 		}
 	}
-}
 
-/**
- * Draw dots for stations into the smallmap. The dots' sizes are determined by the amount of
- * cargo produced there, their colours by the type of cargo produced.
- */
-void LinkGraphOverlay::DrawStationDots(const DrawPixelInfo *dpi) const
-{
+	/* Draw dots for stations into the smallmap. The dots' sizes are
+	 * determined by the amount of cargo produced there, their colours
+	 * by the type of cargo produced. */
 	for (StationSupplyList::const_iterator i(this->cached_stations.begin()); i != this->cached_stations.end(); ++i) {
 		const Station *st = Station::GetIfValid(i->first);
 		if (st == NULL) continue;
