@@ -924,7 +924,7 @@ void SmallMapWindow::DrawTowns(const DrawPixelInfo *dpi) const
  * @param viewport_coord The coordinate in the viewport.
  * @return The tile location.
  */
-Point SmallMapWindow::GetSmallMapCoordIncludingHeight(Point viewport_coord) const
+static Point GetSmallMapCoordIncludingHeight (Point viewport_coord)
 {
 	/* First find out which tile would be there if we ignore height */
 	Point pt = InverseRemapCoords(viewport_coord.x, viewport_coord.y);
