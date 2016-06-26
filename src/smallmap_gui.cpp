@@ -928,8 +928,8 @@ Point SmallMapWindow::GetSmallMapCoordIncludingHeight(Point viewport_coord) cons
 {
 	/* First find out which tile would be there if we ignore height */
 	Point pt = InverseRemapCoords(viewport_coord.x, viewport_coord.y);
-	pt.x /= TILE_SIZE;
-	pt.y /= TILE_SIZE;
+	pt.x /= (int)TILE_SIZE;
+	pt.y /= (int)TILE_SIZE;
 
 	/* Problem: There are mountains.  So the tile actually displayed at
 	 * the given position might be the high mountain of 30 tiles south. */
