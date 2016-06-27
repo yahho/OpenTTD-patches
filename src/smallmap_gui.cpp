@@ -619,14 +619,6 @@ static const byte _vehicle_type_colours[6] = {
 };
 
 
-inline Point SmallMapWindow::SmallmapRemapCoords(int x, int y) const
-{
-	Point pt;
-	pt.x = (y - x) * 2;
-	pt.y = y + x;
-	return pt;
-}
-
 /**
  * Remap tile to location on this smallmap.
  * @param tile_x X coordinate of the tile.
@@ -646,7 +638,10 @@ inline Point SmallMapWindow::RemapTile(int tile_x, int tile_y) const
 		y_offset /= this->zoom;
 	}
 
-	return SmallmapRemapCoords (x_offset, y_offset);
+	Point pt;
+	pt.x = (y_offset - x_offset) * 2;
+	pt.y = y_offset + x_offset;
+	return pt;
 }
 
 /**
