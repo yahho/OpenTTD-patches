@@ -638,13 +638,15 @@ inline Point SmallMapWindow::RemapTile(int tile_x, int tile_y) const
 	int x_offset = tile_x - this->scroll_x / (int)TILE_SIZE;
 	int y_offset = tile_y - this->scroll_y / (int)TILE_SIZE;
 
-	if (this->zoom == 1) return SmallmapRemapCoords(x_offset, y_offset);
+	if (this->zoom != 1) {
+		/* For negative offsets, round towards -inf. */
+		if (x_offset < 0) x_offset -= this->zoom - 1;
+		if (y_offset < 0) y_offset -= this->zoom - 1;
+		x_offset /= this->zoom;
+		y_offset /= this->zoom;
+	}
 
-	/* For negative offsets, round towards -inf. */
-	if (x_offset < 0) x_offset -= this->zoom - 1;
-	if (y_offset < 0) y_offset -= this->zoom - 1;
-
-	return SmallmapRemapCoords(x_offset / this->zoom, y_offset / this->zoom);
+	return SmallmapRemapCoords (x_offset, y_offset);
 }
 
 /**
