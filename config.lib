@@ -1376,7 +1376,7 @@ make_compiler_cflags() {
 			flags="$flags -Wnon-virtual-dtor"
 		fi
 
-		if [ $cc_version -ge 43 ]; then
+		if [ $cc_version -ge 43 ] && [ $cc_version -lt 60 ]; then
 			# Use gnu++0x mode so static_assert() is available.
 			# Don't use c++0x, it breaks mingw (with gcc 4.4.0).
 			cxxflags="$cxxflags -std=gnu++0x"
@@ -1400,7 +1400,7 @@ make_compiler_cflags() {
 		if [ $cc_version -ge 60 ]; then
 			# -flifetime-dse=2 (default since GCC 6) doesn't play
 			# well with our custom pool item allocator
-			cxxflags="$cxxflags -flifetime-dse=1"
+			cxxflags="$cxxflags -flifetime-dse=1 -std=gnu++14"
 		fi
 
 		# GCC 4.5 outputs '%{flto}', GCC 4.6 outputs '%{flto*}'
