@@ -944,6 +944,30 @@ static Point GetSmallMapCoordIncludingHeight (Point viewport_coord)
 }
 
 /**
+ * Draws vertical part of map indicator
+ * @param x X coord of left/right border of main viewport
+ * @param y1 Y coord of top border of main viewport
+ * @param y2 Y coord of bottom border of main viewport
+ */
+static inline void DrawVertMapIndicator (int x, int y1, int y2)
+{
+	GfxFillRect (x, y1,     x, y1 + 3, PC_VERY_LIGHT_YELLOW);
+	GfxFillRect (x, y2 - 3, x, y2,     PC_VERY_LIGHT_YELLOW);
+}
+
+/**
+ * Draws horizontal part of map indicator
+ * @param x1 X coord of left border of main viewport
+ * @param x2 X coord of right border of main viewport
+ * @param y Y coord of top/bottom border of main viewport
+ */
+static inline void DrawHorizMapIndicator (int x1, int x2, int y)
+{
+	GfxFillRect (x1,     y, x1 + 3, y, PC_VERY_LIGHT_YELLOW);
+	GfxFillRect (x2 - 3, y, x2,     y, PC_VERY_LIGHT_YELLOW);
+}
+
+/**
  * Adds map indicators to the smallmap.
  */
 void SmallMapWindow::DrawMapIndicators() const
@@ -962,11 +986,11 @@ void SmallMapWindow::DrawMapIndicators() const
 	/* why do we do this? in my tests subscroll was zero */
 	lower_right.x -= this->subscroll;
 
-	SmallMapWindow::DrawVertMapIndicator(upper_left.x, upper_left.y, lower_right.y);
-	SmallMapWindow::DrawVertMapIndicator(lower_right.x, upper_left.y, lower_right.y);
+	DrawVertMapIndicator (upper_left.x, upper_left.y, lower_right.y);
+	DrawVertMapIndicator (lower_right.x, upper_left.y, lower_right.y);
 
-	SmallMapWindow::DrawHorizMapIndicator(upper_left.x, lower_right.x, upper_left.y);
-	SmallMapWindow::DrawHorizMapIndicator(upper_left.x, lower_right.x, lower_right.y);
+	DrawHorizMapIndicator (upper_left.x, lower_right.x, upper_left.y);
+	DrawHorizMapIndicator (upper_left.x, lower_right.x, lower_right.y);
 }
 
 /**
