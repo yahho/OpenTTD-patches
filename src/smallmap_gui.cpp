@@ -678,37 +678,6 @@ inline Point SmallMapWindow::PixelToTile(int px, int py, int *sub, bool add_sub)
 }
 
 /**
- * Compute base parameters of the smallmap such that tile (\a tx, \a ty) starts at pixel (\a x, \a y).
- * @param tx        Tile x coordinate.
- * @param ty        Tile y coordinate.
- * @param x         Non-negative horizontal position in the display where the tile starts.
- * @param y         Non-negative vertical position in the display where the tile starts.
- * @param sub [out] Value of #subscroll needed.
- * @return #scroll_x, #scroll_y values.
- */
-Point SmallMapWindow::ComputeScroll(int tx, int ty, int x, int y, int *sub)
-{
-	assert(x >= 0 && y >= 0);
-
-	int new_sub;
-	Point tile_xy = PixelToTile(x, y, &new_sub, false);
-	tx -= tile_xy.x;
-	ty -= tile_xy.y;
-
-	Point scroll;
-	if (new_sub == 0) {
-		*sub = 0;
-		scroll.x = (tx + this->zoom) * TILE_SIZE;
-		scroll.y = (ty - this->zoom) * TILE_SIZE;
-	} else {
-		*sub = 4 - new_sub;
-		scroll.x = (tx + 2 * this->zoom) * TILE_SIZE;
-		scroll.y = (ty - 2 * this->zoom) * TILE_SIZE;
-	}
-	return scroll;
-}
-
-/**
  * Initialize or change the zoom level.
  * @param change  Way to change the zoom level.
  * @param zoom_pt Position to keep fixed while zooming.
@@ -1703,10 +1672,28 @@ void SmallMapWindow::SmallMapCenterOnCurrentPos()
 
 	/* And finally scroll to that position. */
 
-	int sub;
 	const NWidgetBase *wid = this->GetWidget<NWidgetBase>(WID_SM_MAP);
-	Point sxy = this->ComputeScroll(pt_with_height.x, pt_with_height.y,
-			max(0, (int)wid->current_x / 2 - 2), wid->current_y / 2, &sub);
+
+	int x = max(0, (int)wid->current_x / 2 - 2);
+	int y = wid->current_y / 2;
+	assert (x >= 0);
+	assert (y >= 0);
+
+	int sub;
+	Point tile_xy = PixelToTile (x, y, &sub, false);
+	int tx = pt_with_height.x - tile_xy.x;
+	int ty = pt_with_height.y - tile_xy.y;
+
+	Point sxy;
+	if (sub == 0) {
+		sxy.x = (tx + this->zoom) * TILE_SIZE;
+		sxy.y = (ty - this->zoom) * TILE_SIZE;
+	} else {
+		sub = 4 - sub;
+		sxy.x = (tx + 2 * this->zoom) * TILE_SIZE;
+		sxy.y = (ty - 2 * this->zoom) * TILE_SIZE;
+	}
+
 	this->SetNewScroll(sxy.x, sxy.y, sub);
 	this->SetDirty();
 }
