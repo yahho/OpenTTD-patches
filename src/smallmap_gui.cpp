@@ -787,7 +787,7 @@ inline uint32 SmallMapWindow::GetTileColours(const TileArea &ta) const
 void SmallMapWindow::DrawSmallMapColumn(void *dst, uint xc, uint yc, int pitch, int reps, int start_pos, int end_pos, Blitter *blitter) const
 {
 	void *dst_ptr_abs_end = blitter->MoveTo(_screen.dst_ptr, 0, _screen.height);
-	uint min_xy = _settings_game.construction.freeform_edges ? 1 : 0;
+	bool freeform = _settings_game.construction.freeform_edges;
 
 	do {
 		/* Check if the tile (xc,yc) is within the map range */
@@ -797,9 +797,9 @@ void SmallMapWindow::DrawSmallMapColumn(void *dst, uint xc, uint yc, int pitch, 
 		if (dst < _screen.dst_ptr) continue;
 		if (dst >= dst_ptr_abs_end) continue;
 
-		/* Construct tilearea covered by (xc, yc, xc + this->zoom, yc + this->zoom) such that it is within min_xy limits. */
+		/* Construct tilearea covered by (xc, yc, xc + this->zoom, yc + this->zoom) such that it is within map limits. */
 		uint xd, yd;
-		if (min_xy == 1 && (xc == 0 || yc == 0)) {
+		if (freeform && (xc == 0 || yc == 0)) {
 			if (this->zoom == 1) continue; // The tile area is empty, don't draw anything.
 			xd = (xc == 0 ? 1 : 0);
 			yd = (yc == 0 ? 1 : 0);
