@@ -798,14 +798,15 @@ void SmallMapWindow::DrawSmallMapColumn(void *dst, uint xc, uint yc, int pitch, 
 		if (dst >= dst_ptr_abs_end) continue;
 
 		/* Construct tilearea covered by (xc, yc, xc + this->zoom, yc + this->zoom) such that it is within min_xy limits. */
-		TileArea ta;
+		uint xd, yd;
 		if (min_xy == 1 && (xc == 0 || yc == 0)) {
 			if (this->zoom == 1) continue; // The tile area is empty, don't draw anything.
-
-			ta = TileArea(TileXY(max(min_xy, xc), max(min_xy, yc)), this->zoom - (xc == 0), this->zoom - (yc == 0));
+			xd = (xc == 0 ? 1 : 0);
+			yd = (yc == 0 ? 1 : 0);
 		} else {
-			ta = TileArea(TileXY(xc, yc), this->zoom, this->zoom);
+			xd = yd = 0;
 		}
+		TileArea ta (TileXY (xc + xd, yc + yd), this->zoom - xd, this->zoom - yd);
 		ta.ClampToMap(); // Clamp to map boundaries (may contain void tiles!).
 
 		uint32 val = this->GetTileColours(ta);
