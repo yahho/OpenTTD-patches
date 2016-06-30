@@ -993,7 +993,7 @@ void SmallMapWindow::DrawSmallMap(DrawPixelInfo *dpi) const
 
 	void *ptr = blitter->MoveTo(dpi->dst_ptr, -dx - 4, 0);
 	int x = - dx - 4;
-	int y = 0;
+	int y = 1;
 
 	for (;;) {
 		/* Distance from left edge */
@@ -1001,14 +1001,14 @@ void SmallMapWindow::DrawSmallMap(DrawPixelInfo *dpi) const
 			if (x >= dpi->width) break; // Exit the loop.
 
 			int end_pos = min(dpi->width, x + 4);
-			int reps = (dpi->height - y + 1) / 2; // Number of lines.
+			int reps = (dpi->height + y) / 2; // Number of lines.
 			if (reps > 0) {
 				this->DrawSmallMapColumn(ptr, tile_x, tile_y, dpi->pitch * 2, reps, x, end_pos, blitter);
 			}
 		}
 
 		int dy;
-		if (y == 0) {
+		if (y != 0) {
 			tile_y += this->zoom;
 			dy = 1;
 		} else {
