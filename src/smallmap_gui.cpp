@@ -1010,15 +1010,14 @@ void SmallMapWindow::DrawSmallMap(DrawPixelInfo *dpi) const
 		int dy;
 		if (y == 0) {
 			tile_y += this->zoom;
-			y++;
 			dy = 1;
 		} else {
 			tile_x -= this->zoom;
-			y--;
 			dy = -1;
 		}
 		ptr = blitter->MoveTo (ptr, 2, dy);
 		x += 2;
+		y ^= 1;
 	}
 
 	/* Draw vehicles */
