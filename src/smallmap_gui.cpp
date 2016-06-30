@@ -1007,16 +1007,17 @@ void SmallMapWindow::DrawSmallMap(DrawPixelInfo *dpi) const
 			}
 		}
 
+		int dy;
 		if (y == 0) {
 			tile_y += this->zoom;
 			y++;
-			ptr = blitter->MoveTo(ptr, 0, 1);
+			dy = 1;
 		} else {
 			tile_x -= this->zoom;
 			y--;
-			ptr = blitter->MoveTo(ptr, 0, -1);
+			dy = -1;
 		}
-		ptr = blitter->MoveTo(ptr, 2, 0);
+		ptr = blitter->MoveTo (ptr, 2, dy);
 		x += 2;
 	}
 
