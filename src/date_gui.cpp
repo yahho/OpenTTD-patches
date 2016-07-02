@@ -45,12 +45,13 @@ struct SetDateWindow : Window {
 			max_year(min(MAX_YEAR, max_year))
 	{
 		assert(this->min_year <= this->max_year);
-		this->parent = parent;
-		this->InitNested(window_number);
 
 		if (initial_date == 0) initial_date = _date;
 		ConvertDateToYMD(initial_date, &this->date);
 		this->date.year = Clamp(this->date.year, min_year, max_year);
+
+		this->parent = parent;
+		this->InitNested(window_number);
 	}
 
 	virtual Point OnInitialPosition(int16 sm_width, int16 sm_height, int window_number)
