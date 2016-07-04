@@ -682,20 +682,6 @@ static void DrawWaterEdges(bool canal, uint offset, TileIndex tile)
 	}
 }
 
-/** draw a canal styled water tile with dikes around */
-static void DrawCanalWater(TileIndex tile)
-{
-	SpriteID image = SPR_FLAT_WATER_TILE;
-	if (HasBit(_water_feature[CF_WATERSLOPE].flags, CFF_HAS_FLAT_SPRITE)) {
-		/* First water slope sprite is flat water. */
-		image = GetCanalSprite(CF_WATERSLOPE, tile);
-		if (image == 0) image = SPR_FLAT_WATER_TILE;
-	}
-	DrawWaterSprite(image, 0, CF_WATERSLOPE, tile);
-
-	DrawWaterEdges(true, 0, tile);
-}
-
 #include "table/water_land.h"
 
 /**
@@ -831,7 +817,19 @@ void DrawWaterClassGround(const TileInfo *ti)
 			DrawGroundSprite (SPR_FLAT_WATER_TILE, PAL_NONE);
 			break;
 
-		case WATER_CLASS_CANAL: DrawCanalWater(ti->tile); break;
+		case WATER_CLASS_CANAL: {
+			TileIndex tile = ti->tile;
+			SpriteID image = SPR_FLAT_WATER_TILE;
+			if (HasBit(_water_feature[CF_WATERSLOPE].flags, CFF_HAS_FLAT_SPRITE)) {
+				/* First water slope sprite is flat water. */
+				image = GetCanalSprite (CF_WATERSLOPE, tile);
+				if (image == 0) image = SPR_FLAT_WATER_TILE;
+			}
+			DrawWaterSprite (image, 0, CF_WATERSLOPE, tile);
+			DrawWaterEdges (true, 0, tile);
+			break;
+		}
+
 		case WATER_CLASS_RIVER: DrawRiverWater(ti); break;
 		default: NOT_REACHED();
 	}
