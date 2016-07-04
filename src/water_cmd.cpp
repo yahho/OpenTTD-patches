@@ -682,12 +682,6 @@ static void DrawWaterEdges(bool canal, uint offset, TileIndex tile)
 	}
 }
 
-/** Draw a plain sea water tile with no edges */
-static void DrawSeaWater(TileIndex tile)
-{
-	DrawGroundSprite(SPR_FLAT_WATER_TILE, PAL_NONE);
-}
-
 /** draw a canal styled water tile with dikes around */
 static void DrawCanalWater(TileIndex tile)
 {
@@ -833,7 +827,10 @@ void DrawShoreTile(Slope tileh)
 void DrawWaterClassGround(const TileInfo *ti)
 {
 	switch (GetWaterClass(ti->tile)) {
-		case WATER_CLASS_SEA:   DrawSeaWater(ti->tile); break;
+		case WATER_CLASS_SEA:
+			DrawGroundSprite (SPR_FLAT_WATER_TILE, PAL_NONE);
+			break;
+
 		case WATER_CLASS_CANAL: DrawCanalWater(ti->tile); break;
 		case WATER_CLASS_RIVER: DrawRiverWater(ti); break;
 		default: NOT_REACHED();
