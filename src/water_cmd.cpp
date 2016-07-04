@@ -755,7 +755,7 @@ static void DrawWaterDepot(const TileInfo *ti)
 	DrawWaterTileStruct(ti, _shipdepot_display_data[GetShipDepotDirection(ti->tile)].seq, 0, 0, COMPANY_SPRITE_COLOUR(GetTileOwner(ti->tile)), CF_END);
 }
 
-static void DrawRiverWater(const TileInfo *ti)
+static uint DrawRiverWater (const TileInfo *ti)
 {
 	SpriteID image = SPR_FLAT_WATER_TILE;
 	uint     offset = 0;
@@ -789,8 +789,7 @@ static void DrawRiverWater(const TileInfo *ti)
 
 	DrawGroundSprite(image + offset, PAL_NONE);
 
-	/* Draw river edges if available. */
-	DrawWaterEdges(false, edges_offset, ti->tile);
+	return edges_offset;
 }
 
 void DrawShoreTile(Slope tileh)
@@ -812,10 +811,14 @@ void DrawShoreTile(Slope tileh)
 
 void DrawWaterClassGround(const TileInfo *ti)
 {
+	uint edges_offset;
+	bool canal;
+
 	switch (GetWaterClass(ti->tile)) {
 		case WATER_CLASS_SEA:
 			DrawGroundSprite (SPR_FLAT_WATER_TILE, PAL_NONE);
-			break;
+			/* No edges drawn for sea tiles. */
+			return;
 
 		case WATER_CLASS_CANAL: {
 			TileIndex tile = ti->tile;
@@ -826,13 +829,21 @@ void DrawWaterClassGround(const TileInfo *ti)
 				if (image == 0) image = SPR_FLAT_WATER_TILE;
 			}
 			DrawWaterSprite (image, 0, CF_WATERSLOPE, tile);
-			DrawWaterEdges (true, 0, tile);
+			edges_offset = 0;
+			canal = true;
 			break;
 		}
 
-		case WATER_CLASS_RIVER: DrawRiverWater(ti); break;
+		case WATER_CLASS_RIVER:
+			edges_offset = DrawRiverWater (ti);
+			canal = false;
+			break;
+
 		default: NOT_REACHED();
 	}
+
+	/* Draw river edges if available. */
+	DrawWaterEdges (canal, edges_offset, ti->tile);
 }
 
 static void DrawTile_Water(TileInfo *ti)
