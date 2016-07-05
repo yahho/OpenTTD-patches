@@ -532,10 +532,13 @@ public:
 		int y1 = ScaleGUITrad(17) + 1;
 		int y2 = ScaleGUITrad(33) + 1;
 
-		DrawShipDepotSprite(this->GetWidget<NWidgetBase>(WID_BDD_X)->pos_x + x1, this->GetWidget<NWidgetBase>(WID_BDD_X)->pos_y + y1, DIAGDIR_NE);
-		DrawShipDepotSprite(this->GetWidget<NWidgetBase>(WID_BDD_X)->pos_x + x2, this->GetWidget<NWidgetBase>(WID_BDD_X)->pos_y + y2, DIAGDIR_SW);
-		DrawShipDepotSprite(this->GetWidget<NWidgetBase>(WID_BDD_Y)->pos_x + x2, this->GetWidget<NWidgetBase>(WID_BDD_Y)->pos_y + y1, DIAGDIR_NW);
-		DrawShipDepotSprite(this->GetWidget<NWidgetBase>(WID_BDD_Y)->pos_x + x1, this->GetWidget<NWidgetBase>(WID_BDD_Y)->pos_y + y2, DIAGDIR_SE);
+		NWidgetBase *wid_x = this->GetWidget<NWidgetBase> (WID_BDD_X);
+		DrawShipDepotSprite (wid_x->pos_x + x1, wid_x->pos_y + y1, DIAGDIR_NE);
+		DrawShipDepotSprite (wid_x->pos_x + x2, wid_x->pos_y + y2, DIAGDIR_SW);
+
+		NWidgetBase *wid_y = this->GetWidget<NWidgetBase> (WID_BDD_Y);
+		DrawShipDepotSprite (wid_y->pos_x + x2, wid_y->pos_y + y1, DIAGDIR_NW);
+		DrawShipDepotSprite (wid_y->pos_x + x1, wid_y->pos_y + y2, DIAGDIR_SE);
 	}
 
 	virtual void OnClick(Point pt, int widget, int click_count)
