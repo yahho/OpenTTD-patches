@@ -48,39 +48,6 @@
 #include <algorithm>
 
 /**
- * Get the cargo mask of accepted or supplied cargo around the selected tile(s)
- * @param sct which type of cargo is to be displayed (passengers/non-passengers)
- * @param rad radius around selected tile(s) to be searched
- * @param supplies if supplied cargoes should be drawn, else accepted cargoes
- */
-static uint32 GetStationCoverageAreaCargoMask (StationCoverageType sct, int rad, bool supplies)
-{
-	if (_thd.drawstyle != HT_RECT) return 0;
-
-	TileIndex tile = TileVirtXY (_thd.pos.x, _thd.pos.y);
-	if (tile >= MapSize()) return 0;
-
-	TileArea ta (tile, _thd.size.x / TILE_SIZE, _thd.size.y / TILE_SIZE);
-	CargoArray cargoes = supplies ?
-			GetAreaProduction (ta, rad) :
-			GetAreaAcceptance (ta, rad);
-
-	/* Convert cargo counts to a set of cargo bits, and draw the result. */
-	uint32 cargo_mask = 0;
-	for (CargoID i = 0; i < NUM_CARGO; i++) {
-		switch (sct) {
-			case SCT_PASSENGERS_ONLY: if (!IsCargoInClass(i, CC_PASSENGERS)) continue; break;
-			case SCT_NON_PASSENGERS_ONLY: if (IsCargoInClass(i, CC_PASSENGERS)) continue; break;
-			case SCT_ALL: break;
-			default: NOT_REACHED();
-		}
-		if (cargoes[i] >= (supplies ? 1U : 8U)) SetBit(cargo_mask, i);
-	}
-
-	return cargo_mask;
-}
-
-/**
  * Calculates and draws the accepted and supplied cargo around the selected tile(s)
  * @param left x position where the string is to be drawn
  * @param right the right most position to draw on
@@ -91,9 +58,36 @@ static uint32 GetStationCoverageAreaCargoMask (StationCoverageType sct, int rad,
  */
 int DrawStationCoverageAreaText (int left, int right, int top, int rad, StationCoverageType sct)
 {
-	SetDParam (0, GetStationCoverageAreaCargoMask (sct, rad, false));
+	uint32 accept_mask = 0;
+	uint32 supply_mask = 0;
+
+	if (_thd.drawstyle == HT_RECT) {
+		TileIndex tile = TileVirtXY (_thd.pos.x, _thd.pos.y);
+		if (tile < MapSize()) {
+			TileArea ta (tile, _thd.size.x / TILE_SIZE, _thd.size.y / TILE_SIZE);
+			CargoArray accept_cargoes = GetAreaAcceptance (ta, rad);
+			CargoArray supply_cargoes = GetAreaProduction (ta, rad);
+
+			for (CargoID i = 0; i < NUM_CARGO; i++) {
+				switch (sct) {
+					case SCT_PASSENGERS_ONLY:
+						if (!IsCargoInClass (i, CC_PASSENGERS)) continue;
+						break;
+					case SCT_NON_PASSENGERS_ONLY:
+						if (IsCargoInClass (i, CC_PASSENGERS)) continue;
+						break;
+					case SCT_ALL: break;
+					default: NOT_REACHED();
+				}
+				if (accept_cargoes[i] >= 8) SetBit(accept_mask, i);
+				if (supply_cargoes[i] >= 1) SetBit(supply_mask, i);
+			}
+		}
+	}
+
+	SetDParam (0, accept_mask);
 	top = DrawStringMultiLine (left, right, top, INT32_MAX, STR_STATION_BUILD_ACCEPTS_CARGO)  + WD_PAR_VSEP_NORMAL;
-	SetDParam (0, GetStationCoverageAreaCargoMask (sct, rad, true));
+	SetDParam (0, supply_mask);
 	top = DrawStringMultiLine (left, right, top, INT32_MAX, STR_STATION_BUILD_SUPPLIES_CARGO) + WD_PAR_VSEP_NORMAL;
 	return top;
 }
