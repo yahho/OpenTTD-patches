@@ -81,19 +81,21 @@ static uint32 GetStationCoverageAreaCargoMask (StationCoverageType sct, int rad,
 }
 
 /**
- * Calculates and draws the accepted or supplied cargo around the selected tile(s)
+ * Calculates and draws the accepted and supplied cargo around the selected tile(s)
  * @param left x position where the string is to be drawn
  * @param right the right most position to draw on
  * @param top y position where the string is to be drawn
- * @param sct which type of cargo is to be displayed (passengers/non-passengers)
  * @param rad radius around selected tile(s) to be searched
- * @param supplies if supplied cargoes should be drawn, else accepted cargoes
- * @return Returns the y value below the string that was drawn
+ * @param sct which type of cargo is to be displayed (passengers/non-passengers)
+ * @return Returns the y value below the strings that were drawn
  */
-int DrawStationCoverageAreaText(int left, int right, int top, StationCoverageType sct, int rad, bool supplies)
+int DrawStationCoverageAreaText (int left, int right, int top, int rad, StationCoverageType sct)
 {
-	SetDParam (0, GetStationCoverageAreaCargoMask (sct, rad, supplies));
-	return DrawStringMultiLine(left, right, top, INT32_MAX, supplies ? STR_STATION_BUILD_SUPPLIES_CARGO : STR_STATION_BUILD_ACCEPTS_CARGO);
+	SetDParam (0, GetStationCoverageAreaCargoMask (sct, rad, false));
+	top = DrawStringMultiLine (left, right, top, INT32_MAX, STR_STATION_BUILD_ACCEPTS_CARGO)  + WD_PAR_VSEP_NORMAL;
+	SetDParam (0, GetStationCoverageAreaCargoMask (sct, rad, true));
+	top = DrawStringMultiLine (left, right, top, INT32_MAX, STR_STATION_BUILD_SUPPLIES_CARGO) + WD_PAR_VSEP_NORMAL;
+	return top;
 }
 
 /**
