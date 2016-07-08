@@ -2136,7 +2136,12 @@ static void FindStationsNearby (std::vector<StationID> *list, const TileArea &ta
 		if (st->owner != _local_company) continue;
 
 		if (added.insert(sid).second) {
-			list->push_back (sid);
+			TileArea test (ta);
+			test.Add (st->rect);
+			if (test.w <= _settings_game.station.station_spread
+					&& test.h <= _settings_game.station.station_spread) {
+				list->push_back (sid);
+			}
 		}
 	}
 }
