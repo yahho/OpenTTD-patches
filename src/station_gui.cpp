@@ -2135,8 +2135,7 @@ static void FindStationsNearby (std::vector<StationID> *list, const TileArea &ta
 
 		if (st->owner != _local_company) continue;
 
-		if (added.find(sid) == added.end()) {
-			added.insert (sid);
+		if (added.insert(sid).second) {
 			list->push_back (sid);
 		}
 	}
