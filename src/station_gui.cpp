@@ -2112,8 +2112,8 @@ static void FindStationsNearby (std::vector<StationID> *list, const TileArea &ta
 	uint min_dim = min (ta.w, ta.h);
 	if (min_dim >= _settings_game.station.station_spread) return;
 
-	/* Keep a set of stations already added. */
-	std::set<StationID> added;
+	/* Keep a set of stations already checked. */
+	std::set<StationID> seen;
 	CircularTileIterator iter (ta,
 			distant_join ? _settings_game.station.station_spread - min_dim : 1);
 	for (TileIndex tile = iter; tile != INVALID_TILE; tile = ++iter) {
@@ -2135,7 +2135,7 @@ static void FindStationsNearby (std::vector<StationID> *list, const TileArea &ta
 
 		if (st->owner != _local_company) continue;
 
-		if (added.insert(sid).second) {
+		if (seen.insert(sid).second) {
 			TileArea test (ta);
 			test.Add (st->rect);
 			if (test.w <= _settings_game.station.station_spread
