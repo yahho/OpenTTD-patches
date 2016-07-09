@@ -2059,18 +2059,18 @@ void ShowStationViewWindow(StationID station)
  * Find a station of the given type in the given area.
  * @param ta Base tile area of the to-be-built station
  * @param waypoint Look for a waypoint, else a station
- * @return Station found if any, else NULL
+ * @return Whether a station was found
  */
-static const BaseStation *FindStationInArea (const TileArea &ta, bool waypoint)
+static bool FindStationInArea (const TileArea &ta, bool waypoint)
 {
 	TILE_AREA_LOOP(t, ta) {
 		if (IsStationTile(t)) {
 			BaseStation *bst = BaseStation::GetByTile(t);
-			if (bst->IsWaypoint() == waypoint) return bst;
+			if (bst->IsWaypoint() == waypoint) return true;
 		}
 	}
 
-	return NULL;
+	return false;
 }
 
 /**
@@ -2267,7 +2267,7 @@ struct SelectStationWindow : Window {
 
 		this->list.clear();
 
-		if (FindStationInArea (this->area, this->waypoint) == NULL) {
+		if (!FindStationInArea (this->area, this->waypoint)) {
 			FindStationsNearby (&this->list, this->area, _settings_game.station.distant_join_stations, this->waypoint);
 		}
 
@@ -2309,7 +2309,7 @@ void ShowSelectBaseStationIfNeeded (Command *cmd, const TileArea &ta, bool waypo
 			 * If adjacent-stations is disabled and we are building
 			 * next to a station, do not show the selection window
 			 * but join the other station immediately. */
-			&& FindStationInArea (ta, waypoint) == NULL) {
+			&& !FindStationInArea (ta, waypoint)) {
 		std::vector<StationID> list;
 		FindStationsNearby (&list, ta, false, waypoint);
 		if (list.size() == 0 ? _settings_game.station.distant_join_stations : _settings_game.station.adjacent_stations) {
