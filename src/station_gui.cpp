@@ -2084,8 +2084,6 @@ static const BaseStation *FindStationInArea (const TileArea &ta, bool waypoint)
  */
 static void FindStationsNearby (std::vector<StationID> *list, const TileArea &ta, bool distant_join, bool waypoint)
 {
-	list->clear();
-
 	/* Look for deleted stations */
 	typedef std::multimap <TileIndex, StationID> deleted_map;
 	deleted_map deleted;
@@ -2267,9 +2265,9 @@ struct SelectStationWindow : Window {
 	{
 		if (!gui_scope) return;
 
-		if (FindStationInArea (this->area, this->waypoint) != NULL) {
-			this->list.clear();
-		} else {
+		this->list.clear();
+
+		if (FindStationInArea (this->area, this->waypoint) == NULL) {
 			FindStationsNearby (&this->list, this->area, _settings_game.station.distant_join_stations, this->waypoint);
 		}
 
