@@ -18,7 +18,7 @@
 #include "linkgraph.h"
 #include "linkgraphschedule.h"
 #include <map>
-#include <list>
+#include <vector>
 
 /**
  * Properties of a link between two stations.
@@ -40,7 +40,7 @@ class LinkGraphOverlay {
 public:
 	typedef std::map<StationID, LinkProperties> StationLinkMap;
 	typedef std::map<StationID, StationLinkMap> LinkMap;
-	typedef std::list<std::pair<StationID, uint> > StationSupplyList;
+	typedef std::vector<std::pair<StationID, uint> > StationSupplyList;
 
 	static const uint8 LINK_COLOURS[];
 
