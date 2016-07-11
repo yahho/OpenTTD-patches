@@ -587,14 +587,11 @@ void OffsetGroundSprite(int x, int y)
  *
  * @param image the image to draw.
  * @param pal the provided palette.
- * @param x position x of the sprite.
- * @param y position y of the sprite.
- * @param z position z of the sprite.
+ * @param pt position of the sprite.
  * @param sub Only draw a part of the sprite.
  */
-static void AddCombinedSprite(SpriteID image, PaletteID pal, int x, int y, int z, const SubSprite *sub)
+static void AddCombinedSprite (SpriteID image, PaletteID pal, const Point &pt, const SubSprite *sub)
 {
-	Point pt = RemapCoords(x, y, z);
 	const Sprite *spr = GetSprite(image & SPRITE_MASK, ST_NORMAL);
 
 	if (pt.x + spr->x_offs >= _vd.dpi.left + _vd.dpi.width ||
@@ -644,14 +641,15 @@ void AddSortableSpriteToDraw(SpriteID image, PaletteID pal, int x, int y, int w,
 		pal = PALETTE_TO_TRANSPARENT;
 	}
 
+	Point pt = RemapCoords (x, y, z);
+
 	if (_vd.combine_sprites == SPRITE_COMBINE_ACTIVE) {
-		AddCombinedSprite(image, pal, x, y, z, sub);
+		AddCombinedSprite (image, pal, pt, sub);
 		return;
 	}
 
 	_vd.last_child = NULL;
 
-	Point pt = RemapCoords(x, y, z);
 	int tmp_left, tmp_top, tmp_x = pt.x, tmp_y = pt.y;
 
 	/* Compute screen extents of sprite */
