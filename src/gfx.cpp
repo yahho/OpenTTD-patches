@@ -751,6 +751,29 @@ static BlitterMode GetBlitterMode(PaletteID pal)
 }
 
 /**
+ * Set up the colour remap for a sprite.
+ * @param img  The sprite to draw.
+ * @param pal  The palette to use.
+ * @return The BlitterMode to use for drawing.
+ */
+static BlitterMode GetBlitterMode (SpriteID img, PaletteID pal)
+{
+	if (HasBit(img, PALETTE_MODIFIER_TRANSPARENT)) {
+		_colour_remap_ptr = GetNonSprite(GB(pal, 0, PALETTE_WIDTH), ST_RECOLOUR) + 1;
+		return BM_TRANSPARENT;
+	} else if (pal == PAL_NONE) {
+		return BM_NORMAL;
+	} else {
+		if (HasBit(pal, PALETTE_TEXT_RECOLOUR)) {
+			SetColourRemap((TextColour)GB(pal, 0, PALETTE_WIDTH));
+		} else {
+			_colour_remap_ptr = GetNonSprite(GB(pal, 0, PALETTE_WIDTH), ST_RECOLOUR) + 1;
+		}
+		return GetBlitterMode (pal);
+	}
+}
+
+/**
  * Draw a sprite in a viewport.
  * @param img  Image number to draw
  * @param pal  Palette to use.
@@ -760,21 +783,8 @@ static BlitterMode GetBlitterMode(PaletteID pal)
  */
 void DrawSpriteViewport(SpriteID img, PaletteID pal, int x, int y, const SubSprite *sub)
 {
+	BlitterMode bm = GetBlitterMode (img, pal);
 	SpriteID real_sprite = GB(img, 0, SPRITE_WIDTH);
-	BlitterMode bm;
-	if (HasBit(img, PALETTE_MODIFIER_TRANSPARENT)) {
-		_colour_remap_ptr = GetNonSprite(GB(pal, 0, PALETTE_WIDTH), ST_RECOLOUR) + 1;
-		bm = BM_TRANSPARENT;
-	} else if (pal != PAL_NONE) {
-		if (HasBit(pal, PALETTE_TEXT_RECOLOUR)) {
-			SetColourRemap((TextColour)GB(pal, 0, PALETTE_WIDTH));
-		} else {
-			_colour_remap_ptr = GetNonSprite(GB(pal, 0, PALETTE_WIDTH), ST_RECOLOUR) + 1;
-		}
-		bm = GetBlitterMode (pal);
-	} else {
-		bm = BM_NORMAL;
-	}
 	GfxMainBlitterViewport (GetSprite (real_sprite, ST_NORMAL), x, y, bm, sub, real_sprite);
 }
 
@@ -789,21 +799,8 @@ void DrawSpriteViewport(SpriteID img, PaletteID pal, int x, int y, const SubSpri
  */
 void DrawSprite(SpriteID img, PaletteID pal, int x, int y, const SubSprite *sub, ZoomLevel zoom)
 {
+	BlitterMode bm = GetBlitterMode (img, pal);
 	SpriteID real_sprite = GB(img, 0, SPRITE_WIDTH);
-	BlitterMode bm;
-	if (HasBit(img, PALETTE_MODIFIER_TRANSPARENT)) {
-		_colour_remap_ptr = GetNonSprite(GB(pal, 0, PALETTE_WIDTH), ST_RECOLOUR) + 1;
-		bm = BM_TRANSPARENT;
-	} else if (pal != PAL_NONE) {
-		if (HasBit(pal, PALETTE_TEXT_RECOLOUR)) {
-			SetColourRemap((TextColour)GB(pal, 0, PALETTE_WIDTH));
-		} else {
-			_colour_remap_ptr = GetNonSprite(GB(pal, 0, PALETTE_WIDTH), ST_RECOLOUR) + 1;
-		}
-		bm = GetBlitterMode (pal);
-	} else {
-		bm = BM_NORMAL;
-	}
 	GfxMainBlitter (GetSprite (real_sprite, ST_NORMAL), x, y, bm, sub, real_sprite, zoom);
 }
 
