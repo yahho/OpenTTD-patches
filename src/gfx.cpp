@@ -736,21 +736,6 @@ Dimension GetSpriteSize(SpriteID sprid, Point *offset, ZoomLevel zoom)
 }
 
 /**
- * Helper function to get the blitter mode for different types of palettes.
- * @param pal The palette to get the blitter mode for.
- * @return The blitter mode associated with the palette.
- */
-static BlitterMode GetBlitterMode(PaletteID pal)
-{
-	switch (pal) {
-		case PAL_NONE:          return BM_NORMAL;
-		case PALETTE_CRASH:     return BM_CRASH_REMAP;
-		case PALETTE_ALL_BLACK: return BM_BLACK_REMAP;
-		default:                return BM_COLOUR_REMAP;
-	}
-}
-
-/**
  * Set up the colour remap for a sprite.
  * @param img  The sprite to draw.
  * @param pal  The palette to use.
@@ -763,13 +748,16 @@ static BlitterMode GetBlitterMode (SpriteID img, PaletteID pal)
 		return BM_TRANSPARENT;
 	} else if (pal == PAL_NONE) {
 		return BM_NORMAL;
+	} else if (HasBit(pal, PALETTE_TEXT_RECOLOUR)) {
+		SetColourRemap ((TextColour)GB(pal, 0, PALETTE_WIDTH));
+		return BM_COLOUR_REMAP;
 	} else {
-		if (HasBit(pal, PALETTE_TEXT_RECOLOUR)) {
-			SetColourRemap((TextColour)GB(pal, 0, PALETTE_WIDTH));
-		} else {
-			_colour_remap_ptr = GetNonSprite(GB(pal, 0, PALETTE_WIDTH), ST_RECOLOUR) + 1;
+		_colour_remap_ptr = GetNonSprite (GB(pal, 0, PALETTE_WIDTH), ST_RECOLOUR) + 1;
+		switch (pal) {
+			case PALETTE_CRASH:     return BM_CRASH_REMAP;
+			case PALETTE_ALL_BLACK: return BM_BLACK_REMAP;
+			default:                return BM_COLOUR_REMAP;
 		}
-		return GetBlitterMode (pal);
 	}
 }
 
