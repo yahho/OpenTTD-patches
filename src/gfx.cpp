@@ -790,19 +790,21 @@ void DrawSpriteViewport(SpriteID img, PaletteID pal, int x, int y, const SubSpri
 void DrawSprite(SpriteID img, PaletteID pal, int x, int y, const SubSprite *sub, ZoomLevel zoom)
 {
 	SpriteID real_sprite = GB(img, 0, SPRITE_WIDTH);
+	BlitterMode bm;
 	if (HasBit(img, PALETTE_MODIFIER_TRANSPARENT)) {
 		_colour_remap_ptr = GetNonSprite(GB(pal, 0, PALETTE_WIDTH), ST_RECOLOUR) + 1;
-		GfxMainBlitter(GetSprite(real_sprite, ST_NORMAL), x, y, BM_TRANSPARENT, sub, real_sprite, zoom);
+		bm = BM_TRANSPARENT;
 	} else if (pal != PAL_NONE) {
 		if (HasBit(pal, PALETTE_TEXT_RECOLOUR)) {
 			SetColourRemap((TextColour)GB(pal, 0, PALETTE_WIDTH));
 		} else {
 			_colour_remap_ptr = GetNonSprite(GB(pal, 0, PALETTE_WIDTH), ST_RECOLOUR) + 1;
 		}
-		GfxMainBlitter(GetSprite(real_sprite, ST_NORMAL), x, y, GetBlitterMode(pal), sub, real_sprite, zoom);
+		bm = GetBlitterMode (pal);
 	} else {
-		GfxMainBlitter(GetSprite(real_sprite, ST_NORMAL), x, y, BM_NORMAL, sub, real_sprite, zoom);
+		bm = BM_NORMAL;
 	}
+	GfxMainBlitter (GetSprite (real_sprite, ST_NORMAL), x, y, bm, sub, real_sprite, zoom);
 }
 
 /**
