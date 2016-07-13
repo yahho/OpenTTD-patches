@@ -231,17 +231,17 @@ public:
 
 		Point pt = RemapCoords2(this->position.x, this->position.y);
 		const ViewPort *vp = FindWindowById(WC_MAIN_WINDOW, 0)->viewport;
+		pt.x = UnScaleByZoom (pt.x - vp->virtual_left, vp->zoom) + vp->left;
+		pt.y = UnScaleByZoom (pt.y - vp->virtual_top,  vp->zoom) + vp->top;
 		if (this->face == INVALID_COMPANY) {
 			/* move x pos to opposite corner */
-			pt.x = UnScaleByZoom(pt.x - vp->virtual_left, vp->zoom) + vp->left;
 			pt.x = (pt.x < (_screen.width >> 1)) ? _screen.width - sm_width - 20 : 20; // Stay 20 pixels away from the edge of the screen.
 
 			/* move y pos to opposite corner */
-			pt.y = UnScaleByZoom(pt.y - vp->virtual_top, vp->zoom) + vp->top;
 			pt.y = (pt.y < (_screen.height >> 1)) ? scr_bot - sm_height : scr_top;
 		} else {
-			pt.x = Clamp(UnScaleByZoom(pt.x - vp->virtual_left, vp->zoom) + vp->left - (sm_width / 2),  0, _screen.width  - sm_width);
-			pt.y = Clamp(UnScaleByZoom(pt.y - vp->virtual_top,  vp->zoom) + vp->top  - (sm_height / 2), scr_top, scr_bot - sm_height);
+			pt.x = Clamp (pt.x - (sm_width  / 2), 0, _screen.width - sm_width);
+			pt.y = Clamp (pt.y - (sm_height / 2), scr_top, scr_bot - sm_height);
 		}
 		return pt;
 	}
