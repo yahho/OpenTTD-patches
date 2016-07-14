@@ -129,7 +129,6 @@ static void MarkViewportDirty(const ViewPort *vp, int left, int top, int right, 
 static ViewportDrawer _vd;
 
 TileHighlightData _thd;
-static TileInfo *_cur_ti;
 bool _draw_bounding_boxes = false;
 bool _draw_dirty_blocks = false;
 uint _dirty_block_colour = 0;
@@ -1227,7 +1226,6 @@ static void ViewportAddLandscape()
 	}
 
 	TileInfo ti;
-	_cur_ti = &ti;
 
 	enum {
 		STATE_GROUND,    ///< ground in the current row is visible
