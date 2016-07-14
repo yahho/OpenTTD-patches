@@ -827,11 +827,11 @@ void DrawBridgeGround(TileInfo *ti)
 	DrawFoundation(ti, GetBridgeFoundation(ti->tileh, DiagDirToAxis(dir)));
 
 	if (IsOnSnow(ti->tile)) {
-		DrawGroundSprite(SPR_FLAT_SNOW_DESERT_TILE + SlopeToSpriteOffset(ti->tileh), PAL_NONE);
+		DrawGroundSprite (ti, SPR_FLAT_SNOW_DESERT_TILE + SlopeToSpriteOffset(ti->tileh), PAL_NONE);
 	} else {
 		TileIndex next = ti->tile + TileOffsByDiagDir(dir);
 		if (ti->tileh != SLOPE_FLAT && ti->z == 0 && HasTileWaterClass(next) && GetWaterClass(next) == WATER_CLASS_SEA) {
-			DrawShoreTile(ti->tileh);
+			DrawShoreTile (ti);
 		} else {
 			DrawClearLandTile(ti, 3);
 		}

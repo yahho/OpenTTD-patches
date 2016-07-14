@@ -1698,15 +1698,16 @@ const byte _road_sloped_sprites[14] = {
 
 /**
  * Draw the ground sprite for a road tile
- * @param tile The tile to draw
+ * @param ti TileInfo of the tile to draw
  * @param roadside The roadside of the tile
  * @param image The sprite to draw
  * @param paved_offset The offset to add to the sprite if the road is paved
  * @param unpaved_offset The offset to add to the sprite if the tile is on snow or in the desert
  * @return The palette to use for further drawing
  */
-static PaletteID DrawRoadGroundSprite(TileIndex tile, Roadside roadside, SpriteID image, int paved_offset, int unpaved_offset)
+static PaletteID DrawRoadGroundSprite (const TileInfo *ti, Roadside roadside, SpriteID image, int paved_offset, int unpaved_offset)
 {
+	TileIndex tile = ti->tile;
 	PaletteID pal = PAL_NONE;
 
 	switch (roadside) {
@@ -1731,7 +1732,7 @@ static PaletteID DrawRoadGroundSprite(TileIndex tile, Roadside roadside, SpriteI
 			break;
 	}
 
-	DrawGroundSprite(image, pal);
+	DrawGroundSprite (ti, image, pal);
 
 	return pal;
 }
@@ -1813,7 +1814,7 @@ static void DrawRoadBits(TileInfo *ti)
 
 	Roadside roadside = IsTileSubtype(ti->tile, TT_TRACK) ? GetRoadside(ti->tile) : ROADSIDE_GRASS;
 
-	PaletteID pal = DrawRoadGroundSprite(ti->tile, roadside, image, -19, 19);
+	PaletteID pal = DrawRoadGroundSprite (ti, roadside, image, -19, 19);
 
 	/* For tram we overlay the road graphics with either tram tracks only
 	 * (when there is actual road beneath the trams) or with tram tracks
@@ -1825,7 +1826,7 @@ static void DrawRoadBits(TileInfo *ti)
 			image = _road_tile_sprites_1[tram] - SPR_ROAD_Y;
 		}
 		image += (road == ROAD_NONE) ? SPR_TRAMWAY_TRAM : SPR_TRAMWAY_OVERLAY;
-		DrawGroundSprite(image, pal);
+		DrawGroundSprite (ti, image, pal);
 	}
 
 	if (IsTileSubtype(ti->tile, TT_TRACK) && road != ROAD_NONE) {
@@ -1837,7 +1838,7 @@ static void DrawRoadBits(TileInfo *ti)
 
 	if (IsTileSubtype(ti->tile, TT_TRACK) && HasRoadWorks(ti->tile)) {
 		/* Road works */
-		DrawGroundSprite((road | tram) & ROAD_X ? SPR_EXCAVATION_X : SPR_EXCAVATION_Y, PAL_NONE);
+		DrawGroundSprite (ti, (road | tram) & ROAD_X ? SPR_EXCAVATION_X : SPR_EXCAVATION_Y, PAL_NONE);
 		return;
 	}
 
@@ -1921,12 +1922,12 @@ void DrawLevelCrossing(TileInfo *ti)
 	if (rti->UsesOverlay()) {
 		Axis axis = GetCrossingRailAxis(ti->tile);
 
-		DrawRoadGroundSprite(ti->tile, GetRoadside(ti->tile), SPR_ROAD_Y + axis, -19, 19);
+		DrawRoadGroundSprite (ti, GetRoadside(ti->tile), SPR_ROAD_Y + axis, -19, 19);
 
 		SpriteID rail = GetCustomRailSprite(rti, ti->tile, RTSG_CROSSING) + axis;
 		/* Draw tracks, but draw PBS reserved tracks darker. */
 		pal = (_game_mode != GM_MENU && _settings_client.gui.show_track_reservation && HasCrossingReservation(ti->tile)) ? PALETTE_CRASH : PAL_NONE;
-		DrawGroundSprite(rail, pal);
+		DrawGroundSprite (ti, rail, pal);
 
 		DrawRailTileSeq(ti, &_crossing_layout, TO_CATENARY, rail, 0, PAL_NONE);
 	} else {
@@ -1935,16 +1936,16 @@ void DrawLevelCrossing(TileInfo *ti)
 		if (GetCrossingRoadAxis(ti->tile) == AXIS_X) image++;
 		if (IsCrossingBarred(ti->tile)) image += 2;
 
-		pal = DrawRoadGroundSprite(ti->tile, GetRoadside(ti->tile), image, 4, 8);
+		pal = DrawRoadGroundSprite (ti, GetRoadside(ti->tile), image, 4, 8);
 
 		/* PBS debugging, draw reserved tracks darker */
 		if (_game_mode != GM_MENU && _settings_client.gui.show_track_reservation && HasCrossingReservation(ti->tile)) {
-			DrawGroundSprite (GetRailTypeInfo(GetRailType(ti->tile))->base_sprites.single[GetCrossingRailTrack(ti->tile)], PALETTE_CRASH);
+			DrawGroundSprite (ti, GetRailTypeInfo(GetRailType(ti->tile))->base_sprites.single[GetCrossingRailTrack(ti->tile)], PALETTE_CRASH);
 		}
 	}
 
 	if (HasTileRoadType(ti->tile, ROADTYPE_TRAM)) {
-		DrawGroundSprite(SPR_TRAMWAY_OVERLAY + (GetCrossingRoadAxis(ti->tile) ^ 1), pal);
+		DrawGroundSprite (ti, SPR_TRAMWAY_OVERLAY + (GetCrossingRoadAxis(ti->tile) ^ 1), pal);
 		DrawTramCatenary(ti, GetCrossingRoadBits(ti->tile));
 	}
 

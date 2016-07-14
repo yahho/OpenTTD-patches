@@ -512,7 +512,7 @@ static void DrawTileLayout(const TileInfo *ti, const TileLayoutSpriteGroup *grou
 	if (HasBit(pal, SPRITE_MODIFIER_CUSTOM_SPRITE)) pal += stage;
 
 	if (GB(image, 0, SPRITE_WIDTH) != 0) {
-		DrawGroundSprite(image, GroundSpritePaletteTransform(image, pal, palette));
+		DrawGroundSprite (ti, image, GroundSpritePaletteTransform(image, pal, palette));
 	}
 
 	DrawNewGRFTileSeq(ti, dts, TO_HOUSES, stage, palette);

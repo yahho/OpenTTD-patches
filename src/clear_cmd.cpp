@@ -80,12 +80,12 @@ static CommandCost ClearTile_Clear(TileIndex tile, DoCommandFlag flags)
 
 void DrawVoidTile(TileInfo *ti)
 {
-	DrawGroundSprite(SPR_FLAT_BARE_LAND + SlopeToSpriteOffset(ti->tileh), PALETTE_ALL_BLACK);
+	DrawGroundSprite (ti, SPR_FLAT_BARE_LAND + SlopeToSpriteOffset(ti->tileh), PALETTE_ALL_BLACK);
 }
 
 void DrawClearLandTile(const TileInfo *ti, byte set)
 {
-	DrawGroundSprite(SPR_FLAT_BARE_LAND + SlopeToSpriteOffset(ti->tileh) + set * 19, PAL_NONE);
+	DrawGroundSprite (ti, SPR_FLAT_BARE_LAND + SlopeToSpriteOffset(ti->tileh) + set * 19, PAL_NONE);
 }
 
 static void DrawClearLandFence(const TileInfo *ti)
@@ -199,7 +199,7 @@ static void DrawTile_Clear(TileInfo *ti)
 			return;
 
 		case TT_GROUND_FIELDS:
-			DrawGroundSprite(_clear_land_sprites_farmland[GetFieldType(ti->tile)] + SlopeToSpriteOffset(ti->tileh), PAL_NONE);
+			DrawGroundSprite (ti, _clear_land_sprites_farmland[GetFieldType(ti->tile)] + SlopeToSpriteOffset(ti->tileh), PAL_NONE);
 			DrawClearLandFence(ti);
 			DrawBridgeMiddle(ti);
 			break;
@@ -211,22 +211,22 @@ static void DrawTile_Clear(TileInfo *ti)
 					break;
 
 				case GROUND_SHORE:
-					DrawShoreTile(ti->tileh);
+					DrawShoreTile (ti);
 					break;
 
 				case GROUND_ROUGH:
-					DrawGroundSprite (ti->tileh != SLOPE_FLAT ?
+					DrawGroundSprite (ti, ti->tileh != SLOPE_FLAT ?
 							SPR_FLAT_ROUGH_LAND + SlopeToSpriteOffset(ti->tileh) :
 							_landscape_clear_sprites_rough[GB(ti->x ^ ti->y, 4, 3)],
 						PAL_NONE);
 					break;
 
 				case GROUND_ROCKS:
-					DrawGroundSprite((HasGrfMiscBit(GMB_SECOND_ROCKY_TILE_SET) && (TileHash(ti->x, ti->y) & 1) ? SPR_FLAT_ROCKY_LAND_2 : SPR_FLAT_ROCKY_LAND_1) + SlopeToSpriteOffset(ti->tileh), PAL_NONE);
+					DrawGroundSprite (ti, (HasGrfMiscBit(GMB_SECOND_ROCKY_TILE_SET) && (TileHash(ti->x, ti->y) & 1) ? SPR_FLAT_ROCKY_LAND_2 : SPR_FLAT_ROCKY_LAND_1) + SlopeToSpriteOffset(ti->tileh), PAL_NONE);
 					break;
 
 				default:
-					DrawGroundSprite(_clear_land_sprites_snow_desert[GetClearDensity(ti->tile)] + SlopeToSpriteOffset(ti->tileh), PAL_NONE);
+					DrawGroundSprite (ti, _clear_land_sprites_snow_desert[GetClearDensity(ti->tile)] + SlopeToSpriteOffset(ti->tileh), PAL_NONE);
 					break;
 			}
 

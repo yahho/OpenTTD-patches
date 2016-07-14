@@ -73,7 +73,7 @@ void DrawCommonTileSeq(const TileInfo *ti, const DrawTileSprites *dts, Transpare
 					SetBit(image, PALETTE_MODIFIER_TRANSPARENT);
 					pal = PALETTE_TO_TRANSPARENT;
 				}
-				DrawGroundSprite(image, pal, NULL, offs_x, offs_y);
+				DrawGroundSprite (ti, image, pal, NULL, offs_x, offs_y);
 			}
 		}
 	}

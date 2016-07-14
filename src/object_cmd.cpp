@@ -386,10 +386,10 @@ static void DrawTile_Object(TileInfo *ti)
 				case SPR_FLAT_1_THIRD_GRASS_TILE: DrawClearLandTile(ti, 1); break;
 				case SPR_FLAT_2_THIRD_GRASS_TILE: DrawClearLandTile(ti, 2); break;
 				case SPR_FLAT_GRASS_TILE:         DrawClearLandTile(ti, 3); break;
-				default: DrawGroundSprite(dts->ground.sprite, palette);     break;
+				default: DrawGroundSprite (ti, dts->ground.sprite, palette);     break;
 			}
 		} else {
-			DrawGroundSprite(dts->ground.sprite, palette);
+			DrawGroundSprite (ti, dts->ground.sprite, palette);
 		}
 
 		if (!IsInvisibilitySet(TO_STRUCTURES)) {

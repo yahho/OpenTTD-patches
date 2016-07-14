@@ -2844,7 +2844,7 @@ draw_default_foundation:
 			TileIndex water_tile = GetOtherDockTile (ti->tile);
 			WaterClass wc = GetWaterClass(water_tile);
 			if (wc == WATER_CLASS_SEA) {
-				DrawShoreTile(ti->tileh);
+				DrawShoreTile (ti);
 			} else {
 				DrawClearLandTile(ti, 3);
 			}
@@ -2876,22 +2876,22 @@ draw_default_foundation:
 		RailTrackOffset overlay_offset;
 		if (rti != NULL && rti->UsesOverlay() && SplitGroundSpriteForOverlay(ti, &image, &overlay_offset)) {
 			SpriteID ground = GetCustomRailSprite(rti, ti->tile, RTSG_GROUND);
-			DrawGroundSprite(image, PAL_NONE);
-			DrawGroundSprite(ground + overlay_offset, PAL_NONE);
+			DrawGroundSprite (ti, image, PAL_NONE);
+			DrawGroundSprite (ti, ground + overlay_offset, PAL_NONE);
 
 			if (_game_mode != GM_MENU && _settings_client.gui.show_track_reservation && HasStationReservation(ti->tile)) {
 				SpriteID overlay = GetCustomRailSprite(rti, ti->tile, RTSG_OVERLAY);
-				DrawGroundSprite(overlay + overlay_offset, PALETTE_CRASH);
+				DrawGroundSprite (ti, overlay + overlay_offset, PALETTE_CRASH);
 			}
 		} else {
 			image += HasBit(image, SPRITE_MODIFIER_CUSTOM_SPRITE) ? ground_relocation : total_offset;
 			if (HasBit(pal, SPRITE_MODIFIER_CUSTOM_SPRITE)) pal += ground_relocation;
-			DrawGroundSprite(image, GroundSpritePaletteTransform(image, pal, palette));
+			DrawGroundSprite (ti, image, GroundSpritePaletteTransform(image, pal, palette));
 
 			/* PBS debugging, draw reserved tracks darker */
 			if (_game_mode != GM_MENU && _settings_client.gui.show_track_reservation && HasStationRail(ti->tile) && HasStationReservation(ti->tile)) {
 				const RailtypeInfo *rti = GetRailTypeInfo(GetRailType(ti->tile));
-				DrawGroundSprite (rti->base_sprites.single[GetRailStationTrack(ti->tile)], PALETTE_CRASH);
+				DrawGroundSprite (ti, rti->base_sprites.single[GetRailStationTrack(ti->tile)], PALETTE_CRASH);
 			}
 		}
 	}
@@ -2900,7 +2900,7 @@ draw_default_foundation:
 
 	if (HasBit(roadtypes, ROADTYPE_TRAM)) {
 		Axis axis = GetRoadStopAxis(ti->tile); // tram stops are always drive-through
-		DrawGroundSprite((HasBit(roadtypes, ROADTYPE_ROAD) ? SPR_TRAMWAY_OVERLAY : SPR_TRAMWAY_TRAM) + (axis ^ 1), PAL_NONE);
+		DrawGroundSprite (ti, (HasBit(roadtypes, ROADTYPE_ROAD) ? SPR_TRAMWAY_OVERLAY : SPR_TRAMWAY_TRAM) + (axis ^ 1), PAL_NONE);
 		DrawTramCatenary(ti, axis == AXIS_X ? ROAD_X : ROAD_Y);
 	}
 

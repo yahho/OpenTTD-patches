@@ -545,15 +545,17 @@ void DrawGroundSpriteAt (const TileInfo *ti, SpriteID image, PaletteID pal,
  * Draws a ground sprite for the current tile.
  * If the current tile is drawn on top of a foundation the sprite is added as child sprite to the "foundation"-ParentSprite.
  *
+ * @param ti TileInfo of the tile to draw
  * @param image the image to draw.
  * @param pal the provided palette.
  * @param sub Only draw a part of the sprite.
  * @param extra_offs_x Pixel X offset for the sprite position.
  * @param extra_offs_y Pixel Y offset for the sprite position.
  */
-void DrawGroundSprite(SpriteID image, PaletteID pal, const SubSprite *sub, int extra_offs_x, int extra_offs_y)
+void DrawGroundSprite (const TileInfo *ti, SpriteID image, PaletteID pal,
+	const SubSprite *sub, int extra_offs_x, int extra_offs_y)
 {
-	DrawGroundSpriteAt (_cur_ti, image, pal, 0, 0, 0, sub, extra_offs_x, extra_offs_y);
+	DrawGroundSpriteAt (ti, image, pal, 0, 0, 0, sub, extra_offs_x, extra_offs_y);
 }
 
 /**

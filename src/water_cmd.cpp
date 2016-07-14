@@ -610,28 +610,30 @@ bool IsWateredTile(TileIndex tile, Direction from)
 
 /**
  * Draw a water sprite, potentially with a NewGRF-modified sprite offset.
+ * @param ti TileInfo of the tile to draw
  * @param base    Sprite base.
  * @param offset  Sprite offset.
  * @param feature The type of sprite that is drawn.
- * @param tile    Tile index to draw.
  */
-static void DrawWaterSprite(SpriteID base, uint offset, CanalFeature feature, TileIndex tile)
+static void DrawWaterSprite (const TileInfo *ti, SpriteID base, uint offset, CanalFeature feature)
 {
 	if (base != SPR_FLAT_WATER_TILE) {
 		/* Only call offset callback if the sprite is NewGRF-provided. */
-		offset = GetCanalSpriteOffset(feature, tile, offset);
+		offset = GetCanalSpriteOffset (feature, ti->tile, offset);
 	}
-	DrawGroundSprite(base + offset, PAL_NONE);
+	DrawGroundSprite (ti, base + offset, PAL_NONE);
 }
 
 /**
  * Draw canal or river edges.
+ * @param ti TileInfo of the tile to draw
  * @param canal  True if canal edges should be drawn, false for river edges.
  * @param offset Sprite offset.
- * @param tile   Tile to draw.
  */
-static void DrawWaterEdges(bool canal, uint offset, TileIndex tile)
+static void DrawWaterEdges (const TileInfo *ti, bool canal, uint offset)
 {
+	TileIndex tile = ti->tile;
+
 	CanalFeature feature;
 	SpriteID base = 0;
 	if (canal) {
@@ -652,33 +654,33 @@ static void DrawWaterEdges(bool canal, uint offset, TileIndex tile)
 	wa += IsWateredTile(TILE_ADDXY(tile,  1,  0), DIR_NE) << 2;
 	wa += IsWateredTile(TILE_ADDXY(tile,  0, -1), DIR_SE) << 3;
 
-	if (!(wa & 1)) DrawWaterSprite(base, offset,     feature, tile);
-	if (!(wa & 2)) DrawWaterSprite(base, offset + 1, feature, tile);
-	if (!(wa & 4)) DrawWaterSprite(base, offset + 2, feature, tile);
-	if (!(wa & 8)) DrawWaterSprite(base, offset + 3, feature, tile);
+	if (!(wa & 1)) DrawWaterSprite (ti, base, offset,     feature);
+	if (!(wa & 2)) DrawWaterSprite (ti, base, offset + 1, feature);
+	if (!(wa & 4)) DrawWaterSprite (ti, base, offset + 2, feature);
+	if (!(wa & 8)) DrawWaterSprite (ti, base, offset + 3, feature);
 
 	/* right corner */
 	switch (wa & 0x03) {
-		case 0: DrawWaterSprite(base, offset + 4, feature, tile); break;
-		case 3: if (!IsWateredTile(TILE_ADDXY(tile, -1, 1), DIR_W)) DrawWaterSprite(base, offset + 8, feature, tile); break;
+		case 0: DrawWaterSprite (ti, base, offset + 4, feature); break;
+		case 3: if (!IsWateredTile(TILE_ADDXY(tile, -1, 1), DIR_W)) DrawWaterSprite (ti, base, offset + 8, feature); break;
 	}
 
 	/* bottom corner */
 	switch (wa & 0x06) {
-		case 0: DrawWaterSprite(base, offset + 5, feature, tile); break;
-		case 6: if (!IsWateredTile(TILE_ADDXY(tile, 1, 1), DIR_N)) DrawWaterSprite(base, offset + 9, feature, tile); break;
+		case 0: DrawWaterSprite (ti, base, offset + 5, feature); break;
+		case 6: if (!IsWateredTile(TILE_ADDXY(tile, 1, 1), DIR_N)) DrawWaterSprite (ti, base, offset + 9, feature); break;
 	}
 
 	/* left corner */
 	switch (wa & 0x0C) {
-		case  0: DrawWaterSprite(base, offset + 6, feature, tile); break;
-		case 12: if (!IsWateredTile(TILE_ADDXY(tile, 1, -1), DIR_E)) DrawWaterSprite(base, offset + 10, feature, tile); break;
+		case  0: DrawWaterSprite (ti, base, offset + 6, feature); break;
+		case 12: if (!IsWateredTile(TILE_ADDXY(tile, 1, -1), DIR_E)) DrawWaterSprite (ti, base, offset + 10, feature); break;
 	}
 
 	/* upper corner */
 	switch (wa & 0x09) {
-		case 0: DrawWaterSprite(base, offset + 7, feature, tile); break;
-		case 9: if (!IsWateredTile(TILE_ADDXY(tile, -1, -1), DIR_S)) DrawWaterSprite(base, offset + 11, feature, tile); break;
+		case 0: DrawWaterSprite (ti, base, offset + 7, feature); break;
+		case 9: if (!IsWateredTile(TILE_ADDXY(tile, -1, -1), DIR_S)) DrawWaterSprite (ti, base, offset + 11, feature); break;
 	}
 }
 
@@ -732,7 +734,7 @@ static void DrawWaterLock(const TileInfo *ti)
 	}
 
 	if (image < 5) image += water_base;
-	DrawGroundSprite(image, PAL_NONE);
+	DrawGroundSprite (ti, image, PAL_NONE);
 
 	/* Draw structures. */
 	uint     zoffs = 0;
@@ -787,12 +789,12 @@ static uint DrawRiverWater (const TileInfo *ti)
 		}
 	}
 
-	DrawGroundSprite(image + offset, PAL_NONE);
+	DrawGroundSprite (ti, image + offset, PAL_NONE);
 
 	return edges_offset;
 }
 
-void DrawShoreTile(Slope tileh)
+void DrawShoreTile (const TileInfo *ti)
 {
 	/* Converts the enum Slope into an offset based on SPR_SHORE_BASE.
 	 * This allows to calculate the proper sprite to display for this Slope */
@@ -801,12 +803,14 @@ void DrawShoreTile(Slope tileh)
 		0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0,  5,  0, 10, 15, 0,
 	};
 
+	Slope tileh = ti->tileh;
+
 	assert(!IsHalftileSlope(tileh)); // Halftile slopes need to get handled earlier.
 	assert(tileh != SLOPE_FLAT);     // Shore is never flat
 
 	assert((tileh != SLOPE_EW) && (tileh != SLOPE_NS)); // No suitable sprites for current flooding behaviour
 
-	DrawGroundSprite(SPR_SHORE_BASE + tileh_to_shoresprite[tileh], PAL_NONE);
+	DrawGroundSprite (ti, SPR_SHORE_BASE + tileh_to_shoresprite[tileh], PAL_NONE);
 }
 
 void DrawWaterClassGround(const TileInfo *ti)
@@ -816,19 +820,18 @@ void DrawWaterClassGround(const TileInfo *ti)
 
 	switch (GetWaterClass(ti->tile)) {
 		case WATER_CLASS_SEA:
-			DrawGroundSprite (SPR_FLAT_WATER_TILE, PAL_NONE);
+			DrawGroundSprite (ti, SPR_FLAT_WATER_TILE, PAL_NONE);
 			/* No edges drawn for sea tiles. */
 			return;
 
 		case WATER_CLASS_CANAL: {
-			TileIndex tile = ti->tile;
 			SpriteID image = SPR_FLAT_WATER_TILE;
 			if (HasBit(_water_feature[CF_WATERSLOPE].flags, CFF_HAS_FLAT_SPRITE)) {
 				/* First water slope sprite is flat water. */
-				image = GetCanalSprite (CF_WATERSLOPE, tile);
+				image = GetCanalSprite (CF_WATERSLOPE, ti->tile);
 				if (image == 0) image = SPR_FLAT_WATER_TILE;
 			}
-			DrawWaterSprite (image, 0, CF_WATERSLOPE, tile);
+			DrawWaterSprite (ti, image, 0, CF_WATERSLOPE);
 			edges_offset = 0;
 			canal = true;
 			break;
@@ -843,7 +846,7 @@ void DrawWaterClassGround(const TileInfo *ti)
 	}
 
 	/* Draw river edges if available. */
-	DrawWaterEdges (canal, edges_offset, ti->tile);
+	DrawWaterEdges (ti, canal, edges_offset);
 }
 
 static void DrawTile_Water(TileInfo *ti)
@@ -855,7 +858,7 @@ static void DrawTile_Water(TileInfo *ti)
 			break;
 
 		case WATER_TILE_COAST: {
-			DrawShoreTile(ti->tileh);
+			DrawShoreTile (ti);
 			DrawBridgeMiddle(ti);
 			break;
 		}
