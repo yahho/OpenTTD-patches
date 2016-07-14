@@ -1831,7 +1831,7 @@ static void DrawRoadBits(TileInfo *ti)
 	if (IsTileSubtype(ti->tile, TT_TRACK) && road != ROAD_NONE) {
 		DisallowedRoadDirections drd = GetDisallowedRoadDirections(ti->tile);
 		if (drd != DRD_NONE) {
-			DrawGroundSpriteAt(SPR_ONEWAY_BASE + drd - 1 + ((road == ROAD_X) ? 0 : 3), PAL_NONE, 8, 8, GetPartialPixelZ(8, 8, ti->tileh));
+			DrawGroundSpriteAt (ti, SPR_ONEWAY_BASE + drd - 1 + ((road == ROAD_X) ? 0 : 3), PAL_NONE, 8, 8, GetPartialPixelZ(8, 8, ti->tileh));
 		}
 	}
 

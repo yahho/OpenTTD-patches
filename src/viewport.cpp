@@ -516,6 +516,7 @@ static void AddChildSpriteToFoundation(SpriteID image, PaletteID pal, const SubS
  * Draws a ground sprite at a specific world-coordinate relative to the current tile.
  * If the current tile is drawn on top of a foundation the sprite is added as child sprite to the "foundation"-ParentSprite.
  *
+ * @param ti TileInfo of the tile to draw
  * @param image the image to draw.
  * @param pal the provided palette.
  * @param x position x (world coordinates) of the sprite relative to current tile.
@@ -525,7 +526,9 @@ static void AddChildSpriteToFoundation(SpriteID image, PaletteID pal, const SubS
  * @param extra_offs_x Pixel X offset for the sprite position.
  * @param extra_offs_y Pixel Y offset for the sprite position.
  */
-void DrawGroundSpriteAt(SpriteID image, PaletteID pal, int32 x, int32 y, int z, const SubSprite *sub, int extra_offs_x, int extra_offs_y)
+void DrawGroundSpriteAt (const TileInfo *ti, SpriteID image, PaletteID pal,
+	int32 x, int32 y, int z, const SubSprite *sub,
+	int extra_offs_x, int extra_offs_y)
 {
 	/* Switch to first foundation part, if no foundation was drawn */
 	if (_vd.foundation_part == FOUNDATION_PART_NONE) _vd.foundation_part = FOUNDATION_PART_NORMAL;
@@ -534,7 +537,7 @@ void DrawGroundSpriteAt(SpriteID image, PaletteID pal, int32 x, int32 y, int z, 
 		Point pt = RemapCoords(x, y, z);
 		AddChildSpriteToFoundation(image, pal, sub, _vd.foundation_part, pt.x + extra_offs_x * ZOOM_LVL_BASE, pt.y + extra_offs_y * ZOOM_LVL_BASE);
 	} else {
-		AddTileSpriteToDraw(image, pal, _cur_ti->x + x, _cur_ti->y + y, _cur_ti->z + z, sub, extra_offs_x * ZOOM_LVL_BASE, extra_offs_y * ZOOM_LVL_BASE);
+		AddTileSpriteToDraw (image, pal, ti->x + x, ti->y + y, ti->z + z, sub, extra_offs_x * ZOOM_LVL_BASE, extra_offs_y * ZOOM_LVL_BASE);
 	}
 }
 
@@ -550,7 +553,7 @@ void DrawGroundSpriteAt(SpriteID image, PaletteID pal, int32 x, int32 y, int z, 
  */
 void DrawGroundSprite(SpriteID image, PaletteID pal, const SubSprite *sub, int extra_offs_x, int extra_offs_y)
 {
-	DrawGroundSpriteAt(image, pal, 0, 0, 0, sub, extra_offs_x, extra_offs_y);
+	DrawGroundSpriteAt (_cur_ti, image, pal, 0, 0, 0, sub, extra_offs_x, extra_offs_y);
 }
 
 /**
