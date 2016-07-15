@@ -461,6 +461,7 @@ void HandleZoomMessage(Window *w, const ViewPort *vp, byte widget_zoom_in, byte 
 /**
  * Schedules a tile sprite for drawing.
  *
+ * @param vd the viewport drawer to use.
  * @param image the image to draw.
  * @param pal the provided palette.
  * @param x position x (world coordinates) of the sprite.
@@ -470,11 +471,13 @@ void HandleZoomMessage(Window *w, const ViewPort *vp, byte widget_zoom_in, byte 
  * @param extra_offs_x Pixel X offset for the sprite position.
  * @param extra_offs_y Pixel Y offset for the sprite position.
  */
-static void AddTileSpriteToDraw(SpriteID image, PaletteID pal, int32 x, int32 y, int z, const SubSprite *sub = NULL, int extra_offs_x = 0, int extra_offs_y = 0)
+static void AddTileSpriteToDraw (ViewportDrawer *vd, SpriteID image,
+	PaletteID pal, int32 x, int32 y, int z, const SubSprite *sub = NULL,
+	int extra_offs_x = 0, int extra_offs_y = 0)
 {
 	assert((image & SPRITE_MASK) < MAX_SPRITES);
 
-	TileSpriteToDraw *ts = _vd.tile_sprites_to_draw.Append();
+	TileSpriteToDraw *ts = vd->tile_sprites_to_draw.Append();
 	ts->image = image;
 	ts->pal = pal;
 	ts->sub = sub;
@@ -536,7 +539,7 @@ void DrawGroundSpriteAt (const TileInfo *ti, SpriteID image, PaletteID pal,
 		Point pt = RemapCoords(x, y, z);
 		AddChildSpriteToFoundation(image, pal, sub, _vd.foundation_part, pt.x + extra_offs_x * ZOOM_LVL_BASE, pt.y + extra_offs_y * ZOOM_LVL_BASE);
 	} else {
-		AddTileSpriteToDraw (image, pal, ti->x + x, ti->y + y, ti->z + z, sub, extra_offs_x * ZOOM_LVL_BASE, extra_offs_y * ZOOM_LVL_BASE);
+		AddTileSpriteToDraw (&_vd, image, pal, ti->x + x, ti->y + y, ti->z + z, sub, extra_offs_x * ZOOM_LVL_BASE, extra_offs_y * ZOOM_LVL_BASE);
 	}
 }
 
@@ -837,7 +840,7 @@ static void DrawSelectionSprite(SpriteID image, PaletteID pal, const TileInfo *t
 	/* FIXME: This is not totally valid for some autorail highlights that extend over the edges of the tile. */
 	if (_vd.foundation[foundation_part] == -1) {
 		/* draw on real ground */
-		AddTileSpriteToDraw(image, pal, ti->x, ti->y, ti->z + z_offset);
+		AddTileSpriteToDraw (&_vd, image, pal, ti->x, ti->y, ti->z + z_offset);
 	} else {
 		/* draw on top of foundation */
 		AddChildSpriteToFoundation(image, pal, NULL, foundation_part, 0, -z_offset * ZOOM_LVL_BASE);
