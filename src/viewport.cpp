@@ -491,6 +491,7 @@ static void AddTileSpriteToDraw (ViewportDrawer *vd, SpriteID image,
  *
  * The pixel offset of the sprite relative to the ParentSprite is the sum of the offset passed to OffsetGroundSprite() and extra_offs_?.
  *
+ * @param vd the viewport drawer to use.
  * @param image the image to draw.
  * @param pal the provided palette.
  * @param sub Only draw a part of the sprite.
@@ -498,20 +499,22 @@ static void AddTileSpriteToDraw (ViewportDrawer *vd, SpriteID image,
  * @param extra_offs_x Pixel X offset for the sprite position.
  * @param extra_offs_y Pixel Y offset for the sprite position.
  */
-static void AddChildSpriteToFoundation(SpriteID image, PaletteID pal, const SubSprite *sub, FoundationPart foundation_part, int extra_offs_x, int extra_offs_y)
+static void AddChildSpriteToFoundation (ViewportDrawer *vd, SpriteID image,
+	PaletteID pal, const SubSprite *sub, FoundationPart foundation_part,
+	int extra_offs_x, int extra_offs_y)
 {
 	assert(IsInsideMM(foundation_part, 0, FOUNDATION_PART_END));
-	assert(_vd.foundation[foundation_part] != -1);
-	Point offs = _vd.foundation_offset[foundation_part];
+	assert (vd->foundation[foundation_part] != -1);
+	Point offs = vd->foundation_offset[foundation_part];
 
 	/* Change the active ChildSprite list to the one of the foundation */
-	int *old_child = _vd.last_child;
-	_vd.last_child = _vd.last_foundation_child[foundation_part];
+	int *old_child = vd->last_child;
+	vd->last_child = vd->last_foundation_child[foundation_part];
 
-	AddChildSpriteScreen (&_vd, image, pal, offs.x + extra_offs_x, offs.y + extra_offs_y, false, sub, false);
+	AddChildSpriteScreen (vd, image, pal, offs.x + extra_offs_x, offs.y + extra_offs_y, false, sub, false);
 
 	/* Switch back to last ChildSprite list */
-	_vd.last_child = old_child;
+	vd->last_child = old_child;
 }
 
 /**
@@ -537,7 +540,7 @@ void DrawGroundSpriteAt (const TileInfo *ti, SpriteID image, PaletteID pal,
 
 	if (_vd.foundation[_vd.foundation_part] != -1) {
 		Point pt = RemapCoords(x, y, z);
-		AddChildSpriteToFoundation(image, pal, sub, _vd.foundation_part, pt.x + extra_offs_x * ZOOM_LVL_BASE, pt.y + extra_offs_y * ZOOM_LVL_BASE);
+		AddChildSpriteToFoundation (&_vd, image, pal, sub, _vd.foundation_part, pt.x + extra_offs_x * ZOOM_LVL_BASE, pt.y + extra_offs_y * ZOOM_LVL_BASE);
 	} else {
 		AddTileSpriteToDraw (&_vd, image, pal, ti->x + x, ti->y + y, ti->z + z, sub, extra_offs_x * ZOOM_LVL_BASE, extra_offs_y * ZOOM_LVL_BASE);
 	}
@@ -845,7 +848,7 @@ static void DrawSelectionSprite(SpriteID image, PaletteID pal, const TileInfo *t
 		AddTileSpriteToDraw (&_vd, image, pal, ti->x, ti->y, ti->z + z_offset);
 	} else {
 		/* draw on top of foundation */
-		AddChildSpriteToFoundation(image, pal, NULL, foundation_part, 0, -z_offset * ZOOM_LVL_BASE);
+		AddChildSpriteToFoundation (&_vd, image, pal, NULL, foundation_part, 0, -z_offset * ZOOM_LVL_BASE);
 	}
 }
 
