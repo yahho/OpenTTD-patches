@@ -227,14 +227,14 @@ static void IndustryDrawSugarMine(const TileInfo *ti)
 
 	const DrawIndustryAnimationStruct *d = &_draw_industry_spec1[GetAnimationFrame(ti->tile)];
 
-	AddChildSpriteScreen(SPR_IT_SUGAR_MINE_SIEVE + d->image_1, PAL_NONE, d->x, 0);
+	AddChildSpriteScreen (ti->vd, SPR_IT_SUGAR_MINE_SIEVE + d->image_1, PAL_NONE, d->x, 0);
 
 	if (d->image_2 != 0) {
-		AddChildSpriteScreen(SPR_IT_SUGAR_MINE_CLOUDS + d->image_2 - 1, PAL_NONE, 8, 41);
+		AddChildSpriteScreen (ti->vd, SPR_IT_SUGAR_MINE_CLOUDS + d->image_2 - 1, PAL_NONE, 8, 41);
 	}
 
 	if (d->image_3 != 0) {
-		AddChildSpriteScreen(SPR_IT_SUGAR_MINE_PILE + d->image_3 - 1, PAL_NONE,
+		AddChildSpriteScreen (ti->vd, SPR_IT_SUGAR_MINE_PILE + d->image_3 - 1, PAL_NONE,
 			_drawtile_proc1[d->image_3 - 1].x, _drawtile_proc1[d->image_3 - 1].y);
 	}
 }
@@ -250,16 +250,16 @@ static void IndustryDrawToffeeQuarry(const TileInfo *ti)
 		}
 	}
 
-	AddChildSpriteScreen(SPR_IT_TOFFEE_QUARRY_SHOVEL, PAL_NONE, 22 - x, 24 + x);
-	AddChildSpriteScreen(SPR_IT_TOFFEE_QUARRY_TOFFEE, PAL_NONE, 6, 14);
+	AddChildSpriteScreen (ti->vd, SPR_IT_TOFFEE_QUARRY_SHOVEL, PAL_NONE, 22 - x, 24 + x);
+	AddChildSpriteScreen (ti->vd, SPR_IT_TOFFEE_QUARRY_TOFFEE, PAL_NONE, 6, 14);
 }
 
 static void IndustryDrawBubbleGenerator( const TileInfo *ti)
 {
 	if (IsIndustryCompleted(ti->tile)) {
-		AddChildSpriteScreen(SPR_IT_BUBBLE_GENERATOR_BUBBLE, PAL_NONE, 5, _industry_anim_offs_bubbles[GetAnimationFrame(ti->tile)]);
+		AddChildSpriteScreen (ti->vd, SPR_IT_BUBBLE_GENERATOR_BUBBLE, PAL_NONE, 5, _industry_anim_offs_bubbles[GetAnimationFrame(ti->tile)]);
 	}
-	AddChildSpriteScreen(SPR_IT_BUBBLE_GENERATOR_SPRING, PAL_NONE, 3, 67);
+	AddChildSpriteScreen (ti->vd, SPR_IT_BUBBLE_GENERATOR_SPRING, PAL_NONE, 3, 67);
 }
 
 static void IndustryDrawToyFactory(const TileInfo *ti)
@@ -267,15 +267,15 @@ static void IndustryDrawToyFactory(const TileInfo *ti)
 	const DrawIndustryAnimationStruct *d = &_industry_anim_offs_toys[GetAnimationFrame(ti->tile)];
 
 	if (d->image_1 != 0xFF) {
-		AddChildSpriteScreen(SPR_IT_TOY_FACTORY_CLAY, PAL_NONE, d->x, 96 + d->image_1);
+		AddChildSpriteScreen (ti->vd, SPR_IT_TOY_FACTORY_CLAY, PAL_NONE, d->x, 96 + d->image_1);
 	}
 
 	if (d->image_2 != 0xFF) {
-		AddChildSpriteScreen(SPR_IT_TOY_FACTORY_ROBOT, PAL_NONE, 16 - d->image_2 * 2, 100 + d->image_2);
+		AddChildSpriteScreen (ti->vd, SPR_IT_TOY_FACTORY_ROBOT, PAL_NONE, 16 - d->image_2 * 2, 100 + d->image_2);
 	}
 
-	AddChildSpriteScreen(SPR_IT_TOY_FACTORY_STAMP, PAL_NONE, 7, d->image_3);
-	AddChildSpriteScreen(SPR_IT_TOY_FACTORY_STAMP_HOLDER, PAL_NONE, 0, 42);
+	AddChildSpriteScreen (ti->vd, SPR_IT_TOY_FACTORY_STAMP, PAL_NONE, 7, d->image_3);
+	AddChildSpriteScreen (ti->vd, SPR_IT_TOY_FACTORY_STAMP_HOLDER, PAL_NONE, 0, 42);
 }
 
 static void IndustryDrawCoalPlantSparks(const TileInfo *ti)
@@ -284,7 +284,7 @@ static void IndustryDrawCoalPlantSparks(const TileInfo *ti)
 		uint8 image = GetAnimationFrame(ti->tile);
 
 		if (image != 0 && image < 7) {
-			AddChildSpriteScreen(image + SPR_IT_POWER_PLANT_TRANSFORMERS,
+			AddChildSpriteScreen (ti->vd, image + SPR_IT_POWER_PLANT_TRANSFORMERS,
 				PAL_NONE,
 				_coal_plant_sparks[image - 1].x,
 				_coal_plant_sparks[image - 1].y

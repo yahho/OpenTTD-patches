@@ -177,7 +177,7 @@ static Town *CreateRandomTown(uint attempts, uint32 townnameparts, TownSize size
 
 static void TownDrawHouseLift(const TileInfo *ti)
 {
-	AddChildSpriteScreen(SPR_LIFT, PAL_NONE, 14, 60 - GetLiftPosition(ti->tile));
+	AddChildSpriteScreen (ti->vd, SPR_LIFT, PAL_NONE, 14, 60 - GetLiftPosition(ti->tile));
 }
 
 typedef void TownDrawTileProc(const TileInfo *ti);

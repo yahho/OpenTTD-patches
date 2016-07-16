@@ -67,7 +67,7 @@ void DrawCommonTileSeq(const TileInfo *ti, const DrawTileSprites *dts, Transpare
 			int offs_y = child_offset_is_unsigned ? (uint8)dtss->delta_y : dtss->delta_y;
 			bool transparent = !HasBit(image, SPRITE_MODIFIER_OPAQUE) && IsTransparencySet(to);
 			if (parent_sprite_encountered) {
-				AddChildSpriteScreen(image, pal, offs_x, offs_y, transparent);
+				AddChildSpriteScreen (ti->vd, image, pal, offs_x, offs_y, transparent);
 			} else {
 				if (transparent) {
 					SetBit(image, PALETTE_MODIFIER_TRANSPARENT);
