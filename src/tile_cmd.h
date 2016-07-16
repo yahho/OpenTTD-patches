@@ -21,6 +21,7 @@
 
 /** Tile information, used while rendering the tile */
 struct TileInfo {
+	struct ViewportDrawer *vd; ///< Viewport drawer
 	uint x;         ///< X position of the tile in unit coordinates
 	uint y;         ///< Y position of the tile in unit coordinates
 	Slope tileh;    ///< Slope of the tile

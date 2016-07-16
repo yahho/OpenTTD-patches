@@ -1229,6 +1229,7 @@ static void ViewportAddLandscape()
 	}
 
 	TileInfo ti;
+	ti.vd = &_vd;
 
 	enum {
 		STATE_GROUND,    ///< ground in the current row is visible
