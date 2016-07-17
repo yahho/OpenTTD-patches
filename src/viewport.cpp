@@ -1187,23 +1187,23 @@ static void GetVirtualSlope (int x, int y, TileInfo *ti, DrawTileProc **dtp)
 	*dtp = DrawVoidTile;
 }
 
-static void ViewportAddLandscape()
+static void ViewportAddLandscape (ViewportDrawer *vd)
 {
 	static const uint HEIGHT_SHIFT = ZOOM_LVL_SHIFT + 3;
 	static const uint WIDTH_SHIFT  = ZOOM_LVL_SHIFT + 5;
 
-	int htop = (_vd.dpi.top  - 1) >> HEIGHT_SHIFT;
+	int htop = (vd->dpi.top  - 1) >> HEIGHT_SHIFT;
 	int top  = htop >> 1;
-	int left = (_vd.dpi.left - 1) >> WIDTH_SHIFT;
+	int left = (vd->dpi.left - 1) >> WIDTH_SHIFT;
 	int x = (top - left) >> 1;
 	int y = (top + left) >> 1;
 	bool direction = ((top ^ left) & 1) != 0;
 	if (!direction) x--;
 	assert (((2 * (x + y)) == (htop - 3)) || ((2 * (x + y)) == (htop - 2)));
 
-	int hbot = (_vd.dpi.top + _vd.dpi.height) >> HEIGHT_SHIFT;
+	int hbot = (vd->dpi.top + vd->dpi.height) >> HEIGHT_SHIFT;
 	int bottom = hbot >> 1;
-	int right = (_vd.dpi.left + _vd.dpi.width) >> WIDTH_SHIFT;
+	int right = (vd->dpi.left + vd->dpi.width) >> WIDTH_SHIFT;
 	int width = (((bottom + right) >> 1) - y) - (((bottom - right) >> 1) - x) + !direction + 1;
 
 	assert (width > 0);
@@ -1240,7 +1240,7 @@ static void ViewportAddLandscape()
 	}
 
 	TileInfo ti;
-	ti.vd = &_vd;
+	ti.vd = vd;
 
 	enum {
 		STATE_GROUND,    ///< ground in the current row is visible
@@ -1264,11 +1264,11 @@ static void ViewportAddLandscape()
 
 			if (state == STATE_GROUND || (ti.tile != INVALID_TILE &&
 					(state == STATE_BUILDINGS || HasBridgeAbove(ti.tile)))) {
-				_vd.foundation_part = FOUNDATION_PART_NONE;
-				_vd.foundation[0] = -1;
-				_vd.foundation[1] = -1;
-				_vd.last_foundation_child[0] = NULL;
-				_vd.last_foundation_child[1] = NULL;
+				vd->foundation_part = FOUNDATION_PART_NONE;
+				vd->foundation[0] = -1;
+				vd->foundation[1] = -1;
+				vd->last_foundation_child[0] = NULL;
+				vd->last_foundation_child[1] = NULL;
 				dtp(&ti);
 			}
 
@@ -1656,7 +1656,7 @@ void ViewportDoDraw(const ViewPort *vp, int left, int top, int right, int bottom
 
 	_vd.dpi.dst_ptr = Blitter::get()->MoveTo (old_dpi->dst_ptr, x - old_dpi->left, y - old_dpi->top);
 
-	ViewportAddLandscape();
+	ViewportAddLandscape (&_vd);
 	ViewportAddVehicles (&_vd, &_vd.dpi);
 
 	if (_vd.tile_sprites_to_draw.Length() != 0) ViewportDrawTileSprites(&_vd.tile_sprites_to_draw);
