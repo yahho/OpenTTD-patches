@@ -38,7 +38,7 @@ void ZoomInOrOutToCursorWindow(bool in, Window * w);
 Point GetTileZoomCenterWindow(bool in, Window * w);
 void HandleZoomMessage(Window *w, const ViewPort *vp, byte widget_zoom_in, byte widget_zoom_out);
 
-void OffsetGroundSprite(int x, int y);
+void OffsetGroundSprite (struct ViewportDrawer *vd, int x, int y);
 
 void DrawGroundSprite (const TileInfo *ti, SpriteID image, PaletteID pal, const SubSprite *sub = NULL, int extra_offs_x = 0, int extra_offs_y = 0);
 void DrawGroundSpriteAt (const TileInfo *ti, SpriteID image, PaletteID pal, int32 x, int32 y, int z, const SubSprite *sub = NULL, int extra_offs_x = 0, int extra_offs_y = 0);

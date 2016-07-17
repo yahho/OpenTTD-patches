@@ -567,28 +567,29 @@ void DrawGroundSprite (const TileInfo *ti, SpriteID image, PaletteID pal,
  * Called when a foundation has been drawn for the current tile.
  * Successive ground sprites for the current tile will be drawn as child sprites of the "foundation"-ParentSprite, not as TileSprites.
  *
+ * @param vd the viewport drawer to use.
  * @param x sprite x-offset (screen coordinates) of ground sprites relative to the "foundation"-ParentSprite.
  * @param y sprite y-offset (screen coordinates) of ground sprites relative to the "foundation"-ParentSprite.
  */
-void OffsetGroundSprite(int x, int y)
+void OffsetGroundSprite (ViewportDrawer *vd, int x, int y)
 {
 	/* Switch to next foundation part */
-	switch (_vd.foundation_part) {
+	switch (vd->foundation_part) {
 		case FOUNDATION_PART_NONE:
-			_vd.foundation_part = FOUNDATION_PART_NORMAL;
+			vd->foundation_part = FOUNDATION_PART_NORMAL;
 			break;
 		case FOUNDATION_PART_NORMAL:
-			_vd.foundation_part = FOUNDATION_PART_HALFTILE;
+			vd->foundation_part = FOUNDATION_PART_HALFTILE;
 			break;
 		default: NOT_REACHED();
 	}
 
-	/* _vd.last_child == NULL if foundation sprite was clipped by the viewport bounds */
-	if (_vd.last_child != NULL) _vd.foundation[_vd.foundation_part] = _vd.parent_sprites_to_draw.Length() - 1;
+	/* vd->last_child == NULL if foundation sprite was clipped by the viewport bounds */
+	if (vd->last_child != NULL) vd->foundation[vd->foundation_part] = vd->parent_sprites_to_draw.Length() - 1;
 
-	_vd.foundation_offset[_vd.foundation_part].x = x * ZOOM_LVL_BASE;
-	_vd.foundation_offset[_vd.foundation_part].y = y * ZOOM_LVL_BASE;
-	_vd.last_foundation_child[_vd.foundation_part] = _vd.last_child;
+	vd->foundation_offset[vd->foundation_part].x = x * ZOOM_LVL_BASE;
+	vd->foundation_offset[vd->foundation_part].y = y * ZOOM_LVL_BASE;
+	vd->last_foundation_child[vd->foundation_part] = vd->last_child;
 }
 
 /**
