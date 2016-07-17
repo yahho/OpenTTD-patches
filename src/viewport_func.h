@@ -47,8 +47,8 @@ void AddChildSpriteScreen (struct ViewportDrawer *vd, SpriteID image, PaletteID 
 void ViewportAddString(const DrawPixelInfo *dpi, ZoomLevel small_from, const ViewportSign *sign, StringID string_normal, StringID string_small, StringID string_small_shadow, uint64 params_1, uint64 params_2 = 0, Colours colour = INVALID_COLOUR);
 
 
-void StartSpriteCombine();
-void EndSpriteCombine();
+void StartSpriteCombine (struct ViewportDrawer *vd);
+void EndSpriteCombine (struct ViewportDrawer *vd);
 
 bool HandleViewportClicked(const ViewPort *vp, int x, int y);
 void SetRedErrorSquare(TileIndex tile);

@@ -1883,7 +1883,7 @@ static void DrawTile_Road(TileInfo *ti)
 		const PalSpriteID *psid = GetBridgeRampSprite(GetRoadBridgeType(ti->tile), 8, ti->tileh, dir);
 
 		/* Draw Trambits as SpriteCombine */
-		StartSpriteCombine();
+		StartSpriteCombine (ti->vd);
 
 		/* HACK set the height of the BB of a sloped ramp to 1 so a vehicle on
 		 * it doesn't disappear behind it
@@ -1906,7 +1906,7 @@ static void DrawTile_Road(TileInfo *ti)
 			DrawBridgeTramBits (ti->vd, ti->x, ti->y, z, offset, HasBit(rts, ROADTYPE_ROAD), true);
 		}
 
-		EndSpriteCombine();
+		EndSpriteCombine (ti->vd);
 	}
 
 	DrawBridgeMiddle(ti);

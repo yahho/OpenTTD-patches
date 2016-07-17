@@ -91,7 +91,7 @@ void DrawClearLandTile(const TileInfo *ti, byte set)
 static void DrawClearLandFence(const TileInfo *ti)
 {
 	/* combine fences into one sprite object */
-	StartSpriteCombine();
+	StartSpriteCombine (ti->vd);
 
 	int maxz = GetSlopeMaxPixelZ(ti->tileh);
 
@@ -125,7 +125,7 @@ static void DrawClearLandFence(const TileInfo *ti)
 			AddSortableSpriteToDraw (ti->vd, sprite, PAL_NONE, ti->x, ti->y, 16, 16, maxz - z + 4, ti->z + z, false, 0, 0, -z);
 		}
 	}
-	EndSpriteCombine();
+	EndSpriteCombine (ti->vd);
 }
 
 struct TreeListEnt : PalSpriteID {
@@ -149,7 +149,7 @@ static void DrawTrees(TileInfo *ti)
 	const TreePos *d = _tree_layout_xy[GB(tmp, 2, 2)];
 
 	/* combine trees into one sprite object */
-	StartSpriteCombine();
+	StartSpriteCombine (ti->vd);
 
 	TreeListEnt te[4];
 
@@ -188,7 +188,7 @@ static void DrawTrees(TileInfo *ti)
 		te[mi] = te[trees - 1];
 	}
 
-	EndSpriteCombine();
+	EndSpriteCombine (ti->vd);
 }
 
 static void DrawTile_Clear(TileInfo *ti)

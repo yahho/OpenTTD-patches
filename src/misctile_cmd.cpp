@@ -116,7 +116,7 @@ static void DrawTunnel(TileInfo *ti)
 			/* Do not draw wires if they are invisible */
 			if (!IsInvisibilitySet(TO_CATENARY)) {
 				catenary = true;
-				StartSpriteCombine();
+				StartSpriteCombine (ti->vd);
 				AddSortableSpriteToDraw (ti->vd, SPR_TRAMWAY_TUNNEL_WIRES + tunnelbridge_direction, PAL_NONE, ti->x, ti->y, BB_data[10], BB_data[11], TILE_HEIGHT, ti->z, IsTransparencySet(TO_CATENARY), BB_data[8], BB_data[9], BB_Z_SEPARATOR);
 			}
 		}
@@ -132,7 +132,7 @@ static void DrawTunnel(TileInfo *ti)
 			DrawCatenary(ti);
 
 			catenary = true;
-			StartSpriteCombine();
+			StartSpriteCombine (ti->vd);
 			/* Draw wire above the ramp */
 			DrawCatenaryOnTunnel(ti);
 		}
@@ -180,13 +180,13 @@ static void DrawTunnel(TileInfo *ti)
 		}
 	}
 
-	if (railtype_overlay != 0 && !catenary) StartSpriteCombine();
+	if (railtype_overlay != 0 && !catenary) StartSpriteCombine (ti->vd);
 
 	AddSortableSpriteToDraw (ti->vd, image + 1, PAL_NONE, ti->x + TILE_SIZE - 1, ti->y + TILE_SIZE - 1, BB_data[0], BB_data[1], TILE_HEIGHT, ti->z, false, BB_data[2], BB_data[3], BB_Z_SEPARATOR);
 	/* Draw railtype tunnel portal overlay if defined. */
 	if (railtype_overlay != 0) AddSortableSpriteToDraw (ti->vd, railtype_overlay + tunnelbridge_direction, PAL_NONE, ti->x + TILE_SIZE - 1, ti->y + TILE_SIZE - 1, BB_data[0], BB_data[1], TILE_HEIGHT, ti->z, false, BB_data[2], BB_data[3], BB_Z_SEPARATOR);
 
-	if (catenary || railtype_overlay != 0) EndSpriteCombine();
+	if (catenary || railtype_overlay != 0) EndSpriteCombine (ti->vd);
 
 	/* Add helper BB for sprite sorting that separates the tunnel from things beside of it. */
 	AddSortableSpriteToDraw (ti->vd, SPR_EMPTY_BOUNDING_BOX, PAL_NONE, ti->x,              ti->y,              BB_data[6], BB_data[7], TILE_HEIGHT, ti->z);

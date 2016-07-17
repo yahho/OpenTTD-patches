@@ -2815,13 +2815,13 @@ static void DrawTile_Station(TileInfo *ti)
 					goto draw_default_foundation;
 				}
 
-				StartSpriteCombine();
+				StartSpriteCombine (ti->vd);
 				for (int i = 0; i < 8; i++) {
 					if (HasBit(parts, i)) {
 						AddSortableSpriteToDraw (ti->vd, image + i, PAL_NONE, ti->x, ti->y, 16, 16, 7, ti->z);
 					}
 				}
-				EndSpriteCombine();
+				EndSpriteCombine (ti->vd);
 			}
 
 			OffsetGroundSprite (ti->vd, 31, 1);

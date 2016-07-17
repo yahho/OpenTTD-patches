@@ -743,20 +743,20 @@ void AddSortableSpriteToDraw (ViewportDrawer *vd, SpriteID image, PaletteID pal,
  *
  * You cannot nest "combined" blocks.
  */
-void StartSpriteCombine()
+void StartSpriteCombine (ViewportDrawer *vd)
 {
-	assert(_vd.combine_sprites == SPRITE_COMBINE_NONE);
-	_vd.combine_sprites = SPRITE_COMBINE_PENDING;
+	assert (vd->combine_sprites == SPRITE_COMBINE_NONE);
+	vd->combine_sprites = SPRITE_COMBINE_PENDING;
 }
 
 /**
  * Terminates a block of sprites started by #StartSpriteCombine.
  * Take a look there for details.
  */
-void EndSpriteCombine()
+void EndSpriteCombine (ViewportDrawer *vd)
 {
-	assert(_vd.combine_sprites != SPRITE_COMBINE_NONE);
-	_vd.combine_sprites = SPRITE_COMBINE_NONE;
+	assert (vd->combine_sprites != SPRITE_COMBINE_NONE);
+	vd->combine_sprites = SPRITE_COMBINE_NONE;
 }
 
 /**

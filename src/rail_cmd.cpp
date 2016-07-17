@@ -3320,7 +3320,7 @@ static void DrawTile_Track(TileInfo *ti)
 		const PalSpriteID *psid = GetBridgeRampSprite(GetRailBridgeType(ti->tile), rti->bridge_offset, ti->tileh, dir);
 
 		/* Draw PBS Reservation as SpriteCombine */
-		StartSpriteCombine();
+		StartSpriteCombine (ti->vd);
 
 		/* HACK set the height of the BB of a sloped ramp to 1 so a vehicle on
 		 * it doesn't disappear behind it
@@ -3357,7 +3357,7 @@ static void DrawTile_Track(TileInfo *ti)
 			AddSortableSpriteToDraw (ti->vd, image, PALETTE_CRASH, ti->x, ti->y, 16, 16, 8 - dz, ti->z + dz);
 		}
 
-		EndSpriteCombine();
+		EndSpriteCombine (ti->vd);
 
 		if (HasCatenaryDrawn (rti)) {
 			DrawCatenary(ti);

@@ -659,8 +659,8 @@ void DrawBridgeTramBits (ViewportDrawer *vd, int x, int y, int z, int offset,
 	}
 
 	/* Start a new SpriteCombine for the front part */
-	EndSpriteCombine();
-	StartSpriteCombine();
+	EndSpriteCombine (vd);
+	StartSpriteCombine (vd);
 
 	/* For sloped sprites the bounding box needs to be higher, as the pylons stop on a higher point */
 	if (!IsInvisibilitySet(TO_CATENARY)) {
@@ -743,7 +743,7 @@ void DrawBridgeMiddle(const TileInfo *ti)
 	AddSortableSpriteToDraw (ti->vd, SPR_EMPTY_BOUNDING_BOX, PAL_NONE, x, y, 16, 16, 1, bridge_z - TILE_HEIGHT + BB_Z_SEPARATOR);
 
 	/* Draw Trambits as SpriteCombine */
-	if (transport_type == TRANSPORT_ROAD || transport_type == TRANSPORT_RAIL) StartSpriteCombine();
+	if (transport_type == TRANSPORT_ROAD || transport_type == TRANSPORT_RAIL) StartSpriteCombine (ti->vd);
 
 	/* Draw floor and far part of bridge*/
 	if (!IsInvisibilitySet(TO_BRIDGES)) {
@@ -763,8 +763,8 @@ void DrawBridgeMiddle(const TileInfo *ti)
 			/* DrawBridgeTramBits() calls EndSpriteCombine() and StartSpriteCombine() */
 			DrawBridgeTramBits (ti->vd, x, y, bridge_z, axis ^ 1, (GetRoadBits(rampsouth, ROADTYPE_ROAD) & bits) != 0, false);
 		} else {
-			EndSpriteCombine();
-			StartSpriteCombine();
+			EndSpriteCombine (ti->vd);
+			StartSpriteCombine (ti->vd);
 		}
 	} else if (transport_type == TRANSPORT_RAIL) {
 		const RailtypeInfo *rti = GetRailTypeInfo(GetBridgeRailType(rampsouth));
@@ -782,7 +782,7 @@ void DrawBridgeMiddle(const TileInfo *ti)
 			AddSortableSpriteToDraw (ti->vd, image, PALETTE_CRASH, ti->x, ti->y, 16, 16, 0, bridge_z, IsTransparencySet (TO_BRIDGES));
 		}
 
-		EndSpriteCombine();
+		EndSpriteCombine (ti->vd);
 
 		if (HasCatenaryDrawn (rti)) {
 			DrawCatenaryOnBridge(ti);
@@ -801,7 +801,7 @@ void DrawBridgeMiddle(const TileInfo *ti)
 	}
 
 	/* Draw TramFront as SpriteCombine */
-	if (transport_type == TRANSPORT_ROAD) EndSpriteCombine();
+	if (transport_type == TRANSPORT_ROAD) EndSpriteCombine (ti->vd);
 
 	/* Do not draw anything more if bridges are invisible */
 	if (IsInvisibilitySet(TO_BRIDGES)) return;
