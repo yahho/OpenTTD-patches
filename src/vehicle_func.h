@@ -58,7 +58,7 @@ void ResetVehicleColourMap();
 
 byte GetBestFittingSubType(Vehicle *v_from, Vehicle *v_for, CargoID dest_cargo_type);
 
-void ViewportAddVehicles(const DrawPixelInfo *dpi);
+void ViewportAddVehicles (struct ViewportDrawer *vd, const DrawPixelInfo *dpi);
 
 void ShowNewGrfVehicleError(EngineID engine, StringID part1, StringID part2, GRFBugs bug_type, bool critical);
 CommandCost TunnelBridgeIsFree(TileIndex tile, TileIndex endtile, const Vehicle *ignore = NULL);

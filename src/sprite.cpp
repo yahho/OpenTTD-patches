@@ -55,7 +55,7 @@ void DrawCommonTileSeq(const TileInfo *ti, const DrawTileSprites *dts, Transpare
 
 		if (dtss->IsParentSprite()) {
 			parent_sprite_encountered = true;
-			AddSortableSpriteToDraw(
+			AddSortableSpriteToDraw (ti->vd,
 				image, pal,
 				ti->x + dtss->delta_x, ti->y + dtss->delta_y,
 				dtss->size_x, dtss->size_y,

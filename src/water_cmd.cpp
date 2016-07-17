@@ -703,7 +703,7 @@ static void DrawWaterTileStruct(const TileInfo *ti, const DrawTileSeqStruct *dts
 	for (; !dtss->IsTerminator(); dtss++) {
 		uint tile_offs = offset + dtss->image.sprite;
 		if (feature < CF_END) tile_offs = GetCanalSpriteOffset(feature, ti->tile, tile_offs);
-		AddSortableSpriteToDraw(base + tile_offs, palette,
+		AddSortableSpriteToDraw (ti->vd, base + tile_offs, palette,
 			ti->x + dtss->delta_x, ti->y + dtss->delta_y,
 			dtss->size_x, dtss->size_y,
 			dtss->size_z, ti->z + dtss->delta_z,

@@ -1765,8 +1765,8 @@ void DrawTramCatenary(const TileInfo *ti, RoadBits tram)
 		front = SPR_TRAMWAY_BASE + _road_frontwire_sprites_1[tram];
 	}
 
-	AddSortableSpriteToDraw(back,  PAL_NONE, ti->x, ti->y, 16, 16, TILE_HEIGHT + BB_HEIGHT_UNDER_BRIDGE, ti->z, IsTransparencySet(TO_CATENARY));
-	AddSortableSpriteToDraw(front, PAL_NONE, ti->x, ti->y, 16, 16, TILE_HEIGHT + BB_HEIGHT_UNDER_BRIDGE, ti->z, IsTransparencySet(TO_CATENARY));
+	AddSortableSpriteToDraw (ti->vd, back,  PAL_NONE, ti->x, ti->y, 16, 16, TILE_HEIGHT + BB_HEIGHT_UNDER_BRIDGE, ti->z, IsTransparencySet(TO_CATENARY));
+	AddSortableSpriteToDraw (ti->vd, front, PAL_NONE, ti->x, ti->y, 16, 16, TILE_HEIGHT + BB_HEIGHT_UNDER_BRIDGE, ti->z, IsTransparencySet(TO_CATENARY));
 }
 
 /**
@@ -1783,7 +1783,7 @@ static void DrawRoadDetail(SpriteID img, const TileInfo *ti, int dx, int dy, int
 	int y = ti->y | dy;
 	int z = ti->z;
 	if (ti->tileh != SLOPE_FLAT) z = GetSlopePixelZ(x, y);
-	AddSortableSpriteToDraw(img, PAL_NONE, x, y, 2, 2, h, z);
+	AddSortableSpriteToDraw (ti->vd, img, PAL_NONE, x, y, 2, 2, h, z);
 }
 
 /**
@@ -1889,7 +1889,7 @@ static void DrawTile_Road(TileInfo *ti)
 		 * it doesn't disappear behind it
 		 */
 		/* Bridge heads are drawn solid no matter how invisibility/transparency is set */
-		AddSortableSpriteToDraw(psid->sprite, psid->pal, ti->x, ti->y, 16, 16, ti->tileh == SLOPE_FLAT ? 0 : 8, ti->z);
+		AddSortableSpriteToDraw (ti->vd, psid->sprite, psid->pal, ti->x, ti->y, 16, 16, ti->tileh == SLOPE_FLAT ? 0 : 8, ti->z);
 
 		RoadTypes rts = GetRoadTypes(ti->tile);
 
@@ -1903,7 +1903,7 @@ static void DrawTile_Road(TileInfo *ti)
 				offset += 2;
 			}
 			/* DrawBridgeTramBits() calls EndSpriteCombine() and StartSpriteCombine() */
-			DrawBridgeTramBits(ti->x, ti->y, z, offset, HasBit(rts, ROADTYPE_ROAD), true);
+			DrawBridgeTramBits (ti->vd, ti->x, ti->y, z, offset, HasBit(rts, ROADTYPE_ROAD), true);
 		}
 
 		EndSpriteCombine();

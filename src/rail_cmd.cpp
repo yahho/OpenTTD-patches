@@ -2643,7 +2643,7 @@ static const FenceOffset _fence_offsets[] = {
 static void DrawTrackFence (const TileInfo *ti,
 	const SpriteGroupData *sprites, RailFenceOffset rfo, int dz = 0)
 {
-	AddSortableSpriteToDraw (sprites->base_image + (rfo % sprites->num_sprites),
+	AddSortableSpriteToDraw (ti->vd, sprites->base_image + (rfo % sprites->num_sprites),
 		_drawtile_track_palette,
 		ti->x + _fence_offsets[rfo].x_offs,
 		ti->y + _fence_offsets[rfo].y_offs,
@@ -3214,7 +3214,7 @@ static uint GetSafeSlopePixelZ (TileIndex tile, uint x, uint y, Track track,
 	return z + GetSlopePixelZ_Track (tile, x, y);
 }
 
-static inline void DrawSignalPair (TileIndex tile, Track track,
+static inline void DrawSignalPair (const TileInfo *ti, Track track,
 	DiagDirection bridge = INVALID_DIAGDIR)
 {
 	static const struct {
@@ -3235,6 +3235,7 @@ static inline void DrawSignalPair (TileIndex tile, Track track,
 		  { { { 9, 11}, { 1, 14} }, SIGNAL_TO_NORTH     } },
 	};
 
+	TileIndex tile = ti->tile;
 	SignalPair signals = *maptile_signalpair (tile, track);
 	if (!signalpair_has_signals (&signals)) return;
 
@@ -3265,29 +3266,29 @@ static inline void DrawSignalPair (TileIndex tile, Track track,
 		uint x = TileX(tile) * TILE_SIZE + SignalData[track][along].pos[side].x;
 		uint y = TileY(tile) * TILE_SIZE + SignalData[track][along].pos[side].y;
 
-		AddSortableSpriteToDraw (sprite, PAL_NONE, x, y, 1, 1, BB_HEIGHT_UNDER_BRIDGE, GetSafeSlopePixelZ (tile, x, y, track, bridge));
+		AddSortableSpriteToDraw (ti->vd, sprite, PAL_NONE, x, y, 1, 1, BB_HEIGHT_UNDER_BRIDGE, GetSafeSlopePixelZ (tile, x, y, track, bridge));
 
 	} while ((along = !along));
 }
 
-static void DrawSignals(TileIndex tile, TrackBits rails)
+static void DrawSignals (const TileInfo *ti, TrackBits rails)
 {
 	if (rails & TRACK_BIT_Y) {
-		DrawSignalPair (tile, TRACK_Y);
+		DrawSignalPair (ti, TRACK_Y);
 	} else if (rails & TRACK_BIT_X) {
-		DrawSignalPair (tile, TRACK_X);
+		DrawSignalPair (ti, TRACK_X);
 	} else {
 		if (rails & TRACK_BIT_LEFT) {
-			DrawSignalPair (tile, TRACK_LEFT);
+			DrawSignalPair (ti, TRACK_LEFT);
 		}
 		if (rails & TRACK_BIT_RIGHT) {
-			DrawSignalPair (tile, TRACK_RIGHT);
+			DrawSignalPair (ti, TRACK_RIGHT);
 		}
 		if (rails & TRACK_BIT_UPPER) {
-			DrawSignalPair (tile, TRACK_UPPER);
+			DrawSignalPair (ti, TRACK_UPPER);
 		}
 		if (rails & TRACK_BIT_LOWER) {
-			DrawSignalPair (tile, TRACK_LOWER);
+			DrawSignalPair (ti, TRACK_LOWER);
 		}
 	}
 }
@@ -3305,7 +3306,7 @@ static void DrawTile_Track(TileInfo *ti)
 
 		if (IsCatenaryDrawn()) DrawCatenary(ti);
 
-		DrawSignals(ti->tile, rails);
+		DrawSignals (ti, rails);
 	} else {
 		DrawBridgeGround(ti);
 
@@ -3325,15 +3326,15 @@ static void DrawTile_Track(TileInfo *ti)
 		 * it doesn't disappear behind it
 		 */
 		/* Bridge heads are drawn solid no matter how invisibility/transparency is set */
-		AddSortableSpriteToDraw(psid->sprite, psid->pal, ti->x, ti->y, 16, 16, ti->tileh == SLOPE_FLAT ? 0 : 8, ti->z);
+		AddSortableSpriteToDraw (ti->vd, psid->sprite, psid->pal, ti->x, ti->y, 16, 16, ti->tileh == SLOPE_FLAT ? 0 : 8, ti->z);
 
 		if (rti->UsesOverlay()) {
 			SpriteID surface = GetCustomRailSprite(rti, ti->tile, RTSG_BRIDGE);
 			if (surface != 0) {
 				if (HasBridgeFlatRamp(ti->tileh, DiagDirToAxis(dir))) {
-					AddSortableSpriteToDraw(surface + ((DiagDirToAxis(dir) == AXIS_X) ? RTBO_X : RTBO_Y), PAL_NONE, ti->x, ti->y, 16, 16, 0, ti->z + 8);
+					AddSortableSpriteToDraw (ti->vd, surface + ((DiagDirToAxis(dir) == AXIS_X) ? RTBO_X : RTBO_Y), PAL_NONE, ti->x, ti->y, 16, 16, 0, ti->z + 8);
 				} else {
-					AddSortableSpriteToDraw(surface + RTBO_SLOPE + dir, PAL_NONE, ti->x, ti->y, 16, 16, 8, ti->z);
+					AddSortableSpriteToDraw (ti->vd, surface + RTBO_SLOPE + dir, PAL_NONE, ti->x, ti->y, 16, 16, 8, ti->z);
 				}
 			}
 			/* Don't fallback to non-overlay sprite -- the spec states that
@@ -3353,7 +3354,7 @@ static void DrawTile_Track(TileInfo *ti)
 						rti->base_sprites.single[DiagDirToDiagTrack(dir)] :
 						rti->base_sprites.single_sloped + dir;
 			}
-			AddSortableSpriteToDraw (image, PALETTE_CRASH, ti->x, ti->y, 16, 16, 8 - dz, ti->z + dz);
+			AddSortableSpriteToDraw (ti->vd, image, PALETTE_CRASH, ti->x, ti->y, 16, 16, 8 - dz, ti->z + dz);
 		}
 
 		EndSpriteCombine();
@@ -3362,7 +3363,7 @@ static void DrawTile_Track(TileInfo *ti)
 			DrawCatenary(ti);
 		}
 
-		DrawSignalPair (ti->tile, DiagDirToDiagTrack (dir), dir);
+		DrawSignalPair (ti, DiagDirToDiagTrack (dir), dir);
 	}
 
 	DrawBridgeMiddle(ti);

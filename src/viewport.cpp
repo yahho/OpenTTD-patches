@@ -628,6 +628,7 @@ static void AddCombinedSprite (ViewportDrawer *vd, SpriteID image,
  *
  * @pre w >= bb_offset_x, h >= bb_offset_y, dz >= bb_offset_z. Else w, h or dz are ignored.
  *
+ * @param vd the viewport drawer to use.
  * @param image the image to combine and draw,
  * @param pal the provided palette,
  * @param x position X (world) of the sprite,
@@ -642,7 +643,9 @@ static void AddCombinedSprite (ViewportDrawer *vd, SpriteID image,
  * @param bb_offset_z bounding box extent towards negative Z (world)
  * @param sub Only draw a part of the sprite.
  */
-void AddSortableSpriteToDraw(SpriteID image, PaletteID pal, int x, int y, int w, int h, int dz, int z, bool transparent, int bb_offset_x, int bb_offset_y, int bb_offset_z, const SubSprite *sub)
+void AddSortableSpriteToDraw (ViewportDrawer *vd, SpriteID image, PaletteID pal,
+	int x, int y, int w, int h, int dz, int z, bool transparent,
+	int bb_offset_x, int bb_offset_y, int bb_offset_z, const SubSprite *sub)
 {
 	int32 left, right, top, bottom;
 
@@ -656,12 +659,12 @@ void AddSortableSpriteToDraw(SpriteID image, PaletteID pal, int x, int y, int w,
 
 	Point pt = RemapCoords (x, y, z);
 
-	if (_vd.combine_sprites == SPRITE_COMBINE_ACTIVE) {
-		AddCombinedSprite (&_vd, image, pal, pt, sub);
+	if (vd->combine_sprites == SPRITE_COMBINE_ACTIVE) {
+		AddCombinedSprite (vd, image, pal, pt, sub);
 		return;
 	}
 
-	_vd.last_child = NULL;
+	vd->last_child = NULL;
 
 	int tmp_left, tmp_top, tmp_x = pt.x, tmp_y = pt.y;
 
@@ -688,14 +691,14 @@ void AddSortableSpriteToDraw(SpriteID image, PaletteID pal, int x, int y, int w,
 	}
 
 	/* Do not add the sprite to the viewport, if it is outside */
-	if (left   >= _vd.dpi.left + _vd.dpi.width ||
-	    right  <= _vd.dpi.left                 ||
-	    top    >= _vd.dpi.top + _vd.dpi.height ||
-	    bottom <= _vd.dpi.top) {
+	if (left   >= vd->dpi.left + vd->dpi.width ||
+	    right  <= vd->dpi.left                 ||
+	    top    >= vd->dpi.top + vd->dpi.height ||
+	    bottom <= vd->dpi.top) {
 		return;
 	}
 
-	ParentSpriteToDraw *ps = _vd.parent_sprites_to_draw.Append();
+	ParentSpriteToDraw *ps = vd->parent_sprites_to_draw.Append();
 	ps->x = tmp_x;
 	ps->y = tmp_y;
 
@@ -717,9 +720,9 @@ void AddSortableSpriteToDraw(SpriteID image, PaletteID pal, int x, int y, int w,
 	ps->comparison_done = false;
 	ps->first_child = -1;
 
-	_vd.last_child = &ps->first_child;
+	vd->last_child = &ps->first_child;
 
-	if (_vd.combine_sprites == SPRITE_COMBINE_PENDING) _vd.combine_sprites = SPRITE_COMBINE_ACTIVE;
+	if (vd->combine_sprites == SPRITE_COMBINE_PENDING) vd->combine_sprites = SPRITE_COMBINE_ACTIVE;
 }
 
 /**
@@ -1654,7 +1657,7 @@ void ViewportDoDraw(const ViewPort *vp, int left, int top, int right, int bottom
 	_vd.dpi.dst_ptr = Blitter::get()->MoveTo (old_dpi->dst_ptr, x - old_dpi->left, y - old_dpi->top);
 
 	ViewportAddLandscape();
-	ViewportAddVehicles(&_vd.dpi);
+	ViewportAddVehicles (&_vd, &_vd.dpi);
 
 	if (_vd.tile_sprites_to_draw.Length() != 0) ViewportDrawTileSprites(&_vd.tile_sprites_to_draw);
 
