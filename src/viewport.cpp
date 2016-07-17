@@ -596,23 +596,25 @@ void OffsetGroundSprite (ViewportDrawer *vd, int x, int y)
  * Adds a child sprite to a parent sprite.
  * In contrast to "AddChildSpriteScreen()" the sprite position is in world coordinates
  *
+ * @param vd the viewport drawer to use.
  * @param image the image to draw.
  * @param pal the provided palette.
  * @param pt position of the sprite.
  * @param sub Only draw a part of the sprite.
  */
-static void AddCombinedSprite (SpriteID image, PaletteID pal, const Point &pt, const SubSprite *sub)
+static void AddCombinedSprite (ViewportDrawer *vd, SpriteID image,
+	PaletteID pal, const Point &pt, const SubSprite *sub)
 {
 	const Sprite *spr = GetSprite(image & SPRITE_MASK, ST_NORMAL);
 
-	if (pt.x + spr->x_offs >= _vd.dpi.left + _vd.dpi.width ||
-			pt.x + spr->x_offs + spr->width <= _vd.dpi.left ||
-			pt.y + spr->y_offs >= _vd.dpi.top + _vd.dpi.height ||
-			pt.y + spr->y_offs + spr->height <= _vd.dpi.top)
+	if (pt.x + spr->x_offs >= vd->dpi.left + vd->dpi.width ||
+			pt.x + spr->x_offs + spr->width <= vd->dpi.left ||
+			pt.y + spr->y_offs >= vd->dpi.top + vd->dpi.height ||
+			pt.y + spr->y_offs + spr->height <= vd->dpi.top)
 		return;
 
-	const ParentSpriteToDraw *pstd = _vd.parent_sprites_to_draw.End() - 1;
-	AddChildSpriteScreen (&_vd, image, pal, pt.x - pstd->left, pt.y - pstd->top, false, sub, false);
+	const ParentSpriteToDraw *pstd = vd->parent_sprites_to_draw.End() - 1;
+	AddChildSpriteScreen (vd, image, pal, pt.x - pstd->left, pt.y - pstd->top, false, sub, false);
 }
 
 /**
@@ -655,7 +657,7 @@ void AddSortableSpriteToDraw(SpriteID image, PaletteID pal, int x, int y, int w,
 	Point pt = RemapCoords (x, y, z);
 
 	if (_vd.combine_sprites == SPRITE_COMBINE_ACTIVE) {
-		AddCombinedSprite (image, pal, pt, sub);
+		AddCombinedSprite (&_vd, image, pal, pt, sub);
 		return;
 	}
 
