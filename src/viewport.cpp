@@ -849,12 +849,12 @@ void AddChildSpriteScreen (ViewportDrawer *vd, SpriteID image, PaletteID pal,
 static void DrawSelectionSprite(SpriteID image, PaletteID pal, const TileInfo *ti, int z_offset, FoundationPart foundation_part)
 {
 	/* FIXME: This is not totally valid for some autorail highlights that extend over the edges of the tile. */
-	if (_vd.foundation[foundation_part] == -1) {
+	if (ti->vd->foundation[foundation_part] == -1) {
 		/* draw on real ground */
-		AddTileSpriteToDraw (&_vd, image, pal, ti->x, ti->y, ti->z + z_offset);
+		AddTileSpriteToDraw (ti->vd, image, pal, ti->x, ti->y, ti->z + z_offset);
 	} else {
 		/* draw on top of foundation */
-		AddChildSpriteToFoundation (&_vd, image, pal, NULL, foundation_part, 0, -z_offset * ZOOM_LVL_BASE);
+		AddChildSpriteToFoundation (ti->vd, image, pal, NULL, foundation_part, 0, -z_offset * ZOOM_LVL_BASE);
 	}
 }
 
