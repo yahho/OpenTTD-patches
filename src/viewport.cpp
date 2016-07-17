@@ -126,8 +126,6 @@ struct ViewportDrawer {
 
 static void MarkViewportDirty(const ViewPort *vp, int left, int top, int right, int bottom);
 
-static ViewportDrawer _vd;
-
 TileHighlightData _thd;
 bool _draw_bounding_boxes = false;
 bool _draw_dirty_blocks = false;
@@ -1636,44 +1634,46 @@ static void ViewportDrawDirtyBlocks()
 
 void ViewportDoDraw(const ViewPort *vp, int left, int top, int right, int bottom)
 {
-	DrawPixelInfo *old_dpi = _cur_dpi;
-	_cur_dpi = &_vd.dpi;
+	ViewportDrawer vd;
 
-	_vd.dpi.zoom = vp->zoom;
+	DrawPixelInfo *old_dpi = _cur_dpi;
+	_cur_dpi = &vd.dpi;
+
+	vd.dpi.zoom = vp->zoom;
 	int mask = ScaleByZoom(-1, vp->zoom);
 
-	_vd.combine_sprites = SPRITE_COMBINE_NONE;
+	vd.combine_sprites = SPRITE_COMBINE_NONE;
 
-	_vd.dpi.width = (right - left) & mask;
-	_vd.dpi.height = (bottom - top) & mask;
-	_vd.dpi.left = left & mask;
-	_vd.dpi.top = top & mask;
-	_vd.dpi.pitch = old_dpi->pitch;
-	_vd.last_child = NULL;
+	vd.dpi.width = (right - left) & mask;
+	vd.dpi.height = (bottom - top) & mask;
+	vd.dpi.left = left & mask;
+	vd.dpi.top = top & mask;
+	vd.dpi.pitch = old_dpi->pitch;
+	vd.last_child = NULL;
 
-	int x = UnScaleByZoom(_vd.dpi.left - (vp->virtual_left & mask), vp->zoom) + vp->left;
-	int y = UnScaleByZoom(_vd.dpi.top - (vp->virtual_top & mask), vp->zoom) + vp->top;
+	int x = UnScaleByZoom (vd.dpi.left - (vp->virtual_left & mask), vp->zoom) + vp->left;
+	int y = UnScaleByZoom (vd.dpi.top  - (vp->virtual_top  & mask), vp->zoom) + vp->top;
 
-	_vd.dpi.dst_ptr = Blitter::get()->MoveTo (old_dpi->dst_ptr, x - old_dpi->left, y - old_dpi->top);
+	vd.dpi.dst_ptr = Blitter::get()->MoveTo (old_dpi->dst_ptr, x - old_dpi->left, y - old_dpi->top);
 
-	ViewportAddLandscape (&_vd);
-	ViewportAddVehicles (&_vd, &_vd.dpi);
+	ViewportAddLandscape (&vd);
+	ViewportAddVehicles (&vd, &vd.dpi);
 
-	if (_vd.tile_sprites_to_draw.Length() != 0) ViewportDrawTileSprites(&_vd.tile_sprites_to_draw);
+	if (vd.tile_sprites_to_draw.Length() != 0) ViewportDrawTileSprites (&vd.tile_sprites_to_draw);
 
-	ParentSpriteToDraw *psd_end = _vd.parent_sprites_to_draw.End();
-	for (ParentSpriteToDraw *it = _vd.parent_sprites_to_draw.Begin(); it != psd_end; it++) {
-		*_vd.parent_sprites_to_sort.Append() = it;
+	ParentSpriteToDraw *psd_end = vd.parent_sprites_to_draw.End();
+	for (ParentSpriteToDraw *it = vd.parent_sprites_to_draw.Begin(); it != psd_end; it++) {
+		*vd.parent_sprites_to_sort.Append() = it;
 	}
 
-	_vp_sprite_sorter(&_vd.parent_sprites_to_sort);
-	ViewportDrawParentSprites(&_vd.parent_sprites_to_sort, &_vd.child_screen_sprites_to_draw);
+	_vp_sprite_sorter (&vd.parent_sprites_to_sort);
+	ViewportDrawParentSprites (&vd.parent_sprites_to_sort, &vd.child_screen_sprites_to_draw);
 
-	if (_draw_bounding_boxes) ViewportDrawBoundingBoxes(&_vd.parent_sprites_to_sort);
+	if (_draw_bounding_boxes) ViewportDrawBoundingBoxes (&vd.parent_sprites_to_sort);
 	if (_draw_dirty_blocks) ViewportDrawDirtyBlocks();
 
-	DrawPixelInfo dp = _vd.dpi;
-	ZoomLevel zoom = _vd.dpi.zoom;
+	DrawPixelInfo dp = vd.dpi;
+	ZoomLevel zoom = vd.dpi.zoom;
 	dp.zoom = ZOOM_LVL_NORMAL;
 	dp.width = UnScaleByZoom(dp.width, zoom);
 	dp.height = UnScaleByZoom(dp.height, zoom);
@@ -1687,21 +1687,21 @@ void ViewportDoDraw(const ViewPort *vp, int left, int top, int right, int bottom
 	}
 
 	/* translate to world coordinates */
-	dp.left = UnScaleByZoom(_vd.dpi.left, zoom);
-	dp.top = UnScaleByZoom(_vd.dpi.top, zoom);
+	dp.left = UnScaleByZoom (vd.dpi.left, zoom);
+	dp.top  = UnScaleByZoom (vd.dpi.top,  zoom);
 
-	ViewportAddTownNames(&_vd.dpi);
-	ViewportAddStationNames(&_vd.dpi);
-	ViewportAddSigns(&_vd.dpi);
+	ViewportAddTownNames (&vd.dpi);
+	ViewportAddStationNames (&vd.dpi);
+	ViewportAddSigns (&vd.dpi);
 
-	DrawTextEffects(&_vd.dpi);
+	DrawTextEffects (&vd.dpi);
 
 	_cur_dpi = old_dpi;
 
-	_vd.tile_sprites_to_draw.Clear();
-	_vd.parent_sprites_to_draw.Clear();
-	_vd.parent_sprites_to_sort.Clear();
-	_vd.child_screen_sprites_to_draw.Clear();
+	vd.tile_sprites_to_draw.Clear();
+	vd.parent_sprites_to_draw.Clear();
+	vd.parent_sprites_to_sort.Clear();
+	vd.child_screen_sprites_to_draw.Clear();
 }
 
 /**
