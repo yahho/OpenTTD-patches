@@ -196,9 +196,7 @@ static inline void GfxDoDrawLine(void *video, int x, int y, int x2, int y2, int 
 	/* Clipping rectangle. Slightly extended so we can ignore the width of the line. */
 	int extra = (int)CeilDiv(3 * width, 4); // not less then "width * sqrt(2) / 2"
 	int clip_left = -extra;
-	int clip_top = -extra;
 	int clip_right = screen_width - 1 + extra;
-	int clip_bottom = screen_height - 1 + extra;
 
 	/* prevent integer overflows. */
 	int margin = 1;
@@ -214,10 +212,12 @@ static inline void GfxDoDrawLine(void *video, int x, int y, int x2, int y2, int 
 	 * and both on the same side of it, we don't need to draw anything. */
 	int left_isec_y = y + (clip_left - x) * grade_y / grade_x;
 	int right_isec_y = y + (clip_right - x) * grade_y / grade_x;
-	if ((left_isec_y > clip_bottom + margin && right_isec_y > clip_bottom + margin) ||
-			(left_isec_y < clip_top - margin && right_isec_y < clip_top - margin)) {
-		return;
-	}
+
+	int clip_bottom = screen_height - 1 + extra + margin;
+	if (left_isec_y > clip_bottom && right_isec_y > clip_bottom) return;
+
+	int clip_top = -extra - margin;
+	if (left_isec_y < clip_top && right_isec_y < clip_top) return;
 
 	/* It is possible to use the line equation to further reduce the amount of
 	 * work the blitter has to do by shortening the effective line segment.
