@@ -195,12 +195,13 @@ static inline void GfxDoDrawLine(void *video, int x, int y, int x2, int y2, int 
 
 	/* Clipping rectangle. Slightly extended so we can ignore the width of the line. */
 	int extra = (int)CeilDiv(3 * width, 4); // not less then "width * sqrt(2) / 2"
-	int clip_left = -extra;
-	int clip_right = screen_width - 1 + extra;
+	int clip_left  = -extra - x;
+	int clip_right = screen_width - 1 + extra - x;
 
 	/* prevent integer overflows. */
 	int margin = 1;
-	while (INT_MAX / abs(grade_y) < max(abs(clip_left - x), abs(clip_right - x))) {
+	int dinf = max (abs (clip_left), abs (clip_right));
+	while (INT_MAX / abs(grade_y) < dinf) {
 		grade_y /= 2;
 		grade_x /= 2;
 		margin  *= 2; // account for rounding errors
@@ -210,8 +211,8 @@ static inline void GfxDoDrawLine(void *video, int x, int y, int x2, int y2, int 
 	 * infinitely long left and right edges of the clipping rectangle.
 	 * If both intersection points are outside the clipping rectangle
 	 * and both on the same side of it, we don't need to draw anything. */
-	int left_isec_y = y + (clip_left - x) * grade_y / grade_x;
-	int right_isec_y = y + (clip_right - x) * grade_y / grade_x;
+	int left_isec_y  = y + clip_left  * grade_y / grade_x;
+	int right_isec_y = y + clip_right * grade_y / grade_x;
 
 	int clip_bottom = screen_height - 1 + extra + margin;
 	if (left_isec_y > clip_bottom && right_isec_y > clip_bottom) return;
