@@ -186,45 +186,45 @@ static inline void GfxDoDrawLine(void *video, int x, int y, int x2, int y2, int 
 
 	if (y2 == y || x2 == x) {
 		/* Special case: horizontal/vertical line. All checks already done in GfxPreprocessLine. */
-		blitter->DrawLine(video, x, y, x2, y2, screen_width, screen_height, colour, width, dash);
-		return;
+	} else {
+		int grade_y = y2 - y;
+		int grade_x = x2 - x;
+
+		/* Clipping rectangle. Slightly extended so we can ignore the width of the line. */
+		int extra = (int)CeilDiv(3 * width, 4); // not less then "width * sqrt(2) / 2"
+		int clip_left  = -extra - x;
+		int clip_right = screen_width - 1 + extra - x;
+
+		/* prevent integer overflows. */
+		int margin = 1;
+		int dinf = max (abs (clip_left), abs (clip_right));
+		while (INT_MAX / abs(grade_y) < dinf) {
+			grade_y /= 2;
+			grade_x /= 2;
+			margin  *= 2; // account for rounding errors
+		}
+
+		/* Imagine that the line is infinitely long and it intersects
+		 * with infinitely long left and right edges of the clipping
+		 * rectangle. If both intersection points are outside the
+		 * clipping rectangle and both on the same side of it,
+		 * we don't need to draw anything. */
+		int left_isec_y  = y + clip_left  * grade_y / grade_x;
+		int right_isec_y = y + clip_right * grade_y / grade_x;
+
+		int clip_bottom = screen_height - 1 + extra + margin;
+		if (left_isec_y > clip_bottom && right_isec_y > clip_bottom) return;
+
+		int clip_top = -extra - margin;
+		if (left_isec_y < clip_top && right_isec_y < clip_top) return;
+
+		/* It is possible to use the line equation to further reduce
+		 * the amount of work the blitter has to do by shortening the
+		 * effective line segment. However, in order to get that right
+		 * and prevent the flickering effects of rounding errors so
+		 * much additional code has to be run here that in the general
+		 * case the effect is not noticable. */
 	}
-
-	int grade_y = y2 - y;
-	int grade_x = x2 - x;
-
-	/* Clipping rectangle. Slightly extended so we can ignore the width of the line. */
-	int extra = (int)CeilDiv(3 * width, 4); // not less then "width * sqrt(2) / 2"
-	int clip_left  = -extra - x;
-	int clip_right = screen_width - 1 + extra - x;
-
-	/* prevent integer overflows. */
-	int margin = 1;
-	int dinf = max (abs (clip_left), abs (clip_right));
-	while (INT_MAX / abs(grade_y) < dinf) {
-		grade_y /= 2;
-		grade_x /= 2;
-		margin  *= 2; // account for rounding errors
-	}
-
-	/* Imagine that the line is infinitely long and it intersects with
-	 * infinitely long left and right edges of the clipping rectangle.
-	 * If both intersection points are outside the clipping rectangle
-	 * and both on the same side of it, we don't need to draw anything. */
-	int left_isec_y  = y + clip_left  * grade_y / grade_x;
-	int right_isec_y = y + clip_right * grade_y / grade_x;
-
-	int clip_bottom = screen_height - 1 + extra + margin;
-	if (left_isec_y > clip_bottom && right_isec_y > clip_bottom) return;
-
-	int clip_top = -extra - margin;
-	if (left_isec_y < clip_top && right_isec_y < clip_top) return;
-
-	/* It is possible to use the line equation to further reduce the amount of
-	 * work the blitter has to do by shortening the effective line segment.
-	 * However, in order to get that right and prevent the flickering effects
-	 * of rounding errors so much additional code has to be run here that in
-	 * the general case the effect is not noticable. */
 
 	blitter->DrawLine(video, x, y, x2, y2, screen_width, screen_height, colour, width, dash);
 }
