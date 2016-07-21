@@ -184,7 +184,7 @@ public:
 	 * @param palette The new palette.
 	 * @return Whether the screen should be invalidated.
 	 */
-	virtual bool PaletteAnimate (const Palette &palette) = 0;
+	virtual bool PaletteAnimate (const Palette &palette);
 
 	/**
 	 * Check if the blitter uses palette animation at all.

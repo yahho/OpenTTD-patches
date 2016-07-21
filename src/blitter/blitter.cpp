@@ -162,6 +162,15 @@ void Blitter::list (stringb *buf)
 }
 
 
+bool Blitter::PaletteAnimate (const Palette &palette)
+{
+	/* The null driver does not need to animate anything, for the 8bpp
+	 * blitters the video backend takes care of the palette animation
+	 * and 32bpp blitters do not have palette animation by default,
+	 * so this provides a suitable default for most blitters. */
+	return false;
+}
+
 void Blitter::DrawLine(void *video, int x, int y, int x2, int y2, int screen_width, int screen_height, uint8 colour, int width, int dash)
 {
 	int dy;
