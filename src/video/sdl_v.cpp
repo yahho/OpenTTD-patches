@@ -134,7 +134,7 @@ static void CheckPaletteAnim()
 				break;
 
 			case Blitter::PALETTE_ANIMATION_BLITTER:
-				blitter->PaletteAnimate(_local_palette);
+				VideoDriver::PaletteAnimate (blitter, _local_palette);
 				break;
 
 			case Blitter::PALETTE_ANIMATION_NONE:
@@ -412,7 +412,9 @@ bool VideoDriver_SDL::CreateMainSurface(uint w, uint h)
 			break;
 
 		case Blitter::PALETTE_ANIMATION_BLITTER:
-			if (VideoDriver::GetActiveDriver() != NULL) blitter->PaletteAnimate(_local_palette);
+			if (VideoDriver::GetActiveDriver() != NULL) {
+				VideoDriver::PaletteAnimate (blitter, _local_palette);
+			}
 			break;
 
 		default:

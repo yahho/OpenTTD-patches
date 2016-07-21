@@ -372,7 +372,7 @@ static void PaintWindow(HDC dc)
 				break;
 
 			case Blitter::PALETTE_ANIMATION_BLITTER:
-				blitter->PaletteAnimate(_local_palette);
+				VideoDriver::PaletteAnimate (blitter, _local_palette);
 				break;
 
 			case Blitter::PALETTE_ANIMATION_NONE:

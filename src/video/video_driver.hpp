@@ -14,6 +14,7 @@
 
 #include "../driver.h"
 #include "../core/geometry_type.hpp"
+#include "../blitter/blitter.h"
 
 /** The base of all video drivers. */
 class VideoDriver : public Driver, public SharedDriverSystem <VideoDriver> {
@@ -39,6 +40,12 @@ public:
 	 * Perform the actual drawing.
 	 */
 	virtual void MainLoop() = 0;
+
+	/** Helper function to handle palette animation. */
+	static void PaletteAnimate (Blitter *blitter, const Palette &palette)
+	{
+		blitter->PaletteAnimate (palette);
+	}
 
 	/**
 	 * Change the resolution of the window.

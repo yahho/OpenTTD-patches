@@ -118,7 +118,7 @@ static void QZ_CheckPaletteAnim()
 				break;
 
 			case Blitter::PALETTE_ANIMATION_BLITTER:
-				blitter->PaletteAnimate(_cur_palette);
+				VideoDriver::PaletteAnimate (blitter, _cur_palette);
 				break;
 
 			case Blitter::PALETTE_ANIMATION_NONE:
