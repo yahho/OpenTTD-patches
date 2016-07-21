@@ -15,6 +15,7 @@
 #include "../driver.h"
 #include "../core/geometry_type.hpp"
 #include "../blitter/blitter.h"
+#include "../gfx_func.h"
 
 /** The base of all video drivers. */
 class VideoDriver : public Driver, public SharedDriverSystem <VideoDriver> {
@@ -44,7 +45,9 @@ public:
 	/** Helper function to handle palette animation. */
 	static void PaletteAnimate (Blitter *blitter, const Palette &palette)
 	{
-		blitter->PaletteAnimate (palette);
+		if (blitter->PaletteAnimate (palette)) {
+			GetActiveDriver()->MakeDirty (0, 0, _screen.width, _screen.height);
+		}
 	}
 
 	/**

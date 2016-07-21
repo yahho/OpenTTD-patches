@@ -12,7 +12,6 @@
 #ifdef WITH_SSE
 
 #include "../stdafx.h"
-#include "../video/video_driver.hpp"
 #include "../table/sprites.h"
 #include "32bpp_anim_sse4.hpp"
 

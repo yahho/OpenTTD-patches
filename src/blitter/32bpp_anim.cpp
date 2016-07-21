@@ -11,7 +11,6 @@
 
 #include "../stdafx.h"
 #include "../debug.h"
-#include "../video/video_driver.hpp"
 #include "32bpp_anim.hpp"
 
 #include "../table/sprites.h"
@@ -464,7 +463,7 @@ int Blitter_32bppAnim::BufferSize(int width, int height)
 	return width * height * (sizeof(uint32) + sizeof(uint16));
 }
 
-void Blitter_32bppAnim::PaletteAnimate(const Palette &palette)
+bool Blitter_32bppAnim::PaletteAnimate (const Palette &palette)
 {
 	assert(!_screen_disable_anim);
 
@@ -492,7 +491,7 @@ void Blitter_32bppAnim::PaletteAnimate(const Palette &palette)
 	}
 
 	/* Make sure the backend redraws the whole screen */
-	VideoDriver::GetActiveDriver()->MakeDirty(0, 0, _screen.width, _screen.height);
+	return true;
 }
 
 Blitter::PaletteAnimation Blitter_32bppAnim::UsePaletteAnimation()

@@ -182,8 +182,9 @@ public:
 	 * Called when the 8bpp palette is changed; you should redraw all pixels on the screen that
 	 *  are equal to the 8bpp palette indexes 'first_dirty' to 'first_dirty + count_dirty'.
 	 * @param palette The new palette.
+	 * @return Whether the screen should be invalidated.
 	 */
-	virtual void PaletteAnimate(const Palette &palette) = 0;
+	virtual bool PaletteAnimate (const Palette &palette) = 0;
 
 	/**
 	 * Check if the blitter uses palette animation at all.
