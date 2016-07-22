@@ -191,8 +191,6 @@ static void ClientSizeChanged(int w, int h)
 		_cur_palette.count_dirty = 256;
 		_local_palette = _cur_palette;
 
-		Blitter::get()->PostResize();
-
 		GameSizeChanged();
 	}
 }
@@ -349,8 +347,6 @@ bool VideoDriver_Win32::MakeWindow(bool full_screen)
 			ShowWindow(_wnd.main_wnd, showstyle);
 		}
 	}
-
-	Blitter::get()->PostResize();
 
 	GameSizeChanged(); // invalidate all windows, force redraw
 	return true; // the request succeeded

@@ -16,21 +16,9 @@
 
 /** The optimised 32 bpp blitter with palette animation. */
 class Blitter_32bppAnim : public Blitter_32bppOptimized {
-protected:
-	uint16 *anim_buf;    ///< In this buffer we keep track of the 8bpp indexes so we can do palette animation
-	int anim_buf_width;  ///< The width of the animation buffer.
-	int anim_buf_height; ///< The height of the animation buffer.
-	Palette palette;     ///< The current palette.
-
 public:
 	static const char name[]; ///< Name of the blitter.
 	static const char desc[]; ///< Description of the blitter.
-
-	Blitter_32bppAnim() :
-		anim_buf(NULL),
-		anim_buf_width(0),
-		anim_buf_height(0)
-	{}
 
 	/* virtual */ void Draw(Blitter::BlitterParams *bp, BlitterMode mode, ZoomLevel zoom);
 	/* virtual */ void DrawColourMappingRect(void *dst, int width, int height, PaletteID pal);
@@ -44,17 +32,34 @@ public:
 	/* virtual */ Blitter::PaletteAnimation UsePaletteAnimation();
 
 	/* virtual */ int GetBytesPerPixel() { return 6; }
-	/* virtual */ void PostResize();
 
 	/**
 	 * Look up the colour in the current palette.
 	 */
 	inline Colour LookupColourInPalette(uint index)
 	{
-		return this->palette.palette[index];
+		return static_cast<Surface*>(_screen.surface.get())->palette.palette[index];
 	}
 
 	template <BlitterMode mode> void Draw(const Blitter::BlitterParams *bp, ZoomLevel zoom);
+
+	/** Blitting surface. */
+	struct Surface : Blitter_32bppOptimized::Surface {
+		ttd_unique_free_ptr <uint16> anim_buf; ///< In this buffer we keep track of the 8bpp indexes so we can do palette animation
+		Palette palette;     ///< The current palette.
+
+		Surface (void *ptr, uint width, uint height, uint pitch)
+			: Blitter_32bppOptimized::Surface (ptr, width, height, pitch),
+				anim_buf (xcalloct<uint16> (width * height))
+		{
+		}
+	};
+
+	/** Create a surface for this blitter. */
+	Surface *create (void *ptr, uint width, uint height, uint pitch) OVERRIDE
+	{
+		return new Surface (ptr, width, height, pitch);
+	}
 };
 
 #endif /* BLITTER_32BPP_ANIM_HPP */

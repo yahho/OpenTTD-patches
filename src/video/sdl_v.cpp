@@ -404,7 +404,6 @@ bool VideoDriver_SDL::CreateMainSurface(uint w, uint h)
 	_screen.dst_ptr = newscreen->pixels;
 	_screen.width   = newscreen->w;
 	_screen.height  = newscreen->h;
-	blitter->PostResize();
 
 	InitPalette();
 	switch (blitter->UsePaletteAnimation()) {

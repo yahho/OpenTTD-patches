@@ -197,11 +197,6 @@ public:
 	 */
 	virtual int GetBytesPerPixel() = 0;
 
-	/**
-	 * Post resize event
-	 */
-	virtual void PostResize() { };
-
 	virtual ~Blitter() { }
 
 	/** Helper function to allocate a sprite in Encode. */
@@ -237,7 +232,7 @@ public:
 	};
 
 	/** Create a surface for this blitter. */
-	Surface *create (void *ptr, uint width, uint height, uint pitch)
+	virtual Surface *create (void *ptr, uint width, uint height, uint pitch)
 	{
 		return new Surface (ptr, width, height, pitch);
 	}

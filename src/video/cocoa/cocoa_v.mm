@@ -334,8 +334,6 @@ void QZ_GameSizeChanged()
 				_screen.width, _screen.height, _screen.width));
 	_fullscreen = _cocoa_subdriver->IsFullscreen();
 
-	Blitter::get()->PostResize();
-
 	GameSizeChanged();
 }
 
