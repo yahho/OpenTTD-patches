@@ -903,7 +903,6 @@ static void DrawOverlappedWindow(Window *w, int left, int top, int right, int bo
 	dp->height = bottom - top;
 	dp->left = left - w->left;
 	dp->top = top - w->top;
-	dp->pitch = _screen.pitch;
 	dp->dst_ptr = Blitter::get()->MoveTo (_screen.dst_ptr, left, top);
 	dp->zoom = ZOOM_LVL_NORMAL;
 	w->OnPaint();
@@ -921,6 +920,7 @@ void DrawOverlappedWindowForAll(int left, int top, int right, int bottom)
 {
 	Window *w;
 	DrawPixelInfo bk;
+	bk.surface = _screen.surface;
 	_cur_dpi = &bk;
 
 	FOR_ALL_WINDOWS_FROM_BACK(w) {

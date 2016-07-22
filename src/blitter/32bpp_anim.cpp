@@ -284,7 +284,7 @@ void Blitter_32bppAnim::DrawColourMappingRect(void *dst, int width, int height, 
 				udst++;
 				anim++;
 			}
-			udst = udst - width + _screen.pitch;
+			udst = udst - width + _screen.surface->pitch;
 			anim = anim - width + this->anim_buf_width;
 		} while (--height);
 		return;
@@ -297,7 +297,7 @@ void Blitter_32bppAnim::DrawColourMappingRect(void *dst, int width, int height, 
 				udst++;
 				anim++;
 			}
-			udst = udst - width + _screen.pitch;
+			udst = udst - width + _screen.surface->pitch;
 			anim = anim - width + this->anim_buf_width;
 		} while (--height);
 		return;
@@ -308,7 +308,7 @@ void Blitter_32bppAnim::DrawColourMappingRect(void *dst, int width, int height, 
 
 void Blitter_32bppAnim::SetPixel(void *video, int x, int y, uint8 colour)
 {
-	*((Colour *)video + x + y * _screen.pitch) = LookupColourInPalette(colour);
+	*((Colour *)video + x + y * _screen.surface->pitch) = LookupColourInPalette(colour);
 
 	/* Set the colour in the anim-buffer too, if we are rendering to the screen */
 	if (_screen_disable_anim) return;
@@ -339,7 +339,7 @@ void Blitter_32bppAnim::DrawRect(void *video, int width, int height, uint8 colou
 			dst++;
 			anim++;
 		}
-		video = (uint32 *)video + _screen.pitch;
+		video = (uint32 *)video + _screen.surface->pitch;
 		anim_line += this->anim_buf_width;
 	} while (--height);
 }
@@ -347,7 +347,7 @@ void Blitter_32bppAnim::DrawRect(void *video, int width, int height, uint8 colou
 void Blitter_32bppAnim::CopyFromBuffer(void *video, const void *src, int width, int height)
 {
 	assert(!_screen_disable_anim);
-	assert(video >= _screen.dst_ptr && video <= (uint32 *)_screen.dst_ptr + _screen.width + _screen.height * _screen.pitch);
+	assert (video >= _screen.dst_ptr && video <= (uint32 *)_screen.dst_ptr + _screen.width + _screen.height * _screen.surface->pitch);
 	Colour *dst = (Colour *)video;
 	const uint32 *usrc = (const uint32 *)src;
 	uint16 *anim_line = ((uint32 *)video - (uint32 *)_screen.dst_ptr) + this->anim_buf;
@@ -359,7 +359,7 @@ void Blitter_32bppAnim::CopyFromBuffer(void *video, const void *src, int width, 
 
 		memcpy(dst, usrc, width * sizeof(uint32));
 		usrc += width;
-		dst += _screen.pitch;
+		dst += _screen.surface->pitch;
 		/* Copy back the anim-buffer */
 		memcpy(anim_line, usrc, width * sizeof(uint16));
 		usrc = (const uint32 *)((const uint16 *)usrc + width);
@@ -387,7 +387,7 @@ void Blitter_32bppAnim::CopyFromBuffer(void *video, const void *src, int width, 
 void Blitter_32bppAnim::CopyToBuffer(const void *video, void *dst, int width, int height)
 {
 	assert(!_screen_disable_anim);
-	assert(video >= _screen.dst_ptr && video <= (uint32 *)_screen.dst_ptr + _screen.width + _screen.height * _screen.pitch);
+	assert (video >= _screen.dst_ptr && video <= (uint32 *)_screen.dst_ptr + _screen.width + _screen.height * _screen.surface->pitch);
 	uint32 *udst = (uint32 *)dst;
 	const uint32 *src = (const uint32 *)video;
 	const uint16 *anim_line;
@@ -398,7 +398,7 @@ void Blitter_32bppAnim::CopyToBuffer(const void *video, void *dst, int width, in
 
 	for (; height > 0; height--) {
 		memcpy(udst, src, width * sizeof(uint32));
-		src += _screen.pitch;
+		src += _screen.surface->pitch;
 		udst += width;
 		/* Copy the anim-buffer */
 		memcpy(udst, anim_line, width * sizeof(uint16));
@@ -410,7 +410,7 @@ void Blitter_32bppAnim::CopyToBuffer(const void *video, void *dst, int width, in
 void Blitter_32bppAnim::ScrollBuffer(void *video, int &left, int &top, int &width, int &height, int scroll_x, int scroll_y)
 {
 	assert(!_screen_disable_anim);
-	assert(video >= _screen.dst_ptr && video <= (uint32 *)_screen.dst_ptr + _screen.width + _screen.height * _screen.pitch);
+	assert (video >= _screen.dst_ptr && video <= (uint32 *)_screen.dst_ptr + _screen.width + _screen.height * _screen.surface->pitch);
 	uint16 *dst, *src;
 
 	/* We need to scroll the anim-buffer too */
@@ -487,7 +487,7 @@ bool Blitter_32bppAnim::PaletteAnimate (const Palette &palette)
 			dst++;
 			anim++;
 		}
-		dst += _screen.pitch - this->anim_buf_width;
+		dst += _screen.surface->pitch - this->anim_buf_width;
 	}
 
 	/* Make sure the backend redraws the whole screen */

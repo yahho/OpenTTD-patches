@@ -854,7 +854,7 @@ static void GfxBlitter(const Sprite * const sprite, int x, int y, BlitterMode mo
 	bp.left = 0;
 
 	bp.dst = dpi->dst_ptr;
-	bp.pitch = dpi->pitch;
+	bp.pitch = dpi->surface->pitch;
 	bp.remap = _colour_remap_ptr;
 
 	assert(sprite->width > 0);
@@ -1464,7 +1464,7 @@ bool FillDrawPixelInfo(DrawPixelInfo *n, int left, int top, int width, int heigh
 	}
 
 	n->dst_ptr = blitter->MoveTo(o->dst_ptr, left, top);
-	n->pitch = o->pitch;
+	n->surface = o->surface;
 
 	if (height > o->height - top) {
 		height = o->height - top;

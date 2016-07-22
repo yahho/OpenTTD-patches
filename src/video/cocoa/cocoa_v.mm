@@ -329,8 +329,9 @@ void QZ_GameSizeChanged()
 	/* Tell the game that the resolution has changed */
 	_screen.width = _cocoa_subdriver->GetWidth();
 	_screen.height = _cocoa_subdriver->GetHeight();
-	_screen.pitch = _cocoa_subdriver->GetWidth();
 	_screen.dst_ptr = _cocoa_subdriver->GetPixelBuffer();
+	_screen.surface.reset (Blitter::get()->create (_screen.dst_ptr,
+				_screen.width, _screen.height, _screen.width));
 	_fullscreen = _cocoa_subdriver->IsFullscreen();
 
 	Blitter::get()->PostResize();

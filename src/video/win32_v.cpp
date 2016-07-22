@@ -1057,8 +1057,9 @@ static bool AllocateDibSection(int w, int h, bool force)
 	if (_wnd.dib_sect == NULL) usererror("CreateDIBSection failed");
 	ReleaseDC(0, dc);
 
+	_screen.surface.reset (Blitter::get()->create (_wnd.buffer_bits,
+					w, h, (bpp == 8) ? Align(w, 4) : w));
 	_screen.width = w;
-	_screen.pitch = (bpp == 8) ? Align(w, 4) : w;
 	_screen.height = h;
 	_screen.dst_ptr = _wnd.buffer_bits;
 

@@ -219,6 +219,29 @@ public:
 		return s;
 	}
 
+	/** Blitting surface. */
+	struct Surface {
+		void *const ptr;    ///< Pixel data
+		const uint width;   ///< Surface width
+		const uint height;  ///< Surface height
+		const uint pitch;   ///< Surface pitch
+
+		Surface (void *ptr, uint width, uint height, uint pitch)
+			: ptr(ptr), width(width), height(height), pitch(pitch)
+		{
+		}
+
+		virtual ~Surface()
+		{
+		}
+	};
+
+	/** Create a surface for this blitter. */
+	Surface *create (void *ptr, uint width, uint height, uint pitch)
+	{
+		return new Surface (ptr, width, height, pitch);
+	}
+
 	/* Static stuff (active blitter). */
 	static char *ini;
 	static bool autodetected;

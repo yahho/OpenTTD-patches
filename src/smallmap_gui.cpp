@@ -1003,7 +1003,7 @@ void SmallMapWindow::DrawSmallMap(DrawPixelInfo *dpi) const
 			int end_pos = min(dpi->width, x + 4);
 			int reps = (dpi->height + y) / 2; // Number of lines.
 			if (reps > 0) {
-				this->DrawSmallMapColumn(ptr, tile_x, tile_y, dpi->pitch * 2, reps, x, end_pos, blitter);
+				this->DrawSmallMapColumn (ptr, tile_x, tile_y, dpi->surface->pitch * 2, reps, x, end_pos, blitter);
 			}
 		}
 

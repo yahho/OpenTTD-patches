@@ -13,7 +13,7 @@
 #define TEXTEFF_HPP
 
 #include "economy_type.h"
-#include "gfx_type.h"
+#include "gfx_func.h"
 #include "strings_type.h"
 
 /**

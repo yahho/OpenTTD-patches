@@ -1648,7 +1648,7 @@ void ViewportDoDraw(const ViewPort *vp, int left, int top, int right, int bottom
 	vd.dpi.height = (bottom - top) & mask;
 	vd.dpi.left = left & mask;
 	vd.dpi.top = top & mask;
-	vd.dpi.pitch = old_dpi->pitch;
+	vd.dpi.surface = old_dpi->surface;
 	vd.last_child = NULL;
 
 	int x = UnScaleByZoom (vd.dpi.left - (vp->virtual_left & mask), vp->zoom) + vp->left;

@@ -43,8 +43,17 @@
 #define GFX_FUNC_H
 
 #include "gfx_type.h"
+#include "blitter/blitter.h"
 #include "strings_type.h"
 #include "string.h"
+
+/** Data about how and where to blit pixels. */
+struct DrawPixelInfo {
+	ttd_shared_ptr <Blitter::Surface> surface;
+	void *dst_ptr;
+	int left, top, width, height;
+	ZoomLevel zoom;
+};
 
 void GameLoop();
 

@@ -12,7 +12,7 @@
 #ifndef VEHICLE_FUNC_H
 #define VEHICLE_FUNC_H
 
-#include "gfx_type.h"
+#include "gfx_func.h"
 #include "direction_type.h"
 #include "command_type.h"
 #include "vehicle_type.h"

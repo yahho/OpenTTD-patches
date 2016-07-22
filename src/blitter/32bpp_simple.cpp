@@ -93,7 +93,7 @@ void Blitter_32bppSimple::DrawColourMappingRect(void *dst, int width, int height
 				*udst = MakeTransparent(*udst, 154);
 				udst++;
 			}
-			udst = udst - width + _screen.pitch;
+			udst = udst - width + _screen.surface->pitch;
 		} while (--height);
 		return;
 	}
@@ -103,7 +103,7 @@ void Blitter_32bppSimple::DrawColourMappingRect(void *dst, int width, int height
 				*udst = MakeGrey(*udst);
 				udst++;
 			}
-			udst = udst - width + _screen.pitch;
+			udst = udst - width + _screen.surface->pitch;
 		} while (--height);
 		return;
 	}

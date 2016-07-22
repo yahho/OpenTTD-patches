@@ -390,10 +390,6 @@ bool VideoDriver_SDL::CreateMainSurface(uint w, uint h)
 	/* Delay drawing for this cycle; the next cycle will redraw the whole screen */
 	_num_dirty_rects = 0;
 
-	_screen.width = newscreen->w;
-	_screen.height = newscreen->h;
-	_screen.pitch = newscreen->pitch / (bpp / 8);
-	_screen.dst_ptr = newscreen->pixels;
 	_sdl_screen = newscreen;
 
 	/* When in full screen, we will always have the mouse cursor
@@ -402,6 +398,12 @@ bool VideoDriver_SDL::CreateMainSurface(uint w, uint h)
 	if (_fullscreen) _cursor.in_window = true;
 
 	Blitter *blitter = Blitter::get();
+	_screen.surface.reset (blitter->create (newscreen->pixels,
+					newscreen->w, newscreen->h,
+					newscreen->pitch / (bpp / 8)));
+	_screen.dst_ptr = newscreen->pixels;
+	_screen.width   = newscreen->w;
+	_screen.height  = newscreen->h;
 	blitter->PostResize();
 
 	InitPalette();

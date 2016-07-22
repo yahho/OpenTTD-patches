@@ -663,7 +663,7 @@ static void LargeWorldCallback(void *userdata, void *buf, uint y, uint pitch, ui
 	_screen.dst_ptr = buf;
 	_screen.width = pitch;
 	_screen.height = n;
-	_screen.pitch = pitch;
+	_screen.surface.reset (Blitter::get()->create (buf, pitch, n, pitch));
 	_screen_disable_anim = true;
 
 	old_dpi = _cur_dpi;
@@ -672,7 +672,7 @@ static void LargeWorldCallback(void *userdata, void *buf, uint y, uint pitch, ui
 	dpi.dst_ptr = buf;
 	dpi.height = n;
 	dpi.width = vp->width;
-	dpi.pitch = pitch;
+	dpi.surface = _screen.surface;
 	dpi.zoom = ZOOM_LVL_WORLD_SCREENSHOT;
 	dpi.left = 0;
 	dpi.top = y;

@@ -19,25 +19,25 @@ void Blitter_8bppBase::DrawColourMappingRect(void *dst, int width, int height, P
 
 	do {
 		for (int i = 0; i != width; i++) *((uint8 *)dst + i) = ctab[((uint8 *)dst)[i]];
-		dst = (uint8 *)dst + _screen.pitch;
+		dst = (uint8 *)dst + _screen.surface->pitch;
 	} while (--height);
 }
 
 void *Blitter_8bppBase::MoveTo(void *video, int x, int y)
 {
-	return (uint8 *)video + x + y * _screen.pitch;
+	return (uint8 *)video + x + y * _screen.surface->pitch;
 }
 
 void Blitter_8bppBase::SetPixel(void *video, int x, int y, uint8 colour)
 {
-	*((uint8 *)video + x + y * _screen.pitch) = colour;
+	*((uint8 *)video + x + y * _screen.surface->pitch) = colour;
 }
 
 void Blitter_8bppBase::DrawRect(void *video, int width, int height, uint8 colour)
 {
 	do {
 		memset(video, colour, width);
-		video = (uint8 *)video + _screen.pitch;
+		video = (uint8 *)video + _screen.surface->pitch;
 	} while (--height);
 }
 
@@ -49,7 +49,7 @@ void Blitter_8bppBase::CopyFromBuffer(void *video, const void *src, int width, i
 	for (; height > 0; height--) {
 		memcpy(dst, usrc, width * sizeof(uint8));
 		usrc += width;
-		dst += _screen.pitch;
+		dst += _screen.surface->pitch;
 	}
 }
 
@@ -60,7 +60,7 @@ void Blitter_8bppBase::CopyToBuffer(const void *video, void *dst, int width, int
 
 	for (; height > 0; height--) {
 		memcpy(udst, src, width * sizeof(uint8));
-		src += _screen.pitch;
+		src += _screen.surface->pitch;
 		udst += width;
 	}
 }
@@ -72,7 +72,7 @@ void Blitter_8bppBase::CopyImageToBuffer(const void *video, void *dst, int width
 
 	for (; height > 0; height--) {
 		memcpy(udst, src, width * sizeof(uint8));
-		src += _screen.pitch;
+		src += _screen.surface->pitch;
 		udst += dst_pitch;
 	}
 }
@@ -84,8 +84,8 @@ void Blitter_8bppBase::ScrollBuffer(void *video, int &left, int &top, int &width
 
 	if (scroll_y > 0) {
 		/* Calculate pointers */
-		dst = (uint8 *)video + left + (top + height - 1) * _screen.pitch;
-		src = dst - scroll_y * _screen.pitch;
+		dst = (uint8 *)video + left + (top + height - 1) * _screen.surface->pitch;
+		src = dst - scroll_y * _screen.surface->pitch;
 
 		/* Decrease height and increase top */
 		top += scroll_y;
@@ -104,13 +104,13 @@ void Blitter_8bppBase::ScrollBuffer(void *video, int &left, int &top, int &width
 
 		for (int h = height; h > 0; h--) {
 			memcpy(dst, src, width * sizeof(uint8));
-			src -= _screen.pitch;
-			dst -= _screen.pitch;
+			src -= _screen.surface->pitch;
+			dst -= _screen.surface->pitch;
 		}
 	} else {
 		/* Calculate pointers */
-		dst = (uint8 *)video + left + top * _screen.pitch;
-		src = dst - scroll_y * _screen.pitch;
+		dst = (uint8 *)video + left + top * _screen.surface->pitch;
+		src = dst - scroll_y * _screen.surface->pitch;
 
 		/* Decrease height. (scroll_y is <=0). */
 		height += scroll_y;
@@ -130,8 +130,8 @@ void Blitter_8bppBase::ScrollBuffer(void *video, int &left, int &top, int &width
 		 * because source and destination may overlap */
 		for (int h = height; h > 0; h--) {
 			memmove(dst, src, width * sizeof(uint8));
-			src += _screen.pitch;
-			dst += _screen.pitch;
+			src += _screen.surface->pitch;
+			dst += _screen.surface->pitch;
 		}
 	}
 }
