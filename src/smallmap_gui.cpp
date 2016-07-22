@@ -403,41 +403,10 @@ static const AndOr _smallmap_vehicles_andor[] = {
 };
 
 
-static inline SmallmapTileType GetEffectiveTileType(TileIndex tile)
-{
-	if (IsHouseTile(tile))    return SMTT_HOUSE;
-	if (IsIndustryTile(tile)) return SMTT_INDUSTRY;
-
-	switch (GetTileType(tile)) {
-		case TT_STATION:  return SMTT_STATION;
-		case TT_RAILWAY:  return SMTT_RAILWAY;
-		case TT_ROAD:     return SMTT_ROAD;
-		case TT_OBJECT:   return SMTT_OBJECT;
-		case TT_GROUND:   return IsTileSubtype(tile, TT_GROUND_VOID) ? SMTT_VOID : SMTT_CLEAR;
-		case TT_WATER:    return SMTT_WATER;
-		case TT_MISC:
-			switch (GetTileSubtype(tile)) {
-				default: NOT_REACHED();
-				case TT_MISC_CROSSING: return SMTT_ROAD;
-				case TT_MISC_AQUEDUCT: return SMTT_WATER;
-				case TT_MISC_TUNNEL:
-					switch (GetTunnelTransportType(tile)) {
-						case TRANSPORT_RAIL: return SMTT_RAILWAY;
-						case TRANSPORT_ROAD: return SMTT_ROAD;
-						default: NOT_REACHED();
-					}
-				case TT_MISC_DEPOT:
-					return IsRailDepot(tile) ? SMTT_RAILWAY : SMTT_ROAD;
-			}
-	}
-
-	NOT_REACHED();
-}
-
 /**
  * Return the colour a tile would be displayed with in the small map in mode "Contour".
  * @param tile The tile of which we would like to get the colour.
- * @param t    Effective tile type of the tile (see #GetEffectiveTileType).
+ * @param t    Effective tile type of the tile (see #GetTileColours).
  * @return The colour of tile in the small map in mode "Contour"
  */
 static inline uint32 GetSmallMapContoursPixels(TileIndex tile, SmallmapTileType t)
@@ -450,7 +419,7 @@ static inline uint32 GetSmallMapContoursPixels(TileIndex tile, SmallmapTileType 
  * Return the colour a tile would be displayed with in the small map in mode "Vehicles".
  *
  * @param tile The tile of which we would like to get the colour.
- * @param t    Effective tile type of the tile (see #GetEffectiveTileType).
+ * @param t    Effective tile type of the tile (see #GetTileColours).
  * @return The colour of tile in the small map in mode "Vehicles"
  */
 static inline uint32 GetSmallMapVehiclesPixels(TileIndex tile, SmallmapTileType t)
@@ -463,7 +432,7 @@ static inline uint32 GetSmallMapVehiclesPixels(TileIndex tile, SmallmapTileType 
  * Return the colour a tile would be displayed with in the small map in mode "Industries".
  *
  * @param tile The tile of which we would like to get the colour.
- * @param t    Effective tile type of the tile (see #GetEffectiveTileType).
+ * @param t    Effective tile type of the tile (see #GetTileColours).
  * @return The colour of tile in the small map in mode "Industries"
  */
 static inline uint32 GetSmallMapIndustriesPixels(TileIndex tile, SmallmapTileType t)
@@ -488,7 +457,7 @@ static inline uint32 GetSmallMapIndustriesPixels(TileIndex tile, SmallmapTileTyp
  * Return the colour a tile would be displayed with in the small map in mode "Routes".
  *
  * @param tile The tile of which we would like to get the colour.
- * @param t    Effective tile type of the tile (see #GetEffectiveTileType).
+ * @param t    Effective tile type of the tile (see #GetTileColours).
  * @return The colour of tile  in the small map in mode "Routes"
  */
 static inline uint32 GetSmallMapRoutesPixels(TileIndex tile, SmallmapTileType t)
@@ -521,7 +490,7 @@ static inline uint32 GetSmallMapRoutesPixels(TileIndex tile, SmallmapTileType t)
  * Return the colour a tile would be displayed with in the small map in mode "link stats".
  *
  * @param tile The tile of which we would like to get the colour.
- * @param t    Effective tile type of the tile (see #GetEffectiveTileType).
+ * @param t    Effective tile type of the tile (see #GetTileColours).
  * @return The colour of tile in the small map in mode "link stats"
  */
 static inline uint32 GetSmallMapLinkStatsPixels(TileIndex tile, SmallmapTileType t)
@@ -541,7 +510,7 @@ static const uint32 _vegetation_clear_bits[] = {
  * Return the colour a tile would be displayed with in the smallmap in mode "Vegetation".
  *
  * @param tile The tile of which we would like to get the colour.
- * @param t    Effective tile type of the tile (see #GetEffectiveTileType).
+ * @param t    Effective tile type of the tile (see #GetTileColours).
  * @return The colour of tile  in the smallmap in mode "Vegetation"
  */
 static inline uint32 GetSmallMapVegetationPixels(TileIndex tile, SmallmapTileType t)
@@ -585,7 +554,7 @@ static inline uint32 GetSmallMapVegetationPixels(TileIndex tile, SmallmapTileTyp
  * Return the colour a tile would be displayed with in the small map in mode "Owner".
  *
  * @param tile The tile of which we would like to get the colour.
- * @param t    Effective tile type of the tile (see #GetEffectiveTileType).
+ * @param t    Effective tile type of the tile (see #GetTileColours).
  * @return The colour of tile in the small map in mode "Owner"
  */
 static inline uint32 GetSmallMapOwnerPixels(TileIndex tile, SmallmapTileType t)
@@ -738,7 +707,40 @@ inline uint32 SmallMapWindow::GetTileColours(const TileArea &ta) const
 	SmallmapTileType et = SMTT_VOID; // Effective tile type at that position.
 
 	TILE_AREA_LOOP(ti, ta) {
-		SmallmapTileType ttype = GetEffectiveTileType(ti);
+		SmallmapTileType ttype;
+		if (IsHouseTile (ti)) {
+			ttype = SMTT_HOUSE;
+		} else if (IsIndustryTile (ti)) {
+			ttype = SMTT_INDUSTRY;
+		} else {
+			switch (GetTileType (ti)) {
+				default: NOT_REACHED();
+				case TT_OBJECT:  ttype = SMTT_OBJECT;  break;
+				case TT_WATER:   ttype = SMTT_WATER;   break;
+				case TT_RAILWAY: ttype = SMTT_RAILWAY; break;
+				case TT_ROAD:    ttype = SMTT_ROAD;    break;
+				case TT_STATION: ttype = SMTT_STATION; break;
+
+				case TT_GROUND:
+					ttype = IsTileSubtype (ti, TT_GROUND_VOID) ? SMTT_VOID : SMTT_CLEAR;
+					break;
+
+				case TT_MISC:
+					switch (GetTileSubtype (ti)) {
+						default: NOT_REACHED();
+						case TT_MISC_CROSSING: ttype = SMTT_ROAD;  break;
+						case TT_MISC_AQUEDUCT: ttype = SMTT_WATER; break;
+						case TT_MISC_TUNNEL:
+							ttype = (GetTunnelTransportType(ti) == TRANSPORT_RAIL) ? SMTT_RAILWAY : SMTT_ROAD;
+							break;
+						case TT_MISC_DEPOT:
+							ttype = IsRailDepot (ti) ? SMTT_RAILWAY : SMTT_ROAD;
+							break;
+					}
+					break;
+			}
+		}
+
 		if (ttype < et) {
 			tile = ti;
 			et = ttype;
