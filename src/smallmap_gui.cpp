@@ -437,18 +437,6 @@ static inline uint32 GetSmallMapVehiclesPixels(TileIndex tile, SmallmapTileType 
  */
 static inline uint32 GetSmallMapIndustriesPixels(TileIndex tile, SmallmapTileType t)
 {
-	if (t == SMTT_INDUSTRY) {
-		/* If industry is allowed to be seen, use its colour on the map */
-		IndustryType type = Industry::GetByTile(tile)->type;
-		if (_legend_from_industries[_industry_to_list_pos[type]].show_on_map &&
-				(_smallmap_industry_highlight_state || type != _smallmap_industry_highlight)) {
-			return (type == _smallmap_industry_highlight ? PC_WHITE : GetIndustrySpec(Industry::GetByTile(tile)->type)->map_colour) * 0x01010101;
-		} else {
-			/* Otherwise, return the colour which will make it disappear */
-			t = (IsTileOnWater(tile) ? SMTT_WATER : SMTT_CLEAR);
-		}
-	}
-
 	const SmallMapColourScheme *cs = &_heightmap_schemes[_settings_client.gui.smallmap_land_colour];
 	return ApplyMask(_smallmap_show_heightmap ? cs->height_colours[TileHeight(tile)] : cs->default_colour, &_smallmap_vehicles_andor[t]);
 }
@@ -710,8 +698,26 @@ inline uint32 SmallMapWindow::GetTileColours(const TileArea &ta) const
 		SmallmapTileType ttype;
 		if (IsHouseTile (ti)) {
 			ttype = SMTT_HOUSE;
+
 		} else if (IsIndustryTile (ti)) {
-			ttype = SMTT_INDUSTRY;
+			/* Special handling of industries while in "Industries" smallmap view. */
+			if (this->map_type == SMT_INDUSTRY) {
+				/* If industry is allowed to be seen, use its colour on the map.
+				 * This has the highest priority above any other value. */
+				IndustryType type = Industry::GetByTile(ti)->type;
+				if (_legend_from_industries[_industry_to_list_pos[type]].show_on_map) {
+					if (type != _smallmap_industry_highlight) {
+						return GetIndustrySpec(type)->map_colour * 0x01010101;
+					} else if (_smallmap_industry_highlight_state) {
+						return MKCOLOUR_XXXX(PC_WHITE);
+					}
+				}
+				/* Otherwise make it disappear */
+				ttype = IsTileOnWater(ti) ? SMTT_WATER : SMTT_CLEAR;
+			} else {
+				ttype = SMTT_INDUSTRY;
+			}
+
 		} else {
 			switch (GetTileType (ti)) {
 				default: NOT_REACHED();
