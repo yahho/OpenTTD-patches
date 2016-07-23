@@ -407,16 +407,16 @@ void Blitter_32bppAnim::CopyToBuffer(const void *video, void *dst, int width, in
 	}
 }
 
-void Blitter_32bppAnim::ScrollBuffer(void *video, int &left, int &top, int &width, int &height, int scroll_x, int scroll_y)
+void Blitter_32bppAnim::Surface::scroll (void *video, int &left, int &top, int &width, int &height, int scroll_x, int scroll_y)
 {
 	assert(!_screen_disable_anim);
-	assert (video >= _screen.dst_ptr && video <= (uint32 *)_screen.dst_ptr + _screen.width + _screen.height * _screen.surface->pitch);
+	assert (video >= this->ptr && video <= (uint32 *)this->ptr + this->width + this->height * this->pitch);
 	uint16 *dst, *src;
 
 	/* We need to scroll the anim-buffer too */
 	if (scroll_y > 0) {
-		dst = static_cast<Surface*>(_screen.surface.get())->anim_buf.get() + left + (top + height - 1) * _screen.width;
-		src = dst - scroll_y * _screen.width;
+		dst = this->anim_buf.get() + left + (top + height - 1) * this->width;
+		src = dst - scroll_y * this->width;
 
 		/* Adjust left & width */
 		if (scroll_x >= 0) {
@@ -429,13 +429,13 @@ void Blitter_32bppAnim::ScrollBuffer(void *video, int &left, int &top, int &widt
 		uint th = height - scroll_y;
 		for (; th > 0; th--) {
 			memcpy(dst, src, tw * sizeof(uint16));
-			src -= _screen.width;
-			dst -= _screen.width;
+			src -= this->width;
+			dst -= this->width;
 		}
 	} else {
 		/* Calculate pointers */
-		dst = static_cast<Surface*>(_screen.surface.get())->anim_buf.get() + left + top * _screen.width;
-		src = dst - scroll_y * _screen.width;
+		dst = this->anim_buf.get() + left + top * this->width;
+		src = dst - scroll_y * this->width;
 
 		/* Adjust left & width */
 		if (scroll_x >= 0) {
@@ -450,12 +450,12 @@ void Blitter_32bppAnim::ScrollBuffer(void *video, int &left, int &top, int &widt
 		uint th = height + scroll_y;
 		for (; th > 0; th--) {
 			memmove(dst, src, tw * sizeof(uint16));
-			src += _screen.width;
-			dst += _screen.width;
+			src += this->width;
+			dst += this->width;
 		}
 	}
 
-	Blitter_32bppBase::ScrollBuffer(video, left, top, width, height, scroll_x, scroll_y);
+	this->Blitter_32bppBase::Surface::scroll (video, left, top, width, height, scroll_x, scroll_y);
 }
 
 int Blitter_32bppAnim::BufferSize(int width, int height)

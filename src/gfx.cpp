@@ -87,8 +87,6 @@ extern uint _dirty_block_colour;
 
 void GfxScroll(int left, int top, int width, int height, int xo, int yo)
 {
-	Blitter *blitter = Blitter::get();
-
 	if (xo == 0 && yo == 0) return;
 
 	if (_cursor.visible) UndrawMouseCursor();
@@ -97,7 +95,7 @@ void GfxScroll(int left, int top, int width, int height, int xo, int yo)
 	if (_networking) NetworkUndrawChatMessage();
 #endif /* ENABLE_NETWORK */
 
-	blitter->ScrollBuffer(_screen.dst_ptr, left, top, width, height, xo, yo);
+	_screen.surface->scroll (_screen.dst_ptr, left, top, width, height, xo, yo);
 	/* This part of the screen is now dirty. */
 	VideoDriver::GetActiveDriver()->MakeDirty(left, top, width, height);
 }

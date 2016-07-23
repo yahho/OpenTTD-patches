@@ -21,7 +21,6 @@ public:
 	/* virtual */ void CopyFromBuffer(void *video, const void *src, int width, int height);
 	/* virtual */ void CopyToBuffer(const void *video, void *dst, int width, int height);
 	/* virtual */ void CopyImageToBuffer(const void *video, void *dst, int width, int height, int dst_pitch);
-	/* virtual */ void ScrollBuffer(void *video, int &left, int &top, int &width, int &height, int scroll_x, int scroll_y);
 	/* virtual */ int BufferSize(int width, int height);
 	/* virtual */ Blitter::PaletteAnimation UsePaletteAnimation();
 	/* virtual */ int GetBytesPerPixel() { return 1; }
@@ -40,6 +39,8 @@ public:
 		void draw_rect (void *video, int width, int height, uint8 colour) OVERRIDE;
 
 		void recolour_rect (void *video, int width, int height, PaletteID pal) OVERRIDE;
+
+		void scroll (void *video, int &left, int &top, int &width, int &height, int scroll_x, int scroll_y) OVERRIDE;
 	};
 
 	/** Create a surface for this blitter. */

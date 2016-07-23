@@ -23,7 +23,6 @@ public:
 	/* virtual */ void Draw(Blitter::BlitterParams *bp, BlitterMode mode, ZoomLevel zoom);
 	/* virtual */ void CopyFromBuffer(void *video, const void *src, int width, int height);
 	/* virtual */ void CopyToBuffer(const void *video, void *dst, int width, int height);
-	/* virtual */ void ScrollBuffer(void *video, int &left, int &top, int &width, int &height, int scroll_x, int scroll_y);
 	/* virtual */ int BufferSize(int width, int height);
 	/* virtual */ bool PaletteAnimate(const Palette &palette);
 	/* virtual */ Blitter::PaletteAnimation UsePaletteAnimation();
@@ -62,6 +61,8 @@ public:
 		void draw_rect (void *video, int width, int height, uint8 colour) OVERRIDE;
 
 		void recolour_rect (void *video, int width, int height, PaletteID pal) OVERRIDE;
+
+		void scroll (void *video, int &left, int &top, int &width, int &height, int scroll_x, int scroll_y) OVERRIDE;
 	};
 
 	/** Create a surface for this blitter. */
