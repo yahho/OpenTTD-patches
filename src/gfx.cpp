@@ -146,7 +146,7 @@ void GfxFillRect(int left, int top, int right, int bottom, int colour, FillRectM
 
 	switch (mode) {
 		default: // FILLRECT_OPAQUE
-			blitter->DrawRect(dst, right, bottom, (uint8)colour);
+			dpi->surface->draw_rect (dst, right, bottom, (uint8)colour);
 			break;
 
 		case FILLRECT_RECOLOUR:

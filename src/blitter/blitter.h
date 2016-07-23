@@ -86,15 +86,6 @@ public:
 	virtual Sprite *Encode (const SpriteLoader::Sprite *sprite, bool is_font, AllocatorProc *allocator) = 0;
 
 	/**
-	 * Make a single horizontal line in a single colour on the video-buffer.
-	 * @param video The destination pointer (video-buffer).
-	 * @param width The length of the line.
-	 * @param height The height of the line.
-	 * @param colour A 8bpp mapping colour.
-	 */
-	virtual void DrawRect(void *video, int width, int height, uint8 colour) = 0;
-
-	/**
 	 * Copy from a buffer to the screen.
 	 * @param video The destination pointer (video-buffer).
 	 * @param src The buffer from which the data will be read.
@@ -229,6 +220,15 @@ public:
 		 * @param dash Length of dashes for dashed lines. 0 means solid line.
 		 */
 		virtual void draw_line (void *video, int x, int y, int x2, int y2, int screen_width, int screen_height, uint8 colour, int width, int dash = 0);
+
+		/**
+		 * Make a single horizontal line in a single colour on the video-buffer.
+		 * @param video The destination pointer (video-buffer).
+		 * @param width The length of the line.
+		 * @param height The height of the line.
+		 * @param colour A 8bpp mapping colour.
+		 */
+		virtual void draw_rect (void *video, int width, int height, uint8 colour) = 0;
 	};
 
 	/** Create a surface for this blitter. */

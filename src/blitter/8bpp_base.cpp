@@ -33,11 +33,11 @@ void Blitter_8bppBase::Surface::set_pixel (void *video, int x, int y, uint8 colo
 	*((uint8 *)video + x + y * this->pitch) = colour;
 }
 
-void Blitter_8bppBase::DrawRect(void *video, int width, int height, uint8 colour)
+void Blitter_8bppBase::Surface::draw_rect (void *video, int width, int height, uint8 colour)
 {
 	do {
 		memset(video, colour, width);
-		video = (uint8 *)video + _screen.surface->pitch;
+		video = (uint8 *)video + this->pitch;
 	} while (--height);
 }
 

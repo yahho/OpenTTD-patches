@@ -22,7 +22,7 @@ void Blitter_32bppBase::Surface::set_pixel (void *video, int x, int y, uint8 col
 	*((Colour *)video + x + y * this->pitch) = LookupColourInPalette(colour);
 }
 
-void Blitter_32bppBase::DrawRect(void *video, int width, int height, uint8 colour)
+void Blitter_32bppBase::Surface::draw_rect (void *video, int width, int height, uint8 colour)
 {
 	Colour colour32 = LookupColourInPalette(colour);
 
@@ -32,7 +32,7 @@ void Blitter_32bppBase::DrawRect(void *video, int width, int height, uint8 colou
 			*dst = colour32;
 			dst++;
 		}
-		video = (uint32 *)video + _screen.surface->pitch;
+		video = (uint32 *)video + this->pitch;
 	} while (--height);
 }
 

@@ -315,18 +315,18 @@ void Blitter_32bppAnim::Surface::set_pixel (void *video, int x, int y, uint8 col
 	this->anim_buf.get()[((uint32 *)video - (uint32 *)this->ptr) + x + y * this->width] = colour | (DEFAULT_BRIGHTNESS << 8);
 }
 
-void Blitter_32bppAnim::DrawRect(void *video, int width, int height, uint8 colour)
+void Blitter_32bppAnim::Surface::draw_rect (void *video, int width, int height, uint8 colour)
 {
 	if (_screen_disable_anim) {
 		/* This means our output is not to the screen, so we can't be doing any animation stuff, so use our parent DrawRect() */
-		Blitter_32bppOptimized::DrawRect(video, width, height, colour);
+		this->Blitter_32bppSimple::Surface::draw_rect (video, width, height, colour);
 		return;
 	}
 
-	Colour colour32 = LookupColourInPalette(colour);
+	Colour colour32 = this->lookup_colour (colour);
 	uint16 *anim_line;
 
-	anim_line = ((uint32 *)video - (uint32 *)_screen.dst_ptr) + static_cast<Surface*>(_screen.surface.get())->anim_buf.get();
+	anim_line = ((uint32 *)video - (uint32 *)this->ptr) + this->anim_buf.get();
 
 	do {
 		Colour *dst = (Colour *)video;
@@ -339,8 +339,8 @@ void Blitter_32bppAnim::DrawRect(void *video, int width, int height, uint8 colou
 			dst++;
 			anim++;
 		}
-		video = (uint32 *)video + _screen.surface->pitch;
-		anim_line += _screen.width;
+		video = (uint32 *)video + this->pitch;
+		anim_line += this->width;
 	} while (--height);
 }
 
