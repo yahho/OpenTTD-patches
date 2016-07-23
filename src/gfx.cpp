@@ -142,7 +142,7 @@ void GfxFillRect(int left, int top, int right, int bottom, int colour, FillRectM
 	bottom -= top;
 	assert(bottom > 0);
 
-	dst = blitter->MoveTo(dpi->dst_ptr, left, top);
+	dst = dpi->surface->move (dpi->dst_ptr, left, top);
 
 	switch (mode) {
 		default: // FILLRECT_OPAQUE
@@ -157,7 +157,7 @@ void GfxFillRect(int left, int top, int right, int bottom, int colour, FillRectM
 			byte bo = (oleft - left + dpi->left + otop - top + dpi->top) & 1;
 			do {
 				for (int i = (bo ^= 1); i < right; i += 2) blitter->SetPixel(dst, i, 0, (uint8)colour);
-				dst = blitter->MoveTo(dst, 0, 1);
+				dst = dpi->surface->move (dst, 0, 1);
 			} while (--bottom > 0);
 			break;
 		}
@@ -906,14 +906,13 @@ static void GfxBlitter(const Sprite * const sprite, int x, int y, BlitterMode mo
 
 	/* We do not want to catch the mouse. However we also use that spritenumber for unknown (text) sprites. */
 	if (_newgrf_debug_sprite_picker.mode == SPM_REDRAW && sprite_id != SPR_CURSOR_MOUSE) {
-		Blitter *blitter = Blitter::get();
-		void *topleft = blitter->MoveTo(bp.dst, bp.left, bp.top);
-		void *bottomright = blitter->MoveTo(topleft, bp.width - 1, bp.height - 1);
+		void *topleft = dpi->surface->move (bp.dst, bp.left, bp.top);
+		void *bottomright = dpi->surface->move (topleft, bp.width - 1, bp.height - 1);
 
 		void *clicked = _newgrf_debug_sprite_picker.clicked_pixel;
 
 		if (topleft <= clicked && clicked <= bottomright) {
-			uint offset = (((size_t)clicked - (size_t)topleft) / (blitter->GetScreenDepth() / 8)) % bp.pitch;
+			uint offset = (((size_t)clicked - (size_t)topleft) / (Blitter::get()->GetScreenDepth() / 8)) % bp.pitch;
 			if (offset < (uint)bp.width) {
 				_newgrf_debug_sprite_picker.sprites.Include(sprite_id);
 			}
@@ -1163,7 +1162,7 @@ void UndrawMouseCursor()
 	if (_cursor.visible) {
 		Blitter *blitter = Blitter::get();
 		_cursor.visible = false;
-		blitter->CopyFromBuffer(blitter->MoveTo(_screen.dst_ptr, _cursor.draw_pos.x, _cursor.draw_pos.y), _cursor_backup.GetBuffer(), _cursor.draw_size.x, _cursor.draw_size.y);
+		blitter->CopyFromBuffer (_screen.surface->move (_screen.dst_ptr, _cursor.draw_pos.x, _cursor.draw_pos.y), _cursor_backup.GetBuffer(), _cursor.draw_size.x, _cursor.draw_size.y);
 		VideoDriver::GetActiveDriver()->MakeDirty(_cursor.draw_pos.x, _cursor.draw_pos.y, _cursor.draw_size.x, _cursor.draw_size.y);
 	}
 }
@@ -1218,7 +1217,7 @@ void DrawMouseCursor()
 	uint8 *buffer = _cursor_backup.Allocate(blitter->BufferSize(w, h));
 
 	/* Make backup of stuff below cursor */
-	blitter->CopyToBuffer(blitter->MoveTo(_screen.dst_ptr, _cursor.draw_pos.x, _cursor.draw_pos.y), buffer, _cursor.draw_size.x, _cursor.draw_size.y);
+	blitter->CopyToBuffer (_screen.surface->move (_screen.dst_ptr, _cursor.draw_pos.x, _cursor.draw_pos.y), buffer, _cursor.draw_size.x, _cursor.draw_size.y);
 
 	/* Draw cursor on screen */
 	_cur_dpi = &_screen;
@@ -1431,7 +1430,6 @@ void MarkWholeScreenDirty()
  */
 bool FillDrawPixelInfo(DrawPixelInfo *n, int left, int top, int width, int height)
 {
-	Blitter *blitter = Blitter::get();
 	const DrawPixelInfo *o = _cur_dpi;
 
 	n->zoom = ZOOM_LVL_NORMAL;
@@ -1463,7 +1461,7 @@ bool FillDrawPixelInfo(DrawPixelInfo *n, int left, int top, int width, int heigh
 		n->top = 0;
 	}
 
-	n->dst_ptr = blitter->MoveTo(o->dst_ptr, left, top);
+	n->dst_ptr = o->surface->move (o->dst_ptr, left, top);
 	n->surface = o->surface;
 
 	if (height > o->height - top) {

@@ -19,7 +19,6 @@ class Blitter_8bppBase : public Blitter {
 public:
 	/* virtual */ uint8 GetScreenDepth() { return 8; }
 	/* virtual */ void DrawColourMappingRect(void *dst, int width, int height, PaletteID pal);
-	/* virtual */ void *MoveTo(void *video, int x, int y);
 	/* virtual */ void SetPixel(void *video, int x, int y, uint8 colour);
 	/* virtual */ void DrawRect(void *video, int width, int height, uint8 colour);
 	/* virtual */ void CopyFromBuffer(void *video, const void *src, int width, int height);
@@ -36,6 +35,8 @@ public:
 			: Blitter::Surface (ptr, width, height, pitch)
 		{
 		}
+
+		void *move (void *video, int x, int y) OVERRIDE;
 	};
 
 	/** Create a surface for this blitter. */

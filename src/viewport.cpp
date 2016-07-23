@@ -1628,7 +1628,7 @@ static void ViewportDrawDirtyBlocks()
 	byte bo = UnScaleByZoom(dpi->left + dpi->top, dpi->zoom) & 1;
 	do {
 		for (int i = (bo ^= 1); i < right; i += 2) blitter->SetPixel(dst, i, 0, (uint8)colour);
-		dst = blitter->MoveTo(dst, 0, 1);
+		dst = dpi->surface->move (dst, 0, 1);
 	} while (--bottom > 0);
 }
 
@@ -1654,7 +1654,7 @@ void ViewportDoDraw(const ViewPort *vp, int left, int top, int right, int bottom
 	int x = UnScaleByZoom (vd.dpi.left - (vp->virtual_left & mask), vp->zoom) + vp->left;
 	int y = UnScaleByZoom (vd.dpi.top  - (vp->virtual_top  & mask), vp->zoom) + vp->top;
 
-	vd.dpi.dst_ptr = Blitter::get()->MoveTo (old_dpi->dst_ptr, x - old_dpi->left, y - old_dpi->top);
+	vd.dpi.dst_ptr = vd.dpi.surface->move (old_dpi->dst_ptr, x - old_dpi->left, y - old_dpi->top);
 
 	ViewportAddLandscape (&vd);
 	ViewportAddVehicles (&vd, &vd.dpi);

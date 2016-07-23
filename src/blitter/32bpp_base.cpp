@@ -12,9 +12,9 @@
 #include "../stdafx.h"
 #include "32bpp_base.hpp"
 
-void *Blitter_32bppBase::MoveTo(void *video, int x, int y)
+void *Blitter_32bppBase::Surface::move (void *video, int x, int y)
 {
-	return (uint32 *)video + x + y * _screen.surface->pitch;
+	return (uint32 *)video + x + y * this->pitch;
 }
 
 void Blitter_32bppBase::SetPixel(void *video, int x, int y, uint8 colour)

@@ -23,9 +23,9 @@ void Blitter_8bppBase::DrawColourMappingRect(void *dst, int width, int height, P
 	} while (--height);
 }
 
-void *Blitter_8bppBase::MoveTo(void *video, int x, int y)
+void *Blitter_8bppBase::Surface::move (void *video, int x, int y)
 {
-	return (uint8 *)video + x + y * _screen.surface->pitch;
+	return (uint8 *)video + x + y * this->pitch;
 }
 
 void Blitter_8bppBase::SetPixel(void *video, int x, int y, uint8 colour)

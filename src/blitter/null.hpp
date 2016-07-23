@@ -24,7 +24,6 @@ public:
 	/* virtual */ void Draw(Blitter::BlitterParams *bp, BlitterMode mode, ZoomLevel zoom) {};
 	/* virtual */ void DrawColourMappingRect(void *dst, int width, int height, PaletteID pal) {};
 	/* virtual */ Sprite *Encode (const SpriteLoader::Sprite *sprite, bool is_font, AllocatorProc *allocator);
-	/* virtual */ void *MoveTo(void *video, int x, int y) { return NULL; };
 	/* virtual */ void SetPixel(void *video, int x, int y, uint8 colour) {};
 	/* virtual */ void DrawRect(void *video, int width, int height, uint8 colour) {};
 	/* virtual */ void DrawLine(void *video, int x, int y, int x2, int y2, int screen_width, int screen_height, uint8 colour, int width, int dash) {};
@@ -42,6 +41,11 @@ public:
 		Surface (void *ptr, uint width, uint height, uint pitch)
 			: Blitter::Surface (ptr, width, height, pitch)
 		{
+		}
+
+		void *move (void *video, int x, int y) OVERRIDE
+		{
+			return NULL;
 		}
 	};
 

@@ -786,7 +786,7 @@ inline uint32 SmallMapWindow::GetTileColours(const TileArea &ta) const
  */
 void SmallMapWindow::DrawSmallMapColumn(void *dst, uint xc, uint yc, int pitch, int reps, int start_pos, int end_pos, Blitter *blitter) const
 {
-	void *dst_ptr_abs_end = blitter->MoveTo(_screen.dst_ptr, 0, _screen.height);
+	void *dst_ptr_abs_end = _screen.surface->move (_screen.dst_ptr, 0, _screen.height);
 	bool freeform = _settings_game.construction.freeform_edges;
 
 	do {
@@ -817,7 +817,7 @@ void SmallMapWindow::DrawSmallMapColumn(void *dst, uint xc, uint yc, int pitch, 
 			idx++;
 		}
 	/* Switch to next tile in the column */
-	} while (xc += this->zoom, yc += this->zoom, dst = blitter->MoveTo(dst, pitch, 0), --reps != 0);
+	} while (xc += this->zoom, yc += this->zoom, dst = _screen.surface->move (dst, pitch, 0), --reps != 0);
 }
 
 /**
@@ -991,7 +991,7 @@ void SmallMapWindow::DrawSmallMap(DrawPixelInfo *dpi) const
 	int tile_x = this->scroll_x / (int)TILE_SIZE + tile.x;
 	int tile_y = this->scroll_y / (int)TILE_SIZE + tile.y;
 
-	void *ptr = blitter->MoveTo(dpi->dst_ptr, -dx - 4, 0);
+	void *ptr = dpi->surface->move (dpi->dst_ptr, -dx - 4, 0);
 	int x = - dx - 4;
 	int y = 1;
 
@@ -1015,7 +1015,7 @@ void SmallMapWindow::DrawSmallMap(DrawPixelInfo *dpi) const
 			tile_x -= this->zoom;
 			dy = -1;
 		}
-		ptr = blitter->MoveTo (ptr, 2, dy);
+		ptr = dpi->surface->move (ptr, 2, dy);
 		x += 2;
 		y ^= 1;
 	}

@@ -86,16 +86,6 @@ public:
 	virtual Sprite *Encode (const SpriteLoader::Sprite *sprite, bool is_font, AllocatorProc *allocator) = 0;
 
 	/**
-	 * Move the destination pointer the requested amount x and y, keeping in mind
-	 *  any pitch and bpp of the renderer.
-	 * @param video The destination pointer (video-buffer) to scroll.
-	 * @param x How much you want to scroll to the right.
-	 * @param y How much you want to scroll to the bottom.
-	 * @return A new destination pointer moved the the requested place.
-	 */
-	virtual void *MoveTo(void *video, int x, int y) = 0;
-
-	/**
 	 * Draw a pixel with a given colour on the video-buffer.
 	 * @param video The destination pointer (video-buffer).
 	 * @param x The x position within video-buffer.
@@ -229,6 +219,16 @@ public:
 		virtual ~Surface()
 		{
 		}
+
+		/**
+		 * Move the destination pointer the requested amount x and y,
+		 * keeping in mind any pitch and bpp of the renderer.
+		 * @param video The destination pointer (video-buffer) to scroll.
+		 * @param x How much you want to scroll to the right.
+		 * @param y How much you want to scroll to the bottom.
+		 * @return A new destination pointer moved to the requested place.
+		 */
+		virtual void *move (void *video, int x, int y) = 0;
 	};
 
 	/** Create a surface for this blitter. */

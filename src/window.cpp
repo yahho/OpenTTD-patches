@@ -903,7 +903,7 @@ static void DrawOverlappedWindow(Window *w, int left, int top, int right, int bo
 	dp->height = bottom - top;
 	dp->left = left - w->left;
 	dp->top = top - w->top;
-	dp->dst_ptr = Blitter::get()->MoveTo (_screen.dst_ptr, left, top);
+	dp->dst_ptr = _screen.surface->move (_screen.dst_ptr, left, top);
 	dp->zoom = ZOOM_LVL_NORMAL;
 	w->OnPaint();
 }
@@ -2890,8 +2890,7 @@ void HandleMouseEvents()
 
 	if (click == MC_LEFT && _newgrf_debug_sprite_picker.mode == SPM_WAIT_CLICK) {
 		/* Mark whole screen dirty, and wait for the next realtime tick, when drawing is finished. */
-		Blitter *blitter = Blitter::get();
-		_newgrf_debug_sprite_picker.clicked_pixel = blitter->MoveTo(_screen.dst_ptr, _cursor.pos.x, _cursor.pos.y);
+		_newgrf_debug_sprite_picker.clicked_pixel = _screen.surface->move (_screen.dst_ptr, _cursor.pos.x, _cursor.pos.y);
 		_newgrf_debug_sprite_picker.click_time = _realtime_tick;
 		_newgrf_debug_sprite_picker.sprites.Clear();
 		_newgrf_debug_sprite_picker.mode = SPM_REDRAW;
