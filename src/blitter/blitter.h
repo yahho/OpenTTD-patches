@@ -86,15 +86,6 @@ public:
 	virtual Sprite *Encode (const SpriteLoader::Sprite *sprite, bool is_font, AllocatorProc *allocator) = 0;
 
 	/**
-	 * Draw a pixel with a given colour on the video-buffer.
-	 * @param video The destination pointer (video-buffer).
-	 * @param x The x position within video-buffer.
-	 * @param y The y position within video-buffer.
-	 * @param colour A 8bpp mapping colour.
-	 */
-	virtual void SetPixel(void *video, int x, int y, uint8 colour) = 0;
-
-	/**
 	 * Make a single horizontal line in a single colour on the video-buffer.
 	 * @param video The destination pointer (video-buffer).
 	 * @param width The length of the line.
@@ -102,21 +93,6 @@ public:
 	 * @param colour A 8bpp mapping colour.
 	 */
 	virtual void DrawRect(void *video, int width, int height, uint8 colour) = 0;
-
-	/**
-	 * Draw a line with a given colour.
-	 * @param video The destination pointer (video-buffer).
-	 * @param x The x coordinate from where the line starts.
-	 * @param y The y coordinate from where the line starts.
-	 * @param x2 The x coordinate to where the line goes.
-	 * @param y2 The y coordinate to where the lines goes.
-	 * @param screen_width The width of the screen you are drawing in (to avoid buffer-overflows).
-	 * @param screen_height The height of the screen you are drawing in (to avoid buffer-overflows).
-	 * @param colour A 8bpp mapping colour.
-	 * @param width Line width.
-	 * @param dash Length of dashes for dashed lines. 0 means solid line.
-	 */
-	virtual void DrawLine(void *video, int x, int y, int x2, int y2, int screen_width, int screen_height, uint8 colour, int width, int dash = 0);
 
 	/**
 	 * Copy from a buffer to the screen.
@@ -229,6 +205,30 @@ public:
 		 * @return A new destination pointer moved to the requested place.
 		 */
 		virtual void *move (void *video, int x, int y) = 0;
+
+		/**
+		 * Draw a pixel with a given colour on the video-buffer.
+		 * @param video The destination pointer (video-buffer).
+		 * @param x The x position within video-buffer.
+		 * @param y The y position within video-buffer.
+		 * @param colour A 8bpp mapping colour.
+		 */
+		virtual void set_pixel (void *video, int x, int y, uint8 colour) = 0;
+
+		/**
+		 * Draw a line with a given colour.
+		 * @param video The destination pointer (video-buffer).
+		 * @param x The x coordinate from where the line starts.
+		 * @param y The y coordinate from where the line starts.
+		 * @param x2 The x coordinate to where the line goes.
+		 * @param y2 The y coordinate to where the lines goes.
+		 * @param screen_width The width of the screen you are drawing in (to avoid buffer-overflows).
+		 * @param screen_height The height of the screen you are drawing in (to avoid buffer-overflows).
+		 * @param colour A 8bpp mapping colour.
+		 * @param width Line width.
+		 * @param dash Length of dashes for dashed lines. 0 means solid line.
+		 */
+		virtual void draw_line (void *video, int x, int y, int x2, int y2, int screen_width, int screen_height, uint8 colour, int width, int dash = 0);
 	};
 
 	/** Create a surface for this blitter. */

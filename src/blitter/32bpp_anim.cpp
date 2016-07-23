@@ -306,13 +306,13 @@ void Blitter_32bppAnim::DrawColourMappingRect(void *dst, int width, int height, 
 	DEBUG(misc, 0, "32bpp blitter doesn't know how to draw this colour table ('%d')", pal);
 }
 
-void Blitter_32bppAnim::SetPixel(void *video, int x, int y, uint8 colour)
+void Blitter_32bppAnim::Surface::set_pixel (void *video, int x, int y, uint8 colour)
 {
-	*((Colour *)video + x + y * _screen.surface->pitch) = LookupColourInPalette(colour);
+	*((Colour *)video + x + y * this->pitch) = this->lookup_colour (colour);
 
 	/* Set the colour in the anim-buffer too, if we are rendering to the screen */
 	if (_screen_disable_anim) return;
-	static_cast<Surface*>(_screen.surface.get())->anim_buf.get()[((uint32 *)video - (uint32 *)_screen.dst_ptr) + x + y * _screen.width] = colour | (DEFAULT_BRIGHTNESS << 8);
+	this->anim_buf.get()[((uint32 *)video - (uint32 *)this->ptr) + x + y * this->width] = colour | (DEFAULT_BRIGHTNESS << 8);
 }
 
 void Blitter_32bppAnim::DrawRect(void *video, int width, int height, uint8 colour)

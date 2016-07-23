@@ -156,7 +156,7 @@ void GfxFillRect(int left, int top, int right, int bottom, int colour, FillRectM
 		case FILLRECT_CHECKER: {
 			byte bo = (oleft - left + dpi->left + otop - top + dpi->top) & 1;
 			do {
-				for (int i = (bo ^= 1); i < right; i += 2) blitter->SetPixel(dst, i, 0, (uint8)colour);
+				for (int i = (bo ^= 1); i < right; i += 2) dpi->surface->set_pixel (dst, i, 0, (uint8)colour);
 				dst = dpi->surface->move (dst, 0, 1);
 			} while (--bottom > 0);
 			break;
@@ -180,8 +180,6 @@ void GfxFillRect(int left, int top, int right, int bottom, int colour, FillRectM
  */
 static inline void GfxDoDrawLine(void *video, int x, int y, int x2, int y2, int screen_width, int screen_height, uint8 colour, int width, int dash = 0)
 {
-	Blitter *blitter = Blitter::get();
-
 	assert(width > 0);
 
 	if (y2 == y || x2 == x) {
@@ -226,7 +224,7 @@ static inline void GfxDoDrawLine(void *video, int x, int y, int x2, int y2, int 
 		 * case the effect is not noticable. */
 	}
 
-	blitter->DrawLine(video, x, y, x2, y2, screen_width, screen_height, colour, width, dash);
+	_cur_dpi->surface->draw_line (video, x, y, x2, y2, screen_width, screen_height, colour, width, dash);
 }
 
 /**

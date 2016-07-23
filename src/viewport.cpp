@@ -1615,7 +1615,6 @@ static void ViewportDrawBoundingBoxes(const ParentSpriteToSortVector *psd)
  */
 static void ViewportDrawDirtyBlocks()
 {
-	Blitter *blitter = Blitter::get();
 	const DrawPixelInfo *dpi = _cur_dpi;
 	void *dst;
 	int right =  UnScaleByZoom(dpi->width,  dpi->zoom);
@@ -1627,7 +1626,7 @@ static void ViewportDrawDirtyBlocks()
 
 	byte bo = UnScaleByZoom(dpi->left + dpi->top, dpi->zoom) & 1;
 	do {
-		for (int i = (bo ^= 1); i < right; i += 2) blitter->SetPixel(dst, i, 0, (uint8)colour);
+		for (int i = (bo ^= 1); i < right; i += 2) dpi->surface->set_pixel (dst, i, 0, (uint8)colour);
 		dst = dpi->surface->move (dst, 0, 1);
 	} while (--bottom > 0);
 }

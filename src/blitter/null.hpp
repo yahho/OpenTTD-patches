@@ -24,9 +24,7 @@ public:
 	/* virtual */ void Draw(Blitter::BlitterParams *bp, BlitterMode mode, ZoomLevel zoom) {};
 	/* virtual */ void DrawColourMappingRect(void *dst, int width, int height, PaletteID pal) {};
 	/* virtual */ Sprite *Encode (const SpriteLoader::Sprite *sprite, bool is_font, AllocatorProc *allocator);
-	/* virtual */ void SetPixel(void *video, int x, int y, uint8 colour) {};
 	/* virtual */ void DrawRect(void *video, int width, int height, uint8 colour) {};
-	/* virtual */ void DrawLine(void *video, int x, int y, int x2, int y2, int screen_width, int screen_height, uint8 colour, int width, int dash) {};
 	/* virtual */ void CopyFromBuffer(void *video, const void *src, int width, int height) {};
 	/* virtual */ void CopyToBuffer(const void *video, void *dst, int width, int height) {};
 	/* virtual */ void CopyImageToBuffer(const void *video, void *dst, int width, int height, int dst_pitch) {};
@@ -46,6 +44,14 @@ public:
 		void *move (void *video, int x, int y) OVERRIDE
 		{
 			return NULL;
+		}
+
+		void set_pixel (void *video, int x, int y, uint8 colour) OVERRIDE
+		{
+		}
+
+		void draw_line (void *video, int x, int y, int x2, int y2, int screen_width, int screen_height, uint8 colour, int width, int dash = 0) OVERRIDE
+		{
 		}
 	};
 

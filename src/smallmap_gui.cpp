@@ -813,7 +813,7 @@ void SmallMapWindow::DrawSmallMapColumn(void *dst, uint xc, uint yc, int pitch, 
 		uint8 *val8 = (uint8 *)&val;
 		int idx = max(0, -start_pos);
 		for (int pos = max(0, start_pos); pos < end_pos; pos++) {
-			blitter->SetPixel(dst, idx, 0, val8[idx]);
+			_screen.surface->set_pixel (dst, idx, 0, val8[idx]);
 			idx++;
 		}
 	/* Switch to next tile in the column */
@@ -855,8 +855,8 @@ void SmallMapWindow::DrawVehicles(const DrawPixelInfo *dpi, Blitter *blitter) co
 		byte colour = (this->map_type == SMT_VEHICLES) ? _vehicle_type_colours[v->type] : PC_WHITE;
 
 		/* And draw either one or two pixels depending on clipping */
-		blitter->SetPixel(dpi->dst_ptr, x, y, colour);
-		if (!skip) blitter->SetPixel(dpi->dst_ptr, x + 1, y, colour);
+		dpi->surface->set_pixel (dpi->dst_ptr, x, y, colour);
+		if (!skip) dpi->surface->set_pixel (dpi->dst_ptr, x + 1, y, colour);
 	}
 }
 

@@ -28,9 +28,9 @@ void *Blitter_8bppBase::Surface::move (void *video, int x, int y)
 	return (uint8 *)video + x + y * this->pitch;
 }
 
-void Blitter_8bppBase::SetPixel(void *video, int x, int y, uint8 colour)
+void Blitter_8bppBase::Surface::set_pixel (void *video, int x, int y, uint8 colour)
 {
-	*((uint8 *)video + x + y * _screen.surface->pitch) = colour;
+	*((uint8 *)video + x + y * this->pitch) = colour;
 }
 
 void Blitter_8bppBase::DrawRect(void *video, int width, int height, uint8 colour)

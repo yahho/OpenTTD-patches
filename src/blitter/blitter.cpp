@@ -171,7 +171,7 @@ bool Blitter::PaletteAnimate (const Palette &palette)
 	return false;
 }
 
-void Blitter::DrawLine(void *video, int x, int y, int x2, int y2, int screen_width, int screen_height, uint8 colour, int width, int dash)
+void Blitter::Surface::draw_line (void *video, int x, int y, int x2, int y2, int screen_width, int screen_height, uint8 colour, int width, int dash)
 {
 	int dy;
 	int dx;
@@ -196,7 +196,7 @@ void Blitter::DrawLine(void *video, int x, int y, int x2, int y2, int screen_wid
 
 	if (dx == 0 && dy == 0) {
 		/* The algorithm below cannot handle this special case; make it work at least for line width 1 */
-		if (x >= 0 && x < screen_width && y >= 0 && y < screen_height) this->SetPixel(video, x, y, colour);
+		if (x >= 0 && x < screen_width && y >= 0 && y < screen_height) this->set_pixel (video, x, y, colour);
 		return;
 	}
 
@@ -239,7 +239,7 @@ void Blitter::DrawLine(void *video, int x, int y, int x2, int y2, int screen_wid
 		while (x != x2) {
 			if (dash_count < dash && x >= 0 && x < screen_width) {
 				for (int y = y_low; y != y_high; y += stepy) {
-					if (y >= 0 && y < screen_height) this->SetPixel(video, x, y, colour);
+					if (y >= 0 && y < screen_height) this->set_pixel (video, x, y, colour);
 				}
 			}
 			if (frac_low >= 0) {
@@ -274,7 +274,7 @@ void Blitter::DrawLine(void *video, int x, int y, int x2, int y2, int screen_wid
 		while (y != y2) {
 			if (dash_count < dash && y >= 0 && y < screen_height) {
 				for (int x = x_low; x != x_high; x += stepx) {
-					if (x >= 0 && x < screen_width) this->SetPixel(video, x, y, colour);
+					if (x >= 0 && x < screen_width) this->set_pixel (video, x, y, colour);
 				}
 			}
 			if (frac_low >= 0) {
