@@ -45,7 +45,7 @@ public:
 	/** Helper function to handle palette animation. */
 	static void PaletteAnimate (Blitter *blitter, const Palette &palette)
 	{
-		if (blitter->PaletteAnimate (palette)) {
+		if (_screen.surface->palette_animate (palette)) {
 			GetActiveDriver()->MakeDirty (0, 0, _screen.width, _screen.height);
 		}
 	}

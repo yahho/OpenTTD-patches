@@ -463,31 +463,31 @@ int Blitter_32bppAnim::BufferSize(int width, int height)
 	return width * height * (sizeof(uint32) + sizeof(uint16));
 }
 
-bool Blitter_32bppAnim::PaletteAnimate (const Palette &palette)
+bool Blitter_32bppAnim::Surface::palette_animate (const Palette &palette)
 {
 	assert(!_screen_disable_anim);
 
-	static_cast<Surface*>(_screen.surface.get())->palette = palette;
+	this->palette = palette;
 	/* If first_dirty is 0, it is for 8bpp indication to send the new
 	 *  palette. However, only the animation colours might possibly change.
 	 *  Especially when going between toyland and non-toyland. */
-	assert(static_cast<Surface*>(_screen.surface.get())->palette.first_dirty == PALETTE_ANIM_START || static_cast<Surface*>(_screen.surface.get())->palette.first_dirty == 0);
+	assert (this->palette.first_dirty == PALETTE_ANIM_START || this->palette.first_dirty == 0);
 
-	const uint16 *anim = static_cast<Surface*>(_screen.surface.get())->anim_buf.get();
-	Colour *dst = (Colour *)_screen.dst_ptr;
+	const uint16 *anim = this->anim_buf.get();
+	Colour *dst = (Colour *)this->ptr;
 
 	/* Let's walk the anim buffer and try to find the pixels */
-	for (int y = _screen.height; y != 0 ; y--) {
-		for (int x = _screen.width; x != 0 ; x--) {
+	for (int y = this->height; y != 0 ; y--) {
+		for (int x = this->width; x != 0 ; x--) {
 			uint colour = GB(*anim, 0, 8);
 			if (colour >= PALETTE_ANIM_START) {
 				/* Update this pixel */
-				*dst = this->AdjustBrightness(LookupColourInPalette(colour), GB(*anim, 8, 8));
+				*dst = AdjustBrightness (this->lookup_colour (colour), GB(*anim, 8, 8));
 			}
 			dst++;
 			anim++;
 		}
-		dst += _screen.surface->pitch - _screen.width;
+		dst += this->pitch - this->width;
 	}
 
 	/* Make sure the backend redraws the whole screen */

@@ -113,14 +113,6 @@ public:
 	virtual int BufferSize(int width, int height) = 0;
 
 	/**
-	 * Called when the 8bpp palette is changed; you should redraw all pixels on the screen that
-	 *  are equal to the 8bpp palette indexes 'first_dirty' to 'first_dirty + count_dirty'.
-	 * @param palette The new palette.
-	 * @return Whether the screen should be invalidated.
-	 */
-	virtual bool PaletteAnimate (const Palette &palette);
-
-	/**
 	 * Check if the blitter uses palette animation at all.
 	 * @return True if it uses palette animation.
 	 */
@@ -229,6 +221,15 @@ public:
 		 * @param scroll_y How much to scroll in Y.
 		 */
 		virtual void scroll (void *video, int &left, int &top, int &width, int &height, int scroll_x, int scroll_y) = 0;
+
+		/**
+		 * Called when the 8bpp palette is changed; you should redraw
+		 * all pixels on the screen that are equal to the 8bpp palette
+		 * indices 'first_dirty' to 'first_dirty + count_dirty'.
+		 * @param palette The new palette.
+		 * @return Whether the screen should be invalidated.
+		 */
+		virtual bool palette_animate (const Palette &palette);
 	};
 
 	/** Create a surface for this blitter. */
