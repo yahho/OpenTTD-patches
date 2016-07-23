@@ -70,17 +70,6 @@ public:
 	virtual void Draw(Blitter::BlitterParams *bp, BlitterMode mode, ZoomLevel zoom) = 0;
 
 	/**
-	 * Draw a colourtable to the screen. This is: the colour of the screen is read
-	 *  and is looked-up in the palette to match a new colour, which then is put
-	 *  on the screen again.
-	 * @param dst the destination pointer (video-buffer).
-	 * @param width the width of the buffer.
-	 * @param height the height of the buffer.
-	 * @param pal the palette to use.
-	 */
-	virtual void DrawColourMappingRect(void *dst, int width, int height, PaletteID pal) = 0;
-
-	/**
 	 * Convert a sprite from the loader to our own format.
 	 */
 	virtual Sprite *Encode (const SpriteLoader::Sprite *sprite, bool is_font, AllocatorProc *allocator) = 0;
@@ -229,6 +218,17 @@ public:
 		 * @param colour A 8bpp mapping colour.
 		 */
 		virtual void draw_rect (void *video, int width, int height, uint8 colour) = 0;
+
+		/**
+		 * Draw a colourtable to the screen. This is: the colour of
+		 * the screen is read and is looked-up in the palette to match
+		 * a new colour, which then is put on the screen again.
+		 * @param dst the destination pointer (video-buffer).
+		 * @param width the width of the buffer.
+		 * @param height the height of the buffer.
+		 * @param pal the palette to use.
+		 */
+		virtual void recolour_rect (void *video, int width, int height, PaletteID pal) = 0;
 	};
 
 	/** Create a surface for this blitter. */

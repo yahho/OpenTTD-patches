@@ -119,7 +119,6 @@ void GfxScroll(int left, int top, int width, int height, int xo, int yo)
  */
 void GfxFillRect(int left, int top, int right, int bottom, int colour, FillRectMode mode)
 {
-	Blitter *blitter = Blitter::get();
 	const DrawPixelInfo *dpi = _cur_dpi;
 	void *dst;
 	const int otop = top;
@@ -150,7 +149,7 @@ void GfxFillRect(int left, int top, int right, int bottom, int colour, FillRectM
 			break;
 
 		case FILLRECT_RECOLOUR:
-			blitter->DrawColourMappingRect(dst, right, bottom, GB(colour, 0, PALETTE_WIDTH));
+			dpi->surface->recolour_rect (dst, right, bottom, GB(colour, 0, PALETTE_WIDTH));
 			break;
 
 		case FILLRECT_CHECKER: {

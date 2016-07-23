@@ -22,7 +22,6 @@ public:
 
 	/* virtual */ uint8 GetScreenDepth() { return 0; }
 	/* virtual */ void Draw(Blitter::BlitterParams *bp, BlitterMode mode, ZoomLevel zoom) {};
-	/* virtual */ void DrawColourMappingRect(void *dst, int width, int height, PaletteID pal) {};
 	/* virtual */ Sprite *Encode (const SpriteLoader::Sprite *sprite, bool is_font, AllocatorProc *allocator);
 	/* virtual */ void CopyFromBuffer(void *video, const void *src, int width, int height) {};
 	/* virtual */ void CopyToBuffer(const void *video, void *dst, int width, int height) {};
@@ -54,6 +53,10 @@ public:
 		}
 
 		void draw_rect (void *video, int width, int height, uint8 colour) OVERRIDE
+		{
+		}
+
+		void recolour_rect (void *video, int width, int height, PaletteID pal) OVERRIDE
 		{
 		}
 	};

@@ -263,18 +263,18 @@ void Blitter_32bppAnim::Draw(Blitter::BlitterParams *bp, BlitterMode mode, ZoomL
 	}
 }
 
-void Blitter_32bppAnim::DrawColourMappingRect(void *dst, int width, int height, PaletteID pal)
+void Blitter_32bppAnim::Surface::recolour_rect (void *dst, int width, int height, PaletteID pal)
 {
 	if (_screen_disable_anim) {
 		/* This means our output is not to the screen, so we can't be doing any animation stuff, so use our parent DrawColourMappingRect() */
-		Blitter_32bppOptimized::DrawColourMappingRect(dst, width, height, pal);
+		this->Blitter_32bppSimple::Surface::recolour_rect (dst, width, height, pal);
 		return;
 	}
 
 	Colour *udst = (Colour *)dst;
 	uint16 *anim;
 
-	anim = static_cast<Surface*>(_screen.surface.get())->anim_buf.get() + ((uint32 *)dst - (uint32 *)_screen.dst_ptr);
+	anim = this->anim_buf.get() + ((uint32 *)dst - (uint32 *)this->ptr);
 
 	if (pal == PALETTE_TO_TRANSPARENT) {
 		do {
@@ -284,8 +284,8 @@ void Blitter_32bppAnim::DrawColourMappingRect(void *dst, int width, int height, 
 				udst++;
 				anim++;
 			}
-			udst = udst - width + _screen.surface->pitch;
-			anim = anim - width + _screen.width;
+			udst = udst - width + this->pitch;
+			anim = anim - width + this->width;
 		} while (--height);
 		return;
 	}
@@ -297,8 +297,8 @@ void Blitter_32bppAnim::DrawColourMappingRect(void *dst, int width, int height, 
 				udst++;
 				anim++;
 			}
-			udst = udst - width + _screen.surface->pitch;
-			anim = anim - width + _screen.width;
+			udst = udst - width + this->pitch;
+			anim = anim - width + this->width;
 		} while (--height);
 		return;
 	}

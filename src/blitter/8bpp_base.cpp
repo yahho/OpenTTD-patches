@@ -13,13 +13,13 @@
 #include "../gfx_func.h"
 #include "8bpp_base.hpp"
 
-void Blitter_8bppBase::DrawColourMappingRect(void *dst, int width, int height, PaletteID pal)
+void Blitter_8bppBase::Surface::recolour_rect (void *dst, int width, int height, PaletteID pal)
 {
 	const uint8 *ctab = GetNonSprite(pal, ST_RECOLOUR) + 1;
 
 	do {
 		for (int i = 0; i != width; i++) *((uint8 *)dst + i) = ctab[((uint8 *)dst)[i]];
-		dst = (uint8 *)dst + _screen.surface->pitch;
+		dst = (uint8 *)dst + this->pitch;
 	} while (--height);
 }
 

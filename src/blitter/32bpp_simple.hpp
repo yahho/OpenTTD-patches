@@ -34,7 +34,6 @@ public:
 	static const char desc[]; ///< Description of the blitter.
 
 	/* virtual */ void Draw(Blitter::BlitterParams *bp, BlitterMode mode, ZoomLevel zoom);
-	/* virtual */ void DrawColourMappingRect(void *dst, int width, int height, PaletteID pal);
 	/* virtual */ ::Sprite *Encode (const SpriteLoader::Sprite *sprite, bool is_font, AllocatorProc *allocator);
 
 	/** Blitting surface. */
@@ -43,6 +42,8 @@ public:
 			: Blitter_32bppBase::Surface (ptr, width, height, pitch)
 		{
 		}
+
+		void recolour_rect (void *video, int width, int height, PaletteID pal) OVERRIDE;
 	};
 
 	/** Create a surface for this blitter. */

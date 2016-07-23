@@ -83,7 +83,7 @@ void Blitter_32bppSimple::Draw(Blitter::BlitterParams *bp, BlitterMode mode, Zoo
 	}
 }
 
-void Blitter_32bppSimple::DrawColourMappingRect(void *dst, int width, int height, PaletteID pal)
+void Blitter_32bppSimple::Surface::recolour_rect (void *dst, int width, int height, PaletteID pal)
 {
 	Colour *udst = (Colour *)dst;
 
@@ -93,7 +93,7 @@ void Blitter_32bppSimple::DrawColourMappingRect(void *dst, int width, int height
 				*udst = MakeTransparent(*udst, 154);
 				udst++;
 			}
-			udst = udst - width + _screen.surface->pitch;
+			udst = udst - width + this->pitch;
 		} while (--height);
 		return;
 	}
@@ -103,7 +103,7 @@ void Blitter_32bppSimple::DrawColourMappingRect(void *dst, int width, int height
 				*udst = MakeGrey(*udst);
 				udst++;
 			}
-			udst = udst - width + _screen.surface->pitch;
+			udst = udst - width + this->pitch;
 		} while (--height);
 		return;
 	}
