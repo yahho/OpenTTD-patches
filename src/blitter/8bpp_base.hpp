@@ -29,6 +29,20 @@ public:
 	/* virtual */ int BufferSize(int width, int height);
 	/* virtual */ Blitter::PaletteAnimation UsePaletteAnimation();
 	/* virtual */ int GetBytesPerPixel() { return 1; }
+
+	/** Blitting surface. */
+	struct Surface : Blitter::Surface {
+		Surface (void *ptr, uint width, uint height, uint pitch)
+			: Blitter::Surface (ptr, width, height, pitch)
+		{
+		}
+	};
+
+	/** Create a surface for this blitter. */
+	Surface *create (void *ptr, uint width, uint height, uint pitch) OVERRIDE
+	{
+		return new Surface (ptr, width, height, pitch);
+	}
 };
 
 #endif /* BLITTER_8BPP_BASE_HPP */

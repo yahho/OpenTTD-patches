@@ -36,6 +36,20 @@ public:
 	/* virtual */ Blitter::PaletteAnimation UsePaletteAnimation() { return Blitter::PALETTE_ANIMATION_NONE; };
 
 	/* virtual */ int GetBytesPerPixel() { return 0; }
+
+	/** Blitting surface. */
+	struct Surface : Blitter::Surface {
+		Surface (void *ptr, uint width, uint height, uint pitch)
+			: Blitter::Surface (ptr, width, height, pitch)
+		{
+		}
+	};
+
+	/** Create a surface for this blitter. */
+	Surface *create (void *ptr, uint width, uint height, uint pitch) OVERRIDE
+	{
+		return new Surface (ptr, width, height, pitch);
+	}
 };
 
 #endif /* BLITTER_NULL_HPP */
