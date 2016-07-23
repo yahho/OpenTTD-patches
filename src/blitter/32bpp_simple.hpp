@@ -36,6 +36,20 @@ public:
 	/* virtual */ void Draw(Blitter::BlitterParams *bp, BlitterMode mode, ZoomLevel zoom);
 	/* virtual */ void DrawColourMappingRect(void *dst, int width, int height, PaletteID pal);
 	/* virtual */ ::Sprite *Encode (const SpriteLoader::Sprite *sprite, bool is_font, AllocatorProc *allocator);
+
+	/** Blitting surface. */
+	struct Surface : Blitter_32bppBase::Surface {
+		Surface (void *ptr, uint width, uint height, uint pitch)
+			: Blitter_32bppBase::Surface (ptr, width, height, pitch)
+		{
+		}
+	};
+
+	/** Create a surface for this blitter. */
+	Surface *create (void *ptr, uint width, uint height, uint pitch) OVERRIDE
+	{
+		return new Surface (ptr, width, height, pitch);
+	}
 };
 
 #endif /* BLITTER_32BPP_SIMPLE_HPP */

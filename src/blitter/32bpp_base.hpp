@@ -181,12 +181,6 @@ public:
 
 		void draw_rect (void *video, int width, int height, uint8 colour) OVERRIDE;
 	};
-
-	/** Create a surface for this blitter. */
-	Surface *create (void *ptr, uint width, uint height, uint pitch) OVERRIDE
-	{
-		return new Surface (ptr, width, height, pitch);
-	}
 };
 
 #endif /* BLITTER_32BPP_BASE_HPP */
