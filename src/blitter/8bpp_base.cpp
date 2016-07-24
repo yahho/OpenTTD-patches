@@ -65,14 +65,14 @@ void Blitter_8bppBase::Surface::copy (void *dst, int x, int y, int width, int he
 	}
 }
 
-void Blitter_8bppBase::CopyImageToBuffer(const void *video, void *dst, int width, int height, int dst_pitch)
+void Blitter_8bppBase::Surface::export_lines (void *dst, uint dst_pitch, uint y, uint height)
 {
 	uint8 *udst = (uint8 *)dst;
-	const uint8 *src = (const uint8 *)video;
+	const uint8 *src = (const uint8 *) this->Blitter_8bppBase::Surface::move (this->ptr, 0, y);
 
 	for (; height > 0; height--) {
 		memcpy(udst, src, width * sizeof(uint8));
-		src += _screen.surface->pitch;
+		src += this->pitch;
 		udst += dst_pitch;
 	}
 }

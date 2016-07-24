@@ -637,9 +637,7 @@ void SetScreenshotFormat(uint i)
  */
 static void CurrentScreenCallback(void *userdata, void *buf, uint y, uint pitch, uint n)
 {
-	Blitter *blitter = Blitter::get();
-	void *src = _screen.surface->move (_screen.dst_ptr, 0, y);
-	blitter->CopyImageToBuffer(src, buf, _screen.width, n, pitch);
+	_screen.surface->export_lines (buf, pitch, y, n);
 }
 
 /**

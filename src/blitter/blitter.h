@@ -75,16 +75,6 @@ public:
 	virtual Sprite *Encode (const SpriteLoader::Sprite *sprite, bool is_font, AllocatorProc *allocator) = 0;
 
 	/**
-	 * Copy from the screen to a buffer in a palette format for 8bpp and RGBA format for 32bpp.
-	 * @param video The destination pointer (video-buffer).
-	 * @param dst The buffer in which the data will be stored.
-	 * @param width The width of the buffer.
-	 * @param height The height of the buffer.
-	 * @param dst_pitch The pitch (byte per line) of the destination buffer.
-	 */
-	virtual void CopyImageToBuffer(const void *video, void *dst, int width, int height, int dst_pitch) = 0;
-
-	/**
 	 * Calculate how much memory there is needed for an image of this size in the video-buffer.
 	 * @param width The width of the buffer-to-be.
 	 * @param height The height of the buffer-to-be.
@@ -232,6 +222,15 @@ public:
 		 * @note You can not do anything with the content of the buffer, as the blitter can store non-pixel data in it too!
 		 */
 		virtual void paste (const void *src, int x, int y, int width, int height) = 0;
+
+		/**
+		 * Copy from the screen to a buffer in a palette format for 8bpp and RGBA format for 32bpp.
+		 * @param dst The buffer in which the data will be stored.
+		 * @param dst_pitch The pitch (byte per line) of the destination buffer.
+		 * @param y The first line to copy.
+		 * @param height The number of lines to copy.
+		 */
+		virtual void export_lines (void *dst, uint dst_pitch, uint y, uint height) = 0;
 	};
 
 	/** Create a surface for this blitter. */
