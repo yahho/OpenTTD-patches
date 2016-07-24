@@ -178,11 +178,9 @@ void NetworkUndrawChatMessage()
 		int x, y, width, height;
 		if (!ComputeChatArea (&x, &y, &width, &height)) return;
 
-		Blitter *blitter = Blitter::get();
-
 		_chatmessage_visible = false;
 		/* Put our 'shot' back to the screen */
-		blitter->CopyFromBuffer (_screen.surface->move (_screen.dst_ptr, x, y), _chatmessage_backup, width, height);
+		_screen.surface->paste (_chatmessage_backup, x, y, width, height);
 		/* And make sure it is updated next time */
 		VideoDriver::GetActiveDriver()->MakeDirty(x, y, width, height);
 

@@ -1155,9 +1155,8 @@ void UndrawMouseCursor()
 	if (_screen.dst_ptr == NULL) return;
 
 	if (_cursor.visible) {
-		Blitter *blitter = Blitter::get();
 		_cursor.visible = false;
-		blitter->CopyFromBuffer (_screen.surface->move (_screen.dst_ptr, _cursor.draw_pos.x, _cursor.draw_pos.y), _cursor_backup.GetBuffer(), _cursor.draw_size.x, _cursor.draw_size.y);
+		_screen.surface->paste (_cursor_backup.GetBuffer(), _cursor.draw_pos.x, _cursor.draw_pos.y, _cursor.draw_size.x, _cursor.draw_size.y);
 		VideoDriver::GetActiveDriver()->MakeDirty(_cursor.draw_pos.x, _cursor.draw_pos.y, _cursor.draw_size.x, _cursor.draw_size.y);
 	}
 }

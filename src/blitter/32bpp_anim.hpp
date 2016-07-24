@@ -21,7 +21,6 @@ public:
 	static const char desc[]; ///< Description of the blitter.
 
 	/* virtual */ void Draw(Blitter::BlitterParams *bp, BlitterMode mode, ZoomLevel zoom);
-	/* virtual */ void CopyFromBuffer(void *video, const void *src, int width, int height);
 	/* virtual */ int BufferSize(int width, int height);
 	/* virtual */ Blitter::PaletteAnimation UsePaletteAnimation();
 
@@ -65,6 +64,8 @@ public:
 		bool palette_animate (const Palette &palette) OVERRIDE;
 
 		void copy (void *dst, int x, int y, int width, int height) OVERRIDE;
+
+		void paste (const void *src, int x, int y, int width, int height) OVERRIDE;
 	};
 
 	/** Create a surface for this blitter. */

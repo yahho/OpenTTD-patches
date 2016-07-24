@@ -23,7 +23,6 @@ public:
 	/* virtual */ uint8 GetScreenDepth() { return 0; }
 	/* virtual */ void Draw(Blitter::BlitterParams *bp, BlitterMode mode, ZoomLevel zoom) {};
 	/* virtual */ Sprite *Encode (const SpriteLoader::Sprite *sprite, bool is_font, AllocatorProc *allocator);
-	/* virtual */ void CopyFromBuffer(void *video, const void *src, int width, int height) {};
 	/* virtual */ void CopyImageToBuffer(const void *video, void *dst, int width, int height, int dst_pitch) {};
 	/* virtual */ int BufferSize(int width, int height) { return 0; };
 	/* virtual */ Blitter::PaletteAnimation UsePaletteAnimation() { return Blitter::PALETTE_ANIMATION_NONE; };
@@ -63,6 +62,10 @@ public:
 		}
 
 		void copy (void *dst, int x, int y, int width, int height) OVERRIDE
+		{
+		}
+
+		void paste (const void *src, int x, int y, int width, int height) OVERRIDE
 		{
 		}
 	};

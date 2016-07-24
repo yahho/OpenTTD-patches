@@ -344,13 +344,14 @@ void Blitter_32bppAnim::Surface::draw_rect (void *video, int width, int height, 
 	} while (--height);
 }
 
-void Blitter_32bppAnim::CopyFromBuffer(void *video, const void *src, int width, int height)
+void Blitter_32bppAnim::Surface::paste (const void *src, int x, int y, int width, int height)
 {
+	void *video = this->Blitter_32bppBase::Surface::move (this->ptr, x, y);
 	assert(!_screen_disable_anim);
-	assert (video >= _screen.dst_ptr && video <= (uint32 *)_screen.dst_ptr + _screen.width + _screen.height * _screen.surface->pitch);
+	assert (video >= this->ptr && video <= (uint32 *)this->ptr + this->width + this->height * this->pitch);
 	Colour *dst = (Colour *)video;
 	const uint32 *usrc = (const uint32 *)src;
-	uint16 *anim_line = ((uint32 *)video - (uint32 *)_screen.dst_ptr) + static_cast<Surface*>(_screen.surface.get())->anim_buf.get();
+	uint16 *anim_line = ((uint32 *)video - (uint32 *)this->ptr) + this->anim_buf.get();
 
 	for (; height > 0; height--) {
 		/* We need to keep those for palette animation. */
@@ -359,11 +360,11 @@ void Blitter_32bppAnim::CopyFromBuffer(void *video, const void *src, int width, 
 
 		memcpy(dst, usrc, width * sizeof(uint32));
 		usrc += width;
-		dst += _screen.surface->pitch;
+		dst += this->pitch;
 		/* Copy back the anim-buffer */
 		memcpy(anim_line, usrc, width * sizeof(uint16));
 		usrc = (const uint32 *)((const uint16 *)usrc + width);
-		anim_line += _screen.width;
+		anim_line += this->width;
 
 		/* Okay, it is *very* likely that the image we stored is using
 		 * the wrong palette animated colours. There are two things we
@@ -376,7 +377,7 @@ void Blitter_32bppAnim::CopyFromBuffer(void *video, const void *src, int width, 
 			uint colour = GB(*anim_pal, 0, 8);
 			if (colour >= PALETTE_ANIM_START) {
 				/* Update this pixel */
-				*dst_pal = this->AdjustBrightness(LookupColourInPalette(colour), GB(*anim_pal, 8, 8));
+				*dst_pal = AdjustBrightness (this->lookup_colour (colour), GB(*anim_pal, 8, 8));
 			}
 			dst_pal++;
 			anim_pal++;
