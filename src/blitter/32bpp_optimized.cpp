@@ -25,7 +25,7 @@ const char Blitter_32bppOptimized::desc[] = "32bpp Optimized Blitter (no palette
  * @param zoom zoom level at which we are drawing
  */
 template <BlitterMode mode>
-inline void Blitter_32bppOptimized::Draw(const Blitter::BlitterParams *bp, ZoomLevel zoom)
+inline void Blitter_32bppOptimized::Surface::draw (const BlitterParams *bp, ZoomLevel zoom)
 {
 	const Sprite *src = static_cast<const Sprite*> (bp->sprite);
 
@@ -119,7 +119,7 @@ inline void Blitter_32bppOptimized::Draw(const Blitter::BlitterParams *bp, ZoomL
 								*dst = src_px->data;
 							} else {
 								uint r = remap[GB(m, 0, 8)];
-								if (r != 0) *dst = this->AdjustBrightness(this->LookupColourInPalette(r), GB(m, 8, 8));
+								if (r != 0) *dst = AdjustBrightness (LookupColourInPalette(r), GB(m, 8, 8));
 							}
 							dst++;
 							src_px++;
@@ -132,7 +132,7 @@ inline void Blitter_32bppOptimized::Draw(const Blitter::BlitterParams *bp, ZoomL
 								*dst = ComposeColourRGBANoCheck(src_px->r, src_px->g, src_px->b, src_px->a, *dst);
 							} else {
 								uint r = remap[GB(m, 0, 8)];
-								if (r != 0) *dst = ComposeColourPANoCheck(this->AdjustBrightness(this->LookupColourInPalette(r), GB(m, 8, 8)), src_px->a, *dst);
+								if (r != 0) *dst = ComposeColourPANoCheck (AdjustBrightness (LookupColourInPalette(r), GB(m, 8, 8)), src_px->a, *dst);
 							}
 							dst++;
 							src_px++;
@@ -150,7 +150,7 @@ inline void Blitter_32bppOptimized::Draw(const Blitter::BlitterParams *bp, ZoomL
 								*dst = ComposeColourRGBA(g, g, g, src_px->a, *dst);
 							} else {
 								uint r = remap[GB(m, 0, 8)];
-								if (r != 0) *dst = this->AdjustBrightness(this->LookupColourInPalette(r), GB(m, 8, 8));
+								if (r != 0) *dst = AdjustBrightness (LookupColourInPalette(r), GB(m, 8, 8));
 							}
 							dst++;
 							src_px++;
@@ -166,7 +166,7 @@ inline void Blitter_32bppOptimized::Draw(const Blitter::BlitterParams *bp, ZoomL
 								}
 							} else {
 								uint r = remap[GB(m, 0, 8)];
-								if (r != 0) *dst = ComposeColourPANoCheck(this->AdjustBrightness(this->LookupColourInPalette(r), GB(m, 8, 8)), src_px->a, *dst);
+								if (r != 0) *dst = ComposeColourPANoCheck (AdjustBrightness (LookupColourInPalette(r), GB(m, 8, 8)), src_px->a, *dst);
 							}
 							dst++;
 							src_px++;
@@ -240,15 +240,15 @@ inline void Blitter_32bppOptimized::Draw(const Blitter::BlitterParams *bp, ZoomL
  * @param mode blitter mode
  * @param zoom zoom level at which we are drawing
  */
-void Blitter_32bppOptimized::Draw(Blitter::BlitterParams *bp, BlitterMode mode, ZoomLevel zoom)
+void Blitter_32bppOptimized::Surface::draw (const BlitterParams *bp, BlitterMode mode, ZoomLevel zoom)
 {
 	switch (mode) {
 		default: NOT_REACHED();
-		case BM_NORMAL:       Draw<BM_NORMAL>      (bp, zoom); return;
-		case BM_COLOUR_REMAP: Draw<BM_COLOUR_REMAP>(bp, zoom); return;
-		case BM_TRANSPARENT:  Draw<BM_TRANSPARENT> (bp, zoom); return;
-		case BM_CRASH_REMAP:  Draw<BM_CRASH_REMAP> (bp, zoom); return;
-		case BM_BLACK_REMAP:  Draw<BM_BLACK_REMAP> (bp, zoom); return;
+		case BM_NORMAL:       this->draw<BM_NORMAL>      (bp, zoom); return;
+		case BM_COLOUR_REMAP: this->draw<BM_COLOUR_REMAP>(bp, zoom); return;
+		case BM_TRANSPARENT:  this->draw<BM_TRANSPARENT> (bp, zoom); return;
+		case BM_CRASH_REMAP:  this->draw<BM_CRASH_REMAP> (bp, zoom); return;
+		case BM_BLACK_REMAP:  this->draw<BM_BLACK_REMAP> (bp, zoom); return;
 	}
 }
 

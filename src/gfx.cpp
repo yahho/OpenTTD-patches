@@ -914,7 +914,7 @@ static void GfxBlitter(const Sprite * const sprite, int x, int y, BlitterMode mo
 		}
 	}
 
-	Blitter::get()->Draw(&bp, mode, zoom);
+	dpi->surface->draw (&bp, mode, zoom);
 }
 
 static void GfxMainBlitterViewport(const Sprite *sprite, int x, int y, BlitterMode mode, const SubSprite *sub, SpriteID sprite_id)

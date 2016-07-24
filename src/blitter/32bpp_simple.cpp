@@ -19,7 +19,7 @@
 const char Blitter_32bppSimple::name[] = "32bpp-simple";
 const char Blitter_32bppSimple::desc[] = "32bpp Simple Blitter (no palette animation)";
 
-void Blitter_32bppSimple::Draw(Blitter::BlitterParams *bp, BlitterMode mode, ZoomLevel zoom)
+void Blitter_32bppSimple::Surface::draw (const BlitterParams *bp, BlitterMode mode, ZoomLevel zoom)
 {
 	const Blitter_32bppSimple::Pixel *src, *src_line;
 	Colour *dst, *dst_line;
@@ -43,7 +43,7 @@ void Blitter_32bppSimple::Draw(Blitter::BlitterParams *bp, BlitterMode mode, Zoo
 					if (src->m == 0) {
 						if (src->a != 0) *dst = ComposeColourRGBA(src->r, src->g, src->b, src->a, *dst);
 					} else {
-						if (bp->remap[src->m] != 0) *dst = ComposeColourPA(this->AdjustBrightness(this->LookupColourInPalette(bp->remap[src->m]), src->v), src->a, *dst);
+						if (bp->remap[src->m] != 0) *dst = ComposeColourPA (AdjustBrightness (LookupColourInPalette (bp->remap[src->m]), src->v), src->a, *dst);
 					}
 					break;
 
@@ -54,7 +54,7 @@ void Blitter_32bppSimple::Draw(Blitter::BlitterParams *bp, BlitterMode mode, Zoo
 							*dst = ComposeColourRGBA(g, g, g, src->a, *dst);
 						}
 					} else {
-						if (bp->remap[src->m] != 0) *dst = ComposeColourPA(this->AdjustBrightness(this->LookupColourInPalette(bp->remap[src->m]), src->v), src->a, *dst);
+						if (bp->remap[src->m] != 0) *dst = ComposeColourPA (AdjustBrightness (LookupColourInPalette (bp->remap[src->m]), src->v), src->a, *dst);
 					}
 					break;
 

@@ -27,9 +27,24 @@ public:
 		return HasCPUIDFlag (1, 2, 19);
 	}
 
-	/* virtual */ void Draw(Blitter::BlitterParams *bp, BlitterMode mode, ZoomLevel zoom);
-	template <BlitterMode mode, SSESprite::ReadMode read_mode, SSESprite::BlockType bt_last, bool translucent>
-	void Draw(const Blitter::BlitterParams *bp, ZoomLevel zoom);
+	/** Blitting surface. */
+	struct Surface : Blitter_32bppSSSE3::Surface {
+		Surface (void *ptr, uint width, uint height, uint pitch)
+			: Blitter_32bppSSSE3::Surface (ptr, width, height, pitch)
+		{
+		}
+
+		template <BlitterMode mode, SSESprite::ReadMode read_mode, SSESprite::BlockType bt_last, bool translucent>
+		void draw (const BlitterParams *bp, ZoomLevel zoom);
+
+		void draw (const BlitterParams *bp, BlitterMode mode, ZoomLevel zoom) OVERRIDE;
+	};
+
+	/** Create a surface for this blitter. */
+	Surface *create (void *ptr, uint width, uint height, uint pitch) OVERRIDE
+	{
+		return new Surface (ptr, width, height, pitch);
+	}
 };
 
 #endif /* WITH_SSE */

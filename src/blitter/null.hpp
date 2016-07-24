@@ -21,7 +21,6 @@ public:
 	static const char desc[]; ///< Description of the blitter.
 
 	/* virtual */ uint8 GetScreenDepth() { return 0; }
-	/* virtual */ void Draw(Blitter::BlitterParams *bp, BlitterMode mode, ZoomLevel zoom) {};
 	/* virtual */ Sprite *Encode (const SpriteLoader::Sprite *sprite, bool is_font, AllocatorProc *allocator);
 	/* virtual */ int BufferSize(int width, int height) { return 0; };
 	/* virtual */ Blitter::PaletteAnimation UsePaletteAnimation() { return Blitter::PALETTE_ANIMATION_NONE; };
@@ -57,6 +56,10 @@ public:
 		}
 
 		void scroll (void *video, int &left, int &top, int &width, int &height, int scroll_x, int scroll_y) OVERRIDE
+		{
+		}
+
+		void draw (const BlitterParams *bp, BlitterMode mode, ZoomLevel zoom) OVERRIDE
 		{
 		}
 

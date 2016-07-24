@@ -33,7 +33,6 @@ public:
 	static const char name[]; ///< Name of the blitter.
 	static const char desc[]; ///< Description of the blitter.
 
-	/* virtual */ void Draw(Blitter::BlitterParams *bp, BlitterMode mode, ZoomLevel zoom);
 	/* virtual */ ::Sprite *Encode (const SpriteLoader::Sprite *sprite, bool is_font, AllocatorProc *allocator);
 
 	/** Blitting surface. */
@@ -44,6 +43,8 @@ public:
 		}
 
 		void recolour_rect (void *video, int width, int height, PaletteID pal) OVERRIDE;
+
+		void draw (const BlitterParams *bp, BlitterMode mode, ZoomLevel zoom) OVERRIDE;
 	};
 
 	/** Create a surface for this blitter. */

@@ -20,21 +20,10 @@ public:
 	static const char name[]; ///< Name of the blitter.
 	static const char desc[]; ///< Description of the blitter.
 
-	/* virtual */ void Draw(Blitter::BlitterParams *bp, BlitterMode mode, ZoomLevel zoom);
 	/* virtual */ int BufferSize(int width, int height);
 	/* virtual */ Blitter::PaletteAnimation UsePaletteAnimation();
 
 	/* virtual */ int GetBytesPerPixel() { return 6; }
-
-	/**
-	 * Look up the colour in the current palette.
-	 */
-	inline Colour LookupColourInPalette(uint index)
-	{
-		return static_cast<Surface*>(_screen.surface.get())->palette.palette[index];
-	}
-
-	template <BlitterMode mode> void Draw(const Blitter::BlitterParams *bp, ZoomLevel zoom);
 
 	/** Blitting surface. */
 	struct Surface : Blitter_32bppOptimized::Surface {
@@ -62,6 +51,10 @@ public:
 		void scroll (void *video, int &left, int &top, int &width, int &height, int scroll_x, int scroll_y) OVERRIDE;
 
 		bool palette_animate (const Palette &palette) OVERRIDE;
+
+		template <BlitterMode mode> void draw (const BlitterParams *bp, ZoomLevel zoom);
+
+		void draw (const BlitterParams *bp, BlitterMode mode, ZoomLevel zoom) OVERRIDE;
 
 		void copy (void *dst, int x, int y, int width, int height) OVERRIDE;
 

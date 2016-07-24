@@ -26,10 +26,25 @@ public:
 	static const char name[]; ///< Name of the blitter.
 	static const char desc[]; ///< Description of the blitter.
 
-	/* virtual */ void Draw(Blitter::BlitterParams *bp, BlitterMode mode, ZoomLevel zoom);
 	/* virtual */ ::Sprite *Encode (const SpriteLoader::Sprite *sprite, bool is_font, AllocatorProc *allocator);
 
-	template <BlitterMode mode> void Draw(const Blitter::BlitterParams *bp, ZoomLevel zoom);
+	/** Blitting surface. */
+	struct Surface : Blitter_32bppSimple::Surface {
+		Surface (void *ptr, uint width, uint height, uint pitch)
+			: Blitter_32bppSimple::Surface (ptr, width, height, pitch)
+		{
+		}
+
+		template <BlitterMode mode> void draw (const BlitterParams *bp, ZoomLevel zoom);
+
+		void draw (const BlitterParams *bp, BlitterMode mode, ZoomLevel zoom) OVERRIDE;
+	};
+
+	/** Create a surface for this blitter. */
+	Surface *create (void *ptr, uint width, uint height, uint pitch) OVERRIDE
+	{
+		return new Surface (ptr, width, height, pitch);
+	}
 };
 
 #endif /* BLITTER_32BPP_OPTIMIZED_HPP */

@@ -45,12 +45,6 @@ public:
 
 		void export_lines (void *dst, uint dst_pitch, uint y, uint height) OVERRIDE;
 	};
-
-	/** Create a surface for this blitter. */
-	Surface *create (void *ptr, uint width, uint height, uint pitch) OVERRIDE
-	{
-		return new Surface (ptr, width, height, pitch);
-	}
 };
 
 #endif /* BLITTER_8BPP_BASE_HPP */

@@ -65,11 +65,6 @@ public:
 	virtual uint8 GetScreenDepth() = 0;
 
 	/**
-	 * Draw an image to the screen, given an amount of params defined above.
-	 */
-	virtual void Draw(Blitter::BlitterParams *bp, BlitterMode mode, ZoomLevel zoom) = 0;
-
-	/**
 	 * Convert a sprite from the loader to our own format.
 	 */
 	virtual Sprite *Encode (const SpriteLoader::Sprite *sprite, bool is_font, AllocatorProc *allocator) = 0;
@@ -200,6 +195,9 @@ public:
 		 * @return Whether the screen should be invalidated.
 		 */
 		virtual bool palette_animate (const Palette &palette);
+
+		/** Draw an image to the screen, given an amount of params defined above. */
+		virtual void draw (const BlitterParams *bp, BlitterMode mode, ZoomLevel zoom) = 0;
 
 		/**
 		 * Copy from the screen to a buffer.
