@@ -85,16 +85,6 @@ public:
 	virtual void CopyFromBuffer(void *video, const void *src, int width, int height) = 0;
 
 	/**
-	 * Copy from the screen to a buffer.
-	 * @param video The destination pointer (video-buffer).
-	 * @param dst The buffer in which the data will be stored.
-	 * @param width The width of the buffer.
-	 * @param height The height of the buffer.
-	 * @note You can not do anything with the content of the buffer, as the blitter can store non-pixel data in it too!
-	 */
-	virtual void CopyToBuffer(const void *video, void *dst, int width, int height) = 0;
-
-	/**
 	 * Copy from the screen to a buffer in a palette format for 8bpp and RGBA format for 32bpp.
 	 * @param video The destination pointer (video-buffer).
 	 * @param dst The buffer in which the data will be stored.
@@ -230,6 +220,17 @@ public:
 		 * @return Whether the screen should be invalidated.
 		 */
 		virtual bool palette_animate (const Palette &palette);
+
+		/**
+		 * Copy from the screen to a buffer.
+		 * @param dst The buffer in which the data will be stored.
+		 * @param x The x position within video-buffer.
+		 * @param y The y position within video-buffer.
+		 * @param width The width of the buffer.
+		 * @param height The height of the buffer.
+		 * @note You can not do anything with the content of the buffer, as the blitter can store non-pixel data in it too!
+		 */
+		virtual void copy (void *dst, int x, int y, int width, int height) = 0;
 	};
 
 	/** Create a surface for this blitter. */

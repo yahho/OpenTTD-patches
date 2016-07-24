@@ -24,7 +24,6 @@ public:
 	/* virtual */ void Draw(Blitter::BlitterParams *bp, BlitterMode mode, ZoomLevel zoom) {};
 	/* virtual */ Sprite *Encode (const SpriteLoader::Sprite *sprite, bool is_font, AllocatorProc *allocator);
 	/* virtual */ void CopyFromBuffer(void *video, const void *src, int width, int height) {};
-	/* virtual */ void CopyToBuffer(const void *video, void *dst, int width, int height) {};
 	/* virtual */ void CopyImageToBuffer(const void *video, void *dst, int width, int height, int dst_pitch) {};
 	/* virtual */ int BufferSize(int width, int height) { return 0; };
 	/* virtual */ Blitter::PaletteAnimation UsePaletteAnimation() { return Blitter::PALETTE_ANIMATION_NONE; };
@@ -60,6 +59,10 @@ public:
 		}
 
 		void scroll (void *video, int &left, int &top, int &width, int &height, int scroll_x, int scroll_y) OVERRIDE
+		{
+		}
+
+		void copy (void *dst, int x, int y, int width, int height) OVERRIDE
 		{
 		}
 	};

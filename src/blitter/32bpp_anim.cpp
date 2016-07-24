@@ -384,26 +384,27 @@ void Blitter_32bppAnim::CopyFromBuffer(void *video, const void *src, int width, 
 	}
 }
 
-void Blitter_32bppAnim::CopyToBuffer(const void *video, void *dst, int width, int height)
+void Blitter_32bppAnim::Surface::copy (void *dst, int x, int y, int width, int height)
 {
+	const void *video = this->Blitter_32bppBase::Surface::move (this->ptr, x, y);
 	assert(!_screen_disable_anim);
-	assert (video >= _screen.dst_ptr && video <= (uint32 *)_screen.dst_ptr + _screen.width + _screen.height * _screen.surface->pitch);
+	assert (video >= this->ptr && video <= (uint32 *)this->ptr + this->width + this->height * this->pitch);
 	uint32 *udst = (uint32 *)dst;
 	const uint32 *src = (const uint32 *)video;
 	const uint16 *anim_line;
 
-	if (!static_cast<Surface*>(_screen.surface.get())->anim_buf) return;
+	if (!this->anim_buf) return;
 
-	anim_line = ((const uint32 *)video - (uint32 *)_screen.dst_ptr) + static_cast<Surface*>(_screen.surface.get())->anim_buf.get();
+	anim_line = ((const uint32 *)video - (uint32 *)this->ptr) + this->anim_buf.get();
 
 	for (; height > 0; height--) {
 		memcpy(udst, src, width * sizeof(uint32));
-		src += _screen.surface->pitch;
+		src += this->pitch;
 		udst += width;
 		/* Copy the anim-buffer */
 		memcpy(udst, anim_line, width * sizeof(uint16));
 		udst = (uint32 *)((uint16 *)udst + width);
-		anim_line += _screen.width;
+		anim_line += this->width;
 	}
 }
 

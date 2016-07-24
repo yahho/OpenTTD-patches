@@ -22,7 +22,6 @@ class Blitter_32bppBase : public Blitter {
 public:
 	/* virtual */ uint8 GetScreenDepth() { return 32; }
 	/* virtual */ void CopyFromBuffer(void *video, const void *src, int width, int height);
-	/* virtual */ void CopyToBuffer(const void *video, void *dst, int width, int height);
 	/* virtual */ void CopyImageToBuffer(const void *video, void *dst, int width, int height, int dst_pitch);
 	/* virtual */ int BufferSize(int width, int height);
 	/* virtual */ Blitter::PaletteAnimation UsePaletteAnimation();
@@ -181,6 +180,8 @@ public:
 		void draw_rect (void *video, int width, int height, uint8 colour) OVERRIDE;
 
 		void scroll (void *video, int &left, int &top, int &width, int &height, int scroll_x, int scroll_y) OVERRIDE;
+
+		void copy (void *dst, int x, int y, int width, int height) OVERRIDE;
 	};
 };
 

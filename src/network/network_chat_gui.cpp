@@ -233,7 +233,7 @@ void NetworkDrawChatMessage()
 	assert (blitter->BufferSize (width, height) <= (int)(_chatmsg_box_width * _chatmsg_box_height * blitter->GetBytesPerPixel()));
 
 	/* Make a copy of the screen as it is before painting (for undraw) */
-	blitter->CopyToBuffer (_screen.surface->move (_screen.dst_ptr, x, y), _chatmessage_backup, width, height);
+	_screen.surface->copy (_chatmessage_backup, x, y, width, height);
 
 	_cur_dpi = &_screen; // switch to _screen painting
 

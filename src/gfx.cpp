@@ -1212,7 +1212,7 @@ void DrawMouseCursor()
 	uint8 *buffer = _cursor_backup.Allocate(blitter->BufferSize(w, h));
 
 	/* Make backup of stuff below cursor */
-	blitter->CopyToBuffer (_screen.surface->move (_screen.dst_ptr, _cursor.draw_pos.x, _cursor.draw_pos.y), buffer, _cursor.draw_size.x, _cursor.draw_size.y);
+	_screen.surface->copy (buffer, _cursor.draw_pos.x, _cursor.draw_pos.y, _cursor.draw_size.x, _cursor.draw_size.y);
 
 	/* Draw cursor on screen */
 	_cur_dpi = &_screen;
