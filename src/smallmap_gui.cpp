@@ -781,10 +781,9 @@ inline uint32 SmallMapWindow::GetTileColours(const TileArea &ta) const
  * @param reps Number of lines to draw
  * @param start_pos Position of first pixel to draw.
  * @param end_pos Position of last pixel to draw (exclusive).
- * @param blitter current blitter
  * @note If pixel position is below \c 0, skip drawing.
  */
-void SmallMapWindow::DrawSmallMapColumn(void *dst, uint xc, uint yc, int pitch, int reps, int start_pos, int end_pos, Blitter *blitter) const
+void SmallMapWindow::DrawSmallMapColumn(void *dst, uint xc, uint yc, int pitch, int reps, int start_pos, int end_pos) const
 {
 	void *dst_ptr_abs_end = _screen.surface->move (_screen.dst_ptr, 0, _screen.height);
 	bool freeform = _settings_game.construction.freeform_edges;
@@ -823,9 +822,8 @@ void SmallMapWindow::DrawSmallMapColumn(void *dst, uint xc, uint yc, int pitch, 
 /**
  * Adds vehicles to the smallmap.
  * @param dpi the part of the smallmap to be drawn into
- * @param blitter current blitter
  */
-void SmallMapWindow::DrawVehicles(const DrawPixelInfo *dpi, Blitter *blitter) const
+void SmallMapWindow::DrawVehicles (const DrawPixelInfo *dpi) const
 {
 	const Vehicle *v;
 	FOR_ALL_VEHICLES(v) {
@@ -976,7 +974,6 @@ void SmallMapWindow::DrawMapIndicators() const
  */
 void SmallMapWindow::DrawSmallMap(DrawPixelInfo *dpi) const
 {
-	Blitter *blitter = Blitter::get();
 	DrawPixelInfo *old_dpi;
 
 	old_dpi = _cur_dpi;
@@ -1003,7 +1000,7 @@ void SmallMapWindow::DrawSmallMap(DrawPixelInfo *dpi) const
 			int end_pos = min(dpi->width, x + 4);
 			int reps = (dpi->height + y) / 2; // Number of lines.
 			if (reps > 0) {
-				this->DrawSmallMapColumn (ptr, tile_x, tile_y, dpi->surface->pitch * 2, reps, x, end_pos, blitter);
+				this->DrawSmallMapColumn (ptr, tile_x, tile_y, dpi->surface->pitch * 2, reps, x, end_pos);
 			}
 		}
 
@@ -1021,7 +1018,7 @@ void SmallMapWindow::DrawSmallMap(DrawPixelInfo *dpi) const
 	}
 
 	/* Draw vehicles */
-	if (this->map_type == SMT_CONTOUR || this->map_type == SMT_VEHICLES) this->DrawVehicles(dpi, blitter);
+	if (this->map_type == SMT_CONTOUR || this->map_type == SMT_VEHICLES) this->DrawVehicles (dpi);
 
 	/* Draw link stat overlay */
 	if (this->map_type == SMT_LINKSTATS) this->overlay->Draw(dpi);
