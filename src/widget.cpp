@@ -239,18 +239,6 @@ static inline void DrawLabel(const Rect &r, WidgetType type, bool clicked, Strin
 }
 
 /**
- * Draw an inset widget.
- * @param r      Rectangle of the background.
- * @param colour Colour of the inset.
- * @param str    Text to draw.
- */
-static inline void DrawInset(const Rect &r, Colours colour, StringID str)
-{
-	DrawFrameRect(r.left, r.top, r.right, r.bottom, colour, FR_LOWERED | FR_DARKENED);
-	if (str != STR_NULL) DrawString(r.left + WD_INSET_LEFT, r.right - WD_INSET_RIGHT, r.top + WD_INSET_TOP, str);
-}
-
-/**
  * Draw a matrix widget.
  * @param r       Rectangle of the matrix background.
  * @param colour  Colour of the background.
@@ -1832,10 +1820,13 @@ void NWidgetBackground::Draw(const Window *w)
 			DrawFrame(r, this->colour, this->widget_data);
 			break;
 
-		case WWT_INSET:
+		case WWT_INSET: {
 			if (this->index >= 0) w->SetStringParameters(this->index);
-			DrawInset(r, this->colour, this->widget_data);
+			DrawFrameRect (r.left, r.top, r.right, r.bottom, this->colour, FR_LOWERED | FR_DARKENED);
+			StringID str = this->widget_data;
+			if (str != STR_NULL) DrawString (r.left + WD_INSET_LEFT, r.right - WD_INSET_RIGHT, r.top + WD_INSET_TOP, str);
 			break;
+		}
 
 		default:
 			NOT_REACHED();
