@@ -425,18 +425,6 @@ static inline void DrawFrame(const Rect &r, Colours colour, StringID str)
 }
 
 /**
- * Draw a shade box.
- * @param r       Rectangle of the box.
- * @param colour  Colour of the shade box.
- * @param clicked Box is lowered.
- */
-static inline void DrawShadeBox(const Rect &r, Colours colour, bool clicked)
-{
-	DrawFrameRect(r.left, r.top, r.right, r.bottom, colour, (clicked) ? FR_LOWERED : FR_NONE);
-	DrawSprite((clicked) ? SPR_WINDOW_SHADE : SPR_WINDOW_UNSHADE, PAL_NONE, r.left + WD_SHADEBOX_LEFT, r.top + WD_SHADEBOX_TOP);
-}
-
-/**
  * Draw a sticky box.
  * @param r       Rectangle of the box.
  * @param colour  Colour of the sticky box.
@@ -2443,10 +2431,13 @@ void NWidgetLeaf::Draw(const Window *w)
 			DrawCaption(r, this->colour, w->owner, this->widget_data);
 			break;
 
-		case WWT_SHADEBOX:
+		case WWT_SHADEBOX: {
 			assert(this->widget_data == 0);
-			DrawShadeBox(r, this->colour, w->IsShaded());
+			bool clicked = w->IsShaded();
+			DrawFrameRect (r.left, r.top, r.right, r.bottom, this->colour, clicked ? FR_LOWERED : FR_NONE);
+			DrawSprite (clicked ? SPR_WINDOW_SHADE : SPR_WINDOW_UNSHADE, PAL_NONE, r.left + WD_SHADEBOX_LEFT, r.top + WD_SHADEBOX_TOP);
 			break;
+		}
 
 		case WWT_DEBUGBOX:
 			DrawDebugBox(r, this->colour, clicked);
