@@ -481,18 +481,6 @@ static inline void DrawButtonDropdown(const Rect &r, Colours colour, bool clicke
 }
 
 /**
- * Draw a dropdown #WWT_DROPDOWN widget.
- * @param r       Rectangle containing the widget.
- * @param colour  Background colour of the widget.
- * @param clicked The widget is lowered.
- * @param str     Text of the button.
- */
-static inline void DrawDropdown(const Rect &r, Colours colour, bool clicked, StringID str)
-{
-	DrawButtonDropdown(r, colour, false, clicked, str);
-}
-
-/**
  * Paint all widgets of a window.
  */
 void Window::DrawWidgets() const
@@ -2415,7 +2403,7 @@ void NWidgetLeaf::Draw(const Window *w)
 
 		case WWT_DROPDOWN:
 			if (this->index >= 0) w->SetStringParameters(this->index);
-			DrawDropdown(r, this->colour, clicked, this->widget_data);
+			DrawButtonDropdown (r, this->colour, false, clicked, this->widget_data);
 			break;
 
 		case NWID_BUTTON_DROPDOWN:
