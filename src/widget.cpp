@@ -425,18 +425,6 @@ static inline void DrawFrame(const Rect &r, Colours colour, StringID str)
 }
 
 /**
- * Draw a NewGRF debug box.
- * @param r       Rectangle of the box.
- * @param colour  Colour of the debug box.
- * @param clicked Box is lowered.
- */
-static inline void DrawDebugBox(const Rect &r, Colours colour, bool clicked)
-{
-	DrawFrameRect(r.left, r.top, r.right, r.bottom, colour, (clicked) ? FR_LOWERED : FR_NONE);
-	DrawSprite(SPR_WINDOW_DEBUG, PAL_NONE, r.left + WD_DEBUGBOX_LEFT, r.top + WD_DEBUGBOX_TOP);
-}
-
-/**
  * Draw a resize box.
  * @param r       Rectangle of the box.
  * @param colour  Colour of the resize box.
@@ -2416,7 +2404,8 @@ void NWidgetLeaf::Draw(const Window *w)
 		}
 
 		case WWT_DEBUGBOX:
-			DrawDebugBox(r, this->colour, clicked);
+			DrawFrameRect (r.left, r.top, r.right, r.bottom, this->colour, clicked ? FR_LOWERED : FR_NONE);
+			DrawSprite (SPR_WINDOW_DEBUG, PAL_NONE, r.left + WD_DEBUGBOX_LEFT, r.top + WD_DEBUGBOX_TOP);
 			break;
 
 		case WWT_STICKYBOX: {
