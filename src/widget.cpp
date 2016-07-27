@@ -239,19 +239,6 @@ static inline void DrawLabel(const Rect &r, WidgetType type, bool clicked, Strin
 }
 
 /**
- * Draw text.
- * @param r      Rectangle of the background.
- * @param colour Colour of the text.
- * @param str    Text to draw.
- */
-static inline void DrawText(const Rect &r, TextColour colour, StringID str)
-{
-	Dimension d = GetStringBoundingBox(str);
-	int offset = max(0, ((int)(r.bottom - r.top + 1) - (int)d.height) / 2); // Offset for rendering the text vertically centered
-	if (str != STR_NULL) DrawString(r.left, r.right, r.top + offset, str, colour);
-}
-
-/**
  * Draw an inset widget.
  * @param r      Rectangle of the background.
  * @param colour Colour of the inset.
@@ -2441,10 +2428,14 @@ void NWidgetLeaf::Draw(const Window *w)
 			DrawLabel(r, this->type, clicked, this->widget_data);
 			break;
 
-		case WWT_TEXT:
+		case WWT_TEXT: {
 			if (this->index >= 0) w->SetStringParameters(this->index);
-			DrawText(r, (TextColour)this->colour, this->widget_data);
+			StringID str = this->widget_data;
+			Dimension d = GetStringBoundingBox (str);
+			int offset = max (0, ((int)(r.bottom - r.top + 1) - (int)d.height) / 2); // Offset for rendering the text vertically centered
+			if (str != STR_NULL) DrawString (r.left, r.right, r.top + offset, str, (TextColour)this->colour);
 			break;
+		}
 
 		case WWT_MATRIX:
 			DrawMatrix(r, this->colour, clicked, this->widget_data, this->resize_x, this->resize_y);
