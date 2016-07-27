@@ -425,18 +425,6 @@ static inline void DrawFrame(const Rect &r, Colours colour, StringID str)
 }
 
 /**
- * Draw a sticky box.
- * @param r       Rectangle of the box.
- * @param colour  Colour of the sticky box.
- * @param clicked Box is lowered.
- */
-static inline void DrawStickyBox(const Rect &r, Colours colour, bool clicked)
-{
-	DrawFrameRect(r.left, r.top, r.right, r.bottom, colour, (clicked) ? FR_LOWERED : FR_NONE);
-	DrawSprite((clicked) ? SPR_PIN_UP : SPR_PIN_DOWN, PAL_NONE, r.left + WD_STICKYBOX_LEFT, r.top + WD_STICKYBOX_TOP);
-}
-
-/**
  * Draw a defsize box.
  * @param r       Rectangle of the box.
  * @param colour  Colour of the defsize box.
@@ -2443,10 +2431,13 @@ void NWidgetLeaf::Draw(const Window *w)
 			DrawDebugBox(r, this->colour, clicked);
 			break;
 
-		case WWT_STICKYBOX:
+		case WWT_STICKYBOX: {
 			assert(this->widget_data == 0);
-			DrawStickyBox(r, this->colour, !!(w->flags & WF_STICKY));
+			bool clicked = !!(w->flags & WF_STICKY);
+			DrawFrameRect (r.left, r.top, r.right, r.bottom, this->colour, clicked ? FR_LOWERED : FR_NONE);
+			DrawSprite (clicked ? SPR_PIN_UP : SPR_PIN_DOWN, PAL_NONE, r.left + WD_STICKYBOX_LEFT, r.top + WD_STICKYBOX_TOP);
 			break;
+		}
 
 		case WWT_DEFSIZEBOX:
 			assert(this->widget_data == 0);
