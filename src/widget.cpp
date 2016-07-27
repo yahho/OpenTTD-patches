@@ -425,24 +425,6 @@ static inline void DrawFrame(const Rect &r, Colours colour, StringID str)
 }
 
 /**
- * Draw a resize box.
- * @param r       Rectangle of the box.
- * @param colour  Colour of the resize box.
- * @param at_left Resize box is at left-side of the window,
- * @param clicked Box is lowered.
- */
-static inline void DrawResizeBox(const Rect &r, Colours colour, bool at_left, bool clicked)
-{
-	DrawFrameRect(r.left, r.top, r.right, r.bottom, colour, (clicked) ? FR_LOWERED : FR_NONE);
-	SpriteID spr = at_left ? SPR_WINDOW_RESIZE_LEFT : SPR_WINDOW_RESIZE_RIGHT;
-	Dimension size = GetSpriteSize (spr);
-	DrawSprite (spr, PAL_NONE,
-			at_left ? r.left + WD_RESIZEBOX_RIGHT :
-				r.right - WD_RESIZEBOX_RIGHT - size.width + 1,
-			r.bottom - WD_RESIZEBOX_BOTTOM - size.height + 1);
-}
-
-/**
  * Draw a close box.
  * @param r      Rectangle of the box.
  * @param colour Colour of the close box.
@@ -2422,10 +2404,18 @@ void NWidgetLeaf::Draw(const Window *w)
 			DrawSprite (SPR_WINDOW_DEFSIZE, PAL_NONE, r.left + WD_DEFSIZEBOX_LEFT, r.top + WD_DEFSIZEBOX_TOP);
 			break;
 
-		case WWT_RESIZEBOX:
+		case WWT_RESIZEBOX: {
 			assert(this->widget_data == 0);
-			DrawResizeBox(r, this->colour, this->pos_x < (uint)(w->width / 2), !!(w->flags & WF_SIZING));
+			DrawFrameRect (r.left, r.top, r.right, r.bottom, this->colour, !!(w->flags & WF_SIZING) ? FR_LOWERED : FR_NONE);
+			bool at_left = (this->pos_x < (uint)(w->width / 2));
+			SpriteID spr = at_left ? SPR_WINDOW_RESIZE_LEFT : SPR_WINDOW_RESIZE_RIGHT;
+			Dimension size = GetSpriteSize (spr);
+			DrawSprite (spr, PAL_NONE,
+					at_left ? r.left + WD_RESIZEBOX_RIGHT :
+						r.right - WD_RESIZEBOX_RIGHT - size.width + 1,
+					r.bottom - WD_RESIZEBOX_BOTTOM - size.height + 1);
 			break;
+		}
 
 		case WWT_CLOSEBOX:
 			DrawCloseBox(r, this->colour);
