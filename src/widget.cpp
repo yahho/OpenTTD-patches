@@ -425,17 +425,6 @@ static inline void DrawFrame(const Rect &r, Colours colour, StringID str)
 }
 
 /**
- * Draw a close box.
- * @param r      Rectangle of the box.
- * @param colour Colour of the close box.
- */
-static inline void DrawCloseBox(const Rect &r, Colours colour)
-{
-	if (colour != COLOUR_WHITE) DrawFrameRect(r.left, r.top, r.right, r.bottom, colour, FR_NONE);
-	DrawSprite(SPR_CLOSEBOX, (colour != COLOUR_WHITE ? TC_BLACK : TC_SILVER) | (1 << PALETTE_TEXT_RECOLOUR), r.left + WD_CLOSEBOX_LEFT, r.top + WD_CLOSEBOX_TOP);
-}
-
-/**
  * Draw a caption bar.
  * @param r      Rectangle of the bar.
  * @param colour Colour of the window.
@@ -2417,9 +2406,12 @@ void NWidgetLeaf::Draw(const Window *w)
 			break;
 		}
 
-		case WWT_CLOSEBOX:
-			DrawCloseBox(r, this->colour);
+		case WWT_CLOSEBOX: {
+			Colours colour = this->colour;
+			if (colour != COLOUR_WHITE) DrawFrameRect (r.left, r.top, r.right, r.bottom, colour, FR_NONE);
+			DrawSprite (SPR_CLOSEBOX, (colour != COLOUR_WHITE ? TC_BLACK : TC_SILVER) | (1 << PALETTE_TEXT_RECOLOUR), r.left + WD_CLOSEBOX_LEFT, r.top + WD_CLOSEBOX_TOP);
 			break;
+		}
 
 		case WWT_DROPDOWN:
 			if (this->index >= 0) w->SetStringParameters(this->index);
