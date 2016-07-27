@@ -425,18 +425,6 @@ static inline void DrawFrame(const Rect &r, Colours colour, StringID str)
 }
 
 /**
- * Draw a defsize box.
- * @param r       Rectangle of the box.
- * @param colour  Colour of the defsize box.
- * @param clicked Box is lowered.
- */
-static inline void DrawDefSizeBox(const Rect &r, Colours colour, bool clicked)
-{
-	DrawFrameRect(r.left, r.top, r.right, r.bottom, colour, (clicked) ? FR_LOWERED : FR_NONE);
-	DrawSprite(SPR_WINDOW_DEFSIZE, PAL_NONE, r.left + WD_DEFSIZEBOX_LEFT, r.top + WD_DEFSIZEBOX_TOP);
-}
-
-/**
  * Draw a NewGRF debug box.
  * @param r       Rectangle of the box.
  * @param colour  Colour of the debug box.
@@ -2441,7 +2429,8 @@ void NWidgetLeaf::Draw(const Window *w)
 
 		case WWT_DEFSIZEBOX:
 			assert(this->widget_data == 0);
-			DrawDefSizeBox(r, this->colour, clicked);
+			DrawFrameRect (r.left, r.top, r.right, r.bottom, this->colour, clicked ? FR_LOWERED : FR_NONE);
+			DrawSprite (SPR_WINDOW_DEFSIZE, PAL_NONE, r.left + WD_DEFSIZEBOX_LEFT, r.top + WD_DEFSIZEBOX_TOP);
 			break;
 
 		case WWT_RESIZEBOX:
