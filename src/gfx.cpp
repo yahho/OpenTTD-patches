@@ -163,7 +163,7 @@ void GfxFillRect (BlitArea *dpi, int left, int top, int right, int bottom, int c
 /**
  * Check line clipping by using a linear equation and draw the visible part of
  * the line given by x/y and x2/y2.
- * @param video Destination pointer to draw into.
+ * @param dpi Area to blit to.
  * @param x X coordinate of first point.
  * @param y Y coordinate of first point.
  * @param x2 X coordinate of second point.
@@ -174,7 +174,7 @@ void GfxFillRect (BlitArea *dpi, int left, int top, int right, int bottom, int c
  * @param width Width of the line.
  * @param dash Length of dashes for dashed lines. 0 means solid line.
  */
-static inline void GfxDoDrawLine(void *video, int x, int y, int x2, int y2, int screen_width, int screen_height, uint8 colour, int width, int dash = 0)
+static inline void GfxDoDrawLine (BlitArea *dpi, int x, int y, int x2, int y2, int screen_width, int screen_height, uint8 colour, int width, int dash = 0)
 {
 	assert(width > 0);
 
@@ -220,7 +220,7 @@ static inline void GfxDoDrawLine(void *video, int x, int y, int x2, int y2, int 
 		 * case the effect is not noticable. */
 	}
 
-	_cur_dpi->surface->draw_line (video, x, y, x2, y2, screen_width, screen_height, colour, width, dash);
+	dpi->surface->draw_line (dpi->dst_ptr, x, y, x2, y2, screen_width, screen_height, colour, width, dash);
 }
 
 /**
@@ -253,7 +253,7 @@ void GfxDrawLine(int x, int y, int x2, int y2, int colour, int width, int dash)
 {
 	DrawPixelInfo *dpi = _cur_dpi;
 	if (GfxPreprocessLine(dpi, x, y, x2, y2, width)) {
-		GfxDoDrawLine(dpi->dst_ptr, x, y, x2, y2, dpi->width, dpi->height, colour, width, dash);
+		GfxDoDrawLine (dpi, x, y, x2, y2, dpi->width, dpi->height, colour, width, dash);
 	}
 }
 
@@ -261,7 +261,7 @@ void GfxDrawLineUnscaled(int x, int y, int x2, int y2, int colour)
 {
 	DrawPixelInfo *dpi = _cur_dpi;
 	if (GfxPreprocessLine(dpi, x, y, x2, y2, 1)) {
-		GfxDoDrawLine(dpi->dst_ptr,
+		GfxDoDrawLine (dpi,
 				UnScaleByZoom(x, dpi->zoom), UnScaleByZoom(y, dpi->zoom),
 				UnScaleByZoom(x2, dpi->zoom), UnScaleByZoom(y2, dpi->zoom),
 				UnScaleByZoom(dpi->width, dpi->zoom), UnScaleByZoom(dpi->height, dpi->zoom), colour, 1);
