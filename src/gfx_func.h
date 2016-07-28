@@ -48,10 +48,14 @@
 #include "string.h"
 
 /** Data about how and where to blit pixels. */
-struct DrawPixelInfo {
+struct BlitArea {
 	ttd_shared_ptr <Blitter::Surface> surface;
 	void *dst_ptr;
 	int left, top, width, height;
+};
+
+/** Data about how and where to blit pixels. */
+struct DrawPixelInfo : BlitArea {
 	ZoomLevel zoom;
 };
 
