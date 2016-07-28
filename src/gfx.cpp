@@ -234,7 +234,7 @@ static inline void GfxDoDrawLine (BlitArea *dpi, int x, int y, int x2, int y2, i
  * @return True if the line is likely to be visible, false if it's certainly
  *         invisible.
  */
-static inline bool GfxPreprocessLine(DrawPixelInfo *dpi, int &x, int &y, int &x2, int &y2, int width)
+static inline bool GfxPreprocessLine (BlitArea *dpi, int &x, int &y, int &x2, int &y2, int width)
 {
 	x -= dpi->left;
 	x2 -= dpi->left;
