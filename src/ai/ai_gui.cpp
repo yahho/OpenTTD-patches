@@ -1212,7 +1212,7 @@ struct AIDebugWindow : public Window {
 
 					/* Check if the current line should be highlighted */
 					if (pos == this->highlight_row) {
-						GfxFillRect(r.left + 1, r.top + y, r.right - 1, r.top + y + this->resize.step_height - WD_PAR_VSEP_NORMAL, PC_BLACK);
+						GfxFillRect (_cur_dpi, r.left + 1, r.top + y, r.right - 1, r.top + y + this->resize.step_height - WD_PAR_VSEP_NORMAL, PC_BLACK);
 						if (colour == TC_BLACK) colour = TC_WHITE; // Make black text readable by inverting it to white.
 					}
 

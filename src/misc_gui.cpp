@@ -679,8 +679,8 @@ struct TooltipsWindow : public Window
 	virtual void DrawWidget(const Rect &r, int widget) const
 	{
 		/* There is only one widget. */
-		GfxFillRect(r.left, r.top, r.right, r.bottom, PC_BLACK);
-		GfxFillRect(r.left + 1, r.top + 1, r.right - 1, r.bottom - 1, PC_LIGHT_YELLOW);
+		GfxFillRect (_cur_dpi, r.left, r.top, r.right, r.bottom, PC_BLACK);
+		GfxFillRect (_cur_dpi, r.left + 1, r.top + 1, r.right - 1, r.bottom - 1, PC_LIGHT_YELLOW);
 
 		for (uint arg = 0; arg < this->paramcount; arg++) {
 			SetDParam(arg, this->params[arg]);
@@ -753,10 +753,10 @@ void QueryString::DrawEditBox(const Window *w, int wid) const
 
 	DrawFrameRect(clearbtn_left, top, clearbtn_right, bottom, wi->colour, wi->IsLowered() ? FR_LOWERED : FR_NONE);
 	DrawSprite(rtl ? SPR_IMG_DELETE_RIGHT : SPR_IMG_DELETE_LEFT, PAL_NONE, clearbtn_left + WD_IMGBTN_LEFT, (top + bottom + 1 - sprite_size.height) / 2);
-	if (this->empty()) GfxFillRect(clearbtn_left + 1, top + 1, clearbtn_right - 1, bottom - 1, _colour_gradient[wi->colour & 0xF][2], FILLRECT_CHECKER);
+	if (this->empty()) GfxFillRect (_cur_dpi, clearbtn_left + 1, top + 1, clearbtn_right - 1, bottom - 1, _colour_gradient[wi->colour & 0xF][2], FILLRECT_CHECKER);
 
 	DrawFrameRect(left, top, right, bottom, wi->colour, FR_LOWERED | FR_DARKENED);
-	GfxFillRect(left + 1, top + 1, right - 1, bottom - 1, PC_BLACK);
+	GfxFillRect (_cur_dpi, left + 1, top + 1, right - 1, bottom - 1, PC_BLACK);
 
 	/* Limit the drawing of the string inside the widget boundaries */
 	DrawPixelInfo dpi;
@@ -772,7 +772,7 @@ void QueryString::DrawEditBox(const Window *w, int wid) const
 	if (this->caretxoffs + delta < 0) delta = -this->caretxoffs;
 
 	/* If we have a marked area, draw a background highlight. */
-	if (this->marklength != 0) GfxFillRect(delta + this->markxoffs, 0, delta + this->markxoffs + this->marklength - 1, bottom - top, PC_GREY);
+	if (this->marklength != 0) GfxFillRect (_cur_dpi, delta + this->markxoffs, 0, delta + this->markxoffs + this->marklength - 1, bottom - top, PC_GREY);
 
 	DrawString(delta, this->pixels, 0, this->GetText(), TC_YELLOW);
 	bool focussed = w->IsWidgetGloballyFocused(wid) || IsOSKOpenedFor(w, wid);

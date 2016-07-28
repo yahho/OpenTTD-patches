@@ -194,7 +194,7 @@ static void DrawYearColumn(const Rect &r, int year, const Money (*tbl)[EXPENSES_
 		if (et == INVALID_EXPENSES) {
 			Money cost = subtotal;
 			subtotal = 0;
-			GfxFillRect(r.left, y, r.right, y, PC_BLACK);
+			GfxFillRect (_cur_dpi, r.left, y, r.right, y, PC_BLACK);
 			y += EXP_LINESPACE;
 			DrawPrice(cost, r.left, r.right, y);
 			y += FONT_HEIGHT_NORMAL + EXP_BLOCKSPACE;
@@ -207,7 +207,7 @@ static void DrawYearColumn(const Rect &r, int year, const Money (*tbl)[EXPENSES_
 		}
 	}
 
-	GfxFillRect(r.left, y, r.right, y, PC_BLACK);
+	GfxFillRect (_cur_dpi, r.left, y, r.right, y, PC_BLACK);
 	y += EXP_LINESPACE;
 	DrawPrice(sum, r.left, r.right, y);
 }
@@ -371,7 +371,7 @@ struct CompanyFinancesWindow : Window {
 			}
 
 			case WID_CF_LOAN_LINE:
-				GfxFillRect(r.left, r.top, r.right, r.top, PC_BLACK);
+				GfxFillRect (_cur_dpi, r.left, r.top, r.right, r.top, PC_BLACK);
 				break;
 		}
 	}
@@ -1840,7 +1840,7 @@ struct CompanyInfrastructureWindow : Window
 			case WID_CI_TOTAL:
 				if (_settings_game.economy.infrastructure_maintenance) {
 					int left = _current_text_dir == TD_RTL ? r.right - this->total_width : r.left;
-					GfxFillRect(left, y, left + this->total_width, y, PC_WHITE);
+					GfxFillRect (_cur_dpi, left, y, left + this->total_width, y, PC_WHITE);
 					y += EXP_LINESPACE;
 					SetDParam(0, this->GetTotalMaintenanceCost() * 12); // Convert to per year
 					DrawString(left, left + this->total_width, y, STR_COMPANY_INFRASTRUCTURE_VIEW_TOTAL, TC_FROMSTRING, SA_RIGHT);

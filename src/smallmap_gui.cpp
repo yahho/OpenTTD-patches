@@ -919,8 +919,8 @@ static Point GetSmallMapCoordIncludingHeight (Point viewport_coord)
  */
 static inline void DrawVertMapIndicator (int x, int y1, int y2)
 {
-	GfxFillRect (x, y1,     x, y1 + 3, PC_VERY_LIGHT_YELLOW);
-	GfxFillRect (x, y2 - 3, x, y2,     PC_VERY_LIGHT_YELLOW);
+	GfxFillRect (_cur_dpi, x, y1,     x, y1 + 3, PC_VERY_LIGHT_YELLOW);
+	GfxFillRect (_cur_dpi, x, y2 - 3, x, y2,     PC_VERY_LIGHT_YELLOW);
 }
 
 /**
@@ -931,8 +931,8 @@ static inline void DrawVertMapIndicator (int x, int y1, int y2)
  */
 static inline void DrawHorizMapIndicator (int x1, int x2, int y)
 {
-	GfxFillRect (x1,     y, x1 + 3, y, PC_VERY_LIGHT_YELLOW);
-	GfxFillRect (x2 - 3, y, x2,     y, PC_VERY_LIGHT_YELLOW);
+	GfxFillRect (_cur_dpi, x1,     y, x1 + 3, y, PC_VERY_LIGHT_YELLOW);
+	GfxFillRect (_cur_dpi, x2 - 3, y, x2,     y, PC_VERY_LIGHT_YELLOW);
 }
 
 /**
@@ -980,7 +980,7 @@ void SmallMapWindow::DrawSmallMap(DrawPixelInfo *dpi) const
 	_cur_dpi = dpi;
 
 	/* Clear it */
-	GfxFillRect(dpi->left, dpi->top, dpi->left + dpi->width - 1, dpi->top + dpi->height - 1, PC_BLACK);
+	GfxFillRect (_cur_dpi, dpi->left, dpi->top, dpi->left + dpi->width - 1, dpi->top + dpi->height - 1, PC_BLACK);
 
 	/* Which tile is displayed at (dpi->left, dpi->top)? */
 	int dx;
@@ -1274,7 +1274,7 @@ void SmallMapWindow::RebuildColourIndexIfNecessary()
 								DrawString(x + text_left, x + text_right, y, string, TC_GREY);
 							} else {
 								DrawString(x + text_left, x + text_right, y, string, TC_BLACK);
-								GfxFillRect(x + blob_left, y + 1, x + blob_right, y + row_height - 1, PC_BLACK); // Outer border of the legend colour
+								GfxFillRect (_cur_dpi, x + blob_left, y + 1, x + blob_right, y + row_height - 1, PC_BLACK); // Outer border of the legend colour
 							}
 							break;
 						}
@@ -1282,11 +1282,11 @@ void SmallMapWindow::RebuildColourIndexIfNecessary()
 					default:
 						if (this->map_type == SMT_CONTOUR) SetDParam(0, tbl->height * TILE_HEIGHT_STEP);
 						/* Anything that is not an industry or a company is using normal process */
-						GfxFillRect(x + blob_left, y + 1, x + blob_right, y + row_height - 1, PC_BLACK);
+						GfxFillRect (_cur_dpi, x + blob_left, y + 1, x + blob_right, y + row_height - 1, PC_BLACK);
 						DrawString(x + text_left, x + text_right, y, tbl->legend);
 						break;
 				}
-				GfxFillRect(x + blob_left + 1, y + 2, x + blob_right - 1, y + row_height - 2, legend_colour); // Legend colour
+				GfxFillRect (_cur_dpi, x + blob_left + 1, y + 2, x + blob_right - 1, y + row_height - 2, legend_colour); // Legend colour
 
 				y += row_height;
 			}

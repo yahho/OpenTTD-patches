@@ -2459,10 +2459,10 @@ void DrawArrowButtons(int x, int y, Colours button_colour, byte state, bool clic
 	/* Grey out the buttons that aren't clickable */
 	bool rtl = _current_text_dir == TD_RTL;
 	if (rtl ? !clickable_right : !clickable_left) {
-		GfxFillRect(x + 1, y, x + dim.width - 1, y + dim.height - 2, colour, FILLRECT_CHECKER);
+		GfxFillRect (_cur_dpi, x + 1, y, x + dim.width - 1, y + dim.height - 2, colour, FILLRECT_CHECKER);
 	}
 	if (rtl ? !clickable_left : !clickable_right) {
-		GfxFillRect(x + dim.width + 1, y, x + dim.width + dim.width - 1, y + dim.height - 2, colour, FILLRECT_CHECKER);
+		GfxFillRect (_cur_dpi, x + dim.width + 1, y, x + dim.width + dim.width - 1, y + dim.height - 2, colour, FILLRECT_CHECKER);
 	}
 }
 
@@ -2482,7 +2482,7 @@ void DrawDropDownButton(int x, int y, Colours button_colour, bool state, bool cl
 	DrawSprite(SPR_ARROW_DOWN, PAL_NONE, x + (SETTING_BUTTON_WIDTH - NWidgetScrollbar::GetVerticalDimension().width) / 2 + state, y + 2 + state);
 
 	if (!clickable) {
-		GfxFillRect(x +  1, y, x + SETTING_BUTTON_WIDTH - 1, y + SETTING_BUTTON_HEIGHT - 2, colour, FILLRECT_CHECKER);
+		GfxFillRect (_cur_dpi, x +  1, y, x + SETTING_BUTTON_WIDTH - 1, y + SETTING_BUTTON_HEIGHT - 2, colour, FILLRECT_CHECKER);
 	}
 }
 

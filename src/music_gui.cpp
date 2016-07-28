@@ -372,7 +372,7 @@ struct MusicTrackSelectionWindow : public Window {
 	{
 		switch (widget) {
 			case WID_MTS_LIST_LEFT: {
-				GfxFillRect(r.left + 1, r.top + 1, r.right - 1, r.bottom - 1, PC_BLACK);
+				GfxFillRect (_cur_dpi, r.left + 1, r.top + 1, r.right - 1, r.bottom - 1, PC_BLACK);
 
 				int y = r.top + WD_FRAMERECT_TOP;
 				for (uint i = 0; i < NUM_SONGS_AVAILABLE; i++) {
@@ -389,7 +389,7 @@ struct MusicTrackSelectionWindow : public Window {
 			}
 
 			case WID_MTS_LIST_RIGHT: {
-				GfxFillRect(r.left + 1, r.top + 1, r.right - 1, r.bottom - 1, PC_BLACK);
+				GfxFillRect (_cur_dpi, r.left + 1, r.top + 1, r.right - 1, r.bottom - 1, PC_BLACK);
 
 				int y = r.top + WD_FRAMERECT_TOP;
 				for (const byte *p = _playlists[_settings_client.music.playlist]; *p != 0; p++) {
@@ -573,7 +573,7 @@ struct MusicWindow : public Window {
 	{
 		switch (widget) {
 			case WID_M_TRACK_NR: {
-				GfxFillRect(r.left + 1, r.top + 1, r.right, r.bottom, PC_BLACK);
+				GfxFillRect (_cur_dpi, r.left + 1, r.top + 1, r.right, r.bottom, PC_BLACK);
 				StringID str = STR_MUSIC_TRACK_NONE;
 				if (_song_is_active != 0 && _music_wnd_cursong != 0) {
 					SetDParam(0, GetTrackNumber(_music_wnd_cursong - 1));
@@ -585,7 +585,7 @@ struct MusicWindow : public Window {
 			}
 
 			case WID_M_TRACK_NAME: {
-				GfxFillRect(r.left, r.top + 1, r.right - 1, r.bottom, PC_BLACK);
+				GfxFillRect (_cur_dpi, r.left, r.top + 1, r.right - 1, r.bottom, PC_BLACK);
 				StringID str = STR_MUSIC_TITLE_NONE;
 				if (_song_is_active != 0 && _music_wnd_cursong != 0) {
 					str = STR_MUSIC_TITLE_NAME;

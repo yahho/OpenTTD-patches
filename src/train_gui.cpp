@@ -41,7 +41,7 @@ static int HighlightDragPosition(int px, int max_width, VehicleID selection)
 	int drag_hlight_width = max(drag_hlight_right - drag_hlight_left, 0);
 
 	if (drag_hlight_width > 0) {
-		GfxFillRect(drag_hlight_left + WD_FRAMERECT_LEFT, WD_FRAMERECT_TOP + 1,
+		GfxFillRect (_cur_dpi, drag_hlight_left + WD_FRAMERECT_LEFT, WD_FRAMERECT_TOP + 1,
 				drag_hlight_right - WD_FRAMERECT_RIGHT, ScaleGUITrad(13) - WD_FRAMERECT_BOTTOM, _colour_gradient[COLOUR_GREY][7]);
 	}
 
@@ -371,7 +371,7 @@ void DrawTrainDetails(const Train *v, int left, int right, int y, int vscroll_po
 				if (vscroll_pos <= 0 && vscroll_pos > -vscroll_cap) {
 					int py = y - line_height * vscroll_pos + text_y_offset;
 					if (i > 0 || separate_sprite_row) {
-						if (vscroll_pos != 0) GfxFillRect(left, py - WD_MATRIX_TOP - 1, right, py - WD_MATRIX_TOP, _colour_gradient[COLOUR_GREY][5]);
+						if (vscroll_pos != 0) GfxFillRect (_cur_dpi, left, py - WD_MATRIX_TOP - 1, right, py - WD_MATRIX_TOP, _colour_gradient[COLOUR_GREY][5]);
 					}
 					switch (det_tab) {
 						case TDW_TAB_CARGO:

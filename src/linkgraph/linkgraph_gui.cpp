@@ -183,7 +183,7 @@ static void DrawVertex (int x, int y, int size, int colour, int border_colour)
 	int w1 = size / 2;
 	int w2 = size / 2 + size % 2;
 
-	GfxFillRect(x - w1, y - w1, x + w2, y + w2, colour);
+	GfxFillRect (_cur_dpi, x - w1, y - w1, x + w2, y + w2, colour);
 
 	w1++;
 	w2++;
@@ -463,7 +463,7 @@ void LinkGraphLegendWindow::DrawWidget(const Rect &r, int widget) const
 		DrawCompanyIcon(cid, (r.left + r.right + 1 - sprite_size.width) / 2, (r.top + r.bottom + 1 - sprite_size.height) / 2);
 	}
 	if (IsInsideMM(widget, WID_LGL_SATURATION_FIRST, WID_LGL_SATURATION_LAST + 1)) {
-		GfxFillRect(r.left + 1, r.top + 1, r.right - 1, r.bottom - 1, LinkGraphOverlay::LINK_COLOURS[widget - WID_LGL_SATURATION_FIRST]);
+		GfxFillRect (_cur_dpi, r.left + 1, r.top + 1, r.right - 1, r.bottom - 1, LinkGraphOverlay::LINK_COLOURS[widget - WID_LGL_SATURATION_FIRST]);
 		StringID str = STR_NULL;
 		if (widget == WID_LGL_SATURATION_FIRST) {
 			str = STR_LINKGRAPH_LEGEND_UNUSED;
@@ -477,7 +477,7 @@ void LinkGraphLegendWindow::DrawWidget(const Rect &r, int widget) const
 	if (IsInsideMM(widget, WID_LGL_CARGO_FIRST, WID_LGL_CARGO_LAST + 1)) {
 		if (this->IsWidgetDisabled(widget)) return;
 		CargoSpec *cargo = CargoSpec::Get(widget - WID_LGL_CARGO_FIRST);
-		GfxFillRect(r.left + 2, r.top + 2, r.right - 2, r.bottom - 2, cargo->legend_colour);
+		GfxFillRect (_cur_dpi, r.left + 2, r.top + 2, r.right - 2, r.bottom - 2, cargo->legend_colour);
 		DrawString(r.left, r.right, (r.top + r.bottom + 1 - FONT_HEIGHT_SMALL) / 2, cargo->abbrev, TC_BLACK, SA_HOR_CENTER);
 	}
 }

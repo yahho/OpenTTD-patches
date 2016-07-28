@@ -204,7 +204,7 @@ struct IConsoleWindow : Window
 	{
 		const int right = this->width - 5;
 
-		GfxFillRect(0, 0, this->width - 1, this->height - 1, PC_BLACK);
+		GfxFillRect (_cur_dpi, 0, 0, this->width - 1, this->height - 1, PC_BLACK);
 		int ypos = this->height - this->line_height;
 		for (const IConsoleLine *print = IConsoleLine::Get(IConsoleWindow::scroll); print != NULL; print = print->previous) {
 			SetDParamStr(0, print->buffer);
@@ -219,7 +219,7 @@ struct IConsoleWindow : Window
 		}
 
 		/* If we have a marked area, draw a background highlight. */
-		if (_iconsole_cmdline.marklength != 0) GfxFillRect(this->line_offset + delta + _iconsole_cmdline.markxoffs, this->height - this->line_height, this->line_offset + delta + _iconsole_cmdline.markxoffs + _iconsole_cmdline.marklength, this->height - 1, PC_DARK_RED);
+		if (_iconsole_cmdline.marklength != 0) GfxFillRect (_cur_dpi, this->line_offset + delta + _iconsole_cmdline.markxoffs, this->height - this->line_height, this->line_offset + delta + _iconsole_cmdline.markxoffs + _iconsole_cmdline.marklength, this->height - 1, PC_DARK_RED);
 
 		DrawString(this->line_offset + delta, right, this->height - this->line_height, _iconsole_cmdline.GetText(), (TextColour)CC_COMMAND, SA_LEFT | SA_FORCE);
 

@@ -236,7 +236,7 @@ private:
 	{
 		/* Highlight the group if a vehicle is dragged over it */
 		if (g_id == this->group_over) {
-			GfxFillRect(left + WD_FRAMERECT_LEFT, y + WD_FRAMERECT_TOP, right - WD_FRAMERECT_RIGHT, y + this->tiny_step_height - WD_FRAMERECT_BOTTOM - WD_MATRIX_TOP, _colour_gradient[COLOUR_GREY][7]);
+			GfxFillRect (_cur_dpi, left + WD_FRAMERECT_LEFT, y + WD_FRAMERECT_TOP, right - WD_FRAMERECT_RIGHT, y + this->tiny_step_height - WD_FRAMERECT_BOTTOM - WD_MATRIX_TOP, _colour_gradient[COLOUR_GREY][7]);
 		}
 
 		if (g_id == NEW_GROUP) return;
@@ -561,7 +561,7 @@ public:
 					for (uint i = this->vscroll->GetPosition(); i < max; ++i) {
 						const Vehicle *v = this->vehicles[i];
 						if (v->group_id != this->vli.index) {
-							GfxFillRect(r.left + 1, y + 1, r.right - 1, y + this->resize.step_height - 2, _colour_gradient[COLOUR_GREY][3], FILLRECT_CHECKER);
+							GfxFillRect (_cur_dpi, r.left + 1, y + 1, r.right - 1, y + this->resize.step_height - 2, _colour_gradient[COLOUR_GREY][3], FILLRECT_CHECKER);
 						}
 						y += this->resize.step_height;
 					}

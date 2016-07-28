@@ -1143,7 +1143,7 @@ public:
 				/* Check station availability callback */
 				const StationSpec *statspec = StationClass::Get(_railstation.station_class)->GetSpec(type);
 				if (!IsStationAvailable(statspec)) {
-					GfxFillRect(r.left + 1, r.top + 1, r.right - 1, r.bottom - 1, PC_BLACK, FILLRECT_CHECKER);
+					GfxFillRect (_cur_dpi, r.left + 1, r.top + 1, r.right - 1, r.bottom - 1, PC_BLACK, FILLRECT_CHECKER);
 				}
 
 				/* Set up a clipping area for the station preview. */
@@ -1817,7 +1817,7 @@ struct BuildRailWaypointWindow : PickerWindowBase {
 				DrawWaypointSprite(r.left + 1 + ScaleGUITrad(31), r.bottom - ScaleGUITrad(31), type, _cur_railtype);
 
 				if (!IsStationAvailable(statspec)) {
-					GfxFillRect(r.left + 1, r.top + 1, r.right - 1, r.bottom - 1, PC_BLACK, FILLRECT_CHECKER);
+					GfxFillRect (_cur_dpi, r.left + 1, r.top + 1, r.right - 1, r.bottom - 1, PC_BLACK, FILLRECT_CHECKER);
 				}
 			}
 		}

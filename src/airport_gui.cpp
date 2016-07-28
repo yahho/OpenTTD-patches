@@ -364,7 +364,7 @@ public:
 				for (uint i = this->vscroll->GetPosition(); this->vscroll->IsVisible(i) && i < apclass->GetSpecCount(); i++) {
 					const AirportSpec *as = apclass->GetSpec(i);
 					if (!as->IsAvailable()) {
-						GfxFillRect(r.left + 1, y + 1, r.right - 1, y + this->line_height - 2, PC_BLACK, FILLRECT_CHECKER);
+						GfxFillRect (_cur_dpi, r.left + 1, y + 1, r.right - 1, y + this->line_height - 2, PC_BLACK, FILLRECT_CHECKER);
 					}
 					DrawString(r.left + WD_MATRIX_LEFT, r.right - WD_MATRIX_RIGHT, y + WD_MATRIX_TOP, as->name, ((int)i == _selected_airport_index) ? TC_WHITE : TC_BLACK);
 					y += this->line_height;

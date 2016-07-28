@@ -105,6 +105,7 @@ void GfxScroll(int left, int top, int width, int height, int xo, int yo)
  * Applies a certain FillRectMode-operation to a rectangle [left, right] x [top, bottom] on the screen.
  *
  * @pre dpi->zoom == ZOOM_LVL_NORMAL, right >= left, bottom >= top
+ * @param dpi Area to blit to
  * @param left Minimum X (inclusive)
  * @param top Minimum Y (inclusive)
  * @param right Maximum X (inclusive)
@@ -115,14 +116,12 @@ void GfxScroll(int left, int top, int width, int height, int xo, int yo)
  *         FILLRECT_CHECKER:  Like FILLRECT_OPAQUE, but only draw every second pixel (used to grey out things)
  *         FILLRECT_RECOLOUR:  Apply a recolour sprite to every pixel in the rectangle currently on screen
  */
-void GfxFillRect(int left, int top, int right, int bottom, int colour, FillRectMode mode)
+void GfxFillRect (BlitArea *dpi, int left, int top, int right, int bottom, int colour, FillRectMode mode)
 {
-	const DrawPixelInfo *dpi = _cur_dpi;
 	void *dst;
 	const int otop = top;
 	const int oleft = left;
 
-	if (dpi->zoom != ZOOM_LVL_NORMAL) return;
 	if (left > right || top > bottom) return;
 	if (right < dpi->left || left >= dpi->left + dpi->width) return;
 	if (bottom < dpi->top || top >= dpi->top + dpi->height) return;
@@ -481,7 +480,7 @@ static int DrawLayoutLine(const ParagraphLayouter::Line *line, int y, int left, 
 	}
 
 	if (underline) {
-		GfxFillRect(left, y + h, right, y + h, _string_colourremap[1]);
+		GfxFillRect (_cur_dpi, left, y + h, right, y + h, _string_colourremap[1]);
 	}
 
 	return (align & SA_HOR_MASK) == SA_RIGHT ? left : right;

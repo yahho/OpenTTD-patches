@@ -56,8 +56,8 @@ public:
 
 	virtual void DrawWidget(const Rect &r, int widget) const
 	{
-		GfxFillRect(r.left, r.top, r.right, r.bottom, 4, FILLRECT_OPAQUE);
-		GfxFillRect(r.left, r.top, r.right, r.bottom, 0, FILLRECT_CHECKER);
+		GfxFillRect (_cur_dpi, r.left, r.top, r.right, r.bottom, 4, FILLRECT_OPAQUE);
+		GfxFillRect (_cur_dpi, r.left, r.top, r.right, r.bottom, 0, FILLRECT_CHECKER);
 	}
 };
 

@@ -691,7 +691,7 @@ public:
 		for (ConstContentIterator iter = this->content.Get(this->vscroll->GetPosition()); iter != this->content.End() && cnt < this->vscroll->GetCapacity(); iter++, cnt++) {
 			const ContentInfo *ci = *iter;
 
-			if (ci == this->selected) GfxFillRect(r.left + 1, y + 1, r.right - 1, y + this->resize.step_height - 1, PC_GREY);
+			if (ci == this->selected) GfxFillRect (_cur_dpi, r.left + 1, y + 1, r.right - 1, y + this->resize.step_height - 1, PC_GREY);
 
 			SpriteID sprite;
 			SpriteID pal = PAL_NONE;
@@ -726,7 +726,7 @@ public:
 		int DETAIL_TITLE_HEIGHT = 5 * FONT_HEIGHT_NORMAL;
 
 		/* Create the nice grayish rectangle at the details top */
-		GfxFillRect(r.left + 1, r.top + 1, r.right - 1, r.top + DETAIL_TITLE_HEIGHT, PC_DARK_BLUE);
+		GfxFillRect (_cur_dpi, r.left + 1, r.top + 1, r.right - 1, r.top + DETAIL_TITLE_HEIGHT, PC_DARK_BLUE);
 		DrawString(r.left + WD_INSET_LEFT, r.right - WD_INSET_RIGHT, r.top + FONT_HEIGHT_NORMAL + WD_INSET_TOP, STR_CONTENT_DETAIL_TITLE, TC_FROMSTRING, SA_HOR_CENTER);
 
 		/* Draw the total download size */

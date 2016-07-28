@@ -1098,7 +1098,7 @@ public:
 					int top = (this->order_over < this->selected_order ? y : y + line_height) - WD_FRAMERECT_TOP;
 					int bottom = min(top + 2, r.bottom - WD_FRAMERECT_BOTTOM);
 					top = max(top - 3, r.top + WD_FRAMERECT_TOP);
-					GfxFillRect(r.left + WD_FRAMETEXT_LEFT, top, r.right - WD_FRAMETEXT_RIGHT, bottom, _colour_gradient[COLOUR_GREY][7]);
+					GfxFillRect (_cur_dpi, r.left + WD_FRAMETEXT_LEFT, top, r.right - WD_FRAMETEXT_RIGHT, bottom, _colour_gradient[COLOUR_GREY][7]);
 					break;
 				}
 				y += line_height;

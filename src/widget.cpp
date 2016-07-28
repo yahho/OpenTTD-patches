@@ -182,25 +182,25 @@ void DrawFrameRect(int left, int top, int right, int bottom, Colours colour, Fra
 	uint light        = _colour_gradient[colour][7];
 
 	if (flags & FR_TRANSPARENT) {
-		GfxFillRect(left, top, right, bottom, PALETTE_TO_TRANSPARENT, FILLRECT_RECOLOUR);
+		GfxFillRect (_cur_dpi, left, top, right, bottom, PALETTE_TO_TRANSPARENT, FILLRECT_RECOLOUR);
 	} else {
 		uint interior;
 
 		if (flags & FR_LOWERED) {
-			GfxFillRect(left,                 top,                left,                   bottom,                   dark);
-			GfxFillRect(left + WD_BEVEL_LEFT, top,                right,                  top,                      dark);
-			GfxFillRect(right,                top + WD_BEVEL_TOP, right,                  bottom - WD_BEVEL_BOTTOM, light);
-			GfxFillRect(left + WD_BEVEL_LEFT, bottom,             right,                  bottom,                   light);
+			GfxFillRect (_cur_dpi, left,                 top,                left,                   bottom,                   dark);
+			GfxFillRect (_cur_dpi, left + WD_BEVEL_LEFT, top,                right,                  top,                      dark);
+			GfxFillRect (_cur_dpi, right,                top + WD_BEVEL_TOP, right,                  bottom - WD_BEVEL_BOTTOM, light);
+			GfxFillRect (_cur_dpi, left + WD_BEVEL_LEFT, bottom,             right,                  bottom,                   light);
 			interior = (flags & FR_DARKENED ? medium_dark : medium_light);
 		} else {
-			GfxFillRect(left,                 top,                left,                   bottom - WD_BEVEL_BOTTOM, light);
-			GfxFillRect(left + WD_BEVEL_LEFT, top,                right - WD_BEVEL_RIGHT, top,                      light);
-			GfxFillRect(right,                top,                right,                  bottom - WD_BEVEL_BOTTOM, dark);
-			GfxFillRect(left,                 bottom,             right,                  bottom,                   dark);
+			GfxFillRect (_cur_dpi, left,                 top,                left,                   bottom - WD_BEVEL_BOTTOM, light);
+			GfxFillRect (_cur_dpi, left + WD_BEVEL_LEFT, top,                right - WD_BEVEL_RIGHT, top,                      light);
+			GfxFillRect (_cur_dpi, right,                top,                right,                  bottom - WD_BEVEL_BOTTOM, dark);
+			GfxFillRect (_cur_dpi, left,                 bottom,             right,                  bottom,                   dark);
 			interior = medium_dark;
 		}
 		if (!(flags & FR_BORDERONLY)) {
-			GfxFillRect(left + WD_BEVEL_LEFT, top + WD_BEVEL_TOP, right - WD_BEVEL_RIGHT, bottom - WD_BEVEL_BOTTOM, interior);
+			GfxFillRect (_cur_dpi, left + WD_BEVEL_LEFT, top + WD_BEVEL_TOP, right - WD_BEVEL_RIGHT, bottom - WD_BEVEL_BOTTOM, interior);
 		}
 	}
 }
@@ -274,13 +274,13 @@ static inline void DrawMatrix(const Rect &r, Colours colour, bool clicked, uint1
 	int x = r.left;
 	for (int ctr = num_columns; ctr > 1; ctr--) {
 		x += column_width;
-		GfxFillRect(x, r.top + 1, x, r.bottom - 1, col);
+		GfxFillRect (_cur_dpi, x, r.top + 1, x, r.bottom - 1, col);
 	}
 
 	x = r.top;
 	for (int ctr = num_rows; ctr > 1; ctr--) {
 		x += row_height;
-		GfxFillRect(r.left + 1, x, r.right - 1, x, col);
+		GfxFillRect (_cur_dpi, r.left + 1, x, r.right - 1, x, col);
 	}
 
 	col = _colour_gradient[colour & 0xF][4];
@@ -288,13 +288,13 @@ static inline void DrawMatrix(const Rect &r, Colours colour, bool clicked, uint1
 	x = r.left - 1;
 	for (int ctr = num_columns; ctr > 1; ctr--) {
 		x += column_width;
-		GfxFillRect(x, r.top + 1, x, r.bottom - 1, col);
+		GfxFillRect (_cur_dpi, x, r.top + 1, x, r.bottom - 1, col);
 	}
 
 	x = r.top - 1;
 	for (int ctr = num_rows; ctr > 1; ctr--) {
 		x += row_height;
-		GfxFillRect(r.left + 1, x, r.right - 1, x, col);
+		GfxFillRect (_cur_dpi, r.left + 1, x, r.right - 1, x, col);
 	}
 }
 
@@ -323,14 +323,14 @@ static inline void DrawVerticalScrollbar(const Rect &r, Colours colour, bool up_
 	int c2 = _colour_gradient[colour & 0xF][7];
 
 	/* draw "shaded" background */
-	GfxFillRect(r.left, r.top + height, r.right, r.bottom - height, c2);
-	GfxFillRect(r.left, r.top + height, r.right, r.bottom - height, c1, FILLRECT_CHECKER);
+	GfxFillRect (_cur_dpi, r.left, r.top + height, r.right, r.bottom - height, c2);
+	GfxFillRect (_cur_dpi, r.left, r.top + height, r.right, r.bottom - height, c1, FILLRECT_CHECKER);
 
 	/* draw shaded lines */
-	GfxFillRect(r.left + centre - 3, r.top + height, r.left + centre - 3, r.bottom - height, c1);
-	GfxFillRect(r.left + centre - 2, r.top + height, r.left + centre - 2, r.bottom - height, c2);
-	GfxFillRect(r.left + centre + 2, r.top + height, r.left + centre + 2, r.bottom - height, c1);
-	GfxFillRect(r.left + centre + 3, r.top + height, r.left + centre + 3, r.bottom - height, c2);
+	GfxFillRect (_cur_dpi, r.left + centre - 3, r.top + height, r.left + centre - 3, r.bottom - height, c1);
+	GfxFillRect (_cur_dpi, r.left + centre - 2, r.top + height, r.left + centre - 2, r.bottom - height, c2);
+	GfxFillRect (_cur_dpi, r.left + centre + 2, r.top + height, r.left + centre + 2, r.bottom - height, c1);
+	GfxFillRect (_cur_dpi, r.left + centre + 3, r.top + height, r.left + centre + 3, r.bottom - height, c2);
 
 	Point pt = HandleScrollbarHittest(scrollbar, r.top, r.bottom, false);
 	DrawFrameRect(r.left, pt.x, r.right, pt.y, colour, bar_dragged ? FR_LOWERED : FR_NONE);
@@ -360,14 +360,14 @@ static inline void DrawHorizontalScrollbar(const Rect &r, Colours colour, bool l
 	int c2 = _colour_gradient[colour & 0xF][7];
 
 	/* draw "shaded" background */
-	GfxFillRect(r.left + width, r.top, r.right - width, r.bottom, c2);
-	GfxFillRect(r.left + width, r.top, r.right - width, r.bottom, c1, FILLRECT_CHECKER);
+	GfxFillRect (_cur_dpi, r.left + width, r.top, r.right - width, r.bottom, c2);
+	GfxFillRect (_cur_dpi, r.left + width, r.top, r.right - width, r.bottom, c1, FILLRECT_CHECKER);
 
 	/* draw shaded lines */
-	GfxFillRect(r.left + width, r.top + centre - 3, r.right - width, r.top + centre - 3, c1);
-	GfxFillRect(r.left + width, r.top + centre - 2, r.right - width, r.top + centre - 2, c2);
-	GfxFillRect(r.left + width, r.top + centre + 2, r.right - width, r.top + centre + 2, c1);
-	GfxFillRect(r.left + width, r.top + centre + 3, r.right - width, r.top + centre + 3, c2);
+	GfxFillRect (_cur_dpi, r.left + width, r.top + centre - 3, r.right - width, r.top + centre - 3, c1);
+	GfxFillRect (_cur_dpi, r.left + width, r.top + centre - 2, r.right - width, r.top + centre - 2, c2);
+	GfxFillRect (_cur_dpi, r.left + width, r.top + centre + 2, r.right - width, r.top + centre + 2, c1);
+	GfxFillRect (_cur_dpi, r.left + width, r.top + centre + 3, r.right - width, r.top + centre + 3, c2);
 
 	/* draw actual scrollbar */
 	Point pt = HandleScrollbarHittest(scrollbar, r.left, r.right, true);
@@ -396,32 +396,32 @@ static inline void DrawFrame(const Rect &r, Colours colour, StringID str)
 
 	if (_current_text_dir == TD_LTR) {
 		/* Line from upper left corner to start of text */
-		GfxFillRect(r.left, r.top + dy1, r.left + 4, r.top + dy1, c1);
-		GfxFillRect(r.left + 1, r.top + dy2, r.left + 4, r.top + dy2, c2);
+		GfxFillRect (_cur_dpi, r.left, r.top + dy1, r.left + 4, r.top + dy1, c1);
+		GfxFillRect (_cur_dpi, r.left + 1, r.top + dy2, r.left + 4, r.top + dy2, c2);
 
 		/* Line from end of text to upper right corner */
-		GfxFillRect(x2, r.top + dy1, r.right - 1, r.top + dy1, c1);
-		GfxFillRect(x2, r.top + dy2, r.right - 2, r.top + dy2, c2);
+		GfxFillRect (_cur_dpi, x2, r.top + dy1, r.right - 1, r.top + dy1, c1);
+		GfxFillRect (_cur_dpi, x2, r.top + dy2, r.right - 2, r.top + dy2, c2);
 	} else {
 		/* Line from upper left corner to start of text */
-		GfxFillRect(r.left, r.top + dy1, x2 - 2, r.top + dy1, c1);
-		GfxFillRect(r.left + 1, r.top + dy2, x2 - 2, r.top + dy2, c2);
+		GfxFillRect (_cur_dpi, r.left, r.top + dy1, x2 - 2, r.top + dy1, c1);
+		GfxFillRect (_cur_dpi, r.left + 1, r.top + dy2, x2 - 2, r.top + dy2, c2);
 
 		/* Line from end of text to upper right corner */
-		GfxFillRect(r.right - 5, r.top + dy1, r.right - 1, r.top + dy1, c1);
-		GfxFillRect(r.right - 5, r.top + dy2, r.right - 2, r.top + dy2, c2);
+		GfxFillRect (_cur_dpi, r.right - 5, r.top + dy1, r.right - 1, r.top + dy1, c1);
+		GfxFillRect (_cur_dpi, r.right - 5, r.top + dy2, r.right - 2, r.top + dy2, c2);
 	}
 
 	/* Line from upper left corner to bottom left corner */
-	GfxFillRect(r.left, r.top + dy2, r.left, r.bottom - 1, c1);
-	GfxFillRect(r.left + 1, r.top + dy2 + 1, r.left + 1, r.bottom - 2, c2);
+	GfxFillRect (_cur_dpi, r.left, r.top + dy2, r.left, r.bottom - 1, c1);
+	GfxFillRect (_cur_dpi, r.left + 1, r.top + dy2 + 1, r.left + 1, r.bottom - 2, c2);
 
 	/* Line from upper right corner to bottom right corner */
-	GfxFillRect(r.right - 1, r.top + dy2, r.right - 1, r.bottom - 2, c1);
-	GfxFillRect(r.right, r.top + dy1, r.right, r.bottom - 1, c2);
+	GfxFillRect (_cur_dpi, r.right - 1, r.top + dy2, r.right - 1, r.bottom - 2, c1);
+	GfxFillRect (_cur_dpi, r.right, r.top + dy1, r.right, r.bottom - 1, c2);
 
-	GfxFillRect(r.left + 1, r.bottom - 1, r.right - 1, r.bottom - 1, c1);
-	GfxFillRect(r.left, r.bottom, r.right, r.bottom, c2);
+	GfxFillRect (_cur_dpi, r.left + 1, r.bottom - 1, r.right - 1, r.bottom - 1, c1);
+	GfxFillRect (_cur_dpi, r.left, r.bottom, r.right, r.bottom, c2);
 }
 
 /**
@@ -439,7 +439,7 @@ void DrawCaption(const Rect &r, Colours colour, Owner owner, StringID str)
 	DrawFrameRect(r.left + 1, r.top + 1, r.right - 1, r.bottom - 1, colour, company_owned ? FR_LOWERED | FR_DARKENED | FR_BORDERONLY : FR_LOWERED | FR_DARKENED);
 
 	if (company_owned) {
-		GfxFillRect(r.left + 2, r.top + 2, r.right - 2, r.bottom - 2, _colour_gradient[_company_colours[owner]][4]);
+		GfxFillRect (_cur_dpi, r.left + 2, r.top + 2, r.right - 2, r.bottom - 2, _colour_gradient[_company_colours[owner]][4]);
 	}
 
 	if (str != STR_NULL) {
@@ -504,10 +504,10 @@ void Window::DrawWidgets() const
 
 			int colour = _string_colourmap[_window_highlight_colour ? widget->GetHighlightColour() : TC_WHITE];
 
-			GfxFillRect(left,                 top,    left,                   bottom - WD_BEVEL_BOTTOM, colour);
-			GfxFillRect(left + WD_BEVEL_LEFT, top,    right - WD_BEVEL_RIGHT, top,                      colour);
-			GfxFillRect(right,                top,    right,                  bottom - WD_BEVEL_BOTTOM, colour);
-			GfxFillRect(left,                 bottom, right,                  bottom,                   colour);
+			GfxFillRect (_cur_dpi, left,                 top,    left,                   bottom - WD_BEVEL_BOTTOM, colour);
+			GfxFillRect (_cur_dpi, left + WD_BEVEL_LEFT, top,    right - WD_BEVEL_RIGHT, top,                      colour);
+			GfxFillRect (_cur_dpi, right,                top,    right,                  bottom - WD_BEVEL_BOTTOM, colour);
+			GfxFillRect (_cur_dpi, left,                 bottom, right,                  bottom,                   colour);
 		}
 	}
 }
@@ -1507,7 +1507,7 @@ NWidgetCore *NWidgetMatrix::GetWidgetFromPos(int x, int y)
 /* virtual */ void NWidgetMatrix::Draw(const Window *w)
 {
 	/* Fill the background. */
-	GfxFillRect(this->pos_x, this->pos_y, this->pos_x + this->current_x - 1, this->pos_y + this->current_y - 1, _colour_gradient[this->colour & 0xF][5]);
+	GfxFillRect (_cur_dpi, this->pos_x, this->pos_y, this->pos_x + this->current_x - 1, this->pos_y + this->current_y - 1, _colour_gradient[this->colour & 0xF][5]);
 
 	/* Set up a clipping area for the previews. */
 	bool rtl = _current_text_dir == TD_RTL;
@@ -1747,7 +1747,7 @@ void NWidgetBackground::Draw(const Window *w)
 	if (this->child != NULL) this->child->Draw(w);
 
 	if (this->IsDisabled()) {
-		GfxFillRect(r.left + 1, r.top + 1, r.right - 1, r.bottom - 1, _colour_gradient[this->colour & 0xF][2], FILLRECT_CHECKER);
+		GfxFillRect (_cur_dpi, r.left + 1, r.top + 1, r.right - 1, r.bottom - 1, _colour_gradient[this->colour & 0xF][2], FILLRECT_CHECKER);
 	}
 }
 
@@ -1797,7 +1797,7 @@ void NWidgetViewport::Draw(const Window *w)
 
 	/* Optionally shade the viewport. */
 	if (this->disp_flags & (ND_SHADE_GREY | ND_SHADE_DIMMED)) {
-		GfxFillRect(this->pos_x, this->pos_y, this->pos_x + this->current_x - 1, this->pos_y + this->current_y - 1,
+		GfxFillRect (_cur_dpi, this->pos_x, this->pos_y, this->pos_x + this->current_x - 1, this->pos_y + this->current_y - 1,
 				(this->disp_flags & ND_SHADE_DIMMED) ? PALETTE_TO_TRANSPARENT : PALETTE_NEWSPAPER, FILLRECT_RECOLOUR);
 	}
 }
@@ -1931,7 +1931,7 @@ void NWidgetScrollbar::Draw(const Window *w)
 	}
 
 	if (this->IsDisabled()) {
-		GfxFillRect(r.left + 1, r.top + 1, r.right - 1, r.bottom - 1, _colour_gradient[this->colour & 0xF][2], FILLRECT_CHECKER);
+		GfxFillRect (_cur_dpi, r.left + 1, r.top + 1, r.right - 1, r.bottom - 1, _colour_gradient[this->colour & 0xF][2], FILLRECT_CHECKER);
 	}
 }
 
@@ -2418,7 +2418,7 @@ void NWidgetLeaf::Draw(const Window *w)
 	if (this->index >= 0) w->DrawWidget(r, this->index);
 
 	if (this->IsDisabled()) {
-		GfxFillRect(r.left + 1, r.top + 1, r.right - 1, r.bottom - 1, _colour_gradient[this->colour & 0xF][2], FILLRECT_CHECKER);
+		GfxFillRect (_cur_dpi, r.left + 1, r.top + 1, r.right - 1, r.bottom - 1, _colour_gradient[this->colour & 0xF][2], FILLRECT_CHECKER);
 	}
 }
 

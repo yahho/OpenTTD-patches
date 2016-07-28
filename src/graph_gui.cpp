@@ -334,7 +334,7 @@ protected:
 		x = r.left + x_sep;
 
 		for (int i = 0; i < this->num_vert_lines; i++) {
-			GfxFillRect(x, r.top, x, r.bottom, grid_colour);
+			GfxFillRect (_cur_dpi, x, r.top, x, r.bottom, grid_colour);
 			x += x_sep;
 		}
 
@@ -342,17 +342,17 @@ protected:
 		y = r.bottom;
 
 		for (int i = 0; i < (num_hori_lines + 1); i++) {
-			GfxFillRect(r.left - 3, y, r.left - 1, y, GRAPH_AXIS_LINE_COLOUR);
-			GfxFillRect(r.left, y, r.right, y, grid_colour);
+			GfxFillRect (_cur_dpi, r.left - 3, y, r.left - 1, y, GRAPH_AXIS_LINE_COLOUR);
+			GfxFillRect (_cur_dpi, r.left, y, r.right, y, grid_colour);
 			y -= y_sep;
 		}
 
 		/* Draw the y axis. */
-		GfxFillRect(r.left, r.top, r.left, r.bottom, GRAPH_AXIS_LINE_COLOUR);
+		GfxFillRect (_cur_dpi, r.left, r.top, r.left, r.bottom, GRAPH_AXIS_LINE_COLOUR);
 
 		/* Draw the x axis. */
 		y = x_axis_offset + r.top;
-		GfxFillRect(r.left, y, r.right, y, GRAPH_AXIS_LINE_COLOUR);
+		GfxFillRect (_cur_dpi, r.left, y, r.right, y, GRAPH_AXIS_LINE_COLOUR);
 
 		/* Find the largest value that will be drawn. */
 		if (this->num_on_x_axis == 0) return;
@@ -449,7 +449,7 @@ protected:
 						y = r.top + x_axis_offset - ((r.bottom - r.top) * datapoint) / (interval_size >> reduce_range);
 
 						/* Draw the point. */
-						GfxFillRect(x - pointoffs1, y - pointoffs1, x + pointoffs2, y + pointoffs2, colour);
+						GfxFillRect (_cur_dpi, x - pointoffs1, y - pointoffs1, x + pointoffs2, y + pointoffs2, colour);
 
 						/* Draw the line connected to the previous point. */
 						if (prev_x != INVALID_DATAPOINT_POS) GfxDrawLine(prev_x, prev_y, x, y, colour, linewidth);
@@ -980,8 +980,8 @@ struct PaymentRatesGraphWindow : BaseGraphWindow {
 
 		int rect_x = clk_dif + (rtl ? r.right - 12 : r.left + WD_FRAMERECT_LEFT);
 
-		GfxFillRect(rect_x, y + clk_dif, rect_x + 8, y + 5 + clk_dif, PC_BLACK);
-		GfxFillRect(rect_x + 1, y + 1 + clk_dif, rect_x + 7, y + 4 + clk_dif, cs->legend_colour);
+		GfxFillRect (_cur_dpi, rect_x, y + clk_dif, rect_x + 8, y + 5 + clk_dif, PC_BLACK);
+		GfxFillRect (_cur_dpi, rect_x + 1, y + 1 + clk_dif, rect_x + 7, y + 4 + clk_dif, cs->legend_colour);
 		SetDParam(0, cs->name);
 		DrawString(rtl ? r.left : x + 14 + clk_dif, (rtl ? r.right - 14 + clk_dif : r.right), y + clk_dif, STR_GRAPH_CARGO_PAYMENT_CARGO);
 	}
@@ -1465,8 +1465,8 @@ struct PerformanceRatingDetailWindow : Window {
 		}
 
 		/* Draw the bar */
-		if (x != this->bar_left)  GfxFillRect(this->bar_left, bar_top, x, bar_top + this->bar_height, rtl ? colour_notdone : colour_done);
-		if (x != this->bar_right) GfxFillRect(x, bar_top, this->bar_right, bar_top + this->bar_height, rtl ? colour_done : colour_notdone);
+		if (x != this->bar_left)  GfxFillRect (_cur_dpi, this->bar_left, bar_top, x, bar_top + this->bar_height, rtl ? colour_notdone : colour_done);
+		if (x != this->bar_right) GfxFillRect (_cur_dpi, x, bar_top, this->bar_right, bar_top + this->bar_height, rtl ? colour_done : colour_notdone);
 
 		/* Draw it */
 		SetDParam(0, Clamp(val, 0, needed) * 100 / needed);

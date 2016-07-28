@@ -389,8 +389,8 @@ public:
 
 					/* Draw the name of the industry in white is selected, otherwise, in orange */
 					DrawString(text_left, text_right, y, indsp->name, selected ? TC_WHITE : TC_ORANGE);
-					GfxFillRect(icon_left,     y + 1, icon_right,     y + 7, selected ? PC_WHITE : PC_BLACK);
-					GfxFillRect(icon_left + 1, y + 2, icon_right - 1, y + 6, indsp->map_colour);
+					GfxFillRect (_cur_dpi, icon_left,     y + 1, icon_right,     y + 7, selected ? PC_WHITE : PC_BLACK);
+					GfxFillRect (_cur_dpi, icon_left + 1, y + 2, icon_right - 1, y + 6, indsp->map_colour);
 				}
 				break;
 			}
@@ -1682,8 +1682,8 @@ struct CargoesField {
 						blob_left  = xpos + BLOB_DISTANCE;
 						blob_right = blob_left + BLOB_WIDTH;
 					}
-					GfxFillRect(blob_left,     ypos2 - BLOB_DISTANCE - BLOB_HEIGHT,     blob_right,     ypos2 - BLOB_DISTANCE,     PC_BLACK); // Border
-					GfxFillRect(blob_left + 1, ypos2 - BLOB_DISTANCE - BLOB_HEIGHT + 1, blob_right - 1, ypos2 - BLOB_DISTANCE - 1, indsp->map_colour);
+					GfxFillRect (_cur_dpi, blob_left,     ypos2 - BLOB_DISTANCE - BLOB_HEIGHT,     blob_right,     ypos2 - BLOB_DISTANCE,     PC_BLACK); // Border
+					GfxFillRect (_cur_dpi, blob_left + 1, ypos2 - BLOB_DISTANCE - BLOB_HEIGHT + 1, blob_right - 1, ypos2 - BLOB_DISTANCE - 1, indsp->map_colour);
 				} else {
 					DrawString(xpos, xpos2, ypos, STR_INDUSTRY_CARGOES_HOUSES, TC_FROMSTRING, SA_HOR_CENTER);
 				}
@@ -1727,7 +1727,7 @@ struct CargoesField {
 					GfxDrawLine(colpos, top, colpos, bot, CARGO_LINE_COLOUR);
 					colpos++;
 					const CargoSpec *csp = CargoSpec::Get(this->u.cargo.vertical_cargoes[i]);
-					GfxFillRect(colpos, top, colpos + HOR_CARGO_WIDTH - 2, bot, csp->legend_colour, FILLRECT_OPAQUE);
+					GfxFillRect (_cur_dpi, colpos, top, colpos + HOR_CARGO_WIDTH - 2, bot, csp->legend_colour, FILLRECT_OPAQUE);
 					colpos += HOR_CARGO_WIDTH - 2;
 					GfxDrawLine(colpos, top, colpos, bot, CARGO_LINE_COLOUR);
 					colpos += 1 + HOR_CARGO_SPACE;
@@ -1877,7 +1877,7 @@ private:
 	static void DrawHorConnection(int left, int right, int top, const CargoSpec *csp)
 	{
 		GfxDrawLine(left, top, right, top, CARGO_LINE_COLOUR);
-		GfxFillRect(left, top + 1, right, top + FONT_HEIGHT_NORMAL - 2, csp->legend_colour, FILLRECT_OPAQUE);
+		GfxFillRect (_cur_dpi, left, top + 1, right, top + FONT_HEIGHT_NORMAL - 2, csp->legend_colour, FILLRECT_OPAQUE);
 		GfxDrawLine(left, top + FONT_HEIGHT_NORMAL - 1, right, top + FONT_HEIGHT_NORMAL - 1, CARGO_LINE_COLOUR);
 	}
 };

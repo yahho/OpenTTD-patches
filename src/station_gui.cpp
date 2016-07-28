@@ -135,7 +135,7 @@ static void StationsWndShowStationRating(int left, int right, int y, CargoID typ
 	int height = GetCharacterHeight(FS_SMALL);
 
 	/* Draw total cargo (limited) on station (fits into 16 pixels) */
-	if (w != 0) GfxFillRect(left, y, left + w - 1, y + height, colour);
+	if (w != 0) GfxFillRect (_cur_dpi, left, y, left + w - 1, y + height, colour);
 
 	/* Draw a one pixel-wide bar of additional cargo meter, useful
 	 * for stations with only a small amount (<=30) */
@@ -143,7 +143,7 @@ static void StationsWndShowStationRating(int left, int right, int y, CargoID typ
 		uint rest = amount / 5;
 		if (rest != 0) {
 			w += left;
-			GfxFillRect(w, y + height - rest, w, y + height, colour);
+			GfxFillRect (_cur_dpi, w, y + height - rest, w, y + height, colour);
 		}
 	}
 
@@ -151,9 +151,9 @@ static void StationsWndShowStationRating(int left, int right, int y, CargoID typ
 
 	/* Draw green/red ratings bar (fits into 14 pixels) */
 	y += height + 2;
-	GfxFillRect(left + 1, y, left + 14, y, PC_RED);
+	GfxFillRect (_cur_dpi, left + 1, y, left + 14, y, PC_RED);
 	rating = minu(rating, rating_full) / 16;
-	if (rating != 0) GfxFillRect(left + 1, y, left + rating, y, PC_GREEN);
+	if (rating != 0) GfxFillRect (_cur_dpi, left + 1, y, left + rating, y, PC_GREEN);
 }
 
 typedef GUIList<const Station*> GUIStationList;
@@ -483,7 +483,7 @@ public:
 			default:
 				if (widget >= WID_STL_CARGOSTART) {
 					const CargoSpec *cs = _sorted_cargo_specs[widget - WID_STL_CARGOSTART];
-					GfxFillRect (r.left + 1, r.top + 1, r.right - 1, r.bottom - 1, cs->rating_colour);
+					GfxFillRect (_cur_dpi, r.left + 1, r.top + 1, r.right - 1, r.bottom - 1, cs->rating_colour);
 					TextColour tc = GetContrastColour(cs->rating_colour);
 					DrawString (r.left + 1, r.right + 1, r.top + 1, cs->abbrev, tc, SA_HOR_CENTER);
 				}

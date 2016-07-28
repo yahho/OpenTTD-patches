@@ -246,7 +246,7 @@ void NetworkDrawChatMessage()
 	int bottom = _screen.height - _chatmsg_box_y;
 	int top = bottom - string_height;
 	/* Paint a half-transparent box behind the chat messages */
-	GfxFillRect (_chatmsg_box_x, top - 2, _chatmsg_box_x + _chatmsg_box_width - 1, bottom - 1,
+	GfxFillRect (_cur_dpi, _chatmsg_box_x, top - 2, _chatmsg_box_x + _chatmsg_box_width - 1, bottom - 1,
 			PALETTE_TO_TRANSPARENT, FILLRECT_RECOLOUR // black, but with some alpha for background
 		);
 

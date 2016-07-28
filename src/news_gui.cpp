@@ -296,12 +296,12 @@ struct NewsWindow : Window {
 
 	void DrawNewsBorder(const Rect &r) const
 	{
-		GfxFillRect(r.left,  r.top,    r.right, r.bottom, PC_WHITE);
+		GfxFillRect (_cur_dpi, r.left,  r.top,    r.right, r.bottom, PC_WHITE);
 
-		GfxFillRect(r.left,  r.top,    r.left,  r.bottom, PC_BLACK);
-		GfxFillRect(r.right, r.top,    r.right, r.bottom, PC_BLACK);
-		GfxFillRect(r.left,  r.top,    r.right, r.top,    PC_BLACK);
-		GfxFillRect(r.left,  r.bottom, r.right, r.bottom, PC_BLACK);
+		GfxFillRect (_cur_dpi, r.left,  r.top,    r.left,  r.bottom, PC_BLACK);
+		GfxFillRect (_cur_dpi, r.right, r.top,    r.right, r.bottom, PC_BLACK);
+		GfxFillRect (_cur_dpi, r.left,  r.top,    r.right, r.top,    PC_BLACK);
+		GfxFillRect (_cur_dpi, r.left,  r.bottom, r.right, r.bottom, PC_BLACK);
 	}
 
 	virtual Point OnInitialPosition(int16 sm_width, int16 sm_height, int window_number)
@@ -375,7 +375,7 @@ struct NewsWindow : Window {
 			case WID_N_MGR_FACE: {
 				const BaseCompanyNewsItem *cni = static_cast<const BaseCompanyNewsItem *>(this->ni);
 				DrawCompanyManagerFace(cni->face, cni->colour, r.left, r.top);
-				GfxFillRect(r.left, r.top, r.right, r.bottom, PALETTE_NEWSPAPER, FILLRECT_RECOLOUR);
+				GfxFillRect (_cur_dpi, r.left, r.top, r.right, r.bottom, PALETTE_NEWSPAPER, FILLRECT_RECOLOUR);
 				break;
 			}
 			case WID_N_MGR_NAME: {
@@ -389,7 +389,7 @@ struct NewsWindow : Window {
 				break;
 
 			case WID_N_VEH_BKGND:
-				GfxFillRect(r.left, r.top, r.right, r.bottom, PC_GREY);
+				GfxFillRect (_cur_dpi, r.left, r.top, r.right, r.bottom, PC_GREY);
 				break;
 
 			case WID_N_VEH_NAME:
@@ -401,7 +401,7 @@ struct NewsWindow : Window {
 				assert(this->ni->reftype1 == NR_ENGINE);
 				EngineID engine = this->ni->ref1;
 				DrawVehicleEngine(r.left, r.right, (r.left + r.right) / 2, (r.top + r.bottom) / 2, engine, GetEnginePalette(engine, _local_company), EIT_PREVIEW);
-				GfxFillRect(r.left, r.top, r.right, r.bottom, PALETTE_NEWSPAPER, FILLRECT_RECOLOUR);
+				GfxFillRect (_cur_dpi, r.left, r.top, r.right, r.bottom, PALETTE_NEWSPAPER, FILLRECT_RECOLOUR);
 				break;
 			}
 			case WID_N_VEH_INFO: {

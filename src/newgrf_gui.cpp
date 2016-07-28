@@ -850,7 +850,7 @@ struct NewGRFWindow : public Window, NewGRFScanCallback {
 	{
 		switch (widget) {
 			case WID_NS_FILE_LIST: {
-				GfxFillRect(r.left + 1, r.top + 1, r.right - 1, r.bottom - 1, PC_BLACK);
+				GfxFillRect (_cur_dpi, r.left + 1, r.top + 1, r.right - 1, r.bottom - 1, PC_BLACK);
 
 				uint step_height = this->GetWidget<NWidgetBase>(WID_NS_FILE_LIST)->resize_y;
 				uint y = r.top + WD_FRAMERECT_TOP;
@@ -874,14 +874,14 @@ struct NewGRFWindow : public Window, NewGRFScanCallback {
 						PaletteID pal = this->GetPalette(c);
 
 						if (h) {
-							GfxFillRect(r.left + 1, y, r.right - 1, y + step_height - 1, PC_DARK_BLUE);
+							GfxFillRect (_cur_dpi, r.left + 1, y, r.right - 1, y + step_height - 1, PC_DARK_BLUE);
 						} else if (i == this->active_over) {
 							/* Get index of current selection. */
 							int active_sel_pos = 0;
 							for (GRFConfig *c = this->actives; c != NULL && c != this->active_sel; c = c->next, active_sel_pos++) {}
 							if (active_sel_pos != this->active_over) {
 								uint top = this->active_over < active_sel_pos ? y + 1 : y + step_height - 2;
-								GfxFillRect(r.left + WD_FRAMERECT_LEFT, top - 1, r.right - WD_FRAMERECT_RIGHT, top + 1, PC_GREY);
+								GfxFillRect (_cur_dpi, r.left + WD_FRAMERECT_LEFT, top - 1, r.right - WD_FRAMERECT_RIGHT, top + 1, PC_GREY);
 							}
 						}
 						DrawSprite(SPR_SQUARE, pal, square_left, y + square_offset_y);
@@ -892,13 +892,13 @@ struct NewGRFWindow : public Window, NewGRFScanCallback {
 					}
 				}
 				if (i == this->active_over && this->vscroll->IsVisible(i)) { // Highlight is after the last GRF entry.
-					GfxFillRect(r.left + WD_FRAMERECT_LEFT, y, r.right - WD_FRAMERECT_RIGHT, y + 2, PC_GREY);
+					GfxFillRect (_cur_dpi, r.left + WD_FRAMERECT_LEFT, y, r.right - WD_FRAMERECT_RIGHT, y + 2, PC_GREY);
 				}
 				break;
 			}
 
 			case WID_NS_AVAIL_LIST: {
-				GfxFillRect(r.left + 1, r.top + 1, r.right - 1, r.bottom - 1, this->active_over == -2 ? PC_DARK_GREY : PC_BLACK);
+				GfxFillRect (_cur_dpi, r.left + 1, r.top + 1, r.right - 1, r.bottom - 1, this->active_over == -2 ? PC_DARK_GREY : PC_BLACK);
 
 				uint step_height = this->GetWidget<NWidgetBase>(WID_NS_AVAIL_LIST)->resize_y;
 				int offset_y = (step_height - FONT_HEIGHT_NORMAL) / 2;
@@ -911,7 +911,7 @@ struct NewGRFWindow : public Window, NewGRFScanCallback {
 					bool h = (c == this->avail_sel);
 					const char *text = c->GetName();
 
-					if (h) GfxFillRect(r.left + 1, y, r.right - 1, y + step_height - 1, PC_DARK_BLUE);
+					if (h) GfxFillRect (_cur_dpi, r.left + 1, y, r.right - 1, y + step_height - 1, PC_DARK_BLUE);
 					DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y + offset_y, text, h ? TC_WHITE : TC_SILVER);
 					y += step_height;
 				}
@@ -920,7 +920,7 @@ struct NewGRFWindow : public Window, NewGRFScanCallback {
 
 			case WID_NS_NEWGRF_INFO_TITLE:
 				/* Create the nice grayish rectangle at the details top. */
-				GfxFillRect(r.left + 1, r.top + 1, r.right - 1, r.bottom - 1, PC_DARK_BLUE);
+				GfxFillRect (_cur_dpi, r.left + 1, r.top + 1, r.right - 1, r.bottom - 1, PC_DARK_BLUE);
 				DrawString(r.left, r.right, (r.top + r.bottom - FONT_HEIGHT_NORMAL) / 2, STR_NEWGRF_SETTINGS_INFO_TITLE, TC_FROMSTRING, SA_HOR_CENTER);
 				break;
 
@@ -2116,7 +2116,7 @@ struct SavePresetWindow : public Window {
 	{
 		switch (widget) {
 			case WID_SVP_PRESET_LIST: {
-				GfxFillRect(r.left + 1, r.top + 1, r.right - 1, r.bottom - 1, PC_BLACK);
+				GfxFillRect (_cur_dpi, r.left + 1, r.top + 1, r.right - 1, r.bottom - 1, PC_BLACK);
 
 				uint step_height = this->GetWidget<NWidgetBase>(WID_SVP_PRESET_LIST)->resize_y;
 				int offset_y = (step_height - FONT_HEIGHT_NORMAL) / 2;
@@ -2125,7 +2125,7 @@ struct SavePresetWindow : public Window {
 				uint max_index = min(min_index + this->vscroll->GetCapacity(), this->presets.Length());
 
 				for (uint i = min_index; i < max_index; i++) {
-					if ((int)i == this->selected) GfxFillRect(r.left + 1, y, r.right - 1, y + step_height - 2, PC_DARK_BLUE);
+					if ((int)i == this->selected) GfxFillRect (_cur_dpi, r.left + 1, y, r.right - 1, y + step_height - 2, PC_DARK_BLUE);
 
 					const char *text = this->presets[i];
 					DrawString(r.left + WD_FRAMERECT_LEFT, r.right, y + offset_y, text, ((int)i == this->selected) ? TC_WHITE : TC_SILVER);

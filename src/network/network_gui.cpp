@@ -382,7 +382,7 @@ protected:
 		const NWidgetBase *nwi_info = this->GetWidget<NWidgetBase>(WID_NG_INFO);
 
 		/* show highlighted item with a different colour */
-		if (highlight) GfxFillRect(nwi_name->pos_x + 1, y + 1, nwi_info->pos_x + nwi_info->current_x - 2, y + this->resize.step_height - 2, PC_GREY);
+		if (highlight) GfxFillRect (_cur_dpi, nwi_name->pos_x + 1, y + 1, nwi_info->pos_x + nwi_info->current_x - 2, y + this->resize.step_height - 2, PC_GREY);
 
 		/* offsets to vertically centre text and icons */
 		int text_y_offset = (this->resize.step_height - FONT_HEIGHT_NORMAL) / 2 + 1;
@@ -626,7 +626,7 @@ public:
 		const int detail_height = 6 + 8 + 6 + 3 * FONT_HEIGHT_NORMAL;
 
 		/* Draw the right menu */
-		GfxFillRect(r.left + 1, r.top + 1, r.right - 1, r.top + detail_height - 1, PC_DARK_BLUE);
+		GfxFillRect (_cur_dpi, r.left + 1, r.top + 1, r.right - 1, r.top + detail_height - 1, PC_DARK_BLUE);
 		if (sel == NULL) {
 			DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + 6 + 4 + FONT_HEIGHT_NORMAL, STR_NETWORK_SERVER_LIST_GAME_INFO, TC_FROMSTRING, SA_HOR_CENTER);
 		} else if (!sel->online) {
@@ -1469,7 +1469,7 @@ struct NetworkLobbyWindow : public Window {
 			byte company = NetworkLobbyFindCompanyIndex(pos);
 			bool income = false;
 			if (this->company == company) {
-				GfxFillRect(r.left + 1, y - 2, r.right - 1, y + FONT_HEIGHT_NORMAL, PC_GREY); // show highlighted item with a different colour
+				GfxFillRect (_cur_dpi, r.left + 1, y - 2, r.right - 1, y + FONT_HEIGHT_NORMAL, PC_GREY); // show highlighted item with a different colour
 			}
 
 			DrawString(text_left, text_right, y, this->company_info[company].company_name, TC_BLACK);
@@ -1489,7 +1489,7 @@ struct NetworkLobbyWindow : public Window {
 	{
 		const int detail_height = 12 + FONT_HEIGHT_NORMAL + 12;
 		/* Draw info about selected company when it is selected in the left window. */
-		GfxFillRect(r.left + 1, r.top + 1, r.right - 1, r.top + detail_height - 1, PC_DARK_BLUE);
+		GfxFillRect (_cur_dpi, r.left + 1, r.top + 1, r.right - 1, r.top + detail_height - 1, PC_DARK_BLUE);
 		DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + 12, STR_NETWORK_GAME_LOBBY_COMPANY_INFO, TC_FROMSTRING, SA_HOR_CENTER);
 
 		if (this->company == INVALID_COMPANY || StrEmpty(this->company_info[this->company].company_name)) return;
@@ -1805,7 +1805,7 @@ struct NetworkClientListPopupWindow : Window {
 		for (const ClientListAction *action = this->actions.Begin(); action != this->actions.End(); action++, y += FONT_HEIGHT_NORMAL) {
 			TextColour colour;
 			if (sel-- == 0) { // Selected item, highlight it
-				GfxFillRect(r.left + 1, y, r.right - 1, y + FONT_HEIGHT_NORMAL - 1, PC_BLACK);
+				GfxFillRect (_cur_dpi, r.left + 1, y, r.right - 1, y + FONT_HEIGHT_NORMAL - 1, PC_BLACK);
 				colour = TC_WHITE;
 			} else {
 				colour = TC_BLACK;
@@ -1961,7 +1961,7 @@ struct NetworkClientListWindow : Window {
 		FOR_ALL_CLIENT_INFOS(ci) {
 			TextColour colour;
 			if (this->selected_item == i++) { // Selected item, highlight it
-				GfxFillRect(r.left + 1, y, r.right - 1, y + this->line_height - 1, PC_BLACK);
+				GfxFillRect (_cur_dpi, r.left + 1, y, r.right - 1, y + this->line_height - 1, PC_BLACK);
 				colour = TC_WHITE;
 			} else {
 				colour = TC_BLACK;
