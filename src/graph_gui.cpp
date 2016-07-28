@@ -452,7 +452,7 @@ protected:
 						GfxFillRect (_cur_dpi, x - pointoffs1, y - pointoffs1, x + pointoffs2, y + pointoffs2, colour);
 
 						/* Draw the line connected to the previous point. */
-						if (prev_x != INVALID_DATAPOINT_POS) GfxDrawLine(prev_x, prev_y, x, y, colour, linewidth);
+						if (prev_x != INVALID_DATAPOINT_POS) GfxDrawLine (_cur_dpi, prev_x, prev_y, x, y, colour, linewidth);
 
 						prev_x = x;
 						prev_y = y;

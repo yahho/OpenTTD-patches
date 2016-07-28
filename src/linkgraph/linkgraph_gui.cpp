@@ -187,10 +187,10 @@ static void DrawVertex (int x, int y, int size, int colour, int border_colour)
 
 	w1++;
 	w2++;
-	GfxDrawLine(x - w1, y - w1, x + w2, y - w1, border_colour);
-	GfxDrawLine(x - w1, y + w2, x + w2, y + w2, border_colour);
-	GfxDrawLine(x - w1, y - w1, x - w1, y + w2, border_colour);
-	GfxDrawLine(x + w2, y - w1, x + w2, y + w2, border_colour);
+	GfxDrawLine (_cur_dpi, x - w1, y - w1, x + w2, y - w1, border_colour);
+	GfxDrawLine (_cur_dpi, x - w1, y + w2, x + w2, y + w2, border_colour);
+	GfxDrawLine (_cur_dpi, x - w1, y - w1, x - w1, y + w2, border_colour);
+	GfxDrawLine (_cur_dpi, x + w2, y - w1, x + w2, y + w2, border_colour);
 }
 
 /**
@@ -216,9 +216,9 @@ static void DrawContent (Point pta, Point ptb, const LinkProperties &cargo, uint
 		offset_y = (pta.x < ptb.x ? 1 : -1) * side * scale;
 		offset_x = 0;
 	}
-	GfxDrawLine (pta.x + offset_x, pta.y + offset_y, ptb.x + offset_x, ptb.y + offset_y, colour, scale, dash);
+	GfxDrawLine (_cur_dpi, pta.x + offset_x, pta.y + offset_y, ptb.x + offset_x, ptb.y + offset_y, colour, scale, dash);
 
-	GfxDrawLine (pta.x, pta.y, ptb.x, ptb.y, _colour_gradient[COLOUR_GREY][1], scale);
+	GfxDrawLine (_cur_dpi, pta.x, pta.y, ptb.x, ptb.y, _colour_gradient[COLOUR_GREY][1], scale);
 }
 
 /**

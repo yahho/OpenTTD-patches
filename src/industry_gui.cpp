@@ -1664,10 +1664,10 @@ struct CargoesField {
 				int ypos1 = ypos + VERT_INTER_INDUSTRY_SPACE / 2;
 				int ypos2 = ypos + normal_height - 1 - VERT_INTER_INDUSTRY_SPACE / 2;
 				int xpos2 = xpos + industry_width - 1;
-				GfxDrawLine(xpos,  ypos1, xpos2, ypos1, INDUSTRY_LINE_COLOUR);
-				GfxDrawLine(xpos,  ypos1, xpos,  ypos2, INDUSTRY_LINE_COLOUR);
-				GfxDrawLine(xpos,  ypos2, xpos2, ypos2, INDUSTRY_LINE_COLOUR);
-				GfxDrawLine(xpos2, ypos1, xpos2, ypos2, INDUSTRY_LINE_COLOUR);
+				GfxDrawLine (_cur_dpi, xpos,  ypos1, xpos2, ypos1, INDUSTRY_LINE_COLOUR);
+				GfxDrawLine (_cur_dpi, xpos,  ypos1, xpos,  ypos2, INDUSTRY_LINE_COLOUR);
+				GfxDrawLine (_cur_dpi, xpos,  ypos2, xpos2, ypos2, INDUSTRY_LINE_COLOUR);
+				GfxDrawLine (_cur_dpi, xpos2, ypos1, xpos2, ypos2, INDUSTRY_LINE_COLOUR);
 				ypos += (normal_height - FONT_HEIGHT_NORMAL) / 2;
 				if (this->u.industry.ind_type < NUM_INDUSTRYTYPES) {
 					const IndustrySpec *indsp = GetIndustrySpec(this->u.industry.ind_type);
@@ -1703,13 +1703,13 @@ struct CargoesField {
 						const CargoSpec *csp = CargoSpec::Get(other_right[i]);
 						int xp = xpos + industry_width + CARGO_STUB_WIDTH;
 						DrawHorConnection(xpos + industry_width, xp - 1, ypos1, csp);
-						GfxDrawLine(xp, ypos1, xp, ypos1 + FONT_HEIGHT_NORMAL - 1, CARGO_LINE_COLOUR);
+						GfxDrawLine (_cur_dpi, xp, ypos1, xp, ypos1 + FONT_HEIGHT_NORMAL - 1, CARGO_LINE_COLOUR);
 					}
 					if (other_left[i] != INVALID_CARGO) {
 						const CargoSpec *csp = CargoSpec::Get(other_left[i]);
 						int xp = xpos - CARGO_STUB_WIDTH;
 						DrawHorConnection(xp + 1, xpos - 1, ypos1, csp);
-						GfxDrawLine(xp, ypos1, xp, ypos1 + FONT_HEIGHT_NORMAL - 1, CARGO_LINE_COLOUR);
+						GfxDrawLine (_cur_dpi, xp, ypos1, xp, ypos1 + FONT_HEIGHT_NORMAL - 1, CARGO_LINE_COLOUR);
 					}
 					ypos1 += FONT_HEIGHT_NORMAL + VERT_CARGO_SPACE;
 				}
@@ -1722,14 +1722,14 @@ struct CargoesField {
 				int bot = ypos - (this->u.cargo.bottom_end ? VERT_INTER_INDUSTRY_SPACE / 2 + 1 : 0) + normal_height - 1;
 				int colpos = cargo_base;
 				for (int i = 0; i < this->u.cargo.num_cargoes; i++) {
-					if (this->u.cargo.top_end) GfxDrawLine(colpos, top - 1, colpos + HOR_CARGO_WIDTH - 1, top - 1, CARGO_LINE_COLOUR);
-					if (this->u.cargo.bottom_end) GfxDrawLine(colpos, bot + 1, colpos + HOR_CARGO_WIDTH - 1, bot + 1, CARGO_LINE_COLOUR);
-					GfxDrawLine(colpos, top, colpos, bot, CARGO_LINE_COLOUR);
+					if (this->u.cargo.top_end) GfxDrawLine (_cur_dpi, colpos, top - 1, colpos + HOR_CARGO_WIDTH - 1, top - 1, CARGO_LINE_COLOUR);
+					if (this->u.cargo.bottom_end) GfxDrawLine (_cur_dpi, colpos, bot + 1, colpos + HOR_CARGO_WIDTH - 1, bot + 1, CARGO_LINE_COLOUR);
+					GfxDrawLine (_cur_dpi, colpos, top, colpos, bot, CARGO_LINE_COLOUR);
 					colpos++;
 					const CargoSpec *csp = CargoSpec::Get(this->u.cargo.vertical_cargoes[i]);
 					GfxFillRect (_cur_dpi, colpos, top, colpos + HOR_CARGO_WIDTH - 2, bot, csp->legend_colour, FILLRECT_OPAQUE);
 					colpos += HOR_CARGO_WIDTH - 2;
-					GfxDrawLine(colpos, top, colpos, bot, CARGO_LINE_COLOUR);
+					GfxDrawLine (_cur_dpi, colpos, top, colpos, bot, CARGO_LINE_COLOUR);
 					colpos += 1 + HOR_CARGO_SPACE;
 				}
 
@@ -1876,9 +1876,9 @@ private:
 	 */
 	static void DrawHorConnection(int left, int right, int top, const CargoSpec *csp)
 	{
-		GfxDrawLine(left, top, right, top, CARGO_LINE_COLOUR);
+		GfxDrawLine (_cur_dpi, left, top, right, top, CARGO_LINE_COLOUR);
 		GfxFillRect (_cur_dpi, left, top + 1, right, top + FONT_HEIGHT_NORMAL - 2, csp->legend_colour, FILLRECT_OPAQUE);
-		GfxDrawLine(left, top + FONT_HEIGHT_NORMAL - 1, right, top + FONT_HEIGHT_NORMAL - 1, CARGO_LINE_COLOUR);
+		GfxDrawLine (_cur_dpi, left, top + FONT_HEIGHT_NORMAL - 1, right, top + FONT_HEIGHT_NORMAL - 1, CARGO_LINE_COLOUR);
 	}
 };
 

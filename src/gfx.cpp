@@ -249,9 +249,8 @@ static inline bool GfxPreprocessLine (BlitArea *dpi, int &x, int &y, int &x2, in
 	return true;
 }
 
-void GfxDrawLine(int x, int y, int x2, int y2, int colour, int width, int dash)
+void GfxDrawLine (BlitArea *dpi, int x, int y, int x2, int y2, int colour, int width, int dash)
 {
-	DrawPixelInfo *dpi = _cur_dpi;
 	if (GfxPreprocessLine(dpi, x, y, x2, y2, width)) {
 		GfxDoDrawLine (dpi, x, y, x2, y2, dpi->width, dpi->height, colour, width, dash);
 	}

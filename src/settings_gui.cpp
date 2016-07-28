@@ -1185,15 +1185,15 @@ uint SettingEntry::Draw(GameSettings *settings_ptr, int left, int right, int bas
 
 		/* Draw vertical for parent nesting levels */
 		for (uint lvl = 0; lvl < this->level; lvl++) {
-			if (!HasBit(parent_last, lvl)) GfxDrawLine(x + offset, y, x + offset, y + SETTING_HEIGHT - 1, colour);
+			if (!HasBit(parent_last, lvl)) GfxDrawLine (_cur_dpi, x + offset, y, x + offset, y + SETTING_HEIGHT - 1, colour);
 			x += level_width;
 		}
 		/* draw own |- prefix */
 		int halfway_y = y + SETTING_HEIGHT / 2;
 		int bottom_y = (flags & SEF_LAST_FIELD) ? halfway_y : y + SETTING_HEIGHT - 1;
-		GfxDrawLine(x + offset, y, x + offset, bottom_y, colour);
+		GfxDrawLine (_cur_dpi, x + offset, y, x + offset, bottom_y, colour);
 		/* Small horizontal line from the last vertical line */
-		GfxDrawLine(x + offset, halfway_y, x + level_width - offset, halfway_y, colour);
+		GfxDrawLine (_cur_dpi, x + offset, halfway_y, x + level_width - offset, halfway_y, colour);
 		x += level_width;
 	}
 

@@ -738,8 +738,8 @@ struct RefitWindow : public Window {
 					if (refit.subtype != 0xFF) {
 						/* Draw tree lines */
 						int ycenter = y + FONT_HEIGHT_NORMAL / 2;
-						GfxDrawLine(iconcenter, y - WD_MATRIX_TOP, iconcenter, j == list[i].Length() - 1 ? ycenter : y - WD_MATRIX_TOP + delta - 1, linecolour);
-						GfxDrawLine(iconcenter, ycenter, iconinner, ycenter, linecolour);
+						GfxDrawLine (_cur_dpi, iconcenter, y - WD_MATRIX_TOP, iconcenter, j == list[i].Length() - 1 ? ycenter : y - WD_MATRIX_TOP + delta - 1, linecolour);
+						GfxDrawLine (_cur_dpi, iconcenter, ycenter, iconinner, ycenter, linecolour);
 					} else {
 						/* Draw expand/collapse icon */
 						DrawSprite(sel_cargo == i ? SPR_CIRCLE_UNFOLDED : SPR_CIRCLE_FOLDED, PAL_NONE, iconleft, y + (FONT_HEIGHT_NORMAL - iconheight) / 2);
