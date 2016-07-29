@@ -791,6 +791,7 @@ void DrawSprite(SpriteID img, PaletteID pal, int x, int y, const SubSprite *sub,
 
 /**
  * The code for setting up the blitter mode and sprite information before finally drawing the sprite.
+ * @param dpi    The area to draw on.
  * @param sprite The sprite to draw.
  * @param x      The X location to draw.
  * @param y      The Y location to draw.
@@ -801,9 +802,10 @@ void DrawSprite(SpriteID img, PaletteID pal, int x, int y, const SubSprite *sub,
  * @tparam SCALED_XY Whether the X and Y are scaled or unscaled.
  */
 template <int ZOOM_BASE, bool SCALED_XY>
-static void GfxBlitter(const Sprite * const sprite, int x, int y, BlitterMode mode, const SubSprite * const sub, SpriteID sprite_id, ZoomLevel zoom)
+static void GfxBlitter (BlitArea *dpi, const Sprite * const sprite,
+	int x, int y, BlitterMode mode, const SubSprite * const sub,
+	SpriteID sprite_id, ZoomLevel zoom)
 {
-	const DrawPixelInfo *dpi = _cur_dpi;
 	Blitter::BlitterParams bp;
 
 	if (SCALED_XY) {
@@ -917,12 +919,12 @@ static void GfxBlitter(const Sprite * const sprite, int x, int y, BlitterMode mo
 
 static void GfxMainBlitterViewport(const Sprite *sprite, int x, int y, BlitterMode mode, const SubSprite *sub, SpriteID sprite_id)
 {
-	GfxBlitter<ZOOM_LVL_BASE, false>(sprite, x, y, mode, sub, sprite_id, _cur_dpi->zoom);
+	GfxBlitter <ZOOM_LVL_BASE, false> (_cur_dpi, sprite, x, y, mode, sub, sprite_id, _cur_dpi->zoom);
 }
 
 static void GfxMainBlitter(const Sprite *sprite, int x, int y, BlitterMode mode, const SubSprite *sub, SpriteID sprite_id, ZoomLevel zoom)
 {
-	GfxBlitter<1, true>(sprite, x, y, mode, sub, sprite_id, zoom);
+	GfxBlitter <1, true> (_cur_dpi, sprite, x, y, mode, sub, sprite_id, zoom);
 }
 
 void DoPaletteAnimations();
