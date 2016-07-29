@@ -61,7 +61,7 @@ DrawPixelInfo *_cur_dpi;
 byte _colour_gradient[COLOUR_END][8];
 
 static void GfxMainBlitterViewport(const Sprite *sprite, int x, int y, BlitterMode mode, const SubSprite *sub = NULL, SpriteID sprite_id = SPR_CURSOR_MOUSE);
-static void GfxMainBlitter(const Sprite *sprite, int x, int y, BlitterMode mode, const SubSprite *sub = NULL, SpriteID sprite_id = SPR_CURSOR_MOUSE, ZoomLevel zoom = ZOOM_LVL_NORMAL);
+static void GfxMainBlitter (BlitArea *dpi, const Sprite *sprite, int x, int y, BlitterMode mode, const SubSprite *sub = NULL, SpriteID sprite_id = SPR_CURSOR_MOUSE, ZoomLevel zoom = ZOOM_LVL_NORMAL);
 
 static ReusableBuffer<uint8> _cursor_backup;
 
@@ -459,10 +459,10 @@ static int DrawLayoutLine(const ParagraphLayouter::Line *line, int y, int left, 
 
 			if (draw_shadow && (glyph & SPRITE_GLYPH) == 0) {
 				SetColourRemap(TC_BLACK);
-				GfxMainBlitter(sprite, begin_x + 1, top + 1, BM_COLOUR_REMAP);
+				GfxMainBlitter (_cur_dpi, sprite, begin_x + 1, top + 1, BM_COLOUR_REMAP);
 				SetColourRemap(colour);
 			}
-			GfxMainBlitter(sprite, begin_x, top, BM_COLOUR_REMAP);
+			GfxMainBlitter (_cur_dpi, sprite, begin_x, top, BM_COLOUR_REMAP);
 		}
 	}
 
@@ -471,10 +471,10 @@ static int DrawLayoutLine(const ParagraphLayouter::Line *line, int y, int left, 
 		for (int i = 0; i < 3; i++, x += dot_width) {
 			if (draw_shadow) {
 				SetColourRemap(TC_BLACK);
-				GfxMainBlitter(dot_sprite, x + 1, y + 1, BM_COLOUR_REMAP);
+				GfxMainBlitter (_cur_dpi, dot_sprite, x + 1, y + 1, BM_COLOUR_REMAP);
 				SetColourRemap(colour);
 			}
-			GfxMainBlitter(dot_sprite, x, y, BM_COLOUR_REMAP);
+			GfxMainBlitter (_cur_dpi, dot_sprite, x, y, BM_COLOUR_REMAP);
 		}
 	}
 
@@ -707,7 +707,7 @@ Dimension GetStringBoundingBox(StringID strid)
 void DrawCharCentered(WChar c, int x, int y, TextColour colour)
 {
 	SetColourRemap(colour);
-	GfxMainBlitter(GetGlyph(FS_NORMAL, c), x - GetCharacterWidth(FS_NORMAL, c) / 2, y, BM_COLOUR_REMAP);
+	GfxMainBlitter (_cur_dpi, GetGlyph (FS_NORMAL, c), x - GetCharacterWidth (FS_NORMAL, c) / 2, y, BM_COLOUR_REMAP);
 }
 
 /**
@@ -786,7 +786,7 @@ void DrawSprite(SpriteID img, PaletteID pal, int x, int y, const SubSprite *sub,
 {
 	BlitterMode bm = GetBlitterMode (img, pal);
 	SpriteID real_sprite = GB(img, 0, SPRITE_WIDTH);
-	GfxMainBlitter (GetSprite (real_sprite, ST_NORMAL), x, y, bm, sub, real_sprite, zoom);
+	GfxMainBlitter (_cur_dpi, GetSprite (real_sprite, ST_NORMAL), x, y, bm, sub, real_sprite, zoom);
 }
 
 /**
@@ -922,9 +922,9 @@ static void GfxMainBlitterViewport(const Sprite *sprite, int x, int y, BlitterMo
 	GfxBlitter <ZOOM_LVL_BASE, false> (_cur_dpi, sprite, x, y, mode, sub, sprite_id, _cur_dpi->zoom);
 }
 
-static void GfxMainBlitter(const Sprite *sprite, int x, int y, BlitterMode mode, const SubSprite *sub, SpriteID sprite_id, ZoomLevel zoom)
+static void GfxMainBlitter (BlitArea *dpi, const Sprite *sprite, int x, int y, BlitterMode mode, const SubSprite *sub, SpriteID sprite_id, ZoomLevel zoom)
 {
-	GfxBlitter <1, true> (_cur_dpi, sprite, x, y, mode, sub, sprite_id, zoom);
+	GfxBlitter <1, true> (dpi, sprite, x, y, mode, sub, sprite_id, zoom);
 }
 
 void DoPaletteAnimations();
