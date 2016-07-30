@@ -427,7 +427,7 @@ void TextfileWindow::SetupScrollbars()
 		if (IsWidgetLowered(WID_TF_WRAPTEXT)) {
 			y_offset = DrawStringMultiLine(0, right - x, y_offset, bottom - y, this->lines[i], TC_WHITE, SA_TOP | SA_LEFT, false, FS_MONO);
 		} else {
-			DrawString(-this->hscroll->GetPosition(), right - x, y_offset, this->lines[i], TC_WHITE, SA_TOP | SA_LEFT, false, FS_MONO);
+			DrawString (_cur_dpi, -this->hscroll->GetPosition(), right - x, y_offset, this->lines[i], TC_WHITE, SA_TOP | SA_LEFT, false, FS_MONO);
 			y_offset += line_height; // margin to previous element
 		}
 	}

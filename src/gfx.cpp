@@ -490,6 +490,7 @@ static int DrawLayoutLine (const ParagraphLayouter::Line *line,
 /**
  * Draw string, possibly truncated to make it fit in its allocated space
  *
+ * @param dpi    The area to draw on.
  * @param left   The left most position to draw on.
  * @param right  The right most position to draw on.
  * @param top    The top most position to draw on.
@@ -503,7 +504,9 @@ static int DrawLayoutLine (const ParagraphLayouter::Line *line,
  * @return In case of left or center alignment the right most pixel we have drawn to.
  *         In case of right alignment the left most pixel we have drawn to.
  */
-int DrawString(int left, int right, int top, const char *str, TextColour colour, StringAlignment align, bool underline, FontSize fontsize)
+int DrawString (BlitArea *dpi, int left, int right, int top,
+	const char *str, TextColour colour, StringAlignment align,
+	bool underline, FontSize fontsize)
 {
 	/* The string may contain control chars to change the font, just use the biggest font for clipping. */
 	int max_height = max(max(FONT_HEIGHT_SMALL, FONT_HEIGHT_NORMAL), max(FONT_HEIGHT_LARGE, FONT_HEIGHT_MONO));
@@ -511,15 +514,15 @@ int DrawString(int left, int right, int top, const char *str, TextColour colour,
 	/* Funny glyphs may extent outside the usual bounds, so relax the clipping somewhat. */
 	int extra = max_height / 2;
 
-	if (_cur_dpi->top + _cur_dpi->height + extra < top || _cur_dpi->top > top + max_height + extra ||
-			_cur_dpi->left + _cur_dpi->width + extra < left || _cur_dpi->left > right + extra) {
+	if (dpi->top + dpi->height + extra < top || dpi->top > top + max_height + extra ||
+			dpi->left + dpi->width + extra < left || dpi->left > right + extra) {
 		return 0;
 	}
 
 	Layouter layout(str, INT32_MAX, colour, fontsize);
 	if (layout.empty()) return 0;
 
-	return DrawLayoutLine (layout.front().get(), _cur_dpi, top, left, right, align, underline, true);
+	return DrawLayoutLine (layout.front().get(), dpi, top, left, right, align, underline, true);
 }
 
 /**
@@ -542,7 +545,7 @@ int DrawString(int left, int right, int top, StringID str, TextColour colour, St
 {
 	char buffer[DRAW_STRING_BUFFER];
 	GetString (buffer, str);
-	return DrawString(left, right, top, buffer, colour, align, underline, fontsize);
+	return DrawString (_cur_dpi, left, right, top, buffer, colour, align, underline, fontsize);
 }
 
 /**

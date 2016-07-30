@@ -1145,7 +1145,7 @@ static void DrawNewsString(uint left, uint right, int y, TextColour colour, cons
 
 	*dest = '\0';
 	/* Truncate and show string; postfixed by '...' if necessary */
-	DrawString(left, right, y, buffer2, colour);
+	DrawString (_cur_dpi, left, right, y, buffer2, colour);
 }
 
 struct MessageHistoryWindow : Window {

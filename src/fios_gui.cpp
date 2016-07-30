@@ -352,7 +352,7 @@ public:
 
 				if (str != STR_ERROR_UNABLE_TO_READ_DRIVE) SetDParam(0, tot);
 				DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + FONT_HEIGHT_NORMAL + WD_FRAMERECT_TOP, str);
-				DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP, path, TC_BLACK);
+				DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP, path, TC_BLACK);
 				break;
 			}
 
@@ -366,7 +366,7 @@ public:
 					if (item == this->selected) {
 						GfxFillRect (_cur_dpi, r.left + 1, y, r.right, y + this->resize.step_height, PC_DARK_BLUE);
 					}
-					DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, item->title, _fios_colours[item->type]);
+					DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, item->title, _fios_colours[item->type]);
 					y += this->resize.step_height;
 					if (y >= this->vscroll->GetCapacity() * this->resize.step_height + r.top + WD_FRAMERECT_TOP) break;
 				}

@@ -388,7 +388,7 @@ protected:
 		int text_y_offset = (this->resize.step_height - FONT_HEIGHT_NORMAL) / 2 + 1;
 		int icon_y_offset = (this->resize.step_height - GetSpriteSize(SPR_BLOT).height) / 2;
 
-		DrawString(nwi_name->pos_x + WD_FRAMERECT_LEFT, nwi_name->pos_x + nwi_name->current_x - WD_FRAMERECT_RIGHT, y + text_y_offset, cur_item->info.server_name, TC_BLACK);
+		DrawString (_cur_dpi, nwi_name->pos_x + WD_FRAMERECT_LEFT, nwi_name->pos_x + nwi_name->current_x - WD_FRAMERECT_RIGHT, y + text_y_offset, cur_item->info.server_name, TC_BLACK);
 
 		/* only draw details if the server is online */
 		if (cur_item->online) {
@@ -630,14 +630,14 @@ public:
 		if (sel == NULL) {
 			DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + 6 + 4 + FONT_HEIGHT_NORMAL, STR_NETWORK_SERVER_LIST_GAME_INFO, TC_FROMSTRING, SA_HOR_CENTER);
 		} else if (!sel->online) {
-			DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + 6 + 4 + FONT_HEIGHT_NORMAL, sel->info.server_name, TC_ORANGE, SA_HOR_CENTER); // game name
+			DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + 6 + 4 + FONT_HEIGHT_NORMAL, sel->info.server_name, TC_ORANGE, SA_HOR_CENTER); // game name
 
 			DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + detail_height + 4, STR_NETWORK_SERVER_LIST_SERVER_OFFLINE, TC_FROMSTRING, SA_HOR_CENTER); // server offline
 		} else { // show game info
 
 			DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + 6, STR_NETWORK_SERVER_LIST_GAME_INFO, TC_FROMSTRING, SA_HOR_CENTER);
-			DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + 6 + 4 + FONT_HEIGHT_NORMAL, sel->info.server_name, TC_ORANGE, SA_HOR_CENTER); // game name
-			DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + 6 + 8 + 2 * FONT_HEIGHT_NORMAL, sel->info.map_name, TC_BLACK, SA_HOR_CENTER); // map name
+			DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + 6 + 4 + FONT_HEIGHT_NORMAL, sel->info.server_name, TC_ORANGE, SA_HOR_CENTER); // game name
+			DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + 6 + 8 + 2 * FONT_HEIGHT_NORMAL, sel->info.map_name, TC_BLACK, SA_HOR_CENTER); // map name
 
 			uint16 y = r.top + detail_height + 4;
 
@@ -1108,7 +1108,9 @@ struct NetworkStartServerWindow : public Window {
 		switch (widget) {
 			case WID_NSS_SETPWD:
 				/* If password is set, draw red '*' next to 'Set password' button. */
-				if (!StrEmpty(_settings_client.network.server_password)) DrawString(r.right + WD_FRAMERECT_LEFT, this->width - WD_FRAMERECT_RIGHT, r.top, "*", TC_RED);
+				if (!StrEmpty (_settings_client.network.server_password)) {
+					DrawString (_cur_dpi, r.right + WD_FRAMERECT_LEFT, this->width - WD_FRAMERECT_RIGHT, r.top, "*", TC_RED);
+				}
 		}
 	}
 
@@ -1472,7 +1474,7 @@ struct NetworkLobbyWindow : public Window {
 				GfxFillRect (_cur_dpi, r.left + 1, y - 2, r.right - 1, y + FONT_HEIGHT_NORMAL, PC_GREY); // show highlighted item with a different colour
 			}
 
-			DrawString(text_left, text_right, y, this->company_info[company].company_name, TC_BLACK);
+			DrawString (_cur_dpi, text_left, text_right, y, this->company_info[company].company_name, TC_BLACK);
 			if (this->company_info[company].use_password != 0) DrawSprite(SPR_LOCK, PAL_NONE, lock_left, y + lock_y_offset);
 
 			/* If the company's income was positive puts a green dot else a red dot */
@@ -1976,7 +1978,7 @@ struct NetworkClientListWindow : Window {
 			/* Filter out spectators */
 			if (Company::IsValidID(ci->client_playas)) DrawCompanyIcon(ci->client_playas, icon_left, y + icon_offset);
 
-			DrawString(name_left, name_right, y + text_offset, ci->client_name, colour);
+			DrawString (_cur_dpi, name_left, name_right, y + text_offset, ci->client_name, colour);
 
 			y += line_height;
 		}

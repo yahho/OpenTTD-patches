@@ -214,17 +214,17 @@ struct IConsoleWindow : Window
 		/* If the text is longer than the window, don't show the starting ']' */
 		int delta = this->width - this->line_offset - _iconsole_cmdline.pixels - ICON_RIGHT_BORDERWIDTH;
 		if (delta > 0) {
-			DrawString(5, right, this->height - this->line_height, "]", (TextColour)CC_COMMAND, SA_LEFT | SA_FORCE);
+			DrawString (_cur_dpi, 5, right, this->height - this->line_height, "]", (TextColour)CC_COMMAND, SA_LEFT | SA_FORCE);
 			delta = 0;
 		}
 
 		/* If we have a marked area, draw a background highlight. */
 		if (_iconsole_cmdline.marklength != 0) GfxFillRect (_cur_dpi, this->line_offset + delta + _iconsole_cmdline.markxoffs, this->height - this->line_height, this->line_offset + delta + _iconsole_cmdline.markxoffs + _iconsole_cmdline.marklength, this->height - 1, PC_DARK_RED);
 
-		DrawString(this->line_offset + delta, right, this->height - this->line_height, _iconsole_cmdline.GetText(), (TextColour)CC_COMMAND, SA_LEFT | SA_FORCE);
+		DrawString (_cur_dpi, this->line_offset + delta, right, this->height - this->line_height, _iconsole_cmdline.GetText(), (TextColour)CC_COMMAND, SA_LEFT | SA_FORCE);
 
 		if (_focused_window == this && _iconsole_cmdline.caret) {
-			DrawString(this->line_offset + delta + _iconsole_cmdline.caretxoffs, right, this->height - this->line_height, "_", TC_WHITE, SA_LEFT | SA_FORCE);
+			DrawString (_cur_dpi, this->line_offset + delta + _iconsole_cmdline.caretxoffs, right, this->height - this->line_height, "_", TC_WHITE, SA_LEFT | SA_FORCE);
 		}
 	}
 

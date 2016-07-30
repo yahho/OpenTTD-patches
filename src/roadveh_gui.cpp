@@ -76,7 +76,7 @@ void DrawRoadVehDetails(const Vehicle *v, int left, int right, int y)
 			}
 		}
 
-		DrawString(left, right, y + FONT_HEIGHT_NORMAL + y_offset, capacity.c_str(), TC_BLUE);
+		DrawString (_cur_dpi, left, right, y + FONT_HEIGHT_NORMAL + y_offset, capacity.c_str(), TC_BLUE);
 
 		for (const Vehicle *u = v; u != NULL; u = u->Next()) {
 			if (u->cargo_cap == 0) continue;

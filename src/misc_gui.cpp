@@ -79,7 +79,7 @@ public:
 		for (uint i = 0; i < LAND_INFO_CENTERED_LINES; i++) {
 			if (StrEmpty(this->landinfo_data[i])) break;
 
-			DrawString(r.left + WD_FRAMETEXT_LEFT, r.right - WD_FRAMETEXT_RIGHT, y, this->landinfo_data[i], i == 0 ? TC_LIGHT_BLUE : TC_FROMSTRING, SA_HOR_CENTER);
+			DrawString (_cur_dpi, r.left + WD_FRAMETEXT_LEFT, r.right - WD_FRAMETEXT_RIGHT, y, this->landinfo_data[i], i == 0 ? TC_LIGHT_BLUE : TC_FROMSTRING, SA_HOR_CENTER);
 			y += FONT_HEIGHT_NORMAL + WD_PAR_VSEP_NORMAL;
 			if (i == 0) y += 4;
 		}
@@ -476,7 +476,7 @@ struct AboutWindow : public Window {
 		/* Show all scrolling _credits */
 		for (uint i = 0; i < lengthof(_credits); i++) {
 			if (y >= r.top + 7 && y < r.bottom - this->line_height) {
-				DrawString(r.left, r.right, y, _credits[i], TC_BLACK, SA_LEFT | SA_FORCE);
+				DrawString (_cur_dpi, r.left, r.right, y, _credits[i], TC_BLACK, SA_LEFT | SA_FORCE);
 			}
 			y += this->line_height;
 		}
@@ -774,11 +774,11 @@ void QueryString::DrawEditBox(const Window *w, int wid) const
 	/* If we have a marked area, draw a background highlight. */
 	if (this->marklength != 0) GfxFillRect (_cur_dpi, delta + this->markxoffs, 0, delta + this->markxoffs + this->marklength - 1, bottom - top, PC_GREY);
 
-	DrawString(delta, this->pixels, 0, this->GetText(), TC_YELLOW);
+	DrawString (_cur_dpi, delta, this->pixels, 0, this->GetText(), TC_YELLOW);
 	bool focussed = w->IsWidgetGloballyFocused(wid) || IsOSKOpenedFor(w, wid);
 	if (focussed && this->caret) {
 		int caret_width = GetStringBoundingBox("_").width;
-		DrawString(this->caretxoffs + delta, this->caretxoffs + delta + caret_width, 0, "_", TC_WHITE);
+		DrawString (_cur_dpi, this->caretxoffs + delta, this->caretxoffs + delta + caret_width, 0, "_", TC_WHITE);
 	}
 
 	_cur_dpi = old_dpi;

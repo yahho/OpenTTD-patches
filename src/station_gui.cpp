@@ -1627,7 +1627,7 @@ struct StationViewWindow : public Window {
 		if (sym) {
 			int sym_left  = rtl ? r.left + WD_FRAMERECT_LEFT : r.right - this->expand_shrink_width + WD_FRAMERECT_LEFT;
 			int sym_right = rtl ? r.left + this->expand_shrink_width - WD_FRAMERECT_RIGHT : r.right - WD_FRAMERECT_RIGHT;
-			DrawString (sym_left, sym_right, y, sym, TC_YELLOW);
+			DrawString (_cur_dpi, sym_left, sym_right, y, sym, TC_YELLOW);
 		}
 	}
 

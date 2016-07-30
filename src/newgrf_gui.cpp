@@ -593,7 +593,7 @@ public:
 
 	void Draw(int left, int right, int top, int bottom, bool sel, int bg_colour) const
 	{
-		DrawString(left + 2, right + 2, top, _grf_preset_list[this->result], sel ? TC_WHITE : TC_BLACK);
+		DrawString (_cur_dpi, left + 2, right + 2, top, _grf_preset_list[this->result], sel ? TC_WHITE : TC_BLACK);
 	}
 };
 
@@ -887,7 +887,7 @@ struct NewGRFWindow : public Window, NewGRFScanCallback {
 						DrawSprite(SPR_SQUARE, pal, square_left, y + square_offset_y);
 						if (c->error != NULL) DrawSprite(SPR_WARNING_SIGN, 0, warning_left, y + warning_offset_y);
 						uint txtoffset = c->error == NULL ? 0 : warning.width;
-						DrawString(text_left + (rtl ? 0 : txtoffset), text_right - (rtl ? txtoffset : 0), y + offset_y, text, h ? TC_WHITE : TC_ORANGE);
+						DrawString (_cur_dpi, text_left + (rtl ? 0 : txtoffset), text_right - (rtl ? txtoffset : 0), y + offset_y, text, h ? TC_WHITE : TC_ORANGE);
 						y += step_height;
 					}
 				}
@@ -912,7 +912,7 @@ struct NewGRFWindow : public Window, NewGRFScanCallback {
 					const char *text = c->GetName();
 
 					if (h) GfxFillRect (_cur_dpi, r.left + 1, y, r.right - 1, y + step_height - 1, PC_DARK_BLUE);
-					DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y + offset_y, text, h ? TC_WHITE : TC_SILVER);
+					DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y + offset_y, text, h ? TC_WHITE : TC_SILVER);
 					y += step_height;
 				}
 				break;
@@ -2128,7 +2128,7 @@ struct SavePresetWindow : public Window {
 					if ((int)i == this->selected) GfxFillRect (_cur_dpi, r.left + 1, y, r.right - 1, y + step_height - 2, PC_DARK_BLUE);
 
 					const char *text = this->presets[i];
-					DrawString(r.left + WD_FRAMERECT_LEFT, r.right, y + offset_y, text, ((int)i == this->selected) ? TC_WHITE : TC_SILVER);
+					DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right, y + offset_y, text, ((int)i == this->selected) ? TC_WHITE : TC_SILVER);
 					y += step_height;
 				}
 				break;
@@ -2259,7 +2259,7 @@ struct ScanProgressWindow : public Window {
 				SetDParam(1, _settings_client.gui.last_newgrf_count);
 				DrawString(r.left, r.right, r.top, STR_NEWGRF_SCAN_STATUS, TC_FROMSTRING, SA_HOR_CENTER);
 
-				DrawString(r.left, r.right, r.top + FONT_HEIGHT_NORMAL + WD_PAR_VSEP_NORMAL, this->last_name == NULL ? "" : this->last_name, TC_BLACK, SA_HOR_CENTER);
+				DrawString (_cur_dpi, r.left, r.right, r.top + FONT_HEIGHT_NORMAL + WD_PAR_VSEP_NORMAL, this->last_name == NULL ? "" : this->last_name, TC_BLACK, SA_HOR_CENTER);
 				break;
 		}
 	}

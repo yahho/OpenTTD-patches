@@ -125,7 +125,7 @@ struct AIListWindow : public Window {
 				ScriptInfoList::const_iterator it = this->info_list->begin();
 				for (int i = 1; it != this->info_list->end(); i++, it++) {
 					if (this->vscroll->IsVisible(i)) {
-						DrawString(r.left + WD_MATRIX_LEFT, r.right - WD_MATRIX_RIGHT, y + WD_MATRIX_TOP, (*it).second->GetName(), (this->selected == i - 1) ? TC_WHITE : TC_ORANGE);
+						DrawString (_cur_dpi, r.left + WD_MATRIX_LEFT, r.right - WD_MATRIX_RIGHT, y + WD_MATRIX_TOP, (*it).second->GetName(), (this->selected == i - 1) ? TC_WHITE : TC_ORANGE);
 						y += this->line_height;
 					}
 				}
@@ -1216,7 +1216,7 @@ struct AIDebugWindow : public Window {
 						if (colour == TC_BLACK) colour = TC_WHITE; // Make black text readable by inverting it to white.
 					}
 
-					DrawString (r.left + 7, r.right - 7, r.top + y, line->msg, colour, SA_LEFT | SA_FORCE);
+					DrawString (_cur_dpi, r.left + 7, r.right - 7, r.top + y, line->msg, colour, SA_LEFT | SA_FORCE);
 					y += this->resize.step_height;
 				}
 				break;

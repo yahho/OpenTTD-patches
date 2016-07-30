@@ -536,7 +536,7 @@ struct GenerateLandscapeWindow : public Window {
 	{
 		switch (widget) {
 			case WID_GL_HEIGHTMAP_NAME_TEXT: {
-				DrawString(r.left, r.right, r.top, this->name, TC_ORANGE);
+				DrawString (_cur_dpi, r.left, r.right, r.top, this->name, TC_ORANGE);
 				break;
 			}
 		}

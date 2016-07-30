@@ -705,9 +705,9 @@ public:
 			}
 			DrawSprite(sprite, pal, nwi_checkbox->pos_x + (pal == PAL_NONE ? 2 : 3), y + sprite_y_offset + (pal == PAL_NONE ? 1 : 0));
 
-			DrawString(nwi_type->pos_x, nwi_type->pos_x + nwi_type->current_x - 1, y + text_y_offset, content_type_strs[ci->type], TC_BLACK, SA_HOR_CENTER);
+			DrawString (_cur_dpi, nwi_type->pos_x, nwi_type->pos_x + nwi_type->current_x - 1, y + text_y_offset, content_type_strs[ci->type], TC_BLACK, SA_HOR_CENTER);
 
-			DrawString(nwi_name->pos_x + WD_FRAMERECT_LEFT, nwi_name->pos_x + nwi_name->current_x - WD_FRAMERECT_RIGHT, y + text_y_offset, ci->name, TC_BLACK);
+			DrawString (_cur_dpi, nwi_name->pos_x + WD_FRAMERECT_LEFT, nwi_name->pos_x + nwi_name->current_x - WD_FRAMERECT_RIGHT, y + text_y_offset, ci->name, TC_BLACK);
 			y += this->resize.step_height;
 		}
 	}
