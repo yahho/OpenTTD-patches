@@ -333,6 +333,7 @@ static void SetColourRemap(TextColour colour)
 /**
  * Drawing routine for drawing a laid out line of text.
  * @param line      String to draw.
+ * @param dpi       The area to draw on.
  * @param y         The top most position to draw on.
  * @param left      The left most position to draw on.
  * @param right     The right most position to draw on.
@@ -345,7 +346,9 @@ static void SetColourRemap(TextColour colour)
  * @return In case of left or center alignment the right most pixel we have drawn to.
  *         In case of right alignment the left most pixel we have drawn to.
  */
-static int DrawLayoutLine(const ParagraphLayouter::Line *line, int y, int left, int right, StringAlignment align, bool underline, bool truncation)
+static int DrawLayoutLine (const ParagraphLayouter::Line *line,
+	BlitArea *dpi, int y, int left, int right,
+	StringAlignment align, bool underline, bool truncation)
 {
 	if (line->CountRuns() == 0) return 0;
 
@@ -434,7 +437,6 @@ static int DrawLayoutLine(const ParagraphLayouter::Line *line, int y, int left, 
 		colour = f->colour;
 		SetColourRemap(colour);
 
-		DrawPixelInfo *dpi = _cur_dpi;
 		int dpi_left  = dpi->left;
 		int dpi_right = dpi->left + dpi->width - 1;
 
@@ -459,10 +461,10 @@ static int DrawLayoutLine(const ParagraphLayouter::Line *line, int y, int left, 
 
 			if (draw_shadow && (glyph & SPRITE_GLYPH) == 0) {
 				SetColourRemap(TC_BLACK);
-				GfxMainBlitter (_cur_dpi, sprite, begin_x + 1, top + 1, BM_COLOUR_REMAP);
+				GfxMainBlitter (dpi, sprite, begin_x + 1, top + 1, BM_COLOUR_REMAP);
 				SetColourRemap(colour);
 			}
-			GfxMainBlitter (_cur_dpi, sprite, begin_x, top, BM_COLOUR_REMAP);
+			GfxMainBlitter (dpi, sprite, begin_x, top, BM_COLOUR_REMAP);
 		}
 	}
 
@@ -471,15 +473,15 @@ static int DrawLayoutLine(const ParagraphLayouter::Line *line, int y, int left, 
 		for (int i = 0; i < 3; i++, x += dot_width) {
 			if (draw_shadow) {
 				SetColourRemap(TC_BLACK);
-				GfxMainBlitter (_cur_dpi, dot_sprite, x + 1, y + 1, BM_COLOUR_REMAP);
+				GfxMainBlitter (dpi, dot_sprite, x + 1, y + 1, BM_COLOUR_REMAP);
 				SetColourRemap(colour);
 			}
-			GfxMainBlitter (_cur_dpi, dot_sprite, x, y, BM_COLOUR_REMAP);
+			GfxMainBlitter (dpi, dot_sprite, x, y, BM_COLOUR_REMAP);
 		}
 	}
 
 	if (underline) {
-		GfxFillRect (_cur_dpi, left, y + h, right, y + h, _string_colourremap[1]);
+		GfxFillRect (dpi, left, y + h, right, y + h, _string_colourremap[1]);
 	}
 
 	return (align & SA_HOR_MASK) == SA_RIGHT ? left : right;
@@ -517,7 +519,7 @@ int DrawString(int left, int right, int top, const char *str, TextColour colour,
 	Layouter layout(str, INT32_MAX, colour, fontsize);
 	if (layout.empty()) return 0;
 
-	return DrawLayoutLine (layout.front().get(), top, left, right, align, underline, true);
+	return DrawLayoutLine (layout.front().get(), _cur_dpi, top, left, right, align, underline, true);
 }
 
 /**
@@ -637,7 +639,7 @@ int DrawStringMultiLine(int left, int right, int top, int bottom, const char *st
 			last_line = y + line_height;
 			if (first_line > y) first_line = y;
 
-			DrawLayoutLine(line, y, left, right, align, underline, false);
+			DrawLayoutLine (line, _cur_dpi, y, left, right, align, underline, false);
 		}
 		y += line_height;
 	}
