@@ -201,7 +201,9 @@ struct GoalListWindow : public Window {
 	 */
 	void DrawPartialGoalList(int &pos, const int cap, int x, int y, int right, uint progress_col_width, bool global_section, GoalColumn column) const
 	{
-		if (column == GC_GOAL && IsInsideMM(pos, 0, cap)) DrawString(x, right, y + pos * FONT_HEIGHT_NORMAL, global_section ? STR_GOALS_GLOBAL_TITLE : STR_GOALS_COMPANY_TITLE);
+		if (column == GC_GOAL && IsInsideMM(pos, 0, cap)) {
+			DrawString (_cur_dpi, x, right, y + pos * FONT_HEIGHT_NORMAL, global_section ? STR_GOALS_GLOBAL_TITLE : STR_GOALS_COMPANY_TITLE);
+		}
 		pos++;
 
 		bool rtl = _current_text_dir == TD_RTL;
@@ -216,7 +218,7 @@ struct GoalListWindow : public Window {
 							/* Display the goal. */
 							SetDParamStr(0, s->text);
 							uint width_reduction = progress_col_width > 0 ? progress_col_width + WD_FRAMERECT_LEFT + WD_FRAMERECT_RIGHT : 0;
-							DrawString(x + (rtl ? width_reduction : 0), right - (rtl ? 0 : width_reduction), y + pos * FONT_HEIGHT_NORMAL, STR_GOALS_TEXT);
+							DrawString (_cur_dpi, x + (rtl ? width_reduction : 0), right - (rtl ? 0 : width_reduction), y + pos * FONT_HEIGHT_NORMAL, STR_GOALS_TEXT);
 							break;
 						}
 
@@ -226,7 +228,7 @@ struct GoalListWindow : public Window {
 								StringID str = s->completed ? STR_GOALS_PROGRESS_COMPLETE : STR_GOALS_PROGRESS;
 								int progress_x = x;
 								int progress_right = rtl ? x + progress_col_width : right;
-								DrawString(progress_x, progress_right, y + pos * FONT_HEIGHT_NORMAL, str, TC_FROMSTRING, SA_RIGHT | SA_FORCE);
+								DrawString (_cur_dpi, progress_x, progress_right, y + pos * FONT_HEIGHT_NORMAL, str, TC_FROMSTRING, SA_RIGHT | SA_FORCE);
 							}
 							break;
 					}
@@ -239,7 +241,7 @@ struct GoalListWindow : public Window {
 		if (num == 0) {
 			if (column == GC_GOAL && IsInsideMM(pos, 0, cap)) {
 				StringID str = !global_section && this->window_number == INVALID_COMPANY ? STR_GOALS_SPECTATOR_NONE : STR_GOALS_NONE;
-				DrawString(x, right, y + pos * FONT_HEIGHT_NORMAL, str);
+				DrawString (_cur_dpi, x, right, y + pos * FONT_HEIGHT_NORMAL, str);
 			}
 			pos++;
 		}

@@ -111,7 +111,7 @@ struct EnginePreviewWindow : Window {
 		y = DrawStringMultiLine(r.left, r.right, r.top, y, STR_ENGINE_PREVIEW_MESSAGE, TC_FROMSTRING, SA_CENTER) + WD_PAR_VSEP_WIDE;
 
 		SetDParam(0, engine);
-		DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_ENGINE_NAME, TC_BLACK, SA_HOR_CENTER);
+		DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_ENGINE_NAME, TC_BLACK, SA_HOR_CENTER);
 		y += FONT_HEIGHT_NORMAL;
 
 		DrawVehicleEngine(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, this->width >> 1, y + this->vehicle_space / 2, engine, GetEnginePalette(engine, _local_company), EIT_PREVIEW);

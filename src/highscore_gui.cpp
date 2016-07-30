@@ -190,16 +190,16 @@ struct HighScoreWindow : EndGameHighScoreBaseWindow {
 		/* Draw Highscore peepz */
 		for (uint8 i = 0; i < lengthof(_highscore_table[0]); i++) {
 			SetDParam(0, i + 1);
-			DrawString(pt.x + 40, pt.x + 600, pt.y + 140 + (i * 55), STR_HIGHSCORE_POSITION);
+			DrawString (_cur_dpi, pt.x + 40, pt.x + 600, pt.y + 140 + (i * 55), STR_HIGHSCORE_POSITION);
 
 			if (hs[i].company[0] != '\0') {
 				TextColour colour = (this->rank == i) ? TC_RED : TC_BLACK; // draw new highscore in red
 
 				SetDParamStr(0, hs[i].company);
-				DrawString(pt.x + 71, pt.x + 569, pt.y + 140 + (i * 55), STR_JUST_BIG_RAW_STRING, colour);
+				DrawString (_cur_dpi, pt.x + 71, pt.x + 569, pt.y + 140 + (i * 55), STR_JUST_BIG_RAW_STRING, colour);
 				SetDParam(0, hs[i].title);
 				SetDParam(1, hs[i].score);
-				DrawString(pt.x + 71, pt.x + 569, pt.y + 140 + FONT_HEIGHT_LARGE + (i * 55), STR_HIGHSCORE_STATS, colour);
+				DrawString (_cur_dpi, pt.x + 71, pt.x + 569, pt.y + 140 + FONT_HEIGHT_LARGE + (i * 55), STR_HIGHSCORE_STATS, colour);
 			}
 		}
 	}

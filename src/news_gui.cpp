@@ -1208,7 +1208,7 @@ struct MessageHistoryWindow : Window {
 		uint news_right = rtl ? r.right - WD_FRAMERECT_RIGHT - this->date_width - WD_FRAMERECT_RIGHT : r.right - WD_FRAMERECT_RIGHT;
 		for (int n = this->vscroll->GetCapacity(); n > 0; n--) {
 			SetDParam(0, ni->date);
-			DrawString(date_left, date_right, y, STR_SHORT_DATE);
+			DrawString (_cur_dpi, date_left, date_right, y, STR_SHORT_DATE);
 
 			DrawNewsString(news_left, news_right, y, TC_WHITE, ni);
 			y += this->line_height;

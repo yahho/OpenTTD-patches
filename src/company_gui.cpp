@@ -134,7 +134,7 @@ static void DrawCategories(const Rect &r)
 {
 	int y = r.top;
 
-	DrawString(r.left, r.right, y, STR_FINANCES_EXPENDITURE_INCOME_TITLE, TC_FROMSTRING, SA_HOR_CENTER, true);
+	DrawString (_cur_dpi, r.left, r.right, y, STR_FINANCES_EXPENDITURE_INCOME_TITLE, TC_FROMSTRING, SA_HOR_CENTER, true);
 	y += FONT_HEIGHT_NORMAL + EXP_LINESPACE;
 
 	int type = _settings_client.gui.expenses_layout;
@@ -142,15 +142,15 @@ static void DrawCategories(const Rect &r)
 		const ExpensesType et = _expenses_list_types[type].et[i];
 		if (et == INVALID_EXPENSES) {
 			y += EXP_LINESPACE;
-			DrawString(r.left, r.right, y, STR_FINANCES_TOTAL_CAPTION, TC_FROMSTRING, SA_RIGHT);
+			DrawString (_cur_dpi, r.left, r.right, y, STR_FINANCES_TOTAL_CAPTION, TC_FROMSTRING, SA_RIGHT);
 			y += FONT_HEIGHT_NORMAL + EXP_BLOCKSPACE;
 		} else {
-			DrawString(r.left, r.right, y, STR_FINANCES_SECTION_CONSTRUCTION + et);
+			DrawString (_cur_dpi, r.left, r.right, y, STR_FINANCES_SECTION_CONSTRUCTION + et);
 			y += FONT_HEIGHT_NORMAL;
 		}
 	}
 
-	DrawString(r.left, r.right, y + EXP_LINESPACE, STR_FINANCES_TOTAL_CAPTION, TC_FROMSTRING, SA_RIGHT);
+	DrawString (_cur_dpi, r.left, r.right, y + EXP_LINESPACE, STR_FINANCES_TOTAL_CAPTION, TC_FROMSTRING, SA_RIGHT);
 }
 
 /**
@@ -168,7 +168,7 @@ static void DrawPrice(Money amount, int left, int right, int top)
 		str++;
 	}
 	SetDParam(0, amount);
-	DrawString(left, right, top, str, TC_FROMSTRING, SA_RIGHT);
+	DrawString (_cur_dpi, left, right, top, str, TC_FROMSTRING, SA_RIGHT);
 }
 
 /**
@@ -183,7 +183,7 @@ static void DrawYearColumn(const Rect &r, int year, const Money (*tbl)[EXPENSES_
 	int y = r.top;
 
 	SetDParam(0, year);
-	DrawString(r.left, r.right, y, STR_FINANCES_YEAR, TC_FROMSTRING, SA_RIGHT, true);
+	DrawString (_cur_dpi, r.left, r.right, y, STR_FINANCES_YEAR, TC_FROMSTRING, SA_RIGHT, true);
 	y += FONT_HEIGHT_NORMAL + EXP_LINESPACE;
 
 	Money sum = 0;
@@ -352,21 +352,21 @@ struct CompanyFinancesWindow : Window {
 			case WID_CF_BALANCE_VALUE: {
 				const Company *c = Company::Get((CompanyID)this->window_number);
 				SetDParam(0, c->money);
-				DrawString(r.left, r.right, r.top, STR_FINANCES_TOTAL_CURRENCY, TC_FROMSTRING, SA_RIGHT);
+				DrawString (_cur_dpi, r.left, r.right, r.top, STR_FINANCES_TOTAL_CURRENCY, TC_FROMSTRING, SA_RIGHT);
 				break;
 			}
 
 			case WID_CF_LOAN_VALUE: {
 				const Company *c = Company::Get((CompanyID)this->window_number);
 				SetDParam(0, c->current_loan);
-				DrawString(r.left, r.right, r.top, STR_FINANCES_TOTAL_CURRENCY, TC_FROMSTRING, SA_RIGHT);
+				DrawString (_cur_dpi, r.left, r.right, r.top, STR_FINANCES_TOTAL_CURRENCY, TC_FROMSTRING, SA_RIGHT);
 				break;
 			}
 
 			case WID_CF_TOTAL_VALUE: {
 				const Company *c = Company::Get((CompanyID)this->window_number);
 				SetDParam(0, c->money - c->current_loan);
-				DrawString(r.left, r.right, r.top, STR_FINANCES_TOTAL_CURRENCY, TC_FROMSTRING, SA_RIGHT);
+				DrawString (_cur_dpi, r.left, r.right, r.top, STR_FINANCES_TOTAL_CURRENCY, TC_FROMSTRING, SA_RIGHT);
 				break;
 			}
 
@@ -547,7 +547,7 @@ public:
 		DrawSprite(SPR_VEH_BUS_SIDE_VIEW, PALETTE_RECOLOUR_START + this->result,
 				rtl ? right - 2 - ScaleGUITrad(14) : left + ScaleGUITrad(14) + 2,
 				top + icon_y_offset);
-		DrawString(rtl ? left + 2 : left + ScaleGUITrad(28) + 4,
+		DrawString (_cur_dpi, rtl ? left + 2 : left + ScaleGUITrad(28) + 4,
 				rtl ? right - ScaleGUITrad(28) - 4 : right - 2,
 				top + text_y_offset, this->String(), sel ? TC_WHITE : TC_BLACK);
 	}
@@ -715,16 +715,16 @@ public:
 				if (scheme != LS_DEFAULT) {
 					DrawSprite(c->livery[scheme].in_use ? SPR_BOX_CHECKED : SPR_BOX_EMPTY, PAL_NONE, (rtl ? sch_right - (this->box.width + 5) + WD_FRAMERECT_RIGHT : sch_left) + WD_FRAMERECT_LEFT, y + box_offs);
 				}
-				DrawString(sch_left + text_left, sch_right - text_right, y + text_offs, STR_LIVERY_DEFAULT + scheme, sel ? TC_WHITE : TC_BLACK);
+				DrawString (_cur_dpi, sch_left + text_left, sch_right - text_right, y + text_offs, STR_LIVERY_DEFAULT + scheme, sel ? TC_WHITE : TC_BLACK);
 
 				/* Text below the first dropdown. */
 				DrawSprite(SPR_SQUARE, GENERAL_SPRITE_COLOUR(c->livery[scheme].colour1), (rtl ? pri_right - (this->box.width + 5) + WD_FRAMERECT_RIGHT : pri_left) + WD_FRAMERECT_LEFT, y + square_offs);
-				DrawString(pri_left + text_left, pri_right - text_right, y + text_offs, STR_COLOUR_DARK_BLUE + c->livery[scheme].colour1, sel ? TC_WHITE : TC_GOLD);
+				DrawString (_cur_dpi, pri_left + text_left, pri_right - text_right, y + text_offs, STR_COLOUR_DARK_BLUE + c->livery[scheme].colour1, sel ? TC_WHITE : TC_GOLD);
 
 				/* Text below the second dropdown. */
 				if (sec_right > sec_left) { // Second dropdown has non-zero size.
 					DrawSprite(SPR_SQUARE, GENERAL_SPRITE_COLOUR(c->livery[scheme].colour2), (rtl ? sec_right - (this->box.width + 5) + WD_FRAMERECT_RIGHT : sec_left) + WD_FRAMERECT_LEFT, y + square_offs);
-					DrawString(sec_left + text_left, sec_right - text_right, y + text_offs, STR_COLOUR_DARK_BLUE + c->livery[scheme].colour2, sel ? TC_WHITE : TC_GOLD);
+					DrawString (_cur_dpi, sec_left + text_left, sec_right - text_right, y + text_offs, STR_COLOUR_DARK_BLUE + c->livery[scheme].colour2, sel ? TC_WHITE : TC_GOLD);
 				}
 
 				y += this->line_height;
@@ -1097,7 +1097,7 @@ class SelectCompanyManagerFaceWindow : public Window
 			}
 
 			/* Draw the value/bool in white. */
-			DrawString (nwi_widget->pos_x, nwi_widget->pos_x + nwi_widget->current_x - 1,
+			DrawString (_cur_dpi, nwi_widget->pos_x, nwi_widget->pos_x + nwi_widget->current_x - 1,
 					nwi_widget->pos_y + 1, str, TC_WHITE, SA_HOR_CENTER);
 		}
 	}
@@ -1299,12 +1299,12 @@ public:
 			case WID_SCMF_TIE_EARRING_TEXT: {
 				StringID str = this->is_female ? STR_FACE_EARRING :
 						(widget == WID_SCMF_HAS_MOUSTACHE_EARRING_TEXT) ? STR_FACE_MOUSTACHE : STR_FACE_TIE;
-				DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP, str, TC_GOLD, SA_RIGHT);
+				DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP, str, TC_GOLD, SA_RIGHT);
 				break;
 			}
 
 			case WID_SCMF_LIPS_MOUSTACHE_TEXT:
-				DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP, (this->is_moust_male) ? STR_FACE_MOUSTACHE : STR_FACE_LIPS, TC_GOLD, SA_RIGHT);
+				DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP, (this->is_moust_male) ? STR_FACE_MOUSTACHE : STR_FACE_LIPS, TC_GOLD, SA_RIGHT);
 				break;
 
 			case WID_SCMF_HAS_GLASSES_TEXT:
@@ -1316,7 +1316,7 @@ public:
 			case WID_SCMF_CHIN_TEXT:
 			case WID_SCMF_JACKET_TEXT:
 			case WID_SCMF_COLLAR_TEXT:
-				DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP, PART_TEXTS[widget - WID_SCMF_HAS_GLASSES_TEXT], TC_GOLD, SA_RIGHT);
+				DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP, PART_TEXTS[widget - WID_SCMF_HAS_GLASSES_TEXT], TC_GOLD, SA_RIGHT);
 				break;
 
 
@@ -1753,12 +1753,12 @@ struct CompanyInfrastructureWindow : Window
 	void DrawCountLine(const Rect &r, int &y, int count, Money monthly_cost) const
 	{
 		SetDParam(0, count);
-		DrawString(r.left, r.right, y += FONT_HEIGHT_NORMAL, STR_WHITE_COMMA, TC_FROMSTRING, SA_RIGHT);
+		DrawString (_cur_dpi, r.left, r.right, y += FONT_HEIGHT_NORMAL, STR_WHITE_COMMA, TC_FROMSTRING, SA_RIGHT);
 
 		if (_settings_game.economy.infrastructure_maintenance) {
 			SetDParam(0, monthly_cost * 12); // Convert to per year
 			int left = _current_text_dir == TD_RTL ? r.right - this->total_width : r.left;
-			DrawString(left, left + this->total_width, y, STR_COMPANY_INFRASTRUCTURE_VIEW_TOTAL, TC_FROMSTRING, SA_RIGHT);
+			DrawString (_cur_dpi, left, left + this->total_width, y, STR_COMPANY_INFRASTRUCTURE_VIEW_TOTAL, TC_FROMSTRING, SA_RIGHT);
 		}
 	}
 
@@ -1772,7 +1772,7 @@ struct CompanyInfrastructureWindow : Window
 
 		switch (widget) {
 			case WID_CI_RAIL_DESC:
-				DrawString(r.left, r.right, y, STR_COMPANY_INFRASTRUCTURE_VIEW_RAIL_SECT);
+				DrawString (_cur_dpi, r.left, r.right, y, STR_COMPANY_INFRASTRUCTURE_VIEW_RAIL_SECT);
 
 				if (this->railtypes != RAILTYPES_NONE) {
 					/* Draw name of each valid railtype. */
@@ -1780,13 +1780,13 @@ struct CompanyInfrastructureWindow : Window
 					FOR_ALL_SORTED_RAILTYPES(rt) {
 						if (HasBit(this->railtypes, rt)) {
 							SetDParam(0, GetRailTypeInfo(rt)->strings.name);
-							DrawString(r.left + offs_left, r.right - offs_right, y += FONT_HEIGHT_NORMAL, STR_WHITE_STRING);
+							DrawString (_cur_dpi, r.left + offs_left, r.right - offs_right, y += FONT_HEIGHT_NORMAL, STR_WHITE_STRING);
 						}
 					}
-					DrawString(r.left + offs_left, r.right - offs_right, y += FONT_HEIGHT_NORMAL, STR_COMPANY_INFRASTRUCTURE_VIEW_SIGNALS);
+					DrawString (_cur_dpi, r.left + offs_left, r.right - offs_right, y += FONT_HEIGHT_NORMAL, STR_COMPANY_INFRASTRUCTURE_VIEW_SIGNALS);
 				} else {
 					/* No valid railtype. */
-					DrawString(r.left + offs_left, r.right - offs_right, y += FONT_HEIGHT_NORMAL, STR_COMPANY_VIEW_INFRASTRUCTURE_NONE);
+					DrawString (_cur_dpi, r.left + offs_left, r.right - offs_right, y += FONT_HEIGHT_NORMAL, STR_COMPANY_VIEW_INFRASTRUCTURE_NONE);
 				}
 
 				break;
@@ -1807,14 +1807,18 @@ struct CompanyInfrastructureWindow : Window
 			}
 
 			case WID_CI_ROAD_DESC:
-				DrawString(r.left, r.right, y, STR_COMPANY_INFRASTRUCTURE_VIEW_ROAD_SECT);
+				DrawString (_cur_dpi, r.left, r.right, y, STR_COMPANY_INFRASTRUCTURE_VIEW_ROAD_SECT);
 
 				if (this->roadtypes != ROADTYPES_NONE) {
-					if (HasBit(this->roadtypes, ROADTYPE_ROAD)) DrawString(r.left + offs_left, r.right - offs_right, y += FONT_HEIGHT_NORMAL, STR_COMPANY_INFRASTRUCTURE_VIEW_ROAD);
-					if (HasBit(this->roadtypes, ROADTYPE_TRAM)) DrawString(r.left + offs_left, r.right - offs_right, y += FONT_HEIGHT_NORMAL, STR_COMPANY_INFRASTRUCTURE_VIEW_TRAMWAY);
+					if (HasBit(this->roadtypes, ROADTYPE_ROAD)) {
+						DrawString (_cur_dpi, r.left + offs_left, r.right - offs_right, y += FONT_HEIGHT_NORMAL, STR_COMPANY_INFRASTRUCTURE_VIEW_ROAD);
+					}
+					if (HasBit(this->roadtypes, ROADTYPE_TRAM)) {
+						DrawString (_cur_dpi, r.left + offs_left, r.right - offs_right, y += FONT_HEIGHT_NORMAL, STR_COMPANY_INFRASTRUCTURE_VIEW_TRAMWAY);
+					}
 				} else {
 					/* No valid roadtypes. */
-					DrawString(r.left + offs_left, r.right - offs_right, y += FONT_HEIGHT_NORMAL, STR_COMPANY_VIEW_INFRASTRUCTURE_NONE);
+					DrawString (_cur_dpi, r.left + offs_left, r.right - offs_right, y += FONT_HEIGHT_NORMAL, STR_COMPANY_VIEW_INFRASTRUCTURE_NONE);
 				}
 
 				break;
@@ -1829,8 +1833,8 @@ struct CompanyInfrastructureWindow : Window
 				break;
 
 			case WID_CI_WATER_DESC:
-				DrawString(r.left, r.right, y, STR_COMPANY_INFRASTRUCTURE_VIEW_WATER_SECT);
-				DrawString(r.left + offs_left, r.right - offs_right, y += FONT_HEIGHT_NORMAL, STR_COMPANY_INFRASTRUCTURE_VIEW_CANALS);
+				DrawString (_cur_dpi, r.left, r.right, y, STR_COMPANY_INFRASTRUCTURE_VIEW_WATER_SECT);
+				DrawString (_cur_dpi, r.left + offs_left, r.right - offs_right, y += FONT_HEIGHT_NORMAL, STR_COMPANY_INFRASTRUCTURE_VIEW_CANALS);
 				break;
 
 			case WID_CI_WATER_COUNT:
@@ -1843,14 +1847,14 @@ struct CompanyInfrastructureWindow : Window
 					GfxFillRect (_cur_dpi, left, y, left + this->total_width, y, PC_WHITE);
 					y += EXP_LINESPACE;
 					SetDParam(0, this->GetTotalMaintenanceCost() * 12); // Convert to per year
-					DrawString(left, left + this->total_width, y, STR_COMPANY_INFRASTRUCTURE_VIEW_TOTAL, TC_FROMSTRING, SA_RIGHT);
+					DrawString (_cur_dpi, left, left + this->total_width, y, STR_COMPANY_INFRASTRUCTURE_VIEW_TOTAL, TC_FROMSTRING, SA_RIGHT);
 				}
 				break;
 
 			case WID_CI_STATION_DESC:
-				DrawString(r.left, r.right, y, STR_COMPANY_INFRASTRUCTURE_VIEW_STATION_SECT);
-				DrawString(r.left + offs_left, r.right - offs_right, y += FONT_HEIGHT_NORMAL, STR_COMPANY_INFRASTRUCTURE_VIEW_STATIONS);
-				DrawString(r.left + offs_left, r.right - offs_right, y += FONT_HEIGHT_NORMAL, STR_COMPANY_INFRASTRUCTURE_VIEW_AIRPORTS);
+				DrawString (_cur_dpi, r.left, r.right, y, STR_COMPANY_INFRASTRUCTURE_VIEW_STATION_SECT);
+				DrawString (_cur_dpi, r.left + offs_left, r.right - offs_right, y += FONT_HEIGHT_NORMAL, STR_COMPANY_INFRASTRUCTURE_VIEW_STATIONS);
+				DrawString (_cur_dpi, r.left + offs_left, r.right - offs_right, y += FONT_HEIGHT_NORMAL, STR_COMPANY_INFRASTRUCTURE_VIEW_AIRPORTS);
 				break;
 
 			case WID_CI_STATION_COUNT:
@@ -2195,14 +2199,14 @@ struct CompanyWindow : Window
 
 				int y = r.top;
 				if (amounts[0] + amounts[1] + amounts[2] + amounts[3] == 0) {
-					DrawString(r.left, r.right, y, STR_COMPANY_VIEW_VEHICLES_NONE);
+					DrawString (_cur_dpi, r.left, r.right, y, STR_COMPANY_VIEW_VEHICLES_NONE);
 				} else {
 					assert_compile(lengthof(amounts) == lengthof(_company_view_vehicle_count_strings));
 
 					for (uint i = 0; i < lengthof(amounts); i++) {
 						if (amounts[i] != 0) {
 							SetDParam(0, amounts[i]);
-							DrawString(r.left, r.right, y, _company_view_vehicle_count_strings[i]);
+							DrawString (_cur_dpi, r.left, r.right, y, _company_view_vehicle_count_strings[i]);
 							y += FONT_HEIGHT_NORMAL;
 						}
 					}
@@ -2220,31 +2224,31 @@ struct CompanyWindow : Window
 				for (uint i = 0; i < lengthof(c->infrastructure.road); i++) road_pieces += c->infrastructure.road[i];
 
 				if (rail_pices == 0 && road_pieces == 0 && c->infrastructure.water == 0 && c->infrastructure.station == 0 && c->infrastructure.airport == 0) {
-					DrawString(r.left, r.right, y, STR_COMPANY_VIEW_INFRASTRUCTURE_NONE);
+					DrawString (_cur_dpi, r.left, r.right, y, STR_COMPANY_VIEW_INFRASTRUCTURE_NONE);
 				} else {
 					if (rail_pices != 0) {
 						SetDParam(0, rail_pices);
-						DrawString(r.left, r.right, y, STR_COMPANY_VIEW_INFRASTRUCTURE_RAIL);
+						DrawString (_cur_dpi, r.left, r.right, y, STR_COMPANY_VIEW_INFRASTRUCTURE_RAIL);
 						y += FONT_HEIGHT_NORMAL;
 					}
 					if (road_pieces != 0) {
 						SetDParam(0, road_pieces);
-						DrawString(r.left, r.right, y, STR_COMPANY_VIEW_INFRASTRUCTURE_ROAD);
+						DrawString (_cur_dpi, r.left, r.right, y, STR_COMPANY_VIEW_INFRASTRUCTURE_ROAD);
 						y += FONT_HEIGHT_NORMAL;
 					}
 					if (c->infrastructure.water != 0) {
 						SetDParam(0, c->infrastructure.water);
-						DrawString(r.left, r.right, y, STR_COMPANY_VIEW_INFRASTRUCTURE_WATER);
+						DrawString (_cur_dpi, r.left, r.right, y, STR_COMPANY_VIEW_INFRASTRUCTURE_WATER);
 						y += FONT_HEIGHT_NORMAL;
 					}
 					if (c->infrastructure.station != 0) {
 						SetDParam(0, c->infrastructure.station);
-						DrawString(r.left, r.right, y, STR_COMPANY_VIEW_INFRASTRUCTURE_STATION);
+						DrawString (_cur_dpi, r.left, r.right, y, STR_COMPANY_VIEW_INFRASTRUCTURE_STATION);
 						y += FONT_HEIGHT_NORMAL;
 					}
 					if (c->infrastructure.airport != 0) {
 						SetDParam(0, c->infrastructure.airport);
-						DrawString(r.left, r.right, y, STR_COMPANY_VIEW_INFRASTRUCTURE_AIRPORT);
+						DrawString (_cur_dpi, r.left, r.right, y, STR_COMPANY_VIEW_INFRASTRUCTURE_AIRPORT);
 					}
 				}
 
@@ -2261,7 +2265,7 @@ struct CompanyWindow : Window
 						SetDParam(0, amt * 25);
 						SetDParam(1, c2->index);
 
-						DrawString(r.left, r.right, y, STR_COMPANY_VIEW_SHARES_OWNED_BY);
+						DrawString (_cur_dpi, r.left, r.right, y, STR_COMPANY_VIEW_SHARES_OWNED_BY);
 						y += FONT_HEIGHT_NORMAL;
 					}
 				}

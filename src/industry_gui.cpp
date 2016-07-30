@@ -382,13 +382,13 @@ public:
 					bool selected = this->selected_index == i + this->vscroll->GetPosition();
 
 					if (this->index[i + this->vscroll->GetPosition()] == INVALID_INDUSTRYTYPE) {
-						DrawString(text_left, text_right, y, STR_FUND_INDUSTRY_MANY_RANDOM_INDUSTRIES, selected ? TC_WHITE : TC_ORANGE);
+						DrawString (_cur_dpi, text_left, text_right, y, STR_FUND_INDUSTRY_MANY_RANDOM_INDUSTRIES, selected ? TC_WHITE : TC_ORANGE);
 						continue;
 					}
 					const IndustrySpec *indsp = GetIndustrySpec(this->index[i + this->vscroll->GetPosition()]);
 
 					/* Draw the name of the industry in white is selected, otherwise, in orange */
-					DrawString(text_left, text_right, y, indsp->name, selected ? TC_WHITE : TC_ORANGE);
+					DrawString (_cur_dpi, text_left, text_right, y, indsp->name, selected ? TC_WHITE : TC_ORANGE);
 					GfxFillRect (_cur_dpi, icon_left,     y + 1, icon_right,     y + 7, selected ? PC_WHITE : PC_BLACK);
 					GfxFillRect (_cur_dpi, icon_left + 1, y + 2, icon_right - 1, y + 6, indsp->map_colour);
 				}
@@ -410,7 +410,7 @@ public:
 
 				if (_game_mode != GM_EDITOR) {
 					SetDParam(0, indsp->GetConstructionCost());
-					DrawString(left, right, y, STR_FUND_INDUSTRY_INDUSTRY_BUILD_COST);
+					DrawString (_cur_dpi, left, right, y, STR_FUND_INDUSTRY_INDUSTRY_BUILD_COST);
 					y += FONT_HEIGHT_NORMAL;
 				}
 
@@ -428,7 +428,7 @@ public:
 					SetDParam(p++, CargoSpec::Get(indsp->accepts_cargo[j])->name);
 					SetDParamStr(p++, cargo_suffix[j].c_str());
 				}
-				DrawString(left, right, y, str);
+				DrawString (_cur_dpi, left, right, y, str);
 				y += FONT_HEIGHT_NORMAL;
 
 				/* Draw the produced cargoes, if any. Otherwise, will print "Nothing". */
@@ -444,7 +444,7 @@ public:
 					SetDParam(p++, CargoSpec::Get(indsp->produced_cargo[j])->name);
 					SetDParamStr(p++, cargo_suffix[j].c_str());
 				}
-				DrawString(left, right, y, str);
+				DrawString (_cur_dpi, left, right, y, str);
 				y += FONT_HEIGHT_NORMAL;
 
 				/* Get the additional purchase info text, if it has not already been queried. */
@@ -700,7 +700,7 @@ public:
 		sstring<512> cargo_suffix [3];
 
 		if (i->prod_level == PRODLEVEL_CLOSURE) {
-			DrawString(left + WD_FRAMERECT_LEFT, right - WD_FRAMERECT_RIGHT, y, STR_INDUSTRY_VIEW_INDUSTRY_ANNOUNCED_CLOSURE);
+			DrawString (_cur_dpi, left + WD_FRAMERECT_LEFT, right - WD_FRAMERECT_RIGHT, y, STR_INDUSTRY_VIEW_INDUSTRY_ANNOUNCED_CLOSURE);
 			y += 2 * FONT_HEIGHT_NORMAL;
 		}
 
@@ -710,7 +710,7 @@ public:
 				if (i->accepts_cargo[j] == CT_INVALID) continue;
 				has_accept = true;
 				if (first) {
-					DrawString(left + WD_FRAMERECT_LEFT, right - WD_FRAMERECT_RIGHT, y, STR_INDUSTRY_VIEW_WAITING_FOR_PROCESSING);
+					DrawString (_cur_dpi, left + WD_FRAMERECT_LEFT, right - WD_FRAMERECT_RIGHT, y, STR_INDUSTRY_VIEW_WAITING_FOR_PROCESSING);
 					y += FONT_HEIGHT_NORMAL;
 					first = false;
 				}
@@ -718,7 +718,7 @@ public:
 				SetDParam(0, i->accepts_cargo[j]);
 				SetDParam(1, i->incoming_cargo_waiting[j]);
 				SetDParamStr(2, cargo_suffix[j].c_str());
-				DrawString(left + WD_FRAMETEXT_LEFT, right - WD_FRAMERECT_RIGHT, y, STR_INDUSTRY_VIEW_WAITING_STOCKPILE_CARGO);
+				DrawString (_cur_dpi, left + WD_FRAMETEXT_LEFT, right - WD_FRAMERECT_RIGHT, y, STR_INDUSTRY_VIEW_WAITING_STOCKPILE_CARGO);
 				y += FONT_HEIGHT_NORMAL;
 			}
 		} else {
@@ -734,7 +734,7 @@ public:
 				SetDParamStr(p++, cargo_suffix[j].c_str());
 			}
 			if (has_accept) {
-				DrawString(left + WD_FRAMERECT_LEFT, right - WD_FRAMERECT_RIGHT, y, str);
+				DrawString (_cur_dpi, left + WD_FRAMERECT_LEFT, right - WD_FRAMERECT_RIGHT, y, str);
 				y += FONT_HEIGHT_NORMAL;
 			}
 		}
@@ -745,7 +745,7 @@ public:
 			if (i->produced_cargo[j] == CT_INVALID) continue;
 			if (first) {
 				if (has_accept) y += WD_PAR_VSEP_WIDE;
-				DrawString(left + WD_FRAMERECT_LEFT, right - WD_FRAMERECT_RIGHT, y, STR_INDUSTRY_VIEW_PRODUCTION_LAST_MONTH_TITLE);
+				DrawString (_cur_dpi, left + WD_FRAMERECT_LEFT, right - WD_FRAMERECT_RIGHT, y, STR_INDUSTRY_VIEW_PRODUCTION_LAST_MONTH_TITLE);
 				y += FONT_HEIGHT_NORMAL;
 				if (this->editable == EA_RATE) this->production_offset_y = y;
 				first = false;
@@ -757,7 +757,7 @@ public:
 			SetDParamStr(2, cargo_suffix[j].c_str());
 			SetDParam(3, ToPercent8(i->last_month_pct_transported[j]));
 			uint x = left + WD_FRAMETEXT_LEFT + (this->editable == EA_RATE ? SETTING_BUTTON_WIDTH + 10 : 0);
-			DrawString(x, right - WD_FRAMERECT_RIGHT, y, STR_INDUSTRY_VIEW_TRANSPORTED);
+			DrawString (_cur_dpi, x, right - WD_FRAMERECT_RIGHT, y, STR_INDUSTRY_VIEW_TRANSPORTED);
 			/* Let's put out those buttons.. */
 			if (this->editable == EA_RATE) {
 				DrawArrowButtons(left + WD_FRAMETEXT_LEFT, y, COLOUR_YELLOW, (this->clicked_line == IL_RATE1 + j) ? this->clicked_button : 0,
@@ -772,7 +772,7 @@ public:
 			this->production_offset_y = y;
 			SetDParam(0, RoundDivSU(i->prod_level * 100, PRODLEVEL_DEFAULT));
 			uint x = left + WD_FRAMETEXT_LEFT + SETTING_BUTTON_WIDTH + 10;
-			DrawString(x, right - WD_FRAMERECT_RIGHT, y, STR_INDUSTRY_VIEW_PRODUCTION_LEVEL);
+			DrawString (_cur_dpi, x, right - WD_FRAMERECT_RIGHT, y, STR_INDUSTRY_VIEW_PRODUCTION_LEVEL);
 			DrawArrowButtons(left + WD_FRAMETEXT_LEFT, y, COLOUR_YELLOW, (this->clicked_line == IL_MULTIPLIER) ? this->clicked_button : 0,
 					i->prod_level > PRODLEVEL_MINIMUM, i->prod_level < PRODLEVEL_MAXIMUM);
 			y += FONT_HEIGHT_NORMAL;
@@ -1256,11 +1256,11 @@ public:
 				int n = 0;
 				int y = r.top + WD_FRAMERECT_TOP;
 				if (this->industries.Length() == 0) {
-					DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_INDUSTRY_DIRECTORY_NONE);
+					DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_INDUSTRY_DIRECTORY_NONE);
 					break;
 				}
 				for (uint i = this->vscroll->GetPosition(); i < this->industries.Length(); i++) {
-					DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, this->GetIndustryString(this->industries[i]));
+					DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, this->GetIndustryString(this->industries[i]));
 
 					y += this->resize.step_height;
 					if (++n == this->vscroll->GetCapacity()) break; // max number of industries in 1 window
@@ -1657,7 +1657,7 @@ struct CargoesField {
 
 			case CFT_HEADER:
 				ypos += (small_height - FONT_HEIGHT_NORMAL) / 2;
-				DrawString(xpos, xpos + industry_width, ypos, this->u.header, TC_WHITE, SA_HOR_CENTER);
+				DrawString (_cur_dpi, xpos, xpos + industry_width, ypos, this->u.header, TC_WHITE, SA_HOR_CENTER);
 				break;
 
 			case CFT_INDUSTRY: {
@@ -1671,7 +1671,7 @@ struct CargoesField {
 				ypos += (normal_height - FONT_HEIGHT_NORMAL) / 2;
 				if (this->u.industry.ind_type < NUM_INDUSTRYTYPES) {
 					const IndustrySpec *indsp = GetIndustrySpec(this->u.industry.ind_type);
-					DrawString(xpos, xpos2, ypos, indsp->name, TC_WHITE, SA_HOR_CENTER);
+					DrawString (_cur_dpi, xpos, xpos2, ypos, indsp->name, TC_WHITE, SA_HOR_CENTER);
 
 					/* Draw the industry legend. */
 					int blob_left, blob_right;
@@ -1685,7 +1685,7 @@ struct CargoesField {
 					GfxFillRect (_cur_dpi, blob_left,     ypos2 - BLOB_DISTANCE - BLOB_HEIGHT,     blob_right,     ypos2 - BLOB_DISTANCE,     PC_BLACK); // Border
 					GfxFillRect (_cur_dpi, blob_left + 1, ypos2 - BLOB_DISTANCE - BLOB_HEIGHT + 1, blob_right - 1, ypos2 - BLOB_DISTANCE - 1, indsp->map_colour);
 				} else {
-					DrawString(xpos, xpos2, ypos, STR_INDUSTRY_CARGOES_HOUSES, TC_FROMSTRING, SA_HOR_CENTER);
+					DrawString (_cur_dpi, xpos, xpos2, ypos, STR_INDUSTRY_CARGOES_HOUSES, TC_FROMSTRING, SA_HOR_CENTER);
 				}
 
 				/* Draw the other_produced/other_accepted cargoes. */
@@ -1775,7 +1775,7 @@ struct CargoesField {
 				for (uint i = 0; i < MAX_CARGOES; i++) {
 					if (this->u.cargo_label.cargoes[i] != INVALID_CARGO) {
 						const CargoSpec *csp = CargoSpec::Get(this->u.cargo_label.cargoes[i]);
-						DrawString(xpos + WD_FRAMERECT_LEFT, xpos + industry_width - 1 - WD_FRAMERECT_RIGHT, ypos, csp->name, TC_WHITE,
+						DrawString (_cur_dpi, xpos + WD_FRAMERECT_LEFT, xpos + industry_width - 1 - WD_FRAMERECT_RIGHT, ypos, csp->name, TC_WHITE,
 								(this->u.cargo_label.left_align) ? SA_LEFT : SA_RIGHT);
 					}
 					ypos += FONT_HEIGHT_NORMAL + VERT_CARGO_SPACE;

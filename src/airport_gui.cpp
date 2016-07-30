@@ -366,7 +366,7 @@ public:
 					if (!as->IsAvailable()) {
 						GfxFillRect (_cur_dpi, r.left + 1, y + 1, r.right - 1, y + this->line_height - 2, PC_BLACK, FILLRECT_CHECKER);
 					}
-					DrawString(r.left + WD_MATRIX_LEFT, r.right - WD_MATRIX_RIGHT, y + WD_MATRIX_TOP, as->name, ((int)i == _selected_airport_index) ? TC_WHITE : TC_BLACK);
+					DrawString (_cur_dpi, r.left + WD_MATRIX_LEFT, r.right - WD_MATRIX_RIGHT, y + WD_MATRIX_TOP, as->name, ((int)i == _selected_airport_index) ? TC_WHITE : TC_BLACK);
 					y += this->line_height;
 				}
 				break;
@@ -410,7 +410,7 @@ public:
 			if (_settings_game.economy.station_noise_level) {
 				/* show the noise of the selected airport */
 				SetDParam(0, as->noise_level);
-				DrawString(panel_nwi->pos_x + WD_FRAMERECT_LEFT, right - WD_FRAMERECT_RIGHT, top, STR_STATION_BUILD_NOISE);
+				DrawString (_cur_dpi, panel_nwi->pos_x + WD_FRAMERECT_LEFT, right - WD_FRAMERECT_RIGHT, top, STR_STATION_BUILD_NOISE);
 				top += FONT_HEIGHT_NORMAL + WD_PAR_VSEP_NORMAL;
 			}
 

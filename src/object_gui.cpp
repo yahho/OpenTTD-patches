@@ -220,7 +220,7 @@ public:
 					ObjectClass *objclass = ObjectClass::Get((ObjectClassID)i);
 					if (objclass->GetUISpecCount() == 0) continue;
 					if (!this->vscroll->IsVisible(pos++)) continue;
-					DrawString(r.left + WD_MATRIX_LEFT, r.right - WD_MATRIX_RIGHT, y + WD_MATRIX_TOP, objclass->name,
+					DrawString (_cur_dpi, r.left + WD_MATRIX_LEFT, r.right - WD_MATRIX_RIGHT, y + WD_MATRIX_TOP, objclass->name,
 							((int)i == _selected_object_class) ? TC_WHITE : TC_BLACK);
 					y += this->line_height;
 				}

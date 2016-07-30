@@ -199,7 +199,7 @@ struct SignListWindow : Window, SignList {
 				uint y = r.top + WD_FRAMERECT_TOP; // Offset from top of widget.
 				/* No signs? */
 				if (this->vscroll->GetCount() == 0) {
-					DrawString(r.left + WD_FRAMETEXT_LEFT, r.right - WD_FRAMETEXT_RIGHT, y, STR_STATION_LIST_NONE);
+					DrawString (_cur_dpi, r.left + WD_FRAMETEXT_LEFT, r.right - WD_FRAMETEXT_RIGHT, y, STR_STATION_LIST_NONE);
 					return;
 				}
 
@@ -216,7 +216,7 @@ struct SignListWindow : Window, SignList {
 					if (si->owner != OWNER_NONE) DrawCompanyIcon(si->owner, icon_left, y + sprite_offset_y);
 
 					SetDParam(0, si->index);
-					DrawString(text_left, text_right, y, STR_SIGN_NAME, TC_YELLOW);
+					DrawString (_cur_dpi, text_left, text_right, y, STR_SIGN_NAME, TC_YELLOW);
 					y += this->resize.step_height;
 				}
 				break;

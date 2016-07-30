@@ -878,7 +878,7 @@ void SmallMapWindow::DrawTowns(const DrawPixelInfo *dpi) const
 				y < dpi->top + dpi->height) {
 			/* And draw it. */
 			SetDParam(0, t->index);
-			DrawString(x, x + t->cache.sign.width_small, y, STR_SMALLMAP_TOWN);
+			DrawString (_cur_dpi, x, x + t->cache.sign.width_small, y, STR_SMALLMAP_TOWN);
 		}
 	}
 }
@@ -1271,9 +1271,9 @@ void SmallMapWindow::RebuildColourIndexIfNecessary()
 							if (!tbl->show_on_map) {
 								/* Simply draw the string, not the black border of the legend colour.
 								 * This will enforce the idea of the disabled item */
-								DrawString(x + text_left, x + text_right, y, string, TC_GREY);
+								DrawString (_cur_dpi, x + text_left, x + text_right, y, string, TC_GREY);
 							} else {
-								DrawString(x + text_left, x + text_right, y, string, TC_BLACK);
+								DrawString (_cur_dpi, x + text_left, x + text_right, y, string, TC_BLACK);
 								GfxFillRect (_cur_dpi, x + blob_left, y + 1, x + blob_right, y + row_height - 1, PC_BLACK); // Outer border of the legend colour
 							}
 							break;
@@ -1283,7 +1283,7 @@ void SmallMapWindow::RebuildColourIndexIfNecessary()
 						if (this->map_type == SMT_CONTOUR) SetDParam(0, tbl->height * TILE_HEIGHT_STEP);
 						/* Anything that is not an industry or a company is using normal process */
 						GfxFillRect (_cur_dpi, x + blob_left, y + 1, x + blob_right, y + row_height - 1, PC_BLACK);
-						DrawString(x + text_left, x + text_right, y, tbl->legend);
+						DrawString (_cur_dpi, x + text_left, x + text_right, y, tbl->legend);
 						break;
 				}
 				GfxFillRect (_cur_dpi, x + blob_left + 1, y + 2, x + blob_right - 1, y + row_height - 2, legend_colour); // Legend colour

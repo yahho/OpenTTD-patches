@@ -147,7 +147,7 @@ static void StationsWndShowStationRating(int left, int right, int y, CargoID typ
 		}
 	}
 
-	DrawString(left + 1, right, y, cs->abbrev, tc);
+	DrawString (_cur_dpi, left + 1, right, y, cs->abbrev, tc);
 
 	/* Draw green/red ratings bar (fits into 14 pixels) */
 	y += height + 2;
@@ -436,7 +436,7 @@ public:
 
 					SetDParam(0, st->index);
 					SetDParam(1, st->facilities);
-					int x = DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_STATION_LIST_STATION);
+					int x = DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_STATION_LIST_STATION);
 					x += rtl ? -5 : 5;
 
 					/* show cargo waiting and station ratings */
@@ -462,22 +462,22 @@ public:
 				}
 
 				if (this->vscroll->GetCount() == 0) { // company has no stations
-					DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_STATION_LIST_NONE);
+					DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_STATION_LIST_NONE);
 					return;
 				}
 				break;
 			}
 
 			case WID_STL_NOCARGOWAITING:
-				DrawString (r.left + 1, r.right + 1, r.top + 1, STR_ABBREV_NONE, TC_BLACK, SA_HOR_CENTER);
+				DrawString (_cur_dpi, r.left + 1, r.right + 1, r.top + 1, STR_ABBREV_NONE, TC_BLACK, SA_HOR_CENTER);
 				break;
 
 			case WID_STL_CARGOALL:
-				DrawString (r.left + 1, r.right + 1, r.top + 1, STR_ABBREV_ALL, TC_BLACK, SA_HOR_CENTER);
+				DrawString (_cur_dpi, r.left + 1, r.right + 1, r.top + 1, STR_ABBREV_ALL, TC_BLACK, SA_HOR_CENTER);
 				break;
 
 			case WID_STL_FACILALL:
-				DrawString (r.left + 1, r.right + 1, r.top + 1, STR_ABBREV_ALL, TC_BLACK, SA_HOR_CENTER);
+				DrawString (_cur_dpi, r.left + 1, r.right + 1, r.top + 1, STR_ABBREV_ALL, TC_BLACK, SA_HOR_CENTER);
 				break;
 
 			default:
@@ -485,7 +485,7 @@ public:
 					const CargoSpec *cs = _sorted_cargo_specs[widget - WID_STL_CARGOSTART];
 					GfxFillRect (_cur_dpi, r.left + 1, r.top + 1, r.right - 1, r.bottom - 1, cs->rating_colour);
 					TextColour tc = GetContrastColour(cs->rating_colour);
-					DrawString (r.left + 1, r.right + 1, r.top + 1, cs->abbrev, tc, SA_HOR_CENTER);
+					DrawString (_cur_dpi, r.left + 1, r.right + 1, r.top + 1, cs->abbrev, tc, SA_HOR_CENTER);
 				}
 				break;
 		}
@@ -1622,7 +1622,7 @@ struct StationViewWindow : public Window {
 
 		int text_left  = rtl ? r.left + this->expand_shrink_width : r.left + WD_FRAMERECT_LEFT + indent * this->expand_shrink_width;
 		int text_right = rtl ? r.right - WD_FRAMERECT_LEFT - indent * this->expand_shrink_width : r.right - this->expand_shrink_width;
-		DrawString (text_left, text_right, y, str);
+		DrawString (_cur_dpi, text_left, text_right, y, str);
 
 		if (sym) {
 			int sym_left  = rtl ? r.left + WD_FRAMERECT_LEFT : r.right - this->expand_shrink_width + WD_FRAMERECT_LEFT;
@@ -1792,7 +1792,7 @@ struct StationViewWindow : public Window {
 			y += WD_PAR_VSEP_WIDE;
 		}
 
-		DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_STATION_VIEW_SUPPLY_RATINGS_TITLE);
+		DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_STATION_VIEW_SUPPLY_RATINGS_TITLE);
 		y += FONT_HEIGHT_NORMAL;
 
 		const CargoSpec *cs;
@@ -1805,7 +1805,7 @@ struct StationViewWindow : public Window {
 			SetDParam(1, lg != NULL ? lg->Monthly((*lg)[ge->node]->Supply()) : 0);
 			SetDParam(2, STR_CARGO_RATING_APPALLING + (ge->rating >> 5));
 			SetDParam(3, ToPercent8(ge->rating));
-			DrawString(r.left + WD_FRAMERECT_LEFT + 6, r.right - WD_FRAMERECT_RIGHT - 6, y, STR_STATION_VIEW_CARGO_SUPPLY_RATING);
+			DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT + 6, r.right - WD_FRAMERECT_RIGHT - 6, y, STR_STATION_VIEW_CARGO_SUPPLY_RATING);
 			y += FONT_HEIGHT_NORMAL;
 		}
 		return CeilDiv(y - r.top - WD_FRAMERECT_TOP, FONT_HEIGHT_NORMAL);
@@ -2210,7 +2210,7 @@ struct SelectStationWindow : Window {
 
 		uint y = r.top + WD_FRAMERECT_TOP;
 		if (this->vscroll->GetPosition() == 0) {
-			DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, this->waypoint ? STR_JOIN_WAYPOINT_CREATE_SPLITTED_WAYPOINT : STR_JOIN_STATION_CREATE_SPLITTED_STATION);
+			DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, this->waypoint ? STR_JOIN_WAYPOINT_CREATE_SPLITTED_WAYPOINT : STR_JOIN_STATION_CREATE_SPLITTED_STATION);
 			y += this->resize.step_height;
 		}
 
@@ -2221,7 +2221,7 @@ struct SelectStationWindow : Window {
 			const BaseStation *st = BaseStation::Get(this->list[i - 1]);
 			SetDParam(0, st->index);
 			SetDParam(1, st->facilities);
-			DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, this->waypoint ? STR_STATION_LIST_WAYPOINT : STR_STATION_LIST_STATION);
+			DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, this->waypoint ? STR_STATION_LIST_WAYPOINT : STR_STATION_LIST_STATION);
 		}
 	}
 

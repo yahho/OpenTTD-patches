@@ -1127,7 +1127,7 @@ public:
 				for (uint i = 0; i < StationClass::GetClassCount(); i++) {
 					if (i == STAT_CLASS_WAYP) continue;
 					if (this->vscroll->IsVisible(statclass)) {
-						DrawString(r.left + WD_MATRIX_LEFT, r.right - WD_MATRIX_RIGHT, row * this->line_height + r.top + WD_MATRIX_TOP,
+						DrawString (_cur_dpi, r.left + WD_MATRIX_LEFT, r.right - WD_MATRIX_RIGHT, row * this->line_height + r.top + WD_MATRIX_TOP,
 								StationClass::Get((StationClassID)i)->name,
 								(StationClassID)i == _railstation.station_class ? TC_WHITE : TC_BLACK);
 						row++;

@@ -257,7 +257,7 @@ private:
 			str = STR_GROUP_NAME;
 		}
 		int x = rtl ? right - WD_FRAMERECT_RIGHT - 8 - this->column_size[VGC_NAME].width + 1 : left + WD_FRAMERECT_LEFT + 8;
-		DrawString(x + indent * LEVEL_WIDTH, x + this->column_size[VGC_NAME].width - 1, y + (this->tiny_step_height - this->column_size[VGC_NAME].height) / 2, str, colour);
+		DrawString (_cur_dpi, x + indent * LEVEL_WIDTH, x + this->column_size[VGC_NAME].width - 1, y + (this->tiny_step_height - this->column_size[VGC_NAME].height) / 2, str, colour);
 
 		/* draw autoreplace protection */
 		x = rtl ? x - 8 - this->column_size[VGC_PROTECT].width : x + 8 + this->column_size[VGC_NAME].width;
@@ -284,7 +284,7 @@ private:
 		/* draw the number of vehicles of the group */
 		x = rtl ? x - 2 - this->column_size[VGC_NUMBER].width : x + 2 + this->column_size[VGC_PROFIT].width;
 		SetDParam(0, stats.num_vehicle);
-		DrawString(x, x + this->column_size[VGC_NUMBER].width - 1, y + (this->tiny_step_height - this->column_size[VGC_NUMBER].height) / 2, STR_TINY_COMMA, colour, SA_RIGHT | SA_FORCE);
+		DrawString (_cur_dpi, x, x + this->column_size[VGC_NUMBER].width - 1, y + (this->tiny_step_height - this->column_size[VGC_NUMBER].height) / 2, STR_TINY_COMMA, colour, SA_RIGHT | SA_FORCE);
 	}
 
 	/**

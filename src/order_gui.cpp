@@ -222,7 +222,7 @@ void DrawOrderString(const Vehicle *v, const Order *order, int order_index, int 
 	}
 
 	SetDParam(0, order_index + 1);
-	DrawString(left, rtl ? right - 2 * sprite_size.width - 3 : middle, y, STR_ORDER_INDEX, colour, SA_RIGHT | SA_FORCE);
+	DrawString (_cur_dpi, left, rtl ? right - 2 * sprite_size.width - 3 : middle, y, STR_ORDER_INDEX, colour, SA_RIGHT | SA_FORCE);
 
 	SetDParam(5, STR_EMPTY);
 	SetDParam(8, STR_EMPTY);
@@ -336,7 +336,7 @@ void DrawOrderString(const Vehicle *v, const Order *order, int order_index, int 
 		default: NOT_REACHED();
 	}
 
-	DrawString(rtl ? left : middle, rtl ? middle : right, y, STR_ORDER_TEXT, colour);
+	DrawString (_cur_dpi, rtl ? left : middle, rtl ? middle : right, y, STR_ORDER_TEXT, colour);
 }
 
 
@@ -1127,7 +1127,7 @@ public:
 
 		if (this->vscroll->IsVisible(i)) {
 			StringID str = this->vehicle->IsOrderListShared() ? STR_ORDERS_END_OF_SHARED_ORDERS : STR_ORDERS_END_OF_ORDERS;
-			DrawString(rtl ? r.left + WD_FRAMETEXT_LEFT : middle, rtl ? middle : r.right - WD_FRAMETEXT_RIGHT, y, str, (i == this->selected_order) ? TC_WHITE : TC_BLACK);
+			DrawString (_cur_dpi, rtl ? r.left + WD_FRAMETEXT_LEFT : middle, rtl ? middle : r.right - WD_FRAMETEXT_RIGHT, y, str, (i == this->selected_order) ? TC_WHITE : TC_BLACK);
 		}
 	}
 

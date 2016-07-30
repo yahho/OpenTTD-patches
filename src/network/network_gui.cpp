@@ -400,7 +400,7 @@ protected:
 				SetDParam(1, cur_item->info.clients_max);
 				SetDParam(2, cur_item->info.companies_on);
 				SetDParam(3, cur_item->info.companies_max);
-				DrawString(nwi_clients->pos_x, nwi_clients->pos_x + nwi_clients->current_x - 1, y + text_y_offset, STR_NETWORK_SERVER_LIST_GENERAL_ONLINE, TC_FROMSTRING, SA_HOR_CENTER);
+				DrawString (_cur_dpi, nwi_clients->pos_x, nwi_clients->pos_x + nwi_clients->current_x - 1, y + text_y_offset, STR_NETWORK_SERVER_LIST_GENERAL_ONLINE, TC_FROMSTRING, SA_HOR_CENTER);
 			}
 
 			if (nwi_header->IsWidgetVisible(WID_NG_MAPSIZE)) {
@@ -408,7 +408,7 @@ protected:
 				const NWidgetBase *nwi_mapsize = this->GetWidget<NWidgetBase>(WID_NG_MAPSIZE);
 				SetDParam(0, cur_item->info.map_width);
 				SetDParam(1, cur_item->info.map_height);
-				DrawString(nwi_mapsize->pos_x, nwi_mapsize->pos_x + nwi_mapsize->current_x - 1, y + text_y_offset, STR_NETWORK_SERVER_LIST_MAP_SIZE_SHORT, TC_FROMSTRING, SA_HOR_CENTER);
+				DrawString (_cur_dpi, nwi_mapsize->pos_x, nwi_mapsize->pos_x + nwi_mapsize->current_x - 1, y + text_y_offset, STR_NETWORK_SERVER_LIST_MAP_SIZE_SHORT, TC_FROMSTRING, SA_HOR_CENTER);
 			}
 
 			if (nwi_header->IsWidgetVisible(WID_NG_DATE)) {
@@ -417,7 +417,7 @@ protected:
 				YearMonthDay ymd;
 				ConvertDateToYMD(cur_item->info.game_date, &ymd);
 				SetDParam(0, ymd.year);
-				DrawString(nwi_date->pos_x, nwi_date->pos_x + nwi_date->current_x - 1, y + text_y_offset, STR_JUST_INT, TC_BLACK, SA_HOR_CENTER);
+				DrawString (_cur_dpi, nwi_date->pos_x, nwi_date->pos_x + nwi_date->current_x - 1, y + text_y_offset, STR_JUST_INT, TC_BLACK, SA_HOR_CENTER);
 			}
 
 			if (nwi_header->IsWidgetVisible(WID_NG_YEARS)) {
@@ -427,7 +427,7 @@ protected:
 				ConvertDateToYMD(cur_item->info.game_date, &ymd_cur);
 				ConvertDateToYMD(cur_item->info.start_date, &ymd_start);
 				SetDParam(0, ymd_cur.year - ymd_start.year);
-				DrawString(nwi_years->pos_x, nwi_years->pos_x + nwi_years->current_x - 1, y + text_y_offset, STR_JUST_INT, TC_BLACK, SA_HOR_CENTER);
+				DrawString (_cur_dpi, nwi_years->pos_x, nwi_years->pos_x + nwi_years->current_x - 1, y + text_y_offset, STR_JUST_INT, TC_BLACK, SA_HOR_CENTER);
 			}
 
 			/* draw a lock if the server is password protected */
@@ -628,14 +628,14 @@ public:
 		/* Draw the right menu */
 		GfxFillRect (_cur_dpi, r.left + 1, r.top + 1, r.right - 1, r.top + detail_height - 1, PC_DARK_BLUE);
 		if (sel == NULL) {
-			DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + 6 + 4 + FONT_HEIGHT_NORMAL, STR_NETWORK_SERVER_LIST_GAME_INFO, TC_FROMSTRING, SA_HOR_CENTER);
+			DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + 6 + 4 + FONT_HEIGHT_NORMAL, STR_NETWORK_SERVER_LIST_GAME_INFO, TC_FROMSTRING, SA_HOR_CENTER);
 		} else if (!sel->online) {
 			DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + 6 + 4 + FONT_HEIGHT_NORMAL, sel->info.server_name, TC_ORANGE, SA_HOR_CENTER); // game name
 
-			DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + detail_height + 4, STR_NETWORK_SERVER_LIST_SERVER_OFFLINE, TC_FROMSTRING, SA_HOR_CENTER); // server offline
+			DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + detail_height + 4, STR_NETWORK_SERVER_LIST_SERVER_OFFLINE, TC_FROMSTRING, SA_HOR_CENTER); // server offline
 		} else { // show game info
 
-			DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + 6, STR_NETWORK_SERVER_LIST_GAME_INFO, TC_FROMSTRING, SA_HOR_CENTER);
+			DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + 6, STR_NETWORK_SERVER_LIST_GAME_INFO, TC_FROMSTRING, SA_HOR_CENTER);
 			DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + 6 + 4 + FONT_HEIGHT_NORMAL, sel->info.server_name, TC_ORANGE, SA_HOR_CENTER); // game name
 			DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + 6 + 8 + 2 * FONT_HEIGHT_NORMAL, sel->info.map_name, TC_BLACK, SA_HOR_CENTER); // map name
 
@@ -645,47 +645,47 @@ public:
 			SetDParam(1, sel->info.clients_max);
 			SetDParam(2, sel->info.companies_on);
 			SetDParam(3, sel->info.companies_max);
-			DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_NETWORK_SERVER_LIST_CLIENTS);
+			DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_NETWORK_SERVER_LIST_CLIENTS);
 			y += FONT_HEIGHT_NORMAL;
 
 			SetDParam(0, STR_NETWORK_LANG_ANY + sel->info.server_lang);
-			DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_NETWORK_SERVER_LIST_LANGUAGE); // server language
+			DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_NETWORK_SERVER_LIST_LANGUAGE); // server language
 			y += FONT_HEIGHT_NORMAL;
 
 			SetDParam(0, STR_CHEAT_SWITCH_CLIMATE_TEMPERATE_LANDSCAPE + sel->info.map_set);
-			DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_NETWORK_SERVER_LIST_LANDSCAPE); // landscape
+			DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_NETWORK_SERVER_LIST_LANDSCAPE); // landscape
 			y += FONT_HEIGHT_NORMAL;
 
 			SetDParam(0, sel->info.map_width);
 			SetDParam(1, sel->info.map_height);
-			DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_NETWORK_SERVER_LIST_MAP_SIZE); // map size
+			DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_NETWORK_SERVER_LIST_MAP_SIZE); // map size
 			y += FONT_HEIGHT_NORMAL;
 
 			SetDParamStr(0, sel->info.server_revision);
-			DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_NETWORK_SERVER_LIST_SERVER_VERSION); // server version
+			DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_NETWORK_SERVER_LIST_SERVER_VERSION); // server version
 			y += FONT_HEIGHT_NORMAL;
 
 			SetDParamStr(0, sel->address.GetAddressAsString());
-			DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_NETWORK_SERVER_LIST_SERVER_ADDRESS); // server address
+			DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_NETWORK_SERVER_LIST_SERVER_ADDRESS); // server address
 			y += FONT_HEIGHT_NORMAL;
 
 			SetDParam(0, sel->info.start_date);
-			DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_NETWORK_SERVER_LIST_START_DATE); // start date
+			DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_NETWORK_SERVER_LIST_START_DATE); // start date
 			y += FONT_HEIGHT_NORMAL;
 
 			SetDParam(0, sel->info.game_date);
-			DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_NETWORK_SERVER_LIST_CURRENT_DATE); // current date
+			DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_NETWORK_SERVER_LIST_CURRENT_DATE); // current date
 			y += FONT_HEIGHT_NORMAL;
 
 			y += WD_PAR_VSEP_NORMAL;
 
 			if (!sel->info.compatible) {
-				DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, sel->info.version_compatible ? STR_NETWORK_SERVER_LIST_GRF_MISMATCH : STR_NETWORK_SERVER_LIST_VERSION_MISMATCH, TC_FROMSTRING, SA_HOR_CENTER); // server mismatch
+				DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, sel->info.version_compatible ? STR_NETWORK_SERVER_LIST_GRF_MISMATCH : STR_NETWORK_SERVER_LIST_VERSION_MISMATCH, TC_FROMSTRING, SA_HOR_CENTER); // server mismatch
 			} else if (sel->info.clients_on == sel->info.clients_max) {
 				/* Show: server full, when clients_on == max_clients */
-				DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_NETWORK_SERVER_LIST_SERVER_FULL, TC_FROMSTRING, SA_HOR_CENTER); // server full
+				DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_NETWORK_SERVER_LIST_SERVER_FULL, TC_FROMSTRING, SA_HOR_CENTER); // server full
 			} else if (sel->info.use_password) {
-				DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_NETWORK_SERVER_LIST_PASSWORD, TC_FROMSTRING, SA_HOR_CENTER); // password warning
+				DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_NETWORK_SERVER_LIST_PASSWORD, TC_FROMSTRING, SA_HOR_CENTER); // password warning
 			}
 		}
 	}
@@ -1492,7 +1492,7 @@ struct NetworkLobbyWindow : public Window {
 		const int detail_height = 12 + FONT_HEIGHT_NORMAL + 12;
 		/* Draw info about selected company when it is selected in the left window. */
 		GfxFillRect (_cur_dpi, r.left + 1, r.top + 1, r.right - 1, r.top + detail_height - 1, PC_DARK_BLUE);
-		DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + 12, STR_NETWORK_GAME_LOBBY_COMPANY_INFO, TC_FROMSTRING, SA_HOR_CENTER);
+		DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + 12, STR_NETWORK_GAME_LOBBY_COMPANY_INFO, TC_FROMSTRING, SA_HOR_CENTER);
 
 		if (this->company == INVALID_COMPANY || StrEmpty(this->company_info[this->company].company_name)) return;
 
@@ -1503,31 +1503,31 @@ struct NetworkLobbyWindow : public Window {
 		SetDParam(1, gi->clients_max);
 		SetDParam(2, gi->companies_on);
 		SetDParam(3, gi->companies_max);
-		DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_NETWORK_SERVER_LIST_CLIENTS);
+		DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_NETWORK_SERVER_LIST_CLIENTS);
 		y += FONT_HEIGHT_NORMAL;
 
 		SetDParamStr(0, this->company_info[this->company].company_name);
-		DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_NETWORK_GAME_LOBBY_COMPANY_NAME);
+		DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_NETWORK_GAME_LOBBY_COMPANY_NAME);
 		y += FONT_HEIGHT_NORMAL;
 
 		SetDParam(0, this->company_info[this->company].inaugurated_year);
-		DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_NETWORK_GAME_LOBBY_INAUGURATION_YEAR); // inauguration year
+		DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_NETWORK_GAME_LOBBY_INAUGURATION_YEAR); // inauguration year
 		y += FONT_HEIGHT_NORMAL;
 
 		SetDParam(0, this->company_info[this->company].company_value);
-		DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_NETWORK_GAME_LOBBY_VALUE); // company value
+		DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_NETWORK_GAME_LOBBY_VALUE); // company value
 		y += FONT_HEIGHT_NORMAL;
 
 		SetDParam(0, this->company_info[this->company].money);
-		DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_NETWORK_GAME_LOBBY_CURRENT_BALANCE); // current balance
+		DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_NETWORK_GAME_LOBBY_CURRENT_BALANCE); // current balance
 		y += FONT_HEIGHT_NORMAL;
 
 		SetDParam(0, this->company_info[this->company].income);
-		DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_NETWORK_GAME_LOBBY_LAST_YEARS_INCOME); // last year's income
+		DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_NETWORK_GAME_LOBBY_LAST_YEARS_INCOME); // last year's income
 		y += FONT_HEIGHT_NORMAL;
 
 		SetDParam(0, this->company_info[this->company].performance);
-		DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_NETWORK_GAME_LOBBY_PERFORMANCE); // performance
+		DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_NETWORK_GAME_LOBBY_PERFORMANCE); // performance
 		y += FONT_HEIGHT_NORMAL;
 
 		SetDParam(0, this->company_info[this->company].num_vehicle[NETWORK_VEH_TRAIN]);
@@ -1535,7 +1535,7 @@ struct NetworkLobbyWindow : public Window {
 		SetDParam(2, this->company_info[this->company].num_vehicle[NETWORK_VEH_BUS]);
 		SetDParam(3, this->company_info[this->company].num_vehicle[NETWORK_VEH_SHIP]);
 		SetDParam(4, this->company_info[this->company].num_vehicle[NETWORK_VEH_PLANE]);
-		DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_NETWORK_GAME_LOBBY_VEHICLES); // vehicles
+		DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_NETWORK_GAME_LOBBY_VEHICLES); // vehicles
 		y += FONT_HEIGHT_NORMAL;
 
 		SetDParam(0, this->company_info[this->company].num_station[NETWORK_VEH_TRAIN]);
@@ -1543,11 +1543,11 @@ struct NetworkLobbyWindow : public Window {
 		SetDParam(2, this->company_info[this->company].num_station[NETWORK_VEH_BUS]);
 		SetDParam(3, this->company_info[this->company].num_station[NETWORK_VEH_SHIP]);
 		SetDParam(4, this->company_info[this->company].num_station[NETWORK_VEH_PLANE]);
-		DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_NETWORK_GAME_LOBBY_STATIONS); // stations
+		DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_NETWORK_GAME_LOBBY_STATIONS); // stations
 		y += FONT_HEIGHT_NORMAL;
 
 		SetDParamStr(0, this->company_info[this->company].clients);
-		DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_NETWORK_GAME_LOBBY_PLAYERS); // players
+		DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_NETWORK_GAME_LOBBY_PLAYERS); // players
 	}
 
 	virtual void OnClick(Point pt, int widget, int click_count)
@@ -1813,7 +1813,7 @@ struct NetworkClientListPopupWindow : Window {
 				colour = TC_BLACK;
 			}
 
-			DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, action->name, colour);
+			DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, action->name, colour);
 		}
 	}
 
@@ -1970,9 +1970,9 @@ struct NetworkClientListWindow : Window {
 			}
 
 			if (ci->client_id == CLIENT_ID_SERVER) {
-				DrawString(type_left, type_right, y + text_offset, STR_NETWORK_SERVER, colour);
+				DrawString (_cur_dpi, type_left, type_right, y + text_offset, STR_NETWORK_SERVER, colour);
 			} else {
-				DrawString(type_left, type_right, y + text_offset, STR_NETWORK_CLIENT, colour);
+				DrawString (_cur_dpi, type_left, type_right, y + text_offset, STR_NETWORK_CLIENT, colour);
 			}
 
 			/* Filter out spectators */
@@ -2050,7 +2050,7 @@ struct NetworkJoinStatusWindow : Window {
 		if (widget != WID_NJS_BACKGROUND) return;
 
 		uint8 progress; // used for progress bar
-		DrawString(r.left + 2, r.right - 2, r.top + 20, STR_NETWORK_CONNECTING_1 + _network_join_status, TC_FROMSTRING, SA_HOR_CENTER);
+		DrawString (_cur_dpi, r.left + 2, r.right - 2, r.top + 20, STR_NETWORK_CONNECTING_1 + _network_join_status, TC_FROMSTRING, SA_HOR_CENTER);
 		switch (_network_join_status) {
 			case NETWORK_JOIN_STATUS_CONNECTING: case NETWORK_JOIN_STATUS_AUTHORIZING:
 			case NETWORK_JOIN_STATUS_GETTING_COMPANY_INFO:
@@ -2058,13 +2058,13 @@ struct NetworkJoinStatusWindow : Window {
 				break;
 			case NETWORK_JOIN_STATUS_WAITING:
 				SetDParam(0, _network_join_waiting);
-				DrawString(r.left + 2, r.right - 2, r.top + 20 + FONT_HEIGHT_NORMAL, STR_NETWORK_CONNECTING_WAITING, TC_FROMSTRING, SA_HOR_CENTER);
+				DrawString (_cur_dpi, r.left + 2, r.right - 2, r.top + 20 + FONT_HEIGHT_NORMAL, STR_NETWORK_CONNECTING_WAITING, TC_FROMSTRING, SA_HOR_CENTER);
 				progress = 15; // third stage is 15%
 				break;
 			case NETWORK_JOIN_STATUS_DOWNLOADING:
 				SetDParam(0, _network_join_bytes);
 				SetDParam(1, _network_join_bytes_total);
-				DrawString(r.left + 2, r.right - 2, r.top + 20 + FONT_HEIGHT_NORMAL, _network_join_bytes_total == 0 ? STR_NETWORK_CONNECTING_DOWNLOADING_1 : STR_NETWORK_CONNECTING_DOWNLOADING_2, TC_FROMSTRING, SA_HOR_CENTER);
+				DrawString (_cur_dpi, r.left + 2, r.right - 2, r.top + 20 + FONT_HEIGHT_NORMAL, _network_join_bytes_total == 0 ? STR_NETWORK_CONNECTING_DOWNLOADING_1 : STR_NETWORK_CONNECTING_DOWNLOADING_2, TC_FROMSTRING, SA_HOR_CENTER);
 				if (_network_join_bytes_total == 0) {
 					progress = 15; // We don't have the final size yet; the server is still compressing!
 					break;

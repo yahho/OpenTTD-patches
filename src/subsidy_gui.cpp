@@ -179,7 +179,7 @@ struct SubsidyListWindow : Window {
 		const int cap = this->vscroll->GetCapacity();
 
 		/* Section for drawing the offered subsidies */
-		if (IsInsideMM(pos, 0, cap)) DrawString(x, right, y + pos * FONT_HEIGHT_NORMAL, STR_SUBSIDIES_OFFERED_TITLE);
+		if (IsInsideMM(pos, 0, cap)) DrawString (_cur_dpi, x, right, y + pos * FONT_HEIGHT_NORMAL, STR_SUBSIDIES_OFFERED_TITLE);
 		pos++;
 
 		uint num = 0;
@@ -190,7 +190,7 @@ struct SubsidyListWindow : Window {
 					/* Displays the two offered towns */
 					SetupSubsidyDecodeParams (s);
 					SetDParam(7, _date - ymd.day + s->remaining * 32);
-					DrawString(x, right, y + pos * FONT_HEIGHT_NORMAL, STR_SUBSIDIES_OFFERED_FROM_TO);
+					DrawString (_cur_dpi, x, right, y + pos * FONT_HEIGHT_NORMAL, STR_SUBSIDIES_OFFERED_FROM_TO);
 				}
 				pos++;
 				num++;
@@ -198,13 +198,13 @@ struct SubsidyListWindow : Window {
 		}
 
 		if (num == 0) {
-			if (IsInsideMM(pos, 0, cap)) DrawString(x, right, y + pos * FONT_HEIGHT_NORMAL, STR_SUBSIDIES_NONE);
+			if (IsInsideMM(pos, 0, cap)) DrawString (_cur_dpi, x, right, y + pos * FONT_HEIGHT_NORMAL, STR_SUBSIDIES_NONE);
 			pos++;
 		}
 
 		/* Section for drawing the already granted subsidies */
 		pos++;
-		if (IsInsideMM(pos, 0, cap)) DrawString(x, right, y + pos * FONT_HEIGHT_NORMAL, STR_SUBSIDIES_SUBSIDISED_TITLE);
+		if (IsInsideMM(pos, 0, cap)) DrawString (_cur_dpi, x, right, y + pos * FONT_HEIGHT_NORMAL, STR_SUBSIDIES_SUBSIDISED_TITLE);
 		pos++;
 		num = 0;
 
@@ -216,7 +216,7 @@ struct SubsidyListWindow : Window {
 					SetDParam(8, _date - ymd.day + s->remaining * 32);
 
 					/* Displays the two connected stations */
-					DrawString(x, right, y + pos * FONT_HEIGHT_NORMAL, STR_SUBSIDIES_SUBSIDISED_FROM_TO);
+					DrawString (_cur_dpi, x, right, y + pos * FONT_HEIGHT_NORMAL, STR_SUBSIDIES_SUBSIDISED_FROM_TO);
 				}
 				pos++;
 				num++;
@@ -224,7 +224,7 @@ struct SubsidyListWindow : Window {
 		}
 
 		if (num == 0) {
-			if (IsInsideMM(pos, 0, cap)) DrawString(x, right, y + pos * FONT_HEIGHT_NORMAL, STR_SUBSIDIES_NONE);
+			if (IsInsideMM(pos, 0, cap)) DrawString (_cur_dpi, x, right, y + pos * FONT_HEIGHT_NORMAL, STR_SUBSIDIES_NONE);
 			pos++;
 		}
 	}

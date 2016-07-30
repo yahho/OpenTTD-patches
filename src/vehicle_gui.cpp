@@ -750,7 +750,7 @@ struct RefitWindow : public Window {
 				/* Get the cargo name. */
 				SetDParam(0, CargoSpec::Get(refit.cargo)->name);
 				SetDParam(1, refit.string);
-				DrawString(textleft, textright, y, STR_JUST_STRING_STRING, colour);
+				DrawString (_cur_dpi, textleft, textright, y, STR_JUST_STRING_STRING, colour);
 
 				y += delta;
 				current++;
@@ -1368,11 +1368,11 @@ static void DrawSmallOrderList(const Vehicle *v, int left, int right, int y, Veh
 	VehicleOrderID oid = start;
 
 	do {
-		if (oid == v->cur_real_order_index) DrawString(left, right, y, STR_TINY_RIGHT_ARROW, TC_BLACK);
+		if (oid == v->cur_real_order_index) DrawString (_cur_dpi, left, right, y, STR_TINY_RIGHT_ARROW, TC_BLACK);
 
 		if (order->IsType(OT_GOTO_STATION)) {
 			SetDParam(0, order->GetDestination());
-			DrawString(left + l_offset, right - r_offset, y, STR_TINY_BLACK_STATION);
+			DrawString (_cur_dpi, left + l_offset, right - r_offset, y, STR_TINY_BLACK_STATION);
 
 			y += FONT_HEIGHT_SMALL;
 			if (++i == 4) break;
@@ -1463,16 +1463,16 @@ void BaseVehicleListWindow::DrawVehicleListItems(VehicleID selected_vehicle, int
 		SetDParam(1, v->GetDisplayProfitLastYear());
 
 		DrawVehicleImage(v, image_left, image_right, y + FONT_HEIGHT_SMALL - 1, selected_vehicle, EIT_IN_LIST, 0);
-		DrawString(text_left, text_right, y + line_height - FONT_HEIGHT_SMALL - WD_FRAMERECT_BOTTOM - 1, STR_VEHICLE_LIST_PROFIT_THIS_YEAR_LAST_YEAR);
+		DrawString (_cur_dpi, text_left, text_right, y + line_height - FONT_HEIGHT_SMALL - WD_FRAMERECT_BOTTOM - 1, STR_VEHICLE_LIST_PROFIT_THIS_YEAR_LAST_YEAR);
 
 		if (v->name != NULL) {
 			/* The vehicle got a name so we will print it */
 			SetDParam(0, v->index);
-			DrawString(text_left, text_right, y, STR_TINY_BLACK_VEHICLE);
+			DrawString (_cur_dpi, text_left, text_right, y, STR_TINY_BLACK_VEHICLE);
 		} else if (v->group_id != DEFAULT_GROUP) {
 			/* The vehicle has no name, but is member of a group, so print group name */
 			SetDParam(0, v->group_id);
-			DrawString(text_left, text_right, y, STR_TINY_GROUP, TC_BLACK);
+			DrawString (_cur_dpi, text_left, text_right, y, STR_TINY_GROUP, TC_BLACK);
 		}
 
 		if (show_orderlist) DrawSmallOrderList(v, orderlist_left, orderlist_right, y, v->cur_real_order_index);
@@ -1484,7 +1484,7 @@ void BaseVehicleListWindow::DrawVehicleListItems(VehicleID selected_vehicle, int
 		}
 
 		SetDParam(0, v->unitnumber);
-		DrawString(left, right, y + 2, str);
+		DrawString (_cur_dpi, left, right, y + 2, str);
 
 		DrawVehicleProfitButton(v, vehicle_button_x, y + FONT_HEIGHT_NORMAL + 3);
 
@@ -2139,7 +2139,7 @@ struct VehicleDetailsWindow : Window {
 				SetDParam(0, (v->age + DAYS_IN_YEAR < v->max_age) ? STR_VEHICLE_INFO_AGE : STR_VEHICLE_INFO_AGE_RED);
 				SetDParam(2, v->max_age / DAYS_IN_LEAP_YEAR);
 				SetDParam(3, v->GetDisplayRunningCost());
-				DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_VEHICLE_INFO_AGE_RUNNING_COST_YR);
+				DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_VEHICLE_INFO_AGE_RUNNING_COST_YR);
 				y += FONT_HEIGHT_NORMAL;
 
 				/* Draw max speed */
@@ -2166,19 +2166,19 @@ struct VehicleDetailsWindow : Window {
 						string = STR_VEHICLE_INFO_MAX_SPEED;
 					}
 				}
-				DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, string);
+				DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, string);
 				y += FONT_HEIGHT_NORMAL;
 
 				/* Draw profit */
 				SetDParam(0, v->GetDisplayProfitThisYear());
 				SetDParam(1, v->GetDisplayProfitLastYear());
-				DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_VEHICLE_INFO_PROFIT_THIS_YEAR_LAST_YEAR);
+				DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_VEHICLE_INFO_PROFIT_THIS_YEAR_LAST_YEAR);
 				y += FONT_HEIGHT_NORMAL;
 
 				/* Draw breakdown & reliability */
 				SetDParam(0, ToPercent16(v->reliability));
 				SetDParam(1, v->breakdowns_since_last_service);
-				DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_VEHICLE_INFO_RELIABILITY_BREAKDOWNS);
+				DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_VEHICLE_INFO_RELIABILITY_BREAKDOWNS);
 				break;
 			}
 
@@ -2214,7 +2214,7 @@ struct VehicleDetailsWindow : Window {
 				/* Draw service interval text */
 				SetDParam(0, v->GetServiceInterval());
 				SetDParam(1, v->date_of_last_service);
-				DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + (r.bottom - r.top + 1 - FONT_HEIGHT_NORMAL) / 2,
+				DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + (r.bottom - r.top + 1 - FONT_HEIGHT_NORMAL) / 2,
 						v->ServiceIntervalIsPercent() ? STR_VEHICLE_DETAILS_SERVICING_INTERVAL_PERCENT : STR_VEHICLE_DETAILS_SERVICING_INTERVAL_DAYS);
 				break;
 		}
@@ -2743,7 +2743,7 @@ public:
 		int image = ((v->vehstatus & VS_STOPPED) != 0) ? SPR_FLAG_VEH_STOPPED : SPR_FLAG_VEH_RUNNING;
 		int lowered = this->IsWidgetLowered(WID_VV_START_STOP) ? 1 : 0;
 		DrawSprite(image, PAL_NONE, image_left + lowered, r.top + WD_IMGBTN_TOP + lowered);
-		DrawString(text_left + lowered, text_right + lowered, r.top + WD_FRAMERECT_TOP + lowered, str, TC_FROMSTRING, SA_HOR_CENTER);
+		DrawString (_cur_dpi, text_left + lowered, text_right + lowered, r.top + WD_FRAMERECT_TOP + lowered, str, TC_FROMSTRING, SA_HOR_CENTER);
 	}
 
 	virtual void OnClick(Point pt, int widget, int click_count)

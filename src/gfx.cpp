@@ -528,6 +528,7 @@ int DrawString (BlitArea *dpi, int left, int right, int top,
 /**
  * Draw string, possibly truncated to make it fit in its allocated space
  *
+ * @param dpi    The area to draw on.
  * @param left   The left most position to draw on.
  * @param right  The right most position to draw on.
  * @param top    The top most position to draw on.
@@ -541,11 +542,13 @@ int DrawString (BlitArea *dpi, int left, int right, int top,
  * @return In case of left or center alignment the right most pixel we have drawn to.
  *         In case of right alignment the left most pixel we have drawn to.
  */
-int DrawString(int left, int right, int top, StringID str, TextColour colour, StringAlignment align, bool underline, FontSize fontsize)
+int DrawString (BlitArea *dpi, int left, int right, int top,
+	StringID str, TextColour colour, StringAlignment align,
+	bool underline, FontSize fontsize)
 {
 	char buffer[DRAW_STRING_BUFFER];
 	GetString (buffer, str);
-	return DrawString (_cur_dpi, left, right, top, buffer, colour, align, underline, fontsize);
+	return DrawString (dpi, left, right, top, buffer, colour, align, underline, fontsize);
 }
 
 /**

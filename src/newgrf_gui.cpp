@@ -308,7 +308,7 @@ struct NewGRFParametersWindow : public Window {
 				SetDParam(1, i + 1);
 			}
 
-			DrawString(text_left, text_right, y + text_y_offset, STR_NEWGRF_PARAMETERS_SETTING, selected ? TC_WHITE : TC_LIGHT_BLUE);
+			DrawString (_cur_dpi, text_left, text_right, y + text_y_offset, STR_NEWGRF_PARAMETERS_SETTING, selected ? TC_WHITE : TC_LIGHT_BLUE);
 			y += this->line_height;
 		}
 	}
@@ -921,7 +921,7 @@ struct NewGRFWindow : public Window, NewGRFScanCallback {
 			case WID_NS_NEWGRF_INFO_TITLE:
 				/* Create the nice grayish rectangle at the details top. */
 				GfxFillRect (_cur_dpi, r.left + 1, r.top + 1, r.right - 1, r.bottom - 1, PC_DARK_BLUE);
-				DrawString(r.left, r.right, (r.top + r.bottom - FONT_HEIGHT_NORMAL) / 2, STR_NEWGRF_SETTINGS_INFO_TITLE, TC_FROMSTRING, SA_HOR_CENTER);
+				DrawString (_cur_dpi, r.left, r.right, (r.top + r.bottom - FONT_HEIGHT_NORMAL) / 2, STR_NEWGRF_SETTINGS_INFO_TITLE, TC_FROMSTRING, SA_HOR_CENTER);
 				break;
 
 			case WID_NS_NEWGRF_INFO: {
@@ -2250,14 +2250,14 @@ struct ScanProgressWindow : public Window {
 				uint percent = scanned * 100 / max(1U, _settings_client.gui.last_newgrf_count);
 				DrawFrameRect(r.left + 1, r.top + 1, (int)((r.right - r.left - 2) * percent / 100) + r.left + 1, r.bottom - 1, COLOUR_MAUVE, FR_NONE);
 				SetDParam(0, percent);
-				DrawString(r.left, r.right, r.top + 5, STR_GENERATION_PROGRESS, TC_FROMSTRING, SA_HOR_CENTER);
+				DrawString (_cur_dpi, r.left, r.right, r.top + 5, STR_GENERATION_PROGRESS, TC_FROMSTRING, SA_HOR_CENTER);
 				break;
 			}
 
 			case WID_SP_PROGRESS_TEXT:
 				SetDParam(0, this->scanned);
 				SetDParam(1, _settings_client.gui.last_newgrf_count);
-				DrawString(r.left, r.right, r.top, STR_NEWGRF_SCAN_STATUS, TC_FROMSTRING, SA_HOR_CENTER);
+				DrawString (_cur_dpi, r.left, r.right, r.top, STR_NEWGRF_SCAN_STATUS, TC_FROMSTRING, SA_HOR_CENTER);
 
 				DrawString (_cur_dpi, r.left, r.right, r.top + FONT_HEIGHT_NORMAL + WD_PAR_VSEP_NORMAL, this->last_name == NULL ? "" : this->last_name, TC_BLACK, SA_HOR_CENTER);
 				break;

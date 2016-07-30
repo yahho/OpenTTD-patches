@@ -912,7 +912,7 @@ struct SpriteAlignerWindow : Window {
 				int y = r.top + WD_FRAMERECT_TOP;
 				for (int i = this->vscroll->GetPosition(); i < max; i++) {
 					SetDParam(0, list[i]);
-					DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_BLACK_COMMA, TC_FROMSTRING, SA_RIGHT | SA_FORCE);
+					DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_BLACK_COMMA, TC_FROMSTRING, SA_RIGHT | SA_FORCE);
 					y += step_size;
 				}
 				break;

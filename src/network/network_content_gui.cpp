@@ -182,7 +182,7 @@ BaseNetworkContentDownloadStatusWindow::~BaseNetworkContentDownloadStatusWindow(
 	SetDParam(0, this->downloaded_bytes);
 	SetDParam(1, this->total_bytes);
 	SetDParam(2, this->downloaded_bytes * 100LL / this->total_bytes);
-	DrawString(r.left + 2, r.right - 2, y, STR_CONTENT_DOWNLOAD_PROGRESS_SIZE, TC_FROMSTRING, SA_HOR_CENTER);
+	DrawString (_cur_dpi, r.left + 2, r.right - 2, y, STR_CONTENT_DOWNLOAD_PROGRESS_SIZE, TC_FROMSTRING, SA_HOR_CENTER);
 
 	StringID str;
 	if (this->downloaded_bytes == this->total_bytes) {
@@ -641,7 +641,7 @@ public:
 	{
 		switch (widget) {
 			case WID_NCL_FILTER_CAPT:
-				DrawString(r.left, r.right, r.top, STR_CONTENT_FILTER_TITLE, TC_FROMSTRING, SA_RIGHT);
+				DrawString (_cur_dpi, r.left, r.right, r.top, STR_CONTENT_FILTER_TITLE, TC_FROMSTRING, SA_RIGHT);
 				break;
 
 			case WID_NCL_DETAILS:
@@ -727,11 +727,11 @@ public:
 
 		/* Create the nice grayish rectangle at the details top */
 		GfxFillRect (_cur_dpi, r.left + 1, r.top + 1, r.right - 1, r.top + DETAIL_TITLE_HEIGHT, PC_DARK_BLUE);
-		DrawString(r.left + WD_INSET_LEFT, r.right - WD_INSET_RIGHT, r.top + FONT_HEIGHT_NORMAL + WD_INSET_TOP, STR_CONTENT_DETAIL_TITLE, TC_FROMSTRING, SA_HOR_CENTER);
+		DrawString (_cur_dpi, r.left + WD_INSET_LEFT, r.right - WD_INSET_RIGHT, r.top + FONT_HEIGHT_NORMAL + WD_INSET_TOP, STR_CONTENT_DETAIL_TITLE, TC_FROMSTRING, SA_HOR_CENTER);
 
 		/* Draw the total download size */
 		SetDParam(0, this->filesize_sum);
-		DrawString(r.left + DETAIL_LEFT, r.right - DETAIL_RIGHT, r.bottom - FONT_HEIGHT_NORMAL - WD_PAR_VSEP_NORMAL, STR_CONTENT_TOTAL_DOWNLOAD_SIZE);
+		DrawString (_cur_dpi, r.left + DETAIL_LEFT, r.right - DETAIL_RIGHT, r.bottom - FONT_HEIGHT_NORMAL - WD_PAR_VSEP_NORMAL, STR_CONTENT_TOTAL_DOWNLOAD_SIZE);
 
 		if (this->selected == NULL) return;
 

@@ -401,7 +401,7 @@ public:
 				break;
 
 			case WID_RV_INFO_TAB: {
-				DrawString(r.left + WD_FRAMETEXT_LEFT, r.right - WD_FRAMETEXT_RIGHT, r.top + WD_FRAMERECT_TOP, STR_REPLACE_INFO_TAB, TC_BLACK, SA_HOR_CENTER);
+				DrawString (_cur_dpi, r.left + WD_FRAMETEXT_LEFT, r.right - WD_FRAMETEXT_RIGHT, r.top + WD_FRAMERECT_TOP, STR_REPLACE_INFO_TAB, TC_BLACK, SA_HOR_CENTER);
 
 				const Company *c = Company::Get(_local_company);
 				StringID str;
@@ -418,7 +418,7 @@ public:
 					str = STR_REPLACE_NOT_REPLACING_VEHICLE_SELECTED;
 				}
 
-				DrawString(r.left + WD_FRAMETEXT_LEFT, r.right - WD_FRAMETEXT_RIGHT, r.top + 2 * WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM + GetStringBoundingBox(STR_REPLACE_INFO_TAB).height, str, TC_BLACK, SA_HOR_CENTER);
+				DrawString (_cur_dpi, r.left + WD_FRAMETEXT_LEFT, r.right - WD_FRAMETEXT_RIGHT, r.top + 2 * WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM + GetStringBoundingBox(STR_REPLACE_INFO_TAB).height, str, TC_BLACK, SA_HOR_CENTER);
 				break;
 			}
 

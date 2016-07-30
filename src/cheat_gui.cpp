@@ -276,7 +276,7 @@ struct CheatWindow : Window {
 				}
 			}
 
-			DrawString(text_left, text_right, y + text_y_offset, ce->str);
+			DrawString (_cur_dpi, text_left, text_right, y + text_y_offset, ce->str);
 
 			y += this->line_height;
 		}

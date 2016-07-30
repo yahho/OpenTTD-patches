@@ -351,7 +351,7 @@ public:
 				}
 
 				if (str != STR_ERROR_UNABLE_TO_READ_DRIVE) SetDParam(0, tot);
-				DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + FONT_HEIGHT_NORMAL + WD_FRAMERECT_TOP, str);
+				DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + FONT_HEIGHT_NORMAL + WD_FRAMERECT_TOP, str);
 				DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP, path, TC_BLACK);
 				break;
 			}
@@ -376,7 +376,7 @@ public:
 			case WID_SL_DETAILS: {
 				GfxFillRect (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.top + WD_FRAMERECT_TOP,
 						r.right - WD_FRAMERECT_RIGHT, r.top + FONT_HEIGHT_NORMAL * 2 + WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM, PC_GREY);
-				DrawString(r.left, r.right, r.top + FONT_HEIGHT_NORMAL / 2 + WD_FRAMERECT_TOP, STR_SAVELOAD_DETAIL_CAPTION, TC_FROMSTRING, SA_HOR_CENTER);
+				DrawString (_cur_dpi, r.left, r.right, r.top + FONT_HEIGHT_NORMAL / 2 + WD_FRAMERECT_TOP, STR_SAVELOAD_DETAIL_CAPTION, TC_FROMSTRING, SA_HOR_CENTER);
 
 				if (this->selected == NULL) break;
 
@@ -386,7 +386,7 @@ public:
 				if (y > y_max) break;
 				if (!_load_check_data.checkable) {
 					/* Old savegame, no information available */
-					DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_SAVELOAD_DETAIL_NOT_AVAILABLE);
+					DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_SAVELOAD_DETAIL_NOT_AVAILABLE);
 					y += FONT_HEIGHT_NORMAL;
 				} else if (_load_check_data.error.str != INVALID_STRING_ID) {
 					/* Incompatible / broken savegame */
@@ -397,7 +397,7 @@ public:
 					/* Mapsize */
 					SetDParam(0, _load_check_data.map_size_x);
 					SetDParam(1, _load_check_data.map_size_y);
-					DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_NETWORK_SERVER_LIST_MAP_SIZE);
+					DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_NETWORK_SERVER_LIST_MAP_SIZE);
 					y += FONT_HEIGHT_NORMAL;
 					if (y > y_max) break;
 
@@ -405,7 +405,7 @@ public:
 					byte landscape = _load_check_data.settings.game_creation.landscape;
 					if (landscape < NUM_LANDSCAPE) {
 						SetDParam(0, STR_CHEAT_SWITCH_CLIMATE_TEMPERATE_LANDSCAPE + landscape);
-						DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_NETWORK_SERVER_LIST_LANDSCAPE);
+						DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_NETWORK_SERVER_LIST_LANDSCAPE);
 						y += FONT_HEIGHT_NORMAL;
 					}
 
@@ -415,7 +415,7 @@ public:
 					/* Start date (if available) */
 					if (_load_check_data.settings.game_creation.starting_year != 0) {
 						SetDParam(0, ConvertYMDToDate(_load_check_data.settings.game_creation.starting_year, 0, 1));
-						DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_NETWORK_SERVER_LIST_START_DATE);
+						DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_NETWORK_SERVER_LIST_START_DATE);
 						y += FONT_HEIGHT_NORMAL;
 					}
 					if (y > y_max) break;
@@ -424,7 +424,7 @@ public:
 					if (_saveload_mode != SLD_LOAD_SCENARIO && _saveload_mode != SLD_SAVE_SCENARIO) {
 						/* Current date */
 						SetDParam(0, _load_check_data.current_date);
-						DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_NETWORK_SERVER_LIST_CURRENT_DATE);
+						DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_NETWORK_SERVER_LIST_CURRENT_DATE);
 						y += FONT_HEIGHT_NORMAL;
 					}
 
@@ -436,7 +436,7 @@ public:
 						/* NewGrf compatibility */
 						SetDParam(0, _load_check_data.grfconfig == NULL ? STR_NEWGRF_LIST_NONE :
 								STR_NEWGRF_LIST_ALL_FOUND + _load_check_data.grf_compatibility);
-						DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_SAVELOAD_DETAIL_GRFSTATUS);
+						DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_SAVELOAD_DETAIL_GRFSTATUS);
 						y += FONT_HEIGHT_NORMAL;
 					}
 					if (y > y_max) break;
@@ -458,7 +458,7 @@ public:
 								SetDParam(1, c.name_1);
 								SetDParam(2, c.name_2);
 							}
-							DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_SAVELOAD_DETAIL_COMPANY_INDEX);
+							DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_SAVELOAD_DETAIL_COMPANY_INDEX);
 							y += FONT_HEIGHT_NORMAL;
 							if (y > y_max) break;
 						}

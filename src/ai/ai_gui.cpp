@@ -119,7 +119,7 @@ struct AIListWindow : public Window {
 				int y = this->GetWidget<NWidgetBase>(WID_AIL_LIST)->pos_y;
 				/* First AI in the list is hardcoded to random */
 				if (this->vscroll->IsVisible(0)) {
-					DrawString(r.left + WD_MATRIX_LEFT, r.right - WD_MATRIX_LEFT, y + WD_MATRIX_TOP, this->slot == OWNER_DEITY ? STR_AI_CONFIG_NONE : STR_AI_CONFIG_RANDOM_AI, this->selected == -1 ? TC_WHITE : TC_ORANGE);
+					DrawString (_cur_dpi, r.left + WD_MATRIX_LEFT, r.right - WD_MATRIX_LEFT, y + WD_MATRIX_TOP, this->slot == OWNER_DEITY ? STR_AI_CONFIG_NONE : STR_AI_CONFIG_RANDOM_AI, this->selected == -1 ? TC_WHITE : TC_ORANGE);
 					y += this->line_height;
 				}
 				ScriptInfoList::const_iterator it = this->info_list->begin();
@@ -141,14 +141,14 @@ struct AIListWindow : public Window {
 				if (selected_info != NULL) {
 					int y = r.top + WD_FRAMERECT_TOP;
 					SetDParamStr(0, selected_info->GetAuthor());
-					DrawString(r.left + WD_FRAMETEXT_LEFT, r.right - WD_FRAMETEXT_RIGHT, y, STR_AI_LIST_AUTHOR);
+					DrawString (_cur_dpi, r.left + WD_FRAMETEXT_LEFT, r.right - WD_FRAMETEXT_RIGHT, y, STR_AI_LIST_AUTHOR);
 					y += FONT_HEIGHT_NORMAL + WD_PAR_VSEP_NORMAL;
 					SetDParam(0, selected_info->GetVersion());
-					DrawString(r.left + WD_FRAMETEXT_LEFT, r.right - WD_FRAMETEXT_RIGHT, y, STR_AI_LIST_VERSION);
+					DrawString (_cur_dpi, r.left + WD_FRAMETEXT_LEFT, r.right - WD_FRAMETEXT_RIGHT, y, STR_AI_LIST_VERSION);
 					y += FONT_HEIGHT_NORMAL + WD_PAR_VSEP_NORMAL;
 					if (selected_info->GetURL() != NULL) {
 						SetDParamStr(0, selected_info->GetURL());
-						DrawString(r.left + WD_FRAMETEXT_LEFT, r.right - WD_FRAMETEXT_RIGHT, y, STR_AI_LIST_URL);
+						DrawString (_cur_dpi, r.left + WD_FRAMETEXT_LEFT, r.right - WD_FRAMETEXT_RIGHT, y, STR_AI_LIST_URL);
 						y += FONT_HEIGHT_NORMAL + WD_PAR_VSEP_NORMAL;
 					}
 					SetDParamStr(0, selected_info->GetDescription());
@@ -412,7 +412,7 @@ struct AISettingsWindow : public Window {
 				}
 			}
 
-			DrawString(text_left, text_right, y + text_y_offset, str, colour);
+			DrawString (_cur_dpi, text_left, text_right, y + text_y_offset, str, colour);
 			y += this->line_height;
 		}
 	}
@@ -810,7 +810,7 @@ struct AIConfigWindow : public Window {
 					text = STR_JUST_RAW_STRING;
 				}
 
-				DrawString(r.left + 10, r.right - 10, r.top + WD_MATRIX_TOP, text,
+				DrawString (_cur_dpi, r.left + 10, r.right - 10, r.top + WD_MATRIX_TOP, text,
 						(this->selected_slot == OWNER_DEITY) ? TC_WHITE : (IsEditable(OWNER_DEITY) ? TC_ORANGE : TC_SILVER));
 
 				break;
@@ -829,7 +829,7 @@ struct AIConfigWindow : public Window {
 					} else {
 						text = STR_AI_CONFIG_RANDOM_AI;
 					}
-					DrawString(r.left + 10, r.right - 10, y + WD_MATRIX_TOP, text,
+					DrawString (_cur_dpi, r.left + 10, r.right - 10, y + WD_MATRIX_TOP, text,
 							(this->selected_slot == i) ? TC_WHITE : (IsEditable((CompanyID)i) ? TC_ORANGE : TC_SILVER));
 					y += this->line_height;
 				}

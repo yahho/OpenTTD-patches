@@ -69,7 +69,7 @@ struct GraphLegendWindow : Window {
 
 		SetDParam(0, cid);
 		SetDParam(1, cid);
-		DrawString(r.left + (rtl ? (uint)WD_FRAMERECT_LEFT : (d.width + 4)), r.right - (rtl ? (d.width + 4) : (uint)WD_FRAMERECT_RIGHT), r.top + (r.bottom - r.top + 1 - FONT_HEIGHT_NORMAL) / 2, STR_COMPANY_NAME_COMPANY_NUM, HasBit(_legend_excluded_companies, cid) ? TC_BLACK : TC_WHITE);
+		DrawString (_cur_dpi, r.left + (rtl ? (uint)WD_FRAMERECT_LEFT : (d.width + 4)), r.right - (rtl ? (d.width + 4) : (uint)WD_FRAMERECT_RIGHT), r.top + (r.bottom - r.top + 1 - FONT_HEIGHT_NORMAL) / 2, STR_COMPANY_NAME_COMPANY_NUM, HasBit(_legend_excluded_companies, cid) ? TC_BLACK : TC_WHITE);
 	}
 
 	virtual void OnClick(Point pt, int widget, int click_count)
@@ -369,7 +369,7 @@ protected:
 		for (int i = 0; i < (num_hori_lines + 1); i++) {
 			SetDParam(0, this->format_str_y_axis);
 			SetDParam(1, y_label);
-			DrawString(r.left - label_width - 4, r.left - 4, y, STR_GRAPH_Y_LABEL, graph_axis_label_colour, SA_RIGHT);
+			DrawString (_cur_dpi, r.left - label_width - 4, r.left - 4, y, STR_GRAPH_Y_LABEL, graph_axis_label_colour, SA_RIGHT);
 
 			y_label -= y_label_separation;
 			y += y_sep;
@@ -402,7 +402,7 @@ protected:
 
 			for (int i = 0; i < this->num_on_x_axis; i++) {
 				SetDParam(0, label);
-				DrawString(x + 1, x + x_sep - 1, y, STR_GRAPH_Y_LABEL_NUMBER, graph_axis_label_colour, SA_HOR_CENTER);
+				DrawString (_cur_dpi, x + 1, x + x_sep - 1, y, STR_GRAPH_Y_LABEL_NUMBER, graph_axis_label_colour, SA_HOR_CENTER);
 
 				label += this->x_values_increment;
 				x += x_sep;
@@ -983,7 +983,7 @@ struct PaymentRatesGraphWindow : BaseGraphWindow {
 		GfxFillRect (_cur_dpi, rect_x, y + clk_dif, rect_x + 8, y + 5 + clk_dif, PC_BLACK);
 		GfxFillRect (_cur_dpi, rect_x + 1, y + 1 + clk_dif, rect_x + 7, y + 4 + clk_dif, cs->legend_colour);
 		SetDParam(0, cs->name);
-		DrawString(rtl ? r.left : x + 14 + clk_dif, (rtl ? r.right - 14 + clk_dif : r.right), y + clk_dif, STR_GRAPH_CARGO_PAYMENT_CARGO);
+		DrawString (_cur_dpi, rtl ? r.left : x + 14 + clk_dif, (rtl ? r.right - 14 + clk_dif : r.right), y + clk_dif, STR_GRAPH_CARGO_PAYMENT_CARGO);
 	}
 
 	virtual void OnClick(Point pt, int widget, int click_count)
@@ -1218,14 +1218,14 @@ public:
 
 		for (uint i = 0; i != this->companies.Length(); i++) {
 			const Company *c = this->companies[i];
-			DrawString(ordinal_left, ordinal_right, y, i + STR_ORDINAL_NUMBER_1ST, i == 0 ? TC_WHITE : TC_YELLOW);
+			DrawString (_cur_dpi, ordinal_left, ordinal_right, y, i + STR_ORDINAL_NUMBER_1ST, i == 0 ? TC_WHITE : TC_YELLOW);
 
 			DrawCompanyIcon(c->index, icon_left, y + icon_y_offset);
 
 			SetDParam(0, c->index);
 			SetDParam(1, c->index);
 			SetDParam(2, GetPerformanceTitleFromValue(c->old_economy[0].performance_history));
-			DrawString(text_left, text_right, y, STR_COMPANY_LEAGUE_COMPANY_NAME);
+			DrawString (_cur_dpi, text_left, text_right, y, STR_COMPANY_LEAGUE_COMPANY_NAME);
 			y += this->line_height;
 		}
 	}
@@ -1449,11 +1449,11 @@ struct PerformanceRatingDetailWindow : Window {
 		uint bar_top  = r.top + WD_MATRIX_TOP;
 		uint text_top = bar_top + 2;
 
-		DrawString(this->score_info_left, this->score_info_right, text_top, STR_PERFORMANCE_DETAIL_VEHICLES + score_type);
+		DrawString (_cur_dpi, this->score_info_left, this->score_info_right, text_top, STR_PERFORMANCE_DETAIL_VEHICLES + score_type);
 
 		/* Draw the score */
 		SetDParam(0, score);
-		DrawString(this->score_info_left, this->score_info_right, text_top, STR_BLACK_COMMA, TC_FROMSTRING, SA_RIGHT);
+		DrawString (_cur_dpi, this->score_info_left, this->score_info_right, text_top, STR_BLACK_COMMA, TC_FROMSTRING, SA_RIGHT);
 
 		/* Calculate the %-bar */
 		uint x = Clamp(val, 0, needed) * this->bar_width / needed;
@@ -1470,7 +1470,7 @@ struct PerformanceRatingDetailWindow : Window {
 
 		/* Draw it */
 		SetDParam(0, Clamp(val, 0, needed) * 100 / needed);
-		DrawString(this->bar_left, this->bar_right, text_top, STR_PERFORMANCE_DETAIL_PERCENT, TC_FROMSTRING, SA_HOR_CENTER);
+		DrawString (_cur_dpi, this->bar_left, this->bar_right, text_top, STR_PERFORMANCE_DETAIL_PERCENT, TC_FROMSTRING, SA_HOR_CENTER);
 
 		/* SCORE_LOAN is inversed */
 		if (score_type == SCORE_LOAN) val = needed - val;
@@ -1485,10 +1485,10 @@ struct PerformanceRatingDetailWindow : Window {
 			case SCORE_MAX_INCOME:
 			case SCORE_MONEY:
 			case SCORE_LOAN:
-				DrawString(this->score_detail_left, this->score_detail_right, text_top, STR_PERFORMANCE_DETAIL_AMOUNT_CURRENCY);
+				DrawString (_cur_dpi, this->score_detail_left, this->score_detail_right, text_top, STR_PERFORMANCE_DETAIL_AMOUNT_CURRENCY);
 				break;
 			default:
-				DrawString(this->score_detail_left, this->score_detail_right, text_top, STR_PERFORMANCE_DETAIL_AMOUNT_INT);
+				DrawString (_cur_dpi, this->score_detail_left, this->score_detail_right, text_top, STR_PERFORMANCE_DETAIL_AMOUNT_INT);
 		}
 	}
 

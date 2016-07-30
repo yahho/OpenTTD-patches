@@ -235,7 +235,7 @@ static inline void DrawLabel(const Rect &r, WidgetType type, bool clicked, Strin
 	if ((type & WWT_MASK) == WWT_TEXTBTN_2 && clicked) str++;
 	Dimension d = GetStringBoundingBox(str);
 	int offset = max(0, ((int)(r.bottom - r.top + 1) - (int)d.height) / 2); // Offset for rendering the text vertically centered
-	DrawString(r.left, r.right, r.top + offset, str, TC_FROMSTRING, SA_HOR_CENTER);
+	DrawString (_cur_dpi, r.left, r.right, r.top + offset, str, TC_FROMSTRING, SA_HOR_CENTER);
 }
 
 /**
@@ -384,7 +384,7 @@ static inline void DrawFrame(const Rect &r, Colours colour, StringID str)
 {
 	int x2 = r.left; // by default the left side is the left side of the widget
 
-	if (str != STR_NULL) x2 = DrawString(r.left + WD_FRAMETEXT_LEFT, r.right - WD_FRAMETEXT_RIGHT, r.top, str);
+	if (str != STR_NULL) x2 = DrawString (_cur_dpi, r.left + WD_FRAMETEXT_LEFT, r.right - WD_FRAMETEXT_RIGHT, r.top, str);
 
 	int c1 = _colour_gradient[colour][3];
 	int c2 = _colour_gradient[colour][7];
@@ -445,7 +445,7 @@ void DrawCaption(const Rect &r, Colours colour, Owner owner, StringID str)
 	if (str != STR_NULL) {
 		Dimension d = GetStringBoundingBox(str);
 		int offset = max(0, ((int)(r.bottom - r.top + 1) - (int)d.height) / 2); // Offset for rendering the text vertically centered
-		DrawString(r.left + WD_CAPTIONTEXT_LEFT, r.right - WD_CAPTIONTEXT_RIGHT, r.top + offset, str, TC_FROMSTRING, SA_HOR_CENTER);
+		DrawString (_cur_dpi, r.left + WD_CAPTIONTEXT_LEFT, r.right - WD_CAPTIONTEXT_RIGHT, r.top + offset, str, TC_FROMSTRING, SA_HOR_CENTER);
 	}
 }
 
@@ -471,12 +471,12 @@ static inline void DrawButtonDropdown(const Rect &r, Colours colour, bool clicke
 		DrawFrameRect(r.left, r.top, r.right - dd_width, r.bottom, colour, clicked_button ? FR_LOWERED : FR_NONE);
 		DrawFrameRect(r.right + 1 - dd_width, r.top, r.right, r.bottom, colour, clicked_dropdown ? FR_LOWERED : FR_NONE);
 		DrawSprite(SPR_ARROW_DOWN, PAL_NONE, r.right - (dd_width - 2), r.top + image_offset);
-		if (str != STR_NULL) DrawString(r.left + WD_DROPDOWNTEXT_LEFT, r.right - dd_width - WD_DROPDOWNTEXT_RIGHT, r.top + text_offset, str, TC_BLACK);
+		if (str != STR_NULL) DrawString (_cur_dpi, r.left + WD_DROPDOWNTEXT_LEFT, r.right - dd_width - WD_DROPDOWNTEXT_RIGHT, r.top + text_offset, str, TC_BLACK);
 	} else {
 		DrawFrameRect(r.left + dd_width, r.top, r.right, r.bottom, colour, clicked_button ? FR_LOWERED : FR_NONE);
 		DrawFrameRect(r.left, r.top, r.left + dd_width - 1, r.bottom, colour, clicked_dropdown ? FR_LOWERED : FR_NONE);
 		DrawSprite(SPR_ARROW_DOWN, PAL_NONE, r.left + 1, r.top + image_offset);
-		if (str != STR_NULL) DrawString(r.left + dd_width + WD_DROPDOWNTEXT_LEFT, r.right - WD_DROPDOWNTEXT_RIGHT, r.top + text_offset, str, TC_BLACK);
+		if (str != STR_NULL) DrawString (_cur_dpi, r.left + dd_width + WD_DROPDOWNTEXT_LEFT, r.right - WD_DROPDOWNTEXT_RIGHT, r.top + text_offset, str, TC_BLACK);
 	}
 }
 
@@ -1735,7 +1735,7 @@ void NWidgetBackground::Draw(const Window *w)
 			if (this->index >= 0) w->SetStringParameters(this->index);
 			DrawFrameRect (r.left, r.top, r.right, r.bottom, this->colour, FR_LOWERED | FR_DARKENED);
 			StringID str = this->widget_data;
-			if (str != STR_NULL) DrawString (r.left + WD_INSET_LEFT, r.right - WD_INSET_RIGHT, r.top + WD_INSET_TOP, str);
+			if (str != STR_NULL) DrawString (_cur_dpi, r.left + WD_INSET_LEFT, r.right - WD_INSET_RIGHT, r.top + WD_INSET_TOP, str);
 			break;
 		}
 
@@ -2335,7 +2335,7 @@ void NWidgetLeaf::Draw(const Window *w)
 			StringID str = this->widget_data;
 			Dimension d = GetStringBoundingBox (str);
 			int offset = max (0, ((int)(r.bottom - r.top + 1) - (int)d.height) / 2); // Offset for rendering the text vertically centered
-			if (str != STR_NULL) DrawString (r.left, r.right, r.top + offset, str, (TextColour)this->colour);
+			if (str != STR_NULL) DrawString (_cur_dpi, r.left, r.right, r.top + offset, str, (TextColour)this->colour);
 			break;
 		}
 

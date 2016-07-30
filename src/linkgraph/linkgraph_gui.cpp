@@ -472,13 +472,13 @@ void LinkGraphLegendWindow::DrawWidget(const Rect &r, int widget) const
 		} else if (widget == (WID_LGL_SATURATION_LAST + WID_LGL_SATURATION_FIRST) / 2) {
 			str = STR_LINKGRAPH_LEGEND_SATURATED;
 		}
-		if (str != STR_NULL) DrawString(r.left, r.right, (r.top + r.bottom + 1 - FONT_HEIGHT_SMALL) / 2, str, TC_FROMSTRING, SA_HOR_CENTER);
+		if (str != STR_NULL) DrawString (_cur_dpi, r.left, r.right, (r.top + r.bottom + 1 - FONT_HEIGHT_SMALL) / 2, str, TC_FROMSTRING, SA_HOR_CENTER);
 	}
 	if (IsInsideMM(widget, WID_LGL_CARGO_FIRST, WID_LGL_CARGO_LAST + 1)) {
 		if (this->IsWidgetDisabled(widget)) return;
 		CargoSpec *cargo = CargoSpec::Get(widget - WID_LGL_CARGO_FIRST);
 		GfxFillRect (_cur_dpi, r.left + 2, r.top + 2, r.right - 2, r.bottom - 2, cargo->legend_colour);
-		DrawString(r.left, r.right, (r.top + r.bottom + 1 - FONT_HEIGHT_SMALL) / 2, cargo->abbrev, TC_BLACK, SA_HOR_CENTER);
+		DrawString (_cur_dpi, r.left, r.right, (r.top + r.bottom + 1 - FONT_HEIGHT_SMALL) / 2, cargo->abbrev, TC_BLACK, SA_HOR_CENTER);
 	}
 }
 

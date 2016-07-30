@@ -143,7 +143,7 @@ public:
 
 		uint y = nwid->pos_y + WD_FRAMERECT_TOP;
 
-		DrawString(left, right, y, STR_LOCAL_AUTHORITY_COMPANY_RATINGS);
+		DrawString (_cur_dpi, left, right, y, STR_LOCAL_AUTHORITY_COMPANY_RATINGS);
 		y += FONT_HEIGHT_NORMAL;
 
 		Dimension icon_size = GetSpriteSize(SPR_COMPANY_ICON);
@@ -185,7 +185,7 @@ public:
 					DrawSprite(SPR_EXCLUSIVE_TRANSPORT, COMPANY_SPRITE_COLOUR(c->index), exclusive_left, y + exclusive_y_offset);
 				}
 
-				DrawString(text_left, text_right, y, STR_LOCAL_AUTHORITY_COMPANY_RATING);
+				DrawString (_cur_dpi, text_left, text_right, y, STR_LOCAL_AUTHORITY_COMPANY_RATING);
 				y += FONT_HEIGHT_NORMAL;
 			}
 		}
@@ -219,7 +219,7 @@ public:
 				int pos = this->vscroll->GetPosition();
 
 				if (--pos < 0) {
-					DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_LOCAL_AUTHORITY_ACTIONS_TITLE);
+					DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_LOCAL_AUTHORITY_ACTIONS_TITLE);
 					y += FONT_HEIGHT_NORMAL;
 				}
 
@@ -227,7 +227,7 @@ public:
 					if (pos <= -5) break; ///< Draw only the 5 fitting lines
 
 					if ((buttons & 1) && --pos < 0) {
-						DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y,
+						DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y,
 								STR_LOCAL_AUTHORITY_ACTION_SMALL_ADVERTISING_CAMPAIGN + i, this->sel_index == i ? TC_WHITE : TC_ORANGE);
 						y += FONT_HEIGHT_NORMAL;
 					}
@@ -361,15 +361,15 @@ public:
 
 		SetDParam(0, this->town->cache.population);
 		SetDParam(1, this->town->cache.num_houses);
-		DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_LEFT, y, STR_TOWN_VIEW_POPULATION_HOUSES);
+		DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_LEFT, y, STR_TOWN_VIEW_POPULATION_HOUSES);
 
 		SetDParam(0, this->town->supplied[CT_PASSENGERS].old_act);
 		SetDParam(1, this->town->supplied[CT_PASSENGERS].old_max);
-		DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_LEFT, y += FONT_HEIGHT_NORMAL, STR_TOWN_VIEW_PASSENGERS_LAST_MONTH_MAX);
+		DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_LEFT, y += FONT_HEIGHT_NORMAL, STR_TOWN_VIEW_PASSENGERS_LAST_MONTH_MAX);
 
 		SetDParam(0, this->town->supplied[CT_MAIL].old_act);
 		SetDParam(1, this->town->supplied[CT_MAIL].old_max);
-		DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_LEFT, y += FONT_HEIGHT_NORMAL, STR_TOWN_VIEW_MAIL_LAST_MONTH_MAX);
+		DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_LEFT, y += FONT_HEIGHT_NORMAL, STR_TOWN_VIEW_MAIL_LAST_MONTH_MAX);
 
 		bool first = true;
 		for (int i = TE_BEGIN; i < TE_END; i++) {
@@ -378,7 +378,7 @@ public:
 			if (this->town->goal[i] == TOWN_GROWTH_DESERT && (GetTropicZone(this->town->xy) != TROPICZONE_DESERT || this->town->cache.population <= 60)) continue;
 
 			if (first) {
-				DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_LEFT, y += FONT_HEIGHT_NORMAL, STR_TOWN_VIEW_CARGO_FOR_TOWNGROWTH);
+				DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_LEFT, y += FONT_HEIGHT_NORMAL, STR_TOWN_VIEW_CARGO_FOR_TOWNGROWTH);
 				first = false;
 			}
 
@@ -414,21 +414,21 @@ public:
 				SetDParam(2, cargo->Index());
 				SetDParam(3, this->town->goal[i]);
 			}
-			DrawString(cargo_text_left, cargo_text_right, y += FONT_HEIGHT_NORMAL, string);
+			DrawString (_cur_dpi, cargo_text_left, cargo_text_right, y += FONT_HEIGHT_NORMAL, string);
 		}
 
 		if (HasBit(this->town->flags, TOWN_IS_GROWING)) {
 			SetDParam(0, ((this->town->growth_rate & (~TOWN_GROW_RATE_CUSTOM)) * TOWN_GROWTH_TICKS + DAY_TICKS) / DAY_TICKS);
-			DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_LEFT, y += FONT_HEIGHT_NORMAL, this->town->fund_buildings_months == 0 ? STR_TOWN_VIEW_TOWN_GROWS_EVERY : STR_TOWN_VIEW_TOWN_GROWS_EVERY_FUNDED);
+			DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_LEFT, y += FONT_HEIGHT_NORMAL, this->town->fund_buildings_months == 0 ? STR_TOWN_VIEW_TOWN_GROWS_EVERY : STR_TOWN_VIEW_TOWN_GROWS_EVERY_FUNDED);
 		} else {
-			DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_LEFT, y += FONT_HEIGHT_NORMAL, STR_TOWN_VIEW_TOWN_GROW_STOPPED);
+			DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_LEFT, y += FONT_HEIGHT_NORMAL, STR_TOWN_VIEW_TOWN_GROW_STOPPED);
 		}
 
 		/* only show the town noise, if the noise option is activated. */
 		if (_settings_game.economy.station_noise_level) {
 			SetDParam(0, this->town->noise_reached);
 			SetDParam(1, this->town->MaxTownNoise());
-			DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_LEFT, y += FONT_HEIGHT_NORMAL, STR_TOWN_VIEW_NOISE_IN_TOWN);
+			DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_LEFT, y += FONT_HEIGHT_NORMAL, STR_TOWN_VIEW_NOISE_IN_TOWN);
 		}
 
 		if (this->town->text != NULL) {
@@ -812,7 +812,7 @@ public:
 				int n = 0;
 				int y = r.top + WD_FRAMERECT_TOP;
 				if (this->towns.Length() == 0) { // No towns available.
-					DrawString(r.left + WD_FRAMERECT_LEFT, r.right, y, STR_TOWN_DIRECTORY_NONE);
+					DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right, y, STR_TOWN_DIRECTORY_NONE);
 					break;
 				}
 
@@ -839,7 +839,7 @@ public:
 
 					SetDParam(0, t->index);
 					SetDParam(1, t->cache.population);
-					DrawString(text_left, text_right, y + (this->resize.step_height - FONT_HEIGHT_NORMAL) / 2, STR_TOWN_DIRECTORY_TOWN);
+					DrawString (_cur_dpi, text_left, text_right, y + (this->resize.step_height - FONT_HEIGHT_NORMAL) / 2, STR_TOWN_DIRECTORY_TOWN);
 
 					y += this->resize.step_height;
 					if (++n == this->vscroll->GetCapacity()) break; // max number of towns in 1 window
@@ -1318,7 +1318,7 @@ struct SelectTownWindow : Window {
 		uint end = min(this->vscroll->GetCount(), this->vscroll->GetPosition() + this->vscroll->GetCapacity());
 		for (uint i = this->vscroll->GetPosition(); i < end; i++) {
 			SetDParam(0, this->towns[i]->index);
-			DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_SELECT_TOWN_LIST_ITEM);
+			DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_SELECT_TOWN_LIST_ITEM);
 			y += this->resize.step_height;
 		}
 	}
@@ -1859,7 +1859,7 @@ public:
 					} else {
 						str = STR_BUILD_HOUSE_ORIGINAL_SET_NAME;
 					}
-					DrawString (r.left + WD_MATRIX_LEFT, r.right - WD_MATRIX_RIGHT, y, str, i == this->sel_set ? TC_WHITE : TC_BLACK);
+					DrawString (_cur_dpi, r.left + WD_MATRIX_LEFT, r.right - WD_MATRIX_RIGHT, y, str, i == this->sel_set ? TC_WHITE : TC_BLACK);
 					y += this->line_height;
 				}
 				break;

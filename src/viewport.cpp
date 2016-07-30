@@ -1339,7 +1339,7 @@ static inline void ViewportDrawString (ZoomLevel zoom, int x, int y,
 		}
 	}
 
-	DrawString (x0 + VPSM_LEFT, x1 - 1 - VPSM_RIGHT, y0 + VPSM_TOP, string, tc, SA_HOR_CENTER);
+	DrawString (_cur_dpi, x0 + VPSM_LEFT, x1 - 1 - VPSM_RIGHT, y0 + VPSM_TOP, string, tc, SA_HOR_CENTER);
 }
 
 /**

@@ -316,7 +316,7 @@ struct DepotWindow : Window {
 				/* Length of consist in tiles with 1 fractional digit (rounded up) */
 				SetDParam(0, CeilDiv(u->gcache.cached_total_length * 10, TILE_SIZE));
 				SetDParam(1, 1);
-				DrawString(rtl ? left + WD_FRAMERECT_LEFT : right - this->count_width, rtl ? left + this->count_width : right - WD_FRAMERECT_RIGHT, y + (this->resize.step_height - FONT_HEIGHT_SMALL) / 2, STR_TINY_BLACK_DECIMAL, TC_FROMSTRING, SA_RIGHT); // Draw the counter
+				DrawString (_cur_dpi, rtl ? left + WD_FRAMERECT_LEFT : right - this->count_width, rtl ? left + this->count_width : right - WD_FRAMERECT_RIGHT, y + (this->resize.step_height - FONT_HEIGHT_SMALL) / 2, STR_TINY_BLACK_DECIMAL, TC_FROMSTRING, SA_RIGHT); // Draw the counter
 				break;
 			}
 
@@ -340,12 +340,12 @@ struct DepotWindow : Window {
 		int text_right = rtl ? right - diff_x : left + this->header_width - 1;
 
 		if (free_wagon) {
-			DrawString(text_left, text_right, y + 2, STR_DEPOT_NO_ENGINE);
+			DrawString (_cur_dpi, text_left, text_right, y + 2, STR_DEPOT_NO_ENGINE);
 		} else {
 			DrawSprite((v->vehstatus & VS_STOPPED) ? SPR_FLAG_VEH_STOPPED : SPR_FLAG_VEH_RUNNING, PAL_NONE, rtl ? right - this->flag_width : left + WD_FRAMERECT_LEFT, y + diff_y);
 
 			SetDParam(0, v->unitnumber);
-			DrawString(text_left, text_right, y + 2, (uint16)(v->max_age - DAYS_IN_LEAP_YEAR) >= v->age ? STR_BLACK_COMMA : STR_RED_COMMA);
+			DrawString (_cur_dpi, text_left, text_right, y + 2, (uint16)(v->max_age - DAYS_IN_LEAP_YEAR) >= v->age ? STR_BLACK_COMMA : STR_RED_COMMA);
 		}
 	}
 

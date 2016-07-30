@@ -378,7 +378,7 @@ protected:
 		uint text_top = y_offset + (element_height - line_height) / 2;
 
 		DrawSprite(action_sprite, PAL_NONE, 0, sprite_top);
-		DrawString(sprite_dim.width + WD_FRAMETEXT_LEFT, width, text_top, string_id, TC_BLACK);
+		DrawString (_cur_dpi, sprite_dim.width + WD_FRAMETEXT_LEFT, width, text_top, string_id, TC_BLACK);
 
 		y_offset += element_height;
 	}
@@ -521,7 +521,7 @@ public:
 		/* Date */
 		if (page->date != INVALID_DATE) {
 			SetDParam(0, page->date);
-			DrawString(0, right - x, y_offset, STR_JUST_DATE_LONG, TC_BLACK);
+			DrawString (_cur_dpi, 0, right - x, y_offset, STR_JUST_DATE_LONG, TC_BLACK);
 		}
 		y_offset += line_height;
 

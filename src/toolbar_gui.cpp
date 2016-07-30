@@ -101,9 +101,9 @@ public:
 	{
 		bool rtl = _current_text_dir == TD_RTL;
 		if (this->checked) {
-			DrawString(left + WD_FRAMERECT_LEFT, right - WD_FRAMERECT_RIGHT, top, STR_JUST_CHECKMARK, sel ? TC_WHITE : TC_BLACK);
+			DrawString (_cur_dpi, left + WD_FRAMERECT_LEFT, right - WD_FRAMERECT_RIGHT, top, STR_JUST_CHECKMARK, sel ? TC_WHITE : TC_BLACK);
 		}
-		DrawString(left + WD_FRAMERECT_LEFT + (rtl ? 0 : this->checkmark_width), right - WD_FRAMERECT_RIGHT - (rtl ? this->checkmark_width : 0), top, this->String(), sel ? TC_WHITE : TC_BLACK);
+		DrawString (_cur_dpi, left + WD_FRAMERECT_LEFT + (rtl ? 0 : this->checkmark_width), right - WD_FRAMERECT_RIGHT - (rtl ? this->checkmark_width : 0), top, this->String(), sel ? TC_WHITE : TC_BLACK);
 	}
 };
 
@@ -161,7 +161,7 @@ public:
 		} else {
 			col = sel ? TC_WHITE : TC_BLACK;
 		}
-		DrawString(left + WD_FRAMERECT_LEFT + (rtl ? 0 : 3 + this->icon_size.width), right - WD_FRAMERECT_RIGHT - (rtl ? 3 + this->icon_size.width : 0), top + text_offset, STR_COMPANY_NAME_COMPANY_NUM, col);
+		DrawString (_cur_dpi, left + WD_FRAMERECT_LEFT + (rtl ? 0 : 3 + this->icon_size.width), right - WD_FRAMERECT_RIGHT - (rtl ? 3 + this->icon_size.width : 0), top + text_offset, STR_COMPANY_NAME_COMPANY_NUM, col);
 	}
 };
 
@@ -2002,16 +2002,16 @@ struct ScenarioEditorToolbarWindow : Window {
 		switch (widget) {
 			case WID_TE_DATE:
 				SetDParam(0, ConvertYMDToDate(_settings_game.game_creation.starting_year, 0, 1));
-				DrawString(r.left, r.right, (this->height - FONT_HEIGHT_NORMAL) / 2, STR_WHITE_DATE_LONG, TC_FROMSTRING, SA_HOR_CENTER);
+				DrawString (_cur_dpi, r.left, r.right, (this->height - FONT_HEIGHT_NORMAL) / 2, STR_WHITE_DATE_LONG, TC_FROMSTRING, SA_HOR_CENTER);
 				break;
 
 			case WID_TE_SPACER: {
 				int height = r.bottom - r.top;
 				if (height > 2 * FONT_HEIGHT_NORMAL) {
-					DrawString(r.left, r.right, (height + 1) / 2 - FONT_HEIGHT_NORMAL, STR_SCENEDIT_TOOLBAR_OPENTTD, TC_FROMSTRING, SA_HOR_CENTER);
-					DrawString(r.left, r.right, (height + 1) / 2, STR_SCENEDIT_TOOLBAR_SCENARIO_EDITOR, TC_FROMSTRING, SA_HOR_CENTER);
+					DrawString (_cur_dpi, r.left, r.right, (height + 1) / 2 - FONT_HEIGHT_NORMAL, STR_SCENEDIT_TOOLBAR_OPENTTD, TC_FROMSTRING, SA_HOR_CENTER);
+					DrawString (_cur_dpi, r.left, r.right, (height + 1) / 2, STR_SCENEDIT_TOOLBAR_SCENARIO_EDITOR, TC_FROMSTRING, SA_HOR_CENTER);
 				} else {
-					DrawString(r.left, r.right, (height - FONT_HEIGHT_NORMAL) / 2, STR_SCENEDIT_TOOLBAR_SCENARIO_EDITOR, TC_FROMSTRING, SA_HOR_CENTER);
+					DrawString (_cur_dpi, r.left, r.right, (height - FONT_HEIGHT_NORMAL) / 2, STR_SCENEDIT_TOOLBAR_SCENARIO_EDITOR, TC_FROMSTRING, SA_HOR_CENTER);
 				}
 				break;
 			}

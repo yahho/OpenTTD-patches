@@ -1208,7 +1208,7 @@ uint SettingEntry::Draw(GameSettings *settings_ptr, int left, int right, int bas
 		case SEF_SUBTREE_KIND:
 			if (cur_row >= first_row) {
 				DrawSprite((this->d.sub.folded ? SPR_CIRCLE_FOLDED : SPR_CIRCLE_UNFOLDED), PAL_NONE, rtl ? x - _circle_size.width : x, y + (SETTING_HEIGHT - _circle_size.height) / 2);
-				DrawString(rtl ? left : x + _circle_size.width + 2, rtl ? x - _circle_size.width - 2 : right, y + (SETTING_HEIGHT - FONT_HEIGHT_NORMAL) / 2, this->d.sub.title);
+				DrawString (_cur_dpi, rtl ? left : x + _circle_size.width + 2, rtl ? x - _circle_size.width - 2 : right, y + (SETTING_HEIGHT - FONT_HEIGHT_NORMAL) / 2, this->d.sub.title);
 			}
 			cur_row++;
 			if (!this->d.sub.folded) {
@@ -1286,7 +1286,7 @@ void SettingEntry::DrawSetting(GameSettings *settings_ptr, int left, int right, 
 				editable && value != (sdb->flags & SGF_0ISDISABLED ? 0 : sdb->min), editable && (uint32)value != sdb->max);
 	}
 	this->SetValueDParams(1, value);
-	DrawString(text_left, text_right, y + (SETTING_HEIGHT - FONT_HEIGHT_NORMAL) / 2, sdb->str, highlight ? TC_WHITE : TC_LIGHT_BLUE);
+	DrawString (_cur_dpi, text_left, text_right, y + (SETTING_HEIGHT - FONT_HEIGHT_NORMAL) / 2, sdb->str, highlight ? TC_WHITE : TC_LIGHT_BLUE);
 }
 
 
@@ -1946,7 +1946,7 @@ struct GameSettingsWindow : Window {
 			SetDParam(0, _game_settings_restrict_dropdown[this->filter.min_cat]);
 			if (this->warn_lines == 1) {
 				/* If the warning fits at one line, center it. */
-				DrawString(left + WD_FRAMETEXT_LEFT, right - WD_FRAMETEXT_RIGHT, top, warn_str, TC_FROMSTRING, SA_HOR_CENTER);
+				DrawString (_cur_dpi, left + WD_FRAMETEXT_LEFT, right - WD_FRAMETEXT_RIGHT, top, warn_str, TC_FROMSTRING, SA_HOR_CENTER);
 			} else {
 				DrawStringMultiLine(left + WD_FRAMERECT_LEFT, right - WD_FRAMERECT_RIGHT, top, INT32_MAX, warn_str, TC_FROMSTRING, SA_HOR_CENTER);
 			}
@@ -2006,7 +2006,7 @@ struct GameSettingsWindow : Window {
 				uint last_row = this->vscroll->GetPosition() + this->vscroll->GetCapacity() - this->warn_lines;
 				int next_row = _settings_main_page.Draw(settings_ptr, r.left + SETTINGTREE_LEFT_OFFSET, r.right - SETTINGTREE_RIGHT_OFFSET, top_pos,
 						this->vscroll->GetPosition(), last_row, this->last_clicked);
-				if (next_row == 0) DrawString(r.left + SETTINGTREE_LEFT_OFFSET, r.right - SETTINGTREE_RIGHT_OFFSET, top_pos, STR_CONFIG_SETTINGS_NONE);
+				if (next_row == 0) DrawString (_cur_dpi, r.left + SETTINGTREE_LEFT_OFFSET, r.right - SETTINGTREE_RIGHT_OFFSET, top_pos, STR_CONFIG_SETTINGS_NONE);
 				break;
 			}
 
@@ -2021,12 +2021,12 @@ struct GameSettingsWindow : Window {
 						case ST_GAME:    SetDParam(0, _game_mode == GM_MENU ? STR_CONFIG_SETTING_TYPE_GAME_MENU : STR_CONFIG_SETTING_TYPE_GAME_INGAME); break;
 						default: NOT_REACHED();
 					}
-					DrawString(r.left, r.right, y, STR_CONFIG_SETTING_TYPE);
+					DrawString (_cur_dpi, r.left, r.right, y, STR_CONFIG_SETTING_TYPE);
 					y += FONT_HEIGHT_NORMAL;
 
 					int32 default_value = ReadValue(&sd->desc.def, sd->save.conv);
 					this->last_clicked->SetValueDParams(0, default_value);
-					DrawString(r.left, r.right, y, STR_CONFIG_SETTING_DEFAULT_VALUE);
+					DrawString (_cur_dpi, r.left, r.right, y, STR_CONFIG_SETTING_DEFAULT_VALUE);
 					y += FONT_HEIGHT_NORMAL + WD_PAR_VSEP_NORMAL;
 
 					DrawStringMultiLine(r.left, r.right, y, r.bottom, this->last_clicked->GetHelpText(), TC_WHITE);

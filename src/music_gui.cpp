@@ -382,7 +382,7 @@ struct MusicTrackSelectionWindow : public Window {
 					SetDParam(0, GetTrackNumber(i));
 					SetDParam(1, 2);
 					SetDParamStr(2, song_name);
-					DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_PLAYLIST_TRACK_NAME);
+					DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_PLAYLIST_TRACK_NAME);
 					y += FONT_HEIGHT_SMALL;
 				}
 				break;
@@ -397,7 +397,7 @@ struct MusicTrackSelectionWindow : public Window {
 					SetDParam(0, GetTrackNumber(i));
 					SetDParam(1, 2);
 					SetDParamStr(2, GetSongName(i));
-					DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_PLAYLIST_TRACK_NAME);
+					DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_PLAYLIST_TRACK_NAME);
 					y += FONT_HEIGHT_SMALL;
 				}
 				break;
@@ -580,7 +580,7 @@ struct MusicWindow : public Window {
 					SetDParam(1, 2);
 					str = STR_MUSIC_TRACK_DIGIT;
 				}
-				DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP, str);
+				DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP, str);
 				break;
 			}
 
@@ -591,7 +591,7 @@ struct MusicWindow : public Window {
 					str = STR_MUSIC_TITLE_NAME;
 					SetDParamStr(0, GetSongName(_music_wnd_cursong - 1));
 				}
-				DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP, str, TC_FROMSTRING, SA_HOR_CENTER);
+				DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP, str, TC_FROMSTRING, SA_HOR_CENTER);
 				break;
 			}
 

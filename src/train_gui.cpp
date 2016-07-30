@@ -171,7 +171,7 @@ static void TrainDetailsCargoTab(const CargoSummaryItem *item, int left, int rig
 		str = item->cargo == INVALID_CARGO ? STR_LTBLUE_STRING : STR_VEHICLE_DETAILS_CARGO_EMPTY;
 	}
 
-	DrawString(left, right, y, str);
+	DrawString (_cur_dpi, left, right, y, str);
 }
 
 /**
@@ -187,12 +187,12 @@ static void TrainDetailsInfoTab(const Vehicle *v, int left, int right, int y)
 	if (RailVehInfo(v->engine_type)->railveh_type == RAILVEH_WAGON) {
 		SetDParam(0, v->engine_type);
 		SetDParam(1, v->value);
-		DrawString(left, right, y, STR_VEHICLE_DETAILS_TRAIN_WAGON_VALUE);
+		DrawString (_cur_dpi, left, right, y, STR_VEHICLE_DETAILS_TRAIN_WAGON_VALUE);
 	} else {
 		SetDParam(0, v->engine_type);
 		SetDParam(1, v->build_year);
 		SetDParam(2, v->value);
-		DrawString(left, right, y, STR_VEHICLE_DETAILS_TRAIN_ENGINE_BUILT_AND_VALUE);
+		DrawString (_cur_dpi, left, right, y, STR_VEHICLE_DETAILS_TRAIN_ENGINE_BUILT_AND_VALUE);
 	}
 }
 
@@ -218,7 +218,7 @@ static void TrainDetailsCapacityTab(const CargoSummaryItem *item, int left, int 
 		SetDParam(0, item->subtype);
 		str = STR_VEHICLE_INFO_NO_CAPACITY;
 	}
-	DrawString(left, right, y, str);
+	DrawString (_cur_dpi, left, right, y, str);
 }
 
 /**
@@ -378,7 +378,7 @@ void DrawTrainDetails(const Train *v, int left, int right, int y, int vscroll_po
 							if (i < _cargo_summary.Length()) {
 								TrainDetailsCargoTab(&_cargo_summary[i], data_left, data_right, py);
 							} else {
-								DrawString(data_left, data_right, py, STR_QUANTITY_N_A, TC_LIGHT_BLUE);
+								DrawString (_cur_dpi, data_left, data_right, py, STR_QUANTITY_N_A, TC_LIGHT_BLUE);
 							}
 							break;
 
@@ -391,7 +391,7 @@ void DrawTrainDetails(const Train *v, int left, int right, int y, int vscroll_po
 								TrainDetailsCapacityTab(&_cargo_summary[i], data_left, data_right, py);
 							} else {
 								SetDParam(0, STR_EMPTY);
-								DrawString(data_left, data_right, py, STR_VEHICLE_INFO_NO_CAPACITY);
+								DrawString (_cur_dpi, data_left, data_right, py, STR_VEHICLE_INFO_NO_CAPACITY);
 							}
 							break;
 
@@ -413,7 +413,7 @@ void DrawTrainDetails(const Train *v, int left, int right, int y, int vscroll_po
 		}
 
 		/* draw total cargo tab */
-		DrawString(left, right, y + text_y_offset, STR_VEHICLE_DETAILS_TRAIN_TOTAL_CAPACITY_TEXT);
+		DrawString (_cur_dpi, left, right, y + text_y_offset, STR_VEHICLE_DETAILS_TRAIN_TOTAL_CAPACITY_TEXT);
 		y += line_height;
 
 		for (CargoID i = 0; i < NUM_CARGO; i++) {
@@ -423,11 +423,11 @@ void DrawTrainDetails(const Train *v, int left, int right, int y, int vscroll_po
 				SetDParam(2, i);            // {SHORTCARGO} #1
 				SetDParam(3, max_cargo[i]); // {SHORTCARGO} #2
 				SetDParam(4, _settings_game.vehicle.freight_trains);
-				DrawString(left, right, y + text_y_offset, FreightWagonMult(i) > 1 ? STR_VEHICLE_DETAILS_TRAIN_TOTAL_CAPACITY_MULT : STR_VEHICLE_DETAILS_TRAIN_TOTAL_CAPACITY);
+				DrawString (_cur_dpi, left, right, y + text_y_offset, FreightWagonMult(i) > 1 ? STR_VEHICLE_DETAILS_TRAIN_TOTAL_CAPACITY_MULT : STR_VEHICLE_DETAILS_TRAIN_TOTAL_CAPACITY);
 				y += line_height;
 			}
 		}
 		SetDParam(0, feeder_share);
-		DrawString(left, right, y + text_y_offset, STR_VEHICLE_INFO_FEEDER_CARGO_VALUE);
+		DrawString (_cur_dpi, left, right, y + text_y_offset, STR_VEHICLE_INFO_FEEDER_CARGO_VALUE);
 	}
 }
