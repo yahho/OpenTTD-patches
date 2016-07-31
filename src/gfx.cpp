@@ -594,6 +594,7 @@ int GetStringLineCount(StringID str, int maxw)
 /**
  * Draw string, possibly over multiple lines.
  *
+ * @param dpi    The area to draw on.
  * @param left   The left most position to draw on.
  * @param right  The right most position to draw on.
  * @param top    The top most position to draw on.
@@ -606,7 +607,9 @@ int GetStringLineCount(StringID str, int maxw)
  *
  * @return If \a align is #SA_BOTTOM, the top to where we have written, else the bottom to where we have written.
  */
-int DrawStringMultiLine(int left, int right, int top, int bottom, const char *str, TextColour colour, StringAlignment align, bool underline, FontSize fontsize)
+int DrawStringMultiLine (BlitArea *dpi, int left, int right, int top, int bottom,
+	const char *str, TextColour colour, StringAlignment align,
+	bool underline, FontSize fontsize)
 {
 	int maxw = right - left + 1;
 	int maxh = bottom - top + 1;
@@ -645,7 +648,7 @@ int DrawStringMultiLine(int left, int right, int top, int bottom, const char *st
 			last_line = y + line_height;
 			if (first_line > y) first_line = y;
 
-			DrawLayoutLine (line, _cur_dpi, y, left, right, align, underline, false);
+			DrawLayoutLine (line, dpi, y, left, right, align, underline, false);
 		}
 		y += line_height;
 	}
@@ -672,7 +675,7 @@ int DrawStringMultiLine(int left, int right, int top, int bottom, StringID str, 
 {
 	char buffer[DRAW_STRING_BUFFER];
 	GetString (buffer, str);
-	return DrawStringMultiLine(left, right, top, bottom, buffer, colour, align, underline, fontsize);
+	return DrawStringMultiLine (_cur_dpi, left, right, top, bottom, buffer, colour, align, underline, fontsize);
 }
 
 /**

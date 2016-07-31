@@ -254,7 +254,7 @@ void NetworkDrawChatMessage()
 	int ypos = bottom - 2;
 
 	for (int i = count - 1; i >= 0; i--) {
-		ypos = DrawStringMultiLine (_chatmsg_box_x + 3, _chatmsg_box_x + _chatmsg_box_width - 1, top, ypos, _chatmsg_list[i].message, _chatmsg_list[i].colour, SA_LEFT | SA_BOTTOM | SA_FORCE) - NETWORK_CHAT_LINE_SPACING;
+		ypos = DrawStringMultiLine (_cur_dpi, _chatmsg_box_x + 3, _chatmsg_box_x + _chatmsg_box_width - 1, top, ypos, _chatmsg_list[i].message, _chatmsg_list[i].colour, SA_LEFT | SA_BOTTOM | SA_FORCE) - NETWORK_CHAT_LINE_SPACING;
 		if (ypos < top) break;
 	}
 

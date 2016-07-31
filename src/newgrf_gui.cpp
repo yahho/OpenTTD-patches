@@ -257,7 +257,7 @@ struct NewGRFParametersWindow : public Window {
 			if (par_info == NULL) return;
 			const char *desc = par_info->desc.get_string();
 			if (desc == NULL) return;
-			DrawStringMultiLine(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + WD_TEXTPANEL_TOP, r.bottom - WD_TEXTPANEL_BOTTOM, desc, TC_BLACK);
+			DrawStringMultiLine (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + WD_TEXTPANEL_TOP, r.bottom - WD_TEXTPANEL_BOTTOM, desc, TC_BLACK);
 			return;
 		} else if (widget != WID_NP_BACKGROUND) {
 			return;
