@@ -197,7 +197,7 @@ BaseNetworkContentDownloadStatusWindow::~BaseNetworkContentDownloadStatusWindow(
 	}
 
 	y += FONT_HEIGHT_NORMAL + 5;
-	DrawStringMultiLine(r.left + 2, r.right - 2, y, y + FONT_HEIGHT_NORMAL * 2, str, TC_FROMSTRING, SA_CENTER);
+	DrawStringMultiLine (_cur_dpi, r.left + 2, r.right - 2, y, y + FONT_HEIGHT_NORMAL * 2, str, TC_FROMSTRING, SA_CENTER);
 }
 
 /* virtual */ void BaseNetworkContentDownloadStatusWindow::OnDownloadProgress(const ContentInfo *ci, int bytes)
@@ -736,7 +736,7 @@ public:
 		if (this->selected == NULL) return;
 
 		/* And fill the rest of the details when there's information to place there */
-		DrawStringMultiLine(r.left + WD_INSET_LEFT, r.right - WD_INSET_RIGHT, r.top + DETAIL_TITLE_HEIGHT / 2, r.top + DETAIL_TITLE_HEIGHT, STR_CONTENT_DETAIL_SUBTITLE_UNSELECTED + this->selected->state, TC_FROMSTRING, SA_CENTER);
+		DrawStringMultiLine (_cur_dpi, r.left + WD_INSET_LEFT, r.right - WD_INSET_RIGHT, r.top + DETAIL_TITLE_HEIGHT / 2, r.top + DETAIL_TITLE_HEIGHT, STR_CONTENT_DETAIL_SUBTITLE_UNSELECTED + this->selected->state, TC_FROMSTRING, SA_CENTER);
 
 		/* Also show the total download size, so keep some space from the bottom */
 		const uint max_y = r.bottom - FONT_HEIGHT_NORMAL - WD_PAR_VSEP_WIDE;
@@ -744,34 +744,34 @@ public:
 
 		if (this->selected->upgrade) {
 			SetDParam (0, get_type_string (this->selected->type));
-			y = DrawStringMultiLine(r.left + DETAIL_LEFT, r.right - DETAIL_RIGHT, y, max_y, STR_CONTENT_DETAIL_UPDATE);
+			y = DrawStringMultiLine (_cur_dpi, r.left + DETAIL_LEFT, r.right - DETAIL_RIGHT, y, max_y, STR_CONTENT_DETAIL_UPDATE);
 			y += WD_PAR_VSEP_WIDE;
 		}
 
 		SetDParamStr(0, this->selected->name);
-		y = DrawStringMultiLine(r.left + DETAIL_LEFT, r.right - DETAIL_RIGHT, y, max_y, STR_CONTENT_DETAIL_NAME);
+		y = DrawStringMultiLine (_cur_dpi, r.left + DETAIL_LEFT, r.right - DETAIL_RIGHT, y, max_y, STR_CONTENT_DETAIL_NAME);
 
 		if (!StrEmpty(this->selected->version)) {
 			SetDParamStr(0, this->selected->version);
-			y = DrawStringMultiLine(r.left + DETAIL_LEFT, r.right - DETAIL_RIGHT, y, max_y, STR_CONTENT_DETAIL_VERSION);
+			y = DrawStringMultiLine (_cur_dpi, r.left + DETAIL_LEFT, r.right - DETAIL_RIGHT, y, max_y, STR_CONTENT_DETAIL_VERSION);
 		}
 
 		if (!StrEmpty(this->selected->description)) {
 			SetDParamStr(0, this->selected->description);
-			y = DrawStringMultiLine(r.left + DETAIL_LEFT, r.right - DETAIL_RIGHT, y, max_y, STR_CONTENT_DETAIL_DESCRIPTION);
+			y = DrawStringMultiLine (_cur_dpi, r.left + DETAIL_LEFT, r.right - DETAIL_RIGHT, y, max_y, STR_CONTENT_DETAIL_DESCRIPTION);
 		}
 
 		if (!StrEmpty(this->selected->url)) {
 			SetDParamStr(0, this->selected->url);
-			y = DrawStringMultiLine(r.left + DETAIL_LEFT, r.right - DETAIL_RIGHT, y, max_y, STR_CONTENT_DETAIL_URL);
+			y = DrawStringMultiLine (_cur_dpi, r.left + DETAIL_LEFT, r.right - DETAIL_RIGHT, y, max_y, STR_CONTENT_DETAIL_URL);
 		}
 
 		SetDParam (0, get_type_string (this->selected->type));
-		y = DrawStringMultiLine(r.left + DETAIL_LEFT, r.right - DETAIL_RIGHT, y, max_y, STR_CONTENT_DETAIL_TYPE);
+		y = DrawStringMultiLine (_cur_dpi, r.left + DETAIL_LEFT, r.right - DETAIL_RIGHT, y, max_y, STR_CONTENT_DETAIL_TYPE);
 
 		y += WD_PAR_VSEP_WIDE;
 		SetDParam(0, this->selected->filesize);
-		y = DrawStringMultiLine(r.left + DETAIL_LEFT, r.right - DETAIL_RIGHT, y, max_y, STR_CONTENT_DETAIL_FILESIZE);
+		y = DrawStringMultiLine (_cur_dpi, r.left + DETAIL_LEFT, r.right - DETAIL_RIGHT, y, max_y, STR_CONTENT_DETAIL_FILESIZE);
 
 		if (this->selected->dependency_count != 0) {
 			/* List dependencies */
@@ -790,7 +790,7 @@ public:
 				}
 			}
 			SetDParamStr (0, buf.c_str());
-			y = DrawStringMultiLine(r.left + DETAIL_LEFT, r.right - DETAIL_RIGHT, y, max_y, STR_CONTENT_DETAIL_DEPENDENCIES);
+			y = DrawStringMultiLine (_cur_dpi, r.left + DETAIL_LEFT, r.right - DETAIL_RIGHT, y, max_y, STR_CONTENT_DETAIL_DEPENDENCIES);
 		}
 
 		if (this->selected->tag_count != 0) {
@@ -800,7 +800,7 @@ public:
 				buf.append_fmt (i == 0 ? "%s" : ", %s", this->selected->tags[i]);
 			}
 			SetDParamStr (0, buf.c_str());
-			y = DrawStringMultiLine(r.left + DETAIL_LEFT, r.right - DETAIL_RIGHT, y, max_y, STR_CONTENT_DETAIL_TAGS);
+			y = DrawStringMultiLine (_cur_dpi, r.left + DETAIL_LEFT, r.right - DETAIL_RIGHT, y, max_y, STR_CONTENT_DETAIL_TAGS);
 		}
 
 		if (this->selected->IsSelected()) {
@@ -817,7 +817,7 @@ public:
 			}
 			if (!buf.empty()) {
 				SetDParamStr (0, buf.c_str());
-				y = DrawStringMultiLine(r.left + DETAIL_LEFT, r.right - DETAIL_RIGHT, y, max_y, STR_CONTENT_DETAIL_SELECTED_BECAUSE_OF);
+				y = DrawStringMultiLine (_cur_dpi, r.left + DETAIL_LEFT, r.right - DETAIL_RIGHT, y, max_y, STR_CONTENT_DETAIL_SELECTED_BECAUSE_OF);
 			}
 		}
 	}

@@ -827,7 +827,7 @@ struct RefitWindow : public Window {
 				if (this->cargo != NULL) {
 					StringID string = this->GetCapacityString(this->cargo);
 					if (string != INVALID_STRING_ID) {
-						DrawStringMultiLine(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT,
+						DrawStringMultiLine (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT,
 								r.top + WD_FRAMERECT_TOP, r.bottom - WD_FRAMERECT_BOTTOM, string);
 					}
 				}
@@ -1131,7 +1131,7 @@ uint ShowRefitOptionsList(int left, int right, int y, EngineID engine)
 		SetDParam(1, cmask);
 	}
 
-	return DrawStringMultiLine(left, right, y, INT32_MAX, STR_PURCHASE_INFO_REFITTABLE_TO);
+	return DrawStringMultiLine (_cur_dpi, left, right, y, INT32_MAX, STR_PURCHASE_INFO_REFITTABLE_TO);
 }
 
 /** Get the cargo subtype text from NewGRF for the vehicle details window. */

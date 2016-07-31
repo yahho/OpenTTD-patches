@@ -391,7 +391,7 @@ public:
 				} else if (_load_check_data.error.str != INVALID_STRING_ID) {
 					/* Incompatible / broken savegame */
 					SetDParamStr(0, _load_check_data.error.data);
-					y = DrawStringMultiLine(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT,
+					y = DrawStringMultiLine (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT,
 							y, r.bottom - WD_FRAMERECT_BOTTOM, _load_check_data.error.str, TC_RED);
 				} else {
 					/* Mapsize */

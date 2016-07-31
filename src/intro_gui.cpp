@@ -67,7 +67,7 @@ struct SelectGameWindow : public Window {
 		switch (widget) {
 			case WID_SGI_TRANSLATION:
 				SetDParam(0, _current_language->missing);
-				DrawStringMultiLine(r.left, r.right, r.top,  r.bottom, STR_INTRO_TRANSLATION, TC_FROMSTRING, SA_CENTER);
+				DrawStringMultiLine (_cur_dpi, r.left, r.right, r.top, r.bottom, STR_INTRO_TRANSLATION, TC_FROMSTRING, SA_CENTER);
 				break;
 		}
 	}

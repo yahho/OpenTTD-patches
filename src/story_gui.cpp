@@ -527,7 +527,7 @@ public:
 
 		/* Title */
 		SetDParamStr(0, page->title != NULL ? page->title : this->selected_generic_title);
-		y_offset = DrawStringMultiLine(0, right - x, y_offset, bottom - y, STR_STORY_BOOK_TITLE, TC_BLACK, SA_TOP | SA_HOR_CENTER);
+		y_offset = DrawStringMultiLine (_cur_dpi, 0, right - x, y_offset, bottom - y, STR_STORY_BOOK_TITLE, TC_BLACK, SA_TOP | SA_HOR_CENTER);
 
 		/* Page elements */
 		for (const StoryPageElement *const*iter = this->story_page_elements.Begin(); iter != this->story_page_elements.End(); iter++) {
@@ -537,7 +537,7 @@ public:
 			switch (pe->type) {
 				case SPET_TEXT:
 					SetDParamStr(0, pe->text);
-					y_offset = DrawStringMultiLine(0, right - x, y_offset, bottom - y, STR_JUST_RAW_STRING, TC_BLACK, SA_TOP | SA_LEFT);
+					y_offset = DrawStringMultiLine (_cur_dpi, 0, right - x, y_offset, bottom - y, STR_JUST_RAW_STRING, TC_BLACK, SA_TOP | SA_LEFT);
 					break;
 
 				case SPET_GOAL: {

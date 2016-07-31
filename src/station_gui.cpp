@@ -86,9 +86,9 @@ int DrawStationCoverageAreaText (int left, int right, int top, int rad, StationC
 	}
 
 	SetDParam (0, accept_mask);
-	top = DrawStringMultiLine (left, right, top, INT32_MAX, STR_STATION_BUILD_ACCEPTS_CARGO)  + WD_PAR_VSEP_NORMAL;
+	top = DrawStringMultiLine (_cur_dpi, left, right, top, INT32_MAX, STR_STATION_BUILD_ACCEPTS_CARGO)  + WD_PAR_VSEP_NORMAL;
 	SetDParam (0, supply_mask);
-	top = DrawStringMultiLine (left, right, top, INT32_MAX, STR_STATION_BUILD_SUPPLIES_CARGO) + WD_PAR_VSEP_NORMAL;
+	top = DrawStringMultiLine (_cur_dpi, left, right, top, INT32_MAX, STR_STATION_BUILD_SUPPLIES_CARGO) + WD_PAR_VSEP_NORMAL;
 	return top;
 }
 
@@ -1772,7 +1772,7 @@ struct StationViewWindow : public Window {
 			if (HasBit(st->goods[i].status, GoodsEntry::GES_ACCEPTANCE)) SetBit(cargo_mask, i);
 		}
 		SetDParam(0, cargo_mask);
-		int bottom = DrawStringMultiLine(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP, INT32_MAX, STR_STATION_VIEW_ACCEPTS_CARGO);
+		int bottom = DrawStringMultiLine (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP, INT32_MAX, STR_STATION_VIEW_ACCEPTS_CARGO);
 		return CeilDiv(bottom - r.top - WD_FRAMERECT_TOP, FONT_HEIGHT_NORMAL);
 	}
 
@@ -1788,7 +1788,7 @@ struct StationViewWindow : public Window {
 
 		if (st->town->exclusive_counter > 0) {
 			SetDParam(0, st->town->exclusivity);
-			y = DrawStringMultiLine(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, r.bottom, st->town->exclusivity == st->owner ? STR_STATIOV_VIEW_EXCLUSIVE_RIGHTS_SELF : STR_STATIOV_VIEW_EXCLUSIVE_RIGHTS_COMPANY);
+			y = DrawStringMultiLine (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, r.bottom, st->town->exclusivity == st->owner ? STR_STATIOV_VIEW_EXCLUSIVE_RIGHTS_SELF : STR_STATIOV_VIEW_EXCLUSIVE_RIGHTS_COMPANY);
 			y += WD_PAR_VSEP_WIDE;
 		}
 

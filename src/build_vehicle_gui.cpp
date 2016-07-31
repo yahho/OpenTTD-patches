@@ -785,7 +785,7 @@ static uint ShowAdditionalText(int left, int right, int y, EngineID engine)
 	}
 
 	StartTextRefStackUsage(grffile, 6);
-	uint result = DrawStringMultiLine(left, right, y, INT32_MAX, GetGRFStringID(grffile->grfid, 0xD000 + callback), TC_BLACK);
+	uint result = DrawStringMultiLine (_cur_dpi, left, right, y, INT32_MAX, GetGRFStringID (grffile->grfid, 0xD000 + callback), TC_BLACK);
 	StopTextRefStackUsage();
 	return result;
 }

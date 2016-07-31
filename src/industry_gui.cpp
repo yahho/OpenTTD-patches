@@ -402,7 +402,7 @@ public:
 				int right  = r.right  - WD_FRAMERECT_RIGHT;
 
 				if (this->selected_type == INVALID_INDUSTRYTYPE) {
-					DrawStringMultiLine(left, right, y,  bottom, STR_FUND_INDUSTRY_MANY_RANDOM_INDUSTRIES_TOOLTIP);
+					DrawStringMultiLine (_cur_dpi, left, right, y,  bottom, STR_FUND_INDUSTRY_MANY_RANDOM_INDUSTRIES_TOOLTIP);
 					break;
 				}
 
@@ -458,7 +458,7 @@ public:
 							str = GetGRFStringID(indsp->grf_prop.grffile->grfid, 0xD000 + callback_res);  // No. here's the new string
 							if (str != STR_UNDEFINED) {
 								StartTextRefStackUsage(indsp->grf_prop.grffile, 6);
-								DrawStringMultiLine(left, right, y, bottom, str, TC_YELLOW);
+								DrawStringMultiLine (_cur_dpi, left, right, y, bottom, str, TC_YELLOW);
 								StopTextRefStackUsage();
 							}
 						}
@@ -793,7 +793,7 @@ public:
 						/* Use all the available space left from where we stand up to the
 						 * end of the window. We ALSO enlarge the window if needed, so we
 						 * can 'go' wild with the bottom of the window. */
-						y = DrawStringMultiLine(left + WD_FRAMERECT_LEFT, right - WD_FRAMERECT_RIGHT, y, UINT16_MAX, message, TC_BLACK);
+						y = DrawStringMultiLine (_cur_dpi, left + WD_FRAMERECT_LEFT, right - WD_FRAMERECT_RIGHT, y, UINT16_MAX, message, TC_BLACK);
 						StopTextRefStackUsage();
 					}
 				}

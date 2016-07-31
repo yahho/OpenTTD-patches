@@ -225,7 +225,7 @@ struct CheatWindow : Window {
 		if (widget != WID_C_PANEL) return;
 
 		int y = r.top + WD_FRAMERECT_TOP + this->header_height;
-		DrawStringMultiLine(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_LEFT, r.top + WD_FRAMERECT_TOP, y, STR_CHEATS_WARNING, TC_FROMSTRING, SA_CENTER);
+		DrawStringMultiLine (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_LEFT, r.top + WD_FRAMERECT_TOP, y, STR_CHEATS_WARNING, TC_FROMSTRING, SA_CENTER);
 
 		bool rtl = _current_text_dir == TD_RTL;
 		uint box_left    = rtl ? r.right - this->box_width - 5 : r.left + 5;

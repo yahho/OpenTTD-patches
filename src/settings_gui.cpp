@@ -374,7 +374,7 @@ struct GameOptionsWindow : Window {
 		}
 
 		SetDParamStr (0, set->get_desc (GetCurrentLanguageIsoCode()));
-		DrawStringMultiLine (r.left, r.right, r.top, UINT16_MAX, STR_BLACK_RAW_STRING);
+		DrawStringMultiLine (_cur_dpi, r.left, r.right, r.top, UINT16_MAX, STR_BLACK_RAW_STRING);
 	}
 
 	template <class T>
@@ -1948,7 +1948,7 @@ struct GameSettingsWindow : Window {
 				/* If the warning fits at one line, center it. */
 				DrawString (_cur_dpi, left + WD_FRAMETEXT_LEFT, right - WD_FRAMETEXT_RIGHT, top, warn_str, TC_FROMSTRING, SA_HOR_CENTER);
 			} else {
-				DrawStringMultiLine(left + WD_FRAMERECT_LEFT, right - WD_FRAMERECT_RIGHT, top, INT32_MAX, warn_str, TC_FROMSTRING, SA_HOR_CENTER);
+				DrawStringMultiLine (_cur_dpi, left + WD_FRAMERECT_LEFT, right - WD_FRAMERECT_RIGHT, top, INT32_MAX, warn_str, TC_FROMSTRING, SA_HOR_CENTER);
 			}
 		}
 	}
@@ -2029,7 +2029,7 @@ struct GameSettingsWindow : Window {
 					DrawString (_cur_dpi, r.left, r.right, y, STR_CONFIG_SETTING_DEFAULT_VALUE);
 					y += FONT_HEIGHT_NORMAL + WD_PAR_VSEP_NORMAL;
 
-					DrawStringMultiLine(r.left, r.right, y, r.bottom, this->last_clicked->GetHelpText(), TC_WHITE);
+					DrawStringMultiLine (_cur_dpi, r.left, r.right, y, r.bottom, this->last_clicked->GetHelpText(), TC_WHITE);
 				}
 				break;
 
