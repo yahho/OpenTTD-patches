@@ -129,7 +129,7 @@ int DrawString (BlitArea *dpi, int left, int right, int top, StringID str, TextC
 int DrawStringMultiLine (BlitArea *dpi, int left, int right, int top, int bottom, const char *str, TextColour colour = TC_FROMSTRING, StringAlignment align = (SA_TOP | SA_LEFT), bool underline = false, FontSize fontsize = FS_NORMAL);
 int DrawStringMultiLine (BlitArea *dpi, int left, int right, int top, int bottom, StringID str, TextColour colour = TC_FROMSTRING, StringAlignment align = (SA_TOP | SA_LEFT), bool underline = false, FontSize fontsize = FS_NORMAL);
 
-void DrawCharCentered(uint32 c, int x, int y, TextColour colour);
+void DrawCharCentered (BlitArea *dpi, WChar c, int x, int y, TextColour colour);
 
 void GfxFillRect (BlitArea *dpi, int left, int top, int right, int bottom, int colour, FillRectMode mode = FILLRECT_OPAQUE);
 void GfxDrawLine (BlitArea *dpi, int left, int top, int right, int bottom, int colour, int width = 1, int dash = 0);

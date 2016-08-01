@@ -98,7 +98,7 @@ struct OskWindow : public Window {
 		if (widget < WID_OSK_LETTERS) return;
 
 		widget -= WID_OSK_LETTERS;
-		DrawCharCentered(_keyboard[this->shift][widget],
+		DrawCharCentered (_cur_dpi, _keyboard[this->shift][widget],
 			r.left + 8,
 			r.top + 3,
 			TC_BLACK);

@@ -713,15 +713,16 @@ Dimension GetStringBoundingBox(StringID strid)
 
 /**
  * Draw single character horizontally centered around (x,y)
+ * @param dpi         The area to draw on.
  * @param c           Character (glyph) to draw
  * @param x           X position to draw character
  * @param y           Y position to draw character
  * @param colour      Colour to use, see DoDrawString() for details
  */
-void DrawCharCentered(WChar c, int x, int y, TextColour colour)
+void DrawCharCentered (BlitArea *dpi, WChar c, int x, int y, TextColour colour)
 {
 	SetColourRemap(colour);
-	GfxMainBlitter (_cur_dpi, GetGlyph (FS_NORMAL, c), x - GetCharacterWidth (FS_NORMAL, c) / 2, y, BM_COLOUR_REMAP);
+	GfxMainBlitter (dpi, GetGlyph (FS_NORMAL, c), x - GetCharacterWidth (FS_NORMAL, c) / 2, y, BM_COLOUR_REMAP);
 }
 
 /**
