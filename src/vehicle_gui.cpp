@@ -209,7 +209,7 @@ static void DrawVehicleProfitButton(const Vehicle *v, int x, int y)
 	} else {
 		spr = SPR_PROFIT_LOT;
 	}
-	DrawSprite(spr, PAL_NONE, x, y);
+	DrawSprite (_cur_dpi, spr, PAL_NONE, x, y);
 }
 
 /** Maximum number of refit cycles we try, to prevent infinite loops. And we store only a byte anyway */
@@ -733,7 +733,7 @@ struct RefitWindow : public Window {
 					assert (list[i].Length() == 1);
 					assert (refit.subtype == 0xFF);
 					/* Draw checkbox */
-					DrawSprite (HasBit (this->cargo_mask, refit.cargo) ? SPR_BOX_CHECKED : SPR_BOX_EMPTY, PAL_NONE, iconleft, y + (FONT_HEIGHT_NORMAL - iconheight) / 2);
+					DrawSprite (_cur_dpi, HasBit (this->cargo_mask, refit.cargo) ? SPR_BOX_CHECKED : SPR_BOX_EMPTY, PAL_NONE, iconleft, y + (FONT_HEIGHT_NORMAL - iconheight) / 2);
 				} else if (list[i].Length() > 1) {
 					if (refit.subtype != 0xFF) {
 						/* Draw tree lines */
@@ -742,7 +742,7 @@ struct RefitWindow : public Window {
 						GfxDrawLine (_cur_dpi, iconcenter, ycenter, iconinner, ycenter, linecolour);
 					} else {
 						/* Draw expand/collapse icon */
-						DrawSprite(sel_cargo == i ? SPR_CIRCLE_UNFOLDED : SPR_CIRCLE_FOLDED, PAL_NONE, iconleft, y + (FONT_HEIGHT_NORMAL - iconheight) / 2);
+						DrawSprite (_cur_dpi, sel_cargo == i ? SPR_CIRCLE_UNFOLDED : SPR_CIRCLE_FOLDED, PAL_NONE, iconleft, y + (FONT_HEIGHT_NORMAL - iconheight) / 2);
 					}
 				}
 
@@ -2742,7 +2742,7 @@ public:
 		int image_left = (rtl ? text_right + 1 : r.left) + WD_IMGBTN_LEFT;
 		int image = ((v->vehstatus & VS_STOPPED) != 0) ? SPR_FLAG_VEH_STOPPED : SPR_FLAG_VEH_RUNNING;
 		int lowered = this->IsWidgetLowered(WID_VV_START_STOP) ? 1 : 0;
-		DrawSprite(image, PAL_NONE, image_left + lowered, r.top + WD_IMGBTN_TOP + lowered);
+		DrawSprite (_cur_dpi, image, PAL_NONE, image_left + lowered, r.top + WD_IMGBTN_TOP + lowered);
 		DrawString (_cur_dpi, text_left + lowered, text_right + lowered, r.top + WD_FRAMERECT_TOP + lowered, str, TC_FROMSTRING, SA_HOR_CENTER);
 	}
 

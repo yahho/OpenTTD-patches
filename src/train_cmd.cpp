@@ -608,15 +608,15 @@ void DrawTrainEngine(int left, int right, int preferred_x, int y, EngineID engin
 				left - UnScaleGUI(real_spritef->x_offs) + ScaleGUITrad(14),
 				right - UnScaleGUI(real_spriter->width) - UnScaleGUI(real_spriter->x_offs) - ScaleGUITrad(15));
 
-		DrawSprite(spritef, pal, preferred_x - ScaleGUITrad(14), yf);
-		DrawSprite(spriter, pal, preferred_x + ScaleGUITrad(15), yr);
+		DrawSprite (_cur_dpi, spritef, pal, preferred_x - ScaleGUITrad(14), yf);
+		DrawSprite (_cur_dpi, spriter, pal, preferred_x + ScaleGUITrad(15), yr);
 	} else {
 		SpriteID sprite = GetRailIcon(engine, false, y, image_type);
 		const Sprite *real_sprite = GetSprite(sprite, ST_NORMAL);
 		preferred_x = Clamp(preferred_x,
 				left - UnScaleGUI(real_sprite->x_offs),
 				right - UnScaleGUI(real_sprite->width) - UnScaleGUI(real_sprite->x_offs));
-		DrawSprite(sprite, pal, preferred_x, y);
+		DrawSprite (_cur_dpi, sprite, pal, preferred_x, y);
 	}
 }
 

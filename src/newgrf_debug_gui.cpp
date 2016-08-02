@@ -895,7 +895,7 @@ struct SpriteAlignerWindow : Window {
 				DrawPixelInfo *old_dpi = _cur_dpi;
 				_cur_dpi = &new_dpi;
 
-				DrawSprite(this->current_sprite, PAL_NONE, x, y, NULL, ZOOM_LVL_GUI);
+				DrawSprite (_cur_dpi, this->current_sprite, PAL_NONE, x, y, NULL, ZOOM_LVL_GUI);
 
 				_cur_dpi = old_dpi;
 

@@ -52,7 +52,7 @@ public:
 			case WID_TT_CATENARY:
 			case WID_TT_LOADING: {
 				uint i = widget - WID_TT_BEGIN;
-				if (HasBit(_transparency_lock, i)) DrawSprite(SPR_LOCK, PAL_NONE, r.left + 1, r.top + 1);
+				if (HasBit(_transparency_lock, i)) DrawSprite (_cur_dpi, SPR_LOCK, PAL_NONE, r.left + 1, r.top + 1);
 				break;
 			}
 			case WID_TT_BUTTONS:

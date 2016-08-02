@@ -202,12 +202,12 @@ void DrawAircraftEngine(int left, int right, int preferred_x, int y, EngineID en
 	preferred_x = Clamp(preferred_x,
 			left - UnScaleGUI(real_sprite->x_offs),
 			right - UnScaleGUI(real_sprite->width) - UnScaleGUI(real_sprite->x_offs));
-	DrawSprite(sprite, pal, preferred_x, y);
+	DrawSprite (_cur_dpi, sprite, pal, preferred_x, y);
 
 	if (!(AircraftVehInfo(engine)->subtype & AIR_CTOL)) {
 		SpriteID rotor_sprite = GetCustomRotorIcon(engine, image_type);
 		if (rotor_sprite == 0) rotor_sprite = SPR_ROTOR_STOPPED;
-		DrawSprite(rotor_sprite, PAL_NONE, preferred_x, y - ScaleGUITrad(5));
+		DrawSprite (_cur_dpi, rotor_sprite, PAL_NONE, preferred_x, y - ScaleGUITrad(5));
 	}
 }
 

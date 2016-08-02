@@ -703,7 +703,7 @@ public:
 				case ContentInfo::DOES_NOT_EXIST: sprite = SPR_BLOT; pal = PALETTE_TO_RED;   break;
 				default: NOT_REACHED();
 			}
-			DrawSprite(sprite, pal, nwi_checkbox->pos_x + (pal == PAL_NONE ? 2 : 3), y + sprite_y_offset + (pal == PAL_NONE ? 1 : 0));
+			DrawSprite (_cur_dpi, sprite, pal, nwi_checkbox->pos_x + (pal == PAL_NONE ? 2 : 3), y + sprite_y_offset + (pal == PAL_NONE ? 1 : 0));
 
 			DrawString (_cur_dpi, nwi_type->pos_x, nwi_type->pos_x + nwi_type->current_x - 1, y + text_y_offset, content_type_strs[ci->type], TC_BLACK, SA_HOR_CENTER);
 

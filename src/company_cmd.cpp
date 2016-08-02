@@ -140,7 +140,7 @@ TextColour GetDrawStringCompanyColour(CompanyID company)
  */
 void DrawCompanyIcon(CompanyID c, int x, int y)
 {
-	DrawSprite(SPR_COMPANY_ICON, COMPANY_SPRITE_COLOUR(c), x, y);
+	DrawSprite (_cur_dpi, SPR_COMPANY_ICON, COMPANY_SPRITE_COLOUR(c), x, y);
 }
 
 /**

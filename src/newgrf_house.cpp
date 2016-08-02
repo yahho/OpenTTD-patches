@@ -539,7 +539,7 @@ static void DrawTileLayoutInGUI(int x, int y, const TileLayoutSpriteGroup *group
 		if (HasBit(image.pal, SPRITE_MODIFIER_CUSTOM_SPRITE)) image.pal += stage;
 
 		if (GB(image.sprite, 0, SPRITE_WIDTH) != 0) {
-			DrawSprite(image.sprite, GroundSpritePaletteTransform(image.sprite, image.pal, palette), x, y);
+			DrawSprite (_cur_dpi, image.sprite, GroundSpritePaletteTransform (image.sprite, image.pal, palette), x, y);
 		}
 	} else {
 		DrawNewGRFTileSeqInGUI(x, y, dts, stage, palette);

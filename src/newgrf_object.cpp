@@ -501,7 +501,7 @@ void DrawNewObjectTileInGUI(int x, int y, const ObjectSpec *spec, uint8 view)
 	PaletteID pal  = dts->ground.pal;
 
 	if (GB(image, 0, SPRITE_WIDTH) != 0) {
-		DrawSprite(image, GroundSpritePaletteTransform(image, pal, palette), x, y);
+		DrawSprite (_cur_dpi, image, GroundSpritePaletteTransform (image, pal, palette), x, y);
 	}
 
 	DrawNewGRFTileSeqInGUI(x, y, dts, 0, palette);

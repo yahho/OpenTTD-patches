@@ -823,7 +823,7 @@ static void DrawCargoIcons(CargoID i, uint waiting, int left, int right, int y)
 
 	int x = _current_text_dir == TD_RTL ? left : right - num * width;
 	do {
-		DrawSprite(sprite, PAL_NONE, x, y);
+		DrawSprite (_cur_dpi, sprite, PAL_NONE, x, y);
 		x += width;
 	} while (--num);
 }

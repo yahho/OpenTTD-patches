@@ -51,7 +51,7 @@ struct EndGameHighScoreBaseWindow : Window {
 		Point pt = this->GetTopLeft(dim.width, dim.height * 96 / 10);
 		/* Center Highscore/Endscreen background */
 		for (uint i = 0; i < 10; i++) { // the image is split into 10 50px high parts
-			DrawSprite(this->background_img + i, PAL_NONE, pt.x, pt.y + (i * dim.height));
+			DrawSprite (_cur_dpi, this->background_img + i, PAL_NONE, pt.x, pt.y + (i * dim.height));
 		}
 	}
 

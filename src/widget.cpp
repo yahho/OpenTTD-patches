@@ -219,7 +219,7 @@ static inline void DrawImageButtons(const Rect &r, WidgetType type, Colours colo
 	DrawFrameRect(r.left, r.top, r.right, r.bottom, colour, (clicked) ? FR_LOWERED : FR_NONE);
 
 	if ((type & WWT_MASK) == WWT_IMGBTN_2 && clicked) img++; // Show different image when clicked for #WWT_IMGBTN_2.
-	DrawSprite(img, PAL_NONE, r.left + WD_IMGBTN_LEFT, r.top + WD_IMGBTN_TOP);
+	DrawSprite (_cur_dpi, img, PAL_NONE, r.left + WD_IMGBTN_LEFT, r.top + WD_IMGBTN_TOP);
 }
 
 /**
@@ -314,10 +314,10 @@ static inline void DrawVerticalScrollbar(const Rect &r, Colours colour, bool up_
 
 	/* draw up/down buttons */
 	DrawFrameRect(r.left, r.top, r.right, r.top + height - 1, colour, (up_clicked) ? FR_LOWERED : FR_NONE);
-	DrawSprite(SPR_ARROW_UP, PAL_NONE, r.left + 1, r.top + 1);
+	DrawSprite (_cur_dpi, SPR_ARROW_UP, PAL_NONE, r.left + 1, r.top + 1);
 
 	DrawFrameRect(r.left, r.bottom - (height - 1), r.right, r.bottom, colour, (down_clicked) ? FR_LOWERED : FR_NONE);
-	DrawSprite(SPR_ARROW_DOWN, PAL_NONE, r.left + 1, r.bottom - (height - 2));
+	DrawSprite (_cur_dpi, SPR_ARROW_DOWN, PAL_NONE, r.left + 1, r.bottom - (height - 2));
 
 	int c1 = _colour_gradient[colour & 0xF][3];
 	int c2 = _colour_gradient[colour & 0xF][7];
@@ -351,10 +351,10 @@ static inline void DrawHorizontalScrollbar(const Rect &r, Colours colour, bool l
 	int width = NWidgetScrollbar::GetHorizontalDimension().width;
 
 	DrawFrameRect(r.left, r.top, r.left + width - 1, r.bottom, colour, left_clicked ? FR_LOWERED : FR_NONE);
-	DrawSprite(SPR_ARROW_LEFT, PAL_NONE, r.left + 1, r.top + 1);
+	DrawSprite (_cur_dpi, SPR_ARROW_LEFT, PAL_NONE, r.left + 1, r.top + 1);
 
 	DrawFrameRect(r.right - (width - 1), r.top, r.right, r.bottom, colour, right_clicked ? FR_LOWERED : FR_NONE);
-	DrawSprite(SPR_ARROW_RIGHT, PAL_NONE, r.right - (width - 2), r.top + 1);
+	DrawSprite (_cur_dpi, SPR_ARROW_RIGHT, PAL_NONE, r.right - (width - 2), r.top + 1);
 
 	int c1 = _colour_gradient[colour & 0xF][3];
 	int c2 = _colour_gradient[colour & 0xF][7];
@@ -470,12 +470,12 @@ static inline void DrawButtonDropdown(const Rect &r, Colours colour, bool clicke
 	if (_current_text_dir == TD_LTR) {
 		DrawFrameRect(r.left, r.top, r.right - dd_width, r.bottom, colour, clicked_button ? FR_LOWERED : FR_NONE);
 		DrawFrameRect(r.right + 1 - dd_width, r.top, r.right, r.bottom, colour, clicked_dropdown ? FR_LOWERED : FR_NONE);
-		DrawSprite(SPR_ARROW_DOWN, PAL_NONE, r.right - (dd_width - 2), r.top + image_offset);
+		DrawSprite (_cur_dpi, SPR_ARROW_DOWN, PAL_NONE, r.right - (dd_width - 2), r.top + image_offset);
 		if (str != STR_NULL) DrawString (_cur_dpi, r.left + WD_DROPDOWNTEXT_LEFT, r.right - dd_width - WD_DROPDOWNTEXT_RIGHT, r.top + text_offset, str, TC_BLACK);
 	} else {
 		DrawFrameRect(r.left + dd_width, r.top, r.right, r.bottom, colour, clicked_button ? FR_LOWERED : FR_NONE);
 		DrawFrameRect(r.left, r.top, r.left + dd_width - 1, r.bottom, colour, clicked_dropdown ? FR_LOWERED : FR_NONE);
-		DrawSprite(SPR_ARROW_DOWN, PAL_NONE, r.left + 1, r.top + image_offset);
+		DrawSprite (_cur_dpi, SPR_ARROW_DOWN, PAL_NONE, r.left + 1, r.top + image_offset);
 		if (str != STR_NULL) DrawString (_cur_dpi, r.left + dd_width + WD_DROPDOWNTEXT_LEFT, r.right - WD_DROPDOWNTEXT_RIGHT, r.top + text_offset, str, TC_BLACK);
 	}
 }
@@ -529,7 +529,7 @@ void Window::DrawSortButtonState(int widget, SortButtonState state) const
 	int x = nwid->pos_x + (_current_text_dir == TD_LTR ? nwid->current_x - dim.width : 0);
 	int y = nwid->pos_y + (nwid->current_y - dim.height) / 2;
 
-	DrawSprite(state == SBS_DOWN ? SPR_ARROW_DOWN : SPR_ARROW_UP, PAL_NONE, x, y);
+	DrawSprite (_cur_dpi, state == SBS_DOWN ? SPR_ARROW_DOWN : SPR_ARROW_UP, PAL_NONE, x, y);
 }
 
 /**
@@ -2358,27 +2358,27 @@ void NWidgetLeaf::Draw(const Window *w)
 			assert(this->widget_data == 0);
 			bool clicked = w->IsShaded();
 			DrawFrameRect (r.left, r.top, r.right, r.bottom, this->colour, clicked ? FR_LOWERED : FR_NONE);
-			DrawSprite (clicked ? SPR_WINDOW_SHADE : SPR_WINDOW_UNSHADE, PAL_NONE, r.left + WD_SHADEBOX_LEFT, r.top + WD_SHADEBOX_TOP);
+			DrawSprite (_cur_dpi, clicked ? SPR_WINDOW_SHADE : SPR_WINDOW_UNSHADE, PAL_NONE, r.left + WD_SHADEBOX_LEFT, r.top + WD_SHADEBOX_TOP);
 			break;
 		}
 
 		case WWT_DEBUGBOX:
 			DrawFrameRect (r.left, r.top, r.right, r.bottom, this->colour, clicked ? FR_LOWERED : FR_NONE);
-			DrawSprite (SPR_WINDOW_DEBUG, PAL_NONE, r.left + WD_DEBUGBOX_LEFT, r.top + WD_DEBUGBOX_TOP);
+			DrawSprite (_cur_dpi, SPR_WINDOW_DEBUG, PAL_NONE, r.left + WD_DEBUGBOX_LEFT, r.top + WD_DEBUGBOX_TOP);
 			break;
 
 		case WWT_STICKYBOX: {
 			assert(this->widget_data == 0);
 			bool clicked = !!(w->flags & WF_STICKY);
 			DrawFrameRect (r.left, r.top, r.right, r.bottom, this->colour, clicked ? FR_LOWERED : FR_NONE);
-			DrawSprite (clicked ? SPR_PIN_UP : SPR_PIN_DOWN, PAL_NONE, r.left + WD_STICKYBOX_LEFT, r.top + WD_STICKYBOX_TOP);
+			DrawSprite (_cur_dpi, clicked ? SPR_PIN_UP : SPR_PIN_DOWN, PAL_NONE, r.left + WD_STICKYBOX_LEFT, r.top + WD_STICKYBOX_TOP);
 			break;
 		}
 
 		case WWT_DEFSIZEBOX:
 			assert(this->widget_data == 0);
 			DrawFrameRect (r.left, r.top, r.right, r.bottom, this->colour, clicked ? FR_LOWERED : FR_NONE);
-			DrawSprite (SPR_WINDOW_DEFSIZE, PAL_NONE, r.left + WD_DEFSIZEBOX_LEFT, r.top + WD_DEFSIZEBOX_TOP);
+			DrawSprite (_cur_dpi, SPR_WINDOW_DEFSIZE, PAL_NONE, r.left + WD_DEFSIZEBOX_LEFT, r.top + WD_DEFSIZEBOX_TOP);
 			break;
 
 		case WWT_RESIZEBOX: {
@@ -2387,7 +2387,7 @@ void NWidgetLeaf::Draw(const Window *w)
 			bool at_left = (this->pos_x < (uint)(w->width / 2));
 			SpriteID spr = at_left ? SPR_WINDOW_RESIZE_LEFT : SPR_WINDOW_RESIZE_RIGHT;
 			Dimension size = GetSpriteSize (spr);
-			DrawSprite (spr, PAL_NONE,
+			DrawSprite (_cur_dpi, spr, PAL_NONE,
 					at_left ? r.left + WD_RESIZEBOX_RIGHT :
 						r.right - WD_RESIZEBOX_RIGHT - size.width + 1,
 					r.bottom - WD_RESIZEBOX_BOTTOM - size.height + 1);
@@ -2397,7 +2397,7 @@ void NWidgetLeaf::Draw(const Window *w)
 		case WWT_CLOSEBOX: {
 			Colours colour = this->colour;
 			if (colour != COLOUR_WHITE) DrawFrameRect (r.left, r.top, r.right, r.bottom, colour, FR_NONE);
-			DrawSprite (SPR_CLOSEBOX, (colour != COLOUR_WHITE ? TC_BLACK : TC_SILVER) | (1 << PALETTE_TEXT_RECOLOUR), r.left + WD_CLOSEBOX_LEFT, r.top + WD_CLOSEBOX_TOP);
+			DrawSprite (_cur_dpi, SPR_CLOSEBOX, (colour != COLOUR_WHITE ? TC_BLACK : TC_SILVER) | (1 << PALETTE_TEXT_RECOLOUR), r.left + WD_CLOSEBOX_LEFT, r.top + WD_CLOSEBOX_TOP);
 			break;
 		}
 

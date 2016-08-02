@@ -1493,7 +1493,7 @@ private:
 		int y = widget->pos_y - sig_sprite_bottom_offset + WD_IMGBTN_TOP +
 				(widget->current_y - WD_IMGBTN_TOP - WD_IMGBTN_BOTTOM + sig_sprite_size.height) / 2; // aligned to bottom
 
-		DrawSprite(image, PAL_NONE,
+		DrawSprite (_cur_dpi, image, PAL_NONE,
 				x + this->IsWidgetLowered(widget_index),
 				y + this->IsWidgetLowered(widget_index));
 	}

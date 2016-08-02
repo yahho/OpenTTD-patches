@@ -41,7 +41,7 @@ void DrawShipImage(const Vehicle *v, int left, int right, int y, VehicleID selec
 	int x = rtl ? right - width - x_offs : left - x_offs;
 
 	y += ScaleGUITrad(10);
-	DrawSprite(sprite, GetVehiclePalette(v), x, y);
+	DrawSprite (_cur_dpi, sprite, GetVehiclePalette(v), x, y);
 
 	if (v->index == selection) {
 		x += x_offs;

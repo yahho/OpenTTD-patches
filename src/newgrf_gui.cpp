@@ -884,8 +884,8 @@ struct NewGRFWindow : public Window, NewGRFScanCallback {
 								GfxFillRect (_cur_dpi, r.left + WD_FRAMERECT_LEFT, top - 1, r.right - WD_FRAMERECT_RIGHT, top + 1, PC_GREY);
 							}
 						}
-						DrawSprite(SPR_SQUARE, pal, square_left, y + square_offset_y);
-						if (c->error != NULL) DrawSprite(SPR_WARNING_SIGN, 0, warning_left, y + warning_offset_y);
+						DrawSprite (_cur_dpi, SPR_SQUARE, pal, square_left, y + square_offset_y);
+						if (c->error != NULL) DrawSprite (_cur_dpi, SPR_WARNING_SIGN, 0, warning_left, y + warning_offset_y);
 						uint txtoffset = c->error == NULL ? 0 : warning.width;
 						DrawString (_cur_dpi, text_left + (rtl ? 0 : txtoffset), text_right - (rtl ? txtoffset : 0), y + offset_y, text, h ? TC_WHITE : TC_ORANGE);
 						y += step_height;

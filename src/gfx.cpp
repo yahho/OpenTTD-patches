@@ -790,6 +790,7 @@ void DrawSpriteViewport(SpriteID img, PaletteID pal, int x, int y, const SubSpri
 
 /**
  * Draw a sprite, not in a viewport
+ * @param dpi  The area to draw on.
  * @param img  Image number to draw
  * @param pal  Palette to use.
  * @param x    Left coordinate of image in pixels
@@ -797,11 +798,12 @@ void DrawSpriteViewport(SpriteID img, PaletteID pal, int x, int y, const SubSpri
  * @param sub  If available, draw only specified part of the sprite
  * @param zoom Zoom level of sprite
  */
-void DrawSprite(SpriteID img, PaletteID pal, int x, int y, const SubSprite *sub, ZoomLevel zoom)
+void DrawSprite (BlitArea *dpi, SpriteID img, PaletteID pal,
+	int x, int y, const SubSprite *sub, ZoomLevel zoom)
 {
 	BlitterMode bm = GetBlitterMode (img, pal);
 	SpriteID real_sprite = GB(img, 0, SPRITE_WIDTH);
-	GfxMainBlitter (_cur_dpi, GetSprite (real_sprite, ST_NORMAL), x, y, bm, sub, real_sprite, zoom);
+	GfxMainBlitter (dpi, GetSprite (real_sprite, ST_NORMAL), x, y, bm, sub, real_sprite, zoom);
 }
 
 /**
@@ -1230,7 +1232,7 @@ void DrawMouseCursor()
 
 	/* Draw cursor on screen */
 	_cur_dpi = &_screen;
-	DrawSprite(_cursor.sprite, _cursor.pal, _cursor.pos.x + _cursor.short_vehicle_offset, _cursor.pos.y);
+	DrawSprite (&_screen, _cursor.sprite, _cursor.pal, _cursor.pos.x + _cursor.short_vehicle_offset, _cursor.pos.y);
 
 	VideoDriver::GetActiveDriver()->MakeDirty(_cursor.draw_pos.x, _cursor.draw_pos.y, _cursor.draw_size.x, _cursor.draw_size.y);
 

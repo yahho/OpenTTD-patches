@@ -2930,14 +2930,14 @@ void StationPickerDrawSprite(int x, int y, StationType st, RailType railtype, Ro
 	RailTrackOffset overlay_offset;
 	if (rti != NULL && rti->UsesOverlay() && SplitGroundSpriteForOverlay(NULL, &img, &overlay_offset)) {
 		SpriteID ground = GetCustomRailSprite(rti, INVALID_TILE, RTSG_GROUND);
-		DrawSprite(img, PAL_NONE, x, y);
-		DrawSprite(ground + overlay_offset, PAL_NONE, x, y);
+		DrawSprite (_cur_dpi, img, PAL_NONE, x, y);
+		DrawSprite (_cur_dpi, ground + overlay_offset, PAL_NONE, x, y);
 	} else {
-		DrawSprite(img + total_offset, HasBit(img, PALETTE_MODIFIER_COLOUR) ? pal : PAL_NONE, x, y);
+		DrawSprite (_cur_dpi, img + total_offset, HasBit(img, PALETTE_MODIFIER_COLOUR) ? pal : PAL_NONE, x, y);
 	}
 
 	if (roadtype == ROADTYPE_TRAM) {
-		DrawSprite(SPR_TRAMWAY_TRAM + (t->ground.sprite == SPR_ROAD_PAVED_STRAIGHT_X ? 1 : 0), PAL_NONE, x, y);
+		DrawSprite (_cur_dpi, SPR_TRAMWAY_TRAM + (t->ground.sprite == SPR_ROAD_PAVED_STRAIGHT_X ? 1 : 0), PAL_NONE, x, y);
 	}
 
 	/* Default waypoint has no railtype specific sprites */

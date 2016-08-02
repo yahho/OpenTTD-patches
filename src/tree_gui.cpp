@@ -107,7 +107,7 @@ public:
 
 		int i = this->base + widget - WID_BT_TYPE_11;
 		/* Trees "grow" in the centre on the bottom line of the buttons */
-		DrawSprite(tree_sprites[i].sprite, tree_sprites[i].pal, (r.left + r.right) / 2 + WD_FRAMERECT_LEFT, r.bottom - 7);
+		DrawSprite (_cur_dpi, tree_sprites[i].sprite, tree_sprites[i].pal, (r.left + r.right) / 2 + WD_FRAMERECT_LEFT, r.bottom - 7);
 	}
 
 	virtual void OnClick(Point pt, int widget, int click_count)

@@ -93,13 +93,13 @@ void DrawAircraftImage(const Vehicle *v, int left, int right, int y, VehicleID s
 	int heli_offs = 0;
 
 	PaletteID pal = (v->vehstatus & VS_CRASHED) ? PALETTE_CRASH : GetVehiclePalette(v);
-	DrawSprite(sprite, pal, x, y + y_offs);
+	DrawSprite (_cur_dpi, sprite, pal, x, y + y_offs);
 	if (helicopter) {
 		const Aircraft *a = Aircraft::From(v);
 		SpriteID rotor_sprite = GetCustomRotorSprite(a, true, image_type);
 		if (rotor_sprite == 0) rotor_sprite = SPR_ROTOR_STOPPED;
 		heli_offs = ScaleGUITrad(5);
-		DrawSprite(rotor_sprite, PAL_NONE, x, y + y_offs - heli_offs);
+		DrawSprite (_cur_dpi, rotor_sprite, PAL_NONE, x, y + y_offs - heli_offs);
 	}
 	if (v->index == selection) {
 		x += x_offs;

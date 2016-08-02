@@ -271,7 +271,7 @@ struct MainWindow : Window
 			int off_x = (this->width - name_width) / 2;
 
 			for (uint i = 0; i < lengthof(title_sprites); i++) {
-				DrawSprite(title_sprites[i], PAL_NONE, off_x, 50);
+				DrawSprite (_cur_dpi, title_sprites[i], PAL_NONE, off_x, 50);
 				off_x += GetSpriteSize(title_sprites[i]).width + LETTER_SPACING;
 			}
 		}

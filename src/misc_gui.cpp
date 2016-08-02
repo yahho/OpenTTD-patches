@@ -752,7 +752,7 @@ void QueryString::DrawEditBox(const Window *w, int wid) const
 	int bottom = wi->pos_y + wi->current_y - 1;
 
 	DrawFrameRect(clearbtn_left, top, clearbtn_right, bottom, wi->colour, wi->IsLowered() ? FR_LOWERED : FR_NONE);
-	DrawSprite(rtl ? SPR_IMG_DELETE_RIGHT : SPR_IMG_DELETE_LEFT, PAL_NONE, clearbtn_left + WD_IMGBTN_LEFT, (top + bottom + 1 - sprite_size.height) / 2);
+	DrawSprite (_cur_dpi, rtl ? SPR_IMG_DELETE_RIGHT : SPR_IMG_DELETE_LEFT, PAL_NONE, clearbtn_left + WD_IMGBTN_LEFT, (top + bottom + 1 - sprite_size.height) / 2);
 	if (this->empty()) GfxFillRect (_cur_dpi, clearbtn_left + 1, top + 1, clearbtn_right - 1, bottom - 1, _colour_gradient[wi->colour & 0xF][2], FILLRECT_CHECKER);
 
 	DrawFrameRect(left, top, right, bottom, wi->colour, FR_LOWERED | FR_DARKENED);

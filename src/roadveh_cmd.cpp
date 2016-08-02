@@ -147,7 +147,7 @@ void DrawRoadVehEngine(int left, int right, int preferred_x, int y, EngineID eng
 	preferred_x = Clamp(preferred_x,
 			left - UnScaleGUI(real_sprite->x_offs),
 			right - UnScaleGUI(real_sprite->width) - UnScaleGUI(real_sprite->x_offs));
-	DrawSprite(sprite, pal, preferred_x, y);
+	DrawSprite (_cur_dpi, sprite, pal, preferred_x, y);
 }
 
 /**

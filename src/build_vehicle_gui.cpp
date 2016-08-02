@@ -928,7 +928,9 @@ void DrawEngineList(VehicleType type, int l, int r, int y, const GUIEngineList *
 		if (show_count) {
 			SetDParam(0, num_engines);
 			DrawString (_cur_dpi, count_left, count_right, y + small_text_y_offset, STR_TINY_BLACK_COMA, TC_FROMSTRING, SA_RIGHT | SA_FORCE);
-			if (EngineHasReplacementForCompany(Company::Get(_local_company), engine, selected_group)) DrawSprite(SPR_GROUP_REPLACE_ACTIVE, num_engines == 0 ? PALETTE_CRASH : PAL_NONE, replace_icon_left, y + replace_icon_y_offset);
+			if (EngineHasReplacementForCompany (Company::Get(_local_company), engine, selected_group)) {
+				DrawSprite (_cur_dpi, SPR_GROUP_REPLACE_ACTIVE, num_engines == 0 ? PALETTE_CRASH : PAL_NONE, replace_icon_left, y + replace_icon_y_offset);
+			}
 		}
 	}
 }
