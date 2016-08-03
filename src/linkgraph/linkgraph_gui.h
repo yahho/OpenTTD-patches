@@ -57,7 +57,7 @@ public:
 	{}
 
 	void RebuildCache();
-	void Draw(const DrawPixelInfo *dpi) const;
+	void Draw (BlitArea *dpi) const;
 	void SetCargoMask(uint32 cargo_mask);
 	void SetCompanyMask(uint32 company_mask);
 

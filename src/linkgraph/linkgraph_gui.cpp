@@ -171,35 +171,39 @@ void LinkGraphOverlay::AddLinks(const Station *from, const Station *to)
 
 /**
  * Draw a square symbolizing a producer of cargo.
+ * @param dpi Area to draw on
  * @param x X coordinate of the middle of the vertex.
  * @param y Y coordinate of the middle of the vertex.
  * @param size Y and y extend of the vertex.
  * @param colour Colour with which the vertex will be filled.
  * @param border_colour Colour for the border of the vertex.
  */
-static void DrawVertex (int x, int y, int size, int colour, int border_colour)
+static void DrawVertex (BlitArea *dpi, int x, int y, int size,
+	int colour, int border_colour)
 {
 	size--;
 	int w1 = size / 2;
 	int w2 = size / 2 + size % 2;
 
-	GfxFillRect (_cur_dpi, x - w1, y - w1, x + w2, y + w2, colour);
+	GfxFillRect (dpi, x - w1, y - w1, x + w2, y + w2, colour);
 
 	w1++;
 	w2++;
-	GfxDrawLine (_cur_dpi, x - w1, y - w1, x + w2, y - w1, border_colour);
-	GfxDrawLine (_cur_dpi, x - w1, y + w2, x + w2, y + w2, border_colour);
-	GfxDrawLine (_cur_dpi, x - w1, y - w1, x - w1, y + w2, border_colour);
-	GfxDrawLine (_cur_dpi, x + w2, y - w1, x + w2, y + w2, border_colour);
+	GfxDrawLine (dpi, x - w1, y - w1, x + w2, y - w1, border_colour);
+	GfxDrawLine (dpi, x - w1, y + w2, x + w2, y + w2, border_colour);
+	GfxDrawLine (dpi, x - w1, y - w1, x - w1, y + w2, border_colour);
+	GfxDrawLine (dpi, x + w2, y - w1, x + w2, y + w2, border_colour);
 }
 
 /**
  * Draw one specific link.
+ * @param dpi Area to draw on
  * @param pta Source of the link.
  * @param ptb Destination of the link.
  * @param cargo Properties of the link.
  */
-static void DrawContent (Point pta, Point ptb, const LinkProperties &cargo, uint scale)
+static void DrawContent (BlitArea *dpi, Point pta, Point ptb,
+	const LinkProperties &cargo, uint scale)
 {
 	uint usage_or_plan = min(cargo.capacity * 2 + 1, max(cargo.usage, cargo.planned));
 	int colour = LinkGraphOverlay::LINK_COLOURS[usage_or_plan * lengthof(LinkGraphOverlay::LINK_COLOURS) / (cargo.capacity * 2 + 2)];
@@ -216,16 +220,16 @@ static void DrawContent (Point pta, Point ptb, const LinkProperties &cargo, uint
 		offset_y = (pta.x < ptb.x ? 1 : -1) * side * scale;
 		offset_x = 0;
 	}
-	GfxDrawLine (_cur_dpi, pta.x + offset_x, pta.y + offset_y, ptb.x + offset_x, ptb.y + offset_y, colour, scale, dash);
+	GfxDrawLine (dpi, pta.x + offset_x, pta.y + offset_y, ptb.x + offset_x, ptb.y + offset_y, colour, scale, dash);
 
-	GfxDrawLine (_cur_dpi, pta.x, pta.y, ptb.x, ptb.y, _colour_gradient[COLOUR_GREY][1], scale);
+	GfxDrawLine (dpi, pta.x, pta.y, ptb.x, ptb.y, _colour_gradient[COLOUR_GREY][1], scale);
 }
 
 /**
  * Draw the linkgraph overlay or some part of it, in the area given.
  * @param dpi Area to be drawn to.
  */
-void LinkGraphOverlay::Draw(const DrawPixelInfo *dpi) const
+void LinkGraphOverlay::Draw (BlitArea *dpi) const
 {
 	/* Draw the cached links or part of them into the given area. */
 	for (LinkMap::const_iterator i(this->cached_links.begin()); i != this->cached_links.end(); ++i) {
@@ -235,7 +239,7 @@ void LinkGraphOverlay::Draw(const DrawPixelInfo *dpi) const
 			if (!Station::IsValidID(j->first)) continue;
 			Point ptb = this->GetStationMiddle(Station::Get(j->first));
 			if (!IsLinkVisible (pta, ptb, dpi, this->scale + 2)) continue;
-			DrawContent (pta, ptb, j->second, this->scale);
+			DrawContent (dpi, pta, ptb, j->second, this->scale);
 		}
 	}
 
@@ -250,7 +254,7 @@ void LinkGraphOverlay::Draw(const DrawPixelInfo *dpi) const
 
 		uint r = this->scale * 2 + this->scale * 2 * min(200, i->second) / 200;
 
-		DrawVertex (pt.x, pt.y, r,
+		DrawVertex (dpi, pt.x, pt.y, r,
 				_colour_gradient[st->owner != OWNER_NONE ?
 						(Colours)Company::Get(st->owner)->colour : COLOUR_GREY][5],
 				_colour_gradient[COLOUR_GREY][1]);
