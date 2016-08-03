@@ -39,7 +39,7 @@ const uint8 LinkGraphOverlay::LINK_COLOURS[] = {
  * @param padding Extent of the point.
  * @return If the point or any of its 'extent' is inside the dpi.
  */
-static inline bool IsPointVisible (Point pt, const DrawPixelInfo *dpi, int padding = 0)
+static inline bool IsPointVisible (Point pt, const BlitArea *dpi, int padding = 0)
 {
 	return pt.x > dpi->left - padding && pt.y > dpi->top - padding &&
 			pt.x < dpi->left + dpi->width + padding &&
@@ -54,7 +54,7 @@ static inline bool IsPointVisible (Point pt, const DrawPixelInfo *dpi, int paddi
  * @param padding Width or thickness of the link.
  * @return If the link or any of its "thickness" is visible. This may return false positives.
  */
-static inline bool IsLinkVisible (Point pta, Point ptb, const DrawPixelInfo *dpi, int padding = 0)
+static inline bool IsLinkVisible (Point pta, Point ptb, const BlitArea *dpi, int padding = 0)
 {
 	return !((pta.x < dpi->left - padding && ptb.x < dpi->left - padding) ||
 			(pta.y < dpi->top - padding && ptb.y < dpi->top - padding) ||
@@ -96,7 +96,7 @@ void LinkGraphOverlay::RebuildCache()
 	if (this->company_mask == 0) return;
 
 	const NWidgetBase *wi = this->window->GetWidget<NWidgetBase>(this->widget_id);
-	DrawPixelInfo dpi;
+	BlitArea dpi;
 	dpi.left = dpi.top = 0;
 	dpi.width = wi->current_x;
 	dpi.height = wi->current_y;
