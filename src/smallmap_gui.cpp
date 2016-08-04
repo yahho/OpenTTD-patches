@@ -823,7 +823,7 @@ void SmallMapWindow::DrawSmallMapColumn(void *dst, uint xc, uint yc, int pitch, 
  * Adds vehicles to the smallmap.
  * @param dpi the part of the smallmap to be drawn into
  */
-void SmallMapWindow::DrawVehicles (const DrawPixelInfo *dpi) const
+void SmallMapWindow::DrawVehicles (BlitArea *dpi) const
 {
 	const Vehicle *v;
 	FOR_ALL_VEHICLES(v) {
@@ -862,7 +862,7 @@ void SmallMapWindow::DrawVehicles (const DrawPixelInfo *dpi) const
  * Adds town names to the smallmap.
  * @param dpi the part of the smallmap to be drawn into
  */
-void SmallMapWindow::DrawTowns(const DrawPixelInfo *dpi) const
+void SmallMapWindow::DrawTowns (BlitArea *dpi) const
 {
 	const Town *t;
 	FOR_ALL_TOWNS(t) {
@@ -878,7 +878,7 @@ void SmallMapWindow::DrawTowns(const DrawPixelInfo *dpi) const
 				y < dpi->top + dpi->height) {
 			/* And draw it. */
 			SetDParam(0, t->index);
-			DrawString (_cur_dpi, x, x + t->cache.sign.width_small, y, STR_SMALLMAP_TOWN);
+			DrawString (dpi, x, x + t->cache.sign.width_small, y, STR_SMALLMAP_TOWN);
 		}
 	}
 }
@@ -974,15 +974,11 @@ void SmallMapWindow::DrawMapIndicators (BlitArea *dpi) const
  *
  * @param dpi pointer to pixel to write onto
  */
-void SmallMapWindow::DrawSmallMap(DrawPixelInfo *dpi) const
+void SmallMapWindow::DrawSmallMap (BlitArea *dpi) const
 {
-	DrawPixelInfo *old_dpi;
-
-	old_dpi = _cur_dpi;
-	_cur_dpi = dpi;
 
 	/* Clear it */
-	GfxFillRect (_cur_dpi, dpi->left, dpi->top, dpi->left + dpi->width - 1, dpi->top + dpi->height - 1, PC_BLACK);
+	GfxFillRect (dpi, dpi->left, dpi->top, dpi->left + dpi->width - 1, dpi->top + dpi->height - 1, PC_BLACK);
 
 	/* Which tile is displayed at (dpi->left, dpi->top)? */
 	int dx;
@@ -1030,8 +1026,6 @@ void SmallMapWindow::DrawSmallMap(DrawPixelInfo *dpi) const
 
 	/* Draw map indicators */
 	this->DrawMapIndicators (dpi);
-
-	_cur_dpi = old_dpi;
 }
 
 /**

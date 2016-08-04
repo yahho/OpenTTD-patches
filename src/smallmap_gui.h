@@ -129,9 +129,9 @@ protected:
 
 	void DrawMapIndicators (BlitArea *dpi) const;
 	void DrawSmallMapColumn(void *dst, uint xc, uint yc, int pitch, int reps, int start_pos, int end_pos) const;
-	void DrawVehicles(const DrawPixelInfo *dpi) const;
-	void DrawTowns(const DrawPixelInfo *dpi) const;
-	void DrawSmallMap(DrawPixelInfo *dpi) const;
+	void DrawVehicles (BlitArea *dpi) const;
+	void DrawTowns (BlitArea *dpi) const;
+	void DrawSmallMap (BlitArea *dpi) const;
 
 	Point RemapTile(int tile_x, int tile_y) const;
 	Point PixelToTile(int px, int py, int *sub, bool add_sub = true) const;
