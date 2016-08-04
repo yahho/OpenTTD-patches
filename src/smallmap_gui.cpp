@@ -913,32 +913,34 @@ static Point GetSmallMapCoordIncludingHeight (Point viewport_coord)
 
 /**
  * Draws vertical part of map indicator
+ * @param dpi area to draw on
  * @param x X coord of left/right border of main viewport
  * @param y1 Y coord of top border of main viewport
  * @param y2 Y coord of bottom border of main viewport
  */
-static inline void DrawVertMapIndicator (int x, int y1, int y2)
+static inline void DrawVertMapIndicator (BlitArea *dpi, int x, int y1, int y2)
 {
-	GfxFillRect (_cur_dpi, x, y1,     x, y1 + 3, PC_VERY_LIGHT_YELLOW);
-	GfxFillRect (_cur_dpi, x, y2 - 3, x, y2,     PC_VERY_LIGHT_YELLOW);
+	GfxFillRect (dpi, x, y1,     x, y1 + 3, PC_VERY_LIGHT_YELLOW);
+	GfxFillRect (dpi, x, y2 - 3, x, y2,     PC_VERY_LIGHT_YELLOW);
 }
 
 /**
  * Draws horizontal part of map indicator
+ * @param dpi area to draw on
  * @param x1 X coord of left border of main viewport
  * @param x2 X coord of right border of main viewport
  * @param y Y coord of top/bottom border of main viewport
  */
-static inline void DrawHorizMapIndicator (int x1, int x2, int y)
+static inline void DrawHorizMapIndicator (BlitArea *dpi, int x1, int x2, int y)
 {
-	GfxFillRect (_cur_dpi, x1,     y, x1 + 3, y, PC_VERY_LIGHT_YELLOW);
-	GfxFillRect (_cur_dpi, x2 - 3, y, x2,     y, PC_VERY_LIGHT_YELLOW);
+	GfxFillRect (dpi, x1,     y, x1 + 3, y, PC_VERY_LIGHT_YELLOW);
+	GfxFillRect (dpi, x2 - 3, y, x2,     y, PC_VERY_LIGHT_YELLOW);
 }
 
 /**
  * Adds map indicators to the smallmap.
  */
-void SmallMapWindow::DrawMapIndicators() const
+void SmallMapWindow::DrawMapIndicators (BlitArea *dpi) const
 {
 	/* Find main viewport. */
 	const ViewPort *vp = FindWindowById(WC_MAIN_WINDOW, 0)->viewport;
@@ -954,11 +956,11 @@ void SmallMapWindow::DrawMapIndicators() const
 	/* why do we do this? in my tests subscroll was zero */
 	lower_right.x -= this->subscroll;
 
-	DrawVertMapIndicator (upper_left.x, upper_left.y, lower_right.y);
-	DrawVertMapIndicator (lower_right.x, upper_left.y, lower_right.y);
+	DrawVertMapIndicator (dpi, upper_left.x, upper_left.y, lower_right.y);
+	DrawVertMapIndicator (dpi, lower_right.x, upper_left.y, lower_right.y);
 
-	DrawHorizMapIndicator (upper_left.x, lower_right.x, upper_left.y);
-	DrawHorizMapIndicator (upper_left.x, lower_right.x, lower_right.y);
+	DrawHorizMapIndicator (dpi, upper_left.x, lower_right.x, upper_left.y);
+	DrawHorizMapIndicator (dpi, upper_left.x, lower_right.x, lower_right.y);
 }
 
 /**
@@ -1027,7 +1029,7 @@ void SmallMapWindow::DrawSmallMap(DrawPixelInfo *dpi) const
 	if (this->show_towns) this->DrawTowns(dpi);
 
 	/* Draw map indicators */
-	this->DrawMapIndicators();
+	this->DrawMapIndicators (dpi);
 
 	_cur_dpi = old_dpi;
 }

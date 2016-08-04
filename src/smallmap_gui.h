@@ -127,7 +127,7 @@ protected:
 	void SwitchMapType(SmallMapType map_type);
 	void SetNewScroll(int sx, int sy, int sub);
 
-	void DrawMapIndicators() const;
+	void DrawMapIndicators (BlitArea *dpi) const;
 	void DrawSmallMapColumn(void *dst, uint xc, uint yc, int pitch, int reps, int start_pos, int end_pos) const;
 	void DrawVehicles(const DrawPixelInfo *dpi) const;
 	void DrawTowns(const DrawPixelInfo *dpi) const;
