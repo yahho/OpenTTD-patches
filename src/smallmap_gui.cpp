@@ -1202,7 +1202,7 @@ void SmallMapWindow::RebuildColourIndexIfNecessary()
 	switch (widget) {
 		case WID_SM_MAP: {
 			DrawPixelInfo new_dpi;
-			if (!FillDrawPixelInfo(&new_dpi, r.left + 1, r.top + 1, r.right - r.left - 1, r.bottom - r.top - 1)) return;
+			if (!FillDrawPixelInfo (_cur_dpi, &new_dpi, r.left + 1, r.top + 1, r.right - r.left - 1, r.bottom - r.top - 1)) return;
 			this->DrawSmallMap(&new_dpi);
 			break;
 		}

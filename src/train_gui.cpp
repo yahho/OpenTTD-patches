@@ -70,7 +70,7 @@ void DrawTrainImage(const Train *v, int left, int right, int y, VehicleID select
 	int max_width = right - left + 1;
 	int height = ScaleGUITrad(14);
 
-	if (!FillDrawPixelInfo(&tmp_dpi, left, y, max_width, height)) return;
+	if (!FillDrawPixelInfo (_cur_dpi, &tmp_dpi, left, y, max_width, height)) return;
 
 	old_dpi = _cur_dpi;
 	_cur_dpi = &tmp_dpi;

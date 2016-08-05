@@ -61,7 +61,7 @@ static bool DrawScrollingStatusText(const NewsItem *ni, int scroll_pos, int left
 	*d = '\0';
 
 	DrawPixelInfo tmp_dpi;
-	if (!FillDrawPixelInfo(&tmp_dpi, left, top, right - left, bottom)) return true;
+	if (!FillDrawPixelInfo (_cur_dpi, &tmp_dpi, left, top, right - left, bottom)) return true;
 
 	int width = GetStringBoundingBox(buffer).width;
 	int pos = (_current_text_dir == TD_RTL) ? (scroll_pos - width) : (right - scroll_pos - left);

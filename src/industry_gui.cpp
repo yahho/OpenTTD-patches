@@ -2469,7 +2469,7 @@ struct IndustryCargoesWindow : public Window {
 		DrawPixelInfo tmp_dpi, *old_dpi;
 		int width = r.right - r.left + 1;
 		int height = r.bottom - r.top + 1 - WD_FRAMERECT_TOP - WD_FRAMERECT_BOTTOM;
-		if (!FillDrawPixelInfo(&tmp_dpi, r.left + WD_FRAMERECT_LEFT, r.top + WD_FRAMERECT_TOP, width, height)) return;
+		if (!FillDrawPixelInfo (_cur_dpi, &tmp_dpi, r.left + WD_FRAMERECT_LEFT, r.top + WD_FRAMERECT_TOP, width, height)) return;
 		old_dpi = _cur_dpi;
 		_cur_dpi = &tmp_dpi;
 

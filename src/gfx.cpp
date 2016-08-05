@@ -1430,6 +1430,7 @@ void MarkWholeScreenDirty()
  * Fill a DrawPixelInfo object with the supplied relative rectangle, backup
  * the original (calling) _cur_dpi and assign the just returned DrawPixelInfo
  * _cur_dpi. When you are done, give restore _cur_dpi's original value
+ * @param *o the parent BlitArea
  * @param *n the DrawPixelInfo that will be the clipping rectangle box allowed
  * for drawing
  * @param left,top,width,height the relative coordinates of the clipping
@@ -1439,10 +1440,9 @@ void MarkWholeScreenDirty()
  * current dpi pointer. Only continue of the return value is true, or you'll
  * get some nasty results
  */
-bool FillDrawPixelInfo(DrawPixelInfo *n, int left, int top, int width, int height)
+bool FillDrawPixelInfo (const BlitArea *o, DrawPixelInfo *n,
+	int left, int top, int width, int height)
 {
-	const DrawPixelInfo *o = _cur_dpi;
-
 	n->zoom = ZOOM_LVL_NORMAL;
 
 	assert(width > 0);

@@ -135,7 +135,7 @@ void DrawRoadVehImage(const Vehicle *v, int left, int right, int y, VehicleID se
 	DrawPixelInfo tmp_dpi, *old_dpi;
 	int max_width = right - left + 1;
 
-	if (!FillDrawPixelInfo(&tmp_dpi, left, y, max_width, ScaleGUITrad(14))) return;
+	if (!FillDrawPixelInfo (_cur_dpi, &tmp_dpi, left, y, max_width, ScaleGUITrad(14))) return;
 
 	old_dpi = _cur_dpi;
 	_cur_dpi = &tmp_dpi;

@@ -149,7 +149,7 @@ void MarkWholeScreenDirty();
 void GfxInitPalettes();
 void CheckBlitter();
 
-bool FillDrawPixelInfo(DrawPixelInfo *n, int left, int top, int width, int height);
+bool FillDrawPixelInfo (const BlitArea *o, DrawPixelInfo *n, int left, int top, int width, int height);
 
 /* window.cpp */
 void DrawOverlappedWindowForAll(int left, int top, int right, int bottom);

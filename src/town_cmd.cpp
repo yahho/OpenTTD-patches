@@ -280,7 +280,7 @@ static void DrawOldHouseTileInGUI(int x, int y, HouseID house_id, bool ground)
 void DrawHouseImage(HouseID house_id, int left, int top, int right, int bottom)
 {
 	DrawPixelInfo tmp_dpi;
-	if (!FillDrawPixelInfo(&tmp_dpi, left, top, right - left + 1, bottom - top + 1)) return;
+	if (!FillDrawPixelInfo (_cur_dpi, &tmp_dpi, left, top, right - left + 1, bottom - top + 1)) return;
 	DrawPixelInfo *old_dpi = _cur_dpi;
 	_cur_dpi = &tmp_dpi;
 
