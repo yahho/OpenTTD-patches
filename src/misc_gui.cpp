@@ -762,9 +762,6 @@ void QueryString::DrawEditBox(const Window *w, int wid) const
 	DrawPixelInfo dpi;
 	if (!FillDrawPixelInfo (_cur_dpi, &dpi, left + WD_FRAMERECT_LEFT, top + WD_FRAMERECT_TOP, right - left - WD_FRAMERECT_RIGHT, bottom - top - WD_FRAMERECT_BOTTOM)) return;
 
-	DrawPixelInfo *old_dpi = _cur_dpi;
-	_cur_dpi = &dpi;
-
 	/* We will take the current widget length as maximum width, with a small
 	 * space reserved at the end for the caret to show */
 	int delta = min(0, (right - left) - this->pixels - 10);
@@ -772,16 +769,14 @@ void QueryString::DrawEditBox(const Window *w, int wid) const
 	if (this->caretxoffs + delta < 0) delta = -this->caretxoffs;
 
 	/* If we have a marked area, draw a background highlight. */
-	if (this->marklength != 0) GfxFillRect (_cur_dpi, delta + this->markxoffs, 0, delta + this->markxoffs + this->marklength - 1, bottom - top, PC_GREY);
+	if (this->marklength != 0) GfxFillRect (&dpi, delta + this->markxoffs, 0, delta + this->markxoffs + this->marklength - 1, bottom - top, PC_GREY);
 
-	DrawString (_cur_dpi, delta, this->pixels, 0, this->GetText(), TC_YELLOW);
+	DrawString (&dpi, delta, this->pixels, 0, this->GetText(), TC_YELLOW);
 	bool focussed = w->IsWidgetGloballyFocused(wid) || IsOSKOpenedFor(w, wid);
 	if (focussed && this->caret) {
 		int caret_width = GetStringBoundingBox("_").width;
-		DrawString (_cur_dpi, this->caretxoffs + delta, this->caretxoffs + delta + caret_width, 0, "_", TC_WHITE);
+		DrawString (&dpi, this->caretxoffs + delta, this->caretxoffs + delta + caret_width, 0, "_", TC_WHITE);
 	}
-
-	_cur_dpi = old_dpi;
 }
 
 /**
