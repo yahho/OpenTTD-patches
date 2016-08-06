@@ -32,7 +32,8 @@
 #include "table/strings.h"
 #include "table/sprites.h"
 
-static bool DrawScrollingStatusText(const NewsItem *ni, int scroll_pos, int left, int right, int top, int bottom)
+static bool DrawScrollingStatusText (BlitArea *dpi, const NewsItem *ni,
+	int scroll_pos, int left, int right, int top, int bottom)
 {
 	CopyInDParam(0, ni->params, lengthof(ni->params));
 	StringID str = ni->string_id;
@@ -61,7 +62,7 @@ static bool DrawScrollingStatusText(const NewsItem *ni, int scroll_pos, int left
 	*d = '\0';
 
 	DrawPixelInfo tmp_dpi;
-	if (!FillDrawPixelInfo (_cur_dpi, &tmp_dpi, left, top, right - left, bottom)) return true;
+	if (!FillDrawPixelInfo (dpi, &tmp_dpi, left, top, right - left, bottom)) return true;
 
 	int width = GetStringBoundingBox(buffer).width;
 	int pos = (_current_text_dir == TD_RTL) ? (scroll_pos - width) : (right - scroll_pos - left);
@@ -157,7 +158,7 @@ struct StatusBarWindow : Window {
 					DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP, STR_STATUSBAR_PAUSED, TC_FROMSTRING, SA_HOR_CENTER);
 				} else if (this->ticker_scroll < TICKER_STOP && FindWindowById(WC_NEWS_WINDOW, 0) == NULL && _statusbar_news_item != NULL && _statusbar_news_item->string_id != 0) {
 					/* Draw the scrolling news text */
-					if (!DrawScrollingStatusText(_statusbar_news_item, this->ticker_scroll, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP, r.bottom)) {
+					if (!DrawScrollingStatusText (_cur_dpi, _statusbar_news_item, this->ticker_scroll, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP, r.bottom)) {
 						InvalidateWindowData(WC_STATUS_BAR, 0, SBI_NEWS_DELETED);
 						if (Company::IsValidID(_local_company)) {
 							/* This is the default text */
