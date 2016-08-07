@@ -416,8 +416,6 @@ void TextfileWindow::SetupScrollbars()
 
 	DrawPixelInfo new_dpi;
 	if (!FillDrawPixelInfo (_cur_dpi, &new_dpi, x, y, right - x + 1, bottom - y + 1)) return;
-	DrawPixelInfo *old_dpi = _cur_dpi;
-	_cur_dpi = &new_dpi;
 
 	/* Draw content (now coordinates given to DrawString* are local to the new clipping region). */
 	int line_height = FONT_HEIGHT_MONO;
@@ -425,14 +423,12 @@ void TextfileWindow::SetupScrollbars()
 
 	for (uint i = 0; i < this->lines.size(); i++) {
 		if (IsWidgetLowered(WID_TF_WRAPTEXT)) {
-			y_offset = DrawStringMultiLine (_cur_dpi, 0, right - x, y_offset, bottom - y, this->lines[i], TC_WHITE, SA_TOP | SA_LEFT, false, FS_MONO);
+			y_offset = DrawStringMultiLine (&new_dpi, 0, right - x, y_offset, bottom - y, this->lines[i], TC_WHITE, SA_TOP | SA_LEFT, false, FS_MONO);
 		} else {
-			DrawString (_cur_dpi, -this->hscroll->GetPosition(), right - x, y_offset, this->lines[i], TC_WHITE, SA_TOP | SA_LEFT, false, FS_MONO);
+			DrawString (&new_dpi, -this->hscroll->GetPosition(), right - x, y_offset, this->lines[i], TC_WHITE, SA_TOP | SA_LEFT, false, FS_MONO);
 			y_offset += line_height; // margin to previous element
 		}
 	}
-
-	_cur_dpi = old_dpi;
 }
 
 /* virtual */ void TextfileWindow::OnResize()
