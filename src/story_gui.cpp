@@ -359,31 +359,6 @@ protected:
 	}
 
 	/**
-	 * Draws a page element that is composed of a sprite to the left and a single line of
-	 * text after that. These page elements are generally clickable and are thus called
-	 * action elements.
-	 * @param y_offset Current y_offset which will get updated when this method has completed its drawing.
-	 * @param width Width of the region available for drawing.
-	 * @param line_height Height of one line of text.
-	 * @param action_sprite The sprite to draw.
-	 * @param string_id The string id to draw.
-	 * @return the number of lines.
-	 */
-	void DrawActionElement (int &y_offset, int width, int line_height, SpriteID action_sprite, StringID string_id) const
-	{
-		Dimension sprite_dim = GetSpriteSize(action_sprite);
-		uint element_height = max(sprite_dim.height, (uint)line_height);
-
-		uint sprite_top = y_offset + (element_height - sprite_dim.height) / 2;
-		uint text_top = y_offset + (element_height - line_height) / 2;
-
-		DrawSprite (_cur_dpi, action_sprite, PAL_NONE, 0, sprite_top);
-		DrawString (_cur_dpi, sprite_dim.width + WD_FRAMETEXT_LEFT, width, text_top, string_id, TC_BLACK);
-
-		y_offset += element_height;
-	}
-
-	/**
 	 * Internal event handler for when a page element is clicked.
 	 * @param pe The clicked page element.
 	 */
@@ -548,7 +523,19 @@ public:
 					SetDParamStr (0, pe->text);
 					string_id = STR_JUST_RAW_STRING;
 				}
-				DrawActionElement (y_offset, right - x, line_height, GetPageElementSprite(*pe), string_id);
+
+				SpriteID sprite = GetPageElementSprite (*pe);
+
+				Dimension sprite_dim = GetSpriteSize (sprite);
+				uint element_height = max (sprite_dim.height, (uint)line_height);
+
+				uint sprite_top = y_offset + (element_height - sprite_dim.height) / 2;
+				uint text_top = y_offset + (element_height - line_height) / 2;
+
+				DrawSprite (_cur_dpi, sprite, PAL_NONE, 0, sprite_top);
+				DrawString (_cur_dpi, sprite_dim.width + WD_FRAMETEXT_LEFT, right - x, text_top, string_id, TC_BLACK);
+
+				y_offset += element_height;
 			}
 		}
 
