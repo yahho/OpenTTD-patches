@@ -479,12 +479,12 @@ public:
 
 		const int x = r.left + WD_FRAMETEXT_LEFT;
 		const int y = r.top + WD_FRAMETEXT_TOP;
-		const int right = r.right - WD_FRAMETEXT_RIGHT;
-		const int bottom = r.bottom - WD_FRAMETEXT_BOTTOM;
+		const int width = r.right - WD_FRAMETEXT_RIGHT - x;
+		const int height = r.bottom - WD_FRAMETEXT_BOTTOM - y;
 
 		/* Set up a clipping region for the panel. */
 		DrawPixelInfo tmp_dpi;
-		if (!FillDrawPixelInfo (_cur_dpi, &tmp_dpi, x, y, right - x + 1, bottom - y + 1)) return;
+		if (!FillDrawPixelInfo (_cur_dpi, &tmp_dpi, x, y, width + 1, height + 1)) return;
 
 		DrawPixelInfo *old_dpi = _cur_dpi;
 		_cur_dpi = &tmp_dpi;
@@ -496,13 +496,13 @@ public:
 		/* Date */
 		if (page->date != INVALID_DATE) {
 			SetDParam(0, page->date);
-			DrawString (_cur_dpi, 0, right - x, y_offset, STR_JUST_DATE_LONG, TC_BLACK);
+			DrawString (_cur_dpi, 0, width, y_offset, STR_JUST_DATE_LONG, TC_BLACK);
 		}
 		y_offset += line_height;
 
 		/* Title */
 		SetDParamStr(0, page->title != NULL ? page->title : this->selected_generic_title);
-		y_offset = DrawStringMultiLine (_cur_dpi, 0, right - x, y_offset, bottom - y, STR_STORY_BOOK_TITLE, TC_BLACK, SA_TOP | SA_HOR_CENTER);
+		y_offset = DrawStringMultiLine (_cur_dpi, 0, width, y_offset, height, STR_STORY_BOOK_TITLE, TC_BLACK, SA_TOP | SA_HOR_CENTER);
 
 		/* Page elements */
 		for (const StoryPageElement *const*iter = this->story_page_elements.Begin(); iter != this->story_page_elements.End(); iter++) {
@@ -511,7 +511,7 @@ public:
 
 			if (pe->type == SPET_TEXT) {
 				SetDParamStr (0, pe->text);
-				y_offset = DrawStringMultiLine (_cur_dpi, 0, right - x, y_offset, bottom - y, STR_JUST_RAW_STRING, TC_BLACK, SA_TOP | SA_LEFT);
+				y_offset = DrawStringMultiLine (_cur_dpi, 0, width, y_offset, height, STR_JUST_RAW_STRING, TC_BLACK, SA_TOP | SA_LEFT);
 			} else {
 				StringID string_id;
 				if (pe->type == SPET_GOAL) {
@@ -533,7 +533,7 @@ public:
 				uint text_top = y_offset + (element_height - line_height) / 2;
 
 				DrawSprite (_cur_dpi, sprite, PAL_NONE, 0, sprite_top);
-				DrawString (_cur_dpi, sprite_dim.width + WD_FRAMETEXT_LEFT, right - x, text_top, string_id, TC_BLACK);
+				DrawString (_cur_dpi, sprite_dim.width + WD_FRAMETEXT_LEFT, width, text_top, string_id, TC_BLACK);
 
 				y_offset += element_height;
 			}
