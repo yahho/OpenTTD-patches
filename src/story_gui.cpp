@@ -369,7 +369,7 @@ protected:
 	 * @param string_id The string id to draw.
 	 * @return the number of lines.
 	 */
-	void DrawActionElement(int &y_offset, int width, int line_height, SpriteID action_sprite, StringID string_id = STR_JUST_RAW_STRING) const
+	void DrawActionElement (int &y_offset, int width, int line_height, SpriteID action_sprite, StringID string_id) const
 	{
 		Dimension sprite_dim = GetSpriteSize(action_sprite);
 		uint element_height = max(sprite_dim.height, (uint)line_height);
@@ -534,26 +534,21 @@ public:
 			const StoryPageElement *const pe = *iter;
 			y_offset += line_height; // margin to previous element
 
-			switch (pe->type) {
-				case SPET_TEXT:
-					SetDParamStr(0, pe->text);
-					y_offset = DrawStringMultiLine (_cur_dpi, 0, right - x, y_offset, bottom - y, STR_JUST_RAW_STRING, TC_BLACK, SA_TOP | SA_LEFT);
-					break;
-
-				case SPET_GOAL: {
-					Goal *g = Goal::Get((GoalID) pe->referenced_id);
-					StringID string_id = g == NULL ? STR_STORY_BOOK_INVALID_GOAL_REF : STR_JUST_RAW_STRING;
-					if (g != NULL) SetDParamStr(0, g->text);
-					DrawActionElement(y_offset, right - x, line_height, GetPageElementSprite(*pe), string_id);
-					break;
+			if (pe->type == SPET_TEXT) {
+				SetDParamStr (0, pe->text);
+				y_offset = DrawStringMultiLine (_cur_dpi, 0, right - x, y_offset, bottom - y, STR_JUST_RAW_STRING, TC_BLACK, SA_TOP | SA_LEFT);
+			} else {
+				StringID string_id;
+				if (pe->type == SPET_GOAL) {
+					Goal *g = Goal::Get ((GoalID) pe->referenced_id);
+					if (g != NULL) SetDParamStr (0, g->text);
+					string_id = g == NULL ? STR_STORY_BOOK_INVALID_GOAL_REF : STR_JUST_RAW_STRING;
+				} else {
+					assert (pe->type == SPET_LOCATION);
+					SetDParamStr (0, pe->text);
+					string_id = STR_JUST_RAW_STRING;
 				}
-
-				case SPET_LOCATION:
-					SetDParamStr(0, pe->text);
-					DrawActionElement(y_offset, right - x, line_height, GetPageElementSprite(*pe));
-					break;
-
-				default: NOT_REACHED();
+				DrawActionElement (y_offset, right - x, line_height, GetPageElementSprite(*pe), string_id);
 			}
 		}
 
