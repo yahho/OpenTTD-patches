@@ -851,7 +851,7 @@ bool DrawStationTile(int x, int y, RailType railtype, Axis axis, StationClassID 
 		DrawSprite (_cur_dpi, image, GroundSpritePaletteTransform (image, pal, palette), x, y);
 	}
 
-	DrawRailTileSeqInGUI(x, y, sprites, total_offset, relocation, palette);
+	DrawRailTileSeqInGUI (_cur_dpi, x, y, sprites, total_offset, relocation, palette);
 
 	return true;
 }

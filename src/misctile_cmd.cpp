@@ -296,7 +296,7 @@ void DrawTrainDepotSprite(int x, int y, int dir, RailType railtype)
 	int depot_sprite = GetCustomRailSprite(rti, INVALID_TILE, RTSG_DEPOT);
 	if (depot_sprite != 0) offset = depot_sprite - SPR_RAIL_DEPOT_SE_1;
 
-	DrawRailTileSeqInGUI(x, y, dts, offset, 0, palette);
+	DrawRailTileSeqInGUI (_cur_dpi, x, y, dts, offset, 0, palette);
 }
 
 static void DrawRoadDepot(TileInfo *ti)
