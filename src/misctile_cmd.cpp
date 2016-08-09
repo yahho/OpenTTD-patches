@@ -331,7 +331,7 @@ void DrawRoadDepotSprite(int x, int y, DiagDirection dir, RoadType rt)
 	const DrawTileSprites *dts = (rt == ROADTYPE_TRAM) ? &_tram_depot[dir] : &_road_depot[dir];
 
 	DrawSprite (_cur_dpi, dts->ground.sprite, PAL_NONE, x, y);
-	DrawOrigTileSeqInGUI(x, y, dts, palette);
+	DrawOrigTileSeqInGUI (_cur_dpi, x, y, dts, palette);
 }
 
 static void DrawTile_Misc(TileInfo *ti)

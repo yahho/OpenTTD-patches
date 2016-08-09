@@ -878,7 +878,7 @@ void DrawShipDepotSprite(int x, int y, DiagDirection dir)
 	const DrawTileSprites &dts = _shipdepot_display_data[dir];
 
 	DrawSprite (_cur_dpi, dts.ground.sprite, dts.ground.pal, x, y);
-	DrawOrigTileSeqInGUI(x, y, &dts, COMPANY_SPRITE_COLOUR(_local_company));
+	DrawOrigTileSeqInGUI (_cur_dpi, x, y, &dts, COMPANY_SPRITE_COLOUR(_local_company));
 }
 
 
