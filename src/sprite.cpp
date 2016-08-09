@@ -81,6 +81,7 @@ void DrawCommonTileSeq(const TileInfo *ti, const DrawTileSprites *dts, Transpare
 
 /**
  * Draws a tile sprite sequence in the GUI
+ * @param dpi Area to draw on.
  * @param x X position to draw to
  * @param y Y position to draw to
  * @param dts Sprite and subsprites to draw
@@ -89,7 +90,9 @@ void DrawCommonTileSeq(const TileInfo *ti, const DrawTileSprites *dts, Transpare
  * @param default_palette The default recolour sprite to use (typically company colour)
  * @param child_offset_is_unsigned Whether child sprite offsets are interpreted signed or unsigned
  */
-void DrawCommonTileSeqInGUI(int x, int y, const DrawTileSprites *dts, int32 orig_offset, uint32 newgrf_offset, PaletteID default_palette, bool child_offset_is_unsigned)
+void DrawCommonTileSeqInGUI (BlitArea *dpi, int x, int y,
+	const DrawTileSprites *dts, int32 orig_offset, uint32 newgrf_offset,
+	PaletteID default_palette, bool child_offset_is_unsigned)
 {
 	const DrawTileSeqStruct *dtss;
 	Point child_offset = {0, 0};
@@ -117,7 +120,7 @@ void DrawCommonTileSeqInGUI(int x, int y, const DrawTileSprites *dts, int32 orig
 
 		if (dtss->IsParentSprite()) {
 			Point pt = RemapCoords(dtss->delta_x, dtss->delta_y, dtss->delta_z);
-			DrawSprite (_cur_dpi, image, pal, x + UnScaleGUI(pt.x), y + UnScaleGUI(pt.y));
+			DrawSprite (dpi, image, pal, x + UnScaleGUI(pt.x), y + UnScaleGUI(pt.y));
 
 			const Sprite *spr = GetSprite(image & SPRITE_MASK, ST_NORMAL);
 			child_offset.x = UnScaleGUI(pt.x + spr->x_offs);
@@ -125,7 +128,7 @@ void DrawCommonTileSeqInGUI(int x, int y, const DrawTileSprites *dts, int32 orig
 		} else {
 			int offs_x = child_offset_is_unsigned ? (uint8)dtss->delta_x : dtss->delta_x;
 			int offs_y = child_offset_is_unsigned ? (uint8)dtss->delta_y : dtss->delta_y;
-			DrawSprite (_cur_dpi, image, pal, x + child_offset.x + ScaleGUITrad(offs_x), y + child_offset.y + ScaleGUITrad(offs_y));
+			DrawSprite (dpi, image, pal, x + child_offset.x + ScaleGUITrad(offs_x), y + child_offset.y + ScaleGUITrad(offs_y));
 		}
 	}
 }

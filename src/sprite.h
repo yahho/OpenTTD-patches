@@ -81,7 +81,7 @@ struct DrawBuildingsTileStruct {
 #define foreach_draw_tile_seq(idx, list) for (idx = list; !idx->IsTerminator(); idx++)
 
 void DrawCommonTileSeq(const struct TileInfo *ti, const DrawTileSprites *dts, TransparencyOption to, int32 orig_offset, uint32 newgrf_offset, PaletteID default_palette, bool child_offset_is_unsigned);
-void DrawCommonTileSeqInGUI(int x, int y, const DrawTileSprites *dts, int32 orig_offset, uint32 newgrf_offset, PaletteID default_palette, bool child_offset_is_unsigned);
+void DrawCommonTileSeqInGUI (BlitArea *dpi, int x, int y, const DrawTileSprites *dts, int32 orig_offset, uint32 newgrf_offset, PaletteID default_palette, bool child_offset_is_unsigned);
 
 /**
  * Draw tile sprite sequence on tile with railroad specifics.
@@ -100,7 +100,7 @@ static inline void DrawRailTileSeq(const struct TileInfo *ti, const DrawTileSpri
  */
 static inline void DrawRailTileSeqInGUI(int x, int y, const DrawTileSprites *dts, int32 total_offset, uint32 newgrf_offset, PaletteID default_palette)
 {
-	DrawCommonTileSeqInGUI(x, y, dts, total_offset, newgrf_offset, default_palette, false);
+	DrawCommonTileSeqInGUI (_cur_dpi, x, y, dts, total_offset, newgrf_offset, default_palette, false);
 }
 
 /**
@@ -116,7 +116,7 @@ static inline void DrawOrigTileSeq(const struct TileInfo *ti, const DrawTileSpri
  */
 static inline void DrawOrigTileSeqInGUI(int x, int y, const DrawTileSprites *dts, PaletteID default_palette)
 {
-	DrawCommonTileSeqInGUI(x, y, dts, 0, 0, default_palette, false);
+	DrawCommonTileSeqInGUI (_cur_dpi, x, y, dts, 0, 0, default_palette, false);
 }
 
 /**
@@ -134,7 +134,7 @@ static inline void DrawNewGRFTileSeq(const struct TileInfo *ti, const DrawTileSp
  */
 static inline void DrawNewGRFTileSeqInGUI(int x, int y, const DrawTileSprites *dts, uint32 stage, PaletteID default_palette)
 {
-	DrawCommonTileSeqInGUI(x, y, dts, 0, stage, default_palette, true);
+	DrawCommonTileSeqInGUI (_cur_dpi, x, y, dts, 0, stage, default_palette, true);
 }
 
 /**
