@@ -132,9 +132,9 @@ static inline void DrawNewGRFTileSeq(const struct TileInfo *ti, const DrawTileSp
  * Draw NewGRF object in GUI
  * @param stage Sprite inside the Action1 spritesets to use, i.e. construction stage.
  */
-static inline void DrawNewGRFTileSeqInGUI(int x, int y, const DrawTileSprites *dts, uint32 stage, PaletteID default_palette)
+static inline void DrawNewGRFTileSeqInGUI (BlitArea *dpi, int x, int y, const DrawTileSprites *dts, uint32 stage, PaletteID default_palette)
 {
-	DrawCommonTileSeqInGUI (_cur_dpi, x, y, dts, 0, stage, default_palette, true);
+	DrawCommonTileSeqInGUI (dpi, x, y, dts, 0, stage, default_palette, true);
 }
 
 /**

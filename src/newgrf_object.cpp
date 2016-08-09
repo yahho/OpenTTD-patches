@@ -504,7 +504,7 @@ void DrawNewObjectTileInGUI(int x, int y, const ObjectSpec *spec, uint8 view)
 		DrawSprite (_cur_dpi, image, GroundSpritePaletteTransform (image, pal, palette), x, y);
 	}
 
-	DrawNewGRFTileSeqInGUI(x, y, dts, 0, palette);
+	DrawNewGRFTileSeqInGUI (_cur_dpi, x, y, dts, 0, palette);
 }
 
 /**

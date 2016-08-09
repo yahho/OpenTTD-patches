@@ -542,7 +542,7 @@ static void DrawTileLayoutInGUI(int x, int y, const TileLayoutSpriteGroup *group
 			DrawSprite (_cur_dpi, image.sprite, GroundSpritePaletteTransform (image.sprite, image.pal, palette), x, y);
 		}
 	} else {
-		DrawNewGRFTileSeqInGUI(x, y, dts, stage, palette);
+		DrawNewGRFTileSeqInGUI (_cur_dpi, x, y, dts, stage, palette);
 	}
 }
 
