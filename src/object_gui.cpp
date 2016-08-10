@@ -248,7 +248,7 @@ public:
 						const DrawTileSprites *dts = &_objects[spec->grf_prop.local_id];
 						DrawOrigTileSeqInGUI (_cur_dpi, (r.right - r.left) / 2 - 1, (r.bottom - r.top + matrix_height / 2) / 2 - OBJECT_MARGIN - ScaleGUITrad(TILE_PIXELS), dts, PAL_NONE);
 					} else {
-						DrawNewObjectTileInGUI((r.right - r.left) / 2 - 1, (r.bottom - r.top + matrix_height / 2) / 2 - OBJECT_MARGIN - ScaleGUITrad(TILE_PIXELS), spec, GB(widget, 16, 16));
+						DrawNewObjectTileInGUI (_cur_dpi, (r.right - r.left) / 2 - 1, (r.bottom - r.top + matrix_height / 2) / 2 - OBJECT_MARGIN - ScaleGUITrad(TILE_PIXELS), spec, GB(widget, 16, 16));
 					}
 					_cur_dpi = old_dpi;
 				}
@@ -275,7 +275,7 @@ public:
 						const DrawTileSprites *dts = &_objects[spec->grf_prop.local_id];
 						DrawOrigTileSeqInGUI (_cur_dpi, (r.right - r.left) / 2 - 1, r.bottom - r.top - OBJECT_MARGIN - ScaleGUITrad(TILE_PIXELS), dts, PAL_NONE);
 					} else {
-						DrawNewObjectTileInGUI((r.right - r.left) / 2 - 1, r.bottom - r.top - OBJECT_MARGIN - ScaleGUITrad(TILE_PIXELS), spec, 0);
+						DrawNewObjectTileInGUI (_cur_dpi, (r.right - r.left) / 2 - 1, r.bottom - r.top - OBJECT_MARGIN - ScaleGUITrad(TILE_PIXELS), spec, 0);
 					}
 					_cur_dpi = old_dpi;
 				}

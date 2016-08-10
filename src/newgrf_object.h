@@ -21,6 +21,7 @@
 #include "newgrf_animation_type.h"
 #include "newgrf_class.h"
 #include "newgrf_commons.h"
+#include "gfx_func.h"
 
 /** Various object behaviours. */
 enum ObjectFlags {
@@ -149,7 +150,7 @@ static const CargoID CT_PURCHASE_OBJECT = 1;
 uint16 GetObjectCallback(CallbackID callback, uint32 param1, uint32 param2, const ObjectSpec *spec, Object *o, TileIndex tile, uint8 view = 0);
 
 void DrawNewObjectTile(TileInfo *ti, const ObjectSpec *spec);
-void DrawNewObjectTileInGUI(int x, int y, const ObjectSpec *spec, uint8 view);
+void DrawNewObjectTileInGUI (BlitArea *dpi, int x, int y, const ObjectSpec *spec, uint8 view);
 void AnimateNewObjectTile(TileIndex tile);
 void TriggerObjectTileAnimation(Object *o, TileIndex tile, ObjectAnimationTrigger trigger, const ObjectSpec *spec);
 void TriggerObjectAnimation(Object *o, ObjectAnimationTrigger trigger, const ObjectSpec *spec);
