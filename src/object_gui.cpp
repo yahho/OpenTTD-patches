@@ -241,16 +241,13 @@ public:
 				DrawPixelInfo tmp_dpi;
 				/* Set up a clipping area for the preview. */
 				if (FillDrawPixelInfo (_cur_dpi, &tmp_dpi, r.left, r.top, r.right - r.left + 1, r.bottom - r.top + 1)) {
-					DrawPixelInfo *old_dpi = _cur_dpi;
-					_cur_dpi = &tmp_dpi;
 					if (spec->grf_prop.grffile == NULL) {
 						extern const DrawTileSprites _objects[];
 						const DrawTileSprites *dts = &_objects[spec->grf_prop.local_id];
-						DrawOrigTileSeqInGUI (_cur_dpi, (r.right - r.left) / 2 - 1, (r.bottom - r.top + matrix_height / 2) / 2 - OBJECT_MARGIN - ScaleGUITrad(TILE_PIXELS), dts, PAL_NONE);
+						DrawOrigTileSeqInGUI (&tmp_dpi, (r.right - r.left) / 2 - 1, (r.bottom - r.top + matrix_height / 2) / 2 - OBJECT_MARGIN - ScaleGUITrad(TILE_PIXELS), dts, PAL_NONE);
 					} else {
-						DrawNewObjectTileInGUI (_cur_dpi, (r.right - r.left) / 2 - 1, (r.bottom - r.top + matrix_height / 2) / 2 - OBJECT_MARGIN - ScaleGUITrad(TILE_PIXELS), spec, GB(widget, 16, 16));
+						DrawNewObjectTileInGUI (&tmp_dpi, (r.right - r.left) / 2 - 1, (r.bottom - r.top + matrix_height / 2) / 2 - OBJECT_MARGIN - ScaleGUITrad(TILE_PIXELS), spec, GB(widget, 16, 16));
 					}
-					_cur_dpi = old_dpi;
 				}
 				break;
 			}
@@ -268,16 +265,13 @@ public:
 				DrawPixelInfo tmp_dpi;
 				/* Set up a clipping area for the preview. */
 				if (FillDrawPixelInfo (_cur_dpi, &tmp_dpi, r.left + 1, r.top, (r.right - 1) - (r.left + 1) + 1, r.bottom - r.top + 1)) {
-					DrawPixelInfo *old_dpi = _cur_dpi;
-					_cur_dpi = &tmp_dpi;
 					if (spec->grf_prop.grffile == NULL) {
 						extern const DrawTileSprites _objects[];
 						const DrawTileSprites *dts = &_objects[spec->grf_prop.local_id];
-						DrawOrigTileSeqInGUI (_cur_dpi, (r.right - r.left) / 2 - 1, r.bottom - r.top - OBJECT_MARGIN - ScaleGUITrad(TILE_PIXELS), dts, PAL_NONE);
+						DrawOrigTileSeqInGUI (&tmp_dpi, (r.right - r.left) / 2 - 1, r.bottom - r.top - OBJECT_MARGIN - ScaleGUITrad(TILE_PIXELS), dts, PAL_NONE);
 					} else {
-						DrawNewObjectTileInGUI (_cur_dpi, (r.right - r.left) / 2 - 1, r.bottom - r.top - OBJECT_MARGIN - ScaleGUITrad(TILE_PIXELS), spec, 0);
+						DrawNewObjectTileInGUI (&tmp_dpi, (r.right - r.left) / 2 - 1, r.bottom - r.top - OBJECT_MARGIN - ScaleGUITrad(TILE_PIXELS), spec, 0);
 					}
-					_cur_dpi = old_dpi;
 				}
 				break;
 			}
