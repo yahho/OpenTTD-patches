@@ -249,22 +249,23 @@ static void DrawTile_Town(TileInfo *ti)
 	}
 }
 
-static void DrawOldHouseTileInGUI(int x, int y, HouseID house_id, bool ground)
+static void DrawOldHouseTileInGUI (BlitArea *dpi, int x, int y,
+	HouseID house_id, bool ground)
 {
 	/* Retrieve pointer to the draw town tile struct */
 	const DrawBuildingsTileStruct *dcts = town_draw_tile_data[house_id][0][TOWN_HOUSE_COMPLETED];
 	if (ground) {
 		/* Draw the ground sprite */
-		DrawSprite (_cur_dpi, dcts->ground.sprite, dcts->ground.pal, x, y);
+		DrawSprite (dpi, dcts->ground.sprite, dcts->ground.pal, x, y);
 	} else {
 		/* Add a house on top of the ground? */
 		if (dcts->building.sprite != 0) {
-			DrawSprite (_cur_dpi, dcts->building.sprite, dcts->building.pal,
+			DrawSprite (dpi, dcts->building.sprite, dcts->building.pal,
 					x + ScaleGUITrad (2 * (dcts->subtile_y - dcts->subtile_x)),
 					y + ScaleGUITrad (dcts->subtile_x + dcts->subtile_y));
 		}
 		/* Draw the lift */
-		if (dcts->draw_proc == 1) DrawSprite (_cur_dpi, SPR_LIFT, PAL_NONE, x - 18, y + 7);
+		if (dcts->draw_proc == 1) DrawSprite (dpi, SPR_LIFT, PAL_NONE, x - 18, y + 7);
 	}
 }
 
@@ -320,7 +321,7 @@ void DrawHouseImage(HouseID house_id, int left, int top, int right, int bottom)
 				if (new_house) {
 					DrawNewHouseTileInGUI (_cur_dpi, x + offset.x, y + offset.y, hid, ground);
 				} else {
-					DrawOldHouseTileInGUI(x + offset.x, y + offset.y, hid, ground);
+					DrawOldHouseTileInGUI (_cur_dpi, x + offset.x, y + offset.y, hid, ground);
 				}
 				hid++;
 			}
