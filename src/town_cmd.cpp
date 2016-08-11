@@ -282,8 +282,6 @@ void DrawHouseImage(HouseID house_id, int left, int top, int right, int bottom)
 {
 	DrawPixelInfo tmp_dpi;
 	if (!FillDrawPixelInfo (_cur_dpi, &tmp_dpi, left, top, right - left + 1, bottom - top + 1)) return;
-	DrawPixelInfo *old_dpi = _cur_dpi;
-	_cur_dpi = &tmp_dpi;
 
 	const HouseSpec *hs = HouseSpec::Get(house_id);
 
@@ -319,17 +317,15 @@ void DrawHouseImage(HouseID house_id, int left, int top, int right, int bottom)
 				offset.x = UnScaleByZoom(offset.x, ZOOM_LVL_GUI);
 				offset.y = UnScaleByZoom(offset.y, ZOOM_LVL_GUI);
 				if (new_house) {
-					DrawNewHouseTileInGUI (_cur_dpi, x + offset.x, y + offset.y, hid, ground);
+					DrawNewHouseTileInGUI (&tmp_dpi, x + offset.x, y + offset.y, hid, ground);
 				} else {
-					DrawOldHouseTileInGUI (_cur_dpi, x + offset.x, y + offset.y, hid, ground);
+					DrawOldHouseTileInGUI (&tmp_dpi, x + offset.x, y + offset.y, hid, ground);
 				}
 				hid++;
 			}
 		}
 		if (!ground) break;
 	}
-
-	_cur_dpi = old_dpi;
 }
 
 static int GetSlopePixelZ_Town(TileIndex tile, uint x, uint y)
