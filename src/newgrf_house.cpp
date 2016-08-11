@@ -518,7 +518,8 @@ static void DrawTileLayout(const TileInfo *ti, const TileLayoutSpriteGroup *grou
 	DrawNewGRFTileSeq(ti, dts, TO_HOUSES, stage, palette);
 }
 
-static void DrawTileLayoutInGUI(int x, int y, const TileLayoutSpriteGroup *group, HouseID house_id, bool ground)
+static void DrawTileLayoutInGUI (BlitArea *dpi, int x, int y,
+	const TileLayoutSpriteGroup *group, HouseID house_id, bool ground)
 {
 	byte stage = TOWN_HOUSE_COMPLETED;
 	const DrawTileSprites *dts = group->ProcessRegisters(&stage);
@@ -539,10 +540,10 @@ static void DrawTileLayoutInGUI(int x, int y, const TileLayoutSpriteGroup *group
 		if (HasBit(image.pal, SPRITE_MODIFIER_CUSTOM_SPRITE)) image.pal += stage;
 
 		if (GB(image.sprite, 0, SPRITE_WIDTH) != 0) {
-			DrawSprite (_cur_dpi, image.sprite, GroundSpritePaletteTransform (image.sprite, image.pal, palette), x, y);
+			DrawSprite (dpi, image.sprite, GroundSpritePaletteTransform (image.sprite, image.pal, palette), x, y);
 		}
 	} else {
-		DrawNewGRFTileSeqInGUI (_cur_dpi, x, y, dts, stage, palette);
+		DrawNewGRFTileSeqInGUI (dpi, x, y, dts, stage, palette);
 	}
 }
 
@@ -576,7 +577,7 @@ void DrawNewHouseTileInGUI(int x, int y, HouseID house_id, bool ground)
 {
 	const SpriteGroup *group = FakeHouseResolve (house_id);
 	if (group != NULL && group->type == SGT_TILELAYOUT) {
-		DrawTileLayoutInGUI(x, y, (const TileLayoutSpriteGroup*)group, house_id, ground);
+		DrawTileLayoutInGUI (_cur_dpi, x, y, (const TileLayoutSpriteGroup*)group, house_id, ground);
 	}
 }
 
