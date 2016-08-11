@@ -573,11 +573,11 @@ void DrawNewHouseTile(TileInfo *ti, HouseID house_id)
 	}
 }
 
-void DrawNewHouseTileInGUI(int x, int y, HouseID house_id, bool ground)
+void DrawNewHouseTileInGUI (BlitArea *dpi, int x, int y, HouseID house_id, bool ground)
 {
 	const SpriteGroup *group = FakeHouseResolve (house_id);
 	if (group != NULL && group->type == SGT_TILELAYOUT) {
-		DrawTileLayoutInGUI (_cur_dpi, x, y, (const TileLayoutSpriteGroup*)group, house_id, ground);
+		DrawTileLayoutInGUI (dpi, x, y, (const TileLayoutSpriteGroup*)group, house_id, ground);
 	}
 }
 

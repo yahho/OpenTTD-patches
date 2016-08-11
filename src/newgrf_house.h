@@ -17,6 +17,7 @@
 #include "house_type.h"
 #include "newgrf_spritegroup.h"
 #include "newgrf_town.h"
+#include "gfx_func.h"
 
 /** Scope resolver for houses. */
 struct HouseScopeResolver : public ScopeResolver {
@@ -133,7 +134,7 @@ void IncreaseBuildingCount(Town *t, HouseID house_id);
 void DecreaseBuildingCount(Town *t, HouseID house_id);
 
 void DrawNewHouseTile(TileInfo *ti, HouseID house_id);
-void DrawNewHouseTileInGUI(int x, int y, HouseID house_id, bool ground);
+void DrawNewHouseTileInGUI (BlitArea *dpi, int x, int y, HouseID house_id, bool ground);
 void AnimateNewHouseTile(TileIndex tile);
 void AnimateNewHouseConstruction(TileIndex tile);
 

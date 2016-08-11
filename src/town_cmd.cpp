@@ -318,7 +318,7 @@ void DrawHouseImage(HouseID house_id, int left, int top, int right, int bottom)
 				offset.x = UnScaleByZoom(offset.x, ZOOM_LVL_GUI);
 				offset.y = UnScaleByZoom(offset.y, ZOOM_LVL_GUI);
 				if (new_house) {
-					DrawNewHouseTileInGUI(x + offset.x, y + offset.y, hid, ground);
+					DrawNewHouseTileInGUI (_cur_dpi, x + offset.x, y + offset.y, hid, ground);
 				} else {
 					DrawOldHouseTileInGUI(x + offset.x, y + offset.y, hid, ground);
 				}
