@@ -2921,13 +2921,15 @@ void RailStationPickerDrawSprite (int x, int y, bool waypoint, RailType railtype
 	const RailtypeInfo *rti = GetRailTypeInfo (railtype);
 	int32 total_offset = rti->GetRailtypeSpriteOffset();
 
-	SpriteID img = t->ground.sprite;
-	RailTrackOffset overlay_offset;
-	if (rti->UsesOverlay() && SplitGroundSpriteForOverlay (NULL, &img, &overlay_offset)) {
+	if (rti->UsesOverlay()) {
+		DrawSprite (_cur_dpi, SPR_FLAT_GRASS_TILE, PAL_NONE, x, y);
+		bool odd = (image % 2) != 0;
+		assert (t->ground.sprite == (odd ? SPR_RAIL_TRACK_Y : SPR_RAIL_TRACK_X));
+		RailTrackOffset overlay = odd ? RTO_Y : RTO_X;
 		SpriteID ground = GetCustomRailSprite (rti, INVALID_TILE, RTSG_GROUND);
-		DrawSprite (_cur_dpi, img, PAL_NONE, x, y);
-		DrawSprite (_cur_dpi, ground + overlay_offset, PAL_NONE, x, y);
+		DrawSprite (_cur_dpi, ground + overlay, PAL_NONE, x, y);
 	} else {
+		SpriteID img = t->ground.sprite;
 		DrawSprite (_cur_dpi, img + total_offset, HasBit(img, PALETTE_MODIFIER_COLOUR) ? pal : PAL_NONE, x, y);
 	}
 
