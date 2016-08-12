@@ -2921,17 +2921,21 @@ void RailStationPickerDrawSprite (int x, int y, bool waypoint, RailType railtype
 	const RailtypeInfo *rti = GetRailTypeInfo (railtype);
 	int32 total_offset = rti->GetRailtypeSpriteOffset();
 
+	SpriteID ground_spr;
+	PaletteID ground_pal;
 	if (rti->UsesOverlay()) {
 		DrawSprite (_cur_dpi, SPR_FLAT_GRASS_TILE, PAL_NONE, x, y);
+		ground_spr = GetCustomRailSprite (rti, INVALID_TILE, RTSG_GROUND);
 		bool odd = (image % 2) != 0;
 		assert (t->ground.sprite == (odd ? SPR_RAIL_TRACK_Y : SPR_RAIL_TRACK_X));
-		RailTrackOffset overlay = odd ? RTO_Y : RTO_X;
-		SpriteID ground = GetCustomRailSprite (rti, INVALID_TILE, RTSG_GROUND);
-		DrawSprite (_cur_dpi, ground + overlay, PAL_NONE, x, y);
+		ground_spr += odd ? RTO_Y : RTO_X;
+		ground_pal = PAL_NONE;
 	} else {
 		SpriteID img = t->ground.sprite;
-		DrawSprite (_cur_dpi, img + total_offset, HasBit(img, PALETTE_MODIFIER_COLOUR) ? pal : PAL_NONE, x, y);
+		ground_spr = img + total_offset;
+		ground_pal = HasBit(img, PALETTE_MODIFIER_COLOUR) ? pal : PAL_NONE;
 	}
+	DrawSprite (_cur_dpi, ground_spr, ground_pal, x, y);
 
 	/* Default waypoint has no railtype specific sprites */
 	DrawRailTileSeqInGUI (_cur_dpi, x, y, t, waypoint ? 0 : total_offset, 0, pal);
