@@ -2941,19 +2941,19 @@ void RailStationPickerDrawSprite (BlitArea *dpi, int x, int y, bool waypoint, Ra
 	DrawRailTileSeqInGUI (dpi, x, y, t, waypoint ? 0 : total_offset, 0, pal);
 }
 
-void RoadStationPickerDrawSprite (int x, int y, bool bus, bool tram, int image)
+void RoadStationPickerDrawSprite (BlitArea *dpi, int x, int y, bool bus, bool tram, int image)
 {
 	PaletteID pal = COMPANY_SPRITE_COLOUR(_local_company);
 	const DrawTileSprites *t = GetStationTileLayout (bus ? STATION_BUS : STATION_TRUCK, image);
 
 	SpriteID img = t->ground.sprite;
-	DrawSprite (_cur_dpi, img, HasBit(img, PALETTE_MODIFIER_COLOUR) ? pal : PAL_NONE, x, y);
+	DrawSprite (dpi, img, HasBit(img, PALETTE_MODIFIER_COLOUR) ? pal : PAL_NONE, x, y);
 
 	if (tram) {
-		DrawSprite (_cur_dpi, SPR_TRAMWAY_TRAM + (t->ground.sprite == SPR_ROAD_PAVED_STRAIGHT_X ? 1 : 0), PAL_NONE, x, y);
+		DrawSprite (dpi, SPR_TRAMWAY_TRAM + (t->ground.sprite == SPR_ROAD_PAVED_STRAIGHT_X ? 1 : 0), PAL_NONE, x, y);
 	}
 
-	DrawOrigTileSeqInGUI (_cur_dpi, x, y, t, pal);
+	DrawOrigTileSeqInGUI (dpi, x, y, t, pal);
 }
 
 static int GetSlopePixelZ_Station(TileIndex tile, uint x, uint y)
