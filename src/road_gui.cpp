@@ -1015,8 +1015,10 @@ struct BuildRoadStationWindow : public PickerWindowBase {
 	{
 		if (!IsInsideMM(widget, WID_BROS_STATION_NE, WID_BROS_STATION_Y + 1)) return;
 
-		StationType st = (this->window_class == WC_BUS_STATION) ? STATION_BUS : STATION_TRUCK;
-		StationPickerDrawSprite(r.left + 1 + ScaleGUITrad(31), r.bottom - ScaleGUITrad(31), st, INVALID_RAILTYPE, widget < WID_BROS_STATION_X ? ROADTYPE_ROAD : _cur_roadtype, widget - WID_BROS_STATION_NE);
+		RoadStationPickerDrawSprite (r.left + 1 + ScaleGUITrad(31), r.bottom - ScaleGUITrad(31),
+				this->window_class == WC_BUS_STATION,
+				(widget >= WID_BROS_STATION_X) && (_cur_roadtype == ROADTYPE_TRAM),
+				widget - WID_BROS_STATION_NE);
 	}
 
 	virtual void OnClick(Point pt, int widget, int click_count)

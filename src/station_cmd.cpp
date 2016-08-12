@@ -2914,34 +2914,40 @@ draw_default_foundation:
 	DrawBridgeMiddle (ti);
 }
 
-void StationPickerDrawSprite(int x, int y, StationType st, RailType railtype, RoadType roadtype, int image)
+void RailStationPickerDrawSprite (int x, int y, bool waypoint, RailType railtype, int image)
 {
-	int32 total_offset = 0;
 	PaletteID pal = COMPANY_SPRITE_COLOUR(_local_company);
-	const DrawTileSprites *t = GetStationTileLayout(st, image);
-	const RailtypeInfo *rti = NULL;
-
-	if (railtype != INVALID_RAILTYPE) {
-		rti = GetRailTypeInfo(railtype);
-		total_offset = rti->GetRailtypeSpriteOffset();
-	}
+	const DrawTileSprites *t = GetStationTileLayout (waypoint ? STATION_WAYPOINT : STATION_RAIL, image);
+	const RailtypeInfo *rti = GetRailTypeInfo (railtype);
+	int32 total_offset = rti->GetRailtypeSpriteOffset();
 
 	SpriteID img = t->ground.sprite;
 	RailTrackOffset overlay_offset;
-	if (rti != NULL && rti->UsesOverlay() && SplitGroundSpriteForOverlay(NULL, &img, &overlay_offset)) {
-		SpriteID ground = GetCustomRailSprite(rti, INVALID_TILE, RTSG_GROUND);
+	if (rti->UsesOverlay() && SplitGroundSpriteForOverlay (NULL, &img, &overlay_offset)) {
+		SpriteID ground = GetCustomRailSprite (rti, INVALID_TILE, RTSG_GROUND);
 		DrawSprite (_cur_dpi, img, PAL_NONE, x, y);
 		DrawSprite (_cur_dpi, ground + overlay_offset, PAL_NONE, x, y);
 	} else {
 		DrawSprite (_cur_dpi, img + total_offset, HasBit(img, PALETTE_MODIFIER_COLOUR) ? pal : PAL_NONE, x, y);
 	}
 
-	if (roadtype == ROADTYPE_TRAM) {
+	/* Default waypoint has no railtype specific sprites */
+	DrawRailTileSeqInGUI (_cur_dpi, x, y, t, waypoint ? 0 : total_offset, 0, pal);
+}
+
+void RoadStationPickerDrawSprite (int x, int y, bool bus, bool tram, int image)
+{
+	PaletteID pal = COMPANY_SPRITE_COLOUR(_local_company);
+	const DrawTileSprites *t = GetStationTileLayout (bus ? STATION_BUS : STATION_TRUCK, image);
+
+	SpriteID img = t->ground.sprite;
+	DrawSprite (_cur_dpi, img, HasBit(img, PALETTE_MODIFIER_COLOUR) ? pal : PAL_NONE, x, y);
+
+	if (tram) {
 		DrawSprite (_cur_dpi, SPR_TRAMWAY_TRAM + (t->ground.sprite == SPR_ROAD_PAVED_STRAIGHT_X ? 1 : 0), PAL_NONE, x, y);
 	}
 
-	/* Default waypoint has no railtype specific sprites */
-	DrawRailTileSeqInGUI (_cur_dpi, x, y, t, st == STATION_WAYPOINT ? 0 : total_offset, 0, pal);
+	DrawOrigTileSeqInGUI (_cur_dpi, x, y, t, pal);
 }
 
 static int GetSlopePixelZ_Station(TileIndex tile, uint x, uint y)
