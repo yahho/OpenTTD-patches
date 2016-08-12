@@ -52,7 +52,7 @@ void UpdateStationAcceptance(Station *st, bool show_msg);
 
 const DrawTileSprites *GetStationTileLayout(StationType st, byte gfx);
 
-void RailStationPickerDrawSprite (int x, int y, bool waypoint, RailType railtype, int image);
+void RailStationPickerDrawSprite (BlitArea *dpi, int x, int y, bool waypoint, RailType railtype, int image);
 void RoadStationPickerDrawSprite (int x, int y, bool bus, bool tram, int image);
 
 bool HasStationInUse(StationID station, bool include_company, CompanyID company);

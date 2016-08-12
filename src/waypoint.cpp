@@ -27,7 +27,7 @@
 void DrawWaypointSprite(int x, int y, int stat_id, RailType railtype)
 {
 	if (!DrawStationTile(x, y, railtype, AXIS_X, STAT_CLASS_WAYP, stat_id)) {
-		RailStationPickerDrawSprite (x, y, true, railtype, AXIS_X);
+		RailStationPickerDrawSprite (_cur_dpi, x, y, true, railtype, AXIS_X);
 	}
 }
 

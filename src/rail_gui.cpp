@@ -1101,7 +1101,7 @@ public:
 					int x = ScaleGUITrad(31) + 1;
 					int y = r.bottom - r.top - ScaleGUITrad(31);
 					if (!DrawStationTile(x, y, _cur_railtype, AXIS_X, _railstation.station_class, _railstation.station_type)) {
-						RailStationPickerDrawSprite (x, y, false, _cur_railtype, 2);
+						RailStationPickerDrawSprite (_cur_dpi, x, y, false, _cur_railtype, 2);
 					}
 					_cur_dpi = old_dpi;
 				}
@@ -1115,7 +1115,7 @@ public:
 					int x = ScaleGUITrad(31) + 1;
 					int y = r.bottom - r.top - ScaleGUITrad(31);
 					if (!DrawStationTile(x, y, _cur_railtype, AXIS_Y, _railstation.station_class, _railstation.station_type)) {
-						RailStationPickerDrawSprite (x, y, false, _cur_railtype, 3);
+						RailStationPickerDrawSprite (_cur_dpi, x, y, false, _cur_railtype, 3);
 					}
 					_cur_dpi = old_dpi;
 				}
@@ -1153,7 +1153,7 @@ public:
 					int x = ScaleGUITrad(31) + 1;
 					int y = r.bottom - r.top - ScaleGUITrad(31);
 					if (!DrawStationTile(x, y, _cur_railtype, _railstation.orientation, _railstation.station_class, type)) {
-						RailStationPickerDrawSprite (x, y, false, _cur_railtype, 2 + _railstation.orientation);
+						RailStationPickerDrawSprite (_cur_dpi, x, y, false, _cur_railtype, 2 + _railstation.orientation);
 					}
 					_cur_dpi = old_dpi;
 				}
