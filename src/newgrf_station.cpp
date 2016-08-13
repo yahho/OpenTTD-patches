@@ -777,6 +777,7 @@ void DeallocateSpecFromStation(BaseStation *st, byte specindex)
 
 /**
  * Draw representation of a station tile for GUI purposes.
+ * @param dpi The area to draw on.
  * @param x Position x of image.
  * @param y Position y of image.
  * @param axis Axis.
@@ -785,7 +786,8 @@ void DeallocateSpecFromStation(BaseStation *st, byte specindex)
  * @param station station ID
  * @return True if the tile was drawn (allows for fallback to default graphic)
  */
-bool DrawStationTile(int x, int y, RailType railtype, Axis axis, StationClassID sclass, uint station)
+bool DrawStationTile (BlitArea *dpi, int x, int y, RailType railtype,
+	Axis axis, StationClassID sclass, uint station)
 {
 	const DrawTileSprites *sprites = NULL;
 	const RailtypeInfo *rti = GetRailTypeInfo(railtype);
@@ -843,15 +845,15 @@ bool DrawStationTile(int x, int y, RailType railtype, Axis axis, StationClassID 
 	RailTrackOffset overlay_offset;
 	if (rti->UsesOverlay() && SplitGroundSpriteForOverlay(NULL, &image, &overlay_offset)) {
 		SpriteID ground = GetCustomRailSprite(rti, INVALID_TILE, RTSG_GROUND);
-		DrawSprite (_cur_dpi, image, PAL_NONE, x, y);
-		DrawSprite (_cur_dpi, ground + overlay_offset, PAL_NONE, x, y);
+		DrawSprite (dpi, image, PAL_NONE, x, y);
+		DrawSprite (dpi, ground + overlay_offset, PAL_NONE, x, y);
 	} else {
 		image += HasBit(image, SPRITE_MODIFIER_CUSTOM_SPRITE) ? ground_relocation : total_offset;
 		if (HasBit(pal, SPRITE_MODIFIER_CUSTOM_SPRITE)) pal += ground_relocation;
-		DrawSprite (_cur_dpi, image, GroundSpritePaletteTransform (image, pal, palette), x, y);
+		DrawSprite (dpi, image, GroundSpritePaletteTransform (image, pal, palette), x, y);
 	}
 
-	DrawRailTileSeqInGUI (_cur_dpi, x, y, sprites, total_offset, relocation, palette);
+	DrawRailTileSeqInGUI (dpi, x, y, sprites, total_offset, relocation, palette);
 
 	return true;
 }

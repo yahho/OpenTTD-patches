@@ -1100,7 +1100,7 @@ public:
 					_cur_dpi = &tmp_dpi;
 					int x = ScaleGUITrad(31) + 1;
 					int y = r.bottom - r.top - ScaleGUITrad(31);
-					if (!DrawStationTile(x, y, _cur_railtype, AXIS_X, _railstation.station_class, _railstation.station_type)) {
+					if (!DrawStationTile (_cur_dpi, x, y, _cur_railtype, AXIS_X, _railstation.station_class, _railstation.station_type)) {
 						RailStationPickerDrawSprite (_cur_dpi, x, y, false, _cur_railtype, 2);
 					}
 					_cur_dpi = old_dpi;
@@ -1114,7 +1114,7 @@ public:
 					_cur_dpi = &tmp_dpi;
 					int x = ScaleGUITrad(31) + 1;
 					int y = r.bottom - r.top - ScaleGUITrad(31);
-					if (!DrawStationTile(x, y, _cur_railtype, AXIS_Y, _railstation.station_class, _railstation.station_type)) {
+					if (!DrawStationTile (_cur_dpi, x, y, _cur_railtype, AXIS_Y, _railstation.station_class, _railstation.station_type)) {
 						RailStationPickerDrawSprite (_cur_dpi, x, y, false, _cur_railtype, 3);
 					}
 					_cur_dpi = old_dpi;
@@ -1152,7 +1152,7 @@ public:
 					_cur_dpi = &tmp_dpi;
 					int x = ScaleGUITrad(31) + 1;
 					int y = r.bottom - r.top - ScaleGUITrad(31);
-					if (!DrawStationTile(x, y, _cur_railtype, _railstation.orientation, _railstation.station_class, type)) {
+					if (!DrawStationTile (_cur_dpi, x, y, _cur_railtype, _railstation.orientation, _railstation.station_class, type)) {
 						RailStationPickerDrawSprite (_cur_dpi, x, y, false, _cur_railtype, 2 + _railstation.orientation);
 					}
 					_cur_dpi = old_dpi;
@@ -1817,7 +1817,7 @@ struct BuildRailWaypointWindow : PickerWindowBase {
 
 				int x = r.left + 1 + ScaleGUITrad(31);
 				int y = r.bottom - ScaleGUITrad(31);
-				if (!DrawStationTile (x, y, _cur_railtype, AXIS_X, STAT_CLASS_WAYP, type)) {
+				if (!DrawStationTile (_cur_dpi, x, y, _cur_railtype, AXIS_X, STAT_CLASS_WAYP, type)) {
 					RailStationPickerDrawSprite (_cur_dpi, x, y, true, _cur_railtype, AXIS_X);
 				}
 
