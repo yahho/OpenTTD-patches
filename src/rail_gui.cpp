@@ -1096,28 +1096,22 @@ public:
 			case WID_BRAS_PLATFORM_DIR_X:
 				/* Set up a clipping area for the '/' station preview */
 				if (FillDrawPixelInfo (_cur_dpi, &tmp_dpi, r.left, r.top, r.right - r.left + 1, r.bottom - r.top + 1)) {
-					DrawPixelInfo *old_dpi = _cur_dpi;
-					_cur_dpi = &tmp_dpi;
 					int x = ScaleGUITrad(31) + 1;
 					int y = r.bottom - r.top - ScaleGUITrad(31);
-					if (!DrawStationTile (_cur_dpi, x, y, _cur_railtype, AXIS_X, _railstation.station_class, _railstation.station_type)) {
-						RailStationPickerDrawSprite (_cur_dpi, x, y, false, _cur_railtype, 2);
+					if (!DrawStationTile (&tmp_dpi, x, y, _cur_railtype, AXIS_X, _railstation.station_class, _railstation.station_type)) {
+						RailStationPickerDrawSprite (&tmp_dpi, x, y, false, _cur_railtype, 2);
 					}
-					_cur_dpi = old_dpi;
 				}
 				break;
 
 			case WID_BRAS_PLATFORM_DIR_Y:
 				/* Set up a clipping area for the '\' station preview */
 				if (FillDrawPixelInfo (_cur_dpi, &tmp_dpi, r.left, r.top, r.right - r.left + 1, r.bottom - r.top + 1)) {
-					DrawPixelInfo *old_dpi = _cur_dpi;
-					_cur_dpi = &tmp_dpi;
 					int x = ScaleGUITrad(31) + 1;
 					int y = r.bottom - r.top - ScaleGUITrad(31);
-					if (!DrawStationTile (_cur_dpi, x, y, _cur_railtype, AXIS_Y, _railstation.station_class, _railstation.station_type)) {
-						RailStationPickerDrawSprite (_cur_dpi, x, y, false, _cur_railtype, 3);
+					if (!DrawStationTile (&tmp_dpi, x, y, _cur_railtype, AXIS_Y, _railstation.station_class, _railstation.station_type)) {
+						RailStationPickerDrawSprite (&tmp_dpi, x, y, false, _cur_railtype, 3);
 					}
-					_cur_dpi = old_dpi;
 				}
 				break;
 
@@ -1148,14 +1142,11 @@ public:
 
 				/* Set up a clipping area for the station preview. */
 				if (FillDrawPixelInfo (_cur_dpi, &tmp_dpi, r.left, r.top, r.right - r.left + 1, r.bottom - r.top + 1)) {
-					DrawPixelInfo *old_dpi = _cur_dpi;
-					_cur_dpi = &tmp_dpi;
 					int x = ScaleGUITrad(31) + 1;
 					int y = r.bottom - r.top - ScaleGUITrad(31);
-					if (!DrawStationTile (_cur_dpi, x, y, _cur_railtype, _railstation.orientation, _railstation.station_class, type)) {
-						RailStationPickerDrawSprite (_cur_dpi, x, y, false, _cur_railtype, 2 + _railstation.orientation);
+					if (!DrawStationTile (&tmp_dpi, x, y, _cur_railtype, _railstation.orientation, _railstation.station_class, type)) {
+						RailStationPickerDrawSprite (&tmp_dpi, x, y, false, _cur_railtype, 2 + _railstation.orientation);
 					}
-					_cur_dpi = old_dpi;
 				}
 				break;
 			}
