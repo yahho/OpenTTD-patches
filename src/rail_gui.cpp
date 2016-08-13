@@ -1814,7 +1814,12 @@ struct BuildRailWaypointWindow : PickerWindowBase {
 			case WID_BRW_WAYPOINT: {
 				byte type = GB(widget, 16, 16);
 				const StationSpec *statspec = StationClass::Get(STAT_CLASS_WAYP)->GetSpec(type);
-				DrawWaypointSprite(r.left + 1 + ScaleGUITrad(31), r.bottom - ScaleGUITrad(31), type, _cur_railtype);
+
+				int x = r.left + 1 + ScaleGUITrad(31);
+				int y = r.bottom - ScaleGUITrad(31);
+				if (!DrawStationTile (x, y, _cur_railtype, AXIS_X, STAT_CLASS_WAYP, type)) {
+					RailStationPickerDrawSprite (_cur_dpi, x, y, true, _cur_railtype, AXIS_X);
+				}
 
 				if (!IsStationAvailable(statspec)) {
 					GfxFillRect (_cur_dpi, r.left + 1, r.top + 1, r.right - 1, r.bottom - 1, PC_BLACK, FILLRECT_CHECKER);

@@ -17,20 +17,6 @@
 #include "waypoint_base.h"
 #include "station_func.h"
 
-/**
- * Draw a waypoint
- * @param x coordinate
- * @param y coordinate
- * @param stat_id station id
- * @param railtype RailType to use for
- */
-void DrawWaypointSprite(int x, int y, int stat_id, RailType railtype)
-{
-	if (!DrawStationTile(x, y, railtype, AXIS_X, STAT_CLASS_WAYP, stat_id)) {
-		RailStationPickerDrawSprite (_cur_dpi, x, y, true, railtype, AXIS_X);
-	}
-}
-
 void Waypoint::GetTileArea(TileArea *ta, StationType type) const
 {
 	switch (type) {
