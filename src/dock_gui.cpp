@@ -532,12 +532,12 @@ public:
 		int y2 = ScaleGUITrad(33) + 1;
 
 		NWidgetBase *wid_x = this->GetWidget<NWidgetBase> (WID_BDD_X);
-		DrawShipDepotSprite (wid_x->pos_x + x1, wid_x->pos_y + y1, DIAGDIR_NE);
-		DrawShipDepotSprite (wid_x->pos_x + x2, wid_x->pos_y + y2, DIAGDIR_SW);
+		DrawShipDepotSprite (_cur_dpi, wid_x->pos_x + x1, wid_x->pos_y + y1, DIAGDIR_NE);
+		DrawShipDepotSprite (_cur_dpi, wid_x->pos_x + x2, wid_x->pos_y + y2, DIAGDIR_SW);
 
 		NWidgetBase *wid_y = this->GetWidget<NWidgetBase> (WID_BDD_Y);
-		DrawShipDepotSprite (wid_y->pos_x + x2, wid_y->pos_y + y1, DIAGDIR_NW);
-		DrawShipDepotSprite (wid_y->pos_x + x1, wid_y->pos_y + y2, DIAGDIR_SE);
+		DrawShipDepotSprite (_cur_dpi, wid_y->pos_x + x2, wid_y->pos_y + y1, DIAGDIR_NW);
+		DrawShipDepotSprite (_cur_dpi, wid_y->pos_x + x1, wid_y->pos_y + y2, DIAGDIR_SE);
 	}
 
 	virtual void OnClick(Point pt, int widget, int click_count)
