@@ -153,6 +153,7 @@ bool InitBlitArea (const BlitArea *o, BlitArea *n, int left, int top, int width,
 /* window.cpp */
 void DrawOverlappedWindowForAll(int left, int top, int right, int bottom);
 
+void SetMouseCursorBusy(bool busy);
 void SetMouseCursor(CursorID cursor, PaletteID pal);
 void SetAnimatedMouseCursor(const AnimCursor *table);
 void CursorTick();
