@@ -320,18 +320,19 @@ static void DrawRoadDepot(TileInfo *ti)
 
 /**
  * Draw the road depot sprite.
+ * @param dpi The area to draw on.
  * @param x   The x offset to draw at.
  * @param y   The y offset to draw at.
  * @param dir The direction the depot must be facing.
  * @param rt  The road type of the depot to draw.
  */
-void DrawRoadDepotSprite(int x, int y, DiagDirection dir, RoadType rt)
+void DrawRoadDepotSprite (BlitArea *dpi, int x, int y, DiagDirection dir, RoadType rt)
 {
 	PaletteID palette = COMPANY_SPRITE_COLOUR(_local_company);
 	const DrawTileSprites *dts = (rt == ROADTYPE_TRAM) ? &_tram_depot[dir] : &_road_depot[dir];
 
-	DrawSprite (_cur_dpi, dts->ground.sprite, PAL_NONE, x, y);
-	DrawOrigTileSeqInGUI (_cur_dpi, x, y, dts, palette);
+	DrawSprite (dpi, dts->ground.sprite, PAL_NONE, x, y);
+	DrawOrigTileSeqInGUI (dpi, x, y, dts, palette);
 }
 
 static void DrawTile_Misc(TileInfo *ti)
