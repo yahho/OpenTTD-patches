@@ -1694,7 +1694,7 @@ struct BuildRailDepotWindow : public PickerWindowBase {
 	{
 		if (!IsInsideMM(widget, WID_BRAD_DEPOT_NE, WID_BRAD_DEPOT_NW + 1)) return;
 
-		DrawTrainDepotSprite(r.left + 1 + ScaleGUITrad(31), r.bottom - ScaleGUITrad(31), widget - WID_BRAD_DEPOT_NE + DIAGDIR_NE, _cur_railtype);
+		DrawTrainDepotSprite (_cur_dpi, r.left + 1 + ScaleGUITrad(31), r.bottom - ScaleGUITrad(31), widget - WID_BRAD_DEPOT_NE + DIAGDIR_NE, _cur_railtype);
 	}
 
 	virtual void OnClick(Point pt, int widget, int click_count)
