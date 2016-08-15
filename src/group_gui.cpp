@@ -633,8 +633,8 @@ public:
 
 				this->vehicle_sel = v->index;
 
-				int image = v->GetImage(_current_text_dir == TD_RTL ? DIR_E : DIR_W, EIT_IN_LIST);
-				SetPointerMode (POINTER_DRAG, this, image, GetVehiclePalette(v));
+				SetPointerMode (POINTER_DRAG, this, SPR_CURSOR_MOUSE);
+				SetMouseCursorVehicle(v, EIT_IN_LIST);
 				_cursor.vehchain = true;
 
 				this->SetDirty();

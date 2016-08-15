@@ -524,16 +524,12 @@ struct DepotWindow : Window {
 					this->sel = INVALID_VEHICLE;
 					TrainDepotMoveVehicle(v, sel, gdvp.head);
 				} else if (v != NULL) {
-					bool rtl = _current_text_dir == TD_RTL;
-					int image = v->GetImage(rtl ? DIR_E : DIR_W, EIT_IN_DEPOT);
-					SetPointerMode (POINTER_DRAG, this, image, GetVehiclePalette(v));
+					SetPointerMode (POINTER_DRAG, this, SPR_CURSOR_MOUSE);
+					SetMouseCursorVehicle(v, EIT_IN_DEPOT);
+					_cursor.vehchain = _ctrl_pressed;
 
 					this->sel = v->index;
 					this->SetDirty();
-
-					_cursor.sprite_pos[0].x = v->IsGroundVehicle() ? (16 - GroundVehicleBase::From(v)->gcache.cached_veh_length * 2) * (rtl ? -1 : 1) : 0;
-					_cursor.vehchain = _ctrl_pressed;
-					UpdateCursorSize();
 				}
 				break;
 			}
