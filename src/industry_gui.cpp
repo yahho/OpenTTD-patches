@@ -1702,13 +1702,13 @@ struct CargoesField {
 					if (other_right[i] != INVALID_CARGO) {
 						const CargoSpec *csp = CargoSpec::Get(other_right[i]);
 						int xp = xpos + industry_width + CARGO_STUB_WIDTH;
-						DrawHorConnection(xpos + industry_width, xp - 1, ypos1, csp);
+						DrawHorConnection (_cur_dpi, xpos + industry_width, xp - 1, ypos1, csp);
 						GfxDrawLine (_cur_dpi, xp, ypos1, xp, ypos1 + FONT_HEIGHT_NORMAL - 1, CARGO_LINE_COLOUR);
 					}
 					if (other_left[i] != INVALID_CARGO) {
 						const CargoSpec *csp = CargoSpec::Get(other_left[i]);
 						int xp = xpos - CARGO_STUB_WIDTH;
-						DrawHorConnection(xp + 1, xpos - 1, ypos1, csp);
+						DrawHorConnection (_cur_dpi, xp + 1, xpos - 1, ypos1, csp);
 						GfxDrawLine (_cur_dpi, xp, ypos1, xp, ypos1 + FONT_HEIGHT_NORMAL - 1, CARGO_LINE_COLOUR);
 					}
 					ypos1 += FONT_HEIGHT_NORMAL + VERT_CARGO_SPACE;
@@ -1749,10 +1749,10 @@ struct CargoesField {
 						const CargoSpec *csp = CargoSpec::Get(this->u.cargo.vertical_cargoes[col]);
 						for (; col > 0; col--) {
 							int lf = cargo_base + col * HOR_CARGO_WIDTH + (col - 1) * HOR_CARGO_SPACE;
-							DrawHorConnection(lf, lf + HOR_CARGO_SPACE - dx, ypos, csp);
+							DrawHorConnection (_cur_dpi, lf, lf + HOR_CARGO_SPACE - dx, ypos, csp);
 							dx = 1;
 						}
-						DrawHorConnection(xpos, cargo_base - dx, ypos, csp);
+						DrawHorConnection (_cur_dpi, xpos, cargo_base - dx, ypos, csp);
 					}
 					if (hor_right[i] != INVALID_CARGO) {
 						int col = hor_right[i];
@@ -1760,10 +1760,10 @@ struct CargoesField {
 						const CargoSpec *csp = CargoSpec::Get(this->u.cargo.vertical_cargoes[col]);
 						for (; col < this->u.cargo.num_cargoes - 1; col++) {
 							int lf = cargo_base + (col + 1) * HOR_CARGO_WIDTH + col * HOR_CARGO_SPACE;
-							DrawHorConnection(lf + dx - 1, lf + HOR_CARGO_SPACE - 1, ypos, csp);
+							DrawHorConnection (_cur_dpi, lf + dx - 1, lf + HOR_CARGO_SPACE - 1, ypos, csp);
 							dx = 1;
 						}
-						DrawHorConnection(cargo_base + col * HOR_CARGO_SPACE + (col + 1) * HOR_CARGO_WIDTH - 1 + dx, xpos + CARGO_FIELD_WIDTH - 1, ypos, csp);
+						DrawHorConnection (_cur_dpi, cargo_base + col * HOR_CARGO_SPACE + (col + 1) * HOR_CARGO_WIDTH - 1 + dx, xpos + CARGO_FIELD_WIDTH - 1, ypos, csp);
 					}
 					ypos += FONT_HEIGHT_NORMAL + VERT_CARGO_SPACE;
 				}
@@ -1869,16 +1869,18 @@ struct CargoesField {
 private:
 	/**
 	 * Draw a horizontal cargo connection.
+	 * @param dpi   Area to draw on.
 	 * @param left  Left-most coordinate to draw.
 	 * @param right Right-most coordinate to draw.
 	 * @param top   Top coordinate of the cargo connection.
 	 * @param csp   Cargo to draw.
 	 */
-	static void DrawHorConnection(int left, int right, int top, const CargoSpec *csp)
+	static void DrawHorConnection (BlitArea *dpi,
+		int left, int right, int top, const CargoSpec *csp)
 	{
-		GfxDrawLine (_cur_dpi, left, top, right, top, CARGO_LINE_COLOUR);
-		GfxFillRect (_cur_dpi, left, top + 1, right, top + FONT_HEIGHT_NORMAL - 2, csp->legend_colour, FILLRECT_OPAQUE);
-		GfxDrawLine (_cur_dpi, left, top + FONT_HEIGHT_NORMAL - 1, right, top + FONT_HEIGHT_NORMAL - 1, CARGO_LINE_COLOUR);
+		GfxDrawLine (dpi, left, top, right, top, CARGO_LINE_COLOUR);
+		GfxFillRect (dpi, left, top + 1, right, top + FONT_HEIGHT_NORMAL - 2, csp->legend_colour, FILLRECT_OPAQUE);
+		GfxDrawLine (dpi, left, top + FONT_HEIGHT_NORMAL - 1, right, top + FONT_HEIGHT_NORMAL - 1, CARGO_LINE_COLOUR);
 	}
 };
 
