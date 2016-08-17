@@ -120,7 +120,7 @@ void DrawTrainImage(const Train *v, int left, int right, int y, VehicleID select
 	if (highlight_l != highlight_r) {
 		/* Draw the highlight. Now done after drawing all the engines, as
 		 * the next engine after the highlight could overlap it. */
-		DrawFrameRect(highlight_l, 0, highlight_r, height - 1, COLOUR_WHITE, FR_BORDERONLY);
+		DrawFrameRect (_cur_dpi, highlight_l, 0, highlight_r, height - 1, COLOUR_WHITE, FR_BORDERONLY);
 	}
 
 	_cur_dpi = old_dpi;

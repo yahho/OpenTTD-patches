@@ -2075,7 +2075,7 @@ struct NetworkJoinStatusWindow : Window {
 		}
 
 		/* Draw nice progress bar :) */
-		DrawFrameRect(r.left + 20, r.top + 5, (int)((this->width - 20) * progress / 100), r.top + 15, COLOUR_MAUVE, FR_NONE);
+		DrawFrameRect (_cur_dpi, r.left + 20, r.top + 5, (int)((this->width - 20) * progress / 100), r.top + 15, COLOUR_MAUVE, FR_NONE);
 	}
 
 	virtual void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize)

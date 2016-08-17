@@ -46,7 +46,7 @@ void DrawShipImage(const Vehicle *v, int left, int right, int y, VehicleID selec
 	if (v->index == selection) {
 		x += x_offs;
 		y += UnScaleGUI(real_sprite->y_offs);
-		DrawFrameRect(x - 1, y - 1, x + width + 1, y + UnScaleGUI(real_sprite->height) + 1, COLOUR_WHITE, FR_BORDERONLY);
+		DrawFrameRect (_cur_dpi, x - 1, y - 1, x + width + 1, y + UnScaleGUI(real_sprite->height) + 1, COLOUR_WHITE, FR_BORDERONLY);
 	}
 }
 

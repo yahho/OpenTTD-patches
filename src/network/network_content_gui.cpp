@@ -176,7 +176,7 @@ BaseNetworkContentDownloadStatusWindow::~BaseNetworkContentDownloadStatusWindow(
 	if (widget != WID_NCDS_BACKGROUND) return;
 
 	/* Draw nice progress bar :) */
-	DrawFrameRect(r.left + 20, r.top + 4, r.left + 20 + (int)((this->width - 40LL) * this->downloaded_bytes / this->total_bytes), r.top + 14, COLOUR_MAUVE, FR_NONE);
+	DrawFrameRect (_cur_dpi, r.left + 20, r.top + 4, r.left + 20 + (int)((this->width - 40LL) * this->downloaded_bytes / this->total_bytes), r.top + 14, COLOUR_MAUVE, FR_NONE);
 
 	int y = r.top + 20;
 	SetDParam(0, this->downloaded_bytes);

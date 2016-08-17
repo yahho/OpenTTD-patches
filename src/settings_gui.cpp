@@ -2451,8 +2451,8 @@ void DrawArrowButtons(int x, int y, Colours button_colour, byte state, bool clic
 	int colour = _colour_gradient[button_colour][2];
 	Dimension dim = NWidgetScrollbar::GetHorizontalDimension();
 
-	DrawFrameRect(x,             y, x + dim.width - 1,             y + dim.height - 1, button_colour, (state == 1) ? FR_LOWERED : FR_NONE);
-	DrawFrameRect(x + dim.width, y, x + dim.width + dim.width - 1, y + dim.height - 1, button_colour, (state == 2) ? FR_LOWERED : FR_NONE);
+	DrawFrameRect (_cur_dpi, x,             y, x + dim.width - 1,             y + dim.height - 1, button_colour, (state == 1) ? FR_LOWERED : FR_NONE);
+	DrawFrameRect (_cur_dpi, x + dim.width, y, x + dim.width + dim.width - 1, y + dim.height - 1, button_colour, (state == 2) ? FR_LOWERED : FR_NONE);
 	DrawSprite (_cur_dpi, SPR_ARROW_LEFT, PAL_NONE, x + WD_IMGBTN_LEFT, y + WD_IMGBTN_TOP);
 	DrawSprite (_cur_dpi, SPR_ARROW_RIGHT, PAL_NONE, x + WD_IMGBTN_LEFT + dim.width, y + WD_IMGBTN_TOP);
 
@@ -2478,7 +2478,7 @@ void DrawDropDownButton(int x, int y, Colours button_colour, bool state, bool cl
 {
 	int colour = _colour_gradient[button_colour][2];
 
-	DrawFrameRect(x, y, x + SETTING_BUTTON_WIDTH - 1, y + SETTING_BUTTON_HEIGHT - 1, button_colour, state ? FR_LOWERED : FR_NONE);
+	DrawFrameRect (_cur_dpi, x, y, x + SETTING_BUTTON_WIDTH - 1, y + SETTING_BUTTON_HEIGHT - 1, button_colour, state ? FR_LOWERED : FR_NONE);
 	DrawSprite (_cur_dpi, SPR_ARROW_DOWN, PAL_NONE, x + (SETTING_BUTTON_WIDTH - NWidgetScrollbar::GetVerticalDimension().width) / 2 + state, y + 2 + state);
 
 	if (!clickable) {
@@ -2496,7 +2496,7 @@ void DrawDropDownButton(int x, int y, Colours button_colour, bool state, bool cl
 void DrawBoolButton(int x, int y, bool state, bool clickable)
 {
 	static const Colours _bool_ctabs[2][2] = {{COLOUR_CREAM, COLOUR_RED}, {COLOUR_DARK_GREEN, COLOUR_GREEN}};
-	DrawFrameRect(x, y, x + SETTING_BUTTON_WIDTH - 1, y + SETTING_BUTTON_HEIGHT - 1, _bool_ctabs[state][clickable], state ? FR_LOWERED : FR_NONE);
+	DrawFrameRect (_cur_dpi, x, y, x + SETTING_BUTTON_WIDTH - 1, y + SETTING_BUTTON_HEIGHT - 1, _bool_ctabs[state][clickable], state ? FR_LOWERED : FR_NONE);
 }
 
 struct CustomCurrencyWindow : Window {

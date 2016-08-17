@@ -596,7 +596,7 @@ struct MusicWindow : public Window {
 			}
 
 			case WID_M_MUSIC_VOL: case WID_M_EFFECT_VOL: {
-				DrawFrameRect(r.left, r.top + 2, r.right, r.bottom - 2, COLOUR_GREY, FR_LOWERED);
+				DrawFrameRect (_cur_dpi, r.left, r.top + 2, r.right, r.bottom - 2, COLOUR_GREY, FR_LOWERED);
 				byte volume = (widget == WID_M_MUSIC_VOL) ? _settings_client.music.music_vol : _settings_client.music.effect_vol;
 				int x = (volume * (r.right - r.left) / 127);
 				if (_current_text_dir == TD_RTL) {
@@ -604,7 +604,7 @@ struct MusicWindow : public Window {
 				} else {
 					x += r.left;
 				}
-				DrawFrameRect(x, r.top, x + slider_width, r.bottom, COLOUR_GREY, FR_NONE);
+				DrawFrameRect (_cur_dpi, x, r.top, x + slider_width, r.bottom, COLOUR_GREY, FR_NONE);
 				break;
 			}
 		}

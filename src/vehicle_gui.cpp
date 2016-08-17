@@ -801,7 +801,7 @@ struct RefitWindow : public Window {
 								}
 
 								if (left != right) {
-									DrawFrameRect(left, r.top + WD_FRAMERECT_TOP, right, r.top + WD_FRAMERECT_TOP + ScaleGUITrad(14) - 1, COLOUR_WHITE, FR_BORDERONLY);
+									DrawFrameRect (_cur_dpi, left, r.top + WD_FRAMERECT_TOP, right, r.top + WD_FRAMERECT_TOP + ScaleGUITrad(14) - 1, COLOUR_WHITE, FR_BORDERONLY);
 								}
 
 								left = INT32_MIN;

@@ -20,6 +20,7 @@
 #include "core/smallvec_type.hpp"
 #include "core/smallmap_type.hpp"
 #include "string.h"
+#include "gfx_func.h"
 
 /**
  * Flags to describe the look of the frame
@@ -141,7 +142,7 @@ enum WidgetDrawDistances {
 };
 
 /* widget.cpp */
-void DrawFrameRect(int left, int top, int right, int bottom, Colours colour, FrameFlags flags);
+void DrawFrameRect (BlitArea *dpi, int left, int top, int right, int bottom, Colours colour, FrameFlags flags);
 void DrawCaption(const Rect &r, Colours colour, Owner owner, StringID str);
 
 /* window.cpp */

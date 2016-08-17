@@ -2246,9 +2246,9 @@ struct ScanProgressWindow : public Window {
 		switch (widget) {
 			case WID_SP_PROGRESS_BAR: {
 				/* Draw the % complete with a bar and a text */
-				DrawFrameRect(r.left, r.top, r.right, r.bottom, COLOUR_GREY, FR_BORDERONLY);
+				DrawFrameRect (_cur_dpi, r.left, r.top, r.right, r.bottom, COLOUR_GREY, FR_BORDERONLY);
 				uint percent = scanned * 100 / max(1U, _settings_client.gui.last_newgrf_count);
-				DrawFrameRect(r.left + 1, r.top + 1, (int)((r.right - r.left - 2) * percent / 100) + r.left + 1, r.bottom - 1, COLOUR_MAUVE, FR_NONE);
+				DrawFrameRect (_cur_dpi, r.left + 1, r.top + 1, (int)((r.right - r.left - 2) * percent / 100) + r.left + 1, r.bottom - 1, COLOUR_MAUVE, FR_NONE);
 				SetDParam(0, percent);
 				DrawString (_cur_dpi, r.left, r.right, r.top + 5, STR_GENERATION_PROGRESS, TC_FROMSTRING, SA_HOR_CENTER);
 				break;

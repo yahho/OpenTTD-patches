@@ -1332,7 +1332,7 @@ static inline void ViewportDrawString (ZoomLevel zoom, int x, int y,
 		} else {
 			/* Draw the rectangle if 'transparent station signs' is off,
 			 * or if we are drawing a general text sign (STR_WHITE_SIGN). */
-			DrawFrameRect(
+			DrawFrameRect (_cur_dpi,
 				x0, y0, x1, y0 + VPSM_TOP + (small ? FONT_HEIGHT_SMALL : FONT_HEIGHT_NORMAL) + VPSM_BOTTOM, colour,
 				IsTransparencySet(TO_SIGNS) ? FR_TRANSPARENT : FR_NONE
 			);
