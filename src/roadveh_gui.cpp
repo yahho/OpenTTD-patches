@@ -132,13 +132,10 @@ void DrawRoadVehImage(const Vehicle *v, int left, int right, int y, VehicleID se
 	Direction dir = rtl ? DIR_E : DIR_W;
 	const RoadVehicle *u = RoadVehicle::From(v);
 
-	DrawPixelInfo tmp_dpi, *old_dpi;
+	DrawPixelInfo tmp_dpi;
 	int max_width = right - left + 1;
 
 	if (!FillDrawPixelInfo (_cur_dpi, &tmp_dpi, left, y, max_width, ScaleGUITrad(14))) return;
-
-	old_dpi = _cur_dpi;
-	_cur_dpi = &tmp_dpi;
 
 	int px = rtl ? max_width + skip : -skip;
 	for (; u != NULL && (rtl ? px > 0 : px < max_width); u = u->Next()) {
@@ -147,15 +144,13 @@ void DrawRoadVehImage(const Vehicle *v, int left, int right, int y, VehicleID se
 
 		if (rtl ? px + width > 0 : px - width < max_width) {
 			PaletteID pal = (u->vehstatus & VS_CRASHED) ? PALETTE_CRASH : GetVehiclePalette(u);
-			DrawSprite (_cur_dpi, u->GetImage (dir, image_type), pal, px + (rtl ? -offset.x : offset.x), ScaleGUITrad(6) + offset.y);
+			DrawSprite (&tmp_dpi, u->GetImage (dir, image_type), pal, px + (rtl ? -offset.x : offset.x), ScaleGUITrad(6) + offset.y);
 		}
 
 		px += rtl ? -width : width;
 	}
 
 	if (v->index == selection) {
-		DrawFrameRect (_cur_dpi, (rtl ? px : 0), 0, (rtl ? max_width : px) - 1, ScaleGUITrad(13) - 1, COLOUR_WHITE, FR_BORDERONLY);
+		DrawFrameRect (&tmp_dpi, (rtl ? px : 0), 0, (rtl ? max_width : px) - 1, ScaleGUITrad(13) - 1, COLOUR_WHITE, FR_BORDERONLY);
 	}
-
-	_cur_dpi = old_dpi;
 }
