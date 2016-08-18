@@ -21,12 +21,13 @@
 
 /**
  * Highlight the position where a rail vehicle is dragged over by drawing a light gray background.
+ * @param dpi       The area to draw on.
  * @param px        The current x position to draw from.
  * @param max_width The maximum space available to draw.
  * @param selection Selected vehicle that is dragged.
  * @return The width of the highlight mark.
  */
-static int HighlightDragPosition(int px, int max_width, VehicleID selection)
+static int HighlightDragPosition (BlitArea *dpi, int px, int max_width, VehicleID selection)
 {
 	bool rtl = _current_text_dir == TD_RTL;
 
@@ -41,7 +42,7 @@ static int HighlightDragPosition(int px, int max_width, VehicleID selection)
 
 	if (drag_hlight_right <= drag_hlight_left) return 0;
 
-	GfxFillRect (_cur_dpi, drag_hlight_left + WD_FRAMERECT_LEFT, WD_FRAMERECT_TOP + 1,
+	GfxFillRect (dpi, drag_hlight_left + WD_FRAMERECT_LEFT, WD_FRAMERECT_TOP + 1,
 			drag_hlight_right - WD_FRAMERECT_RIGHT, ScaleGUITrad(13) - WD_FRAMERECT_BOTTOM, _colour_gradient[COLOUR_GREY][7]);
 
 	return drag_hlight_right - drag_hlight_left;
@@ -81,7 +82,7 @@ void DrawTrainImage(const Train *v, int left, int right, int y, VehicleID select
 	for (; v != NULL && (rtl ? px > 0 : px < max_width); v = v->Next()) {
 		if (dragging && !drag_at_end_of_train && drag_dest == v->index) {
 			/* Highlight the drag-and-drop destination inside the train. */
-			int drag_hlight_width = HighlightDragPosition(px, max_width, selection);
+			int drag_hlight_width = HighlightDragPosition (_cur_dpi, px, max_width, selection);
 			px += rtl ? -drag_hlight_width : drag_hlight_width;
 		}
 
@@ -113,7 +114,7 @@ void DrawTrainImage(const Train *v, int left, int right, int y, VehicleID select
 
 	if (dragging && drag_at_end_of_train) {
 		/* Highlight the drag-and-drop destination at the end of the train. */
-		HighlightDragPosition(px, max_width, selection);
+		HighlightDragPosition (_cur_dpi, px, max_width, selection);
 	}
 
 	if (highlight_l != highlight_r) {
