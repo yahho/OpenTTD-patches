@@ -63,7 +63,7 @@ void DrawTrainImage(const Train *v, int left, int right, int y, VehicleID select
 	bool rtl = _current_text_dir == TD_RTL;
 	Direction dir = rtl ? DIR_E : DIR_W;
 
-	DrawPixelInfo tmp_dpi, *old_dpi;
+	DrawPixelInfo tmp_dpi;
 	/* Position of highlight box */
 	int highlight_l = 0;
 	int highlight_r = 0;
@@ -72,9 +72,6 @@ void DrawTrainImage(const Train *v, int left, int right, int y, VehicleID select
 
 	if (!FillDrawPixelInfo (_cur_dpi, &tmp_dpi, left, y, max_width, height)) return;
 
-	old_dpi = _cur_dpi;
-	_cur_dpi = &tmp_dpi;
-
 	int px = rtl ? max_width + skip : -skip;
 	bool sel_articulated = false;
 	bool dragging = (drag_dest != INVALID_VEHICLE);
@@ -82,7 +79,7 @@ void DrawTrainImage(const Train *v, int left, int right, int y, VehicleID select
 	for (; v != NULL && (rtl ? px > 0 : px < max_width); v = v->Next()) {
 		if (dragging && !drag_at_end_of_train && drag_dest == v->index) {
 			/* Highlight the drag-and-drop destination inside the train. */
-			int drag_hlight_width = HighlightDragPosition (_cur_dpi, px, max_width, selection);
+			int drag_hlight_width = HighlightDragPosition (&tmp_dpi, px, max_width, selection);
 			px += rtl ? -drag_hlight_width : drag_hlight_width;
 		}
 
@@ -91,7 +88,7 @@ void DrawTrainImage(const Train *v, int left, int right, int y, VehicleID select
 
 		if (rtl ? px + width > 0 : px - width < max_width) {
 			PaletteID pal = (v->vehstatus & VS_CRASHED) ? PALETTE_CRASH : GetVehiclePalette(v);
-			DrawSprite (_cur_dpi, v->GetImage (dir, image_type), pal, px + (rtl ? -offset.x : offset.x), height / 2 + offset.y);
+			DrawSprite (&tmp_dpi, v->GetImage (dir, image_type), pal, px + (rtl ? -offset.x : offset.x), height / 2 + offset.y);
 		}
 
 		if (!v->IsArticulatedPart()) sel_articulated = false;
@@ -114,16 +111,14 @@ void DrawTrainImage(const Train *v, int left, int right, int y, VehicleID select
 
 	if (dragging && drag_at_end_of_train) {
 		/* Highlight the drag-and-drop destination at the end of the train. */
-		HighlightDragPosition (_cur_dpi, px, max_width, selection);
+		HighlightDragPosition (&tmp_dpi, px, max_width, selection);
 	}
 
 	if (highlight_l != highlight_r) {
 		/* Draw the highlight. Now done after drawing all the engines, as
 		 * the next engine after the highlight could overlap it. */
-		DrawFrameRect (_cur_dpi, highlight_l, 0, highlight_r, height - 1, COLOUR_WHITE, FR_BORDERONLY);
+		DrawFrameRect (&tmp_dpi, highlight_l, 0, highlight_r, height - 1, COLOUR_WHITE, FR_BORDERONLY);
 	}
-
-	_cur_dpi = old_dpi;
 }
 
 /** Helper struct for the cargo details information */
