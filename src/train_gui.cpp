@@ -38,14 +38,13 @@ static int HighlightDragPosition(int px, int max_width, VehicleID selection)
 
 	int drag_hlight_left = rtl ? max(px -dragged_width, 0) : px;
 	int drag_hlight_right = rtl ? px : min(px + dragged_width, max_width);
-	int drag_hlight_width = max(drag_hlight_right - drag_hlight_left, 0);
 
-	if (drag_hlight_width > 0) {
-		GfxFillRect (_cur_dpi, drag_hlight_left + WD_FRAMERECT_LEFT, WD_FRAMERECT_TOP + 1,
-				drag_hlight_right - WD_FRAMERECT_RIGHT, ScaleGUITrad(13) - WD_FRAMERECT_BOTTOM, _colour_gradient[COLOUR_GREY][7]);
-	}
+	if (drag_hlight_right <= drag_hlight_left) return 0;
 
-	return drag_hlight_width;
+	GfxFillRect (_cur_dpi, drag_hlight_left + WD_FRAMERECT_LEFT, WD_FRAMERECT_TOP + 1,
+			drag_hlight_right - WD_FRAMERECT_RIGHT, ScaleGUITrad(13) - WD_FRAMERECT_BOTTOM, _colour_gradient[COLOUR_GREY][7]);
+
+	return drag_hlight_right - drag_hlight_left;
 }
 
 /**
