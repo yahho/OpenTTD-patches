@@ -346,6 +346,7 @@ static inline void DrawVerticalScrollbar (BlitArea *dpi, const Rect &r,
 
 /**
  * Draw a horizontal scrollbar.
+ * @param dpi           The area to draw on.
  * @param r             Rectangle of the scrollbar widget.
  * @param colour        Colour of the scrollbar widget.
  * @param left_clicked  Left-arrow is clicked.
@@ -353,33 +354,35 @@ static inline void DrawVerticalScrollbar (BlitArea *dpi, const Rect &r,
  * @param right_clicked Right-arrow is clicked.
  * @param scrollbar     Scrollbar size, offset, and capacity information.
  */
-static inline void DrawHorizontalScrollbar(const Rect &r, Colours colour, bool left_clicked, bool bar_dragged, bool right_clicked, const Scrollbar *scrollbar)
+static inline void DrawHorizontalScrollbar (BlitArea *dpi, const Rect &r,
+	Colours colour, bool left_clicked, bool bar_dragged, bool right_clicked,
+	const Scrollbar *scrollbar)
 {
 	int centre = (r.bottom - r.top) / 2;
 	int width = NWidgetScrollbar::GetHorizontalDimension().width;
 
-	DrawFrameRect (_cur_dpi, r.left, r.top, r.left + width - 1, r.bottom, colour, left_clicked ? FR_LOWERED : FR_NONE);
-	DrawSprite (_cur_dpi, SPR_ARROW_LEFT, PAL_NONE, r.left + 1, r.top + 1);
+	DrawFrameRect (dpi, r.left, r.top, r.left + width - 1, r.bottom, colour, left_clicked ? FR_LOWERED : FR_NONE);
+	DrawSprite (dpi, SPR_ARROW_LEFT, PAL_NONE, r.left + 1, r.top + 1);
 
-	DrawFrameRect (_cur_dpi, r.right - (width - 1), r.top, r.right, r.bottom, colour, right_clicked ? FR_LOWERED : FR_NONE);
-	DrawSprite (_cur_dpi, SPR_ARROW_RIGHT, PAL_NONE, r.right - (width - 2), r.top + 1);
+	DrawFrameRect (dpi, r.right - (width - 1), r.top, r.right, r.bottom, colour, right_clicked ? FR_LOWERED : FR_NONE);
+	DrawSprite (dpi, SPR_ARROW_RIGHT, PAL_NONE, r.right - (width - 2), r.top + 1);
 
 	int c1 = _colour_gradient[colour & 0xF][3];
 	int c2 = _colour_gradient[colour & 0xF][7];
 
 	/* draw "shaded" background */
-	GfxFillRect (_cur_dpi, r.left + width, r.top, r.right - width, r.bottom, c2);
-	GfxFillRect (_cur_dpi, r.left + width, r.top, r.right - width, r.bottom, c1, FILLRECT_CHECKER);
+	GfxFillRect (dpi, r.left + width, r.top, r.right - width, r.bottom, c2);
+	GfxFillRect (dpi, r.left + width, r.top, r.right - width, r.bottom, c1, FILLRECT_CHECKER);
 
 	/* draw shaded lines */
-	GfxFillRect (_cur_dpi, r.left + width, r.top + centre - 3, r.right - width, r.top + centre - 3, c1);
-	GfxFillRect (_cur_dpi, r.left + width, r.top + centre - 2, r.right - width, r.top + centre - 2, c2);
-	GfxFillRect (_cur_dpi, r.left + width, r.top + centre + 2, r.right - width, r.top + centre + 2, c1);
-	GfxFillRect (_cur_dpi, r.left + width, r.top + centre + 3, r.right - width, r.top + centre + 3, c2);
+	GfxFillRect (dpi, r.left + width, r.top + centre - 3, r.right - width, r.top + centre - 3, c1);
+	GfxFillRect (dpi, r.left + width, r.top + centre - 2, r.right - width, r.top + centre - 2, c2);
+	GfxFillRect (dpi, r.left + width, r.top + centre + 2, r.right - width, r.top + centre + 2, c1);
+	GfxFillRect (dpi, r.left + width, r.top + centre + 3, r.right - width, r.top + centre + 3, c2);
 
 	/* draw actual scrollbar */
 	Point pt = HandleScrollbarHittest(scrollbar, r.left, r.right, true);
-	DrawFrameRect (_cur_dpi, pt.x, r.top, pt.y, r.bottom, colour, bar_dragged ? FR_LOWERED : FR_NONE);
+	DrawFrameRect (dpi, pt.x, r.top, pt.y, r.bottom, colour, bar_dragged ? FR_LOWERED : FR_NONE);
 }
 
 /**
@@ -1933,7 +1936,7 @@ void NWidgetScrollbar::Draw(const Window *w)
 	bool middle_lowered = !(this->disp_flags & ND_SCROLLBAR_BTN) && w->scrolling_scrollbar == this->index;
 
 	if (this->type == NWID_HSCROLLBAR) {
-		DrawHorizontalScrollbar(r, this->colour, up_lowered, middle_lowered, down_lowered, this);
+		DrawHorizontalScrollbar (_cur_dpi, r, this->colour, up_lowered, middle_lowered, down_lowered, this);
 	} else {
 		DrawVerticalScrollbar (_cur_dpi, r, this->colour, up_lowered, middle_lowered, down_lowered, this);
 	}
