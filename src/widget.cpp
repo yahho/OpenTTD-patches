@@ -243,6 +243,7 @@ static inline void DrawLabel (BlitArea *dpi, const Rect &r, StringID str, bool v
 
 /**
  * Draw a matrix widget.
+ * @param dpi     The area to draw on.
  * @param r       Rectangle of the matrix background.
  * @param colour  Colour of the background.
  * @param clicked Matrix is rendered lowered.
@@ -250,9 +251,10 @@ static inline void DrawLabel (BlitArea *dpi, const Rect &r, StringID str, bool v
  * @param resize_x Matrix resize unit size.
  * @param resize_y Matrix resize unit size.
  */
-static inline void DrawMatrix(const Rect &r, Colours colour, bool clicked, uint16 data, uint resize_x, uint resize_y)
+static inline void DrawMatrix (BlitArea *dpi, const Rect &r,
+	Colours colour, bool clicked, uint16 data, uint resize_x, uint resize_y)
 {
-	DrawFrameRect (_cur_dpi, r.left, r.top, r.right, r.bottom, colour, (clicked) ? FR_LOWERED : FR_NONE);
+	DrawFrameRect (dpi, r.left, r.top, r.right, r.bottom, colour, (clicked) ? FR_LOWERED : FR_NONE);
 
 	int num_columns = GB(data, MAT_COL_START, MAT_COL_BITS);  // Lower 8 bits of the widget data: Number of columns in the matrix.
 	int column_width; // Width of a single column in the matrix.
@@ -277,13 +279,13 @@ static inline void DrawMatrix(const Rect &r, Colours colour, bool clicked, uint1
 	int x = r.left;
 	for (int ctr = num_columns; ctr > 1; ctr--) {
 		x += column_width;
-		GfxFillRect (_cur_dpi, x, r.top + 1, x, r.bottom - 1, col);
+		GfxFillRect (dpi, x, r.top + 1, x, r.bottom - 1, col);
 	}
 
 	x = r.top;
 	for (int ctr = num_rows; ctr > 1; ctr--) {
 		x += row_height;
-		GfxFillRect (_cur_dpi, r.left + 1, x, r.right - 1, x, col);
+		GfxFillRect (dpi, r.left + 1, x, r.right - 1, x, col);
 	}
 
 	col = _colour_gradient[colour & 0xF][4];
@@ -291,13 +293,13 @@ static inline void DrawMatrix(const Rect &r, Colours colour, bool clicked, uint1
 	x = r.left - 1;
 	for (int ctr = num_columns; ctr > 1; ctr--) {
 		x += column_width;
-		GfxFillRect (_cur_dpi, x, r.top + 1, x, r.bottom - 1, col);
+		GfxFillRect (dpi, x, r.top + 1, x, r.bottom - 1, col);
 	}
 
 	x = r.top - 1;
 	for (int ctr = num_rows; ctr > 1; ctr--) {
 		x += row_height;
-		GfxFillRect (_cur_dpi, r.left + 1, x, r.right - 1, x, col);
+		GfxFillRect (dpi, r.left + 1, x, r.right - 1, x, col);
 	}
 }
 
@@ -2343,7 +2345,7 @@ void NWidgetLeaf::Draw(const Window *w)
 		}
 
 		case WWT_MATRIX:
-			DrawMatrix(r, this->colour, clicked, this->widget_data, this->resize_x, this->resize_y);
+			DrawMatrix (_cur_dpi, r, this->colour, clicked, this->widget_data, this->resize_x, this->resize_y);
 			break;
 
 		case WWT_EDITBOX: {
