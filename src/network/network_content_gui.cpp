@@ -665,9 +665,9 @@ public:
 		this->DrawWidgets();
 
 		switch (this->content.SortType()) {
-			case WID_NCL_CHECKBOX - WID_NCL_CHECKBOX: this->DrawSortButtonState(WID_NCL_CHECKBOX, arrow); break;
-			case WID_NCL_TYPE     - WID_NCL_CHECKBOX: this->DrawSortButtonState(WID_NCL_TYPE,     arrow); break;
-			case WID_NCL_NAME     - WID_NCL_CHECKBOX: this->DrawSortButtonState(WID_NCL_NAME,     arrow); break;
+			case WID_NCL_CHECKBOX - WID_NCL_CHECKBOX: this->DrawSortButtonState (_cur_dpi, WID_NCL_CHECKBOX, arrow); break;
+			case WID_NCL_TYPE     - WID_NCL_CHECKBOX: this->DrawSortButtonState (_cur_dpi, WID_NCL_TYPE,     arrow); break;
+			case WID_NCL_NAME     - WID_NCL_CHECKBOX: this->DrawSortButtonState (_cur_dpi, WID_NCL_NAME,     arrow); break;
 		}
 	}
 

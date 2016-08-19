@@ -530,10 +530,11 @@ void Window::DrawWidgets() const
 
 /**
  * Draw a sort button's up or down arrow symbol.
+ * @param dpi Area to draw on
  * @param widget Sort button widget
  * @param state State of sort button
  */
-void Window::DrawSortButtonState(int widget, SortButtonState state) const
+void Window::DrawSortButtonState (BlitArea *dpi, int widget, SortButtonState state) const
 {
 	if (state == SBS_OFF) return;
 
@@ -545,7 +546,7 @@ void Window::DrawSortButtonState(int widget, SortButtonState state) const
 	int x = nwid->pos_x + (_current_text_dir == TD_LTR ? nwid->current_x - dim.width : 0);
 	int y = nwid->pos_y + (nwid->current_y - dim.height) / 2;
 
-	DrawSprite (_cur_dpi, state == SBS_DOWN ? SPR_ARROW_DOWN : SPR_ARROW_UP, PAL_NONE, x, y);
+	DrawSprite (dpi, state == SBS_DOWN ? SPR_ARROW_DOWN : SPR_ARROW_UP, PAL_NONE, x, y);
 }
 
 /**

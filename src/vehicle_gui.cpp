@@ -1636,7 +1636,7 @@ public:
 		switch (widget) {
 			case WID_VL_SORT_ORDER:
 				/* draw arrow pointing up/down for ascending/descending sorting */
-				this->DrawSortButtonState(widget, this->vehicles.IsDescSortOrder() ? SBS_DOWN : SBS_UP);
+				this->DrawSortButtonState (_cur_dpi, widget, this->vehicles.IsDescSortOrder() ? SBS_DOWN : SBS_UP);
 				break;
 
 			case WID_VL_LIST:

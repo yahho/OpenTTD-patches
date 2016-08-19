@@ -1249,7 +1249,7 @@ public:
 	{
 		switch (widget) {
 			case WID_ID_DROPDOWN_ORDER:
-				this->DrawSortButtonState(widget, this->industries.IsDescSortOrder() ? SBS_DOWN : SBS_UP);
+				this->DrawSortButtonState (_cur_dpi, widget, this->industries.IsDescSortOrder() ? SBS_DOWN : SBS_UP);
 				break;
 
 			case WID_ID_INDUSTRY_LIST: {

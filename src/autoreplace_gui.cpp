@@ -397,7 +397,7 @@ public:
 	{
 		switch (widget) {
 			case WID_RV_SORT_ASCENDING_DESCENDING:
-				this->DrawSortButtonState(WID_RV_SORT_ASCENDING_DESCENDING, this->descending_sort_order ? SBS_DOWN : SBS_UP);
+				this->DrawSortButtonState (_cur_dpi, WID_RV_SORT_ASCENDING_DESCENDING, this->descending_sort_order ? SBS_DOWN : SBS_UP);
 				break;
 
 			case WID_RV_INFO_TAB: {

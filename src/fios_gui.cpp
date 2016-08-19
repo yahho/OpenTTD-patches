@@ -336,7 +336,7 @@ public:
 			case WID_SL_SORT_BYNAME:
 			case WID_SL_SORT_BYDATE:
 				if (((_savegame_sort_order & SORT_BY_NAME) != 0) == (widget == WID_SL_SORT_BYNAME)) {
-					this->DrawSortButtonState(widget, _savegame_sort_order & SORT_DESCENDING ? SBS_DOWN : SBS_UP);
+					this->DrawSortButtonState (_cur_dpi, widget, _savegame_sort_order & SORT_DESCENDING ? SBS_DOWN : SBS_UP);
 				}
 				break;
 
