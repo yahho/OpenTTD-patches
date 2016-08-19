@@ -439,26 +439,27 @@ static inline void DrawFrame (BlitArea *dpi, const Rect &r, Colours colour,
 
 /**
  * Draw a caption bar.
+ * @param dpi    The area to draw on.
  * @param r      Rectangle of the bar.
  * @param colour Colour of the window.
  * @param owner  'Owner' of the window.
  * @param str    Text to draw in the bar.
  */
-void DrawCaption(const Rect &r, Colours colour, Owner owner, StringID str)
+void DrawCaption (BlitArea *dpi, const Rect &r, Colours colour, Owner owner, StringID str)
 {
 	bool company_owned = owner < MAX_COMPANIES;
 
-	DrawFrameRect (_cur_dpi, r.left, r.top, r.right, r.bottom, colour, FR_BORDERONLY);
-	DrawFrameRect (_cur_dpi, r.left + 1, r.top + 1, r.right - 1, r.bottom - 1, colour, company_owned ? FR_LOWERED | FR_DARKENED | FR_BORDERONLY : FR_LOWERED | FR_DARKENED);
+	DrawFrameRect (dpi, r.left, r.top, r.right, r.bottom, colour, FR_BORDERONLY);
+	DrawFrameRect (dpi, r.left + 1, r.top + 1, r.right - 1, r.bottom - 1, colour, company_owned ? FR_LOWERED | FR_DARKENED | FR_BORDERONLY : FR_LOWERED | FR_DARKENED);
 
 	if (company_owned) {
-		GfxFillRect (_cur_dpi, r.left + 2, r.top + 2, r.right - 2, r.bottom - 2, _colour_gradient[_company_colours[owner]][4]);
+		GfxFillRect (dpi, r.left + 2, r.top + 2, r.right - 2, r.bottom - 2, _colour_gradient[_company_colours[owner]][4]);
 	}
 
 	if (str != STR_NULL) {
 		Dimension d = GetStringBoundingBox(str);
 		int offset = max(0, ((int)(r.bottom - r.top + 1) - (int)d.height) / 2); // Offset for rendering the text vertically centered
-		DrawString (_cur_dpi, r.left + WD_CAPTIONTEXT_LEFT, r.right - WD_CAPTIONTEXT_RIGHT, r.top + offset, str, TC_FROMSTRING, SA_HOR_CENTER);
+		DrawString (dpi, r.left + WD_CAPTIONTEXT_LEFT, r.right - WD_CAPTIONTEXT_RIGHT, r.top + offset, str, TC_FROMSTRING, SA_HOR_CENTER);
 	}
 }
 
@@ -2364,7 +2365,7 @@ void NWidgetLeaf::Draw(const Window *w)
 
 		case WWT_CAPTION:
 			if (this->index >= 0) w->SetStringParameters(this->index);
-			DrawCaption(r, this->colour, w->owner, this->widget_data);
+			DrawCaption (_cur_dpi, r, this->colour, w->owner, this->widget_data);
 			break;
 
 		case WWT_SHADEBOX: {
