@@ -209,17 +209,17 @@ void DrawFrameRect (BlitArea *dpi, int left, int top, int right, int bottom, Col
 /**
  * Draw an image button.
  * @param r       Rectangle of the button.
- * @param type    Widget type (#WWT_IMGBTN or #WWT_IMGBTN_2).
  * @param colour  Colour of the button.
- * @param clicked Button is lowered.
  * @param img     Sprite to draw.
+ * @param clicked Button is lowered.
+ * @param var     Increase sprite id if clicked.
  */
-static inline void DrawImageButtons(const Rect &r, WidgetType type, Colours colour, bool clicked, SpriteID img)
+static inline void DrawImageButtons (const Rect &r, Colours colour, SpriteID img, bool clicked, bool var = false)
 {
 	assert(img != 0);
 	DrawFrameRect (_cur_dpi, r.left, r.top, r.right, r.bottom, colour, (clicked) ? FR_LOWERED : FR_NONE);
 
-	if ((type & WWT_MASK) == WWT_IMGBTN_2 && clicked) img++; // Show different image when clicked for #WWT_IMGBTN_2.
+	if (var && clicked) img++; // Show different image when clicked for #WWT_IMGBTN_2.
 	DrawSprite (_cur_dpi, img, PAL_NONE, r.left + WD_IMGBTN_LEFT, r.top + WD_IMGBTN_TOP);
 }
 
@@ -2301,7 +2301,7 @@ void NWidgetLeaf::Draw(const Window *w)
 		case WWT_IMGBTN:
 		case WWT_PUSHIMGBTN:
 		case WWT_IMGBTN_2:
-			DrawImageButtons(r, this->type, this->colour, clicked, this->widget_data);
+			DrawImageButtons (r, this->colour, this->widget_data, clicked, this->type == WWT_IMGBTN_2);
 			break;
 
 		case WWT_TEXTBTN:
@@ -2322,7 +2322,7 @@ void NWidgetLeaf::Draw(const Window *w)
 				case AWV_RIGHT:    sprite = SPR_ARROW_RIGHT; break;
 				default: NOT_REACHED();
 			}
-			DrawImageButtons(r, WWT_PUSHIMGBTN, this->colour, clicked, sprite);
+			DrawImageButtons (r, this->colour, sprite, clicked);
 			break;
 		}
 
