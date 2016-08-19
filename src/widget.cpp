@@ -387,15 +387,17 @@ static inline void DrawHorizontalScrollbar (BlitArea *dpi, const Rect &r,
 
 /**
  * Draw a frame widget.
+ * @param dpi    The area to draw on.
  * @param r      Rectangle of the frame.
  * @param colour Colour of the frame.
  * @param str    Text of the frame.
  */
-static inline void DrawFrame(const Rect &r, Colours colour, StringID str)
+static inline void DrawFrame (BlitArea *dpi, const Rect &r, Colours colour,
+	StringID str)
 {
 	int x2 = r.left; // by default the left side is the left side of the widget
 
-	if (str != STR_NULL) x2 = DrawString (_cur_dpi, r.left + WD_FRAMETEXT_LEFT, r.right - WD_FRAMETEXT_RIGHT, r.top, str);
+	if (str != STR_NULL) x2 = DrawString (dpi, r.left + WD_FRAMETEXT_LEFT, r.right - WD_FRAMETEXT_RIGHT, r.top, str);
 
 	int c1 = _colour_gradient[colour][3];
 	int c2 = _colour_gradient[colour][7];
@@ -407,32 +409,32 @@ static inline void DrawFrame(const Rect &r, Colours colour, StringID str)
 
 	if (_current_text_dir == TD_LTR) {
 		/* Line from upper left corner to start of text */
-		GfxFillRect (_cur_dpi, r.left, r.top + dy1, r.left + 4, r.top + dy1, c1);
-		GfxFillRect (_cur_dpi, r.left + 1, r.top + dy2, r.left + 4, r.top + dy2, c2);
+		GfxFillRect (dpi, r.left, r.top + dy1, r.left + 4, r.top + dy1, c1);
+		GfxFillRect (dpi, r.left + 1, r.top + dy2, r.left + 4, r.top + dy2, c2);
 
 		/* Line from end of text to upper right corner */
-		GfxFillRect (_cur_dpi, x2, r.top + dy1, r.right - 1, r.top + dy1, c1);
-		GfxFillRect (_cur_dpi, x2, r.top + dy2, r.right - 2, r.top + dy2, c2);
+		GfxFillRect (dpi, x2, r.top + dy1, r.right - 1, r.top + dy1, c1);
+		GfxFillRect (dpi, x2, r.top + dy2, r.right - 2, r.top + dy2, c2);
 	} else {
 		/* Line from upper left corner to start of text */
-		GfxFillRect (_cur_dpi, r.left, r.top + dy1, x2 - 2, r.top + dy1, c1);
-		GfxFillRect (_cur_dpi, r.left + 1, r.top + dy2, x2 - 2, r.top + dy2, c2);
+		GfxFillRect (dpi, r.left, r.top + dy1, x2 - 2, r.top + dy1, c1);
+		GfxFillRect (dpi, r.left + 1, r.top + dy2, x2 - 2, r.top + dy2, c2);
 
 		/* Line from end of text to upper right corner */
-		GfxFillRect (_cur_dpi, r.right - 5, r.top + dy1, r.right - 1, r.top + dy1, c1);
-		GfxFillRect (_cur_dpi, r.right - 5, r.top + dy2, r.right - 2, r.top + dy2, c2);
+		GfxFillRect (dpi, r.right - 5, r.top + dy1, r.right - 1, r.top + dy1, c1);
+		GfxFillRect (dpi, r.right - 5, r.top + dy2, r.right - 2, r.top + dy2, c2);
 	}
 
 	/* Line from upper left corner to bottom left corner */
-	GfxFillRect (_cur_dpi, r.left, r.top + dy2, r.left, r.bottom - 1, c1);
-	GfxFillRect (_cur_dpi, r.left + 1, r.top + dy2 + 1, r.left + 1, r.bottom - 2, c2);
+	GfxFillRect (dpi, r.left, r.top + dy2, r.left, r.bottom - 1, c1);
+	GfxFillRect (dpi, r.left + 1, r.top + dy2 + 1, r.left + 1, r.bottom - 2, c2);
 
 	/* Line from upper right corner to bottom right corner */
-	GfxFillRect (_cur_dpi, r.right - 1, r.top + dy2, r.right - 1, r.bottom - 2, c1);
-	GfxFillRect (_cur_dpi, r.right, r.top + dy1, r.right, r.bottom - 1, c2);
+	GfxFillRect (dpi, r.right - 1, r.top + dy2, r.right - 1, r.bottom - 2, c1);
+	GfxFillRect (dpi, r.right, r.top + dy1, r.right, r.bottom - 1, c2);
 
-	GfxFillRect (_cur_dpi, r.left + 1, r.bottom - 1, r.right - 1, r.bottom - 1, c1);
-	GfxFillRect (_cur_dpi, r.left, r.bottom, r.right, r.bottom, c2);
+	GfxFillRect (dpi, r.left + 1, r.bottom - 1, r.right - 1, r.bottom - 1, c1);
+	GfxFillRect (dpi, r.left, r.bottom, r.right, r.bottom, c2);
 }
 
 /**
@@ -1739,7 +1741,7 @@ void NWidgetBackground::Draw(const Window *w)
 
 		case WWT_FRAME:
 			if (this->index >= 0) w->SetStringParameters(this->index);
-			DrawFrame(r, this->colour, this->widget_data);
+			DrawFrame (_cur_dpi, r, this->colour, this->widget_data);
 			break;
 
 		case WWT_INSET: {
