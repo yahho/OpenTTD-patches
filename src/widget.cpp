@@ -465,6 +465,7 @@ void DrawCaption (BlitArea *dpi, const Rect &r, Colours colour, Owner owner, Str
 
 /**
  * Draw a button with a dropdown (#WWT_DROPDOWN and #NWID_BUTTON_DROPDOWN).
+ * @param dpi              The area to draw on.
  * @param r                Rectangle containing the widget.
  * @param colour           Background colour of the widget.
  * @param clicked_button   The button-part is lowered.
@@ -473,7 +474,8 @@ void DrawCaption (BlitArea *dpi, const Rect &r, Colours colour, Owner owner, Str
  *
  * @note Magic constants are also used in #NWidgetLeaf::ButtonHit.
  */
-static inline void DrawButtonDropdown(const Rect &r, Colours colour, bool clicked_button, bool clicked_dropdown, StringID str)
+static inline void DrawButtonDropdown (BlitArea *dpi, const Rect &r,
+	Colours colour, bool clicked_button, bool clicked_dropdown, StringID str)
 {
 	int text_offset = max(0, ((int)(r.bottom - r.top + 1) - FONT_HEIGHT_NORMAL) / 2); // Offset for rendering the text vertically centered
 
@@ -482,15 +484,15 @@ static inline void DrawButtonDropdown(const Rect &r, Colours colour, bool clicke
 	int image_offset = max(0, ((int)(r.bottom - r.top + 1) - dd_height) / 2);
 
 	if (_current_text_dir == TD_LTR) {
-		DrawFrameRect (_cur_dpi, r.left, r.top, r.right - dd_width, r.bottom, colour, clicked_button ? FR_LOWERED : FR_NONE);
-		DrawFrameRect (_cur_dpi, r.right + 1 - dd_width, r.top, r.right, r.bottom, colour, clicked_dropdown ? FR_LOWERED : FR_NONE);
-		DrawSprite (_cur_dpi, SPR_ARROW_DOWN, PAL_NONE, r.right - (dd_width - 2), r.top + image_offset);
-		if (str != STR_NULL) DrawString (_cur_dpi, r.left + WD_DROPDOWNTEXT_LEFT, r.right - dd_width - WD_DROPDOWNTEXT_RIGHT, r.top + text_offset, str, TC_BLACK);
+		DrawFrameRect (dpi, r.left, r.top, r.right - dd_width, r.bottom, colour, clicked_button ? FR_LOWERED : FR_NONE);
+		DrawFrameRect (dpi, r.right + 1 - dd_width, r.top, r.right, r.bottom, colour, clicked_dropdown ? FR_LOWERED : FR_NONE);
+		DrawSprite (dpi, SPR_ARROW_DOWN, PAL_NONE, r.right - (dd_width - 2), r.top + image_offset);
+		if (str != STR_NULL) DrawString (dpi, r.left + WD_DROPDOWNTEXT_LEFT, r.right - dd_width - WD_DROPDOWNTEXT_RIGHT, r.top + text_offset, str, TC_BLACK);
 	} else {
-		DrawFrameRect (_cur_dpi, r.left + dd_width, r.top, r.right, r.bottom, colour, clicked_button ? FR_LOWERED : FR_NONE);
-		DrawFrameRect (_cur_dpi, r.left, r.top, r.left + dd_width - 1, r.bottom, colour, clicked_dropdown ? FR_LOWERED : FR_NONE);
-		DrawSprite (_cur_dpi, SPR_ARROW_DOWN, PAL_NONE, r.left + 1, r.top + image_offset);
-		if (str != STR_NULL) DrawString (_cur_dpi, r.left + dd_width + WD_DROPDOWNTEXT_LEFT, r.right - WD_DROPDOWNTEXT_RIGHT, r.top + text_offset, str, TC_BLACK);
+		DrawFrameRect (dpi, r.left + dd_width, r.top, r.right, r.bottom, colour, clicked_button ? FR_LOWERED : FR_NONE);
+		DrawFrameRect (dpi, r.left, r.top, r.left + dd_width - 1, r.bottom, colour, clicked_dropdown ? FR_LOWERED : FR_NONE);
+		DrawSprite (dpi, SPR_ARROW_DOWN, PAL_NONE, r.left + 1, r.top + image_offset);
+		if (str != STR_NULL) DrawString (dpi, r.left + dd_width + WD_DROPDOWNTEXT_LEFT, r.right - WD_DROPDOWNTEXT_RIGHT, r.top + text_offset, str, TC_BLACK);
 	}
 }
 
@@ -2417,13 +2419,13 @@ void NWidgetLeaf::Draw(const Window *w)
 
 		case WWT_DROPDOWN:
 			if (this->index >= 0) w->SetStringParameters(this->index);
-			DrawButtonDropdown (r, this->colour, false, clicked, this->widget_data);
+			DrawButtonDropdown (_cur_dpi, r, this->colour, false, clicked, this->widget_data);
 			break;
 
 		case NWID_BUTTON_DROPDOWN:
 		case NWID_PUSHBUTTON_DROPDOWN:
 			if (this->index >= 0) w->SetStringParameters(this->index);
-			DrawButtonDropdown(r, this->colour, clicked, (this->disp_flags & ND_DROPDOWN_ACTIVE) != 0, this->widget_data);
+			DrawButtonDropdown (_cur_dpi, r, this->colour, clicked, (this->disp_flags & ND_DROPDOWN_ACTIVE) != 0, this->widget_data);
 			break;
 
 		default:
