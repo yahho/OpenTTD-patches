@@ -227,17 +227,18 @@ static inline void DrawImageButtons (BlitArea *dpi, const Rect &r,
 
 /**
  * Draw the label-part of a widget.
+ * @param dpi     The area to draw on.
  * @param r       Rectangle of the label background.
  * @param str     Text to draw.
  * @param var     Increase string id if not null.
  */
-static inline void DrawLabel (const Rect &r, StringID str, bool var)
+static inline void DrawLabel (BlitArea *dpi, const Rect &r, StringID str, bool var)
 {
 	if (str == STR_NULL) return;
 	if (var) str++;
 	Dimension d = GetStringBoundingBox(str);
 	int offset = max(0, ((int)(r.bottom - r.top + 1) - (int)d.height) / 2); // Offset for rendering the text vertically centered
-	DrawString (_cur_dpi, r.left, r.right, r.top + offset, str, TC_FROMSTRING, SA_HOR_CENTER);
+	DrawString (dpi, r.left, r.right, r.top + offset, str, TC_FROMSTRING, SA_HOR_CENTER);
 }
 
 /**
@@ -2310,7 +2311,7 @@ void NWidgetLeaf::Draw(const Window *w)
 		case WWT_TEXTBTN_2:
 			if (this->index >= 0) w->SetStringParameters(this->index);
 			DrawFrameRect (_cur_dpi, r.left, r.top, r.right, r.bottom, this->colour, (clicked) ? FR_LOWERED : FR_NONE);
-			DrawLabel (r, this->widget_data, clicked && (this->type == WWT_TEXTBTN_2));
+			DrawLabel (_cur_dpi, r, this->widget_data, clicked && (this->type == WWT_TEXTBTN_2));
 			break;
 
 		case WWT_ARROWBTN:
@@ -2329,7 +2330,7 @@ void NWidgetLeaf::Draw(const Window *w)
 
 		case WWT_LABEL:
 			if (this->index >= 0) w->SetStringParameters(this->index);
-			DrawLabel (r, this->widget_data, clicked);
+			DrawLabel (_cur_dpi, r, this->widget_data, clicked);
 			break;
 
 		case WWT_TEXT: {
