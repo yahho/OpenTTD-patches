@@ -14,7 +14,7 @@
 
 #include "engine_type.h"
 #include "sortlist_type.h"
-#include "gfx_type.h"
+#include "gfx_func.h"
 #include "vehicle_type.h"
 
 typedef GUIList<EngineID, CargoID> GUIEngineList;
@@ -26,11 +26,11 @@ void EngList_SortPartial(GUIEngineList *el, EngList_SortTypeFunction compare, ui
 StringID GetEngineCategoryName(EngineID engine);
 StringID GetEngineInfoString(EngineID engine);
 
-void DrawVehicleEngine(int left, int right, int preferred_x, int y, EngineID engine, PaletteID pal, EngineImageType image_type);
-void DrawTrainEngine(int left, int right, int preferred_x, int y, EngineID engine, PaletteID pal, EngineImageType image_type);
-void DrawRoadVehEngine(int left, int right, int preferred_x, int y, EngineID engine, PaletteID pal, EngineImageType image_type);
-void DrawShipEngine(int left, int right, int preferred_x, int y, EngineID engine, PaletteID pal, EngineImageType image_type);
-void DrawAircraftEngine(int left, int right, int preferred_x, int y, EngineID engine, PaletteID pal, EngineImageType image_type);
+void DrawVehicleEngine (BlitArea *dpi, int left, int right, int preferred_x, int y, EngineID engine, PaletteID pal, EngineImageType image_type);
+void DrawTrainEngine (BlitArea *dpi, int left, int right, int preferred_x, int y, EngineID engine, PaletteID pal, EngineImageType image_type);
+void DrawRoadVehEngine (BlitArea *dpi, int left, int right, int preferred_x, int y, EngineID engine, PaletteID pal, EngineImageType image_type);
+void DrawShipEngine (BlitArea *dpi, int left, int right, int preferred_x, int y, EngineID engine, PaletteID pal, EngineImageType image_type);
+void DrawAircraftEngine (BlitArea *dpi, int left, int right, int preferred_x, int y, EngineID engine, PaletteID pal, EngineImageType image_type);
 
 extern bool _engine_sort_direction;
 extern byte _engine_sort_last_criteria[];

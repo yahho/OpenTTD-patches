@@ -114,7 +114,7 @@ struct EnginePreviewWindow : Window {
 		DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_ENGINE_NAME, TC_BLACK, SA_HOR_CENTER);
 		y += FONT_HEIGHT_NORMAL;
 
-		DrawVehicleEngine(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, this->width >> 1, y + this->vehicle_space / 2, engine, GetEnginePalette(engine, _local_company), EIT_PREVIEW);
+		DrawVehicleEngine (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, this->width >> 1, y + this->vehicle_space / 2, engine, GetEnginePalette (engine, _local_company), EIT_PREVIEW);
 
 		y += this->vehicle_space;
 		DrawStringMultiLine (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, r.bottom, GetEngineInfoString(engine), TC_FROMSTRING, SA_CENTER);
@@ -287,6 +287,7 @@ StringID GetEngineInfoString(EngineID engine)
 
 /**
  * Draw an engine.
+ * @param dpi    Area to draw on.
  * @param left   Minimum horizontal position to use for drawing the engine
  * @param right  Maximum horizontal position to use for drawing the engine
  * @param preferred_x Horizontal position to use for drawing the engine.
@@ -294,25 +295,26 @@ StringID GetEngineInfoString(EngineID engine)
  * @param engine Engine to draw.
  * @param pal    Palette to use for drawing.
  */
-void DrawVehicleEngine(int left, int right, int preferred_x, int y, EngineID engine, PaletteID pal, EngineImageType image_type)
+void DrawVehicleEngine (BlitArea *dpi, int left, int right, int preferred_x,
+	int y, EngineID engine, PaletteID pal, EngineImageType image_type)
 {
 	const Engine *e = Engine::Get(engine);
 
 	switch (e->type) {
 		case VEH_TRAIN:
-			DrawTrainEngine(left, right, preferred_x, y, engine, pal, image_type);
+			DrawTrainEngine (dpi, left, right, preferred_x, y, engine, pal, image_type);
 			break;
 
 		case VEH_ROAD:
-			DrawRoadVehEngine(left, right, preferred_x, y, engine, pal, image_type);
+			DrawRoadVehEngine (dpi, left, right, preferred_x, y, engine, pal, image_type);
 			break;
 
 		case VEH_SHIP:
-			DrawShipEngine(left, right, preferred_x, y, engine, pal, image_type);
+			DrawShipEngine (dpi, left, right, preferred_x, y, engine, pal, image_type);
 			break;
 
 		case VEH_AIRCRAFT:
-			DrawAircraftEngine(left, right, preferred_x, y, engine, pal, image_type);
+			DrawAircraftEngine (dpi, left, right, preferred_x, y, engine, pal, image_type);
 			break;
 
 		default: NOT_REACHED();

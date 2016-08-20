@@ -133,6 +133,7 @@ SpriteID RoadVehicle::GetImage(Direction direction, EngineImageType image_type) 
 
 /**
  * Draw a road vehicle engine.
+ * @param dpi Area to draw on.
  * @param left Left edge to draw within.
  * @param right Right edge to draw within.
  * @param preferred_x Preferred position of the engine.
@@ -140,14 +141,15 @@ SpriteID RoadVehicle::GetImage(Direction direction, EngineImageType image_type) 
  * @param engine Engine to draw
  * @param pal Palette to use.
  */
-void DrawRoadVehEngine(int left, int right, int preferred_x, int y, EngineID engine, PaletteID pal, EngineImageType image_type)
+void DrawRoadVehEngine (BlitArea *dpi, int left, int right, int preferred_x,
+	int y, EngineID engine, PaletteID pal, EngineImageType image_type)
 {
 	SpriteID sprite = GetRoadVehIcon(engine, image_type);
 	const Sprite *real_sprite = GetSprite(sprite, ST_NORMAL);
 	preferred_x = Clamp(preferred_x,
 			left - UnScaleGUI(real_sprite->x_offs),
 			right - UnScaleGUI(real_sprite->width) - UnScaleGUI(real_sprite->x_offs));
-	DrawSprite (_cur_dpi, sprite, pal, preferred_x, y);
+	DrawSprite (dpi, sprite, pal, preferred_x, y);
 }
 
 /**

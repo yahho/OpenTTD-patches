@@ -924,7 +924,7 @@ void DrawEngineList(VehicleType type, int l, int r, int y, const GUIEngineList *
 
 		SetDParam(0, engine);
 		DrawString (_cur_dpi, text_left, text_right, y + normal_text_y_offset, str, tc);
-		DrawVehicleEngine(l, r, sprite_x, y + sprite_y_offset, engine, (show_count && num_engines == 0) ? PALETTE_CRASH : GetEnginePalette(engine, _local_company), EIT_PURCHASE);
+		DrawVehicleEngine (_cur_dpi, l, r, sprite_x, y + sprite_y_offset, engine, (show_count && num_engines == 0) ? PALETTE_CRASH : GetEnginePalette (engine, _local_company), EIT_PURCHASE);
 		if (show_count) {
 			SetDParam(0, num_engines);
 			DrawString (_cur_dpi, count_left, count_right, y + small_text_y_offset, STR_TINY_BLACK_COMA, TC_FROMSTRING, SA_RIGHT | SA_FORCE);
