@@ -72,12 +72,14 @@ void DrawAircraftDetails(const Aircraft *v, int left, int right, int y)
 /**
  * Draws an image of an aircraft
  * @param v         Front vehicle
+ * @param dpi       The area to draw on
  * @param left      The minimum horizontal position
  * @param right     The maximum horizontal position
  * @param y         Vertical position to draw at
  * @param selection Selected vehicle to draw a frame around
  */
-void DrawAircraftImage(const Vehicle *v, int left, int right, int y, VehicleID selection, EngineImageType image_type)
+void DrawAircraftImage (const Vehicle *v, BlitArea *dpi, int left, int right,
+	int y, VehicleID selection, EngineImageType image_type)
 {
 	bool rtl = _current_text_dir == TD_RTL;
 
@@ -93,17 +95,17 @@ void DrawAircraftImage(const Vehicle *v, int left, int right, int y, VehicleID s
 	int heli_offs = 0;
 
 	PaletteID pal = (v->vehstatus & VS_CRASHED) ? PALETTE_CRASH : GetVehiclePalette(v);
-	DrawSprite (_cur_dpi, sprite, pal, x, y + y_offs);
+	DrawSprite (dpi, sprite, pal, x, y + y_offs);
 	if (helicopter) {
 		const Aircraft *a = Aircraft::From(v);
 		SpriteID rotor_sprite = GetCustomRotorSprite(a, true, image_type);
 		if (rotor_sprite == 0) rotor_sprite = SPR_ROTOR_STOPPED;
 		heli_offs = ScaleGUITrad(5);
-		DrawSprite (_cur_dpi, rotor_sprite, PAL_NONE, x, y + y_offs - heli_offs);
+		DrawSprite (dpi, rotor_sprite, PAL_NONE, x, y + y_offs - heli_offs);
 	}
 	if (v->index == selection) {
 		x += x_offs;
 		y += UnScaleGUI(real_sprite->y_offs) + y_offs - heli_offs;
-		DrawFrameRect (_cur_dpi, x - 1, y - 1, x + width + 1, y + UnScaleGUI(real_sprite->height) + heli_offs + 1, COLOUR_WHITE, FR_BORDERONLY);
+		DrawFrameRect (dpi, x - 1, y - 1, x + width + 1, y + UnScaleGUI(real_sprite->height) + heli_offs + 1, COLOUR_WHITE, FR_BORDERONLY);
 	}
 }

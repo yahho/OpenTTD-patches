@@ -18,6 +18,7 @@
 #include "station_type.h"
 #include "engine_type.h"
 #include "company_type.h"
+#include "gfx_func.h"
 
 void ShowVehicleRefitWindow (Window *parent, const Vehicle *v,
 		VehicleOrderID order = INVALID_VEH_ORDER_ID,
@@ -41,10 +42,10 @@ enum VehicleInvalidateWindowData {
 
 int DrawVehiclePurchaseInfo(int left, int right, int y, EngineID engine_number);
 
-void DrawTrainImage(const Train *v, int left, int right, int y, VehicleID selection, EngineImageType image_type, int skip, VehicleID drag_dest = INVALID_VEHICLE);
-void DrawRoadVehImage(const Vehicle *v, int left, int right, int y, VehicleID selection, EngineImageType image_type, int skip = 0);
-void DrawShipImage(const Vehicle *v, int left, int right, int y, VehicleID selection, EngineImageType image_type);
-void DrawAircraftImage(const Vehicle *v, int left, int right, int y, VehicleID selection, EngineImageType image_type);
+void DrawTrainImage (const Train *v, BlitArea *dpi, int left, int right, int y, VehicleID selection, EngineImageType image_type, int skip, VehicleID drag_dest = INVALID_VEHICLE);
+void DrawRoadVehImage (const Vehicle *v, BlitArea *dpi, int left, int right, int y, VehicleID selection, EngineImageType image_type, int skip = 0);
+void DrawShipImage (const Vehicle *v, BlitArea *dpi, int left, int right, int y, VehicleID selection, EngineImageType image_type);
+void DrawAircraftImage (const Vehicle *v, BlitArea *dpi, int left, int right, int y, VehicleID selection, EngineImageType image_type);
 
 void ShowBuildVehicleWindow(TileIndex tile, VehicleType type);
 
@@ -101,6 +102,6 @@ void StartStopVehicle(const Vehicle *v, bool texteffect);
 
 Vehicle *CheckClickOnVehicle(const struct ViewPort *vp, int x, int y);
 
-void DrawVehicleImage(const Vehicle *v, int left, int right, int y, VehicleID selection, EngineImageType image_type, int skip);
+void DrawVehicleImage (const Vehicle *v, BlitArea *dpi, int left, int right, int y, VehicleID selection, EngineImageType image_type, int skip);
 
 #endif /* VEHICLE_GUI_H */

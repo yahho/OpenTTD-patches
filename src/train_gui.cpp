@@ -51,6 +51,7 @@ static int HighlightDragPosition (BlitArea *dpi, int px, int max_width, VehicleI
 /**
  * Draws an image of a whole train
  * @param v         Front vehicle
+ * @param dpi       The area to draw on
  * @param left      The minimum horizontal position
  * @param right     The maximum horizontal position
  * @param y         Vertical position to draw at
@@ -58,7 +59,9 @@ static int HighlightDragPosition (BlitArea *dpi, int px, int max_width, VehicleI
  * @param skip      Number of pixels to skip at the front (for scrolling)
  * @param drag_dest The vehicle another one is dragged over, \c INVALID_VEHICLE if none.
  */
-void DrawTrainImage(const Train *v, int left, int right, int y, VehicleID selection, EngineImageType image_type, int skip, VehicleID drag_dest)
+void DrawTrainImage (const Train *v, BlitArea *dpi, int left, int right,
+	int y, VehicleID selection, EngineImageType image_type, int skip,
+	VehicleID drag_dest)
 {
 	bool rtl = _current_text_dir == TD_RTL;
 	Direction dir = rtl ? DIR_E : DIR_W;
@@ -70,7 +73,7 @@ void DrawTrainImage(const Train *v, int left, int right, int y, VehicleID select
 	int max_width = right - left + 1;
 	int height = ScaleGUITrad(14);
 
-	if (!FillDrawPixelInfo (_cur_dpi, &tmp_dpi, left, y, max_width, height)) return;
+	if (!FillDrawPixelInfo (dpi, &tmp_dpi, left, y, max_width, height)) return;
 
 	int px = rtl ? max_width + skip : -skip;
 	bool sel_articulated = false;

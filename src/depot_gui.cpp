@@ -310,7 +310,7 @@ struct DepotWindow : Window {
 				free_wagon = u->IsFreeWagon();
 
 				uint x_space = free_wagon ? ScaleGUITrad(TRAININFO_DEFAULT_VEHICLE_WIDTH) : 0;
-				DrawTrainImage(u, image_left + (rtl ? 0 : x_space), image_right - (rtl ? x_space : 0), sprite_y - 1,
+				DrawTrainImage (u, _cur_dpi, image_left + (rtl ? 0 : x_space), image_right - (rtl ? x_space : 0), sprite_y - 1,
 						this->sel, EIT_IN_DEPOT, free_wagon ? 0 : this->hscroll->GetPosition(), this->vehicle_over);
 
 				/* Length of consist in tiles with 1 fractional digit (rounded up) */
@@ -320,9 +320,9 @@ struct DepotWindow : Window {
 				break;
 			}
 
-			case VEH_ROAD:     DrawRoadVehImage( v, image_left, image_right, sprite_y, this->sel, EIT_IN_DEPOT); break;
-			case VEH_SHIP:     DrawShipImage(    v, image_left, image_right, sprite_y, this->sel, EIT_IN_DEPOT); break;
-			case VEH_AIRCRAFT: DrawAircraftImage(v, image_left, image_right, sprite_y, this->sel, EIT_IN_DEPOT); break;
+			case VEH_ROAD:     DrawRoadVehImage  (v, _cur_dpi, image_left, image_right, sprite_y, this->sel, EIT_IN_DEPOT); break;
+			case VEH_SHIP:     DrawShipImage     (v, _cur_dpi, image_left, image_right, sprite_y, this->sel, EIT_IN_DEPOT); break;
+			case VEH_AIRCRAFT: DrawAircraftImage (v, _cur_dpi, image_left, image_right, sprite_y, this->sel, EIT_IN_DEPOT); break;
 			default: NOT_REACHED();
 		}
 

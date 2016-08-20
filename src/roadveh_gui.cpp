@@ -120,13 +120,15 @@ void DrawRoadVehDetails(const Vehicle *v, int left, int right, int y)
 /**
  * Draws an image of a road vehicle chain
  * @param v         Front vehicle
+ * @param dpi       The area to draw on
  * @param left      The minimum horizontal position
  * @param right     The maximum horizontal position
  * @param y         Vertical position to draw at
  * @param selection Selected vehicle to draw a frame around
  * @param skip      Number of pixels to skip at the front (for scrolling)
  */
-void DrawRoadVehImage(const Vehicle *v, int left, int right, int y, VehicleID selection, EngineImageType image_type, int skip)
+void DrawRoadVehImage (const Vehicle *v, BlitArea *dpi, int left, int right,
+	int y, VehicleID selection, EngineImageType image_type, int skip)
 {
 	bool rtl = _current_text_dir == TD_RTL;
 	Direction dir = rtl ? DIR_E : DIR_W;
@@ -135,7 +137,7 @@ void DrawRoadVehImage(const Vehicle *v, int left, int right, int y, VehicleID se
 	DrawPixelInfo tmp_dpi;
 	int max_width = right - left + 1;
 
-	if (!FillDrawPixelInfo (_cur_dpi, &tmp_dpi, left, y, max_width, ScaleGUITrad(14))) return;
+	if (!FillDrawPixelInfo (dpi, &tmp_dpi, left, y, max_width, ScaleGUITrad(14))) return;
 
 	int px = rtl ? max_width + skip : -skip;
 	for (; u != NULL && (rtl ? px > 0 : px < max_width); u = u->Next()) {

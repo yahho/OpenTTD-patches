@@ -24,12 +24,14 @@
 /**
  * Draws an image of a ship
  * @param v         Front vehicle
+ * @param dpi       The area to draw on
  * @param left      The minimum horizontal position
  * @param right     The maximum horizontal position
  * @param y         Vertical position to draw at
  * @param selection Selected vehicle to draw a frame around
  */
-void DrawShipImage(const Vehicle *v, int left, int right, int y, VehicleID selection, EngineImageType image_type)
+void DrawShipImage (const Vehicle *v, BlitArea *dpi, int left, int right,
+	int y, VehicleID selection, EngineImageType image_type)
 {
 	bool rtl = _current_text_dir == TD_RTL;
 
@@ -41,12 +43,12 @@ void DrawShipImage(const Vehicle *v, int left, int right, int y, VehicleID selec
 	int x = rtl ? right - width - x_offs : left - x_offs;
 
 	y += ScaleGUITrad(10);
-	DrawSprite (_cur_dpi, sprite, GetVehiclePalette(v), x, y);
+	DrawSprite (dpi, sprite, GetVehiclePalette(v), x, y);
 
 	if (v->index == selection) {
 		x += x_offs;
 		y += UnScaleGUI(real_sprite->y_offs);
-		DrawFrameRect (_cur_dpi, x - 1, y - 1, x + width + 1, y + UnScaleGUI(real_sprite->height) + 1, COLOUR_WHITE, FR_BORDERONLY);
+		DrawFrameRect (dpi, x - 1, y - 1, x + width + 1, y + UnScaleGUI(real_sprite->height) + 1, COLOUR_WHITE, FR_BORDERONLY);
 	}
 }
 
