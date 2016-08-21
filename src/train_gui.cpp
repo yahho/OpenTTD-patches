@@ -188,28 +188,23 @@ static void TrainDetailsInfoTab(const Vehicle *v, int left, int right, int y)
 }
 
 /**
- * Draw the details capacity tab for the given vehicle at the given position
- *
- * @param item  Data to draw
- * @param left  The left most coordinate to draw
- * @param right The right most coordinate to draw
- * @param y     The y coordinate
+ * Set up string parameters for the details capacity tab for the given cargo item.
+ * @param item Data to draw.
+ * @return String to draw.
  */
-static void TrainDetailsCapacityTab(const CargoSummaryItem *item, int left, int right, int y)
+static StringID TrainDetailsCapacityTab (const CargoSummaryItem *item)
 {
-	StringID str;
 	if (item->cargo != INVALID_CARGO) {
 		SetDParam(0, item->cargo);
 		SetDParam(1, item->capacity);
 		SetDParam(4, item->subtype);
 		SetDParam(5, _settings_game.vehicle.freight_trains);
-		str = FreightWagonMult(item->cargo) > 1 ? STR_VEHICLE_INFO_CAPACITY_MULT : STR_VEHICLE_INFO_CAPACITY;
+		return FreightWagonMult(item->cargo) > 1 ? STR_VEHICLE_INFO_CAPACITY_MULT : STR_VEHICLE_INFO_CAPACITY;
 	} else {
 		/* Draw subtype only */
 		SetDParam(0, item->subtype);
-		str = STR_VEHICLE_INFO_NO_CAPACITY;
+		return STR_VEHICLE_INFO_NO_CAPACITY;
 	}
-	DrawString (_cur_dpi, left, right, y, str);
 }
 
 /**
@@ -376,14 +371,17 @@ void DrawTrainDetails(const Train *v, int left, int right, int y, int vscroll_po
 							if (i == 0) TrainDetailsInfoTab(v, data_left, data_right, py);
 							break;
 
-						case TDW_TAB_CAPACITY:
+						case TDW_TAB_CAPACITY: {
+							StringID str;
 							if (i < _cargo_summary.Length()) {
-								TrainDetailsCapacityTab(&_cargo_summary[i], data_left, data_right, py);
+								str = TrainDetailsCapacityTab (&_cargo_summary[i]);
 							} else {
 								SetDParam(0, STR_EMPTY);
-								DrawString (_cur_dpi, data_left, data_right, py, STR_VEHICLE_INFO_NO_CAPACITY);
+								str = STR_VEHICLE_INFO_NO_CAPACITY;
 							}
+							DrawString (_cur_dpi, data_left, data_right, py, str);
 							break;
+						}
 
 						default: NOT_REACHED();
 					}
