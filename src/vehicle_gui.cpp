@@ -1942,10 +1942,10 @@ static const NWidgetPart _nested_train_vehicle_details_widgets[] = {
 
 
 extern int GetTrainDetailsWndVScroll(VehicleID veh_id, TrainDetailsWindowTabs det_tab);
-extern void DrawTrainDetails(const Train *v, int left, int right, int y, int vscroll_pos, uint16 vscroll_cap, TrainDetailsWindowTabs det_tab);
-extern void DrawRoadVehDetails(const Vehicle *v, int left, int right, int y);
-extern void DrawShipDetails(const Vehicle *v, int left, int right, int y);
-extern void DrawAircraftDetails(const Aircraft *v, int left, int right, int y);
+extern void DrawTrainDetails (const Train *v, BlitArea *dpi, int left, int right, int y, int vscroll_pos, uint16 vscroll_cap, TrainDetailsWindowTabs det_tab);
+extern void DrawRoadVehDetails (const Vehicle *v, BlitArea *dpi, int left, int right, int y);
+extern void DrawShipDetails (const Vehicle *v, BlitArea *dpi, int left, int right, int y);
+extern void DrawAircraftDetails (const Aircraft *v, BlitArea *dpi, int left, int right, int y);
 
 static StringID _service_interval_dropdown[] = {
 	STR_VEHICLE_DETAILS_DEFAULT,
@@ -2105,6 +2105,7 @@ struct VehicleDetailsWindow : Window {
 	 * Draw the details for the given vehicle at the position of the Details windows
 	 *
 	 * @param v     current vehicle
+	 * @param dpi   The area to draw on
 	 * @param left  The left most coordinate to draw
 	 * @param right The right most coordinate to draw
 	 * @param y     The y coordinate
@@ -2112,13 +2113,13 @@ struct VehicleDetailsWindow : Window {
 	 * @param vscroll_cap Number of lines currently displayed (train only)
 	 * @param det_tab Selected details tab (train only)
 	 */
-	static void DrawVehicleDetails(const Vehicle *v, int left, int right, int y, int vscroll_pos, uint vscroll_cap, TrainDetailsWindowTabs det_tab)
+	static void DrawVehicleDetails (const Vehicle *v, BlitArea *dpi, int left, int right, int y, int vscroll_pos, uint vscroll_cap, TrainDetailsWindowTabs det_tab)
 	{
 		switch (v->type) {
-			case VEH_TRAIN:    DrawTrainDetails(Train::From(v), left, right, y, vscroll_pos, vscroll_cap, det_tab);  break;
-			case VEH_ROAD:     DrawRoadVehDetails(v, left, right, y);  break;
-			case VEH_SHIP:     DrawShipDetails(v, left, right, y);     break;
-			case VEH_AIRCRAFT: DrawAircraftDetails(Aircraft::From(v), left, right, y); break;
+			case VEH_TRAIN:    DrawTrainDetails (Train::From(v), dpi, left, right, y, vscroll_pos, vscroll_cap, det_tab); break;
+			case VEH_ROAD:     DrawRoadVehDetails (v, dpi, left, right, y); break;
+			case VEH_SHIP:     DrawShipDetails (v, dpi, left, right, y); break;
+			case VEH_AIRCRAFT: DrawAircraftDetails (Aircraft::From(v), dpi, left, right, y); break;
 			default: NOT_REACHED();
 		}
 	}
@@ -2186,7 +2187,7 @@ struct VehicleDetailsWindow : Window {
 
 			case WID_VD_MATRIX:
 				/* For trains only. */
-				DrawVehicleDetails(v, r.left + WD_MATRIX_LEFT, r.right - WD_MATRIX_RIGHT, r.top + WD_MATRIX_TOP, this->vscroll->GetPosition(), this->vscroll->GetCapacity(), this->tab);
+				DrawVehicleDetails (v, _cur_dpi, r.left + WD_MATRIX_LEFT, r.right - WD_MATRIX_RIGHT, r.top + WD_MATRIX_TOP, this->vscroll->GetPosition(), this->vscroll->GetCapacity(), this->tab);
 				break;
 
 			case WID_VD_MIDDLE_DETAILS: {
@@ -2208,7 +2209,7 @@ struct VehicleDetailsWindow : Window {
 
 					DrawVehicleImage (v, _cur_dpi, sprite_left + WD_FRAMERECT_LEFT, sprite_right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP, INVALID_VEHICLE, EIT_IN_DETAILS, 0);
 				}
-				DrawVehicleDetails(v, text_left + WD_FRAMERECT_LEFT, text_right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP, 0, 0, this->tab);
+				DrawVehicleDetails (v, _cur_dpi, text_left + WD_FRAMERECT_LEFT, text_right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP, 0, 0, this->tab);
 				break;
 			}
 

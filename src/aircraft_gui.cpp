@@ -25,11 +25,12 @@
  * Draw the details for the given vehicle at the given position
  *
  * @param v     current vehicle
+ * @param dpi   The area to draw on
  * @param left  The left most coordinate to draw
  * @param right The right most coordinate to draw
  * @param y     The y coordinate
  */
-void DrawAircraftDetails(const Aircraft *v, int left, int right, int y)
+void DrawAircraftDetails (const Aircraft *v, BlitArea *dpi, int left, int right, int y)
 {
 	int y_offset = (v->Next()->cargo_cap != 0) ? -(FONT_HEIGHT_NORMAL + 1): 0;
 	Money feeder_share = 0;
@@ -39,14 +40,14 @@ void DrawAircraftDetails(const Aircraft *v, int left, int right, int y)
 			SetDParam(0, u->engine_type);
 			SetDParam(1, u->build_year);
 			SetDParam(2, u->value);
-			DrawString (_cur_dpi, left, right, y, STR_VEHICLE_INFO_BUILT_VALUE);
+			DrawString (dpi, left, right, y, STR_VEHICLE_INFO_BUILT_VALUE);
 
 			SetDParam(0, u->cargo_type);
 			SetDParam(1, u->cargo_cap);
 			SetDParam(2, u->Next()->cargo_type);
 			SetDParam(3, u->Next()->cargo_cap);
 			SetDParam(4, GetCargoSubtypeText(u));
-			DrawString (_cur_dpi, left, right, y + FONT_HEIGHT_NORMAL, (u->Next()->cargo_cap != 0) ? STR_VEHICLE_INFO_CAPACITY_CAPACITY : STR_VEHICLE_INFO_CAPACITY);
+			DrawString (dpi, left, right, y + FONT_HEIGHT_NORMAL, (u->Next()->cargo_cap != 0) ? STR_VEHICLE_INFO_CAPACITY_CAPACITY : STR_VEHICLE_INFO_CAPACITY);
 		}
 
 		if (u->cargo_cap != 0) {
@@ -58,14 +59,14 @@ void DrawAircraftDetails(const Aircraft *v, int left, int right, int y)
 				SetDParam(0, u->cargo_type);
 				SetDParam(1, cargo_count);
 				SetDParam(2, u->cargo.Source());
-				DrawString (_cur_dpi, left, right, y + 2 * FONT_HEIGHT_NORMAL + 1 + y_offset, STR_VEHICLE_DETAILS_CARGO_FROM);
+				DrawString (dpi, left, right, y + 2 * FONT_HEIGHT_NORMAL + 1 + y_offset, STR_VEHICLE_DETAILS_CARGO_FROM);
 				feeder_share += u->cargo.FeederShare();
 			}
 		}
 	}
 
 	SetDParam(0, feeder_share);
-	DrawString (_cur_dpi, left, right, y + 3 * FONT_HEIGHT_NORMAL + 3 + y_offset, STR_VEHICLE_INFO_FEEDER_CARGO_VALUE);
+	DrawString (dpi, left, right, y + 3 * FONT_HEIGHT_NORMAL + 3 + y_offset, STR_VEHICLE_INFO_FEEDER_CARGO_VALUE);
 }
 
 

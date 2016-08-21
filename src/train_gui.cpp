@@ -294,6 +294,7 @@ int GetTrainDetailsWndVScroll(VehicleID veh_id, TrainDetailsWindowTabs det_tab)
  * Draw the details for the given vehicle at the given position
  *
  * @param v     current vehicle
+ * @param dpi   The area to draw on
  * @param left  The left most coordinate to draw
  * @param right The right most coordinate to draw
  * @param y     The y coordinate
@@ -301,7 +302,7 @@ int GetTrainDetailsWndVScroll(VehicleID veh_id, TrainDetailsWindowTabs det_tab)
  * @param vscroll_cap Number of lines currently displayed
  * @param det_tab Selected details tab
  */
-void DrawTrainDetails(const Train *v, int left, int right, int y, int vscroll_pos, uint16 vscroll_cap, TrainDetailsWindowTabs det_tab)
+void DrawTrainDetails (const Train *v, BlitArea *dpi, int left, int right, int y, int vscroll_pos, uint16 vscroll_cap, TrainDetailsWindowTabs det_tab)
 {
 	/* get rid of awkward offset */
 	y -= WD_MATRIX_TOP;
@@ -333,7 +334,7 @@ void DrawTrainDetails(const Train *v, int left, int right, int y, int vscroll_po
 						pitch = ScaleGUITrad(e->GetGRF()->traininfo_vehicle_pitch);
 					}
 					PaletteID pal = (v->vehstatus & VS_CRASHED) ? PALETTE_CRASH : GetVehiclePalette(v);
-					DrawSprite (_cur_dpi, u->GetImage (dir, EIT_IN_DETAILS), pal, px + (rtl ? -offset.x : offset.x), y - line_height * vscroll_pos + sprite_y_offset + pitch);
+					DrawSprite (dpi, u->GetImage (dir, EIT_IN_DETAILS), pal, px + (rtl ? -offset.x : offset.x), y - line_height * vscroll_pos + sprite_y_offset + pitch);
 				}
 				px += rtl ? -width : width;
 				dx += width;
@@ -354,18 +355,18 @@ void DrawTrainDetails(const Train *v, int left, int right, int y, int vscroll_po
 				if (vscroll_pos <= 0 && vscroll_pos > -vscroll_cap) {
 					int py = y - line_height * vscroll_pos + text_y_offset;
 					if (i > 0 || separate_sprite_row) {
-						if (vscroll_pos != 0) GfxFillRect (_cur_dpi, left, py - WD_MATRIX_TOP - 1, right, py - WD_MATRIX_TOP, _colour_gradient[COLOUR_GREY][5]);
+						if (vscroll_pos != 0) GfxFillRect (dpi, left, py - WD_MATRIX_TOP - 1, right, py - WD_MATRIX_TOP, _colour_gradient[COLOUR_GREY][5]);
 					}
 					switch (det_tab) {
 						case TDW_TAB_CARGO: {
 							StringID str = (i < _cargo_summary.Length()) ?
 									TrainDetailsCargoTab (&_cargo_summary[i]) : STR_QUANTITY_N_A;
-							DrawString (_cur_dpi, data_left, data_right, py, str, TC_LIGHT_BLUE);
+							DrawString (dpi, data_left, data_right, py, str, TC_LIGHT_BLUE);
 							break;
 						}
 
 						case TDW_TAB_INFO:
-							if (i == 0) DrawString (_cur_dpi, data_left, data_right, py, TrainDetailsInfoTab(v));
+							if (i == 0) DrawString (dpi, data_left, data_right, py, TrainDetailsInfoTab(v));
 							break;
 
 						case TDW_TAB_CAPACITY: {
@@ -376,7 +377,7 @@ void DrawTrainDetails(const Train *v, int left, int right, int y, int vscroll_po
 								SetDParam(0, STR_EMPTY);
 								str = STR_VEHICLE_INFO_NO_CAPACITY;
 							}
-							DrawString (_cur_dpi, data_left, data_right, py, str);
+							DrawString (dpi, data_left, data_right, py, str);
 							break;
 						}
 
@@ -398,7 +399,7 @@ void DrawTrainDetails(const Train *v, int left, int right, int y, int vscroll_po
 		}
 
 		/* draw total cargo tab */
-		DrawString (_cur_dpi, left, right, y + text_y_offset, STR_VEHICLE_DETAILS_TRAIN_TOTAL_CAPACITY_TEXT);
+		DrawString (dpi, left, right, y + text_y_offset, STR_VEHICLE_DETAILS_TRAIN_TOTAL_CAPACITY_TEXT);
 		y += line_height;
 
 		for (CargoID i = 0; i < NUM_CARGO; i++) {
@@ -408,11 +409,11 @@ void DrawTrainDetails(const Train *v, int left, int right, int y, int vscroll_po
 				SetDParam(2, i);            // {SHORTCARGO} #1
 				SetDParam(3, max_cargo[i]); // {SHORTCARGO} #2
 				SetDParam(4, _settings_game.vehicle.freight_trains);
-				DrawString (_cur_dpi, left, right, y + text_y_offset, FreightWagonMult(i) > 1 ? STR_VEHICLE_DETAILS_TRAIN_TOTAL_CAPACITY_MULT : STR_VEHICLE_DETAILS_TRAIN_TOTAL_CAPACITY);
+				DrawString (dpi, left, right, y + text_y_offset, FreightWagonMult(i) > 1 ? STR_VEHICLE_DETAILS_TRAIN_TOTAL_CAPACITY_MULT : STR_VEHICLE_DETAILS_TRAIN_TOTAL_CAPACITY);
 				y += line_height;
 			}
 		}
 		SetDParam(0, feeder_share);
-		DrawString (_cur_dpi, left, right, y + text_y_offset, STR_VEHICLE_INFO_FEEDER_CARGO_VALUE);
+		DrawString (dpi, left, right, y + text_y_offset, STR_VEHICLE_INFO_FEEDER_CARGO_VALUE);
 	}
 }
