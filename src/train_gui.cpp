@@ -148,28 +148,21 @@ typedef SmallVector<CargoSummaryItem, 2> CargoSummary;
 static CargoSummary _cargo_summary;
 
 /**
- * Draw the details cargo tab for the given vehicle at the given position
- *
- * @param item  Data to draw
- * @param left  The left most coordinate to draw
- * @param right The right most coordinate to draw
- * @param y     The y coordinate
+ * Set up string parameters for the details cargo tab for the given cargo item.
+ * @param item Data to draw.
+ * @return String to draw.
  */
-static void TrainDetailsCargoTab(const CargoSummaryItem *item, int left, int right, int y)
+static StringID TrainDetailsCargoTab (const CargoSummaryItem *item)
 {
-	StringID str;
 	if (item->amount > 0) {
 		SetDParam(0, item->cargo);
 		SetDParam(1, item->amount);
 		SetDParam(2, item->source);
 		SetDParam(3, _settings_game.vehicle.freight_trains);
-		str = FreightWagonMult(item->cargo) > 1 ? STR_VEHICLE_DETAILS_CARGO_FROM_MULT : STR_VEHICLE_DETAILS_CARGO_FROM;
+		return FreightWagonMult(item->cargo) > 1 ? STR_VEHICLE_DETAILS_CARGO_FROM_MULT : STR_VEHICLE_DETAILS_CARGO_FROM;
 	} else {
-		SetDParam(0, STR_QUANTITY_N_A);
-		str = item->cargo == INVALID_CARGO ? STR_LTBLUE_STRING : STR_VEHICLE_DETAILS_CARGO_EMPTY;
+		return item->cargo == INVALID_CARGO ? STR_QUANTITY_N_A : STR_VEHICLE_DETAILS_CARGO_EMPTY;
 	}
-
-	DrawString (_cur_dpi, left, right, y, str);
 }
 
 /**
@@ -372,13 +365,12 @@ void DrawTrainDetails(const Train *v, int left, int right, int y, int vscroll_po
 						if (vscroll_pos != 0) GfxFillRect (_cur_dpi, left, py - WD_MATRIX_TOP - 1, right, py - WD_MATRIX_TOP, _colour_gradient[COLOUR_GREY][5]);
 					}
 					switch (det_tab) {
-						case TDW_TAB_CARGO:
-							if (i < _cargo_summary.Length()) {
-								TrainDetailsCargoTab(&_cargo_summary[i], data_left, data_right, py);
-							} else {
-								DrawString (_cur_dpi, data_left, data_right, py, STR_QUANTITY_N_A, TC_LIGHT_BLUE);
-							}
+						case TDW_TAB_CARGO: {
+							StringID str = (i < _cargo_summary.Length()) ?
+									TrainDetailsCargoTab (&_cargo_summary[i]) : STR_QUANTITY_N_A;
+							DrawString (_cur_dpi, data_left, data_right, py, str, TC_LIGHT_BLUE);
 							break;
+						}
 
 						case TDW_TAB_INFO:
 							if (i == 0) TrainDetailsInfoTab(v, data_left, data_right, py);
