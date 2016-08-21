@@ -166,24 +166,21 @@ static StringID TrainDetailsCargoTab (const CargoSummaryItem *item)
 }
 
 /**
- * Draw the details info tab for the given vehicle at the given position
- *
- * @param v     current vehicle
- * @param left  The left most coordinate to draw
- * @param right The right most coordinate to draw
- * @param y     The y coordinate
+ * Set up string parameters for the details info tab for the given vehicle.
+ * @param v Current vehicle.
+ * @return String to draw.
  */
-static void TrainDetailsInfoTab(const Vehicle *v, int left, int right, int y)
+static StringID TrainDetailsInfoTab (const Vehicle *v)
 {
 	if (RailVehInfo(v->engine_type)->railveh_type == RAILVEH_WAGON) {
 		SetDParam(0, v->engine_type);
 		SetDParam(1, v->value);
-		DrawString (_cur_dpi, left, right, y, STR_VEHICLE_DETAILS_TRAIN_WAGON_VALUE);
+		return STR_VEHICLE_DETAILS_TRAIN_WAGON_VALUE;
 	} else {
 		SetDParam(0, v->engine_type);
 		SetDParam(1, v->build_year);
 		SetDParam(2, v->value);
-		DrawString (_cur_dpi, left, right, y, STR_VEHICLE_DETAILS_TRAIN_ENGINE_BUILT_AND_VALUE);
+		return STR_VEHICLE_DETAILS_TRAIN_ENGINE_BUILT_AND_VALUE;
 	}
 }
 
@@ -368,7 +365,7 @@ void DrawTrainDetails(const Train *v, int left, int right, int y, int vscroll_po
 						}
 
 						case TDW_TAB_INFO:
-							if (i == 0) TrainDetailsInfoTab(v, data_left, data_right, py);
+							if (i == 0) DrawString (_cur_dpi, data_left, data_right, py, TrainDetailsInfoTab(v));
 							break;
 
 						case TDW_TAB_CAPACITY: {
