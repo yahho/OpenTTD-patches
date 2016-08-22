@@ -194,24 +194,6 @@ void DepotSortList(VehicleList *list)
 	QSortT(list->Begin(), list->Length(), &VehicleNumberSorter);
 }
 
-/** draw the vehicle profit button in the vehicle list window. */
-static void DrawVehicleProfitButton(const Vehicle *v, int x, int y)
-{
-	SpriteID spr;
-
-	/* draw profit-based coloured icons */
-	if (v->age <= VEHICLE_PROFIT_MIN_AGE) {
-		spr = SPR_PROFIT_NA;
-	} else if (v->GetDisplayProfitLastYear() < 0) {
-		spr = SPR_PROFIT_NEGATIVE;
-	} else if (v->GetDisplayProfitLastYear() < VEHICLE_PROFIT_THRESHOLD) {
-		spr = SPR_PROFIT_SOME;
-	} else {
-		spr = SPR_PROFIT_LOT;
-	}
-	DrawSprite (_cur_dpi, spr, PAL_NONE, x, y);
-}
-
 /** Maximum number of refit cycles we try, to prevent infinite loops. And we store only a byte anyway */
 static const uint MAX_REFIT_CYCLE = 256;
 
@@ -1488,7 +1470,14 @@ void BaseVehicleListWindow::DrawVehicleListItems(VehicleID selected_vehicle, int
 		SetDParam(0, v->unitnumber);
 		DrawString (_cur_dpi, left, right, y + 2, str);
 
-		DrawVehicleProfitButton(v, vehicle_button_x, y + FONT_HEIGHT_NORMAL + 3);
+		/* Draw profit-based coloured icons. */
+		DrawSprite (_cur_dpi,
+				(v->age <= VEHICLE_PROFIT_MIN_AGE) ? SPR_PROFIT_NA :
+					(v->GetDisplayProfitLastYear() < 0) ? SPR_PROFIT_NEGATIVE :
+					(v->GetDisplayProfitLastYear() < VEHICLE_PROFIT_THRESHOLD) ?
+						SPR_PROFIT_SOME : SPR_PROFIT_LOT,
+				PAL_NONE, vehicle_button_x,
+				y + FONT_HEIGHT_NORMAL + 3);
 
 		y += line_height;
 	}
