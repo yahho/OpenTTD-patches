@@ -1414,11 +1414,13 @@ uint GetVehicleListHeight(VehicleType type, uint divisor)
 
 /**
  * Draw all the vehicle list items.
+ * @param dpi              The area to draw on.
  * @param selected_vehicle The vehicle that is to be highlighted.
  * @param line_height      Height of a single item line.
  * @param r                Rectangle with edge positions of the matrix widget.
  */
-void BaseVehicleListWindow::DrawVehicleListItems(VehicleID selected_vehicle, int line_height, const Rect &r) const
+void BaseVehicleListWindow::DrawVehicleListItems (BlitArea *dpi,
+	VehicleID selected_vehicle, int line_height, const Rect &r) const
 {
 	int left = r.left + WD_MATRIX_LEFT;
 	int right = r.right - WD_MATRIX_RIGHT;
@@ -1447,20 +1449,20 @@ void BaseVehicleListWindow::DrawVehicleListItems(VehicleID selected_vehicle, int
 		SetDParam(0, v->GetDisplayProfitThisYear());
 		SetDParam(1, v->GetDisplayProfitLastYear());
 
-		DrawVehicleImage (v, _cur_dpi, image_left, image_right, y + FONT_HEIGHT_SMALL - 1, selected_vehicle, EIT_IN_LIST, 0);
-		DrawString (_cur_dpi, text_left, text_right, y + line_height - FONT_HEIGHT_SMALL - WD_FRAMERECT_BOTTOM - 1, STR_VEHICLE_LIST_PROFIT_THIS_YEAR_LAST_YEAR);
+		DrawVehicleImage (v, dpi, image_left, image_right, y + FONT_HEIGHT_SMALL - 1, selected_vehicle, EIT_IN_LIST, 0);
+		DrawString (dpi, text_left, text_right, y + line_height - FONT_HEIGHT_SMALL - WD_FRAMERECT_BOTTOM - 1, STR_VEHICLE_LIST_PROFIT_THIS_YEAR_LAST_YEAR);
 
 		if (v->name != NULL) {
 			/* The vehicle got a name so we will print it */
 			SetDParam(0, v->index);
-			DrawString (_cur_dpi, text_left, text_right, y, STR_TINY_BLACK_VEHICLE);
+			DrawString (dpi, text_left, text_right, y, STR_TINY_BLACK_VEHICLE);
 		} else if (v->group_id != DEFAULT_GROUP) {
 			/* The vehicle has no name, but is member of a group, so print group name */
 			SetDParam(0, v->group_id);
-			DrawString (_cur_dpi, text_left, text_right, y, STR_TINY_GROUP, TC_BLACK);
+			DrawString (dpi, text_left, text_right, y, STR_TINY_GROUP, TC_BLACK);
 		}
 
-		if (show_orderlist) DrawSmallOrderList (v, _cur_dpi, orderlist_left, orderlist_right, y, v->cur_real_order_index);
+		if (show_orderlist) DrawSmallOrderList (v, dpi, orderlist_left, orderlist_right, y, v->cur_real_order_index);
 
 		if (v->IsChainInDepot()) {
 			str = STR_BLUE_COMMA;
@@ -1469,10 +1471,10 @@ void BaseVehicleListWindow::DrawVehicleListItems(VehicleID selected_vehicle, int
 		}
 
 		SetDParam(0, v->unitnumber);
-		DrawString (_cur_dpi, left, right, y + 2, str);
+		DrawString (dpi, left, right, y + 2, str);
 
 		/* Draw profit-based coloured icons. */
-		DrawSprite (_cur_dpi,
+		DrawSprite (dpi,
 				(v->age <= VEHICLE_PROFIT_MIN_AGE) ? SPR_PROFIT_NA :
 					(v->GetDisplayProfitLastYear() < 0) ? SPR_PROFIT_NEGATIVE :
 					(v->GetDisplayProfitLastYear() < VEHICLE_PROFIT_THRESHOLD) ?
@@ -1632,7 +1634,7 @@ public:
 				break;
 
 			case WID_VL_LIST:
-				this->DrawVehicleListItems(INVALID_VEHICLE, this->resize.step_height, r);
+				this->DrawVehicleListItems (_cur_dpi, INVALID_VEHICLE, this->resize.step_height, r);
 				break;
 		}
 	}

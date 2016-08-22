@@ -45,7 +45,7 @@ struct BaseVehicleListWindow : public Window {
 		this->vehicles.SetSortFuncs(this->vehicle_sorter_funcs);
 	}
 
-	void DrawVehicleListItems(VehicleID selected_vehicle, int line_height, const Rect &r) const;
+	void DrawVehicleListItems (BlitArea *dpi, VehicleID selected_vehicle, int line_height, const Rect &r) const;
 	void SortVehicleList();
 	void BuildVehicleList();
 	Dimension GetActionDropdownSize(bool show_autoreplace, bool show_group);

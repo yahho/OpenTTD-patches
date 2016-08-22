@@ -567,7 +567,7 @@ public:
 					}
 				}
 
-				this->DrawVehicleListItems(this->vehicle_sel, this->resize.step_height, r);
+				this->DrawVehicleListItems (_cur_dpi, this->vehicle_sel, this->resize.step_height, r);
 				break;
 		}
 	}
