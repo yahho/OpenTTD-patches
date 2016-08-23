@@ -868,13 +868,15 @@ static const WindowDesc _select_company_livery_desc(
  * Draws the face of a company manager's face.
  * @param cmf   the company manager's face
  * @param colour the (background) colour of the gradient
+ * @param dpi   the area to draw on
  * @param x     x-position to draw the face
  * @param y     y-position to draw the face
  */
-void DrawCompanyManagerFace(CompanyManagerFace cmf, int colour, int x, int y)
+void DrawCompanyManagerFace (CompanyManagerFace cmf, int colour,
+	BlitArea *dpi, int x, int y)
 {
 	/* Draw the gradient (background) */
-	DrawSprite (_cur_dpi, SPR_GRADIENT, GENERAL_SPRITE_COLOUR(colour), x, y);
+	DrawSprite (dpi, SPR_GRADIENT, GENERAL_SPRITE_COLOUR(colour), x, y);
 
 	GenderEthnicity ge = (GenderEthnicity)GetCompanyManagerFaceBits(cmf, CMFV_GEN_ETHN, GE_WM);
 
@@ -904,7 +906,7 @@ void DrawCompanyManagerFace(CompanyManagerFace cmf, int colour, int x, int y)
 			case CMFV_GLASSES:     if (!has_glasses)     continue; break;
 			default: break;
 		}
-		DrawSprite (_cur_dpi, GetCompanyManagerFaceSprite (cmf, cmfv, ge), (cmfv == CMFV_EYEBROWS) ? pal : PAL_NONE, x, y);
+		DrawSprite (dpi, GetCompanyManagerFaceSprite (cmf, cmfv, ge), (cmfv == CMFV_EYEBROWS) ? pal : PAL_NONE, x, y);
 	}
 }
 
@@ -1371,7 +1373,7 @@ public:
 				break;
 
 			case WID_SCMF_FACE:
-				DrawCompanyManagerFace(this->face, Company::Get((CompanyID)this->window_number)->colour, r.left, r.top);
+				DrawCompanyManagerFace (this->face, Company::Get((CompanyID)this->window_number)->colour, _cur_dpi, r.left, r.top);
 				break;
 		}
 	}
@@ -2174,7 +2176,7 @@ struct CompanyWindow : Window
 		const Company *c = Company::Get((CompanyID)this->window_number);
 		switch (widget) {
 			case WID_C_FACE:
-				DrawCompanyManagerFace(c->face, c->colour, r.left, r.top);
+				DrawCompanyManagerFace (c->face, c->colour, _cur_dpi, r.left, r.top);
 				break;
 
 			case WID_C_FACE_TITLE:
@@ -2534,7 +2536,7 @@ struct BuyCompanyWindow : Window {
 		switch (widget) {
 			case WID_BC_FACE: {
 				const Company *c = Company::Get((CompanyID)this->window_number);
-				DrawCompanyManagerFace(c->face, c->colour, r.left, r.top);
+				DrawCompanyManagerFace (c->face, c->colour, _cur_dpi, r.left, r.top);
 				break;
 			}
 
