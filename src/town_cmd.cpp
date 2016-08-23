@@ -311,19 +311,24 @@ void DrawHouseImage (HouseID house_id, BlitArea *dpi,
 	uint num_row = (hs->building_flags & BUILDING_2_TILES_X) ? 2 : 1;
 	uint num_col = (hs->building_flags & BUILDING_2_TILES_Y) ? 2 : 1;
 
+	Point pt[4];
+	uint n = 0;
+	for (uint row = 0; row < num_row; row++) {
+		for (uint col = 0; col < num_col; col++) {
+			Point offset = RemapCoords (row * TILE_SIZE, col * TILE_SIZE, 0); // offset for current tile
+			pt[n].x = x + UnScaleByZoom (offset.x, ZOOM_LVL_GUI);
+			pt[n].y = y + UnScaleByZoom (offset.y, ZOOM_LVL_GUI);
+			n++;
+		}
+	}
+
 	for (bool ground = true; ; ground = !ground) {
-		HouseID hid = house_id;
-		for (uint row = 0; row < num_row; row++) {
-			for (uint col = 0; col < num_col; col++) {
-				Point offset = RemapCoords(row * TILE_SIZE, col * TILE_SIZE, 0); // offset for current tile
-				offset.x = UnScaleByZoom(offset.x, ZOOM_LVL_GUI);
-				offset.y = UnScaleByZoom(offset.y, ZOOM_LVL_GUI);
-				if (new_house) {
-					DrawNewHouseTileInGUI (&tmp_dpi, x + offset.x, y + offset.y, hid, ground);
-				} else {
-					DrawOldHouseTileInGUI (&tmp_dpi, x + offset.x, y + offset.y, hid, ground);
-				}
-				hid++;
+		for (uint i = 0; i < n; i++) {
+			HouseID hid = house_id + i;
+			if (new_house) {
+				DrawNewHouseTileInGUI (&tmp_dpi, pt[i].x, pt[i].y, hid, ground);
+			} else {
+				DrawOldHouseTileInGUI (&tmp_dpi, pt[i].x, pt[i].y, hid, ground);
 			}
 		}
 		if (!ground) break;
