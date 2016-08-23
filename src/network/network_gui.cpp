@@ -1671,7 +1671,7 @@ NetworkCompanyInfo *GetLobbyCompanyInfo(CompanyID company)
  *  and also makes able to give money to them, kick them (if server)
  *  and stuff like that. */
 
-extern void DrawCompanyIcon(CompanyID cid, int x, int y);
+extern void DrawCompanyIcon (BlitArea *dpi, CompanyID cid, int x, int y);
 
 /**
  * Prototype for ClientList actions.
@@ -1976,7 +1976,7 @@ struct NetworkClientListWindow : Window {
 			}
 
 			/* Filter out spectators */
-			if (Company::IsValidID(ci->client_playas)) DrawCompanyIcon(ci->client_playas, icon_left, y + icon_offset);
+			if (Company::IsValidID(ci->client_playas)) DrawCompanyIcon (_cur_dpi, ci->client_playas, icon_left, y + icon_offset);
 
 			DrawString (_cur_dpi, name_left, name_right, y + text_offset, ci->client_name, colour);
 

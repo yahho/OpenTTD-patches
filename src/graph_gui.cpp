@@ -65,7 +65,7 @@ struct GraphLegendWindow : Window {
 		bool rtl = _current_text_dir == TD_RTL;
 
 		Dimension d = GetSpriteSize(SPR_COMPANY_ICON);
-		DrawCompanyIcon(cid, rtl ? r.right - d.width - 2 : r.left + 2, r.top + (r.bottom - r.top - d.height) / 2);
+		DrawCompanyIcon (_cur_dpi, cid, rtl ? r.right - d.width - 2 : r.left + 2, r.top + (r.bottom - r.top - d.height) / 2);
 
 		SetDParam(0, cid);
 		SetDParam(1, cid);
@@ -1220,7 +1220,7 @@ public:
 			const Company *c = this->companies[i];
 			DrawString (_cur_dpi, ordinal_left, ordinal_right, y, i + STR_ORDINAL_NUMBER_1ST, i == 0 ? TC_WHITE : TC_YELLOW);
 
-			DrawCompanyIcon(c->index, icon_left, y + icon_y_offset);
+			DrawCompanyIcon (_cur_dpi, c->index, icon_left, y + icon_y_offset);
 
 			SetDParam(0, c->index);
 			SetDParam(1, c->index);
@@ -1423,7 +1423,7 @@ struct PerformanceRatingDetailWindow : Window {
 			CompanyID cid = (CompanyID)(widget - WID_PRD_COMPANY_FIRST);
 			int offset = (cid == this->company) ? 1 : 0;
 			Dimension sprite_size = GetSpriteSize(SPR_COMPANY_ICON);
-			DrawCompanyIcon(cid, (r.left + r.right - sprite_size.width) / 2 + offset, (r.top + r.bottom - sprite_size.height) / 2 + offset);
+			DrawCompanyIcon (_cur_dpi, cid, (r.left + r.right - sprite_size.width) / 2 + offset, (r.top + r.bottom - sprite_size.height) / 2 + offset);
 			return;
 		}
 

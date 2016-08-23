@@ -213,7 +213,7 @@ struct SignListWindow : Window, SignList {
 				for (uint16 i = this->vscroll->GetPosition(); this->vscroll->IsVisible(i) && i < this->vscroll->GetCount(); i++) {
 					const Sign *si = this->signs[i];
 
-					if (si->owner != OWNER_NONE) DrawCompanyIcon(si->owner, icon_left, y + sprite_offset_y);
+					if (si->owner != OWNER_NONE) DrawCompanyIcon (_cur_dpi, si->owner, icon_left, y + sprite_offset_y);
 
 					SetDParam(0, si->index);
 					DrawString (_cur_dpi, text_left, text_right, y, STR_SIGN_NAME, TC_YELLOW);

@@ -1121,7 +1121,7 @@ struct AIDebugWindow : public Window {
 			if (!valid) continue;
 
 			byte offset = (i == ai_debug_company) ? 1 : 0;
-			DrawCompanyIcon(i, button->pos_x + button->current_x / 2 - 7 + offset, this->GetWidget<NWidgetBase>(WID_AID_COMPANY_BUTTON_START + i)->pos_y + 2 + offset);
+			DrawCompanyIcon (_cur_dpi, i, button->pos_x + button->current_x / 2 - 7 + offset, this->GetWidget<NWidgetBase>(WID_AID_COMPANY_BUTTON_START + i)->pos_y + 2 + offset);
 		}
 
 		/* Set button colour for Game Script. */

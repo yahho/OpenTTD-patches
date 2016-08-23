@@ -266,7 +266,7 @@ struct CheatWindow : Window {
 							SetDParam(0, val + 1);
 							GetString (buf, STR_CHEAT_CHANGE_COMPANY);
 							uint offset = 10 + GetStringBoundingBox(buf).width;
-							DrawCompanyIcon(_local_company, rtl ? text_right - offset - 10 : text_left + offset, y + icon_y_offset + 2);
+							DrawCompanyIcon (_cur_dpi, _local_company, rtl ? text_right - offset - 10 : text_left + offset, y + icon_y_offset + 2);
 							break;
 						}
 

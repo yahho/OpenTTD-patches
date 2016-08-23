@@ -13,10 +13,10 @@
 #define COMPANY_GUI_H
 
 #include "company_type.h"
-#include "gfx_type.h"
+#include "gfx_func.h"
 
 TextColour GetDrawStringCompanyColour(CompanyID company);
-void DrawCompanyIcon(CompanyID c, int x, int y);
+void DrawCompanyIcon (BlitArea *dpi, CompanyID c, int x, int y);
 
 void ShowCompanyStations(CompanyID company);
 void ShowCompanyFinances(CompanyID company);

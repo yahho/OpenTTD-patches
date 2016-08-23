@@ -151,7 +151,7 @@ public:
 		int icon_offset = (bottom - top - icon_size.height) / 2;
 		int text_offset = (bottom - top - FONT_HEIGHT_NORMAL) / 2;
 
-		DrawCompanyIcon(company, rtl ? right - this->icon_size.width - WD_FRAMERECT_RIGHT : left + WD_FRAMERECT_LEFT, top + icon_offset);
+		DrawCompanyIcon (_cur_dpi, company, rtl ? right - this->icon_size.width - WD_FRAMERECT_RIGHT : left + WD_FRAMERECT_LEFT, top + icon_offset);
 
 		SetDParam(0, company);
 		SetDParam(1, company);

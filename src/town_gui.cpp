@@ -164,7 +164,7 @@ public:
 		const Company *c;
 		FOR_ALL_COMPANIES(c) {
 			if ((HasBit(this->town->have_ratings, c->index) || this->town->exclusivity == c->index)) {
-				DrawCompanyIcon(c->index, icon_left, y + icon_y_offset);
+				DrawCompanyIcon (_cur_dpi, c->index, icon_left, y + icon_y_offset);
 
 				SetDParam(0, c->index);
 				SetDParam(1, c->index);
