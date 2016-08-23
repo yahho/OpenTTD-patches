@@ -868,6 +868,7 @@ int DrawVehiclePurchaseInfo(int left, int right, int y, EngineID engine_number)
 /**
  * Engine drawing loop
  * @param type Type of vehicle (VEH_*)
+ * @param dpi The area to draw on
  * @param l The left most location of the list
  * @param r The right most location of the list
  * @param y The top most location of the list
@@ -878,7 +879,9 @@ int DrawVehiclePurchaseInfo(int left, int right, int y, EngineID engine_number)
  * @param show_count Whether to show the amount of engines or not
  * @param selected_group the group to list the engines of
  */
-void DrawEngineList(VehicleType type, int l, int r, int y, const GUIEngineList *eng_list, uint16 min, uint16 max, EngineID selected_id, bool show_count, GroupID selected_group)
+void DrawEngineList (VehicleType type, BlitArea *dpi, int l, int r, int y,
+	const GUIEngineList *eng_list, uint16 min, uint16 max,
+	EngineID selected_id, bool show_count, GroupID selected_group)
 {
 	static const int sprite_y_offsets[] = { -1, -1, -2, -2 };
 
@@ -923,13 +926,13 @@ void DrawEngineList(VehicleType type, int l, int r, int y, const GUIEngineList *
 		TextColour tc = (engine == selected_id) ? TC_WHITE : (TC_NO_SHADE | (hidden ? TC_GREY : TC_BLACK));
 
 		SetDParam(0, engine);
-		DrawString (_cur_dpi, text_left, text_right, y + normal_text_y_offset, str, tc);
-		DrawVehicleEngine (_cur_dpi, l, r, sprite_x, y + sprite_y_offset, engine, (show_count && num_engines == 0) ? PALETTE_CRASH : GetEnginePalette (engine, _local_company), EIT_PURCHASE);
+		DrawString (dpi, text_left, text_right, y + normal_text_y_offset, str, tc);
+		DrawVehicleEngine (dpi, l, r, sprite_x, y + sprite_y_offset, engine, (show_count && num_engines == 0) ? PALETTE_CRASH : GetEnginePalette (engine, _local_company), EIT_PURCHASE);
 		if (show_count) {
 			SetDParam(0, num_engines);
-			DrawString (_cur_dpi, count_left, count_right, y + small_text_y_offset, STR_TINY_BLACK_COMA, TC_FROMSTRING, SA_RIGHT | SA_FORCE);
+			DrawString (dpi, count_left, count_right, y + small_text_y_offset, STR_TINY_BLACK_COMA, TC_FROMSTRING, SA_RIGHT | SA_FORCE);
 			if (EngineHasReplacementForCompany (Company::Get(_local_company), engine, selected_group)) {
-				DrawSprite (_cur_dpi, SPR_GROUP_REPLACE_ACTIVE, num_engines == 0 ? PALETTE_CRASH : PAL_NONE, replace_icon_left, y + replace_icon_y_offset);
+				DrawSprite (dpi, SPR_GROUP_REPLACE_ACTIVE, num_engines == 0 ? PALETTE_CRASH : PAL_NONE, replace_icon_left, y + replace_icon_y_offset);
 			}
 		}
 	}
@@ -1419,7 +1422,7 @@ struct BuildVehicleWindow : Window {
 	{
 		switch (widget) {
 			case WID_BV_LIST:
-				DrawEngineList(this->vehicle_type, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP, &this->eng_list, this->vscroll->GetPosition(), min(this->vscroll->GetPosition() + this->vscroll->GetCapacity(), this->eng_list.Length()), this->sel_engine, false, DEFAULT_GROUP);
+				DrawEngineList (this->vehicle_type, _cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP, &this->eng_list, this->vscroll->GetPosition(), min (this->vscroll->GetPosition() + this->vscroll->GetCapacity(), this->eng_list.Length()), this->sel_engine, false, DEFAULT_GROUP);
 				break;
 
 			case WID_BV_SORT_ASCENDING_DESCENDING:

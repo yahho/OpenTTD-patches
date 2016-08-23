@@ -28,7 +28,9 @@
 
 #include "widgets/autoreplace_widget.h"
 
-void DrawEngineList(VehicleType type, int x, int r, int y, const GUIEngineList *eng_list, uint16 min, uint16 max, EngineID selected_id, bool show_count, GroupID selected_group);
+void DrawEngineList (VehicleType type, BlitArea *dpi, int x, int r, int y,
+	const GUIEngineList *eng_list, uint16 min, uint16 max,
+	EngineID selected_id, bool show_count, GroupID selected_group);
 
 static int CDECL EngineNumberSorter(const EngineID *a, const EngineID *b)
 {
@@ -429,7 +431,7 @@ public:
 				EngineID end    = min(this->vscroll[side]->GetCapacity() + start, this->engines[side].Length());
 
 				/* Do the actual drawing */
-				DrawEngineList((VehicleType)this->window_number, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP,
+				DrawEngineList ((VehicleType)this->window_number, _cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP,
 						&this->engines[side], start, end, this->sel_engine[side], side == 0, this->sel_group);
 				break;
 			}
