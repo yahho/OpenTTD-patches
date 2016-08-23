@@ -273,15 +273,17 @@ static void DrawOldHouseTileInGUI (BlitArea *dpi, int x, int y,
  * Draw image of a house. Image will be centered between the \c left and the \c right and verticaly aligned to the \c bottom.
  *
  * @param house_id house type
+ * @param dpi area to draw on
  * @param left left bound of the drawing area
  * @param top top bound of the drawing area
  * @param right right bound of the drawing area
  * @param bottom bottom bound of the drawing area
  */
-void DrawHouseImage(HouseID house_id, int left, int top, int right, int bottom)
+void DrawHouseImage (HouseID house_id, BlitArea *dpi,
+	int left, int top, int right, int bottom)
 {
 	DrawPixelInfo tmp_dpi;
-	if (!FillDrawPixelInfo (_cur_dpi, &tmp_dpi, left, top, right - left + 1, bottom - top + 1)) return;
+	if (!FillDrawPixelInfo (dpi, &tmp_dpi, left, top, right - left + 1, bottom - top + 1)) return;
 
 	const HouseSpec *hs = HouseSpec::Get(house_id);
 

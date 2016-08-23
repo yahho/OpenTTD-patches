@@ -1867,13 +1867,13 @@ public:
 
 			case WID_HP_HOUSE_PREVIEW:
 				if (cur_house != INVALID_HOUSE_ID) {
-					DrawHouseImage (cur_house, r.left, r.top, r.right, r.bottom);
+					DrawHouseImage (cur_house, _cur_dpi, r.left, r.top, r.right, r.bottom);
 				}
 				break;
 
 			case WID_HP_HOUSE_SELECT: {
 				HouseID house = this->houses[this->sets[this->sel_set] + GB(widget, 16, 16)];
-				DrawHouseImage (house,
+				DrawHouseImage (house, _cur_dpi,
 						r.left  + WD_MATRIX_LEFT,  r.top    + WD_MATRIX_TOP,
 						r.right - WD_MATRIX_RIGHT, r.bottom - WD_MATRIX_BOTTOM);
 				break;
