@@ -25,7 +25,7 @@ void DrawArrowButtons (BlitArea *dpi, int x, int y, Colours button_colour,
 void DrawDropDownButton (BlitArea *dpi, int x, int y, Colours button_colour,
 	bool state, bool clickable);
 
-void DrawBoolButton(int x, int y, bool state, bool clickable);
+void DrawBoolButton (BlitArea *dpi, int x, int y, bool state, bool clickable);
 
 #endif /* SETTING_GUI_H */
 

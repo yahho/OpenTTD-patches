@@ -1276,7 +1276,7 @@ void SettingEntry::DrawSetting(GameSettings *settings_ptr, int left, int right, 
 	SetDParam(0, highlight ? STR_ORANGE_STRING1_WHITE : STR_ORANGE_STRING1_LTBLUE);
 	if (sdb->cmd == SDT_BOOLX) {
 		/* Draw checkbox for boolean-value either on/off */
-		DrawBoolButton(buttons_left, button_y, value != 0, editable);
+		DrawBoolButton (_cur_dpi, buttons_left, button_y, value != 0, editable);
 	} else if ((sdb->flags & SGF_MULTISTRING) != 0) {
 		/* Draw [v] button for settings of an enum-type */
 		DrawDropDownButton (_cur_dpi, buttons_left, button_y, COLOUR_YELLOW, state != 0, editable);
@@ -2492,15 +2492,16 @@ void DrawDropDownButton (BlitArea *dpi, int x, int y, Colours button_colour,
 
 /**
  * Draw a toggle button.
+ * @param dpi the area to draw on
  * @param x the x position to draw
  * @param y the y position to draw
  * @param state true = lowered
  * @param clickable is the button clickable?
  */
-void DrawBoolButton(int x, int y, bool state, bool clickable)
+void DrawBoolButton (BlitArea *dpi, int x, int y, bool state, bool clickable)
 {
 	static const Colours _bool_ctabs[2][2] = {{COLOUR_CREAM, COLOUR_RED}, {COLOUR_DARK_GREEN, COLOUR_GREEN}};
-	DrawFrameRect (_cur_dpi, x, y, x + SETTING_BUTTON_WIDTH - 1, y + SETTING_BUTTON_HEIGHT - 1, _bool_ctabs[state][clickable], state ? FR_LOWERED : FR_NONE);
+	DrawFrameRect (dpi, x, y, x + SETTING_BUTTON_WIDTH - 1, y + SETTING_BUTTON_HEIGHT - 1, _bool_ctabs[state][clickable], state ? FR_LOWERED : FR_NONE);
 }
 
 struct CustomCurrencyWindow : Window {

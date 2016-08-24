@@ -245,7 +245,7 @@ struct CheatWindow : Window {
 				case SLE_BOOL: {
 					bool on = (*(bool*)ce->variable);
 
-					DrawBoolButton(button_left, y + icon_y_offset, on, true);
+					DrawBoolButton (_cur_dpi, button_left, y + icon_y_offset, on, true);
 					SetDParam(0, on ? STR_CONFIG_SETTING_ON : STR_CONFIG_SETTING_OFF);
 					break;
 				}

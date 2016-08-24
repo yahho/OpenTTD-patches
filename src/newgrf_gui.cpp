@@ -278,7 +278,7 @@ struct NewGRFParametersWindow : public Window {
 			bool selected = (i == this->clicked_row);
 
 			if (par_info->type == PTYPE_BOOL) {
-				DrawBoolButton(buttons_left, y + button_y_offset, current_value != 0, this->editable);
+				DrawBoolButton (_cur_dpi, buttons_left, y + button_y_offset, current_value != 0, this->editable);
 				SetDParam(2, par_info->GetValue(this->grf_config) == 0 ? STR_CONFIG_SETTING_OFF : STR_CONFIG_SETTING_ON);
 			} else if (par_info->type == PTYPE_UINT_ENUM) {
 				if (par_info->complete_labels) {

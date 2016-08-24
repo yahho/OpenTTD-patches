@@ -395,7 +395,7 @@ struct AISettingsWindow : public Window {
 			}
 
 			if ((config_item.flags & SCRIPTCONFIG_BOOLEAN) != 0) {
-				DrawBoolButton(buttons_left, y + button_y_offset, current_value != 0, editable);
+				DrawBoolButton (_cur_dpi, buttons_left, y + button_y_offset, current_value != 0, editable);
 				SetDParam(idx++, current_value == 0 ? STR_CONFIG_SETTING_OFF : STR_CONFIG_SETTING_ON);
 			} else {
 				if (config_item.complete_labels) {
