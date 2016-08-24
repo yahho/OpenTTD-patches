@@ -796,7 +796,9 @@ struct SettingEntry {
 	bool IsFiltered() const;
 	bool UpdateFilterState(SettingFilter &filter, bool force_visible);
 
-	uint Draw(GameSettings *settings_ptr, int base_x, int base_y, int max_x, uint first_row, uint max_row, uint cur_row, uint parent_last, SettingEntry *selected);
+	uint Draw (GameSettings *settings_ptr, BlitArea *dpi, int base_x,
+			int base_y, int max_x, uint first_row, uint max_row,
+			uint cur_row, uint parent_last, SettingEntry *selected);
 
 	/**
 	 * Get the help text of a single setting.
@@ -811,7 +813,9 @@ struct SettingEntry {
 	void SetValueDParams(uint first_param, int32 value);
 
 private:
-	void DrawSetting(GameSettings *settings_ptr, int x, int y, int max_x, int state, bool highlight);
+	void DrawSetting (GameSettings *settings_ptr, BlitArea *dpi,
+			int x, int y, int max_x, int state, bool highlight);
+
 	bool IsVisibleByRestrictionMode(RestrictionMode mode) const;
 };
 
@@ -832,7 +836,9 @@ struct SettingsPage {
 
 	bool UpdateFilterState(SettingFilter &filter, bool force_visible);
 
-	uint Draw(GameSettings *settings_ptr, int base_x, int base_y, int max_x, uint first_row, uint max_row, SettingEntry *selected, uint cur_row = 0, uint parent_last = 0) const;
+	uint Draw (GameSettings *settings_ptr, BlitArea *dpi, int base_x,
+			int base_y, int max_x, uint first_row, uint max_row,
+			SettingEntry *selected, uint cur_row = 0, uint parent_last = 0) const;
 };
 
 
@@ -1158,6 +1164,7 @@ bool SettingEntry::UpdateFilterState(SettingFilter &filter, bool force_visible)
  * appropriate bit in the \a parent_last parameter.
  *
  * @param settings_ptr Pointer to current values of all settings
+ * @param dpi          Area to draw on
  * @param left         Left-most position in window/panel to start drawing \a first_row
  * @param right        Right-most x position to draw strings at.
  * @param base_y       Upper-most position in window/panel to start drawing \a first_row
@@ -1168,7 +1175,9 @@ bool SettingEntry::UpdateFilterState(SettingFilter &filter, bool force_visible)
  * @param selected     Selected entry by the user.
  * @return Row number of the next row to draw
  */
-uint SettingEntry::Draw(GameSettings *settings_ptr, int left, int right, int base_y, uint first_row, uint max_row, uint cur_row, uint parent_last, SettingEntry *selected)
+uint SettingEntry::Draw (GameSettings *settings_ptr, BlitArea *dpi,
+	int left, int right, int base_y, uint first_row, uint max_row,
+	uint cur_row, uint parent_last, SettingEntry *selected)
 {
 	if (this->IsFiltered()) return cur_row;
 	if (cur_row >= max_row) return cur_row;
@@ -1185,30 +1194,30 @@ uint SettingEntry::Draw(GameSettings *settings_ptr, int left, int right, int bas
 
 		/* Draw vertical for parent nesting levels */
 		for (uint lvl = 0; lvl < this->level; lvl++) {
-			if (!HasBit(parent_last, lvl)) GfxDrawLine (_cur_dpi, x + offset, y, x + offset, y + SETTING_HEIGHT - 1, colour);
+			if (!HasBit(parent_last, lvl)) GfxDrawLine (dpi, x + offset, y, x + offset, y + SETTING_HEIGHT - 1, colour);
 			x += level_width;
 		}
 		/* draw own |- prefix */
 		int halfway_y = y + SETTING_HEIGHT / 2;
 		int bottom_y = (flags & SEF_LAST_FIELD) ? halfway_y : y + SETTING_HEIGHT - 1;
-		GfxDrawLine (_cur_dpi, x + offset, y, x + offset, bottom_y, colour);
+		GfxDrawLine (dpi, x + offset, y, x + offset, bottom_y, colour);
 		/* Small horizontal line from the last vertical line */
-		GfxDrawLine (_cur_dpi, x + offset, halfway_y, x + level_width - offset, halfway_y, colour);
+		GfxDrawLine (dpi, x + offset, halfway_y, x + level_width - offset, halfway_y, colour);
 		x += level_width;
 	}
 
 	switch (this->flags & SEF_KIND_MASK) {
 		case SEF_SETTING_KIND:
 			if (cur_row >= first_row) {
-				this->DrawSetting(settings_ptr, rtl ? left : x, rtl ? x : right, y, this->flags & SEF_BUTTONS_MASK,
+				this->DrawSetting (settings_ptr, dpi, rtl ? left : x, rtl ? x : right, y, this->flags & SEF_BUTTONS_MASK,
 						this == selected);
 			}
 			cur_row++;
 			break;
 		case SEF_SUBTREE_KIND:
 			if (cur_row >= first_row) {
-				DrawSprite (_cur_dpi, (this->d.sub.folded ? SPR_CIRCLE_FOLDED : SPR_CIRCLE_UNFOLDED), PAL_NONE, rtl ? x - _circle_size.width : x, y + (SETTING_HEIGHT - _circle_size.height) / 2);
-				DrawString (_cur_dpi, rtl ? left : x + _circle_size.width + 2, rtl ? x - _circle_size.width - 2 : right, y + (SETTING_HEIGHT - FONT_HEIGHT_NORMAL) / 2, this->d.sub.title);
+				DrawSprite (dpi, (this->d.sub.folded ? SPR_CIRCLE_FOLDED : SPR_CIRCLE_UNFOLDED), PAL_NONE, rtl ? x - _circle_size.width : x, y + (SETTING_HEIGHT - _circle_size.height) / 2);
+				DrawString (dpi, rtl ? left : x + _circle_size.width + 2, rtl ? x - _circle_size.width - 2 : right, y + (SETTING_HEIGHT - FONT_HEIGHT_NORMAL) / 2, this->d.sub.title);
 			}
 			cur_row++;
 			if (!this->d.sub.folded) {
@@ -1217,7 +1226,7 @@ uint SettingEntry::Draw(GameSettings *settings_ptr, int left, int right, int bas
 					SetBit(parent_last, this->level); // Add own last-field state
 				}
 
-				cur_row = this->d.sub.page->Draw(settings_ptr, left, right, base_y, first_row, max_row, selected, cur_row, parent_last);
+				cur_row = this->d.sub.page->Draw (settings_ptr, dpi, left, right, base_y, first_row, max_row, selected, cur_row, parent_last);
 			}
 			break;
 		default: NOT_REACHED();
@@ -1252,13 +1261,15 @@ void SettingEntry::SetValueDParams(uint first_param, int32 value)
 /**
  * Private function to draw setting value (button + text + current value)
  * @param settings_ptr Pointer to current values of all settings
+ * @param dpi          Area to draw on
  * @param left         Left-most position in window/panel to start drawing
  * @param right        Right-most position in window/panel to draw
  * @param y            Upper-most position in window/panel to start drawing
  * @param state        State of the left + right arrow buttons to draw for the setting
  * @param highlight    Highlight entry.
  */
-void SettingEntry::DrawSetting(GameSettings *settings_ptr, int left, int right, int y, int state, bool highlight)
+void SettingEntry::DrawSetting (GameSettings *settings_ptr, BlitArea *dpi,
+	int left, int right, int y, int state, bool highlight)
 {
 	const SettingDesc *sd = this->d.entry.setting;
 	const SettingDescBase *sdb = &sd->desc;
@@ -1276,17 +1287,17 @@ void SettingEntry::DrawSetting(GameSettings *settings_ptr, int left, int right, 
 	SetDParam(0, highlight ? STR_ORANGE_STRING1_WHITE : STR_ORANGE_STRING1_LTBLUE);
 	if (sdb->cmd == SDT_BOOLX) {
 		/* Draw checkbox for boolean-value either on/off */
-		DrawBoolButton (_cur_dpi, buttons_left, button_y, value != 0, editable);
+		DrawBoolButton (dpi, buttons_left, button_y, value != 0, editable);
 	} else if ((sdb->flags & SGF_MULTISTRING) != 0) {
 		/* Draw [v] button for settings of an enum-type */
-		DrawDropDownButton (_cur_dpi, buttons_left, button_y, COLOUR_YELLOW, state != 0, editable);
+		DrawDropDownButton (dpi, buttons_left, button_y, COLOUR_YELLOW, state != 0, editable);
 	} else {
 		/* Draw [<][>] boxes for settings of an integer-type */
-		DrawArrowButtons (_cur_dpi, buttons_left, button_y, COLOUR_YELLOW, state,
+		DrawArrowButtons (dpi, buttons_left, button_y, COLOUR_YELLOW, state,
 				editable && value != (sdb->flags & SGF_0ISDISABLED ? 0 : sdb->min), editable && (uint32)value != sdb->max);
 	}
 	this->SetValueDParams(1, value);
-	DrawString (_cur_dpi, text_left, text_right, y + (SETTING_HEIGHT - FONT_HEIGHT_NORMAL) / 2, sdb->str, highlight ? TC_WHITE : TC_LIGHT_BLUE);
+	DrawString (dpi, text_left, text_right, y + (SETTING_HEIGHT - FONT_HEIGHT_NORMAL) / 2, sdb->str, highlight ? TC_WHITE : TC_LIGHT_BLUE);
 }
 
 
@@ -1415,6 +1426,7 @@ uint SettingsPage::GetMaxHelpHeight(int maxw)
  * Then it enables drawing rows while traversing until \a max_row is reached, at which point drawing is terminated.
  *
  * @param settings_ptr Pointer to current values of all settings
+ * @param dpi          Area to raw on
  * @param left         Left-most position in window/panel to start drawing of each setting row
  * @param right        Right-most position in window/panel to draw at
  * @param base_y       Upper-most position in window/panel to start drawing of row number \a first_row
@@ -1425,12 +1437,14 @@ uint SettingsPage::GetMaxHelpHeight(int maxw)
  * @param selected     Selected entry by the user.
  * @return Row number of the next row to draw
  */
-uint SettingsPage::Draw(GameSettings *settings_ptr, int left, int right, int base_y, uint first_row, uint max_row, SettingEntry *selected, uint cur_row, uint parent_last) const
+uint SettingsPage::Draw (GameSettings *settings_ptr, BlitArea *dpi,
+	int left, int right, int base_y, uint first_row, uint max_row,
+	SettingEntry *selected, uint cur_row, uint parent_last) const
 {
 	if (cur_row >= max_row) return cur_row;
 
 	for (uint i = 0; i < this->num; i++) {
-		cur_row = this->entries[i].Draw(settings_ptr, left, right, base_y, first_row, max_row, cur_row, parent_last, selected);
+		cur_row = this->entries[i].Draw (settings_ptr, dpi, left, right, base_y, first_row, max_row, cur_row, parent_last, selected);
 		if (cur_row >= max_row) {
 			break;
 		}
@@ -2004,7 +2018,7 @@ struct GameSettingsWindow : Window {
 			case WID_GS_OPTIONSPANEL: {
 				int top_pos = r.top + SETTINGTREE_TOP_OFFSET + 1 + this->warn_lines * SETTING_HEIGHT;
 				uint last_row = this->vscroll->GetPosition() + this->vscroll->GetCapacity() - this->warn_lines;
-				int next_row = _settings_main_page.Draw(settings_ptr, r.left + SETTINGTREE_LEFT_OFFSET, r.right - SETTINGTREE_RIGHT_OFFSET, top_pos,
+				int next_row = _settings_main_page.Draw (settings_ptr, _cur_dpi, r.left + SETTINGTREE_LEFT_OFFSET, r.right - SETTINGTREE_RIGHT_OFFSET, top_pos,
 						this->vscroll->GetPosition(), last_row, this->last_clicked);
 				if (next_row == 0) DrawString (_cur_dpi, r.left + SETTINGTREE_LEFT_OFFSET, r.right - SETTINGTREE_RIGHT_OFFSET, top_pos, STR_CONFIG_SETTINGS_NONE);
 				break;
