@@ -1279,7 +1279,7 @@ void SettingEntry::DrawSetting(GameSettings *settings_ptr, int left, int right, 
 		DrawBoolButton(buttons_left, button_y, value != 0, editable);
 	} else if ((sdb->flags & SGF_MULTISTRING) != 0) {
 		/* Draw [v] button for settings of an enum-type */
-		DrawDropDownButton(buttons_left, button_y, COLOUR_YELLOW, state != 0, editable);
+		DrawDropDownButton (_cur_dpi, buttons_left, button_y, COLOUR_YELLOW, state != 0, editable);
 	} else {
 		/* Draw [<][>] boxes for settings of an integer-type */
 		DrawArrowButtons (_cur_dpi, buttons_left, button_y, COLOUR_YELLOW, state,
@@ -2470,21 +2470,23 @@ void DrawArrowButtons (BlitArea *dpi, int x, int y, Colours button_colour,
 
 /**
  * Draw a dropdown button.
+ * @param dpi the area to draw on
  * @param x the x position to draw
  * @param y the y position to draw
  * @param button_colour the colour of the button
  * @param state true = lowered
  * @param clickable is the button clickable?
  */
-void DrawDropDownButton(int x, int y, Colours button_colour, bool state, bool clickable)
+void DrawDropDownButton (BlitArea *dpi, int x, int y, Colours button_colour,
+	bool state, bool clickable)
 {
 	int colour = _colour_gradient[button_colour][2];
 
-	DrawFrameRect (_cur_dpi, x, y, x + SETTING_BUTTON_WIDTH - 1, y + SETTING_BUTTON_HEIGHT - 1, button_colour, state ? FR_LOWERED : FR_NONE);
-	DrawSprite (_cur_dpi, SPR_ARROW_DOWN, PAL_NONE, x + (SETTING_BUTTON_WIDTH - NWidgetScrollbar::GetVerticalDimension().width) / 2 + state, y + 2 + state);
+	DrawFrameRect (dpi, x, y, x + SETTING_BUTTON_WIDTH - 1, y + SETTING_BUTTON_HEIGHT - 1, button_colour, state ? FR_LOWERED : FR_NONE);
+	DrawSprite (dpi, SPR_ARROW_DOWN, PAL_NONE, x + (SETTING_BUTTON_WIDTH - NWidgetScrollbar::GetVerticalDimension().width) / 2 + state, y + 2 + state);
 
 	if (!clickable) {
-		GfxFillRect (_cur_dpi, x +  1, y, x + SETTING_BUTTON_WIDTH - 1, y + SETTING_BUTTON_HEIGHT - 2, colour, FILLRECT_CHECKER);
+		GfxFillRect (dpi, x +  1, y, x + SETTING_BUTTON_WIDTH - 1, y + SETTING_BUTTON_HEIGHT - 2, colour, FILLRECT_CHECKER);
 	}
 }
 
