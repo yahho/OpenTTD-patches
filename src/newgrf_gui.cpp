@@ -591,9 +591,9 @@ public:
 		return true;
 	}
 
-	void Draw(int left, int right, int top, int bottom, bool sel, int bg_colour) const
+	void Draw (BlitArea *dpi, int left, int right, int top, int bottom, bool sel, int bg_colour) const OVERRIDE
 	{
-		DrawString (_cur_dpi, left + 2, right + 2, top, _grf_preset_list[this->result], sel ? TC_WHITE : TC_BLACK);
+		DrawString (dpi, left + 2, right + 2, top, _grf_preset_list[this->result], sel ? TC_WHITE : TC_BLACK);
 	}
 };
 

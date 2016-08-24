@@ -538,16 +538,16 @@ public:
 		return true;
 	}
 
-	void Draw(int left, int right, int top, int bottom, bool sel, int bg_colour) const
+	void Draw (BlitArea *dpi, int left, int right, int top, int bottom, bool sel, int bg_colour) const OVERRIDE
 	{
 		bool rtl = _current_text_dir == TD_RTL;
 		int height = bottom - top;
 		int icon_y_offset = height / 2;
 		int text_y_offset = (height - FONT_HEIGHT_NORMAL) / 2 + 1;
-		DrawSprite (_cur_dpi, SPR_VEH_BUS_SIDE_VIEW, PALETTE_RECOLOUR_START + this->result,
+		DrawSprite (dpi, SPR_VEH_BUS_SIDE_VIEW, PALETTE_RECOLOUR_START + this->result,
 				rtl ? right - 2 - ScaleGUITrad(14) : left + ScaleGUITrad(14) + 2,
 				top + icon_y_offset);
-		DrawString (_cur_dpi, rtl ? left + 2 : left + ScaleGUITrad(28) + 4,
+		DrawString (dpi, rtl ? left + 2 : left + ScaleGUITrad(28) + 4,
 				rtl ? right - ScaleGUITrad(28) - 4 : right - 2,
 				top + text_y_offset, this->String(), sel ? TC_WHITE : TC_BLACK);
 	}
