@@ -1282,7 +1282,7 @@ void SettingEntry::DrawSetting(GameSettings *settings_ptr, int left, int right, 
 		DrawDropDownButton(buttons_left, button_y, COLOUR_YELLOW, state != 0, editable);
 	} else {
 		/* Draw [<][>] boxes for settings of an integer-type */
-		DrawArrowButtons(buttons_left, button_y, COLOUR_YELLOW, state,
+		DrawArrowButtons (_cur_dpi, buttons_left, button_y, COLOUR_YELLOW, state,
 				editable && value != (sdb->flags & SGF_0ISDISABLED ? 0 : sdb->min), editable && (uint32)value != sdb->max);
 	}
 	this->SetValueDParams(1, value);
@@ -2439,6 +2439,7 @@ void ShowGameSettings()
 
 /**
  * Draw [<][>] boxes.
+ * @param dpi the area to draw on
  * @param x the x position to draw
  * @param y the y position to draw
  * @param button_colour the colour of the button
@@ -2446,23 +2447,24 @@ void ShowGameSettings()
  * @param clickable_left is the left button clickable?
  * @param clickable_right is the right button clickable?
  */
-void DrawArrowButtons(int x, int y, Colours button_colour, byte state, bool clickable_left, bool clickable_right)
+void DrawArrowButtons (BlitArea *dpi, int x, int y, Colours button_colour,
+	byte state, bool clickable_left, bool clickable_right)
 {
 	int colour = _colour_gradient[button_colour][2];
 	Dimension dim = NWidgetScrollbar::GetHorizontalDimension();
 
-	DrawFrameRect (_cur_dpi, x,             y, x + dim.width - 1,             y + dim.height - 1, button_colour, (state == 1) ? FR_LOWERED : FR_NONE);
-	DrawFrameRect (_cur_dpi, x + dim.width, y, x + dim.width + dim.width - 1, y + dim.height - 1, button_colour, (state == 2) ? FR_LOWERED : FR_NONE);
-	DrawSprite (_cur_dpi, SPR_ARROW_LEFT, PAL_NONE, x + WD_IMGBTN_LEFT, y + WD_IMGBTN_TOP);
-	DrawSprite (_cur_dpi, SPR_ARROW_RIGHT, PAL_NONE, x + WD_IMGBTN_LEFT + dim.width, y + WD_IMGBTN_TOP);
+	DrawFrameRect (dpi, x,             y, x + dim.width - 1,             y + dim.height - 1, button_colour, (state == 1) ? FR_LOWERED : FR_NONE);
+	DrawFrameRect (dpi, x + dim.width, y, x + dim.width + dim.width - 1, y + dim.height - 1, button_colour, (state == 2) ? FR_LOWERED : FR_NONE);
+	DrawSprite (dpi, SPR_ARROW_LEFT, PAL_NONE, x + WD_IMGBTN_LEFT, y + WD_IMGBTN_TOP);
+	DrawSprite (dpi, SPR_ARROW_RIGHT, PAL_NONE, x + WD_IMGBTN_LEFT + dim.width, y + WD_IMGBTN_TOP);
 
 	/* Grey out the buttons that aren't clickable */
 	bool rtl = _current_text_dir == TD_RTL;
 	if (rtl ? !clickable_right : !clickable_left) {
-		GfxFillRect (_cur_dpi, x + 1, y, x + dim.width - 1, y + dim.height - 2, colour, FILLRECT_CHECKER);
+		GfxFillRect (dpi, x + 1, y, x + dim.width - 1, y + dim.height - 2, colour, FILLRECT_CHECKER);
 	}
 	if (rtl ? !clickable_left : !clickable_right) {
-		GfxFillRect (_cur_dpi, x + dim.width + 1, y, x + dim.width + dim.width - 1, y + dim.height - 2, colour, FILLRECT_CHECKER);
+		GfxFillRect (dpi, x + dim.width + 1, y, x + dim.width + dim.width - 1, y + dim.height - 2, colour, FILLRECT_CHECKER);
 	}
 }
 
