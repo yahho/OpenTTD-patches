@@ -1082,12 +1082,13 @@ class SelectCompanyManagerFaceWindow : public Window
 
 	/**
 	 * Draw dynamic a label to the left of the button and a value in the button
-	 *
+	 * @param dpi            area to draw on
 	 * @param widget_index   index of this widget in the window
 	 * @param cmfv           the variable that will be drawn
 	 * @param is_bool_widget is it a bool button
 	 */
-	void DrawFaceStringLabel (byte widget_index, CompanyManagerFaceVariable cmfv, bool is_bool_widget) const
+	void DrawFaceStringLabel (BlitArea *dpi, byte widget_index,
+		CompanyManagerFaceVariable cmfv, bool is_bool_widget) const
 	{
 		const NWidgetCore *nwi_widget = this->GetWidget<NWidgetCore>(widget_index);
 		if (!nwi_widget->IsDisabled()) {
@@ -1103,7 +1104,7 @@ class SelectCompanyManagerFaceWindow : public Window
 			}
 
 			/* Draw the value/bool in white. */
-			DrawString (_cur_dpi, nwi_widget->pos_x, nwi_widget->pos_x + nwi_widget->current_x - 1,
+			DrawString (dpi, nwi_widget->pos_x, nwi_widget->pos_x + nwi_widget->current_x - 1,
 					nwi_widget->pos_y + 1, str, TC_WHITE, SA_HOR_CENTER);
 		}
 	}
@@ -1327,53 +1328,53 @@ public:
 
 
 			case WID_SCMF_HAS_MOUSTACHE_EARRING:
-				this->DrawFaceStringLabel (WID_SCMF_HAS_MOUSTACHE_EARRING,
+				this->DrawFaceStringLabel (_cur_dpi, WID_SCMF_HAS_MOUSTACHE_EARRING,
 						this->is_female ? CMFV_HAS_TIE_EARRING : CMFV_HAS_MOUSTACHE, true);
 				break;
 
 			case WID_SCMF_TIE_EARRING:
-				this->DrawFaceStringLabel (WID_SCMF_TIE_EARRING, CMFV_TIE_EARRING, false);
+				this->DrawFaceStringLabel (_cur_dpi, WID_SCMF_TIE_EARRING, CMFV_TIE_EARRING, false);
 				break;
 
 			case WID_SCMF_LIPS_MOUSTACHE:
-				this->DrawFaceStringLabel (WID_SCMF_LIPS_MOUSTACHE,
+				this->DrawFaceStringLabel (_cur_dpi, WID_SCMF_LIPS_MOUSTACHE,
 						this->is_moust_male ? CMFV_MOUSTACHE : CMFV_LIPS,  false);
 				break;
 
 			case WID_SCMF_HAS_GLASSES:
-				this->DrawFaceStringLabel (WID_SCMF_HAS_GLASSES, CMFV_HAS_GLASSES, true );
+				this->DrawFaceStringLabel (_cur_dpi, WID_SCMF_HAS_GLASSES, CMFV_HAS_GLASSES, true );
 				break;
 
 			case WID_SCMF_HAIR:
-				this->DrawFaceStringLabel (WID_SCMF_HAIR,        CMFV_HAIR,        false);
+				this->DrawFaceStringLabel (_cur_dpi, WID_SCMF_HAIR,        CMFV_HAIR,        false);
 				break;
 
 			case WID_SCMF_EYEBROWS:
-				this->DrawFaceStringLabel (WID_SCMF_EYEBROWS,    CMFV_EYEBROWS,    false);
+				this->DrawFaceStringLabel (_cur_dpi, WID_SCMF_EYEBROWS,    CMFV_EYEBROWS,    false);
 				break;
 
 			case WID_SCMF_EYECOLOUR:
-				this->DrawFaceStringLabel (WID_SCMF_EYECOLOUR,   CMFV_EYE_COLOUR,  false);
+				this->DrawFaceStringLabel (_cur_dpi, WID_SCMF_EYECOLOUR,   CMFV_EYE_COLOUR,  false);
 				break;
 
 			case WID_SCMF_GLASSES:
-				this->DrawFaceStringLabel (WID_SCMF_GLASSES,     CMFV_GLASSES,     false);
+				this->DrawFaceStringLabel (_cur_dpi, WID_SCMF_GLASSES,     CMFV_GLASSES,     false);
 				break;
 
 			case WID_SCMF_NOSE:
-				this->DrawFaceStringLabel (WID_SCMF_NOSE,        CMFV_NOSE,        false);
+				this->DrawFaceStringLabel (_cur_dpi, WID_SCMF_NOSE,        CMFV_NOSE,        false);
 				break;
 
 			case WID_SCMF_CHIN:
-				this->DrawFaceStringLabel (WID_SCMF_CHIN,        CMFV_CHIN,        false);
+				this->DrawFaceStringLabel (_cur_dpi, WID_SCMF_CHIN,        CMFV_CHIN,        false);
 				break;
 
 			case WID_SCMF_JACKET:
-				this->DrawFaceStringLabel (WID_SCMF_JACKET,      CMFV_JACKET,      false);
+				this->DrawFaceStringLabel (_cur_dpi, WID_SCMF_JACKET,      CMFV_JACKET,      false);
 				break;
 
 			case WID_SCMF_COLLAR:
-				this->DrawFaceStringLabel (WID_SCMF_COLLAR,      CMFV_COLLAR,      false);
+				this->DrawFaceStringLabel (_cur_dpi, WID_SCMF_COLLAR,      CMFV_COLLAR,      false);
 				break;
 
 			case WID_SCMF_FACE:
