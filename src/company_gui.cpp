@@ -175,17 +175,19 @@ static void DrawPrice (Money amount, BlitArea *dpi, int left, int right, int top
 
 /**
  * Draw a column with prices.
+ * @param dpi  Area to draw on.
  * @param r    Available space for drawing.
  * @param year Year being drawn.
  * @param tbl  Pointer to table of amounts for \a year.
  * @note The environment must provide padding at the left and right of \a r.
  */
-static void DrawYearColumn(const Rect &r, int year, const Money (*tbl)[EXPENSES_END])
+static void DrawYearColumn (BlitArea *dpi, const Rect &r, int year,
+	const Money (*tbl)[EXPENSES_END])
 {
 	int y = r.top;
 
 	SetDParam(0, year);
-	DrawString (_cur_dpi, r.left, r.right, y, STR_FINANCES_YEAR, TC_FROMSTRING, SA_RIGHT, true);
+	DrawString (dpi, r.left, r.right, y, STR_FINANCES_YEAR, TC_FROMSTRING, SA_RIGHT, true);
 	y += FONT_HEIGHT_NORMAL + EXP_LINESPACE;
 
 	Money sum = 0;
@@ -196,22 +198,22 @@ static void DrawYearColumn(const Rect &r, int year, const Money (*tbl)[EXPENSES_
 		if (et == INVALID_EXPENSES) {
 			Money cost = subtotal;
 			subtotal = 0;
-			GfxFillRect (_cur_dpi, r.left, y, r.right, y, PC_BLACK);
+			GfxFillRect (dpi, r.left, y, r.right, y, PC_BLACK);
 			y += EXP_LINESPACE;
-			DrawPrice (cost, _cur_dpi, r.left, r.right, y);
+			DrawPrice (cost, dpi, r.left, r.right, y);
 			y += FONT_HEIGHT_NORMAL + EXP_BLOCKSPACE;
 		} else {
 			Money cost = (*tbl)[et];
 			subtotal += cost;
 			sum += cost;
-			if (cost != 0) DrawPrice (cost, _cur_dpi, r.left, r.right, y);
+			if (cost != 0) DrawPrice (cost, dpi, r.left, r.right, y);
 			y += FONT_HEIGHT_NORMAL;
 		}
 	}
 
-	GfxFillRect (_cur_dpi, r.left, y, r.right, y, PC_BLACK);
+	GfxFillRect (dpi, r.left, y, r.right, y, PC_BLACK);
 	y += EXP_LINESPACE;
-	DrawPrice (sum, _cur_dpi, r.left, r.right, y);
+	DrawPrice (sum, dpi, r.left, r.right, y);
 }
 
 static const NWidgetPart _nested_company_finances_widgets[] = {
@@ -346,7 +348,7 @@ struct CompanyFinancesWindow : Window {
 				int age = min(_cur_year - c->inaugurated_year, 2);
 				int wid_offset = widget - WID_CF_EXPS_PRICE1;
 				if (wid_offset <= age) {
-					DrawYearColumn(r, _cur_year - (age - wid_offset), c->yearly_expenses + (age - wid_offset));
+					DrawYearColumn (_cur_dpi, r, _cur_year - (age - wid_offset), c->yearly_expenses + (age - wid_offset));
 				}
 				break;
 			}
