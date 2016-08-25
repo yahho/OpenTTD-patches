@@ -157,11 +157,12 @@ static void DrawCategories (BlitArea *dpi, const Rect &r)
 /**
  * Draw an amount of money.
  * @param amount Amount of money to draw,
+ * @param dpi    Area to draw on.
  * @param left   Left coordinate of the space to draw in.
  * @param right  Right coordinate of the space to draw in.
  * @param top    Top coordinate of the space to draw in.
  */
-static void DrawPrice(Money amount, int left, int right, int top)
+static void DrawPrice (Money amount, BlitArea *dpi, int left, int right, int top)
 {
 	StringID str = STR_FINANCES_NEGATIVE_INCOME;
 	if (amount < 0) {
@@ -169,7 +170,7 @@ static void DrawPrice(Money amount, int left, int right, int top)
 		str++;
 	}
 	SetDParam(0, amount);
-	DrawString (_cur_dpi, left, right, top, str, TC_FROMSTRING, SA_RIGHT);
+	DrawString (dpi, left, right, top, str, TC_FROMSTRING, SA_RIGHT);
 }
 
 /**
@@ -197,20 +198,20 @@ static void DrawYearColumn(const Rect &r, int year, const Money (*tbl)[EXPENSES_
 			subtotal = 0;
 			GfxFillRect (_cur_dpi, r.left, y, r.right, y, PC_BLACK);
 			y += EXP_LINESPACE;
-			DrawPrice(cost, r.left, r.right, y);
+			DrawPrice (cost, _cur_dpi, r.left, r.right, y);
 			y += FONT_HEIGHT_NORMAL + EXP_BLOCKSPACE;
 		} else {
 			Money cost = (*tbl)[et];
 			subtotal += cost;
 			sum += cost;
-			if (cost != 0) DrawPrice(cost, r.left, r.right, y);
+			if (cost != 0) DrawPrice (cost, _cur_dpi, r.left, r.right, y);
 			y += FONT_HEIGHT_NORMAL;
 		}
 	}
 
 	GfxFillRect (_cur_dpi, r.left, y, r.right, y, PC_BLACK);
 	y += EXP_LINESPACE;
-	DrawPrice(sum, r.left, r.right, y);
+	DrawPrice (sum, _cur_dpi, r.left, r.right, y);
 }
 
 static const NWidgetPart _nested_company_finances_widgets[] = {
