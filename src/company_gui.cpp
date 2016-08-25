@@ -1752,20 +1752,22 @@ struct CompanyInfrastructureWindow : Window
 
 	/**
 	 * Helper for drawing the counts line.
+	 * @param dpi          The area to draw on.
 	 * @param r            The bounds to draw in.
 	 * @param y            The y position to draw at.
 	 * @param count        The count to show on this line.
 	 * @param monthly_cost The monthly costs.
 	 */
-	void DrawCountLine(const Rect &r, int &y, int count, Money monthly_cost) const
+	void DrawCountLine (BlitArea *dpi, const Rect &r, int &y,
+		int count, Money monthly_cost) const
 	{
 		SetDParam(0, count);
-		DrawString (_cur_dpi, r.left, r.right, y += FONT_HEIGHT_NORMAL, STR_WHITE_COMMA, TC_FROMSTRING, SA_RIGHT);
+		DrawString (dpi, r.left, r.right, y += FONT_HEIGHT_NORMAL, STR_WHITE_COMMA, TC_FROMSTRING, SA_RIGHT);
 
 		if (_settings_game.economy.infrastructure_maintenance) {
 			SetDParam(0, monthly_cost * 12); // Convert to per year
 			int left = _current_text_dir == TD_RTL ? r.right - this->total_width : r.left;
-			DrawString (_cur_dpi, left, left + this->total_width, y, STR_COMPANY_INFRASTRUCTURE_VIEW_TOTAL, TC_FROMSTRING, SA_RIGHT);
+			DrawString (dpi, left, left + this->total_width, y, STR_COMPANY_INFRASTRUCTURE_VIEW_TOTAL, TC_FROMSTRING, SA_RIGHT);
 		}
 	}
 
@@ -1804,11 +1806,11 @@ struct CompanyInfrastructureWindow : Window
 				RailType rt;
 				FOR_ALL_SORTED_RAILTYPES(rt) {
 					if (HasBit(this->railtypes, rt)) {
-						this->DrawCountLine(r, y, c->infrastructure.rail[rt], RailMaintenanceCost(rt, c->infrastructure.rail[rt], rail_total));
+						this->DrawCountLine (_cur_dpi, r, y, c->infrastructure.rail[rt], RailMaintenanceCost(rt, c->infrastructure.rail[rt], rail_total));
 					}
 				}
 				if (this->railtypes != RAILTYPES_NONE) {
-					this->DrawCountLine(r, y, c->infrastructure.signal, SignalMaintenanceCost(c->infrastructure.signal));
+					this->DrawCountLine (_cur_dpi, r, y, c->infrastructure.signal, SignalMaintenanceCost(c->infrastructure.signal));
 				}
 				break;
 			}
@@ -1832,10 +1834,10 @@ struct CompanyInfrastructureWindow : Window
 
 			case WID_CI_ROAD_COUNT:
 				if (HasBit(this->roadtypes, ROADTYPE_ROAD)) {
-					this->DrawCountLine(r, y, c->infrastructure.road[ROADTYPE_ROAD], RoadMaintenanceCost(ROADTYPE_ROAD, c->infrastructure.road[ROADTYPE_ROAD]));
+					this->DrawCountLine (_cur_dpi, r, y, c->infrastructure.road[ROADTYPE_ROAD], RoadMaintenanceCost(ROADTYPE_ROAD, c->infrastructure.road[ROADTYPE_ROAD]));
 				}
 				if (HasBit(this->roadtypes, ROADTYPE_TRAM)) {
-					this->DrawCountLine(r, y, c->infrastructure.road[ROADTYPE_TRAM], RoadMaintenanceCost(ROADTYPE_TRAM, c->infrastructure.road[ROADTYPE_TRAM]));
+					this->DrawCountLine (_cur_dpi, r, y, c->infrastructure.road[ROADTYPE_TRAM], RoadMaintenanceCost(ROADTYPE_TRAM, c->infrastructure.road[ROADTYPE_TRAM]));
 				}
 				break;
 
@@ -1845,7 +1847,7 @@ struct CompanyInfrastructureWindow : Window
 				break;
 
 			case WID_CI_WATER_COUNT:
-				this->DrawCountLine(r, y, c->infrastructure.water, CanalMaintenanceCost(c->infrastructure.water));
+				this->DrawCountLine (_cur_dpi, r, y, c->infrastructure.water, CanalMaintenanceCost(c->infrastructure.water));
 				break;
 
 			case WID_CI_TOTAL:
@@ -1865,8 +1867,8 @@ struct CompanyInfrastructureWindow : Window
 				break;
 
 			case WID_CI_STATION_COUNT:
-				this->DrawCountLine(r, y, c->infrastructure.station, StationMaintenanceCost(c->infrastructure.station));
-				this->DrawCountLine(r, y, c->infrastructure.airport, AirportMaintenanceCost(c->index));
+				this->DrawCountLine (_cur_dpi, r, y, c->infrastructure.station, StationMaintenanceCost(c->infrastructure.station));
+				this->DrawCountLine (_cur_dpi, r, y, c->infrastructure.airport, AirportMaintenanceCost(c->index));
 				break;
 		}
 	}
