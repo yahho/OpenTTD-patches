@@ -127,14 +127,15 @@ static const ExpensesList _expenses_list_types[] = {
 
 /**
  * Draw the expenses categories.
+ * @param dpi Area to draw on.
  * @param r Available space for drawing.
  * @note The environment must provide padding at the left and right of \a r.
  */
-static void DrawCategories(const Rect &r)
+static void DrawCategories (BlitArea *dpi, const Rect &r)
 {
 	int y = r.top;
 
-	DrawString (_cur_dpi, r.left, r.right, y, STR_FINANCES_EXPENDITURE_INCOME_TITLE, TC_FROMSTRING, SA_HOR_CENTER, true);
+	DrawString (dpi, r.left, r.right, y, STR_FINANCES_EXPENDITURE_INCOME_TITLE, TC_FROMSTRING, SA_HOR_CENTER, true);
 	y += FONT_HEIGHT_NORMAL + EXP_LINESPACE;
 
 	int type = _settings_client.gui.expenses_layout;
@@ -142,15 +143,15 @@ static void DrawCategories(const Rect &r)
 		const ExpensesType et = _expenses_list_types[type].et[i];
 		if (et == INVALID_EXPENSES) {
 			y += EXP_LINESPACE;
-			DrawString (_cur_dpi, r.left, r.right, y, STR_FINANCES_TOTAL_CAPTION, TC_FROMSTRING, SA_RIGHT);
+			DrawString (dpi, r.left, r.right, y, STR_FINANCES_TOTAL_CAPTION, TC_FROMSTRING, SA_RIGHT);
 			y += FONT_HEIGHT_NORMAL + EXP_BLOCKSPACE;
 		} else {
-			DrawString (_cur_dpi, r.left, r.right, y, STR_FINANCES_SECTION_CONSTRUCTION + et);
+			DrawString (dpi, r.left, r.right, y, STR_FINANCES_SECTION_CONSTRUCTION + et);
 			y += FONT_HEIGHT_NORMAL;
 		}
 	}
 
-	DrawString (_cur_dpi, r.left, r.right, y + EXP_LINESPACE, STR_FINANCES_TOTAL_CAPTION, TC_FROMSTRING, SA_RIGHT);
+	DrawString (dpi, r.left, r.right, y + EXP_LINESPACE, STR_FINANCES_TOTAL_CAPTION, TC_FROMSTRING, SA_RIGHT);
 }
 
 /**
@@ -334,7 +335,7 @@ struct CompanyFinancesWindow : Window {
 	{
 		switch (widget) {
 			case WID_CF_EXPS_CATEGORY:
-				DrawCategories(r);
+				DrawCategories (_cur_dpi, r);
 				break;
 
 			case WID_CF_EXPS_PRICE1:
