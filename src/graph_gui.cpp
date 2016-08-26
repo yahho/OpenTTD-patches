@@ -282,9 +282,10 @@ protected:
 
 	/**
 	 * Actually draw the graph.
+	 * @param dpi the area to draw on
 	 * @param r the rectangle of the data field of the graph
 	 */
-	void DrawGraph(Rect r) const
+	void DrawGraph (BlitArea *dpi, Rect r) const
 	{
 		uint x, y;               ///< Reused whenever x and y coordinates are needed.
 		ValuesInterval interval; ///< Interval that contains all of the graph data.
@@ -334,7 +335,7 @@ protected:
 		x = r.left + x_sep;
 
 		for (int i = 0; i < this->num_vert_lines; i++) {
-			GfxFillRect (_cur_dpi, x, r.top, x, r.bottom, grid_colour);
+			GfxFillRect (dpi, x, r.top, x, r.bottom, grid_colour);
 			x += x_sep;
 		}
 
@@ -342,17 +343,17 @@ protected:
 		y = r.bottom;
 
 		for (int i = 0; i < (num_hori_lines + 1); i++) {
-			GfxFillRect (_cur_dpi, r.left - 3, y, r.left - 1, y, GRAPH_AXIS_LINE_COLOUR);
-			GfxFillRect (_cur_dpi, r.left, y, r.right, y, grid_colour);
+			GfxFillRect (dpi, r.left - 3, y, r.left - 1, y, GRAPH_AXIS_LINE_COLOUR);
+			GfxFillRect (dpi, r.left, y, r.right, y, grid_colour);
 			y -= y_sep;
 		}
 
 		/* Draw the y axis. */
-		GfxFillRect (_cur_dpi, r.left, r.top, r.left, r.bottom, GRAPH_AXIS_LINE_COLOUR);
+		GfxFillRect (dpi, r.left, r.top, r.left, r.bottom, GRAPH_AXIS_LINE_COLOUR);
 
 		/* Draw the x axis. */
 		y = x_axis_offset + r.top;
-		GfxFillRect (_cur_dpi, r.left, y, r.right, y, GRAPH_AXIS_LINE_COLOUR);
+		GfxFillRect (dpi, r.left, y, r.right, y, GRAPH_AXIS_LINE_COLOUR);
 
 		/* Find the largest value that will be drawn. */
 		if (this->num_on_x_axis == 0) return;
@@ -369,7 +370,7 @@ protected:
 		for (int i = 0; i < (num_hori_lines + 1); i++) {
 			SetDParam(0, this->format_str_y_axis);
 			SetDParam(1, y_label);
-			DrawString (_cur_dpi, r.left - label_width - 4, r.left - 4, y, STR_GRAPH_Y_LABEL, graph_axis_label_colour, SA_RIGHT);
+			DrawString (dpi, r.left - label_width - 4, r.left - 4, y, STR_GRAPH_Y_LABEL, graph_axis_label_colour, SA_RIGHT);
 
 			y_label -= y_label_separation;
 			y += y_sep;
@@ -385,7 +386,7 @@ protected:
 				SetDParam(0, month + STR_MONTH_ABBREV_JAN);
 				SetDParam(1, month + STR_MONTH_ABBREV_JAN + 2);
 				SetDParam(2, year);
-				DrawStringMultiLine (_cur_dpi, x, x + x_sep, y, this->height, month == 0 ? STR_GRAPH_X_LABEL_MONTH_YEAR : STR_GRAPH_X_LABEL_MONTH, graph_axis_label_colour);
+				DrawStringMultiLine (dpi, x, x + x_sep, y, this->height, month == 0 ? STR_GRAPH_X_LABEL_MONTH_YEAR : STR_GRAPH_X_LABEL_MONTH, graph_axis_label_colour);
 
 				month += 3;
 				if (month >= 12) {
@@ -402,7 +403,7 @@ protected:
 
 			for (int i = 0; i < this->num_on_x_axis; i++) {
 				SetDParam(0, label);
-				DrawString (_cur_dpi, x + 1, x + x_sep - 1, y, STR_GRAPH_Y_LABEL_NUMBER, graph_axis_label_colour, SA_HOR_CENTER);
+				DrawString (dpi, x + 1, x + x_sep - 1, y, STR_GRAPH_Y_LABEL_NUMBER, graph_axis_label_colour, SA_HOR_CENTER);
 
 				label += this->x_values_increment;
 				x += x_sep;
@@ -449,10 +450,10 @@ protected:
 						y = r.top + x_axis_offset - ((r.bottom - r.top) * datapoint) / (interval_size >> reduce_range);
 
 						/* Draw the point. */
-						GfxFillRect (_cur_dpi, x - pointoffs1, y - pointoffs1, x + pointoffs2, y + pointoffs2, colour);
+						GfxFillRect (dpi, x - pointoffs1, y - pointoffs1, x + pointoffs2, y + pointoffs2, colour);
 
 						/* Draw the line connected to the previous point. */
-						if (prev_x != INVALID_DATAPOINT_POS) GfxDrawLine (_cur_dpi, prev_x, prev_y, x, y, colour, linewidth);
+						if (prev_x != INVALID_DATAPOINT_POS) GfxDrawLine (dpi, prev_x, prev_y, x, y, colour, linewidth);
 
 						prev_x = x;
 						prev_y = y;
@@ -535,7 +536,7 @@ public:
 	{
 		if (widget != this->graph_widget) return;
 
-		DrawGraph(r);
+		DrawGraph (_cur_dpi, r);
 	}
 
 	virtual OverflowSafeInt64 GetGraphData(const Company *c, int j)
