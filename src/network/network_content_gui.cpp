@@ -649,7 +649,7 @@ public:
 				break;
 
 			case WID_NCL_MATRIX:
-				this->DrawMatrix(r);
+				this->DrawMatrix (_cur_dpi, r);
 				break;
 		}
 	}
@@ -673,9 +673,10 @@ public:
 
 	/**
 	 * Draw/fill the matrix with the list of content to download.
+	 * @param dpi The area to draw on.
 	 * @param r The boundaries of the matrix.
 	 */
-	void DrawMatrix(const Rect &r) const
+	void DrawMatrix (BlitArea *dpi, const Rect &r) const
 	{
 		const NWidgetBase *nwi_checkbox = this->GetWidget<NWidgetBase>(WID_NCL_CHECKBOX);
 		const NWidgetBase *nwi_name = this->GetWidget<NWidgetBase>(WID_NCL_NAME);
@@ -691,7 +692,7 @@ public:
 		for (ConstContentIterator iter = this->content.Get(this->vscroll->GetPosition()); iter != this->content.End() && cnt < this->vscroll->GetCapacity(); iter++, cnt++) {
 			const ContentInfo *ci = *iter;
 
-			if (ci == this->selected) GfxFillRect (_cur_dpi, r.left + 1, y + 1, r.right - 1, y + this->resize.step_height - 1, PC_GREY);
+			if (ci == this->selected) GfxFillRect (dpi, r.left + 1, y + 1, r.right - 1, y + this->resize.step_height - 1, PC_GREY);
 
 			SpriteID sprite;
 			SpriteID pal = PAL_NONE;
@@ -703,11 +704,11 @@ public:
 				case ContentInfo::DOES_NOT_EXIST: sprite = SPR_BLOT; pal = PALETTE_TO_RED;   break;
 				default: NOT_REACHED();
 			}
-			DrawSprite (_cur_dpi, sprite, pal, nwi_checkbox->pos_x + (pal == PAL_NONE ? 2 : 3), y + sprite_y_offset + (pal == PAL_NONE ? 1 : 0));
+			DrawSprite (dpi, sprite, pal, nwi_checkbox->pos_x + (pal == PAL_NONE ? 2 : 3), y + sprite_y_offset + (pal == PAL_NONE ? 1 : 0));
 
-			DrawString (_cur_dpi, nwi_type->pos_x, nwi_type->pos_x + nwi_type->current_x - 1, y + text_y_offset, content_type_strs[ci->type], TC_BLACK, SA_HOR_CENTER);
+			DrawString (dpi, nwi_type->pos_x, nwi_type->pos_x + nwi_type->current_x - 1, y + text_y_offset, content_type_strs[ci->type], TC_BLACK, SA_HOR_CENTER);
 
-			DrawString (_cur_dpi, nwi_name->pos_x + WD_FRAMERECT_LEFT, nwi_name->pos_x + nwi_name->current_x - WD_FRAMERECT_RIGHT, y + text_y_offset, ci->name, TC_BLACK);
+			DrawString (dpi, nwi_name->pos_x + WD_FRAMERECT_LEFT, nwi_name->pos_x + nwi_name->current_x - WD_FRAMERECT_RIGHT, y + text_y_offset, ci->name, TC_BLACK);
 			y += this->resize.step_height;
 		}
 	}
