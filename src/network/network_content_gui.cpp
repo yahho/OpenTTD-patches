@@ -645,7 +645,7 @@ public:
 				break;
 
 			case WID_NCL_DETAILS:
-				this->DrawDetails(r);
+				this->DrawDetails (_cur_dpi, r);
 				break;
 
 			case WID_NCL_MATRIX:
@@ -715,9 +715,10 @@ public:
 
 	/**
 	 * Helper function to draw the details part of this window.
+	 * @param dpi the area to draw on
 	 * @param r the rectangle to stay within while drawing
 	 */
-	void DrawDetails(const Rect &r) const
+	void DrawDetails (BlitArea *dpi, const Rect &r) const
 	{
 		static const int DETAIL_LEFT         =  5; ///< Number of pixels at the left
 		static const int DETAIL_RIGHT        =  5; ///< Number of pixels at the right
@@ -727,17 +728,17 @@ public:
 		int DETAIL_TITLE_HEIGHT = 5 * FONT_HEIGHT_NORMAL;
 
 		/* Create the nice grayish rectangle at the details top */
-		GfxFillRect (_cur_dpi, r.left + 1, r.top + 1, r.right - 1, r.top + DETAIL_TITLE_HEIGHT, PC_DARK_BLUE);
-		DrawString (_cur_dpi, r.left + WD_INSET_LEFT, r.right - WD_INSET_RIGHT, r.top + FONT_HEIGHT_NORMAL + WD_INSET_TOP, STR_CONTENT_DETAIL_TITLE, TC_FROMSTRING, SA_HOR_CENTER);
+		GfxFillRect (dpi, r.left + 1, r.top + 1, r.right - 1, r.top + DETAIL_TITLE_HEIGHT, PC_DARK_BLUE);
+		DrawString (dpi, r.left + WD_INSET_LEFT, r.right - WD_INSET_RIGHT, r.top + FONT_HEIGHT_NORMAL + WD_INSET_TOP, STR_CONTENT_DETAIL_TITLE, TC_FROMSTRING, SA_HOR_CENTER);
 
 		/* Draw the total download size */
 		SetDParam(0, this->filesize_sum);
-		DrawString (_cur_dpi, r.left + DETAIL_LEFT, r.right - DETAIL_RIGHT, r.bottom - FONT_HEIGHT_NORMAL - WD_PAR_VSEP_NORMAL, STR_CONTENT_TOTAL_DOWNLOAD_SIZE);
+		DrawString (dpi, r.left + DETAIL_LEFT, r.right - DETAIL_RIGHT, r.bottom - FONT_HEIGHT_NORMAL - WD_PAR_VSEP_NORMAL, STR_CONTENT_TOTAL_DOWNLOAD_SIZE);
 
 		if (this->selected == NULL) return;
 
 		/* And fill the rest of the details when there's information to place there */
-		DrawStringMultiLine (_cur_dpi, r.left + WD_INSET_LEFT, r.right - WD_INSET_RIGHT, r.top + DETAIL_TITLE_HEIGHT / 2, r.top + DETAIL_TITLE_HEIGHT, STR_CONTENT_DETAIL_SUBTITLE_UNSELECTED + this->selected->state, TC_FROMSTRING, SA_CENTER);
+		DrawStringMultiLine (dpi, r.left + WD_INSET_LEFT, r.right - WD_INSET_RIGHT, r.top + DETAIL_TITLE_HEIGHT / 2, r.top + DETAIL_TITLE_HEIGHT, STR_CONTENT_DETAIL_SUBTITLE_UNSELECTED + this->selected->state, TC_FROMSTRING, SA_CENTER);
 
 		/* Also show the total download size, so keep some space from the bottom */
 		const uint max_y = r.bottom - FONT_HEIGHT_NORMAL - WD_PAR_VSEP_WIDE;
@@ -745,34 +746,34 @@ public:
 
 		if (this->selected->upgrade) {
 			SetDParam (0, get_type_string (this->selected->type));
-			y = DrawStringMultiLine (_cur_dpi, r.left + DETAIL_LEFT, r.right - DETAIL_RIGHT, y, max_y, STR_CONTENT_DETAIL_UPDATE);
+			y = DrawStringMultiLine (dpi, r.left + DETAIL_LEFT, r.right - DETAIL_RIGHT, y, max_y, STR_CONTENT_DETAIL_UPDATE);
 			y += WD_PAR_VSEP_WIDE;
 		}
 
 		SetDParamStr(0, this->selected->name);
-		y = DrawStringMultiLine (_cur_dpi, r.left + DETAIL_LEFT, r.right - DETAIL_RIGHT, y, max_y, STR_CONTENT_DETAIL_NAME);
+		y = DrawStringMultiLine (dpi, r.left + DETAIL_LEFT, r.right - DETAIL_RIGHT, y, max_y, STR_CONTENT_DETAIL_NAME);
 
 		if (!StrEmpty(this->selected->version)) {
 			SetDParamStr(0, this->selected->version);
-			y = DrawStringMultiLine (_cur_dpi, r.left + DETAIL_LEFT, r.right - DETAIL_RIGHT, y, max_y, STR_CONTENT_DETAIL_VERSION);
+			y = DrawStringMultiLine (dpi, r.left + DETAIL_LEFT, r.right - DETAIL_RIGHT, y, max_y, STR_CONTENT_DETAIL_VERSION);
 		}
 
 		if (!StrEmpty(this->selected->description)) {
 			SetDParamStr(0, this->selected->description);
-			y = DrawStringMultiLine (_cur_dpi, r.left + DETAIL_LEFT, r.right - DETAIL_RIGHT, y, max_y, STR_CONTENT_DETAIL_DESCRIPTION);
+			y = DrawStringMultiLine (dpi, r.left + DETAIL_LEFT, r.right - DETAIL_RIGHT, y, max_y, STR_CONTENT_DETAIL_DESCRIPTION);
 		}
 
 		if (!StrEmpty(this->selected->url)) {
 			SetDParamStr(0, this->selected->url);
-			y = DrawStringMultiLine (_cur_dpi, r.left + DETAIL_LEFT, r.right - DETAIL_RIGHT, y, max_y, STR_CONTENT_DETAIL_URL);
+			y = DrawStringMultiLine (dpi, r.left + DETAIL_LEFT, r.right - DETAIL_RIGHT, y, max_y, STR_CONTENT_DETAIL_URL);
 		}
 
 		SetDParam (0, get_type_string (this->selected->type));
-		y = DrawStringMultiLine (_cur_dpi, r.left + DETAIL_LEFT, r.right - DETAIL_RIGHT, y, max_y, STR_CONTENT_DETAIL_TYPE);
+		y = DrawStringMultiLine (dpi, r.left + DETAIL_LEFT, r.right - DETAIL_RIGHT, y, max_y, STR_CONTENT_DETAIL_TYPE);
 
 		y += WD_PAR_VSEP_WIDE;
 		SetDParam(0, this->selected->filesize);
-		y = DrawStringMultiLine (_cur_dpi, r.left + DETAIL_LEFT, r.right - DETAIL_RIGHT, y, max_y, STR_CONTENT_DETAIL_FILESIZE);
+		y = DrawStringMultiLine (dpi, r.left + DETAIL_LEFT, r.right - DETAIL_RIGHT, y, max_y, STR_CONTENT_DETAIL_FILESIZE);
 
 		if (this->selected->dependency_count != 0) {
 			/* List dependencies */
@@ -791,7 +792,7 @@ public:
 				}
 			}
 			SetDParamStr (0, buf.c_str());
-			y = DrawStringMultiLine (_cur_dpi, r.left + DETAIL_LEFT, r.right - DETAIL_RIGHT, y, max_y, STR_CONTENT_DETAIL_DEPENDENCIES);
+			y = DrawStringMultiLine (dpi, r.left + DETAIL_LEFT, r.right - DETAIL_RIGHT, y, max_y, STR_CONTENT_DETAIL_DEPENDENCIES);
 		}
 
 		if (this->selected->tag_count != 0) {
@@ -801,7 +802,7 @@ public:
 				buf.append_fmt (i == 0 ? "%s" : ", %s", this->selected->tags[i]);
 			}
 			SetDParamStr (0, buf.c_str());
-			y = DrawStringMultiLine (_cur_dpi, r.left + DETAIL_LEFT, r.right - DETAIL_RIGHT, y, max_y, STR_CONTENT_DETAIL_TAGS);
+			y = DrawStringMultiLine (dpi, r.left + DETAIL_LEFT, r.right - DETAIL_RIGHT, y, max_y, STR_CONTENT_DETAIL_TAGS);
 		}
 
 		if (this->selected->IsSelected()) {
@@ -818,7 +819,7 @@ public:
 			}
 			if (!buf.empty()) {
 				SetDParamStr (0, buf.c_str());
-				y = DrawStringMultiLine (_cur_dpi, r.left + DETAIL_LEFT, r.right - DETAIL_RIGHT, y, max_y, STR_CONTENT_DETAIL_SELECTED_BECAUSE_OF);
+				y = DrawStringMultiLine (dpi, r.left + DETAIL_LEFT, r.right - DETAIL_RIGHT, y, max_y, STR_CONTENT_DETAIL_SELECTED_BECAUSE_OF);
 			}
 		}
 	}
