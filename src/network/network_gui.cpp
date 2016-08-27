@@ -1421,7 +1421,7 @@ struct NetworkLobbyWindow : public Window {
 	{
 		switch (widget) {
 			case WID_NL_DETAILS:
-				this->DrawDetails(r);
+				this->DrawDetails (_cur_dpi, r);
 				break;
 
 			case WID_NL_MATRIX:
@@ -1489,12 +1489,12 @@ struct NetworkLobbyWindow : public Window {
 		}
 	}
 
-	void DrawDetails(const Rect &r) const
+	void DrawDetails (BlitArea *dpi, const Rect &r) const
 	{
 		const int detail_height = 12 + FONT_HEIGHT_NORMAL + 12;
 		/* Draw info about selected company when it is selected in the left window. */
-		GfxFillRect (_cur_dpi, r.left + 1, r.top + 1, r.right - 1, r.top + detail_height - 1, PC_DARK_BLUE);
-		DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + 12, STR_NETWORK_GAME_LOBBY_COMPANY_INFO, TC_FROMSTRING, SA_HOR_CENTER);
+		GfxFillRect (dpi, r.left + 1, r.top + 1, r.right - 1, r.top + detail_height - 1, PC_DARK_BLUE);
+		DrawString (dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + 12, STR_NETWORK_GAME_LOBBY_COMPANY_INFO, TC_FROMSTRING, SA_HOR_CENTER);
 
 		if (this->company == INVALID_COMPANY || StrEmpty(this->company_info[this->company].company_name)) return;
 
@@ -1505,31 +1505,31 @@ struct NetworkLobbyWindow : public Window {
 		SetDParam(1, gi->clients_max);
 		SetDParam(2, gi->companies_on);
 		SetDParam(3, gi->companies_max);
-		DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_NETWORK_SERVER_LIST_CLIENTS);
+		DrawString (dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_NETWORK_SERVER_LIST_CLIENTS);
 		y += FONT_HEIGHT_NORMAL;
 
 		SetDParamStr(0, this->company_info[this->company].company_name);
-		DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_NETWORK_GAME_LOBBY_COMPANY_NAME);
+		DrawString (dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_NETWORK_GAME_LOBBY_COMPANY_NAME);
 		y += FONT_HEIGHT_NORMAL;
 
 		SetDParam(0, this->company_info[this->company].inaugurated_year);
-		DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_NETWORK_GAME_LOBBY_INAUGURATION_YEAR); // inauguration year
+		DrawString (dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_NETWORK_GAME_LOBBY_INAUGURATION_YEAR); // inauguration year
 		y += FONT_HEIGHT_NORMAL;
 
 		SetDParam(0, this->company_info[this->company].company_value);
-		DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_NETWORK_GAME_LOBBY_VALUE); // company value
+		DrawString (dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_NETWORK_GAME_LOBBY_VALUE); // company value
 		y += FONT_HEIGHT_NORMAL;
 
 		SetDParam(0, this->company_info[this->company].money);
-		DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_NETWORK_GAME_LOBBY_CURRENT_BALANCE); // current balance
+		DrawString (dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_NETWORK_GAME_LOBBY_CURRENT_BALANCE); // current balance
 		y += FONT_HEIGHT_NORMAL;
 
 		SetDParam(0, this->company_info[this->company].income);
-		DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_NETWORK_GAME_LOBBY_LAST_YEARS_INCOME); // last year's income
+		DrawString (dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_NETWORK_GAME_LOBBY_LAST_YEARS_INCOME); // last year's income
 		y += FONT_HEIGHT_NORMAL;
 
 		SetDParam(0, this->company_info[this->company].performance);
-		DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_NETWORK_GAME_LOBBY_PERFORMANCE); // performance
+		DrawString (dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_NETWORK_GAME_LOBBY_PERFORMANCE); // performance
 		y += FONT_HEIGHT_NORMAL;
 
 		SetDParam(0, this->company_info[this->company].num_vehicle[NETWORK_VEH_TRAIN]);
@@ -1537,7 +1537,7 @@ struct NetworkLobbyWindow : public Window {
 		SetDParam(2, this->company_info[this->company].num_vehicle[NETWORK_VEH_BUS]);
 		SetDParam(3, this->company_info[this->company].num_vehicle[NETWORK_VEH_SHIP]);
 		SetDParam(4, this->company_info[this->company].num_vehicle[NETWORK_VEH_PLANE]);
-		DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_NETWORK_GAME_LOBBY_VEHICLES); // vehicles
+		DrawString (dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_NETWORK_GAME_LOBBY_VEHICLES); // vehicles
 		y += FONT_HEIGHT_NORMAL;
 
 		SetDParam(0, this->company_info[this->company].num_station[NETWORK_VEH_TRAIN]);
@@ -1545,11 +1545,11 @@ struct NetworkLobbyWindow : public Window {
 		SetDParam(2, this->company_info[this->company].num_station[NETWORK_VEH_BUS]);
 		SetDParam(3, this->company_info[this->company].num_station[NETWORK_VEH_SHIP]);
 		SetDParam(4, this->company_info[this->company].num_station[NETWORK_VEH_PLANE]);
-		DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_NETWORK_GAME_LOBBY_STATIONS); // stations
+		DrawString (dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_NETWORK_GAME_LOBBY_STATIONS); // stations
 		y += FONT_HEIGHT_NORMAL;
 
 		SetDParamStr(0, this->company_info[this->company].clients);
-		DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_NETWORK_GAME_LOBBY_PLAYERS); // players
+		DrawString (dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_NETWORK_GAME_LOBBY_PLAYERS); // players
 	}
 
 	virtual void OnClick(Point pt, int widget, int click_count)
