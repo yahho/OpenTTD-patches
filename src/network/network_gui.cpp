@@ -373,22 +373,24 @@ protected:
 	/**
 	 * Draw a single server line.
 	 * @param cur_item  the server to draw.
+	 * @param dpi       the area to draw on
 	 * @param y         from where to draw?
 	 * @param highlight does the line need to be highlighted?
 	 */
-	void DrawServerLine(const NetworkGameList *cur_item, uint y, bool highlight) const
+	void DrawServerLine (const NetworkGameList *cur_item,
+		BlitArea *dpi, uint y, bool highlight) const
 	{
 		const NWidgetBase *nwi_name = this->GetWidget<NWidgetBase>(WID_NG_NAME);
 		const NWidgetBase *nwi_info = this->GetWidget<NWidgetBase>(WID_NG_INFO);
 
 		/* show highlighted item with a different colour */
-		if (highlight) GfxFillRect (_cur_dpi, nwi_name->pos_x + 1, y + 1, nwi_info->pos_x + nwi_info->current_x - 2, y + this->resize.step_height - 2, PC_GREY);
+		if (highlight) GfxFillRect (dpi, nwi_name->pos_x + 1, y + 1, nwi_info->pos_x + nwi_info->current_x - 2, y + this->resize.step_height - 2, PC_GREY);
 
 		/* offsets to vertically centre text and icons */
 		int text_y_offset = (this->resize.step_height - FONT_HEIGHT_NORMAL) / 2 + 1;
 		int icon_y_offset = (this->resize.step_height - GetSpriteSize(SPR_BLOT).height) / 2;
 
-		DrawString (_cur_dpi, nwi_name->pos_x + WD_FRAMERECT_LEFT, nwi_name->pos_x + nwi_name->current_x - WD_FRAMERECT_RIGHT, y + text_y_offset, cur_item->info.server_name, TC_BLACK);
+		DrawString (dpi, nwi_name->pos_x + WD_FRAMERECT_LEFT, nwi_name->pos_x + nwi_name->current_x - WD_FRAMERECT_RIGHT, y + text_y_offset, cur_item->info.server_name, TC_BLACK);
 
 		/* only draw details if the server is online */
 		if (cur_item->online) {
@@ -400,7 +402,7 @@ protected:
 				SetDParam(1, cur_item->info.clients_max);
 				SetDParam(2, cur_item->info.companies_on);
 				SetDParam(3, cur_item->info.companies_max);
-				DrawString (_cur_dpi, nwi_clients->pos_x, nwi_clients->pos_x + nwi_clients->current_x - 1, y + text_y_offset, STR_NETWORK_SERVER_LIST_GENERAL_ONLINE, TC_FROMSTRING, SA_HOR_CENTER);
+				DrawString (dpi, nwi_clients->pos_x, nwi_clients->pos_x + nwi_clients->current_x - 1, y + text_y_offset, STR_NETWORK_SERVER_LIST_GENERAL_ONLINE, TC_FROMSTRING, SA_HOR_CENTER);
 			}
 
 			if (nwi_header->IsWidgetVisible(WID_NG_MAPSIZE)) {
@@ -408,7 +410,7 @@ protected:
 				const NWidgetBase *nwi_mapsize = this->GetWidget<NWidgetBase>(WID_NG_MAPSIZE);
 				SetDParam(0, cur_item->info.map_width);
 				SetDParam(1, cur_item->info.map_height);
-				DrawString (_cur_dpi, nwi_mapsize->pos_x, nwi_mapsize->pos_x + nwi_mapsize->current_x - 1, y + text_y_offset, STR_NETWORK_SERVER_LIST_MAP_SIZE_SHORT, TC_FROMSTRING, SA_HOR_CENTER);
+				DrawString (dpi, nwi_mapsize->pos_x, nwi_mapsize->pos_x + nwi_mapsize->current_x - 1, y + text_y_offset, STR_NETWORK_SERVER_LIST_MAP_SIZE_SHORT, TC_FROMSTRING, SA_HOR_CENTER);
 			}
 
 			if (nwi_header->IsWidgetVisible(WID_NG_DATE)) {
@@ -417,7 +419,7 @@ protected:
 				YearMonthDay ymd;
 				ConvertDateToYMD(cur_item->info.game_date, &ymd);
 				SetDParam(0, ymd.year);
-				DrawString (_cur_dpi, nwi_date->pos_x, nwi_date->pos_x + nwi_date->current_x - 1, y + text_y_offset, STR_JUST_INT, TC_BLACK, SA_HOR_CENTER);
+				DrawString (dpi, nwi_date->pos_x, nwi_date->pos_x + nwi_date->current_x - 1, y + text_y_offset, STR_JUST_INT, TC_BLACK, SA_HOR_CENTER);
 			}
 
 			if (nwi_header->IsWidgetVisible(WID_NG_YEARS)) {
@@ -427,17 +429,17 @@ protected:
 				ConvertDateToYMD(cur_item->info.game_date, &ymd_cur);
 				ConvertDateToYMD(cur_item->info.start_date, &ymd_start);
 				SetDParam(0, ymd_cur.year - ymd_start.year);
-				DrawString (_cur_dpi, nwi_years->pos_x, nwi_years->pos_x + nwi_years->current_x - 1, y + text_y_offset, STR_JUST_INT, TC_BLACK, SA_HOR_CENTER);
+				DrawString (dpi, nwi_years->pos_x, nwi_years->pos_x + nwi_years->current_x - 1, y + text_y_offset, STR_JUST_INT, TC_BLACK, SA_HOR_CENTER);
 			}
 
 			/* draw a lock if the server is password protected */
-			if (cur_item->info.use_password) DrawSprite (_cur_dpi, SPR_LOCK, PAL_NONE, nwi_info->pos_x + this->lock_offset, y + icon_y_offset - 1);
+			if (cur_item->info.use_password) DrawSprite (dpi, SPR_LOCK, PAL_NONE, nwi_info->pos_x + this->lock_offset, y + icon_y_offset - 1);
 
 			/* draw red or green icon, depending on compatibility with server */
-			DrawSprite (_cur_dpi, SPR_BLOT, (cur_item->info.compatible ? PALETTE_TO_GREEN : (cur_item->info.version_compatible ? PALETTE_TO_YELLOW : PALETTE_TO_RED)), nwi_info->pos_x + this->blot_offset, y + icon_y_offset);
+			DrawSprite (dpi, SPR_BLOT, (cur_item->info.compatible ? PALETTE_TO_GREEN : (cur_item->info.version_compatible ? PALETTE_TO_YELLOW : PALETTE_TO_RED)), nwi_info->pos_x + this->blot_offset, y + icon_y_offset);
 
 			/* draw flag according to server language */
-			DrawSprite (_cur_dpi, SPR_FLAGS_BASE + cur_item->info.server_lang, PAL_NONE, nwi_info->pos_x + this->flag_offset, y + icon_y_offset);
+			DrawSprite (dpi, SPR_FLAGS_BASE + cur_item->info.server_lang, PAL_NONE, nwi_info->pos_x + this->flag_offset, y + icon_y_offset);
 		}
 	}
 
@@ -567,7 +569,7 @@ public:
 
 				for (int i = this->vscroll->GetPosition(); i < max; ++i) {
 					const NetworkGameList *ngl = this->servers[i];
-					this->DrawServerLine(ngl, y, ngl == this->server);
+					this->DrawServerLine (ngl, _cur_dpi, y, ngl == this->server);
 					y += this->resize.step_height;
 				}
 				break;
@@ -575,7 +577,7 @@ public:
 
 			case WID_NG_LASTJOINED:
 				/* Draw the last joined server, if any */
-				if (this->last_joined != NULL) this->DrawServerLine(this->last_joined, r.top, this->last_joined == this->server);
+				if (this->last_joined != NULL) this->DrawServerLine (this->last_joined, _cur_dpi, r.top, this->last_joined == this->server);
 				break;
 
 			case WID_NG_DETAILS:
