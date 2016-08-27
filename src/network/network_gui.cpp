@@ -1425,7 +1425,7 @@ struct NetworkLobbyWindow : public Window {
 				break;
 
 			case WID_NL_MATRIX:
-				this->DrawMatrix(r);
+				this->DrawMatrix (_cur_dpi, r);
 				break;
 		}
 	}
@@ -1447,7 +1447,7 @@ struct NetworkLobbyWindow : public Window {
 		this->DrawWidgets();
 	}
 
-	void DrawMatrix(const Rect &r) const
+	void DrawMatrix (BlitArea *dpi, const Rect &r) const
 	{
 		bool rtl = _current_text_dir == TD_RTL;
 		uint left = r.left + WD_FRAMERECT_LEFT;
@@ -1473,15 +1473,15 @@ struct NetworkLobbyWindow : public Window {
 			byte company = NetworkLobbyFindCompanyIndex(pos);
 			bool income = false;
 			if (this->company == company) {
-				GfxFillRect (_cur_dpi, r.left + 1, y - 2, r.right - 1, y + FONT_HEIGHT_NORMAL, PC_GREY); // show highlighted item with a different colour
+				GfxFillRect (dpi, r.left + 1, y - 2, r.right - 1, y + FONT_HEIGHT_NORMAL, PC_GREY); // show highlighted item with a different colour
 			}
 
-			DrawString (_cur_dpi, text_left, text_right, y, this->company_info[company].company_name, TC_BLACK);
-			if (this->company_info[company].use_password != 0) DrawSprite (_cur_dpi, SPR_LOCK, PAL_NONE, lock_left, y + lock_y_offset);
+			DrawString (dpi, text_left, text_right, y, this->company_info[company].company_name, TC_BLACK);
+			if (this->company_info[company].use_password != 0) DrawSprite (dpi, SPR_LOCK, PAL_NONE, lock_left, y + lock_y_offset);
 
 			/* If the company's income was positive puts a green dot else a red dot */
 			if (this->company_info[company].income >= 0) income = true;
-			DrawSprite (_cur_dpi, income ? SPR_PROFIT_LOT : SPR_PROFIT_NEGATIVE, PAL_NONE, profit_left, y + profit_y_offset);
+			DrawSprite (dpi, income ? SPR_PROFIT_LOT : SPR_PROFIT_NEGATIVE, PAL_NONE, profit_left, y + profit_y_offset);
 
 			pos++;
 			y += this->resize.step_height;
