@@ -1107,6 +1107,7 @@ void ShowLastNewsMessage()
 /**
  * Draw an unformatted news message truncated to a maximum length. If
  * length exceeds maximum length it will be postfixed by '...'
+ * @param dpi   the area to draw on
  * @param left  the left most location for the string
  * @param right the right most location for the string
  * @param y position of the string
@@ -1114,7 +1115,8 @@ void ShowLastNewsMessage()
  * @param *ni NewsItem being printed
  * @param maxw maximum width of string in pixels
  */
-static void DrawNewsString(uint left, uint right, int y, TextColour colour, const NewsItem *ni)
+static void DrawNewsString (BlitArea *dpi, uint left, uint right, int y,
+	TextColour colour, const NewsItem *ni)
 {
 	char buffer[512], buffer2[512];
 	StringID str;
@@ -1145,7 +1147,7 @@ static void DrawNewsString(uint left, uint right, int y, TextColour colour, cons
 
 	*dest = '\0';
 	/* Truncate and show string; postfixed by '...' if necessary */
-	DrawString (_cur_dpi, left, right, y, buffer2, colour);
+	DrawString (dpi, left, right, y, buffer2, colour);
 }
 
 struct MessageHistoryWindow : Window {
@@ -1210,7 +1212,7 @@ struct MessageHistoryWindow : Window {
 			SetDParam(0, ni->date);
 			DrawString (_cur_dpi, date_left, date_right, y, STR_SHORT_DATE);
 
-			DrawNewsString(news_left, news_right, y, TC_WHITE, ni);
+			DrawNewsString (_cur_dpi, news_left, news_right, y, TC_WHITE, ni);
 			y += this->line_height;
 
 			ni = ni->prev;
