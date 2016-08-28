@@ -67,7 +67,8 @@ void ShowNewGRFError()
 	}
 }
 
-static void ShowNewGRFInfo(const GRFConfig *c, uint x, uint y, uint right, uint bottom, bool show_params)
+static void ShowNewGRFInfo (const GRFConfig *c, BlitArea *dpi,
+	uint x, uint y, uint right, uint bottom, bool show_params)
 {
 	if (c->error != NULL) {
 		char message[512];
@@ -80,34 +81,34 @@ static void ShowNewGRFInfo(const GRFConfig *c, uint x, uint y, uint right, uint 
 		GetString (message, c->error->custom_message == NULL ? c->error->message : STR_JUST_RAW_STRING);
 
 		SetDParamStr(0, message);
-		y = DrawStringMultiLine (_cur_dpi, x, right, y, bottom, c->error->severity);
+		y = DrawStringMultiLine (dpi, x, right, y, bottom, c->error->severity);
 	}
 
 	/* Draw filename or not if it is not known (GRF sent over internet) */
 	if (c->filename != NULL) {
 		SetDParamStr(0, c->filename);
-		y = DrawStringMultiLine (_cur_dpi, x, right, y, bottom, STR_NEWGRF_SETTINGS_FILENAME);
+		y = DrawStringMultiLine (dpi, x, right, y, bottom, STR_NEWGRF_SETTINGS_FILENAME);
 	}
 
 	/* Prepare and draw GRF ID */
 	char buff [36];
 	bstrfmt (buff, "%08X", BSWAP32(c->ident.grfid));
 	SetDParamStr(0, buff);
-	y = DrawStringMultiLine (_cur_dpi, x, right, y, bottom, STR_NEWGRF_SETTINGS_GRF_ID);
+	y = DrawStringMultiLine (dpi, x, right, y, bottom, STR_NEWGRF_SETTINGS_GRF_ID);
 
 	if ((_settings_client.gui.newgrf_developer_tools || _settings_client.gui.newgrf_show_old_versions) && c->version != 0) {
 		SetDParam(0, c->version);
-		y = DrawStringMultiLine (_cur_dpi, x, right, y, bottom, STR_NEWGRF_SETTINGS_VERSION);
+		y = DrawStringMultiLine (dpi, x, right, y, bottom, STR_NEWGRF_SETTINGS_VERSION);
 	}
 	if ((_settings_client.gui.newgrf_developer_tools || _settings_client.gui.newgrf_show_old_versions) && c->min_loadable_version != 0) {
 		SetDParam(0, c->min_loadable_version);
-		y = DrawStringMultiLine (_cur_dpi, x, right, y, bottom, STR_NEWGRF_SETTINGS_MIN_VERSION);
+		y = DrawStringMultiLine (dpi, x, right, y, bottom, STR_NEWGRF_SETTINGS_MIN_VERSION);
 	}
 
 	/* Prepare and draw MD5 sum */
 	md5sumToString (buff, c->ident.md5sum);
 	SetDParamStr(0, buff);
-	y = DrawStringMultiLine (_cur_dpi, x, right, y, bottom, STR_NEWGRF_SETTINGS_MD5SUM);
+	y = DrawStringMultiLine (dpi, x, right, y, bottom, STR_NEWGRF_SETTINGS_MD5SUM);
 
 	/* Show GRF parameter list */
 	if (show_params) {
@@ -119,7 +120,7 @@ static void ShowNewGRFInfo(const GRFConfig *c, uint x, uint y, uint right, uint 
 		} else {
 			SetDParam(0, STR_LAND_AREA_INFORMATION_LOCAL_AUTHORITY_NONE);
 		}
-		y = DrawStringMultiLine (_cur_dpi, x, right, y, bottom, STR_NEWGRF_SETTINGS_PARAMETER);
+		y = DrawStringMultiLine (dpi, x, right, y, bottom, STR_NEWGRF_SETTINGS_PARAMETER);
 
 		/* Draw the palette of the NewGRF */
 		if (c->palette & GRFP_BLT_32BPP) {
@@ -127,21 +128,21 @@ static void ShowNewGRFInfo(const GRFConfig *c, uint x, uint y, uint right, uint 
 		} else {
 			SetDParamStr(0, (c->palette & GRFP_USE_WINDOWS) ? "Legacy (W)" : "Default (D)");
 		}
-		y = DrawStringMultiLine (_cur_dpi, x, right, y, bottom, STR_NEWGRF_SETTINGS_PALETTE);
+		y = DrawStringMultiLine (dpi, x, right, y, bottom, STR_NEWGRF_SETTINGS_PALETTE);
 	}
 
 	/* Show flags */
-	if (c->status == GCS_NOT_FOUND)       y = DrawStringMultiLine (_cur_dpi, x, right, y, bottom, STR_NEWGRF_SETTINGS_NOT_FOUND);
-	if (c->status == GCS_DISABLED)        y = DrawStringMultiLine (_cur_dpi, x, right, y, bottom, STR_NEWGRF_SETTINGS_DISABLED);
-	if (HasBit(c->flags, GCF_INVALID))    y = DrawStringMultiLine (_cur_dpi, x, right, y, bottom, STR_NEWGRF_SETTINGS_INCOMPATIBLE);
-	if (HasBit(c->flags, GCF_COMPATIBLE)) y = DrawStringMultiLine (_cur_dpi, x, right, y, bottom, STR_NEWGRF_COMPATIBLE_LOADED);
+	if (c->status == GCS_NOT_FOUND)       y = DrawStringMultiLine (dpi, x, right, y, bottom, STR_NEWGRF_SETTINGS_NOT_FOUND);
+	if (c->status == GCS_DISABLED)        y = DrawStringMultiLine (dpi, x, right, y, bottom, STR_NEWGRF_SETTINGS_DISABLED);
+	if (HasBit(c->flags, GCF_INVALID))    y = DrawStringMultiLine (dpi, x, right, y, bottom, STR_NEWGRF_SETTINGS_INCOMPATIBLE);
+	if (HasBit(c->flags, GCF_COMPATIBLE)) y = DrawStringMultiLine (dpi, x, right, y, bottom, STR_NEWGRF_COMPATIBLE_LOADED);
 
 	/* Draw GRF info if it exists */
 	if (!StrEmpty(c->GetDescription())) {
 		SetDParamStr(0, c->GetDescription());
-		y = DrawStringMultiLine (_cur_dpi, x, right, y, bottom, STR_BLACK_RAW_STRING);
+		y = DrawStringMultiLine (dpi, x, right, y, bottom, STR_BLACK_RAW_STRING);
 	} else {
-		y = DrawStringMultiLine (_cur_dpi, x, right, y, bottom, STR_NEWGRF_SETTINGS_NO_INFO);
+		y = DrawStringMultiLine (dpi, x, right, y, bottom, STR_NEWGRF_SETTINGS_NO_INFO);
 	}
 }
 
@@ -928,7 +929,7 @@ struct NewGRFWindow : public Window, NewGRFScanCallback {
 				const GRFConfig *selected = this->active_sel;
 				if (selected == NULL) selected = this->avail_sel;
 				if (selected != NULL) {
-					ShowNewGRFInfo(selected, r.left + WD_FRAMERECT_LEFT, r.top + WD_FRAMERECT_TOP, r.right - WD_FRAMERECT_RIGHT, r.bottom - WD_FRAMERECT_BOTTOM, this->show_params);
+					ShowNewGRFInfo (selected, _cur_dpi, r.left + WD_FRAMERECT_LEFT, r.top + WD_FRAMERECT_TOP, r.right - WD_FRAMERECT_RIGHT, r.bottom - WD_FRAMERECT_BOTTOM, this->show_params);
 				}
 				break;
 			}
