@@ -110,6 +110,7 @@ void CheckRedrawStationCoverage(const Window *w)
  * coordinates. If amount exceeds 576 units, it is shown 'full', same
  * goes for the rating: at above 90% orso (224) it is also 'full'
  *
+ * @param dpi    area to draw on
  * @param left   left most coordinate to draw the box at
  * @param right  right most coordinate to draw the box at
  * @param y      coordinate to draw the box at
@@ -120,7 +121,8 @@ void CheckRedrawStationCoverage(const Window *w)
  * @note Each cargo-bar is 16 pixels wide and 6 pixels high
  * @note Each rating 14 pixels wide and 1 pixel high and is 1 pixel below the cargo-bar
  */
-static void StationsWndShowStationRating(int left, int right, int y, CargoID type, uint amount, byte rating)
+static void StationsWndShowStationRating (BlitArea *dpi,
+	int left, int right, int y, CargoID type, uint amount, byte rating)
 {
 	static const uint units_full  = 576; ///< number of units to show station as 'full'
 	static const uint rating_full = 224; ///< rating needed so it is shown as 'full'
@@ -135,7 +137,7 @@ static void StationsWndShowStationRating(int left, int right, int y, CargoID typ
 	int height = GetCharacterHeight(FS_SMALL);
 
 	/* Draw total cargo (limited) on station (fits into 16 pixels) */
-	if (w != 0) GfxFillRect (_cur_dpi, left, y, left + w - 1, y + height, colour);
+	if (w != 0) GfxFillRect (dpi, left, y, left + w - 1, y + height, colour);
 
 	/* Draw a one pixel-wide bar of additional cargo meter, useful
 	 * for stations with only a small amount (<=30) */
@@ -143,17 +145,17 @@ static void StationsWndShowStationRating(int left, int right, int y, CargoID typ
 		uint rest = amount / 5;
 		if (rest != 0) {
 			w += left;
-			GfxFillRect (_cur_dpi, w, y + height - rest, w, y + height, colour);
+			GfxFillRect (dpi, w, y + height - rest, w, y + height, colour);
 		}
 	}
 
-	DrawString (_cur_dpi, left + 1, right, y, cs->abbrev, tc);
+	DrawString (dpi, left + 1, right, y, cs->abbrev, tc);
 
 	/* Draw green/red ratings bar (fits into 14 pixels) */
 	y += height + 2;
-	GfxFillRect (_cur_dpi, left + 1, y, left + 14, y, PC_RED);
+	GfxFillRect (dpi, left + 1, y, left + 14, y, PC_RED);
 	rating = minu(rating, rating_full) / 16;
-	if (rating != 0) GfxFillRect (_cur_dpi, left + 1, y, left + rating, y, PC_GREEN);
+	if (rating != 0) GfxFillRect (dpi, left + 1, y, left + rating, y, PC_GREEN);
 }
 
 typedef GUIList<const Station*> GUIStationList;
@@ -451,7 +453,7 @@ public:
 								x -= 20;
 								if (x < r.left + WD_FRAMERECT_LEFT) break;
 							}
-							StationsWndShowStationRating(x, x + 16, y, cid, st->goods[cid].cargo.TotalCount(), st->goods[cid].rating);
+							StationsWndShowStationRating (_cur_dpi, x, x + 16, y, cid, st->goods[cid].cargo.TotalCount(), st->goods[cid].rating);
 							if (!rtl) {
 								x += 20;
 								if (x > r.right - WD_FRAMERECT_RIGHT) break;
