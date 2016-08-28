@@ -663,9 +663,10 @@ struct RefitWindow : public Window {
 
 	/**
 	 * Draw the list of available refit options for a consist and highlight the selected refit option (if any).
+	 * @param dpi Area to draw on.
 	 * @param r Rectangle of the matrix widget.
 	 */
-	void DrawRefitWidget (const Rect &r) const
+	void DrawRefitWidget (BlitArea *dpi, const Rect &r) const
 	{
 		const SubtypeList *list = this->list;
 		CargoID sel_cargo = this->sel_cargo;
@@ -715,16 +716,16 @@ struct RefitWindow : public Window {
 					assert (list[i].Length() == 1);
 					assert (refit.subtype == 0xFF);
 					/* Draw checkbox */
-					DrawSprite (_cur_dpi, HasBit (this->cargo_mask, refit.cargo) ? SPR_BOX_CHECKED : SPR_BOX_EMPTY, PAL_NONE, iconleft, y + (FONT_HEIGHT_NORMAL - iconheight) / 2);
+					DrawSprite (dpi, HasBit (this->cargo_mask, refit.cargo) ? SPR_BOX_CHECKED : SPR_BOX_EMPTY, PAL_NONE, iconleft, y + (FONT_HEIGHT_NORMAL - iconheight) / 2);
 				} else if (list[i].Length() > 1) {
 					if (refit.subtype != 0xFF) {
 						/* Draw tree lines */
 						int ycenter = y + FONT_HEIGHT_NORMAL / 2;
-						GfxDrawLine (_cur_dpi, iconcenter, y - WD_MATRIX_TOP, iconcenter, j == list[i].Length() - 1 ? ycenter : y - WD_MATRIX_TOP + delta - 1, linecolour);
-						GfxDrawLine (_cur_dpi, iconcenter, ycenter, iconinner, ycenter, linecolour);
+						GfxDrawLine (dpi, iconcenter, y - WD_MATRIX_TOP, iconcenter, j == list[i].Length() - 1 ? ycenter : y - WD_MATRIX_TOP + delta - 1, linecolour);
+						GfxDrawLine (dpi, iconcenter, ycenter, iconinner, ycenter, linecolour);
 					} else {
 						/* Draw expand/collapse icon */
-						DrawSprite (_cur_dpi, sel_cargo == i ? SPR_CIRCLE_UNFOLDED : SPR_CIRCLE_FOLDED, PAL_NONE, iconleft, y + (FONT_HEIGHT_NORMAL - iconheight) / 2);
+						DrawSprite (dpi, sel_cargo == i ? SPR_CIRCLE_UNFOLDED : SPR_CIRCLE_FOLDED, PAL_NONE, iconleft, y + (FONT_HEIGHT_NORMAL - iconheight) / 2);
 					}
 				}
 
@@ -732,7 +733,7 @@ struct RefitWindow : public Window {
 				/* Get the cargo name. */
 				SetDParam(0, CargoSpec::Get(refit.cargo)->name);
 				SetDParam(1, refit.string);
-				DrawString (_cur_dpi, textleft, textright, y, STR_JUST_STRING_STRING, colour);
+				DrawString (dpi, textleft, textright, y, STR_JUST_STRING_STRING, colour);
 
 				y += delta;
 				current++;
@@ -802,7 +803,7 @@ struct RefitWindow : public Window {
 			}
 
 			case WID_VR_MATRIX:
-				this->DrawRefitWidget (r);
+				this->DrawRefitWidget (_cur_dpi, r);
 				break;
 
 			case WID_VR_INFO:
