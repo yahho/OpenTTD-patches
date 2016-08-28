@@ -294,14 +294,14 @@ struct NewsWindow : Window {
 		PositionNewsMessage(this);
 	}
 
-	void DrawNewsBorder(const Rect &r) const
+	void DrawNewsBorder (BlitArea *dpi, const Rect &r) const
 	{
-		GfxFillRect (_cur_dpi, r.left,  r.top,    r.right, r.bottom, PC_WHITE);
+		GfxFillRect (dpi, r.left,  r.top,    r.right, r.bottom, PC_WHITE);
 
-		GfxFillRect (_cur_dpi, r.left,  r.top,    r.left,  r.bottom, PC_BLACK);
-		GfxFillRect (_cur_dpi, r.right, r.top,    r.right, r.bottom, PC_BLACK);
-		GfxFillRect (_cur_dpi, r.left,  r.top,    r.right, r.top,    PC_BLACK);
-		GfxFillRect (_cur_dpi, r.left,  r.bottom, r.right, r.bottom, PC_BLACK);
+		GfxFillRect (dpi, r.left,  r.top,    r.left,  r.bottom, PC_BLACK);
+		GfxFillRect (dpi, r.right, r.top,    r.right, r.bottom, PC_BLACK);
+		GfxFillRect (dpi, r.left,  r.top,    r.right, r.top,    PC_BLACK);
+		GfxFillRect (dpi, r.left,  r.bottom, r.right, r.bottom, PC_BLACK);
 	}
 
 	virtual Point OnInitialPosition(int16 sm_width, int16 sm_height, int window_number)
@@ -364,7 +364,7 @@ struct NewsWindow : Window {
 				break;
 
 			case WID_N_PANEL:
-				this->DrawNewsBorder(r);
+				this->DrawNewsBorder (_cur_dpi, r);
 				break;
 
 			case WID_N_MESSAGE:
