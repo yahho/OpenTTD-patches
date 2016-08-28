@@ -392,11 +392,13 @@ struct NewGRFInspectWindow : Window {
 
 	/**
 	 * Helper function to draw a string (line) in the window.
+	 * @param dpi    The area to draw on
 	 * @param r      The (screen) rectangle we must draw within
 	 * @param offset The offset (in lines) we want to draw for
 	 * @param format The format string
 	 */
-	void WARN_FORMAT(4, 5) DrawString(const Rect &r, int offset, const char *format, ...) const
+	void WARN_FORMAT(5, 6) DrawString (BlitArea *dpi, const Rect &r,
+		int offset, const char *format, ...) const
 	{
 		char buf[1024];
 
@@ -408,7 +410,7 @@ struct NewGRFInspectWindow : Window {
 		offset -= this->vscroll->GetPosition();
 		if (offset < 0 || offset >= this->vscroll->GetCapacity()) return;
 
-		::DrawString (_cur_dpi, r.left + LEFT_OFFSET, r.right - RIGHT_OFFSET, r.top + TOP_OFFSET + (offset * this->resize.step_height), buf, TC_BLACK);
+		::DrawString (dpi, r.left + LEFT_OFFSET, r.right - RIGHT_OFFSET, r.top + TOP_OFFSET + (offset * this->resize.step_height), buf, TC_BLACK);
 	}
 
 	virtual void DrawWidget(const Rect &r, int widget) const
@@ -461,7 +463,7 @@ struct NewGRFInspectWindow : Window {
 
 		uint i = 0;
 		if (nif->variables != NULL) {
-			this->DrawString(r, i++, "Variables:");
+			this->DrawString (_cur_dpi, r, i++, "Variables:");
 			for (const NIVariable *niv = nif->variables; niv->name != NULL; niv++) {
 				bool avail = true;
 				uint param = HasVariableParameter(niv->var) ? NewGRFInspectWindow::var60params[GetFeatureNum(this->window_number)][niv->var - 0x60] : 0;
@@ -470,9 +472,9 @@ struct NewGRFInspectWindow : Window {
 				if (!avail) continue;
 
 				if (HasVariableParameter(niv->var)) {
-					this->DrawString(r, i++, "  %02x[%02x]: %08x (%s)", niv->var, param, value, niv->name);
+					this->DrawString (_cur_dpi, r, i++, "  %02x[%02x]: %08x (%s)", niv->var, param, value, niv->name);
 				} else {
-					this->DrawString(r, i++, "  %02x: %08x (%s)", niv->var, value, niv->name);
+					this->DrawString (_cur_dpi, r, i++, "  %02x: %08x (%s)", niv->var, value, niv->name);
 				}
 			}
 		}
@@ -481,18 +483,18 @@ struct NewGRFInspectWindow : Window {
 		const int32 *psa = nih->GetPSAFirstPosition(index, this->caller_grfid);
 		if (psa_size != 0 && psa != NULL) {
 			if (nih->PSAWithParameter()) {
-				this->DrawString(r, i++, "Persistent storage [%08X]:", BSWAP32(this->caller_grfid));
+				this->DrawString (_cur_dpi, r, i++, "Persistent storage [%08X]:", BSWAP32(this->caller_grfid));
 			} else {
-				this->DrawString(r, i++, "Persistent storage:");
+				this->DrawString (_cur_dpi, r, i++, "Persistent storage:");
 			}
 			assert(psa_size % 4 == 0);
 			for (uint j = 0; j < psa_size; j += 4, psa += 4) {
-				this->DrawString(r, i++, "  %i: %i %i %i %i", j, psa[0], psa[1], psa[2], psa[3]);
+				this->DrawString (_cur_dpi, r, i++, "  %i: %i %i %i %i", j, psa[0], psa[1], psa[2], psa[3]);
 			}
 		}
 
 		if (nif->properties != NULL) {
-			this->DrawString(r, i++, "Properties:");
+			this->DrawString (_cur_dpi, r, i++, "Properties:");
 			for (const NIProperty *nip = nif->properties; nip->name != NULL; nip++) {
 				const void *ptr = (const byte *)base + nip->offset;
 				uint value;
@@ -520,12 +522,12 @@ struct NewGRFInspectWindow : Window {
 
 				char buffer[64];
 				GetString (buffer, string);
-				this->DrawString(r, i++, "  %02x: %s (%s)", nip->prop, buffer, nip->name);
+				this->DrawString (_cur_dpi, r, i++, "  %02x: %s (%s)", nip->prop, buffer, nip->name);
 			}
 		}
 
 		if (nif->callbacks != NULL) {
-			this->DrawString(r, i++, "Callbacks:");
+			this->DrawString (_cur_dpi, r, i++, "Callbacks:");
 			for (const NICallback *nic = nif->callbacks; nic->name != NULL; nic++) {
 				if (nic->cb_bit != CBM_NO_BIT) {
 					const void *ptr = (const byte *)base_spec + nic->offset;
@@ -538,9 +540,9 @@ struct NewGRFInspectWindow : Window {
 					}
 
 					if (!HasBit(value, nic->cb_bit)) continue;
-					this->DrawString(r, i++, "  %03x: %s", nic->cb_id, nic->name);
+					this->DrawString (_cur_dpi, r, i++, "  %03x: %s", nic->cb_id, nic->name);
 				} else {
-					this->DrawString(r, i++, "  %03x: %s (unmasked)", nic->cb_id, nic->name);
+					this->DrawString (_cur_dpi, r, i++, "  %03x: %s (unmasked)", nic->cb_id, nic->name);
 				}
 			}
 		}
