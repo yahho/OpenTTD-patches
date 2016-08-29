@@ -875,11 +875,11 @@ struct BuildRoadDepotWindow : public PickerWindowBase {
 		size->height = ScaleGUITrad(48) + 2;
 	}
 
-	virtual void DrawWidget(const Rect &r, int widget) const
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
 	{
 		if (!IsInsideMM(widget, WID_BROD_DEPOT_NE, WID_BROD_DEPOT_NW + 1)) return;
 
-		DrawRoadDepotSprite (_cur_dpi, r.left + 1 + ScaleGUITrad(31), r.bottom - ScaleGUITrad(31), (DiagDirection)(widget - WID_BROD_DEPOT_NE + DIAGDIR_NE), _cur_roadtype);
+		DrawRoadDepotSprite (dpi, r.left + 1 + ScaleGUITrad(31), r.bottom - ScaleGUITrad(31), (DiagDirection)(widget - WID_BROD_DEPOT_NE + DIAGDIR_NE), _cur_roadtype);
 	}
 
 	virtual void OnClick(Point pt, int widget, int click_count)
@@ -1011,11 +1011,11 @@ struct BuildRoadStationWindow : public PickerWindowBase {
 		size->height = ScaleGUITrad(48) + 2;
 	}
 
-	virtual void DrawWidget(const Rect &r, int widget) const
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
 	{
 		if (!IsInsideMM(widget, WID_BROS_STATION_NE, WID_BROS_STATION_Y + 1)) return;
 
-		RoadStationPickerDrawSprite (_cur_dpi, r.left + 1 + ScaleGUITrad(31), r.bottom - ScaleGUITrad(31),
+		RoadStationPickerDrawSprite (dpi, r.left + 1 + ScaleGUITrad(31), r.bottom - ScaleGUITrad(31),
 				this->window_class == WC_BUS_STATION,
 				(widget >= WID_BROS_STATION_X) && (_cur_roadtype == ROADTYPE_TRAM),
 				widget - WID_BROS_STATION_NE);

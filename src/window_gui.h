@@ -575,11 +575,14 @@ public:
 
 	/**
 	 * Draw the contents of a nested widget.
+	 * @param dpi    Area to draw on.
 	 * @param r      Rectangle occupied by the widget.
 	 * @param widget Number of the widget to draw.
 	 * @note This method may not change any state, it may only use drawing functions.
 	 */
-	virtual void DrawWidget(const Rect &r, int widget) const {}
+	virtual void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const
+	{
+	}
 
 	/**
 	 * Update size and resize step of a widget in the window.

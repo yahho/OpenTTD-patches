@@ -39,7 +39,7 @@ public:
 		this->DrawWidgets();
 	}
 
-	virtual void DrawWidget(const Rect &r, int widget) const
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
 	{
 		switch (widget) {
 			case WID_TT_SIGNS:
@@ -52,7 +52,7 @@ public:
 			case WID_TT_CATENARY:
 			case WID_TT_LOADING: {
 				uint i = widget - WID_TT_BEGIN;
-				if (HasBit(_transparency_lock, i)) DrawSprite (_cur_dpi, SPR_LOCK, PAL_NONE, r.left + 1, r.top + 1);
+				if (HasBit(_transparency_lock, i)) DrawSprite (dpi, SPR_LOCK, PAL_NONE, r.left + 1, r.top + 1);
 				break;
 			}
 			case WID_TT_BUTTONS:
@@ -60,7 +60,7 @@ public:
 					if (i == WID_TT_LOADING) continue; // Do not draw button for invisible loading indicators.
 
 					const NWidgetBase *wi = this->GetWidget<NWidgetBase>(i);
-					DrawFrameRect (_cur_dpi, wi->pos_x + 1, r.top + 2, wi->pos_x + wi->current_x - 2, r.bottom - 2, COLOUR_PALE_GREEN,
+					DrawFrameRect (dpi, wi->pos_x + 1, r.top + 2, wi->pos_x + wi->current_x - 2, r.bottom - 2, COLOUR_PALE_GREEN,
 							HasBit(_invisibility_opt, i - WID_TT_BEGIN) ? FR_LOWERED : FR_NONE);
 				}
 				break;

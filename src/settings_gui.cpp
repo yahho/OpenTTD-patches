@@ -353,7 +353,7 @@ struct GameOptionsWindow : Window {
 		}
 	}
 
-	virtual void DrawWidget(const Rect &r, int widget) const
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
 	{
 		const BaseSetDesc *set;
 
@@ -374,7 +374,7 @@ struct GameOptionsWindow : Window {
 		}
 
 		SetDParamStr (0, set->get_desc (GetCurrentLanguageIsoCode()));
-		DrawStringMultiLine (_cur_dpi, r.left, r.right, r.top, UINT16_MAX, STR_BLACK_RAW_STRING);
+		DrawStringMultiLine (dpi, r.left, r.right, r.top, UINT16_MAX, STR_BLACK_RAW_STRING);
 	}
 
 	template <class T>
@@ -2012,15 +2012,15 @@ struct GameSettingsWindow : Window {
 		return list;
 	}
 
-	virtual void DrawWidget(const Rect &r, int widget) const
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
 	{
 		switch (widget) {
 			case WID_GS_OPTIONSPANEL: {
 				int top_pos = r.top + SETTINGTREE_TOP_OFFSET + 1 + this->warn_lines * SETTING_HEIGHT;
 				uint last_row = this->vscroll->GetPosition() + this->vscroll->GetCapacity() - this->warn_lines;
-				int next_row = _settings_main_page.Draw (settings_ptr, _cur_dpi, r.left + SETTINGTREE_LEFT_OFFSET, r.right - SETTINGTREE_RIGHT_OFFSET, top_pos,
+				int next_row = _settings_main_page.Draw (settings_ptr, dpi, r.left + SETTINGTREE_LEFT_OFFSET, r.right - SETTINGTREE_RIGHT_OFFSET, top_pos,
 						this->vscroll->GetPosition(), last_row, this->last_clicked);
-				if (next_row == 0) DrawString (_cur_dpi, r.left + SETTINGTREE_LEFT_OFFSET, r.right - SETTINGTREE_RIGHT_OFFSET, top_pos, STR_CONFIG_SETTINGS_NONE);
+				if (next_row == 0) DrawString (dpi, r.left + SETTINGTREE_LEFT_OFFSET, r.right - SETTINGTREE_RIGHT_OFFSET, top_pos, STR_CONFIG_SETTINGS_NONE);
 				break;
 			}
 
@@ -2035,15 +2035,15 @@ struct GameSettingsWindow : Window {
 						case ST_GAME:    SetDParam(0, _game_mode == GM_MENU ? STR_CONFIG_SETTING_TYPE_GAME_MENU : STR_CONFIG_SETTING_TYPE_GAME_INGAME); break;
 						default: NOT_REACHED();
 					}
-					DrawString (_cur_dpi, r.left, r.right, y, STR_CONFIG_SETTING_TYPE);
+					DrawString (dpi, r.left, r.right, y, STR_CONFIG_SETTING_TYPE);
 					y += FONT_HEIGHT_NORMAL;
 
 					int32 default_value = ReadValue(&sd->desc.def, sd->save.conv);
 					this->last_clicked->SetValueDParams(0, default_value);
-					DrawString (_cur_dpi, r.left, r.right, y, STR_CONFIG_SETTING_DEFAULT_VALUE);
+					DrawString (dpi, r.left, r.right, y, STR_CONFIG_SETTING_DEFAULT_VALUE);
 					y += FONT_HEIGHT_NORMAL + WD_PAR_VSEP_NORMAL;
 
-					DrawStringMultiLine (_cur_dpi, r.left, r.right, y, r.bottom, this->last_clicked->GetHelpText(), TC_WHITE);
+					DrawStringMultiLine (dpi, r.left, r.right, y, r.bottom, this->last_clicked->GetHelpText(), TC_WHITE);
 				}
 				break;
 

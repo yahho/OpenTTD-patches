@@ -405,7 +405,7 @@ void TextfileWindow::SetupScrollbars()
 	}
 }
 
-/* virtual */ void TextfileWindow::DrawWidget(const Rect &r, int widget) const
+void TextfileWindow::DrawWidget (BlitArea *dpi, const Rect &r, int widget) const
 {
 	if (widget != WID_TF_BACKGROUND) return;
 
@@ -415,7 +415,7 @@ void TextfileWindow::SetupScrollbars()
 	const int bottom = r.bottom - WD_FRAMETEXT_BOTTOM;
 
 	DrawPixelInfo new_dpi;
-	if (!FillDrawPixelInfo (_cur_dpi, &new_dpi, x, y, right - x + 1, bottom - y + 1)) return;
+	if (!FillDrawPixelInfo (dpi, &new_dpi, x, y, right - x + 1, bottom - y + 1)) return;
 
 	/* Draw content (now coordinates given to DrawString* are local to the new clipping region). */
 	int line_height = FONT_HEIGHT_MONO;

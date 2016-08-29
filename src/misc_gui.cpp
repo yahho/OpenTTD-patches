@@ -71,7 +71,7 @@ public:
 	sstring<LAND_INFO_LINE_BUFF_SIZE> landinfo_multicenter;
 	TileIndex tile;
 
-	virtual void DrawWidget(const Rect &r, int widget) const
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
 	{
 		if (widget != WID_LI_BACKGROUND) return;
 
@@ -79,14 +79,14 @@ public:
 		for (uint i = 0; i < LAND_INFO_CENTERED_LINES; i++) {
 			if (StrEmpty(this->landinfo_data[i])) break;
 
-			DrawString (_cur_dpi, r.left + WD_FRAMETEXT_LEFT, r.right - WD_FRAMETEXT_RIGHT, y, this->landinfo_data[i], i == 0 ? TC_LIGHT_BLUE : TC_FROMSTRING, SA_HOR_CENTER);
+			DrawString (dpi, r.left + WD_FRAMETEXT_LEFT, r.right - WD_FRAMETEXT_RIGHT, y, this->landinfo_data[i], i == 0 ? TC_LIGHT_BLUE : TC_FROMSTRING, SA_HOR_CENTER);
 			y += FONT_HEIGHT_NORMAL + WD_PAR_VSEP_NORMAL;
 			if (i == 0) y += 4;
 		}
 
 		if (!this->landinfo_multicenter.empty()) {
 			SetDParamStr(0, this->landinfo_multicenter.c_str());
-			DrawStringMultiLine (_cur_dpi, r.left + WD_FRAMETEXT_LEFT, r.right - WD_FRAMETEXT_RIGHT, y, r.bottom - WD_TEXTPANEL_BOTTOM, STR_JUST_RAW_STRING, TC_FROMSTRING, SA_CENTER);
+			DrawStringMultiLine (dpi, r.left + WD_FRAMETEXT_LEFT, r.right - WD_FRAMETEXT_RIGHT, y, r.bottom - WD_TEXTPANEL_BOTTOM, STR_JUST_RAW_STRING, TC_FROMSTRING, SA_CENTER);
 		}
 	}
 
@@ -467,7 +467,7 @@ struct AboutWindow : public Window {
 		*size = maxdim(*size, d);
 	}
 
-	virtual void DrawWidget(const Rect &r, int widget) const
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
 	{
 		if (widget != WID_A_SCROLLING_TEXT) return;
 
@@ -476,7 +476,7 @@ struct AboutWindow : public Window {
 		/* Show all scrolling _credits */
 		for (uint i = 0; i < lengthof(_credits); i++) {
 			if (y >= r.top + 7 && y < r.bottom - this->line_height) {
-				DrawString (_cur_dpi, r.left, r.right, y, _credits[i], TC_BLACK, SA_LEFT | SA_FORCE);
+				DrawString (dpi, r.left, r.right, y, _credits[i], TC_BLACK, SA_LEFT | SA_FORCE);
 			}
 			y += this->line_height;
 		}
@@ -676,16 +676,16 @@ struct TooltipsWindow : public Window
 		size->height += 2 + WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM;
 	}
 
-	virtual void DrawWidget(const Rect &r, int widget) const
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
 	{
 		/* There is only one widget. */
-		GfxFillRect (_cur_dpi, r.left, r.top, r.right, r.bottom, PC_BLACK);
-		GfxFillRect (_cur_dpi, r.left + 1, r.top + 1, r.right - 1, r.bottom - 1, PC_LIGHT_YELLOW);
+		GfxFillRect (dpi, r.left, r.top, r.right, r.bottom, PC_BLACK);
+		GfxFillRect (dpi, r.left + 1, r.top + 1, r.right - 1, r.bottom - 1, PC_LIGHT_YELLOW);
 
 		for (uint arg = 0; arg < this->paramcount; arg++) {
 			SetDParam(arg, this->params[arg]);
 		}
-		DrawStringMultiLine (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP, r.bottom - WD_FRAMERECT_BOTTOM, this->string_id, TC_FROMSTRING, SA_CENTER);
+		DrawStringMultiLine (dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP, r.bottom - WD_FRAMERECT_BOTTOM, this->string_id, TC_FROMSTRING, SA_CENTER);
 	}
 
 	virtual void OnMouseLoop()
@@ -1092,11 +1092,11 @@ struct QueryWindow : public Window {
 		size->height = GetStringHeight (this->message, w) + WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM;
 	}
 
-	virtual void DrawWidget(const Rect &r, int widget) const
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
 	{
 		if (widget != WID_Q_TEXT) return;
 
-		DrawStringMultiLine (_cur_dpi, r.left + WD_FRAMETEXT_LEFT, r.right - WD_FRAMETEXT_RIGHT, r.top + WD_FRAMERECT_TOP, r.bottom - WD_FRAMERECT_BOTTOM,
+		DrawStringMultiLine (dpi, r.left + WD_FRAMETEXT_LEFT, r.right - WD_FRAMETEXT_RIGHT, r.top + WD_FRAMERECT_TOP, r.bottom - WD_FRAMERECT_BOTTOM,
 				this->message, TC_FROMSTRING, SA_CENTER);
 	}
 

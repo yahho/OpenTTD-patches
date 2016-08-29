@@ -351,7 +351,7 @@ struct DepotWindow : Window {
 		}
 	}
 
-	void DrawWidget(const Rect &r, int widget) const
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
 	{
 		if (widget != WID_D_MATRIX) return;
 
@@ -369,10 +369,10 @@ struct DepotWindow : Window {
 				/* Draw all vehicles in the current row */
 				const Vehicle *v = this->vehicle_list[num];
 				if (this->num_columns == 1) {
-					this->DrawVehicleInDepot (v, _cur_dpi, r.left, r.right, y);
+					this->DrawVehicleInDepot (v, dpi, r.left, r.right, y);
 				} else {
 					int x = r.left + (rtl ? (this->num_columns - i - 1) : i) * this->resize.step_width;
-					this->DrawVehicleInDepot (v, _cur_dpi, x, x + this->resize.step_width - 1, y);
+					this->DrawVehicleInDepot (v, dpi, x, x + this->resize.step_width - 1, y);
 				}
 			}
 		}
@@ -382,7 +382,7 @@ struct DepotWindow : Window {
 		/* Draw the train wagons without an engine in front. */
 		for (; num < maxval; num++, y += this->resize.step_height) {
 			const Vehicle *v = this->wagon_list[num - this->vehicle_list.Length()];
-			this->DrawVehicleInDepot (v, _cur_dpi, r.left, r.right, y);
+			this->DrawVehicleInDepot (v, dpi, r.left, r.right, y);
 		}
 	}
 

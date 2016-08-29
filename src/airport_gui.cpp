@@ -355,7 +355,7 @@ public:
 		}
 	}
 
-	virtual void DrawWidget(const Rect &r, int widget) const
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
 	{
 		switch (widget) {
 			case WID_AP_AIRPORT_LIST: {
@@ -364,9 +364,9 @@ public:
 				for (uint i = this->vscroll->GetPosition(); this->vscroll->IsVisible(i) && i < apclass->GetSpecCount(); i++) {
 					const AirportSpec *as = apclass->GetSpec(i);
 					if (!as->IsAvailable()) {
-						GfxFillRect (_cur_dpi, r.left + 1, y + 1, r.right - 1, y + this->line_height - 2, PC_BLACK, FILLRECT_CHECKER);
+						GfxFillRect (dpi, r.left + 1, y + 1, r.right - 1, y + this->line_height - 2, PC_BLACK, FILLRECT_CHECKER);
 					}
-					DrawString (_cur_dpi, r.left + WD_MATRIX_LEFT, r.right - WD_MATRIX_RIGHT, y + WD_MATRIX_TOP, as->name, ((int)i == _selected_airport_index) ? TC_WHITE : TC_BLACK);
+					DrawString (dpi, r.left + WD_MATRIX_LEFT, r.right - WD_MATRIX_RIGHT, y + WD_MATRIX_TOP, as->name, ((int)i == _selected_airport_index) ? TC_WHITE : TC_BLACK);
 					y += this->line_height;
 				}
 				break;
@@ -375,7 +375,7 @@ public:
 			case WID_AP_AIRPORT_SPRITE:
 				if (this->preview_sprite != 0) {
 					Dimension d = GetSpriteSize(this->preview_sprite);
-					DrawSprite (_cur_dpi, this->preview_sprite, COMPANY_SPRITE_COLOUR(_local_company), (r.left + r.right - d.width) / 2, (r.top + r.bottom - d.height) / 2);
+					DrawSprite (dpi, this->preview_sprite, COMPANY_SPRITE_COLOUR(_local_company), (r.left + r.right - d.width) / 2, (r.top + r.bottom - d.height) / 2);
 				}
 				break;
 
@@ -385,7 +385,7 @@ public:
 					StringID string = GetAirportTextCallback(as, _selected_airport_layout, CBID_AIRPORT_ADDITIONAL_TEXT);
 					if (string != STR_UNDEFINED) {
 						SetDParam(0, string);
-						DrawStringMultiLine (_cur_dpi, r.left, r.right, r.top, r.bottom, STR_BLACK_STRING);
+						DrawStringMultiLine (dpi, r.left, r.right, r.top, r.bottom, STR_BLACK_STRING);
 					}
 				}
 				break;

@@ -440,12 +440,12 @@ struct GoalQuestionWindow : public Window {
 		size->height = GetStringHeight(STR_JUST_RAW_STRING, size->width) + WD_PAR_VSEP_WIDE;
 	}
 
-	/* virtual */ void DrawWidget(const Rect &r, int widget) const
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
 	{
 		if (widget != WID_GQ_QUESTION) return;
 
 		SetDParamStr(0, this->question);
-		DrawStringMultiLine (_cur_dpi, r.left, r.right, r.top, UINT16_MAX, STR_JUST_RAW_STRING, TC_BLACK, SA_TOP | SA_HOR_CENTER);
+		DrawStringMultiLine (dpi, r.left, r.right, r.top, UINT16_MAX, STR_JUST_RAW_STRING, TC_BLACK, SA_TOP | SA_HOR_CENTER);
 	}
 };
 

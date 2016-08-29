@@ -360,7 +360,7 @@ public:
 		}
 	}
 
-	virtual void DrawWidget(const Rect &r, int widget) const
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
 	{
 		switch (widget) {
 			case WID_DPI_MATRIX_WIDGET: {
@@ -382,15 +382,15 @@ public:
 					bool selected = this->selected_index == i + this->vscroll->GetPosition();
 
 					if (this->index[i + this->vscroll->GetPosition()] == INVALID_INDUSTRYTYPE) {
-						DrawString (_cur_dpi, text_left, text_right, y, STR_FUND_INDUSTRY_MANY_RANDOM_INDUSTRIES, selected ? TC_WHITE : TC_ORANGE);
+						DrawString (dpi, text_left, text_right, y, STR_FUND_INDUSTRY_MANY_RANDOM_INDUSTRIES, selected ? TC_WHITE : TC_ORANGE);
 						continue;
 					}
 					const IndustrySpec *indsp = GetIndustrySpec(this->index[i + this->vscroll->GetPosition()]);
 
 					/* Draw the name of the industry in white is selected, otherwise, in orange */
-					DrawString (_cur_dpi, text_left, text_right, y, indsp->name, selected ? TC_WHITE : TC_ORANGE);
-					GfxFillRect (_cur_dpi, icon_left,     y + 1, icon_right,     y + 7, selected ? PC_WHITE : PC_BLACK);
-					GfxFillRect (_cur_dpi, icon_left + 1, y + 2, icon_right - 1, y + 6, indsp->map_colour);
+					DrawString (dpi, text_left, text_right, y, indsp->name, selected ? TC_WHITE : TC_ORANGE);
+					GfxFillRect (dpi, icon_left,     y + 1, icon_right,     y + 7, selected ? PC_WHITE : PC_BLACK);
+					GfxFillRect (dpi, icon_left + 1, y + 2, icon_right - 1, y + 6, indsp->map_colour);
 				}
 				break;
 			}
@@ -402,7 +402,7 @@ public:
 				int right  = r.right  - WD_FRAMERECT_RIGHT;
 
 				if (this->selected_type == INVALID_INDUSTRYTYPE) {
-					DrawStringMultiLine (_cur_dpi, left, right, y,  bottom, STR_FUND_INDUSTRY_MANY_RANDOM_INDUSTRIES_TOOLTIP);
+					DrawStringMultiLine (dpi, left, right, y,  bottom, STR_FUND_INDUSTRY_MANY_RANDOM_INDUSTRIES_TOOLTIP);
 					break;
 				}
 
@@ -410,7 +410,7 @@ public:
 
 				if (_game_mode != GM_EDITOR) {
 					SetDParam(0, indsp->GetConstructionCost());
-					DrawString (_cur_dpi, left, right, y, STR_FUND_INDUSTRY_INDUSTRY_BUILD_COST);
+					DrawString (dpi, left, right, y, STR_FUND_INDUSTRY_INDUSTRY_BUILD_COST);
 					y += FONT_HEIGHT_NORMAL;
 				}
 
@@ -428,7 +428,7 @@ public:
 					SetDParam(p++, CargoSpec::Get(indsp->accepts_cargo[j])->name);
 					SetDParamStr(p++, cargo_suffix[j].c_str());
 				}
-				DrawString (_cur_dpi, left, right, y, str);
+				DrawString (dpi, left, right, y, str);
 				y += FONT_HEIGHT_NORMAL;
 
 				/* Draw the produced cargoes, if any. Otherwise, will print "Nothing". */
@@ -444,7 +444,7 @@ public:
 					SetDParam(p++, CargoSpec::Get(indsp->produced_cargo[j])->name);
 					SetDParamStr(p++, cargo_suffix[j].c_str());
 				}
-				DrawString (_cur_dpi, left, right, y, str);
+				DrawString (dpi, left, right, y, str);
 				y += FONT_HEIGHT_NORMAL;
 
 				/* Get the additional purchase info text, if it has not already been queried. */
@@ -458,7 +458,7 @@ public:
 							str = GetGRFStringID(indsp->grf_prop.grffile->grfid, 0xD000 + callback_res);  // No. here's the new string
 							if (str != STR_UNDEFINED) {
 								StartTextRefStackUsage(indsp->grf_prop.grffile, 6);
-								DrawStringMultiLine (_cur_dpi, left, right, y, bottom, str, TC_YELLOW);
+								DrawStringMultiLine (dpi, left, right, y, bottom, str, TC_YELLOW);
 								StopTextRefStackUsage();
 							}
 						}
@@ -1245,22 +1245,22 @@ public:
 		if (widget == WID_ID_DROPDOWN_CRITERIA) SetDParam(0, IndustryDirectoryWindow::sorter_names[this->industries.SortType()]);
 	}
 
-	virtual void DrawWidget(const Rect &r, int widget) const
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
 	{
 		switch (widget) {
 			case WID_ID_DROPDOWN_ORDER:
-				this->DrawSortButtonState (_cur_dpi, widget, this->industries.IsDescSortOrder() ? SBS_DOWN : SBS_UP);
+				this->DrawSortButtonState (dpi, widget, this->industries.IsDescSortOrder() ? SBS_DOWN : SBS_UP);
 				break;
 
 			case WID_ID_INDUSTRY_LIST: {
 				int n = 0;
 				int y = r.top + WD_FRAMERECT_TOP;
 				if (this->industries.Length() == 0) {
-					DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_INDUSTRY_DIRECTORY_NONE);
+					DrawString (dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_INDUSTRY_DIRECTORY_NONE);
 					break;
 				}
 				for (uint i = this->vscroll->GetPosition(); i < this->industries.Length(); i++) {
-					DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, this->GetIndustryString(this->industries[i]));
+					DrawString (dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, this->GetIndustryString(this->industries[i]));
 
 					y += this->resize.step_height;
 					if (++n == this->vscroll->GetCapacity()) break; // max number of industries in 1 window
@@ -2465,14 +2465,14 @@ struct IndustryCargoesWindow : public Window {
 		this->ComputeIndustryDisplay(data);
 	}
 
-	virtual void DrawWidget(const Rect &r, int widget) const
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
 	{
 		if (widget != WID_IC_PANEL) return;
 
 		DrawPixelInfo tmp_dpi;
 		int width = r.right - r.left + 1;
 		int height = r.bottom - r.top + 1 - WD_FRAMERECT_TOP - WD_FRAMERECT_BOTTOM;
-		if (!FillDrawPixelInfo (_cur_dpi, &tmp_dpi, r.left + WD_FRAMERECT_LEFT, r.top + WD_FRAMERECT_TOP, width, height)) return;
+		if (!FillDrawPixelInfo (dpi, &tmp_dpi, r.left + WD_FRAMERECT_LEFT, r.top + WD_FRAMERECT_TOP, width, height)) return;
 
 		int left_pos = WD_FRAMERECT_LEFT;
 		if (this->ind_cargo >= NUM_INDUSTRYTYPES) left_pos += (CargoesField::industry_width + CargoesField::CARGO_FIELD_WIDTH) / 2;

@@ -101,13 +101,13 @@ public:
 		}
 	}
 
-	virtual void DrawWidget(const Rect &r, int widget) const
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
 	{
 		if (widget < WID_BT_TYPE_11 || widget > WID_BT_TYPE_34 || widget - WID_BT_TYPE_11 >= this->count) return;
 
 		int i = this->base + widget - WID_BT_TYPE_11;
 		/* Trees "grow" in the centre on the bottom line of the buttons */
-		DrawSprite (_cur_dpi, tree_sprites[i].sprite, tree_sprites[i].pal, (r.left + r.right) / 2 + WD_FRAMERECT_LEFT, r.bottom - 7);
+		DrawSprite (dpi, tree_sprites[i].sprite, tree_sprites[i].pal, (r.left + r.right) / 2 + WD_FRAMERECT_LEFT, r.bottom - 7);
 	}
 
 	virtual void OnClick(Point pt, int widget, int click_count)

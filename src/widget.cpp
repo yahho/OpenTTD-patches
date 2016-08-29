@@ -1760,7 +1760,7 @@ void NWidgetBackground::Draw(const Window *w)
 			NOT_REACHED();
 	}
 
-	if (this->index >= 0) w->DrawWidget(r, this->index);
+	if (this->index >= 0) w->DrawWidget (_cur_dpi, r, this->index);
 	if (this->child != NULL) this->child->Draw(w);
 
 	if (this->IsDisabled()) {
@@ -2432,7 +2432,7 @@ void NWidgetLeaf::Draw(const Window *w)
 		default:
 			NOT_REACHED();
 	}
-	if (this->index >= 0) w->DrawWidget(r, this->index);
+	if (this->index >= 0) w->DrawWidget (_cur_dpi, r, this->index);
 
 	if (this->IsDisabled()) {
 		GfxFillRect (_cur_dpi, r.left + 1, r.top + 1, r.right - 1, r.bottom - 1, _colour_gradient[this->colour & 0xF][2], FILLRECT_CHECKER);

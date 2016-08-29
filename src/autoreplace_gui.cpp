@@ -395,15 +395,15 @@ public:
 		}
 	}
 
-	virtual void DrawWidget(const Rect &r, int widget) const
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
 	{
 		switch (widget) {
 			case WID_RV_SORT_ASCENDING_DESCENDING:
-				this->DrawSortButtonState (_cur_dpi, WID_RV_SORT_ASCENDING_DESCENDING, this->descending_sort_order ? SBS_DOWN : SBS_UP);
+				this->DrawSortButtonState (dpi, WID_RV_SORT_ASCENDING_DESCENDING, this->descending_sort_order ? SBS_DOWN : SBS_UP);
 				break;
 
 			case WID_RV_INFO_TAB: {
-				DrawString (_cur_dpi, r.left + WD_FRAMETEXT_LEFT, r.right - WD_FRAMETEXT_RIGHT, r.top + WD_FRAMERECT_TOP, STR_REPLACE_INFO_TAB, TC_BLACK, SA_HOR_CENTER);
+				DrawString (dpi, r.left + WD_FRAMETEXT_LEFT, r.right - WD_FRAMETEXT_RIGHT, r.top + WD_FRAMERECT_TOP, STR_REPLACE_INFO_TAB, TC_BLACK, SA_HOR_CENTER);
 
 				const Company *c = Company::Get(_local_company);
 				StringID str;
@@ -420,7 +420,7 @@ public:
 					str = STR_REPLACE_NOT_REPLACING_VEHICLE_SELECTED;
 				}
 
-				DrawString (_cur_dpi, r.left + WD_FRAMETEXT_LEFT, r.right - WD_FRAMETEXT_RIGHT, r.top + 2 * WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM + GetStringBoundingBox(STR_REPLACE_INFO_TAB).height, str, TC_BLACK, SA_HOR_CENTER);
+				DrawString (dpi, r.left + WD_FRAMETEXT_LEFT, r.right - WD_FRAMETEXT_RIGHT, r.top + 2 * WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM + GetStringBoundingBox(STR_REPLACE_INFO_TAB).height, str, TC_BLACK, SA_HOR_CENTER);
 				break;
 			}
 
@@ -431,7 +431,7 @@ public:
 				EngineID end    = min(this->vscroll[side]->GetCapacity() + start, this->engines[side].Length());
 
 				/* Do the actual drawing */
-				DrawEngineList ((VehicleType)this->window_number, _cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP,
+				DrawEngineList ((VehicleType)this->window_number, dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP,
 						&this->engines[side], start, end, this->sel_engine[side], side == 0, this->sel_group);
 				break;
 			}

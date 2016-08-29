@@ -522,15 +522,15 @@ public:
 		this->DrawWidgets();
 	}
 
-	virtual void DrawWidget(const Rect &r, int widget) const
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
 	{
 		switch (widget) {
 			case WID_GL_ALL_VEHICLES:
-				DrawGroupInfo (_cur_dpi, r.top + WD_FRAMERECT_TOP, r.left, r.right, ALL_GROUP);
+				DrawGroupInfo (dpi, r.top + WD_FRAMERECT_TOP, r.left, r.right, ALL_GROUP);
 				break;
 
 			case WID_GL_DEFAULT_VEHICLES:
-				DrawGroupInfo (_cur_dpi, r.top + WD_FRAMERECT_TOP, r.left, r.right, DEFAULT_GROUP);
+				DrawGroupInfo (dpi, r.top + WD_FRAMERECT_TOP, r.left, r.right, DEFAULT_GROUP);
 				break;
 
 			case WID_GL_LIST_GROUP: {
@@ -541,18 +541,18 @@ public:
 
 					assert(g->owner == this->owner);
 
-					DrawGroupInfo (_cur_dpi, y1, r.left, r.right, g->index, this->indents[i], g->replace_protection);
+					DrawGroupInfo (dpi, y1, r.left, r.right, g->index, this->indents[i], g->replace_protection);
 
 					y1 += this->tiny_step_height;
 				}
 				if ((uint)this->group_sb->GetPosition() + this->group_sb->GetCapacity() > this->groups.Length()) {
-					DrawGroupInfo (_cur_dpi, y1, r.left, r.right, NEW_GROUP);
+					DrawGroupInfo (dpi, y1, r.left, r.right, NEW_GROUP);
 				}
 				break;
 			}
 
 			case WID_GL_SORT_BY_ORDER:
-				this->DrawSortButtonState (_cur_dpi, WID_GL_SORT_BY_ORDER, this->vehicles.IsDescSortOrder() ? SBS_DOWN : SBS_UP);
+				this->DrawSortButtonState (dpi, WID_GL_SORT_BY_ORDER, this->vehicles.IsDescSortOrder() ? SBS_DOWN : SBS_UP);
 				break;
 
 			case WID_GL_LIST_VEHICLE:
@@ -563,13 +563,13 @@ public:
 					for (uint i = this->vscroll->GetPosition(); i < max; ++i) {
 						const Vehicle *v = this->vehicles[i];
 						if (v->group_id != this->vli.index) {
-							GfxFillRect (_cur_dpi, r.left + 1, y + 1, r.right - 1, y + this->resize.step_height - 2, _colour_gradient[COLOUR_GREY][3], FILLRECT_CHECKER);
+							GfxFillRect (dpi, r.left + 1, y + 1, r.right - 1, y + this->resize.step_height - 2, _colour_gradient[COLOUR_GREY][3], FILLRECT_CHECKER);
 						}
 						y += this->resize.step_height;
 					}
 				}
 
-				this->DrawVehicleListItems (_cur_dpi, this->vehicle_sel, this->resize.step_height, r);
+				this->DrawVehicleListItems (dpi, this->vehicle_sel, this->resize.step_height, r);
 				break;
 		}
 	}

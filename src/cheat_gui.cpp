@@ -220,12 +220,12 @@ struct CheatWindow : Window {
 		this->InitNested();
 	}
 
-	virtual void DrawWidget(const Rect &r, int widget) const
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
 	{
 		if (widget != WID_C_PANEL) return;
 
 		int y = r.top + WD_FRAMERECT_TOP + this->header_height;
-		DrawStringMultiLine (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_LEFT, r.top + WD_FRAMERECT_TOP, y, STR_CHEATS_WARNING, TC_FROMSTRING, SA_CENTER);
+		DrawStringMultiLine (dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_LEFT, r.top + WD_FRAMERECT_TOP, y, STR_CHEATS_WARNING, TC_FROMSTRING, SA_CENTER);
 
 		bool rtl = _current_text_dir == TD_RTL;
 		uint box_left    = rtl ? r.right - this->box_width - 5 : r.left + 5;
@@ -239,13 +239,13 @@ struct CheatWindow : Window {
 		for (int i = 0; i != lengthof(_cheats_ui); i++) {
 			const CheatEntry *ce = &_cheats_ui[i];
 
-			DrawSprite (_cur_dpi, (*ce->been_used) ? SPR_BOX_CHECKED : SPR_BOX_EMPTY, PAL_NONE, box_left, y + icon_y_offset + 2);
+			DrawSprite (dpi, (*ce->been_used) ? SPR_BOX_CHECKED : SPR_BOX_EMPTY, PAL_NONE, box_left, y + icon_y_offset + 2);
 
 			switch (ce->type) {
 				case SLE_BOOL: {
 					bool on = (*(bool*)ce->variable);
 
-					DrawBoolButton (_cur_dpi, button_left, y + icon_y_offset, on, true);
+					DrawBoolButton (dpi, button_left, y + icon_y_offset, on, true);
 					SetDParam(0, on ? STR_CONFIG_SETTING_ON : STR_CONFIG_SETTING_OFF);
 					break;
 				}
@@ -254,7 +254,7 @@ struct CheatWindow : Window {
 					int32 val = (int32)ReadValue(ce->variable, ce->type);
 
 					/* Draw [<][>] boxes for settings of an integer-type */
-					DrawArrowButtons (_cur_dpi, button_left, y + icon_y_offset, COLOUR_YELLOW, clicked - (i * 2), true, true);
+					DrawArrowButtons (dpi, button_left, y + icon_y_offset, COLOUR_YELLOW, clicked - (i * 2), true, true);
 
 					switch (ce->str) {
 						/* Display date for change date cheat */
@@ -266,7 +266,7 @@ struct CheatWindow : Window {
 							SetDParam(0, val + 1);
 							GetString (buf, STR_CHEAT_CHANGE_COMPANY);
 							uint offset = 10 + GetStringBoundingBox(buf).width;
-							DrawCompanyIcon (_cur_dpi, _local_company, rtl ? text_right - offset - 10 : text_left + offset, y + icon_y_offset + 2);
+							DrawCompanyIcon (dpi, _local_company, rtl ? text_right - offset - 10 : text_left + offset, y + icon_y_offset + 2);
 							break;
 						}
 
@@ -276,7 +276,7 @@ struct CheatWindow : Window {
 				}
 			}
 
-			DrawString (_cur_dpi, text_left, text_right, y + text_y_offset, ce->str);
+			DrawString (dpi, text_left, text_right, y + text_y_offset, ce->str);
 
 			y += this->line_height;
 		}

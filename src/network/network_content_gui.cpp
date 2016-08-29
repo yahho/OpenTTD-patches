@@ -171,18 +171,18 @@ BaseNetworkContentDownloadStatusWindow::~BaseNetworkContentDownloadStatusWindow(
 	_network_content_client.RemoveCallback(this);
 }
 
-/* virtual */ void BaseNetworkContentDownloadStatusWindow::DrawWidget(const Rect &r, int widget) const
+void BaseNetworkContentDownloadStatusWindow::DrawWidget (BlitArea *dpi, const Rect &r, int widget) const
 {
 	if (widget != WID_NCDS_BACKGROUND) return;
 
 	/* Draw nice progress bar :) */
-	DrawFrameRect (_cur_dpi, r.left + 20, r.top + 4, r.left + 20 + (int)((this->width - 40LL) * this->downloaded_bytes / this->total_bytes), r.top + 14, COLOUR_MAUVE, FR_NONE);
+	DrawFrameRect (dpi, r.left + 20, r.top + 4, r.left + 20 + (int)((this->width - 40LL) * this->downloaded_bytes / this->total_bytes), r.top + 14, COLOUR_MAUVE, FR_NONE);
 
 	int y = r.top + 20;
 	SetDParam(0, this->downloaded_bytes);
 	SetDParam(1, this->total_bytes);
 	SetDParam(2, this->downloaded_bytes * 100LL / this->total_bytes);
-	DrawString (_cur_dpi, r.left + 2, r.right - 2, y, STR_CONTENT_DOWNLOAD_PROGRESS_SIZE, TC_FROMSTRING, SA_HOR_CENTER);
+	DrawString (dpi, r.left + 2, r.right - 2, y, STR_CONTENT_DOWNLOAD_PROGRESS_SIZE, TC_FROMSTRING, SA_HOR_CENTER);
 
 	StringID str;
 	if (this->downloaded_bytes == this->total_bytes) {
@@ -197,7 +197,7 @@ BaseNetworkContentDownloadStatusWindow::~BaseNetworkContentDownloadStatusWindow(
 	}
 
 	y += FONT_HEIGHT_NORMAL + 5;
-	DrawStringMultiLine (_cur_dpi, r.left + 2, r.right - 2, y, y + FONT_HEIGHT_NORMAL * 2, str, TC_FROMSTRING, SA_CENTER);
+	DrawStringMultiLine (dpi, r.left + 2, r.right - 2, y, y + FONT_HEIGHT_NORMAL * 2, str, TC_FROMSTRING, SA_CENTER);
 }
 
 /* virtual */ void BaseNetworkContentDownloadStatusWindow::OnDownloadProgress(const ContentInfo *ci, int bytes)
@@ -637,19 +637,19 @@ public:
 	}
 
 
-	virtual void DrawWidget(const Rect &r, int widget) const
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
 	{
 		switch (widget) {
 			case WID_NCL_FILTER_CAPT:
-				DrawString (_cur_dpi, r.left, r.right, r.top, STR_CONTENT_FILTER_TITLE, TC_FROMSTRING, SA_RIGHT);
+				DrawString (dpi, r.left, r.right, r.top, STR_CONTENT_FILTER_TITLE, TC_FROMSTRING, SA_RIGHT);
 				break;
 
 			case WID_NCL_DETAILS:
-				this->DrawDetails (_cur_dpi, r);
+				this->DrawDetails (dpi, r);
 				break;
 
 			case WID_NCL_MATRIX:
-				this->DrawMatrix (_cur_dpi, r);
+				this->DrawMatrix (dpi, r);
 				break;
 		}
 	}

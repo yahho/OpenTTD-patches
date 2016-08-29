@@ -251,14 +251,14 @@ struct NewGRFParametersWindow : public Window {
 		}
 	}
 
-	virtual void DrawWidget(const Rect &r, int widget) const
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
 	{
 		if (widget == WID_NP_DESCRIPTION) {
 			const GRFParameterInfo *par_info = (this->clicked_row < this->grf_config->param_info.Length()) ? this->grf_config->param_info[this->clicked_row] : NULL;
 			if (par_info == NULL) return;
 			const char *desc = par_info->desc.get_string();
 			if (desc == NULL) return;
-			DrawStringMultiLine (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + WD_TEXTPANEL_TOP, r.bottom - WD_TEXTPANEL_BOTTOM, desc, TC_BLACK);
+			DrawStringMultiLine (dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + WD_TEXTPANEL_TOP, r.bottom - WD_TEXTPANEL_BOTTOM, desc, TC_BLACK);
 			return;
 		} else if (widget != WID_NP_BACKGROUND) {
 			return;
@@ -279,13 +279,13 @@ struct NewGRFParametersWindow : public Window {
 			bool selected = (i == this->clicked_row);
 
 			if (par_info->type == PTYPE_BOOL) {
-				DrawBoolButton (_cur_dpi, buttons_left, y + button_y_offset, current_value != 0, this->editable);
+				DrawBoolButton (dpi, buttons_left, y + button_y_offset, current_value != 0, this->editable);
 				SetDParam(2, par_info->GetValue(this->grf_config) == 0 ? STR_CONFIG_SETTING_OFF : STR_CONFIG_SETTING_ON);
 			} else if (par_info->type == PTYPE_UINT_ENUM) {
 				if (par_info->complete_labels) {
-					DrawDropDownButton (_cur_dpi, buttons_left, y + button_y_offset, COLOUR_YELLOW, this->clicked_row == i && this->clicked_dropdown, this->editable);
+					DrawDropDownButton (dpi, buttons_left, y + button_y_offset, COLOUR_YELLOW, this->clicked_row == i && this->clicked_dropdown, this->editable);
 				} else {
-					DrawArrowButtons (_cur_dpi, buttons_left, y + button_y_offset, COLOUR_YELLOW, (this->clicked_button == i) ? 1 + (this->clicked_increase != rtl) : 0, this->editable && current_value > par_info->min_value, this->editable && current_value < par_info->max_value);
+					DrawArrowButtons (dpi, buttons_left, y + button_y_offset, COLOUR_YELLOW, (this->clicked_button == i) ? 1 + (this->clicked_increase != rtl) : 0, this->editable && current_value > par_info->min_value, this->editable && current_value < par_info->max_value);
 				}
 				SetDParam(2, STR_JUST_INT);
 				SetDParam(3, current_value);
@@ -309,7 +309,7 @@ struct NewGRFParametersWindow : public Window {
 				SetDParam(1, i + 1);
 			}
 
-			DrawString (_cur_dpi, text_left, text_right, y + text_y_offset, STR_NEWGRF_PARAMETERS_SETTING, selected ? TC_WHITE : TC_LIGHT_BLUE);
+			DrawString (dpi, text_left, text_right, y + text_y_offset, STR_NEWGRF_PARAMETERS_SETTING, selected ? TC_WHITE : TC_LIGHT_BLUE);
 			y += this->line_height;
 		}
 	}
@@ -847,11 +847,11 @@ struct NewGRFWindow : public Window, NewGRFScanCallback {
 		return pal;
 	}
 
-	virtual void DrawWidget(const Rect &r, int widget) const
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
 	{
 		switch (widget) {
 			case WID_NS_FILE_LIST: {
-				GfxFillRect (_cur_dpi, r.left + 1, r.top + 1, r.right - 1, r.bottom - 1, PC_BLACK);
+				GfxFillRect (dpi, r.left + 1, r.top + 1, r.right - 1, r.bottom - 1, PC_BLACK);
 
 				uint step_height = this->GetWidget<NWidgetBase>(WID_NS_FILE_LIST)->resize_y;
 				uint y = r.top + WD_FRAMERECT_TOP;
@@ -875,31 +875,31 @@ struct NewGRFWindow : public Window, NewGRFScanCallback {
 						PaletteID pal = this->GetPalette(c);
 
 						if (h) {
-							GfxFillRect (_cur_dpi, r.left + 1, y, r.right - 1, y + step_height - 1, PC_DARK_BLUE);
+							GfxFillRect (dpi, r.left + 1, y, r.right - 1, y + step_height - 1, PC_DARK_BLUE);
 						} else if (i == this->active_over) {
 							/* Get index of current selection. */
 							int active_sel_pos = 0;
 							for (GRFConfig *c = this->actives; c != NULL && c != this->active_sel; c = c->next, active_sel_pos++) {}
 							if (active_sel_pos != this->active_over) {
 								uint top = this->active_over < active_sel_pos ? y + 1 : y + step_height - 2;
-								GfxFillRect (_cur_dpi, r.left + WD_FRAMERECT_LEFT, top - 1, r.right - WD_FRAMERECT_RIGHT, top + 1, PC_GREY);
+								GfxFillRect (dpi, r.left + WD_FRAMERECT_LEFT, top - 1, r.right - WD_FRAMERECT_RIGHT, top + 1, PC_GREY);
 							}
 						}
-						DrawSprite (_cur_dpi, SPR_SQUARE, pal, square_left, y + square_offset_y);
-						if (c->error != NULL) DrawSprite (_cur_dpi, SPR_WARNING_SIGN, 0, warning_left, y + warning_offset_y);
+						DrawSprite (dpi, SPR_SQUARE, pal, square_left, y + square_offset_y);
+						if (c->error != NULL) DrawSprite (dpi, SPR_WARNING_SIGN, 0, warning_left, y + warning_offset_y);
 						uint txtoffset = c->error == NULL ? 0 : warning.width;
-						DrawString (_cur_dpi, text_left + (rtl ? 0 : txtoffset), text_right - (rtl ? txtoffset : 0), y + offset_y, text, h ? TC_WHITE : TC_ORANGE);
+						DrawString (dpi, text_left + (rtl ? 0 : txtoffset), text_right - (rtl ? txtoffset : 0), y + offset_y, text, h ? TC_WHITE : TC_ORANGE);
 						y += step_height;
 					}
 				}
 				if (i == this->active_over && this->vscroll->IsVisible(i)) { // Highlight is after the last GRF entry.
-					GfxFillRect (_cur_dpi, r.left + WD_FRAMERECT_LEFT, y, r.right - WD_FRAMERECT_RIGHT, y + 2, PC_GREY);
+					GfxFillRect (dpi, r.left + WD_FRAMERECT_LEFT, y, r.right - WD_FRAMERECT_RIGHT, y + 2, PC_GREY);
 				}
 				break;
 			}
 
 			case WID_NS_AVAIL_LIST: {
-				GfxFillRect (_cur_dpi, r.left + 1, r.top + 1, r.right - 1, r.bottom - 1, this->active_over == -2 ? PC_DARK_GREY : PC_BLACK);
+				GfxFillRect (dpi, r.left + 1, r.top + 1, r.right - 1, r.bottom - 1, this->active_over == -2 ? PC_DARK_GREY : PC_BLACK);
 
 				uint step_height = this->GetWidget<NWidgetBase>(WID_NS_AVAIL_LIST)->resize_y;
 				int offset_y = (step_height - FONT_HEIGHT_NORMAL) / 2;
@@ -912,8 +912,8 @@ struct NewGRFWindow : public Window, NewGRFScanCallback {
 					bool h = (c == this->avail_sel);
 					const char *text = c->GetName();
 
-					if (h) GfxFillRect (_cur_dpi, r.left + 1, y, r.right - 1, y + step_height - 1, PC_DARK_BLUE);
-					DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y + offset_y, text, h ? TC_WHITE : TC_SILVER);
+					if (h) GfxFillRect (dpi, r.left + 1, y, r.right - 1, y + step_height - 1, PC_DARK_BLUE);
+					DrawString (dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y + offset_y, text, h ? TC_WHITE : TC_SILVER);
 					y += step_height;
 				}
 				break;
@@ -921,15 +921,15 @@ struct NewGRFWindow : public Window, NewGRFScanCallback {
 
 			case WID_NS_NEWGRF_INFO_TITLE:
 				/* Create the nice grayish rectangle at the details top. */
-				GfxFillRect (_cur_dpi, r.left + 1, r.top + 1, r.right - 1, r.bottom - 1, PC_DARK_BLUE);
-				DrawString (_cur_dpi, r.left, r.right, (r.top + r.bottom - FONT_HEIGHT_NORMAL) / 2, STR_NEWGRF_SETTINGS_INFO_TITLE, TC_FROMSTRING, SA_HOR_CENTER);
+				GfxFillRect (dpi, r.left + 1, r.top + 1, r.right - 1, r.bottom - 1, PC_DARK_BLUE);
+				DrawString (dpi, r.left, r.right, (r.top + r.bottom - FONT_HEIGHT_NORMAL) / 2, STR_NEWGRF_SETTINGS_INFO_TITLE, TC_FROMSTRING, SA_HOR_CENTER);
 				break;
 
 			case WID_NS_NEWGRF_INFO: {
 				const GRFConfig *selected = this->active_sel;
 				if (selected == NULL) selected = this->avail_sel;
 				if (selected != NULL) {
-					ShowNewGRFInfo (selected, _cur_dpi, r.left + WD_FRAMERECT_LEFT, r.top + WD_FRAMERECT_TOP, r.right - WD_FRAMERECT_RIGHT, r.bottom - WD_FRAMERECT_BOTTOM, this->show_params);
+					ShowNewGRFInfo (selected, dpi, r.left + WD_FRAMERECT_LEFT, r.top + WD_FRAMERECT_TOP, r.right - WD_FRAMERECT_RIGHT, r.bottom - WD_FRAMERECT_BOTTOM, this->show_params);
 				}
 				break;
 			}
@@ -2113,11 +2113,11 @@ struct SavePresetWindow : public Window {
 		}
 	}
 
-	virtual void DrawWidget(const Rect &r, int widget) const
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
 	{
 		switch (widget) {
 			case WID_SVP_PRESET_LIST: {
-				GfxFillRect (_cur_dpi, r.left + 1, r.top + 1, r.right - 1, r.bottom - 1, PC_BLACK);
+				GfxFillRect (dpi, r.left + 1, r.top + 1, r.right - 1, r.bottom - 1, PC_BLACK);
 
 				uint step_height = this->GetWidget<NWidgetBase>(WID_SVP_PRESET_LIST)->resize_y;
 				int offset_y = (step_height - FONT_HEIGHT_NORMAL) / 2;
@@ -2126,10 +2126,10 @@ struct SavePresetWindow : public Window {
 				uint max_index = min(min_index + this->vscroll->GetCapacity(), this->presets.Length());
 
 				for (uint i = min_index; i < max_index; i++) {
-					if ((int)i == this->selected) GfxFillRect (_cur_dpi, r.left + 1, y, r.right - 1, y + step_height - 2, PC_DARK_BLUE);
+					if ((int)i == this->selected) GfxFillRect (dpi, r.left + 1, y, r.right - 1, y + step_height - 2, PC_DARK_BLUE);
 
 					const char *text = this->presets[i];
-					DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right, y + offset_y, text, ((int)i == this->selected) ? TC_WHITE : TC_SILVER);
+					DrawString (dpi, r.left + WD_FRAMERECT_LEFT, r.right, y + offset_y, text, ((int)i == this->selected) ? TC_WHITE : TC_SILVER);
 					y += step_height;
 				}
 				break;
@@ -2242,25 +2242,25 @@ struct ScanProgressWindow : public Window {
 		}
 	}
 
-	virtual void DrawWidget(const Rect &r, int widget) const
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
 	{
 		switch (widget) {
 			case WID_SP_PROGRESS_BAR: {
 				/* Draw the % complete with a bar and a text */
-				DrawFrameRect (_cur_dpi, r.left, r.top, r.right, r.bottom, COLOUR_GREY, FR_BORDERONLY);
+				DrawFrameRect (dpi, r.left, r.top, r.right, r.bottom, COLOUR_GREY, FR_BORDERONLY);
 				uint percent = scanned * 100 / max(1U, _settings_client.gui.last_newgrf_count);
-				DrawFrameRect (_cur_dpi, r.left + 1, r.top + 1, (int)((r.right - r.left - 2) * percent / 100) + r.left + 1, r.bottom - 1, COLOUR_MAUVE, FR_NONE);
+				DrawFrameRect (dpi, r.left + 1, r.top + 1, (int)((r.right - r.left - 2) * percent / 100) + r.left + 1, r.bottom - 1, COLOUR_MAUVE, FR_NONE);
 				SetDParam(0, percent);
-				DrawString (_cur_dpi, r.left, r.right, r.top + 5, STR_GENERATION_PROGRESS, TC_FROMSTRING, SA_HOR_CENTER);
+				DrawString (dpi, r.left, r.right, r.top + 5, STR_GENERATION_PROGRESS, TC_FROMSTRING, SA_HOR_CENTER);
 				break;
 			}
 
 			case WID_SP_PROGRESS_TEXT:
 				SetDParam(0, this->scanned);
 				SetDParam(1, _settings_client.gui.last_newgrf_count);
-				DrawString (_cur_dpi, r.left, r.right, r.top, STR_NEWGRF_SCAN_STATUS, TC_FROMSTRING, SA_HOR_CENTER);
+				DrawString (dpi, r.left, r.right, r.top, STR_NEWGRF_SCAN_STATUS, TC_FROMSTRING, SA_HOR_CENTER);
 
-				DrawString (_cur_dpi, r.left, r.right, r.top + FONT_HEIGHT_NORMAL + WD_PAR_VSEP_NORMAL, this->last_name == NULL ? "" : this->last_name, TC_BLACK, SA_HOR_CENTER);
+				DrawString (dpi, r.left, r.right, r.top + FONT_HEIGHT_NORMAL + WD_PAR_VSEP_NORMAL, this->last_name == NULL ? "" : this->last_name, TC_BLACK, SA_HOR_CENTER);
 				break;
 		}
 	}

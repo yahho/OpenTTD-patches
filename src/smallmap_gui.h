@@ -17,6 +17,7 @@
 #include "window_gui.h"
 #include "strings_func.h"
 #include "blitter/blitter.h"
+#include "gfx_func.h"
 #include "linkgraph/linkgraph_gui.h"
 #include "widgets/smallmap_widget.h"
 
@@ -154,7 +155,7 @@ public:
 	virtual void SetStringParameters(int widget) const;
 	virtual void OnInit();
 	virtual void OnPaint();
-	virtual void DrawWidget(const Rect &r, int widget) const;
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE;
 	virtual void OnClick(Point pt, int widget, int click_count);
 	virtual void OnInvalidateData(int data = 0, bool gui_scope = true);
 	virtual bool OnRightClick(Point pt, int widget);

@@ -1108,7 +1108,7 @@ public:
 		}
 	}
 
-	virtual void DrawWidget(const Rect &r, int widget) const
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
 	{
 		int widn = GB(widget, 0, 16);
 		switch (widn) {
@@ -1116,7 +1116,7 @@ public:
 			case WID_BRAS_PLATFORM_DIR_Y:
 				assert_compile (WID_BRAS_PLATFORM_DIR_X == 0);
 				assert_compile (WID_BRAS_PLATFORM_DIR_Y == 1);
-				DrawStationPreview (_cur_dpi, r, _railstation.station_class, _railstation.station_type, 2 + widn, false);
+				DrawStationPreview (dpi, r, _railstation.station_class, _railstation.station_type, 2 + widn, false);
 				break;
 
 			case WID_BRAS_NEWST_LIST: {
@@ -1125,7 +1125,7 @@ public:
 				for (uint i = 0; i < StationClass::GetClassCount(); i++) {
 					if (i == STAT_CLASS_WAYP) continue;
 					if (this->vscroll->IsVisible(statclass)) {
-						DrawString (_cur_dpi, r.left + WD_MATRIX_LEFT, r.right - WD_MATRIX_RIGHT, row * this->line_height + r.top + WD_MATRIX_TOP,
+						DrawString (dpi, r.left + WD_MATRIX_LEFT, r.right - WD_MATRIX_RIGHT, row * this->line_height + r.top + WD_MATRIX_TOP,
 								StationClass::Get((StationClassID)i)->name,
 								(StationClassID)i == _railstation.station_class ? TC_WHITE : TC_BLACK);
 						row++;
@@ -1138,7 +1138,7 @@ public:
 			case WID_BRAS_IMAGE: {
 				byte type = GB(widget, 16, 16);
 				assert(type < _railstation.station_count);
-				DrawStationPreview (_cur_dpi, r, _railstation.station_class, type, 2 + _railstation.orientation, true);
+				DrawStationPreview (dpi, r, _railstation.station_class, type, 2 + _railstation.orientation, true);
 				break;
 			}
 		}
@@ -1537,7 +1537,7 @@ public:
 		}
 	}
 
-	virtual void DrawWidget(const Rect &r, int widget) const
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
 	{
 		if (IsInsideMM(widget, WID_BS_SEMAPHORE_NORM, WID_BS_ELECTRIC_PBS_OWAY + 1)) {
 			/* Extract signal from widget number. */
@@ -1545,7 +1545,7 @@ public:
 			int var = SIG_SEMAPHORE - (widget - WID_BS_SEMAPHORE_NORM) / SIGTYPE_END; // SignalVariant order is reversed compared to the widgets.
 			SpriteID sprite = GetRailTypeInfo(_cur_railtype)->gui_sprites.signals[type][var][this->IsWidgetLowered(widget)];
 
-			this->DrawSignalSprite (_cur_dpi, widget, sprite);
+			this->DrawSignalSprite (dpi, widget, sprite);
 		}
 	}
 
@@ -1690,11 +1690,11 @@ struct BuildRailDepotWindow : public PickerWindowBase {
 		size->height = ScaleGUITrad(48) + 2;
 	}
 
-	virtual void DrawWidget(const Rect &r, int widget) const
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
 	{
 		if (!IsInsideMM(widget, WID_BRAD_DEPOT_NE, WID_BRAD_DEPOT_NW + 1)) return;
 
-		DrawTrainDepotSprite (_cur_dpi, r.left + 1 + ScaleGUITrad(31), r.bottom - ScaleGUITrad(31), widget - WID_BRAD_DEPOT_NE + DIAGDIR_NE, _cur_railtype);
+		DrawTrainDepotSprite (dpi, r.left + 1 + ScaleGUITrad(31), r.bottom - ScaleGUITrad(31), widget - WID_BRAD_DEPOT_NE + DIAGDIR_NE, _cur_railtype);
 	}
 
 	virtual void OnClick(Point pt, int widget, int click_count)
@@ -1790,12 +1790,12 @@ struct BuildRailWaypointWindow : PickerWindowBase {
 		}
 	}
 
-	virtual void DrawWidget(const Rect &r, int widget) const
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
 	{
 		switch (GB(widget, 0, 16)) {
 			case WID_BRW_WAYPOINT: {
 				byte type = GB(widget, 16, 16);
-				DrawStationPreview (_cur_dpi, r, STAT_CLASS_WAYP, type, AXIS_X, true);
+				DrawStationPreview (dpi, r, STAT_CLASS_WAYP, type, AXIS_X, true);
 				break;
 			}
 		}

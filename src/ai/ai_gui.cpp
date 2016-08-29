@@ -111,7 +111,7 @@ struct AIListWindow : public Window {
 		}
 	}
 
-	virtual void DrawWidget(const Rect &r, int widget) const
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
 	{
 		switch (widget) {
 			case WID_AIL_LIST: {
@@ -119,13 +119,13 @@ struct AIListWindow : public Window {
 				int y = this->GetWidget<NWidgetBase>(WID_AIL_LIST)->pos_y;
 				/* First AI in the list is hardcoded to random */
 				if (this->vscroll->IsVisible(0)) {
-					DrawString (_cur_dpi, r.left + WD_MATRIX_LEFT, r.right - WD_MATRIX_LEFT, y + WD_MATRIX_TOP, this->slot == OWNER_DEITY ? STR_AI_CONFIG_NONE : STR_AI_CONFIG_RANDOM_AI, this->selected == -1 ? TC_WHITE : TC_ORANGE);
+					DrawString (dpi, r.left + WD_MATRIX_LEFT, r.right - WD_MATRIX_LEFT, y + WD_MATRIX_TOP, this->slot == OWNER_DEITY ? STR_AI_CONFIG_NONE : STR_AI_CONFIG_RANDOM_AI, this->selected == -1 ? TC_WHITE : TC_ORANGE);
 					y += this->line_height;
 				}
 				ScriptInfoList::const_iterator it = this->info_list->begin();
 				for (int i = 1; it != this->info_list->end(); i++, it++) {
 					if (this->vscroll->IsVisible(i)) {
-						DrawString (_cur_dpi, r.left + WD_MATRIX_LEFT, r.right - WD_MATRIX_RIGHT, y + WD_MATRIX_TOP, (*it).second->GetName(), (this->selected == i - 1) ? TC_WHITE : TC_ORANGE);
+						DrawString (dpi, r.left + WD_MATRIX_LEFT, r.right - WD_MATRIX_RIGHT, y + WD_MATRIX_TOP, (*it).second->GetName(), (this->selected == i - 1) ? TC_WHITE : TC_ORANGE);
 						y += this->line_height;
 					}
 				}
@@ -141,18 +141,18 @@ struct AIListWindow : public Window {
 				if (selected_info != NULL) {
 					int y = r.top + WD_FRAMERECT_TOP;
 					SetDParamStr(0, selected_info->GetAuthor());
-					DrawString (_cur_dpi, r.left + WD_FRAMETEXT_LEFT, r.right - WD_FRAMETEXT_RIGHT, y, STR_AI_LIST_AUTHOR);
+					DrawString (dpi, r.left + WD_FRAMETEXT_LEFT, r.right - WD_FRAMETEXT_RIGHT, y, STR_AI_LIST_AUTHOR);
 					y += FONT_HEIGHT_NORMAL + WD_PAR_VSEP_NORMAL;
 					SetDParam(0, selected_info->GetVersion());
-					DrawString (_cur_dpi, r.left + WD_FRAMETEXT_LEFT, r.right - WD_FRAMETEXT_RIGHT, y, STR_AI_LIST_VERSION);
+					DrawString (dpi, r.left + WD_FRAMETEXT_LEFT, r.right - WD_FRAMETEXT_RIGHT, y, STR_AI_LIST_VERSION);
 					y += FONT_HEIGHT_NORMAL + WD_PAR_VSEP_NORMAL;
 					if (selected_info->GetURL() != NULL) {
 						SetDParamStr(0, selected_info->GetURL());
-						DrawString (_cur_dpi, r.left + WD_FRAMETEXT_LEFT, r.right - WD_FRAMETEXT_RIGHT, y, STR_AI_LIST_URL);
+						DrawString (dpi, r.left + WD_FRAMETEXT_LEFT, r.right - WD_FRAMETEXT_RIGHT, y, STR_AI_LIST_URL);
 						y += FONT_HEIGHT_NORMAL + WD_PAR_VSEP_NORMAL;
 					}
 					SetDParamStr(0, selected_info->GetDescription());
-					DrawStringMultiLine (_cur_dpi, r.left + WD_FRAMETEXT_LEFT, r.right - WD_FRAMETEXT_RIGHT, y, r.bottom - WD_FRAMERECT_BOTTOM, STR_JUST_RAW_STRING, TC_WHITE);
+					DrawStringMultiLine (dpi, r.left + WD_FRAMETEXT_LEFT, r.right - WD_FRAMETEXT_RIGHT, y, r.bottom - WD_FRAMERECT_BOTTOM, STR_JUST_RAW_STRING, TC_WHITE);
 				}
 				break;
 			}
@@ -353,7 +353,7 @@ struct AISettingsWindow : public Window {
 		}
 	}
 
-	virtual void DrawWidget(const Rect &r, int widget) const
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
 	{
 		if (widget != WID_AIS_BACKGROUND) return;
 
@@ -395,13 +395,13 @@ struct AISettingsWindow : public Window {
 			}
 
 			if ((config_item.flags & SCRIPTCONFIG_BOOLEAN) != 0) {
-				DrawBoolButton (_cur_dpi, buttons_left, y + button_y_offset, current_value != 0, editable);
+				DrawBoolButton (dpi, buttons_left, y + button_y_offset, current_value != 0, editable);
 				SetDParam(idx++, current_value == 0 ? STR_CONFIG_SETTING_OFF : STR_CONFIG_SETTING_ON);
 			} else {
 				if (config_item.complete_labels) {
-					DrawDropDownButton (_cur_dpi, buttons_left, y + button_y_offset, COLOUR_YELLOW, this->clicked_row == i && clicked_dropdown, editable);
+					DrawDropDownButton (dpi, buttons_left, y + button_y_offset, COLOUR_YELLOW, this->clicked_row == i && clicked_dropdown, editable);
 				} else {
-					DrawArrowButtons (_cur_dpi, buttons_left, y + button_y_offset, COLOUR_YELLOW, (this->clicked_button == i) ? 1 + (this->clicked_increase != rtl) : 0, editable && current_value > config_item.min_value, editable && current_value < config_item.max_value);
+					DrawArrowButtons (dpi, buttons_left, y + button_y_offset, COLOUR_YELLOW, (this->clicked_button == i) ? 1 + (this->clicked_increase != rtl) : 0, editable && current_value > config_item.min_value, editable && current_value < config_item.max_value);
 				}
 				if (config_item.labels != NULL && config_item.labels->Contains(current_value)) {
 					SetDParam(idx++, STR_JUST_RAW_STRING);
@@ -412,7 +412,7 @@ struct AISettingsWindow : public Window {
 				}
 			}
 
-			DrawString (_cur_dpi, text_left, text_right, y + text_y_offset, str, colour);
+			DrawString (dpi, text_left, text_right, y + text_y_offset, str, colour);
 			y += this->line_height;
 		}
 	}
@@ -799,7 +799,7 @@ struct AIConfigWindow : public Window {
 		return slot < max_slot;
 	}
 
-	virtual void DrawWidget(const Rect &r, int widget) const
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
 	{
 		switch (widget) {
 			case WID_AIC_GAMELIST: {
@@ -810,7 +810,7 @@ struct AIConfigWindow : public Window {
 					text = STR_JUST_RAW_STRING;
 				}
 
-				DrawString (_cur_dpi, r.left + 10, r.right - 10, r.top + WD_MATRIX_TOP, text,
+				DrawString (dpi, r.left + 10, r.right - 10, r.top + WD_MATRIX_TOP, text,
 						(this->selected_slot == OWNER_DEITY) ? TC_WHITE : (IsEditable(OWNER_DEITY) ? TC_ORANGE : TC_SILVER));
 
 				break;
@@ -829,7 +829,7 @@ struct AIConfigWindow : public Window {
 					} else {
 						text = STR_AI_CONFIG_RANDOM_AI;
 					}
-					DrawString (_cur_dpi, r.left + 10, r.right - 10, y + WD_MATRIX_TOP, text,
+					DrawString (dpi, r.left + 10, r.right - 10, y + WD_MATRIX_TOP, text,
 							(this->selected_slot == i) ? TC_WHITE : (IsEditable((CompanyID)i) ? TC_ORANGE : TC_SILVER));
 					y += this->line_height;
 				}
@@ -1185,7 +1185,7 @@ struct AIDebugWindow : public Window {
 		}
 	}
 
-	virtual void DrawWidget(const Rect &r, int widget) const
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
 	{
 		if (ai_debug_company == INVALID_COMPANY) return;
 
@@ -1212,11 +1212,11 @@ struct AIDebugWindow : public Window {
 
 					/* Check if the current line should be highlighted */
 					if (pos == this->highlight_row) {
-						GfxFillRect (_cur_dpi, r.left + 1, r.top + y, r.right - 1, r.top + y + this->resize.step_height - WD_PAR_VSEP_NORMAL, PC_BLACK);
+						GfxFillRect (dpi, r.left + 1, r.top + y, r.right - 1, r.top + y + this->resize.step_height - WD_PAR_VSEP_NORMAL, PC_BLACK);
 						if (colour == TC_BLACK) colour = TC_WHITE; // Make black text readable by inverting it to white.
 					}
 
-					DrawString (_cur_dpi, r.left + 7, r.right - 7, r.top + y, line->msg, colour, SA_LEFT | SA_FORCE);
+					DrawString (dpi, r.left + 7, r.right - 7, r.top + y, line->msg, colour, SA_LEFT | SA_FORCE);
 					y += this->resize.step_height;
 				}
 				break;

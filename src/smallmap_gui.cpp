@@ -1197,12 +1197,12 @@ void SmallMapWindow::RebuildColourIndexIfNecessary()
 	this->DrawWidgets();
 }
 
-/* virtual */ void SmallMapWindow::DrawWidget(const Rect &r, int widget) const
+void SmallMapWindow::DrawWidget (BlitArea *dpi, const Rect &r, int widget) const
 {
 	switch (widget) {
 		case WID_SM_MAP: {
 			DrawPixelInfo new_dpi;
-			if (!FillDrawPixelInfo (_cur_dpi, &new_dpi, r.left + 1, r.top + 1, r.right - r.left - 1, r.bottom - r.top - 1)) return;
+			if (!FillDrawPixelInfo (dpi, &new_dpi, r.left + 1, r.top + 1, r.right - r.left - 1, r.bottom - r.top - 1)) return;
 			this->DrawSmallMap(&new_dpi);
 			break;
 		}
@@ -1267,10 +1267,10 @@ void SmallMapWindow::RebuildColourIndexIfNecessary()
 							if (!tbl->show_on_map) {
 								/* Simply draw the string, not the black border of the legend colour.
 								 * This will enforce the idea of the disabled item */
-								DrawString (_cur_dpi, x + text_left, x + text_right, y, string, TC_GREY);
+								DrawString (dpi, x + text_left, x + text_right, y, string, TC_GREY);
 							} else {
-								DrawString (_cur_dpi, x + text_left, x + text_right, y, string, TC_BLACK);
-								GfxFillRect (_cur_dpi, x + blob_left, y + 1, x + blob_right, y + row_height - 1, PC_BLACK); // Outer border of the legend colour
+								DrawString (dpi, x + text_left, x + text_right, y, string, TC_BLACK);
+								GfxFillRect (dpi, x + blob_left, y + 1, x + blob_right, y + row_height - 1, PC_BLACK); // Outer border of the legend colour
 							}
 							break;
 						}
@@ -1278,11 +1278,11 @@ void SmallMapWindow::RebuildColourIndexIfNecessary()
 					default:
 						if (this->map_type == SMT_CONTOUR) SetDParam(0, tbl->height * TILE_HEIGHT_STEP);
 						/* Anything that is not an industry or a company is using normal process */
-						GfxFillRect (_cur_dpi, x + blob_left, y + 1, x + blob_right, y + row_height - 1, PC_BLACK);
-						DrawString (_cur_dpi, x + text_left, x + text_right, y, tbl->legend);
+						GfxFillRect (dpi, x + blob_left, y + 1, x + blob_right, y + row_height - 1, PC_BLACK);
+						DrawString (dpi, x + text_left, x + text_right, y, tbl->legend);
 						break;
 				}
-				GfxFillRect (_cur_dpi, x + blob_left + 1, y + 2, x + blob_right - 1, y + row_height - 2, legend_colour); // Legend colour
+				GfxFillRect (dpi, x + blob_left + 1, y + 2, x + blob_right - 1, y + row_height - 2, legend_colour); // Legend colour
 
 				y += row_height;
 			}

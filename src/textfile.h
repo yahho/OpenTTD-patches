@@ -77,7 +77,7 @@ struct TextfileWindow : public Window {
 	virtual ~TextfileWindow();
 	virtual void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize);
 	virtual void OnClick(Point pt, int widget, int click_count);
-	virtual void DrawWidget(const Rect &r, int widget) const;
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE;
 	virtual void OnResize();
 
 private:

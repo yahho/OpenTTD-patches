@@ -54,10 +54,10 @@ public:
 		ResizeWindow(this, _screen.width, _screen.height);
 	}
 
-	virtual void DrawWidget(const Rect &r, int widget) const
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
 	{
-		GfxFillRect (_cur_dpi, r.left, r.top, r.right, r.bottom, 4, FILLRECT_OPAQUE);
-		GfxFillRect (_cur_dpi, r.left, r.top, r.right, r.bottom, 0, FILLRECT_CHECKER);
+		GfxFillRect (dpi, r.left, r.top, r.right, r.bottom, 4, FILLRECT_OPAQUE);
+		GfxFillRect (dpi, r.left, r.top, r.right, r.bottom, 0, FILLRECT_CHECKER);
 	}
 };
 
@@ -166,11 +166,11 @@ public:
 		}
 	}
 
-	virtual void DrawWidget(const Rect &r, int widget) const
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
 	{
 		if (widget != 0) return;
 
-		DrawStringMultiLine (_cur_dpi, r.left + WD_FRAMETEXT_LEFT, r.right - WD_FRAMETEXT_RIGHT, r.top + WD_FRAMETEXT_TOP, r.bottom - WD_FRAMETEXT_BOTTOM, STR_MISSING_GRAPHICS_SET_MESSAGE, TC_FROMSTRING, SA_CENTER);
+		DrawStringMultiLine (dpi, r.left + WD_FRAMETEXT_LEFT, r.right - WD_FRAMETEXT_RIGHT, r.top + WD_FRAMETEXT_TOP, r.bottom - WD_FRAMETEXT_BOTTOM, STR_MISSING_GRAPHICS_SET_MESSAGE, TC_FROMSTRING, SA_CENTER);
 	}
 
 	virtual void OnClick(Point pt, int widget, int click_count)

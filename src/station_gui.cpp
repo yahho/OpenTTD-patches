@@ -416,12 +416,12 @@ public:
 		this->DrawWidgets();
 	}
 
-	virtual void DrawWidget(const Rect &r, int widget) const
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
 	{
 		switch (widget) {
 			case WID_STL_SORTBY:
 				/* draw arrow pointing up/down for ascending/descending sorting */
-				this->DrawSortButtonState (_cur_dpi, WID_STL_SORTBY, this->stations.IsDescSortOrder() ? SBS_DOWN : SBS_UP);
+				this->DrawSortButtonState (dpi, WID_STL_SORTBY, this->stations.IsDescSortOrder() ? SBS_DOWN : SBS_UP);
 				break;
 
 			case WID_STL_LIST: {
@@ -438,7 +438,7 @@ public:
 
 					SetDParam(0, st->index);
 					SetDParam(1, st->facilities);
-					int x = DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_STATION_LIST_STATION);
+					int x = DrawString (dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_STATION_LIST_STATION);
 					x += rtl ? -5 : 5;
 
 					/* show cargo waiting and station ratings */
@@ -453,7 +453,7 @@ public:
 								x -= 20;
 								if (x < r.left + WD_FRAMERECT_LEFT) break;
 							}
-							StationsWndShowStationRating (_cur_dpi, x, x + 16, y, cid, st->goods[cid].cargo.TotalCount(), st->goods[cid].rating);
+							StationsWndShowStationRating (dpi, x, x + 16, y, cid, st->goods[cid].cargo.TotalCount(), st->goods[cid].rating);
 							if (!rtl) {
 								x += 20;
 								if (x > r.right - WD_FRAMERECT_RIGHT) break;
@@ -464,30 +464,30 @@ public:
 				}
 
 				if (this->vscroll->GetCount() == 0) { // company has no stations
-					DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_STATION_LIST_NONE);
+					DrawString (dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_STATION_LIST_NONE);
 					return;
 				}
 				break;
 			}
 
 			case WID_STL_NOCARGOWAITING:
-				DrawString (_cur_dpi, r.left + 1, r.right + 1, r.top + 1, STR_ABBREV_NONE, TC_BLACK, SA_HOR_CENTER);
+				DrawString (dpi, r.left + 1, r.right + 1, r.top + 1, STR_ABBREV_NONE, TC_BLACK, SA_HOR_CENTER);
 				break;
 
 			case WID_STL_CARGOALL:
-				DrawString (_cur_dpi, r.left + 1, r.right + 1, r.top + 1, STR_ABBREV_ALL, TC_BLACK, SA_HOR_CENTER);
+				DrawString (dpi, r.left + 1, r.right + 1, r.top + 1, STR_ABBREV_ALL, TC_BLACK, SA_HOR_CENTER);
 				break;
 
 			case WID_STL_FACILALL:
-				DrawString (_cur_dpi, r.left + 1, r.right + 1, r.top + 1, STR_ABBREV_ALL, TC_BLACK, SA_HOR_CENTER);
+				DrawString (dpi, r.left + 1, r.right + 1, r.top + 1, STR_ABBREV_ALL, TC_BLACK, SA_HOR_CENTER);
 				break;
 
 			default:
 				if (widget >= WID_STL_CARGOSTART) {
 					const CargoSpec *cs = _sorted_cargo_specs[widget - WID_STL_CARGOSTART];
-					GfxFillRect (_cur_dpi, r.left + 1, r.top + 1, r.right - 1, r.bottom - 1, cs->rating_colour);
+					GfxFillRect (dpi, r.left + 1, r.top + 1, r.right - 1, r.bottom - 1, cs->rating_colour);
 					TextColour tc = GetContrastColour(cs->rating_colour);
-					DrawString (_cur_dpi, r.left + 1, r.right + 1, r.top + 1, cs->abbrev, tc, SA_HOR_CENTER);
+					DrawString (dpi, r.left + 1, r.right + 1, r.top + 1, cs->abbrev, tc, SA_HOR_CENTER);
 				}
 				break;
 		}
@@ -2206,13 +2206,13 @@ struct SelectStationWindow : Window {
 		*size = d;
 	}
 
-	virtual void DrawWidget(const Rect &r, int widget) const
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
 	{
 		if (widget != WID_JS_PANEL) return;
 
 		uint y = r.top + WD_FRAMERECT_TOP;
 		if (this->vscroll->GetPosition() == 0) {
-			DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, this->waypoint ? STR_JOIN_WAYPOINT_CREATE_SPLITTED_WAYPOINT : STR_JOIN_STATION_CREATE_SPLITTED_STATION);
+			DrawString (dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, this->waypoint ? STR_JOIN_WAYPOINT_CREATE_SPLITTED_WAYPOINT : STR_JOIN_STATION_CREATE_SPLITTED_STATION);
 			y += this->resize.step_height;
 		}
 
@@ -2223,7 +2223,7 @@ struct SelectStationWindow : Window {
 			const BaseStation *st = BaseStation::Get(this->list[i - 1]);
 			SetDParam(0, st->index);
 			SetDParam(1, st->facilities);
-			DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, this->waypoint ? STR_STATION_LIST_WAYPOINT : STR_STATION_LIST_STATION);
+			DrawString (dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, this->waypoint ? STR_STATION_LIST_WAYPOINT : STR_STATION_LIST_STATION);
 		}
 	}
 

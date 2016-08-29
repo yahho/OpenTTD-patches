@@ -54,7 +54,7 @@ struct GraphLegendWindow : Window {
 		}
 	}
 
-	virtual void DrawWidget(const Rect &r, int widget) const
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
 	{
 		if (!IsInsideMM(widget, WID_GL_FIRST_COMPANY, MAX_COMPANIES + WID_GL_FIRST_COMPANY)) return;
 
@@ -65,11 +65,11 @@ struct GraphLegendWindow : Window {
 		bool rtl = _current_text_dir == TD_RTL;
 
 		Dimension d = GetSpriteSize(SPR_COMPANY_ICON);
-		DrawCompanyIcon (_cur_dpi, cid, rtl ? r.right - d.width - 2 : r.left + 2, r.top + (r.bottom - r.top - d.height) / 2);
+		DrawCompanyIcon (dpi, cid, rtl ? r.right - d.width - 2 : r.left + 2, r.top + (r.bottom - r.top - d.height) / 2);
 
 		SetDParam(0, cid);
 		SetDParam(1, cid);
-		DrawString (_cur_dpi, r.left + (rtl ? (uint)WD_FRAMERECT_LEFT : (d.width + 4)), r.right - (rtl ? (d.width + 4) : (uint)WD_FRAMERECT_RIGHT), r.top + (r.bottom - r.top + 1 - FONT_HEIGHT_NORMAL) / 2, STR_COMPANY_NAME_COMPANY_NUM, HasBit(_legend_excluded_companies, cid) ? TC_BLACK : TC_WHITE);
+		DrawString (dpi, r.left + (rtl ? (uint)WD_FRAMERECT_LEFT : (d.width + 4)), r.right - (rtl ? (d.width + 4) : (uint)WD_FRAMERECT_RIGHT), r.top + (r.bottom - r.top + 1 - FONT_HEIGHT_NORMAL) / 2, STR_COMPANY_NAME_COMPANY_NUM, HasBit(_legend_excluded_companies, cid) ? TC_BLACK : TC_WHITE);
 	}
 
 	virtual void OnClick(Point pt, int widget, int click_count)
@@ -532,11 +532,11 @@ public:
 		size->height = max<uint>(size->height, size->width / 3);
 	}
 
-	virtual void DrawWidget(const Rect &r, int widget) const
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
 	{
 		if (widget != this->graph_widget) return;
 
-		DrawGraph (_cur_dpi, r);
+		DrawGraph (dpi, r);
 	}
 
 	virtual OverflowSafeInt64 GetGraphData(const Company *c, int j)
@@ -961,10 +961,10 @@ struct PaymentRatesGraphWindow : BaseGraphWindow {
 		*size = maxdim(d, *size);
 	}
 
-	virtual void DrawWidget(const Rect &r, int widget) const
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
 	{
 		if (widget < WID_CPR_CARGO_FIRST) {
-			BaseGraphWindow::DrawWidget(r, widget);
+			BaseGraphWindow::DrawWidget (dpi, r, widget);
 			return;
 		}
 
@@ -981,10 +981,10 @@ struct PaymentRatesGraphWindow : BaseGraphWindow {
 
 		int rect_x = clk_dif + (rtl ? r.right - 12 : r.left + WD_FRAMERECT_LEFT);
 
-		GfxFillRect (_cur_dpi, rect_x, y + clk_dif, rect_x + 8, y + 5 + clk_dif, PC_BLACK);
-		GfxFillRect (_cur_dpi, rect_x + 1, y + 1 + clk_dif, rect_x + 7, y + 4 + clk_dif, cs->legend_colour);
+		GfxFillRect (dpi, rect_x, y + clk_dif, rect_x + 8, y + 5 + clk_dif, PC_BLACK);
+		GfxFillRect (dpi, rect_x + 1, y + 1 + clk_dif, rect_x + 7, y + 4 + clk_dif, cs->legend_colour);
 		SetDParam(0, cs->name);
-		DrawString (_cur_dpi, rtl ? r.left : x + 14 + clk_dif, (rtl ? r.right - 14 + clk_dif : r.right), y + clk_dif, STR_GRAPH_CARGO_PAYMENT_CARGO);
+		DrawString (dpi, rtl ? r.left : x + 14 + clk_dif, (rtl ? r.right - 14 + clk_dif : r.right), y + clk_dif, STR_GRAPH_CARGO_PAYMENT_CARGO);
 	}
 
 	virtual void OnClick(Point pt, int widget, int click_count)
@@ -1203,7 +1203,7 @@ public:
 		this->DrawWidgets();
 	}
 
-	virtual void DrawWidget(const Rect &r, int widget) const
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
 	{
 		if (widget != WID_CL_BACKGROUND) return;
 
@@ -1219,14 +1219,14 @@ public:
 
 		for (uint i = 0; i != this->companies.Length(); i++) {
 			const Company *c = this->companies[i];
-			DrawString (_cur_dpi, ordinal_left, ordinal_right, y, i + STR_ORDINAL_NUMBER_1ST, i == 0 ? TC_WHITE : TC_YELLOW);
+			DrawString (dpi, ordinal_left, ordinal_right, y, i + STR_ORDINAL_NUMBER_1ST, i == 0 ? TC_WHITE : TC_YELLOW);
 
-			DrawCompanyIcon (_cur_dpi, c->index, icon_left, y + icon_y_offset);
+			DrawCompanyIcon (dpi, c->index, icon_left, y + icon_y_offset);
 
 			SetDParam(0, c->index);
 			SetDParam(1, c->index);
 			SetDParam(2, GetPerformanceTitleFromValue(c->old_economy[0].performance_history));
-			DrawString (_cur_dpi, text_left, text_right, y, STR_COMPANY_LEAGUE_COMPANY_NAME);
+			DrawString (dpi, text_left, text_right, y, STR_COMPANY_LEAGUE_COMPANY_NAME);
 			y += this->line_height;
 		}
 	}
@@ -1414,7 +1414,7 @@ struct PerformanceRatingDetailWindow : Window {
 		}
 	}
 
-	virtual void DrawWidget(const Rect &r, int widget) const
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
 	{
 		/* No need to draw when there's nothing to draw */
 		if (this->company == INVALID_COMPANY) return;
@@ -1424,7 +1424,7 @@ struct PerformanceRatingDetailWindow : Window {
 			CompanyID cid = (CompanyID)(widget - WID_PRD_COMPANY_FIRST);
 			int offset = (cid == this->company) ? 1 : 0;
 			Dimension sprite_size = GetSpriteSize(SPR_COMPANY_ICON);
-			DrawCompanyIcon (_cur_dpi, cid, (r.left + r.right - sprite_size.width) / 2 + offset, (r.top + r.bottom - sprite_size.height) / 2 + offset);
+			DrawCompanyIcon (dpi, cid, (r.left + r.right - sprite_size.width) / 2 + offset, (r.top + r.bottom - sprite_size.height) / 2 + offset);
 			return;
 		}
 
@@ -1450,11 +1450,11 @@ struct PerformanceRatingDetailWindow : Window {
 		uint bar_top  = r.top + WD_MATRIX_TOP;
 		uint text_top = bar_top + 2;
 
-		DrawString (_cur_dpi, this->score_info_left, this->score_info_right, text_top, STR_PERFORMANCE_DETAIL_VEHICLES + score_type);
+		DrawString (dpi, this->score_info_left, this->score_info_right, text_top, STR_PERFORMANCE_DETAIL_VEHICLES + score_type);
 
 		/* Draw the score */
 		SetDParam(0, score);
-		DrawString (_cur_dpi, this->score_info_left, this->score_info_right, text_top, STR_BLACK_COMMA, TC_FROMSTRING, SA_RIGHT);
+		DrawString (dpi, this->score_info_left, this->score_info_right, text_top, STR_BLACK_COMMA, TC_FROMSTRING, SA_RIGHT);
 
 		/* Calculate the %-bar */
 		uint x = Clamp(val, 0, needed) * this->bar_width / needed;
@@ -1466,12 +1466,12 @@ struct PerformanceRatingDetailWindow : Window {
 		}
 
 		/* Draw the bar */
-		if (x != this->bar_left)  GfxFillRect (_cur_dpi, this->bar_left, bar_top, x, bar_top + this->bar_height, rtl ? colour_notdone : colour_done);
-		if (x != this->bar_right) GfxFillRect (_cur_dpi, x, bar_top, this->bar_right, bar_top + this->bar_height, rtl ? colour_done : colour_notdone);
+		if (x != this->bar_left)  GfxFillRect (dpi, this->bar_left, bar_top, x, bar_top + this->bar_height, rtl ? colour_notdone : colour_done);
+		if (x != this->bar_right) GfxFillRect (dpi, x, bar_top, this->bar_right, bar_top + this->bar_height, rtl ? colour_done : colour_notdone);
 
 		/* Draw it */
 		SetDParam(0, Clamp(val, 0, needed) * 100 / needed);
-		DrawString (_cur_dpi, this->bar_left, this->bar_right, text_top, STR_PERFORMANCE_DETAIL_PERCENT, TC_FROMSTRING, SA_HOR_CENTER);
+		DrawString (dpi, this->bar_left, this->bar_right, text_top, STR_PERFORMANCE_DETAIL_PERCENT, TC_FROMSTRING, SA_HOR_CENTER);
 
 		/* SCORE_LOAN is inversed */
 		if (score_type == SCORE_LOAN) val = needed - val;
@@ -1486,10 +1486,10 @@ struct PerformanceRatingDetailWindow : Window {
 			case SCORE_MAX_INCOME:
 			case SCORE_MONEY:
 			case SCORE_LOAN:
-				DrawString (_cur_dpi, this->score_detail_left, this->score_detail_right, text_top, STR_PERFORMANCE_DETAIL_AMOUNT_CURRENCY);
+				DrawString (dpi, this->score_detail_left, this->score_detail_right, text_top, STR_PERFORMANCE_DETAIL_AMOUNT_CURRENCY);
 				break;
 			default:
-				DrawString (_cur_dpi, this->score_detail_left, this->score_detail_right, text_top, STR_PERFORMANCE_DETAIL_AMOUNT_INT);
+				DrawString (dpi, this->score_detail_left, this->score_detail_right, text_top, STR_PERFORMANCE_DETAIL_AMOUNT_INT);
 		}
 	}
 

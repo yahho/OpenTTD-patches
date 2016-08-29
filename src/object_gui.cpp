@@ -231,7 +231,7 @@ public:
 		}
 	}
 
-	virtual void DrawWidget(const Rect &r, int widget) const
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
 	{
 		switch (GB(widget, 0, 16)) {
 			case WID_BO_CLASS_LIST: {
@@ -241,7 +241,7 @@ public:
 					ObjectClass *objclass = ObjectClass::Get((ObjectClassID)i);
 					if (objclass->GetUISpecCount() == 0) continue;
 					if (!this->vscroll->IsVisible(pos++)) continue;
-					DrawString (_cur_dpi, r.left + WD_MATRIX_LEFT, r.right - WD_MATRIX_RIGHT, y + WD_MATRIX_TOP, objclass->name,
+					DrawString (dpi, r.left + WD_MATRIX_LEFT, r.right - WD_MATRIX_RIGHT, y + WD_MATRIX_TOP, objclass->name,
 							((int)i == _selected_object_class) ? TC_WHITE : TC_BLACK);
 					y += this->line_height;
 				}
@@ -260,7 +260,7 @@ public:
 				uint matrix_height = this->GetWidget<NWidgetMatrix>(WID_BO_OBJECT_MATRIX)->current_y;
 
 				int y = (r.bottom - r.top + matrix_height / 2) / 2;
-				DrawObjectPreview (spec, _cur_dpi, r, 0, y, GB(widget, 16, 16));
+				DrawObjectPreview (spec, dpi, r, 0, y, GB(widget, 16, 16));
 				break;
 			}
 
@@ -272,9 +272,9 @@ public:
 				if (spec == NULL) break;
 
 				if (!spec->IsAvailable()) {
-					GfxFillRect (_cur_dpi, r.left + 1, r.top + 1, r.right - 1, r.bottom - 1, PC_BLACK, FILLRECT_CHECKER);
+					GfxFillRect (dpi, r.left + 1, r.top + 1, r.right - 1, r.bottom - 1, PC_BLACK, FILLRECT_CHECKER);
 				}
-				DrawObjectPreview (spec, _cur_dpi, r, 1, r.bottom - r.top, 0);
+				DrawObjectPreview (spec, dpi, r, 1, r.bottom - r.top, 0);
 				break;
 			}
 
@@ -295,7 +295,7 @@ public:
 								/* Use all the available space left from where we stand up to the
 								 * end of the window. We ALSO enlarge the window if needed, so we
 								 * can 'go' wild with the bottom of the window. */
-								int y = DrawStringMultiLine (_cur_dpi, r.left, r.right, r.top, UINT16_MAX, message, TC_ORANGE) - r.top;
+								int y = DrawStringMultiLine (dpi, r.left, r.right, r.top, UINT16_MAX, message, TC_ORANGE) - r.top;
 								StopTextRefStackUsage();
 								if (y > this->info_height) {
 									BuildObjectWindow *bow = const_cast<BuildObjectWindow *>(this);

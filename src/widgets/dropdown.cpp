@@ -210,7 +210,7 @@ struct DropdownWindow : Window {
 		return false;
 	}
 
-	virtual void DrawWidget(const Rect &r, int widget) const
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
 	{
 		if (widget != WID_DM_ITEMS) return;
 
@@ -227,12 +227,12 @@ struct DropdownWindow : Window {
 
 			if (y + item_height < r.bottom) {
 				bool selected = (this->selected_index == item->result);
-				if (selected) GfxFillRect (_cur_dpi, r.left + 2, y, r.right - 1, y + item_height - 1, PC_BLACK);
+				if (selected) GfxFillRect (dpi, r.left + 2, y, r.right - 1, y + item_height - 1, PC_BLACK);
 
-				item->Draw (_cur_dpi, r.left, r.right, y, y + item_height, selected, colour);
+				item->Draw (dpi, r.left, r.right, y, y + item_height, selected, colour);
 
 				if (item->masked) {
-					GfxFillRect (_cur_dpi, r.left + 1, y, r.right - 1, y + item_height - 1, _colour_gradient[colour][5], FILLRECT_CHECKER);
+					GfxFillRect (dpi, r.left + 1, y, r.right - 1, y + item_height - 1, _colour_gradient[colour][5], FILLRECT_CHECKER);
 				}
 			}
 			y += item_height;

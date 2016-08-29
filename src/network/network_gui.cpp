@@ -559,7 +559,7 @@ public:
 		}
 	}
 
-	virtual void DrawWidget(const Rect &r, int widget) const
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
 	{
 		switch (widget) {
 			case WID_NG_MATRIX: {
@@ -569,7 +569,7 @@ public:
 
 				for (int i = this->vscroll->GetPosition(); i < max; ++i) {
 					const NetworkGameList *ngl = this->servers[i];
-					this->DrawServerLine (ngl, _cur_dpi, y, ngl == this->server);
+					this->DrawServerLine (ngl, dpi, y, ngl == this->server);
 					y += this->resize.step_height;
 				}
 				break;
@@ -577,11 +577,11 @@ public:
 
 			case WID_NG_LASTJOINED:
 				/* Draw the last joined server, if any */
-				if (this->last_joined != NULL) this->DrawServerLine (this->last_joined, _cur_dpi, r.top, this->last_joined == this->server);
+				if (this->last_joined != NULL) this->DrawServerLine (this->last_joined, dpi, r.top, this->last_joined == this->server);
 				break;
 
 			case WID_NG_DETAILS:
-				this->DrawDetails (_cur_dpi, r);
+				this->DrawDetails (dpi, r);
 				break;
 
 			case WID_NG_NAME:
@@ -590,7 +590,7 @@ public:
 			case WID_NG_DATE:
 			case WID_NG_YEARS:
 			case WID_NG_INFO:
-				if (widget - WID_NG_NAME == this->servers.SortType()) this->DrawSortButtonState (_cur_dpi, widget, this->servers.IsDescSortOrder() ? SBS_DOWN : SBS_UP);
+				if (widget - WID_NG_NAME == this->servers.SortType()) this->DrawSortButtonState (dpi, widget, this->servers.IsDescSortOrder() ? SBS_DOWN : SBS_UP);
 				break;
 		}
 	}
@@ -1105,13 +1105,13 @@ struct NetworkStartServerWindow : public Window {
 		}
 	}
 
-	virtual void DrawWidget(const Rect &r, int widget) const
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
 	{
 		switch (widget) {
 			case WID_NSS_SETPWD:
 				/* If password is set, draw red '*' next to 'Set password' button. */
 				if (!StrEmpty (_settings_client.network.server_password)) {
-					DrawString (_cur_dpi, r.right + WD_FRAMERECT_LEFT, this->width - WD_FRAMERECT_RIGHT, r.top, "*", TC_RED);
+					DrawString (dpi, r.right + WD_FRAMERECT_LEFT, this->width - WD_FRAMERECT_RIGHT, r.top, "*", TC_RED);
 				}
 		}
 	}
@@ -1417,15 +1417,15 @@ struct NetworkLobbyWindow : public Window {
 		}
 	}
 
-	virtual void DrawWidget(const Rect &r, int widget) const
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
 	{
 		switch (widget) {
 			case WID_NL_DETAILS:
-				this->DrawDetails (_cur_dpi, r);
+				this->DrawDetails (dpi, r);
 				break;
 
 			case WID_NL_MATRIX:
-				this->DrawMatrix (_cur_dpi, r);
+				this->DrawMatrix (dpi, r);
 				break;
 		}
 	}
@@ -1801,7 +1801,7 @@ struct NetworkClientListPopupWindow : Window {
 		*size = d;
 	}
 
-	virtual void DrawWidget(const Rect &r, int widget) const
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
 	{
 		/* Draw the actions */
 		int sel = this->sel_index;
@@ -1809,13 +1809,13 @@ struct NetworkClientListPopupWindow : Window {
 		for (const ClientListAction *action = this->actions.Begin(); action != this->actions.End(); action++, y += FONT_HEIGHT_NORMAL) {
 			TextColour colour;
 			if (sel-- == 0) { // Selected item, highlight it
-				GfxFillRect (_cur_dpi, r.left + 1, y, r.right - 1, y + FONT_HEIGHT_NORMAL - 1, PC_BLACK);
+				GfxFillRect (dpi, r.left + 1, y, r.right - 1, y + FONT_HEIGHT_NORMAL - 1, PC_BLACK);
 				colour = TC_WHITE;
 			} else {
 				colour = TC_BLACK;
 			}
 
-			DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, action->name, colour);
+			DrawString (dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, action->name, colour);
 		}
 	}
 
@@ -1940,7 +1940,7 @@ struct NetworkClientListWindow : Window {
 		this->DrawWidgets();
 	}
 
-	virtual void DrawWidget(const Rect &r, int widget) const
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
 	{
 		if (widget != WID_CL_PANEL) return;
 
@@ -1965,22 +1965,22 @@ struct NetworkClientListWindow : Window {
 		FOR_ALL_CLIENT_INFOS(ci) {
 			TextColour colour;
 			if (this->selected_item == i++) { // Selected item, highlight it
-				GfxFillRect (_cur_dpi, r.left + 1, y, r.right - 1, y + this->line_height - 1, PC_BLACK);
+				GfxFillRect (dpi, r.left + 1, y, r.right - 1, y + this->line_height - 1, PC_BLACK);
 				colour = TC_WHITE;
 			} else {
 				colour = TC_BLACK;
 			}
 
 			if (ci->client_id == CLIENT_ID_SERVER) {
-				DrawString (_cur_dpi, type_left, type_right, y + text_offset, STR_NETWORK_SERVER, colour);
+				DrawString (dpi, type_left, type_right, y + text_offset, STR_NETWORK_SERVER, colour);
 			} else {
-				DrawString (_cur_dpi, type_left, type_right, y + text_offset, STR_NETWORK_CLIENT, colour);
+				DrawString (dpi, type_left, type_right, y + text_offset, STR_NETWORK_CLIENT, colour);
 			}
 
 			/* Filter out spectators */
-			if (Company::IsValidID(ci->client_playas)) DrawCompanyIcon (_cur_dpi, ci->client_playas, icon_left, y + icon_offset);
+			if (Company::IsValidID(ci->client_playas)) DrawCompanyIcon (dpi, ci->client_playas, icon_left, y + icon_offset);
 
-			DrawString (_cur_dpi, name_left, name_right, y + text_offset, ci->client_name, colour);
+			DrawString (dpi, name_left, name_right, y + text_offset, ci->client_name, colour);
 
 			y += line_height;
 		}
@@ -2047,12 +2047,12 @@ struct NetworkJoinStatusWindow : Window {
 		this->InitNested(WN_NETWORK_STATUS_WINDOW_JOIN);
 	}
 
-	virtual void DrawWidget(const Rect &r, int widget) const
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
 	{
 		if (widget != WID_NJS_BACKGROUND) return;
 
 		uint8 progress; // used for progress bar
-		DrawString (_cur_dpi, r.left + 2, r.right - 2, r.top + 20, STR_NETWORK_CONNECTING_1 + _network_join_status, TC_FROMSTRING, SA_HOR_CENTER);
+		DrawString (dpi, r.left + 2, r.right - 2, r.top + 20, STR_NETWORK_CONNECTING_1 + _network_join_status, TC_FROMSTRING, SA_HOR_CENTER);
 		switch (_network_join_status) {
 			case NETWORK_JOIN_STATUS_CONNECTING: case NETWORK_JOIN_STATUS_AUTHORIZING:
 			case NETWORK_JOIN_STATUS_GETTING_COMPANY_INFO:
@@ -2060,13 +2060,13 @@ struct NetworkJoinStatusWindow : Window {
 				break;
 			case NETWORK_JOIN_STATUS_WAITING:
 				SetDParam(0, _network_join_waiting);
-				DrawString (_cur_dpi, r.left + 2, r.right - 2, r.top + 20 + FONT_HEIGHT_NORMAL, STR_NETWORK_CONNECTING_WAITING, TC_FROMSTRING, SA_HOR_CENTER);
+				DrawString (dpi, r.left + 2, r.right - 2, r.top + 20 + FONT_HEIGHT_NORMAL, STR_NETWORK_CONNECTING_WAITING, TC_FROMSTRING, SA_HOR_CENTER);
 				progress = 15; // third stage is 15%
 				break;
 			case NETWORK_JOIN_STATUS_DOWNLOADING:
 				SetDParam(0, _network_join_bytes);
 				SetDParam(1, _network_join_bytes_total);
-				DrawString (_cur_dpi, r.left + 2, r.right - 2, r.top + 20 + FONT_HEIGHT_NORMAL, _network_join_bytes_total == 0 ? STR_NETWORK_CONNECTING_DOWNLOADING_1 : STR_NETWORK_CONNECTING_DOWNLOADING_2, TC_FROMSTRING, SA_HOR_CENTER);
+				DrawString (dpi, r.left + 2, r.right - 2, r.top + 20 + FONT_HEIGHT_NORMAL, _network_join_bytes_total == 0 ? STR_NETWORK_CONNECTING_DOWNLOADING_1 : STR_NETWORK_CONNECTING_DOWNLOADING_2, TC_FROMSTRING, SA_HOR_CENTER);
 				if (_network_join_bytes_total == 0) {
 					progress = 15; // We don't have the final size yet; the server is still compressing!
 					break;
@@ -2077,7 +2077,7 @@ struct NetworkJoinStatusWindow : Window {
 		}
 
 		/* Draw nice progress bar :) */
-		DrawFrameRect (_cur_dpi, r.left + 20, r.top + 5, (int)((this->width - 20) * progress / 100), r.top + 15, COLOUR_MAUVE, FR_NONE);
+		DrawFrameRect (dpi, r.left + 20, r.top + 5, (int)((this->width - 20) * progress / 100), r.top + 15, COLOUR_MAUVE, FR_NONE);
 	}
 
 	virtual void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize)

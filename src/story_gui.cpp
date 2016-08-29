@@ -470,7 +470,7 @@ public:
 		this->DrawWidgets();
 	}
 
-	virtual void DrawWidget(const Rect &r, int widget) const
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
 	{
 		if (widget != WID_SB_PAGE_PANEL) return;
 
@@ -484,7 +484,7 @@ public:
 
 		/* Set up a clipping region for the panel. */
 		DrawPixelInfo tmp_dpi;
-		if (!FillDrawPixelInfo (_cur_dpi, &tmp_dpi, x, y, width + 1, height + 1)) return;
+		if (!FillDrawPixelInfo (dpi, &tmp_dpi, x, y, width + 1, height + 1)) return;
 
 		/* Draw content (now coordinates given to Draw** are local to the new clipping region). */
 		int line_height = FONT_HEIGHT_NORMAL;
