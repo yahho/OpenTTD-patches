@@ -2362,7 +2362,7 @@ void NWidgetLeaf::Draw(const Window *w)
 
 		case WWT_EDITBOX: {
 			const QueryString *query = w->GetQueryString(this->index);
-			if (query != NULL) query->DrawEditBox(w, this->index);
+			if (query != NULL) query->DrawEditBox (_cur_dpi, w, this->index);
 			break;
 		}
 
