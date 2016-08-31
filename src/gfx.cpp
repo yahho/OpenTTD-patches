@@ -774,17 +774,19 @@ static BlitterMode GetBlitterMode (SpriteID img, PaletteID pal)
 
 /**
  * Draw a sprite in a viewport.
+ * @param dpi  The area to draw on.
  * @param img  Image number to draw
  * @param pal  Palette to use.
  * @param x    Left coordinate of image in viewport, scaled by zoom
  * @param y    Top coordinate of image in viewport, scaled by zoom
  * @param sub  If available, draw only specified part of the sprite
  */
-void DrawSpriteViewport(SpriteID img, PaletteID pal, int x, int y, const SubSprite *sub)
+void DrawSpriteViewport (DrawPixelInfo *dpi, SpriteID img, PaletteID pal,
+	int x, int y, const SubSprite *sub)
 {
 	BlitterMode bm = GetBlitterMode (img, pal);
 	SpriteID real_sprite = GB(img, 0, SPRITE_WIDTH);
-	GfxMainBlitterViewport (_cur_dpi, GetSprite (real_sprite, ST_NORMAL), x, y, bm, sub, real_sprite);
+	GfxMainBlitterViewport (dpi, GetSprite (real_sprite, ST_NORMAL), x, y, bm, sub, real_sprite);
 }
 
 /**
