@@ -269,7 +269,7 @@ static void GfxDrawLineUnscaled (DrawPixelInfo *dpi, int x, int y, int x2, int y
 /**
  * Draws the projection of a parallelepiped.
  * This can be used to draw boxes in world coordinates.
- *
+ * @param dpi Screen parameters to align with.
  * @param x   Screen X-coordinate of top front corner.
  * @param y   Screen Y-coordinate of top front corner.
  * @param dx1 Screen X-length of first edge.
@@ -279,7 +279,7 @@ static void GfxDrawLineUnscaled (DrawPixelInfo *dpi, int x, int y, int x2, int y
  * @param dx3 Screen X-length of third edge.
  * @param dy3 Screen Y-length of third edge.
  */
-void DrawBox(int x, int y, int dx1, int dy1, int dx2, int dy2, int dx3, int dy3)
+void DrawBox (DrawPixelInfo *dpi, int x, int y, int dx1, int dy1, int dx2, int dy2, int dx3, int dy3)
 {
 	/*           ....
 	 *         ..    ....
@@ -298,16 +298,16 @@ void DrawBox(int x, int y, int dx1, int dy1, int dx2, int dy2, int dx3, int dy3)
 
 	static const byte colour = PC_WHITE;
 
-	GfxDrawLineUnscaled (_cur_dpi, x, y, x + dx1, y + dy1, colour);
-	GfxDrawLineUnscaled (_cur_dpi, x, y, x + dx2, y + dy2, colour);
-	GfxDrawLineUnscaled (_cur_dpi, x, y, x + dx3, y + dy3, colour);
+	GfxDrawLineUnscaled (dpi, x, y, x + dx1, y + dy1, colour);
+	GfxDrawLineUnscaled (dpi, x, y, x + dx2, y + dy2, colour);
+	GfxDrawLineUnscaled (dpi, x, y, x + dx3, y + dy3, colour);
 
-	GfxDrawLineUnscaled (_cur_dpi, x + dx1, y + dy1, x + dx1 + dx2, y + dy1 + dy2, colour);
-	GfxDrawLineUnscaled (_cur_dpi, x + dx1, y + dy1, x + dx1 + dx3, y + dy1 + dy3, colour);
-	GfxDrawLineUnscaled (_cur_dpi, x + dx2, y + dy2, x + dx2 + dx1, y + dy2 + dy1, colour);
-	GfxDrawLineUnscaled (_cur_dpi, x + dx2, y + dy2, x + dx2 + dx3, y + dy2 + dy3, colour);
-	GfxDrawLineUnscaled (_cur_dpi, x + dx3, y + dy3, x + dx3 + dx1, y + dy3 + dy1, colour);
-	GfxDrawLineUnscaled (_cur_dpi, x + dx3, y + dy3, x + dx3 + dx2, y + dy3 + dy2, colour);
+	GfxDrawLineUnscaled (dpi, x + dx1, y + dy1, x + dx1 + dx2, y + dy1 + dy2, colour);
+	GfxDrawLineUnscaled (dpi, x + dx1, y + dy1, x + dx1 + dx3, y + dy1 + dy3, colour);
+	GfxDrawLineUnscaled (dpi, x + dx2, y + dy2, x + dx2 + dx1, y + dy2 + dy1, colour);
+	GfxDrawLineUnscaled (dpi, x + dx2, y + dy2, x + dx2 + dx3, y + dy2 + dy3, colour);
+	GfxDrawLineUnscaled (dpi, x + dx3, y + dy3, x + dx3 + dx1, y + dy3 + dy1, colour);
+	GfxDrawLineUnscaled (dpi, x + dx3, y + dy3, x + dx3 + dx2, y + dy3 + dy2, colour);
 }
 
 /**

@@ -133,7 +133,7 @@ void DrawCharCentered (BlitArea *dpi, WChar c, int x, int y, TextColour colour);
 
 void GfxFillRect (BlitArea *dpi, int left, int top, int right, int bottom, int colour, FillRectMode mode = FILLRECT_OPAQUE);
 void GfxDrawLine (BlitArea *dpi, int left, int top, int right, int bottom, int colour, int width = 1, int dash = 0);
-void DrawBox(int x, int y, int dx1, int dy1, int dx2, int dy2, int dx3, int dy3);
+void DrawBox (DrawPixelInfo *dpi, int x, int y, int dx1, int dy1, int dx2, int dy2, int dx3, int dy3);
 
 Dimension GetStringBoundingBox(const char *str, FontSize start_fontsize = FS_NORMAL);
 Dimension GetStringBoundingBox(StringID strid);
