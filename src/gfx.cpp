@@ -60,7 +60,7 @@ static FontMetrics font_metrics_cache [FS_END]; ///< Cache containing width of o
 DrawPixelInfo *_cur_dpi;
 byte _colour_gradient[COLOUR_END][8];
 
-static void GfxMainBlitterViewport(const Sprite *sprite, int x, int y, BlitterMode mode, const SubSprite *sub = NULL, SpriteID sprite_id = SPR_CURSOR_MOUSE);
+static void GfxMainBlitterViewport (DrawPixelInfo *dpi, const Sprite *sprite, int x, int y, BlitterMode mode, const SubSprite *sub = NULL, SpriteID sprite_id = SPR_CURSOR_MOUSE);
 static void GfxMainBlitter (BlitArea *dpi, const Sprite *sprite, int x, int y, BlitterMode mode, const SubSprite *sub = NULL, SpriteID sprite_id = SPR_CURSOR_MOUSE, ZoomLevel zoom = ZOOM_LVL_NORMAL);
 
 static ReusableBuffer<uint8> _cursor_backup;
@@ -784,7 +784,7 @@ void DrawSpriteViewport(SpriteID img, PaletteID pal, int x, int y, const SubSpri
 {
 	BlitterMode bm = GetBlitterMode (img, pal);
 	SpriteID real_sprite = GB(img, 0, SPRITE_WIDTH);
-	GfxMainBlitterViewport (GetSprite (real_sprite, ST_NORMAL), x, y, bm, sub, real_sprite);
+	GfxMainBlitterViewport (_cur_dpi, GetSprite (real_sprite, ST_NORMAL), x, y, bm, sub, real_sprite);
 }
 
 /**
@@ -933,9 +933,9 @@ static void GfxBlitter (BlitArea *dpi, const Sprite * const sprite,
 	dpi->surface->draw (&bp, mode, zoom);
 }
 
-static void GfxMainBlitterViewport(const Sprite *sprite, int x, int y, BlitterMode mode, const SubSprite *sub, SpriteID sprite_id)
+static void GfxMainBlitterViewport (DrawPixelInfo *dpi, const Sprite *sprite, int x, int y, BlitterMode mode, const SubSprite *sub, SpriteID sprite_id)
 {
-	GfxBlitter <ZOOM_LVL_BASE, false> (_cur_dpi, sprite, x, y, mode, sub, sprite_id, _cur_dpi->zoom);
+	GfxBlitter <ZOOM_LVL_BASE, false> (dpi, sprite, x, y, mode, sub, sprite_id, dpi->zoom);
 }
 
 static void GfxMainBlitter (BlitArea *dpi, const Sprite *sprite, int x, int y, BlitterMode mode, const SubSprite *sub, SpriteID sprite_id, ZoomLevel zoom)
