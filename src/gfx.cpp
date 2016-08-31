@@ -256,9 +256,8 @@ void GfxDrawLine (BlitArea *dpi, int x, int y, int x2, int y2, int colour, int w
 	}
 }
 
-void GfxDrawLineUnscaled(int x, int y, int x2, int y2, int colour)
+static void GfxDrawLineUnscaled (DrawPixelInfo *dpi, int x, int y, int x2, int y2, int colour)
 {
-	DrawPixelInfo *dpi = _cur_dpi;
 	if (GfxPreprocessLine(dpi, x, y, x2, y2, 1)) {
 		GfxDoDrawLine (dpi,
 				UnScaleByZoom(x, dpi->zoom), UnScaleByZoom(y, dpi->zoom),
@@ -299,16 +298,16 @@ void DrawBox(int x, int y, int dx1, int dy1, int dx2, int dy2, int dx3, int dy3)
 
 	static const byte colour = PC_WHITE;
 
-	GfxDrawLineUnscaled(x, y, x + dx1, y + dy1, colour);
-	GfxDrawLineUnscaled(x, y, x + dx2, y + dy2, colour);
-	GfxDrawLineUnscaled(x, y, x + dx3, y + dy3, colour);
+	GfxDrawLineUnscaled (_cur_dpi, x, y, x + dx1, y + dy1, colour);
+	GfxDrawLineUnscaled (_cur_dpi, x, y, x + dx2, y + dy2, colour);
+	GfxDrawLineUnscaled (_cur_dpi, x, y, x + dx3, y + dy3, colour);
 
-	GfxDrawLineUnscaled(x + dx1, y + dy1, x + dx1 + dx2, y + dy1 + dy2, colour);
-	GfxDrawLineUnscaled(x + dx1, y + dy1, x + dx1 + dx3, y + dy1 + dy3, colour);
-	GfxDrawLineUnscaled(x + dx2, y + dy2, x + dx2 + dx1, y + dy2 + dy1, colour);
-	GfxDrawLineUnscaled(x + dx2, y + dy2, x + dx2 + dx3, y + dy2 + dy3, colour);
-	GfxDrawLineUnscaled(x + dx3, y + dy3, x + dx3 + dx1, y + dy3 + dy1, colour);
-	GfxDrawLineUnscaled(x + dx3, y + dy3, x + dx3 + dx2, y + dy3 + dy2, colour);
+	GfxDrawLineUnscaled (_cur_dpi, x + dx1, y + dy1, x + dx1 + dx2, y + dy1 + dy2, colour);
+	GfxDrawLineUnscaled (_cur_dpi, x + dx1, y + dy1, x + dx1 + dx3, y + dy1 + dy3, colour);
+	GfxDrawLineUnscaled (_cur_dpi, x + dx2, y + dy2, x + dx2 + dx1, y + dy2 + dy1, colour);
+	GfxDrawLineUnscaled (_cur_dpi, x + dx2, y + dy2, x + dx2 + dx3, y + dy2 + dy3, colour);
+	GfxDrawLineUnscaled (_cur_dpi, x + dx3, y + dy3, x + dx3 + dx1, y + dy3 + dy1, colour);
+	GfxDrawLineUnscaled (_cur_dpi, x + dx3, y + dy3, x + dx3 + dx2, y + dy3 + dy2, colour);
 }
 
 /**
