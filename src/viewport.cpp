@@ -1698,7 +1698,7 @@ void ViewportDoDraw(const ViewPort *vp, int left, int top, int right, int bottom
 	ViewportAddStationNames (&vd.dpi);
 	ViewportAddSigns (&vd.dpi);
 
-	DrawTextEffects (&vd.dpi);
+	DrawTextEffects (_cur_dpi, &vd.dpi);
 
 	_cur_dpi = old_dpi;
 

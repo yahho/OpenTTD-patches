@@ -103,7 +103,7 @@ void InitTextEffects()
 	_text_effects.Reset();
 }
 
-void DrawTextEffects(DrawPixelInfo *dpi)
+void DrawTextEffects (BlitArea *area, DrawPixelInfo *dpi)
 {
 	/* Don't draw the text effects when zoomed out a lot */
 	if (dpi->zoom > ZOOM_LVL_OUT_8X) return;
@@ -112,7 +112,7 @@ void DrawTextEffects(DrawPixelInfo *dpi)
 	for (TextEffect *te = _text_effects.Begin(); te != end; te++) {
 		if (te->string_id == INVALID_STRING_ID) continue;
 		if (te->mode == TE_RISING || (_settings_client.gui.loading_indicators && !IsTransparencySet(TO_LOADING))) {
-			ViewportAddString (_cur_dpi, dpi, ZOOM_LVL_OUT_8X, te, te->string_id, te->string_id - 1, STR_NULL, te->params_1, te->params_2);
+			ViewportAddString (area, dpi, ZOOM_LVL_OUT_8X, te, te->string_id, te->string_id - 1, STR_NULL, te->params_1, te->params_2);
 		}
 	}
 }
