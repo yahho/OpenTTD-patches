@@ -1393,13 +1393,13 @@ void ViewportAddString (BlitArea *area, const DrawPixelInfo *dpi,
 			colour, sign_width, small);
 }
 
-static void ViewportAddTownNames(DrawPixelInfo *dpi)
+static void ViewportAddTownNames (BlitArea *area, DrawPixelInfo *dpi)
 {
 	if (!HasBit(_display_opt, DO_SHOW_TOWN_NAMES) || _game_mode == GM_MENU) return;
 
 	const Town *t;
 	FOR_ALL_TOWNS(t) {
-		ViewportAddString (_cur_dpi, dpi, ZOOM_LVL_OUT_16X, &t->cache.sign,
+		ViewportAddString (area, dpi, ZOOM_LVL_OUT_16X, &t->cache.sign,
 				_settings_client.gui.population_in_label ? STR_VIEWPORT_TOWN_POP : STR_VIEWPORT_TOWN,
 				STR_VIEWPORT_TOWN_TINY_WHITE, STR_VIEWPORT_TOWN_TINY_BLACK,
 				t->index, t->cache.population);
@@ -1407,7 +1407,7 @@ static void ViewportAddTownNames(DrawPixelInfo *dpi)
 }
 
 
-static void ViewportAddStationNames(DrawPixelInfo *dpi)
+static void ViewportAddStationNames (BlitArea *area, DrawPixelInfo *dpi)
 {
 	if (!(HasBit(_display_opt, DO_SHOW_STATION_NAMES) || HasBit(_display_opt, DO_SHOW_WAYPOINT_NAMES)) || IsInvisibilitySet(TO_SIGNS) || _game_mode == GM_MENU) return;
 
@@ -1422,7 +1422,7 @@ static void ViewportAddStationNames(DrawPixelInfo *dpi)
 		/* Don't draw if station is owned by another company and competitor station names are hidden. Stations owned by none are never ignored. */
 		if (!HasBit(_display_opt, DO_SHOW_COMPETITOR_SIGNS) && _local_company != st->owner && st->owner != OWNER_NONE) continue;
 
-		ViewportAddString (_cur_dpi, dpi, ZOOM_LVL_OUT_16X, &st->sign,
+		ViewportAddString (area, dpi, ZOOM_LVL_OUT_16X, &st->sign,
 				is_station ? STR_VIEWPORT_STATION : STR_VIEWPORT_WAYPOINT,
 				(is_station ? STR_VIEWPORT_STATION : STR_VIEWPORT_WAYPOINT) + 1, STR_NULL,
 				st->index, st->facilities, (st->owner == OWNER_NONE || !st->IsInUse()) ? COLOUR_GREY : _company_colours[st->owner]);
@@ -1430,7 +1430,7 @@ static void ViewportAddStationNames(DrawPixelInfo *dpi)
 }
 
 
-static void ViewportAddSigns(DrawPixelInfo *dpi)
+static void ViewportAddSigns (BlitArea *area, DrawPixelInfo *dpi)
 {
 	/* Signs are turned off or are invisible */
 	if (!HasBit(_display_opt, DO_SHOW_SIGNS) || IsInvisibilitySet(TO_SIGNS)) return;
@@ -1442,7 +1442,7 @@ static void ViewportAddSigns(DrawPixelInfo *dpi)
 		 * companies can leave OWNER_NONE signs after them. */
 		if (!HasBit(_display_opt, DO_SHOW_COMPETITOR_SIGNS) && _local_company != si->owner && si->owner != OWNER_DEITY) continue;
 
-		ViewportAddString (_cur_dpi, dpi, ZOOM_LVL_OUT_16X, &si->sign,
+		ViewportAddString (area, dpi, ZOOM_LVL_OUT_16X, &si->sign,
 				STR_WHITE_SIGN,
 				(IsTransparencySet(TO_SIGNS) || si->owner == OWNER_DEITY) ? STR_VIEWPORT_SIGN_SMALL_WHITE : STR_VIEWPORT_SIGN_SMALL_BLACK, STR_NULL,
 				si->index, 0, (si->owner == OWNER_NONE) ? COLOUR_GREY : (si->owner == OWNER_DEITY ? INVALID_COLOUR : _company_colours[si->owner]));
@@ -1694,9 +1694,9 @@ void ViewportDoDraw(const ViewPort *vp, int left, int top, int right, int bottom
 	dp.left = UnScaleByZoom (vd.dpi.left, zoom);
 	dp.top  = UnScaleByZoom (vd.dpi.top,  zoom);
 
-	ViewportAddTownNames (&vd.dpi);
-	ViewportAddStationNames (&vd.dpi);
-	ViewportAddSigns (&vd.dpi);
+	ViewportAddTownNames (_cur_dpi, &vd.dpi);
+	ViewportAddStationNames (_cur_dpi, &vd.dpi);
+	ViewportAddSigns (_cur_dpi, &vd.dpi);
 
 	DrawTextEffects (_cur_dpi, &vd.dpi);
 
