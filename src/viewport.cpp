@@ -1186,7 +1186,7 @@ static void GetVirtualSlope (int x, int y, TileInfo *ti, DrawTileProc **dtp)
 	*dtp = DrawVoidTile;
 }
 
-static void ViewportAddLandscape (ViewportDrawer *vd)
+static void ViewportAddLandscape (ViewportDrawer *vd, ZoomLevel zoom)
 {
 	static const uint HEIGHT_SHIFT = ZOOM_LVL_SHIFT + 3;
 	static const uint WIDTH_SHIFT  = ZOOM_LVL_SHIFT + 5;
@@ -1280,7 +1280,7 @@ static void ViewportAddLandscape (ViewportDrawer *vd)
 				}
 				if (ti.tile != INVALID_TILE) {
 					DrawTownArea(&ti);
-					DrawTileSelection (&ti, _cur_dpi->zoom);
+					DrawTileSelection (&ti, zoom);
 				}
 			}
 
@@ -1656,7 +1656,7 @@ void ViewportDoDraw(const ViewPort *vp, int left, int top, int right, int bottom
 
 	vd.dpi.dst_ptr = vd.dpi.surface->move (old_dpi->dst_ptr, x - old_dpi->left, y - old_dpi->top);
 
-	ViewportAddLandscape (&vd);
+	ViewportAddLandscape (&vd, vp->zoom);
 	ViewportAddVehicles (&vd, &vd.dpi);
 
 	if (vd.tile_sprites_to_draw.Length() != 0) ViewportDrawTileSprites (&vd.tile_sprites_to_draw);
