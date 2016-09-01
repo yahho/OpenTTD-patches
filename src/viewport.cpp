@@ -956,8 +956,9 @@ static void DrawAutorailSelection (const TileInfo *ti, Track track)
 /**
  * Checks if the specified tile is selected and if so draws selection using correct selectionstyle.
  * @param *ti TileInfo Tile that is being drawn
+ * @param zoom Zoom level to draw at
  */
-static void DrawTileSelection(const TileInfo *ti)
+static void DrawTileSelection (const TileInfo *ti, ZoomLevel zoom)
 {
 	/* Draw a red error square? */
 	bool is_redsq = _thd.redsq == ti->tile;
@@ -1000,7 +1001,7 @@ static void DrawTileSelection(const TileInfo *ti)
 				if (IsSteepSlope(ti->tileh)) z -= TILE_HEIGHT;
 			}
 		}
-		DrawSelectionSprite(_cur_dpi->zoom <= ZOOM_LVL_DETAIL ? SPR_DOT : SPR_DOT_SMALL, PAL_NONE, ti, z, foundation_part);
+		DrawSelectionSprite (zoom <= ZOOM_LVL_DETAIL ? SPR_DOT : SPR_DOT_SMALL, PAL_NONE, ti, z, foundation_part);
 	} else {
 		/* autorail highlighting */
 		assert ((_thd.drawstyle & HT_RAIL) != 0);
@@ -1279,7 +1280,7 @@ static void ViewportAddLandscape (ViewportDrawer *vd)
 				}
 				if (ti.tile != INVALID_TILE) {
 					DrawTownArea(&ti);
-					DrawTileSelection(&ti);
+					DrawTileSelection (&ti, _cur_dpi->zoom);
 				}
 			}
 
