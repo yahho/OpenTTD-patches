@@ -1312,8 +1312,8 @@ static void ViewportAddLandscape (ViewportDrawer *vd, ZoomLevel zoom)
 	}
 }
 
-static inline void ViewportDrawString (ZoomLevel zoom, int x, int y,
-	StringID string, uint64 params_1, uint64 params_2,
+static inline void ViewportDrawString (BlitArea *area, ZoomLevel zoom,
+	int x, int y, StringID string, uint64 params_1, uint64 params_2,
 	Colours colour, int width, bool small)
 {
 	TextColour tc = TC_BLACK;
@@ -1333,14 +1333,14 @@ static inline void ViewportDrawString (ZoomLevel zoom, int x, int y,
 		} else {
 			/* Draw the rectangle if 'transparent station signs' is off,
 			 * or if we are drawing a general text sign (STR_WHITE_SIGN). */
-			DrawFrameRect (_cur_dpi,
+			DrawFrameRect (area,
 				x0, y0, x1, y0 + VPSM_TOP + (small ? FONT_HEIGHT_SMALL : FONT_HEIGHT_NORMAL) + VPSM_BOTTOM, colour,
 				IsTransparencySet(TO_SIGNS) ? FR_TRANSPARENT : FR_NONE
 			);
 		}
 	}
 
-	DrawString (_cur_dpi, x0 + VPSM_LEFT, x1 - 1 - VPSM_RIGHT, y0 + VPSM_TOP, string, tc, SA_HOR_CENTER);
+	DrawString (area, x0 + VPSM_LEFT, x1 - 1 - VPSM_RIGHT, y0 + VPSM_TOP, string, tc, SA_HOR_CENTER);
 }
 
 /**
@@ -1378,14 +1378,14 @@ void ViewportAddString(const DrawPixelInfo *dpi, ZoomLevel small_from, const Vie
 	int x = sign->center - sign_half_width;
 	int y = sign->top;
 	if (small && (string_small_shadow != STR_NULL)) {
-		ViewportDrawString (dpi->zoom, x + 4, y,
+		ViewportDrawString (_cur_dpi, dpi->zoom, x + 4, y,
 				string_small_shadow, params_1, params_2,
 				INVALID_COLOUR, sign_width, false);
 		y -= 4;
 	}
 
 	StringID str = small ? string_small : string_normal;
-	ViewportDrawString (dpi->zoom, x, y, str, params_1, params_2,
+	ViewportDrawString (_cur_dpi, dpi->zoom, x, y, str, params_1, params_2,
 			colour, sign_width, small);
 }
 
