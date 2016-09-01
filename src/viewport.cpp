@@ -1345,6 +1345,7 @@ static inline void ViewportDrawString (BlitArea *area, ZoomLevel zoom,
 
 /**
  * Add a string to draw in the viewport
+ * @param area current viewport area
  * @param dpi current viewport area
  * @param small_from Zoomlevel from when the small font should be used
  * @param sign sign position and dimension
@@ -1353,7 +1354,10 @@ static inline void ViewportDrawString (BlitArea *area, ZoomLevel zoom,
  * @param string_small_shadow Shadow string for 4x and 8x zoom level; or #STR_NULL if no shadow
  * @param colour colour of the sign background; or INVALID_COLOUR if transparent
  */
-void ViewportAddString(const DrawPixelInfo *dpi, ZoomLevel small_from, const ViewportSign *sign, StringID string_normal, StringID string_small, StringID string_small_shadow, uint64 params_1, uint64 params_2, Colours colour)
+void ViewportAddString (BlitArea *area, const DrawPixelInfo *dpi,
+	ZoomLevel small_from, const ViewportSign *sign, StringID string_normal,
+	StringID string_small, StringID string_small_shadow,
+	uint64 params_1, uint64 params_2, Colours colour)
 {
 	bool small = dpi->zoom >= small_from;
 
@@ -1378,14 +1382,14 @@ void ViewportAddString(const DrawPixelInfo *dpi, ZoomLevel small_from, const Vie
 	int x = sign->center - sign_half_width;
 	int y = sign->top;
 	if (small && (string_small_shadow != STR_NULL)) {
-		ViewportDrawString (_cur_dpi, dpi->zoom, x + 4, y,
+		ViewportDrawString (area, dpi->zoom, x + 4, y,
 				string_small_shadow, params_1, params_2,
 				INVALID_COLOUR, sign_width, false);
 		y -= 4;
 	}
 
 	StringID str = small ? string_small : string_normal;
-	ViewportDrawString (_cur_dpi, dpi->zoom, x, y, str, params_1, params_2,
+	ViewportDrawString (area, dpi->zoom, x, y, str, params_1, params_2,
 			colour, sign_width, small);
 }
 
@@ -1395,7 +1399,7 @@ static void ViewportAddTownNames(DrawPixelInfo *dpi)
 
 	const Town *t;
 	FOR_ALL_TOWNS(t) {
-		ViewportAddString(dpi, ZOOM_LVL_OUT_16X, &t->cache.sign,
+		ViewportAddString (_cur_dpi, dpi, ZOOM_LVL_OUT_16X, &t->cache.sign,
 				_settings_client.gui.population_in_label ? STR_VIEWPORT_TOWN_POP : STR_VIEWPORT_TOWN,
 				STR_VIEWPORT_TOWN_TINY_WHITE, STR_VIEWPORT_TOWN_TINY_BLACK,
 				t->index, t->cache.population);
@@ -1418,7 +1422,7 @@ static void ViewportAddStationNames(DrawPixelInfo *dpi)
 		/* Don't draw if station is owned by another company and competitor station names are hidden. Stations owned by none are never ignored. */
 		if (!HasBit(_display_opt, DO_SHOW_COMPETITOR_SIGNS) && _local_company != st->owner && st->owner != OWNER_NONE) continue;
 
-		ViewportAddString(dpi, ZOOM_LVL_OUT_16X, &st->sign,
+		ViewportAddString (_cur_dpi, dpi, ZOOM_LVL_OUT_16X, &st->sign,
 				is_station ? STR_VIEWPORT_STATION : STR_VIEWPORT_WAYPOINT,
 				(is_station ? STR_VIEWPORT_STATION : STR_VIEWPORT_WAYPOINT) + 1, STR_NULL,
 				st->index, st->facilities, (st->owner == OWNER_NONE || !st->IsInUse()) ? COLOUR_GREY : _company_colours[st->owner]);
@@ -1438,7 +1442,7 @@ static void ViewportAddSigns(DrawPixelInfo *dpi)
 		 * companies can leave OWNER_NONE signs after them. */
 		if (!HasBit(_display_opt, DO_SHOW_COMPETITOR_SIGNS) && _local_company != si->owner && si->owner != OWNER_DEITY) continue;
 
-		ViewportAddString(dpi, ZOOM_LVL_OUT_16X, &si->sign,
+		ViewportAddString (_cur_dpi, dpi, ZOOM_LVL_OUT_16X, &si->sign,
 				STR_WHITE_SIGN,
 				(IsTransparencySet(TO_SIGNS) || si->owner == OWNER_DEITY) ? STR_VIEWPORT_SIGN_SMALL_WHITE : STR_VIEWPORT_SIGN_SMALL_BLACK, STR_NULL,
 				si->index, 0, (si->owner == OWNER_NONE) ? COLOUR_GREY : (si->owner == OWNER_DEITY ? INVALID_COLOUR : _company_colours[si->owner]));

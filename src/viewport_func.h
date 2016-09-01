@@ -44,7 +44,7 @@ void DrawGroundSprite (const TileInfo *ti, SpriteID image, PaletteID pal, const 
 void DrawGroundSpriteAt (const TileInfo *ti, SpriteID image, PaletteID pal, int32 x, int32 y, int z, const SubSprite *sub = NULL, int extra_offs_x = 0, int extra_offs_y = 0);
 void AddSortableSpriteToDraw (struct ViewportDrawer *vd, SpriteID image, PaletteID pal, int x, int y, int w, int h, int dz, int z, bool transparent = false, int bb_offset_x = 0, int bb_offset_y = 0, int bb_offset_z = 0, const SubSprite *sub = NULL);
 void AddChildSpriteScreen (struct ViewportDrawer *vd, SpriteID image, PaletteID pal, int x, int y, bool transparent = false, const SubSprite *sub = NULL, bool scale = true);
-void ViewportAddString(const DrawPixelInfo *dpi, ZoomLevel small_from, const ViewportSign *sign, StringID string_normal, StringID string_small, StringID string_small_shadow, uint64 params_1, uint64 params_2 = 0, Colours colour = INVALID_COLOUR);
+void ViewportAddString (BlitArea *area, const DrawPixelInfo *dpi, ZoomLevel small_from, const ViewportSign *sign, StringID string_normal, StringID string_small, StringID string_small_shadow, uint64 params_1, uint64 params_2 = 0, Colours colour = INVALID_COLOUR);
 
 
 void StartSpriteCombine (struct ViewportDrawer *vd);
