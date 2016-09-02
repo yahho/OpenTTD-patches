@@ -1578,18 +1578,19 @@ static void ViewportSortParentSprites(ParentSpriteToSortVector *psdv)
 	}
 }
 
-static void ViewportDrawParentSprites(const ParentSpriteToSortVector *psd, const ChildScreenSpriteToDrawVector *csstdv)
+static void ViewportDrawParentSprites (DrawPixelInfo *dpi,
+	const ParentSpriteToSortVector *psd, const ChildScreenSpriteToDrawVector *csstdv)
 {
 	const ParentSpriteToDraw * const *psd_end = psd->End();
 	for (const ParentSpriteToDraw * const *it = psd->Begin(); it != psd_end; it++) {
 		const ParentSpriteToDraw *ps = *it;
-		if (ps->image != SPR_EMPTY_BOUNDING_BOX) DrawSpriteViewport (_cur_dpi, ps->image, ps->pal, ps->x, ps->y, ps->sub);
+		if (ps->image != SPR_EMPTY_BOUNDING_BOX) DrawSpriteViewport (dpi, ps->image, ps->pal, ps->x, ps->y, ps->sub);
 
 		int child_idx = ps->first_child;
 		while (child_idx >= 0) {
 			const ChildScreenSpriteToDraw *cs = csstdv->Get(child_idx);
 			child_idx = cs->next;
-			DrawSpriteViewport (_cur_dpi, cs->image, cs->pal, ps->left + cs->x, ps->top + cs->y, cs->sub);
+			DrawSpriteViewport (dpi, cs->image, cs->pal, ps->left + cs->x, ps->top + cs->y, cs->sub);
 		}
 	}
 }
@@ -1671,7 +1672,7 @@ void ViewportDoDraw(const ViewPort *vp, int left, int top, int right, int bottom
 	}
 
 	_vp_sprite_sorter (&vd.parent_sprites_to_sort);
-	ViewportDrawParentSprites (&vd.parent_sprites_to_sort, &vd.child_screen_sprites_to_draw);
+	ViewportDrawParentSprites (_cur_dpi, &vd.parent_sprites_to_sort, &vd.child_screen_sprites_to_draw);
 
 	if (_draw_bounding_boxes) ViewportDrawBoundingBoxes (&vd.parent_sprites_to_sort);
 	if (_draw_dirty_blocks) ViewportDrawDirtyBlocks();
