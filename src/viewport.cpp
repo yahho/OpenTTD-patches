@@ -1599,7 +1599,7 @@ static void ViewportDrawParentSprites (DrawPixelInfo *dpi,
  * Draws the bounding boxes of all ParentSprites
  * @param psd Array of ParentSprites
  */
-static void ViewportDrawBoundingBoxes(const ParentSpriteToSortVector *psd)
+static void ViewportDrawBoundingBoxes (DrawPixelInfo *dpi, const ParentSpriteToSortVector *psd)
 {
 	const ParentSpriteToDraw * const *psd_end = psd->End();
 	for (const ParentSpriteToDraw * const *it = psd->Begin(); it != psd_end; it++) {
@@ -1609,10 +1609,10 @@ static void ViewportDrawBoundingBoxes(const ParentSpriteToSortVector *psd)
 		Point pt3 = RemapCoords(ps->xmax + 1, ps->ymin    , ps->zmax + 1); // top right corner
 		Point pt4 = RemapCoords(ps->xmax + 1, ps->ymax + 1, ps->zmin    ); // bottom front corner
 
-		DrawBox (_cur_dpi,         pt1.x,         pt1.y,
-		                   pt2.x - pt1.x, pt2.y - pt1.y,
-		                   pt3.x - pt1.x, pt3.y - pt1.y,
-		                   pt4.x - pt1.x, pt4.y - pt1.y);
+		DrawBox (dpi,         pt1.x,         pt1.y,
+		              pt2.x - pt1.x, pt2.y - pt1.y,
+		              pt3.x - pt1.x, pt3.y - pt1.y,
+		              pt4.x - pt1.x, pt4.y - pt1.y);
 	}
 }
 
@@ -1674,7 +1674,7 @@ void ViewportDoDraw(const ViewPort *vp, int left, int top, int right, int bottom
 	_vp_sprite_sorter (&vd.parent_sprites_to_sort);
 	ViewportDrawParentSprites (_cur_dpi, &vd.parent_sprites_to_sort, &vd.child_screen_sprites_to_draw);
 
-	if (_draw_bounding_boxes) ViewportDrawBoundingBoxes (&vd.parent_sprites_to_sort);
+	if (_draw_bounding_boxes) ViewportDrawBoundingBoxes (_cur_dpi, &vd.parent_sprites_to_sort);
 	if (_draw_dirty_blocks) ViewportDrawDirtyBlocks();
 
 	DrawPixelInfo dp = vd.dpi;
