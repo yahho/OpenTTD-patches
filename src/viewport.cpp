@@ -1506,11 +1506,11 @@ void ViewportSign::MarkDirty(ZoomLevel maxzoom) const
 	}
 }
 
-static void ViewportDrawTileSprites(const TileSpriteToDrawVector *tstdv)
+static void ViewportDrawTileSprites (DrawPixelInfo *dpi, const TileSpriteToDrawVector *tstdv)
 {
 	const TileSpriteToDraw *tsend = tstdv->End();
 	for (const TileSpriteToDraw *ts = tstdv->Begin(); ts != tsend; ++ts) {
-		DrawSpriteViewport (_cur_dpi, ts->image, ts->pal, ts->x, ts->y, ts->sub);
+		DrawSpriteViewport (dpi, ts->image, ts->pal, ts->x, ts->y, ts->sub);
 	}
 }
 
@@ -1663,7 +1663,7 @@ void ViewportDoDraw(const ViewPort *vp, int left, int top, int right, int bottom
 	ViewportAddLandscape (&vd, vp->zoom);
 	ViewportAddVehicles (&vd, &vd.dpi);
 
-	if (vd.tile_sprites_to_draw.Length() != 0) ViewportDrawTileSprites (&vd.tile_sprites_to_draw);
+	if (vd.tile_sprites_to_draw.Length() != 0) ViewportDrawTileSprites (_cur_dpi, &vd.tile_sprites_to_draw);
 
 	ParentSpriteToDraw *psd_end = vd.parent_sprites_to_draw.End();
 	for (ParentSpriteToDraw *it = vd.parent_sprites_to_draw.Begin(); it != psd_end; it++) {
