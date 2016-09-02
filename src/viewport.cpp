@@ -1619,9 +1619,8 @@ static void ViewportDrawBoundingBoxes (DrawPixelInfo *dpi, const ParentSpriteToS
 /**
  * Draw/colour the blocks that have been redrawn.
  */
-static void ViewportDrawDirtyBlocks()
+static void ViewportDrawDirtyBlocks (const DrawPixelInfo *dpi)
 {
-	const DrawPixelInfo *dpi = _cur_dpi;
 	void *dst;
 	int right =  UnScaleByZoom(dpi->width,  dpi->zoom);
 	int bottom = UnScaleByZoom(dpi->height, dpi->zoom);
@@ -1675,7 +1674,7 @@ void ViewportDoDraw(const ViewPort *vp, int left, int top, int right, int bottom
 	ViewportDrawParentSprites (_cur_dpi, &vd.parent_sprites_to_sort, &vd.child_screen_sprites_to_draw);
 
 	if (_draw_bounding_boxes) ViewportDrawBoundingBoxes (_cur_dpi, &vd.parent_sprites_to_sort);
-	if (_draw_dirty_blocks) ViewportDrawDirtyBlocks();
+	if (_draw_dirty_blocks) ViewportDrawDirtyBlocks (_cur_dpi);
 
 	DrawPixelInfo dp = vd.dpi;
 	ZoomLevel zoom = vd.dpi.zoom;
