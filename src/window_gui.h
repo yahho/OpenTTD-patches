@@ -523,7 +523,7 @@ public:
 	void SetWidgetDirty(byte widget_index) const;
 
 	void DrawWidgets() const;
-	void DrawViewport() const;
+	void DrawViewport (BlitArea *dpi) const;
 	void DrawSortButtonState (BlitArea *dpi, int widget, SortButtonState state) const;
 	static int SortButtonWidth();
 

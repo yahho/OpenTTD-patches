@@ -1753,10 +1753,8 @@ static inline void ViewportDraw (BlitArea *area, const ViewPort *vp, int left, i
 /**
  * Draw the viewport of this window.
  */
-void Window::DrawViewport() const
+void Window::DrawViewport (BlitArea *dpi) const
 {
-	DrawPixelInfo *dpi = _cur_dpi;
-
 	dpi->left += this->left;
 	dpi->top += this->top;
 
