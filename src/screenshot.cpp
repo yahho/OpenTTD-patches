@@ -681,7 +681,7 @@ static void LargeWorldCallback(void *userdata, void *buf, uint y, uint pitch, ui
 		wx = min(vp->width - left, 1600);
 		left += wx;
 
-		ViewportDoDraw(vp,
+		ViewportDoDraw (_cur_dpi, vp,
 			ScaleByZoom(left - wx - vp->left, vp->zoom) + vp->virtual_left,
 			ScaleByZoom(y - vp->top, vp->zoom) + vp->virtual_top,
 			ScaleByZoom(left - vp->left, vp->zoom) + vp->virtual_left,
