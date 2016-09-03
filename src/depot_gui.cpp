@@ -719,7 +719,7 @@ struct DepotWindow : Window {
 			WID_D_AUTOREPLACE,
 			WIDGET_LIST_END);
 
-		this->DrawWidgets();
+		this->DrawWidgets (_cur_dpi);
 	}
 
 	virtual void OnClick(Point pt, int widget, int click_count)

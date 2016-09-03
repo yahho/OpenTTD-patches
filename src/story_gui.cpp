@@ -467,7 +467,7 @@ public:
 			this->SetWidgetDirty(WID_SB_PAGE_PANEL);
 		}
 
-		this->DrawWidgets();
+		this->DrawWidgets (_cur_dpi);
 	}
 
 	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE

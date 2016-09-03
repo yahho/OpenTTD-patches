@@ -274,7 +274,7 @@ struct GoalListWindow : public Window {
 
 	/* virtual */ void OnPaint()
 	{
-		this->DrawWidgets();
+		this->DrawWidgets (_cur_dpi);
 
 		if (this->IsShaded()) return; // Don't draw anything when the window is shaded.
 

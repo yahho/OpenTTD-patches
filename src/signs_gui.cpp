@@ -189,7 +189,7 @@ struct SignListWindow : Window, SignList {
 	virtual void OnPaint()
 	{
 		if (this->signs.NeedRebuild()) this->BuildSortSignList();
-		this->DrawWidgets();
+		this->DrawWidgets (_cur_dpi);
 	}
 
 	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE

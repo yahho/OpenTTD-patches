@@ -36,7 +36,7 @@ public:
 	virtual void OnPaint()
 	{
 		this->OnInvalidateData(0); // Must be sure that the widgets show the transparency variable changes, also when we use shortcuts.
-		this->DrawWidgets();
+		this->DrawWidgets (_cur_dpi);
 	}
 
 	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE

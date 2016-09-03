@@ -422,7 +422,7 @@ struct CompanyFinancesWindow : Window {
 			this->SetWidgetDisabledState(WID_CF_REPAY_LOAN, company != _local_company || c->current_loan == 0); // Repay button only shows when there is any more money to repay.
 		}
 
-		this->DrawWidgets();
+		this->DrawWidgets (_cur_dpi);
 	}
 
 	virtual void OnClick(Point pt, int widget, int click_count)
@@ -667,7 +667,7 @@ public:
 		this->SetWidgetDisabledState(WID_SCL_PRI_COL_DROPDOWN, this->sel == 0);
 		this->SetWidgetDisabledState(WID_SCL_SEC_COL_DROPDOWN, this->sel == 0);
 
-		this->DrawWidgets();
+		this->DrawWidgets (_cur_dpi);
 	}
 
 	virtual void SetStringParameters(int widget) const
@@ -1296,7 +1296,7 @@ public:
 		this->SetWidgetsDisabledState(_cmf_info[CMFV_GLASSES].valid_values[this->ge] < 2 || this->GetFaceBits(CMFV_HAS_GLASSES) == 0,
 				WID_SCMF_GLASSES, WID_SCMF_GLASSES_L, WID_SCMF_GLASSES_R, WIDGET_LIST_END);
 
-		this->DrawWidgets();
+		this->DrawWidgets (_cur_dpi);
 	}
 
 	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
@@ -2114,7 +2114,7 @@ struct CompanyWindow : Window
 			}
 		}
 
-		this->DrawWidgets();
+		this->DrawWidgets (_cur_dpi);
 	}
 
 	virtual void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize)

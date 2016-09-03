@@ -1187,7 +1187,7 @@ struct MessageHistoryWindow : Window {
 	virtual void OnPaint()
 	{
 		this->OnInvalidateData(0);
-		this->DrawWidgets();
+		this->DrawWidgets (_cur_dpi);
 	}
 
 	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE

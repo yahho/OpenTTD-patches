@@ -618,7 +618,7 @@ public:
 		this->GetWidget<NWidgetStacked>(WID_NG_NEWGRF_SEL)->SetDisplayedPlane(sel == NULL || !sel->online || sel->info.grfconfig == NULL);
 		this->GetWidget<NWidgetStacked>(WID_NG_NEWGRF_MISSING_SEL)->SetDisplayedPlane(sel == NULL || !sel->online || sel->info.grfconfig == NULL || !sel->info.version_compatible || sel->info.compatible);
 
-		this->DrawWidgets();
+		this->DrawWidgets (_cur_dpi);
 	}
 
 	void DrawDetails (BlitArea *dpi, const Rect &r) const
@@ -1444,7 +1444,7 @@ struct NetworkLobbyWindow : public Window {
 		this->vscroll->SetCount(gi->companies_on);
 
 		/* Draw window widgets */
-		this->DrawWidgets();
+		this->DrawWidgets (_cur_dpi);
 	}
 
 	void DrawMatrix (BlitArea *dpi, const Rect &r) const
@@ -1937,7 +1937,7 @@ struct NetworkClientListWindow : Window {
 		/* Check if we need to reset the height */
 		if (!this->CheckClientListHeight()) return;
 
-		this->DrawWidgets();
+		this->DrawWidgets (_cur_dpi);
 	}
 
 	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE

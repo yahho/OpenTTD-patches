@@ -130,7 +130,7 @@ public:
 
 		this->SetWidgetDisabledState(WID_TA_EXECUTE, this->sel_index == -1);
 
-		this->DrawWidgets();
+		this->DrawWidgets (_cur_dpi);
 		if (!this->IsShaded()) this->DrawRatings();
 	}
 
@@ -345,7 +345,7 @@ public:
 			this->SetWidgetLoweredState (WID_TV_SHOW_AREA, _thd.town == this->town->index);
 		}
 
-		this->DrawWidgets();
+		this->DrawWidgets (_cur_dpi);
 	}
 
 	virtual void SetStringParameters(int widget) const
@@ -952,7 +952,7 @@ public:
 	virtual void OnPaint()
 	{
 		if (this->towns.NeedRebuild()) this->BuildSortTownList();
-		this->DrawWidgets();
+		this->DrawWidgets (_cur_dpi);
 	}
 
 	virtual void OnHundredthTick()
@@ -1349,7 +1349,7 @@ struct SelectTownWindow : Window {
 	virtual void OnPaint()
 	{
 		if (this->rebuild) this->RebuildTownList();
-		this->DrawWidgets();
+		this->DrawWidgets (_cur_dpi);
 	}
 
 	virtual void OnResize()

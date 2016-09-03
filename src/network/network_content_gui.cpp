@@ -662,7 +662,7 @@ public:
 			this->BuildContentList();
 		}
 
-		this->DrawWidgets();
+		this->DrawWidgets (_cur_dpi);
 
 		switch (this->content.SortType()) {
 			case WID_NCL_CHECKBOX - WID_NCL_CHECKBOX: this->DrawSortButtonState (_cur_dpi, WID_NCL_CHECKBOX, arrow); break;

@@ -320,7 +320,7 @@ struct NewGRFParametersWindow : public Window {
 			this->closing_dropdown = false;
 			this->clicked_dropdown = false;
 		}
-		this->DrawWidgets();
+		this->DrawWidgets (_cur_dpi);
 	}
 
 	virtual void OnClick(Point pt, int widget, int click_count)

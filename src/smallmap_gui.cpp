@@ -1194,7 +1194,7 @@ void SmallMapWindow::RebuildColourIndexIfNecessary()
 		}
 	}
 
-	this->DrawWidgets();
+	this->DrawWidgets (_cur_dpi);
 }
 
 void SmallMapWindow::DrawWidget (BlitArea *dpi, const Rect &r, int widget) const

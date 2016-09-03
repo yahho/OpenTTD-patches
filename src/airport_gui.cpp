@@ -394,7 +394,7 @@ public:
 
 	virtual void OnPaint()
 	{
-		this->DrawWidgets();
+		this->DrawWidgets (_cur_dpi);
 
 		uint16 top = this->GetWidget<NWidgetBase>(WID_AP_BTN_DOHILIGHT)->pos_y + this->GetWidget<NWidgetBase>(WID_AP_BTN_DOHILIGHT)->current_y + WD_PAR_VSEP_NORMAL;
 		NWidgetBase *panel_nwi = this->GetWidget<NWidgetBase>(WID_AP_BOTTOMPANEL);

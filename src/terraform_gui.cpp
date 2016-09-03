@@ -537,7 +537,7 @@ struct ScenarioEditorLandscapeGenerationWindow : Window {
 
 	virtual void OnPaint()
 	{
-		this->DrawWidgets();
+		this->DrawWidgets (_cur_dpi);
 
 		if (this->IsWidgetLowered(WID_ETT_LOWER_LAND) || this->IsWidgetLowered(WID_ETT_RAISE_LAND)) { // change area-size if raise/lower corner is selected
 			SetTileSelectSize(_terraform_size, _terraform_size);

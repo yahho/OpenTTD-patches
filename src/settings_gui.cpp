@@ -1950,7 +1950,7 @@ struct GameSettingsWindow : Window {
 			this->warn_lines = new_warn_lines;
 		}
 
-		this->DrawWidgets();
+		this->DrawWidgets (_cur_dpi);
 
 		/* Draw the 'some search results are hidden' notice. */
 		if (this->warn_missing != WHR_NONE) {

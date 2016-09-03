@@ -670,7 +670,7 @@ public:
 
 	virtual void OnPaint()
 	{
-		this->DrawWidgets();
+		this->DrawWidgets (_cur_dpi);
 
 		if (this->IsShaded()) return; // Don't draw anything when the window is shaded.
 
@@ -1350,7 +1350,7 @@ public:
 	virtual void OnPaint()
 	{
 		if (this->industries.NeedRebuild()) this->BuildSortIndustriesList();
-		this->DrawWidgets();
+		this->DrawWidgets (_cur_dpi);
 	}
 
 	virtual void OnHundredthTick()

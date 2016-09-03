@@ -979,7 +979,7 @@ struct BuildRoadStationWindow : public PickerWindowBase {
 
 	virtual void OnPaint()
 	{
-		this->DrawWidgets();
+		this->DrawWidgets (_cur_dpi);
 
 		int rad = _settings_game.station.modified_catchment ? ((this->window_class == WC_BUS_STATION) ? CA_BUS : CA_TRUCK) : CA_UNMODIFIED;
 		if (_settings_client.gui.station_show_coverage) {

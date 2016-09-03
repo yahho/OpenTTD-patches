@@ -423,7 +423,7 @@ struct AISettingsWindow : public Window {
 			this->closing_dropdown = false;
 			this->clicked_dropdown = false;
 		}
-		this->DrawWidgets();
+		this->DrawWidgets (_cur_dpi);
 	}
 
 	virtual void OnClick(Point pt, int widget, int click_count)
@@ -1097,7 +1097,7 @@ struct AIDebugWindow : public Window {
 		this->SelectValidDebugCompany();
 
 		/* Draw standard stuff */
-		this->DrawWidgets();
+		this->DrawWidgets (_cur_dpi);
 
 		if (this->IsShaded()) return; // Don't draw anything when the window is shaded.
 

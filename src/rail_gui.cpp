@@ -1033,7 +1033,7 @@ public:
 			}
 		}
 
-		this->DrawWidgets();
+		this->DrawWidgets (_cur_dpi);
 
 		/* 'Accepts' and 'Supplies' texts. */
 		NWidgetBase *cov = this->GetWidget<NWidgetBase>(WID_BRAS_COVERAGE_TEXTS);

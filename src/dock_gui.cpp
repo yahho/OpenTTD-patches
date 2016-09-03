@@ -421,7 +421,7 @@ public:
 	{
 		int rad = (_settings_game.station.modified_catchment) ? CA_DOCK : CA_UNMODIFIED;
 
-		this->DrawWidgets();
+		this->DrawWidgets (_cur_dpi);
 
 		if (_settings_client.gui.station_show_coverage) {
 			SetTileSelectBigSize(-rad, -rad, 2 * rad, 2 * rad);
@@ -524,7 +524,7 @@ public:
 
 	virtual void OnPaint()
 	{
-		this->DrawWidgets();
+		this->DrawWidgets (_cur_dpi);
 
 		int x1 = ScaleGUITrad(63) + 1;
 		int x2 = ScaleGUITrad(31) + 1;

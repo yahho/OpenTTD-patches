@@ -43,7 +43,7 @@ struct EndGameHighScoreBaseWindow : Window {
 		/* Resize window to "full-screen". */
 		if (this->width != _screen.width || this->height != _screen.height) ResizeWindow(this, _screen.width - this->width, _screen.height - this->height);
 
-		this->DrawWidgets();
+		this->DrawWidgets (_cur_dpi);
 
 		/* Standard background slices are 50 pixels high, but it's designed
 		 * for 480 pixels total. 96% of 500 is 480. */

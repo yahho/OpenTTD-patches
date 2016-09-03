@@ -1438,7 +1438,7 @@ struct BuildVehicleWindow : Window {
 
 		this->SetWidgetDisabledState(WID_BV_SHOW_HIDE, this->sel_engine == INVALID_ENGINE);
 
-		this->DrawWidgets();
+		this->DrawWidgets (_cur_dpi);
 
 		if (!this->IsShaded()) {
 			int needed_height = this->details_height;

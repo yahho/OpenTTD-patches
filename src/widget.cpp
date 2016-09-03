@@ -499,12 +499,12 @@ static inline void DrawButtonDropdown (BlitArea *dpi, const Rect &r,
 /**
  * Paint all widgets of a window.
  */
-void Window::DrawWidgets() const
+void Window::DrawWidgets (BlitArea *dpi) const
 {
-	this->nested_root->Draw (_cur_dpi, this);
+	this->nested_root->Draw (dpi, this);
 
 	if (this->flags & WF_WHITE_BORDER) {
-		DrawFrameRect (_cur_dpi, 0, 0, this->width - 1, this->height - 1, COLOUR_WHITE, FR_BORDERONLY);
+		DrawFrameRect (dpi, 0, 0, this->width - 1, this->height - 1, COLOUR_WHITE, FR_BORDERONLY);
 	}
 
 	if (this->flags & WF_HIGHLIGHTED) {
@@ -520,10 +520,10 @@ void Window::DrawWidgets() const
 
 			int colour = _string_colourmap[_window_highlight_colour ? widget->GetHighlightColour() : TC_WHITE];
 
-			GfxFillRect (_cur_dpi, left,                 top,    left,                   bottom - WD_BEVEL_BOTTOM, colour);
-			GfxFillRect (_cur_dpi, left + WD_BEVEL_LEFT, top,    right - WD_BEVEL_RIGHT, top,                      colour);
-			GfxFillRect (_cur_dpi, right,                top,    right,                  bottom - WD_BEVEL_BOTTOM, colour);
-			GfxFillRect (_cur_dpi, left,                 bottom, right,                  bottom,                   colour);
+			GfxFillRect (dpi, left,                 top,    left,                   bottom - WD_BEVEL_BOTTOM, colour);
+			GfxFillRect (dpi, left + WD_BEVEL_LEFT, top,    right - WD_BEVEL_RIGHT, top,                      colour);
+			GfxFillRect (dpi, right,                top,    right,                  bottom - WD_BEVEL_BOTTOM, colour);
+			GfxFillRect (dpi, left,                 bottom, right,                  bottom,                   colour);
 		}
 	}
 }

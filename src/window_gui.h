@@ -522,7 +522,7 @@ public:
 	void CDECL SetWidgetsLoweredState(bool lowered_stat, int widgets, ...);
 	void SetWidgetDirty(byte widget_index) const;
 
-	void DrawWidgets() const;
+	void DrawWidgets (BlitArea *dpi) const;
 	void DrawViewport (BlitArea *dpi) const;
 	void DrawSortButtonState (BlitArea *dpi, int widget, SortButtonState state) const;
 	static int SortButtonWidth();
@@ -570,7 +570,7 @@ public:
 	 */
 	virtual void OnPaint()
 	{
-		this->DrawWidgets();
+		this->DrawWidgets (_cur_dpi);
 	}
 
 	/**

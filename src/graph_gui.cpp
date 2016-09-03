@@ -1200,7 +1200,7 @@ public:
 		this->BuildCompanyList();
 		this->companies.Sort(&PerformanceSorter);
 
-		this->DrawWidgets();
+		this->DrawWidgets (_cur_dpi);
 	}
 
 	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE

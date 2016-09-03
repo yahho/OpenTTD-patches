@@ -499,7 +499,7 @@ public:
 		}
 
 		this->vscroll->SetCount(_fios_items.Length());
-		this->DrawWidgets();
+		this->DrawWidgets (_cur_dpi);
 	}
 
 	virtual void OnClick(Point pt, int widget, int click_count)

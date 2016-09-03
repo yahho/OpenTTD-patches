@@ -464,7 +464,7 @@ public:
 			this->GetWidget<NWidgetCore>(WID_RV_TRAIN_RAILTYPE_DROPDOWN)->widget_data = GetRailTypeInfo(sel_railtype)->strings.replace_text;
 		}
 
-		this->DrawWidgets();
+		this->DrawWidgets (_cur_dpi);
 
 		if (!this->IsShaded()) {
 			int needed_height = this->details_height;
