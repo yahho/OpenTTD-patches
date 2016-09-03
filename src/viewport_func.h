@@ -77,4 +77,6 @@ int GetVirtualHeight (int x, int y);
 
 Point GetViewportStationMiddle(const ViewPort *vp, const Station *st);
 
+bool IsViewportDrawerDetailed (const struct ViewportDrawer *vd);
+
 #endif /* VIEWPORT_FUNC_H */

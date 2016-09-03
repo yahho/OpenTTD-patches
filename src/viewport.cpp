@@ -124,6 +124,11 @@ struct ViewportDrawer {
 	Point foundation_offset[FOUNDATION_PART_END];    ///< Pixel offset for ground sprites on the foundations.
 };
 
+bool IsViewportDrawerDetailed (const ViewportDrawer *vd)
+{
+	return vd->dpi.zoom <= ZOOM_LVL_DETAIL;
+}
+
 static void MarkViewportDirty(const ViewPort *vp, int left, int top, int right, int bottom);
 
 TileHighlightData _thd;

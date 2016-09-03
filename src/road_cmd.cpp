@@ -1847,7 +1847,8 @@ static void DrawRoadBits(TileInfo *ti)
 	if (!IsTileSubtype(ti->tile, TT_TRACK)) return;
 
 	/* Return if full detail is disabled, or we are zoomed fully out. */
-	if (!HasBit(_display_opt, DO_FULL_DETAIL) || _cur_dpi->zoom > ZOOM_LVL_DETAIL) return;
+	if (!HasBit(_display_opt, DO_FULL_DETAIL)) return;
+	if (!IsViewportDrawerDetailed (ti->vd)) return;
 
 	/* Do not draw details (street lights, trees) under low bridge */
 	if (HasBridgeAbove(ti->tile) && (roadside == ROADSIDE_TREES || roadside == ROADSIDE_STREET_LIGHTS)) {
