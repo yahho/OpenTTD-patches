@@ -1791,11 +1791,11 @@ public:
 		return nw;
 	}
 
-	virtual void Draw(const Window *w)
+	void Draw (BlitArea *dpi, const Window *w) OVERRIDE
 	{
-		if (this->editable) this->avs->Draw(w);
-		this->acs->Draw(w);
-		this->inf->Draw(w);
+		if (this->editable) this->avs->Draw (dpi, w);
+		this->acs->Draw (dpi, w);
+		this->inf->Draw (dpi, w);
 	}
 };
 

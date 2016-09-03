@@ -1418,18 +1418,18 @@ public:
 		}
 	}
 
-	/* virtual */ void Draw(const Window *w)
+	void Draw (BlitArea *dpi, const Window *w) OVERRIDE
 	{
 		/* Draw brown-red toolbar bg. */
-		GfxFillRect (_cur_dpi, this->pos_x, this->pos_y, this->pos_x + this->current_x - 1, this->pos_y + this->current_y - 1, PC_VERY_DARK_RED);
-		GfxFillRect (_cur_dpi, this->pos_x, this->pos_y, this->pos_x + this->current_x - 1, this->pos_y + this->current_y - 1, PC_DARK_RED, FILLRECT_CHECKER);
+		GfxFillRect (dpi, this->pos_x, this->pos_y, this->pos_x + this->current_x - 1, this->pos_y + this->current_y - 1, PC_VERY_DARK_RED);
+		GfxFillRect (dpi, this->pos_x, this->pos_y, this->pos_x + this->current_x - 1, this->pos_y + this->current_y - 1, PC_DARK_RED, FILLRECT_CHECKER);
 
 		bool rtl = _current_text_dir == TD_RTL;
 		for (NWidgetBase *child_wid = rtl ? this->tail : this->head; child_wid != NULL; child_wid = rtl ? child_wid->prev : child_wid->next) {
 			if (child_wid->type == NWID_SPACER) continue;
 			if (!this->visible[((NWidgetCore*)child_wid)->index]) continue;
 
-			child_wid->Draw(w);
+			child_wid->Draw (dpi, w);
 		}
 	}
 
