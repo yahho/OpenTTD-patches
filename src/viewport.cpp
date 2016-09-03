@@ -1645,9 +1645,6 @@ void ViewportDoDraw(const ViewPort *vp, int left, int top, int right, int bottom
 {
 	ViewportDrawer vd;
 
-	DrawPixelInfo *old_dpi = _cur_dpi;
-	_cur_dpi = &vd.dpi;
-
 	vd.dpi.zoom = vp->zoom;
 	int mask = ScaleByZoom(-1, vp->zoom);
 
@@ -1657,18 +1654,18 @@ void ViewportDoDraw(const ViewPort *vp, int left, int top, int right, int bottom
 	vd.dpi.height = (bottom - top) & mask;
 	vd.dpi.left = left & mask;
 	vd.dpi.top = top & mask;
-	vd.dpi.surface = old_dpi->surface;
+	vd.dpi.surface = _cur_dpi->surface;
 	vd.last_child = NULL;
 
 	int x = UnScaleByZoom (vd.dpi.left - (vp->virtual_left & mask), vp->zoom) + vp->left;
 	int y = UnScaleByZoom (vd.dpi.top  - (vp->virtual_top  & mask), vp->zoom) + vp->top;
 
-	vd.dpi.dst_ptr = vd.dpi.surface->move (old_dpi->dst_ptr, x - old_dpi->left, y - old_dpi->top);
+	vd.dpi.dst_ptr = vd.dpi.surface->move (_cur_dpi->dst_ptr, x - _cur_dpi->left, y - _cur_dpi->top);
 
 	ViewportAddLandscape (&vd, vp->zoom);
 	ViewportAddVehicles (&vd, &vd.dpi);
 
-	if (vd.tile_sprites_to_draw.Length() != 0) ViewportDrawTileSprites (_cur_dpi, &vd.tile_sprites_to_draw);
+	if (vd.tile_sprites_to_draw.Length() != 0) ViewportDrawTileSprites (&vd.dpi, &vd.tile_sprites_to_draw);
 
 	ParentSpriteToDraw *psd_end = vd.parent_sprites_to_draw.End();
 	for (ParentSpriteToDraw *it = vd.parent_sprites_to_draw.Begin(); it != psd_end; it++) {
@@ -1676,17 +1673,15 @@ void ViewportDoDraw(const ViewPort *vp, int left, int top, int right, int bottom
 	}
 
 	_vp_sprite_sorter (&vd.parent_sprites_to_sort);
-	ViewportDrawParentSprites (_cur_dpi, &vd.parent_sprites_to_sort, &vd.child_screen_sprites_to_draw);
+	ViewportDrawParentSprites (&vd.dpi, &vd.parent_sprites_to_sort, &vd.child_screen_sprites_to_draw);
 
-	if (_draw_bounding_boxes) ViewportDrawBoundingBoxes (_cur_dpi, &vd.parent_sprites_to_sort);
-	if (_draw_dirty_blocks) ViewportDrawDirtyBlocks (_cur_dpi);
+	if (_draw_bounding_boxes) ViewportDrawBoundingBoxes (&vd.dpi, &vd.parent_sprites_to_sort);
+	if (_draw_dirty_blocks) ViewportDrawDirtyBlocks (&vd.dpi);
 
-	DrawPixelInfo dp = vd.dpi;
+	BlitArea dp = vd.dpi;
 	ZoomLevel zoom = vd.dpi.zoom;
-	dp.zoom = ZOOM_LVL_NORMAL;
 	dp.width = UnScaleByZoom(dp.width, zoom);
 	dp.height = UnScaleByZoom(dp.height, zoom);
-	_cur_dpi = &dp;
 
 	if (vp->overlay != NULL && vp->overlay->GetCargoMask() != 0 && vp->overlay->GetCompanyMask() != 0) {
 		/* translate to window coordinates */
@@ -1699,13 +1694,11 @@ void ViewportDoDraw(const ViewPort *vp, int left, int top, int right, int bottom
 	dp.left = UnScaleByZoom (vd.dpi.left, zoom);
 	dp.top  = UnScaleByZoom (vd.dpi.top,  zoom);
 
-	ViewportAddTownNames (_cur_dpi, &vd.dpi);
-	ViewportAddStationNames (_cur_dpi, &vd.dpi);
-	ViewportAddSigns (_cur_dpi, &vd.dpi);
+	ViewportAddTownNames (&dp, &vd.dpi);
+	ViewportAddStationNames (&dp, &vd.dpi);
+	ViewportAddSigns (&dp, &vd.dpi);
 
-	DrawTextEffects (_cur_dpi, &vd.dpi);
-
-	_cur_dpi = old_dpi;
+	DrawTextEffects (&dp, &vd.dpi);
 
 	vd.tile_sprites_to_draw.Clear();
 	vd.parent_sprites_to_draw.Clear();
