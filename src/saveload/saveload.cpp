@@ -770,7 +770,7 @@ static bool DoLoad(LoadFilter **chain, int mode)
 		if (!LoadOldSaveGame(*chain, &sl_version, &_sl.error)) return false;
 	} else {
 		/* Load chunks. */
-		LoadBuffer reader (*chain, &sl_version, _saveload_mode == SLD_LOAD_SCENARIO);
+		LoadBuffer reader (*chain, &sl_version, _file_to_saveload.filetype == FT_SCENARIO);
 		SlLoadChunks(&reader, mode == SL_LOAD_CHECK);
 
 		/* Resolve references */
