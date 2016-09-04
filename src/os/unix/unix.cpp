@@ -15,6 +15,7 @@
 #include "../../crashlog.h"
 #include "../../core/random_func.hpp"
 #include "../../debug.h"
+#include "../../fios.h"
 
 
 #include <dirent.h>
@@ -74,7 +75,7 @@ bool FiosIsRoot(const char *path)
 #endif
 }
 
-void FiosGetDrives()
+void FiosGetDrives(FileList &file_list)
 {
 	return;
 }
