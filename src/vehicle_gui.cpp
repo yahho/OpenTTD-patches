@@ -1089,7 +1089,7 @@ void ShowVehicleRefitWindow (Window *parent, const Vehicle *v,
 }
 
 /** Display list of cargo types of the engine, for the purchase information window */
-uint ShowRefitOptionsList(int left, int right, int y, EngineID engine)
+uint ShowRefitOptionsList (BlitArea *dpi, int left, int right, int y, EngineID engine)
 {
 	/* List of cargo types of this engine */
 	uint32 cmask = GetUnionOfArticulatedRefitMasks(engine, false);
@@ -1114,7 +1114,7 @@ uint ShowRefitOptionsList(int left, int right, int y, EngineID engine)
 		SetDParam(1, cmask);
 	}
 
-	return DrawStringMultiLine (_cur_dpi, left, right, y, INT32_MAX, STR_PURCHASE_INFO_REFITTABLE_TO);
+	return DrawStringMultiLine (dpi, left, right, y, INT32_MAX, STR_PURCHASE_INFO_REFITTABLE_TO);
 }
 
 /** Get the cargo subtype text from NewGRF for the vehicle details window. */
