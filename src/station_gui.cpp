@@ -1641,6 +1641,7 @@ struct StationViewWindow : public Window {
 	/**
 	 * Draw the given cargo entries in the station GUI.
 	 * @param entry Root entry for all cargo to be drawn.
+	 * @param dpi Area to draw on.
 	 * @param r Screen rectangle to draw into.
 	 * @param pos Current row to be drawn to (counted down from 0 to -maxrows, same as vscroll->GetPosition()).
 	 * @param maxrows Maximum row to be drawn.
@@ -1648,7 +1649,8 @@ struct StationViewWindow : public Window {
 	 * @param cargo Current cargo being drawn.
 	 * @return row (in "pos" counting) after the one we have last drawn to.
 	 */
-	int DrawEntries (const CargoNodeEntry *entry, const Rect &r, int pos, int maxrows, int column, CargoID cargo)
+	int DrawEntries (const CargoNodeEntry *entry, BlitArea *dpi, const Rect &r,
+		int pos, int maxrows, int column, CargoID cargo)
 	{
 		assert (entry->empty() || (entry->get_expanded() != NULL));
 
@@ -1697,7 +1699,7 @@ struct StationViewWindow : public Window {
 					}
 				}
 
-				this->DrawCargoString (_cur_dpi, r, y, column + 1, sym, str);
+				this->DrawCargoString (dpi, r, y, column + 1, sym, str);
 
 				expanded_map *expand = entry->get_expanded();
 				assert (expand != NULL);
@@ -1705,7 +1707,7 @@ struct StationViewWindow : public Window {
 			}
 			--pos;
 			if (auto_distributed) {
-				pos = this->DrawEntries(cd, r, pos, maxrows, column + 1, cargo);
+				pos = this->DrawEntries (cd, dpi, r, pos, maxrows, column + 1, cargo);
 			}
 		}
 		return pos;
@@ -1749,7 +1751,7 @@ struct StationViewWindow : public Window {
 			this->displayed_rows.push_back (RowDisplay (cargo));
 		}
 
-		pos = this->DrawEntries (cd, r, pos - 1, maxrows, 0, cargo);
+		pos = this->DrawEntries (cd, _cur_dpi, r, pos - 1, maxrows, 0, cargo);
 
 		if (cd->get_reserved() != 0) {
 			if (pos > -maxrows && pos <= 0) {
