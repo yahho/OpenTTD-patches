@@ -1446,7 +1446,7 @@ struct StationViewWindow : public Window {
 					return;
 				}
 			} else {
-				int lines = this->DrawCargoRatings(r);
+				int lines = this->DrawCargoRatings (_cur_dpi, r);
 				if (lines > this->rating_lines) { // Resize the widget, and perform re-initialization of the window.
 					this->rating_lines = lines;
 					this->ReInit();
@@ -1790,21 +1790,22 @@ struct StationViewWindow : public Window {
 
 	/**
 	 * Draw cargo ratings in the #WID_SV_ACCEPT_RATING_LIST widget.
+	 * @param dpi Area to draw on.
 	 * @param r Rectangle of the widget.
 	 * @return Number of lines needed for drawing the cargo ratings.
 	 */
-	int DrawCargoRatings(const Rect &r) const
+	int DrawCargoRatings (BlitArea *dpi, const Rect &r) const
 	{
 		const Station *st = Station::Get(this->window_number);
 		int y = r.top + WD_FRAMERECT_TOP;
 
 		if (st->town->exclusive_counter > 0) {
 			SetDParam(0, st->town->exclusivity);
-			y = DrawStringMultiLine (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, r.bottom, st->town->exclusivity == st->owner ? STR_STATIOV_VIEW_EXCLUSIVE_RIGHTS_SELF : STR_STATIOV_VIEW_EXCLUSIVE_RIGHTS_COMPANY);
+			y = DrawStringMultiLine (dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, r.bottom, st->town->exclusivity == st->owner ? STR_STATIOV_VIEW_EXCLUSIVE_RIGHTS_SELF : STR_STATIOV_VIEW_EXCLUSIVE_RIGHTS_COMPANY);
 			y += WD_PAR_VSEP_WIDE;
 		}
 
-		DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_STATION_VIEW_SUPPLY_RATINGS_TITLE);
+		DrawString (dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_STATION_VIEW_SUPPLY_RATINGS_TITLE);
 		y += FONT_HEIGHT_NORMAL;
 
 		const CargoSpec *cs;
@@ -1817,7 +1818,7 @@ struct StationViewWindow : public Window {
 			SetDParam(1, lg != NULL ? lg->Monthly((*lg)[ge->node]->Supply()) : 0);
 			SetDParam(2, STR_CARGO_RATING_APPALLING + (ge->rating >> 5));
 			SetDParam(3, ToPercent8(ge->rating));
-			DrawString (_cur_dpi, r.left + WD_FRAMERECT_LEFT + 6, r.right - WD_FRAMERECT_RIGHT - 6, y, STR_STATION_VIEW_CARGO_SUPPLY_RATING);
+			DrawString (dpi, r.left + WD_FRAMERECT_LEFT + 6, r.right - WD_FRAMERECT_RIGHT - 6, y, STR_STATION_VIEW_CARGO_SUPPLY_RATING);
 			y += FONT_HEIGHT_NORMAL;
 		}
 		return CeilDiv(y - r.top - WD_FRAMERECT_TOP, FONT_HEIGHT_NORMAL);
