@@ -675,7 +675,7 @@ public:
 		if (this->IsShaded()) return; // Don't draw anything when the window is shaded.
 
 		NWidgetBase *nwi = this->GetWidget<NWidgetBase>(WID_IV_INFO);
-		uint expected = this->DrawInfo(nwi->pos_x, nwi->pos_x + nwi->current_x - 1, nwi->pos_y) - nwi->pos_y;
+		uint expected = this->DrawInfo (_cur_dpi, nwi->pos_x, nwi->pos_x + nwi->current_x - 1, nwi->pos_y) - nwi->pos_y;
 		if (expected > nwi->current_y - 1) {
 			this->info_height = expected + 1;
 			this->ReInit();
@@ -685,12 +685,13 @@ public:
 
 	/**
 	 * Draw the text in the #WID_IV_INFO panel.
+	 * @param dpi   Area to draw on.
 	 * @param left  Left edge of the panel.
 	 * @param right Right edge of the panel.
 	 * @param top   Top edge of the panel.
 	 * @return Expected position of the bottom edge of the panel.
 	 */
-	int DrawInfo(uint left, uint right, uint top)
+	int DrawInfo (BlitArea *dpi, uint left, uint right, uint top)
 	{
 		Industry *i = Industry::Get(this->window_number);
 		const IndustrySpec *ind = GetIndustrySpec(i->type);
@@ -700,7 +701,7 @@ public:
 		sstring<512> cargo_suffix [3];
 
 		if (i->prod_level == PRODLEVEL_CLOSURE) {
-			DrawString (_cur_dpi, left + WD_FRAMERECT_LEFT, right - WD_FRAMERECT_RIGHT, y, STR_INDUSTRY_VIEW_INDUSTRY_ANNOUNCED_CLOSURE);
+			DrawString (dpi, left + WD_FRAMERECT_LEFT, right - WD_FRAMERECT_RIGHT, y, STR_INDUSTRY_VIEW_INDUSTRY_ANNOUNCED_CLOSURE);
 			y += 2 * FONT_HEIGHT_NORMAL;
 		}
 
@@ -710,7 +711,7 @@ public:
 				if (i->accepts_cargo[j] == CT_INVALID) continue;
 				has_accept = true;
 				if (first) {
-					DrawString (_cur_dpi, left + WD_FRAMERECT_LEFT, right - WD_FRAMERECT_RIGHT, y, STR_INDUSTRY_VIEW_WAITING_FOR_PROCESSING);
+					DrawString (dpi, left + WD_FRAMERECT_LEFT, right - WD_FRAMERECT_RIGHT, y, STR_INDUSTRY_VIEW_WAITING_FOR_PROCESSING);
 					y += FONT_HEIGHT_NORMAL;
 					first = false;
 				}
@@ -718,7 +719,7 @@ public:
 				SetDParam(0, i->accepts_cargo[j]);
 				SetDParam(1, i->incoming_cargo_waiting[j]);
 				SetDParamStr(2, cargo_suffix[j].c_str());
-				DrawString (_cur_dpi, left + WD_FRAMETEXT_LEFT, right - WD_FRAMERECT_RIGHT, y, STR_INDUSTRY_VIEW_WAITING_STOCKPILE_CARGO);
+				DrawString (dpi, left + WD_FRAMETEXT_LEFT, right - WD_FRAMERECT_RIGHT, y, STR_INDUSTRY_VIEW_WAITING_STOCKPILE_CARGO);
 				y += FONT_HEIGHT_NORMAL;
 			}
 		} else {
@@ -734,7 +735,7 @@ public:
 				SetDParamStr(p++, cargo_suffix[j].c_str());
 			}
 			if (has_accept) {
-				DrawString (_cur_dpi, left + WD_FRAMERECT_LEFT, right - WD_FRAMERECT_RIGHT, y, str);
+				DrawString (dpi, left + WD_FRAMERECT_LEFT, right - WD_FRAMERECT_RIGHT, y, str);
 				y += FONT_HEIGHT_NORMAL;
 			}
 		}
@@ -745,7 +746,7 @@ public:
 			if (i->produced_cargo[j] == CT_INVALID) continue;
 			if (first) {
 				if (has_accept) y += WD_PAR_VSEP_WIDE;
-				DrawString (_cur_dpi, left + WD_FRAMERECT_LEFT, right - WD_FRAMERECT_RIGHT, y, STR_INDUSTRY_VIEW_PRODUCTION_LAST_MONTH_TITLE);
+				DrawString (dpi, left + WD_FRAMERECT_LEFT, right - WD_FRAMERECT_RIGHT, y, STR_INDUSTRY_VIEW_PRODUCTION_LAST_MONTH_TITLE);
 				y += FONT_HEIGHT_NORMAL;
 				if (this->editable == EA_RATE) this->production_offset_y = y;
 				first = false;
@@ -757,10 +758,10 @@ public:
 			SetDParamStr(2, cargo_suffix[j].c_str());
 			SetDParam(3, ToPercent8(i->last_month_pct_transported[j]));
 			uint x = left + WD_FRAMETEXT_LEFT + (this->editable == EA_RATE ? SETTING_BUTTON_WIDTH + 10 : 0);
-			DrawString (_cur_dpi, x, right - WD_FRAMERECT_RIGHT, y, STR_INDUSTRY_VIEW_TRANSPORTED);
+			DrawString (dpi, x, right - WD_FRAMERECT_RIGHT, y, STR_INDUSTRY_VIEW_TRANSPORTED);
 			/* Let's put out those buttons.. */
 			if (this->editable == EA_RATE) {
-				DrawArrowButtons (_cur_dpi, left + WD_FRAMETEXT_LEFT, y, COLOUR_YELLOW, (this->clicked_line == IL_RATE1 + j) ? this->clicked_button : 0,
+				DrawArrowButtons (dpi, left + WD_FRAMETEXT_LEFT, y, COLOUR_YELLOW, (this->clicked_line == IL_RATE1 + j) ? this->clicked_button : 0,
 						i->production_rate[j] > 0, i->production_rate[j] < 255);
 			}
 			y += FONT_HEIGHT_NORMAL;
@@ -772,8 +773,8 @@ public:
 			this->production_offset_y = y;
 			SetDParam(0, RoundDivSU(i->prod_level * 100, PRODLEVEL_DEFAULT));
 			uint x = left + WD_FRAMETEXT_LEFT + SETTING_BUTTON_WIDTH + 10;
-			DrawString (_cur_dpi, x, right - WD_FRAMERECT_RIGHT, y, STR_INDUSTRY_VIEW_PRODUCTION_LEVEL);
-			DrawArrowButtons (_cur_dpi, left + WD_FRAMETEXT_LEFT, y, COLOUR_YELLOW, (this->clicked_line == IL_MULTIPLIER) ? this->clicked_button : 0,
+			DrawString (dpi, x, right - WD_FRAMERECT_RIGHT, y, STR_INDUSTRY_VIEW_PRODUCTION_LEVEL);
+			DrawArrowButtons (dpi, left + WD_FRAMETEXT_LEFT, y, COLOUR_YELLOW, (this->clicked_line == IL_MULTIPLIER) ? this->clicked_button : 0,
 					i->prod_level > PRODLEVEL_MINIMUM, i->prod_level < PRODLEVEL_MAXIMUM);
 			y += FONT_HEIGHT_NORMAL;
 		}
@@ -793,7 +794,7 @@ public:
 						/* Use all the available space left from where we stand up to the
 						 * end of the window. We ALSO enlarge the window if needed, so we
 						 * can 'go' wild with the bottom of the window. */
-						y = DrawStringMultiLine (_cur_dpi, left + WD_FRAMERECT_LEFT, right - WD_FRAMERECT_RIGHT, y, UINT16_MAX, message, TC_BLACK);
+						y = DrawStringMultiLine (dpi, left + WD_FRAMERECT_LEFT, right - WD_FRAMERECT_RIGHT, y, UINT16_MAX, message, TC_BLACK);
 						StopTextRefStackUsage();
 					}
 				}
