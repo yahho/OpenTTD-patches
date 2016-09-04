@@ -1481,7 +1481,7 @@ struct StationViewWindow : public Window {
 				}
 
 				if (cargo.get_count() > 0) {
-					pos = this->DrawCargoEntry (&cargo, i, waiting_rect, pos, maxrows);
+					pos = this->DrawCargoEntry (&cargo, i, _cur_dpi, waiting_rect, pos, maxrows);
 				}
 			}
 			this->vscroll->SetCount (this->vscroll->GetPosition() - pos); // update scrollbar
@@ -1717,12 +1717,14 @@ struct StationViewWindow : public Window {
 	 * Draw the given cargo entry in the station GUI.
 	 * @param cd Cargo entry to be drawn.
 	 * @param cargo Cargo type for this entry.
+	 * @param dpi Area to draw on.
 	 * @param r Screen rectangle to draw into.
 	 * @param pos Current row to be drawn to (counted down from 0 to -maxrows, same as vscroll->GetPosition()).
 	 * @param maxrows Maximum row to be drawn.
 	 * @return row (in "pos" counting) after the one we have last drawn to.
 	 */
-	int DrawCargoEntry (const CargoRootEntry *cd, CargoID cargo, const Rect &r, int pos, int maxrows)
+	int DrawCargoEntry (const CargoRootEntry *cd, CargoID cargo,
+		BlitArea *dpi, const Rect &r, int pos, int maxrows)
 	{
 		bool auto_distributed = _settings_game.linkgraph.GetDistributionType(cargo) != DT_MANUAL;
 
@@ -1731,7 +1733,7 @@ struct StationViewWindow : public Window {
 			SetDParam(0, cargo);
 			SetDParam(1, cd->get_count());
 			StringID str = STR_STATION_VIEW_WAITING_CARGO;
-			DrawCargoIcons (cargo, cd->get_count(), _cur_dpi, r.left + WD_FRAMERECT_LEFT + this->expand_shrink_width, r.right - WD_FRAMERECT_RIGHT - this->expand_shrink_width, y);
+			DrawCargoIcons (cargo, cd->get_count(), dpi, r.left + WD_FRAMERECT_LEFT + this->expand_shrink_width, r.right - WD_FRAMERECT_RIGHT - this->expand_shrink_width, y);
 
 			const char *sym = NULL;
 			if (!cd->empty() || (cd->get_reserved() > 0)) {
@@ -1746,19 +1748,19 @@ struct StationViewWindow : public Window {
 				}
 			}
 
-			this->DrawCargoString (_cur_dpi, r, y, 0, sym, str);
+			this->DrawCargoString (dpi, r, y, 0, sym, str);
 
 			this->displayed_rows.push_back (RowDisplay (cargo));
 		}
 
-		pos = this->DrawEntries (cd, _cur_dpi, r, pos - 1, maxrows, 0, cargo);
+		pos = this->DrawEntries (cd, dpi, r, pos - 1, maxrows, 0, cargo);
 
 		if (cd->get_reserved() != 0) {
 			if (pos > -maxrows && pos <= 0) {
 				int y = r.top + WD_FRAMERECT_TOP - pos * FONT_HEIGHT_NORMAL;
 				SetDParam (0, cargo);
 				SetDParam (1, cd->get_reserved());
-				this->DrawCargoString (_cur_dpi, r, y, 1, NULL, STR_STATION_VIEW_RESERVED);
+				this->DrawCargoString (dpi, r, y, 1, NULL, STR_STATION_VIEW_RESERVED);
 				this->displayed_rows.push_back (RowDisplay (INVALID_CARGO));
 			}
 			pos--;
