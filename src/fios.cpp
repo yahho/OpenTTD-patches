@@ -27,7 +27,6 @@
 #include "table/strings.h"
 
 /* Variables to display file lists */
-FileList _fios_items;
 static char *_fios_path;
 SortingBits _savegame_sort_order = SORT_BY_DATE | SORT_DESCENDING;
 
