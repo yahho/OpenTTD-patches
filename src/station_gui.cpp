@@ -49,6 +49,7 @@
 
 /**
  * Calculates and draws the accepted and supplied cargo around the selected tile(s)
+ * @param dpi area to draw on
  * @param left x position where the string is to be drawn
  * @param right the right most position to draw on
  * @param top y position where the string is to be drawn
@@ -56,7 +57,8 @@
  * @param sct which type of cargo is to be displayed (passengers/non-passengers)
  * @return Returns the y value below the strings that were drawn
  */
-int DrawStationCoverageAreaText (int left, int right, int top, int rad, StationCoverageType sct)
+int DrawStationCoverageAreaText (BlitArea *dpi, int left, int right, int top,
+	int rad, StationCoverageType sct)
 {
 	uint32 accept_mask = 0;
 	uint32 supply_mask = 0;
@@ -86,9 +88,9 @@ int DrawStationCoverageAreaText (int left, int right, int top, int rad, StationC
 	}
 
 	SetDParam (0, accept_mask);
-	top = DrawStringMultiLine (_cur_dpi, left, right, top, INT32_MAX, STR_STATION_BUILD_ACCEPTS_CARGO)  + WD_PAR_VSEP_NORMAL;
+	top = DrawStringMultiLine (dpi, left, right, top, INT32_MAX, STR_STATION_BUILD_ACCEPTS_CARGO)  + WD_PAR_VSEP_NORMAL;
 	SetDParam (0, supply_mask);
-	top = DrawStringMultiLine (_cur_dpi, left, right, top, INT32_MAX, STR_STATION_BUILD_SUPPLIES_CARGO) + WD_PAR_VSEP_NORMAL;
+	top = DrawStringMultiLine (dpi, left, right, top, INT32_MAX, STR_STATION_BUILD_SUPPLIES_CARGO) + WD_PAR_VSEP_NORMAL;
 	return top;
 }
 

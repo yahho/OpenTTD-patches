@@ -415,7 +415,7 @@ public:
 			}
 
 			/* strings such as 'Size' and 'Coverage Area' */
-			top = DrawStationCoverageAreaText (panel_nwi->pos_x + WD_FRAMERECT_LEFT, right - WD_FRAMERECT_RIGHT, top, rad);
+			top = DrawStationCoverageAreaText (_cur_dpi, panel_nwi->pos_x + WD_FRAMERECT_LEFT, right - WD_FRAMERECT_RIGHT, top, rad);
 		}
 
 		/* Resize background if the window is too small.

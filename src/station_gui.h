@@ -24,7 +24,7 @@ enum StationCoverageType {
 	SCT_ALL,                 ///< Draw all cargoes.
 };
 
-int DrawStationCoverageAreaText (int left, int right, int top, int rad, StationCoverageType sct = SCT_ALL);
+int DrawStationCoverageAreaText (BlitArea *dpi, int left, int right, int top, int rad, StationCoverageType sct = SCT_ALL);
 void CheckRedrawStationCoverage(const Window *w);
 
 void ShowSelectBaseStationIfNeeded (Command *cmd, const TileArea &ta, bool waypoint);
