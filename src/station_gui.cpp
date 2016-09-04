@@ -1615,25 +1615,26 @@ struct StationViewWindow : public Window {
 
 	/**
 	 * Draw the cargo string for an entry in the station GUI.
+	 * @param dpi Area to draw on.
 	 * @param r Screen rectangle to draw into.
 	 * @param y Vertical position to draw at.
 	 * @param indent Extra indentation for the string.
 	 * @param sym Symbol to draw at the end of the line, if not null.
 	 * @param str String to draw.
 	 */
-	void DrawCargoString (const Rect &r, int y, int indent,
+	void DrawCargoString (BlitArea *dpi, const Rect &r, int y, int indent,
 		const char *sym, StringID str)
 	{
 		bool rtl = _current_text_dir == TD_RTL;
 
 		int text_left  = rtl ? r.left + this->expand_shrink_width : r.left + WD_FRAMERECT_LEFT + indent * this->expand_shrink_width;
 		int text_right = rtl ? r.right - WD_FRAMERECT_LEFT - indent * this->expand_shrink_width : r.right - this->expand_shrink_width;
-		DrawString (_cur_dpi, text_left, text_right, y, str);
+		DrawString (dpi, text_left, text_right, y, str);
 
 		if (sym) {
 			int sym_left  = rtl ? r.left + WD_FRAMERECT_LEFT : r.right - this->expand_shrink_width + WD_FRAMERECT_LEFT;
 			int sym_right = rtl ? r.left + this->expand_shrink_width - WD_FRAMERECT_RIGHT : r.right - WD_FRAMERECT_RIGHT;
-			DrawString (_cur_dpi, sym_left, sym_right, y, sym, TC_YELLOW);
+			DrawString (dpi, sym_left, sym_right, y, sym, TC_YELLOW);
 		}
 	}
 
@@ -1696,7 +1697,7 @@ struct StationViewWindow : public Window {
 					}
 				}
 
-				this->DrawCargoString (r, y, column + 1, sym, str);
+				this->DrawCargoString (_cur_dpi, r, y, column + 1, sym, str);
 
 				expanded_map *expand = entry->get_expanded();
 				assert (expand != NULL);
@@ -1743,7 +1744,7 @@ struct StationViewWindow : public Window {
 				}
 			}
 
-			this->DrawCargoString (r, y, 0, sym, str);
+			this->DrawCargoString (_cur_dpi, r, y, 0, sym, str);
 
 			this->displayed_rows.push_back (RowDisplay (cargo));
 		}
@@ -1755,7 +1756,7 @@ struct StationViewWindow : public Window {
 				int y = r.top + WD_FRAMERECT_TOP - pos * FONT_HEIGHT_NORMAL;
 				SetDParam (0, cargo);
 				SetDParam (1, cd->get_reserved());
-				this->DrawCargoString (r, y, 1, NULL, STR_STATION_VIEW_RESERVED);
+				this->DrawCargoString (_cur_dpi, r, y, 1, NULL, STR_STATION_VIEW_RESERVED);
 				this->displayed_rows.push_back (RowDisplay (INVALID_CARGO));
 			}
 			pos--;
