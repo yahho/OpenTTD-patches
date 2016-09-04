@@ -191,6 +191,7 @@ struct GoalListWindow : public Window {
 	/**
 	 * Draws either the global goals or the company goal section.
 	 * This is a helper method for #DrawWidget.
+	 * @param dpi Area to draw on.
 	 * @param pos [inout] Vertical line number to draw.
 	 * @param cap Number of lines to draw in the window.
 	 * @param x Left edge of the text line to draw.
@@ -199,10 +200,10 @@ struct GoalListWindow : public Window {
 	 * @param global_section Whether the global goals are printed.
 	 * @param column Which column to draw.
 	 */
-	void DrawPartialGoalList(int &pos, const int cap, int x, int y, int right, uint progress_col_width, bool global_section, GoalColumn column) const
+	void DrawPartialGoalList (BlitArea *dpi, int &pos, const int cap, int x, int y, int right, uint progress_col_width, bool global_section, GoalColumn column) const
 	{
 		if (column == GC_GOAL && IsInsideMM(pos, 0, cap)) {
-			DrawString (_cur_dpi, x, right, y + pos * FONT_HEIGHT_NORMAL, global_section ? STR_GOALS_GLOBAL_TITLE : STR_GOALS_COMPANY_TITLE);
+			DrawString (dpi, x, right, y + pos * FONT_HEIGHT_NORMAL, global_section ? STR_GOALS_GLOBAL_TITLE : STR_GOALS_COMPANY_TITLE);
 		}
 		pos++;
 
@@ -218,7 +219,7 @@ struct GoalListWindow : public Window {
 							/* Display the goal. */
 							SetDParamStr(0, s->text);
 							uint width_reduction = progress_col_width > 0 ? progress_col_width + WD_FRAMERECT_LEFT + WD_FRAMERECT_RIGHT : 0;
-							DrawString (_cur_dpi, x + (rtl ? width_reduction : 0), right - (rtl ? 0 : width_reduction), y + pos * FONT_HEIGHT_NORMAL, STR_GOALS_TEXT);
+							DrawString (dpi, x + (rtl ? width_reduction : 0), right - (rtl ? 0 : width_reduction), y + pos * FONT_HEIGHT_NORMAL, STR_GOALS_TEXT);
 							break;
 						}
 
@@ -228,7 +229,7 @@ struct GoalListWindow : public Window {
 								StringID str = s->completed ? STR_GOALS_PROGRESS_COMPLETE : STR_GOALS_PROGRESS;
 								int progress_x = x;
 								int progress_right = rtl ? x + progress_col_width : right;
-								DrawString (_cur_dpi, progress_x, progress_right, y + pos * FONT_HEIGHT_NORMAL, str, TC_FROMSTRING, SA_RIGHT | SA_FORCE);
+								DrawString (dpi, progress_x, progress_right, y + pos * FONT_HEIGHT_NORMAL, str, TC_FROMSTRING, SA_RIGHT | SA_FORCE);
 							}
 							break;
 					}
@@ -241,7 +242,7 @@ struct GoalListWindow : public Window {
 		if (num == 0) {
 			if (column == GC_GOAL && IsInsideMM(pos, 0, cap)) {
 				StringID str = !global_section && this->window_number == INVALID_COMPANY ? STR_GOALS_SPECTATOR_NONE : STR_GOALS_NONE;
-				DrawString (_cur_dpi, x, right, y + pos * FONT_HEIGHT_NORMAL, str);
+				DrawString (dpi, x, right, y + pos * FONT_HEIGHT_NORMAL, str);
 			}
 			pos++;
 		}
@@ -265,11 +266,11 @@ struct GoalListWindow : public Window {
 		const int cap = this->vscroll->GetCapacity();
 
 		/* Draw partial list with global goals. */
-		DrawPartialGoalList(pos, cap, x, y, right, progress_col_width, true, column);
+		DrawPartialGoalList (_cur_dpi, pos, cap, x, y, right, progress_col_width, true, column);
 
 		/* Draw partial list with company goals. */
 		pos++;
-		DrawPartialGoalList(pos, cap, x, y, right, progress_col_width, false, column);
+		DrawPartialGoalList (_cur_dpi, pos, cap, x, y, right, progress_col_width, false, column);
 	}
 
 	/* virtual */ void OnPaint()
