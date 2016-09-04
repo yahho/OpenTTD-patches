@@ -56,20 +56,12 @@ enum LoadMode {
 	SL_LOAD_CHECK =  4, ///< Load for game preview.
 };
 
-/** The different types of files that the system knows about. */
-enum FileType {
-	FT_NONE,      ///< nothing to do
-	FT_SAVEGAME,  ///< old or new savegame
-	FT_SCENARIO,  ///< old or new scenario
-	FT_HEIGHTMAP, ///< heightmap file
-};
-
 /** Deals with the type of the savegame, independent of extension */
 struct FileToSaveLoad {
-	int mode;             ///< savegame/scenario type (old, new)
-	FileType filetype;    ///< what type of file are we dealing with
-	char name[MAX_PATH];  ///< name
-	char title[255];      ///< internal name of the game
+	int mode;                  ///< savegame/scenario type (old, new)
+	AbstractFileType filetype; ///< what type of file are we dealing with
+	char name[MAX_PATH];       ///< name
+	char title[255];           ///< internal name of the game
 };
 
 extern FileToSaveLoad _file_to_saveload;
