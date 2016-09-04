@@ -812,12 +812,14 @@ static const NWidgetPart _nested_station_view_widgets[] = {
  *
  * @param i type of cargo
  * @param waiting number of waiting units
+ * @param dpi   area to draw on
  * @param left  left most coordinate to draw on
  * @param right right most coordinate to draw on
  * @param y y coordinate
  * @param width the width of the view
  */
-static void DrawCargoIcons(CargoID i, uint waiting, int left, int right, int y)
+static void DrawCargoIcons (CargoID i, uint waiting, BlitArea *dpi,
+	int left, int right, int y)
 {
 	int width = ScaleGUITrad(10);
 	uint num = min((waiting + (width / 2)) / width, (right - left) / width); // maximum is width / 10 icons so it won't overflow
@@ -827,7 +829,7 @@ static void DrawCargoIcons(CargoID i, uint waiting, int left, int right, int y)
 
 	int x = _current_text_dir == TD_RTL ? left : right - num * width;
 	do {
-		DrawSprite (_cur_dpi, sprite, PAL_NONE, x, y);
+		DrawSprite (dpi, sprite, PAL_NONE, x, y);
 		x += width;
 	} while (--num);
 }
@@ -1726,7 +1728,7 @@ struct StationViewWindow : public Window {
 			SetDParam(0, cargo);
 			SetDParam(1, cd->get_count());
 			StringID str = STR_STATION_VIEW_WAITING_CARGO;
-			DrawCargoIcons (cargo, cd->get_count(), r.left + WD_FRAMERECT_LEFT + this->expand_shrink_width, r.right - WD_FRAMERECT_RIGHT - this->expand_shrink_width, y);
+			DrawCargoIcons (cargo, cd->get_count(), _cur_dpi, r.left + WD_FRAMERECT_LEFT + this->expand_shrink_width, r.right - WD_FRAMERECT_RIGHT - this->expand_shrink_width, y);
 
 			const char *sym = NULL;
 			if (!cd->empty() || (cd->get_reserved() > 0)) {
