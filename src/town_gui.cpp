@@ -131,11 +131,11 @@ public:
 		this->SetWidgetDisabledState(WID_TA_EXECUTE, this->sel_index == -1);
 
 		this->DrawWidgets (_cur_dpi);
-		if (!this->IsShaded()) this->DrawRatings();
+		if (!this->IsShaded()) this->DrawRatings (_cur_dpi);
 	}
 
 	/** Draw the contents of the ratings panel. May request a resize of the window if the contents does not fit. */
-	void DrawRatings()
+	void DrawRatings (BlitArea *dpi)
 	{
 		NWidgetBase *nwid = this->GetWidget<NWidgetBase>(WID_TA_RATING_INFO);
 		uint left = nwid->pos_x + WD_FRAMERECT_LEFT;
@@ -143,7 +143,7 @@ public:
 
 		uint y = nwid->pos_y + WD_FRAMERECT_TOP;
 
-		DrawString (_cur_dpi, left, right, y, STR_LOCAL_AUTHORITY_COMPANY_RATINGS);
+		DrawString (dpi, left, right, y, STR_LOCAL_AUTHORITY_COMPANY_RATINGS);
 		y += FONT_HEIGHT_NORMAL;
 
 		Dimension icon_size = GetSpriteSize(SPR_COMPANY_ICON);
@@ -164,7 +164,7 @@ public:
 		const Company *c;
 		FOR_ALL_COMPANIES(c) {
 			if ((HasBit(this->town->have_ratings, c->index) || this->town->exclusivity == c->index)) {
-				DrawCompanyIcon (_cur_dpi, c->index, icon_left, y + icon_y_offset);
+				DrawCompanyIcon (dpi, c->index, icon_left, y + icon_y_offset);
 
 				SetDParam(0, c->index);
 				SetDParam(1, c->index);
@@ -182,10 +182,10 @@ public:
 
 				SetDParam(2, str);
 				if (this->town->exclusivity == c->index) {
-					DrawSprite (_cur_dpi, SPR_EXCLUSIVE_TRANSPORT, COMPANY_SPRITE_COLOUR(c->index), exclusive_left, y + exclusive_y_offset);
+					DrawSprite (dpi, SPR_EXCLUSIVE_TRANSPORT, COMPANY_SPRITE_COLOUR(c->index), exclusive_left, y + exclusive_y_offset);
 				}
 
-				DrawString (_cur_dpi, text_left, text_right, y, STR_LOCAL_AUTHORITY_COMPANY_RATING);
+				DrawString (dpi, text_left, text_right, y, STR_LOCAL_AUTHORITY_COMPANY_RATING);
 				y += FONT_HEIGHT_NORMAL;
 			}
 		}
