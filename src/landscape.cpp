@@ -32,6 +32,7 @@
 #include "object_base.h"
 #include "company_func.h"
 #include "pathfinder/yapf/astar.hpp"
+#include "saveload/saveload.h"
 #include <queue>
 #include <set>
 

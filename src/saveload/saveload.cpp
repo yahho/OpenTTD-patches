@@ -61,6 +61,8 @@ extern const uint16 SAVEGAME_VERSION = 24; ///< Current savegame version
 
 static const uint16 OTTD_SAVEGAME_VERSION = 194; ///< Maximum supported OTTD version
 
+FileToSaveLoad _file_to_saveload; ///< File to save or load in the openttd loop.
+
 char _savegame_format[8]; ///< how to compress savegames
 bool _do_autosave;        ///< are we doing an autosave at the moment?
 
