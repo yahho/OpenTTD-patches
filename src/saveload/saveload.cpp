@@ -719,7 +719,7 @@ static void LoadSavegameFormat(LoadFilter **chain, SavegameTypeVersion *stv)
  * @param mode Load mode. Load can also be a TTD(Patch) game. Use #SL_LOAD, #SL_OLD_LOAD or #SL_LOAD_CHECK.
  * @return Return whether loading was successful
  */
-static bool DoLoad(LoadFilter **chain, FileOperation fop, DetailedFileType dft)
+static bool DoLoad(LoadFilter **chain, SaveLoadOperation fop, DetailedFileType dft)
 {
 	SavegameTypeVersion sl_version;
 
@@ -727,7 +727,7 @@ static bool DoLoad(LoadFilter **chain, FileOperation fop, DetailedFileType dft)
 		LoadSavegameFormat(chain, &sl_version);
 	}
 
-	if (fop != FOP_CHECK) {
+	if (fop != SLO_CHECK) {
 		/* Old maps were hardcoded to 256x256 and thus did not contain
 		 * any mapsize information. Pre-initialize to 256x256 to not to
 		 * confuse old games */
@@ -771,15 +771,15 @@ static bool DoLoad(LoadFilter **chain, FileOperation fop, DetailedFileType dft)
 	} else {
 		/* Load chunks. */
 		LoadBuffer reader (*chain, &sl_version, _file_to_saveload.abstract_ftype == FT_SCENARIO);
-		SlLoadChunks(&reader, fop == FOP_CHECK);
+		SlLoadChunks(&reader, fop == SLO_CHECK);
 
 		/* Resolve references */
-		if (fop != FOP_CHECK) {
+		if (fop != SLO_CHECK) {
 			SlFixPointers(&sl_version);
 		}
 	}
 
-	if (fop == FOP_CHECK) {
+	if (fop == SLO_CHECK) {
 		/* The only part from AfterLoadGame() we need */
 		_load_check_data.grf_compatibility = IsGoodGRFConfigList(_load_check_data.grfconfig);
 
@@ -803,7 +803,7 @@ static bool DoLoad(LoadFilter **chain, FileOperation fop, DetailedFileType dft)
  * @param mode Load mode. Load can also be a TTD(Patch) game. Use #SL_LOAD, #SL_OLD_LOAD or #SL_LOAD_CHECK.
  * @return Return whether loading was successful
  */
-static bool LoadWithFilterMode(LoadFilter *reader, FileOperation fop, DetailedFileType dft)
+static bool LoadWithFilterMode(LoadFilter *reader, SaveLoadOperation fop, DetailedFileType dft)
 {
 	LoadFilter *chain = reader;
 	bool res;
@@ -814,7 +814,7 @@ static bool LoadWithFilterMode(LoadFilter *reader, FileOperation fop, DetailedFi
 		res = DoLoad(&chain, fop, dft);
 	} catch (SlException e) {
 		/* Distinguish between loading into _load_check_data vs. normal load. */
-		if (fop == FOP_CHECK) {
+		if (fop == SLO_CHECK) {
 			_load_check_data.error = e.error;
 		} else {
 			_sl.error = e.error;
@@ -840,7 +840,7 @@ static bool LoadWithFilterMode(LoadFilter *reader, FileOperation fop, DetailedFi
  */
 bool LoadWithFilter(LoadFilter *reader)
 {
-	return LoadWithFilterMode(reader, FOP_LOAD, DFT_GAME_FILE);
+	return LoadWithFilterMode(reader, SLO_LOAD, DFT_GAME_FILE);
 }
 
 /**
@@ -851,7 +851,7 @@ bool LoadWithFilter(LoadFilter *reader)
  * @param sb The sub directory to load the savegame from
  * @return Return whether loading was successful
  */
-bool LoadGame(const char *filename, FileOperation fop, DetailedFileType dft, Subdirectory sb)
+bool LoadGame(const char *filename, SaveLoadOperation fop, DetailedFileType dft, Subdirectory sb)
 {
 	WaitTillSaved();
 
@@ -872,7 +872,7 @@ bool LoadGame(const char *filename, FileOperation fop, DetailedFileType dft, Sub
 
 	if (fh == NULL) {
 		/* Distinguish between loading into _load_check_data vs. normal load. */
-		if (fop == FOP_CHECK) {
+		if (fop == SLO_CHECK) {
 			_load_check_data.error.str = STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE;
 		} else {
 			DEBUG(sl, 0, "Cannot open file '%s'", filename);
@@ -887,7 +887,7 @@ bool LoadGame(const char *filename, FileOperation fop, DetailedFileType dft, Sub
 		DEBUG(desync, 1, "load: %s", filename);
 	}
 
-	if (fop == FOP_CHECK) {
+	if (fop == SLO_CHECK) {
 		/* Clear previous check data */
 		_load_check_data.Clear();
 		/* Mark SL_LOAD_CHECK as supported for this savegame. */
@@ -943,7 +943,7 @@ void GenerateDefaultSaveName (stringb *buf)
  */
 void FileToSaveLoad::SetMode(FiosType ft)
 {
-	this->SetMode(FOP_LOAD, GetAbstractFileType(ft), GetDetailedFileType(ft));
+	this->SetMode(SLO_LOAD, GetAbstractFileType(ft), GetDetailedFileType(ft));
 }
 
 /**
@@ -952,10 +952,10 @@ void FileToSaveLoad::SetMode(FiosType ft)
  * @param aft Abstract file type.
  * @param dft Detailed file type.
  */
-void FileToSaveLoad::SetMode(FileOperation fop, AbstractFileType aft, DetailedFileType dft)
+void FileToSaveLoad::SetMode(SaveLoadOperation fop, AbstractFileType aft, DetailedFileType dft)
 {
 	if (aft == FT_INVALID || aft == FT_NONE) {
-		this->file_op = FOP_INVALID;
+		this->file_op = SLO_INVALID;
 		this->detail_ftype = DFT_INVALID;
 		this->abstract_ftype = FT_INVALID;
 		return;

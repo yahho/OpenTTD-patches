@@ -66,7 +66,7 @@ public:
 	void ValidateFileList(bool force_reload = false)
 	{
 		if (force_reload || !this->file_list_valid) {
-			this->BuildFileList(FT_SAVEGAME, FOP_LOAD);
+			this->BuildFileList(FT_SAVEGAME, SLO_LOAD);
 			this->file_list_valid = true;
 		}
 	}
