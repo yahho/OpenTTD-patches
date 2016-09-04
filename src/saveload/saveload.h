@@ -46,24 +46,16 @@ inline bool IsExperimentalSavegameVersion()
 	return experimental_savegame;
 }
 
-/** Save or load mode. @see SaveOrLoad */
-enum LoadMode {
-	SL_INVALID    = -1, ///< Invalid mode.
-	SL_LOAD       =  0, ///< Load game.
-	SL_OLD_LOAD   =  1, ///< Load old game.
-	SL_PNG        =  2, ///< Load PNG file (height map).
-	SL_BMP        =  3, ///< Load BMP file (height map).
-	SL_LOAD_CHECK =  4, ///< Load for game preview.
-};
-
 /** Deals with the type of the savegame, independent of extension */
 struct FileToSaveLoad {
-	int mode;                  ///< savegame/scenario type (old, new)
-	AbstractFileType filetype; ///< what type of file are we dealing with
-	char name[MAX_PATH];       ///< name
-	char title[255];           ///< internal name of the game
+	FileOperation file_op;           ///< File operation to perform.
+	DetailedFileType detail_ftype;   ///< Concrete file type (PNG, BMP, old save, etc).
+	AbstractFileType abstract_ftype; ///< Abstract type of file (scenario, heightmap, etc).
+	char name[MAX_PATH];             ///< Name of the file.
+	char title[255];                 ///< Internal name of the game.
 
 	void SetMode(FiosType ft);
+	void SetMode(FileOperation fop, AbstractFileType aft, DetailedFileType dft);
 };
 
 extern FileToSaveLoad _file_to_saveload;
@@ -71,7 +63,7 @@ extern FileToSaveLoad _file_to_saveload;
 void GenerateDefaultSaveName (stringb *buf);
 void ShowSaveLoadErrorMessage (bool save);
 bool SaveGame(const char *filename, Subdirectory sb, bool threaded = true);
-bool LoadGame(const char *filename, int mode, Subdirectory sb);
+bool LoadGame(const char *filename, FileOperation fop, DetailedFileType dft, Subdirectory sb);
 void WaitTillSaved();
 void ProcessAsyncSaveFinish();
 void DoExitSave();

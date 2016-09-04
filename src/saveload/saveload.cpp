@@ -719,15 +719,15 @@ static void LoadSavegameFormat(LoadFilter **chain, SavegameTypeVersion *stv)
  * @param mode Load mode. Load can also be a TTD(Patch) game. Use #SL_LOAD, #SL_OLD_LOAD or #SL_LOAD_CHECK.
  * @return Return whether loading was successful
  */
-static bool DoLoad(LoadFilter **chain, int mode)
+static bool DoLoad(LoadFilter **chain, FileOperation fop, DetailedFileType dft)
 {
 	SavegameTypeVersion sl_version;
 
-	if (mode != SL_OLD_LOAD) {
+	if (dft != DFT_OLD_GAME_FILE) {
 		LoadSavegameFormat(chain, &sl_version);
 	}
 
-	if (mode != SL_LOAD_CHECK) {
+	if (fop != FOP_CHECK) {
 		/* Old maps were hardcoded to 256x256 and thus did not contain
 		 * any mapsize information. Pre-initialize to 256x256 to not to
 		 * confuse old games */
@@ -766,20 +766,20 @@ static bool DoLoad(LoadFilter **chain, int mode)
 		}
 	}
 
-	if (mode == SL_OLD_LOAD) {
+	if (dft == DFT_OLD_GAME_FILE) {
 		if (!LoadOldSaveGame(*chain, &sl_version, &_sl.error)) return false;
 	} else {
 		/* Load chunks. */
-		LoadBuffer reader (*chain, &sl_version, _file_to_saveload.filetype == FT_SCENARIO);
-		SlLoadChunks(&reader, mode == SL_LOAD_CHECK);
+		LoadBuffer reader (*chain, &sl_version, _file_to_saveload.abstract_ftype == FT_SCENARIO);
+		SlLoadChunks(&reader, fop == FOP_CHECK);
 
 		/* Resolve references */
-		if (mode != SL_LOAD_CHECK) {
+		if (fop != FOP_CHECK) {
 			SlFixPointers(&sl_version);
 		}
 	}
 
-	if (mode == SL_LOAD_CHECK) {
+	if (fop == FOP_CHECK) {
 		/* The only part from AfterLoadGame() we need */
 		_load_check_data.grf_compatibility = IsGoodGRFConfigList(_load_check_data.grfconfig);
 
@@ -803,7 +803,7 @@ static bool DoLoad(LoadFilter **chain, int mode)
  * @param mode Load mode. Load can also be a TTD(Patch) game. Use #SL_LOAD, #SL_OLD_LOAD or #SL_LOAD_CHECK.
  * @return Return whether loading was successful
  */
-static bool LoadWithFilterMode(LoadFilter *reader, int mode)
+static bool LoadWithFilterMode(LoadFilter *reader, FileOperation fop, DetailedFileType dft)
 {
 	LoadFilter *chain = reader;
 	bool res;
@@ -811,10 +811,10 @@ static bool LoadWithFilterMode(LoadFilter *reader, int mode)
 	SetSignalHandlers();
 
 	try {
-		res = DoLoad(&chain, mode);
+		res = DoLoad(&chain, fop, dft);
 	} catch (SlException e) {
 		/* Distinguish between loading into _load_check_data vs. normal load. */
-		if (mode == SL_LOAD_CHECK) {
+		if (fop == FOP_CHECK) {
 			_load_check_data.error = e.error;
 		} else {
 			_sl.error = e.error;
@@ -840,7 +840,7 @@ static bool LoadWithFilterMode(LoadFilter *reader, int mode)
  */
 bool LoadWithFilter(LoadFilter *reader)
 {
-	return LoadWithFilterMode(reader, SL_LOAD);
+	return LoadWithFilterMode(reader, FOP_LOAD, DFT_GAME_FILE);
 }
 
 /**
@@ -851,13 +851,13 @@ bool LoadWithFilter(LoadFilter *reader)
  * @param sb The sub directory to load the savegame from
  * @return Return whether loading was successful
  */
-bool LoadGame(const char *filename, int mode, Subdirectory sb)
+bool LoadGame(const char *filename, FileOperation fop, DetailedFileType dft, Subdirectory sb)
 {
 	WaitTillSaved();
 
 	/* Load a TTDLX or TTDPatch game */
 	FILE *fh;
-	if (mode == SL_OLD_LOAD) {
+	if (dft == DFT_OLD_GAME_FILE) {
 		/* XXX Why are old savegames only searched for in NO_DIRECTORY? */
 		fh  = FioFOpenFile(filename, "rb", NO_DIRECTORY);
 	} else {
@@ -872,7 +872,7 @@ bool LoadGame(const char *filename, int mode, Subdirectory sb)
 
 	if (fh == NULL) {
 		/* Distinguish between loading into _load_check_data vs. normal load. */
-		if (mode == SL_LOAD_CHECK) {
+		if (fop == FOP_CHECK) {
 			_load_check_data.error.str = STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE;
 		} else {
 			DEBUG(sl, 0, "Cannot open file '%s'", filename);
@@ -883,18 +883,18 @@ bool LoadGame(const char *filename, int mode, Subdirectory sb)
 	}
 
 	/* LOAD game */
-	if (mode != SL_OLD_LOAD) {
+	if (dft != DFT_OLD_GAME_FILE) {
 		DEBUG(desync, 1, "load: %s", filename);
 	}
 
-	if (mode == SL_LOAD_CHECK) {
+	if (fop == FOP_CHECK) {
 		/* Clear previous check data */
 		_load_check_data.Clear();
 		/* Mark SL_LOAD_CHECK as supported for this savegame. */
 		_load_check_data.checkable = true;
 	}
 
-	return LoadWithFilterMode(new FileReader(fh), mode);
+	return LoadWithFilterMode(new FileReader(fh), fop, dft);
 }
 
 /** Do a save when exiting the game (_settings_client.gui.autosave_on_exit) */
@@ -943,32 +943,25 @@ void GenerateDefaultSaveName (stringb *buf)
  */
 void FileToSaveLoad::SetMode(FiosType ft)
 {
-	switch (ft) {
-		case FIOS_TYPE_FILE:
-		case FIOS_TYPE_SCENARIO:
-			this->mode = SL_LOAD;
-			break;
+	this->SetMode(FOP_LOAD, GetAbstractFileType(ft), GetDetailedFileType(ft));
+}
 
-		case FIOS_TYPE_OLDFILE:
-		case FIOS_TYPE_OLD_SCENARIO:
-			this->mode = SL_OLD_LOAD;
-			break;
-
-#ifdef WITH_PNG
-		case FIOS_TYPE_PNG:
-			this->mode = SL_PNG;
-			break;
-#endif /* WITH_PNG */
-
-		case FIOS_TYPE_BMP:
-			this->mode = SL_BMP;
-			break;
-
-		default:
-			this->mode = SL_INVALID;
-			break;
+/**
+ * Set the mode and file type of the file to save or load.
+ * @param fop File operation being performed.
+ * @param aft Abstract file type.
+ * @param dft Detailed file type.
+ */
+void FileToSaveLoad::SetMode(FileOperation fop, AbstractFileType aft, DetailedFileType dft)
+{
+	if (aft == FT_INVALID || aft == FT_NONE) {
+		this->file_op = FOP_INVALID;
+		this->detail_ftype = DFT_INVALID;
+		this->abstract_ftype = FT_INVALID;
+		return;
 	}
 
-	this->filetype = GetAbstractFileType(ft);
-	if (this->filetype == FT_NONE) this->filetype = FT_INVALID;
+	this->file_op = fop;
+	this->detail_ftype = dft;
+	this->abstract_ftype = aft;
 }
