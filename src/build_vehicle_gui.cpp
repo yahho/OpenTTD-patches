@@ -533,25 +533,6 @@ static GUIEngineList::FilterFunction * const _filter_funcs[] = {
 	&CargoFilter,
 };
 
-static int DrawCargoCapacityInfo(int left, int right, int y, EngineID engine)
-{
-	CargoArray cap;
-	uint32 refits;
-	GetArticulatedVehicleCargoesAndRefits(engine, &cap, &refits);
-
-	for (CargoID c = 0; c < NUM_CARGO; c++) {
-		if (cap[c] == 0) continue;
-
-		SetDParam(0, c);
-		SetDParam(1, cap[c]);
-		SetDParam(2, HasBit(refits, c) ? STR_PURCHASE_INFO_REFITTABLE : STR_EMPTY);
-		DrawString (_cur_dpi, left, right, y, STR_PURCHASE_INFO_CAPACITY);
-		y += FONT_HEIGHT_NORMAL;
-	}
-
-	return y;
-}
-
 /* Draw rail wagon specific details */
 static int DrawRailWagonPurchaseInfo(int left, int right, int y, EngineID engine_number, const RailVehicleInfo *rvi)
 {
@@ -831,15 +812,27 @@ int DrawVehiclePurchaseInfo(int left, int right, int y, EngineID engine_number)
 
 	if (articulated_cargo) {
 		/* Cargo type + capacity, or N/A */
-		int new_y = DrawCargoCapacityInfo(left, right, y, engine_number);
+		CargoArray cap;
+		uint32 refits;
+		GetArticulatedVehicleCargoesAndRefits (engine_number, &cap, &refits);
 
-		if (new_y == y) {
+		bool empty = true;
+		for (CargoID c = 0; c < NUM_CARGO; c++) {
+			if (cap[c] == 0) continue;
+
+			empty = false;
+			SetDParam (0, c);
+			SetDParam (1, cap[c]);
+			SetDParam (2, HasBit(refits, c) ? STR_PURCHASE_INFO_REFITTABLE : STR_EMPTY);
+			DrawString (_cur_dpi, left, right, y, STR_PURCHASE_INFO_CAPACITY);
+			y += FONT_HEIGHT_NORMAL;
+		}
+
+		if (empty) {
 			SetDParam(0, CT_INVALID);
 			SetDParam(2, STR_EMPTY);
 			DrawString (_cur_dpi, left, right, y, STR_PURCHASE_INFO_CAPACITY);
 			y += FONT_HEIGHT_NORMAL;
-		} else {
-			y = new_y;
 		}
 	}
 
