@@ -1109,7 +1109,7 @@ void SwitchToMode(SwitchMode new_mode)
 			if (!SafeLoad(_file_to_saveload.name, _file_to_saveload.mode, GM_NORMAL, NO_DIRECTORY)) {
 				ShowSaveLoadErrorMessage (false);
 			} else {
-				if (_saveload_mode == SLD_LOAD_SCENARIO) {
+				if (_file_to_saveload.filetype == FT_SCENARIO) {
 					/* Reset engine pool to simplify changing engine NewGRFs in scenario editor. */
 					EngineOverrideManager::ResetToCurrentNewGRFConfig();
 				}
