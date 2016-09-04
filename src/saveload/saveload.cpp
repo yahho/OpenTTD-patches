@@ -965,3 +965,21 @@ void FileToSaveLoad::SetMode(FileOperation fop, AbstractFileType aft, DetailedFi
 	this->detail_ftype = dft;
 	this->abstract_ftype = aft;
 }
+
+/**
+ * Set the name of the file.
+ * @param name Name of the file.
+ */
+void FileToSaveLoad::SetName(const char *name)
+{
+	bstrcpy (this->name, name);
+}
+
+/**
+ * Set the title of the file.
+ * @param title Title of the file.
+ */
+void FileToSaveLoad::SetTitle(const char *title)
+{
+	bstrcpy (this->title, title);
+}

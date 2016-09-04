@@ -537,9 +537,8 @@ public:
 				if (this->selected != NULL && !_load_check_data.HasErrors()) {
 					const char *name = FiosBrowseTo(this->selected);
 					_file_to_saveload.SetMode(this->selected->type);
-
-					bstrcpy (_file_to_saveload.name, name);
-					bstrcpy (_file_to_saveload.title, this->selected->title);
+					_file_to_saveload.SetName(name);
+					_file_to_saveload.SetTitle(this->selected->title);
 
 					if (this->abstract_filetype == FT_HEIGHTMAP) {
 						this->Delete();
@@ -602,8 +601,8 @@ public:
 							} else {
 								assert(this->abstract_filetype == FT_HEIGHTMAP);
 								_file_to_saveload.SetMode(file->type);
-								bstrcpy (_file_to_saveload.name, name);
-								bstrcpy (_file_to_saveload.title, file->title);
+								_file_to_saveload.SetName(name);
+								_file_to_saveload.SetTitle(file->title);
 
 								this->Delete();
 								ShowHeightmapLoad();

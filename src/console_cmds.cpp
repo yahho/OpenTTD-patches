@@ -362,9 +362,8 @@ DEF_CONSOLE_CMD(ConLoad)
 		if (GetAbstractFileType(item->type) == FT_SAVEGAME) {
 			_switch_mode = SM_LOAD_GAME;
 			_file_to_saveload.SetMode(item->type);
-
-			bstrcpy (_file_to_saveload.name, FiosBrowseTo(item));
-			bstrcpy (_file_to_saveload.title, item->title);
+			_file_to_saveload.SetName(FiosBrowseTo(item));
+			_file_to_saveload.SetTitle(item->title);
 		} else {
 			IConsolePrintF(CC_ERROR, "%s: Not a savegame.", file);
 		}
