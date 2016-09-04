@@ -250,12 +250,13 @@ struct GoalListWindow : public Window {
 
 	/**
 	 * Draws a given column of the goal list.
+	 * @param dpi Area to draw on.
 	 * @param column Which column to draw.
 	 * @wid Pointer to the goal list widget.
 	 * @progress_col_width Width of the progress column.
 	 * @return max width of drawn text
 	 */
-	void DrawListColumn(GoalColumn column, NWidgetBase *wid, uint progress_col_width) const
+	void DrawListColumn (BlitArea *dpi, GoalColumn column, NWidgetBase *wid, uint progress_col_width) const
 	{
 		/* Get column draw area. */
 		int y = wid->pos_y + WD_FRAMERECT_TOP;
@@ -266,11 +267,11 @@ struct GoalListWindow : public Window {
 		const int cap = this->vscroll->GetCapacity();
 
 		/* Draw partial list with global goals. */
-		DrawPartialGoalList (_cur_dpi, pos, cap, x, y, right, progress_col_width, true, column);
+		DrawPartialGoalList (dpi, pos, cap, x, y, right, progress_col_width, true, column);
 
 		/* Draw partial list with company goals. */
 		pos++;
-		DrawPartialGoalList (_cur_dpi, pos, cap, x, y, right, progress_col_width, false, column);
+		DrawPartialGoalList (dpi, pos, cap, x, y, right, progress_col_width, false, column);
 	}
 
 	/* virtual */ void OnPaint()
@@ -295,8 +296,8 @@ struct GoalListWindow : public Window {
 		uint progress_col_width = min(max_width, wid->current_x);
 
 		/* Draw goal list. */
-		this->DrawListColumn(GC_PROGRESS, wid, progress_col_width);
-		this->DrawListColumn(GC_GOAL, wid, progress_col_width);
+		this->DrawListColumn (_cur_dpi, GC_PROGRESS, wid, progress_col_width);
+		this->DrawListColumn (_cur_dpi, GC_GOAL, wid, progress_col_width);
 
 	}
 
