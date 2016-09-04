@@ -38,12 +38,12 @@ struct EndGameHighScoreBaseWindow : Window {
 	}
 
 	/* Always draw a maximized window and within it the centered background */
-	void SetupHighScoreEndWindow()
+	void SetupHighScoreEndWindow (BlitArea *dpi)
 	{
 		/* Resize window to "full-screen". */
 		if (this->width != _screen.width || this->height != _screen.height) ResizeWindow(this, _screen.width - this->width, _screen.height - this->height);
 
-		this->DrawWidgets (_cur_dpi);
+		this->DrawWidgets (dpi);
 
 		/* Standard background slices are 50 pixels high, but it's designed
 		 * for 480 pixels total. 96% of 500 is 480. */
@@ -51,7 +51,7 @@ struct EndGameHighScoreBaseWindow : Window {
 		Point pt = this->GetTopLeft(dim.width, dim.height * 96 / 10);
 		/* Center Highscore/Endscreen background */
 		for (uint i = 0; i < 10; i++) { // the image is split into 10 50px high parts
-			DrawSprite (_cur_dpi, this->background_img + i, PAL_NONE, pt.x, pt.y + (i * dim.height));
+			DrawSprite (dpi, this->background_img + i, PAL_NONE, pt.x, pt.y + (i * dim.height));
 		}
 	}
 
@@ -130,7 +130,7 @@ struct EndGameWindow : EndGameHighScoreBaseWindow {
 
 	virtual void OnPaint()
 	{
-		this->SetupHighScoreEndWindow();
+		this->SetupHighScoreEndWindow (_cur_dpi);
 		Point pt = this->GetTopLeft(640, 480);
 
 		const Company *c = Company::GetIfValid(_local_company);
@@ -181,7 +181,7 @@ struct HighScoreWindow : EndGameHighScoreBaseWindow {
 	{
 		const HighScore *hs = _highscore_table[this->window_number];
 
-		this->SetupHighScoreEndWindow();
+		this->SetupHighScoreEndWindow (_cur_dpi);
 		Point pt = this->GetTopLeft(640, 480);
 
 		SetDParam(0, ORIGINAL_END_YEAR);
