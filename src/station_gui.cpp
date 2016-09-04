@@ -1439,7 +1439,7 @@ struct StationViewWindow : public Window {
 			const NWidgetBase *wid = this->GetWidget<NWidgetBase>(WID_SV_ACCEPT_RATING_LIST);
 			const Rect r = {(int)wid->pos_x, (int)wid->pos_y, (int)(wid->pos_x + wid->current_x - 1), (int)(wid->pos_y + wid->current_y - 1)};
 			if (this->GetWidget<NWidgetCore>(WID_SV_ACCEPTS_RATINGS)->widget_data == STR_STATION_VIEW_RATINGS_BUTTON) {
-				int lines = this->DrawAcceptedCargo(r);
+				int lines = this->DrawAcceptedCargo (_cur_dpi, r);
 				if (lines > this->accepts_lines) { // Resize the widget, and perform re-initialization of the window.
 					this->accepts_lines = lines;
 					this->ReInit();
@@ -1771,10 +1771,11 @@ struct StationViewWindow : public Window {
 
 	/**
 	 * Draw accepted cargo in the #WID_SV_ACCEPT_RATING_LIST widget.
+	 * @param dpi Area to draw on.
 	 * @param r Rectangle of the widget.
 	 * @return Number of lines needed for drawing the accepted cargo.
 	 */
-	int DrawAcceptedCargo(const Rect &r) const
+	int DrawAcceptedCargo (BlitArea *dpi, const Rect &r) const
 	{
 		const Station *st = Station::Get(this->window_number);
 
@@ -1783,7 +1784,7 @@ struct StationViewWindow : public Window {
 			if (HasBit(st->goods[i].status, GoodsEntry::GES_ACCEPTANCE)) SetBit(cargo_mask, i);
 		}
 		SetDParam(0, cargo_mask);
-		int bottom = DrawStringMultiLine (_cur_dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP, INT32_MAX, STR_STATION_VIEW_ACCEPTS_CARGO);
+		int bottom = DrawStringMultiLine (dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP, INT32_MAX, STR_STATION_VIEW_ACCEPTS_CARGO);
 		return CeilDiv(bottom - r.top - WD_FRAMERECT_TOP, FONT_HEIGHT_NORMAL);
 	}
 
