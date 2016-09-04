@@ -365,7 +365,7 @@ DEF_CONSOLE_CMD(ConLoad)
 		switch (item->type) {
 			case FIOS_TYPE_FILE: case FIOS_TYPE_OLDFILE: {
 				_switch_mode = SM_LOAD_GAME;
-				SetFiosType(item->type);
+				_file_to_saveload.SetMode(item->type);
 
 				bstrcpy (_file_to_saveload.name, FiosBrowseTo(item));
 				bstrcpy (_file_to_saveload.title, item->title);

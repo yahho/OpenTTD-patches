@@ -527,7 +527,7 @@ public:
 			case WID_SL_LOAD_BUTTON:
 				if (this->selected != NULL && !_load_check_data.HasErrors()) {
 					const char *name = FiosBrowseTo(this->selected);
-					SetFiosType(this->selected->type);
+					_file_to_saveload.SetMode(this->selected->type);
 
 					bstrcpy (_file_to_saveload.name, name);
 					bstrcpy (_file_to_saveload.title, this->selected->title);
@@ -588,7 +588,7 @@ public:
 						if (_saveload_mode == SLD_LOAD_GAME || _saveload_mode == SLD_LOAD_SCENARIO) {
 							this->OnClick(pt, WID_SL_LOAD_BUTTON, 1);
 						} else if (_saveload_mode == SLD_LOAD_HEIGHTMAP) {
-							SetFiosType(file->type);
+							_file_to_saveload.SetMode(file->type);
 							bstrcpy (_file_to_saveload.name, name);
 							bstrcpy (_file_to_saveload.title, file->title);
 
@@ -783,33 +783,4 @@ void ShowSaveLoadDialog(SaveLoadDialogMode mode)
 	_file_to_saveload.filetype = _file_modetotype[mode];
 
 	new SaveLoadWindow(sld, mode);
-}
-
-void SetFiosType(const byte fiostype)
-{
-	switch (fiostype) {
-		case FIOS_TYPE_FILE:
-		case FIOS_TYPE_SCENARIO:
-			_file_to_saveload.mode = SL_LOAD;
-			break;
-
-		case FIOS_TYPE_OLDFILE:
-		case FIOS_TYPE_OLD_SCENARIO:
-			_file_to_saveload.mode = SL_OLD_LOAD;
-			break;
-
-#ifdef WITH_PNG
-		case FIOS_TYPE_PNG:
-			_file_to_saveload.mode = SL_PNG;
-			break;
-#endif /* WITH_PNG */
-
-		case FIOS_TYPE_BMP:
-			_file_to_saveload.mode = SL_BMP;
-			break;
-
-		default:
-			_file_to_saveload.mode = SL_INVALID;
-			break;
-	}
 }

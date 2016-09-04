@@ -936,3 +936,36 @@ void GenerateDefaultSaveName (stringb *buf)
 	GetString (buf, !Company::IsValidID(cid) ? STR_SAVEGAME_NAME_SPECTATOR : STR_SAVEGAME_NAME_DEFAULT);
 	SanitizeFilename (buf->buffer);
 }
+
+/**
+ * Set the mode of the file to save or load based on the type of file entry at the file system.
+ * @param ft Type of file entry of the file system.
+ */
+void FileToSaveLoad::SetMode(FiosType ft)
+{
+	switch (ft) {
+		case FIOS_TYPE_FILE:
+		case FIOS_TYPE_SCENARIO:
+			this->mode = SL_LOAD;
+			break;
+
+		case FIOS_TYPE_OLDFILE:
+		case FIOS_TYPE_OLD_SCENARIO:
+			this->mode = SL_OLD_LOAD;
+			break;
+
+#ifdef WITH_PNG
+		case FIOS_TYPE_PNG:
+			this->mode = SL_PNG;
+			break;
+#endif /* WITH_PNG */
+
+		case FIOS_TYPE_BMP:
+			this->mode = SL_BMP;
+			break;
+
+		default:
+			this->mode = SL_INVALID;
+			break;
+	}
+}
