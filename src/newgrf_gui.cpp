@@ -314,13 +314,13 @@ struct NewGRFParametersWindow : public Window {
 		}
 	}
 
-	virtual void OnPaint()
+	void OnPaint (BlitArea *dpi) OVERRIDE
 	{
 		if (this->closing_dropdown) {
 			this->closing_dropdown = false;
 			this->clicked_dropdown = false;
 		}
-		this->DrawWidgets (_cur_dpi);
+		this->DrawWidgets (dpi);
 	}
 
 	virtual void OnClick(Point pt, int widget, int click_count)

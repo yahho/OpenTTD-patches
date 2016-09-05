@@ -417,13 +417,13 @@ struct AISettingsWindow : public Window {
 		}
 	}
 
-	virtual void OnPaint()
+	void OnPaint (BlitArea *dpi) OVERRIDE
 	{
 		if (this->closing_dropdown) {
 			this->closing_dropdown = false;
 			this->clicked_dropdown = false;
 		}
-		this->DrawWidgets (_cur_dpi);
+		this->DrawWidgets (dpi);
 	}
 
 	virtual void OnClick(Point pt, int widget, int click_count)
@@ -1092,12 +1092,12 @@ struct AIDebugWindow : public Window {
 		}
 	}
 
-	virtual void OnPaint()
+	void OnPaint (BlitArea *dpi) OVERRIDE
 	{
 		this->SelectValidDebugCompany();
 
 		/* Draw standard stuff */
-		this->DrawWidgets (_cur_dpi);
+		this->DrawWidgets (dpi);
 
 		if (this->IsShaded()) return; // Don't draw anything when the window is shaded.
 
@@ -1121,7 +1121,7 @@ struct AIDebugWindow : public Window {
 			if (!valid) continue;
 
 			byte offset = (i == ai_debug_company) ? 1 : 0;
-			DrawCompanyIcon (_cur_dpi, i, button->pos_x + button->current_x / 2 - 7 + offset, this->GetWidget<NWidgetBase>(WID_AID_COMPANY_BUTTON_START + i)->pos_y + 2 + offset);
+			DrawCompanyIcon (dpi, i, button->pos_x + button->current_x / 2 - 7 + offset, this->GetWidget<NWidgetBase>(WID_AID_COMPANY_BUTTON_START + i)->pos_y + 2 + offset);
 		}
 
 		/* Set button colour for Game Script. */

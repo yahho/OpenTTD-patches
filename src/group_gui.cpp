@@ -468,7 +468,7 @@ public:
 		}
 	}
 
-	virtual void OnPaint()
+	void OnPaint (BlitArea *dpi) OVERRIDE
 	{
 		/* If we select the all vehicles, this->list will contain all vehicles of the owner
 		 * else this->list will contain all vehicles which belong to the selected group */
@@ -519,7 +519,7 @@ public:
 		/* Set text of sort by dropdown */
 		this->GetWidget<NWidgetCore>(WID_GL_SORT_BY_DROPDOWN)->widget_data = this->vehicle_sorter_names[this->vehicles.SortType()];
 
-		this->DrawWidgets (_cur_dpi);
+		this->DrawWidgets (dpi);
 	}
 
 	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE

@@ -395,7 +395,7 @@ struct CompanyFinancesWindow : Window {
 		this->GetWidget<NWidgetStacked>(WID_CF_SEL_BUTTONS)->SetDisplayedPlane(plane);
 	}
 
-	virtual void OnPaint()
+	void OnPaint (BlitArea *dpi) OVERRIDE
 	{
 		if (!this->IsShaded()) {
 			if (!this->small) {
@@ -422,7 +422,7 @@ struct CompanyFinancesWindow : Window {
 			this->SetWidgetDisabledState(WID_CF_REPAY_LOAN, company != _local_company || c->current_loan == 0); // Repay button only shows when there is any more money to repay.
 		}
 
-		this->DrawWidgets (_cur_dpi);
+		this->DrawWidgets (dpi);
 	}
 
 	virtual void OnClick(Point pt, int widget, int click_count)
@@ -661,13 +661,13 @@ public:
 		}
 	}
 
-	virtual void OnPaint()
+	void OnPaint (BlitArea *dpi) OVERRIDE
 	{
 		/* Disable dropdown controls if no scheme is selected */
 		this->SetWidgetDisabledState(WID_SCL_PRI_COL_DROPDOWN, this->sel == 0);
 		this->SetWidgetDisabledState(WID_SCL_SEC_COL_DROPDOWN, this->sel == 0);
 
-		this->DrawWidgets (_cur_dpi);
+		this->DrawWidgets (dpi);
 	}
 
 	virtual void SetStringParameters(int widget) const
@@ -1238,7 +1238,7 @@ public:
 		}
 	}
 
-	virtual void OnPaint()
+	void OnPaint (BlitArea *dpi) OVERRIDE
 	{
 		/* lower the non-selected gender button */
 		this->SetWidgetsLoweredState(!this->is_female, WID_SCMF_MALE, WID_SCMF_MALE2, WIDGET_LIST_END);
@@ -1296,7 +1296,7 @@ public:
 		this->SetWidgetsDisabledState(_cmf_info[CMFV_GLASSES].valid_values[this->ge] < 2 || this->GetFaceBits(CMFV_HAS_GLASSES) == 0,
 				WID_SCMF_GLASSES, WID_SCMF_GLASSES_L, WID_SCMF_GLASSES_R, WIDGET_LIST_END);
 
-		this->DrawWidgets (_cur_dpi);
+		this->DrawWidgets (dpi);
 	}
 
 	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
@@ -2048,7 +2048,7 @@ struct CompanyWindow : Window
 		this->OnInvalidateData();
 	}
 
-	virtual void OnPaint()
+	void OnPaint (BlitArea *dpi) OVERRIDE
 	{
 		const Company *c = Company::Get((CompanyID)this->window_number);
 		bool local = this->window_number == _local_company;
@@ -2114,7 +2114,7 @@ struct CompanyWindow : Window
 			}
 		}
 
-		this->DrawWidgets (_cur_dpi);
+		this->DrawWidgets (dpi);
 	}
 
 	virtual void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize)

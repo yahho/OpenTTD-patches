@@ -1674,7 +1674,7 @@ struct MainToolbarWindow : Window {
 		Window::FindWindowPlacementAndResize(_toolbar_width, def_height);
 	}
 
-	virtual void OnPaint()
+	void OnPaint (BlitArea *dpi) OVERRIDE
 	{
 		/* If spectator, disable all construction buttons
 		 * ie : Build road, rail, ships, airports and landscaping
@@ -1689,7 +1689,7 @@ struct MainToolbarWindow : Window {
 		this->SetWidgetDisabledState(WID_TN_RAILS, !CanBuildVehicleInfrastructure(VEH_TRAIN));
 		this->SetWidgetDisabledState(WID_TN_AIR, !CanBuildVehicleInfrastructure(VEH_AIRCRAFT));
 
-		this->DrawWidgets (_cur_dpi);
+		this->DrawWidgets (dpi);
 	}
 
 	virtual void OnClick(Point pt, int widget, int click_count)
@@ -1989,12 +1989,12 @@ struct ScenarioEditorToolbarWindow : Window {
 		Window::FindWindowPlacementAndResize(_toolbar_width, def_height);
 	}
 
-	virtual void OnPaint()
+	void OnPaint (BlitArea *dpi) OVERRIDE
 	{
 		this->SetWidgetDisabledState(WID_TE_DATE_BACKWARD, _settings_game.game_creation.starting_year <= MIN_YEAR);
 		this->SetWidgetDisabledState(WID_TE_DATE_FORWARD, _settings_game.game_creation.starting_year >= MAX_YEAR);
 
-		this->DrawWidgets (_cur_dpi);
+		this->DrawWidgets (dpi);
 	}
 
 	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE

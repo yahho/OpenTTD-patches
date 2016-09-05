@@ -1430,21 +1430,21 @@ struct BuildVehicleWindow : Window {
 		}
 	}
 
-	virtual void OnPaint()
+	void OnPaint (BlitArea *dpi) OVERRIDE
 	{
 		this->GenerateBuildList();
 		this->vscroll->SetCount(this->eng_list.Length());
 
 		this->SetWidgetDisabledState(WID_BV_SHOW_HIDE, this->sel_engine == INVALID_ENGINE);
 
-		this->DrawWidgets (_cur_dpi);
+		this->DrawWidgets (dpi);
 
 		if (!this->IsShaded()) {
 			int needed_height = this->details_height;
 			/* Draw details panels. */
 			if (this->sel_engine != INVALID_ENGINE) {
 				NWidgetBase *nwi = this->GetWidget<NWidgetBase>(WID_BV_PANEL);
-				int text_end = DrawVehiclePurchaseInfo (_cur_dpi, nwi->pos_x + WD_FRAMETEXT_LEFT, nwi->pos_x + nwi->current_x - WD_FRAMETEXT_RIGHT,
+				int text_end = DrawVehiclePurchaseInfo (dpi, nwi->pos_x + WD_FRAMETEXT_LEFT, nwi->pos_x + nwi->current_x - WD_FRAMETEXT_RIGHT,
 						nwi->pos_y + WD_FRAMERECT_TOP, this->sel_engine);
 				needed_height = max(needed_height, text_end - (int)nwi->pos_y + WD_FRAMERECT_BOTTOM);
 			}

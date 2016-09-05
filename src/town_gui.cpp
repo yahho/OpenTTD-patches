@@ -115,7 +115,7 @@ public:
 		this->vscroll->SetCapacity((this->GetWidget<NWidgetBase>(WID_TA_COMMAND_LIST)->current_y - WD_FRAMERECT_TOP - WD_FRAMERECT_BOTTOM) / FONT_HEIGHT_NORMAL);
 	}
 
-	virtual void OnPaint()
+	void OnPaint (BlitArea *dpi) OVERRIDE
 	{
 		int numact;
 		uint buttons = GetMaskOfTownActions(&numact, _local_company, this->town);
@@ -130,8 +130,8 @@ public:
 
 		this->SetWidgetDisabledState(WID_TA_EXECUTE, this->sel_index == -1);
 
-		this->DrawWidgets (_cur_dpi);
-		if (!this->IsShaded()) this->DrawRatings (_cur_dpi);
+		this->DrawWidgets (dpi);
+		if (!this->IsShaded()) this->DrawRatings (dpi);
 	}
 
 	/** Draw the contents of the ratings panel. May request a resize of the window if the contents does not fit. */
@@ -339,13 +339,13 @@ public:
 		this->SetWidgetDisabledState(WID_TV_CHANGE_NAME, _networking && !_network_server);
 	}
 
-	virtual void OnPaint()
+	void OnPaint (BlitArea *dpi) OVERRIDE
 	{
 		if (_game_mode != GM_EDITOR) {
 			this->SetWidgetLoweredState (WID_TV_SHOW_AREA, _thd.town == this->town->index);
 		}
 
-		this->DrawWidgets (_cur_dpi);
+		this->DrawWidgets (dpi);
 	}
 
 	virtual void SetStringParameters(int widget) const
@@ -949,10 +949,10 @@ public:
 		}
 	}
 
-	virtual void OnPaint()
+	void OnPaint (BlitArea *dpi) OVERRIDE
 	{
 		if (this->towns.NeedRebuild()) this->BuildSortTownList();
-		this->DrawWidgets (_cur_dpi);
+		this->DrawWidgets (dpi);
 	}
 
 	virtual void OnHundredthTick()
@@ -1346,10 +1346,10 @@ struct SelectTownWindow : Window {
 		this->Delete();
 	}
 
-	virtual void OnPaint()
+	void OnPaint (BlitArea *dpi) OVERRIDE
 	{
 		if (this->rebuild) this->RebuildTownList();
-		this->DrawWidgets (_cur_dpi);
+		this->DrawWidgets (dpi);
 	}
 
 	virtual void OnResize()

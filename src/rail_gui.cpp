@@ -1002,7 +1002,7 @@ public:
 		this->PickerWindowBase::OnDelete();
 	}
 
-	virtual void OnPaint()
+	void OnPaint (BlitArea *dpi) OVERRIDE
 	{
 		bool newstations = _railstation.newstations;
 		const StationSpec *statspec = newstations ? StationClass::Get(_railstation.station_class)->GetSpec(_railstation.station_type) : NULL;
@@ -1033,7 +1033,7 @@ public:
 			}
 		}
 
-		this->DrawWidgets (_cur_dpi);
+		this->DrawWidgets (dpi);
 
 		/* 'Accepts' and 'Supplies' texts. */
 		NWidgetBase *cov = this->GetWidget<NWidgetBase>(WID_BRAS_COVERAGE_TEXTS);
@@ -1041,7 +1041,7 @@ public:
 		int left = cov->pos_x + WD_FRAMERECT_LEFT;
 		int right = cov->pos_x + cov->current_x - WD_FRAMERECT_RIGHT;
 		int bottom = cov->pos_y + cov->current_y;
-		top = DrawStationCoverageAreaText (_cur_dpi, left, right, top, rad);
+		top = DrawStationCoverageAreaText (dpi, left, right, top, rad);
 		/* Resize background if the window is too small.
 		 * Never make the window smaller to avoid oscillating if the size change affects the acceptance.
 		 * (This is the case, if making the window bigger moves the mouse into the window.) */

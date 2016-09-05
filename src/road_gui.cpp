@@ -977,9 +977,9 @@ struct BuildRoadStationWindow : public PickerWindowBase {
 		this->PickerWindowBase::OnDelete();
 	}
 
-	virtual void OnPaint()
+	void OnPaint (BlitArea *dpi) OVERRIDE
 	{
-		this->DrawWidgets (_cur_dpi);
+		this->DrawWidgets (dpi);
 
 		int rad = _settings_game.station.modified_catchment ? ((this->window_class == WC_BUS_STATION) ? CA_BUS : CA_TRUCK) : CA_UNMODIFIED;
 		if (_settings_client.gui.station_show_coverage) {
@@ -994,7 +994,7 @@ struct BuildRoadStationWindow : public PickerWindowBase {
 		NWidgetBase *back_nwi = this->GetWidget<NWidgetBase>(WID_BROS_BACKGROUND);
 		int right = back_nwi->pos_x +  back_nwi->current_x;
 		int bottom = back_nwi->pos_y +  back_nwi->current_y;
-		top = DrawStationCoverageAreaText (_cur_dpi, back_nwi->pos_x + WD_FRAMERECT_LEFT, right - WD_FRAMERECT_RIGHT, top, rad, sct);
+		top = DrawStationCoverageAreaText (dpi, back_nwi->pos_x + WD_FRAMERECT_LEFT, right - WD_FRAMERECT_RIGHT, top, rad, sct);
 		/* Resize background if the window is too small.
 		 * Never make the window smaller to avoid oscillating if the size change affects the acceptance.
 		 * (This is the case, if making the window bigger moves the mouse into the window.) */

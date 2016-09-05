@@ -491,7 +491,7 @@ public:
 		}
 	}
 
-	virtual void OnPaint()
+	void OnPaint (BlitArea *dpi) OVERRIDE
 	{
 		if (_savegame_sort_dirty) {
 			_savegame_sort_dirty = false;
@@ -499,7 +499,7 @@ public:
 		}
 
 		this->vscroll->SetCount(_fios_items.Length());
-		this->DrawWidgets (_cur_dpi);
+		this->DrawWidgets (dpi);
 	}
 
 	virtual void OnClick(Point pt, int widget, int click_count)

@@ -1181,7 +1181,7 @@ void SmallMapWindow::RebuildColourIndexIfNecessary()
 	this->column_width = min_width + LEGEND_BLOB_WIDTH + WD_FRAMERECT_LEFT + WD_FRAMERECT_RIGHT;
 }
 
-/* virtual */ void SmallMapWindow::OnPaint()
+void SmallMapWindow::OnPaint (BlitArea *dpi)
 {
 	if (this->map_type == SMT_OWNER) {
 		for (const LegendAndColour *tbl = _legend_table[this->map_type]; !tbl->end; ++tbl) {
@@ -1194,7 +1194,7 @@ void SmallMapWindow::RebuildColourIndexIfNecessary()
 		}
 	}
 
-	this->DrawWidgets (_cur_dpi);
+	this->DrawWidgets (dpi);
 }
 
 void SmallMapWindow::DrawWidget (BlitArea *dpi, const Rect &r, int widget) const

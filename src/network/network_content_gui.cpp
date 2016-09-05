@@ -654,7 +654,7 @@ public:
 		}
 	}
 
-	virtual void OnPaint()
+	void OnPaint (BlitArea *dpi) OVERRIDE
 	{
 		const SortButtonState arrow = this->content.IsDescSortOrder() ? SBS_DOWN : SBS_UP;
 
@@ -662,12 +662,12 @@ public:
 			this->BuildContentList();
 		}
 
-		this->DrawWidgets (_cur_dpi);
+		this->DrawWidgets (dpi);
 
 		switch (this->content.SortType()) {
-			case WID_NCL_CHECKBOX - WID_NCL_CHECKBOX: this->DrawSortButtonState (_cur_dpi, WID_NCL_CHECKBOX, arrow); break;
-			case WID_NCL_TYPE     - WID_NCL_CHECKBOX: this->DrawSortButtonState (_cur_dpi, WID_NCL_TYPE,     arrow); break;
-			case WID_NCL_NAME     - WID_NCL_CHECKBOX: this->DrawSortButtonState (_cur_dpi, WID_NCL_NAME,     arrow); break;
+			case WID_NCL_CHECKBOX - WID_NCL_CHECKBOX: this->DrawSortButtonState (dpi, WID_NCL_CHECKBOX, arrow); break;
+			case WID_NCL_TYPE     - WID_NCL_CHECKBOX: this->DrawSortButtonState (dpi, WID_NCL_TYPE,     arrow); break;
+			case WID_NCL_NAME     - WID_NCL_CHECKBOX: this->DrawSortButtonState (dpi, WID_NCL_NAME,     arrow); break;
 		}
 	}
 

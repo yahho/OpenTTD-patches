@@ -417,11 +417,11 @@ public:
 		this->PickerWindowBase::OnDelete();
 	}
 
-	virtual void OnPaint()
+	void OnPaint (BlitArea *dpi) OVERRIDE
 	{
 		int rad = (_settings_game.station.modified_catchment) ? CA_DOCK : CA_UNMODIFIED;
 
-		this->DrawWidgets (_cur_dpi);
+		this->DrawWidgets (dpi);
 
 		if (_settings_client.gui.station_show_coverage) {
 			SetTileSelectBigSize(-rad, -rad, 2 * rad, 2 * rad);
@@ -434,7 +434,7 @@ public:
 		NWidgetBase *back_nwi = this->GetWidget<NWidgetBase>(BDSW_BACKGROUND);
 		int right  = back_nwi->pos_x + back_nwi->current_x;
 		int bottom = back_nwi->pos_y + back_nwi->current_y;
-		top = DrawStationCoverageAreaText (_cur_dpi, back_nwi->pos_x + WD_FRAMERECT_LEFT, right - WD_FRAMERECT_RIGHT, top, rad);
+		top = DrawStationCoverageAreaText (dpi, back_nwi->pos_x + WD_FRAMERECT_LEFT, right - WD_FRAMERECT_RIGHT, top, rad);
 		/* Resize background if the window is too small.
 		 * Never make the window smaller to avoid oscillating if the size change affects the acceptance.
 		 * (This is the case, if making the window bigger moves the mouse into the window.) */
@@ -522,9 +522,9 @@ public:
 		}
 	}
 
-	virtual void OnPaint()
+	void OnPaint (BlitArea *dpi) OVERRIDE
 	{
-		this->DrawWidgets (_cur_dpi);
+		this->DrawWidgets (dpi);
 
 		int x1 = ScaleGUITrad(63) + 1;
 		int x2 = ScaleGUITrad(31) + 1;
@@ -532,12 +532,12 @@ public:
 		int y2 = ScaleGUITrad(33) + 1;
 
 		NWidgetBase *wid_x = this->GetWidget<NWidgetBase> (WID_BDD_X);
-		DrawShipDepotSprite (_cur_dpi, wid_x->pos_x + x1, wid_x->pos_y + y1, DIAGDIR_NE);
-		DrawShipDepotSprite (_cur_dpi, wid_x->pos_x + x2, wid_x->pos_y + y2, DIAGDIR_SW);
+		DrawShipDepotSprite (dpi, wid_x->pos_x + x1, wid_x->pos_y + y1, DIAGDIR_NE);
+		DrawShipDepotSprite (dpi, wid_x->pos_x + x2, wid_x->pos_y + y2, DIAGDIR_SW);
 
 		NWidgetBase *wid_y = this->GetWidget<NWidgetBase> (WID_BDD_Y);
-		DrawShipDepotSprite (_cur_dpi, wid_y->pos_x + x2, wid_y->pos_y + y1, DIAGDIR_NW);
-		DrawShipDepotSprite (_cur_dpi, wid_y->pos_x + x1, wid_y->pos_y + y2, DIAGDIR_SE);
+		DrawShipDepotSprite (dpi, wid_y->pos_x + x2, wid_y->pos_y + y1, DIAGDIR_NW);
+		DrawShipDepotSprite (dpi, wid_y->pos_x + x1, wid_y->pos_y + y2, DIAGDIR_SE);
 	}
 
 	virtual void OnClick(Point pt, int widget, int click_count)

@@ -1066,14 +1066,14 @@ public:
 		this->SetDirty();
 	}
 
-	virtual void OnPaint()
+	void OnPaint (BlitArea *dpi) OVERRIDE
 	{
 		if (this->vehicle->owner != _local_company) {
 			this->selected_order = -1; // Disable selection any selected row at a competitor order window.
 		} else {
 			this->SetWidgetLoweredState(WID_O_GOTO, this->goto_type != OPOS_NONE);
 		}
-		this->DrawWidgets (_cur_dpi);
+		this->DrawWidgets (dpi);
 	}
 
 	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE

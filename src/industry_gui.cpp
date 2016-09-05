@@ -668,14 +668,14 @@ public:
 		this->InvalidateData();
 	}
 
-	virtual void OnPaint()
+	void OnPaint (BlitArea *dpi) OVERRIDE
 	{
-		this->DrawWidgets (_cur_dpi);
+		this->DrawWidgets (dpi);
 
 		if (this->IsShaded()) return; // Don't draw anything when the window is shaded.
 
 		NWidgetBase *nwi = this->GetWidget<NWidgetBase>(WID_IV_INFO);
-		uint expected = this->DrawInfo (_cur_dpi, nwi->pos_x, nwi->pos_x + nwi->current_x - 1, nwi->pos_y) - nwi->pos_y;
+		uint expected = this->DrawInfo (dpi, nwi->pos_x, nwi->pos_x + nwi->current_x - 1, nwi->pos_y) - nwi->pos_y;
 		if (expected > nwi->current_y - 1) {
 			this->info_height = expected + 1;
 			this->ReInit();
@@ -1348,10 +1348,10 @@ public:
 		this->vscroll->SetCapacityFromWidget(this, WID_ID_INDUSTRY_LIST);
 	}
 
-	virtual void OnPaint()
+	void OnPaint (BlitArea *dpi) OVERRIDE
 	{
 		if (this->industries.NeedRebuild()) this->BuildSortIndustriesList();
-		this->DrawWidgets (_cur_dpi);
+		this->DrawWidgets (dpi);
 	}
 
 	virtual void OnHundredthTick()

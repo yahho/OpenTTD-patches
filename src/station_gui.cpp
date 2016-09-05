@@ -410,12 +410,12 @@ public:
 		}
 	}
 
-	virtual void OnPaint()
+	void OnPaint (BlitArea *dpi) OVERRIDE
 	{
 		this->BuildStationsList((Owner)this->window_number);
 		this->SortStationsList();
 
-		this->DrawWidgets (_cur_dpi);
+		this->DrawWidgets (dpi);
 	}
 
 	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
@@ -1419,7 +1419,7 @@ struct StationViewWindow : public Window {
 		}
 	}
 
-	virtual void OnPaint()
+	void OnPaint (BlitArea *dpi) OVERRIDE
 	{
 		const Station *st = Station::Get(this->window_number);
 
@@ -1432,21 +1432,21 @@ struct StationViewWindow : public Window {
 		this->SetWidgetDisabledState(WID_SV_CLOSE_AIRPORT, !(st->facilities & FACIL_AIRPORT) || st->owner != _local_company || st->owner == OWNER_NONE); // Also consider SE, where _local_company == OWNER_NONE
 		this->SetWidgetLoweredState(WID_SV_CLOSE_AIRPORT, (st->facilities & FACIL_AIRPORT) && (st->airport.flags & AIRPORT_CLOSED_block) != 0);
 
-		this->DrawWidgets (_cur_dpi);
+		this->DrawWidgets (dpi);
 
 		if (!this->IsShaded()) {
 			/* Draw 'accepted cargo' or 'cargo ratings'. */
 			const NWidgetBase *wid = this->GetWidget<NWidgetBase>(WID_SV_ACCEPT_RATING_LIST);
 			const Rect r = {(int)wid->pos_x, (int)wid->pos_y, (int)(wid->pos_x + wid->current_x - 1), (int)(wid->pos_y + wid->current_y - 1)};
 			if (this->GetWidget<NWidgetCore>(WID_SV_ACCEPTS_RATINGS)->widget_data == STR_STATION_VIEW_RATINGS_BUTTON) {
-				int lines = this->DrawAcceptedCargo (_cur_dpi, r);
+				int lines = this->DrawAcceptedCargo (dpi, r);
 				if (lines > this->accepts_lines) { // Resize the widget, and perform re-initialization of the window.
 					this->accepts_lines = lines;
 					this->ReInit();
 					return;
 				}
 			} else {
-				int lines = this->DrawCargoRatings (_cur_dpi, r);
+				int lines = this->DrawCargoRatings (dpi, r);
 				if (lines > this->rating_lines) { // Resize the widget, and perform re-initialization of the window.
 					this->rating_lines = lines;
 					this->ReInit();
@@ -1455,7 +1455,7 @@ struct StationViewWindow : public Window {
 			}
 
 			/* Draw arrow pointing up/down for ascending/descending sorting */
-			this->DrawSortButtonState (_cur_dpi, WID_SV_SORT_ORDER, sort_order == SO_ASCENDING ? SBS_UP : SBS_DOWN);
+			this->DrawSortButtonState (dpi, WID_SV_SORT_ORDER, sort_order == SO_ASCENDING ? SBS_UP : SBS_DOWN);
 
 			int pos = this->vscroll->GetPosition();
 
@@ -1481,7 +1481,7 @@ struct StationViewWindow : public Window {
 				}
 
 				if (cargo.get_count() > 0) {
-					pos = this->DrawCargoEntry (&cargo, i, _cur_dpi, waiting_rect, pos, maxrows);
+					pos = this->DrawCargoEntry (&cargo, i, dpi, waiting_rect, pos, maxrows);
 				}
 			}
 			this->vscroll->SetCount (this->vscroll->GetPosition() - pos); // update scrollbar

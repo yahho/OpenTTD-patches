@@ -568,9 +568,9 @@ public:
 	 * The window must be repainted.
 	 * @note This method should not change any state, it should only use drawing functions.
 	 */
-	virtual void OnPaint()
+	virtual void OnPaint (BlitArea *dpi)
 	{
-		this->DrawWidgets (_cur_dpi);
+		this->DrawWidgets (dpi);
 	}
 
 	/**

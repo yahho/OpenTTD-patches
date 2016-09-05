@@ -154,7 +154,7 @@ public:
 
 	virtual void SetStringParameters(int widget) const;
 	virtual void OnInit();
-	virtual void OnPaint();
+	void OnPaint (BlitArea *dpi) OVERRIDE;
 	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE;
 	virtual void OnClick(Point pt, int widget, int click_count);
 	virtual void OnInvalidateData(int data = 0, bool gui_scope = true);

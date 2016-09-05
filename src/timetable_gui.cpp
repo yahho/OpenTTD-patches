@@ -298,7 +298,7 @@ struct TimetableWindow : Window {
 	}
 
 
-	virtual void OnPaint()
+	void OnPaint (BlitArea *dpi) OVERRIDE
 	{
 		const Vehicle *v = this->vehicle;
 		int selected = this->sel_index;
@@ -339,7 +339,7 @@ struct TimetableWindow : Window {
 
 		this->SetWidgetLoweredState(WID_VT_AUTOFILL, HasBit(v->vehicle_flags, VF_AUTOFILL_TIMETABLE));
 
-		this->DrawWidgets (_cur_dpi);
+		this->DrawWidgets (dpi);
 	}
 
 	virtual void SetStringParameters(int widget) const

@@ -1926,7 +1926,7 @@ struct GameSettingsWindow : Window {
 		}
 	}
 
-	virtual void OnPaint()
+	void OnPaint (BlitArea *dpi) OVERRIDE
 	{
 		if (this->closing_dropdown) {
 			this->closing_dropdown = false;
@@ -1950,7 +1950,7 @@ struct GameSettingsWindow : Window {
 			this->warn_lines = new_warn_lines;
 		}
 
-		this->DrawWidgets (_cur_dpi);
+		this->DrawWidgets (dpi);
 
 		/* Draw the 'some search results are hidden' notice. */
 		if (this->warn_missing != WHR_NONE) {
@@ -1960,9 +1960,9 @@ struct GameSettingsWindow : Window {
 			SetDParam(0, _game_settings_restrict_dropdown[this->filter.min_cat]);
 			if (this->warn_lines == 1) {
 				/* If the warning fits at one line, center it. */
-				DrawString (_cur_dpi, left + WD_FRAMETEXT_LEFT, right - WD_FRAMETEXT_RIGHT, top, warn_str, TC_FROMSTRING, SA_HOR_CENTER);
+				DrawString (dpi, left + WD_FRAMETEXT_LEFT, right - WD_FRAMETEXT_RIGHT, top, warn_str, TC_FROMSTRING, SA_HOR_CENTER);
 			} else {
-				DrawStringMultiLine (_cur_dpi, left + WD_FRAMERECT_LEFT, right - WD_FRAMERECT_RIGHT, top, INT32_MAX, warn_str, TC_FROMSTRING, SA_HOR_CENTER);
+				DrawStringMultiLine (dpi, left + WD_FRAMERECT_LEFT, right - WD_FRAMERECT_RIGHT, top, INT32_MAX, warn_str, TC_FROMSTRING, SA_HOR_CENTER);
 			}
 		}
 	}

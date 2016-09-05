@@ -33,10 +33,10 @@ public:
 		this->InitNested(window_number);
 	}
 
-	virtual void OnPaint()
+	void OnPaint (BlitArea *dpi) OVERRIDE
 	{
 		this->OnInvalidateData(0); // Must be sure that the widgets show the transparency variable changes, also when we use shortcuts.
-		this->DrawWidgets (_cur_dpi);
+		this->DrawWidgets (dpi);
 	}
 
 	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE

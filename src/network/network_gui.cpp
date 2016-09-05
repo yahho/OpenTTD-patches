@@ -596,7 +596,7 @@ public:
 	}
 
 
-	virtual void OnPaint()
+	void OnPaint (BlitArea *dpi) OVERRIDE
 	{
 		if (this->servers.NeedRebuild()) {
 			this->BuildGUINetworkGameList();
@@ -618,7 +618,7 @@ public:
 		this->GetWidget<NWidgetStacked>(WID_NG_NEWGRF_SEL)->SetDisplayedPlane(sel == NULL || !sel->online || sel->info.grfconfig == NULL);
 		this->GetWidget<NWidgetStacked>(WID_NG_NEWGRF_MISSING_SEL)->SetDisplayedPlane(sel == NULL || !sel->online || sel->info.grfconfig == NULL || !sel->info.version_compatible || sel->info.compatible);
 
-		this->DrawWidgets (_cur_dpi);
+		this->DrawWidgets (dpi);
 	}
 
 	void DrawDetails (BlitArea *dpi, const Rect &r) const
@@ -1430,7 +1430,7 @@ struct NetworkLobbyWindow : public Window {
 		}
 	}
 
-	virtual void OnPaint()
+	void OnPaint (BlitArea *dpi) OVERRIDE
 	{
 		const NetworkGameInfo *gi = &this->server->info;
 
@@ -1444,7 +1444,7 @@ struct NetworkLobbyWindow : public Window {
 		this->vscroll->SetCount(gi->companies_on);
 
 		/* Draw window widgets */
-		this->DrawWidgets (_cur_dpi);
+		this->DrawWidgets (dpi);
 	}
 
 	void DrawMatrix (BlitArea *dpi, const Rect &r) const
@@ -1932,12 +1932,12 @@ struct NetworkClientListWindow : Window {
 		size->width = WD_FRAMERECT_LEFT + this->server_client_width + this->icon_size.width + WD_FRAMERECT_LEFT + width + WD_FRAMERECT_RIGHT;
 	}
 
-	virtual void OnPaint()
+	void OnPaint (BlitArea *dpi) OVERRIDE
 	{
 		/* Check if we need to reset the height */
 		if (!this->CheckClientListHeight()) return;
 
-		this->DrawWidgets (_cur_dpi);
+		this->DrawWidgets (dpi);
 	}
 
 	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE

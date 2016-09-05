@@ -392,9 +392,9 @@ public:
 		}
 	}
 
-	virtual void OnPaint()
+	void OnPaint (BlitArea *dpi) OVERRIDE
 	{
-		this->DrawWidgets (_cur_dpi);
+		this->DrawWidgets (dpi);
 
 		uint16 top = this->GetWidget<NWidgetBase>(WID_AP_BTN_DOHILIGHT)->pos_y + this->GetWidget<NWidgetBase>(WID_AP_BTN_DOHILIGHT)->current_y + WD_PAR_VSEP_NORMAL;
 		NWidgetBase *panel_nwi = this->GetWidget<NWidgetBase>(WID_AP_BOTTOMPANEL);
@@ -410,12 +410,12 @@ public:
 			if (_settings_game.economy.station_noise_level) {
 				/* show the noise of the selected airport */
 				SetDParam(0, as->noise_level);
-				DrawString (_cur_dpi, panel_nwi->pos_x + WD_FRAMERECT_LEFT, right - WD_FRAMERECT_RIGHT, top, STR_STATION_BUILD_NOISE);
+				DrawString (dpi, panel_nwi->pos_x + WD_FRAMERECT_LEFT, right - WD_FRAMERECT_RIGHT, top, STR_STATION_BUILD_NOISE);
 				top += FONT_HEIGHT_NORMAL + WD_PAR_VSEP_NORMAL;
 			}
 
 			/* strings such as 'Size' and 'Coverage Area' */
-			top = DrawStationCoverageAreaText (_cur_dpi, panel_nwi->pos_x + WD_FRAMERECT_LEFT, right - WD_FRAMERECT_RIGHT, top, rad);
+			top = DrawStationCoverageAreaText (dpi, panel_nwi->pos_x + WD_FRAMERECT_LEFT, right - WD_FRAMERECT_RIGHT, top, rad);
 		}
 
 		/* Resize background if the window is too small.

@@ -274,9 +274,9 @@ struct GoalListWindow : public Window {
 		DrawPartialGoalList (dpi, pos, cap, x, y, right, progress_col_width, false, column);
 	}
 
-	/* virtual */ void OnPaint()
+	void OnPaint (BlitArea *dpi) OVERRIDE
 	{
-		this->DrawWidgets (_cur_dpi);
+		this->DrawWidgets (dpi);
 
 		if (this->IsShaded()) return; // Don't draw anything when the window is shaded.
 
@@ -296,8 +296,8 @@ struct GoalListWindow : public Window {
 		uint progress_col_width = min(max_width, wid->current_x);
 
 		/* Draw goal list. */
-		this->DrawListColumn (_cur_dpi, GC_PROGRESS, wid, progress_col_width);
-		this->DrawListColumn (_cur_dpi, GC_GOAL, wid, progress_col_width);
+		this->DrawListColumn (dpi, GC_PROGRESS, wid, progress_col_width);
+		this->DrawListColumn (dpi, GC_GOAL, wid, progress_col_width);
 
 	}
 

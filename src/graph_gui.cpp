@@ -1195,12 +1195,12 @@ public:
 		this->companies.NeedResort();
 	}
 
-	virtual void OnPaint()
+	void OnPaint (BlitArea *dpi) OVERRIDE
 	{
 		this->BuildCompanyList();
 		this->companies.Sort(&PerformanceSorter);
 
-		this->DrawWidgets (_cur_dpi);
+		this->DrawWidgets (dpi);
 	}
 
 	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE

@@ -562,7 +562,7 @@ struct RefitWindow : public Window {
 		}
 	}
 
-	virtual void OnPaint()
+	void OnPaint (BlitArea *dpi) OVERRIDE
 	{
 		/* Determine amount of items for scroller. */
 		if (this->hscroll != NULL) this->hscroll->SetCount(this->vehicle_width);
@@ -580,7 +580,7 @@ struct RefitWindow : public Window {
 			this->vehicle_margin = sprite_left;
 		}
 
-		this->DrawWidgets (_cur_dpi);
+		this->DrawWidgets (dpi);
 	}
 
 	virtual void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize)
@@ -1640,7 +1640,7 @@ public:
 		}
 	}
 
-	virtual void OnPaint()
+	void OnPaint (BlitArea *dpi) OVERRIDE
 	{
 		this->BuildVehicleList();
 		this->SortVehicleList();
@@ -1669,7 +1669,7 @@ public:
 		/* Set text of sort by dropdown widget. */
 		this->GetWidget<NWidgetCore>(WID_VL_SORT_BY_PULLDOWN)->widget_data = this->vehicle_sorter_names[this->vehicles.SortType()];
 
-		this->DrawWidgets (_cur_dpi);
+		this->DrawWidgets (dpi);
 	}
 
 	virtual void OnClick(Point pt, int widget, int click_count)
@@ -2217,7 +2217,7 @@ struct VehicleDetailsWindow : Window {
 	}
 
 	/** Repaint vehicle details window. */
-	virtual void OnPaint()
+	void OnPaint (BlitArea *dpi) OVERRIDE
 	{
 		const Vehicle *v = Vehicle::Get(this->window_number);
 
@@ -2239,7 +2239,7 @@ struct VehicleDetailsWindow : Window {
 			STR_VEHICLE_DETAILS_DEFAULT;
 		this->GetWidget<NWidgetCore>(WID_VD_SERVICE_INTERVAL_DROPDOWN)->widget_data = str;
 
-		this->DrawWidgets (_cur_dpi);
+		this->DrawWidgets (dpi);
 	}
 
 	virtual void OnClick(Point pt, int widget, int click_count)
@@ -2615,7 +2615,7 @@ public:
 		}
 	}
 
-	virtual void OnPaint()
+	void OnPaint (BlitArea *dpi) OVERRIDE
 	{
 		const Vehicle *v = Vehicle::Get(this->window_number);
 		bool is_localcompany = v->owner == _local_company;
@@ -2631,7 +2631,7 @@ public:
 			this->SetWidgetDisabledState(WID_VV_TURN_AROUND, !is_localcompany);
 		}
 
-		this->DrawWidgets (_cur_dpi);
+		this->DrawWidgets (dpi);
 	}
 
 	virtual void SetStringParameters(int widget) const

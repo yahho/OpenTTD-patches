@@ -672,7 +672,7 @@ struct DepotWindow : Window {
 		this->generate_list = true;
 	}
 
-	virtual void OnPaint()
+	void OnPaint (BlitArea *dpi) OVERRIDE
 	{
 		if (this->generate_list) {
 			/* Generate the vehicle list
@@ -719,7 +719,7 @@ struct DepotWindow : Window {
 			WID_D_AUTOREPLACE,
 			WIDGET_LIST_END);
 
-		this->DrawWidgets (_cur_dpi);
+		this->DrawWidgets (dpi);
 	}
 
 	virtual void OnClick(Point pt, int widget, int click_count)
