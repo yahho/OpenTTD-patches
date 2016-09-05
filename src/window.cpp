@@ -851,13 +851,14 @@ static bool MayBeShown(const Window *w)
  * The function goes recursively upwards in the window stack, and splits the rectangle
  * into multiple pieces at the window edges, so obscured parts are not redrawn.
  *
+ * @param dp Area to draw on
  * @param w Window that needs to be repainted
  * @param left Left edge of the rectangle that should be repainted
  * @param top Top edge of the rectangle that should be repainted
  * @param right Right edge of the rectangle that should be repainted
  * @param bottom Bottom edge of the rectangle that should be repainted
  */
-static void DrawOverlappedWindow(Window *w, int left, int top, int right, int bottom)
+static void DrawOverlappedWindow (BlitArea *dp, Window *w, int left, int top, int right, int bottom)
 {
 	const Window *v;
 	FOR_ALL_WINDOWS_FROM_BACK_FROM(v, w->z_front) {
@@ -870,26 +871,26 @@ static void DrawOverlappedWindow(Window *w, int left, int top, int right, int bo
 			int x;
 
 			if (left < (x = v->left)) {
-				DrawOverlappedWindow(w, left, top, x, bottom);
-				DrawOverlappedWindow(w, x, top, right, bottom);
+				DrawOverlappedWindow (dp, w, left, top, x, bottom);
+				DrawOverlappedWindow (dp, w, x, top, right, bottom);
 				return;
 			}
 
 			if (right > (x = v->left + v->width)) {
-				DrawOverlappedWindow(w, left, top, x, bottom);
-				DrawOverlappedWindow(w, x, top, right, bottom);
+				DrawOverlappedWindow (dp, w, left, top, x, bottom);
+				DrawOverlappedWindow (dp, w, x, top, right, bottom);
 				return;
 			}
 
 			if (top < (x = v->top)) {
-				DrawOverlappedWindow(w, left, top, right, x);
-				DrawOverlappedWindow(w, left, x, right, bottom);
+				DrawOverlappedWindow (dp, w, left, top, right, x);
+				DrawOverlappedWindow (dp, w, left, x, right, bottom);
 				return;
 			}
 
 			if (bottom > (x = v->top + v->height)) {
-				DrawOverlappedWindow(w, left, top, right, x);
-				DrawOverlappedWindow(w, left, x, right, bottom);
+				DrawOverlappedWindow (dp, w, left, top, right, x);
+				DrawOverlappedWindow (dp, w, left, x, right, bottom);
 				return;
 			}
 
@@ -898,14 +899,12 @@ static void DrawOverlappedWindow(Window *w, int left, int top, int right, int bo
 	}
 
 	/* Setup blitter, and dispatch a repaint event to window *wz */
-	DrawPixelInfo *dp = _cur_dpi;
 	dp->width = right - left;
 	dp->height = bottom - top;
 	dp->left = left - w->left;
 	dp->top = top - w->top;
 	dp->dst_ptr = _screen.surface->move (_screen.dst_ptr, left, top);
-	dp->zoom = ZOOM_LVL_NORMAL;
-	w->OnPaint (_cur_dpi);
+	w->OnPaint (dp);
 }
 
 /**
@@ -919,9 +918,8 @@ static void DrawOverlappedWindow(Window *w, int left, int top, int right, int bo
 void DrawOverlappedWindowForAll(int left, int top, int right, int bottom)
 {
 	Window *w;
-	DrawPixelInfo bk;
+	BlitArea bk;
 	bk.surface = _screen.surface;
-	_cur_dpi = &bk;
 
 	FOR_ALL_WINDOWS_FROM_BACK(w) {
 		if (MayBeShown(w) &&
@@ -930,7 +928,7 @@ void DrawOverlappedWindowForAll(int left, int top, int right, int bottom)
 				left < w->left + w->width &&
 				top < w->top + w->height) {
 			/* Window w intersects with the rectangle => needs repaint */
-			DrawOverlappedWindow(w, left, top, right, bottom);
+			DrawOverlappedWindow (&bk, w, left, top, right, bottom);
 		}
 	}
 }
