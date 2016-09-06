@@ -654,7 +654,7 @@ static void LargeWorldCallback(void *userdata, void *buf, uint y, uint pitch, ui
 	int wx, left;
 
 	/* We are no longer rendering to the screen */
-	DrawPixelInfo old_screen = _screen;
+	BlitArea old_screen = _screen;
 	bool old_disable_anim = _screen_disable_anim;
 
 	_screen.dst_ptr = buf;

@@ -801,9 +801,6 @@ int openttd_main(int argc, char *argv[])
 
 	InitializeSpriteSorter();
 
-	/* Initialize the zoom level of the screen to normal */
-	_screen.zoom = ZOOM_LVL_NORMAL;
-
 	NetworkStartUp(); // initialize network-core
 
 #if defined(ENABLE_NETWORK)
