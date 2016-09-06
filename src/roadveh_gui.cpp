@@ -136,10 +136,10 @@ void DrawRoadVehImage (const Vehicle *v, BlitArea *dpi, int left, int right,
 	Direction dir = rtl ? DIR_E : DIR_W;
 	const RoadVehicle *u = RoadVehicle::From(v);
 
-	DrawPixelInfo tmp_dpi;
+	BlitArea tmp_dpi;
 	int max_width = right - left + 1;
 
-	if (!FillDrawPixelInfo (dpi, &tmp_dpi, left, y, max_width, ScaleGUITrad(14))) return;
+	if (!InitBlitArea (dpi, &tmp_dpi, left, y, max_width, ScaleGUITrad(14))) return;
 
 	int px = rtl ? max_width + skip : -skip;
 	for (; u != NULL && (rtl ? px > 0 : px < max_width); u = u->Next()) {

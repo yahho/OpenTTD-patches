@@ -66,14 +66,14 @@ void DrawTrainImage (const Train *v, BlitArea *dpi, int left, int right,
 	bool rtl = _current_text_dir == TD_RTL;
 	Direction dir = rtl ? DIR_E : DIR_W;
 
-	DrawPixelInfo tmp_dpi;
+	BlitArea tmp_dpi;
 	/* Position of highlight box */
 	int highlight_l = 0;
 	int highlight_r = 0;
 	int max_width = right - left + 1;
 	int height = ScaleGUITrad(14);
 
-	if (!FillDrawPixelInfo (dpi, &tmp_dpi, left, y, max_width, height)) return;
+	if (!InitBlitArea (dpi, &tmp_dpi, left, y, max_width, height)) return;
 
 	int px = rtl ? max_width + skip : -skip;
 	bool sel_articulated = false;

@@ -882,8 +882,8 @@ static void DrawStationPreview (BlitArea *dpi, const Rect &r,
 	StationClassID cls, uint type, uint image, bool check_avail)
 {
 	/* Set up a clipping area for the station preview. */
-	DrawPixelInfo tmp_dpi;
-	if (FillDrawPixelInfo (dpi, &tmp_dpi, r.left, r.top, r.right - r.left + 1, r.bottom - r.top + 1)) {
+	BlitArea tmp_dpi;
+	if (InitBlitArea (dpi, &tmp_dpi, r.left, r.top, r.right - r.left + 1, r.bottom - r.top + 1)) {
 		int x = ScaleGUITrad(31) + 1;
 		int y = r.bottom - r.top - ScaleGUITrad(31);
 		if (!DrawStationTile (&tmp_dpi, x, y, _cur_railtype, (Axis)(image % 1), cls, type)) {

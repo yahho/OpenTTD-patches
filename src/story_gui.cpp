@@ -483,8 +483,8 @@ public:
 		const int height = r.bottom - WD_FRAMETEXT_BOTTOM - y;
 
 		/* Set up a clipping region for the panel. */
-		DrawPixelInfo tmp_dpi;
-		if (!FillDrawPixelInfo (dpi, &tmp_dpi, x, y, width + 1, height + 1)) return;
+		BlitArea tmp_dpi;
+		if (!InitBlitArea (dpi, &tmp_dpi, x, y, width + 1, height + 1)) return;
 
 		/* Draw content (now coordinates given to Draw** are local to the new clipping region). */
 		int line_height = FONT_HEIGHT_NORMAL;

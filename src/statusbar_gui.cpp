@@ -61,8 +61,8 @@ static bool DrawScrollingStatusText (BlitArea *dpi, const NewsItem *ni,
 	}
 	*d = '\0';
 
-	DrawPixelInfo tmp_dpi;
-	if (!FillDrawPixelInfo (dpi, &tmp_dpi, left, top, right - left, bottom)) return true;
+	BlitArea tmp_dpi;
+	if (!InitBlitArea (dpi, &tmp_dpi, left, top, right - left, bottom)) return true;
 
 	int width = GetStringBoundingBox(buffer).width;
 	int pos = (_current_text_dir == TD_RTL) ? (scroll_pos - width) : (right - scroll_pos - left);

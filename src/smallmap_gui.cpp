@@ -1201,8 +1201,8 @@ void SmallMapWindow::DrawWidget (BlitArea *dpi, const Rect &r, int widget) const
 {
 	switch (widget) {
 		case WID_SM_MAP: {
-			DrawPixelInfo new_dpi;
-			if (!FillDrawPixelInfo (dpi, &new_dpi, r.left + 1, r.top + 1, r.right - r.left - 1, r.bottom - r.top - 1)) return;
+			BlitArea new_dpi;
+			if (!InitBlitArea (dpi, &new_dpi, r.left + 1, r.top + 1, r.right - r.left - 1, r.bottom - r.top - 1)) return;
 			this->DrawSmallMap(&new_dpi);
 			break;
 		}

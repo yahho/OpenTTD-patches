@@ -1528,8 +1528,8 @@ void NWidgetMatrix::Draw (BlitArea *dpi, const Window *w)
 
 	/* Set up a clipping area for the previews. */
 	bool rtl = _current_text_dir == TD_RTL;
-	DrawPixelInfo tmp_dpi;
-	if (!FillDrawPixelInfo (dpi, &tmp_dpi, this->pos_x + (rtl ? this->pip_post : this->pip_pre), this->pos_y + this->pip_pre, this->current_x - this->pip_pre - this->pip_post, this->current_y - this->pip_pre - this->pip_post)) return;
+	BlitArea tmp_dpi;
+	if (!InitBlitArea (dpi, &tmp_dpi, this->pos_x + (rtl ? this->pip_post : this->pip_pre), this->pos_y + this->pip_pre, this->current_x - this->pip_pre - this->pip_post, this->current_y - this->pip_pre - this->pip_post)) return;
 
 	/* Get the appropriate offsets so we can draw the right widgets. */
 	NWidgetCore *child = dynamic_cast<NWidgetCore *>(this->head);

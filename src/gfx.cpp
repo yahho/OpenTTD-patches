@@ -1427,25 +1427,20 @@ void MarkWholeScreenDirty()
 }
 
 /**
- * Set up a clipping area for only drawing into a certain area. To do this,
- * Fill a DrawPixelInfo object with the supplied relative rectangle, backup
- * the original (calling) _cur_dpi and assign the just returned DrawPixelInfo
- * _cur_dpi. When you are done, give restore _cur_dpi's original value
+ * Set up a clipping area for only drawing into a certain area.
  * @param *o the parent BlitArea
- * @param *n the DrawPixelInfo that will be the clipping rectangle box allowed
+ * @param *n the BlitArea that will be the clipping rectangle box allowed
  * for drawing
  * @param left,top,width,height the relative coordinates of the clipping
- * rectangle relative to the current _cur_dpi. This will most likely be the
+ * rectangle relative to the current area. This will most likely be the
  * offset from the calling window coordinates
  * @return return false if the requested rectangle is not possible with the
  * current dpi pointer. Only continue of the return value is true, or you'll
  * get some nasty results
  */
-bool FillDrawPixelInfo (const BlitArea *o, DrawPixelInfo *n,
+bool InitBlitArea (const BlitArea *o, BlitArea *n,
 	int left, int top, int width, int height)
 {
-	n->zoom = ZOOM_LVL_NORMAL;
-
 	assert(width > 0);
 	assert(height > 0);
 

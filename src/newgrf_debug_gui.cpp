@@ -892,8 +892,8 @@ struct SpriteAlignerWindow : Window {
 				int x = -UnScaleGUI(spr->x_offs) + (width  - UnScaleGUI(spr->width) ) / 2;
 				int y = -UnScaleGUI(spr->y_offs) + (height - UnScaleGUI(spr->height)) / 2;
 
-				DrawPixelInfo new_dpi;
-				if (!FillDrawPixelInfo (dpi, &new_dpi, r.left + WD_BEVEL_LEFT, r.top + WD_BEVEL_TOP, width, height)) break;
+				BlitArea new_dpi;
+				if (!InitBlitArea (dpi, &new_dpi, r.left + WD_BEVEL_LEFT, r.top + WD_BEVEL_TOP, width, height)) break;
 
 				DrawSprite (&new_dpi, this->current_sprite, PAL_NONE, x, y, NULL, ZOOM_LVL_GUI);
 

@@ -2470,10 +2470,10 @@ struct IndustryCargoesWindow : public Window {
 	{
 		if (widget != WID_IC_PANEL) return;
 
-		DrawPixelInfo tmp_dpi;
+		BlitArea tmp_dpi;
 		int width = r.right - r.left + 1;
 		int height = r.bottom - r.top + 1 - WD_FRAMERECT_TOP - WD_FRAMERECT_BOTTOM;
-		if (!FillDrawPixelInfo (dpi, &tmp_dpi, r.left + WD_FRAMERECT_LEFT, r.top + WD_FRAMERECT_TOP, width, height)) return;
+		if (!InitBlitArea (dpi, &tmp_dpi, r.left + WD_FRAMERECT_LEFT, r.top + WD_FRAMERECT_TOP, width, height)) return;
 
 		int left_pos = WD_FRAMERECT_LEFT;
 		if (this->ind_cargo >= NUM_INDUSTRYTYPES) left_pos += (CargoesField::industry_width + CargoesField::CARGO_FIELD_WIDTH) / 2;

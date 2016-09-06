@@ -414,8 +414,8 @@ void TextfileWindow::DrawWidget (BlitArea *dpi, const Rect &r, int widget) const
 	const int right = r.right - WD_FRAMETEXT_RIGHT;
 	const int bottom = r.bottom - WD_FRAMETEXT_BOTTOM;
 
-	DrawPixelInfo new_dpi;
-	if (!FillDrawPixelInfo (dpi, &new_dpi, x, y, right - x + 1, bottom - y + 1)) return;
+	BlitArea new_dpi;
+	if (!InitBlitArea (dpi, &new_dpi, x, y, right - x + 1, bottom - y + 1)) return;
 
 	/* Draw content (now coordinates given to DrawString* are local to the new clipping region). */
 	int line_height = FONT_HEIGHT_MONO;

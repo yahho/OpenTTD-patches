@@ -282,8 +282,8 @@ static void DrawOldHouseTileInGUI (BlitArea *dpi, int x, int y,
 void DrawHouseImage (HouseID house_id, BlitArea *dpi,
 	int left, int top, int right, int bottom)
 {
-	DrawPixelInfo tmp_dpi;
-	if (!FillDrawPixelInfo (dpi, &tmp_dpi, left, top, right - left + 1, bottom - top + 1)) return;
+	BlitArea tmp_dpi;
+	if (!InitBlitArea (dpi, &tmp_dpi, left, top, right - left + 1, bottom - top + 1)) return;
 
 	const HouseSpec *hs = HouseSpec::Get(house_id);
 

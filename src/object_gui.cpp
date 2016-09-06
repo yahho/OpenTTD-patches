@@ -37,9 +37,9 @@ static inline void DrawObjectPreview (const ObjectSpec *spec, BlitArea *dpi,
 	const Rect &r, int shrink, int y, uint view)
 {
 	/* Set up a clipping area for the preview. */
-	DrawPixelInfo tmp_dpi;
+	BlitArea tmp_dpi;
 	int width = r.right - r.left;
-	if (FillDrawPixelInfo (dpi, &tmp_dpi, r.left + shrink, r.top, width - 2 * shrink + 1, r.bottom - r.top + 1)) {
+	if (InitBlitArea (dpi, &tmp_dpi, r.left + shrink, r.top, width - 2 * shrink + 1, r.bottom - r.top + 1)) {
 		int x = width / 2 - 1;
 		y -= OBJECT_MARGIN + ScaleGUITrad (TILE_PIXELS);
 		if (spec->grf_prop.grffile == NULL) {

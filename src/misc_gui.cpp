@@ -759,8 +759,8 @@ void QueryString::DrawEditBox (BlitArea *area, const Window *w, int wid) const
 	GfxFillRect (area, left + 1, top + 1, right - 1, bottom - 1, PC_BLACK);
 
 	/* Limit the drawing of the string inside the widget boundaries */
-	DrawPixelInfo dpi;
-	if (!FillDrawPixelInfo (area, &dpi, left + WD_FRAMERECT_LEFT, top + WD_FRAMERECT_TOP, right - left - WD_FRAMERECT_RIGHT, bottom - top - WD_FRAMERECT_BOTTOM)) return;
+	BlitArea dpi;
+	if (!InitBlitArea (area, &dpi, left + WD_FRAMERECT_LEFT, top + WD_FRAMERECT_TOP, right - left - WD_FRAMERECT_RIGHT, bottom - top - WD_FRAMERECT_BOTTOM)) return;
 
 	/* We will take the current widget length as maximum width, with a small
 	 * space reserved at the end for the caret to show */
