@@ -233,8 +233,6 @@ void NetworkDrawChatMessage()
 	/* Make a copy of the screen as it is before painting (for undraw) */
 	_screen.surface->copy (_chatmessage_backup, x, y, width, height);
 
-	_cur_dpi = &_screen; // switch to _screen painting
-
 	int string_height = 0;
 	for (uint i = 0; i < count; i++) {
 		SetDParamStr(0, _chatmsg_list[i].message);
@@ -246,7 +244,7 @@ void NetworkDrawChatMessage()
 	int bottom = _screen.height - _chatmsg_box_y;
 	int top = bottom - string_height;
 	/* Paint a half-transparent box behind the chat messages */
-	GfxFillRect (_cur_dpi, _chatmsg_box_x, top - 2, _chatmsg_box_x + _chatmsg_box_width - 1, bottom - 1,
+	GfxFillRect (&_screen, _chatmsg_box_x, top - 2, _chatmsg_box_x + _chatmsg_box_width - 1, bottom - 1,
 			PALETTE_TO_TRANSPARENT, FILLRECT_RECOLOUR // black, but with some alpha for background
 		);
 
@@ -254,7 +252,7 @@ void NetworkDrawChatMessage()
 	int ypos = bottom - 2;
 
 	for (int i = count - 1; i >= 0; i--) {
-		ypos = DrawStringMultiLine (_cur_dpi, _chatmsg_box_x + 3, _chatmsg_box_x + _chatmsg_box_width - 1, top, ypos, _chatmsg_list[i].message, _chatmsg_list[i].colour, SA_LEFT | SA_BOTTOM | SA_FORCE) - NETWORK_CHAT_LINE_SPACING;
+		ypos = DrawStringMultiLine (&_screen, _chatmsg_box_x + 3, _chatmsg_box_x + _chatmsg_box_width - 1, top, ypos, _chatmsg_list[i].message, _chatmsg_list[i].colour, SA_LEFT | SA_BOTTOM | SA_FORCE) - NETWORK_CHAT_LINE_SPACING;
 		if (ypos < top) break;
 	}
 

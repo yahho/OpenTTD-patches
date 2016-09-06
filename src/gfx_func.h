@@ -181,8 +181,6 @@ int GetCharacterHeight(FontSize size);
 /** Height of characters in the large (#FS_MONO) font. */
 #define FONT_HEIGHT_MONO  (GetCharacterHeight(FS_MONO))
 
-extern DrawPixelInfo *_cur_dpi;
-
 TextColour GetContrastColour(uint8 background);
 
 /**

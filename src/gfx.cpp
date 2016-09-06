@@ -57,7 +57,6 @@ struct FontMetrics {
 
 static FontMetrics font_metrics_cache [FS_END]; ///< Cache containing width of often used characters. @see GetCharacterWidth()
 
-DrawPixelInfo *_cur_dpi;
 byte _colour_gradient[COLOUR_END][8];
 
 static void GfxMainBlitterViewport (DrawPixelInfo *dpi, const Sprite *sprite, int x, int y, BlitterMode mode, const SubSprite *sub = NULL, SpriteID sprite_id = SPR_CURSOR_MOUSE);
@@ -1232,7 +1231,6 @@ void DrawMouseCursor()
 	_screen.surface->copy (buffer, _cursor.draw_pos.x, _cursor.draw_pos.y, _cursor.draw_size.x, _cursor.draw_size.y);
 
 	/* Draw cursor on screen */
-	_cur_dpi = &_screen;
 	DrawSprite (&_screen, _cursor.sprite, _cursor.pal, _cursor.pos.x + _cursor.short_vehicle_offset, _cursor.pos.y);
 
 	VideoDriver::GetActiveDriver()->MakeDirty(_cursor.draw_pos.x, _cursor.draw_pos.y, _cursor.draw_size.x, _cursor.draw_size.y);
