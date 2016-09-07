@@ -654,20 +654,13 @@ static void LargeWorldCallback(void *userdata, void *buf, uint y, uint pitch, ui
 	int wx, left;
 
 	/* We are no longer rendering to the screen */
-	BlitArea old_screen = _screen;
 	bool old_disable_anim = _screen_disable_anim;
-
-	_screen.dst_ptr = buf;
-	_screen.width = pitch;
-	_screen.height = n;
-	_screen.surface.reset (Blitter::get()->create (buf, pitch, n, pitch));
-	_screen_disable_anim = true;
 
 	BlitArea dpi;
 	dpi.dst_ptr = buf;
 	dpi.height = n;
 	dpi.width = vp->width;
-	dpi.surface = _screen.surface;
+	dpi.surface.reset (Blitter::get()->create (buf, pitch, n, pitch));
 	dpi.left = 0;
 	dpi.top = y;
 
@@ -686,7 +679,6 @@ static void LargeWorldCallback(void *userdata, void *buf, uint y, uint pitch, ui
 	}
 
 	/* Switch back to rendering to the screen */
-	_screen = old_screen;
 	_screen_disable_anim = old_disable_anim;
 }
 
