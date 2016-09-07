@@ -247,12 +247,6 @@ inline void Blitter_32bppAnim::Surface::draw (const BlitterParams *bp, ZoomLevel
 
 void Blitter_32bppAnim::Surface::draw (const BlitterParams *bp, BlitterMode mode, ZoomLevel zoom)
 {
-	if (_screen_disable_anim) {
-		/* This means our output is not to the screen, so we can't be doing any animation stuff, so use our parent Draw() */
-		this->Blitter_32bppOptimized::Surface::draw (bp, mode, zoom);
-		return;
-	}
-
 	switch (mode) {
 		default: NOT_REACHED();
 		case BM_NORMAL:       this->draw<BM_NORMAL>      (bp, zoom); return;
@@ -265,12 +259,6 @@ void Blitter_32bppAnim::Surface::draw (const BlitterParams *bp, BlitterMode mode
 
 void Blitter_32bppAnim::Surface::recolour_rect (void *dst, int width, int height, PaletteID pal)
 {
-	if (_screen_disable_anim) {
-		/* This means our output is not to the screen, so we can't be doing any animation stuff, so use our parent DrawColourMappingRect() */
-		this->Blitter_32bppSimple::Surface::recolour_rect (dst, width, height, pal);
-		return;
-	}
-
 	Colour *udst = (Colour *)dst;
 	uint16 *anim;
 
@@ -310,19 +298,12 @@ void Blitter_32bppAnim::Surface::set_pixel (void *video, int x, int y, uint8 col
 {
 	*((Colour *)video + x + y * this->pitch) = this->lookup_colour (colour);
 
-	/* Set the colour in the anim-buffer too, if we are rendering to the screen */
-	if (_screen_disable_anim) return;
+	/* Set the colour in the anim-buffer too. */
 	this->anim_buf.get()[((uint32 *)video - (uint32 *)this->ptr) + x + y * this->width] = colour | (DEFAULT_BRIGHTNESS << 8);
 }
 
 void Blitter_32bppAnim::Surface::draw_rect (void *video, int width, int height, uint8 colour)
 {
-	if (_screen_disable_anim) {
-		/* This means our output is not to the screen, so we can't be doing any animation stuff, so use our parent DrawRect() */
-		this->Blitter_32bppSimple::Surface::draw_rect (video, width, height, colour);
-		return;
-	}
-
 	Colour colour32 = this->lookup_colour (colour);
 	uint16 *anim_line;
 
@@ -347,7 +328,6 @@ void Blitter_32bppAnim::Surface::draw_rect (void *video, int width, int height, 
 void Blitter_32bppAnim::Surface::paste (const void *src, int x, int y, int width, int height)
 {
 	void *video = this->Blitter_32bppBase::Surface::move (this->ptr, x, y);
-	assert(!_screen_disable_anim);
 	assert (video >= this->ptr && video <= (uint32 *)this->ptr + this->width + this->height * this->pitch);
 	Colour *dst = (Colour *)video;
 	const uint32 *usrc = (const uint32 *)src;
@@ -388,7 +368,6 @@ void Blitter_32bppAnim::Surface::paste (const void *src, int x, int y, int width
 void Blitter_32bppAnim::Surface::copy (void *dst, int x, int y, int width, int height)
 {
 	const void *video = this->Blitter_32bppBase::Surface::move (this->ptr, x, y);
-	assert(!_screen_disable_anim);
 	assert (video >= this->ptr && video <= (uint32 *)this->ptr + this->width + this->height * this->pitch);
 	uint32 *udst = (uint32 *)dst;
 	const uint32 *src = (const uint32 *)video;
@@ -411,7 +390,6 @@ void Blitter_32bppAnim::Surface::copy (void *dst, int x, int y, int width, int h
 
 void Blitter_32bppAnim::Surface::scroll (void *video, int &left, int &top, int &width, int &height, int scroll_x, int scroll_y)
 {
-	assert(!_screen_disable_anim);
 	assert (video >= this->ptr && video <= (uint32 *)this->ptr + this->width + this->height * this->pitch);
 	uint16 *dst, *src;
 
@@ -467,8 +445,6 @@ int Blitter_32bppAnim::BufferSize(int width, int height)
 
 bool Blitter_32bppAnim::Surface::palette_animate (const Palette &palette)
 {
-	assert(!_screen_disable_anim);
-
 	this->palette = palette;
 	/* If first_dirty is 0, it is for 8bpp indication to send the new
 	 *  palette. However, only the animation colours might possibly change.

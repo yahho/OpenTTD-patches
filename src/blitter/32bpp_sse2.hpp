@@ -101,7 +101,7 @@ public:
 	};
 
 	/** Create a surface for this blitter. */
-	Surface *create (void *ptr, uint width, uint height, uint pitch) OVERRIDE
+	Surface *create (void *ptr, uint width, uint height, uint pitch, bool anim) OVERRIDE
 	{
 		return new Surface (ptr, width, height, pitch);
 	}

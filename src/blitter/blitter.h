@@ -232,7 +232,7 @@ public:
 	};
 
 	/** Create a surface for this blitter. */
-	virtual Surface *create (void *ptr, uint width, uint height, uint pitch) = 0;
+	virtual Surface *create (void *ptr, uint width, uint height, uint pitch, bool anim = true) = 0;
 
 	/* Static stuff (active blitter). */
 	static char *ini;
