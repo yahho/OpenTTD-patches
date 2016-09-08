@@ -83,34 +83,6 @@ void Blitter_32bppSimple::Surface::draw (const BlitterParams *bp, BlitterMode mo
 	}
 }
 
-void Blitter_32bppSimple::Surface::recolour_rect (void *dst, int width, int height, PaletteID pal)
-{
-	Colour *udst = (Colour *)dst;
-
-	if (pal == PALETTE_TO_TRANSPARENT) {
-		do {
-			for (int i = 0; i != width; i++) {
-				*udst = MakeTransparent(*udst, 154);
-				udst++;
-			}
-			udst = udst - width + this->pitch;
-		} while (--height);
-		return;
-	}
-	if (pal == PALETTE_NEWSPAPER) {
-		do {
-			for (int i = 0; i != width; i++) {
-				*udst = MakeGrey(*udst);
-				udst++;
-			}
-			udst = udst - width + this->pitch;
-		} while (--height);
-		return;
-	}
-
-	DEBUG(misc, 0, "32bpp blitter doesn't know how to draw this colour table ('%d')", pal);
-}
-
 ::Sprite *Blitter_32bppSimple::Encode (const SpriteLoader::Sprite *sprite, bool is_font, AllocatorProc *allocator)
 {
 	Blitter_32bppSimple::Pixel *dst;

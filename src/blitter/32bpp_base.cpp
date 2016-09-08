@@ -17,49 +17,6 @@ void *Blitter_32bppBase::Surface::move (void *video, int x, int y)
 	return (uint32 *)video + x + y * this->pitch;
 }
 
-void Blitter_32bppBase::Surface::set_pixel (void *video, int x, int y, uint8 colour)
-{
-	*((Colour *)video + x + y * this->pitch) = LookupColourInPalette(colour);
-}
-
-void Blitter_32bppBase::Surface::draw_rect (void *video, int width, int height, uint8 colour)
-{
-	Colour colour32 = LookupColourInPalette(colour);
-
-	do {
-		Colour *dst = (Colour *)video;
-		for (int i = width; i > 0; i--) {
-			*dst = colour32;
-			dst++;
-		}
-		video = (uint32 *)video + this->pitch;
-	} while (--height);
-}
-
-void Blitter_32bppBase::Surface::paste (const void *src, int x, int y, int width, int height)
-{
-	uint32 *dst = (uint32 *) this->Blitter_32bppBase::Surface::move (this->ptr, x, y);
-	const uint32 *usrc = (const uint32 *)src;
-
-	for (; height > 0; height--) {
-		memcpy(dst, usrc, width * sizeof(uint32));
-		usrc += width;
-		dst += this->pitch;
-	}
-}
-
-void Blitter_32bppBase::Surface::copy (void *dst, int x, int y, int width, int height)
-{
-	uint32 *udst = (uint32 *)dst;
-	const uint32 *src = (const uint32 *) this->Blitter_32bppBase::Surface::move (this->ptr, x, y);
-
-	for (; height > 0; height--) {
-		memcpy(udst, src, width * sizeof(uint32));
-		src += this->pitch;
-		udst += width;
-	}
-}
-
 void Blitter_32bppBase::Surface::export_lines (void *dst, uint dst_pitch, uint y, uint height)
 {
 	uint32 *udst = (uint32 *)dst;
@@ -129,14 +86,4 @@ void Blitter_32bppBase::Surface::scroll (void *video, int &left, int &top, int &
 			dst += this->pitch;
 		}
 	}
-}
-
-int Blitter_32bppBase::BufferSize(int width, int height)
-{
-	return width * height * sizeof(uint32);
-}
-
-Blitter::PaletteAnimation Blitter_32bppBase::UsePaletteAnimation()
-{
-	return Blitter::PALETTE_ANIMATION_NONE;
 }

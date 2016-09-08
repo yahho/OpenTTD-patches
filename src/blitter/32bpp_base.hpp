@@ -13,25 +13,12 @@
 #define BLITTER_32BPP_BASE_HPP
 
 #include "blitter.h"
-#include "../core/bitmath_func.hpp"
 #include "../core/math_func.hpp"
-#include "../gfx_func.h"
 
 /** Base for all 32bpp blitters. */
 class Blitter_32bppBase : public Blitter {
 public:
 	/* virtual */ uint8 GetScreenDepth() { return 32; }
-	/* virtual */ int BufferSize(int width, int height);
-	/* virtual */ Blitter::PaletteAnimation UsePaletteAnimation();
-	/* virtual */ int GetBytesPerPixel() { return 4; }
-
-	/**
-	 * Look up the colour in the current palette.
-	 */
-	static inline Colour LookupColourInPalette(uint index)
-	{
-		return _cur_palette.palette[index];
-	}
 
 	/**
 	 * Compose a colour based on RGBA values and the current pixel value.
@@ -173,15 +160,7 @@ public:
 
 		void *move (void *video, int x, int y) OVERRIDE;
 
-		void set_pixel (void *video, int x, int y, uint8 colour) OVERRIDE;
-
-		void draw_rect (void *video, int width, int height, uint8 colour) OVERRIDE;
-
 		void scroll (void *video, int &left, int &top, int &width, int &height, int scroll_x, int scroll_y) OVERRIDE;
-
-		void copy (void *dst, int x, int y, int width, int height) OVERRIDE;
-
-		void paste (const void *src, int x, int y, int width, int height) OVERRIDE;
 
 		void export_lines (void *dst, uint dst_pitch, uint y, uint height) OVERRIDE;
 	};
