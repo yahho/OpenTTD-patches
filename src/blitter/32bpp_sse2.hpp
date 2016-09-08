@@ -14,7 +14,7 @@
 
 #ifdef WITH_SSE
 
-#include "32bpp_simple.hpp"
+#include "32bpp_noanim.hpp"
 
 #include "../cpu.h"
 
@@ -70,7 +70,7 @@ struct SSESprite : Sprite {
 DECLARE_ENUM_AS_BIT_SET(SSESprite::SpriteFlags);
 
 /** The SSE2 32 bpp blitter (without palette animation). */
-class Blitter_32bppSSE2 : public Blitter_32bppSimple {
+class Blitter_32bppSSE2 : public Blitter_32bppNoanim {
 public:
 	typedef SSESprite Sprite;
 
@@ -88,9 +88,9 @@ public:
 	}
 
 	/** Blitting surface. */
-	struct Surface : Blitter_32bppSimple::Surface {
+	struct Surface : Blitter_32bppNoanim::Surface {
 		Surface (void *ptr, uint width, uint height, uint pitch)
-			: Blitter_32bppSimple::Surface (ptr, width, height, pitch)
+			: Blitter_32bppNoanim::Surface (ptr, width, height, pitch)
 		{
 		}
 
