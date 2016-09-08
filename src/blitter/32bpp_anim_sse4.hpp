@@ -54,7 +54,7 @@ public:
 	};
 
 	/** Create a surface for this blitter. */
-	Blitter_32bppSimple::Surface *create (void *ptr, uint width, uint height, uint pitch, bool anim) OVERRIDE
+	Blitter_32bppBase::Surface *create (void *ptr, uint width, uint height, uint pitch, bool anim) OVERRIDE
 	{
 		if (anim) {
 			return new Surface (ptr, width, height, pitch);

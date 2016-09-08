@@ -12,10 +12,10 @@
 #ifndef BLITTER_32BPP_OPTIMIZED_HPP
 #define BLITTER_32BPP_OPTIMIZED_HPP
 
-#include "32bpp_simple.hpp"
+#include "32bpp_noanim.hpp"
 
 /** The optimised 32 bpp blitter (without palette animation). */
-class Blitter_32bppOptimized : public Blitter_32bppSimple {
+class Blitter_32bppOptimized : public Blitter_32bppNoanim {
 public:
 	/** Data stored about a (single) sprite. */
 	struct Sprite : ::Sprite {
@@ -29,9 +29,9 @@ public:
 	/* virtual */ ::Sprite *Encode (const SpriteLoader::Sprite *sprite, bool is_font, AllocatorProc *allocator);
 
 	/** Blitting surface. */
-	struct Surface : Blitter_32bppSimple::Surface {
+	struct Surface : Blitter_32bppNoanim::Surface {
 		Surface (void *ptr, uint width, uint height, uint pitch)
-			: Blitter_32bppSimple::Surface (ptr, width, height, pitch)
+			: Blitter_32bppNoanim::Surface (ptr, width, height, pitch)
 		{
 		}
 
@@ -41,7 +41,7 @@ public:
 	};
 
 	/** Create a surface for this blitter. */
-	Blitter_32bppSimple::Surface *create (void *ptr, uint width, uint height, uint pitch, bool anim) OVERRIDE
+	Blitter_32bppBase::Surface *create (void *ptr, uint width, uint height, uint pitch, bool anim) OVERRIDE
 	{
 		return new Surface (ptr, width, height, pitch);
 	}
