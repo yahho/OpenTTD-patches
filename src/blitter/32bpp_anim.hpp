@@ -15,8 +15,10 @@
 #include "32bpp_optimized.hpp"
 
 /** The optimised 32 bpp blitter with palette animation. */
-class Blitter_32bppAnim : public Blitter_32bppOptimized {
+class Blitter_32bppAnim : public Blitter_32bppBase {
 public:
+	typedef Blitter_32bppOptimized::Sprite Sprite;
+
 	static const char name[]; ///< Name of the blitter.
 	static const char desc[]; ///< Description of the blitter.
 
@@ -25,13 +27,18 @@ public:
 
 	/* virtual */ int GetBytesPerPixel() { return 6; }
 
+	::Sprite *Encode (const SpriteLoader::Sprite *sprite, bool is_font, AllocatorProc *allocator) OVERRIDE
+	{
+		return Sprite::encode (sprite, is_font, allocator);
+	}
+
 	/** Blitting surface. */
-	struct Surface : Blitter_32bppOptimized::Surface {
+	struct Surface : Blitter_32bppBase::Surface {
 		ttd_unique_free_ptr <uint16> anim_buf; ///< In this buffer we keep track of the 8bpp indexes so we can do palette animation
 		Palette palette;     ///< The current palette.
 
 		Surface (void *ptr, uint width, uint height, uint pitch)
-			: Blitter_32bppOptimized::Surface (ptr, width, height, pitch),
+			: Blitter_32bppBase::Surface (ptr, width, height, pitch),
 				anim_buf (xcalloct<uint16> (width * height))
 		{
 		}

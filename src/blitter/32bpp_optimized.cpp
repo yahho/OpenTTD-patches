@@ -252,7 +252,7 @@ void Blitter_32bppOptimized::Surface::draw (const BlitterParams *bp, BlitterMode
 	}
 }
 
-::Sprite *Blitter_32bppOptimized::Encode (const SpriteLoader::Sprite *sprite, bool is_font, AllocatorProc *allocator)
+Blitter_32bppOptimized::Sprite *Blitter_32bppOptimized::Sprite::encode (const SpriteLoader::Sprite *sprite, bool is_font, AllocatorProc *allocator)
 {
 	/* streams of pixels (a, r, g, b channels)
 	 *
@@ -332,7 +332,7 @@ void Blitter_32bppOptimized::Surface::draw (const BlitterParams *bp, BlitterMode
 						*dst_n |= rgb_max << 8;
 
 						/* Pre-convert the mapping channel to a RGB value */
-						Colour colour = this->AdjustBrightness(this->LookupColourInPalette(src->m), rgb_max);
+						Colour colour = AdjustBrightness (LookupColourInPalette (src->m), rgb_max);
 						dst_px->r = colour.r;
 						dst_px->g = colour.g;
 						dst_px->b = colour.b;
