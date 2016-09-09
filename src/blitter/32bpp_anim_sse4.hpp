@@ -38,10 +38,25 @@ public:
 	}
 
 	/** Blitting surface. */
-	struct Surface : Blitter_32bppAnimBase::Surface {
-		Surface (void *ptr, uint width, uint height, uint pitch)
-			: Blitter_32bppAnimBase::Surface (ptr, width, height, pitch)
+	struct Surface : Blitter_32bppAnimBase::Surface, FlexArrayBase {
+		uint16 anim_buf[]; ///< In this buffer we keep track of the 8bpp indexes so we can do palette animation
+
+	private:
+		void *operator new (size_t size, uint width, uint height)
 		{
+			size_t extra = width * height * sizeof(uint16);
+			return ::operator new (size + extra);
+		}
+
+		Surface (void *ptr, uint width, uint height, uint pitch)
+			: Blitter_32bppAnimBase::Surface (ptr, width, height, pitch, this->anim_buf)
+		{
+		}
+
+	public:
+		static Surface *create (void *ptr, uint width, uint height, uint pitch)
+		{
+			return new (width, height) Surface (ptr, width, height, pitch);
 		}
 
 		template <BlitterMode mode, SSESprite::ReadMode read_mode, SSESprite::BlockType bt_last, bool translucent, bool animated>
@@ -57,7 +72,7 @@ public:
 	Blitter_32bppBase::Surface *create (void *ptr, uint width, uint height, uint pitch, bool anim) OVERRIDE
 	{
 		if (anim) {
-			return new Surface (ptr, width, height, pitch);
+			return Surface::create (ptr, width, height, pitch);
 		} else {
 			return new Blitter_32bppSSE4::Surface (ptr, width, height, pitch);
 		}

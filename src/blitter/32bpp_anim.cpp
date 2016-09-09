@@ -32,7 +32,7 @@ inline void Blitter_32bppAnim::Surface::draw (const BlitterParams *bp, ZoomLevel
 	}
 
 	Colour *dst = (Colour *)bp->dst + bp->top * bp->pitch + bp->left;
-	uint16 *anim = this->anim_buf.get() + ((uint32 *)bp->dst - (uint32 *)this->ptr) + bp->top * this->width + bp->left;
+	uint16 *anim = this->anim_buf + ((uint32 *)bp->dst - (uint32 *)this->ptr) + bp->top * this->width + bp->left;
 
 	const byte *remap = bp->remap; // store so we don't have to access it via bp everytime
 
@@ -262,7 +262,7 @@ void Blitter_32bppAnimBase::Surface::recolour_rect (void *dst, int width, int he
 	Colour *udst = (Colour *)dst;
 	uint16 *anim;
 
-	anim = this->anim_buf.get() + ((uint32 *)dst - (uint32 *)this->ptr);
+	anim = this->anim_buf + ((uint32 *)dst - (uint32 *)this->ptr);
 
 	if (pal == PALETTE_TO_TRANSPARENT) {
 		do {
@@ -299,7 +299,7 @@ void Blitter_32bppAnimBase::Surface::set_pixel (void *video, int x, int y, uint8
 	*((Colour *)video + x + y * this->pitch) = this->lookup_colour (colour);
 
 	/* Set the colour in the anim-buffer too. */
-	this->anim_buf.get()[((uint32 *)video - (uint32 *)this->ptr) + x + y * this->width] = colour | (DEFAULT_BRIGHTNESS << 8);
+	this->anim_buf[((uint32 *)video - (uint32 *)this->ptr) + x + y * this->width] = colour | (DEFAULT_BRIGHTNESS << 8);
 }
 
 void Blitter_32bppAnimBase::Surface::draw_rect (void *video, int width, int height, uint8 colour)
@@ -307,7 +307,7 @@ void Blitter_32bppAnimBase::Surface::draw_rect (void *video, int width, int heig
 	Colour colour32 = this->lookup_colour (colour);
 	uint16 *anim_line;
 
-	anim_line = ((uint32 *)video - (uint32 *)this->ptr) + this->anim_buf.get();
+	anim_line = ((uint32 *)video - (uint32 *)this->ptr) + this->anim_buf;
 
 	do {
 		Colour *dst = (Colour *)video;
@@ -331,7 +331,7 @@ void Blitter_32bppAnimBase::Surface::paste (const void *src, int x, int y, int w
 	assert (video >= this->ptr && video <= (uint32 *)this->ptr + this->width + this->height * this->pitch);
 	Colour *dst = (Colour *)video;
 	const uint32 *usrc = (const uint32 *)src;
-	uint16 *anim_line = ((uint32 *)video - (uint32 *)this->ptr) + this->anim_buf.get();
+	uint16 *anim_line = ((uint32 *)video - (uint32 *)this->ptr) + this->anim_buf;
 
 	for (; height > 0; height--) {
 		/* We need to keep those for palette animation. */
@@ -373,9 +373,7 @@ void Blitter_32bppAnimBase::Surface::copy (void *dst, int x, int y, int width, i
 	const uint32 *src = (const uint32 *)video;
 	const uint16 *anim_line;
 
-	if (!this->anim_buf) return;
-
-	anim_line = ((const uint32 *)video - (uint32 *)this->ptr) + this->anim_buf.get();
+	anim_line = ((const uint32 *)video - (uint32 *)this->ptr) + this->anim_buf;
 
 	for (; height > 0; height--) {
 		memcpy(udst, src, width * sizeof(uint32));
@@ -395,7 +393,7 @@ void Blitter_32bppAnimBase::Surface::scroll (void *video, int &left, int &top, i
 
 	/* We need to scroll the anim-buffer too */
 	if (scroll_y > 0) {
-		dst = this->anim_buf.get() + left + (top + height - 1) * this->width;
+		dst = this->anim_buf + left + (top + height - 1) * this->width;
 		src = dst - scroll_y * this->width;
 
 		/* Adjust left & width */
@@ -414,7 +412,7 @@ void Blitter_32bppAnimBase::Surface::scroll (void *video, int &left, int &top, i
 		}
 	} else {
 		/* Calculate pointers */
-		dst = this->anim_buf.get() + left + top * this->width;
+		dst = this->anim_buf + left + top * this->width;
 		src = dst - scroll_y * this->width;
 
 		/* Adjust left & width */
@@ -446,7 +444,7 @@ bool Blitter_32bppAnimBase::Surface::palette_animate (const Palette &palette)
 	 *  Especially when going between toyland and non-toyland. */
 	assert (this->palette.first_dirty == PALETTE_ANIM_START || this->palette.first_dirty == 0);
 
-	const uint16 *anim = this->anim_buf.get();
+	const uint16 *anim = this->anim_buf;
 	Colour *dst = (Colour *)this->ptr;
 
 	/* Let's walk the anim buffer and try to find the pixels */

@@ -13,6 +13,7 @@
 #define BLITTER_32BPP_ANIM_HPP
 
 #include "32bpp_optimized.hpp"
+#include "../core/flexarray.h"
 
 /** Base for 32bpp blitters with palette animation. */
 class Blitter_32bppAnimBase : public Blitter_32bppBase {
@@ -34,13 +35,15 @@ public:
 
 	/** Blitting surface. */
 	struct Surface : Blitter_32bppBase::Surface {
-		ttd_unique_free_ptr <uint16> anim_buf; ///< In this buffer we keep track of the 8bpp indexes so we can do palette animation
 		Palette palette;     ///< The current palette.
+		uint16 *const anim_buf; ///< In this buffer we keep track of the 8bpp indexes so we can do palette animation
 
-		Surface (void *ptr, uint width, uint height, uint pitch)
+		Surface (void *ptr, uint width, uint height, uint pitch, uint16 *anim_buf)
 			: Blitter_32bppBase::Surface (ptr, width, height, pitch),
-				anim_buf (xcalloct<uint16> (width * height))
+			  anim_buf (anim_buf)
 		{
+			memset (&this->palette, 0, sizeof(this->palette));
+			memset (anim_buf, 0, width * height * sizeof(uint16));
 		}
 
 		/** Look up the colour in the current palette. */
@@ -79,10 +82,25 @@ public:
 	}
 
 	/** Blitting surface. */
-	struct Surface : Blitter_32bppAnimBase::Surface {
-		Surface (void *ptr, uint width, uint height, uint pitch)
-			: Blitter_32bppAnimBase::Surface (ptr, width, height, pitch)
+	struct Surface : Blitter_32bppAnimBase::Surface, FlexArrayBase {
+		uint16 anim_buf[]; ///< In this buffer we keep track of the 8bpp indexes so we can do palette animation
+
+	private:
+		void *operator new (size_t size, uint width, uint height)
 		{
+			size_t extra = width * height * sizeof(uint16);
+			return ::operator new (size + extra);
+		}
+
+		Surface (void *ptr, uint width, uint height, uint pitch)
+			: Blitter_32bppAnimBase::Surface (ptr, width, height, pitch, this->anim_buf)
+		{
+		}
+
+	public:
+		static Surface *create (void *ptr, uint width, uint height, uint pitch)
+		{
+			return new (width, height) Surface (ptr, width, height, pitch);
 		}
 
 		template <BlitterMode mode> void draw (const BlitterParams *bp, ZoomLevel zoom);
@@ -94,7 +112,7 @@ public:
 	Blitter_32bppBase::Surface *create (void *ptr, uint width, uint height, uint pitch, bool anim) OVERRIDE
 	{
 		if (anim) {
-			return new Surface (ptr, width, height, pitch);
+			return Surface::create (ptr, width, height, pitch);
 		} else {
 			return new Blitter_32bppOptimized::Surface (ptr, width, height, pitch);
 		}
