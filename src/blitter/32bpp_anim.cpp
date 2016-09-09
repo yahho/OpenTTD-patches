@@ -257,7 +257,7 @@ void Blitter_32bppAnim::Surface::draw (const BlitterParams *bp, BlitterMode mode
 	}
 }
 
-void Blitter_32bppAnim::Surface::recolour_rect (void *dst, int width, int height, PaletteID pal)
+void Blitter_32bppAnimBase::Surface::recolour_rect (void *dst, int width, int height, PaletteID pal)
 {
 	Colour *udst = (Colour *)dst;
 	uint16 *anim;
@@ -294,7 +294,7 @@ void Blitter_32bppAnim::Surface::recolour_rect (void *dst, int width, int height
 	DEBUG(misc, 0, "32bpp blitter doesn't know how to draw this colour table ('%d')", pal);
 }
 
-void Blitter_32bppAnim::Surface::set_pixel (void *video, int x, int y, uint8 colour)
+void Blitter_32bppAnimBase::Surface::set_pixel (void *video, int x, int y, uint8 colour)
 {
 	*((Colour *)video + x + y * this->pitch) = this->lookup_colour (colour);
 
@@ -302,7 +302,7 @@ void Blitter_32bppAnim::Surface::set_pixel (void *video, int x, int y, uint8 col
 	this->anim_buf.get()[((uint32 *)video - (uint32 *)this->ptr) + x + y * this->width] = colour | (DEFAULT_BRIGHTNESS << 8);
 }
 
-void Blitter_32bppAnim::Surface::draw_rect (void *video, int width, int height, uint8 colour)
+void Blitter_32bppAnimBase::Surface::draw_rect (void *video, int width, int height, uint8 colour)
 {
 	Colour colour32 = this->lookup_colour (colour);
 	uint16 *anim_line;
@@ -325,7 +325,7 @@ void Blitter_32bppAnim::Surface::draw_rect (void *video, int width, int height, 
 	} while (--height);
 }
 
-void Blitter_32bppAnim::Surface::paste (const void *src, int x, int y, int width, int height)
+void Blitter_32bppAnimBase::Surface::paste (const void *src, int x, int y, int width, int height)
 {
 	void *video = this->Blitter_32bppBase::Surface::move (this->ptr, x, y);
 	assert (video >= this->ptr && video <= (uint32 *)this->ptr + this->width + this->height * this->pitch);
@@ -365,7 +365,7 @@ void Blitter_32bppAnim::Surface::paste (const void *src, int x, int y, int width
 	}
 }
 
-void Blitter_32bppAnim::Surface::copy (void *dst, int x, int y, int width, int height)
+void Blitter_32bppAnimBase::Surface::copy (void *dst, int x, int y, int width, int height)
 {
 	const void *video = this->Blitter_32bppBase::Surface::move (this->ptr, x, y);
 	assert (video >= this->ptr && video <= (uint32 *)this->ptr + this->width + this->height * this->pitch);
@@ -388,7 +388,7 @@ void Blitter_32bppAnim::Surface::copy (void *dst, int x, int y, int width, int h
 	}
 }
 
-void Blitter_32bppAnim::Surface::scroll (void *video, int &left, int &top, int &width, int &height, int scroll_x, int scroll_y)
+void Blitter_32bppAnimBase::Surface::scroll (void *video, int &left, int &top, int &width, int &height, int scroll_x, int scroll_y)
 {
 	assert (video >= this->ptr && video <= (uint32 *)this->ptr + this->width + this->height * this->pitch);
 	uint16 *dst, *src;
@@ -438,12 +438,7 @@ void Blitter_32bppAnim::Surface::scroll (void *video, int &left, int &top, int &
 	this->Blitter_32bppBase::Surface::scroll (video, left, top, width, height, scroll_x, scroll_y);
 }
 
-int Blitter_32bppAnim::BufferSize(int width, int height)
-{
-	return width * height * (sizeof(uint32) + sizeof(uint16));
-}
-
-bool Blitter_32bppAnim::Surface::palette_animate (const Palette &palette)
+bool Blitter_32bppAnimBase::Surface::palette_animate (const Palette &palette)
 {
 	this->palette = palette;
 	/* If first_dirty is 0, it is for 8bpp indication to send the new
@@ -470,9 +465,4 @@ bool Blitter_32bppAnim::Surface::palette_animate (const Palette &palette)
 
 	/* Make sure the backend redraws the whole screen */
 	return true;
-}
-
-Blitter::PaletteAnimation Blitter_32bppAnim::UsePaletteAnimation()
-{
-	return Blitter::PALETTE_ANIMATION_BLITTER;
 }

@@ -18,7 +18,7 @@
 #include "32bpp_sse4.hpp"
 
 /** The SSE4 32 bpp blitter with palette animation. */
-class Blitter_32bppSSE4_Anim FINAL : public Blitter_32bppAnim {
+class Blitter_32bppSSE4_Anim FINAL : public Blitter_32bppAnimBase {
 private:
 
 public:
@@ -38,9 +38,9 @@ public:
 	}
 
 	/** Blitting surface. */
-	struct Surface : Blitter_32bppAnim::Surface {
+	struct Surface : Blitter_32bppAnimBase::Surface {
 		Surface (void *ptr, uint width, uint height, uint pitch)
-			: Blitter_32bppAnim::Surface (ptr, width, height, pitch)
+			: Blitter_32bppAnimBase::Surface (ptr, width, height, pitch)
 		{
 		}
 

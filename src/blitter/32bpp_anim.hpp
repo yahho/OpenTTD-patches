@@ -14,22 +14,22 @@
 
 #include "32bpp_optimized.hpp"
 
-/** The optimised 32 bpp blitter with palette animation. */
-class Blitter_32bppAnim : public Blitter_32bppBase {
+/** Base for 32bpp blitters with palette animation. */
+class Blitter_32bppAnimBase : public Blitter_32bppBase {
 public:
-	typedef Blitter_32bppOptimized::Sprite Sprite;
-
-	static const char name[]; ///< Name of the blitter.
-	static const char desc[]; ///< Description of the blitter.
-
-	/* virtual */ int BufferSize(int width, int height);
-	/* virtual */ Blitter::PaletteAnimation UsePaletteAnimation();
-
-	/* virtual */ int GetBytesPerPixel() { return 6; }
-
-	::Sprite *Encode (const SpriteLoader::Sprite *sprite, bool is_font, AllocatorProc *allocator) OVERRIDE
+	int BufferSize (int width, int height) OVERRIDE
 	{
-		return Sprite::encode (sprite, is_font, allocator);
+		return width * height * (sizeof(uint32) + sizeof(uint16));
+	}
+
+	Blitter::PaletteAnimation UsePaletteAnimation (void) OVERRIDE
+	{
+		return Blitter::PALETTE_ANIMATION_BLITTER;
+	}
+
+	int GetBytesPerPixel (void) OVERRIDE
+	{
+		return 6;
 	}
 
 	/** Blitting surface. */
@@ -59,13 +59,35 @@ public:
 
 		bool palette_animate (const Palette &palette) OVERRIDE;
 
-		template <BlitterMode mode> void draw (const BlitterParams *bp, ZoomLevel zoom);
-
-		void draw (const BlitterParams *bp, BlitterMode mode, ZoomLevel zoom) OVERRIDE;
-
 		void copy (void *dst, int x, int y, int width, int height) OVERRIDE;
 
 		void paste (const void *src, int x, int y, int width, int height) OVERRIDE;
+	};
+};
+
+/** The optimised 32 bpp blitter with palette animation. */
+class Blitter_32bppAnim : public Blitter_32bppAnimBase {
+public:
+	typedef Blitter_32bppOptimized::Sprite Sprite;
+
+	static const char name[]; ///< Name of the blitter.
+	static const char desc[]; ///< Description of the blitter.
+
+	::Sprite *Encode (const SpriteLoader::Sprite *sprite, bool is_font, AllocatorProc *allocator) OVERRIDE
+	{
+		return Sprite::encode (sprite, is_font, allocator);
+	}
+
+	/** Blitting surface. */
+	struct Surface : Blitter_32bppAnimBase::Surface {
+		Surface (void *ptr, uint width, uint height, uint pitch)
+			: Blitter_32bppAnimBase::Surface (ptr, width, height, pitch)
+		{
+		}
+
+		template <BlitterMode mode> void draw (const BlitterParams *bp, ZoomLevel zoom);
+
+		void draw (const BlitterParams *bp, BlitterMode mode, ZoomLevel zoom) OVERRIDE;
 	};
 
 	/** Create a surface for this blitter. */
