@@ -60,26 +60,37 @@ void Blitter_32bppNoanim::Surface::recolour_rect (void *dst, int width, int heig
 	DEBUG(misc, 0, "32bpp blitter doesn't know how to draw this colour table ('%d')", pal);
 }
 
-void Blitter_32bppNoanim::Surface::copy (void *dst, int x, int y, int width, int height)
+void Blitter_32bppNoanim::Surface::copy (Buffer *dst, int x, int y, uint width, uint height)
 {
-	uint32 *udst = (uint32 *)dst;
+	dst->resize (width, height, sizeof(uint32));
+	/* Only change buffer capacity? */
+	if ((x < 0) || (y < 0)) return;
+
+	dst->width  = width;
+	dst->height = height;
+
+	byte *udst = &dst->data.front();
 	const uint32 *src = (const uint32 *) this->Blitter_32bppNoanim::Surface::move (this->ptr, x, y);
 
 	for (; height > 0; height--) {
 		memcpy (udst, src, width * sizeof(uint32));
+		udst += width * sizeof(uint32);
 		src += this->pitch;
-		udst += width;
 	}
+
+	/* Sanity check that we did not overrun the buffer. */
+	assert (udst <= &dst->data.front() + dst->data.size());
 }
 
-void Blitter_32bppNoanim::Surface::paste (const void *src, int x, int y, int width, int height)
+void Blitter_32bppNoanim::Surface::paste (const Buffer *src, int x, int y)
 {
 	uint32 *dst = (uint32 *) this->Blitter_32bppNoanim::Surface::move (this->ptr, x, y);
-	const uint32 *usrc = (const uint32 *)src;
+	const byte *usrc = &src->data.front();
 
-	for (; height > 0; height--) {
+	const uint width = src->width;
+	for (uint height = src->height; height > 0; height--) {
 		memcpy (dst, usrc, width * sizeof(uint32));
-		usrc += width;
+		usrc += width * sizeof(uint32);
 		dst += this->pitch;
 	}
 }

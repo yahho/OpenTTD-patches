@@ -18,9 +18,7 @@
 class Blitter_8bppBase : public Blitter {
 public:
 	/* virtual */ uint8 GetScreenDepth() { return 8; }
-	/* virtual */ int BufferSize(int width, int height);
 	/* virtual */ Blitter::PaletteAnimation UsePaletteAnimation();
-	/* virtual */ int GetBytesPerPixel() { return 1; }
 
 	/** Blitting surface. */
 	struct Surface : Blitter::Surface {
@@ -39,9 +37,9 @@ public:
 
 		void scroll (void *video, int &left, int &top, int &width, int &height, int scroll_x, int scroll_y) OVERRIDE;
 
-		void copy (void *dst, int x, int y, int width, int height) OVERRIDE;
+		void copy (Buffer *dst, int x, int y, uint width, uint height) OVERRIDE;
 
-		void paste (const void *src, int x, int y, int width, int height) OVERRIDE;
+		void paste (const Buffer *src, int x, int y) OVERRIDE;
 
 		void export_lines (void *dst, uint dst_pitch, uint y, uint height) OVERRIDE;
 	};

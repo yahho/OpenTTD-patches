@@ -16,19 +16,9 @@
 /** Base for 32bpp blitters without animation. */
 class Blitter_32bppNoanim : public Blitter_32bppBase {
 public:
-	int BufferSize (int width, int height) OVERRIDE
-	{
-		return width * height * sizeof(uint32);
-	}
-
 	Blitter::PaletteAnimation UsePaletteAnimation (void) OVERRIDE
 	{
 		return Blitter::PALETTE_ANIMATION_NONE;
-	}
-
-	int GetBytesPerPixel (void) OVERRIDE
-	{
-		return 4;
 	}
 
 	/**
@@ -52,9 +42,9 @@ public:
 
 		void recolour_rect (void *video, int width, int height, PaletteID pal) OVERRIDE;
 
-		void copy (void *dst, int x, int y, int width, int height) OVERRIDE;
+		void copy (Buffer *dst, int x, int y, uint width, uint height) OVERRIDE;
 
-		void paste (const void *src, int x, int y, int width, int height) OVERRIDE;
+		void paste (const Buffer *src, int x, int y) OVERRIDE;
 	};
 };
 

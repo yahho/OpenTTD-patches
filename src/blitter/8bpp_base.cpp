@@ -41,21 +41,29 @@ void Blitter_8bppBase::Surface::draw_rect (void *video, int width, int height, u
 	} while (--height);
 }
 
-void Blitter_8bppBase::Surface::paste (const void *src, int x, int y, int width, int height)
+void Blitter_8bppBase::Surface::paste (const Buffer *src, int x, int y)
 {
 	uint8 *dst = (uint8 *) this->Blitter_8bppBase::Surface::move (this->ptr, x, y);
-	const uint8 *usrc = (const uint8 *)src;
+	const byte *usrc = &src->data.front();
 
-	for (; height > 0; height--) {
+	const uint width = src->width;
+	for (uint height = src->height; height > 0; height--) {
 		memcpy(dst, usrc, width * sizeof(uint8));
 		usrc += width;
 		dst += this->pitch;
 	}
 }
 
-void Blitter_8bppBase::Surface::copy (void *dst, int x, int y, int width, int height)
+void Blitter_8bppBase::Surface::copy (Buffer *dst, int x, int y, uint width, uint height)
 {
-	uint8 *udst = (uint8 *)dst;
+	dst->resize (width, height, sizeof(uint8));
+	/* Only change buffer capacity? */
+	if ((x < 0) || (y < 0)) return;
+
+	dst->width  = width;
+	dst->height = height;
+
+	byte *udst = &dst->data.front();
 	const uint8 *src = (const uint8 *) this->Blitter_8bppBase::Surface::move (this->ptr, x, y);
 
 	for (; height > 0; height--) {
@@ -63,6 +71,9 @@ void Blitter_8bppBase::Surface::copy (void *dst, int x, int y, int width, int he
 		src += this->pitch;
 		udst += width;
 	}
+
+	/* Sanity check that we did not overrun the buffer. */
+	assert (udst <= &dst->data.front() + dst->data.size());
 }
 
 void Blitter_8bppBase::Surface::export_lines (void *dst, uint dst_pitch, uint y, uint height)
@@ -134,11 +145,6 @@ void Blitter_8bppBase::Surface::scroll (void *video, int &left, int &top, int &w
 			dst += this->pitch;
 		}
 	}
-}
-
-int Blitter_8bppBase::BufferSize(int width, int height)
-{
-	return width * height;
 }
 
 Blitter::PaletteAnimation Blitter_8bppBase::UsePaletteAnimation()

@@ -61,7 +61,7 @@ byte _colour_gradient[COLOUR_END][8];
 static void GfxMainBlitterViewport (DrawPixelInfo *dpi, const Sprite *sprite, int x, int y, BlitterMode mode, const SubSprite *sub = NULL, SpriteID sprite_id = SPR_CURSOR_MOUSE);
 static void GfxMainBlitter (BlitArea *dpi, const Sprite *sprite, int x, int y, BlitterMode mode, const SubSprite *sub = NULL, SpriteID sprite_id = SPR_CURSOR_MOUSE, ZoomLevel zoom = ZOOM_LVL_NORMAL);
 
-static ReusableBuffer<uint8> _cursor_backup;
+static Blitter::Buffer _cursor_backup;
 
 ZoomLevelByte _gui_zoom; ///< GUI Zoom level
 
@@ -1172,7 +1172,7 @@ void UndrawMouseCursor()
 
 	if (_cursor.visible) {
 		_cursor.visible = false;
-		_screen.surface->paste (_cursor_backup.GetBuffer(), _cursor.draw_pos.x, _cursor.draw_pos.y, _cursor.draw_size.x, _cursor.draw_size.y);
+		_screen.surface->paste (&_cursor_backup, _cursor.draw_pos.x, _cursor.draw_pos.y);
 		VideoDriver::GetActiveDriver()->MakeDirty(_cursor.draw_pos.x, _cursor.draw_pos.y, _cursor.draw_size.x, _cursor.draw_size.y);
 	}
 }
@@ -1187,7 +1187,6 @@ void DrawMouseCursor()
 	/* Don't draw the mouse cursor if the screen is not ready */
 	if (_screen.dst_ptr == NULL) return;
 
-	Blitter *blitter = Blitter::get();
 	int x;
 	int y;
 	int w;
@@ -1224,10 +1223,8 @@ void DrawMouseCursor()
 	_cursor.draw_pos.y = y;
 	_cursor.draw_size.y = h;
 
-	uint8 *buffer = _cursor_backup.Allocate(blitter->BufferSize(w, h));
-
 	/* Make backup of stuff below cursor */
-	_screen.surface->copy (buffer, _cursor.draw_pos.x, _cursor.draw_pos.y, _cursor.draw_size.x, _cursor.draw_size.y);
+	_screen.surface->copy (&_cursor_backup, _cursor.draw_pos.x, _cursor.draw_pos.y, _cursor.draw_size.x, _cursor.draw_size.y);
 
 	/* Draw cursor on screen */
 	DrawSprite (&_screen, _cursor.sprite, _cursor.pal, _cursor.pos.x + _cursor.short_vehicle_offset, _cursor.pos.y);

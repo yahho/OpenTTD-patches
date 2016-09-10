@@ -325,25 +325,26 @@ void Blitter_32bppAnimBase::Surface::draw_rect (void *video, int width, int heig
 	} while (--height);
 }
 
-void Blitter_32bppAnimBase::Surface::paste (const void *src, int x, int y, int width, int height)
+void Blitter_32bppAnimBase::Surface::paste (const Buffer *src, int x, int y)
 {
 	void *video = this->Blitter_32bppBase::Surface::move (this->ptr, x, y);
 	assert (video >= this->ptr && video <= (uint32 *)this->ptr + this->width + this->height * this->pitch);
 	Colour *dst = (Colour *)video;
-	const uint32 *usrc = (const uint32 *)src;
+	const byte *usrc = &src->data.front();
 	uint16 *anim_line = ((uint32 *)video - (uint32 *)this->ptr) + this->anim_buf;
 
-	for (; height > 0; height--) {
+	const uint width = src->width;
+	for (uint height = src->height; height > 0; height--) {
 		/* We need to keep those for palette animation. */
 		Colour *dst_pal = dst;
 		uint16 *anim_pal = anim_line;
 
 		memcpy(dst, usrc, width * sizeof(uint32));
-		usrc += width;
+		usrc += width * sizeof(uint32);
 		dst += this->pitch;
 		/* Copy back the anim-buffer */
 		memcpy(anim_line, usrc, width * sizeof(uint16));
-		usrc = (const uint32 *)((const uint16 *)usrc + width);
+		usrc += width * sizeof(uint16);
 		anim_line += this->width;
 
 		/* Okay, it is *very* likely that the image we stored is using
@@ -353,7 +354,7 @@ void Blitter_32bppAnimBase::Surface::paste (const void *src, int x, int y, int w
 		 * however that forces a full screen redraw which is expensive
 		 * for just the cursor. This just copies the implementation of
 		 * palette animation, much cheaper though slightly nastier. */
-		for (int i = 0; i < width; i++) {
+		for (uint i = 0; i < width; i++) {
 			uint colour = GB(*anim_pal, 0, 8);
 			if (colour >= PALETTE_ANIM_START) {
 				/* Update this pixel */
@@ -365,11 +366,18 @@ void Blitter_32bppAnimBase::Surface::paste (const void *src, int x, int y, int w
 	}
 }
 
-void Blitter_32bppAnimBase::Surface::copy (void *dst, int x, int y, int width, int height)
+void Blitter_32bppAnimBase::Surface::copy (Buffer *dst, int x, int y, uint width, uint height)
 {
+	dst->resize (width, height, sizeof(uint32) + sizeof(uint16));
+	/* Only change buffer capacity? */
+	if ((x < 0) || (y < 0)) return;
+
+	dst->width  = width;
+	dst->height = height;
+
 	const void *video = this->Blitter_32bppBase::Surface::move (this->ptr, x, y);
 	assert (video >= this->ptr && video <= (uint32 *)this->ptr + this->width + this->height * this->pitch);
-	uint32 *udst = (uint32 *)dst;
+	byte *udst = &dst->data.front();
 	const uint32 *src = (const uint32 *)video;
 	const uint16 *anim_line;
 
@@ -377,13 +385,16 @@ void Blitter_32bppAnimBase::Surface::copy (void *dst, int x, int y, int width, i
 
 	for (; height > 0; height--) {
 		memcpy(udst, src, width * sizeof(uint32));
+		udst += width * sizeof(uint32);
 		src += this->pitch;
-		udst += width;
 		/* Copy the anim-buffer */
 		memcpy(udst, anim_line, width * sizeof(uint16));
-		udst = (uint32 *)((uint16 *)udst + width);
+		udst += width * sizeof(uint16);
 		anim_line += this->width;
 	}
+
+	/* Sanity check that we did not overrun the buffer. */
+	assert (udst <= &dst->data.front() + dst->data.size());
 }
 
 void Blitter_32bppAnimBase::Surface::scroll (void *video, int &left, int &top, int &width, int &height, int scroll_x, int scroll_y)

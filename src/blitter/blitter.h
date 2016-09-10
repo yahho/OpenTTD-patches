@@ -10,6 +10,8 @@
 #ifndef BLITTER_H
 #define BLITTER_H
 
+#include <vector>
+
 #include "../core/pointer.h"
 #include "../string.h"
 #include "../spritecache.h"
@@ -52,6 +54,24 @@ public:
 		PALETTE_ANIMATION_BLITTER,        ///< The blitter takes care of the palette animation
 	};
 
+	/** Buffer to keep a copy of a part of a surface. */
+	struct Buffer {
+		std::vector<byte> data;
+		uint width, height;
+
+		Buffer (void) : data(), width(0), height(0)
+		{
+		}
+
+		void resize (uint width, uint height, uint n)
+		{
+			uint count = width * height * n;
+			if (count > this->data.size()) {
+				this->data.resize (count);
+			}
+		}
+	};
+
 	/** Check if this blitter is usable. */
 	static bool usable (void)
 	{
@@ -70,23 +90,10 @@ public:
 	virtual Sprite *Encode (const SpriteLoader::Sprite *sprite, bool is_font, AllocatorProc *allocator) = 0;
 
 	/**
-	 * Calculate how much memory there is needed for an image of this size in the video-buffer.
-	 * @param width The width of the buffer-to-be.
-	 * @param height The height of the buffer-to-be.
-	 * @return The size needed for the buffer.
-	 */
-	virtual int BufferSize(int width, int height) = 0;
-
-	/**
 	 * Check if the blitter uses palette animation at all.
 	 * @return True if it uses palette animation.
 	 */
 	virtual Blitter::PaletteAnimation UsePaletteAnimation() = 0;
-
-	/**
-	 * Get how many bytes are needed to store a pixel.
-	 */
-	virtual int GetBytesPerPixel() = 0;
 
 	virtual ~Blitter() { }
 
@@ -208,18 +215,16 @@ public:
 		 * @param height The height of the buffer.
 		 * @note You can not do anything with the content of the buffer, as the blitter can store non-pixel data in it too!
 		 */
-		virtual void copy (void *dst, int x, int y, int width, int height) = 0;
+		virtual void copy (Buffer *dst, int x, int y, uint width, uint height) = 0;
 
 		/**
 		 * Copy from a buffer to the screen.
 		 * @param src The buffer from which the data will be read.
 		 * @param x The x position within video-buffer.
 		 * @param y The y position within video-buffer.
-		 * @param width The width of the buffer.
-		 * @param height The height of the buffer.
 		 * @note You can not do anything with the content of the buffer, as the blitter can store non-pixel data in it too!
 		 */
-		virtual void paste (const void *src, int x, int y, int width, int height) = 0;
+		virtual void paste (const Buffer *src, int x, int y) = 0;
 
 		/**
 		 * Copy from the screen to a buffer in a palette format for 8bpp and RGBA format for 32bpp.

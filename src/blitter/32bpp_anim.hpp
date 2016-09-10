@@ -18,19 +18,9 @@
 /** Base for 32bpp blitters with palette animation. */
 class Blitter_32bppAnimBase : public Blitter_32bppBase {
 public:
-	int BufferSize (int width, int height) OVERRIDE
-	{
-		return width * height * (sizeof(uint32) + sizeof(uint16));
-	}
-
 	Blitter::PaletteAnimation UsePaletteAnimation (void) OVERRIDE
 	{
 		return Blitter::PALETTE_ANIMATION_BLITTER;
-	}
-
-	int GetBytesPerPixel (void) OVERRIDE
-	{
-		return 6;
 	}
 
 	/** Blitting surface. */
@@ -62,9 +52,9 @@ public:
 
 		bool palette_animate (const Palette &palette) OVERRIDE;
 
-		void copy (void *dst, int x, int y, int width, int height) OVERRIDE;
+		void copy (Buffer *dst, int x, int y, uint width, uint height) OVERRIDE;
 
-		void paste (const void *src, int x, int y, int width, int height) OVERRIDE;
+		void paste (const Buffer *src, int x, int y) OVERRIDE;
 	};
 };
 

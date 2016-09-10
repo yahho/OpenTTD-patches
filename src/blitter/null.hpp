@@ -22,10 +22,7 @@ public:
 
 	/* virtual */ uint8 GetScreenDepth() { return 0; }
 	/* virtual */ Sprite *Encode (const SpriteLoader::Sprite *sprite, bool is_font, AllocatorProc *allocator);
-	/* virtual */ int BufferSize(int width, int height) { return 0; };
 	/* virtual */ Blitter::PaletteAnimation UsePaletteAnimation() { return Blitter::PALETTE_ANIMATION_NONE; };
-
-	/* virtual */ int GetBytesPerPixel() { return 0; }
 
 	/** Blitting surface. */
 	struct Surface : Blitter::Surface {
@@ -63,11 +60,11 @@ public:
 		{
 		}
 
-		void copy (void *dst, int x, int y, int width, int height) OVERRIDE
+		void copy (Buffer *dst, int x, int y, uint width, uint height) OVERRIDE
 		{
 		}
 
-		void paste (const void *src, int x, int y, int width, int height) OVERRIDE
+		void paste (const Buffer *src, int x, int y) OVERRIDE
 		{
 		}
 
