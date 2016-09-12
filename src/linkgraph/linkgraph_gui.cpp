@@ -406,14 +406,8 @@ LinkGraphLegendWindow::LinkGraphLegendWindow (const WindowDesc *desc, int window
 {
 	this->InitNested(window_number);
 	this->InvalidateData(0);
-	this->SetOverlay(FindWindowById(WC_MAIN_WINDOW, 0)->viewport->overlay);
-}
 
-/**
- * Set the overlay belonging to this menu and import its company/cargo settings.
- * @params overlay New overlay for this menu.
- */
-void LinkGraphLegendWindow::SetOverlay(LinkGraphOverlay *overlay) {
+	LinkGraphOverlay *overlay = FindWindowById(WC_MAIN_WINDOW, 0)->viewport->overlay;
 	this->overlay = overlay;
 	uint32 companies = this->overlay->GetCompanyMask();
 	for (uint c = 0; c < MAX_COMPANIES; c++) {
