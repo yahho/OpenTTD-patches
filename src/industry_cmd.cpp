@@ -2412,7 +2412,7 @@ static bool ChangeIndustryProductionSmooth (Industry *i,
 		} else {
 			/* For normal industries, if over 60% is transported,
 			 * 33% chance for decrease, else 67% chance for decrease. */
-			mult = (i->last_month_pct_transported[j] > PERCENT_TRANSPORTED_60) ^ Chance16I (1, 3, r) ? -1 : 1;
+			mult = ((i->last_month_pct_transported[j] > PERCENT_TRANSPORTED_60) == Chance16I (1, 3, r)) ? -1 : 1;
 		}
 
 		/* 4.5% chance for 3-23% (or 1 unit for very low productions) production change,
