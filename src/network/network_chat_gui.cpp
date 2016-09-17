@@ -213,7 +213,6 @@ void NetworkChatMessageLoop()
 /** Draw the chat message-box */
 void NetworkDrawChatMessage()
 {
-	Blitter *blitter = Blitter::get();
 	if (!_chatmessage_dirty) return;
 
 	/* First undraw if needed */
