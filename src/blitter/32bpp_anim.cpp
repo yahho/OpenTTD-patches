@@ -424,7 +424,7 @@ void Blitter_32bppAnimBase::Surface::scroll (void *video, int &left, int &top, i
 	} else {
 		/* Calculate pointers */
 		dst = this->anim_buf + left + top * this->width;
-		src = dst - scroll_y * this->width;
+		src = dst + (-scroll_y) * this->width;
 
 		/* Adjust left & width */
 		if (scroll_x >= 0) {

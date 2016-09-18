@@ -62,7 +62,7 @@ void Blitter_32bppBase::Surface::scroll (void *video, int &left, int &top, int &
 	} else {
 		/* Calculate pointers */
 		dst = (uint32 *)video + left + top * this->pitch;
-		src = dst - scroll_y * this->pitch;
+		src = dst + (-scroll_y) * this->pitch;
 
 		/* Decrease height. (scroll_y is <=0). */
 		height += scroll_y;
