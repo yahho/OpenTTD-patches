@@ -25,12 +25,12 @@ void Blitter_8bppBase::Surface::recolour_rect (void *dst, int width, int height,
 
 void *Blitter_8bppBase::Surface::move (void *video, int x, int y)
 {
-	return (uint8 *)video + x + y * this->pitch;
+	return this->movep <uint8> (video, x, y);
 }
 
 void Blitter_8bppBase::Surface::set_pixel (void *video, int x, int y, uint8 colour)
 {
-	*((uint8 *)video + x + y * this->pitch) = colour;
+	*(this->movep <uint8> (video, x, y)) = colour;
 }
 
 void Blitter_8bppBase::Surface::draw_rect (void *video, int width, int height, uint8 colour)
@@ -43,7 +43,7 @@ void Blitter_8bppBase::Surface::draw_rect (void *video, int width, int height, u
 
 void Blitter_8bppBase::Surface::paste (const Buffer *src, int x, int y)
 {
-	uint8 *dst = (uint8 *) this->Blitter_8bppBase::Surface::move (this->ptr, x, y);
+	uint8 *dst = this->movep <uint8> (this->ptr, x, y);
 	const byte *usrc = &src->data.front();
 
 	const uint width = src->width;
@@ -64,7 +64,7 @@ void Blitter_8bppBase::Surface::copy (Buffer *dst, int x, int y, uint width, uin
 	dst->height = height;
 
 	byte *udst = &dst->data.front();
-	const uint8 *src = (const uint8 *) this->Blitter_8bppBase::Surface::move (this->ptr, x, y);
+	const uint8 *src = this->movep <const uint8> (this->ptr, x, y);
 
 	for (; height > 0; height--) {
 		memcpy(udst, src, width * sizeof(uint8));
@@ -79,7 +79,7 @@ void Blitter_8bppBase::Surface::copy (Buffer *dst, int x, int y, uint width, uin
 void Blitter_8bppBase::Surface::export_lines (void *dst, uint dst_pitch, uint y, uint height)
 {
 	uint8 *udst = (uint8 *)dst;
-	const uint8 *src = (const uint8 *) this->Blitter_8bppBase::Surface::move (this->ptr, 0, y);
+	const uint8 *src = this->movep <const uint8> (this->ptr, 0, y);
 
 	for (; height > 0; height--) {
 		memcpy(udst, src, width * sizeof(uint8));
@@ -95,7 +95,7 @@ void Blitter_8bppBase::Surface::scroll (void *video, int &left, int &top, int &w
 
 	if (scroll_y > 0) {
 		/* Calculate pointers */
-		dst = (uint8 *)video + left + (top + height - 1) * this->pitch;
+		dst = this->movep <uint8> (video, left, top + height - 1);
 		src = dst - scroll_y * this->pitch;
 
 		/* Decrease height and increase top */
@@ -120,7 +120,7 @@ void Blitter_8bppBase::Surface::scroll (void *video, int &left, int &top, int &w
 		}
 	} else {
 		/* Calculate pointers */
-		dst = (uint8 *)video + left + top * this->pitch;
+		dst = this->movep <uint8> (video, left, top);
 		src = dst + (-scroll_y) * this->pitch;
 
 		/* Decrease height. (scroll_y is <=0). */

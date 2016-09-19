@@ -15,7 +15,7 @@
 
 void Blitter_32bppNoanim::Surface::set_pixel (void *video, int x, int y, uint8 colour)
 {
-	*((Colour *)video + x + y * this->pitch) = LookupColourInPalette (colour);
+	*(this->movep <Colour> (video, x, y)) = LookupColourInPalette (colour);
 }
 
 void Blitter_32bppNoanim::Surface::draw_rect (void *video, int width, int height, uint8 colour)

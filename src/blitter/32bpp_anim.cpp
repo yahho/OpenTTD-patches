@@ -296,10 +296,11 @@ void Blitter_32bppAnimBase::Surface::recolour_rect (void *dst, int width, int he
 
 void Blitter_32bppAnimBase::Surface::set_pixel (void *video, int x, int y, uint8 colour)
 {
-	*((Colour *)video + x + y * this->pitch) = this->lookup_colour (colour);
+	*(this->movep <Colour> (video, x, y)) = this->lookup_colour (colour);
 
 	/* Set the colour in the anim-buffer too. */
-	this->anim_buf[((uint32 *)video - (uint32 *)this->ptr) + x + y * this->width] = colour | (DEFAULT_BRIGHTNESS << 8);
+	uint16 *anim = ((uint32 *)video - (uint32 *)this->ptr) + this->anim_buf;
+	*(movew <uint16> (anim, x, y, this->width)) = colour | (DEFAULT_BRIGHTNESS << 8);
 }
 
 void Blitter_32bppAnimBase::Surface::draw_rect (void *video, int width, int height, uint8 colour)
@@ -404,7 +405,7 @@ void Blitter_32bppAnimBase::Surface::scroll (void *video, int &left, int &top, i
 
 	/* We need to scroll the anim-buffer too */
 	if (scroll_y > 0) {
-		dst = this->anim_buf + left + (top + height - 1) * this->width;
+		dst = movew <uint16> (this->anim_buf, left, top + height - 1, this->width);
 		src = dst - scroll_y * this->width;
 
 		/* Adjust left & width */
@@ -423,7 +424,7 @@ void Blitter_32bppAnimBase::Surface::scroll (void *video, int &left, int &top, i
 		}
 	} else {
 		/* Calculate pointers */
-		dst = this->anim_buf + left + top * this->width;
+		dst = movew <uint16> (this->anim_buf, left, top, this->width);
 		src = dst + (-scroll_y) * this->width;
 
 		/* Adjust left & width */

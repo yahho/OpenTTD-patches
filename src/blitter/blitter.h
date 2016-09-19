@@ -128,6 +128,20 @@ public:
 		{
 		}
 
+		/** Helper function to implement move below. */
+		template <typename T, typename P, typename X, typename Y>
+		static T *movew (P *p, X x, Y y, int w)
+		{
+			return (T*) p + x + y * w;
+		}
+
+		/** Helper function to implement move below. */
+		template <typename T, typename P, typename X, typename Y>
+		T *movep (P *p, X x, Y y)
+		{
+			return movew <T, P, X, Y> (p, x, y, this->pitch);
+		}
+
 		/**
 		 * Move the destination pointer the requested amount x and y,
 		 * keeping in mind any pitch and bpp of the renderer.

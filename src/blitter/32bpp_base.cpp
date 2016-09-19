@@ -14,13 +14,13 @@
 
 void *Blitter_32bppBase::Surface::move (void *video, int x, int y)
 {
-	return (uint32 *)video + x + y * this->pitch;
+	return this->movep <uint32> (video, x, y);
 }
 
 void Blitter_32bppBase::Surface::export_lines (void *dst, uint dst_pitch, uint y, uint height)
 {
 	uint32 *udst = (uint32 *)dst;
-	const uint32 *src = (const uint32 *) this->Blitter_32bppBase::Surface::move (this->ptr, 0, y);
+	const uint32 *src = this->movep <const uint32> (this->ptr, 0, y);
 
 	for (; height > 0; height--) {
 		memcpy(udst, src, width * sizeof(uint32));
@@ -36,7 +36,7 @@ void Blitter_32bppBase::Surface::scroll (void *video, int &left, int &top, int &
 
 	if (scroll_y > 0) {
 		/* Calculate pointers */
-		dst = (uint32 *)video + left + (top + height - 1) * this->pitch;
+		dst = this->movep <uint32> (video, left, top + height - 1);
 		src = dst - scroll_y * this->pitch;
 
 		/* Decrease height and increase top */
@@ -61,7 +61,7 @@ void Blitter_32bppBase::Surface::scroll (void *video, int &left, int &top, int &
 		}
 	} else {
 		/* Calculate pointers */
-		dst = (uint32 *)video + left + top * this->pitch;
+		dst = this->movep <uint32> (video, left, top);
 		src = dst + (-scroll_y) * this->pitch;
 
 		/* Decrease height. (scroll_y is <=0). */
