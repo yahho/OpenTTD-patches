@@ -477,6 +477,7 @@ static void DrawInstructionStringConditionalIntegerCommon(TraceRestrictItem item
 
 /**
  * Draws an instruction in the programming GUI
+ * @param dpi BlitArea
  * @param instruction The instruction to draw
  * @param y Y position for drawing
  * @param selected True, if the order is selected
@@ -484,7 +485,7 @@ static void DrawInstructionStringConditionalIntegerCommon(TraceRestrictItem item
  * @param left Left border for text drawing
  * @param right Right border for text drawing
  */
-static void DrawInstructionString(TraceRestrictItem item, int y, bool selected, int indent, int left, int right)
+static void DrawInstructionString(BlitArea *dpi, TraceRestrictItem item, int y, bool selected, int indent, int left, int right)
 {
 	StringID instruction_string = INVALID_STRING_ID;
 
@@ -618,7 +619,7 @@ static void DrawInstructionString(TraceRestrictItem item, int y, bool selected, 
 		}
 	}
 
-	DrawString(left + indent * 16, right, y, instruction_string, selected ? TC_WHITE : TC_BLACK);
+	DrawString(dpi, left + indent * 16, right, y, instruction_string, selected ? TC_WHITE : TC_BLACK);
 }
 
 /** Main GUI window class */
@@ -648,7 +649,7 @@ public:
 		this->ReloadProgramme();
 	}
 
-	virtual void OnClick(Point pt, int widget, int click_count)
+	virtual void OnClick(Point pt, int widget, int click_count) OVERRIDE
 	{
 		switch (widget) {
 			case TR_WIDGET_INSTRUCTION_LIST: {
@@ -845,7 +846,7 @@ public:
 		}
 	}
 
-	virtual void OnQueryTextFinished(char *str)
+	virtual void OnQueryTextFinished(char *str) OVERRIDE
 	{
 		if (StrEmpty(str)) {
 			return;
@@ -872,7 +873,7 @@ public:
 		TraceRestrictDoCommandP(tile, track, TRDCT_MODIFY_ITEM, this->selected_instruction - 1, item, STR_TRACE_RESTRICT_ERROR_CAN_T_MODIFY_ITEM);
 	}
 
-	virtual void OnDropdownSelect(int widget, int index)
+	virtual void OnDropdownSelect(int widget, int index) OVERRIDE
 	{
 		TraceRestrictItem item = GetSelected();
 		if (item == 0 || index < 0 || this->selected_instruction < 1) {
@@ -960,7 +961,7 @@ public:
 		}
 	}
 
-	virtual void OnPlaceObject(Point pt, TileIndex tile)
+	virtual void OnPlaceObject(Point pt, TileIndex tile) OVERRIDE
 	{
 		int widget = this->current_placement_widget;
 		this->current_placement_widget = -1;
@@ -1081,13 +1082,13 @@ public:
 		TraceRestrictDoCommandP(this->tile, this->track, TRDCT_MODIFY_ITEM, this->selected_instruction - 1, item, STR_TRACE_RESTRICT_ERROR_CAN_T_MODIFY_ITEM);
 	}
 
-	virtual void OnPlaceObjectAbort()
+	virtual void OnPlaceObjectAbort() OVERRIDE
 	{
 		this->RaiseButtons();
 		this->current_placement_widget = -1;
 	}
 
-	virtual void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize)
+	virtual void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize) OVERRIDE
 	{
 		switch (widget) {
 			case TR_WIDGET_INSTRUCTION_LIST:
@@ -1097,18 +1098,18 @@ public:
 		}
 	}
 
-	virtual void OnResize()
+	virtual void OnResize() OVERRIDE
 	{
 		/* Update the scroll bar */
 		this->vscroll->SetCapacityFromWidget(this, TR_WIDGET_INSTRUCTION_LIST);
 	}
 
-	virtual void OnPaint()
+	virtual void OnPaint (BlitArea *dpi) OVERRIDE
 	{
-		this->DrawWidgets();
+		this->DrawWidgets(dpi);
 	}
 
-	virtual void DrawWidget(const Rect &r, int widget) const
+	virtual void DrawWidget(BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
 	{
 		if (widget != TR_WIDGET_INSTRUCTION_LIST) return;
 
@@ -1138,20 +1139,20 @@ public:
 			}
 
 			if (i >= scroll_position && this->vscroll->IsVisible(i)) {
-				DrawInstructionString(item, y, i == this->selected_instruction, this_indent, r.left + WD_FRAMETEXT_LEFT, r.right - WD_FRAMETEXT_RIGHT);
+				DrawInstructionString(dpi, item, y, i == this->selected_instruction, this_indent, r.left + WD_FRAMETEXT_LEFT, r.right - WD_FRAMETEXT_RIGHT);
 				y += line_height;
 			}
 		}
 	}
 
-	virtual void OnInvalidateData(int data, bool gui_scope)
+	virtual void OnInvalidateData(int data, bool gui_scope) OVERRIDE
 	{
 		if (gui_scope) {
 			this->ReloadProgramme();
 		}
 	}
 
-	virtual void SetStringParameters(int widget) const
+	virtual void SetStringParameters(int widget) const OVERRIDE
 	{
 		switch (widget) {
 			case TR_WIDGET_VALUE_INT: {
