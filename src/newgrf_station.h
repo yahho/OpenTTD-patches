@@ -194,7 +194,7 @@ int AllocateSpecToStation(const StationSpec *statspec, BaseStation *st, bool exe
 void DeallocateSpecFromStation(BaseStation *st, byte specindex);
 
 /* Draw representation of a station tile for GUI purposes. */
-bool DrawStationTile(int x, int y, RailType railtype, Axis axis, StationClassID sclass, uint station);
+bool DrawStationTile (BlitArea *dpi, int x, int y, RailType railtype, Axis axis, StationClassID sclass, uint station);
 
 void AnimateStationTile(TileIndex tile);
 void TriggerStationAnimation(BaseStation *st, TileIndex tile, StationAnimationTrigger trigger, CargoID cargo_type = CT_INVALID);

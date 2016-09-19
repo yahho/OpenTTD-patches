@@ -13,33 +13,12 @@
 #define BLITTER_32BPP_BASE_HPP
 
 #include "blitter.h"
-#include "../core/bitmath_func.hpp"
 #include "../core/math_func.hpp"
-#include "../gfx_func.h"
 
 /** Base for all 32bpp blitters. */
 class Blitter_32bppBase : public Blitter {
 public:
 	/* virtual */ uint8 GetScreenDepth() { return 32; }
-	/* virtual */ void *MoveTo(void *video, int x, int y);
-	/* virtual */ void SetPixel(void *video, int x, int y, uint8 colour);
-	/* virtual */ void DrawRect(void *video, int width, int height, uint8 colour);
-	/* virtual */ void CopyFromBuffer(void *video, const void *src, int width, int height);
-	/* virtual */ void CopyToBuffer(const void *video, void *dst, int width, int height);
-	/* virtual */ void CopyImageToBuffer(const void *video, void *dst, int width, int height, int dst_pitch);
-	/* virtual */ void ScrollBuffer(void *video, int &left, int &top, int &width, int &height, int scroll_x, int scroll_y);
-	/* virtual */ int BufferSize(int width, int height);
-	/* virtual */ void PaletteAnimate(const Palette &palette);
-	/* virtual */ Blitter::PaletteAnimation UsePaletteAnimation();
-	/* virtual */ int GetBytesPerPixel() { return 4; }
-
-	/**
-	 * Look up the colour in the current palette.
-	 */
-	static inline Colour LookupColourInPalette(uint index)
-	{
-		return _cur_palette.palette[index];
-	}
 
 	/**
 	 * Compose a colour based on RGBA values and the current pixel value.
@@ -171,6 +150,20 @@ public:
 		                     b >= 255 ? 255 : min(b + ob * (255 - b) / 256, 255),
 		                     colour.a);
 	}
+
+	/** Blitting surface. */
+	struct Surface : Blitter::Surface {
+		Surface (void *ptr, uint width, uint height, uint pitch)
+			: Blitter::Surface (ptr, width, height, pitch)
+		{
+		}
+
+		void *move (void *video, int x, int y) OVERRIDE;
+
+		void scroll (void *video, int &left, int &top, int &width, int &height, int scroll_x, int scroll_y) OVERRIDE;
+
+		void export_lines (void *dst, uint dst_pitch, uint y, uint height) OVERRIDE;
+	};
 };
 
 #endif /* BLITTER_32BPP_BASE_HPP */

@@ -535,9 +535,9 @@ struct ScenarioEditorLandscapeGenerationWindow : Window {
 		this->InitNested(window_number);
 	}
 
-	virtual void OnPaint()
+	void OnPaint (BlitArea *dpi) OVERRIDE
 	{
-		this->DrawWidgets();
+		this->DrawWidgets (dpi);
 
 		if (this->IsWidgetLowered(WID_ETT_LOWER_LAND) || this->IsWidgetLowered(WID_ETT_RAISE_LAND)) { // change area-size if raise/lower corner is selected
 			SetTileSelectSize(_terraform_size, _terraform_size);
@@ -552,7 +552,7 @@ struct ScenarioEditorLandscapeGenerationWindow : Window {
 		size->height = max<uint>(size->height, ScaleGUITrad(31));
 	}
 
-	virtual void DrawWidget(const Rect &r, int widget) const
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
 	{
 		if (widget != WID_ETT_DOTS) return;
 
@@ -564,7 +564,7 @@ struct ScenarioEditorLandscapeGenerationWindow : Window {
 
 		assert(n != 0);
 		do {
-			DrawSprite(SPR_WHITE_POINT, PAL_NONE, center_x + ScaleGUITrad(coords[0]), center_y + ScaleGUITrad(coords[1]));
+			DrawSprite (dpi, SPR_WHITE_POINT, PAL_NONE, center_x + ScaleGUITrad(coords[0]), center_y + ScaleGUITrad(coords[1]));
 			coords += 2;
 		} while (--n);
 	}

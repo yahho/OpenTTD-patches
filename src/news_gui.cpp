@@ -294,14 +294,14 @@ struct NewsWindow : Window {
 		PositionNewsMessage(this);
 	}
 
-	void DrawNewsBorder(const Rect &r) const
+	void DrawNewsBorder (BlitArea *dpi, const Rect &r) const
 	{
-		GfxFillRect(r.left,  r.top,    r.right, r.bottom, PC_WHITE);
+		GfxFillRect (dpi, r.left,  r.top,    r.right, r.bottom, PC_WHITE);
 
-		GfxFillRect(r.left,  r.top,    r.left,  r.bottom, PC_BLACK);
-		GfxFillRect(r.right, r.top,    r.right, r.bottom, PC_BLACK);
-		GfxFillRect(r.left,  r.top,    r.right, r.top,    PC_BLACK);
-		GfxFillRect(r.left,  r.bottom, r.right, r.bottom, PC_BLACK);
+		GfxFillRect (dpi, r.left,  r.top,    r.left,  r.bottom, PC_BLACK);
+		GfxFillRect (dpi, r.right, r.top,    r.right, r.bottom, PC_BLACK);
+		GfxFillRect (dpi, r.left,  r.top,    r.right, r.top,    PC_BLACK);
+		GfxFillRect (dpi, r.left,  r.bottom, r.right, r.bottom, PC_BLACK);
 	}
 
 	virtual Point OnInitialPosition(int16 sm_width, int16 sm_height, int window_number)
@@ -356,58 +356,58 @@ struct NewsWindow : Window {
 		if (widget == WID_N_DATE) SetDParam(0, this->ni->date);
 	}
 
-	virtual void DrawWidget(const Rect &r, int widget) const
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
 	{
 		switch (widget) {
 			case WID_N_CAPTION:
-				DrawCaption(r, COLOUR_LIGHT_BLUE, this->owner, STR_NEWS_MESSAGE_CAPTION);
+				DrawCaption (dpi, r, COLOUR_LIGHT_BLUE, this->owner, STR_NEWS_MESSAGE_CAPTION);
 				break;
 
 			case WID_N_PANEL:
-				this->DrawNewsBorder(r);
+				this->DrawNewsBorder (dpi, r);
 				break;
 
 			case WID_N_MESSAGE:
 				CopyInDParam(0, this->ni->params, lengthof(this->ni->params));
-				DrawStringMultiLine(r.left, r.right, r.top, r.bottom, this->ni->string_id, TC_FROMSTRING, SA_CENTER);
+				DrawStringMultiLine (dpi, r.left, r.right, r.top, r.bottom, this->ni->string_id, TC_FROMSTRING, SA_CENTER);
 				break;
 
 			case WID_N_MGR_FACE: {
 				const BaseCompanyNewsItem *cni = static_cast<const BaseCompanyNewsItem *>(this->ni);
-				DrawCompanyManagerFace(cni->face, cni->colour, r.left, r.top);
-				GfxFillRect(r.left, r.top, r.right, r.bottom, PALETTE_NEWSPAPER, FILLRECT_RECOLOUR);
+				DrawCompanyManagerFace (cni->face, cni->colour, dpi, r.left, r.top);
+				GfxFillRect (dpi, r.left, r.top, r.right, r.bottom, PALETTE_NEWSPAPER, FILLRECT_RECOLOUR);
 				break;
 			}
 			case WID_N_MGR_NAME: {
 				const BaseCompanyNewsItem *cni = static_cast<const BaseCompanyNewsItem *>(this->ni);
 				SetDParamStr (0, cni->pname.get());
-				DrawStringMultiLine(r.left, r.right, r.top, r.bottom, STR_JUST_RAW_STRING, TC_FROMSTRING, SA_CENTER);
+				DrawStringMultiLine (dpi, r.left, r.right, r.top, r.bottom, STR_JUST_RAW_STRING, TC_FROMSTRING, SA_CENTER);
 				break;
 			}
 			case WID_N_COMPANY_MSG:
-				DrawStringMultiLine(r.left, r.right, r.top, r.bottom, this->GetCompanyMessageString(), TC_FROMSTRING, SA_CENTER);
+				DrawStringMultiLine (dpi, r.left, r.right, r.top, r.bottom, this->GetCompanyMessageString(), TC_FROMSTRING, SA_CENTER);
 				break;
 
 			case WID_N_VEH_BKGND:
-				GfxFillRect(r.left, r.top, r.right, r.bottom, PC_GREY);
+				GfxFillRect (dpi, r.left, r.top, r.right, r.bottom, PC_GREY);
 				break;
 
 			case WID_N_VEH_NAME:
 			case WID_N_VEH_TITLE:
-				DrawStringMultiLine(r.left, r.right, r.top, r.bottom, this->GetNewVehicleMessageString(widget), TC_FROMSTRING, SA_CENTER);
+				DrawStringMultiLine (dpi, r.left, r.right, r.top, r.bottom, this->GetNewVehicleMessageString(widget), TC_FROMSTRING, SA_CENTER);
 				break;
 
 			case WID_N_VEH_SPR: {
 				assert(this->ni->reftype1 == NR_ENGINE);
 				EngineID engine = this->ni->ref1;
-				DrawVehicleEngine(r.left, r.right, (r.left + r.right) / 2, (r.top + r.bottom) / 2, engine, GetEnginePalette(engine, _local_company), EIT_PREVIEW);
-				GfxFillRect(r.left, r.top, r.right, r.bottom, PALETTE_NEWSPAPER, FILLRECT_RECOLOUR);
+				DrawVehicleEngine (dpi, r.left, r.right, (r.left + r.right) / 2, (r.top + r.bottom) / 2, engine, GetEnginePalette (engine, _local_company), EIT_PREVIEW);
+				GfxFillRect (dpi, r.left, r.top, r.right, r.bottom, PALETTE_NEWSPAPER, FILLRECT_RECOLOUR);
 				break;
 			}
 			case WID_N_VEH_INFO: {
 				assert(this->ni->reftype1 == NR_ENGINE);
 				EngineID engine = this->ni->ref1;
-				DrawStringMultiLine(r.left, r.right, r.top, r.bottom, GetEngineInfoString(engine), TC_FROMSTRING, SA_CENTER);
+				DrawStringMultiLine (dpi, r.left, r.right, r.top, r.bottom, GetEngineInfoString(engine), TC_FROMSTRING, SA_CENTER);
 				break;
 			}
 		}
@@ -1107,6 +1107,7 @@ void ShowLastNewsMessage()
 /**
  * Draw an unformatted news message truncated to a maximum length. If
  * length exceeds maximum length it will be postfixed by '...'
+ * @param dpi   the area to draw on
  * @param left  the left most location for the string
  * @param right the right most location for the string
  * @param y position of the string
@@ -1114,7 +1115,8 @@ void ShowLastNewsMessage()
  * @param *ni NewsItem being printed
  * @param maxw maximum width of string in pixels
  */
-static void DrawNewsString(uint left, uint right, int y, TextColour colour, const NewsItem *ni)
+static void DrawNewsString (BlitArea *dpi, uint left, uint right, int y,
+	TextColour colour, const NewsItem *ni)
 {
 	char buffer[512], buffer2[512];
 	StringID str;
@@ -1145,7 +1147,7 @@ static void DrawNewsString(uint left, uint right, int y, TextColour colour, cons
 
 	*dest = '\0';
 	/* Truncate and show string; postfixed by '...' if necessary */
-	DrawString(left, right, y, buffer2, colour);
+	DrawString (dpi, left, right, y, buffer2, colour);
 }
 
 struct MessageHistoryWindow : Window {
@@ -1182,13 +1184,13 @@ struct MessageHistoryWindow : Window {
 		}
 	}
 
-	virtual void OnPaint()
+	void OnPaint (BlitArea *dpi) OVERRIDE
 	{
 		this->OnInvalidateData(0);
-		this->DrawWidgets();
+		this->DrawWidgets (dpi);
 	}
 
-	virtual void DrawWidget(const Rect &r, int widget) const
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
 	{
 		if (widget != WID_MH_BACKGROUND || _total_news == 0) return;
 
@@ -1208,9 +1210,9 @@ struct MessageHistoryWindow : Window {
 		uint news_right = rtl ? r.right - WD_FRAMERECT_RIGHT - this->date_width - WD_FRAMERECT_RIGHT : r.right - WD_FRAMERECT_RIGHT;
 		for (int n = this->vscroll->GetCapacity(); n > 0; n--) {
 			SetDParam(0, ni->date);
-			DrawString(date_left, date_right, y, STR_SHORT_DATE);
+			DrawString (dpi, date_left, date_right, y, STR_SHORT_DATE);
 
-			DrawNewsString(news_left, news_right, y, TC_WHITE, ni);
+			DrawNewsString (dpi, news_left, news_right, y, TC_WHITE, ni);
 			y += this->line_height;
 
 			ni = ni->prev;

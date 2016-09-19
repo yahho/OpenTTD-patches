@@ -34,7 +34,7 @@
  */
 IGNORE_UNINITIALIZED_WARNING_START
 template <BlitterMode mode, SSESprite::ReadMode read_mode, SSESprite::BlockType bt_last, bool translucent>
-inline void BLITTER::Draw (const Blitter::BlitterParams *bp, ZoomLevel zoom)
+inline void BLITTER::Surface::draw (const BlitterParams *bp, ZoomLevel zoom)
 {
 	const byte * const remap = bp->remap;
 	Colour *dst_line = (Colour *) bp->dst + bp->top * bp->pitch + bp->left;
@@ -129,7 +129,7 @@ inline void BLITTER::Draw (const Blitter::BlitterParams *bp, ZoomLevel zoom)
 							const Colour srcm = (Colour) (m_src); \
 							const uint m = (byte) (m_m); \
 							const uint r = remap[m]; \
-							const Colour cmap = (this->LookupColourInPalette(r).data & 0x00FFFFFF) | (srcm.data & 0xFF000000); \
+							const Colour cmap = (LookupColourInPalette(r).data & 0x00FFFFFF) | (srcm.data & 0xFF000000); \
 							m_colour = r == 0 ? m_colour : cmap; \
 							m_colour = m != 0 ? m_colour : srcm; \
 							}
@@ -169,7 +169,7 @@ inline void BLITTER::Draw (const Blitter::BlitterParams *bp, ZoomLevel zoom)
 					if (src_mv->m) {
 						const uint r = remap[src_mv->m];
 						if (r != 0) {
-							Colour remapped_colour = AdjustBrightneSSE<SSE> (this->LookupColourInPalette(r), src_mv->v);
+							Colour remapped_colour = AdjustBrightneSSE<SSE> (LookupColourInPalette(r), src_mv->v);
 							if (src->a == 255) {
 								*dst = remapped_colour;
 							} else {
@@ -221,7 +221,7 @@ bmcr_alpha_blend_single:
 						}
 					} else {
 						uint r = remap[src_mv->m];
-						if (r != 0) *dst = ComposeColourPANoCheck(this->AdjustBrightness(this->LookupColourInPalette(r), src_mv->v), src->a, *dst);
+						if (r != 0) *dst = ComposeColourPANoCheck (AdjustBrightness (LookupColourInPalette(r), src_mv->v), src->a, *dst);
 					}
 					src_mv++;
 					dst++;
@@ -256,7 +256,7 @@ IGNORE_UNINITIALIZED_WARNING_STOP
  * @param mode blitter mode
  * @param zoom zoom level at which we are drawing
  */
-void BLITTER::Draw (Blitter::BlitterParams *bp, BlitterMode mode, ZoomLevel zoom)
+void BLITTER::Surface::draw (const BlitterParams *bp, BlitterMode mode, ZoomLevel zoom)
 {
 	switch (mode) {
 		default: {
@@ -264,14 +264,14 @@ void BLITTER::Draw (Blitter::BlitterParams *bp, BlitterMode mode, ZoomLevel zoom
 bm_normal:
 				const SSESprite::BlockType bt_last = (SSESprite::BlockType) (bp->width & 1);
 				switch (bt_last) {
-					default:                Draw<BM_NORMAL, SSESprite::RM_WITH_SKIP, SSESprite::BT_EVEN, true>(bp, zoom); return;
-					case SSESprite::BT_ODD: Draw<BM_NORMAL, SSESprite::RM_WITH_SKIP, SSESprite::BT_ODD, true>(bp, zoom); return;
+					default:                this->draw <BM_NORMAL, SSESprite::RM_WITH_SKIP, SSESprite::BT_EVEN, true> (bp, zoom); return;
+					case SSESprite::BT_ODD: this->draw <BM_NORMAL, SSESprite::RM_WITH_SKIP, SSESprite::BT_ODD,  true> (bp, zoom); return;
 				}
 			} else {
 				if (static_cast<const Sprite*>(bp->sprite)->flags & SSESprite::SF_TRANSLUCENT) {
-					Draw<BM_NORMAL, SSESprite::RM_WITH_MARGIN, SSESprite::BT_NONE, true>(bp, zoom);
+					this->draw <BM_NORMAL, SSESprite::RM_WITH_MARGIN, SSESprite::BT_NONE, true>  (bp, zoom);
 				} else {
-					Draw<BM_NORMAL, SSESprite::RM_WITH_MARGIN, SSESprite::BT_NONE, false>(bp, zoom);
+					this->draw <BM_NORMAL, SSESprite::RM_WITH_MARGIN, SSESprite::BT_NONE, false> (bp, zoom);
 				}
 				return;
 			}
@@ -280,13 +280,13 @@ bm_normal:
 		case BM_COLOUR_REMAP:
 			if (static_cast<const Sprite*>(bp->sprite)->flags & SSESprite::SF_NO_REMAP) goto bm_normal;
 			if (bp->skip_left != 0 || bp->width <= MARGIN_REMAP_THRESHOLD) {
-				Draw<BM_COLOUR_REMAP, SSESprite::RM_WITH_SKIP, SSESprite::BT_NONE, true>(bp, zoom); return;
+				this->draw <BM_COLOUR_REMAP, SSESprite::RM_WITH_SKIP,   SSESprite::BT_NONE, true> (bp, zoom); return;
 			} else {
-				Draw<BM_COLOUR_REMAP, SSESprite::RM_WITH_MARGIN, SSESprite::BT_NONE, true>(bp, zoom); return;
+				this->draw <BM_COLOUR_REMAP, SSESprite::RM_WITH_MARGIN, SSESprite::BT_NONE, true> (bp, zoom); return;
 			}
-		case BM_TRANSPARENT:  Draw<BM_TRANSPARENT, SSESprite::RM_NONE, SSESprite::BT_NONE, true>(bp, zoom); return;
-		case BM_CRASH_REMAP:  Draw<BM_CRASH_REMAP, SSESprite::RM_NONE, SSESprite::BT_NONE, true>(bp, zoom); return;
-		case BM_BLACK_REMAP:  Draw<BM_BLACK_REMAP, SSESprite::RM_NONE, SSESprite::BT_NONE, true>(bp, zoom); return;
+		case BM_TRANSPARENT:  this->draw <BM_TRANSPARENT, SSESprite::RM_NONE, SSESprite::BT_NONE, true> (bp, zoom); return;
+		case BM_CRASH_REMAP:  this->draw <BM_CRASH_REMAP, SSESprite::RM_NONE, SSESprite::BT_NONE, true> (bp, zoom); return;
+		case BM_BLACK_REMAP:  this->draw <BM_BLACK_REMAP, SSESprite::RM_NONE, SSESprite::BT_NONE, true> (bp, zoom); return;
 	}
 }
 

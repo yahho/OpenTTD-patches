@@ -21,6 +21,7 @@
 #include "strings_type.h"
 #include "date_type.h"
 #include "signal.h"
+#include "gfx_func.h"
 
 /** Railtype flags. */
 enum RailTypeFlags {
@@ -406,7 +407,7 @@ static inline Money SignalMaintenanceCost(uint32 num)
 	return (_price[PR_INFRASTRUCTURE_RAIL] * 15 * num * (1 + IntSqrt(num))) >> 8; // 1 bit fraction for the multiplier and 7 bits scaling.
 }
 
-void DrawTrainDepotSprite(int x, int y, int image, RailType railtype);
+void DrawTrainDepotSprite (BlitArea *dpi, int x, int y, int image, RailType railtype);
 int TicksToLeaveDepot(const Train *v);
 
 Foundation GetRailFoundation(Slope tileh, TrackBits bits);

@@ -19,7 +19,7 @@
 const char Blitter_8bppOptimized::name[] = "8bpp-optimized";
 const char Blitter_8bppOptimized::desc[] = "8bpp Optimized Blitter (compression + all-ZoomLevel cache)";
 
-void Blitter_8bppOptimized::Draw(Blitter::BlitterParams *bp, BlitterMode mode, ZoomLevel zoom)
+void Blitter_8bppOptimized::Surface::draw (const BlitterParams *bp, BlitterMode mode, ZoomLevel zoom)
 {
 	/* Find the offset of this zoom-level */
 	const Sprite *sprite = static_cast<const Sprite*> (bp->sprite);

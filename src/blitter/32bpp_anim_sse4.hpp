@@ -18,7 +18,7 @@
 #include "32bpp_sse4.hpp"
 
 /** The SSE4 32 bpp blitter with palette animation. */
-class Blitter_32bppSSE4_Anim FINAL : public Blitter_32bppAnim {
+class Blitter_32bppSSE4_Anim FINAL : public Blitter_32bppAnimBase {
 private:
 
 public:
@@ -32,15 +32,50 @@ public:
 		return HasCPUIDFlag (1, 2, 19);
 	}
 
-	template <BlitterMode mode, SSESprite::ReadMode read_mode, SSESprite::BlockType bt_last, bool translucent, bool animated>
-	void Draw (const Blitter::BlitterParams *bp, ZoomLevel zoom);
-	template <BlitterMode mode, SSESprite::ReadMode read_mode, SSESprite::BlockType bt_last, bool translucent>
-	void Draw (const Blitter::BlitterParams *bp, ZoomLevel zoom, bool animated);
-	/* virtual */ void Draw(Blitter::BlitterParams *bp, BlitterMode mode, ZoomLevel zoom);
-
 	::Sprite *Encode (const SpriteLoader::Sprite *sprite, bool is_font, AllocatorProc *allocator) OVERRIDE
 	{
 		return SSESprite::encode (sprite, is_font, allocator);
+	}
+
+	/** Blitting surface. */
+	struct Surface : Blitter_32bppAnimBase::Surface, FlexArrayBase {
+		uint16 anim_buf[]; ///< In this buffer we keep track of the 8bpp indexes so we can do palette animation
+
+	private:
+		void *operator new (size_t size, uint width, uint height)
+		{
+			size_t extra = width * height * sizeof(uint16);
+			return ::operator new (size + extra);
+		}
+
+		Surface (void *ptr, uint width, uint height, uint pitch)
+			: Blitter_32bppAnimBase::Surface (ptr, width, height, pitch, this->anim_buf)
+		{
+		}
+
+	public:
+		static Surface *create (void *ptr, uint width, uint height, uint pitch)
+		{
+			return new (width, height) Surface (ptr, width, height, pitch);
+		}
+
+		template <BlitterMode mode, SSESprite::ReadMode read_mode, SSESprite::BlockType bt_last, bool translucent, bool animated>
+		void draw (const BlitterParams *bp, ZoomLevel zoom);
+
+		template <BlitterMode mode, SSESprite::ReadMode read_mode, SSESprite::BlockType bt_last, bool translucent>
+		void draw (const BlitterParams *bp, ZoomLevel zoom, bool animated);
+
+		void draw (const BlitterParams *bp, BlitterMode mode, ZoomLevel zoom) OVERRIDE;
+	};
+
+	/** Create a surface for this blitter. */
+	Blitter_32bppBase::Surface *create (void *ptr, uint width, uint height, uint pitch, bool anim) OVERRIDE
+	{
+		if (anim) {
+			return Surface::create (ptr, width, height, pitch);
+		} else {
+			return new Blitter_32bppSSE4::Surface (ptr, width, height, pitch);
+		}
 	}
 };
 

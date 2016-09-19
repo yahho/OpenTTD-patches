@@ -16,6 +16,7 @@
 #include "core/bitmath_func.hpp"
 #include "table/sprites.h"
 #include "company_type.h"
+#include "gfx_func.h"
 
 /** The gender/race combinations that we have faces for */
 enum GenderEthnicity {
@@ -240,6 +241,7 @@ static inline SpriteID GetCompanyManagerFaceSprite(CompanyManagerFace cmf, Compa
 	return _cmf_info[cmfv].first_sprite[ge] + GB(cmf, _cmf_info[cmfv].offset, _cmf_info[cmfv].length);
 }
 
-void DrawCompanyManagerFace(CompanyManagerFace face, int colour, int x, int y);
+void DrawCompanyManagerFace (CompanyManagerFace face, int colour,
+	BlitArea *dpi, int x, int y);
 
 #endif /* COMPANY_MANAGER_FACE_H */

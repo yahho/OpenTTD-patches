@@ -20,6 +20,7 @@
 #include "core/smallvec_type.hpp"
 #include "core/smallmap_type.hpp"
 #include "string.h"
+#include "gfx_func.h"
 
 /**
  * Flags to describe the look of the frame
@@ -141,8 +142,8 @@ enum WidgetDrawDistances {
 };
 
 /* widget.cpp */
-void DrawFrameRect(int left, int top, int right, int bottom, Colours colour, FrameFlags flags);
-void DrawCaption(const Rect &r, Colours colour, Owner owner, StringID str);
+void DrawFrameRect (BlitArea *dpi, int left, int top, int right, int bottom, Colours colour, FrameFlags flags);
+void DrawCaption (BlitArea *dpi, const Rect &r, Colours colour, Owner owner, StringID str);
 
 /* window.cpp */
 extern Window *_z_front_window;
@@ -521,9 +522,9 @@ public:
 	void CDECL SetWidgetsLoweredState(bool lowered_stat, int widgets, ...);
 	void SetWidgetDirty(byte widget_index) const;
 
-	void DrawWidgets() const;
-	void DrawViewport() const;
-	void DrawSortButtonState(int widget, SortButtonState state) const;
+	void DrawWidgets (BlitArea *dpi) const;
+	void DrawViewport (BlitArea *dpi) const;
+	void DrawSortButtonState (BlitArea *dpi, int widget, SortButtonState state) const;
 	static int SortButtonWidth();
 
 	void DeleteChildWindows(WindowClass wc = WC_INVALID) const;
@@ -567,18 +568,21 @@ public:
 	 * The window must be repainted.
 	 * @note This method should not change any state, it should only use drawing functions.
 	 */
-	virtual void OnPaint()
+	virtual void OnPaint (BlitArea *dpi)
 	{
-		this->DrawWidgets();
+		this->DrawWidgets (dpi);
 	}
 
 	/**
 	 * Draw the contents of a nested widget.
+	 * @param dpi    Area to draw on.
 	 * @param r      Rectangle occupied by the widget.
 	 * @param widget Number of the widget to draw.
 	 * @note This method may not change any state, it may only use drawing functions.
 	 */
-	virtual void DrawWidget(const Rect &r, int widget) const {}
+	virtual void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const
+	{
+	}
 
 	/**
 	 * Update size and resize step of a widget in the window.

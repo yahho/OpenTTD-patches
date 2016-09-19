@@ -1,5 +1,3 @@
-/* $Id$ */
-
 /*
  * This file is part of OpenTTD.
  * OpenTTD is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, version 2.
@@ -7,27 +5,36 @@
  * See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with OpenTTD. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/** @file 8bpp_base.hpp Base for all 8 bpp blitters. */
+/** @file 32bpp_noanim.hpp 32bpp blitter without animation support. */
 
-#ifndef BLITTER_8BPP_BASE_HPP
-#define BLITTER_8BPP_BASE_HPP
+#ifndef BLITTER_32BPP_NOANIM_HPP
+#define BLITTER_32BPP_NOANIM_HPP
 
-#include "blitter.h"
+#include "32bpp_base.hpp"
+#include "../gfx_func.h"
 
-/** Base for all 8bpp blitters. */
-class Blitter_8bppBase : public Blitter {
+/** Base for 32bpp blitters without animation. */
+class Blitter_32bppNoanim : public Blitter_32bppBase {
 public:
-	/* virtual */ uint8 GetScreenDepth() { return 8; }
-	/* virtual */ Blitter::PaletteAnimation UsePaletteAnimation();
+	Blitter::PaletteAnimation UsePaletteAnimation (void) OVERRIDE
+	{
+		return Blitter::PALETTE_ANIMATION_NONE;
+	}
+
+	/**
+	 * Look up the colour in the current palette.
+	 */
+	static inline Colour LookupColourInPalette (uint index)
+	{
+		return _cur_palette.palette[index];
+	}
 
 	/** Blitting surface. */
-	struct Surface : Blitter::Surface {
+	struct Surface : Blitter_32bppBase::Surface {
 		Surface (void *ptr, uint width, uint height, uint pitch)
-			: Blitter::Surface (ptr, width, height, pitch)
+			: Blitter_32bppBase::Surface (ptr, width, height, pitch)
 		{
 		}
-
-		void *move (void *video, int x, int y) OVERRIDE;
 
 		void set_pixel (void *video, int x, int y, uint8 colour) OVERRIDE;
 
@@ -35,14 +42,10 @@ public:
 
 		void recolour_rect (void *video, int width, int height, PaletteID pal) OVERRIDE;
 
-		void scroll (void *video, int &left, int &top, int &width, int &height, int scroll_x, int scroll_y) OVERRIDE;
-
 		void copy (Buffer *dst, int x, int y, uint width, uint height) OVERRIDE;
 
 		void paste (const Buffer *src, int x, int y) OVERRIDE;
-
-		void export_lines (void *dst, uint dst_pitch, uint y, uint height) OVERRIDE;
 	};
 };
 
-#endif /* BLITTER_8BPP_BASE_HPP */
+#endif /* BLITTER_32BPP_NOANIM_HPP */

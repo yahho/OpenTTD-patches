@@ -51,7 +51,9 @@ CargoArray GetAreaAcceptance (const TileArea &area, int rad = 0, uint32 *always_
 void UpdateStationAcceptance(Station *st, bool show_msg);
 
 const DrawTileSprites *GetStationTileLayout(StationType st, byte gfx);
-void StationPickerDrawSprite(int x, int y, StationType st, RailType railtype, RoadType roadtype, int image);
+
+void RailStationPickerDrawSprite (BlitArea *dpi, int x, int y, bool waypoint, RailType railtype, int image);
+void RoadStationPickerDrawSprite (BlitArea *dpi, int x, int y, bool bus, bool tram, int image);
 
 bool HasStationInUse(StationID station, bool include_company, CompanyID company);
 

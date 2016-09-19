@@ -93,12 +93,12 @@ struct OskWindow : public Window {
 		if (widget == WID_OSK_CAPTION) SetDParam(0, this->caption);
 	}
 
-	virtual void DrawWidget(const Rect &r, int widget) const
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
 	{
 		if (widget < WID_OSK_LETTERS) return;
 
 		widget -= WID_OSK_LETTERS;
-		DrawCharCentered(_keyboard[this->shift][widget],
+		DrawCharCentered (dpi, _keyboard[this->shift][widget],
 			r.left + 8,
 			r.top + 3,
 			TC_BLACK);

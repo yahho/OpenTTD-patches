@@ -14,7 +14,7 @@
 
 #ifdef WITH_SSE
 
-#include "32bpp_simple.hpp"
+#include "32bpp_noanim.hpp"
 
 #include "../cpu.h"
 
@@ -70,7 +70,7 @@ struct SSESprite : Sprite {
 DECLARE_ENUM_AS_BIT_SET(SSESprite::SpriteFlags);
 
 /** The SSE2 32 bpp blitter (without palette animation). */
-class Blitter_32bppSSE2 : public Blitter_32bppSimple {
+class Blitter_32bppSSE2 : public Blitter_32bppNoanim {
 public:
 	typedef SSESprite Sprite;
 
@@ -82,13 +82,28 @@ public:
 		return HasCPUIDFlag (1, 3, 26);
 	}
 
-	/* virtual */ void Draw(Blitter::BlitterParams *bp, BlitterMode mode, ZoomLevel zoom);
-	template <BlitterMode mode, SSESprite::ReadMode read_mode, SSESprite::BlockType bt_last, bool translucent>
-	void Draw(const Blitter::BlitterParams *bp, ZoomLevel zoom);
-
 	::Sprite *Encode (const SpriteLoader::Sprite *sprite, bool is_font, AllocatorProc *allocator) OVERRIDE
 	{
 		return SSESprite::encode (sprite, is_font, allocator);
+	}
+
+	/** Blitting surface. */
+	struct Surface : Blitter_32bppNoanim::Surface {
+		Surface (void *ptr, uint width, uint height, uint pitch)
+			: Blitter_32bppNoanim::Surface (ptr, width, height, pitch)
+		{
+		}
+
+		template <BlitterMode mode, SSESprite::ReadMode read_mode, SSESprite::BlockType bt_last, bool translucent>
+		void draw (const BlitterParams *bp, ZoomLevel zoom);
+
+		void draw (const BlitterParams *bp, BlitterMode mode, ZoomLevel zoom) OVERRIDE;
+	};
+
+	/** Create a surface for this blitter. */
+	Surface *create (void *ptr, uint width, uint height, uint pitch, bool anim) OVERRIDE
+	{
+		return new Surface (ptr, width, height, pitch);
 	}
 };
 

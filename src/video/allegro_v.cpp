@@ -103,7 +103,7 @@ static void CheckPaletteAnim()
 				break;
 
 			case Blitter::PALETTE_ANIMATION_BLITTER:
-				blitter->PaletteAnimate(_cur_palette);
+				VideoDriver::PaletteAnimate (blitter, _cur_palette);
 				break;
 
 			case Blitter::PALETTE_ANIMATION_NONE:
@@ -207,20 +207,20 @@ static bool CreateMainSurface(uint w, uint h)
 	/* The size of the screen might be bigger than the part we can actually draw on!
 	 * So calculate the size based on the top, bottom, left and right */
 	_allegro_screen = create_bitmap_ex(bpp, screen->cr - screen->cl, screen->cb - screen->ct);
+	uint pitch = ((byte*)screen->line[1] - (byte*)screen->line[0]) / (bpp / 8);
+	_screen.surface.reset (Blitter::get()->create (_allegro_screen->line[0],
+			_allegro_screen->w, _allegro_screen->h, pitch));
 	_screen.width = _allegro_screen->w;
 	_screen.height = _allegro_screen->h;
-	_screen.pitch = ((byte*)screen->line[1] - (byte*)screen->line[0]) / (bpp / 8);
 	_screen.dst_ptr = _allegro_screen->line[0];
 
 	/* Initialise the screen so we don't blit garbage to the screen */
-	memset(_screen.dst_ptr, 0, _screen.height * _screen.pitch);
+	memset(_screen.dst_ptr, 0, _screen.height * pitch);
 
 	/* Set the mouse at the place where we expect it */
 	poll_mouse();
 	_cursor.pos.x = mouse_x;
 	_cursor.pos.y = mouse_y;
-
-	Blitter::get()->PostResize();
 
 	InitPalette();
 

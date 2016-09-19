@@ -12,24 +12,45 @@
 #ifndef BLITTER_32BPP_OPTIMIZED_HPP
 #define BLITTER_32BPP_OPTIMIZED_HPP
 
-#include "32bpp_simple.hpp"
+#include "32bpp_noanim.hpp"
 
 /** The optimised 32 bpp blitter (without palette animation). */
-class Blitter_32bppOptimized : public Blitter_32bppSimple {
+class Blitter_32bppOptimized : public Blitter_32bppNoanim {
 public:
 	/** Data stored about a (single) sprite. */
 	struct Sprite : ::Sprite {
 		uint32 offset[ZOOM_LVL_COUNT][2]; ///< Offsets (from .data) to streams for different zoom levels, and the normal and remap image information.
 		byte data[];                      ///< Data, all zoomlevels.
+
+		static Sprite *encode (const SpriteLoader::Sprite *sprite, bool is_font, AllocatorProc *allocator);
 	};
 
 	static const char name[]; ///< Name of the blitter.
 	static const char desc[]; ///< Description of the blitter.
 
-	/* virtual */ void Draw(Blitter::BlitterParams *bp, BlitterMode mode, ZoomLevel zoom);
-	/* virtual */ ::Sprite *Encode (const SpriteLoader::Sprite *sprite, bool is_font, AllocatorProc *allocator);
+	::Sprite *Encode (const SpriteLoader::Sprite *sprite, bool is_font, AllocatorProc *allocator) OVERRIDE
+	{
+		return Sprite::encode (sprite, is_font, allocator);
+	}
 
-	template <BlitterMode mode> void Draw(const Blitter::BlitterParams *bp, ZoomLevel zoom);
+
+	/** Blitting surface. */
+	struct Surface : Blitter_32bppNoanim::Surface {
+		Surface (void *ptr, uint width, uint height, uint pitch)
+			: Blitter_32bppNoanim::Surface (ptr, width, height, pitch)
+		{
+		}
+
+		template <BlitterMode mode> void draw (const BlitterParams *bp, ZoomLevel zoom);
+
+		void draw (const BlitterParams *bp, BlitterMode mode, ZoomLevel zoom) OVERRIDE;
+	};
+
+	/** Create a surface for this blitter. */
+	Blitter_32bppBase::Surface *create (void *ptr, uint width, uint height, uint pitch, bool anim) OVERRIDE
+	{
+		return new Surface (ptr, width, height, pitch);
+	}
 };
 
 #endif /* BLITTER_32BPP_OPTIMIZED_HPP */

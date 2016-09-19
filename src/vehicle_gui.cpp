@@ -194,24 +194,6 @@ void DepotSortList(VehicleList *list)
 	QSortT(list->Begin(), list->Length(), &VehicleNumberSorter);
 }
 
-/** draw the vehicle profit button in the vehicle list window. */
-static void DrawVehicleProfitButton(const Vehicle *v, int x, int y)
-{
-	SpriteID spr;
-
-	/* draw profit-based coloured icons */
-	if (v->age <= VEHICLE_PROFIT_MIN_AGE) {
-		spr = SPR_PROFIT_NA;
-	} else if (v->GetDisplayProfitLastYear() < 0) {
-		spr = SPR_PROFIT_NEGATIVE;
-	} else if (v->GetDisplayProfitLastYear() < VEHICLE_PROFIT_THRESHOLD) {
-		spr = SPR_PROFIT_SOME;
-	} else {
-		spr = SPR_PROFIT_LOT;
-	}
-	DrawSprite(spr, PAL_NONE, x, y);
-}
-
 /** Maximum number of refit cycles we try, to prevent infinite loops. And we store only a byte anyway */
 static const uint MAX_REFIT_CYCLE = 256;
 
@@ -580,7 +562,7 @@ struct RefitWindow : public Window {
 		}
 	}
 
-	virtual void OnPaint()
+	void OnPaint (BlitArea *dpi) OVERRIDE
 	{
 		/* Determine amount of items for scroller. */
 		if (this->hscroll != NULL) this->hscroll->SetCount(this->vehicle_width);
@@ -598,7 +580,7 @@ struct RefitWindow : public Window {
 			this->vehicle_margin = sprite_left;
 		}
 
-		this->DrawWidgets();
+		this->DrawWidgets (dpi);
 	}
 
 	virtual void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize)
@@ -681,9 +663,10 @@ struct RefitWindow : public Window {
 
 	/**
 	 * Draw the list of available refit options for a consist and highlight the selected refit option (if any).
+	 * @param dpi Area to draw on.
 	 * @param r Rectangle of the matrix widget.
 	 */
-	void DrawRefitWidget (const Rect &r) const
+	void DrawRefitWidget (BlitArea *dpi, const Rect &r) const
 	{
 		const SubtypeList *list = this->list;
 		CargoID sel_cargo = this->sel_cargo;
@@ -733,16 +716,16 @@ struct RefitWindow : public Window {
 					assert (list[i].Length() == 1);
 					assert (refit.subtype == 0xFF);
 					/* Draw checkbox */
-					DrawSprite (HasBit (this->cargo_mask, refit.cargo) ? SPR_BOX_CHECKED : SPR_BOX_EMPTY, PAL_NONE, iconleft, y + (FONT_HEIGHT_NORMAL - iconheight) / 2);
+					DrawSprite (dpi, HasBit (this->cargo_mask, refit.cargo) ? SPR_BOX_CHECKED : SPR_BOX_EMPTY, PAL_NONE, iconleft, y + (FONT_HEIGHT_NORMAL - iconheight) / 2);
 				} else if (list[i].Length() > 1) {
 					if (refit.subtype != 0xFF) {
 						/* Draw tree lines */
 						int ycenter = y + FONT_HEIGHT_NORMAL / 2;
-						GfxDrawLine(iconcenter, y - WD_MATRIX_TOP, iconcenter, j == list[i].Length() - 1 ? ycenter : y - WD_MATRIX_TOP + delta - 1, linecolour);
-						GfxDrawLine(iconcenter, ycenter, iconinner, ycenter, linecolour);
+						GfxDrawLine (dpi, iconcenter, y - WD_MATRIX_TOP, iconcenter, j == list[i].Length() - 1 ? ycenter : y - WD_MATRIX_TOP + delta - 1, linecolour);
+						GfxDrawLine (dpi, iconcenter, ycenter, iconinner, ycenter, linecolour);
 					} else {
 						/* Draw expand/collapse icon */
-						DrawSprite(sel_cargo == i ? SPR_CIRCLE_UNFOLDED : SPR_CIRCLE_FOLDED, PAL_NONE, iconleft, y + (FONT_HEIGHT_NORMAL - iconheight) / 2);
+						DrawSprite (dpi, sel_cargo == i ? SPR_CIRCLE_UNFOLDED : SPR_CIRCLE_FOLDED, PAL_NONE, iconleft, y + (FONT_HEIGHT_NORMAL - iconheight) / 2);
 					}
 				}
 
@@ -750,7 +733,7 @@ struct RefitWindow : public Window {
 				/* Get the cargo name. */
 				SetDParam(0, CargoSpec::Get(refit.cargo)->name);
 				SetDParam(1, refit.string);
-				DrawString(textleft, textright, y, STR_JUST_STRING_STRING, colour);
+				DrawString (dpi, textleft, textright, y, STR_JUST_STRING_STRING, colour);
 
 				y += delta;
 				current++;
@@ -758,12 +741,12 @@ struct RefitWindow : public Window {
 		}
 	}
 
-	virtual void DrawWidget(const Rect &r, int widget) const
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
 	{
 		switch (widget) {
 			case WID_VR_VEHICLE_PANEL_DISPLAY: {
 				Vehicle *v = Vehicle::Get(this->window_number);
-				DrawVehicleImage(v, this->sprite_left + WD_FRAMERECT_LEFT, this->sprite_right - WD_FRAMERECT_RIGHT,
+				DrawVehicleImage (v, dpi, this->sprite_left + WD_FRAMERECT_LEFT, this->sprite_right - WD_FRAMERECT_RIGHT,
 					r.top + WD_FRAMERECT_TOP, INVALID_VEHICLE, EIT_IN_DETAILS, this->hscroll != NULL ? this->hscroll->GetPosition() : 0);
 
 				/* Highlight selected vehicles. */
@@ -801,7 +784,7 @@ struct RefitWindow : public Window {
 								}
 
 								if (left != right) {
-									DrawFrameRect(left, r.top + WD_FRAMERECT_TOP, right, r.top + WD_FRAMERECT_TOP + ScaleGUITrad(14) - 1, COLOUR_WHITE, FR_BORDERONLY);
+									DrawFrameRect (dpi, left, r.top + WD_FRAMERECT_TOP, right, r.top + WD_FRAMERECT_TOP + ScaleGUITrad(14) - 1, COLOUR_WHITE, FR_BORDERONLY);
 								}
 
 								left = INT32_MIN;
@@ -820,14 +803,14 @@ struct RefitWindow : public Window {
 			}
 
 			case WID_VR_MATRIX:
-				this->DrawRefitWidget (r);
+				this->DrawRefitWidget (dpi, r);
 				break;
 
 			case WID_VR_INFO:
 				if (this->cargo != NULL) {
 					StringID string = this->GetCapacityString(this->cargo);
 					if (string != INVALID_STRING_ID) {
-						DrawStringMultiLine(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT,
+						DrawStringMultiLine (dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT,
 								r.top + WD_FRAMERECT_TOP, r.bottom - WD_FRAMERECT_BOTTOM, string);
 					}
 				}
@@ -1106,7 +1089,7 @@ void ShowVehicleRefitWindow (Window *parent, const Vehicle *v,
 }
 
 /** Display list of cargo types of the engine, for the purchase information window */
-uint ShowRefitOptionsList(int left, int right, int y, EngineID engine)
+uint ShowRefitOptionsList (BlitArea *dpi, int left, int right, int y, EngineID engine)
 {
 	/* List of cargo types of this engine */
 	uint32 cmask = GetUnionOfArticulatedRefitMasks(engine, false);
@@ -1131,7 +1114,7 @@ uint ShowRefitOptionsList(int left, int right, int y, EngineID engine)
 		SetDParam(1, cmask);
 	}
 
-	return DrawStringMultiLine(left, right, y, INT32_MAX, STR_PURCHASE_INFO_REFITTABLE_TO);
+	return DrawStringMultiLine (dpi, left, right, y, INT32_MAX, STR_PURCHASE_INFO_REFITTABLE_TO);
 }
 
 /** Get the cargo subtype text from NewGRF for the vehicle details window. */
@@ -1356,7 +1339,8 @@ static const NWidgetPart _nested_vehicle_list[] = {
 	EndContainer(),
 };
 
-static void DrawSmallOrderList(const Vehicle *v, int left, int right, int y, VehicleOrderID start = 0)
+static void DrawSmallOrderList (const Vehicle *v, BlitArea *dpi,
+	int left, int right, int y, VehicleOrderID start = 0)
 {
 	const Order *order = v->GetOrder(start);
 	if (order == NULL) return;
@@ -1368,11 +1352,11 @@ static void DrawSmallOrderList(const Vehicle *v, int left, int right, int y, Veh
 	VehicleOrderID oid = start;
 
 	do {
-		if (oid == v->cur_real_order_index) DrawString(left, right, y, STR_TINY_RIGHT_ARROW, TC_BLACK);
+		if (oid == v->cur_real_order_index) DrawString (dpi, left, right, y, STR_TINY_RIGHT_ARROW, TC_BLACK);
 
 		if (order->IsType(OT_GOTO_STATION)) {
 			SetDParam(0, order->GetDestination());
-			DrawString(left + l_offset, right - r_offset, y, STR_TINY_BLACK_STATION);
+			DrawString (dpi, left + l_offset, right - r_offset, y, STR_TINY_BLACK_STATION);
 
 			y += FONT_HEIGHT_SMALL;
 			if (++i == 4) break;
@@ -1390,19 +1374,21 @@ static void DrawSmallOrderList(const Vehicle *v, int left, int right, int y, Veh
 /**
  * Draws an image of a vehicle chain
  * @param v         Front vehicle
+ * @param dpi       The area to draw on
  * @param left      The minimum horizontal position
  * @param right     The maximum horizontal position
  * @param y         Vertical position to draw at
  * @param selection Selected vehicle to draw a frame around
  * @param skip      Number of pixels to skip at the front (for scrolling)
  */
-void DrawVehicleImage(const Vehicle *v, int left, int right, int y, VehicleID selection, EngineImageType image_type, int skip)
+void DrawVehicleImage (const Vehicle *v, BlitArea *dpi, int left, int right,
+	int y, VehicleID selection, EngineImageType image_type, int skip)
 {
 	switch (v->type) {
-		case VEH_TRAIN:    DrawTrainImage(Train::From(v), left, right, y, selection, image_type, skip); break;
-		case VEH_ROAD:     DrawRoadVehImage(v, left, right, y, selection, image_type, skip);  break;
-		case VEH_SHIP:     DrawShipImage(v, left, right, y, selection, image_type);     break;
-		case VEH_AIRCRAFT: DrawAircraftImage(v, left, right, y, selection, image_type); break;
+		case VEH_TRAIN:    DrawTrainImage (Train::From(v), dpi, left, right, y, selection, image_type, skip); break;
+		case VEH_ROAD:     DrawRoadVehImage  (v, dpi, left, right, y, selection, image_type, skip); break;
+		case VEH_SHIP:     DrawShipImage     (v, dpi, left, right, y, selection, image_type); break;
+		case VEH_AIRCRAFT: DrawAircraftImage (v, dpi, left, right, y, selection, image_type); break;
 		default: NOT_REACHED();
 	}
 }
@@ -1429,11 +1415,13 @@ uint GetVehicleListHeight(VehicleType type, uint divisor)
 
 /**
  * Draw all the vehicle list items.
+ * @param dpi              The area to draw on.
  * @param selected_vehicle The vehicle that is to be highlighted.
  * @param line_height      Height of a single item line.
  * @param r                Rectangle with edge positions of the matrix widget.
  */
-void BaseVehicleListWindow::DrawVehicleListItems(VehicleID selected_vehicle, int line_height, const Rect &r) const
+void BaseVehicleListWindow::DrawVehicleListItems (BlitArea *dpi,
+	VehicleID selected_vehicle, int line_height, const Rect &r) const
 {
 	int left = r.left + WD_MATRIX_LEFT;
 	int right = r.right - WD_MATRIX_RIGHT;
@@ -1462,20 +1450,20 @@ void BaseVehicleListWindow::DrawVehicleListItems(VehicleID selected_vehicle, int
 		SetDParam(0, v->GetDisplayProfitThisYear());
 		SetDParam(1, v->GetDisplayProfitLastYear());
 
-		DrawVehicleImage(v, image_left, image_right, y + FONT_HEIGHT_SMALL - 1, selected_vehicle, EIT_IN_LIST, 0);
-		DrawString(text_left, text_right, y + line_height - FONT_HEIGHT_SMALL - WD_FRAMERECT_BOTTOM - 1, STR_VEHICLE_LIST_PROFIT_THIS_YEAR_LAST_YEAR);
+		DrawVehicleImage (v, dpi, image_left, image_right, y + FONT_HEIGHT_SMALL - 1, selected_vehicle, EIT_IN_LIST, 0);
+		DrawString (dpi, text_left, text_right, y + line_height - FONT_HEIGHT_SMALL - WD_FRAMERECT_BOTTOM - 1, STR_VEHICLE_LIST_PROFIT_THIS_YEAR_LAST_YEAR);
 
 		if (v->name != NULL) {
 			/* The vehicle got a name so we will print it */
 			SetDParam(0, v->index);
-			DrawString(text_left, text_right, y, STR_TINY_BLACK_VEHICLE);
+			DrawString (dpi, text_left, text_right, y, STR_TINY_BLACK_VEHICLE);
 		} else if (v->group_id != DEFAULT_GROUP) {
 			/* The vehicle has no name, but is member of a group, so print group name */
 			SetDParam(0, v->group_id);
-			DrawString(text_left, text_right, y, STR_TINY_GROUP, TC_BLACK);
+			DrawString (dpi, text_left, text_right, y, STR_TINY_GROUP, TC_BLACK);
 		}
 
-		if (show_orderlist) DrawSmallOrderList(v, orderlist_left, orderlist_right, y, v->cur_real_order_index);
+		if (show_orderlist) DrawSmallOrderList (v, dpi, orderlist_left, orderlist_right, y, v->cur_real_order_index);
 
 		if (v->IsChainInDepot()) {
 			str = STR_BLUE_COMMA;
@@ -1484,9 +1472,16 @@ void BaseVehicleListWindow::DrawVehicleListItems(VehicleID selected_vehicle, int
 		}
 
 		SetDParam(0, v->unitnumber);
-		DrawString(left, right, y + 2, str);
+		DrawString (dpi, left, right, y + 2, str);
 
-		DrawVehicleProfitButton(v, vehicle_button_x, y + FONT_HEIGHT_NORMAL + 3);
+		/* Draw profit-based coloured icons. */
+		DrawSprite (dpi,
+				(v->age <= VEHICLE_PROFIT_MIN_AGE) ? SPR_PROFIT_NA :
+					(v->GetDisplayProfitLastYear() < 0) ? SPR_PROFIT_NEGATIVE :
+					(v->GetDisplayProfitLastYear() < VEHICLE_PROFIT_THRESHOLD) ?
+						SPR_PROFIT_SOME : SPR_PROFIT_LOT,
+				PAL_NONE, vehicle_button_x,
+				y + FONT_HEIGHT_NORMAL + 3);
 
 		y += line_height;
 	}
@@ -1631,21 +1626,21 @@ public:
 		}
 	}
 
-	virtual void DrawWidget(const Rect &r, int widget) const
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
 	{
 		switch (widget) {
 			case WID_VL_SORT_ORDER:
 				/* draw arrow pointing up/down for ascending/descending sorting */
-				this->DrawSortButtonState(widget, this->vehicles.IsDescSortOrder() ? SBS_DOWN : SBS_UP);
+				this->DrawSortButtonState (dpi, widget, this->vehicles.IsDescSortOrder() ? SBS_DOWN : SBS_UP);
 				break;
 
 			case WID_VL_LIST:
-				this->DrawVehicleListItems(INVALID_VEHICLE, this->resize.step_height, r);
+				this->DrawVehicleListItems (dpi, INVALID_VEHICLE, this->resize.step_height, r);
 				break;
 		}
 	}
 
-	virtual void OnPaint()
+	void OnPaint (BlitArea *dpi) OVERRIDE
 	{
 		this->BuildVehicleList();
 		this->SortVehicleList();
@@ -1674,7 +1669,7 @@ public:
 		/* Set text of sort by dropdown widget. */
 		this->GetWidget<NWidgetCore>(WID_VL_SORT_BY_PULLDOWN)->widget_data = this->vehicle_sorter_names[this->vehicles.SortType()];
 
-		this->DrawWidgets();
+		this->DrawWidgets (dpi);
 	}
 
 	virtual void OnClick(Point pt, int widget, int click_count)
@@ -1940,10 +1935,10 @@ static const NWidgetPart _nested_train_vehicle_details_widgets[] = {
 
 
 extern int GetTrainDetailsWndVScroll(VehicleID veh_id, TrainDetailsWindowTabs det_tab);
-extern void DrawTrainDetails(const Train *v, int left, int right, int y, int vscroll_pos, uint16 vscroll_cap, TrainDetailsWindowTabs det_tab);
-extern void DrawRoadVehDetails(const Vehicle *v, int left, int right, int y);
-extern void DrawShipDetails(const Vehicle *v, int left, int right, int y);
-extern void DrawAircraftDetails(const Aircraft *v, int left, int right, int y);
+extern void DrawTrainDetails (const Train *v, BlitArea *dpi, int left, int right, int y, int vscroll_pos, uint16 vscroll_cap, TrainDetailsWindowTabs det_tab);
+extern void DrawRoadVehDetails (const Vehicle *v, BlitArea *dpi, int left, int right, int y);
+extern void DrawShipDetails (const Vehicle *v, BlitArea *dpi, int left, int right, int y);
+extern void DrawAircraftDetails (const Aircraft *v, BlitArea *dpi, int left, int right, int y);
 
 static StringID _service_interval_dropdown[] = {
 	STR_VEHICLE_DETAILS_DEFAULT,
@@ -2103,6 +2098,7 @@ struct VehicleDetailsWindow : Window {
 	 * Draw the details for the given vehicle at the position of the Details windows
 	 *
 	 * @param v     current vehicle
+	 * @param dpi   The area to draw on
 	 * @param left  The left most coordinate to draw
 	 * @param right The right most coordinate to draw
 	 * @param y     The y coordinate
@@ -2110,13 +2106,13 @@ struct VehicleDetailsWindow : Window {
 	 * @param vscroll_cap Number of lines currently displayed (train only)
 	 * @param det_tab Selected details tab (train only)
 	 */
-	static void DrawVehicleDetails(const Vehicle *v, int left, int right, int y, int vscroll_pos, uint vscroll_cap, TrainDetailsWindowTabs det_tab)
+	static void DrawVehicleDetails (const Vehicle *v, BlitArea *dpi, int left, int right, int y, int vscroll_pos, uint vscroll_cap, TrainDetailsWindowTabs det_tab)
 	{
 		switch (v->type) {
-			case VEH_TRAIN:    DrawTrainDetails(Train::From(v), left, right, y, vscroll_pos, vscroll_cap, det_tab);  break;
-			case VEH_ROAD:     DrawRoadVehDetails(v, left, right, y);  break;
-			case VEH_SHIP:     DrawShipDetails(v, left, right, y);     break;
-			case VEH_AIRCRAFT: DrawAircraftDetails(Aircraft::From(v), left, right, y); break;
+			case VEH_TRAIN:    DrawTrainDetails (Train::From(v), dpi, left, right, y, vscroll_pos, vscroll_cap, det_tab); break;
+			case VEH_ROAD:     DrawRoadVehDetails (v, dpi, left, right, y); break;
+			case VEH_SHIP:     DrawShipDetails (v, dpi, left, right, y); break;
+			case VEH_AIRCRAFT: DrawAircraftDetails (Aircraft::From(v), dpi, left, right, y); break;
 			default: NOT_REACHED();
 		}
 	}
@@ -2126,7 +2122,7 @@ struct VehicleDetailsWindow : Window {
 		if (widget == WID_VD_CAPTION) SetDParam(0, Vehicle::Get(this->window_number)->index);
 	}
 
-	virtual void DrawWidget(const Rect &r, int widget) const
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
 	{
 		const Vehicle *v = Vehicle::Get(this->window_number);
 
@@ -2139,7 +2135,7 @@ struct VehicleDetailsWindow : Window {
 				SetDParam(0, (v->age + DAYS_IN_YEAR < v->max_age) ? STR_VEHICLE_INFO_AGE : STR_VEHICLE_INFO_AGE_RED);
 				SetDParam(2, v->max_age / DAYS_IN_LEAP_YEAR);
 				SetDParam(3, v->GetDisplayRunningCost());
-				DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_VEHICLE_INFO_AGE_RUNNING_COST_YR);
+				DrawString (dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_VEHICLE_INFO_AGE_RUNNING_COST_YR);
 				y += FONT_HEIGHT_NORMAL;
 
 				/* Draw max speed */
@@ -2166,25 +2162,25 @@ struct VehicleDetailsWindow : Window {
 						string = STR_VEHICLE_INFO_MAX_SPEED;
 					}
 				}
-				DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, string);
+				DrawString (dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, string);
 				y += FONT_HEIGHT_NORMAL;
 
 				/* Draw profit */
 				SetDParam(0, v->GetDisplayProfitThisYear());
 				SetDParam(1, v->GetDisplayProfitLastYear());
-				DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_VEHICLE_INFO_PROFIT_THIS_YEAR_LAST_YEAR);
+				DrawString (dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_VEHICLE_INFO_PROFIT_THIS_YEAR_LAST_YEAR);
 				y += FONT_HEIGHT_NORMAL;
 
 				/* Draw breakdown & reliability */
 				SetDParam(0, ToPercent16(v->reliability));
 				SetDParam(1, v->breakdowns_since_last_service);
-				DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_VEHICLE_INFO_RELIABILITY_BREAKDOWNS);
+				DrawString (dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_VEHICLE_INFO_RELIABILITY_BREAKDOWNS);
 				break;
 			}
 
 			case WID_VD_MATRIX:
 				/* For trains only. */
-				DrawVehicleDetails(v, r.left + WD_MATRIX_LEFT, r.right - WD_MATRIX_RIGHT, r.top + WD_MATRIX_TOP, this->vscroll->GetPosition(), this->vscroll->GetCapacity(), this->tab);
+				DrawVehicleDetails (v, dpi, r.left + WD_MATRIX_LEFT, r.right - WD_MATRIX_RIGHT, r.top + WD_MATRIX_TOP, this->vscroll->GetPosition(), this->vscroll->GetCapacity(), this->tab);
 				break;
 
 			case WID_VD_MIDDLE_DETAILS: {
@@ -2199,14 +2195,14 @@ struct VehicleDetailsWindow : Window {
 
 				/* Articulated road vehicles use a complete line. */
 				if (v->type == VEH_ROAD && v->HasArticulatedPart()) {
-					DrawVehicleImage(v, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP, INVALID_VEHICLE, EIT_IN_DETAILS, 0);
+					DrawVehicleImage (v, dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP, INVALID_VEHICLE, EIT_IN_DETAILS, 0);
 				} else {
 					uint sprite_left  = rtl ? text_right : r.left;
 					uint sprite_right = rtl ? r.right : text_left;
 
-					DrawVehicleImage(v, sprite_left + WD_FRAMERECT_LEFT, sprite_right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP, INVALID_VEHICLE, EIT_IN_DETAILS, 0);
+					DrawVehicleImage (v, dpi, sprite_left + WD_FRAMERECT_LEFT, sprite_right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP, INVALID_VEHICLE, EIT_IN_DETAILS, 0);
 				}
-				DrawVehicleDetails(v, text_left + WD_FRAMERECT_LEFT, text_right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP, 0, 0, this->tab);
+				DrawVehicleDetails (v, dpi, text_left + WD_FRAMERECT_LEFT, text_right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP, 0, 0, this->tab);
 				break;
 			}
 
@@ -2214,14 +2210,14 @@ struct VehicleDetailsWindow : Window {
 				/* Draw service interval text */
 				SetDParam(0, v->GetServiceInterval());
 				SetDParam(1, v->date_of_last_service);
-				DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + (r.bottom - r.top + 1 - FONT_HEIGHT_NORMAL) / 2,
+				DrawString (dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + (r.bottom - r.top + 1 - FONT_HEIGHT_NORMAL) / 2,
 						v->ServiceIntervalIsPercent() ? STR_VEHICLE_DETAILS_SERVICING_INTERVAL_PERCENT : STR_VEHICLE_DETAILS_SERVICING_INTERVAL_DAYS);
 				break;
 		}
 	}
 
 	/** Repaint vehicle details window. */
-	virtual void OnPaint()
+	void OnPaint (BlitArea *dpi) OVERRIDE
 	{
 		const Vehicle *v = Vehicle::Get(this->window_number);
 
@@ -2243,7 +2239,7 @@ struct VehicleDetailsWindow : Window {
 			STR_VEHICLE_DETAILS_DEFAULT;
 		this->GetWidget<NWidgetCore>(WID_VD_SERVICE_INTERVAL_DROPDOWN)->widget_data = str;
 
-		this->DrawWidgets();
+		this->DrawWidgets (dpi);
 	}
 
 	virtual void OnClick(Point pt, int widget, int click_count)
@@ -2619,7 +2615,7 @@ public:
 		}
 	}
 
-	virtual void OnPaint()
+	void OnPaint (BlitArea *dpi) OVERRIDE
 	{
 		const Vehicle *v = Vehicle::Get(this->window_number);
 		bool is_localcompany = v->owner == _local_company;
@@ -2635,7 +2631,7 @@ public:
 			this->SetWidgetDisabledState(WID_VV_TURN_AROUND, !is_localcompany);
 		}
 
-		this->DrawWidgets();
+		this->DrawWidgets (dpi);
 	}
 
 	virtual void SetStringParameters(int widget) const
@@ -2646,7 +2642,7 @@ public:
 		SetDParam(0, v->index);
 	}
 
-	virtual void DrawWidget(const Rect &r, int widget) const
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
 	{
 		if (widget != WID_VV_START_STOP) return;
 
@@ -2742,8 +2738,8 @@ public:
 		int image_left = (rtl ? text_right + 1 : r.left) + WD_IMGBTN_LEFT;
 		int image = ((v->vehstatus & VS_STOPPED) != 0) ? SPR_FLAG_VEH_STOPPED : SPR_FLAG_VEH_RUNNING;
 		int lowered = this->IsWidgetLowered(WID_VV_START_STOP) ? 1 : 0;
-		DrawSprite(image, PAL_NONE, image_left + lowered, r.top + WD_IMGBTN_TOP + lowered);
-		DrawString(text_left + lowered, text_right + lowered, r.top + WD_FRAMERECT_TOP + lowered, str, TC_FROMSTRING, SA_HOR_CENTER);
+		DrawSprite (dpi, image, PAL_NONE, image_left + lowered, r.top + WD_IMGBTN_TOP + lowered);
+		DrawString (dpi, text_left + lowered, text_right + lowered, r.top + WD_FRAMERECT_TOP + lowered, str, TC_FROMSTRING, SA_HOR_CENTER);
 	}
 
 	virtual void OnClick(Point pt, int widget, int click_count)

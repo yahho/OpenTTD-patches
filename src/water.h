@@ -15,6 +15,7 @@
 #include "direction_type.h"
 #include "map/water.h"
 #include "economy_func.h"
+#include "gfx_func.h"
 
 /**
  * Describes the behaviour of a tile during flooding.
@@ -34,9 +35,9 @@ void DoFloodTile(TileIndex target);
 
 void ConvertGroundTilesIntoWaterTiles();
 
-void DrawShipDepotSprite(int x, int y, DiagDirection dir);
+void DrawShipDepotSprite (BlitArea *dpi, int x, int y, DiagDirection dir);
 void DrawWaterClassGround(const struct TileInfo *ti);
-void DrawShoreTile(Slope tileh);
+void DrawShoreTile (const struct TileInfo *ti);
 
 void MakeWaterKeepingClass(TileIndex tile, Owner o);
 

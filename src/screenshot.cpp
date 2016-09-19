@@ -637,9 +637,7 @@ void SetScreenshotFormat(uint i)
  */
 static void CurrentScreenCallback(void *userdata, void *buf, uint y, uint pitch, uint n)
 {
-	Blitter *blitter = Blitter::get();
-	void *src = blitter->MoveTo(_screen.dst_ptr, 0, y);
-	blitter->CopyImageToBuffer(src, buf, _screen.width, n, pitch);
+	_screen.surface->export_lines (buf, pitch, y, n);
 }
 
 /**
@@ -653,27 +651,14 @@ static void CurrentScreenCallback(void *userdata, void *buf, uint y, uint pitch,
 static void LargeWorldCallback(void *userdata, void *buf, uint y, uint pitch, uint n)
 {
 	ViewPort *vp = (ViewPort *)userdata;
-	DrawPixelInfo dpi, *old_dpi;
 	int wx, left;
 
 	/* We are no longer rendering to the screen */
-	DrawPixelInfo old_screen = _screen;
-	bool old_disable_anim = _screen_disable_anim;
-
-	_screen.dst_ptr = buf;
-	_screen.width = pitch;
-	_screen.height = n;
-	_screen.pitch = pitch;
-	_screen_disable_anim = true;
-
-	old_dpi = _cur_dpi;
-	_cur_dpi = &dpi;
-
+	BlitArea dpi;
 	dpi.dst_ptr = buf;
 	dpi.height = n;
 	dpi.width = vp->width;
-	dpi.pitch = pitch;
-	dpi.zoom = ZOOM_LVL_WORLD_SCREENSHOT;
+	dpi.surface.reset (Blitter::get()->create (buf, pitch, n, pitch, false));
 	dpi.left = 0;
 	dpi.top = y;
 
@@ -683,19 +668,13 @@ static void LargeWorldCallback(void *userdata, void *buf, uint y, uint pitch, ui
 		wx = min(vp->width - left, 1600);
 		left += wx;
 
-		ViewportDoDraw(vp,
+		ViewportDoDraw (&dpi, vp,
 			ScaleByZoom(left - wx - vp->left, vp->zoom) + vp->virtual_left,
 			ScaleByZoom(y - vp->top, vp->zoom) + vp->virtual_top,
 			ScaleByZoom(left - vp->left, vp->zoom) + vp->virtual_left,
 			ScaleByZoom((y + n) - vp->top, vp->zoom) + vp->virtual_top
 		);
 	}
-
-	_cur_dpi = old_dpi;
-
-	/* Switch back to rendering to the screen */
-	_screen = old_screen;
-	_screen_disable_anim = old_disable_anim;
 }
 
 /**

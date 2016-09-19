@@ -120,7 +120,7 @@ static inline int GetBridgePixelHeight(TileIndex tile)
 	return GetBridgeHeight(tile) * TILE_HEIGHT;
 }
 
-void DrawBridgeTramBits(int x, int y, int z, int offset, bool overlay, bool head);
+void DrawBridgeTramBits (struct ViewportDrawer *vd, int x, int y, int z, int offset, bool overlay, bool head);
 void DrawBridgeMiddle(const TileInfo *ti);
 void DrawBridgeGround(TileInfo *ti);
 const PalSpriteID *GetBridgeRampSprite(int index, int offset, Slope slope, DiagDirection dir);

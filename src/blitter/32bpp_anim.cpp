@@ -11,7 +11,6 @@
 
 #include "../stdafx.h"
 #include "../debug.h"
-#include "../video/video_driver.hpp"
 #include "32bpp_anim.hpp"
 
 #include "../table/sprites.h"
@@ -20,7 +19,7 @@ const char Blitter_32bppAnim::name[] = "32bpp-anim";
 const char Blitter_32bppAnim::desc[] = "32bpp Animation Blitter (palette animation)";
 
 template <BlitterMode mode>
-inline void Blitter_32bppAnim::Draw(const Blitter::BlitterParams *bp, ZoomLevel zoom)
+inline void Blitter_32bppAnim::Surface::draw (const BlitterParams *bp, ZoomLevel zoom)
 {
 	const Sprite *src = static_cast<const Sprite*> (bp->sprite);
 
@@ -33,13 +32,13 @@ inline void Blitter_32bppAnim::Draw(const Blitter::BlitterParams *bp, ZoomLevel 
 	}
 
 	Colour *dst = (Colour *)bp->dst + bp->top * bp->pitch + bp->left;
-	uint16 *anim = this->anim_buf + ((uint32 *)bp->dst - (uint32 *)_screen.dst_ptr) + bp->top * this->anim_buf_width + bp->left;
+	uint16 *anim = this->anim_buf + ((uint32 *)bp->dst - (uint32 *)this->ptr) + bp->top * this->width + bp->left;
 
 	const byte *remap = bp->remap; // store so we don't have to access it via bp everytime
 
 	for (int y = 0; y < bp->height; y++) {
 		Colour *dst_ln = dst + bp->pitch;
-		uint16 *anim_ln = anim + this->anim_buf_width;
+		uint16 *anim_ln = anim + this->width;
 
 		const Colour *src_px_ln = (const Colour *)((const byte *)src_px + *(const uint32 *)src_px);
 		src_px++;
@@ -108,7 +107,7 @@ inline void Blitter_32bppAnim::Draw(const Blitter::BlitterParams *bp, ZoomLevel 
 							} else {
 								uint r = remap[GB(m, 0, 8)];
 								*anim = r | (m & 0xFF00);
-								if (r != 0) *dst = this->AdjustBrightness(this->LookupColourInPalette(r), GB(m, 8, 8));
+								if (r != 0) *dst = AdjustBrightness (this->lookup_colour(r), GB(m, 8, 8));
 							}
 							anim++;
 							dst++;
@@ -124,7 +123,7 @@ inline void Blitter_32bppAnim::Draw(const Blitter::BlitterParams *bp, ZoomLevel 
 							} else {
 								uint r = remap[GB(m, 0, 8)];
 								*anim = 0;
-								if (r != 0) *dst = ComposeColourPANoCheck(this->AdjustBrightness(this->LookupColourInPalette(r), GB(m, 8, 8)), src_px->a, *dst);
+								if (r != 0) *dst = ComposeColourPANoCheck (AdjustBrightness (this->lookup_colour(r), GB(m, 8, 8)), src_px->a, *dst);
 							}
 							anim++;
 							dst++;
@@ -145,7 +144,7 @@ inline void Blitter_32bppAnim::Draw(const Blitter::BlitterParams *bp, ZoomLevel 
 							} else {
 								uint r = remap[GB(m, 0, 8)];
 								*anim = r | (m & 0xFF00);
-								if (r != 0) *dst = this->AdjustBrightness(this->LookupColourInPalette(r), GB(m, 8, 8));
+								if (r != 0) *dst = AdjustBrightness (this->lookup_colour(r), GB(m, 8, 8));
 							}
 							anim++;
 							dst++;
@@ -164,7 +163,7 @@ inline void Blitter_32bppAnim::Draw(const Blitter::BlitterParams *bp, ZoomLevel 
 							} else {
 								uint r = remap[GB(m, 0, 8)];
 								*anim = 0;
-								if (r != 0) *dst = ComposeColourPANoCheck(this->AdjustBrightness(this->LookupColourInPalette(r), GB(m, 8, 8)), src_px->a, *dst);
+								if (r != 0) *dst = ComposeColourPANoCheck (AdjustBrightness (this->lookup_colour(r), GB(m, 8, 8)), src_px->a, *dst);
 							}
 							anim++;
 							dst++;
@@ -217,7 +216,7 @@ inline void Blitter_32bppAnim::Draw(const Blitter::BlitterParams *bp, ZoomLevel 
 							uint m = GB(*src_n, 0, 8);
 							/* Above PALETTE_ANIM_START is palette animation */
 							*anim++ = *src_n;
-							*dst++ = (m >= PALETTE_ANIM_START) ? this->AdjustBrightness(this->LookupColourInPalette(m), GB(*src_n, 8, 8)) : src_px->data;
+							*dst++ = (m >= PALETTE_ANIM_START) ? AdjustBrightness (this->lookup_colour(m), GB(*src_n, 8, 8)) : src_px->data;
 							src_px++;
 							src_n++;
 						} while (--n != 0);
@@ -226,7 +225,7 @@ inline void Blitter_32bppAnim::Draw(const Blitter::BlitterParams *bp, ZoomLevel 
 							uint m = GB(*src_n, 0, 8);
 							*anim++ = 0;
 							if (m >= PALETTE_ANIM_START) {
-								*dst = ComposeColourPANoCheck(this->AdjustBrightness(this->LookupColourInPalette(m), GB(*src_n, 8, 8)), src_px->a, *dst);
+								*dst = ComposeColourPANoCheck (AdjustBrightness (this->lookup_colour(m), GB(*src_n, 8, 8)), src_px->a, *dst);
 							} else {
 								*dst = ComposeColourRGBANoCheck(src_px->r, src_px->g, src_px->b, src_px->a, *dst);
 							}
@@ -246,36 +245,24 @@ inline void Blitter_32bppAnim::Draw(const Blitter::BlitterParams *bp, ZoomLevel 
 	}
 }
 
-void Blitter_32bppAnim::Draw(Blitter::BlitterParams *bp, BlitterMode mode, ZoomLevel zoom)
+void Blitter_32bppAnim::Surface::draw (const BlitterParams *bp, BlitterMode mode, ZoomLevel zoom)
 {
-	if (_screen_disable_anim) {
-		/* This means our output is not to the screen, so we can't be doing any animation stuff, so use our parent Draw() */
-		Blitter_32bppOptimized::Draw(bp, mode, zoom);
-		return;
-	}
-
 	switch (mode) {
 		default: NOT_REACHED();
-		case BM_NORMAL:       Draw<BM_NORMAL>      (bp, zoom); return;
-		case BM_COLOUR_REMAP: Draw<BM_COLOUR_REMAP>(bp, zoom); return;
-		case BM_TRANSPARENT:  Draw<BM_TRANSPARENT> (bp, zoom); return;
-		case BM_CRASH_REMAP:  Draw<BM_CRASH_REMAP> (bp, zoom); return;
-		case BM_BLACK_REMAP:  Draw<BM_BLACK_REMAP> (bp, zoom); return;
+		case BM_NORMAL:       this->draw<BM_NORMAL>      (bp, zoom); return;
+		case BM_COLOUR_REMAP: this->draw<BM_COLOUR_REMAP>(bp, zoom); return;
+		case BM_TRANSPARENT:  this->draw<BM_TRANSPARENT> (bp, zoom); return;
+		case BM_CRASH_REMAP:  this->draw<BM_CRASH_REMAP> (bp, zoom); return;
+		case BM_BLACK_REMAP:  this->draw<BM_BLACK_REMAP> (bp, zoom); return;
 	}
 }
 
-void Blitter_32bppAnim::DrawColourMappingRect(void *dst, int width, int height, PaletteID pal)
+void Blitter_32bppAnimBase::Surface::recolour_rect (void *dst, int width, int height, PaletteID pal)
 {
-	if (_screen_disable_anim) {
-		/* This means our output is not to the screen, so we can't be doing any animation stuff, so use our parent DrawColourMappingRect() */
-		Blitter_32bppOptimized::DrawColourMappingRect(dst, width, height, pal);
-		return;
-	}
-
 	Colour *udst = (Colour *)dst;
 	uint16 *anim;
 
-	anim = this->anim_buf + ((uint32 *)dst - (uint32 *)_screen.dst_ptr);
+	anim = this->anim_buf + ((uint32 *)dst - (uint32 *)this->ptr);
 
 	if (pal == PALETTE_TO_TRANSPARENT) {
 		do {
@@ -285,8 +272,8 @@ void Blitter_32bppAnim::DrawColourMappingRect(void *dst, int width, int height, 
 				udst++;
 				anim++;
 			}
-			udst = udst - width + _screen.pitch;
-			anim = anim - width + this->anim_buf_width;
+			udst = udst - width + this->pitch;
+			anim = anim - width + this->width;
 		} while (--height);
 		return;
 	}
@@ -298,8 +285,8 @@ void Blitter_32bppAnim::DrawColourMappingRect(void *dst, int width, int height, 
 				udst++;
 				anim++;
 			}
-			udst = udst - width + _screen.pitch;
-			anim = anim - width + this->anim_buf_width;
+			udst = udst - width + this->pitch;
+			anim = anim - width + this->width;
 		} while (--height);
 		return;
 	}
@@ -307,27 +294,21 @@ void Blitter_32bppAnim::DrawColourMappingRect(void *dst, int width, int height, 
 	DEBUG(misc, 0, "32bpp blitter doesn't know how to draw this colour table ('%d')", pal);
 }
 
-void Blitter_32bppAnim::SetPixel(void *video, int x, int y, uint8 colour)
+void Blitter_32bppAnimBase::Surface::set_pixel (void *video, int x, int y, uint8 colour)
 {
-	*((Colour *)video + x + y * _screen.pitch) = LookupColourInPalette(colour);
+	*(this->movep <Colour> (video, x, y)) = this->lookup_colour (colour);
 
-	/* Set the colour in the anim-buffer too, if we are rendering to the screen */
-	if (_screen_disable_anim) return;
-	this->anim_buf[((uint32 *)video - (uint32 *)_screen.dst_ptr) + x + y * this->anim_buf_width] = colour | (DEFAULT_BRIGHTNESS << 8);
+	/* Set the colour in the anim-buffer too. */
+	uint16 *anim = ((uint32 *)video - (uint32 *)this->ptr) + this->anim_buf;
+	*(movew <uint16> (anim, x, y, this->width)) = colour | (DEFAULT_BRIGHTNESS << 8);
 }
 
-void Blitter_32bppAnim::DrawRect(void *video, int width, int height, uint8 colour)
+void Blitter_32bppAnimBase::Surface::draw_rect (void *video, int width, int height, uint8 colour)
 {
-	if (_screen_disable_anim) {
-		/* This means our output is not to the screen, so we can't be doing any animation stuff, so use our parent DrawRect() */
-		Blitter_32bppOptimized::DrawRect(video, width, height, colour);
-		return;
-	}
-
-	Colour colour32 = LookupColourInPalette(colour);
+	Colour colour32 = this->lookup_colour (colour);
 	uint16 *anim_line;
 
-	anim_line = ((uint32 *)video - (uint32 *)_screen.dst_ptr) + this->anim_buf;
+	anim_line = ((uint32 *)video - (uint32 *)this->ptr) + this->anim_buf;
 
 	do {
 		Colour *dst = (Colour *)video;
@@ -340,31 +321,32 @@ void Blitter_32bppAnim::DrawRect(void *video, int width, int height, uint8 colou
 			dst++;
 			anim++;
 		}
-		video = (uint32 *)video + _screen.pitch;
-		anim_line += this->anim_buf_width;
+		video = (uint32 *)video + this->pitch;
+		anim_line += this->width;
 	} while (--height);
 }
 
-void Blitter_32bppAnim::CopyFromBuffer(void *video, const void *src, int width, int height)
+void Blitter_32bppAnimBase::Surface::paste (const Buffer *src, int x, int y)
 {
-	assert(!_screen_disable_anim);
-	assert(video >= _screen.dst_ptr && video <= (uint32 *)_screen.dst_ptr + _screen.width + _screen.height * _screen.pitch);
+	void *video = this->Blitter_32bppBase::Surface::move (this->ptr, x, y);
+	assert (video >= this->ptr && video <= (uint32 *)this->ptr + this->width + this->height * this->pitch);
 	Colour *dst = (Colour *)video;
-	const uint32 *usrc = (const uint32 *)src;
-	uint16 *anim_line = ((uint32 *)video - (uint32 *)_screen.dst_ptr) + this->anim_buf;
+	const byte *usrc = &src->data.front();
+	uint16 *anim_line = ((uint32 *)video - (uint32 *)this->ptr) + this->anim_buf;
 
-	for (; height > 0; height--) {
+	const uint width = src->width;
+	for (uint height = src->height; height > 0; height--) {
 		/* We need to keep those for palette animation. */
 		Colour *dst_pal = dst;
 		uint16 *anim_pal = anim_line;
 
 		memcpy(dst, usrc, width * sizeof(uint32));
-		usrc += width;
-		dst += _screen.pitch;
+		usrc += width * sizeof(uint32);
+		dst += this->pitch;
 		/* Copy back the anim-buffer */
 		memcpy(anim_line, usrc, width * sizeof(uint16));
-		usrc = (const uint32 *)((const uint16 *)usrc + width);
-		anim_line += this->anim_buf_width;
+		usrc += width * sizeof(uint16);
+		anim_line += this->width;
 
 		/* Okay, it is *very* likely that the image we stored is using
 		 * the wrong palette animated colours. There are two things we
@@ -373,11 +355,11 @@ void Blitter_32bppAnim::CopyFromBuffer(void *video, const void *src, int width, 
 		 * however that forces a full screen redraw which is expensive
 		 * for just the cursor. This just copies the implementation of
 		 * palette animation, much cheaper though slightly nastier. */
-		for (int i = 0; i < width; i++) {
+		for (uint i = 0; i < width; i++) {
 			uint colour = GB(*anim_pal, 0, 8);
 			if (colour >= PALETTE_ANIM_START) {
 				/* Update this pixel */
-				*dst_pal = this->AdjustBrightness(LookupColourInPalette(colour), GB(*anim_pal, 8, 8));
+				*dst_pal = AdjustBrightness (this->lookup_colour (colour), GB(*anim_pal, 8, 8));
 			}
 			dst_pal++;
 			anim_pal++;
@@ -385,39 +367,46 @@ void Blitter_32bppAnim::CopyFromBuffer(void *video, const void *src, int width, 
 	}
 }
 
-void Blitter_32bppAnim::CopyToBuffer(const void *video, void *dst, int width, int height)
+void Blitter_32bppAnimBase::Surface::copy (Buffer *dst, int x, int y, uint width, uint height)
 {
-	assert(!_screen_disable_anim);
-	assert(video >= _screen.dst_ptr && video <= (uint32 *)_screen.dst_ptr + _screen.width + _screen.height * _screen.pitch);
-	uint32 *udst = (uint32 *)dst;
+	dst->resize (width, height, sizeof(uint32) + sizeof(uint16));
+	/* Only change buffer capacity? */
+	if ((x < 0) || (y < 0)) return;
+
+	dst->width  = width;
+	dst->height = height;
+
+	const void *video = this->Blitter_32bppBase::Surface::move (this->ptr, x, y);
+	assert (video >= this->ptr && video <= (uint32 *)this->ptr + this->width + this->height * this->pitch);
+	byte *udst = &dst->data.front();
 	const uint32 *src = (const uint32 *)video;
 	const uint16 *anim_line;
 
-	if (this->anim_buf == NULL) return;
-
-	anim_line = ((const uint32 *)video - (uint32 *)_screen.dst_ptr) + this->anim_buf;
+	anim_line = ((const uint32 *)video - (uint32 *)this->ptr) + this->anim_buf;
 
 	for (; height > 0; height--) {
 		memcpy(udst, src, width * sizeof(uint32));
-		src += _screen.pitch;
-		udst += width;
+		udst += width * sizeof(uint32);
+		src += this->pitch;
 		/* Copy the anim-buffer */
 		memcpy(udst, anim_line, width * sizeof(uint16));
-		udst = (uint32 *)((uint16 *)udst + width);
-		anim_line += this->anim_buf_width;
+		udst += width * sizeof(uint16);
+		anim_line += this->width;
 	}
+
+	/* Sanity check that we did not overrun the buffer. */
+	assert (udst <= &dst->data.front() + dst->data.size());
 }
 
-void Blitter_32bppAnim::ScrollBuffer(void *video, int &left, int &top, int &width, int &height, int scroll_x, int scroll_y)
+void Blitter_32bppAnimBase::Surface::scroll (void *video, int &left, int &top, int &width, int &height, int scroll_x, int scroll_y)
 {
-	assert(!_screen_disable_anim);
-	assert(video >= _screen.dst_ptr && video <= (uint32 *)_screen.dst_ptr + _screen.width + _screen.height * _screen.pitch);
+	assert (video >= this->ptr && video <= (uint32 *)this->ptr + this->width + this->height * this->pitch);
 	uint16 *dst, *src;
 
 	/* We need to scroll the anim-buffer too */
 	if (scroll_y > 0) {
-		dst = this->anim_buf + left + (top + height - 1) * this->anim_buf_width;
-		src = dst - scroll_y * this->anim_buf_width;
+		dst = movew <uint16> (this->anim_buf, left, top + height - 1, this->width);
+		src = dst - scroll_y * this->width;
 
 		/* Adjust left & width */
 		if (scroll_x >= 0) {
@@ -430,13 +419,13 @@ void Blitter_32bppAnim::ScrollBuffer(void *video, int &left, int &top, int &widt
 		uint th = height - scroll_y;
 		for (; th > 0; th--) {
 			memcpy(dst, src, tw * sizeof(uint16));
-			src -= this->anim_buf_width;
-			dst -= this->anim_buf_width;
+			src -= this->width;
+			dst -= this->width;
 		}
 	} else {
 		/* Calculate pointers */
-		dst = this->anim_buf + left + top * this->anim_buf_width;
-		src = dst - scroll_y * this->anim_buf_width;
+		dst = movew <uint16> (this->anim_buf, left, top, this->width);
+		src = dst + (-scroll_y) * this->width;
 
 		/* Adjust left & width */
 		if (scroll_x >= 0) {
@@ -451,62 +440,39 @@ void Blitter_32bppAnim::ScrollBuffer(void *video, int &left, int &top, int &widt
 		uint th = height + scroll_y;
 		for (; th > 0; th--) {
 			memmove(dst, src, tw * sizeof(uint16));
-			src += this->anim_buf_width;
-			dst += this->anim_buf_width;
+			src += this->width;
+			dst += this->width;
 		}
 	}
 
-	Blitter_32bppBase::ScrollBuffer(video, left, top, width, height, scroll_x, scroll_y);
+	this->Blitter_32bppBase::Surface::scroll (video, left, top, width, height, scroll_x, scroll_y);
 }
 
-int Blitter_32bppAnim::BufferSize(int width, int height)
+bool Blitter_32bppAnimBase::Surface::palette_animate (const Palette &palette)
 {
-	return width * height * (sizeof(uint32) + sizeof(uint16));
-}
-
-void Blitter_32bppAnim::PaletteAnimate(const Palette &palette)
-{
-	assert(!_screen_disable_anim);
-
 	this->palette = palette;
 	/* If first_dirty is 0, it is for 8bpp indication to send the new
 	 *  palette. However, only the animation colours might possibly change.
 	 *  Especially when going between toyland and non-toyland. */
-	assert(this->palette.first_dirty == PALETTE_ANIM_START || this->palette.first_dirty == 0);
+	assert (this->palette.first_dirty == PALETTE_ANIM_START || this->palette.first_dirty == 0);
 
 	const uint16 *anim = this->anim_buf;
-	Colour *dst = (Colour *)_screen.dst_ptr;
+	Colour *dst = (Colour *)this->ptr;
 
 	/* Let's walk the anim buffer and try to find the pixels */
-	for (int y = this->anim_buf_height; y != 0 ; y--) {
-		for (int x = this->anim_buf_width; x != 0 ; x--) {
+	for (int y = this->height; y != 0 ; y--) {
+		for (int x = this->width; x != 0 ; x--) {
 			uint colour = GB(*anim, 0, 8);
 			if (colour >= PALETTE_ANIM_START) {
 				/* Update this pixel */
-				*dst = this->AdjustBrightness(LookupColourInPalette(colour), GB(*anim, 8, 8));
+				*dst = AdjustBrightness (this->lookup_colour (colour), GB(*anim, 8, 8));
 			}
 			dst++;
 			anim++;
 		}
-		dst += _screen.pitch - this->anim_buf_width;
+		dst += this->pitch - this->width;
 	}
 
 	/* Make sure the backend redraws the whole screen */
-	VideoDriver::GetActiveDriver()->MakeDirty(0, 0, _screen.width, _screen.height);
-}
-
-Blitter::PaletteAnimation Blitter_32bppAnim::UsePaletteAnimation()
-{
-	return Blitter::PALETTE_ANIMATION_BLITTER;
-}
-
-void Blitter_32bppAnim::PostResize()
-{
-	if (_screen.width != this->anim_buf_width || _screen.height != this->anim_buf_height) {
-		/* The size of the screen changed; we can assume we can wipe all data from our buffer */
-		free(this->anim_buf);
-		this->anim_buf = xcalloct<uint16>(_screen.width * _screen.height);
-		this->anim_buf_width = _screen.width;
-		this->anim_buf_height = _screen.height;
-	}
+	return true;
 }

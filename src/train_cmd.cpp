@@ -593,7 +593,8 @@ static SpriteID GetRailIcon(EngineID engine, bool rear_head, int &y, EngineImage
 	return GetDefaultTrainSprite(spritenum, DIR_W);
 }
 
-void DrawTrainEngine(int left, int right, int preferred_x, int y, EngineID engine, PaletteID pal, EngineImageType image_type)
+void DrawTrainEngine (BlitArea *dpi, int left, int right, int preferred_x,
+	int y, EngineID engine, PaletteID pal, EngineImageType image_type)
 {
 	if (RailVehInfo(engine)->railveh_type == RAILVEH_MULTIHEAD) {
 		int yf = y;
@@ -608,15 +609,15 @@ void DrawTrainEngine(int left, int right, int preferred_x, int y, EngineID engin
 				left - UnScaleGUI(real_spritef->x_offs) + ScaleGUITrad(14),
 				right - UnScaleGUI(real_spriter->width) - UnScaleGUI(real_spriter->x_offs) - ScaleGUITrad(15));
 
-		DrawSprite(spritef, pal, preferred_x - ScaleGUITrad(14), yf);
-		DrawSprite(spriter, pal, preferred_x + ScaleGUITrad(15), yr);
+		DrawSprite (dpi, spritef, pal, preferred_x - ScaleGUITrad(14), yf);
+		DrawSprite (dpi, spriter, pal, preferred_x + ScaleGUITrad(15), yr);
 	} else {
 		SpriteID sprite = GetRailIcon(engine, false, y, image_type);
 		const Sprite *real_sprite = GetSprite(sprite, ST_NORMAL);
 		preferred_x = Clamp(preferred_x,
 				left - UnScaleGUI(real_sprite->x_offs),
 				right - UnScaleGUI(real_sprite->width) - UnScaleGUI(real_sprite->x_offs));
-		DrawSprite(sprite, pal, preferred_x, y);
+		DrawSprite (dpi, sprite, pal, preferred_x, y);
 	}
 }
 
@@ -702,6 +703,7 @@ static CommandCost CmdBuildRailWagon(TileIndex tile, DoCommandFlag flags, const 
 
 		v->railtype = rvi->railtype;
 
+		v->date_of_last_service = _date;
 		v->build_year = _cur_year;
 		v->cur_image = SPR_IMG_QUERY;
 		v->random_bits = VehicleRandomBits();
@@ -769,6 +771,7 @@ static void AddRearEngineToMultiheadedTrain(Train *v)
 	u->refit_cap = v->refit_cap;
 	u->railtype = v->railtype;
 	u->engine_type = v->engine_type;
+	u->date_of_last_service = v->date_of_last_service;
 	u->build_year = v->build_year;
 	u->cur_image = SPR_IMG_QUERY;
 	u->random_bits = VehicleRandomBits();

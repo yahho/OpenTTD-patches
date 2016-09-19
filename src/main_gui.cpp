@@ -115,7 +115,7 @@ bool HandlePlacePushButton (Window *w, int widget, CursorID cursor, PointerMode 
 }
 
 
-void CcPlaySound10(const CommandCost &result, TileIndex tile, uint32 p1, uint32 p2)
+void CcPlaySound_EXPLOSION(const CommandCost &result, TileIndex tile, uint32 p1, uint32 p2)
 {
 	if (result.Succeeded() && _settings_client.sound.confirm) SndPlayTileFx(SND_12_EXPLOSION, tile);
 }
@@ -257,9 +257,9 @@ struct MainWindow : Window
 		this->GetWidget<NWidgetBase>(WID_M_VIEWPORT)->SetDirty(this);
 	}
 
-	virtual void OnPaint()
+	void OnPaint (BlitArea *dpi) OVERRIDE
 	{
-		this->DrawWidgets();
+		this->DrawWidgets (dpi);
 		if (_game_mode == GM_MENU) {
 			static const SpriteID title_sprites[] = {SPR_OTTD_O, SPR_OTTD_P, SPR_OTTD_E, SPR_OTTD_N, SPR_OTTD_T, SPR_OTTD_T, SPR_OTTD_D};
 			static const uint LETTER_SPACING = 10;
@@ -271,7 +271,7 @@ struct MainWindow : Window
 			int off_x = (this->width - name_width) / 2;
 
 			for (uint i = 0; i < lengthof(title_sprites); i++) {
-				DrawSprite(title_sprites[i], PAL_NONE, off_x, 50);
+				DrawSprite (dpi, title_sprites[i], PAL_NONE, off_x, 50);
 				off_x += GetSpriteSize(title_sprites[i]).width + LETTER_SPACING;
 			}
 		}

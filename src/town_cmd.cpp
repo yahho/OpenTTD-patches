@@ -177,7 +177,7 @@ static Town *CreateRandomTown(uint attempts, uint32 townnameparts, TownSize size
 
 static void TownDrawHouseLift(const TileInfo *ti)
 {
-	AddChildSpriteScreen(SPR_LIFT, PAL_NONE, 14, 60 - GetLiftPosition(ti->tile));
+	AddChildSpriteScreen (ti->vd, SPR_LIFT, PAL_NONE, 14, 60 - GetLiftPosition(ti->tile));
 }
 
 typedef void TownDrawTileProc(const TileInfo *ti);
@@ -221,7 +221,7 @@ static void DrawTile_Town(TileInfo *ti)
 
 	if (ti->tileh != SLOPE_FLAT) DrawFoundation(ti, FOUNDATION_LEVELED);
 
-	DrawGroundSprite(dcts->ground.sprite, dcts->ground.pal);
+	DrawGroundSprite (ti, dcts->ground.sprite, dcts->ground.pal);
 
 	/* If houses are invisible, do not draw the upper part */
 	if (IsInvisibilitySet(TO_HOUSES)) return;
@@ -229,7 +229,7 @@ static void DrawTile_Town(TileInfo *ti)
 	/* Add a house on top of the ground? */
 	SpriteID image = dcts->building.sprite;
 	if (image != 0) {
-		AddSortableSpriteToDraw(image, dcts->building.pal,
+		AddSortableSpriteToDraw (ti->vd, image, dcts->building.pal,
 			ti->x + dcts->subtile_x,
 			ti->y + dcts->subtile_y,
 			dcts->width,
@@ -249,22 +249,23 @@ static void DrawTile_Town(TileInfo *ti)
 	}
 }
 
-static void DrawOldHouseTileInGUI(int x, int y, HouseID house_id, bool ground)
+static void DrawOldHouseTileInGUI (BlitArea *dpi, int x, int y,
+	HouseID house_id, bool ground)
 {
 	/* Retrieve pointer to the draw town tile struct */
 	const DrawBuildingsTileStruct *dcts = town_draw_tile_data[house_id][0][TOWN_HOUSE_COMPLETED];
 	if (ground) {
 		/* Draw the ground sprite */
-		DrawSprite(dcts->ground.sprite, dcts->ground.pal, x, y);
+		DrawSprite (dpi, dcts->ground.sprite, dcts->ground.pal, x, y);
 	} else {
 		/* Add a house on top of the ground? */
 		if (dcts->building.sprite != 0) {
-			DrawSprite (dcts->building.sprite, dcts->building.pal,
+			DrawSprite (dpi, dcts->building.sprite, dcts->building.pal,
 					x + ScaleGUITrad (2 * (dcts->subtile_y - dcts->subtile_x)),
 					y + ScaleGUITrad (dcts->subtile_x + dcts->subtile_y));
 		}
 		/* Draw the lift */
-		if (dcts->draw_proc == 1) DrawSprite(SPR_LIFT, PAL_NONE, x - 18, y + 7);
+		if (dcts->draw_proc == 1) DrawSprite (dpi, SPR_LIFT, PAL_NONE, x - 18, y + 7);
 	}
 }
 
@@ -272,17 +273,17 @@ static void DrawOldHouseTileInGUI(int x, int y, HouseID house_id, bool ground)
  * Draw image of a house. Image will be centered between the \c left and the \c right and verticaly aligned to the \c bottom.
  *
  * @param house_id house type
+ * @param dpi area to draw on
  * @param left left bound of the drawing area
  * @param top top bound of the drawing area
  * @param right right bound of the drawing area
  * @param bottom bottom bound of the drawing area
  */
-void DrawHouseImage(HouseID house_id, int left, int top, int right, int bottom)
+void DrawHouseImage (HouseID house_id, BlitArea *dpi,
+	int left, int top, int right, int bottom)
 {
-	DrawPixelInfo tmp_dpi;
-	if (!FillDrawPixelInfo(&tmp_dpi, left, top, right - left + 1, bottom - top + 1)) return;
-	DrawPixelInfo *old_dpi = _cur_dpi;
-	_cur_dpi = &tmp_dpi;
+	BlitArea tmp_dpi;
+	if (!InitBlitArea (dpi, &tmp_dpi, left, top, right - left + 1, bottom - top + 1)) return;
 
 	const HouseSpec *hs = HouseSpec::Get(house_id);
 
@@ -310,25 +311,28 @@ void DrawHouseImage(HouseID house_id, int left, int top, int right, int bottom)
 	uint num_row = (hs->building_flags & BUILDING_2_TILES_X) ? 2 : 1;
 	uint num_col = (hs->building_flags & BUILDING_2_TILES_Y) ? 2 : 1;
 
+	Point pt[4];
+	uint n = 0;
+	for (uint row = 0; row < num_row; row++) {
+		for (uint col = 0; col < num_col; col++) {
+			Point offset = RemapCoords (row * TILE_SIZE, col * TILE_SIZE, 0); // offset for current tile
+			pt[n].x = x + UnScaleByZoom (offset.x, ZOOM_LVL_GUI);
+			pt[n].y = y + UnScaleByZoom (offset.y, ZOOM_LVL_GUI);
+			n++;
+		}
+	}
+
 	for (bool ground = true; ; ground = !ground) {
-		HouseID hid = house_id;
-		for (uint row = 0; row < num_row; row++) {
-			for (uint col = 0; col < num_col; col++) {
-				Point offset = RemapCoords(row * TILE_SIZE, col * TILE_SIZE, 0); // offset for current tile
-				offset.x = UnScaleByZoom(offset.x, ZOOM_LVL_GUI);
-				offset.y = UnScaleByZoom(offset.y, ZOOM_LVL_GUI);
-				if (new_house) {
-					DrawNewHouseTileInGUI(x + offset.x, y + offset.y, hid, ground);
-				} else {
-					DrawOldHouseTileInGUI(x + offset.x, y + offset.y, hid, ground);
-				}
-				hid++;
+		for (uint i = 0; i < n; i++) {
+			HouseID hid = house_id + i;
+			if (new_house) {
+				DrawNewHouseTileInGUI (&tmp_dpi, pt[i].x, pt[i].y, hid, ground);
+			} else {
+				DrawOldHouseTileInGUI (&tmp_dpi, pt[i].x, pt[i].y, hid, ground);
 			}
 		}
 		if (!ground) break;
 	}
-
-	_cur_dpi = old_dpi;
 }
 
 static int GetSlopePixelZ_Town(TileIndex tile, uint x, uint y)

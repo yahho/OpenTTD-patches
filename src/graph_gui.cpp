@@ -54,7 +54,7 @@ struct GraphLegendWindow : Window {
 		}
 	}
 
-	virtual void DrawWidget(const Rect &r, int widget) const
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
 	{
 		if (!IsInsideMM(widget, WID_GL_FIRST_COMPANY, MAX_COMPANIES + WID_GL_FIRST_COMPANY)) return;
 
@@ -65,11 +65,11 @@ struct GraphLegendWindow : Window {
 		bool rtl = _current_text_dir == TD_RTL;
 
 		Dimension d = GetSpriteSize(SPR_COMPANY_ICON);
-		DrawCompanyIcon(cid, rtl ? r.right - d.width - 2 : r.left + 2, r.top + (r.bottom - r.top - d.height) / 2);
+		DrawCompanyIcon (dpi, cid, rtl ? r.right - d.width - 2 : r.left + 2, r.top + (r.bottom - r.top - d.height) / 2);
 
 		SetDParam(0, cid);
 		SetDParam(1, cid);
-		DrawString(r.left + (rtl ? (uint)WD_FRAMERECT_LEFT : (d.width + 4)), r.right - (rtl ? (d.width + 4) : (uint)WD_FRAMERECT_RIGHT), r.top + (r.bottom - r.top + 1 - FONT_HEIGHT_NORMAL) / 2, STR_COMPANY_NAME_COMPANY_NUM, HasBit(_legend_excluded_companies, cid) ? TC_BLACK : TC_WHITE);
+		DrawString (dpi, r.left + (rtl ? (uint)WD_FRAMERECT_LEFT : (d.width + 4)), r.right - (rtl ? (d.width + 4) : (uint)WD_FRAMERECT_RIGHT), r.top + (r.bottom - r.top + 1 - FONT_HEIGHT_NORMAL) / 2, STR_COMPANY_NAME_COMPANY_NUM, HasBit(_legend_excluded_companies, cid) ? TC_BLACK : TC_WHITE);
 	}
 
 	virtual void OnClick(Point pt, int widget, int click_count)
@@ -282,9 +282,10 @@ protected:
 
 	/**
 	 * Actually draw the graph.
+	 * @param dpi the area to draw on
 	 * @param r the rectangle of the data field of the graph
 	 */
-	void DrawGraph(Rect r) const
+	void DrawGraph (BlitArea *dpi, Rect r) const
 	{
 		uint x, y;               ///< Reused whenever x and y coordinates are needed.
 		ValuesInterval interval; ///< Interval that contains all of the graph data.
@@ -334,7 +335,7 @@ protected:
 		x = r.left + x_sep;
 
 		for (int i = 0; i < this->num_vert_lines; i++) {
-			GfxFillRect(x, r.top, x, r.bottom, grid_colour);
+			GfxFillRect (dpi, x, r.top, x, r.bottom, grid_colour);
 			x += x_sep;
 		}
 
@@ -342,17 +343,17 @@ protected:
 		y = r.bottom;
 
 		for (int i = 0; i < (num_hori_lines + 1); i++) {
-			GfxFillRect(r.left - 3, y, r.left - 1, y, GRAPH_AXIS_LINE_COLOUR);
-			GfxFillRect(r.left, y, r.right, y, grid_colour);
+			GfxFillRect (dpi, r.left - 3, y, r.left - 1, y, GRAPH_AXIS_LINE_COLOUR);
+			GfxFillRect (dpi, r.left, y, r.right, y, grid_colour);
 			y -= y_sep;
 		}
 
 		/* Draw the y axis. */
-		GfxFillRect(r.left, r.top, r.left, r.bottom, GRAPH_AXIS_LINE_COLOUR);
+		GfxFillRect (dpi, r.left, r.top, r.left, r.bottom, GRAPH_AXIS_LINE_COLOUR);
 
 		/* Draw the x axis. */
 		y = x_axis_offset + r.top;
-		GfxFillRect(r.left, y, r.right, y, GRAPH_AXIS_LINE_COLOUR);
+		GfxFillRect (dpi, r.left, y, r.right, y, GRAPH_AXIS_LINE_COLOUR);
 
 		/* Find the largest value that will be drawn. */
 		if (this->num_on_x_axis == 0) return;
@@ -369,7 +370,7 @@ protected:
 		for (int i = 0; i < (num_hori_lines + 1); i++) {
 			SetDParam(0, this->format_str_y_axis);
 			SetDParam(1, y_label);
-			DrawString(r.left - label_width - 4, r.left - 4, y, STR_GRAPH_Y_LABEL, graph_axis_label_colour, SA_RIGHT);
+			DrawString (dpi, r.left - label_width - 4, r.left - 4, y, STR_GRAPH_Y_LABEL, graph_axis_label_colour, SA_RIGHT);
 
 			y_label -= y_label_separation;
 			y += y_sep;
@@ -385,7 +386,7 @@ protected:
 				SetDParam(0, month + STR_MONTH_ABBREV_JAN);
 				SetDParam(1, month + STR_MONTH_ABBREV_JAN + 2);
 				SetDParam(2, year);
-				DrawStringMultiLine(x, x + x_sep, y, this->height, month == 0 ? STR_GRAPH_X_LABEL_MONTH_YEAR : STR_GRAPH_X_LABEL_MONTH, graph_axis_label_colour);
+				DrawStringMultiLine (dpi, x, x + x_sep, y, this->height, month == 0 ? STR_GRAPH_X_LABEL_MONTH_YEAR : STR_GRAPH_X_LABEL_MONTH, graph_axis_label_colour);
 
 				month += 3;
 				if (month >= 12) {
@@ -402,7 +403,7 @@ protected:
 
 			for (int i = 0; i < this->num_on_x_axis; i++) {
 				SetDParam(0, label);
-				DrawString(x + 1, x + x_sep - 1, y, STR_GRAPH_Y_LABEL_NUMBER, graph_axis_label_colour, SA_HOR_CENTER);
+				DrawString (dpi, x + 1, x + x_sep - 1, y, STR_GRAPH_Y_LABEL_NUMBER, graph_axis_label_colour, SA_HOR_CENTER);
 
 				label += this->x_values_increment;
 				x += x_sep;
@@ -449,10 +450,10 @@ protected:
 						y = r.top + x_axis_offset - ((r.bottom - r.top) * datapoint) / (interval_size >> reduce_range);
 
 						/* Draw the point. */
-						GfxFillRect(x - pointoffs1, y - pointoffs1, x + pointoffs2, y + pointoffs2, colour);
+						GfxFillRect (dpi, x - pointoffs1, y - pointoffs1, x + pointoffs2, y + pointoffs2, colour);
 
 						/* Draw the line connected to the previous point. */
-						if (prev_x != INVALID_DATAPOINT_POS) GfxDrawLine(prev_x, prev_y, x, y, colour, linewidth);
+						if (prev_x != INVALID_DATAPOINT_POS) GfxDrawLine (dpi, prev_x, prev_y, x, y, colour, linewidth);
 
 						prev_x = x;
 						prev_y = y;
@@ -531,11 +532,11 @@ public:
 		size->height = max<uint>(size->height, size->width / 3);
 	}
 
-	virtual void DrawWidget(const Rect &r, int widget) const
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
 	{
 		if (widget != this->graph_widget) return;
 
-		DrawGraph(r);
+		DrawGraph (dpi, r);
 	}
 
 	virtual OverflowSafeInt64 GetGraphData(const Company *c, int j)
@@ -960,10 +961,10 @@ struct PaymentRatesGraphWindow : BaseGraphWindow {
 		*size = maxdim(d, *size);
 	}
 
-	virtual void DrawWidget(const Rect &r, int widget) const
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
 	{
 		if (widget < WID_CPR_CARGO_FIRST) {
-			BaseGraphWindow::DrawWidget(r, widget);
+			BaseGraphWindow::DrawWidget (dpi, r, widget);
 			return;
 		}
 
@@ -980,10 +981,10 @@ struct PaymentRatesGraphWindow : BaseGraphWindow {
 
 		int rect_x = clk_dif + (rtl ? r.right - 12 : r.left + WD_FRAMERECT_LEFT);
 
-		GfxFillRect(rect_x, y + clk_dif, rect_x + 8, y + 5 + clk_dif, PC_BLACK);
-		GfxFillRect(rect_x + 1, y + 1 + clk_dif, rect_x + 7, y + 4 + clk_dif, cs->legend_colour);
+		GfxFillRect (dpi, rect_x, y + clk_dif, rect_x + 8, y + 5 + clk_dif, PC_BLACK);
+		GfxFillRect (dpi, rect_x + 1, y + 1 + clk_dif, rect_x + 7, y + 4 + clk_dif, cs->legend_colour);
 		SetDParam(0, cs->name);
-		DrawString(rtl ? r.left : x + 14 + clk_dif, (rtl ? r.right - 14 + clk_dif : r.right), y + clk_dif, STR_GRAPH_CARGO_PAYMENT_CARGO);
+		DrawString (dpi, rtl ? r.left : x + 14 + clk_dif, (rtl ? r.right - 14 + clk_dif : r.right), y + clk_dif, STR_GRAPH_CARGO_PAYMENT_CARGO);
 	}
 
 	virtual void OnClick(Point pt, int widget, int click_count)
@@ -1194,15 +1195,15 @@ public:
 		this->companies.NeedResort();
 	}
 
-	virtual void OnPaint()
+	void OnPaint (BlitArea *dpi) OVERRIDE
 	{
 		this->BuildCompanyList();
 		this->companies.Sort(&PerformanceSorter);
 
-		this->DrawWidgets();
+		this->DrawWidgets (dpi);
 	}
 
-	virtual void DrawWidget(const Rect &r, int widget) const
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
 	{
 		if (widget != WID_CL_BACKGROUND) return;
 
@@ -1218,14 +1219,14 @@ public:
 
 		for (uint i = 0; i != this->companies.Length(); i++) {
 			const Company *c = this->companies[i];
-			DrawString(ordinal_left, ordinal_right, y, i + STR_ORDINAL_NUMBER_1ST, i == 0 ? TC_WHITE : TC_YELLOW);
+			DrawString (dpi, ordinal_left, ordinal_right, y, i + STR_ORDINAL_NUMBER_1ST, i == 0 ? TC_WHITE : TC_YELLOW);
 
-			DrawCompanyIcon(c->index, icon_left, y + icon_y_offset);
+			DrawCompanyIcon (dpi, c->index, icon_left, y + icon_y_offset);
 
 			SetDParam(0, c->index);
 			SetDParam(1, c->index);
 			SetDParam(2, GetPerformanceTitleFromValue(c->old_economy[0].performance_history));
-			DrawString(text_left, text_right, y, STR_COMPANY_LEAGUE_COMPANY_NAME);
+			DrawString (dpi, text_left, text_right, y, STR_COMPANY_LEAGUE_COMPANY_NAME);
 			y += this->line_height;
 		}
 	}
@@ -1413,7 +1414,7 @@ struct PerformanceRatingDetailWindow : Window {
 		}
 	}
 
-	virtual void DrawWidget(const Rect &r, int widget) const
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
 	{
 		/* No need to draw when there's nothing to draw */
 		if (this->company == INVALID_COMPANY) return;
@@ -1423,7 +1424,7 @@ struct PerformanceRatingDetailWindow : Window {
 			CompanyID cid = (CompanyID)(widget - WID_PRD_COMPANY_FIRST);
 			int offset = (cid == this->company) ? 1 : 0;
 			Dimension sprite_size = GetSpriteSize(SPR_COMPANY_ICON);
-			DrawCompanyIcon(cid, (r.left + r.right - sprite_size.width) / 2 + offset, (r.top + r.bottom - sprite_size.height) / 2 + offset);
+			DrawCompanyIcon (dpi, cid, (r.left + r.right - sprite_size.width) / 2 + offset, (r.top + r.bottom - sprite_size.height) / 2 + offset);
 			return;
 		}
 
@@ -1449,11 +1450,11 @@ struct PerformanceRatingDetailWindow : Window {
 		uint bar_top  = r.top + WD_MATRIX_TOP;
 		uint text_top = bar_top + 2;
 
-		DrawString(this->score_info_left, this->score_info_right, text_top, STR_PERFORMANCE_DETAIL_VEHICLES + score_type);
+		DrawString (dpi, this->score_info_left, this->score_info_right, text_top, STR_PERFORMANCE_DETAIL_VEHICLES + score_type);
 
 		/* Draw the score */
 		SetDParam(0, score);
-		DrawString(this->score_info_left, this->score_info_right, text_top, STR_BLACK_COMMA, TC_FROMSTRING, SA_RIGHT);
+		DrawString (dpi, this->score_info_left, this->score_info_right, text_top, STR_BLACK_COMMA, TC_FROMSTRING, SA_RIGHT);
 
 		/* Calculate the %-bar */
 		uint x = Clamp(val, 0, needed) * this->bar_width / needed;
@@ -1465,12 +1466,12 @@ struct PerformanceRatingDetailWindow : Window {
 		}
 
 		/* Draw the bar */
-		if (x != this->bar_left)  GfxFillRect(this->bar_left, bar_top, x, bar_top + this->bar_height, rtl ? colour_notdone : colour_done);
-		if (x != this->bar_right) GfxFillRect(x, bar_top, this->bar_right, bar_top + this->bar_height, rtl ? colour_done : colour_notdone);
+		if (x != this->bar_left)  GfxFillRect (dpi, this->bar_left, bar_top, x, bar_top + this->bar_height, rtl ? colour_notdone : colour_done);
+		if (x != this->bar_right) GfxFillRect (dpi, x, bar_top, this->bar_right, bar_top + this->bar_height, rtl ? colour_done : colour_notdone);
 
 		/* Draw it */
 		SetDParam(0, Clamp(val, 0, needed) * 100 / needed);
-		DrawString(this->bar_left, this->bar_right, text_top, STR_PERFORMANCE_DETAIL_PERCENT, TC_FROMSTRING, SA_HOR_CENTER);
+		DrawString (dpi, this->bar_left, this->bar_right, text_top, STR_PERFORMANCE_DETAIL_PERCENT, TC_FROMSTRING, SA_HOR_CENTER);
 
 		/* SCORE_LOAN is inversed */
 		if (score_type == SCORE_LOAN) val = needed - val;
@@ -1485,10 +1486,10 @@ struct PerformanceRatingDetailWindow : Window {
 			case SCORE_MAX_INCOME:
 			case SCORE_MONEY:
 			case SCORE_LOAN:
-				DrawString(this->score_detail_left, this->score_detail_right, text_top, STR_PERFORMANCE_DETAIL_AMOUNT_CURRENCY);
+				DrawString (dpi, this->score_detail_left, this->score_detail_right, text_top, STR_PERFORMANCE_DETAIL_AMOUNT_CURRENCY);
 				break;
 			default:
-				DrawString(this->score_detail_left, this->score_detail_right, text_top, STR_PERFORMANCE_DETAIL_AMOUNT_INT);
+				DrawString (dpi, this->score_detail_left, this->score_detail_right, text_top, STR_PERFORMANCE_DETAIL_AMOUNT_INT);
 		}
 	}
 

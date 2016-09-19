@@ -231,17 +231,17 @@ public:
 
 		Point pt = RemapCoords2(this->position.x, this->position.y);
 		const ViewPort *vp = FindWindowById(WC_MAIN_WINDOW, 0)->viewport;
+		pt.x = UnScaleByZoom (pt.x - vp->virtual_left, vp->zoom) + vp->left;
+		pt.y = UnScaleByZoom (pt.y - vp->virtual_top,  vp->zoom) + vp->top;
 		if (this->face == INVALID_COMPANY) {
 			/* move x pos to opposite corner */
-			pt.x = UnScaleByZoom(pt.x - vp->virtual_left, vp->zoom) + vp->left;
 			pt.x = (pt.x < (_screen.width >> 1)) ? _screen.width - sm_width - 20 : 20; // Stay 20 pixels away from the edge of the screen.
 
 			/* move y pos to opposite corner */
-			pt.y = UnScaleByZoom(pt.y - vp->virtual_top, vp->zoom) + vp->top;
 			pt.y = (pt.y < (_screen.height >> 1)) ? scr_bot - sm_height : scr_top;
 		} else {
-			pt.x = Clamp(UnScaleByZoom(pt.x - vp->virtual_left, vp->zoom) + vp->left - (sm_width / 2),  0, _screen.width  - sm_width);
-			pt.y = Clamp(UnScaleByZoom(pt.y - vp->virtual_top,  vp->zoom) + vp->top  - (sm_height / 2), scr_top, scr_bot - sm_height);
+			pt.x = Clamp (pt.x - (sm_width  / 2), 0, _screen.width - sm_width);
+			pt.y = Clamp (pt.y - (sm_height / 2), scr_top, scr_bot - sm_height);
 		}
 		return pt;
 	}
@@ -262,12 +262,12 @@ public:
 		if (widget == WID_EM_CAPTION) CopyInDParam(0, this->decode_params, lengthof(this->decode_params));
 	}
 
-	virtual void DrawWidget(const Rect &r, int widget) const
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
 	{
 		switch (widget) {
 			case WID_EM_FACE: {
 				const Company *c = Company::Get(this->face);
-				DrawCompanyManagerFace(c->face, c->colour, r.left, r.top);
+				DrawCompanyManagerFace (c->face, c->colour, dpi, r.left, r.top);
 				break;
 			}
 
@@ -276,7 +276,7 @@ public:
 				if (this->textref_stack_size > 0) StartTextRefStackUsage(this->textref_stack_grffile, this->textref_stack_size, this->textref_stack);
 
 				if (this->detailed_msg == INVALID_STRING_ID) {
-					DrawStringMultiLine(r.left + WD_FRAMETEXT_LEFT, r.right - WD_FRAMETEXT_RIGHT, r.top + WD_FRAMERECT_TOP, r.bottom - WD_FRAMERECT_BOTTOM,
+					DrawStringMultiLine (dpi, r.left + WD_FRAMETEXT_LEFT, r.right - WD_FRAMETEXT_RIGHT, r.top + WD_FRAMERECT_TOP, r.bottom - WD_FRAMERECT_BOTTOM,
 							this->summary_msg, TC_FROMSTRING, SA_CENTER);
 				} else {
 					int extra = (r.bottom - r.top + 1 - this->height_summary - this->height_detailed - WD_PAR_VSEP_WIDE) / 2;
@@ -284,11 +284,11 @@ public:
 					/* Note: NewGRF supplied error message often do not start with a colour code, so default to white. */
 					int top = r.top + WD_FRAMERECT_TOP;
 					int bottom = top + this->height_summary + extra;
-					DrawStringMultiLine(r.left + WD_FRAMETEXT_LEFT, r.right - WD_FRAMETEXT_RIGHT, top, bottom, this->summary_msg, TC_WHITE, SA_CENTER);
+					DrawStringMultiLine (dpi, r.left + WD_FRAMETEXT_LEFT, r.right - WD_FRAMETEXT_RIGHT, top, bottom, this->summary_msg, TC_WHITE, SA_CENTER);
 
 					bottom = r.bottom - WD_FRAMERECT_BOTTOM;
 					top = bottom - this->height_detailed - extra;
-					DrawStringMultiLine(r.left + WD_FRAMETEXT_LEFT, r.right - WD_FRAMETEXT_RIGHT, top, bottom, this->detailed_msg, TC_WHITE, SA_CENTER);
+					DrawStringMultiLine (dpi, r.left + WD_FRAMETEXT_LEFT, r.right - WD_FRAMETEXT_RIGHT, top, bottom, this->detailed_msg, TC_WHITE, SA_CENTER);
 				}
 
 				if (this->textref_stack_size > 0) StopTextRefStackUsage();

@@ -223,7 +223,7 @@ uint Vehicle::Crash(bool flooded)
 	SetWindowDirty(WC_VEHICLE_DEPOT, this->tile);
 
 	delete this->cargo_payment;
-	this->cargo_payment = NULL;
+	assert(this->cargo_payment == NULL); // cleared by ~CargoPayment
 
 	return RandomRange(pass + 1); // Randomise deceased passengers.
 }
@@ -935,6 +935,7 @@ void Vehicle::PreDestructor()
 		HideFillingPercent(&this->fill_percent_te_id);
 		this->CancelReservation(INVALID_STATION, st);
 		delete this->cargo_payment;
+		assert(this->cargo_payment == NULL); // cleared by ~CargoPayment
 	}
 
 	if (this->IsEngineCountable()) {
@@ -1190,9 +1191,10 @@ void CallVehicleTicks()
 
 /**
  * Add vehicle sprite for drawing to the screen.
+ * @param vd Viewport drawer to use.
  * @param v Vehicle to draw.
  */
-static void DoDrawVehicle(const Vehicle *v)
+static void DoDrawVehicle (ViewportDrawer *vd, const Vehicle *v)
 {
 	SpriteID image = v->cur_image;
 	PaletteID pal = PAL_NONE;
@@ -1209,7 +1211,7 @@ static void DoDrawVehicle(const Vehicle *v)
 		if (to != TO_INVALID && (IsTransparencySet(to) || IsInvisibilitySet(to))) return;
 	}
 
-	AddSortableSpriteToDraw(image, pal, v->x_pos + v->x_offs, v->y_pos + v->y_offs,
+	AddSortableSpriteToDraw (vd, image, pal, v->x_pos + v->x_offs, v->y_pos + v->y_offs,
 		v->x_extent, v->y_extent, v->z_extent, v->z_pos, shadowed, v->x_bb_offs, v->y_bb_offs);
 }
 
@@ -1217,7 +1219,7 @@ static void DoDrawVehicle(const Vehicle *v)
  * Add the vehicle sprites that should be drawn at a part of the screen.
  * @param dpi Rectangle being drawn.
  */
-void ViewportAddVehicles(const DrawPixelInfo *dpi)
+void ViewportAddVehicles (ViewportDrawer *vd, const DrawPixelInfo *dpi)
 {
 	/* The bounding rectangle */
 	const int l = dpi->left;
@@ -1240,7 +1242,7 @@ void ViewportAddVehicles(const DrawPixelInfo *dpi)
 					t <= v->coord.bottom &&
 					r >= v->coord.left &&
 					b >= v->coord.top) {
-				DoDrawVehicle(v);
+				DoDrawVehicle (vd, v);
 			}
 			v = v->hash_viewport_link.next;
 		}
@@ -2198,6 +2200,7 @@ void Vehicle::LeaveStation()
 	assert(this->current_order.IsType(OT_LOADING));
 
 	delete this->cargo_payment;
+	assert(this->cargo_payment == NULL); // cleared by ~CargoPayment
 
 	/* Only update the timetable if the vehicle was supposed to stop here. */
 	if (this->current_order.GetNonStopType() != ONSF_STOP_EVERYWHERE) UpdateVehicleTimetable(this, false);

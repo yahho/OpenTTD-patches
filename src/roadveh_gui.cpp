@@ -23,11 +23,13 @@
  * Draw the details for the given vehicle at the given position
  *
  * @param v     current vehicle
+ * @param dpi   The area to draw on
  * @param left  The left most coordinate to draw
  * @param right The right most coordinate to draw
  * @param y     The y coordinate
  */
-void DrawRoadVehDetails(const Vehicle *v, int left, int right, int y)
+void DrawRoadVehDetails (const Vehicle *v, BlitArea *dpi,
+	int left, int right, int y)
 {
 	uint y_offset = v->HasArticulatedPart() ? ScaleGUITrad(15) : 0; // Draw the first line below the sprite of an articulated RV instead of after it.
 	StringID str;
@@ -36,7 +38,7 @@ void DrawRoadVehDetails(const Vehicle *v, int left, int right, int y)
 	SetDParam(0, v->engine_type);
 	SetDParam(1, v->build_year);
 	SetDParam(2, v->value);
-	DrawString(left, right, y + y_offset, STR_VEHICLE_INFO_BUILT_VALUE);
+	DrawString (dpi, left, right, y + y_offset, STR_VEHICLE_INFO_BUILT_VALUE);
 
 	if (v->HasArticulatedPart()) {
 		CargoArray max_cargo;
@@ -76,7 +78,7 @@ void DrawRoadVehDetails(const Vehicle *v, int left, int right, int y)
 			}
 		}
 
-		DrawString(left, right, y + FONT_HEIGHT_NORMAL + y_offset, capacity.c_str(), TC_BLUE);
+		DrawString (dpi, left, right, y + FONT_HEIGHT_NORMAL + y_offset, capacity.c_str(), TC_BLUE);
 
 		for (const Vehicle *u = v; u != NULL; u = u->Next()) {
 			if (u->cargo_cap == 0) continue;
@@ -89,7 +91,7 @@ void DrawRoadVehDetails(const Vehicle *v, int left, int right, int y)
 				str = STR_VEHICLE_DETAILS_CARGO_FROM;
 				feeder_share += u->cargo.FeederShare();
 			}
-			DrawString(left, right, y + 2 * FONT_HEIGHT_NORMAL + 1 + y_offset, str);
+			DrawString (dpi, left, right, y + 2 * FONT_HEIGHT_NORMAL + 1 + y_offset, str);
 
 			y_offset += FONT_HEIGHT_NORMAL + 1;
 		}
@@ -99,7 +101,7 @@ void DrawRoadVehDetails(const Vehicle *v, int left, int right, int y)
 		SetDParam(0, v->cargo_type);
 		SetDParam(1, v->cargo_cap);
 		SetDParam(4, GetCargoSubtypeText(v));
-		DrawString(left, right, y + FONT_HEIGHT_NORMAL + y_offset, STR_VEHICLE_INFO_CAPACITY);
+		DrawString (dpi, left, right, y + FONT_HEIGHT_NORMAL + y_offset, STR_VEHICLE_INFO_CAPACITY);
 
 		str = STR_VEHICLE_DETAILS_CARGO_EMPTY;
 		if (v->cargo.StoredCount() > 0) {
@@ -109,36 +111,35 @@ void DrawRoadVehDetails(const Vehicle *v, int left, int right, int y)
 			str = STR_VEHICLE_DETAILS_CARGO_FROM;
 			feeder_share += v->cargo.FeederShare();
 		}
-		DrawString(left, right, y + 2 * FONT_HEIGHT_NORMAL + 1 + y_offset, str);
+		DrawString (dpi, left, right, y + 2 * FONT_HEIGHT_NORMAL + 1 + y_offset, str);
 	}
 
 	/* Draw Transfer credits text */
 	SetDParam(0, feeder_share);
-	DrawString(left, right, y + 3 * FONT_HEIGHT_NORMAL + 3 + y_offset, STR_VEHICLE_INFO_FEEDER_CARGO_VALUE);
+	DrawString (dpi, left, right, y + 3 * FONT_HEIGHT_NORMAL + 3 + y_offset, STR_VEHICLE_INFO_FEEDER_CARGO_VALUE);
 }
 
 /**
  * Draws an image of a road vehicle chain
  * @param v         Front vehicle
+ * @param dpi       The area to draw on
  * @param left      The minimum horizontal position
  * @param right     The maximum horizontal position
  * @param y         Vertical position to draw at
  * @param selection Selected vehicle to draw a frame around
  * @param skip      Number of pixels to skip at the front (for scrolling)
  */
-void DrawRoadVehImage(const Vehicle *v, int left, int right, int y, VehicleID selection, EngineImageType image_type, int skip)
+void DrawRoadVehImage (const Vehicle *v, BlitArea *dpi, int left, int right,
+	int y, VehicleID selection, EngineImageType image_type, int skip)
 {
 	bool rtl = _current_text_dir == TD_RTL;
 	Direction dir = rtl ? DIR_E : DIR_W;
 	const RoadVehicle *u = RoadVehicle::From(v);
 
-	DrawPixelInfo tmp_dpi, *old_dpi;
+	BlitArea tmp_dpi;
 	int max_width = right - left + 1;
 
-	if (!FillDrawPixelInfo(&tmp_dpi, left, y, max_width, ScaleGUITrad(14))) return;
-
-	old_dpi = _cur_dpi;
-	_cur_dpi = &tmp_dpi;
+	if (!InitBlitArea (dpi, &tmp_dpi, left, y, max_width, ScaleGUITrad(14))) return;
 
 	int px = rtl ? max_width + skip : -skip;
 	for (; u != NULL && (rtl ? px > 0 : px < max_width); u = u->Next()) {
@@ -147,15 +148,13 @@ void DrawRoadVehImage(const Vehicle *v, int left, int right, int y, VehicleID se
 
 		if (rtl ? px + width > 0 : px - width < max_width) {
 			PaletteID pal = (u->vehstatus & VS_CRASHED) ? PALETTE_CRASH : GetVehiclePalette(u);
-			DrawSprite(u->GetImage(dir, image_type), pal, px + (rtl ? -offset.x : offset.x), ScaleGUITrad(6) + offset.y);
+			DrawSprite (&tmp_dpi, u->GetImage (dir, image_type), pal, px + (rtl ? -offset.x : offset.x), ScaleGUITrad(6) + offset.y);
 		}
 
 		px += rtl ? -width : width;
 	}
 
 	if (v->index == selection) {
-		DrawFrameRect((rtl ? px : 0), 0, (rtl ? max_width : px) - 1, ScaleGUITrad(13) - 1, COLOUR_WHITE, FR_BORDERONLY);
+		DrawFrameRect (&tmp_dpi, (rtl ? px : 0), 0, (rtl ? max_width : px) - 1, ScaleGUITrad(13) - 1, COLOUR_WHITE, FR_BORDERONLY);
 	}
-
-	_cur_dpi = old_dpi;
 }

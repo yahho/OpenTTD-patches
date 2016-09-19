@@ -16,7 +16,7 @@
 const char Blitter_8bppSimple::name[] = "8bpp-simple";
 const char Blitter_8bppSimple::desc[] = "8bpp Simple Blitter (relative slow, but never wrong)";
 
-void Blitter_8bppSimple::Draw(Blitter::BlitterParams *bp, BlitterMode mode, ZoomLevel zoom)
+void Blitter_8bppSimple::Surface::draw (const BlitterParams *bp, BlitterMode mode, ZoomLevel zoom)
 {
 	const uint8 *src, *src_line;
 	uint8 *dst, *dst_line;

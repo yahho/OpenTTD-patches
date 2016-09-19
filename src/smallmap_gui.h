@@ -17,6 +17,7 @@
 #include "window_gui.h"
 #include "strings_func.h"
 #include "blitter/blitter.h"
+#include "gfx_func.h"
 #include "linkgraph/linkgraph_gui.h"
 #include "widgets/smallmap_widget.h"
 
@@ -82,32 +83,6 @@ protected:
 	uint8 refresh;   ///< Refresh counter, zeroed every FORCE_REFRESH_PERIOD ticks.
 	LinkGraphOverlay *overlay;
 
-	Point SmallmapRemapCoords(int x, int y) const;
-
-	/**
-	 * Draws vertical part of map indicator
-	 * @param x X coord of left/right border of main viewport
-	 * @param y Y coord of top border of main viewport
-	 * @param y2 Y coord of bottom border of main viewport
-	 */
-	static inline void DrawVertMapIndicator(int x, int y, int y2)
-	{
-		GfxFillRect(x, y,      x, y + 3, PC_VERY_LIGHT_YELLOW);
-		GfxFillRect(x, y2 - 3, x, y2,    PC_VERY_LIGHT_YELLOW);
-	}
-
-	/**
-	 * Draws horizontal part of map indicator
-	 * @param x X coord of left border of main viewport
-	 * @param x2 X coord of right border of main viewport
-	 * @param y Y coord of top/bottom border of main viewport
-	 */
-	static inline void DrawHorizMapIndicator(int x, int x2, int y)
-	{
-		GfxFillRect(x,      y, x + 3, y, PC_VERY_LIGHT_YELLOW);
-		GfxFillRect(x2 - 3, y, x2,    y, PC_VERY_LIGHT_YELLOW);
-	}
-
 	/**
 	 * Compute minimal required width of the legends.
 	 * @return Minimally needed width for displaying the smallmap legends in pixels.
@@ -153,16 +128,14 @@ protected:
 	void SwitchMapType(SmallMapType map_type);
 	void SetNewScroll(int sx, int sy, int sub);
 
-	void DrawMapIndicators() const;
-	void DrawSmallMapColumn(void *dst, uint xc, uint yc, int pitch, int reps, int start_pos, int end_pos, Blitter *blitter) const;
-	void DrawVehicles(const DrawPixelInfo *dpi, Blitter *blitter) const;
-	void DrawTowns(const DrawPixelInfo *dpi) const;
-	Point GetSmallMapCoordIncludingHeight(Point viewport_coord) const;
-	void DrawSmallMap(DrawPixelInfo *dpi) const;
+	void DrawMapIndicators (BlitArea *dpi) const;
+	void DrawSmallMapColumn(void *dst, uint xc, uint yc, int pitch, int reps, int start_pos, int end_pos) const;
+	void DrawVehicles (BlitArea *dpi) const;
+	void DrawTowns (BlitArea *dpi) const;
+	void DrawSmallMap (BlitArea *dpi) const;
 
 	Point RemapTile(int tile_x, int tile_y) const;
 	Point PixelToTile(int px, int py, int *sub, bool add_sub = true) const;
-	Point ComputeScroll(int tx, int ty, int x, int y, int *sub);
 	void SetZoomLevel(ZoomLevelChange change, const Point *zoom_pt);
 	void SetOverlayCargoMask();
 	void SetupWidgetData();
@@ -181,8 +154,8 @@ public:
 
 	virtual void SetStringParameters(int widget) const;
 	virtual void OnInit();
-	virtual void OnPaint();
-	virtual void DrawWidget(const Rect &r, int widget) const;
+	void OnPaint (BlitArea *dpi) OVERRIDE;
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE;
 	virtual void OnClick(Point pt, int widget, int click_count);
 	virtual void OnInvalidateData(int data = 0, bool gui_scope = true);
 	virtual bool OnRightClick(Point pt, int widget);

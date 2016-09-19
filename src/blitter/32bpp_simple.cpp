@@ -19,7 +19,7 @@
 const char Blitter_32bppSimple::name[] = "32bpp-simple";
 const char Blitter_32bppSimple::desc[] = "32bpp Simple Blitter (no palette animation)";
 
-void Blitter_32bppSimple::Draw(Blitter::BlitterParams *bp, BlitterMode mode, ZoomLevel zoom)
+void Blitter_32bppSimple::Surface::draw (const BlitterParams *bp, BlitterMode mode, ZoomLevel zoom)
 {
 	const Blitter_32bppSimple::Pixel *src, *src_line;
 	Colour *dst, *dst_line;
@@ -43,7 +43,7 @@ void Blitter_32bppSimple::Draw(Blitter::BlitterParams *bp, BlitterMode mode, Zoo
 					if (src->m == 0) {
 						if (src->a != 0) *dst = ComposeColourRGBA(src->r, src->g, src->b, src->a, *dst);
 					} else {
-						if (bp->remap[src->m] != 0) *dst = ComposeColourPA(this->AdjustBrightness(this->LookupColourInPalette(bp->remap[src->m]), src->v), src->a, *dst);
+						if (bp->remap[src->m] != 0) *dst = ComposeColourPA (AdjustBrightness (LookupColourInPalette (bp->remap[src->m]), src->v), src->a, *dst);
 					}
 					break;
 
@@ -54,7 +54,7 @@ void Blitter_32bppSimple::Draw(Blitter::BlitterParams *bp, BlitterMode mode, Zoo
 							*dst = ComposeColourRGBA(g, g, g, src->a, *dst);
 						}
 					} else {
-						if (bp->remap[src->m] != 0) *dst = ComposeColourPA(this->AdjustBrightness(this->LookupColourInPalette(bp->remap[src->m]), src->v), src->a, *dst);
+						if (bp->remap[src->m] != 0) *dst = ComposeColourPA (AdjustBrightness (LookupColourInPalette (bp->remap[src->m]), src->v), src->a, *dst);
 					}
 					break;
 
@@ -81,34 +81,6 @@ void Blitter_32bppSimple::Draw(Blitter::BlitterParams *bp, BlitterMode mode, Zoo
 			src += ScaleByZoom(1, zoom);
 		}
 	}
-}
-
-void Blitter_32bppSimple::DrawColourMappingRect(void *dst, int width, int height, PaletteID pal)
-{
-	Colour *udst = (Colour *)dst;
-
-	if (pal == PALETTE_TO_TRANSPARENT) {
-		do {
-			for (int i = 0; i != width; i++) {
-				*udst = MakeTransparent(*udst, 154);
-				udst++;
-			}
-			udst = udst - width + _screen.pitch;
-		} while (--height);
-		return;
-	}
-	if (pal == PALETTE_NEWSPAPER) {
-		do {
-			for (int i = 0; i != width; i++) {
-				*udst = MakeGrey(*udst);
-				udst++;
-			}
-			udst = udst - width + _screen.pitch;
-		} while (--height);
-		return;
-	}
-
-	DEBUG(misc, 0, "32bpp blitter doesn't know how to draw this colour table ('%d')", pal);
 }
 
 ::Sprite *Blitter_32bppSimple::Encode (const SpriteLoader::Sprite *sprite, bool is_font, AllocatorProc *allocator)

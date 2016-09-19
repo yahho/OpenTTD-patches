@@ -159,14 +159,17 @@ static VideoDriverFactory <VideoDriver_Dedicated>
 
 const char *VideoDriver_Dedicated::Start(const char * const *parm)
 {
-	int bpp = Blitter::get()->GetScreenDepth();
+	Blitter *blitter = Blitter::get();
+	int bpp = blitter->GetScreenDepth();
 	_dedicated_video_mem = (bpp == 0) ? NULL : xmalloct<byte>(_cur_resolution.width * _cur_resolution.height * (bpp / 8));
 
-	_screen.width  = _screen.pitch = _cur_resolution.width;
+	_screen.surface.reset (blitter->create (_dedicated_video_mem,
+				_cur_resolution.width, _cur_resolution.height,
+				_cur_resolution.width));
+	_screen.width  = _cur_resolution.width;
 	_screen.height = _cur_resolution.height;
 	_screen.dst_ptr = _dedicated_video_mem;
 	ScreenSizeChanged();
-	Blitter::get()->PostResize();
 
 #if defined(WINCE)
 	/* WinCE doesn't support console stuff */

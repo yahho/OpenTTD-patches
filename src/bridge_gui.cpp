@@ -243,11 +243,11 @@ public:
 		return corner;
 	}
 
-	virtual void DrawWidget(const Rect &r, int widget) const
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
 	{
 		switch (widget) {
 			case WID_BBS_DROPDOWN_ORDER:
-				this->DrawSortButtonState(widget, this->bridges->IsDescSortOrder() ? SBS_DOWN : SBS_UP);
+				this->DrawSortButtonState (dpi, widget, this->bridges->IsDescSortOrder() ? SBS_DOWN : SBS_UP);
 				break;
 
 			case WID_BBS_BRIDGE_LIST: {
@@ -259,8 +259,8 @@ public:
 					SetDParam(1, b->speed);
 					SetDParam(0, b->material);
 
-					DrawSprite(b->sprite, b->pal, r.left + WD_MATRIX_LEFT, y + this->resize.step_height - 1 - GetSpriteSize(b->sprite).height);
-					DrawStringMultiLine(r.left + this->bridgetext_offset, r.right, y + 2, y + this->resize.step_height,
+					DrawSprite (dpi, b->sprite, b->pal, r.left + WD_MATRIX_LEFT, y + this->resize.step_height - 1 - GetSpriteSize(b->sprite).height);
+					DrawStringMultiLine (dpi, r.left + this->bridgetext_offset, r.right, y + 2, y + this->resize.step_height,
 							_game_mode == GM_EDITOR ? STR_SELECT_BRIDGE_SCENEDIT_INFO : STR_SELECT_BRIDGE_INFO);
 					y += this->resize.step_height;
 				}

@@ -392,11 +392,13 @@ struct NewGRFInspectWindow : Window {
 
 	/**
 	 * Helper function to draw a string (line) in the window.
+	 * @param dpi    The area to draw on
 	 * @param r      The (screen) rectangle we must draw within
 	 * @param offset The offset (in lines) we want to draw for
 	 * @param format The format string
 	 */
-	void WARN_FORMAT(4, 5) DrawString(const Rect &r, int offset, const char *format, ...) const
+	void WARN_FORMAT(5, 6) DrawString (BlitArea *dpi, const Rect &r,
+		int offset, const char *format, ...) const
 	{
 		char buf[1024];
 
@@ -408,10 +410,10 @@ struct NewGRFInspectWindow : Window {
 		offset -= this->vscroll->GetPosition();
 		if (offset < 0 || offset >= this->vscroll->GetCapacity()) return;
 
-		::DrawString(r.left + LEFT_OFFSET, r.right - RIGHT_OFFSET, r.top + TOP_OFFSET + (offset * this->resize.step_height), buf, TC_BLACK);
+		::DrawString (dpi, r.left + LEFT_OFFSET, r.right - RIGHT_OFFSET, r.top + TOP_OFFSET + (offset * this->resize.step_height), buf, TC_BLACK);
 	}
 
-	virtual void DrawWidget(const Rect &r, int widget) const
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
 	{
 		switch (widget) {
 			case WID_NGRFI_VEH_CHAIN: {
@@ -439,13 +441,13 @@ struct NewGRFInspectWindow : Window {
 				GrfSpecFeature f = GetFeatureNum(this->window_number);
 				int h = GetVehicleImageCellSize((VehicleType)(VEH_TRAIN + (f - GSF_TRAINS)), EIT_IN_DEPOT).height;
 				int y = (r.top + r.bottom - h) / 2;
-				DrawVehicleImage(v->First(), r.left + WD_BEVEL_LEFT, r.right - WD_BEVEL_RIGHT, y + 1, INVALID_VEHICLE, EIT_IN_DETAILS, skip);
+				DrawVehicleImage (v->First(), dpi, r.left + WD_BEVEL_LEFT, r.right - WD_BEVEL_RIGHT, y + 1, INVALID_VEHICLE, EIT_IN_DETAILS, skip);
 
 				/* Highlight the articulated part (this is different to the whole-vehicle highlighting of DrawVehicleImage */
 				if (_current_text_dir == TD_RTL) {
-					DrawFrameRect(r.right - sel_end   + skip, y, r.right - sel_start + skip, y + h, COLOUR_WHITE, FR_BORDERONLY);
+					DrawFrameRect (dpi, r.right - sel_end   + skip, y, r.right - sel_start + skip, y + h, COLOUR_WHITE, FR_BORDERONLY);
 				} else {
-					DrawFrameRect(r.left  + sel_start - skip, y, r.left  + sel_end   - skip, y + h, COLOUR_WHITE, FR_BORDERONLY);
+					DrawFrameRect (dpi, r.left  + sel_start - skip, y, r.left  + sel_end   - skip, y + h, COLOUR_WHITE, FR_BORDERONLY);
 				}
 				break;
 			}
@@ -461,7 +463,7 @@ struct NewGRFInspectWindow : Window {
 
 		uint i = 0;
 		if (nif->variables != NULL) {
-			this->DrawString(r, i++, "Variables:");
+			this->DrawString (dpi, r, i++, "Variables:");
 			for (const NIVariable *niv = nif->variables; niv->name != NULL; niv++) {
 				bool avail = true;
 				uint param = HasVariableParameter(niv->var) ? NewGRFInspectWindow::var60params[GetFeatureNum(this->window_number)][niv->var - 0x60] : 0;
@@ -470,9 +472,9 @@ struct NewGRFInspectWindow : Window {
 				if (!avail) continue;
 
 				if (HasVariableParameter(niv->var)) {
-					this->DrawString(r, i++, "  %02x[%02x]: %08x (%s)", niv->var, param, value, niv->name);
+					this->DrawString (dpi, r, i++, "  %02x[%02x]: %08x (%s)", niv->var, param, value, niv->name);
 				} else {
-					this->DrawString(r, i++, "  %02x: %08x (%s)", niv->var, value, niv->name);
+					this->DrawString (dpi, r, i++, "  %02x: %08x (%s)", niv->var, value, niv->name);
 				}
 			}
 		}
@@ -481,18 +483,18 @@ struct NewGRFInspectWindow : Window {
 		const int32 *psa = nih->GetPSAFirstPosition(index, this->caller_grfid);
 		if (psa_size != 0 && psa != NULL) {
 			if (nih->PSAWithParameter()) {
-				this->DrawString(r, i++, "Persistent storage [%08X]:", BSWAP32(this->caller_grfid));
+				this->DrawString (dpi, r, i++, "Persistent storage [%08X]:", BSWAP32(this->caller_grfid));
 			} else {
-				this->DrawString(r, i++, "Persistent storage:");
+				this->DrawString (dpi, r, i++, "Persistent storage:");
 			}
 			assert(psa_size % 4 == 0);
 			for (uint j = 0; j < psa_size; j += 4, psa += 4) {
-				this->DrawString(r, i++, "  %i: %i %i %i %i", j, psa[0], psa[1], psa[2], psa[3]);
+				this->DrawString (dpi, r, i++, "  %i: %i %i %i %i", j, psa[0], psa[1], psa[2], psa[3]);
 			}
 		}
 
 		if (nif->properties != NULL) {
-			this->DrawString(r, i++, "Properties:");
+			this->DrawString (dpi, r, i++, "Properties:");
 			for (const NIProperty *nip = nif->properties; nip->name != NULL; nip++) {
 				const void *ptr = (const byte *)base + nip->offset;
 				uint value;
@@ -520,12 +522,12 @@ struct NewGRFInspectWindow : Window {
 
 				char buffer[64];
 				GetString (buffer, string);
-				this->DrawString(r, i++, "  %02x: %s (%s)", nip->prop, buffer, nip->name);
+				this->DrawString (dpi, r, i++, "  %02x: %s (%s)", nip->prop, buffer, nip->name);
 			}
 		}
 
 		if (nif->callbacks != NULL) {
-			this->DrawString(r, i++, "Callbacks:");
+			this->DrawString (dpi, r, i++, "Callbacks:");
 			for (const NICallback *nic = nif->callbacks; nic->name != NULL; nic++) {
 				if (nic->cb_bit != CBM_NO_BIT) {
 					const void *ptr = (const byte *)base_spec + nic->offset;
@@ -538,9 +540,9 @@ struct NewGRFInspectWindow : Window {
 					}
 
 					if (!HasBit(value, nic->cb_bit)) continue;
-					this->DrawString(r, i++, "  %03x: %s", nic->cb_id, nic->name);
+					this->DrawString (dpi, r, i++, "  %03x: %s", nic->cb_id, nic->name);
 				} else {
-					this->DrawString(r, i++, "  %03x: %s (unmasked)", nic->cb_id, nic->name);
+					this->DrawString (dpi, r, i++, "  %03x: %s (unmasked)", nic->cb_id, nic->name);
 				}
 			}
 		}
@@ -879,7 +881,7 @@ struct SpriteAlignerWindow : Window {
 		size->height = (1 + 200 / resize->height) * resize->height;
 	}
 
-	virtual void DrawWidget(const Rect &r, int widget) const
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
 	{
 		switch (widget) {
 			case WID_SA_SPRITE: {
@@ -890,14 +892,10 @@ struct SpriteAlignerWindow : Window {
 				int x = -UnScaleGUI(spr->x_offs) + (width  - UnScaleGUI(spr->width) ) / 2;
 				int y = -UnScaleGUI(spr->y_offs) + (height - UnScaleGUI(spr->height)) / 2;
 
-				DrawPixelInfo new_dpi;
-				if (!FillDrawPixelInfo(&new_dpi, r.left + WD_BEVEL_LEFT, r.top + WD_BEVEL_TOP, width, height)) break;
-				DrawPixelInfo *old_dpi = _cur_dpi;
-				_cur_dpi = &new_dpi;
+				BlitArea new_dpi;
+				if (!InitBlitArea (dpi, &new_dpi, r.left + WD_BEVEL_LEFT, r.top + WD_BEVEL_TOP, width, height)) break;
 
-				DrawSprite(this->current_sprite, PAL_NONE, x, y, NULL, ZOOM_LVL_GUI);
-
-				_cur_dpi = old_dpi;
+				DrawSprite (&new_dpi, this->current_sprite, PAL_NONE, x, y, NULL, ZOOM_LVL_GUI);
 
 				break;
 			}
@@ -912,7 +910,7 @@ struct SpriteAlignerWindow : Window {
 				int y = r.top + WD_FRAMERECT_TOP;
 				for (int i = this->vscroll->GetPosition(); i < max; i++) {
 					SetDParam(0, list[i]);
-					DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_BLACK_COMMA, TC_FROMSTRING, SA_RIGHT | SA_FORCE);
+					DrawString (dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_BLACK_COMMA, TC_FROMSTRING, SA_RIGHT | SA_FORCE);
 					y += step_size;
 				}
 				break;

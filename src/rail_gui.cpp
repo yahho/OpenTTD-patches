@@ -104,7 +104,7 @@ static bool IsStationAvailable(const StationSpec *statspec)
 	return Convert8bitBooleanCallback(statspec->grf_prop.grffile, CBID_STATION_AVAILABILITY, cb_res);
 }
 
-void CcPlaySound1E(const CommandCost &result, TileIndex tile, uint32 p1, uint32 p2)
+void CcPlaySound_SPLAT_RAIL(const CommandCost &result, TileIndex tile, uint32 p1, uint32 p2)
 {
 	if (result.Succeeded() && _settings_client.sound.confirm) SndPlayTileFx(SND_20_SPLAT_RAIL, tile);
 }
@@ -113,7 +113,7 @@ void CcSingleRail(const CommandCost &result, TileIndex tile, uint32 p1, uint32 p
 {
 	if (HasBit(p1, 31)) return;
 
-	CcPlaySound1E(result, tile, p1, p2);
+	CcPlaySound_SPLAT_RAIL(result, tile, p1, p2);
 }
 
 StringID GetErrBuildSingleRail (TileIndex tile, uint32 p1, uint32 p2, const char *text)
@@ -883,6 +883,26 @@ static void HandleStationPlacement(TileIndex start, TileIndex end)
 	ShowSelectStationIfNeeded (&cmdcont, ta);
 }
 
+/** Draw a station preview in a widget. */
+static void DrawStationPreview (BlitArea *dpi, const Rect &r,
+	StationClassID cls, uint type, uint image, bool check_avail)
+{
+	/* Set up a clipping area for the station preview. */
+	BlitArea tmp_dpi;
+	if (InitBlitArea (dpi, &tmp_dpi, r.left, r.top, r.right - r.left + 1, r.bottom - r.top + 1)) {
+		int x = ScaleGUITrad(31) + 1;
+		int y = r.bottom - r.top - ScaleGUITrad(31);
+		if (!DrawStationTile (&tmp_dpi, x, y, _cur_railtype, (Axis)(image % 1), cls, type)) {
+			RailStationPickerDrawSprite (&tmp_dpi, x, y, cls == STAT_CLASS_WAYP, _cur_railtype, image);
+		}
+	}
+
+	/* Check station availability callback */
+	if (check_avail && !IsStationAvailable (StationClass::Get(cls)->GetSpec(type))) {
+		GfxFillRect (dpi, r.left + 1, r.top + 1, r.right - 1, r.bottom - 1, PC_BLACK, FILLRECT_CHECKER);
+	}
+}
+
 struct BuildRailStationWindow : public PickerWindowBase {
 private:
 	uint line_height;     ///< Height of a single line in the newstation selection matrix (#WID_BRAS_NEWST_LIST widget).
@@ -988,7 +1008,7 @@ public:
 		this->PickerWindowBase::OnDelete();
 	}
 
-	virtual void OnPaint()
+	void OnPaint (BlitArea *dpi) OVERRIDE
 	{
 		bool newstations = _railstation.newstations;
 		const StationSpec *statspec = newstations ? StationClass::Get(_railstation.station_class)->GetSpec(_railstation.station_type) : NULL;
@@ -1019,7 +1039,7 @@ public:
 			}
 		}
 
-		this->DrawWidgets();
+		this->DrawWidgets (dpi);
 
 		/* 'Accepts' and 'Supplies' texts. */
 		NWidgetBase *cov = this->GetWidget<NWidgetBase>(WID_BRAS_COVERAGE_TEXTS);
@@ -1027,8 +1047,7 @@ public:
 		int left = cov->pos_x + WD_FRAMERECT_LEFT;
 		int right = cov->pos_x + cov->current_x - WD_FRAMERECT_RIGHT;
 		int bottom = cov->pos_y + cov->current_y;
-		top = DrawStationCoverageAreaText(left, right, top, SCT_ALL, rad, false) + WD_PAR_VSEP_NORMAL;
-		top = DrawStationCoverageAreaText(left, right, top, SCT_ALL, rad, true) + WD_PAR_VSEP_NORMAL;
+		top = DrawStationCoverageAreaText (dpi, left, right, top, rad);
 		/* Resize background if the window is too small.
 		 * Never make the window smaller to avoid oscillating if the size change affects the acceptance.
 		 * (This is the case, if making the window bigger moves the mouse into the window.) */
@@ -1095,37 +1114,15 @@ public:
 		}
 	}
 
-	virtual void DrawWidget(const Rect &r, int widget) const
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
 	{
-		DrawPixelInfo tmp_dpi;
-
-		switch (GB(widget, 0, 16)) {
+		int widn = GB(widget, 0, 16);
+		switch (widn) {
 			case WID_BRAS_PLATFORM_DIR_X:
-				/* Set up a clipping area for the '/' station preview */
-				if (FillDrawPixelInfo(&tmp_dpi, r.left, r.top, r.right - r.left + 1, r.bottom - r.top + 1)) {
-					DrawPixelInfo *old_dpi = _cur_dpi;
-					_cur_dpi = &tmp_dpi;
-					int x = ScaleGUITrad(31) + 1;
-					int y = r.bottom - r.top - ScaleGUITrad(31);
-					if (!DrawStationTile(x, y, _cur_railtype, AXIS_X, _railstation.station_class, _railstation.station_type)) {
-						StationPickerDrawSprite(x, y, STATION_RAIL, _cur_railtype, INVALID_ROADTYPE, 2);
-					}
-					_cur_dpi = old_dpi;
-				}
-				break;
-
 			case WID_BRAS_PLATFORM_DIR_Y:
-				/* Set up a clipping area for the '\' station preview */
-				if (FillDrawPixelInfo(&tmp_dpi, r.left, r.top, r.right - r.left + 1, r.bottom - r.top + 1)) {
-					DrawPixelInfo *old_dpi = _cur_dpi;
-					_cur_dpi = &tmp_dpi;
-					int x = ScaleGUITrad(31) + 1;
-					int y = r.bottom - r.top - ScaleGUITrad(31);
-					if (!DrawStationTile(x, y, _cur_railtype, AXIS_Y, _railstation.station_class, _railstation.station_type)) {
-						StationPickerDrawSprite(x, y, STATION_RAIL, _cur_railtype, INVALID_ROADTYPE, 3);
-					}
-					_cur_dpi = old_dpi;
-				}
+				assert_compile (WID_BRAS_PLATFORM_DIR_X == 0);
+				assert_compile (WID_BRAS_PLATFORM_DIR_Y == 1);
+				DrawStationPreview (dpi, r, _railstation.station_class, _railstation.station_type, 2 + widn, false);
 				break;
 
 			case WID_BRAS_NEWST_LIST: {
@@ -1134,7 +1131,7 @@ public:
 				for (uint i = 0; i < StationClass::GetClassCount(); i++) {
 					if (i == STAT_CLASS_WAYP) continue;
 					if (this->vscroll->IsVisible(statclass)) {
-						DrawString(r.left + WD_MATRIX_LEFT, r.right - WD_MATRIX_RIGHT, row * this->line_height + r.top + WD_MATRIX_TOP,
+						DrawString (dpi, r.left + WD_MATRIX_LEFT, r.right - WD_MATRIX_RIGHT, row * this->line_height + r.top + WD_MATRIX_TOP,
 								StationClass::Get((StationClassID)i)->name,
 								(StationClassID)i == _railstation.station_class ? TC_WHITE : TC_BLACK);
 						row++;
@@ -1147,23 +1144,7 @@ public:
 			case WID_BRAS_IMAGE: {
 				byte type = GB(widget, 16, 16);
 				assert(type < _railstation.station_count);
-				/* Check station availability callback */
-				const StationSpec *statspec = StationClass::Get(_railstation.station_class)->GetSpec(type);
-				if (!IsStationAvailable(statspec)) {
-					GfxFillRect(r.left + 1, r.top + 1, r.right - 1, r.bottom - 1, PC_BLACK, FILLRECT_CHECKER);
-				}
-
-				/* Set up a clipping area for the station preview. */
-				if (FillDrawPixelInfo(&tmp_dpi, r.left, r.top, r.right - r.left + 1, r.bottom - r.top + 1)) {
-					DrawPixelInfo *old_dpi = _cur_dpi;
-					_cur_dpi = &tmp_dpi;
-					int x = ScaleGUITrad(31) + 1;
-					int y = r.bottom - r.top - ScaleGUITrad(31);
-					if (!DrawStationTile(x, y, _cur_railtype, _railstation.orientation, _railstation.station_class, type)) {
-						StationPickerDrawSprite(x, y, STATION_RAIL, _cur_railtype, INVALID_ROADTYPE, 2 + _railstation.orientation);
-					}
-					_cur_dpi = old_dpi;
-				}
+				DrawStationPreview (dpi, r, _railstation.station_class, type, 2 + _railstation.orientation, true);
 				break;
 			}
 		}
@@ -1490,7 +1471,7 @@ private:
 	 * @param widget_index index of this widget in the window
 	 * @param image        the sprite to draw
 	 */
-	void DrawSignalSprite(byte widget_index, SpriteID image) const
+	void DrawSignalSprite (BlitArea *dpi, byte widget_index, SpriteID image) const
 	{
 		Point offset;
 		Dimension sprite_size = GetSpriteSize(image, &offset);
@@ -1500,7 +1481,7 @@ private:
 		int y = widget->pos_y - sig_sprite_bottom_offset + WD_IMGBTN_TOP +
 				(widget->current_y - WD_IMGBTN_TOP - WD_IMGBTN_BOTTOM + sig_sprite_size.height) / 2; // aligned to bottom
 
-		DrawSprite(image, PAL_NONE,
+		DrawSprite (dpi, image, PAL_NONE,
 				x + this->IsWidgetLowered(widget_index),
 				y + this->IsWidgetLowered(widget_index));
 	}
@@ -1563,7 +1544,7 @@ public:
 		}
 	}
 
-	virtual void DrawWidget(const Rect &r, int widget) const
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
 	{
 		if (IsInsideMM(widget, WID_BS_SEMAPHORE_NORM, WID_BS_ELECTRIC_PBS_OWAY + 1)) {
 			/* Extract signal from widget number. */
@@ -1571,7 +1552,7 @@ public:
 			int var = SIG_SEMAPHORE - (widget - WID_BS_SEMAPHORE_NORM) / SIGTYPE_END; // SignalVariant order is reversed compared to the widgets.
 			SpriteID sprite = GetRailTypeInfo(_cur_railtype)->gui_sprites.signals[type][var][this->IsWidgetLowered(widget)];
 
-			this->DrawSignalSprite(widget, sprite);
+			this->DrawSignalSprite (dpi, widget, sprite);
 		}
 	}
 
@@ -1725,11 +1706,11 @@ struct BuildRailDepotWindow : public PickerWindowBase {
 		size->height = ScaleGUITrad(48) + 2;
 	}
 
-	virtual void DrawWidget(const Rect &r, int widget) const
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
 	{
 		if (!IsInsideMM(widget, WID_BRAD_DEPOT_NE, WID_BRAD_DEPOT_NW + 1)) return;
 
-		DrawTrainDepotSprite(r.left + 1 + ScaleGUITrad(31), r.bottom - ScaleGUITrad(31), widget - WID_BRAD_DEPOT_NE + DIAGDIR_NE, _cur_railtype);
+		DrawTrainDepotSprite (dpi, r.left + 1 + ScaleGUITrad(31), r.bottom - ScaleGUITrad(31), widget - WID_BRAD_DEPOT_NE + DIAGDIR_NE, _cur_railtype);
 	}
 
 	virtual void OnClick(Point pt, int widget, int click_count)
@@ -1825,17 +1806,13 @@ struct BuildRailWaypointWindow : PickerWindowBase {
 		}
 	}
 
-	virtual void DrawWidget(const Rect &r, int widget) const
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
 	{
 		switch (GB(widget, 0, 16)) {
 			case WID_BRW_WAYPOINT: {
 				byte type = GB(widget, 16, 16);
-				const StationSpec *statspec = StationClass::Get(STAT_CLASS_WAYP)->GetSpec(type);
-				DrawWaypointSprite(r.left + 1 + ScaleGUITrad(31), r.bottom - ScaleGUITrad(31), type, _cur_railtype);
-
-				if (!IsStationAvailable(statspec)) {
-					GfxFillRect(r.left + 1, r.top + 1, r.right - 1, r.bottom - 1, PC_BLACK, FILLRECT_CHECKER);
-				}
+				DrawStationPreview (dpi, r, STAT_CLASS_WAYP, type, AXIS_X, true);
+				break;
 			}
 		}
 	}

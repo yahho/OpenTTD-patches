@@ -16,7 +16,7 @@
 #include "core/bitmath_func.hpp"
 #include "core/math_func.hpp"
 #include "strings_type.h"
-#include "gfx_type.h"
+#include "gfx_func.h"
 #include "window_type.h"
 
 static const int WIDGET_LIST_END = -1; ///< indicate the end of widgets' list for vararg functions
@@ -157,7 +157,7 @@ public:
 	inline uint GetHorizontalStepSize(SizingType sizing) const;
 	inline uint GetVerticalStepSize(SizingType sizing) const;
 
-	virtual void Draw(const Window *w) = 0;
+	virtual void Draw (BlitArea *dpi, const Window *w) = 0;
 	virtual void SetDirty(const Window *w) const;
 
 	WidgetType type;      ///< Type of the widget / nested widget.
@@ -412,7 +412,7 @@ public:
 	void AssignSizePosition(SizingType sizing, uint x, uint y, uint given_width, uint given_height, bool rtl);
 	/* virtual */ void FillNestedArray(NWidgetBase **array, uint length);
 
-	/* virtual */ void Draw(const Window *w);
+	void Draw (BlitArea *dpi, const Window *w) OVERRIDE;
 	/* virtual */ NWidgetCore *GetWidgetFromPos(int x, int y);
 
 	void SetDisplayedPlane(int plane);
@@ -437,7 +437,7 @@ public:
 
 	void SetPIP(uint8 pip_pre, uint8 pip_inter, uint8 pip_post);
 
-	/* virtual */ void Draw(const Window *w);
+	void Draw (BlitArea *dpi, const Window *w) OVERRIDE;
 	/* virtual */ NWidgetCore *GetWidgetFromPos(int x, int y);
 
 protected:
@@ -505,7 +505,7 @@ public:
 	/* virtual */ void FillNestedArray(NWidgetBase **array, uint length);
 
 	/* virtual */ NWidgetCore *GetWidgetFromPos(int x, int y);
-	/* virtual */ void Draw(const Window *w);
+	void Draw (BlitArea *dpi, const Window *w) OVERRIDE;
 protected:
 	int index;      ///< If non-negative, index in the #Window::nested_array.
 	Colours colour; ///< Colour of this widget.
@@ -533,7 +533,7 @@ public:
 	void SetupSmallestSize(Window *w, bool init_array);
 	/* virtual */ void FillNestedArray(NWidgetBase **array, uint length);
 
-	/* virtual */ void Draw(const Window *w);
+	void Draw (BlitArea *dpi, const Window *w) OVERRIDE;
 	/* virtual */ void SetDirty(const Window *w) const;
 	/* virtual */ NWidgetCore *GetWidgetFromPos(int x, int y);
 };
@@ -555,7 +555,7 @@ public:
 
 	/* virtual */ void FillNestedArray(NWidgetBase **array, uint length);
 
-	/* virtual */ void Draw(const Window *w);
+	void Draw (BlitArea *dpi, const Window *w) OVERRIDE;
 	/* virtual */ NWidgetCore *GetWidgetFromPos(int x, int y);
 	/* virtual */ NWidgetBase *GetWidgetOfType(WidgetType tp);
 
@@ -577,7 +577,7 @@ public:
 	NWidgetViewport(int index);
 
 	/* virtual */ void SetupSmallestSize(Window *w, bool init_array);
-	/* virtual */ void Draw(const Window *w);
+	void Draw (BlitArea *dpi, const Window *w) OVERRIDE;
 
 	void InitializeViewport(Window *w, uint32 follow_flags, ZoomLevel zoom);
 	void UpdateViewportCoordinates(Window *w);
@@ -752,7 +752,7 @@ public:
 	NWidgetScrollbar(WidgetType tp, Colours colour, int index);
 
 	/* virtual */ void SetupSmallestSize(Window *w, bool init_array);
-	/* virtual */ void Draw(const Window *w);
+	void Draw (BlitArea *dpi, const Window *w) OVERRIDE;
 
 	static void InvalidateDimensionCache();
 	static Dimension GetVerticalDimension();
@@ -772,7 +772,7 @@ public:
 	NWidgetLeaf(WidgetType tp, Colours colour, int index, uint32 data, StringID tip);
 
 	/* virtual */ void SetupSmallestSize(Window *w, bool init_array);
-	/* virtual */ void Draw(const Window *w);
+	void Draw (BlitArea *dpi, const Window *w) OVERRIDE;
 
 	bool ButtonHit(const Point &pt);
 

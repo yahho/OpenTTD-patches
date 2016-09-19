@@ -144,7 +144,7 @@ CommandCallback CcBuildBridge;
 
 /* dock_gui.cpp */
 CommandCallback CcBuildDocks;
-CommandCallback CcBuildCanal;
+CommandCallback CcPlaySound_SPLAT_WATER;
 
 /* depot_gui.cpp */
 CommandCallback CcCloneVehicle;
@@ -157,7 +157,7 @@ CommandCallback CcAddVehicleGroup;
 CommandCallback CcBuildIndustry;
 
 /* main_gui.cpp */
-CommandCallback CcPlaySound10;
+CommandCallback CcPlaySound_EXPLOSION;
 CommandCallback CcPlaceSign;
 CommandCallback CcTerraform;
 CommandCallback CcTerraformLand;
@@ -167,13 +167,13 @@ CommandCallback CcGiveMoney;
 CommandCallback CcBuildObject;
 
 /* rail_gui.cpp */
-CommandCallback CcPlaySound1E;
+CommandCallback CcPlaySound_SPLAT_RAIL;
 CommandCallback CcSingleRail;
 CommandCallback CcRailDepot;
 CommandCallback CcStation;
 
 /* road_gui.cpp */
-CommandCallback CcPlaySound1D;
+CommandCallback CcPlaySound_SPLAT_OTHER;
 CommandCallback CcBuildTunnel;
 CommandCallback CcRoadDepot;
 CommandCallback CcRoadStop;

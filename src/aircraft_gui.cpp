@@ -25,11 +25,12 @@
  * Draw the details for the given vehicle at the given position
  *
  * @param v     current vehicle
+ * @param dpi   The area to draw on
  * @param left  The left most coordinate to draw
  * @param right The right most coordinate to draw
  * @param y     The y coordinate
  */
-void DrawAircraftDetails(const Aircraft *v, int left, int right, int y)
+void DrawAircraftDetails (const Aircraft *v, BlitArea *dpi, int left, int right, int y)
 {
 	int y_offset = (v->Next()->cargo_cap != 0) ? -(FONT_HEIGHT_NORMAL + 1): 0;
 	Money feeder_share = 0;
@@ -39,14 +40,14 @@ void DrawAircraftDetails(const Aircraft *v, int left, int right, int y)
 			SetDParam(0, u->engine_type);
 			SetDParam(1, u->build_year);
 			SetDParam(2, u->value);
-			DrawString(left, right, y, STR_VEHICLE_INFO_BUILT_VALUE);
+			DrawString (dpi, left, right, y, STR_VEHICLE_INFO_BUILT_VALUE);
 
 			SetDParam(0, u->cargo_type);
 			SetDParam(1, u->cargo_cap);
 			SetDParam(2, u->Next()->cargo_type);
 			SetDParam(3, u->Next()->cargo_cap);
 			SetDParam(4, GetCargoSubtypeText(u));
-			DrawString(left, right, y + FONT_HEIGHT_NORMAL, (u->Next()->cargo_cap != 0) ? STR_VEHICLE_INFO_CAPACITY_CAPACITY : STR_VEHICLE_INFO_CAPACITY);
+			DrawString (dpi, left, right, y + FONT_HEIGHT_NORMAL, (u->Next()->cargo_cap != 0) ? STR_VEHICLE_INFO_CAPACITY_CAPACITY : STR_VEHICLE_INFO_CAPACITY);
 		}
 
 		if (u->cargo_cap != 0) {
@@ -58,26 +59,28 @@ void DrawAircraftDetails(const Aircraft *v, int left, int right, int y)
 				SetDParam(0, u->cargo_type);
 				SetDParam(1, cargo_count);
 				SetDParam(2, u->cargo.Source());
-				DrawString(left, right, y + 2 * FONT_HEIGHT_NORMAL + 1 + y_offset, STR_VEHICLE_DETAILS_CARGO_FROM);
+				DrawString (dpi, left, right, y + 2 * FONT_HEIGHT_NORMAL + 1 + y_offset, STR_VEHICLE_DETAILS_CARGO_FROM);
 				feeder_share += u->cargo.FeederShare();
 			}
 		}
 	}
 
 	SetDParam(0, feeder_share);
-	DrawString(left, right, y + 3 * FONT_HEIGHT_NORMAL + 3 + y_offset, STR_VEHICLE_INFO_FEEDER_CARGO_VALUE);
+	DrawString (dpi, left, right, y + 3 * FONT_HEIGHT_NORMAL + 3 + y_offset, STR_VEHICLE_INFO_FEEDER_CARGO_VALUE);
 }
 
 
 /**
  * Draws an image of an aircraft
  * @param v         Front vehicle
+ * @param dpi       The area to draw on
  * @param left      The minimum horizontal position
  * @param right     The maximum horizontal position
  * @param y         Vertical position to draw at
  * @param selection Selected vehicle to draw a frame around
  */
-void DrawAircraftImage(const Vehicle *v, int left, int right, int y, VehicleID selection, EngineImageType image_type)
+void DrawAircraftImage (const Vehicle *v, BlitArea *dpi, int left, int right,
+	int y, VehicleID selection, EngineImageType image_type)
 {
 	bool rtl = _current_text_dir == TD_RTL;
 
@@ -93,17 +96,17 @@ void DrawAircraftImage(const Vehicle *v, int left, int right, int y, VehicleID s
 	int heli_offs = 0;
 
 	PaletteID pal = (v->vehstatus & VS_CRASHED) ? PALETTE_CRASH : GetVehiclePalette(v);
-	DrawSprite(sprite, pal, x, y + y_offs);
+	DrawSprite (dpi, sprite, pal, x, y + y_offs);
 	if (helicopter) {
 		const Aircraft *a = Aircraft::From(v);
 		SpriteID rotor_sprite = GetCustomRotorSprite(a, true, image_type);
 		if (rotor_sprite == 0) rotor_sprite = SPR_ROTOR_STOPPED;
 		heli_offs = ScaleGUITrad(5);
-		DrawSprite(rotor_sprite, PAL_NONE, x, y + y_offs - heli_offs);
+		DrawSprite (dpi, rotor_sprite, PAL_NONE, x, y + y_offs - heli_offs);
 	}
 	if (v->index == selection) {
 		x += x_offs;
 		y += UnScaleGUI(real_sprite->y_offs) + y_offs - heli_offs;
-		DrawFrameRect(x - 1, y - 1, x + width + 1, y + UnScaleGUI(real_sprite->height) + heli_offs + 1, COLOUR_WHITE, FR_BORDERONLY);
+		DrawFrameRect (dpi, x - 1, y - 1, x + width + 1, y + UnScaleGUI(real_sprite->height) + heli_offs + 1, COLOUR_WHITE, FR_BORDERONLY);
 	}
 }

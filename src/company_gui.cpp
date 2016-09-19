@@ -127,14 +127,15 @@ static const ExpensesList _expenses_list_types[] = {
 
 /**
  * Draw the expenses categories.
+ * @param dpi Area to draw on.
  * @param r Available space for drawing.
  * @note The environment must provide padding at the left and right of \a r.
  */
-static void DrawCategories(const Rect &r)
+static void DrawCategories (BlitArea *dpi, const Rect &r)
 {
 	int y = r.top;
 
-	DrawString(r.left, r.right, y, STR_FINANCES_EXPENDITURE_INCOME_TITLE, TC_FROMSTRING, SA_HOR_CENTER, true);
+	DrawString (dpi, r.left, r.right, y, STR_FINANCES_EXPENDITURE_INCOME_TITLE, TC_FROMSTRING, SA_HOR_CENTER, true);
 	y += FONT_HEIGHT_NORMAL + EXP_LINESPACE;
 
 	int type = _settings_client.gui.expenses_layout;
@@ -142,25 +143,26 @@ static void DrawCategories(const Rect &r)
 		const ExpensesType et = _expenses_list_types[type].et[i];
 		if (et == INVALID_EXPENSES) {
 			y += EXP_LINESPACE;
-			DrawString(r.left, r.right, y, STR_FINANCES_TOTAL_CAPTION, TC_FROMSTRING, SA_RIGHT);
+			DrawString (dpi, r.left, r.right, y, STR_FINANCES_TOTAL_CAPTION, TC_FROMSTRING, SA_RIGHT);
 			y += FONT_HEIGHT_NORMAL + EXP_BLOCKSPACE;
 		} else {
-			DrawString(r.left, r.right, y, STR_FINANCES_SECTION_CONSTRUCTION + et);
+			DrawString (dpi, r.left, r.right, y, STR_FINANCES_SECTION_CONSTRUCTION + et);
 			y += FONT_HEIGHT_NORMAL;
 		}
 	}
 
-	DrawString(r.left, r.right, y + EXP_LINESPACE, STR_FINANCES_TOTAL_CAPTION, TC_FROMSTRING, SA_RIGHT);
+	DrawString (dpi, r.left, r.right, y + EXP_LINESPACE, STR_FINANCES_TOTAL_CAPTION, TC_FROMSTRING, SA_RIGHT);
 }
 
 /**
  * Draw an amount of money.
  * @param amount Amount of money to draw,
+ * @param dpi    Area to draw on.
  * @param left   Left coordinate of the space to draw in.
  * @param right  Right coordinate of the space to draw in.
  * @param top    Top coordinate of the space to draw in.
  */
-static void DrawPrice(Money amount, int left, int right, int top)
+static void DrawPrice (Money amount, BlitArea *dpi, int left, int right, int top)
 {
 	StringID str = STR_FINANCES_NEGATIVE_INCOME;
 	if (amount < 0) {
@@ -168,22 +170,24 @@ static void DrawPrice(Money amount, int left, int right, int top)
 		str++;
 	}
 	SetDParam(0, amount);
-	DrawString(left, right, top, str, TC_FROMSTRING, SA_RIGHT);
+	DrawString (dpi, left, right, top, str, TC_FROMSTRING, SA_RIGHT);
 }
 
 /**
  * Draw a column with prices.
+ * @param dpi  Area to draw on.
  * @param r    Available space for drawing.
  * @param year Year being drawn.
  * @param tbl  Pointer to table of amounts for \a year.
  * @note The environment must provide padding at the left and right of \a r.
  */
-static void DrawYearColumn(const Rect &r, int year, const Money (*tbl)[EXPENSES_END])
+static void DrawYearColumn (BlitArea *dpi, const Rect &r, int year,
+	const Money (*tbl)[EXPENSES_END])
 {
 	int y = r.top;
 
 	SetDParam(0, year);
-	DrawString(r.left, r.right, y, STR_FINANCES_YEAR, TC_FROMSTRING, SA_RIGHT, true);
+	DrawString (dpi, r.left, r.right, y, STR_FINANCES_YEAR, TC_FROMSTRING, SA_RIGHT, true);
 	y += FONT_HEIGHT_NORMAL + EXP_LINESPACE;
 
 	Money sum = 0;
@@ -194,22 +198,22 @@ static void DrawYearColumn(const Rect &r, int year, const Money (*tbl)[EXPENSES_
 		if (et == INVALID_EXPENSES) {
 			Money cost = subtotal;
 			subtotal = 0;
-			GfxFillRect(r.left, y, r.right, y, PC_BLACK);
+			GfxFillRect (dpi, r.left, y, r.right, y, PC_BLACK);
 			y += EXP_LINESPACE;
-			DrawPrice(cost, r.left, r.right, y);
+			DrawPrice (cost, dpi, r.left, r.right, y);
 			y += FONT_HEIGHT_NORMAL + EXP_BLOCKSPACE;
 		} else {
 			Money cost = (*tbl)[et];
 			subtotal += cost;
 			sum += cost;
-			if (cost != 0) DrawPrice(cost, r.left, r.right, y);
+			if (cost != 0) DrawPrice (cost, dpi, r.left, r.right, y);
 			y += FONT_HEIGHT_NORMAL;
 		}
 	}
 
-	GfxFillRect(r.left, y, r.right, y, PC_BLACK);
+	GfxFillRect (dpi, r.left, y, r.right, y, PC_BLACK);
 	y += EXP_LINESPACE;
-	DrawPrice(sum, r.left, r.right, y);
+	DrawPrice (sum, dpi, r.left, r.right, y);
 }
 
 static const NWidgetPart _nested_company_finances_widgets[] = {
@@ -330,11 +334,11 @@ struct CompanyFinancesWindow : Window {
 		}
 	}
 
-	virtual void DrawWidget(const Rect &r, int widget) const
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
 	{
 		switch (widget) {
 			case WID_CF_EXPS_CATEGORY:
-				DrawCategories(r);
+				DrawCategories (dpi, r);
 				break;
 
 			case WID_CF_EXPS_PRICE1:
@@ -344,7 +348,7 @@ struct CompanyFinancesWindow : Window {
 				int age = min(_cur_year - c->inaugurated_year, 2);
 				int wid_offset = widget - WID_CF_EXPS_PRICE1;
 				if (wid_offset <= age) {
-					DrawYearColumn(r, _cur_year - (age - wid_offset), c->yearly_expenses + (age - wid_offset));
+					DrawYearColumn (dpi, r, _cur_year - (age - wid_offset), c->yearly_expenses + (age - wid_offset));
 				}
 				break;
 			}
@@ -352,26 +356,26 @@ struct CompanyFinancesWindow : Window {
 			case WID_CF_BALANCE_VALUE: {
 				const Company *c = Company::Get((CompanyID)this->window_number);
 				SetDParam(0, c->money);
-				DrawString(r.left, r.right, r.top, STR_FINANCES_TOTAL_CURRENCY, TC_FROMSTRING, SA_RIGHT);
+				DrawString (dpi, r.left, r.right, r.top, STR_FINANCES_TOTAL_CURRENCY, TC_FROMSTRING, SA_RIGHT);
 				break;
 			}
 
 			case WID_CF_LOAN_VALUE: {
 				const Company *c = Company::Get((CompanyID)this->window_number);
 				SetDParam(0, c->current_loan);
-				DrawString(r.left, r.right, r.top, STR_FINANCES_TOTAL_CURRENCY, TC_FROMSTRING, SA_RIGHT);
+				DrawString (dpi, r.left, r.right, r.top, STR_FINANCES_TOTAL_CURRENCY, TC_FROMSTRING, SA_RIGHT);
 				break;
 			}
 
 			case WID_CF_TOTAL_VALUE: {
 				const Company *c = Company::Get((CompanyID)this->window_number);
 				SetDParam(0, c->money - c->current_loan);
-				DrawString(r.left, r.right, r.top, STR_FINANCES_TOTAL_CURRENCY, TC_FROMSTRING, SA_RIGHT);
+				DrawString (dpi, r.left, r.right, r.top, STR_FINANCES_TOTAL_CURRENCY, TC_FROMSTRING, SA_RIGHT);
 				break;
 			}
 
 			case WID_CF_LOAN_LINE:
-				GfxFillRect(r.left, r.top, r.right, r.top, PC_BLACK);
+				GfxFillRect (dpi, r.left, r.top, r.right, r.top, PC_BLACK);
 				break;
 		}
 	}
@@ -391,7 +395,7 @@ struct CompanyFinancesWindow : Window {
 		this->GetWidget<NWidgetStacked>(WID_CF_SEL_BUTTONS)->SetDisplayedPlane(plane);
 	}
 
-	virtual void OnPaint()
+	void OnPaint (BlitArea *dpi) OVERRIDE
 	{
 		if (!this->IsShaded()) {
 			if (!this->small) {
@@ -418,7 +422,7 @@ struct CompanyFinancesWindow : Window {
 			this->SetWidgetDisabledState(WID_CF_REPAY_LOAN, company != _local_company || c->current_loan == 0); // Repay button only shows when there is any more money to repay.
 		}
 
-		this->DrawWidgets();
+		this->DrawWidgets (dpi);
 	}
 
 	virtual void OnClick(Point pt, int widget, int click_count)
@@ -538,16 +542,16 @@ public:
 		return true;
 	}
 
-	void Draw(int left, int right, int top, int bottom, bool sel, int bg_colour) const
+	void Draw (BlitArea *dpi, int left, int right, int top, int bottom, bool sel, int bg_colour) const OVERRIDE
 	{
 		bool rtl = _current_text_dir == TD_RTL;
 		int height = bottom - top;
 		int icon_y_offset = height / 2;
 		int text_y_offset = (height - FONT_HEIGHT_NORMAL) / 2 + 1;
-		DrawSprite(SPR_VEH_BUS_SIDE_VIEW, PALETTE_RECOLOUR_START + this->result,
+		DrawSprite (dpi, SPR_VEH_BUS_SIDE_VIEW, PALETTE_RECOLOUR_START + this->result,
 				rtl ? right - 2 - ScaleGUITrad(14) : left + ScaleGUITrad(14) + 2,
 				top + icon_y_offset);
-		DrawString(rtl ? left + 2 : left + ScaleGUITrad(28) + 4,
+		DrawString (dpi, rtl ? left + 2 : left + ScaleGUITrad(28) + 4,
 				rtl ? right - ScaleGUITrad(28) - 4 : right - 2,
 				top + text_y_offset, this->String(), sel ? TC_WHITE : TC_BLACK);
 	}
@@ -657,13 +661,13 @@ public:
 		}
 	}
 
-	virtual void OnPaint()
+	void OnPaint (BlitArea *dpi) OVERRIDE
 	{
 		/* Disable dropdown controls if no scheme is selected */
 		this->SetWidgetDisabledState(WID_SCL_PRI_COL_DROPDOWN, this->sel == 0);
 		this->SetWidgetDisabledState(WID_SCL_SEC_COL_DROPDOWN, this->sel == 0);
 
-		this->DrawWidgets();
+		this->DrawWidgets (dpi);
 	}
 
 	virtual void SetStringParameters(int widget) const
@@ -679,7 +683,7 @@ public:
 		}
 	}
 
-	virtual void DrawWidget(const Rect &r, int widget) const
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
 	{
 		if (widget != WID_SCL_MATRIX) return;
 
@@ -713,18 +717,18 @@ public:
 
 				/* Optional check box + scheme name. */
 				if (scheme != LS_DEFAULT) {
-					DrawSprite(c->livery[scheme].in_use ? SPR_BOX_CHECKED : SPR_BOX_EMPTY, PAL_NONE, (rtl ? sch_right - (this->box.width + 5) + WD_FRAMERECT_RIGHT : sch_left) + WD_FRAMERECT_LEFT, y + box_offs);
+					DrawSprite (dpi, c->livery[scheme].in_use ? SPR_BOX_CHECKED : SPR_BOX_EMPTY, PAL_NONE, (rtl ? sch_right - (this->box.width + 5) + WD_FRAMERECT_RIGHT : sch_left) + WD_FRAMERECT_LEFT, y + box_offs);
 				}
-				DrawString(sch_left + text_left, sch_right - text_right, y + text_offs, STR_LIVERY_DEFAULT + scheme, sel ? TC_WHITE : TC_BLACK);
+				DrawString (dpi, sch_left + text_left, sch_right - text_right, y + text_offs, STR_LIVERY_DEFAULT + scheme, sel ? TC_WHITE : TC_BLACK);
 
 				/* Text below the first dropdown. */
-				DrawSprite(SPR_SQUARE, GENERAL_SPRITE_COLOUR(c->livery[scheme].colour1), (rtl ? pri_right - (this->box.width + 5) + WD_FRAMERECT_RIGHT : pri_left) + WD_FRAMERECT_LEFT, y + square_offs);
-				DrawString(pri_left + text_left, pri_right - text_right, y + text_offs, STR_COLOUR_DARK_BLUE + c->livery[scheme].colour1, sel ? TC_WHITE : TC_GOLD);
+				DrawSprite (dpi, SPR_SQUARE, GENERAL_SPRITE_COLOUR(c->livery[scheme].colour1), (rtl ? pri_right - (this->box.width + 5) + WD_FRAMERECT_RIGHT : pri_left) + WD_FRAMERECT_LEFT, y + square_offs);
+				DrawString (dpi, pri_left + text_left, pri_right - text_right, y + text_offs, STR_COLOUR_DARK_BLUE + c->livery[scheme].colour1, sel ? TC_WHITE : TC_GOLD);
 
 				/* Text below the second dropdown. */
 				if (sec_right > sec_left) { // Second dropdown has non-zero size.
-					DrawSprite(SPR_SQUARE, GENERAL_SPRITE_COLOUR(c->livery[scheme].colour2), (rtl ? sec_right - (this->box.width + 5) + WD_FRAMERECT_RIGHT : sec_left) + WD_FRAMERECT_LEFT, y + square_offs);
-					DrawString(sec_left + text_left, sec_right - text_right, y + text_offs, STR_COLOUR_DARK_BLUE + c->livery[scheme].colour2, sel ? TC_WHITE : TC_GOLD);
+					DrawSprite (dpi, SPR_SQUARE, GENERAL_SPRITE_COLOUR(c->livery[scheme].colour2), (rtl ? sec_right - (this->box.width + 5) + WD_FRAMERECT_RIGHT : sec_left) + WD_FRAMERECT_LEFT, y + square_offs);
+					DrawString (dpi, sec_left + text_left, sec_right - text_right, y + text_offs, STR_COLOUR_DARK_BLUE + c->livery[scheme].colour2, sel ? TC_WHITE : TC_GOLD);
 				}
 
 				y += this->line_height;
@@ -868,13 +872,15 @@ static const WindowDesc _select_company_livery_desc(
  * Draws the face of a company manager's face.
  * @param cmf   the company manager's face
  * @param colour the (background) colour of the gradient
+ * @param dpi   the area to draw on
  * @param x     x-position to draw the face
  * @param y     y-position to draw the face
  */
-void DrawCompanyManagerFace(CompanyManagerFace cmf, int colour, int x, int y)
+void DrawCompanyManagerFace (CompanyManagerFace cmf, int colour,
+	BlitArea *dpi, int x, int y)
 {
 	/* Draw the gradient (background) */
-	DrawSprite(SPR_GRADIENT, GENERAL_SPRITE_COLOUR(colour), x, y);
+	DrawSprite (dpi, SPR_GRADIENT, GENERAL_SPRITE_COLOUR(colour), x, y);
 
 	GenderEthnicity ge = (GenderEthnicity)GetCompanyManagerFaceBits(cmf, CMFV_GEN_ETHN, GE_WM);
 
@@ -904,7 +910,7 @@ void DrawCompanyManagerFace(CompanyManagerFace cmf, int colour, int x, int y)
 			case CMFV_GLASSES:     if (!has_glasses)     continue; break;
 			default: break;
 		}
-		DrawSprite(GetCompanyManagerFaceSprite(cmf, cmfv, ge), (cmfv == CMFV_EYEBROWS) ? pal : PAL_NONE, x, y);
+		DrawSprite (dpi, GetCompanyManagerFaceSprite (cmf, cmfv, ge), (cmfv == CMFV_EYEBROWS) ? pal : PAL_NONE, x, y);
 	}
 }
 
@@ -1076,12 +1082,13 @@ class SelectCompanyManagerFaceWindow : public Window
 
 	/**
 	 * Draw dynamic a label to the left of the button and a value in the button
-	 *
+	 * @param dpi            area to draw on
 	 * @param widget_index   index of this widget in the window
 	 * @param cmfv           the variable that will be drawn
 	 * @param is_bool_widget is it a bool button
 	 */
-	void DrawFaceStringLabel (byte widget_index, CompanyManagerFaceVariable cmfv, bool is_bool_widget) const
+	void DrawFaceStringLabel (BlitArea *dpi, byte widget_index,
+		CompanyManagerFaceVariable cmfv, bool is_bool_widget) const
 	{
 		const NWidgetCore *nwi_widget = this->GetWidget<NWidgetCore>(widget_index);
 		if (!nwi_widget->IsDisabled()) {
@@ -1097,7 +1104,7 @@ class SelectCompanyManagerFaceWindow : public Window
 			}
 
 			/* Draw the value/bool in white. */
-			DrawString (nwi_widget->pos_x, nwi_widget->pos_x + nwi_widget->current_x - 1,
+			DrawString (dpi, nwi_widget->pos_x, nwi_widget->pos_x + nwi_widget->current_x - 1,
 					nwi_widget->pos_y + 1, str, TC_WHITE, SA_HOR_CENTER);
 		}
 	}
@@ -1231,7 +1238,7 @@ public:
 		}
 	}
 
-	virtual void OnPaint()
+	void OnPaint (BlitArea *dpi) OVERRIDE
 	{
 		/* lower the non-selected gender button */
 		this->SetWidgetsLoweredState(!this->is_female, WID_SCMF_MALE, WID_SCMF_MALE2, WIDGET_LIST_END);
@@ -1289,22 +1296,22 @@ public:
 		this->SetWidgetsDisabledState(_cmf_info[CMFV_GLASSES].valid_values[this->ge] < 2 || this->GetFaceBits(CMFV_HAS_GLASSES) == 0,
 				WID_SCMF_GLASSES, WID_SCMF_GLASSES_L, WID_SCMF_GLASSES_R, WIDGET_LIST_END);
 
-		this->DrawWidgets();
+		this->DrawWidgets (dpi);
 	}
 
-	virtual void DrawWidget(const Rect &r, int widget) const
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
 	{
 		switch (widget) {
 			case WID_SCMF_HAS_MOUSTACHE_EARRING_TEXT:
 			case WID_SCMF_TIE_EARRING_TEXT: {
 				StringID str = this->is_female ? STR_FACE_EARRING :
 						(widget == WID_SCMF_HAS_MOUSTACHE_EARRING_TEXT) ? STR_FACE_MOUSTACHE : STR_FACE_TIE;
-				DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP, str, TC_GOLD, SA_RIGHT);
+				DrawString (dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP, str, TC_GOLD, SA_RIGHT);
 				break;
 			}
 
 			case WID_SCMF_LIPS_MOUSTACHE_TEXT:
-				DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP, (this->is_moust_male) ? STR_FACE_MOUSTACHE : STR_FACE_LIPS, TC_GOLD, SA_RIGHT);
+				DrawString (dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP, (this->is_moust_male) ? STR_FACE_MOUSTACHE : STR_FACE_LIPS, TC_GOLD, SA_RIGHT);
 				break;
 
 			case WID_SCMF_HAS_GLASSES_TEXT:
@@ -1316,62 +1323,62 @@ public:
 			case WID_SCMF_CHIN_TEXT:
 			case WID_SCMF_JACKET_TEXT:
 			case WID_SCMF_COLLAR_TEXT:
-				DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP, PART_TEXTS[widget - WID_SCMF_HAS_GLASSES_TEXT], TC_GOLD, SA_RIGHT);
+				DrawString (dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP, PART_TEXTS[widget - WID_SCMF_HAS_GLASSES_TEXT], TC_GOLD, SA_RIGHT);
 				break;
 
 
 			case WID_SCMF_HAS_MOUSTACHE_EARRING:
-				this->DrawFaceStringLabel (WID_SCMF_HAS_MOUSTACHE_EARRING,
+				this->DrawFaceStringLabel (dpi, WID_SCMF_HAS_MOUSTACHE_EARRING,
 						this->is_female ? CMFV_HAS_TIE_EARRING : CMFV_HAS_MOUSTACHE, true);
 				break;
 
 			case WID_SCMF_TIE_EARRING:
-				this->DrawFaceStringLabel (WID_SCMF_TIE_EARRING, CMFV_TIE_EARRING, false);
+				this->DrawFaceStringLabel (dpi, WID_SCMF_TIE_EARRING, CMFV_TIE_EARRING, false);
 				break;
 
 			case WID_SCMF_LIPS_MOUSTACHE:
-				this->DrawFaceStringLabel (WID_SCMF_LIPS_MOUSTACHE,
+				this->DrawFaceStringLabel (dpi, WID_SCMF_LIPS_MOUSTACHE,
 						this->is_moust_male ? CMFV_MOUSTACHE : CMFV_LIPS,  false);
 				break;
 
 			case WID_SCMF_HAS_GLASSES:
-				this->DrawFaceStringLabel (WID_SCMF_HAS_GLASSES, CMFV_HAS_GLASSES, true );
+				this->DrawFaceStringLabel (dpi, WID_SCMF_HAS_GLASSES, CMFV_HAS_GLASSES, true );
 				break;
 
 			case WID_SCMF_HAIR:
-				this->DrawFaceStringLabel (WID_SCMF_HAIR,        CMFV_HAIR,        false);
+				this->DrawFaceStringLabel (dpi, WID_SCMF_HAIR,        CMFV_HAIR,        false);
 				break;
 
 			case WID_SCMF_EYEBROWS:
-				this->DrawFaceStringLabel (WID_SCMF_EYEBROWS,    CMFV_EYEBROWS,    false);
+				this->DrawFaceStringLabel (dpi, WID_SCMF_EYEBROWS,    CMFV_EYEBROWS,    false);
 				break;
 
 			case WID_SCMF_EYECOLOUR:
-				this->DrawFaceStringLabel (WID_SCMF_EYECOLOUR,   CMFV_EYE_COLOUR,  false);
+				this->DrawFaceStringLabel (dpi, WID_SCMF_EYECOLOUR,   CMFV_EYE_COLOUR,  false);
 				break;
 
 			case WID_SCMF_GLASSES:
-				this->DrawFaceStringLabel (WID_SCMF_GLASSES,     CMFV_GLASSES,     false);
+				this->DrawFaceStringLabel (dpi, WID_SCMF_GLASSES,     CMFV_GLASSES,     false);
 				break;
 
 			case WID_SCMF_NOSE:
-				this->DrawFaceStringLabel (WID_SCMF_NOSE,        CMFV_NOSE,        false);
+				this->DrawFaceStringLabel (dpi, WID_SCMF_NOSE,        CMFV_NOSE,        false);
 				break;
 
 			case WID_SCMF_CHIN:
-				this->DrawFaceStringLabel (WID_SCMF_CHIN,        CMFV_CHIN,        false);
+				this->DrawFaceStringLabel (dpi, WID_SCMF_CHIN,        CMFV_CHIN,        false);
 				break;
 
 			case WID_SCMF_JACKET:
-				this->DrawFaceStringLabel (WID_SCMF_JACKET,      CMFV_JACKET,      false);
+				this->DrawFaceStringLabel (dpi, WID_SCMF_JACKET,      CMFV_JACKET,      false);
 				break;
 
 			case WID_SCMF_COLLAR:
-				this->DrawFaceStringLabel (WID_SCMF_COLLAR,      CMFV_COLLAR,      false);
+				this->DrawFaceStringLabel (dpi, WID_SCMF_COLLAR,      CMFV_COLLAR,      false);
 				break;
 
 			case WID_SCMF_FACE:
-				DrawCompanyManagerFace(this->face, Company::Get((CompanyID)this->window_number)->colour, r.left, r.top);
+				DrawCompanyManagerFace (this->face, Company::Get((CompanyID)this->window_number)->colour, dpi, r.left, r.top);
 				break;
 		}
 	}
@@ -1745,24 +1752,26 @@ struct CompanyInfrastructureWindow : Window
 
 	/**
 	 * Helper for drawing the counts line.
+	 * @param dpi          The area to draw on.
 	 * @param r            The bounds to draw in.
 	 * @param y            The y position to draw at.
 	 * @param count        The count to show on this line.
 	 * @param monthly_cost The monthly costs.
 	 */
-	void DrawCountLine(const Rect &r, int &y, int count, Money monthly_cost) const
+	void DrawCountLine (BlitArea *dpi, const Rect &r, int &y,
+		int count, Money monthly_cost) const
 	{
 		SetDParam(0, count);
-		DrawString(r.left, r.right, y += FONT_HEIGHT_NORMAL, STR_WHITE_COMMA, TC_FROMSTRING, SA_RIGHT);
+		DrawString (dpi, r.left, r.right, y += FONT_HEIGHT_NORMAL, STR_WHITE_COMMA, TC_FROMSTRING, SA_RIGHT);
 
 		if (_settings_game.economy.infrastructure_maintenance) {
 			SetDParam(0, monthly_cost * 12); // Convert to per year
 			int left = _current_text_dir == TD_RTL ? r.right - this->total_width : r.left;
-			DrawString(left, left + this->total_width, y, STR_COMPANY_INFRASTRUCTURE_VIEW_TOTAL, TC_FROMSTRING, SA_RIGHT);
+			DrawString (dpi, left, left + this->total_width, y, STR_COMPANY_INFRASTRUCTURE_VIEW_TOTAL, TC_FROMSTRING, SA_RIGHT);
 		}
 	}
 
-	virtual void DrawWidget(const Rect &r, int widget) const
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
 	{
 		const Company *c = Company::Get((CompanyID)this->window_number);
 		int y = r.top;
@@ -1772,7 +1781,7 @@ struct CompanyInfrastructureWindow : Window
 
 		switch (widget) {
 			case WID_CI_RAIL_DESC:
-				DrawString(r.left, r.right, y, STR_COMPANY_INFRASTRUCTURE_VIEW_RAIL_SECT);
+				DrawString (dpi, r.left, r.right, y, STR_COMPANY_INFRASTRUCTURE_VIEW_RAIL_SECT);
 
 				if (this->railtypes != RAILTYPES_NONE) {
 					/* Draw name of each valid railtype. */
@@ -1780,13 +1789,13 @@ struct CompanyInfrastructureWindow : Window
 					FOR_ALL_SORTED_RAILTYPES(rt) {
 						if (HasBit(this->railtypes, rt)) {
 							SetDParam(0, GetRailTypeInfo(rt)->strings.name);
-							DrawString(r.left + offs_left, r.right - offs_right, y += FONT_HEIGHT_NORMAL, STR_WHITE_STRING);
+							DrawString (dpi, r.left + offs_left, r.right - offs_right, y += FONT_HEIGHT_NORMAL, STR_WHITE_STRING);
 						}
 					}
-					DrawString(r.left + offs_left, r.right - offs_right, y += FONT_HEIGHT_NORMAL, STR_COMPANY_INFRASTRUCTURE_VIEW_SIGNALS);
+					DrawString (dpi, r.left + offs_left, r.right - offs_right, y += FONT_HEIGHT_NORMAL, STR_COMPANY_INFRASTRUCTURE_VIEW_SIGNALS);
 				} else {
 					/* No valid railtype. */
-					DrawString(r.left + offs_left, r.right - offs_right, y += FONT_HEIGHT_NORMAL, STR_COMPANY_VIEW_INFRASTRUCTURE_NONE);
+					DrawString (dpi, r.left + offs_left, r.right - offs_right, y += FONT_HEIGHT_NORMAL, STR_COMPANY_VIEW_INFRASTRUCTURE_NONE);
 				}
 
 				break;
@@ -1797,65 +1806,69 @@ struct CompanyInfrastructureWindow : Window
 				RailType rt;
 				FOR_ALL_SORTED_RAILTYPES(rt) {
 					if (HasBit(this->railtypes, rt)) {
-						this->DrawCountLine(r, y, c->infrastructure.rail[rt], RailMaintenanceCost(rt, c->infrastructure.rail[rt], rail_total));
+						this->DrawCountLine (dpi, r, y, c->infrastructure.rail[rt], RailMaintenanceCost(rt, c->infrastructure.rail[rt], rail_total));
 					}
 				}
 				if (this->railtypes != RAILTYPES_NONE) {
-					this->DrawCountLine(r, y, c->infrastructure.signal, SignalMaintenanceCost(c->infrastructure.signal));
+					this->DrawCountLine (dpi, r, y, c->infrastructure.signal, SignalMaintenanceCost(c->infrastructure.signal));
 				}
 				break;
 			}
 
 			case WID_CI_ROAD_DESC:
-				DrawString(r.left, r.right, y, STR_COMPANY_INFRASTRUCTURE_VIEW_ROAD_SECT);
+				DrawString (dpi, r.left, r.right, y, STR_COMPANY_INFRASTRUCTURE_VIEW_ROAD_SECT);
 
 				if (this->roadtypes != ROADTYPES_NONE) {
-					if (HasBit(this->roadtypes, ROADTYPE_ROAD)) DrawString(r.left + offs_left, r.right - offs_right, y += FONT_HEIGHT_NORMAL, STR_COMPANY_INFRASTRUCTURE_VIEW_ROAD);
-					if (HasBit(this->roadtypes, ROADTYPE_TRAM)) DrawString(r.left + offs_left, r.right - offs_right, y += FONT_HEIGHT_NORMAL, STR_COMPANY_INFRASTRUCTURE_VIEW_TRAMWAY);
+					if (HasBit(this->roadtypes, ROADTYPE_ROAD)) {
+						DrawString (dpi, r.left + offs_left, r.right - offs_right, y += FONT_HEIGHT_NORMAL, STR_COMPANY_INFRASTRUCTURE_VIEW_ROAD);
+					}
+					if (HasBit(this->roadtypes, ROADTYPE_TRAM)) {
+						DrawString (dpi, r.left + offs_left, r.right - offs_right, y += FONT_HEIGHT_NORMAL, STR_COMPANY_INFRASTRUCTURE_VIEW_TRAMWAY);
+					}
 				} else {
 					/* No valid roadtypes. */
-					DrawString(r.left + offs_left, r.right - offs_right, y += FONT_HEIGHT_NORMAL, STR_COMPANY_VIEW_INFRASTRUCTURE_NONE);
+					DrawString (dpi, r.left + offs_left, r.right - offs_right, y += FONT_HEIGHT_NORMAL, STR_COMPANY_VIEW_INFRASTRUCTURE_NONE);
 				}
 
 				break;
 
 			case WID_CI_ROAD_COUNT:
 				if (HasBit(this->roadtypes, ROADTYPE_ROAD)) {
-					this->DrawCountLine(r, y, c->infrastructure.road[ROADTYPE_ROAD], RoadMaintenanceCost(ROADTYPE_ROAD, c->infrastructure.road[ROADTYPE_ROAD]));
+					this->DrawCountLine (dpi, r, y, c->infrastructure.road[ROADTYPE_ROAD], RoadMaintenanceCost(ROADTYPE_ROAD, c->infrastructure.road[ROADTYPE_ROAD]));
 				}
 				if (HasBit(this->roadtypes, ROADTYPE_TRAM)) {
-					this->DrawCountLine(r, y, c->infrastructure.road[ROADTYPE_TRAM], RoadMaintenanceCost(ROADTYPE_TRAM, c->infrastructure.road[ROADTYPE_TRAM]));
+					this->DrawCountLine (dpi, r, y, c->infrastructure.road[ROADTYPE_TRAM], RoadMaintenanceCost(ROADTYPE_TRAM, c->infrastructure.road[ROADTYPE_TRAM]));
 				}
 				break;
 
 			case WID_CI_WATER_DESC:
-				DrawString(r.left, r.right, y, STR_COMPANY_INFRASTRUCTURE_VIEW_WATER_SECT);
-				DrawString(r.left + offs_left, r.right - offs_right, y += FONT_HEIGHT_NORMAL, STR_COMPANY_INFRASTRUCTURE_VIEW_CANALS);
+				DrawString (dpi, r.left, r.right, y, STR_COMPANY_INFRASTRUCTURE_VIEW_WATER_SECT);
+				DrawString (dpi, r.left + offs_left, r.right - offs_right, y += FONT_HEIGHT_NORMAL, STR_COMPANY_INFRASTRUCTURE_VIEW_CANALS);
 				break;
 
 			case WID_CI_WATER_COUNT:
-				this->DrawCountLine(r, y, c->infrastructure.water, CanalMaintenanceCost(c->infrastructure.water));
+				this->DrawCountLine (dpi, r, y, c->infrastructure.water, CanalMaintenanceCost(c->infrastructure.water));
 				break;
 
 			case WID_CI_TOTAL:
 				if (_settings_game.economy.infrastructure_maintenance) {
 					int left = _current_text_dir == TD_RTL ? r.right - this->total_width : r.left;
-					GfxFillRect(left, y, left + this->total_width, y, PC_WHITE);
+					GfxFillRect (dpi, left, y, left + this->total_width, y, PC_WHITE);
 					y += EXP_LINESPACE;
 					SetDParam(0, this->GetTotalMaintenanceCost() * 12); // Convert to per year
-					DrawString(left, left + this->total_width, y, STR_COMPANY_INFRASTRUCTURE_VIEW_TOTAL, TC_FROMSTRING, SA_RIGHT);
+					DrawString (dpi, left, left + this->total_width, y, STR_COMPANY_INFRASTRUCTURE_VIEW_TOTAL, TC_FROMSTRING, SA_RIGHT);
 				}
 				break;
 
 			case WID_CI_STATION_DESC:
-				DrawString(r.left, r.right, y, STR_COMPANY_INFRASTRUCTURE_VIEW_STATION_SECT);
-				DrawString(r.left + offs_left, r.right - offs_right, y += FONT_HEIGHT_NORMAL, STR_COMPANY_INFRASTRUCTURE_VIEW_STATIONS);
-				DrawString(r.left + offs_left, r.right - offs_right, y += FONT_HEIGHT_NORMAL, STR_COMPANY_INFRASTRUCTURE_VIEW_AIRPORTS);
+				DrawString (dpi, r.left, r.right, y, STR_COMPANY_INFRASTRUCTURE_VIEW_STATION_SECT);
+				DrawString (dpi, r.left + offs_left, r.right - offs_right, y += FONT_HEIGHT_NORMAL, STR_COMPANY_INFRASTRUCTURE_VIEW_STATIONS);
+				DrawString (dpi, r.left + offs_left, r.right - offs_right, y += FONT_HEIGHT_NORMAL, STR_COMPANY_INFRASTRUCTURE_VIEW_AIRPORTS);
 				break;
 
 			case WID_CI_STATION_COUNT:
-				this->DrawCountLine(r, y, c->infrastructure.station, StationMaintenanceCost(c->infrastructure.station));
-				this->DrawCountLine(r, y, c->infrastructure.airport, AirportMaintenanceCost(c->index));
+				this->DrawCountLine (dpi, r, y, c->infrastructure.station, StationMaintenanceCost(c->infrastructure.station));
+				this->DrawCountLine (dpi, r, y, c->infrastructure.airport, AirportMaintenanceCost(c->index));
 				break;
 		}
 	}
@@ -2035,7 +2048,7 @@ struct CompanyWindow : Window
 		this->OnInvalidateData();
 	}
 
-	virtual void OnPaint()
+	void OnPaint (BlitArea *dpi) OVERRIDE
 	{
 		const Company *c = Company::Get((CompanyID)this->window_number);
 		bool local = this->window_number == _local_company;
@@ -2101,7 +2114,7 @@ struct CompanyWindow : Window
 			}
 		}
 
-		this->DrawWidgets();
+		this->DrawWidgets (dpi);
 	}
 
 	virtual void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize)
@@ -2165,24 +2178,24 @@ struct CompanyWindow : Window
 		}
 	}
 
-	virtual void DrawWidget(const Rect &r, int widget) const
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
 	{
 		const Company *c = Company::Get((CompanyID)this->window_number);
 		switch (widget) {
 			case WID_C_FACE:
-				DrawCompanyManagerFace(c->face, c->colour, r.left, r.top);
+				DrawCompanyManagerFace (c->face, c->colour, dpi, r.left, r.top);
 				break;
 
 			case WID_C_FACE_TITLE:
 				SetDParam(0, c->index);
-				DrawStringMultiLine(r.left, r.right, r.top, r.bottom, STR_COMPANY_VIEW_PRESIDENT_MANAGER_TITLE, TC_FROMSTRING, SA_HOR_CENTER);
+				DrawStringMultiLine (dpi, r.left, r.right, r.top, r.bottom, STR_COMPANY_VIEW_PRESIDENT_MANAGER_TITLE, TC_FROMSTRING, SA_HOR_CENTER);
 				break;
 
 			case WID_C_DESC_COLOUR_SCHEME_EXAMPLE: {
 				Point offset;
 				Dimension d = GetSpriteSize(SPR_VEH_BUS_SW_VIEW, &offset);
 				d.height -= offset.y;
-				DrawSprite(SPR_VEH_BUS_SW_VIEW, COMPANY_SPRITE_COLOUR(c->index), r.left - offset.x, (r.top + r.bottom - d.height) / 2 - offset.y);
+				DrawSprite (dpi, SPR_VEH_BUS_SW_VIEW, COMPANY_SPRITE_COLOUR(c->index), r.left - offset.x, (r.top + r.bottom - d.height) / 2 - offset.y);
 				break;
 			}
 
@@ -2195,14 +2208,14 @@ struct CompanyWindow : Window
 
 				int y = r.top;
 				if (amounts[0] + amounts[1] + amounts[2] + amounts[3] == 0) {
-					DrawString(r.left, r.right, y, STR_COMPANY_VIEW_VEHICLES_NONE);
+					DrawString (dpi, r.left, r.right, y, STR_COMPANY_VIEW_VEHICLES_NONE);
 				} else {
 					assert_compile(lengthof(amounts) == lengthof(_company_view_vehicle_count_strings));
 
 					for (uint i = 0; i < lengthof(amounts); i++) {
 						if (amounts[i] != 0) {
 							SetDParam(0, amounts[i]);
-							DrawString(r.left, r.right, y, _company_view_vehicle_count_strings[i]);
+							DrawString (dpi, r.left, r.right, y, _company_view_vehicle_count_strings[i]);
 							y += FONT_HEIGHT_NORMAL;
 						}
 					}
@@ -2220,31 +2233,31 @@ struct CompanyWindow : Window
 				for (uint i = 0; i < lengthof(c->infrastructure.road); i++) road_pieces += c->infrastructure.road[i];
 
 				if (rail_pices == 0 && road_pieces == 0 && c->infrastructure.water == 0 && c->infrastructure.station == 0 && c->infrastructure.airport == 0) {
-					DrawString(r.left, r.right, y, STR_COMPANY_VIEW_INFRASTRUCTURE_NONE);
+					DrawString (dpi, r.left, r.right, y, STR_COMPANY_VIEW_INFRASTRUCTURE_NONE);
 				} else {
 					if (rail_pices != 0) {
 						SetDParam(0, rail_pices);
-						DrawString(r.left, r.right, y, STR_COMPANY_VIEW_INFRASTRUCTURE_RAIL);
+						DrawString (dpi, r.left, r.right, y, STR_COMPANY_VIEW_INFRASTRUCTURE_RAIL);
 						y += FONT_HEIGHT_NORMAL;
 					}
 					if (road_pieces != 0) {
 						SetDParam(0, road_pieces);
-						DrawString(r.left, r.right, y, STR_COMPANY_VIEW_INFRASTRUCTURE_ROAD);
+						DrawString (dpi, r.left, r.right, y, STR_COMPANY_VIEW_INFRASTRUCTURE_ROAD);
 						y += FONT_HEIGHT_NORMAL;
 					}
 					if (c->infrastructure.water != 0) {
 						SetDParam(0, c->infrastructure.water);
-						DrawString(r.left, r.right, y, STR_COMPANY_VIEW_INFRASTRUCTURE_WATER);
+						DrawString (dpi, r.left, r.right, y, STR_COMPANY_VIEW_INFRASTRUCTURE_WATER);
 						y += FONT_HEIGHT_NORMAL;
 					}
 					if (c->infrastructure.station != 0) {
 						SetDParam(0, c->infrastructure.station);
-						DrawString(r.left, r.right, y, STR_COMPANY_VIEW_INFRASTRUCTURE_STATION);
+						DrawString (dpi, r.left, r.right, y, STR_COMPANY_VIEW_INFRASTRUCTURE_STATION);
 						y += FONT_HEIGHT_NORMAL;
 					}
 					if (c->infrastructure.airport != 0) {
 						SetDParam(0, c->infrastructure.airport);
-						DrawString(r.left, r.right, y, STR_COMPANY_VIEW_INFRASTRUCTURE_AIRPORT);
+						DrawString (dpi, r.left, r.right, y, STR_COMPANY_VIEW_INFRASTRUCTURE_AIRPORT);
 					}
 				}
 
@@ -2261,7 +2274,7 @@ struct CompanyWindow : Window
 						SetDParam(0, amt * 25);
 						SetDParam(1, c2->index);
 
-						DrawString(r.left, r.right, y, STR_COMPANY_VIEW_SHARES_OWNED_BY);
+						DrawString (dpi, r.left, r.right, y, STR_COMPANY_VIEW_SHARES_OWNED_BY);
 						y += FONT_HEIGHT_NORMAL;
 					}
 				}
@@ -2271,7 +2284,7 @@ struct CompanyWindow : Window
 #ifdef ENABLE_NETWORK
 			case WID_C_HAS_PASSWORD:
 				if (_networking && NetworkCompanyIsPassworded(c->index)) {
-					DrawSprite(SPR_LOCK, PAL_NONE, r.left, r.top);
+					DrawSprite (dpi, SPR_LOCK, PAL_NONE, r.left, r.top);
 				}
 				break;
 #endif /* ENABLE_NETWORK */
@@ -2525,12 +2538,12 @@ struct BuyCompanyWindow : Window {
 		}
 	}
 
-	virtual void DrawWidget(const Rect &r, int widget) const
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
 	{
 		switch (widget) {
 			case WID_BC_FACE: {
 				const Company *c = Company::Get((CompanyID)this->window_number);
-				DrawCompanyManagerFace(c->face, c->colour, r.left, r.top);
+				DrawCompanyManagerFace (c->face, c->colour, dpi, r.left, r.top);
 				break;
 			}
 
@@ -2538,7 +2551,7 @@ struct BuyCompanyWindow : Window {
 				const Company *c = Company::Get((CompanyID)this->window_number);
 				SetDParam(0, c->index);
 				SetDParam(1, c->bankrupt_value);
-				DrawStringMultiLine(r.left, r.right, r.top, r.bottom, STR_BUY_COMPANY_MESSAGE, TC_FROMSTRING, SA_CENTER);
+				DrawStringMultiLine (dpi, r.left, r.right, r.top, r.bottom, STR_BUY_COMPANY_MESSAGE, TC_FROMSTRING, SA_CENTER);
 				break;
 			}
 		}

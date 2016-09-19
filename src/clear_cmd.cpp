@@ -80,18 +80,18 @@ static CommandCost ClearTile_Clear(TileIndex tile, DoCommandFlag flags)
 
 void DrawVoidTile(TileInfo *ti)
 {
-	DrawGroundSprite(SPR_FLAT_BARE_LAND + SlopeToSpriteOffset(ti->tileh), PALETTE_ALL_BLACK);
+	DrawGroundSprite (ti, SPR_FLAT_BARE_LAND + SlopeToSpriteOffset(ti->tileh), PALETTE_ALL_BLACK);
 }
 
 void DrawClearLandTile(const TileInfo *ti, byte set)
 {
-	DrawGroundSprite(SPR_FLAT_BARE_LAND + SlopeToSpriteOffset(ti->tileh) + set * 19, PAL_NONE);
+	DrawGroundSprite (ti, SPR_FLAT_BARE_LAND + SlopeToSpriteOffset(ti->tileh) + set * 19, PAL_NONE);
 }
 
 static void DrawClearLandFence(const TileInfo *ti)
 {
 	/* combine fences into one sprite object */
-	StartSpriteCombine();
+	StartSpriteCombine (ti->vd);
 
 	int maxz = GetSlopeMaxPixelZ(ti->tileh);
 
@@ -99,14 +99,14 @@ static void DrawClearLandFence(const TileInfo *ti)
 	if (fence_nw != 0) {
 		int z = GetSlopePixelZInCorner(ti->tileh, CORNER_W);
 		SpriteID sprite = _clear_land_fence_sprites[fence_nw - 1] + _fence_mod_by_tileh_nw[ti->tileh];
-		AddSortableSpriteToDraw(sprite, PAL_NONE, ti->x, ti->y - 15, 16, 31, maxz - z + 4, ti->z + z, false, 0, 15, -z);
+		AddSortableSpriteToDraw (ti->vd, sprite, PAL_NONE, ti->x, ti->y - 15, 16, 31, maxz - z + 4, ti->z + z, false, 0, 15, -z);
 	}
 
 	uint fence_ne = GetFence(ti->tile, DIAGDIR_NE);
 	if (fence_ne != 0) {
 		int z = GetSlopePixelZInCorner(ti->tileh, CORNER_E);
 		SpriteID sprite = _clear_land_fence_sprites[fence_ne - 1] + _fence_mod_by_tileh_ne[ti->tileh];
-		AddSortableSpriteToDraw(sprite, PAL_NONE, ti->x - 15, ti->y, 31, 16, maxz - z + 4, ti->z + z, false, 15, 0, -z);
+		AddSortableSpriteToDraw (ti->vd, sprite, PAL_NONE, ti->x - 15, ti->y, 31, 16, maxz - z + 4, ti->z + z, false, 15, 0, -z);
 	}
 
 	uint fence_sw = GetFence(ti->tile, DIAGDIR_SW);
@@ -117,15 +117,15 @@ static void DrawClearLandFence(const TileInfo *ti)
 
 		if (fence_sw != 0) {
 			SpriteID sprite = _clear_land_fence_sprites[fence_sw - 1] + _fence_mod_by_tileh_sw[ti->tileh];
-			AddSortableSpriteToDraw(sprite, PAL_NONE, ti->x, ti->y, 16, 16, maxz - z + 4, ti->z + z, false, 0, 0, -z);
+			AddSortableSpriteToDraw (ti->vd, sprite, PAL_NONE, ti->x, ti->y, 16, 16, maxz - z + 4, ti->z + z, false, 0, 0, -z);
 		}
 
 		if (fence_se != 0) {
 			SpriteID sprite = _clear_land_fence_sprites[fence_se - 1] + _fence_mod_by_tileh_se[ti->tileh];
-			AddSortableSpriteToDraw(sprite, PAL_NONE, ti->x, ti->y, 16, 16, maxz - z + 4, ti->z + z, false, 0, 0, -z);
+			AddSortableSpriteToDraw (ti->vd, sprite, PAL_NONE, ti->x, ti->y, 16, 16, maxz - z + 4, ti->z + z, false, 0, 0, -z);
 		}
 	}
-	EndSpriteCombine();
+	EndSpriteCombine (ti->vd);
 }
 
 struct TreeListEnt : PalSpriteID {
@@ -149,7 +149,7 @@ static void DrawTrees(TileInfo *ti)
 	const TreePos *d = _tree_layout_xy[GB(tmp, 2, 2)];
 
 	/* combine trees into one sprite object */
-	StartSpriteCombine();
+	StartSpriteCombine (ti->vd);
 
 	TreeListEnt te[4];
 
@@ -182,13 +182,13 @@ static void DrawTrees(TileInfo *ti)
 			}
 		}
 
-		AddSortableSpriteToDraw(te[mi].sprite, te[mi].pal, ti->x + te[mi].x, ti->y + te[mi].y, 16 - te[mi].x, 16 - te[mi].y, 0x30, z, IsTransparencySet(TO_TREES), -te[mi].x, -te[mi].y);
+		AddSortableSpriteToDraw (ti->vd, te[mi].sprite, te[mi].pal, ti->x + te[mi].x, ti->y + te[mi].y, 16 - te[mi].x, 16 - te[mi].y, 0x30, z, IsTransparencySet(TO_TREES), -te[mi].x, -te[mi].y);
 
 		/* replace the removed one with the last one */
 		te[mi] = te[trees - 1];
 	}
 
-	EndSpriteCombine();
+	EndSpriteCombine (ti->vd);
 }
 
 static void DrawTile_Clear(TileInfo *ti)
@@ -199,7 +199,7 @@ static void DrawTile_Clear(TileInfo *ti)
 			return;
 
 		case TT_GROUND_FIELDS:
-			DrawGroundSprite(_clear_land_sprites_farmland[GetFieldType(ti->tile)] + SlopeToSpriteOffset(ti->tileh), PAL_NONE);
+			DrawGroundSprite (ti, _clear_land_sprites_farmland[GetFieldType(ti->tile)] + SlopeToSpriteOffset(ti->tileh), PAL_NONE);
 			DrawClearLandFence(ti);
 			DrawBridgeMiddle(ti);
 			break;
@@ -211,22 +211,22 @@ static void DrawTile_Clear(TileInfo *ti)
 					break;
 
 				case GROUND_SHORE:
-					DrawShoreTile(ti->tileh);
+					DrawShoreTile (ti);
 					break;
 
 				case GROUND_ROUGH:
-					DrawGroundSprite (ti->tileh != SLOPE_FLAT ?
+					DrawGroundSprite (ti, ti->tileh != SLOPE_FLAT ?
 							SPR_FLAT_ROUGH_LAND + SlopeToSpriteOffset(ti->tileh) :
 							_landscape_clear_sprites_rough[GB(ti->x ^ ti->y, 4, 3)],
 						PAL_NONE);
 					break;
 
 				case GROUND_ROCKS:
-					DrawGroundSprite((HasGrfMiscBit(GMB_SECOND_ROCKY_TILE_SET) && (TileHash(ti->x, ti->y) & 1) ? SPR_FLAT_ROCKY_LAND_2 : SPR_FLAT_ROCKY_LAND_1) + SlopeToSpriteOffset(ti->tileh), PAL_NONE);
+					DrawGroundSprite (ti, (HasGrfMiscBit(GMB_SECOND_ROCKY_TILE_SET) && (TileHash(ti->x, ti->y) & 1) ? SPR_FLAT_ROCKY_LAND_2 : SPR_FLAT_ROCKY_LAND_1) + SlopeToSpriteOffset(ti->tileh), PAL_NONE);
 					break;
 
 				default:
-					DrawGroundSprite(_clear_land_sprites_snow_desert[GetClearDensity(ti->tile)] + SlopeToSpriteOffset(ti->tileh), PAL_NONE);
+					DrawGroundSprite (ti, _clear_land_sprites_snow_desert[GetClearDensity(ti->tile)] + SlopeToSpriteOffset(ti->tileh), PAL_NONE);
 					break;
 			}
 

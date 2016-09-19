@@ -32,7 +32,8 @@
 #include "table/strings.h"
 #include "table/sprites.h"
 
-static bool DrawScrollingStatusText(const NewsItem *ni, int scroll_pos, int left, int right, int top, int bottom)
+static bool DrawScrollingStatusText (BlitArea *dpi, const NewsItem *ni,
+	int scroll_pos, int left, int right, int top, int bottom)
 {
 	CopyInDParam(0, ni->params, lengthof(ni->params));
 	StringID str = ni->string_id;
@@ -60,16 +61,13 @@ static bool DrawScrollingStatusText(const NewsItem *ni, int scroll_pos, int left
 	}
 	*d = '\0';
 
-	DrawPixelInfo tmp_dpi;
-	if (!FillDrawPixelInfo(&tmp_dpi, left, top, right - left, bottom)) return true;
+	BlitArea tmp_dpi;
+	if (!InitBlitArea (dpi, &tmp_dpi, left, top, right - left, bottom)) return true;
 
 	int width = GetStringBoundingBox(buffer).width;
 	int pos = (_current_text_dir == TD_RTL) ? (scroll_pos - width) : (right - scroll_pos - left);
 
-	DrawPixelInfo *old_dpi = _cur_dpi;
-	_cur_dpi = &tmp_dpi;
-	DrawString(pos, INT16_MAX, 0, buffer, TC_LIGHT_BLUE, SA_LEFT | SA_FORCE);
-	_cur_dpi = old_dpi;
+	DrawString (&tmp_dpi, pos, INT16_MAX, 0, buffer, TC_LIGHT_BLUE, SA_LEFT | SA_FORCE);
 
 	return (_current_text_dir == TD_RTL) ? (pos < right - left) : (pos + width > 0);
 }
@@ -131,13 +129,13 @@ struct StatusBarWindow : Window {
 		*size = maxdim(d, *size);
 	}
 
-	virtual void DrawWidget(const Rect &r, int widget) const
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
 	{
 		switch (widget) {
 			case WID_S_LEFT:
 				/* Draw the date */
 				SetDParam(0, _date);
-				DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP, STR_WHITE_DATE_LONG, TC_FROMSTRING, SA_HOR_CENTER);
+				DrawString (dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP, STR_WHITE_DATE_LONG, TC_FROMSTRING, SA_HOR_CENTER);
 				break;
 
 			case WID_S_RIGHT: {
@@ -145,7 +143,7 @@ struct StatusBarWindow : Window {
 				const Company *c = Company::GetIfValid(_local_company);
 				if (c != NULL) {
 					SetDParam(0, c->money);
-					DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP, STR_COMPANY_MONEY, TC_FROMSTRING, SA_HOR_CENTER);
+					DrawString (dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP, STR_COMPANY_MONEY, TC_FROMSTRING, SA_HOR_CENTER);
 				}
 				break;
 			}
@@ -153,32 +151,32 @@ struct StatusBarWindow : Window {
 			case WID_S_MIDDLE:
 				/* Draw status bar */
 				if (this->saving) { // true when saving is active
-					DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP, STR_STATUSBAR_SAVING_GAME, TC_FROMSTRING, SA_HOR_CENTER);
+					DrawString (dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP, STR_STATUSBAR_SAVING_GAME, TC_FROMSTRING, SA_HOR_CENTER);
 				} else if (_do_autosave) {
-					DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP, STR_STATUSBAR_AUTOSAVE, TC_FROMSTRING, SA_HOR_CENTER);
+					DrawString (dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP, STR_STATUSBAR_AUTOSAVE, TC_FROMSTRING, SA_HOR_CENTER);
 				} else if (_pause_mode != PM_UNPAUSED) {
-					DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP, STR_STATUSBAR_PAUSED, TC_FROMSTRING, SA_HOR_CENTER);
+					DrawString (dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP, STR_STATUSBAR_PAUSED, TC_FROMSTRING, SA_HOR_CENTER);
 				} else if (this->ticker_scroll < TICKER_STOP && FindWindowById(WC_NEWS_WINDOW, 0) == NULL && _statusbar_news_item != NULL && _statusbar_news_item->string_id != 0) {
 					/* Draw the scrolling news text */
-					if (!DrawScrollingStatusText(_statusbar_news_item, this->ticker_scroll, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP, r.bottom)) {
+					if (!DrawScrollingStatusText (dpi, _statusbar_news_item, this->ticker_scroll, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP, r.bottom)) {
 						InvalidateWindowData(WC_STATUS_BAR, 0, SBI_NEWS_DELETED);
 						if (Company::IsValidID(_local_company)) {
 							/* This is the default text */
 							SetDParam(0, _local_company);
-							DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP, STR_STATUSBAR_COMPANY_NAME, TC_FROMSTRING, SA_HOR_CENTER);
+							DrawString (dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP, STR_STATUSBAR_COMPANY_NAME, TC_FROMSTRING, SA_HOR_CENTER);
 						}
 					}
 				} else {
 					if (Company::IsValidID(_local_company)) {
 						/* This is the default text */
 						SetDParam(0, _local_company);
-						DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP, STR_STATUSBAR_COMPANY_NAME, TC_FROMSTRING, SA_HOR_CENTER);
+						DrawString (dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP, STR_STATUSBAR_COMPANY_NAME, TC_FROMSTRING, SA_HOR_CENTER);
 					}
 				}
 
 				if (this->reminder_timeout > 0) {
 					Dimension icon_size = GetSpriteSize(SPR_UNREAD_NEWS);
-					DrawSprite(SPR_UNREAD_NEWS, PAL_NONE, r.right - WD_FRAMERECT_RIGHT - icon_size.width, r.top + WD_FRAMERECT_TOP + (int)(FONT_HEIGHT_NORMAL - icon_size.height) / 2);
+					DrawSprite (dpi, SPR_UNREAD_NEWS, PAL_NONE, r.right - WD_FRAMERECT_RIGHT - icon_size.width, r.top + WD_FRAMERECT_TOP + (int)(FONT_HEIGHT_NORMAL - icon_size.height) / 2);
 				}
 				break;
 		}

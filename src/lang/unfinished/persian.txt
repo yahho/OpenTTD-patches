@@ -969,6 +969,8 @@ STR_GAME_OPTIONS_RESOLUTION                                     :{BLACK}وضوح
 STR_GAME_OPTIONS_RESOLUTION_TOOLTIP                             :{BLACK}وضوح تصویر دلخواه را انتخاب کنید
 STR_GAME_OPTIONS_RESOLUTION_OTHER                               :دیگر
 
+STR_GAME_OPTIONS_GUI_ZOOM_DROPDOWN_2X_ZOOM                      :دو برابر
+
 STR_GAME_OPTIONS_SCREENSHOT_FORMAT                              :{BLACK}قالب ذخیره تصویر بازی
 STR_GAME_OPTIONS_SCREENSHOT_FORMAT_TOOLTIP                      :{BLACK}قالب ذخیره تصویر بازی را انتخاب نمایید
 
@@ -3090,6 +3092,7 @@ STR_REPLACE_VEHICLE_AVAILABLE_VEHICLES_TOOLTIP                  :{BLACK} ستو�
 STR_REPLACE_HELP_STOP_BUTTON                                    :{BLACK}برای توقف جایگزین کردن برای نوع انتخاب شده در سمت چپ کلیک کنید
 
 
+STR_REPLACE_ELRAIL_VEHICLES                                     :وسایل نقلیه ریلی برقی
 
 # Vehicle view
 STR_VEHICLE_VIEW_CAPTION                                        :{WHITE}{VEHICLE}

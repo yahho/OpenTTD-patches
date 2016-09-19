@@ -368,11 +368,11 @@ struct MusicTrackSelectionWindow : public Window {
 		}
 	}
 
-	virtual void DrawWidget(const Rect &r, int widget) const
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
 	{
 		switch (widget) {
 			case WID_MTS_LIST_LEFT: {
-				GfxFillRect(r.left + 1, r.top + 1, r.right - 1, r.bottom - 1, PC_BLACK);
+				GfxFillRect (dpi, r.left + 1, r.top + 1, r.right - 1, r.bottom - 1, PC_BLACK);
 
 				int y = r.top + WD_FRAMERECT_TOP;
 				for (uint i = 0; i < NUM_SONGS_AVAILABLE; i++) {
@@ -382,14 +382,14 @@ struct MusicTrackSelectionWindow : public Window {
 					SetDParam(0, GetTrackNumber(i));
 					SetDParam(1, 2);
 					SetDParamStr(2, song_name);
-					DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_PLAYLIST_TRACK_NAME);
+					DrawString (dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_PLAYLIST_TRACK_NAME);
 					y += FONT_HEIGHT_SMALL;
 				}
 				break;
 			}
 
 			case WID_MTS_LIST_RIGHT: {
-				GfxFillRect(r.left + 1, r.top + 1, r.right - 1, r.bottom - 1, PC_BLACK);
+				GfxFillRect (dpi, r.left + 1, r.top + 1, r.right - 1, r.bottom - 1, PC_BLACK);
 
 				int y = r.top + WD_FRAMERECT_TOP;
 				for (const byte *p = _playlists[_settings_client.music.playlist]; *p != 0; p++) {
@@ -397,7 +397,7 @@ struct MusicTrackSelectionWindow : public Window {
 					SetDParam(0, GetTrackNumber(i));
 					SetDParam(1, 2);
 					SetDParamStr(2, GetSongName(i));
-					DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_PLAYLIST_TRACK_NAME);
+					DrawString (dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_PLAYLIST_TRACK_NAME);
 					y += FONT_HEIGHT_SMALL;
 				}
 				break;
@@ -569,34 +569,34 @@ struct MusicWindow : public Window {
 		}
 	}
 
-	virtual void DrawWidget(const Rect &r, int widget) const
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
 	{
 		switch (widget) {
 			case WID_M_TRACK_NR: {
-				GfxFillRect(r.left + 1, r.top + 1, r.right, r.bottom, PC_BLACK);
+				GfxFillRect (dpi, r.left + 1, r.top + 1, r.right, r.bottom, PC_BLACK);
 				StringID str = STR_MUSIC_TRACK_NONE;
 				if (_song_is_active != 0 && _music_wnd_cursong != 0) {
 					SetDParam(0, GetTrackNumber(_music_wnd_cursong - 1));
 					SetDParam(1, 2);
 					str = STR_MUSIC_TRACK_DIGIT;
 				}
-				DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP, str);
+				DrawString (dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP, str);
 				break;
 			}
 
 			case WID_M_TRACK_NAME: {
-				GfxFillRect(r.left, r.top + 1, r.right - 1, r.bottom, PC_BLACK);
+				GfxFillRect (dpi, r.left, r.top + 1, r.right - 1, r.bottom, PC_BLACK);
 				StringID str = STR_MUSIC_TITLE_NONE;
 				if (_song_is_active != 0 && _music_wnd_cursong != 0) {
 					str = STR_MUSIC_TITLE_NAME;
 					SetDParamStr(0, GetSongName(_music_wnd_cursong - 1));
 				}
-				DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP, str, TC_FROMSTRING, SA_HOR_CENTER);
+				DrawString (dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP, str, TC_FROMSTRING, SA_HOR_CENTER);
 				break;
 			}
 
 			case WID_M_MUSIC_VOL: case WID_M_EFFECT_VOL: {
-				DrawFrameRect(r.left, r.top + 2, r.right, r.bottom - 2, COLOUR_GREY, FR_LOWERED);
+				DrawFrameRect (dpi, r.left, r.top + 2, r.right, r.bottom - 2, COLOUR_GREY, FR_LOWERED);
 				byte volume = (widget == WID_M_MUSIC_VOL) ? _settings_client.music.music_vol : _settings_client.music.effect_vol;
 				int x = (volume * (r.right - r.left) / 127);
 				if (_current_text_dir == TD_RTL) {
@@ -604,7 +604,7 @@ struct MusicWindow : public Window {
 				} else {
 					x += r.left;
 				}
-				DrawFrameRect(x, r.top, x + slider_width, r.bottom, COLOUR_GREY, FR_NONE);
+				DrawFrameRect (dpi, x, r.top, x + slider_width, r.bottom, COLOUR_GREY, FR_NONE);
 				break;
 			}
 		}

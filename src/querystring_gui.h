@@ -45,7 +45,7 @@ struct QueryString : Textbuf {
 	}
 
 public:
-	void DrawEditBox(const Window *w, int wid) const;
+	void DrawEditBox (BlitArea *area, const Window *w, int wid) const;
 	void ClickEditBox(Window *w, Point pt, int wid, int click_count, bool focus_changed);
 	void HandleEditBox(Window *w, int wid);
 

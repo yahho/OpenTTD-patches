@@ -260,7 +260,7 @@ static void AirportDrawTileLayout(const TileInfo *ti, const TileLayoutSpriteGrou
 		if (image == SPR_FLAT_WATER_TILE && IsTileOnWater(ti->tile)) {
 			DrawWaterClassGround(ti);
 		} else {
-			DrawGroundSprite(image, GroundSpritePaletteTransform(image, pal, GENERAL_SPRITE_COLOUR(colour)));
+			DrawGroundSprite (ti, image, GroundSpritePaletteTransform(image, pal, GENERAL_SPRITE_COLOUR(colour)));
 		}
 	}
 

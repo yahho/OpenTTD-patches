@@ -191,8 +191,6 @@ static void ClientSizeChanged(int w, int h)
 		_cur_palette.count_dirty = 256;
 		_local_palette = _cur_palette;
 
-		Blitter::get()->PostResize();
-
 		GameSizeChanged();
 	}
 }
@@ -350,8 +348,6 @@ bool VideoDriver_Win32::MakeWindow(bool full_screen)
 		}
 	}
 
-	Blitter::get()->PostResize();
-
 	GameSizeChanged(); // invalidate all windows, force redraw
 	return true; // the request succeeded
 }
@@ -372,7 +368,7 @@ static void PaintWindow(HDC dc)
 				break;
 
 			case Blitter::PALETTE_ANIMATION_BLITTER:
-				blitter->PaletteAnimate(_local_palette);
+				VideoDriver::PaletteAnimate (blitter, _local_palette);
 				break;
 
 			case Blitter::PALETTE_ANIMATION_NONE:
@@ -1057,8 +1053,9 @@ static bool AllocateDibSection(int w, int h, bool force)
 	if (_wnd.dib_sect == NULL) usererror("CreateDIBSection failed");
 	ReleaseDC(0, dc);
 
+	_screen.surface.reset (Blitter::get()->create (_wnd.buffer_bits,
+					w, h, (bpp == 8) ? Align(w, 4) : w));
 	_screen.width = w;
-	_screen.pitch = (bpp == 8) ? Align(w, 4) : w;
 	_screen.height = h;
 	_screen.dst_ptr = _wnd.buffer_bits;
 

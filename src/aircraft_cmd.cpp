@@ -195,19 +195,21 @@ static SpriteID GetAircraftIcon(EngineID engine, EngineImageType image_type)
 	return DIR_W + _aircraft_sprite[spritenum];
 }
 
-void DrawAircraftEngine(int left, int right, int preferred_x, int y, EngineID engine, PaletteID pal, EngineImageType image_type)
+void DrawAircraftEngine (BlitArea *dpi, int left, int right,
+	int preferred_x, int y, EngineID engine, PaletteID pal,
+	EngineImageType image_type)
 {
 	SpriteID sprite = GetAircraftIcon(engine, image_type);
 	const Sprite *real_sprite = GetSprite(sprite, ST_NORMAL);
 	preferred_x = Clamp(preferred_x,
 			left - UnScaleGUI(real_sprite->x_offs),
 			right - UnScaleGUI(real_sprite->width) - UnScaleGUI(real_sprite->x_offs));
-	DrawSprite(sprite, pal, preferred_x, y);
+	DrawSprite (dpi, sprite, pal, preferred_x, y);
 
 	if (!(AircraftVehInfo(engine)->subtype & AIR_CTOL)) {
 		SpriteID rotor_sprite = GetCustomRotorIcon(engine, image_type);
 		if (rotor_sprite == 0) rotor_sprite = SPR_ROTOR_STOPPED;
-		DrawSprite(rotor_sprite, PAL_NONE, preferred_x, y - ScaleGUITrad(5));
+		DrawSprite (dpi, rotor_sprite, PAL_NONE, preferred_x, y - ScaleGUITrad(5));
 	}
 }
 

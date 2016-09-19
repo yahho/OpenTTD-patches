@@ -48,52 +48,50 @@
 #include <algorithm>
 
 /**
- * Get the cargo mask of accepted or supplied cargo around the selected tile(s)
- * @param sct which type of cargo is to be displayed (passengers/non-passengers)
- * @param rad radius around selected tile(s) to be searched
- * @param supplies if supplied cargoes should be drawn, else accepted cargoes
- */
-static uint32 GetStationCoverageAreaCargoMask (StationCoverageType sct, int rad, bool supplies)
-{
-	if (_thd.drawstyle != HT_RECT) return 0;
-
-	TileIndex tile = TileVirtXY (_thd.pos.x, _thd.pos.y);
-	if (tile >= MapSize()) return 0;
-
-	TileArea ta (tile, _thd.size.x / TILE_SIZE, _thd.size.y / TILE_SIZE);
-	CargoArray cargoes = supplies ?
-			GetAreaProduction (ta, rad) :
-			GetAreaAcceptance (ta, rad);
-
-	/* Convert cargo counts to a set of cargo bits, and draw the result. */
-	uint32 cargo_mask = 0;
-	for (CargoID i = 0; i < NUM_CARGO; i++) {
-		switch (sct) {
-			case SCT_PASSENGERS_ONLY: if (!IsCargoInClass(i, CC_PASSENGERS)) continue; break;
-			case SCT_NON_PASSENGERS_ONLY: if (IsCargoInClass(i, CC_PASSENGERS)) continue; break;
-			case SCT_ALL: break;
-			default: NOT_REACHED();
-		}
-		if (cargoes[i] >= (supplies ? 1U : 8U)) SetBit(cargo_mask, i);
-	}
-
-	return cargo_mask;
-}
-
-/**
- * Calculates and draws the accepted or supplied cargo around the selected tile(s)
+ * Calculates and draws the accepted and supplied cargo around the selected tile(s)
+ * @param dpi area to draw on
  * @param left x position where the string is to be drawn
  * @param right the right most position to draw on
  * @param top y position where the string is to be drawn
- * @param sct which type of cargo is to be displayed (passengers/non-passengers)
  * @param rad radius around selected tile(s) to be searched
- * @param supplies if supplied cargoes should be drawn, else accepted cargoes
- * @return Returns the y value below the string that was drawn
+ * @param sct which type of cargo is to be displayed (passengers/non-passengers)
+ * @return Returns the y value below the strings that were drawn
  */
-int DrawStationCoverageAreaText(int left, int right, int top, StationCoverageType sct, int rad, bool supplies)
+int DrawStationCoverageAreaText (BlitArea *dpi, int left, int right, int top,
+	int rad, StationCoverageType sct)
 {
-	SetDParam (0, GetStationCoverageAreaCargoMask (sct, rad, supplies));
-	return DrawStringMultiLine(left, right, top, INT32_MAX, supplies ? STR_STATION_BUILD_SUPPLIES_CARGO : STR_STATION_BUILD_ACCEPTS_CARGO);
+	uint32 accept_mask = 0;
+	uint32 supply_mask = 0;
+
+	if (_thd.drawstyle == HT_RECT) {
+		TileIndex tile = TileVirtXY (_thd.pos.x, _thd.pos.y);
+		if (tile < MapSize()) {
+			TileArea ta (tile, _thd.size.x / TILE_SIZE, _thd.size.y / TILE_SIZE);
+			CargoArray accept_cargoes = GetAreaAcceptance (ta, rad);
+			CargoArray supply_cargoes = GetAreaProduction (ta, rad);
+
+			for (CargoID i = 0; i < NUM_CARGO; i++) {
+				switch (sct) {
+					case SCT_PASSENGERS_ONLY:
+						if (!IsCargoInClass (i, CC_PASSENGERS)) continue;
+						break;
+					case SCT_NON_PASSENGERS_ONLY:
+						if (IsCargoInClass (i, CC_PASSENGERS)) continue;
+						break;
+					case SCT_ALL: break;
+					default: NOT_REACHED();
+				}
+				if (accept_cargoes[i] >= 8) SetBit(accept_mask, i);
+				if (supply_cargoes[i] >= 1) SetBit(supply_mask, i);
+			}
+		}
+	}
+
+	SetDParam (0, accept_mask);
+	top = DrawStringMultiLine (dpi, left, right, top, INT32_MAX, STR_STATION_BUILD_ACCEPTS_CARGO)  + WD_PAR_VSEP_NORMAL;
+	SetDParam (0, supply_mask);
+	top = DrawStringMultiLine (dpi, left, right, top, INT32_MAX, STR_STATION_BUILD_SUPPLIES_CARGO) + WD_PAR_VSEP_NORMAL;
+	return top;
 }
 
 /**
@@ -114,6 +112,7 @@ void CheckRedrawStationCoverage(const Window *w)
  * coordinates. If amount exceeds 576 units, it is shown 'full', same
  * goes for the rating: at above 90% orso (224) it is also 'full'
  *
+ * @param dpi    area to draw on
  * @param left   left most coordinate to draw the box at
  * @param right  right most coordinate to draw the box at
  * @param y      coordinate to draw the box at
@@ -124,7 +123,8 @@ void CheckRedrawStationCoverage(const Window *w)
  * @note Each cargo-bar is 16 pixels wide and 6 pixels high
  * @note Each rating 14 pixels wide and 1 pixel high and is 1 pixel below the cargo-bar
  */
-static void StationsWndShowStationRating(int left, int right, int y, CargoID type, uint amount, byte rating)
+static void StationsWndShowStationRating (BlitArea *dpi,
+	int left, int right, int y, CargoID type, uint amount, byte rating)
 {
 	static const uint units_full  = 576; ///< number of units to show station as 'full'
 	static const uint rating_full = 224; ///< rating needed so it is shown as 'full'
@@ -139,7 +139,7 @@ static void StationsWndShowStationRating(int left, int right, int y, CargoID typ
 	int height = GetCharacterHeight(FS_SMALL);
 
 	/* Draw total cargo (limited) on station (fits into 16 pixels) */
-	if (w != 0) GfxFillRect(left, y, left + w - 1, y + height, colour);
+	if (w != 0) GfxFillRect (dpi, left, y, left + w - 1, y + height, colour);
 
 	/* Draw a one pixel-wide bar of additional cargo meter, useful
 	 * for stations with only a small amount (<=30) */
@@ -147,17 +147,17 @@ static void StationsWndShowStationRating(int left, int right, int y, CargoID typ
 		uint rest = amount / 5;
 		if (rest != 0) {
 			w += left;
-			GfxFillRect(w, y + height - rest, w, y + height, colour);
+			GfxFillRect (dpi, w, y + height - rest, w, y + height, colour);
 		}
 	}
 
-	DrawString(left + 1, right, y, cs->abbrev, tc);
+	DrawString (dpi, left + 1, right, y, cs->abbrev, tc);
 
 	/* Draw green/red ratings bar (fits into 14 pixels) */
 	y += height + 2;
-	GfxFillRect(left + 1, y, left + 14, y, PC_RED);
+	GfxFillRect (dpi, left + 1, y, left + 14, y, PC_RED);
 	rating = minu(rating, rating_full) / 16;
-	if (rating != 0) GfxFillRect(left + 1, y, left + rating, y, PC_GREEN);
+	if (rating != 0) GfxFillRect (dpi, left + 1, y, left + rating, y, PC_GREEN);
 }
 
 typedef GUIList<const Station*> GUIStationList;
@@ -410,20 +410,20 @@ public:
 		}
 	}
 
-	virtual void OnPaint()
+	void OnPaint (BlitArea *dpi) OVERRIDE
 	{
 		this->BuildStationsList((Owner)this->window_number);
 		this->SortStationsList();
 
-		this->DrawWidgets();
+		this->DrawWidgets (dpi);
 	}
 
-	virtual void DrawWidget(const Rect &r, int widget) const
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
 	{
 		switch (widget) {
 			case WID_STL_SORTBY:
 				/* draw arrow pointing up/down for ascending/descending sorting */
-				this->DrawSortButtonState(WID_STL_SORTBY, this->stations.IsDescSortOrder() ? SBS_DOWN : SBS_UP);
+				this->DrawSortButtonState (dpi, WID_STL_SORTBY, this->stations.IsDescSortOrder() ? SBS_DOWN : SBS_UP);
 				break;
 
 			case WID_STL_LIST: {
@@ -440,7 +440,7 @@ public:
 
 					SetDParam(0, st->index);
 					SetDParam(1, st->facilities);
-					int x = DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_STATION_LIST_STATION);
+					int x = DrawString (dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_STATION_LIST_STATION);
 					x += rtl ? -5 : 5;
 
 					/* show cargo waiting and station ratings */
@@ -455,7 +455,7 @@ public:
 								x -= 20;
 								if (x < r.left + WD_FRAMERECT_LEFT) break;
 							}
-							StationsWndShowStationRating(x, x + 16, y, cid, st->goods[cid].cargo.TotalCount(), st->goods[cid].rating);
+							StationsWndShowStationRating (dpi, x, x + 16, y, cid, st->goods[cid].cargo.TotalCount(), st->goods[cid].rating);
 							if (!rtl) {
 								x += 20;
 								if (x > r.right - WD_FRAMERECT_RIGHT) break;
@@ -466,30 +466,30 @@ public:
 				}
 
 				if (this->vscroll->GetCount() == 0) { // company has no stations
-					DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_STATION_LIST_NONE);
+					DrawString (dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_STATION_LIST_NONE);
 					return;
 				}
 				break;
 			}
 
 			case WID_STL_NOCARGOWAITING:
-				DrawString (r.left + 1, r.right + 1, r.top + 1, STR_ABBREV_NONE, TC_BLACK, SA_HOR_CENTER);
+				DrawString (dpi, r.left + 1, r.right + 1, r.top + 1, STR_ABBREV_NONE, TC_BLACK, SA_HOR_CENTER);
 				break;
 
 			case WID_STL_CARGOALL:
-				DrawString (r.left + 1, r.right + 1, r.top + 1, STR_ABBREV_ALL, TC_BLACK, SA_HOR_CENTER);
+				DrawString (dpi, r.left + 1, r.right + 1, r.top + 1, STR_ABBREV_ALL, TC_BLACK, SA_HOR_CENTER);
 				break;
 
 			case WID_STL_FACILALL:
-				DrawString (r.left + 1, r.right + 1, r.top + 1, STR_ABBREV_ALL, TC_BLACK, SA_HOR_CENTER);
+				DrawString (dpi, r.left + 1, r.right + 1, r.top + 1, STR_ABBREV_ALL, TC_BLACK, SA_HOR_CENTER);
 				break;
 
 			default:
 				if (widget >= WID_STL_CARGOSTART) {
 					const CargoSpec *cs = _sorted_cargo_specs[widget - WID_STL_CARGOSTART];
-					GfxFillRect (r.left + 1, r.top + 1, r.right - 1, r.bottom - 1, cs->rating_colour);
+					GfxFillRect (dpi, r.left + 1, r.top + 1, r.right - 1, r.bottom - 1, cs->rating_colour);
 					TextColour tc = GetContrastColour(cs->rating_colour);
-					DrawString (r.left + 1, r.right + 1, r.top + 1, cs->abbrev, tc, SA_HOR_CENTER);
+					DrawString (dpi, r.left + 1, r.right + 1, r.top + 1, cs->abbrev, tc, SA_HOR_CENTER);
 				}
 				break;
 		}
@@ -812,12 +812,14 @@ static const NWidgetPart _nested_station_view_widgets[] = {
  *
  * @param i type of cargo
  * @param waiting number of waiting units
+ * @param dpi   area to draw on
  * @param left  left most coordinate to draw on
  * @param right right most coordinate to draw on
  * @param y y coordinate
  * @param width the width of the view
  */
-static void DrawCargoIcons(CargoID i, uint waiting, int left, int right, int y)
+static void DrawCargoIcons (CargoID i, uint waiting, BlitArea *dpi,
+	int left, int right, int y)
 {
 	int width = ScaleGUITrad(10);
 	uint num = min((waiting + (width / 2)) / width, (right - left) / width); // maximum is width / 10 icons so it won't overflow
@@ -827,7 +829,7 @@ static void DrawCargoIcons(CargoID i, uint waiting, int left, int right, int y)
 
 	int x = _current_text_dir == TD_RTL ? left : right - num * width;
 	do {
-		DrawSprite(sprite, PAL_NONE, x, y);
+		DrawSprite (dpi, sprite, PAL_NONE, x, y);
 		x += width;
 	} while (--num);
 }
@@ -1417,7 +1419,7 @@ struct StationViewWindow : public Window {
 		}
 	}
 
-	virtual void OnPaint()
+	void OnPaint (BlitArea *dpi) OVERRIDE
 	{
 		const Station *st = Station::Get(this->window_number);
 
@@ -1430,21 +1432,21 @@ struct StationViewWindow : public Window {
 		this->SetWidgetDisabledState(WID_SV_CLOSE_AIRPORT, !(st->facilities & FACIL_AIRPORT) || st->owner != _local_company || st->owner == OWNER_NONE); // Also consider SE, where _local_company == OWNER_NONE
 		this->SetWidgetLoweredState(WID_SV_CLOSE_AIRPORT, (st->facilities & FACIL_AIRPORT) && (st->airport.flags & AIRPORT_CLOSED_block) != 0);
 
-		this->DrawWidgets();
+		this->DrawWidgets (dpi);
 
 		if (!this->IsShaded()) {
 			/* Draw 'accepted cargo' or 'cargo ratings'. */
 			const NWidgetBase *wid = this->GetWidget<NWidgetBase>(WID_SV_ACCEPT_RATING_LIST);
 			const Rect r = {(int)wid->pos_x, (int)wid->pos_y, (int)(wid->pos_x + wid->current_x - 1), (int)(wid->pos_y + wid->current_y - 1)};
 			if (this->GetWidget<NWidgetCore>(WID_SV_ACCEPTS_RATINGS)->widget_data == STR_STATION_VIEW_RATINGS_BUTTON) {
-				int lines = this->DrawAcceptedCargo(r);
+				int lines = this->DrawAcceptedCargo (dpi, r);
 				if (lines > this->accepts_lines) { // Resize the widget, and perform re-initialization of the window.
 					this->accepts_lines = lines;
 					this->ReInit();
 					return;
 				}
 			} else {
-				int lines = this->DrawCargoRatings(r);
+				int lines = this->DrawCargoRatings (dpi, r);
 				if (lines > this->rating_lines) { // Resize the widget, and perform re-initialization of the window.
 					this->rating_lines = lines;
 					this->ReInit();
@@ -1453,7 +1455,7 @@ struct StationViewWindow : public Window {
 			}
 
 			/* Draw arrow pointing up/down for ascending/descending sorting */
-			this->DrawSortButtonState (WID_SV_SORT_ORDER, sort_order == SO_ASCENDING ? SBS_UP : SBS_DOWN);
+			this->DrawSortButtonState (dpi, WID_SV_SORT_ORDER, sort_order == SO_ASCENDING ? SBS_UP : SBS_DOWN);
 
 			int pos = this->vscroll->GetPosition();
 
@@ -1479,7 +1481,7 @@ struct StationViewWindow : public Window {
 				}
 
 				if (cargo.get_count() > 0) {
-					pos = this->DrawCargoEntry (&cargo, i, waiting_rect, pos, maxrows);
+					pos = this->DrawCargoEntry (&cargo, i, dpi, waiting_rect, pos, maxrows);
 				}
 			}
 			this->vscroll->SetCount (this->vscroll->GetPosition() - pos); // update scrollbar
@@ -1613,31 +1615,33 @@ struct StationViewWindow : public Window {
 
 	/**
 	 * Draw the cargo string for an entry in the station GUI.
+	 * @param dpi Area to draw on.
 	 * @param r Screen rectangle to draw into.
 	 * @param y Vertical position to draw at.
 	 * @param indent Extra indentation for the string.
 	 * @param sym Symbol to draw at the end of the line, if not null.
 	 * @param str String to draw.
 	 */
-	void DrawCargoString (const Rect &r, int y, int indent,
+	void DrawCargoString (BlitArea *dpi, const Rect &r, int y, int indent,
 		const char *sym, StringID str)
 	{
 		bool rtl = _current_text_dir == TD_RTL;
 
 		int text_left  = rtl ? r.left + this->expand_shrink_width : r.left + WD_FRAMERECT_LEFT + indent * this->expand_shrink_width;
 		int text_right = rtl ? r.right - WD_FRAMERECT_LEFT - indent * this->expand_shrink_width : r.right - this->expand_shrink_width;
-		DrawString (text_left, text_right, y, str);
+		DrawString (dpi, text_left, text_right, y, str);
 
 		if (sym) {
 			int sym_left  = rtl ? r.left + WD_FRAMERECT_LEFT : r.right - this->expand_shrink_width + WD_FRAMERECT_LEFT;
 			int sym_right = rtl ? r.left + this->expand_shrink_width - WD_FRAMERECT_RIGHT : r.right - WD_FRAMERECT_RIGHT;
-			DrawString (sym_left, sym_right, y, sym, TC_YELLOW);
+			DrawString (dpi, sym_left, sym_right, y, sym, TC_YELLOW);
 		}
 	}
 
 	/**
 	 * Draw the given cargo entries in the station GUI.
 	 * @param entry Root entry for all cargo to be drawn.
+	 * @param dpi Area to draw on.
 	 * @param r Screen rectangle to draw into.
 	 * @param pos Current row to be drawn to (counted down from 0 to -maxrows, same as vscroll->GetPosition()).
 	 * @param maxrows Maximum row to be drawn.
@@ -1645,7 +1649,8 @@ struct StationViewWindow : public Window {
 	 * @param cargo Current cargo being drawn.
 	 * @return row (in "pos" counting) after the one we have last drawn to.
 	 */
-	int DrawEntries (const CargoNodeEntry *entry, const Rect &r, int pos, int maxrows, int column, CargoID cargo)
+	int DrawEntries (const CargoNodeEntry *entry, BlitArea *dpi, const Rect &r,
+		int pos, int maxrows, int column, CargoID cargo)
 	{
 		assert (entry->empty() || (entry->get_expanded() != NULL));
 
@@ -1694,7 +1699,7 @@ struct StationViewWindow : public Window {
 					}
 				}
 
-				this->DrawCargoString (r, y, column + 1, sym, str);
+				this->DrawCargoString (dpi, r, y, column + 1, sym, str);
 
 				expanded_map *expand = entry->get_expanded();
 				assert (expand != NULL);
@@ -1702,7 +1707,7 @@ struct StationViewWindow : public Window {
 			}
 			--pos;
 			if (auto_distributed) {
-				pos = this->DrawEntries(cd, r, pos, maxrows, column + 1, cargo);
+				pos = this->DrawEntries (cd, dpi, r, pos, maxrows, column + 1, cargo);
 			}
 		}
 		return pos;
@@ -1712,12 +1717,14 @@ struct StationViewWindow : public Window {
 	 * Draw the given cargo entry in the station GUI.
 	 * @param cd Cargo entry to be drawn.
 	 * @param cargo Cargo type for this entry.
+	 * @param dpi Area to draw on.
 	 * @param r Screen rectangle to draw into.
 	 * @param pos Current row to be drawn to (counted down from 0 to -maxrows, same as vscroll->GetPosition()).
 	 * @param maxrows Maximum row to be drawn.
 	 * @return row (in "pos" counting) after the one we have last drawn to.
 	 */
-	int DrawCargoEntry (const CargoRootEntry *cd, CargoID cargo, const Rect &r, int pos, int maxrows)
+	int DrawCargoEntry (const CargoRootEntry *cd, CargoID cargo,
+		BlitArea *dpi, const Rect &r, int pos, int maxrows)
 	{
 		bool auto_distributed = _settings_game.linkgraph.GetDistributionType(cargo) != DT_MANUAL;
 
@@ -1726,7 +1733,7 @@ struct StationViewWindow : public Window {
 			SetDParam(0, cargo);
 			SetDParam(1, cd->get_count());
 			StringID str = STR_STATION_VIEW_WAITING_CARGO;
-			DrawCargoIcons (cargo, cd->get_count(), r.left + WD_FRAMERECT_LEFT + this->expand_shrink_width, r.right - WD_FRAMERECT_RIGHT - this->expand_shrink_width, y);
+			DrawCargoIcons (cargo, cd->get_count(), dpi, r.left + WD_FRAMERECT_LEFT + this->expand_shrink_width, r.right - WD_FRAMERECT_RIGHT - this->expand_shrink_width, y);
 
 			const char *sym = NULL;
 			if (!cd->empty() || (cd->get_reserved() > 0)) {
@@ -1741,19 +1748,19 @@ struct StationViewWindow : public Window {
 				}
 			}
 
-			this->DrawCargoString (r, y, 0, sym, str);
+			this->DrawCargoString (dpi, r, y, 0, sym, str);
 
 			this->displayed_rows.push_back (RowDisplay (cargo));
 		}
 
-		pos = this->DrawEntries (cd, r, pos - 1, maxrows, 0, cargo);
+		pos = this->DrawEntries (cd, dpi, r, pos - 1, maxrows, 0, cargo);
 
 		if (cd->get_reserved() != 0) {
 			if (pos > -maxrows && pos <= 0) {
 				int y = r.top + WD_FRAMERECT_TOP - pos * FONT_HEIGHT_NORMAL;
 				SetDParam (0, cargo);
 				SetDParam (1, cd->get_reserved());
-				this->DrawCargoString (r, y, 1, NULL, STR_STATION_VIEW_RESERVED);
+				this->DrawCargoString (dpi, r, y, 1, NULL, STR_STATION_VIEW_RESERVED);
 				this->displayed_rows.push_back (RowDisplay (INVALID_CARGO));
 			}
 			pos--;
@@ -1764,10 +1771,11 @@ struct StationViewWindow : public Window {
 
 	/**
 	 * Draw accepted cargo in the #WID_SV_ACCEPT_RATING_LIST widget.
+	 * @param dpi Area to draw on.
 	 * @param r Rectangle of the widget.
 	 * @return Number of lines needed for drawing the accepted cargo.
 	 */
-	int DrawAcceptedCargo(const Rect &r) const
+	int DrawAcceptedCargo (BlitArea *dpi, const Rect &r) const
 	{
 		const Station *st = Station::Get(this->window_number);
 
@@ -1776,27 +1784,28 @@ struct StationViewWindow : public Window {
 			if (HasBit(st->goods[i].status, GoodsEntry::GES_ACCEPTANCE)) SetBit(cargo_mask, i);
 		}
 		SetDParam(0, cargo_mask);
-		int bottom = DrawStringMultiLine(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP, INT32_MAX, STR_STATION_VIEW_ACCEPTS_CARGO);
+		int bottom = DrawStringMultiLine (dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP, INT32_MAX, STR_STATION_VIEW_ACCEPTS_CARGO);
 		return CeilDiv(bottom - r.top - WD_FRAMERECT_TOP, FONT_HEIGHT_NORMAL);
 	}
 
 	/**
 	 * Draw cargo ratings in the #WID_SV_ACCEPT_RATING_LIST widget.
+	 * @param dpi Area to draw on.
 	 * @param r Rectangle of the widget.
 	 * @return Number of lines needed for drawing the cargo ratings.
 	 */
-	int DrawCargoRatings(const Rect &r) const
+	int DrawCargoRatings (BlitArea *dpi, const Rect &r) const
 	{
 		const Station *st = Station::Get(this->window_number);
 		int y = r.top + WD_FRAMERECT_TOP;
 
 		if (st->town->exclusive_counter > 0) {
 			SetDParam(0, st->town->exclusivity);
-			y = DrawStringMultiLine(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, r.bottom, st->town->exclusivity == st->owner ? STR_STATIOV_VIEW_EXCLUSIVE_RIGHTS_SELF : STR_STATIOV_VIEW_EXCLUSIVE_RIGHTS_COMPANY);
+			y = DrawStringMultiLine (dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, r.bottom, st->town->exclusivity == st->owner ? STR_STATIOV_VIEW_EXCLUSIVE_RIGHTS_SELF : STR_STATIOV_VIEW_EXCLUSIVE_RIGHTS_COMPANY);
 			y += WD_PAR_VSEP_WIDE;
 		}
 
-		DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_STATION_VIEW_SUPPLY_RATINGS_TITLE);
+		DrawString (dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_STATION_VIEW_SUPPLY_RATINGS_TITLE);
 		y += FONT_HEIGHT_NORMAL;
 
 		const CargoSpec *cs;
@@ -1809,7 +1818,7 @@ struct StationViewWindow : public Window {
 			SetDParam(1, lg != NULL ? lg->Monthly((*lg)[ge->node]->Supply()) : 0);
 			SetDParam(2, STR_CARGO_RATING_APPALLING + (ge->rating >> 5));
 			SetDParam(3, ToPercent8(ge->rating));
-			DrawString(r.left + WD_FRAMERECT_LEFT + 6, r.right - WD_FRAMERECT_RIGHT - 6, y, STR_STATION_VIEW_CARGO_SUPPLY_RATING);
+			DrawString (dpi, r.left + WD_FRAMERECT_LEFT + 6, r.right - WD_FRAMERECT_RIGHT - 6, y, STR_STATION_VIEW_CARGO_SUPPLY_RATING);
 			y += FONT_HEIGHT_NORMAL;
 		}
 		return CeilDiv(y - r.top - WD_FRAMERECT_TOP, FONT_HEIGHT_NORMAL);
@@ -2063,18 +2072,18 @@ void ShowStationViewWindow(StationID station)
  * Find a station of the given type in the given area.
  * @param ta Base tile area of the to-be-built station
  * @param waypoint Look for a waypoint, else a station
- * @return Station found if any, else NULL
+ * @return Whether a station was found
  */
-static const BaseStation *FindStationInArea (const TileArea &ta, bool waypoint)
+static bool FindStationInArea (const TileArea &ta, bool waypoint)
 {
 	TILE_AREA_LOOP(t, ta) {
 		if (IsStationTile(t)) {
 			BaseStation *bst = BaseStation::GetByTile(t);
-			if (bst->IsWaypoint() == waypoint) return bst;
+			if (bst->IsWaypoint() == waypoint) return true;
 		}
 	}
 
-	return NULL;
+	return false;
 }
 
 /**
@@ -2088,8 +2097,6 @@ static const BaseStation *FindStationInArea (const TileArea &ta, bool waypoint)
  */
 static void FindStationsNearby (std::vector<StationID> *list, const TileArea &ta, bool distant_join, bool waypoint)
 {
-	list->clear();
-
 	/* Look for deleted stations */
 	typedef std::multimap <TileIndex, StationID> deleted_map;
 	deleted_map deleted;
@@ -2116,8 +2123,8 @@ static void FindStationsNearby (std::vector<StationID> *list, const TileArea &ta
 	uint min_dim = min (ta.w, ta.h);
 	if (min_dim >= _settings_game.station.station_spread) return;
 
-	/* Keep a set of stations already added. */
-	std::set<StationID> added;
+	/* Keep a set of stations already checked. */
+	std::set<StationID> seen;
 	CircularTileIterator iter (ta,
 			distant_join ? _settings_game.station.station_spread - min_dim : 1);
 	for (TileIndex tile = iter; tile != INVALID_TILE; tile = ++iter) {
@@ -2139,9 +2146,13 @@ static void FindStationsNearby (std::vector<StationID> *list, const TileArea &ta
 
 		if (st->owner != _local_company) continue;
 
-		if (added.find(sid) == added.end()) {
-			added.insert (sid);
-			list->push_back (sid);
+		if (seen.insert(sid).second) {
+			TileArea test (ta);
+			test.Add (st->rect);
+			if (test.w <= _settings_game.station.station_spread
+					&& test.h <= _settings_game.station.station_spread) {
+				list->push_back (sid);
+			}
 		}
 	}
 }
@@ -2206,13 +2217,13 @@ struct SelectStationWindow : Window {
 		*size = d;
 	}
 
-	virtual void DrawWidget(const Rect &r, int widget) const
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
 	{
 		if (widget != WID_JS_PANEL) return;
 
 		uint y = r.top + WD_FRAMERECT_TOP;
 		if (this->vscroll->GetPosition() == 0) {
-			DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, this->waypoint ? STR_JOIN_WAYPOINT_CREATE_SPLITTED_WAYPOINT : STR_JOIN_STATION_CREATE_SPLITTED_STATION);
+			DrawString (dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, this->waypoint ? STR_JOIN_WAYPOINT_CREATE_SPLITTED_WAYPOINT : STR_JOIN_STATION_CREATE_SPLITTED_STATION);
 			y += this->resize.step_height;
 		}
 
@@ -2223,7 +2234,7 @@ struct SelectStationWindow : Window {
 			const BaseStation *st = BaseStation::Get(this->list[i - 1]);
 			SetDParam(0, st->index);
 			SetDParam(1, st->facilities);
-			DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, this->waypoint ? STR_STATION_LIST_WAYPOINT : STR_STATION_LIST_STATION);
+			DrawString (dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, this->waypoint ? STR_STATION_LIST_WAYPOINT : STR_STATION_LIST_STATION);
 		}
 	}
 
@@ -2267,9 +2278,9 @@ struct SelectStationWindow : Window {
 	{
 		if (!gui_scope) return;
 
-		if (FindStationInArea (this->area, this->waypoint) != NULL) {
-			this->list.clear();
-		} else {
+		this->list.clear();
+
+		if (!FindStationInArea (this->area, this->waypoint)) {
 			FindStationsNearby (&this->list, this->area, _settings_game.station.distant_join_stations, this->waypoint);
 		}
 
@@ -2311,7 +2322,7 @@ void ShowSelectBaseStationIfNeeded (Command *cmd, const TileArea &ta, bool waypo
 			 * If adjacent-stations is disabled and we are building
 			 * next to a station, do not show the selection window
 			 * but join the other station immediately. */
-			&& FindStationInArea (ta, waypoint) == NULL) {
+			&& !FindStationInArea (ta, waypoint)) {
 		std::vector<StationID> list;
 		FindStationsNearby (&list, ta, false, waypoint);
 		if (list.size() == 0 ? _settings_game.station.distant_join_stations : _settings_game.station.adjacent_stations) {

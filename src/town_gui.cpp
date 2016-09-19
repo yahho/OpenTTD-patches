@@ -115,7 +115,7 @@ public:
 		this->vscroll->SetCapacity((this->GetWidget<NWidgetBase>(WID_TA_COMMAND_LIST)->current_y - WD_FRAMERECT_TOP - WD_FRAMERECT_BOTTOM) / FONT_HEIGHT_NORMAL);
 	}
 
-	virtual void OnPaint()
+	void OnPaint (BlitArea *dpi) OVERRIDE
 	{
 		int numact;
 		uint buttons = GetMaskOfTownActions(&numact, _local_company, this->town);
@@ -130,12 +130,12 @@ public:
 
 		this->SetWidgetDisabledState(WID_TA_EXECUTE, this->sel_index == -1);
 
-		this->DrawWidgets();
-		if (!this->IsShaded()) this->DrawRatings();
+		this->DrawWidgets (dpi);
+		if (!this->IsShaded()) this->DrawRatings (dpi);
 	}
 
 	/** Draw the contents of the ratings panel. May request a resize of the window if the contents does not fit. */
-	void DrawRatings()
+	void DrawRatings (BlitArea *dpi)
 	{
 		NWidgetBase *nwid = this->GetWidget<NWidgetBase>(WID_TA_RATING_INFO);
 		uint left = nwid->pos_x + WD_FRAMERECT_LEFT;
@@ -143,7 +143,7 @@ public:
 
 		uint y = nwid->pos_y + WD_FRAMERECT_TOP;
 
-		DrawString(left, right, y, STR_LOCAL_AUTHORITY_COMPANY_RATINGS);
+		DrawString (dpi, left, right, y, STR_LOCAL_AUTHORITY_COMPANY_RATINGS);
 		y += FONT_HEIGHT_NORMAL;
 
 		Dimension icon_size = GetSpriteSize(SPR_COMPANY_ICON);
@@ -164,7 +164,7 @@ public:
 		const Company *c;
 		FOR_ALL_COMPANIES(c) {
 			if ((HasBit(this->town->have_ratings, c->index) || this->town->exclusivity == c->index)) {
-				DrawCompanyIcon(c->index, icon_left, y + icon_y_offset);
+				DrawCompanyIcon (dpi, c->index, icon_left, y + icon_y_offset);
 
 				SetDParam(0, c->index);
 				SetDParam(1, c->index);
@@ -182,10 +182,10 @@ public:
 
 				SetDParam(2, str);
 				if (this->town->exclusivity == c->index) {
-					DrawSprite(SPR_EXCLUSIVE_TRANSPORT, COMPANY_SPRITE_COLOUR(c->index), exclusive_left, y + exclusive_y_offset);
+					DrawSprite (dpi, SPR_EXCLUSIVE_TRANSPORT, COMPANY_SPRITE_COLOUR(c->index), exclusive_left, y + exclusive_y_offset);
 				}
 
-				DrawString(text_left, text_right, y, STR_LOCAL_AUTHORITY_COMPANY_RATING);
+				DrawString (dpi, text_left, text_right, y, STR_LOCAL_AUTHORITY_COMPANY_RATING);
 				y += FONT_HEIGHT_NORMAL;
 			}
 		}
@@ -193,7 +193,7 @@ public:
 		y = y + WD_FRAMERECT_BOTTOM - nwid->pos_y; // Compute needed size of the widget.
 		if (y > nwid->current_y) {
 			/* If the company list is too big to fit, mark ourself dirty and draw again. */
-			ResizeWindow(this, 0, y - nwid->current_y);
+			ResizeWindow(this, 0, y - nwid->current_y, false);
 		}
 	}
 
@@ -202,13 +202,13 @@ public:
 		if (widget == WID_TA_CAPTION) SetDParam(0, this->window_number);
 	}
 
-	virtual void DrawWidget(const Rect &r, int widget) const
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
 	{
 		switch (widget) {
 			case WID_TA_ACTION_INFO:
 				if (this->sel_index != -1) {
 					SetDParam(0, _price[PR_TOWN_ACTION] * _town_action_costs[this->sel_index] >> 8);
-					DrawStringMultiLine(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP, r.bottom - WD_FRAMERECT_BOTTOM,
+					DrawStringMultiLine (dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP, r.bottom - WD_FRAMERECT_BOTTOM,
 								STR_LOCAL_AUTHORITY_ACTION_TOOLTIP_SMALL_ADVERTISING + this->sel_index);
 				}
 				break;
@@ -219,7 +219,7 @@ public:
 				int pos = this->vscroll->GetPosition();
 
 				if (--pos < 0) {
-					DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_LOCAL_AUTHORITY_ACTIONS_TITLE);
+					DrawString (dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_LOCAL_AUTHORITY_ACTIONS_TITLE);
 					y += FONT_HEIGHT_NORMAL;
 				}
 
@@ -227,7 +227,7 @@ public:
 					if (pos <= -5) break; ///< Draw only the 5 fitting lines
 
 					if ((buttons & 1) && --pos < 0) {
-						DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y,
+						DrawString (dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y,
 								STR_LOCAL_AUTHORITY_ACTION_SMALL_ADVERTISING_CAMPAIGN + i, this->sel_index == i ? TC_WHITE : TC_ORANGE);
 						y += FONT_HEIGHT_NORMAL;
 					}
@@ -339,13 +339,13 @@ public:
 		this->SetWidgetDisabledState(WID_TV_CHANGE_NAME, _networking && !_network_server);
 	}
 
-	virtual void OnPaint()
+	void OnPaint (BlitArea *dpi) OVERRIDE
 	{
 		if (_game_mode != GM_EDITOR) {
 			this->SetWidgetLoweredState (WID_TV_SHOW_AREA, _thd.town == this->town->index);
 		}
 
-		this->DrawWidgets();
+		this->DrawWidgets (dpi);
 	}
 
 	virtual void SetStringParameters(int widget) const
@@ -353,7 +353,7 @@ public:
 		if (widget == WID_TV_CAPTION) SetDParam(0, this->town->index);
 	}
 
-	virtual void DrawWidget(const Rect &r, int widget) const
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
 	{
 		if (widget != WID_TV_INFO) return;
 
@@ -361,15 +361,15 @@ public:
 
 		SetDParam(0, this->town->cache.population);
 		SetDParam(1, this->town->cache.num_houses);
-		DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_LEFT, y, STR_TOWN_VIEW_POPULATION_HOUSES);
+		DrawString (dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_LEFT, y, STR_TOWN_VIEW_POPULATION_HOUSES);
 
 		SetDParam(0, this->town->supplied[CT_PASSENGERS].old_act);
 		SetDParam(1, this->town->supplied[CT_PASSENGERS].old_max);
-		DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_LEFT, y += FONT_HEIGHT_NORMAL, STR_TOWN_VIEW_PASSENGERS_LAST_MONTH_MAX);
+		DrawString (dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_LEFT, y += FONT_HEIGHT_NORMAL, STR_TOWN_VIEW_PASSENGERS_LAST_MONTH_MAX);
 
 		SetDParam(0, this->town->supplied[CT_MAIL].old_act);
 		SetDParam(1, this->town->supplied[CT_MAIL].old_max);
-		DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_LEFT, y += FONT_HEIGHT_NORMAL, STR_TOWN_VIEW_MAIL_LAST_MONTH_MAX);
+		DrawString (dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_LEFT, y += FONT_HEIGHT_NORMAL, STR_TOWN_VIEW_MAIL_LAST_MONTH_MAX);
 
 		bool first = true;
 		for (int i = TE_BEGIN; i < TE_END; i++) {
@@ -378,7 +378,7 @@ public:
 			if (this->town->goal[i] == TOWN_GROWTH_DESERT && (GetTropicZone(this->town->xy) != TROPICZONE_DESERT || this->town->cache.population <= 60)) continue;
 
 			if (first) {
-				DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_LEFT, y += FONT_HEIGHT_NORMAL, STR_TOWN_VIEW_CARGO_FOR_TOWNGROWTH);
+				DrawString (dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_LEFT, y += FONT_HEIGHT_NORMAL, STR_TOWN_VIEW_CARGO_FOR_TOWNGROWTH);
 				first = false;
 			}
 
@@ -414,26 +414,26 @@ public:
 				SetDParam(2, cargo->Index());
 				SetDParam(3, this->town->goal[i]);
 			}
-			DrawString(cargo_text_left, cargo_text_right, y += FONT_HEIGHT_NORMAL, string);
+			DrawString (dpi, cargo_text_left, cargo_text_right, y += FONT_HEIGHT_NORMAL, string);
 		}
 
 		if (HasBit(this->town->flags, TOWN_IS_GROWING)) {
 			SetDParam(0, ((this->town->growth_rate & (~TOWN_GROW_RATE_CUSTOM)) * TOWN_GROWTH_TICKS + DAY_TICKS) / DAY_TICKS);
-			DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_LEFT, y += FONT_HEIGHT_NORMAL, this->town->fund_buildings_months == 0 ? STR_TOWN_VIEW_TOWN_GROWS_EVERY : STR_TOWN_VIEW_TOWN_GROWS_EVERY_FUNDED);
+			DrawString (dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_LEFT, y += FONT_HEIGHT_NORMAL, this->town->fund_buildings_months == 0 ? STR_TOWN_VIEW_TOWN_GROWS_EVERY : STR_TOWN_VIEW_TOWN_GROWS_EVERY_FUNDED);
 		} else {
-			DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_LEFT, y += FONT_HEIGHT_NORMAL, STR_TOWN_VIEW_TOWN_GROW_STOPPED);
+			DrawString (dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_LEFT, y += FONT_HEIGHT_NORMAL, STR_TOWN_VIEW_TOWN_GROW_STOPPED);
 		}
 
 		/* only show the town noise, if the noise option is activated. */
 		if (_settings_game.economy.station_noise_level) {
 			SetDParam(0, this->town->noise_reached);
 			SetDParam(1, this->town->MaxTownNoise());
-			DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_LEFT, y += FONT_HEIGHT_NORMAL, STR_TOWN_VIEW_NOISE_IN_TOWN);
+			DrawString (dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_LEFT, y += FONT_HEIGHT_NORMAL, STR_TOWN_VIEW_NOISE_IN_TOWN);
 		}
 
 		if (this->town->text != NULL) {
 			SetDParamStr(0, this->town->text);
-			DrawStringMultiLine(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y += FONT_HEIGHT_NORMAL, UINT16_MAX, STR_JUST_RAW_STRING, TC_BLACK);
+			DrawStringMultiLine (dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y += FONT_HEIGHT_NORMAL, UINT16_MAX, STR_JUST_RAW_STRING, TC_BLACK);
 		}
 	}
 
@@ -801,18 +801,18 @@ public:
 		}
 	}
 
-	virtual void DrawWidget(const Rect &r, int widget) const
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
 	{
 		switch (widget) {
 			case WID_TD_SORT_ORDER:
-				this->DrawSortButtonState(widget, this->towns.IsDescSortOrder() ? SBS_DOWN : SBS_UP);
+				this->DrawSortButtonState (dpi, widget, this->towns.IsDescSortOrder() ? SBS_DOWN : SBS_UP);
 				break;
 
 			case WID_TD_LIST: {
 				int n = 0;
 				int y = r.top + WD_FRAMERECT_TOP;
 				if (this->towns.Length() == 0) { // No towns available.
-					DrawString(r.left + WD_FRAMERECT_LEFT, r.right, y, STR_TOWN_DIRECTORY_NONE);
+					DrawString (dpi, r.left + WD_FRAMERECT_LEFT, r.right, y, STR_TOWN_DIRECTORY_NONE);
 					break;
 				}
 
@@ -829,17 +829,17 @@ public:
 
 					/* Draw rating icon. */
 					if (_game_mode == GM_EDITOR || !HasBit(t->have_ratings, _local_company)) {
-						DrawSprite(SPR_TOWN_RATING_NA, PAL_NONE, icon_x, y + (this->resize.step_height - icon_size.height) / 2);
+						DrawSprite (dpi, SPR_TOWN_RATING_NA, PAL_NONE, icon_x, y + (this->resize.step_height - icon_size.height) / 2);
 					} else {
 						SpriteID icon = SPR_TOWN_RATING_APALLING;
 						if (t->ratings[_local_company] > RATING_VERYPOOR) icon = SPR_TOWN_RATING_MEDIOCRE;
 						if (t->ratings[_local_company] > RATING_GOOD)     icon = SPR_TOWN_RATING_GOOD;
-						DrawSprite(icon, PAL_NONE, icon_x, y + (this->resize.step_height - icon_size.height) / 2);
+						DrawSprite (dpi, icon, PAL_NONE, icon_x, y + (this->resize.step_height - icon_size.height) / 2);
 					}
 
 					SetDParam(0, t->index);
 					SetDParam(1, t->cache.population);
-					DrawString(text_left, text_right, y + (this->resize.step_height - FONT_HEIGHT_NORMAL) / 2, STR_TOWN_DIRECTORY_TOWN);
+					DrawString (dpi, text_left, text_right, y + (this->resize.step_height - FONT_HEIGHT_NORMAL) / 2, STR_TOWN_DIRECTORY_TOWN);
 
 					y += this->resize.step_height;
 					if (++n == this->vscroll->GetCapacity()) break; // max number of towns in 1 window
@@ -949,10 +949,10 @@ public:
 		}
 	}
 
-	virtual void OnPaint()
+	void OnPaint (BlitArea *dpi) OVERRIDE
 	{
 		if (this->towns.NeedRebuild()) this->BuildSortTownList();
-		this->DrawWidgets();
+		this->DrawWidgets (dpi);
 	}
 
 	virtual void OnHundredthTick()
@@ -1310,7 +1310,7 @@ struct SelectTownWindow : Window {
 		*size = d;
 	}
 
-	virtual void DrawWidget(const Rect &r, int widget) const
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
 	{
 		if (widget != WID_ST_PANEL) return;
 
@@ -1318,7 +1318,7 @@ struct SelectTownWindow : Window {
 		uint end = min(this->vscroll->GetCount(), this->vscroll->GetPosition() + this->vscroll->GetCapacity());
 		for (uint i = this->vscroll->GetPosition(); i < end; i++) {
 			SetDParam(0, this->towns[i]->index);
-			DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_SELECT_TOWN_LIST_ITEM);
+			DrawString (dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_SELECT_TOWN_LIST_ITEM);
 			y += this->resize.step_height;
 		}
 	}
@@ -1346,10 +1346,10 @@ struct SelectTownWindow : Window {
 		this->Delete();
 	}
 
-	virtual void OnPaint()
+	void OnPaint (BlitArea *dpi) OVERRIDE
 	{
 		if (this->rebuild) this->RebuildTownList();
-		this->DrawWidgets();
+		this->DrawWidgets (dpi);
 	}
 
 	virtual void OnResize()
@@ -1845,7 +1845,7 @@ public:
 		}
 	}
 
-	void DrawWidget(const Rect &r, int widget) const OVERRIDE
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
 	{
 		switch (GB(widget, 0, 16)) {
 			case WID_HP_HOUSE_SETS: {
@@ -1859,7 +1859,7 @@ public:
 					} else {
 						str = STR_BUILD_HOUSE_ORIGINAL_SET_NAME;
 					}
-					DrawString (r.left + WD_MATRIX_LEFT, r.right - WD_MATRIX_RIGHT, y, str, i == this->sel_set ? TC_WHITE : TC_BLACK);
+					DrawString (dpi, r.left + WD_MATRIX_LEFT, r.right - WD_MATRIX_RIGHT, y, str, i == this->sel_set ? TC_WHITE : TC_BLACK);
 					y += this->line_height;
 				}
 				break;
@@ -1867,13 +1867,13 @@ public:
 
 			case WID_HP_HOUSE_PREVIEW:
 				if (cur_house != INVALID_HOUSE_ID) {
-					DrawHouseImage (cur_house, r.left, r.top, r.right, r.bottom);
+					DrawHouseImage (cur_house, dpi, r.left, r.top, r.right, r.bottom);
 				}
 				break;
 
 			case WID_HP_HOUSE_SELECT: {
 				HouseID house = this->houses[this->sets[this->sel_set] + GB(widget, 16, 16)];
-				DrawHouseImage (house,
+				DrawHouseImage (house, dpi,
 						r.left  + WD_MATRIX_LEFT,  r.top    + WD_MATRIX_TOP,
 						r.right - WD_MATRIX_RIGHT, r.bottom - WD_MATRIX_BOTTOM);
 				break;

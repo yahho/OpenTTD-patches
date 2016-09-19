@@ -33,15 +33,57 @@ const uint8 LinkGraphOverlay::LINK_COLOURS[] = {
 };
 
 /**
- * Get a DPI for the widget we will be drawing to.
- * @param dpi DrawPixelInfo to fill with the desired dimensions.
+ * Determine if a certain point is inside the given DPI, with some lee way.
+ * @param pt Point we are looking for.
+ * @param dpi Visible area.
+ * @param padding Extent of the point.
+ * @return If the point or any of its 'extent' is inside the dpi.
  */
-void LinkGraphOverlay::GetWidgetDpi(DrawPixelInfo *dpi) const
+static inline bool IsPointVisible (Point pt, const BlitArea *dpi, int padding = 0)
 {
-	const NWidgetBase *wi = this->window->GetWidget<NWidgetBase>(this->widget_id);
-	dpi->left = dpi->top = 0;
-	dpi->width = wi->current_x;
-	dpi->height = wi->current_y;
+	return pt.x > dpi->left - padding && pt.y > dpi->top - padding &&
+			pt.x < dpi->left + dpi->width + padding &&
+			pt.y < dpi->top + dpi->height + padding;
+}
+
+/**
+ * Determine if a certain link crosses through the area given by the dpi with some lee way.
+ * @param pta First end of the link.
+ * @param ptb Second end of the link.
+ * @param dpi Visible area.
+ * @param padding Width or thickness of the link.
+ * @return If the link or any of its "thickness" is visible. This may return false positives.
+ */
+static inline bool IsLinkVisible (Point pta, Point ptb, const BlitArea *dpi, int padding = 0)
+{
+	return !((pta.x < dpi->left - padding && ptb.x < dpi->left - padding) ||
+			(pta.y < dpi->top - padding && ptb.y < dpi->top - padding) ||
+			(pta.x > dpi->left + dpi->width + padding &&
+					ptb.x > dpi->left + dpi->width + padding) ||
+			(pta.y > dpi->top + dpi->height + padding &&
+					ptb.y > dpi->top + dpi->height + padding));
+}
+
+/**
+ * Add information from a given pair of link stat and flow stat to the given
+ * link properties. The shown usage or plan is always the maximum of all link
+ * stats involved.
+ * @param new_cap Capacity of the new link.
+ * @param new_usg Usage of the new link.
+ * @param new_plan Planned flow for the new link.
+ * @param new_shared If the new link is shared.
+ * @param cargo LinkProperties to write the information to.
+ */
+static void AddStats (uint new_cap, uint new_usg, uint new_plan, bool new_shared, LinkProperties &cargo)
+{
+	/* multiply the numbers by 32 in order to avoid comparing to 0 too often. */
+	if (cargo.capacity == 0 ||
+			max(cargo.usage, cargo.planned) * 32 / (cargo.capacity + 1) < max(new_usg, new_plan) * 32 / (new_cap + 1)) {
+		cargo.capacity = new_cap;
+		cargo.usage = new_usg;
+		cargo.planned = new_plan;
+	}
+	if (new_shared) cargo.shared = true;
 }
 
 /**
@@ -53,8 +95,11 @@ void LinkGraphOverlay::RebuildCache()
 	this->cached_stations.clear();
 	if (this->company_mask == 0) return;
 
-	DrawPixelInfo dpi;
-	this->GetWidgetDpi(&dpi);
+	const NWidgetBase *wi = this->window->GetWidget<NWidgetBase>(this->widget_id);
+	BlitArea dpi;
+	dpi.left = dpi.top = 0;
+	dpi.width = wi->current_x;
+	dpi.height = wi->current_y;
 
 	const Station *sta;
 	FOR_ALL_STATIONS(sta) {
@@ -87,48 +132,16 @@ void LinkGraphOverlay::RebuildCache()
 				if (stb->owner != OWNER_NONE && sta->owner != OWNER_NONE && !HasBit(this->company_mask, stb->owner)) continue;
 				if (stb->rect.empty()) continue;
 
-				if (!this->IsLinkVisible(pta, this->GetStationMiddle(stb), &dpi)) continue;
+				if (!IsLinkVisible (pta, this->GetStationMiddle(stb), &dpi)) continue;
 
 				this->AddLinks(sta, stb);
 				seen_links[to]; // make sure it is created and marked as seen
 			}
 		}
-		if (this->IsPointVisible(pta, &dpi)) {
+		if (IsPointVisible (pta, &dpi)) {
 			this->cached_stations.push_back(std::make_pair(from, supply));
 		}
 	}
-}
-
-/**
- * Determine if a certain point is inside the given DPI, with some lee way.
- * @param pt Point we are looking for.
- * @param dpi Visible area.
- * @param padding Extent of the point.
- * @return If the point or any of its 'extent' is inside the dpi.
- */
-inline bool LinkGraphOverlay::IsPointVisible(Point pt, const DrawPixelInfo *dpi, int padding) const
-{
-	return pt.x > dpi->left - padding && pt.y > dpi->top - padding &&
-			pt.x < dpi->left + dpi->width + padding &&
-			pt.y < dpi->top + dpi->height + padding;
-}
-
-/**
- * Determine if a certain link crosses through the area given by the dpi with some lee way.
- * @param pta First end of the link.
- * @param ptb Second end of the link.
- * @param dpi Visible area.
- * @param padding Width or thickness of the link.
- * @return If the link or any of its "thickness" is visible. This may return false positives.
- */
-inline bool LinkGraphOverlay::IsLinkVisible(Point pta, Point ptb, const DrawPixelInfo *dpi, int padding) const
-{
-	return !((pta.x < dpi->left - padding && ptb.x < dpi->left - padding) ||
-			(pta.y < dpi->top - padding && ptb.y < dpi->top - padding) ||
-			(pta.x > dpi->left + dpi->width + padding &&
-					ptb.x > dpi->left + dpi->width + padding) ||
-			(pta.y > dpi->top + dpi->height + padding &&
-					ptb.y > dpi->top + dpi->height + padding));
 }
 
 /**
@@ -149,7 +162,7 @@ void LinkGraphOverlay::AddLinks(const Station *from, const Station *to)
 		const LinkGraph &lg = *LinkGraph::Get(ge.link_graph);
 		const LinkGraph::Edge &edge = lg[ge.node][to->goods[c].node];
 		if (edge.Capacity() > 0) {
-			this->AddStats(lg.Monthly(edge.Capacity()), lg.Monthly(edge.Usage()),
+			AddStats (lg.Monthly(edge.Capacity()), lg.Monthly(edge.Usage()),
 					ge.flows.GetFlowVia(to->index), from->owner == OWNER_NONE || to->owner == OWNER_NONE,
 					this->cached_links[from->index][to->index]);
 		}
@@ -157,124 +170,95 @@ void LinkGraphOverlay::AddLinks(const Station *from, const Station *to)
 }
 
 /**
- * Add information from a given pair of link stat and flow stat to the given
- * link properties. The shown usage or plan is always the maximum of all link
- * stats involved.
- * @param new_cap Capacity of the new link.
- * @param new_usg Usage of the new link.
- * @param new_plan Planned flow for the new link.
- * @param new_shared If the new link is shared.
- * @param cargo LinkProperties to write the information to.
- */
-/* static */ void LinkGraphOverlay::AddStats(uint new_cap, uint new_usg, uint new_plan, bool new_shared, LinkProperties &cargo)
-{
-	/* multiply the numbers by 32 in order to avoid comparing to 0 too often. */
-	if (cargo.capacity == 0 ||
-			max(cargo.usage, cargo.planned) * 32 / (cargo.capacity + 1) < max(new_usg, new_plan) * 32 / (new_cap + 1)) {
-		cargo.capacity = new_cap;
-		cargo.usage = new_usg;
-		cargo.planned = new_plan;
-	}
-	if (new_shared) cargo.shared = true;
-}
-
-/**
- * Draw the linkgraph overlay or some part of it, in the area given.
- * @param dpi Area to be drawn to.
- */
-void LinkGraphOverlay::Draw(const DrawPixelInfo *dpi) const
-{
-	this->DrawLinks(dpi);
-	this->DrawStationDots(dpi);
-}
-
-/**
- * Draw the cached links or part of them into the given area.
- * @param dpi Area to be drawn to.
- */
-void LinkGraphOverlay::DrawLinks(const DrawPixelInfo *dpi) const
-{
-	for (LinkMap::const_iterator i(this->cached_links.begin()); i != this->cached_links.end(); ++i) {
-		if (!Station::IsValidID(i->first)) continue;
-		Point pta = this->GetStationMiddle(Station::Get(i->first));
-		for (StationLinkMap::const_iterator j(i->second.begin()); j != i->second.end(); ++j) {
-			if (!Station::IsValidID(j->first)) continue;
-			Point ptb = this->GetStationMiddle(Station::Get(j->first));
-			if (!this->IsLinkVisible(pta, ptb, dpi, this->scale + 2)) continue;
-			this->DrawContent(pta, ptb, j->second);
-		}
-	}
-}
-
-/**
- * Draw one specific link.
- * @param pta Source of the link.
- * @param ptb Destination of the link.
- * @param cargo Properties of the link.
- */
-void LinkGraphOverlay::DrawContent(Point pta, Point ptb, const LinkProperties &cargo) const
-{
-	uint usage_or_plan = min(cargo.capacity * 2 + 1, max(cargo.usage, cargo.planned));
-	int colour = LinkGraphOverlay::LINK_COLOURS[usage_or_plan * lengthof(LinkGraphOverlay::LINK_COLOURS) / (cargo.capacity * 2 + 2)];
-	int dash = cargo.shared ? this->scale * 4 : 0;
-
-	/* Move line a bit 90° against its dominant direction to prevent it from
-	 * being hidden below the grey line. */
-	int side = _settings_game.vehicle.road_side ? 1 : -1;
-	if (abs(pta.x - ptb.x) < abs(pta.y - ptb.y)) {
-		int offset_x = (pta.y > ptb.y ? 1 : -1) * side * this->scale;
-		GfxDrawLine(pta.x + offset_x, pta.y, ptb.x + offset_x, ptb.y, colour, this->scale, dash);
-	} else {
-		int offset_y = (pta.x < ptb.x ? 1 : -1) * side * this->scale;
-		GfxDrawLine(pta.x, pta.y + offset_y, ptb.x, ptb.y + offset_y, colour, this->scale, dash);
-	}
-
-	GfxDrawLine(pta.x, pta.y, ptb.x, ptb.y, _colour_gradient[COLOUR_GREY][1], this->scale);
-}
-
-/**
- * Draw dots for stations into the smallmap. The dots' sizes are determined by the amount of
- * cargo produced there, their colours by the type of cargo produced.
- */
-void LinkGraphOverlay::DrawStationDots(const DrawPixelInfo *dpi) const
-{
-	for (StationSupplyList::const_iterator i(this->cached_stations.begin()); i != this->cached_stations.end(); ++i) {
-		const Station *st = Station::GetIfValid(i->first);
-		if (st == NULL) continue;
-		Point pt = this->GetStationMiddle(st);
-		if (!this->IsPointVisible(pt, dpi, 3 * this->scale)) continue;
-
-		uint r = this->scale * 2 + this->scale * 2 * min(200, i->second) / 200;
-
-		LinkGraphOverlay::DrawVertex(pt.x, pt.y, r,
-				_colour_gradient[st->owner != OWNER_NONE ?
-						(Colours)Company::Get(st->owner)->colour : COLOUR_GREY][5],
-				_colour_gradient[COLOUR_GREY][1]);
-	}
-}
-
-/**
  * Draw a square symbolizing a producer of cargo.
+ * @param dpi Area to draw on
  * @param x X coordinate of the middle of the vertex.
  * @param y Y coordinate of the middle of the vertex.
  * @param size Y and y extend of the vertex.
  * @param colour Colour with which the vertex will be filled.
  * @param border_colour Colour for the border of the vertex.
  */
-/* static */ void LinkGraphOverlay::DrawVertex(int x, int y, int size, int colour, int border_colour)
+static void DrawVertex (BlitArea *dpi, int x, int y, int size,
+	int colour, int border_colour)
 {
 	size--;
 	int w1 = size / 2;
 	int w2 = size / 2 + size % 2;
 
-	GfxFillRect(x - w1, y - w1, x + w2, y + w2, colour);
+	GfxFillRect (dpi, x - w1, y - w1, x + w2, y + w2, colour);
 
 	w1++;
 	w2++;
-	GfxDrawLine(x - w1, y - w1, x + w2, y - w1, border_colour);
-	GfxDrawLine(x - w1, y + w2, x + w2, y + w2, border_colour);
-	GfxDrawLine(x - w1, y - w1, x - w1, y + w2, border_colour);
-	GfxDrawLine(x + w2, y - w1, x + w2, y + w2, border_colour);
+	GfxDrawLine (dpi, x - w1, y - w1, x + w2, y - w1, border_colour);
+	GfxDrawLine (dpi, x - w1, y + w2, x + w2, y + w2, border_colour);
+	GfxDrawLine (dpi, x - w1, y - w1, x - w1, y + w2, border_colour);
+	GfxDrawLine (dpi, x + w2, y - w1, x + w2, y + w2, border_colour);
+}
+
+/**
+ * Draw one specific link.
+ * @param dpi Area to draw on
+ * @param pta Source of the link.
+ * @param ptb Destination of the link.
+ * @param cargo Properties of the link.
+ */
+static void DrawContent (BlitArea *dpi, Point pta, Point ptb,
+	const LinkProperties &cargo, uint scale)
+{
+	uint usage_or_plan = min(cargo.capacity * 2 + 1, max(cargo.usage, cargo.planned));
+	int colour = LinkGraphOverlay::LINK_COLOURS[usage_or_plan * lengthof(LinkGraphOverlay::LINK_COLOURS) / (cargo.capacity * 2 + 2)];
+	int dash = cargo.shared ? scale * 4 : 0;
+
+	/* Move line a bit 90° against its dominant direction to prevent it from
+	 * being hidden below the grey line. */
+	int side = _settings_game.vehicle.road_side ? 1 : -1;
+	int offset_x, offset_y;
+	if (abs(pta.x - ptb.x) < abs(pta.y - ptb.y)) {
+		offset_x = (pta.y > ptb.y ? 1 : -1) * side * scale;
+		offset_y = 0;
+	} else {
+		offset_y = (pta.x < ptb.x ? 1 : -1) * side * scale;
+		offset_x = 0;
+	}
+	GfxDrawLine (dpi, pta.x + offset_x, pta.y + offset_y, ptb.x + offset_x, ptb.y + offset_y, colour, scale, dash);
+
+	GfxDrawLine (dpi, pta.x, pta.y, ptb.x, ptb.y, _colour_gradient[COLOUR_GREY][1], scale);
+}
+
+/**
+ * Draw the linkgraph overlay or some part of it, in the area given.
+ * @param dpi Area to be drawn to.
+ */
+void LinkGraphOverlay::Draw (BlitArea *dpi) const
+{
+	/* Draw the cached links or part of them into the given area. */
+	for (LinkMap::const_iterator i(this->cached_links.begin()); i != this->cached_links.end(); ++i) {
+		if (!Station::IsValidID(i->first)) continue;
+		Point pta = this->GetStationMiddle(Station::Get(i->first));
+		for (StationLinkMap::const_iterator j(i->second.begin()); j != i->second.end(); ++j) {
+			if (!Station::IsValidID(j->first)) continue;
+			Point ptb = this->GetStationMiddle(Station::Get(j->first));
+			if (!IsLinkVisible (pta, ptb, dpi, this->scale + 2)) continue;
+			DrawContent (dpi, pta, ptb, j->second, this->scale);
+		}
+	}
+
+	/* Draw dots for stations into the smallmap. The dots' sizes are
+	 * determined by the amount of cargo produced there, their colours
+	 * by the type of cargo produced. */
+	for (StationSupplyList::const_iterator i(this->cached_stations.begin()); i != this->cached_stations.end(); ++i) {
+		const Station *st = Station::GetIfValid(i->first);
+		if (st == NULL) continue;
+		Point pt = this->GetStationMiddle(st);
+		if (!IsPointVisible (pt, dpi, 3 * this->scale)) continue;
+
+		uint r = this->scale * 2 + this->scale * 2 * min(200, i->second) / 200;
+
+		DrawVertex (dpi, pt.x, pt.y, r,
+				_colour_gradient[st->owner != OWNER_NONE ?
+						(Colours)Company::Get(st->owner)->colour : COLOUR_GREY][5],
+				_colour_gradient[COLOUR_GREY][1]);
+	}
 }
 
 /**
@@ -422,14 +406,8 @@ LinkGraphLegendWindow::LinkGraphLegendWindow (const WindowDesc *desc, int window
 {
 	this->InitNested(window_number);
 	this->InvalidateData(0);
-	this->SetOverlay(FindWindowById(WC_MAIN_WINDOW, 0)->viewport->overlay);
-}
 
-/**
- * Set the overlay belonging to this menu and import its company/cargo settings.
- * @params overlay New overlay for this menu.
- */
-void LinkGraphLegendWindow::SetOverlay(LinkGraphOverlay *overlay) {
+	LinkGraphOverlay *overlay = FindWindowById(WC_MAIN_WINDOW, 0)->viewport->overlay;
 	this->overlay = overlay;
 	uint32 companies = this->overlay->GetCompanyMask();
 	for (uint c = 0; c < MAX_COMPANIES; c++) {
@@ -474,16 +452,16 @@ void LinkGraphLegendWindow::UpdateWidgetSize(int widget, Dimension *size, const 
 	}
 }
 
-void LinkGraphLegendWindow::DrawWidget(const Rect &r, int widget) const
+void LinkGraphLegendWindow::DrawWidget (BlitArea *dpi, const Rect &r, int widget) const
 {
 	if (IsInsideMM(widget, WID_LGL_COMPANY_FIRST, WID_LGL_COMPANY_LAST + 1)) {
 		if (this->IsWidgetDisabled(widget)) return;
 		CompanyID cid = (CompanyID)(widget - WID_LGL_COMPANY_FIRST);
 		Dimension sprite_size = GetSpriteSize(SPR_COMPANY_ICON);
-		DrawCompanyIcon(cid, (r.left + r.right + 1 - sprite_size.width) / 2, (r.top + r.bottom + 1 - sprite_size.height) / 2);
+		DrawCompanyIcon (dpi, cid, (r.left + r.right + 1 - sprite_size.width) / 2, (r.top + r.bottom + 1 - sprite_size.height) / 2);
 	}
 	if (IsInsideMM(widget, WID_LGL_SATURATION_FIRST, WID_LGL_SATURATION_LAST + 1)) {
-		GfxFillRect(r.left + 1, r.top + 1, r.right - 1, r.bottom - 1, LinkGraphOverlay::LINK_COLOURS[widget - WID_LGL_SATURATION_FIRST]);
+		GfxFillRect (dpi, r.left + 1, r.top + 1, r.right - 1, r.bottom - 1, LinkGraphOverlay::LINK_COLOURS[widget - WID_LGL_SATURATION_FIRST]);
 		StringID str = STR_NULL;
 		if (widget == WID_LGL_SATURATION_FIRST) {
 			str = STR_LINKGRAPH_LEGEND_UNUSED;
@@ -492,13 +470,13 @@ void LinkGraphLegendWindow::DrawWidget(const Rect &r, int widget) const
 		} else if (widget == (WID_LGL_SATURATION_LAST + WID_LGL_SATURATION_FIRST) / 2) {
 			str = STR_LINKGRAPH_LEGEND_SATURATED;
 		}
-		if (str != STR_NULL) DrawString(r.left, r.right, (r.top + r.bottom + 1 - FONT_HEIGHT_SMALL) / 2, str, TC_FROMSTRING, SA_HOR_CENTER);
+		if (str != STR_NULL) DrawString (dpi, r.left, r.right, (r.top + r.bottom + 1 - FONT_HEIGHT_SMALL) / 2, str, TC_FROMSTRING, SA_HOR_CENTER);
 	}
 	if (IsInsideMM(widget, WID_LGL_CARGO_FIRST, WID_LGL_CARGO_LAST + 1)) {
 		if (this->IsWidgetDisabled(widget)) return;
 		CargoSpec *cargo = CargoSpec::Get(widget - WID_LGL_CARGO_FIRST);
-		GfxFillRect(r.left + 2, r.top + 2, r.right - 2, r.bottom - 2, cargo->legend_colour);
-		DrawString(r.left, r.right, (r.top + r.bottom + 1 - FONT_HEIGHT_SMALL) / 2, cargo->abbrev, TC_BLACK, SA_HOR_CENTER);
+		GfxFillRect (dpi, r.left + 2, r.top + 2, r.right - 2, r.bottom - 2, cargo->legend_colour);
+		DrawString (dpi, r.left, r.right, (r.top + r.bottom + 1 - FONT_HEIGHT_SMALL) / 2, cargo->abbrev, TC_BLACK, SA_HOR_CENTER);
 	}
 }
 

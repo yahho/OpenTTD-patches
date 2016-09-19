@@ -353,7 +353,7 @@ struct GameOptionsWindow : Window {
 		}
 	}
 
-	virtual void DrawWidget(const Rect &r, int widget) const
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
 	{
 		const BaseSetDesc *set;
 
@@ -374,7 +374,7 @@ struct GameOptionsWindow : Window {
 		}
 
 		SetDParamStr (0, set->get_desc (GetCurrentLanguageIsoCode()));
-		DrawStringMultiLine (r.left, r.right, r.top, UINT16_MAX, STR_BLACK_RAW_STRING);
+		DrawStringMultiLine (dpi, r.left, r.right, r.top, UINT16_MAX, STR_BLACK_RAW_STRING);
 	}
 
 	template <class T>
@@ -796,7 +796,9 @@ struct SettingEntry {
 	bool IsFiltered() const;
 	bool UpdateFilterState(SettingFilter &filter, bool force_visible);
 
-	uint Draw(GameSettings *settings_ptr, int base_x, int base_y, int max_x, uint first_row, uint max_row, uint cur_row, uint parent_last, SettingEntry *selected);
+	uint Draw (GameSettings *settings_ptr, BlitArea *dpi, int base_x,
+			int base_y, int max_x, uint first_row, uint max_row,
+			uint cur_row, uint parent_last, SettingEntry *selected);
 
 	/**
 	 * Get the help text of a single setting.
@@ -811,7 +813,9 @@ struct SettingEntry {
 	void SetValueDParams(uint first_param, int32 value);
 
 private:
-	void DrawSetting(GameSettings *settings_ptr, int x, int y, int max_x, int state, bool highlight);
+	void DrawSetting (GameSettings *settings_ptr, BlitArea *dpi,
+			int x, int y, int max_x, int state, bool highlight);
+
 	bool IsVisibleByRestrictionMode(RestrictionMode mode) const;
 };
 
@@ -832,7 +836,9 @@ struct SettingsPage {
 
 	bool UpdateFilterState(SettingFilter &filter, bool force_visible);
 
-	uint Draw(GameSettings *settings_ptr, int base_x, int base_y, int max_x, uint first_row, uint max_row, SettingEntry *selected, uint cur_row = 0, uint parent_last = 0) const;
+	uint Draw (GameSettings *settings_ptr, BlitArea *dpi, int base_x,
+			int base_y, int max_x, uint first_row, uint max_row,
+			SettingEntry *selected, uint cur_row = 0, uint parent_last = 0) const;
 };
 
 
@@ -1158,6 +1164,7 @@ bool SettingEntry::UpdateFilterState(SettingFilter &filter, bool force_visible)
  * appropriate bit in the \a parent_last parameter.
  *
  * @param settings_ptr Pointer to current values of all settings
+ * @param dpi          Area to draw on
  * @param left         Left-most position in window/panel to start drawing \a first_row
  * @param right        Right-most x position to draw strings at.
  * @param base_y       Upper-most position in window/panel to start drawing \a first_row
@@ -1168,7 +1175,9 @@ bool SettingEntry::UpdateFilterState(SettingFilter &filter, bool force_visible)
  * @param selected     Selected entry by the user.
  * @return Row number of the next row to draw
  */
-uint SettingEntry::Draw(GameSettings *settings_ptr, int left, int right, int base_y, uint first_row, uint max_row, uint cur_row, uint parent_last, SettingEntry *selected)
+uint SettingEntry::Draw (GameSettings *settings_ptr, BlitArea *dpi,
+	int left, int right, int base_y, uint first_row, uint max_row,
+	uint cur_row, uint parent_last, SettingEntry *selected)
 {
 	if (this->IsFiltered()) return cur_row;
 	if (cur_row >= max_row) return cur_row;
@@ -1185,30 +1194,30 @@ uint SettingEntry::Draw(GameSettings *settings_ptr, int left, int right, int bas
 
 		/* Draw vertical for parent nesting levels */
 		for (uint lvl = 0; lvl < this->level; lvl++) {
-			if (!HasBit(parent_last, lvl)) GfxDrawLine(x + offset, y, x + offset, y + SETTING_HEIGHT - 1, colour);
+			if (!HasBit(parent_last, lvl)) GfxDrawLine (dpi, x + offset, y, x + offset, y + SETTING_HEIGHT - 1, colour);
 			x += level_width;
 		}
 		/* draw own |- prefix */
 		int halfway_y = y + SETTING_HEIGHT / 2;
 		int bottom_y = (flags & SEF_LAST_FIELD) ? halfway_y : y + SETTING_HEIGHT - 1;
-		GfxDrawLine(x + offset, y, x + offset, bottom_y, colour);
+		GfxDrawLine (dpi, x + offset, y, x + offset, bottom_y, colour);
 		/* Small horizontal line from the last vertical line */
-		GfxDrawLine(x + offset, halfway_y, x + level_width - offset, halfway_y, colour);
+		GfxDrawLine (dpi, x + offset, halfway_y, x + level_width - offset, halfway_y, colour);
 		x += level_width;
 	}
 
 	switch (this->flags & SEF_KIND_MASK) {
 		case SEF_SETTING_KIND:
 			if (cur_row >= first_row) {
-				this->DrawSetting(settings_ptr, rtl ? left : x, rtl ? x : right, y, this->flags & SEF_BUTTONS_MASK,
+				this->DrawSetting (settings_ptr, dpi, rtl ? left : x, rtl ? x : right, y, this->flags & SEF_BUTTONS_MASK,
 						this == selected);
 			}
 			cur_row++;
 			break;
 		case SEF_SUBTREE_KIND:
 			if (cur_row >= first_row) {
-				DrawSprite((this->d.sub.folded ? SPR_CIRCLE_FOLDED : SPR_CIRCLE_UNFOLDED), PAL_NONE, rtl ? x - _circle_size.width : x, y + (SETTING_HEIGHT - _circle_size.height) / 2);
-				DrawString(rtl ? left : x + _circle_size.width + 2, rtl ? x - _circle_size.width - 2 : right, y + (SETTING_HEIGHT - FONT_HEIGHT_NORMAL) / 2, this->d.sub.title);
+				DrawSprite (dpi, (this->d.sub.folded ? SPR_CIRCLE_FOLDED : SPR_CIRCLE_UNFOLDED), PAL_NONE, rtl ? x - _circle_size.width : x, y + (SETTING_HEIGHT - _circle_size.height) / 2);
+				DrawString (dpi, rtl ? left : x + _circle_size.width + 2, rtl ? x - _circle_size.width - 2 : right, y + (SETTING_HEIGHT - FONT_HEIGHT_NORMAL) / 2, this->d.sub.title);
 			}
 			cur_row++;
 			if (!this->d.sub.folded) {
@@ -1217,7 +1226,7 @@ uint SettingEntry::Draw(GameSettings *settings_ptr, int left, int right, int bas
 					SetBit(parent_last, this->level); // Add own last-field state
 				}
 
-				cur_row = this->d.sub.page->Draw(settings_ptr, left, right, base_y, first_row, max_row, selected, cur_row, parent_last);
+				cur_row = this->d.sub.page->Draw (settings_ptr, dpi, left, right, base_y, first_row, max_row, selected, cur_row, parent_last);
 			}
 			break;
 		default: NOT_REACHED();
@@ -1252,13 +1261,15 @@ void SettingEntry::SetValueDParams(uint first_param, int32 value)
 /**
  * Private function to draw setting value (button + text + current value)
  * @param settings_ptr Pointer to current values of all settings
+ * @param dpi          Area to draw on
  * @param left         Left-most position in window/panel to start drawing
  * @param right        Right-most position in window/panel to draw
  * @param y            Upper-most position in window/panel to start drawing
  * @param state        State of the left + right arrow buttons to draw for the setting
  * @param highlight    Highlight entry.
  */
-void SettingEntry::DrawSetting(GameSettings *settings_ptr, int left, int right, int y, int state, bool highlight)
+void SettingEntry::DrawSetting (GameSettings *settings_ptr, BlitArea *dpi,
+	int left, int right, int y, int state, bool highlight)
 {
 	const SettingDesc *sd = this->d.entry.setting;
 	const SettingDescBase *sdb = &sd->desc;
@@ -1276,17 +1287,17 @@ void SettingEntry::DrawSetting(GameSettings *settings_ptr, int left, int right, 
 	SetDParam(0, highlight ? STR_ORANGE_STRING1_WHITE : STR_ORANGE_STRING1_LTBLUE);
 	if (sdb->cmd == SDT_BOOLX) {
 		/* Draw checkbox for boolean-value either on/off */
-		DrawBoolButton(buttons_left, button_y, value != 0, editable);
+		DrawBoolButton (dpi, buttons_left, button_y, value != 0, editable);
 	} else if ((sdb->flags & SGF_MULTISTRING) != 0) {
 		/* Draw [v] button for settings of an enum-type */
-		DrawDropDownButton(buttons_left, button_y, COLOUR_YELLOW, state != 0, editable);
+		DrawDropDownButton (dpi, buttons_left, button_y, COLOUR_YELLOW, state != 0, editable);
 	} else {
 		/* Draw [<][>] boxes for settings of an integer-type */
-		DrawArrowButtons(buttons_left, button_y, COLOUR_YELLOW, state,
+		DrawArrowButtons (dpi, buttons_left, button_y, COLOUR_YELLOW, state,
 				editable && value != (sdb->flags & SGF_0ISDISABLED ? 0 : sdb->min), editable && (uint32)value != sdb->max);
 	}
 	this->SetValueDParams(1, value);
-	DrawString(text_left, text_right, y + (SETTING_HEIGHT - FONT_HEIGHT_NORMAL) / 2, sdb->str, highlight ? TC_WHITE : TC_LIGHT_BLUE);
+	DrawString (dpi, text_left, text_right, y + (SETTING_HEIGHT - FONT_HEIGHT_NORMAL) / 2, sdb->str, highlight ? TC_WHITE : TC_LIGHT_BLUE);
 }
 
 
@@ -1415,6 +1426,7 @@ uint SettingsPage::GetMaxHelpHeight(int maxw)
  * Then it enables drawing rows while traversing until \a max_row is reached, at which point drawing is terminated.
  *
  * @param settings_ptr Pointer to current values of all settings
+ * @param dpi          Area to raw on
  * @param left         Left-most position in window/panel to start drawing of each setting row
  * @param right        Right-most position in window/panel to draw at
  * @param base_y       Upper-most position in window/panel to start drawing of row number \a first_row
@@ -1425,12 +1437,14 @@ uint SettingsPage::GetMaxHelpHeight(int maxw)
  * @param selected     Selected entry by the user.
  * @return Row number of the next row to draw
  */
-uint SettingsPage::Draw(GameSettings *settings_ptr, int left, int right, int base_y, uint first_row, uint max_row, SettingEntry *selected, uint cur_row, uint parent_last) const
+uint SettingsPage::Draw (GameSettings *settings_ptr, BlitArea *dpi,
+	int left, int right, int base_y, uint first_row, uint max_row,
+	SettingEntry *selected, uint cur_row, uint parent_last) const
 {
 	if (cur_row >= max_row) return cur_row;
 
 	for (uint i = 0; i < this->num; i++) {
-		cur_row = this->entries[i].Draw(settings_ptr, left, right, base_y, first_row, max_row, cur_row, parent_last, selected);
+		cur_row = this->entries[i].Draw (settings_ptr, dpi, left, right, base_y, first_row, max_row, cur_row, parent_last, selected);
 		if (cur_row >= max_row) {
 			break;
 		}
@@ -1913,7 +1927,7 @@ struct GameSettingsWindow : Window {
 		}
 	}
 
-	virtual void OnPaint()
+	void OnPaint (BlitArea *dpi) OVERRIDE
 	{
 		if (this->closing_dropdown) {
 			this->closing_dropdown = false;
@@ -1937,7 +1951,7 @@ struct GameSettingsWindow : Window {
 			this->warn_lines = new_warn_lines;
 		}
 
-		this->DrawWidgets();
+		this->DrawWidgets (dpi);
 
 		/* Draw the 'some search results are hidden' notice. */
 		if (this->warn_missing != WHR_NONE) {
@@ -1947,9 +1961,9 @@ struct GameSettingsWindow : Window {
 			SetDParam(0, _game_settings_restrict_dropdown[this->filter.min_cat]);
 			if (this->warn_lines == 1) {
 				/* If the warning fits at one line, center it. */
-				DrawString(left + WD_FRAMETEXT_LEFT, right - WD_FRAMETEXT_RIGHT, top, warn_str, TC_FROMSTRING, SA_HOR_CENTER);
+				DrawString (dpi, left + WD_FRAMETEXT_LEFT, right - WD_FRAMETEXT_RIGHT, top, warn_str, TC_FROMSTRING, SA_HOR_CENTER);
 			} else {
-				DrawStringMultiLine(left + WD_FRAMERECT_LEFT, right - WD_FRAMERECT_RIGHT, top, INT32_MAX, warn_str, TC_FROMSTRING, SA_HOR_CENTER);
+				DrawStringMultiLine (dpi, left + WD_FRAMERECT_LEFT, right - WD_FRAMERECT_RIGHT, top, INT32_MAX, warn_str, TC_FROMSTRING, SA_HOR_CENTER);
 			}
 		}
 	}
@@ -1999,15 +2013,15 @@ struct GameSettingsWindow : Window {
 		return list;
 	}
 
-	virtual void DrawWidget(const Rect &r, int widget) const
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
 	{
 		switch (widget) {
 			case WID_GS_OPTIONSPANEL: {
 				int top_pos = r.top + SETTINGTREE_TOP_OFFSET + 1 + this->warn_lines * SETTING_HEIGHT;
 				uint last_row = this->vscroll->GetPosition() + this->vscroll->GetCapacity() - this->warn_lines;
-				int next_row = _settings_main_page.Draw(settings_ptr, r.left + SETTINGTREE_LEFT_OFFSET, r.right - SETTINGTREE_RIGHT_OFFSET, top_pos,
+				int next_row = _settings_main_page.Draw (settings_ptr, dpi, r.left + SETTINGTREE_LEFT_OFFSET, r.right - SETTINGTREE_RIGHT_OFFSET, top_pos,
 						this->vscroll->GetPosition(), last_row, this->last_clicked);
-				if (next_row == 0) DrawString(r.left + SETTINGTREE_LEFT_OFFSET, r.right - SETTINGTREE_RIGHT_OFFSET, top_pos, STR_CONFIG_SETTINGS_NONE);
+				if (next_row == 0) DrawString (dpi, r.left + SETTINGTREE_LEFT_OFFSET, r.right - SETTINGTREE_RIGHT_OFFSET, top_pos, STR_CONFIG_SETTINGS_NONE);
 				break;
 			}
 
@@ -2022,15 +2036,15 @@ struct GameSettingsWindow : Window {
 						case ST_GAME:    SetDParam(0, _game_mode == GM_MENU ? STR_CONFIG_SETTING_TYPE_GAME_MENU : STR_CONFIG_SETTING_TYPE_GAME_INGAME); break;
 						default: NOT_REACHED();
 					}
-					DrawString(r.left, r.right, y, STR_CONFIG_SETTING_TYPE);
+					DrawString (dpi, r.left, r.right, y, STR_CONFIG_SETTING_TYPE);
 					y += FONT_HEIGHT_NORMAL;
 
 					int32 default_value = ReadValue(&sd->desc.def, sd->save.conv);
 					this->last_clicked->SetValueDParams(0, default_value);
-					DrawString(r.left, r.right, y, STR_CONFIG_SETTING_DEFAULT_VALUE);
+					DrawString (dpi, r.left, r.right, y, STR_CONFIG_SETTING_DEFAULT_VALUE);
 					y += FONT_HEIGHT_NORMAL + WD_PAR_VSEP_NORMAL;
 
-					DrawStringMultiLine(r.left, r.right, y, r.bottom, this->last_clicked->GetHelpText(), TC_WHITE);
+					DrawStringMultiLine (dpi, r.left, r.right, y, r.bottom, this->last_clicked->GetHelpText(), TC_WHITE);
 				}
 				break;
 
@@ -2440,6 +2454,7 @@ void ShowGameSettings()
 
 /**
  * Draw [<][>] boxes.
+ * @param dpi the area to draw on
  * @param x the x position to draw
  * @param y the y position to draw
  * @param button_colour the colour of the button
@@ -2447,57 +2462,61 @@ void ShowGameSettings()
  * @param clickable_left is the left button clickable?
  * @param clickable_right is the right button clickable?
  */
-void DrawArrowButtons(int x, int y, Colours button_colour, byte state, bool clickable_left, bool clickable_right)
+void DrawArrowButtons (BlitArea *dpi, int x, int y, Colours button_colour,
+	byte state, bool clickable_left, bool clickable_right)
 {
 	int colour = _colour_gradient[button_colour][2];
 	Dimension dim = NWidgetScrollbar::GetHorizontalDimension();
 
-	DrawFrameRect(x,             y, x + dim.width - 1,             y + dim.height - 1, button_colour, (state == 1) ? FR_LOWERED : FR_NONE);
-	DrawFrameRect(x + dim.width, y, x + dim.width + dim.width - 1, y + dim.height - 1, button_colour, (state == 2) ? FR_LOWERED : FR_NONE);
-	DrawSprite(SPR_ARROW_LEFT, PAL_NONE, x + WD_IMGBTN_LEFT, y + WD_IMGBTN_TOP);
-	DrawSprite(SPR_ARROW_RIGHT, PAL_NONE, x + WD_IMGBTN_LEFT + dim.width, y + WD_IMGBTN_TOP);
+	DrawFrameRect (dpi, x,             y, x + dim.width - 1,             y + dim.height - 1, button_colour, (state == 1) ? FR_LOWERED : FR_NONE);
+	DrawFrameRect (dpi, x + dim.width, y, x + dim.width + dim.width - 1, y + dim.height - 1, button_colour, (state == 2) ? FR_LOWERED : FR_NONE);
+	DrawSprite (dpi, SPR_ARROW_LEFT, PAL_NONE, x + WD_IMGBTN_LEFT, y + WD_IMGBTN_TOP);
+	DrawSprite (dpi, SPR_ARROW_RIGHT, PAL_NONE, x + WD_IMGBTN_LEFT + dim.width, y + WD_IMGBTN_TOP);
 
 	/* Grey out the buttons that aren't clickable */
 	bool rtl = _current_text_dir == TD_RTL;
 	if (rtl ? !clickable_right : !clickable_left) {
-		GfxFillRect(x + 1, y, x + dim.width - 1, y + dim.height - 2, colour, FILLRECT_CHECKER);
+		GfxFillRect (dpi, x + 1, y, x + dim.width - 1, y + dim.height - 2, colour, FILLRECT_CHECKER);
 	}
 	if (rtl ? !clickable_left : !clickable_right) {
-		GfxFillRect(x + dim.width + 1, y, x + dim.width + dim.width - 1, y + dim.height - 2, colour, FILLRECT_CHECKER);
+		GfxFillRect (dpi, x + dim.width + 1, y, x + dim.width + dim.width - 1, y + dim.height - 2, colour, FILLRECT_CHECKER);
 	}
 }
 
 /**
  * Draw a dropdown button.
+ * @param dpi the area to draw on
  * @param x the x position to draw
  * @param y the y position to draw
  * @param button_colour the colour of the button
  * @param state true = lowered
  * @param clickable is the button clickable?
  */
-void DrawDropDownButton(int x, int y, Colours button_colour, bool state, bool clickable)
+void DrawDropDownButton (BlitArea *dpi, int x, int y, Colours button_colour,
+	bool state, bool clickable)
 {
 	int colour = _colour_gradient[button_colour][2];
 
-	DrawFrameRect(x, y, x + SETTING_BUTTON_WIDTH - 1, y + SETTING_BUTTON_HEIGHT - 1, button_colour, state ? FR_LOWERED : FR_NONE);
-	DrawSprite(SPR_ARROW_DOWN, PAL_NONE, x + (SETTING_BUTTON_WIDTH - NWidgetScrollbar::GetVerticalDimension().width) / 2 + state, y + 2 + state);
+	DrawFrameRect (dpi, x, y, x + SETTING_BUTTON_WIDTH - 1, y + SETTING_BUTTON_HEIGHT - 1, button_colour, state ? FR_LOWERED : FR_NONE);
+	DrawSprite (dpi, SPR_ARROW_DOWN, PAL_NONE, x + (SETTING_BUTTON_WIDTH - NWidgetScrollbar::GetVerticalDimension().width) / 2 + state, y + 2 + state);
 
 	if (!clickable) {
-		GfxFillRect(x +  1, y, x + SETTING_BUTTON_WIDTH - 1, y + SETTING_BUTTON_HEIGHT - 2, colour, FILLRECT_CHECKER);
+		GfxFillRect (dpi, x +  1, y, x + SETTING_BUTTON_WIDTH - 1, y + SETTING_BUTTON_HEIGHT - 2, colour, FILLRECT_CHECKER);
 	}
 }
 
 /**
  * Draw a toggle button.
+ * @param dpi the area to draw on
  * @param x the x position to draw
  * @param y the y position to draw
  * @param state true = lowered
  * @param clickable is the button clickable?
  */
-void DrawBoolButton(int x, int y, bool state, bool clickable)
+void DrawBoolButton (BlitArea *dpi, int x, int y, bool state, bool clickable)
 {
 	static const Colours _bool_ctabs[2][2] = {{COLOUR_CREAM, COLOUR_RED}, {COLOUR_DARK_GREEN, COLOUR_GREEN}};
-	DrawFrameRect(x, y, x + SETTING_BUTTON_WIDTH - 1, y + SETTING_BUTTON_HEIGHT - 1, _bool_ctabs[state][clickable], state ? FR_LOWERED : FR_NONE);
+	DrawFrameRect (dpi, x, y, x + SETTING_BUTTON_WIDTH - 1, y + SETTING_BUTTON_HEIGHT - 1, _bool_ctabs[state][clickable], state ? FR_LOWERED : FR_NONE);
 }
 
 struct CustomCurrencyWindow : Window {

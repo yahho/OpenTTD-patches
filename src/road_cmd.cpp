@@ -1698,15 +1698,16 @@ const byte _road_sloped_sprites[14] = {
 
 /**
  * Draw the ground sprite for a road tile
- * @param tile The tile to draw
+ * @param ti TileInfo of the tile to draw
  * @param roadside The roadside of the tile
  * @param image The sprite to draw
  * @param paved_offset The offset to add to the sprite if the road is paved
  * @param unpaved_offset The offset to add to the sprite if the tile is on snow or in the desert
  * @return The palette to use for further drawing
  */
-static PaletteID DrawRoadGroundSprite(TileIndex tile, Roadside roadside, SpriteID image, int paved_offset, int unpaved_offset)
+static PaletteID DrawRoadGroundSprite (const TileInfo *ti, Roadside roadside, SpriteID image, int paved_offset, int unpaved_offset)
 {
+	TileIndex tile = ti->tile;
 	PaletteID pal = PAL_NONE;
 
 	switch (roadside) {
@@ -1731,7 +1732,7 @@ static PaletteID DrawRoadGroundSprite(TileIndex tile, Roadside roadside, SpriteI
 			break;
 	}
 
-	DrawGroundSprite(image, pal);
+	DrawGroundSprite (ti, image, pal);
 
 	return pal;
 }
@@ -1764,8 +1765,8 @@ void DrawTramCatenary(const TileInfo *ti, RoadBits tram)
 		front = SPR_TRAMWAY_BASE + _road_frontwire_sprites_1[tram];
 	}
 
-	AddSortableSpriteToDraw(back,  PAL_NONE, ti->x, ti->y, 16, 16, TILE_HEIGHT + BB_HEIGHT_UNDER_BRIDGE, ti->z, IsTransparencySet(TO_CATENARY));
-	AddSortableSpriteToDraw(front, PAL_NONE, ti->x, ti->y, 16, 16, TILE_HEIGHT + BB_HEIGHT_UNDER_BRIDGE, ti->z, IsTransparencySet(TO_CATENARY));
+	AddSortableSpriteToDraw (ti->vd, back,  PAL_NONE, ti->x, ti->y, 16, 16, TILE_HEIGHT + BB_HEIGHT_UNDER_BRIDGE, ti->z, IsTransparencySet(TO_CATENARY));
+	AddSortableSpriteToDraw (ti->vd, front, PAL_NONE, ti->x, ti->y, 16, 16, TILE_HEIGHT + BB_HEIGHT_UNDER_BRIDGE, ti->z, IsTransparencySet(TO_CATENARY));
 }
 
 /**
@@ -1782,7 +1783,7 @@ static void DrawRoadDetail(SpriteID img, const TileInfo *ti, int dx, int dy, int
 	int y = ti->y | dy;
 	int z = ti->z;
 	if (ti->tileh != SLOPE_FLAT) z = GetSlopePixelZ(x, y);
-	AddSortableSpriteToDraw(img, PAL_NONE, x, y, 2, 2, h, z);
+	AddSortableSpriteToDraw (ti->vd, img, PAL_NONE, x, y, 2, 2, h, z);
 }
 
 /**
@@ -1813,7 +1814,7 @@ static void DrawRoadBits(TileInfo *ti)
 
 	Roadside roadside = IsTileSubtype(ti->tile, TT_TRACK) ? GetRoadside(ti->tile) : ROADSIDE_GRASS;
 
-	PaletteID pal = DrawRoadGroundSprite(ti->tile, roadside, image, -19, 19);
+	PaletteID pal = DrawRoadGroundSprite (ti, roadside, image, -19, 19);
 
 	/* For tram we overlay the road graphics with either tram tracks only
 	 * (when there is actual road beneath the trams) or with tram tracks
@@ -1825,19 +1826,19 @@ static void DrawRoadBits(TileInfo *ti)
 			image = _road_tile_sprites_1[tram] - SPR_ROAD_Y;
 		}
 		image += (road == ROAD_NONE) ? SPR_TRAMWAY_TRAM : SPR_TRAMWAY_OVERLAY;
-		DrawGroundSprite(image, pal);
+		DrawGroundSprite (ti, image, pal);
 	}
 
 	if (IsTileSubtype(ti->tile, TT_TRACK) && road != ROAD_NONE) {
 		DisallowedRoadDirections drd = GetDisallowedRoadDirections(ti->tile);
 		if (drd != DRD_NONE) {
-			DrawGroundSpriteAt(SPR_ONEWAY_BASE + drd - 1 + ((road == ROAD_X) ? 0 : 3), PAL_NONE, 8, 8, GetPartialPixelZ(8, 8, ti->tileh));
+			DrawGroundSpriteAt (ti, SPR_ONEWAY_BASE + drd - 1 + ((road == ROAD_X) ? 0 : 3), PAL_NONE, 8, 8, GetPartialPixelZ(8, 8, ti->tileh));
 		}
 	}
 
 	if (IsTileSubtype(ti->tile, TT_TRACK) && HasRoadWorks(ti->tile)) {
 		/* Road works */
-		DrawGroundSprite((road | tram) & ROAD_X ? SPR_EXCAVATION_X : SPR_EXCAVATION_Y, PAL_NONE);
+		DrawGroundSprite (ti, (road | tram) & ROAD_X ? SPR_EXCAVATION_X : SPR_EXCAVATION_Y, PAL_NONE);
 		return;
 	}
 
@@ -1846,7 +1847,8 @@ static void DrawRoadBits(TileInfo *ti)
 	if (!IsTileSubtype(ti->tile, TT_TRACK)) return;
 
 	/* Return if full detail is disabled, or we are zoomed fully out. */
-	if (!HasBit(_display_opt, DO_FULL_DETAIL) || _cur_dpi->zoom > ZOOM_LVL_DETAIL) return;
+	if (!HasBit(_display_opt, DO_FULL_DETAIL)) return;
+	if (!IsViewportDrawerDetailed (ti->vd)) return;
 
 	/* Do not draw details (street lights, trees) under low bridge */
 	if (HasBridgeAbove(ti->tile) && (roadside == ROADSIDE_TREES || roadside == ROADSIDE_STREET_LIGHTS)) {
@@ -1882,13 +1884,13 @@ static void DrawTile_Road(TileInfo *ti)
 		const PalSpriteID *psid = GetBridgeRampSprite(GetRoadBridgeType(ti->tile), 8, ti->tileh, dir);
 
 		/* Draw Trambits as SpriteCombine */
-		StartSpriteCombine();
+		StartSpriteCombine (ti->vd);
 
 		/* HACK set the height of the BB of a sloped ramp to 1 so a vehicle on
 		 * it doesn't disappear behind it
 		 */
 		/* Bridge heads are drawn solid no matter how invisibility/transparency is set */
-		AddSortableSpriteToDraw(psid->sprite, psid->pal, ti->x, ti->y, 16, 16, ti->tileh == SLOPE_FLAT ? 0 : 8, ti->z);
+		AddSortableSpriteToDraw (ti->vd, psid->sprite, psid->pal, ti->x, ti->y, 16, 16, ti->tileh == SLOPE_FLAT ? 0 : 8, ti->z);
 
 		RoadTypes rts = GetRoadTypes(ti->tile);
 
@@ -1902,10 +1904,10 @@ static void DrawTile_Road(TileInfo *ti)
 				offset += 2;
 			}
 			/* DrawBridgeTramBits() calls EndSpriteCombine() and StartSpriteCombine() */
-			DrawBridgeTramBits(ti->x, ti->y, z, offset, HasBit(rts, ROADTYPE_ROAD), true);
+			DrawBridgeTramBits (ti->vd, ti->x, ti->y, z, offset, HasBit(rts, ROADTYPE_ROAD), true);
 		}
 
-		EndSpriteCombine();
+		EndSpriteCombine (ti->vd);
 	}
 
 	DrawBridgeMiddle(ti);
@@ -1921,12 +1923,12 @@ void DrawLevelCrossing(TileInfo *ti)
 	if (rti->UsesOverlay()) {
 		Axis axis = GetCrossingRailAxis(ti->tile);
 
-		DrawRoadGroundSprite(ti->tile, GetRoadside(ti->tile), SPR_ROAD_Y + axis, -19, 19);
+		DrawRoadGroundSprite (ti, GetRoadside(ti->tile), SPR_ROAD_Y + axis, -19, 19);
 
 		SpriteID rail = GetCustomRailSprite(rti, ti->tile, RTSG_CROSSING) + axis;
 		/* Draw tracks, but draw PBS reserved tracks darker. */
 		pal = (_game_mode != GM_MENU && _settings_client.gui.show_track_reservation && HasCrossingReservation(ti->tile)) ? PALETTE_CRASH : PAL_NONE;
-		DrawGroundSprite(rail, pal);
+		DrawGroundSprite (ti, rail, pal);
 
 		DrawRailTileSeq(ti, &_crossing_layout, TO_CATENARY, rail, 0, PAL_NONE);
 	} else {
@@ -1935,16 +1937,16 @@ void DrawLevelCrossing(TileInfo *ti)
 		if (GetCrossingRoadAxis(ti->tile) == AXIS_X) image++;
 		if (IsCrossingBarred(ti->tile)) image += 2;
 
-		pal = DrawRoadGroundSprite(ti->tile, GetRoadside(ti->tile), image, 4, 8);
+		pal = DrawRoadGroundSprite (ti, GetRoadside(ti->tile), image, 4, 8);
 
 		/* PBS debugging, draw reserved tracks darker */
 		if (_game_mode != GM_MENU && _settings_client.gui.show_track_reservation && HasCrossingReservation(ti->tile)) {
-			DrawGroundSprite (GetRailTypeInfo(GetRailType(ti->tile))->base_sprites.single[GetCrossingRailTrack(ti->tile)], PALETTE_CRASH);
+			DrawGroundSprite (ti, GetRailTypeInfo(GetRailType(ti->tile))->base_sprites.single[GetCrossingRailTrack(ti->tile)], PALETTE_CRASH);
 		}
 	}
 
 	if (HasTileRoadType(ti->tile, ROADTYPE_TRAM)) {
-		DrawGroundSprite(SPR_TRAMWAY_OVERLAY + (GetCrossingRoadAxis(ti->tile) ^ 1), pal);
+		DrawGroundSprite (ti, SPR_TRAMWAY_OVERLAY + (GetCrossingRoadAxis(ti->tile) ^ 1), pal);
 		DrawTramCatenary(ti, GetCrossingRoadBits(ti->tile));
 	}
 

@@ -2784,7 +2784,7 @@ static void DrawTile_Station(TileInfo *ti)
 					7, 8, 9     // SLOPE_NE, SLOPE_ENW, SLOPE_SEN
 				};
 
-				AddSortableSpriteToDraw(image + foundation_parts[ti->tileh], PAL_NONE, ti->x, ti->y, 16, 16, 7, ti->z);
+				AddSortableSpriteToDraw (ti->vd, image + foundation_parts[ti->tileh], PAL_NONE, ti->x, ti->y, 16, 16, 7, ti->z);
 			} else {
 				/* Draw simple foundations, built up from 8 possible foundation sprites. */
 
@@ -2815,16 +2815,16 @@ static void DrawTile_Station(TileInfo *ti)
 					goto draw_default_foundation;
 				}
 
-				StartSpriteCombine();
+				StartSpriteCombine (ti->vd);
 				for (int i = 0; i < 8; i++) {
 					if (HasBit(parts, i)) {
-						AddSortableSpriteToDraw(image + i, PAL_NONE, ti->x, ti->y, 16, 16, 7, ti->z);
+						AddSortableSpriteToDraw (ti->vd, image + i, PAL_NONE, ti->x, ti->y, 16, 16, 7, ti->z);
 					}
 				}
-				EndSpriteCombine();
+				EndSpriteCombine (ti->vd);
 			}
 
-			OffsetGroundSprite(31, 1);
+			OffsetGroundSprite (ti->vd, 31, 1);
 			ti->z += ApplyPixelFoundationToSlope(FOUNDATION_LEVELED, &ti->tileh);
 		} else {
 draw_default_foundation:
@@ -2844,7 +2844,7 @@ draw_default_foundation:
 			TileIndex water_tile = GetOtherDockTile (ti->tile);
 			WaterClass wc = GetWaterClass(water_tile);
 			if (wc == WATER_CLASS_SEA) {
-				DrawShoreTile(ti->tileh);
+				DrawShoreTile (ti);
 			} else {
 				DrawClearLandTile(ti, 3);
 			}
@@ -2876,22 +2876,22 @@ draw_default_foundation:
 		RailTrackOffset overlay_offset;
 		if (rti != NULL && rti->UsesOverlay() && SplitGroundSpriteForOverlay(ti, &image, &overlay_offset)) {
 			SpriteID ground = GetCustomRailSprite(rti, ti->tile, RTSG_GROUND);
-			DrawGroundSprite(image, PAL_NONE);
-			DrawGroundSprite(ground + overlay_offset, PAL_NONE);
+			DrawGroundSprite (ti, image, PAL_NONE);
+			DrawGroundSprite (ti, ground + overlay_offset, PAL_NONE);
 
 			if (_game_mode != GM_MENU && _settings_client.gui.show_track_reservation && HasStationReservation(ti->tile)) {
 				SpriteID overlay = GetCustomRailSprite(rti, ti->tile, RTSG_OVERLAY);
-				DrawGroundSprite(overlay + overlay_offset, PALETTE_CRASH);
+				DrawGroundSprite (ti, overlay + overlay_offset, PALETTE_CRASH);
 			}
 		} else {
 			image += HasBit(image, SPRITE_MODIFIER_CUSTOM_SPRITE) ? ground_relocation : total_offset;
 			if (HasBit(pal, SPRITE_MODIFIER_CUSTOM_SPRITE)) pal += ground_relocation;
-			DrawGroundSprite(image, GroundSpritePaletteTransform(image, pal, palette));
+			DrawGroundSprite (ti, image, GroundSpritePaletteTransform(image, pal, palette));
 
 			/* PBS debugging, draw reserved tracks darker */
 			if (_game_mode != GM_MENU && _settings_client.gui.show_track_reservation && HasStationRail(ti->tile) && HasStationReservation(ti->tile)) {
 				const RailtypeInfo *rti = GetRailTypeInfo(GetRailType(ti->tile));
-				DrawGroundSprite (rti->base_sprites.single[GetRailStationTrack(ti->tile)], PALETTE_CRASH);
+				DrawGroundSprite (ti, rti->base_sprites.single[GetRailStationTrack(ti->tile)], PALETTE_CRASH);
 			}
 		}
 	}
@@ -2900,7 +2900,7 @@ draw_default_foundation:
 
 	if (HasBit(roadtypes, ROADTYPE_TRAM)) {
 		Axis axis = GetRoadStopAxis(ti->tile); // tram stops are always drive-through
-		DrawGroundSprite((HasBit(roadtypes, ROADTYPE_ROAD) ? SPR_TRAMWAY_OVERLAY : SPR_TRAMWAY_TRAM) + (axis ^ 1), PAL_NONE);
+		DrawGroundSprite (ti, (HasBit(roadtypes, ROADTYPE_ROAD) ? SPR_TRAMWAY_OVERLAY : SPR_TRAMWAY_TRAM) + (axis ^ 1), PAL_NONE);
 		DrawTramCatenary(ti, axis == AXIS_X ? ROAD_X : ROAD_Y);
 	}
 
@@ -2914,34 +2914,46 @@ draw_default_foundation:
 	DrawBridgeMiddle (ti);
 }
 
-void StationPickerDrawSprite(int x, int y, StationType st, RailType railtype, RoadType roadtype, int image)
+void RailStationPickerDrawSprite (BlitArea *dpi, int x, int y, bool waypoint, RailType railtype, int image)
 {
-	int32 total_offset = 0;
 	PaletteID pal = COMPANY_SPRITE_COLOUR(_local_company);
-	const DrawTileSprites *t = GetStationTileLayout(st, image);
-	const RailtypeInfo *rti = NULL;
+	const DrawTileSprites *t = GetStationTileLayout (waypoint ? STATION_WAYPOINT : STATION_RAIL, image);
+	const RailtypeInfo *rti = GetRailTypeInfo (railtype);
+	int32 total_offset = rti->GetRailtypeSpriteOffset();
 
-	if (railtype != INVALID_RAILTYPE) {
-		rti = GetRailTypeInfo(railtype);
-		total_offset = rti->GetRailtypeSpriteOffset();
-	}
-
-	SpriteID img = t->ground.sprite;
-	RailTrackOffset overlay_offset;
-	if (rti != NULL && rti->UsesOverlay() && SplitGroundSpriteForOverlay(NULL, &img, &overlay_offset)) {
-		SpriteID ground = GetCustomRailSprite(rti, INVALID_TILE, RTSG_GROUND);
-		DrawSprite(img, PAL_NONE, x, y);
-		DrawSprite(ground + overlay_offset, PAL_NONE, x, y);
+	SpriteID ground_spr;
+	PaletteID ground_pal;
+	if (rti->UsesOverlay()) {
+		DrawSprite (dpi, SPR_FLAT_GRASS_TILE, PAL_NONE, x, y);
+		ground_spr = GetCustomRailSprite (rti, INVALID_TILE, RTSG_GROUND);
+		bool odd = (image % 2) != 0;
+		assert (t->ground.sprite == (odd ? SPR_RAIL_TRACK_Y : SPR_RAIL_TRACK_X));
+		ground_spr += odd ? RTO_Y : RTO_X;
+		ground_pal = PAL_NONE;
 	} else {
-		DrawSprite(img + total_offset, HasBit(img, PALETTE_MODIFIER_COLOUR) ? pal : PAL_NONE, x, y);
+		SpriteID img = t->ground.sprite;
+		ground_spr = img + total_offset;
+		ground_pal = HasBit(img, PALETTE_MODIFIER_COLOUR) ? pal : PAL_NONE;
 	}
-
-	if (roadtype == ROADTYPE_TRAM) {
-		DrawSprite(SPR_TRAMWAY_TRAM + (t->ground.sprite == SPR_ROAD_PAVED_STRAIGHT_X ? 1 : 0), PAL_NONE, x, y);
-	}
+	DrawSprite (dpi, ground_spr, ground_pal, x, y);
 
 	/* Default waypoint has no railtype specific sprites */
-	DrawRailTileSeqInGUI(x, y, t, st == STATION_WAYPOINT ? 0 : total_offset, 0, pal);
+	DrawRailTileSeqInGUI (dpi, x, y, t, waypoint ? 0 : total_offset, 0, pal);
+}
+
+void RoadStationPickerDrawSprite (BlitArea *dpi, int x, int y, bool bus, bool tram, int image)
+{
+	PaletteID pal = COMPANY_SPRITE_COLOUR(_local_company);
+	const DrawTileSprites *t = GetStationTileLayout (bus ? STATION_BUS : STATION_TRUCK, image);
+
+	SpriteID img = t->ground.sprite;
+	DrawSprite (dpi, img, HasBit(img, PALETTE_MODIFIER_COLOUR) ? pal : PAL_NONE, x, y);
+
+	if (tram) {
+		DrawSprite (dpi, SPR_TRAMWAY_TRAM + (t->ground.sprite == SPR_ROAD_PAVED_STRAIGHT_X ? 1 : 0), PAL_NONE, x, y);
+	}
+
+	DrawOrigTileSeqInGUI (dpi, x, y, t, pal);
 }
 
 static int GetSlopePixelZ_Station(TileIndex tile, uint x, uint y)

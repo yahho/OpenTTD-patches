@@ -47,7 +47,7 @@ void CcBuildDocks(const CommandCost &result, TileIndex tile, uint32 p1, uint32 p
 	if (!_settings_client.gui.persistent_buildingtools) ResetPointerMode();
 }
 
-void CcBuildCanal(const CommandCost &result, TileIndex tile, uint32 p1, uint32 p2)
+void CcPlaySound_SPLAT_WATER(const CommandCost &result, TileIndex tile, uint32 p1, uint32 p2)
 {
 	if (result.Succeeded() && _settings_client.sound.confirm) SndPlayTileFx(SND_02_SPLAT_WATER, tile);
 }
@@ -417,11 +417,11 @@ public:
 		this->PickerWindowBase::OnDelete();
 	}
 
-	virtual void OnPaint()
+	void OnPaint (BlitArea *dpi) OVERRIDE
 	{
 		int rad = (_settings_game.station.modified_catchment) ? CA_DOCK : CA_UNMODIFIED;
 
-		this->DrawWidgets();
+		this->DrawWidgets (dpi);
 
 		if (_settings_client.gui.station_show_coverage) {
 			SetTileSelectBigSize(-rad, -rad, 2 * rad, 2 * rad);
@@ -434,13 +434,12 @@ public:
 		NWidgetBase *back_nwi = this->GetWidget<NWidgetBase>(BDSW_BACKGROUND);
 		int right  = back_nwi->pos_x + back_nwi->current_x;
 		int bottom = back_nwi->pos_y + back_nwi->current_y;
-		top = DrawStationCoverageAreaText(back_nwi->pos_x + WD_FRAMERECT_LEFT, right - WD_FRAMERECT_RIGHT, top, SCT_ALL, rad, false) + WD_PAR_VSEP_NORMAL;
-		top = DrawStationCoverageAreaText(back_nwi->pos_x + WD_FRAMERECT_LEFT, right - WD_FRAMERECT_RIGHT, top, SCT_ALL, rad, true) + WD_PAR_VSEP_NORMAL;
+		top = DrawStationCoverageAreaText (dpi, back_nwi->pos_x + WD_FRAMERECT_LEFT, right - WD_FRAMERECT_RIGHT, top, rad);
 		/* Resize background if the window is too small.
 		 * Never make the window smaller to avoid oscillating if the size change affects the acceptance.
 		 * (This is the case, if making the window bigger moves the mouse into the window.) */
 		if (top > bottom) {
-			ResizeWindow(this, 0, top - bottom);
+			ResizeWindow(this, 0, top - bottom, false);
 		}
 	}
 
@@ -523,19 +522,22 @@ public:
 		}
 	}
 
-	virtual void OnPaint()
+	void OnPaint (BlitArea *dpi) OVERRIDE
 	{
-		this->DrawWidgets();
+		this->DrawWidgets (dpi);
 
 		int x1 = ScaleGUITrad(63) + 1;
 		int x2 = ScaleGUITrad(31) + 1;
 		int y1 = ScaleGUITrad(17) + 1;
 		int y2 = ScaleGUITrad(33) + 1;
 
-		DrawShipDepotSprite(this->GetWidget<NWidgetBase>(WID_BDD_X)->pos_x + x1, this->GetWidget<NWidgetBase>(WID_BDD_X)->pos_y + y1, DIAGDIR_NE);
-		DrawShipDepotSprite(this->GetWidget<NWidgetBase>(WID_BDD_X)->pos_x + x2, this->GetWidget<NWidgetBase>(WID_BDD_X)->pos_y + y2, DIAGDIR_SW);
-		DrawShipDepotSprite(this->GetWidget<NWidgetBase>(WID_BDD_Y)->pos_x + x2, this->GetWidget<NWidgetBase>(WID_BDD_Y)->pos_y + y1, DIAGDIR_NW);
-		DrawShipDepotSprite(this->GetWidget<NWidgetBase>(WID_BDD_Y)->pos_x + x1, this->GetWidget<NWidgetBase>(WID_BDD_Y)->pos_y + y2, DIAGDIR_SE);
+		NWidgetBase *wid_x = this->GetWidget<NWidgetBase> (WID_BDD_X);
+		DrawShipDepotSprite (dpi, wid_x->pos_x + x1, wid_x->pos_y + y1, DIAGDIR_NE);
+		DrawShipDepotSprite (dpi, wid_x->pos_x + x2, wid_x->pos_y + y2, DIAGDIR_SW);
+
+		NWidgetBase *wid_y = this->GetWidget<NWidgetBase> (WID_BDD_Y);
+		DrawShipDepotSprite (dpi, wid_y->pos_x + x2, wid_y->pos_y + y1, DIAGDIR_NW);
+		DrawShipDepotSprite (dpi, wid_y->pos_x + x1, wid_y->pos_y + y2, DIAGDIR_SE);
 	}
 
 	virtual void OnClick(Point pt, int widget, int click_count)

@@ -60,7 +60,7 @@ static uint MAX_CHAT_MESSAGES = 0;        ///< The limit of chat messages to sho
  */
 static const int _chatmsg_box_x = 10;
 static int _chatmsg_box_y, _chatmsg_box_width, _chatmsg_box_height;
-static uint8 *_chatmessage_backup = NULL; ///< Backup in case text is moved.
+static Blitter::Buffer _chatmessage_backup; ///< Backup in case text is moved.
 
 /**
  * Count the chat messages.
@@ -110,7 +110,7 @@ void NetworkReInitChatBoxSize()
 {
 	_chatmsg_box_y       = 3 * FONT_HEIGHT_NORMAL;
 	_chatmsg_box_height  = MAX_CHAT_MESSAGES * (FONT_HEIGHT_NORMAL + NETWORK_CHAT_LINE_SPACING) + 2;
-	_chatmessage_backup  = xrealloct (_chatmessage_backup, _chatmsg_box_width * _chatmsg_box_height * Blitter::get()->GetBytesPerPixel());
+	_screen.surface->copy (&_chatmessage_backup, -1, -1, _chatmsg_box_width, _chatmsg_box_height);
 }
 
 /** Initialize all buffers of the chat visualisation. */
@@ -178,11 +178,9 @@ void NetworkUndrawChatMessage()
 		int x, y, width, height;
 		if (!ComputeChatArea (&x, &y, &width, &height)) return;
 
-		Blitter *blitter = Blitter::get();
-
 		_chatmessage_visible = false;
 		/* Put our 'shot' back to the screen */
-		blitter->CopyFromBuffer(blitter->MoveTo(_screen.dst_ptr, x, y), _chatmessage_backup, width, height);
+		_screen.surface->paste (&_chatmessage_backup, x, y);
 		/* And make sure it is updated next time */
 		VideoDriver::GetActiveDriver()->MakeDirty(x, y, width, height);
 
@@ -215,7 +213,6 @@ void NetworkChatMessageLoop()
 /** Draw the chat message-box */
 void NetworkDrawChatMessage()
 {
-	Blitter *blitter = Blitter::get();
 	if (!_chatmessage_dirty) return;
 
 	/* First undraw if needed */
@@ -230,12 +227,8 @@ void NetworkDrawChatMessage()
 	int x, y, width, height;
 	if (!ComputeChatArea (&x, &y, &width, &height)) return;
 
-	assert (blitter->BufferSize (width, height) <= (int)(_chatmsg_box_width * _chatmsg_box_height * blitter->GetBytesPerPixel()));
-
 	/* Make a copy of the screen as it is before painting (for undraw) */
-	blitter->CopyToBuffer(blitter->MoveTo(_screen.dst_ptr, x, y), _chatmessage_backup, width, height);
-
-	_cur_dpi = &_screen; // switch to _screen painting
+	_screen.surface->copy (&_chatmessage_backup, x, y, width, height);
 
 	int string_height = 0;
 	for (uint i = 0; i < count; i++) {
@@ -248,7 +241,7 @@ void NetworkDrawChatMessage()
 	int bottom = _screen.height - _chatmsg_box_y;
 	int top = bottom - string_height;
 	/* Paint a half-transparent box behind the chat messages */
-	GfxFillRect (_chatmsg_box_x, top - 2, _chatmsg_box_x + _chatmsg_box_width - 1, bottom - 1,
+	GfxFillRect (&_screen, _chatmsg_box_x, top - 2, _chatmsg_box_x + _chatmsg_box_width - 1, bottom - 1,
 			PALETTE_TO_TRANSPARENT, FILLRECT_RECOLOUR // black, but with some alpha for background
 		);
 
@@ -256,7 +249,7 @@ void NetworkDrawChatMessage()
 	int ypos = bottom - 2;
 
 	for (int i = count - 1; i >= 0; i--) {
-		ypos = DrawStringMultiLine (_chatmsg_box_x + 3, _chatmsg_box_x + _chatmsg_box_width - 1, top, ypos, _chatmsg_list[i].message, _chatmsg_list[i].colour, SA_LEFT | SA_BOTTOM | SA_FORCE) - NETWORK_CHAT_LINE_SPACING;
+		ypos = DrawStringMultiLine (&_screen, _chatmsg_box_x + 3, _chatmsg_box_x + _chatmsg_box_width - 1, top, ypos, _chatmsg_list[i].message, _chatmsg_list[i].colour, SA_LEFT | SA_BOTTOM | SA_FORCE) - NETWORK_CHAT_LINE_SPACING;
 		if (ypos < top) break;
 	}
 
@@ -483,14 +476,14 @@ struct NetworkChatWindow : public Window {
 		*size = maxdim(*size, d);
 	}
 
-	virtual void DrawWidget(const Rect &r, int widget) const
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
 	{
 		if (widget != WID_NC_DESTINATION) return;
 
 		if (this->dtype == DESTTYPE_CLIENT) {
 			SetDParamStr(0, NetworkClientInfo::GetByClientID((ClientID)this->dest)->client_name);
 		}
-		DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP, this->dest_string, TC_BLACK, SA_RIGHT);
+		DrawString (dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP, this->dest_string, TC_BLACK, SA_RIGHT);
 	}
 
 	virtual void OnClick(Point pt, int widget, int click_count)

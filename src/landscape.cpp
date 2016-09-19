@@ -407,7 +407,7 @@ void DrawFoundation(TileInfo *ti, Foundation f, DiagDirection side)
 	if (IsSteepSlope(ti->tileh)) {
 		if (!IsNonContinuousFoundation(f)) {
 			/* Lower part of foundation */
-			AddSortableSpriteToDraw(
+			AddSortableSpriteToDraw (ti->vd,
 				leveled_base + (ti->tileh & ~SLOPE_STEEP), PAL_NONE, ti->x, ti->y, 16, 16, 7, ti->z
 			);
 		}
@@ -419,39 +419,39 @@ void DrawFoundation(TileInfo *ti, Foundation f, DiagDirection side)
 			/* inclined foundation */
 			byte inclined = highest_corner * 2 + (f == FOUNDATION_INCLINED_Y ? 1 : 0);
 
-			AddSortableSpriteToDraw(inclined_base + inclined, PAL_NONE, ti->x, ti->y,
+			AddSortableSpriteToDraw (ti->vd, inclined_base + inclined, PAL_NONE, ti->x, ti->y,
 				f == FOUNDATION_INCLINED_X ? 16 : 1,
 				f == FOUNDATION_INCLINED_Y ? 16 : 1,
 				TILE_HEIGHT, ti->z
 			);
-			OffsetGroundSprite(31, 9);
+			OffsetGroundSprite (ti->vd, 31, 9);
 		} else if (IsLeveledFoundation(f)) {
-			AddSortableSpriteToDraw(leveled_base + SlopeWithOneCornerRaised(highest_corner), PAL_NONE, ti->x, ti->y, 16, 16, 7, ti->z - TILE_HEIGHT);
-			OffsetGroundSprite(31, 1);
+			AddSortableSpriteToDraw (ti->vd, leveled_base + SlopeWithOneCornerRaised(highest_corner), PAL_NONE, ti->x, ti->y, 16, 16, 7, ti->z - TILE_HEIGHT);
+			OffsetGroundSprite (ti->vd, 31, 1);
 		} else if (f == FOUNDATION_STEEP_LOWER) {
 			/* one corner raised */
-			OffsetGroundSprite(31, 1);
+			OffsetGroundSprite (ti->vd, 31, 1);
 		} else {
 			/* halftile foundation */
 			int x_bb = (((highest_corner == CORNER_W) || (highest_corner == CORNER_S)) ? 8 : 0);
 			int y_bb = (((highest_corner == CORNER_S) || (highest_corner == CORNER_E)) ? 8 : 0);
 
-			AddSortableSpriteToDraw(halftile_base + highest_corner, PAL_NONE, ti->x + x_bb, ti->y + y_bb, 8, 8, 7, ti->z + TILE_HEIGHT);
-			OffsetGroundSprite(31, 9);
+			AddSortableSpriteToDraw (ti->vd, halftile_base + highest_corner, PAL_NONE, ti->x + x_bb, ti->y + y_bb, 8, 8, 7, ti->z + TILE_HEIGHT);
+			OffsetGroundSprite (ti->vd, 31, 9);
 		}
 	} else {
 		if (IsLeveledFoundation(f)) {
 			/* leveled foundation */
-			AddSortableSpriteToDraw(leveled_base + ti->tileh, PAL_NONE, ti->x, ti->y, 16, 16, 7, ti->z);
-			OffsetGroundSprite(31, 1);
+			AddSortableSpriteToDraw (ti->vd, leveled_base + ti->tileh, PAL_NONE, ti->x, ti->y, 16, 16, 7, ti->z);
+			OffsetGroundSprite (ti->vd, 31, 1);
 		} else if (IsNonContinuousFoundation(f)) {
 			/* halftile foundation */
 			Corner halftile_corner = GetHalftileFoundationCorner(f);
 			int x_bb = (((halftile_corner == CORNER_W) || (halftile_corner == CORNER_S)) ? 8 : 0);
 			int y_bb = (((halftile_corner == CORNER_S) || (halftile_corner == CORNER_E)) ? 8 : 0);
 
-			AddSortableSpriteToDraw(halftile_base + halftile_corner, PAL_NONE, ti->x + x_bb, ti->y + y_bb, 8, 8, 7, ti->z);
-			OffsetGroundSprite(31, 9);
+			AddSortableSpriteToDraw (ti->vd, halftile_base + halftile_corner, PAL_NONE, ti->x + x_bb, ti->y + y_bb, 8, 8, 7, ti->z);
+			OffsetGroundSprite (ti->vd, 31, 9);
 		} else if (IsSpecialRailFoundation(f)) {
 			/* anti-zig-zag foundation */
 			SpriteID spr;
@@ -462,18 +462,18 @@ void DrawFoundation(TileInfo *ti, Foundation f, DiagDirection side)
 				/* tile-slope = sloped along X/Y, foundation-slope = three corners raised */
 				spr = inclined_base + 2 * GetRailFoundationCorner(f) + ((ti->tileh == SLOPE_SW || ti->tileh == SLOPE_NE) ? 1 : 0);
 			}
-			AddSortableSpriteToDraw(spr, PAL_NONE, ti->x, ti->y, 16, 16, 7, ti->z);
-			OffsetGroundSprite(31, 9);
+			AddSortableSpriteToDraw (ti->vd, spr, PAL_NONE, ti->x, ti->y, 16, 16, 7, ti->z);
+			OffsetGroundSprite (ti->vd, 31, 9);
 		} else {
 			/* inclined foundation */
 			byte inclined = GetHighestSlopeCorner(ti->tileh) * 2 + (f == FOUNDATION_INCLINED_Y ? 1 : 0);
 
-			AddSortableSpriteToDraw(inclined_base + inclined, PAL_NONE, ti->x, ti->y,
+			AddSortableSpriteToDraw (ti->vd, inclined_base + inclined, PAL_NONE, ti->x, ti->y,
 				f == FOUNDATION_INCLINED_X ? 16 : 1,
 				f == FOUNDATION_INCLINED_Y ? 16 : 1,
 				TILE_HEIGHT, ti->z
 			);
-			OffsetGroundSprite(31, 9);
+			OffsetGroundSprite (ti->vd, 31, 9);
 		}
 		ti->z += ApplyPixelFoundationToSlope(f, &ti->tileh);
 	}

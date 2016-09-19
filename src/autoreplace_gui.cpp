@@ -28,7 +28,9 @@
 
 #include "widgets/autoreplace_widget.h"
 
-void DrawEngineList(VehicleType type, int x, int r, int y, const GUIEngineList *eng_list, uint16 min, uint16 max, EngineID selected_id, bool show_count, GroupID selected_group);
+void DrawEngineList (VehicleType type, BlitArea *dpi, int x, int r, int y,
+	const GUIEngineList *eng_list, uint16 min, uint16 max,
+	EngineID selected_id, bool show_count, GroupID selected_group);
 
 static int CDECL EngineNumberSorter(const EngineID *a, const EngineID *b)
 {
@@ -393,15 +395,15 @@ public:
 		}
 	}
 
-	virtual void DrawWidget(const Rect &r, int widget) const
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
 	{
 		switch (widget) {
 			case WID_RV_SORT_ASCENDING_DESCENDING:
-				this->DrawSortButtonState(WID_RV_SORT_ASCENDING_DESCENDING, this->descending_sort_order ? SBS_DOWN : SBS_UP);
+				this->DrawSortButtonState (dpi, WID_RV_SORT_ASCENDING_DESCENDING, this->descending_sort_order ? SBS_DOWN : SBS_UP);
 				break;
 
 			case WID_RV_INFO_TAB: {
-				DrawString(r.left + WD_FRAMETEXT_LEFT, r.right - WD_FRAMETEXT_RIGHT, r.top + WD_FRAMERECT_TOP, STR_REPLACE_INFO_TAB, TC_BLACK, SA_HOR_CENTER);
+				DrawString (dpi, r.left + WD_FRAMETEXT_LEFT, r.right - WD_FRAMETEXT_RIGHT, r.top + WD_FRAMERECT_TOP, STR_REPLACE_INFO_TAB, TC_BLACK, SA_HOR_CENTER);
 
 				const Company *c = Company::Get(_local_company);
 				StringID str;
@@ -418,7 +420,7 @@ public:
 					str = STR_REPLACE_NOT_REPLACING_VEHICLE_SELECTED;
 				}
 
-				DrawString(r.left + WD_FRAMETEXT_LEFT, r.right - WD_FRAMETEXT_RIGHT, r.top + 2 * WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM + GetStringBoundingBox(STR_REPLACE_INFO_TAB).height, str, TC_BLACK, SA_HOR_CENTER);
+				DrawString (dpi, r.left + WD_FRAMETEXT_LEFT, r.right - WD_FRAMETEXT_RIGHT, r.top + 2 * WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM + GetStringBoundingBox(STR_REPLACE_INFO_TAB).height, str, TC_BLACK, SA_HOR_CENTER);
 				break;
 			}
 
@@ -429,14 +431,14 @@ public:
 				EngineID end    = min(this->vscroll[side]->GetCapacity() + start, this->engines[side].Length());
 
 				/* Do the actual drawing */
-				DrawEngineList((VehicleType)this->window_number, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP,
+				DrawEngineList ((VehicleType)this->window_number, dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP,
 						&this->engines[side], start, end, this->sel_engine[side], side == 0, this->sel_group);
 				break;
 			}
 		}
 	}
 
-	virtual void OnPaint()
+	void OnPaint (BlitArea *dpi) OVERRIDE
 	{
 		if (this->engines[0].NeedRebuild() || this->engines[1].NeedRebuild()) this->GenerateLists();
 
@@ -462,7 +464,7 @@ public:
 			this->GetWidget<NWidgetCore>(WID_RV_TRAIN_RAILTYPE_DROPDOWN)->widget_data = GetRailTypeInfo(sel_railtype)->strings.replace_text;
 		}
 
-		this->DrawWidgets();
+		this->DrawWidgets (dpi);
 
 		if (!this->IsShaded()) {
 			int needed_height = this->details_height;
@@ -470,7 +472,7 @@ public:
 			for (int side = 0; side < 2; side++) {
 				if (this->sel_engine[side] != INVALID_ENGINE) {
 					NWidgetBase *nwi = this->GetWidget<NWidgetBase>(side == 0 ? WID_RV_LEFT_DETAILS : WID_RV_RIGHT_DETAILS);
-					int text_end = DrawVehiclePurchaseInfo(nwi->pos_x + WD_FRAMETEXT_LEFT, nwi->pos_x + nwi->current_x - WD_FRAMETEXT_RIGHT,
+					int text_end = DrawVehiclePurchaseInfo (dpi, nwi->pos_x + WD_FRAMETEXT_LEFT, nwi->pos_x + nwi->current_x - WD_FRAMETEXT_RIGHT,
 							nwi->pos_y + WD_FRAMERECT_TOP, this->sel_engine[side]);
 					needed_height = max(needed_height, text_end - (int)nwi->pos_y + WD_FRAMERECT_BOTTOM);
 				}

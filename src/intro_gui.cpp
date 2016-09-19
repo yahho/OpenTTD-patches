@@ -62,12 +62,12 @@ struct SelectGameWindow : public Window {
 		this->GetWidget<NWidgetStacked>(WID_SGI_TRANSLATION_SELECTION)->SetDisplayedPlane(missing ? 0 : SZSP_NONE);
 	}
 
-	virtual void DrawWidget(const Rect &r, int widget) const
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
 	{
 		switch (widget) {
 			case WID_SGI_TRANSLATION:
 				SetDParam(0, _current_language->missing);
-				DrawStringMultiLine(r.left, r.right, r.top,  r.bottom, STR_INTRO_TRANSLATION, TC_FROMSTRING, SA_CENTER);
+				DrawStringMultiLine (dpi, r.left, r.right, r.top, r.bottom, STR_INTRO_TRANSLATION, TC_FROMSTRING, SA_CENTER);
 				break;
 		}
 	}

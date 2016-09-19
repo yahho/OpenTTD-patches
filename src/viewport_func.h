@@ -38,24 +38,24 @@ void ZoomInOrOutToCursorWindow(bool in, Window * w);
 Point GetTileZoomCenterWindow(bool in, Window * w);
 void HandleZoomMessage(Window *w, const ViewPort *vp, byte widget_zoom_in, byte widget_zoom_out);
 
-void OffsetGroundSprite(int x, int y);
+void OffsetGroundSprite (struct ViewportDrawer *vd, int x, int y);
 
-void DrawGroundSprite(SpriteID image, PaletteID pal, const SubSprite *sub = NULL, int extra_offs_x = 0, int extra_offs_y = 0);
-void DrawGroundSpriteAt(SpriteID image, PaletteID pal, int32 x, int32 y, int z, const SubSprite *sub = NULL, int extra_offs_x = 0, int extra_offs_y = 0);
-void AddSortableSpriteToDraw(SpriteID image, PaletteID pal, int x, int y, int w, int h, int dz, int z, bool transparent = false, int bb_offset_x = 0, int bb_offset_y = 0, int bb_offset_z = 0, const SubSprite *sub = NULL);
-void AddChildSpriteScreen(SpriteID image, PaletteID pal, int x, int y, bool transparent = false, const SubSprite *sub = NULL, bool scale = true);
-void ViewportAddString(const DrawPixelInfo *dpi, ZoomLevel small_from, const ViewportSign *sign, StringID string_normal, StringID string_small, StringID string_small_shadow, uint64 params_1, uint64 params_2 = 0, Colours colour = INVALID_COLOUR);
+void DrawGroundSprite (const TileInfo *ti, SpriteID image, PaletteID pal, const SubSprite *sub = NULL, int extra_offs_x = 0, int extra_offs_y = 0);
+void DrawGroundSpriteAt (const TileInfo *ti, SpriteID image, PaletteID pal, int32 x, int32 y, int z, const SubSprite *sub = NULL, int extra_offs_x = 0, int extra_offs_y = 0);
+void AddSortableSpriteToDraw (struct ViewportDrawer *vd, SpriteID image, PaletteID pal, int x, int y, int w, int h, int dz, int z, bool transparent = false, int bb_offset_x = 0, int bb_offset_y = 0, int bb_offset_z = 0, const SubSprite *sub = NULL);
+void AddChildSpriteScreen (struct ViewportDrawer *vd, SpriteID image, PaletteID pal, int x, int y, bool transparent = false, const SubSprite *sub = NULL, bool scale = true);
+void ViewportAddString (BlitArea *area, const DrawPixelInfo *dpi, ZoomLevel small_from, const ViewportSign *sign, StringID string_normal, StringID string_small, StringID string_small_shadow, uint64 params_1, uint64 params_2 = 0, Colours colour = INVALID_COLOUR);
 
 
-void StartSpriteCombine();
-void EndSpriteCombine();
+void StartSpriteCombine (struct ViewportDrawer *vd);
+void EndSpriteCombine (struct ViewportDrawer *vd);
 
 bool HandleViewportClicked(const ViewPort *vp, int x, int y);
 void SetRedErrorSquare(TileIndex tile);
 void SetTileSelectSize(int w, int h);
 void SetTileSelectBigSize(int ox, int oy, int sx, int sy);
 
-void ViewportDoDraw(const ViewPort *vp, int left, int top, int right, int bottom);
+void ViewportDoDraw (BlitArea *area, const ViewPort *vp, int left, int top, int right, int bottom);
 
 bool ScrollWindowToTile(TileIndex tile, Window *w, bool instant = false);
 bool ScrollWindowTo(int x, int y, int z, Window *w, bool instant = false);
@@ -76,5 +76,7 @@ void MarkTileDirtyByTileOutsideMap(int x, int y);
 int GetVirtualHeight (int x, int y);
 
 Point GetViewportStationMiddle(const ViewPort *vp, const Station *st);
+
+bool IsViewportDrawerDetailed (const struct ViewportDrawer *vd);
 
 #endif /* VIEWPORT_FUNC_H */

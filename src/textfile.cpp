@@ -405,7 +405,7 @@ void TextfileWindow::SetupScrollbars()
 	}
 }
 
-/* virtual */ void TextfileWindow::DrawWidget(const Rect &r, int widget) const
+void TextfileWindow::DrawWidget (BlitArea *dpi, const Rect &r, int widget) const
 {
 	if (widget != WID_TF_BACKGROUND) return;
 
@@ -414,10 +414,8 @@ void TextfileWindow::SetupScrollbars()
 	const int right = r.right - WD_FRAMETEXT_RIGHT;
 	const int bottom = r.bottom - WD_FRAMETEXT_BOTTOM;
 
-	DrawPixelInfo new_dpi;
-	if (!FillDrawPixelInfo(&new_dpi, x, y, right - x + 1, bottom - y + 1)) return;
-	DrawPixelInfo *old_dpi = _cur_dpi;
-	_cur_dpi = &new_dpi;
+	BlitArea new_dpi;
+	if (!InitBlitArea (dpi, &new_dpi, x, y, right - x + 1, bottom - y + 1)) return;
 
 	/* Draw content (now coordinates given to DrawString* are local to the new clipping region). */
 	int line_height = FONT_HEIGHT_MONO;
@@ -425,14 +423,12 @@ void TextfileWindow::SetupScrollbars()
 
 	for (uint i = 0; i < this->lines.size(); i++) {
 		if (IsWidgetLowered(WID_TF_WRAPTEXT)) {
-			y_offset = DrawStringMultiLine(0, right - x, y_offset, bottom - y, this->lines[i], TC_WHITE, SA_TOP | SA_LEFT, false, FS_MONO);
+			y_offset = DrawStringMultiLine (&new_dpi, 0, right - x, y_offset, bottom - y, this->lines[i], TC_WHITE, SA_TOP | SA_LEFT, false, FS_MONO);
 		} else {
-			DrawString(-this->hscroll->GetPosition(), right - x, y_offset, this->lines[i], TC_WHITE, SA_TOP | SA_LEFT, false, FS_MONO);
+			DrawString (&new_dpi, -this->hscroll->GetPosition(), right - x, y_offset, this->lines[i], TC_WHITE, SA_TOP | SA_LEFT, false, FS_MONO);
 			y_offset += line_height; // margin to previous element
 		}
 	}
-
-	_cur_dpi = old_dpi;
 }
 
 /* virtual */ void TextfileWindow::OnResize()

@@ -13,7 +13,7 @@
 #define TEXTEFF_HPP
 
 #include "economy_type.h"
-#include "gfx_type.h"
+#include "gfx_func.h"
 #include "strings_type.h"
 
 /**
@@ -31,7 +31,7 @@ typedef uint16 TextEffectID;
 void MoveAllTextEffects();
 TextEffectID AddTextEffect(StringID msg, int x, int y, uint8 duration, TextEffectMode mode);
 void InitTextEffects();
-void DrawTextEffects(DrawPixelInfo *dpi);
+void DrawTextEffects (BlitArea *area, DrawPixelInfo *dpi);
 void UpdateTextEffect(TextEffectID effect_id, StringID msg);
 void RemoveTextEffect(TextEffectID effect_id);
 

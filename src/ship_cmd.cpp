@@ -80,14 +80,15 @@ static SpriteID GetShipIcon(EngineID engine, EngineImageType image_type)
 	return DIR_W + _ship_sprites[spritenum];
 }
 
-void DrawShipEngine(int left, int right, int preferred_x, int y, EngineID engine, PaletteID pal, EngineImageType image_type)
+void DrawShipEngine (BlitArea *dpi, int left, int right, int preferred_x,
+	int y, EngineID engine, PaletteID pal, EngineImageType image_type)
 {
 	SpriteID sprite = GetShipIcon(engine, image_type);
 	const Sprite *real_sprite = GetSprite(sprite, ST_NORMAL);
 	preferred_x = Clamp(preferred_x,
 			left - UnScaleGUI(real_sprite->x_offs),
 			right - UnScaleGUI(real_sprite->width) - UnScaleGUI(real_sprite->x_offs));
-	DrawSprite(sprite, pal, preferred_x, y);
+	DrawSprite (dpi, sprite, pal, preferred_x, y);
 }
 
 /**

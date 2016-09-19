@@ -38,12 +38,12 @@ struct EndGameHighScoreBaseWindow : Window {
 	}
 
 	/* Always draw a maximized window and within it the centered background */
-	void SetupHighScoreEndWindow()
+	void SetupHighScoreEndWindow (BlitArea *dpi)
 	{
 		/* Resize window to "full-screen". */
 		if (this->width != _screen.width || this->height != _screen.height) ResizeWindow(this, _screen.width - this->width, _screen.height - this->height);
 
-		this->DrawWidgets();
+		this->DrawWidgets (dpi);
 
 		/* Standard background slices are 50 pixels high, but it's designed
 		 * for 480 pixels total. 96% of 500 is 480. */
@@ -51,7 +51,7 @@ struct EndGameHighScoreBaseWindow : Window {
 		Point pt = this->GetTopLeft(dim.width, dim.height * 96 / 10);
 		/* Center Highscore/Endscreen background */
 		for (uint i = 0; i < 10; i++) { // the image is split into 10 50px high parts
-			DrawSprite(this->background_img + i, PAL_NONE, pt.x, pt.y + (i * dim.height));
+			DrawSprite (dpi, this->background_img + i, PAL_NONE, pt.x, pt.y + (i * dim.height));
 		}
 	}
 
@@ -128,9 +128,9 @@ struct EndGameWindow : EndGameHighScoreBaseWindow {
 		ShowHighscoreTable(this->window_number, this->rank);
 	}
 
-	virtual void OnPaint()
+	void OnPaint (BlitArea *dpi) OVERRIDE
 	{
-		this->SetupHighScoreEndWindow();
+		this->SetupHighScoreEndWindow (dpi);
 		Point pt = this->GetTopLeft(640, 480);
 
 		const Company *c = Company::GetIfValid(_local_company);
@@ -142,11 +142,11 @@ struct EndGameWindow : EndGameHighScoreBaseWindow {
 			SetDParam(0, c->index);
 			SetDParam(1, c->index);
 			SetDParam(2, EndGameGetPerformanceTitleFromValue(c->old_economy[0].performance_history));
-			DrawStringMultiLine(pt.x + 15, pt.x + 640 - 25, pt.y + 90, pt.y + 160, STR_HIGHSCORE_PRESIDENT_OF_COMPANY_ACHIEVES_STATUS, TC_FROMSTRING, SA_CENTER);
+			DrawStringMultiLine (dpi, pt.x + 15, pt.x + 640 - 25, pt.y + 90, pt.y + 160, STR_HIGHSCORE_PRESIDENT_OF_COMPANY_ACHIEVES_STATUS, TC_FROMSTRING, SA_CENTER);
 		} else {
 			SetDParam(0, c->index);
 			SetDParam(1, EndGameGetPerformanceTitleFromValue(c->old_economy[0].performance_history));
-			DrawStringMultiLine(pt.x + 36, pt.x + 640, pt.y + 140, pt.y + 206, STR_HIGHSCORE_COMPANY_ACHIEVES_STATUS, TC_FROMSTRING, SA_CENTER);
+			DrawStringMultiLine (dpi, pt.x + 36, pt.x + 640, pt.y + 140, pt.y + 206, STR_HIGHSCORE_COMPANY_ACHIEVES_STATUS, TC_FROMSTRING, SA_CENTER);
 		}
 	}
 };
@@ -177,29 +177,29 @@ struct HighScoreWindow : EndGameHighScoreBaseWindow {
 		if (!_networking && !this->game_paused_by_player) DoCommandP(0, PM_PAUSED_NORMAL, 0, CMD_PAUSE); // unpause
 	}
 
-	virtual void OnPaint()
+	void OnPaint (BlitArea *dpi) OVERRIDE
 	{
 		const HighScore *hs = _highscore_table[this->window_number];
 
-		this->SetupHighScoreEndWindow();
+		this->SetupHighScoreEndWindow (dpi);
 		Point pt = this->GetTopLeft(640, 480);
 
 		SetDParam(0, ORIGINAL_END_YEAR);
-		DrawStringMultiLine(pt.x + 70, pt.x + 570, pt.y, pt.y + 140, !_networking ? STR_HIGHSCORE_TOP_COMPANIES_WHO_REACHED : STR_HIGHSCORE_TOP_COMPANIES_NETWORK_GAME, TC_FROMSTRING, SA_CENTER);
+		DrawStringMultiLine (dpi, pt.x + 70, pt.x + 570, pt.y, pt.y + 140, !_networking ? STR_HIGHSCORE_TOP_COMPANIES_WHO_REACHED : STR_HIGHSCORE_TOP_COMPANIES_NETWORK_GAME, TC_FROMSTRING, SA_CENTER);
 
 		/* Draw Highscore peepz */
 		for (uint8 i = 0; i < lengthof(_highscore_table[0]); i++) {
 			SetDParam(0, i + 1);
-			DrawString(pt.x + 40, pt.x + 600, pt.y + 140 + (i * 55), STR_HIGHSCORE_POSITION);
+			DrawString (dpi, pt.x + 40, pt.x + 600, pt.y + 140 + (i * 55), STR_HIGHSCORE_POSITION);
 
 			if (hs[i].company[0] != '\0') {
 				TextColour colour = (this->rank == i) ? TC_RED : TC_BLACK; // draw new highscore in red
 
 				SetDParamStr(0, hs[i].company);
-				DrawString(pt.x + 71, pt.x + 569, pt.y + 140 + (i * 55), STR_JUST_BIG_RAW_STRING, colour);
+				DrawString (dpi, pt.x + 71, pt.x + 569, pt.y + 140 + (i * 55), STR_JUST_BIG_RAW_STRING, colour);
 				SetDParam(0, hs[i].title);
 				SetDParam(1, hs[i].score);
-				DrawString(pt.x + 71, pt.x + 569, pt.y + 140 + FONT_HEIGHT_LARGE + (i * 55), STR_HIGHSCORE_STATS, colour);
+				DrawString (dpi, pt.x + 71, pt.x + 569, pt.y + 140 + FONT_HEIGHT_LARGE + (i * 55), STR_HIGHSCORE_STATS, colour);
 			}
 		}
 	}

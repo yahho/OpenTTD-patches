@@ -93,7 +93,7 @@ static void DrawTunnel(TileInfo *ti)
 	if (IsOnSnow(ti->tile)) image += railtype_overlay != 0 ? 8 : 32;
 
 	image += tunnelbridge_direction * 2;
-	DrawGroundSprite(image, PAL_NONE);
+	DrawGroundSprite (ti, image, PAL_NONE);
 
 	/* PBS debugging, draw reserved tracks darker */
 	if (_game_mode != GM_MENU && _settings_client.gui.show_track_reservation && (transport_type == TRANSPORT_RAIL && HasTunnelHeadReservation(ti->tile))) {
@@ -102,7 +102,7 @@ static void DrawTunnel(TileInfo *ti)
 		SpriteID image = rti->UsesOverlay() ?
 				GetCustomRailSprite (rti, ti->tile, RTSG_OVERLAY) + RTO_X + axis :
 				rti->base_sprites.single[AxisToTrack(axis)];
-		DrawGroundSprite (image, PALETTE_CRASH);
+		DrawGroundSprite (ti, image, PALETTE_CRASH);
 	}
 
 	if (transport_type == TRANSPORT_ROAD) {
@@ -111,20 +111,20 @@ static void DrawTunnel(TileInfo *ti)
 		if (HasBit(rts, ROADTYPE_TRAM)) {
 			static const SpriteID tunnel_sprites[2][4] = { { 28, 78, 79, 27 }, {  5, 76, 77,  4 } };
 
-			DrawGroundSprite(SPR_TRAMWAY_BASE + tunnel_sprites[rts - ROADTYPES_TRAM][tunnelbridge_direction], PAL_NONE);
+			DrawGroundSprite (ti, SPR_TRAMWAY_BASE + tunnel_sprites[rts - ROADTYPES_TRAM][tunnelbridge_direction], PAL_NONE);
 
 			/* Do not draw wires if they are invisible */
 			if (!IsInvisibilitySet(TO_CATENARY)) {
 				catenary = true;
-				StartSpriteCombine();
-				AddSortableSpriteToDraw(SPR_TRAMWAY_TUNNEL_WIRES + tunnelbridge_direction, PAL_NONE, ti->x, ti->y, BB_data[10], BB_data[11], TILE_HEIGHT, ti->z, IsTransparencySet(TO_CATENARY), BB_data[8], BB_data[9], BB_Z_SEPARATOR);
+				StartSpriteCombine (ti->vd);
+				AddSortableSpriteToDraw (ti->vd, SPR_TRAMWAY_TUNNEL_WIRES + tunnelbridge_direction, PAL_NONE, ti->x, ti->y, BB_data[10], BB_data[11], TILE_HEIGHT, ti->z, IsTransparencySet(TO_CATENARY), BB_data[8], BB_data[9], BB_Z_SEPARATOR);
 			}
 		}
 	} else {
 		const RailtypeInfo *rti = GetRailTypeInfo(GetRailType(ti->tile));
 		if (rti->UsesOverlay()) {
 			SpriteID surface = GetCustomRailSprite(rti, ti->tile, RTSG_TUNNEL);
-			if (surface != 0) DrawGroundSprite(surface + tunnelbridge_direction, PAL_NONE);
+			if (surface != 0) DrawGroundSprite (ti, surface + tunnelbridge_direction, PAL_NONE);
 		}
 
 		if (HasCatenaryDrawn (rti)) {
@@ -132,7 +132,7 @@ static void DrawTunnel(TileInfo *ti)
 			DrawCatenary(ti);
 
 			catenary = true;
-			StartSpriteCombine();
+			StartSpriteCombine (ti->vd);
 			/* Draw wire above the ramp */
 			DrawCatenaryOnTunnel(ti);
 		}
@@ -176,33 +176,33 @@ static void DrawTunnel(TileInfo *ti)
 			uint x = TileX(ti->tile) * TILE_SIZE + SignalData[dd].pos[inwards][side].x;
 			uint y = TileY(ti->tile) * TILE_SIZE + SignalData[dd].pos[inwards][side].y;
 
-			AddSortableSpriteToDraw(sprite, PAL_NONE, x, y, 1, 1, BB_HEIGHT_UNDER_BRIDGE, ti->z);
+			AddSortableSpriteToDraw (ti->vd, sprite, PAL_NONE, x, y, 1, 1, BB_HEIGHT_UNDER_BRIDGE, ti->z);
 		}
 	}
 
-	if (railtype_overlay != 0 && !catenary) StartSpriteCombine();
+	if (railtype_overlay != 0 && !catenary) StartSpriteCombine (ti->vd);
 
-	AddSortableSpriteToDraw(image + 1, PAL_NONE, ti->x + TILE_SIZE - 1, ti->y + TILE_SIZE - 1, BB_data[0], BB_data[1], TILE_HEIGHT, ti->z, false, BB_data[2], BB_data[3], BB_Z_SEPARATOR);
+	AddSortableSpriteToDraw (ti->vd, image + 1, PAL_NONE, ti->x + TILE_SIZE - 1, ti->y + TILE_SIZE - 1, BB_data[0], BB_data[1], TILE_HEIGHT, ti->z, false, BB_data[2], BB_data[3], BB_Z_SEPARATOR);
 	/* Draw railtype tunnel portal overlay if defined. */
-	if (railtype_overlay != 0) AddSortableSpriteToDraw(railtype_overlay + tunnelbridge_direction, PAL_NONE, ti->x + TILE_SIZE - 1, ti->y + TILE_SIZE - 1, BB_data[0], BB_data[1], TILE_HEIGHT, ti->z, false, BB_data[2], BB_data[3], BB_Z_SEPARATOR);
+	if (railtype_overlay != 0) AddSortableSpriteToDraw (ti->vd, railtype_overlay + tunnelbridge_direction, PAL_NONE, ti->x + TILE_SIZE - 1, ti->y + TILE_SIZE - 1, BB_data[0], BB_data[1], TILE_HEIGHT, ti->z, false, BB_data[2], BB_data[3], BB_Z_SEPARATOR);
 
-	if (catenary || railtype_overlay != 0) EndSpriteCombine();
+	if (catenary || railtype_overlay != 0) EndSpriteCombine (ti->vd);
 
 	/* Add helper BB for sprite sorting that separates the tunnel from things beside of it. */
-	AddSortableSpriteToDraw(SPR_EMPTY_BOUNDING_BOX, PAL_NONE, ti->x,              ti->y,              BB_data[6], BB_data[7], TILE_HEIGHT, ti->z);
-	AddSortableSpriteToDraw(SPR_EMPTY_BOUNDING_BOX, PAL_NONE, ti->x + BB_data[4], ti->y + BB_data[5], BB_data[6], BB_data[7], TILE_HEIGHT, ti->z);
+	AddSortableSpriteToDraw (ti->vd, SPR_EMPTY_BOUNDING_BOX, PAL_NONE, ti->x,              ti->y,              BB_data[6], BB_data[7], TILE_HEIGHT, ti->z);
+	AddSortableSpriteToDraw (ti->vd, SPR_EMPTY_BOUNDING_BOX, PAL_NONE, ti->x + BB_data[4], ti->y + BB_data[5], BB_data[6], BB_data[7], TILE_HEIGHT, ti->z);
 
 	DrawBridgeMiddle(ti);
 }
 
-static void DrawTrainDepotGroundSprite (DiagDirection dir, SpriteID image_x,
-	SpriteID image_y, PaletteID pal)
+static void DrawTrainDepotGroundSprite (TileInfo *ti, DiagDirection dir,
+	SpriteID image_x, SpriteID image_y, PaletteID pal)
 {
 	switch (dir) {
 		case DIAGDIR_NE: if (!IsInvisibilitySet (TO_BUILDINGS)) break; // else FALL THROUGH
-		case DIAGDIR_SW: DrawGroundSprite (image_x, pal); break;
+		case DIAGDIR_SW: DrawGroundSprite (ti, image_x, pal); break;
 		case DIAGDIR_NW: if (!IsInvisibilitySet (TO_BUILDINGS)) break; // else FALL THROUGH
-		case DIAGDIR_SE: DrawGroundSprite (image_y, pal); break;
+		case DIAGDIR_SE: DrawGroundSprite (ti, image_y, pal); break;
 		default: break;
 	}
 }
@@ -244,22 +244,22 @@ static void DrawTrainDepot(TileInfo *ti)
 		}
 	}
 
-	DrawGroundSprite (image, GroundSpritePaletteTransform (image, PAL_NONE, palette));
+	DrawGroundSprite (ti, image, GroundSpritePaletteTransform (image, PAL_NONE, palette));
 
 	if (rti->UsesOverlay()) {
 		SpriteID ground = GetCustomRailSprite(rti, ti->tile, RTSG_GROUND);
-		DrawTrainDepotGroundSprite (dir,
+		DrawTrainDepotGroundSprite (ti, dir,
 				ground + RTO_X, ground + RTO_Y, PAL_NONE);
 
 		if (_settings_client.gui.show_track_reservation && HasDepotReservation(ti->tile)) {
 			SpriteID overlay = GetCustomRailSprite(rti, ti->tile, RTSG_OVERLAY);
-			DrawTrainDepotGroundSprite (dir,
+			DrawTrainDepotGroundSprite (ti, dir,
 					overlay + RTO_X, overlay + RTO_Y, PALETTE_CRASH);
 		}
 	} else {
 		/* PBS debugging, draw reserved tracks darker */
 		if (_game_mode != GM_MENU && _settings_client.gui.show_track_reservation && HasDepotReservation(ti->tile)) {
-			DrawTrainDepotGroundSprite (dir,
+			DrawTrainDepotGroundSprite (ti, dir,
 					rti->base_sprites.single[TRACK_X], rti->base_sprites.single[TRACK_Y], PALETTE_CRASH);
 		}
 	}
@@ -271,7 +271,7 @@ static void DrawTrainDepot(TileInfo *ti)
 	DrawRailTileSeq(ti, dts, TO_BUILDINGS, relocation, 0, palette);
 }
 
-void DrawTrainDepotSprite(int x, int y, int dir, RailType railtype)
+void DrawTrainDepotSprite (BlitArea *dpi, int x, int y, int dir, RailType railtype)
 {
 	const DrawTileSprites *dts = &_depot_gfx_table[dir];
 	const RailtypeInfo *rti = GetRailTypeInfo(railtype);
@@ -281,14 +281,14 @@ void DrawTrainDepotSprite(int x, int y, int dir, RailType railtype)
 	if (image != SPR_FLAT_GRASS_TILE) image += offset;
 	PaletteID palette = COMPANY_SPRITE_COLOUR(_local_company);
 
-	DrawSprite(image, PAL_NONE, x, y);
+	DrawSprite (dpi, image, PAL_NONE, x, y);
 
 	if (rti->UsesOverlay()) {
 		SpriteID ground = GetCustomRailSprite(rti, INVALID_TILE, RTSG_GROUND);
 
 		switch (dir) {
-			case DIAGDIR_SW: DrawSprite(ground + RTO_X, PAL_NONE, x, y); break;
-			case DIAGDIR_SE: DrawSprite(ground + RTO_Y, PAL_NONE, x, y); break;
+			case DIAGDIR_SW: DrawSprite (dpi, ground + RTO_X, PAL_NONE, x, y); break;
+			case DIAGDIR_SE: DrawSprite (dpi, ground + RTO_Y, PAL_NONE, x, y); break;
 			default: break;
 		}
 	}
@@ -296,7 +296,7 @@ void DrawTrainDepotSprite(int x, int y, int dir, RailType railtype)
 	int depot_sprite = GetCustomRailSprite(rti, INVALID_TILE, RTSG_DEPOT);
 	if (depot_sprite != 0) offset = depot_sprite - SPR_RAIL_DEPOT_SE_1;
 
-	DrawRailTileSeqInGUI(x, y, dts, offset, 0, palette);
+	DrawRailTileSeqInGUI (dpi, x, y, dts, offset, 0, palette);
 }
 
 static void DrawRoadDepot(TileInfo *ti)
@@ -314,24 +314,25 @@ static void DrawRoadDepot(TileInfo *ti)
 		dts =  &_road_depot[GetGroundDepotDirection(ti->tile)];
 	}
 
-	DrawGroundSprite(dts->ground.sprite, PAL_NONE);
+	DrawGroundSprite (ti, dts->ground.sprite, PAL_NONE);
 	DrawOrigTileSeq(ti, dts, TO_BUILDINGS, palette);
 }
 
 /**
  * Draw the road depot sprite.
+ * @param dpi The area to draw on.
  * @param x   The x offset to draw at.
  * @param y   The y offset to draw at.
  * @param dir The direction the depot must be facing.
  * @param rt  The road type of the depot to draw.
  */
-void DrawRoadDepotSprite(int x, int y, DiagDirection dir, RoadType rt)
+void DrawRoadDepotSprite (BlitArea *dpi, int x, int y, DiagDirection dir, RoadType rt)
 {
 	PaletteID palette = COMPANY_SPRITE_COLOUR(_local_company);
 	const DrawTileSprites *dts = (rt == ROADTYPE_TRAM) ? &_tram_depot[dir] : &_road_depot[dir];
 
-	DrawSprite(dts->ground.sprite, PAL_NONE, x, y);
-	DrawOrigTileSeqInGUI(x, y, dts, palette);
+	DrawSprite (dpi, dts->ground.sprite, PAL_NONE, x, y);
+	DrawOrigTileSeqInGUI (dpi, x, y, dts, palette);
 }
 
 static void DrawTile_Misc(TileInfo *ti)

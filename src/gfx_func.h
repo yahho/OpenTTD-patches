@@ -43,8 +43,21 @@
 #define GFX_FUNC_H
 
 #include "gfx_type.h"
+#include "blitter/blitter.h"
 #include "strings_type.h"
 #include "string.h"
+
+/** Data about how and where to blit pixels. */
+struct BlitArea {
+	ttd_shared_ptr <Blitter::Surface> surface;
+	void *dst_ptr;
+	int left, top, width, height;
+};
+
+/** Data about how and where to blit pixels. */
+struct DrawPixelInfo : BlitArea {
+	ZoomLevel zoom;
+};
 
 void GameLoop();
 
@@ -63,8 +76,7 @@ extern bool _left_button_clicked;
 extern bool _right_button_down;
 extern bool _right_button_clicked;
 
-extern DrawPixelInfo _screen;
-extern bool _screen_disable_anim;   ///< Disable palette animation (important for 32bpp-anim blitter during giant screenshot)
+extern BlitArea _screen;
 
 extern int _num_resolutions;
 extern Dimension _resolutions[32];
@@ -90,8 +102,8 @@ void RedrawScreenRect(int left, int top, int right, int bottom);
 void GfxScroll(int left, int top, int width, int height, int xo, int yo);
 
 Dimension GetSpriteSize(SpriteID sprid, Point *offset = NULL, ZoomLevel zoom = ZOOM_LVL_GUI);
-void DrawSpriteViewport(SpriteID img, PaletteID pal, int x, int y, const SubSprite *sub = NULL);
-void DrawSprite(SpriteID img, PaletteID pal, int x, int y, const SubSprite *sub = NULL, ZoomLevel zoom = ZOOM_LVL_GUI);
+void DrawSpriteViewport (DrawPixelInfo *dpi, SpriteID img, PaletteID pal, int x, int y, const SubSprite *sub = NULL);
+void DrawSprite (BlitArea *dpi, SpriteID img, PaletteID pal, int x, int y, const SubSprite *sub = NULL, ZoomLevel zoom = ZOOM_LVL_GUI);
 
 /** How to align the to-be drawn text. */
 enum StringAlignment {
@@ -111,16 +123,16 @@ enum StringAlignment {
 };
 DECLARE_ENUM_AS_BIT_SET(StringAlignment)
 
-int DrawString(int left, int right, int top, const char *str, TextColour colour = TC_FROMSTRING, StringAlignment align = SA_LEFT, bool underline = false, FontSize fontsize = FS_NORMAL);
-int DrawString(int left, int right, int top, StringID str, TextColour colour = TC_FROMSTRING, StringAlignment align = SA_LEFT, bool underline = false, FontSize fontsize = FS_NORMAL);
-int DrawStringMultiLine(int left, int right, int top, int bottom, const char *str, TextColour colour = TC_FROMSTRING, StringAlignment align = (SA_TOP | SA_LEFT), bool underline = false, FontSize fontsize = FS_NORMAL);
-int DrawStringMultiLine(int left, int right, int top, int bottom, StringID str, TextColour colour = TC_FROMSTRING, StringAlignment align = (SA_TOP | SA_LEFT), bool underline = false, FontSize fontsize = FS_NORMAL);
+int DrawString (BlitArea *dpi, int left, int right, int top, const char *str, TextColour colour = TC_FROMSTRING, StringAlignment align = SA_LEFT, bool underline = false, FontSize fontsize = FS_NORMAL);
+int DrawString (BlitArea *dpi, int left, int right, int top, StringID str, TextColour colour = TC_FROMSTRING, StringAlignment align = SA_LEFT, bool underline = false, FontSize fontsize = FS_NORMAL);
+int DrawStringMultiLine (BlitArea *dpi, int left, int right, int top, int bottom, const char *str, TextColour colour = TC_FROMSTRING, StringAlignment align = (SA_TOP | SA_LEFT), bool underline = false, FontSize fontsize = FS_NORMAL);
+int DrawStringMultiLine (BlitArea *dpi, int left, int right, int top, int bottom, StringID str, TextColour colour = TC_FROMSTRING, StringAlignment align = (SA_TOP | SA_LEFT), bool underline = false, FontSize fontsize = FS_NORMAL);
 
-void DrawCharCentered(uint32 c, int x, int y, TextColour colour);
+void DrawCharCentered (BlitArea *dpi, WChar c, int x, int y, TextColour colour);
 
-void GfxFillRect(int left, int top, int right, int bottom, int colour, FillRectMode mode = FILLRECT_OPAQUE);
-void GfxDrawLine(int left, int top, int right, int bottom, int colour, int width = 1, int dash = 0);
-void DrawBox(int x, int y, int dx1, int dy1, int dx2, int dy2, int dx3, int dy3);
+void GfxFillRect (BlitArea *dpi, int left, int top, int right, int bottom, int colour, FillRectMode mode = FILLRECT_OPAQUE);
+void GfxDrawLine (BlitArea *dpi, int left, int top, int right, int bottom, int colour, int width = 1, int dash = 0);
+void DrawBox (DrawPixelInfo *dpi, int x, int y, int dx1, int dy1, int dx2, int dy2, int dx3, int dy3);
 
 Dimension GetStringBoundingBox(const char *str, FontSize start_fontsize = FS_NORMAL);
 Dimension GetStringBoundingBox(StringID strid);
@@ -136,7 +148,7 @@ void MarkWholeScreenDirty();
 void GfxInitPalettes();
 void CheckBlitter();
 
-bool FillDrawPixelInfo(DrawPixelInfo *n, int left, int top, int width, int height);
+bool InitBlitArea (const BlitArea *o, BlitArea *n, int left, int top, int width, int height);
 
 /* window.cpp */
 void DrawOverlappedWindowForAll(int left, int top, int right, int bottom);
@@ -167,8 +179,6 @@ int GetCharacterHeight(FontSize size);
 
 /** Height of characters in the large (#FS_MONO) font. */
 #define FONT_HEIGHT_MONO  (GetCharacterHeight(FS_MONO))
-
-extern DrawPixelInfo *_cur_dpi;
 
 TextColour GetContrastColour(uint8 background);
 

@@ -57,7 +57,7 @@ public:
 	{}
 
 	void RebuildCache();
-	void Draw(const DrawPixelInfo *dpi) const;
+	void Draw (BlitArea *dpi) const;
 	void SetCargoMask(uint32 cargo_mask);
 	void SetCompanyMask(uint32 company_mask);
 
@@ -78,17 +78,7 @@ protected:
 
 	Point GetStationMiddle(const Station *st) const;
 
-	void DrawForwBackLinks(Point pta, StationID sta, Point ptb, StationID stb) const;
 	void AddLinks(const Station *sta, const Station *stb);
-	void DrawLinks(const DrawPixelInfo *dpi) const;
-	void DrawStationDots(const DrawPixelInfo *dpi) const;
-	void DrawContent(Point pta, Point ptb, const LinkProperties &cargo) const;
-	bool IsLinkVisible(Point pta, Point ptb, const DrawPixelInfo *dpi, int padding = 0) const;
-	bool IsPointVisible(Point pt, const DrawPixelInfo *dpi, int padding = 0) const;
-	void GetWidgetDpi(DrawPixelInfo *dpi) const;
-
-	static void AddStats(uint new_cap, uint new_usg, uint new_flow, bool new_shared, LinkProperties &cargo);
-	static void DrawVertex(int x, int y, int size, int colour, int border_colour);
 };
 
 void ShowLinkGraphLegend();
@@ -99,10 +89,9 @@ void ShowLinkGraphLegend();
 struct LinkGraphLegendWindow : Window {
 public:
 	LinkGraphLegendWindow (const WindowDesc *desc, int window_number);
-	void SetOverlay(LinkGraphOverlay *overlay);
 
 	virtual void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize);
-	virtual void DrawWidget(const Rect &r, int widget) const;
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE;
 	virtual void OnClick(Point pt, int widget, int click_count);
 	virtual void OnInvalidateData(int data = 0, bool gui_scope = true);
 

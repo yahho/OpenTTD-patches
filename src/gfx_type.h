@@ -146,14 +146,6 @@ private:
 	Point last_position;
 };
 
-/** Data about how and where to blit pixels. */
-struct DrawPixelInfo {
-	void *dst_ptr;
-	int left, top, width, height;
-	int pitch;
-	ZoomLevel zoom;
-};
-
 /** Structure to access the alpha, red, green, and blue channels from a 32 bit number. */
 union Colour {
 	uint32 data; ///< Conversion of the channel information to a 32 bit number.

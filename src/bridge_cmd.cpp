@@ -484,6 +484,7 @@ static inline const PalSpriteID *GetBridgeSpriteTable(int index, BridgePieces ta
 
 /**
  * Draw a single pillar sprite.
+ * @param vd        The viewport drawer to use
  * @param psid      Pillarsprite
  * @param x         Pillar X
  * @param y         Pillar Y
@@ -492,10 +493,11 @@ static inline const PalSpriteID *GetBridgeSpriteTable(int index, BridgePieces ta
  * @param h         Bounding box size in Y direction
  * @param subsprite Optional subsprite for drawing halfpillars
  */
-static inline void DrawPillar(const PalSpriteID *psid, int x, int y, int z, int w, int h, const SubSprite *subsprite)
+static inline void DrawPillar (ViewportDrawer *vd, const PalSpriteID *psid,
+	int x, int y, int z, int w, int h, const SubSprite *subsprite)
 {
 	static const int PILLAR_Z_OFFSET = TILE_HEIGHT - BRIDGE_Z_START; ///< Start offset of pillar wrt. bridge (downwards)
-	AddSortableSpriteToDraw(psid->sprite, psid->pal, x, y, w, h, BB_HEIGHT_UNDER_BRIDGE - PILLAR_Z_OFFSET, z, IsTransparencySet(TO_BRIDGES), 0, 0, -PILLAR_Z_OFFSET, subsprite);
+	AddSortableSpriteToDraw (vd, psid->sprite, psid->pal, x, y, w, h, BB_HEIGHT_UNDER_BRIDGE - PILLAR_Z_OFFSET, z, IsTransparencySet(TO_BRIDGES), 0, 0, -PILLAR_Z_OFFSET, subsprite);
 }
 
 /**
@@ -509,11 +511,12 @@ static inline void DrawPillar(const PalSpriteID *psid, int x, int y, int z, int 
  * @param h        Bounding box size in Y direction
  * @return Reached Z at the bottom
  */
-static int DrawPillarColumn(int z_bottom, int z_top, const PalSpriteID *psid, int x, int y, int w, int h)
+static int DrawPillarColumn (ViewportDrawer *vd, int z_bottom, int z_top,
+	const PalSpriteID *psid, int x, int y, int w, int h)
 {
 	int cur_z;
 	for (cur_z = z_top; cur_z >= z_bottom; cur_z -= TILE_HEIGHT) {
-		DrawPillar(psid, x, y, cur_z, w, h, NULL);
+		DrawPillar (vd, psid, x, y, cur_z, w, h, NULL);
 	}
 	return cur_z;
 }
@@ -563,16 +566,16 @@ static void DrawBridgePillars(const PalSpriteID *psid, const TileInfo *ti, Axis 
 	int y_back = y - back_pillar_offset[OtherAxis(axis)];
 
 	/* Draw front pillars */
-	int bottom_z = DrawPillarColumn(z_front, z_bridge, psid, x, y, w, h);
-	if (z_front_north < z_front) DrawPillar(psid, x, y, bottom_z, w, h, &half_pillar_sub_sprite[axis][0]);
-	if (z_front_south < z_front) DrawPillar(psid, x, y, bottom_z, w, h, &half_pillar_sub_sprite[axis][1]);
+	int bottom_z = DrawPillarColumn (ti->vd, z_front, z_bridge, psid, x, y, w, h);
+	if (z_front_north < z_front) DrawPillar (ti->vd, psid, x, y, bottom_z, w, h, &half_pillar_sub_sprite[axis][0]);
+	if (z_front_south < z_front) DrawPillar (ti->vd, psid, x, y, bottom_z, w, h, &half_pillar_sub_sprite[axis][1]);
 
 	/* Draw back pillars, skip top two parts, which are hidden by the bridge */
 	int z_bridge_back = z_bridge - 2 * (int)TILE_HEIGHT;
 	if (drawfarpillar && (z_back_north <= z_bridge_back || z_back_south <= z_bridge_back)) {
-		bottom_z = DrawPillarColumn(z_back, z_bridge_back, psid, x_back, y_back, w, h);
-		if (z_back_north < z_back) DrawPillar(psid, x_back, y_back, bottom_z, w, h, &half_pillar_sub_sprite[axis][0]);
-		if (z_back_south < z_back) DrawPillar(psid, x_back, y_back, bottom_z, w, h, &half_pillar_sub_sprite[axis][1]);
+		bottom_z = DrawPillarColumn (ti->vd, z_back, z_bridge_back, psid, x_back, y_back, w, h);
+		if (z_back_north < z_back) DrawPillar (ti->vd, psid, x_back, y_back, bottom_z, w, h, &half_pillar_sub_sprite[axis][0]);
+		if (z_back_south < z_back) DrawPillar (ti->vd, psid, x_back, y_back, bottom_z, w, h, &half_pillar_sub_sprite[axis][1]);
 	}
 }
 
@@ -611,6 +614,7 @@ static BridgePieces CalcBridgePiece(uint north, uint south)
 
 /**
  * Draws the trambits over an already drawn (lower end) of a bridge.
+ * @param vd      the viewport drawer to use
  * @param x       the x of the bridge
  * @param y       the y of the bridge
  * @param z       the z of the bridge
@@ -618,7 +622,8 @@ static BridgePieces CalcBridgePiece(uint north, uint south)
  * @param overlay do we want to still see the road?
  * @param head    are we drawing bridge head?
  */
-void DrawBridgeTramBits(int x, int y, int z, int offset, bool overlay, bool head)
+void DrawBridgeTramBits (ViewportDrawer *vd, int x, int y, int z, int offset,
+	bool overlay, bool head)
 {
 	struct SpriteData {
 		SpriteID tram[2], back, front;
@@ -641,25 +646,25 @@ void DrawBridgeTramBits(int x, int y, int z, int offset, bool overlay, bool head
 	/* The sprites under the vehicles are drawn as SpriteCombine. StartSpriteCombine() has already been called
 	 * The bounding boxes here are the same as for bridge front/roof */
 	if (head || !IsInvisibilitySet(TO_BRIDGES)) {
-		AddSortableSpriteToDraw (data->tram[overlay], PAL_NONE,
+		AddSortableSpriteToDraw (vd, data->tram[overlay], PAL_NONE,
 			x, y, data->size_x, data->size_y, 0x28, z,
 			!head && IsTransparencySet(TO_BRIDGES));
 	}
 
 	/* Do not draw catenary if it is set invisible */
 	if (!IsInvisibilitySet(TO_CATENARY)) {
-		AddSortableSpriteToDraw (data->back, PAL_NONE,
+		AddSortableSpriteToDraw (vd, data->back, PAL_NONE,
 			x, y, data->size_x, data->size_y, 0x28, z,
 			IsTransparencySet(TO_CATENARY));
 	}
 
 	/* Start a new SpriteCombine for the front part */
-	EndSpriteCombine();
-	StartSpriteCombine();
+	EndSpriteCombine (vd);
+	StartSpriteCombine (vd);
 
 	/* For sloped sprites the bounding box needs to be higher, as the pylons stop on a higher point */
 	if (!IsInvisibilitySet(TO_CATENARY)) {
-		AddSortableSpriteToDraw (data->front, PAL_NONE,
+		AddSortableSpriteToDraw (vd, data->front, PAL_NONE,
 			x, y, data->size_x + data->front_bb_offset_x, data->size_y + data->front_bb_offset_y, 0x28, z,
 			IsTransparencySet(TO_CATENARY), data->front_bb_offset_x, data->front_bb_offset_y);
 	}
@@ -735,17 +740,17 @@ void DrawBridgeMiddle(const TileInfo *ti)
 	int z = bridge_z - BRIDGE_Z_START;
 
 	/* Add a bounding box that separates the bridge from things below it. */
-	AddSortableSpriteToDraw(SPR_EMPTY_BOUNDING_BOX, PAL_NONE, x, y, 16, 16, 1, bridge_z - TILE_HEIGHT + BB_Z_SEPARATOR);
+	AddSortableSpriteToDraw (ti->vd, SPR_EMPTY_BOUNDING_BOX, PAL_NONE, x, y, 16, 16, 1, bridge_z - TILE_HEIGHT + BB_Z_SEPARATOR);
 
 	/* Draw Trambits as SpriteCombine */
-	if (transport_type == TRANSPORT_ROAD || transport_type == TRANSPORT_RAIL) StartSpriteCombine();
+	if (transport_type == TRANSPORT_ROAD || transport_type == TRANSPORT_RAIL) StartSpriteCombine (ti->vd);
 
 	/* Draw floor and far part of bridge*/
 	if (!IsInvisibilitySet(TO_BRIDGES)) {
 		if (axis == AXIS_X) {
-			AddSortableSpriteToDraw(psid->sprite, psid->pal, x, y, 16, 1, 0x28, z, IsTransparencySet(TO_BRIDGES), 0, 0, BRIDGE_Z_START);
+			AddSortableSpriteToDraw (ti->vd, psid->sprite, psid->pal, x, y, 16, 1, 0x28, z, IsTransparencySet(TO_BRIDGES), 0, 0, BRIDGE_Z_START);
 		} else {
-			AddSortableSpriteToDraw(psid->sprite, psid->pal, x, y, 1, 16, 0x28, z, IsTransparencySet(TO_BRIDGES), 0, 0, BRIDGE_Z_START);
+			AddSortableSpriteToDraw (ti->vd, psid->sprite, psid->pal, x, y, 1, 16, 0x28, z, IsTransparencySet(TO_BRIDGES), 0, 0, BRIDGE_Z_START);
 		}
 	}
 
@@ -756,17 +761,17 @@ void DrawBridgeMiddle(const TileInfo *ti)
 
 		if ((GetRoadBits(rampsouth, ROADTYPE_TRAM) & bits) != 0) {
 			/* DrawBridgeTramBits() calls EndSpriteCombine() and StartSpriteCombine() */
-			DrawBridgeTramBits(x, y, bridge_z, axis ^ 1, (GetRoadBits(rampsouth, ROADTYPE_ROAD) & bits) != 0, false);
+			DrawBridgeTramBits (ti->vd, x, y, bridge_z, axis ^ 1, (GetRoadBits(rampsouth, ROADTYPE_ROAD) & bits) != 0, false);
 		} else {
-			EndSpriteCombine();
-			StartSpriteCombine();
+			EndSpriteCombine (ti->vd);
+			StartSpriteCombine (ti->vd);
 		}
 	} else if (transport_type == TRANSPORT_RAIL) {
 		const RailtypeInfo *rti = GetRailTypeInfo(GetBridgeRailType(rampsouth));
 		if (rti->UsesOverlay() && !IsInvisibilitySet(TO_BRIDGES)) {
 			SpriteID surface = GetCustomRailSprite(rti, rampsouth, RTSG_BRIDGE, TCX_ON_BRIDGE);
 			if (surface != 0) {
-				AddSortableSpriteToDraw(surface + axis, PAL_NONE, x, y, 16, 16, 0, bridge_z, IsTransparencySet(TO_BRIDGES));
+				AddSortableSpriteToDraw (ti->vd, surface + axis, PAL_NONE, x, y, 16, 16, 0, bridge_z, IsTransparencySet(TO_BRIDGES));
 			}
 		}
 
@@ -774,10 +779,10 @@ void DrawBridgeMiddle(const TileInfo *ti)
 			SpriteID image = rti->UsesOverlay() ?
 					GetCustomRailSprite (rti, ti->tile, RTSG_OVERLAY) + RTO_X + axis :
 					rti->base_sprites.single[AxisToTrack(axis)];
-			AddSortableSpriteToDraw (image, PALETTE_CRASH, ti->x, ti->y, 16, 16, 0, bridge_z, IsTransparencySet (TO_BRIDGES));
+			AddSortableSpriteToDraw (ti->vd, image, PALETTE_CRASH, ti->x, ti->y, 16, 16, 0, bridge_z, IsTransparencySet (TO_BRIDGES));
 		}
 
-		EndSpriteCombine();
+		EndSpriteCombine (ti->vd);
 
 		if (HasCatenaryDrawn (rti)) {
 			DrawCatenaryOnBridge(ti);
@@ -788,15 +793,15 @@ void DrawBridgeMiddle(const TileInfo *ti)
 	if (!IsInvisibilitySet(TO_BRIDGES)) {
 		if (axis == AXIS_X) {
 			y += 12;
-			if (psid->sprite & SPRITE_MASK) AddSortableSpriteToDraw(psid->sprite, psid->pal, x, y, 16, 4, 0x28, z, IsTransparencySet(TO_BRIDGES), 0, 3, BRIDGE_Z_START);
+			if (psid->sprite & SPRITE_MASK) AddSortableSpriteToDraw (ti->vd, psid->sprite, psid->pal, x, y, 16, 4, 0x28, z, IsTransparencySet(TO_BRIDGES), 0, 3, BRIDGE_Z_START);
 		} else {
 			x += 12;
-			if (psid->sprite & SPRITE_MASK) AddSortableSpriteToDraw(psid->sprite, psid->pal, x, y, 4, 16, 0x28, z, IsTransparencySet(TO_BRIDGES), 3, 0, BRIDGE_Z_START);
+			if (psid->sprite & SPRITE_MASK) AddSortableSpriteToDraw (ti->vd, psid->sprite, psid->pal, x, y, 4, 16, 0x28, z, IsTransparencySet(TO_BRIDGES), 3, 0, BRIDGE_Z_START);
 		}
 	}
 
 	/* Draw TramFront as SpriteCombine */
-	if (transport_type == TRANSPORT_ROAD) EndSpriteCombine();
+	if (transport_type == TRANSPORT_ROAD) EndSpriteCombine (ti->vd);
 
 	/* Do not draw anything more if bridges are invisible */
 	if (IsInvisibilitySet(TO_BRIDGES)) return;
@@ -812,7 +817,7 @@ void DrawBridgeMiddle(const TileInfo *ti)
 				pal = PALETTE_TO_TRANSPARENT;
 			}
 
-			DrawGroundSpriteAt(image, pal, x - ti->x, y - ti->y, z - ti->z);
+			DrawGroundSpriteAt (ti, image, pal, x - ti->x, y - ti->y, z - ti->z);
 		}
 	} else {
 		/* draw pillars below for high bridges */
@@ -827,11 +832,11 @@ void DrawBridgeGround(TileInfo *ti)
 	DrawFoundation(ti, GetBridgeFoundation(ti->tileh, DiagDirToAxis(dir)));
 
 	if (IsOnSnow(ti->tile)) {
-		DrawGroundSprite(SPR_FLAT_SNOW_DESERT_TILE + SlopeToSpriteOffset(ti->tileh), PAL_NONE);
+		DrawGroundSprite (ti, SPR_FLAT_SNOW_DESERT_TILE + SlopeToSpriteOffset(ti->tileh), PAL_NONE);
 	} else {
 		TileIndex next = ti->tile + TileOffsByDiagDir(dir);
 		if (ti->tileh != SLOPE_FLAT && ti->z == 0 && HasTileWaterClass(next) && GetWaterClass(next) == WATER_CLASS_SEA) {
-			DrawShoreTile(ti->tileh);
+			DrawShoreTile (ti);
 		} else {
 			DrawClearLandTile(ti, 3);
 		}
@@ -867,5 +872,5 @@ void DrawAqueductRamp(TileInfo *ti)
 	 * it doesn't disappear behind it
 	 */
 	/* Bridge heads are drawn solid no matter how invisibility/transparency is set */
-	AddSortableSpriteToDraw(psid->sprite, psid->pal, ti->x, ti->y, 16, 16, 8, ti->z);
+	AddSortableSpriteToDraw (ti->vd, psid->sprite, psid->pal, ti->x, ti->y, 16, 16, 8, ti->z);
 }

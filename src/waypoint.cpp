@@ -18,20 +18,6 @@
 #include "station_func.h"
 #include "tracerestrict.h"
 
-/**
- * Draw a waypoint
- * @param x coordinate
- * @param y coordinate
- * @param stat_id station id
- * @param railtype RailType to use for
- */
-void DrawWaypointSprite(int x, int y, int stat_id, RailType railtype)
-{
-	if (!DrawStationTile(x, y, railtype, AXIS_X, STAT_CLASS_WAYP, stat_id)) {
-		StationPickerDrawSprite(x, y, STATION_WAYPOINT, railtype, INVALID_ROADTYPE, AXIS_X);
-	}
-}
-
 void Waypoint::GetTileArea(TileArea *ta, StationType type) const
 {
 	switch (type) {

@@ -891,6 +891,8 @@ blitter/8bpp_optimized.cpp
 blitter/8bpp_optimized.hpp
 blitter/32bpp_base.cpp
 blitter/32bpp_base.hpp
+blitter/32bpp_noanim.cpp
+blitter/32bpp_noanim.hpp
 blitter/32bpp_simple.cpp
 blitter/32bpp_simple.hpp
 blitter/32bpp_optimized.cpp

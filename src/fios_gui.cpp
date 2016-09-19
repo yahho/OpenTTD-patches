@@ -330,13 +330,13 @@ public:
 		FiosFreeSavegameList();
 	}
 
-	virtual void DrawWidget(const Rect &r, int widget) const
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
 	{
 		switch (widget) {
 			case WID_SL_SORT_BYNAME:
 			case WID_SL_SORT_BYDATE:
 				if (((_savegame_sort_order & SORT_BY_NAME) != 0) == (widget == WID_SL_SORT_BYNAME)) {
-					this->DrawSortButtonState(widget, _savegame_sort_order & SORT_DESCENDING ? SBS_DOWN : SBS_UP);
+					this->DrawSortButtonState (dpi, widget, _savegame_sort_order & SORT_DESCENDING ? SBS_DOWN : SBS_UP);
 				}
 				break;
 
@@ -351,22 +351,22 @@ public:
 				}
 
 				if (str != STR_ERROR_UNABLE_TO_READ_DRIVE) SetDParam(0, tot);
-				DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + FONT_HEIGHT_NORMAL + WD_FRAMERECT_TOP, str);
-				DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP, path, TC_BLACK);
+				DrawString (dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + FONT_HEIGHT_NORMAL + WD_FRAMERECT_TOP, str);
+				DrawString (dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP, path, TC_BLACK);
 				break;
 			}
 
 			case WID_SL_DRIVES_DIRECTORIES_LIST: {
-				GfxFillRect(r.left + 1, r.top + 1, r.right, r.bottom, PC_BLACK);
+				GfxFillRect (dpi, r.left + 1, r.top + 1, r.right, r.bottom, PC_BLACK);
 
 				uint y = r.top + WD_FRAMERECT_TOP;
 				for (uint pos = this->vscroll->GetPosition(); pos < _fios_items.Length(); pos++) {
 					const FiosItem *item = _fios_items.Get(pos);
 
 					if (item == this->selected) {
-						GfxFillRect(r.left + 1, y, r.right, y + this->resize.step_height, PC_DARK_BLUE);
+						GfxFillRect (dpi, r.left + 1, y, r.right, y + this->resize.step_height, PC_DARK_BLUE);
 					}
-					DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, item->title, _fios_colours[item->type]);
+					DrawString (dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, item->title, _fios_colours[item->type]);
 					y += this->resize.step_height;
 					if (y >= this->vscroll->GetCapacity() * this->resize.step_height + r.top + WD_FRAMERECT_TOP) break;
 				}
@@ -374,9 +374,9 @@ public:
 			}
 
 			case WID_SL_DETAILS: {
-				GfxFillRect(r.left + WD_FRAMERECT_LEFT, r.top + WD_FRAMERECT_TOP,
+				GfxFillRect (dpi, r.left + WD_FRAMERECT_LEFT, r.top + WD_FRAMERECT_TOP,
 						r.right - WD_FRAMERECT_RIGHT, r.top + FONT_HEIGHT_NORMAL * 2 + WD_FRAMERECT_TOP + WD_FRAMERECT_BOTTOM, PC_GREY);
-				DrawString(r.left, r.right, r.top + FONT_HEIGHT_NORMAL / 2 + WD_FRAMERECT_TOP, STR_SAVELOAD_DETAIL_CAPTION, TC_FROMSTRING, SA_HOR_CENTER);
+				DrawString (dpi, r.left, r.right, r.top + FONT_HEIGHT_NORMAL / 2 + WD_FRAMERECT_TOP, STR_SAVELOAD_DETAIL_CAPTION, TC_FROMSTRING, SA_HOR_CENTER);
 
 				if (this->selected == NULL) break;
 
@@ -386,18 +386,18 @@ public:
 				if (y > y_max) break;
 				if (!_load_check_data.checkable) {
 					/* Old savegame, no information available */
-					DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_SAVELOAD_DETAIL_NOT_AVAILABLE);
+					DrawString (dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_SAVELOAD_DETAIL_NOT_AVAILABLE);
 					y += FONT_HEIGHT_NORMAL;
 				} else if (_load_check_data.error.str != INVALID_STRING_ID) {
 					/* Incompatible / broken savegame */
 					SetDParamStr(0, _load_check_data.error.data);
-					y = DrawStringMultiLine(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT,
+					y = DrawStringMultiLine (dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT,
 							y, r.bottom - WD_FRAMERECT_BOTTOM, _load_check_data.error.str, TC_RED);
 				} else {
 					/* Mapsize */
 					SetDParam(0, _load_check_data.map_size_x);
 					SetDParam(1, _load_check_data.map_size_y);
-					DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_NETWORK_SERVER_LIST_MAP_SIZE);
+					DrawString (dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_NETWORK_SERVER_LIST_MAP_SIZE);
 					y += FONT_HEIGHT_NORMAL;
 					if (y > y_max) break;
 
@@ -405,7 +405,7 @@ public:
 					byte landscape = _load_check_data.settings.game_creation.landscape;
 					if (landscape < NUM_LANDSCAPE) {
 						SetDParam(0, STR_CHEAT_SWITCH_CLIMATE_TEMPERATE_LANDSCAPE + landscape);
-						DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_NETWORK_SERVER_LIST_LANDSCAPE);
+						DrawString (dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_NETWORK_SERVER_LIST_LANDSCAPE);
 						y += FONT_HEIGHT_NORMAL;
 					}
 
@@ -415,7 +415,7 @@ public:
 					/* Start date (if available) */
 					if (_load_check_data.settings.game_creation.starting_year != 0) {
 						SetDParam(0, ConvertYMDToDate(_load_check_data.settings.game_creation.starting_year, 0, 1));
-						DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_NETWORK_SERVER_LIST_START_DATE);
+						DrawString (dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_NETWORK_SERVER_LIST_START_DATE);
 						y += FONT_HEIGHT_NORMAL;
 					}
 					if (y > y_max) break;
@@ -424,7 +424,7 @@ public:
 					if (_saveload_mode != SLD_LOAD_SCENARIO && _saveload_mode != SLD_SAVE_SCENARIO) {
 						/* Current date */
 						SetDParam(0, _load_check_data.current_date);
-						DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_NETWORK_SERVER_LIST_CURRENT_DATE);
+						DrawString (dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_NETWORK_SERVER_LIST_CURRENT_DATE);
 						y += FONT_HEIGHT_NORMAL;
 					}
 
@@ -436,7 +436,7 @@ public:
 						/* NewGrf compatibility */
 						SetDParam(0, _load_check_data.grfconfig == NULL ? STR_NEWGRF_LIST_NONE :
 								STR_NEWGRF_LIST_ALL_FOUND + _load_check_data.grf_compatibility);
-						DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_SAVELOAD_DETAIL_GRFSTATUS);
+						DrawString (dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_SAVELOAD_DETAIL_GRFSTATUS);
 						y += FONT_HEIGHT_NORMAL;
 					}
 					if (y > y_max) break;
@@ -458,7 +458,7 @@ public:
 								SetDParam(1, c.name_1);
 								SetDParam(2, c.name_2);
 							}
-							DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_SAVELOAD_DETAIL_COMPANY_INDEX);
+							DrawString (dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_SAVELOAD_DETAIL_COMPANY_INDEX);
 							y += FONT_HEIGHT_NORMAL;
 							if (y > y_max) break;
 						}
@@ -491,7 +491,7 @@ public:
 		}
 	}
 
-	virtual void OnPaint()
+	void OnPaint (BlitArea *dpi) OVERRIDE
 	{
 		if (_savegame_sort_dirty) {
 			_savegame_sort_dirty = false;
@@ -499,7 +499,7 @@ public:
 		}
 
 		this->vscroll->SetCount(_fios_items.Length());
-		this->DrawWidgets();
+		this->DrawWidgets (dpi);
 	}
 
 	virtual void OnClick(Point pt, int widget, int click_count)

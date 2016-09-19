@@ -126,11 +126,11 @@ void DisplaySplashImage()
 		case 8: {
 				uint8 *dst_ptr = (uint8 *)_screen.dst_ptr;
 				/* Initialize buffer */
-				MemSetT(dst_ptr, 0xff, _screen.pitch * _screen.height);
+				MemSetT(dst_ptr, 0xff, _screen.surface->pitch * _screen.height);
 
 				for (uint y = 0; y < height; y++) {
 					uint8 *src = row_pointers[y];
-					uint8 *dst = dst_ptr + (yoff + y) * _screen.pitch + xoff;
+					uint8 *dst = dst_ptr + (yoff + y) * _screen.surface->pitch + xoff;
 
 					memcpy(dst, src, width);
 				}
@@ -154,11 +154,11 @@ void DisplaySplashImage()
 		case 32: {
 				uint32 *dst_ptr = (uint32 *)_screen.dst_ptr;
 				/* Initialize buffer */
-				MemSetT(dst_ptr, 0, _screen.pitch * _screen.height);
+				MemSetT(dst_ptr, 0, _screen.surface->pitch * _screen.height);
 
 				for (uint y = 0; y < height; y++) {
 					uint8 *src = row_pointers[y];
-					uint32 *dst = dst_ptr + (yoff + y) * _screen.pitch + xoff;
+					uint32 *dst = dst_ptr + (yoff + y) * _screen.surface->pitch + xoff;
 
 					for (uint x = 0; x < width; x++) {
 						dst[x] = palette[src[x]].blue | (palette[src[x]].green << 8) | (palette[src[x]].red << 16) | 0xff000000;

@@ -12,10 +12,10 @@
 #ifndef BLITTER_32BPP_SIMPLE_HPP
 #define BLITTER_32BPP_SIMPLE_HPP
 
-#include "32bpp_base.hpp"
+#include "32bpp_noanim.hpp"
 
 /** The most trivial 32 bpp blitter (without palette animation). */
-class Blitter_32bppSimple : public Blitter_32bppBase {
+class Blitter_32bppSimple : public Blitter_32bppNoanim {
 	struct Pixel {
 		uint8 r;  ///< Red-channel
 		uint8 g;  ///< Green-channel
@@ -33,9 +33,23 @@ public:
 	static const char name[]; ///< Name of the blitter.
 	static const char desc[]; ///< Description of the blitter.
 
-	/* virtual */ void Draw(Blitter::BlitterParams *bp, BlitterMode mode, ZoomLevel zoom);
-	/* virtual */ void DrawColourMappingRect(void *dst, int width, int height, PaletteID pal);
 	/* virtual */ ::Sprite *Encode (const SpriteLoader::Sprite *sprite, bool is_font, AllocatorProc *allocator);
+
+	/** Blitting surface. */
+	struct Surface : Blitter_32bppNoanim::Surface {
+		Surface (void *ptr, uint width, uint height, uint pitch)
+			: Blitter_32bppNoanim::Surface (ptr, width, height, pitch)
+		{
+		}
+
+		void draw (const BlitterParams *bp, BlitterMode mode, ZoomLevel zoom) OVERRIDE;
+	};
+
+	/** Create a surface for this blitter. */
+	Surface *create (void *ptr, uint width, uint height, uint pitch, bool anim) OVERRIDE
+	{
+		return new Surface (ptr, width, height, pitch);
+	}
 };
 
 #endif /* BLITTER_32BPP_SIMPLE_HPP */

@@ -619,14 +619,6 @@ static const byte _vehicle_type_colours[6] = {
 };
 
 
-inline Point SmallMapWindow::SmallmapRemapCoords(int x, int y) const
-{
-	Point pt;
-	pt.x = (y - x) * 2;
-	pt.y = y + x;
-	return pt;
-}
-
 /**
  * Remap tile to location on this smallmap.
  * @param tile_x X coordinate of the tile.
@@ -638,13 +630,18 @@ inline Point SmallMapWindow::RemapTile(int tile_x, int tile_y) const
 	int x_offset = tile_x - this->scroll_x / (int)TILE_SIZE;
 	int y_offset = tile_y - this->scroll_y / (int)TILE_SIZE;
 
-	if (this->zoom == 1) return SmallmapRemapCoords(x_offset, y_offset);
+	if (this->zoom != 1) {
+		/* For negative offsets, round towards -inf. */
+		if (x_offset < 0) x_offset -= this->zoom - 1;
+		if (y_offset < 0) y_offset -= this->zoom - 1;
+		x_offset /= this->zoom;
+		y_offset /= this->zoom;
+	}
 
-	/* For negative offsets, round towards -inf. */
-	if (x_offset < 0) x_offset -= this->zoom - 1;
-	if (y_offset < 0) y_offset -= this->zoom - 1;
-
-	return SmallmapRemapCoords(x_offset / this->zoom, y_offset / this->zoom);
+	Point pt;
+	pt.x = (y_offset - x_offset) * 2;
+	pt.y = y_offset + x_offset;
+	return pt;
 }
 
 /**
@@ -678,37 +675,6 @@ inline Point SmallMapWindow::PixelToTile(int px, int py, int *sub, bool add_sub)
 
 	*sub = px;
 	return pt;
-}
-
-/**
- * Compute base parameters of the smallmap such that tile (\a tx, \a ty) starts at pixel (\a x, \a y).
- * @param tx        Tile x coordinate.
- * @param ty        Tile y coordinate.
- * @param x         Non-negative horizontal position in the display where the tile starts.
- * @param y         Non-negative vertical position in the display where the tile starts.
- * @param sub [out] Value of #subscroll needed.
- * @return #scroll_x, #scroll_y values.
- */
-Point SmallMapWindow::ComputeScroll(int tx, int ty, int x, int y, int *sub)
-{
-	assert(x >= 0 && y >= 0);
-
-	int new_sub;
-	Point tile_xy = PixelToTile(x, y, &new_sub, false);
-	tx -= tile_xy.x;
-	ty -= tile_xy.y;
-
-	Point scroll;
-	if (new_sub == 0) {
-		*sub = 0;
-		scroll.x = (tx + this->zoom) * TILE_SIZE;
-		scroll.y = (ty - this->zoom) * TILE_SIZE;
-	} else {
-		*sub = 4 - new_sub;
-		scroll.x = (tx + 2 * this->zoom) * TILE_SIZE;
-		scroll.y = (ty - 2 * this->zoom) * TILE_SIZE;
-	}
-	return scroll;
 }
 
 /**
@@ -815,13 +781,12 @@ inline uint32 SmallMapWindow::GetTileColours(const TileArea &ta) const
  * @param reps Number of lines to draw
  * @param start_pos Position of first pixel to draw.
  * @param end_pos Position of last pixel to draw (exclusive).
- * @param blitter current blitter
  * @note If pixel position is below \c 0, skip drawing.
  */
-void SmallMapWindow::DrawSmallMapColumn(void *dst, uint xc, uint yc, int pitch, int reps, int start_pos, int end_pos, Blitter *blitter) const
+void SmallMapWindow::DrawSmallMapColumn(void *dst, uint xc, uint yc, int pitch, int reps, int start_pos, int end_pos) const
 {
-	void *dst_ptr_abs_end = blitter->MoveTo(_screen.dst_ptr, 0, _screen.height);
-	uint min_xy = _settings_game.construction.freeform_edges ? 1 : 0;
+	void *dst_ptr_abs_end = _screen.surface->move (_screen.dst_ptr, 0, _screen.height);
+	bool freeform = _settings_game.construction.freeform_edges;
 
 	do {
 		/* Check if the tile (xc,yc) is within the map range */
@@ -831,34 +796,34 @@ void SmallMapWindow::DrawSmallMapColumn(void *dst, uint xc, uint yc, int pitch, 
 		if (dst < _screen.dst_ptr) continue;
 		if (dst >= dst_ptr_abs_end) continue;
 
-		/* Construct tilearea covered by (xc, yc, xc + this->zoom, yc + this->zoom) such that it is within min_xy limits. */
-		TileArea ta;
-		if (min_xy == 1 && (xc == 0 || yc == 0)) {
+		/* Construct tilearea covered by (xc, yc, xc + this->zoom, yc + this->zoom) such that it is within map limits. */
+		uint xd, yd;
+		if (freeform && (xc == 0 || yc == 0)) {
 			if (this->zoom == 1) continue; // The tile area is empty, don't draw anything.
-
-			ta = TileArea(TileXY(max(min_xy, xc), max(min_xy, yc)), this->zoom - (xc == 0), this->zoom - (yc == 0));
+			xd = (xc == 0 ? 1 : 0);
+			yd = (yc == 0 ? 1 : 0);
 		} else {
-			ta = TileArea(TileXY(xc, yc), this->zoom, this->zoom);
+			xd = yd = 0;
 		}
+		TileArea ta (TileXY (xc + xd, yc + yd), this->zoom - xd, this->zoom - yd);
 		ta.ClampToMap(); // Clamp to map boundaries (may contain void tiles!).
 
 		uint32 val = this->GetTileColours(ta);
 		uint8 *val8 = (uint8 *)&val;
 		int idx = max(0, -start_pos);
 		for (int pos = max(0, start_pos); pos < end_pos; pos++) {
-			blitter->SetPixel(dst, idx, 0, val8[idx]);
+			_screen.surface->set_pixel (dst, idx, 0, val8[idx]);
 			idx++;
 		}
 	/* Switch to next tile in the column */
-	} while (xc += this->zoom, yc += this->zoom, dst = blitter->MoveTo(dst, pitch, 0), --reps != 0);
+	} while (xc += this->zoom, yc += this->zoom, dst = _screen.surface->move (dst, pitch, 0), --reps != 0);
 }
 
 /**
  * Adds vehicles to the smallmap.
  * @param dpi the part of the smallmap to be drawn into
- * @param blitter current blitter
  */
-void SmallMapWindow::DrawVehicles(const DrawPixelInfo *dpi, Blitter *blitter) const
+void SmallMapWindow::DrawVehicles (BlitArea *dpi) const
 {
 	const Vehicle *v;
 	FOR_ALL_VEHICLES(v) {
@@ -888,8 +853,8 @@ void SmallMapWindow::DrawVehicles(const DrawPixelInfo *dpi, Blitter *blitter) co
 		byte colour = (this->map_type == SMT_VEHICLES) ? _vehicle_type_colours[v->type] : PC_WHITE;
 
 		/* And draw either one or two pixels depending on clipping */
-		blitter->SetPixel(dpi->dst_ptr, x, y, colour);
-		if (!skip) blitter->SetPixel(dpi->dst_ptr, x + 1, y, colour);
+		dpi->surface->set_pixel (dpi->dst_ptr, x, y, colour);
+		if (!skip) dpi->surface->set_pixel (dpi->dst_ptr, x + 1, y, colour);
 	}
 }
 
@@ -897,7 +862,7 @@ void SmallMapWindow::DrawVehicles(const DrawPixelInfo *dpi, Blitter *blitter) co
  * Adds town names to the smallmap.
  * @param dpi the part of the smallmap to be drawn into
  */
-void SmallMapWindow::DrawTowns(const DrawPixelInfo *dpi) const
+void SmallMapWindow::DrawTowns (BlitArea *dpi) const
 {
 	const Town *t;
 	FOR_ALL_TOWNS(t) {
@@ -913,7 +878,7 @@ void SmallMapWindow::DrawTowns(const DrawPixelInfo *dpi) const
 				y < dpi->top + dpi->height) {
 			/* And draw it. */
 			SetDParam(0, t->index);
-			DrawString(x, x + t->cache.sign.width_small, y, STR_SMALLMAP_TOWN);
+			DrawString (dpi, x, x + t->cache.sign.width_small, y, STR_SMALLMAP_TOWN);
 		}
 	}
 }
@@ -924,12 +889,12 @@ void SmallMapWindow::DrawTowns(const DrawPixelInfo *dpi) const
  * @param viewport_coord The coordinate in the viewport.
  * @return The tile location.
  */
-Point SmallMapWindow::GetSmallMapCoordIncludingHeight(Point viewport_coord) const
+static Point GetSmallMapCoordIncludingHeight (Point viewport_coord)
 {
 	/* First find out which tile would be there if we ignore height */
 	Point pt = InverseRemapCoords(viewport_coord.x, viewport_coord.y);
-	pt.x /= TILE_SIZE;
-	pt.y /= TILE_SIZE;
+	pt.x /= (int)TILE_SIZE;
+	pt.y /= (int)TILE_SIZE;
 
 	/* Problem: There are mountains.  So the tile actually displayed at
 	 * the given position might be the high mountain of 30 tiles south. */
@@ -947,9 +912,35 @@ Point SmallMapWindow::GetSmallMapCoordIncludingHeight(Point viewport_coord) cons
 }
 
 /**
+ * Draws vertical part of map indicator
+ * @param dpi area to draw on
+ * @param x X coord of left/right border of main viewport
+ * @param y1 Y coord of top border of main viewport
+ * @param y2 Y coord of bottom border of main viewport
+ */
+static inline void DrawVertMapIndicator (BlitArea *dpi, int x, int y1, int y2)
+{
+	GfxFillRect (dpi, x, y1,     x, y1 + 3, PC_VERY_LIGHT_YELLOW);
+	GfxFillRect (dpi, x, y2 - 3, x, y2,     PC_VERY_LIGHT_YELLOW);
+}
+
+/**
+ * Draws horizontal part of map indicator
+ * @param dpi area to draw on
+ * @param x1 X coord of left border of main viewport
+ * @param x2 X coord of right border of main viewport
+ * @param y Y coord of top/bottom border of main viewport
+ */
+static inline void DrawHorizMapIndicator (BlitArea *dpi, int x1, int x2, int y)
+{
+	GfxFillRect (dpi, x1,     y, x1 + 3, y, PC_VERY_LIGHT_YELLOW);
+	GfxFillRect (dpi, x2 - 3, y, x2,     y, PC_VERY_LIGHT_YELLOW);
+}
+
+/**
  * Adds map indicators to the smallmap.
  */
-void SmallMapWindow::DrawMapIndicators() const
+void SmallMapWindow::DrawMapIndicators (BlitArea *dpi) const
 {
 	/* Find main viewport. */
 	const ViewPort *vp = FindWindowById(WC_MAIN_WINDOW, 0)->viewport;
@@ -965,11 +956,11 @@ void SmallMapWindow::DrawMapIndicators() const
 	/* why do we do this? in my tests subscroll was zero */
 	lower_right.x -= this->subscroll;
 
-	SmallMapWindow::DrawVertMapIndicator(upper_left.x, upper_left.y, lower_right.y);
-	SmallMapWindow::DrawVertMapIndicator(lower_right.x, upper_left.y, lower_right.y);
+	DrawVertMapIndicator (dpi, upper_left.x, upper_left.y, lower_right.y);
+	DrawVertMapIndicator (dpi, lower_right.x, upper_left.y, lower_right.y);
 
-	SmallMapWindow::DrawHorizMapIndicator(upper_left.x, lower_right.x, upper_left.y);
-	SmallMapWindow::DrawHorizMapIndicator(upper_left.x, lower_right.x, lower_right.y);
+	DrawHorizMapIndicator (dpi, upper_left.x, lower_right.x, upper_left.y);
+	DrawHorizMapIndicator (dpi, upper_left.x, lower_right.x, lower_right.y);
 }
 
 /**
@@ -983,16 +974,11 @@ void SmallMapWindow::DrawMapIndicators() const
  *
  * @param dpi pointer to pixel to write onto
  */
-void SmallMapWindow::DrawSmallMap(DrawPixelInfo *dpi) const
+void SmallMapWindow::DrawSmallMap (BlitArea *dpi) const
 {
-	Blitter *blitter = Blitter::get();
-	DrawPixelInfo *old_dpi;
-
-	old_dpi = _cur_dpi;
-	_cur_dpi = dpi;
 
 	/* Clear it */
-	GfxFillRect(dpi->left, dpi->top, dpi->left + dpi->width - 1, dpi->top + dpi->height - 1, PC_BLACK);
+	GfxFillRect (dpi, dpi->left, dpi->top, dpi->left + dpi->width - 1, dpi->top + dpi->height - 1, PC_BLACK);
 
 	/* Which tile is displayed at (dpi->left, dpi->top)? */
 	int dx;
@@ -1000,9 +986,9 @@ void SmallMapWindow::DrawSmallMap(DrawPixelInfo *dpi) const
 	int tile_x = this->scroll_x / (int)TILE_SIZE + tile.x;
 	int tile_y = this->scroll_y / (int)TILE_SIZE + tile.y;
 
-	void *ptr = blitter->MoveTo(dpi->dst_ptr, -dx - 4, 0);
+	void *ptr = dpi->surface->move (dpi->dst_ptr, -dx - 4, 0);
 	int x = - dx - 4;
-	int y = 0;
+	int y = 1;
 
 	for (;;) {
 		/* Distance from left edge */
@@ -1010,27 +996,27 @@ void SmallMapWindow::DrawSmallMap(DrawPixelInfo *dpi) const
 			if (x >= dpi->width) break; // Exit the loop.
 
 			int end_pos = min(dpi->width, x + 4);
-			int reps = (dpi->height - y + 1) / 2; // Number of lines.
+			int reps = (dpi->height + y) / 2; // Number of lines.
 			if (reps > 0) {
-				this->DrawSmallMapColumn(ptr, tile_x, tile_y, dpi->pitch * 2, reps, x, end_pos, blitter);
+				this->DrawSmallMapColumn (ptr, tile_x, tile_y, dpi->surface->pitch * 2, reps, x, end_pos);
 			}
 		}
 
-		if (y == 0) {
+		int dy;
+		if (y != 0) {
 			tile_y += this->zoom;
-			y++;
-			ptr = blitter->MoveTo(ptr, 0, 1);
+			dy = 1;
 		} else {
 			tile_x -= this->zoom;
-			y--;
-			ptr = blitter->MoveTo(ptr, 0, -1);
+			dy = -1;
 		}
-		ptr = blitter->MoveTo(ptr, 2, 0);
+		ptr = dpi->surface->move (ptr, 2, dy);
 		x += 2;
+		y ^= 1;
 	}
 
 	/* Draw vehicles */
-	if (this->map_type == SMT_CONTOUR || this->map_type == SMT_VEHICLES) this->DrawVehicles(dpi, blitter);
+	if (this->map_type == SMT_CONTOUR || this->map_type == SMT_VEHICLES) this->DrawVehicles (dpi);
 
 	/* Draw link stat overlay */
 	if (this->map_type == SMT_LINKSTATS) this->overlay->Draw(dpi);
@@ -1039,9 +1025,7 @@ void SmallMapWindow::DrawSmallMap(DrawPixelInfo *dpi) const
 	if (this->show_towns) this->DrawTowns(dpi);
 
 	/* Draw map indicators */
-	this->DrawMapIndicators();
-
-	_cur_dpi = old_dpi;
+	this->DrawMapIndicators (dpi);
 }
 
 /**
@@ -1197,7 +1181,7 @@ void SmallMapWindow::RebuildColourIndexIfNecessary()
 	this->column_width = min_width + LEGEND_BLOB_WIDTH + WD_FRAMERECT_LEFT + WD_FRAMERECT_RIGHT;
 }
 
-/* virtual */ void SmallMapWindow::OnPaint()
+void SmallMapWindow::OnPaint (BlitArea *dpi)
 {
 	if (this->map_type == SMT_OWNER) {
 		for (const LegendAndColour *tbl = _legend_table[this->map_type]; !tbl->end; ++tbl) {
@@ -1210,15 +1194,15 @@ void SmallMapWindow::RebuildColourIndexIfNecessary()
 		}
 	}
 
-	this->DrawWidgets();
+	this->DrawWidgets (dpi);
 }
 
-/* virtual */ void SmallMapWindow::DrawWidget(const Rect &r, int widget) const
+void SmallMapWindow::DrawWidget (BlitArea *dpi, const Rect &r, int widget) const
 {
 	switch (widget) {
 		case WID_SM_MAP: {
-			DrawPixelInfo new_dpi;
-			if (!FillDrawPixelInfo(&new_dpi, r.left + 1, r.top + 1, r.right - r.left - 1, r.bottom - r.top - 1)) return;
+			BlitArea new_dpi;
+			if (!InitBlitArea (dpi, &new_dpi, r.left + 1, r.top + 1, r.right - r.left - 1, r.bottom - r.top - 1)) return;
 			this->DrawSmallMap(&new_dpi);
 			break;
 		}
@@ -1283,10 +1267,10 @@ void SmallMapWindow::RebuildColourIndexIfNecessary()
 							if (!tbl->show_on_map) {
 								/* Simply draw the string, not the black border of the legend colour.
 								 * This will enforce the idea of the disabled item */
-								DrawString(x + text_left, x + text_right, y, string, TC_GREY);
+								DrawString (dpi, x + text_left, x + text_right, y, string, TC_GREY);
 							} else {
-								DrawString(x + text_left, x + text_right, y, string, TC_BLACK);
-								GfxFillRect(x + blob_left, y + 1, x + blob_right, y + row_height - 1, PC_BLACK); // Outer border of the legend colour
+								DrawString (dpi, x + text_left, x + text_right, y, string, TC_BLACK);
+								GfxFillRect (dpi, x + blob_left, y + 1, x + blob_right, y + row_height - 1, PC_BLACK); // Outer border of the legend colour
 							}
 							break;
 						}
@@ -1294,11 +1278,11 @@ void SmallMapWindow::RebuildColourIndexIfNecessary()
 					default:
 						if (this->map_type == SMT_CONTOUR) SetDParam(0, tbl->height * TILE_HEIGHT_STEP);
 						/* Anything that is not an industry or a company is using normal process */
-						GfxFillRect(x + blob_left, y + 1, x + blob_right, y + row_height - 1, PC_BLACK);
-						DrawString(x + text_left, x + text_right, y, tbl->legend);
+						GfxFillRect (dpi, x + blob_left, y + 1, x + blob_right, y + row_height - 1, PC_BLACK);
+						DrawString (dpi, x + text_left, x + text_right, y, tbl->legend);
 						break;
 				}
-				GfxFillRect(x + blob_left + 1, y + 2, x + blob_right - 1, y + row_height - 2, legend_colour); // Legend colour
+				GfxFillRect (dpi, x + blob_left + 1, y + 2, x + blob_right - 1, y + row_height - 2, legend_colour); // Legend colour
 
 				y += row_height;
 			}
@@ -1682,10 +1666,28 @@ void SmallMapWindow::SmallMapCenterOnCurrentPos()
 
 	/* And finally scroll to that position. */
 
-	int sub;
 	const NWidgetBase *wid = this->GetWidget<NWidgetBase>(WID_SM_MAP);
-	Point sxy = this->ComputeScroll(pt_with_height.x, pt_with_height.y,
-			max(0, (int)wid->current_x / 2 - 2), wid->current_y / 2, &sub);
+
+	int x = max(0, (int)wid->current_x / 2 - 2);
+	int y = wid->current_y / 2;
+	assert (x >= 0);
+	assert (y >= 0);
+
+	int sub;
+	Point tile_xy = PixelToTile (x, y, &sub, false);
+	int tx = pt_with_height.x - tile_xy.x;
+	int ty = pt_with_height.y - tile_xy.y;
+
+	Point sxy;
+	if (sub == 0) {
+		sxy.x = (tx + this->zoom) * TILE_SIZE;
+		sxy.y = (ty - this->zoom) * TILE_SIZE;
+	} else {
+		sub = 4 - sub;
+		sxy.x = (tx + 2 * this->zoom) * TILE_SIZE;
+		sxy.y = (ty - 2 * this->zoom) * TILE_SIZE;
+	}
+
 	this->SetNewScroll(sxy.x, sxy.y, sub);
 	this->SetDirty();
 }
@@ -1697,7 +1699,7 @@ void SmallMapWindow::SmallMapCenterOnCurrentPos()
  */
 Point SmallMapWindow::GetStationMiddle(const Station *st) const
 {
-	TileIndex tile = st->rect.GetCenterTile();
+	TileIndex tile = st->rect.empty() ? st->xy : st->rect.GetCenterTile();
 	Point ret = this->RemapTile(TileX(tile), TileY(tile));
 
 	/* Same magic 3 as in DrawVehicles; that's where I got it from.
@@ -1779,9 +1781,9 @@ public:
 		return NULL;
 	}
 
-	virtual void Draw(const Window *w)
+	void Draw (BlitArea *dpi, const Window *w) OVERRIDE
 	{
-		for (NWidgetBase *child_wid = this->head; child_wid != NULL; child_wid = child_wid->next) child_wid->Draw(w);
+		for (NWidgetBase *child_wid = this->head; child_wid != NULL; child_wid = child_wid->next) child_wid->Draw (dpi, w);
 	}
 };
 

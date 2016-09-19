@@ -134,7 +134,7 @@ static void CheckPaletteAnim()
 				break;
 
 			case Blitter::PALETTE_ANIMATION_BLITTER:
-				blitter->PaletteAnimate(_local_palette);
+				VideoDriver::PaletteAnimate (blitter, _local_palette);
 				break;
 
 			case Blitter::PALETTE_ANIMATION_NONE:
@@ -390,10 +390,6 @@ bool VideoDriver_SDL::CreateMainSurface(uint w, uint h)
 	/* Delay drawing for this cycle; the next cycle will redraw the whole screen */
 	_num_dirty_rects = 0;
 
-	_screen.width = newscreen->w;
-	_screen.height = newscreen->h;
-	_screen.pitch = newscreen->pitch / (bpp / 8);
-	_screen.dst_ptr = newscreen->pixels;
 	_sdl_screen = newscreen;
 
 	/* When in full screen, we will always have the mouse cursor
@@ -402,7 +398,12 @@ bool VideoDriver_SDL::CreateMainSurface(uint w, uint h)
 	if (_fullscreen) _cursor.in_window = true;
 
 	Blitter *blitter = Blitter::get();
-	blitter->PostResize();
+	_screen.surface.reset (blitter->create (newscreen->pixels,
+					newscreen->w, newscreen->h,
+					newscreen->pitch / (bpp / 8)));
+	_screen.dst_ptr = newscreen->pixels;
+	_screen.width   = newscreen->w;
+	_screen.height  = newscreen->h;
 
 	InitPalette();
 	switch (blitter->UsePaletteAnimation()) {
@@ -412,7 +413,9 @@ bool VideoDriver_SDL::CreateMainSurface(uint w, uint h)
 			break;
 
 		case Blitter::PALETTE_ANIMATION_BLITTER:
-			if (VideoDriver::GetActiveDriver() != NULL) blitter->PaletteAnimate(_local_palette);
+			if (VideoDriver::GetActiveDriver() != NULL) {
+				VideoDriver::PaletteAnimate (blitter, _local_palette);
+			}
 			break;
 
 		default:

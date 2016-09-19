@@ -291,11 +291,13 @@ struct DepotWindow : Window {
 	/**
 	 * Draw a vehicle in the depot window in the box with the top left corner at x,y.
 	 * @param v     Vehicle to draw.
+	 * @param dpi   Area to draw on.
 	 * @param left  Left side of the box to draw in.
 	 * @param right Right side of the box to draw in.
 	 * @param y     Top of the box to draw in.
 	 */
-	void DrawVehicleInDepot(const Vehicle *v, int left, int right, int y) const
+	void DrawVehicleInDepot (const Vehicle *v, BlitArea *dpi,
+		int left, int right, int y) const
 	{
 		bool free_wagon = false;
 		int sprite_y = y + (this->resize.step_height - ScaleGUITrad(GetVehicleHeight(v->type))) / 2;
@@ -310,19 +312,19 @@ struct DepotWindow : Window {
 				free_wagon = u->IsFreeWagon();
 
 				uint x_space = free_wagon ? ScaleGUITrad(TRAININFO_DEFAULT_VEHICLE_WIDTH) : 0;
-				DrawTrainImage(u, image_left + (rtl ? 0 : x_space), image_right - (rtl ? x_space : 0), sprite_y - 1,
+				DrawTrainImage (u, dpi, image_left + (rtl ? 0 : x_space), image_right - (rtl ? x_space : 0), sprite_y - 1,
 						this->sel, EIT_IN_DEPOT, free_wagon ? 0 : this->hscroll->GetPosition(), this->vehicle_over);
 
 				/* Length of consist in tiles with 1 fractional digit (rounded up) */
 				SetDParam(0, CeilDiv(u->gcache.cached_total_length * 10, TILE_SIZE));
 				SetDParam(1, 1);
-				DrawString(rtl ? left + WD_FRAMERECT_LEFT : right - this->count_width, rtl ? left + this->count_width : right - WD_FRAMERECT_RIGHT, y + (this->resize.step_height - FONT_HEIGHT_SMALL) / 2, STR_TINY_BLACK_DECIMAL, TC_FROMSTRING, SA_RIGHT); // Draw the counter
+				DrawString (dpi, rtl ? left + WD_FRAMERECT_LEFT : right - this->count_width, rtl ? left + this->count_width : right - WD_FRAMERECT_RIGHT, y + (this->resize.step_height - FONT_HEIGHT_SMALL) / 2, STR_TINY_BLACK_DECIMAL, TC_FROMSTRING, SA_RIGHT); // Draw the counter
 				break;
 			}
 
-			case VEH_ROAD:     DrawRoadVehImage( v, image_left, image_right, sprite_y, this->sel, EIT_IN_DEPOT); break;
-			case VEH_SHIP:     DrawShipImage(    v, image_left, image_right, sprite_y, this->sel, EIT_IN_DEPOT); break;
-			case VEH_AIRCRAFT: DrawAircraftImage(v, image_left, image_right, sprite_y, this->sel, EIT_IN_DEPOT); break;
+			case VEH_ROAD:     DrawRoadVehImage  (v, dpi, image_left, image_right, sprite_y, this->sel, EIT_IN_DEPOT); break;
+			case VEH_SHIP:     DrawShipImage     (v, dpi, image_left, image_right, sprite_y, this->sel, EIT_IN_DEPOT); break;
+			case VEH_AIRCRAFT: DrawAircraftImage (v, dpi, image_left, image_right, sprite_y, this->sel, EIT_IN_DEPOT); break;
 			default: NOT_REACHED();
 		}
 
@@ -340,16 +342,16 @@ struct DepotWindow : Window {
 		int text_right = rtl ? right - diff_x : left + this->header_width - 1;
 
 		if (free_wagon) {
-			DrawString(text_left, text_right, y + 2, STR_DEPOT_NO_ENGINE);
+			DrawString (dpi, text_left, text_right, y + 2, STR_DEPOT_NO_ENGINE);
 		} else {
-			DrawSprite((v->vehstatus & VS_STOPPED) ? SPR_FLAG_VEH_STOPPED : SPR_FLAG_VEH_RUNNING, PAL_NONE, rtl ? right - this->flag_width : left + WD_FRAMERECT_LEFT, y + diff_y);
+			DrawSprite (dpi, (v->vehstatus & VS_STOPPED) ? SPR_FLAG_VEH_STOPPED : SPR_FLAG_VEH_RUNNING, PAL_NONE, rtl ? right - this->flag_width : left + WD_FRAMERECT_LEFT, y + diff_y);
 
 			SetDParam(0, v->unitnumber);
-			DrawString(text_left, text_right, y + 2, (uint16)(v->max_age - DAYS_IN_LEAP_YEAR) >= v->age ? STR_BLACK_COMMA : STR_RED_COMMA);
+			DrawString (dpi, text_left, text_right, y + 2, (uint16)(v->max_age - DAYS_IN_LEAP_YEAR) >= v->age ? STR_BLACK_COMMA : STR_RED_COMMA);
 		}
 	}
 
-	void DrawWidget(const Rect &r, int widget) const
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
 	{
 		if (widget != WID_D_MATRIX) return;
 
@@ -367,10 +369,10 @@ struct DepotWindow : Window {
 				/* Draw all vehicles in the current row */
 				const Vehicle *v = this->vehicle_list[num];
 				if (this->num_columns == 1) {
-					this->DrawVehicleInDepot(v, r.left, r.right, y);
+					this->DrawVehicleInDepot (v, dpi, r.left, r.right, y);
 				} else {
 					int x = r.left + (rtl ? (this->num_columns - i - 1) : i) * this->resize.step_width;
-					this->DrawVehicleInDepot(v, x, x + this->resize.step_width - 1, y);
+					this->DrawVehicleInDepot (v, dpi, x, x + this->resize.step_width - 1, y);
 				}
 			}
 		}
@@ -380,7 +382,7 @@ struct DepotWindow : Window {
 		/* Draw the train wagons without an engine in front. */
 		for (; num < maxval; num++, y += this->resize.step_height) {
 			const Vehicle *v = this->wagon_list[num - this->vehicle_list.Length()];
-			this->DrawVehicleInDepot(v, r.left, r.right, y);
+			this->DrawVehicleInDepot (v, dpi, r.left, r.right, y);
 		}
 	}
 
@@ -670,7 +672,7 @@ struct DepotWindow : Window {
 		this->generate_list = true;
 	}
 
-	virtual void OnPaint()
+	void OnPaint (BlitArea *dpi) OVERRIDE
 	{
 		if (this->generate_list) {
 			/* Generate the vehicle list
@@ -680,7 +682,8 @@ struct DepotWindow : Window {
 			DepotSortList(&this->vehicle_list);
 
 			uint new_unitnumber_digits = GetUnitNumberDigits(this->vehicle_list);
-			if (this->unitnumber_digits != new_unitnumber_digits) {
+			/* Only increase the size; do not decrease to prevent constant changes */
+			if (this->unitnumber_digits < new_unitnumber_digits) {
 				this->unitnumber_digits = new_unitnumber_digits;
 				this->ReInit();
 			}
@@ -717,7 +720,7 @@ struct DepotWindow : Window {
 			WID_D_AUTOREPLACE,
 			WIDGET_LIST_END);
 
-		this->DrawWidgets();
+		this->DrawWidgets (dpi);
 	}
 
 	virtual void OnClick(Point pt, int widget, int click_count)

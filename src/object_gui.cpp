@@ -30,9 +30,30 @@ static ObjectClassID _selected_object_class; ///< the currently visible object c
 static int _selected_object_index;           ///< the index of the selected object in the current class or -1
 static uint8 _selected_object_view;          ///< the view of the selected object
 
+static const int OBJECT_MARGIN = 4; ///< The margin (in pixels) around an object.
+
+/** Draw an object preview in a widget. */
+static inline void DrawObjectPreview (const ObjectSpec *spec, BlitArea *dpi,
+	const Rect &r, int shrink, int y, uint view)
+{
+	/* Set up a clipping area for the preview. */
+	BlitArea tmp_dpi;
+	int width = r.right - r.left;
+	if (InitBlitArea (dpi, &tmp_dpi, r.left + shrink, r.top, width - 2 * shrink + 1, r.bottom - r.top + 1)) {
+		int x = width / 2 - 1;
+		y -= OBJECT_MARGIN + ScaleGUITrad (TILE_PIXELS);
+		if (spec->grf_prop.grffile == NULL) {
+			extern const DrawTileSprites _objects[];
+			const DrawTileSprites *dts = &_objects[spec->grf_prop.local_id];
+			DrawOrigTileSeqInGUI (&tmp_dpi, x, y, dts, PAL_NONE);
+		} else {
+			DrawNewObjectTileInGUI (&tmp_dpi, x, y, spec, view);
+		}
+	}
+}
+
 /** The window used for building objects. */
 class BuildObjectWindow : public Window {
-	static const int OBJECT_MARGIN = 4; ///< The margin (in pixels) around an object.
 	int line_height;                    ///< The height of a single line.
 	int info_height;                    ///< The height of the info box.
 	Scrollbar *vscroll;                 ///< The scrollbar.
@@ -210,7 +231,7 @@ public:
 		}
 	}
 
-	virtual void DrawWidget(const Rect &r, int widget) const
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
 	{
 		switch (GB(widget, 0, 16)) {
 			case WID_BO_CLASS_LIST: {
@@ -220,7 +241,7 @@ public:
 					ObjectClass *objclass = ObjectClass::Get((ObjectClassID)i);
 					if (objclass->GetUISpecCount() == 0) continue;
 					if (!this->vscroll->IsVisible(pos++)) continue;
-					DrawString(r.left + WD_MATRIX_LEFT, r.right - WD_MATRIX_RIGHT, y + WD_MATRIX_TOP, objclass->name,
+					DrawString (dpi, r.left + WD_MATRIX_LEFT, r.right - WD_MATRIX_RIGHT, y + WD_MATRIX_TOP, objclass->name,
 							((int)i == _selected_object_class) ? TC_WHITE : TC_BLACK);
 					y += this->line_height;
 				}
@@ -238,20 +259,8 @@ public:
 				 * is centered in the 2x1, 1x2 resp. 1x1 buttons. */
 				uint matrix_height = this->GetWidget<NWidgetMatrix>(WID_BO_OBJECT_MATRIX)->current_y;
 
-				DrawPixelInfo tmp_dpi;
-				/* Set up a clipping area for the preview. */
-				if (FillDrawPixelInfo(&tmp_dpi, r.left, r.top, r.right - r.left + 1, r.bottom - r.top + 1)) {
-					DrawPixelInfo *old_dpi = _cur_dpi;
-					_cur_dpi = &tmp_dpi;
-					if (spec->grf_prop.grffile == NULL) {
-						extern const DrawTileSprites _objects[];
-						const DrawTileSprites *dts = &_objects[spec->grf_prop.local_id];
-						DrawOrigTileSeqInGUI((r.right - r.left) / 2 - 1, (r.bottom - r.top + matrix_height / 2) / 2 - OBJECT_MARGIN - ScaleGUITrad(TILE_PIXELS), dts, PAL_NONE);
-					} else {
-						DrawNewObjectTileInGUI((r.right - r.left) / 2 - 1, (r.bottom - r.top + matrix_height / 2) / 2 - OBJECT_MARGIN - ScaleGUITrad(TILE_PIXELS), spec, GB(widget, 16, 16));
-					}
-					_cur_dpi = old_dpi;
-				}
+				int y = (r.bottom - r.top + matrix_height / 2) / 2;
+				DrawObjectPreview (spec, dpi, r, 0, y, GB(widget, 16, 16));
 				break;
 			}
 
@@ -263,22 +272,9 @@ public:
 				if (spec == NULL) break;
 
 				if (!spec->IsAvailable()) {
-					GfxFillRect(r.left + 1, r.top + 1, r.right - 1, r.bottom - 1, PC_BLACK, FILLRECT_CHECKER);
+					GfxFillRect (dpi, r.left + 1, r.top + 1, r.right - 1, r.bottom - 1, PC_BLACK, FILLRECT_CHECKER);
 				}
-				DrawPixelInfo tmp_dpi;
-				/* Set up a clipping area for the preview. */
-				if (FillDrawPixelInfo(&tmp_dpi, r.left + 1, r.top, (r.right - 1) - (r.left + 1) + 1, r.bottom - r.top + 1)) {
-					DrawPixelInfo *old_dpi = _cur_dpi;
-					_cur_dpi = &tmp_dpi;
-					if (spec->grf_prop.grffile == NULL) {
-						extern const DrawTileSprites _objects[];
-						const DrawTileSprites *dts = &_objects[spec->grf_prop.local_id];
-						DrawOrigTileSeqInGUI((r.right - r.left) / 2 - 1, r.bottom - r.top - OBJECT_MARGIN - ScaleGUITrad(TILE_PIXELS), dts, PAL_NONE);
-					} else {
-						DrawNewObjectTileInGUI((r.right - r.left) / 2 - 1, r.bottom - r.top - OBJECT_MARGIN - ScaleGUITrad(TILE_PIXELS), spec, 0);
-					}
-					_cur_dpi = old_dpi;
-				}
+				DrawObjectPreview (spec, dpi, r, 1, r.bottom - r.top, 0);
 				break;
 			}
 
@@ -299,7 +295,7 @@ public:
 								/* Use all the available space left from where we stand up to the
 								 * end of the window. We ALSO enlarge the window if needed, so we
 								 * can 'go' wild with the bottom of the window. */
-								int y = DrawStringMultiLine(r.left, r.right, r.top, UINT16_MAX, message, TC_ORANGE) - r.top;
+								int y = DrawStringMultiLine (dpi, r.left, r.right, r.top, UINT16_MAX, message, TC_ORANGE) - r.top;
 								StopTextRefStackUsage();
 								if (y > this->info_height) {
 									BuildObjectWindow *bow = const_cast<BuildObjectWindow *>(this);
@@ -575,7 +571,7 @@ void CcBuildObject(const CommandCost &result, TileIndex tile, uint32 p1, uint32 
 			break;
 
 		case OBJECT_OWNED_LAND:
-			CcPlaySound1E(result, tile, p1, p2);
+			CcPlaySound_SPLAT_RAIL(result, tile, p1, p2);
 			break;
 
 		default:

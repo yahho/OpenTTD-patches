@@ -19,14 +19,15 @@
 #include "dropdown_widget.h"
 
 
-void DropDownListItem::Draw(int left, int right, int top, int bottom, bool sel, int bg_colour) const
+void DropDownListItem::Draw (BlitArea *dpi, int left, int right,
+	int top, int bottom, bool sel, int bg_colour) const
 {
 	int c1 = _colour_gradient[bg_colour][3];
 	int c2 = _colour_gradient[bg_colour][7];
 
 	int mid = top + this->Height(0) / 2;
-	GfxFillRect(left + 1, mid - 2, right - 1, mid - 2, c1);
-	GfxFillRect(left + 1, mid - 1, right - 1, mid - 1, c2);
+	GfxFillRect (dpi, left + 1, mid - 2, right - 1, mid - 2, c1);
+	GfxFillRect (dpi, left + 1, mid - 1, right - 1, mid - 1, c2);
 }
 
 uint DropDownListStringItem::Width() const
@@ -36,9 +37,10 @@ uint DropDownListStringItem::Width() const
 	return GetStringBoundingBox(buffer).width;
 }
 
-void DropDownListStringItem::Draw(int left, int right, int top, int bottom, bool sel, int bg_colour) const
+void DropDownListStringItem::Draw (BlitArea *dpi, int left, int right,
+	int top, int bottom, bool sel, int bg_colour) const
 {
-	DrawString(left + WD_FRAMERECT_LEFT, right - WD_FRAMERECT_RIGHT, top, this->String(), sel ? TC_WHITE : TC_BLACK);
+	DrawString (dpi, left + WD_FRAMERECT_LEFT, right - WD_FRAMERECT_RIGHT, top, this->String(), sel ? TC_WHITE : TC_BLACK);
 }
 
 /**
@@ -208,7 +210,7 @@ struct DropdownWindow : Window {
 		return false;
 	}
 
-	virtual void DrawWidget(const Rect &r, int widget) const
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
 	{
 		if (widget != WID_DM_ITEMS) return;
 
@@ -225,12 +227,12 @@ struct DropdownWindow : Window {
 
 			if (y + item_height < r.bottom) {
 				bool selected = (this->selected_index == item->result);
-				if (selected) GfxFillRect(r.left + 2, y, r.right - 1, y + item_height - 1, PC_BLACK);
+				if (selected) GfxFillRect (dpi, r.left + 2, y, r.right - 1, y + item_height - 1, PC_BLACK);
 
-				item->Draw(r.left, r.right, y, y + item_height, selected, colour);
+				item->Draw (dpi, r.left, r.right, y, y + item_height, selected, colour);
 
 				if (item->masked) {
-					GfxFillRect(r.left + 1, y, r.right - 1, y + item_height - 1, _colour_gradient[colour][5], FILLRECT_CHECKER);
+					GfxFillRect (dpi, r.left + 1, y, r.right - 1, y + item_height - 1, _colour_gradient[colour][5], FILLRECT_CHECKER);
 				}
 			}
 			y += item_height;

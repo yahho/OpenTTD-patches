@@ -81,7 +81,7 @@ struct DrawBuildingsTileStruct {
 #define foreach_draw_tile_seq(idx, list) for (idx = list; !idx->IsTerminator(); idx++)
 
 void DrawCommonTileSeq(const struct TileInfo *ti, const DrawTileSprites *dts, TransparencyOption to, int32 orig_offset, uint32 newgrf_offset, PaletteID default_palette, bool child_offset_is_unsigned);
-void DrawCommonTileSeqInGUI(int x, int y, const DrawTileSprites *dts, int32 orig_offset, uint32 newgrf_offset, PaletteID default_palette, bool child_offset_is_unsigned);
+void DrawCommonTileSeqInGUI (BlitArea *dpi, int x, int y, const DrawTileSprites *dts, int32 orig_offset, uint32 newgrf_offset, PaletteID default_palette, bool child_offset_is_unsigned);
 
 /**
  * Draw tile sprite sequence on tile with railroad specifics.
@@ -98,9 +98,9 @@ static inline void DrawRailTileSeq(const struct TileInfo *ti, const DrawTileSpri
  * @param total_offset Spriteoffset from normal rail to current railtype.
  * @param newgrf_offset Startsprite of the Action1 to use.
  */
-static inline void DrawRailTileSeqInGUI(int x, int y, const DrawTileSprites *dts, int32 total_offset, uint32 newgrf_offset, PaletteID default_palette)
+static inline void DrawRailTileSeqInGUI (BlitArea *dpi, int x, int y, const DrawTileSprites *dts, int32 total_offset, uint32 newgrf_offset, PaletteID default_palette)
 {
-	DrawCommonTileSeqInGUI(x, y, dts, total_offset, newgrf_offset, default_palette, false);
+	DrawCommonTileSeqInGUI (dpi, x, y, dts, total_offset, newgrf_offset, default_palette, false);
 }
 
 /**
@@ -114,9 +114,9 @@ static inline void DrawOrigTileSeq(const struct TileInfo *ti, const DrawTileSpri
 /**
  * Draw TTD sprite sequence in GUI.
  */
-static inline void DrawOrigTileSeqInGUI(int x, int y, const DrawTileSprites *dts, PaletteID default_palette)
+static inline void DrawOrigTileSeqInGUI (BlitArea *dpi, int x, int y, const DrawTileSprites *dts, PaletteID default_palette)
 {
-	DrawCommonTileSeqInGUI(x, y, dts, 0, 0, default_palette, false);
+	DrawCommonTileSeqInGUI (dpi, x, y, dts, 0, 0, default_palette, false);
 }
 
 /**
@@ -132,9 +132,9 @@ static inline void DrawNewGRFTileSeq(const struct TileInfo *ti, const DrawTileSp
  * Draw NewGRF object in GUI
  * @param stage Sprite inside the Action1 spritesets to use, i.e. construction stage.
  */
-static inline void DrawNewGRFTileSeqInGUI(int x, int y, const DrawTileSprites *dts, uint32 stage, PaletteID default_palette)
+static inline void DrawNewGRFTileSeqInGUI (BlitArea *dpi, int x, int y, const DrawTileSprites *dts, uint32 stage, PaletteID default_palette)
 {
-	DrawCommonTileSeqInGUI(x, y, dts, 0, stage, default_palette, true);
+	DrawCommonTileSeqInGUI (dpi, x, y, dts, 0, stage, default_palette, true);
 }
 
 /**

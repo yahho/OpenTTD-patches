@@ -39,8 +39,7 @@ bool _left_button_down;     ///< Is left mouse button pressed?
 bool _left_button_clicked;  ///< Is left mouse button clicked?
 bool _right_button_down;    ///< Is right mouse button pressed?
 bool _right_button_clicked; ///< Is right mouse button clicked?
-DrawPixelInfo _screen;
-bool _screen_disable_anim = false;   ///< Disable palette animation (important for 32bpp-anim blitter during giant screenshot)
+BlitArea _screen;
 bool _exit_game;
 GameMode _game_mode;
 SwitchMode _switch_mode;  ///< The next mainloop command.
@@ -57,13 +56,12 @@ struct FontMetrics {
 
 static FontMetrics font_metrics_cache [FS_END]; ///< Cache containing width of often used characters. @see GetCharacterWidth()
 
-DrawPixelInfo *_cur_dpi;
 byte _colour_gradient[COLOUR_END][8];
 
-static void GfxMainBlitterViewport(const Sprite *sprite, int x, int y, BlitterMode mode, const SubSprite *sub = NULL, SpriteID sprite_id = SPR_CURSOR_MOUSE);
-static void GfxMainBlitter(const Sprite *sprite, int x, int y, BlitterMode mode, const SubSprite *sub = NULL, SpriteID sprite_id = SPR_CURSOR_MOUSE, ZoomLevel zoom = ZOOM_LVL_NORMAL);
+static void GfxMainBlitterViewport (DrawPixelInfo *dpi, const Sprite *sprite, int x, int y, BlitterMode mode, const SubSprite *sub = NULL, SpriteID sprite_id = SPR_CURSOR_MOUSE);
+static void GfxMainBlitter (BlitArea *dpi, const Sprite *sprite, int x, int y, BlitterMode mode, const SubSprite *sub = NULL, SpriteID sprite_id = SPR_CURSOR_MOUSE, ZoomLevel zoom = ZOOM_LVL_NORMAL);
 
-static ReusableBuffer<uint8> _cursor_backup;
+static Blitter::Buffer _cursor_backup;
 
 ZoomLevelByte _gui_zoom; ///< GUI Zoom level
 
@@ -87,8 +85,6 @@ extern uint _dirty_block_colour;
 
 void GfxScroll(int left, int top, int width, int height, int xo, int yo)
 {
-	Blitter *blitter = Blitter::get();
-
 	if (xo == 0 && yo == 0) return;
 
 	if (_cursor.visible) UndrawMouseCursor();
@@ -97,7 +93,7 @@ void GfxScroll(int left, int top, int width, int height, int xo, int yo)
 	if (_networking) NetworkUndrawChatMessage();
 #endif /* ENABLE_NETWORK */
 
-	blitter->ScrollBuffer(_screen.dst_ptr, left, top, width, height, xo, yo);
+	_screen.surface->scroll (_screen.dst_ptr, left, top, width, height, xo, yo);
 	/* This part of the screen is now dirty. */
 	VideoDriver::GetActiveDriver()->MakeDirty(left, top, width, height);
 }
@@ -107,6 +103,7 @@ void GfxScroll(int left, int top, int width, int height, int xo, int yo)
  * Applies a certain FillRectMode-operation to a rectangle [left, right] x [top, bottom] on the screen.
  *
  * @pre dpi->zoom == ZOOM_LVL_NORMAL, right >= left, bottom >= top
+ * @param dpi Area to blit to
  * @param left Minimum X (inclusive)
  * @param top Minimum Y (inclusive)
  * @param right Maximum X (inclusive)
@@ -117,15 +114,12 @@ void GfxScroll(int left, int top, int width, int height, int xo, int yo)
  *         FILLRECT_CHECKER:  Like FILLRECT_OPAQUE, but only draw every second pixel (used to grey out things)
  *         FILLRECT_RECOLOUR:  Apply a recolour sprite to every pixel in the rectangle currently on screen
  */
-void GfxFillRect(int left, int top, int right, int bottom, int colour, FillRectMode mode)
+void GfxFillRect (BlitArea *dpi, int left, int top, int right, int bottom, int colour, FillRectMode mode)
 {
-	Blitter *blitter = Blitter::get();
-	const DrawPixelInfo *dpi = _cur_dpi;
 	void *dst;
 	const int otop = top;
 	const int oleft = left;
 
-	if (dpi->zoom != ZOOM_LVL_NORMAL) return;
 	if (left > right || top > bottom) return;
 	if (right < dpi->left || left >= dpi->left + dpi->width) return;
 	if (bottom < dpi->top || top >= dpi->top + dpi->height) return;
@@ -142,22 +136,22 @@ void GfxFillRect(int left, int top, int right, int bottom, int colour, FillRectM
 	bottom -= top;
 	assert(bottom > 0);
 
-	dst = blitter->MoveTo(dpi->dst_ptr, left, top);
+	dst = dpi->surface->move (dpi->dst_ptr, left, top);
 
 	switch (mode) {
 		default: // FILLRECT_OPAQUE
-			blitter->DrawRect(dst, right, bottom, (uint8)colour);
+			dpi->surface->draw_rect (dst, right, bottom, (uint8)colour);
 			break;
 
 		case FILLRECT_RECOLOUR:
-			blitter->DrawColourMappingRect(dst, right, bottom, GB(colour, 0, PALETTE_WIDTH));
+			dpi->surface->recolour_rect (dst, right, bottom, GB(colour, 0, PALETTE_WIDTH));
 			break;
 
 		case FILLRECT_CHECKER: {
 			byte bo = (oleft - left + dpi->left + otop - top + dpi->top) & 1;
 			do {
-				for (int i = (bo ^= 1); i < right; i += 2) blitter->SetPixel(dst, i, 0, (uint8)colour);
-				dst = blitter->MoveTo(dst, 0, 1);
+				for (int i = (bo ^= 1); i < right; i += 2) dpi->surface->set_pixel (dst, i, 0, (uint8)colour);
+				dst = dpi->surface->move (dst, 0, 1);
 			} while (--bottom > 0);
 			break;
 		}
@@ -167,7 +161,7 @@ void GfxFillRect(int left, int top, int right, int bottom, int colour, FillRectM
 /**
  * Check line clipping by using a linear equation and draw the visible part of
  * the line given by x/y and x2/y2.
- * @param video Destination pointer to draw into.
+ * @param dpi Area to blit to.
  * @param x X coordinate of first point.
  * @param y Y coordinate of first point.
  * @param x2 X coordinate of second point.
@@ -178,51 +172,53 @@ void GfxFillRect(int left, int top, int right, int bottom, int colour, FillRectM
  * @param width Width of the line.
  * @param dash Length of dashes for dashed lines. 0 means solid line.
  */
-static inline void GfxDoDrawLine(void *video, int x, int y, int x2, int y2, int screen_width, int screen_height, uint8 colour, int width, int dash = 0)
+static inline void GfxDoDrawLine (BlitArea *dpi, int x, int y, int x2, int y2, int screen_width, int screen_height, uint8 colour, int width, int dash = 0)
 {
-	Blitter *blitter = Blitter::get();
-
 	assert(width > 0);
 
 	if (y2 == y || x2 == x) {
 		/* Special case: horizontal/vertical line. All checks already done in GfxPreprocessLine. */
-		blitter->DrawLine(video, x, y, x2, y2, screen_width, screen_height, colour, width, dash);
-		return;
+	} else {
+		int grade_y = y2 - y;
+		int grade_x = x2 - x;
+
+		/* Clipping rectangle. Slightly extended so we can ignore the width of the line. */
+		int extra = (int)CeilDiv(3 * width, 4); // not less then "width * sqrt(2) / 2"
+		int clip_left  = -extra - x;
+		int clip_right = screen_width - 1 + extra - x;
+
+		/* prevent integer overflows. */
+		int margin = 1;
+		int dinf = max (abs (clip_left), abs (clip_right));
+		while (INT_MAX / abs(grade_y) < dinf) {
+			grade_y /= 2;
+			grade_x /= 2;
+			margin  *= 2; // account for rounding errors
+		}
+
+		/* Imagine that the line is infinitely long and it intersects
+		 * with infinitely long left and right edges of the clipping
+		 * rectangle. If both intersection points are outside the
+		 * clipping rectangle and both on the same side of it,
+		 * we don't need to draw anything. */
+		int left_isec_y  = y + clip_left  * grade_y / grade_x;
+		int right_isec_y = y + clip_right * grade_y / grade_x;
+
+		int clip_bottom = screen_height - 1 + extra + margin;
+		if (left_isec_y > clip_bottom && right_isec_y > clip_bottom) return;
+
+		int clip_top = -extra - margin;
+		if (left_isec_y < clip_top && right_isec_y < clip_top) return;
+
+		/* It is possible to use the line equation to further reduce
+		 * the amount of work the blitter has to do by shortening the
+		 * effective line segment. However, in order to get that right
+		 * and prevent the flickering effects of rounding errors so
+		 * much additional code has to be run here that in the general
+		 * case the effect is not noticable. */
 	}
 
-	int grade_y = y2 - y;
-	int grade_x = x2 - x;
-
-	/* Clipping rectangle. Slightly extended so we can ignore the width of the line. */
-	int extra = (int)CeilDiv(3 * width, 4); // not less then "width * sqrt(2) / 2"
-	Rect clip = { -extra, -extra, screen_width - 1 + extra, screen_height - 1 + extra };
-
-	/* prevent integer overflows. */
-	int margin = 1;
-	while (INT_MAX / abs(grade_y) < max(abs(clip.left - x), abs(clip.right - x))) {
-		grade_y /= 2;
-		grade_x /= 2;
-		margin  *= 2; // account for rounding errors
-	}
-
-	/* Imagine that the line is infinitely long and it intersects with
-	 * infinitely long left and right edges of the clipping rectangle.
-	 * If both intersection points are outside the clipping rectangle
-	 * and both on the same side of it, we don't need to draw anything. */
-	int left_isec_y = y + (clip.left - x) * grade_y / grade_x;
-	int right_isec_y = y + (clip.right - x) * grade_y / grade_x;
-	if ((left_isec_y > clip.bottom + margin && right_isec_y > clip.bottom + margin) ||
-			(left_isec_y < clip.top - margin && right_isec_y < clip.top - margin)) {
-		return;
-	}
-
-	/* It is possible to use the line equation to further reduce the amount of
-	 * work the blitter has to do by shortening the effective line segment.
-	 * However, in order to get that right and prevent the flickering effects
-	 * of rounding errors so much additional code has to be run here that in
-	 * the general case the effect is not noticable. */
-
-	blitter->DrawLine(video, x, y, x2, y2, screen_width, screen_height, colour, width, dash);
+	dpi->surface->draw_line (dpi->dst_ptr, x, y, x2, y2, screen_width, screen_height, colour, width, dash);
 }
 
 /**
@@ -236,7 +232,7 @@ static inline void GfxDoDrawLine(void *video, int x, int y, int x2, int y2, int 
  * @return True if the line is likely to be visible, false if it's certainly
  *         invisible.
  */
-static inline bool GfxPreprocessLine(DrawPixelInfo *dpi, int &x, int &y, int &x2, int &y2, int width)
+static inline bool GfxPreprocessLine (BlitArea *dpi, int &x, int &y, int &x2, int &y2, int width)
 {
 	x -= dpi->left;
 	x2 -= dpi->left;
@@ -251,19 +247,17 @@ static inline bool GfxPreprocessLine(DrawPixelInfo *dpi, int &x, int &y, int &x2
 	return true;
 }
 
-void GfxDrawLine(int x, int y, int x2, int y2, int colour, int width, int dash)
+void GfxDrawLine (BlitArea *dpi, int x, int y, int x2, int y2, int colour, int width, int dash)
 {
-	DrawPixelInfo *dpi = _cur_dpi;
 	if (GfxPreprocessLine(dpi, x, y, x2, y2, width)) {
-		GfxDoDrawLine(dpi->dst_ptr, x, y, x2, y2, dpi->width, dpi->height, colour, width, dash);
+		GfxDoDrawLine (dpi, x, y, x2, y2, dpi->width, dpi->height, colour, width, dash);
 	}
 }
 
-void GfxDrawLineUnscaled(int x, int y, int x2, int y2, int colour)
+static void GfxDrawLineUnscaled (DrawPixelInfo *dpi, int x, int y, int x2, int y2, int colour)
 {
-	DrawPixelInfo *dpi = _cur_dpi;
 	if (GfxPreprocessLine(dpi, x, y, x2, y2, 1)) {
-		GfxDoDrawLine(dpi->dst_ptr,
+		GfxDoDrawLine (dpi,
 				UnScaleByZoom(x, dpi->zoom), UnScaleByZoom(y, dpi->zoom),
 				UnScaleByZoom(x2, dpi->zoom), UnScaleByZoom(y2, dpi->zoom),
 				UnScaleByZoom(dpi->width, dpi->zoom), UnScaleByZoom(dpi->height, dpi->zoom), colour, 1);
@@ -273,7 +267,7 @@ void GfxDrawLineUnscaled(int x, int y, int x2, int y2, int colour)
 /**
  * Draws the projection of a parallelepiped.
  * This can be used to draw boxes in world coordinates.
- *
+ * @param dpi Screen parameters to align with.
  * @param x   Screen X-coordinate of top front corner.
  * @param y   Screen Y-coordinate of top front corner.
  * @param dx1 Screen X-length of first edge.
@@ -283,7 +277,7 @@ void GfxDrawLineUnscaled(int x, int y, int x2, int y2, int colour)
  * @param dx3 Screen X-length of third edge.
  * @param dy3 Screen Y-length of third edge.
  */
-void DrawBox(int x, int y, int dx1, int dy1, int dx2, int dy2, int dx3, int dy3)
+void DrawBox (DrawPixelInfo *dpi, int x, int y, int dx1, int dy1, int dx2, int dy2, int dx3, int dy3)
 {
 	/*           ....
 	 *         ..    ....
@@ -302,16 +296,16 @@ void DrawBox(int x, int y, int dx1, int dy1, int dx2, int dy2, int dx3, int dy3)
 
 	static const byte colour = PC_WHITE;
 
-	GfxDrawLineUnscaled(x, y, x + dx1, y + dy1, colour);
-	GfxDrawLineUnscaled(x, y, x + dx2, y + dy2, colour);
-	GfxDrawLineUnscaled(x, y, x + dx3, y + dy3, colour);
+	GfxDrawLineUnscaled (dpi, x, y, x + dx1, y + dy1, colour);
+	GfxDrawLineUnscaled (dpi, x, y, x + dx2, y + dy2, colour);
+	GfxDrawLineUnscaled (dpi, x, y, x + dx3, y + dy3, colour);
 
-	GfxDrawLineUnscaled(x + dx1, y + dy1, x + dx1 + dx2, y + dy1 + dy2, colour);
-	GfxDrawLineUnscaled(x + dx1, y + dy1, x + dx1 + dx3, y + dy1 + dy3, colour);
-	GfxDrawLineUnscaled(x + dx2, y + dy2, x + dx2 + dx1, y + dy2 + dy1, colour);
-	GfxDrawLineUnscaled(x + dx2, y + dy2, x + dx2 + dx3, y + dy2 + dy3, colour);
-	GfxDrawLineUnscaled(x + dx3, y + dy3, x + dx3 + dx1, y + dy3 + dy1, colour);
-	GfxDrawLineUnscaled(x + dx3, y + dy3, x + dx3 + dx2, y + dy3 + dy2, colour);
+	GfxDrawLineUnscaled (dpi, x + dx1, y + dy1, x + dx1 + dx2, y + dy1 + dy2, colour);
+	GfxDrawLineUnscaled (dpi, x + dx1, y + dy1, x + dx1 + dx3, y + dy1 + dy3, colour);
+	GfxDrawLineUnscaled (dpi, x + dx2, y + dy2, x + dx2 + dx1, y + dy2 + dy1, colour);
+	GfxDrawLineUnscaled (dpi, x + dx2, y + dy2, x + dx2 + dx3, y + dy2 + dy3, colour);
+	GfxDrawLineUnscaled (dpi, x + dx3, y + dy3, x + dx3 + dx1, y + dy3 + dy1, colour);
+	GfxDrawLineUnscaled (dpi, x + dx3, y + dy3, x + dx3 + dx2, y + dy3 + dy2, colour);
 }
 
 /**
@@ -336,6 +330,7 @@ static void SetColourRemap(TextColour colour)
 /**
  * Drawing routine for drawing a laid out line of text.
  * @param line      String to draw.
+ * @param dpi       The area to draw on.
  * @param y         The top most position to draw on.
  * @param left      The left most position to draw on.
  * @param right     The right most position to draw on.
@@ -348,7 +343,9 @@ static void SetColourRemap(TextColour colour)
  * @return In case of left or center alignment the right most pixel we have drawn to.
  *         In case of right alignment the left most pixel we have drawn to.
  */
-static int DrawLayoutLine(const ParagraphLayouter::Line *line, int y, int left, int right, StringAlignment align, bool underline, bool truncation)
+static int DrawLayoutLine (const ParagraphLayouter::Line *line,
+	BlitArea *dpi, int y, int left, int right,
+	StringAlignment align, bool underline, bool truncation)
 {
 	if (line->CountRuns() == 0) return 0;
 
@@ -437,7 +434,6 @@ static int DrawLayoutLine(const ParagraphLayouter::Line *line, int y, int left, 
 		colour = f->colour;
 		SetColourRemap(colour);
 
-		DrawPixelInfo *dpi = _cur_dpi;
 		int dpi_left  = dpi->left;
 		int dpi_right = dpi->left + dpi->width - 1;
 
@@ -462,10 +458,10 @@ static int DrawLayoutLine(const ParagraphLayouter::Line *line, int y, int left, 
 
 			if (draw_shadow && (glyph & SPRITE_GLYPH) == 0) {
 				SetColourRemap(TC_BLACK);
-				GfxMainBlitter(sprite, begin_x + 1, top + 1, BM_COLOUR_REMAP);
+				GfxMainBlitter (dpi, sprite, begin_x + 1, top + 1, BM_COLOUR_REMAP);
 				SetColourRemap(colour);
 			}
-			GfxMainBlitter(sprite, begin_x, top, BM_COLOUR_REMAP);
+			GfxMainBlitter (dpi, sprite, begin_x, top, BM_COLOUR_REMAP);
 		}
 	}
 
@@ -474,15 +470,15 @@ static int DrawLayoutLine(const ParagraphLayouter::Line *line, int y, int left, 
 		for (int i = 0; i < 3; i++, x += dot_width) {
 			if (draw_shadow) {
 				SetColourRemap(TC_BLACK);
-				GfxMainBlitter(dot_sprite, x + 1, y + 1, BM_COLOUR_REMAP);
+				GfxMainBlitter (dpi, dot_sprite, x + 1, y + 1, BM_COLOUR_REMAP);
 				SetColourRemap(colour);
 			}
-			GfxMainBlitter(dot_sprite, x, y, BM_COLOUR_REMAP);
+			GfxMainBlitter (dpi, dot_sprite, x, y, BM_COLOUR_REMAP);
 		}
 	}
 
 	if (underline) {
-		GfxFillRect(left, y + h, right, y + h, _string_colourremap[1]);
+		GfxFillRect (dpi, left, y + h, right, y + h, _string_colourremap[1]);
 	}
 
 	return (align & SA_HOR_MASK) == SA_RIGHT ? left : right;
@@ -491,6 +487,7 @@ static int DrawLayoutLine(const ParagraphLayouter::Line *line, int y, int left, 
 /**
  * Draw string, possibly truncated to make it fit in its allocated space
  *
+ * @param dpi    The area to draw on.
  * @param left   The left most position to draw on.
  * @param right  The right most position to draw on.
  * @param top    The top most position to draw on.
@@ -504,7 +501,9 @@ static int DrawLayoutLine(const ParagraphLayouter::Line *line, int y, int left, 
  * @return In case of left or center alignment the right most pixel we have drawn to.
  *         In case of right alignment the left most pixel we have drawn to.
  */
-int DrawString(int left, int right, int top, const char *str, TextColour colour, StringAlignment align, bool underline, FontSize fontsize)
+int DrawString (BlitArea *dpi, int left, int right, int top,
+	const char *str, TextColour colour, StringAlignment align,
+	bool underline, FontSize fontsize)
 {
 	/* The string may contain control chars to change the font, just use the biggest font for clipping. */
 	int max_height = max(max(FONT_HEIGHT_SMALL, FONT_HEIGHT_NORMAL), max(FONT_HEIGHT_LARGE, FONT_HEIGHT_MONO));
@@ -512,20 +511,21 @@ int DrawString(int left, int right, int top, const char *str, TextColour colour,
 	/* Funny glyphs may extent outside the usual bounds, so relax the clipping somewhat. */
 	int extra = max_height / 2;
 
-	if (_cur_dpi->top + _cur_dpi->height + extra < top || _cur_dpi->top > top + max_height + extra ||
-			_cur_dpi->left + _cur_dpi->width + extra < left || _cur_dpi->left > right + extra) {
+	if (dpi->top + dpi->height + extra < top || dpi->top > top + max_height + extra ||
+			dpi->left + dpi->width + extra < left || dpi->left > right + extra) {
 		return 0;
 	}
 
 	Layouter layout(str, INT32_MAX, colour, fontsize);
 	if (layout.empty()) return 0;
 
-	return DrawLayoutLine (layout.front().get(), top, left, right, align, underline, true);
+	return DrawLayoutLine (layout.front().get(), dpi, top, left, right, align, underline, true);
 }
 
 /**
  * Draw string, possibly truncated to make it fit in its allocated space
  *
+ * @param dpi    The area to draw on.
  * @param left   The left most position to draw on.
  * @param right  The right most position to draw on.
  * @param top    The top most position to draw on.
@@ -539,11 +539,13 @@ int DrawString(int left, int right, int top, const char *str, TextColour colour,
  * @return In case of left or center alignment the right most pixel we have drawn to.
  *         In case of right alignment the left most pixel we have drawn to.
  */
-int DrawString(int left, int right, int top, StringID str, TextColour colour, StringAlignment align, bool underline, FontSize fontsize)
+int DrawString (BlitArea *dpi, int left, int right, int top,
+	StringID str, TextColour colour, StringAlignment align,
+	bool underline, FontSize fontsize)
 {
 	char buffer[DRAW_STRING_BUFFER];
 	GetString (buffer, str);
-	return DrawString(left, right, top, buffer, colour, align, underline, fontsize);
+	return DrawString (dpi, left, right, top, buffer, colour, align, underline, fontsize);
 }
 
 /**
@@ -589,6 +591,7 @@ int GetStringLineCount(StringID str, int maxw)
 /**
  * Draw string, possibly over multiple lines.
  *
+ * @param dpi    The area to draw on.
  * @param left   The left most position to draw on.
  * @param right  The right most position to draw on.
  * @param top    The top most position to draw on.
@@ -601,7 +604,9 @@ int GetStringLineCount(StringID str, int maxw)
  *
  * @return If \a align is #SA_BOTTOM, the top to where we have written, else the bottom to where we have written.
  */
-int DrawStringMultiLine(int left, int right, int top, int bottom, const char *str, TextColour colour, StringAlignment align, bool underline, FontSize fontsize)
+int DrawStringMultiLine (BlitArea *dpi, int left, int right, int top, int bottom,
+	const char *str, TextColour colour, StringAlignment align,
+	bool underline, FontSize fontsize)
 {
 	int maxw = right - left + 1;
 	int maxh = bottom - top + 1;
@@ -640,7 +645,7 @@ int DrawStringMultiLine(int left, int right, int top, int bottom, const char *st
 			last_line = y + line_height;
 			if (first_line > y) first_line = y;
 
-			DrawLayoutLine(line, y, left, right, align, underline, false);
+			DrawLayoutLine (line, dpi, y, left, right, align, underline, false);
 		}
 		y += line_height;
 	}
@@ -651,6 +656,7 @@ int DrawStringMultiLine(int left, int right, int top, int bottom, const char *st
 /**
  * Draw string, possibly over multiple lines.
  *
+ * @param dpi    The area to draw on.
  * @param left   The left most position to draw on.
  * @param right  The right most position to draw on.
  * @param top    The top most position to draw on.
@@ -663,11 +669,13 @@ int DrawStringMultiLine(int left, int right, int top, int bottom, const char *st
  *
  * @return If \a align is #SA_BOTTOM, the top to where we have written, else the bottom to where we have written.
  */
-int DrawStringMultiLine(int left, int right, int top, int bottom, StringID str, TextColour colour, StringAlignment align, bool underline, FontSize fontsize)
+int DrawStringMultiLine (BlitArea *dpi, int left, int right, int top, int bottom,
+	StringID str, TextColour colour, StringAlignment align,
+	bool underline, FontSize fontsize)
 {
 	char buffer[DRAW_STRING_BUFFER];
 	GetString (buffer, str);
-	return DrawStringMultiLine(left, right, top, bottom, buffer, colour, align, underline, fontsize);
+	return DrawStringMultiLine (dpi, left, right, top, bottom, buffer, colour, align, underline, fontsize);
 }
 
 /**
@@ -702,15 +710,16 @@ Dimension GetStringBoundingBox(StringID strid)
 
 /**
  * Draw single character horizontally centered around (x,y)
+ * @param dpi         The area to draw on.
  * @param c           Character (glyph) to draw
  * @param x           X position to draw character
  * @param y           Y position to draw character
  * @param colour      Colour to use, see DoDrawString() for details
  */
-void DrawCharCentered(WChar c, int x, int y, TextColour colour)
+void DrawCharCentered (BlitArea *dpi, WChar c, int x, int y, TextColour colour)
 {
 	SetColourRemap(colour);
-	GfxMainBlitter(GetGlyph(FS_NORMAL, c), x - GetCharacterWidth(FS_NORMAL, c) / 2, y, BM_COLOUR_REMAP);
+	GfxMainBlitter (dpi, GetGlyph (FS_NORMAL, c), x - GetCharacterWidth (FS_NORMAL, c) / 2, y, BM_COLOUR_REMAP);
 }
 
 /**
@@ -736,48 +745,51 @@ Dimension GetSpriteSize(SpriteID sprid, Point *offset, ZoomLevel zoom)
 }
 
 /**
- * Helper function to get the blitter mode for different types of palettes.
- * @param pal The palette to get the blitter mode for.
- * @return The blitter mode associated with the palette.
+ * Set up the colour remap for a sprite.
+ * @param img  The sprite to draw.
+ * @param pal  The palette to use.
+ * @return The BlitterMode to use for drawing.
  */
-static BlitterMode GetBlitterMode(PaletteID pal)
+static BlitterMode GetBlitterMode (SpriteID img, PaletteID pal)
 {
-	switch (pal) {
-		case PAL_NONE:          return BM_NORMAL;
-		case PALETTE_CRASH:     return BM_CRASH_REMAP;
-		case PALETTE_ALL_BLACK: return BM_BLACK_REMAP;
-		default:                return BM_COLOUR_REMAP;
+	if (HasBit(img, PALETTE_MODIFIER_TRANSPARENT)) {
+		_colour_remap_ptr = GetNonSprite(GB(pal, 0, PALETTE_WIDTH), ST_RECOLOUR) + 1;
+		return BM_TRANSPARENT;
+	} else if (pal == PAL_NONE) {
+		return BM_NORMAL;
+	} else if (HasBit(pal, PALETTE_TEXT_RECOLOUR)) {
+		SetColourRemap ((TextColour)GB(pal, 0, PALETTE_WIDTH));
+		return BM_COLOUR_REMAP;
+	} else {
+		_colour_remap_ptr = GetNonSprite (GB(pal, 0, PALETTE_WIDTH), ST_RECOLOUR) + 1;
+		switch (pal) {
+			case PALETTE_CRASH:     return BM_CRASH_REMAP;
+			case PALETTE_ALL_BLACK: return BM_BLACK_REMAP;
+			default:                return BM_COLOUR_REMAP;
+		}
 	}
 }
 
 /**
  * Draw a sprite in a viewport.
+ * @param dpi  The area to draw on.
  * @param img  Image number to draw
  * @param pal  Palette to use.
  * @param x    Left coordinate of image in viewport, scaled by zoom
  * @param y    Top coordinate of image in viewport, scaled by zoom
  * @param sub  If available, draw only specified part of the sprite
  */
-void DrawSpriteViewport(SpriteID img, PaletteID pal, int x, int y, const SubSprite *sub)
+void DrawSpriteViewport (DrawPixelInfo *dpi, SpriteID img, PaletteID pal,
+	int x, int y, const SubSprite *sub)
 {
+	BlitterMode bm = GetBlitterMode (img, pal);
 	SpriteID real_sprite = GB(img, 0, SPRITE_WIDTH);
-	if (HasBit(img, PALETTE_MODIFIER_TRANSPARENT)) {
-		_colour_remap_ptr = GetNonSprite(GB(pal, 0, PALETTE_WIDTH), ST_RECOLOUR) + 1;
-		GfxMainBlitterViewport(GetSprite(real_sprite, ST_NORMAL), x, y, BM_TRANSPARENT, sub, real_sprite);
-	} else if (pal != PAL_NONE) {
-		if (HasBit(pal, PALETTE_TEXT_RECOLOUR)) {
-			SetColourRemap((TextColour)GB(pal, 0, PALETTE_WIDTH));
-		} else {
-			_colour_remap_ptr = GetNonSprite(GB(pal, 0, PALETTE_WIDTH), ST_RECOLOUR) + 1;
-		}
-		GfxMainBlitterViewport(GetSprite(real_sprite, ST_NORMAL), x, y, GetBlitterMode(pal), sub, real_sprite);
-	} else {
-		GfxMainBlitterViewport(GetSprite(real_sprite, ST_NORMAL), x, y, BM_NORMAL, sub, real_sprite);
-	}
+	GfxMainBlitterViewport (dpi, GetSprite (real_sprite, ST_NORMAL), x, y, bm, sub, real_sprite);
 }
 
 /**
  * Draw a sprite, not in a viewport
+ * @param dpi  The area to draw on.
  * @param img  Image number to draw
  * @param pal  Palette to use.
  * @param x    Left coordinate of image in pixels
@@ -785,26 +797,17 @@ void DrawSpriteViewport(SpriteID img, PaletteID pal, int x, int y, const SubSpri
  * @param sub  If available, draw only specified part of the sprite
  * @param zoom Zoom level of sprite
  */
-void DrawSprite(SpriteID img, PaletteID pal, int x, int y, const SubSprite *sub, ZoomLevel zoom)
+void DrawSprite (BlitArea *dpi, SpriteID img, PaletteID pal,
+	int x, int y, const SubSprite *sub, ZoomLevel zoom)
 {
+	BlitterMode bm = GetBlitterMode (img, pal);
 	SpriteID real_sprite = GB(img, 0, SPRITE_WIDTH);
-	if (HasBit(img, PALETTE_MODIFIER_TRANSPARENT)) {
-		_colour_remap_ptr = GetNonSprite(GB(pal, 0, PALETTE_WIDTH), ST_RECOLOUR) + 1;
-		GfxMainBlitter(GetSprite(real_sprite, ST_NORMAL), x, y, BM_TRANSPARENT, sub, real_sprite, zoom);
-	} else if (pal != PAL_NONE) {
-		if (HasBit(pal, PALETTE_TEXT_RECOLOUR)) {
-			SetColourRemap((TextColour)GB(pal, 0, PALETTE_WIDTH));
-		} else {
-			_colour_remap_ptr = GetNonSprite(GB(pal, 0, PALETTE_WIDTH), ST_RECOLOUR) + 1;
-		}
-		GfxMainBlitter(GetSprite(real_sprite, ST_NORMAL), x, y, GetBlitterMode(pal), sub, real_sprite, zoom);
-	} else {
-		GfxMainBlitter(GetSprite(real_sprite, ST_NORMAL), x, y, BM_NORMAL, sub, real_sprite, zoom);
-	}
+	GfxMainBlitter (dpi, GetSprite (real_sprite, ST_NORMAL), x, y, bm, sub, real_sprite, zoom);
 }
 
 /**
  * The code for setting up the blitter mode and sprite information before finally drawing the sprite.
+ * @param dpi    The area to draw on.
  * @param sprite The sprite to draw.
  * @param x      The X location to draw.
  * @param y      The Y location to draw.
@@ -815,9 +818,10 @@ void DrawSprite(SpriteID img, PaletteID pal, int x, int y, const SubSprite *sub,
  * @tparam SCALED_XY Whether the X and Y are scaled or unscaled.
  */
 template <int ZOOM_BASE, bool SCALED_XY>
-static void GfxBlitter(const Sprite * const sprite, int x, int y, BlitterMode mode, const SubSprite * const sub, SpriteID sprite_id, ZoomLevel zoom)
+static void GfxBlitter (BlitArea *dpi, const Sprite * const sprite,
+	int x, int y, BlitterMode mode, const SubSprite * const sub,
+	SpriteID sprite_id, ZoomLevel zoom)
 {
-	const DrawPixelInfo *dpi = _cur_dpi;
 	Blitter::BlitterParams bp;
 
 	if (SCALED_XY) {
@@ -861,7 +865,7 @@ static void GfxBlitter(const Sprite * const sprite, int x, int y, BlitterMode mo
 	bp.left = 0;
 
 	bp.dst = dpi->dst_ptr;
-	bp.pitch = dpi->pitch;
+	bp.pitch = dpi->surface->pitch;
 	bp.remap = _colour_remap_ptr;
 
 	assert(sprite->width > 0);
@@ -913,31 +917,30 @@ static void GfxBlitter(const Sprite * const sprite, int x, int y, BlitterMode mo
 
 	/* We do not want to catch the mouse. However we also use that spritenumber for unknown (text) sprites. */
 	if (_newgrf_debug_sprite_picker.mode == SPM_REDRAW && sprite_id != SPR_CURSOR_MOUSE) {
-		Blitter *blitter = Blitter::get();
-		void *topleft = blitter->MoveTo(bp.dst, bp.left, bp.top);
-		void *bottomright = blitter->MoveTo(topleft, bp.width - 1, bp.height - 1);
+		void *topleft = dpi->surface->move (bp.dst, bp.left, bp.top);
+		void *bottomright = dpi->surface->move (topleft, bp.width - 1, bp.height - 1);
 
 		void *clicked = _newgrf_debug_sprite_picker.clicked_pixel;
 
 		if (topleft <= clicked && clicked <= bottomright) {
-			uint offset = (((size_t)clicked - (size_t)topleft) / (blitter->GetScreenDepth() / 8)) % bp.pitch;
+			uint offset = (((size_t)clicked - (size_t)topleft) / (Blitter::get()->GetScreenDepth() / 8)) % bp.pitch;
 			if (offset < (uint)bp.width) {
 				_newgrf_debug_sprite_picker.sprites.Include(sprite_id);
 			}
 		}
 	}
 
-	Blitter::get()->Draw(&bp, mode, zoom);
+	dpi->surface->draw (&bp, mode, zoom);
 }
 
-static void GfxMainBlitterViewport(const Sprite *sprite, int x, int y, BlitterMode mode, const SubSprite *sub, SpriteID sprite_id)
+static void GfxMainBlitterViewport (DrawPixelInfo *dpi, const Sprite *sprite, int x, int y, BlitterMode mode, const SubSprite *sub, SpriteID sprite_id)
 {
-	GfxBlitter<ZOOM_LVL_BASE, false>(sprite, x, y, mode, sub, sprite_id, _cur_dpi->zoom);
+	GfxBlitter <ZOOM_LVL_BASE, false> (dpi, sprite, x, y, mode, sub, sprite_id, dpi->zoom);
 }
 
-static void GfxMainBlitter(const Sprite *sprite, int x, int y, BlitterMode mode, const SubSprite *sub, SpriteID sprite_id, ZoomLevel zoom)
+static void GfxMainBlitter (BlitArea *dpi, const Sprite *sprite, int x, int y, BlitterMode mode, const SubSprite *sub, SpriteID sprite_id, ZoomLevel zoom)
 {
-	GfxBlitter<1, true>(sprite, x, y, mode, sub, sprite_id, zoom);
+	GfxBlitter <1, true> (dpi, sprite, x, y, mode, sub, sprite_id, zoom);
 }
 
 void DoPaletteAnimations();
@@ -1168,9 +1171,8 @@ void UndrawMouseCursor()
 	if (_screen.dst_ptr == NULL) return;
 
 	if (_cursor.visible) {
-		Blitter *blitter = Blitter::get();
 		_cursor.visible = false;
-		blitter->CopyFromBuffer(blitter->MoveTo(_screen.dst_ptr, _cursor.draw_pos.x, _cursor.draw_pos.y), _cursor_backup.GetBuffer(), _cursor.draw_size.x, _cursor.draw_size.y);
+		_screen.surface->paste (&_cursor_backup, _cursor.draw_pos.x, _cursor.draw_pos.y);
 		VideoDriver::GetActiveDriver()->MakeDirty(_cursor.draw_pos.x, _cursor.draw_pos.y, _cursor.draw_size.x, _cursor.draw_size.y);
 	}
 }
@@ -1185,7 +1187,6 @@ void DrawMouseCursor()
 	/* Don't draw the mouse cursor if the screen is not ready */
 	if (_screen.dst_ptr == NULL) return;
 
-	Blitter *blitter = Blitter::get();
 	int x;
 	int y;
 	int w;
@@ -1222,14 +1223,11 @@ void DrawMouseCursor()
 	_cursor.draw_pos.y = y;
 	_cursor.draw_size.y = h;
 
-	uint8 *buffer = _cursor_backup.Allocate(blitter->BufferSize(w, h));
-
 	/* Make backup of stuff below cursor */
-	blitter->CopyToBuffer(blitter->MoveTo(_screen.dst_ptr, _cursor.draw_pos.x, _cursor.draw_pos.y), buffer, _cursor.draw_size.x, _cursor.draw_size.y);
+	_screen.surface->copy (&_cursor_backup, _cursor.draw_pos.x, _cursor.draw_pos.y, _cursor.draw_size.x, _cursor.draw_size.y);
 
 	/* Draw cursor on screen */
-	_cur_dpi = &_screen;
-	DrawSprite(_cursor.sprite, _cursor.pal, _cursor.pos.x + _cursor.short_vehicle_offset, _cursor.pos.y);
+	DrawSprite (&_screen, _cursor.sprite, _cursor.pal, _cursor.pos.x + _cursor.short_vehicle_offset, _cursor.pos.y);
 
 	VideoDriver::GetActiveDriver()->MakeDirty(_cursor.draw_pos.x, _cursor.draw_pos.y, _cursor.draw_size.x, _cursor.draw_size.y);
 
@@ -1423,26 +1421,20 @@ void MarkWholeScreenDirty()
 }
 
 /**
- * Set up a clipping area for only drawing into a certain area. To do this,
- * Fill a DrawPixelInfo object with the supplied relative rectangle, backup
- * the original (calling) _cur_dpi and assign the just returned DrawPixelInfo
- * _cur_dpi. When you are done, give restore _cur_dpi's original value
- * @param *n the DrawPixelInfo that will be the clipping rectangle box allowed
+ * Set up a clipping area for only drawing into a certain area.
+ * @param *o the parent BlitArea
+ * @param *n the BlitArea that will be the clipping rectangle box allowed
  * for drawing
  * @param left,top,width,height the relative coordinates of the clipping
- * rectangle relative to the current _cur_dpi. This will most likely be the
+ * rectangle relative to the current area. This will most likely be the
  * offset from the calling window coordinates
  * @return return false if the requested rectangle is not possible with the
  * current dpi pointer. Only continue of the return value is true, or you'll
  * get some nasty results
  */
-bool FillDrawPixelInfo(DrawPixelInfo *n, int left, int top, int width, int height)
+bool InitBlitArea (const BlitArea *o, BlitArea *n,
+	int left, int top, int width, int height)
 {
-	Blitter *blitter = Blitter::get();
-	const DrawPixelInfo *o = _cur_dpi;
-
-	n->zoom = ZOOM_LVL_NORMAL;
-
 	assert(width > 0);
 	assert(height > 0);
 
@@ -1470,8 +1462,8 @@ bool FillDrawPixelInfo(DrawPixelInfo *n, int left, int top, int width, int heigh
 		n->top = 0;
 	}
 
-	n->dst_ptr = blitter->MoveTo(o->dst_ptr, left, top);
-	n->pitch = o->pitch;
+	n->dst_ptr = o->surface->move (o->dst_ptr, left, top);
+	n->surface = o->surface;
 
 	if (height > o->height - top) {
 		height = o->height - top;

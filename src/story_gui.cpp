@@ -359,31 +359,6 @@ protected:
 	}
 
 	/**
-	 * Draws a page element that is composed of a sprite to the left and a single line of
-	 * text after that. These page elements are generally clickable and are thus called
-	 * action elements.
-	 * @param y_offset Current y_offset which will get updated when this method has completed its drawing.
-	 * @param width Width of the region available for drawing.
-	 * @param line_height Height of one line of text.
-	 * @param action_sprite The sprite to draw.
-	 * @param string_id The string id to draw.
-	 * @return the number of lines.
-	 */
-	void DrawActionElement(int &y_offset, int width, int line_height, SpriteID action_sprite, StringID string_id = STR_JUST_RAW_STRING) const
-	{
-		Dimension sprite_dim = GetSpriteSize(action_sprite);
-		uint element_height = max(sprite_dim.height, (uint)line_height);
-
-		uint sprite_top = y_offset + (element_height - sprite_dim.height) / 2;
-		uint text_top = y_offset + (element_height - line_height) / 2;
-
-		DrawSprite(action_sprite, PAL_NONE, 0, sprite_top);
-		DrawString(sprite_dim.width + WD_FRAMETEXT_LEFT, width, text_top, string_id, TC_BLACK);
-
-		y_offset += element_height;
-	}
-
-	/**
 	 * Internal event handler for when a page element is clicked.
 	 * @param pe The clicked page element.
 	 */
@@ -480,7 +455,7 @@ public:
 		}
 	}
 
-	virtual void OnPaint()
+	void OnPaint (BlitArea *dpi) OVERRIDE
 	{
 		/* Detect if content has changed height. This can happen if a
 		 * multi-line text contains eg. {COMPANY} and that company is
@@ -492,10 +467,10 @@ public:
 			this->SetWidgetDirty(WID_SB_PAGE_PANEL);
 		}
 
-		this->DrawWidgets();
+		this->DrawWidgets (dpi);
 	}
 
-	virtual void DrawWidget(const Rect &r, int widget) const
+	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
 	{
 		if (widget != WID_SB_PAGE_PANEL) return;
 
@@ -504,15 +479,12 @@ public:
 
 		const int x = r.left + WD_FRAMETEXT_LEFT;
 		const int y = r.top + WD_FRAMETEXT_TOP;
-		const int right = r.right - WD_FRAMETEXT_RIGHT;
-		const int bottom = r.bottom - WD_FRAMETEXT_BOTTOM;
+		const int width = r.right - WD_FRAMETEXT_RIGHT - x;
+		const int height = r.bottom - WD_FRAMETEXT_BOTTOM - y;
 
 		/* Set up a clipping region for the panel. */
-		DrawPixelInfo tmp_dpi;
-		if (!FillDrawPixelInfo(&tmp_dpi, x, y, right - x + 1, bottom - y + 1)) return;
-
-		DrawPixelInfo *old_dpi = _cur_dpi;
-		_cur_dpi = &tmp_dpi;
+		BlitArea tmp_dpi;
+		if (!InitBlitArea (dpi, &tmp_dpi, x, y, width + 1, height + 1)) return;
 
 		/* Draw content (now coordinates given to Draw** are local to the new clipping region). */
 		int line_height = FONT_HEIGHT_NORMAL;
@@ -521,44 +493,48 @@ public:
 		/* Date */
 		if (page->date != INVALID_DATE) {
 			SetDParam(0, page->date);
-			DrawString(0, right - x, y_offset, STR_JUST_DATE_LONG, TC_BLACK);
+			DrawString (&tmp_dpi, 0, width, y_offset, STR_JUST_DATE_LONG, TC_BLACK);
 		}
 		y_offset += line_height;
 
 		/* Title */
 		SetDParamStr(0, page->title != NULL ? page->title : this->selected_generic_title);
-		y_offset = DrawStringMultiLine(0, right - x, y_offset, bottom - y, STR_STORY_BOOK_TITLE, TC_BLACK, SA_TOP | SA_HOR_CENTER);
+		y_offset = DrawStringMultiLine (&tmp_dpi, 0, width, y_offset, height, STR_STORY_BOOK_TITLE, TC_BLACK, SA_TOP | SA_HOR_CENTER);
 
 		/* Page elements */
 		for (const StoryPageElement *const*iter = this->story_page_elements.Begin(); iter != this->story_page_elements.End(); iter++) {
 			const StoryPageElement *const pe = *iter;
 			y_offset += line_height; // margin to previous element
 
-			switch (pe->type) {
-				case SPET_TEXT:
-					SetDParamStr(0, pe->text);
-					y_offset = DrawStringMultiLine(0, right - x, y_offset, bottom - y, STR_JUST_RAW_STRING, TC_BLACK, SA_TOP | SA_LEFT);
-					break;
-
-				case SPET_GOAL: {
-					Goal *g = Goal::Get((GoalID) pe->referenced_id);
-					StringID string_id = g == NULL ? STR_STORY_BOOK_INVALID_GOAL_REF : STR_JUST_RAW_STRING;
-					if (g != NULL) SetDParamStr(0, g->text);
-					DrawActionElement(y_offset, right - x, line_height, GetPageElementSprite(*pe), string_id);
-					break;
+			if (pe->type == SPET_TEXT) {
+				SetDParamStr (0, pe->text);
+				y_offset = DrawStringMultiLine (&tmp_dpi, 0, width, y_offset, height, STR_JUST_RAW_STRING, TC_BLACK, SA_TOP | SA_LEFT);
+			} else {
+				StringID string_id;
+				if (pe->type == SPET_GOAL) {
+					Goal *g = Goal::Get ((GoalID) pe->referenced_id);
+					if (g != NULL) SetDParamStr (0, g->text);
+					string_id = g == NULL ? STR_STORY_BOOK_INVALID_GOAL_REF : STR_JUST_RAW_STRING;
+				} else {
+					assert (pe->type == SPET_LOCATION);
+					SetDParamStr (0, pe->text);
+					string_id = STR_JUST_RAW_STRING;
 				}
 
-				case SPET_LOCATION:
-					SetDParamStr(0, pe->text);
-					DrawActionElement(y_offset, right - x, line_height, GetPageElementSprite(*pe));
-					break;
+				SpriteID sprite = GetPageElementSprite (*pe);
 
-				default: NOT_REACHED();
+				Dimension sprite_dim = GetSpriteSize (sprite);
+				uint element_height = max (sprite_dim.height, (uint)line_height);
+
+				uint sprite_top = y_offset + (element_height - sprite_dim.height) / 2;
+				uint text_top = y_offset + (element_height - line_height) / 2;
+
+				DrawSprite (&tmp_dpi, sprite, PAL_NONE, 0, sprite_top);
+				DrawString (&tmp_dpi, sprite_dim.width + WD_FRAMETEXT_LEFT, width, text_top, string_id, TC_BLACK);
+
+				y_offset += element_height;
 			}
 		}
-
-		/* Restore clipping region. */
-		_cur_dpi = old_dpi;
 	}
 
 	virtual void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize)

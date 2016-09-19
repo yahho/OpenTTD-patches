@@ -21,12 +21,13 @@
 
 /**
  * Highlight the position where a rail vehicle is dragged over by drawing a light gray background.
+ * @param dpi       The area to draw on.
  * @param px        The current x position to draw from.
  * @param max_width The maximum space available to draw.
  * @param selection Selected vehicle that is dragged.
  * @return The width of the highlight mark.
  */
-static int HighlightDragPosition(int px, int max_width, VehicleID selection)
+static int HighlightDragPosition (BlitArea *dpi, int px, int max_width, VehicleID selection)
 {
 	bool rtl = _current_text_dir == TD_RTL;
 
@@ -38,19 +39,19 @@ static int HighlightDragPosition(int px, int max_width, VehicleID selection)
 
 	int drag_hlight_left = rtl ? max(px -dragged_width, 0) : px;
 	int drag_hlight_right = rtl ? px : min(px + dragged_width, max_width);
-	int drag_hlight_width = max(drag_hlight_right - drag_hlight_left, 0);
 
-	if (drag_hlight_width > 0) {
-		GfxFillRect(drag_hlight_left + WD_FRAMERECT_LEFT, WD_FRAMERECT_TOP + 1,
-				drag_hlight_right - WD_FRAMERECT_RIGHT, ScaleGUITrad(13) - WD_FRAMERECT_BOTTOM, _colour_gradient[COLOUR_GREY][7]);
-	}
+	if (drag_hlight_right <= drag_hlight_left) return 0;
 
-	return drag_hlight_width;
+	GfxFillRect (dpi, drag_hlight_left + WD_FRAMERECT_LEFT, WD_FRAMERECT_TOP + 1,
+			drag_hlight_right - WD_FRAMERECT_RIGHT, ScaleGUITrad(13) - WD_FRAMERECT_BOTTOM, _colour_gradient[COLOUR_GREY][7]);
+
+	return drag_hlight_right - drag_hlight_left;
 }
 
 /**
  * Draws an image of a whole train
  * @param v         Front vehicle
+ * @param dpi       The area to draw on
  * @param left      The minimum horizontal position
  * @param right     The maximum horizontal position
  * @param y         Vertical position to draw at
@@ -58,22 +59,21 @@ static int HighlightDragPosition(int px, int max_width, VehicleID selection)
  * @param skip      Number of pixels to skip at the front (for scrolling)
  * @param drag_dest The vehicle another one is dragged over, \c INVALID_VEHICLE if none.
  */
-void DrawTrainImage(const Train *v, int left, int right, int y, VehicleID selection, EngineImageType image_type, int skip, VehicleID drag_dest)
+void DrawTrainImage (const Train *v, BlitArea *dpi, int left, int right,
+	int y, VehicleID selection, EngineImageType image_type, int skip,
+	VehicleID drag_dest)
 {
 	bool rtl = _current_text_dir == TD_RTL;
 	Direction dir = rtl ? DIR_E : DIR_W;
 
-	DrawPixelInfo tmp_dpi, *old_dpi;
+	BlitArea tmp_dpi;
 	/* Position of highlight box */
 	int highlight_l = 0;
 	int highlight_r = 0;
 	int max_width = right - left + 1;
 	int height = ScaleGUITrad(14);
 
-	if (!FillDrawPixelInfo(&tmp_dpi, left, y, max_width, height)) return;
-
-	old_dpi = _cur_dpi;
-	_cur_dpi = &tmp_dpi;
+	if (!InitBlitArea (dpi, &tmp_dpi, left, y, max_width, height)) return;
 
 	int px = rtl ? max_width + skip : -skip;
 	bool sel_articulated = false;
@@ -82,7 +82,7 @@ void DrawTrainImage(const Train *v, int left, int right, int y, VehicleID select
 	for (; v != NULL && (rtl ? px > 0 : px < max_width); v = v->Next()) {
 		if (dragging && !drag_at_end_of_train && drag_dest == v->index) {
 			/* Highlight the drag-and-drop destination inside the train. */
-			int drag_hlight_width = HighlightDragPosition(px, max_width, selection);
+			int drag_hlight_width = HighlightDragPosition (&tmp_dpi, px, max_width, selection);
 			px += rtl ? -drag_hlight_width : drag_hlight_width;
 		}
 
@@ -91,7 +91,7 @@ void DrawTrainImage(const Train *v, int left, int right, int y, VehicleID select
 
 		if (rtl ? px + width > 0 : px - width < max_width) {
 			PaletteID pal = (v->vehstatus & VS_CRASHED) ? PALETTE_CRASH : GetVehiclePalette(v);
-			DrawSprite(v->GetImage(dir, image_type), pal, px + (rtl ? -offset.x : offset.x), height / 2 + offset.y);
+			DrawSprite (&tmp_dpi, v->GetImage (dir, image_type), pal, px + (rtl ? -offset.x : offset.x), height / 2 + offset.y);
 		}
 
 		if (!v->IsArticulatedPart()) sel_articulated = false;
@@ -114,16 +114,14 @@ void DrawTrainImage(const Train *v, int left, int right, int y, VehicleID select
 
 	if (dragging && drag_at_end_of_train) {
 		/* Highlight the drag-and-drop destination at the end of the train. */
-		HighlightDragPosition(px, max_width, selection);
+		HighlightDragPosition (&tmp_dpi, px, max_width, selection);
 	}
 
 	if (highlight_l != highlight_r) {
 		/* Draw the highlight. Now done after drawing all the engines, as
 		 * the next engine after the highlight could overlap it. */
-		DrawFrameRect(highlight_l, 0, highlight_r, height - 1, COLOUR_WHITE, FR_BORDERONLY);
+		DrawFrameRect (&tmp_dpi, highlight_l, 0, highlight_r, height - 1, COLOUR_WHITE, FR_BORDERONLY);
 	}
-
-	_cur_dpi = old_dpi;
 }
 
 /** Helper struct for the cargo details information */
@@ -150,75 +148,60 @@ typedef SmallVector<CargoSummaryItem, 2> CargoSummary;
 static CargoSummary _cargo_summary;
 
 /**
- * Draw the details cargo tab for the given vehicle at the given position
- *
- * @param item  Data to draw
- * @param left  The left most coordinate to draw
- * @param right The right most coordinate to draw
- * @param y     The y coordinate
+ * Set up string parameters for the details cargo tab for the given cargo item.
+ * @param item Data to draw.
+ * @return String to draw.
  */
-static void TrainDetailsCargoTab(const CargoSummaryItem *item, int left, int right, int y)
+static StringID TrainDetailsCargoTab (const CargoSummaryItem *item)
 {
-	StringID str;
 	if (item->amount > 0) {
 		SetDParam(0, item->cargo);
 		SetDParam(1, item->amount);
 		SetDParam(2, item->source);
 		SetDParam(3, _settings_game.vehicle.freight_trains);
-		str = FreightWagonMult(item->cargo) > 1 ? STR_VEHICLE_DETAILS_CARGO_FROM_MULT : STR_VEHICLE_DETAILS_CARGO_FROM;
+		return FreightWagonMult(item->cargo) > 1 ? STR_VEHICLE_DETAILS_CARGO_FROM_MULT : STR_VEHICLE_DETAILS_CARGO_FROM;
 	} else {
-		SetDParam(0, STR_QUANTITY_N_A);
-		str = item->cargo == INVALID_CARGO ? STR_LTBLUE_STRING : STR_VEHICLE_DETAILS_CARGO_EMPTY;
+		return item->cargo == INVALID_CARGO ? STR_QUANTITY_N_A : STR_VEHICLE_DETAILS_CARGO_EMPTY;
 	}
-
-	DrawString(left, right, y, str);
 }
 
 /**
- * Draw the details info tab for the given vehicle at the given position
- *
- * @param v     current vehicle
- * @param left  The left most coordinate to draw
- * @param right The right most coordinate to draw
- * @param y     The y coordinate
+ * Set up string parameters for the details info tab for the given vehicle.
+ * @param v Current vehicle.
+ * @return String to draw.
  */
-static void TrainDetailsInfoTab(const Vehicle *v, int left, int right, int y)
+static StringID TrainDetailsInfoTab (const Vehicle *v)
 {
 	if (RailVehInfo(v->engine_type)->railveh_type == RAILVEH_WAGON) {
 		SetDParam(0, v->engine_type);
 		SetDParam(1, v->value);
-		DrawString(left, right, y, STR_VEHICLE_DETAILS_TRAIN_WAGON_VALUE);
+		return STR_VEHICLE_DETAILS_TRAIN_WAGON_VALUE;
 	} else {
 		SetDParam(0, v->engine_type);
 		SetDParam(1, v->build_year);
 		SetDParam(2, v->value);
-		DrawString(left, right, y, STR_VEHICLE_DETAILS_TRAIN_ENGINE_BUILT_AND_VALUE);
+		return STR_VEHICLE_DETAILS_TRAIN_ENGINE_BUILT_AND_VALUE;
 	}
 }
 
 /**
- * Draw the details capacity tab for the given vehicle at the given position
- *
- * @param item  Data to draw
- * @param left  The left most coordinate to draw
- * @param right The right most coordinate to draw
- * @param y     The y coordinate
+ * Set up string parameters for the details capacity tab for the given cargo item.
+ * @param item Data to draw.
+ * @return String to draw.
  */
-static void TrainDetailsCapacityTab(const CargoSummaryItem *item, int left, int right, int y)
+static StringID TrainDetailsCapacityTab (const CargoSummaryItem *item)
 {
-	StringID str;
 	if (item->cargo != INVALID_CARGO) {
 		SetDParam(0, item->cargo);
 		SetDParam(1, item->capacity);
 		SetDParam(4, item->subtype);
 		SetDParam(5, _settings_game.vehicle.freight_trains);
-		str = FreightWagonMult(item->cargo) > 1 ? STR_VEHICLE_INFO_CAPACITY_MULT : STR_VEHICLE_INFO_CAPACITY;
+		return FreightWagonMult(item->cargo) > 1 ? STR_VEHICLE_INFO_CAPACITY_MULT : STR_VEHICLE_INFO_CAPACITY;
 	} else {
 		/* Draw subtype only */
 		SetDParam(0, item->subtype);
-		str = STR_VEHICLE_INFO_NO_CAPACITY;
+		return STR_VEHICLE_INFO_NO_CAPACITY;
 	}
-	DrawString(left, right, y, str);
 }
 
 /**
@@ -311,6 +294,7 @@ int GetTrainDetailsWndVScroll(VehicleID veh_id, TrainDetailsWindowTabs det_tab)
  * Draw the details for the given vehicle at the given position
  *
  * @param v     current vehicle
+ * @param dpi   The area to draw on
  * @param left  The left most coordinate to draw
  * @param right The right most coordinate to draw
  * @param y     The y coordinate
@@ -318,7 +302,7 @@ int GetTrainDetailsWndVScroll(VehicleID veh_id, TrainDetailsWindowTabs det_tab)
  * @param vscroll_cap Number of lines currently displayed
  * @param det_tab Selected details tab
  */
-void DrawTrainDetails(const Train *v, int left, int right, int y, int vscroll_pos, uint16 vscroll_cap, TrainDetailsWindowTabs det_tab)
+void DrawTrainDetails (const Train *v, BlitArea *dpi, int left, int right, int y, int vscroll_pos, uint16 vscroll_cap, TrainDetailsWindowTabs det_tab)
 {
 	/* get rid of awkward offset */
 	y -= WD_MATRIX_TOP;
@@ -350,7 +334,7 @@ void DrawTrainDetails(const Train *v, int left, int right, int y, int vscroll_po
 						pitch = ScaleGUITrad(e->GetGRF()->traininfo_vehicle_pitch);
 					}
 					PaletteID pal = (v->vehstatus & VS_CRASHED) ? PALETTE_CRASH : GetVehiclePalette(v);
-					DrawSprite(u->GetImage(dir, EIT_IN_DETAILS), pal, px + (rtl ? -offset.x : offset.x), y - line_height * vscroll_pos + sprite_y_offset + pitch);
+					DrawSprite (dpi, u->GetImage (dir, EIT_IN_DETAILS), pal, px + (rtl ? -offset.x : offset.x), y - line_height * vscroll_pos + sprite_y_offset + pitch);
 				}
 				px += rtl ? -width : width;
 				dx += width;
@@ -371,29 +355,31 @@ void DrawTrainDetails(const Train *v, int left, int right, int y, int vscroll_po
 				if (vscroll_pos <= 0 && vscroll_pos > -vscroll_cap) {
 					int py = y - line_height * vscroll_pos + text_y_offset;
 					if (i > 0 || separate_sprite_row) {
-						if (vscroll_pos != 0) GfxFillRect(left, py - WD_MATRIX_TOP - 1, right, py - WD_MATRIX_TOP, _colour_gradient[COLOUR_GREY][5]);
+						if (vscroll_pos != 0) GfxFillRect (dpi, left, py - WD_MATRIX_TOP - 1, right, py - WD_MATRIX_TOP, _colour_gradient[COLOUR_GREY][5]);
 					}
 					switch (det_tab) {
-						case TDW_TAB_CARGO:
-							if (i < _cargo_summary.Length()) {
-								TrainDetailsCargoTab(&_cargo_summary[i], data_left, data_right, py);
-							} else {
-								DrawString(data_left, data_right, py, STR_QUANTITY_N_A, TC_LIGHT_BLUE);
-							}
+						case TDW_TAB_CARGO: {
+							StringID str = (i < _cargo_summary.Length()) ?
+									TrainDetailsCargoTab (&_cargo_summary[i]) : STR_QUANTITY_N_A;
+							DrawString (dpi, data_left, data_right, py, str, TC_LIGHT_BLUE);
 							break;
+						}
 
 						case TDW_TAB_INFO:
-							if (i == 0) TrainDetailsInfoTab(v, data_left, data_right, py);
+							if (i == 0) DrawString (dpi, data_left, data_right, py, TrainDetailsInfoTab(v));
 							break;
 
-						case TDW_TAB_CAPACITY:
+						case TDW_TAB_CAPACITY: {
+							StringID str;
 							if (i < _cargo_summary.Length()) {
-								TrainDetailsCapacityTab(&_cargo_summary[i], data_left, data_right, py);
+								str = TrainDetailsCapacityTab (&_cargo_summary[i]);
 							} else {
 								SetDParam(0, STR_EMPTY);
-								DrawString(data_left, data_right, py, STR_VEHICLE_INFO_NO_CAPACITY);
+								str = STR_VEHICLE_INFO_NO_CAPACITY;
 							}
+							DrawString (dpi, data_left, data_right, py, str);
 							break;
+						}
 
 						default: NOT_REACHED();
 					}
@@ -413,7 +399,7 @@ void DrawTrainDetails(const Train *v, int left, int right, int y, int vscroll_po
 		}
 
 		/* draw total cargo tab */
-		DrawString(left, right, y + text_y_offset, STR_VEHICLE_DETAILS_TRAIN_TOTAL_CAPACITY_TEXT);
+		DrawString (dpi, left, right, y + text_y_offset, STR_VEHICLE_DETAILS_TRAIN_TOTAL_CAPACITY_TEXT);
 		y += line_height;
 
 		for (CargoID i = 0; i < NUM_CARGO; i++) {
@@ -423,11 +409,11 @@ void DrawTrainDetails(const Train *v, int left, int right, int y, int vscroll_po
 				SetDParam(2, i);            // {SHORTCARGO} #1
 				SetDParam(3, max_cargo[i]); // {SHORTCARGO} #2
 				SetDParam(4, _settings_game.vehicle.freight_trains);
-				DrawString(left, right, y + text_y_offset, FreightWagonMult(i) > 1 ? STR_VEHICLE_DETAILS_TRAIN_TOTAL_CAPACITY_MULT : STR_VEHICLE_DETAILS_TRAIN_TOTAL_CAPACITY);
+				DrawString (dpi, left, right, y + text_y_offset, FreightWagonMult(i) > 1 ? STR_VEHICLE_DETAILS_TRAIN_TOTAL_CAPACITY_MULT : STR_VEHICLE_DETAILS_TRAIN_TOTAL_CAPACITY);
 				y += line_height;
 			}
 		}
 		SetDParam(0, feeder_share);
-		DrawString(left, right, y + text_y_offset, STR_VEHICLE_INFO_FEEDER_CARGO_VALUE);
+		DrawString (dpi, left, right, y + text_y_offset, STR_VEHICLE_INFO_FEEDER_CARGO_VALUE);
 	}
 }

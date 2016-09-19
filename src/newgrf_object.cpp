@@ -448,7 +448,7 @@ static void DrawTileLayout(const TileInfo *ti, const TileLayoutSpriteGroup *grou
 		if ((image == SPR_FLAT_WATER_TILE || spec->flags & OBJECT_FLAG_DRAW_WATER) && IsTileOnWater(ti->tile)) {
 			DrawWaterClassGround(ti);
 		} else {
-			DrawGroundSprite(image, GroundSpritePaletteTransform(image, pal, palette));
+			DrawGroundSprite (ti, image, GroundSpritePaletteTransform(image, pal, palette));
 		}
 	}
 
@@ -471,12 +471,13 @@ void DrawNewObjectTile(TileInfo *ti, const ObjectSpec *spec)
 
 /**
  * Draw representation of an object (tile) for GUI purposes.
+ * @param dpi  Area to draw on.
  * @param x    Position x of image.
  * @param y    Position y of image.
  * @param spec Object spec to draw.
  * @param view The object's view.
  */
-void DrawNewObjectTileInGUI(int x, int y, const ObjectSpec *spec, uint8 view)
+void DrawNewObjectTileInGUI (BlitArea *dpi, int x, int y, const ObjectSpec *spec, uint8 view)
 {
 	const SpriteGroup *group = ObjectResolve (spec, NULL, INVALID_TILE, view);
 	if (group == NULL || group->type != SGT_TILELAYOUT) return;
@@ -501,10 +502,10 @@ void DrawNewObjectTileInGUI(int x, int y, const ObjectSpec *spec, uint8 view)
 	PaletteID pal  = dts->ground.pal;
 
 	if (GB(image, 0, SPRITE_WIDTH) != 0) {
-		DrawSprite(image, GroundSpritePaletteTransform(image, pal, palette), x, y);
+		DrawSprite (dpi, image, GroundSpritePaletteTransform (image, pal, palette), x, y);
 	}
 
-	DrawNewGRFTileSeqInGUI(x, y, dts, 0, palette);
+	DrawNewGRFTileSeqInGUI (dpi, x, y, dts, 0, palette);
 }
 
 /**
