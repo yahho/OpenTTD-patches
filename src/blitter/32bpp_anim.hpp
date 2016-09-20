@@ -36,6 +36,12 @@ public:
 			memset (anim_buf, 0, width * height * sizeof(uint16));
 		}
 
+		/** Get the animation pointer for a given video pointer. */
+		uint16 *get_anim_pos (const void *dst)
+		{
+			return this->anim_buf + ((const uint32 *)dst - (uint32 *)this->ptr);
+		}
+
 		/** Look up the colour in the current palette. */
 		Colour lookup_colour (uint index) const
 		{
