@@ -117,8 +117,7 @@ void GfxScroll(int left, int top, int width, int height, int xo, int yo)
 void GfxFillRect (BlitArea *dpi, int left, int top, int right, int bottom, int colour, FillRectMode mode)
 {
 	void *dst;
-	const int otop = top;
-	const int oleft = left;
+	const int otopleft = top + left;
 
 	if (left > right || top > bottom) return;
 	if (right < dpi->left || left >= dpi->left + dpi->width) return;
@@ -148,7 +147,7 @@ void GfxFillRect (BlitArea *dpi, int left, int top, int right, int bottom, int c
 			break;
 
 		case FILLRECT_CHECKER: {
-			byte bo = (oleft - left + dpi->left + otop - top + dpi->top) & 1;
+			byte bo = (otopleft - left + dpi->left - top + dpi->top) & 1;
 			dpi->surface->draw_checker (dst, right, bottom, colour, bo);
 			break;
 		}
