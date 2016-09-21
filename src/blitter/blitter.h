@@ -197,6 +197,23 @@ public:
 		virtual void recolour_rect (void *video, int width, int height, PaletteID pal) = 0;
 
 		/**
+		 * Draw a checker pattern over a rectangle.
+		 * @param video The destination pointer (video-buffer).
+		 * @param width The width of the rectangle to fill.
+		 * @param height The height of the rectangle to fill.
+		 * @param colour A 8bpp mapping colour.
+		 * @param bo Whether the pattern covers the top left corner (0 or 1).
+		 */
+		void draw_checker (void *video, uint width, uint height, uint8 colour, byte bo)
+		{
+			uint i = bo;
+			do {
+				for (i = !(i & 1); i < width; i += 2) this->set_pixel (video, i, 0, colour);
+				video = this->move (video, 0, 1);
+			} while (--height > 0);
+		}
+
+		/**
 		 * Scroll the videobuffer some 'x' and 'y' value.
 		 * @param video The buffer to scroll into.
 		 * @param left The left value of the screen to scroll.

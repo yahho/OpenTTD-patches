@@ -149,10 +149,7 @@ void GfxFillRect (BlitArea *dpi, int left, int top, int right, int bottom, int c
 
 		case FILLRECT_CHECKER: {
 			byte bo = (oleft - left + dpi->left + otop - top + dpi->top) & 1;
-			do {
-				for (int i = (bo ^= 1); i < right; i += 2) dpi->surface->set_pixel (dst, i, 0, (uint8)colour);
-				dst = dpi->surface->move (dst, 0, 1);
-			} while (--bottom > 0);
+			dpi->surface->draw_checker (dst, right, bottom, colour, bo);
 			break;
 		}
 	}

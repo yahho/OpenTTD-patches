@@ -1626,19 +1626,11 @@ static void ViewportDrawBoundingBoxes (DrawPixelInfo *dpi, const ParentSpriteToS
  */
 static void ViewportDrawDirtyBlocks (const DrawPixelInfo *dpi)
 {
-	void *dst;
-	int right =  UnScaleByZoom(dpi->width,  dpi->zoom);
-	int bottom = UnScaleByZoom(dpi->height, dpi->zoom);
-
-	int colour = _string_colourmap[_dirty_block_colour & 0xF];
-
-	dst = dpi->dst_ptr;
-
-	byte bo = UnScaleByZoom(dpi->left + dpi->top, dpi->zoom) & 1;
-	do {
-		for (int i = (bo ^= 1); i < right; i += 2) dpi->surface->set_pixel (dst, i, 0, (uint8)colour);
-		dst = dpi->surface->move (dst, 0, 1);
-	} while (--bottom > 0);
+	dpi->surface->draw_checker (dpi->dst_ptr,
+			UnScaleByZoom (dpi->width,  dpi->zoom),
+			UnScaleByZoom (dpi->height, dpi->zoom),
+			_string_colourmap[_dirty_block_colour & 0xF],
+			UnScaleByZoom (dpi->left + dpi->top, dpi->zoom) & 1);
 }
 
 void ViewportDoDraw (BlitArea *area, const ViewPort *vp, int left, int top, int right, int bottom)
