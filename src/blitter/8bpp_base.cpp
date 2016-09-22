@@ -41,6 +41,16 @@ void Blitter_8bppBase::Surface::draw_rect (void *video, int width, int height, u
 	} while (--height);
 }
 
+void Blitter_8bppBase::Surface::draw_checker (void *video, uint width, uint height, uint8 colour, byte bo)
+{
+	uint8 *dst = (uint8 *) video;
+	uint i = bo;
+	do {
+		for (i = !(i & 1); i < width; i += 2) dst[i] = colour;
+		dst += this->pitch;
+	} while (--height > 0);
+}
+
 void Blitter_8bppBase::Surface::paste (const Buffer *src, int x, int y)
 {
 	uint8 *dst = this->movep <uint8> (this->ptr, x, y);

@@ -35,6 +35,8 @@ public:
 
 		void recolour_rect (void *video, int width, int height, PaletteID pal) OVERRIDE;
 
+		void draw_checker (void *video, uint width, uint height, uint8 colour, byte bo) OVERRIDE;
+
 		void scroll (void *video, int &left, int &top, int &width, int &height, int scroll_x, int scroll_y) OVERRIDE;
 
 		void copy (Buffer *dst, int x, int y, uint width, uint height) OVERRIDE;

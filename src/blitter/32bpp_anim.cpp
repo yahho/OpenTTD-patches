@@ -322,6 +322,24 @@ void Blitter_32bppAnimBase::Surface::draw_rect (void *video, int width, int heig
 	} while (--height);
 }
 
+void Blitter_32bppAnimBase::Surface::draw_checker (void *video, uint width, uint height, uint8 colour, byte bo)
+{
+	Colour colour32 = this->lookup_colour (colour);
+	uint16 acolour = colour | (DEFAULT_BRIGHTNESS << 8);
+
+	Colour *dst  = (Colour *) video;
+	uint16 *anim = this->get_anim_pos (dst);
+	uint i = bo;
+	do {
+		for (i = !(i & 1); i < width; i += 2) {
+			dst[i]  = colour32;
+			anim[i] = acolour;
+		}
+		dst  += this->pitch;
+		anim += this->width;
+	} while (--height > 0);
+}
+
 void Blitter_32bppAnimBase::Surface::paste (const Buffer *src, int x, int y)
 {
 	void *video = this->Blitter_32bppBase::Surface::move (this->ptr, x, y);

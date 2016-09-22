@@ -204,14 +204,7 @@ public:
 		 * @param colour A 8bpp mapping colour.
 		 * @param bo Whether the pattern covers the top left corner (0 or 1).
 		 */
-		void draw_checker (void *video, uint width, uint height, uint8 colour, byte bo)
-		{
-			uint i = bo;
-			do {
-				for (i = !(i & 1); i < width; i += 2) this->set_pixel (video, i, 0, colour);
-				video = this->move (video, 0, 1);
-			} while (--height > 0);
-		}
+		virtual void draw_checker (void *video, uint width, uint height, uint8 colour, byte bo) = 0;
 
 		/**
 		 * Scroll the videobuffer some 'x' and 'y' value.

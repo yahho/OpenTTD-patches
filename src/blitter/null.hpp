@@ -52,6 +52,10 @@ public:
 		{
 		}
 
+		void draw_checker (void *video, uint width, uint height, uint8 colour, byte bo) OVERRIDE
+		{
+		}
+
 		void scroll (void *video, int &left, int &top, int &width, int &height, int scroll_x, int scroll_y) OVERRIDE
 		{
 		}
