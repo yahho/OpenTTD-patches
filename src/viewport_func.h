@@ -55,7 +55,8 @@ void SetRedErrorSquare(TileIndex tile);
 void SetTileSelectSize(int w, int h);
 void SetTileSelectBigSize(int ox, int oy, int sx, int sy);
 
-void ViewportDoDraw (BlitArea *area, const ViewPort *vp, int left, int top, int right, int bottom);
+void ViewportDoDraw (const ttd_shared_ptr <Blitter::Surface> &surface,
+	void *dst_ptr, const ViewPort *vp, int left, int top, int right, int bottom);
 
 bool ScrollWindowToTile(TileIndex tile, Window *w, bool instant = false);
 bool ScrollWindowTo(int x, int y, int z, Window *w, bool instant = false);

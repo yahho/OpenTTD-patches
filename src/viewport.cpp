@@ -1633,7 +1633,8 @@ static void ViewportDrawDirtyBlocks (const DrawPixelInfo *dpi)
 			UnScaleByZoom (dpi->left + dpi->top, dpi->zoom) & 1);
 }
 
-void ViewportDoDraw (BlitArea *area, const ViewPort *vp, int left, int top, int right, int bottom)
+void ViewportDoDraw (const ttd_shared_ptr <Blitter::Surface> &surface,
+	void *dst_ptr, const ViewPort *vp, int left, int top, int right, int bottom)
 {
 	ViewportDrawer vd;
 
@@ -1646,13 +1647,13 @@ void ViewportDoDraw (BlitArea *area, const ViewPort *vp, int left, int top, int 
 	vd.dpi.height = (bottom - top) & mask;
 	vd.dpi.left = left & mask;
 	vd.dpi.top = top & mask;
-	vd.dpi.surface = area->surface;
+	vd.dpi.surface = surface;
 	vd.last_child = NULL;
 
 	int x = UnScaleByZoom (vd.dpi.left - (vp->virtual_left & mask), vp->zoom) + vp->left;
 	int y = UnScaleByZoom (vd.dpi.top  - (vp->virtual_top  & mask), vp->zoom) + vp->top;
 
-	vd.dpi.dst_ptr = vd.dpi.surface->move (area->dst_ptr, x - area->left, y - area->top);
+	vd.dpi.dst_ptr = vd.dpi.surface->move (dst_ptr, x, y);
 
 	ViewportAddLandscape (&vd, vp->zoom);
 	ViewportAddVehicles (&vd, &vd.dpi);
@@ -1716,7 +1717,8 @@ static void ViewportDrawChk (BlitArea *area, const ViewPort *vp,
 			ViewportDrawChk (area, vp, t, top, right, bottom);
 		}
 	} else {
-		ViewportDoDraw (area, vp,
+		void *dst_ptr = area->surface->move (area->dst_ptr, -area->left, -area->top);
+		ViewportDoDraw (area->surface, dst_ptr, vp,
 			ScaleByZoom(left - vp->left, vp->zoom) + vp->virtual_left,
 			ScaleByZoom(top - vp->top, vp->zoom) + vp->virtual_top,
 			ScaleByZoom(right - vp->left, vp->zoom) + vp->virtual_left,
