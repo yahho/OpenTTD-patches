@@ -654,13 +654,9 @@ static void LargeWorldCallback(void *userdata, void *buf, uint y, uint pitch, ui
 	int wx, left;
 
 	/* We are no longer rendering to the screen */
-	BlitArea dpi;
-	dpi.dst_ptr = buf;
-	dpi.height = n;
-	dpi.width = vp->width;
-	dpi.surface.reset (Blitter::get()->create (buf, pitch, n, pitch, false));
-	dpi.left = 0;
-	dpi.top = y;
+	ttd_shared_ptr <Blitter::Surface> surface (Blitter::get()->create (buf, pitch, n, pitch, false));
+	/* Pretend this is part of a larger buffer. */
+	void *dst_ptr = surface->move (buf, 0, -y);
 
 	/* Render viewport in blocks of 1600 pixels width */
 	left = 0;
@@ -668,9 +664,7 @@ static void LargeWorldCallback(void *userdata, void *buf, uint y, uint pitch, ui
 		wx = min(vp->width - left, 1600);
 		left += wx;
 
-		void *dst_ptr = dpi.surface->move (dpi.dst_ptr, -dpi.left, -dpi.top);
-
-		ViewportDoDraw (dpi.surface, dst_ptr, vp,
+		ViewportDoDraw (surface, dst_ptr, vp,
 			ScaleByZoom(left - wx - vp->left, vp->zoom) + vp->virtual_left,
 			ScaleByZoom(y - vp->top, vp->zoom) + vp->virtual_top,
 			ScaleByZoom(left - vp->left, vp->zoom) + vp->virtual_left,
