@@ -1703,22 +1703,21 @@ void ViewportDoDraw (const ttd_shared_ptr <Blitter::Surface> &surface,
  * Make sure we don't draw a too big area at a time.
  * If we do, the sprite memory will overflow.
  */
-static void ViewportDrawChk (BlitArea *area, const ViewPort *vp,
-	int left, int top, int right, int bottom)
+static void ViewportDrawChk (const ttd_shared_ptr <Blitter::Surface> &surface,
+	const ViewPort *vp, int left, int top, int right, int bottom)
 {
 	if (ScaleByZoom(bottom - top, vp->zoom) * ScaleByZoom(right - left, vp->zoom) > 180000 * ZOOM_LVL_BASE * ZOOM_LVL_BASE) {
 		if ((bottom - top) > (right - left)) {
 			int t = (top + bottom) >> 1;
-			ViewportDrawChk (area, vp, left, top, right, t);
-			ViewportDrawChk (area, vp, left, t, right, bottom);
+			ViewportDrawChk (surface, vp, left, top, right, t);
+			ViewportDrawChk (surface, vp, left, t, right, bottom);
 		} else {
 			int t = (left + right) >> 1;
-			ViewportDrawChk (area, vp, left, top, t, bottom);
-			ViewportDrawChk (area, vp, t, top, right, bottom);
+			ViewportDrawChk (surface, vp, left, top, t, bottom);
+			ViewportDrawChk (surface, vp, t, top, right, bottom);
 		}
 	} else {
-		void *dst_ptr = area->surface->move (area->dst_ptr, -area->left, -area->top);
-		ViewportDoDraw (area->surface, dst_ptr, vp,
+		ViewportDoDraw (surface, surface->ptr, vp,
 			ScaleByZoom(left - vp->left, vp->zoom) + vp->virtual_left,
 			ScaleByZoom(top - vp->top, vp->zoom) + vp->virtual_top,
 			ScaleByZoom(right - vp->left, vp->zoom) + vp->virtual_left,
@@ -1727,8 +1726,21 @@ static void ViewportDrawChk (BlitArea *area, const ViewPort *vp,
 	}
 }
 
-static inline void ViewportDraw (BlitArea *area, const ViewPort *vp, int left, int top, int right, int bottom)
+/**
+ * Draw the viewport of this window.
+ */
+void Window::DrawViewport (BlitArea *dpi) const
 {
+	const ViewPort *vp = this->viewport;
+
+	int left = dpi->left + this->left;
+	int top  = dpi->top  + this->top;
+
+	assert (dpi->dst_ptr == dpi->surface->move (dpi->surface->ptr, left, top));
+
+	int right  = left + dpi->width;
+	int bottom = top  + dpi->height;
+
 	if (right <= vp->left || bottom <= vp->top) return;
 
 	if (left >= vp->left + vp->width) return;
@@ -1741,21 +1753,7 @@ static inline void ViewportDraw (BlitArea *area, const ViewPort *vp, int left, i
 	if (top < vp->top) top = vp->top;
 	if (bottom > vp->top + vp->height) bottom = vp->top + vp->height;
 
-	ViewportDrawChk (area, vp, left, top, right, bottom);
-}
-
-/**
- * Draw the viewport of this window.
- */
-void Window::DrawViewport (BlitArea *dpi) const
-{
-	dpi->left += this->left;
-	dpi->top += this->top;
-
-	ViewportDraw (dpi, this->viewport, dpi->left, dpi->top, dpi->left + dpi->width, dpi->top + dpi->height);
-
-	dpi->left -= this->left;
-	dpi->top -= this->top;
+	ViewportDrawChk (dpi->surface, vp, left, top, right, bottom);
 }
 
 static int GetNearestHeight (int x, int y)
