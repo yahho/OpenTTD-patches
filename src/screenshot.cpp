@@ -650,7 +650,10 @@ static void CurrentScreenCallback(void *userdata, void *buf, uint y, uint pitch,
  */
 static void LargeWorldCallback(void *userdata, void *buf, uint y, uint pitch, uint n)
 {
-	ViewPort *vp = (ViewPort *)userdata;
+	const ViewPort *vp = (ViewPort *)userdata;
+	assert (vp->left == 0);
+	assert (vp->top  == 0);
+
 	int wx, left;
 
 	/* We are no longer rendering to the screen */
@@ -665,10 +668,10 @@ static void LargeWorldCallback(void *userdata, void *buf, uint y, uint pitch, ui
 		left += wx;
 
 		ViewportDoDraw (surface, dst_ptr, vp,
-			ScaleByZoom(left - wx - vp->left, vp->zoom) + vp->virtual_left,
-			ScaleByZoom(y - vp->top, vp->zoom) + vp->virtual_top,
-			ScaleByZoom(left - vp->left, vp->zoom) + vp->virtual_left,
-			ScaleByZoom((y + n) - vp->top, vp->zoom) + vp->virtual_top
+			ScaleByZoom(left - wx, vp->zoom) + vp->virtual_left,
+			ScaleByZoom(y, vp->zoom) + vp->virtual_top,
+			ScaleByZoom(left, vp->zoom) + vp->virtual_left,
+			ScaleByZoom((y + n), vp->zoom) + vp->virtual_top
 		);
 	}
 }
@@ -772,6 +775,8 @@ static bool MakeLargeWorldScreenshot(ScreenshotType t)
 {
 	ViewPort vp;
 	SetupScreenshotViewport(t, &vp);
+	assert (vp.left == 0);
+	assert (vp.top  == 0);
 
 	const ScreenshotFormat *sf = _screenshot_formats + _cur_screenshot_format;
 	return sf->proc(MakeScreenshotName(SCREENSHOT_NAME, sf->extension), LargeWorldCallback, &vp, vp.width, vp.height,
