@@ -668,11 +668,7 @@ static void LargeWorldCallback(void *userdata, void *buf, uint y, uint pitch, ui
 		left += wx;
 
 		ViewportDoDraw (surface, dst_ptr, vp,
-			ScaleByZoom(left - wx, vp->zoom) + vp->virtual_left,
-			ScaleByZoom(y, vp->zoom) + vp->virtual_top,
-			ScaleByZoom(left, vp->zoom) + vp->virtual_left,
-			ScaleByZoom((y + n), vp->zoom) + vp->virtual_top
-		);
+				left - wx, y, left, y + n);
 	}
 }
 

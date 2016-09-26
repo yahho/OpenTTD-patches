@@ -1636,6 +1636,11 @@ static void ViewportDrawDirtyBlocks (const DrawPixelInfo *dpi)
 void ViewportDoDraw (const ttd_shared_ptr <Blitter::Surface> &surface,
 	void *dst_ptr, const ViewPort *vp, int left, int top, int right, int bottom)
 {
+	left   = ScaleByZoom (left,   vp->zoom) + vp->virtual_left;
+	top    = ScaleByZoom (top,    vp->zoom) + vp->virtual_top;
+	right  = ScaleByZoom (right,  vp->zoom) + vp->virtual_left;
+	bottom = ScaleByZoom (bottom, vp->zoom) + vp->virtual_top;
+
 	ViewportDrawer vd;
 
 	vd.dpi.zoom = vp->zoom;
@@ -1718,10 +1723,10 @@ static void ViewportDrawChk (const ttd_shared_ptr <Blitter::Surface> &surface,
 		}
 	} else {
 		ViewportDoDraw (surface, surface->ptr, vp,
-			ScaleByZoom(left - vp->left, vp->zoom) + vp->virtual_left,
-			ScaleByZoom(top - vp->top, vp->zoom) + vp->virtual_top,
-			ScaleByZoom(right - vp->left, vp->zoom) + vp->virtual_left,
-			ScaleByZoom(bottom - vp->top, vp->zoom) + vp->virtual_top
+			left - vp->left,
+			top - vp->top,
+			right - vp->left,
+			bottom - vp->top
 		);
 	}
 }
