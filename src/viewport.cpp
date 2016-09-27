@@ -1634,12 +1634,12 @@ static void ViewportDrawDirtyBlocks (const DrawPixelInfo *dpi)
 }
 
 void ViewportDoDraw (const ttd_shared_ptr <Blitter::Surface> &surface,
-	void *dst_ptr, const ViewPort *vp, int left, int top, int right, int bottom)
+	void *dst_ptr, const ViewPort *vp, int left, int top, int width, int height)
 {
 	left   = ScaleByZoom (left,   vp->zoom) + vp->virtual_left;
 	top    = ScaleByZoom (top,    vp->zoom) + vp->virtual_top;
-	right  = ScaleByZoom (right,  vp->zoom) + vp->virtual_left;
-	bottom = ScaleByZoom (bottom, vp->zoom) + vp->virtual_top;
+	width  = ScaleByZoom (width,  vp->zoom);
+	height = ScaleByZoom (height, vp->zoom);
 
 	ViewportDrawer vd;
 
@@ -1648,8 +1648,8 @@ void ViewportDoDraw (const ttd_shared_ptr <Blitter::Surface> &surface,
 
 	vd.combine_sprites = SPRITE_COMBINE_NONE;
 
-	vd.dpi.width = (right - left) & mask;
-	vd.dpi.height = (bottom - top) & mask;
+	vd.dpi.width = width & mask;
+	vd.dpi.height = height & mask;
 	vd.dpi.left = left & mask;
 	vd.dpi.top = top & mask;
 	vd.dpi.surface = surface;
@@ -1725,8 +1725,8 @@ static void ViewportDrawChk (const ttd_shared_ptr <Blitter::Surface> &surface,
 		ViewportDoDraw (surface, surface->ptr, vp,
 			left - vp->left,
 			top - vp->top,
-			right - vp->left,
-			bottom - vp->top
+			right - left,
+			bottom - top
 		);
 	}
 }

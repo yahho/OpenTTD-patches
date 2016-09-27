@@ -665,10 +665,8 @@ static void LargeWorldCallback(void *userdata, void *buf, uint y, uint pitch, ui
 	left = 0;
 	while (vp->width - left != 0) {
 		wx = min(vp->width - left, 1600);
+		ViewportDoDraw (surface, dst_ptr, vp, left, y, wx, n);
 		left += wx;
-
-		ViewportDoDraw (surface, dst_ptr, vp,
-				left - wx, y, left, y + n);
 	}
 }
 
