@@ -1709,25 +1709,21 @@ void ViewportDoDraw (const ttd_shared_ptr <Blitter::Surface> &surface,
  * If we do, the sprite memory will overflow.
  */
 static void ViewportDrawChk (const ttd_shared_ptr <Blitter::Surface> &surface,
-	const ViewPort *vp, int left, int top, int right, int bottom)
+	const ViewPort *vp, int left, int top, int width, int height)
 {
-	if (ScaleByZoom(bottom - top, vp->zoom) * ScaleByZoom(right - left, vp->zoom) > 180000 * ZOOM_LVL_BASE * ZOOM_LVL_BASE) {
-		if ((bottom - top) > (right - left)) {
-			int t = (top + bottom) >> 1;
-			ViewportDrawChk (surface, vp, left, top, right, t);
-			ViewportDrawChk (surface, vp, left, t, right, bottom);
+	if (ScaleByZoom (height, vp->zoom) * ScaleByZoom (width, vp->zoom) > 180000 * ZOOM_LVL_BASE * ZOOM_LVL_BASE) {
+		if (height > width) {
+			int half = height >> 1;
+			ViewportDrawChk (surface, vp, left, top, width, half);
+			ViewportDrawChk (surface, vp, left, top + half, width, height - half);
 		} else {
-			int t = (left + right) >> 1;
-			ViewportDrawChk (surface, vp, left, top, t, bottom);
-			ViewportDrawChk (surface, vp, t, top, right, bottom);
+			int half = width >> 1;
+			ViewportDrawChk (surface, vp, left, top, half, height);
+			ViewportDrawChk (surface, vp, left + half, top, width - half, height);
 		}
 	} else {
 		ViewportDoDraw (surface, surface->ptr, vp,
-			left - vp->left,
-			top - vp->top,
-			right - left,
-			bottom - top
-		);
+				left - vp->left, top - vp->top, width, height);
 	}
 }
 
@@ -1758,7 +1754,7 @@ void Window::DrawViewport (BlitArea *dpi) const
 	if (top < vp->top) top = vp->top;
 	if (bottom > vp->top + vp->height) bottom = vp->top + vp->height;
 
-	ViewportDrawChk (dpi->surface, vp, left, top, right, bottom);
+	ViewportDrawChk (dpi->surface, vp, left, top, right - left, bottom - top);
 }
 
 static int GetNearestHeight (int x, int y)
