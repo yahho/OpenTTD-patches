@@ -1636,11 +1636,6 @@ static void ViewportDrawDirtyBlocks (const DrawPixelInfo *dpi)
 void ViewportDoDraw (const ttd_shared_ptr <Blitter::Surface> &surface,
 	void *dst_ptr, const ViewPort *vp, int left, int top, int width, int height)
 {
-	left   = ScaleByZoom (left,   vp->zoom) + vp->virtual_left;
-	top    = ScaleByZoom (top,    vp->zoom) + vp->virtual_top;
-	width  = ScaleByZoom (width,  vp->zoom);
-	height = ScaleByZoom (height, vp->zoom);
-
 	ViewportDrawer vd;
 
 	vd.dpi.zoom = vp->zoom;
@@ -1648,15 +1643,15 @@ void ViewportDoDraw (const ttd_shared_ptr <Blitter::Surface> &surface,
 
 	vd.combine_sprites = SPRITE_COMBINE_NONE;
 
-	vd.dpi.width = width & mask;
-	vd.dpi.height = height & mask;
-	vd.dpi.left = left & mask;
-	vd.dpi.top = top & mask;
+	vd.dpi.width  = ScaleByZoom (width,  vp->zoom);
+	vd.dpi.height = ScaleByZoom (height, vp->zoom);
+	vd.dpi.left = (ScaleByZoom (left, vp->zoom) + vp->virtual_left) & mask;
+	vd.dpi.top  = (ScaleByZoom (top,  vp->zoom) + vp->virtual_top)  & mask;
 	vd.dpi.surface = surface;
 	vd.last_child = NULL;
 
-	int x = UnScaleByZoom (vd.dpi.left - (vp->virtual_left & mask), vp->zoom) + vp->left;
-	int y = UnScaleByZoom (vd.dpi.top  - (vp->virtual_top  & mask), vp->zoom) + vp->top;
+	int x = left + vp->left;
+	int y = top + vp->top;
 
 	vd.dpi.dst_ptr = vd.dpi.surface->move (dst_ptr, x, y);
 
@@ -1678,8 +1673,8 @@ void ViewportDoDraw (const ttd_shared_ptr <Blitter::Surface> &surface,
 
 	BlitArea dp = vd.dpi;
 	ZoomLevel zoom = vd.dpi.zoom;
-	dp.width = UnScaleByZoom(dp.width, zoom);
-	dp.height = UnScaleByZoom(dp.height, zoom);
+	dp.width  = width;
+	dp.height = height;
 
 	if (vp->overlay != NULL && vp->overlay->GetCargoMask() != 0 && vp->overlay->GetCompanyMask() != 0) {
 		/* translate to window coordinates */
