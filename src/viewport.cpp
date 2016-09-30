@@ -111,7 +111,6 @@ struct ViewportDrawer {
 
 	TileSpriteToDrawVector tile_sprites_to_draw;
 	ParentSpriteToDrawVector parent_sprites_to_draw;
-	ParentSpriteToSortVector parent_sprites_to_sort; ///< Parent sprite pointer array used for sorting
 	ChildScreenSpriteToDrawVector child_screen_sprites_to_draw;
 
 	int *last_child;
@@ -1660,15 +1659,16 @@ void ViewportDoDraw (const ttd_shared_ptr <Blitter::Surface> &surface,
 
 	if (vd.tile_sprites_to_draw.Length() != 0) ViewportDrawTileSprites (&vd.dpi, &vd.tile_sprites_to_draw);
 
+	ParentSpriteToSortVector parent_sprites_to_sort; ///< Parent sprite pointer array used for sorting
 	ParentSpriteToDraw *psd_end = vd.parent_sprites_to_draw.End();
 	for (ParentSpriteToDraw *it = vd.parent_sprites_to_draw.Begin(); it != psd_end; it++) {
-		*vd.parent_sprites_to_sort.Append() = it;
+		*parent_sprites_to_sort.Append() = it;
 	}
 
-	_vp_sprite_sorter (&vd.parent_sprites_to_sort);
-	ViewportDrawParentSprites (&vd.dpi, &vd.parent_sprites_to_sort, &vd.child_screen_sprites_to_draw);
+	_vp_sprite_sorter (&parent_sprites_to_sort);
+	ViewportDrawParentSprites (&vd.dpi, &parent_sprites_to_sort, &vd.child_screen_sprites_to_draw);
 
-	if (_draw_bounding_boxes) ViewportDrawBoundingBoxes (&vd.dpi, &vd.parent_sprites_to_sort);
+	if (_draw_bounding_boxes) ViewportDrawBoundingBoxes (&vd.dpi, &parent_sprites_to_sort);
 	if (_draw_dirty_blocks) ViewportDrawDirtyBlocks (&vd.dpi);
 
 	BlitArea dp = vd.dpi;
@@ -1695,7 +1695,7 @@ void ViewportDoDraw (const ttd_shared_ptr <Blitter::Surface> &surface,
 
 	vd.tile_sprites_to_draw.Clear();
 	vd.parent_sprites_to_draw.Clear();
-	vd.parent_sprites_to_sort.Clear();
+	parent_sprites_to_sort.Clear();
 	vd.child_screen_sprites_to_draw.Clear();
 }
 
