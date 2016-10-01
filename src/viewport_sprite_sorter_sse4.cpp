@@ -24,11 +24,10 @@
 #endif
 
 /** Sort parent sprites pointer array using SSE4.1 optimizations. */
-void ViewportSortParentSpritesSSE41(ParentSpriteToSortVector *psdv)
+void ViewportSortParentSpritesSSE41 (ParentSpriteToDraw **psd,
+	const ParentSpriteToDraw *const *psdvend)
 {
 	const __m128i mask_ptest = _mm_setr_epi8(-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,  0,  0,  0,  0);
-	ParentSpriteToDraw ** const psdvend = psdv->End();
-	ParentSpriteToDraw **psd = psdv->Begin();
 	while (psd != psdvend) {
 		ParentSpriteToDraw * const ps = *psd;
 

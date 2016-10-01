@@ -1525,10 +1525,9 @@ static bool ViewportSortParentSpritesChecker()
 }
 
 /** Sort parent sprites pointer array */
-static void ViewportSortParentSprites(ParentSpriteToSortVector *psdv)
+static void ViewportSortParentSprites (ParentSpriteToDraw **psd,
+	const ParentSpriteToDraw *const *psdvend)
 {
-	ParentSpriteToDraw **psdvend = psdv->End();
-	ParentSpriteToDraw **psd = psdv->Begin();
 	while (psd != psdvend) {
 		ParentSpriteToDraw *ps = *psd;
 
@@ -1665,7 +1664,7 @@ void ViewportDoDraw (const ttd_shared_ptr <Blitter::Surface> &surface,
 		*parent_sprites_to_sort.Append() = it;
 	}
 
-	_vp_sprite_sorter (&parent_sprites_to_sort);
+	_vp_sprite_sorter (parent_sprites_to_sort.Begin(), parent_sprites_to_sort.End());
 	ViewportDrawParentSprites (&vd.dpi, &parent_sprites_to_sort, &vd.child_screen_sprites_to_draw);
 
 	if (_draw_bounding_boxes) ViewportDrawBoundingBoxes (&vd.dpi, &parent_sprites_to_sort);
