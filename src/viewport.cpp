@@ -1603,10 +1603,11 @@ static void ViewportDrawParentSprites (DrawPixelInfo *dpi,
  * Draws the bounding boxes of all ParentSprites
  * @param psd Array of ParentSprites
  */
-static void ViewportDrawBoundingBoxes (DrawPixelInfo *dpi, const ParentSpriteToSortVector *psd)
+static void ViewportDrawBoundingBoxes (DrawPixelInfo *dpi,
+	const ParentSpriteToDraw *const *it,
+	const ParentSpriteToDraw *const *const psd_end)
 {
-	const ParentSpriteToDraw * const *psd_end = psd->End();
-	for (const ParentSpriteToDraw * const *it = psd->Begin(); it != psd_end; it++) {
+	for (; it != psd_end; it++) {
 		const ParentSpriteToDraw *ps = *it;
 		Point pt1 = RemapCoords(ps->xmax + 1, ps->ymax + 1, ps->zmax + 1); // top front corner
 		Point pt2 = RemapCoords(ps->xmin    , ps->ymax + 1, ps->zmax + 1); // top left corner
@@ -1669,7 +1670,7 @@ void ViewportDoDraw (const ttd_shared_ptr <Blitter::Surface> &surface,
 	ViewportDrawParentSprites (&vd.dpi, parent_sprites_to_sort.Begin(),
 			parent_sprites_to_sort.End(), vd.child_screen_sprites_to_draw.Begin());
 
-	if (_draw_bounding_boxes) ViewportDrawBoundingBoxes (&vd.dpi, &parent_sprites_to_sort);
+	if (_draw_bounding_boxes) ViewportDrawBoundingBoxes (&vd.dpi, parent_sprites_to_sort.Begin(), parent_sprites_to_sort.End());
 	if (_draw_dirty_blocks) ViewportDrawDirtyBlocks (&vd.dpi);
 
 	BlitArea dp = vd.dpi;
