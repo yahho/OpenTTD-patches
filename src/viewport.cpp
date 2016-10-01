@@ -27,6 +27,9 @@
  */
 
 #include "stdafx.h"
+
+#include <vector>
+
 #include "debug.h"
 #include "map/zoneheight.h"
 #include "map/slope.h"
@@ -1660,17 +1663,25 @@ void ViewportDoDraw (const ttd_shared_ptr <Blitter::Surface> &surface,
 
 	if (vd.tile_sprites_to_draw.Length() != 0) ViewportDrawTileSprites (&vd.dpi, &vd.tile_sprites_to_draw);
 
-	ParentSpriteToSortVector parent_sprites_to_sort; ///< Parent sprite pointer array used for sorting
-	ParentSpriteToDraw *psd_end = vd.parent_sprites_to_draw.End();
-	for (ParentSpriteToDraw *it = vd.parent_sprites_to_draw.Begin(); it != psd_end; it++) {
-		*parent_sprites_to_sort.Append() = it;
+	uint nsprites = vd.parent_sprites_to_draw.Length();
+	if (nsprites > 0) {
+		std::vector <ParentSpriteToDraw*> sorted_parent_sprites (nsprites); ///< Parent sprite pointer array used for sorting
+
+		ParentSpriteToDraw **sprites = &sorted_parent_sprites.front();
+		ParentSpriteToDraw *psd_end = vd.parent_sprites_to_draw.End();
+		for (ParentSpriteToDraw *it = vd.parent_sprites_to_draw.Begin(); it != psd_end; it++) {
+			*sprites++ = it;
+		}
+
+		sprites = &sorted_parent_sprites.front();
+		const ParentSpriteToDraw *const *end = sprites + nsprites;
+		_vp_sprite_sorter (sprites, end);
+		ViewportDrawParentSprites (&vd.dpi, sprites, end,
+				vd.child_screen_sprites_to_draw.Begin());
+
+		if (_draw_bounding_boxes) ViewportDrawBoundingBoxes (&vd.dpi, sprites, end);
 	}
 
-	_vp_sprite_sorter (parent_sprites_to_sort.Begin(), parent_sprites_to_sort.End());
-	ViewportDrawParentSprites (&vd.dpi, parent_sprites_to_sort.Begin(),
-			parent_sprites_to_sort.End(), vd.child_screen_sprites_to_draw.Begin());
-
-	if (_draw_bounding_boxes) ViewportDrawBoundingBoxes (&vd.dpi, parent_sprites_to_sort.Begin(), parent_sprites_to_sort.End());
 	if (_draw_dirty_blocks) ViewportDrawDirtyBlocks (&vd.dpi);
 
 	BlitArea dp = vd.dpi;
@@ -1697,7 +1708,6 @@ void ViewportDoDraw (const ttd_shared_ptr <Blitter::Surface> &surface,
 
 	vd.tile_sprites_to_draw.Clear();
 	vd.parent_sprites_to_draw.Clear();
-	parent_sprites_to_sort.Clear();
 	vd.child_screen_sprites_to_draw.Clear();
 }
 

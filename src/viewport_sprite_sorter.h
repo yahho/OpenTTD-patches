@@ -41,8 +41,6 @@ struct ParentSpriteToDraw {
 	bool comparison_done;           ///< Used during sprite sorting: true if sprite has been compared with all other sprites
 };
 
-typedef SmallVector<ParentSpriteToDraw*, 64> ParentSpriteToSortVector;
-
 /** Type for method for checking whether a viewport sprite sorter exists. */
 typedef bool (*VpSorterChecker)();
 /** Type for the actual viewport sprite sorter. */
