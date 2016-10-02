@@ -1527,6 +1527,31 @@ static bool ViewportSortParentSpritesChecker()
 	return true;
 }
 
+/** Compare two parent sprites for sorting. */
+static bool CompareParentSprites (const ParentSpriteToDraw *ps1,
+	const ParentSpriteToDraw *ps2)
+{
+	if (ps1->xmax < ps2->xmin || ps1->ymax < ps2->ymin
+			|| ps1->zmax < ps2->zmin) {
+		/* First sprite goes before second one in some axis. */
+		return true;
+	}
+
+	if (ps1->xmin > ps2->xmax || ps1->ymin > ps2->ymax
+			|| ps1->zmin > ps2->zmax) {
+		/* No overlap, so second sprite goes before first one. */
+		return false;
+	}
+
+	/* Use X+Y+Z as the sorting order, so sprites closer to the bottom of
+	 * the screen and with higher Z elevation, are drawn in front. Here
+	 * X,Y,Z are the coordinates of the "center of mass" of the sprite,
+	 * i.e. X=(left+right)/2, etc. However, since we only care about
+	 * order, don't actually divide / 2. */
+	return  ps1->xmin + ps1->xmax + ps1->ymin + ps1->ymax + ps1->zmin + ps1->zmax <=
+		ps2->xmin + ps2->xmax + ps2->ymin + ps2->ymax + ps2->zmin + ps2->zmax;
+}
+
 /** Sort parent sprites pointer array */
 static void ViewportSortParentSprites (ParentSpriteToDraw **psd,
 	const ParentSpriteToDraw *const *psdvend)
@@ -1546,33 +1571,7 @@ static void ViewportSortParentSprites (ParentSpriteToDraw **psd,
 
 			if (ps2->comparison_done) continue;
 
-			/* Decide which comparator to use, based on whether the bounding
-			 * boxes overlap
-			 */
-			if (ps->xmax >= ps2->xmin && ps->xmin <= ps2->xmax && // overlap in X?
-					ps->ymax >= ps2->ymin && ps->ymin <= ps2->ymax && // overlap in Y?
-					ps->zmax >= ps2->zmin && ps->zmin <= ps2->zmax) { // overlap in Z?
-				/* Use X+Y+Z as the sorting order, so sprites closer to the bottom of
-				 * the screen and with higher Z elevation, are drawn in front.
-				 * Here X,Y,Z are the coordinates of the "center of mass" of the sprite,
-				 * i.e. X=(left+right)/2, etc.
-				 * However, since we only care about order, don't actually divide / 2
-				 */
-				if (ps->xmin + ps->xmax + ps->ymin + ps->ymax + ps->zmin + ps->zmax <=
-						ps2->xmin + ps2->xmax + ps2->ymin + ps2->ymax + ps2->zmin + ps2->zmax) {
-					continue;
-				}
-			} else {
-				/* We only change the order, if it is definite.
-				 * I.e. every single order of X, Y, Z says ps2 is behind ps or they overlap.
-				 * That is: If one partial order says ps behind ps2, do not change the order.
-				 */
-				if (ps->xmax < ps2->xmin ||
-						ps->ymax < ps2->ymin ||
-						ps->zmax < ps2->zmin) {
-					continue;
-				}
-			}
+			if (CompareParentSprites (ps, ps2)) continue;
 
 			/* Move ps2 in front of ps */
 			ParentSpriteToDraw *temp = ps2;
