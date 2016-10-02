@@ -1556,31 +1556,7 @@ static bool CompareParentSprites (const ParentSpriteToDraw *ps1,
 static void ViewportSortParentSprites (ParentSpriteToDraw **psd,
 	const ParentSpriteToDraw *const *psdvend)
 {
-	while (psd != psdvend) {
-		ParentSpriteToDraw *ps = *psd;
-
-		if (ps->comparison_done) {
-			psd++;
-			continue;
-		}
-
-		ps->comparison_done = true;
-
-		for (ParentSpriteToDraw **psd2 = psd + 1; psd2 != psdvend; psd2++) {
-			ParentSpriteToDraw *ps2 = *psd2;
-
-			if (ps2->comparison_done) continue;
-
-			if (CompareParentSprites (ps, ps2)) continue;
-
-			/* Move ps2 in front of ps */
-			ParentSpriteToDraw *temp = ps2;
-			for (ParentSpriteToDraw **psd3 = psd2; psd3 > psd; psd3--) {
-				*psd3 = *(psd3 - 1);
-			}
-			*psd = temp;
-		}
-	}
+	SortParentSprites (CompareParentSprites, psd, psdvend);
 }
 
 static void ViewportDrawParentSprites (DrawPixelInfo *dpi,

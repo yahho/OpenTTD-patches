@@ -41,6 +41,36 @@ struct ParentSpriteToDraw {
 	bool comparison_done;           ///< Used during sprite sorting: true if sprite has been compared with all other sprites
 };
 
+template <typename T>
+static inline void SortParentSprites (const T &comparator,
+	ParentSpriteToDraw **psd, const ParentSpriteToDraw *const *psdvend)
+{
+	while (psd != psdvend) {
+		ParentSpriteToDraw *const ps = *psd;
+
+		if (ps->comparison_done) {
+			psd++;
+			continue;
+		}
+
+		ps->comparison_done = true;
+
+		for (ParentSpriteToDraw **psd2 = psd + 1; psd2 != psdvend; psd2++) {
+			ParentSpriteToDraw *const ps2 = *psd2;
+
+			if (ps2->comparison_done) continue;
+
+			if (comparator (ps, ps2)) continue;
+
+			/* Move ps2 in front of ps */
+			for (ParentSpriteToDraw **psd3 = psd2; psd3 > psd; psd3--) {
+				*psd3 = *(psd3 - 1);
+			}
+			*psd = ps2;
+		}
+	}
+}
+
 /** Type for method for checking whether a viewport sprite sorter exists. */
 typedef bool (*VpSorterChecker)();
 /** Type for the actual viewport sprite sorter. */

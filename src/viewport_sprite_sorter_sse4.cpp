@@ -75,31 +75,7 @@ void ViewportSortParentSpritesSSE41 (ParentSpriteToDraw **psd,
 	const ParentSpriteToDraw *const *psdvend)
 {
 	CompareParentSpritesSSE41 comparator;
-	while (psd != psdvend) {
-		ParentSpriteToDraw * const ps = *psd;
-
-		if (ps->comparison_done) {
-			psd++;
-			continue;
-		}
-
-		ps->comparison_done = true;
-
-		for (ParentSpriteToDraw **psd2 = psd + 1; psd2 != psdvend; psd2++) {
-			ParentSpriteToDraw * const ps2 = *psd2;
-
-			if (ps2->comparison_done) continue;
-
-			if (comparator (ps, ps2)) continue;
-
-			/* Move ps2 in front of ps */
-			ParentSpriteToDraw * const temp = ps2;
-			for (ParentSpriteToDraw **psd3 = psd2; psd3 > psd; psd3--) {
-				*psd3 = *(psd3 - 1);
-			}
-			*psd = temp;
-		}
-	}
+	SortParentSprites (comparator, psd, psdvend);
 }
 
 /**
