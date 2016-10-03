@@ -81,6 +81,4 @@ bool ViewportSortParentSpritesSSE41Checker();
 void ViewportSortParentSpritesSSE41 (ParentSpriteToDraw **psd, const ParentSpriteToDraw *const *psdvend);
 #endif
 
-void InitializeSpriteSorter();
-
 #endif /* VIEWPORT_SPRITE_SORTER_H */

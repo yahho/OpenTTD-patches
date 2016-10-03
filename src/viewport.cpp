@@ -137,7 +137,72 @@ TileHighlightData _thd;
 bool _draw_bounding_boxes = false;
 bool _draw_dirty_blocks = false;
 uint _dirty_block_colour = 0;
-static VpSpriteSorter _vp_sprite_sorter = NULL;
+
+
+/** This fallback sprite checker always exists. */
+static bool ViewportSortParentSpritesChecker()
+{
+	return true;
+}
+
+/** Compare two parent sprites for sorting. */
+static bool CompareParentSprites (const ParentSpriteToDraw *ps1,
+	const ParentSpriteToDraw *ps2)
+{
+	if (ps1->xmax < ps2->xmin || ps1->ymax < ps2->ymin
+			|| ps1->zmax < ps2->zmin) {
+		/* First sprite goes before second one in some axis. */
+		return true;
+	}
+
+	if (ps1->xmin > ps2->xmax || ps1->ymin > ps2->ymax
+			|| ps1->zmin > ps2->zmax) {
+		/* No overlap, so second sprite goes before first one. */
+		return false;
+	}
+
+	/* Use X+Y+Z as the sorting order, so sprites closer to the bottom of
+	 * the screen and with higher Z elevation, are drawn in front. Here
+	 * X,Y,Z are the coordinates of the "center of mass" of the sprite,
+	 * i.e. X=(left+right)/2, etc. However, since we only care about
+	 * order, don't actually divide / 2. */
+	return  ps1->xmin + ps1->xmax + ps1->ymin + ps1->ymax + ps1->zmin + ps1->zmax <=
+		ps2->xmin + ps2->xmax + ps2->ymin + ps2->ymax + ps2->zmin + ps2->zmax;
+}
+
+/** Sort parent sprites pointer array */
+static void ViewportSortParentSprites (ParentSpriteToDraw **psd,
+	const ParentSpriteToDraw *const *psdvend)
+{
+	SortParentSprites (CompareParentSprites, psd, psdvend);
+}
+
+/** Choose the "best" sprite sorter and set _vp_sprite_sorter. */
+static VpSpriteSorter InitializeSpriteSorter (void)
+{
+	/** Helper class for getting the best sprite sorter. */
+	struct ViewportSSCSS {
+		VpSorterChecker fct_checker; ///< The check function.
+		VpSpriteSorter fct_sorter;   ///< The sorting function.
+	};
+
+	/** List of sorters ordered from best to worst. */
+	static const ViewportSSCSS sorters[] = {
+#ifdef WITH_SSE
+		{ &ViewportSortParentSpritesSSE41Checker, &ViewportSortParentSpritesSSE41 },
+#endif
+		{ &ViewportSortParentSpritesChecker, &ViewportSortParentSprites }
+	};
+
+	for (uint i = 0; i < lengthof(sorters); i++) {
+		if (sorters[i].fct_checker()) return sorters[i].fct_sorter;
+	}
+
+	NOT_REACHED();
+}
+
+static const VpSpriteSorter _vp_sprite_sorter = InitializeSpriteSorter();
+
 
 static Point MapXYZToViewport(const ViewPort *vp, int x, int y, int z)
 {
@@ -1519,44 +1584,6 @@ static void ViewportDrawTileSprites (DrawPixelInfo *dpi, const TileSpriteToDrawV
 	for (const TileSpriteToDraw *ts = tstdv->Begin(); ts != tsend; ++ts) {
 		DrawSpriteViewport (dpi, ts->image, ts->pal, ts->x, ts->y, ts->sub);
 	}
-}
-
-/** This fallback sprite checker always exists. */
-static bool ViewportSortParentSpritesChecker()
-{
-	return true;
-}
-
-/** Compare two parent sprites for sorting. */
-static bool CompareParentSprites (const ParentSpriteToDraw *ps1,
-	const ParentSpriteToDraw *ps2)
-{
-	if (ps1->xmax < ps2->xmin || ps1->ymax < ps2->ymin
-			|| ps1->zmax < ps2->zmin) {
-		/* First sprite goes before second one in some axis. */
-		return true;
-	}
-
-	if (ps1->xmin > ps2->xmax || ps1->ymin > ps2->ymax
-			|| ps1->zmin > ps2->zmax) {
-		/* No overlap, so second sprite goes before first one. */
-		return false;
-	}
-
-	/* Use X+Y+Z as the sorting order, so sprites closer to the bottom of
-	 * the screen and with higher Z elevation, are drawn in front. Here
-	 * X,Y,Z are the coordinates of the "center of mass" of the sprite,
-	 * i.e. X=(left+right)/2, etc. However, since we only care about
-	 * order, don't actually divide / 2. */
-	return  ps1->xmin + ps1->xmax + ps1->ymin + ps1->ymax + ps1->zmin + ps1->zmax <=
-		ps2->xmin + ps2->xmax + ps2->ymin + ps2->ymax + ps2->zmin + ps2->zmax;
-}
-
-/** Sort parent sprites pointer array */
-static void ViewportSortParentSprites (ParentSpriteToDraw **psd,
-	const ParentSpriteToDraw *const *psdvend)
-{
-	SortParentSprites (CompareParentSprites, psd, psdvend);
 }
 
 static void ViewportDrawParentSprites (DrawPixelInfo *dpi,
@@ -3292,30 +3319,4 @@ Point GetViewportStationMiddle(const ViewPort *vp, const Station *st)
 	p.x = UnScaleByZoom(p.x - vp->virtual_left, vp->zoom) + vp->left;
 	p.y = UnScaleByZoom(p.y - vp->virtual_top, vp->zoom) + vp->top;
 	return p;
-}
-
-/** Helper class for getting the best sprite sorter. */
-struct ViewportSSCSS {
-	VpSorterChecker fct_checker; ///< The check function.
-	VpSpriteSorter fct_sorter;   ///< The sorting function.
-};
-
-/** List of sorters ordered from best to worst. */
-static ViewportSSCSS _vp_sprite_sorters[] = {
-#ifdef WITH_SSE
-	{ &ViewportSortParentSpritesSSE41Checker, &ViewportSortParentSpritesSSE41 },
-#endif
-	{ &ViewportSortParentSpritesChecker, &ViewportSortParentSprites }
-};
-
-/** Choose the "best" sprite sorter and set _vp_sprite_sorter. */
-void InitializeSpriteSorter()
-{
-	for (uint i = 0; i < lengthof(_vp_sprite_sorters); i++) {
-		if (_vp_sprite_sorters[i].fct_checker()) {
-			_vp_sprite_sorter = _vp_sprite_sorters[i].fct_sorter;
-			break;
-		}
-	}
-	assert(_vp_sprite_sorter != NULL);
 }

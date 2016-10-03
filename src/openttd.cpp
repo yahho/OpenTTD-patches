@@ -63,7 +63,6 @@
 #include "town.h"
 #include "subsidy_func.h"
 #include "gfx_layout.h"
-#include "viewport_sprite_sorter.h"
 #include "industry.h"
 
 #include "linkgraph/linkgraphschedule.h"
@@ -798,8 +797,6 @@ int openttd_main(int argc, char *argv[])
 
 	VideoDriver::SelectDriver ((videodriver != NULL) ? videodriver : VideoDriver::ini);
 	free(videodriver);
-
-	InitializeSpriteSorter();
 
 	NetworkStartUp(); // initialize network-core
 
