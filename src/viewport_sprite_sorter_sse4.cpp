@@ -12,7 +12,6 @@
 #ifdef WITH_SSE
 
 #include "stdafx.h"
-#include "cpu.h"
 #include "smmintrin.h"
 #include "viewport_sprite_sorter.h"
 
@@ -76,15 +75,6 @@ void ViewportSortParentSpritesSSE41 (ParentSpriteToDraw **psd,
 {
 	CompareParentSpritesSSE41 comparator;
 	SortParentSprites (comparator, psd, psdvend);
-}
-
-/**
- * Check whether the current CPU supports SSE 4.1.
- * @return True iff the CPU supports SSE 4.1.
- */
-bool ViewportSortParentSpritesSSE41Checker()
-{
-	return HasCPUIDFlag(1, 2, 19);
 }
 
 #endif /* WITH_SSE */

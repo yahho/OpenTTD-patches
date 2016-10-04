@@ -31,6 +31,7 @@
 #include <vector>
 
 #include "debug.h"
+#include "cpu.h"
 #include "map/zoneheight.h"
 #include "map/slope.h"
 #include "map/bridge.h"
@@ -173,7 +174,7 @@ static void ViewportSortParentSprites (ParentSpriteToDraw **psd,
 
 static const VpSpriteSorter _vp_sprite_sorter =
 #ifdef WITH_SSE
-	ViewportSortParentSpritesSSE41Checker() ? &ViewportSortParentSpritesSSE41 :
+		HasCPUIDFlag (1, 2, 19) ? &ViewportSortParentSpritesSSE41 :
 #endif
 		&ViewportSortParentSprites;
 
