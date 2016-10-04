@@ -139,12 +139,6 @@ bool _draw_dirty_blocks = false;
 uint _dirty_block_colour = 0;
 
 
-/** This fallback sprite checker always exists. */
-static bool ViewportSortParentSpritesChecker()
-{
-	return true;
-}
-
 /** Compare two parent sprites for sorting. */
 static bool CompareParentSprites (const ParentSpriteToDraw *ps1,
 	const ParentSpriteToDraw *ps2)
@@ -177,31 +171,11 @@ static void ViewportSortParentSprites (ParentSpriteToDraw **psd,
 	SortParentSprites (CompareParentSprites, psd, psdvend);
 }
 
-/** Choose the "best" sprite sorter and set _vp_sprite_sorter. */
-static VpSpriteSorter InitializeSpriteSorter (void)
-{
-	/** Helper class for getting the best sprite sorter. */
-	struct ViewportSSCSS {
-		VpSorterChecker fct_checker; ///< The check function.
-		VpSpriteSorter fct_sorter;   ///< The sorting function.
-	};
-
-	/** List of sorters ordered from best to worst. */
-	static const ViewportSSCSS sorters[] = {
+static const VpSpriteSorter _vp_sprite_sorter =
 #ifdef WITH_SSE
-		{ &ViewportSortParentSpritesSSE41Checker, &ViewportSortParentSpritesSSE41 },
+	ViewportSortParentSpritesSSE41Checker() ? &ViewportSortParentSpritesSSE41 :
 #endif
-		{ &ViewportSortParentSpritesChecker, &ViewportSortParentSprites }
-	};
-
-	for (uint i = 0; i < lengthof(sorters); i++) {
-		if (sorters[i].fct_checker()) return sorters[i].fct_sorter;
-	}
-
-	NOT_REACHED();
-}
-
-static const VpSpriteSorter _vp_sprite_sorter = InitializeSpriteSorter();
+		&ViewportSortParentSprites;
 
 
 static Point MapXYZToViewport(const ViewPort *vp, int x, int y, int z)

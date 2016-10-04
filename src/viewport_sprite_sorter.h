@@ -71,8 +71,6 @@ static inline void SortParentSprites (const T &comparator,
 	}
 }
 
-/** Type for method for checking whether a viewport sprite sorter exists. */
-typedef bool (*VpSorterChecker)();
 /** Type for the actual viewport sprite sorter. */
 typedef void (*VpSpriteSorter) (ParentSpriteToDraw **psd, const ParentSpriteToDraw *const *psdvend);
 
