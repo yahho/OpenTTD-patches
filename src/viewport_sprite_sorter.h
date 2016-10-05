@@ -71,9 +71,6 @@ static inline void SortParentSprites (const T &comparator,
 	}
 }
 
-/** Type for the actual viewport sprite sorter. */
-typedef void (*VpSpriteSorter) (ParentSpriteToDraw **psd, const ParentSpriteToDraw *const *psdvend);
-
 #ifdef WITH_SSE
 void ViewportSortParentSpritesSSE41 (ParentSpriteToDraw **psd, const ParentSpriteToDraw *const *psdvend);
 #endif

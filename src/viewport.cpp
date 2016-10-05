@@ -172,6 +172,9 @@ static void ViewportSortParentSprites (ParentSpriteToDraw **psd,
 	SortParentSprites (CompareParentSprites, psd, psdvend);
 }
 
+/** Type for the actual viewport sprite sorter. */
+typedef void (*VpSpriteSorter) (ParentSpriteToDraw **psd, const ParentSpriteToDraw *const *psdvend);
+
 static const VpSpriteSorter _vp_sprite_sorter =
 #ifdef WITH_SSE
 		HasCPUIDFlag (1, 2, 19) ? &ViewportSortParentSpritesSSE41 :
