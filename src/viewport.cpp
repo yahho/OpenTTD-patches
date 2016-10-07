@@ -95,6 +95,13 @@ enum FoundationPart {
 	FOUNDATION_PART_END
 };
 
+/** Foundation part data */
+struct FoundationData {
+	Point offset;    ///< Pixel offset for ground sprites on the foundations.
+	int *last_child; ///< Tail of ChildSprite list of the foundations. (index into child_screen_sprites_to_draw)
+	int index;       ///< Foundation sprites (index into parent_sprites_to_draw).
+};
+
 /**
  * Mode of "sprite combining"
  * @see StartSpriteCombine
@@ -121,10 +128,8 @@ struct ViewportDrawer {
 
 	SpriteCombineMode combine_sprites;               ///< Current mode of "sprite combining". @see StartSpriteCombine
 
-	int foundation[FOUNDATION_PART_END];             ///< Foundation sprites (index into parent_sprites_to_draw).
+	FoundationData foundation[FOUNDATION_PART_END];  ///< Foundation data.
 	FoundationPart foundation_part;                  ///< Currently active foundation for ground sprite drawing.
-	int *last_foundation_child[FOUNDATION_PART_END]; ///< Tail of ChildSprite list of the foundations. (index into child_screen_sprites_to_draw)
-	Point foundation_offset[FOUNDATION_PART_END];    ///< Pixel offset for ground sprites on the foundations.
 };
 
 bool IsViewportDrawerDetailed (const ViewportDrawer *vd)
@@ -552,12 +557,12 @@ static void AddChildSpriteToFoundation (ViewportDrawer *vd, SpriteID image,
 	int extra_offs_x, int extra_offs_y)
 {
 	assert(IsInsideMM(foundation_part, 0, FOUNDATION_PART_END));
-	assert (vd->foundation[foundation_part] != -1);
-	Point offs = vd->foundation_offset[foundation_part];
+	assert (vd->foundation[foundation_part].index != -1);
+	Point offs = vd->foundation[foundation_part].offset;
 
 	/* Change the active ChildSprite list to the one of the foundation */
 	int *old_child = vd->last_child;
-	vd->last_child = vd->last_foundation_child[foundation_part];
+	vd->last_child = vd->foundation[foundation_part].last_child;
 
 	AddChildSpriteScreen (vd, image, pal, offs.x + extra_offs_x, offs.y + extra_offs_y, false, sub, false);
 
@@ -586,7 +591,7 @@ void DrawGroundSpriteAt (const TileInfo *ti, SpriteID image, PaletteID pal,
 	/* Switch to first foundation part, if no foundation was drawn */
 	if (ti->vd->foundation_part == FOUNDATION_PART_NONE) ti->vd->foundation_part = FOUNDATION_PART_NORMAL;
 
-	if (ti->vd->foundation[ti->vd->foundation_part] != -1) {
+	if (ti->vd->foundation[ti->vd->foundation_part].index != -1) {
 		Point pt = RemapCoords(x, y, z);
 		AddChildSpriteToFoundation (ti->vd, image, pal, sub, ti->vd->foundation_part, pt.x + extra_offs_x * ZOOM_LVL_BASE, pt.y + extra_offs_y * ZOOM_LVL_BASE);
 	} else {
@@ -633,11 +638,11 @@ void OffsetGroundSprite (ViewportDrawer *vd, int x, int y)
 	}
 
 	/* vd->last_child == NULL if foundation sprite was clipped by the viewport bounds */
-	if (vd->last_child != NULL) vd->foundation[vd->foundation_part] = vd->parent_sprites_to_draw.Length() - 1;
+	if (vd->last_child != NULL) vd->foundation[vd->foundation_part].index = vd->parent_sprites_to_draw.Length() - 1;
 
-	vd->foundation_offset[vd->foundation_part].x = x * ZOOM_LVL_BASE;
-	vd->foundation_offset[vd->foundation_part].y = y * ZOOM_LVL_BASE;
-	vd->last_foundation_child[vd->foundation_part] = vd->last_child;
+	vd->foundation[vd->foundation_part].offset.x = x * ZOOM_LVL_BASE;
+	vd->foundation[vd->foundation_part].offset.y = y * ZOOM_LVL_BASE;
+	vd->foundation[vd->foundation_part].last_child = vd->last_child;
 }
 
 /**
@@ -877,8 +882,8 @@ void AddChildSpriteScreen (ViewportDrawer *vd, SpriteID image, PaletteID pal,
 	/* Append the sprite to the active ChildSprite list.
 	 * If the active ParentSprite is a foundation, update last_foundation_child as well.
 	 * Note: ChildSprites of foundations are NOT sequential in the vector, as selection sprites are added at last. */
-	if (vd->last_foundation_child[0] == vd->last_child) vd->last_foundation_child[0] = &cs->next;
-	if (vd->last_foundation_child[1] == vd->last_child) vd->last_foundation_child[1] = &cs->next;
+	if (vd->foundation[0].last_child == vd->last_child) vd->foundation[0].last_child = &cs->next;
+	if (vd->foundation[1].last_child == vd->last_child) vd->foundation[1].last_child = &cs->next;
 	vd->last_child = &cs->next;
 }
 
@@ -897,7 +902,7 @@ void AddChildSpriteScreen (ViewportDrawer *vd, SpriteID image, PaletteID pal,
 static void DrawSelectionSprite(SpriteID image, PaletteID pal, const TileInfo *ti, int z_offset, FoundationPart foundation_part)
 {
 	/* FIXME: This is not totally valid for some autorail highlights that extend over the edges of the tile. */
-	if (ti->vd->foundation[foundation_part] == -1) {
+	if (ti->vd->foundation[foundation_part].index == -1) {
 		/* draw on real ground */
 		AddTileSpriteToDraw (ti->vd, image, pal, ti->x, ti->y, ti->z + z_offset);
 	} else {
@@ -1314,10 +1319,10 @@ static void ViewportAddLandscape (ViewportDrawer *vd, ZoomLevel zoom)
 			if (state == STATE_GROUND || (ti.tile != INVALID_TILE &&
 					(state == STATE_BUILDINGS || HasBridgeAbove(ti.tile)))) {
 				vd->foundation_part = FOUNDATION_PART_NONE;
-				vd->foundation[0] = -1;
-				vd->foundation[1] = -1;
-				vd->last_foundation_child[0] = NULL;
-				vd->last_foundation_child[1] = NULL;
+				vd->foundation[0].index = -1;
+				vd->foundation[1].index = -1;
+				vd->foundation[0].last_child = NULL;
+				vd->foundation[1].last_child = NULL;
 				dtp(&ti);
 			}
 
