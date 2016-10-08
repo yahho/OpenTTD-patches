@@ -553,16 +553,17 @@ static void AddTileSpriteToDraw (ViewportDrawer *vd, SpriteID image,
  * @param extra_offs_y Pixel Y offset for the sprite position.
  */
 static void AddChildSpriteToFoundation (ViewportDrawer *vd, SpriteID image,
-	PaletteID pal, const SubSprite *sub, FoundationPart foundation_part,
+	PaletteID pal, const SubSprite *sub, FoundationData *foundation_part,
 	int extra_offs_x, int extra_offs_y)
 {
-	assert(IsInsideMM(foundation_part, 0, FOUNDATION_PART_END));
-	assert (vd->foundation[foundation_part].index != -1);
-	Point offs = vd->foundation[foundation_part].offset;
+	assert (foundation_part >= vd->foundation);
+	assert (foundation_part < endof(vd->foundation));
+	assert (foundation_part->index != -1);
+	const Point &offs = foundation_part->offset;
 
 	/* Change the active ChildSprite list to the one of the foundation */
 	int *old_child = vd->last_child;
-	vd->last_child = vd->foundation[foundation_part].last_child;
+	vd->last_child = foundation_part->last_child;
 
 	AddChildSpriteScreen (vd, image, pal, offs.x + extra_offs_x, offs.y + extra_offs_y, false, sub, false);
 
@@ -593,7 +594,7 @@ void DrawGroundSpriteAt (const TileInfo *ti, SpriteID image, PaletteID pal,
 
 	if (ti->vd->foundation[ti->vd->foundation_part].index != -1) {
 		Point pt = RemapCoords(x, y, z);
-		AddChildSpriteToFoundation (ti->vd, image, pal, sub, ti->vd->foundation_part, pt.x + extra_offs_x * ZOOM_LVL_BASE, pt.y + extra_offs_y * ZOOM_LVL_BASE);
+		AddChildSpriteToFoundation (ti->vd, image, pal, sub, &ti->vd->foundation[ti->vd->foundation_part], pt.x + extra_offs_x * ZOOM_LVL_BASE, pt.y + extra_offs_y * ZOOM_LVL_BASE);
 	} else {
 		AddTileSpriteToDraw (ti->vd, image, pal, ti->x + x, ti->y + y, ti->z + z, sub, extra_offs_x * ZOOM_LVL_BASE, extra_offs_y * ZOOM_LVL_BASE);
 	}
@@ -907,7 +908,7 @@ static void DrawSelectionSprite(SpriteID image, PaletteID pal, const TileInfo *t
 		AddTileSpriteToDraw (ti->vd, image, pal, ti->x, ti->y, ti->z + z_offset);
 	} else {
 		/* draw on top of foundation */
-		AddChildSpriteToFoundation (ti->vd, image, pal, NULL, foundation_part, 0, -z_offset * ZOOM_LVL_BASE);
+		AddChildSpriteToFoundation (ti->vd, image, pal, NULL, &ti->vd->foundation[foundation_part], 0, -z_offset * ZOOM_LVL_BASE);
 	}
 }
 
