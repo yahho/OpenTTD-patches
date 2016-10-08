@@ -900,15 +900,15 @@ void AddChildSpriteScreen (ViewportDrawer *vd, SpriteID image, PaletteID pal,
  * @param z_offset Z offset relative to the groundsprite. Only used for the sprite position, not for sprite sorting.
  * @param foundation_part Foundation part the sprite belongs to.
  */
-static void DrawSelectionSprite(SpriteID image, PaletteID pal, const TileInfo *ti, int z_offset, FoundationPart foundation_part)
+static void DrawSelectionSprite (SpriteID image, PaletteID pal, const TileInfo *ti, int z_offset, FoundationData *foundation_part)
 {
 	/* FIXME: This is not totally valid for some autorail highlights that extend over the edges of the tile. */
-	if (ti->vd->foundation[foundation_part].index == -1) {
+	if (foundation_part->index == -1) {
 		/* draw on real ground */
 		AddTileSpriteToDraw (ti->vd, image, pal, ti->x, ti->y, ti->z + z_offset);
 	} else {
 		/* draw on top of foundation */
-		AddChildSpriteToFoundation (ti->vd, image, pal, NULL, &ti->vd->foundation[foundation_part], 0, -z_offset * ZOOM_LVL_BASE);
+		AddChildSpriteToFoundation (ti->vd, image, pal, NULL, foundation_part, 0, -z_offset * ZOOM_LVL_BASE);
 	}
 }
 
@@ -926,7 +926,7 @@ static void DrawTileSelectionRect(const TileInfo *ti, PaletteID pal)
 	if (IsHalftileSlope(ti->tileh)) {
 		Corner halftile_corner = GetHalftileSlopeCorner(ti->tileh);
 		SpriteID sel2 = SPR_HALFTILE_SELECTION_FLAT + halftile_corner;
-		DrawSelectionSprite(sel2, pal, ti, 7 + TILE_HEIGHT, FOUNDATION_PART_HALFTILE);
+		DrawSelectionSprite (sel2, pal, ti, 7 + TILE_HEIGHT, &ti->vd->foundation[FOUNDATION_PART_HALFTILE]);
 
 		Corner opposite_corner = OppositeCorner(halftile_corner);
 		if (IsSteepSlope(ti->tileh)) {
@@ -938,7 +938,7 @@ static void DrawTileSelectionRect(const TileInfo *ti, PaletteID pal)
 	} else {
 		sel = SPR_SELECT_TILE + SlopeToSpriteOffset(ti->tileh);
 	}
-	DrawSelectionSprite(sel, pal, ti, 7, FOUNDATION_PART_NORMAL);
+	DrawSelectionSprite (sel, pal, ti, 7, &ti->vd->foundation[FOUNDATION_PART_NORMAL]);
 }
 
 #include "table/autorail.h"
@@ -1006,7 +1006,7 @@ static void DrawAutorailSelection (const TileInfo *ti, Track track)
 	DrawSelectionSprite (SPR_AUTORAIL_BASE + (offset & 0x7F),
 			(_thd.make_square_red || (offset & 0x80) != 0) ?
 					PALETTE_SEL_TILE_RED : PAL_NONE,
-			ti, 7, foundation_part);
+			ti, 7, &ti->vd->foundation[foundation_part]);
 }
 
 /**
@@ -1057,7 +1057,7 @@ static void DrawTileSelection (const TileInfo *ti, ZoomLevel zoom)
 				if (IsSteepSlope(ti->tileh)) z -= TILE_HEIGHT;
 			}
 		}
-		DrawSelectionSprite (zoom <= ZOOM_LVL_DETAIL ? SPR_DOT : SPR_DOT_SMALL, PAL_NONE, ti, z, foundation_part);
+		DrawSelectionSprite (zoom <= ZOOM_LVL_DETAIL ? SPR_DOT : SPR_DOT_SMALL, PAL_NONE, ti, z, &ti->vd->foundation[foundation_part]);
 	} else {
 		/* autorail highlighting */
 		assert ((_thd.drawstyle & HT_RAIL) != 0);
