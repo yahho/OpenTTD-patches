@@ -89,7 +89,6 @@ struct ChildScreenSpriteToDraw {
 
 /** Enumeration of multi-part foundations */
 enum FoundationPart {
-	FOUNDATION_PART_NONE     = 0xFF,  ///< Neither foundation nor groundsprite drawn yet.
 	FOUNDATION_PART_NORMAL   = 0,     ///< First part (normal foundation or no foundation)
 	FOUNDATION_PART_HALFTILE = 1,     ///< Second part (halftile foundation)
 	FOUNDATION_PART_END
@@ -129,7 +128,7 @@ struct ViewportDrawer {
 	SpriteCombineMode combine_sprites;               ///< Current mode of "sprite combining". @see StartSpriteCombine
 
 	FoundationData foundation[FOUNDATION_PART_END];  ///< Foundation data.
-	FoundationPart foundation_part;                  ///< Currently active foundation for ground sprite drawing.
+	FoundationData *foundation_part;                 ///< Currently active foundation for ground sprite drawing.
 };
 
 bool IsViewportDrawerDetailed (const ViewportDrawer *vd)
@@ -590,11 +589,11 @@ void DrawGroundSpriteAt (const TileInfo *ti, SpriteID image, PaletteID pal,
 	int extra_offs_x, int extra_offs_y)
 {
 	/* Switch to first foundation part, if no foundation was drawn */
-	if (ti->vd->foundation_part == FOUNDATION_PART_NONE) ti->vd->foundation_part = FOUNDATION_PART_NORMAL;
+	if (ti->vd->foundation_part == NULL) ti->vd->foundation_part = ti->vd->foundation;
 
-	if (ti->vd->foundation[ti->vd->foundation_part].index != -1) {
+	if (ti->vd->foundation_part->index != -1) {
 		Point pt = RemapCoords(x, y, z);
-		AddChildSpriteToFoundation (ti->vd, image, pal, sub, &ti->vd->foundation[ti->vd->foundation_part], pt.x + extra_offs_x * ZOOM_LVL_BASE, pt.y + extra_offs_y * ZOOM_LVL_BASE);
+		AddChildSpriteToFoundation (ti->vd, image, pal, sub, ti->vd->foundation_part, pt.x + extra_offs_x * ZOOM_LVL_BASE, pt.y + extra_offs_y * ZOOM_LVL_BASE);
 	} else {
 		AddTileSpriteToDraw (ti->vd, image, pal, ti->x + x, ti->y + y, ti->z + z, sub, extra_offs_x * ZOOM_LVL_BASE, extra_offs_y * ZOOM_LVL_BASE);
 	}
@@ -628,22 +627,19 @@ void DrawGroundSprite (const TileInfo *ti, SpriteID image, PaletteID pal,
 void OffsetGroundSprite (ViewportDrawer *vd, int x, int y)
 {
 	/* Switch to next foundation part */
-	switch (vd->foundation_part) {
-		case FOUNDATION_PART_NONE:
-			vd->foundation_part = FOUNDATION_PART_NORMAL;
-			break;
-		case FOUNDATION_PART_NORMAL:
-			vd->foundation_part = FOUNDATION_PART_HALFTILE;
-			break;
-		default: NOT_REACHED();
+	if (vd->foundation_part == NULL) {
+		vd->foundation_part = vd->foundation;
+	} else {
+		assert (vd->foundation_part == vd->foundation);
+		vd->foundation_part++;
 	}
 
 	/* vd->last_child == NULL if foundation sprite was clipped by the viewport bounds */
-	if (vd->last_child != NULL) vd->foundation[vd->foundation_part].index = vd->parent_sprites_to_draw.Length() - 1;
+	if (vd->last_child != NULL) vd->foundation_part->index = vd->parent_sprites_to_draw.Length() - 1;
 
-	vd->foundation[vd->foundation_part].offset.x = x * ZOOM_LVL_BASE;
-	vd->foundation[vd->foundation_part].offset.y = y * ZOOM_LVL_BASE;
-	vd->foundation[vd->foundation_part].last_child = vd->last_child;
+	vd->foundation_part->offset.x = x * ZOOM_LVL_BASE;
+	vd->foundation_part->offset.y = y * ZOOM_LVL_BASE;
+	vd->foundation_part->last_child = vd->last_child;
 }
 
 /**
@@ -989,13 +985,13 @@ static void DrawAutorailSelection (const TileInfo *ti, Track track)
 		{  4,  12, RED|21, RED|30,     37,     45 }  // tileh = 30
 	};
 
-	FoundationPart foundation_part = FOUNDATION_PART_NORMAL;
+	FoundationData *foundation_part = ti->vd->foundation;
 	Slope autorail_tileh = RemoveHalftileSlope(ti->tileh);
 	if (IsHalftileSlope(ti->tileh)) {
 		static const uint _lower_rail[4] = { 5U, 2U, 4U, 3U };
 		Corner halftile_corner = GetHalftileSlopeCorner(ti->tileh);
 		if (track != _lower_rail[halftile_corner]) {
-			foundation_part = FOUNDATION_PART_HALFTILE;
+			foundation_part++;
 			/* Here we draw the highlights of the "three-corners-raised"-slope. That looks ok to me. */
 			autorail_tileh = SlopeWithThreeCornersRaised(OppositeCorner(halftile_corner));
 		}
@@ -1006,7 +1002,7 @@ static void DrawAutorailSelection (const TileInfo *ti, Track track)
 	DrawSelectionSprite (SPR_AUTORAIL_BASE + (offset & 0x7F),
 			(_thd.make_square_red || (offset & 0x80) != 0) ?
 					PALETTE_SEL_TILE_RED : PAL_NONE,
-			ti, 7, &ti->vd->foundation[foundation_part]);
+			ti, 7, foundation_part);
 }
 
 /**
@@ -1044,7 +1040,7 @@ static void DrawTileSelection (const TileInfo *ti, ZoomLevel zoom)
 	} else if (_thd.drawstyle == HT_POINT) {
 		/* Figure out the Z coordinate for the single dot. */
 		int z = 0;
-		FoundationPart foundation_part = FOUNDATION_PART_NORMAL;
+		FoundationData *foundation_part = ti->vd->foundation;
 		if (ti->tileh & SLOPE_N) {
 			z += TILE_HEIGHT;
 			if (RemoveHalftileSlope(ti->tileh) == SLOPE_STEEP_N) z += TILE_HEIGHT;
@@ -1053,11 +1049,11 @@ static void DrawTileSelection (const TileInfo *ti, ZoomLevel zoom)
 			Corner halftile_corner = GetHalftileSlopeCorner(ti->tileh);
 			if ((halftile_corner == CORNER_W) || (halftile_corner == CORNER_E)) z += TILE_HEIGHT;
 			if (halftile_corner != CORNER_S) {
-				foundation_part = FOUNDATION_PART_HALFTILE;
+				foundation_part++;
 				if (IsSteepSlope(ti->tileh)) z -= TILE_HEIGHT;
 			}
 		}
-		DrawSelectionSprite (zoom <= ZOOM_LVL_DETAIL ? SPR_DOT : SPR_DOT_SMALL, PAL_NONE, ti, z, &ti->vd->foundation[foundation_part]);
+		DrawSelectionSprite (zoom <= ZOOM_LVL_DETAIL ? SPR_DOT : SPR_DOT_SMALL, PAL_NONE, ti, z, foundation_part);
 	} else {
 		/* autorail highlighting */
 		assert ((_thd.drawstyle & HT_RAIL) != 0);
@@ -1319,7 +1315,7 @@ static void ViewportAddLandscape (ViewportDrawer *vd, ZoomLevel zoom)
 
 			if (state == STATE_GROUND || (ti.tile != INVALID_TILE &&
 					(state == STATE_BUILDINGS || HasBridgeAbove(ti.tile)))) {
-				vd->foundation_part = FOUNDATION_PART_NONE;
+				vd->foundation_part = NULL;
 				vd->foundation[0].index = -1;
 				vd->foundation[1].index = -1;
 				vd->foundation[0].last_child = NULL;
