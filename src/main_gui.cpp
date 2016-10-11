@@ -176,23 +176,6 @@ bool DoZoomInOutWindow (bool in, Window *w)
 	return true;
 }
 
-void ZoomInOrOutToCursorWindow(bool in, Window *w)
-{
-	assert(w != NULL);
-
-	if (_game_mode != GM_MENU) {
-		ViewPort *vp = w->viewport;
-		if ((in && vp->zoom <= _settings_client.gui.zoom_min) || (!in && vp->zoom >= _settings_client.gui.zoom_max)) return;
-
-		Point pt = GetTileZoomCenterWindow(in, w);
-		if (pt.x != -1) {
-			ScrollWindowTo(pt.x, pt.y, -1, w, true);
-
-			DoZoomInOutWindow (in, w);
-		}
-	}
-}
-
 static const struct NWidgetPart _nested_main_window_widgets[] = {
 	NWidget(NWID_VIEWPORT, INVALID_COLOUR, WID_M_VIEWPORT), SetResize(1, 1),
 };

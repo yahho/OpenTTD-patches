@@ -493,6 +493,23 @@ Point GetTileZoomCenterWindow(bool in, Window * w)
 	return GetTileFromScreenXY(_cursor.pos.x, _cursor.pos.y, x + vp->left, y + vp->top);
 }
 
+void ZoomInOrOutToCursorWindow (bool in, Window *w)
+{
+	assert (w != NULL);
+
+	if (_game_mode != GM_MENU) {
+		ViewPort *vp = w->viewport;
+		if ((in && vp->zoom <= _settings_client.gui.zoom_min) || (!in && vp->zoom >= _settings_client.gui.zoom_max)) return;
+
+		Point pt = GetTileZoomCenterWindow (in, w);
+		if (pt.x != -1) {
+			ScrollWindowTo (pt.x, pt.y, -1, w, true);
+
+			DoZoomInOutWindow (in, w);
+		}
+	}
+}
+
 /**
  * Update the status of the zoom-buttons according to the zoom-level
  * of the viewport. This will update their status and invalidate accordingly
