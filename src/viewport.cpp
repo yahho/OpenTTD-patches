@@ -477,22 +477,6 @@ Point GetTileBelowCursor()
 }
 
 
-Point GetTileZoomCenterWindow(bool in, Window * w)
-{
-	int x, y;
-	ViewPort *vp = w->viewport;
-
-	if (in) {
-		x = ((_cursor.pos.x - vp->left) >> 1) + (vp->width >> 2);
-		y = ((_cursor.pos.y - vp->top) >> 1) + (vp->height >> 2);
-	} else {
-		x = vp->width - (_cursor.pos.x - vp->left);
-		y = vp->height - (_cursor.pos.y - vp->top);
-	}
-	/* Get the tile below the cursor and center on the zoomed-out center */
-	return GetTileFromScreenXY(_cursor.pos.x, _cursor.pos.y, x + vp->left, y + vp->top);
-}
-
 void ZoomInOrOutToCursorWindow (bool in, Window *w)
 {
 	assert (w != NULL);
@@ -501,7 +485,18 @@ void ZoomInOrOutToCursorWindow (bool in, Window *w)
 		ViewPort *vp = w->viewport;
 		if ((in && vp->zoom <= _settings_client.gui.zoom_min) || (!in && vp->zoom >= _settings_client.gui.zoom_max)) return;
 
-		Point pt = GetTileZoomCenterWindow (in, w);
+		int x, y;
+		if (in) {
+			x = ((_cursor.pos.x - vp->left) >> 1) + (vp->width  >> 2);
+			y = ((_cursor.pos.y - vp->top)  >> 1) + (vp->height >> 2);
+		} else {
+			x = vp->width  - (_cursor.pos.x - vp->left);
+			y = vp->height - (_cursor.pos.y - vp->top);
+		}
+
+		/* Get the tile below the cursor and center on the zoomed-out center */
+		Point pt = GetTileFromScreenXY (_cursor.pos.x, _cursor.pos.y, x + vp->left, y + vp->top);
+
 		if (pt.x != -1) {
 			ScrollWindowTo (pt.x, pt.y, -1, w, true);
 
