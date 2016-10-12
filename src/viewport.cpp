@@ -454,26 +454,21 @@ static Point TranslateXYToTileCoord(const ViewPort *vp, int x, int y)
 	return pt;
 }
 
-/* When used for zooming, check area below current coordinates (x,y)
- * and return the tile of the zoomed out/in position (zoom_x, zoom_y)
- * when you just want the tile, make x = zoom_x and y = zoom_y */
-static Point GetTileFromScreenXY(int x, int y, int zoom_x, int zoom_y)
-{
-	Window *w;
-	ViewPort *vp;
-	Point pt;
-
-	if ( (w = FindWindowFromPt(x, y)) != NULL &&
-			 (vp = IsPtInWindowViewport(w, x, y)) != NULL)
-				return TranslateXYToTileCoord(vp, zoom_x, zoom_y);
-
-	pt.y = pt.x = -1;
-	return pt;
-}
-
 Point GetTileBelowCursor()
 {
-	return GetTileFromScreenXY(_cursor.pos.x, _cursor.pos.y, _cursor.pos.x, _cursor.pos.y);
+	int x = _cursor.pos.x;
+	int y = _cursor.pos.y;
+
+	Window *w = FindWindowFromPt (x, y);
+
+	if (w != NULL) {
+		ViewPort *vp = IsPtInWindowViewport (w, x, y);
+		if (vp != NULL) return TranslateXYToTileCoord (vp, x, y);
+	}
+
+	Point pt;
+	pt.y = pt.x = -1;
+	return pt;
 }
 
 
