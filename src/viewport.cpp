@@ -2235,14 +2235,6 @@ static bool CheckClickOnSign(const ViewPort *vp, int x, int y)
 }
 
 
-static bool CheckClickOnLandscape(const ViewPort *vp, int x, int y)
-{
-	Point pt = TranslateXYToTileCoord(vp, x, y);
-
-	if (pt.x != -1) return ClickTile(TileVirtXY(pt.x, pt.y));
-	return true;
-}
-
 static void PlaceObject()
 {
 	Point pt;
@@ -2283,7 +2275,9 @@ bool HandleViewportClicked(const ViewPort *vp, int x, int y)
 	if (CheckClickOnTown(vp, x, y)) return true;
 	if (CheckClickOnStation(vp, x, y)) return true;
 	if (CheckClickOnSign(vp, x, y)) return true;
-	bool result = CheckClickOnLandscape(vp, x, y);
+
+	Point pt = TranslateXYToTileCoord (vp, x, y);
+	bool result = (pt.x == -1) || ClickTile (TileVirtXY (pt.x, pt.y));
 
 	if (v != NULL) {
 		DEBUG(misc, 2, "Vehicle %d (index %d) at %p", v->unitnumber, v->index, v);
