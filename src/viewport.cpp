@@ -2257,6 +2257,9 @@ static void PlaceObject()
 
 bool HandleViewportClicked(const ViewPort *vp, int x, int y)
 {
+	x -= vp->left;
+	y -= vp->top;
+
 	const Vehicle *v = CheckClickOnVehicle(vp, x, y);
 
 	PointerMode mode = _pointer_mode;
@@ -2270,9 +2273,6 @@ bool HandleViewportClicked(const ViewPort *vp, int x, int y)
 		PlaceObject();
 		return true;
 	}
-
-	x -= vp->left;
-	y -= vp->top;
 
 	if (CheckClickOnTown(vp, x, y)) return true;
 	if (CheckClickOnStation(vp, x, y)) return true;
