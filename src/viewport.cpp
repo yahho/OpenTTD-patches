@@ -403,8 +403,8 @@ ViewPort *IsPtInWindowViewport(const Window *w, int x, int y)
 /**
  * Translate screen coordinate in a viewport to a tile coordinate
  * @param vp  Viewport that contains the (\a x, \a y) screen coordinate
- * @param x   Screen x coordinate
- * @param y   Screen y coordinate
+ * @param x   Coordinate x into the viewport
+ * @param y   Coordinate y into the viewport
  * @return Tile coordinate
  */
 static Point TranslateXYToTileCoord(const ViewPort *vp, int x, int y)
@@ -413,10 +413,9 @@ static Point TranslateXYToTileCoord(const ViewPort *vp, int x, int y)
 	int a, b;
 	int z;
 
-	if ( (uint)(x -= vp->left) >= (uint)vp->width ||
-				(uint)(y -= vp->top) >= (uint)vp->height) {
-				Point pt = {-1, -1};
-				return pt;
+	if ((uint)x >= (uint)vp->width || (uint)y >= (uint)vp->height) {
+		Point pt = {-1, -1};
+		return pt;
 	}
 
 	x = (ScaleByZoom(x, vp->zoom) + vp->virtual_left) >> (2 + ZOOM_LVL_SHIFT);
@@ -463,7 +462,7 @@ Point GetTileBelowCursor()
 
 	if (w != NULL) {
 		ViewPort *vp = IsPtInWindowViewport (w, x, y);
-		if (vp != NULL) return TranslateXYToTileCoord (vp, x, y);
+		if (vp != NULL) return TranslateXYToTileCoord (vp, x - vp->left, y - vp->top);
 	}
 
 	Point pt;
@@ -494,7 +493,7 @@ void ZoomInOrOutToCursorWindow (bool in, Window *w)
 		}
 
 		/* Get the tile below the cursor and center on the zoomed-out center */
-		Point pt = TranslateXYToTileCoord (vp, x + vp->left, y + vp->top);
+		Point pt = TranslateXYToTileCoord (vp, x, y);
 
 		if (pt.x != -1) {
 			ScrollWindowTo (pt.x, pt.y, -1, w, true);
@@ -2276,7 +2275,7 @@ bool HandleViewportClicked(const ViewPort *vp, int x, int y)
 	if (CheckClickOnStation(vp, x, y)) return true;
 	if (CheckClickOnSign(vp, x, y)) return true;
 
-	Point pt = TranslateXYToTileCoord (vp, x, y);
+	Point pt = TranslateXYToTileCoord (vp, x - vp->left, y - vp->top);
 	bool result = (pt.x == -1) || ClickTile (TileVirtXY (pt.x, pt.y));
 
 	if (v != NULL) {
