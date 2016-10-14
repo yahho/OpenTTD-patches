@@ -2259,9 +2259,10 @@ bool HandleViewportClicked(const ViewPort *vp, int x, int y)
 	x -= vp->left;
 	y -= vp->top;
 
-	const Vehicle *v = ((uint)x >= (uint)vp->width
-				|| (uint)y >= (uint)vp->height) ?
-			NULL : CheckClickOnVehicle (vp, x, y);
+	assert ((uint)x < (uint)vp->width);
+	assert ((uint)y < (uint)vp->height);
+
+	const Vehicle *v = CheckClickOnVehicle (vp, x, y);
 
 	PointerMode mode = _pointer_mode;
 	if (mode >= POINTER_VEHICLE) {
@@ -2279,13 +2280,8 @@ bool HandleViewportClicked(const ViewPort *vp, int x, int y)
 	if (CheckClickOnStation(vp, x, y)) return true;
 	if (CheckClickOnSign(vp, x, y)) return true;
 
-	bool result;
-	if ((uint)x >= (uint)vp->width || (uint)y >= (uint)vp->height) {
-		result = true;
-	} else {
-		Point pt = TranslateXYToTileCoord (vp, x, y);
-		result = ClickTile (TileVirtXY (pt.x, pt.y));
-	}
+	Point pt = TranslateXYToTileCoord (vp, x, y);
+	bool result = ClickTile (TileVirtXY (pt.x, pt.y));
 
 	if (v != NULL) {
 		DEBUG(misc, 2, "Vehicle %d (index %d) at %p", v->unitnumber, v->index, v);
