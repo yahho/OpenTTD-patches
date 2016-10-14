@@ -413,11 +413,6 @@ static Point TranslateXYToTileCoord(const ViewPort *vp, int x, int y)
 	int a, b;
 	int z;
 
-	if ((uint)x >= (uint)vp->width || (uint)y >= (uint)vp->height) {
-		Point pt = {-1, -1};
-		return pt;
-	}
-
 	x = (ScaleByZoom(x, vp->zoom) + vp->virtual_left) >> (2 + ZOOM_LVL_SHIFT);
 	y = (ScaleByZoom(y, vp->zoom) + vp->virtual_top) >> (1 + ZOOM_LVL_SHIFT);
 
@@ -462,7 +457,14 @@ Point GetTileBelowCursor()
 
 	if (w != NULL) {
 		ViewPort *vp = IsPtInWindowViewport (w, x, y);
-		if (vp != NULL) return TranslateXYToTileCoord (vp, x - vp->left, y - vp->top);
+		if (vp != NULL) {
+			x -= vp->left;
+			y -= vp->top;
+
+			if ((uint)x < (uint)vp->width && (uint)y < (uint)vp->height) {
+				return TranslateXYToTileCoord (vp, x, y);
+			}
+		}
 	}
 
 	Point pt;
@@ -494,12 +496,9 @@ void ZoomInOrOutToCursorWindow (bool in, Window *w)
 
 		/* Get the tile below the cursor and center on the zoomed-out center */
 		Point pt = TranslateXYToTileCoord (vp, x, y);
+		ScrollWindowTo (pt.x, pt.y, -1, w, true);
 
-		if (pt.x != -1) {
-			ScrollWindowTo (pt.x, pt.y, -1, w, true);
-
-			DoZoomInOutWindow (in, w);
-		}
+		DoZoomInOutWindow (in, w);
 	}
 }
 
@@ -2278,8 +2277,13 @@ bool HandleViewportClicked(const ViewPort *vp, int x, int y)
 	if (CheckClickOnStation(vp, x, y)) return true;
 	if (CheckClickOnSign(vp, x, y)) return true;
 
-	Point pt = TranslateXYToTileCoord (vp, x, y);
-	bool result = (pt.x == -1) || ClickTile (TileVirtXY (pt.x, pt.y));
+	bool result;
+	if ((uint)x >= (uint)vp->width || (uint)y >= (uint)vp->height) {
+		result = true;
+	} else {
+		Point pt = TranslateXYToTileCoord (vp, x, y);
+		result = ClickTile (TileVirtXY (pt.x, pt.y));
+	}
 
 	if (v != NULL) {
 		DEBUG(misc, 2, "Vehicle %d (index %d) at %p", v->unitnumber, v->index, v);
