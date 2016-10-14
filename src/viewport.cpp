@@ -2259,7 +2259,9 @@ bool HandleViewportClicked(const ViewPort *vp, int x, int y)
 	x -= vp->left;
 	y -= vp->top;
 
-	const Vehicle *v = CheckClickOnVehicle(vp, x, y);
+	const Vehicle *v = ((uint)x >= (uint)vp->width
+				|| (uint)y >= (uint)vp->height) ?
+			NULL : CheckClickOnVehicle (vp, x, y);
 
 	PointerMode mode = _pointer_mode;
 	if (mode >= POINTER_VEHICLE) {

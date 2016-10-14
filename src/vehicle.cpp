@@ -1262,8 +1262,6 @@ Vehicle *CheckClickOnVehicle(const ViewPort *vp, int x, int y)
 	Vehicle *found = NULL, *v;
 	uint dist, best_dist = UINT_MAX;
 
-	if ((uint)x >= (uint)vp->width || (uint)y >= (uint)vp->height) return NULL;
-
 	x = ScaleByZoom(x, vp->zoom) + vp->virtual_left;
 	y = ScaleByZoom(y, vp->zoom) + vp->virtual_top;
 
