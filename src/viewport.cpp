@@ -2164,9 +2164,6 @@ static bool CheckClickOnViewportSign(const ViewPort *vp, int x, int y, const Vie
 	int sign_half_width = ScaleByZoom((small ? sign->width_small : sign->width_normal) / 2, vp->zoom);
 	int sign_height = ScaleByZoom(VPSM_TOP + (small ? FONT_HEIGHT_SMALL : FONT_HEIGHT_NORMAL) + VPSM_BOTTOM, vp->zoom);
 
-	x = ScaleByZoom (x, vp->zoom) + vp->virtual_left;
-	y = ScaleByZoom (y, vp->zoom) + vp->virtual_top;
-
 	return y >= sign->top && y < sign->top + sign_height &&
 			x >= sign->center - sign_half_width && x < sign->center + sign_half_width;
 }
@@ -2279,12 +2276,13 @@ bool HandleViewportClicked(const ViewPort *vp, int x, int y)
 		return true;
 	}
 
+	x = ScaleByZoom (x, vp->zoom) + vp->virtual_left;
+	y = ScaleByZoom (y, vp->zoom) + vp->virtual_top;
+
 	if (CheckClickOnTown(vp, x, y)) return true;
 	if (CheckClickOnStation(vp, x, y)) return true;
 	if (CheckClickOnSign(vp, x, y)) return true;
 
-	x = ScaleByZoom (x, vp->zoom) + vp->virtual_left;
-	y = ScaleByZoom (y, vp->zoom) + vp->virtual_top;
 	Point pt = TranslateXYToTileCoord (x, y);
 	bool result = ClickTile (TileVirtXY (pt.x, pt.y));
 
