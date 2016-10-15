@@ -1252,18 +1252,14 @@ void ViewportAddVehicles (ViewportDrawer *vd, const DrawPixelInfo *dpi)
 
 /**
  * Find the vehicle close to the clicked coordinates.
- * @param vp Viewport clicked in.
  * @param x  X coordinate in the viewport.
  * @param y  Y coordinate in the viewport.
  * @return Closest vehicle, or \c NULL if none found.
  */
-Vehicle *CheckClickOnVehicle(const ViewPort *vp, int x, int y)
+Vehicle *CheckClickOnVehicle (int x, int y)
 {
 	Vehicle *found = NULL, *v;
 	uint dist, best_dist = UINT_MAX;
-
-	x = ScaleByZoom(x, vp->zoom) + vp->virtual_left;
-	y = ScaleByZoom(y, vp->zoom) + vp->virtual_top;
 
 	FOR_ALL_VEHICLES(v) {
 		if ((v->vehstatus & (VS_HIDDEN | VS_UNCLICKABLE)) == 0 &&

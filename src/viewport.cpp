@@ -2262,7 +2262,10 @@ bool HandleViewportClicked(const ViewPort *vp, int x, int y)
 	assert ((uint)x < (uint)vp->width);
 	assert ((uint)y < (uint)vp->height);
 
-	const Vehicle *v = CheckClickOnVehicle (vp, x, y);
+	x = ScaleByZoom (x, vp->zoom) + vp->virtual_left;
+	y = ScaleByZoom (y, vp->zoom) + vp->virtual_top;
+
+	const Vehicle *v = CheckClickOnVehicle (x, y);
 
 	PointerMode mode = _pointer_mode;
 	if (mode >= POINTER_VEHICLE) {
@@ -2275,9 +2278,6 @@ bool HandleViewportClicked(const ViewPort *vp, int x, int y)
 		PlaceObject();
 		return true;
 	}
-
-	x = ScaleByZoom (x, vp->zoom) + vp->virtual_left;
-	y = ScaleByZoom (y, vp->zoom) + vp->virtual_top;
 
 	if (CheckClickOnTown(vp, x, y)) return true;
 	if (CheckClickOnStation(vp, x, y)) return true;
