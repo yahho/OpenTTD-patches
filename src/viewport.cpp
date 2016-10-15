@@ -455,7 +455,7 @@ Point GetTileBelowCursor()
 	Window *w = FindWindowFromPt (x, y);
 
 	if (w != NULL) {
-		ViewPort *vp = IsPtInWindowViewport (w, x, y);
+		ViewPort *vp = w->viewport;
 		if (vp != NULL) {
 			x -= vp->left;
 			y -= vp->top;
