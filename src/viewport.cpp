@@ -401,20 +401,19 @@ ViewPort *IsPtInWindowViewport(const Window *w, int x, int y)
 }
 
 /**
- * Translate screen coordinate in a viewport to a tile coordinate
- * @param vp  Viewport that contains the (\a x, \a y) screen coordinate
- * @param x   Coordinate x into the viewport
- * @param y   Coordinate y into the viewport
+ * Translate coordinates in a viewport to a tile coordinate
+ * @param x Viewport x coordinate
+ * @param y Viewport y coordinate
  * @return Tile coordinate
  */
-static Point TranslateXYToTileCoord(const ViewPort *vp, int x, int y)
+static Point TranslateXYToTileCoord (int x, int y)
 {
 	Point pt;
 	int a, b;
 	int z;
 
-	x = (ScaleByZoom(x, vp->zoom) + vp->virtual_left) >> (2 + ZOOM_LVL_SHIFT);
-	y = (ScaleByZoom(y, vp->zoom) + vp->virtual_top) >> (1 + ZOOM_LVL_SHIFT);
+	x = x >> (2 + ZOOM_LVL_SHIFT);
+	y = y >> (1 + ZOOM_LVL_SHIFT);
 
 	a = y - x;
 	b = y + x;
@@ -462,7 +461,9 @@ Point GetTileBelowCursor()
 			y -= vp->top;
 
 			if ((uint)x < (uint)vp->width && (uint)y < (uint)vp->height) {
-				return TranslateXYToTileCoord (vp, x, y);
+				x = ScaleByZoom (x, vp->zoom) + vp->virtual_left;
+				y = ScaleByZoom (y, vp->zoom) + vp->virtual_top;
+				return TranslateXYToTileCoord (x, y);
 			}
 		}
 	}
@@ -495,7 +496,9 @@ void ZoomInOrOutToCursorWindow (bool in, Window *w)
 		}
 
 		/* Get the tile below the cursor and center on the zoomed-out center */
-		Point pt = TranslateXYToTileCoord (vp, x, y);
+		x = ScaleByZoom (x, vp->zoom) + vp->virtual_left;
+		y = ScaleByZoom (y, vp->zoom) + vp->virtual_top;
+		Point pt = TranslateXYToTileCoord (x, y);
 		ScrollWindowTo (pt.x, pt.y, -1, w, true);
 
 		DoZoomInOutWindow (in, w);
@@ -2280,7 +2283,9 @@ bool HandleViewportClicked(const ViewPort *vp, int x, int y)
 	if (CheckClickOnStation(vp, x, y)) return true;
 	if (CheckClickOnSign(vp, x, y)) return true;
 
-	Point pt = TranslateXYToTileCoord (vp, x, y);
+	x = ScaleByZoom (x, vp->zoom) + vp->virtual_left;
+	y = ScaleByZoom (y, vp->zoom) + vp->virtual_top;
+	Point pt = TranslateXYToTileCoord (x, y);
 	bool result = ClickTile (TileVirtXY (pt.x, pt.y));
 
 	if (v != NULL) {
