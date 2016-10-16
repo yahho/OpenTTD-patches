@@ -131,57 +131,54 @@ void ShowNetworkGiveMoneyWindow(CompanyID company)
 
 
 /**
- * Zooms a viewport in a window in or out.
+ * Zoom a viewport in or out.
+ * @param vp  Viewport to zoom.
  * @param in  Whether to zoom in, else out.
- * @param w   Window owning the viewport.
- * @return Returns \c true if zooming step could be done, \c false if further zooming is not possible.
- * @note No button handling or what so ever is done.
  */
-bool DoZoomInOutWindow (bool in, Window *w)
+void DoZoomInOutViewport (ViewportData *vp, bool in)
 {
-	ViewPort *vp;
-
-	assert(w != NULL);
-	vp = w->viewport;
-
 	if (in) {
-		if (vp->zoom <= _settings_client.gui.zoom_min) return false;
 		vp->zoom = (ZoomLevel)((int)vp->zoom - 1);
 		vp->virtual_width >>= 1;
 		vp->virtual_height >>= 1;
 
-		w->viewport->scrollpos_x += vp->virtual_width >> 1;
-		w->viewport->scrollpos_y += vp->virtual_height >> 1;
+		vp->scrollpos_x += vp->virtual_width >> 1;
+		vp->scrollpos_y += vp->virtual_height >> 1;
 	} else {
-		if (vp->zoom >= _settings_client.gui.zoom_max) return false;
 		vp->zoom = (ZoomLevel)((int)vp->zoom + 1);
 
-		w->viewport->scrollpos_x -= vp->virtual_width >> 1;
-		w->viewport->scrollpos_y -= vp->virtual_height >> 1;
+		vp->scrollpos_x -= vp->virtual_width >> 1;
+		vp->scrollpos_y -= vp->virtual_height >> 1;
 
 		vp->virtual_width <<= 1;
 		vp->virtual_height <<= 1;
 	}
 
-	w->viewport->dest_scrollpos_x = w->viewport->scrollpos_x;
-	w->viewport->dest_scrollpos_y = w->viewport->scrollpos_y;
+	vp->dest_scrollpos_x = vp->scrollpos_x;
+	vp->dest_scrollpos_y = vp->scrollpos_y;
 
-	w->viewport->follow_vehicle = INVALID_VEHICLE;
+	vp->follow_vehicle = INVALID_VEHICLE;
 
-	vp->virtual_left = w->viewport->scrollpos_x;
-	vp->virtual_top = w->viewport->scrollpos_y;
-
-	/* Update the windows that have zoom-buttons to perhaps disable their buttons */
-	w->InvalidateData();
-	return true;
+	vp->virtual_left = vp->scrollpos_x;
+	vp->virtual_top  = vp->scrollpos_y;
 }
 
 void ClampViewportZoom (Window *w)
 {
 	ViewPort *vp = w->viewport;
 
-	while (vp->zoom < _settings_client.gui.zoom_min) DoZoomInOutWindow (false, w);
-	while (vp->zoom > _settings_client.gui.zoom_max) DoZoomInOutWindow (true,  w);
+	if (vp->zoom < _settings_client.gui.zoom_min) {
+		do DoZoomInOutViewport (w->viewport, false);
+		while (vp->zoom < _settings_client.gui.zoom_min);
+	} else if (vp->zoom > _settings_client.gui.zoom_max) {
+		do DoZoomInOutViewport (w->viewport, true);
+		while (vp->zoom > _settings_client.gui.zoom_max);
+	} else {
+		return;
+	}
+
+	/* Update the windows that have zoom-buttons to perhaps disable their buttons */
+	w->InvalidateData();
 }
 
 static const struct NWidgetPart _nested_main_window_widgets[] = {
@@ -314,8 +311,10 @@ struct MainWindow : Window
 				Point pt = GetTileBelowCursor();
 				if (pt.x != -1) {
 					bool instant = (hotkey == GHK_CENTER_ZOOM && this->viewport->zoom != _settings_client.gui.zoom_min);
-					if (hotkey == GHK_CENTER_ZOOM) {
-						while (DoZoomInOutWindow (true, this)) {};
+					if (instant) {
+						do DoZoomInOutViewport (this->viewport, true);
+						while (this->viewport->zoom > _settings_client.gui.zoom_min);
+						this->InvalidateData();
 					}
 					ScrollMainWindowTo(pt.x, pt.y, -1, instant);
 				}

@@ -500,8 +500,8 @@ void ZoomInOrOutToCursorWindow (bool in, Window *w)
 		y = ScaleByZoom (y, vp->zoom) + vp->virtual_top;
 		Point pt = TranslateXYToTileCoord (x, y);
 		ScrollWindowTo (pt.x, pt.y, -1, w, true);
-
-		DoZoomInOutWindow (in, w);
+		DoZoomInOutViewport (w->viewport, in);
+		w->InvalidateData();
 	}
 }
 

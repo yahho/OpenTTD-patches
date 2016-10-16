@@ -92,8 +92,17 @@ public:
 	virtual void OnClick(Point pt, int widget, int click_count)
 	{
 		switch (widget) {
-			case WID_EV_ZOOM_IN:  DoZoomInOutWindow (true,  this); break;
-			case WID_EV_ZOOM_OUT: DoZoomInOutWindow (false, this); break;
+			case WID_EV_ZOOM_IN:
+				if (this->viewport->zoom <= _settings_client.gui.zoom_min) break;
+				DoZoomInOutViewport (this->viewport, true);
+				this->InvalidateData();
+				break;
+
+			case WID_EV_ZOOM_OUT:
+				if (this->viewport->zoom >= _settings_client.gui.zoom_max) break;
+				DoZoomInOutViewport (this->viewport, false);
+				this->InvalidateData();
+				break;
 
 			case WID_EV_MAIN_TO_VIEW: { // location button (move main view to same spot as this view) 'Paste Location'
 				Window *w = FindWindowById(WC_MAIN_WINDOW, 0);
