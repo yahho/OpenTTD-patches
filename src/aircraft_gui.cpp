@@ -84,8 +84,10 @@ void DrawAircraftImage (const Vehicle *v, BlitArea *dpi, int left, int right,
 {
 	bool rtl = _current_text_dir == TD_RTL;
 
-	SpriteID sprite = v->GetImage(rtl ? DIR_E : DIR_W, image_type);
-	const Sprite *real_sprite = GetSprite(sprite, ST_NORMAL);
+	VehicleSpriteSeq seq;
+	v->GetImage(rtl ? DIR_E : DIR_W, image_type, &seq);
+
+	const Sprite *real_sprite = GetSprite(seq.sprite, ST_NORMAL);
 
 	int width = UnScaleGUI(real_sprite->width);
 	int x_offs = UnScaleGUI(real_sprite->x_offs);
@@ -96,13 +98,14 @@ void DrawAircraftImage (const Vehicle *v, BlitArea *dpi, int left, int right,
 	int heli_offs = 0;
 
 	PaletteID pal = (v->vehstatus & VS_CRASHED) ? PALETTE_CRASH : GetVehiclePalette(v);
-	DrawSprite (dpi, sprite, pal, x, y + y_offs);
+	DrawSprite (dpi, seq.sprite, pal, x, y + y_offs);
 	if (helicopter) {
 		const Aircraft *a = Aircraft::From(v);
-		SpriteID rotor_sprite = GetCustomRotorSprite(a, true, image_type);
-		if (rotor_sprite == 0) rotor_sprite = SPR_ROTOR_STOPPED;
+		VehicleSpriteSeq rotor_seq;
+		GetCustomRotorSprite(a, true, image_type, &rotor_seq);
+		if (!rotor_seq.IsValid()) rotor_seq.Set(SPR_ROTOR_STOPPED);
 		heli_offs = ScaleGUITrad(5);
-		DrawSprite (dpi, rotor_sprite, PAL_NONE, x, y + y_offs - heli_offs);
+		DrawSprite (dpi, rotor_seq.sprite, PAL_NONE, x, y + y_offs - heli_offs);
 	}
 	if (v->index == selection) {
 		x += x_offs;

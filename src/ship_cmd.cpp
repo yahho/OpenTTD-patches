@@ -64,31 +64,33 @@ static inline TrackdirBits GetAvailShipTrackdirs(TileIndex tile, DiagDirection e
 	return GetTileWaterwayStatus(tile) & DiagdirReachesTrackdirs(enterdir);
 }
 
-static SpriteID GetShipIcon(EngineID engine, EngineImageType image_type)
+static void GetShipIcon(EngineID engine, EngineImageType image_type, VehicleSpriteSeq *result)
 {
 	const Engine *e = Engine::Get(engine);
 	uint8 spritenum = e->u.ship.image_index;
 
 	if (is_custom_sprite(spritenum)) {
-		SpriteID sprite = GetCustomVehicleIcon(engine, DIR_W, image_type);
-		if (sprite != 0) return sprite;
+		GetCustomVehicleIcon(engine, DIR_W, image_type, result);
+		if (result->IsValid()) return;
 
 		spritenum = e->original_image_index;
 	}
 
 	assert(IsValidImageIndex<VEH_SHIP>(spritenum));
-	return DIR_W + _ship_sprites[spritenum];
+	result->Set(DIR_W + _ship_sprites[spritenum]);
 }
 
 void DrawShipEngine (BlitArea *dpi, int left, int right, int preferred_x,
 	int y, EngineID engine, PaletteID pal, EngineImageType image_type)
 {
-	SpriteID sprite = GetShipIcon(engine, image_type);
-	const Sprite *real_sprite = GetSprite(sprite, ST_NORMAL);
+	VehicleSpriteSeq seq;
+	GetShipIcon(engine, image_type, &seq);
+
+	const Sprite *real_sprite = GetSprite(seq.sprite, ST_NORMAL);
 	preferred_x = Clamp(preferred_x,
 			left - UnScaleGUI(real_sprite->x_offs),
 			right - UnScaleGUI(real_sprite->width) - UnScaleGUI(real_sprite->x_offs));
-	DrawSprite (dpi, sprite, pal, preferred_x, y);
+	DrawSprite (dpi, seq.sprite, pal, preferred_x, y);
 }
 
 /**
@@ -102,7 +104,10 @@ void DrawShipEngine (BlitArea *dpi, int left, int right, int preferred_x,
  */
 void GetShipSpriteSize(EngineID engine, uint &width, uint &height, int &xoffs, int &yoffs, EngineImageType image_type)
 {
-	const Sprite *spr = GetSprite(GetShipIcon(engine, image_type), ST_NORMAL);
+	VehicleSpriteSeq seq;
+	GetShipIcon(engine, image_type, &seq);
+
+	const Sprite *spr = GetSprite(seq.sprite, ST_NORMAL);
 
 	width  = UnScaleGUI(spr->width);
 	height = UnScaleGUI(spr->height);
@@ -110,19 +115,19 @@ void GetShipSpriteSize(EngineID engine, uint &width, uint &height, int &xoffs, i
 	yoffs  = UnScaleGUI(spr->y_offs);
 }
 
-SpriteID Ship::GetImage(Direction direction, EngineImageType image_type) const
+void Ship::GetImage(Direction direction, EngineImageType image_type, VehicleSpriteSeq *result) const
 {
 	uint8 spritenum = this->spritenum;
 
 	if (is_custom_sprite(spritenum)) {
-		SpriteID sprite = GetCustomVehicleSprite(this, direction, image_type);
-		if (sprite != 0) return sprite;
+		GetCustomVehicleSprite(this, direction, image_type, result);
+		if (result->IsValid()) return;
 
 		spritenum = this->GetEngine()->original_image_index;
 	}
 
 	assert(IsValidImageIndex<VEH_SHIP>(spritenum));
-	return _ship_sprites[spritenum] + direction;
+	result->Set(_ship_sprites[spritenum] + direction);
 }
 
 static const Depot *FindClosestShipDepot (const Ship *v, bool nearby = false)
@@ -636,7 +641,7 @@ CommandCost CmdBuildShip(TileIndex tile, DoCommandFlag flags, const Engine *e, u
 		v->SetServiceInterval(Company::Get(_current_company)->settings.vehicle.servint_ships);
 		v->date_of_last_service = _date;
 		v->build_year = _cur_year;
-		v->cur_image = SPR_IMG_QUERY;
+		v->sprite_seq.Set(SPR_IMG_QUERY);
 		v->random_bits = VehicleRandomBits();
 
 		v->UpdateCache();

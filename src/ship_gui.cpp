@@ -35,15 +35,17 @@ void DrawShipImage (const Vehicle *v, BlitArea *dpi, int left, int right,
 {
 	bool rtl = _current_text_dir == TD_RTL;
 
-	SpriteID sprite = v->GetImage(rtl ? DIR_E : DIR_W, image_type);
-	const Sprite *real_sprite = GetSprite(sprite, ST_NORMAL);
+	VehicleSpriteSeq seq;
+	v->GetImage(rtl ? DIR_E : DIR_W, image_type, &seq);
+
+	const Sprite *real_sprite = GetSprite(seq.sprite, ST_NORMAL);
 
 	int width = UnScaleGUI(real_sprite->width);
 	int x_offs = UnScaleGUI(real_sprite->x_offs);
 	int x = rtl ? right - width - x_offs : left - x_offs;
 
 	y += ScaleGUITrad(10);
-	DrawSprite (dpi, sprite, GetVehiclePalette(v), x, y);
+	DrawSprite (dpi, seq.sprite, GetVehiclePalette(v), x, y);
 
 	if (v->index == selection) {
 		x += x_offs;

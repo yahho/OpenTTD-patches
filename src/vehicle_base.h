@@ -126,6 +126,45 @@ struct VehicleCache {
 	byte cached_vis_effect;  ///< Visual effect to show (see #VisualEffect)
 };
 
+/** Sprite sequence for a vehicle part. */
+struct VehicleSpriteSeq {
+	SpriteID sprite;
+
+	bool operator==(const VehicleSpriteSeq &other) const
+	{
+		return this->sprite == other.sprite;
+	}
+
+	bool operator!=(const VehicleSpriteSeq &other) const
+	{
+		return !this->operator==(other);
+	}
+
+	/**
+	 * Check whether the sequence contains any sprites.
+	 */
+	bool IsValid() const
+	{
+		return this->sprite != 0;
+	}
+
+	/**
+	 * Clear all information.
+	 */
+	void Clear()
+	{
+		this->sprite = 0;
+	}
+
+	/**
+	 * Assign a single sprite to the sequence.
+	 */
+	void Set(SpriteID sprite)
+	{
+		this->sprite = sprite;
+	}
+};
+
 /* Some declarations of functions, so we can make them friendly */
 struct SaveLoad;
 extern const SaveLoad *GetVehicleDescription(VehicleType vt);
@@ -207,7 +246,7 @@ public:
 	 * 0xff == reserved for another custom sprite
 	 */
 	byte spritenum;
-	SpriteID cur_image;                 ///< sprite number for this vehicle
+	VehicleSpriteSeq sprite_seq;        ///< Vehicle appearance.
 	byte x_extent;                      ///< x-extent of vehicle bounding box
 	byte y_extent;                      ///< y-extent of vehicle bounding box
 	byte z_extent;                      ///< z-extent of vehicle bounding box
@@ -357,9 +396,9 @@ public:
 	/**
 	 * Gets the sprite to show for the given direction
 	 * @param direction the direction the vehicle is facing
-	 * @return the sprite for the given vehicle in the given direction
+	 * @param [out] result Vehicle sprite sequence.
 	 */
-	virtual SpriteID GetImage(Direction direction, EngineImageType image_type) const { return 0; }
+	virtual void GetImage(Direction direction, EngineImageType image_type, VehicleSpriteSeq *result) const { result->Clear(); }
 
 	const GRFFile *GetGRF() const;
 	uint32 GetGRFID() const;
@@ -1142,9 +1181,12 @@ struct SpecializedVehicle : public VehicleAdapter <T, B> {
 		/* Explicitly choose method to call to prevent vtable dereference -
 		 * it gives ~3% runtime improvements in games with many vehicles */
 		if (update_delta) ((T *)this)->T::UpdateDeltaXY(this->direction);
-		SpriteID old_image = this->cur_image;
-		this->cur_image = ((T *)this)->T::GetImage(this->direction, EIT_ON_MAP);
-		if (force_update || this->cur_image != old_image) this->Vehicle::UpdateViewport(true);
+		VehicleSpriteSeq seq;
+		((T *)this)->T::GetImage(this->direction, EIT_ON_MAP, &seq);
+		if (force_update || this->sprite_seq != seq) {
+			this->sprite_seq = seq;
+			this->Vehicle::UpdateViewport(true);
+		}
 	}
 };
 

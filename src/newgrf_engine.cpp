@@ -1017,18 +1017,20 @@ VehicleResolverObject::VehicleResolverObject (EngineID engine_type, const Vehicl
 
 
 
-SpriteID GetCustomEngineSprite(EngineID engine, const Vehicle *v, Direction direction, EngineImageType image_type)
+void GetCustomEngineSprite(EngineID engine, const Vehicle *v, Direction direction, EngineImageType image_type, VehicleSpriteSeq *result)
 {
 	VehicleResolverObject object (engine, v, false, CBID_NO_CALLBACK, image_type);
 	const SpriteGroup *root = GetVehicleResolverRoot (engine, v, WO_CACHED);
 	const SpriteGroup *group = SpriteGroup::Resolve (root, object);
-	if (group == NULL || group->GetNumResults() == 0) return 0;
 
-	return group->GetResult() + (direction % group->GetNumResults());
+	result->Clear();
+	if (group == NULL || group->GetNumResults() == 0) return;
+
+	result->Set(group->GetResult() + (direction % group->GetNumResults()));
 }
 
 
-SpriteID GetRotorOverrideSprite(EngineID engine, const Aircraft *v, bool info_view, EngineImageType image_type)
+void GetRotorOverrideSprite(EngineID engine, const struct Aircraft *v, bool info_view, EngineImageType image_type, VehicleSpriteSeq *result)
 {
 	const Engine *e = Engine::Get(engine);
 
@@ -1040,11 +1042,11 @@ SpriteID GetRotorOverrideSprite(EngineID engine, const Aircraft *v, bool info_vi
 	const SpriteGroup *root = GetWagonOverrideSpriteSet (engine, CT_DEFAULT, engine);
 	const SpriteGroup *group = SpriteGroup::Resolve (root, object);
 
-	if (group == NULL || group->GetNumResults() == 0) return 0;
+	result->Clear();
+	if (group == NULL || group->GetNumResults() == 0) return;
 
-	if (v == NULL || info_view) return group->GetResult();
-
-	return group->GetResult() + (v->Next()->Next()->state % group->GetNumResults());
+	uint rotor_pos = v == NULL || info_view ? 0 : v->Next()->Next()->state;
+	result->Set(group->GetResult() + (rotor_pos % group->GetNumResults()));
 }
 
 
