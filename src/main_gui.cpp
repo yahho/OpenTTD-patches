@@ -176,6 +176,14 @@ bool DoZoomInOutWindow (bool in, Window *w)
 	return true;
 }
 
+void ClampViewportZoom (Window *w)
+{
+	ViewPort *vp = w->viewport;
+
+	while (vp->zoom < _settings_client.gui.zoom_min) DoZoomInOutWindow (false, w);
+	while (vp->zoom > _settings_client.gui.zoom_max) DoZoomInOutWindow (true,  w);
+}
+
 static const struct NWidgetPart _nested_main_window_widgets[] = {
 	NWidget(NWID_VIEWPORT, INVALID_COLOUR, WID_M_VIEWPORT), SetResize(1, 1),
 };
