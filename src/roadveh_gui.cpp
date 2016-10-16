@@ -150,7 +150,7 @@ void DrawRoadVehImage (const Vehicle *v, BlitArea *dpi, int left, int right,
 			PaletteID pal = (u->vehstatus & VS_CRASHED) ? PALETTE_CRASH : GetVehiclePalette(u);
 			VehicleSpriteSeq seq;
 			u->GetImage(dir, image_type, &seq);
-			DrawSprite (&tmp_dpi, seq.sprite, pal, px + (rtl ? -offset.x : offset.x), ScaleGUITrad(6) + offset.y);
+			seq.Draw (&tmp_dpi, px + (rtl ? -offset.x : offset.x), ScaleGUITrad(6) + offset.y, pal, (u->vehstatus & VS_CRASHED) != 0);
 		}
 
 		px += rtl ? -width : width;

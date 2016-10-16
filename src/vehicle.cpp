@@ -66,6 +66,33 @@ uint16 _returned_mail_refit_capacity; ///< Stores the mail capacity after a refi
 template<> Vehicle::Pool Vehicle::PoolItem::pool ("Vehicle");
 INSTANTIATE_POOL_METHODS(Vehicle)
 
+
+/**
+ * Determine shared bounds of all sprites.
+ * @param [out] bounds Shared bounds.
+ */
+void VehicleSpriteSeq::GetBounds(Rect *bounds) const
+{
+	const Sprite *spr = GetSprite(this->sprite, ST_NORMAL);
+	bounds->left = spr->x_offs;
+	bounds->top  = spr->y_offs;
+	bounds->right  = spr->width  + spr->x_offs - 1;
+	bounds->bottom = spr->height + spr->y_offs - 1;
+}
+
+/**
+ * Draw the sprite sequence.
+ * @param dpi The area to draw on.
+ * @param x X position
+ * @param y Y position
+ * @param default_pal Vehicle palette
+ * @param force_pal Whether to ignore individual palettes, and draw everything with \a default_pal.
+ */
+void VehicleSpriteSeq::Draw (BlitArea *dpi, int x, int y, PaletteID default_pal, bool force_pal) const
+{
+	DrawSprite (dpi, this->sprite, default_pal, x, y);
+}
+
 /**
  * Function to tell if a vehicle needs to be autorenewed
  * @param *c The vehicle owner
@@ -1620,19 +1647,19 @@ void Vehicle::UpdatePosition()
  */
 void Vehicle::UpdateViewport(bool dirty)
 {
-	const Sprite *spr = GetSprite(this->sprite_seq.sprite, ST_NORMAL);
+	Rect new_coord;
+	this->sprite_seq.GetBounds(&new_coord);
 
 	Point pt = RemapCoords(this->x_pos + this->x_offs, this->y_pos + this->y_offs, this->z_pos);
-	pt.x += spr->x_offs;
-	pt.y += spr->y_offs;
+	new_coord.left   += pt.x;
+	new_coord.top    += pt.y;
+	new_coord.right  += pt.x + 2 * ZOOM_LVL_BASE;
+	new_coord.bottom += pt.y + 2 * ZOOM_LVL_BASE;
 
-	vehicle_viewport_hash.update (this, pt.x, pt.y);
+	vehicle_viewport_hash.update (this, new_coord.left, new_coord.top);
 
 	Rect old_coord = this->coord;
-	this->coord.left   = pt.x;
-	this->coord.top    = pt.y;
-	this->coord.right  = pt.x + spr->width + 2 * ZOOM_LVL_BASE;
-	this->coord.bottom = pt.y + spr->height + 2 * ZOOM_LVL_BASE;
+	this->coord = new_coord;
 
 	if (dirty) {
 		if (old_coord.left == INVALID_COORD) {

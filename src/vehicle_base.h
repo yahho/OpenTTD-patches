@@ -163,6 +163,9 @@ struct VehicleSpriteSeq {
 	{
 		this->sprite = sprite;
 	}
+
+	void GetBounds(Rect *bounds) const;
+	void Draw (BlitArea *dpi, int x, int y, PaletteID default_pal, bool force_pal) const;
 };
 
 /* Some declarations of functions, so we can make them friendly */

@@ -86,11 +86,13 @@ void DrawShipEngine (BlitArea *dpi, int left, int right, int preferred_x,
 	VehicleSpriteSeq seq;
 	GetShipIcon(engine, image_type, &seq);
 
-	const Sprite *real_sprite = GetSprite(seq.sprite, ST_NORMAL);
+	Rect rect;
+	seq.GetBounds(&rect);
 	preferred_x = Clamp(preferred_x,
-			left - UnScaleGUI(real_sprite->x_offs),
-			right - UnScaleGUI(real_sprite->width) - UnScaleGUI(real_sprite->x_offs));
-	DrawSprite (dpi, seq.sprite, pal, preferred_x, y);
+			left - UnScaleGUI(rect.left),
+			right - UnScaleGUI(rect.right));
+
+	seq.Draw (dpi, preferred_x, y, pal, pal == PALETTE_CRASH);
 }
 
 /**
@@ -107,12 +109,13 @@ void GetShipSpriteSize(EngineID engine, uint &width, uint &height, int &xoffs, i
 	VehicleSpriteSeq seq;
 	GetShipIcon(engine, image_type, &seq);
 
-	const Sprite *spr = GetSprite(seq.sprite, ST_NORMAL);
+	Rect rect;
+	seq.GetBounds(&rect);
 
-	width  = UnScaleGUI(spr->width);
-	height = UnScaleGUI(spr->height);
-	xoffs  = UnScaleGUI(spr->x_offs);
-	yoffs  = UnScaleGUI(spr->y_offs);
+	width  = UnScaleGUI(rect.right - rect.left + 1);
+	height = UnScaleGUI(rect.bottom - rect.top + 1);
+	xoffs  = UnScaleGUI(rect.left);
+	yoffs  = UnScaleGUI(rect.top);
 }
 
 void Ship::GetImage(Direction direction, EngineImageType image_type, VehicleSpriteSeq *result) const
