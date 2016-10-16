@@ -20,6 +20,22 @@
 #include "industrytype.h"
 
 
+/**
+ * Increment the sprite unless it has reached the end of the animation.
+ * @param v Vehicle to increment sprite of.
+ * @param last Last sprite of animation.
+ * @return true if the sprite was incremented, false if the end was reached.
+ */
+static bool IncrementSprite(EffectVehicle *v, SpriteID last)
+{
+	if (v->cur_image != last) {
+		v->cur_image++;
+		return true;
+	} else {
+		return false;
+	}
+}
+
 static void ChimneySmokeInit(EffectVehicle *v)
 {
 	uint32 r = Random();
@@ -38,9 +54,7 @@ static bool ChimneySmokeTick(EffectVehicle *v)
 			return false;
 		}
 
-		if (v->cur_image != SPR_CHIMNEY_SMOKE_7) {
-			v->cur_image++;
-		} else {
+		if (!IncrementSprite(v, SPR_CHIMNEY_SMOKE_7)) {
 			v->cur_image = SPR_CHIMNEY_SMOKE_0;
 		}
 		v->progress = 7;
@@ -68,9 +82,7 @@ static bool SteamSmokeTick(EffectVehicle *v)
 	}
 
 	if ((v->progress & 0xF) == 4) {
-		if (v->cur_image != SPR_STEAM_SMOKE_4) {
-			v->cur_image++;
-		} else {
+		if (!IncrementSprite(v, SPR_STEAM_SMOKE_4)) {
 			delete v;
 			return false;
 		}
@@ -96,13 +108,11 @@ static bool DieselSmokeTick(EffectVehicle *v)
 		v->z_pos++;
 		v->UpdatePositionAndViewport();
 	} else if ((v->progress & 7) == 1) {
-		if (v->cur_image != SPR_DIESEL_SMOKE_5) {
-			v->cur_image++;
-			v->UpdatePositionAndViewport();
-		} else {
+		if (!IncrementSprite(v, SPR_DIESEL_SMOKE_5)) {
 			delete v;
 			return false;
 		}
+		v->UpdatePositionAndViewport();
 	}
 
 	return true;
@@ -120,13 +130,12 @@ static bool ElectricSparkTick(EffectVehicle *v)
 		v->progress++;
 	} else {
 		v->progress = 0;
-		if (v->cur_image != SPR_ELECTRIC_SPARK_5) {
-			v->cur_image++;
-			v->UpdatePositionAndViewport();
-		} else {
+
+		if (!IncrementSprite(v, SPR_ELECTRIC_SPARK_5)) {
 			delete v;
 			return false;
 		}
+		v->UpdatePositionAndViewport();
 	}
 
 	return true;
@@ -150,9 +159,7 @@ static bool SmokeTick(EffectVehicle *v)
 	}
 
 	if ((v->progress & 0xF) == 4) {
-		if (v->cur_image != SPR_SMOKE_4) {
-			v->cur_image++;
-		} else {
+		if (!IncrementSprite(v, SPR_SMOKE_4)) {
 			delete v;
 			return false;
 		}
@@ -174,13 +181,11 @@ static bool ExplosionLargeTick(EffectVehicle *v)
 {
 	v->progress++;
 	if ((v->progress & 3) == 0) {
-		if (v->cur_image != SPR_EXPLOSION_LARGE_F) {
-			v->cur_image++;
-			v->UpdatePositionAndViewport();
-		} else {
+		if (!IncrementSprite(v, SPR_EXPLOSION_LARGE_F)) {
 			delete v;
 			return false;
 		}
+		v->UpdatePositionAndViewport();
 	}
 
 	return true;
@@ -196,9 +201,7 @@ static bool BreakdownSmokeTick(EffectVehicle *v)
 {
 	v->progress++;
 	if ((v->progress & 7) == 0) {
-		if (v->cur_image != SPR_BREAKDOWN_SMOKE_3) {
-			v->cur_image++;
-		} else {
+		if (!IncrementSprite(v, SPR_BREAKDOWN_SMOKE_3)) {
 			v->cur_image = SPR_BREAKDOWN_SMOKE_0;
 		}
 		v->UpdatePositionAndViewport();
@@ -223,13 +226,11 @@ static bool ExplosionSmallTick(EffectVehicle *v)
 {
 	v->progress++;
 	if ((v->progress & 3) == 0) {
-		if (v->cur_image != SPR_EXPLOSION_SMALL_B) {
-			v->cur_image++;
-			v->UpdatePositionAndViewport();
-		} else {
+		if (!IncrementSprite(v, SPR_EXPLOSION_SMALL_B)) {
 			delete v;
 			return false;
 		}
+		v->UpdatePositionAndViewport();
 	}
 
 	return true;
