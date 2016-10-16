@@ -1942,7 +1942,9 @@ void ConstrainAllViewportsZoom()
 	Window *w;
 	FOR_ALL_WINDOWS_FROM_FRONT(w) {
 		if (w->viewport == NULL) continue;
-		ClampViewportZoom (w);
+		ClampViewportZoom (w->viewport);
+		/* Update the windows that have zoom-buttons to perhaps disable their buttons */
+		w->InvalidateData();
 	}
 }
 

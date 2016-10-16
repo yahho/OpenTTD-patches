@@ -163,22 +163,15 @@ void DoZoomInOutViewport (ViewportData *vp, bool in)
 	vp->virtual_top  = vp->scrollpos_y;
 }
 
-void ClampViewportZoom (Window *w)
+void ClampViewportZoom (ViewportData *vp)
 {
-	ViewPort *vp = w->viewport;
-
 	if (vp->zoom < _settings_client.gui.zoom_min) {
-		do DoZoomInOutViewport (w->viewport, false);
+		do DoZoomInOutViewport (vp, false);
 		while (vp->zoom < _settings_client.gui.zoom_min);
 	} else if (vp->zoom > _settings_client.gui.zoom_max) {
-		do DoZoomInOutViewport (w->viewport, true);
+		do DoZoomInOutViewport (vp, true);
 		while (vp->zoom > _settings_client.gui.zoom_max);
-	} else {
-		return;
 	}
-
-	/* Update the windows that have zoom-buttons to perhaps disable their buttons */
-	w->InvalidateData();
 }
 
 static const struct NWidgetPart _nested_main_window_widgets[] = {
