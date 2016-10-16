@@ -3098,8 +3098,9 @@ void SetMouseCursorVehicle(const Vehicle *v, EngineImageType image_type)
 	_cursor.sprite_count = 0;
 	int total_width = 0;
 	for (;;) {
+		PaletteID pal = (v->vehstatus & VS_CRASHED) ? PALETTE_CRASH : GetVehiclePalette(v);
 		_cursor.sprite_seq[_cursor.sprite_count].sprite = v->GetImage(rtl ? DIR_E : DIR_W, image_type);
-		_cursor.sprite_seq[_cursor.sprite_count].pal = GetVehiclePalette(v);
+		_cursor.sprite_seq[_cursor.sprite_count].pal = pal;
 		_cursor.sprite_seq[_cursor.sprite_count].pos = rtl ? -total_width : total_width;
 
 		total_width += GetSingleVehicleWidth(v, image_type);
