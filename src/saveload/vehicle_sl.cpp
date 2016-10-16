@@ -503,7 +503,7 @@ void AfterLoadVehicles(const SavegameTypeVersion *stv)
 
 					/* The plane's shadow will have the same image as the plane, but no colour */
 					Vehicle *shadow = v->Next();
-					shadow->sprite_seq.sprite = v->sprite_seq.sprite;
+					shadow->sprite_seq.CopyWithoutPalette(v->sprite_seq);
 
 					/* In the case of a helicopter we will update the rotor sprites */
 					if (v->subtype == AIR_HELICOPTER) {
@@ -855,7 +855,7 @@ const SaveLoad *GetVehicleDescription(VehicleType vt)
 		 SLE_VAR(Vehicle, z_pos,     SLE_FILE_U8  | SLE_VAR_I32,  , ,   0, 163),
 		 SLE_VAR(Vehicle, z_pos,     SLE_INT32,                  0, , 164,    ),
 
-		 SLE_VAR(Vehicle, sprite_seq.sprite, SLE_FILE_U16 | SLE_VAR_U32),
+		 SLE_VAR(Vehicle, sprite_seq.seq[0].sprite, SLE_FILE_U16 | SLE_VAR_U32),
 		SLE_NULL(5,                                               , ,   0,  57),
 		 SLE_VAR(Vehicle, progress,  SLE_UINT8),
 		 SLE_VAR(Vehicle, vehstatus, SLE_UINT8),
@@ -895,7 +895,7 @@ const SaveLoad *GetVehicleDescription(VehicleType vt)
 		 SLE_VAR(Vehicle, current_order.dest, SLE_FILE_U8 | SLE_VAR_U16,   , ,   0,   4),
 		 SLE_VAR(Vehicle, current_order.dest, SLE_UINT16,                 0, ,   5,    ),
 
-		 SLE_VAR(Vehicle, sprite_seq.sprite,  SLE_FILE_U16 | SLE_VAR_U32),
+		 SLE_VAR(Vehicle, sprite_seq.seq[0].sprite, SLE_FILE_U16 | SLE_VAR_U32),
 		 SLE_VAR(Vehicle, age,                SLE_FILE_U16 | SLE_VAR_I32,  , ,   0,  30),
 		 SLE_VAR(Vehicle, age,                SLE_INT32,                  0, ,  31,    ),
 		 SLE_VAR(Vehicle, tick_counter,       SLE_UINT8),

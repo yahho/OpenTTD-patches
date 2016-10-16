@@ -3103,13 +3103,17 @@ void SetMouseCursorVehicle(const Vehicle *v, EngineImageType image_type)
 		PaletteID pal = (v->vehstatus & VS_CRASHED) ? PALETTE_CRASH : GetVehiclePalette(v);
 		VehicleSpriteSeq seq;
 		v->GetImage(rtl ? DIR_E : DIR_W, image_type, &seq);
-		_cursor.sprite_seq[_cursor.sprite_count].sprite = seq.sprite;
-		_cursor.sprite_seq[_cursor.sprite_count].pal = pal;
-		_cursor.sprite_seq[_cursor.sprite_count].pos = rtl ? -total_width : total_width;
+		if (_cursor.sprite_count + seq.count > lengthof(_cursor.sprite_seq)) break;
+
+		for (uint i = 0; i < seq.count; ++i) {
+			PaletteID pal2 = (v->vehstatus & VS_CRASHED) || !seq.seq[i].pal ? pal : seq.seq[i].pal;
+			_cursor.sprite_seq[_cursor.sprite_count].sprite = seq.seq[i].sprite;
+			_cursor.sprite_seq[_cursor.sprite_count].pal = pal2;
+			_cursor.sprite_seq[_cursor.sprite_count].pos = rtl ? -total_width : total_width;
+			_cursor.sprite_count++;
+		}
 
 		total_width += GetSingleVehicleWidth(v, image_type);
-		_cursor.sprite_count++;
-		if (_cursor.sprite_count == lengthof(_cursor.sprite_seq)) break;
 		if (total_width >= 2 * (int)VEHICLEINFO_FULL_VEHICLE_WIDTH) break;
 
 		v = v->Next();

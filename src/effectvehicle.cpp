@@ -28,8 +28,8 @@
  */
 static bool IncrementSprite(EffectVehicle *v, SpriteID last)
 {
-	if (v->sprite_seq.sprite != last) {
-		v->sprite_seq.sprite++;
+	if (v->sprite_seq.seq[0].sprite != last) {
+		v->sprite_seq.seq[0].sprite++;
 		return true;
 	} else {
 		return false;
@@ -474,9 +474,8 @@ static bool BubbleTick(EffectVehicle *v)
 	if ((v->progress & 3) != 0) return true;
 
 	if (v->spritenum == 0) {
-		SpriteID &cur_image = v->sprite_seq.sprite;
-		cur_image++;
-		if (cur_image < SPR_BUBBLE_GENERATE_3) {
+		v->sprite_seq.seq[0].sprite++;
+		if (v->sprite_seq.seq[0].sprite < SPR_BUBBLE_GENERATE_3) {
 			v->UpdatePositionAndViewport();
 			return true;
 		}
