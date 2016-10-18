@@ -38,16 +38,10 @@ public:
 	}
 
 	/** Blitting surface. */
-	struct Surface : Blitter_32bppAnimBase::Surface, FlexArrayBase {
+	struct Surface : Blitter_32bppAnimBase::Surface, FlexArray<uint16> {
 		uint16 anim_buf[]; ///< In this buffer we keep track of the 8bpp indexes so we can do palette animation
 
 	private:
-		void *operator new (size_t size, uint width, uint height)
-		{
-			size_t extra = width * height * sizeof(uint16);
-			return ::operator new (size + extra);
-		}
-
 		Surface (void *ptr, uint width, uint height, uint pitch)
 			: Blitter_32bppAnimBase::Surface (ptr, width, height, pitch, this->anim_buf)
 		{
