@@ -790,15 +790,12 @@ void DrawSpriteViewport (DrawPixelInfo *dpi, SpriteID img, PaletteID pal,
  * @param pal  Palette to use.
  * @param x    Left coordinate of image in pixels
  * @param y    Top coordinate of image in pixels
- * @param sub  If available, draw only specified part of the sprite
- * @param zoom Zoom level of sprite
  */
-void DrawSprite (BlitArea *dpi, SpriteID img, PaletteID pal,
-	int x, int y, const SubSprite *sub, ZoomLevel zoom)
+void DrawSprite (BlitArea *dpi, SpriteID img, PaletteID pal, int x, int y)
 {
 	BlitterMode bm = GetBlitterMode (img, pal);
 	SpriteID real_sprite = GB(img, 0, SPRITE_WIDTH);
-	GfxMainBlitter (dpi, GetSprite (real_sprite, ST_NORMAL), x, y, bm, sub, real_sprite, zoom);
+	GfxMainBlitter (dpi, GetSprite (real_sprite, ST_NORMAL), x, y, bm, NULL, real_sprite, ZOOM_LVL_GUI);
 }
 
 /**

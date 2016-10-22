@@ -895,7 +895,7 @@ struct SpriteAlignerWindow : Window {
 				BlitArea new_dpi;
 				if (!InitBlitArea (dpi, &new_dpi, r.left + WD_BEVEL_LEFT, r.top + WD_BEVEL_TOP, width, height)) break;
 
-				DrawSprite (&new_dpi, this->current_sprite, PAL_NONE, x, y, NULL, ZOOM_LVL_GUI);
+				DrawSprite (&new_dpi, this->current_sprite, PAL_NONE, x, y);
 
 				break;
 			}
