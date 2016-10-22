@@ -807,10 +807,9 @@ void DrawSprite (BlitArea *dpi, SpriteID img, PaletteID pal, int x, int y)
  * @param mode   The settings for the blitter to pass.
  * @param sub    Whether to only draw a sub set of the sprite.
  * @param zoom   The zoom level at which to draw the sprites.
- * @tparam ZOOM_BASE The factor required to get the sub sprite information into the right size.
  * @tparam SCALED_XY Whether the X and Y are scaled or unscaled.
  */
-template <int ZOOM_BASE, bool SCALED_XY>
+template <bool SCALED_XY>
 static void GfxBlitter (BlitArea *dpi, const Sprite * const sprite,
 	int x, int y, BlitterMode mode, const SubSprite * const sub,
 	SpriteID sprite_id, ZoomLevel zoom)
@@ -834,11 +833,13 @@ static void GfxBlitter (BlitArea *dpi, const Sprite * const sprite,
 		bp.width = UnScaleByZoom(sprite->width, zoom);
 		bp.height = UnScaleByZoom(sprite->height, zoom);
 	} else {
+		assert (!SCALED_XY);
+
 		/* Amount of pixels to clip from the source sprite */
-		int clip_left   = max(0,                   -sprite->x_offs +  sub->left        * ZOOM_BASE );
-		int clip_top    = max(0,                   -sprite->y_offs +  sub->top         * ZOOM_BASE );
-		int clip_right  = max(0, sprite->width  - (-sprite->x_offs + (sub->right + 1)  * ZOOM_BASE));
-		int clip_bottom = max(0, sprite->height - (-sprite->y_offs + (sub->bottom + 1) * ZOOM_BASE));
+		int clip_left   = max (0,                   -sprite->x_offs +  sub->left        * ZOOM_LVL_BASE );
+		int clip_top    = max (0,                   -sprite->y_offs +  sub->top         * ZOOM_LVL_BASE );
+		int clip_right  = max (0, sprite->width  - (-sprite->x_offs + (sub->right + 1)  * ZOOM_LVL_BASE));
+		int clip_bottom = max (0, sprite->height - (-sprite->y_offs + (sub->bottom + 1) * ZOOM_LVL_BASE));
 
 		if (clip_left + clip_right >= sprite->width) return;
 		if (clip_top + clip_bottom >= sprite->height) return;
@@ -928,12 +929,12 @@ static void GfxBlitter (BlitArea *dpi, const Sprite * const sprite,
 
 static void GfxMainBlitterViewport (DrawPixelInfo *dpi, const Sprite *sprite, int x, int y, BlitterMode mode, const SubSprite *sub, SpriteID sprite_id)
 {
-	GfxBlitter <ZOOM_LVL_BASE, false> (dpi, sprite, x, y, mode, sub, sprite_id, dpi->zoom);
+	GfxBlitter <false> (dpi, sprite, x, y, mode, sub, sprite_id, dpi->zoom);
 }
 
 static void GfxMainBlitter (BlitArea *dpi, const Sprite *sprite, int x, int y, BlitterMode mode, SpriteID sprite_id, ZoomLevel zoom)
 {
-	GfxBlitter <1, true> (dpi, sprite, x, y, mode, NULL, sprite_id, zoom);
+	GfxBlitter <true> (dpi, sprite, x, y, mode, NULL, sprite_id, zoom);
 }
 
 void DoPaletteAnimations();
