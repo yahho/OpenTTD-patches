@@ -945,8 +945,8 @@ void GfxInitPalettes()
 	DoPaletteAnimations();
 }
 
-#define EXTR(p, q) (((uint16)(palette_animation_counter * (p)) * (q)) >> 16)
-#define EXTR2(p, q) (((uint16)(~palette_animation_counter * (p)) * (q)) >> 16)
+#define EXTR(p, q) (((uint16)(tc * (p)) * (q)) >> 16)
+#define EXTR2(p, q) (((uint16)(~tc * (p)) * (q)) >> 16)
 
 void DoPaletteAnimations()
 {
@@ -956,17 +956,13 @@ void DoPaletteAnimations()
 
 	Blitter *blitter = Blitter::get();
 	bool noanim = (blitter != NULL) && (blitter->UsePaletteAnimation() == Blitter::PALETTE_ANIMATION_NONE);
+	const uint tc = noanim ? 0 : palette_animation_counter;
 
 	const Colour *s;
 	const ExtraPaletteValues *ev = &_extra_palette_values;
 	Colour old_val[PALETTE_ANIM_SIZE];
-	const uint old_tc = palette_animation_counter;
 	uint i;
 	uint j;
-
-	if (noanim) {
-		palette_animation_counter = 0;
-	}
 
 	Colour *palette_pos = &_cur_palette.palette[PALETTE_ANIM_START];  // Points to where animations are taking place on the palette
 	/* Makes a copy of the current animation palette in old_val,
@@ -993,7 +989,7 @@ void DoPaletteAnimations()
 
 	/* Radio tower blinking */
 	{
-		byte i = (palette_animation_counter >> 1) & 0x7F;
+		byte i = (tc >> 1) & 0x7F;
 		byte v;
 
 		if (i < 0x3f) {
@@ -1049,14 +1045,11 @@ void DoPaletteAnimations()
 		if (j >= EPV_CYCLES_GLITTER_WATER) j -= EPV_CYCLES_GLITTER_WATER;
 	}
 
-	if (noanim) {
-		palette_animation_counter = old_tc;
-	} else {
-		if (memcmp(old_val, &_cur_palette.palette[PALETTE_ANIM_START], sizeof(old_val)) != 0 && _cur_palette.count_dirty == 0) {
-			/* Did we changed anything on the palette? Seems so.  Mark it as dirty */
-			_cur_palette.first_dirty = PALETTE_ANIM_START;
-			_cur_palette.count_dirty = PALETTE_ANIM_SIZE;
-		}
+	if (!noanim && (memcmp (old_val, &_cur_palette.palette[PALETTE_ANIM_START], sizeof(old_val)) != 0)
+			&& (_cur_palette.count_dirty == 0)) {
+		/* Did we changed anything on the palette? Seems so.  Mark it as dirty */
+		_cur_palette.first_dirty = PALETTE_ANIM_START;
+		_cur_palette.count_dirty = PALETTE_ANIM_SIZE;
 	}
 }
 
