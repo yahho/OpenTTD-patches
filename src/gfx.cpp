@@ -955,6 +955,8 @@ void DoPaletteAnimations()
 	palette_animation_counter += 8;
 
 	Blitter *blitter = Blitter::get();
+	bool noanim = (blitter != NULL) && (blitter->UsePaletteAnimation() == Blitter::PALETTE_ANIMATION_NONE);
+
 	const Colour *s;
 	const ExtraPaletteValues *ev = &_extra_palette_values;
 	Colour old_val[PALETTE_ANIM_SIZE];
@@ -962,7 +964,7 @@ void DoPaletteAnimations()
 	uint i;
 	uint j;
 
-	if (blitter != NULL && blitter->UsePaletteAnimation() == Blitter::PALETTE_ANIMATION_NONE) {
+	if (noanim) {
 		palette_animation_counter = 0;
 	}
 
@@ -1047,7 +1049,7 @@ void DoPaletteAnimations()
 		if (j >= EPV_CYCLES_GLITTER_WATER) j -= EPV_CYCLES_GLITTER_WATER;
 	}
 
-	if (blitter != NULL && blitter->UsePaletteAnimation() == Blitter::PALETTE_ANIMATION_NONE) {
+	if (noanim) {
 		palette_animation_counter = old_tc;
 	} else {
 		if (memcmp(old_val, &_cur_palette.palette[PALETTE_ANIM_START], sizeof(old_val)) != 0 && _cur_palette.count_dirty == 0) {
