@@ -952,7 +952,7 @@ void DoPaletteAnimations()
 {
 	/* Animation counter for the palette animation. */
 	static uint palette_animation_counter = 0;
-	palette_animation_counter += 8;
+	palette_animation_counter++;
 
 	Blitter *blitter = Blitter::get();
 	bool noanim = (blitter != NULL) && (blitter->UsePaletteAnimation() == Blitter::PALETTE_ANIMATION_NONE);
@@ -971,7 +971,7 @@ void DoPaletteAnimations()
 
 	/* Fizzy Drink bubbles animation */
 	s = ev->fizzy_drink;
-	j = EXTR2(512, EPV_CYCLES_FIZZY_DRINK);
+	j = EXTR2(4096, EPV_CYCLES_FIZZY_DRINK);
 	for (i = 0; i != EPV_CYCLES_FIZZY_DRINK; i++) {
 		*palette_pos++ = s[j];
 		j++;
@@ -980,7 +980,7 @@ void DoPaletteAnimations()
 
 	/* Oil refinery fire animation */
 	s = ev->oil_refinery;
-	j = EXTR2(512, EPV_CYCLES_OIL_REFINERY);
+	j = EXTR2(4096, EPV_CYCLES_OIL_REFINERY);
 	for (i = 0; i != EPV_CYCLES_OIL_REFINERY; i++) {
 		*palette_pos++ = s[j];
 		j++;
@@ -989,7 +989,7 @@ void DoPaletteAnimations()
 
 	/* Radio tower blinking */
 	{
-		byte i = (tc >> 1) & 0x7F;
+		byte i = (4 * tc) & 0x7F;
 		byte v;
 
 		if (i < 0x3f) {
@@ -1020,7 +1020,7 @@ void DoPaletteAnimations()
 
 	/* Handle lighthouse and stadium animation */
 	s = ev->lighthouse;
-	j = EXTR(256, EPV_CYCLES_LIGHTHOUSE);
+	j = EXTR(2048, EPV_CYCLES_LIGHTHOUSE);
 	for (i = 0; i != EPV_CYCLES_LIGHTHOUSE; i++) {
 		*palette_pos++ = s[j];
 		j++;
@@ -1029,7 +1029,7 @@ void DoPaletteAnimations()
 
 	/* Dark blue water */
 	s = (_settings_game.game_creation.landscape == LT_TOYLAND) ? ev->dark_water_toyland : ev->dark_water;
-	j = EXTR(320, EPV_CYCLES_DARK_WATER);
+	j = EXTR(2560, EPV_CYCLES_DARK_WATER);
 	for (i = 0; i != EPV_CYCLES_DARK_WATER; i++) {
 		*palette_pos++ = s[j];
 		j++;
@@ -1038,7 +1038,7 @@ void DoPaletteAnimations()
 
 	/* Glittery water */
 	s = (_settings_game.game_creation.landscape == LT_TOYLAND) ? ev->glitter_water_toyland : ev->glitter_water;
-	j = EXTR(128, EPV_CYCLES_GLITTER_WATER);
+	j = EXTR(1024, EPV_CYCLES_GLITTER_WATER);
 	for (i = 0; i != EPV_CYCLES_GLITTER_WATER / 3; i++) {
 		*palette_pos++ = s[j];
 		j += 3;
