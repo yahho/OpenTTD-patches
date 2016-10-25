@@ -951,7 +951,7 @@ void GfxInitPalettes()
 void DoPaletteAnimations()
 {
 	/* Animation counter for the palette animation. */
-	static int palette_animation_counter = 0;
+	static uint palette_animation_counter = 0;
 	palette_animation_counter += 8;
 
 	Blitter *blitter = Blitter::get();
