@@ -989,30 +989,15 @@ void DoPaletteAnimations()
 
 	/* Radio tower blinking */
 	{
-		byte i = (tc & 0x1F);
-		byte v;
+		byte v = (((tc & 0x0F) - 0x3) > 0xA) ? 128 : 20;
+		bool b = (tc & 0x10) != 0;
 
-		if (i < 0x10) {
-			v = 255;
-		} else if (i < 0x13 || i > 0x1D) {
-			v = 128;
-		} else {
-			v = 20;
-		}
-		palette_pos->r = v;
+		palette_pos->r = b ? v : 255;
 		palette_pos->g = 0;
 		palette_pos->b = 0;
 		palette_pos++;
 
-		i ^= 0x10;
-		if (i < 0x10) {
-			v = 255;
-		} else if (i < 0x13 || i > 0x1D) {
-			v = 128;
-		} else {
-			v = 20;
-		}
-		palette_pos->r = v;
+		palette_pos->r = b ? 255 : v;
 		palette_pos->g = 0;
 		palette_pos->b = 0;
 		palette_pos++;
