@@ -945,8 +945,16 @@ void GfxInitPalettes()
 	DoPaletteAnimations();
 }
 
-#define EXTR(p, q) (((uint16)(tc * (p)) * (q)) >> 16)
-#define EXTR2(p, q) (((uint16)(~tc * (p)) * (q)) >> 16)
+/**
+ * Compute the cycle in an animation.
+ * @param x Global animation counter.
+ * @param n Number of cycles in the animation.
+ * @param s Animation speed factor (higher is slower).
+ */
+static inline uint get_animation_cycle (uint x, uint n, uint s)
+{
+	return ((x & ((1 << s) - 1)) * n) >> s;
+}
 
 void DoPaletteAnimations()
 {
@@ -971,7 +979,7 @@ void DoPaletteAnimations()
 
 	/* Fizzy Drink bubbles animation */
 	s = ev->fizzy_drink;
-	j = EXTR2(4096, EPV_CYCLES_FIZZY_DRINK);
+	j = get_animation_cycle (~tc, EPV_CYCLES_FIZZY_DRINK, 4);
 	for (i = 0; i != EPV_CYCLES_FIZZY_DRINK; i++) {
 		*palette_pos++ = s[j];
 		j++;
@@ -980,7 +988,7 @@ void DoPaletteAnimations()
 
 	/* Oil refinery fire animation */
 	s = ev->oil_refinery;
-	j = EXTR2(4096, EPV_CYCLES_OIL_REFINERY);
+	j = get_animation_cycle (~tc, EPV_CYCLES_OIL_REFINERY, 4);
 	for (i = 0; i != EPV_CYCLES_OIL_REFINERY; i++) {
 		*palette_pos++ = s[j];
 		j++;
@@ -1005,7 +1013,7 @@ void DoPaletteAnimations()
 
 	/* Handle lighthouse and stadium animation */
 	s = ev->lighthouse;
-	j = EXTR(2048, EPV_CYCLES_LIGHTHOUSE);
+	j = get_animation_cycle (tc, EPV_CYCLES_LIGHTHOUSE, 5);
 	for (i = 0; i != EPV_CYCLES_LIGHTHOUSE; i++) {
 		*palette_pos++ = s[j];
 		j++;
@@ -1014,7 +1022,7 @@ void DoPaletteAnimations()
 
 	/* Dark blue water */
 	s = (_settings_game.game_creation.landscape == LT_TOYLAND) ? ev->dark_water_toyland : ev->dark_water;
-	j = EXTR(2560, EPV_CYCLES_DARK_WATER);
+	j = get_animation_cycle (tc * 10, EPV_CYCLES_DARK_WATER, 8);
 	for (i = 0; i != EPV_CYCLES_DARK_WATER; i++) {
 		*palette_pos++ = s[j];
 		j++;
@@ -1023,7 +1031,7 @@ void DoPaletteAnimations()
 
 	/* Glittery water */
 	s = (_settings_game.game_creation.landscape == LT_TOYLAND) ? ev->glitter_water_toyland : ev->glitter_water;
-	j = EXTR(1024, EPV_CYCLES_GLITTER_WATER);
+	j = get_animation_cycle (tc, EPV_CYCLES_GLITTER_WATER, 6);
 	for (i = 0; i != EPV_CYCLES_GLITTER_WATER / 3; i++) {
 		*palette_pos++ = s[j];
 		j += 3;
