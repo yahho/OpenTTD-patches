@@ -937,14 +937,6 @@ static void GfxMainBlitter (BlitArea *dpi, const Sprite *sprite, int x, int y, B
 	GfxBlitter <true> (dpi, sprite, x, y, mode, NULL, sprite_id, zoom);
 }
 
-void DoPaletteAnimations();
-
-void GfxInitPalettes()
-{
-	memcpy(&_cur_palette, &_palette, sizeof(_cur_palette));
-	DoPaletteAnimations();
-}
-
 /**
  * Compute the cycle in an animation.
  * @param x Global animation counter.
@@ -1044,6 +1036,12 @@ void DoPaletteAnimations()
 		_cur_palette.first_dirty = PALETTE_ANIM_START;
 		_cur_palette.count_dirty = PALETTE_ANIM_SIZE;
 	}
+}
+
+void GfxInitPalettes()
+{
+	memcpy(&_cur_palette, &_palette, sizeof(_cur_palette));
+	DoPaletteAnimations();
 }
 
 /**
