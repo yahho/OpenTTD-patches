@@ -2499,8 +2499,8 @@ static const StringID _vehicle_string_startstop_table[4] = {
 };
 
 /**
- * This is the Callback method after the cloning attempt of a vehicle
- * @param result the result of the cloning command
+ * This is the Callback method after attempting to start/stop a vehicle
+ * @param result the result of the start/stop command
  * @param tile unused
  * @param p1 vehicle ID
  * @param p2 unused
