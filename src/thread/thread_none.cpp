@@ -12,7 +12,7 @@
 #include "../stdafx.h"
 #include "thread.h"
 
-/* static */ bool ThreadObject::New(OTTDThreadFunc proc, void *param, ThreadObject **thread)
+/* static */ bool ThreadObject::New(OTTDThreadFunc proc, void *param, ThreadObject **thread, const char *name)
 {
 	if (thread != NULL) *thread = NULL;
 	return false;

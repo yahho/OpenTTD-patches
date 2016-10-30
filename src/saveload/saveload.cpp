@@ -463,7 +463,7 @@ static bool DoSave(SaveFilter *writer, bool threaded)
 		data->writer = writer;
 		data->dumper = dumper;
 
-		if (ThreadObject::New(&SaveFileToDiskThread, data, &_save_thread)) {
+		if (ThreadObject::New(&SaveFileToDiskThread, data, &_save_thread, "ottd:savegame")) {
 			return true;
 		}
 
