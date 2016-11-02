@@ -505,6 +505,40 @@ static const uint32 _vegetation_clear_bits[] = {
 };
 
 /**
+ * Return the colour of a (non-void) clear tile in the smallmap in mode
+ * "Vegetation".
+ * @param tile The clear tile whose colour to get.
+ * @return The colour of the tile in the small map in mode "Vegetation".
+ */
+static inline uint32 GetSmallMapVegetationClearPixels (TileIndex tile)
+{
+	switch (GetTileSubtype (tile)) {
+		default: NOT_REACHED();
+
+		case TT_GROUND_FIELDS:
+			return MKCOLOUR_XXXX(PC_FIELDS);
+
+		case TT_GROUND_CLEAR:
+			if (IsSnowTile (tile)) {
+				return MKCOLOUR_XXXX(PC_LIGHT_BLUE);
+			} else if (IsClearGround (tile, GROUND_GRASS) && GetClearDensity (tile) < 3) {
+				return MKCOLOUR_XXXX(PC_BARE_LAND);
+			} else {
+				return _vegetation_clear_bits[GetClearGround(tile)];
+			}
+
+		case TT_GROUND_TREES:
+			if (IsSnowTile (tile)) {
+				return MKCOLOUR_XYYX(PC_LIGHT_BLUE, PC_TREES);
+			} else if (GetClearGround (tile) == GROUND_DESERT) {
+				return MKCOLOUR_XYYX(PC_ORANGE, PC_TREES);
+			} else {
+				return MKCOLOUR_XYYX(PC_GRASS_LAND, PC_TREES);
+			}
+	}
+}
+
+/**
  * Return the colour a tile would be displayed with in the smallmap in mode "Vegetation".
  *
  * @param tile The tile of which we would like to get the colour.
@@ -515,30 +549,7 @@ static inline uint32 GetSmallMapVegetationPixels(TileIndex tile, SmallmapTileTyp
 {
 	switch (t) {
 		case SMTT_CLEAR:
-			switch (GetTileSubtype(tile)) {
-				default: NOT_REACHED();
-
-				case TT_GROUND_FIELDS:
-					return MKCOLOUR_XXXX(PC_FIELDS);
-
-				case TT_GROUND_CLEAR:
-					if (IsSnowTile(tile)) {
-						return MKCOLOUR_XXXX(PC_LIGHT_BLUE);
-					} else if (IsClearGround(tile, GROUND_GRASS) && GetClearDensity(tile) < 3) {
-						return MKCOLOUR_XXXX(PC_BARE_LAND);
-					} else {
-						return _vegetation_clear_bits[GetClearGround(tile)];
-					}
-
-				case TT_GROUND_TREES:
-					if (IsSnowTile(tile)) {
-						return MKCOLOUR_XYYX(PC_LIGHT_BLUE, PC_TREES);
-					} else if (GetClearGround(tile) == GROUND_DESERT) {
-						return MKCOLOUR_XYYX(PC_ORANGE, PC_TREES);
-					} else {
-						return MKCOLOUR_XYYX(PC_GRASS_LAND, PC_TREES);
-					}
-			}
+			return GetSmallMapVegetationClearPixels (tile);
 
 		case SMTT_INDUSTRY:
 			return IsTileForestIndustry(tile) ? MKCOLOUR_XXXX(PC_GREEN) : MKCOLOUR_XXXX(PC_DARK_RED);
