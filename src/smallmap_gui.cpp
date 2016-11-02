@@ -442,6 +442,23 @@ static inline uint32 GetSmallMapIndustriesPixels(TileIndex tile, SmallmapTileTyp
 }
 
 /**
+ * Return the colour of a station tile in the small map in mode "Routes".
+ * @param tile The station tile whose colour to get.
+ * @return The colour of the tile in the small map in mode "Routes".
+ */
+static inline uint32 GetSmallMapRoutesStationPixels (TileIndex tile)
+{
+	switch (GetStationType (tile)) {
+		case STATION_RAIL:    return MKCOLOUR_XXXX(PC_VERY_DARK_BROWN);
+		case STATION_AIRPORT: return MKCOLOUR_XXXX(PC_RED);
+		case STATION_TRUCK:   return MKCOLOUR_XXXX(PC_ORANGE);
+		case STATION_BUS:     return MKCOLOUR_XXXX(PC_YELLOW);
+		case STATION_DOCK:    return MKCOLOUR_XXXX(PC_LIGHT_BLUE);
+		default:              return MKCOLOUR_FFFF;
+	}
+}
+
+/**
  * Return the colour a tile would be displayed with in the small map in mode "Routes".
  *
  * @param tile The tile of which we would like to get the colour.
@@ -451,14 +468,7 @@ static inline uint32 GetSmallMapIndustriesPixels(TileIndex tile, SmallmapTileTyp
 static inline uint32 GetSmallMapRoutesPixels(TileIndex tile, SmallmapTileType t)
 {
 	if (t == SMTT_STATION) {
-		switch (GetStationType(tile)) {
-			case STATION_RAIL:    return MKCOLOUR_XXXX(PC_VERY_DARK_BROWN);
-			case STATION_AIRPORT: return MKCOLOUR_XXXX(PC_RED);
-			case STATION_TRUCK:   return MKCOLOUR_XXXX(PC_ORANGE);
-			case STATION_BUS:     return MKCOLOUR_XXXX(PC_YELLOW);
-			case STATION_DOCK:    return MKCOLOUR_XXXX(PC_LIGHT_BLUE);
-			default:              return MKCOLOUR_FFFF;
-		}
+		return GetSmallMapRoutesStationPixels (tile);
 	} else if (t == SMTT_RAILWAY) {
 		AndOr andor = {
 			MKCOLOUR_0XX0(GetRailTypeInfo(GetRailType(tile))->map_colour),
