@@ -496,14 +496,6 @@ static inline uint32 GetSmallMapLinkStatsPixels(TileIndex tile, SmallmapTileType
 	return _smallmap_show_heightmap ? GetSmallMapContoursPixels(tile, t) : GetSmallMapRoutesPixels(tile, t);
 }
 
-static const uint32 _vegetation_clear_bits[] = {
-	MKCOLOUR_XXXX(PC_GRASS_LAND), ///< full grass
-	MKCOLOUR_XXXX(PC_GRASS_LAND), ///< shore
-	MKCOLOUR_XXXX(PC_ROUGH_LAND), ///< rough land
-	MKCOLOUR_XXXX(PC_GREY),       ///< rocks
-	MKCOLOUR_XXXX(PC_ORANGE),     ///< desert
-};
-
 /**
  * Return the colour of a (non-void) clear tile in the smallmap in mode
  * "Vegetation".
@@ -512,6 +504,14 @@ static const uint32 _vegetation_clear_bits[] = {
  */
 static inline uint32 GetSmallMapVegetationClearPixels (TileIndex tile)
 {
+	static const uint32 vegetation_clear_bits[] = {
+		MKCOLOUR_XXXX(PC_GRASS_LAND), ///< full grass
+		MKCOLOUR_XXXX(PC_GRASS_LAND), ///< shore
+		MKCOLOUR_XXXX(PC_ROUGH_LAND), ///< rough land
+		MKCOLOUR_XXXX(PC_GREY),       ///< rocks
+		MKCOLOUR_XXXX(PC_ORANGE),     ///< desert
+	};
+
 	switch (GetTileSubtype (tile)) {
 		default: NOT_REACHED();
 
@@ -524,7 +524,7 @@ static inline uint32 GetSmallMapVegetationClearPixels (TileIndex tile)
 			} else if (IsClearGround (tile, GROUND_GRASS) && GetClearDensity (tile) < 3) {
 				return MKCOLOUR_XXXX(PC_BARE_LAND);
 			} else {
-				return _vegetation_clear_bits[GetClearGround(tile)];
+				return vegetation_clear_bits[GetClearGround(tile)];
 			}
 
 		case TT_GROUND_TREES:
