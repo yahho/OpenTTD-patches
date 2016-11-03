@@ -568,27 +568,29 @@ static inline uint32 GetSmallMapVegetationPixels(TileIndex tile, SmallmapTileTyp
  */
 static inline uint32 GetSmallMapOwnerPixels(TileIndex tile, SmallmapTileType t)
 {
-	Owner o;
-
 	switch (t) {
 		case SMTT_INDUSTRY: return MKCOLOUR_XXXX(PC_DARK_GREY);
 		case SMTT_HOUSE:    return MKCOLOUR_XXXX(PC_DARK_RED);
-		default:            o = GetTileOwner(tile); break;
-		/* FIXME: For roads there are multiple owners.
-		 * GetTileOwner returns the rail owner (level crossing) resp. the owner of ROADTYPE_ROAD (normal road),
-		 * even if there are no ROADTYPE_ROAD bits on the tile.
-		 */
+		default:            break;
 	}
 
-	if ((o < MAX_COMPANIES && !_legend_land_owners[_company_to_list_pos[o]].show_on_map) || o == OWNER_NONE || o == OWNER_WATER) {
-		if (t == SMTT_WATER) return MKCOLOUR_XXXX(PC_WATER);
-		const SmallMapColourScheme *cs = &_heightmap_schemes[_settings_client.gui.smallmap_land_colour];
-		return _smallmap_show_heightmap ? cs->height_colours[TileHeight(tile)] : cs->default_colour;
-	} else if (o == OWNER_TOWN) {
-		return MKCOLOUR_XXXX(PC_DARK_RED);
+	/* FIXME: For roads there are multiple owners. GetTileOwner returns
+	 * the rail owner (level crossing) resp. the owner of ROADTYPE_ROAD
+	 * (normal road), even if there are no ROADTYPE_ROAD bits on the tile.
+	 */
+	Owner o = GetTileOwner (tile);
+	if (o == OWNER_TOWN) return MKCOLOUR_XXXX(PC_DARK_RED);
+
+	if (o < MAX_COMPANIES) {
+		uint pos = _company_to_list_pos[o];
+		if (_legend_land_owners[pos].show_on_map) {
+			return MKCOLOUR_XXXX(_legend_land_owners[pos].colour);
+		}
 	}
 
-	return MKCOLOUR_XXXX(_legend_land_owners[_company_to_list_pos[o]].colour);
+	if (t == SMTT_WATER) return MKCOLOUR_XXXX(PC_WATER);
+	const SmallMapColourScheme *cs = &_heightmap_schemes[_settings_client.gui.smallmap_land_colour];
+	return _smallmap_show_heightmap ? cs->height_colours[TileHeight(tile)] : cs->default_colour;
 }
 
 /** Vehicle colours in #SMT_VEHICLES mode. Indexed by #VehicleTypeByte. */
