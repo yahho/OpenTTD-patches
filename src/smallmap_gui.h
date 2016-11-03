@@ -43,7 +43,7 @@ struct LegendAndColour {
 
 /** Class managing the smallmap window. */
 class SmallMapWindow : public Window {
-protected:
+public:
 	/** Types of legends in the #WID_SM_LEGEND widget. */
 	enum SmallMapType {
 		SMT_CONTOUR,
@@ -55,6 +55,7 @@ protected:
 		SMT_OWNER,
 	};
 
+protected:
 	/** Available kinds of zoomlevel changes. */
 	enum ZoomLevelChange {
 		ZLC_INITIALIZE, ///< Initialize zoom level.

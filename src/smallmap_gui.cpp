@@ -593,6 +593,36 @@ static inline uint32 GetSmallMapOwnerPixels(TileIndex tile, SmallmapTileType t)
 	return _smallmap_show_heightmap ? cs->height_colours[TileHeight(tile)] : cs->default_colour;
 }
 
+/** Decide which colour to use for a given map type and tile. */
+static uint32 GetSmallmapColour (SmallMapWindow::SmallMapType map_type,
+	TileIndex tile, SmallmapTileType et)
+{
+	switch (map_type) {
+		case SmallMapWindow::SMT_CONTOUR:
+			return GetSmallMapContoursPixels(tile, et);
+
+		case SmallMapWindow::SMT_VEHICLES:
+			return GetSmallMapVehiclesPixels(tile, et);
+
+		case SmallMapWindow::SMT_INDUSTRY:
+			return GetSmallMapIndustriesPixels(tile, et);
+
+		case SmallMapWindow::SMT_LINKSTATS:
+			return GetSmallMapLinkStatsPixels(tile, et);
+
+		case SmallMapWindow::SMT_ROUTES:
+			return GetSmallMapRoutesPixels(tile, et);
+
+		case SmallMapWindow::SMT_VEGETATION:
+			return GetSmallMapVegetationPixels(tile, et);
+
+		case SmallMapWindow::SMT_OWNER:
+			return GetSmallMapOwnerPixels(tile, et);
+
+		default: NOT_REACHED();
+	}
+}
+
 /** Vehicle colours in #SMT_VEHICLES mode. Indexed by #VehicleTypeByte. */
 static const byte _vehicle_type_colours[6] = {
 	PC_RED, PC_YELLOW, PC_LIGHT_BLUE, PC_WHITE, PC_BLACK, PC_RED
@@ -776,30 +806,7 @@ inline uint32 SmallMapWindow::GetTileColours(const TileArea &ta) const
 		}
 	}
 
-	switch (this->map_type) {
-		case SMT_CONTOUR:
-			return GetSmallMapContoursPixels(tile, et);
-
-		case SMT_VEHICLES:
-			return GetSmallMapVehiclesPixels(tile, et);
-
-		case SMT_INDUSTRY:
-			return GetSmallMapIndustriesPixels(tile, et);
-
-		case SMT_LINKSTATS:
-			return GetSmallMapLinkStatsPixels(tile, et);
-
-		case SMT_ROUTES:
-			return GetSmallMapRoutesPixels(tile, et);
-
-		case SMT_VEGETATION:
-			return GetSmallMapVegetationPixels(tile, et);
-
-		case SMT_OWNER:
-			return GetSmallMapOwnerPixels(tile, et);
-
-		default: NOT_REACHED();
-	}
+	return GetSmallmapColour (this->map_type, tile, et);
 }
 
 /**
