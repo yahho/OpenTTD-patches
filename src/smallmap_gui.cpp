@@ -404,44 +404,6 @@ static const AndOr _smallmap_vehicles_andor[] = {
 
 
 /**
- * Return the colour a tile would be displayed with in the small map in mode "Contour".
- * @param tile The tile of which we would like to get the colour.
- * @param t    Effective tile type of the tile (see #GetTileColours).
- * @return The colour of tile in the small map in mode "Contour"
- */
-static inline uint32 GetSmallMapContoursPixels(TileIndex tile, SmallmapTileType t)
-{
-	const SmallMapColourScheme *cs = &_heightmap_schemes[_settings_client.gui.smallmap_land_colour];
-	return ApplyMask(cs->height_colours[TileHeight(tile)], &_smallmap_contours_andor[t]);
-}
-
-/**
- * Return the colour a tile would be displayed with in the small map in mode "Vehicles".
- *
- * @param tile The tile of which we would like to get the colour.
- * @param t    Effective tile type of the tile (see #GetTileColours).
- * @return The colour of tile in the small map in mode "Vehicles"
- */
-static inline uint32 GetSmallMapVehiclesPixels(TileIndex tile, SmallmapTileType t)
-{
-	const SmallMapColourScheme *cs = &_heightmap_schemes[_settings_client.gui.smallmap_land_colour];
-	return ApplyMask(cs->default_colour, &_smallmap_vehicles_andor[t]);
-}
-
-/**
- * Return the colour a tile would be displayed with in the small map in mode "Industries".
- *
- * @param tile The tile of which we would like to get the colour.
- * @param t    Effective tile type of the tile (see #GetTileColours).
- * @return The colour of tile in the small map in mode "Industries"
- */
-static inline uint32 GetSmallMapIndustriesPixels(TileIndex tile, SmallmapTileType t)
-{
-	const SmallMapColourScheme *cs = &_heightmap_schemes[_settings_client.gui.smallmap_land_colour];
-	return ApplyMask(_smallmap_show_heightmap ? cs->height_colours[TileHeight(tile)] : cs->default_colour, &_smallmap_vehicles_andor[t]);
-}
-
-/**
  * Return the colour of a station tile in the small map in mode "Routes".
  * @param tile The station tile whose colour to get.
  * @return The colour of the tile in the small map in mode "Routes".
@@ -456,44 +418,6 @@ static inline uint32 GetSmallMapRoutesStationPixels (TileIndex tile)
 		case STATION_DOCK:    return MKCOLOUR_XXXX(PC_LIGHT_BLUE);
 		default:              return MKCOLOUR_FFFF;
 	}
-}
-
-/**
- * Return the colour a tile would be displayed with in the small map in mode "Routes".
- *
- * @param tile The tile of which we would like to get the colour.
- * @param t    Effective tile type of the tile (see #GetTileColours).
- * @return The colour of tile  in the small map in mode "Routes"
- */
-static inline uint32 GetSmallMapRoutesPixels(TileIndex tile, SmallmapTileType t)
-{
-	if (t == SMTT_STATION) {
-		return GetSmallMapRoutesStationPixels (tile);
-	} else if (t == SMTT_RAILWAY) {
-		AndOr andor = {
-			MKCOLOUR_0XX0(GetRailTypeInfo(GetRailType(tile))->map_colour),
-			_smallmap_contours_andor[t].mand
-		};
-
-		const SmallMapColourScheme *cs = &_heightmap_schemes[_settings_client.gui.smallmap_land_colour];
-		return ApplyMask(cs->default_colour, &andor);
-	}
-
-	/* Ground colour */
-	const SmallMapColourScheme *cs = &_heightmap_schemes[_settings_client.gui.smallmap_land_colour];
-	return ApplyMask(cs->default_colour, &_smallmap_contours_andor[t]);
-}
-
-/**
- * Return the colour a tile would be displayed with in the small map in mode "link stats".
- *
- * @param tile The tile of which we would like to get the colour.
- * @param t    Effective tile type of the tile (see #GetTileColours).
- * @return The colour of tile in the small map in mode "link stats"
- */
-static inline uint32 GetSmallMapLinkStatsPixels(TileIndex tile, SmallmapTileType t)
-{
-	return _smallmap_show_heightmap ? GetSmallMapContoursPixels(tile, t) : GetSmallMapRoutesPixels(tile, t);
 }
 
 /**
@@ -538,86 +462,87 @@ static inline uint32 GetSmallMapVegetationClearPixels (TileIndex tile)
 	}
 }
 
-/**
- * Return the colour a tile would be displayed with in the smallmap in mode "Vegetation".
- *
- * @param tile The tile of which we would like to get the colour.
- * @param t    Effective tile type of the tile (see #GetTileColours).
- * @return The colour of tile  in the smallmap in mode "Vegetation"
- */
-static inline uint32 GetSmallMapVegetationPixels(TileIndex tile, SmallmapTileType t)
-{
-	switch (t) {
-		case SMTT_CLEAR:
-			return GetSmallMapVegetationClearPixels (tile);
-
-		case SMTT_INDUSTRY:
-			return IsTileForestIndustry(tile) ? MKCOLOUR_XXXX(PC_GREEN) : MKCOLOUR_XXXX(PC_DARK_RED);
-
-		default:
-			return ApplyMask(MKCOLOUR_XXXX(PC_GRASS_LAND), &_smallmap_vehicles_andor[t]);
-	}
-}
-
-/**
- * Return the colour a tile would be displayed with in the small map in mode "Owner".
- *
- * @param tile The tile of which we would like to get the colour.
- * @param t    Effective tile type of the tile (see #GetTileColours).
- * @return The colour of tile in the small map in mode "Owner"
- */
-static inline uint32 GetSmallMapOwnerPixels(TileIndex tile, SmallmapTileType t)
-{
-	switch (t) {
-		case SMTT_INDUSTRY: return MKCOLOUR_XXXX(PC_DARK_GREY);
-		case SMTT_HOUSE:    return MKCOLOUR_XXXX(PC_DARK_RED);
-		default:            break;
-	}
-
-	/* FIXME: For roads there are multiple owners. GetTileOwner returns
-	 * the rail owner (level crossing) resp. the owner of ROADTYPE_ROAD
-	 * (normal road), even if there are no ROADTYPE_ROAD bits on the tile.
-	 */
-	Owner o = GetTileOwner (tile);
-	if (o == OWNER_TOWN) return MKCOLOUR_XXXX(PC_DARK_RED);
-
-	if (o < MAX_COMPANIES) {
-		uint pos = _company_to_list_pos[o];
-		if (_legend_land_owners[pos].show_on_map) {
-			return MKCOLOUR_XXXX(_legend_land_owners[pos].colour);
-		}
-	}
-
-	if (t == SMTT_WATER) return MKCOLOUR_XXXX(PC_WATER);
-	const SmallMapColourScheme *cs = &_heightmap_schemes[_settings_client.gui.smallmap_land_colour];
-	return _smallmap_show_heightmap ? cs->height_colours[TileHeight(tile)] : cs->default_colour;
-}
-
 /** Decide which colour to use for a given map type and tile. */
 static uint32 GetSmallmapColour (SmallMapWindow::SmallMapType map_type,
 	TileIndex tile, SmallmapTileType et)
 {
 	switch (map_type) {
-		case SmallMapWindow::SMT_CONTOUR:
-			return GetSmallMapContoursPixels(tile, et);
+		case SmallMapWindow::SMT_CONTOUR: {
+			const SmallMapColourScheme *cs = &_heightmap_schemes[_settings_client.gui.smallmap_land_colour];
+			return ApplyMask (cs->height_colours[TileHeight(tile)], &_smallmap_contours_andor[et]);
+		}
 
-		case SmallMapWindow::SMT_VEHICLES:
-			return GetSmallMapVehiclesPixels(tile, et);
+		case SmallMapWindow::SMT_VEHICLES: {
+			const SmallMapColourScheme *cs = &_heightmap_schemes[_settings_client.gui.smallmap_land_colour];
+			return ApplyMask (cs->default_colour, &_smallmap_vehicles_andor[et]);
+		}
 
-		case SmallMapWindow::SMT_INDUSTRY:
-			return GetSmallMapIndustriesPixels(tile, et);
+		case SmallMapWindow::SMT_INDUSTRY: {
+			const SmallMapColourScheme *cs = &_heightmap_schemes[_settings_client.gui.smallmap_land_colour];
+			return ApplyMask (_smallmap_show_heightmap ? cs->height_colours[TileHeight(tile)] : cs->default_colour, &_smallmap_vehicles_andor[et]);
+		}
 
 		case SmallMapWindow::SMT_LINKSTATS:
-			return GetSmallMapLinkStatsPixels(tile, et);
+			if (_smallmap_show_heightmap) {
+				const SmallMapColourScheme *cs = &_heightmap_schemes[_settings_client.gui.smallmap_land_colour];
+				return ApplyMask (cs->height_colours[TileHeight(tile)], &_smallmap_contours_andor[et]);
+			}
+			/* fall through */
+		case SmallMapWindow::SMT_ROUTES: {
+			if (et == SMTT_STATION) {
+				return GetSmallMapRoutesStationPixels (tile);
+			} else if (et == SMTT_RAILWAY) {
+				AndOr andor = {
+					MKCOLOUR_0XX0(GetRailTypeInfo(GetRailType(tile))->map_colour),
+					_smallmap_contours_andor[et].mand
+				};
 
-		case SmallMapWindow::SMT_ROUTES:
-			return GetSmallMapRoutesPixels(tile, et);
+				const SmallMapColourScheme *cs = &_heightmap_schemes[_settings_client.gui.smallmap_land_colour];
+				return ApplyMask (cs->default_colour, &andor);
+			}
+
+			/* Ground colour */
+			const SmallMapColourScheme *cs = &_heightmap_schemes[_settings_client.gui.smallmap_land_colour];
+			return ApplyMask (cs->default_colour, &_smallmap_contours_andor[et]);
+		}
 
 		case SmallMapWindow::SMT_VEGETATION:
-			return GetSmallMapVegetationPixels(tile, et);
+			switch (et) {
+				case SMTT_CLEAR:
+					return GetSmallMapVegetationClearPixels (tile);
 
-		case SmallMapWindow::SMT_OWNER:
-			return GetSmallMapOwnerPixels(tile, et);
+				case SMTT_INDUSTRY:
+					return IsTileForestIndustry (tile) ? MKCOLOUR_XXXX(PC_GREEN) : MKCOLOUR_XXXX(PC_DARK_RED);
+
+				default:
+					return ApplyMask (MKCOLOUR_XXXX(PC_GRASS_LAND), &_smallmap_vehicles_andor[et]);
+			}
+
+		case SmallMapWindow::SMT_OWNER: {
+			switch (et) {
+				case SMTT_INDUSTRY: return MKCOLOUR_XXXX(PC_DARK_GREY);
+				case SMTT_HOUSE:    return MKCOLOUR_XXXX(PC_DARK_RED);
+				default:            break;
+			}
+
+			/* FIXME: For roads there are multiple owners. GetTileOwner returns
+			 * the rail owner (level crossing) resp. the owner of ROADTYPE_ROAD
+			 * (normal road), even if there are no ROADTYPE_ROAD bits on the tile.
+			 */
+			Owner o = GetTileOwner (tile);
+			if (o == OWNER_TOWN) return MKCOLOUR_XXXX(PC_DARK_RED);
+
+			if (o < MAX_COMPANIES) {
+				uint pos = _company_to_list_pos[o];
+				if (_legend_land_owners[pos].show_on_map) {
+					return MKCOLOUR_XXXX(_legend_land_owners[pos].colour);
+				}
+			}
+
+			if (et == SMTT_WATER) return MKCOLOUR_XXXX(PC_WATER);
+			const SmallMapColourScheme *cs = &_heightmap_schemes[_settings_client.gui.smallmap_land_colour];
+			return _smallmap_show_heightmap ? cs->height_colours[TileHeight(tile)] : cs->default_colour;
+		}
 
 		default: NOT_REACHED();
 	}
