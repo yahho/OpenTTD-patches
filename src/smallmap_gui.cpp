@@ -352,16 +352,6 @@ void BuildOwnerLegend()
 	_smallmap_company_count = i;
 }
 
-struct AndOr {
-	uint32 mor;
-	uint32 mand;
-};
-
-static inline uint32 ApplyMask(uint32 colour, const AndOr *mask)
-{
-	return (colour & mask->mand) | mask->mor;
-}
-
 
 /** Tile types as seen in the smallmap, in decreasing order of importance. */
 enum SmallmapTileType {
@@ -440,6 +430,16 @@ static inline uint32 GetSmallMapVegetationClearPixels (TileIndex tile)
 static uint32 GetSmallmapColour (SmallMapWindow::SmallMapType map_type,
 	TileIndex tile, SmallmapTileType et)
 {
+	struct AndOr {
+		uint32 mor;
+		uint32 mand;
+
+		uint32 apply (uint32 colour) const
+		{
+			return (colour & this->mand) | this->mor;
+		}
+	};
+
 	/* Colour masks for "Contour" and "Routes" modes. */
 	static const AndOr contours_andor[] = {
 		{MKCOLOUR_XXXX(PC_LIGHT_BLUE), MKCOLOUR_0000}, // SMTT_STATION
@@ -502,7 +502,7 @@ static uint32 GetSmallmapColour (SmallMapWindow::SmallMapType map_type,
 				};
 
 				const SmallMapColourScheme *cs = &_heightmap_schemes[_settings_client.gui.smallmap_land_colour];
-				return ApplyMask (cs->default_colour, &andor);
+				return andor.apply (cs->default_colour);
 			}
 
 			/* Ground colour */
@@ -519,7 +519,7 @@ static uint32 GetSmallmapColour (SmallMapWindow::SmallMapType map_type,
 					return IsTileForestIndustry (tile) ? MKCOLOUR_XXXX(PC_GREEN) : MKCOLOUR_XXXX(PC_DARK_RED);
 
 				default:
-					return ApplyMask (MKCOLOUR_XXXX(PC_GRASS_LAND), &vehicles_andor[et]);
+					return vehicles_andor[et].apply (MKCOLOUR_XXXX(PC_GRASS_LAND));
 			}
 
 		case SmallMapWindow::SMT_OWNER: {
@@ -552,7 +552,7 @@ static uint32 GetSmallmapColour (SmallMapWindow::SmallMapType map_type,
 	}
 
 	const SmallMapColourScheme *cs = &_heightmap_schemes[_settings_client.gui.smallmap_land_colour];
-	return ApplyMask (height ? cs->height_colours[TileHeight(tile)] : cs->default_colour, andor);
+	return andor->apply (height ? cs->height_colours[TileHeight(tile)] : cs->default_colour);
 }
 
 /** Vehicle colours in #SMT_VEHICLES mode. Indexed by #VehicleTypeByte. */
