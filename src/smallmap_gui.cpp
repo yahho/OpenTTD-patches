@@ -466,29 +466,33 @@ static inline uint32 GetSmallMapVegetationClearPixels (TileIndex tile)
 static uint32 GetSmallmapColour (SmallMapWindow::SmallMapType map_type,
 	TileIndex tile, SmallmapTileType et)
 {
+	const AndOr *andor;
+	bool height;
+
 	switch (map_type) {
-		case SmallMapWindow::SMT_CONTOUR: {
-			const SmallMapColourScheme *cs = &_heightmap_schemes[_settings_client.gui.smallmap_land_colour];
-			return ApplyMask (cs->height_colours[TileHeight(tile)], &_smallmap_contours_andor[et]);
-		}
+		case SmallMapWindow::SMT_CONTOUR:
+			andor = &_smallmap_contours_andor[et];
+			height = true;
+			break;
 
-		case SmallMapWindow::SMT_VEHICLES: {
-			const SmallMapColourScheme *cs = &_heightmap_schemes[_settings_client.gui.smallmap_land_colour];
-			return ApplyMask (cs->default_colour, &_smallmap_vehicles_andor[et]);
-		}
+		case SmallMapWindow::SMT_VEHICLES:
+			andor = &_smallmap_vehicles_andor[et];
+			height = false;
+			break;
 
-		case SmallMapWindow::SMT_INDUSTRY: {
-			const SmallMapColourScheme *cs = &_heightmap_schemes[_settings_client.gui.smallmap_land_colour];
-			return ApplyMask (_smallmap_show_heightmap ? cs->height_colours[TileHeight(tile)] : cs->default_colour, &_smallmap_vehicles_andor[et]);
-		}
+		case SmallMapWindow::SMT_INDUSTRY:
+			andor = &_smallmap_vehicles_andor[et];
+			height = _smallmap_show_heightmap;
+			break;
 
 		case SmallMapWindow::SMT_LINKSTATS:
 			if (_smallmap_show_heightmap) {
-				const SmallMapColourScheme *cs = &_heightmap_schemes[_settings_client.gui.smallmap_land_colour];
-				return ApplyMask (cs->height_colours[TileHeight(tile)], &_smallmap_contours_andor[et]);
+				andor = &_smallmap_contours_andor[et];
+				height = true;
+				break;
 			}
 			/* fall through */
-		case SmallMapWindow::SMT_ROUTES: {
+		case SmallMapWindow::SMT_ROUTES:
 			if (et == SMTT_STATION) {
 				return GetSmallMapRoutesStationPixels (tile);
 			} else if (et == SMTT_RAILWAY) {
@@ -502,9 +506,9 @@ static uint32 GetSmallmapColour (SmallMapWindow::SmallMapType map_type,
 			}
 
 			/* Ground colour */
-			const SmallMapColourScheme *cs = &_heightmap_schemes[_settings_client.gui.smallmap_land_colour];
-			return ApplyMask (cs->default_colour, &_smallmap_contours_andor[et]);
-		}
+			andor = &_smallmap_contours_andor[et];
+			height = false;
+			break;
 
 		case SmallMapWindow::SMT_VEGETATION:
 			switch (et) {
@@ -546,6 +550,9 @@ static uint32 GetSmallmapColour (SmallMapWindow::SmallMapType map_type,
 
 		default: NOT_REACHED();
 	}
+
+	const SmallMapColourScheme *cs = &_heightmap_schemes[_settings_client.gui.smallmap_land_colour];
+	return ApplyMask (height ? cs->height_colours[TileHeight(tile)] : cs->default_colour, andor);
 }
 
 /** Vehicle colours in #SMT_VEHICLES mode. Indexed by #VehicleTypeByte. */
