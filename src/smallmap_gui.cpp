@@ -376,32 +376,6 @@ enum SmallmapTileType {
 	SMTT_VOID,
 };
 
-/** Colour masks for "Contour" and "Routes" modes. */
-static const AndOr _smallmap_contours_andor[] = {
-	{MKCOLOUR_XXXX(PC_LIGHT_BLUE), MKCOLOUR_0000}, // SMTT_STATION
-	{MKCOLOUR_0XX0(PC_GREY      ), MKCOLOUR_F00F}, // SMTT_RAILWAY
-	{MKCOLOUR_0XX0(PC_BLACK     ), MKCOLOUR_F00F}, // SMTT_ROAD
-	{MKCOLOUR_XXXX(PC_DARK_RED  ), MKCOLOUR_0000}, // SMTT_INDUSTRY
-	{MKCOLOUR_0XX0(PC_DARK_RED  ), MKCOLOUR_F00F}, // SMTT_HOUSE
-	{MKCOLOUR_0XX0(PC_DARK_RED  ), MKCOLOUR_F00F}, // SMTT_OBJECT
-	{MKCOLOUR_0000               , MKCOLOUR_FFFF}, // SMTT_CLEAR
-	{MKCOLOUR_XXXX(PC_WATER     ), MKCOLOUR_0000}, // SMTT_WATER
-	{MKCOLOUR_0000               , MKCOLOUR_FFFF}, // SMTT_VOID
-};
-
-/** Colour masks for "Vehicles", "Industry", and "Vegetation" modes. */
-static const AndOr _smallmap_vehicles_andor[] = {
-	{MKCOLOUR_0XX0(PC_BLACK     ), MKCOLOUR_F00F}, // SMTT_STATION
-	{MKCOLOUR_0XX0(PC_BLACK     ), MKCOLOUR_F00F}, // SMTT_RAILWAY
-	{MKCOLOUR_0XX0(PC_BLACK     ), MKCOLOUR_F00F}, // SMTT_ROAD
-	{MKCOLOUR_XXXX(PC_DARK_RED  ), MKCOLOUR_0000}, // SMTT_INDUSTRY
-	{MKCOLOUR_0XX0(PC_DARK_RED  ), MKCOLOUR_F00F}, // SMTT_HOUSE
-	{MKCOLOUR_0XX0(PC_DARK_RED  ), MKCOLOUR_F00F}, // SMTT_OBJECT
-	{MKCOLOUR_0000               , MKCOLOUR_FFFF}, // SMTT_CLEAR
-	{MKCOLOUR_XXXX(PC_WATER     ), MKCOLOUR_0000}, // SMTT_WATER
-	{MKCOLOUR_0000               , MKCOLOUR_FFFF}, // SMTT_VOID
-};
-
 
 /**
  * Return the colour of a station tile in the small map in mode "Routes".
@@ -466,28 +440,54 @@ static inline uint32 GetSmallMapVegetationClearPixels (TileIndex tile)
 static uint32 GetSmallmapColour (SmallMapWindow::SmallMapType map_type,
 	TileIndex tile, SmallmapTileType et)
 {
+	/* Colour masks for "Contour" and "Routes" modes. */
+	static const AndOr contours_andor[] = {
+		{MKCOLOUR_XXXX(PC_LIGHT_BLUE), MKCOLOUR_0000}, // SMTT_STATION
+		{MKCOLOUR_0XX0(PC_GREY      ), MKCOLOUR_F00F}, // SMTT_RAILWAY
+		{MKCOLOUR_0XX0(PC_BLACK     ), MKCOLOUR_F00F}, // SMTT_ROAD
+		{MKCOLOUR_XXXX(PC_DARK_RED  ), MKCOLOUR_0000}, // SMTT_INDUSTRY
+		{MKCOLOUR_0XX0(PC_DARK_RED  ), MKCOLOUR_F00F}, // SMTT_HOUSE
+		{MKCOLOUR_0XX0(PC_DARK_RED  ), MKCOLOUR_F00F}, // SMTT_OBJECT
+		{MKCOLOUR_0000               , MKCOLOUR_FFFF}, // SMTT_CLEAR
+		{MKCOLOUR_XXXX(PC_WATER     ), MKCOLOUR_0000}, // SMTT_WATER
+		{MKCOLOUR_0000               , MKCOLOUR_FFFF}, // SMTT_VOID
+	};
+
+	/* Colour masks for "Vehicles", "Industry", and "Vegetation" modes. */
+	static const AndOr vehicles_andor[] = {
+		{MKCOLOUR_0XX0(PC_BLACK     ), MKCOLOUR_F00F}, // SMTT_STATION
+		{MKCOLOUR_0XX0(PC_BLACK     ), MKCOLOUR_F00F}, // SMTT_RAILWAY
+		{MKCOLOUR_0XX0(PC_BLACK     ), MKCOLOUR_F00F}, // SMTT_ROAD
+		{MKCOLOUR_XXXX(PC_DARK_RED  ), MKCOLOUR_0000}, // SMTT_INDUSTRY
+		{MKCOLOUR_0XX0(PC_DARK_RED  ), MKCOLOUR_F00F}, // SMTT_HOUSE
+		{MKCOLOUR_0XX0(PC_DARK_RED  ), MKCOLOUR_F00F}, // SMTT_OBJECT
+		{MKCOLOUR_0000               , MKCOLOUR_FFFF}, // SMTT_CLEAR
+		{MKCOLOUR_XXXX(PC_WATER     ), MKCOLOUR_0000}, // SMTT_WATER
+		{MKCOLOUR_0000               , MKCOLOUR_FFFF}, // SMTT_VOID
+	};
+
 	const AndOr *andor;
 	bool height;
 
 	switch (map_type) {
 		case SmallMapWindow::SMT_CONTOUR:
-			andor = &_smallmap_contours_andor[et];
+			andor = &contours_andor[et];
 			height = true;
 			break;
 
 		case SmallMapWindow::SMT_VEHICLES:
-			andor = &_smallmap_vehicles_andor[et];
+			andor = &vehicles_andor[et];
 			height = false;
 			break;
 
 		case SmallMapWindow::SMT_INDUSTRY:
-			andor = &_smallmap_vehicles_andor[et];
+			andor = &vehicles_andor[et];
 			height = _smallmap_show_heightmap;
 			break;
 
 		case SmallMapWindow::SMT_LINKSTATS:
 			if (_smallmap_show_heightmap) {
-				andor = &_smallmap_contours_andor[et];
+				andor = &contours_andor[et];
 				height = true;
 				break;
 			}
@@ -498,7 +498,7 @@ static uint32 GetSmallmapColour (SmallMapWindow::SmallMapType map_type,
 			} else if (et == SMTT_RAILWAY) {
 				AndOr andor = {
 					MKCOLOUR_0XX0(GetRailTypeInfo(GetRailType(tile))->map_colour),
-					_smallmap_contours_andor[et].mand
+					contours_andor[et].mand
 				};
 
 				const SmallMapColourScheme *cs = &_heightmap_schemes[_settings_client.gui.smallmap_land_colour];
@@ -506,7 +506,7 @@ static uint32 GetSmallmapColour (SmallMapWindow::SmallMapType map_type,
 			}
 
 			/* Ground colour */
-			andor = &_smallmap_contours_andor[et];
+			andor = &contours_andor[et];
 			height = false;
 			break;
 
@@ -519,7 +519,7 @@ static uint32 GetSmallmapColour (SmallMapWindow::SmallMapType map_type,
 					return IsTileForestIndustry (tile) ? MKCOLOUR_XXXX(PC_GREEN) : MKCOLOUR_XXXX(PC_DARK_RED);
 
 				default:
-					return ApplyMask (MKCOLOUR_XXXX(PC_GRASS_LAND), &_smallmap_vehicles_andor[et]);
+					return ApplyMask (MKCOLOUR_XXXX(PC_GRASS_LAND), &vehicles_andor[et]);
 			}
 
 		case SmallMapWindow::SMT_OWNER: {
