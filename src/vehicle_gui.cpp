@@ -1747,7 +1747,7 @@ public:
 				break;
 
 			case WID_VL_MANAGE_VEHICLES_DROPDOWN: {
-				DropDownList *list = this->BuildActionDropdownList(VehicleListIdentifier(this->window_number).type == VL_STANDARD, false);
+				DropDownList *list = this->BuildActionDropdownList(VehicleListIdentifier::UnPack(this->window_number).type == VL_STANDARD, false);
 				ShowDropDownList(this, list, 0, WID_VL_MANAGE_VEHICLES_DROPDOWN);
 				break;
 			}
@@ -3066,7 +3066,7 @@ StringID GetErrSendVehicleToDepot (TileIndex tile, uint32 p1, uint32 p2, const c
 	if (p1 & DEPOT_MASS_SEND) {
 		/* Mass goto depot requested */
 		VehicleListIdentifier vli;
-		if (!vli.Unpack(p2)) return 0;
+		if (!vli.UnpackIfValid(p2)) return 0;
 		type = vli.vtype;
 	} else {
 		type = Vehicle::Get(GB(p1, 0, 20))->type;
