@@ -20,7 +20,7 @@
  * Test if a rail type has catenary
  * @param rti Rail type to test
  */
-static inline bool HasCatenary (const RailtypeInfo *rti)
+static inline bool HasRailCatenary (const RailtypeInfo *rti)
 {
 	return HasBit (rti->flags, RTF_CATENARY);
 }
@@ -37,9 +37,9 @@ static inline bool IsCatenaryDrawn()
  * Test if we should draw rail catenary
  * @param rt Rail type to test
  */
-static inline bool HasCatenaryDrawn (const RailtypeInfo *rti)
+static inline bool HasRailCatenaryDrawn (const RailtypeInfo *rti)
 {
-	return HasCatenary (rti) && IsCatenaryDrawn();
+	return HasRailCatenary (rti) && IsCatenaryDrawn();
 }
 
 void DrawRailwayCatenary (const TileInfo *ti);
@@ -67,7 +67,7 @@ static inline void DrawRailDepotCatenary (const TileInfo *ti,
 	DrawRailTunnelDepotCatenary (ti, rti, true, dir);
 }
 
-void DrawCatenaryOnBridge(const TileInfo *ti);
+void DrawRailCatenaryOnBridge(const TileInfo *ti);
 
 bool SettingsDisableElrail(int32 p1); ///< _settings_game.disable_elrail callback
 

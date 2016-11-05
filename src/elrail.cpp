@@ -189,9 +189,9 @@ static inline bool IsOddY (TileIndex t)
  * Test if a rail type has catenary
  * @param rt Rail type to test
  */
-static inline bool HasCatenary (RailType rt)
+static inline bool HasRailCatenary (RailType rt)
 {
-	return HasCatenary (GetRailTypeInfo (rt));
+	return HasRailCatenary (GetRailTypeInfo (rt));
 }
 
 /** Get the electrified track bits on a railway tile. */
@@ -199,8 +199,8 @@ static TrackBits GetElectrifiedTrackBits (TileIndex t)
 {
 	TrackBits present = GetTrackBits(t);
 	TrackBits result = TRACK_BIT_NONE;
-	if (HasCatenary (GetRailType (t, TRACK_UPPER))) result |= present & (TRACK_BIT_CROSS | TRACK_BIT_UPPER | TRACK_BIT_LEFT);
-	if (HasCatenary (GetRailType (t, TRACK_LOWER))) result |= present & (TRACK_BIT_LOWER | TRACK_BIT_RIGHT);
+	if (HasRailCatenary (GetRailType (t, TRACK_UPPER))) result |= present & (TRACK_BIT_CROSS | TRACK_BIT_UPPER | TRACK_BIT_LEFT);
+	if (HasRailCatenary (GetRailType (t, TRACK_LOWER))) result |= present & (TRACK_BIT_LOWER | TRACK_BIT_RIGHT);
 	return result;
 }
 
@@ -221,7 +221,7 @@ static TrackBits MaskWireBits(TileIndex t, TrackBits tracks)
 		TrackBits reachable = TrackStatusToTrackBits(GetTileRailwayStatus(next_tile)) & DiagdirReachesTracks(d);
 		RailType rt;
 		if ((reachable != TRACK_BIT_NONE) ?
-				((rt = GetRailType(next_tile, FindFirstTrack(reachable))) == INVALID_RAILTYPE || !HasCatenary(rt)) :
+				((rt = GetRailType(next_tile, FindFirstTrack(reachable))) == INVALID_RAILTYPE || !HasRailCatenary(rt)) :
 				(!HasStationTileRail(next_tile) || GetRailStationAxis(next_tile) != DiagDirToAxis(d) || !CanStationTileHaveWires(next_tile))) {
 			neighbour_tdb |= DiagdirReachesTrackdirs(ReverseDiagDir(d));
 		}
@@ -528,13 +528,13 @@ static uint CheckNeighbourPCP (TileIndex tile, DiagDirection side,
 				default: return PCP_NB_NONE;
 
 				case TT_MISC_CROSSING:
-					if (!HasCatenary (GetRailType (tile))) return PCP_NB_NONE;
+					if (!HasRailCatenary (GetRailType (tile))) return PCP_NB_NONE;
 					axis = GetCrossingRailAxis (tile);
 					break;
 
 				case TT_MISC_TUNNEL:
 					if (GetTunnelTransportType (tile) != TRANSPORT_RAIL) return PCP_NB_NONE;
-					if (!HasCatenary (GetRailType (tile))) return PCP_NB_NONE;
+					if (!HasRailCatenary (GetRailType (tile))) return PCP_NB_NONE;
 					/* ignore tunnels facing the wrong way for neighbouring tiles */
 					if (GetTunnelBridgeDirection (tile) != ReverseDiagDir (side)) return PCP_NB_NONE;
 					/* force tunnels to always have a pylon (no elision) */
@@ -545,7 +545,7 @@ static uint CheckNeighbourPCP (TileIndex tile, DiagDirection side,
 
 		case TT_STATION:
 			if (!HasStationRail (tile)) return PCP_NB_NONE;
-			if (!HasCatenary (GetRailType (tile))) return PCP_NB_NONE;
+			if (!HasRailCatenary (GetRailType (tile))) return PCP_NB_NONE;
 			/* Ignore neighbouring station tiles that allow neither wires nor pylons. */
 			if (!CanStationTileHavePylons (tile) && !CanStationTileHaveWires (tile)) return PCP_NB_NONE;
 			axis = GetRailStationAxis (tile);
@@ -796,7 +796,7 @@ static inline void AddWireSprite (const TileInfo *ti, SpriteID wire_base,
  * @param context Tile context for GetWireBase and GetPylonBase.
  * @param bridge Bridge direction, if any.
  */
-static void DrawCatenary (const TileInfo *ti, const RailtypeInfo *rti,
+static void DrawRailCatenary (const TileInfo *ti, const RailtypeInfo *rti,
 	TrackBits tracks, TrackBits wires, Slope slope,
 	bool draw_pylons, bool draw_wires, TileContext context = TCX_NORMAL,
 	DiagDirection bridge = INVALID_DIAGDIR)
@@ -962,8 +962,8 @@ void DrawRailwayCatenary (const TileInfo *ti)
 
 	if (halftile_track != INVALID_TRACK) {
 		TrackBits tracks = TrackToTrackBits (halftile_track);
-		if (HasCatenary (halftile_rti)) {
-			DrawCatenary (ti, halftile_rti, tracks, tracks,
+		if (HasRailCatenary (halftile_rti)) {
+			DrawRailCatenary (ti, halftile_rti, tracks, tracks,
 					SLOPE_FLAT, true, true,
 					halftile_context);
 		}
@@ -972,8 +972,8 @@ void DrawRailwayCatenary (const TileInfo *ti)
 		wires = tracks;
 	}
 
-	if (HasCatenary (rti)) {
-		DrawCatenary (ti, rti, tracks, wires, slope, true, true,
+	if (HasRailCatenary (rti)) {
+		DrawRailCatenary (ti, rti, tracks, wires, slope, true, true,
 				TCX_NORMAL, overridePCP);
 	}
 }
@@ -989,7 +989,7 @@ void DrawRailBridgeHeadCatenary (const TileInfo *ti, const RailtypeInfo *rti,
 {
 	TrackBits tracks = DiagDirToDiagTrackBits (dir);
 
-	DrawCatenary (ti, rti, tracks, tracks, (ti->tileh != SLOPE_FLAT) ?
+	DrawRailCatenary (ti, rti, tracks, tracks, (ti->tileh != SLOPE_FLAT) ?
 					SLOPE_FLAT : InclinedSlope (dir),
 			true, true, TCX_NORMAL, dir);
 }
@@ -1010,7 +1010,7 @@ void DrawRailAxisCatenary (const TileInfo *ti, const RailtypeInfo *rti,
 	assert (ti->tileh == SLOPE_FLAT);
 
 	TrackBits tracks = AxisToTrackBits (axis);
-	DrawCatenary (ti, rti, tracks, tracks, SLOPE_FLAT, draw_pylons, draw_wire);
+	DrawRailCatenary (ti, rti, tracks, tracks, SLOPE_FLAT, draw_pylons, draw_wire);
 }
 
 /**
@@ -1050,7 +1050,7 @@ void DrawRailTunnelCatenary (const TileInfo *ti, DiagDirection dir)
  *
  * @param ti The Tileinfo to draw the tile for
  */
-void DrawCatenaryOnBridge(const TileInfo *ti)
+void DrawRailCatenaryOnBridge(const TileInfo *ti)
 {
 	TileIndex start = GetNorthernBridgeEnd(ti->tile);
 	bool odd = ((GetTunnelBridgeLength (ti->tile, start) + 1) % 2) != 0;

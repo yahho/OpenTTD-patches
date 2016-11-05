@@ -784,8 +784,8 @@ void DrawBridgeMiddle(const TileInfo *ti)
 
 		EndSpriteCombine (ti->vd);
 
-		if (HasCatenaryDrawn (rti)) {
-			DrawCatenaryOnBridge(ti);
+		if (HasRailCatenaryDrawn (rti)) {
+			DrawRailCatenaryOnBridge(ti);
 		}
 	}
 

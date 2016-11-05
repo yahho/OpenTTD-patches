@@ -2896,7 +2896,7 @@ draw_default_foundation:
 		}
 	}
 
-	if (HasStationRail (ti->tile) && HasCatenaryDrawn (rti)) {
+	if (HasStationRail (ti->tile) && HasRailCatenaryDrawn (rti)) {
 		DrawRailAxisCatenary (ti, rti, GetRailStationAxis (ti->tile),
 				CanStationTileHavePylons (ti->tile),
 				CanStationTileHaveWires (ti->tile));
@@ -2905,7 +2905,7 @@ draw_default_foundation:
 	if (HasBit(roadtypes, ROADTYPE_TRAM)) {
 		Axis axis = GetRoadStopAxis(ti->tile); // tram stops are always drive-through
 		DrawGroundSprite (ti, (HasBit(roadtypes, ROADTYPE_ROAD) ? SPR_TRAMWAY_OVERLAY : SPR_TRAMWAY_TRAM) + (axis ^ 1), PAL_NONE);
-		DrawTramCatenary(ti, axis == AXIS_X ? ROAD_X : ROAD_Y);
+		DrawRoadCatenary(ti, axis == AXIS_X ? ROAD_X : ROAD_Y);
 	}
 
 	if (IsRailWaypoint(ti->tile)) {
