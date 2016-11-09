@@ -3092,10 +3092,7 @@ void SetMouseCursorVehicle(const Vehicle *v, EngineImageType image_type)
 
 	_cursor.sprite_count = 0;
 	int total_width = 0;
-	for (; v != NULL; v = v->HasArticulatedPart() ? v->GetNextArticulatedPart() : NULL) {
-		if (_cursor.sprite_count == lengthof(_cursor.sprite_seq)) break;
-		if (total_width >= 2 * (int)VEHICLEINFO_FULL_VEHICLE_WIDTH) break;
-
+	for (;;) {
 		_cursor.sprite_seq[_cursor.sprite_count].sprite = v->GetImage(rtl ? DIR_E : DIR_W, image_type);
 		_cursor.sprite_seq[_cursor.sprite_count].pal = GetVehiclePalette(v);
 		_cursor.sprite_pos[_cursor.sprite_count].x = rtl ? -total_width : total_width;
@@ -3103,6 +3100,11 @@ void SetMouseCursorVehicle(const Vehicle *v, EngineImageType image_type)
 
 		total_width += GetSingleVehicleWidth(v, image_type);
 		_cursor.sprite_count++;
+		if (_cursor.sprite_count == lengthof(_cursor.sprite_seq)) break;
+		if (total_width >= 2 * (int)VEHICLEINFO_FULL_VEHICLE_WIDTH) break;
+
+		v = v->Next();
+		if ((v == NULL) || !v->IsArticulatedPart()) break;
 	}
 
 	int offs = ((int)VEHICLEINFO_FULL_VEHICLE_WIDTH - total_width) / 2;
