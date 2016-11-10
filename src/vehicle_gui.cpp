@@ -1036,6 +1036,28 @@ struct RefitWindow : public Window {
 };
 
 /**
+ * Get the width of a vehicle (part) in pixels.
+ * @param v Vehicle to get the width for.
+ * @return Width of the vehicle.
+ */
+static int GetSingleVehicleWidth (const Vehicle *v, EngineImageType image_type)
+{
+	switch (v->type) {
+		case VEH_TRAIN:
+			return Train::From(v)->GetDisplayImageWidth();
+
+		case VEH_ROAD:
+			return RoadVehicle::From(v)->GetDisplayImageWidth();
+
+		default:
+			bool rtl = _current_text_dir == TD_RTL;
+			SpriteID sprite = v->GetImage (rtl ? DIR_E : DIR_W, image_type);
+			const Sprite *real_sprite = GetSprite (sprite, ST_NORMAL);
+			return UnScaleGUI (real_sprite->width);
+	}
+}
+
+/**
  * Get the width of the vehicle (including all parts of the consist) in pixels.
  * @return Width of the vehicle.
  */
@@ -3063,27 +3085,6 @@ StringID GetErrReverseTrain (TileIndex tile, uint32 p1, uint32 p2, const char *t
 	return p2 ? STR_ERROR_CAN_T_REVERSE_DIRECTION_RAIL_VEHICLE : STR_ERROR_CAN_T_REVERSE_DIRECTION_TRAIN;
 }
 
-/**
- * Get the width of a vehicle (part) in pixels.
- * @param v Vehicle to get the width for.
- * @return Width of the vehicle.
- */
-int GetSingleVehicleWidth(const Vehicle *v, EngineImageType image_type)
-{
-	switch (v->type) {
-		case VEH_TRAIN:
-			return Train::From(v)->GetDisplayImageWidth();
-
-		case VEH_ROAD:
-			return RoadVehicle::From(v)->GetDisplayImageWidth();
-
-		default:
-			bool rtl = _current_text_dir == TD_RTL;
-			SpriteID sprite = v->GetImage(rtl ? DIR_E : DIR_W, image_type);
-			const Sprite *real_sprite = GetSprite(sprite, ST_NORMAL);
-			return UnScaleGUI(real_sprite->width);
-	}
-}
 
 /**
  * Set the mouse cursor to look like a vehicle.
