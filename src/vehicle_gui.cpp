@@ -818,6 +818,9 @@ struct RefitWindow : public Window {
 		}
 	}
 
+	/* Get the width of the current vehicle in pixels. */
+	int GetVehicleWidth (void) const;
+
 	/**
 	 * Some data on this window has become invalid.
 	 * @param data Information about the changed data.
@@ -840,7 +843,7 @@ struct RefitWindow : public Window {
 				this->BuildRefitList();
 
 				/* The vehicle width has changed too. */
-				this->vehicle_width = GetVehicleWidth(Vehicle::Get(this->window_number), EIT_IN_DETAILS);
+				this->vehicle_width = this->GetVehicleWidth();
 				uint max_width = 0;
 
 				/* Check the width of all cargo information strings. */
@@ -1026,11 +1029,30 @@ struct RefitWindow : public Window {
 
 	virtual void OnResize()
 	{
-		this->vehicle_width = GetVehicleWidth(Vehicle::Get(this->window_number), EIT_IN_DETAILS);
+		this->vehicle_width = this->GetVehicleWidth();
 		this->vscroll->SetCapacityFromWidget(this, WID_VR_MATRIX);
 		if (this->hscroll != NULL) this->hscroll->SetCapacityFromWidget(this, WID_VR_VEHICLE_PANEL_DISPLAY);
 	}
 };
+
+/**
+ * Get the width of the vehicle (including all parts of the consist) in pixels.
+ * @return Width of the vehicle.
+ */
+int RefitWindow::GetVehicleWidth (void) const
+{
+	const Vehicle *v = Vehicle::Get (this->window_number);
+
+	if (v->type == VEH_TRAIN || v->type == VEH_ROAD) {
+		int vehicle_width = 0;
+		for (const Vehicle *u = v; u != NULL; u = u->Next()) {
+			vehicle_width += GetSingleVehicleWidth (u, EIT_IN_DETAILS);
+		}
+		return vehicle_width;
+	} else {
+		return GetSingleVehicleWidth (v, EIT_IN_DETAILS);
+	}
+}
 
 static const NWidgetPart _nested_vehicle_refit_widgets[] = {
 	NWidget(NWID_HORIZONTAL),
@@ -3060,24 +3082,6 @@ int GetSingleVehicleWidth(const Vehicle *v, EngineImageType image_type)
 			SpriteID sprite = v->GetImage(rtl ? DIR_E : DIR_W, image_type);
 			const Sprite *real_sprite = GetSprite(sprite, ST_NORMAL);
 			return UnScaleGUI(real_sprite->width);
-	}
-}
-
-/**
- * Get the width of a vehicle (including all parts of the consist) in pixels.
- * @param v Vehicle to get the width for.
- * @return Width of the vehicle.
- */
-int GetVehicleWidth(const Vehicle *v, EngineImageType image_type)
-{
-	if (v->type == VEH_TRAIN || v->type == VEH_ROAD) {
-		int vehicle_width = 0;
-		for (const Vehicle *u = v; u != NULL; u = u->Next()) {
-			vehicle_width += GetSingleVehicleWidth(u, image_type);
-		}
-		return vehicle_width;
-	} else {
-		return GetSingleVehicleWidth(v, image_type);
 	}
 }
 

@@ -68,7 +68,6 @@ static inline uint GetVehicleHeight(VehicleType type)
 }
 
 int GetSingleVehicleWidth(const Vehicle *v, EngineImageType image_type);
-int GetVehicleWidth(const Vehicle *v, EngineImageType image_type);
 
 /** Dimensions of a cell in the purchase/depot windows. */
 struct VehicleCellSize {
