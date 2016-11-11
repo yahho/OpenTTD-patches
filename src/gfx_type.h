@@ -142,9 +142,6 @@ struct CursorVars {
 	bool dirty;                   ///< the rect occupied by the mouse is dirty (redraw)
 	bool in_window;               ///< mouse inside this window, determines drawing logic
 
-	/* Drag data */
-	bool vehchain;                ///< vehicle chain is dragged
-
 	bool UpdateCursorPosition(int x, int y, bool queued_warp);
 
 private:

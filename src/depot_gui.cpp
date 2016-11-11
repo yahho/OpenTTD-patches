@@ -245,6 +245,7 @@ struct DepotWindow : Window {
 	VehicleID sel;
 	VehicleID vehicle_over; ///< Rail vehicle over which another one is dragged, \c INVALID_VEHICLE if none.
 	VehicleType type;
+	bool sel_chain;
 	bool generate_list;
 	int hovered_widget; ///< Index of the widget being hovered during drag/drop. -1 if no drag is in progress.
 	VehicleList vehicle_list;
@@ -257,8 +258,8 @@ struct DepotWindow : Window {
 	DepotWindow (const WindowDesc *desc, TileIndex tile, VehicleType type)
 		: Window (desc), sel (INVALID_VEHICLE),
 		  vehicle_over (INVALID_VEHICLE), type (type),
-		  generate_list (true), hovered_widget (-1),
-		  vehicle_list(), wagon_list(),
+		  sel_chain (false), generate_list (true),
+		  hovered_widget (-1), vehicle_list(), wagon_list(),
 		  unitnumber_digits (2), num_columns (1),
 		  hscroll (NULL), vscroll (NULL),
 		  count_width (0), header_width (0),
@@ -313,7 +314,7 @@ struct DepotWindow : Window {
 
 				uint x_space = free_wagon ? ScaleGUITrad(TRAININFO_DEFAULT_VEHICLE_WIDTH) : 0;
 				DrawTrainImage (u, dpi, image_left + (rtl ? 0 : x_space), image_right - (rtl ? x_space : 0), sprite_y - 1,
-						this->sel, _cursor.vehchain, EIT_IN_DEPOT,
+						this->sel, this->sel_chain, EIT_IN_DEPOT,
 						free_wagon ? 0 : this->hscroll->GetPosition(), this->vehicle_over);
 
 				/* Length of consist in tiles with 1 fractional digit (rounded up) */
@@ -527,9 +528,9 @@ struct DepotWindow : Window {
 				} else if (v != NULL) {
 					SetPointerMode (POINTER_DRAG, this, SPR_CURSOR_MOUSE);
 					SetMouseCursorVehicle(v, EIT_IN_DEPOT);
-					_cursor.vehchain = _ctrl_pressed;
 
 					this->sel = v->index;
+					this->sel_chain = _ctrl_pressed;
 					this->SetDirty();
 				}
 				break;
@@ -997,7 +998,7 @@ struct DepotWindow : Window {
 				break;
 		}
 		this->hovered_widget = -1;
-		_cursor.vehchain = false;
+		this->sel_chain = false;
 	}
 
 	virtual void OnTimeout()
@@ -1026,7 +1027,7 @@ struct DepotWindow : Window {
 	virtual EventState OnCTRLStateChange()
 	{
 		if (this->sel != INVALID_VEHICLE) {
-			_cursor.vehchain = _ctrl_pressed;
+			this->sel_chain = _ctrl_pressed;
 			this->SetWidgetDirty(WID_D_MATRIX);
 			return ES_HANDLED;
 		}

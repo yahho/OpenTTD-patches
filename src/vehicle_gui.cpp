@@ -1429,7 +1429,7 @@ void DrawVehicleImage (const Vehicle *v, BlitArea *dpi, int left, int right,
 	int y, VehicleID selection, EngineImageType image_type, int skip)
 {
 	switch (v->type) {
-		case VEH_TRAIN:    DrawTrainImage (Train::From(v), dpi, left, right, y, selection, _cursor.vehchain, image_type, skip); break;
+		case VEH_TRAIN:    DrawTrainImage (Train::From(v), dpi, left, right, y, selection, true, image_type, skip); break;
 		case VEH_ROAD:     DrawRoadVehImage  (v, dpi, left, right, y, selection, image_type, skip); break;
 		case VEH_SHIP:     DrawShipImage     (v, dpi, left, right, y, selection, image_type); break;
 		case VEH_AIRCRAFT: DrawAircraftImage (v, dpi, left, right, y, selection, image_type); break;

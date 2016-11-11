@@ -635,7 +635,6 @@ public:
 
 				SetPointerMode (POINTER_DRAG, this, SPR_CURSOR_MOUSE);
 				SetMouseCursorVehicle(v, EIT_IN_LIST);
-				_cursor.vehchain = true;
 
 				this->SetDirty();
 				break;
@@ -761,8 +760,6 @@ public:
 	{
 		if (this->vehicle_sel != INVALID_VEHICLE) OnDragDrop_Vehicle(pt, widget);
 		if (this->group_sel != INVALID_GROUP) OnDragDrop_Group(pt, widget);
-
-		_cursor.vehchain = false;
 	}
 
 	virtual void OnQueryTextFinished(char *str)
