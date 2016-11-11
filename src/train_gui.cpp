@@ -57,12 +57,13 @@ static int HighlightDragPosition (BlitArea *dpi, int px, int max_width, VehicleI
  * @param right     The maximum horizontal position
  * @param y         Vertical position to draw at
  * @param selection Selected vehicle to draw a frame around
+ * @param chain     Whether the selection is a chain
  * @param skip      Number of pixels to skip at the front (for scrolling)
  * @param drag_dest The vehicle another one is dragged over, \c INVALID_VEHICLE if none.
  */
 void DrawTrainImage (const Train *v, BlitArea *dpi, int left, int right,
-	int y, VehicleID selection, EngineImageType image_type, int skip,
-	VehicleID drag_dest)
+	int y, VehicleID selection, bool chain, EngineImageType image_type,
+	int skip, VehicleID drag_dest)
 {
 	bool rtl = _current_text_dir == TD_RTL;
 	Direction dir = rtl ? DIR_E : DIR_W;
@@ -83,7 +84,7 @@ void DrawTrainImage (const Train *v, BlitArea *dpi, int left, int right,
 	for (; v != NULL && (rtl ? px > 0 : px < max_width); v = v->Next()) {
 		if (dragging && !drag_at_end_of_train && drag_dest == v->index) {
 			/* Highlight the drag-and-drop destination inside the train. */
-			int drag_hlight_width = HighlightDragPosition (&tmp_dpi, px, max_width, selection, _cursor.vehchain);
+			int drag_hlight_width = HighlightDragPosition (&tmp_dpi, px, max_width, selection, chain);
 			px += rtl ? -drag_hlight_width : drag_hlight_width;
 		}
 
@@ -102,7 +103,7 @@ void DrawTrainImage (const Train *v, BlitArea *dpi, int left, int right,
 			highlight_l = rtl ? px - width : px;
 			highlight_r = rtl ? px - 1 : px + width - 1;
 			sel_articulated = true;
-		} else if ((_cursor.vehchain && highlight_r != 0) || sel_articulated) {
+		} else if ((chain && highlight_r != 0) || sel_articulated) {
 			if (rtl) {
 				highlight_l -= width;
 			} else {
@@ -115,7 +116,7 @@ void DrawTrainImage (const Train *v, BlitArea *dpi, int left, int right,
 
 	if (dragging && drag_at_end_of_train) {
 		/* Highlight the drag-and-drop destination at the end of the train. */
-		HighlightDragPosition (&tmp_dpi, px, max_width, selection, _cursor.vehchain);
+		HighlightDragPosition (&tmp_dpi, px, max_width, selection, chain);
 	}
 
 	if (highlight_l != highlight_r) {
