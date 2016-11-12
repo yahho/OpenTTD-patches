@@ -134,10 +134,6 @@ struct CursorVars {
 
 	Point draw_pos, draw_size;    ///< position and size bounding-box for drawing
 
-	const AnimCursor *animate_list; ///< in case of animated cursor, list of frames
-	const AnimCursor *animate_cur;  ///< in case of animated cursor, current frame
-	uint animate_timeout;           ///< in case of animated cursor, number of ticks to show the current cursor
-
 	bool visible;                 ///< cursor is visible
 	bool dirty;                   ///< the rect occupied by the mouse is dirty (redraw)
 	bool in_window;               ///< mouse inside this window, determines drawing logic

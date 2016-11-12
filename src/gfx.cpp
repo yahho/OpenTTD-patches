@@ -32,6 +32,10 @@ byte _dirkeys;        ///< 1 = left, 2 = up, 4 = right, 8 = down
 bool _fullscreen;
 byte _support8bpp;
 CursorVars _cursor;
+static const AnimCursor *_cursor_animate_list; ///< in case of animated cursor, list of frames
+static const AnimCursor *_cursor_animate_cur;  ///< in case of animated cursor, current frame
+static uint _cursor_animate_timeout;           ///< in case of animated cursor, number of ticks to show the current cursor
+
 bool _ctrl_pressed;   ///< Is Ctrl pressed?
 bool _shift_pressed;  ///< Is Shift pressed?
 byte _fast_forward;
@@ -1512,19 +1516,19 @@ static void SetCursorSprite(CursorID cursor, PaletteID pal)
 
 static void SwitchAnimatedCursor()
 {
-	const AnimCursor *cur = _cursor.animate_cur;
+	const AnimCursor *cur = _cursor_animate_cur;
 
-	if (cur == NULL || cur->sprite == AnimCursor::LAST) cur = _cursor.animate_list;
+	if (cur == NULL || cur->sprite == AnimCursor::LAST) cur = _cursor_animate_list;
 
 	SetCursorSprite(cur->sprite, _cursor.sprite_seq[0].pal);
 
-	_cursor.animate_timeout = cur->display_time;
-	_cursor.animate_cur     = cur + 1;
+	_cursor_animate_timeout = cur->display_time;
+	_cursor_animate_cur     = cur + 1;
 }
 
 void CursorTick()
 {
-	if (_cursor.animate_timeout != 0 && --_cursor.animate_timeout == 0) {
+	if (_cursor_animate_timeout != 0 && --_cursor_animate_timeout == 0) {
 		SwitchAnimatedCursor();
 	}
 }
@@ -1551,7 +1555,7 @@ void SetMouseCursorBusy(bool busy)
 void SetMouseCursor(CursorID sprite, PaletteID pal)
 {
 	/* Turn off animation */
-	_cursor.animate_timeout = 0;
+	_cursor_animate_timeout = 0;
 	/* Set cursor */
 	SetCursorSprite(sprite, pal);
 }
@@ -1563,8 +1567,8 @@ void SetMouseCursor(CursorID sprite, PaletteID pal)
  */
 void SetAnimatedMouseCursor(const AnimCursor *table)
 {
-	_cursor.animate_list = table;
-	_cursor.animate_cur = NULL;
+	_cursor_animate_list = table;
+	_cursor_animate_cur = NULL;
 	_cursor.sprite_seq[0].pal = PAL_NONE;
 	SwitchAnimatedCursor();
 }
