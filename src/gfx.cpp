@@ -1592,6 +1592,14 @@ bool CursorVars::UpdateCursorPosition(int x, int y, bool queued_warp)
 	if (x == this->pos.x && y == this->pos.y) {
 		/* Warp finished. */
 		this->queued_warp = false;
+
+		this->delta.x = 0;
+		this->delta.y = 0;
+
+		this->last_position.x = x;
+		this->last_position.y = y;
+
+		return false;
 	}
 
 	this->delta.x = x - (this->queued_warp ? this->last_position.x : this->pos.x);
@@ -1601,20 +1609,18 @@ bool CursorVars::UpdateCursorPosition(int x, int y, bool queued_warp)
 	this->last_position.y = y;
 
 	bool need_warp = false;
-	if (this->fix_at) {
-		if (this->delta.x != 0 || this->delta.y != 0) {
-			/* Trigger warp.
-			 * Note: We also trigger warping again, if there is already a pending warp.
-			 *       This makes it more tolerant about the OS or other software inbetween
-			 *       botchering the warp. */
-			this->queued_warp = queued_warp;
-			need_warp = true;
-		}
-	} else if (this->pos.x != x || this->pos.y != y) {
+	if (!this->fix_at) {
 		this->queued_warp = false; // Cancel warping, we are no longer confining the position.
 		this->dirty = true;
 		this->pos.x = x;
 		this->pos.y = y;
+	} else if (this->delta.x != 0 || this->delta.y != 0) {
+		/* Trigger warp.
+		 * Note: We also trigger warping again, if there is already a pending warp.
+		 *       This makes it more tolerant about the OS or other software inbetween
+		 *       botchering the warp. */
+		this->queued_warp = queued_warp;
+		need_warp = true;
 	}
 	return need_warp;
 }
