@@ -3101,8 +3101,7 @@ void SetMouseCursorVehicle(const Vehicle *v, EngineImageType image_type)
 	for (;;) {
 		_cursor.sprite_seq[_cursor.sprite_count].sprite = v->GetImage(rtl ? DIR_E : DIR_W, image_type);
 		_cursor.sprite_seq[_cursor.sprite_count].pal = GetVehiclePalette(v);
-		_cursor.sprite_pos[_cursor.sprite_count].x = rtl ? -total_width : total_width;
-		_cursor.sprite_pos[_cursor.sprite_count].y = 0;
+		_cursor.sprite_seq[_cursor.sprite_count].pos = rtl ? -total_width : total_width;
 
 		total_width += GetSingleVehicleWidth(v, image_type);
 		_cursor.sprite_count++;
@@ -3116,7 +3115,7 @@ void SetMouseCursorVehicle(const Vehicle *v, EngineImageType image_type)
 	int offs = ((int)VEHICLEINFO_FULL_VEHICLE_WIDTH - total_width) / 2;
 	if (rtl) offs = -offs;
 	for (uint i = 0; i < _cursor.sprite_count; ++i) {
-		_cursor.sprite_pos[i].x += offs;
+		_cursor.sprite_seq[i].pos += offs;
 	}
 
 	UpdateCursorSize();

@@ -127,8 +127,11 @@ struct CursorVars {
 	int h_wheel;
 
 	/* Mouse appearance */
-	PalSpriteID sprite_seq[16];   ///< current image of cursor
-	Point sprite_pos[16];         ///< relative position of individual sprites
+	struct {
+		SpriteID sprite;  ///< The sprite
+		PaletteID pal;    ///< The palette
+		int pos;          ///< Relative position of the sprite
+	} sprite_seq[16];             ///< current image of cursor
 	uint sprite_count;            ///< number of sprites to draw
 	Point total_offs, total_size; ///< union of sprite properties
 

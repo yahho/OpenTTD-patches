@@ -1213,7 +1213,7 @@ void DrawMouseCursor()
 
 	/* Draw cursor on screen */
 	for (uint i = 0; i < _cursor.sprite_count; ++i) {
-		DrawSprite (&_screen, _cursor.sprite_seq[i].sprite, _cursor.sprite_seq[i].pal, _cursor.pos.x + _cursor.sprite_pos[i].x, _cursor.pos.y + _cursor.sprite_pos[i].y);
+		DrawSprite (&_screen, _cursor.sprite_seq[i].sprite, _cursor.sprite_seq[i].pal, _cursor.pos.x + _cursor.sprite_seq[i].pos, _cursor.pos.y);
 	}
 
 	VideoDriver::GetActiveDriver()->MakeDirty(_cursor.draw_pos.x, _cursor.draw_pos.y, _cursor.draw_size.x, _cursor.draw_size.y);
@@ -1470,13 +1470,12 @@ void UpdateCursorSize()
 	/* Ignore setting any cursor before the sprites are loaded. */
 	if (GetMaxSpriteID() == 0) return;
 
-	assert_compile(lengthof(_cursor.sprite_seq) == lengthof(_cursor.sprite_pos));
 	assert(_cursor.sprite_count <= lengthof(_cursor.sprite_seq));
 	for (uint i = 0; i < _cursor.sprite_count; ++i) {
 		const Sprite *p = GetSprite(GB(_cursor.sprite_seq[i].sprite, 0, SPRITE_WIDTH), ST_NORMAL);
 		Point offs, size;
-		offs.x = UnScaleGUI(p->x_offs) + _cursor.sprite_pos[i].x;
-		offs.y = UnScaleGUI(p->y_offs) + _cursor.sprite_pos[i].y;
+		offs.x = UnScaleGUI(p->x_offs) + _cursor.sprite_seq[i].pos;
+		offs.y = UnScaleGUI(p->y_offs);
 		size.x = UnScaleGUI(p->width);
 		size.y = UnScaleGUI(p->height);
 
@@ -1508,8 +1507,7 @@ static void SetCursorSprite(CursorID cursor, PaletteID pal)
 	_cursor.sprite_count = 1;
 	_cursor.sprite_seq[0].sprite = cursor;
 	_cursor.sprite_seq[0].pal = pal;
-	_cursor.sprite_pos[0].x = 0;
-	_cursor.sprite_pos[0].y = 0;
+	_cursor.sprite_seq[0].pos = 0;
 
 	UpdateCursorSize();
 }
