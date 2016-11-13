@@ -100,7 +100,7 @@ void StartStopVehicle(const Vehicle *v, bool texteffect);
 
 Vehicle *CheckClickOnVehicle (int x, int y);
 
-void DrawVehicleImage (const Vehicle *v, BlitArea *dpi, int left, int right, int y, VehicleID selection, EngineImageType image_type, int skip);
+void DrawVehicleImage (const Vehicle *v, BlitArea *dpi, int left, int right, int y, EngineImageType image_type, int skip = 0, VehicleID selection = INVALID_VEHICLE);
 void SetMouseCursorVehicle(const Vehicle *v, EngineImageType image_type);
 
 #endif /* VEHICLE_GUI_H */

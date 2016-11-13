@@ -747,7 +747,7 @@ struct RefitWindow : public Window {
 			case WID_VR_VEHICLE_PANEL_DISPLAY: {
 				Vehicle *v = Vehicle::Get(this->window_number);
 				DrawVehicleImage (v, dpi, this->sprite_left + WD_FRAMERECT_LEFT, this->sprite_right - WD_FRAMERECT_RIGHT,
-					r.top + WD_FRAMERECT_TOP, INVALID_VEHICLE, EIT_IN_DETAILS, this->hscroll != NULL ? this->hscroll->GetPosition() : 0);
+					r.top + WD_FRAMERECT_TOP, EIT_IN_DETAILS, this->hscroll != NULL ? this->hscroll->GetPosition() : 0);
 
 				/* Highlight selected vehicles. */
 				if (this->order != INVALID_VEH_ORDER_ID) break;
@@ -1422,11 +1422,12 @@ static void DrawSmallOrderList (const Vehicle *v, BlitArea *dpi,
  * @param left      The minimum horizontal position
  * @param right     The maximum horizontal position
  * @param y         Vertical position to draw at
- * @param selection Selected vehicle to draw a frame around
+ * @param image_type Draw this image type
  * @param skip      Number of pixels to skip at the front (for scrolling)
+ * @param selection Selected vehicle to draw a frame around
  */
 void DrawVehicleImage (const Vehicle *v, BlitArea *dpi, int left, int right,
-	int y, VehicleID selection, EngineImageType image_type, int skip)
+	int y, EngineImageType image_type, int skip, VehicleID selection)
 {
 	switch (v->type) {
 		case VEH_TRAIN:    DrawTrainImage (Train::From(v), dpi, left, right, y, selection, true, image_type, skip); break;
@@ -1494,7 +1495,7 @@ void BaseVehicleListWindow::DrawVehicleListItems (BlitArea *dpi,
 		SetDParam(0, v->GetDisplayProfitThisYear());
 		SetDParam(1, v->GetDisplayProfitLastYear());
 
-		DrawVehicleImage (v, dpi, image_left, image_right, y + FONT_HEIGHT_SMALL - 1, selected_vehicle, EIT_IN_LIST, 0);
+		DrawVehicleImage (v, dpi, image_left, image_right, y + FONT_HEIGHT_SMALL - 1, EIT_IN_LIST, 0, selected_vehicle);
 		DrawString (dpi, text_left, text_right, y + line_height - FONT_HEIGHT_SMALL - WD_FRAMERECT_BOTTOM - 1, STR_VEHICLE_LIST_PROFIT_THIS_YEAR_LAST_YEAR);
 
 		if (v->name != NULL) {
@@ -2239,12 +2240,12 @@ struct VehicleDetailsWindow : Window {
 
 				/* Articulated road vehicles use a complete line. */
 				if (v->type == VEH_ROAD && v->HasArticulatedPart()) {
-					DrawVehicleImage (v, dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP, INVALID_VEHICLE, EIT_IN_DETAILS, 0);
+					DrawVehicleImage (v, dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP, EIT_IN_DETAILS);
 				} else {
 					uint sprite_left  = rtl ? text_right : r.left;
 					uint sprite_right = rtl ? r.right : text_left;
 
-					DrawVehicleImage (v, dpi, sprite_left + WD_FRAMERECT_LEFT, sprite_right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP, INVALID_VEHICLE, EIT_IN_DETAILS, 0);
+					DrawVehicleImage (v, dpi, sprite_left + WD_FRAMERECT_LEFT, sprite_right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP, EIT_IN_DETAILS);
 				}
 				DrawVehicleDetails (v, dpi, text_left + WD_FRAMERECT_LEFT, text_right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP, 0, 0, this->tab);
 				break;
