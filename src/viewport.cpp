@@ -3251,10 +3251,9 @@ EventState VpHandlePlaceSizingDrag()
  * @param window_class %Window class of the window requesting the mode change.
  * @param window_num Number of the window in its class requesting the mode change.
  * @param icon New shape of the mouse cursor.
- * @param pal Palette to use.
  */
 void SetPointerMode (PointerMode mode, WindowClass window_class,
-	WindowNumber window_num, CursorID icon, PaletteID pal)
+	WindowNumber window_num, CursorID icon)
 {
 	if (_thd.window_class != WC_INVALID) {
 		/* Undo clicking on button and drag & drop */
@@ -3287,7 +3286,7 @@ void SetPointerMode (PointerMode mode, WindowClass window_class,
 	if ((icon & ANIMCURSOR_FLAG) != 0) {
 		SetAnimatedMouseCursor(_animcursors[icon & ~ANIMCURSOR_FLAG]);
 	} else {
-		SetMouseCursor(icon, pal);
+		SetMouseCursor (icon, PAL_NONE);
 	}
 
 }
