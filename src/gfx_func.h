@@ -154,7 +154,7 @@ bool InitBlitArea (const BlitArea *o, BlitArea *n, int left, int top, int width,
 void DrawOverlappedWindowForAll(int left, int top, int right, int bottom);
 
 void SetMouseCursorBusy(bool busy);
-void SetMouseCursor(CursorID cursor, PaletteID pal);
+void SetMouseCursor (CursorID cursor);
 void SetAnimatedMouseCursor(const AnimCursor *table);
 void CursorTick();
 void UpdateCursorSize();

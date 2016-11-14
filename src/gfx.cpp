@@ -1538,24 +1538,23 @@ void CursorTick()
 void SetMouseCursorBusy(bool busy)
 {
 	if (busy) {
-		if (_cursor.sprite_seq[0].sprite == SPR_CURSOR_MOUSE) SetMouseCursor(SPR_CURSOR_ZZZ, PAL_NONE);
+		if (_cursor.sprite_seq[0].sprite == SPR_CURSOR_MOUSE) SetMouseCursor (SPR_CURSOR_ZZZ);
 	} else {
-		if (_cursor.sprite_seq[0].sprite == SPR_CURSOR_ZZZ) SetMouseCursor(SPR_CURSOR_MOUSE, PAL_NONE);
+		if (_cursor.sprite_seq[0].sprite == SPR_CURSOR_ZZZ) SetMouseCursor (SPR_CURSOR_MOUSE);
 	}
 }
 
 /**
  * Assign a single non-animated sprite to the cursor.
  * @param sprite Sprite to draw for the cursor.
- * @param pal Palette to use for recolouring.
  * @see SetAnimatedMouseCursor
  */
-void SetMouseCursor(CursorID sprite, PaletteID pal)
+void SetMouseCursor (CursorID sprite)
 {
 	/* Turn off animation */
 	_cursor_animate_timeout = 0;
 	/* Set cursor */
-	SetCursorSprite(sprite, pal);
+	SetCursorSprite (sprite, PAL_NONE);
 }
 
 /**

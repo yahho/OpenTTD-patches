@@ -3286,7 +3286,7 @@ void SetPointerMode (PointerMode mode, WindowClass window_class,
 	if ((icon & ANIMCURSOR_FLAG) != 0) {
 		SetAnimatedMouseCursor(_animcursors[icon & ~ANIMCURSOR_FLAG]);
 	} else {
-		SetMouseCursor (icon, PAL_NONE);
+		SetMouseCursor (icon);
 	}
 
 }
