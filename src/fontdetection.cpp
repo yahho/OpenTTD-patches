@@ -29,6 +29,8 @@ extern FT_Library _library;
  * ======================================================================================== */
 
 #ifdef WIN32
+#include <vector>
+#include "core/pointer.h"
 #include "core/alloc_func.hpp"
 #include "core/math_func.hpp"
 #include <windows.h>
@@ -249,46 +251,11 @@ static void GetEnglishFontName (const ENUMLOGFONTEX *logfont,
 	}
 }
 
-class FontList {
-protected:
-	TCHAR **fonts;
-	uint items;
-	uint capacity;
-
-public:
-	FontList() : fonts(NULL), items(0), capacity(0) { };
-
-	~FontList() {
-		if (this->fonts == NULL) return;
-
-		for (uint i = 0; i < this->items; i++) {
-			free(this->fonts[i]);
-		}
-
-		free(this->fonts);
-	}
-
-	bool Add(const TCHAR *font) {
-		for (uint i = 0; i < this->items; i++) {
-			if (_tcscmp(this->fonts[i], font) == 0) return false;
-		}
-
-		if (this->items == this->capacity) {
-			this->capacity += 10;
-			this->fonts = xrealloct (this->fonts, this->capacity);
-		}
-
-		this->fonts[this->items++] = _tcsdup(font);
-
-		return true;
-	}
-};
-
 struct EFCParam {
 	FreeTypeSettings *settings;
 	LOCALESIGNATURE  locale;
 	MissingGlyphSearcher *callback;
-	FontList fonts;
+	std::vector <ttd_unique_free_ptr <TCHAR> > fonts;
 };
 
 static int CALLBACK EnumFontCallback(const ENUMLOGFONTEX *logfont, const NEWTEXTMETRICEX *metric, DWORD type, LPARAM lParam)
@@ -296,7 +263,11 @@ static int CALLBACK EnumFontCallback(const ENUMLOGFONTEX *logfont, const NEWTEXT
 	EFCParam *info = (EFCParam *)lParam;
 
 	/* Skip duplicates */
-	if (!info->fonts.Add((const TCHAR*)logfont->elfFullName)) return 1;
+	const TCHAR *fname = (const TCHAR*)logfont->elfFullName;
+	for (uint i = 0; i < info->fonts.size(); i++) {
+		if (_tcscmp (info->fonts[i].get(), fname) == 0) return 1;
+	}
+	info->fonts.push_back (ttd_unique_free_ptr<TCHAR> (_tcsdup (fname)));
 	/* Only use TrueType fonts */
 	if (!(type & TRUETYPE_FONTTYPE)) return 1;
 	/* Don't use SYMBOL fonts */
@@ -322,7 +293,7 @@ static int CALLBACK EnumFontCallback(const ENUMLOGFONTEX *logfont, const NEWTEXT
 	}
 
 	char font_name[MAX_PATH];
-	convert_from_fs((const TCHAR *)logfont->elfFullName, font_name, lengthof(font_name));
+	convert_from_fs (fname, font_name, lengthof(font_name));
 
 	/* Add english name after font name */
 	char english_name [MAX_PATH];
