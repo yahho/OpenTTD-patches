@@ -81,7 +81,7 @@ struct TextfileWindow : public Window {
 	virtual void OnResize();
 
 private:
-	struct GlyphSearcher : std::vector<const char *>::const_iterator, ::MissingGlyphSearcher {
+	struct GlyphSearcher : ::MissingGlyphSearcher {
 		const std::vector<const char *>::const_iterator begin;
 		const std::vector<const char *>::const_iterator end;
 		std::vector<const char *>::const_iterator iter;
