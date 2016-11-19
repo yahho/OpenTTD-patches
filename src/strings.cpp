@@ -1987,8 +1987,11 @@ bool MissingGlyphSearcher::FindMissingGlyphs (void)
 	this->Reset();
 	for (const char *text = this->NextString(); text != NULL; text = this->NextString()) {
 		FontSize size = this->DefaultSize();
-		for (WChar c = Utf8Consume(&text); c != '\0'; c = Utf8Consume(&text)) {
-			if (c == SCC_TINYFONT) {
+		for (;;) {
+			WChar c = Utf8Consume(&text);
+			if (c == '\0') {
+				break;
+			} else if (c == SCC_TINYFONT) {
 				size = FS_SMALL;
 			} else if (c == SCC_BIGFONT) {
 				size = FS_LARGE;
