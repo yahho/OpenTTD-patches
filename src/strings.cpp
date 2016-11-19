@@ -1973,11 +1973,9 @@ void MissingGlyphSearcher::SetFontNames (struct FreeTypeSettings *settings, cons
 
 /**
  * Check whether there are glyphs missing in the current language.
- * @param Pointer to an address for storing the text pointer.
  * @return If glyphs are missing, return \c true, else return \c false.
- * @post If \c true is returned and str is not NULL, *str points to a string that is found to contain at least one missing glyph.
  */
-bool MissingGlyphSearcher::FindMissingGlyphs(const char **str)
+bool MissingGlyphSearcher::FindMissingGlyphs (void)
 {
 	InitFreeType(this->Monospace());
 	const Sprite *question_mark[FS_END];
@@ -1989,7 +1987,6 @@ bool MissingGlyphSearcher::FindMissingGlyphs(const char **str)
 	this->Reset();
 	for (const char *text = this->NextString(); text != NULL; text = this->NextString()) {
 		FontSize size = this->DefaultSize();
-		if (str != NULL) *str = text;
 		for (WChar c = Utf8Consume(&text); c != '\0'; c = Utf8Consume(&text)) {
 			if (c == SCC_TINYFONT) {
 				size = FS_SMALL;
@@ -2055,7 +2052,7 @@ void CheckForMissingGlyphs(bool base_font, MissingGlyphSearcher *searcher)
 {
 	static LanguagePackGlyphSearcher pack_searcher;
 	if (searcher == NULL) searcher = &pack_searcher;
-	bool bad_font = !base_font || searcher->FindMissingGlyphs(NULL);
+	bool bad_font = !base_font || searcher->FindMissingGlyphs();
 #ifdef WITH_FREETYPE
 	if (bad_font) {
 		/* We found an unprintable character... lets try whether we can find
