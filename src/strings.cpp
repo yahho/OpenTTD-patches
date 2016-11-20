@@ -1546,11 +1546,6 @@ static const char * const _silly_surname_list[] = {
 	"Nutkins"
 };
 
-static const char _initial_name_letters[] = {
-	'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J',
-	'K', 'L', 'M', 'N', 'P', 'R', 'S', 'T', 'W',
-};
-
 static void GenAndCoName (stringb *buf, uint32 arg)
 {
 	const char * const *base;
@@ -1570,17 +1565,22 @@ static void GenAndCoName (stringb *buf, uint32 arg)
 
 static void GenPresidentName (stringb *buf, uint32 x)
 {
+	static const char initials[] = {
+		'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J',
+		'K', 'L', 'M', 'N', 'P', 'R', 'S', 'T', 'W',
+	};
+
 	char initial[] = "?. ";
 	const char * const *base;
 	uint num;
 	uint i;
 
-	initial[0] = _initial_name_letters[sizeof(_initial_name_letters) * GB(x, 0, 8) >> 8];
+	initial[0] = initials[sizeof(initials) * GB(x, 0, 8) >> 8];
 	buf->append (initial);
 
-	i = (sizeof(_initial_name_letters) + 35) * GB(x, 8, 8) >> 8;
-	if (i < sizeof(_initial_name_letters)) {
-		initial[0] = _initial_name_letters[i];
+	i = (sizeof(initials) + 35) * GB(x, 8, 8) >> 8;
+	if (i < sizeof(initials)) {
+		initial[0] = initials[i];
 		buf->append (initial);
 	}
 
