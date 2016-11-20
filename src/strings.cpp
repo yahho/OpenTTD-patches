@@ -1499,64 +1499,31 @@ static const char * const _silly_company_names[] = {
 	"Getout & Pushit Ltd."
 };
 
-static const char * const _surname_list[] = {
-	"Adams",
-	"Allan",
-	"Baker",
-	"Bigwig",
-	"Black",
-	"Bloggs",
-	"Brown",
-	"Campbell",
-	"Gordon",
-	"Hamilton",
-	"Hawthorn",
-	"Higgins",
-	"Green",
-	"Gribble",
-	"Jones",
-	"McAlpine",
-	"MacDonald",
-	"McIntosh",
-	"Muir",
-	"Murphy",
-	"Nelson",
-	"O'Donnell",
-	"Parker",
-	"Phillips",
-	"Pilkington",
-	"Quigley",
-	"Sharkey",
-	"Thomson",
-	"Watkins"
-};
-
-static const char * const _silly_surname_list[] = {
-	"Grumpy",
-	"Dozy",
-	"Speedy",
-	"Nosey",
-	"Dribble",
-	"Mushroom",
-	"Cabbage",
-	"Sniffle",
-	"Fishy",
-	"Swindle",
-	"Sneaky",
-	"Nutkins"
-};
-
 static const char *GenSurname (uint32 arg)
 {
+	static const char * const surname_list[] = {
+		"Adams",    "Allan",     "Baker",    "Bigwig",   "Black",
+		"Bloggs",   "Brown",     "Campbell", "Gordon",   "Hamilton",
+		"Hawthorn", "Higgins",   "Green",    "Gribble",  "Jones",
+		"McAlpine", "MacDonald", "McIntosh", "Muir",     "Murphy",
+		"Nelson",   "O'Donnell", "Parker",   "Phillips", "Pilkington",
+		"Quigley",  "Sharkey",   "Thomson",  "Watkins",
+	};
+
+	static const char * const silly_list[] = {
+		"Grumpy", "Dozy", "Speedy", "Nosey", "Dribble", "Mushroom",
+		"Cabbage", "Sniffle", "Fishy", "Swindle", "Sneaky", "Nutkins",
+	};
+
 	const char * const *base;
 	uint num;
 
 	if (_settings_game.game_creation.landscape == LT_TOYLAND) {
-		base = _silly_surname_list;
-		num  = lengthof(_silly_surname_list);
+		base = silly_list;
+		num  = lengthof(silly_list);
 	} else {
-		base = _surname_list;
-		num  = lengthof(_surname_list);
+		base = surname_list;
+		num  = lengthof(surname_list);
 	}
 
 	return base[num * GB(arg, 16, 8) >> 8];
