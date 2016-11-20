@@ -1483,22 +1483,6 @@ static void AppendStationSpecialString (stringb *buf, int x)
 }
 
 
-static const char * const _silly_company_names[] = {
-	"Bloggs Brothers",
-	"Tiny Transport Ltd.",
-	"Express Travel",
-	"Comfy-Coach & Co.",
-	"Crush & Bump Ltd.",
-	"Broken & Late Ltd.",
-	"Sam Speedy & Son",
-	"Supersonic Travel",
-	"Mike's Motors",
-	"Lightning International",
-	"Pannik & Loozit Ltd.",
-	"Inter-City Transport",
-	"Getout & Pushit Ltd."
-};
-
 static const char *GenSurname (uint32 arg)
 {
 	static const char * const surname_list[] = {
@@ -1559,9 +1543,25 @@ static void GenPresidentName (stringb *buf, uint32 x)
 
 static void AppendSpecialNameString (stringb *buf, int ind, StringParameters *args)
 {
+	static const char * const silly_company_names[] = {
+		"Bloggs Brothers",
+		"Tiny Transport Ltd.",
+		"Express Travel",
+		"Comfy-Coach & Co.",
+		"Crush & Bump Ltd.",
+		"Broken & Late Ltd.",
+		"Sam Speedy & Son",
+		"Supersonic Travel",
+		"Mike's Motors",
+		"Lightning International",
+		"Pannik & Loozit Ltd.",
+		"Inter-City Transport",
+		"Getout & Pushit Ltd.",
+	};
+
 	switch (ind) {
 		case 1: // not used
-			buf->append (_silly_company_names[min(args->GetInt32() & 0xFFFF, lengthof(_silly_company_names) - 1)]);
+			buf->append (silly_company_names[min(args->GetInt32() & 0xFFFF, lengthof(silly_company_names) - 1)]);
 			return;
 
 		case 2: // used for Foobar & Co company names
