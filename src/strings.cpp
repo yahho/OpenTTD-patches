@@ -1546,7 +1546,7 @@ static const char * const _silly_surname_list[] = {
 	"Nutkins"
 };
 
-static void GenAndCoName (stringb *buf, uint32 arg)
+static const char *GenSurname (uint32 arg)
 {
 	const char * const *base;
 	uint num;
@@ -1559,7 +1559,12 @@ static void GenAndCoName (stringb *buf, uint32 arg)
 		num  = lengthof(_surname_list);
 	}
 
-	buf->append (base[num * GB(arg, 16, 8) >> 8]);
+	return base[num * GB(arg, 16, 8) >> 8];
+}
+
+static void GenAndCoName (stringb *buf, uint32 arg)
+{
+	buf->append (GenSurname (arg));
 	buf->append (" & Co.");
 }
 
@@ -1571,8 +1576,6 @@ static void GenPresidentName (stringb *buf, uint32 x)
 	};
 
 	char initial[] = "?. ";
-	const char * const *base;
-	uint num;
 	uint i;
 
 	initial[0] = initials[sizeof(initials) * GB(x, 0, 8) >> 8];
@@ -1584,15 +1587,7 @@ static void GenPresidentName (stringb *buf, uint32 x)
 		buf->append (initial);
 	}
 
-	if (_settings_game.game_creation.landscape == LT_TOYLAND) {
-		base = _silly_surname_list;
-		num  = lengthof(_silly_surname_list);
-	} else {
-		base = _surname_list;
-		num  = lengthof(_surname_list);
-	}
-
-	buf->append (base[num * GB(x, 16, 8) >> 8]);
+	buf->append (GenSurname (x));
 }
 
 static void AppendSpecialNameString (stringb *buf, int ind, StringParameters *args)
