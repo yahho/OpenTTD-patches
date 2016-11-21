@@ -7248,14 +7248,18 @@ static int LoadFontGlyph (ByteReader *buf)
 		uint8  num_char  = buf->ReadByte();
 		uint16 base_char = buf->ReadWord();
 
+		FontCache *fc;
 		if (size >= FS_END) {
 			grfmsg(1, "LoadFontGlyph: Size %u is not supported, ignoring", size);
+			fc = NULL;
+		} else {
+			fc = FontCache::Get (size);
 		}
 
 		grfmsg(7, "LoadFontGlyph: Loading %u glyph(s) at 0x%04X for size %u", num_char, base_char, size);
 
 		for (uint c = 0; c < num_char; c++) {
-			if (size < FS_END) SetUnicodeGlyph(size, base_char + c, _cur.spriteid);
+			if (fc != NULL) fc->SetUnicodeGlyph (base_char + c, _cur.spriteid);
 			_cur.nfo_line++;
 			LoadNextSprite(_cur.spriteid++, _cur.file_index, _cur.nfo_line, _cur.grf_container_ver);
 		}
