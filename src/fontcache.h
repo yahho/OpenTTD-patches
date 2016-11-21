@@ -145,12 +145,6 @@ public:
 	}
 };
 
-/** Get the SpriteID mapped to the given font size and key */
-static inline SpriteID GetUnicodeGlyph(FontSize size, WChar key)
-{
-	return FontCache::Get(size)->GetUnicodeGlyph(key);
-}
-
 /** Map a SpriteID to the font size and key */
 static inline void SetUnicodeGlyph(FontSize size, WChar key, SpriteID sprite)
 {
