@@ -186,11 +186,6 @@ static inline uint GetGlyphWidth(FontSize size, WChar key)
 	return fc->GetGlyphWidth(fc->MapCharToGlyph(key));
 }
 
-static inline bool GetDrawGlyphShadow(FontSize size)
-{
-	return FontCache::Get(size)->GetDrawGlyphShadow();
-}
-
 #ifdef WITH_FREETYPE
 
 /** Settings for a single freetype font. */
