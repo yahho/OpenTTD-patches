@@ -5647,10 +5647,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\..\src\table\unicode.h"
-				>
-			</File>
-			<File
 				RelativePath=".\..\src\table\water_land.h"
 				>
 			</File>

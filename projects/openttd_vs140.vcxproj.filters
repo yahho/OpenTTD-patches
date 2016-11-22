@@ -1947,9 +1947,6 @@
     <ClInclude Include="..\src\table\tree_land.h">
       <Filter>Tables</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\table\unicode.h">
-      <Filter>Tables</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\table\water_land.h">
       <Filter>Tables</Filter>
     </ClInclude>

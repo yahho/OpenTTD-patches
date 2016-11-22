@@ -653,7 +653,6 @@ table/town_land.h
 table/track_land.h
 table/train_cmd.h
 table/tree_land.h
-table/unicode.h
 table/water_land.h
 
 # MD5
