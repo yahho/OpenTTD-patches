@@ -25,7 +25,6 @@
 #include "table/control_codes.h"
 #include "table/unicode.h"
 
-static const int ASCII_LETTERSTART = 32; ///< First printable ASCII letter.
 static const int MAX_FONT_SIZE     = 72; ///< Maximum font size.
 
 /** Default heights for the different sizes of fonts. */
@@ -119,20 +118,26 @@ void SpriteFontCache::SetUnicodeGlyph(GlyphID key, SpriteID sprite)
 
 void SpriteFontCache::InitializeUnicodeGlyphMap()
 {
+	static const uint ASCII_LETTERSTART = 32; ///< First printable ASCII letter.
+
+	/* Font sprites are contiguous and arranged by font size. */
+	static const uint delta = 256 - ASCII_LETTERSTART;
+	assert_compile (SPR_ASCII_SPACE_SMALL == SPR_ASCII_SPACE + delta);
+	assert_compile (SPR_ASCII_SPACE_BIG   == SPR_ASCII_SPACE + 2 * delta);
+
 	/* Clear out existing glyph map if it exists */
 	this->ClearGlyphToSpriteMap();
 
-	SpriteID base;
-	switch (this->fs) {
-		default: NOT_REACHED();
-		case FS_MONO:   // Use normal as default for mono spaced font, i.e. FALL THROUGH
-		case FS_NORMAL: base = SPR_ASCII_SPACE;       break;
-		case FS_SMALL:  base = SPR_ASCII_SPACE_SMALL; break;
-		case FS_LARGE:  base = SPR_ASCII_SPACE_BIG;   break;
-	}
+	assert_compile (FS_NORMAL == 0);
+	assert_compile (FS_SMALL  == 1);
+	assert_compile (FS_LARGE  == 2);
+	assert_compile (FS_MONO   == 3);
+
+	/* (this->fs % 3) maps FS_MONO to FS_NORMAL. */
+	SpriteID base = SPR_ASCII_SPACE + (this->fs % 3) * delta - ASCII_LETTERSTART;
 
 	for (uint i = ASCII_LETTERSTART; i < 256; i++) {
-		SpriteID sprite = base + i - ASCII_LETTERSTART;
+		SpriteID sprite = base + i;
 		if (!SpriteExists(sprite)) continue;
 		this->SetUnicodeGlyph(i, sprite);
 		this->SetUnicodeGlyph(i + SCC_SPRITE_START, sprite);
@@ -146,7 +151,7 @@ void SpriteFontCache::InitializeUnicodeGlyphMap()
 			 * entry only. */
 			this->SetUnicodeGlyph(_default_unicode_map[i].code, 0);
 		} else {
-			SpriteID sprite = base + key - ASCII_LETTERSTART;
+			SpriteID sprite = base + key;
 			this->SetUnicodeGlyph(_default_unicode_map[i].code, sprite);
 		}
 	}
