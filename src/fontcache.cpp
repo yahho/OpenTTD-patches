@@ -117,35 +117,6 @@ void SpriteFontCache::SetUnicodeGlyph(GlyphID key, SpriteID sprite)
 
 void SpriteFontCache::InitializeUnicodeGlyphMap()
 {
-	struct DefaultUnicodeMapping {
-		WChar code; ///< Unicode value
-		byte key;   ///< Character index of sprite
-	};
-
-	static const byte CLRA = 0; ///< Identifier to clear all glyphs at this codepoint
-
-	/* Default unicode mapping table for sprite based glyphs.
-	 * This table allows us use unicode characters even though the glyphs don't
-	 * exist, or are in the wrong place, in the standard sprite fonts.
-	 * This is not used for FreeType rendering */
-	static const DefaultUnicodeMapping _default_unicode_map[] = {
-		{ 0x00A0, 0x20 }, // Non-breaking space / Up arrow
-		{ 0x00AA, CLRA }, // Feminine ordinal indicator / Down arrow
-		{ 0x00AC, CLRA }, // Not sign / Tick mark
-		{ 0x00AD, 0x20 }, // Soft hyphen / X mark
-		{ 0x00AF, CLRA }, // Macron / Right arrow
-		{ 0x00B4, CLRA }, // Acute accent / Train symbol
-		{ 0x00B5, CLRA }, // Micro sign / Truck symbol
-		{ 0x00B6, CLRA }, // Pilcrow sign / Bus symbol
-		{ 0x00B7, CLRA }, // Middle dot / Aircraft symbol
-		{ 0x00B8, CLRA }, // Cedilla / Ship symbol
-		{ 0x00B9, CLRA }, // Superscript 1 / Superscript -1
-		{ 0x00BC, CLRA }, // One quarter / Small up arrow
-		{ 0x00BD, CLRA }, // One half / Small down arrow
-		{ 0x0178, 0x9F }, // Capital letter Y with diaeresis
-		{ 0x010D, 0x63 }, // Small letter c with caron
-	};
-
 	static const uint ASCII_LETTERSTART = 32; ///< First printable ASCII letter.
 
 	/* Font sprites are contiguous and arranged by font size. */
@@ -171,17 +142,40 @@ void SpriteFontCache::InitializeUnicodeGlyphMap()
 		this->SetUnicodeGlyph(i + SCC_SPRITE_START, sprite);
 	}
 
-	for (uint i = 0; i < lengthof(_default_unicode_map); i++) {
-		byte key = _default_unicode_map[i].key;
-		if (key == CLRA) {
-			/* Clear the glyph. This happens if the glyph at this code point
-			 * is non-standard and should be accessed by an SCC_xxx enum
-			 * entry only. */
-			this->SetUnicodeGlyph(_default_unicode_map[i].code, 0);
-		} else {
-			SpriteID sprite = base + key;
-			this->SetUnicodeGlyph(_default_unicode_map[i].code, sprite);
-		}
+	/* Glyphs to be accessed through an SCC_* enum entry only. */
+	static const byte clear_list[] = {
+		0xAA, // Feminine ordinal indicator / Down arrow
+		0xAC, // Not sign / Tick mark
+		0xAF, // Macron / Right arrow
+		0xB4, // Acute accent / Train symbol
+		0xB5, // Micro sign / Truck symbol
+		0xB6, // Pilcrow sign / Bus symbol
+		0xB7, // Middle dot / Aircraft symbol
+		0xB8, // Cedilla / Ship symbol
+		0xB9, // Superscript 1 / Superscript -1
+		0xBC, // One quarter / Small up arrow
+		0xBD, // One half / Small down arrow
+	};
+
+	for (uint i = 0; i < lengthof(clear_list); i++) {
+		this->SetUnicodeGlyph (clear_list[i], 0);
+	}
+
+	/* Default unicode mapping table for sprite based glyphs.
+	 * This table allows us use unicode characters even though the glyphs
+	 * don't exist, or are in the wrong place, in the standard sprite
+	 * fonts. This is not used for FreeType rendering */
+	static const uint16 translation_map[][2] = {
+		{ 0x00A0, 0x20 }, // Non-breaking space / Up arrow
+		{ 0x00AD, 0x20 }, // Soft hyphen / X mark
+		{ 0x0178, 0x9F }, // Capital letter Y with diaeresis
+		{ 0x010D, 0x63 }, // Small letter c with caron
+	};
+
+	for (uint i = 0; i < lengthof(translation_map); i++) {
+		WChar code = translation_map[i][0];
+		byte  key  = translation_map[i][1];
+		this->SetUnicodeGlyph (code, base + key);
 	}
 }
 
