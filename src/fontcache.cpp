@@ -68,6 +68,8 @@ class SpriteFontCache : public FontCache {
 private:
 	SpriteID **glyph_to_spriteid_map; ///< Mapping of glyphs to sprite IDs.
 
+	SpriteID GetGlyphSprite (GlyphID key) const;
+
 	void ClearGlyphToSpriteMap();
 public:
 	SpriteFontCache(FontSize fs);
@@ -198,17 +200,22 @@ void SpriteFontCache::ClearFontCache()
 	Layouter::ResetFontCache(this->fs);
 }
 
-const Sprite *SpriteFontCache::GetGlyph(GlyphID key)
+SpriteID SpriteFontCache::GetGlyphSprite (GlyphID key) const
 {
 	SpriteID sprite = this->GetUnicodeGlyph(key);
 	if (sprite == 0) sprite = this->GetUnicodeGlyph('?');
+	return sprite;
+}
+
+const Sprite *SpriteFontCache::GetGlyph(GlyphID key)
+{
+	SpriteID sprite = this->GetGlyphSprite (key);
 	return GetSprite(sprite, ST_FONT);
 }
 
 uint SpriteFontCache::GetGlyphWidth(GlyphID key)
 {
-	SpriteID sprite = this->GetUnicodeGlyph(key);
-	if (sprite == 0) sprite = this->GetUnicodeGlyph('?');
+	SpriteID sprite = this->GetGlyphSprite (key);
 	return SpriteExists(sprite) ? GetSprite(sprite, ST_FONT)->width + ScaleGUITrad(this->fs != FS_NORMAL ? 1 : 0) : 0;
 }
 
