@@ -268,7 +268,7 @@ private:
 	GlyphEntry **glyph_to_sprite;
 
 	GlyphEntry *GetGlyphPtr(GlyphID key);
-	void SetGlyphPtr(GlyphID key, const GlyphEntry *glyph, bool duplicate = false);
+	void SetGlyphPtr (GlyphID key, Sprite *sprite, byte width, bool duplicate = false);
 
 public:
 	FreeTypeFontCache(FontSize fs, FT_Face face, int pixels);
@@ -465,7 +465,7 @@ FreeTypeFontCache::GlyphEntry *FreeTypeFontCache::GetGlyphPtr(GlyphID key)
 }
 
 
-void FreeTypeFontCache::SetGlyphPtr(GlyphID key, const GlyphEntry *glyph, bool duplicate)
+void FreeTypeFontCache::SetGlyphPtr (GlyphID key, Sprite *sprite, byte width, bool duplicate)
 {
 	if (this->glyph_to_sprite == NULL) {
 		DEBUG(freetype, 3, "Allocating root glyph cache for size %u", this->fs);
@@ -478,8 +478,8 @@ void FreeTypeFontCache::SetGlyphPtr(GlyphID key, const GlyphEntry *glyph, bool d
 	}
 
 	DEBUG(freetype, 4, "Set glyph for unicode character 0x%04X, size %u", key, this->fs);
-	this->glyph_to_sprite[GB(key, 8, 8)][GB(key, 0, 8)].sprite    = glyph->sprite;
-	this->glyph_to_sprite[GB(key, 8, 8)][GB(key, 0, 8)].width     = glyph->width;
+	this->glyph_to_sprite[GB(key, 8, 8)][GB(key, 0, 8)].sprite    = sprite;
+	this->glyph_to_sprite[GB(key, 8, 8)][GB(key, 0, 8)].width     = width;
 	this->glyph_to_sprite[GB(key, 8, 8)][GB(key, 0, 8)].duplicate = duplicate;
 }
 
@@ -551,21 +551,18 @@ const Sprite *FreeTypeFontCache::GetGlyph(GlyphID key)
 
 	bool aa = GetFontAAState(this->fs);
 
-	GlyphEntry new_glyph;
 	if (key == 0) {
 		GlyphID question_glyph = this->MapCharToGlyph('?');
 		if (question_glyph == 0) {
 			/* The font misses the '?' character. Use built-in sprite. */
 			Sprite *spr = MakeBuiltinQuestionMark();
-			new_glyph.sprite = spr;
-			new_glyph.width  = spr->width + (this->fs != FS_NORMAL);
-			this->SetGlyphPtr(key, &new_glyph, false);
-			return new_glyph.sprite;
+			this->SetGlyphPtr (key, spr, spr->width + (this->fs != FS_NORMAL), false);
+			return spr;
 		} else {
 			/* Use '?' for missing characters. */
 			this->GetGlyph(question_glyph);
 			glyph = this->GetGlyphPtr(question_glyph);
-			this->SetGlyphPtr(key, glyph, true);
+			this->SetGlyphPtr (key, glyph->sprite, glyph->width, true);
 			return glyph->sprite;
 		}
 	}
@@ -611,12 +608,11 @@ const Sprite *FreeTypeFontCache::GetGlyph(GlyphID key)
 		}
 	}
 
-	new_glyph.sprite = Blitter::get()->Encode (&sprite, true, AllocateFont);
-	new_glyph.width  = slot->advance.x >> 6;
+	Sprite *spr = Blitter::get()->Encode (&sprite, true, AllocateFont);
 
-	this->SetGlyphPtr(key, &new_glyph);
+	this->SetGlyphPtr (key, spr, slot->advance.x >> 6);
 
-	return new_glyph.sprite;
+	return spr;
 }
 
 
