@@ -267,8 +267,8 @@ private:
 	 */
 	GlyphEntry **glyph_to_sprite;
 
+	GlyphEntry *SetGlyphPtr (GlyphID key, Sprite *sprite, byte width, bool duplicate = false);
 	GlyphEntry *GetGlyphPtr(GlyphID key);
-	void SetGlyphPtr (GlyphID key, Sprite *sprite, byte width, bool duplicate = false);
 
 public:
 	FreeTypeFontCache(FontSize fs, FT_Face face, int pixels);
@@ -465,7 +465,8 @@ FreeTypeFontCache::GlyphEntry *FreeTypeFontCache::GetGlyphPtr(GlyphID key)
 }
 
 
-void FreeTypeFontCache::SetGlyphPtr (GlyphID key, Sprite *sprite, byte width, bool duplicate)
+FreeTypeFontCache::GlyphEntry *FreeTypeFontCache::SetGlyphPtr (GlyphID key,
+	Sprite *sprite, byte width, bool duplicate)
 {
 	if (this->glyph_to_sprite == NULL) {
 		DEBUG(freetype, 3, "Allocating root glyph cache for size %u", this->fs);
@@ -478,9 +479,11 @@ void FreeTypeFontCache::SetGlyphPtr (GlyphID key, Sprite *sprite, byte width, bo
 	}
 
 	DEBUG(freetype, 4, "Set glyph for unicode character 0x%04X, size %u", key, this->fs);
-	this->glyph_to_sprite[GB(key, 8, 8)][GB(key, 0, 8)].sprite    = sprite;
-	this->glyph_to_sprite[GB(key, 8, 8)][GB(key, 0, 8)].width     = width;
-	this->glyph_to_sprite[GB(key, 8, 8)][GB(key, 0, 8)].duplicate = duplicate;
+	GlyphEntry *p = &this->glyph_to_sprite[GB(key, 8, 8)][GB(key, 0, 8)];
+	p->sprite    = sprite;
+	p->width     = width;
+	p->duplicate = duplicate;
+	return p;
 }
 
 static void *AllocateFont(size_t size)
