@@ -457,13 +457,6 @@ void FreeTypeFontCache::ClearFontCache()
 	Layouter::ResetFontCache(this->fs);
 }
 
-FreeTypeFontCache::GlyphEntry *FreeTypeFontCache::GetGlyphPtr(GlyphID key)
-{
-	if (this->glyph_to_sprite == NULL) return NULL;
-	if (this->glyph_to_sprite[GB(key, 8, 8)] == NULL) return NULL;
-	return &this->glyph_to_sprite[GB(key, 8, 8)][GB(key, 0, 8)];
-}
-
 
 FreeTypeFontCache::GlyphEntry *FreeTypeFontCache::SetGlyphPtr (GlyphID key,
 	Sprite *sprite, byte width, bool duplicate)
@@ -542,13 +535,16 @@ static Sprite *MakeBuiltinQuestionMark (void)
 	return spr;
 }
 
-const Sprite *FreeTypeFontCache::GetGlyph(GlyphID key)
+FreeTypeFontCache::GlyphEntry *FreeTypeFontCache::GetGlyphPtr (GlyphID key)
 {
-	if ((key & SPRITE_GLYPH) != 0) return parent->GetGlyph(key);
-
 	/* Check for the glyph in our cache */
-	GlyphEntry *glyph = this->GetGlyphPtr(key);
-	if (glyph != NULL && glyph->sprite != NULL) return glyph->sprite;
+	if (this->glyph_to_sprite != NULL) {
+		GlyphEntry *p = this->glyph_to_sprite[GB(key, 8, 8)];
+		if (p != NULL) {
+			GlyphEntry *glyph = &p[GB(key, 0, 8)];
+			if (glyph->sprite != NULL) return glyph;
+		}
+	}
 
 	FT_GlyphSlot slot = this->face->glyph;
 
@@ -559,14 +555,11 @@ const Sprite *FreeTypeFontCache::GetGlyph(GlyphID key)
 		if (question_glyph == 0) {
 			/* The font misses the '?' character. Use built-in sprite. */
 			Sprite *spr = MakeBuiltinQuestionMark();
-			this->SetGlyphPtr (key, spr, spr->width + (this->fs != FS_NORMAL), false);
-			return spr;
+			return this->SetGlyphPtr (key, spr, spr->width + (this->fs != FS_NORMAL), false);
 		} else {
 			/* Use '?' for missing characters. */
-			this->GetGlyph(question_glyph);
-			glyph = this->GetGlyphPtr(question_glyph);
-			this->SetGlyphPtr (key, glyph->sprite, glyph->width, true);
-			return glyph->sprite;
+			GlyphEntry *glyph = this->GetGlyphPtr (question_glyph);
+			return this->SetGlyphPtr (key, glyph->sprite, glyph->width, true);
 		}
 	}
 	FT_Load_Glyph(this->face, key, FT_LOAD_DEFAULT);
@@ -613,9 +606,14 @@ const Sprite *FreeTypeFontCache::GetGlyph(GlyphID key)
 
 	Sprite *spr = Blitter::get()->Encode (&sprite, true, AllocateFont);
 
-	this->SetGlyphPtr (key, spr, slot->advance.x >> 6);
+	return this->SetGlyphPtr (key, spr, slot->advance.x >> 6);
+}
 
-	return spr;
+const Sprite *FreeTypeFontCache::GetGlyph(GlyphID key)
+{
+	if ((key & SPRITE_GLYPH) != 0) return parent->GetGlyph(key);
+
+	return this->GetGlyphPtr(key)->sprite;
 }
 
 
@@ -629,13 +627,7 @@ uint FreeTypeFontCache::GetGlyphWidth(GlyphID key)
 {
 	if ((key & SPRITE_GLYPH) != 0) return this->parent->GetGlyphWidth(key);
 
-	GlyphEntry *glyph = this->GetGlyphPtr(key);
-	if (glyph == NULL || glyph->sprite == NULL) {
-		this->GetGlyph(key);
-		glyph = this->GetGlyphPtr(key);
-	}
-
-	return glyph->width;
+	return this->GetGlyphPtr(key)->width;
 }
 
 GlyphID FreeTypeFontCache::MapCharToGlyph(WChar key) const
