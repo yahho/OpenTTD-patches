@@ -271,7 +271,7 @@ private:
 	GlyphEntry *GetGlyphPtr(GlyphID key);
 
 public:
-	FreeTypeFontCache(FontSize fs, FT_Face face, int pixels);
+	FreeTypeFontCache (FontSize fs, FT_Face face, bool set_size);
 	~FreeTypeFontCache();
 	virtual SpriteID GetUnicodeGlyph(WChar key) const { return this->parent->GetUnicodeGlyph(key); }
 	virtual void SetUnicodeGlyph(WChar key, SpriteID sprite) { this->parent->SetUnicodeGlyph(key, sprite); }
@@ -297,38 +297,16 @@ static const byte SHADOW_COLOUR = 2;
  * @param fs     The font size that is going to be cached.
  * @param face   The font that has to be loaded.
  * @param pixels The number of pixels this font should be high.
+ * @param set_size Whether to set the cached size of the font.
  */
-FreeTypeFontCache::FreeTypeFontCache(FontSize fs, FT_Face face, int pixels) : FontCache(fs), face(face), glyph_to_sprite(NULL)
+FreeTypeFontCache::FreeTypeFontCache (FontSize fs, FT_Face face, bool set_size) :
+	FontCache (fs), face (face), glyph_to_sprite (NULL)
 {
-	FT_Error err = FT_Set_Pixel_Sizes(this->face, 0, pixels);
-	if (err != FT_Err_Ok) {
-
-		/* Find nearest size to that requested */
-		FT_Bitmap_Size *bs = this->face->available_sizes;
-		int i = this->face->num_fixed_sizes;
-		if (i > 0) { // In pathetic cases one might get no fixed sizes at all.
-			int n = bs->height;
-			FT_Int chosen = 0;
-			for (; --i; bs++) {
-				if (abs(pixels - bs->height) >= abs(pixels - n)) continue;
-				n = bs->height;
-				chosen = this->face->num_fixed_sizes - i;
-			}
-
-			/* Don't use FT_Set_Pixel_Sizes here - it might give us another
-			 * error, even though the size is available (FS#5885). */
-			err = FT_Select_Size(this->face, chosen);
-		}
-	}
-
-	if (err == FT_Err_Ok) {
+	if (set_size) {
 		this->units_per_em = this->face->units_per_EM;
 		this->ascender     = this->face->size->metrics.ascender >> 6;
 		this->descender    = this->face->size->metrics.descender >> 6;
 		this->height       = this->ascender - this->descender;
-	} else {
-		/* Both FT_Set_Pixel_Sizes and FT_Select_Size failed. */
-		DEBUG(freetype, 0, "Font size selection failed. Using FontCache defaults.");
 	}
 }
 
@@ -417,7 +395,37 @@ found_face:
 		}
 	}
 
-	new FreeTypeFontCache (fs, face, pixels);
+	err = FT_Set_Pixel_Sizes (face, 0, pixels);
+	if (err != FT_Err_Ok) {
+
+		/* Find nearest size to that requested */
+		FT_Bitmap_Size *bs = face->available_sizes;
+		int i = face->num_fixed_sizes;
+		if (i > 0) { // In pathetic cases one might get no fixed sizes at all.
+			int n = bs->height;
+			FT_Int chosen = 0;
+			for (; --i; bs++) {
+				if (abs (pixels - bs->height) >= abs (pixels - n)) continue;
+				n = bs->height;
+				chosen = face->num_fixed_sizes - i;
+			}
+
+			/* Don't use FT_Set_Pixel_Sizes here - it might give us another
+			 * error, even though the size is available (FS#5885). */
+			err = FT_Select_Size (face, chosen);
+		}
+	}
+
+	bool set_size;
+	if (err == FT_Err_Ok) {
+		set_size = true;
+	} else {
+		/* Both FT_Set_Pixel_Sizes and FT_Select_Size failed. */
+		DEBUG(freetype, 0, "Font size selection failed. Using FontCache defaults.");
+		set_size = false;
+	}
+
+	new FreeTypeFontCache (fs, face, set_size);
 }
 
 
