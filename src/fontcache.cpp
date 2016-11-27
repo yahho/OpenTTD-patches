@@ -15,7 +15,6 @@
 #include "fontdetection.h"
 #include "blitter/blitter.h"
 #include "core/math_func.hpp"
-#include "core/smallmap_type.hpp"
 #include "strings_func.h"
 #include "zoom_type.h"
 #include "gfx_layout.h"
@@ -30,25 +29,51 @@ static const int MAX_FONT_SIZE     = 72; ///< Maximum font size.
 static const int _default_font_height[FS_END]   = {10, 6, 18, 10};
 static const int _default_font_ascender[FS_END] = { 8, 5, 15,  8};
 
+#ifdef WITH_FREETYPE
+
+FT_Library _library = NULL;
+
+FreeTypeSettings _freetype;
+
+static const byte FACE_COLOUR   = 1;
+static const byte SHADOW_COLOUR = 2;
+
+#endif /* WITH_FREETYPE */
+
+
+/** Reset font metrics of the font. */
+void FontCache::ResetFontMetrics (void)
+{
+	FontSize fs = this->fs;
+	int height   = _default_font_height[fs];
+	int ascender = _default_font_ascender[fs];
+	this->height    = ScaleGUITrad (height);
+	this->ascender  = ScaleGUITrad (ascender);
+	this->descender = ScaleGUITrad (ascender - height);
+	this->units_per_em = 1;
+}
+
 /**
  * Create a new font cache.
  * @param fs The size of the font.
  */
-FontCache::FontCache(FontSize fs) : parent(FontCache::Get(fs)), fs(fs), height(_default_font_height[fs]),
-		ascender(_default_font_ascender[fs]), descender(_default_font_ascender[fs] - _default_font_height[fs]),
-		units_per_em(1)
+FontCache::FontCache (FontSize fs) : glyph_to_spriteid_map (NULL),
+#ifdef WITH_FREETYPE
+	glyph_to_sprite (NULL), font_tables(), face (NULL),
+#endif /* WITH_FREETYPE */
+	fs (fs)
 {
-	assert(parent == NULL || this->fs == parent->fs);
-	FontCache::caches[this->fs] = this;
-	Layouter::ResetFontCache(this->fs);
+	this->ResetFontMetrics();
+	this->InitializeUnicodeGlyphMap();
 }
 
 /** Clean everything up. */
 FontCache::~FontCache()
 {
-	assert(this->fs == parent->fs);
-	FontCache::caches[this->fs] = this->parent;
-	Layouter::ResetFontCache(this->fs);
+#ifdef WITH_FREETYPE
+	this->UnloadFreeTypeFont();
+#endif /* WITH_FREETYPE */
+	this->ClearGlyphToSpriteMap();
 }
 
 
@@ -63,61 +88,20 @@ int GetCharacterHeight(FontSize size)
 }
 
 
-/** Font cache for fonts that are based on a freetype font. */
-class SpriteFontCache : public FontCache {
-private:
-	SpriteID **glyph_to_spriteid_map; ///< Mapping of glyphs to sprite IDs.
-
-	SpriteID GetGlyphSprite (GlyphID key) const;
-
-	void ClearGlyphToSpriteMap();
-public:
-	SpriteFontCache(FontSize fs);
-	~SpriteFontCache();
-	virtual SpriteID GetUnicodeGlyph(WChar key) const;
-	virtual void SetUnicodeGlyph(WChar key, SpriteID sprite);
-	virtual void InitializeUnicodeGlyphMap();
-	virtual void ClearFontCache();
-	virtual const Sprite *GetGlyph(GlyphID key);
-	virtual uint GetGlyphWidth(GlyphID key);
-	virtual int GetHeight() const;
-	virtual bool GetDrawGlyphShadow() const;
-	virtual GlyphID MapCharToGlyph(WChar key) const { assert(IsPrintable(key)); return SPRITE_GLYPH | key; }
-	virtual const void *GetFontTable(uint32 tag, size_t &length) { length = 0; return NULL; }
-	virtual const char *GetFontName() const { return "sprite"; }
-};
-
-/**
- * Create a new sprite font cache.
- * @param fs The font size to create the cache for.
- */
-SpriteFontCache::SpriteFontCache(FontSize fs) : FontCache(fs), glyph_to_spriteid_map(NULL)
-{
-	this->InitializeUnicodeGlyphMap();
-}
-
-/**
- * Free everything we allocated.
- */
-SpriteFontCache::~SpriteFontCache()
-{
-	this->ClearGlyphToSpriteMap();
-}
-
-SpriteID SpriteFontCache::GetUnicodeGlyph(GlyphID key) const
+SpriteID FontCache::GetUnicodeGlyph (GlyphID key) const
 {
 	if (this->glyph_to_spriteid_map[GB(key, 8, 8)] == NULL) return 0;
 	return this->glyph_to_spriteid_map[GB(key, 8, 8)][GB(key, 0, 8)];
 }
 
-void SpriteFontCache::SetUnicodeGlyph(GlyphID key, SpriteID sprite)
+void FontCache::SetUnicodeGlyph (GlyphID key, SpriteID sprite)
 {
 	if (this->glyph_to_spriteid_map == NULL) this->glyph_to_spriteid_map = xcalloct<SpriteID*>(256);
 	if (this->glyph_to_spriteid_map[GB(key, 8, 8)] == NULL) this->glyph_to_spriteid_map[GB(key, 8, 8)] = xcalloct<SpriteID>(256);
 	this->glyph_to_spriteid_map[GB(key, 8, 8)][GB(key, 0, 8)] = sprite;
 }
 
-void SpriteFontCache::InitializeUnicodeGlyphMap()
+void FontCache::InitializeUnicodeGlyphMap (void)
 {
 	static const uint ASCII_LETTERSTART = 32; ///< First printable ASCII letter.
 
@@ -184,7 +168,7 @@ void SpriteFontCache::InitializeUnicodeGlyphMap()
 /**
  * Clear the glyph to sprite mapping.
  */
-void SpriteFontCache::ClearGlyphToSpriteMap()
+void FontCache::ClearGlyphToSpriteMap (void)
 {
 	if (this->glyph_to_spriteid_map == NULL) return;
 
@@ -195,130 +179,32 @@ void SpriteFontCache::ClearGlyphToSpriteMap()
 	this->glyph_to_spriteid_map = NULL;
 }
 
-void SpriteFontCache::ClearFontCache()
-{
-	Layouter::ResetFontCache(this->fs);
-}
-
-SpriteID SpriteFontCache::GetGlyphSprite (GlyphID key) const
+SpriteID FontCache::GetGlyphSprite (GlyphID key) const
 {
 	SpriteID sprite = this->GetUnicodeGlyph(key);
 	if (sprite == 0) sprite = this->GetUnicodeGlyph('?');
 	return sprite;
 }
 
-const Sprite *SpriteFontCache::GetGlyph(GlyphID key)
-{
-	SpriteID sprite = this->GetGlyphSprite (key);
-	return GetSprite(sprite, ST_FONT);
-}
-
-uint SpriteFontCache::GetGlyphWidth(GlyphID key)
-{
-	SpriteID sprite = this->GetGlyphSprite (key);
-	return SpriteExists(sprite) ? GetSprite(sprite, ST_FONT)->width + ScaleGUITrad(this->fs != FS_NORMAL ? 1 : 0) : 0;
-}
-
-int SpriteFontCache::GetHeight() const
-{
-	return ScaleGUITrad(this->height);
-}
-
-bool SpriteFontCache::GetDrawGlyphShadow() const
-{
-	return false;
-}
-
-/* static */ FontCache *FontCache::caches[FS_END] = { new SpriteFontCache(FS_NORMAL), new SpriteFontCache(FS_SMALL), new SpriteFontCache(FS_LARGE), new SpriteFontCache(FS_MONO) };
 
 #ifdef WITH_FREETYPE
-#include <ft2build.h>
-#include FT_FREETYPE_H
-#include FT_GLYPH_H
-#include FT_TRUETYPE_TABLES_H
-
-/** Font cache for fonts that are based on a freetype font. */
-class FreeTypeFontCache : public FontCache {
-private:
-	FT_Face face;  ///< The font face associated with this font.
-
-	typedef SmallMap<uint32, SmallPair<size_t, const void*> > FontTable; ///< Table with font table cache
-	FontTable font_tables; ///< Cached font tables.
-
-	/** Container for information about a glyph. */
-	struct GlyphEntry {
-		Sprite *sprite; ///< The loaded sprite.
-		byte width;     ///< The width of the glyph.
-		bool duplicate; ///< Whether this glyph entry is a duplicate, i.e. may this be freed?
-	};
-
-	/**
-	 * The glyph cache. This is structured to reduce memory consumption.
-	 * 1) There is a 'segment' table for each font size.
-	 * 2) Each segment table is a discrete block of characters.
-	 * 3) Each block contains 256 (aligned) characters sequential characters.
-	 *
-	 * The cache is accessed in the following way:
-	 * For character 0x0041  ('A'): glyph_to_sprite[0x00][0x41]
-	 * For character 0x20AC (Euro): glyph_to_sprite[0x20][0xAC]
-	 *
-	 * Currently only 256 segments are allocated, "limiting" us to 65536 characters.
-	 * This can be simply changed in the two functions Get & SetGlyphPtr.
-	 */
-	GlyphEntry **glyph_to_sprite;
-
-	GlyphEntry *SetGlyphPtr (GlyphID key, Sprite *sprite, byte width, bool duplicate = false);
-	GlyphEntry *GetGlyphPtr(GlyphID key);
-
-public:
-	FreeTypeFontCache (FontSize fs, FT_Face face, bool set_size);
-	~FreeTypeFontCache();
-	virtual SpriteID GetUnicodeGlyph(WChar key) const { return this->parent->GetUnicodeGlyph(key); }
-	virtual void SetUnicodeGlyph(WChar key, SpriteID sprite) { this->parent->SetUnicodeGlyph(key, sprite); }
-	virtual void InitializeUnicodeGlyphMap() { this->parent->InitializeUnicodeGlyphMap(); }
-	virtual void ClearFontCache();
-	virtual const Sprite *GetGlyph(GlyphID key);
-	virtual uint GetGlyphWidth(GlyphID key);
-	virtual bool GetDrawGlyphShadow() const;
-	virtual GlyphID MapCharToGlyph(WChar key) const;
-	virtual const void *GetFontTable(uint32 tag, size_t &length);
-	virtual const char *GetFontName() const { return face->family_name; }
-};
-
-FT_Library _library = NULL;
-
-FreeTypeSettings _freetype;
-
-static const byte FACE_COLOUR   = 1;
-static const byte SHADOW_COLOUR = 2;
-
-/**
- * Create a new FreeTypeFontCache.
- * @param fs     The font size that is going to be cached.
- * @param face   The font that has to be loaded.
- * @param pixels The number of pixels this font should be high.
- * @param set_size Whether to set the cached size of the font.
- */
-FreeTypeFontCache::FreeTypeFontCache (FontSize fs, FT_Face face, bool set_size) :
-	FontCache (fs), face (face), glyph_to_sprite (NULL)
-{
-	if (set_size) {
-		this->units_per_em = this->face->units_per_EM;
-		this->ascender     = this->face->size->metrics.ascender >> 6;
-		this->descender    = this->face->size->metrics.descender >> 6;
-		this->height       = this->ascender - this->descender;
-	}
-}
 
 /**
  * Loads the freetype font.
  * First type to load the fontname as if it were a path. If that fails,
  * try to resolve the filename of the font using fontconfig, where the
  * format is 'font family name' or 'font family name, font style'.
- * @param fs The font size to load.
  */
-static void LoadFreeTypeFont(FontSize fs)
+void FontCache::LoadFreeTypeFont (void)
 {
+	this->UnloadFreeTypeFont();
+
+	assert (this->face == NULL);
+	assert (this->font_tables.Length() == 0);
+	assert (this->glyph_to_sprite == NULL);
+
+	FontSize fs = this->fs;
+
 	FreeTypeSubSetting *settings = NULL;
 	switch (fs) {
 		default: NOT_REACHED();
@@ -380,6 +266,7 @@ static void LoadFreeTypeFont(FontSize fs)
 
 found_face:
 	assert(face != NULL);
+	this->face = face;
 
 	int pixels = settings->size;
 	if (pixels == 0) {
@@ -416,58 +303,73 @@ found_face:
 		}
 	}
 
-	bool set_size;
 	if (err == FT_Err_Ok) {
-		set_size = true;
+		this->units_per_em = this->face->units_per_EM;
+		this->ascender     = this->face->size->metrics.ascender >> 6;
+		this->descender    = this->face->size->metrics.descender >> 6;
+		this->height       = this->ascender - this->descender;
 	} else {
 		/* Both FT_Set_Pixel_Sizes and FT_Select_Size failed. */
 		DEBUG(freetype, 0, "Font size selection failed. Using FontCache defaults.");
-		set_size = false;
 	}
-
-	new FreeTypeFontCache (fs, face, set_size);
 }
 
-
-/**
- * Free everything that was allocated for this font cache.
- */
-FreeTypeFontCache::~FreeTypeFontCache()
+/** Unload the freetype font. */
+void FontCache::UnloadFreeTypeFont (void)
 {
-	FT_Done_Face(this->face);
+	if (this->face == NULL) return;
+
 	this->ClearFontCache();
+	assert (this->glyph_to_sprite == NULL);
 
 	for (FontTable::iterator iter = this->font_tables.Begin(); iter != this->font_tables.End(); iter++) {
 		free(iter->second.second);
 	}
+
+	this->font_tables.Clear();
+
+	FT_Done_Face(this->face);
+	this->face = NULL;
+
+	this->ResetFontMetrics();
 }
 
-/**
- * Reset cached glyphs.
- */
-void FreeTypeFontCache::ClearFontCache()
+#endif /* WITH_FREETYPE */
+
+
+/** Reset cached glyphs. */
+void FontCache::ClearFontCache (void)
 {
-	if (this->glyph_to_sprite == NULL) return;
+#ifdef WITH_FREETYPE
+	if (this->face == NULL) {
+		assert (this->glyph_to_sprite == NULL);
+		this->ResetFontMetrics();
+	} else if (this->glyph_to_sprite != NULL) {
+		for (int i = 0; i < 256; i++) {
+			if (this->glyph_to_sprite[i] == NULL) continue;
 
-	for (int i = 0; i < 256; i++) {
-		if (this->glyph_to_sprite[i] == NULL) continue;
+			for (int j = 0; j < 256; j++) {
+				if (this->glyph_to_sprite[i][j].duplicate) continue;
+				free (this->glyph_to_sprite[i][j].sprite);
+			}
 
-		for (int j = 0; j < 256; j++) {
-			if (this->glyph_to_sprite[i][j].duplicate) continue;
-			free(this->glyph_to_sprite[i][j].sprite);
+			free (this->glyph_to_sprite[i]);
 		}
 
-		free(this->glyph_to_sprite[i]);
+		free (this->glyph_to_sprite);
+		this->glyph_to_sprite = NULL;
 	}
-
-	free(this->glyph_to_sprite);
-	this->glyph_to_sprite = NULL;
+#else  /* WITH_FREETYPE */
+	this->ResetFontMetrics();
+#endif /* WITH_FREETYPE */
 
 	Layouter::ResetFontCache(this->fs);
 }
 
 
-FreeTypeFontCache::GlyphEntry *FreeTypeFontCache::SetGlyphPtr (GlyphID key,
+#ifdef WITH_FREETYPE
+
+FontCache::GlyphEntry *FontCache::SetGlyphPtr (GlyphID key,
 	Sprite *sprite, byte width, bool duplicate)
 {
 	if (this->glyph_to_sprite == NULL) {
@@ -493,7 +395,6 @@ static void *AllocateFont(size_t size)
 	return xmalloc (size);
 }
 
-
 /* Check if a glyph should be rendered with antialiasing */
 static bool GetFontAAState(FontSize size)
 {
@@ -508,7 +409,6 @@ static bool GetFontAAState(FontSize size)
 		case FS_MONO:   return _freetype.mono.aa;
 	}
 }
-
 
 static Sprite *MakeBuiltinQuestionMark (void)
 {
@@ -544,7 +444,7 @@ static Sprite *MakeBuiltinQuestionMark (void)
 	return spr;
 }
 
-FreeTypeFontCache::GlyphEntry *FreeTypeFontCache::GetGlyphPtr (GlyphID key)
+FontCache::GlyphEntry *FontCache::GetGlyphPtr (GlyphID key)
 {
 	/* Check for the glyph in our cache */
 	if (this->glyph_to_sprite != NULL) {
@@ -618,62 +518,103 @@ FreeTypeFontCache::GlyphEntry *FreeTypeFontCache::GetGlyphPtr (GlyphID key)
 	return this->SetGlyphPtr (key, spr, slot->advance.x >> 6);
 }
 
-const Sprite *FreeTypeFontCache::GetGlyph(GlyphID key)
-{
-	if ((key & SPRITE_GLYPH) != 0) return parent->GetGlyph(key);
+#endif /* WITH_FREETYPE */
 
-	return this->GetGlyphPtr(key)->sprite;
+const Sprite *FontCache::GetGlyph (GlyphID key)
+{
+#ifdef WITH_FREETYPE
+	if ((this->face != NULL) && ((key & SPRITE_GLYPH) == 0)) {
+		return this->GetGlyphPtr(key)->sprite;
+	}
+#endif /* WITH_FREETYPE */
+
+	return GetSprite (this->GetGlyphSprite (key), ST_FONT);
 }
 
-
-bool FreeTypeFontCache::GetDrawGlyphShadow() const
+bool FontCache::GetDrawGlyphShadow (void) const
 {
-	return this->fs == FS_NORMAL && GetFontAAState(FS_NORMAL);
+#ifdef WITH_FREETYPE
+	return this->fs == FS_NORMAL && GetFontAAState (FS_NORMAL);
+#else  /* WITH_FREETYPE */
+	return false;
+#endif /* WITH_FREETYPE */
 }
 
-
-uint FreeTypeFontCache::GetGlyphWidth(GlyphID key)
+uint FontCache::GetGlyphWidth (GlyphID key)
 {
-	if ((key & SPRITE_GLYPH) != 0) return this->parent->GetGlyphWidth(key);
+#ifdef WITH_FREETYPE
+	if ((this->face != NULL) && ((key & SPRITE_GLYPH) == 0)) {
+		return this->GetGlyphPtr(key)->width;
+	}
+#endif /* WITH_FREETYPE */
 
-	return this->GetGlyphPtr(key)->width;
+	SpriteID sprite = this->GetGlyphSprite (key);
+	return SpriteExists(sprite) ? GetSprite(sprite, ST_FONT)->width + ScaleGUITrad(this->fs != FS_NORMAL ? 1 : 0) : 0;
 }
 
-GlyphID FreeTypeFontCache::MapCharToGlyph(WChar key) const
+GlyphID FontCache::MapCharToGlyph (WChar key) const
 {
 	assert(IsPrintable(key));
 
-	if (key >= SCC_SPRITE_START && key <= SCC_SPRITE_END) {
-		return this->parent->MapCharToGlyph(key);
+#ifdef WITH_FREETYPE
+	if ((this->face != NULL)
+			&& (key < SCC_SPRITE_START || key > SCC_SPRITE_END)) {
+		return FT_Get_Char_Index (this->face, key);
 	}
-
-	return FT_Get_Char_Index(this->face, key);
-}
-
-const void *FreeTypeFontCache::GetFontTable(uint32 tag, size_t &length)
-{
-	const FontTable::iterator iter = this->font_tables.Find(tag);
-	if (iter != this->font_tables.End()) {
-		length = iter->second.first;
-		return iter->second.second;
-	}
-
-	FT_ULong len = 0;
-	FT_Byte *result = NULL;
-
-	FT_Load_Sfnt_Table(this->face, tag, 0, NULL, &len);
-
-	if (len > 0) {
-		result = xmalloct<FT_Byte>(len);
-		FT_Load_Sfnt_Table(this->face, tag, 0, result, &len);
-	}
-	length = len;
-
-	this->font_tables.Insert(tag, SmallPair<size_t, const void *>(length, result));
-	return result;
-}
-
 #endif /* WITH_FREETYPE */
+
+	return SPRITE_GLYPH | key;
+}
+
+const void *FontCache::GetFontTable (uint32 tag, size_t &length)
+{
+#ifdef WITH_FREETYPE
+	if (this->face != NULL) {
+		const FontTable::iterator iter = this->font_tables.Find(tag);
+		if (iter != this->font_tables.End()) {
+			length = iter->second.first;
+			return iter->second.second;
+		}
+
+		FT_ULong len = 0;
+		FT_Byte *result = NULL;
+
+		FT_Load_Sfnt_Table (this->face, tag, 0, NULL, &len);
+
+		if (len > 0) {
+			result = xmalloct<FT_Byte>(len);
+			FT_Load_Sfnt_Table (this->face, tag, 0, result, &len);
+		}
+		length = len;
+
+		this->font_tables.Insert (tag, SmallPair<size_t, const void *>(length, result));
+		return result;
+	}
+#endif /* WITH_FREETYPE */
+
+	length = 0;
+	return NULL;
+}
+
+const char *FontCache::GetFontName (void) const
+{
+#ifdef WITH_FREETYPE
+	if (this->face != NULL) return this->face->family_name;
+#endif /* WITH_FREETYPE */
+
+	return "sprite";
+}
+
+
+FontCache FontCache::cache [FS_END] = {
+	FontCache (FS_NORMAL),
+	FontCache (FS_SMALL),
+	FontCache (FS_LARGE),
+	FontCache (FS_MONO),
+};
+
+
+#ifdef WITH_FREETYPE
 
 /**
  * (Re)initialize the freetype related things, i.e. load the non-sprite fonts.
@@ -683,13 +624,7 @@ void InitFreeType(bool monospace)
 {
 	for (FontSize fs = FS_BEGIN; fs < FS_END; fs++) {
 		if (monospace != (fs == FS_MONO)) continue;
-
-		FontCache *fc = FontCache::Get(fs);
-		if (fc->HasParent()) delete fc;
-
-#ifdef WITH_FREETYPE
-		LoadFreeTypeFont(fs);
-#endif
+		FontCache::Get(fs)->LoadFreeTypeFont();
 	}
 }
 
@@ -699,12 +634,11 @@ void InitFreeType(bool monospace)
 void UninitFreeType()
 {
 	for (FontSize fs = FS_BEGIN; fs < FS_END; fs++) {
-		FontCache *fc = FontCache::Get(fs);
-		if (fc->HasParent()) delete fc;
+		FontCache::Get(fs)->UnloadFreeTypeFont();
 	}
 
-#ifdef WITH_FREETYPE
 	FT_Done_FreeType(_library);
 	_library = NULL;
-#endif /* WITH_FREETYPE */
 }
+
+#endif /* WITH_FREETYPE */

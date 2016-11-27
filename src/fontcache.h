@@ -12,6 +12,14 @@
 #ifndef FONTCACHE_H
 #define FONTCACHE_H
 
+#ifdef WITH_FREETYPE
+#include <ft2build.h>
+#include FT_FREETYPE_H
+#include FT_GLYPH_H
+#include FT_TRUETYPE_TABLES_H
+#endif /* WITH_FREETYPE */
+
+#include "core/smallmap_type.hpp"
 #include "string.h"
 #include "spritecache.h"
 
@@ -22,18 +30,65 @@ static const GlyphID SPRITE_GLYPH = 1U << 30;
 /** Font cache for basic fonts. */
 class FontCache {
 private:
-	static FontCache *caches[FS_END]; ///< All the font caches.
-protected:
-	FontCache *parent;                ///< The parent of this font cache.
+	static FontCache cache [FS_END]; ///< All the font caches.
+
+	SpriteID **glyph_to_spriteid_map; ///< Mapping of glyphs to sprite IDs.
+
+#ifdef WITH_FREETYPE
+
+	/** Container for information about a FreeType glyph. */
+	struct GlyphEntry {
+		Sprite *sprite; ///< The loaded sprite.
+		byte width;     ///< The width of the glyph.
+		bool duplicate; ///< Whether this glyph entry is a duplicate, i.e. may this be freed?
+	};
+
+	/**
+	 * The glyph cache. This is structured to reduce memory consumption.
+	 * 1) There is a 'segment' table for each font size.
+	 * 2) Each segment table is a discrete block of characters.
+	 * 3) Each block contains 256 (aligned) characters sequential characters.
+	 *
+	 * The cache is accessed in the following way:
+	 * For character 0x0041  ('A'): glyph_to_sprite[0x00][0x41]
+	 * For character 0x20AC (Euro): glyph_to_sprite[0x20][0xAC]
+	 *
+	 * Currently only 256 segments are allocated, "limiting" us to 65536 characters.
+	 * This can be simply changed in the two functions Get & SetGlyphPtr.
+	 */
+	GlyphEntry **glyph_to_sprite;
+
+	typedef SmallMap<uint32, SmallPair<size_t, const void*> > FontTable; ///< Table with font table cache
+
+	FontTable font_tables; ///< Cached font tables.
+
+	FT_Face face;  ///< The font face associated with this font.
+
+#endif /* WITH_FREETYPE */
+
 	const FontSize fs;                ///< The size of the font.
 	int height;                       ///< The height of the font.
 	int ascender;                     ///< The ascender value of the font.
 	int descender;                    ///< The descender value of the font.
 	int units_per_em;                 ///< The units per EM value of the font.
-public:
-	FontCache(FontSize fs);
-	virtual ~FontCache();
 
+	void ResetFontMetrics (void);
+
+	void ClearGlyphToSpriteMap (void);
+
+	SpriteID GetGlyphSprite (GlyphID key) const;
+
+#ifdef WITH_FREETYPE
+
+	GlyphEntry *SetGlyphPtr (GlyphID key, Sprite *sprite, byte width, bool duplicate = false);
+	GlyphEntry *GetGlyphPtr (GlyphID key);
+
+#endif /* WITH_FREETYPE */
+
+	FontCache(FontSize fs);
+	~FontCache();
+
+public:
 	/**
 	 * Get the FontSize of the font.
 	 * @return The FontSize.
@@ -44,7 +99,7 @@ public:
 	 * Get the height of the font.
 	 * @return The height of the font.
 	 */
-	virtual int GetHeight() const { return this->height; }
+	inline int GetHeight() const { return this->height; }
 
 	/**
 	 * Get the ascender value of the font.
@@ -69,47 +124,57 @@ public:
 	 * @param key The key to get the sprite for.
 	 * @return The sprite.
 	 */
-	virtual SpriteID GetUnicodeGlyph(WChar key) const = 0;
+	SpriteID GetUnicodeGlyph (WChar key) const;
 
 	/**
 	 * Map a SpriteID to the key
 	 * @param key The key to map to.
 	 * @param sprite The sprite that is being mapped.
 	 */
-	virtual void SetUnicodeGlyph(WChar key, SpriteID sprite) = 0;
+	void SetUnicodeGlyph (WChar key, SpriteID sprite);
 
 	/** Initialize the glyph map */
-	virtual void InitializeUnicodeGlyphMap() = 0;
+	void InitializeUnicodeGlyphMap (void);
+
+#ifdef WITH_FREETYPE
+
+	/* Load the freetype font. */
+	void LoadFreeTypeFont (void);
+
+	/* Unload the freetype font. */
+	void UnloadFreeTypeFont (void);
+
+#endif /* WITH_FREETYPE */
 
 	/** Clear the font cache. */
-	virtual void ClearFontCache() = 0;
+	void ClearFontCache (void);
 
 	/**
 	 * Get the glyph (sprite) of the given key.
 	 * @param key The key to look up.
 	 * @return The sprite.
 	 */
-	virtual const Sprite *GetGlyph(GlyphID key) = 0;
+	const Sprite *GetGlyph (GlyphID key);
 
 	/**
 	 * Get the width of the glyph with the given key.
 	 * @param key The key to look up.
 	 * @return The width.
 	 */
-	virtual uint GetGlyphWidth(GlyphID key) = 0;
+	uint GetGlyphWidth (GlyphID key);
 
 	/**
 	 * Do we need to draw a glyph shadow?
 	 * @return True if it has to be done, otherwise false.
 	 */
-	virtual bool GetDrawGlyphShadow() const = 0;
+	bool GetDrawGlyphShadow (void) const;
 
 	/**
 	 * Map a character into a glyph.
 	 * @param key The character.
 	 * @return The glyph ID used to draw the character.
 	 */
-	virtual GlyphID MapCharToGlyph(WChar key) const = 0;
+	GlyphID MapCharToGlyph (WChar key) const;
 
 	/**
 	 * Read a font table from the font.
@@ -117,13 +182,13 @@ public:
 	 * @param length The length of the read data.
 	 * @return The loaded table data.
 	 */
-	virtual const void *GetFontTable(uint32 tag, size_t &length) = 0;
+	const void *GetFontTable (uint32 tag, size_t &length);
 
 	/**
 	 * Get the name of this font.
 	 * @return The name of the font.
 	 */
-	virtual const char *GetFontName() const = 0;
+	const char *GetFontName (void) const;
 
 	/**
 	 * Get the font cache of a given font size.
@@ -133,15 +198,7 @@ public:
 	static inline FontCache *Get(FontSize fs)
 	{
 		assert(fs < FS_END);
-		return FontCache::caches[fs];
-	}
-
-	/**
-	 * Check whether the font cache has a parent.
-	 */
-	inline bool HasParent() const
-	{
-		return this->parent != NULL;
+		return &FontCache::cache[fs];
 	}
 };
 
@@ -193,9 +250,19 @@ struct FreeTypeSettings {
 
 extern FreeTypeSettings _freetype;
 
-#endif /* WITH_FREETYPE */
-
 void InitFreeType(bool monospace);
 void UninitFreeType();
+
+#else /* WITH_FREETYPE */
+
+static inline void InitFreeType (bool monospace)
+{
+}
+
+static inline void UninitFreeType (void)
+{
+}
+
+#endif /* WITH_FREETYPE */
 
 #endif /* FONTCACHE_H */
