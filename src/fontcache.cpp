@@ -300,21 +300,6 @@ static const byte SHADOW_COLOUR = 2;
  */
 FreeTypeFontCache::FreeTypeFontCache(FontSize fs, FT_Face face, int pixels) : FontCache(fs), face(face), glyph_to_sprite(NULL)
 {
-	assert(face != NULL);
-
-	if (pixels == 0) {
-		/* Try to determine a good height based on the minimal height recommended by the font. */
-		pixels = _default_font_height[this->fs];
-
-		TT_Header *head = (TT_Header *)FT_Get_Sfnt_Table(this->face, ft_sfnt_head);
-		if (head != NULL) {
-			/* Font height is minimum height plus the difference between the default
-			 * height for this font size and the small size. */
-			int diff = _default_font_height[this->fs] - _default_font_height[FS_SMALL];
-			pixels = Clamp(min(head->Lowest_Rec_PPEM, 20) + diff, _default_font_height[this->fs], MAX_FONT_SIZE);
-		}
-	}
-
 	FT_Error err = FT_Set_Pixel_Sizes(this->face, 0, pixels);
 	if (err != FT_Err_Ok) {
 
@@ -416,7 +401,23 @@ static void LoadFreeTypeFont(FontSize fs)
 	return;
 
 found_face:
-	new FreeTypeFontCache(fs, face, settings->size);
+	assert(face != NULL);
+
+	int pixels = settings->size;
+	if (pixels == 0) {
+		/* Try to determine a good height based on the minimal height recommended by the font. */
+		pixels = _default_font_height[fs];
+
+		TT_Header *head = (TT_Header *)FT_Get_Sfnt_Table (face, ft_sfnt_head);
+		if (head != NULL) {
+			/* Font height is minimum height plus the difference between the default
+			 * height for this font size and the small size. */
+			int diff = _default_font_height[fs] - _default_font_height[FS_SMALL];
+			pixels = Clamp (min (head->Lowest_Rec_PPEM, 20) + diff, _default_font_height[fs], MAX_FONT_SIZE);
+		}
+	}
+
+	new FreeTypeFontCache (fs, face, pixels);
 }
 
 
