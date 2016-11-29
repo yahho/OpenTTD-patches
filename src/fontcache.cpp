@@ -59,11 +59,14 @@ void FontCache::ResetFontMetrics (void)
  */
 FontCache::FontCache (FontSize fs) :
 #ifdef WITH_FREETYPE
-	glyph_to_sprite (NULL), font_tables(), face (NULL),
+	font_tables(), face (NULL),
 #endif /* WITH_FREETYPE */
 	fs (fs)
 {
 	memset (this->spriteid_map, 0, sizeof(this->spriteid_map));
+#ifdef WITH_FREETYPE
+	memset (this->sprite_map, 0, sizeof(this->sprite_map));
+#endif /* WITH_FREETYPE */
 
 	this->ResetFontMetrics();
 	this->InitializeUnicodeGlyphMap();
@@ -200,7 +203,6 @@ void FontCache::LoadFreeTypeFont (void)
 
 	assert (this->face == NULL);
 	assert (this->font_tables.Length() == 0);
-	assert (this->glyph_to_sprite == NULL);
 
 	FontSize fs = this->fs;
 
@@ -319,7 +321,6 @@ void FontCache::UnloadFreeTypeFont (void)
 	if (this->face == NULL) return;
 
 	this->ClearFontCache();
-	assert (this->glyph_to_sprite == NULL);
 
 	for (FontTable::iterator iter = this->font_tables.Begin(); iter != this->font_tables.End(); iter++) {
 		free(iter->second.second);
@@ -341,22 +342,19 @@ void FontCache::ClearFontCache (void)
 {
 #ifdef WITH_FREETYPE
 	if (this->face == NULL) {
-		assert (this->glyph_to_sprite == NULL);
 		this->ResetFontMetrics();
-	} else if (this->glyph_to_sprite != NULL) {
+	} else {
 		for (int i = 0; i < 256; i++) {
-			if (this->glyph_to_sprite[i] == NULL) continue;
+			if (this->sprite_map[i] == NULL) continue;
 
 			for (int j = 0; j < 256; j++) {
-				if (this->glyph_to_sprite[i][j].duplicate) continue;
-				free (this->glyph_to_sprite[i][j].sprite);
+				if (this->sprite_map[i][j].duplicate) continue;
+				free (this->sprite_map[i][j].sprite);
 			}
 
-			free (this->glyph_to_sprite[i]);
+			free (this->sprite_map[i]);
+			this->sprite_map[i] = NULL;
 		}
-
-		free (this->glyph_to_sprite);
-		this->glyph_to_sprite = NULL;
 	}
 #else  /* WITH_FREETYPE */
 	this->ResetFontMetrics();
@@ -371,18 +369,13 @@ void FontCache::ClearFontCache (void)
 FontCache::GlyphEntry *FontCache::SetGlyphPtr (GlyphID key,
 	Sprite *sprite, byte width, bool duplicate)
 {
-	if (this->glyph_to_sprite == NULL) {
-		DEBUG(freetype, 3, "Allocating root glyph cache for size %u", this->fs);
-		this->glyph_to_sprite = xcalloct<GlyphEntry*>(256);
-	}
-
-	if (this->glyph_to_sprite[GB(key, 8, 8)] == NULL) {
+	if (this->sprite_map[GB(key, 8, 8)] == NULL) {
 		DEBUG(freetype, 3, "Allocating glyph cache for range 0x%02X00, size %u", GB(key, 8, 8), this->fs);
-		this->glyph_to_sprite[GB(key, 8, 8)] = xcalloct<GlyphEntry>(256);
+		this->sprite_map[GB(key, 8, 8)] = xcalloct<GlyphEntry>(256);
 	}
 
 	DEBUG(freetype, 4, "Set glyph for unicode character 0x%04X, size %u", key, this->fs);
-	GlyphEntry *p = &this->glyph_to_sprite[GB(key, 8, 8)][GB(key, 0, 8)];
+	GlyphEntry *p = &this->sprite_map[GB(key, 8, 8)][GB(key, 0, 8)];
 	p->sprite    = sprite;
 	p->width     = width;
 	p->duplicate = duplicate;
@@ -446,12 +439,10 @@ static Sprite *MakeBuiltinQuestionMark (void)
 FontCache::GlyphEntry *FontCache::GetGlyphPtr (GlyphID key)
 {
 	/* Check for the glyph in our cache */
-	if (this->glyph_to_sprite != NULL) {
-		GlyphEntry *p = this->glyph_to_sprite[GB(key, 8, 8)];
-		if (p != NULL) {
-			GlyphEntry *glyph = &p[GB(key, 0, 8)];
-			if (glyph->sprite != NULL) return glyph;
-		}
+	GlyphEntry *p = this->sprite_map[GB(key, 8, 8)];
+	if (p != NULL) {
+		GlyphEntry *glyph = &p[GB(key, 0, 8)];
+		if (glyph->sprite != NULL) return glyph;
 	}
 
 	FT_GlyphSlot slot = this->face->glyph;

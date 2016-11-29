@@ -50,13 +50,13 @@ private:
 	 * 3) Each block contains 256 (aligned) characters sequential characters.
 	 *
 	 * The cache is accessed in the following way:
-	 * For character 0x0041  ('A'): glyph_to_sprite[0x00][0x41]
-	 * For character 0x20AC (Euro): glyph_to_sprite[0x20][0xAC]
+	 * For character 0x0041  ('A'): sprite_map[0x00][0x41]
+	 * For character 0x20AC (Euro): sprite_map[0x20][0xAC]
 	 *
 	 * Currently only 256 segments are allocated, "limiting" us to 65536 characters.
 	 * This can be simply changed in the two functions Get & SetGlyphPtr.
 	 */
-	GlyphEntry **glyph_to_sprite;
+	GlyphEntry *sprite_map[0x100];
 
 	typedef SmallMap<uint32, SmallPair<size_t, const void*> > FontTable; ///< Table with font table cache
 
