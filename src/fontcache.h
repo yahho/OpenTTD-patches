@@ -32,7 +32,7 @@ class FontCache {
 private:
 	static FontCache cache [FS_END]; ///< All the font caches.
 
-	SpriteID **glyph_to_spriteid_map; ///< Mapping of glyphs to sprite IDs.
+	SpriteID *spriteid_map[0x100]; ///< Mapping of glyphs to sprite IDs.
 
 #ifdef WITH_FREETYPE
 

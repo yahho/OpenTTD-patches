@@ -57,12 +57,14 @@ void FontCache::ResetFontMetrics (void)
  * Create a new font cache.
  * @param fs The size of the font.
  */
-FontCache::FontCache (FontSize fs) : glyph_to_spriteid_map (NULL),
+FontCache::FontCache (FontSize fs) :
 #ifdef WITH_FREETYPE
 	glyph_to_sprite (NULL), font_tables(), face (NULL),
 #endif /* WITH_FREETYPE */
 	fs (fs)
 {
+	memset (this->spriteid_map, 0, sizeof(this->spriteid_map));
+
 	this->ResetFontMetrics();
 	this->InitializeUnicodeGlyphMap();
 }
@@ -90,15 +92,15 @@ int GetCharacterHeight(FontSize size)
 
 SpriteID FontCache::GetUnicodeGlyph (GlyphID key) const
 {
-	if (this->glyph_to_spriteid_map[GB(key, 8, 8)] == NULL) return 0;
-	return this->glyph_to_spriteid_map[GB(key, 8, 8)][GB(key, 0, 8)];
+	SpriteID *p = this->spriteid_map[GB(key, 8, 8)];
+	return (p == NULL) ? 0 : p[GB(key, 0, 8)];
 }
 
 void FontCache::SetUnicodeGlyph (GlyphID key, SpriteID sprite)
 {
-	if (this->glyph_to_spriteid_map == NULL) this->glyph_to_spriteid_map = xcalloct<SpriteID*>(256);
-	if (this->glyph_to_spriteid_map[GB(key, 8, 8)] == NULL) this->glyph_to_spriteid_map[GB(key, 8, 8)] = xcalloct<SpriteID>(256);
-	this->glyph_to_spriteid_map[GB(key, 8, 8)][GB(key, 0, 8)] = sprite;
+	SpriteID **p = &this->spriteid_map[GB(key, 8, 8)];
+	if (*p == NULL) *p = xcalloct<SpriteID>(256);
+	(*p)[GB(key, 0, 8)] = sprite;
 }
 
 void FontCache::InitializeUnicodeGlyphMap (void)
@@ -170,13 +172,10 @@ void FontCache::InitializeUnicodeGlyphMap (void)
  */
 void FontCache::ClearGlyphToSpriteMap (void)
 {
-	if (this->glyph_to_spriteid_map == NULL) return;
-
 	for (uint i = 0; i < 256; i++) {
-		free(this->glyph_to_spriteid_map[i]);
+		free (this->spriteid_map[i]);
+		this->spriteid_map[i] = NULL;
 	}
-	free(this->glyph_to_spriteid_map);
-	this->glyph_to_spriteid_map = NULL;
 }
 
 SpriteID FontCache::GetGlyphSprite (GlyphID key) const
