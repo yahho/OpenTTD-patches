@@ -51,6 +51,29 @@ void FontCache::ResetFontMetrics (void)
 	this->ascender  = ScaleGUITrad (ascender);
 	this->descender = ScaleGUITrad (ascender - height);
 	this->units_per_em = 1;
+
+	for (uint i = 0; i != 224; i++) {
+		this->glyph_widths[i] = this->GetGlyphWidth (this->MapCharToGlyph (i + 32));
+	}
+
+	byte widest_digit = 9;
+	byte digit_width = this->glyph_widths['9' - 32];
+	for (byte i = 8; i > 0; i--) {
+		byte w = this->glyph_widths[i + '0' - 32];
+		if (w > digit_width) {
+			widest_digit = i;
+			digit_width = w;
+		}
+	}
+	this->widest_digit_nonnull = widest_digit;
+
+	byte w = this->glyph_widths['0' - 32];
+	if (w > digit_width) {
+		widest_digit = 0;
+		digit_width = w;
+	}
+	this->widest_digit = widest_digit;
+	this->digit_width = digit_width;
 }
 
 /**
@@ -593,6 +616,20 @@ const char *FontCache::GetFontName (void) const
 #endif /* WITH_FREETYPE */
 
 	return "sprite";
+}
+
+/** Compute the broadest n-digit value in this font. */
+uint64 FontCache::GetBroadestValue (uint n) const
+{
+	uint d = this->widest_digit;
+
+	if (n <= 1) return d;
+
+	uint64 val = this->widest_digit_nonnull;
+	do {
+		val = 10 * val + d;
+	} while (--n > 1);
+	return val;
 }
 
 

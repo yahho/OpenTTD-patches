@@ -50,16 +50,6 @@ SwitchMode _switch_mode;  ///< The next mainloop command.
 PauseModeByte _pause_mode;
 Palette _cur_palette;
 
-/** Cache with metrics of some glyphs of a font. */
-struct FontMetrics {
-	byte widths [256 - 32];     ///< Glyph widths of all ASCII characters.
-	byte widest_digit;          ///< Widest digit.
-	byte widest_digit_nonnull;  ///< Widest leading (non-null) digit.
-	byte digit_width;           ///< Width of the widest digit.
-};
-
-static FontMetrics font_metrics_cache [FS_END]; ///< Cache containing width of often used characters. @see GetCharacterWidth()
-
 byte _colour_gradient[COLOUR_END][8];
 
 static void GfxMainBlitterViewport (DrawPixelInfo *dpi, const Sprite *sprite, int x, int y, BlitterMode mode, const SubSprite *sub = NULL, SpriteID sprite_id = SPR_CURSOR_MOUSE);
@@ -719,7 +709,9 @@ Dimension GetStringBoundingBox(StringID strid)
 void DrawCharCentered (BlitArea *dpi, WChar c, int x, int y, TextColour colour)
 {
 	SetColourRemap(colour);
-	GfxMainBlitter (dpi, GetGlyph (FS_NORMAL, c), x - GetCharacterWidth (FS_NORMAL, c) / 2, y, BM_COLOUR_REMAP);
+	FontCache *fc = FontCache::Get (FS_NORMAL);
+	GfxMainBlitter (dpi, fc->GetGlyph (fc->MapCharToGlyph (c)),
+			x - fc->GetCharacterWidth(c) / 2, y, BM_COLOUR_REMAP);
 }
 
 /**
@@ -1064,76 +1056,16 @@ TextColour GetContrastColour(uint8 background)
 }
 
 /**
- * Initialize font_metrics_cache
+ * Initialize the font cache.
  * @param monospace Whether to load the monospace cache or the normal fonts.
  */
 void LoadStringWidthTable(bool monospace)
 {
 	for (FontSize fs = monospace ? FS_MONO : FS_BEGIN; fs < (monospace ? FS_END : FS_MONO); fs++) {
-		for (uint i = 0; i != 224; i++) {
-			font_metrics_cache[fs].widths[i] = GetGlyphWidth (fs, i + 32);
-		}
-
-		byte widest_digit = 9;
-		byte digit_width = font_metrics_cache[fs].widths['9' - 32];
-		for (byte i = 8; i > 0; i--) {
-			byte w = font_metrics_cache[fs].widths[i + '0' - 32];
-			if (w > digit_width) {
-				widest_digit = i;
-				digit_width = w;
-			}
-		}
-		font_metrics_cache[fs].widest_digit_nonnull = widest_digit;
-
-		byte w = font_metrics_cache[fs].widths['0' - 32];
-		if (w > digit_width) {
-			widest_digit = 0;
-			digit_width = w;
-		}
-		font_metrics_cache[fs].widest_digit = widest_digit;
-		font_metrics_cache[fs].digit_width = digit_width;
+		FontCache::Get(fs)->ClearFontCache();
 	}
 
-	ClearFontCache();
 	ReInitAllWindows();
-}
-
-/**
- * Return width of character glyph.
- * @param size  Font of the character
- * @param key   Character code glyph
- * @return Width of the character glyph
- */
-byte GetCharacterWidth(FontSize size, WChar key)
-{
-	/* Use font_metrics_cache if possible */
-	if (key >= 32 && key < 256) return font_metrics_cache[size].widths[key - 32];
-
-	return GetGlyphWidth(size, key);
-}
-
-/**
- * Return the maximum width of single digit.
- * @param size  Font of the digit
- * @return Width of the digit.
- */
-byte GetDigitWidth(FontSize size)
-{
-	return font_metrics_cache[size].digit_width;
-}
-
-/** Compute the broadest n-digit value in a given font size. */
-uint64 GetBroadestValue (uint n, FontSize size)
-{
-	uint d = font_metrics_cache[size].widest_digit;
-
-	if (n <= 1) return d;
-
-	uint64 val = font_metrics_cache[size].widest_digit_nonnull;
-	do {
-		val = 10 * val + d;
-	} while (--n > 1);
-	return val;
 }
 
 void ScreenSizeChanged()

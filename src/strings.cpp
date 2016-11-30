@@ -108,7 +108,7 @@ void SetDParamMaxValue(uint n, uint64 max_value, uint min_count, FontSize size)
  */
 void SetDParamMaxDigits(uint n, uint count, FontSize size)
 {
-	SetDParam (n, GetBroadestValue (count, size));
+	SetDParam (n, FontCache::Get(size)->GetBroadestValue (count));
 }
 
 /**

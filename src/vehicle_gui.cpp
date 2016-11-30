@@ -37,6 +37,7 @@
 #include "station_base.h"
 #include "tilehighlight_func.h"
 #include "zoom_func.h"
+#include "fontcache.h"
 
 
 Sorting _sorting;

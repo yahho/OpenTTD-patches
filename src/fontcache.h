@@ -34,6 +34,8 @@ private:
 
 	SpriteID *spriteid_map[0x100]; ///< Mapping of glyphs to sprite IDs.
 
+	byte glyph_widths [256 - 32]; ///< Glyph widths of all ASCII characters.
+
 #ifdef WITH_FREETYPE
 
 	/** Container for information about a FreeType glyph. */
@@ -71,6 +73,10 @@ private:
 	int ascender;                     ///< The ascender value of the font.
 	int descender;                    ///< The descender value of the font.
 	int units_per_em;                 ///< The units per EM value of the font.
+
+	byte widest_digit;          ///< Widest digit.
+	byte widest_digit_nonnull;  ///< Widest leading (non-null) digit.
+	byte digit_width;           ///< Width of the widest digit.
 
 	void ResetFontMetrics (void);
 
@@ -191,6 +197,33 @@ public:
 	const char *GetFontName (void) const;
 
 	/**
+	 * Return width of character glyph.
+	 * @param size  Font of the character
+	 * @param key   Character code glyph
+	 * @return Width of the character glyph
+	 */
+	byte GetCharacterWidth (WChar key)
+	{
+		/* Use cache if possible */
+		if (key >= 32 && key < 256) return this->glyph_widths [key - 32];
+
+		return this->GetGlyphWidth (this->MapCharToGlyph (key));
+	}
+
+	/**
+	 * Return the maximum width of single digit.
+	 * @param size  Font of the digit
+	 * @return Width of the digit.
+	 */
+	byte GetDigitWidth (void) const
+	{
+		return this->digit_width;
+	}
+
+	/* Compute the broadest n-digit value in a given font size. */
+	uint64 GetBroadestValue (uint n) const;
+
+	/**
 	 * Get the font cache of a given font size.
 	 * @param fs The font size to look up.
 	 * @return The font cache.
@@ -224,11 +257,14 @@ static inline const Sprite *GetGlyph(FontSize size, WChar key)
 	return fc->GetGlyph(fc->MapCharToGlyph(key));
 }
 
-/** Get the width of a glyph */
-static inline uint GetGlyphWidth(FontSize size, WChar key)
+/**
+ * Return the maximum width of single digit.
+ * @param size  Font of the digit
+ * @return Width of the digit.
+ */
+static inline byte GetDigitWidth (FontSize size = FS_NORMAL)
 {
-	FontCache *fc = FontCache::Get(size);
-	return fc->GetGlyphWidth(fc->MapCharToGlyph(key));
+	return FontCache::Get(size)->GetDigitWidth();
 }
 
 #ifdef WITH_FREETYPE

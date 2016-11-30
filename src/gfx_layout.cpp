@@ -602,7 +602,7 @@ void FallbackParagraphLayout::build (LineVector *v, int max_width, bool)
 			assert (iter != this->runs.end());
 		}
 
-		const FontCache *fc = iter->second->fc;
+		FontCache *fc = iter->second->fc;
 		const WChar *next_run = this->data + iter->first;
 
 		for (;; buffer++) {
@@ -630,7 +630,7 @@ void FallbackParagraphLayout::build (LineVector *v, int max_width, bool)
 
 			if (!IsPrintable(c) || IsTextDirectionChar(c)) continue;
 
-			int char_width = GetCharacterWidth (fc->GetSize(), c);
+			int char_width = fc->GetCharacterWidth (c);
 			width += char_width;
 			if (width <= max_width) continue;
 
