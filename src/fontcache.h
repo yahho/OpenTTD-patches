@@ -96,12 +96,6 @@ private:
 
 public:
 	/**
-	 * Get the FontSize of the font.
-	 * @return The FontSize.
-	 */
-	inline FontSize GetSize() const { return this->fs; }
-
-	/**
 	 * Get the height of the font.
 	 * @return The height of the font.
 	 */
