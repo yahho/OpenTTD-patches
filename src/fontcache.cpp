@@ -497,9 +497,11 @@ FontCache::GlyphEntry *FontCache::GetGlyphPtr (GlyphID key)
 	/* Limit glyph size to prevent overflows later on. */
 	if (width > 256 || height > 256) usererror("Font glyph is too large");
 
-	/* FreeType has rendered the glyph, now we allocate a sprite and copy the image into it */
+	/* FreeType has rendered the glyph, now we allocate a sprite and copy the image into it.
+	 * Use a static buffer to prevent repeated allocation/deallocation. */
+	static ReusableBuffer <SpriteLoader::CommonPixel> buffer;
 	SpriteLoader::Sprite sprite;
-	sprite.AllocateData(ZOOM_LVL_NORMAL, width * height);
+	sprite.data = buffer.ZeroAllocate (width * height);
 	sprite.width = width;
 	sprite.height = height;
 	sprite.x_offs = slot->bitmap_left;
