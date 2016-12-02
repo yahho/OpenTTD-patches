@@ -304,11 +304,8 @@ static bool DecodeSingleSprite (SpriteLoader::Sprite *sprite,
 			sprite_type, dest_orig.get(), dest_size, colour_fmt, bpp);
 }
 
-static uint8 LoadSpriteV1 (SpriteLoader::Sprite *sprite, uint8 file_slot, size_t file_pos, SpriteType sprite_type, bool load_32bpp)
+static uint8 LoadSpriteV1 (SpriteLoader::Sprite *sprite, uint8 file_slot, size_t file_pos, SpriteType sprite_type)
 {
-	/* Check the requested colour depth. */
-	if (load_32bpp) return 0;
-
 	/* Open the right file and go to the correct position */
 	FioSeekToFile(file_slot, file_pos);
 
@@ -431,22 +428,21 @@ static uint8 LoadSpriteV2 (SpriteLoader::Sprite *sprite, uint8 file_slot, size_t
 }
 
 /**
- * Load a sprite from the disk and return a sprite struct which is the same for all loaders.
+ * Load a 8bpp sprite from the disk and return a sprite struct which is the same for all loaders.
  * @param container_ver The container version.
  * @param[out] sprite The sprites to fill with data.
  * @param file_slot   The file "descriptor" of the file we read from.
  * @param file_pos    The position within the file the image begins.
  * @param sprite_type The type of sprite we're trying to load.
- * @param load_32bpp  True if 32bpp sprites should be loaded, false for a 8bpp sprite.
  * @return Bit mask of the zoom levels successfully loaded or 0 if no sprite could be loaded.
  */
 static uint8 LoadGrfSprite (uint container_ver, SpriteLoader::Sprite *sprite,
-	uint8 file_slot, size_t file_pos, SpriteType sprite_type, bool load_32bpp)
+	uint8 file_slot, size_t file_pos, SpriteType sprite_type)
 {
 	if (container_ver >= 2) {
-		return LoadSpriteV2(sprite, file_slot, file_pos, sprite_type, load_32bpp);
+		return LoadSpriteV2 (sprite, file_slot, file_pos, sprite_type, false);
 	} else {
-		return LoadSpriteV1(sprite, file_slot, file_pos, sprite_type, load_32bpp);
+		return LoadSpriteV1 (sprite, file_slot, file_pos, sprite_type);
 	}
 }
 
@@ -816,14 +812,13 @@ static void *ReadSprite (const SpriteCache *sc, SpriteID id)
 	SpriteLoader::Sprite sprite[ZOOM_LVL_COUNT];
 	uint8 sprite_avail = 0;
 
-	if (Blitter::get()->GetScreenDepth() == 32) {
+	if ((Blitter::get()->GetScreenDepth() == 32) && (sc->container_ver >= 2)) {
 		/* Try for 32bpp sprites first. */
-		sprite_avail = LoadGrfSprite (sc->container_ver, sprite,
-				file_slot, file_pos, sc->type, true);
+		sprite_avail = LoadSpriteV2 (sprite, file_slot, file_pos, sc->type, true);
 	}
 	if (sprite_avail == 0) {
 		sprite_avail = LoadGrfSprite (sc->container_ver, sprite,
-				file_slot, file_pos, sc->type, false);
+				file_slot, file_pos, sc->type);
 	}
 
 	if (sprite_avail == 0) {
@@ -1279,7 +1274,7 @@ const MapGenSprite *GetMapGenSprite (SpriteID sprite)
 
 	SpriteLoader::Sprite sp;
 	if (LoadGrfSprite (sc->container_ver, &sp,
-			sc->file_slot, sc->file_pos, ST_MAPGEN, false) == 0) {
+			sc->file_slot, sc->file_pos, ST_MAPGEN) == 0) {
 		return NULL;
 	}
 
