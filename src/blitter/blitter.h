@@ -15,7 +15,6 @@
 #include "../core/pointer.h"
 #include "../string.h"
 #include "../spritecache.h"
-#include "../spriteloader.h"
 
 /** The modes of blitting we can do. */
 enum BlitterMode {

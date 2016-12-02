@@ -10961,18 +10961,6 @@
 			</File>
 		</Filter>
 		<Filter
-			Name="Sprite loaders"
-			>
-			<File
-				RelativePath=".\..\src\spriteloader.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\..\src\spriteloader.h"
-				>
-			</File>
-		</Filter>
-		<Filter
 			Name="NewGRF"
 			>
 			<File

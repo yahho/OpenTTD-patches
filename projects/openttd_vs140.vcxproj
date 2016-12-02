@@ -1809,6 +1809,12 @@
       <XMLDocumentationFileName>$(IntDir)\blitter\</XMLDocumentationFileName>
     </ClCompile>
     <ClInclude Include="..\src\blitter\32bpp_base.hpp" />
+    <ClCompile Include="..\src\blitter\32bpp_noanim.cpp">
+      <AssemblerListingLocation>$(IntDir)\blitter\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\blitter\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\blitter\</XMLDocumentationFileName>
+    </ClCompile>
+    <ClInclude Include="..\src\blitter\32bpp_noanim.hpp" />
     <ClCompile Include="..\src\blitter\32bpp_simple.cpp">
       <AssemblerListingLocation>$(IntDir)\blitter\</AssemblerListingLocation>
       <ObjectFileName>$(IntDir)\blitter\</ObjectFileName>
@@ -1859,8 +1865,6 @@
     <ClInclude Include="..\src\music\music_driver.hpp" />
     <ClInclude Include="..\src\sound\sound_driver.hpp" />
     <ClInclude Include="..\src\video\video_driver.hpp" />
-    <ClCompile Include="..\src\spriteloader.cpp" />
-    <ClInclude Include="..\src\spriteloader.h" />
     <ClCompile Include="..\src\newgrf.cpp" />
     <ClCompile Include="..\src\newgrf_airport.cpp" />
     <ClCompile Include="..\src\newgrf_airporttiles.cpp" />

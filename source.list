@@ -920,10 +920,6 @@ music/music_driver.hpp
 sound/sound_driver.hpp
 video/video_driver.hpp
 
-# Sprite loaders
-spriteloader.cpp
-spriteloader.h
-
 # NewGRF
 newgrf.cpp
 newgrf_airport.cpp
