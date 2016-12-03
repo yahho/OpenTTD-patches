@@ -279,21 +279,21 @@ static bool DecodeSingleSpriteTransparency (SpriteLoader::Sprite *sprite,
 
 /**
  * Decode the image data of a single sprite.
+ * @param sc The SpriteCache data for the sprite.
  * @param[in,out] sprite Filled with the sprite image data.
- * @param file_slot File slot.
- * @param file_pos File position.
- * @param sprite_type Type of the sprite we're decoding.
  * @param dest_size Size of the decompressed sprite.
  * @param type Type of the encoded sprite.
  * @param zoom_lvl Requested zoom level.
  * @param colour_fmt Colour format of the sprite.
- * @param container_format Container format of the GRF this sprite is in.
  * @return True if the sprite was successfully loaded.
  */
-static bool DecodeSingleSprite (SpriteLoader::Sprite *sprite,
-	uint8 file_slot, size_t file_pos, SpriteType sprite_type, uint dest_size,
-	byte type, ZoomLevel zoom_lvl, byte colour_fmt, byte container_format)
+static bool DecodeSingleSprite (const SpriteCache *sc,
+	SpriteLoader::Sprite *sprite, uint dest_size,
+	byte type, ZoomLevel zoom_lvl, byte colour_fmt)
 {
+	uint8 file_slot = sc->file_slot;
+	size_t file_pos = sc->file_pos;
+
 	ttd_unique_free_ptr<byte> dest_orig (xmalloct<byte> (dest_size));
 
 	/* Read the file, which has some kind of compression */
@@ -312,17 +312,16 @@ static bool DecodeSingleSprite (SpriteLoader::Sprite *sprite,
 	/* When there are transparency pixels, this format has another trick.. decode it */
 	return (type & 0x08) ?
 		DecodeSingleSpriteTransparency (sprite, file_slot, file_pos,
-			sprite_type, dest_orig.get(), dest_size, colour_fmt, bpp,
-			container_format) :
+			sc->type, dest_orig.get(), dest_size, colour_fmt, bpp,
+			(sc->container_ver >= 2) ? 2 : 1) :
 		DecodeSingleSpriteNormal (sprite, file_slot, file_pos,
-			sprite_type, dest_orig.get(), dest_size, colour_fmt, bpp);
+			sc->type, dest_orig.get(), dest_size, colour_fmt, bpp);
 }
 
 static uint8 LoadSpriteV1 (const SpriteCache *sc, SpriteLoader::Sprite *sprite)
 {
 	uint8 file_slot = sc->file_slot;
 	size_t file_pos = sc->file_pos;
-	SpriteType sprite_type = sc->type;
 
 	/* Open the right file and go to the correct position */
 	FioSeekToFile(file_slot, file_pos);
@@ -339,7 +338,7 @@ static uint8 LoadSpriteV1 (const SpriteCache *sc, SpriteLoader::Sprite *sprite)
 	/* Type 0xFF indicates either a colourmap or some other non-sprite info; we do not handle them here */
 	if (type == 0xFF) return 0;
 
-	ZoomLevel zoom_lvl = (sprite_type != ST_MAPGEN) ? ZOOM_LVL_OUT_4X : ZOOM_LVL_NORMAL;
+	ZoomLevel zoom_lvl = (sc->type != ST_MAPGEN) ? ZOOM_LVL_OUT_4X : ZOOM_LVL_NORMAL;
 
 	sprite[zoom_lvl].height = FioReadByte();
 	sprite[zoom_lvl].width  = FioReadWord();
@@ -356,7 +355,7 @@ static uint8 LoadSpriteV1 (const SpriteCache *sc, SpriteLoader::Sprite *sprite)
 	 * In case it is uncompressed, the size is 'num' - 8 (header-size). */
 	num = (type & 0x02) ? sprite[zoom_lvl].width * sprite[zoom_lvl].height : num - 8;
 
-	if (DecodeSingleSprite(&sprite[zoom_lvl], file_slot, file_pos, sprite_type, num, type, zoom_lvl, SCC_PAL, 1)) return 1 << zoom_lvl;
+	if (DecodeSingleSprite (sc, &sprite[zoom_lvl], num, type, zoom_lvl, SCC_PAL)) return 1 << zoom_lvl;
 
 	return 0;
 }
@@ -367,7 +366,6 @@ static uint8 LoadSpriteV2 (const SpriteCache *sc, SpriteLoader::Sprite *sprite, 
 
 	uint8 file_slot = sc->file_slot;
 	size_t file_pos = sc->file_pos;
-	SpriteType sprite_type = sc->type;
 
 	/* Is the sprite not present/stripped in the GRF? */
 	if (file_pos == SIZE_MAX) return 0;
@@ -377,6 +375,7 @@ static uint8 LoadSpriteV2 (const SpriteCache *sc, SpriteLoader::Sprite *sprite, 
 
 	uint32 id = FioReadDword();
 
+	bool is_mapgen = (sc->type == ST_MAPGEN);
 	uint8 loaded_sprites = 0;
 	do {
 		uint num = FioReadDword();
@@ -396,13 +395,13 @@ static uint8 LoadSpriteV2 (const SpriteCache *sc, SpriteLoader::Sprite *sprite, 
 
 		if (colour == 0 ||
 				(load_32bpp ? colour == SCC_PAL : colour != SCC_PAL) ||
-				(sprite_type != ST_MAPGEN ? zoom >= lengthof(zoom_lvl_map) : zoom != 0)) {
+				(is_mapgen ? zoom != 0 : zoom >= lengthof(zoom_lvl_map))) {
 			/* Not the wanted zoom level or colour depth, continue searching. */
 			FioSkipBytes (num - 2);
 			continue;
 		}
 
-		ZoomLevel zoom_lvl = (sprite_type != ST_MAPGEN) ? zoom_lvl_map[zoom] : ZOOM_LVL_NORMAL;
+		ZoomLevel zoom_lvl = is_mapgen ? ZOOM_LVL_NORMAL : zoom_lvl_map[zoom];
 
 		if (HasBit (loaded_sprites, zoom_lvl)) {
 			/* We already have this zoom level, skip sprite. */
@@ -435,7 +434,7 @@ static uint8 LoadSpriteV2 (const SpriteCache *sc, SpriteLoader::Sprite *sprite, 
 		 * otherwise we can calculate it from the image dimensions. */
 		uint decomp_size = (type & 0x08) ? FioReadDword() : sprite[zoom_lvl].width * sprite[zoom_lvl].height * bpp;
 
-		if (DecodeSingleSprite (&sprite[zoom_lvl], file_slot, file_pos, sprite_type, decomp_size, type, zoom_lvl, colour, 2)) {
+		if (DecodeSingleSprite (sc, &sprite[zoom_lvl], decomp_size, type, zoom_lvl, colour)) {
 			SetBit (loaded_sprites, zoom_lvl);
 		}
 
