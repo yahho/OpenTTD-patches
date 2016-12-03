@@ -171,20 +171,21 @@ static const byte *DecodePixelData (SpriteType sprite_type, byte colour_fmt,
 
 /**
  * Decode the image data of a single sprite without transparency.
+ * @param sc The SpriteCache data for the sprite.
  * @param[in,out] sprite Filled with the sprite image data.
- * @param file_slot File slot.
- * @param file_pos File position.
- * @param sprite_type Type of the sprite we're decoding.
  * @param orig Buffer with the raw data to decode.
  * @param size Size of the decompressed sprite.
  * @param colour_fmt Colour format of the sprite.
  * @param bpp Bits per pixel.
  * @return True if the sprite was successfully loaded.
  */
-static bool DecodeSingleSpriteNormal (SpriteLoader::Sprite *sprite,
-	uint8 file_slot, size_t file_pos, SpriteType sprite_type,
+static bool DecodeSingleSpriteNormal (const SpriteCache *sc,
+	SpriteLoader::Sprite *sprite,
 	const byte *orig, uint size, byte colour_fmt, uint bpp)
 {
+	uint8 file_slot = sc->file_slot;
+	size_t file_pos = sc->file_pos;
+
 	uint64 check_size = (uint64) sprite->width * sprite->height * bpp;
 
 	if (size < check_size) {
@@ -197,7 +198,7 @@ static bool DecodeSingleSpriteNormal (SpriteLoader::Sprite *sprite,
 		warning_level = 6;
 	}
 
-	DecodePixelData (sprite_type, colour_fmt, _palette_remap_grf[file_slot],
+	DecodePixelData (sc->type, colour_fmt, _palette_remap_grf[file_slot],
 		sprite->width * sprite->height, orig, sprite->data);
 
 	return true;
@@ -312,8 +313,8 @@ static bool DecodeSingleSprite (const SpriteCache *sc,
 	return (type & 0x08) ?
 		DecodeSingleSpriteTransparency (sc, sprite,
 			dest_orig.get(), dest_size, colour_fmt, bpp) :
-		DecodeSingleSpriteNormal (sprite, file_slot, file_pos,
-			sc->type, dest_orig.get(), dest_size, colour_fmt, bpp);
+		DecodeSingleSpriteNormal (sc, sprite,
+			dest_orig.get(), dest_size, colour_fmt, bpp);
 }
 
 static uint8 LoadSpriteV1 (const SpriteCache *sc, SpriteLoader::Sprite *sprite)
