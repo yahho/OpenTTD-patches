@@ -81,15 +81,16 @@ static bool WarnCorruptSprite(uint8 file_slot, size_t file_pos, int line)
 
 /**
  * Uncompress the raw data of a single sprite.
+ * @param sc The SpriteCache data for the sprite.
  * @param buf Buffer where to store the uncompressed data.
  * @param num Size of the decompressed sprite.
- * @param file_slot File slot.
- * @param file_pos File position.
  * @return Whether the sprite was successfully loaded.
  */
-static bool UncompressSingleSprite (byte *buf, uint num,
-	uint8 file_slot, size_t file_pos)
+static bool UncompressSingleSprite (const SpriteCache *sc, byte *buf, uint num)
 {
+	uint8 file_slot = sc->file_slot;
+	size_t file_pos = sc->file_pos;
+
 	byte *dest = buf;
 
 	while (num > 0) {
@@ -291,13 +292,10 @@ static bool DecodeSingleSprite (const SpriteCache *sc,
 	SpriteLoader::Sprite *sprite, uint dest_size,
 	byte type, ZoomLevel zoom_lvl, byte colour_fmt)
 {
-	uint8 file_slot = sc->file_slot;
-	size_t file_pos = sc->file_pos;
-
 	ttd_unique_free_ptr<byte> dest_orig (xmalloct<byte> (dest_size));
 
 	/* Read the file, which has some kind of compression */
-	if (!UncompressSingleSprite (dest_orig.get(), dest_size, file_slot, file_pos)) {
+	if (!UncompressSingleSprite (sc, dest_orig.get(), dest_size)) {
 		return false;
 	}
 
