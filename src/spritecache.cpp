@@ -205,25 +205,24 @@ static bool DecodeSingleSpriteNormal (SpriteLoader::Sprite *sprite,
 
 /**
  * Decode the image data of a single sprite with transparency.
+ * @param sc The SpriteCache data for the sprite.
  * @param[in,out] sprite Filled with the sprite image data.
- * @param file_slot File slot.
- * @param file_pos File position.
- * @param sprite_type Type of the sprite we're decoding.
  * @param orig Buffer with the raw data to decode.
  * @param size Size of the decompressed sprite.
  * @param colour_fmt Colour format of the sprite.
  * @param bpp Bits per pixel.
- * @param container_format Container format of the GRF this sprite is in.
  * @return True if the sprite was successfully loaded.
  */
-static bool DecodeSingleSpriteTransparency (SpriteLoader::Sprite *sprite,
-	uint8 file_slot, size_t file_pos, SpriteType sprite_type,
-	const byte *orig, uint size, byte colour_fmt, uint bpp,
-	byte container_format)
+static bool DecodeSingleSpriteTransparency (const SpriteCache *sc,
+	SpriteLoader::Sprite *sprite,
+	const byte *orig, uint size, byte colour_fmt, uint bpp)
 {
+	uint8 file_slot = sc->file_slot;
+	size_t file_pos = sc->file_pos;
+
 	for (int y = 0; y < sprite->height; y++) {
 		/* Look up in the header-table where the real data is stored for this row */
-		uint offset = (container_format >= 2 && size > UINT16_MAX) ?
+		uint offset = (sc->container_ver >= 2 && size > UINT16_MAX) ?
 			(orig[y * 4 + 3] << 24) | (orig[y * 4 + 2] << 16) | (orig[y * 4 + 1] << 8) | orig[y * 4] :
 			(orig[y * 2 + 1] <<  8) |  orig[y * 2];
 
@@ -240,7 +239,7 @@ static bool DecodeSingleSpriteTransparency (SpriteLoader::Sprite *sprite,
 
 			/* Read the header. */
 			uint length, skip;
-			if (container_format >= 2 && sprite->width > 256) {
+			if (sc->container_ver >= 2 && sprite->width > 256) {
 				/*  0 .. 14  - length
 				 *  15       - last_item
 				 *  16 .. 31 - transparency bytes */
@@ -267,7 +266,7 @@ static bool DecodeSingleSpriteTransparency (SpriteLoader::Sprite *sprite,
 				return WarnCorruptSprite (file_slot, file_pos, __LINE__);
 			}
 
-			src = DecodePixelData (sprite_type, colour_fmt,
+			src = DecodePixelData (sc->type, colour_fmt,
 				_palette_remap_grf[file_slot], length, src,
 				sprite->data + y * sprite->width + skip);
 
@@ -311,9 +310,8 @@ static bool DecodeSingleSprite (const SpriteCache *sc,
 
 	/* When there are transparency pixels, this format has another trick.. decode it */
 	return (type & 0x08) ?
-		DecodeSingleSpriteTransparency (sprite, file_slot, file_pos,
-			sc->type, dest_orig.get(), dest_size, colour_fmt, bpp,
-			(sc->container_ver >= 2) ? 2 : 1) :
+		DecodeSingleSpriteTransparency (sc, sprite,
+			dest_orig.get(), dest_size, colour_fmt, bpp) :
 		DecodeSingleSpriteNormal (sprite, file_slot, file_pos,
 			sc->type, dest_orig.get(), dest_size, colour_fmt, bpp);
 }
