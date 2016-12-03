@@ -443,20 +443,16 @@ static uint8 LoadSpriteV2 (SpriteLoader::Sprite *sprite, uint8 file_slot, size_t
 
 /**
  * Load a 8bpp sprite from the disk and return a sprite struct which is the same for all loaders.
- * @param container_ver The container version.
+ * @param sc The SpriteCache data for the sprite.
  * @param[out] sprite The sprites to fill with data.
- * @param file_slot   The file "descriptor" of the file we read from.
- * @param file_pos    The position within the file the image begins.
- * @param sprite_type The type of sprite we're trying to load.
  * @return Bit mask of the zoom levels successfully loaded or 0 if no sprite could be loaded.
  */
-static uint8 LoadGrfSprite (uint container_ver, SpriteLoader::Sprite *sprite,
-	uint8 file_slot, size_t file_pos, SpriteType sprite_type)
+static uint8 LoadGrfSprite (const SpriteCache *sc, SpriteLoader::Sprite *sprite)
 {
-	if (container_ver >= 2) {
-		return LoadSpriteV2 (sprite, file_slot, file_pos, sprite_type, false);
+	if (sc->container_ver >= 2) {
+		return LoadSpriteV2 (sprite, sc->file_slot, sc->file_pos, sc->type, false);
 	} else {
-		return LoadSpriteV1 (sprite, file_slot, file_pos, sprite_type);
+		return LoadSpriteV1 (sprite, sc->file_slot, sc->file_pos, sc->type);
 	}
 }
 
@@ -818,8 +814,7 @@ static void *ReadSprite (const SpriteCache *sc, SpriteID id)
 		sprite_avail = LoadSpriteV2 (sprite, file_slot, file_pos, sc->type, true);
 	}
 	if (sprite_avail == 0) {
-		sprite_avail = LoadGrfSprite (sc->container_ver, sprite,
-				file_slot, file_pos, sc->type);
+		sprite_avail = LoadGrfSprite (sc, sprite);
 	}
 
 	if (sprite_avail == 0) {
@@ -1274,8 +1269,7 @@ const MapGenSprite *GetMapGenSprite (SpriteID sprite)
 	DEBUG (sprite, 9, "Load map generator sprite %d", sprite);
 
 	SpriteLoader::Sprite sp;
-	if (LoadGrfSprite (sc->container_ver, &sp,
-			sc->file_slot, sc->file_pos, ST_MAPGEN) == 0) {
+	if (LoadGrfSprite (sc, &sp) == 0) {
 		return NULL;
 	}
 
