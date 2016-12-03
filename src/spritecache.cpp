@@ -357,9 +357,13 @@ static uint8 LoadSpriteV1 (SpriteLoader::Sprite *sprite, uint8 file_slot, size_t
 	return 0;
 }
 
-static uint8 LoadSpriteV2 (SpriteLoader::Sprite *sprite, uint8 file_slot, size_t file_pos, SpriteType sprite_type, bool load_32bpp)
+static uint8 LoadSpriteV2 (const SpriteCache *sc, SpriteLoader::Sprite *sprite, bool load_32bpp)
 {
 	static const ZoomLevel zoom_lvl_map[6] = {ZOOM_LVL_OUT_4X, ZOOM_LVL_NORMAL, ZOOM_LVL_OUT_2X, ZOOM_LVL_OUT_8X, ZOOM_LVL_OUT_16X, ZOOM_LVL_OUT_32X};
+
+	uint8 file_slot = sc->file_slot;
+	size_t file_pos = sc->file_pos;
+	SpriteType sprite_type = sc->type;
 
 	/* Is the sprite not present/stripped in the GRF? */
 	if (file_pos == SIZE_MAX) return 0;
@@ -450,7 +454,7 @@ static uint8 LoadSpriteV2 (SpriteLoader::Sprite *sprite, uint8 file_slot, size_t
 static uint8 LoadGrfSprite (const SpriteCache *sc, SpriteLoader::Sprite *sprite)
 {
 	if (sc->container_ver >= 2) {
-		return LoadSpriteV2 (sprite, sc->file_slot, sc->file_pos, sc->type, false);
+		return LoadSpriteV2 (sc, sprite, false);
 	} else {
 		return LoadSpriteV1 (sprite, sc->file_slot, sc->file_pos, sc->type);
 	}
@@ -797,9 +801,6 @@ static void *ReadRecolourSprite(uint16 file_slot, uint num)
  */
 static void *ReadSprite (const SpriteCache *sc, SpriteID id)
 {
-	uint8 file_slot = sc->file_slot;
-	size_t file_pos = sc->file_pos;
-
 	assert(sc->type != ST_RECOLOUR);
 	assert(sc->type != ST_MAPGEN);
 	assert(!IsMapgenSpriteID(id));
@@ -811,7 +812,7 @@ static void *ReadSprite (const SpriteCache *sc, SpriteID id)
 
 	if ((Blitter::get()->GetScreenDepth() == 32) && (sc->container_ver >= 2)) {
 		/* Try for 32bpp sprites first. */
-		sprite_avail = LoadSpriteV2 (sprite, file_slot, file_pos, sc->type, true);
+		sprite_avail = LoadSpriteV2 (sc, sprite, true);
 	}
 	if (sprite_avail == 0) {
 		sprite_avail = LoadGrfSprite (sc, sprite);
@@ -822,7 +823,7 @@ static void *ReadSprite (const SpriteCache *sc, SpriteID id)
 		return (void*) GetRawSprite (SPR_IMG_QUERY, ST_NORMAL, false);
 	}
 
-	if (!ResizeSprites(sprite, sprite_avail, file_slot, sc->id)) {
+	if (!ResizeSprites (sprite, sprite_avail, sc->file_slot, sc->id)) {
 		if (id == SPR_IMG_QUERY) usererror("Okay... something went horribly wrong. I couldn't resize the fallback sprite. What should I do?");
 		return (void*) GetRawSprite (SPR_IMG_QUERY, ST_NORMAL, false);
 	}
