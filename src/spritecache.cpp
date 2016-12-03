@@ -318,8 +318,12 @@ static bool DecodeSingleSprite (SpriteLoader::Sprite *sprite,
 			sprite_type, dest_orig.get(), dest_size, colour_fmt, bpp);
 }
 
-static uint8 LoadSpriteV1 (SpriteLoader::Sprite *sprite, uint8 file_slot, size_t file_pos, SpriteType sprite_type)
+static uint8 LoadSpriteV1 (const SpriteCache *sc, SpriteLoader::Sprite *sprite)
 {
+	uint8 file_slot = sc->file_slot;
+	size_t file_pos = sc->file_pos;
+	SpriteType sprite_type = sc->type;
+
 	/* Open the right file and go to the correct position */
 	FioSeekToFile(file_slot, file_pos);
 
@@ -456,7 +460,7 @@ static uint8 LoadGrfSprite (const SpriteCache *sc, SpriteLoader::Sprite *sprite)
 	if (sc->container_ver >= 2) {
 		return LoadSpriteV2 (sc, sprite, false);
 	} else {
-		return LoadSpriteV1 (sprite, sc->file_slot, sc->file_pos, sc->type);
+		return LoadSpriteV1 (sc, sprite);
 	}
 }
 
