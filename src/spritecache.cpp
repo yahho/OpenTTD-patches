@@ -62,19 +62,18 @@ ReusableBuffer<SpriteLoader::CommonPixel> SpriteLoader::Sprite::buffer[ZOOM_LVL_
 /**
  * We found a corrupted sprite. This means that the sprite itself
  * contains invalid data or is too small for the given dimensions.
- * @param file_slot the file the errored sprite is in
- * @param file_pos the location in the file of the errored sprite
+ * @param sc The SpriteCache data for the sprite.
  * @param line the line where the error occurs.
  * @return always false (to tell loading the sprite failed)
  */
-static bool WarnCorruptSprite(uint8 file_slot, size_t file_pos, int line)
+static bool WarnCorruptSprite (const SpriteCache *sc, int line)
 {
 	static byte warning_level = 0;
 	if (warning_level == 0) {
-		SetDParamStr(0, FioGetFilename(file_slot));
+		SetDParamStr (0, FioGetFilename (sc->file_slot));
 		ShowErrorMessage(STR_NEWGRF_ERROR_CORRUPT_SPRITE, INVALID_STRING_ID, WL_ERROR);
 	}
-	DEBUG(sprite, warning_level, "[%i] Loading corrupted sprite from %s at position %i", line, FioGetFilename(file_slot), (int)file_pos);
+	DEBUG(sprite, warning_level, "[%i] Loading corrupted sprite from %s at position %i", line, FioGetFilename (sc->file_slot), (int)sc->file_pos);
 	warning_level = 6;
 	return false;
 }
@@ -88,9 +87,6 @@ static bool WarnCorruptSprite(uint8 file_slot, size_t file_pos, int line)
  */
 static bool UncompressSingleSprite (const SpriteCache *sc, byte *buf, uint num)
 {
-	uint8 file_slot = sc->file_slot;
-	size_t file_pos = sc->file_pos;
-
 	byte *dest = buf;
 
 	while (num > 0) {
@@ -99,7 +95,7 @@ static bool UncompressSingleSprite (const SpriteCache *sc, byte *buf, uint num)
 		if (code >= 0) {
 			/* Plain bytes to read */
 			uint size = (code == 0) ? 0x80 : code;
-			if (num < size) return WarnCorruptSprite (file_slot, file_pos, __LINE__);
+			if (num < size) return WarnCorruptSprite (sc, __LINE__);
 			num -= size;
 			for (; size > 0; size--) {
 				*dest = FioReadByte();
@@ -108,9 +104,9 @@ static bool UncompressSingleSprite (const SpriteCache *sc, byte *buf, uint num)
 		} else {
 			/* Copy bytes from earlier in the sprite */
 			const uint data_offset = ((code & 7) << 8) | FioReadByte();
-			if ((uint)(dest - buf) < data_offset) return WarnCorruptSprite (file_slot, file_pos, __LINE__);
+			if ((uint)(dest - buf) < data_offset) return WarnCorruptSprite (sc, __LINE__);
 			uint size = -(code >> 3);
-			if (num < size) return WarnCorruptSprite (file_slot, file_pos, __LINE__);
+			if (num < size) return WarnCorruptSprite (sc, __LINE__);
 			num -= size;
 			for (; size > 0; size--) {
 				*dest = *(dest - data_offset);
@@ -184,22 +180,19 @@ static bool DecodeSingleSpriteNormal (const SpriteCache *sc,
 	SpriteLoader::Sprite *sprite,
 	const byte *orig, uint size, byte colour_fmt, uint bpp)
 {
-	uint8 file_slot = sc->file_slot;
-	size_t file_pos = sc->file_pos;
-
 	uint64 check_size = (uint64) sprite->width * sprite->height * bpp;
 
 	if (size < check_size) {
-		return WarnCorruptSprite (file_slot, file_pos, __LINE__);
+		return WarnCorruptSprite (sc, __LINE__);
 	}
 
 	if (size > check_size) {
 		static byte warning_level = 0;
-		DEBUG (sprite, warning_level, "Ignoring " OTTD_PRINTF64 " unused extra bytes from the sprite from %s at position %i", size - check_size, FioGetFilename(file_slot), (int)file_pos);
+		DEBUG (sprite, warning_level, "Ignoring " OTTD_PRINTF64 " unused extra bytes from the sprite from %s at position %i", size - check_size, FioGetFilename (sc->file_slot), (int)sc->file_pos);
 		warning_level = 6;
 	}
 
-	DecodePixelData (sc->type, colour_fmt, _palette_remap_grf[file_slot],
+	DecodePixelData (sc->type, colour_fmt, _palette_remap_grf[sc->file_slot],
 		sprite->width * sprite->height, orig, sprite->data);
 
 	return true;
@@ -219,9 +212,6 @@ static bool DecodeSingleSpriteTransparency (const SpriteCache *sc,
 	SpriteLoader::Sprite *sprite,
 	const byte *orig, uint size, byte colour_fmt, uint bpp)
 {
-	uint8 file_slot = sc->file_slot;
-	size_t file_pos = sc->file_pos;
-
 	for (int y = 0; y < sprite->height; y++) {
 		/* Look up in the header-table where the real data is stored for this row */
 		uint offset = (sc->container_ver >= 2 && size > UINT16_MAX) ?
@@ -229,7 +219,7 @@ static bool DecodeSingleSpriteTransparency (const SpriteCache *sc,
 			(orig[y * 2 + 1] <<  8) |  orig[y * 2];
 
 		if (offset >= size) {
-			return WarnCorruptSprite (file_slot, file_pos, __LINE__);
+			return WarnCorruptSprite (sc, __LINE__);
 		}
 
 		/* Go to that row */
@@ -246,7 +236,7 @@ static bool DecodeSingleSpriteTransparency (const SpriteCache *sc,
 				 *  15       - last_item
 				 *  16 .. 31 - transparency bytes */
 				if (remaining < 4) {
-					return WarnCorruptSprite (file_slot, file_pos, __LINE__);
+					return WarnCorruptSprite (sc, __LINE__);
 				}
 				last_item =  (src[1] & 0x80) != 0;
 				length    = ((src[1] & 0x7F) << 8) | src[0];
@@ -257,7 +247,7 @@ static bool DecodeSingleSpriteTransparency (const SpriteCache *sc,
 				 *  7       - last_item
 				 *  8 .. 15 - transparency bytes */
 				if (remaining < 2) {
-					return WarnCorruptSprite (file_slot, file_pos, __LINE__);
+					return WarnCorruptSprite (sc, __LINE__);
 				}
 				last_item = (*src & 0x80) != 0;
 				length = *src++ & 0x7F;
@@ -265,11 +255,11 @@ static bool DecodeSingleSpriteTransparency (const SpriteCache *sc,
 			}
 
 			if (skip + length > sprite->width || length * bpp > (uint)((orig + size) - src)) {
-				return WarnCorruptSprite (file_slot, file_pos, __LINE__);
+				return WarnCorruptSprite (sc, __LINE__);
 			}
 
 			src = DecodePixelData (sc->type, colour_fmt,
-				_palette_remap_grf[file_slot], length, src,
+				_palette_remap_grf[sc->file_slot], length, src,
 				sprite->data + y * sprite->width + skip);
 
 		} while (!last_item);
@@ -317,16 +307,13 @@ static bool DecodeSingleSprite (const SpriteCache *sc,
 
 static uint8 LoadSpriteV1 (const SpriteCache *sc, SpriteLoader::Sprite *sprite)
 {
-	uint8 file_slot = sc->file_slot;
-	size_t file_pos = sc->file_pos;
-
 	/* Open the right file and go to the correct position */
-	FioSeekToFile(file_slot, file_pos);
+	FioSeekToFile (sc->file_slot, sc->file_pos);
 
 	/* Read the size and type */
 	uint num = FioReadWord();
 	if (num < 8) {
-		WarnCorruptSprite(file_slot, file_pos, __LINE__);
+		WarnCorruptSprite (sc, __LINE__);
 		return 0;
 	}
 
@@ -341,7 +328,7 @@ static uint8 LoadSpriteV1 (const SpriteCache *sc, SpriteLoader::Sprite *sprite)
 	sprite[zoom_lvl].width  = FioReadWord();
 
 	if (sprite[zoom_lvl].width > INT16_MAX) {
-		WarnCorruptSprite(file_slot, file_pos, __LINE__);
+		WarnCorruptSprite (sc, __LINE__);
 		return 0;
 	}
 
@@ -361,14 +348,11 @@ static uint8 LoadSpriteV2 (const SpriteCache *sc, SpriteLoader::Sprite *sprite, 
 {
 	static const ZoomLevel zoom_lvl_map[6] = {ZOOM_LVL_OUT_4X, ZOOM_LVL_NORMAL, ZOOM_LVL_OUT_2X, ZOOM_LVL_OUT_8X, ZOOM_LVL_OUT_16X, ZOOM_LVL_OUT_32X};
 
-	uint8 file_slot = sc->file_slot;
-	size_t file_pos = sc->file_pos;
-
 	/* Is the sprite not present/stripped in the GRF? */
-	if (file_pos == SIZE_MAX) return 0;
+	if (sc->file_pos == SIZE_MAX) return 0;
 
 	/* Open the right file and go to the correct position */
-	FioSeekToFile(file_slot, file_pos);
+	FioSeekToFile (sc->file_slot, sc->file_pos);
 
 	uint32 id = FioReadDword();
 
@@ -377,7 +361,7 @@ static uint8 LoadSpriteV2 (const SpriteCache *sc, SpriteLoader::Sprite *sprite, 
 	do {
 		uint num = FioReadDword();
 		if (num < 10) {
-			WarnCorruptSprite (file_slot, file_pos, __LINE__);
+			WarnCorruptSprite (sc, __LINE__);
 			return 0;
 		}
 
@@ -402,7 +386,7 @@ static uint8 LoadSpriteV2 (const SpriteCache *sc, SpriteLoader::Sprite *sprite, 
 
 		if (HasBit (loaded_sprites, zoom_lvl)) {
 			/* We already have this zoom level, skip sprite. */
-			DEBUG (sprite, 1, "Ignoring duplicate zoom level sprite %u from %s", id, FioGetFilename(file_slot));
+			DEBUG (sprite, 1, "Ignoring duplicate zoom level sprite %u from %s", id, FioGetFilename (sc->file_slot));
 			FioSkipBytes (num - 2);
 			continue;
 		}
@@ -411,7 +395,7 @@ static uint8 LoadSpriteV2 (const SpriteCache *sc, SpriteLoader::Sprite *sprite, 
 		sprite[zoom_lvl].width  = FioReadWord();
 
 		if (sprite[zoom_lvl].width > INT16_MAX || sprite[zoom_lvl].height > INT16_MAX) {
-			WarnCorruptSprite (file_slot, file_pos, __LINE__);
+			WarnCorruptSprite (sc, __LINE__);
 			return 0;
 		}
 
@@ -436,7 +420,7 @@ static uint8 LoadSpriteV2 (const SpriteCache *sc, SpriteLoader::Sprite *sprite, 
 		}
 
 		if (FioGetPos() != start_pos + num) {
-			WarnCorruptSprite (file_slot, file_pos, __LINE__);
+			WarnCorruptSprite (sc, __LINE__);
 			return 0;
 		}
 
