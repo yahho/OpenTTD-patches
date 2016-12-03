@@ -715,7 +715,7 @@ static bool PadSprites(SpriteLoader::Sprite *sprite, uint8 sprite_avail)
 	return true;
 }
 
-static bool ResizeSprites(SpriteLoader::Sprite *sprite, uint8 sprite_avail, uint32 file_slot, uint32 file_pos)
+static bool ResizeSprites (SpriteLoader::Sprite *sprite, uint8 sprite_avail)
 {
 	/* Create a fully zoomed image if it does not exist */
 	ZoomLevel first_avail = static_cast<ZoomLevel>(FIND_FIRST_BIT(sprite_avail));
@@ -807,7 +807,7 @@ static void *ReadSprite (const SpriteCache *sc, SpriteID id)
 		return (void*) GetRawSprite (SPR_IMG_QUERY, ST_NORMAL, false);
 	}
 
-	if (!ResizeSprites (sprite, sprite_avail, sc->file_slot, sc->id)) {
+	if (!ResizeSprites (sprite, sprite_avail)) {
 		if (id == SPR_IMG_QUERY) usererror("Okay... something went horribly wrong. I couldn't resize the fallback sprite. What should I do?");
 		return (void*) GetRawSprite (SPR_IMG_QUERY, ST_NORMAL, false);
 	}
