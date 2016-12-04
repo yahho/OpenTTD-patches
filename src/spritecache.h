@@ -36,9 +36,6 @@ namespace SpriteLoader {
 
 	/**
 	 * Structure for passing information from the sprite loader to the blitter.
-	 * You can only use this struct once at a time when using AllocateData to
-	 * allocate the memory as that will always return the same memory address.
-	 * This to prevent thousands of malloc + frees just to load a sprite.
 	 */
 	struct Sprite {
 		uint16 height;                   ///< Height of the sprite
@@ -46,16 +43,6 @@ namespace SpriteLoader {
 		int16 x_offs;                    ///< The x-offset of where the sprite will be drawn
 		int16 y_offs;                    ///< The y-offset of where the sprite will be drawn
 		SpriteLoader::CommonPixel *data; ///< The sprite itself
-
-		/**
-		 * Allocate the sprite data of this sprite.
-		 * @param zoom Zoom level to allocate the data for.
-		 * @param size the minimum size of the data field.
-		 */
-		void AllocateData(ZoomLevel zoom, size_t size) { this->data = Sprite::buffer[zoom].ZeroAllocate(size); }
-	private:
-		/** Allocated memory to pass sprite data around */
-		static ReusableBuffer<SpriteLoader::CommonPixel> buffer[ZOOM_LVL_COUNT];
 	};
 };
 

@@ -57,7 +57,11 @@ struct SpriteCache {
 };
 
 
-ReusableBuffer<SpriteLoader::CommonPixel> SpriteLoader::Sprite::buffer[ZOOM_LVL_COUNT];
+/**
+ * Static buffer to prevent repeated allocation/deallocation during sprite
+ * loading.
+ */
+static ReusableBuffer <SpriteLoader::CommonPixel> sprite_buffer [ZOOM_LVL_COUNT];
 
 /**
  * We found a corrupted sprite. This means that the sprite itself
@@ -289,7 +293,7 @@ static bool DecodeSingleSprite (const SpriteCache *sc,
 		return false;
 	}
 
-	sprite->AllocateData(zoom_lvl, sprite->width * sprite->height);
+	sprite->data = sprite_buffer[zoom_lvl].ZeroAllocate (sprite->width * sprite->height);
 
 	/* Convert colour depth to pixel size. */
 	uint bpp = 0;
@@ -580,7 +584,7 @@ static bool ResizeSpriteIn(SpriteLoader::Sprite *sprite, ZoomLevel src, ZoomLeve
 	sprite[tgt].x_offs = sprite[src].x_offs * scaled_1;
 	sprite[tgt].y_offs = sprite[src].y_offs * scaled_1;
 
-	sprite[tgt].AllocateData(tgt, sprite[tgt].width * sprite[tgt].height);
+	sprite[tgt].data = sprite_buffer[tgt].ZeroAllocate (sprite[tgt].width * sprite[tgt].height);
 
 	SpriteLoader::CommonPixel *dst = sprite[tgt].data;
 	for (int y = 0; y < sprite[tgt].height; y++) {
@@ -602,7 +606,7 @@ static void ResizeSpriteOut(SpriteLoader::Sprite *sprite, ZoomLevel zoom)
 	sprite[zoom].x_offs = UnScaleByZoom(sprite[ZOOM_LVL_NORMAL].x_offs, zoom);
 	sprite[zoom].y_offs = UnScaleByZoom(sprite[ZOOM_LVL_NORMAL].y_offs, zoom);
 
-	sprite[zoom].AllocateData(zoom, sprite[zoom].height * sprite[zoom].width);
+	sprite[zoom].data = sprite_buffer[zoom].ZeroAllocate (sprite[zoom].height * sprite[zoom].width);
 
 	SpriteLoader::CommonPixel *dst = sprite[zoom].data;
 	const SpriteLoader::CommonPixel *src = sprite[zoom - 1].data;
@@ -634,7 +638,7 @@ static bool PadSingleSprite(SpriteLoader::Sprite *sprite, ZoomLevel zoom, uint p
 
 	/* Copy source data and reallocate sprite memory. */
 	SpriteLoader::CommonPixel *src_data = xmemdupt (sprite->data, sprite->width * sprite->height);
-	sprite->AllocateData(zoom, width * height);
+	sprite->data = sprite_buffer[zoom].ZeroAllocate (width * height);
 
 	/* Copy with padding to destination. */
 	SpriteLoader::CommonPixel *src = src_data;
