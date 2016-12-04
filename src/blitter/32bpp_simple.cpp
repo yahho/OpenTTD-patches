@@ -83,13 +83,13 @@ void Blitter_32bppSimple::Surface::draw (const BlitterParams *bp, BlitterMode mo
 	}
 }
 
-::Sprite *Blitter_32bppSimple::Encode (const SpriteLoader::Sprite *sprite, bool is_font, AllocatorProc *allocator)
+::Sprite *Blitter_32bppSimple::Encode (const RawSprite *sprite, bool is_font, AllocatorProc *allocator)
 {
 	Blitter_32bppSimple::Pixel *dst;
 	Sprite *dest_sprite = AllocateSprite<Sprite> (sprite, allocator, (size_t)sprite->height * (size_t)sprite->width * sizeof(*dst));
 
 	dst = dest_sprite->data;
-	SpriteLoader::CommonPixel *src = (SpriteLoader::CommonPixel *)sprite->data;
+	RawSprite::Pixel *src = (RawSprite::Pixel *)sprite->data;
 
 	for (int i = 0; i < sprite->height * sprite->width; i++) {
 		if (src->m == 0) {

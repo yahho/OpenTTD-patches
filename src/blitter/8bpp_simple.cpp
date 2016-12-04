@@ -61,7 +61,7 @@ void Blitter_8bppSimple::Surface::draw (const BlitterParams *bp, BlitterMode mod
 	}
 }
 
-::Sprite *Blitter_8bppSimple::Encode (const SpriteLoader::Sprite *sprite, bool is_font, AllocatorProc *allocator)
+::Sprite *Blitter_8bppSimple::Encode (const RawSprite *sprite, bool is_font, AllocatorProc *allocator)
 {
 	Sprite *dest_sprite = AllocateSprite<Sprite> (sprite, allocator, (size_t)sprite->height * (size_t)sprite->width);
 

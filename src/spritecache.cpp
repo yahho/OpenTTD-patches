@@ -61,7 +61,7 @@ struct SpriteCache {
  * Static buffer to prevent repeated allocation/deallocation during sprite
  * loading.
  */
-static ReusableBuffer <SpriteLoader::CommonPixel> sprite_buffer [ZOOM_LVL_COUNT];
+static ReusableBuffer <Blitter::RawSprite::Pixel> sprite_buffer [ZOOM_LVL_COUNT];
 
 /**
  * We found a corrupted sprite. This means that the sprite itself
@@ -133,7 +133,7 @@ static bool UncompressSingleSprite (const SpriteCache *sc, byte *buf, uint num)
  * @return A pointer to the first unused byte in the source data.
  */
 static const byte *DecodePixelData (SpriteType sprite_type, byte colour_fmt,
-	bool remap, uint n, const byte *pixel, SpriteLoader::CommonPixel *data)
+	bool remap, uint n, const byte *pixel, Blitter::RawSprite::Pixel *data)
 {
 	for (; n > 0; n--, data++) {
 		if (colour_fmt & SCC_RGB) {
@@ -181,7 +181,7 @@ static const byte *DecodePixelData (SpriteType sprite_type, byte colour_fmt,
  * @return True if the sprite was successfully loaded.
  */
 static bool DecodeSingleSpriteNormal (const SpriteCache *sc,
-	SpriteLoader::Sprite *sprite,
+	Blitter::RawSprite *sprite,
 	const byte *orig, uint size, byte colour_fmt, uint bpp)
 {
 	uint64 check_size = (uint64) sprite->width * sprite->height * bpp;
@@ -213,7 +213,7 @@ static bool DecodeSingleSpriteNormal (const SpriteCache *sc,
  * @return True if the sprite was successfully loaded.
  */
 static bool DecodeSingleSpriteTransparency (const SpriteCache *sc,
-	SpriteLoader::Sprite *sprite,
+	Blitter::RawSprite *sprite,
 	const byte *orig, uint size, byte colour_fmt, uint bpp)
 {
 	for (int y = 0; y < sprite->height; y++) {
@@ -283,7 +283,7 @@ static bool DecodeSingleSpriteTransparency (const SpriteCache *sc,
  * @return True if the sprite was successfully loaded.
  */
 static bool DecodeSingleSprite (const SpriteCache *sc,
-	SpriteLoader::Sprite *sprite, uint dest_size,
+	Blitter::RawSprite *sprite, uint dest_size,
 	byte type, ZoomLevel zoom_lvl, byte colour_fmt)
 {
 	ttd_unique_free_ptr<byte> dest_orig (xmalloct<byte> (dest_size));
@@ -309,7 +309,7 @@ static bool DecodeSingleSprite (const SpriteCache *sc,
 			dest_orig.get(), dest_size, colour_fmt, bpp);
 }
 
-static uint8 LoadSpriteV1 (const SpriteCache *sc, SpriteLoader::Sprite *sprite)
+static uint8 LoadSpriteV1 (const SpriteCache *sc, Blitter::RawSprite *sprite)
 {
 	/* Open the right file and go to the correct position */
 	FioSeekToFile (sc->file_slot, sc->file_pos);
@@ -348,7 +348,7 @@ static uint8 LoadSpriteV1 (const SpriteCache *sc, SpriteLoader::Sprite *sprite)
 	return 0;
 }
 
-static uint8 LoadSpriteV2 (const SpriteCache *sc, SpriteLoader::Sprite *sprite, bool load_32bpp)
+static uint8 LoadSpriteV2 (const SpriteCache *sc, Blitter::RawSprite *sprite, bool load_32bpp)
 {
 	static const ZoomLevel zoom_lvl_map[6] = {ZOOM_LVL_OUT_4X, ZOOM_LVL_NORMAL, ZOOM_LVL_OUT_2X, ZOOM_LVL_OUT_8X, ZOOM_LVL_OUT_16X, ZOOM_LVL_OUT_32X};
 
@@ -439,7 +439,7 @@ static uint8 LoadSpriteV2 (const SpriteCache *sc, SpriteLoader::Sprite *sprite, 
  * @param[out] sprite The sprites to fill with data.
  * @return Bit mask of the zoom levels successfully loaded or 0 if no sprite could be loaded.
  */
-static uint8 LoadGrfSprite (const SpriteCache *sc, SpriteLoader::Sprite *sprite)
+static uint8 LoadGrfSprite (const SpriteCache *sc, Blitter::RawSprite *sprite)
 {
 	if (sc->container_ver >= 2) {
 		return LoadSpriteV2 (sc, sprite, false);
@@ -572,7 +572,7 @@ uint GetMaxSpriteID()
 	return _spritecache_items;
 }
 
-static bool ResizeSpriteIn(SpriteLoader::Sprite *sprite, ZoomLevel src, ZoomLevel tgt)
+static bool ResizeSpriteIn (Blitter::RawSprite *sprite, ZoomLevel src, ZoomLevel tgt)
 {
 	uint8 scaled_1 = ScaleByZoom(1, (ZoomLevel)(src - tgt));
 
@@ -586,9 +586,9 @@ static bool ResizeSpriteIn(SpriteLoader::Sprite *sprite, ZoomLevel src, ZoomLeve
 
 	sprite[tgt].data = sprite_buffer[tgt].ZeroAllocate (sprite[tgt].width * sprite[tgt].height);
 
-	SpriteLoader::CommonPixel *dst = sprite[tgt].data;
+	Blitter::RawSprite::Pixel *dst = sprite[tgt].data;
 	for (int y = 0; y < sprite[tgt].height; y++) {
-		const SpriteLoader::CommonPixel *src_ln = &sprite[src].data[y / scaled_1 * sprite[src].width];
+		const Blitter::RawSprite::Pixel *src_ln = &sprite[src].data[y / scaled_1 * sprite[src].width];
 		for (int x = 0; x < sprite[tgt].width; x++) {
 			*dst = src_ln[x / scaled_1];
 			dst++;
@@ -598,7 +598,7 @@ static bool ResizeSpriteIn(SpriteLoader::Sprite *sprite, ZoomLevel src, ZoomLeve
 	return true;
 }
 
-static void ResizeSpriteOut(SpriteLoader::Sprite *sprite, ZoomLevel zoom)
+static void ResizeSpriteOut (Blitter::RawSprite *sprite, ZoomLevel zoom)
 {
 	/* Algorithm based on 32bpp_Optimized::ResizeSprite() */
 	sprite[zoom].width  = UnScaleByZoom(sprite[ZOOM_LVL_NORMAL].width,  zoom);
@@ -608,12 +608,12 @@ static void ResizeSpriteOut(SpriteLoader::Sprite *sprite, ZoomLevel zoom)
 
 	sprite[zoom].data = sprite_buffer[zoom].ZeroAllocate (sprite[zoom].height * sprite[zoom].width);
 
-	SpriteLoader::CommonPixel *dst = sprite[zoom].data;
-	const SpriteLoader::CommonPixel *src = sprite[zoom - 1].data;
-	const SpriteLoader::CommonPixel *src_end = src + sprite[zoom - 1].height * sprite[zoom - 1].width;
+	Blitter::RawSprite::Pixel *dst = sprite[zoom].data;
+	const Blitter::RawSprite::Pixel *src = sprite[zoom - 1].data;
+	const Blitter::RawSprite::Pixel *src_end = src + sprite[zoom - 1].height * sprite[zoom - 1].width;
 
 	for (uint y = 0; y < sprite[zoom].height; y++) {
-		const SpriteLoader::CommonPixel *src_ln = src + sprite[zoom - 1].width;
+		const Blitter::RawSprite::Pixel *src_ln = src + sprite[zoom - 1].width;
 		assert(src_ln <= src_end);
 		for (uint x = 0; x < sprite[zoom].width; x++) {
 			assert(src < src_ln);
@@ -629,7 +629,7 @@ static void ResizeSpriteOut(SpriteLoader::Sprite *sprite, ZoomLevel zoom)
 	}
 }
 
-static bool PadSingleSprite(SpriteLoader::Sprite *sprite, ZoomLevel zoom, uint pad_left, uint pad_top, uint pad_right, uint pad_bottom)
+static bool PadSingleSprite (Blitter::RawSprite *sprite, ZoomLevel zoom, uint pad_left, uint pad_top, uint pad_right, uint pad_bottom)
 {
 	uint width  = sprite->width + pad_left + pad_right;
 	uint height = sprite->height + pad_top + pad_bottom;
@@ -637,12 +637,12 @@ static bool PadSingleSprite(SpriteLoader::Sprite *sprite, ZoomLevel zoom, uint p
 	if (width > UINT16_MAX || height > UINT16_MAX) return false;
 
 	/* Copy source data and reallocate sprite memory. */
-	SpriteLoader::CommonPixel *src_data = xmemdupt (sprite->data, sprite->width * sprite->height);
+	Blitter::RawSprite::Pixel *src_data = xmemdupt (sprite->data, sprite->width * sprite->height);
 	sprite->data = sprite_buffer[zoom].ZeroAllocate (width * height);
 
 	/* Copy with padding to destination. */
-	SpriteLoader::CommonPixel *src = src_data;
-	SpriteLoader::CommonPixel *data = sprite->data;
+	Blitter::RawSprite::Pixel *src = src_data;
+	Blitter::RawSprite::Pixel *data = sprite->data;
 	for (uint y = 0; y < height; y++) {
 		if (y < pad_top || pad_bottom + y >= height) {
 			/* Top/bottom padding. */
@@ -678,7 +678,7 @@ static bool PadSingleSprite(SpriteLoader::Sprite *sprite, ZoomLevel zoom, uint p
 	return true;
 }
 
-static bool PadSprites(SpriteLoader::Sprite *sprite, uint8 sprite_avail)
+static bool PadSprites (Blitter::RawSprite *sprite, uint8 sprite_avail)
 {
 	/* Get minimum top left corner coordinates. */
 	int min_xoffs = INT32_MAX;
@@ -719,7 +719,7 @@ static bool PadSprites(SpriteLoader::Sprite *sprite, uint8 sprite_avail)
 	return true;
 }
 
-static bool ResizeSprites (SpriteLoader::Sprite *sprite, uint8 sprite_avail)
+static bool ResizeSprites (Blitter::RawSprite *sprite, uint8 sprite_avail)
 {
 	/* Create a fully zoomed image if it does not exist */
 	ZoomLevel first_avail = static_cast<ZoomLevel>(FIND_FIRST_BIT(sprite_avail));
@@ -795,7 +795,7 @@ static void *ReadSprite (const SpriteCache *sc, SpriteID id)
 
 	DEBUG(sprite, 9, "Load sprite %d", id);
 
-	SpriteLoader::Sprite sprite[ZOOM_LVL_COUNT];
+	Blitter::RawSprite sprite [ZOOM_LVL_COUNT];
 	uint8 sprite_avail = 0;
 
 	if ((Blitter::get()->GetScreenDepth() == 32) && (sc->container_ver >= 2)) {
@@ -1257,7 +1257,7 @@ const MapGenSprite *GetMapGenSprite (SpriteID sprite)
 
 	DEBUG (sprite, 9, "Load map generator sprite %d", sprite);
 
-	SpriteLoader::Sprite sp;
+	Blitter::RawSprite sp;
 	if (LoadGrfSprite (sc, &sp) == 0) {
 		return NULL;
 	}
@@ -1274,7 +1274,7 @@ const MapGenSprite *GetMapGenSprite (SpriteID sprite)
 	s->x_offs = sp.x_offs;
 	s->y_offs = sp.y_offs;
 
-	const SpriteLoader::CommonPixel *src = sp.data;
+	const Blitter::RawSprite::Pixel *src = sp.data;
 	byte *dest = s->data;
 	while (num-- > 0) {
 		*dest++ = src->m;

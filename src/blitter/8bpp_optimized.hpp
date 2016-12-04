@@ -26,7 +26,7 @@ public:
 	static const char name[]; ///< Name of the blitter.
 	static const char desc[]; ///< Description of the blitter.
 
-	/* virtual */ ::Sprite *Encode (const SpriteLoader::Sprite *sprite, bool is_font, AllocatorProc *allocator);
+	::Sprite *Encode (const RawSprite *sprite, bool is_font, AllocatorProc *allocator) OVERRIDE;
 
 	/** Blitting surface. */
 	struct Surface : Blitter_8bppBase::Surface {

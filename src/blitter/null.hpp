@@ -21,7 +21,7 @@ public:
 	static const char desc[]; ///< Description of the blitter.
 
 	/* virtual */ uint8 GetScreenDepth() { return 0; }
-	/* virtual */ Sprite *Encode (const SpriteLoader::Sprite *sprite, bool is_font, AllocatorProc *allocator);
+	/* virtual */ Sprite *Encode (const RawSprite *sprite, bool is_font, AllocatorProc *allocator);
 	/* virtual */ Blitter::PaletteAnimation UsePaletteAnimation() { return Blitter::PALETTE_ANIMATION_NONE; };
 
 	/** Blitting surface. */

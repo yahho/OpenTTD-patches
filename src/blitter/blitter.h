@@ -24,29 +24,6 @@ struct Sprite {
 	int16 y_offs;  ///< Number of pixels to shift the sprite downwards.
 };
 
-/** Interface for the loader of our sprites. */
-namespace SpriteLoader {
-	/** Definition of a common pixel in OpenTTD's realm. */
-	struct CommonPixel {
-		uint8 r;  ///< Red-channel
-		uint8 g;  ///< Green-channel
-		uint8 b;  ///< Blue-channel
-		uint8 a;  ///< Alpha-channel
-		uint8 m;  ///< Remap-channel
-	};
-
-	/**
-	 * Structure for passing information from the sprite loader to the blitter.
-	 */
-	struct Sprite {
-		uint16 height;                   ///< Height of the sprite
-		uint16 width;                    ///< Width of the sprite
-		int16 x_offs;                    ///< The x-offset of where the sprite will be drawn
-		int16 y_offs;                    ///< The y-offset of where the sprite will be drawn
-		SpriteLoader::CommonPixel *data; ///< The sprite itself
-	};
-};
-
 /** The modes of blitting we can do. */
 enum BlitterMode {
 	BM_NORMAL,       ///< Perform the simple blitting.
@@ -62,6 +39,24 @@ enum BlitterMode {
 class Blitter {
 public:
 	typedef void *AllocatorProc (size_t size);
+
+	/** Structure for a raw sprite to encode. */
+	struct RawSprite {
+		/** Definition of a raw pixel. */
+		struct Pixel {
+			uint8 r;  ///< Red-channel
+			uint8 g;  ///< Green-channel
+			uint8 b;  ///< Blue-channel
+			uint8 a;  ///< Alpha-channel
+			uint8 m;  ///< Remap-channel
+		};
+
+		Pixel *data;    ///< The sprite itself
+		uint16 height;  ///< Height of the sprite
+		uint16 width;   ///< Width of the sprite
+		int16  x_offs;  ///< The x-offset of where the sprite will be drawn
+		int16  y_offs;  ///< The y-offset of where the sprite will be drawn
+	};
 
 	/** Parameters related to blitting. */
 	struct BlitterParams {
@@ -119,7 +114,7 @@ public:
 	/**
 	 * Convert a sprite from the loader to our own format.
 	 */
-	virtual Sprite *Encode (const SpriteLoader::Sprite *sprite, bool is_font, AllocatorProc *allocator) = 0;
+	virtual Sprite *Encode (const RawSprite *sprite, bool is_font, AllocatorProc *allocator) = 0;
 
 	/**
 	 * Check if the blitter uses palette animation at all.
@@ -131,7 +126,7 @@ public:
 
 	/** Helper function to allocate a sprite in Encode. */
 	template <typename T>
-	static T *AllocateSprite (const SpriteLoader::Sprite *sprite,
+	static T *AllocateSprite (const RawSprite *sprite,
 		AllocatorProc *allocator, size_t extra = 0)
 	{
 		T *s = (T *) allocator (sizeof(T) + extra);

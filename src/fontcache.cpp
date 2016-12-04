@@ -432,7 +432,7 @@ static Sprite *MakeBuiltinQuestionMark (void)
 	 * in the bootstrap GUI. */
 #define CPSET { 0, 0, 0, 0, 1 }
 #define CP___ { 0, 0, 0, 0, 0 }
-	static SpriteLoader::CommonPixel builtin_questionmark_data[10 * 8] = {
+	static Blitter::RawSprite::Pixel builtin_questionmark_data[10 * 8] = {
 		CP___, CP___, CPSET, CPSET, CPSET, CPSET, CP___, CP___,
 		CP___, CPSET, CPSET, CP___, CP___, CPSET, CPSET, CP___,
 		CP___, CP___, CP___, CP___, CP___, CPSET, CPSET, CP___,
@@ -446,12 +446,12 @@ static Sprite *MakeBuiltinQuestionMark (void)
 	};
 #undef CPSET
 #undef CP___
-	static const SpriteLoader::Sprite builtin_questionmark = {
+	static const Blitter::RawSprite builtin_questionmark = {
+		builtin_questionmark_data,
 		10, // height
 		8,  // width
 		0,  // x_offs
 		0,  // y_offs
-		builtin_questionmark_data
 	};
 
 	Sprite *spr = Blitter::get()->Encode (&builtin_questionmark, true, AllocateFont);
@@ -499,8 +499,8 @@ FontCache::GlyphEntry *FontCache::GetGlyphPtr (GlyphID key)
 
 	/* FreeType has rendered the glyph, now we allocate a sprite and copy the image into it.
 	 * Use a static buffer to prevent repeated allocation/deallocation. */
-	static ReusableBuffer <SpriteLoader::CommonPixel> buffer;
-	SpriteLoader::Sprite sprite;
+	static ReusableBuffer <Blitter::RawSprite::Pixel> buffer;
+	Blitter::RawSprite sprite;
 	sprite.data = buffer.ZeroAllocate (width * height);
 	sprite.width = width;
 	sprite.height = height;

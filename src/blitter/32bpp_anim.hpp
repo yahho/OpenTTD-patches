@@ -74,7 +74,7 @@ public:
 	static const char name[]; ///< Name of the blitter.
 	static const char desc[]; ///< Description of the blitter.
 
-	::Sprite *Encode (const SpriteLoader::Sprite *sprite, bool is_font, AllocatorProc *allocator) OVERRIDE
+	::Sprite *Encode (const RawSprite *sprite, bool is_font, AllocatorProc *allocator) OVERRIDE
 	{
 		return Sprite::encode (sprite, is_font, allocator);
 	}

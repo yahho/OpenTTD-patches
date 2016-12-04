@@ -15,7 +15,7 @@
 const char Blitter_Null::name[] = "null";
 const char Blitter_Null::desc[] = "Null Blitter (does nothing)";
 
-Sprite *Blitter_Null::Encode (const SpriteLoader::Sprite *sprite, bool is_font, AllocatorProc *allocator)
+Sprite *Blitter_Null::Encode (const RawSprite *sprite, bool is_font, AllocatorProc *allocator)
 {
 	return AllocateSprite<Sprite> (sprite, allocator);
 }

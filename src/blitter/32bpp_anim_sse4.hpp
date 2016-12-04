@@ -32,7 +32,7 @@ public:
 		return HasCPUIDFlag (1, 2, 19);
 	}
 
-	::Sprite *Encode (const SpriteLoader::Sprite *sprite, bool is_font, AllocatorProc *allocator) OVERRIDE
+	::Sprite *Encode (const RawSprite *sprite, bool is_font, AllocatorProc *allocator) OVERRIDE
 	{
 		return SSESprite::encode (sprite, is_font, allocator);
 	}
