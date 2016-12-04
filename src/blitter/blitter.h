@@ -14,7 +14,38 @@
 
 #include "../core/pointer.h"
 #include "../string.h"
-#include "../spritecache.h"
+#include "../gfx_type.h"
+
+/** Data structure describing a sprite. */
+struct Sprite {
+	uint16 height; ///< Height of the sprite.
+	uint16 width;  ///< Width of the sprite.
+	int16 x_offs;  ///< Number of pixels to shift the sprite to the right.
+	int16 y_offs;  ///< Number of pixels to shift the sprite downwards.
+};
+
+/** Interface for the loader of our sprites. */
+namespace SpriteLoader {
+	/** Definition of a common pixel in OpenTTD's realm. */
+	struct CommonPixel {
+		uint8 r;  ///< Red-channel
+		uint8 g;  ///< Green-channel
+		uint8 b;  ///< Blue-channel
+		uint8 a;  ///< Alpha-channel
+		uint8 m;  ///< Remap-channel
+	};
+
+	/**
+	 * Structure for passing information from the sprite loader to the blitter.
+	 */
+	struct Sprite {
+		uint16 height;                   ///< Height of the sprite
+		uint16 width;                    ///< Width of the sprite
+		int16 x_offs;                    ///< The x-offset of where the sprite will be drawn
+		int16 y_offs;                    ///< The y-offset of where the sprite will be drawn
+		SpriteLoader::CommonPixel *data; ///< The sprite itself
+	};
+};
 
 /** The modes of blitting we can do. */
 enum BlitterMode {
@@ -30,6 +61,8 @@ enum BlitterMode {
  */
 class Blitter {
 public:
+	typedef void *AllocatorProc (size_t size);
+
 	/** Parameters related to blitting. */
 	struct BlitterParams {
 		const Sprite *sprite; ///< Pointer to the sprite how ever the encoder stored it

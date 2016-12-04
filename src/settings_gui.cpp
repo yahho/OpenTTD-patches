@@ -38,6 +38,7 @@
 #include "textfile.h"
 #include "stringfilter_type.h"
 #include "querystring_gui.h"
+#include "spritecache.h"
 
 
 static const StringID _driveside_dropdown[] = {

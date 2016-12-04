@@ -11,6 +11,7 @@
 
 #include "../stdafx.h"
 #include "../gfx_func.h"
+#include "../spritecache.h"
 #include "8bpp_base.hpp"
 
 void Blitter_8bppBase::Surface::recolour_rect (void *dst, int width, int height, PaletteID pal)

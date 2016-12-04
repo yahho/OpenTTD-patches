@@ -13,42 +13,10 @@
 #define SPRITECACHE_H
 
 #include "core/alloc_type.hpp"
+#include "blitter/blitter.h"
 #include "gfx_type.h"
 
-/** Data structure describing a sprite. */
-struct Sprite {
-	uint16 height; ///< Height of the sprite.
-	uint16 width;  ///< Width of the sprite.
-	int16 x_offs;  ///< Number of pixels to shift the sprite to the right.
-	int16 y_offs;  ///< Number of pixels to shift the sprite downwards.
-};
-
-/** Interface for the loader of our sprites. */
-namespace SpriteLoader {
-	/** Definition of a common pixel in OpenTTD's realm. */
-	struct CommonPixel {
-		uint8 r;  ///< Red-channel
-		uint8 g;  ///< Green-channel
-		uint8 b;  ///< Blue-channel
-		uint8 a;  ///< Alpha-channel
-		uint8 m;  ///< Remap-channel
-	};
-
-	/**
-	 * Structure for passing information from the sprite loader to the blitter.
-	 */
-	struct Sprite {
-		uint16 height;                   ///< Height of the sprite
-		uint16 width;                    ///< Width of the sprite
-		int16 x_offs;                    ///< The x-offset of where the sprite will be drawn
-		int16 y_offs;                    ///< The y-offset of where the sprite will be drawn
-		SpriteLoader::CommonPixel *data; ///< The sprite itself
-	};
-};
-
 extern uint _sprite_cache_size;
-
-typedef void *AllocatorProc(size_t size);
 
 void *GetRawSprite (SpriteID sprite, SpriteType type, bool cache = true);
 bool SpriteExists(SpriteID sprite);

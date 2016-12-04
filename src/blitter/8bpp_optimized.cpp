@@ -14,6 +14,7 @@
 #include "../settings_type.h"
 #include "../core/math_func.hpp"
 #include "../core/mem_func.hpp"
+#include "../core/alloc_type.hpp"
 #include "8bpp_optimized.hpp"
 
 const char Blitter_8bppOptimized::name[] = "8bpp-optimized";

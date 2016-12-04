@@ -64,7 +64,7 @@ struct SSESprite : Sprite {
 	SpriteInfo infos[ZOOM_LVL_COUNT];
 	byte data[]; ///< Data, all zoomlevels.
 
-	static SSESprite *encode (const SpriteLoader::Sprite *sprite, bool is_font, AllocatorProc *allocator);
+	static SSESprite *encode (const SpriteLoader::Sprite *sprite, bool is_font, Blitter::AllocatorProc *allocator);
 };
 
 DECLARE_ENUM_AS_BIT_SET(SSESprite::SpriteFlags);

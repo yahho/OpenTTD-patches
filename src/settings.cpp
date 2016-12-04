@@ -52,6 +52,7 @@
 #include "sound/sound_driver.hpp"
 #include "music/music_driver.hpp"
 #include "blitter/blitter.h"
+#include "spritecache.h"
 #include "base_media_base.h"
 #include "gamelog.h"
 #include "settings_func.h"

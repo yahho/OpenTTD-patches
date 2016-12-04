@@ -57,6 +57,7 @@
 #include "clear_func.h"
 #include "station_func.h"
 #include "viewport_sprite_sorter.h"
+#include "spritecache.h"
 
 #include "table/strings.h"
 #include "table/string_colours.h"
