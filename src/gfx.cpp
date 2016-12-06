@@ -1148,7 +1148,7 @@ void DrawMouseCursor()
 
 	/* Draw cursor on screen */
 	BlitArea screen;
-	screen.surface = _screen_surface;
+	screen.surface = _screen_surface.get();
 	screen.dst_ptr = _screen_surface->ptr;
 	screen.left = screen.top = 0;
 	screen.width  = _screen_width;

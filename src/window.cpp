@@ -919,7 +919,7 @@ void DrawOverlappedWindowForAll(int left, int top, int right, int bottom)
 {
 	Window *w;
 	BlitArea bk;
-	bk.surface = _screen_surface;
+	bk.surface = _screen_surface.get();
 
 	FOR_ALL_WINDOWS_FROM_BACK(w) {
 		if (MayBeShown(w) &&

@@ -239,7 +239,7 @@ void NetworkDrawChatMessage()
 	string_height = min(string_height, MAX_CHAT_MESSAGES * (FONT_HEIGHT_NORMAL + NETWORK_CHAT_LINE_SPACING));
 
 	BlitArea screen;
-	screen.surface = _screen_surface;
+	screen.surface = _screen_surface.get();
 	screen.dst_ptr = _screen_surface->ptr;
 	screen.left = screen.top = 0;
 	screen.width  = _screen_width;

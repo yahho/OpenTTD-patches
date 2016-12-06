@@ -657,7 +657,7 @@ static void LargeWorldCallback(void *userdata, void *buf, uint y, uint pitch, ui
 	int wx, left;
 
 	/* We are no longer rendering to the screen */
-	ttd_shared_ptr <Blitter::Surface> surface (Blitter::get()->create (buf, pitch, n, pitch, false));
+	ttd_unique_ptr <Blitter::Surface> surface (Blitter::get()->create (buf, pitch, n, pitch, false));
 	/* Pretend this is part of a larger buffer. */
 	void *dst_ptr = surface->move (buf, 0, -y);
 
@@ -665,7 +665,7 @@ static void LargeWorldCallback(void *userdata, void *buf, uint y, uint pitch, ui
 	left = 0;
 	while (vp->width - left != 0) {
 		wx = min(vp->width - left, 1600);
-		ViewportDoDraw (surface, dst_ptr, vp, left, y, wx, n);
+		ViewportDoDraw (surface.get(), dst_ptr, vp, left, y, wx, n);
 		left += wx;
 	}
 }

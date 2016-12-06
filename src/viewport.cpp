@@ -1631,8 +1631,8 @@ static void ViewportDrawDirtyBlocks (const DrawPixelInfo *dpi)
 			UnScaleByZoom (dpi->left + dpi->top, dpi->zoom) & 1);
 }
 
-void ViewportDoDraw (const ttd_shared_ptr <Blitter::Surface> &surface,
-	void *dst_ptr, const ViewPort *vp, int left, int top, int width, int height)
+void ViewportDoDraw (Blitter::Surface *surface, void *dst_ptr,
+	const ViewPort *vp, int left, int top, int width, int height)
 {
 	ViewportDrawer vd;
 
@@ -1710,7 +1710,7 @@ void ViewportDoDraw (const ttd_shared_ptr <Blitter::Surface> &surface,
  * Make sure we don't draw a too big area at a time.
  * If we do, the sprite memory will overflow.
  */
-static void ViewportDrawChk (const ttd_shared_ptr <Blitter::Surface> &surface,
+static void ViewportDrawChk (Blitter::Surface *surface,
 	const ViewPort *vp, int left, int top, int width, int height)
 {
 	if (ScaleByZoom (height, vp->zoom) * ScaleByZoom (width, vp->zoom) > 180000 * ZOOM_LVL_BASE * ZOOM_LVL_BASE) {

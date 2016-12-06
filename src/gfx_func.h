@@ -48,7 +48,7 @@
 
 /** Data about how and where to blit pixels. */
 struct BlitArea {
-	ttd_shared_ptr <Blitter::Surface> surface;
+	Blitter::Surface *surface;
 	void *dst_ptr;
 	int left, top, width, height;
 };
