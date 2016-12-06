@@ -44,7 +44,7 @@ bool _left_button_clicked;  ///< Is left mouse button clicked?
 bool _right_button_down;    ///< Is right mouse button pressed?
 bool _right_button_clicked; ///< Is right mouse button clicked?
 
-ttd_shared_ptr <Blitter::Surface> _screen_surface;
+ttd_unique_ptr <Blitter::Surface> _screen_surface;
 int _screen_width, _screen_height;
 
 bool _exit_game;

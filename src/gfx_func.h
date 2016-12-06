@@ -75,7 +75,7 @@ extern bool _left_button_clicked;
 extern bool _right_button_down;
 extern bool _right_button_clicked;
 
-extern ttd_shared_ptr <Blitter::Surface> _screen_surface;
+extern ttd_unique_ptr <Blitter::Surface> _screen_surface;
 extern int _screen_width, _screen_height;
 
 extern int _num_resolutions;
