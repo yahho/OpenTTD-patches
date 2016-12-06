@@ -43,7 +43,10 @@ bool _left_button_down;     ///< Is left mouse button pressed?
 bool _left_button_clicked;  ///< Is left mouse button clicked?
 bool _right_button_down;    ///< Is right mouse button pressed?
 bool _right_button_clicked; ///< Is right mouse button clicked?
-BlitArea _screen;
+
+ttd_shared_ptr <Blitter::Surface> _screen_surface;
+int _screen_width, _screen_height;
+
 bool _exit_game;
 GameMode _game_mode;
 SwitchMode _switch_mode;  ///< The next mainloop command.
@@ -87,7 +90,7 @@ void GfxScroll(int left, int top, int width, int height, int xo, int yo)
 	if (_networking) NetworkUndrawChatMessage();
 #endif /* ENABLE_NETWORK */
 
-	_screen.surface->scroll (_screen.dst_ptr, left, top, width, height, xo, yo);
+	_screen_surface->scroll (_screen_surface->ptr, left, top, width, height, xo, yo);
 	/* This part of the screen is now dirty. */
 	VideoDriver::GetActiveDriver()->MakeDirty(left, top, width, height);
 }
@@ -1070,12 +1073,12 @@ void LoadStringWidthTable(bool monospace)
 
 void ScreenSizeChanged()
 {
-	_dirty_bytes_per_line = CeilDiv(_screen.width, DIRTY_BLOCK_WIDTH);
-	_dirty_blocks = xrealloct<byte>(_dirty_blocks, _dirty_bytes_per_line * CeilDiv(_screen.height, DIRTY_BLOCK_HEIGHT));
+	_dirty_bytes_per_line = CeilDiv (_screen_width, DIRTY_BLOCK_WIDTH);
+	_dirty_blocks = xrealloct<byte> (_dirty_blocks, _dirty_bytes_per_line * CeilDiv (_screen_height, DIRTY_BLOCK_HEIGHT));
 
 	/* check the dirty rect */
-	if (_invalid_rect.right >= _screen.width) _invalid_rect.right = _screen.width;
-	if (_invalid_rect.bottom >= _screen.height) _invalid_rect.bottom = _screen.height;
+	if (_invalid_rect.right >= _screen_width) _invalid_rect.right = _screen_width;
+	if (_invalid_rect.bottom >= _screen_height) _invalid_rect.bottom = _screen_height;
 
 	/* screen size changed and the old bitmap is invalid now, so we don't want to undraw it */
 	_cursor.visible = false;
@@ -1084,11 +1087,11 @@ void ScreenSizeChanged()
 void UndrawMouseCursor()
 {
 	/* Don't undraw the mouse cursor if the screen is not ready */
-	if (_screen.dst_ptr == NULL) return;
+	if (!_screen_surface) return;
 
 	if (_cursor.visible) {
 		_cursor.visible = false;
-		_screen.surface->paste (&_cursor_backup, _cursor.draw_pos.x, _cursor.draw_pos.y);
+		_screen_surface->paste (&_cursor_backup, _cursor.draw_pos.x, _cursor.draw_pos.y);
 		VideoDriver::GetActiveDriver()->MakeDirty(_cursor.draw_pos.x, _cursor.draw_pos.y, _cursor.draw_size.x, _cursor.draw_size.y);
 	}
 }
@@ -1101,7 +1104,7 @@ void DrawMouseCursor()
 #endif
 
 	/* Don't draw the mouse cursor if the screen is not ready */
-	if (_screen.dst_ptr == NULL) return;
+	if (!_screen_surface) return;
 
 	/* Redraw mouse cursor but only when it's inside the window */
 	if (!_cursor.in_window) return;
@@ -1119,8 +1122,8 @@ void DrawMouseCursor()
 		width += left;
 		left = 0;
 	}
-	if (left + width > _screen.width) {
-		width = _screen.width - left;
+	if (left + width > _screen_width) {
+		width = _screen_width - left;
 	}
 	if (width <= 0) return;
 
@@ -1130,8 +1133,8 @@ void DrawMouseCursor()
 		height += top;
 		top = 0;
 	}
-	if (top + height > _screen.height) {
-		height = _screen.height - top;
+	if (top + height > _screen_height) {
+		height = _screen_height - top;
 	}
 	if (height <= 0) return;
 
@@ -1141,11 +1144,17 @@ void DrawMouseCursor()
 	_cursor.draw_size.y = height;
 
 	/* Make backup of stuff below cursor */
-	_screen.surface->copy (&_cursor_backup, _cursor.draw_pos.x, _cursor.draw_pos.y, _cursor.draw_size.x, _cursor.draw_size.y);
+	_screen_surface->copy (&_cursor_backup, _cursor.draw_pos.x, _cursor.draw_pos.y, _cursor.draw_size.x, _cursor.draw_size.y);
 
 	/* Draw cursor on screen */
+	BlitArea screen;
+	screen.surface = _screen_surface;
+	screen.dst_ptr = _screen_surface->ptr;
+	screen.left = screen.top = 0;
+	screen.width  = _screen_width;
+	screen.height = _screen_height;
 	for (uint i = 0; i < _cursor.sprite_count; ++i) {
-		DrawSprite (&_screen, _cursor.sprite_seq[i].sprite, _cursor.sprite_seq[i].pal, _cursor.pos.x + _cursor.sprite_seq[i].pos, _cursor.pos.y);
+		DrawSprite (&screen, _cursor.sprite_seq[i].sprite, _cursor.sprite_seq[i].pal, _cursor.pos.x + _cursor.sprite_seq[i].pos, _cursor.pos.y);
 	}
 
 	VideoDriver::GetActiveDriver()->MakeDirty(_cursor.draw_pos.x, _cursor.draw_pos.y, _cursor.draw_size.x, _cursor.draw_size.y);
@@ -1156,7 +1165,7 @@ void DrawMouseCursor()
 
 void RedrawScreenRect(int left, int top, int right, int bottom)
 {
-	assert(right <= _screen.width && bottom <= _screen.height);
+	assert (right <= _screen_width && bottom <= _screen_height);
 	if (_cursor.visible) {
 		if (right > _cursor.draw_pos.x &&
 				left < _cursor.draw_pos.x + _cursor.draw_size.x &&
@@ -1183,8 +1192,8 @@ void RedrawScreenRect(int left, int top, int right, int bottom)
 void DrawDirtyBlocks()
 {
 	byte *b = _dirty_blocks;
-	const int w = Align(_screen.width,  DIRTY_BLOCK_WIDTH);
-	const int h = Align(_screen.height, DIRTY_BLOCK_HEIGHT);
+	const int w = Align (_screen_width,  DIRTY_BLOCK_WIDTH);
+	const int h = Align (_screen_height, DIRTY_BLOCK_HEIGHT);
 	int x;
 	int y;
 
@@ -1299,8 +1308,8 @@ void SetDirtyBlocks(int left, int top, int right, int bottom)
 
 	if (left < 0) left = 0;
 	if (top < 0) top = 0;
-	if (right > _screen.width) right = _screen.width;
-	if (bottom > _screen.height) bottom = _screen.height;
+	if (right > _screen_width) right = _screen_width;
+	if (bottom > _screen_height) bottom = _screen_height;
 
 	if (left >= right || top >= bottom) return;
 
@@ -1336,7 +1345,7 @@ void SetDirtyBlocks(int left, int top, int right, int bottom)
  */
 void MarkWholeScreenDirty()
 {
-	SetDirtyBlocks(0, 0, _screen.width, _screen.height);
+	SetDirtyBlocks (0, 0, _screen_width, _screen_height);
 }
 
 /**
@@ -1560,7 +1569,7 @@ bool CursorVars::UpdateCursorPosition(int x, int y, bool queued_warp)
 
 bool ChangeResInGame(int width, int height)
 {
-	return (_screen.width == width && _screen.height == height) || VideoDriver::GetActiveDriver()->ChangeResolution(width, height);
+	return (_screen_width == width && _screen_height == height) || VideoDriver::GetActiveDriver()->ChangeResolution(width, height);
 }
 
 bool ToggleFullScreen(bool fs)

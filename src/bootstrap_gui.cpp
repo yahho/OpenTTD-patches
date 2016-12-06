@@ -51,7 +51,7 @@ public:
 	{
 		this->InitNested(0);
 		CLRBITS(this->flags, WF_WHITE_BORDER);
-		ResizeWindow(this, _screen.width, _screen.height);
+		ResizeWindow (this, _screen_width, _screen_height);
 	}
 
 	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE

@@ -327,11 +327,10 @@ void QZ_GameSizeChanged()
 	if (_cocoa_subdriver == NULL) return;
 
 	/* Tell the game that the resolution has changed */
-	_screen.width = _cocoa_subdriver->GetWidth();
-	_screen.height = _cocoa_subdriver->GetHeight();
-	_screen.dst_ptr = _cocoa_subdriver->GetPixelBuffer();
-	_screen.surface.reset (Blitter::get()->create (_screen.dst_ptr,
-				_screen.width, _screen.height, _screen.width));
+	_screen_width = _cocoa_subdriver->GetWidth();
+	_screen_height = _cocoa_subdriver->GetHeight();
+	_screen_surface.reset (Blitter::get()->create (_cocoa_subdriver->GetPixelBuffer(),
+				_screen_width, _screen_height, _screen_width));
 	_fullscreen = _cocoa_subdriver->IsFullscreen();
 
 	GameSizeChanged();
@@ -564,7 +563,7 @@ bool VideoDriver_Cocoa::ToggleFullscreen(bool full_screen)
  */
 bool VideoDriver_Cocoa::AfterBlitterChange()
 {
-	return this->ChangeResolution(_screen.width, _screen.height);
+	return this->ChangeResolution (_screen_width, _screen_height);
 }
 
 /**

@@ -373,7 +373,7 @@ bool CrashLog::WriteSavegame (stringb *filename) const
 bool CrashLog::WriteScreenshot (stringb *filename) const
 {
 	/* Don't draw when we have invalid screen size */
-	if (_screen.width < 1 || _screen.height < 1 || _screen.dst_ptr == NULL) return false;
+	if (_screen_width < 1 || _screen_height < 1 || !_screen_surface) return false;
 
 	bool res = MakeScreenshot(SC_CRASHLOG, "crash");
 	if (res) filename->copy (_full_screenshot_name);

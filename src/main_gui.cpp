@@ -214,7 +214,7 @@ struct MainWindow : Window
 	{
 		this->InitNested(0);
 		CLRBITS(this->flags, WF_WHITE_BORDER);
-		ResizeWindow(this, _screen.width, _screen.height);
+		ResizeWindow (this, _screen_width, _screen_height);
 
 		NWidgetViewport *nvp = this->GetWidget<NWidgetViewport>(WID_M_VIEWPORT);
 		nvp->InitializeViewport(this, TileXY(32, 32), ZOOM_LVL_VIEWPORT);
@@ -556,9 +556,9 @@ void ShowVitalWindows()
  */
 void GameSizeChanged()
 {
-	_cur_resolution.width  = _screen.width;
-	_cur_resolution.height = _screen.height;
+	_cur_resolution.width  = _screen_width;
+	_cur_resolution.height = _screen_height;
 	ScreenSizeChanged();
-	RelocateAllWindows(_screen.width, _screen.height);
+	RelocateAllWindows (_screen_width, _screen_height);
 	MarkWholeScreenDirty();
 }

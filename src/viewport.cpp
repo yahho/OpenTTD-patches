@@ -365,7 +365,7 @@ static void SetViewportPosition(Window *w, int x, int y)
 		left = 0;
 	}
 
-	i = left + width - _screen.width;
+	i = left + width - _screen_width;
 	if (i >= 0) width -= i;
 
 	if (width > 0) {
@@ -374,7 +374,7 @@ static void SetViewportPosition(Window *w, int x, int y)
 			top = 0;
 		}
 
-		i = top + height - _screen.height;
+		i = top + height - _screen_height;
 		if (i >= 0) height -= i;
 
 		if (height > 0) DoSetViewportPosition(w->z_front, left, top, width, height);

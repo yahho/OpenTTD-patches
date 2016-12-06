@@ -35,7 +35,6 @@
  *
  * @see VideoDriver::MakeDirty
  * @see _invalid_rect
- * @see _screen
  */
 
 
@@ -76,7 +75,8 @@ extern bool _left_button_clicked;
 extern bool _right_button_down;
 extern bool _right_button_clicked;
 
-extern BlitArea _screen;
+extern ttd_shared_ptr <Blitter::Surface> _screen_surface;
+extern int _screen_width, _screen_height;
 
 extern int _num_resolutions;
 extern Dimension _resolutions[32];

@@ -637,7 +637,7 @@ void SetScreenshotFormat(uint i)
  */
 static void CurrentScreenCallback(void *userdata, void *buf, uint y, uint pitch, uint n)
 {
-	_screen.surface->export_lines (buf, pitch, y, n);
+	_screen_surface->export_lines (buf, pitch, y, n);
 }
 
 /**
@@ -715,7 +715,8 @@ static const char *MakeScreenshotName(const char *default_fn, const char *ext, b
 static bool MakeSmallScreenshot(bool crashlog)
 {
 	const ScreenshotFormat *sf = _screenshot_formats + _cur_screenshot_format;
-	return sf->proc(MakeScreenshotName(SCREENSHOT_NAME, sf->extension, crashlog), CurrentScreenCallback, NULL, _screen.width, _screen.height,
+	return sf->proc (MakeScreenshotName (SCREENSHOT_NAME, sf->extension, crashlog),
+			CurrentScreenCallback, NULL, _screen_width, _screen_height,
 			Blitter::get()->GetScreenDepth(), _cur_palette.palette);
 }
 

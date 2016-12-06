@@ -755,7 +755,8 @@ inline uint32 SmallMapWindow::GetTileColours(const TileArea &ta) const
  */
 void SmallMapWindow::DrawSmallMapColumn(void *dst, uint xc, uint yc, int pitch, int reps, int start_pos, int end_pos) const
 {
-	void *dst_ptr_abs_end = _screen.surface->move (_screen.dst_ptr, 0, _screen.height);
+	void *dst_ptr_abs = _screen_surface->ptr;
+	void *dst_ptr_abs_end = _screen_surface->move (dst_ptr_abs, 0, _screen_height);
 	bool freeform = _settings_game.construction.freeform_edges;
 
 	do {
@@ -763,7 +764,7 @@ void SmallMapWindow::DrawSmallMapColumn(void *dst, uint xc, uint yc, int pitch, 
 		if (xc >= MapMaxX() || yc >= MapMaxY()) continue;
 
 		/* Check if the dst pointer points to a pixel inside the screen buffer */
-		if (dst < _screen.dst_ptr) continue;
+		if (dst < dst_ptr_abs) continue;
 		if (dst >= dst_ptr_abs_end) continue;
 
 		/* Construct tilearea covered by (xc, yc, xc + this->zoom, yc + this->zoom) such that it is within map limits. */
@@ -782,11 +783,11 @@ void SmallMapWindow::DrawSmallMapColumn(void *dst, uint xc, uint yc, int pitch, 
 		uint8 *val8 = (uint8 *)&val;
 		int idx = max(0, -start_pos);
 		for (int pos = max(0, start_pos); pos < end_pos; pos++) {
-			_screen.surface->set_pixel (dst, idx, 0, val8[idx]);
+			_screen_surface->set_pixel (dst, idx, 0, val8[idx]);
 			idx++;
 		}
 	/* Switch to next tile in the column */
-	} while (xc += this->zoom, yc += this->zoom, dst = _screen.surface->move (dst, pitch, 0), --reps != 0);
+	} while (xc += this->zoom, yc += this->zoom, dst = _screen_surface->move (dst, pitch, 0), --reps != 0);
 }
 
 /**

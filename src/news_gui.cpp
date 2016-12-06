@@ -306,7 +306,7 @@ struct NewsWindow : Window {
 
 	virtual Point OnInitialPosition(int16 sm_width, int16 sm_height, int window_number)
 	{
-		Point pt = { 0, _screen.height };
+		Point pt = { 0, _screen_height };
 		return pt;
 	}
 
@@ -479,7 +479,7 @@ struct NewsWindow : Window {
 	virtual void OnTick()
 	{
 		/* Scroll up newsmessages from the bottom in steps of 4 pixels */
-		int newtop = max(this->top - 4, _screen.height - this->height - this->status_height - this->chat_height);
+		int newtop = max (this->top - 4, _screen_height - this->height - this->status_height - this->chat_height);
 		this->SetWindowTop(newtop);
 	}
 

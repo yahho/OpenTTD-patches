@@ -93,7 +93,7 @@ struct StatusBarWindow : Window {
 
 	virtual Point OnInitialPosition(int16 sm_width, int16 sm_height, int window_number)
 	{
-		Point pt = { 0, _screen.height - sm_height };
+		Point pt = { 0, _screen_height - sm_height };
 		return pt;
 	}
 

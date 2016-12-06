@@ -33,11 +33,10 @@ const char *VideoDriver_Null::Start(const char * const *parm)
 	Blitter *blitter = Blitter::select ("null");
 	/* The null blitter should always be available. */
 	assert (blitter != NULL);
-	_screen.surface.reset (blitter->create (NULL, _cur_resolution.width,
+	_screen_surface.reset (blitter->create (NULL, _cur_resolution.width,
 				_cur_resolution.height, _cur_resolution.width));
-	_screen.width  = _cur_resolution.width;
-	_screen.height = _cur_resolution.height;
-	_screen.dst_ptr = NULL;
+	_screen_width  = _cur_resolution.width;
+	_screen_height = _cur_resolution.height;
 	ScreenSizeChanged();
 
 	return NULL;

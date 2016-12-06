@@ -180,7 +180,7 @@ struct IConsoleWindow : Window
 		_iconsole_mode = ICONSOLE_OPENED;
 
 		this->InitNested(0);
-		ResizeWindow(this, _screen.width, _screen.height / 3);
+		ResizeWindow (this, _screen_width, _screen_height / 3);
 	}
 
 	void OnDelete (void) FINAL_OVERRIDE
@@ -408,12 +408,12 @@ void IConsoleResize(Window *w)
 {
 	switch (_iconsole_mode) {
 		case ICONSOLE_OPENED:
-			w->height = _screen.height / 3;
-			w->width = _screen.width;
+			w->height = _screen_height / 3;
+			w->width = _screen_width;
 			break;
 		case ICONSOLE_FULL:
-			w->height = _screen.height - ICON_BOTTOM_BORDERWIDTH;
-			w->width = _screen.width;
+			w->height = _screen_height - ICON_BOTTOM_BORDERWIDTH;
+			w->width = _screen_width;
 			break;
 		default: return;
 	}

@@ -163,12 +163,11 @@ const char *VideoDriver_Dedicated::Start(const char * const *parm)
 	int bpp = blitter->GetScreenDepth();
 	_dedicated_video_mem = (bpp == 0) ? NULL : xmalloct<byte>(_cur_resolution.width * _cur_resolution.height * (bpp / 8));
 
-	_screen.surface.reset (blitter->create (_dedicated_video_mem,
+	_screen_surface.reset (blitter->create (_dedicated_video_mem,
 				_cur_resolution.width, _cur_resolution.height,
 				_cur_resolution.width));
-	_screen.width  = _cur_resolution.width;
-	_screen.height = _cur_resolution.height;
-	_screen.dst_ptr = _dedicated_video_mem;
+	_screen_width  = _cur_resolution.width;
+	_screen_height = _cur_resolution.height;
 	ScreenSizeChanged();
 
 #if defined(WINCE)
