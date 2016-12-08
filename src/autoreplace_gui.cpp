@@ -87,7 +87,7 @@ class ReplaceVehicleWindow : public Window {
 	byte sort_criteria;           ///< Criteria of sorting vehicles.
 	bool descending_sort_order;   ///< Order of sorting vehicles.
 	bool show_hidden_engines;     ///< Whether to show the hidden engines.
-	RailType sel_railtype;        ///< Type of rail tracks selected.
+	RailType sel_railtype;        ///< Type of rail tracks selected. #INVALID_RAILTYPE to show all.
 	Scrollbar *vscroll[2];
 
 	/**
@@ -104,7 +104,7 @@ class ReplaceVehicleWindow : public Window {
 		/* Ensure that the wagon/engine selection fits the engine. */
 		if ((rvi->railveh_type == RAILVEH_WAGON) == show_engines) return false;
 
-		if (draw_left && show_engines) {
+		if (draw_left && this->sel_railtype != INVALID_RAILTYPE) {
 			/* Ensure that the railtype is specific to the selected one */
 			if (rvi->railtype != this->sel_railtype) return false;
 		}
@@ -226,28 +226,10 @@ public:
 		  replace_engines (false), reset_sel_engine (false),
 		  sel_group (0), details_height (0), sort_criteria (0),
 		  descending_sort_order (false), show_hidden_engines (false),
-		  sel_railtype ((RailType)0), vscroll()
+		  sel_railtype (INVALID_RAILTYPE), vscroll()
 	{
 		this->sel_engine[0] = this->sel_engine[1] = (EngineID)0;
 		this->vscroll[0] = this->vscroll[1] = NULL;
-
-		if (vehicletype == VEH_TRAIN) {
-			/* For rail vehicles find the most used vehicle type, which is usually
-			 * better than 'just' the first/previous vehicle type. */
-			uint type_count[RAILTYPE_END];
-			memset(type_count, 0, sizeof(type_count));
-
-			const Engine *e;
-			FOR_ALL_ENGINES_OF_TYPE(e, VEH_TRAIN) {
-				if (e->u.rail.railveh_type == RAILVEH_WAGON) continue;
-				type_count[e->u.rail.railtype] += GetGroupNumEngines(_local_company, id_g, e->index);
-			}
-
-			this->sel_railtype = RAILTYPE_BEGIN;
-			for (RailType rt = RAILTYPE_BEGIN; rt < RAILTYPE_END; rt++) {
-				if (type_count[this->sel_railtype] < type_count[rt]) this->sel_railtype = rt;
-			}
-		}
 
 		this->replace_engines  = true; // start with locomotives (all other vehicles will not read this bool)
 		this->engines[0].ForceRebuild();
@@ -461,7 +443,7 @@ public:
 
 		if (this->window_number == VEH_TRAIN) {
 			/* Show the selected railtype in the pulldown menu */
-			this->GetWidget<NWidgetCore>(WID_RV_TRAIN_RAILTYPE_DROPDOWN)->widget_data = GetRailTypeInfo(sel_railtype)->strings.replace_text;
+			this->GetWidget<NWidgetCore>(WID_RV_TRAIN_RAILTYPE_DROPDOWN)->widget_data = sel_railtype == INVALID_RAILTYPE ? STR_REPLACE_ALL_RAILTYPE : GetRailTypeInfo(sel_railtype)->strings.replace_text;
 		}
 
 		this->DrawWidgets (dpi);
@@ -521,7 +503,7 @@ public:
 			}
 
 			case WID_RV_TRAIN_RAILTYPE_DROPDOWN: // Railtype selection dropdown menu
-				ShowDropDownList(this, GetRailTypeDropDownList(true), sel_railtype, WID_RV_TRAIN_RAILTYPE_DROPDOWN);
+				ShowDropDownList(this, GetRailTypeDropDownList(true, true), sel_railtype, WID_RV_TRAIN_RAILTYPE_DROPDOWN);
 				break;
 
 			case WID_RV_TRAIN_WAGONREMOVE_TOGGLE: // toggle renew_keep_length
