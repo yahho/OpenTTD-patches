@@ -669,7 +669,9 @@ static void GetTileDesc_Misc(TileIndex tile, TileDesc *td)
 			Owner tram_owner = HasBit(rts, ROADTYPE_TRAM) ? GetRoadOwner(tile, ROADTYPE_TRAM) : INVALID_OWNER;
 			Owner rail_owner = GetTileOwner(tile);
 
-			td->rail_speed = GetRailTypeInfo(GetRailType(tile))->max_speed;
+			const RailtypeInfo *rti = GetRailTypeInfo (GetRailType (tile));
+			td->railtype = rti->strings.name;
+			td->rail_speed = rti->max_speed;
 
 			Owner first_owner = (road_owner == INVALID_OWNER ? tram_owner : road_owner);
 			bool mixed_owners = (tram_owner != INVALID_OWNER && tram_owner != first_owner) || (rail_owner != INVALID_OWNER && rail_owner != first_owner);
@@ -700,7 +702,9 @@ static void GetTileDesc_Misc(TileIndex tile, TileDesc *td)
 
 			if (GetTunnelTransportType(tile) == TRANSPORT_RAIL) {
 				td->str = STR_LAI_TUNNEL_DESCRIPTION_RAILROAD;
-				td->rail_speed = GetRailTypeInfo(GetRailType(tile))->max_speed;
+				const RailtypeInfo *rti = GetRailTypeInfo (GetRailType (tile));
+				td->railtype = rti->strings.name;
+				td->rail_speed = rti->max_speed;
 			} else {
 				td->str = STR_LAI_TUNNEL_DESCRIPTION_ROAD;
 
@@ -736,7 +740,7 @@ static void GetTileDesc_Misc(TileIndex tile, TileDesc *td)
 				td->str = STR_LAI_RAIL_DESCRIPTION_TRAIN_DEPOT;
 
 				const RailtypeInfo *rti = GetRailTypeInfo(GetRailType(tile));
-				SetDParamX(td->dparam, 0, rti->strings.name);
+				td->railtype = rti->strings.name;
 				td->rail_speed = rti->max_speed;
 
 				if (_settings_game.vehicle.train_acceleration_model != AM_ORIGINAL) {

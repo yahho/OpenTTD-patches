@@ -3633,11 +3633,10 @@ static void GetTileDesc_Track(TileIndex tile, TileDesc *td)
 
 	const RailtypeInfo *rti = GetRailTypeInfo(GetRailType(tile));
 	td->rail_speed = rti->max_speed;
+	td->railtype = rti->strings.name;
 	td->owner[0] = GetTileOwner(tile);
 
 	if (IsTileSubtype(tile, TT_TRACK)) {
-		SetDParamX(td->dparam, 0, rti->strings.name);
-
 		if (HasSignalOnTrack(tile, TRACK_UPPER)) {
 			SignalType primary = GetSignalType(tile, TRACK_UPPER);
 			SignalType secondary = HasSignalOnTrack(tile, TRACK_LOWER) ? GetSignalType(tile, TRACK_LOWER) : primary;
