@@ -803,10 +803,11 @@ static bool DoLoad (LoadFilter **chain, bool check, bool old)
 /**
  * Load a game using a (reader) filter in the given mode.
  * @param reader   The filter to read the savegame from.
- * @param mode Load mode. Load can also be a TTD(Patch) game. Use #SL_LOAD, #SL_OLD_LOAD or #SL_LOAD_CHECK.
+ * @param check    Whether to only perform a check load.
+ * @param old      Whether the savegame is an old (TTO/TTD) savegame.
  * @return Return whether loading was successful
  */
-static bool LoadWithFilterMode(LoadFilter *reader, SaveLoadOperation fop, DetailedFileType dft)
+static bool LoadWithFilterMode (LoadFilter *reader, bool check, bool old)
 {
 	LoadFilter *chain = reader;
 	bool res;
@@ -814,10 +815,10 @@ static bool LoadWithFilterMode(LoadFilter *reader, SaveLoadOperation fop, Detail
 	SetSignalHandlers();
 
 	try {
-		res = DoLoad (&chain, fop == SLO_CHECK, dft == DFT_OLD_GAME_FILE);
+		res = DoLoad (&chain, check, old);
 	} catch (SlException e) {
 		/* Distinguish between loading into _load_check_data vs. normal load. */
-		if (fop == SLO_CHECK) {
+		if (check) {
 			_load_check_data.error = e.error;
 		} else {
 			_sl.error = e.error;
@@ -843,7 +844,7 @@ static bool LoadWithFilterMode(LoadFilter *reader, SaveLoadOperation fop, Detail
  */
 bool LoadWithFilter(LoadFilter *reader)
 {
-	return LoadWithFilterMode(reader, SLO_LOAD, DFT_GAME_FILE);
+	return LoadWithFilterMode (reader, false, false);
 }
 
 /**
@@ -897,7 +898,7 @@ bool LoadGame(const char *filename, SaveLoadOperation fop, DetailedFileType dft,
 		_load_check_data.checkable = true;
 	}
 
-	return LoadWithFilterMode(new FileReader(fh), fop, dft);
+	return LoadWithFilterMode (new FileReader(fh), fop == SLO_CHECK, dft == DFT_OLD_GAME_FILE);
 }
 
 /** Do a save when exiting the game (_settings_client.gui.autosave_on_exit) */
