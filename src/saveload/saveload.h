@@ -65,7 +65,7 @@ extern FileToSaveLoad _file_to_saveload;
 void GenerateDefaultSaveName (stringb *buf);
 void ShowSaveLoadErrorMessage (bool save);
 bool SaveGame(const char *filename, Subdirectory sb, bool threaded = true);
-bool LoadGame(const char *filename, SaveLoadOperation fop, DetailedFileType dft, Subdirectory sb);
+bool LoadGame(const char *filename, bool check, bool old, Subdirectory sb);
 void WaitTillSaved();
 void ProcessAsyncSaveFinish();
 void DoExitSave();

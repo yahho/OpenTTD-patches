@@ -851,17 +851,18 @@ bool LoadWithFilter(LoadFilter *reader)
  * Main Load function where the high-level saveload functions are
  * handled. It opens the savegame, selects format and checks versions
  * @param filename The name of the savegame being loaded
- * @param mode Load mode. Load can also be a TTD(Patch) game. Use #SL_LOAD, #SL_OLD_LOAD or #SL_LOAD_CHECK.
+ * @param check    Whether to only perform a check load.
+ * @param old      Whether the savegame is an old (TTO/TTD) savegame.
  * @param sb The sub directory to load the savegame from
  * @return Return whether loading was successful
  */
-bool LoadGame(const char *filename, SaveLoadOperation fop, DetailedFileType dft, Subdirectory sb)
+bool LoadGame (const char *filename, bool check, bool old, Subdirectory sb)
 {
 	WaitTillSaved();
 
 	/* Load a TTDLX or TTDPatch game */
 	FILE *fh;
-	if (dft == DFT_OLD_GAME_FILE) {
+	if (old) {
 		/* XXX Why are old savegames only searched for in NO_DIRECTORY? */
 		fh  = FioFOpenFile(filename, "rb", NO_DIRECTORY);
 	} else {
@@ -876,7 +877,7 @@ bool LoadGame(const char *filename, SaveLoadOperation fop, DetailedFileType dft,
 
 	if (fh == NULL) {
 		/* Distinguish between loading into _load_check_data vs. normal load. */
-		if (fop == SLO_CHECK) {
+		if (check) {
 			_load_check_data.error.str = STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE;
 		} else {
 			DEBUG(sl, 0, "Cannot open file '%s'", filename);
@@ -887,18 +888,18 @@ bool LoadGame(const char *filename, SaveLoadOperation fop, DetailedFileType dft,
 	}
 
 	/* LOAD game */
-	if (dft != DFT_OLD_GAME_FILE) {
+	if (!old) {
 		DEBUG(desync, 1, "load: %s", filename);
 	}
 
-	if (fop == SLO_CHECK) {
+	if (check) {
 		/* Clear previous check data */
 		_load_check_data.Clear();
 		/* Mark SL_LOAD_CHECK as supported for this savegame. */
 		_load_check_data.checkable = true;
 	}
 
-	return LoadWithFilterMode (new FileReader(fh), fop == SLO_CHECK, dft == DFT_OLD_GAME_FILE);
+	return LoadWithFilterMode (new FileReader(fh), check, old);
 }
 
 /** Do a save when exiting the game (_settings_client.gui.autosave_on_exit) */

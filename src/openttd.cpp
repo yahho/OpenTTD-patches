@@ -327,7 +327,7 @@ static void LoadIntroGame(bool load_newgrfs = true)
 	SetupColoursAndInitialWindow();
 
 	/* Load the default opening screen savegame */
-	if (!LoadGame("opntitle.dat", SLO_LOAD, DFT_GAME_FILE, BASESET_DIR)) {
+	if (!LoadGame ("opntitle.dat", false, false, BASESET_DIR)) {
 		GenerateWorld(GWM_EMPTY, 64, 64); // if failed loading, make empty world.
 		WaitTillGeneratedWorld();
 		SetLocalCompany(COMPANY_SPECTATOR);
@@ -650,7 +650,7 @@ int openttd_main(int argc, char *argv[])
 			FiosGetSavegameListCallback (SLO_LOAD, mgo.opt, strrchr(mgo.opt, '.'), &title);
 
 			_load_check_data.Clear();
-			bool res = LoadGame(mgo.opt, SLO_CHECK, DFT_GAME_FILE, SAVE_DIR);
+			bool res = LoadGame (mgo.opt, true, false, SAVE_DIR);
 			if (!res || _load_check_data.HasErrors()) {
 				fprintf(stderr, "Failed to open savegame\n");
 				if (_load_check_data.HasErrors()) {
@@ -1024,7 +1024,7 @@ bool SafeLoad(const char *filename, SaveLoadOperation fop, DetailedFileType dft,
 
 	_game_mode = newgm;
 
-	if (lf == NULL ? LoadGame(filename, fop, dft, subdir) : LoadWithFilter(lf)) {
+	if (lf == NULL ? LoadGame (filename, false, dft == DFT_OLD_GAME_FILE, subdir) : LoadWithFilter (lf)) {
 		return true;
 	} else {
 #ifdef ENABLE_NETWORK

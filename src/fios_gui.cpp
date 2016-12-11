@@ -583,7 +583,7 @@ public:
 
 							if (GetDetailedFileType(file->type) == DFT_GAME_FILE) {
 								/* Other detailed file types cannot be checked before. */
-								LoadGame(name, SLO_CHECK, DFT_GAME_FILE, NO_DIRECTORY);
+								LoadGame (name, true, false, NO_DIRECTORY);
 							}
 
 							this->InvalidateData(1);
