@@ -1016,9 +1016,8 @@ static void MakeNewEditorWorld()
  * @param subdir default directory to look for filename, set to 0 if not needed
  * @param lf Load filter to use, if NULL: use filename + subdir.
  */
-bool SafeLoad(const char *filename, SaveLoadOperation fop, DetailedFileType dft, GameMode newgm, Subdirectory subdir, struct LoadFilter *lf = NULL)
+bool SafeLoad (const char *filename, DetailedFileType dft, GameMode newgm, Subdirectory subdir, struct LoadFilter *lf = NULL)
 {
-	assert(fop == SLO_LOAD);
 	assert(dft == DFT_GAME_FILE || (lf == NULL && dft == DFT_OLD_GAME_FILE));
 	GameMode ogm = _game_mode;
 
@@ -1108,7 +1107,8 @@ void SwitchToMode(SwitchMode new_mode)
 			ResetGRFConfig(true);
 			ResetWindowSystem();
 
-			if (!SafeLoad(_file_to_saveload.name, _file_to_saveload.file_op, _file_to_saveload.detail_ftype, GM_NORMAL, NO_DIRECTORY)) {
+			assert (_file_to_saveload.file_op == SLO_LOAD);
+			if (!SafeLoad (_file_to_saveload.name, _file_to_saveload.detail_ftype, GM_NORMAL, NO_DIRECTORY)) {
 				ShowSaveLoadErrorMessage (false);
 			} else {
 				if (_file_to_saveload.abstract_ftype == FT_SCENARIO) {
@@ -1148,7 +1148,8 @@ void SwitchToMode(SwitchMode new_mode)
 			break;
 
 		case SM_LOAD_SCENARIO: { // Load scenario from scenario editor
-			if (SafeLoad(_file_to_saveload.name, _file_to_saveload.file_op, _file_to_saveload.detail_ftype, GM_EDITOR, NO_DIRECTORY)) {
+			assert (_file_to_saveload.file_op == SLO_LOAD);
+			if (SafeLoad (_file_to_saveload.name, _file_to_saveload.detail_ftype, GM_EDITOR, NO_DIRECTORY)) {
 				SetLocalCompany(OWNER_NONE);
 				_settings_newgame.game_creation.starting_year = _cur_year;
 				/* Cancel the saveload pausing */

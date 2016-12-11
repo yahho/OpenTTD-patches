@@ -512,7 +512,7 @@ bool ClientNetworkGameSocketHandler::IsConnected()
  *   DEF_CLIENT_RECEIVE_COMMAND has parameter: Packet *p
  ************/
 
-extern bool SafeLoad(const char *filename, SaveLoadOperation fop, DetailedFileType dft, GameMode newgm, Subdirectory subdir, struct LoadFilter *lf = NULL);
+extern bool SafeLoad (const char *filename, DetailedFileType dft, GameMode newgm, Subdirectory subdir, struct LoadFilter *lf = NULL);
 
 NetworkRecvStatus ClientNetworkGameSocketHandler::Receive_SERVER_FULL (RecvPacket *p)
 {
@@ -828,7 +828,7 @@ NetworkRecvStatus ClientNetworkGameSocketHandler::Receive_SERVER_MAP_DONE (RecvP
 
 	/* The map is done downloading, load it */
 	ClearErrorMessages();
-	bool load_success = SafeLoad(NULL, SLO_LOAD, DFT_GAME_FILE, GM_NORMAL, NO_DIRECTORY, lf);
+	bool load_success = SafeLoad (NULL, DFT_GAME_FILE, GM_NORMAL, NO_DIRECTORY, lf);
 
 	/* Long savegame loads shouldn't affect the lag calculation! */
 	this->last_packet = _realtime_tick;
