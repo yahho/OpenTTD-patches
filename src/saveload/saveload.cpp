@@ -714,20 +714,23 @@ static void LoadSavegameFormat(LoadFilter **chain, SavegameTypeVersion *stv)
 }
 
 /**
- * Actually perform the loading of a "non-old" savegame.
+ * Actually perform the loading of a savegame.
  * @param chain      The filter chain head to read the savegame from.
- * @param mode Load mode. Load can also be a TTD(Patch) game. Use #SL_LOAD, #SL_OLD_LOAD or #SL_LOAD_CHECK.
+ * @param check      Whether to only perform a check load.
+ * @param old        Whether the savegame is an old (TTO/TTD) savegame.
  * @return Return whether loading was successful
  */
-static bool DoLoad(LoadFilter **chain, SaveLoadOperation fop, DetailedFileType dft)
+static bool DoLoad (LoadFilter **chain, bool check, bool old)
 {
+	assert (!check || !old);
+
 	SavegameTypeVersion sl_version;
 
-	if (dft != DFT_OLD_GAME_FILE) {
+	if (!old) {
 		LoadSavegameFormat(chain, &sl_version);
 	}
 
-	if (fop != SLO_CHECK) {
+	if (!check) {
 		/* Old maps were hardcoded to 256x256 and thus did not contain
 		 * any mapsize information. Pre-initialize to 256x256 to not to
 		 * confuse old games */
@@ -766,20 +769,20 @@ static bool DoLoad(LoadFilter **chain, SaveLoadOperation fop, DetailedFileType d
 		}
 	}
 
-	if (dft == DFT_OLD_GAME_FILE) {
+	if (old) {
 		if (!LoadOldSaveGame(*chain, &sl_version, &_sl.error)) return false;
 	} else {
 		/* Load chunks. */
 		LoadBuffer reader (*chain, &sl_version, _file_to_saveload.abstract_ftype == FT_SCENARIO);
-		SlLoadChunks(&reader, fop == SLO_CHECK);
+		SlLoadChunks (&reader, check);
 
 		/* Resolve references */
-		if (fop != SLO_CHECK) {
+		if (!check) {
 			SlFixPointers(&sl_version);
 		}
 	}
 
-	if (fop == SLO_CHECK) {
+	if (check) {
 		/* The only part from AfterLoadGame() we need */
 		_load_check_data.grf_compatibility = IsGoodGRFConfigList(_load_check_data.grfconfig);
 
@@ -811,7 +814,7 @@ static bool LoadWithFilterMode(LoadFilter *reader, SaveLoadOperation fop, Detail
 	SetSignalHandlers();
 
 	try {
-		res = DoLoad(&chain, fop, dft);
+		res = DoLoad (&chain, fop == SLO_CHECK, dft == DFT_OLD_GAME_FILE);
 	} catch (SlException e) {
 		/* Distinguish between loading into _load_check_data vs. normal load. */
 		if (fop == SLO_CHECK) {
