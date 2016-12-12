@@ -66,15 +66,10 @@ FileToSaveLoad _file_to_saveload; ///< File to save or load in the openttd loop.
 char _savegame_format[8]; ///< how to compress savegames
 bool _do_autosave;        ///< are we doing an autosave at the moment?
 
-/** The saveload struct, containing reader-writer functions, buffer, version, etc. */
-struct SaveLoadParams {
-	SlErrorData error;                   ///< the error to show
+static SlErrorData _sl_error;   ///< the error to show
 
-	byte ff_state;                       ///< The state of fast-forward when saving started.
-	bool saveinprogress;                 ///< Whether there is currently a save in progress.
-};
-
-static SaveLoadParams _sl; ///< Parameters used for/at saveload.
+static byte _sl_ff_state;       ///< The state of fast-forward when saving started.
+static bool _sl_saveinprogress; ///< Whether there is currently a save in progress.
 
 /* these define the chunks */
 extern const ChunkHandler _gamelog_chunk_handlers[];
@@ -331,30 +326,30 @@ extern bool LoadOldSaveGame(LoadFilter *reader, SavegameTypeVersion *stv, SlErro
  */
 static void SaveFileStart()
 {
-	_sl.ff_state = _fast_forward;
+	_sl_ff_state = _fast_forward;
 	_fast_forward = 0;
 	SetMouseCursorBusy(true);
 
 	InvalidateWindowData(WC_STATUS_BAR, 0, SBI_SAVELOAD_START);
-	_sl.saveinprogress = true;
+	_sl_saveinprogress = true;
 }
 
 /** Update the gui accordingly when saving is done and release locks on saveload. */
 static void SaveFileDone()
 {
-	if (_game_mode != GM_MENU) _fast_forward = _sl.ff_state;
+	if (_game_mode != GM_MENU) _fast_forward = _sl_ff_state;
 	SetMouseCursorBusy(false);
 
 	InvalidateWindowData(WC_STATUS_BAR, 0, SBI_SAVELOAD_FINISH);
-	_sl.saveinprogress = false;
+	_sl_saveinprogress = false;
 }
 
 /** Show a gui message on saveload failure. */
 void ShowSaveLoadErrorMessage (bool save)
 {
 	StringID str = save ? STR_ERROR_GAME_SAVE_FAILED : STR_ERROR_GAME_LOAD_FAILED;
-	SetDParamStr (0, _sl.error.data);
-	ShowErrorMessage (str, _sl.error.str, WL_ERROR);
+	SetDParamStr (0, _sl_error.data);
+	ShowErrorMessage (str, _sl_error.str, WL_ERROR);
 }
 
 /** Show a gui message when saving has failed */
@@ -368,8 +363,8 @@ static void SaveFileError()
 static void LogSaveLoadError (void)
 {
 	char err_str[512];
-	SetDParamStr(0, _sl.error.data);
-	GetString (err_str, _sl.error.str);
+	SetDParamStr (0, _sl_error.data);
+	GetString (err_str, _sl_error.str);
 
 	/* Skip the "colour" character */
 	DEBUG(sl, 0, "%s", err_str + 3);
@@ -393,11 +388,11 @@ static bool SaveFileToDisk(SaveFilter *writer, SaveDumper *dumper, bool threaded
 
 		res = true;
 	} catch (SlException e) {
-		_sl.error = e.error;
+		_sl_error = e.error;
 
 		/* We don't want to shout when saving is just
 		 * cancelled due to a client disconnecting. */
-		if (_sl.error.str != STR_NETWORK_ERROR_LOSTCONNECTION) {
+		if (_sl_error.str != STR_NETWORK_ERROR_LOSTCONNECTION) {
 			LogSaveLoadError();
 			asfp = SaveFileError;
 		}
@@ -454,7 +449,7 @@ void WaitTillSaved()
  */
 static bool DoSave(SaveFilter *writer, bool threaded)
 {
-	assert(!_sl.saveinprogress);
+	assert (!_sl_saveinprogress);
 
 	SaveDumper *dumper = new SaveDumper();
 
@@ -501,7 +496,7 @@ bool SaveWithFilter(SaveFilter *writer, bool threaded)
 bool SaveGame(const char *filename, Subdirectory sb, bool threaded)
 {
 	/* An instance of saving is already active, so don't go saving again */
-	if (_sl.saveinprogress && threaded) {
+	if (_sl_saveinprogress && threaded) {
 		/* if not an autosave, but a user action, show error message */
 		if (!_do_autosave) ShowErrorMessage(STR_ERROR_SAVE_STILL_IN_PROGRESS, INVALID_STRING_ID, WL_ERROR);
 		return true;
@@ -511,7 +506,7 @@ bool SaveGame(const char *filename, Subdirectory sb, bool threaded)
 	FILE *fh = FioFOpenFile(filename, "wb", sb);
 
 	if (fh == NULL) {
-		_sl.error.str = STR_GAME_SAVELOAD_ERROR_FILE_NOT_WRITEABLE;
+		_sl_error.str = STR_GAME_SAVELOAD_ERROR_FILE_NOT_WRITEABLE;
 
 		LogSaveLoadError();
 
@@ -770,7 +765,7 @@ static bool DoLoad (LoadFilter **chain, bool check, bool old)
 	}
 
 	if (old) {
-		if (!LoadOldSaveGame(*chain, &sl_version, &_sl.error)) return false;
+		if (!LoadOldSaveGame (*chain, &sl_version, &_sl_error)) return false;
 	} else {
 		/* Load chunks. */
 		LoadBuffer reader (*chain, &sl_version, _file_to_saveload.abstract_ftype == FT_SCENARIO);
@@ -821,7 +816,7 @@ static bool LoadWithFilterMode (LoadFilter *reader, bool check, bool old)
 		if (check) {
 			_load_check_data.error = e.error;
 		} else {
-			_sl.error = e.error;
+			_sl_error = e.error;
 
 			SlNullPointers();
 
@@ -881,7 +876,7 @@ bool LoadGame (const char *filename, bool check, bool old, Subdirectory sb)
 			_load_check_data.error.str = STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE;
 		} else {
 			DEBUG(sl, 0, "Cannot open file '%s'", filename);
-			_sl.error.str = STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE;
+			_sl_error.str = STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE;
 		}
 
 		return false;
