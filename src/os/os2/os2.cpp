@@ -99,7 +99,7 @@ bool FiosGetDiskFreeSpace(const char *path, uint64 *tot)
 	struct diskfree_t free;
 	char drive = path[0] - 'A' + 1;
 
-	if (tot != NULL && _getdiskfree(drive, &free) == 0) {
+	if (_getdiskfree(drive, &free) == 0) {
 		*tot = free.avail_clusters * free.sectors_per_cluster * free.bytes_per_sector;
 		return true;
 	}
@@ -116,7 +116,7 @@ bool FiosGetDiskFreeSpace(const char *path, uint64 *tot)
 		free = (uint64)s.f_frsize * s.f_bavail;
 	}
 #endif
-	if (tot != NULL) *tot = free;
+	*tot = free;
 	return true;
 #endif
 }

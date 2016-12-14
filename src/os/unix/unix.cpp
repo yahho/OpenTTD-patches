@@ -95,7 +95,7 @@ bool FiosGetDiskFreeSpace(const char *path, uint64 *tot)
 	if (statvfs(path, &s) != 0) return false;
 	free = (uint64)s.f_frsize * s.f_bavail;
 #endif
-	if (tot != NULL) *tot = free;
+	*tot = free;
 	return true;
 }
 

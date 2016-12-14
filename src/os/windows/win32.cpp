@@ -259,7 +259,7 @@ bool FiosGetDiskFreeSpace(const char *path, uint64 *tot)
 	DWORD spc, bps, nfc, tnc;
 
 	_sntprintf(root, lengthof(root), _T("%c:") _T(PATHSEP), path[0]);
-	if (tot != NULL && GetDiskFreeSpace(root, &spc, &bps, &nfc, &tnc)) {
+	if (GetDiskFreeSpace(root, &spc, &bps, &nfc, &tnc)) {
 		*tot = ((spc * bps) * (uint64)nfc);
 		retval = true;
 	}
