@@ -35,7 +35,6 @@ extern bool FiosIsRoot(const char *path);
 extern bool FiosIsValidFile(const char *path, const struct dirent *ent, struct stat *sb);
 extern bool FiosIsHiddenFile(const struct dirent *ent);
 extern void FiosGetDrives(FileList &file_list);
-extern bool FiosGetDiskFreeSpace(const char *path, uint64 *tot);
 
 /* get the name of an oldstyle savegame */
 extern void GetOldSaveGameName (const char *file, stringb *title);
@@ -132,19 +131,6 @@ const FiosItem *FileList::FindItem(const char *file)
 const char *FiosGetPath (void)
 {
 	return _fios_path;
-}
-
-/**
- * Get descriptive texts. Returns the path and free space
- * left on the device
- * @param path string describing the path
- * @param total_free total free space in megabytes, optional (can be NULL)
- * @return StringID describing the path (free space or failure)
- */
-StringID FiosGetDescText(const char **path, uint64 *total_free)
-{
-	*path = _fios_path;
-	return FiosGetDiskFreeSpace(*path, total_free) ? STR_SAVELOAD_BYTES_FREE : STR_ERROR_UNABLE_TO_READ_DRIVE;
 }
 
 /**

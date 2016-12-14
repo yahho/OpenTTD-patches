@@ -217,8 +217,10 @@ void FiosGetHeightmapList(SaveLoadOperation fop, FileList &file_list);
 
 const char *FiosBrowseTo(const FiosItem *item);
 
+/* OS-specific functions are taken from their respective files (win32/unix/os2 .c) */
+bool FiosGetDiskFreeSpace (const char *path, uint64 *tot);
+
 const char *FiosGetPath (void);
-StringID FiosGetDescText(const char **path, uint64 *total_free);
 bool FiosDelete(const char *name);
 void FiosMakeHeightmapName(char *buf, const char *name, size_t size);
 void FiosMakeSavegameName(char *buf, const char *name, size_t size);

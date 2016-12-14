@@ -355,7 +355,8 @@ public:
 				static uint64 tot = 0;
 
 				if (_fios_path_changed) {
-					str = FiosGetDescText(&path, &tot);
+					path = FiosGetPath();
+					str = FiosGetDiskFreeSpace (path, &tot) ? STR_SAVELOAD_BYTES_FREE : STR_ERROR_UNABLE_TO_READ_DRIVE;
 					_fios_path_changed = false;
 				}
 
