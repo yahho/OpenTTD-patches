@@ -217,6 +217,7 @@ void FiosGetHeightmapList(SaveLoadOperation fop, FileList &file_list);
 
 const char *FiosBrowseTo(const FiosItem *item);
 
+const char *FiosGetPath (void);
 StringID FiosGetDescText(const char **path, uint64 *total_free);
 bool FiosDelete(const char *name);
 void FiosMakeHeightmapName(char *buf, const char *name, size_t size);

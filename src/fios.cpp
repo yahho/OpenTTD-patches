@@ -128,6 +128,12 @@ const FiosItem *FileList::FindItem(const char *file)
 	return NULL;
 }
 
+/** Get the current value of #_fios_path. */
+const char *FiosGetPath (void)
+{
+	return _fios_path;
+}
+
 /**
  * Get descriptive texts. Returns the path and free space
  * left on the device
