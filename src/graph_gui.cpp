@@ -486,15 +486,6 @@ protected:
 		memset (this->cost, 0, sizeof(this->cost));
 		SetWindowDirty(WC_GRAPH_LEGEND, 0);
 	}
-
-	void InitializeWindow(WindowNumber number)
-	{
-		/* Initialise the dataset */
-		this->UpdateStatistics(true);
-
-		this->InitNested(number);
-	}
-
 public:
 	virtual void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize)
 	{
@@ -538,11 +529,28 @@ public:
 
 		DrawGraph (dpi, r);
 	}
+};
 
-	virtual OverflowSafeInt64 GetGraphData(const Company *c, int j)
+
+/**************************/
+/* BASE OF COMPANY GRAPHS */
+/**************************/
+
+struct CompanyGraphWindow : BaseGraphWindow {
+	CompanyGraphWindow (const WindowDesc *desc, int widget, StringID format_str_y_axis)
+		: BaseGraphWindow (desc, widget, format_str_y_axis)
 	{
-		return INVALID_DATAPOINT;
 	}
+
+	void InitializeWindow(WindowNumber number)
+	{
+		/* Initialise the dataset */
+		this->UpdateStatistics(true);
+
+		this->InitNested(number);
+	}
+
+	virtual OverflowSafeInt64 GetGraphData (const Company *c, int j) = 0;
 
 	virtual void OnClick(Point pt, int widget, int click_count)
 	{
@@ -625,9 +633,9 @@ public:
 /* OPERATING PROFIT */
 /********************/
 
-struct OperatingProfitGraphWindow : BaseGraphWindow {
+struct OperatingProfitGraphWindow : CompanyGraphWindow {
 	OperatingProfitGraphWindow (const WindowDesc *desc, WindowNumber window_number) :
-			BaseGraphWindow(desc, WID_CV_GRAPH, STR_JUST_CURRENCY_SHORT)
+			CompanyGraphWindow (desc, WID_CV_GRAPH, STR_JUST_CURRENCY_SHORT)
 	{
 		this->InitializeWindow(window_number);
 	}
@@ -679,9 +687,9 @@ void ShowOperatingProfitGraph()
 /* INCOME GRAPH */
 /****************/
 
-struct IncomeGraphWindow : BaseGraphWindow {
+struct IncomeGraphWindow : CompanyGraphWindow {
 	IncomeGraphWindow (const WindowDesc *desc, WindowNumber window_number) :
-			BaseGraphWindow(desc, WID_CV_GRAPH, STR_JUST_CURRENCY_SHORT)
+			CompanyGraphWindow (desc, WID_CV_GRAPH, STR_JUST_CURRENCY_SHORT)
 	{
 		this->InitializeWindow(window_number);
 	}
@@ -731,9 +739,9 @@ void ShowIncomeGraph()
 /* DELIVERED CARGO */
 /*******************/
 
-struct DeliveredCargoGraphWindow : BaseGraphWindow {
+struct DeliveredCargoGraphWindow : CompanyGraphWindow {
 	DeliveredCargoGraphWindow (const WindowDesc *desc, WindowNumber window_number) :
-			BaseGraphWindow(desc, WID_CV_GRAPH, STR_JUST_COMMA)
+			CompanyGraphWindow (desc, WID_CV_GRAPH, STR_JUST_COMMA)
 	{
 		this->InitializeWindow(window_number);
 	}
@@ -783,9 +791,9 @@ void ShowDeliveredCargoGraph()
 /* PERFORMANCE HISTORY */
 /***********************/
 
-struct PerformanceHistoryGraphWindow : BaseGraphWindow {
+struct PerformanceHistoryGraphWindow : CompanyGraphWindow {
 	PerformanceHistoryGraphWindow (const WindowDesc *desc, WindowNumber window_number) :
-			BaseGraphWindow(desc, WID_PHG_GRAPH, STR_JUST_COMMA)
+			CompanyGraphWindow (desc, WID_PHG_GRAPH, STR_JUST_COMMA)
 	{
 		this->InitializeWindow(window_number);
 	}
@@ -798,7 +806,7 @@ struct PerformanceHistoryGraphWindow : BaseGraphWindow {
 	virtual void OnClick(Point pt, int widget, int click_count)
 	{
 		if (widget == WID_PHG_DETAILED_PERFORMANCE) ShowPerformanceRatingDetail();
-		this->BaseGraphWindow::OnClick(pt, widget, click_count);
+		this->CompanyGraphWindow::OnClick (pt, widget, click_count);
 	}
 };
 
@@ -842,9 +850,9 @@ void ShowPerformanceHistoryGraph()
 /* COMPANY VALUE */
 /*****************/
 
-struct CompanyValueGraphWindow : BaseGraphWindow {
+struct CompanyValueGraphWindow : CompanyGraphWindow {
 	CompanyValueGraphWindow (const WindowDesc *desc, WindowNumber window_number) :
-			BaseGraphWindow(desc, WID_CV_GRAPH, STR_JUST_CURRENCY_SHORT)
+			CompanyGraphWindow (desc, WID_CV_GRAPH, STR_JUST_CURRENCY_SHORT)
 	{
 		this->InitializeWindow(window_number);
 	}
@@ -1022,11 +1030,6 @@ struct PaymentRatesGraphWindow : BaseGraphWindow {
 				}
 				break;
 		}
-	}
-
-	virtual void OnTick()
-	{
-		/* Override default OnTick */
 	}
 
 	/**
