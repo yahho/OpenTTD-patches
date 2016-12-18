@@ -36,7 +36,6 @@ static uint _legend_excluded_cargo;
 
 /* Apparently these don't play well with enums. */
 static const OverflowSafeInt64 INVALID_DATAPOINT(INT64_MAX); // Value used for a datapoint that shouldn't be drawn.
-static const uint INVALID_DATAPOINT_POS = UINT_MAX;  // Used to determine if the previous point was drawn.
 
 /****************/
 /* GRAPH LEGEND */
@@ -416,12 +415,15 @@ protected:
 		uint pointoffs2 = linewidth + 1 - pointoffs1;
 		for (int i = 0; i < this->num_dataset; i++) {
 			if (!HasBit(this->excluded_data, i)) {
+				/* No previous point marker. */
+				static const uint INVALID_POS = UINT_MAX;
+
 				/* Centre the dot between the grid lines. */
 				x = r.left + (x_sep / 2);
 
 				byte colour  = this->colours[i];
-				uint prev_x = INVALID_DATAPOINT_POS;
-				uint prev_y = INVALID_DATAPOINT_POS;
+				uint prev_x = INVALID_POS;
+				uint prev_y = INVALID_POS;
 
 				for (int j = 0; j < this->num_on_x_axis; j++) {
 					OverflowSafeInt64 datapoint = this->cost[i][j];
@@ -453,13 +455,13 @@ protected:
 						GfxFillRect (dpi, x - pointoffs1, y - pointoffs1, x + pointoffs2, y + pointoffs2, colour);
 
 						/* Draw the line connected to the previous point. */
-						if (prev_x != INVALID_DATAPOINT_POS) GfxDrawLine (dpi, prev_x, prev_y, x, y, colour, linewidth);
+						if (prev_x != INVALID_POS) GfxDrawLine (dpi, prev_x, prev_y, x, y, colour, linewidth);
 
 						prev_x = x;
 						prev_y = y;
 					} else {
-						prev_x = INVALID_DATAPOINT_POS;
-						prev_y = INVALID_DATAPOINT_POS;
+						prev_x = INVALID_POS;
+						prev_y = INVALID_POS;
 					}
 
 					x += x_sep;
