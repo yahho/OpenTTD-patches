@@ -229,9 +229,8 @@ protected:
 			assert (current_interval.lowest  == 0);
 			assert (current_interval.highest == 0);
 
-			int num_pos_grids = num_hori_lines / 2;
-			current_interval.highest = num_pos_grids;
-			current_interval.lowest = -(num_hori_lines - num_pos_grids);
+			current_interval.lowest = 0;
+			current_interval.highest = num_hori_lines;
 			return current_interval;
 		}
 
