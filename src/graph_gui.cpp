@@ -205,8 +205,9 @@ protected:
 		assert(num_hori_lines > 0);
 
 		ValuesInterval current_interval;
-		current_interval.highest = INT64_MIN;
-		current_interval.lowest  = INT64_MAX;
+		/* Always include zero in the shown range. */
+		current_interval.highest = 0;
+		current_interval.lowest  = 0;
 
 		for (int i = 0; i < this->num_dataset; i++) {
 			if (HasBit(this->excluded_data, i)) continue;
@@ -224,9 +225,11 @@ protected:
 		current_interval.highest = (11 * current_interval.highest) / 10;
 		current_interval.lowest =  (11 * current_interval.lowest) / 10;
 
-		/* Always include zero in the shown range. */
-		double abs_lower  = (current_interval.lowest > 0) ? 0 : (double)abs(current_interval.lowest);
-		double abs_higher = (current_interval.highest < 0) ? 0 : (double)current_interval.highest;
+		assert (current_interval.lowest  <= 0);
+		assert (current_interval.highest >= 0);
+
+		double abs_lower  = (double)abs(current_interval.lowest);
+		double abs_higher = (double)current_interval.highest;
 
 		int num_pos_grids;
 		int64 grid_size;
