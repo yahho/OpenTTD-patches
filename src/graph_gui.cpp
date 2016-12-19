@@ -221,36 +221,40 @@ protected:
 			}
 		}
 
+		assert (current_interval.lowest  <= 0);
+		assert (current_interval.highest >= 0);
+
+		if (current_interval.highest == current_interval.lowest) {
+			/* If both values are zero, show an empty graph. */
+			assert (current_interval.lowest  == 0);
+			assert (current_interval.highest == 0);
+
+			int num_pos_grids = num_hori_lines / 2;
+			current_interval.highest = num_pos_grids;
+			current_interval.lowest = -(num_hori_lines - num_pos_grids);
+			return current_interval;
+		}
+
 		/* Prevent showing values too close to the graph limits. */
 		current_interval.highest = (11 * current_interval.highest) / 10;
 		current_interval.lowest =  (11 * current_interval.lowest) / 10;
 
-		assert (current_interval.lowest  <= 0);
-		assert (current_interval.highest >= 0);
-
 		double abs_lower  = (double)abs(current_interval.lowest);
 		double abs_higher = (double)current_interval.highest;
 
-		int num_pos_grids;
-		int64 grid_size;
+		assert (abs_lower > 0 || abs_higher > 0);
 
-		if (abs_lower != 0 || abs_higher != 0) {
-			/* The number of grids to reserve for the positive part is: */
-			num_pos_grids = (int)floor(0.5 + num_hori_lines * abs_higher / (abs_higher + abs_lower));
+		/* The number of grids to reserve for the positive part is: */
+		int num_pos_grids = (int)floor(0.5 + num_hori_lines * abs_higher / (abs_higher + abs_lower));
 
-			/* If there are any positive or negative values, force that they have at least one grid. */
-			if (num_pos_grids == 0 && abs_higher != 0) num_pos_grids++;
-			if (num_pos_grids == num_hori_lines && abs_lower != 0) num_pos_grids--;
+		/* If there are any positive or negative values, force that they have at least one grid. */
+		if (num_pos_grids == 0 && abs_higher != 0) num_pos_grids++;
+		if (num_pos_grids == num_hori_lines && abs_lower != 0) num_pos_grids--;
 
-			/* Get the required grid size for each side and use the maximum one. */
-			int64 grid_size_higher = (abs_higher > 0) ? ((int64)abs_higher + num_pos_grids - 1) / num_pos_grids : 0;
-			int64 grid_size_lower = (abs_lower > 0) ? ((int64)abs_lower + num_hori_lines - num_pos_grids - 1) / (num_hori_lines - num_pos_grids) : 0;
-			grid_size = max(grid_size_higher, grid_size_lower);
-		} else {
-			/* If both values are zero, show an empty graph. */
-			num_pos_grids = num_hori_lines / 2;
-			grid_size = 1;
-		}
+		/* Get the required grid size for each side and use the maximum one. */
+		int64 grid_size_higher = (abs_higher > 0) ? ((int64)abs_higher + num_pos_grids - 1) / num_pos_grids : 0;
+		int64 grid_size_lower = (abs_lower > 0) ? ((int64)abs_lower + num_hori_lines - num_pos_grids - 1) / (num_hori_lines - num_pos_grids) : 0;
+		int64 grid_size = max (grid_size_higher, grid_size_lower);
 
 		current_interval.highest = num_pos_grids * grid_size;
 		current_interval.lowest = -(num_hori_lines - num_pos_grids) * grid_size;
