@@ -35,7 +35,7 @@ static uint _legend_excluded_companies;
 static uint _legend_excluded_cargo;
 
 /* Apparently these don't play well with enums. */
-static const OverflowSafeInt64 INVALID_DATAPOINT(INT64_MAX); // Value used for a datapoint that shouldn't be drawn.
+static const int64 INVALID_DATAPOINT = INT64_MIN; // Value used for a datapoint that shouldn't be drawn.
 
 /****************/
 /* GRAPH LEGEND */
@@ -192,7 +192,7 @@ protected:
 	int graph_widget;
 	StringID format_str_y_axis;
 	byte colours[GRAPH_MAX_DATASETS];
-	OverflowSafeInt64 cost[GRAPH_MAX_DATASETS][GRAPH_NUM_MONTHS]; ///< Stored costs for the last #GRAPH_NUM_MONTHS months
+	int64 cost[GRAPH_MAX_DATASETS][GRAPH_NUM_MONTHS]; ///< Stored costs for the last #GRAPH_NUM_MONTHS months
 
 	/**
 	 * Get the interval that contains the graph's data. Excluded data is ignored to show smaller values in
@@ -204,42 +204,39 @@ protected:
 	{
 		assert(num_hori_lines > 0);
 
-		ValuesInterval current_interval;
 		/* Always include zero in the shown range. */
-		current_interval.highest = 0;
-		current_interval.lowest  = 0;
+		int64 highest = 0;
+		int64 lowest  = 0;
 
 		for (int i = 0; i < this->num_dataset; i++) {
 			if (HasBit(this->excluded_data, i)) continue;
 			for (int j = 0; j < this->num_on_x_axis; j++) {
-				OverflowSafeInt64 datapoint = this->cost[i][j];
+				int64 datapoint = this->cost[i][j];
 
 				if (datapoint != INVALID_DATAPOINT) {
-					current_interval.highest = max(current_interval.highest, datapoint);
-					current_interval.lowest  = min(current_interval.lowest, datapoint);
+					highest = max (highest, datapoint);
+					lowest  = min (lowest,  datapoint);
 				}
 			}
 		}
 
-		assert (current_interval.lowest  <= 0);
-		assert (current_interval.highest >= 0);
+		assert (lowest  <= 0);
+		assert (highest >= 0);
 
-		if (current_interval.highest == current_interval.lowest) {
+		if (highest == lowest) {
 			/* If both values are zero, show an empty graph. */
-			assert (current_interval.lowest  == 0);
-			assert (current_interval.highest == 0);
+			assert (lowest  == 0);
+			assert (highest == 0);
 
+			ValuesInterval current_interval;
 			current_interval.lowest = 0;
 			current_interval.highest = num_hori_lines;
 			return current_interval;
 		}
 
 		/* Prevent showing values too close to the graph limits. */
-		current_interval.highest = (11 * current_interval.highest) / 10;
-		current_interval.lowest =  (11 * current_interval.lowest) / 10;
-
-		double abs_lower  = (double)abs(current_interval.lowest);
-		double abs_higher = (double)current_interval.highest;
+		double abs_lower  = (-(double)lowest) * 11 / 10;
+		double abs_higher = ((double)highest) * 11 / 10;
 
 		assert (abs_lower > 0 || abs_higher > 0);
 
@@ -255,6 +252,7 @@ protected:
 		int64 grid_size_lower = (abs_lower > 0) ? ((int64)abs_lower + num_hori_lines - num_pos_grids - 1) / (num_hori_lines - num_pos_grids) : 0;
 		int64 grid_size = max (grid_size_higher, grid_size_lower);
 
+		ValuesInterval current_interval;
 		current_interval.highest = num_pos_grids * grid_size;
 		current_interval.lowest = -(num_hori_lines - num_pos_grids) * grid_size;
 		return current_interval;
@@ -432,9 +430,10 @@ protected:
 				uint prev_y = INVALID_POS;
 
 				for (int j = 0; j < this->num_on_x_axis; j++) {
-					OverflowSafeInt64 datapoint = this->cost[i][j];
+					int64 dp = this->cost[i][j];
 
-					if (datapoint != INVALID_DATAPOINT) {
+					if (dp != INVALID_DATAPOINT) {
+						OverflowSafeInt64 datapoint (dp);
 						/*
 						 * Check whether we need to reduce the 'accuracy' of the
 						 * datapoint value and the highest value to split overflows.
@@ -558,7 +557,7 @@ struct CompanyGraphWindow : BaseGraphWindow {
 		this->InitNested(number);
 	}
 
-	virtual OverflowSafeInt64 GetGraphData (const Company *c, int j) = 0;
+	virtual int64 GetGraphData (const Company *c, int j) = 0;
 
 	virtual void OnClick(Point pt, int widget, int click_count)
 	{
@@ -648,7 +647,7 @@ struct OperatingProfitGraphWindow : CompanyGraphWindow {
 		this->InitializeWindow(window_number);
 	}
 
-	virtual OverflowSafeInt64 GetGraphData(const Company *c, int j)
+	int64 GetGraphData (const Company *c, int j) OVERRIDE
 	{
 		return c->old_economy[j].income + c->old_economy[j].expenses;
 	}
@@ -702,7 +701,7 @@ struct IncomeGraphWindow : CompanyGraphWindow {
 		this->InitializeWindow(window_number);
 	}
 
-	virtual OverflowSafeInt64 GetGraphData(const Company *c, int j)
+	int64 GetGraphData (const Company *c, int j) OVERRIDE
 	{
 		return c->old_economy[j].income;
 	}
@@ -754,7 +753,7 @@ struct DeliveredCargoGraphWindow : CompanyGraphWindow {
 		this->InitializeWindow(window_number);
 	}
 
-	virtual OverflowSafeInt64 GetGraphData(const Company *c, int j)
+	int64 GetGraphData (const Company *c, int j) OVERRIDE
 	{
 		return c->old_economy[j].delivered_cargo.GetSum<OverflowSafeInt64>();
 	}
@@ -806,7 +805,7 @@ struct PerformanceHistoryGraphWindow : CompanyGraphWindow {
 		this->InitializeWindow(window_number);
 	}
 
-	virtual OverflowSafeInt64 GetGraphData(const Company *c, int j)
+	int64 GetGraphData (const Company *c, int j) OVERRIDE
 	{
 		return c->old_economy[j].performance_history;
 	}
@@ -865,7 +864,7 @@ struct CompanyValueGraphWindow : CompanyGraphWindow {
 		this->InitializeWindow(window_number);
 	}
 
-	virtual OverflowSafeInt64 GetGraphData(const Company *c, int j)
+	int64 GetGraphData (const Company *c, int j) OVERRIDE
 	{
 		return c->old_economy[j].company_value;
 	}
