@@ -944,9 +944,11 @@ uint RemapNewGRFStringControlCode (uint scc, stringb *buf, const char **str, int
 				*argv = MapGRFStringID(_newgrf_textrefstack.grffile->grfid, _newgrf_textrefstack.PopUnsignedWord());
 				break;
 
-			case SCC_NEWGRF_PRINT_WORD_CARGO_NAME:
-				*argv = 1 << GetCargoTranslation(_newgrf_textrefstack.PopUnsignedWord(), _newgrf_textrefstack.grffile);
+			case SCC_NEWGRF_PRINT_WORD_CARGO_NAME: {
+				CargoID cargo = GetCargoTranslation(_newgrf_textrefstack.PopUnsignedWord(), _newgrf_textrefstack.grffile);
+				*argv = cargo < NUM_CARGO ? 1 << cargo : 0;
 				break;
+			}
 		}
 	} else {
 		/* Consume additional parameter characters */
