@@ -176,7 +176,10 @@ static void PlaceRail_Waypoint(TileIndex tile)
 			/* Tile where we can't build rail waypoints. This is always going to fail,
 			 * but provides the user with a proper error message. */
 			DoCommandP (tile, 1 << 8 | 1 << 16, STAT_CLASS_WAYP | INVALID_STATION << 16, CMD_BUILD_RAIL_WAYPOINT);
+			return;
 	}
+
+	VpSetPlaceSizingLimit (_settings_game.station.station_spread);
 }
 
 void CcStation(const CommandCost &result, TileIndex tile, uint32 p1, uint32 p2)
