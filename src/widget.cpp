@@ -2288,13 +2288,19 @@ void NWidgetLeaf::Draw (BlitArea *dpi, const Window *w)
 {
 	if (this->current_x == 0 || this->current_y == 0) return;
 
+	/* Setup a clipping rectangle... */
+	BlitArea new_dpi;
+	if (!InitBlitArea (dpi, &new_dpi, this->pos_x, this->pos_y, this->current_x, this->current_y)) return;
+	/* ...but keep coordinates relative to the window. */
+	new_dpi.left += this->pos_x;
+	new_dpi.top += this->pos_y;
+	dpi = &new_dpi;
+
 	Rect r;
 	r.left = this->pos_x;
 	r.right = this->pos_x + this->current_x - 1;
 	r.top = this->pos_y;
 	r.bottom = this->pos_y + this->current_y - 1;
-
-	if (dpi->left > r.right || dpi->left + dpi->width <= r.left || dpi->top > r.bottom || dpi->top + dpi->height <= r.top) return;
 
 	bool clicked = this->IsLowered();
 	switch (this->type) {
