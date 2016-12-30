@@ -398,7 +398,7 @@ struct HashPack {
 	static const uint PACK_BITS = PACK_BIT0_Y + PACK_BITS_Y;
 	static const uint PACK_SIZE = 1 << PACK_BITS;
 
-	typedef HashAreaIterator <nx, ny> AreaIterator;
+	typedef HashAreaIterator <nx, ny> BaseAreaIterator;
 
 	static inline uint pack_x (uint x)
 	{
@@ -520,7 +520,7 @@ struct VehicleTileHash : HashPack <7, 7> {
 		memset (this->buckets, 0, sizeof(this->buckets));
 	}
 
-	struct AreaIterator : HashPack <7, 7>::AreaIterator {
+	struct AreaIterator : BaseAreaIterator {
 		AreaIterator (int xl, int xu, int yl, int yu)
 		{
 			this->reset (GB(xl, HASH_OFFSET_X, HASH_BITS_X), GB(xu, HASH_OFFSET_X, HASH_BITS_X),
@@ -811,7 +811,7 @@ struct VehicleViewportHash : HashPack <6, 6> {
 		memset (this->buckets, 0, sizeof(this->buckets));
 	}
 
-	struct AreaIterator : HashPack <6, 6>::AreaIterator {
+	struct AreaIterator : BaseAreaIterator {
 		AreaIterator (int l, uint w, int t, uint h)
 		{
 			uint x0, x1, y0, y1;
