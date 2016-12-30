@@ -520,11 +520,13 @@ struct VehicleTileHash : HashPack <7, 7> {
 		memset (this->buckets, 0, sizeof(this->buckets));
 	}
 
-	void setup_iter (AreaIterator *iter, int xl, int xu, int yl, int yu)
-	{
-		iter->reset (GB(xl, HASH_OFFSET_X, HASH_BITS_X), GB(xu, HASH_OFFSET_X, HASH_BITS_X),
-			     GB(yl, HASH_OFFSET_Y, HASH_BITS_Y), GB(yu, HASH_OFFSET_Y, HASH_BITS_Y));
-	}
+	struct AreaIterator : HashPack <7, 7>::AreaIterator {
+		AreaIterator (int xl, int xu, int yl, int yu)
+		{
+			this->reset (GB(xl, HASH_OFFSET_X, HASH_BITS_X), GB(xu, HASH_OFFSET_X, HASH_BITS_X),
+				     GB(yl, HASH_OFFSET_Y, HASH_BITS_Y), GB(yu, HASH_OFFSET_Y, HASH_BITS_Y));
+		}
+	};
 };
 
 static VehicleTileHash vehicle_tile_hash;
@@ -555,8 +557,7 @@ static Vehicle *VehicleFromPosXY(int x, int y, void *data, VehicleFromPosProc *p
 	const int COLL_DIST = 6;
 
 	/* Hash area to scan is from xl,yl to xu,yu */
-	VehicleTileHash::AreaIterator iter;
-	vehicle_tile_hash.setup_iter (&iter,
+	VehicleTileHash::AreaIterator iter (
 		(x - COLL_DIST) / TILE_SIZE, (x + COLL_DIST) / TILE_SIZE,
 		(y - COLL_DIST) / TILE_SIZE, (y + COLL_DIST) / TILE_SIZE);
 
