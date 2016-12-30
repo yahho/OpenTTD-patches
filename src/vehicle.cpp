@@ -811,31 +811,32 @@ struct VehicleViewportHash : HashPack <6, 6> {
 		memset (this->buckets, 0, sizeof(this->buckets));
 	}
 
-	void setup_iter (AreaIterator *iter, int l, uint w, int t, uint h)
-	{
-		uint x0, x1, y0, y1;
+	struct AreaIterator : HashPack <6, 6>::AreaIterator {
+		AreaIterator (int l, uint w, int t, uint h)
+		{
+			uint x0, x1, y0, y1;
 
-		if (w < (1 << (HASH_OFFSET_X + HASH_BITS_X))) {
-			x0 = GB(l,     HASH_OFFSET_X, HASH_BITS_X);
-			x1 = GB(l + w, HASH_OFFSET_X, HASH_BITS_X);
-		} else {
-			/* scan whole hash row */
-			x0 = 0;
-			x1 = (1 << HASH_BITS_X) - 1;
+			if (w < (1 << (HASH_OFFSET_X + HASH_BITS_X))) {
+				x0 = GB(l,     HASH_OFFSET_X, HASH_BITS_X);
+				x1 = GB(l + w, HASH_OFFSET_X, HASH_BITS_X);
+			} else {
+				/* scan whole hash row */
+				x0 = 0;
+				x1 = (1 << HASH_BITS_X) - 1;
+			}
+
+			if (h < (1 << (HASH_OFFSET_Y + HASH_BITS_Y))) {
+				y0 = GB(t,     HASH_OFFSET_Y, HASH_BITS_Y);
+				y1 = GB(t + h, HASH_OFFSET_Y, HASH_BITS_Y);
+			} else {
+				/* scan whole column */
+				y0 = 0;
+				y1 = (1 << HASH_BITS_Y) - 1;
+			}
+
+			this->reset (x0, x1, y0, y1);
 		}
-
-		if (h < (1 << (HASH_OFFSET_Y + HASH_BITS_Y))) {
-			y0 = GB(t,     HASH_OFFSET_Y, HASH_BITS_Y);
-			y1 = GB(t + h, HASH_OFFSET_Y, HASH_BITS_Y);
-		} else {
-			/* scan whole column */
-			y0 = 0;
-			y1 = (1 << HASH_BITS_Y) - 1;
-		}
-
-		iter->reset (x0, x1, y0, y1);
-
-	}
+	};
 };
 
 static VehicleViewportHash vehicle_viewport_hash;
@@ -1276,8 +1277,7 @@ void ViewportAddVehicles (ViewportDrawer *vd, const DrawPixelInfo *dpi)
 	const int b = dpi->top + dpi->height;
 
 	/* The hash area to scan */
-	VehicleViewportHash::AreaIterator iter;
-	vehicle_viewport_hash.setup_iter (&iter,
+	VehicleViewportHash::AreaIterator iter (
 		l - (70 * ZOOM_LVL_BASE), dpi->width  + (70 * ZOOM_LVL_BASE),
 		t - (70 * ZOOM_LVL_BASE), dpi->height + (70 * ZOOM_LVL_BASE));
 
