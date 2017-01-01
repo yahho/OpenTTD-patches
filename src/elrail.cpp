@@ -276,10 +276,10 @@ void DrawCatenaryOnTunnel(const TileInfo *ti)
 	const SortableSpriteStruct *sss = &CatenarySpriteData_TunnelDepot[dir];
 	AddSortableSpriteToDraw (ti->vd,
 		wire_base + sss->image_offset, PAL_NONE, ti->x + sss->x_offset, ti->y + sss->y_offset,
-		sss->wire_bb[2] - sss->x_offset, sss->wire_bb[3] - sss->y_offset, BB_Z_SEPARATOR - ELRAIL_ELEVATION + 1,
+		sss->wire_bb[2], sss->wire_bb[3], BB_Z_SEPARATOR - ELRAIL_ELEVATION + 1,
 		GetTilePixelZ(ti->tile) + ELRAIL_ELEVATION,
 		IsTransparencySet(TO_CATENARY),
-		sss->wire_bb[0] - sss->x_offset, sss->wire_bb[1] - sss->y_offset, BB_Z_SEPARATOR - ELRAIL_ELEVATION
+		sss->wire_bb[0], sss->wire_bb[1], BB_Z_SEPARATOR - ELRAIL_ELEVATION
 	);
 }
 

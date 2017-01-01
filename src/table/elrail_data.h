@@ -290,10 +290,10 @@ struct SortableSpriteStruct {
 };
 
 static const SortableSpriteStruct CatenarySpriteData_TunnelDepot[] = {
-	{ WSO_ENTRANCE_NE,   0,  7, 15,  1, { 0, 1, 16, 15 } }, //! Wire for NE exit
-	{ WSO_ENTRANCE_SE,   7,  0,  1, 15, { 1, 0, 15, 16 } }, //! Wire for SE exit
-	{ WSO_ENTRANCE_SW,   0,  7, 15,  1, { 0, 1, 16, 15 } }, //! Wire for SW exit
-	{ WSO_ENTRANCE_NW,   7,  0,  1, 15, { 1, 0, 15, 16 } }, //! Wire for NW exit
+	{ WSO_ENTRANCE_NE,   0,  7, 15,  1, {  0, -6, 16,  8 } }, //! Wire for NE exit
+	{ WSO_ENTRANCE_SE,   7,  0,  1, 15, { -6,  0,  8, 16 } }, //! Wire for SE exit
+	{ WSO_ENTRANCE_SW,   0,  7, 15,  1, {  0, -6, 16,  8 } }, //! Wire for SW exit
+	{ WSO_ENTRANCE_NW,   7,  0,  1, 15, { -6,  0,  8, 16 } }, //! Wire for NW exit
 };
 
 #endif /* ELRAIL_DATA_H */
