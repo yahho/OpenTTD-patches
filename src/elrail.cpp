@@ -285,10 +285,10 @@ void DrawCatenaryOnTunnel(const TileInfo *ti)
 	const int *BB_data = _tunnel_wire_BB[dir];
 	AddSortableSpriteToDraw (ti->vd,
 		wire_base + sss->image_offset, PAL_NONE, ti->x + sss->x_offset, ti->y + sss->y_offset,
-		BB_data[2] - sss->x_offset, BB_data[3] - sss->y_offset, BB_Z_SEPARATOR - sss->z_offset + 1,
-		GetTilePixelZ(ti->tile) + sss->z_offset,
+		BB_data[2] - sss->x_offset, BB_data[3] - sss->y_offset, BB_Z_SEPARATOR - ELRAIL_ELEVATION + 1,
+		GetTilePixelZ(ti->tile) + ELRAIL_ELEVATION,
 		IsTransparencySet(TO_CATENARY),
-		BB_data[0] - sss->x_offset, BB_data[1] - sss->y_offset, BB_Z_SEPARATOR - sss->z_offset
+		BB_data[0] - sss->x_offset, BB_data[1] - sss->y_offset, BB_Z_SEPARATOR - ELRAIL_ELEVATION
 	);
 }
 
@@ -664,8 +664,8 @@ void DrawCatenary(const TileInfo *ti)
 					/* This wire is not visible with the default depot sprites */
 					AddSortableSpriteToDraw (ti->vd,
 						wire_base + sss->image_offset, PAL_NONE, ti->x + sss->x_offset, ti->y + sss->y_offset,
-						sss->x_size, sss->y_size, sss->z_size,
-						GetTileMaxPixelZ(ti->tile) + sss->z_offset,
+						sss->x_size, sss->y_size, 1,
+						GetTileMaxPixelZ(ti->tile) + ELRAIL_ELEVATION,
 						IsTransparencySet(TO_CATENARY)
 					);
 					return;
