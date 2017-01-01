@@ -269,26 +269,17 @@ static int GetPCPElevation(TileIndex tile, DiagDirection PCPpos)
  */
 void DrawCatenaryOnTunnel(const TileInfo *ti)
 {
-	/* xmin, ymin, xmax + 1, ymax + 1 of BB */
-	static const int _tunnel_wire_BB[4][4] = {
-		{ 0, 1, 16, 15 }, // NE
-		{ 1, 0, 15, 16 }, // SE
-		{ 0, 1, 16, 15 }, // SW
-		{ 1, 0, 15, 16 }, // NW
-	};
-
 	DiagDirection dir = GetTunnelBridgeDirection(ti->tile);
 
 	SpriteID wire_base = GetWireBase(ti->tile);
 
 	const SortableSpriteStruct *sss = &CatenarySpriteData_TunnelDepot[dir];
-	const int *BB_data = _tunnel_wire_BB[dir];
 	AddSortableSpriteToDraw (ti->vd,
 		wire_base + sss->image_offset, PAL_NONE, ti->x + sss->x_offset, ti->y + sss->y_offset,
-		BB_data[2] - sss->x_offset, BB_data[3] - sss->y_offset, BB_Z_SEPARATOR - ELRAIL_ELEVATION + 1,
+		sss->wire_bb[2] - sss->x_offset, sss->wire_bb[3] - sss->y_offset, BB_Z_SEPARATOR - ELRAIL_ELEVATION + 1,
 		GetTilePixelZ(ti->tile) + ELRAIL_ELEVATION,
 		IsTransparencySet(TO_CATENARY),
-		BB_data[0] - sss->x_offset, BB_data[1] - sss->y_offset, BB_Z_SEPARATOR - ELRAIL_ELEVATION
+		sss->wire_bb[0] - sss->x_offset, sss->wire_bb[1] - sss->y_offset, BB_Z_SEPARATOR - ELRAIL_ELEVATION
 	);
 }
 
