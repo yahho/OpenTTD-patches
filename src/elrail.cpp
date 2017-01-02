@@ -269,7 +269,21 @@ static int GetPCPElevation(TileIndex tile, DiagDirection PCPpos)
 static void DrawRailTunnelDepotCatenary (const TileInfo *ti, bool depot,
 	DiagDirection dir)
 {
-	const SortableSpriteStruct *sss = &CatenarySpriteData_TunnelDepot[dir];
+	struct SortableSpriteStruct {
+		struct { int8 x, y, w, h; } bb[2];
+		int8 x_offset;
+		int8 y_offset;
+		uint8 image_offset;
+	};
+
+	static const SortableSpriteStruct data[4] = {
+		{ { {  0, -6, 16,  8 }, { 0, 0, 15, 1 } }, 0, 7, WSO_ENTRANCE_NE }, //! Wire for NE exit
+		{ { { -6,  0,  8, 16 }, { 0, 0, 1, 15 } }, 7, 0, WSO_ENTRANCE_SE }, //! Wire for SE exit
+		{ { {  0, -6, 16,  8 }, { 0, 0, 15, 1 } }, 0, 7, WSO_ENTRANCE_SW }, //! Wire for SW exit
+		{ { { -6,  0,  8, 16 }, { 0, 0, 1, 15 } }, 7, 0, WSO_ENTRANCE_NW }, //! Wire for NW exit
+	};
+
+	const SortableSpriteStruct *sss = &data[dir];
 	int dz = depot ? 0 : BB_Z_SEPARATOR - ELRAIL_ELEVATION;
 	int z = depot ? GetTileMaxPixelZ (ti->tile) : GetTilePixelZ (ti->tile);
 	/* This wire is not visible with the default depot sprites. */

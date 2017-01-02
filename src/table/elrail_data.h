@@ -280,18 +280,4 @@ static const SortableSpriteStructM CatenarySpriteDataNE =
 	{ { WSO_INVALID, WSO_X_NE_DOWN, WSO_X_SW_DOWN, WSO_X_SHORT_DOWN },  0,  7, 15,  8,  1, ELRAIL_ELEVATION }; // X down
 
 
-struct SortableSpriteStruct {
-	struct { int8 x, y, w, h; } bb[2];
-	int8 x_offset;
-	int8 y_offset;
-	uint8 image_offset;
-};
-
-static const SortableSpriteStruct CatenarySpriteData_TunnelDepot[] = {
-	{ { {  0, -6, 16,  8 }, { 0, 0, 15, 1 } }, 0, 7, WSO_ENTRANCE_NE }, //! Wire for NE exit
-	{ { { -6,  0,  8, 16 }, { 0, 0, 1, 15 } }, 7, 0, WSO_ENTRANCE_SE }, //! Wire for SE exit
-	{ { {  0, -6, 16,  8 }, { 0, 0, 15, 1 } }, 0, 7, WSO_ENTRANCE_SW }, //! Wire for SW exit
-	{ { { -6,  0,  8, 16 }, { 0, 0, 1, 15 } }, 7, 0, WSO_ENTRANCE_NW }, //! Wire for NW exit
-};
-
 #endif /* ELRAIL_DATA_H */
