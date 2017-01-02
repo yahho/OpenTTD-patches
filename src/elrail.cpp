@@ -261,6 +261,27 @@ static int GetPCPElevation(TileIndex tile, DiagDirection PCPpos)
 }
 
 /**
+ * Draws wires on a rail tunnel or depot tile.
+ * @param ti The TileInfo to draw the tile for.
+ * @param depot The tile is a depot, else a tunnel.
+ * @param dir The direction of the tunnel or depot.
+ */
+static void DrawRailTunnelDepotCatenary (const TileInfo *ti, bool depot,
+	DiagDirection dir)
+{
+	const SortableSpriteStruct *sss = &CatenarySpriteData_TunnelDepot[dir];
+	int dz = depot ? 0 : BB_Z_SEPARATOR - ELRAIL_ELEVATION;
+	int z = depot ? GetTileMaxPixelZ (ti->tile) : GetTilePixelZ (ti->tile);
+	/* This wire is not visible with the default depot sprites. */
+	AddSortableSpriteToDraw (ti->vd,
+		GetWireBase (ti->tile) + sss->image_offset, PAL_NONE,
+		ti->x + sss->x_offset, ti->y + sss->y_offset,
+		sss->bb[depot].w, sss->bb[depot].h, dz + 1,
+		z + ELRAIL_ELEVATION, IsTransparencySet (TO_CATENARY),
+		sss->bb[depot].x, sss->bb[depot].y, dz);
+}
+
+/**
  * Draws wires on a tunnel tile
  *
  * DrawTile_TunnelBridge() calls this function to draw the wires as SpriteCombine with the tunnel roof.
@@ -270,17 +291,7 @@ static int GetPCPElevation(TileIndex tile, DiagDirection PCPpos)
 void DrawCatenaryOnTunnel(const TileInfo *ti)
 {
 	DiagDirection dir = GetTunnelBridgeDirection(ti->tile);
-
-	SpriteID wire_base = GetWireBase(ti->tile);
-
-	const SortableSpriteStruct *sss = &CatenarySpriteData_TunnelDepot[dir];
-	AddSortableSpriteToDraw (ti->vd,
-		wire_base + sss->image_offset, PAL_NONE, ti->x + sss->x_offset, ti->y + sss->y_offset,
-		sss->wire_bb[2], sss->wire_bb[3], BB_Z_SEPARATOR - ELRAIL_ELEVATION + 1,
-		GetTilePixelZ(ti->tile) + ELRAIL_ELEVATION,
-		IsTransparencySet(TO_CATENARY),
-		sss->wire_bb[0], sss->wire_bb[1], BB_Z_SEPARATOR - ELRAIL_ELEVATION
-	);
+	DrawRailTunnelDepotCatenary (ti, false, dir);
 }
 
 struct CatenaryConfig {
@@ -647,20 +658,10 @@ void DrawCatenary(const TileInfo *ti)
 			switch (GetTileSubtype(ti->tile)) {
 				default: return;
 
-				case TT_MISC_DEPOT: {
+				case TT_MISC_DEPOT:
 					if (!IsRailDepot(ti->tile)) return;
-					const SortableSpriteStruct *sss = &CatenarySpriteData_TunnelDepot[GetGroundDepotDirection(ti->tile)];
-					SpriteID wire_base = GetWireBase(ti->tile);
-
-					/* This wire is not visible with the default depot sprites */
-					AddSortableSpriteToDraw (ti->vd,
-						wire_base + sss->image_offset, PAL_NONE, ti->x + sss->x_offset, ti->y + sss->y_offset,
-						sss->x_size, sss->y_size, 1,
-						GetTileMaxPixelZ(ti->tile) + ELRAIL_ELEVATION,
-						IsTransparencySet(TO_CATENARY)
-					);
+					DrawRailTunnelDepotCatenary (ti, true, GetGroundDepotDirection(ti->tile));
 					return;
-				}
 
 				case TT_MISC_CROSSING:
 				case TT_MISC_TUNNEL:

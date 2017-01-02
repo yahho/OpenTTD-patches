@@ -281,19 +281,17 @@ static const SortableSpriteStructM CatenarySpriteDataNE =
 
 
 struct SortableSpriteStruct {
-	uint8 image_offset;
+	struct { int8 x, y, w, h; } bb[2];
 	int8 x_offset;
 	int8 y_offset;
-	int8 x_size;
-	int8 y_size;
-	int8 wire_bb[4];
+	uint8 image_offset;
 };
 
 static const SortableSpriteStruct CatenarySpriteData_TunnelDepot[] = {
-	{ WSO_ENTRANCE_NE,   0,  7, 15,  1, {  0, -6, 16,  8 } }, //! Wire for NE exit
-	{ WSO_ENTRANCE_SE,   7,  0,  1, 15, { -6,  0,  8, 16 } }, //! Wire for SE exit
-	{ WSO_ENTRANCE_SW,   0,  7, 15,  1, {  0, -6, 16,  8 } }, //! Wire for SW exit
-	{ WSO_ENTRANCE_NW,   7,  0,  1, 15, { -6,  0,  8, 16 } }, //! Wire for NW exit
+	{ { {  0, -6, 16,  8 }, { 0, 0, 15, 1 } }, 0, 7, WSO_ENTRANCE_NE }, //! Wire for NE exit
+	{ { { -6,  0,  8, 16 }, { 0, 0, 1, 15 } }, 7, 0, WSO_ENTRANCE_SE }, //! Wire for SE exit
+	{ { {  0, -6, 16,  8 }, { 0, 0, 15, 1 } }, 0, 7, WSO_ENTRANCE_SW }, //! Wire for SW exit
+	{ { { -6,  0,  8, 16 }, { 0, 0, 1, 15 } }, 7, 0, WSO_ENTRANCE_NW }, //! Wire for NW exit
 };
 
 #endif /* ELRAIL_DATA_H */
