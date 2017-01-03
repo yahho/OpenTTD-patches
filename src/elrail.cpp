@@ -275,11 +275,9 @@ static void DrawRailTunnelDepotCatenary (const TileInfo *ti, bool depot,
 		int8 y_offset;
 	};
 
-	static const SortableSpriteStruct data[4] = {
-		{ { {  0, -6, 16,  8 }, { 0, 0, 15, 1 } }, 0, 7 }, //! Wire for NE exit
-		{ { { -6,  0,  8, 16 }, { 0, 0, 1, 15 } }, 7, 0 }, //! Wire for SE exit
-		{ { {  0, -6, 16,  8 }, { 0, 0, 15, 1 } }, 0, 7 }, //! Wire for SW exit
-		{ { { -6,  0,  8, 16 }, { 0, 0, 1, 15 } }, 7, 0 }, //! Wire for NW exit
+	static const SortableSpriteStruct data[2] = {
+		{ { {  0, -6, 16,  8 }, { 0, 0, 15, 1 } }, 0, 7 }, //! Wire along X axis
+		{ { { -6,  0,  8, 16 }, { 0, 0, 1, 15 } }, 7, 0 }, //! Wire along Y axis
 	};
 
 	assert_compile (WSO_ENTRANCE_NE == WSO_ENTRANCE_NE + DIAGDIR_NE);
@@ -287,7 +285,7 @@ static void DrawRailTunnelDepotCatenary (const TileInfo *ti, bool depot,
 	assert_compile (WSO_ENTRANCE_SW == WSO_ENTRANCE_NE + DIAGDIR_SW);
 	assert_compile (WSO_ENTRANCE_NW == WSO_ENTRANCE_NE + DIAGDIR_NW);
 
-	const SortableSpriteStruct *sss = &data[dir];
+	const SortableSpriteStruct *sss = &data[DiagDirToAxis(dir)];
 	int dz = depot ? 0 : BB_Z_SEPARATOR - ELRAIL_ELEVATION;
 	int z = depot ? GetTileMaxPixelZ (ti->tile) : GetTilePixelZ (ti->tile);
 	/* This wire is not visible with the default depot sprites. */
