@@ -273,22 +273,26 @@ static void DrawRailTunnelDepotCatenary (const TileInfo *ti, bool depot,
 		struct { int8 x, y, w, h; } bb[2];
 		int8 x_offset;
 		int8 y_offset;
-		uint8 image_offset;
 	};
 
 	static const SortableSpriteStruct data[4] = {
-		{ { {  0, -6, 16,  8 }, { 0, 0, 15, 1 } }, 0, 7, WSO_ENTRANCE_NE }, //! Wire for NE exit
-		{ { { -6,  0,  8, 16 }, { 0, 0, 1, 15 } }, 7, 0, WSO_ENTRANCE_SE }, //! Wire for SE exit
-		{ { {  0, -6, 16,  8 }, { 0, 0, 15, 1 } }, 0, 7, WSO_ENTRANCE_SW }, //! Wire for SW exit
-		{ { { -6,  0,  8, 16 }, { 0, 0, 1, 15 } }, 7, 0, WSO_ENTRANCE_NW }, //! Wire for NW exit
+		{ { {  0, -6, 16,  8 }, { 0, 0, 15, 1 } }, 0, 7 }, //! Wire for NE exit
+		{ { { -6,  0,  8, 16 }, { 0, 0, 1, 15 } }, 7, 0 }, //! Wire for SE exit
+		{ { {  0, -6, 16,  8 }, { 0, 0, 15, 1 } }, 0, 7 }, //! Wire for SW exit
+		{ { { -6,  0,  8, 16 }, { 0, 0, 1, 15 } }, 7, 0 }, //! Wire for NW exit
 	};
+
+	assert_compile (WSO_ENTRANCE_NE == WSO_ENTRANCE_NE + DIAGDIR_NE);
+	assert_compile (WSO_ENTRANCE_SE == WSO_ENTRANCE_NE + DIAGDIR_SE);
+	assert_compile (WSO_ENTRANCE_SW == WSO_ENTRANCE_NE + DIAGDIR_SW);
+	assert_compile (WSO_ENTRANCE_NW == WSO_ENTRANCE_NE + DIAGDIR_NW);
 
 	const SortableSpriteStruct *sss = &data[dir];
 	int dz = depot ? 0 : BB_Z_SEPARATOR - ELRAIL_ELEVATION;
 	int z = depot ? GetTileMaxPixelZ (ti->tile) : GetTilePixelZ (ti->tile);
 	/* This wire is not visible with the default depot sprites. */
 	AddSortableSpriteToDraw (ti->vd,
-		GetWireBase (ti->tile) + sss->image_offset, PAL_NONE,
+		GetWireBase (ti->tile) + WSO_ENTRANCE_NE + dir, PAL_NONE,
 		ti->x + sss->x_offset, ti->y + sss->y_offset,
 		sss->bb[depot].w, sss->bb[depot].h, dz + 1,
 		z + ELRAIL_ELEVATION, IsTransparencySet (TO_CATENARY),
