@@ -66,6 +66,16 @@ static inline void DrawCatenaryOnTunnel (const TileInfo *ti)
 	DrawRailTunnelDepotCatenary (ti, false, dir);
 }
 
+/**
+ * Draws wires on a rail depot tile.
+ * @param ti The TileInfo to draw the wires for.
+ * @param dir Direction of the depot.
+ */
+static inline void DrawRailDepotCatenary (const TileInfo *ti, DiagDirection dir)
+{
+	DrawRailTunnelDepotCatenary (ti, true, dir);
+}
+
 void DrawCatenaryOnBridge(const TileInfo *ti);
 
 bool SettingsDisableElrail(int32 p1); ///< _settings_game.disable_elrail callback

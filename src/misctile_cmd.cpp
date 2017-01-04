@@ -264,7 +264,7 @@ static void DrawTrainDepot(TileInfo *ti)
 		}
 	}
 
-	if (HasCatenaryDrawn (rti)) DrawCatenary (ti);
+	if (HasCatenaryDrawn (rti)) DrawRailDepotCatenary (ti, dir);
 
 	int depot_sprite = GetCustomRailSprite(rti, ti->tile, RTSG_DEPOT);
 	SpriteID relocation = depot_sprite != 0 ? depot_sprite - SPR_RAIL_DEPOT_SE_1 : rti->GetRailtypeSpriteOffset();

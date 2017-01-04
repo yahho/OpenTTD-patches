@@ -661,11 +661,6 @@ void DrawCatenary(const TileInfo *ti)
 			switch (GetTileSubtype(ti->tile)) {
 				default: return;
 
-				case TT_MISC_DEPOT:
-					if (!IsRailDepot(ti->tile)) return;
-					DrawRailTunnelDepotCatenary (ti, true, GetGroundDepotDirection(ti->tile));
-					return;
-
 				case TT_MISC_CROSSING:
 				case TT_MISC_TUNNEL:
 					break;
