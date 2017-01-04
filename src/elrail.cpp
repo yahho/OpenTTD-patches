@@ -305,10 +305,10 @@ struct CatenaryConfig {
 };
 
 /**
- * Draws wires and, if required, pylons on a given tile
- * @param ti The Tileinfo to draw the tile for
+ * Draws overhead wires and pylons for electric railways.
+ * @param ti The TileInfo struct of the tile being drawn
  */
-static void DrawCatenaryRailway(const TileInfo *ti)
+void DrawCatenary (const TileInfo *ti)
 {
 	/* Pylons are placed on a tile edge, so we need to take into account
 	 * the track configuration of 2 adjacent tiles. home stores the
@@ -647,33 +647,6 @@ void DrawCatenaryOnBridge(const TileInfo *ti)
 		AddSortableSpriteToDraw (ti->vd, pylon, PAL_NONE, x + x_pcp_offsets[PCPpos], y + y_pcp_offsets[PCPpos],
 			1, 1, BB_HEIGHT_UNDER_BRIDGE, height, IsTransparencySet(TO_CATENARY), -1, -1);
 	}
-}
-
-/**
- * Draws overhead wires and pylons for electric railways.
- * @param ti The TileInfo struct of the tile being drawn
- * @see DrawCatenaryRailway
- */
-void DrawCatenary(const TileInfo *ti)
-{
-	switch (GetTileType(ti->tile)) {
-		case TT_MISC:
-			switch (GetTileSubtype(ti->tile)) {
-				default: return;
-
-				case TT_MISC_CROSSING:
-				case TT_MISC_TUNNEL:
-					break;
-			}
-			break;
-
-		case TT_RAILWAY:
-		case TT_STATION:
-			break;
-
-		default: return;
-	}
-	DrawCatenaryRailway(ti);
 }
 
 bool SettingsDisableElrail(int32 p1)
