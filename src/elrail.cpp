@@ -266,7 +266,7 @@ static int GetPCPElevation(TileIndex tile, DiagDirection PCPpos)
  * @param depot The tile is a depot, else a tunnel.
  * @param dir The direction of the tunnel or depot.
  */
-static void DrawRailTunnelDepotCatenary (const TileInfo *ti, bool depot,
+void DrawRailTunnelDepotCatenary (const TileInfo *ti, bool depot,
 	DiagDirection dir)
 {
 	struct SortableSpriteStruct {
@@ -295,19 +295,6 @@ static void DrawRailTunnelDepotCatenary (const TileInfo *ti, bool depot,
 		sss->bb[depot].w, sss->bb[depot].h, dz + 1,
 		z + ELRAIL_ELEVATION, IsTransparencySet (TO_CATENARY),
 		sss->bb[depot].x, sss->bb[depot].y, dz);
-}
-
-/**
- * Draws wires on a tunnel tile
- *
- * DrawTile_TunnelBridge() calls this function to draw the wires as SpriteCombine with the tunnel roof.
- *
- * @param ti The Tileinfo to draw the tile for
- */
-void DrawCatenaryOnTunnel(const TileInfo *ti)
-{
-	DiagDirection dir = GetTunnelBridgeDirection(ti->tile);
-	DrawRailTunnelDepotCatenary (ti, false, dir);
 }
 
 struct CatenaryConfig {
