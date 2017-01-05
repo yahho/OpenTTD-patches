@@ -55,47 +55,32 @@ static const DiagDirection PCPpositions[TRACK_END][2] = {
 	{DIAGDIR_NE, DIAGDIR_SE}, // RIGHT
 };
 
-#define PCP_NOT_ON_TRACK 0xFF
 /**
  * Preferred points of each trackbit. Those are the ones perpendicular to the
  * track, plus the point in extension of the track (to mark end-of-track). PCPs
  * which are not on either end of the track are fully preferred.
+ * These are kept in the same order as TracksAtTileSide.
  * @see PCPpositions
  */
-static const byte PreferredPPPofTrackAtPCP[TRACK_END][DIAGDIR_END] = {
-	{    // X
-		1 << DIR_NE | 1 << DIR_SE | 1 << DIR_NW, // NE
-		PCP_NOT_ON_TRACK,                        // SE
-		1 << DIR_SE | 1 << DIR_SW | 1 << DIR_NW, // SW
-		PCP_NOT_ON_TRACK                         // NE
-	}, { // Y
-		PCP_NOT_ON_TRACK,
+static const byte PreferredPPPofTrackAtPCP[DIAGDIR_END][NUM_TRACKS_PER_SIDE] = {
+	{    // NE
+		1 << DIR_NE | 1 << DIR_SE | 1 << DIR_NW,
+		1 << DIR_E  | 1 << DIR_N  | 1 << DIR_S,
+		1 << DIR_N  | 1 << DIR_E  | 1 << DIR_W,
+	}, { // SE
 		1 << DIR_NE | 1 << DIR_SE | 1 << DIR_SW,
-		PCP_NOT_ON_TRACK,
-		1 << DIR_SW | 1 << DIR_NW | 1 << DIR_NE
-	}, { // UPPER
-		1 << DIR_E | 1 << DIR_N | 1 << DIR_S,
-		PCP_NOT_ON_TRACK,
-		PCP_NOT_ON_TRACK,
-		1 << DIR_W | 1 << DIR_N | 1 << DIR_S
-	}, { // LOWER
-		PCP_NOT_ON_TRACK,
-		1 << DIR_E | 1 << DIR_N | 1 << DIR_S,
-		1 << DIR_W | 1 << DIR_N | 1 << DIR_S,
-		PCP_NOT_ON_TRACK
-	}, { // LEFT
-		PCP_NOT_ON_TRACK,
-		PCP_NOT_ON_TRACK,
-		1 << DIR_S | 1 << DIR_E | 1 << DIR_W,
-		1 << DIR_N | 1 << DIR_E | 1 << DIR_W
-	}, { // RIGHT
-		1 << DIR_N | 1 << DIR_E | 1 << DIR_W,
-		1 << DIR_S | 1 << DIR_E | 1 << DIR_W,
-		PCP_NOT_ON_TRACK,
-		PCP_NOT_ON_TRACK
-	}
+		1 << DIR_E  | 1 << DIR_N  | 1 << DIR_S,
+		1 << DIR_S  | 1 << DIR_E  | 1 << DIR_W,
+	}, { // SW
+		1 << DIR_SE | 1 << DIR_SW | 1 << DIR_NW,
+		1 << DIR_W  | 1 << DIR_N  | 1 << DIR_S,
+		1 << DIR_S  | 1 << DIR_E  | 1 << DIR_W,
+	}, { // NW
+		1 << DIR_SW | 1 << DIR_NW | 1 << DIR_NE,
+		1 << DIR_W  | 1 << DIR_N  | 1 << DIR_S,
+		1 << DIR_N  | 1 << DIR_E  | 1 << DIR_W,
+	},
 };
-#undef PCP_NOT_ON_TRACK
 
 
 #define NUM_IGNORE_GROUPS 3

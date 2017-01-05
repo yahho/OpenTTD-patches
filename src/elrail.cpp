@@ -418,7 +418,7 @@ void DrawCatenary (const TileInfo *ti)
 			if (HasBit(home.wires, track)) {
 				/* track found */
 				SetBit(PCPstatus, i); // This PCP is in use
-				PPPpreferred &= PreferredPPPofTrackAtPCP[track][i];
+				PPPpreferred &= PreferredPPPofTrackAtPCP[i][k];
 			}
 			if (HasBit(home.tracks, track)) {
 				PPPallowed &= AllowedPPPofTrackAtPCP[track];
@@ -439,7 +439,7 @@ void DrawCatenary (const TileInfo *ti)
 				/* track found, adjust the number
 				 * of the PCP for preferred/allowed determination*/
 				SetBit(PCPstatus, i); // This PCP is in use
-				PPPpreferred &= PreferredPPPofTrackAtPCP[track][PCPpos];
+				PPPpreferred &= PreferredPPPofTrackAtPCP[PCPpos][k];
 			}
 
 			if (HasBit(nbconfig.tracks, track)) {
