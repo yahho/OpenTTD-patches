@@ -426,24 +426,21 @@ void DrawCatenary (const TileInfo *ti)
 		}
 
 		/* Tracks inciding from the neighbour tile */
-		for (uint k = 0; k < NUM_TRACKS_PER_SIDE; k++) {
-			DiagDirection PCPpos = ReverseDiagDir(i);
-			/* Next to us, we have a bridge head, don't worry about that one, if it shows away from us */
-			if (IsRailBridgeTile(neighbour) && GetTunnelBridgeDirection(neighbour) == PCPpos) {
-				continue;
-			}
-
-			/* We check whether the track in question (k) is present in the tile */
-			Track track = TracksAtTileSide[PCPpos][k];
-			if (HasBit(nbconfig.wires, track)) {
-				/* track found, adjust the number
-				 * of the PCP for preferred/allowed determination*/
-				SetBit(PCPstatus, i); // This PCP is in use
-				PPPpreferred &= PreferredPPPofTrackAtPCP[PCPpos][k];
-			}
-
-			if (HasBit(nbconfig.tracks, track)) {
-				PPPallowed &= AllowedPPPofTrackAtPCP[track];
+		DiagDirection PCPpos = ReverseDiagDir (i);
+		/* Next to us, we have a bridge head, don't worry about that one, if it shows away from us */
+		if (!IsRailBridgeTile(neighbour) || GetTunnelBridgeDirection(neighbour) != PCPpos) {
+			for (uint k = 0; k < NUM_TRACKS_PER_SIDE; k++) {
+				/* We check whether the track in question (k) is present in the tile */
+				Track track = TracksAtTileSide[PCPpos][k];
+				if (HasBit(nbconfig.wires, track)) {
+					/* track found, adjust the number
+					 * of the PCP for preferred/allowed determination*/
+					SetBit(PCPstatus, i); // This PCP is in use
+					PPPpreferred &= PreferredPPPofTrackAtPCP[PCPpos][k];
+				}
+				if (HasBit(nbconfig.tracks, track)) {
+					PPPallowed &= AllowedPPPofTrackAtPCP[track];
+				}
 			}
 		}
 
