@@ -309,40 +309,31 @@ void DrawRailTunnelDepotCatenary (const TileInfo *ti, bool depot,
 static bool CheckCatenarySide (TrackBits tracks, TrackBits wires,
 	DiagDirection side, byte *preferred, byte *allowed)
 {
-	static const uint NUM_TRACKS_PER_SIDE = 3;
-
-	/* This array stores which tracks can meet at a tile edge */
-	static const Track tracks_at_side[DIAGDIR_END][NUM_TRACKS_PER_SIDE] = {
-		{TRACK_X, TRACK_UPPER, TRACK_RIGHT},
-		{TRACK_Y, TRACK_LOWER, TRACK_RIGHT},
-		{TRACK_X, TRACK_LOWER, TRACK_LEFT },
-		{TRACK_Y, TRACK_UPPER, TRACK_LEFT },
+	struct SideTrackData {
+		byte track;     ///< a track that incides at this side
+		byte preferred; ///< preferred pylon position points for it
 	};
 
-	/*
-	 * Preferred points of each trackbit. Those are the ones perpendicular to the
-	 * track, plus the point in extension of the track (to mark end-of-track). PCPs
-	 * which are not on either end of the track are fully preferred.
-	 * These are kept in the same order as tracks_at_side.
-	 * @see PCPpositions
-	 */
-	static const byte preferred_ppp[DIAGDIR_END][NUM_TRACKS_PER_SIDE] = {
+	static const uint NUM_TRACKS_PER_SIDE = 3;
+
+	/* Side track data, 3 tracks per side. */
+	static const SideTrackData side_tracks[DIAGDIR_END][NUM_TRACKS_PER_SIDE] = {
 		{    // NE
-			1 << DIR_NE | 1 << DIR_SE | 1 << DIR_NW,
-			1 << DIR_E  | 1 << DIR_N  | 1 << DIR_S,
-			1 << DIR_N  | 1 << DIR_E  | 1 << DIR_W,
+			{ TRACK_X,     1 << DIR_NE | 1 << DIR_SE | 1 << DIR_NW },
+			{ TRACK_UPPER, 1 << DIR_E  | 1 << DIR_N  | 1 << DIR_S  },
+			{ TRACK_RIGHT, 1 << DIR_N  | 1 << DIR_E  | 1 << DIR_W  },
 		}, { // SE
-			1 << DIR_NE | 1 << DIR_SE | 1 << DIR_SW,
-			1 << DIR_E  | 1 << DIR_N  | 1 << DIR_S,
-			1 << DIR_S  | 1 << DIR_E  | 1 << DIR_W,
+			{ TRACK_Y,     1 << DIR_NE | 1 << DIR_SE | 1 << DIR_SW },
+			{ TRACK_LOWER, 1 << DIR_E  | 1 << DIR_N  | 1 << DIR_S  },
+			{ TRACK_RIGHT, 1 << DIR_S  | 1 << DIR_E  | 1 << DIR_W  },
 		}, { // SW
-			1 << DIR_SE | 1 << DIR_SW | 1 << DIR_NW,
-			1 << DIR_W  | 1 << DIR_N  | 1 << DIR_S,
-			1 << DIR_S  | 1 << DIR_E  | 1 << DIR_W,
+			{ TRACK_X,     1 << DIR_SE | 1 << DIR_SW | 1 << DIR_NW },
+			{ TRACK_LOWER, 1 << DIR_W  | 1 << DIR_N  | 1 << DIR_S  },
+			{ TRACK_LEFT,  1 << DIR_S  | 1 << DIR_E  | 1 << DIR_W  },
 		}, { // NW
-			1 << DIR_SW | 1 << DIR_NW | 1 << DIR_NE,
-			1 << DIR_W  | 1 << DIR_N  | 1 << DIR_S,
-			1 << DIR_N  | 1 << DIR_E  | 1 << DIR_W,
+			{ TRACK_Y,     1 << DIR_SW | 1 << DIR_NW | 1 << DIR_NE },
+			{ TRACK_UPPER, 1 << DIR_W  | 1 << DIR_N  | 1 << DIR_S  },
+			{ TRACK_LEFT,  1 << DIR_N  | 1 << DIR_E  | 1 << DIR_W  },
 		},
 	};
 
@@ -362,11 +353,12 @@ static bool CheckCatenarySide (TrackBits tracks, TrackBits wires,
 
 	for (uint k = 0; k < NUM_TRACKS_PER_SIDE; k++) {
 		/* We check whether the track in question is present. */
-		Track track = tracks_at_side[side][k];
+		const SideTrackData *data = &side_tracks[side][k];
+		byte track = data->track;
 		if (HasBit(wires, track)) {
 			/* track found */
 			pcp_in_use = true;
-			pmask &= preferred_ppp[side][k];
+			pmask &= data->preferred;
 		}
 		if (HasBit(tracks, track)) {
 			amask &= allowed_ppp[track];
