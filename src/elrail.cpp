@@ -309,20 +309,67 @@ void DrawRailTunnelDepotCatenary (const TileInfo *ti, bool depot,
 static bool CheckCatenarySide (TrackBits tracks, TrackBits wires,
 	DiagDirection side, byte *preferred, byte *allowed)
 {
+	static const uint NUM_TRACKS_PER_SIDE = 3;
+
+	/* This array stores which tracks can meet at a tile edge */
+	static const Track tracks_at_side[DIAGDIR_END][NUM_TRACKS_PER_SIDE] = {
+		{TRACK_X, TRACK_UPPER, TRACK_RIGHT},
+		{TRACK_Y, TRACK_LOWER, TRACK_RIGHT},
+		{TRACK_X, TRACK_LOWER, TRACK_LEFT },
+		{TRACK_Y, TRACK_UPPER, TRACK_LEFT },
+	};
+
+	/*
+	 * Preferred points of each trackbit. Those are the ones perpendicular to the
+	 * track, plus the point in extension of the track (to mark end-of-track). PCPs
+	 * which are not on either end of the track are fully preferred.
+	 * These are kept in the same order as tracks_at_side.
+	 * @see PCPpositions
+	 */
+	static const byte preferred_ppp[DIAGDIR_END][NUM_TRACKS_PER_SIDE] = {
+		{    // NE
+			1 << DIR_NE | 1 << DIR_SE | 1 << DIR_NW,
+			1 << DIR_E  | 1 << DIR_N  | 1 << DIR_S,
+			1 << DIR_N  | 1 << DIR_E  | 1 << DIR_W,
+		}, { // SE
+			1 << DIR_NE | 1 << DIR_SE | 1 << DIR_SW,
+			1 << DIR_E  | 1 << DIR_N  | 1 << DIR_S,
+			1 << DIR_S  | 1 << DIR_E  | 1 << DIR_W,
+		}, { // SW
+			1 << DIR_SE | 1 << DIR_SW | 1 << DIR_NW,
+			1 << DIR_W  | 1 << DIR_N  | 1 << DIR_S,
+			1 << DIR_S  | 1 << DIR_E  | 1 << DIR_W,
+		}, { // NW
+			1 << DIR_SW | 1 << DIR_NW | 1 << DIR_NE,
+			1 << DIR_W  | 1 << DIR_N  | 1 << DIR_S,
+			1 << DIR_N  | 1 << DIR_E  | 1 << DIR_W,
+		},
+	};
+
+	/* Mask of positions at which pylons can be built per track. */
+	static const byte allowed_ppp[TRACK_END] = {
+		1 << DIR_N  | 1 << DIR_E  | 1 << DIR_SE | 1 << DIR_S  | 1 << DIR_W  | 1 << DIR_NW, // X
+		1 << DIR_N  | 1 << DIR_NE | 1 << DIR_E  | 1 << DIR_S  | 1 << DIR_SW | 1 << DIR_W,  // Y
+		1 << DIR_N  | 1 << DIR_NE | 1 << DIR_SE | 1 << DIR_S  | 1 << DIR_SW | 1 << DIR_NW, // UPPER
+		1 << DIR_N  | 1 << DIR_NE | 1 << DIR_SE | 1 << DIR_S  | 1 << DIR_SW | 1 << DIR_NW, // LOWER
+		1 << DIR_NE | 1 << DIR_E  | 1 << DIR_SE | 1 << DIR_SW | 1 << DIR_W  | 1 << DIR_NW, // LEFT
+		1 << DIR_NE | 1 << DIR_E  | 1 << DIR_SE | 1 << DIR_SW | 1 << DIR_W  | 1 << DIR_NW, // RIGHT
+	};
+
 	bool pcp_in_use = false;
 	byte pmask = 0xFF;
 	byte amask = 0xFF;
 
 	for (uint k = 0; k < NUM_TRACKS_PER_SIDE; k++) {
 		/* We check whether the track in question is present. */
-		Track track = TracksAtTileSide[side][k];
+		Track track = tracks_at_side[side][k];
 		if (HasBit(wires, track)) {
 			/* track found */
 			pcp_in_use = true;
-			pmask &= PreferredPPPofTrackAtPCP[side][k];
+			pmask &= preferred_ppp[side][k];
 		}
 		if (HasBit(tracks, track)) {
-			amask &= AllowedPPPofTrackAtPCP[track];
+			amask &= allowed_ppp[track];
 		}
 	}
 

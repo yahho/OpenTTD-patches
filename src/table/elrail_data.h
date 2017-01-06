@@ -15,16 +15,6 @@
 #ifndef ELRAIL_DATA_H
 #define ELRAIL_DATA_H
 
-static const uint NUM_TRACKS_PER_SIDE = 3;
-
-/* This array stores which tracks can meet at a tile edge */
-static const Track TracksAtTileSide[DIAGDIR_END][NUM_TRACKS_PER_SIDE] = {
-	{TRACK_X, TRACK_UPPER, TRACK_RIGHT},
-	{TRACK_Y, TRACK_LOWER, TRACK_RIGHT},
-	{TRACK_X, TRACK_LOWER, TRACK_LEFT },
-	{TRACK_Y, TRACK_UPPER, TRACK_LEFT },
-};
-
 /** Which PPPs are possible at all on a given PCP */
 static const byte AllowedPPPonPCP[DIAGDIR_END] = {
 	1 << DIR_N | 1 << DIR_E  | 1 << DIR_SE | 1 << DIR_S | 1 << DIR_W  | 1 << DIR_NW,
@@ -53,33 +43,6 @@ static const DiagDirection PCPpositions[TRACK_END][2] = {
 	{DIAGDIR_SE, DIAGDIR_SW}, // LOWER
 	{DIAGDIR_SW, DIAGDIR_NW}, // LEFT
 	{DIAGDIR_NE, DIAGDIR_SE}, // RIGHT
-};
-
-/**
- * Preferred points of each trackbit. Those are the ones perpendicular to the
- * track, plus the point in extension of the track (to mark end-of-track). PCPs
- * which are not on either end of the track are fully preferred.
- * These are kept in the same order as TracksAtTileSide.
- * @see PCPpositions
- */
-static const byte PreferredPPPofTrackAtPCP[DIAGDIR_END][NUM_TRACKS_PER_SIDE] = {
-	{    // NE
-		1 << DIR_NE | 1 << DIR_SE | 1 << DIR_NW,
-		1 << DIR_E  | 1 << DIR_N  | 1 << DIR_S,
-		1 << DIR_N  | 1 << DIR_E  | 1 << DIR_W,
-	}, { // SE
-		1 << DIR_NE | 1 << DIR_SE | 1 << DIR_SW,
-		1 << DIR_E  | 1 << DIR_N  | 1 << DIR_S,
-		1 << DIR_S  | 1 << DIR_E  | 1 << DIR_W,
-	}, { // SW
-		1 << DIR_SE | 1 << DIR_SW | 1 << DIR_NW,
-		1 << DIR_W  | 1 << DIR_N  | 1 << DIR_S,
-		1 << DIR_S  | 1 << DIR_E  | 1 << DIR_W,
-	}, { // NW
-		1 << DIR_SW | 1 << DIR_NW | 1 << DIR_NE,
-		1 << DIR_W  | 1 << DIR_N  | 1 << DIR_S,
-		1 << DIR_N  | 1 << DIR_E  | 1 << DIR_W,
-	},
 };
 
 
@@ -115,16 +78,6 @@ static const byte IgnoredPCP[AXIS_END][2] = {
 		0x5, // configurations to ignore on odd Y and even X tile sides
 		0x3, // configurations to ignore on odd Y and odd X tile sides
 	}
-};
-
-/** Which pylons can definitely NOT be built */
-static const byte AllowedPPPofTrackAtPCP[TRACK_END] = {
-	1 << DIR_N  | 1 << DIR_E  | 1 << DIR_SE | 1 << DIR_S  | 1 << DIR_W  | 1 << DIR_NW, // X
-	1 << DIR_N  | 1 << DIR_NE | 1 << DIR_E  | 1 << DIR_S  | 1 << DIR_SW | 1 << DIR_W,  // Y
-	1 << DIR_N  | 1 << DIR_NE | 1 << DIR_SE | 1 << DIR_S  | 1 << DIR_SW | 1 << DIR_NW, // UPPER
-	1 << DIR_N  | 1 << DIR_NE | 1 << DIR_SE | 1 << DIR_S  | 1 << DIR_SW | 1 << DIR_NW, // LOWER
-	1 << DIR_NE | 1 << DIR_E  | 1 << DIR_SE | 1 << DIR_SW | 1 << DIR_W  | 1 << DIR_NW, // LEFT
-	1 << DIR_NE | 1 << DIR_E  | 1 << DIR_SE | 1 << DIR_SW | 1 << DIR_W  | 1 << DIR_NW, // RIGHT
 };
 
 /* Several PPPs maybe exist, here they are sorted in order of preference. */
