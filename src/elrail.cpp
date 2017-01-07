@@ -370,6 +370,28 @@ static bool CheckCatenarySide (TrackBits tracks, TrackBits wires,
 	return pcp_in_use;
 }
 
+/**
+ * Check if the pylon on a tile side should be elided on long track runs.
+ * @param side Tile side to check.
+ * @param preferred Preferred pylon positions.
+ * @param odd Array of tile coordinate parity per axis.
+ * @return Whether the pylon should be elided.
+ */
+static bool CheckPylonElision (DiagDirection side, byte preferred,
+	const bool *odd)
+{
+	Axis axis = DiagDirToAxis (side);
+	for (uint k = 0; k < NUM_IGNORE_GROUPS; k++) {
+		if (preferred == IgnoredPCPconfigs[axis][k]) {
+			/* This configuration may be subject to pylon elision. */
+			bool ignore = HasBit (IgnoredPCP[axis][odd[OtherAxis(axis)]], k);
+			/* Toggle ignore if we are in an odd row, or heading the other way. */
+			return (ignore ^ odd[axis] ^ HasBit(side, 1));
+		}
+	}
+	return false;
+}
+
 struct CatenaryConfig {
 	TrackBits tracks;
 	TrackBits wires;
@@ -526,17 +548,10 @@ void DrawCatenary (const TileInfo *ti)
 		 * Delete the PCP if this is the case.
 		 * Level means that the slope is the same, or the track is flat */
 		if (home.tileh == nbconfig.tileh || (home.isflat && nbconfig.isflat)) {
-			Axis axis = DiagDirToAxis(i);
-			for (uint k = 0; k < NUM_IGNORE_GROUPS; k++) {
-				if (PPPpreferred == IgnoredPCPconfigs[axis][k] ) {
-					/* This configuration may be subject to pylon elision. */
-					bool ignore = HasBit (IgnoredPCP[axis][odd[OtherAxis(axis)]], k);
-					/* Toggle ignore if we are in an odd row, or heading the other way. */
-					if (ignore ^ odd[axis] ^ HasBit(i, 1)) ClrBit(PCPstatus, i);
-					break;
-				}
+			if (CheckPylonElision (i, PPPpreferred, odd)) {
+				ClrBit(PCPstatus, i);
+				continue;
 			}
-			if (!HasBit(PCPstatus, i)) continue;
 		}
 
 		if (overridePCP == i) continue;
