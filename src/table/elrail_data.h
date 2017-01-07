@@ -46,40 +46,6 @@ static const DiagDirection PCPpositions[TRACK_END][2] = {
 };
 
 
-#define NUM_IGNORE_GROUPS 3
-
-/**
- * In case we have a straight line, we place pylon only every two tiles,
- * so there are certain tiles which we ignore. A straight line is found if
- * we have exactly two PPPs.
- */
-static const byte IgnoredPCPconfigs[AXIS_END][NUM_IGNORE_GROUPS] = {
-	{    // X axis
-		1 << DIR_NW | 1 << DIR_SE,
-		1 << DIR_E  | 1 << DIR_W,
-		1 << DIR_N  | 1 << DIR_S,
-	}, { // Y axis
-		1 << DIR_NE | 1 << DIR_SW,
-		1 << DIR_E  | 1 << DIR_W,
-		1 << DIR_N  | 1 << DIR_S,
-	}
-};
-
-/**
- * In case we have a straight line, we place pylon only every two tiles,
- * so there are certain tiles which we ignore. This struct encodes on
- * which tile sides pylons are omitted.
- */
-static const byte IgnoredPCP[AXIS_END][2] = {
-	{    // X axis
-		0x6, // configurations to ignore on even X and even Y tile sides
-		  0, // configurations to ignore on even X and odd Y tile sides
-	}, { // Y axis
-		0x5, // configurations to ignore on odd Y and even X tile sides
-		0x3, // configurations to ignore on odd Y and odd X tile sides
-	}
-};
-
 /* Several PPPs maybe exist, here they are sorted in order of preference. */
 static const Direction PPPorder[2][2][DIAGDIR_END][DIR_END] = {
 	{    // X even
