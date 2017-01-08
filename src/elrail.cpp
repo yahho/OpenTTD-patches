@@ -380,50 +380,32 @@ static bool CheckCatenarySide (TrackBits tracks, TrackBits wires,
 static bool CheckPylonElision (DiagDirection side, byte preferred,
 	const bool *odd)
 {
-	static const uint NUM_IGNORE_GROUPS = 3;
-
-	/*
-	 * In case we have a straight line, we place pylon only every two
-	 * tiles, so there are certain tiles which we ignore. A straight
-	 * line is found if we have exactly two PPPs.
-	 */
-	static const byte configs[AXIS_END][NUM_IGNORE_GROUPS] = {
-		{    // X axis
-			1 << DIR_NW | 1 << DIR_SE,
-			1 << DIR_E  | 1 << DIR_W,
-			1 << DIR_N  | 1 << DIR_S,
-		}, { // Y axis
-			1 << DIR_NE | 1 << DIR_SW,
-			1 << DIR_E  | 1 << DIR_W,
-			1 << DIR_N  | 1 << DIR_S,
-		}
-	};
-
-	/*
-	 * In case we have a straight line, we place pylon only every two
-	 * tiles, so there are certain tiles which we ignore. This struct
-	 * encodes on which tile sides pylons are omitted.
-	 */
-	static const byte ignored[AXIS_END][2] = {
-		{    // X axis
-			0x6, // configurations to ignore on even X and even Y tile sides
-			  0, // configurations to ignore on even X and odd Y tile sides
-		}, { // Y axis
-			0x5, // configurations to ignore on odd Y and even X tile sides
-			0x3, // configurations to ignore on odd Y and odd X tile sides
-		}
-	};
-
 	Axis axis = DiagDirToAxis (side);
-	for (uint k = 0; k < NUM_IGNORE_GROUPS; k++) {
-		if (preferred == configs[axis][k]) {
-			/* This configuration may be subject to pylon elision. */
-			bool ignore = HasBit (ignored[axis][odd[OtherAxis(axis)]], k);
-			/* Toggle ignore if we are in an odd row, or heading the other way. */
-			return (ignore ^ odd[axis] ^ HasBit(side, 1));
-		}
+	bool ignore;
+	switch (preferred) {
+		case 1 << DIR_NW | 1 << DIR_SE:
+			ignore = false; // must be X axis
+			break;
+
+		case 1 << DIR_NE | 1 << DIR_SW:
+			ignore = true;  // must be Y axis
+			break;
+
+		case 1 << DIR_E | 1 << DIR_W:
+			ignore = (axis == AXIS_X) ? !odd[AXIS_Y] : odd[AXIS_X];
+			break;
+
+		case 1 << DIR_N | 1 << DIR_S:
+			ignore = !odd[OtherAxis(axis)];
+			break;
+
+		default:
+			return false;
 	}
-	return false;
+
+	/* This configuration may be subject to pylon elision. */
+	/* Toggle ignore if we are in an odd row, or heading the other way. */
+	return (ignore ^ odd[axis] ^ HasBit(side, 1));
 }
 
 struct CatenaryConfig {
