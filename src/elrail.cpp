@@ -375,27 +375,32 @@ static bool CheckCatenarySide (TrackBits tracks, TrackBits wires,
  * @param side Tile side to check.
  * @param preferred Preferred pylon positions.
  * @param odd Array of tile coordinate parity per axis.
+ * @param level Whether the land is level (for tracks running along an axis).
  * @return Whether the pylon should be elided.
  */
 static bool CheckPylonElision (DiagDirection side, byte preferred,
-	const bool *odd)
+	const bool *odd, bool level)
 {
 	Axis axis = DiagDirToAxis (side);
 	bool ignore;
 	switch (preferred) {
 		case 1 << DIR_NW | 1 << DIR_SE:
+			if (!level) return false;
 			ignore = false; // must be X axis
 			break;
 
 		case 1 << DIR_NE | 1 << DIR_SW:
+			if (!level) return false;
 			ignore = true;  // must be Y axis
 			break;
 
 		case 1 << DIR_E | 1 << DIR_W:
+			/* Non-orthogonal tracks must always be level. */
 			ignore = (axis == AXIS_X) ? !odd[AXIS_Y] : odd[AXIS_X];
 			break;
 
 		case 1 << DIR_N | 1 << DIR_S:
+			/* Non-orthogonal tracks must always be level. */
 			ignore = !odd[OtherAxis(axis)];
 			break;
 
@@ -411,7 +416,6 @@ static bool CheckPylonElision (DiagDirection side, byte preferred,
 struct CatenaryConfig {
 	TrackBits tracks;
 	TrackBits wires;
-	bool isflat;
 	Slope tileh;
 };
 
@@ -442,8 +446,6 @@ void DrawCatenary (const TileInfo *ti)
 	 *    which have no middle tiles */
 	home.tracks = GetRailTrackBitsUniversal(ti->tile, INVALID_DIAGDIR, &overridePCP);
 	home.wires = MaskWireBits(ti->tile, home.tracks);
-	/* If a track bit is present that is not in the main direction, the track is level */
-	home.isflat = ((home.tracks & (TRACK_BIT_HORZ | TRACK_BIT_VERT)) != 0);
 
 	/* Half tile slopes coincide only with horizontal/vertical track.
 	 * Faking a flat slope results in the correct sprites on positions. */
@@ -510,10 +512,8 @@ void DrawCatenary (const TileInfo *ti)
 		if (nbconfig.tracks == TRACK_BIT_NONE || elevation != GetPCPElevation(neighbour, ReverseDiagDir(i))) {
 			nbconfig.tracks = TRACK_BIT_NONE;
 			nbconfig.wires  = TRACK_BIT_NONE;
-			nbconfig.isflat = false;
 		} else {
 			nbconfig.wires  = MaskWireBits(neighbour, nbconfig.tracks);
-			nbconfig.isflat = ((nbconfig.tracks & (TRACK_BIT_HORZ | TRACK_BIT_VERT)) != 0);
 		}
 
 		byte PPPpreferred = 0xFF; // We start with preferring everything (end-of-line in any direction)
@@ -563,11 +563,9 @@ void DrawCatenary (const TileInfo *ti)
 		/* If we have a straight (and level) track, we want a pylon only every 2 tiles
 		 * Delete the PCP if this is the case.
 		 * Level means that the slope is the same, or the track is flat */
-		if (home.tileh == nbconfig.tileh || (home.isflat && nbconfig.isflat)) {
-			if (CheckPylonElision (i, PPPpreferred, odd)) {
-				ClrBit(PCPstatus, i);
-				continue;
-			}
+		if (CheckPylonElision (i, PPPpreferred, odd, home.tileh == nbconfig.tileh)) {
+			ClrBit(PCPstatus, i);
+			continue;
 		}
 
 		if (overridePCP == i) continue;
