@@ -580,8 +580,7 @@ void DrawCatenary (const TileInfo *ti)
 		if (IsRailStationTile(ti->tile) && !CanStationTileHavePylons(ti->tile)) continue;
 
 		if (HasBridgeAbove(ti->tile)) {
-			Track bridgetrack = GetBridgeAxis(ti->tile) == AXIS_X ? TRACK_X : TRACK_Y;
-			if (i == PCPpositions[bridgetrack][0] || i == PCPpositions[bridgetrack][1]) {
+			if (GetBridgeAxis (ti->tile) == DiagDirToAxis (i)) {
 				int height = GetBridgeHeight (GetNorthernBridgeEnd (ti->tile));
 				if (height <= GetTileMaxZ (ti->tile) + 1) {
 					continue;
