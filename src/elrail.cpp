@@ -413,12 +413,6 @@ static bool CheckPylonElision (DiagDirection side, byte preferred,
 	return (ignore ^ odd[axis] ^ HasBit(side, 1));
 }
 
-struct CatenaryConfig {
-	TrackBits tracks;
-	TrackBits wires;
-	Slope tileh;
-};
-
 /**
  * Draws overhead wires and pylons for electric railways.
  * @param ti The TileInfo struct of the tile being drawn
@@ -428,9 +422,9 @@ void DrawCatenary (const TileInfo *ti)
 	/* Pylons are placed on a tile edge, so we need to take into account
 	 * the track configuration of 2 adjacent tiles. home stores the
 	 * current tile */
-	CatenaryConfig home;
+	TrackBits home_tracks, home_wires;
 	/* Note that ti->tileh has already been adjusted for Foundations */
-	home.tileh = ti->tileh;
+	Slope home_slope = ti->tileh;
 
 	bool odd[AXIS_END];
 	odd[AXIS_X] = IsOddX(ti->tile);
@@ -444,15 +438,15 @@ void DrawCatenary (const TileInfo *ti)
 	 * 2) on the "far" end of a bridge head (the one that connects to bridge middle),
 	 *    because that one is drawn on the bridge. Exception is for length 0 bridges
 	 *    which have no middle tiles */
-	home.tracks = GetRailTrackBitsUniversal(ti->tile, INVALID_DIAGDIR, &overridePCP);
-	home.wires = MaskWireBits(ti->tile, home.tracks);
+	home_tracks = GetRailTrackBitsUniversal (ti->tile, INVALID_DIAGDIR, &overridePCP);
+	home_wires = MaskWireBits (ti->tile, home_tracks);
 
 	/* Half tile slopes coincide only with horizontal/vertical track.
 	 * Faking a flat slope results in the correct sprites on positions. */
 	Track halftile_track;
 	TileContext halftile_context;
-	if (IsHalftileSlope(home.tileh)) {
-		switch (GetHalftileSlopeCorner(home.tileh)) {
+	if (IsHalftileSlope (home_slope)) {
+		switch (GetHalftileSlopeCorner (home_slope)) {
 			default: NOT_REACHED();
 			case CORNER_W: halftile_track = TRACK_LEFT;  break;
 			case CORNER_S: halftile_track = TRACK_LOWER; break;
@@ -460,9 +454,9 @@ void DrawCatenary (const TileInfo *ti)
 			case CORNER_N: halftile_track = TRACK_UPPER; break;
 		}
 		halftile_context = TCX_UPPER_HALFTILE;
-		home.tileh = SLOPE_FLAT;
+		home_slope = SLOPE_FLAT;
 	} else {
-		switch (home.tracks) {
+		switch (home_tracks) {
 			case TRACK_BIT_LOWER:
 			case TRACK_BIT_HORZ:
 				halftile_track = GetRailType(ti->tile, TRACK_UPPER) == GetRailType(ti->tile, TRACK_LOWER) ? INVALID_TRACK : TRACK_LOWER;
@@ -478,7 +472,7 @@ void DrawCatenary (const TileInfo *ti)
 		halftile_context = TCX_NORMAL;
 	}
 
-	AdjustTileh(ti->tile, &home.tileh);
+	AdjustTileh (ti->tile, &home_slope);
 
 	SpriteID sprite_normal, sprite_halftile;
 
@@ -487,7 +481,7 @@ void DrawCatenary (const TileInfo *ti)
 	} else {
 		sprite_halftile = GetPylonBase(ti->tile, halftile_context, halftile_track);
 		sprite_normal = GetPylonBase(ti->tile, TCX_NORMAL,
-			HasBit(home.tracks, TrackToOppositeTrack(halftile_track)) ? TrackToOppositeTrack(halftile_track) : halftile_track);
+			HasBit(home_tracks, TrackToOppositeTrack(halftile_track)) ? TrackToOppositeTrack(halftile_track) : halftile_track);
 	}
 
 	for (DiagDirection i = DIAGDIR_BEGIN; i < DIAGDIR_END; i++) {
@@ -500,20 +494,20 @@ void DrawCatenary (const TileInfo *ti)
 		SpriteID pylon_base = (halftile_track != INVALID_TRACK && HasBit(edge_tracks[i], halftile_track)) ? sprite_halftile : sprite_normal;
 		TileIndex neighbour = ti->tile + TileOffsByDiagDir(i);
 		int elevation = GetPCPElevation(ti->tile, i);
-		CatenaryConfig nbconfig;
 
 		/* Here's one of the main headaches. GetTileSlope does not correct for possibly
 		 * existing foundataions, so we do have to do that manually later on.*/
-		nbconfig.tileh = GetTileSlope(neighbour);
-		nbconfig.tracks = GetRailTrackBitsUniversal(neighbour, i);
+		Slope nb_slope = GetTileSlope (neighbour);
+		TrackBits nb_tracks = GetRailTrackBitsUniversal (neighbour, i);
 
 		/* If the neighboured tile does not smoothly connect to the current tile (because of a foundation),
 		 * we have to draw all pillars on the current tile. */
-		if (nbconfig.tracks == TRACK_BIT_NONE || elevation != GetPCPElevation(neighbour, ReverseDiagDir(i))) {
-			nbconfig.tracks = TRACK_BIT_NONE;
-			nbconfig.wires  = TRACK_BIT_NONE;
+		TrackBits nb_wires;
+		if (nb_tracks == TRACK_BIT_NONE || elevation != GetPCPElevation (neighbour, ReverseDiagDir(i))) {
+			nb_tracks = TRACK_BIT_NONE;
+			nb_wires  = TRACK_BIT_NONE;
 		} else {
-			nbconfig.wires  = MaskWireBits(neighbour, nbconfig.tracks);
+			nb_wires  = MaskWireBits (neighbour, nb_tracks);
 		}
 
 		byte PPPpreferred = 0xFF; // We start with preferring everything (end-of-line in any direction)
@@ -523,7 +517,7 @@ void DrawCatenary (const TileInfo *ti)
 		 * PPPs we want to have, or may not have at all */
 
 		/* Tracks inciding from the home tile */
-		if (CheckCatenarySide (home.tracks, home.wires, i, &PPPpreferred, &PPPallowed)) {
+		if (CheckCatenarySide (home_tracks, home_wires, i, &PPPpreferred, &PPPallowed)) {
 			SetBit(PCPstatus, i); // This PCP is in use
 		}
 
@@ -531,7 +525,7 @@ void DrawCatenary (const TileInfo *ti)
 		DiagDirection PCPpos = ReverseDiagDir (i);
 		/* Next to us, we have a bridge head, don't worry about that one, if it shows away from us */
 		if (!IsRailBridgeTile(neighbour) || GetTunnelBridgeDirection(neighbour) != PCPpos) {
-			if (CheckCatenarySide (nbconfig.tracks, nbconfig.wires, PCPpos, &PPPpreferred, &PPPallowed)) {
+			if (CheckCatenarySide (nb_tracks, nb_wires, PCPpos, &PPPpreferred, &PPPallowed)) {
 				SetBit(PCPstatus, i); // This PCP is in use
 			}
 		}
@@ -542,28 +536,28 @@ void DrawCatenary (const TileInfo *ti)
 		Foundation foundation = FOUNDATION_NONE;
 
 		/* Station and road crossings are always "flat", so adjust the tileh accordingly */
-		if (IsStationTile(neighbour) || IsLevelCrossingTile(neighbour)) nbconfig.tileh = SLOPE_FLAT;
+		if (IsStationTile(neighbour) || IsLevelCrossingTile(neighbour)) nb_slope = SLOPE_FLAT;
 
 		/* Read the foundations if they are present, and adjust the tileh */
-		if (nbconfig.tracks != TRACK_BIT_NONE && (IsNormalRailTile(neighbour) || IsRailDepotTile(neighbour))) {
-			foundation = GetRailFoundation(nbconfig.tileh, nbconfig.tracks);
+		if (nb_tracks != TRACK_BIT_NONE && (IsNormalRailTile(neighbour) || IsRailDepotTile(neighbour))) {
+			foundation = GetRailFoundation (nb_slope, nb_tracks);
 		}
 		if (IsRailBridgeTile(neighbour)) {
-			foundation = GetBridgeFoundation(nbconfig.tileh, DiagDirToAxis(GetTunnelBridgeDirection(neighbour)));
+			foundation = GetBridgeFoundation (nb_slope, DiagDirToAxis (GetTunnelBridgeDirection (neighbour)));
 		}
 
-		ApplyFoundationToSlope(foundation, &nbconfig.tileh);
+		ApplyFoundationToSlope (foundation, &nb_slope);
 
 		/* Half tile slopes coincide only with horizontal/vertical track.
 		 * Faking a flat slope results in the correct sprites on positions. */
-		if (IsHalftileSlope(nbconfig.tileh)) nbconfig.tileh = SLOPE_FLAT;
+		if (IsHalftileSlope (nb_slope)) nb_slope = SLOPE_FLAT;
 
-		AdjustTileh(neighbour, &nbconfig.tileh);
+		AdjustTileh (neighbour, &nb_slope);
 
 		/* If we have a straight (and level) track, we want a pylon only every 2 tiles
 		 * Delete the PCP if this is the case.
 		 * Level means that the slope is the same, or the track is flat */
-		if (CheckPylonElision (i, PPPpreferred, odd, home.tileh == nbconfig.tileh)) {
+		if (CheckPylonElision (i, PPPpreferred, odd, home_slope == nb_slope)) {
 			ClrBit(PCPstatus, i);
 			continue;
 		}
@@ -604,7 +598,7 @@ void DrawCatenary (const TileInfo *ti)
 			}
 
 			/* We have a neighbour that will draw it, bail out */
-			if (nbconfig.tracks != TRACK_BIT_NONE) break;
+			if (nb_tracks != TRACK_BIT_NONE) break;
 		}
 	}
 
@@ -626,20 +620,20 @@ void DrawCatenary (const TileInfo *ti)
 	} else {
 		sprite_halftile = GetWireBase(ti->tile, halftile_context, halftile_track);
 		sprite_normal = GetWireBase(ti->tile, TCX_NORMAL,
-			HasBit(home.tracks, TrackToOppositeTrack(halftile_track)) ? TrackToOppositeTrack(halftile_track) : halftile_track);
+			HasBit(home_tracks, TrackToOppositeTrack(halftile_track)) ? TrackToOppositeTrack(halftile_track) : halftile_track);
 	}
 
 	/* Drawing of pylons is finished, now draw the wires */
 	Track t;
-	FOR_EACH_SET_TRACK(t, home.wires) {
+	FOR_EACH_SET_TRACK(t, home_wires) {
 		byte PCPconfig = HasBit(PCPstatus, PCPpositions[t][0]) +
 			(HasBit(PCPstatus, PCPpositions[t][1]) << 1);
 
 		assert(PCPconfig != 0); // We have a pylon on neither end of the wire, that doesn't work (since we have no sprites for that)
-		assert(!IsSteepSlope(home.tileh));
+		assert(!IsSteepSlope(home_slope));
 
 		const SortableSpriteStructM *sss;
-		switch (home.tileh) {
+		switch (home_slope) {
 			case SLOPE_SW: sss = &CatenarySpriteDataSW;  break;
 			case SLOPE_SE: sss = &CatenarySpriteDataSE;  break;
 			case SLOPE_NW: sss = &CatenarySpriteDataNW;  break;
