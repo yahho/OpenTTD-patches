@@ -439,8 +439,18 @@ static std::pair <uint, byte> CheckSidePCP (TileIndex tile,
 	TrackBits home_tracks, TrackBits home_wires, Slope home_slope,
 	DiagDirection side, const bool *odd, int elevation)
 {
-	TileIndex neighbour = tile + TileOffsByDiagDir (side);
+	/* We cycle through all the existing tracks at a PCP and see what
+	 * PPPs we want to have, or may not have at all */
+	byte PPPpreferred = 0xFF; // We start with preferring everything (end-of-line in any direction)
+	byte PPPallowed = AllowedPPPonPCP[side];
 	bool pcp_in_use = false;
+
+	/* Tracks inciding from the home tile */
+	if (CheckCatenarySide (home_tracks, home_wires, side, &PPPpreferred, &PPPallowed)) {
+		pcp_in_use = true; // This PCP is in use
+	}
+
+	TileIndex neighbour = tile + TileOffsByDiagDir (side);
 
 	/* Here's one of the main headaches. GetTileSlope does not correct for possibly
 	 * existing foundataions, so we do have to do that manually later on.*/
@@ -455,17 +465,6 @@ static std::pair <uint, byte> CheckSidePCP (TileIndex tile,
 		nb_wires  = TRACK_BIT_NONE;
 	} else {
 		nb_wires  = MaskWireBits (neighbour, nb_tracks);
-	}
-
-	byte PPPpreferred = 0xFF; // We start with preferring everything (end-of-line in any direction)
-	byte PPPallowed = AllowedPPPonPCP[side];
-
-	/* We cycle through all the existing tracks at a PCP and see what
-	 * PPPs we want to have, or may not have at all */
-
-	/* Tracks inciding from the home tile */
-	if (CheckCatenarySide (home_tracks, home_wires, side, &PPPpreferred, &PPPallowed)) {
-		pcp_in_use = true; // This PCP is in use
 	}
 
 	/* Tracks inciding from the neighbour tile */
