@@ -110,7 +110,7 @@ static TrackBits GetRailTrackBitsUniversal(TileIndex t, DiagDirection dir, DiagD
 			if (HasCatenary(GetRailType(t, TRACK_UPPER))) result |= present & (TRACK_BIT_CROSS | TRACK_BIT_UPPER | TRACK_BIT_LEFT);
 			if (HasCatenary(GetRailType(t, TRACK_LOWER))) result |= present & (TRACK_BIT_LOWER | TRACK_BIT_RIGHT);
 
-			if (IsTileSubtype(t, TT_BRIDGE) && (override != NULL) && GetTunnelBridgeLength(t, GetOtherBridgeEnd(t)) > 0) {
+			if (IsTileSubtype(t, TT_BRIDGE) && (override != NULL)) {
 				*override = GetTunnelBridgeDirection(t);
 			}
 
@@ -418,9 +418,9 @@ static bool CheckPylonElision (DiagDirection side, byte preferred,
 
 /** Possible return values for CheckSidePCP below. */
 enum {
-	PCP_NONE,      ///< PCP is not in use
-	PCP_IN_USE,    ///< PCP is in use only from this tile
-	PCP_IN_USE_NB, ///< PCP is in use only or also from the neighbour tile
+	PCP_NONE,        ///< PCP is not in use
+	PCP_IN_USE,      ///< PCP is in use from this tile
+	PCP_IN_USE_BOTH, ///< PCP is in use also from the neighbour tile
 };
 
 /**
@@ -443,11 +443,11 @@ static std::pair <uint, byte> CheckSidePCP (TileIndex tile,
 	 * PPPs we want to have, or may not have at all */
 	byte PPPpreferred = 0xFF; // We start with preferring everything (end-of-line in any direction)
 	byte PPPallowed = AllowedPPPonPCP[side];
-	bool pcp_in_use = false;
 
 	/* Tracks inciding from the home tile */
-	if (CheckCatenarySide (home_tracks, home_wires, side, &PPPpreferred, &PPPallowed)) {
-		pcp_in_use = true; // This PCP is in use
+	if (!CheckCatenarySide (home_tracks, home_wires, side, &PPPpreferred, &PPPallowed)) {
+		/* PCP not used at all from this tile. */
+		return std::make_pair (PCP_NONE, 0);
 	}
 
 	TileIndex neighbour = tile + TileOffsByDiagDir (side);
@@ -469,15 +469,13 @@ static std::pair <uint, byte> CheckSidePCP (TileIndex tile,
 
 	/* Tracks inciding from the neighbour tile */
 	DiagDirection PCPpos = ReverseDiagDir (side);
+	bool pcp_neighbour = false;
 	/* Next to us, we have a bridge head, don't worry about that one, if it shows away from us */
 	if (!IsRailBridgeTile (neighbour) || GetTunnelBridgeDirection (neighbour) != PCPpos) {
 		if (CheckCatenarySide (nb_tracks, nb_wires, PCPpos, &PPPpreferred, &PPPallowed)) {
-			pcp_in_use = true; // This PCP is in use
+			pcp_neighbour = true; // PCP in use from the other side
 		}
 	}
-
-	/* Deactivate all PPPs if PCP is not used */
-	if (!pcp_in_use) return std::make_pair (PCP_NONE, 0);
 
 	Foundation foundation = FOUNDATION_NONE;
 
@@ -516,8 +514,7 @@ static std::pair <uint, byte> CheckSidePCP (TileIndex tile,
 	if (PPPallowed == 0) return std::make_pair (PCP_NONE, 0);
 
 	if ((PPPallowed & PPPpreferred) != 0) PPPallowed &= PPPpreferred;
-	bool other = (nb_tracks != TRACK_BIT_NONE);
-	return std::make_pair (other ? PCP_IN_USE_NB : PCP_IN_USE, PPPallowed);
+	return std::make_pair (pcp_neighbour ? PCP_IN_USE_BOTH : PCP_IN_USE, PPPallowed);
 }
 
 /**
@@ -601,16 +598,30 @@ void DrawCatenary (const TileInfo *ti)
 		SpriteID pylon_base = (halftile_track != INVALID_TRACK && HasBit(edge_tracks[i], halftile_track)) ? sprite_halftile : sprite_normal;
 		int elevation = GetPCPElevation(ti->tile, i);
 
-		std::pair <uint, byte> pcp_state = CheckSidePCP (ti->tile,
-				home_tracks, home_wires, home_slope,
-				i, odd, elevation);
-
-		if (pcp_state.first == PCP_NONE) continue;
-		bool pcp_neighbour = (pcp_state.first == PCP_IN_USE_NB);
-		byte PPPallowed = pcp_state.second;
-		SetBit(PCPstatus, i);
-
-		if (overridePCP == i) continue;
+		bool pcp_neighbour;
+		byte PPPallowed;
+		if (overridePCP != i) {
+			std::pair <uint, byte> pcp_state = CheckSidePCP (ti->tile,
+					home_tracks, home_wires, home_slope,
+					i, odd, elevation);
+			if (pcp_state.first == PCP_NONE) continue;
+			pcp_neighbour = (pcp_state.first == PCP_IN_USE_BOTH);
+			PPPallowed = pcp_state.second;
+			SetBit(PCPstatus, i);
+		} else if (!IsRailwayTile (ti->tile)) {
+			/* Tunnel tile. */
+			SetBit(PCPstatus, i);
+			continue;
+		} else {
+			/* Bridge tile. */
+			TrackBits bridge_tracks = DiagdirReachesTracks (ReverseDiagDir (i));
+			if ((home_tracks & bridge_tracks) == TRACK_BIT_NONE) continue;
+			SetBit(PCPstatus, i);
+			/* Pylon is drawn by the middle part if there is any. */
+			if (GetTunnelBridgeLength (ti->tile, GetOtherBridgeEnd (ti->tile)) > 0) continue;
+			pcp_neighbour = true;
+			PPPallowed = AllowedPPPonPCP[i];
+		}
 
 		if (IsRailStationTile(ti->tile) && !CanStationTileHavePylons(ti->tile)) continue;
 
