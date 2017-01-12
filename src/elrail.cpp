@@ -594,7 +594,6 @@ void DrawCatenary (const TileInfo *ti)
 			TRACK_BIT_UPPER | TRACK_BIT_LEFT,  // DIAGDIR_NW
 		};
 		SpriteID pylon_base = (halftile_track != INVALID_TRACK && HasBit(edge_tracks[i], halftile_track)) ? sprite_halftile : sprite_normal;
-		int elevation = GetPCPElevation(ti->tile, i);
 
 		bool pcp_neighbour;
 		byte PPPallowed;
@@ -641,6 +640,8 @@ void DrawCatenary (const TileInfo *ti)
 			if (HasBit(OwnedPPPonPCP[i], temp)) {
 				uint x  = ti->x + x_pcp_offsets[i] + x_ppp_offsets[temp];
 				uint y  = ti->y + y_pcp_offsets[i] + y_ppp_offsets[temp];
+
+				int elevation = GetPCPElevation (ti->tile, i);
 
 				AddSortableSpriteToDraw (ti->vd, pylon_base + pylon_sprites[temp], PAL_NONE, x, y, 1, 1, BB_HEIGHT_UNDER_BRIDGE,
 					elevation, IsTransparencySet(TO_CATENARY), -1, -1);
