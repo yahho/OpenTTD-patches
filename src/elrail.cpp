@@ -431,13 +431,12 @@ enum {
  * @param home_slope Slope of the home tile, adjusted for foundations.
  * @param side The side to check.
  * @param odd Array of tile coordinate parity per axis.
- * @param elevation PCP elevation at this side.
  * @return A value representing the PCP state at the given side, plus
  *  a bitmask of allowed directions for the pylon, if any.
  */
 static std::pair <uint, byte> CheckSidePCP (TileIndex tile,
 	TrackBits home_tracks, TrackBits home_wires, Slope home_slope,
-	DiagDirection side, const bool *odd, int elevation)
+	DiagDirection side, const bool *odd)
 {
 	/* We cycle through all the existing tracks at a PCP and see what
 	 * PPPs we want to have, or may not have at all */
@@ -460,8 +459,7 @@ static std::pair <uint, byte> CheckSidePCP (TileIndex tile,
 	/* If the neighboured tile does not smoothly connect to the current tile (because of a foundation),
 	 * we have to draw all pillars on the current tile. */
 	TrackBits nb_wires;
-	if (nb_tracks == TRACK_BIT_NONE || elevation != GetPCPElevation (neighbour, ReverseDiagDir (side))) {
-		nb_tracks = TRACK_BIT_NONE;
+	if (nb_tracks == TRACK_BIT_NONE) {
 		nb_wires  = TRACK_BIT_NONE;
 	} else {
 		nb_wires  = MaskWireBits (neighbour, nb_tracks);
@@ -603,7 +601,7 @@ void DrawCatenary (const TileInfo *ti)
 		if (overridePCP != i) {
 			std::pair <uint, byte> pcp_state = CheckSidePCP (ti->tile,
 					home_tracks, home_wires, home_slope,
-					i, odd, elevation);
+					i, odd);
 			if (pcp_state.first == PCP_NONE) continue;
 			pcp_neighbour = (pcp_state.first == PCP_IN_USE_BOTH);
 			PPPallowed = pcp_state.second;
