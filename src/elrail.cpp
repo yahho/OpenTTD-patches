@@ -225,9 +225,7 @@ static inline SpriteID GetPylonBase(TileIndex tile, TileContext context = TCX_NO
  */
 static void AdjustTileh(TileIndex tile, Slope *tileh)
 {
-	if (IsTunnelTile(tile)) {
-		*tileh = SLOPE_STEEP; // XXX - Hack to make tunnel entrances to always have a pylon
-	} else if (IsRailBridgeTile(tile) && !IsExtendedRailBridge(tile)) {
+	if (IsRailBridgeTile (tile) && !IsExtendedRailBridge (tile)) {
 		if (*tileh != SLOPE_FLAT) {
 			*tileh = SLOPE_FLAT;
 		} else {
@@ -494,13 +492,14 @@ static std::pair <uint, byte> CheckSidePCP (TileIndex tile,
 	 * Faking a flat slope results in the correct sprites on positions. */
 	if (IsHalftileSlope (nb_slope)) nb_slope = SLOPE_FLAT;
 
-	AdjustTileh (neighbour, &nb_slope);
-
 	/* If we have a straight (and level) track, we want a pylon only every 2 tiles
 	 * Delete the PCP if this is the case.
 	 * Level means that the slope is the same, or the track is flat */
-	if (CheckPylonElision (side, PPPpreferred, odd, home_slope == nb_slope)) {
-		return std::make_pair (PCP_NONE, 0);
+	if (!IsTunnelTile (neighbour)) {
+		AdjustTileh (neighbour, &nb_slope);
+		if (CheckPylonElision (side, PPPpreferred, odd, home_slope == nb_slope)) {
+			return std::make_pair (PCP_NONE, 0);
+		}
 	}
 
 	/* Now decide where we draw our pylons. First try the preferred PPPs,
@@ -574,7 +573,11 @@ void DrawCatenary (const TileInfo *ti)
 		halftile_context = TCX_NORMAL;
 	}
 
-	AdjustTileh (ti->tile, &home_slope);
+	if (IsTunnelTile (ti->tile)) {
+		home_slope = SLOPE_STEEP; // XXX - Hack to make tunnel entrances to always have a pylon
+	} else {
+		AdjustTileh (ti->tile, &home_slope);
+	}
 
 	SpriteID sprite_normal, sprite_halftile;
 
