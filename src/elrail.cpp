@@ -425,6 +425,60 @@ enum {
 };
 
 /**
+ * Check whether a pylon is also in use from a railway tile at the other side.
+ * @param tile The neighbour railway tile to check.
+ * @param side The tile side to check from this tile.
+ * @param preferred Pointer to preferred positions to mask.
+ * @param allowed Pointer to allowed positions to mask.
+ * @param slope Pointer to store the tile slope if pylon elision is possible.
+ * @return A value representing the PCP state at the given side.
+ */
+static uint CheckRailNeighbourPCP (TileIndex tile, DiagDirection side,
+	byte *preferred, byte *allowed, Slope *slope)
+{
+	assert (IsRailwayTile (tile));
+
+	bool is_bridge = IsTileSubtype (tile, TT_BRIDGE);
+	if (is_bridge && GetTunnelBridgeDirection (tile) == side) {
+		return PCP_NB_NONE;
+	}
+
+	TrackBits nb_tracks = GetElectrifiedTrackBits (tile);
+	if (nb_tracks == TRACK_BIT_NONE) return PCP_NB_NONE;
+	TrackBits nb_wires = MaskWireBits (tile, nb_tracks);
+
+	/* Tracks inciding from the neighbour tile */
+	if (!CheckCatenarySide (nb_tracks, nb_wires, side, preferred, allowed)) {
+		return PCP_NB_NONE;
+	}
+
+	/* Read the foundations if they are present, and adjust the tileh */
+	assert_compile (TRACK_BIT_X == 1);
+	assert_compile (TRACK_BIT_Y == 2);
+
+	Slope nb_slope;
+	if (nb_tracks > 2) {
+		/* Anything having more than a single X or Y track must be
+		 * flat (or a half tile slope, but we treat those as flat). */
+		nb_slope = SLOPE_FLAT;
+	} else if (!is_bridge) {
+		nb_slope = GetTileSlope (tile);
+		Foundation f = GetRailFoundation (nb_slope, nb_tracks);
+		ApplyFoundationToSlope (f, &nb_slope);
+	} else {
+		nb_slope = GetTileSlope (tile);
+		/* With a single X or Y track, bridge must
+		 * head away from our side. */
+		nb_slope = HasBridgeFlatRamp (nb_slope, DiagDirToAxis (side)) ?
+				SLOPE_FLAT :
+				InclinedSlope (ReverseDiagDir (side));
+	}
+
+	*slope = nb_slope;
+	return PCP_NB_TRY_ELIDE;
+}
+
+/**
  * Check whether a pylon is also in use from the other side.
  * @param tile The neighbour tile to check.
  * @param side The tile side to check from this tile.
@@ -436,57 +490,51 @@ enum {
 static uint CheckNeighbourPCP (TileIndex tile, DiagDirection side,
 	byte *preferred, byte *allowed, Slope *slope)
 {
-	/* Here's one of the main headaches. GetTileSlope does not correct for possibly
-	 * existing foundataions, so we do have to do that manually later on.*/
-	Slope nb_slope = GetTileSlope (tile);
-	TrackBits nb_tracks = GetRailTrackBitsUniversal (tile, ReverseDiagDir (side));
+	Axis axis;
+	switch (GetTileType (tile)) {
+		case TT_RAILWAY:
+			return CheckRailNeighbourPCP (tile, side,
+						preferred, allowed, slope);
 
-	/* If the neighboured tile does not smoothly connect to the current tile (because of a foundation),
-	 * we have to draw all pillars on the current tile. */
-	TrackBits nb_wires;
-	if (nb_tracks == TRACK_BIT_NONE) {
-		nb_wires  = TRACK_BIT_NONE;
-	} else {
-		nb_wires  = MaskWireBits (tile, nb_tracks);
+		case TT_MISC:
+			switch (GetTileSubtype (tile)) {
+				default: return PCP_NB_NONE;
+
+				case TT_MISC_CROSSING:
+					if (!HasCatenary (GetRailType (tile))) return PCP_NB_NONE;
+					axis = GetCrossingRailAxis (tile);
+					break;
+
+				case TT_MISC_TUNNEL:
+					if (GetTunnelTransportType (tile) != TRANSPORT_RAIL) return PCP_NB_NONE;
+					if (!HasCatenary (GetRailType (tile))) return PCP_NB_NONE;
+					/* ignore tunnels facing the wrong way for neighbouring tiles */
+					if (GetTunnelBridgeDirection (tile) != ReverseDiagDir (side)) return PCP_NB_NONE;
+					/* force tunnels to always have a pylon (no elision) */
+					*preferred = 0;
+					return PCP_NB_TUNNEL;
+			}
+			break;
+
+		case TT_STATION:
+			if (!HasStationRail (tile)) return PCP_NB_NONE;
+			if (!HasCatenary (GetRailType (tile))) return PCP_NB_NONE;
+			/* Ignore neighbouring station tiles that allow neither wires nor pylons. */
+			if (!CanStationTileHavePylons (tile) && !CanStationTileHaveWires (tile)) return PCP_NB_NONE;
+			axis = GetRailStationAxis (tile);
+			break;
+
+		default:
+			return PCP_NB_NONE;
 	}
 
-	/* Tracks inciding from the neighbour tile */
-	bool pcp_neighbour = false;
-	/* Next to us, we have a bridge head, don't worry about that one, if it shows away from us */
-	if (!IsRailBridgeTile (tile) || GetTunnelBridgeDirection (tile) != side) {
-		if (CheckCatenarySide (nb_tracks, nb_wires, side, preferred, allowed)) {
-			pcp_neighbour = true; // PCP in use from the other side
-		}
+	/* Crossing or station tile, so just one flat track along an axis. */
+	TrackBits tracks = AxisToTrackBits (axis);
+	if (!CheckCatenarySide (tracks, tracks, side, preferred, allowed)) {
+		return PCP_NB_NONE;
 	}
 
-	if (!pcp_neighbour) return PCP_NB_NONE;
-
-	Foundation foundation = FOUNDATION_NONE;
-
-	/* Station and road crossings are always "flat", so adjust the tileh accordingly */
-	if (IsStationTile (tile) || IsLevelCrossingTile (tile)) nb_slope = SLOPE_FLAT;
-
-	/* Read the foundations if they are present, and adjust the tileh */
-	if (nb_tracks != TRACK_BIT_NONE && (IsNormalRailTile (tile) || IsRailDepotTile (tile))) {
-		foundation = GetRailFoundation (nb_slope, nb_tracks);
-	}
-	if (IsRailBridgeTile (tile)) {
-		foundation = GetBridgeFoundation (nb_slope, DiagDirToAxis (GetTunnelBridgeDirection (tile)));
-	}
-
-	ApplyFoundationToSlope (foundation, &nb_slope);
-
-	/* Half tile slopes coincide only with horizontal/vertical track.
-	 * Faking a flat slope results in the correct sprites on positions. */
-	if (IsHalftileSlope (nb_slope)) nb_slope = SLOPE_FLAT;
-
-	if (IsTunnelTile (tile)) return PCP_NB_TUNNEL;
-
-	/* If we have a straight (and level) track, we want a pylon only every 2 tiles
-	 * Delete the PCP if this is the case.
-	 * Level means that the slope is the same, or the track is flat */
-	AdjustTileh (tile, &nb_slope);
-	*slope = nb_slope;
+	*slope = SLOPE_FLAT;
 	return PCP_NB_TRY_ELIDE;
 }
 
