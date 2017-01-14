@@ -414,6 +414,79 @@ static bool CheckPylonElision (DiagDirection side, byte preferred,
 	return (ignore ^ odd[axis] ^ HasBit(side, 1));
 }
 
+/** Possible return values for CheckNeighbourPCP below. */
+enum {
+	PCP_NB_NONE,      ///< PCP not in use from the neighbour tile
+	PCP_NB_TUNNEL,    ///< PCP in use by a tunnel from the neighbour tile
+	PCP_NB_TRY_ELIDE, ///< PCP is in use and may be subject to elision
+};
+
+/**
+ * Check whether a pylon is also in use from the other side.
+ * @param tile The neighbour tile to check.
+ * @param side The tile side to check from this tile.
+ * @param preferred Pointer to preferred positions to mask.
+ * @param allowed Pointer to allowed positions to mask.
+ * @param slope Pointer to store the tile slope if pylon elision is possible.
+ * @return A value representing the PCP state at the given side.
+ */
+static uint CheckNeighbourPCP (TileIndex tile, DiagDirection side,
+	byte *preferred, byte *allowed, Slope *slope)
+{
+	/* Here's one of the main headaches. GetTileSlope does not correct for possibly
+	 * existing foundataions, so we do have to do that manually later on.*/
+	Slope nb_slope = GetTileSlope (tile);
+	TrackBits nb_tracks = GetRailTrackBitsUniversal (tile, ReverseDiagDir (side));
+
+	/* If the neighboured tile does not smoothly connect to the current tile (because of a foundation),
+	 * we have to draw all pillars on the current tile. */
+	TrackBits nb_wires;
+	if (nb_tracks == TRACK_BIT_NONE) {
+		nb_wires  = TRACK_BIT_NONE;
+	} else {
+		nb_wires  = MaskWireBits (tile, nb_tracks);
+	}
+
+	/* Tracks inciding from the neighbour tile */
+	bool pcp_neighbour = false;
+	/* Next to us, we have a bridge head, don't worry about that one, if it shows away from us */
+	if (!IsRailBridgeTile (tile) || GetTunnelBridgeDirection (tile) != side) {
+		if (CheckCatenarySide (nb_tracks, nb_wires, side, preferred, allowed)) {
+			pcp_neighbour = true; // PCP in use from the other side
+		}
+	}
+
+	if (!pcp_neighbour) return PCP_NB_NONE;
+
+	Foundation foundation = FOUNDATION_NONE;
+
+	/* Station and road crossings are always "flat", so adjust the tileh accordingly */
+	if (IsStationTile (tile) || IsLevelCrossingTile (tile)) nb_slope = SLOPE_FLAT;
+
+	/* Read the foundations if they are present, and adjust the tileh */
+	if (nb_tracks != TRACK_BIT_NONE && (IsNormalRailTile (tile) || IsRailDepotTile (tile))) {
+		foundation = GetRailFoundation (nb_slope, nb_tracks);
+	}
+	if (IsRailBridgeTile (tile)) {
+		foundation = GetBridgeFoundation (nb_slope, DiagDirToAxis (GetTunnelBridgeDirection (tile)));
+	}
+
+	ApplyFoundationToSlope (foundation, &nb_slope);
+
+	/* Half tile slopes coincide only with horizontal/vertical track.
+	 * Faking a flat slope results in the correct sprites on positions. */
+	if (IsHalftileSlope (nb_slope)) nb_slope = SLOPE_FLAT;
+
+	if (IsTunnelTile (tile)) return PCP_NB_TUNNEL;
+
+	/* If we have a straight (and level) track, we want a pylon only every 2 tiles
+	 * Delete the PCP if this is the case.
+	 * Level means that the slope is the same, or the track is flat */
+	AdjustTileh (tile, &nb_slope);
+	*slope = nb_slope;
+	return PCP_NB_TRY_ELIDE;
+}
+
 /** Possible return values for CheckSidePCP below. */
 enum {
 	PCP_NONE,        ///< PCP is not in use
@@ -447,59 +520,23 @@ static std::pair <uint, byte> CheckSidePCP (TileIndex tile,
 		return std::make_pair (PCP_NONE, 0);
 	}
 
-	TileIndex neighbour = tile + TileOffsByDiagDir (side);
+	bool pcp_neighbour;
+	Slope nb_slope;
+	switch (CheckNeighbourPCP (tile + TileOffsByDiagDir (side),
+				ReverseDiagDir (side),
+				&PPPpreferred, &PPPallowed, &nb_slope)) {
+		default: // PCP_NB_TRY_ELIDE
+			if (CheckPylonElision (side, PPPpreferred, odd, home_slope == nb_slope)) {
+				return std::make_pair (PCP_NONE, 0);
+			}
+			/* fall through */
+		case PCP_NB_TUNNEL:
+			pcp_neighbour = true;
+			break;
 
-	/* Here's one of the main headaches. GetTileSlope does not correct for possibly
-	 * existing foundataions, so we do have to do that manually later on.*/
-	Slope nb_slope = GetTileSlope (neighbour);
-	TrackBits nb_tracks = GetRailTrackBitsUniversal (neighbour, side);
-
-	/* If the neighboured tile does not smoothly connect to the current tile (because of a foundation),
-	 * we have to draw all pillars on the current tile. */
-	TrackBits nb_wires;
-	if (nb_tracks == TRACK_BIT_NONE) {
-		nb_wires  = TRACK_BIT_NONE;
-	} else {
-		nb_wires  = MaskWireBits (neighbour, nb_tracks);
-	}
-
-	/* Tracks inciding from the neighbour tile */
-	DiagDirection PCPpos = ReverseDiagDir (side);
-	bool pcp_neighbour = false;
-	/* Next to us, we have a bridge head, don't worry about that one, if it shows away from us */
-	if (!IsRailBridgeTile (neighbour) || GetTunnelBridgeDirection (neighbour) != PCPpos) {
-		if (CheckCatenarySide (nb_tracks, nb_wires, PCPpos, &PPPpreferred, &PPPallowed)) {
-			pcp_neighbour = true; // PCP in use from the other side
-		}
-	}
-
-	Foundation foundation = FOUNDATION_NONE;
-
-	/* Station and road crossings are always "flat", so adjust the tileh accordingly */
-	if (IsStationTile (neighbour) || IsLevelCrossingTile (neighbour)) nb_slope = SLOPE_FLAT;
-
-	/* Read the foundations if they are present, and adjust the tileh */
-	if (nb_tracks != TRACK_BIT_NONE && (IsNormalRailTile (neighbour) || IsRailDepotTile (neighbour))) {
-		foundation = GetRailFoundation (nb_slope, nb_tracks);
-	}
-	if (IsRailBridgeTile (neighbour)) {
-		foundation = GetBridgeFoundation (nb_slope, DiagDirToAxis (GetTunnelBridgeDirection (neighbour)));
-	}
-
-	ApplyFoundationToSlope (foundation, &nb_slope);
-
-	/* Half tile slopes coincide only with horizontal/vertical track.
-	 * Faking a flat slope results in the correct sprites on positions. */
-	if (IsHalftileSlope (nb_slope)) nb_slope = SLOPE_FLAT;
-
-	/* If we have a straight (and level) track, we want a pylon only every 2 tiles
-	 * Delete the PCP if this is the case.
-	 * Level means that the slope is the same, or the track is flat */
-	if (!IsTunnelTile (neighbour)) {
-		AdjustTileh (neighbour, &nb_slope);
-		if (CheckPylonElision (side, PPPpreferred, odd, home_slope == nb_slope)) {
-			return std::make_pair (PCP_NONE, 0);
-		}
+		case PCP_NB_NONE:
+			pcp_neighbour = false;
+			break;
 	}
 
 	/* Now decide where we draw our pylons. First try the preferred PPPs,
