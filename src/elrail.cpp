@@ -94,6 +94,16 @@ static inline bool IsOddY (TileIndex t)
 	return HasBit (TileY(t), 0);
 }
 
+/** Get the electrified track bits on a railway tile. */
+static TrackBits GetElectrifiedTrackBits (TileIndex t)
+{
+	TrackBits present = GetTrackBits(t);
+	TrackBits result = TRACK_BIT_NONE;
+	if (HasCatenary (GetRailType (t, TRACK_UPPER))) result |= present & (TRACK_BIT_CROSS | TRACK_BIT_UPPER | TRACK_BIT_LEFT);
+	if (HasCatenary (GetRailType (t, TRACK_LOWER))) result |= present & (TRACK_BIT_LOWER | TRACK_BIT_RIGHT);
+	return result;
+}
+
 /**
  * Finds which Electrified Rail Bits are present on a given tile.
  * @param t tile to check
@@ -104,18 +114,11 @@ static inline bool IsOddY (TileIndex t)
 static TrackBits GetRailTrackBitsUniversal(TileIndex t, DiagDirection dir, DiagDirection *override = NULL)
 {
 	switch (GetTileType(t)) {
-		case TT_RAILWAY: {
-			TrackBits present = GetTrackBits(t);
-			TrackBits result = TRACK_BIT_NONE;
-			if (HasCatenary(GetRailType(t, TRACK_UPPER))) result |= present & (TRACK_BIT_CROSS | TRACK_BIT_UPPER | TRACK_BIT_LEFT);
-			if (HasCatenary(GetRailType(t, TRACK_LOWER))) result |= present & (TRACK_BIT_LOWER | TRACK_BIT_RIGHT);
-
+		case TT_RAILWAY:
 			if (IsTileSubtype(t, TT_BRIDGE) && (override != NULL)) {
 				*override = GetTunnelBridgeDirection(t);
 			}
-
-			return result;
-		}
+			return GetElectrifiedTrackBits (t);
 
 		case TT_MISC:
 			switch (GetTileSubtype(t)) {
