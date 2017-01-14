@@ -301,6 +301,45 @@ void DrawRailTunnelDepotCatenary (const TileInfo *ti, bool depot,
 		sss->bb[depot].x, sss->bb[depot].y, dz);
 }
 
+
+struct SideTrackData {
+	byte track;     ///< a track that incides at this side
+	byte preferred; ///< preferred pylon position points for it
+};
+
+static const uint NUM_TRACKS_PER_SIDE = 3;
+
+/* Side track data, 3 tracks per side. */
+static const SideTrackData side_tracks[DIAGDIR_END][NUM_TRACKS_PER_SIDE] = {
+	{    // NE
+		{ TRACK_X,     1 << DIR_NE | 1 << DIR_SE | 1 << DIR_NW },
+		{ TRACK_UPPER, 1 << DIR_E  | 1 << DIR_N  | 1 << DIR_S  },
+		{ TRACK_RIGHT, 1 << DIR_N  | 1 << DIR_E  | 1 << DIR_W  },
+	}, { // SE
+		{ TRACK_Y,     1 << DIR_NE | 1 << DIR_SE | 1 << DIR_SW },
+		{ TRACK_LOWER, 1 << DIR_E  | 1 << DIR_N  | 1 << DIR_S  },
+		{ TRACK_RIGHT, 1 << DIR_S  | 1 << DIR_E  | 1 << DIR_W  },
+	}, { // SW
+		{ TRACK_X,     1 << DIR_SE | 1 << DIR_SW | 1 << DIR_NW },
+		{ TRACK_LOWER, 1 << DIR_W  | 1 << DIR_N  | 1 << DIR_S  },
+		{ TRACK_LEFT,  1 << DIR_S  | 1 << DIR_E  | 1 << DIR_W  },
+	}, { // NW
+		{ TRACK_Y,     1 << DIR_SW | 1 << DIR_NW | 1 << DIR_NE },
+		{ TRACK_UPPER, 1 << DIR_W  | 1 << DIR_N  | 1 << DIR_S  },
+		{ TRACK_LEFT,  1 << DIR_N  | 1 << DIR_E  | 1 << DIR_W  },
+	},
+};
+
+/* Mask of positions at which pylons can be built per track. */
+static const byte allowed_ppp[TRACK_END] = {
+	1 << DIR_N  | 1 << DIR_E  | 1 << DIR_SE | 1 << DIR_S  | 1 << DIR_W  | 1 << DIR_NW, // X
+	1 << DIR_N  | 1 << DIR_NE | 1 << DIR_E  | 1 << DIR_S  | 1 << DIR_SW | 1 << DIR_W,  // Y
+	1 << DIR_N  | 1 << DIR_NE | 1 << DIR_SE | 1 << DIR_S  | 1 << DIR_SW | 1 << DIR_NW, // UPPER
+	1 << DIR_N  | 1 << DIR_NE | 1 << DIR_SE | 1 << DIR_S  | 1 << DIR_SW | 1 << DIR_NW, // LOWER
+	1 << DIR_NE | 1 << DIR_E  | 1 << DIR_SE | 1 << DIR_SW | 1 << DIR_W  | 1 << DIR_NW, // LEFT
+	1 << DIR_NE | 1 << DIR_E  | 1 << DIR_SE | 1 << DIR_SW | 1 << DIR_W  | 1 << DIR_NW, // RIGHT
+};
+
 /**
  * Mask preferred and allowed pylon position points on a tile side.
  * @param tracks Tracks present on the tile.
@@ -313,44 +352,6 @@ void DrawRailTunnelDepotCatenary (const TileInfo *ti, bool depot,
 static bool CheckCatenarySide (TrackBits tracks, TrackBits wires,
 	DiagDirection side, byte *preferred, byte *allowed)
 {
-	struct SideTrackData {
-		byte track;     ///< a track that incides at this side
-		byte preferred; ///< preferred pylon position points for it
-	};
-
-	static const uint NUM_TRACKS_PER_SIDE = 3;
-
-	/* Side track data, 3 tracks per side. */
-	static const SideTrackData side_tracks[DIAGDIR_END][NUM_TRACKS_PER_SIDE] = {
-		{    // NE
-			{ TRACK_X,     1 << DIR_NE | 1 << DIR_SE | 1 << DIR_NW },
-			{ TRACK_UPPER, 1 << DIR_E  | 1 << DIR_N  | 1 << DIR_S  },
-			{ TRACK_RIGHT, 1 << DIR_N  | 1 << DIR_E  | 1 << DIR_W  },
-		}, { // SE
-			{ TRACK_Y,     1 << DIR_NE | 1 << DIR_SE | 1 << DIR_SW },
-			{ TRACK_LOWER, 1 << DIR_E  | 1 << DIR_N  | 1 << DIR_S  },
-			{ TRACK_RIGHT, 1 << DIR_S  | 1 << DIR_E  | 1 << DIR_W  },
-		}, { // SW
-			{ TRACK_X,     1 << DIR_SE | 1 << DIR_SW | 1 << DIR_NW },
-			{ TRACK_LOWER, 1 << DIR_W  | 1 << DIR_N  | 1 << DIR_S  },
-			{ TRACK_LEFT,  1 << DIR_S  | 1 << DIR_E  | 1 << DIR_W  },
-		}, { // NW
-			{ TRACK_Y,     1 << DIR_SW | 1 << DIR_NW | 1 << DIR_NE },
-			{ TRACK_UPPER, 1 << DIR_W  | 1 << DIR_N  | 1 << DIR_S  },
-			{ TRACK_LEFT,  1 << DIR_N  | 1 << DIR_E  | 1 << DIR_W  },
-		},
-	};
-
-	/* Mask of positions at which pylons can be built per track. */
-	static const byte allowed_ppp[TRACK_END] = {
-		1 << DIR_N  | 1 << DIR_E  | 1 << DIR_SE | 1 << DIR_S  | 1 << DIR_W  | 1 << DIR_NW, // X
-		1 << DIR_N  | 1 << DIR_NE | 1 << DIR_E  | 1 << DIR_S  | 1 << DIR_SW | 1 << DIR_W,  // Y
-		1 << DIR_N  | 1 << DIR_NE | 1 << DIR_SE | 1 << DIR_S  | 1 << DIR_SW | 1 << DIR_NW, // UPPER
-		1 << DIR_N  | 1 << DIR_NE | 1 << DIR_SE | 1 << DIR_S  | 1 << DIR_SW | 1 << DIR_NW, // LOWER
-		1 << DIR_NE | 1 << DIR_E  | 1 << DIR_SE | 1 << DIR_SW | 1 << DIR_W  | 1 << DIR_NW, // LEFT
-		1 << DIR_NE | 1 << DIR_E  | 1 << DIR_SE | 1 << DIR_SW | 1 << DIR_W  | 1 << DIR_NW, // RIGHT
-	};
-
 	bool pcp_in_use = false;
 	byte pmask = 0xFF;
 	byte amask = 0xFF;
@@ -372,6 +373,25 @@ static bool CheckCatenarySide (TrackBits tracks, TrackBits wires,
 	*preferred &= pmask;
 	*allowed &= amask;
 	return pcp_in_use;
+}
+
+/**
+ * Mask preferred and allowed pylon position points on a tile side,
+ * when there is a single track along an axis on the tile.
+ * @param axis Axis of the track.
+ * @param side Tile side to check.
+ * @param preferred Pointer to preferred positions to mask.
+ * @return Whether the pylon control point is in use from this tile.
+ */
+static inline bool CheckCatenarySideAxis (Axis axis, DiagDirection side,
+	byte *preferred)
+{
+	/* We check whether the track in question is present. */
+	if (DiagDirToAxis (side) != axis) return false;
+
+	/* track found */
+	*preferred &= side_tracks[side][0].preferred;
+	return true;
 }
 
 /**
@@ -529,8 +549,7 @@ static uint CheckNeighbourPCP (TileIndex tile, DiagDirection side,
 	}
 
 	/* Crossing or station tile, so just one flat track along an axis. */
-	TrackBits tracks = AxisToTrackBits (axis);
-	if (!CheckCatenarySide (tracks, tracks, side, preferred, allowed)) {
+	if (!CheckCatenarySideAxis (axis, side, preferred)) {
 		return PCP_NB_NONE;
 	}
 
