@@ -579,6 +579,22 @@ static std::pair <uint, byte> CheckSidePCP (TileIndex tile,
 }
 
 /**
+ * Add a pylon sprite for a tile.
+ * @param ti The TileInfo struct of the tile being drawn.
+ * @param pylon The sprite to draw.
+ * @param x X position of the sprite.
+ * @param y Y position of the sprite.
+ * @param z Z position of the sprite.
+ */
+static void AddPylonSprite (const TileInfo *ti, SpriteID pylon,
+	int x, int y, int z)
+{
+	AddSortableSpriteToDraw (ti->vd, pylon, PAL_NONE, x, y, 1, 1,
+			BB_HEIGHT_UNDER_BRIDGE, z,
+			IsTransparencySet (TO_CATENARY), -1, -1);
+}
+
+/**
  * Draw a pylon at a tile side.
  * @param ti The TileInfo struct of the tile being drawn.
  * @param side Side where to draw the pylon.
@@ -614,9 +630,7 @@ static void DrawPylon (const TileInfo *ti, DiagDirection side, Direction dir,
 	int z = GetSlopePixelZ (TileX(tile) * TILE_SIZE + min(x_pcp_offsets[side], TILE_SIZE - 1), TileY(tile) * TILE_SIZE + min(y_pcp_offsets[side], TILE_SIZE - 1));
 	int elevation = (z + 2) & ~3; // this means z = (z + TILE_HEIGHT / 4) / (TILE_HEIGHT / 2) * (TILE_HEIGHT / 2);
 
-	AddSortableSpriteToDraw (ti->vd, pylon_base + pylon_sprites[dir],
-			PAL_NONE, x, y, 1, 1, BB_HEIGHT_UNDER_BRIDGE,
-			elevation, IsTransparencySet(TO_CATENARY), -1, -1);
+	AddPylonSprite (ti, pylon_base + pylon_sprites[dir], x, y, elevation);
 }
 
 /**
@@ -867,15 +881,15 @@ void DrawCatenaryOnBridge(const TileInfo *ti)
 
 	/* every other tile needs a pylon on the northern end */
 	if (num % 2) {
-		AddSortableSpriteToDraw (ti->vd, pylon, PAL_NONE, x + x_pcp_offsets[PCPpos], y + y_pcp_offsets[PCPpos],
-			1, 1, BB_HEIGHT_UNDER_BRIDGE, height, IsTransparencySet(TO_CATENARY), -1, -1);
+		AddPylonSprite (ti, pylon, x + x_pcp_offsets[PCPpos],
+				y + y_pcp_offsets[PCPpos], height);
 	}
 
 	/* need a pylon on the southern end of the bridge */
 	if (num == length) {
 		PCPpos = ReverseDiagDir(PCPpos);
-		AddSortableSpriteToDraw (ti->vd, pylon, PAL_NONE, x + x_pcp_offsets[PCPpos], y + y_pcp_offsets[PCPpos],
-			1, 1, BB_HEIGHT_UNDER_BRIDGE, height, IsTransparencySet(TO_CATENARY), -1, -1);
+		AddPylonSprite (ti, pylon, x + x_pcp_offsets[PCPpos],
+				y + y_pcp_offsets[PCPpos], height);
 	}
 }
 
