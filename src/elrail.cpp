@@ -222,33 +222,6 @@ static inline SpriteID GetPylonBase(TileIndex tile, TileContext context = TCX_NO
 }
 
 /**
- * Returns the Z position of a Pylon Control Point.
- *
- * @param tile The tile the pylon should stand on.
- * @param PCPpos The PCP of the tile.
- * @return The Z position of the PCP.
- */
-static int GetPCPElevation(TileIndex tile, DiagDirection PCPpos)
-{
-	/* The elevation of the "pylon"-sprite should be the elevation at the PCP.
-	 * PCPs are always on a tile edge.
-	 *
-	 * This position can be outside of the tile, i.e. ?_pcp_offset == TILE_SIZE > TILE_SIZE - 1.
-	 * So we have to move it inside the tile, because if the neighboured tile has a foundation,
-	 * that does not smoothly connect to the current tile, we will get a wrong elevation from GetSlopePixelZ().
-	 *
-	 * When we move the position inside the tile, we will get a wrong elevation if we have a slope.
-	 * To catch all cases we round the Z position to the next (TILE_HEIGHT / 2).
-	 * This will return the correct elevation for slopes and will also detect non-continuous elevation on edges.
-	 *
-	 * Also note that the result of GetSlopePixelZ() is very special on bridge-ramps.
-	 */
-
-	int z = GetSlopePixelZ(TileX(tile) * TILE_SIZE + min(x_pcp_offsets[PCPpos], TILE_SIZE - 1), TileY(tile) * TILE_SIZE + min(y_pcp_offsets[PCPpos], TILE_SIZE - 1));
-	return (z + 2) & ~3; // this means z = (z + TILE_HEIGHT / 4) / (TILE_HEIGHT / 2) * (TILE_HEIGHT / 2);
-}
-
-/**
  * Draws wires on a rail tunnel or depot tile.
  * @param ti The TileInfo to draw the tile for.
  * @param depot The tile is a depot, else a tunnel.
@@ -618,7 +591,28 @@ static void DrawPylon (const TileInfo *ti, DiagDirection side, Direction dir,
 	uint x = ti->x + x_pcp_offsets[side] + x_ppp_offsets[dir];
 	uint y = ti->y + y_pcp_offsets[side] + y_ppp_offsets[dir];
 
-	int elevation = GetPCPElevation (ti->tile, side);
+	/* The elevation of the "pylon"-sprite should be the elevation
+	 * at the PCP. PCPs are always on a tile edge.
+	 *
+	 * This position can be outside of the tile, i.e.
+	 * ?_pcp_offset == TILE_SIZE > TILE_SIZE - 1.
+	 * So we have to move it inside the tile, because if the neighboured
+	 * tile has a foundation, that does not smoothly connect to the
+	 * current tile, we will get a wrong elevation from GetSlopePixelZ().
+	 *
+	 * When we move the position inside the tile, we will get a wrong
+	 * elevation if we have a slope. To catch all cases we round the Z
+	 * position to the next (TILE_HEIGHT / 2). This will return the
+	 * correct elevation for slopes and will also detect non-continuous
+	 * elevation on edges.
+	 *
+	 * Also note that the result of GetSlopePixelZ() is very special on
+	 * bridge-ramps.
+	 */
+
+	TileIndex tile = ti->tile;
+	int z = GetSlopePixelZ (TileX(tile) * TILE_SIZE + min(x_pcp_offsets[side], TILE_SIZE - 1), TileY(tile) * TILE_SIZE + min(y_pcp_offsets[side], TILE_SIZE - 1));
+	int elevation = (z + 2) & ~3; // this means z = (z + TILE_HEIGHT / 4) / (TILE_HEIGHT / 2) * (TILE_HEIGHT / 2);
 
 	AddSortableSpriteToDraw (ti->vd, pylon_base + pylon_sprites[dir],
 			PAL_NONE, x, y, 1, 1, BB_HEIGHT_UNDER_BRIDGE,
