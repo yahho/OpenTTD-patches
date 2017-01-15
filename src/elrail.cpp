@@ -222,22 +222,6 @@ static inline SpriteID GetPylonBase(TileIndex tile, TileContext context = TCX_NO
 }
 
 /**
- * Corrects the tileh for certain tile types. Returns an effective tileh for the track on the tile.
- * @param tile The tile to analyse
- * @param *tileh the tileh
- */
-static void AdjustTileh(TileIndex tile, Slope *tileh)
-{
-	if (IsRailBridgeTile (tile) && !IsExtendedRailBridge (tile)) {
-		if (*tileh != SLOPE_FLAT) {
-			*tileh = SLOPE_FLAT;
-		} else {
-			*tileh = InclinedSlope(GetTunnelBridgeDirection(tile));
-		}
-	}
-}
-
-/**
  * Returns the Z position of a Pylon Control Point.
  *
  * @param tile The tile the pylon should stand on.
@@ -682,8 +666,12 @@ void DrawCatenary (const TileInfo *ti)
 
 	if (IsTunnelTile (ti->tile)) {
 		home_slope = SLOPE_STEEP; // XXX - Hack to make tunnel entrances to always have a pylon
-	} else {
-		AdjustTileh (ti->tile, &home_slope);
+	} else if (IsRailBridgeTile (ti->tile) && !IsExtendedRailBridge (ti->tile)) {
+		if (home_slope != SLOPE_FLAT) {
+			home_slope = SLOPE_FLAT;
+		} else {
+			home_slope = InclinedSlope (GetTunnelBridgeDirection (ti->tile));
+		}
 	}
 
 	SpriteID sprite_normal, sprite_halftile;
