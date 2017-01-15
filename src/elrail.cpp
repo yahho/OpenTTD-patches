@@ -606,6 +606,26 @@ static std::pair <uint, byte> CheckSidePCP (TileIndex tile,
 }
 
 /**
+ * Draw a pylon at a tile side.
+ * @param ti The TileInfo struct of the tile being drawn.
+ * @param side Side where to draw the pylon.
+ * @param dir Pylon position point.
+ * @param pylon_base Pylon sprite base.
+ */
+static void DrawPylon (const TileInfo *ti, DiagDirection side, Direction dir,
+	SpriteID pylon_base)
+{
+	uint x = ti->x + x_pcp_offsets[side] + x_ppp_offsets[dir];
+	uint y = ti->y + y_pcp_offsets[side] + y_ppp_offsets[dir];
+
+	int elevation = GetPCPElevation (ti->tile, side);
+
+	AddSortableSpriteToDraw (ti->vd, pylon_base + pylon_sprites[dir],
+			PAL_NONE, x, y, 1, 1, BB_HEIGHT_UNDER_BRIDGE,
+			elevation, IsTransparencySet(TO_CATENARY), -1, -1);
+}
+
+/**
  * Draws overhead wires and pylons for electric railways.
  * @param ti The TileInfo struct of the tile being drawn
  */
@@ -736,13 +756,7 @@ void DrawCatenary (const TileInfo *ti)
 
 			/* Don't build the pylon if it would be outside the tile */
 			if (HasBit(OwnedPPPonPCP[i], temp)) {
-				uint x  = ti->x + x_pcp_offsets[i] + x_ppp_offsets[temp];
-				uint y  = ti->y + y_pcp_offsets[i] + y_ppp_offsets[temp];
-
-				int elevation = GetPCPElevation (ti->tile, i);
-
-				AddSortableSpriteToDraw (ti->vd, pylon_base + pylon_sprites[temp], PAL_NONE, x, y, 1, 1, BB_HEIGHT_UNDER_BRIDGE,
-					elevation, IsTransparencySet(TO_CATENARY), -1, -1);
+				DrawPylon (ti, i, (Direction)temp, pylon_base);
 				break; // We already have drawn a pylon, bail out
 			}
 
