@@ -582,18 +582,18 @@ static std::pair <uint, byte> CheckSidePCP (TileIndex tile,
  * Choose the pylon position point to use for a pylon.
  * @param side Tile side where the pylon will be drawn.
  * @param allowed Mask of allowed pylon position points.
- * @param odd_x Whether the tile is on an odd X coordinate.
- * @param odd_y Whether the tile is on an odd Y coordinate.
+ * @param order Possible pylon positions arranged by preference.
  * @param nb Whether there is a neighbour tile that could draw this pylon.
  * @return The pylon position point to use, or -1 for none.
+ * @note Use the overloaded variant below.
  */
 static int ChoosePylonPosition (DiagDirection side, byte allowed,
-	bool odd_x, bool odd_y, bool nb)
+	const Direction *order, bool nb)
 {
 	assert (allowed != 0);
 
 	for (Direction k = DIR_BEGIN; k < DIR_END; k++) {
-		byte pos = PPPorder[odd_x][odd_y][side][k];
+		byte pos = order[k];
 
 		if (!HasBit(allowed, pos)) continue;
 
@@ -608,6 +608,22 @@ static int ChoosePylonPosition (DiagDirection side, byte allowed,
 }
 
 /**
+ * Choose the pylon position point to use for a pylon.
+ * @param side Tile side where the pylon will be drawn.
+ * @param allowed Mask of allowed pylon position points.
+ * @param odd_x Whether the tile is on an odd X coordinate.
+ * @param odd_y Whether the tile is on an odd Y coordinate.
+ * @param nb Whether there is a neighbour tile that could draw this pylon.
+ * @return The pylon position point to use.
+ */
+static inline int ChoosePylonPosition (DiagDirection side, byte allowed,
+	bool odd_x, bool odd_y, bool nb)
+{
+	const Direction *order = PPPorder[odd_x][odd_y][side];
+	return ChoosePylonPosition (side, allowed, order, nb);
+}
+
+/*
  * Add a pylon sprite for a tile.
  * @param ti The TileInfo struct of the tile being drawn.
  * @param pylon The sprite to draw.
