@@ -23,18 +23,6 @@ static const byte AllowedPPPonPCP[DIAGDIR_END] = {
 	1 << DIR_N | 1 << DIR_NE | 1 << DIR_E  | 1 << DIR_S | 1 << DIR_SW | 1 << DIR_W,
 };
 
-/**
- * Which of the PPPs are inside the tile. For the two PPPs on the tile border
- * the following system is used: if you rotate the PCP so that it is in the
- * north, the eastern PPP belongs to the tile.
- */
-static const byte OwnedPPPonPCP[DIAGDIR_END] = {
-	1 << DIR_SE | 1 << DIR_S  | 1 << DIR_SW | 1 << DIR_W,
-	1 << DIR_N  | 1 << DIR_SW | 1 << DIR_W  | 1 << DIR_NW,
-	1 << DIR_N  | 1 << DIR_NE | 1 << DIR_E  | 1 << DIR_NW,
-	1 << DIR_NE | 1 << DIR_E  | 1 << DIR_SE | 1 << DIR_S
-};
-
 /** Maps a track bit onto two PCP positions */
 static const DiagDirection PCPpositions[TRACK_END][2] = {
 	{DIAGDIR_NE, DIAGDIR_SW}, // X

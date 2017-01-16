@@ -590,6 +590,16 @@ static std::pair <uint, byte> CheckSidePCP (TileIndex tile,
 static int ChoosePylonPosition (DiagDirection side, byte allowed,
 	const Direction *order, bool nb)
 {
+	/* Which of the PPPs are inside the tile. For the two PPPs on the tile
+	 * border the following system is used: if you rotate the PCP so that
+	 * it is in the north, the eastern PPP belongs to the tile. */
+	static const byte owned[DIAGDIR_END] = {
+		1 << DIR_SE | 1 << DIR_S  | 1 << DIR_SW | 1 << DIR_W,
+		1 << DIR_N  | 1 << DIR_SW | 1 << DIR_W  | 1 << DIR_NW,
+		1 << DIR_N  | 1 << DIR_NE | 1 << DIR_E  | 1 << DIR_NW,
+		1 << DIR_NE | 1 << DIR_E  | 1 << DIR_SE | 1 << DIR_S,
+	};
+
 	assert (allowed != 0);
 
 	for (Direction k = DIR_BEGIN; k < DIR_END; k++) {
@@ -598,7 +608,7 @@ static int ChoosePylonPosition (DiagDirection side, byte allowed,
 		if (!HasBit(allowed, pos)) continue;
 
 		/* Don't build the pylon if it would be outside the tile */
-		if (HasBit(OwnedPPPonPCP[side], pos)) return pos;
+		if (HasBit(owned[side], pos)) return pos;
 
 		/* We have a neighbour that will draw it, bail out */
 		if (nb) return -1;
