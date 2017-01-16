@@ -579,6 +579,35 @@ static std::pair <uint, byte> CheckSidePCP (TileIndex tile,
 }
 
 /**
+ * Choose the pylon position point to use for a pylon.
+ * @param side Tile side where the pylon will be drawn.
+ * @param allowed Mask of allowed pylon position points.
+ * @param odd_x Whether the tile is on an odd X coordinate.
+ * @param odd_y Whether the tile is on an odd Y coordinate.
+ * @param nb Whether there is a neighbour tile that could draw this pylon.
+ * @return The pylon position point to use, or -1 for none.
+ */
+static int ChoosePylonPosition (DiagDirection side, byte allowed,
+	bool odd_x, bool odd_y, bool nb)
+{
+	assert (allowed != 0);
+
+	for (Direction k = DIR_BEGIN; k < DIR_END; k++) {
+		byte pos = PPPorder[odd_x][odd_y][side][k];
+
+		if (!HasBit(allowed, pos)) continue;
+
+		/* Don't build the pylon if it would be outside the tile */
+		if (HasBit(OwnedPPPonPCP[side], pos)) return pos;
+
+		/* We have a neighbour that will draw it, bail out */
+		if (nb) return -1;
+	}
+
+	NOT_REACHED();
+}
+
+/**
  * Add a pylon sprite for a tile.
  * @param ti The TileInfo struct of the tile being drawn.
  * @param pylon The sprite to draw.
@@ -757,19 +786,9 @@ void DrawCatenary (const TileInfo *ti)
 			}
 		}
 
-		for (Direction k = DIR_BEGIN; k < DIR_END; k++) {
-			byte temp = PPPorder[odd[AXIS_X]][odd[AXIS_Y]][i][k];
-
-			if (!HasBit(PPPallowed, temp)) continue;
-
-			/* Don't build the pylon if it would be outside the tile */
-			if (HasBit(OwnedPPPonPCP[i], temp)) {
-				DrawPylon (ti, i, (Direction)temp, pylon_base);
-				break; // We already have drawn a pylon, bail out
-			}
-
-			/* We have a neighbour that will draw it, bail out */
-			if (pcp_neighbour) break;
+		int pos = ChoosePylonPosition (i, PPPallowed, odd[AXIS_X], odd[AXIS_Y], pcp_neighbour);
+		if (pos >= 0) {
+			DrawPylon (ti, i, (Direction)pos, pylon_base);
 		}
 	}
 
