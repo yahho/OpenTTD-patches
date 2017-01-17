@@ -128,13 +128,10 @@ static void DrawTunnel(TileInfo *ti)
 		}
 
 		if (HasCatenaryDrawn (rti)) {
-			/* Maybe draw pylons on the entry side */
-			DrawCatenary(ti);
-
+			/* Draw pylon and wire on the entry side. Note that
+			 * DrawRailTunnelCatenary calls StartSpriteCombine. */
+			DrawRailTunnelCatenary (ti, tunnelbridge_direction);
 			catenary = true;
-			StartSpriteCombine (ti->vd);
-			/* Draw wire above the ramp */
-			DrawCatenaryOnTunnel(ti);
 		}
 
 		if (maptile_has_tunnel_signals(ti->tile)) {

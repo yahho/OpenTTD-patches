@@ -121,23 +121,9 @@ static TrackBits GetRailTrackBitsUniversal(TileIndex t, DiagDirection dir, DiagD
 			return GetElectrifiedTrackBits (t);
 
 		case TT_MISC:
-			switch (GetTileSubtype(t)) {
-				default: return TRACK_BIT_NONE;
-
-				case TT_MISC_CROSSING:
-					if (!HasCatenary(GetRailType(t))) return TRACK_BIT_NONE;
-					return GetCrossingRailBits(t);
-
-				case TT_MISC_TUNNEL:
-					if (GetTunnelTransportType(t) != TRANSPORT_RAIL) return TRACK_BIT_NONE;
-					if (!HasCatenary(GetRailType(t))) return TRACK_BIT_NONE;
-					/* ignore tunnels facing the wrong way for neighbouring tiles */
-					if (dir != INVALID_DIAGDIR && dir != GetTunnelBridgeDirection(t)) return TRACK_BIT_NONE;
-					if (override != NULL) {
-						*override = GetTunnelBridgeDirection(t);
-					}
-					return DiagDirToDiagTrackBits(GetTunnelBridgeDirection(t));
-			}
+			if (GetTileSubtype(t) != TT_MISC_CROSSING) return TRACK_BIT_NONE;
+			if (!HasCatenary(GetRailType(t))) return TRACK_BIT_NONE;
+			return GetCrossingRailBits(t);
 
 		case TT_STATION:
 			if (!HasStationRail(t)) return TRACK_BIT_NONE;
@@ -775,9 +761,7 @@ void DrawCatenary (const TileInfo *ti)
 		halftile_context = TCX_NORMAL;
 	}
 
-	if (IsTunnelTile (ti->tile)) {
-		home_slope = SLOPE_STEEP; // XXX - Hack to make tunnel entrances to always have a pylon
-	} else if (IsRailBridgeTile (ti->tile) && !IsExtendedRailBridge (ti->tile)) {
+	if (IsRailBridgeTile (ti->tile) && !IsExtendedRailBridge (ti->tile)) {
 		if (home_slope != SLOPE_FLAT) {
 			home_slope = SLOPE_FLAT;
 		} else {
@@ -814,10 +798,6 @@ void DrawCatenary (const TileInfo *ti)
 			pcp_neighbour = (pcp_state.first == PCP_IN_USE_BOTH);
 			PPPallowed = pcp_state.second;
 			SetBit(PCPstatus, i);
-		} else if (!IsRailwayTile (ti->tile)) {
-			/* Tunnel tile. */
-			SetBit(PCPstatus, i);
-			continue;
 		} else {
 			/* Bridge tile. */
 			TrackBits bridge_tracks = DiagdirReachesTracks (ReverseDiagDir (i));
@@ -845,9 +825,6 @@ void DrawCatenary (const TileInfo *ti)
 			DrawPylon (ti, i, (Direction)pos, pylon_base);
 		}
 	}
-
-	/* The wire above the tunnel is drawn together with the tunnel-roof (see DrawCatenaryOnTunnel()) */
-	if (IsTunnelTile(ti->tile)) return;
 
 	/* Don't draw a wire under a low bridge */
 	if (HasBridgeAbove(ti->tile) && !IsTransparencySet(TO_BRIDGES)) {
@@ -895,6 +872,35 @@ void DrawCatenary (const TileInfo *ti)
 			sss->x_size, sss->y_size, sss->z_size, GetSlopePixelZ(ti->x + sss->x_offset, ti->y + sss->y_offset) + sss->z_offset,
 			IsTransparencySet(TO_CATENARY));
 	}
+}
+
+/**
+ * Draws overhead wires and pylons at a tunnel entrance.
+ * @param ti The TileInfo struct of the tile being drawn.
+ * @param dir The direction of the tunnel.
+ */
+void DrawRailTunnelCatenary (const TileInfo *ti, DiagDirection dir)
+{
+	/* Draw pylon. */
+	TileIndex tile = ti->tile;
+	DiagDirection rev = ReverseDiagDir (dir);
+
+	byte dummy_preferred, dummy_allowed;
+	Slope dummy_slope;
+	bool pcp_neighbour = CheckNeighbourPCP (tile + TileOffsByDiagDir (rev),
+				dir, &dummy_preferred, &dummy_allowed, &dummy_slope);
+
+	int pos = ChoosePylonPosition (rev, AllowedPPPonPCP[rev],
+			IsOddX(tile), IsOddY(tile), pcp_neighbour);
+
+	if (pos >= 0) {
+		DrawPylon (ti, rev, (Direction)pos,
+				GetPylonBase (tile, TCX_NORMAL));
+	}
+
+	/* Draw wire. */
+	StartSpriteCombine (ti->vd);
+	DrawRailTunnelDepotCatenary (ti, false, dir);
 }
 
 /**

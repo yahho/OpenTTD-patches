@@ -56,15 +56,7 @@ void DrawCatenary(const TileInfo *ti);
 void DrawRailTunnelDepotCatenary (const TileInfo *ti, bool depot,
 	DiagDirection dir);
 
-/**
- * Draws wires on a tunnel tile.
- * @param ti The TileInfo to draw the wires for.
- */
-static inline void DrawCatenaryOnTunnel (const TileInfo *ti)
-{
-	DiagDirection dir = GetTunnelBridgeDirection (ti->tile);
-	DrawRailTunnelDepotCatenary (ti, false, dir);
-}
+void DrawRailTunnelCatenary (const TileInfo *ti, DiagDirection dir);
 
 /**
  * Draws wires on a rail depot tile.
