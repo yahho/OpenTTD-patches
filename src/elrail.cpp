@@ -187,14 +187,29 @@ static TrackBits MaskWireBits(TileIndex t, TrackBits tracks)
 	return (tracks & mask) != TRACK_BIT_NONE ? tracks & mask : tracks;
 }
 
+/** Get the base wire sprite to use. */
+static inline SpriteID GetWireBase (const RailtypeInfo *rti, TileIndex tile,
+	TileContext context = TCX_NORMAL)
+{
+	SpriteID wires = GetCustomRailSprite (rti, tile, RTSG_WIRES, context);
+	return wires == 0 ? SPR_WIRE_BASE : wires;
+}
+
 /**
  * Get the base wire sprite to use.
  */
 static inline SpriteID GetWireBase(TileIndex tile, TileContext context = TCX_NORMAL, Track track = INVALID_TRACK)
 {
 	const RailtypeInfo *rti = GetRailTypeInfo(GetRailType(tile, track));
-	SpriteID wires = GetCustomRailSprite(rti, tile, RTSG_WIRES, context);
-	return wires == 0 ? SPR_WIRE_BASE : wires;
+	return GetWireBase (rti, tile, context);
+}
+
+/** Get the base pylon sprite to use. */
+static inline SpriteID GetPylonBase (const RailtypeInfo *rti, TileIndex tile,
+	TileContext context = TCX_NORMAL)
+{
+	SpriteID pylons = GetCustomRailSprite (rti, tile, RTSG_PYLONS, context);
+	return pylons == 0 ? SPR_PYLON_BASE : pylons;
 }
 
 /**
@@ -203,8 +218,7 @@ static inline SpriteID GetWireBase(TileIndex tile, TileContext context = TCX_NOR
 static inline SpriteID GetPylonBase(TileIndex tile, TileContext context = TCX_NORMAL, Track track = INVALID_TRACK)
 {
 	const RailtypeInfo *rti = GetRailTypeInfo(GetRailType(tile, track));
-	SpriteID pylons = GetCustomRailSprite(rti, tile, RTSG_PYLONS, context);
-	return pylons == 0 ? SPR_PYLON_BASE : pylons;
+	return GetPylonBase (rti, tile, context);
 }
 
 /**
@@ -915,6 +929,8 @@ void DrawCatenaryOnBridge(const TileInfo *ti)
 	TileIndex start = GetNorthernBridgeEnd(ti->tile);
 	TileIndex end = GetSouthernBridgeEnd(ti->tile);
 
+	const RailtypeInfo *rti = GetRailTypeInfo (GetBridgeRailType (end));
+
 	uint length = GetTunnelBridgeLength(start, end);
 	uint num = GetTunnelBridgeLength(ti->tile, start) + 1;
 
@@ -934,7 +950,7 @@ void DrawCatenaryOnBridge(const TileInfo *ti)
 
 	uint height = GetBridgePixelHeight(end);
 
-	SpriteID wire_base = GetWireBase(end, TCX_ON_BRIDGE);
+	SpriteID wire_base = GetWireBase (rti, end, TCX_ON_BRIDGE);
 
 	AddSortableSpriteToDraw (ti->vd, wire_base + sss->image_offset[config], PAL_NONE, ti->x + sss->x_offset, ti->y + sss->y_offset,
 		sss->x_size, sss->y_size, sss->z_size, height + sss->z_offset,
@@ -954,7 +970,7 @@ void DrawCatenaryOnBridge(const TileInfo *ti)
 		PPPpos = IsOddX(ti->tile) ? DIR_SW : DIR_NE;
 	}
 
-	SpriteID pylon = GetPylonBase(end, TCX_ON_BRIDGE) + pylon_sprites[PPPpos];
+	SpriteID pylon = GetPylonBase (rti, end, TCX_ON_BRIDGE) + pylon_sprites[PPPpos];
 	uint x = ti->x + x_ppp_offsets[PPPpos];
 	uint y = ti->y + y_ppp_offsets[PPPpos];
 
