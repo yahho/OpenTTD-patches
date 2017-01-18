@@ -224,11 +224,12 @@ static inline SpriteID GetPylonBase(TileIndex tile, TileContext context = TCX_NO
 /**
  * Draws wires on a rail tunnel or depot tile.
  * @param ti The TileInfo to draw the tile for.
+ * @param rti The rail type information of the rail.
  * @param depot The tile is a depot, else a tunnel.
  * @param dir The direction of the tunnel or depot.
  */
-void DrawRailTunnelDepotCatenary (const TileInfo *ti, bool depot,
-	DiagDirection dir)
+void DrawRailTunnelDepotCatenary (const TileInfo *ti, const RailtypeInfo *rti,
+	bool depot, DiagDirection dir)
 {
 	struct SortableSpriteStruct {
 		struct { int8 x, y, w, h; } bb[2];
@@ -251,7 +252,7 @@ void DrawRailTunnelDepotCatenary (const TileInfo *ti, bool depot,
 	int z = depot ? GetTileMaxPixelZ (ti->tile) : GetTilePixelZ (ti->tile);
 	/* This wire is not visible with the default depot sprites. */
 	AddSortableSpriteToDraw (ti->vd,
-		GetWireBase (ti->tile) + WSO_ENTRANCE_NE + dir, PAL_NONE,
+		GetWireBase (rti, ti->tile) + WSO_ENTRANCE_NE + dir, PAL_NONE,
 		ti->x + sss->x_offset, ti->y + sss->y_offset,
 		sss->bb[depot].w, sss->bb[depot].h, dz + 1,
 		z + ELRAIL_ELEVATION, IsTransparencySet (TO_CATENARY),
@@ -907,14 +908,15 @@ void DrawRailTunnelCatenary (const TileInfo *ti, DiagDirection dir)
 	int pos = ChoosePylonPosition (rev, AllowedPPPonPCP[rev],
 			IsOddX(tile), IsOddY(tile), pcp_neighbour);
 
+	const RailtypeInfo *rti = GetRailTypeInfo (GetRailType (tile));
 	if (pos >= 0) {
 		DrawPylon (ti, rev, (Direction)pos,
-				GetPylonBase (tile, TCX_NORMAL));
+				GetPylonBase (rti, tile, TCX_NORMAL));
 	}
 
 	/* Draw wire. */
 	StartSpriteCombine (ti->vd);
-	DrawRailTunnelDepotCatenary (ti, false, dir);
+	DrawRailTunnelDepotCatenary (ti, rti, false, dir);
 }
 
 /**

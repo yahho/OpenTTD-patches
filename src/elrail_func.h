@@ -53,19 +53,21 @@ static inline bool HasCatenaryDrawn (const RailtypeInfo *rti)
 
 void DrawCatenary(const TileInfo *ti);
 
-void DrawRailTunnelDepotCatenary (const TileInfo *ti, bool depot,
-	DiagDirection dir);
+void DrawRailTunnelDepotCatenary (const TileInfo *ti, const RailtypeInfo *rti,
+	bool depot, DiagDirection dir);
 
 void DrawRailTunnelCatenary (const TileInfo *ti, DiagDirection dir);
 
 /**
  * Draws wires on a rail depot tile.
  * @param ti The TileInfo to draw the wires for.
+ * @param rti The rail type information of the rail.
  * @param dir Direction of the depot.
  */
-static inline void DrawRailDepotCatenary (const TileInfo *ti, DiagDirection dir)
+static inline void DrawRailDepotCatenary (const TileInfo *ti,
+	const RailtypeInfo *rti, DiagDirection dir)
 {
-	DrawRailTunnelDepotCatenary (ti, true, dir);
+	DrawRailTunnelDepotCatenary (ti, rti, true, dir);
 }
 
 void DrawCatenaryOnBridge(const TileInfo *ti);
