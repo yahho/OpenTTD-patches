@@ -719,115 +719,52 @@ static void DrawPylon (const TileInfo *ti, DiagDirection side, Direction dir,
 
 /**
  * Draws overhead wires and pylons for electric railways.
- * @param ti The TileInfo struct of the tile being drawn
+ * @param ti The TileInfo struct of the tile being drawn.
+ * @param rti The rail type information of the rail.
+ * @param tracks Tracks on which to draw.
+ * @param wires Wires to draw.
+ * @param slope Slope of the track surface for pylon elision.
+ * @param context Tile context for GetWireBase and GetPylonBase.
+ * @param bridge Bridge direction, if any.
  */
-void DrawCatenary (const TileInfo *ti)
+static void DrawCatenary (const TileInfo *ti, const RailtypeInfo *rti,
+	TrackBits tracks, TrackBits wires, Slope slope,
+	TileContext context = TCX_NORMAL,
+	DiagDirection bridge = INVALID_DIAGDIR)
 {
-	/* Pylons are placed on a tile edge, so we need to take into account
-	 * the track configuration of 2 adjacent tiles. home stores the
-	 * current tile */
-	TrackBits home_tracks, home_wires;
-	/* Note that ti->tileh has already been adjusted for Foundations */
-	Slope home_slope = ti->tileh;
-
 	bool odd[AXIS_END];
 	odd[AXIS_X] = IsOddX(ti->tile);
 	odd[AXIS_Y] = IsOddY(ti->tile);
-	byte PCPstatus = 0;
-	DiagDirection overridePCP = INVALID_DIAGDIR;
 
-	/* Find which rail bits are present, and select the override points.
-	 * We don't draw a pylon:
-	 * 1) INSIDE a tunnel (we wouldn't see it anyway)
-	 * 2) on the "far" end of a bridge head (the one that connects to bridge middle),
-	 *    because that one is drawn on the bridge. Exception is for length 0 bridges
-	 *    which have no middle tiles */
-	home_tracks = GetRailTrackBitsUniversal (ti->tile, INVALID_DIAGDIR, &overridePCP);
-	home_wires = MaskWireBits (ti->tile, home_tracks);
+	byte pcp_status = 0;
 
-	/* Half tile slopes coincide only with horizontal/vertical track.
-	 * Faking a flat slope results in the correct sprites on positions. */
-	Track halftile_track;
-	TileContext halftile_context;
-	if (IsHalftileSlope (home_slope)) {
-		switch (GetHalftileSlopeCorner (home_slope)) {
-			default: NOT_REACHED();
-			case CORNER_W: halftile_track = TRACK_LEFT;  break;
-			case CORNER_S: halftile_track = TRACK_LOWER; break;
-			case CORNER_E: halftile_track = TRACK_RIGHT; break;
-			case CORNER_N: halftile_track = TRACK_UPPER; break;
-		}
-		halftile_context = TCX_UPPER_HALFTILE;
-		home_slope = SLOPE_FLAT;
-	} else {
-		switch (home_tracks) {
-			case TRACK_BIT_LOWER:
-			case TRACK_BIT_HORZ:
-				halftile_track = GetRailType(ti->tile, TRACK_UPPER) == GetRailType(ti->tile, TRACK_LOWER) ? INVALID_TRACK : TRACK_LOWER;
-				break;
-			case TRACK_BIT_RIGHT:
-			case TRACK_BIT_VERT:
-				halftile_track = GetRailType(ti->tile, TRACK_LEFT) == GetRailType(ti->tile, TRACK_RIGHT) ? INVALID_TRACK : TRACK_RIGHT;
-				break;
-			default:
-				halftile_track = INVALID_TRACK;
-				break;
-		}
-		halftile_context = TCX_NORMAL;
-	}
+	SpriteID pylon_base = GetPylonBase (rti, ti->tile, context);
 
-	if (IsRailBridgeTile (ti->tile) && !IsExtendedRailBridge (ti->tile)) {
-		if (home_slope != SLOPE_FLAT) {
-			home_slope = SLOPE_FLAT;
-		} else {
-			home_slope = InclinedSlope (GetTunnelBridgeDirection (ti->tile));
-		}
-	}
-
-	SpriteID sprite_normal, sprite_halftile;
-
-	if (halftile_track == INVALID_TRACK) {
-		sprite_normal = GetPylonBase(ti->tile, TCX_NORMAL);
-	} else {
-		sprite_halftile = GetPylonBase(ti->tile, halftile_context, halftile_track);
-		sprite_normal = GetPylonBase(ti->tile, TCX_NORMAL,
-			HasBit(home_tracks, TrackToOppositeTrack(halftile_track)) ? TrackToOppositeTrack(halftile_track) : halftile_track);
-	}
-
-	for (DiagDirection i = DIAGDIR_BEGIN; i < DIAGDIR_END; i++) {
-		static const TrackBits edge_tracks[] = {
-			TRACK_BIT_UPPER | TRACK_BIT_RIGHT, // DIAGDIR_NE
-			TRACK_BIT_LOWER | TRACK_BIT_RIGHT, // DIAGDIR_SE
-			TRACK_BIT_LOWER | TRACK_BIT_LEFT,  // DIAGDIR_SW
-			TRACK_BIT_UPPER | TRACK_BIT_LEFT,  // DIAGDIR_NW
-		};
-		SpriteID pylon_base = (halftile_track != INVALID_TRACK && HasBit(edge_tracks[i], halftile_track)) ? sprite_halftile : sprite_normal;
-
+	for (DiagDirection side = DIAGDIR_BEGIN; side < DIAGDIR_END; side++) {
 		bool pcp_neighbour;
-		byte PPPallowed;
-		if (overridePCP != i) {
+		byte ppp_allowed;
+		if (side != bridge) {
 			std::pair <uint, byte> pcp_state = CheckSidePCP (ti->tile,
-					home_tracks, home_wires, home_slope,
-					i, odd);
+					tracks, wires, slope, side, odd);
 			if (pcp_state.first == PCP_NONE) continue;
 			pcp_neighbour = (pcp_state.first == PCP_IN_USE_BOTH);
-			PPPallowed = pcp_state.second;
-			SetBit(PCPstatus, i);
+			ppp_allowed = pcp_state.second;
+			SetBit(pcp_status, side);
 		} else {
 			/* Bridge tile. */
-			TrackBits bridge_tracks = DiagdirReachesTracks (ReverseDiagDir (i));
-			if ((home_tracks & bridge_tracks) == TRACK_BIT_NONE) continue;
-			SetBit(PCPstatus, i);
+			TrackBits bridge_tracks = DiagdirReachesTracks (ReverseDiagDir (side));
+			if ((tracks & bridge_tracks) == TRACK_BIT_NONE) continue;
+			SetBit(pcp_status, side);
 			/* Pylon is drawn by the middle part if there is any. */
 			if (GetTunnelBridgeLength (ti->tile, GetOtherBridgeEnd (ti->tile)) > 0) continue;
 			pcp_neighbour = true;
-			PPPallowed = AllowedPPPonPCP[i];
+			ppp_allowed = AllowedPPPonPCP[side];
 		}
 
 		if (IsRailStationTile(ti->tile) && !CanStationTileHavePylons(ti->tile)) continue;
 
 		if (HasBridgeAbove(ti->tile)) {
-			if (GetBridgeAxis (ti->tile) == DiagDirToAxis (i)) {
+			if (GetBridgeAxis (ti->tile) == DiagDirToAxis (side)) {
 				int height = GetBridgeHeight (GetNorthernBridgeEnd (ti->tile));
 				if (height <= GetTileMaxZ (ti->tile) + 1) {
 					continue;
@@ -835,9 +772,10 @@ void DrawCatenary (const TileInfo *ti)
 			}
 		}
 
-		int pos = ChoosePylonPosition (i, PPPallowed, odd[AXIS_X], odd[AXIS_Y], pcp_neighbour);
+		int pos = ChoosePylonPosition (side, ppp_allowed,
+			odd[AXIS_X], odd[AXIS_Y], pcp_neighbour);
 		if (pos >= 0) {
-			DrawPylon (ti, i, (Direction)pos, pylon_base);
+			DrawPylon (ti, side, (Direction)pos, pylon_base);
 		}
 	}
 
@@ -851,25 +789,19 @@ void DrawCatenary (const TileInfo *ti)
 	/* Don't draw a wire if the station tile does not want any */
 	if (IsRailStationTile(ti->tile) && !CanStationTileHaveWires(ti->tile)) return;
 
-	if (halftile_track == INVALID_TRACK) {
-		sprite_normal = GetWireBase(ti->tile, TCX_NORMAL);
-	} else {
-		sprite_halftile = GetWireBase(ti->tile, halftile_context, halftile_track);
-		sprite_normal = GetWireBase(ti->tile, TCX_NORMAL,
-			HasBit(home_tracks, TrackToOppositeTrack(halftile_track)) ? TrackToOppositeTrack(halftile_track) : halftile_track);
-	}
-
 	/* Drawing of pylons is finished, now draw the wires */
-	Track t;
-	FOR_EACH_SET_TRACK(t, home_wires) {
-		byte PCPconfig = HasBit(PCPstatus, PCPpositions[t][0]) +
-			(HasBit(PCPstatus, PCPpositions[t][1]) << 1);
+	SpriteID wire_base = GetWireBase (rti, ti->tile, context);
 
-		assert(PCPconfig != 0); // We have a pylon on neither end of the wire, that doesn't work (since we have no sprites for that)
-		assert(!IsSteepSlope(home_slope));
+	Track t;
+	FOR_EACH_SET_TRACK(t, wires) {
+		byte pcp_config = HasBit(pcp_status, PCPpositions[t][0]) +
+			(HasBit(pcp_status, PCPpositions[t][1]) << 1);
+
+		assert(pcp_config != 0); // We have a pylon on neither end of the wire, that doesn't work (since we have no sprites for that)
+		assert(!IsSteepSlope(slope));
 
 		const SortableSpriteStructM *sss;
-		switch (home_slope) {
+		switch (slope) {
 			case SLOPE_SW: sss = &CatenarySpriteDataSW;  break;
 			case SLOPE_SE: sss = &CatenarySpriteDataSE;  break;
 			case SLOPE_NW: sss = &CatenarySpriteDataNW;  break;
@@ -882,10 +814,96 @@ void DrawCatenary (const TileInfo *ti)
 		 * Therefore it is safe to use GetSlopePixelZ() for the elevation.
 		 * Also note that the result of GetSlopePixelZ() is very special for bridge-ramps.
 		 */
-		SpriteID wire_base = (t == halftile_track) ? sprite_halftile : sprite_normal;
-		AddSortableSpriteToDraw (ti->vd, wire_base + sss->image_offset[PCPconfig], PAL_NONE, ti->x + sss->x_offset, ti->y + sss->y_offset,
-			sss->x_size, sss->y_size, sss->z_size, GetSlopePixelZ(ti->x + sss->x_offset, ti->y + sss->y_offset) + sss->z_offset,
+		AddSortableSpriteToDraw (ti->vd,
+			wire_base + sss->image_offset[pcp_config], PAL_NONE,
+			ti->x + sss->x_offset, ti->y + sss->y_offset,
+			sss->x_size, sss->y_size, sss->z_size,
+			GetSlopePixelZ (ti->x + sss->x_offset, ti->y + sss->y_offset) + sss->z_offset,
 			IsTransparencySet(TO_CATENARY));
+	}
+}
+
+/**
+ * Draws overhead wires and pylons for electric railways.
+ * @param ti The TileInfo struct of the tile being drawn
+ */
+void DrawCatenary (const TileInfo *ti)
+{
+	/* Find which rail bits are present, and select the override points. */
+	DiagDirection overridePCP = INVALID_DIAGDIR;
+	TrackBits tracks = GetRailTrackBitsUniversal (ti->tile, INVALID_DIAGDIR, &overridePCP);
+	TrackBits wires = MaskWireBits (ti->tile, tracks);
+
+	/* Note that ti->tileh has already been adjusted for Foundations */
+	Slope slope = ti->tileh;
+
+	const RailtypeInfo *rti, *halftile_rti;
+	Track halftile_track;
+	TileContext halftile_context;
+	if (IsHalftileSlope (slope)) {
+		switch (GetHalftileSlopeCorner (slope)) {
+			default: NOT_REACHED();
+			case CORNER_W: halftile_track = TRACK_LEFT;  break;
+			case CORNER_S: halftile_track = TRACK_LOWER; break;
+			case CORNER_E: halftile_track = TRACK_RIGHT; break;
+			case CORNER_N: halftile_track = TRACK_UPPER; break;
+		}
+		halftile_rti = GetRailTypeInfo (GetRailType (ti->tile, halftile_track));
+		halftile_context = TCX_UPPER_HALFTILE;
+		Track opposite = TrackToOppositeTrack (halftile_track);
+		rti = !HasBit(tracks, opposite) ? NULL :
+				GetRailTypeInfo (GetRailType (ti->tile, opposite));
+		slope = SLOPE_FLAT;
+	} else {
+		RailType rt1 = GetRailType (ti->tile, TRACK_UPPER);
+		RailType rt2 = GetRailType (ti->tile, TRACK_LOWER);
+		rti = GetRailTypeInfo (rt1);
+		if (rt1 == rt2) {
+			halftile_track = INVALID_TRACK;
+		} else {
+			const RailtypeInfo *rti2 = GetRailTypeInfo (rt2);
+			switch (tracks) {
+				case TRACK_BIT_HORZ:
+					halftile_rti = rti2;
+					halftile_track = TRACK_LOWER;
+					break;
+				case TRACK_BIT_VERT:
+					halftile_rti = rti2;
+					halftile_track = TRACK_RIGHT;
+					break;
+				case TRACK_BIT_LOWER:
+				case TRACK_BIT_RIGHT:
+					rti = rti2;
+					/* fall through */
+				default: // TRACK_BIT_UPPER or TRACK_BIT_LEFT
+					halftile_track = INVALID_TRACK;
+					break;
+			}
+		}
+		halftile_context = TCX_NORMAL;
+	}
+
+	if (IsRailBridgeTile (ti->tile) && !IsExtendedRailBridge (ti->tile)) {
+		if (slope != SLOPE_FLAT) {
+			slope = SLOPE_FLAT;
+		} else {
+			slope = InclinedSlope (GetTunnelBridgeDirection (ti->tile));
+		}
+	}
+
+	if (halftile_track != INVALID_TRACK) {
+		TrackBits tracks = TrackToTrackBits (halftile_track);
+		if (HasCatenary (halftile_rti)) {
+			DrawCatenary (ti, halftile_rti, tracks, tracks,
+					SLOPE_FLAT, halftile_context);
+		}
+		if (rti == NULL) return;
+		tracks &= ~tracks;
+		wires = tracks;
+	}
+
+	if (HasCatenary (rti)) {
+		DrawCatenary (ti, rti, tracks, wires, slope, TCX_NORMAL, overridePCP);
 	}
 }
 
