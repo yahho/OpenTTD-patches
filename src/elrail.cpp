@@ -195,30 +195,12 @@ static inline SpriteID GetWireBase (const RailtypeInfo *rti, TileIndex tile,
 	return wires == 0 ? SPR_WIRE_BASE : wires;
 }
 
-/**
- * Get the base wire sprite to use.
- */
-static inline SpriteID GetWireBase(TileIndex tile, TileContext context = TCX_NORMAL, Track track = INVALID_TRACK)
-{
-	const RailtypeInfo *rti = GetRailTypeInfo(GetRailType(tile, track));
-	return GetWireBase (rti, tile, context);
-}
-
 /** Get the base pylon sprite to use. */
 static inline SpriteID GetPylonBase (const RailtypeInfo *rti, TileIndex tile,
 	TileContext context = TCX_NORMAL)
 {
 	SpriteID pylons = GetCustomRailSprite (rti, tile, RTSG_PYLONS, context);
 	return pylons == 0 ? SPR_PYLON_BASE : pylons;
-}
-
-/**
- * Get the base pylon sprite to use.
- */
-static inline SpriteID GetPylonBase(TileIndex tile, TileContext context = TCX_NORMAL, Track track = INVALID_TRACK)
-{
-	const RailtypeInfo *rti = GetRailTypeInfo(GetRailType(tile, track));
-	return GetPylonBase (rti, tile, context);
 }
 
 /**
