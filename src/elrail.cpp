@@ -706,12 +706,14 @@ static void DrawPylon (const TileInfo *ti, DiagDirection side, Direction dir,
  * @param tracks Tracks on which to draw.
  * @param wires Wires to draw.
  * @param slope Slope of the track surface for pylon elision.
+ * @param draw_pylons Whether to draw pylons (some stations disable this).
+ * @param draw_wires Whether to draw wires (some stations disable this).
  * @param context Tile context for GetWireBase and GetPylonBase.
  * @param bridge Bridge direction, if any.
  */
 static void DrawCatenary (const TileInfo *ti, const RailtypeInfo *rti,
 	TrackBits tracks, TrackBits wires, Slope slope,
-	TileContext context = TCX_NORMAL,
+	bool draw_pylons, bool draw_wires, TileContext context = TCX_NORMAL,
 	DiagDirection bridge = INVALID_DIAGDIR)
 {
 	bool odd[AXIS_END];
@@ -743,7 +745,7 @@ static void DrawCatenary (const TileInfo *ti, const RailtypeInfo *rti,
 			ppp_allowed = AllowedPPPonPCP[side];
 		}
 
-		if (IsRailStationTile(ti->tile) && !CanStationTileHavePylons(ti->tile)) continue;
+		if (!draw_pylons) continue;
 
 		if (HasBridgeAbove(ti->tile)) {
 			if (GetBridgeAxis (ti->tile) == DiagDirToAxis (side)) {
@@ -761,15 +763,15 @@ static void DrawCatenary (const TileInfo *ti, const RailtypeInfo *rti,
 		}
 	}
 
+	/* Don't draw a wire if the station tile does not want any */
+	if (!draw_wires) return;
+
 	/* Don't draw a wire under a low bridge */
 	if (HasBridgeAbove(ti->tile) && !IsTransparencySet(TO_BRIDGES)) {
 		int height = GetBridgeHeight(GetNorthernBridgeEnd(ti->tile));
 
 		if (height <= GetTileMaxZ(ti->tile) + 1) return;
 	}
-
-	/* Don't draw a wire if the station tile does not want any */
-	if (IsRailStationTile(ti->tile) && !CanStationTileHaveWires(ti->tile)) return;
 
 	/* Drawing of pylons is finished, now draw the wires */
 	SpriteID wire_base = GetWireBase (rti, ti->tile, context);
@@ -877,7 +879,8 @@ void DrawCatenary (const TileInfo *ti)
 		TrackBits tracks = TrackToTrackBits (halftile_track);
 		if (HasCatenary (halftile_rti)) {
 			DrawCatenary (ti, halftile_rti, tracks, tracks,
-					SLOPE_FLAT, halftile_context);
+					SLOPE_FLAT, true, true,
+					halftile_context);
 		}
 		if (rti == NULL) return;
 		tracks &= ~tracks;
@@ -885,8 +888,28 @@ void DrawCatenary (const TileInfo *ti)
 	}
 
 	if (HasCatenary (rti)) {
-		DrawCatenary (ti, rti, tracks, wires, slope, TCX_NORMAL, overridePCP);
+		DrawCatenary (ti, rti, tracks, wires, slope, true, true,
+				TCX_NORMAL, overridePCP);
 	}
+}
+
+/**
+ * Draws overhead wires and pylons for electric railways along an axis
+ * (for crossings and station tiles).
+ * @param ti The TileInfo struct of the tile being drawn.
+ * @param rti The rail type information of the rail.
+ * @param axis The axis along which to draw the wire.
+ * @param draw_pylons Whether to draw pylons (some stations disable this).
+ * @param draw_wire Whether to draw the wire (some stations disable this).
+ */
+void DrawRailAxisCatenary (const TileInfo *ti, const RailtypeInfo *rti,
+	Axis axis, bool draw_pylons, bool draw_wire)
+{
+	/* Note that ti->tileh has already been adjusted for Foundations */
+	assert (ti->tileh == SLOPE_FLAT);
+
+	TrackBits tracks = AxisToTrackBits (axis);
+	DrawCatenary (ti, rti, tracks, tracks, SLOPE_FLAT, draw_pylons, draw_wire);
 }
 
 /**

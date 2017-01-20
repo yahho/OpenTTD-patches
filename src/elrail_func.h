@@ -53,6 +53,9 @@ static inline bool HasCatenaryDrawn (const RailtypeInfo *rti)
 
 void DrawCatenary(const TileInfo *ti);
 
+void DrawRailAxisCatenary (const TileInfo *ti, const RailtypeInfo *rti,
+	Axis axis, bool draw_pylons = true, bool draw_wire = true);
+
 void DrawRailTunnelDepotCatenary (const TileInfo *ti, const RailtypeInfo *rti,
 	bool depot, DiagDirection dir);
 
