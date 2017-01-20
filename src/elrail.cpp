@@ -867,14 +867,6 @@ void DrawCatenary (const TileInfo *ti)
 		halftile_context = TCX_NORMAL;
 	}
 
-	if (IsRailBridgeTile (ti->tile) && !IsExtendedRailBridge (ti->tile)) {
-		if (slope != SLOPE_FLAT) {
-			slope = SLOPE_FLAT;
-		} else {
-			slope = InclinedSlope (GetTunnelBridgeDirection (ti->tile));
-		}
-	}
-
 	if (halftile_track != INVALID_TRACK) {
 		TrackBits tracks = TrackToTrackBits (halftile_track);
 		if (HasCatenary (halftile_rti)) {
@@ -891,6 +883,22 @@ void DrawCatenary (const TileInfo *ti)
 		DrawCatenary (ti, rti, tracks, wires, slope, true, true,
 				TCX_NORMAL, overridePCP);
 	}
+}
+
+/**
+ * Draws overhead wires and pylons on a normal (non-custom) bridge head.
+ * @param ti The TileInfo struct of the tile being drawn.
+ * @param rti The rail type information of the rail.
+ * @param dir The direction of the bridge.
+ */
+void DrawRailBridgeHeadCatenary (const TileInfo *ti, const RailtypeInfo *rti,
+	DiagDirection dir)
+{
+	TrackBits tracks = DiagDirToDiagTrackBits (dir);
+
+	DrawCatenary (ti, rti, tracks, tracks, (ti->tileh != SLOPE_FLAT) ?
+					SLOPE_FLAT : InclinedSlope (dir),
+			true, true, TCX_NORMAL, dir);
 }
 
 /**

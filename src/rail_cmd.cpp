@@ -3360,7 +3360,7 @@ static void DrawTile_Track(TileInfo *ti)
 		EndSpriteCombine (ti->vd);
 
 		if (HasCatenaryDrawn (rti)) {
-			DrawCatenary(ti);
+			DrawRailBridgeHeadCatenary (ti, rti, dir);
 		}
 
 		DrawSignalPair (ti, DiagDirToDiagTrack (dir), dir);
