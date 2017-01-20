@@ -105,39 +105,6 @@ static TrackBits GetElectrifiedTrackBits (TileIndex t)
 }
 
 /**
- * Finds which Electrified Rail Bits are present on a given tile.
- * @param t tile to check
- * @param dir direction this tile is from the home tile, or INVALID_TILE for the home tile itself
- * @param override pointer to PCP override, can be NULL
- * @return trackbits of tile if it is electrified
- */
-static TrackBits GetRailTrackBitsUniversal(TileIndex t, DiagDirection dir, DiagDirection *override = NULL)
-{
-	switch (GetTileType(t)) {
-		case TT_RAILWAY:
-			if (IsTileSubtype(t, TT_BRIDGE) && (override != NULL)) {
-				*override = GetTunnelBridgeDirection(t);
-			}
-			return GetElectrifiedTrackBits (t);
-
-		case TT_MISC:
-			if (GetTileSubtype(t) != TT_MISC_CROSSING) return TRACK_BIT_NONE;
-			if (!HasCatenary(GetRailType(t))) return TRACK_BIT_NONE;
-			return GetCrossingRailBits(t);
-
-		case TT_STATION:
-			if (!HasStationRail(t)) return TRACK_BIT_NONE;
-			if (!HasCatenary(GetRailType(t))) return TRACK_BIT_NONE;
-			/* Ignore neighbouring station tiles that allow neither wires nor pylons. */
-			if (dir != INVALID_DIAGDIR && !CanStationTileHavePylons(t) && !CanStationTileHaveWires(t)) return TRACK_BIT_NONE;
-			return TrackToTrackBits(GetRailStationTrack(t));
-
-		default:
-			return TRACK_BIT_NONE;
-	}
-}
-
-/**
  * Masks out track bits when neighbouring tiles are unelectrified.
  */
 static TrackBits MaskWireBits(TileIndex t, TrackBits tracks)
@@ -816,8 +783,8 @@ void DrawRailwayCatenary (const TileInfo *ti)
 	assert (IsRailwayTile (ti->tile));
 
 	/* Find which rail bits are present, and select the override points. */
-	DiagDirection overridePCP = INVALID_DIAGDIR;
-	TrackBits tracks = GetRailTrackBitsUniversal (ti->tile, INVALID_DIAGDIR, &overridePCP);
+	DiagDirection overridePCP = IsTileSubtype (ti->tile, TT_BRIDGE) ? GetTunnelBridgeDirection (ti->tile) : INVALID_DIAGDIR;
+	TrackBits tracks = GetElectrifiedTrackBits (ti->tile);
 	TrackBits wires = MaskWireBits (ti->tile, tracks);
 
 	/* Note that ti->tileh has already been adjusted for Foundations */
