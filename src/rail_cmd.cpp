@@ -3304,7 +3304,7 @@ static void DrawTile_Track(TileInfo *ti)
 
 		if (HasBit(_display_opt, DO_FULL_DETAIL) && IsTileSubtype(ti->tile, TT_TRACK)) DrawTrackDetails(ti, rails);
 
-		if (IsCatenaryDrawn()) DrawCatenary(ti);
+		if (IsCatenaryDrawn()) DrawRailwayCatenary (ti);
 
 		DrawSignals (ti, rails);
 	} else {

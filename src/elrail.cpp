@@ -811,8 +811,10 @@ static void DrawCatenary (const TileInfo *ti, const RailtypeInfo *rti,
  * Draws overhead wires and pylons for electric railways.
  * @param ti The TileInfo struct of the tile being drawn
  */
-void DrawCatenary (const TileInfo *ti)
+void DrawRailwayCatenary (const TileInfo *ti)
 {
+	assert (IsRailwayTile (ti->tile));
+
 	/* Find which rail bits are present, and select the override points. */
 	DiagDirection overridePCP = INVALID_DIAGDIR;
 	TrackBits tracks = GetRailTrackBitsUniversal (ti->tile, INVALID_DIAGDIR, &overridePCP);

@@ -51,7 +51,7 @@ static inline bool HasCatenaryDrawn (const RailtypeInfo *rti)
 	return HasCatenary (rti) && IsCatenaryDrawn();
 }
 
-void DrawCatenary(const TileInfo *ti);
+void DrawRailwayCatenary (const TileInfo *ti);
 
 void DrawRailBridgeHeadCatenary (const TileInfo *ti, const RailtypeInfo *rti,
 	DiagDirection dir);
