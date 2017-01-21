@@ -929,25 +929,25 @@ void DrawRailTunnelCatenary (const TileInfo *ti, DiagDirection dir)
 void DrawCatenaryOnBridge(const TileInfo *ti)
 {
 	TileIndex start = GetNorthernBridgeEnd(ti->tile);
+	bool odd = ((GetTunnelBridgeLength (ti->tile, start) + 1) % 2) != 0;
+
 	TileIndex end = GetSouthernBridgeEnd(ti->tile);
+	bool last = (GetTunnelBridgeLength (ti->tile, end) == 0);
 
 	const RailtypeInfo *rti = GetRailTypeInfo (GetBridgeRailType (end));
-
-	uint length = GetTunnelBridgeLength(start, end);
-	uint num = GetTunnelBridgeLength(ti->tile, start) + 1;
 
 	Axis axis = GetBridgeAxis(ti->tile);
 
 	const SortableSpriteStructM *sss = &CatenarySpriteData[AxisToTrack(axis)];
 
 	uint config;
-	if ((length % 2) && num == length) {
+	if (odd && last) {
 		/* Draw the "short" wire on the southern end of the bridge
 		 * only needed if the length of the bridge is odd */
 		config = 3;
 	} else {
 		/* Draw "long" wires on all other tiles of the bridge (one pylon every two tiles) */
-		config = 2 - (num % 2);
+		config = 2 - odd;
 	}
 
 	uint height = GetBridgePixelHeight(end);
@@ -960,7 +960,7 @@ void DrawCatenaryOnBridge(const TileInfo *ti)
 	);
 
 	/* Finished with wires, draw pylons */
-	if ((num % 2) == 0 && num != length) return; /* no pylons to draw */
+	if (!odd && !last) return; /* no pylons to draw */
 
 	DiagDirection PCPpos;
 	Direction PPPpos;
@@ -977,13 +977,13 @@ void DrawCatenaryOnBridge(const TileInfo *ti)
 	uint y = ti->y + y_ppp_offsets[PPPpos];
 
 	/* every other tile needs a pylon on the northern end */
-	if (num % 2) {
+	if (odd) {
 		AddPylonSprite (ti, pylon, x + x_pcp_offsets[PCPpos],
 				y + y_pcp_offsets[PCPpos], height);
 	}
 
 	/* need a pylon on the southern end of the bridge */
-	if (num == length) {
+	if (last) {
 		PCPpos = ReverseDiagDir(PCPpos);
 		AddPylonSprite (ti, pylon, x + x_pcp_offsets[PCPpos],
 				y + y_pcp_offsets[PCPpos], height);
