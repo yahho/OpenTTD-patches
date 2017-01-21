@@ -94,6 +94,15 @@ static inline bool IsOddY (TileIndex t)
 	return HasBit (TileY(t), 0);
 }
 
+/**
+ * Test if a rail type has catenary
+ * @param rt Rail type to test
+ */
+static inline bool HasCatenary (RailType rt)
+{
+	return HasCatenary (GetRailTypeInfo (rt));
+}
+
 /** Get the electrified track bits on a railway tile. */
 static TrackBits GetElectrifiedTrackBits (TileIndex t)
 {

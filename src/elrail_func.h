@@ -26,15 +26,6 @@ static inline bool HasCatenary (const RailtypeInfo *rti)
 }
 
 /**
- * Test if a rail type has catenary
- * @param rt Rail type to test
- */
-static inline bool HasCatenary(RailType rt)
-{
-	return HasCatenary (GetRailTypeInfo (rt));
-}
-
-/**
  * Test if we should draw rail catenary
  */
 static inline bool IsCatenaryDrawn()
