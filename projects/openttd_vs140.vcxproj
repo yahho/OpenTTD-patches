@@ -1162,7 +1162,6 @@
     <ClInclude Include="..\src\table\cargo_const.h" />
     <ClInclude Include="..\src\table\clear_land.h" />
     <ClInclude Include="..\src\table\control_codes.h" />
-    <ClInclude Include="..\src\table\elrail_data.h" />
     <ClCompile Include="..\src\table\engines.cpp">
       <AssemblerListingLocation>$(IntDir)\table\</AssemblerListingLocation>
       <ObjectFileName>$(IntDir)\table\</ObjectFileName>

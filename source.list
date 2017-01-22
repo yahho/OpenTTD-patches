@@ -627,7 +627,6 @@ table/build_industry.h
 table/cargo_const.h
 table/clear_land.h
 table/control_codes.h
-table/elrail_data.h
 table/engines.cpp
 table/engines.h
 table/genland.h

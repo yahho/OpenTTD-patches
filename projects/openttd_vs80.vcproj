@@ -5463,10 +5463,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\..\src\table\elrail_data.h"
-				>
-			</File>
-			<File
 				RelativePath=".\..\src\table\engines.cpp"
 				>
 				<FileConfiguration
