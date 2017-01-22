@@ -686,9 +686,10 @@ static void DrawPylon (const TileInfo *ti, DiagDirection side, Direction dir,
 static inline void AddWireSprite (const TileInfo *ti, SpriteID wire_base,
 	const SortableSpriteStructM *sss, uint config, int z)
 {
-	AddSortableSpriteToDraw (ti->vd, wire_base + sss->image_offset[config],
-			PAL_NONE, ti->x + sss->x_offset, ti->y + sss->y_offset,
-			sss->x_size, sss->y_size, sss->z_size,
+	AddSortableSpriteToDraw (ti->vd,
+			wire_base + sss->image_offset[config - 1], PAL_NONE,
+			ti->x + sss->x_offset, ti->y + sss->y_offset,
+			sss->x_size, sss->y_size, 1,
 			z + sss->z_offset, IsTransparencySet (TO_CATENARY));
 }
 

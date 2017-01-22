@@ -102,18 +102,15 @@ enum WireSpriteOffset {
 	WSO_ENTRANCE_SE,
 	WSO_ENTRANCE_SW,
 	WSO_ENTRANCE_NW,
-
-	WSO_INVALID = 0xFF,
 };
 
 struct SortableSpriteStructM {
-	uint8 image_offset[4];
 	int8 x_offset;
 	int8 y_offset;
 	int8 x_size;
 	int8 y_size;
-	int8 z_size;
 	int8 z_offset;
+	uint8 image_offset[3];
 };
 
 /** Distance between wire and rail */
@@ -122,25 +119,25 @@ static const uint ELRAIL_ELEVATION = 10;
 static const uint ELRAIL_ELEVRAISE = ELRAIL_ELEVATION + TILE_HEIGHT;
 
 static const SortableSpriteStructM CatenarySpriteData[TRACK_END] = {
-	{ { WSO_INVALID, WSO_X_NE, WSO_X_SW, WSO_X_SHORT  },  0,  7, 15,  1,  1, ELRAIL_ELEVATION }, // X flat
-	{ { WSO_INVALID, WSO_Y_SE, WSO_Y_NW, WSO_Y_SHORT  },  7,  0,  1, 15,  1, ELRAIL_ELEVATION }, // Y flat
-	{ { WSO_INVALID, WSO_EW_W, WSO_EW_E, WSO_EW_SHORT },  7,  0,  1,  1,  1, ELRAIL_ELEVATION }, // UPPER
-	{ { WSO_INVALID, WSO_EW_E, WSO_EW_W, WSO_EW_SHORT }, 15,  8,  3,  3,  1, ELRAIL_ELEVATION }, // LOWER
-	{ { WSO_INVALID, WSO_NS_S, WSO_NS_N, WSO_NS_SHORT },  8,  0,  8,  8,  1, ELRAIL_ELEVATION }, // LEFT
-	{ { WSO_INVALID, WSO_NS_N, WSO_NS_S, WSO_NS_SHORT },  0,  8,  8,  8,  1, ELRAIL_ELEVATION }, // RIGHT
+	{  0,  7, 15,  1, ELRAIL_ELEVATION, { WSO_X_NE, WSO_X_SW, WSO_X_SHORT  } }, // X flat
+	{  7,  0,  1, 15, ELRAIL_ELEVATION, { WSO_Y_SE, WSO_Y_NW, WSO_Y_SHORT  } }, // Y flat
+	{  7,  0,  1,  1, ELRAIL_ELEVATION, { WSO_EW_W, WSO_EW_E, WSO_EW_SHORT } }, // UPPER
+	{ 15,  8,  3,  3, ELRAIL_ELEVATION, { WSO_EW_E, WSO_EW_W, WSO_EW_SHORT } }, // LOWER
+	{  8,  0,  8,  8, ELRAIL_ELEVATION, { WSO_NS_S, WSO_NS_N, WSO_NS_SHORT } }, // LEFT
+	{  0,  8,  8,  8, ELRAIL_ELEVATION, { WSO_NS_N, WSO_NS_S, WSO_NS_SHORT } }, // RIGHT
 };
 
 static const SortableSpriteStructM CatenarySpriteDataSW =
-	{ { WSO_INVALID, WSO_X_NE_UP,   WSO_X_SW_UP,   WSO_X_SHORT_UP   },  0,  7, 15,  8,  1, ELRAIL_ELEVRAISE }; // X up
+	{  0,  7, 15,  8, ELRAIL_ELEVRAISE, { WSO_X_NE_UP,   WSO_X_SW_UP,   WSO_X_SHORT_UP   } }; // X up
 
 static const SortableSpriteStructM CatenarySpriteDataSE =
-	{ { WSO_INVALID, WSO_Y_SE_UP,   WSO_Y_NW_UP,   WSO_Y_SHORT_UP   },  7,  0,  8, 15,  1, ELRAIL_ELEVRAISE }; // Y up
+	{  7,  0,  8, 15, ELRAIL_ELEVRAISE, { WSO_Y_SE_UP,   WSO_Y_NW_UP,   WSO_Y_SHORT_UP   } }; // Y up
 
 static const SortableSpriteStructM CatenarySpriteDataNW =
-	{ { WSO_INVALID, WSO_Y_SE_DOWN, WSO_Y_NW_DOWN, WSO_Y_SHORT_DOWN },  7,  0,  8, 15,  1, ELRAIL_ELEVATION }; // Y down
+	{  7,  0,  8, 15, ELRAIL_ELEVATION, { WSO_Y_SE_DOWN, WSO_Y_NW_DOWN, WSO_Y_SHORT_DOWN } }; // Y down
 
 static const SortableSpriteStructM CatenarySpriteDataNE =
-	{ { WSO_INVALID, WSO_X_NE_DOWN, WSO_X_SW_DOWN, WSO_X_SHORT_DOWN },  0,  7, 15,  8,  1, ELRAIL_ELEVATION }; // X down
+	{  0,  7, 15,  8, ELRAIL_ELEVATION, { WSO_X_NE_DOWN, WSO_X_SW_DOWN, WSO_X_SHORT_DOWN } }; // X down
 
 
 #endif /* ELRAIL_DATA_H */
