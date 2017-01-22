@@ -676,6 +676,23 @@ static void DrawPylon (const TileInfo *ti, DiagDirection side, Direction dir,
 }
 
 /**
+ * Add a wire sprite for a tile.
+ * @param ti The TileInfo struct of the tile being drawn.
+ * @param wire_base The base of the wire sprite to draw.
+ * @param sss The sprite data for the wire.
+ * @param config The configuration to use for the wire.
+ * @param z Base Z position of the sprite.
+ */
+static inline void AddWireSprite (const TileInfo *ti, SpriteID wire_base,
+	const SortableSpriteStructM *sss, uint config, int z)
+{
+	AddSortableSpriteToDraw (ti->vd, wire_base + sss->image_offset[config],
+			PAL_NONE, ti->x + sss->x_offset, ti->y + sss->y_offset,
+			sss->x_size, sss->y_size, sss->z_size,
+			z + sss->z_offset, IsTransparencySet (TO_CATENARY));
+}
+
+/**
  * Draws overhead wires and pylons for electric railways.
  * @param ti The TileInfo struct of the tile being drawn.
  * @param rti The rail type information of the rail.
@@ -774,12 +791,8 @@ static void DrawCatenary (const TileInfo *ti, const RailtypeInfo *rti,
 		 * Therefore it is safe to use GetSlopePixelZ() for the elevation.
 		 * Also note that the result of GetSlopePixelZ() is very special for bridge-ramps.
 		 */
-		AddSortableSpriteToDraw (ti->vd,
-			wire_base + sss->image_offset[pcp_config], PAL_NONE,
-			ti->x + sss->x_offset, ti->y + sss->y_offset,
-			sss->x_size, sss->y_size, sss->z_size,
-			GetSlopePixelZ (ti->x + sss->x_offset, ti->y + sss->y_offset) + sss->z_offset,
-			IsTransparencySet(TO_CATENARY));
+		AddWireSprite (ti, wire_base, sss, pcp_config,
+			GetSlopePixelZ (ti->x + sss->x_offset, ti->y + sss->y_offset));
 	}
 }
 
@@ -947,8 +960,6 @@ void DrawCatenaryOnBridge(const TileInfo *ti)
 
 	Axis axis = GetBridgeAxis(ti->tile);
 
-	const SortableSpriteStructM *sss = &CatenarySpriteData[AxisToTrack(axis)];
-
 	uint config;
 	if (odd && last) {
 		/* Draw the "short" wire on the southern end of the bridge
@@ -961,12 +972,8 @@ void DrawCatenaryOnBridge(const TileInfo *ti)
 
 	uint height = GetBridgePixelHeight(end);
 
-	SpriteID wire_base = GetWireBase (rti, end, TCX_ON_BRIDGE);
-
-	AddSortableSpriteToDraw (ti->vd, wire_base + sss->image_offset[config], PAL_NONE, ti->x + sss->x_offset, ti->y + sss->y_offset,
-		sss->x_size, sss->y_size, sss->z_size, height + sss->z_offset,
-		IsTransparencySet(TO_CATENARY)
-	);
+	AddWireSprite (ti, GetWireBase (rti, end, TCX_ON_BRIDGE),
+			&CatenarySpriteData[AxisToTrack(axis)], config, height);
 
 	/* Finished with wires, draw pylons */
 	if (!odd && !last) return; /* no pylons to draw */
