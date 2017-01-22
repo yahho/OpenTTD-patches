@@ -31,31 +31,8 @@ static const int8 y_pcp_offsets[DIAGDIR_END] = {8, 16,  8, 0};
 static const int8 x_ppp_offsets[DIR_END] = {-2, -4, -2,  0,  2,  4,  2,  0};
 static const int8 y_ppp_offsets[DIR_END] = {-2,  0,  2,  4,  2,  0, -2, -4};
 
-/**
- * Offset for pylon sprites from the base pylon sprite.
- */
-enum PylonSpriteOffset {
-	PSO_Y_NE,
-	PSO_Y_SW,
-	PSO_X_NW,
-	PSO_X_SE,
-	PSO_EW_N,
-	PSO_EW_S,
-	PSO_NS_W,
-	PSO_NS_E,
-};
-
 /* The type of pylon to draw at each PPP */
-static const uint8 pylon_sprites[] = {
-	PSO_EW_N,
-	PSO_Y_NE,
-	PSO_NS_E,
-	PSO_X_SE,
-	PSO_EW_S,
-	PSO_Y_SW,
-	PSO_NS_W,
-	PSO_X_NW,
-};
+static const uint8 pylon_sprites[DIR_END] = { 4, 0, 7, 3, 5, 1, 6, 2, };
 
 /**
  * Offset for wire sprites from the base wire sprite.
