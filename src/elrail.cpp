@@ -772,8 +772,18 @@ static void DrawCatenary (const TileInfo *ti, const RailtypeInfo *rti,
 
 	Track t;
 	FOR_EACH_SET_TRACK(t, wires) {
-		byte pcp_config = HasBit(pcp_status, PCPpositions[t][0]) +
-			(HasBit(pcp_status, PCPpositions[t][1]) << 1);
+		/* Map a track bit onto its two tile sides. */
+		static const byte track_sides[TRACK_END][2] = {
+			{DIAGDIR_NE, DIAGDIR_SW}, // X
+			{DIAGDIR_SE, DIAGDIR_NW}, // Y
+			{DIAGDIR_NW, DIAGDIR_NE}, // UPPER
+			{DIAGDIR_SE, DIAGDIR_SW}, // LOWER
+			{DIAGDIR_SW, DIAGDIR_NW}, // LEFT
+			{DIAGDIR_NE, DIAGDIR_SE}, // RIGHT
+		};
+
+		byte pcp_config = HasBit(pcp_status, track_sides[t][0]) +
+			(HasBit(pcp_status, track_sides[t][1]) << 1);
 
 		assert(pcp_config != 0); // We have a pylon on neither end of the wire, that doesn't work (since we have no sprites for that)
 		assert(!IsSteepSlope(slope));

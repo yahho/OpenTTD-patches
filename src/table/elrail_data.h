@@ -23,16 +23,6 @@ static const byte AllowedPPPonPCP[DIAGDIR_END] = {
 	1 << DIR_N | 1 << DIR_NE | 1 << DIR_E  | 1 << DIR_S | 1 << DIR_SW | 1 << DIR_W,
 };
 
-/** Maps a track bit onto two PCP positions */
-static const DiagDirection PCPpositions[TRACK_END][2] = {
-	{DIAGDIR_NE, DIAGDIR_SW}, // X
-	{DIAGDIR_SE, DIAGDIR_NW}, // Y
-	{DIAGDIR_NW, DIAGDIR_NE}, // UPPER
-	{DIAGDIR_SE, DIAGDIR_SW}, // LOWER
-	{DIAGDIR_SW, DIAGDIR_NW}, // LEFT
-	{DIAGDIR_NE, DIAGDIR_SE}, // RIGHT
-};
-
 
 /* Geometric placement of the PCP relative to the tile origin */
 static const int8 x_pcp_offsets[DIAGDIR_END] = {0,  8, 16, 8};
