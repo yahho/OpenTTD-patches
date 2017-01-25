@@ -2152,6 +2152,14 @@
       <ObjectFileName>$(IntDir)\thread\</ObjectFileName>
       <XMLDocumentationFileName>$(IntDir)\thread\</XMLDocumentationFileName>
     </ClCompile>
+    <ClInclude Include="..\src\tracerestrict.h" />
+    <ClCompile Include="..\src\tracerestrict.cpp" />
+    <ClCompile Include="..\src\tracerestrict_gui.cpp" />
+    <ClCompile Include="..\src\saveload\tracerestrict_sl.cpp">
+      <AssemblerListingLocation>$(IntDir)\saveload\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\saveload\</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)\saveload\</XMLDocumentationFileName>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\media\openttd.ico" />
