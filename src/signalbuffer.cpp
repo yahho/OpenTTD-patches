@@ -803,8 +803,10 @@ void AddCrossingToSignalBuffer (TileIndex tile, Owner owner)
 {
 	SetBufferOwner (owner);
 
+	DiagDirection dir = IsRailBridgeTile(tile) ? GetTunnelBridgeDirection(tile) : INVALID_DIAGDIR;
+
 	for (DiagDirection side = DIAGDIR_BEGIN; side < DIAGDIR_END; side++) {
-		_globset.Add (SignalSideFrom (tile, (SignalSideEnum)side));
+		_globset.Add (SignalSideFrom (tile, (side == dir) ? SIDE_FROM_BRIDGE : (SignalSideEnum)side));
 	}
 
 	UpdateSignalsInBufferAuto();
