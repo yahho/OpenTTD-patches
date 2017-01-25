@@ -60,6 +60,17 @@ void Blitter_32bppNoanim::Surface::recolour_rect (void *dst, int width, int heig
 	DEBUG(misc, 0, "32bpp blitter doesn't know how to draw this colour table ('%d')", pal);
 }
 
+void Blitter_32bppNoanim::Surface::draw_checker (void *video, uint width, uint height, uint8 colour, byte bo)
+{
+	Colour colour32 = LookupColourInPalette (colour);
+	Colour *dst = (Colour *) video;
+	uint i = bo;
+	do {
+		for (i = !(i & 1); i < width; i += 2) dst[i] = colour32;
+		dst += this->pitch;
+	} while (--height > 0);
+}
+
 void Blitter_32bppNoanim::Surface::copy (Buffer *dst, int x, int y, uint width, uint height)
 {
 	dst->resize (width, height, sizeof(uint32));

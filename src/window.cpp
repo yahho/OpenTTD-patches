@@ -689,8 +689,8 @@ static void DispatchLeftClickEvent(Window *w, int x, int y, int click_count)
 					prefs->pref_height = w->height;
 				}
 			} else {
-				int16 def_width = max<int16>(min(w->window_desc->GetDefaultWidth(), _screen.width), w->nested_root->smallest_x);
-				int16 def_height = max<int16>(min(w->window_desc->GetDefaultHeight(), _screen.height - 50), w->nested_root->smallest_y);
+				int16 def_width  = max<int16> (min (w->window_desc->GetDefaultWidth(),  _screen_width), w->nested_root->smallest_x);
+				int16 def_height = max<int16> (min (w->window_desc->GetDefaultHeight(), _screen_height - 50), w->nested_root->smallest_y);
 
 				int dx = (w->resize.step_width  == 0) ? 0 : def_width  - w->width;
 				int dy = (w->resize.step_height == 0) ? 0 : def_height - w->height;
@@ -903,7 +903,7 @@ static void DrawOverlappedWindow (BlitArea *dp, Window *w, int left, int top, in
 	dp->height = bottom - top;
 	dp->left = left - w->left;
 	dp->top = top - w->top;
-	dp->dst_ptr = _screen.surface->move (_screen.dst_ptr, left, top);
+	dp->dst_ptr = _screen_surface->move (_screen_surface->ptr, left, top);
 	w->OnPaint (dp);
 }
 
@@ -919,7 +919,7 @@ void DrawOverlappedWindowForAll(int left, int top, int right, int bottom)
 {
 	Window *w;
 	BlitArea bk;
-	bk.surface = _screen.surface;
+	bk.surface = _screen_surface.get();
 
 	FOR_ALL_WINDOWS_FROM_BACK(w) {
 		if (MayBeShown(w) &&
@@ -1414,14 +1414,14 @@ void Window::FindWindowPlacementAndResize(int def_width, int def_height)
 	 * can then determine the real minimum size of the window. */
 	if (this->width != def_width || this->height != def_height) {
 		/* Think about the overlapping toolbars when determining the minimum window size */
-		int free_height = _screen.height;
+		int free_height = _screen_height;
 		const Window *wt = FindWindowById(WC_STATUS_BAR, 0);
 		if (wt != NULL) free_height -= wt->height;
 		wt = FindWindowById(WC_MAIN_TOOLBAR, 0);
 		if (wt != NULL) free_height -= wt->height;
 
-		int enlarge_x = max(min(def_width  - this->width,  _screen.width - this->width),  0);
-		int enlarge_y = max(min(def_height - this->height, free_height   - this->height), 0);
+		int enlarge_x = max (min (def_width  - this->width,  _screen_width - this->width),  0);
+		int enlarge_y = max (min (def_height - this->height, free_height   - this->height), 0);
 
 		/* X and Y has to go by step.. calculate it.
 		 * The cast to int is necessary else x/y are implicitly casted to
@@ -1439,7 +1439,7 @@ void Window::FindWindowPlacementAndResize(int def_width, int def_height)
 	int nx = this->left;
 	int ny = this->top;
 
-	if (nx + this->width > _screen.width) nx -= (nx + this->width - _screen.width);
+	if (nx + this->width > _screen_width) nx -= (nx + this->width - _screen_width);
 
 	const Window *wt = FindWindowById(WC_MAIN_TOOLBAR, 0);
 	ny = max(ny, (wt == NULL || this == wt || this->top == 0) ? 0 : wt->height);
@@ -1472,7 +1472,7 @@ static bool IsGoodAutoPlace1(int left, int top, int width, int height, Point &po
 	int bottom = height + top;
 
 	const Window *main_toolbar = FindWindowByClass(WC_MAIN_TOOLBAR);
-	if (left < 0 || (main_toolbar != NULL && top < main_toolbar->height) || right > _screen.width || bottom > _screen.height) return false;
+	if (left < 0 || (main_toolbar != NULL && top < main_toolbar->height) || right > _screen_width || bottom > _screen_height) return false;
 
 	/* Make sure it is not obscured by any window. */
 	const Window *w;
@@ -1508,9 +1508,9 @@ static bool IsGoodAutoPlace2(int left, int top, int width, int height, Point &po
 	/* Left part of the rectangle may be at most 1/4 off-screen,
 	 * right part of the rectangle may be at most 1/2 off-screen
 	 */
-	if (left < -(width >> 2) || left > _screen.width - (width >> 1)) return false;
+	if (left < -(width >> 2) || left > _screen_width - (width >> 1)) return false;
 	/* Bottom part of the rectangle may be at most 1/4 off-screen */
-	if (top < 22 || top > _screen.height - (height >> 2)) return false;
+	if (top < 22 || top > _screen_height - (height >> 2)) return false;
 
 	/* Make sure it is not obscured by any window. */
 	const Window *w;
@@ -1635,11 +1635,11 @@ static Point LocalGetWindowPlacement(const WindowDesc *desc, int16 sm_width, int
 
 	if (desc->parent_cls != 0 /* WC_MAIN_WINDOW */ &&
 			(w = FindWindowById(desc->parent_cls, window_number)) != NULL &&
-			w->left < _screen.width - 20 && w->left > -60 && w->top < _screen.height - 20) {
+			w->left < _screen_width - 20 && w->left > -60 && w->top < _screen_height - 20) {
 
 		pt.x = w->left + ((desc->parent_cls == WC_BUILD_TOOLBAR || desc->parent_cls == WC_SCEN_LAND_GEN) ? 0 : 10);
-		if (pt.x > _screen.width + 10 - default_width) {
-			pt.x = (_screen.width + 10 - default_width) - 20;
+		if (pt.x > _screen_width + 10 - default_width) {
+			pt.x = (_screen_width + 10 - default_width) - 20;
 		}
 		pt.y = w->top + ((desc->parent_cls == WC_BUILD_TOOLBAR || desc->parent_cls == WC_SCEN_LAND_GEN) ? w->height : 10);
 		return pt;
@@ -1653,8 +1653,8 @@ static Point LocalGetWindowPlacement(const WindowDesc *desc, int16 sm_width, int
 			return GetAutoPlacePosition(default_width, default_height);
 
 		case WDP_CENTER: // Centre the window horizontally
-			pt.x = (_screen.width - default_width) / 2;
-			pt.y = (_screen.height - default_height) / 2;
+			pt.x = (_screen_width - default_width) / 2;
+			pt.y = (_screen_height - default_height) / 2;
 			break;
 
 		case WDP_MANUAL:
@@ -1963,14 +1963,14 @@ static void PreventHiding(int *nx, int *ny, const Rect &rect, const Window *v, i
 		return;
 	}
 	if (*nx + rect.right - MIN_VISIBLE_TITLE_BAR > v_right) { // At right of v.
-		if (v_right > _screen.width - MIN_VISIBLE_TITLE_BAR) *ny = safe_y; // Not enough room, force it to a safe position.
+		if (v_right > _screen_width - MIN_VISIBLE_TITLE_BAR) *ny = safe_y; // Not enough room, force it to a safe position.
 		return;
 	}
 
 	/* Horizontally also hidden, force movement to a safe area. */
 	if (px + rect.left < v->left && v->left >= MIN_VISIBLE_TITLE_BAR) { // Coming from the left, and enough room there.
 		*nx = v->left - MIN_VISIBLE_TITLE_BAR - rect.left;
-	} else if (px + rect.right > v_right && v_right <= _screen.width - MIN_VISIBLE_TITLE_BAR) { // Coming from the right, and enough room there.
+	} else if (px + rect.right > v_right && v_right <= _screen_width - MIN_VISIBLE_TITLE_BAR) { // Coming from the right, and enough room there.
 		*nx = v_right + MIN_VISIBLE_TITLE_BAR - rect.right;
 	} else {
 		*ny = safe_y;
@@ -1996,8 +1996,8 @@ static void EnsureVisibleCaption(Window *w, int nx, int ny)
 		caption_rect.bottom = caption->pos_y + caption->current_y;
 
 		/* Make sure the window doesn't leave the screen */
-		nx = Clamp(nx, MIN_VISIBLE_TITLE_BAR - caption_rect.right, _screen.width - MIN_VISIBLE_TITLE_BAR - caption_rect.left);
-		ny = Clamp(ny, 0, _screen.height - MIN_VISIBLE_TITLE_BAR);
+		nx = Clamp (nx, MIN_VISIBLE_TITLE_BAR - caption_rect.right, _screen_width - MIN_VISIBLE_TITLE_BAR - caption_rect.left);
+		ny = Clamp (ny, 0, _screen_height - MIN_VISIBLE_TITLE_BAR);
 
 		/* Make sure the title bar isn't hidden behind the main tool bar or the status bar. */
 		PreventHiding(&nx, &ny, caption_rect, FindWindowById(WC_MAIN_TOOLBAR, 0), w->left, PHD_DOWN);
@@ -2073,7 +2073,7 @@ int GetMainViewTop()
 int GetMainViewBottom()
 {
 	Window *w = FindWindowById(WC_STATUS_BAR, 0);
-	return (w == NULL) ? _screen.height : w->top;
+	return (w == NULL) ? _screen_height : w->top;
 }
 
 static bool _dragging_window; ///< A window is being dragged or resized.
@@ -2210,8 +2210,8 @@ static EventState HandleWindowDragging()
 			if (w->resize.step_height == 0) y = 0;
 
 			/* Check the resize button won't go past the bottom of the screen */
-			if (w->top + w->height + y > _screen.height) {
-				y = _screen.height - w->height - w->top;
+			if (w->top + w->height + y > _screen_height) {
+				y = _screen_height - w->height - w->top;
 			}
 
 			/* X and Y has to go by step.. calculate it.
@@ -2779,7 +2779,6 @@ static void MouseLoop(MouseClick click, int mousewheel)
 		switch (click) {
 			case MC_DOUBLE_LEFT:
 			case MC_LEFT:
-				DEBUG(misc, 2, "Cursor: 0x%X (%d)", _cursor.sprite, _cursor.sprite);
 				if (!HandleViewportClicked(vp, x, y) &&
 						!(w->flags & WF_DISABLE_VP_SCROLL) &&
 						_settings_client.gui.left_mouse_btn_scrolling) {
@@ -2888,7 +2887,7 @@ void HandleMouseEvents()
 
 	if (click == MC_LEFT && _newgrf_debug_sprite_picker.mode == SPM_WAIT_CLICK) {
 		/* Mark whole screen dirty, and wait for the next realtime tick, when drawing is finished. */
-		_newgrf_debug_sprite_picker.clicked_pixel = _screen.surface->move (_screen.dst_ptr, _cursor.pos.x, _cursor.pos.y);
+		_newgrf_debug_sprite_picker.clicked_pixel = _screen_surface->move (_screen_surface->ptr, _cursor.pos.x, _cursor.pos.y);
 		_newgrf_debug_sprite_picker.click_time = _realtime_tick;
 		_newgrf_debug_sprite_picker.sprites.Clear();
 		_newgrf_debug_sprite_picker.mode = SPM_REDRAW;
@@ -3284,12 +3283,12 @@ static int PositionWindow(Window *w, WindowClass clss, int setting)
 
 	int old_left = w->left;
 	switch (setting) {
-		case 1:  w->left = (_screen.width - w->width) / 2; break;
-		case 2:  w->left = _screen.width - w->width; break;
+		case 1:  w->left = (_screen_width - w->width) / 2; break;
+		case 2:  w->left = _screen_width - w->width; break;
 		default: w->left = 0; break;
 	}
 	if (w->viewport != NULL) w->viewport->left += w->left - old_left;
-	SetDirtyBlocks(0, w->top, _screen.width, w->top + w->height); // invalidate the whole row
+	SetDirtyBlocks (0, w->top, _screen_width, w->top + w->height); // invalidate the whole row
 	return w->left;
 }
 

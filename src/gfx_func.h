@@ -35,7 +35,6 @@
  *
  * @see VideoDriver::MakeDirty
  * @see _invalid_rect
- * @see _screen
  */
 
 
@@ -49,7 +48,7 @@
 
 /** Data about how and where to blit pixels. */
 struct BlitArea {
-	ttd_shared_ptr <Blitter::Surface> surface;
+	Blitter::Surface *surface;
 	void *dst_ptr;
 	int left, top, width, height;
 };
@@ -76,7 +75,8 @@ extern bool _left_button_clicked;
 extern bool _right_button_down;
 extern bool _right_button_clicked;
 
-extern BlitArea _screen;
+extern ttd_unique_ptr <Blitter::Surface> _screen_surface;
+extern int _screen_width, _screen_height;
 
 extern int _num_resolutions;
 extern Dimension _resolutions[32];
@@ -103,7 +103,7 @@ void GfxScroll(int left, int top, int width, int height, int xo, int yo);
 
 Dimension GetSpriteSize(SpriteID sprid, Point *offset = NULL, ZoomLevel zoom = ZOOM_LVL_GUI);
 void DrawSpriteViewport (DrawPixelInfo *dpi, SpriteID img, PaletteID pal, int x, int y, const SubSprite *sub = NULL);
-void DrawSprite (BlitArea *dpi, SpriteID img, PaletteID pal, int x, int y, const SubSprite *sub = NULL, ZoomLevel zoom = ZOOM_LVL_GUI);
+void DrawSprite (BlitArea *dpi, SpriteID img, PaletteID pal, int x, int y);
 
 /** How to align the to-be drawn text. */
 enum StringAlignment {
@@ -153,7 +153,8 @@ bool InitBlitArea (const BlitArea *o, BlitArea *n, int left, int top, int width,
 /* window.cpp */
 void DrawOverlappedWindowForAll(int left, int top, int right, int bottom);
 
-void SetMouseCursor(CursorID cursor, PaletteID pal);
+void SetMouseCursorBusy(bool busy);
+void SetMouseCursor (CursorID cursor);
 void SetAnimatedMouseCursor(const AnimCursor *table);
 void CursorTick();
 void UpdateCursorSize();
@@ -162,10 +163,6 @@ void SortResolutions(int count);
 bool ToggleFullScreen(bool fs);
 
 /* gfx.cpp */
-byte GetCharacterWidth(FontSize size, uint32 key);
-byte GetDigitWidth(FontSize size = FS_NORMAL);
-uint64 GetBroadestValue (uint n, FontSize size = FS_NORMAL);
-
 int GetCharacterHeight(FontSize size);
 
 /** Height of characters in the small (#FS_SMALL) font. */

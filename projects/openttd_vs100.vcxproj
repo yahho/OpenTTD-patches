@@ -1145,7 +1145,6 @@
     <ClInclude Include="..\src\table\cargo_const.h" />
     <ClInclude Include="..\src\table\clear_land.h" />
     <ClInclude Include="..\src\table\control_codes.h" />
-    <ClInclude Include="..\src\table\elrail_data.h" />
     <ClCompile Include="..\src\table\engines.cpp">
       <AssemblerListingLocation>$(IntDir)\table\</AssemblerListingLocation>
       <ObjectFileName>$(IntDir)\table\</ObjectFileName>
@@ -1179,7 +1178,6 @@
     <ClInclude Include="..\src\table\track_land.h" />
     <ClInclude Include="..\src\table\train_cmd.h" />
     <ClInclude Include="..\src\table\tree_land.h" />
-    <ClInclude Include="..\src\table\unicode.h" />
     <ClInclude Include="..\src\table\water_land.h" />
     <ClCompile Include="..\src\3rdparty\md5\md5.cpp">
       <AssemblerListingLocation>$(IntDir)\3rdparty\md5\</AssemblerListingLocation>
@@ -1849,8 +1847,6 @@
     <ClInclude Include="..\src\music\music_driver.hpp" />
     <ClInclude Include="..\src\sound\sound_driver.hpp" />
     <ClInclude Include="..\src\video\video_driver.hpp" />
-    <ClCompile Include="..\src\spriteloader.cpp" />
-    <ClInclude Include="..\src\spriteloader.h" />
     <ClCompile Include="..\src\newgrf.cpp" />
     <ClCompile Include="..\src\newgrf_airport.cpp" />
     <ClCompile Include="..\src\newgrf_airporttiles.cpp" />

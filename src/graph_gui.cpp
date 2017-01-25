@@ -35,8 +35,7 @@ static uint _legend_excluded_companies;
 static uint _legend_excluded_cargo;
 
 /* Apparently these don't play well with enums. */
-static const OverflowSafeInt64 INVALID_DATAPOINT(INT64_MAX); // Value used for a datapoint that shouldn't be drawn.
-static const uint INVALID_DATAPOINT_POS = UINT_MAX;  // Used to determine if the previous point was drawn.
+static const int64 INVALID_DATAPOINT = INT64_MIN; // Value used for a datapoint that shouldn't be drawn.
 
 /****************/
 /* GRAPH LEGEND */
@@ -193,7 +192,7 @@ protected:
 	int graph_widget;
 	StringID format_str_y_axis;
 	byte colours[GRAPH_MAX_DATASETS];
-	OverflowSafeInt64 cost[GRAPH_MAX_DATASETS][GRAPH_NUM_MONTHS]; ///< Stored costs for the last #GRAPH_NUM_MONTHS months
+	int64 cost[GRAPH_MAX_DATASETS][GRAPH_NUM_MONTHS]; ///< Stored costs for the last #GRAPH_NUM_MONTHS months
 
 	/**
 	 * Get the interval that contains the graph's data. Excluded data is ignored to show smaller values in
@@ -205,51 +204,55 @@ protected:
 	{
 		assert(num_hori_lines > 0);
 
-		ValuesInterval current_interval;
-		current_interval.highest = INT64_MIN;
-		current_interval.lowest  = INT64_MAX;
+		/* Always include zero in the shown range. */
+		int64 highest = 0;
+		int64 lowest  = 0;
 
 		for (int i = 0; i < this->num_dataset; i++) {
 			if (HasBit(this->excluded_data, i)) continue;
 			for (int j = 0; j < this->num_on_x_axis; j++) {
-				OverflowSafeInt64 datapoint = this->cost[i][j];
+				int64 datapoint = this->cost[i][j];
 
 				if (datapoint != INVALID_DATAPOINT) {
-					current_interval.highest = max(current_interval.highest, datapoint);
-					current_interval.lowest  = min(current_interval.lowest, datapoint);
+					highest = max (highest, datapoint);
+					lowest  = min (lowest,  datapoint);
 				}
 			}
 		}
 
-		/* Prevent showing values too close to the graph limits. */
-		current_interval.highest = (11 * current_interval.highest) / 10;
-		current_interval.lowest =  (11 * current_interval.lowest) / 10;
+		assert (lowest  <= 0);
+		assert (highest >= 0);
 
-		/* Always include zero in the shown range. */
-		double abs_lower  = (current_interval.lowest > 0) ? 0 : (double)abs(current_interval.lowest);
-		double abs_higher = (current_interval.highest < 0) ? 0 : (double)current_interval.highest;
-
-		int num_pos_grids;
-		int64 grid_size;
-
-		if (abs_lower != 0 || abs_higher != 0) {
-			/* The number of grids to reserve for the positive part is: */
-			num_pos_grids = (int)floor(0.5 + num_hori_lines * abs_higher / (abs_higher + abs_lower));
-
-			/* If there are any positive or negative values, force that they have at least one grid. */
-			if (num_pos_grids == 0 && abs_higher != 0) num_pos_grids++;
-			if (num_pos_grids == num_hori_lines && abs_lower != 0) num_pos_grids--;
-
-			/* Get the required grid size for each side and use the maximum one. */
-			int64 grid_size_higher = (abs_higher > 0) ? ((int64)abs_higher + num_pos_grids - 1) / num_pos_grids : 0;
-			int64 grid_size_lower = (abs_lower > 0) ? ((int64)abs_lower + num_hori_lines - num_pos_grids - 1) / (num_hori_lines - num_pos_grids) : 0;
-			grid_size = max(grid_size_higher, grid_size_lower);
-		} else {
+		if (highest == lowest) {
 			/* If both values are zero, show an empty graph. */
-			num_pos_grids = num_hori_lines / 2;
-			grid_size = 1;
+			assert (lowest  == 0);
+			assert (highest == 0);
+
+			ValuesInterval current_interval;
+			current_interval.lowest = 0;
+			current_interval.highest = num_hori_lines;
+			return current_interval;
 		}
 
+		/* Prevent showing values too close to the graph limits. */
+		double abs_lower  = (-(double)lowest) * 11 / 10;
+		double abs_higher = ((double)highest) * 11 / 10;
+
+		assert (abs_lower > 0 || abs_higher > 0);
+
+		/* The number of grids to reserve for the positive part is: */
+		int num_pos_grids = (int)floor(0.5 + num_hori_lines * abs_higher / (abs_higher + abs_lower));
+
+		/* If there are any positive or negative values, force that they have at least one grid. */
+		if (num_pos_grids == 0 && abs_higher != 0) num_pos_grids++;
+		if (num_pos_grids == num_hori_lines && abs_lower != 0) num_pos_grids--;
+
+		/* Get the required grid size for each side and use the maximum one. */
+		int64 grid_size_higher = (abs_higher > 0) ? ((int64)abs_higher + num_pos_grids - 1) / num_pos_grids : 0;
+		int64 grid_size_lower = (abs_lower > 0) ? ((int64)abs_lower + num_hori_lines - num_pos_grids - 1) / (num_hori_lines - num_pos_grids) : 0;
+		int64 grid_size = max (grid_size_higher, grid_size_lower);
+
+		ValuesInterval current_interval;
 		current_interval.highest = num_pos_grids * grid_size;
 		current_interval.lowest = -(num_hori_lines - num_pos_grids) * grid_size;
 		return current_interval;
@@ -416,17 +419,21 @@ protected:
 		uint pointoffs2 = linewidth + 1 - pointoffs1;
 		for (int i = 0; i < this->num_dataset; i++) {
 			if (!HasBit(this->excluded_data, i)) {
+				/* No previous point marker. */
+				static const uint INVALID_POS = UINT_MAX;
+
 				/* Centre the dot between the grid lines. */
 				x = r.left + (x_sep / 2);
 
 				byte colour  = this->colours[i];
-				uint prev_x = INVALID_DATAPOINT_POS;
-				uint prev_y = INVALID_DATAPOINT_POS;
+				uint prev_x = INVALID_POS;
+				uint prev_y = INVALID_POS;
 
 				for (int j = 0; j < this->num_on_x_axis; j++) {
-					OverflowSafeInt64 datapoint = this->cost[i][j];
+					int64 dp = this->cost[i][j];
 
-					if (datapoint != INVALID_DATAPOINT) {
+					if (dp != INVALID_DATAPOINT) {
+						OverflowSafeInt64 datapoint (dp);
 						/*
 						 * Check whether we need to reduce the 'accuracy' of the
 						 * datapoint value and the highest value to split overflows.
@@ -453,13 +460,13 @@ protected:
 						GfxFillRect (dpi, x - pointoffs1, y - pointoffs1, x + pointoffs2, y + pointoffs2, colour);
 
 						/* Draw the line connected to the previous point. */
-						if (prev_x != INVALID_DATAPOINT_POS) GfxDrawLine (dpi, prev_x, prev_y, x, y, colour, linewidth);
+						if (prev_x != INVALID_POS) GfxDrawLine (dpi, prev_x, prev_y, x, y, colour, linewidth);
 
 						prev_x = x;
 						prev_y = y;
 					} else {
-						prev_x = INVALID_DATAPOINT_POS;
-						prev_y = INVALID_DATAPOINT_POS;
+						prev_x = INVALID_POS;
+						prev_y = INVALID_POS;
 					}
 
 					x += x_sep;
@@ -486,15 +493,6 @@ protected:
 		memset (this->cost, 0, sizeof(this->cost));
 		SetWindowDirty(WC_GRAPH_LEGEND, 0);
 	}
-
-	void InitializeWindow(WindowNumber number)
-	{
-		/* Initialise the dataset */
-		this->UpdateStatistics(true);
-
-		this->InitNested(number);
-	}
-
 public:
 	virtual void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize)
 	{
@@ -538,11 +536,28 @@ public:
 
 		DrawGraph (dpi, r);
 	}
+};
 
-	virtual OverflowSafeInt64 GetGraphData(const Company *c, int j)
+
+/**************************/
+/* BASE OF COMPANY GRAPHS */
+/**************************/
+
+struct CompanyGraphWindow : BaseGraphWindow {
+	CompanyGraphWindow (const WindowDesc *desc, int widget, StringID format_str_y_axis)
+		: BaseGraphWindow (desc, widget, format_str_y_axis)
 	{
-		return INVALID_DATAPOINT;
 	}
+
+	void InitializeWindow(WindowNumber number)
+	{
+		/* Initialise the dataset */
+		this->UpdateStatistics(true);
+
+		this->InitNested(number);
+	}
+
+	virtual int64 GetGraphData (const Company *c, int j) = 0;
 
 	virtual void OnClick(Point pt, int widget, int click_count)
 	{
@@ -625,14 +640,14 @@ public:
 /* OPERATING PROFIT */
 /********************/
 
-struct OperatingProfitGraphWindow : BaseGraphWindow {
+struct OperatingProfitGraphWindow : CompanyGraphWindow {
 	OperatingProfitGraphWindow (const WindowDesc *desc, WindowNumber window_number) :
-			BaseGraphWindow(desc, WID_CV_GRAPH, STR_JUST_CURRENCY_SHORT)
+			CompanyGraphWindow (desc, WID_CV_GRAPH, STR_JUST_CURRENCY_SHORT)
 	{
 		this->InitializeWindow(window_number);
 	}
 
-	virtual OverflowSafeInt64 GetGraphData(const Company *c, int j)
+	int64 GetGraphData (const Company *c, int j) OVERRIDE
 	{
 		return c->old_economy[j].income + c->old_economy[j].expenses;
 	}
@@ -679,14 +694,14 @@ void ShowOperatingProfitGraph()
 /* INCOME GRAPH */
 /****************/
 
-struct IncomeGraphWindow : BaseGraphWindow {
+struct IncomeGraphWindow : CompanyGraphWindow {
 	IncomeGraphWindow (const WindowDesc *desc, WindowNumber window_number) :
-			BaseGraphWindow(desc, WID_CV_GRAPH, STR_JUST_CURRENCY_SHORT)
+			CompanyGraphWindow (desc, WID_CV_GRAPH, STR_JUST_CURRENCY_SHORT)
 	{
 		this->InitializeWindow(window_number);
 	}
 
-	virtual OverflowSafeInt64 GetGraphData(const Company *c, int j)
+	int64 GetGraphData (const Company *c, int j) OVERRIDE
 	{
 		return c->old_economy[j].income;
 	}
@@ -731,14 +746,14 @@ void ShowIncomeGraph()
 /* DELIVERED CARGO */
 /*******************/
 
-struct DeliveredCargoGraphWindow : BaseGraphWindow {
+struct DeliveredCargoGraphWindow : CompanyGraphWindow {
 	DeliveredCargoGraphWindow (const WindowDesc *desc, WindowNumber window_number) :
-			BaseGraphWindow(desc, WID_CV_GRAPH, STR_JUST_COMMA)
+			CompanyGraphWindow (desc, WID_CV_GRAPH, STR_JUST_COMMA)
 	{
 		this->InitializeWindow(window_number);
 	}
 
-	virtual OverflowSafeInt64 GetGraphData(const Company *c, int j)
+	int64 GetGraphData (const Company *c, int j) OVERRIDE
 	{
 		return c->old_economy[j].delivered_cargo.GetSum<OverflowSafeInt64>();
 	}
@@ -783,14 +798,14 @@ void ShowDeliveredCargoGraph()
 /* PERFORMANCE HISTORY */
 /***********************/
 
-struct PerformanceHistoryGraphWindow : BaseGraphWindow {
+struct PerformanceHistoryGraphWindow : CompanyGraphWindow {
 	PerformanceHistoryGraphWindow (const WindowDesc *desc, WindowNumber window_number) :
-			BaseGraphWindow(desc, WID_PHG_GRAPH, STR_JUST_COMMA)
+			CompanyGraphWindow (desc, WID_PHG_GRAPH, STR_JUST_COMMA)
 	{
 		this->InitializeWindow(window_number);
 	}
 
-	virtual OverflowSafeInt64 GetGraphData(const Company *c, int j)
+	int64 GetGraphData (const Company *c, int j) OVERRIDE
 	{
 		return c->old_economy[j].performance_history;
 	}
@@ -798,7 +813,7 @@ struct PerformanceHistoryGraphWindow : BaseGraphWindow {
 	virtual void OnClick(Point pt, int widget, int click_count)
 	{
 		if (widget == WID_PHG_DETAILED_PERFORMANCE) ShowPerformanceRatingDetail();
-		this->BaseGraphWindow::OnClick(pt, widget, click_count);
+		this->CompanyGraphWindow::OnClick (pt, widget, click_count);
 	}
 };
 
@@ -842,14 +857,14 @@ void ShowPerformanceHistoryGraph()
 /* COMPANY VALUE */
 /*****************/
 
-struct CompanyValueGraphWindow : BaseGraphWindow {
+struct CompanyValueGraphWindow : CompanyGraphWindow {
 	CompanyValueGraphWindow (const WindowDesc *desc, WindowNumber window_number) :
-			BaseGraphWindow(desc, WID_CV_GRAPH, STR_JUST_CURRENCY_SHORT)
+			CompanyGraphWindow (desc, WID_CV_GRAPH, STR_JUST_CURRENCY_SHORT)
 	{
 		this->InitializeWindow(window_number);
 	}
 
-	virtual OverflowSafeInt64 GetGraphData(const Company *c, int j)
+	int64 GetGraphData (const Company *c, int j) OVERRIDE
 	{
 		return c->old_economy[j].company_value;
 	}
@@ -1022,11 +1037,6 @@ struct PaymentRatesGraphWindow : BaseGraphWindow {
 				}
 				break;
 		}
-	}
-
-	virtual void OnTick()
-	{
-		/* Override default OnTick */
 	}
 
 	/**

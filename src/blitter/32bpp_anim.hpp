@@ -36,6 +36,12 @@ public:
 			memset (anim_buf, 0, width * height * sizeof(uint16));
 		}
 
+		/** Get the animation pointer for a given video pointer. */
+		uint16 *get_anim_pos (const void *dst)
+		{
+			return this->anim_buf + ((const uint32 *)dst - (uint32 *)this->ptr);
+		}
+
 		/** Look up the colour in the current palette. */
 		Colour lookup_colour (uint index) const
 		{
@@ -47,6 +53,8 @@ public:
 		void draw_rect (void *video, int width, int height, uint8 colour) OVERRIDE;
 
 		void recolour_rect (void *video, int width, int height, PaletteID pal) OVERRIDE;
+
+		void draw_checker (void *video, uint width, uint height, uint8 colour, byte bo) OVERRIDE;
 
 		void scroll (void *video, int &left, int &top, int &width, int &height, int scroll_x, int scroll_y) OVERRIDE;
 
@@ -66,22 +74,16 @@ public:
 	static const char name[]; ///< Name of the blitter.
 	static const char desc[]; ///< Description of the blitter.
 
-	::Sprite *Encode (const SpriteLoader::Sprite *sprite, bool is_font, AllocatorProc *allocator) OVERRIDE
+	::Sprite *Encode (const RawSprite *sprite, bool is_font, AllocatorProc *allocator) OVERRIDE
 	{
 		return Sprite::encode (sprite, is_font, allocator);
 	}
 
 	/** Blitting surface. */
-	struct Surface : Blitter_32bppAnimBase::Surface, FlexArrayBase {
+	struct Surface : Blitter_32bppAnimBase::Surface, FlexArray<uint16> {
 		uint16 anim_buf[]; ///< In this buffer we keep track of the 8bpp indexes so we can do palette animation
 
 	private:
-		void *operator new (size_t size, uint width, uint height)
-		{
-			size_t extra = width * height * sizeof(uint16);
-			return ::operator new (size + extra);
-		}
-
 		Surface (void *ptr, uint width, uint height, uint pitch)
 			: Blitter_32bppAnimBase::Surface (ptr, width, height, pitch, this->anim_buf)
 		{

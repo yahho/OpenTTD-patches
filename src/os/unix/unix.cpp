@@ -15,6 +15,7 @@
 #include "../../crashlog.h"
 #include "../../core/random_func.hpp"
 #include "../../debug.h"
+#include "../../fios.h"
 
 
 #include <dirent.h>
@@ -74,7 +75,7 @@ bool FiosIsRoot(const char *path)
 #endif
 }
 
-void FiosGetDrives()
+void FiosGetDrives(FileList &file_list)
 {
 	return;
 }
@@ -94,7 +95,7 @@ bool FiosGetDiskFreeSpace(const char *path, uint64 *tot)
 	if (statvfs(path, &s) != 0) return false;
 	free = (uint64)s.f_frsize * s.f_bavail;
 #endif
-	if (tot != NULL) *tot = free;
+	*tot = free;
 	return true;
 }
 

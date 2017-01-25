@@ -5460,10 +5460,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\..\src\table\elrail_data.h"
-				>
-			</File>
-			<File
 				RelativePath=".\..\src\table\engines.cpp"
 				>
 				<FileConfiguration
@@ -5641,10 +5637,6 @@
 			</File>
 			<File
 				RelativePath=".\..\src\table\tree_land.h"
-				>
-			</File>
-			<File
-				RelativePath=".\..\src\table\unicode.h"
 				>
 			</File>
 			<File
@@ -10961,18 +10953,6 @@
 			</File>
 			<File
 				RelativePath=".\..\src\video\video_driver.hpp"
-				>
-			</File>
-		</Filter>
-		<Filter
-			Name="Sprite loaders"
-			>
-			<File
-				RelativePath=".\..\src\spriteloader.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\..\src\spriteloader.h"
 				>
 			</File>
 		</Filter>

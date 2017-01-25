@@ -239,7 +239,7 @@ public:
 		NWidgetBase *list = this->GetWidget<NWidgetBase>(WID_BBS_BRIDGE_LIST);
 		Point corner; // point of the top left corner of the window.
 		corner.y = Clamp(_cursor.pos.y - list->pos_y - 5, GetMainViewTop(), GetMainViewBottom() - sm_height);
-		corner.x = Clamp(_cursor.pos.x - list->pos_x - 5, 0, _screen.width - sm_width);
+		corner.x = Clamp(_cursor.pos.x - list->pos_x - 5, 0, _screen_width - sm_width);
 		return corner;
 	}
 

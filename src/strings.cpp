@@ -108,7 +108,7 @@ void SetDParamMaxValue(uint n, uint64 max_value, uint min_count, FontSize size)
  */
 void SetDParamMaxDigits(uint n, uint count, FontSize size)
 {
-	SetDParam (n, GetBroadestValue (count, size));
+	SetDParam (n, FontCache::Get(size)->GetBroadestValue (count));
 }
 
 /**
@@ -1483,123 +1483,85 @@ static void AppendStationSpecialString (stringb *buf, int x)
 }
 
 
-static const char * const _silly_company_names[] = {
-	"Bloggs Brothers",
-	"Tiny Transport Ltd.",
-	"Express Travel",
-	"Comfy-Coach & Co.",
-	"Crush & Bump Ltd.",
-	"Broken & Late Ltd.",
-	"Sam Speedy & Son",
-	"Supersonic Travel",
-	"Mike's Motors",
-	"Lightning International",
-	"Pannik & Loozit Ltd.",
-	"Inter-City Transport",
-	"Getout & Pushit Ltd."
-};
-
-static const char * const _surname_list[] = {
-	"Adams",
-	"Allan",
-	"Baker",
-	"Bigwig",
-	"Black",
-	"Bloggs",
-	"Brown",
-	"Campbell",
-	"Gordon",
-	"Hamilton",
-	"Hawthorn",
-	"Higgins",
-	"Green",
-	"Gribble",
-	"Jones",
-	"McAlpine",
-	"MacDonald",
-	"McIntosh",
-	"Muir",
-	"Murphy",
-	"Nelson",
-	"O'Donnell",
-	"Parker",
-	"Phillips",
-	"Pilkington",
-	"Quigley",
-	"Sharkey",
-	"Thomson",
-	"Watkins"
-};
-
-static const char * const _silly_surname_list[] = {
-	"Grumpy",
-	"Dozy",
-	"Speedy",
-	"Nosey",
-	"Dribble",
-	"Mushroom",
-	"Cabbage",
-	"Sniffle",
-	"Fishy",
-	"Swindle",
-	"Sneaky",
-	"Nutkins"
-};
-
-static const char _initial_name_letters[] = {
-	'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J',
-	'K', 'L', 'M', 'N', 'P', 'R', 'S', 'T', 'W',
-};
-
-static void GenAndCoName (stringb *buf, uint32 arg)
+static const char *GenSurname (uint32 arg)
 {
+	static const char * const surname_list[] = {
+		"Adams",    "Allan",     "Baker",    "Bigwig",   "Black",
+		"Bloggs",   "Brown",     "Campbell", "Gordon",   "Hamilton",
+		"Hawthorn", "Higgins",   "Green",    "Gribble",  "Jones",
+		"McAlpine", "MacDonald", "McIntosh", "Muir",     "Murphy",
+		"Nelson",   "O'Donnell", "Parker",   "Phillips", "Pilkington",
+		"Quigley",  "Sharkey",   "Thomson",  "Watkins",
+	};
+
+	static const char * const silly_list[] = {
+		"Grumpy", "Dozy", "Speedy", "Nosey", "Dribble", "Mushroom",
+		"Cabbage", "Sniffle", "Fishy", "Swindle", "Sneaky", "Nutkins",
+	};
+
 	const char * const *base;
 	uint num;
 
 	if (_settings_game.game_creation.landscape == LT_TOYLAND) {
-		base = _silly_surname_list;
-		num  = lengthof(_silly_surname_list);
+		base = silly_list;
+		num  = lengthof(silly_list);
 	} else {
-		base = _surname_list;
-		num  = lengthof(_surname_list);
+		base = surname_list;
+		num  = lengthof(surname_list);
 	}
 
-	buf->append (base[num * GB(arg, 16, 8) >> 8]);
+	return base[num * GB(arg, 16, 8) >> 8];
+}
+
+static void GenAndCoName (stringb *buf, uint32 arg)
+{
+	buf->append (GenSurname (arg));
 	buf->append (" & Co.");
 }
 
 static void GenPresidentName (stringb *buf, uint32 x)
 {
+	static const char initials[] = {
+		'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J',
+		'K', 'L', 'M', 'N', 'P', 'R', 'S', 'T', 'W',
+	};
+
 	char initial[] = "?. ";
-	const char * const *base;
-	uint num;
 	uint i;
 
-	initial[0] = _initial_name_letters[sizeof(_initial_name_letters) * GB(x, 0, 8) >> 8];
+	initial[0] = initials[sizeof(initials) * GB(x, 0, 8) >> 8];
 	buf->append (initial);
 
-	i = (sizeof(_initial_name_letters) + 35) * GB(x, 8, 8) >> 8;
-	if (i < sizeof(_initial_name_letters)) {
-		initial[0] = _initial_name_letters[i];
+	i = (sizeof(initials) + 35) * GB(x, 8, 8) >> 8;
+	if (i < sizeof(initials)) {
+		initial[0] = initials[i];
 		buf->append (initial);
 	}
 
-	if (_settings_game.game_creation.landscape == LT_TOYLAND) {
-		base = _silly_surname_list;
-		num  = lengthof(_silly_surname_list);
-	} else {
-		base = _surname_list;
-		num  = lengthof(_surname_list);
-	}
-
-	buf->append (base[num * GB(x, 16, 8) >> 8]);
+	buf->append (GenSurname (x));
 }
 
 static void AppendSpecialNameString (stringb *buf, int ind, StringParameters *args)
 {
+	static const char * const silly_company_names[] = {
+		"Bloggs Brothers",
+		"Tiny Transport Ltd.",
+		"Express Travel",
+		"Comfy-Coach & Co.",
+		"Crush & Bump Ltd.",
+		"Broken & Late Ltd.",
+		"Sam Speedy & Son",
+		"Supersonic Travel",
+		"Mike's Motors",
+		"Lightning International",
+		"Pannik & Loozit Ltd.",
+		"Inter-City Transport",
+		"Getout & Pushit Ltd.",
+	};
+
 	switch (ind) {
 		case 1: // not used
-			buf->append (_silly_company_names[min(args->GetInt32() & 0xFFFF, lengthof(_silly_company_names) - 1)]);
+			buf->append (silly_company_names[min(args->GetInt32() & 0xFFFF, lengthof(silly_company_names) - 1)]);
 			return;
 
 		case 2: // used for Foobar & Co company names
@@ -1973,11 +1935,9 @@ void MissingGlyphSearcher::SetFontNames (struct FreeTypeSettings *settings, cons
 
 /**
  * Check whether there are glyphs missing in the current language.
- * @param Pointer to an address for storing the text pointer.
  * @return If glyphs are missing, return \c true, else return \c false.
- * @post If \c true is returned and str is not NULL, *str points to a string that is found to contain at least one missing glyph.
  */
-bool MissingGlyphSearcher::FindMissingGlyphs(const char **str)
+bool MissingGlyphSearcher::FindMissingGlyphs (void)
 {
 	InitFreeType(this->Monospace());
 	const Sprite *question_mark[FS_END];
@@ -1989,9 +1949,11 @@ bool MissingGlyphSearcher::FindMissingGlyphs(const char **str)
 	this->Reset();
 	for (const char *text = this->NextString(); text != NULL; text = this->NextString()) {
 		FontSize size = this->DefaultSize();
-		if (str != NULL) *str = text;
-		for (WChar c = Utf8Consume(&text); c != '\0'; c = Utf8Consume(&text)) {
-			if (c == SCC_TINYFONT) {
+		for (;;) {
+			WChar c = Utf8Consume(&text);
+			if (c == '\0') {
+				break;
+			} else if (c == SCC_TINYFONT) {
 				size = FS_SMALL;
 			} else if (c == SCC_BIGFONT) {
 				size = FS_LARGE;
@@ -2055,7 +2017,7 @@ void CheckForMissingGlyphs(bool base_font, MissingGlyphSearcher *searcher)
 {
 	static LanguagePackGlyphSearcher pack_searcher;
 	if (searcher == NULL) searcher = &pack_searcher;
-	bool bad_font = !base_font || searcher->FindMissingGlyphs(NULL);
+	bool bad_font = !base_font || searcher->FindMissingGlyphs();
 #ifdef WITH_FREETYPE
 	if (bad_font) {
 		/* We found an unprintable character... lets try whether we can find

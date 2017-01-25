@@ -262,7 +262,7 @@ public:
 
 	void SetFontNames (struct FreeTypeSettings *settings, const char *font_name);
 
-	bool FindMissingGlyphs(const char **str);
+	bool FindMissingGlyphs (void);
 };
 
 void CheckForMissingGlyphs(bool base_font = true, MissingGlyphSearcher *search = NULL);

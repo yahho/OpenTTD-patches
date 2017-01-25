@@ -38,6 +38,7 @@
 #include "textfile.h"
 #include "stringfilter_type.h"
 #include "querystring_gui.h"
+#include "spritecache.h"
 
 
 static const StringID _driveside_dropdown[] = {
@@ -114,8 +115,8 @@ static int GetCurRes()
 	int i;
 
 	for (i = 0; i != _num_resolutions; i++) {
-		if ((int)_resolutions[i].width == _screen.width &&
-				(int)_resolutions[i].height == _screen.height) {
+		if ((int)_resolutions[i].width == _screen_width &&
+				(int)_resolutions[i].height == _screen_height) {
 			break;
 		}
 	}

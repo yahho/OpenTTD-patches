@@ -75,7 +75,7 @@ static void CleanupGeneration()
 {
 	_generating_world = false;
 
-	if (_cursor.sprite == SPR_CURSOR_ZZZ) SetMouseCursor(SPR_CURSOR_MOUSE, PAL_NONE);
+	SetMouseCursorBusy(false);
 	/* Show all vital windows again, because we have hidden them */
 	if (_gw.threaded && _game_mode != GM_MENU) ShowVitalWindows();
 	SetModalProgress(false);
@@ -329,7 +329,7 @@ void GenerateWorld(GenWorldMode mode, uint size_x, uint size_y, bool reset_setti
 		_gw.thread = NULL;
 	}
 
-	if (!VideoDriver::GetActiveDriver()->HasGUI() || !ThreadObject::New(&_GenerateWorld, NULL, &_gw.thread)) {
+	if (!VideoDriver::GetActiveDriver()->HasGUI() || !ThreadObject::New(&_GenerateWorld, NULL, &_gw.thread, "ottd:genworld")) {
 		DEBUG(misc, 1, "Cannot create genworld thread, reverting to single-threaded mode");
 		_gw.threaded = false;
 		_modal_progress_work_mutex->EndCritical();

@@ -61,41 +61,38 @@
     <Filter Include="Drivers">
       <UniqueIdentifier>{c76ff9f1-1e62-46d8-8d55-000000000019}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Sprite loaders">
+    <Filter Include="NewGRF">
       <UniqueIdentifier>{c76ff9f1-1e62-46d8-8d55-000000000020}</UniqueIdentifier>
     </Filter>
-    <Filter Include="NewGRF">
+    <Filter Include="Tile Accessors">
       <UniqueIdentifier>{c76ff9f1-1e62-46d8-8d55-000000000021}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Tile Accessors">
+    <Filter Include="Map Accessors">
       <UniqueIdentifier>{c76ff9f1-1e62-46d8-8d55-000000000022}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Map Accessors">
+    <Filter Include="Misc">
       <UniqueIdentifier>{c76ff9f1-1e62-46d8-8d55-000000000023}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Misc">
+    <Filter Include="Network Core">
       <UniqueIdentifier>{c76ff9f1-1e62-46d8-8d55-000000000024}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Network Core">
+    <Filter Include="Pathfinder">
       <UniqueIdentifier>{c76ff9f1-1e62-46d8-8d55-000000000025}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Pathfinder">
+    <Filter Include="Video">
       <UniqueIdentifier>{c76ff9f1-1e62-46d8-8d55-000000000026}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Video">
+    <Filter Include="Music">
       <UniqueIdentifier>{c76ff9f1-1e62-46d8-8d55-000000000027}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Music">
+    <Filter Include="Sound">
       <UniqueIdentifier>{c76ff9f1-1e62-46d8-8d55-000000000028}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Sound">
+    <Filter Include="Windows files">
       <UniqueIdentifier>{c76ff9f1-1e62-46d8-8d55-000000000029}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Windows files">
-      <UniqueIdentifier>{c76ff9f1-1e62-46d8-8d55-000000000030}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Threading">
-      <UniqueIdentifier>{c76ff9f1-1e62-46d8-8d55-000000000031}</UniqueIdentifier>
+      <UniqueIdentifier>{c76ff9f1-1e62-46d8-8d55-000000000030}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -1869,9 +1866,6 @@
     <ClInclude Include="..\src\table\control_codes.h">
       <Filter>Tables</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\table\elrail_data.h">
-      <Filter>Tables</Filter>
-    </ClInclude>
     <ClCompile Include="..\src\table\engines.cpp">
       <Filter>Tables</Filter>
     </ClCompile>
@@ -1945,9 +1939,6 @@
       <Filter>Tables</Filter>
     </ClInclude>
     <ClInclude Include="..\src\table\tree_land.h">
-      <Filter>Tables</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\table\unicode.h">
       <Filter>Tables</Filter>
     </ClInclude>
     <ClInclude Include="..\src\table\water_land.h">
@@ -2660,12 +2651,6 @@
     </ClInclude>
     <ClInclude Include="..\src\video\video_driver.hpp">
       <Filter>Drivers</Filter>
-    </ClInclude>
-    <ClCompile Include="..\src\spriteloader.cpp">
-      <Filter>Sprite loaders</Filter>
-    </ClCompile>
-    <ClInclude Include="..\src\spriteloader.h">
-      <Filter>Sprite loaders</Filter>
     </ClInclude>
     <ClCompile Include="..\src\newgrf.cpp">
       <Filter>NewGRF</Filter>

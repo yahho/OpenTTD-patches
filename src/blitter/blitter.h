@@ -14,8 +14,15 @@
 
 #include "../core/pointer.h"
 #include "../string.h"
-#include "../spritecache.h"
-#include "../spriteloader.h"
+#include "../gfx_type.h"
+
+/** Data structure describing a sprite. */
+struct Sprite {
+	uint16 height; ///< Height of the sprite.
+	uint16 width;  ///< Width of the sprite.
+	int16 x_offs;  ///< Number of pixels to shift the sprite to the right.
+	int16 y_offs;  ///< Number of pixels to shift the sprite downwards.
+};
 
 /** The modes of blitting we can do. */
 enum BlitterMode {
@@ -31,6 +38,26 @@ enum BlitterMode {
  */
 class Blitter {
 public:
+	typedef void *AllocatorProc (size_t size);
+
+	/** Structure for a raw sprite to encode. */
+	struct RawSprite {
+		/** Definition of a raw pixel. */
+		struct Pixel {
+			uint8 r;  ///< Red-channel
+			uint8 g;  ///< Green-channel
+			uint8 b;  ///< Blue-channel
+			uint8 a;  ///< Alpha-channel
+			uint8 m;  ///< Remap-channel
+		};
+
+		Pixel *data;    ///< The sprite itself
+		uint16 height;  ///< Height of the sprite
+		uint16 width;   ///< Width of the sprite
+		int16  x_offs;  ///< The x-offset of where the sprite will be drawn
+		int16  y_offs;  ///< The y-offset of where the sprite will be drawn
+	};
+
 	/** Parameters related to blitting. */
 	struct BlitterParams {
 		const Sprite *sprite; ///< Pointer to the sprite how ever the encoder stored it
@@ -87,7 +114,7 @@ public:
 	/**
 	 * Convert a sprite from the loader to our own format.
 	 */
-	virtual Sprite *Encode (const SpriteLoader::Sprite *sprite, bool is_font, AllocatorProc *allocator) = 0;
+	virtual Sprite *Encode (const RawSprite *sprite, bool is_font, AllocatorProc *allocator) = 0;
 
 	/**
 	 * Check if the blitter uses palette animation at all.
@@ -99,7 +126,7 @@ public:
 
 	/** Helper function to allocate a sprite in Encode. */
 	template <typename T>
-	static T *AllocateSprite (const SpriteLoader::Sprite *sprite,
+	static T *AllocateSprite (const RawSprite *sprite,
 		AllocatorProc *allocator, size_t extra = 0)
 	{
 		T *s = (T *) allocator (sizeof(T) + extra);
@@ -195,6 +222,16 @@ public:
 		 * @param pal the palette to use.
 		 */
 		virtual void recolour_rect (void *video, int width, int height, PaletteID pal) = 0;
+
+		/**
+		 * Draw a checker pattern over a rectangle.
+		 * @param video The destination pointer (video-buffer).
+		 * @param width The width of the rectangle to fill.
+		 * @param height The height of the rectangle to fill.
+		 * @param colour A 8bpp mapping colour.
+		 * @param bo Whether the pattern covers the top left corner (0 or 1).
+		 */
+		virtual void draw_checker (void *video, uint width, uint height, uint8 colour, byte bo) = 0;
 
 		/**
 		 * Scroll the videobuffer some 'x' and 'y' value.

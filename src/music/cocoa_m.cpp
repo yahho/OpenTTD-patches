@@ -28,6 +28,10 @@
 #undef Rect
 #undef Point
 
+#if !defined(HAVE_OSX_1011_SDK)
+#define kMusicSequenceFile_AnyType 0
+#endif
+
 static MusicDriverFactory <MusicDriver_Cocoa>
 		iFMusicDriver_Cocoa (10, "cocoa", "Cocoa MIDI Driver");
 
@@ -67,7 +71,7 @@ static void DoSetVolume()
 			 * risk compilation errors. The header AudioComponent.h
 			 * was introduced in 10.6 so use it to decide which
 			 * type definition to use. */
-#ifdef __AUDIOCOMPONENT_H__
+#if defined(__AUDIOCOMPONENT_H__) || defined(HAVE_OSX_107_SDK)
 			AudioComponentDescription desc;
 #else
 			ComponentDescription desc;
@@ -158,7 +162,7 @@ void MusicDriver_Cocoa::PlaySong(const char *filename)
 
 #if (MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_5)
 	if (MacOSVersionIsAtLeast(10, 5, 0)) {
-		if (MusicSequenceFileLoad(_sequence, url, 0, 0) != noErr) {
+		if (MusicSequenceFileLoad(_sequence, url, kMusicSequenceFile_AnyType, 0) != noErr) {
 			DEBUG(driver, 0, "cocoa_m: Failed to load MIDI file");
 			CFRelease(url);
 			return;

@@ -203,11 +203,11 @@ bool FiosIsRoot(const char *file)
 	return file[3] == '\0'; // C:\...
 }
 
-void FiosGetDrives()
+void FiosGetDrives(FileList &file_list)
 {
 #if defined(WINCE)
 	/* WinCE only knows one drive: / */
-	FiosItem *fios = _fios_items.Append();
+	FiosItem *fios = file_list.Append();
 	fios->type = FIOS_TYPE_DRIVE;
 	fios->mtime = 0;
 	bstrcpy (fios->name, PATHSEP);
@@ -218,7 +218,7 @@ void FiosGetDrives()
 
 	GetLogicalDriveStrings(lengthof(drives), drives);
 	for (s = drives; *s != '\0';) {
-		FiosItem *fios = _fios_items.Append();
+		FiosItem *fios = file_list.Append();
 		fios->type = FIOS_TYPE_DRIVE;
 		fios->mtime = 0;
 		bstrfmt (fios->name, "%c:", s[0] & 0xFF);
@@ -259,7 +259,7 @@ bool FiosGetDiskFreeSpace(const char *path, uint64 *tot)
 	DWORD spc, bps, nfc, tnc;
 
 	_sntprintf(root, lengthof(root), _T("%c:") _T(PATHSEP), path[0]);
-	if (tot != NULL && GetDiskFreeSpace(root, &spc, &bps, &nfc, &tnc)) {
+	if (GetDiskFreeSpace(root, &spc, &bps, &nfc, &tnc)) {
 		*tot = ((spc * bps) * (uint64)nfc);
 		retval = true;
 	}
@@ -773,3 +773,36 @@ uint GetCPUCoreCount()
 	GetSystemInfo(&info);
 	return info.dwNumberOfProcessors;
 }
+
+#ifdef _MSC_VER
+/* Code from MSDN: https://msdn.microsoft.com/en-us/library/xcb2z8hs.aspx */
+const DWORD MS_VC_EXCEPTION = 0x406D1388;
+#pragma pack(push,8)
+typedef struct {
+	DWORD dwType;     ///< Must be 0x1000.
+	LPCSTR szName;    ///< Pointer to name (in user addr space).
+	DWORD dwThreadID; ///< Thread ID (-1=caller thread).
+	DWORD dwFlags;    ///< Reserved for future use, must be zero.
+} THREADNAME_INFO;
+#pragma pack(pop)
+
+/**
+ * Signal thread name to any attached debuggers.
+ */
+void SetWin32ThreadName(DWORD dwThreadID, const char* threadName)
+{
+	THREADNAME_INFO info;
+	info.dwType = 0x1000;
+	info.szName = threadName;
+	info.dwThreadID = dwThreadID;
+	info.dwFlags = 0;
+
+#pragma warning(push)
+#pragma warning(disable: 6320 6322)
+	__try {
+		RaiseException(MS_VC_EXCEPTION, 0, sizeof(info) / sizeof(ULONG_PTR), (ULONG_PTR*)&info);
+	} __except (EXCEPTION_EXECUTE_HANDLER) {
+	}
+#pragma warning(pop)
+}
+#endif

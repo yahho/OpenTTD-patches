@@ -10,6 +10,39 @@
 /** @file crashlog.cpp Implementation of generic function to be called to log a crash */
 
 #include "stdafx.h"
+
+#ifdef WITH_ALLEGRO
+#	include <allegro.h>
+#endif /* WITH_ALLEGRO */
+#ifdef WITH_FONTCONFIG
+#	include <fontconfig/fontconfig.h>
+#endif /* WITH_FONTCONFIG */
+#ifdef WITH_PNG
+	/* pngconf.h, included by png.h doesn't like something in the
+	 * freetype headers. As such it's not alphabetically sorted. */
+#	include <png.h>
+#endif /* WITH_PNG */
+#ifdef WITH_FREETYPE
+#	include <ft2build.h>
+#	include FT_FREETYPE_H
+#endif /* WITH_FREETYPE */
+#if defined(WITH_ICU_LAYOUT) || defined(WITH_ICU_SORT)
+#	include <unicode/uversion.h>
+#endif /* WITH_ICU_SORT || WITH_ICU_LAYOUT */
+#ifdef WITH_LZMA
+#	include <lzma.h>
+#endif
+#ifdef WITH_LZO
+#include <lzo/lzo1x.h>
+#endif
+#ifdef WITH_SDL
+#	include "sdl.h"
+#	include <SDL.h>
+#endif /* WITH_SDL */
+#ifdef WITH_ZLIB
+# include <zlib.h>
+#endif
+
 #include "crashlog.h"
 #include "gamelog.h"
 #include "date_func.h"
@@ -166,39 +199,6 @@ static void LogConfiguration (stringb *buffer)
 	}
 	buffer->append ('\n');
 }
-
-/* Include these here so it's close to where it's actually used. */
-#ifdef WITH_ALLEGRO
-#	include <allegro.h>
-#endif /* WITH_ALLEGRO */
-#ifdef WITH_FONTCONFIG
-#	include <fontconfig/fontconfig.h>
-#endif /* WITH_FONTCONFIG */
-#ifdef WITH_PNG
-	/* pngconf.h, included by png.h doesn't like something in the
-	 * freetype headers. As such it's not alphabetically sorted. */
-#	include <png.h>
-#endif /* WITH_PNG */
-#ifdef WITH_FREETYPE
-#	include <ft2build.h>
-#	include FT_FREETYPE_H
-#endif /* WITH_FREETYPE */
-#if defined(WITH_ICU_LAYOUT) || defined(WITH_ICU_SORT)
-#	include <unicode/uversion.h>
-#endif /* WITH_ICU_SORT || WITH_ICU_LAYOUT */
-#ifdef WITH_LZMA
-#	include <lzma.h>
-#endif
-#ifdef WITH_LZO
-#include <lzo/lzo1x.h>
-#endif
-#ifdef WITH_SDL
-#	include "sdl.h"
-#	include <SDL.h>
-#endif /* WITH_SDL */
-#ifdef WITH_ZLIB
-# include <zlib.h>
-#endif
 
 /**
  * Writes information (versions) of the used libraries.
@@ -373,7 +373,7 @@ bool CrashLog::WriteSavegame (stringb *filename) const
 bool CrashLog::WriteScreenshot (stringb *filename) const
 {
 	/* Don't draw when we have invalid screen size */
-	if (_screen.width < 1 || _screen.height < 1 || _screen.dst_ptr == NULL) return false;
+	if (_screen_width < 1 || _screen_height < 1 || !_screen_surface) return false;
 
 	bool res = MakeScreenshot(SC_CRASHLOG, "crash");
 	if (res) filename->copy (_full_screenshot_name);

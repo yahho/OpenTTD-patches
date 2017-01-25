@@ -14,6 +14,7 @@
 #include "../settings_type.h"
 #include "../core/math_func.hpp"
 #include "../core/mem_func.hpp"
+#include "../core/alloc_type.hpp"
 #include "8bpp_optimized.hpp"
 
 const char Blitter_8bppOptimized::name[] = "8bpp-optimized";
@@ -119,7 +120,7 @@ void Blitter_8bppOptimized::Surface::draw (const BlitterParams *bp, BlitterMode 
 	}
 }
 
-::Sprite *Blitter_8bppOptimized::Encode (const SpriteLoader::Sprite *sprite, bool is_font, AllocatorProc *allocator)
+::Sprite *Blitter_8bppOptimized::Encode (const RawSprite *sprite, bool is_font, AllocatorProc *allocator)
 {
 	/* Make memory for all zoom-levels */
 	ZoomLevel zoom_min;
@@ -170,7 +171,7 @@ void Blitter_8bppOptimized::Surface::draw (const BlitterParams *bp, BlitterMode 
 			byte *count_dst = NULL;
 
 			/* Store the scaled image */
-			const SpriteLoader::CommonPixel *src = &sprite[i].data[y * sprite[i].width];
+			const RawSprite::Pixel *src = &sprite[i].data[y * sprite[i].width];
 
 			for (int x = 0; x < scaled_width; x++) {
 				uint colour = src++->m;

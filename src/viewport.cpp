@@ -27,7 +27,11 @@
  */
 
 #include "stdafx.h"
+
+#include <vector>
+
 #include "debug.h"
+#include "cpu.h"
 #include "map/zoneheight.h"
 #include "map/slope.h"
 #include "map/bridge.h"
@@ -53,6 +57,7 @@
 #include "clear_func.h"
 #include "station_func.h"
 #include "viewport_sprite_sorter.h"
+#include "spritecache.h"
 
 #include "table/strings.h"
 #include "table/string_colours.h"
@@ -85,10 +90,16 @@ struct ChildScreenSpriteToDraw {
 
 /** Enumeration of multi-part foundations */
 enum FoundationPart {
-	FOUNDATION_PART_NONE     = 0xFF,  ///< Neither foundation nor groundsprite drawn yet.
 	FOUNDATION_PART_NORMAL   = 0,     ///< First part (normal foundation or no foundation)
 	FOUNDATION_PART_HALFTILE = 1,     ///< Second part (halftile foundation)
 	FOUNDATION_PART_END
+};
+
+/** Foundation part data */
+struct FoundationData {
+	Point offset;    ///< Pixel offset for ground sprites on the foundations.
+	int *last_child; ///< Tail of ChildSprite list of the foundations. (index into child_screen_sprites_to_draw)
+	int index;       ///< Foundation sprites (index into parent_sprites_to_draw).
 };
 
 /**
@@ -111,17 +122,14 @@ struct ViewportDrawer {
 
 	TileSpriteToDrawVector tile_sprites_to_draw;
 	ParentSpriteToDrawVector parent_sprites_to_draw;
-	ParentSpriteToSortVector parent_sprites_to_sort; ///< Parent sprite pointer array used for sorting
 	ChildScreenSpriteToDrawVector child_screen_sprites_to_draw;
 
 	int *last_child;
 
 	SpriteCombineMode combine_sprites;               ///< Current mode of "sprite combining". @see StartSpriteCombine
 
-	int foundation[FOUNDATION_PART_END];             ///< Foundation sprites (index into parent_sprites_to_draw).
-	FoundationPart foundation_part;                  ///< Currently active foundation for ground sprite drawing.
-	int *last_foundation_child[FOUNDATION_PART_END]; ///< Tail of ChildSprite list of the foundations. (index into child_screen_sprites_to_draw)
-	Point foundation_offset[FOUNDATION_PART_END];    ///< Pixel offset for ground sprites on the foundations.
+	FoundationData foundation[FOUNDATION_PART_END];  ///< Foundation data.
+	FoundationData *foundation_part;                 ///< Currently active foundation for ground sprite drawing.
 };
 
 bool IsViewportDrawerDetailed (const ViewportDrawer *vd)
@@ -135,7 +143,49 @@ TileHighlightData _thd;
 bool _draw_bounding_boxes = false;
 bool _draw_dirty_blocks = false;
 uint _dirty_block_colour = 0;
-static VpSpriteSorter _vp_sprite_sorter = NULL;
+
+
+/** Compare two parent sprites for sorting. */
+static bool CompareParentSprites (const ParentSpriteToDraw *ps1,
+	const ParentSpriteToDraw *ps2)
+{
+	if (ps1->xmax < ps2->xmin || ps1->ymax < ps2->ymin
+			|| ps1->zmax < ps2->zmin) {
+		/* First sprite goes before second one in some axis. */
+		return true;
+	}
+
+	if (ps1->xmin > ps2->xmax || ps1->ymin > ps2->ymax
+			|| ps1->zmin > ps2->zmax) {
+		/* No overlap, so second sprite goes before first one. */
+		return false;
+	}
+
+	/* Use X+Y+Z as the sorting order, so sprites closer to the bottom of
+	 * the screen and with higher Z elevation, are drawn in front. Here
+	 * X,Y,Z are the coordinates of the "center of mass" of the sprite,
+	 * i.e. X=(left+right)/2, etc. However, since we only care about
+	 * order, don't actually divide / 2. */
+	return  ps1->xmin + ps1->xmax + ps1->ymin + ps1->ymax + ps1->zmin + ps1->zmax <=
+		ps2->xmin + ps2->xmax + ps2->ymin + ps2->ymax + ps2->zmin + ps2->zmax;
+}
+
+/** Sort parent sprites pointer array */
+static void ViewportSortParentSprites (ParentSpriteToDraw **psd,
+	const ParentSpriteToDraw *const *psdvend)
+{
+	SortParentSprites (CompareParentSprites, psd, psdvend);
+}
+
+/** Type for the actual viewport sprite sorter. */
+typedef void (*VpSpriteSorter) (ParentSpriteToDraw **psd, const ParentSpriteToDraw *const *psdvend);
+
+static const VpSpriteSorter _vp_sprite_sorter =
+#ifdef WITH_SSE
+		HasCPUIDFlag (1, 2, 19) ? &ViewportSortParentSpritesSSE41 :
+#endif
+		&ViewportSortParentSprites;
+
 
 static Point MapXYZToViewport(const ViewPort *vp, int x, int y, int z)
 {
@@ -315,7 +365,7 @@ static void SetViewportPosition(Window *w, int x, int y)
 		left = 0;
 	}
 
-	i = left + width - _screen.width;
+	i = left + width - _screen_width;
 	if (i >= 0) width -= i;
 
 	if (width > 0) {
@@ -324,7 +374,7 @@ static void SetViewportPosition(Window *w, int x, int y)
 			top = 0;
 		}
 
-		i = top + height - _screen.height;
+		i = top + height - _screen_height;
 		if (i >= 0) height -= i;
 
 		if (height > 0) DoSetViewportPosition(w->z_front, left, top, width, height);
@@ -352,26 +402,19 @@ ViewPort *IsPtInWindowViewport(const Window *w, int x, int y)
 }
 
 /**
- * Translate screen coordinate in a viewport to a tile coordinate
- * @param vp  Viewport that contains the (\a x, \a y) screen coordinate
- * @param x   Screen x coordinate
- * @param y   Screen y coordinate
+ * Translate coordinates in a viewport to a tile coordinate
+ * @param x Viewport x coordinate
+ * @param y Viewport y coordinate
  * @return Tile coordinate
  */
-static Point TranslateXYToTileCoord(const ViewPort *vp, int x, int y)
+static Point TranslateXYToTileCoord (int x, int y)
 {
 	Point pt;
 	int a, b;
 	int z;
 
-	if ( (uint)(x -= vp->left) >= (uint)vp->width ||
-				(uint)(y -= vp->top) >= (uint)vp->height) {
-				Point pt = {-1, -1};
-				return pt;
-	}
-
-	x = (ScaleByZoom(x, vp->zoom) + vp->virtual_left) >> (2 + ZOOM_LVL_SHIFT);
-	y = (ScaleByZoom(y, vp->zoom) + vp->virtual_top) >> (1 + ZOOM_LVL_SHIFT);
+	x = x >> (2 + ZOOM_LVL_SHIFT);
+	y = y >> (1 + ZOOM_LVL_SHIFT);
 
 	a = y - x;
 	b = y + x;
@@ -405,43 +448,62 @@ static Point TranslateXYToTileCoord(const ViewPort *vp, int x, int y)
 	return pt;
 }
 
-/* When used for zooming, check area below current coordinates (x,y)
- * and return the tile of the zoomed out/in position (zoom_x, zoom_y)
- * when you just want the tile, make x = zoom_x and y = zoom_y */
-static Point GetTileFromScreenXY(int x, int y, int zoom_x, int zoom_y)
+Point GetTileBelowCursor()
 {
-	Window *w;
-	ViewPort *vp;
+	int x = _cursor.pos.x;
+	int y = _cursor.pos.y;
+
+	Window *w = FindWindowFromPt (x, y);
+
+	if (w != NULL) {
+		ViewPort *vp = w->viewport;
+		if (vp != NULL) {
+			x -= vp->left;
+			y -= vp->top;
+
+			if ((uint)x < (uint)vp->width && (uint)y < (uint)vp->height) {
+				x = ScaleByZoom (x, vp->zoom) + vp->virtual_left;
+				y = ScaleByZoom (y, vp->zoom) + vp->virtual_top;
+				return TranslateXYToTileCoord (x, y);
+			}
+		}
+	}
+
 	Point pt;
-
-	if ( (w = FindWindowFromPt(x, y)) != NULL &&
-			 (vp = IsPtInWindowViewport(w, x, y)) != NULL)
-				return TranslateXYToTileCoord(vp, zoom_x, zoom_y);
-
 	pt.y = pt.x = -1;
 	return pt;
 }
 
-Point GetTileBelowCursor()
+
+void ZoomInOrOutToCursorWindow (bool in, Window *w)
 {
-	return GetTileFromScreenXY(_cursor.pos.x, _cursor.pos.y, _cursor.pos.x, _cursor.pos.y);
-}
+	assert (w != NULL);
 
+	if (_game_mode != GM_MENU) {
+		ViewPort *vp = w->viewport;
+		if ((in && vp->zoom <= _settings_client.gui.zoom_min) || (!in && vp->zoom >= _settings_client.gui.zoom_max)) return;
 
-Point GetTileZoomCenterWindow(bool in, Window * w)
-{
-	int x, y;
-	ViewPort *vp = w->viewport;
+		uint x = _cursor.pos.x - vp->left;
+		uint y = _cursor.pos.y - vp->top;
 
-	if (in) {
-		x = ((_cursor.pos.x - vp->left) >> 1) + (vp->width >> 2);
-		y = ((_cursor.pos.y - vp->top) >> 1) + (vp->height >> 2);
-	} else {
-		x = vp->width - (_cursor.pos.x - vp->left);
-		y = vp->height - (_cursor.pos.y - vp->top);
+		if (x >= (uint)vp->width || y >= (uint)vp->height) return;
+
+		if (in) {
+			x = (x >> 1) + (vp->width  >> 2);
+			y = (y >> 1) + (vp->height >> 2);
+		} else {
+			x = vp->width  - x;
+			y = vp->height - y;
+		}
+
+		/* Get the tile below the cursor and center on the zoomed-out center */
+		x = ScaleByZoom (x, vp->zoom) + vp->virtual_left;
+		y = ScaleByZoom (y, vp->zoom) + vp->virtual_top;
+		Point pt = TranslateXYToTileCoord (x, y);
+		ScrollWindowTo (pt.x, pt.y, -1, w, true);
+		DoZoomInOutViewport (w->viewport, in);
+		w->InvalidateData();
 	}
-	/* Get the tile below the cursor and center on the zoomed-out center */
-	return GetTileFromScreenXY(_cursor.pos.x, _cursor.pos.y, x + vp->left, y + vp->top);
 }
 
 /**
@@ -503,16 +565,17 @@ static void AddTileSpriteToDraw (ViewportDrawer *vd, SpriteID image,
  * @param extra_offs_y Pixel Y offset for the sprite position.
  */
 static void AddChildSpriteToFoundation (ViewportDrawer *vd, SpriteID image,
-	PaletteID pal, const SubSprite *sub, FoundationPart foundation_part,
+	PaletteID pal, const SubSprite *sub, FoundationData *foundation_part,
 	int extra_offs_x, int extra_offs_y)
 {
-	assert(IsInsideMM(foundation_part, 0, FOUNDATION_PART_END));
-	assert (vd->foundation[foundation_part] != -1);
-	Point offs = vd->foundation_offset[foundation_part];
+	assert (foundation_part >= vd->foundation);
+	assert (foundation_part < endof(vd->foundation));
+	assert (foundation_part->index != -1);
+	const Point &offs = foundation_part->offset;
 
 	/* Change the active ChildSprite list to the one of the foundation */
 	int *old_child = vd->last_child;
-	vd->last_child = vd->last_foundation_child[foundation_part];
+	vd->last_child = foundation_part->last_child;
 
 	AddChildSpriteScreen (vd, image, pal, offs.x + extra_offs_x, offs.y + extra_offs_y, false, sub, false);
 
@@ -539,9 +602,9 @@ void DrawGroundSpriteAt (const TileInfo *ti, SpriteID image, PaletteID pal,
 	int extra_offs_x, int extra_offs_y)
 {
 	/* Switch to first foundation part, if no foundation was drawn */
-	if (ti->vd->foundation_part == FOUNDATION_PART_NONE) ti->vd->foundation_part = FOUNDATION_PART_NORMAL;
+	if (ti->vd->foundation_part == NULL) ti->vd->foundation_part = ti->vd->foundation;
 
-	if (ti->vd->foundation[ti->vd->foundation_part] != -1) {
+	if (ti->vd->foundation_part->index != -1) {
 		Point pt = RemapCoords(x, y, z);
 		AddChildSpriteToFoundation (ti->vd, image, pal, sub, ti->vd->foundation_part, pt.x + extra_offs_x * ZOOM_LVL_BASE, pt.y + extra_offs_y * ZOOM_LVL_BASE);
 	} else {
@@ -577,22 +640,19 @@ void DrawGroundSprite (const TileInfo *ti, SpriteID image, PaletteID pal,
 void OffsetGroundSprite (ViewportDrawer *vd, int x, int y)
 {
 	/* Switch to next foundation part */
-	switch (vd->foundation_part) {
-		case FOUNDATION_PART_NONE:
-			vd->foundation_part = FOUNDATION_PART_NORMAL;
-			break;
-		case FOUNDATION_PART_NORMAL:
-			vd->foundation_part = FOUNDATION_PART_HALFTILE;
-			break;
-		default: NOT_REACHED();
+	if (vd->foundation_part == NULL) {
+		vd->foundation_part = vd->foundation;
+	} else {
+		assert (vd->foundation_part == vd->foundation);
+		vd->foundation_part++;
 	}
 
 	/* vd->last_child == NULL if foundation sprite was clipped by the viewport bounds */
-	if (vd->last_child != NULL) vd->foundation[vd->foundation_part] = vd->parent_sprites_to_draw.Length() - 1;
+	if (vd->last_child != NULL) vd->foundation_part->index = vd->parent_sprites_to_draw.Length() - 1;
 
-	vd->foundation_offset[vd->foundation_part].x = x * ZOOM_LVL_BASE;
-	vd->foundation_offset[vd->foundation_part].y = y * ZOOM_LVL_BASE;
-	vd->last_foundation_child[vd->foundation_part] = vd->last_child;
+	vd->foundation_part->offset.x = x * ZOOM_LVL_BASE;
+	vd->foundation_part->offset.y = y * ZOOM_LVL_BASE;
+	vd->foundation_part->last_child = vd->last_child;
 }
 
 /**
@@ -832,8 +892,8 @@ void AddChildSpriteScreen (ViewportDrawer *vd, SpriteID image, PaletteID pal,
 	/* Append the sprite to the active ChildSprite list.
 	 * If the active ParentSprite is a foundation, update last_foundation_child as well.
 	 * Note: ChildSprites of foundations are NOT sequential in the vector, as selection sprites are added at last. */
-	if (vd->last_foundation_child[0] == vd->last_child) vd->last_foundation_child[0] = &cs->next;
-	if (vd->last_foundation_child[1] == vd->last_child) vd->last_foundation_child[1] = &cs->next;
+	if (vd->foundation[0].last_child == vd->last_child) vd->foundation[0].last_child = &cs->next;
+	if (vd->foundation[1].last_child == vd->last_child) vd->foundation[1].last_child = &cs->next;
 	vd->last_child = &cs->next;
 }
 
@@ -849,10 +909,10 @@ void AddChildSpriteScreen (ViewportDrawer *vd, SpriteID image, PaletteID pal,
  * @param z_offset Z offset relative to the groundsprite. Only used for the sprite position, not for sprite sorting.
  * @param foundation_part Foundation part the sprite belongs to.
  */
-static void DrawSelectionSprite(SpriteID image, PaletteID pal, const TileInfo *ti, int z_offset, FoundationPart foundation_part)
+static void DrawSelectionSprite (SpriteID image, PaletteID pal, const TileInfo *ti, int z_offset, FoundationData *foundation_part)
 {
 	/* FIXME: This is not totally valid for some autorail highlights that extend over the edges of the tile. */
-	if (ti->vd->foundation[foundation_part] == -1) {
+	if (foundation_part->index == -1) {
 		/* draw on real ground */
 		AddTileSpriteToDraw (ti->vd, image, pal, ti->x, ti->y, ti->z + z_offset);
 	} else {
@@ -875,7 +935,7 @@ static void DrawTileSelectionRect(const TileInfo *ti, PaletteID pal)
 	if (IsHalftileSlope(ti->tileh)) {
 		Corner halftile_corner = GetHalftileSlopeCorner(ti->tileh);
 		SpriteID sel2 = SPR_HALFTILE_SELECTION_FLAT + halftile_corner;
-		DrawSelectionSprite(sel2, pal, ti, 7 + TILE_HEIGHT, FOUNDATION_PART_HALFTILE);
+		DrawSelectionSprite (sel2, pal, ti, 7 + TILE_HEIGHT, &ti->vd->foundation[FOUNDATION_PART_HALFTILE]);
 
 		Corner opposite_corner = OppositeCorner(halftile_corner);
 		if (IsSteepSlope(ti->tileh)) {
@@ -887,7 +947,7 @@ static void DrawTileSelectionRect(const TileInfo *ti, PaletteID pal)
 	} else {
 		sel = SPR_SELECT_TILE + SlopeToSpriteOffset(ti->tileh);
 	}
-	DrawSelectionSprite(sel, pal, ti, 7, FOUNDATION_PART_NORMAL);
+	DrawSelectionSprite (sel, pal, ti, 7, &ti->vd->foundation[FOUNDATION_PART_NORMAL]);
 }
 
 #include "table/autorail.h"
@@ -938,13 +998,13 @@ static void DrawAutorailSelection (const TileInfo *ti, Track track)
 		{  4,  12, RED|21, RED|30,     37,     45 }  // tileh = 30
 	};
 
-	FoundationPart foundation_part = FOUNDATION_PART_NORMAL;
+	FoundationData *foundation_part = ti->vd->foundation;
 	Slope autorail_tileh = RemoveHalftileSlope(ti->tileh);
 	if (IsHalftileSlope(ti->tileh)) {
 		static const uint _lower_rail[4] = { 5U, 2U, 4U, 3U };
 		Corner halftile_corner = GetHalftileSlopeCorner(ti->tileh);
 		if (track != _lower_rail[halftile_corner]) {
-			foundation_part = FOUNDATION_PART_HALFTILE;
+			foundation_part++;
 			/* Here we draw the highlights of the "three-corners-raised"-slope. That looks ok to me. */
 			autorail_tileh = SlopeWithThreeCornersRaised(OppositeCorner(halftile_corner));
 		}
@@ -993,7 +1053,7 @@ static void DrawTileSelection (const TileInfo *ti, ZoomLevel zoom)
 	} else if (_thd.drawstyle == HT_POINT) {
 		/* Figure out the Z coordinate for the single dot. */
 		int z = 0;
-		FoundationPart foundation_part = FOUNDATION_PART_NORMAL;
+		FoundationData *foundation_part = ti->vd->foundation;
 		if (ti->tileh & SLOPE_N) {
 			z += TILE_HEIGHT;
 			if (RemoveHalftileSlope(ti->tileh) == SLOPE_STEEP_N) z += TILE_HEIGHT;
@@ -1002,7 +1062,7 @@ static void DrawTileSelection (const TileInfo *ti, ZoomLevel zoom)
 			Corner halftile_corner = GetHalftileSlopeCorner(ti->tileh);
 			if ((halftile_corner == CORNER_W) || (halftile_corner == CORNER_E)) z += TILE_HEIGHT;
 			if (halftile_corner != CORNER_S) {
-				foundation_part = FOUNDATION_PART_HALFTILE;
+				foundation_part++;
 				if (IsSteepSlope(ti->tileh)) z -= TILE_HEIGHT;
 			}
 		}
@@ -1268,11 +1328,11 @@ static void ViewportAddLandscape (ViewportDrawer *vd, ZoomLevel zoom)
 
 			if (state == STATE_GROUND || (ti.tile != INVALID_TILE &&
 					(state == STATE_BUILDINGS || HasBridgeAbove(ti.tile)))) {
-				vd->foundation_part = FOUNDATION_PART_NONE;
-				vd->foundation[0] = -1;
-				vd->foundation[1] = -1;
-				vd->last_foundation_child[0] = NULL;
-				vd->last_foundation_child[1] = NULL;
+				vd->foundation_part = NULL;
+				vd->foundation[0].index = -1;
+				vd->foundation[1].index = -1;
+				vd->foundation[0].last_child = NULL;
+				vd->foundation[1].last_child = NULL;
 				dtp(&ti);
 			}
 
@@ -1519,81 +1579,18 @@ static void ViewportDrawTileSprites (DrawPixelInfo *dpi, const TileSpriteToDrawV
 	}
 }
 
-/** This fallback sprite checker always exists. */
-static bool ViewportSortParentSpritesChecker()
-{
-	return true;
-}
-
-/** Sort parent sprites pointer array */
-static void ViewportSortParentSprites(ParentSpriteToSortVector *psdv)
-{
-	ParentSpriteToDraw **psdvend = psdv->End();
-	ParentSpriteToDraw **psd = psdv->Begin();
-	while (psd != psdvend) {
-		ParentSpriteToDraw *ps = *psd;
-
-		if (ps->comparison_done) {
-			psd++;
-			continue;
-		}
-
-		ps->comparison_done = true;
-
-		for (ParentSpriteToDraw **psd2 = psd + 1; psd2 != psdvend; psd2++) {
-			ParentSpriteToDraw *ps2 = *psd2;
-
-			if (ps2->comparison_done) continue;
-
-			/* Decide which comparator to use, based on whether the bounding
-			 * boxes overlap
-			 */
-			if (ps->xmax >= ps2->xmin && ps->xmin <= ps2->xmax && // overlap in X?
-					ps->ymax >= ps2->ymin && ps->ymin <= ps2->ymax && // overlap in Y?
-					ps->zmax >= ps2->zmin && ps->zmin <= ps2->zmax) { // overlap in Z?
-				/* Use X+Y+Z as the sorting order, so sprites closer to the bottom of
-				 * the screen and with higher Z elevation, are drawn in front.
-				 * Here X,Y,Z are the coordinates of the "center of mass" of the sprite,
-				 * i.e. X=(left+right)/2, etc.
-				 * However, since we only care about order, don't actually divide / 2
-				 */
-				if (ps->xmin + ps->xmax + ps->ymin + ps->ymax + ps->zmin + ps->zmax <=
-						ps2->xmin + ps2->xmax + ps2->ymin + ps2->ymax + ps2->zmin + ps2->zmax) {
-					continue;
-				}
-			} else {
-				/* We only change the order, if it is definite.
-				 * I.e. every single order of X, Y, Z says ps2 is behind ps or they overlap.
-				 * That is: If one partial order says ps behind ps2, do not change the order.
-				 */
-				if (ps->xmax < ps2->xmin ||
-						ps->ymax < ps2->ymin ||
-						ps->zmax < ps2->zmin) {
-					continue;
-				}
-			}
-
-			/* Move ps2 in front of ps */
-			ParentSpriteToDraw *temp = ps2;
-			for (ParentSpriteToDraw **psd3 = psd2; psd3 > psd; psd3--) {
-				*psd3 = *(psd3 - 1);
-			}
-			*psd = temp;
-		}
-	}
-}
-
 static void ViewportDrawParentSprites (DrawPixelInfo *dpi,
-	const ParentSpriteToSortVector *psd, const ChildScreenSpriteToDrawVector *csstdv)
+	const ParentSpriteToDraw *const *it,
+	const ParentSpriteToDraw *const *psd_end,
+	const ChildScreenSpriteToDraw *csstdv)
 {
-	const ParentSpriteToDraw * const *psd_end = psd->End();
-	for (const ParentSpriteToDraw * const *it = psd->Begin(); it != psd_end; it++) {
+	for (; it != psd_end; it++) {
 		const ParentSpriteToDraw *ps = *it;
 		if (ps->image != SPR_EMPTY_BOUNDING_BOX) DrawSpriteViewport (dpi, ps->image, ps->pal, ps->x, ps->y, ps->sub);
 
 		int child_idx = ps->first_child;
 		while (child_idx >= 0) {
-			const ChildScreenSpriteToDraw *cs = csstdv->Get(child_idx);
+			const ChildScreenSpriteToDraw *cs = &csstdv[child_idx];
 			child_idx = cs->next;
 			DrawSpriteViewport (dpi, cs->image, cs->pal, ps->left + cs->x, ps->top + cs->y, cs->sub);
 		}
@@ -1604,10 +1601,11 @@ static void ViewportDrawParentSprites (DrawPixelInfo *dpi,
  * Draws the bounding boxes of all ParentSprites
  * @param psd Array of ParentSprites
  */
-static void ViewportDrawBoundingBoxes (DrawPixelInfo *dpi, const ParentSpriteToSortVector *psd)
+static void ViewportDrawBoundingBoxes (DrawPixelInfo *dpi,
+	const ParentSpriteToDraw *const *it,
+	const ParentSpriteToDraw *const *const psd_end)
 {
-	const ParentSpriteToDraw * const *psd_end = psd->End();
-	for (const ParentSpriteToDraw * const *it = psd->Begin(); it != psd_end; it++) {
+	for (; it != psd_end; it++) {
 		const ParentSpriteToDraw *ps = *it;
 		Point pt1 = RemapCoords(ps->xmax + 1, ps->ymax + 1, ps->zmax + 1); // top front corner
 		Point pt2 = RemapCoords(ps->xmin    , ps->ymax + 1, ps->zmax + 1); // top left corner
@@ -1626,22 +1624,15 @@ static void ViewportDrawBoundingBoxes (DrawPixelInfo *dpi, const ParentSpriteToS
  */
 static void ViewportDrawDirtyBlocks (const DrawPixelInfo *dpi)
 {
-	void *dst;
-	int right =  UnScaleByZoom(dpi->width,  dpi->zoom);
-	int bottom = UnScaleByZoom(dpi->height, dpi->zoom);
-
-	int colour = _string_colourmap[_dirty_block_colour & 0xF];
-
-	dst = dpi->dst_ptr;
-
-	byte bo = UnScaleByZoom(dpi->left + dpi->top, dpi->zoom) & 1;
-	do {
-		for (int i = (bo ^= 1); i < right; i += 2) dpi->surface->set_pixel (dst, i, 0, (uint8)colour);
-		dst = dpi->surface->move (dst, 0, 1);
-	} while (--bottom > 0);
+	dpi->surface->draw_checker (dpi->dst_ptr,
+			UnScaleByZoom (dpi->width,  dpi->zoom),
+			UnScaleByZoom (dpi->height, dpi->zoom),
+			_string_colourmap[_dirty_block_colour & 0xF],
+			UnScaleByZoom (dpi->left + dpi->top, dpi->zoom) & 1);
 }
 
-void ViewportDoDraw (BlitArea *area, const ViewPort *vp, int left, int top, int right, int bottom)
+void ViewportDoDraw (Blitter::Surface *surface, void *dst_ptr,
+	const ViewPort *vp, int left, int top, int width, int height)
 {
 	ViewportDrawer vd;
 
@@ -1650,38 +1641,48 @@ void ViewportDoDraw (BlitArea *area, const ViewPort *vp, int left, int top, int 
 
 	vd.combine_sprites = SPRITE_COMBINE_NONE;
 
-	vd.dpi.width = (right - left) & mask;
-	vd.dpi.height = (bottom - top) & mask;
-	vd.dpi.left = left & mask;
-	vd.dpi.top = top & mask;
-	vd.dpi.surface = area->surface;
+	vd.dpi.width  = ScaleByZoom (width,  vp->zoom);
+	vd.dpi.height = ScaleByZoom (height, vp->zoom);
+	vd.dpi.left = (ScaleByZoom (left, vp->zoom) + vp->virtual_left) & mask;
+	vd.dpi.top  = (ScaleByZoom (top,  vp->zoom) + vp->virtual_top)  & mask;
+	vd.dpi.surface = surface;
 	vd.last_child = NULL;
 
-	int x = UnScaleByZoom (vd.dpi.left - (vp->virtual_left & mask), vp->zoom) + vp->left;
-	int y = UnScaleByZoom (vd.dpi.top  - (vp->virtual_top  & mask), vp->zoom) + vp->top;
+	int x = left + vp->left;
+	int y = top + vp->top;
 
-	vd.dpi.dst_ptr = vd.dpi.surface->move (area->dst_ptr, x - area->left, y - area->top);
+	vd.dpi.dst_ptr = vd.dpi.surface->move (dst_ptr, x, y);
 
 	ViewportAddLandscape (&vd, vp->zoom);
 	ViewportAddVehicles (&vd, &vd.dpi);
 
 	if (vd.tile_sprites_to_draw.Length() != 0) ViewportDrawTileSprites (&vd.dpi, &vd.tile_sprites_to_draw);
 
-	ParentSpriteToDraw *psd_end = vd.parent_sprites_to_draw.End();
-	for (ParentSpriteToDraw *it = vd.parent_sprites_to_draw.Begin(); it != psd_end; it++) {
-		*vd.parent_sprites_to_sort.Append() = it;
+	uint nsprites = vd.parent_sprites_to_draw.Length();
+	if (nsprites > 0) {
+		std::vector <ParentSpriteToDraw*> sorted_parent_sprites (nsprites); ///< Parent sprite pointer array used for sorting
+
+		ParentSpriteToDraw **sprites = &sorted_parent_sprites.front();
+		ParentSpriteToDraw *psd_end = vd.parent_sprites_to_draw.End();
+		for (ParentSpriteToDraw *it = vd.parent_sprites_to_draw.Begin(); it != psd_end; it++) {
+			*sprites++ = it;
+		}
+
+		sprites = &sorted_parent_sprites.front();
+		const ParentSpriteToDraw *const *end = sprites + nsprites;
+		_vp_sprite_sorter (sprites, end);
+		ViewportDrawParentSprites (&vd.dpi, sprites, end,
+				vd.child_screen_sprites_to_draw.Begin());
+
+		if (_draw_bounding_boxes) ViewportDrawBoundingBoxes (&vd.dpi, sprites, end);
 	}
 
-	_vp_sprite_sorter (&vd.parent_sprites_to_sort);
-	ViewportDrawParentSprites (&vd.dpi, &vd.parent_sprites_to_sort, &vd.child_screen_sprites_to_draw);
-
-	if (_draw_bounding_boxes) ViewportDrawBoundingBoxes (&vd.dpi, &vd.parent_sprites_to_sort);
 	if (_draw_dirty_blocks) ViewportDrawDirtyBlocks (&vd.dpi);
 
 	BlitArea dp = vd.dpi;
 	ZoomLevel zoom = vd.dpi.zoom;
-	dp.width = UnScaleByZoom(dp.width, zoom);
-	dp.height = UnScaleByZoom(dp.height, zoom);
+	dp.width  = width;
+	dp.height = height;
 
 	if (vp->overlay != NULL && vp->overlay->GetCargoMask() != 0 && vp->overlay->GetCompanyMask() != 0) {
 		/* translate to window coordinates */
@@ -1702,7 +1703,6 @@ void ViewportDoDraw (BlitArea *area, const ViewPort *vp, int left, int top, int 
 
 	vd.tile_sprites_to_draw.Clear();
 	vd.parent_sprites_to_draw.Clear();
-	vd.parent_sprites_to_sort.Clear();
 	vd.child_screen_sprites_to_draw.Clear();
 }
 
@@ -1710,31 +1710,40 @@ void ViewportDoDraw (BlitArea *area, const ViewPort *vp, int left, int top, int 
  * Make sure we don't draw a too big area at a time.
  * If we do, the sprite memory will overflow.
  */
-static void ViewportDrawChk (BlitArea *area, const ViewPort *vp,
-	int left, int top, int right, int bottom)
+static void ViewportDrawChk (Blitter::Surface *surface,
+	const ViewPort *vp, int left, int top, int width, int height)
 {
-	if (ScaleByZoom(bottom - top, vp->zoom) * ScaleByZoom(right - left, vp->zoom) > 180000 * ZOOM_LVL_BASE * ZOOM_LVL_BASE) {
-		if ((bottom - top) > (right - left)) {
-			int t = (top + bottom) >> 1;
-			ViewportDrawChk (area, vp, left, top, right, t);
-			ViewportDrawChk (area, vp, left, t, right, bottom);
+	if (ScaleByZoom (height, vp->zoom) * ScaleByZoom (width, vp->zoom) > 180000 * ZOOM_LVL_BASE * ZOOM_LVL_BASE) {
+		if (height > width) {
+			int half = height >> 1;
+			ViewportDrawChk (surface, vp, left, top, width, half);
+			ViewportDrawChk (surface, vp, left, top + half, width, height - half);
 		} else {
-			int t = (left + right) >> 1;
-			ViewportDrawChk (area, vp, left, top, t, bottom);
-			ViewportDrawChk (area, vp, t, top, right, bottom);
+			int half = width >> 1;
+			ViewportDrawChk (surface, vp, left, top, half, height);
+			ViewportDrawChk (surface, vp, left + half, top, width - half, height);
 		}
 	} else {
-		ViewportDoDraw (area, vp,
-			ScaleByZoom(left - vp->left, vp->zoom) + vp->virtual_left,
-			ScaleByZoom(top - vp->top, vp->zoom) + vp->virtual_top,
-			ScaleByZoom(right - vp->left, vp->zoom) + vp->virtual_left,
-			ScaleByZoom(bottom - vp->top, vp->zoom) + vp->virtual_top
-		);
+		ViewportDoDraw (surface, surface->ptr, vp,
+				left - vp->left, top - vp->top, width, height);
 	}
 }
 
-static inline void ViewportDraw (BlitArea *area, const ViewPort *vp, int left, int top, int right, int bottom)
+/**
+ * Draw the viewport of this window.
+ */
+void Window::DrawViewport (BlitArea *dpi) const
 {
+	const ViewPort *vp = this->viewport;
+
+	int left = dpi->left + this->left;
+	int top  = dpi->top  + this->top;
+
+	assert (dpi->dst_ptr == dpi->surface->move (dpi->surface->ptr, left, top));
+
+	int right  = left + dpi->width;
+	int bottom = top  + dpi->height;
+
 	if (right <= vp->left || bottom <= vp->top) return;
 
 	if (left >= vp->left + vp->width) return;
@@ -1747,21 +1756,7 @@ static inline void ViewportDraw (BlitArea *area, const ViewPort *vp, int left, i
 	if (top < vp->top) top = vp->top;
 	if (bottom > vp->top + vp->height) bottom = vp->top + vp->height;
 
-	ViewportDrawChk (area, vp, left, top, right, bottom);
-}
-
-/**
- * Draw the viewport of this window.
- */
-void Window::DrawViewport (BlitArea *dpi) const
-{
-	dpi->left += this->left;
-	dpi->top += this->top;
-
-	ViewportDraw (dpi, this->viewport, dpi->left, dpi->top, dpi->left + dpi->width, dpi->top + dpi->height);
-
-	dpi->left -= this->left;
-	dpi->top -= this->top;
+	ViewportDrawChk (dpi->surface, vp, left, top, right - left, bottom - top);
 }
 
 static int GetNearestHeight (int x, int y)
@@ -1948,12 +1943,9 @@ void ConstrainAllViewportsZoom()
 	Window *w;
 	FOR_ALL_WINDOWS_FROM_FRONT(w) {
 		if (w->viewport == NULL) continue;
-
-		ZoomLevel zoom = static_cast<ZoomLevel>(Clamp(w->viewport->zoom, _settings_client.gui.zoom_min, _settings_client.gui.zoom_max));
-		if (zoom != w->viewport->zoom) {
-			while (w->viewport->zoom < zoom) DoZoomInOutWindow (false, w);
-			while (w->viewport->zoom > zoom) DoZoomInOutWindow (true,  w);
-		}
+		ClampViewportZoom (w->viewport);
+		/* Update the windows that have zoom-buttons to perhaps disable their buttons */
+		w->InvalidateData();
 	}
 }
 
@@ -2170,9 +2162,6 @@ static bool CheckClickOnViewportSign(const ViewPort *vp, int x, int y, const Vie
 	int sign_half_width = ScaleByZoom((small ? sign->width_small : sign->width_normal) / 2, vp->zoom);
 	int sign_height = ScaleByZoom(VPSM_TOP + (small ? FONT_HEIGHT_SMALL : FONT_HEIGHT_NORMAL) + VPSM_BOTTOM, vp->zoom);
 
-	x = ScaleByZoom(x - vp->left, vp->zoom) + vp->virtual_left;
-	y = ScaleByZoom(y - vp->top, vp->zoom) + vp->virtual_top;
-
 	return y >= sign->top && y < sign->top + sign_height &&
 			x >= sign->center - sign_half_width && x < sign->center + sign_half_width;
 }
@@ -2242,14 +2231,6 @@ static bool CheckClickOnSign(const ViewPort *vp, int x, int y)
 }
 
 
-static bool CheckClickOnLandscape(const ViewPort *vp, int x, int y)
-{
-	Point pt = TranslateXYToTileCoord(vp, x, y);
-
-	if (pt.x != -1) return ClickTile(TileVirtXY(pt.x, pt.y));
-	return true;
-}
-
 static void PlaceObject()
 {
 	Point pt;
@@ -2273,7 +2254,16 @@ static void PlaceObject()
 
 bool HandleViewportClicked(const ViewPort *vp, int x, int y)
 {
-	const Vehicle *v = CheckClickOnVehicle(vp, x, y);
+	x -= vp->left;
+	y -= vp->top;
+
+	assert ((uint)x < (uint)vp->width);
+	assert ((uint)y < (uint)vp->height);
+
+	x = ScaleByZoom (x, vp->zoom) + vp->virtual_left;
+	y = ScaleByZoom (y, vp->zoom) + vp->virtual_top;
+
+	const Vehicle *v = CheckClickOnVehicle (x, y);
 
 	PointerMode mode = _pointer_mode;
 	if (mode >= POINTER_VEHICLE) {
@@ -2290,7 +2280,9 @@ bool HandleViewportClicked(const ViewPort *vp, int x, int y)
 	if (CheckClickOnTown(vp, x, y)) return true;
 	if (CheckClickOnStation(vp, x, y)) return true;
 	if (CheckClickOnSign(vp, x, y)) return true;
-	bool result = CheckClickOnLandscape(vp, x, y);
+
+	Point pt = TranslateXYToTileCoord (x, y);
+	bool result = ClickTile (TileVirtXY (pt.x, pt.y));
 
 	if (v != NULL) {
 		DEBUG(misc, 2, "Vehicle %d (index %d) at %p", v->unitnumber, v->index, v);
@@ -3260,10 +3252,9 @@ EventState VpHandlePlaceSizingDrag()
  * @param window_class %Window class of the window requesting the mode change.
  * @param window_num Number of the window in its class requesting the mode change.
  * @param icon New shape of the mouse cursor.
- * @param pal Palette to use.
  */
 void SetPointerMode (PointerMode mode, WindowClass window_class,
-	WindowNumber window_num, CursorID icon, PaletteID pal)
+	WindowNumber window_num, CursorID icon)
 {
 	if (_thd.window_class != WC_INVALID) {
 		/* Undo clicking on button and drag & drop */
@@ -3296,7 +3287,7 @@ void SetPointerMode (PointerMode mode, WindowClass window_class,
 	if ((icon & ANIMCURSOR_FLAG) != 0) {
 		SetAnimatedMouseCursor(_animcursors[icon & ~ANIMCURSOR_FLAG]);
 	} else {
-		SetMouseCursor(icon, pal);
+		SetMouseCursor (icon);
 	}
 
 }
@@ -3317,30 +3308,4 @@ Point GetViewportStationMiddle(const ViewPort *vp, const Station *st)
 	p.x = UnScaleByZoom(p.x - vp->virtual_left, vp->zoom) + vp->left;
 	p.y = UnScaleByZoom(p.y - vp->virtual_top, vp->zoom) + vp->top;
 	return p;
-}
-
-/** Helper class for getting the best sprite sorter. */
-struct ViewportSSCSS {
-	VpSorterChecker fct_checker; ///< The check function.
-	VpSpriteSorter fct_sorter;   ///< The sorting function.
-};
-
-/** List of sorters ordered from best to worst. */
-static ViewportSSCSS _vp_sprite_sorters[] = {
-#ifdef WITH_SSE
-	{ &ViewportSortParentSpritesSSE41Checker, &ViewportSortParentSpritesSSE41 },
-#endif
-	{ &ViewportSortParentSpritesChecker, &ViewportSortParentSprites }
-};
-
-/** Choose the "best" sprite sorter and set _vp_sprite_sorter. */
-void InitializeSpriteSorter()
-{
-	for (uint i = 0; i < lengthof(_vp_sprite_sorters); i++) {
-		if (_vp_sprite_sorters[i].fct_checker()) {
-			_vp_sprite_sorter = _vp_sprite_sorters[i].fct_sorter;
-			break;
-		}
-	}
-	assert(_vp_sprite_sorter != NULL);
 }

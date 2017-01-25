@@ -47,13 +47,15 @@ struct LoadBuffer {
 		} array;
 	};
 	const SavegameTypeVersion *stv; ///< type and version of the savegame
+	const bool is_scenario;         ///< whether we are loading a scenario
 
 	/**
 	 * Initialise our variables.
 	 * @param reader The filter to read data from.
 	 */
-	LoadBuffer(LoadFilter *reader, const SavegameTypeVersion *stv)
-		: bufp(NULL), bufe(NULL), reader(reader), read(0), chunk_type(-1), stv(stv)
+	LoadBuffer (LoadFilter *reader, const SavegameTypeVersion *stv, bool is_scenario)
+		: bufp (NULL), bufe (NULL), reader (reader), read (0),
+		  chunk_type (-1), stv (stv), is_scenario (is_scenario)
 	{
 	}
 

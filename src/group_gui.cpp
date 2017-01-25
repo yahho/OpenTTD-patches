@@ -633,9 +633,8 @@ public:
 
 				this->vehicle_sel = v->index;
 
-				int image = v->GetImage(_current_text_dir == TD_RTL ? DIR_E : DIR_W, EIT_IN_LIST);
-				SetPointerMode (POINTER_DRAG, this, image, GetVehiclePalette(v));
-				_cursor.vehchain = true;
+				SetPointerMode (POINTER_DRAG, this, SPR_CURSOR_MOUSE);
+				SetMouseCursorVehicle(v, EIT_IN_LIST);
 
 				this->SetDirty();
 				break;
@@ -761,8 +760,6 @@ public:
 	{
 		if (this->vehicle_sel != INVALID_VEHICLE) OnDragDrop_Vehicle(pt, widget);
 		if (this->group_sel != INVALID_GROUP) OnDragDrop_Group(pt, widget);
-
-		_cursor.vehchain = false;
 	}
 
 	virtual void OnQueryTextFinished(char *str)

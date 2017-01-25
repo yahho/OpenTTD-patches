@@ -217,7 +217,7 @@ static void DrawTile_Clear(TileInfo *ti)
 				case GROUND_ROUGH:
 					DrawGroundSprite (ti, ti->tileh != SLOPE_FLAT ?
 							SPR_FLAT_ROUGH_LAND + SlopeToSpriteOffset(ti->tileh) :
-							_landscape_clear_sprites_rough[GB(ti->x ^ ti->y, 4, 3)],
+							_landscape_clear_sprites_rough[GB(TileHash(ti->x, ti->y), 0, 3)],
 						PAL_NONE);
 					break;
 

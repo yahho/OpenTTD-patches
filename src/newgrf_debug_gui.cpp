@@ -441,7 +441,7 @@ struct NewGRFInspectWindow : Window {
 				GrfSpecFeature f = GetFeatureNum(this->window_number);
 				int h = GetVehicleImageCellSize((VehicleType)(VEH_TRAIN + (f - GSF_TRAINS)), EIT_IN_DEPOT).height;
 				int y = (r.top + r.bottom - h) / 2;
-				DrawVehicleImage (v->First(), dpi, r.left + WD_BEVEL_LEFT, r.right - WD_BEVEL_RIGHT, y + 1, INVALID_VEHICLE, EIT_IN_DETAILS, skip);
+				DrawVehicleImage (v->First(), dpi, r.left + WD_BEVEL_LEFT, r.right - WD_BEVEL_RIGHT, y + 1, EIT_IN_DETAILS, skip);
 
 				/* Highlight the articulated part (this is different to the whole-vehicle highlighting of DrawVehicleImage */
 				if (_current_text_dir == TD_RTL) {
@@ -895,7 +895,7 @@ struct SpriteAlignerWindow : Window {
 				BlitArea new_dpi;
 				if (!InitBlitArea (dpi, &new_dpi, r.left + WD_BEVEL_LEFT, r.top + WD_BEVEL_TOP, width, height)) break;
 
-				DrawSprite (&new_dpi, this->current_sprite, PAL_NONE, x, y, NULL, ZOOM_LVL_GUI);
+				DrawSprite (&new_dpi, this->current_sprite, PAL_NONE, x, y);
 
 				break;
 			}

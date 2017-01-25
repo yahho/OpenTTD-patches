@@ -86,6 +86,7 @@ static void DedicatedSignalHandler(int sig)
 # endif
 # include <time.h>
 # include <tchar.h>
+# include "../os/windows/win32.h"
 static HANDLE _hInputReady, _hWaitForInputHandling;
 static HANDLE _hThread; // Thread to close
 static char _win_console_thread_buffer[200];
@@ -97,6 +98,8 @@ static void WINAPI CheckForConsoleInput()
 	/* WinCE doesn't support console stuff */
 	return;
 #else
+	SetWin32ThreadName(-1, "ottd:win-console");
+
 	DWORD nb;
 	HANDLE hStdin = GetStdHandle(STD_INPUT_HANDLE);
 	for (;;) {
@@ -142,7 +145,7 @@ static void *_dedicated_video_mem;
 /* Whether a fork has been done. */
 bool _dedicated_forks;
 
-extern bool SafeLoad(const char *filename, int mode, GameMode newgm, Subdirectory subdir, struct LoadFilter *lf = NULL);
+extern bool SafeLoad (const char *filename, DetailedFileType dft, GameMode newgm, Subdirectory subdir, struct LoadFilter *lf = NULL);
 
 /* Automatically select this dedicated driver when making a dedicated
  * server build. */
@@ -163,12 +166,11 @@ const char *VideoDriver_Dedicated::Start(const char * const *parm)
 	int bpp = blitter->GetScreenDepth();
 	_dedicated_video_mem = (bpp == 0) ? NULL : xmalloct<byte>(_cur_resolution.width * _cur_resolution.height * (bpp / 8));
 
-	_screen.surface.reset (blitter->create (_dedicated_video_mem,
+	_screen_surface.reset (blitter->create (_dedicated_video_mem,
 				_cur_resolution.width, _cur_resolution.height,
 				_cur_resolution.width));
-	_screen.width  = _cur_resolution.width;
-	_screen.height = _cur_resolution.height;
-	_screen.dst_ptr = _dedicated_video_mem;
+	_screen_width  = _cur_resolution.width;
+	_screen_height = _cur_resolution.height;
 	ScreenSizeChanged();
 
 #if defined(WINCE)
@@ -299,7 +301,8 @@ void VideoDriver_Dedicated::MainLoop()
 		_switch_mode = SM_NONE;
 		/* First we need to test if the savegame can be loaded, else we will end up playing the
 		 *  intro game... */
-		if (!SafeLoad(_file_to_saveload.name, _file_to_saveload.mode, GM_NORMAL, BASE_DIR)) {
+		assert (_file_to_saveload.file_op == SLO_LOAD);
+		if (!SafeLoad (_file_to_saveload.name, _file_to_saveload.detail_ftype, GM_NORMAL, BASE_DIR)) {
 			/* Loading failed, pop out.. */
 			DEBUG(net, 0, "Loading requested map failed, aborting");
 			_networking = false;

@@ -66,6 +66,48 @@ uint16 _returned_mail_refit_capacity; ///< Stores the mail capacity after a refi
 template<> Vehicle::Pool Vehicle::PoolItem::pool ("Vehicle");
 INSTANTIATE_POOL_METHODS(Vehicle)
 
+
+/**
+ * Determine shared bounds of all sprites.
+ * @param [out] bounds Shared bounds.
+ */
+void VehicleSpriteSeq::GetBounds(Rect *bounds) const
+{
+	bounds->left = bounds->top = bounds->right = bounds->bottom = 0;
+	for (uint i = 0; i < this->count; ++i) {
+		const Sprite *spr = GetSprite(this->seq[i].sprite, ST_NORMAL);
+		if (i == 0) {
+			bounds->left = spr->x_offs;
+			bounds->top  = spr->y_offs;
+			bounds->right  = spr->width  + spr->x_offs - 1;
+			bounds->bottom = spr->height + spr->y_offs - 1;
+		} else {
+			if (spr->x_offs < bounds->left) bounds->left = spr->x_offs;
+			if (spr->y_offs < bounds->top)  bounds->top  = spr->y_offs;
+			int right  = spr->width  + spr->x_offs - 1;
+			int bottom = spr->height + spr->y_offs - 1;
+			if (right  > bounds->right)  bounds->right  = right;
+			if (bottom > bounds->bottom) bounds->bottom = bottom;
+		}
+	}
+}
+
+/**
+ * Draw the sprite sequence.
+ * @param dpi The area to draw on.
+ * @param x X position
+ * @param y Y position
+ * @param default_pal Vehicle palette
+ * @param force_pal Whether to ignore individual palettes, and draw everything with \a default_pal.
+ */
+void VehicleSpriteSeq::Draw (BlitArea *dpi, int x, int y, PaletteID default_pal, bool force_pal) const
+{
+	for (uint i = 0; i < this->count; ++i) {
+		PaletteID pal = force_pal || !this->seq[i].pal ? default_pal : this->seq[i].pal;
+		DrawSprite (dpi, this->seq[i].sprite, pal, x, y);
+	}
+}
+
 /**
  * Function to tell if a vehicle needs to be autorenewed
  * @param *c The vehicle owner
@@ -356,7 +398,7 @@ struct HashPack {
 	static const uint PACK_BITS = PACK_BIT0_Y + PACK_BITS_Y;
 	static const uint PACK_SIZE = 1 << PACK_BITS;
 
-	typedef HashAreaIterator <nx, ny> AreaIterator;
+	typedef HashAreaIterator <nx, ny> BaseAreaIterator;
 
 	static inline uint pack_x (uint x)
 	{
@@ -478,11 +520,13 @@ struct VehicleTileHash : HashPack <7, 7> {
 		memset (this->buckets, 0, sizeof(this->buckets));
 	}
 
-	void setup_iter (AreaIterator *iter, int xl, int xu, int yl, int yu)
-	{
-		iter->reset (GB(xl, HASH_OFFSET_X, HASH_BITS_X), GB(xu, HASH_OFFSET_X, HASH_BITS_X),
-			     GB(yl, HASH_OFFSET_Y, HASH_BITS_Y), GB(yu, HASH_OFFSET_Y, HASH_BITS_Y));
-	}
+	struct AreaIterator : BaseAreaIterator {
+		AreaIterator (int xl, int xu, int yl, int yu)
+		{
+			this->reset (GB(xl, HASH_OFFSET_X, HASH_BITS_X), GB(xu, HASH_OFFSET_X, HASH_BITS_X),
+				     GB(yl, HASH_OFFSET_Y, HASH_BITS_Y), GB(yu, HASH_OFFSET_Y, HASH_BITS_Y));
+		}
+	};
 };
 
 static VehicleTileHash vehicle_tile_hash;
@@ -513,8 +557,7 @@ static Vehicle *VehicleFromPosXY(int x, int y, void *data, VehicleFromPosProc *p
 	const int COLL_DIST = 6;
 
 	/* Hash area to scan is from xl,yl to xu,yu */
-	VehicleTileHash::AreaIterator iter;
-	vehicle_tile_hash.setup_iter (&iter,
+	VehicleTileHash::AreaIterator iter (
 		(x - COLL_DIST) / TILE_SIZE, (x + COLL_DIST) / TILE_SIZE,
 		(y - COLL_DIST) / TILE_SIZE, (y + COLL_DIST) / TILE_SIZE);
 
@@ -768,31 +811,32 @@ struct VehicleViewportHash : HashPack <6, 6> {
 		memset (this->buckets, 0, sizeof(this->buckets));
 	}
 
-	void setup_iter (AreaIterator *iter, int l, uint w, int t, uint h)
-	{
-		uint x0, x1, y0, y1;
+	struct AreaIterator : BaseAreaIterator {
+		AreaIterator (int l, uint w, int t, uint h)
+		{
+			uint x0, x1, y0, y1;
 
-		if (w < (1 << (HASH_OFFSET_X + HASH_BITS_X))) {
-			x0 = GB(l,     HASH_OFFSET_X, HASH_BITS_X);
-			x1 = GB(l + w, HASH_OFFSET_X, HASH_BITS_X);
-		} else {
-			/* scan whole hash row */
-			x0 = 0;
-			x1 = (1 << HASH_BITS_X) - 1;
+			if (w < (1 << (HASH_OFFSET_X + HASH_BITS_X))) {
+				x0 = GB(l,     HASH_OFFSET_X, HASH_BITS_X);
+				x1 = GB(l + w, HASH_OFFSET_X, HASH_BITS_X);
+			} else {
+				/* scan whole hash row */
+				x0 = 0;
+				x1 = (1 << HASH_BITS_X) - 1;
+			}
+
+			if (h < (1 << (HASH_OFFSET_Y + HASH_BITS_Y))) {
+				y0 = GB(t,     HASH_OFFSET_Y, HASH_BITS_Y);
+				y1 = GB(t + h, HASH_OFFSET_Y, HASH_BITS_Y);
+			} else {
+				/* scan whole column */
+				y0 = 0;
+				y1 = (1 << HASH_BITS_Y) - 1;
+			}
+
+			this->reset (x0, x1, y0, y1);
 		}
-
-		if (h < (1 << (HASH_OFFSET_Y + HASH_BITS_Y))) {
-			y0 = GB(t,     HASH_OFFSET_Y, HASH_BITS_Y);
-			y1 = GB(t + h, HASH_OFFSET_Y, HASH_BITS_Y);
-		} else {
-			/* scan whole column */
-			y0 = 0;
-			y1 = (1 << HASH_BITS_Y) - 1;
-		}
-
-		iter->reset (x0, x1, y0, y1);
-
-	}
+	};
 };
 
 static VehicleViewportHash vehicle_viewport_hash;
@@ -1196,7 +1240,6 @@ void CallVehicleTicks()
  */
 static void DoDrawVehicle (ViewportDrawer *vd, const Vehicle *v)
 {
-	SpriteID image = v->cur_image;
 	PaletteID pal = PAL_NONE;
 
 	if (v->vehstatus & VS_DEFPAL) pal = (v->vehstatus & VS_CRASHED) ? PALETTE_CRASH : GetVehiclePalette(v);
@@ -1211,8 +1254,14 @@ static void DoDrawVehicle (ViewportDrawer *vd, const Vehicle *v)
 		if (to != TO_INVALID && (IsTransparencySet(to) || IsInvisibilitySet(to))) return;
 	}
 
-	AddSortableSpriteToDraw (vd, image, pal, v->x_pos + v->x_offs, v->y_pos + v->y_offs,
-		v->x_extent, v->y_extent, v->z_extent, v->z_pos, shadowed, v->x_bb_offs, v->y_bb_offs);
+	StartSpriteCombine (vd);
+	for (uint i = 0; i < v->sprite_seq.count; ++i) {
+		PaletteID pal2 = v->sprite_seq.seq[i].pal;
+		if (!pal2 || (v->vehstatus & VS_CRASHED)) pal2 = pal;
+		AddSortableSpriteToDraw (vd, v->sprite_seq.seq[i].sprite, pal2, v->x_pos + v->x_offs, v->y_pos + v->y_offs,
+			v->x_extent, v->y_extent, v->z_extent, v->z_pos, shadowed, v->x_bb_offs, v->y_bb_offs);
+	}
+	EndSpriteCombine (vd);
 }
 
 /**
@@ -1228,8 +1277,7 @@ void ViewportAddVehicles (ViewportDrawer *vd, const DrawPixelInfo *dpi)
 	const int b = dpi->top + dpi->height;
 
 	/* The hash area to scan */
-	VehicleViewportHash::AreaIterator iter;
-	vehicle_viewport_hash.setup_iter (&iter,
+	VehicleViewportHash::AreaIterator iter (
 		l - (70 * ZOOM_LVL_BASE), dpi->width  + (70 * ZOOM_LVL_BASE),
 		t - (70 * ZOOM_LVL_BASE), dpi->height + (70 * ZOOM_LVL_BASE));
 
@@ -1252,20 +1300,14 @@ void ViewportAddVehicles (ViewportDrawer *vd, const DrawPixelInfo *dpi)
 
 /**
  * Find the vehicle close to the clicked coordinates.
- * @param vp Viewport clicked in.
  * @param x  X coordinate in the viewport.
  * @param y  Y coordinate in the viewport.
  * @return Closest vehicle, or \c NULL if none found.
  */
-Vehicle *CheckClickOnVehicle(const ViewPort *vp, int x, int y)
+Vehicle *CheckClickOnVehicle (int x, int y)
 {
 	Vehicle *found = NULL, *v;
 	uint dist, best_dist = UINT_MAX;
-
-	if ((uint)(x -= vp->left) >= (uint)vp->width || (uint)(y -= vp->top) >= (uint)vp->height) return NULL;
-
-	x = ScaleByZoom(x, vp->zoom) + vp->virtual_left;
-	y = ScaleByZoom(y, vp->zoom) + vp->virtual_top;
 
 	FOR_ALL_VEHICLES(v) {
 		if ((v->vehstatus & (VS_HIDDEN | VS_UNCLICKABLE)) == 0 &&
@@ -1627,20 +1669,19 @@ void Vehicle::UpdatePosition()
  */
 void Vehicle::UpdateViewport(bool dirty)
 {
-	int img = this->cur_image;
+	Rect new_coord;
+	this->sprite_seq.GetBounds(&new_coord);
+
 	Point pt = RemapCoords(this->x_pos + this->x_offs, this->y_pos + this->y_offs, this->z_pos);
-	const Sprite *spr = GetSprite(img, ST_NORMAL);
+	new_coord.left   += pt.x;
+	new_coord.top    += pt.y;
+	new_coord.right  += pt.x + 2 * ZOOM_LVL_BASE;
+	new_coord.bottom += pt.y + 2 * ZOOM_LVL_BASE;
 
-	pt.x += spr->x_offs;
-	pt.y += spr->y_offs;
-
-	vehicle_viewport_hash.update (this, pt.x, pt.y);
+	vehicle_viewport_hash.update (this, new_coord.left, new_coord.top);
 
 	Rect old_coord = this->coord;
-	this->coord.left   = pt.x;
-	this->coord.top    = pt.y;
-	this->coord.right  = pt.x + spr->width + 2 * ZOOM_LVL_BASE;
-	this->coord.bottom = pt.y + spr->height + 2 * ZOOM_LVL_BASE;
+	this->coord = new_coord;
 
 	if (dirty) {
 		if (old_coord.left == INVALID_COORD) {

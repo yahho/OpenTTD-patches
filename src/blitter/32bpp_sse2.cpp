@@ -25,7 +25,7 @@
 const char Blitter_32bppSSE2::name[] = "32bpp-sse2";
 const char Blitter_32bppSSE2::desc[] = "32bpp SSE2 Blitter (no palette animation)";
 
-SSESprite *SSESprite::encode (const SpriteLoader::Sprite *sprite, bool is_font, AllocatorProc *allocator)
+SSESprite *SSESprite::encode (const Blitter::RawSprite *sprite, bool is_font, Blitter::AllocatorProc *allocator)
 {
 	/* First uint32 of a line = the number of transparent pixels from the left.
 	 * Second uint32 of a line = the number of transparent pixels from the right.
@@ -45,7 +45,7 @@ SSESprite *SSESprite::encode (const SpriteLoader::Sprite *sprite, bool is_font, 
 	memset (infos, 0, sizeof(infos));
 	uint all_sprites_size = 0;
 	for (ZoomLevel z = zoom_min; z <= zoom_max; z++) {
-		const SpriteLoader::Sprite *src_sprite = &sprite[z];
+		const Blitter::RawSprite *src_sprite = &sprite[z];
 		infos[z].sprite_width = src_sprite->width;
 		infos[z].sprite_offset = all_sprites_size;
 		infos[z].sprite_line_size = sizeof(Colour) * src_sprite->width + sizeof(uint32) * META_LENGTH;
@@ -65,8 +65,8 @@ SSESprite *SSESprite::encode (const SpriteLoader::Sprite *sprite, bool is_font, 
 	bool has_anim = false;
 	bool has_translucency = false;
 	for (ZoomLevel z = zoom_min; z <= zoom_max; z++) {
-		const SpriteLoader::Sprite *src_sprite = &sprite[z];
-		const SpriteLoader::CommonPixel *src = (const SpriteLoader::CommonPixel *) src_sprite->data;
+		const Blitter::RawSprite *src_sprite = &sprite[z];
+		const Blitter::RawSprite::Pixel *src = (const Blitter::RawSprite::Pixel *) src_sprite->data;
 		Colour *dst_rgba_line = (Colour *) &dst_sprite->data[infos[z].sprite_offset];
 		MapValue *dst_mv = (MapValue *) &dst_sprite->data[infos[z].mv_offset];
 		for (uint y = src_sprite->height; y != 0; y--) {

@@ -37,7 +37,7 @@ inline void Blitter_32bppSSE4_Anim::Surface::draw (const BlitterParams *bp, Zoom
 {
 	const byte * const remap = bp->remap;
 	Colour *dst_line = (Colour *) bp->dst + bp->top * bp->pitch + bp->left;
-	uint16 *anim_line = this->anim_buf + ((uint32 *)bp->dst - (uint32 *)this->ptr) + bp->top * this->width + bp->left;
+	uint16 *anim_line = this->get_anim_pos (bp->dst) + bp->top * this->width + bp->left;
 	int effective_width = bp->width;
 
 	/* Find where to start reading in the source sprite. */

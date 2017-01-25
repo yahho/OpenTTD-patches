@@ -42,7 +42,7 @@ enum VehicleInvalidateWindowData {
 
 int DrawVehiclePurchaseInfo (BlitArea *dpi, int left, int right, int y, EngineID engine_number);
 
-void DrawTrainImage (const Train *v, BlitArea *dpi, int left, int right, int y, VehicleID selection, EngineImageType image_type, int skip, VehicleID drag_dest = INVALID_VEHICLE);
+void DrawTrainImage (const Train *v, BlitArea *dpi, int left, int right, int y, VehicleID selection, bool chain, EngineImageType image_type, int skip, VehicleID drag_dest = INVALID_VEHICLE);
 void DrawRoadVehImage (const Vehicle *v, BlitArea *dpi, int left, int right, int y, VehicleID selection, EngineImageType image_type, int skip = 0);
 void DrawShipImage (const Vehicle *v, BlitArea *dpi, int left, int right, int y, VehicleID selection, EngineImageType image_type);
 void DrawAircraftImage (const Vehicle *v, BlitArea *dpi, int left, int right, int y, VehicleID selection, EngineImageType image_type);
@@ -66,8 +66,6 @@ static inline uint GetVehicleHeight(VehicleType type)
 {
 	return (type == VEH_TRAIN || type == VEH_ROAD) ? 14 : 24;
 }
-
-int GetVehicleWidth(Vehicle *v, EngineImageType image_type);
 
 /** Dimensions of a cell in the purchase/depot windows. */
 struct VehicleCellSize {
@@ -100,8 +98,9 @@ void ShowVehicleViewWindow(const Vehicle *v);
 bool VehicleClicked(const Vehicle *v);
 void StartStopVehicle(const Vehicle *v, bool texteffect);
 
-Vehicle *CheckClickOnVehicle(const struct ViewPort *vp, int x, int y);
+Vehicle *CheckClickOnVehicle (int x, int y);
 
-void DrawVehicleImage (const Vehicle *v, BlitArea *dpi, int left, int right, int y, VehicleID selection, EngineImageType image_type, int skip);
+void DrawVehicleImage (const Vehicle *v, BlitArea *dpi, int left, int right, int y, EngineImageType image_type, int skip = 0, VehicleID selection = INVALID_VEHICLE);
+void SetMouseCursorVehicle(const Vehicle *v, EngineImageType image_type);
 
 #endif /* VEHICLE_GUI_H */

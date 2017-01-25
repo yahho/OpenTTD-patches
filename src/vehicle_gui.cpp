@@ -37,6 +37,7 @@
 #include "station_base.h"
 #include "tilehighlight_func.h"
 #include "zoom_func.h"
+#include "fontcache.h"
 
 
 Sorting _sorting;
@@ -747,7 +748,7 @@ struct RefitWindow : public Window {
 			case WID_VR_VEHICLE_PANEL_DISPLAY: {
 				Vehicle *v = Vehicle::Get(this->window_number);
 				DrawVehicleImage (v, dpi, this->sprite_left + WD_FRAMERECT_LEFT, this->sprite_right - WD_FRAMERECT_RIGHT,
-					r.top + WD_FRAMERECT_TOP, INVALID_VEHICLE, EIT_IN_DETAILS, this->hscroll != NULL ? this->hscroll->GetPosition() : 0);
+					r.top + WD_FRAMERECT_TOP, EIT_IN_DETAILS, this->hscroll != NULL ? this->hscroll->GetPosition() : 0);
 
 				/* Highlight selected vehicles. */
 				if (this->order != INVALID_VEH_ORDER_ID) break;
@@ -818,6 +819,9 @@ struct RefitWindow : public Window {
 		}
 	}
 
+	/* Get the width of the current vehicle in pixels. */
+	int GetVehicleWidth (void) const;
+
 	/**
 	 * Some data on this window has become invalid.
 	 * @param data Information about the changed data.
@@ -840,7 +844,7 @@ struct RefitWindow : public Window {
 				this->BuildRefitList();
 
 				/* The vehicle width has changed too. */
-				this->vehicle_width = GetVehicleWidth(Vehicle::Get(this->window_number), EIT_IN_DETAILS);
+				this->vehicle_width = this->GetVehicleWidth();
 				uint max_width = 0;
 
 				/* Check the width of all cargo information strings. */
@@ -1026,11 +1030,54 @@ struct RefitWindow : public Window {
 
 	virtual void OnResize()
 	{
-		this->vehicle_width = GetVehicleWidth(Vehicle::Get(this->window_number), EIT_IN_DETAILS);
+		this->vehicle_width = this->GetVehicleWidth();
 		this->vscroll->SetCapacityFromWidget(this, WID_VR_MATRIX);
 		if (this->hscroll != NULL) this->hscroll->SetCapacityFromWidget(this, WID_VR_VEHICLE_PANEL_DISPLAY);
 	}
 };
+
+/**
+ * Get the width of a vehicle (part) in pixels.
+ * @param v Vehicle to get the width for.
+ * @return Width of the vehicle.
+ */
+static int GetSingleVehicleWidth (const Vehicle *v, EngineImageType image_type)
+{
+	switch (v->type) {
+		case VEH_TRAIN:
+			return Train::From(v)->GetDisplayImageWidth();
+
+		case VEH_ROAD:
+			return RoadVehicle::From(v)->GetDisplayImageWidth();
+
+		default:
+			bool rtl = _current_text_dir == TD_RTL;
+			VehicleSpriteSeq seq;
+			v->GetImage (rtl ? DIR_E : DIR_W, image_type, &seq);
+			Rect rec;
+			seq.GetBounds(&rec);
+			return UnScaleGUI (rec.right - rec.left + 1);
+	}
+}
+
+/**
+ * Get the width of the vehicle (including all parts of the consist) in pixels.
+ * @return Width of the vehicle.
+ */
+int RefitWindow::GetVehicleWidth (void) const
+{
+	const Vehicle *v = Vehicle::Get (this->window_number);
+
+	if (v->type == VEH_TRAIN || v->type == VEH_ROAD) {
+		int vehicle_width = 0;
+		for (const Vehicle *u = v; u != NULL; u = u->Next()) {
+			vehicle_width += GetSingleVehicleWidth (u, EIT_IN_DETAILS);
+		}
+		return vehicle_width;
+	} else {
+		return GetSingleVehicleWidth (v, EIT_IN_DETAILS);
+	}
+}
 
 static const NWidgetPart _nested_vehicle_refit_widgets[] = {
 	NWidget(NWID_HORIZONTAL),
@@ -1378,14 +1425,15 @@ static void DrawSmallOrderList (const Vehicle *v, BlitArea *dpi,
  * @param left      The minimum horizontal position
  * @param right     The maximum horizontal position
  * @param y         Vertical position to draw at
- * @param selection Selected vehicle to draw a frame around
+ * @param image_type Draw this image type
  * @param skip      Number of pixels to skip at the front (for scrolling)
+ * @param selection Selected vehicle to draw a frame around
  */
 void DrawVehicleImage (const Vehicle *v, BlitArea *dpi, int left, int right,
-	int y, VehicleID selection, EngineImageType image_type, int skip)
+	int y, EngineImageType image_type, int skip, VehicleID selection)
 {
 	switch (v->type) {
-		case VEH_TRAIN:    DrawTrainImage (Train::From(v), dpi, left, right, y, selection, image_type, skip); break;
+		case VEH_TRAIN:    DrawTrainImage (Train::From(v), dpi, left, right, y, selection, true, image_type, skip); break;
 		case VEH_ROAD:     DrawRoadVehImage  (v, dpi, left, right, y, selection, image_type, skip); break;
 		case VEH_SHIP:     DrawShipImage     (v, dpi, left, right, y, selection, image_type); break;
 		case VEH_AIRCRAFT: DrawAircraftImage (v, dpi, left, right, y, selection, image_type); break;
@@ -1450,7 +1498,7 @@ void BaseVehicleListWindow::DrawVehicleListItems (BlitArea *dpi,
 		SetDParam(0, v->GetDisplayProfitThisYear());
 		SetDParam(1, v->GetDisplayProfitLastYear());
 
-		DrawVehicleImage (v, dpi, image_left, image_right, y + FONT_HEIGHT_SMALL - 1, selected_vehicle, EIT_IN_LIST, 0);
+		DrawVehicleImage (v, dpi, image_left, image_right, y + FONT_HEIGHT_SMALL - 1, EIT_IN_LIST, 0, selected_vehicle);
 		DrawString (dpi, text_left, text_right, y + line_height - FONT_HEIGHT_SMALL - WD_FRAMERECT_BOTTOM - 1, STR_VEHICLE_LIST_PROFIT_THIS_YEAR_LAST_YEAR);
 
 		if (v->name != NULL) {
@@ -1699,7 +1747,7 @@ public:
 				break;
 
 			case WID_VL_MANAGE_VEHICLES_DROPDOWN: {
-				DropDownList *list = this->BuildActionDropdownList(VehicleListIdentifier(this->window_number).type == VL_STANDARD, false);
+				DropDownList *list = this->BuildActionDropdownList(VehicleListIdentifier::UnPack(this->window_number).type == VL_STANDARD, false);
 				ShowDropDownList(this, list, 0, WID_VL_MANAGE_VEHICLES_DROPDOWN);
 				break;
 			}
@@ -2186,21 +2234,19 @@ struct VehicleDetailsWindow : Window {
 			case WID_VD_MIDDLE_DETAILS: {
 				/* For other vehicles, at the place of the matrix. */
 				bool rtl = _current_text_dir == TD_RTL;
-				uint sprite_width = UnScaleGUI(
-						max<uint>(GetSprite(v->GetImage(rtl ? DIR_E : DIR_W, EIT_IN_DETAILS), ST_NORMAL)->width, 70U)) +
-						WD_FRAMERECT_LEFT + WD_FRAMERECT_RIGHT;
+				uint sprite_width = GetSingleVehicleWidth(v, EIT_IN_DETAILS) + WD_FRAMERECT_LEFT + WD_FRAMERECT_RIGHT;
 
 				uint text_left  = r.left  + (rtl ? 0 : sprite_width);
 				uint text_right = r.right - (rtl ? sprite_width : 0);
 
 				/* Articulated road vehicles use a complete line. */
 				if (v->type == VEH_ROAD && v->HasArticulatedPart()) {
-					DrawVehicleImage (v, dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP, INVALID_VEHICLE, EIT_IN_DETAILS, 0);
+					DrawVehicleImage (v, dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP, EIT_IN_DETAILS);
 				} else {
 					uint sprite_left  = rtl ? text_right : r.left;
 					uint sprite_right = rtl ? r.right : text_left;
 
-					DrawVehicleImage (v, dpi, sprite_left + WD_FRAMERECT_LEFT, sprite_right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP, INVALID_VEHICLE, EIT_IN_DETAILS, 0);
+					DrawVehicleImage (v, dpi, sprite_left + WD_FRAMERECT_LEFT, sprite_right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP, EIT_IN_DETAILS);
 				}
 				DrawVehicleDetails (v, dpi, text_left + WD_FRAMERECT_LEFT, text_right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP, 0, 0, this->tab);
 				break;
@@ -2453,8 +2499,8 @@ static const StringID _vehicle_string_startstop_table[4] = {
 };
 
 /**
- * This is the Callback method after the cloning attempt of a vehicle
- * @param result the result of the cloning command
+ * This is the Callback method after attempting to start/stop a vehicle
+ * @param result the result of the start/stop command
  * @param tile unused
  * @param p1 vehicle ID
  * @param p2 unused
@@ -3020,7 +3066,7 @@ StringID GetErrSendVehicleToDepot (TileIndex tile, uint32 p1, uint32 p2, const c
 	if (p1 & DEPOT_MASS_SEND) {
 		/* Mass goto depot requested */
 		VehicleListIdentifier vli;
-		if (!vli.Unpack(p2)) return 0;
+		if (!vli.UnpackIfValid(p2)) return 0;
 		type = vli.vtype;
 	} else {
 		type = Vehicle::Get(GB(p1, 0, 20))->type;
@@ -3041,36 +3087,44 @@ StringID GetErrReverseTrain (TileIndex tile, uint32 p1, uint32 p2, const char *t
 	return p2 ? STR_ERROR_CAN_T_REVERSE_DIRECTION_RAIL_VEHICLE : STR_ERROR_CAN_T_REVERSE_DIRECTION_TRAIN;
 }
 
+
 /**
- * Get the width of a vehicle (including all parts of the consist) in pixels.
- * @param v Vehicle to get the width for.
- * @return Width of the vehicle.
+ * Set the mouse cursor to look like a vehicle.
+ * @param v Vehicle
+ * @param image_type Type of vehicle image to use.
  */
-int GetVehicleWidth(Vehicle *v, EngineImageType image_type)
+void SetMouseCursorVehicle(const Vehicle *v, EngineImageType image_type)
 {
-	int vehicle_width = 0;
+	bool rtl = _current_text_dir == TD_RTL;
 
-	switch (v->type) {
-		case VEH_TRAIN:
-			for (const Train *u = Train::From(v); u != NULL; u = u->Next()) {
-				vehicle_width += u->GetDisplayImageWidth();
-			}
-			break;
+	_cursor.sprite_count = 0;
+	int total_width = 0;
+	for (;;) {
+		PaletteID pal = (v->vehstatus & VS_CRASHED) ? PALETTE_CRASH : GetVehiclePalette(v);
+		VehicleSpriteSeq seq;
+		v->GetImage(rtl ? DIR_E : DIR_W, image_type, &seq);
+		if (_cursor.sprite_count + seq.count > lengthof(_cursor.sprite_seq)) break;
 
-		case VEH_ROAD:
-			for (const RoadVehicle *u = RoadVehicle::From(v); u != NULL; u = u->Next()) {
-				vehicle_width += u->GetDisplayImageWidth();
-			}
-			break;
+		for (uint i = 0; i < seq.count; ++i) {
+			PaletteID pal2 = (v->vehstatus & VS_CRASHED) || !seq.seq[i].pal ? pal : seq.seq[i].pal;
+			_cursor.sprite_seq[_cursor.sprite_count].sprite = seq.seq[i].sprite;
+			_cursor.sprite_seq[_cursor.sprite_count].pal = pal2;
+			_cursor.sprite_seq[_cursor.sprite_count].pos = rtl ? -total_width : total_width;
+			_cursor.sprite_count++;
+		}
 
-		default:
-			bool rtl = _current_text_dir == TD_RTL;
-			SpriteID sprite = v->GetImage(rtl ? DIR_E : DIR_W, image_type);
-			const Sprite *real_sprite = GetSprite(sprite, ST_NORMAL);
-			vehicle_width = UnScaleGUI(real_sprite->width);
+		total_width += GetSingleVehicleWidth(v, image_type);
+		if (total_width >= 2 * (int)VEHICLEINFO_FULL_VEHICLE_WIDTH) break;
 
-			break;
+		v = v->Next();
+		if ((v == NULL) || !v->IsArticulatedPart()) break;
 	}
 
-	return vehicle_width;
+	int offs = ((int)VEHICLEINFO_FULL_VEHICLE_WIDTH - total_width) / 2;
+	if (rtl) offs = -offs;
+	for (uint i = 0; i < _cursor.sprite_count; ++i) {
+		_cursor.sprite_seq[i].pos += offs;
+	}
+
+	UpdateCursorSize();
 }

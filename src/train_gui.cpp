@@ -25,15 +25,16 @@
  * @param px        The current x position to draw from.
  * @param max_width The maximum space available to draw.
  * @param selection Selected vehicle that is dragged.
+ * @param chain     Whether a whole chain is dragged.
  * @return The width of the highlight mark.
  */
-static int HighlightDragPosition (BlitArea *dpi, int px, int max_width, VehicleID selection)
+static int HighlightDragPosition (BlitArea *dpi, int px, int max_width, VehicleID selection, bool chain)
 {
 	bool rtl = _current_text_dir == TD_RTL;
 
 	assert(selection != INVALID_VEHICLE);
 	int dragged_width = WD_FRAMERECT_LEFT + WD_FRAMERECT_RIGHT;
-	for (Train *t = Train::Get(selection); t != NULL; t = t->HasArticulatedPart() ? t->GetNextArticulatedPart() : NULL) {
+	for (Train *t = Train::Get(selection); t != NULL; t = chain ? t->Next() : (t->HasArticulatedPart() ? t->GetNextArticulatedPart() : NULL)) {
 		dragged_width += t->GetDisplayImageWidth(NULL);
 	}
 
@@ -56,12 +57,13 @@ static int HighlightDragPosition (BlitArea *dpi, int px, int max_width, VehicleI
  * @param right     The maximum horizontal position
  * @param y         Vertical position to draw at
  * @param selection Selected vehicle to draw a frame around
+ * @param chain     Whether the selection is a chain
  * @param skip      Number of pixels to skip at the front (for scrolling)
  * @param drag_dest The vehicle another one is dragged over, \c INVALID_VEHICLE if none.
  */
 void DrawTrainImage (const Train *v, BlitArea *dpi, int left, int right,
-	int y, VehicleID selection, EngineImageType image_type, int skip,
-	VehicleID drag_dest)
+	int y, VehicleID selection, bool chain, EngineImageType image_type,
+	int skip, VehicleID drag_dest)
 {
 	bool rtl = _current_text_dir == TD_RTL;
 	Direction dir = rtl ? DIR_E : DIR_W;
@@ -82,7 +84,7 @@ void DrawTrainImage (const Train *v, BlitArea *dpi, int left, int right,
 	for (; v != NULL && (rtl ? px > 0 : px < max_width); v = v->Next()) {
 		if (dragging && !drag_at_end_of_train && drag_dest == v->index) {
 			/* Highlight the drag-and-drop destination inside the train. */
-			int drag_hlight_width = HighlightDragPosition (&tmp_dpi, px, max_width, selection);
+			int drag_hlight_width = HighlightDragPosition (&tmp_dpi, px, max_width, selection, chain);
 			px += rtl ? -drag_hlight_width : drag_hlight_width;
 		}
 
@@ -91,7 +93,9 @@ void DrawTrainImage (const Train *v, BlitArea *dpi, int left, int right,
 
 		if (rtl ? px + width > 0 : px - width < max_width) {
 			PaletteID pal = (v->vehstatus & VS_CRASHED) ? PALETTE_CRASH : GetVehiclePalette(v);
-			DrawSprite (&tmp_dpi, v->GetImage (dir, image_type), pal, px + (rtl ? -offset.x : offset.x), height / 2 + offset.y);
+			VehicleSpriteSeq seq;
+			v->GetImage(dir, image_type, &seq);
+			seq.Draw (&tmp_dpi, px + (rtl ? -offset.x : offset.x), height / 2 + offset.y, pal, (v->vehstatus & VS_CRASHED) != 0);
 		}
 
 		if (!v->IsArticulatedPart()) sel_articulated = false;
@@ -101,7 +105,7 @@ void DrawTrainImage (const Train *v, BlitArea *dpi, int left, int right,
 			highlight_l = rtl ? px - width : px;
 			highlight_r = rtl ? px - 1 : px + width - 1;
 			sel_articulated = true;
-		} else if ((_cursor.vehchain && highlight_r != 0) || sel_articulated) {
+		} else if ((chain && highlight_r != 0) || sel_articulated) {
 			if (rtl) {
 				highlight_l -= width;
 			} else {
@@ -114,7 +118,7 @@ void DrawTrainImage (const Train *v, BlitArea *dpi, int left, int right,
 
 	if (dragging && drag_at_end_of_train) {
 		/* Highlight the drag-and-drop destination at the end of the train. */
-		HighlightDragPosition (&tmp_dpi, px, max_width, selection);
+		HighlightDragPosition (&tmp_dpi, px, max_width, selection, chain);
 	}
 
 	if (highlight_l != highlight_r) {
@@ -334,7 +338,9 @@ void DrawTrainDetails (const Train *v, BlitArea *dpi, int left, int right, int y
 						pitch = ScaleGUITrad(e->GetGRF()->traininfo_vehicle_pitch);
 					}
 					PaletteID pal = (v->vehstatus & VS_CRASHED) ? PALETTE_CRASH : GetVehiclePalette(v);
-					DrawSprite (dpi, u->GetImage (dir, EIT_IN_DETAILS), pal, px + (rtl ? -offset.x : offset.x), y - line_height * vscroll_pos + sprite_y_offset + pitch);
+					VehicleSpriteSeq seq;
+					u->GetImage(dir, EIT_IN_DETAILS, &seq);
+					seq.Draw (dpi, px + (rtl ? -offset.x : offset.x), y - line_height * vscroll_pos + sprite_y_offset + pitch, pal, (v->vehstatus & VS_CRASHED) != 0);
 				}
 				px += rtl ? -width : width;
 				dx += width;

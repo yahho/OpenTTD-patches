@@ -30,9 +30,9 @@ template <typename T>
 struct FlexArray : FlexArrayBase {
 protected:
 	/** Custom operator new to account for the variable-length buffer. */
-	void *operator new (size_t size, size_t extra)
+	void *operator new (size_t size, size_t extra1, size_t extra2 = 1)
 	{
-		return ::operator new (size + extra * sizeof(T));
+		return ::operator new (size + extra1 * extra2 * sizeof(T));
 	}
 };
 

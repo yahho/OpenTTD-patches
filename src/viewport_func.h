@@ -33,9 +33,9 @@ void UpdateViewportPosition(Window *w);
 
 void MarkAllViewportsDirty(int left, int top, int right, int bottom);
 
-bool DoZoomInOutWindow(bool in, Window *w);
+void DoZoomInOutViewport (struct ViewportData *vp, bool in);
+void ClampViewportZoom (struct ViewportData *vp);
 void ZoomInOrOutToCursorWindow(bool in, Window * w);
-Point GetTileZoomCenterWindow(bool in, Window * w);
 void HandleZoomMessage(Window *w, const ViewPort *vp, byte widget_zoom_in, byte widget_zoom_out);
 
 void OffsetGroundSprite (struct ViewportDrawer *vd, int x, int y);
@@ -55,7 +55,8 @@ void SetRedErrorSquare(TileIndex tile);
 void SetTileSelectSize(int w, int h);
 void SetTileSelectBigSize(int ox, int oy, int sx, int sy);
 
-void ViewportDoDraw (BlitArea *area, const ViewPort *vp, int left, int top, int right, int bottom);
+void ViewportDoDraw (Blitter::Surface *surface, void *dst_ptr,
+	const ViewPort *vp, int left, int top, int width, int height);
 
 bool ScrollWindowToTile(TileIndex tile, Window *w, bool instant = false);
 bool ScrollWindowTo(int x, int y, int z, Window *w, bool instant = false);

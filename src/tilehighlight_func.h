@@ -17,19 +17,17 @@
 #include "tilehighlight_type.h"
 
 void SetPointerMode (PointerMode mode, WindowClass window_class,
-	WindowNumber window_num, CursorID icon, PaletteID pal = PAL_NONE);
+	WindowNumber window_num, CursorID icon);
 
 /**
  * Change the cursor and mouse click/drag handling to a mode for performing special operations like tile area selection, object placement, etc.
  * @param mode Mode to perform.
  * @param w %Window requesting the mode change.
  * @param icon New shape of the mouse cursor.
- * @param pal Palette to use.
  */
-static inline void SetPointerMode (PointerMode mode, Window *w,
-	CursorID icon, PaletteID pal = PAL_NONE)
+static inline void SetPointerMode (PointerMode mode, Window *w, CursorID icon)
 {
-	SetPointerMode (mode, w->window_class, w->window_number, icon, pal);
+	SetPointerMode (mode, w->window_class, w->window_number, icon);
 }
 
 void ResetPointerMode (void);

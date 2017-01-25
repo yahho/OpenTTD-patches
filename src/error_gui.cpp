@@ -219,7 +219,7 @@ public:
 	{
 		/* Position (0, 0) given, center the window. */
 		if (this->position.x == 0 && this->position.y == 0) {
-			Point pt = {(_screen.width - sm_width) >> 1, (_screen.height - sm_height) >> 1};
+			Point pt = {(_screen_width - sm_width) >> 1, (_screen_height - sm_height) >> 1};
 			return pt;
 		}
 
@@ -235,12 +235,12 @@ public:
 		pt.y = UnScaleByZoom (pt.y - vp->virtual_top,  vp->zoom) + vp->top;
 		if (this->face == INVALID_COMPANY) {
 			/* move x pos to opposite corner */
-			pt.x = (pt.x < (_screen.width >> 1)) ? _screen.width - sm_width - 20 : 20; // Stay 20 pixels away from the edge of the screen.
+			pt.x = (pt.x < (_screen_width >> 1)) ? _screen_width - sm_width - 20 : 20; // Stay 20 pixels away from the edge of the screen.
 
 			/* move y pos to opposite corner */
-			pt.y = (pt.y < (_screen.height >> 1)) ? scr_bot - sm_height : scr_top;
+			pt.y = (pt.y < (_screen_height >> 1)) ? scr_bot - sm_height : scr_top;
 		} else {
-			pt.x = Clamp (pt.x - (sm_width  / 2), 0, _screen.width - sm_width);
+			pt.x = Clamp (pt.x - (sm_width  / 2), 0, _screen_width - sm_width);
 			pt.y = Clamp (pt.y - (sm_height / 2), scr_top, scr_bot - sm_height);
 		}
 		return pt;

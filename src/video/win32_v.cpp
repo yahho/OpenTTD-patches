@@ -1033,7 +1033,7 @@ static bool AllocateDibSection(int w, int h, bool force)
 
 	if (bpp == 0) usererror("Can't use a blitter that blits 0 bpp for normal visuals");
 
-	if (!force && w == _screen.width && h == _screen.height) return false;
+	if (!force && w == _screen_width && h == _screen_height) return false;
 
 	bi = (BITMAPINFO*)alloca(sizeof(BITMAPINFOHEADER) + sizeof(RGBQUAD) * 256);
 	memset(bi, 0, sizeof(BITMAPINFOHEADER) + sizeof(RGBQUAD) * 256);
@@ -1053,11 +1053,10 @@ static bool AllocateDibSection(int w, int h, bool force)
 	if (_wnd.dib_sect == NULL) usererror("CreateDIBSection failed");
 	ReleaseDC(0, dc);
 
-	_screen.surface.reset (Blitter::get()->create (_wnd.buffer_bits,
+	_screen_surface.reset (Blitter::get()->create (_wnd.buffer_bits,
 					w, h, (bpp == 8) ? Align(w, 4) : w));
-	_screen.width = w;
-	_screen.height = h;
-	_screen.dst_ptr = _wnd.buffer_bits;
+	_screen_width = w;
+	_screen_height = h;
 
 	return true;
 }
@@ -1197,7 +1196,7 @@ void VideoDriver_Win32::MainLoop()
 			_draw_threaded = false;
 		} else {
 			_draw_continue = true;
-			_draw_threaded = ThreadObject::New(&PaintWindowThread, NULL, &_draw_thread);
+			_draw_threaded = ThreadObject::New(&PaintWindowThread, NULL, &_draw_thread, "ottd:draw-win32");
 
 			/* Free the mutex if we won't be able to use it. */
 			if (!_draw_threaded) {
@@ -1333,7 +1332,7 @@ bool VideoDriver_Win32::ToggleFullscreen(bool full_screen)
 bool VideoDriver_Win32::AfterBlitterChange()
 {
 	if (_draw_mutex != NULL) _draw_mutex->BeginCritical(true);
-	bool ret = AllocateDibSection(_screen.width, _screen.height, true) && this->MakeWindow(_fullscreen);
+	bool ret = AllocateDibSection (_screen_width, _screen_height, true) && this->MakeWindow (_fullscreen);
 	if (_draw_mutex != NULL) _draw_mutex->EndCritical(true);
 	return ret;
 }

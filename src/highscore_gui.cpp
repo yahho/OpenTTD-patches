@@ -34,14 +34,14 @@ struct EndGameHighScoreBaseWindow : Window {
 	{
 		this->InitNested();
 		CLRBITS(this->flags, WF_WHITE_BORDER);
-		ResizeWindow(this, _screen.width - this->width, _screen.height - this->height);
+		ResizeWindow (this, _screen_width - this->width, _screen_height - this->height);
 	}
 
 	/* Always draw a maximized window and within it the centered background */
 	void SetupHighScoreEndWindow (BlitArea *dpi)
 	{
 		/* Resize window to "full-screen". */
-		if (this->width != _screen.width || this->height != _screen.height) ResizeWindow(this, _screen.width - this->width, _screen.height - this->height);
+		if (this->width != _screen_width || this->height != _screen_height) ResizeWindow (this, _screen_width - this->width, _screen_height - this->height);
 
 		this->DrawWidgets (dpi);
 
@@ -58,7 +58,7 @@ struct EndGameHighScoreBaseWindow : Window {
 	/** Return the coordinate of the screen such that a window of 640x480 is centered at the screen. */
 	Point GetTopLeft(int x, int y)
 	{
-		Point pt = {max(0, (_screen.width / 2) - (x / 2)), max(0, (_screen.height / 2) - (y / 2))};
+		Point pt = {max(0, (_screen_width / 2) - (x / 2)), max(0, (_screen_height / 2) - (y / 2))};
 		return pt;
 	}
 

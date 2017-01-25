@@ -38,6 +38,7 @@
 #include "station_func.h"
 #include "rail.h"
 #include "tracerestrict.h"
+#include "fontcache.h"
 
 #include "map/rail.h"
 #include "map/depot.h"
@@ -892,7 +893,7 @@ static void DrawStationPreview (BlitArea *dpi, const Rect &r,
 	if (InitBlitArea (dpi, &tmp_dpi, r.left, r.top, r.right - r.left + 1, r.bottom - r.top + 1)) {
 		int x = ScaleGUITrad(31) + 1;
 		int y = r.bottom - r.top - ScaleGUITrad(31);
-		if (!DrawStationTile (&tmp_dpi, x, y, _cur_railtype, (Axis)(image % 1), cls, type)) {
+		if (!DrawStationTile (&tmp_dpi, x, y, _cur_railtype, (Axis)(image % 2), cls, type)) {
 			RailStationPickerDrawSprite (&tmp_dpi, x, y, cls == STAT_CLASS_WAYP, _cur_railtype, image);
 		}
 	}

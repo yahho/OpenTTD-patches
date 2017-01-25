@@ -26,6 +26,7 @@
 #include "town.h"
 #include "core/geometry_func.hpp"
 #include "core/random_func.hpp"
+#include "saveload/saveload.h"
 #include "progress.h"
 #include "error.h"
 
@@ -864,7 +865,7 @@ static void _ShowGenerateLandscape(GenerateLandscapeWindowMode mode)
 
 	if (mode == GLWM_HEIGHTMAP) {
 		/* If the function returns negative, it means there was a problem loading the heightmap */
-		if (!GetHeightmapDimensions(_file_to_saveload.name, &x, &y)) return;
+		if (!GetHeightmapDimensions(_file_to_saveload.detail_ftype, _file_to_saveload.name, &x, &y)) return;
 	}
 
 	const WindowDesc *desc = (mode == GLWM_HEIGHTMAP) ? &_heightmap_load_desc : &_generate_landscape_desc;
@@ -1208,7 +1209,7 @@ static void AbortGeneratingWorldCallback(Window *w, bool confirmed)
 	if (confirmed) {
 		AbortGeneratingWorld();
 	} else if (HasModalProgress() && !IsGeneratingWorldAborted()) {
-		SetMouseCursor(SPR_CURSOR_ZZZ, PAL_NONE);
+		SetMouseCursor (SPR_CURSOR_ZZZ);
 	}
 }
 
@@ -1223,7 +1224,7 @@ struct GenerateProgressWindow : public Window {
 	{
 		switch (widget) {
 			case WID_GP_ABORT:
-				if (_cursor.sprite == SPR_CURSOR_ZZZ) SetMouseCursor(SPR_CURSOR_MOUSE, PAL_NONE);
+				SetMouseCursorBusy(false);
 				ShowQuery(
 					STR_GENERATION_ABORT_CAPTION,
 					STR_GENERATION_ABORT_MESSAGE,

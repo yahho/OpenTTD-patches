@@ -11,6 +11,7 @@
 
 #include "../stdafx.h"
 #include "../gfx_func.h"
+#include "../spritecache.h"
 #include "8bpp_base.hpp"
 
 void Blitter_8bppBase::Surface::recolour_rect (void *dst, int width, int height, PaletteID pal)
@@ -39,6 +40,16 @@ void Blitter_8bppBase::Surface::draw_rect (void *video, int width, int height, u
 		memset(video, colour, width);
 		video = (uint8 *)video + this->pitch;
 	} while (--height);
+}
+
+void Blitter_8bppBase::Surface::draw_checker (void *video, uint width, uint height, uint8 colour, byte bo)
+{
+	uint8 *dst = (uint8 *) video;
+	uint i = bo;
+	do {
+		for (i = !(i & 1); i < width; i += 2) dst[i] = colour;
+		dst += this->pitch;
+	} while (--height > 0);
 }
 
 void Blitter_8bppBase::Surface::paste (const Buffer *src, int x, int y)

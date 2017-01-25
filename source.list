@@ -627,7 +627,6 @@ table/build_industry.h
 table/cargo_const.h
 table/clear_land.h
 table/control_codes.h
-table/elrail_data.h
 table/engines.cpp
 table/engines.h
 table/genland.h
@@ -653,7 +652,6 @@ table/town_land.h
 table/track_land.h
 table/train_cmd.h
 table/tree_land.h
-table/unicode.h
 table/water_land.h
 
 # MD5
@@ -920,10 +918,6 @@ blitter/32bpp_anim_sse4.hpp
 music/music_driver.hpp
 sound/sound_driver.hpp
 video/video_driver.hpp
-
-# Sprite loaders
-spriteloader.cpp
-spriteloader.h
 
 # NewGRF
 newgrf.cpp

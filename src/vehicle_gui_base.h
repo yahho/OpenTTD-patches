@@ -40,7 +40,8 @@ struct BaseVehicleListWindow : public Window {
 
 	BaseVehicleListWindow (const WindowDesc *desc, WindowNumber wno)
 		: Window (desc), vehicles(), sorting (NULL),
-		  unitnumber_digits (0), vscroll (NULL), vli (wno)
+		  unitnumber_digits (0), vscroll (NULL),
+		  vli (VehicleListIdentifier::UnPack(wno))
 	{
 		this->vehicles.SetSortFuncs(this->vehicle_sorter_funcs);
 	}

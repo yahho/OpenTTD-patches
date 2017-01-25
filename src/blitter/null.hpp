@@ -21,7 +21,7 @@ public:
 	static const char desc[]; ///< Description of the blitter.
 
 	/* virtual */ uint8 GetScreenDepth() { return 0; }
-	/* virtual */ Sprite *Encode (const SpriteLoader::Sprite *sprite, bool is_font, AllocatorProc *allocator);
+	/* virtual */ Sprite *Encode (const RawSprite *sprite, bool is_font, AllocatorProc *allocator);
 	/* virtual */ Blitter::PaletteAnimation UsePaletteAnimation() { return Blitter::PALETTE_ANIMATION_NONE; };
 
 	/** Blitting surface. */
@@ -49,6 +49,10 @@ public:
 		}
 
 		void recolour_rect (void *video, int width, int height, PaletteID pal) OVERRIDE
+		{
+		}
+
+		void draw_checker (void *video, uint width, uint height, uint8 colour, byte bo) OVERRIDE
 		{
 		}
 

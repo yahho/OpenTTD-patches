@@ -352,16 +352,6 @@ void BuildOwnerLegend()
 	_smallmap_company_count = i;
 }
 
-struct AndOr {
-	uint32 mor;
-	uint32 mand;
-};
-
-static inline uint32 ApplyMask(uint32 colour, const AndOr *mask)
-{
-	return (colour & mask->mand) | mask->mor;
-}
-
 
 /** Tile types as seen in the smallmap, in decreasing order of importance. */
 enum SmallmapTileType {
@@ -376,241 +366,193 @@ enum SmallmapTileType {
 	SMTT_VOID,
 };
 
-/** Colour masks for "Contour" and "Routes" modes. */
-static const AndOr _smallmap_contours_andor[] = {
-	{MKCOLOUR_XXXX(PC_LIGHT_BLUE), MKCOLOUR_0000}, // SMTT_STATION
-	{MKCOLOUR_0XX0(PC_GREY      ), MKCOLOUR_F00F}, // SMTT_RAILWAY
-	{MKCOLOUR_0XX0(PC_BLACK     ), MKCOLOUR_F00F}, // SMTT_ROAD
-	{MKCOLOUR_XXXX(PC_DARK_RED  ), MKCOLOUR_0000}, // SMTT_INDUSTRY
-	{MKCOLOUR_0XX0(PC_DARK_RED  ), MKCOLOUR_F00F}, // SMTT_HOUSE
-	{MKCOLOUR_0XX0(PC_DARK_RED  ), MKCOLOUR_F00F}, // SMTT_OBJECT
-	{MKCOLOUR_0000               , MKCOLOUR_FFFF}, // SMTT_CLEAR
-	{MKCOLOUR_XXXX(PC_WATER     ), MKCOLOUR_0000}, // SMTT_WATER
-	{MKCOLOUR_0000               , MKCOLOUR_FFFF}, // SMTT_VOID
-};
 
-/** Colour masks for "Vehicles", "Industry", and "Vegetation" modes. */
-static const AndOr _smallmap_vehicles_andor[] = {
-	{MKCOLOUR_0XX0(PC_BLACK     ), MKCOLOUR_F00F}, // SMTT_STATION
-	{MKCOLOUR_0XX0(PC_BLACK     ), MKCOLOUR_F00F}, // SMTT_RAILWAY
-	{MKCOLOUR_0XX0(PC_BLACK     ), MKCOLOUR_F00F}, // SMTT_ROAD
-	{MKCOLOUR_XXXX(PC_DARK_RED  ), MKCOLOUR_0000}, // SMTT_INDUSTRY
-	{MKCOLOUR_0XX0(PC_DARK_RED  ), MKCOLOUR_F00F}, // SMTT_HOUSE
-	{MKCOLOUR_0XX0(PC_DARK_RED  ), MKCOLOUR_F00F}, // SMTT_OBJECT
-	{MKCOLOUR_0000               , MKCOLOUR_FFFF}, // SMTT_CLEAR
-	{MKCOLOUR_XXXX(PC_WATER     ), MKCOLOUR_0000}, // SMTT_WATER
-	{MKCOLOUR_0000               , MKCOLOUR_FFFF}, // SMTT_VOID
-};
-
-
-static inline SmallmapTileType GetEffectiveTileType(TileIndex tile)
+/**
+ * Return the colour of a station tile in the small map in mode "Routes".
+ * @param tile The station tile whose colour to get.
+ * @return The colour of the tile in the small map in mode "Routes".
+ */
+static inline uint32 GetSmallMapRoutesStationPixels (TileIndex tile)
 {
-	if (IsHouseTile(tile))    return SMTT_HOUSE;
-	if (IsIndustryTile(tile)) return SMTT_INDUSTRY;
-
-	switch (GetTileType(tile)) {
-		case TT_STATION:  return SMTT_STATION;
-		case TT_RAILWAY:  return SMTT_RAILWAY;
-		case TT_ROAD:     return SMTT_ROAD;
-		case TT_OBJECT:   return SMTT_OBJECT;
-		case TT_GROUND:   return IsTileSubtype(tile, TT_GROUND_VOID) ? SMTT_VOID : SMTT_CLEAR;
-		case TT_WATER:    return SMTT_WATER;
-		case TT_MISC:
-			switch (GetTileSubtype(tile)) {
-				default: NOT_REACHED();
-				case TT_MISC_CROSSING: return SMTT_ROAD;
-				case TT_MISC_AQUEDUCT: return SMTT_WATER;
-				case TT_MISC_TUNNEL:
-					switch (GetTunnelTransportType(tile)) {
-						case TRANSPORT_RAIL: return SMTT_RAILWAY;
-						case TRANSPORT_ROAD: return SMTT_ROAD;
-						default: NOT_REACHED();
-					}
-				case TT_MISC_DEPOT:
-					return IsRailDepot(tile) ? SMTT_RAILWAY : SMTT_ROAD;
-			}
+	switch (GetStationType (tile)) {
+		case STATION_RAIL:    return MKCOLOUR_XXXX(PC_VERY_DARK_BROWN);
+		case STATION_AIRPORT: return MKCOLOUR_XXXX(PC_RED);
+		case STATION_TRUCK:   return MKCOLOUR_XXXX(PC_ORANGE);
+		case STATION_BUS:     return MKCOLOUR_XXXX(PC_YELLOW);
+		case STATION_DOCK:    return MKCOLOUR_XXXX(PC_LIGHT_BLUE);
+		default:              return MKCOLOUR_FFFF;
 	}
-
-	NOT_REACHED();
 }
 
 /**
- * Return the colour a tile would be displayed with in the small map in mode "Contour".
- * @param tile The tile of which we would like to get the colour.
- * @param t    Effective tile type of the tile (see #GetEffectiveTileType).
- * @return The colour of tile in the small map in mode "Contour"
+ * Return the colour of a (non-void) clear tile in the smallmap in mode
+ * "Vegetation".
+ * @param tile The clear tile whose colour to get.
+ * @return The colour of the tile in the small map in mode "Vegetation".
  */
-static inline uint32 GetSmallMapContoursPixels(TileIndex tile, SmallmapTileType t)
+static inline uint32 GetSmallMapVegetationClearPixels (TileIndex tile)
 {
-	const SmallMapColourScheme *cs = &_heightmap_schemes[_settings_client.gui.smallmap_land_colour];
-	return ApplyMask(cs->height_colours[TileHeight(tile)], &_smallmap_contours_andor[t]);
-}
+	static const uint32 vegetation_clear_bits[] = {
+		MKCOLOUR_XXXX(PC_GRASS_LAND), ///< full grass
+		MKCOLOUR_XXXX(PC_GRASS_LAND), ///< shore
+		MKCOLOUR_XXXX(PC_ROUGH_LAND), ///< rough land
+		MKCOLOUR_XXXX(PC_GREY),       ///< rocks
+		MKCOLOUR_XXXX(PC_ORANGE),     ///< desert
+	};
 
-/**
- * Return the colour a tile would be displayed with in the small map in mode "Vehicles".
- *
- * @param tile The tile of which we would like to get the colour.
- * @param t    Effective tile type of the tile (see #GetEffectiveTileType).
- * @return The colour of tile in the small map in mode "Vehicles"
- */
-static inline uint32 GetSmallMapVehiclesPixels(TileIndex tile, SmallmapTileType t)
-{
-	const SmallMapColourScheme *cs = &_heightmap_schemes[_settings_client.gui.smallmap_land_colour];
-	return ApplyMask(cs->default_colour, &_smallmap_vehicles_andor[t]);
-}
+	switch (GetTileSubtype (tile)) {
+		default: NOT_REACHED();
 
-/**
- * Return the colour a tile would be displayed with in the small map in mode "Industries".
- *
- * @param tile The tile of which we would like to get the colour.
- * @param t    Effective tile type of the tile (see #GetEffectiveTileType).
- * @return The colour of tile in the small map in mode "Industries"
- */
-static inline uint32 GetSmallMapIndustriesPixels(TileIndex tile, SmallmapTileType t)
-{
-	if (t == SMTT_INDUSTRY) {
-		/* If industry is allowed to be seen, use its colour on the map */
-		IndustryType type = Industry::GetByTile(tile)->type;
-		if (_legend_from_industries[_industry_to_list_pos[type]].show_on_map &&
-				(_smallmap_industry_highlight_state || type != _smallmap_industry_highlight)) {
-			return (type == _smallmap_industry_highlight ? PC_WHITE : GetIndustrySpec(Industry::GetByTile(tile)->type)->map_colour) * 0x01010101;
-		} else {
-			/* Otherwise, return the colour which will make it disappear */
-			t = (IsTileOnWater(tile) ? SMTT_WATER : SMTT_CLEAR);
-		}
-	}
+		case TT_GROUND_FIELDS:
+			return MKCOLOUR_XXXX(PC_FIELDS);
 
-	const SmallMapColourScheme *cs = &_heightmap_schemes[_settings_client.gui.smallmap_land_colour];
-	return ApplyMask(_smallmap_show_heightmap ? cs->height_colours[TileHeight(tile)] : cs->default_colour, &_smallmap_vehicles_andor[t]);
-}
-
-/**
- * Return the colour a tile would be displayed with in the small map in mode "Routes".
- *
- * @param tile The tile of which we would like to get the colour.
- * @param t    Effective tile type of the tile (see #GetEffectiveTileType).
- * @return The colour of tile  in the small map in mode "Routes"
- */
-static inline uint32 GetSmallMapRoutesPixels(TileIndex tile, SmallmapTileType t)
-{
-	if (t == SMTT_STATION) {
-		switch (GetStationType(tile)) {
-			case STATION_RAIL:    return MKCOLOUR_XXXX(PC_VERY_DARK_BROWN);
-			case STATION_AIRPORT: return MKCOLOUR_XXXX(PC_RED);
-			case STATION_TRUCK:   return MKCOLOUR_XXXX(PC_ORANGE);
-			case STATION_BUS:     return MKCOLOUR_XXXX(PC_YELLOW);
-			case STATION_DOCK:    return MKCOLOUR_XXXX(PC_LIGHT_BLUE);
-			default:              return MKCOLOUR_FFFF;
-		}
-	} else if (t == SMTT_RAILWAY) {
-		AndOr andor = {
-			MKCOLOUR_0XX0(GetRailTypeInfo(GetRailType(tile))->map_colour),
-			_smallmap_contours_andor[t].mand
-		};
-
-		const SmallMapColourScheme *cs = &_heightmap_schemes[_settings_client.gui.smallmap_land_colour];
-		return ApplyMask(cs->default_colour, &andor);
-	}
-
-	/* Ground colour */
-	const SmallMapColourScheme *cs = &_heightmap_schemes[_settings_client.gui.smallmap_land_colour];
-	return ApplyMask(cs->default_colour, &_smallmap_contours_andor[t]);
-}
-
-/**
- * Return the colour a tile would be displayed with in the small map in mode "link stats".
- *
- * @param tile The tile of which we would like to get the colour.
- * @param t    Effective tile type of the tile (see #GetEffectiveTileType).
- * @return The colour of tile in the small map in mode "link stats"
- */
-static inline uint32 GetSmallMapLinkStatsPixels(TileIndex tile, SmallmapTileType t)
-{
-	return _smallmap_show_heightmap ? GetSmallMapContoursPixels(tile, t) : GetSmallMapRoutesPixels(tile, t);
-}
-
-static const uint32 _vegetation_clear_bits[] = {
-	MKCOLOUR_XXXX(PC_GRASS_LAND), ///< full grass
-	MKCOLOUR_XXXX(PC_GRASS_LAND), ///< shore
-	MKCOLOUR_XXXX(PC_ROUGH_LAND), ///< rough land
-	MKCOLOUR_XXXX(PC_GREY),       ///< rocks
-	MKCOLOUR_XXXX(PC_ORANGE),     ///< desert
-};
-
-/**
- * Return the colour a tile would be displayed with in the smallmap in mode "Vegetation".
- *
- * @param tile The tile of which we would like to get the colour.
- * @param t    Effective tile type of the tile (see #GetEffectiveTileType).
- * @return The colour of tile  in the smallmap in mode "Vegetation"
- */
-static inline uint32 GetSmallMapVegetationPixels(TileIndex tile, SmallmapTileType t)
-{
-	switch (t) {
-		case SMTT_CLEAR:
-			switch (GetTileSubtype(tile)) {
-				default: NOT_REACHED();
-
-				case TT_GROUND_FIELDS:
-					return MKCOLOUR_XXXX(PC_FIELDS);
-
-				case TT_GROUND_CLEAR:
-					if (IsSnowTile(tile)) {
-						return MKCOLOUR_XXXX(PC_LIGHT_BLUE);
-					} else if (IsClearGround(tile, GROUND_GRASS) && GetClearDensity(tile) < 3) {
-						return MKCOLOUR_XXXX(PC_BARE_LAND);
-					} else {
-						return _vegetation_clear_bits[GetClearGround(tile)];
-					}
-
-				case TT_GROUND_TREES:
-					if (IsSnowTile(tile)) {
-						return MKCOLOUR_XYYX(PC_LIGHT_BLUE, PC_TREES);
-					} else if (GetClearGround(tile) == GROUND_DESERT) {
-						return MKCOLOUR_XYYX(PC_ORANGE, PC_TREES);
-					} else {
-						return MKCOLOUR_XYYX(PC_GRASS_LAND, PC_TREES);
-					}
+		case TT_GROUND_CLEAR:
+			if (IsSnowTile (tile)) {
+				return MKCOLOUR_XXXX(PC_LIGHT_BLUE);
+			} else if (IsClearGround (tile, GROUND_GRASS) && GetClearDensity (tile) < 3) {
+				return MKCOLOUR_XXXX(PC_BARE_LAND);
+			} else {
+				return vegetation_clear_bits[GetClearGround(tile)];
 			}
 
-		case SMTT_INDUSTRY:
-			return IsTileForestIndustry(tile) ? MKCOLOUR_XXXX(PC_GREEN) : MKCOLOUR_XXXX(PC_DARK_RED);
-
-		default:
-			return ApplyMask(MKCOLOUR_XXXX(PC_GRASS_LAND), &_smallmap_vehicles_andor[t]);
+		case TT_GROUND_TREES:
+			if (IsSnowTile (tile)) {
+				return MKCOLOUR_XYYX(PC_LIGHT_BLUE, PC_TREES);
+			} else if (GetClearGround (tile) == GROUND_DESERT) {
+				return MKCOLOUR_XYYX(PC_ORANGE, PC_TREES);
+			} else {
+				return MKCOLOUR_XYYX(PC_GRASS_LAND, PC_TREES);
+			}
 	}
 }
 
-/**
- * Return the colour a tile would be displayed with in the small map in mode "Owner".
- *
- * @param tile The tile of which we would like to get the colour.
- * @param t    Effective tile type of the tile (see #GetEffectiveTileType).
- * @return The colour of tile in the small map in mode "Owner"
- */
-static inline uint32 GetSmallMapOwnerPixels(TileIndex tile, SmallmapTileType t)
+/** Decide which colour to use for a given map type and tile. */
+static uint32 GetSmallmapColour (SmallMapWindow::SmallMapType map_type,
+	TileIndex tile, SmallmapTileType et)
 {
-	Owner o;
+	struct AndOr {
+		uint32 mor;
+		uint32 mand;
 
-	switch (t) {
-		case SMTT_INDUSTRY: return MKCOLOUR_XXXX(PC_DARK_GREY);
-		case SMTT_HOUSE:    return MKCOLOUR_XXXX(PC_DARK_RED);
-		default:            o = GetTileOwner(tile); break;
-		/* FIXME: For roads there are multiple owners.
-		 * GetTileOwner returns the rail owner (level crossing) resp. the owner of ROADTYPE_ROAD (normal road),
-		 * even if there are no ROADTYPE_ROAD bits on the tile.
-		 */
+		uint32 apply (uint32 colour) const
+		{
+			return (colour & this->mand) | this->mor;
+		}
+	};
+
+	/* Colour masks for "Contour" and "Routes" modes. */
+	static const AndOr contours_andor[] = {
+		{MKCOLOUR_XXXX(PC_LIGHT_BLUE), MKCOLOUR_0000}, // SMTT_STATION
+		{MKCOLOUR_0XX0(PC_GREY      ), MKCOLOUR_F00F}, // SMTT_RAILWAY
+		{MKCOLOUR_0XX0(PC_BLACK     ), MKCOLOUR_F00F}, // SMTT_ROAD
+		{MKCOLOUR_XXXX(PC_DARK_RED  ), MKCOLOUR_0000}, // SMTT_INDUSTRY
+		{MKCOLOUR_0XX0(PC_DARK_RED  ), MKCOLOUR_F00F}, // SMTT_HOUSE
+		{MKCOLOUR_0XX0(PC_DARK_RED  ), MKCOLOUR_F00F}, // SMTT_OBJECT
+		{MKCOLOUR_0000               , MKCOLOUR_FFFF}, // SMTT_CLEAR
+		{MKCOLOUR_XXXX(PC_WATER     ), MKCOLOUR_0000}, // SMTT_WATER
+		{MKCOLOUR_0000               , MKCOLOUR_FFFF}, // SMTT_VOID
+	};
+
+	/* Colour masks for "Vehicles", "Industry", and "Vegetation" modes. */
+	static const AndOr vehicles_andor[] = {
+		{MKCOLOUR_0XX0(PC_BLACK     ), MKCOLOUR_F00F}, // SMTT_STATION
+		{MKCOLOUR_0XX0(PC_BLACK     ), MKCOLOUR_F00F}, // SMTT_RAILWAY
+		{MKCOLOUR_0XX0(PC_BLACK     ), MKCOLOUR_F00F}, // SMTT_ROAD
+		{MKCOLOUR_XXXX(PC_DARK_RED  ), MKCOLOUR_0000}, // SMTT_INDUSTRY
+		{MKCOLOUR_0XX0(PC_DARK_RED  ), MKCOLOUR_F00F}, // SMTT_HOUSE
+		{MKCOLOUR_0XX0(PC_DARK_RED  ), MKCOLOUR_F00F}, // SMTT_OBJECT
+		{MKCOLOUR_0000               , MKCOLOUR_FFFF}, // SMTT_CLEAR
+		{MKCOLOUR_XXXX(PC_WATER     ), MKCOLOUR_0000}, // SMTT_WATER
+		{MKCOLOUR_0000               , MKCOLOUR_FFFF}, // SMTT_VOID
+	};
+
+	const AndOr *andor;
+	bool height;
+
+	switch (map_type) {
+		case SmallMapWindow::SMT_CONTOUR:
+			andor = &contours_andor[et];
+			height = true;
+			break;
+
+		case SmallMapWindow::SMT_VEHICLES:
+			andor = &vehicles_andor[et];
+			height = false;
+			break;
+
+		case SmallMapWindow::SMT_INDUSTRY:
+			andor = &vehicles_andor[et];
+			height = _smallmap_show_heightmap;
+			break;
+
+		case SmallMapWindow::SMT_LINKSTATS:
+			if (_smallmap_show_heightmap) {
+				andor = &contours_andor[et];
+				height = true;
+				break;
+			}
+			/* fall through */
+		case SmallMapWindow::SMT_ROUTES:
+			if (et == SMTT_STATION) {
+				return GetSmallMapRoutesStationPixels (tile);
+			} else if (et == SMTT_RAILWAY) {
+				AndOr andor = {
+					MKCOLOUR_0XX0(GetRailTypeInfo(GetRailType(tile))->map_colour),
+					contours_andor[et].mand
+				};
+
+				const SmallMapColourScheme *cs = &_heightmap_schemes[_settings_client.gui.smallmap_land_colour];
+				return andor.apply (cs->default_colour);
+			}
+
+			/* Ground colour */
+			andor = &contours_andor[et];
+			height = false;
+			break;
+
+		case SmallMapWindow::SMT_VEGETATION:
+			switch (et) {
+				case SMTT_CLEAR:
+					return GetSmallMapVegetationClearPixels (tile);
+
+				case SMTT_INDUSTRY:
+					return IsTileForestIndustry (tile) ? MKCOLOUR_XXXX(PC_GREEN) : MKCOLOUR_XXXX(PC_DARK_RED);
+
+				default:
+					return vehicles_andor[et].apply (MKCOLOUR_XXXX(PC_GRASS_LAND));
+			}
+
+		case SmallMapWindow::SMT_OWNER: {
+			switch (et) {
+				case SMTT_INDUSTRY: return MKCOLOUR_XXXX(PC_DARK_GREY);
+				case SMTT_HOUSE:    return MKCOLOUR_XXXX(PC_DARK_RED);
+				default:            break;
+			}
+
+			/* FIXME: For roads there are multiple owners. GetTileOwner returns
+			 * the rail owner (level crossing) resp. the owner of ROADTYPE_ROAD
+			 * (normal road), even if there are no ROADTYPE_ROAD bits on the tile.
+			 */
+			Owner o = GetTileOwner (tile);
+			if (o == OWNER_TOWN) return MKCOLOUR_XXXX(PC_DARK_RED);
+
+			if (o < MAX_COMPANIES) {
+				uint pos = _company_to_list_pos[o];
+				if (_legend_land_owners[pos].show_on_map) {
+					return MKCOLOUR_XXXX(_legend_land_owners[pos].colour);
+				}
+			}
+
+			if (et == SMTT_WATER) return MKCOLOUR_XXXX(PC_WATER);
+			const SmallMapColourScheme *cs = &_heightmap_schemes[_settings_client.gui.smallmap_land_colour];
+			return _smallmap_show_heightmap ? cs->height_colours[TileHeight(tile)] : cs->default_colour;
+		}
+
+		default: NOT_REACHED();
 	}
 
-	if ((o < MAX_COMPANIES && !_legend_land_owners[_company_to_list_pos[o]].show_on_map) || o == OWNER_NONE || o == OWNER_WATER) {
-		if (t == SMTT_WATER) return MKCOLOUR_XXXX(PC_WATER);
-		const SmallMapColourScheme *cs = &_heightmap_schemes[_settings_client.gui.smallmap_land_colour];
-		return _smallmap_show_heightmap ? cs->height_colours[TileHeight(tile)] : cs->default_colour;
-	} else if (o == OWNER_TOWN) {
-		return MKCOLOUR_XXXX(PC_DARK_RED);
-	}
-
-	return MKCOLOUR_XXXX(_legend_land_owners[_company_to_list_pos[o]].colour);
+	const SmallMapColourScheme *cs = &_heightmap_schemes[_settings_client.gui.smallmap_land_colour];
+	return andor->apply (height ? cs->height_colours[TileHeight(tile)] : cs->default_colour);
 }
 
 /** Vehicle colours in #SMT_VEHICLES mode. Indexed by #VehicleTypeByte. */
@@ -738,37 +680,65 @@ inline uint32 SmallMapWindow::GetTileColours(const TileArea &ta) const
 	SmallmapTileType et = SMTT_VOID; // Effective tile type at that position.
 
 	TILE_AREA_LOOP(ti, ta) {
-		SmallmapTileType ttype = GetEffectiveTileType(ti);
+		SmallmapTileType ttype;
+		if (IsHouseTile (ti)) {
+			ttype = SMTT_HOUSE;
+
+		} else if (IsIndustryTile (ti)) {
+			/* Special handling of industries while in "Industries" smallmap view. */
+			if (this->map_type == SMT_INDUSTRY) {
+				/* If industry is allowed to be seen, use its colour on the map.
+				 * This has the highest priority above any other value. */
+				IndustryType type = Industry::GetByTile(ti)->type;
+				if (_legend_from_industries[_industry_to_list_pos[type]].show_on_map) {
+					if (type != _smallmap_industry_highlight) {
+						return GetIndustrySpec(type)->map_colour * 0x01010101;
+					} else if (_smallmap_industry_highlight_state) {
+						return MKCOLOUR_XXXX(PC_WHITE);
+					}
+				}
+				/* Otherwise make it disappear */
+				ttype = IsTileOnWater(ti) ? SMTT_WATER : SMTT_CLEAR;
+			} else {
+				ttype = SMTT_INDUSTRY;
+			}
+
+		} else {
+			switch (GetTileType (ti)) {
+				default: NOT_REACHED();
+				case TT_OBJECT:  ttype = SMTT_OBJECT;  break;
+				case TT_WATER:   ttype = SMTT_WATER;   break;
+				case TT_RAILWAY: ttype = SMTT_RAILWAY; break;
+				case TT_ROAD:    ttype = SMTT_ROAD;    break;
+				case TT_STATION: ttype = SMTT_STATION; break;
+
+				case TT_GROUND:
+					ttype = IsTileSubtype (ti, TT_GROUND_VOID) ? SMTT_VOID : SMTT_CLEAR;
+					break;
+
+				case TT_MISC:
+					switch (GetTileSubtype (ti)) {
+						default: NOT_REACHED();
+						case TT_MISC_CROSSING: ttype = SMTT_ROAD;  break;
+						case TT_MISC_AQUEDUCT: ttype = SMTT_WATER; break;
+						case TT_MISC_TUNNEL:
+							ttype = (GetTunnelTransportType(ti) == TRANSPORT_RAIL) ? SMTT_RAILWAY : SMTT_ROAD;
+							break;
+						case TT_MISC_DEPOT:
+							ttype = IsRailDepot (ti) ? SMTT_RAILWAY : SMTT_ROAD;
+							break;
+					}
+					break;
+			}
+		}
+
 		if (ttype < et) {
 			tile = ti;
 			et = ttype;
 		}
 	}
 
-	switch (this->map_type) {
-		case SMT_CONTOUR:
-			return GetSmallMapContoursPixels(tile, et);
-
-		case SMT_VEHICLES:
-			return GetSmallMapVehiclesPixels(tile, et);
-
-		case SMT_INDUSTRY:
-			return GetSmallMapIndustriesPixels(tile, et);
-
-		case SMT_LINKSTATS:
-			return GetSmallMapLinkStatsPixels(tile, et);
-
-		case SMT_ROUTES:
-			return GetSmallMapRoutesPixels(tile, et);
-
-		case SMT_VEGETATION:
-			return GetSmallMapVegetationPixels(tile, et);
-
-		case SMT_OWNER:
-			return GetSmallMapOwnerPixels(tile, et);
-
-		default: NOT_REACHED();
-	}
+	return GetSmallmapColour (this->map_type, tile, et);
 }
 
 /**
@@ -785,7 +755,8 @@ inline uint32 SmallMapWindow::GetTileColours(const TileArea &ta) const
  */
 void SmallMapWindow::DrawSmallMapColumn(void *dst, uint xc, uint yc, int pitch, int reps, int start_pos, int end_pos) const
 {
-	void *dst_ptr_abs_end = _screen.surface->move (_screen.dst_ptr, 0, _screen.height);
+	void *dst_ptr_abs = _screen_surface->ptr;
+	void *dst_ptr_abs_end = _screen_surface->move (dst_ptr_abs, 0, _screen_height);
 	bool freeform = _settings_game.construction.freeform_edges;
 
 	do {
@@ -793,7 +764,7 @@ void SmallMapWindow::DrawSmallMapColumn(void *dst, uint xc, uint yc, int pitch, 
 		if (xc >= MapMaxX() || yc >= MapMaxY()) continue;
 
 		/* Check if the dst pointer points to a pixel inside the screen buffer */
-		if (dst < _screen.dst_ptr) continue;
+		if (dst < dst_ptr_abs) continue;
 		if (dst >= dst_ptr_abs_end) continue;
 
 		/* Construct tilearea covered by (xc, yc, xc + this->zoom, yc + this->zoom) such that it is within map limits. */
@@ -812,11 +783,11 @@ void SmallMapWindow::DrawSmallMapColumn(void *dst, uint xc, uint yc, int pitch, 
 		uint8 *val8 = (uint8 *)&val;
 		int idx = max(0, -start_pos);
 		for (int pos = max(0, start_pos); pos < end_pos; pos++) {
-			_screen.surface->set_pixel (dst, idx, 0, val8[idx]);
+			_screen_surface->set_pixel (dst, idx, 0, val8[idx]);
 			idx++;
 		}
 	/* Switch to next tile in the column */
-	} while (xc += this->zoom, yc += this->zoom, dst = _screen.surface->move (dst, pitch, 0), --reps != 0);
+	} while (xc += this->zoom, yc += this->zoom, dst = _screen_surface->move (dst, pitch, 0), --reps != 0);
 }
 
 /**

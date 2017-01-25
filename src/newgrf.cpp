@@ -5623,7 +5623,7 @@ static const Action5Type _action5_types[] = {
 	/* 0x02 */ { A5BLOCK_INVALID,      0,                            0, 0,                                           "Type 0x02"                },
 	/* 0x03 */ { A5BLOCK_INVALID,      0,                            0, 0,                                           "Type 0x03"                },
 	/* 0x04 */ { A5BLOCK_ALLOW_OFFSET, SPR_SIGNALS_BASE,             1, PRESIGNAL_SEMAPHORE_AND_PBS_SPRITE_COUNT,    "Signal graphics"          },
-	/* 0x05 */ { A5BLOCK_ALLOW_OFFSET, SPR_ELRAIL_BASE,              1, ELRAIL_SPRITE_COUNT,                         "Catenary graphics"        },
+	/* 0x05 */ { A5BLOCK_ALLOW_OFFSET, SPR_ELRAIL_BASE,              1, ELRAIL_SPRITE_COUNT,                         "Rail catenary graphics"   },
 	/* 0x06 */ { A5BLOCK_ALLOW_OFFSET, SPR_SLOPES_BASE,              1, NORMAL_AND_HALFTILE_FOUNDATION_SPRITE_COUNT, "Foundation graphics"      },
 	/* 0x07 */ { A5BLOCK_INVALID,      0,                           75, 0,                                           "TTDP GUI graphics"        }, // Not used by OTTD.
 	/* 0x08 */ { A5BLOCK_ALLOW_OFFSET, SPR_CANALS_BASE,              1, CANALS_SPRITE_COUNT,                         "Canal graphics"           },
@@ -7256,14 +7256,18 @@ static int LoadFontGlyph (ByteReader *buf)
 		uint8  num_char  = buf->ReadByte();
 		uint16 base_char = buf->ReadWord();
 
+		FontCache *fc;
 		if (size >= FS_END) {
 			grfmsg(1, "LoadFontGlyph: Size %u is not supported, ignoring", size);
+			fc = NULL;
+		} else {
+			fc = FontCache::Get (size);
 		}
 
 		grfmsg(7, "LoadFontGlyph: Loading %u glyph(s) at 0x%04X for size %u", num_char, base_char, size);
 
 		for (uint c = 0; c < num_char; c++) {
-			if (size < FS_END) SetUnicodeGlyph(size, base_char + c, _cur.spriteid);
+			if (fc != NULL) fc->SetUnicodeGlyph (base_char + c, _cur.spriteid);
 			_cur.nfo_line++;
 			LoadNextSprite(_cur.spriteid++, _cur.file_index, _cur.nfo_line, _cur.grf_container_ver);
 		}

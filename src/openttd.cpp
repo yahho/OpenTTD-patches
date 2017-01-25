@@ -63,7 +63,6 @@
 #include "town.h"
 #include "subsidy_func.h"
 #include "gfx_layout.h"
-#include "viewport_sprite_sorter.h"
 #include "industry.h"
 
 #include "linkgraph/linkgraphschedule.h"
@@ -330,7 +329,7 @@ static void LoadIntroGame(bool load_newgrfs = true)
 	SetupColoursAndInitialWindow();
 
 	/* Load the default opening screen savegame */
-	if (!LoadGame("opntitle.dat", SL_LOAD, BASESET_DIR)) {
+	if (!LoadGame ("opntitle.dat", false, false, BASESET_DIR)) {
 		GenerateWorld(GWM_EMPTY, 64, 64); // if failed loading, make empty world.
 		WaitTillGeneratedWorld();
 		SetLocalCompany(COMPANY_SPECTATOR);
@@ -621,15 +620,16 @@ int openttd_main(int argc, char *argv[])
 		case 'e': _switch_mode = (_switch_mode == SM_LOAD_GAME || _switch_mode == SM_LOAD_SCENARIO ? SM_LOAD_SCENARIO : SM_EDITOR); break;
 		case 'g':
 			if (mgo.opt != NULL) {
-				bstrcpy (_file_to_saveload.name, mgo.opt);
-				_switch_mode = (_switch_mode == SM_EDITOR || _switch_mode == SM_LOAD_SCENARIO ? SM_LOAD_SCENARIO : SM_LOAD_GAME);
-				_file_to_saveload.mode = SL_LOAD;
+				_file_to_saveload.SetName(mgo.opt);
+				bool is_scenario = _switch_mode == SM_EDITOR || _switch_mode == SM_LOAD_SCENARIO;
+				_switch_mode = is_scenario ? SM_LOAD_SCENARIO : SM_LOAD_GAME;
+				_file_to_saveload.SetMode(SLO_LOAD, is_scenario ? FT_SCENARIO : FT_SAVEGAME, DFT_GAME_FILE);
 
 				/* if the file doesn't exist or it is not a valid savegame, let the saveload code show an error */
 				const char *t = strrchr(_file_to_saveload.name, '.');
 				if (t != NULL) {
-					FiosType ft = FiosGetSavegameListCallback(SLD_LOAD_GAME, _file_to_saveload.name, t);
-					if (ft != FIOS_TYPE_INVALID) SetFiosType(ft);
+					FiosType ft = FiosGetSavegameListCallback(SLO_LOAD, _file_to_saveload.name, t);
+					if (ft != FIOS_TYPE_INVALID) _file_to_saveload.SetMode(ft);
 				}
 
 				break;
@@ -649,10 +649,10 @@ int openttd_main(int argc, char *argv[])
 			}
 
 			sstring<80> title;
-			FiosGetSavegameListCallback (SLD_LOAD_GAME, mgo.opt, strrchr(mgo.opt, '.'), &title);
+			FiosGetSavegameListCallback (SLO_LOAD, mgo.opt, strrchr(mgo.opt, '.'), &title);
 
 			_load_check_data.Clear();
-			bool res = LoadGame(mgo.opt, SL_LOAD_CHECK, SAVE_DIR);
+			bool res = LoadGame (mgo.opt, true, false, SAVE_DIR);
 			if (!res || _load_check_data.HasErrors()) {
 				fprintf(stderr, "Failed to open savegame\n");
 				if (_load_check_data.HasErrors()) {
@@ -800,8 +800,6 @@ int openttd_main(int argc, char *argv[])
 
 	VideoDriver::SelectDriver ((videodriver != NULL) ? videodriver : VideoDriver::ini);
 	free(videodriver);
-
-	InitializeSpriteSorter();
 
 	NetworkStartUp(); // initialize network-core
 
@@ -1020,14 +1018,14 @@ static void MakeNewEditorWorld()
  * @param subdir default directory to look for filename, set to 0 if not needed
  * @param lf Load filter to use, if NULL: use filename + subdir.
  */
-bool SafeLoad(const char *filename, int mode, GameMode newgm, Subdirectory subdir, struct LoadFilter *lf = NULL)
+bool SafeLoad (const char *filename, DetailedFileType dft, GameMode newgm, Subdirectory subdir, struct LoadFilter *lf = NULL)
 {
-	assert(mode == SL_LOAD || (lf == NULL && mode == SL_OLD_LOAD));
+	assert(dft == DFT_GAME_FILE || (lf == NULL && dft == DFT_OLD_GAME_FILE));
 	GameMode ogm = _game_mode;
 
 	_game_mode = newgm;
 
-	if (lf == NULL ? LoadGame(filename, mode, subdir) : LoadWithFilter(lf)) {
+	if (lf == NULL ? LoadGame (filename, false, dft == DFT_OLD_GAME_FILE, subdir) : LoadWithFilter (lf)) {
 		return true;
 	} else {
 #ifdef ENABLE_NETWORK
@@ -1111,10 +1109,11 @@ void SwitchToMode(SwitchMode new_mode)
 			ResetGRFConfig(true);
 			ResetWindowSystem();
 
-			if (!SafeLoad(_file_to_saveload.name, _file_to_saveload.mode, GM_NORMAL, NO_DIRECTORY)) {
+			assert (_file_to_saveload.file_op == SLO_LOAD);
+			if (!SafeLoad (_file_to_saveload.name, _file_to_saveload.detail_ftype, GM_NORMAL, NO_DIRECTORY)) {
 				ShowSaveLoadErrorMessage (false);
 			} else {
-				if (_saveload_mode == SLD_LOAD_SCENARIO) {
+				if (_file_to_saveload.abstract_ftype == FT_SCENARIO) {
 					/* Reset engine pool to simplify changing engine NewGRFs in scenario editor. */
 					EngineOverrideManager::ResetToCurrentNewGRFConfig();
 				}
@@ -1151,7 +1150,8 @@ void SwitchToMode(SwitchMode new_mode)
 			break;
 
 		case SM_LOAD_SCENARIO: { // Load scenario from scenario editor
-			if (SafeLoad(_file_to_saveload.name, _file_to_saveload.mode, GM_EDITOR, NO_DIRECTORY)) {
+			assert (_file_to_saveload.file_op == SLO_LOAD);
+			if (SafeLoad (_file_to_saveload.name, _file_to_saveload.detail_ftype, GM_EDITOR, NO_DIRECTORY)) {
 				SetLocalCompany(OWNER_NONE);
 				_settings_newgame.game_creation.starting_year = _cur_year;
 				/* Cancel the saveload pausing */

@@ -32,7 +32,7 @@ inline void Blitter_32bppAnim::Surface::draw (const BlitterParams *bp, ZoomLevel
 	}
 
 	Colour *dst = (Colour *)bp->dst + bp->top * bp->pitch + bp->left;
-	uint16 *anim = this->anim_buf + ((uint32 *)bp->dst - (uint32 *)this->ptr) + bp->top * this->width + bp->left;
+	uint16 *anim = this->get_anim_pos (bp->dst) + bp->top * this->width + bp->left;
 
 	const byte *remap = bp->remap; // store so we don't have to access it via bp everytime
 
@@ -260,9 +260,7 @@ void Blitter_32bppAnim::Surface::draw (const BlitterParams *bp, BlitterMode mode
 void Blitter_32bppAnimBase::Surface::recolour_rect (void *dst, int width, int height, PaletteID pal)
 {
 	Colour *udst = (Colour *)dst;
-	uint16 *anim;
-
-	anim = this->anim_buf + ((uint32 *)dst - (uint32 *)this->ptr);
+	uint16 *anim = this->get_anim_pos (dst);
 
 	if (pal == PALETTE_TO_TRANSPARENT) {
 		do {
@@ -299,16 +297,14 @@ void Blitter_32bppAnimBase::Surface::set_pixel (void *video, int x, int y, uint8
 	*(this->movep <Colour> (video, x, y)) = this->lookup_colour (colour);
 
 	/* Set the colour in the anim-buffer too. */
-	uint16 *anim = ((uint32 *)video - (uint32 *)this->ptr) + this->anim_buf;
+	uint16 *anim = this->get_anim_pos (video);
 	*(movew <uint16> (anim, x, y, this->width)) = colour | (DEFAULT_BRIGHTNESS << 8);
 }
 
 void Blitter_32bppAnimBase::Surface::draw_rect (void *video, int width, int height, uint8 colour)
 {
 	Colour colour32 = this->lookup_colour (colour);
-	uint16 *anim_line;
-
-	anim_line = ((uint32 *)video - (uint32 *)this->ptr) + this->anim_buf;
+	uint16 *anim_line = this->get_anim_pos (video);
 
 	do {
 		Colour *dst = (Colour *)video;
@@ -326,13 +322,31 @@ void Blitter_32bppAnimBase::Surface::draw_rect (void *video, int width, int heig
 	} while (--height);
 }
 
+void Blitter_32bppAnimBase::Surface::draw_checker (void *video, uint width, uint height, uint8 colour, byte bo)
+{
+	Colour colour32 = this->lookup_colour (colour);
+	uint16 acolour = colour | (DEFAULT_BRIGHTNESS << 8);
+
+	Colour *dst  = (Colour *) video;
+	uint16 *anim = this->get_anim_pos (dst);
+	uint i = bo;
+	do {
+		for (i = !(i & 1); i < width; i += 2) {
+			dst[i]  = colour32;
+			anim[i] = acolour;
+		}
+		dst  += this->pitch;
+		anim += this->width;
+	} while (--height > 0);
+}
+
 void Blitter_32bppAnimBase::Surface::paste (const Buffer *src, int x, int y)
 {
 	void *video = this->Blitter_32bppBase::Surface::move (this->ptr, x, y);
 	assert (video >= this->ptr && video <= (uint32 *)this->ptr + this->width + this->height * this->pitch);
 	Colour *dst = (Colour *)video;
 	const byte *usrc = &src->data.front();
-	uint16 *anim_line = ((uint32 *)video - (uint32 *)this->ptr) + this->anim_buf;
+	uint16 *anim_line = this->get_anim_pos (video);
 
 	const uint width = src->width;
 	for (uint height = src->height; height > 0; height--) {
@@ -380,9 +394,7 @@ void Blitter_32bppAnimBase::Surface::copy (Buffer *dst, int x, int y, uint width
 	assert (video >= this->ptr && video <= (uint32 *)this->ptr + this->width + this->height * this->pitch);
 	byte *udst = &dst->data.front();
 	const uint32 *src = (const uint32 *)video;
-	const uint16 *anim_line;
-
-	anim_line = ((const uint32 *)video - (uint32 *)this->ptr) + this->anim_buf;
+	const uint16 *anim_line = this->get_anim_pos (video);
 
 	for (; height > 0; height--) {
 		memcpy(udst, src, width * sizeof(uint32));

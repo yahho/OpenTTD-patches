@@ -57,7 +57,7 @@ static void Load_SIGN(LoadBuffer *reader)
 		}
 
 		/* Signs placed in scenario editor shall now be OWNER_DEITY */
-		if (reader->IsOTTDVersionBefore(171) && si->owner == OWNER_NONE && _saveload_mode == SLD_LOAD_SCENARIO) {
+		if (reader->IsOTTDVersionBefore(171) && si->owner == OWNER_NONE && reader->is_scenario) {
 			si->owner = OWNER_DEITY;
 		}
 	}

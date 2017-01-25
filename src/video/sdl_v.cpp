@@ -398,12 +398,11 @@ bool VideoDriver_SDL::CreateMainSurface(uint w, uint h)
 	if (_fullscreen) _cursor.in_window = true;
 
 	Blitter *blitter = Blitter::get();
-	_screen.surface.reset (blitter->create (newscreen->pixels,
+	_screen_surface.reset (blitter->create (newscreen->pixels,
 					newscreen->w, newscreen->h,
 					newscreen->pitch / (bpp / 8)));
-	_screen.dst_ptr = newscreen->pixels;
-	_screen.width   = newscreen->w;
-	_screen.height  = newscreen->h;
+	_screen_width   = newscreen->w;
+	_screen_height  = newscreen->h;
 
 	InitPalette();
 	switch (blitter->UsePaletteAnimation()) {
@@ -691,7 +690,7 @@ void VideoDriver_SDL::MainLoop()
 			_draw_mutex->BeginCritical();
 			_draw_continue = true;
 
-			_draw_threaded = ThreadObject::New(&DrawSurfaceToScreenThread, NULL, &_draw_thread);
+			_draw_threaded = ThreadObject::New(&DrawSurfaceToScreenThread, NULL, &_draw_thread, "ottd:draw-sdl");
 
 			/* Free the mutex if we won't be able to use it. */
 			if (!_draw_threaded) {
@@ -836,7 +835,7 @@ bool VideoDriver_SDL::ToggleFullscreen(bool fullscreen)
 bool VideoDriver_SDL::AfterBlitterChange()
 {
 	if (_draw_mutex != NULL) _draw_mutex->BeginCritical(true);
-	bool ret = CreateMainSurface(_screen.width, _screen.height);
+	bool ret = CreateMainSurface (_screen_width, _screen_height);
 	if (_draw_mutex != NULL) _draw_mutex->EndCritical(true);
 	return ret;
 }

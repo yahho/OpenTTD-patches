@@ -32,6 +32,10 @@ byte _dirkeys;        ///< 1 = left, 2 = up, 4 = right, 8 = down
 bool _fullscreen;
 byte _support8bpp;
 CursorVars _cursor;
+static const AnimCursor *_cursor_animate_list; ///< in case of animated cursor, list of frames
+static const AnimCursor *_cursor_animate_cur;  ///< in case of animated cursor, current frame
+static uint _cursor_animate_timeout;           ///< in case of animated cursor, number of ticks to show the current cursor
+
 bool _ctrl_pressed;   ///< Is Ctrl pressed?
 bool _shift_pressed;  ///< Is Shift pressed?
 byte _fast_forward;
@@ -39,27 +43,20 @@ bool _left_button_down;     ///< Is left mouse button pressed?
 bool _left_button_clicked;  ///< Is left mouse button clicked?
 bool _right_button_down;    ///< Is right mouse button pressed?
 bool _right_button_clicked; ///< Is right mouse button clicked?
-BlitArea _screen;
+
+ttd_unique_ptr <Blitter::Surface> _screen_surface;
+int _screen_width, _screen_height;
+
 bool _exit_game;
 GameMode _game_mode;
 SwitchMode _switch_mode;  ///< The next mainloop command.
 PauseModeByte _pause_mode;
 Palette _cur_palette;
 
-/** Cache with metrics of some glyphs of a font. */
-struct FontMetrics {
-	byte widths [256 - 32];     ///< Glyph widths of all ASCII characters.
-	byte widest_digit;          ///< Widest digit.
-	byte widest_digit_nonnull;  ///< Widest leading (non-null) digit.
-	byte digit_width;           ///< Width of the widest digit.
-};
-
-static FontMetrics font_metrics_cache [FS_END]; ///< Cache containing width of often used characters. @see GetCharacterWidth()
-
 byte _colour_gradient[COLOUR_END][8];
 
 static void GfxMainBlitterViewport (DrawPixelInfo *dpi, const Sprite *sprite, int x, int y, BlitterMode mode, const SubSprite *sub = NULL, SpriteID sprite_id = SPR_CURSOR_MOUSE);
-static void GfxMainBlitter (BlitArea *dpi, const Sprite *sprite, int x, int y, BlitterMode mode, const SubSprite *sub = NULL, SpriteID sprite_id = SPR_CURSOR_MOUSE, ZoomLevel zoom = ZOOM_LVL_NORMAL);
+static void GfxMainBlitter (BlitArea *dpi, const Sprite *sprite, int x, int y, BlitterMode mode, SpriteID sprite_id = SPR_CURSOR_MOUSE, ZoomLevel zoom = ZOOM_LVL_NORMAL);
 
 static Blitter::Buffer _cursor_backup;
 
@@ -93,7 +90,7 @@ void GfxScroll(int left, int top, int width, int height, int xo, int yo)
 	if (_networking) NetworkUndrawChatMessage();
 #endif /* ENABLE_NETWORK */
 
-	_screen.surface->scroll (_screen.dst_ptr, left, top, width, height, xo, yo);
+	_screen_surface->scroll (_screen_surface->ptr, left, top, width, height, xo, yo);
 	/* This part of the screen is now dirty. */
 	VideoDriver::GetActiveDriver()->MakeDirty(left, top, width, height);
 }
@@ -117,8 +114,7 @@ void GfxScroll(int left, int top, int width, int height, int xo, int yo)
 void GfxFillRect (BlitArea *dpi, int left, int top, int right, int bottom, int colour, FillRectMode mode)
 {
 	void *dst;
-	const int otop = top;
-	const int oleft = left;
+	const int otopleft = top + left;
 
 	if (left > right || top > bottom) return;
 	if (right < dpi->left || left >= dpi->left + dpi->width) return;
@@ -148,11 +144,8 @@ void GfxFillRect (BlitArea *dpi, int left, int top, int right, int bottom, int c
 			break;
 
 		case FILLRECT_CHECKER: {
-			byte bo = (oleft - left + dpi->left + otop - top + dpi->top) & 1;
-			do {
-				for (int i = (bo ^= 1); i < right; i += 2) dpi->surface->set_pixel (dst, i, 0, (uint8)colour);
-				dst = dpi->surface->move (dst, 0, 1);
-			} while (--bottom > 0);
+			byte bo = (otopleft - left + dpi->left - top + dpi->top) & 1;
+			dpi->surface->draw_checker (dst, right, bottom, colour, bo);
 			break;
 		}
 	}
@@ -719,7 +712,9 @@ Dimension GetStringBoundingBox(StringID strid)
 void DrawCharCentered (BlitArea *dpi, WChar c, int x, int y, TextColour colour)
 {
 	SetColourRemap(colour);
-	GfxMainBlitter (dpi, GetGlyph (FS_NORMAL, c), x - GetCharacterWidth (FS_NORMAL, c) / 2, y, BM_COLOUR_REMAP);
+	FontCache *fc = FontCache::Get (FS_NORMAL);
+	GfxMainBlitter (dpi, fc->GetGlyph (fc->MapCharToGlyph (c)),
+			x - fc->GetCharacterWidth(c) / 2, y, BM_COLOUR_REMAP);
 }
 
 /**
@@ -794,15 +789,12 @@ void DrawSpriteViewport (DrawPixelInfo *dpi, SpriteID img, PaletteID pal,
  * @param pal  Palette to use.
  * @param x    Left coordinate of image in pixels
  * @param y    Top coordinate of image in pixels
- * @param sub  If available, draw only specified part of the sprite
- * @param zoom Zoom level of sprite
  */
-void DrawSprite (BlitArea *dpi, SpriteID img, PaletteID pal,
-	int x, int y, const SubSprite *sub, ZoomLevel zoom)
+void DrawSprite (BlitArea *dpi, SpriteID img, PaletteID pal, int x, int y)
 {
 	BlitterMode bm = GetBlitterMode (img, pal);
 	SpriteID real_sprite = GB(img, 0, SPRITE_WIDTH);
-	GfxMainBlitter (dpi, GetSprite (real_sprite, ST_NORMAL), x, y, bm, sub, real_sprite, zoom);
+	GfxMainBlitter (dpi, GetSprite (real_sprite, ST_NORMAL), x, y, bm, real_sprite, ZOOM_LVL_GUI);
 }
 
 /**
@@ -814,10 +806,9 @@ void DrawSprite (BlitArea *dpi, SpriteID img, PaletteID pal,
  * @param mode   The settings for the blitter to pass.
  * @param sub    Whether to only draw a sub set of the sprite.
  * @param zoom   The zoom level at which to draw the sprites.
- * @tparam ZOOM_BASE The factor required to get the sub sprite information into the right size.
  * @tparam SCALED_XY Whether the X and Y are scaled or unscaled.
  */
-template <int ZOOM_BASE, bool SCALED_XY>
+template <bool SCALED_XY>
 static void GfxBlitter (BlitArea *dpi, const Sprite * const sprite,
 	int x, int y, BlitterMode mode, const SubSprite * const sub,
 	SpriteID sprite_id, ZoomLevel zoom)
@@ -841,11 +832,13 @@ static void GfxBlitter (BlitArea *dpi, const Sprite * const sprite,
 		bp.width = UnScaleByZoom(sprite->width, zoom);
 		bp.height = UnScaleByZoom(sprite->height, zoom);
 	} else {
+		assert (!SCALED_XY);
+
 		/* Amount of pixels to clip from the source sprite */
-		int clip_left   = max(0,                   -sprite->x_offs +  sub->left        * ZOOM_BASE );
-		int clip_top    = max(0,                   -sprite->y_offs +  sub->top         * ZOOM_BASE );
-		int clip_right  = max(0, sprite->width  - (-sprite->x_offs + (sub->right + 1)  * ZOOM_BASE));
-		int clip_bottom = max(0, sprite->height - (-sprite->y_offs + (sub->bottom + 1) * ZOOM_BASE));
+		int clip_left   = max (0,                   -sprite->x_offs +  sub->left        * ZOOM_LVL_BASE );
+		int clip_top    = max (0,                   -sprite->y_offs +  sub->top         * ZOOM_LVL_BASE );
+		int clip_right  = max (0, sprite->width  - (-sprite->x_offs + (sub->right + 1)  * ZOOM_LVL_BASE));
+		int clip_bottom = max (0, sprite->height - (-sprite->y_offs + (sub->bottom + 1) * ZOOM_LVL_BASE));
 
 		if (clip_left + clip_right >= sprite->width) return;
 		if (clip_top + clip_bottom >= sprite->height) return;
@@ -935,42 +928,40 @@ static void GfxBlitter (BlitArea *dpi, const Sprite * const sprite,
 
 static void GfxMainBlitterViewport (DrawPixelInfo *dpi, const Sprite *sprite, int x, int y, BlitterMode mode, const SubSprite *sub, SpriteID sprite_id)
 {
-	GfxBlitter <ZOOM_LVL_BASE, false> (dpi, sprite, x, y, mode, sub, sprite_id, dpi->zoom);
+	GfxBlitter <false> (dpi, sprite, x, y, mode, sub, sprite_id, dpi->zoom);
 }
 
-static void GfxMainBlitter (BlitArea *dpi, const Sprite *sprite, int x, int y, BlitterMode mode, const SubSprite *sub, SpriteID sprite_id, ZoomLevel zoom)
+static void GfxMainBlitter (BlitArea *dpi, const Sprite *sprite, int x, int y, BlitterMode mode, SpriteID sprite_id, ZoomLevel zoom)
 {
-	GfxBlitter <1, true> (dpi, sprite, x, y, mode, sub, sprite_id, zoom);
+	GfxBlitter <true> (dpi, sprite, x, y, mode, NULL, sprite_id, zoom);
 }
 
-void DoPaletteAnimations();
-
-void GfxInitPalettes()
+/**
+ * Compute the cycle in an animation.
+ * @param x Global animation counter.
+ * @param n Number of cycles in the animation.
+ * @param s Animation speed factor (higher is slower).
+ */
+static inline uint get_animation_cycle (uint x, uint n, uint s)
 {
-	memcpy(&_cur_palette, &_palette, sizeof(_cur_palette));
-	DoPaletteAnimations();
+	return ((x & ((1 << s) - 1)) * n) >> s;
 }
-
-#define EXTR(p, q) (((uint16)(palette_animation_counter * (p)) * (q)) >> 16)
-#define EXTR2(p, q) (((uint16)(~palette_animation_counter * (p)) * (q)) >> 16)
 
 void DoPaletteAnimations()
 {
 	/* Animation counter for the palette animation. */
-	static int palette_animation_counter = 0;
-	palette_animation_counter += 8;
+	static uint palette_animation_counter = 0;
+	palette_animation_counter++;
 
 	Blitter *blitter = Blitter::get();
+	bool noanim = (blitter != NULL) && (blitter->UsePaletteAnimation() == Blitter::PALETTE_ANIMATION_NONE);
+	const uint tc = noanim ? 0 : palette_animation_counter;
+
 	const Colour *s;
 	const ExtraPaletteValues *ev = &_extra_palette_values;
 	Colour old_val[PALETTE_ANIM_SIZE];
-	const uint old_tc = palette_animation_counter;
 	uint i;
 	uint j;
-
-	if (blitter != NULL && blitter->UsePaletteAnimation() == Blitter::PALETTE_ANIMATION_NONE) {
-		palette_animation_counter = 0;
-	}
 
 	Colour *palette_pos = &_cur_palette.palette[PALETTE_ANIM_START];  // Points to where animations are taking place on the palette
 	/* Makes a copy of the current animation palette in old_val,
@@ -979,7 +970,7 @@ void DoPaletteAnimations()
 
 	/* Fizzy Drink bubbles animation */
 	s = ev->fizzy_drink;
-	j = EXTR2(512, EPV_CYCLES_FIZZY_DRINK);
+	j = get_animation_cycle (~tc, EPV_CYCLES_FIZZY_DRINK, 4);
 	for (i = 0; i != EPV_CYCLES_FIZZY_DRINK; i++) {
 		*palette_pos++ = s[j];
 		j++;
@@ -988,7 +979,7 @@ void DoPaletteAnimations()
 
 	/* Oil refinery fire animation */
 	s = ev->oil_refinery;
-	j = EXTR2(512, EPV_CYCLES_OIL_REFINERY);
+	j = get_animation_cycle (~tc, EPV_CYCLES_OIL_REFINERY, 4);
 	for (i = 0; i != EPV_CYCLES_OIL_REFINERY; i++) {
 		*palette_pos++ = s[j];
 		j++;
@@ -997,30 +988,15 @@ void DoPaletteAnimations()
 
 	/* Radio tower blinking */
 	{
-		byte i = (palette_animation_counter >> 1) & 0x7F;
-		byte v;
+		byte v = (((tc & 0x0F) - 0x3) > 0xA) ? 128 : 20;
+		bool b = (tc & 0x10) != 0;
 
-		if (i < 0x3f) {
-			v = 255;
-		} else if (i < 0x4A || i >= 0x75) {
-			v = 128;
-		} else {
-			v = 20;
-		}
-		palette_pos->r = v;
+		palette_pos->r = b ? v : 255;
 		palette_pos->g = 0;
 		palette_pos->b = 0;
 		palette_pos++;
 
-		i ^= 0x40;
-		if (i < 0x3f) {
-			v = 255;
-		} else if (i < 0x4A || i >= 0x75) {
-			v = 128;
-		} else {
-			v = 20;
-		}
-		palette_pos->r = v;
+		palette_pos->r = b ? 255 : v;
 		palette_pos->g = 0;
 		palette_pos->b = 0;
 		palette_pos++;
@@ -1028,7 +1004,7 @@ void DoPaletteAnimations()
 
 	/* Handle lighthouse and stadium animation */
 	s = ev->lighthouse;
-	j = EXTR(256, EPV_CYCLES_LIGHTHOUSE);
+	j = get_animation_cycle (tc, EPV_CYCLES_LIGHTHOUSE, 5);
 	for (i = 0; i != EPV_CYCLES_LIGHTHOUSE; i++) {
 		*palette_pos++ = s[j];
 		j++;
@@ -1037,7 +1013,7 @@ void DoPaletteAnimations()
 
 	/* Dark blue water */
 	s = (_settings_game.game_creation.landscape == LT_TOYLAND) ? ev->dark_water_toyland : ev->dark_water;
-	j = EXTR(320, EPV_CYCLES_DARK_WATER);
+	j = get_animation_cycle (tc * 10, EPV_CYCLES_DARK_WATER, 8);
 	for (i = 0; i != EPV_CYCLES_DARK_WATER; i++) {
 		*palette_pos++ = s[j];
 		j++;
@@ -1046,22 +1022,25 @@ void DoPaletteAnimations()
 
 	/* Glittery water */
 	s = (_settings_game.game_creation.landscape == LT_TOYLAND) ? ev->glitter_water_toyland : ev->glitter_water;
-	j = EXTR(128, EPV_CYCLES_GLITTER_WATER);
+	j = get_animation_cycle (tc, EPV_CYCLES_GLITTER_WATER, 6);
 	for (i = 0; i != EPV_CYCLES_GLITTER_WATER / 3; i++) {
 		*palette_pos++ = s[j];
 		j += 3;
 		if (j >= EPV_CYCLES_GLITTER_WATER) j -= EPV_CYCLES_GLITTER_WATER;
 	}
 
-	if (blitter != NULL && blitter->UsePaletteAnimation() == Blitter::PALETTE_ANIMATION_NONE) {
-		palette_animation_counter = old_tc;
-	} else {
-		if (memcmp(old_val, &_cur_palette.palette[PALETTE_ANIM_START], sizeof(old_val)) != 0 && _cur_palette.count_dirty == 0) {
-			/* Did we changed anything on the palette? Seems so.  Mark it as dirty */
-			_cur_palette.first_dirty = PALETTE_ANIM_START;
-			_cur_palette.count_dirty = PALETTE_ANIM_SIZE;
-		}
+	if (!noanim && (memcmp (old_val, &_cur_palette.palette[PALETTE_ANIM_START], sizeof(old_val)) != 0)
+			&& (_cur_palette.count_dirty == 0)) {
+		/* Did we changed anything on the palette? Seems so.  Mark it as dirty */
+		_cur_palette.first_dirty = PALETTE_ANIM_START;
+		_cur_palette.count_dirty = PALETTE_ANIM_SIZE;
 	}
+}
+
+void GfxInitPalettes()
+{
+	memcpy(&_cur_palette, &_palette, sizeof(_cur_palette));
+	DoPaletteAnimations();
 }
 
 /**
@@ -1080,86 +1059,26 @@ TextColour GetContrastColour(uint8 background)
 }
 
 /**
- * Initialize font_metrics_cache
+ * Initialize the font cache.
  * @param monospace Whether to load the monospace cache or the normal fonts.
  */
 void LoadStringWidthTable(bool monospace)
 {
 	for (FontSize fs = monospace ? FS_MONO : FS_BEGIN; fs < (monospace ? FS_END : FS_MONO); fs++) {
-		for (uint i = 0; i != 224; i++) {
-			font_metrics_cache[fs].widths[i] = GetGlyphWidth (fs, i + 32);
-		}
-
-		byte widest_digit = 9;
-		byte digit_width = font_metrics_cache[fs].widths['9' - 32];
-		for (byte i = 8; i > 0; i--) {
-			byte w = font_metrics_cache[fs].widths[i + '0' - 32];
-			if (w > digit_width) {
-				widest_digit = i;
-				digit_width = w;
-			}
-		}
-		font_metrics_cache[fs].widest_digit_nonnull = widest_digit;
-
-		byte w = font_metrics_cache[fs].widths['0' - 32];
-		if (w > digit_width) {
-			widest_digit = 0;
-			digit_width = w;
-		}
-		font_metrics_cache[fs].widest_digit = widest_digit;
-		font_metrics_cache[fs].digit_width = digit_width;
+		FontCache::Get(fs)->ClearFontCache();
 	}
 
-	ClearFontCache();
 	ReInitAllWindows();
-}
-
-/**
- * Return width of character glyph.
- * @param size  Font of the character
- * @param key   Character code glyph
- * @return Width of the character glyph
- */
-byte GetCharacterWidth(FontSize size, WChar key)
-{
-	/* Use font_metrics_cache if possible */
-	if (key >= 32 && key < 256) return font_metrics_cache[size].widths[key - 32];
-
-	return GetGlyphWidth(size, key);
-}
-
-/**
- * Return the maximum width of single digit.
- * @param size  Font of the digit
- * @return Width of the digit.
- */
-byte GetDigitWidth(FontSize size)
-{
-	return font_metrics_cache[size].digit_width;
-}
-
-/** Compute the broadest n-digit value in a given font size. */
-uint64 GetBroadestValue (uint n, FontSize size)
-{
-	uint d = font_metrics_cache[size].widest_digit;
-
-	if (n <= 1) return d;
-
-	uint64 val = font_metrics_cache[size].widest_digit_nonnull;
-	do {
-		val = 10 * val + d;
-	} while (--n > 1);
-	return val;
 }
 
 void ScreenSizeChanged()
 {
-	_dirty_bytes_per_line = CeilDiv(_screen.width, DIRTY_BLOCK_WIDTH);
-	_dirty_blocks = xrealloct<byte>(_dirty_blocks, _dirty_bytes_per_line * CeilDiv(_screen.height, DIRTY_BLOCK_HEIGHT));
+	_dirty_bytes_per_line = CeilDiv (_screen_width, DIRTY_BLOCK_WIDTH);
+	_dirty_blocks = xrealloct<byte> (_dirty_blocks, _dirty_bytes_per_line * CeilDiv (_screen_height, DIRTY_BLOCK_HEIGHT));
 
 	/* check the dirty rect */
-	if (_invalid_rect.right >= _screen.width) _invalid_rect.right = _screen.width;
-	if (_invalid_rect.bottom >= _screen.height) _invalid_rect.bottom = _screen.height;
+	if (_invalid_rect.right >= _screen_width) _invalid_rect.right = _screen_width;
+	if (_invalid_rect.bottom >= _screen_height) _invalid_rect.bottom = _screen_height;
 
 	/* screen size changed and the old bitmap is invalid now, so we don't want to undraw it */
 	_cursor.visible = false;
@@ -1168,11 +1087,11 @@ void ScreenSizeChanged()
 void UndrawMouseCursor()
 {
 	/* Don't undraw the mouse cursor if the screen is not ready */
-	if (_screen.dst_ptr == NULL) return;
+	if (!_screen_surface) return;
 
 	if (_cursor.visible) {
 		_cursor.visible = false;
-		_screen.surface->paste (&_cursor_backup, _cursor.draw_pos.x, _cursor.draw_pos.y);
+		_screen_surface->paste (&_cursor_backup, _cursor.draw_pos.x, _cursor.draw_pos.y);
 		VideoDriver::GetActiveDriver()->MakeDirty(_cursor.draw_pos.x, _cursor.draw_pos.y, _cursor.draw_size.x, _cursor.draw_size.y);
 	}
 }
@@ -1185,12 +1104,7 @@ void DrawMouseCursor()
 #endif
 
 	/* Don't draw the mouse cursor if the screen is not ready */
-	if (_screen.dst_ptr == NULL) return;
-
-	int x;
-	int y;
-	int w;
-	int h;
+	if (!_screen_surface) return;
 
 	/* Redraw mouse cursor but only when it's inside the window */
 	if (!_cursor.in_window) return;
@@ -1201,33 +1115,47 @@ void DrawMouseCursor()
 		UndrawMouseCursor();
 	}
 
-	w = _cursor.size.x;
-	x = _cursor.pos.x + _cursor.offs.x + _cursor.short_vehicle_offset;
-	if (x < 0) {
-		w += x;
-		x = 0;
+	/* Determine visible area */
+	int left = _cursor.pos.x + _cursor.total_offs.x;
+	int width = _cursor.total_size.x;
+	if (left < 0) {
+		width += left;
+		left = 0;
 	}
-	if (w > _screen.width - x) w = _screen.width - x;
-	if (w <= 0) return;
-	_cursor.draw_pos.x = x;
-	_cursor.draw_size.x = w;
+	if (left + width > _screen_width) {
+		width = _screen_width - left;
+	}
+	if (width <= 0) return;
 
-	h = _cursor.size.y;
-	y = _cursor.pos.y + _cursor.offs.y;
-	if (y < 0) {
-		h += y;
-		y = 0;
+	int top = _cursor.pos.y + _cursor.total_offs.y;
+	int height = _cursor.total_size.y;
+	if (top < 0) {
+		height += top;
+		top = 0;
 	}
-	if (h > _screen.height - y) h = _screen.height - y;
-	if (h <= 0) return;
-	_cursor.draw_pos.y = y;
-	_cursor.draw_size.y = h;
+	if (top + height > _screen_height) {
+		height = _screen_height - top;
+	}
+	if (height <= 0) return;
+
+	_cursor.draw_pos.x = left;
+	_cursor.draw_pos.y = top;
+	_cursor.draw_size.x = width;
+	_cursor.draw_size.y = height;
 
 	/* Make backup of stuff below cursor */
-	_screen.surface->copy (&_cursor_backup, _cursor.draw_pos.x, _cursor.draw_pos.y, _cursor.draw_size.x, _cursor.draw_size.y);
+	_screen_surface->copy (&_cursor_backup, _cursor.draw_pos.x, _cursor.draw_pos.y, _cursor.draw_size.x, _cursor.draw_size.y);
 
 	/* Draw cursor on screen */
-	DrawSprite (&_screen, _cursor.sprite, _cursor.pal, _cursor.pos.x + _cursor.short_vehicle_offset, _cursor.pos.y);
+	BlitArea screen;
+	screen.surface = _screen_surface.get();
+	screen.dst_ptr = _screen_surface->ptr;
+	screen.left = screen.top = 0;
+	screen.width  = _screen_width;
+	screen.height = _screen_height;
+	for (uint i = 0; i < _cursor.sprite_count; ++i) {
+		DrawSprite (&screen, _cursor.sprite_seq[i].sprite, _cursor.sprite_seq[i].pal, _cursor.pos.x + _cursor.sprite_seq[i].pos, _cursor.pos.y);
+	}
 
 	VideoDriver::GetActiveDriver()->MakeDirty(_cursor.draw_pos.x, _cursor.draw_pos.y, _cursor.draw_size.x, _cursor.draw_size.y);
 
@@ -1237,7 +1165,7 @@ void DrawMouseCursor()
 
 void RedrawScreenRect(int left, int top, int right, int bottom)
 {
-	assert(right <= _screen.width && bottom <= _screen.height);
+	assert (right <= _screen_width && bottom <= _screen_height);
 	if (_cursor.visible) {
 		if (right > _cursor.draw_pos.x &&
 				left < _cursor.draw_pos.x + _cursor.draw_size.x &&
@@ -1264,8 +1192,8 @@ void RedrawScreenRect(int left, int top, int right, int bottom)
 void DrawDirtyBlocks()
 {
 	byte *b = _dirty_blocks;
-	const int w = Align(_screen.width,  DIRTY_BLOCK_WIDTH);
-	const int h = Align(_screen.height, DIRTY_BLOCK_HEIGHT);
+	const int w = Align (_screen_width,  DIRTY_BLOCK_WIDTH);
+	const int h = Align (_screen_height, DIRTY_BLOCK_HEIGHT);
 	int x;
 	int y;
 
@@ -1380,8 +1308,8 @@ void SetDirtyBlocks(int left, int top, int right, int bottom)
 
 	if (left < 0) left = 0;
 	if (top < 0) top = 0;
-	if (right > _screen.width) right = _screen.width;
-	if (bottom > _screen.height) bottom = _screen.height;
+	if (right > _screen_width) right = _screen_width;
+	if (bottom > _screen_height) bottom = _screen_height;
 
 	if (left >= right || top >= bottom) return;
 
@@ -1417,7 +1345,7 @@ void SetDirtyBlocks(int left, int top, int right, int bottom)
  */
 void MarkWholeScreenDirty()
 {
-	SetDirtyBlocks(0, 0, _screen.width, _screen.height);
+	SetDirtyBlocks (0, 0, _screen_width, _screen_height);
 }
 
 /**
@@ -1480,15 +1408,32 @@ bool InitBlitArea (const BlitArea *o, BlitArea *n,
  */
 void UpdateCursorSize()
 {
-	CursorVars *cv = &_cursor;
-	const Sprite *p = GetSprite(GB(cv->sprite, 0, SPRITE_WIDTH), ST_NORMAL);
+	/* Ignore setting any cursor before the sprites are loaded. */
+	if (GetMaxSpriteID() == 0) return;
 
-	cv->size.y = UnScaleGUI(p->height);
-	cv->size.x = UnScaleGUI(p->width);
-	cv->offs.x = UnScaleGUI(p->x_offs);
-	cv->offs.y = UnScaleGUI(p->y_offs);
+	assert(_cursor.sprite_count <= lengthof(_cursor.sprite_seq));
+	for (uint i = 0; i < _cursor.sprite_count; ++i) {
+		const Sprite *p = GetSprite(GB(_cursor.sprite_seq[i].sprite, 0, SPRITE_WIDTH), ST_NORMAL);
+		Point offs, size;
+		offs.x = UnScaleGUI(p->x_offs) + _cursor.sprite_seq[i].pos;
+		offs.y = UnScaleGUI(p->y_offs);
+		size.x = UnScaleGUI(p->width);
+		size.y = UnScaleGUI(p->height);
 
-	cv->dirty = true;
+		if (i == 0) {
+			_cursor.total_offs = offs;
+			_cursor.total_size = size;
+		} else {
+			int right  = max(_cursor.total_offs.x + _cursor.total_size.x, offs.x + size.x);
+			int bottom = max(_cursor.total_offs.y + _cursor.total_size.y, offs.y + size.y);
+			if (offs.x < _cursor.total_offs.x) _cursor.total_offs.x = offs.x;
+			if (offs.y < _cursor.total_offs.y) _cursor.total_offs.y = offs.y;
+			_cursor.total_size.x = right  - _cursor.total_offs.x;
+			_cursor.total_size.y = bottom - _cursor.total_offs.y;
+		}
+	}
+
+	_cursor.dirty = true;
 }
 
 /**
@@ -1498,47 +1443,59 @@ void UpdateCursorSize()
  */
 static void SetCursorSprite(CursorID cursor, PaletteID pal)
 {
-	CursorVars *cv = &_cursor;
-	if (cv->sprite == cursor) return;
+	if (_cursor.sprite_count == 1 && _cursor.sprite_seq[0].sprite == cursor && _cursor.sprite_seq[0].pal == pal) return;
 
-	cv->sprite = cursor;
-	cv->pal    = pal;
+	_cursor.sprite_count = 1;
+	_cursor.sprite_seq[0].sprite = cursor;
+	_cursor.sprite_seq[0].pal = pal;
+	_cursor.sprite_seq[0].pos = 0;
+
 	UpdateCursorSize();
-
-	cv->short_vehicle_offset = 0;
 }
 
 static void SwitchAnimatedCursor()
 {
-	const AnimCursor *cur = _cursor.animate_cur;
+	const AnimCursor *cur = _cursor_animate_cur;
 
-	if (cur == NULL || cur->sprite == AnimCursor::LAST) cur = _cursor.animate_list;
+	if (cur == NULL || cur->sprite == AnimCursor::LAST) cur = _cursor_animate_list;
 
-	SetCursorSprite(cur->sprite, _cursor.pal);
+	SetCursorSprite(cur->sprite, _cursor.sprite_seq[0].pal);
 
-	_cursor.animate_timeout = cur->display_time;
-	_cursor.animate_cur     = cur + 1;
+	_cursor_animate_timeout = cur->display_time;
+	_cursor_animate_cur     = cur + 1;
 }
 
 void CursorTick()
 {
-	if (_cursor.animate_timeout != 0 && --_cursor.animate_timeout == 0) {
+	if (_cursor_animate_timeout != 0 && --_cursor_animate_timeout == 0) {
 		SwitchAnimatedCursor();
+	}
+}
+
+/**
+ * Set or unset the ZZZ cursor.
+ * @param busy Whether to show the ZZZ cursor.
+ */
+void SetMouseCursorBusy(bool busy)
+{
+	if (busy) {
+		if (_cursor.sprite_seq[0].sprite == SPR_CURSOR_MOUSE) SetMouseCursor (SPR_CURSOR_ZZZ);
+	} else {
+		if (_cursor.sprite_seq[0].sprite == SPR_CURSOR_ZZZ) SetMouseCursor (SPR_CURSOR_MOUSE);
 	}
 }
 
 /**
  * Assign a single non-animated sprite to the cursor.
  * @param sprite Sprite to draw for the cursor.
- * @param pal Palette to use for recolouring.
  * @see SetAnimatedMouseCursor
  */
-void SetMouseCursor(CursorID sprite, PaletteID pal)
+void SetMouseCursor (CursorID sprite)
 {
 	/* Turn off animation */
-	_cursor.animate_timeout = 0;
+	_cursor_animate_timeout = 0;
 	/* Set cursor */
-	SetCursorSprite(sprite, pal);
+	SetCursorSprite (sprite, PAL_NONE);
 }
 
 /**
@@ -1548,9 +1505,9 @@ void SetMouseCursor(CursorID sprite, PaletteID pal)
  */
 void SetAnimatedMouseCursor(const AnimCursor *table)
 {
-	_cursor.animate_list = table;
-	_cursor.animate_cur = NULL;
-	_cursor.pal = PAL_NONE;
+	_cursor_animate_list = table;
+	_cursor_animate_cur = NULL;
+	_cursor.sprite_seq[0].pal = PAL_NONE;
 	SwitchAnimatedCursor();
 }
 
@@ -1577,6 +1534,14 @@ bool CursorVars::UpdateCursorPosition(int x, int y, bool queued_warp)
 	if (x == this->pos.x && y == this->pos.y) {
 		/* Warp finished. */
 		this->queued_warp = false;
+
+		this->delta.x = 0;
+		this->delta.y = 0;
+
+		this->last_position.x = x;
+		this->last_position.y = y;
+
+		return false;
 	}
 
 	this->delta.x = x - (this->queued_warp ? this->last_position.x : this->pos.x);
@@ -1586,27 +1551,25 @@ bool CursorVars::UpdateCursorPosition(int x, int y, bool queued_warp)
 	this->last_position.y = y;
 
 	bool need_warp = false;
-	if (this->fix_at) {
-		if (this->delta.x != 0 || this->delta.y != 0) {
-			/* Trigger warp.
-			 * Note: We also trigger warping again, if there is already a pending warp.
-			 *       This makes it more tolerant about the OS or other software inbetween
-			 *       botchering the warp. */
-			this->queued_warp = queued_warp;
-			need_warp = true;
-		}
-	} else if (this->pos.x != x || this->pos.y != y) {
+	if (!this->fix_at) {
 		this->queued_warp = false; // Cancel warping, we are no longer confining the position.
 		this->dirty = true;
 		this->pos.x = x;
 		this->pos.y = y;
+	} else if (this->delta.x != 0 || this->delta.y != 0) {
+		/* Trigger warp.
+		 * Note: We also trigger warping again, if there is already a pending warp.
+		 *       This makes it more tolerant about the OS or other software inbetween
+		 *       botchering the warp. */
+		this->queued_warp = queued_warp;
+		need_warp = true;
 	}
 	return need_warp;
 }
 
 bool ChangeResInGame(int width, int height)
 {
-	return (_screen.width == width && _screen.height == height) || VideoDriver::GetActiveDriver()->ChangeResolution(width, height);
+	return (_screen_width == width && _screen_height == height) || VideoDriver::GetActiveDriver()->ChangeResolution(width, height);
 }
 
 bool ToggleFullScreen(bool fs)

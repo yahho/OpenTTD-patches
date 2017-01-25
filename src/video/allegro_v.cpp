@@ -208,14 +208,13 @@ static bool CreateMainSurface(uint w, uint h)
 	 * So calculate the size based on the top, bottom, left and right */
 	_allegro_screen = create_bitmap_ex(bpp, screen->cr - screen->cl, screen->cb - screen->ct);
 	uint pitch = ((byte*)screen->line[1] - (byte*)screen->line[0]) / (bpp / 8);
-	_screen.surface.reset (Blitter::get()->create (_allegro_screen->line[0],
+	_screen_surface.reset (Blitter::get()->create (_allegro_screen->line[0],
 			_allegro_screen->w, _allegro_screen->h, pitch));
-	_screen.width = _allegro_screen->w;
-	_screen.height = _allegro_screen->h;
-	_screen.dst_ptr = _allegro_screen->line[0];
+	_screen_width = _allegro_screen->w;
+	_screen_height = _allegro_screen->h;
 
 	/* Initialise the screen so we don't blit garbage to the screen */
-	memset(_screen.dst_ptr, 0, _screen.height * pitch);
+	memset (_allegro_screen->line[0], 0, _screen_height * pitch);
 
 	/* Set the mouse at the place where we expect it */
 	poll_mouse();
@@ -562,7 +561,7 @@ bool VideoDriver_Allegro::ToggleFullscreen(bool fullscreen)
 
 bool VideoDriver_Allegro::AfterBlitterChange()
 {
-	return CreateMainSurface(_screen.width, _screen.height);
+	return CreateMainSurface (_screen_width, _screen_height);
 }
 
 #endif /* WITH_ALLEGRO */

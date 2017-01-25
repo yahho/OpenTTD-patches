@@ -12,19 +12,11 @@
 #ifndef SPRITECACHE_H
 #define SPRITECACHE_H
 
+#include "core/alloc_type.hpp"
+#include "blitter/blitter.h"
 #include "gfx_type.h"
 
-/** Data structure describing a sprite. */
-struct Sprite {
-	uint16 height; ///< Height of the sprite.
-	uint16 width;  ///< Width of the sprite.
-	int16 x_offs;  ///< Number of pixels to shift the sprite to the right.
-	int16 y_offs;  ///< Number of pixels to shift the sprite downwards.
-};
-
 extern uint _sprite_cache_size;
-
-typedef void *AllocatorProc(size_t size);
 
 void *GetRawSprite (SpriteID sprite, SpriteType type, bool cache = true);
 bool SpriteExists(SpriteID sprite);

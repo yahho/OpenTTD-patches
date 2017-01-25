@@ -20,18 +20,9 @@
  * Test if a rail type has catenary
  * @param rti Rail type to test
  */
-static inline bool HasCatenary (const RailtypeInfo *rti)
+static inline bool HasRailCatenary (const RailtypeInfo *rti)
 {
 	return HasBit (rti->flags, RTF_CATENARY);
-}
-
-/**
- * Test if a rail type has catenary
- * @param rt Rail type to test
- */
-static inline bool HasCatenary(RailType rt)
-{
-	return HasCatenary (GetRailTypeInfo (rt));
 }
 
 /**
@@ -46,14 +37,37 @@ static inline bool IsCatenaryDrawn()
  * Test if we should draw rail catenary
  * @param rt Rail type to test
  */
-static inline bool HasCatenaryDrawn (const RailtypeInfo *rti)
+static inline bool HasRailCatenaryDrawn (const RailtypeInfo *rti)
 {
-	return HasCatenary (rti) && IsCatenaryDrawn();
+	return HasRailCatenary (rti) && IsCatenaryDrawn();
 }
 
-void DrawCatenary(const TileInfo *ti);
-void DrawCatenaryOnTunnel(const TileInfo *ti);
-void DrawCatenaryOnBridge(const TileInfo *ti);
+void DrawRailwayCatenary (const TileInfo *ti);
+
+void DrawRailBridgeHeadCatenary (const TileInfo *ti, const RailtypeInfo *rti,
+	DiagDirection dir);
+
+void DrawRailAxisCatenary (const TileInfo *ti, const RailtypeInfo *rti,
+	Axis axis, bool draw_pylons = true, bool draw_wire = true);
+
+void DrawRailTunnelDepotCatenary (const TileInfo *ti, const RailtypeInfo *rti,
+	bool depot, DiagDirection dir);
+
+void DrawRailTunnelCatenary (const TileInfo *ti, DiagDirection dir);
+
+/**
+ * Draws wires on a rail depot tile.
+ * @param ti The TileInfo to draw the wires for.
+ * @param rti The rail type information of the rail.
+ * @param dir Direction of the depot.
+ */
+static inline void DrawRailDepotCatenary (const TileInfo *ti,
+	const RailtypeInfo *rti, DiagDirection dir)
+{
+	DrawRailTunnelDepotCatenary (ti, rti, true, dir);
+}
+
+void DrawRailCatenaryOnBridge(const TileInfo *ti);
 
 bool SettingsDisableElrail(int32 p1); ///< _settings_game.disable_elrail callback
 

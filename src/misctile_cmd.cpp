@@ -127,14 +127,11 @@ static void DrawTunnel(TileInfo *ti)
 			if (surface != 0) DrawGroundSprite (ti, surface + tunnelbridge_direction, PAL_NONE);
 		}
 
-		if (HasCatenaryDrawn (rti)) {
-			/* Maybe draw pylons on the entry side */
-			DrawCatenary(ti);
-
+		if (HasRailCatenaryDrawn (rti)) {
+			/* Draw pylon and wire on the entry side. Note that
+			 * DrawRailTunnelCatenary calls StartSpriteCombine. */
+			DrawRailTunnelCatenary (ti, tunnelbridge_direction);
 			catenary = true;
-			StartSpriteCombine (ti->vd);
-			/* Draw wire above the ramp */
-			DrawCatenaryOnTunnel(ti);
 		}
 
 		if (maptile_has_tunnel_signals(ti->tile)) {
@@ -264,7 +261,7 @@ static void DrawTrainDepot(TileInfo *ti)
 		}
 	}
 
-	if (HasCatenaryDrawn (rti)) DrawCatenary (ti);
+	if (HasRailCatenaryDrawn (rti)) DrawRailDepotCatenary (ti, rti, dir);
 
 	int depot_sprite = GetCustomRailSprite(rti, ti->tile, RTSG_DEPOT);
 	SpriteID relocation = depot_sprite != 0 ? depot_sprite - SPR_RAIL_DEPOT_SE_1 : rti->GetRailtypeSpriteOffset();

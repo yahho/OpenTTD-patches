@@ -252,7 +252,7 @@ void Blitter_32bppOptimized::Surface::draw (const BlitterParams *bp, BlitterMode
 	}
 }
 
-Blitter_32bppOptimized::Sprite *Blitter_32bppOptimized::Sprite::encode (const SpriteLoader::Sprite *sprite, bool is_font, AllocatorProc *allocator)
+Blitter_32bppOptimized::Sprite *Blitter_32bppOptimized::Sprite::encode (const RawSprite *sprite, bool is_font, AllocatorProc *allocator)
 {
 	/* streams of pixels (a, r, g, b channels)
 	 *
@@ -284,7 +284,7 @@ Blitter_32bppOptimized::Sprite *Blitter_32bppOptimized::Sprite::encode (const Sp
 	}
 
 	for (ZoomLevel z = zoom_min; z <= zoom_max; z++) {
-		const SpriteLoader::Sprite *src_orig = &sprite[z];
+		const RawSprite *src_orig = &sprite[z];
 
 		uint size = src_orig->height * src_orig->width;
 
@@ -294,7 +294,7 @@ Blitter_32bppOptimized::Sprite *Blitter_32bppOptimized::Sprite::encode (const Sp
 		uint32 *dst_px_ln = (uint32 *)dst_px_orig[z];
 		uint32 *dst_n_ln  = (uint32 *)dst_n_orig[z];
 
-		const SpriteLoader::CommonPixel *src = (const SpriteLoader::CommonPixel *)src_orig->data;
+		const RawSprite::Pixel *src = (const RawSprite::Pixel *)src_orig->data;
 
 		for (uint y = src_orig->height; y > 0; y--) {
 			Colour *dst_px = (Colour *)(dst_px_ln + 1);

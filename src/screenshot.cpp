@@ -637,7 +637,7 @@ void SetScreenshotFormat(uint i)
  */
 static void CurrentScreenCallback(void *userdata, void *buf, uint y, uint pitch, uint n)
 {
-	_screen.surface->export_lines (buf, pitch, y, n);
+	_screen_surface->export_lines (buf, pitch, y, n);
 }
 
 /**
@@ -650,30 +650,23 @@ static void CurrentScreenCallback(void *userdata, void *buf, uint y, uint pitch,
  */
 static void LargeWorldCallback(void *userdata, void *buf, uint y, uint pitch, uint n)
 {
-	ViewPort *vp = (ViewPort *)userdata;
+	const ViewPort *vp = (ViewPort *)userdata;
+	assert (vp->left == 0);
+	assert (vp->top  == 0);
+
 	int wx, left;
 
 	/* We are no longer rendering to the screen */
-	BlitArea dpi;
-	dpi.dst_ptr = buf;
-	dpi.height = n;
-	dpi.width = vp->width;
-	dpi.surface.reset (Blitter::get()->create (buf, pitch, n, pitch, false));
-	dpi.left = 0;
-	dpi.top = y;
+	ttd_unique_ptr <Blitter::Surface> surface (Blitter::get()->create (buf, pitch, n, pitch, false));
+	/* Pretend this is part of a larger buffer. */
+	void *dst_ptr = surface->move (buf, 0, -y);
 
 	/* Render viewport in blocks of 1600 pixels width */
 	left = 0;
 	while (vp->width - left != 0) {
 		wx = min(vp->width - left, 1600);
+		ViewportDoDraw (surface.get(), dst_ptr, vp, left, y, wx, n);
 		left += wx;
-
-		ViewportDoDraw (&dpi, vp,
-			ScaleByZoom(left - wx - vp->left, vp->zoom) + vp->virtual_left,
-			ScaleByZoom(y - vp->top, vp->zoom) + vp->virtual_top,
-			ScaleByZoom(left - vp->left, vp->zoom) + vp->virtual_left,
-			ScaleByZoom((y + n) - vp->top, vp->zoom) + vp->virtual_top
-		);
 	}
 }
 
@@ -722,7 +715,8 @@ static const char *MakeScreenshotName(const char *default_fn, const char *ext, b
 static bool MakeSmallScreenshot(bool crashlog)
 {
 	const ScreenshotFormat *sf = _screenshot_formats + _cur_screenshot_format;
-	return sf->proc(MakeScreenshotName(SCREENSHOT_NAME, sf->extension, crashlog), CurrentScreenCallback, NULL, _screen.width, _screen.height,
+	return sf->proc (MakeScreenshotName (SCREENSHOT_NAME, sf->extension, crashlog),
+			CurrentScreenCallback, NULL, _screen_width, _screen_height,
 			Blitter::get()->GetScreenDepth(), _cur_palette.palette);
 }
 
@@ -776,6 +770,8 @@ static bool MakeLargeWorldScreenshot(ScreenshotType t)
 {
 	ViewPort vp;
 	SetupScreenshotViewport(t, &vp);
+	assert (vp.left == 0);
+	assert (vp.top  == 0);
 
 	const ScreenshotFormat *sf = _screenshot_formats + _cur_screenshot_format;
 	return sf->proc(MakeScreenshotName(SCREENSHOT_NAME, sf->extension), LargeWorldCallback, &vp, vp.width, vp.height,

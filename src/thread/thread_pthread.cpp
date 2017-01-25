@@ -23,16 +23,18 @@ private:
 	OTTDThreadFunc proc; ///< External thread procedure.
 	void *param;         ///< Parameter for the external thread procedure.
 	bool self_destruct;  ///< Free ourselves when done?
+	const char *name;    ///< Name for the thread
 
 public:
 	/**
 	 * Create a pthread and start it, calling proc(param).
 	 */
-	ThreadObject_pthread(OTTDThreadFunc proc, void *param, bool self_destruct) :
+	ThreadObject_pthread(OTTDThreadFunc proc, void *param, bool self_destruct, const char *name) :
 		thread(0),
 		proc(proc),
 		param(param),
-		self_destruct(self_destruct)
+		self_destruct(self_destruct),
+		name(name)
 	{
 		pthread_create(&this->thread, NULL, &stThreadProc, this);
 	}
@@ -58,7 +60,15 @@ private:
 	 */
 	static void *stThreadProc(void *thr)
 	{
-		((ThreadObject_pthread *)thr)->ThreadProc();
+		ThreadObject_pthread *self = (ThreadObject_pthread *) thr;
+#if defined(__GLIBC__)
+#if __GLIBC_PREREQ(2, 12)
+		if (self->name) {
+			pthread_setname_np(pthread_self(), self->name);
+		}
+#endif
+#endif
+		self->ThreadProc();
 		pthread_exit(NULL);
 	}
 
@@ -83,9 +93,9 @@ private:
 	}
 };
 
-/* static */ bool ThreadObject::New(OTTDThreadFunc proc, void *param, ThreadObject **thread)
+/* static */ bool ThreadObject::New(OTTDThreadFunc proc, void *param, ThreadObject **thread, const char *name)
 {
-	ThreadObject *to = new ThreadObject_pthread(proc, param, thread == NULL);
+	ThreadObject *to = new ThreadObject_pthread(proc, param, thread == NULL, name);
 	if (thread != NULL) *thread = to;
 	return true;
 }

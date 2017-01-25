@@ -131,65 +131,46 @@ void ShowNetworkGiveMoneyWindow(CompanyID company)
 
 
 /**
- * Zooms a viewport in a window in or out.
+ * Zoom a viewport in or out.
+ * @param vp  Viewport to zoom.
  * @param in  Whether to zoom in, else out.
- * @param w   Window owning the viewport.
- * @return Returns \c true if zooming step could be done, \c false if further zooming is not possible.
- * @note No button handling or what so ever is done.
  */
-bool DoZoomInOutWindow (bool in, Window *w)
+void DoZoomInOutViewport (ViewportData *vp, bool in)
 {
-	ViewPort *vp;
-
-	assert(w != NULL);
-	vp = w->viewport;
-
 	if (in) {
-		if (vp->zoom <= _settings_client.gui.zoom_min) return false;
 		vp->zoom = (ZoomLevel)((int)vp->zoom - 1);
 		vp->virtual_width >>= 1;
 		vp->virtual_height >>= 1;
 
-		w->viewport->scrollpos_x += vp->virtual_width >> 1;
-		w->viewport->scrollpos_y += vp->virtual_height >> 1;
+		vp->scrollpos_x += vp->virtual_width >> 1;
+		vp->scrollpos_y += vp->virtual_height >> 1;
 	} else {
-		if (vp->zoom >= _settings_client.gui.zoom_max) return false;
 		vp->zoom = (ZoomLevel)((int)vp->zoom + 1);
 
-		w->viewport->scrollpos_x -= vp->virtual_width >> 1;
-		w->viewport->scrollpos_y -= vp->virtual_height >> 1;
+		vp->scrollpos_x -= vp->virtual_width >> 1;
+		vp->scrollpos_y -= vp->virtual_height >> 1;
 
 		vp->virtual_width <<= 1;
 		vp->virtual_height <<= 1;
 	}
 
-	w->viewport->dest_scrollpos_x = w->viewport->scrollpos_x;
-	w->viewport->dest_scrollpos_y = w->viewport->scrollpos_y;
+	vp->dest_scrollpos_x = vp->scrollpos_x;
+	vp->dest_scrollpos_y = vp->scrollpos_y;
 
-	w->viewport->follow_vehicle = INVALID_VEHICLE;
+	vp->follow_vehicle = INVALID_VEHICLE;
 
-	vp->virtual_left = w->viewport->scrollpos_x;
-	vp->virtual_top = w->viewport->scrollpos_y;
-
-	/* Update the windows that have zoom-buttons to perhaps disable their buttons */
-	w->InvalidateData();
-	return true;
+	vp->virtual_left = vp->scrollpos_x;
+	vp->virtual_top  = vp->scrollpos_y;
 }
 
-void ZoomInOrOutToCursorWindow(bool in, Window *w)
+void ClampViewportZoom (ViewportData *vp)
 {
-	assert(w != NULL);
-
-	if (_game_mode != GM_MENU) {
-		ViewPort *vp = w->viewport;
-		if ((in && vp->zoom <= _settings_client.gui.zoom_min) || (!in && vp->zoom >= _settings_client.gui.zoom_max)) return;
-
-		Point pt = GetTileZoomCenterWindow(in, w);
-		if (pt.x != -1) {
-			ScrollWindowTo(pt.x, pt.y, -1, w, true);
-
-			DoZoomInOutWindow (in, w);
-		}
+	if (vp->zoom < _settings_client.gui.zoom_min) {
+		do DoZoomInOutViewport (vp, false);
+		while (vp->zoom < _settings_client.gui.zoom_min);
+	} else if (vp->zoom > _settings_client.gui.zoom_max) {
+		do DoZoomInOutViewport (vp, true);
+		while (vp->zoom > _settings_client.gui.zoom_max);
 	}
 }
 
@@ -233,7 +214,7 @@ struct MainWindow : Window
 	{
 		this->InitNested(0);
 		CLRBITS(this->flags, WF_WHITE_BORDER);
-		ResizeWindow(this, _screen.width, _screen.height);
+		ResizeWindow (this, _screen_width, _screen_height);
 
 		NWidgetViewport *nvp = this->GetWidget<NWidgetViewport>(WID_M_VIEWPORT);
 		nvp->InitializeViewport(this, TileXY(32, 32), ZOOM_LVL_VIEWPORT);
@@ -323,8 +304,10 @@ struct MainWindow : Window
 				Point pt = GetTileBelowCursor();
 				if (pt.x != -1) {
 					bool instant = (hotkey == GHK_CENTER_ZOOM && this->viewport->zoom != _settings_client.gui.zoom_min);
-					if (hotkey == GHK_CENTER_ZOOM) {
-						while (DoZoomInOutWindow (true, this)) {};
+					if (instant) {
+						do DoZoomInOutViewport (this->viewport, true);
+						while (this->viewport->zoom > _settings_client.gui.zoom_min);
+						this->InvalidateData();
 					}
 					ScrollMainWindowTo(pt.x, pt.y, -1, instant);
 				}
@@ -573,9 +556,9 @@ void ShowVitalWindows()
  */
 void GameSizeChanged()
 {
-	_cur_resolution.width  = _screen.width;
-	_cur_resolution.height = _screen.height;
+	_cur_resolution.width  = _screen_width;
+	_cur_resolution.height = _screen_height;
 	ScreenSizeChanged();
-	RelocateAllWindows(_screen.width, _screen.height);
+	RelocateAllWindows (_screen_width, _screen_height);
 	MarkWholeScreenDirty();
 }

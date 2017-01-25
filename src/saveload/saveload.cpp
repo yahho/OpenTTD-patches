@@ -63,18 +63,15 @@ extern const uint16 TRACERESTRICT_VERSION = 1; ///< Current trace restrict versi
 
 static const uint16 OTTD_SAVEGAME_VERSION = 194; ///< Maximum supported OTTD version
 
+FileToSaveLoad _file_to_saveload; ///< File to save or load in the openttd loop.
+
 char _savegame_format[8]; ///< how to compress savegames
 bool _do_autosave;        ///< are we doing an autosave at the moment?
 
-/** The saveload struct, containing reader-writer functions, buffer, version, etc. */
-struct SaveLoadParams {
-	SlErrorData error;                   ///< the error to show
+static SlErrorData _sl_error;   ///< the error to show
 
-	byte ff_state;                       ///< The state of fast-forward when saving started.
-	bool saveinprogress;                 ///< Whether there is currently a save in progress.
-};
-
-static SaveLoadParams _sl; ///< Parameters used for/at saveload.
+static byte _sl_ff_state;       ///< The state of fast-forward when saving started.
+static bool _sl_saveinprogress; ///< Whether there is currently a save in progress.
 
 /* these define the chunks */
 extern const ChunkHandler _gamelog_chunk_handlers[];
@@ -333,30 +330,30 @@ extern bool LoadOldSaveGame(LoadFilter *reader, SavegameTypeVersion *stv, SlErro
  */
 static void SaveFileStart()
 {
-	_sl.ff_state = _fast_forward;
+	_sl_ff_state = _fast_forward;
 	_fast_forward = 0;
-	if (_cursor.sprite == SPR_CURSOR_MOUSE) SetMouseCursor(SPR_CURSOR_ZZZ, PAL_NONE);
+	SetMouseCursorBusy(true);
 
 	InvalidateWindowData(WC_STATUS_BAR, 0, SBI_SAVELOAD_START);
-	_sl.saveinprogress = true;
+	_sl_saveinprogress = true;
 }
 
 /** Update the gui accordingly when saving is done and release locks on saveload. */
 static void SaveFileDone()
 {
-	if (_game_mode != GM_MENU) _fast_forward = _sl.ff_state;
-	if (_cursor.sprite == SPR_CURSOR_ZZZ) SetMouseCursor(SPR_CURSOR_MOUSE, PAL_NONE);
+	if (_game_mode != GM_MENU) _fast_forward = _sl_ff_state;
+	SetMouseCursorBusy(false);
 
 	InvalidateWindowData(WC_STATUS_BAR, 0, SBI_SAVELOAD_FINISH);
-	_sl.saveinprogress = false;
+	_sl_saveinprogress = false;
 }
 
 /** Show a gui message on saveload failure. */
 void ShowSaveLoadErrorMessage (bool save)
 {
 	StringID str = save ? STR_ERROR_GAME_SAVE_FAILED : STR_ERROR_GAME_LOAD_FAILED;
-	SetDParamStr (0, _sl.error.data);
-	ShowErrorMessage (str, _sl.error.str, WL_ERROR);
+	SetDParamStr (0, _sl_error.data);
+	ShowErrorMessage (str, _sl_error.str, WL_ERROR);
 }
 
 /** Show a gui message when saving has failed */
@@ -370,8 +367,8 @@ static void SaveFileError()
 static void LogSaveLoadError (void)
 {
 	char err_str[512];
-	SetDParamStr(0, _sl.error.data);
-	GetString (err_str, _sl.error.str);
+	SetDParamStr (0, _sl_error.data);
+	GetString (err_str, _sl_error.str);
 
 	/* Skip the "colour" character */
 	DEBUG(sl, 0, "%s", err_str + 3);
@@ -395,11 +392,11 @@ static bool SaveFileToDisk(SaveFilter *writer, SaveDumper *dumper, bool threaded
 
 		res = true;
 	} catch (SlException e) {
-		_sl.error = e.error;
+		_sl_error = e.error;
 
 		/* We don't want to shout when saving is just
 		 * cancelled due to a client disconnecting. */
-		if (_sl.error.str != STR_NETWORK_ERROR_LOSTCONNECTION) {
+		if (_sl_error.str != STR_NETWORK_ERROR_LOSTCONNECTION) {
 			LogSaveLoadError();
 			asfp = SaveFileError;
 		}
@@ -456,7 +453,7 @@ void WaitTillSaved()
  */
 static bool DoSave(SaveFilter *writer, bool threaded)
 {
-	assert(!_sl.saveinprogress);
+	assert (!_sl_saveinprogress);
 
 	SaveDumper *dumper = new SaveDumper();
 
@@ -470,7 +467,7 @@ static bool DoSave(SaveFilter *writer, bool threaded)
 		data->writer = writer;
 		data->dumper = dumper;
 
-		if (ThreadObject::New(&SaveFileToDiskThread, data, &_save_thread)) {
+		if (ThreadObject::New(&SaveFileToDiskThread, data, &_save_thread, "ottd:savegame")) {
 			return true;
 		}
 
@@ -503,7 +500,7 @@ bool SaveWithFilter(SaveFilter *writer, bool threaded)
 bool SaveGame(const char *filename, Subdirectory sb, bool threaded)
 {
 	/* An instance of saving is already active, so don't go saving again */
-	if (_sl.saveinprogress && threaded) {
+	if (_sl_saveinprogress && threaded) {
 		/* if not an autosave, but a user action, show error message */
 		if (!_do_autosave) ShowErrorMessage(STR_ERROR_SAVE_STILL_IN_PROGRESS, INVALID_STRING_ID, WL_ERROR);
 		return true;
@@ -513,7 +510,7 @@ bool SaveGame(const char *filename, Subdirectory sb, bool threaded)
 	FILE *fh = FioFOpenFile(filename, "wb", sb);
 
 	if (fh == NULL) {
-		_sl.error.str = STR_GAME_SAVELOAD_ERROR_FILE_NOT_WRITEABLE;
+		_sl_error.str = STR_GAME_SAVELOAD_ERROR_FILE_NOT_WRITEABLE;
 
 		LogSaveLoadError();
 
@@ -724,20 +721,23 @@ static void LoadSavegameFormat(LoadFilter **chain, SavegameTypeVersion *stv)
 }
 
 /**
- * Actually perform the loading of a "non-old" savegame.
+ * Actually perform the loading of a savegame.
  * @param chain      The filter chain head to read the savegame from.
- * @param mode Load mode. Load can also be a TTD(Patch) game. Use #SL_LOAD, #SL_OLD_LOAD or #SL_LOAD_CHECK.
+ * @param check      Whether to only perform a check load.
+ * @param old        Whether the savegame is an old (TTO/TTD) savegame.
  * @return Return whether loading was successful
  */
-static bool DoLoad(LoadFilter **chain, int mode)
+static bool DoLoad (LoadFilter **chain, bool check, bool old)
 {
+	assert (!check || !old);
+
 	SavegameTypeVersion sl_version;
 
-	if (mode != SL_OLD_LOAD) {
+	if (!old) {
 		LoadSavegameFormat(chain, &sl_version);
 	}
 
-	if (mode != SL_LOAD_CHECK) {
+	if (!check) {
 		/* Old maps were hardcoded to 256x256 and thus did not contain
 		 * any mapsize information. Pre-initialize to 256x256 to not to
 		 * confuse old games */
@@ -776,20 +776,20 @@ static bool DoLoad(LoadFilter **chain, int mode)
 		}
 	}
 
-	if (mode == SL_OLD_LOAD) {
-		if (!LoadOldSaveGame(*chain, &sl_version, &_sl.error)) return false;
+	if (old) {
+		if (!LoadOldSaveGame (*chain, &sl_version, &_sl_error)) return false;
 	} else {
 		/* Load chunks. */
-		LoadBuffer reader(*chain, &sl_version);
-		SlLoadChunks(&reader, mode == SL_LOAD_CHECK);
+		LoadBuffer reader (*chain, &sl_version, _file_to_saveload.abstract_ftype == FT_SCENARIO);
+		SlLoadChunks (&reader, check);
 
 		/* Resolve references */
-		if (mode != SL_LOAD_CHECK) {
+		if (!check) {
 			SlFixPointers(&sl_version);
 		}
 	}
 
-	if (mode == SL_LOAD_CHECK) {
+	if (check) {
 		/* The only part from AfterLoadGame() we need */
 		_load_check_data.grf_compatibility = IsGoodGRFConfigList(_load_check_data.grfconfig);
 
@@ -810,10 +810,11 @@ static bool DoLoad(LoadFilter **chain, int mode)
 /**
  * Load a game using a (reader) filter in the given mode.
  * @param reader   The filter to read the savegame from.
- * @param mode Load mode. Load can also be a TTD(Patch) game. Use #SL_LOAD, #SL_OLD_LOAD or #SL_LOAD_CHECK.
+ * @param check    Whether to only perform a check load.
+ * @param old      Whether the savegame is an old (TTO/TTD) savegame.
  * @return Return whether loading was successful
  */
-static bool LoadWithFilterMode(LoadFilter *reader, int mode)
+static bool LoadWithFilterMode (LoadFilter *reader, bool check, bool old)
 {
 	LoadFilter *chain = reader;
 	bool res;
@@ -821,13 +822,13 @@ static bool LoadWithFilterMode(LoadFilter *reader, int mode)
 	SetSignalHandlers();
 
 	try {
-		res = DoLoad(&chain, mode);
+		res = DoLoad (&chain, check, old);
 	} catch (SlException e) {
 		/* Distinguish between loading into _load_check_data vs. normal load. */
-		if (mode == SL_LOAD_CHECK) {
+		if (check) {
 			_load_check_data.error = e.error;
 		} else {
-			_sl.error = e.error;
+			_sl_error = e.error;
 
 			SlNullPointers();
 
@@ -850,24 +851,25 @@ static bool LoadWithFilterMode(LoadFilter *reader, int mode)
  */
 bool LoadWithFilter(LoadFilter *reader)
 {
-	return LoadWithFilterMode(reader, SL_LOAD);
+	return LoadWithFilterMode (reader, false, false);
 }
 
 /**
  * Main Load function where the high-level saveload functions are
  * handled. It opens the savegame, selects format and checks versions
  * @param filename The name of the savegame being loaded
- * @param mode Load mode. Load can also be a TTD(Patch) game. Use #SL_LOAD, #SL_OLD_LOAD or #SL_LOAD_CHECK.
+ * @param check    Whether to only perform a check load.
+ * @param old      Whether the savegame is an old (TTO/TTD) savegame.
  * @param sb The sub directory to load the savegame from
  * @return Return whether loading was successful
  */
-bool LoadGame(const char *filename, int mode, Subdirectory sb)
+bool LoadGame (const char *filename, bool check, bool old, Subdirectory sb)
 {
 	WaitTillSaved();
 
 	/* Load a TTDLX or TTDPatch game */
 	FILE *fh;
-	if (mode == SL_OLD_LOAD) {
+	if (old) {
 		/* XXX Why are old savegames only searched for in NO_DIRECTORY? */
 		fh  = FioFOpenFile(filename, "rb", NO_DIRECTORY);
 	} else {
@@ -882,29 +884,29 @@ bool LoadGame(const char *filename, int mode, Subdirectory sb)
 
 	if (fh == NULL) {
 		/* Distinguish between loading into _load_check_data vs. normal load. */
-		if (mode == SL_LOAD_CHECK) {
+		if (check) {
 			_load_check_data.error.str = STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE;
 		} else {
 			DEBUG(sl, 0, "Cannot open file '%s'", filename);
-			_sl.error.str = STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE;
+			_sl_error.str = STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE;
 		}
 
 		return false;
 	}
 
 	/* LOAD game */
-	if (mode != SL_OLD_LOAD) {
+	if (!old) {
 		DEBUG(desync, 1, "load: %s", filename);
 	}
 
-	if (mode == SL_LOAD_CHECK) {
+	if (check) {
 		/* Clear previous check data */
 		_load_check_data.Clear();
 		/* Mark SL_LOAD_CHECK as supported for this savegame. */
 		_load_check_data.checkable = true;
 	}
 
-	return LoadWithFilterMode(new FileReader(fh), mode);
+	return LoadWithFilterMode (new FileReader(fh), check, old);
 }
 
 /** Do a save when exiting the game (_settings_client.gui.autosave_on_exit) */
@@ -945,4 +947,51 @@ void GenerateDefaultSaveName (stringb *buf)
 	/* Get the correct string (special string for when there's not company) */
 	GetString (buf, !Company::IsValidID(cid) ? STR_SAVEGAME_NAME_SPECTATOR : STR_SAVEGAME_NAME_DEFAULT);
 	SanitizeFilename (buf->buffer);
+}
+
+/**
+ * Set the mode and file type of the file to save or load based on the type of file entry at the file system.
+ * @param ft Type of file entry of the file system.
+ */
+void FileToSaveLoad::SetMode(FiosType ft)
+{
+	this->SetMode(SLO_LOAD, GetAbstractFileType(ft), GetDetailedFileType(ft));
+}
+
+/**
+ * Set the mode and file type of the file to save or load.
+ * @param fop File operation being performed.
+ * @param aft Abstract file type.
+ * @param dft Detailed file type.
+ */
+void FileToSaveLoad::SetMode(SaveLoadOperation fop, AbstractFileType aft, DetailedFileType dft)
+{
+	if (aft == FT_INVALID || aft == FT_NONE) {
+		this->file_op = SLO_INVALID;
+		this->detail_ftype = DFT_INVALID;
+		this->abstract_ftype = FT_INVALID;
+		return;
+	}
+
+	this->file_op = fop;
+	this->detail_ftype = dft;
+	this->abstract_ftype = aft;
+}
+
+/**
+ * Set the name of the file.
+ * @param name Name of the file.
+ */
+void FileToSaveLoad::SetName(const char *name)
+{
+	bstrcpy (this->name, name);
+}
+
+/**
+ * Set the title of the file.
+ * @param title Title of the file.
+ */
+void FileToSaveLoad::SetTitle(const char *title)
+{
+	bstrcpy (this->title, title);
 }

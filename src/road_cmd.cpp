@@ -1742,7 +1742,7 @@ static PaletteID DrawRoadGroundSprite (const TileInfo *ti, Roadside roadside, Sp
  * @param ti   information about the tile (slopes, height etc)
  * @param tram the roadbits for the tram
  */
-void DrawTramCatenary(const TileInfo *ti, RoadBits tram)
+void DrawRoadCatenary(const TileInfo *ti, RoadBits tram)
 {
 	/* Do not draw catenary if it is invisible */
 	if (IsInvisibilitySet(TO_CATENARY)) return;
@@ -1842,7 +1842,7 @@ static void DrawRoadBits(TileInfo *ti)
 		return;
 	}
 
-	if (tram != ROAD_NONE) DrawTramCatenary(ti, tram);
+	if (tram != ROAD_NONE) DrawRoadCatenary(ti, tram);
 
 	if (!IsTileSubtype(ti->tile, TT_TRACK)) return;
 
@@ -1947,10 +1947,12 @@ void DrawLevelCrossing(TileInfo *ti)
 
 	if (HasTileRoadType(ti->tile, ROADTYPE_TRAM)) {
 		DrawGroundSprite (ti, SPR_TRAMWAY_OVERLAY + (GetCrossingRoadAxis(ti->tile) ^ 1), pal);
-		DrawTramCatenary(ti, GetCrossingRoadBits(ti->tile));
+		DrawRoadCatenary(ti, GetCrossingRoadBits(ti->tile));
 	}
 
-	if (HasCatenaryDrawn (rti)) DrawCatenary (ti);
+	if (HasRailCatenaryDrawn (rti)) {
+		DrawRailAxisCatenary (ti, rti, GetCrossingRailAxis (ti->tile));
+	}
 
 	DrawBridgeMiddle(ti);
 }
