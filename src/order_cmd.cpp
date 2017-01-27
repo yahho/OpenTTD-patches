@@ -96,18 +96,11 @@ void BaseOrder::MakeGoToDepot (DepotID destination, OrderDepotTypeFlags order, O
 /**
  * Makes this order a Go To Depot order from a "go to nearest depot" order.
  * @param destination   the depot to go to.
- * @param order         the order to take other parameters from.
  */
-inline void BaseOrder::MakeGoToDepot (DepotID destination, const BaseOrder &order)
+inline void BaseOrder::SetGoToDepotDestination (DepotID destination)
 {
-	assert (order.GetType() == OT_GOTO_DEPOT);
-
-	this->type = OT_GOTO_DEPOT;
-	this->SetDepotOrderType (order.GetDepotOrderType());
-	this->SetDepotActionType ((OrderDepotActionFlags)(order.GetDepotActionType() & ~ODATFB_NEAREST_DEPOT));
-	this->SetNonStopType (order.GetNonStopType());
+	this->SetDepotActionType ((OrderDepotActionFlags)(this->GetDepotActionType() & ~ODATFB_NEAREST_DEPOT));
 	this->dest = destination;
-	this->SetRefitMask (order.GetRefitCargoMask());
 }
 
 /**
@@ -2065,7 +2058,7 @@ bool UpdateOrderDest(Vehicle *v, const Order *order, int conditional_depth, bool
 					if (pbs_look_ahead && reverse) return false;
 
 					v->dest_tile = location;
-					v->current_order.MakeGoToDepot (destination, v->current_order);
+					v->current_order.SetGoToDepotDestination (destination);
 
 					/* If there is no depot in front, reverse automatically (trains only) */
 					if (v->type == VEH_TRAIN && reverse) DoCommand(v->tile, v->index, 0, DC_EXEC, CMD_REVERSE_TRAIN_DIRECTION);

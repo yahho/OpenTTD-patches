@@ -69,7 +69,7 @@ struct BaseOrder {
 	void Clear();
 	void MakeGoToStation(StationID destination);
 	void MakeGoToDepot(DepotID destination, OrderDepotTypeFlags order, OrderNonStopFlags non_stop_type = ONSF_NO_STOP_AT_INTERMEDIATE_STATIONS, OrderDepotActionFlags action = ODATF_SERVICE_ONLY);
-	void MakeGoToDepot(DepotID destination, const BaseOrder &order);
+	void SetGoToDepotDestination (DepotID destination);
 	void MakeGoToWaypoint(StationID destination);
 	void MakeLoading(bool ordered);
 	void MakeLeaveStation();
