@@ -3411,7 +3411,7 @@ void RerouteCargo(Station *st, CargoID c, StationID avoid, StationID avoid2)
  * doesn't hurt either.
  * @param from Station to check.
  */
-void DeleteStaleLinks(Station *from)
+static void DeleteStaleLinks (Station *from)
 {
 	for (CargoID c = 0; c < NUM_CARGO; ++c) {
 		const bool auto_distributed = (_settings_game.linkgraph.GetDistributionType(c) != DT_MANUAL);
