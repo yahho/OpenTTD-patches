@@ -3430,6 +3430,46 @@ static bool CheckOrderListLink (const OrderList *l, StationID st1,
 }
 
 /**
+ * Check if a link is stale.
+ * @param from Source station.
+ * @param to Destination station.
+ * @param edge Link to check.
+ * @return Whether the link has been updated.
+ */
+static bool CheckStaleLink (StationID from, StationID to,
+	const LinkGraph::Edge *edge)
+{
+	/* Have all vehicles refresh their next hops before deciding to
+	 * remove the node. */
+	OrderList *l;
+	SmallVector<Vehicle *, 32> vehicles;
+	FOR_ALL_ORDER_LISTS(l) {
+		if (!CheckOrderListLink (l, from, to)) continue;
+		*(vehicles.Append()) = l->GetFirstSharedVehicle();
+	}
+
+	Vehicle **iter = vehicles.Begin();
+	while (iter != vehicles.End()) {
+		Vehicle *v = *iter;
+
+		LinkRefresher::Run (v, false); // Don't allow merging. Otherwise lg might get deleted.
+		if (edge->LastUpdate() == _date) return true;
+
+		Vehicle *next_shared = v->NextShared();
+		if (next_shared) {
+			*iter = next_shared;
+			++iter;
+		} else {
+			vehicles.Erase (iter);
+		}
+
+		if (iter == vehicles.End()) iter = vehicles.Begin();
+	}
+
+	return false;
+}
+
+/**
  * Check all next hops of cargo packets in this station for existance of a
  * a valid link they may use to travel on. Reroute any cargo not having a valid
  * link and remove timed out links found like this from the linkgraph. We're
@@ -3453,41 +3493,7 @@ static void DeleteStaleLinks (Station *from)
 			assert(_date >= edge->LastUpdate());
 			uint timeout = LinkGraph::MIN_TIMEOUT_DISTANCE + (DistanceManhattan(from->xy, to->xy) >> 3);
 			if ((uint)(_date - edge->LastUpdate()) > timeout) {
-				bool updated = false;
-
-				if (auto_distributed) {
-					/* Have all vehicles refresh their next hops before deciding to
-					 * remove the node. */
-					OrderList *l;
-					SmallVector<Vehicle *, 32> vehicles;
-					FOR_ALL_ORDER_LISTS(l) {
-						if (!CheckOrderListLink (l, from->index, to->index)) continue;
-						*(vehicles.Append()) = l->GetFirstSharedVehicle();
-					}
-
-					Vehicle **iter = vehicles.Begin();
-					while (iter != vehicles.End()) {
-						Vehicle *v = *iter;
-
-						LinkRefresher::Run(v, false); // Don't allow merging. Otherwise lg might get deleted.
-						if (edge->LastUpdate() == _date) {
-							updated = true;
-							break;
-						}
-
-						Vehicle *next_shared = v->NextShared();
-						if (next_shared) {
-							*iter = next_shared;
-							++iter;
-						} else {
-							vehicles.Erase(iter);
-						}
-
-						if (iter == vehicles.End()) iter = vehicles.Begin();
-					}
-				}
-
-				if (!updated) {
+				if (!auto_distributed || !CheckStaleLink (from->index, to->index, edge)) {
 					/* If it's still considered dead remove it. */
 					lg->RemoveEdge (ge.node, to->goods[c].node);
 					ge.flows.DeleteFlows(to->index);
