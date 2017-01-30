@@ -3404,6 +3404,32 @@ void RerouteCargo(Station *st, CargoID c, StationID avoid, StationID avoid2)
 }
 
 /**
+ * Check if an order list contains an order for both of the given stations.
+ * @param l The order list to check.
+ * @param st1 The first station to look for.
+ * @param st2 The second station to look for.
+ * @return Whether the order list has an order for both of the stations.
+ */
+static bool CheckOrderListLink (const OrderList *l, StationID st1,
+	StationID st2)
+{
+	bool found1 = false;
+	bool found2 = false;
+	for (const Order *order = l->GetFirstOrder(); order != NULL; order = order->next) {
+		if (!order->IsType(OT_GOTO_STATION) && !order->IsType(OT_IMPLICIT)) continue;
+		StationID dest = order->GetDestination();
+		if (dest == st1) {
+			found1 = true;
+			if (found2) return true;
+		} else if (dest == st2) {
+			found2 = true;
+			if (found1) return true;
+		}
+	}
+	return false;
+}
+
+/**
  * Check all next hops of cargo packets in this station for existance of a
  * a valid link they may use to travel on. Reroute any cargo not having a valid
  * link and remove timed out links found like this from the linkgraph. We're
@@ -3435,19 +3461,7 @@ static void DeleteStaleLinks (Station *from)
 					OrderList *l;
 					SmallVector<Vehicle *, 32> vehicles;
 					FOR_ALL_ORDER_LISTS(l) {
-						bool found_from = false;
-						bool found_to = false;
-						for (Order *order = l->GetFirstOrder(); order != NULL; order = order->next) {
-							if (!order->IsType(OT_GOTO_STATION) && !order->IsType(OT_IMPLICIT)) continue;
-							if (order->GetDestination() == from->index) {
-								found_from = true;
-								if (found_to) break;
-							} else if (order->GetDestination() == to->index) {
-								found_to = true;
-								if (found_from) break;
-							}
-						}
-						if (!found_to || !found_from) continue;
+						if (!CheckOrderListLink (l, from->index, to->index)) continue;
 						*(vehicles.Append()) = l->GetFirstSharedVehicle();
 					}
 
