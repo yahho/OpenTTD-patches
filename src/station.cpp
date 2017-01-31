@@ -103,7 +103,7 @@ Station::~Station()
 			st->goods[c].flows.erase(this->index);
 			if ((*lg)[node][this->goods[c].node].LastUpdate() != INVALID_DATE) {
 				st->goods[c].flows.DeleteFlows(this->index);
-				RerouteCargo(st, c, this->index, st->index);
+				RerouteCargo (st, c, this->index);
 			}
 		}
 		lg->RemoveNode(this->goods[c].node);

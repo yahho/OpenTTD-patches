@@ -168,7 +168,7 @@ LinkGraphJob::~LinkGraphJob()
 					ge.flows.erase(it++);
 					for (FlowStat::SharesMap::const_iterator shares_it(shares.GetShares()->begin());
 							shares_it != shares.GetShares()->end(); ++shares_it) {
-						RerouteCargo(st, this->Cargo(), shares_it->second, st->index);
+						RerouteCargo (st, this->Cargo(), shares_it->second);
 					}
 				}
 			} else {

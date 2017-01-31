@@ -3385,20 +3385,19 @@ static void UpdateStationRating(Station *st)
  * @param st Station to be rerouted at.
  * @param c Type of cargo.
  * @param avoid Original next hop of cargo, avoid this.
- * @param avoid2 Another station to be avoided when rerouting.
  */
-void RerouteCargo(Station *st, CargoID c, StationID avoid, StationID avoid2)
+void RerouteCargo (Station *st, CargoID c, StationID avoid)
 {
 	GoodsEntry &ge = st->goods[c];
 
 	/* Reroute cargo in station. */
-	ge.cargo.Reroute(UINT_MAX, &ge.cargo, avoid, avoid2, &ge);
+	ge.cargo.Reroute (UINT_MAX, &ge.cargo, avoid, st->index, &ge);
 
 	/* Reroute cargo staged to be transfered. */
 	for (std::list<Vehicle *>::iterator it(st->loading_vehicles.begin()); it != st->loading_vehicles.end(); ++it) {
 		for (Vehicle *v = *it; v != NULL; v = v->Next()) {
 			if (v->cargo_type != c) continue;
-			v->cargo.Reroute(UINT_MAX, &v->cargo, avoid, avoid2, &ge);
+			v->cargo.Reroute (UINT_MAX, &v->cargo, avoid, st->index, &ge);
 		}
 	}
 }
@@ -3497,12 +3496,12 @@ static void DeleteStaleLinks (Station *from)
 					/* If it's still considered dead remove it. */
 					lg->RemoveEdge (ge.node, to->goods[c].node);
 					ge.flows.DeleteFlows(to->index);
-					RerouteCargo(from, c, to->index, from->index);
+					RerouteCargo (from, c, to->index);
 				}
 			} else if (edge->LastUnrestrictedUpdate() != INVALID_DATE && (uint)(_date - edge->LastUnrestrictedUpdate()) > timeout) {
 				edge->Restrict();
 				ge.flows.RestrictFlows(to->index);
-				RerouteCargo(from, c, to->index, from->index);
+				RerouteCargo (from, c, to->index);
 			} else if (edge->LastRestrictedUpdate() != INVALID_DATE && (uint)(_date - edge->LastRestrictedUpdate()) > timeout) {
 				edge->Release();
 			}
