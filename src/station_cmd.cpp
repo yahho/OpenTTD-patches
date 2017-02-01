@@ -3391,7 +3391,7 @@ void RerouteCargo (Station *st, CargoID c, StationID avoid)
 	GoodsEntry &ge = st->goods[c];
 
 	/* Reroute cargo in station. */
-	ge.cargo.Reroute (UINT_MAX, &ge.cargo, avoid, st->index, &ge);
+	ge.cargo.Reroute (avoid, st->index, &ge);
 
 	/* Reroute cargo staged to be transfered. */
 	for (std::list<Vehicle *>::iterator it(st->loading_vehicles.begin()); it != st->loading_vehicles.end(); ++it) {

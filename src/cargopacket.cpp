@@ -856,15 +856,13 @@ uint StationCargoList::Load(uint max_move, VehicleCargoList *dest, TileIndex loa
 
 /**
  * Routes packets with station "avoid" as next hop to a different place.
- * @param max_move Maximum amount of cargo to move.
- * @param dest List to append the cargo to.
  * @param avoid Station to exclude from routing and current next hop of packets to reroute.
  * @param avoid2 Additional station to exclude from routing.
  * @oaram ge GoodsEntry to get the routing info from.
  */
-uint StationCargoList::Reroute(uint max_move, StationCargoList *dest, StationID avoid, StationID avoid2, const GoodsEntry *ge)
+void StationCargoList::Reroute (StationID avoid, StationID avoid2, const GoodsEntry *ge)
 {
-	return this->ShiftCargo(StationCargoReroute(this, dest, max_move, avoid, avoid2, ge), avoid, false);
+	this->ShiftCargo (StationCargoReroute (this, this, UINT_MAX, avoid, avoid2, ge), avoid, false);
 }
 
 /*
