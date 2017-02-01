@@ -120,15 +120,15 @@ protected:
 	StationID avoid2;
 	const GoodsEntry *ge;
 public:
-	CargoReroute(Tlist *source, Tlist *dest, uint max_move, StationID avoid, StationID avoid2, const GoodsEntry *ge) :
-			CargoMovement<Tlist, Tlist>(source, dest, max_move), avoid(avoid), avoid2(avoid2), ge(ge) {}
+	CargoReroute (Tlist *list, StationID avoid, StationID avoid2, const GoodsEntry *ge, uint max_move = UINT_MAX) :
+			CargoMovement<Tlist, Tlist> (list, list, max_move), avoid(avoid), avoid2(avoid2), ge(ge) {}
 };
 
 /** Action of rerouting cargo in a station. */
 class StationCargoReroute : public CargoReroute<StationCargoList> {
 public:
 	StationCargoReroute (StationCargoList *list, StationID avoid, StationID avoid2, const GoodsEntry *ge) :
-			CargoReroute<StationCargoList> (list, list, UINT_MAX, avoid, avoid2, ge) {}
+			CargoReroute<StationCargoList> (list, avoid, avoid2, ge) {}
 	bool operator()(CargoPacket *cp);
 };
 
@@ -136,7 +136,7 @@ public:
 class VehicleCargoReroute : public CargoReroute<VehicleCargoList> {
 public:
 	VehicleCargoReroute (VehicleCargoList *list, uint max_move, StationID avoid, StationID avoid2, const GoodsEntry *ge) :
-			CargoReroute<VehicleCargoList> (list, list, max_move, avoid, avoid2, ge)
+			CargoReroute<VehicleCargoList> (list, avoid, avoid2, ge, max_move)
 	{
 		assert(this->max_move <= source->ActionCount(VehicleCargoList::MTA_TRANSFER));
 	}
