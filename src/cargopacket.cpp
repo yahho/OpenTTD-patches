@@ -669,7 +669,7 @@ uint VehicleCargoList::Truncate(uint max_move)
 void VehicleCargoList::Reroute (StationID avoid, StationID avoid2, const GoodsEntry *ge)
 {
 	uint max_move = this->action_counts[MTA_TRANSFER];
-	this->ShiftCargo (VehicleCargoReroute (this, this, max_move, avoid, avoid2, ge));
+	this->ShiftCargo (VehicleCargoReroute (this, max_move, avoid, avoid2, ge));
 }
 
 /*
