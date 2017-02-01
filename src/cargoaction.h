@@ -127,8 +127,8 @@ public:
 /** Action of rerouting cargo in a station. */
 class StationCargoReroute : public CargoReroute<StationCargoList> {
 public:
-	StationCargoReroute(StationCargoList *source, StationCargoList *dest, uint max_move, StationID avoid, StationID avoid2, const GoodsEntry *ge) :
-				CargoReroute<StationCargoList>(source, dest, max_move, avoid, avoid2, ge) {}
+	StationCargoReroute (StationCargoList *list, StationID avoid, StationID avoid2, const GoodsEntry *ge) :
+			CargoReroute<StationCargoList> (list, list, UINT_MAX, avoid, avoid2, ge) {}
 	bool operator()(CargoPacket *cp);
 };
 
