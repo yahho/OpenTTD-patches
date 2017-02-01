@@ -432,7 +432,7 @@ public:
 	uint Unload(uint max_move, StationCargoList *dest, CargoPayment *payment);
 	uint Shift(uint max_move, VehicleCargoList *dest);
 	uint Truncate(uint max_move = UINT_MAX);
-	uint Reroute(uint max_move, VehicleCargoList *dest, StationID avoid, StationID avoid2, const GoodsEntry *ge);
+	void Reroute (StationID avoid, StationID avoid2, const GoodsEntry *ge);
 };
 
 typedef MultiMap<StationID, CargoPacket *> StationCargoPacketMap;

@@ -3397,7 +3397,7 @@ void RerouteCargo (Station *st, CargoID c, StationID avoid)
 	for (std::list<Vehicle *>::iterator it(st->loading_vehicles.begin()); it != st->loading_vehicles.end(); ++it) {
 		for (Vehicle *v = *it; v != NULL; v = v->Next()) {
 			if (v->cargo_type != c) continue;
-			v->cargo.Reroute (UINT_MAX, &v->cargo, avoid, st->index, &ge);
+			v->cargo.Reroute (avoid, st->index, &ge);
 		}
 	}
 }
