@@ -544,29 +544,6 @@ void VehicleCargoList::InvalidateCache()
 }
 
 /**
- * Moves some cargo from one designation to another. You can only move
- * between adjacent designations. E.g. you can keep cargo that was previously
- * reserved (MTA_LOAD), but you can't reserve cargo that's marked as to be
- * delivered. Furthermore, as this method doesn't change the actual packets,
- * you cannot move cargo from or to MTA_TRANSFER. You need a specialized
- * template method for that.
- * @tparam from Previous designation of cargo.
- * @tparam to New designation of cargo.
- * @param max_move Maximum amount of cargo to reassign.
- * @return Amount of cargo actually reassigned.
- */
-template<VehicleCargoList::MoveToAction Tfrom, VehicleCargoList::MoveToAction Tto>
-uint VehicleCargoList::Reassign(uint max_move, TileOrStationID)
-{
-	assert_tcompile(Tfrom != MTA_TRANSFER && Tto != MTA_TRANSFER);
-	assert_tcompile(Tfrom - Tto == 1 || Tto - Tfrom == 1);
-	max_move = min(this->action_counts[Tfrom], max_move);
-	this->action_counts[Tfrom] -= max_move;
-	this->action_counts[Tto] += max_move;
-	return max_move;
-}
-
-/**
  * Reassign cargo from MTA_DELIVER to MTA_TRANSFER and take care of the next
  * station the cargo wants to visit.
  */
@@ -842,7 +819,7 @@ uint StationCargoList::Load(uint max_move, VehicleCargoList *dest, TileIndex loa
 	uint move = min(dest->ActionCount(VehicleCargoList::MTA_LOAD), max_move);
 	if (move > 0) {
 		this->reserved_count -= move;
-		dest->Reassign<VehicleCargoList::MTA_LOAD, VehicleCargoList::MTA_KEEP>(move);
+		dest->Keep (VehicleCargoList::MTA_LOAD, move);
 		return move;
 	} else {
 		return this->ShiftCargo(CargoLoad(this, dest, max_move, load_place), next_station, true);
@@ -865,4 +842,3 @@ void StationCargoList::Reroute (StationID avoid, StationID avoid2, const GoodsEn
  */
 template class CargoList<VehicleCargoList, CargoPacketList>;
 template class CargoList<StationCargoList, StationCargoPacketMap>;
-template uint VehicleCargoList::Reassign<VehicleCargoList::MTA_DELIVER, VehicleCargoList::MTA_KEEP>(uint, TileOrStationID);

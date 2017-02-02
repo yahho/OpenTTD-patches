@@ -422,12 +422,23 @@ public:
 		this->action_counts[MTA_KEEP] = this->count;
 	}
 
+	/**
+	 * Marks cargo previously set to load or deliver as to be kept.
+	 * @param from Previous designation of cargo (MTA_LOAD or MTA_DELIVER).
+	 * @param max_move Maximum amount of cargo to reassign.
+	 */
+	void Keep (MoveToAction from, uint max_move = UINT_MAX)
+	{
+		assert (from == MTA_DELIVER || from == MTA_LOAD);
+		max_move = min (this->action_counts[from], max_move);
+		this->action_counts[from] -= max_move;
+		this->action_counts[MTA_KEEP] += max_move;
+	}
+
 	/* Methods for moving cargo around. First parameter is always maximum
 	 * amount of cargo to be moved. Second parameter is destination (if
 	 * applicable), return value is amount of cargo actually moved. */
 
-	template<MoveToAction Tfrom, MoveToAction Tto>
-	uint Reassign(uint max_move, TileOrStationID update = INVALID_TILE);
 	void Transfer (void);
 	uint Return(uint max_move, StationCargoList *dest, StationID next_station);
 	uint Unload(uint max_move, StationCargoList *dest, CargoPayment *payment);
