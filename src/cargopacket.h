@@ -428,6 +428,7 @@ public:
 
 	template<MoveToAction Tfrom, MoveToAction Tto>
 	uint Reassign(uint max_move, TileOrStationID update = INVALID_TILE);
+	void Transfer (void);
 	uint Return(uint max_move, StationCargoList *dest, StationID next_station);
 	uint Unload(uint max_move, StationCargoList *dest, CargoPayment *payment);
 	uint Shift(uint max_move, VehicleCargoList *dest);

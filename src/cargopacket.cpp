@@ -569,14 +569,10 @@ uint VehicleCargoList::Reassign(uint max_move, TileOrStationID)
 /**
  * Reassign cargo from MTA_DELIVER to MTA_TRANSFER and take care of the next
  * station the cargo wants to visit.
- * @param max_move Maximum amount of cargo to reassign.
- * @param next_station Station to record as next hop in the reassigned packets.
- * @return Amount of cargo actually reassigned.
  */
-template<>
-uint VehicleCargoList::Reassign<VehicleCargoList::MTA_DELIVER, VehicleCargoList::MTA_TRANSFER>(uint max_move, TileOrStationID next_station)
+void VehicleCargoList::Transfer (void)
 {
-	max_move = min(this->action_counts[MTA_DELIVER], max_move);
+	uint max_move = this->action_counts[MTA_DELIVER];
 
 	uint sum = 0;
 	for (Iterator it(this->packets.begin()); sum < this->action_counts[MTA_TRANSFER] + max_move;) {
@@ -588,12 +584,11 @@ uint VehicleCargoList::Reassign<VehicleCargoList::MTA_DELIVER, VehicleCargoList:
 			sum -= cp_split->Count();
 			this->packets.insert(it, cp_split);
 		}
-		cp->next_station = next_station;
+		cp->next_station = INVALID_STATION;
 	}
 
 	this->action_counts[MTA_DELIVER] -= max_move;
 	this->action_counts[MTA_TRANSFER] += max_move;
-	return max_move;
 }
 
 /**
