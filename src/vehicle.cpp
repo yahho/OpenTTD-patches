@@ -2225,7 +2225,7 @@ void Vehicle::CancelReservation (Station *st)
 		VehicleCargoList &cargo = v->cargo;
 		if (cargo.ActionCount(VehicleCargoList::MTA_LOAD) > 0) {
 			DEBUG(misc, 1, "cancelling cargo reservation");
-			cargo.Return (UINT_MAX, &st->goods[v->cargo_type].cargo, INVALID_STATION);
+			cargo.Return (&st->goods[v->cargo_type].cargo);
 			cargo.SetTransferLoadPlace(st->xy);
 		}
 		cargo.KeepAll();

@@ -440,7 +440,7 @@ public:
 	 * applicable), return value is amount of cargo actually moved. */
 
 	void Transfer (void);
-	uint Return(uint max_move, StationCargoList *dest, StationID next_station);
+	uint Return (StationCargoList *dest, uint max_move = UINT_MAX);
 	uint Unload(uint max_move, StationCargoList *dest, CargoPayment *payment);
 	uint Shift(uint max_move, VehicleCargoList *dest);
 	uint Truncate(uint max_move = UINT_MAX);

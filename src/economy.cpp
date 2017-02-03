@@ -1410,12 +1410,7 @@ struct ReturnCargoAction
 	 */
 	bool operator()(Vehicle *v)
 	{
-		/* INVALID_STATION because in the DT_MANUAL case that's
-		 * correct and in the DT_(A)SYMMETRIC cases the next hop of
-		 * the vehicle doesn't really tell us anything if the cargo
-		 * had been "via any station" before reserving. We rather
-		 * produce some more "any station" cargo than misrouting it. */
-		v->cargo.Return (UINT_MAX, &this->st->goods[v->cargo_type].cargo, INVALID_STATION);
+		v->cargo.Return (&this->st->goods[v->cargo_type].cargo);
 		return true;
 	}
 };
@@ -1688,7 +1683,7 @@ static void LoadUnloadVehicle(Vehicle *front)
 					uint new_remaining = v->cargo.RemainingCount() + v->cargo.ActionCount(VehicleCargoList::MTA_DELIVER);
 					if (v->cargo_cap < new_remaining) {
 						/* Return some of the reserved cargo to not overload the vehicle. */
-						v->cargo.Return(new_remaining - v->cargo_cap, &ge->cargo, INVALID_STATION);
+						v->cargo.Return (&ge->cargo, new_remaining - v->cargo_cap);
 					}
 
 					/* Keep instead of delivering. This may lead to no cargo being unloaded, so ...*/
