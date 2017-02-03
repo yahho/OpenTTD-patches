@@ -577,12 +577,7 @@ void VehicleCargoList::Transfer (void)
 uint VehicleCargoList::Return (StationCargoList *dest, uint max_move)
 {
 	max_move = min(this->action_counts[MTA_LOAD], max_move);
-	/* INVALID_STATION because in the DT_MANUAL case that's
-	 * correct and in the DT_(A)SYMMETRIC cases the next hop of
-	 * the vehicle doesn't really tell us anything if the cargo
-	 * had been "via any station" before reserving. We rather
-	 * produce some more "any station" cargo than misrouting it. */
-	this->PopCargo (CargoReturn (this, dest, max_move, INVALID_STATION));
+	this->PopCargo (CargoReturn (this, dest, max_move));
 	return max_move;
 }
 

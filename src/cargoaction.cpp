@@ -154,7 +154,12 @@ bool CargoReturn::operator()(CargoPacket *cp)
 	assert(cp_new->Count() <= this->destination->reserved_count);
 	this->source->RemoveFromMeta(cp_new, VehicleCargoList::MTA_LOAD, cp_new->Count());
 	this->destination->reserved_count -= cp_new->Count();
-	this->destination->Append(cp_new, this->next);
+	/* INVALID_STATION because in the DT_MANUAL case that's
+	 * correct and in the DT_(A)SYMMETRIC cases the next hop of
+	 * the vehicle doesn't really tell us anything if the cargo
+	 * had been "via any station" before reserving. We rather
+	 * produce some more "any station" cargo than misrouting it. */
+	this->destination->Append (cp_new, INVALID_STATION);
 	return cp_new == cp;
 }
 

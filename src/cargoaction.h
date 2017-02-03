@@ -97,10 +97,9 @@ public:
 
 /** Action of returning previously reserved cargo from the vehicle to the station. */
 class CargoReturn : public CargoMovement<VehicleCargoList, StationCargoList> {
-	StationID next;
 public:
-	CargoReturn(VehicleCargoList *source, StationCargoList *destination, uint max_move, StationID next) :
-			CargoMovement<VehicleCargoList, StationCargoList>(source, destination, max_move), next(next) {}
+	CargoReturn(VehicleCargoList *source, StationCargoList *destination, uint max_move) :
+			CargoMovement<VehicleCargoList, StationCargoList>(source, destination, max_move) {}
 	bool operator()(CargoPacket *cp);
 };
 
