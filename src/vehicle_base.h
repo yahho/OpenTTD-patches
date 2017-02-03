@@ -322,7 +322,7 @@ public:
 	virtual ~Vehicle();
 
 	void BeginLoading();
-	void CancelReservation(StationID next, Station *st);
+	void CancelReservation (Station *st);
 	void LeaveStation();
 
 	void DeleteUnreachedImplicitOrders();
