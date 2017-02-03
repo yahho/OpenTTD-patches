@@ -1395,14 +1395,13 @@ struct PrepareRefitAction
 struct ReturnCargoAction
 {
 	Station *st;        ///< Station to give the returned cargo to.
-	StationID next_hop; ///< Next hop the cargo should be assigned to.
 
 	/**
 	 * Construct a cargo return action.
 	 * @param st Station to give the returned cargo to.
 	 * @param next_one Next hop the cargo should be assigned to.
 	 */
-	ReturnCargoAction(Station *st, StationID next_one) : st(st), next_hop(next_one) {}
+	ReturnCargoAction (Station *st) : st(st) {}
 
 	/**
 	 * Return all reserved cargo from a vehicle.
@@ -1411,7 +1410,12 @@ struct ReturnCargoAction
 	 */
 	bool operator()(Vehicle *v)
 	{
-		v->cargo.Return(UINT_MAX, &this->st->goods[v->cargo_type].cargo, this->next_hop);
+		/* INVALID_STATION because in the DT_MANUAL case that's
+		 * correct and in the DT_(A)SYMMETRIC cases the next hop of
+		 * the vehicle doesn't really tell us anything if the cargo
+		 * had been "via any station" before reserving. We rather
+		 * produce some more "any station" cargo than misrouting it. */
+		v->cargo.Return (UINT_MAX, &this->st->goods[v->cargo_type].cargo, INVALID_STATION);
 		return true;
 	}
 };
@@ -1518,11 +1522,7 @@ static void HandleStationRefit (Vehicle *v, CargoArray &consist_capleft,
 		/* Refit if given a different cargo. */
 		if (new_cid == v_start->cargo_type) break;
 
-		/* INVALID_STATION because in the DT_MANUAL case that's correct and in the DT_(A)SYMMETRIC
-		 * cases the next hop of the vehicle doesn't really tell us anything if the cargo had been
-		 * "via any station" before reserving. We rather produce some more "any station" cargo than
-		 * misrouting it. */
-		IterateVehicleParts(v_start, ReturnCargoAction(st, INVALID_STATION));
+		IterateVehicleParts (v_start, ReturnCargoAction (st));
 		CommandCost cost = DoCommand(v_start->tile, v_start->index, new_cid | 1U << 6 | 0xFF << 8 | 1U << 16, DC_EXEC, CMD_REFIT_VEHICLE); // Auto-refit and only this vehicle including artic parts.
 		/* The command may return a success status even if it
 		 * actually fails to refit the vehicle, so we also have
