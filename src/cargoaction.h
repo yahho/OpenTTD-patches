@@ -15,18 +15,20 @@
 #include "cargopacket.h"
 
 /**
- * Abstract action of removing cargo from a vehicle or a station.
+ * Action of removing cargo from a vehicle.
  * @tparam Tsource CargoList subclass to remove cargo from.
  */
-template<class Tsource>
 class CargoRemoval {
 protected:
-	Tsource *source; ///< Source of the cargo.
+	VehicleCargoList *source; ///< Source of the cargo.
 	uint max_move;   ///< Maximum amount of cargo to be removed with this action.
 	uint Preprocess(CargoPacket *cp);
 	bool Postprocess(CargoPacket *cp, uint remove);
 public:
-	CargoRemoval(Tsource *source, uint max_move) : source(source), max_move(max_move) {}
+	CargoRemoval (VehicleCargoList *source, uint max_move)
+		: source(source), max_move(max_move)
+	{
+	}
 
 	/**
 	 * Returns how much more cargo can be removed with this action.
@@ -38,12 +40,12 @@ public:
 };
 
 /** Action of final delivery of cargo. */
-class CargoDelivery : public CargoRemoval<VehicleCargoList> {
+class CargoDelivery : public CargoRemoval {
 protected:
 	CargoPayment *payment; ///< Payment object where payments will be registered.
 public:
 	CargoDelivery(VehicleCargoList *source, uint max_move, CargoPayment *payment) :
-			CargoRemoval<VehicleCargoList>(source, max_move), payment(payment) {}
+			CargoRemoval (source, max_move), payment(payment) {}
 	bool operator()(CargoPacket *cp);
 };
 

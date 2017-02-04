@@ -322,7 +322,6 @@ public:
 	friend class CargoShift;
 	friend class CargoTransfer;
 	friend class CargoDelivery;
-	template<class Tsource>
 	friend class CargoRemoval;
 	friend class CargoReturn;
 	friend class VehicleCargoReroute;
@@ -468,8 +467,6 @@ public:
 
 	friend class CargoLoad;
 	friend class CargoTransfer;
-	template<class Tsource>
-	friend class CargoRemoval;
 	friend class CargoReservation;
 	friend class CargoReturn;
 	friend class StationCargoReroute;

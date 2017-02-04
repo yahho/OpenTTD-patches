@@ -38,8 +38,7 @@ CargoPacket *CargoMovement<Tsource, Tdest>::Preprocess(CargoPacket *cp)
  * @param cp Packet to be removed completely or partially.
  * @return Amount of cargo to be removed.
  */
-template<class Tsource>
-uint CargoRemoval<Tsource>::Preprocess(CargoPacket *cp)
+uint CargoRemoval::Preprocess (CargoPacket *cp)
 {
 	if (this->max_move >= cp->Count()) {
 		this->max_move -= cp->Count();
@@ -57,8 +56,7 @@ uint CargoRemoval<Tsource>::Preprocess(CargoPacket *cp)
  * @param remove Amount of cargo to be removed.
  * @return True if the packet was deleted, False if it was reduced.
  */
-template<class Tsource>
-bool CargoRemoval<Tsource>::Postprocess(CargoPacket *cp, uint remove)
+bool CargoRemoval::Postprocess (CargoPacket *cp, uint remove)
 {
 	if (remove == cp->Count()) {
 		delete cp;
@@ -70,27 +68,12 @@ bool CargoRemoval<Tsource>::Postprocess(CargoPacket *cp, uint remove)
 }
 
 /**
- * Removes some cargo from a StationCargoList.
- * @param cp Packet to be removed.
- * @return True if the packet was completely delivered, false if only part of
- *         it was.
- */
-template<>
-bool CargoRemoval<StationCargoList>::operator()(CargoPacket *cp)
-{
-	uint remove = this->Preprocess(cp);
-	this->source->RemoveFromCache(cp, remove);
-	return this->Postprocess(cp, remove);
-}
-
-/**
  * Removes some cargo from a VehicleCargoList.
  * @param cp Packet to be removed.
  * @return True if the packet was completely delivered, false if only part of
  *         it was.
  */
-template<>
-bool CargoRemoval<VehicleCargoList>::operator()(CargoPacket *cp)
+bool CargoRemoval::operator() (CargoPacket *cp)
 {
 	uint remove = this->Preprocess(cp);
 	this->source->RemoveFromMeta(cp, VehicleCargoList::MTA_KEEP, remove);
@@ -236,8 +219,3 @@ bool VehicleCargoReroute::operator()(CargoPacket *cp)
 	this->destination->packets.push_front(cp_new);
 	return cp_new == cp;
 }
-
-template uint CargoRemoval<VehicleCargoList>::Preprocess(CargoPacket *cp);
-template uint CargoRemoval<StationCargoList>::Preprocess(CargoPacket *cp);
-template bool CargoRemoval<VehicleCargoList>::Postprocess(CargoPacket *cp, uint remove);
-template bool CargoRemoval<StationCargoList>::Postprocess(CargoPacket *cp, uint remove);
