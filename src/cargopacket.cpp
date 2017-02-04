@@ -298,23 +298,6 @@ void VehicleCargoList::ShiftCargo(Taction action)
 }
 
 /**
- * Pops cargo from the back of the packet list and applies some action to it.
- * @tparam Taction Action class or function to be used. It should define
- *                 "bool operator()(CargoPacket *)". If true is returned the
- *                 cargo packet will be removed from the list. Otherwise it
- *                 will be kept and the loop will be aborted.
- * @param action Action instance to be applied.
- */
-template<class Taction>
-void VehicleCargoList::PopCargo(Taction action)
-{
-	while (!this->packets.empty() && (action.MaxMove() > 0)) {
-		if (!action (this->packets.back())) break;
-		this->packets.pop_back();
-	}
-}
-
-/**
  * Update the cached values to reflect the removal of this packet or part of it.
  * Decreases count, feeder share and days_in_transit.
  * @param cp Packet to be removed from cache.
@@ -565,7 +548,11 @@ void VehicleCargoList::Transfer (void)
 uint VehicleCargoList::Return (StationCargoList *dest, uint max_move)
 {
 	max_move = min(this->action_counts[MTA_LOAD], max_move);
-	this->PopCargo (CargoReturn (this, dest, max_move));
+	CargoReturn action (this, dest, max_move);
+	while (!this->packets.empty() && (action.MaxMove() > 0)) {
+		if (!action (this->packets.back())) break;
+		this->packets.pop_back();
+	}
 	return max_move;
 }
 
@@ -578,7 +565,13 @@ uint VehicleCargoList::Return (StationCargoList *dest, uint max_move)
 uint VehicleCargoList::Shift(uint max_move, VehicleCargoList *dest)
 {
 	max_move = min(this->count, max_move);
-	if (this != dest) this->PopCargo (CargoShift (this, dest, max_move));
+	if (this != dest) {
+		CargoShift action (this, dest, max_move);
+		while (!this->packets.empty() && (action.MaxMove() > 0)) {
+			if (!action (this->packets.back())) break;
+			this->packets.pop_back();
+		}
+	}
 	return max_move;
 }
 
@@ -615,7 +608,11 @@ uint VehicleCargoList::Unload(uint max_move, StationCargoList *dest, CargoPaymen
 uint VehicleCargoList::Truncate(uint max_move)
 {
 	max_move = min(this->count, max_move);
-	this->PopCargo (CargoRemoval (this, max_move));
+	CargoRemoval action (this, max_move);
+	while (!this->packets.empty() && (action.MaxMove() > 0)) {
+		if (!action (this->packets.back())) break;
+		this->packets.pop_back();
+	}
 	return max_move;
 }
 

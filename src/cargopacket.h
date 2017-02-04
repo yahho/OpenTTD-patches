@@ -288,9 +288,6 @@ protected:
 	template<class Taction>
 	void ShiftCargo(Taction action);
 
-	template<class Taction>
-	void PopCargo(Taction action);
-
 	/**
 	 * Assert that the designation counts add up.
 	 */
