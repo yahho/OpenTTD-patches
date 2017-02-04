@@ -308,21 +308,9 @@ void VehicleCargoList::ShiftCargo(Taction action)
 template<class Taction>
 void VehicleCargoList::PopCargo(Taction action)
 {
-	if (this->packets.empty()) return;
-	Iterator it(--(this->packets.end()));
-	Iterator begin(this->packets.begin());
-	while (action.MaxMove() > 0) {
-		CargoPacket *cp = *it;
-		if (action(cp)) {
-			if (it != begin) {
-				this->packets.erase(it--);
-			} else {
-				this->packets.erase(it);
-				break;
-			}
-		} else {
-			break;
-		}
+	while (!this->packets.empty() && (action.MaxMove() > 0)) {
+		if (!action (this->packets.back())) break;
+		this->packets.pop_back();
 	}
 }
 
@@ -590,7 +578,7 @@ uint VehicleCargoList::Return (StationCargoList *dest, uint max_move)
 uint VehicleCargoList::Shift(uint max_move, VehicleCargoList *dest)
 {
 	max_move = min(this->count, max_move);
-	this->PopCargo(CargoShift(this, dest, max_move));
+	if (this != dest) this->PopCargo (CargoShift (this, dest, max_move));
 	return max_move;
 }
 
