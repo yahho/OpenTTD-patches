@@ -57,16 +57,6 @@ public:
 	bool operator()(CargoPacket *cp);
 };
 
-/** Action of final delivery of cargo. */
-class CargoDelivery : public CargoRemoval {
-protected:
-	CargoPayment *payment; ///< Payment object where payments will be registered.
-public:
-	CargoDelivery(VehicleCargoList *source, uint max_move, CargoPayment *payment) :
-			CargoRemoval (source, max_move), payment(payment) {}
-	bool operator()(CargoPacket *cp);
-};
-
 /**
  * Abstract action for moving cargo from one list to another.
  * @tparam Tsource CargoList subclass to remove cargo from.

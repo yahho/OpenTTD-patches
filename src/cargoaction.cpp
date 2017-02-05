@@ -81,20 +81,6 @@ bool CargoRemoval::operator() (CargoPacket *cp)
 }
 
 /**
- * Delivers some cargo.
- * @param cp Packet to be delivered.
- * @return True if the packet was completely delivered, false if only part of
- *         it was.
- */
-bool CargoDelivery::operator()(CargoPacket *cp)
-{
-	uint remove = this->Preprocess(cp);
-	this->source->RemoveFromMeta(cp, VehicleCargoList::MTA_DELIVER, remove);
-	this->payment->PayFinalDelivery(cp, remove);
-	return this->Postprocess(cp, remove);
-}
-
-/**
  * Loads some cargo onto a vehicle.
  * @param cp Packet to be loaded.
  * @return True if the packet was completely loaded, false if part of it was.

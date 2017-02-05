@@ -580,15 +580,14 @@ uint VehicleCargoList::Unload(uint max_move, StationCargoList *dest, CargoPaymen
 	}
 	if (this->action_counts[MTA_TRANSFER] == 0 && this->action_counts[MTA_DELIVER] > 0 && moved < max_move) {
 		uint move = min(this->action_counts[MTA_DELIVER], max_move - moved);
-		CargoDelivery action (this, move, payment);
-		Iterator it (this->packets.begin());
-		while (it != this->packets.end() && action.MaxMove() > 0) {
-			CargoPacket *cp = *it;
-			if (action (cp)) {
-				it = this->packets.erase (it);
-			} else {
-				break;
-			}
+		CargoRemovalAmount action (move);
+		while (!this->packets.empty() && action.Amount() > 0) {
+			CargoPacket *cp = this->packets.front();
+			uint remove = action.Preprocess (cp);
+			this->RemoveFromMeta (cp, MTA_DELIVER, remove);
+			payment->PayFinalDelivery (cp, remove);
+			if (!action.Postprocess (cp, remove)) break;
+			this->packets.pop_front();
 		}
 		moved += move;
 	}
