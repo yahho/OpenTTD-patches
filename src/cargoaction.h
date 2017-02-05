@@ -14,19 +14,37 @@
 
 #include "cargopacket.h"
 
+/** Base class for CargoRemoval. */
+class CargoRemovalAmount {
+private:
+	uint amount;    ///< Amount of cargo still unprocessed.
+
+public:
+	CargoRemovalAmount (uint amount) : amount (amount)
+	{
+	}
+
+	/** Get the amount of cargo still unprocessed. */
+	uint Amount (void) const
+	{
+		return this->amount;
+	}
+
+	uint Preprocess (CargoPacket *cp);
+	bool Postprocess (CargoPacket *cp, uint remove);
+};
+
 /**
  * Action of removing cargo from a vehicle.
  * @tparam Tsource CargoList subclass to remove cargo from.
  */
-class CargoRemoval {
+class CargoRemoval : protected CargoRemovalAmount {
 protected:
 	VehicleCargoList *source; ///< Source of the cargo.
-	uint max_move;   ///< Maximum amount of cargo to be removed with this action.
-	uint Preprocess(CargoPacket *cp);
-	bool Postprocess(CargoPacket *cp, uint remove);
+
 public:
 	CargoRemoval (VehicleCargoList *source, uint max_move)
-		: source(source), max_move(max_move)
+		: CargoRemovalAmount (max_move), source (source)
 	{
 	}
 
@@ -34,7 +52,7 @@ public:
 	 * Returns how much more cargo can be removed with this action.
 	 * @return Amount of cargo this action can still remove.
 	 */
-	uint MaxMove() { return this->max_move; }
+	uint MaxMove() { return this->Amount(); }
 
 	bool operator()(CargoPacket *cp);
 };

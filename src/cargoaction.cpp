@@ -38,14 +38,14 @@ CargoPacket *CargoMovement<Tsource, Tdest>::Preprocess(CargoPacket *cp)
  * @param cp Packet to be removed completely or partially.
  * @return Amount of cargo to be removed.
  */
-uint CargoRemoval::Preprocess (CargoPacket *cp)
+uint CargoRemovalAmount::Preprocess (CargoPacket *cp)
 {
-	if (this->max_move >= cp->Count()) {
-		this->max_move -= cp->Count();
+	if (this->amount >= cp->Count()) {
+		this->amount -= cp->Count();
 		return cp->Count();
 	} else {
-		uint ret = this->max_move;
-		this->max_move = 0;
+		uint ret = this->amount;
+		this->amount = 0;
 		return ret;
 	}
 }
@@ -56,7 +56,7 @@ uint CargoRemoval::Preprocess (CargoPacket *cp)
  * @param remove Amount of cargo to be removed.
  * @return True if the packet was deleted, False if it was reduced.
  */
-bool CargoRemoval::Postprocess (CargoPacket *cp, uint remove)
+bool CargoRemovalAmount::Postprocess (CargoPacket *cp, uint remove)
 {
 	if (remove == cp->Count()) {
 		delete cp;
