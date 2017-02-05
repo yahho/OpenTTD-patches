@@ -276,28 +276,6 @@ void VehicleCargoList::Append(CargoPacket *cp, MoveToAction action)
 }
 
 /**
- * Shifts cargo from the front of the packet list and applies some action to it.
- * @tparam Taction Action class or function to be used. It should define
- *                 "bool operator()(CargoPacket *)". If true is returned the
- *                 cargo packet will be removed from the list. Otherwise it
- *                 will be kept and the loop will be aborted.
- * @param action Action instance to be applied.
- */
-template<class Taction>
-void VehicleCargoList::ShiftCargo(Taction action)
-{
-	Iterator it(this->packets.begin());
-	while (it != this->packets.end() && action.MaxMove() > 0) {
-		CargoPacket *cp = *it;
-		if (action(cp)) {
-			it = this->packets.erase(it);
-		} else {
-			break;
-		}
-	}
-}
-
-/**
  * Update the cached values to reflect the removal of this packet or part of it.
  * Decreases count, feeder share and days_in_transit.
  * @param cp Packet to be removed from cache.
@@ -588,12 +566,30 @@ uint VehicleCargoList::Unload(uint max_move, StationCargoList *dest, CargoPaymen
 	uint moved = 0;
 	if (this->action_counts[MTA_TRANSFER] > 0) {
 		uint move = min(this->action_counts[MTA_TRANSFER], max_move);
-		this->ShiftCargo(CargoTransfer(this, dest, move));
+		CargoTransfer action (this, dest, move);
+		Iterator it (this->packets.begin());
+		while (it != this->packets.end() && action.MaxMove() > 0) {
+			CargoPacket *cp = *it;
+			if (action (cp)) {
+				it = this->packets.erase (it);
+			} else {
+				break;
+			}
+		}
 		moved += move;
 	}
 	if (this->action_counts[MTA_TRANSFER] == 0 && this->action_counts[MTA_DELIVER] > 0 && moved < max_move) {
 		uint move = min(this->action_counts[MTA_DELIVER], max_move - moved);
-		this->ShiftCargo(CargoDelivery(this, move, payment));
+		CargoDelivery action (this, move, payment);
+		Iterator it (this->packets.begin());
+		while (it != this->packets.end() && action.MaxMove() > 0) {
+			CargoPacket *cp = *it;
+			if (action (cp)) {
+				it = this->packets.erase (it);
+			} else {
+				break;
+			}
+		}
 		moved += move;
 	}
 	return moved;
@@ -625,7 +621,16 @@ uint VehicleCargoList::Truncate(uint max_move)
 void VehicleCargoList::Reroute (StationID avoid, StationID avoid2, const GoodsEntry *ge)
 {
 	uint max_move = this->action_counts[MTA_TRANSFER];
-	this->ShiftCargo (VehicleCargoReroute (this, max_move, avoid, avoid2, ge));
+	VehicleCargoReroute action (this, max_move, avoid, avoid2, ge);
+	Iterator it (this->packets.begin());
+	while (it != this->packets.end() && action.MaxMove() > 0) {
+		CargoPacket *cp = *it;
+		if (action (cp)) {
+			it = this->packets.erase (it);
+		} else {
+			break;
+		}
+	}
 }
 
 /*
