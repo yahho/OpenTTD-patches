@@ -315,7 +315,6 @@ public:
 
 	friend class CargoShift;
 	friend class CargoTransfer;
-	friend class CargoRemoval;
 	friend class CargoReturn;
 	friend class VehicleCargoReroute;
 

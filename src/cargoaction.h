@@ -35,29 +35,6 @@ public:
 };
 
 /**
- * Action of removing cargo from a vehicle.
- * @tparam Tsource CargoList subclass to remove cargo from.
- */
-class CargoRemoval : protected CargoRemovalAmount {
-protected:
-	VehicleCargoList *source; ///< Source of the cargo.
-
-public:
-	CargoRemoval (VehicleCargoList *source, uint max_move)
-		: CargoRemovalAmount (max_move), source (source)
-	{
-	}
-
-	/**
-	 * Returns how much more cargo can be removed with this action.
-	 * @return Amount of cargo this action can still remove.
-	 */
-	uint MaxMove() { return this->Amount(); }
-
-	bool operator()(CargoPacket *cp);
-};
-
-/**
  * Abstract action for moving cargo from one list to another.
  * @tparam Tsource CargoList subclass to remove cargo from.
  * @tparam Tdest CargoList subclass to add cargo to.

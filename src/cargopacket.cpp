@@ -603,9 +603,12 @@ uint VehicleCargoList::Unload(uint max_move, StationCargoList *dest, CargoPaymen
 uint VehicleCargoList::Truncate(uint max_move)
 {
 	max_move = min(this->count, max_move);
-	CargoRemoval action (this, max_move);
-	while (!this->packets.empty() && (action.MaxMove() > 0)) {
-		if (!action (this->packets.back())) break;
+	CargoRemovalAmount action (max_move);
+	while (!this->packets.empty() && (action.Amount() > 0)) {
+		CargoPacket *cp = this->packets.back();
+		uint remove = action.Preprocess (cp);
+		this->RemoveFromMeta (cp, MTA_KEEP, remove);
+		if (!action.Postprocess (cp, remove)) break;
 		this->packets.pop_back();
 	}
 	return max_move;

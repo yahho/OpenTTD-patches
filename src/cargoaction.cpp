@@ -68,19 +68,6 @@ bool CargoRemovalAmount::Postprocess (CargoPacket *cp, uint remove)
 }
 
 /**
- * Removes some cargo from a VehicleCargoList.
- * @param cp Packet to be removed.
- * @return True if the packet was completely delivered, false if only part of
- *         it was.
- */
-bool CargoRemoval::operator() (CargoPacket *cp)
-{
-	uint remove = this->Preprocess(cp);
-	this->source->RemoveFromMeta(cp, VehicleCargoList::MTA_KEEP, remove);
-	return this->Postprocess(cp, remove);
-}
-
-/**
  * Loads some cargo onto a vehicle.
  * @param cp Packet to be loaded.
  * @return True if the packet was completely loaded, false if part of it was.
