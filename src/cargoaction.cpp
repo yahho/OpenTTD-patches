@@ -33,41 +33,6 @@ CargoPacket *CargoMovement<Tsource, Tdest>::Preprocess(CargoPacket *cp)
 }
 
 /**
- * Determines the amount of cargo to be removed from a packet and removes that
- * from the metadata of the list.
- * @param cp Packet to be removed completely or partially.
- * @return Amount of cargo to be removed.
- */
-uint CargoRemovalAmount::Preprocess (CargoPacket *cp)
-{
-	if (this->amount >= cp->Count()) {
-		this->amount -= cp->Count();
-		return cp->Count();
-	} else {
-		uint ret = this->amount;
-		this->amount = 0;
-		return ret;
-	}
-}
-
-/**
- * Finalize cargo removal. Either delete the packet or reduce it.
- * @param cp Packet to be removed or reduced.
- * @param remove Amount of cargo to be removed.
- * @return True if the packet was deleted, False if it was reduced.
- */
-bool CargoRemovalAmount::Postprocess (CargoPacket *cp, uint remove)
-{
-	if (remove == cp->Count()) {
-		delete cp;
-		return true;
-	} else {
-		cp->Reduce(remove);
-		return false;
-	}
-}
-
-/**
  * Loads some cargo onto a vehicle.
  * @param cp Packet to be loaded.
  * @return True if the packet was completely loaded, false if part of it was.

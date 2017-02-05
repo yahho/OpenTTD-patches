@@ -14,26 +14,6 @@
 
 #include "cargopacket.h"
 
-/** Base class for CargoRemoval. */
-class CargoRemovalAmount {
-private:
-	uint amount;    ///< Amount of cargo still unprocessed.
-
-public:
-	CargoRemovalAmount (uint amount) : amount (amount)
-	{
-	}
-
-	/** Get the amount of cargo still unprocessed. */
-	uint Amount (void) const
-	{
-		return this->amount;
-	}
-
-	uint Preprocess (CargoPacket *cp);
-	bool Postprocess (CargoPacket *cp, uint remove);
-};
-
 /**
  * Abstract action for moving cargo from one list to another.
  * @tparam Tsource CargoList subclass to remove cargo from.

@@ -492,6 +492,59 @@ void VehicleCargoList::InvalidateCache()
 	this->Parent::InvalidateCache();
 }
 
+
+/** Cargo removal amount tracking class. */
+class CargoRemovalAmount {
+private:
+	uint amount;    ///< Amount of cargo still unprocessed.
+
+public:
+	CargoRemovalAmount (uint amount) : amount (amount)
+	{
+	}
+
+	/** Get the amount of cargo still unprocessed. */
+	uint Amount (void) const
+	{
+		return this->amount;
+	}
+
+	/**
+	 * Determines the amount of cargo to be removed from a packet
+	 * and removes that from the metadata of the list.
+	 * @param cp Packet to be removed completely or partially.
+	 * @return Amount of cargo to be removed.
+	 */
+	uint Preprocess (CargoPacket *cp)
+	{
+		if (this->amount >= cp->Count()) {
+			this->amount -= cp->Count();
+			return cp->Count();
+		} else {
+			uint ret = this->amount;
+			this->amount = 0;
+			return ret;
+		}
+	}
+
+	/**
+	 * Finalize cargo removal. Either delete the packet or reduce it.
+	 * @param cp Packet to be removed or reduced.
+	 * @param remove Amount of cargo to be removed.
+	 * @return True if the packet was deleted, False if it was reduced.
+	 */
+	bool Postprocess (CargoPacket *cp, uint remove)
+	{
+		if (remove == cp->Count()) {
+			delete cp;
+			return true;
+		} else {
+			cp->Reduce (remove);
+			return false;
+		}
+	}
+};
+
 /**
  * Reassign cargo from MTA_DELIVER to MTA_TRANSFER and take care of the next
  * station the cargo wants to visit.
