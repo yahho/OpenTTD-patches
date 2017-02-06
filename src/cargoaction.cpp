@@ -15,24 +15,6 @@
 #include "station_base.h"
 
 /**
- * Decides if a packet needs to be split.
- * @param cp Packet to be either split or moved in one piece.
- * @return Either new packet if splitting was necessary or the given one
- *         otherwise.
- */
-template<class Tsource, class Tdest>
-CargoPacket *CargoMovement<Tsource, Tdest>::Preprocess(CargoPacket *cp)
-{
-	if (this->max_move < cp->Count()) {
-		cp = cp->Split(this->max_move);
-		this->max_move = 0;
-	} else {
-		this->max_move -= cp->Count();
-	}
-	return cp;
-}
-
-/**
  * Loads some cargo onto a vehicle.
  * @param cp Packet to be loaded.
  * @return True if the packet was completely loaded, false if part of it was.

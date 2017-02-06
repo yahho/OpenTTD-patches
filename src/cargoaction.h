@@ -14,26 +14,63 @@
 
 #include "cargopacket.h"
 
+/** Base class for CargoMovement. */
+class CargoMovementAmount {
+private:
+	uint amount;    ///< Amount of cargo still unprocessed.
+
+public:
+	CargoMovementAmount (uint amount) : amount (amount)
+	{
+	}
+
+	/** Get the amount of cargo still unprocessed. */
+	uint Amount (void) const
+	{
+		return this->amount;
+	}
+
+	/**
+	 * Decides if a packet needs to be split.
+	 * @param cp Packet to be either split or moved in one piece.
+	 * @return Either new packet if splitting was necessary or the given
+	 *         one otherwise.
+	 */
+	CargoPacket *Preprocess (CargoPacket *cp)
+	{
+		if (this->amount < cp->Count()) {
+			cp = cp->Split (this->amount);
+			this->amount = 0;
+		} else {
+			this->amount -= cp->Count();
+		}
+		return cp;
+	}
+};
+
 /**
  * Abstract action for moving cargo from one list to another.
  * @tparam Tsource CargoList subclass to remove cargo from.
  * @tparam Tdest CargoList subclass to add cargo to.
  */
 template<class Tsource, class Tdest>
-class CargoMovement {
+class CargoMovement : protected CargoMovementAmount {
 protected:
 	Tsource *source;    ///< Source of the cargo.
 	Tdest *destination; ///< Destination for the cargo.
-	uint max_move;      ///< Maximum amount of cargo to be moved with this action.
-	CargoPacket *Preprocess(CargoPacket *cp);
+
 public:
-	CargoMovement(Tsource *source, Tdest *destination, uint max_move) : source(source), destination(destination), max_move(max_move) {}
+	CargoMovement (Tsource *source, Tdest *destination, uint max_move)
+		: CargoMovementAmount (max_move),
+		  source (source), destination (destination)
+	{
+	}
 
 	/**
 	 * Returns how much more cargo can be moved with this action.
 	 * @return Amount of cargo this action can still move.
 	 */
-	uint MaxMove() { return this->max_move; }
+	uint MaxMove() { return this->Amount(); }
 };
 
 /** Action of transferring cargo from a vehicle to a station. */
@@ -104,7 +141,7 @@ public:
 	VehicleCargoReroute (VehicleCargoList *list, uint max_move, StationID avoid, StationID avoid2, const GoodsEntry *ge) :
 			CargoReroute<VehicleCargoList> (list, avoid, avoid2, ge, max_move)
 	{
-		assert(this->max_move <= source->ActionCount(VehicleCargoList::MTA_TRANSFER));
+		assert (this->Amount() <= source->ActionCount (VehicleCargoList::MTA_TRANSFER));
 	}
 	bool operator()(CargoPacket *cp);
 };
