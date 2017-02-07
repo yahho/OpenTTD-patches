@@ -61,20 +61,6 @@ bool CargoTransfer::operator()(CargoPacket *cp)
 }
 
 /**
- * Shifts some cargo from a vehicle to another one.
- * @param cp Packet to be shifted.
- * @return True if the packet was completely shifted, false if part of it was.
- */
-bool CargoShift::operator()(CargoPacket *cp)
-{
-	CargoPacket *cp_new = this->Preprocess(cp);
-	if (cp_new == NULL) cp_new = cp;
-	this->source->RemoveFromMeta(cp_new, VehicleCargoList::MTA_KEEP, cp_new->Count());
-	this->destination->Append(cp_new, VehicleCargoList::MTA_KEEP);
-	return cp_new == cp;
-}
-
-/**
  * Reroutes some cargo from one Station sublist to another.
  * @param cp Packet to be rerouted.
  * @return True if the packet was completely rerouted, false if part of it was.

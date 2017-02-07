@@ -609,9 +609,14 @@ uint VehicleCargoList::Shift(uint max_move, VehicleCargoList *dest)
 {
 	max_move = min(this->count, max_move);
 	if (this != dest) {
-		CargoShift action (this, dest, max_move);
-		while (!this->packets.empty() && (action.MaxMove() > 0)) {
-			if (!action (this->packets.back())) break;
+		CargoMovementAmount action (max_move);
+		while (!this->packets.empty() && (action.Amount() > 0)) {
+			CargoPacket *cp = this->packets.back();
+			CargoPacket *cp_new = action.Preprocess (cp);
+			if (cp_new == NULL) cp_new = cp;
+			this->RemoveFromMeta (cp_new, MTA_KEEP, cp_new->Count());
+			dest->Append (cp_new, MTA_KEEP);
+			if (cp_new != cp) break;
 			this->packets.pop_back();
 		}
 	}

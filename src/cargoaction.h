@@ -99,14 +99,6 @@ public:
 	bool operator()(CargoPacket *cp);
 };
 
-/** Action of shifting cargo from one vehicle to another. */
-class CargoShift : public CargoMovement<VehicleCargoList, VehicleCargoList> {
-public:
-	CargoShift(VehicleCargoList *source, VehicleCargoList *destination, uint max_move) :
-			CargoMovement<VehicleCargoList, VehicleCargoList>(source, destination, max_move) {}
-	bool operator()(CargoPacket *cp);
-};
-
 /** Action of rerouting cargo between different cargo lists and/or next hops. */
 template<class Tlist>
 class CargoReroute : public CargoMovement<Tlist, Tlist> {
