@@ -315,7 +315,6 @@ public:
 
 	friend class CargoShift;
 	friend class CargoTransfer;
-	friend class CargoReturn;
 	friend class VehicleCargoReroute;
 
 	/**
@@ -457,10 +456,11 @@ public:
 	/** The stations, via GoodsEntry, have a CargoList. */
 	friend const struct SaveLoad *GetGoodsDesc();
 
+	friend class VehicleCargoList;
+
 	friend class CargoLoad;
 	friend class CargoTransfer;
 	friend class CargoReservation;
-	friend class CargoReturn;
 	friend class StationCargoReroute;
 
 	template<class Taction>

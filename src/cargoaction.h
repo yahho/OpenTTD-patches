@@ -99,14 +99,6 @@ public:
 	bool operator()(CargoPacket *cp);
 };
 
-/** Action of returning previously reserved cargo from the vehicle to the station. */
-class CargoReturn : public CargoMovement<VehicleCargoList, StationCargoList> {
-public:
-	CargoReturn(VehicleCargoList *source, StationCargoList *destination, uint max_move) :
-			CargoMovement<VehicleCargoList, StationCargoList>(source, destination, max_move) {}
-	bool operator()(CargoPacket *cp);
-};
-
 /** Action of shifting cargo from one vehicle to another. */
 class CargoShift : public CargoMovement<VehicleCargoList, VehicleCargoList> {
 public:

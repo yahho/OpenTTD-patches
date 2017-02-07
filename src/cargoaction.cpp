@@ -46,27 +46,6 @@ bool CargoReservation::operator()(CargoPacket *cp)
 }
 
 /**
- * Returns some reserved cargo.
- * @param cp Packet to be returned.
- * @return True if the packet was completely returned, false if part of it was.
- */
-bool CargoReturn::operator()(CargoPacket *cp)
-{
-	CargoPacket *cp_new = this->Preprocess(cp);
-	if (cp_new == NULL) cp_new = cp;
-	assert(cp_new->Count() <= this->destination->reserved_count);
-	this->source->RemoveFromMeta(cp_new, VehicleCargoList::MTA_LOAD, cp_new->Count());
-	this->destination->reserved_count -= cp_new->Count();
-	/* INVALID_STATION because in the DT_MANUAL case that's
-	 * correct and in the DT_(A)SYMMETRIC cases the next hop of
-	 * the vehicle doesn't really tell us anything if the cargo
-	 * had been "via any station" before reserving. We rather
-	 * produce some more "any station" cargo than misrouting it. */
-	this->destination->Append (cp_new, INVALID_STATION);
-	return cp_new == cp;
-}
-
-/**
  * Transfers some cargo from a vehicle to a station.
  * @param cp Packet to be transfered.
  * @return True if the packet was completely reserved, false if part of it was.

@@ -579,9 +579,21 @@ void VehicleCargoList::Transfer (void)
 uint VehicleCargoList::Return (StationCargoList *dest, uint max_move)
 {
 	max_move = min(this->action_counts[MTA_LOAD], max_move);
-	CargoReturn action (this, dest, max_move);
-	while (!this->packets.empty() && (action.MaxMove() > 0)) {
-		if (!action (this->packets.back())) break;
+	CargoMovementAmount action (max_move);
+	while (!this->packets.empty() && (action.Amount() > 0)) {
+		CargoPacket *cp = this->packets.back();
+		CargoPacket *cp_new = action.Preprocess (cp);
+		if (cp_new == NULL) cp_new = cp;
+		assert (cp_new->Count() <= dest->reserved_count);
+		this->RemoveFromMeta (cp_new, MTA_LOAD, cp_new->Count());
+		dest->reserved_count -= cp_new->Count();
+		/* INVALID_STATION because in the DT_MANUAL case that's
+		 * correct and in the DT_(A)SYMMETRIC cases the next hop of
+		 * the vehicle doesn't really tell us anything if the cargo
+		 * had been "via any station" before reserving. We rather
+		 * produce some more "any station" cargo than misrouting it. */
+		dest->Append (cp_new, INVALID_STATION);
+		if (cp_new != cp) break;
 		this->packets.pop_back();
 	}
 	return max_move;
