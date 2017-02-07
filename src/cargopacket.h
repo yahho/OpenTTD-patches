@@ -313,7 +313,6 @@ public:
 	/** The vehicles have a cargo list (and we want that saved). */
 	friend const struct SaveLoad *GetVehicleDescription(VehicleType vt);
 
-	friend class CargoTransfer;
 	friend class VehicleCargoReroute;
 
 	/**
@@ -458,7 +457,6 @@ public:
 	friend class VehicleCargoList;
 
 	friend class CargoLoad;
-	friend class CargoTransfer;
 	friend class CargoReservation;
 	friend class StationCargoReroute;
 

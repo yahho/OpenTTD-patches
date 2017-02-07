@@ -46,21 +46,6 @@ bool CargoReservation::operator()(CargoPacket *cp)
 }
 
 /**
- * Transfers some cargo from a vehicle to a station.
- * @param cp Packet to be transfered.
- * @return True if the packet was completely reserved, false if part of it was.
- */
-bool CargoTransfer::operator()(CargoPacket *cp)
-{
-	CargoPacket *cp_new = this->Preprocess(cp);
-	if (cp_new == NULL) return false;
-	this->source->RemoveFromMeta(cp_new, VehicleCargoList::MTA_TRANSFER, cp_new->Count());
-	/* No transfer credits here as they were already granted during Stage(). */
-	this->destination->Append(cp_new, cp_new->NextStation());
-	return cp_new == cp;
-}
-
-/**
  * Reroutes some cargo from one Station sublist to another.
  * @param cp Packet to be rerouted.
  * @return True if the packet was completely rerouted, false if part of it was.

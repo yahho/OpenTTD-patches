@@ -636,15 +636,16 @@ uint VehicleCargoList::Unload(uint max_move, StationCargoList *dest, CargoPaymen
 	uint moved = 0;
 	if (this->action_counts[MTA_TRANSFER] > 0) {
 		uint move = min(this->action_counts[MTA_TRANSFER], max_move);
-		CargoTransfer action (this, dest, move);
-		Iterator it (this->packets.begin());
-		while (it != this->packets.end() && action.MaxMove() > 0) {
-			CargoPacket *cp = *it;
-			if (action (cp)) {
-				it = this->packets.erase (it);
-			} else {
-				break;
-			}
+		CargoMovementAmount action (move);
+		while (!this->packets.empty() && action.Amount() > 0) {
+			CargoPacket *cp = this->packets.front();
+			CargoPacket *cp_new = action.Preprocess (cp);
+			if (cp_new == NULL) break;
+			this->RemoveFromMeta (cp_new, MTA_TRANSFER, cp_new->Count());
+			/* No transfer credits here as they were already granted during Stage(). */
+			dest->Append (cp_new, cp_new->NextStation());
+			if (cp_new != cp) break;
+			this->packets.pop_front();
 		}
 		moved += move;
 	}

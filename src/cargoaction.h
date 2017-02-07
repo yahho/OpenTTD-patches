@@ -73,14 +73,6 @@ public:
 	uint MaxMove() { return this->Amount(); }
 };
 
-/** Action of transferring cargo from a vehicle to a station. */
-class CargoTransfer : public CargoMovement<VehicleCargoList, StationCargoList> {
-public:
-	CargoTransfer(VehicleCargoList *source, StationCargoList *destination, uint max_move) :
-			CargoMovement<VehicleCargoList, StationCargoList>(source, destination, max_move) {}
-	bool operator()(CargoPacket *cp);
-};
-
 /** Action of loading cargo from a station onto a vehicle. */
 class CargoLoad : public CargoMovement<StationCargoList, VehicleCargoList> {
 protected:
