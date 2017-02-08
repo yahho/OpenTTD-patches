@@ -91,23 +91,15 @@ public:
 	bool operator()(CargoPacket *cp);
 };
 
-/** Action of rerouting cargo between different cargo lists and/or next hops. */
-template<class Tlist>
-class CargoReroute : public CargoMovement<Tlist, Tlist> {
+/** Action of rerouting cargo in a station. */
+class StationCargoReroute : public CargoMovement <StationCargoList, StationCargoList> {
 protected:
 	StationID avoid;
 	StationID avoid2;
 	const GoodsEntry *ge;
 public:
-	CargoReroute (Tlist *list, StationID avoid, StationID avoid2, const GoodsEntry *ge, uint max_move = UINT_MAX) :
-			CargoMovement<Tlist, Tlist> (list, list, max_move), avoid(avoid), avoid2(avoid2), ge(ge) {}
-};
-
-/** Action of rerouting cargo in a station. */
-class StationCargoReroute : public CargoReroute<StationCargoList> {
-public:
 	StationCargoReroute (StationCargoList *list, StationID avoid, StationID avoid2, const GoodsEntry *ge) :
-			CargoReroute<StationCargoList> (list, avoid, avoid2, ge) {}
+			CargoMovement <StationCargoList, StationCargoList> (list, list, UINT_MAX), avoid(avoid), avoid2(avoid2), ge(ge) {}
 	bool operator()(CargoPacket *cp);
 };
 
