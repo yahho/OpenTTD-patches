@@ -111,15 +111,4 @@ public:
 	bool operator()(CargoPacket *cp);
 };
 
-/** Action of rerouting cargo staged for transfer in a vehicle. */
-class VehicleCargoReroute : public CargoReroute<VehicleCargoList> {
-public:
-	VehicleCargoReroute (VehicleCargoList *list, uint max_move, StationID avoid, StationID avoid2, const GoodsEntry *ge) :
-			CargoReroute<VehicleCargoList> (list, avoid, avoid2, ge, max_move)
-	{
-		assert (this->Amount() <= source->ActionCount (VehicleCargoList::MTA_TRANSFER));
-	}
-	bool operator()(CargoPacket *cp);
-};
-
 #endif /* CARGOACTION_H */

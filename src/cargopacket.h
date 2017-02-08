@@ -313,8 +313,6 @@ public:
 	/** The vehicles have a cargo list (and we want that saved). */
 	friend const struct SaveLoad *GetVehicleDescription(VehicleType vt);
 
-	friend class VehicleCargoReroute;
-
 	/**
 	 * Returns source of the first cargo packet in this list.
 	 * @return The before mentioned source.

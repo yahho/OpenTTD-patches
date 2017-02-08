@@ -694,15 +694,19 @@ uint VehicleCargoList::Truncate(uint max_move)
 void VehicleCargoList::Reroute (StationID avoid, StationID avoid2, const GoodsEntry *ge)
 {
 	uint max_move = this->action_counts[MTA_TRANSFER];
-	VehicleCargoReroute action (this, max_move, avoid, avoid2, ge);
+	CargoMovementAmount action (max_move);
 	Iterator it (this->packets.begin());
-	while (it != this->packets.end() && action.MaxMove() > 0) {
+	while (it != this->packets.end() && action.Amount() > 0) {
 		CargoPacket *cp = *it;
-		if (action (cp)) {
-			it = this->packets.erase (it);
-		} else {
-			break;
+		CargoPacket *cp_new = action.Preprocess (cp);
+		if (cp_new == NULL) cp_new = cp;
+		if (cp_new->NextStation() == avoid || cp_new->NextStation() == avoid2) {
+			cp->SetNextStation (ge->GetVia (cp_new->SourceStation(), avoid, avoid2));
 		}
+		/* Legal, as front pushing doesn't invalidate iterators in std::list. */
+		this->packets.push_front (cp_new);
+		if (cp_new != cp) break;
+		it = this->packets.erase (it);
 	}
 }
 
