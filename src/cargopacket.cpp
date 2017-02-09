@@ -900,7 +900,8 @@ uint StationCargoList::Load(uint max_move, VehicleCargoList *dest, TileIndex loa
  */
 void StationCargoList::Reroute (StationID avoid, StationID avoid2, const GoodsEntry *ge)
 {
-	this->ShiftCargo (StationCargoReroute (this, avoid, avoid2, ge), avoid, false);
+	StationCargoReroute action (this, avoid, avoid2, ge);
+	this->ShiftCargo (action, avoid);
 }
 
 /*
