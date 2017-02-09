@@ -14,7 +14,7 @@
 
 #include "cargopacket.h"
 
-/** Base class for CargoMovement. */
+/** Cargo movement amount tracking class. */
 class CargoMovementAmount {
 private:
 	uint amount;    ///< Amount of cargo still unprocessed.
@@ -48,21 +48,16 @@ public:
 	}
 };
 
-/**
- * Abstract action for moving cargo from one list to another.
- * @tparam Tsource CargoList subclass to remove cargo from.
- * @tparam Tdest CargoList subclass to add cargo to.
- */
-template<class Tsource, class Tdest>
-class CargoMovement : protected CargoMovementAmount {
+/** Action of loading cargo from a station onto a vehicle. */
+class CargoLoad : protected CargoMovementAmount {
 protected:
-	Tsource *source;    ///< Source of the cargo.
-	Tdest *destination; ///< Destination for the cargo.
-
+	StationCargoList *source;      ///< Source of the cargo.
+	VehicleCargoList *destination; ///< Destination for the cargo.
+	TileIndex load_place; ///< TileIndex to be saved in the packets' loaded_at_xy.
 public:
-	CargoMovement (Tsource *source, Tdest *destination, uint max_move)
-		: CargoMovementAmount (max_move),
-		  source (source), destination (destination)
+	CargoLoad(StationCargoList *source, VehicleCargoList *destination, uint max_move, TileIndex load_place) :
+		CargoMovementAmount (max_move), source (source),
+		destination (destination), load_place (load_place)
 	{
 	}
 
@@ -71,15 +66,7 @@ public:
 	 * @return Amount of cargo this action can still move.
 	 */
 	uint MaxMove() { return this->Amount(); }
-};
 
-/** Action of loading cargo from a station onto a vehicle. */
-class CargoLoad : public CargoMovement<StationCargoList, VehicleCargoList> {
-protected:
-	TileIndex load_place; ///< TileIndex to be saved in the packets' loaded_at_xy.
-public:
-	CargoLoad(StationCargoList *source, VehicleCargoList *destination, uint max_move, TileIndex load_place) :
-			CargoMovement<StationCargoList, VehicleCargoList>(source, destination, max_move), load_place(load_place) {}
 	bool operator()(CargoPacket *cp);
 };
 
