@@ -44,26 +44,3 @@ bool CargoReservation::operator()(CargoPacket *cp)
 	this->destination->Append(cp_new, VehicleCargoList::MTA_LOAD);
 	return cp_new == cp;
 }
-
-/**
- * Reroutes some cargo from one Station sublist to another.
- * @param cp Packet to be rerouted.
- * @return True if the packet was completely rerouted, false if part of it was.
- */
-bool StationCargoReroute::operator()(CargoPacket *cp)
-{
-	CargoPacket *cp_new = this->Preprocess(cp);
-	if (cp_new == NULL) cp_new = cp;
-	StationID next = this->ge->GetVia(cp_new->SourceStation(), this->avoid, this->avoid2);
-	assert(next != this->avoid && next != this->avoid2);
-	if (this->source != this->destination) {
-		this->source->RemoveFromCache(cp_new, cp_new->Count());
-		this->destination->AddToCache(cp_new);
-	}
-
-	/* Legal, as insert doesn't invalidate iterators in the MultiMap, however
-	 * this might insert the packet between range.first and range.second (which might be end())
-	 * This is why we check for GetKey above to avoid infinite loops. */
-	this->destination->packets.Insert(next, cp_new);
-	return cp_new == cp;
-}

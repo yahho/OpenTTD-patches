@@ -456,7 +456,6 @@ public:
 
 	friend class CargoLoad;
 	friend class CargoReservation;
-	friend class StationCargoReroute;
 
 	template<class Taction>
 	bool ShiftCargo(Taction &action, StationID next);

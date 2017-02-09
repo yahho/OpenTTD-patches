@@ -900,12 +900,17 @@ uint StationCargoList::Load(uint max_move, VehicleCargoList *dest, TileIndex loa
  */
 void StationCargoList::Reroute (StationID avoid, StationID avoid2, const GoodsEntry *ge)
 {
-	StationCargoReroute action (this, avoid, avoid2, ge);
 	std::pair <Iterator, Iterator> range (this->packets.equal_range (avoid));
 	for (Iterator it (range.first); it != range.second && it.GetKey() == avoid;) {
-		if (action.MaxMove() == 0) break;
 		CargoPacket *cp = *it;
-		if (!action (cp)) break;
+		StationID next = ge->GetVia (cp->SourceStation(), avoid, avoid2);
+		assert (next != avoid && next != avoid2);
+
+		/* Legal, as insert doesn't invalidate iterators in the
+		 * MultiMap, however this might insert the packet between
+		 * range.first and range.second (which might be end()) This is
+		 * why we check for GetKey above to avoid infinite loops. */
+		this->packets.Insert (next, cp);
 		it = this->packets.erase (it);
 	}
 }
