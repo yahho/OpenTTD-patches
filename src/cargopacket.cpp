@@ -901,7 +901,13 @@ uint StationCargoList::Load(uint max_move, VehicleCargoList *dest, TileIndex loa
 void StationCargoList::Reroute (StationID avoid, StationID avoid2, const GoodsEntry *ge)
 {
 	StationCargoReroute action (this, avoid, avoid2, ge);
-	this->ShiftCargo (action, avoid);
+	std::pair <Iterator, Iterator> range (this->packets.equal_range (avoid));
+	for (Iterator it (range.first); it != range.second && it.GetKey() == avoid;) {
+		if (action.MaxMove() == 0) break;
+		CargoPacket *cp = *it;
+		if (!action (cp)) break;
+		it = this->packets.erase (it);
+	}
 }
 
 /*
