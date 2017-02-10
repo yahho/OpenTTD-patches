@@ -37,9 +37,6 @@
 template<> BaseStation::Pool BaseStation::PoolItem::pool ("Station");
 INSTANTIATE_POOL_METHODS(Station)
 
-typedef StationIDStack::SmallStackPool StationIDStackPool;
-template<> StationIDStackPool StationIDStack::_pool = StationIDStackPool();
-
 BaseStation::~BaseStation()
 {
 	free(this->name);

@@ -1261,7 +1261,8 @@ void PrepareUnload(Vehicle *front_v)
 	assert(CargoPayment::CanAllocateItem());
 	front_v->cargo_payment = new CargoPayment(front_v);
 
-	StationIDStack next_station = front_v->GetNextStoppingStation();
+	StationIDStack next_station;
+	front_v->AppendNextStoppingStations (&next_station);
 	if (front_v->orders.list == NULL || (front_v->current_order.GetUnloadType() & OUFB_NO_UNLOAD) == 0) {
 		Station *st = Station::Get(front_v->last_station_visited);
 		for (Vehicle *v = front_v; v != NULL; v = v->Next()) {
@@ -1422,7 +1423,7 @@ struct FinalizeRefitAction
 {
 	CargoArray &consist_capleft;  ///< Capacities left in the consist.
 	Station *st;                  ///< Station to reserve cargo from.
-	StationIDStack &next_station; ///< Next hops to reserve cargo for.
+	const StationIDStack &next_station; ///< Next hops to reserve cargo for.
 	bool do_reserve;              ///< If the vehicle should reserve.
 
 	/**
@@ -1432,7 +1433,7 @@ struct FinalizeRefitAction
 	 * @param next_station Next hops to reserve cargo for.
 	 * @param do_reserve If we should reserve cargo or just add up the capacities.
 	 */
-	FinalizeRefitAction(CargoArray &consist_capleft, Station *st, StationIDStack &next_station, bool do_reserve) :
+	FinalizeRefitAction (CargoArray &consist_capleft, Station *st, const StationIDStack &next_station, bool do_reserve) :
 		consist_capleft(consist_capleft), st(st), next_station(next_station), do_reserve(do_reserve) {}
 
 	/**
@@ -1461,7 +1462,7 @@ struct FinalizeRefitAction
  * @param new_cid Target cargo mask for refit.
  */
 static void HandleStationRefit (Vehicle *v, CargoArray &consist_capleft,
-	Station *st, StationIDStack next_station, CargoMask new_mask)
+	Station *st, const StationIDStack &next_station, CargoMask new_mask)
 {
 	Vehicle *v_start = v->GetFirstEnginePart();
 	if (!IterateVehicleParts(v_start, IsEmptyAction())) return;
@@ -1539,16 +1540,16 @@ static void HandleStationRefit (Vehicle *v, CargoArray &consist_capleft,
 
 struct ReserveCargoAction {
 	Station *st;
-	StationIDStack *next_station;
+	const StationIDStack &next_station;
 
-	ReserveCargoAction(Station *st, StationIDStack *next_station) :
+	ReserveCargoAction (Station *st, const StationIDStack &next_station) :
 		st(st), next_station(next_station) {}
 
 	bool operator()(Vehicle *v)
 	{
 		if (v->cargo_cap > v->cargo.RemainingCount()) {
 			st->goods[v->cargo_type].cargo.Reserve(v->cargo_cap - v->cargo.RemainingCount(),
-					&v->cargo, st->xy, *next_station);
+					&v->cargo, st->xy, next_station);
 		}
 
 		return true;
@@ -1564,7 +1565,8 @@ struct ReserveCargoAction {
  * @param consist_capleft If given, save free capacities after reserving there.
  * @param next_station Station(s) the vehicle will stop at next.
  */
-static void ReserveConsist(Station *st, Vehicle *u, CargoArray *consist_capleft, StationIDStack *next_station)
+static void ReserveConsist (Station *st, Vehicle *u,
+	CargoArray *consist_capleft, const StationIDStack &next_station)
 {
 	/* If there is a cargo payment not all vehicles of the consist have tried to do the refit.
 	 * In that case, only reserve if it's a fixed refit and the equivalent of "articulated chain"
@@ -1619,14 +1621,15 @@ static void LoadUnloadVehicle(Vehicle *front)
 	StationID last_visited = front->last_station_visited;
 	Station *st = Station::Get(last_visited);
 
-	StationIDStack next_station = front->GetNextStoppingStation();
+	StationIDStack next_station;
+	front->AppendNextStoppingStations (&next_station);
 	bool use_autorefit = front->current_order.IsAutoRefit();
 	CargoArray consist_capleft;
 	if (_settings_game.order.improved_load && use_autorefit ?
 			front->cargo_payment == NULL : (front->current_order.GetLoadType() & OLFB_FULL_LOAD) != 0) {
 		ReserveConsist(st, front,
 				(use_autorefit && front->load_unload_ticks != 0) ? &consist_capleft : NULL,
-				&next_station);
+				next_station);
 	}
 
 	/* We have not waited enough time till the next round of loading/unloading */

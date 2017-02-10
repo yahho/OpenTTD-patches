@@ -338,7 +338,9 @@ public:
 	 */
 	inline VehicleOrderID GetNumManualOrders() const { return this->num_manual_orders; }
 
-	StationIDStack GetNextStoppingStation(const Vehicle *v, const Order *first = NULL, uint hops = 0) const;
+	void AppendNextStoppingStations (StationIDStack *result, const Vehicle *v,
+		const Order *first = NULL, uint hops = 0) const;
+
 	const Order *GetNextDecisionNode(const Order *next, uint hops) const;
 
 	void InsertOrderAt(Order *new_order, int index);

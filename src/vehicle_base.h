@@ -657,11 +657,15 @@ public:
 
 	/**
 	 * Get the next station the vehicle will stop at.
-	 * @return ID of the next station the vehicle will stop at or INVALID_STATION.
+	 * @param result Station id stack to append the next stations to.
 	 */
-	inline StationIDStack GetNextStoppingStation() const
+	inline void AppendNextStoppingStations (StationIDStack *result) const
 	{
-		return (this->orders.list == NULL) ? INVALID_STATION : this->orders.list->GetNextStoppingStation(this);
+		if (this->orders.list == NULL) {
+			result->push_back (INVALID_STATION);
+		} else {
+			this->orders.list->AppendNextStoppingStations (result, this);
+		}
 	}
 
 	void ResetRefitCaps();

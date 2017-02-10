@@ -368,7 +368,7 @@ void VehicleCargoList::SetTransferLoadPlace(TileIndex xy)
  * @return MoveToAction to be performed.
  */
 /* static */ VehicleCargoList::MoveToAction VehicleCargoList::ChooseAction(const CargoPacket *cp, StationID cargo_next,
-		StationID current_station, bool accepted, StationIDStack next_station)
+		StationID current_station, bool accepted, const StationIDStack &next_station)
 {
 	if (cargo_next == INVALID_STATION) {
 		return (accepted && cp->source_st != current_station) ? MTA_DELIVER : MTA_KEEP;
@@ -394,7 +394,9 @@ void VehicleCargoList::SetTransferLoadPlace(TileIndex xy)
  * @param payment Payment object for registering transfers.
  * return If any cargo will be unloaded.
  */
-bool VehicleCargoList::Stage(bool accepted, StationID current_station, StationIDStack next_station, uint8 order_flags, const GoodsEntry *ge, CargoPayment *payment)
+bool VehicleCargoList::Stage (bool accepted, StationID current_station,
+	const StationIDStack &next_station, uint8 order_flags,
+	const GoodsEntry *ge, CargoPayment *payment)
 {
 	this->AssertCountConsistency();
 	assert(this->action_counts[MTA_LOAD] == 0);
@@ -427,9 +429,10 @@ bool VehicleCargoList::Stage(bool accepted, StationID current_station, StationID
 			} else {
 				FlowStat new_shares = flow_it->second;
 				new_shares.ChangeShare(current_station, INT_MIN);
-				StationIDStack excluded = next_station;
-				while (!excluded.IsEmpty() && !new_shares.GetShares()->empty()) {
-					new_shares.ChangeShare(excluded.Pop(), INT_MIN);
+				StationIDStack::const_iterator iter (next_station.begin());
+				for (; iter != next_station.end(); iter++) {
+					if (new_shares.GetShares()->empty()) break;
+					new_shares.ChangeShare (*iter, INT_MIN);
 				}
 				if (new_shares.GetShares()->empty()) {
 					cargo_next = INVALID_STATION;
@@ -788,11 +791,11 @@ bool StationCargoList::ShiftCargo(Taction &action, StationID next)
  * @return Amount of cargo actually moved.
  */
 template <class Taction>
-uint StationCargoList::ShiftCargo(Taction action, StationIDStack next, bool include_invalid)
+uint StationCargoList::ShiftCargo (Taction action, const StationIDStack &next, bool include_invalid)
 {
 	uint max_move = action.MaxMove();
-	while (!next.IsEmpty()) {
-		this->ShiftCargo(action, next.Pop());
+	for (StationIDStack::const_iterator iter (next.begin()); iter != next.end(); iter++) {
+		this->ShiftCargo (action, *iter);
 		if (action.MaxMove() == 0) break;
 	}
 	if (include_invalid && action.MaxMove() > 0) {
@@ -863,7 +866,8 @@ uint StationCargoList::Truncate(uint max_move, StationCargoAmountMap *cargo_per_
  * @param next_station Next station(s) the loading vehicle will visit.
  * @return Amount of cargo actually reserved.
  */
-uint StationCargoList::Reserve(uint max_move, VehicleCargoList *dest, TileIndex load_place, StationIDStack next_station)
+uint StationCargoList::Reserve (uint max_move, VehicleCargoList *dest,
+	TileIndex load_place, const StationIDStack &next_station)
 {
 	return this->ShiftCargo(CargoReservation(this, dest, max_move, load_place), next_station, true);
 }
@@ -880,7 +884,8 @@ uint StationCargoList::Reserve(uint max_move, VehicleCargoList *dest, TileIndex 
  *       modes of loading are exclusive, though. If cargo is reserved we don't
  *       need to load unreserved cargo.
  */
-uint StationCargoList::Load(uint max_move, VehicleCargoList *dest, TileIndex load_place, StationIDStack next_station)
+uint StationCargoList::Load (uint max_move, VehicleCargoList *dest,
+	TileIndex load_place, const StationIDStack &next_station)
 {
 	uint move = min(dest->ActionCount(VehicleCargoList::MTA_LOAD), max_move);
 	if (move > 0) {

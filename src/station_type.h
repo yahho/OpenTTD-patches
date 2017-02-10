@@ -13,9 +13,9 @@
 #define STATION_TYPE_H
 
 #include "core/smallvec_type.hpp"
-#include "core/smallstack_type.hpp"
 #include "map/tilearea.h"
 #include <list>
+#include <deque>
 
 typedef uint16 StationID;
 typedef uint16 RoadStopID;
@@ -29,7 +29,16 @@ struct Waypoint;
 
 static const StationID INVALID_STATION = 0xFFFF;
 
-typedef SmallStack<StationID, StationID, INVALID_STATION, 8, 0xFFFD> StationIDStack;
+struct StationIDStack : std::deque<StationID> {
+	/** Check if the stack contains a given element. */
+	bool Contains (StationID id) const
+	{
+		for (const_iterator iter (begin()); iter != end(); iter++) {
+			if (*iter == id) return true;
+		}
+		return false;
+	}
+};
 
 /** Station types */
 enum StationType {
