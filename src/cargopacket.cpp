@@ -792,12 +792,13 @@ template <class Taction>
 uint StationCargoList::ShiftCargo (Taction action, const StationIDStack &next)
 {
 	uint max_move = action.MaxMove();
-	for (StationIDStack::const_iterator iter (next.begin()); iter != next.end(); iter++) {
-		this->ShiftCargo (action, *iter);
-		if (action.MaxMove() == 0) break;
-	}
-	if (action.MaxMove() > 0) {
-		this->ShiftCargo(action, INVALID_STATION);
+	StationIDStack::const_iterator iter (next.begin());
+	for (;;) {
+		bool end = (iter == next.end());
+		StationID s = end ? INVALID_STATION : *iter;
+		this->ShiftCargo (action, s);
+		if (end || action.MaxMove() == 0) break;
+		iter++;
 	}
 	return max_move - action.MaxMove();
 }
