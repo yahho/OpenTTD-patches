@@ -458,10 +458,8 @@ public:
 	friend class VehicleCargoList;
 
 	friend class CargoLoad;
-	friend class CargoReservation;
 
-	template<class Taction>
-	uint ShiftCargo (Taction action, const StationIDStack &next);
+	uint ShiftCargo (class CargoLoad action, const StationIDStack &next, bool load);
 
 	void Append(CargoPacket *cp, StationID next);
 

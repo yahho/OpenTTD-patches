@@ -752,16 +752,12 @@ void StationCargoList::Append(CargoPacket *cp, StationID next)
  * Shifts cargo from the front of the packet list for a specific station and
  * and optional also from the list for "any station", then applies some action
  * to it.
- * @tparam Taction Action class or function to be used. It should define
- *                 "bool operator()(CargoPacket *)". If true is returned the
- *                 cargo packet will be removed from the list. Otherwise it
- *                 will be kept and the loop will be aborted.
  * @param action Action instance to be applied.
  * @param next Next hop the cargo wants to visit.
+ * @param load Whether to actually load the cargo, else only reserve it.
  * @return Amount of cargo actually moved.
  */
-template <class Taction>
-uint StationCargoList::ShiftCargo (Taction action, const StationIDStack &next)
+uint StationCargoList::ShiftCargo (CargoLoad action, const StationIDStack &next, bool load)
 {
 	uint max_move = action.MaxMove();
 	StationIDStack::const_iterator iter (next.begin());
@@ -772,7 +768,7 @@ uint StationCargoList::ShiftCargo (Taction action, const StationIDStack &next)
 		for (Iterator it (range.first); it != range.second && it.GetKey() == s;) {
 			if (action.MaxMove() == 0) break;
 			CargoPacket *cp = *it;
-			if (!action (cp)) break;
+			if (!action.Load (cp, load)) break;
 			it = this->packets.erase (it);
 		}
 		if (end || action.MaxMove() == 0) break;
@@ -846,7 +842,7 @@ uint StationCargoList::Truncate(uint max_move, StationCargoAmountMap *cargo_per_
 uint StationCargoList::Reserve (uint max_move, VehicleCargoList *dest,
 	TileIndex load_place, const StationIDStack &next_station)
 {
-	return this->ShiftCargo (CargoReservation (this, dest, max_move, load_place), next_station);
+	return this->ShiftCargo (CargoLoad (this, dest, max_move, load_place), next_station, false);
 }
 
 /**
@@ -870,7 +866,7 @@ uint StationCargoList::Load (uint max_move, VehicleCargoList *dest,
 		dest->Keep (VehicleCargoList::MTA_LOAD, move);
 		return move;
 	} else {
-		return this->ShiftCargo (CargoLoad (this, dest, max_move, load_place), next_station);
+		return this->ShiftCargo (CargoLoad (this, dest, max_move, load_place), next_station, true);
 	}
 }
 

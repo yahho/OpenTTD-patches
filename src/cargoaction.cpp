@@ -36,23 +36,3 @@ bool CargoLoad::Load (CargoPacket *cp, bool load)
 	this->destination->Append (cp_new, mta);
 	return cp_new == cp;
 }
-
-/**
- * Loads some cargo onto a vehicle.
- * @param cp Packet to be loaded.
- * @return True if the packet was completely loaded, false if part of it was.
- */
-bool CargoLoad::operator()(CargoPacket *cp)
-{
-	return this->Load (cp, true);
-}
-
-/**
- * Reserves some cargo for loading.
- * @param cp Packet to be reserved.
- * @return True if the packet was completely reserved, false if part of it was.
- */
-bool CargoReservation::operator()(CargoPacket *cp)
-{
-	return this->Load (cp, false);
-}

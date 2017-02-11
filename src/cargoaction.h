@@ -68,16 +68,6 @@ public:
 	uint MaxMove() { return this->Amount(); }
 
 	bool Load (CargoPacket *cp, bool load);
-
-	bool operator()(CargoPacket *cp);
-};
-
-/** Action of reserving cargo from a station to be loaded onto a vehicle. */
-class CargoReservation : public CargoLoad {
-public:
-	CargoReservation(StationCargoList *source, VehicleCargoList *destination, uint max_move, TileIndex load_place) :
-			CargoLoad(source, destination, max_move, load_place) {}
-	bool operator()(CargoPacket *cp);
 };
 
 #endif /* CARGOACTION_H */
