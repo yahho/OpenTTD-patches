@@ -459,7 +459,8 @@ public:
 
 	friend class CargoLoad;
 
-	uint ShiftCargo (class CargoLoad action, const StationIDStack &next, bool load);
+	uint ShiftCargo (VehicleCargoList *dest, uint max_move,
+		TileIndex load_place, const StationIDStack &next, bool load);
 
 	void Append(CargoPacket *cp, StationID next);
 
@@ -519,7 +520,20 @@ public:
 	 * amount of cargo to be moved. Second parameter is destination (if
 	 * applicable), return value is amount of cargo actually moved. */
 
-	uint Reserve (uint max_move, VehicleCargoList *dest, TileIndex load_place, const StationIDStack &next);
+	/**
+	 * Reserves cargo for loading onto the vehicle.
+	 * @param max_move Maximum amount of cargo to reserve.
+	 * @param dest VehicleCargoList to reserve for.
+	 * @param load_place Tile index of the current station.
+	 * @param next Next station(s) the loading vehicle will visit.
+	 * @return Amount of cargo actually reserved.
+	 */
+	uint Reserve (uint max_move, VehicleCargoList *dest,
+		TileIndex load_place, const StationIDStack &next)
+	{
+		return this->ShiftCargo (dest, max_move, load_place, next, false);
+	}
+
 	uint Load (uint max_move, VehicleCargoList *dest, TileIndex load_place, const StationIDStack &next);
 	uint Truncate(uint max_move = UINT_MAX, StationCargoAmountMap *cargo_per_source = NULL);
 	void Reroute (StationID avoid, StationID avoid2, const GoodsEntry *ge);
