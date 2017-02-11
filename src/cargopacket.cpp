@@ -750,34 +750,6 @@ void StationCargoList::Append(CargoPacket *cp, StationID next)
 
 /**
  * Shifts cargo from the front of the packet list for a specific station and
- * applies some action to it.
- * @tparam Taction Action class or function to be used. It should define
- *                 "bool operator()(CargoPacket *)". If true is returned the
- *                 cargo packet will be removed from the list. Otherwise it
- *                 will be kept and the loop will be aborted.
- * @param action Action instance to be applied.
- * @param next Next hop the cargo wants to visit.
- * @return True if all packets with the given next hop have been removed,
- *         False otherwise.
- */
-template <class Taction>
-bool StationCargoList::ShiftCargo(Taction &action, StationID next)
-{
-	std::pair<Iterator, Iterator> range(this->packets.equal_range(next));
-	for (Iterator it(range.first); it != range.second && it.GetKey() == next;) {
-		if (action.MaxMove() == 0) return false;
-		CargoPacket *cp = *it;
-		if (action(cp)) {
-			it = this->packets.erase(it);
-		} else {
-			return false;
-		}
-	}
-	return true;
-}
-
-/**
- * Shifts cargo from the front of the packet list for a specific station and
  * and optional also from the list for "any station", then applies some action
  * to it.
  * @tparam Taction Action class or function to be used. It should define
@@ -796,7 +768,13 @@ uint StationCargoList::ShiftCargo (Taction action, const StationIDStack &next)
 	for (;;) {
 		bool end = (iter == next.end());
 		StationID s = end ? INVALID_STATION : *iter;
-		this->ShiftCargo (action, s);
+		std::pair <Iterator, Iterator> range (this->packets.equal_range (s));
+		for (Iterator it (range.first); it != range.second && it.GetKey() == s;) {
+			if (action.MaxMove() == 0) break;
+			CargoPacket *cp = *it;
+			if (!action (cp)) break;
+			it = this->packets.erase (it);
+		}
 		if (end || action.MaxMove() == 0) break;
 		iter++;
 	}
