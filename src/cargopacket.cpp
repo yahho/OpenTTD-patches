@@ -14,7 +14,6 @@
 #include "core/pool_func.hpp"
 #include "core/random_func.hpp"
 #include "economy_base.h"
-#include "cargoaction.h"
 #include "order_type.h"
 
 /* Initialize the cargopacket-pool */

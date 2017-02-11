@@ -459,10 +459,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\..\src\cargoaction.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\..\src\cargomonitor.cpp"
 				>
 			</File>
@@ -1528,10 +1524,6 @@
 			</File>
 			<File
 				RelativePath=".\..\src\cargo_type.h"
-				>
-			</File>
-			<File
-				RelativePath=".\..\src\cargoaction.h"
 				>
 			</File>
 			<File
