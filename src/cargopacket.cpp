@@ -786,19 +786,17 @@ bool StationCargoList::ShiftCargo(Taction &action, StationID next)
  *                 will be kept and the loop will be aborted.
  * @param action Action instance to be applied.
  * @param next Next hop the cargo wants to visit.
- * @param include_invalid If cargo from the INVALID_STATION list should be
- *                        used if necessary.
  * @return Amount of cargo actually moved.
  */
 template <class Taction>
-uint StationCargoList::ShiftCargo (Taction action, const StationIDStack &next, bool include_invalid)
+uint StationCargoList::ShiftCargo (Taction action, const StationIDStack &next)
 {
 	uint max_move = action.MaxMove();
 	for (StationIDStack::const_iterator iter (next.begin()); iter != next.end(); iter++) {
 		this->ShiftCargo (action, *iter);
 		if (action.MaxMove() == 0) break;
 	}
-	if (include_invalid && action.MaxMove() > 0) {
+	if (action.MaxMove() > 0) {
 		this->ShiftCargo(action, INVALID_STATION);
 	}
 	return max_move - action.MaxMove();
@@ -869,7 +867,7 @@ uint StationCargoList::Truncate(uint max_move, StationCargoAmountMap *cargo_per_
 uint StationCargoList::Reserve (uint max_move, VehicleCargoList *dest,
 	TileIndex load_place, const StationIDStack &next_station)
 {
-	return this->ShiftCargo(CargoReservation(this, dest, max_move, load_place), next_station, true);
+	return this->ShiftCargo (CargoReservation (this, dest, max_move, load_place), next_station);
 }
 
 /**
@@ -893,7 +891,7 @@ uint StationCargoList::Load (uint max_move, VehicleCargoList *dest,
 		dest->Keep (VehicleCargoList::MTA_LOAD, move);
 		return move;
 	} else {
-		return this->ShiftCargo(CargoLoad(this, dest, max_move, load_place), next_station, true);
+		return this->ShiftCargo (CargoLoad (this, dest, max_move, load_place), next_station);
 	}
 }
 

@@ -464,7 +464,7 @@ public:
 	bool ShiftCargo(Taction &action, StationID next);
 
 	template<class Taction>
-	uint ShiftCargo (Taction action, const StationIDStack &next, bool include_invalid);
+	uint ShiftCargo (Taction action, const StationIDStack &next);
 
 	void Append(CargoPacket *cp, StationID next);
 
