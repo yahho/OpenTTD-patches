@@ -48,26 +48,4 @@ public:
 	}
 };
 
-/** Action of loading cargo from a station onto a vehicle. */
-class CargoLoad : protected CargoMovementAmount {
-protected:
-	StationCargoList *source;      ///< Source of the cargo.
-	VehicleCargoList *destination; ///< Destination for the cargo.
-	TileIndex load_place; ///< TileIndex to be saved in the packets' loaded_at_xy.
-public:
-	CargoLoad(StationCargoList *source, VehicleCargoList *destination, uint max_move, TileIndex load_place) :
-		CargoMovementAmount (max_move), source (source),
-		destination (destination), load_place (load_place)
-	{
-	}
-
-	/**
-	 * Returns how much more cargo can be moved with this action.
-	 * @return Amount of cargo this action can still move.
-	 */
-	uint MaxMove() { return this->Amount(); }
-
-	bool Load (CargoPacket *cp, bool load);
-};
-
 #endif /* CARGOACTION_H */

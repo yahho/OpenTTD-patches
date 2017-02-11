@@ -13,26 +13,3 @@
 #include "economy_base.h"
 #include "cargoaction.h"
 #include "station_base.h"
-
-/**
- * Loads some cargo onto a vehicle or reserves it for loading.
- * @param cp Packet to be loaded.
- * @param load Whether to actually load the cargo, else only reserve it.
- * @return True if the packet was completely handled, false if part of it was.
- */
-bool CargoLoad::Load (CargoPacket *cp, bool load)
-{
-	CargoPacket *cp_new = this->Preprocess(cp);
-	if (cp_new == NULL) return false;
-	cp_new->SetLoadPlace(this->load_place);
-	this->source->RemoveFromCache(cp_new, cp_new->Count());
-	VehicleCargoList::MoveToAction mta;
-	if (load) {
-		mta = VehicleCargoList::MTA_KEEP;
-	} else {
-		this->source->reserved_count += cp_new->Count();
-		mta = VehicleCargoList::MTA_LOAD;
-	}
-	this->destination->Append (cp_new, mta);
-	return cp_new == cp;
-}

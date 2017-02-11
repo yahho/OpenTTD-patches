@@ -762,22 +762,34 @@ void StationCargoList::Append(CargoPacket *cp, StationID next)
 uint StationCargoList::ShiftCargo (VehicleCargoList *dest, uint max_move,
 	TileIndex load_place, const StationIDStack &next, bool load)
 {
-	CargoLoad action (this, dest, max_move, load_place);
+	CargoMovementAmount action (max_move);
 	StationIDStack::const_iterator iter (next.begin());
 	for (;;) {
 		bool end = (iter == next.end());
 		StationID s = end ? INVALID_STATION : *iter;
 		std::pair <Iterator, Iterator> range (this->packets.equal_range (s));
-		for (Iterator it (range.first); it != range.second && it.GetKey() == s;) {
-			if (action.MaxMove() == 0) break;
+		for (Iterator it (range.first); it != range.second; ) {
+			if (action.Amount() == 0) break;
 			CargoPacket *cp = *it;
-			if (!action.Load (cp, load)) break;
+			CargoPacket *cp_new = action.Preprocess (cp);
+			if (cp_new == NULL) break;
+			cp_new->SetLoadPlace (load_place);
+			this->RemoveFromCache (cp_new, cp_new->Count());
+			VehicleCargoList::MoveToAction mta;
+			if (load) {
+				mta = VehicleCargoList::MTA_KEEP;
+			} else {
+				this->reserved_count += cp_new->Count();
+				mta = VehicleCargoList::MTA_LOAD;
+			}
+			dest->Append (cp_new, mta);
+			if (cp_new != cp) break;
 			it = this->packets.erase (it);
 		}
-		if (end || action.MaxMove() == 0) break;
+		if (end || action.Amount() == 0) break;
 		iter++;
 	}
-	return max_move - action.MaxMove();
+	return max_move - action.Amount();
 }
 
 /**

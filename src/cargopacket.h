@@ -457,8 +457,6 @@ public:
 
 	friend class VehicleCargoList;
 
-	friend class CargoLoad;
-
 	uint ShiftCargo (VehicleCargoList *dest, uint max_move,
 		TileIndex load_place, const StationIDStack &next, bool load);
 
