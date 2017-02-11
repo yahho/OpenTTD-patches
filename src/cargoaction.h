@@ -67,6 +67,8 @@ public:
 	 */
 	uint MaxMove() { return this->Amount(); }
 
+	bool Load (CargoPacket *cp, bool load);
+
 	bool operator()(CargoPacket *cp);
 };
 

@@ -15,18 +15,36 @@
 #include "station_base.h"
 
 /**
+ * Loads some cargo onto a vehicle or reserves it for loading.
+ * @param cp Packet to be loaded.
+ * @param load Whether to actually load the cargo, else only reserve it.
+ * @return True if the packet was completely handled, false if part of it was.
+ */
+bool CargoLoad::Load (CargoPacket *cp, bool load)
+{
+	CargoPacket *cp_new = this->Preprocess(cp);
+	if (cp_new == NULL) return false;
+	cp_new->SetLoadPlace(this->load_place);
+	this->source->RemoveFromCache(cp_new, cp_new->Count());
+	VehicleCargoList::MoveToAction mta;
+	if (load) {
+		mta = VehicleCargoList::MTA_KEEP;
+	} else {
+		this->source->reserved_count += cp_new->Count();
+		mta = VehicleCargoList::MTA_LOAD;
+	}
+	this->destination->Append (cp_new, mta);
+	return cp_new == cp;
+}
+
+/**
  * Loads some cargo onto a vehicle.
  * @param cp Packet to be loaded.
  * @return True if the packet was completely loaded, false if part of it was.
  */
 bool CargoLoad::operator()(CargoPacket *cp)
 {
-	CargoPacket *cp_new = this->Preprocess(cp);
-	if (cp_new == NULL) return false;
-	cp_new->SetLoadPlace(this->load_place);
-	this->source->RemoveFromCache(cp_new, cp_new->Count());
-	this->destination->Append(cp_new, VehicleCargoList::MTA_KEEP);
-	return cp_new == cp;
+	return this->Load (cp, true);
 }
 
 /**
@@ -36,11 +54,5 @@ bool CargoLoad::operator()(CargoPacket *cp)
  */
 bool CargoReservation::operator()(CargoPacket *cp)
 {
-	CargoPacket *cp_new = this->Preprocess(cp);
-	if (cp_new == NULL) return false;
-	cp_new->SetLoadPlace(this->load_place);
-	this->source->reserved_count += cp_new->Count();
-	this->source->RemoveFromCache(cp_new, cp_new->Count());
-	this->destination->Append(cp_new, VehicleCargoList::MTA_LOAD);
-	return cp_new == cp;
+	return this->Load (cp, false);
 }
