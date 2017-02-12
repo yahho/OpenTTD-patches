@@ -492,7 +492,7 @@ static CommandCost RemoveRoad_Tunnel(TileIndex tile, DoCommandFlag flags, RoadBi
 	CommandCost cost(EXPENSES_CONSTRUCTION);
 	/* Pay for *every* tile of the tunnel */
 	uint len = GetTunnelBridgeLength(other_end, tile) + 2;
-	cost.AddCost(len * _price[PR_CLEAR_ROAD]);
+	cost.AddCost(len * 2 * _price[PR_CLEAR_ROAD]);
 
 	if (flags & DC_EXEC) {
 		Company *c = Company::GetIfValid(GetRoadOwner(tile, rt));
