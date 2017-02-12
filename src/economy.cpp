@@ -1661,7 +1661,7 @@ static void LoadUnloadVehicle(Vehicle *front)
 
 	uint artic_part = 0; // Articulated part we are currently trying to load. (not counting parts without capacity)
 	for (Vehicle *v = front; v != NULL; v = v->Next()) {
-		if (v == front || !v->Previous()->HasArticulatedPart()) artic_part = 0;
+		if (!v->IsArticulatedPart()) artic_part = 0;
 		if (v->cargo_cap == 0) continue;
 		artic_part++;
 
