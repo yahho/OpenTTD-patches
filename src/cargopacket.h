@@ -245,7 +245,9 @@ protected:
 
 public:
 	/** Create the cargo list. */
-	CargoList() {}
+	CargoList() : count(0), cargo_days_in_transit(0), packets()
+	{
+	}
 
 	~CargoList();
 
@@ -307,6 +309,11 @@ protected:
 			const StationIDStack &next_station);
 
 public:
+	VehicleCargoList() : feeder_share(0)
+	{
+		memset (this->action_counts, 0, sizeof(this->action_counts));
+	}
+
 	/** The station cargo list needs to control the unloading. */
 	friend class StationCargoList;
 	/** The super class ought to know what it's doing. */
@@ -434,6 +441,7 @@ public:
 	uint Shift(uint max_move, VehicleCargoList *dest);
 	uint Truncate(uint max_move = UINT_MAX);
 	void Reroute (StationID avoid, StationID avoid2, const GoodsEntry *ge);
+	void Reattach (VehicleCargoList *dest, uint max_move = UINT_MAX);
 };
 
 typedef MultiMap<StationID, CargoPacket *> StationCargoPacketMap;

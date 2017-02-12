@@ -746,6 +746,28 @@ void VehicleCargoList::Reroute (StationID avoid, StationID avoid2, const GoodsEn
 	}
 }
 
+/**
+ * Transfers a reservation from one vehicle list to another.
+ * @param dest Vehicle cargo list to transfer the reservation to.
+ * @param max_move Maximum amount of cargo to transfer.
+ */
+void VehicleCargoList::Reattach (VehicleCargoList *dest, uint max_move)
+{
+	max_move = min (this->ReservedCount(), max_move);
+	CargoMovementAmount action (max_move);
+	while (action.Amount() > 0) {
+		assert (!this->packets.empty());
+		CargoPacket *cp = this->packets.back();
+		CargoPacket *cp_new = action.Preprocess (cp);
+		if (cp_new == NULL) cp_new = cp;
+		this->RemoveFromMeta (cp_new, MTA_LOAD, cp_new->Count());
+		dest->Append (cp_new, MTA_LOAD);
+		if (cp_new != cp) break;
+		this->packets.pop_back();
+	}
+}
+
+
 /*
  *
  * Station cargo list implementation.
