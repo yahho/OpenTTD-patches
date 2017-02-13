@@ -158,9 +158,6 @@ static void TransferCargo(Vehicle *old_veh, Vehicle *new_head, bool part_of_chai
 			src->cargo.Shift(amount, &dest->cargo);
 		}
 	}
-
-	/* Update train weight etc., the old vehicle will be sold anyway */
-	if (part_of_chain && new_head->type == VEH_TRAIN) Train::From(new_head)->ConsistChanged(CCF_LOADUNLOAD);
 }
 
 /**
@@ -575,6 +572,8 @@ static CommandCost ReplaceChain(Vehicle **chain, DoCommandFlag flags, bool wagon
 					if (w->First() == new_head) continue;
 
 					if ((flags & DC_EXEC) != 0) TransferCargo(w, new_head, true);
+					/* Update train weight etc., the old vehicle will be sold anyway */
+					new_head->ConsistChanged (CCF_LOADUNLOAD);
 
 					/* Sell the vehicle.
 					 * Note: This might temporarly construct new trains, so use DC_AUTOREPLACE to prevent
