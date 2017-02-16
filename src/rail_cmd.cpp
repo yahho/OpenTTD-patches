@@ -3639,9 +3639,29 @@ static void GetTileDesc_Track(TileIndex tile, TileDesc *td)
 		}
 	};
 
-	const RailtypeInfo *rti = GetRailTypeInfo(GetRailType(tile));
-	td->rail_speed = rti->max_speed;
-	td->railtype = rti->strings.name;
+	RailType rt[2] = { INVALID_RAILTYPE, INVALID_RAILTYPE };
+	switch (GetTrackBits (tile)) {
+		case TRACK_BIT_LOWER:
+		case TRACK_BIT_RIGHT:
+			rt[0] = GetRailType (tile, TRACK_LOWER);
+			break;
+
+		case TRACK_BIT_HORZ:
+		case TRACK_BIT_VERT:
+			rt[1] = GetRailType (tile, TRACK_LOWER);
+			/* fall through */
+		default:
+			rt[0] = GetRailType (tile, TRACK_UPPER);
+			break;
+	}
+
+	for (uint i = 0; i < 2; i++) {
+		if (rt[i] == INVALID_RAILTYPE) continue;
+		const RailtypeInfo *rti = GetRailTypeInfo (rt[i]);
+		td->rail[i].type  = rti->strings.name;
+		td->rail[i].speed = rti->max_speed;
+	}
+
 	td->owner[0] = GetTileOwner(tile);
 
 	if (IsTileSubtype(tile, TT_TRACK)) {
@@ -3660,8 +3680,11 @@ static void GetTileDesc_Track(TileIndex tile, TileDesc *td)
 		td->str = spec->transport_name[TRANSPORT_RAIL];
 
 		uint16 spd = spec->speed;
-		if (td->rail_speed == 0 || spd < td->rail_speed) {
-			td->rail_speed = spd;
+		for (uint i = 0; i < 2; i++) {
+			if (rt[i] == INVALID_RAILTYPE) continue;
+			if (td->rail[i].speed == 0 || spd < td->rail[i].speed) {
+				td->rail[i].speed = spd;
+			}
 		}
 	}
 }

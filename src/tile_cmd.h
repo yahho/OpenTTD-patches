@@ -18,6 +18,7 @@
 #include "track_type.h"
 #include "slope_type.h"
 #include "map/class.h"
+#include "rail_type.h"
 
 /** Tile information, used while rendering the tile */
 struct TileInfo {
@@ -42,8 +43,10 @@ struct TileDesc {
 	StringID airport_tile_name; ///< Name of the airport tile
 	const char *grf;            ///< newGRF used for the tile contents
 	uint64 dparam[2];           ///< Parameters of the \a str string
-	StringID railtype;          ///< Type of rail on the tile.
-	uint16 rail_speed;          ///< Speed limit of rail (bridges and track)
+	struct {
+		StringID type;      ///< Type of rail on the tile.
+		uint16 speed;       ///< Speed limit of rail (bridges and track)
+	} rail[2];                  ///< Rail description
 	uint16 road_speed;          ///< Speed limit of road (bridges)
 };
 
