@@ -139,7 +139,7 @@ void ErrorMessageData::CopyOutDParams()
 	if (this->textref_stack_size > 0) StopTextRefStackUsage();
 
 	if (this->detailed_msg == STR_ERROR_OWNED_BY) {
-		CompanyID company = (CompanyID)GetDParamX(this->decode_params, 2);
+		CompanyID company = (CompanyID)this->decode_params[2];
 		if (company < MAX_COMPANIES) face = company;
 	}
 }
