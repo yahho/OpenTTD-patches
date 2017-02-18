@@ -179,7 +179,7 @@ public:
 		uint line_nr = 0;
 
 		/* Tiletype */
-		SetDParam(0, td.dparam[0]);
+		SetDParam (0, td.dparam);
 		GetString (this->landinfo_data[line_nr++], td.str);
 
 		/* Up to four owners */
