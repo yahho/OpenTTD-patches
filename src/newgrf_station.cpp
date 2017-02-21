@@ -209,8 +209,14 @@ static uint32 GetRailContinuationInfo(TileIndex tile)
 
 			/* With tunnels and bridges the tile has tracks, but they are not necessarily connected
 			 * with the next tile because the ramp is not going in the right direction. */
-			if ((IsTunnelTile(neighbour_tile) || IsBridgeHeadTile(neighbour_tile)) && GetTunnelBridgeDirection(neighbour_tile) != *diagdir) {
-				continue;
+			if (IsTunnelTile (neighbour_tile)) {
+				if (GetTunnelBridgeDirection (neighbour_tile) != *diagdir) {
+					continue;
+				}
+			} else if (IsBridgeHeadTile (neighbour_tile)) {
+				if (GetTunnelBridgeDirection (neighbour_tile) == ReverseDiagDir (*diagdir)) {
+					continue;
+				}
 			}
 
 			/* If any track reaches our exit direction, set the bit in the lower byte */
