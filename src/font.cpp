@@ -739,16 +739,9 @@ static FT_Error GetFontByFaceName (const char *font_name, FT_Face *face)
 		return FT_Err_Cannot_Open_Resource;
 	}
 
-	FcPattern *match;
-	FcPattern *pat;
-	FcFontSet *fs;
-	FcResult  result;
-	char *font_style;
-	char *font_family;
-
 	/* Split & strip the font's style */
-	font_family = xstrdup(font_name);
-	font_style = strchr(font_family, ',');
+	char *font_family = xstrdup (font_name);
+	char *font_style = strchr (font_family, ',');
 	if (font_style != NULL) {
 		font_style[0] = '\0';
 		font_style++;
@@ -756,12 +749,13 @@ static FT_Error GetFontByFaceName (const char *font_name, FT_Face *face)
 	}
 
 	/* Resolve the name and populate the information structure */
-	pat = FcNameParse((FcChar8*)font_family);
+	FcPattern *pat = FcNameParse ((FcChar8*)font_family);
 	if (font_style != NULL) FcPatternAddString(pat, FC_STYLE, (FcChar8*)font_style);
 	FcConfigSubstitute(0, pat, FcMatchPattern);
 	FcDefaultSubstitute(pat);
-	fs = FcFontSetCreate();
-	match = FcFontMatch(0, pat, &result);
+	FcFontSet *fs = FcFontSetCreate();
+	FcResult result;
+	FcPattern *match = FcFontMatch (0, pat, &result);
 
 	FT_Error err = FT_Err_Cannot_Open_Resource;
 	if (fs != NULL && match != NULL) {
