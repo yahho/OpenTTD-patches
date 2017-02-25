@@ -21,7 +21,7 @@
 #include "town.h"
 #include "newgrf_engine.h"
 #include "newgrf_text.h"
-#include "fontcache.h"
+#include "font.h"
 #include "currency.h"
 #include "landscape.h"
 #include "newgrf_cargo.h"

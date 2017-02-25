@@ -1,5 +1,3 @@
-/* $Id$ */
-
 /*
  * This file is part of OpenTTD.
  * OpenTTD is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, version 2.
@@ -7,10 +5,10 @@
  * See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with OpenTTD. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/** @file fontcache.h Functions to read fonts from files and cache them. */
+/** @file font.h Functions to read fonts from files and cache them. */
 
-#ifndef FONTCACHE_H
-#define FONTCACHE_H
+#ifndef FONT_H
+#define FONT_H
 
 #ifdef WITH_FREETYPE
 #include <ft2build.h>
@@ -283,6 +281,18 @@ extern FreeTypeSettings _freetype;
 void InitFreeType(bool monospace);
 void UninitFreeType();
 
+/**
+ * We would like to have a fallback font as the current one
+ * doesn't contain all characters we need.
+ * This function must set all fonts of settings.
+ * @param settings the settings to overwrite the fontname of.
+ * @param language_isocode the language, e.g. en_GB.
+ * @param winlangid the language ID windows style.
+ * @param callback The function to call to check for missing glyphs.
+ * @return true if a font has been set, false otherwise.
+ */
+bool SetFallbackFont (FreeTypeSettings *settings, const char *language_isocode, int winlangid, class MissingGlyphSearcher *callback);
+
 #else /* WITH_FREETYPE */
 
 static inline void InitFreeType (bool monospace)
@@ -295,4 +305,4 @@ static inline void UninitFreeType (void)
 
 #endif /* WITH_FREETYPE */
 
-#endif /* FONTCACHE_H */
+#endif /* FONT_H */

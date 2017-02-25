@@ -41,7 +41,7 @@
 #include "company_func.h"
 #include "rev.h"
 #ifdef WITH_FREETYPE
-#include "fontcache.h"
+#include "font.h"
 #endif
 #include "textbuf_gui.h"
 #include "rail_gui.h"

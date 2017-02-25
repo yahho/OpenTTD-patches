@@ -16,7 +16,7 @@
 #include "music/music_driver.hpp"
 #include "video/video_driver.hpp"
 
-#include "fontcache.h"
+#include "font.h"
 #include "error.h"
 #include "string.h"
 #include "gui.h"

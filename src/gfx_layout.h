@@ -15,7 +15,7 @@
 #include <vector>
 
 #include "core/pointer.h"
-#include "fontcache.h"
+#include "font.h"
 #include "gfx_func.h"
 
 /** Common information about a font. */

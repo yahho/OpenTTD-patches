@@ -27,8 +27,7 @@ elrail.cpp
 engine.cpp
 fileio.cpp
 fios.cpp
-fontcache.cpp
-fontdetection.cpp
+font.cpp
 base_consist.cpp
 gamelog.cpp
 genworld.cpp
@@ -170,8 +169,7 @@ error.h
 fileio_func.h
 fileio_type.h
 fios.h
-fontcache.h
-fontdetection.h
+font.h
 base_consist.h
 gamelog.h
 gamelog_entries.h

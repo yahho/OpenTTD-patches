@@ -58,7 +58,7 @@
 #include "gfx_func.h"
 #include "network/network.h"
 #include "language.h"
-#include "fontcache.h"
+#include "font.h"
 
 #include "ai/ai_info.hpp"
 #include "game/game.hpp"

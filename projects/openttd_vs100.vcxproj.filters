@@ -180,10 +180,7 @@
     <ClCompile Include="..\src\fios.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\fontcache.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\fontdetection.cpp">
+    <ClCompile Include="..\src\font.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\src\base_consist.cpp">
@@ -576,10 +573,7 @@
     <ClInclude Include="..\src\fios.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\fontcache.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\fontdetection.h">
+    <ClInclude Include="..\src\font.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\base_consist.h">

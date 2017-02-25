@@ -16,7 +16,7 @@
 #if defined(ENABLE_NETWORK) && defined(WITH_FREETYPE)
 
 #include "core/geometry_func.hpp"
-#include "fontcache.h"
+#include "font.h"
 #include "gfx_func.h"
 #include "network/network.h"
 #include "network/network_content_gui.h"

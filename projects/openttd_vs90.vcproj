@@ -544,11 +544,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\..\src\fontcache.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\..\src\fontdetection.cpp"
+				RelativePath=".\..\src\font.cpp"
 				>
 			</File>
 			<File
@@ -1716,11 +1712,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\..\src\fontcache.h"
-				>
-			</File>
-			<File
-				RelativePath=".\..\src\fontdetection.h"
+				RelativePath=".\..\src\font.h"
 				>
 			</File>
 			<File

@@ -37,7 +37,7 @@
 #include "tile_cmd.h"
 #include "station_func.h"
 #include "rail.h"
-#include "fontcache.h"
+#include "font.h"
 
 #include "map/rail.h"
 #include "map/depot.h"
