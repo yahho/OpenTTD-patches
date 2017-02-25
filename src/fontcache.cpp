@@ -214,6 +214,18 @@ SpriteID FontCache::GetGlyphSprite (GlyphID key) const
 
 #ifdef WITH_FREETYPE
 
+/** Get the FreeType settings struct for a given font size. */
+static FreeTypeSubSetting *GetFreeTypeSettings (FontSize fs)
+{
+	switch (fs) {
+		default: NOT_REACHED();
+		case FS_NORMAL: return &_freetype.medium;
+		case FS_SMALL:  return &_freetype.small;
+		case FS_LARGE:  return &_freetype.large;
+		case FS_MONO:   return &_freetype.mono;
+	}
+}
+
 /**
  * Loads the freetype font.
  * First type to load the fontname as if it were a path. If that fails,
@@ -228,15 +240,7 @@ void FontCache::LoadFreeTypeFont (void)
 	assert (this->font_tables.Length() == 0);
 
 	FontSize fs = this->fs;
-
-	FreeTypeSubSetting *settings = NULL;
-	switch (fs) {
-		default: NOT_REACHED();
-		case FS_SMALL:  settings = &_freetype.small;  break;
-		case FS_NORMAL: settings = &_freetype.medium; break;
-		case FS_LARGE:  settings = &_freetype.large;  break;
-		case FS_MONO:   settings = &_freetype.mono;   break;
-	}
+	FreeTypeSubSetting *settings = GetFreeTypeSettings (fs);
 
 	if (StrEmpty(settings->font)) return;
 
@@ -415,14 +419,7 @@ static bool GetFontAAState(FontSize size)
 {
 	/* AA is only supported for 32 bpp */
 	if (Blitter::get()->GetScreenDepth() != 32) return false;
-
-	switch (size) {
-		default: NOT_REACHED();
-		case FS_NORMAL: return _freetype.medium.aa;
-		case FS_SMALL:  return _freetype.small.aa;
-		case FS_LARGE:  return _freetype.large.aa;
-		case FS_MONO:   return _freetype.mono.aa;
-	}
+	return GetFreeTypeSettings(size)->aa;
 }
 
 static Sprite *MakeBuiltinQuestionMark (void)
