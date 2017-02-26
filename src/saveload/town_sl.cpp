@@ -14,6 +14,7 @@
 #include "../town.h"
 #include "../landscape.h"
 #include "../subsidy_func.h"
+#include "../strings_func.h"
 
 #include "saveload_buffer.h"
 #include "saveload_error.h"
@@ -283,7 +284,7 @@ static void Load_TOWN(LoadBuffer *reader)
 
 		if (t->townnameparams.grfid == 0
 				&& !IsInsideMM (t->townnameparams.type, SPECSTR_TOWNNAME_START, SPECSTR_TOWNNAME_LAST + 1)
-				&& GB(t->townnameparams.type, 11, 5) != 15) {
+				&& GetStringTab(t->townnameparams.type) != 15) {
 			throw SlCorrupt("Invalid town name generator");
 		}
 

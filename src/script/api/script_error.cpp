@@ -13,6 +13,7 @@
 #include "../../string.h"
 #include "script_error.hpp"
 #include "../../core/bitmath_func.hpp"
+#include "../../strings_func.h"
 
 ScriptError::ScriptErrorMap ScriptError::error_map = ScriptError::ScriptErrorMap();
 ScriptError::ScriptErrorMapString ScriptError::error_map_string = ScriptError::ScriptErrorMapString();
@@ -29,8 +30,8 @@ ScriptError::ScriptErrorMapString ScriptError::error_map_string = ScriptError::S
 
 /* static */ ScriptErrorType ScriptError::StringToError(StringID internal_string_id)
 {
-	uint index = GB(internal_string_id, 11, 5);
-	switch (GB(internal_string_id, 11, 5)) {
+	uint index = GetStringIndex(internal_string_id);
+	switch (GetStringTab(internal_string_id)) {
 		case 26: case 28: case 29: case 30: // NewGRF strings.
 			return ERR_NEWGRF_SUPPLIED_ERROR;
 
