@@ -1925,7 +1925,7 @@ bool MissingGlyphSearcher::FindMissingGlyphs (void)
 	const Sprite *question_mark[FS_END];
 
 	for (FontSize size = this->Monospace() ? FS_MONO : FS_BEGIN; size < (this->Monospace() ? FS_END : FS_MONO); size++) {
-		question_mark[size] = GetGlyph(size, '?');
+		question_mark[size] = FontCache::Get(size)->GetCharGlyph('?');
 	}
 
 	this->Reset();
@@ -1939,7 +1939,11 @@ bool MissingGlyphSearcher::FindMissingGlyphs (void)
 				size = FS_SMALL;
 			} else if (c == SCC_BIGFONT) {
 				size = FS_LARGE;
-			} else if (!IsInsideMM(c, SCC_SPRITE_START, SCC_SPRITE_END) && IsPrintable(c) && !IsTextDirectionChar(c) && c != '?' && GetGlyph(size, c) == question_mark[size]) {
+			} else if (!IsInsideMM (c, SCC_SPRITE_START, SCC_SPRITE_END)
+					&& IsPrintable (c)
+					&& !IsTextDirectionChar (c)
+					&& c != '?'
+					&& FontCache::Get(size)->GetCharGlyph(c) == question_mark[size]) {
 				/* The character is printable, but not in the normal font. This is the case we were testing for. */
 				return true;
 			}

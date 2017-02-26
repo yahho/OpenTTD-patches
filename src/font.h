@@ -175,6 +175,16 @@ public:
 	GlyphID MapCharToGlyph (WChar key) const;
 
 	/**
+	 * Get the glyph (sprite) for a given character.
+	 * @param c The character to look up.
+	 * @return The sprite.
+	 */
+	const Sprite *GetCharGlyph (WChar c)
+	{
+		return this->GetGlyph (this->MapCharToGlyph (c));
+	}
+
+	/**
 	 * Read a font table from the font.
 	 * @param tag The of the table to load.
 	 * @param length The length of the read data.
@@ -240,13 +250,6 @@ static inline void ClearFontCache()
 	for (FontSize fs = FS_BEGIN; fs < FS_END; fs++) {
 		FontCache::Get(fs)->ClearFontCache();
 	}
-}
-
-/** Get the Sprite for a glyph */
-static inline const Sprite *GetGlyph(FontSize size, WChar key)
-{
-	FontCache *fc = FontCache::Get(size);
-	return fc->GetGlyph(fc->MapCharToGlyph(key));
 }
 
 /**

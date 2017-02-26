@@ -713,7 +713,7 @@ void DrawCharCentered (BlitArea *dpi, WChar c, int x, int y, TextColour colour)
 {
 	SetColourRemap(colour);
 	FontCache *fc = FontCache::Get (FS_NORMAL);
-	GfxMainBlitter (dpi, fc->GetGlyph (fc->MapCharToGlyph (c)),
+	GfxMainBlitter (dpi, fc->GetCharGlyph (c),
 			x - fc->GetCharacterWidth(c) / 2, y, BM_COLOUR_REMAP);
 }
 
