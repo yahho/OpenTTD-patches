@@ -1916,24 +1916,6 @@ const char *GetCurrentLanguageIsoCode()
 }
 
 /**
- * Set the right font names.
- * @param settings  The settings to modify.
- * @param font_name The new font name.
- */
-void MissingGlyphSearcher::SetFontNames (struct FreeTypeSettings *settings, const char *font_name)
-{
-#ifdef WITH_FREETYPE
-	if (this->Monospace()) {
-		bstrcpy (settings->mono.font, font_name);
-	} else {
-		bstrcpy (settings->small.font,  font_name);
-		bstrcpy (settings->medium.font, font_name);
-		bstrcpy (settings->large.font,  font_name);
-	}
-#endif /* WITH_FREETYPE */
-}
-
-/**
  * Check whether there are glyphs missing in the current language.
  * @return If glyphs are missing, return \c true, else return \c false.
  */

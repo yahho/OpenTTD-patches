@@ -225,6 +225,24 @@ static FreeTypeSubSetting *GetFreeTypeSettings (FontSize fs)
 }
 
 /**
+ * Set the right font names.
+ * @param settings  The settings to modify.
+ * @param font_name The new font name.
+ * @param searcher  The searcher that says whether we are dealing with a monospaced font.
+ */
+static void SetFontNames (FreeTypeSettings *settings, const char *font_name,
+	const MissingGlyphSearcher *searcher)
+{
+	if (searcher->Monospace()) {
+		bstrcpy (settings->mono.font, font_name);
+	} else {
+		bstrcpy (settings->small.font,  font_name);
+		bstrcpy (settings->medium.font, font_name);
+		bstrcpy (settings->large.font,  font_name);
+	}
+}
+
+/**
  * Get the font loaded into a Freetype face by using a font-name.
  * If no appropriate font is found, the function returns an error.
  */
@@ -521,7 +539,7 @@ static int CALLBACK EnumFontCallback(const ENUMLOGFONTEX *logfont, const NEWTEXT
 
 	if (!found) return 1;
 
-	info->callback->SetFontNames(info->settings, font_name);
+	SetFontNames (info->settings, font_name, info->callback);
 	if (info->callback->FindMissingGlyphs()) return 1;
 	DEBUG(freetype, 1, "Fallback font: %s (%s)", font_name, english_name);
 	return 0; // stop enumerating
@@ -667,7 +685,7 @@ bool SetFallbackFont(FreeTypeSettings *settings, const char *language_isocode, i
 			if (name[0] == '.' || strncmp(name, "LastResort", 10) == 0) continue;
 
 			/* Save result. */
-			callback->SetFontNames(settings, name);
+			SetFontNames (settings, name, callback);
 			if (!callback->FindMissingGlyphs()) {
 				DEBUG(freetype, 2, "CT-Font for %s: %s", language_isocode, name);
 				result = true;
@@ -703,7 +721,7 @@ bool SetFallbackFont(FreeTypeSettings *settings, const char *language_isocode, i
 			if (name[0] == '.' || strncmp(name, "Apple Symbols", 13) == 0 || strncmp(name, "LastResort", 10) == 0) continue;
 
 			/* Save result. */
-			callback->SetFontNames(settings, name);
+			SetFontNames (settings, name, callback);
 			if (!callback->FindMissingGlyphs()) {
 				DEBUG(freetype, 2, "ATS-Font for %s: %s", language_isocode, name);
 				result = true;
@@ -716,7 +734,7 @@ bool SetFallbackFont(FreeTypeSettings *settings, const char *language_isocode, i
 	if (!result) {
 		/* For some OS versions, the font 'Arial Unicode MS' does not report all languages it
 		 * supports. If we didn't find any other font, just try it, maybe we get lucky. */
-		callback->SetFontNames(settings, "Arial Unicode MS");
+		SetFontNames (settings, "Arial Unicode MS", callback);
 		result = !callback->FindMissingGlyphs();
 	}
 
@@ -843,7 +861,7 @@ bool SetFallbackFont(FreeTypeSettings *settings, const char *language_isocode, i
 			FcPatternGetInteger(font, FC_WEIGHT, 0, &value);
 			if (value <= best_weight) continue;
 
-			callback->SetFontNames(settings, (const char*)file);
+			SetFontNames (settings, (const char*)file, callback);
 
 			bool missing = callback->FindMissingGlyphs();
 			DEBUG(freetype, 1, "Font \"%s\" misses%s glyphs", file, missing ? "" : " no");
@@ -856,7 +874,7 @@ bool SetFallbackFont(FreeTypeSettings *settings, const char *language_isocode, i
 
 		if (best_font != NULL) {
 			ret = true;
-			callback->SetFontNames(settings, best_font);
+			SetFontNames (settings, best_font, callback);
 			InitFreeType(callback->Monospace());
 		}
 

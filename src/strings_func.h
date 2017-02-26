@@ -238,8 +238,6 @@ public:
 		return this->monospace;
 	}
 
-	void SetFontNames (struct FreeTypeSettings *settings, const char *font_name);
-
 	bool FindMissingGlyphs (void);
 };
 
