@@ -16,7 +16,6 @@
 
 #include "core/pointer.h"
 #include "font.h"
-#include "gfx_func.h"
 
 /** Common information about a font. */
 struct FontBase {

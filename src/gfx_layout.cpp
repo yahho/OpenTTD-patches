@@ -22,6 +22,7 @@
 #include "core/pointer.h"
 #include "core/flexarray.h"
 #include "core/smallmap_type.hpp"
+#include "gfx_func.h"
 
 #include "table/control_codes.h"
 
