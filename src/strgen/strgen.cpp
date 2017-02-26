@@ -556,7 +556,7 @@ int CDECL main(int argc, char *argv[])
 			mkpath(pathbuf, lengthof(pathbuf), src_dir, "english.txt");
 
 			/* parse master file */
-			StringData data(TAB_COUNT);
+			StringData data(TEXT_TAB_END);
 			ParseFile (data, pathbuf, true, false);
 			if (_errors != 0) return 1;
 
@@ -572,7 +572,7 @@ int CDECL main(int argc, char *argv[])
 
 			mkpath(pathbuf, lengthof(pathbuf), src_dir, "english.txt");
 
-			StringData data(TAB_COUNT);
+			StringData data(TEXT_TAB_END);
 			/* parse master file and check if target file is correct */
 			ParseFile (data, pathbuf, true, false);
 

@@ -284,7 +284,7 @@ static void Load_TOWN(LoadBuffer *reader)
 
 		if (t->townnameparams.grfid == 0
 				&& !IsInsideMM (t->townnameparams.type, SPECSTR_TOWNNAME_START, SPECSTR_TOWNNAME_LAST + 1)
-				&& GetStringTab(t->townnameparams.type) != 15) {
+				&& GetStringTab(t->townnameparams.type) != TEXT_TAB_OLD_CUSTOM) {
 			throw SlCorrupt("Invalid town name generator");
 		}
 

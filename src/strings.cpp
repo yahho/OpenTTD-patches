@@ -168,20 +168,20 @@ struct LanguagePack : public LanguagePackHeader {
 
 static char **_langpack_offs;
 static LanguagePack *_langpack;
-static uint _langtab_num[TAB_COUNT];   ///< Offset into langpack offs
-static uint _langtab_start[TAB_COUNT]; ///< Offset into langpack offs
+static uint _langtab_num[TEXT_TAB_END];   ///< Offset into langpack offs
+static uint _langtab_start[TEXT_TAB_END]; ///< Offset into langpack offs
 static bool _scan_for_gender_data = false;  ///< Are we scanning for the gender of the current string? (instead of formatting it)
 
 
 const char *GetStringPtr(StringID string)
 {
 	switch (GetStringTab(string)) {
-		case GAME_TEXT_TAB: return GetGameStringPtr(GetStringIndex(string));
+		case TEXT_TAB_GAMESCRIPT: return GetGameStringPtr(GetStringIndex(string));
 		/* 0xD0xx and 0xD4xx IDs have been converted earlier. */
-		case 26: NOT_REACHED();
-		case 28: return GetGRFStringPtr(GetStringIndex(string));
-		case 29: return GetGRFStringPtr(GetStringIndex(string) + 0x0800);
-		case 30: return GetGRFStringPtr(GetStringIndex(string) + 0x1000);
+		case TEXT_TAB_OLD_NEWGRF: NOT_REACHED();
+		case TEXT_TAB_NEWGRF1: return GetGRFStringPtr(GetStringIndex(string));
+		case TEXT_TAB_NEWGRF2: return GetGRFStringPtr(GetStringIndex(string) + 0x0800);
+		case TEXT_TAB_NEWGRF3: return GetGRFStringPtr(GetStringIndex(string) + 0x1000);
 		default: return _langpack_offs[_langtab_start[GetStringTab(string)] + GetStringIndex(string)];
 	}
 }
@@ -202,48 +202,51 @@ void AppendStringWithArgs (stringb *buf, StringID string, StringParameters *args
 	}
 
 	uint index = GetStringIndex(string);
-	uint tab = GetStringTab(string);
+	StringTab tab = GetStringTab(string);
 
 	switch (tab) {
-		case 4:
+		case TEXT_TAB_TOWN:
 			if (index >= 0xC0 && !game_script) {
 				GenerateTownNameString (buf, index - 0xC0, args->GetInt32());
 				return;
 			}
 			break;
 
-		case 14:
+		case TEXT_TAB_SPECIAL:
 			if (index >= 0xE4 && !game_script) {
 				AppendSpecialNameString (buf, index - 0xE4, args);
 				return;
 			}
 			break;
 
-		case 15:
+		case TEXT_TAB_OLD_CUSTOM:
 			/* Old table for custom names. This is no longer used */
 			if (!game_script) {
 				error("Incorrect conversion of custom name string.");
 			}
 			break;
 
-		case GAME_TEXT_TAB:
+		case TEXT_TAB_GAMESCRIPT:
 			FormatString (buf, GetGameStringPtr(index), args, case_index, true);
 			return;
 
-		case 26:
+		case TEXT_TAB_OLD_NEWGRF:
 			NOT_REACHED();
 
-		case 28:
+		case TEXT_TAB_NEWGRF1:
 			FormatString (buf, GetGRFStringPtr(index), args, case_index);
 			return;
 
-		case 29:
+		case TEXT_TAB_NEWGRF2:
 			FormatString (buf, GetGRFStringPtr(index + 0x0800), args, case_index);
 			return;
 
-		case 30:
+		case TEXT_TAB_NEWGRF3:
 			FormatString (buf, GetGRFStringPtr(index + 0x1000), args, case_index);
 			return;
+
+		default:
+			break;
 	}
 
 	if (index >= _langtab_num[tab]) {
@@ -851,7 +854,7 @@ static void FormatString (stringb *buf, const char *str_arg, StringParameters *a
 								buf->append ("(invalid sub-StringID)");
 								break;
 							}
-							param = MakeStringID(GAME_TEXT_TAB, param);
+							param = MakeStringID(TEXT_TAB_GAMESCRIPT, param);
 						}
 
 						sub_args.SetParam(i++, param);
@@ -865,7 +868,7 @@ static void FormatString (stringb *buf, const char *str_arg, StringParameters *a
 				/* If we didn't error out, we can actually print the string. */
 				if (*str != '\0') {
 					str = p;
-					AppendStringWithArgs (buf, MakeStringID(GAME_TEXT_TAB, stringid), &sub_args, true);
+					AppendStringWithArgs (buf, MakeStringID(TEXT_TAB_GAMESCRIPT, stringid), &sub_args, true);
 				}
 
 				for (int i = 0; i < 20; i++) {
@@ -980,7 +983,7 @@ static void FormatString (stringb *buf, const char *str_arg, StringParameters *a
 
 			case SCC_STRING: {// {STRING}
 				StringID str = args->GetInt32(SCC_STRING);
-				if (game_script && GetStringTab(str) != GAME_TEXT_TAB) break;
+				if (game_script && GetStringTab(str) != TEXT_TAB_GAMESCRIPT) break;
 				/* WARNING. It's prohibited for the included string to consume any arguments.
 				 * For included strings that consume argument, you should use STRING1, STRING2 etc.
 				 * To debug stuff you can set argv to NULL and it will tell you */
@@ -999,7 +1002,7 @@ static void FormatString (stringb *buf, const char *str_arg, StringParameters *a
 			case SCC_STRING7: { // {STRING1..7}
 				/* Strings that consume arguments */
 				StringID str = args->GetInt32(b);
-				if (game_script && GetStringTab(str) != GAME_TEXT_TAB) break;
+				if (game_script && GetStringTab(str) != TEXT_TAB_GAMESCRIPT) break;
 				uint size = b - SCC_STRING1 + 1;
 				if (game_script && size > args->GetDataLeft()) {
 					buf->append ("(too many parameters)");
@@ -1653,13 +1656,13 @@ bool ReadLanguagePack(const LanguageMetadata *lang)
 	}
 
 #if TTD_ENDIAN == TTD_BIG_ENDIAN
-	for (uint i = 0; i < TAB_COUNT; i++) {
+	for (uint i = 0; i < TEXT_TAB_END; i++) {
 		lang_pack->offsets[i] = ReadLE16Aligned(&lang_pack->offsets[i]);
 	}
 #endif /* TTD_ENDIAN == TTD_BIG_ENDIAN */
 
 	uint count = 0;
-	for (uint i = 0; i < TAB_COUNT; i++) {
+	for (uint i = 0; i < TEXT_TAB_END; i++) {
 		uint16 num = lang_pack->offsets[i];
 		if (num > TAB_SIZE) {
 			free(lang_pack);
@@ -1972,12 +1975,12 @@ private:
 
 	/* virtual */ const char *NextString()
 	{
-		if (this->i >= TAB_COUNT) return NULL;
+		if (this->i >= TEXT_TAB_END) return NULL;
 
 		const char *ret = _langpack_offs[_langtab_start[this->i] + this->j];
 
 		this->j++;
-		while (this->i < TAB_COUNT && this->j >= _langtab_num[this->i]) {
+		while (this->i < TEXT_TAB_END && this->j >= _langtab_num[this->i]) {
 			this->i++;
 			this->j = 0;
 		}
