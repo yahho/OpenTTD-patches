@@ -363,15 +363,6 @@ public:
 	}
 
 	/**
-	 * Get the height of this font.
-	 * @return The height of the font.
-	 */
-	int GetLeading() const
-	{
-		return this->GetFont()->fc->GetHeight();
-	}
-
-	/**
 	 * Get the glyph-to-character map for this visual run.
 	 * @return The glyph-to-character map.
 	 */
@@ -463,7 +454,7 @@ int FallbackLine::GetLeading (void) const
 	std::vector <ttd_unique_ptr <FallbackVisualRun> >::const_iterator
 			iter (this->runs.begin());
 	while (iter != this->runs.end()) {
-		leading = max (leading, (*iter++)->GetLeading());
+		leading = max (leading, (*iter++)->GetFont()->fc->GetHeight());
 	}
 	return leading;
 }
