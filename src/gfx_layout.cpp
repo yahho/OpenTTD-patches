@@ -197,11 +197,6 @@ public:
 		return vr->getPositions();
 	}
 
-	int GetLeading (void) const
-	{
-		return vr->getLeading();
-	}
-
 	const int *GetGlyphToCharMap (void) const OVERRIDE
 	{
 		return vr->getGlyphToCharMap();
