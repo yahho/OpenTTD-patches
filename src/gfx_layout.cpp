@@ -197,7 +197,7 @@ public:
 		return vr->getPositions();
 	}
 
-	int GetLeading (void) const OVERRIDE
+	int GetLeading (void) const
 	{
 		return vr->getLeading();
 	}
@@ -371,7 +371,7 @@ public:
 	 * Get the height of this font.
 	 * @return The height of the font.
 	 */
-	int GetLeading() const OVERRIDE
+	int GetLeading() const
 	{
 		return this->GetFont()->fc->GetHeight();
 	}
