@@ -166,6 +166,89 @@ public:
 	virtual void build (LineVector *v, int maxw, bool reflow) = 0;
 };
 
+/**
+ * Get the position of a character in a layout.
+ * @tparam Line Type of the layout line.
+ * @param line Layout line.
+ * @param str Layout string.
+ * @param ch Character to get the position of.
+ * @return Left position of the character relative to the start of the string.
+ * @note Will only work right for single-line strings.
+ */
+template <typename Line>
+static int GetCharPosition (const Line *line, const char *str, const char *ch)
+{
+	/* Find the code point index which corresponds to the char
+	 * pointer into our UTF-8 source string. */
+	size_t index = 0;
+	while (str < ch) {
+		WChar c;
+		size_t len = Utf8Decode (&c, str);
+		if (c == '\0' || c == '\n') return 0;
+		str += len;
+		index += line->GetInternalCharLength (c);
+	}
+
+	/* Valid character. */
+
+	/* Pointer to the end-of-string/line marker? Return total line width. */
+	if (*ch == '\0' || *ch == '\n') {
+		return line->GetWidth();
+	}
+
+	/* Scan all runs until we've found our code point index. */
+	for (int run_index = 0; run_index < line->CountRuns(); run_index++) {
+		const ParagraphLayouter::VisualRun *run = line->GetVisualRun (run_index);
+
+		for (int i = 0; i < run->GetGlyphCount(); i++) {
+			/* Matching glyph? Return position. */
+			if ((size_t)run->GetGlyphToCharMap()[i] == index) {
+				return run->GetPositions()[i * 2];
+			}
+		}
+	}
+
+	return 0;
+}
+
+/**
+ * Get the character that is at a position in a layout.
+ * @tparam Line Type of the layout line.
+ * @param line Layout line.
+ * @param str Layout string.
+ * @param x Position in the string.
+ * @return Pointer to the character at the position or NULL if no character is at the position.
+ */
+template <typename Line>
+static const char *GetCharAtPosition (const Line *line, const char *str, int x)
+{
+	for (int run_index = 0; run_index < line->CountRuns(); run_index++) {
+		const ParagraphLayouter::VisualRun *run = line->GetVisualRun (run_index);
+
+		for (int i = 0; i < run->GetGlyphCount(); i++) {
+			/* Not a valid glyph (empty). */
+			if (run->GetGlyphs()[i] == 0xFFFF) continue;
+
+			int begin_x = (int)run->GetPositions()[i * 2];
+			int end_x   = (int)run->GetPositions()[i * 2 + 2];
+
+			if (IsInsideMM(x, begin_x, end_x)) {
+				/* Found our glyph, now convert to UTF-8 string index. */
+				size_t index = run->GetGlyphToCharMap()[i];
+
+				while (*str != '\0') {
+					if (index == 0) return str;
+
+					WChar c = Utf8Consume(&str);
+					index -= line->GetInternalCharLength (c);
+				}
+			}
+		}
+	}
+
+	return NULL;
+}
+
 
 #ifdef WITH_ICU_LAYOUT
 /** Visual run contains data about the bit of text with the same font. */
@@ -901,37 +984,7 @@ Dimension Layouter::GetBounds()
  */
 int ParagraphLayouter::Line::GetCharPosition (const char *str, const char *ch) const
 {
-	/* Find the code point index which corresponds to the char
-	 * pointer into our UTF-8 source string. */
-	size_t index = 0;
-	while (str < ch) {
-		WChar c;
-		size_t len = Utf8Decode(&c, str);
-		if (c == '\0' || c == '\n') return 0;
-		str += len;
-		index += this->GetInternalCharLength(c);
-	}
-
-	/* Valid character. */
-
-	/* Pointer to the end-of-string/line marker? Return total line width. */
-	if (*ch == '\0' || *ch == '\n') {
-		return this->GetWidth();
-	}
-
-	/* Scan all runs until we've found our code point index. */
-	for (int run_index = 0; run_index < this->CountRuns(); run_index++) {
-		const ParagraphLayouter::VisualRun *run = this->GetVisualRun(run_index);
-
-		for (int i = 0; i < run->GetGlyphCount(); i++) {
-			/* Matching glyph? Return position. */
-			if ((size_t)run->GetGlyphToCharMap()[i] == index) {
-				return run->GetPositions()[i * 2];
-			}
-		}
-	}
-
-	return 0;
+	return ::GetCharPosition (this, str, ch);
 }
 
 /**
@@ -942,31 +995,7 @@ int ParagraphLayouter::Line::GetCharPosition (const char *str, const char *ch) c
  */
 const char *ParagraphLayouter::Line::GetCharAtPosition (const char *str, int x) const
 {
-	for (int run_index = 0; run_index < this->CountRuns(); run_index++) {
-		const ParagraphLayouter::VisualRun *run = this->GetVisualRun(run_index);
-
-		for (int i = 0; i < run->GetGlyphCount(); i++) {
-			/* Not a valid glyph (empty). */
-			if (run->GetGlyphs()[i] == 0xFFFF) continue;
-
-			int begin_x = (int)run->GetPositions()[i * 2];
-			int end_x   = (int)run->GetPositions()[i * 2 + 2];
-
-			if (IsInsideMM(x, begin_x, end_x)) {
-				/* Found our glyph, now convert to UTF-8 string index. */
-				size_t index = run->GetGlyphToCharMap()[i];
-
-				while (*str != '\0') {
-					if (index == 0) return str;
-
-					WChar c = Utf8Consume(&str);
-					index -= this->GetInternalCharLength(c);
-				}
-			}
-		}
-	}
-
-	return NULL;
+	return ::GetCharAtPosition (this, str, x);
 }
 
 /**
