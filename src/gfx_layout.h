@@ -46,7 +46,6 @@ namespace ParagraphLayouter {
 		virtual int GetWidth() const = 0;
 		virtual int CountRuns() const = 0;
 		virtual const VisualRun *GetVisualRun(int run) const = 0;
-		virtual int GetInternalCharLength(WChar c) const = 0;
 		virtual int GetCharPosition (const char *str, const char *ch) const = 0;
 		virtual const char *GetCharAtPosition (const char *str, int x) const = 0;
 	};

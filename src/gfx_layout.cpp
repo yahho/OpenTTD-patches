@@ -319,7 +319,7 @@ public:
 		return this->runs[run].get();
 	}
 
-	int GetInternalCharLength (WChar c) const OVERRIDE
+	static int GetInternalCharLength (WChar c)
 	{
 		/* ICU uses UTF-16 internally which means we need to account for surrogate pairs. */
 		return Utf8CharLen(c) < 4 ? 1 : 2;
@@ -544,7 +544,7 @@ public:
 		return this->runs[run].get();
 	}
 
-	int GetInternalCharLength (WChar c) const OVERRIDE
+	static int GetInternalCharLength (WChar c)
 	{
 		return 1;
 	}
