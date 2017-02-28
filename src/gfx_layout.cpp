@@ -324,6 +324,29 @@ public:
 		/* ICU uses UTF-16 internally which means we need to account for surrogate pairs. */
 		return Utf8CharLen(c) < 4 ? 1 : 2;
 	}
+
+	/**
+	 * Get the position of a character in the layout.
+	 * @param str Layout string.
+	 * @param ch Character to get the position of.
+	 * @return Left position of the character relative to the start of the string.
+	 * @note Will only work right for single-line strings.
+	 */
+	int GetCharPosition (const char *str, const char *ch) const OVERRIDE
+	{
+		return ::GetCharPosition (this, str, ch);
+	}
+
+	/**
+	 * Get the character that is at a position.
+	 * @param str Layout string.
+	 * @param x Position in the string.
+	 * @return Pointer to the character at the position or NULL if no character is at the position.
+	 */
+	const char *GetCharAtPosition (const char *str, int x) const OVERRIDE
+	{
+		return ::GetCharAtPosition (this, str, x);
+	}
 };
 
 /**
@@ -524,6 +547,29 @@ public:
 	int GetInternalCharLength (WChar c) const OVERRIDE
 	{
 		return 1;
+	}
+
+	/**
+	 * Get the position of a character in the layout.
+	 * @param str Layout string.
+	 * @param ch Character to get the position of.
+	 * @return Left position of the character relative to the start of the string.
+	 * @note Will only work right for single-line strings.
+	 */
+	int GetCharPosition (const char *str, const char *ch) const OVERRIDE
+	{
+		return ::GetCharPosition (this, str, ch);
+	}
+
+	/**
+	 * Get the character that is at a position.
+	 * @param str Layout string.
+	 * @param x Position in the string.
+	 * @return Pointer to the character at the position or NULL if no character is at the position.
+	 */
+	const char *GetCharAtPosition (const char *str, int x) const OVERRIDE
+	{
+		return ::GetCharAtPosition (this, str, x);
 	}
 };
 
@@ -973,29 +1019,6 @@ Dimension Layouter::GetBounds()
 		d.height += (*l)->GetLeading();
 	}
 	return d;
-}
-
-/**
- * Get the position of a character in the layout.
- * @param str Layout string.
- * @param ch Character to get the position of.
- * @return Left position of the character relative to the start of the string.
- * @note Will only work right for single-line strings.
- */
-int ParagraphLayouter::Line::GetCharPosition (const char *str, const char *ch) const
-{
-	return ::GetCharPosition (this, str, ch);
-}
-
-/**
- * Get the character that is at a position.
- * @param str Layout string.
- * @param x Position in the string.
- * @return Pointer to the character at the position or NULL if no character is at the position.
- */
-const char *ParagraphLayouter::Line::GetCharAtPosition (const char *str, int x) const
-{
-	return ::GetCharAtPosition (this, str, x);
 }
 
 /**
