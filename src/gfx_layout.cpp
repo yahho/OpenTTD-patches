@@ -202,7 +202,7 @@ static int GetCharPosition (const Line *line, const char *str, const char *ch)
 
 		for (int i = 0; i < run->GetGlyphCount(); i++) {
 			/* Matching glyph? Return position. */
-			if ((size_t)run->GetGlyphToCharMap()[i] == index) {
+			if ((size_t)run->GetGlyphToChar(i) == index) {
 				return run->GetPositions()[i * 2];
 			}
 		}
@@ -234,7 +234,7 @@ static const char *GetCharAtPosition (const Line *line, const char *str, int x)
 
 			if (IsInsideMM(x, begin_x, end_x)) {
 				/* Found our glyph, now convert to UTF-8 string index. */
-				size_t index = run->GetGlyphToCharMap()[i];
+				size_t index = run->GetGlyphToChar(i);
 
 				while (*str != '\0') {
 					if (index == 0) return str;
@@ -280,9 +280,14 @@ public:
 		return vr->getPositions();
 	}
 
-	const int *GetGlyphToCharMap (void) const OVERRIDE
+	/**
+	 * Get the character index for a glyph index for this visual run.
+	 * @param i The glyph index.
+	 * @return The character index.
+	 */
+	int GetGlyphToChar (int i) const
 	{
-		return vr->getGlyphToCharMap();
+		return vr->getGlyphToCharMap()[i];
 	}
 };
 
@@ -471,12 +476,13 @@ public:
 	}
 
 	/**
-	 * Get the glyph-to-character map for this visual run.
-	 * @return The glyph-to-character map.
+	 * Get the character index for a glyph index for this visual run.
+	 * @param i The glyph index.
+	 * @return The character index.
 	 */
-	const int *GetGlyphToCharMap() const OVERRIDE
+	int GetGlyphToChar (int i) const
 	{
-		return this->glyph_to_char;
+		return this->glyph_to_char[i];
 	}
 };
 

@@ -35,7 +35,6 @@ namespace ParagraphLayouter {
 		virtual int GetGlyphCount() const = 0;
 		virtual const GlyphID *GetGlyphs() const = 0;
 		virtual const float *GetPositions() const = 0;
-		virtual const int *GetGlyphToCharMap() const = 0;
 	};
 
 	/** A single line worth of VisualRuns. */
