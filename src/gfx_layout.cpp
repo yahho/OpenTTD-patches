@@ -314,7 +314,7 @@ public:
 		return l->countRuns();
 	}
 
-	const ParagraphLayouter::VisualRun *GetVisualRun (int run) const OVERRIDE
+	const ICUVisualRun *GetVisualRun (int run) const OVERRIDE
 	{
 		return this->runs[run].get();
 	}
@@ -539,7 +539,7 @@ public:
 	 * Get a specific visual run.
 	 * @return The visual run.
 	 */
-	const ParagraphLayouter::VisualRun *GetVisualRun (int run) const OVERRIDE
+	const FallbackVisualRun *GetVisualRun (int run) const OVERRIDE
 	{
 		return this->runs[run].get();
 	}
