@@ -198,7 +198,7 @@ static int GetCharPosition (const Line *line, const char *str, const char *ch)
 
 	/* Scan all runs until we've found our code point index. */
 	for (int run_index = 0; run_index < line->CountRuns(); run_index++) {
-		const ParagraphLayouter::VisualRun *run = line->GetVisualRun (run_index);
+		const typename Line::VisualRun *run = line->GetVisualRun (run_index);
 
 		for (int i = 0; i < run->GetGlyphCount(); i++) {
 			/* Matching glyph? Return position. */
@@ -223,7 +223,7 @@ template <typename Line>
 static const char *GetCharAtPosition (const Line *line, const char *str, int x)
 {
 	for (int run_index = 0; run_index < line->CountRuns(); run_index++) {
-		const ParagraphLayouter::VisualRun *run = line->GetVisualRun (run_index);
+		const typename Line::VisualRun *run = line->GetVisualRun (run_index);
 
 		for (int i = 0; i < run->GetGlyphCount(); i++) {
 			/* Not a valid glyph (empty). */
@@ -292,6 +292,8 @@ class ICULine : public ParagraphLayouter::Line {
 	std::vector <ttd_unique_ptr <ICUVisualRun> > runs;
 
 public:
+	typedef ICUVisualRun VisualRun;
+
 	ICULine (ParagraphLayout::Line *l) : l (l), runs (l->countRuns())
 	{
 		for (int i = 0; i < l->countRuns(); i++) {
@@ -517,6 +519,8 @@ class FallbackLine : public ParagraphLayouter::Line {
 	std::vector <ttd_unique_ptr <FallbackVisualRun> > runs;
 
 public:
+	typedef FallbackVisualRun VisualRun;
+
 	void append (Font *font, const WChar *chars, int glyph_count, int x)
 	{
 		FallbackVisualRun *run = new FallbackVisualRun (font, chars, glyph_count, x);
