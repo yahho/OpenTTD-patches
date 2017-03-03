@@ -48,18 +48,7 @@ namespace ParagraphLayouter {
 		 * @param i Index of the glyph whose data to get.
 		 * @return Whether the glyph is valid (non-empty).
 		 */
-		bool GetGlyphPos (GlyphPos *gp, int i) const
-		{
-			GlyphID glyph = this->GetGlyphs()[i];
-			if (glyph == 0xFFFF) return false;
-
-			gp->glyph = glyph;
-			const float *pos = this->GetPositions();
-			gp->x0 = pos[i * 2];
-			gp->x1 = pos[i * 2 + 2];
-			gp->y  = pos[i * 2 + 1];
-			return true;
-		}
+		virtual bool GetGlyphPos (GlyphPos *gp, int i) const = 0;
 	};
 
 	/** A single line worth of VisualRuns. */

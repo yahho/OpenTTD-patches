@@ -289,7 +289,28 @@ public:
 	{
 		return vr->getGlyphToCharMap()[i];
 	}
+
+	bool GetGlyphPos (ParagraphLayouter::GlyphPos *gp, int i) const OVERRIDE;
 };
+
+/**
+ * Get the glyph and position for a glyph.
+ * @param gp Struct to receive the data.
+ * @param i Index of the glyph whose data to get.
+ * @return Whether the glyph is valid (non-empty).
+ */
+bool ICUVisualRun::GetGlyphPos (ParagraphLayouter::GlyphPos *gp, int i) const
+{
+	GlyphID glyph = this->vr->getGlyphs()[i];
+	if (glyph == 0xFFFF) return false;
+
+	gp->glyph = glyph;
+	const float *pos = this->GetPositions();
+	gp->x0 = pos[i * 2];
+	gp->x1 = pos[i * 2 + 2];
+	gp->y  = pos[i * 2 + 1];
+	return true;
+}
 
 /** A single line worth of VisualRuns. */
 class ICULine : public ParagraphLayouter::Line {
@@ -484,6 +505,8 @@ public:
 	{
 		return this->glyph_to_char[i];
 	}
+
+	bool GetGlyphPos (ParagraphLayouter::GlyphPos *gp, int i) const OVERRIDE;
 };
 
 /**
@@ -518,6 +541,25 @@ FallbackVisualRun::~FallbackVisualRun()
 	free(this->positions);
 	free(this->glyph_to_char);
 	free(this->glyphs);
+}
+
+/**
+ * Get the glyph and position for a glyph.
+ * @param gp Struct to receive the data.
+ * @param i Index of the glyph whose data to get.
+ * @return Whether the glyph is valid (non-empty).
+ */
+bool FallbackVisualRun::GetGlyphPos (ParagraphLayouter::GlyphPos *gp, int i) const
+{
+	GlyphID glyph = this->glyphs[i];
+	if (glyph == 0xFFFF) return false;
+
+	gp->glyph = glyph;
+	const float *pos = this->GetPositions();
+	gp->x0 = pos[i * 2];
+	gp->x1 = pos[i * 2 + 2];
+	gp->y  = pos[i * 2 + 1];
+	return true;
 }
 
 /** A single line worth of VisualRuns. */
