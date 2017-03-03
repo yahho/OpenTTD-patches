@@ -27,6 +27,12 @@ struct FontBase {
 
 /** Namespace for paragraph layout-related types. */
 namespace ParagraphLayouter {
+	/** A glyph and the position where it goes. */
+	struct GlyphPos {
+		int x0, x1, y;
+		GlyphID glyph;
+	};
+
 	/** Visual run contains data about the bit of text with the same font. */
 	class VisualRun {
 	public:
@@ -35,6 +41,25 @@ namespace ParagraphLayouter {
 		virtual int GetGlyphCount() const = 0;
 		virtual const GlyphID *GetGlyphs() const = 0;
 		virtual const float *GetPositions() const = 0;
+
+		/**
+		 * Get the glyph and position for a glyph.
+		 * @param gp Struct to receive the data.
+		 * @param i Index of the glyph whose data to get.
+		 * @return Whether the glyph is valid (non-empty).
+		 */
+		bool GetGlyphPos (GlyphPos *gp, int i) const
+		{
+			GlyphID glyph = this->GetGlyphs()[i];
+			if (glyph == 0xFFFF) return false;
+
+			gp->glyph = glyph;
+			const float *pos = this->GetPositions();
+			gp->x0 = pos[i * 2];
+			gp->x1 = pos[i * 2 + 2];
+			gp->y  = pos[i * 2 + 1];
+			return true;
+		}
 	};
 
 	/** A single line worth of VisualRuns. */

@@ -433,23 +433,22 @@ static int DrawLayoutLine (const ParagraphLayouter::Line *line,
 		draw_shadow = colour != TC_BLACK && (colour & TC_NO_SHADE) == 0 && fc->GetDrawGlyphShadow();
 
 		for (int i = 0; i < run->GetGlyphCount(); i++) {
-			GlyphID glyph = run->GetGlyphs()[i];
-
+			ParagraphLayouter::GlyphPos gp;
 			/* Not a valid glyph (empty) */
-			if (glyph == 0xFFFF) continue;
+			if (!run->GetGlyphPos (&gp, i)) continue;
 
-			int begin_x = (int)run->GetPositions()[i * 2]     + left - offset_x;
-			int end_x   = (int)run->GetPositions()[i * 2 + 2] + left - offset_x  - 1;
-			int top     = (int)run->GetPositions()[i * 2 + 1] + y;
+			int begin_x = gp.x0 + left - offset_x;
+			int end_x   = gp.x1 + left - offset_x  - 1;
+			int top     = gp.y + y;
 
 			/* Truncated away. */
 			if (truncation && (begin_x < min_x || end_x > max_x)) continue;
 
-			const Sprite *sprite = fc->GetGlyph(glyph);
+			const Sprite *sprite = fc->GetGlyph (gp.glyph);
 			/* Check clipping (the "+ 1" is for the shadow). */
 			if (begin_x + sprite->x_offs > dpi_right || begin_x + sprite->x_offs + sprite->width /* - 1 + 1 */ < dpi_left) continue;
 
-			if (draw_shadow && (glyph & SPRITE_GLYPH) == 0) {
+			if (draw_shadow && (gp.glyph & SPRITE_GLYPH) == 0) {
 				SetColourRemap(TC_BLACK);
 				GfxMainBlitter (dpi, sprite, begin_x + 1, top + 1, BM_COLOUR_REMAP);
 				SetColourRemap(colour);
