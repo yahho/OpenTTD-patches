@@ -227,7 +227,7 @@ static const char *GetCharAtPosition (const Line *line, const char *str, int x)
 
 		for (int i = 0; i < run->GetGlyphCount(); i++) {
 			/* Not a valid glyph (empty). */
-			if (run->GetGlyphs()[i] == 0xFFFF) continue;
+			if (run->GetGlyph(i) == 0xFFFF) continue;
 
 			int begin_x = (int)run->GetPositions()[i * 2];
 			int end_x   = (int)run->GetPositions()[i * 2 + 2];
@@ -270,9 +270,14 @@ public:
 		return vr->getGlyphCount();
 	}
 
-	const GlyphID *GetGlyphs (void) const OVERRIDE
+	/**
+	 * Get a glyph of this run.
+	 * @param i The index of the glyph to get.
+	 * @return The glyph at that index.
+	 */
+	GlyphID GetGlyph (int i) const
 	{
-		return vr->getGlyphs();
+		return vr->getGlyphs()[i];
 	}
 
 	const float *GetPositions (void) const OVERRIDE
@@ -479,12 +484,13 @@ public:
 	}
 
 	/**
-	 * Get the glyphs of this run.
-	 * @return The glyphs.
+	 * Get a glyph of this run.
+	 * @param i The index of the glyph to get.
+	 * @return The glyph at that index.
 	 */
-	const GlyphID *GetGlyphs() const OVERRIDE
+	GlyphID GetGlyph (int i) const
 	{
-		return this->glyphs;
+		return this->glyphs[i];
 	}
 
 	/**
