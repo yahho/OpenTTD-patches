@@ -502,6 +502,12 @@ public:
 		return this->positions;
 	}
 
+	/** Get the last X position of this run. */
+	int GetLastPosition (void) const
+	{
+		return this->positions [this->glyph_count * 2];
+	}
+
 	/**
 	 * Get the character index for a glyph index for this visual run.
 	 * @param i The glyph index.
@@ -659,8 +665,7 @@ int FallbackLine::GetWidth (void) const
 	 * Since there is no left-to-right support, taking this value of
 	 * the last run gives us the end of the line and thus the width.
 	 */
-	const FallbackVisualRun *run = this->runs.back().get();
-	return (int)run->GetPositions()[run->GetGlyphCount() * 2];
+	return this->runs.back().get()->GetLastPosition();
 }
 
 /**
