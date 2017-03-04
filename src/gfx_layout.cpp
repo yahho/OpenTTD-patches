@@ -463,7 +463,6 @@ class FallbackVisualRun : public ParagraphLayouter::VisualRun {
 	Font *font;       ///< The font used to layout these.
 	GlyphID *glyphs;  ///< The glyphs we're drawing.
 	float *positions; ///< The positions of the glyphs.
-	int *glyph_to_char; ///< The char index of the glyphs.
 	int glyph_count;  ///< The number of glyphs.
 
 public:
@@ -519,9 +518,9 @@ public:
 	 * @param i The glyph index.
 	 * @return The character index.
 	 */
-	int GetGlyphToChar (int i) const
+	static int GetGlyphToChar (int i)
 	{
-		return this->glyph_to_char[i];
+		return i;
 	}
 
 	bool GetGlyphPos (ParagraphLayouter::GlyphPos *gp, int i) const OVERRIDE;
@@ -538,7 +537,6 @@ FallbackVisualRun::FallbackVisualRun(Font *font, const WChar *chars, int char_co
 		font(font), glyph_count(char_count)
 {
 	this->glyphs = xmalloct<GlyphID>(this->glyph_count);
-	this->glyph_to_char = xmalloct<int>(this->glyph_count);
 
 	/* Positions contains the location of the begin of each of the glyphs, and the end of the last one. */
 	this->positions = xmalloct<float>(this->glyph_count * 2 + 2);
@@ -549,7 +547,6 @@ FallbackVisualRun::FallbackVisualRun(Font *font, const WChar *chars, int char_co
 		this->glyphs[i] = font->fc->MapCharToGlyph(chars[i]);
 		this->positions[2 * i + 2] = this->positions[2 * i] + font->fc->GetGlyphWidth(this->glyphs[i]);
 		this->positions[2 * i + 3] = 0;
-		this->glyph_to_char[i] = i;
 	}
 }
 
@@ -557,7 +554,6 @@ FallbackVisualRun::FallbackVisualRun(Font *font, const WChar *chars, int char_co
 FallbackVisualRun::~FallbackVisualRun()
 {
 	free(this->positions);
-	free(this->glyph_to_char);
 	free(this->glyphs);
 }
 
