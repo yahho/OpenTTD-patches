@@ -203,7 +203,7 @@ static int GetCharPosition (const Line *line, const char *str, const char *ch)
 		for (int i = 0; i < run->GetGlyphCount(); i++) {
 			/* Matching glyph? Return position. */
 			if ((size_t)run->GetGlyphToChar(i) == index) {
-				return run->GetPositions()[i * 2];
+				return run->GetPosition (i);
 			}
 		}
 	}
@@ -229,8 +229,8 @@ static const char *GetCharAtPosition (const Line *line, const char *str, int x)
 			/* Not a valid glyph (empty). */
 			if (run->GetGlyph(i) == 0xFFFF) continue;
 
-			int begin_x = (int)run->GetPositions()[i * 2];
-			int end_x   = (int)run->GetPositions()[i * 2 + 2];
+			int begin_x = run->GetPosition (i);
+			int end_x   = run->GetPosition (i + 1);
 
 			if (IsInsideMM(x, begin_x, end_x)) {
 				/* Found our glyph, now convert to UTF-8 string index. */
@@ -280,9 +280,14 @@ public:
 		return vr->getGlyphs()[i];
 	}
 
-	const float *GetPositions (void) const OVERRIDE
+	/**
+	 * Get the X position of a glyph.
+	 * @param i The index of the glyph.
+	 * @return The X position of the glyph.
+	 */
+	int GetPosition (int i) const
 	{
-		return vr->getPositions();
+		return vr->getPositions()[i * 2];
 	}
 
 	/**
@@ -310,7 +315,7 @@ bool ICUVisualRun::GetGlyphPos (ParagraphLayouter::GlyphPos *gp, int i) const
 	if (glyph == 0xFFFF) return false;
 
 	gp->glyph = glyph;
-	const float *pos = this->GetPositions();
+	const float *pos = this->vr->getPositions();
 	gp->x0 = pos[i * 2];
 	gp->x1 = pos[i * 2 + 2];
 	gp->y  = pos[i * 2 + 1];
@@ -494,12 +499,13 @@ public:
 	}
 
 	/**
-	 * Get the positions of this run.
-	 * @return The positions.
+	 * Get the X position of a glyph.
+	 * @param i The index of the glyph.
+	 * @return The X position of the glyph.
 	 */
-	const float *GetPositions() const OVERRIDE
+	int GetPosition (int i) const
 	{
-		return this->positions;
+		return this->positions[i * 2];
 	}
 
 	/** Get the last X position of this run. */
@@ -567,7 +573,7 @@ bool FallbackVisualRun::GetGlyphPos (ParagraphLayouter::GlyphPos *gp, int i) con
 	if (glyph == 0xFFFF) return false;
 
 	gp->glyph = glyph;
-	const float *pos = this->GetPositions();
+	const float *pos = this->positions;
 	gp->x0 = pos[i * 2];
 	gp->x1 = pos[i * 2 + 2];
 	gp->y  = pos[i * 2 + 1];
