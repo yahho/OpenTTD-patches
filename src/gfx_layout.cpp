@@ -458,16 +458,26 @@ static ICUParagraphLayout *GetParagraphLayout (const UChar *buffer, int32 length
 
 /*** Paragraph layout ***/
 
+struct FallbackGlyphData {
+	int pos;       ///< The X position of this glyph.
+	GlyphID glyph; ///< The glyph to draw.
+};
+
 /** Visual run contains data about the bit of text with the same font. */
-class FallbackVisualRun : public ParagraphLayouter::VisualRun {
+class FallbackVisualRun : public ParagraphLayouter::VisualRun,
+					FlexArray <FallbackGlyphData> {
 	Font *font;       ///< The font used to layout these.
-	GlyphID *glyphs;  ///< The glyphs we're drawing.
-	float *positions; ///< The positions of the glyphs.
 	int glyph_count;  ///< The number of glyphs.
+	FallbackGlyphData data[]; ///< Glyph data.
+
+	FallbackVisualRun(Font *font, const WChar *chars, int glyph_count, int x);
 
 public:
-	FallbackVisualRun(Font *font, const WChar *chars, int glyph_count, int x);
-	~FallbackVisualRun();
+	/** Create a new visual run. */
+	static FallbackVisualRun *create (Font *font, const WChar *chars, int n, int x)
+	{
+		return new (n + 1) FallbackVisualRun (font, chars, n, x);
+	}
 
 	/**
 	 * Get the font associated with this run.
@@ -494,7 +504,7 @@ public:
 	 */
 	GlyphID GetGlyph (int i) const
 	{
-		return this->glyphs[i];
+		return this->data[i].glyph;
 	}
 
 	/**
@@ -504,13 +514,13 @@ public:
 	 */
 	int GetPosition (int i) const
 	{
-		return this->positions[i * 2];
+		return this->data[i].pos;
 	}
 
 	/** Get the last X position of this run. */
 	int GetLastPosition (void) const
 	{
-		return this->positions [this->glyph_count * 2];
+		return this->data[this->glyph_count].pos;
 	}
 
 	/**
@@ -536,25 +546,13 @@ public:
 FallbackVisualRun::FallbackVisualRun(Font *font, const WChar *chars, int char_count, int x) :
 		font(font), glyph_count(char_count)
 {
-	this->glyphs = xmalloct<GlyphID>(this->glyph_count);
-
 	/* Positions contains the location of the begin of each of the glyphs, and the end of the last one. */
-	this->positions = xmalloct<float>(this->glyph_count * 2 + 2);
-	this->positions[0] = x;
-	this->positions[1] = 0;
+	this->data[0].pos = x;
 
 	for (int i = 0; i < this->glyph_count; i++) {
-		this->glyphs[i] = font->fc->MapCharToGlyph(chars[i]);
-		this->positions[2 * i + 2] = this->positions[2 * i] + font->fc->GetGlyphWidth(this->glyphs[i]);
-		this->positions[2 * i + 3] = 0;
+		this->data[i].glyph = font->fc->MapCharToGlyph (chars[i]);
+		this->data[i + 1].pos = this->data[i].pos + font->fc->GetGlyphWidth (this->data[i].glyph);
 	}
-}
-
-/** Free all data. */
-FallbackVisualRun::~FallbackVisualRun()
-{
-	free(this->positions);
-	free(this->glyphs);
 }
 
 /**
@@ -565,14 +563,14 @@ FallbackVisualRun::~FallbackVisualRun()
  */
 bool FallbackVisualRun::GetGlyphPos (ParagraphLayouter::GlyphPos *gp, int i) const
 {
-	GlyphID glyph = this->glyphs[i];
+	const FallbackGlyphData *data = &this->data[i];
+	GlyphID glyph = data->glyph;
 	if (glyph == 0xFFFF) return false;
 
 	gp->glyph = glyph;
-	const float *pos = this->positions;
-	gp->x0 = pos[i * 2];
-	gp->x1 = pos[i * 2 + 2];
-	gp->y  = pos[i * 2 + 1];
+	gp->x0 = data[0].pos;
+	gp->x1 = data[1].pos;
+	gp->y  = 0;
 	return true;
 }
 
@@ -585,7 +583,7 @@ public:
 
 	void append (Font *font, const WChar *chars, int glyph_count, int x)
 	{
-		FallbackVisualRun *run = new FallbackVisualRun (font, chars, glyph_count, x);
+		FallbackVisualRun *run = FallbackVisualRun::create (font, chars, glyph_count, x);
 		this->runs.push_back (ttd_unique_ptr <FallbackVisualRun> (run));
 	}
 
