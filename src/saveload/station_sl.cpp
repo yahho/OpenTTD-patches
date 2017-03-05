@@ -329,6 +329,10 @@ static void SwapPackets(GoodsEntry *ge)
 
 static void Load_STNS(LoadBuffer *reader)
 {
+	_cargo_source_xy = 0;
+	_cargo_days = 0;
+	_cargo_feeder_share = 0;
+
 	int index;
 	while ((index = reader->IterateChunk()) != -1) {
 		Station *st = new (index) Station();
@@ -510,8 +514,9 @@ static void Save_STNN(SaveDumper *dumper)
 
 static void Load_STNN(LoadBuffer *reader)
 {
-	int index;
+	_num_flows = 0;
 
+	int index;
 	while ((index = reader->IterateChunk()) != -1) {
 		BaseStation *bst;
 		if ((reader->ReadByte() & FACIL_WAYPOINT) != 0) {
