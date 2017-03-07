@@ -828,14 +828,16 @@ int openttd_main(int argc, char *argv[])
 	InitializeScreenshotFormats();
 
 	BaseSounds::FindSets();
-	if (sounds_set == NULL && BaseSounds::ini_set != NULL) sounds_set = xstrdup(BaseSounds::ini_set);
-	if (!BaseSounds::SetSet(sounds_set)) {
-		if (StrEmpty(sounds_set) || !BaseSounds::SetSet(NULL)) {
-			usererror("Failed to find a sounds set. Please acquire a sounds set for OpenTTD. See section 4.1 of readme.txt.");
-		} else {
-			ErrorMessageData msg(STR_CONFIG_ERROR, STR_CONFIG_ERROR_INVALID_BASE_SOUNDS_NOT_FOUND);
-			msg.SetDParamStr(0, sounds_set);
-			ScheduleErrorMessage(msg);
+	{
+		const char *sel = (sounds_set != NULL) ? sounds_set : BaseSounds::ini_set;
+		if (!BaseSounds::SetSet (sel)) {
+			if (StrEmpty (sel) || !BaseSounds::SetSet (NULL)) {
+				usererror ("Failed to find a sounds set. Please acquire a sounds set for OpenTTD. See section 4.1 of readme.txt.");
+			} else {
+				ErrorMessageData msg (STR_CONFIG_ERROR, STR_CONFIG_ERROR_INVALID_BASE_SOUNDS_NOT_FOUND);
+				msg.SetDParamStr (0, sel);
+				ScheduleErrorMessage (msg);
+			}
 		}
 	}
 	free(sounds_set);
