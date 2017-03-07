@@ -843,14 +843,16 @@ int openttd_main(int argc, char *argv[])
 	free(sounds_set);
 
 	BaseMusic::FindSets();
-	if (music_set == NULL && BaseMusic::ini_set != NULL) music_set = xstrdup(BaseMusic::ini_set);
-	if (!BaseMusic::SetSet(music_set)) {
-		if (StrEmpty(music_set) || !BaseMusic::SetSet(NULL)) {
-			usererror("Failed to find a music set. Please acquire a music set for OpenTTD. See section 4.1 of readme.txt.");
-		} else {
-			ErrorMessageData msg(STR_CONFIG_ERROR, STR_CONFIG_ERROR_INVALID_BASE_MUSIC_NOT_FOUND);
-			msg.SetDParamStr(0, music_set);
-			ScheduleErrorMessage(msg);
+	{
+		const char *sel = (music_set != NULL) ? music_set : BaseMusic::ini_set;
+		if (!BaseMusic::SetSet (sel)) {
+			if (StrEmpty (sel) || !BaseMusic::SetSet (NULL)) {
+				usererror ("Failed to find a music set. Please acquire a music set for OpenTTD. See section 4.1 of readme.txt.");
+			} else {
+				ErrorMessageData msg (STR_CONFIG_ERROR, STR_CONFIG_ERROR_INVALID_BASE_MUSIC_NOT_FOUND);
+				msg.SetDParamStr (0, sel);
+				ScheduleErrorMessage (msg);
+			}
 		}
 	}
 	free(music_set);
