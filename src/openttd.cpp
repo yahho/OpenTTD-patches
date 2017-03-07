@@ -739,13 +739,13 @@ int openttd_main(int argc, char *argv[])
 	InitWindowSystem();
 
 	BaseGraphics::FindSets();
-	if (graphics_set == NULL && BaseGraphics::ini_set != NULL) graphics_set = xstrdup(BaseGraphics::ini_set);
-	if (!BaseGraphics::SetSet(graphics_set)) {
-		if (!StrEmpty(graphics_set)) {
+	{
+		const char *sel = (graphics_set != NULL) ? graphics_set : BaseGraphics::ini_set;
+		if (!BaseGraphics::SetSet (sel) && !StrEmpty (sel)) {
 			BaseGraphics::SetSet(NULL);
 
 			ErrorMessageData msg(STR_CONFIG_ERROR, STR_CONFIG_ERROR_INVALID_BASE_GRAPHICS_NOT_FOUND);
-			msg.SetDParamStr(0, graphics_set);
+			msg.SetDParamStr (0, sel);
 			ScheduleErrorMessage(msg);
 		}
 	}
