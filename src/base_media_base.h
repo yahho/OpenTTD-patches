@@ -300,6 +300,7 @@ struct GraphicsSet : BaseSet<GraphicsSet, MAX_GFT> {
 /** All data/functions related with replacing the base graphics. */
 class BaseGraphics : public BaseMediaS <GraphicsSet, true> {
 public:
+	static bool SetSet (const char *name);
 };
 
 /** All data of a sounds set. */
@@ -314,6 +315,7 @@ struct SoundsSet : BaseSet<SoundsSet, 1> {
 /** All data/functions related with replacing the base sounds */
 class BaseSounds : public BaseMediaS <SoundsSet, true> {
 public:
+	static bool SetSet (const char *name);
 };
 
 /** Maximum number of songs in the 'class' playlists. */

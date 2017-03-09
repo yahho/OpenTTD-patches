@@ -253,18 +253,13 @@ bool BaseMedia<Tbase_set>::Scanner::AddFile (const char *filename, size_t basepa
 template <class Tbase_set>
 /* static */ bool BaseMedia<Tbase_set>::SetSet(const char *name)
 {
-	extern void CheckExternalFiles();
-
 	if (StrEmpty(name)) {
-		if (!BaseMedia<Tbase_set>::DetermineBestSet()) return false;
-		CheckExternalFiles();
-		return true;
+		return BaseMedia<Tbase_set>::DetermineBestSet();
 	}
 
 	for (const Tbase_set *s = BaseMedia<Tbase_set>::available_sets; s != NULL; s = s->next) {
 		if (strcmp(name, s->get_name()) == 0) {
 			BaseMedia<Tbase_set>::used_set = s;
-			CheckExternalFiles();
 			return true;
 		}
 	}

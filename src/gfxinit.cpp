@@ -114,47 +114,55 @@ static void LoadGrfFileIndexed(const char *filename, const SpriteID *index_tbl, 
 }
 
 /**
- * Checks whether the MD5 checksums of the files are correct.
- *
- * @note Also checks sample.cat and other required non-NewGRF GRFs for corruption.
+ * Set the graphics set to be used.
+ * @param name of the set to use
+ * @return true if it could be loaded
  */
-void CheckExternalFiles()
+bool BaseGraphics::SetSet (const char *name)
 {
-	if (BaseGraphics::GetUsedSet() == NULL || BaseSounds::GetUsedSet() == NULL) return;
+	if (!BaseMedia<GraphicsSet>::SetSet (name)) return false;
 
 	const GraphicsSet *used_set = BaseGraphics::GetUsedSet();
+	if (used_set == NULL) return true;
 
 	DEBUG(grf, 1, "Using the %s base graphics set", used_set->get_name());
 
-	static const size_t ERROR_MESSAGE_LENGTH = 256;
-	static const size_t MISSING_FILE_MESSAGE_LENGTH = 128;
-
-	/* Allocate for a message for each missing file and for one error
-	 * message per set.
-	 */
-	sstring<MISSING_FILE_MESSAGE_LENGTH * (GraphicsSet::NUM_FILES + SoundsSet::NUM_FILES) + 2 * ERROR_MESSAGE_LENGTH> error_msg;
-
 	if (used_set->GetNumInvalid() != 0) {
 		/* Not all files were loaded successfully, see which ones */
-		error_msg.append_fmt ("Trying to load graphics set '%s', but it is incomplete. The game will probably not run correctly until you properly install this set or select another one. See section 4.1 of readme.txt.\n\nThe following files are corrupted or missing:\n", used_set->get_name());
+		sstring<1024> error_msg;
 		for (uint i = 0; i < GraphicsSet::NUM_FILES; i++) {
 			MD5File::ChecksumResult res = GraphicsSet::CheckMD5(&used_set->files[i], BASESET_DIR);
 			if (res != MD5File::CR_MATCH) error_msg.append_fmt ("\t%s is %s (%s)\n", used_set->files[i].filename, res == MD5File::CR_MISMATCH ? "corrupt" : "missing", used_set->files[i].missing_warning);
 		}
-		error_msg.append ('\n');
+		ShowInfoF ("Trying to load graphics set '%s', but it is incomplete. The game will probably not run correctly until you properly install this set or select another one. See section 4.1 of readme.txt.\n\nThe following files are corrupted or missing:\n%s", used_set->get_name(), error_msg.c_str());
 	}
 
-	const SoundsSet *sounds_set = BaseSounds::GetUsedSet();
-	if (sounds_set->GetNumInvalid() != 0) {
-		error_msg.append_fmt ("Trying to load sound set '%s', but it is incomplete. The game will probably not run correctly until you properly install this set or select another one. See section 4.1 of readme.txt.\n\nThe following files are corrupted or missing:\n", sounds_set->get_name());
+	return true;
+}
 
+/**
+ * Set the sounds set to be used.
+ * @param name of the set to use
+ * @return true if it could be loaded
+ */
+bool BaseSounds::SetSet (const char *name)
+{
+	if (!BaseMedia<SoundsSet>::SetSet (name)) return false;
+
+	const SoundsSet *sounds_set = BaseSounds::GetUsedSet();
+	if (sounds_set == NULL) return true;
+
+	if (sounds_set->GetNumInvalid() != 0) {
 		assert_compile(SoundsSet::NUM_FILES == 1);
 		/* No need to loop each file, as long as there is only a single
 		 * sound file. */
-		error_msg.append_fmt ("\t%s is %s (%s)\n", sounds_set->files->filename, SoundsSet::CheckMD5(sounds_set->files, BASESET_DIR) == MD5File::CR_MISMATCH ? "corrupt" : "missing", sounds_set->files->missing_warning);
+		ShowInfoF ("Trying to load sound set '%s', but it is incomplete. The game will probably not run correctly until you properly install this set or select another one. See section 4.1 of readme.txt.\n\nThe following files are corrupted or missing:\n\t%s is %s (%s)\n",
+				sounds_set->get_name(), sounds_set->files->filename,
+				SoundsSet::CheckMD5 (sounds_set->files, BASESET_DIR) == MD5File::CR_MISMATCH ? "corrupt" : "missing",
+				sounds_set->files->missing_warning);
 	}
 
-	if (!error_msg.empty()) ShowInfoF ("%s", error_msg.c_str());
+	return true;
 }
 
 /** Actually load the sprite tables. */
