@@ -84,6 +84,10 @@ public:
 
 	/* Add a description of this set for a given language. */
 	void add_desc (const char *lang, const char *desc);
+
+	/* Try to read a single piece of metadata from an ini file. */
+	static const IniItem *fetch_metadata (const IniGroup *metadata,
+		const char *name, const char *type, const char *filename);
 };
 
 /**
@@ -172,6 +176,19 @@ struct BaseSet : BaseSetDesc {
 			if (txt.valid()) return txt;
 		}
 		return TextfileDesc();
+	}
+
+	/**
+	 * Try to read a single piece of metadata from an ini file.
+	 * @param metadata The metadata group to search in.
+	 * @param name The name of the item to fetch.
+	 * @param filename The name of the filename for debugging output.
+	 * @return The associated item, or NULL if it doesn't exist.
+	 */
+	static const IniItem *fetch_metadata (const IniGroup *metadata,
+		const char *name, const char *filename)
+	{
+		return BaseSetDesc::fetch_metadata (metadata, name, T::set_type, filename);
 	}
 };
 

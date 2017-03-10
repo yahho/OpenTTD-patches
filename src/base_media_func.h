@@ -21,26 +21,6 @@ template <class Tbase_set> /* static */ Tbase_set *BaseMedia<Tbase_set>::availab
 template <class Tbase_set> /* static */ Tbase_set *BaseMedia<Tbase_set>::duplicate_sets;
 
 /**
- * Try to read a single piece of metadata.
- * @param metadata the metadata group to search in.
- * @param name the name of the item to fetch.
- * @param filename the name of the filename for debugging output.
- * @return the associated item, or NULL if it doesn't exist.
- */
-template <typename T>
-static inline const IniItem *fetch_metadata (const IniGroup *metadata,
-	const char *name, const char *filename)
-{
-	const IniItem *item = metadata->find (name);
-	if (item == NULL || StrEmpty (item->value)) {
-		DEBUG (grf, 0, "Base %sset detail loading: %s field missing in %s.",
-				T::set_type, name, filename);
-		return NULL;
-	}
-	return item;
-}
-
-/**
  * Read the set information from a loaded ini.
  * @param ini      the ini to read from
  * @param path     the path to this ini file (for filenames)
@@ -64,11 +44,11 @@ bool BaseSet<T, Tnum_files>::FillSetDetails (IniFile *ini, const char *path, con
 
 	const IniItem *item;
 
-	item = fetch_metadata<T> (metadata, "name", full_filename);
+	item = this->fetch_metadata (metadata, "name", full_filename);
 	if (item == NULL) return false;
 	this->set_name (item->value);
 
-	item = fetch_metadata<T> (metadata, "description", full_filename);
+	item = this->fetch_metadata (metadata, "description", full_filename);
 	if (item == NULL) return false;
 	this->add_default_desc (item->value);
 
@@ -79,13 +59,13 @@ bool BaseSet<T, Tnum_files>::FillSetDetails (IniFile *ini, const char *path, con
 		this->add_desc (item->get_name() + 12, item->value);
 	}
 
-	item = fetch_metadata<T> (metadata, "shortname", full_filename);
+	item = this->fetch_metadata (metadata, "shortname", full_filename);
 	if (item == NULL) return false;
 	for (uint i = 0; item->value[i] != '\0' && i < 4; i++) {
 		this->shortname |= ((uint8)item->value[i]) << (i * 8);
 	}
 
-	item = fetch_metadata<T> (metadata, "version", full_filename);
+	item = this->fetch_metadata (metadata, "version", full_filename);
 	if (item == NULL) return false;
 	this->version = atoi(item->value);
 
