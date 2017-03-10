@@ -20,9 +20,9 @@
 #include "core/string_compare_type.hpp"
 #include "gfx_type.h"
 #include "textfile.h"
+#include "ini_type.h"
 
 /* Forward declare these; can't do 'struct X' in functions as older GCCs barf on that */
-struct IniFile;
 struct ContentInfo;
 
 /** Structure holding filename and MD5 information about a single file */
@@ -286,7 +286,7 @@ struct GraphicsSet : BaseSet<GraphicsSet, MAX_GFT> {
 	PaletteType palette;       ///< Palette of this graphics set
 	BlitterType blitter;       ///< Blitter of this graphics set
 
-	bool FillSetDetails(struct IniFile *ini, const char *path, const char *full_filename);
+	bool FillSetDetails (IniFile *ini, const char *path, const char *full_filename);
 
 	/** Check if this set is preferred to another one. */
 	bool IsPreferredTo (const GraphicsSet &other) const
@@ -341,7 +341,7 @@ struct MusicSet : BaseSet<MusicSet, NUM_SONGS_AVAILABLE> {
 	byte track_nr[NUM_SONGS_AVAILABLE];
 	byte num_available;
 
-	bool FillSetDetails(struct IniFile *ini, const char *path, const char *full_filename);
+	bool FillSetDetails (IniFile *ini, const char *path, const char *full_filename);
 };
 
 /** All data/functions related with replacing the base music */
