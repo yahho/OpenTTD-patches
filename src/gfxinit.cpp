@@ -131,7 +131,7 @@ bool BaseGraphics::SetSet (const char *name)
 		/* Not all files were loaded successfully, see which ones */
 		sstring<1024> error_msg;
 		for (uint i = 0; i < GraphicsSet::NUM_FILES; i++) {
-			MD5File::ChecksumResult res = GraphicsSet::CheckMD5(&used_set->files[i], BASESET_DIR);
+			MD5File::ChecksumResult res = GraphicsSet::CheckMD5 (&used_set->files[i]);
 			if (res != MD5File::CR_MATCH) error_msg.append_fmt ("\t%s is %s (%s)\n", used_set->files[i].filename, res == MD5File::CR_MISMATCH ? "corrupt" : "missing", used_set->files[i].missing_warning);
 		}
 		ShowInfoF ("Trying to load graphics set '%s', but it is incomplete. The game will probably not run correctly until you properly install this set or select another one. See section 4.1 of readme.txt.\n\nThe following files are corrupted or missing:\n%s", used_set->get_name(), error_msg.c_str());
@@ -158,7 +158,7 @@ bool BaseSounds::SetSet (const char *name)
 		 * sound file. */
 		ShowInfoF ("Trying to load sound set '%s', but it is incomplete. The game will probably not run correctly until you properly install this set or select another one. See section 4.1 of readme.txt.\n\nThe following files are corrupted or missing:\n\t%s is %s (%s)\n",
 				sounds_set->get_name(), sounds_set->files->filename,
-				SoundsSet::CheckMD5 (sounds_set->files, BASESET_DIR) == MD5File::CR_MISMATCH ? "corrupt" : "missing",
+				SoundsSet::CheckMD5 (sounds_set->files) == MD5File::CR_MISMATCH ? "corrupt" : "missing",
 				sounds_set->files->missing_warning);
 	}
 
@@ -370,23 +370,22 @@ bool GraphicsSet::FillSetDetails(IniFile *ini, const char *path, const char *ful
 /**
  * Calculate and check the MD5 hash of the supplied GRF.
  * @param file The file get the hash of.
- * @param subdir The sub directory to get the files from.
  * @return
  * - #CR_MATCH if the MD5 hash matches
  * - #CR_MISMATCH if the MD5 does not match
  * - #CR_NO_FILE if the file misses
  */
-/* static */ MD5File::ChecksumResult GraphicsSet::CheckMD5(const MD5File *file, Subdirectory subdir)
+/* static */ MD5File::ChecksumResult GraphicsSet::CheckMD5 (const MD5File *file)
 {
 	size_t size = 0;
-	FILE *f = FioFOpenFile(file->filename, "rb", subdir, &size);
+	FILE *f = FioFOpenFile (file->filename, "rb", BASESET_DIR, &size);
 	if (f == NULL) return MD5File::CR_NO_FILE;
 
 	size_t max = GRFGetSizeOfDataSection(f);
 
 	FioFCloseFile(f);
 
-	return file->CheckMD5(subdir, max);
+	return file->CheckMD5 (BASESET_DIR, max);
 }
 
 

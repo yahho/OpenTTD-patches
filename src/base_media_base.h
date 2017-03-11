@@ -153,15 +153,14 @@ struct BaseSet : BaseSetDesc {
 	/**
 	 * Calculate and check the MD5 hash of the supplied file.
 	 * @param file The file get the hash of.
-	 * @param subdir The sub directory to get the files from.
 	 * @return
 	 * - #CR_MATCH if the MD5 hash matches
 	 * - #CR_MISMATCH if the MD5 does not match
 	 * - #CR_NO_FILE if the file misses
 	 */
-	static MD5File::ChecksumResult CheckMD5(const MD5File *file, Subdirectory subdir)
+	static MD5File::ChecksumResult CheckMD5 (const MD5File *file)
 	{
-		return file->CheckMD5(subdir, SIZE_MAX);
+		return file->CheckMD5 (BASESET_DIR, SIZE_MAX);
 	}
 
 	/**
@@ -311,7 +310,7 @@ struct GraphicsSet : BaseSet<GraphicsSet, MAX_GFT> {
 		return (this->palette == PAL_DOS) && (other.palette != PAL_DOS);
 	}
 
-	static MD5File::ChecksumResult CheckMD5(const MD5File *file, Subdirectory subdir);
+	static MD5File::ChecksumResult CheckMD5 (const MD5File *file);
 };
 
 /** All data/functions related with replacing the base graphics. */
