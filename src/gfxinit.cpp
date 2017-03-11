@@ -385,23 +385,22 @@ bool GraphicsSet::FillSetDetails(IniFile *ini, const char *path, const char *ful
 
 	FioFCloseFile(f);
 
-	return file->CheckMD5 (BASESET_DIR, max);
+	return file->CheckMD5 (max);
 }
 
 
 /**
  * Calculate and check the MD5 hash of the supplied filename.
- * @param subdir The sub directory to get the files from
  * @param max_size Only calculate the hash for this many bytes from the file start.
  * @return
  * - #CR_MATCH if the MD5 hash matches
  * - #CR_MISMATCH if the MD5 does not match
  * - #CR_NO_FILE if the file misses
  */
-MD5File::ChecksumResult MD5File::CheckMD5(Subdirectory subdir, size_t max_size) const
+MD5File::ChecksumResult MD5File::CheckMD5 (size_t max_size) const
 {
 	size_t size;
-	FILE *f = FioFOpenFile(this->filename, "rb", subdir, &size);
+	FILE *f = FioFOpenFile (this->filename, "rb", BASESET_DIR, &size);
 
 	if (f == NULL) return CR_NO_FILE;
 

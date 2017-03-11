@@ -38,7 +38,7 @@ struct MD5File {
 	uint8 hash[16];              ///< md5 sum of the file
 	const char *missing_warning; ///< warning when this file is missing
 
-	ChecksumResult CheckMD5(Subdirectory subdir, size_t max_size) const;
+	ChecksumResult CheckMD5 (size_t max_size) const;
 };
 
 /** Description of a single base set. */
@@ -160,7 +160,7 @@ struct BaseSet : BaseSetDesc {
 	 */
 	static MD5File::ChecksumResult CheckMD5 (const MD5File *file)
 	{
-		return file->CheckMD5 (BASESET_DIR, SIZE_MAX);
+		return file->CheckMD5 (SIZE_MAX);
 	}
 
 	/**
