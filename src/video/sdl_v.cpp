@@ -405,21 +405,6 @@ bool VideoDriver_SDL::CreateMainSurface(uint w, uint h)
 	_screen_height  = newscreen->h;
 
 	InitPalette();
-	switch (blitter->UsePaletteAnimation()) {
-		case Blitter::PALETTE_ANIMATION_NONE:
-		case Blitter::PALETTE_ANIMATION_VIDEO_BACKEND:
-			UpdatePalette();
-			break;
-
-		case Blitter::PALETTE_ANIMATION_BLITTER:
-			if (VideoDriver::GetActiveDriver() != NULL) {
-				VideoDriver::PaletteAnimate (blitter, _local_palette);
-			}
-			break;
-
-		default:
-			NOT_REACHED();
-	}
 
 	snprintf(caption, sizeof(caption), "OpenTTD %s", _openttd_revision);
 	SDL_CALL SDL_WM_SetCaption(caption, caption);
