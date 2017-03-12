@@ -37,8 +37,6 @@ struct MD5File {
 	const char *filename;        ///< filename
 	uint8 hash[16];              ///< md5 sum of the file
 	const char *missing_warning; ///< warning when this file is missing
-
-	ChecksumResult CheckMD5 (void) const;
 };
 
 /** Description of a single base set. */
@@ -89,18 +87,8 @@ public:
 	static const IniItem *fetch_metadata (const IniGroup *metadata,
 		const char *name, const char *type, const char *filename);
 
-	/**
-	 * Calculate and check the MD5 hash of the supplied file.
-	 * @param file The file get the hash of.
-	 * @return
-	 * - #CR_MATCH if the MD5 hash matches
-	 * - #CR_MISMATCH if the MD5 does not match
-	 * - #CR_NO_FILE if the file misses
-	 */
-	static MD5File::ChecksumResult CheckMD5 (const MD5File *file)
-	{
-		return file->CheckMD5();
-	}
+	/* Calculate and check the MD5 hash of the supplied file. */
+	static MD5File::ChecksumResult CheckMD5 (const MD5File *file);
 };
 
 /**

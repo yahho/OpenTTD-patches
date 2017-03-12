@@ -415,22 +415,23 @@ static bool check_md5 (FILE *f, const byte (&hash) [16], size_t size)
 			MD5File::CR_MATCH : MD5File::CR_MISMATCH;
 }
 
-
 /**
- * Calculate and check the MD5 hash of the supplied filename.
+ * Calculate and check the MD5 hash of the supplied file.
+ * @param file The file get the hash of.
  * @return
  * - #CR_MATCH if the MD5 hash matches
  * - #CR_MISMATCH if the MD5 does not match
  * - #CR_NO_FILE if the file misses
  */
-MD5File::ChecksumResult MD5File::CheckMD5 (void) const
+MD5File::ChecksumResult BaseSetDesc::CheckMD5 (const MD5File *file)
 {
 	size_t size;
-	FILE *f = FioFOpenFile (this->filename, "rb", BASESET_DIR, &size);
+	FILE *f = FioFOpenFile (file->filename, "rb", BASESET_DIR, &size);
 
-	if (f == NULL) return CR_NO_FILE;
+	if (f == NULL) return MD5File::CR_NO_FILE;
 
-	return check_md5 (f, this->hash, size) ? CR_MATCH : CR_MISMATCH;
+	return check_md5 (f, file->hash, size) ?
+			MD5File::CR_MATCH : MD5File::CR_MISMATCH;
 }
 
 /** Names corresponding to the GraphicsFileType */
