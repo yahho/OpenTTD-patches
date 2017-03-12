@@ -88,6 +88,19 @@ public:
 	/* Try to read a single piece of metadata from an ini file. */
 	static const IniItem *fetch_metadata (const IniGroup *metadata,
 		const char *name, const char *type, const char *filename);
+
+	/**
+	 * Calculate and check the MD5 hash of the supplied file.
+	 * @param file The file get the hash of.
+	 * @return
+	 * - #CR_MATCH if the MD5 hash matches
+	 * - #CR_MISMATCH if the MD5 does not match
+	 * - #CR_NO_FILE if the file misses
+	 */
+	static MD5File::ChecksumResult CheckMD5 (const MD5File *file)
+	{
+		return file->CheckMD5();
+	}
 };
 
 /**
@@ -148,19 +161,6 @@ struct BaseSet : BaseSetDesc {
 	static bool IsPreferredTo (const BaseSet &other)
 	{
 		return false;
-	}
-
-	/**
-	 * Calculate and check the MD5 hash of the supplied file.
-	 * @param file The file get the hash of.
-	 * @return
-	 * - #CR_MATCH if the MD5 hash matches
-	 * - #CR_MISMATCH if the MD5 does not match
-	 * - #CR_NO_FILE if the file misses
-	 */
-	static MD5File::ChecksumResult CheckMD5 (const MD5File *file)
-	{
-		return file->CheckMD5();
 	}
 
 	/**
