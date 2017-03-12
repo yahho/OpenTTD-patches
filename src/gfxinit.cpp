@@ -407,30 +407,28 @@ static bool check_md5 (FILE *f, const byte (&hash) [16], size_t size)
 	FILE *f = FioFOpenFile (file->filename, "rb", BASESET_DIR, &size);
 	if (f == NULL) return MD5File::CR_NO_FILE;
 
-	size_t max = GRFGetSizeOfDataSection(f);
+	size = min (size, GRFGetSizeOfDataSection (f));
 
-	FioFCloseFile(f);
+	fseek (f, 0, SEEK_SET);
 
-	return file->CheckMD5 (max);
+	return check_md5 (f, file->hash, size) ?
+			MD5File::CR_MATCH : MD5File::CR_MISMATCH;
 }
 
 
 /**
  * Calculate and check the MD5 hash of the supplied filename.
- * @param max_size Only calculate the hash for this many bytes from the file start.
  * @return
  * - #CR_MATCH if the MD5 hash matches
  * - #CR_MISMATCH if the MD5 does not match
  * - #CR_NO_FILE if the file misses
  */
-MD5File::ChecksumResult MD5File::CheckMD5 (size_t max_size) const
+MD5File::ChecksumResult MD5File::CheckMD5 (void) const
 {
 	size_t size;
 	FILE *f = FioFOpenFile (this->filename, "rb", BASESET_DIR, &size);
 
 	if (f == NULL) return CR_NO_FILE;
-
-	size = min(size, max_size);
 
 	return check_md5 (f, this->hash, size) ? CR_MATCH : CR_MISMATCH;
 }
