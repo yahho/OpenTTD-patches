@@ -368,6 +368,32 @@ bool GraphicsSet::FillSetDetails(IniFile *ini, const char *path, const char *ful
 }
 
 /**
+ * Calculate and check the MD5 hash of the supplied file.
+ * @param f The file to check.
+ * @param hash The hash to check against.
+ * @param size Use only this many bytes from the file.
+ * @return Whether the file matches the given hash.
+ */
+static bool check_md5 (FILE *f, const byte (&hash) [16], size_t size)
+{
+	Md5 checksum;
+	byte buffer[1024];
+
+	while (size != 0) {
+		size_t len = fread (buffer, 1, min (size, sizeof(buffer)), f);
+		if (len == 0) break;
+		size -= len;
+		checksum.Append (buffer, len);
+	}
+
+	FioFCloseFile(f);
+
+	byte digest[16];
+	checksum.Finish (digest);
+	return memcmp (hash, digest, sizeof(hash)) == 0;
+}
+
+/**
  * Calculate and check the MD5 hash of the supplied GRF.
  * @param file The file get the hash of.
  * @return
@@ -406,20 +432,7 @@ MD5File::ChecksumResult MD5File::CheckMD5 (size_t max_size) const
 
 	size = min(size, max_size);
 
-	Md5 checksum;
-	uint8 buffer[1024];
-	uint8 digest[16];
-	size_t len;
-
-	while ((len = fread(buffer, 1, (size > sizeof(buffer)) ? sizeof(buffer) : size, f)) != 0 && size != 0) {
-		size -= len;
-		checksum.Append(buffer, len);
-	}
-
-	FioFCloseFile(f);
-
-	checksum.Finish(digest);
-	return memcmp(this->hash, digest, sizeof(this->hash)) == 0 ? CR_MATCH : CR_MISMATCH;
+	return check_md5 (f, this->hash, size) ? CR_MATCH : CR_MISMATCH;
 }
 
 /** Names corresponding to the GraphicsFileType */
