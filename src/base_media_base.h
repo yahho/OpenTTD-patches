@@ -25,22 +25,23 @@
 /* Forward declare these; can't do 'struct X' in functions as older GCCs barf on that */
 struct ContentInfo;
 
-/** Structure holding filename and MD5 information about a single file */
-struct MD5File {
-	/** The result of a checksum check */
-	enum ChecksumResult {
-		CR_MATCH,    ///< The file did exist and the md5 checksum did match
-		CR_MISMATCH, ///< The file did exist, just the md5 checksum did not match
-		CR_NO_FILE,  ///< The file did not exist
-	};
-
-	const char *filename;        ///< filename
-	uint8 hash[16];              ///< md5 sum of the file
-	const char *missing_warning; ///< warning when this file is missing
-};
-
 /** Description of a single base set. */
 struct BaseSetDesc {
+public:
+	/** Structure holding filename and MD5 information about a single file */
+	struct FileDesc {
+		/** Actual status of this file. */
+		enum Status {
+			MATCH,    ///< The file did exist and the md5 checksum did match
+			MISMATCH, ///< The file did exist, just the md5 checksum did not match
+			MISSING,  ///< The file did not exist
+		};
+
+		const char *filename;        ///< filename
+		uint8 hash[16];              ///< md5 sum of the file
+		const char *missing_warning; ///< warning when this file is missing
+	};
+
 private:
 	typedef std::map <const char *, ttd_unique_free_ptr<char>, StringCompare> StringMap;
 
@@ -88,7 +89,7 @@ public:
 		const char *name, const char *type, const char *filename);
 
 	/* Calculate and check the MD5 hash of the supplied file. */
-	static MD5File::ChecksumResult CheckMD5 (const MD5File *file);
+	static FileDesc::Status CheckMD5 (const FileDesc *file);
 };
 
 /**
@@ -101,7 +102,7 @@ struct BaseSet : BaseSetDesc {
 	/** Number of files in this set */
 	static const size_t NUM_FILES = Tnum_files;
 
-	MD5File files[NUM_FILES];      ///< All files part of this set
+	FileDesc files[NUM_FILES];     ///< All files part of this set
 	uint found_files;              ///< Number of the files that could be found
 	uint valid_files;              ///< Number of the files that could be found and are valid
 
@@ -298,7 +299,7 @@ struct GraphicsSet : BaseSet<GraphicsSet, MAX_GFT> {
 		return (this->palette == PAL_DOS) && (other.palette != PAL_DOS);
 	}
 
-	static MD5File::ChecksumResult CheckMD5 (const MD5File *file);
+	static FileDesc::Status CheckMD5 (const FileDesc *file);
 };
 
 /** All data/functions related with replacing the base graphics. */

@@ -77,7 +77,7 @@ bool BaseSet<T, Tnum_files>::FillSetDetails (IniFile *ini, const char *path, con
 	const IniGroup *md5s   = ini->get_group ("md5s");
 	const IniGroup *origin = ini->get_group ("origin");
 	for (uint i = 0; i < Tnum_files; i++) {
-		MD5File *file = &this->files[i];
+		FileDesc *file = &this->files[i];
 		/* Find the filename first. */
 		item = files->find (T::file_names[i]);
 		if (item == NULL || (item->value == NULL && !allow_empty_filename)) {
@@ -133,17 +133,17 @@ bool BaseSet<T, Tnum_files>::FillSetDetails (IniFile *ini, const char *path, con
 		}
 
 		switch (T::CheckMD5 (file)) {
-			case MD5File::CR_MATCH:
+			case FileDesc::MATCH:
 				this->valid_files++;
 				this->found_files++;
 				break;
 
-			case MD5File::CR_MISMATCH:
+			case FileDesc::MISMATCH:
 				DEBUG(grf, 1, "MD5 checksum mismatch for: %s (in %s)", filename, full_filename);
 				this->found_files++;
 				break;
 
-			case MD5File::CR_NO_FILE:
+			case FileDesc::MISSING:
 				DEBUG(grf, 1, "The file %s specified in %s is missing", filename, full_filename);
 				break;
 		}

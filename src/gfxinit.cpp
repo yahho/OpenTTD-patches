@@ -131,8 +131,13 @@ bool BaseGraphics::SetSet (const char *name)
 		/* Not all files were loaded successfully, see which ones */
 		sstring<1024> error_msg;
 		for (uint i = 0; i < GraphicsSet::NUM_FILES; i++) {
-			MD5File::ChecksumResult res = GraphicsSet::CheckMD5 (&used_set->files[i]);
-			if (res != MD5File::CR_MATCH) error_msg.append_fmt ("\t%s is %s (%s)\n", used_set->files[i].filename, res == MD5File::CR_MISMATCH ? "corrupt" : "missing", used_set->files[i].missing_warning);
+			GraphicsSet::FileDesc::Status status = GraphicsSet::CheckMD5 (&used_set->files[i]);
+			if (status != GraphicsSet::FileDesc::MATCH) {
+				error_msg.append_fmt ("\t%s is %s (%s)\n",
+						used_set->files[i].filename,
+						status == GraphicsSet::FileDesc::MISMATCH ? "corrupt" : "missing",
+						used_set->files[i].missing_warning);
+			}
 		}
 		ShowInfoF ("Trying to load graphics set '%s', but it is incomplete. The game will probably not run correctly until you properly install this set or select another one. See section 4.1 of readme.txt.\n\nThe following files are corrupted or missing:\n%s", used_set->get_name(), error_msg.c_str());
 	}
@@ -158,7 +163,7 @@ bool BaseSounds::SetSet (const char *name)
 		 * sound file. */
 		ShowInfoF ("Trying to load sound set '%s', but it is incomplete. The game will probably not run correctly until you properly install this set or select another one. See section 4.1 of readme.txt.\n\nThe following files are corrupted or missing:\n\t%s is %s (%s)\n",
 				sounds_set->get_name(), sounds_set->files->filename,
-				SoundsSet::CheckMD5 (sounds_set->files) == MD5File::CR_MISMATCH ? "corrupt" : "missing",
+				SoundsSet::CheckMD5 (sounds_set->files) == SoundsSet::FileDesc::MISMATCH ? "corrupt" : "missing",
 				sounds_set->files->missing_warning);
 	}
 
@@ -397,41 +402,41 @@ static bool check_md5 (FILE *f, const byte (&hash) [16], size_t size)
  * Calculate and check the MD5 hash of the supplied GRF.
  * @param file The file get the hash of.
  * @return
- * - #CR_MATCH if the MD5 hash matches
- * - #CR_MISMATCH if the MD5 does not match
- * - #CR_NO_FILE if the file misses
+ * - #MATCH if the MD5 hash matches
+ * - #MISMATCH if the MD5 does not match
+ * - #MISSING if the file misses
  */
-/* static */ MD5File::ChecksumResult GraphicsSet::CheckMD5 (const MD5File *file)
+/* static */ GraphicsSet::FileDesc::Status GraphicsSet::CheckMD5 (const FileDesc *file)
 {
 	size_t size = 0;
 	FILE *f = FioFOpenFile (file->filename, "rb", BASESET_DIR, &size);
-	if (f == NULL) return MD5File::CR_NO_FILE;
+	if (f == NULL) return FileDesc::MISSING;
 
 	size = min (size, GRFGetSizeOfDataSection (f));
 
 	fseek (f, 0, SEEK_SET);
 
 	return check_md5 (f, file->hash, size) ?
-			MD5File::CR_MATCH : MD5File::CR_MISMATCH;
+			FileDesc::MATCH : FileDesc::MISMATCH;
 }
 
 /**
  * Calculate and check the MD5 hash of the supplied file.
  * @param file The file get the hash of.
  * @return
- * - #CR_MATCH if the MD5 hash matches
- * - #CR_MISMATCH if the MD5 does not match
- * - #CR_NO_FILE if the file misses
+ * - #MATCH if the MD5 hash matches
+ * - #MISMATCH if the MD5 does not match
+ * - #MISSING if the file misses
  */
-MD5File::ChecksumResult BaseSetDesc::CheckMD5 (const MD5File *file)
+BaseSetDesc::FileDesc::Status BaseSetDesc::CheckMD5 (const FileDesc *file)
 {
 	size_t size;
 	FILE *f = FioFOpenFile (file->filename, "rb", BASESET_DIR, &size);
 
-	if (f == NULL) return MD5File::CR_NO_FILE;
+	if (f == NULL) return FileDesc::MISSING;
 
 	return check_md5 (f, file->hash, size) ?
-			MD5File::CR_MATCH : MD5File::CR_MISMATCH;
+			FileDesc::MATCH : FileDesc::MISMATCH;
 }
 
 /** Names corresponding to the GraphicsFileType */
