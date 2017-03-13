@@ -131,7 +131,7 @@ bool BaseGraphics::SetSet (const char *name)
 		/* Not all files were loaded successfully, see which ones */
 		sstring<1024> error_msg;
 		for (uint i = 0; i < GraphicsSet::NUM_FILES; i++) {
-			GraphicsSet::FileDesc::Status status = GraphicsSet::CheckMD5 (&used_set->files[i]);
+			GraphicsSet::FileDesc::Status status = used_set->files[i].status;
 			if (status != GraphicsSet::FileDesc::MATCH) {
 				error_msg.append_fmt ("\t%s is %s (%s)\n",
 						used_set->files[i].filename,
@@ -163,7 +163,7 @@ bool BaseSounds::SetSet (const char *name)
 		 * sound file. */
 		ShowInfoF ("Trying to load sound set '%s', but it is incomplete. The game will probably not run correctly until you properly install this set or select another one. See section 4.1 of readme.txt.\n\nThe following files are corrupted or missing:\n\t%s is %s (%s)\n",
 				sounds_set->get_name(), sounds_set->files->filename,
-				SoundsSet::CheckMD5 (sounds_set->files) == SoundsSet::FileDesc::MISMATCH ? "corrupt" : "missing",
+				sounds_set->files->status == SoundsSet::FileDesc::MISMATCH ? "corrupt" : "missing",
 				sounds_set->files->missing_warning);
 	}
 

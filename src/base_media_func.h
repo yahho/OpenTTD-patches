@@ -89,6 +89,7 @@ bool BaseSet<T, Tnum_files>::FillSetDetails (IniFile *ini, const char *path, con
 		if (filename == NULL) {
 			file->filename = NULL;
 			/* If we list no file, that file must be valid */
+			file->status = FileDesc::MATCH;
 			this->valid_files++;
 			this->found_files++;
 			continue;
@@ -132,7 +133,9 @@ bool BaseSet<T, Tnum_files>::FillSetDetails (IniFile *ini, const char *path, con
 			file->missing_warning = xstrdup(item->value);
 		}
 
-		switch (T::CheckMD5 (file)) {
+		FileDesc::Status status = T::CheckMD5 (file);
+		file->status = status;
+		switch (status) {
 			case FileDesc::MATCH:
 				this->valid_files++;
 				this->found_files++;

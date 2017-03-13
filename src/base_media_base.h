@@ -40,6 +40,7 @@ public:
 		const char *filename;        ///< filename
 		uint8 hash[16];              ///< md5 sum of the file
 		const char *missing_warning; ///< warning when this file is missing
+		Status status;               ///< status of this file
 	};
 
 private:
