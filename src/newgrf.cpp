@@ -9280,17 +9280,13 @@ void LoadNewGRF(uint load_index, uint file_index)
 			 * are ignored, because they only need to be
 			 * processed once at initialization.  */
 
+			_cur.grffile = GetFileByFilename (c->filename);
 			if (stage == GLS_LABELSCAN) {
-				GRFFile *newfile = GetFileByFilename (c->filename);
-				if (newfile == NULL) {
-					newfile = new GRFFile (c);
-					*_grf_files.Append() = newfile;
+				if (_cur.grffile == NULL) {
+					_cur.grffile = new GRFFile (c);
+					*_grf_files.Append() = _cur.grffile;
 				}
-				_cur.grffile = newfile;
-			}
-
-			if (stage != GLS_LABELSCAN) {
-				_cur.grffile = GetFileByFilename (c->filename);
+			} else {
 				if (_cur.grffile == NULL) usererror ("File '%s' lost in cache.\n", c->filename);
 				if (stage == GLS_RESERVE && c->status != GCS_INITIALISED) return;
 				if (stage == GLS_ACTIVATION && !HasBit(c->flags, GCF_RESERVED)) return;
