@@ -8885,22 +8885,6 @@ void LoadNewGRFFile(GRFConfig *config, uint file_index, GrfLoadingStage stage, S
 {
 	const char *filename = config->filename;
 
-	/* A .grf file is activated only if it was active when the game was
-	 * started.  If a game is loaded, only its active .grfs will be
-	 * reactivated, unless "loadallgraphics on" is used.  A .grf file is
-	 * considered active if its action 8 has been processed, i.e. its
-	 * action 8 hasn't been skipped using an action 7.
-	 *
-	 * During activation, only actions 0, 1, 2, 3, 4, 5, 7, 8, 9, 0A and 0B are
-	 * carried out.  All others are ignored, because they only need to be
-	 * processed once at initialization.  */
-	if (stage != GLS_FILESCAN && stage != GLS_SAFETYSCAN && stage != GLS_LABELSCAN) {
-		_cur.grffile = GetFileByFilename(filename);
-		if (_cur.grffile == NULL) usererror("File '%s' lost in cache.\n", filename);
-		if (stage == GLS_RESERVE && config->status != GCS_INITIALISED) return;
-		if (stage == GLS_ACTIVATION && !HasBit(config->flags, GCF_RESERVED)) return;
-	}
-
 	if (file_index > LAST_GRF_SLOT) {
 		DEBUG(grf, 0, "'%s' is not loaded as the maximum number of GRFs has been reached", filename);
 		config->status = GCS_DISABLED;
@@ -9300,7 +9284,28 @@ void LoadNewGRF(uint load_index, uint file_index)
 				continue;
 			}
 
+			/* A .grf file is activated only if it was active
+			 * when the game was started.  If a game is loaded,
+			 * only its active .grfs will be reactivated, unless
+			 * "loadallgraphics on" is used.  A .grf file is
+			 * considered active if its action 8 has been
+			 * processed, i.e. its action 8 hasn't been skipped
+			 * using an action 7.
+			 *
+			 * During activation, only actions 0, 1, 2, 3, 4, 5,
+			 * 7, 8, 9, 0A and 0B are carried out.  All others
+			 * are ignored, because they only need to be
+			 * processed once at initialization.  */
+
 			if (stage == GLS_LABELSCAN) InitNewGRFFile(c);
+
+			if (stage != GLS_LABELSCAN) {
+				_cur.grffile = GetFileByFilename (c->filename);
+				if (_cur.grffile == NULL) usererror ("File '%s' lost in cache.\n", c->filename);
+				if (stage == GLS_RESERVE && c->status != GCS_INITIALISED) return;
+				if (stage == GLS_ACTIVATION && !HasBit(c->flags, GCF_RESERVED)) return;
+			}
+
 			LoadNewGRFFile(c, slot++, stage, subdir);
 			if (stage == GLS_RESERVE) {
 				SetBit(c->flags, GCF_RESERVED);
