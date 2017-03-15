@@ -8221,23 +8221,6 @@ static void BuildCargoTranslationMap()
 }
 
 /**
- * Prepare loading a NewGRF file with its config
- * @param config The NewGRF configuration struct with name, id, parameters and alike.
- */
-static void InitNewGRFFile(const GRFConfig *config)
-{
-	GRFFile *newfile = GetFileByFilename(config->filename);
-	if (newfile != NULL) {
-		/* We already loaded it once. */
-		_cur.grffile = newfile;
-		return;
-	}
-
-	newfile = new GRFFile(config);
-	*_grf_files.Append() = _cur.grffile = newfile;
-}
-
-/**
  * Constructor for GRFFile
  * @param config GRFConfig to copy name, grfid and parameters from.
  */
@@ -9297,7 +9280,14 @@ void LoadNewGRF(uint load_index, uint file_index)
 			 * are ignored, because they only need to be
 			 * processed once at initialization.  */
 
-			if (stage == GLS_LABELSCAN) InitNewGRFFile(c);
+			if (stage == GLS_LABELSCAN) {
+				GRFFile *newfile = GetFileByFilename (c->filename);
+				if (newfile == NULL) {
+					newfile = new GRFFile (c);
+					*_grf_files.Append() = newfile;
+				}
+				_cur.grffile = newfile;
+			}
 
 			if (stage != GLS_LABELSCAN) {
 				_cur.grffile = GetFileByFilename (c->filename);
