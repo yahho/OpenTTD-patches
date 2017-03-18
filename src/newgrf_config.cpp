@@ -386,6 +386,7 @@ bool FillGRFDetails(GRFConfig *config, bool is_static, Subdirectory subdir)
 	}
 
 	/* Find and load the Action 8 information */
+	assert_compile (CONFIG_SLOT < MAX_FILE_SLOTS);
 	LoadNewGRFFile(config, CONFIG_SLOT, GLS_FILESCAN, subdir);
 	config->SetSuitablePalette();
 	config->FinalizeParameterInfo();
