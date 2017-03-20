@@ -1167,10 +1167,10 @@ struct BuildVehicleWindow : Window {
 
 		/* and then sort engines */
 		_engine_sort_direction = this->descending_sort_order;
-		EngList_SortPartial(&this->eng_list, _engine_sort_functions[0][this->sort_criteria], 0, num_engines);
+		this->eng_list.SmallVector <EngineID, 32>::Sort (_engine_sort_functions[0][this->sort_criteria], 0, num_engines);
 
 		/* and finally sort wagons */
-		EngList_SortPartial(&this->eng_list, _engine_sort_functions[0][this->sort_criteria], num_engines, num_wagons);
+		this->eng_list.SmallVector <EngineID, 32>::Sort (_engine_sort_functions[0][this->sort_criteria], num_engines, num_wagons);
 	}
 
 	/* Figure out what road vehicle EngineIDs to put in the list */

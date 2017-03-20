@@ -330,16 +330,3 @@ void EngList_Sort(GUIEngineList *el, EngList_SortTypeFunction compare)
 {
 	el->SmallVector <EngineID, 32>::Sort (compare);
 }
-
-/**
- * Sort selected range of items (on indices @ <begin, begin+num_items-1>)
- * @param el list to be sorted
- * @param compare function for evaluation of the quicksort
- * @param begin start of sorting
- * @param num_items count of items to be sorted
- */
-void EngList_SortPartial(GUIEngineList *el, EngList_SortTypeFunction compare, uint begin, uint num_items)
-{
-	el->SmallVector <EngineID, 32>::Sort (compare, begin, num_items);
-}
-
