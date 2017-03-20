@@ -192,7 +192,7 @@ void BaseVehicleListWindow::SortVehicleList()
 void DepotSortList(VehicleList *list)
 {
 	if (list->Length() < 2) return;
-	QSortT(list->Begin(), list->Length(), &VehicleNumberSorter);
+	list->Sort (&VehicleNumberSorter);
 }
 
 /** Maximum number of refit cycles we try, to prevent infinite loops. And we store only a byte anyway */

@@ -1258,7 +1258,7 @@ void CommitVehicleListOrderChanges()
 	FOR_ALL_ENGINES(e) {
 		*ordering.Append() = e->index;
 	}
-	QSortT(ordering.Begin(), ordering.Length(), EnginePreSort);
+	ordering.Sort (EnginePreSort);
 
 	/* Apply Insertion-Sort operations */
 	const ListOrderChange *end = _list_order_changes.End();

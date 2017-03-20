@@ -218,7 +218,7 @@ static void SortSaveGameList(FileList &file_list)
 	}
 
 	uint s_amount = file_list.Length() - sort_start - sort_end;
-	QSortT(file_list.Get(sort_start), s_amount, CompareFiosItems);
+	file_list.files.Sort (CompareFiosItems, sort_start, s_amount);
 }
 
 struct SaveLoadWindow : public Window {
