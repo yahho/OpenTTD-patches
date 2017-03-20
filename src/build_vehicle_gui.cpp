@@ -1163,7 +1163,7 @@ struct BuildVehicleWindow : Window {
 
 		/* make engines first, and then wagons, sorted by selected sort_criteria */
 		_engine_sort_direction = false;
-		EngList_Sort(&this->eng_list, TrainEnginesThenWagonsSorter);
+		this->eng_list.SmallVector <EngineID, 32>::Sort (TrainEnginesThenWagonsSorter);
 
 		/* and then sort engines */
 		_engine_sort_direction = this->descending_sort_order;
@@ -1264,7 +1264,7 @@ struct BuildVehicleWindow : Window {
 		this->FilterEngineList();
 
 		_engine_sort_direction = this->descending_sort_order;
-		EngList_Sort(&this->eng_list, _engine_sort_functions[this->vehicle_type][this->sort_criteria]);
+		this->eng_list.SmallVector <EngineID, 32>::Sort (_engine_sort_functions[this->vehicle_type][this->sort_criteria]);
 
 		this->eng_list.Compact();
 		this->eng_list.RebuildDone();

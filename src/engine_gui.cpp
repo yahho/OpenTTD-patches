@@ -320,13 +320,3 @@ void DrawVehicleEngine (BlitArea *dpi, int left, int right, int preferred_x,
 		default: NOT_REACHED();
 	}
 }
-
-/**
- * Sort all items using quick sort and given 'CompareItems' function
- * @param el list to be sorted
- * @param compare function for evaluation of the quicksort
- */
-void EngList_Sort(GUIEngineList *el, EngList_SortTypeFunction compare)
-{
-	el->SmallVector <EngineID, 32>::Sort (compare);
-}

@@ -20,7 +20,6 @@
 typedef GUIList<EngineID, CargoID> GUIEngineList;
 
 typedef int CDECL EngList_SortTypeFunction(const EngineID*, const EngineID*); ///< argument type for #EngList_Sort.
-void EngList_Sort(GUIEngineList *el, EngList_SortTypeFunction compare);
 
 StringID GetEngineCategoryName(EngineID engine);
 StringID GetEngineInfoString(EngineID engine);
