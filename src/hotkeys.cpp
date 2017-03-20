@@ -263,7 +263,7 @@ int HotkeyList::CheckMatch(uint16 keycode, bool global_only) const
 /** Load the hotkeys from the config file */
 void LoadHotkeysFromConfig()
 {
-	IniFile ini (_hotkeys_file, BASE_DIR);
+	IniFile ini (_hotkeys_file, NO_DIRECTORY);
 
 	std::vector<HotkeyList *>::iterator it = _hotkey_lists->begin();
 	for (; it != _hotkey_lists->end(); it++) {
@@ -274,7 +274,7 @@ void LoadHotkeysFromConfig()
 /** Save the hotkeys to the config file */
 void SaveHotkeysToConfig()
 {
-	IniFile ini (_hotkeys_file, BASE_DIR);
+	IniFile ini (_hotkeys_file, NO_DIRECTORY);
 
 	std::vector<HotkeyList *>::const_iterator it = _hotkey_lists->begin();
 	for (; it != _hotkey_lists->end(); it++) {

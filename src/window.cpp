@@ -148,7 +148,7 @@ char *_windows_file;
  */
 void WindowDesc::LoadFromConfig()
 {
-	IniFile ini (_windows_file, BASE_DIR);
+	IniFile ini (_windows_file, NO_DIRECTORY);
 	for (WindowPrefsSet::iterator it = _window_prefs->begin(); it != _window_prefs->end(); ++it) {
 		IniLoadWindowSettings (&ini, (*it)->key, *it);
 	}
@@ -159,7 +159,7 @@ void WindowDesc::LoadFromConfig()
  */
 void WindowDesc::SaveToConfig()
 {
-	IniFile ini (_windows_file, BASE_DIR);
+	IniFile ini (_windows_file, NO_DIRECTORY);
 	for (WindowPrefsSet::iterator it = _window_prefs->begin(); it != _window_prefs->end(); ++it) {
 		IniSaveWindowSettings (&ini, (*it)->key, *it);
 	}

@@ -1645,7 +1645,7 @@ struct ConfigIniFile : IniFile {
 };
 
 ConfigIniFile::ConfigIniFile()
-	: IniFile (_config_file, BASE_DIR, _list_group_names)
+	: IniFile (_config_file, NO_DIRECTORY, _list_group_names)
 {
 }
 
