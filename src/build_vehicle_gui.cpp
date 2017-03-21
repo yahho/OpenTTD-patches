@@ -871,21 +871,17 @@ int DrawVehiclePurchaseInfo (BlitArea *dpi, int left, int right, int y, EngineID
  * @param l The left most location of the list
  * @param r The right most location of the list
  * @param y The top most location of the list
- * @param eng_list What engines to draw
- * @param min where to start in the list
- * @param max where in the list to end
+ * @param eng What engines to draw
+ * @param num Number of engines to draw
  * @param selected_id what engine to highlight as selected, if any
  * @param show_count Whether to show the amount of engines or not
  * @param selected_group the group to list the engines of
  */
 void DrawEngineList (VehicleType type, BlitArea *dpi, int l, int r, int y,
-	const GUIEngineList *eng_list, uint16 min, uint16 max,
+	const EngineID *eng, uint num,
 	EngineID selected_id, bool show_count, GroupID selected_group)
 {
 	static const int sprite_y_offsets[] = { -1, -1, -2, -2 };
-
-	/* Obligatory sanity checks! */
-	assert(max <= eng_list->Length());
 
 	bool rtl = _current_text_dir == TD_RTL;
 	int step_size = GetEngineListHeight(type);
@@ -914,8 +910,8 @@ void DrawEngineList (VehicleType type, BlitArea *dpi, int l, int r, int y,
 	int small_text_y_offset  = step_size - FONT_HEIGHT_SMALL - WD_FRAMERECT_BOTTOM - 1;
 	int replace_icon_y_offset = (step_size - replace_icon.height) / 2 - 1;
 
-	for (; min < max; min++, y += step_size) {
-		const EngineID engine = (*eng_list)[min];
+	for (; num-- > 0; eng++, y += step_size) {
+		const EngineID engine = *eng;
 		/* Note: num_engines is only used in the autoreplace GUI, so it is correct to use _local_company here. */
 		const uint num_engines = GetGroupNumEngines(_local_company, selected_group, engine);
 
@@ -1420,9 +1416,18 @@ struct BuildVehicleWindow : Window {
 	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
 	{
 		switch (widget) {
-			case WID_BV_LIST:
-				DrawEngineList (this->vehicle_type, dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP, &this->eng_list, this->vscroll->GetPosition(), min (this->vscroll->GetPosition() + this->vscroll->GetCapacity(), this->eng_list.Length()), this->sel_engine, false, DEFAULT_GROUP);
+			case WID_BV_LIST: {
+				uint i = this->vscroll->GetPosition();
+				uint j = min (i + this->vscroll->GetCapacity(), this->eng_list.Length());
+				DrawEngineList (this->vehicle_type, dpi,
+						r.left + WD_FRAMERECT_LEFT,
+						r.right - WD_FRAMERECT_RIGHT,
+						r.top + WD_FRAMERECT_TOP,
+						this->eng_list.Get(i), j - i,
+						this->sel_engine, false,
+						DEFAULT_GROUP);
 				break;
+			}
 
 			case WID_BV_SORT_ASCENDING_DESCENDING:
 				this->DrawSortButtonState (dpi, WID_BV_SORT_ASCENDING_DESCENDING, this->descending_sort_order ? SBS_DOWN : SBS_UP);
