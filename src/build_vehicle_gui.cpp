@@ -40,6 +40,8 @@
 
 #include "table/strings.h"
 
+typedef GUIList <EngineID, CargoID> GUIEngineList;
+
 /**
  * Get the height of a single 'entry' in the engine lists.
  * @param type the vehicle type to get the height of

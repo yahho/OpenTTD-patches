@@ -17,8 +17,6 @@
 #include "gfx_func.h"
 #include "vehicle_type.h"
 
-typedef GUIList<EngineID, CargoID> GUIEngineList;
-
 typedef int CDECL EngList_SortTypeFunction(const EngineID*, const EngineID*); ///< argument type for #EngList_Sort.
 
 StringID GetEngineCategoryName(EngineID engine);
