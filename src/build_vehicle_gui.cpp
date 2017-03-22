@@ -1053,7 +1053,7 @@ struct BuildVehicleWindow : Window {
 	}
 
 	/** Populate the filter list and set the cargo filter criteria. */
-	void SetCargoFilterArray()
+	void OnInit()
 	{
 		uint filter_items = 0;
 
@@ -1094,11 +1094,6 @@ struct BuildVehicleWindow : Window {
 
 		this->eng_list.SetFilterFuncs(_filter_funcs);
 		this->eng_list.SetFilterState(this->cargo_filter[this->cargo_filter_criteria] != CF_ANY);
-	}
-
-	void OnInit()
-	{
-		this->SetCargoFilterArray();
 	}
 
 	/** Filter the engine list against the currently selected cargo filter */
