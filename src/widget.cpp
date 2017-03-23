@@ -222,7 +222,8 @@ static inline void DrawImageButtons (BlitArea *dpi, const Rect &r,
 	DrawFrameRect (dpi, r.left, r.top, r.right, r.bottom, colour, (clicked) ? FR_LOWERED : FR_NONE);
 
 	if (var && clicked) img++; // Show different image when clicked for #WWT_IMGBTN_2.
-	DrawSprite (dpi, img, PAL_NONE, r.left + WD_IMGBTN_LEFT, r.top + WD_IMGBTN_TOP);
+	Dimension d = GetSpriteSize(img);
+	DrawSprite (dpi, img, PAL_NONE, CenterBounds(r.left, r.right, d.width), CenterBounds(r.top, r.bottom, d.height));
 }
 
 /**
@@ -2372,28 +2373,24 @@ void NWidgetLeaf::Draw (BlitArea *dpi, const Window *w)
 		case WWT_SHADEBOX: {
 			assert(this->widget_data == 0);
 			bool clicked = w->IsShaded();
-			DrawFrameRect (dpi, r.left, r.top, r.right, r.bottom, this->colour, clicked ? FR_LOWERED : FR_NONE);
-			DrawSprite (dpi, clicked ? SPR_WINDOW_SHADE : SPR_WINDOW_UNSHADE, PAL_NONE, r.left + WD_SHADEBOX_LEFT, r.top + WD_SHADEBOX_TOP);
+			DrawImageButtons (dpi, r, this->colour, clicked ? SPR_WINDOW_SHADE : SPR_WINDOW_UNSHADE, clicked);
 			break;
 		}
 
 		case WWT_DEBUGBOX:
-			DrawFrameRect (dpi, r.left, r.top, r.right, r.bottom, this->colour, clicked ? FR_LOWERED : FR_NONE);
-			DrawSprite (dpi, SPR_WINDOW_DEBUG, PAL_NONE, r.left + WD_DEBUGBOX_LEFT, r.top + WD_DEBUGBOX_TOP);
+			DrawImageButtons (dpi, r, this->colour, SPR_WINDOW_DEBUG, clicked);
 			break;
 
 		case WWT_STICKYBOX: {
 			assert(this->widget_data == 0);
 			bool clicked = !!(w->flags & WF_STICKY);
-			DrawFrameRect (dpi, r.left, r.top, r.right, r.bottom, this->colour, clicked ? FR_LOWERED : FR_NONE);
-			DrawSprite (dpi, clicked ? SPR_PIN_UP : SPR_PIN_DOWN, PAL_NONE, r.left + WD_STICKYBOX_LEFT, r.top + WD_STICKYBOX_TOP);
+			DrawImageButtons (dpi, r, this->colour, clicked ? SPR_PIN_UP : SPR_PIN_DOWN, clicked);
 			break;
 		}
 
 		case WWT_DEFSIZEBOX:
 			assert(this->widget_data == 0);
-			DrawFrameRect (dpi, r.left, r.top, r.right, r.bottom, this->colour, clicked ? FR_LOWERED : FR_NONE);
-			DrawSprite (dpi, SPR_WINDOW_DEFSIZE, PAL_NONE, r.left + WD_DEFSIZEBOX_LEFT, r.top + WD_DEFSIZEBOX_TOP);
+			DrawImageButtons (dpi, r, this->colour, SPR_WINDOW_DEFSIZE, clicked);
 			break;
 
 		case WWT_RESIZEBOX: {
@@ -2412,7 +2409,9 @@ void NWidgetLeaf::Draw (BlitArea *dpi, const Window *w)
 		case WWT_CLOSEBOX: {
 			Colours colour = this->colour;
 			if (colour != COLOUR_WHITE) DrawFrameRect (dpi, r.left, r.top, r.right, r.bottom, colour, FR_NONE);
-			DrawSprite (dpi, SPR_CLOSEBOX, (colour != COLOUR_WHITE ? TC_BLACK : TC_SILVER) | (1 << PALETTE_TEXT_RECOLOUR), r.left + WD_CLOSEBOX_LEFT, r.top + WD_CLOSEBOX_TOP);
+			Dimension d = GetSpriteSize(SPR_CLOSEBOX);
+			int s = UnScaleGUI(1); /* Offset to account for shadow of SPR_CLOSEBOX */
+			DrawSprite (dpi, SPR_CLOSEBOX, (colour != COLOUR_WHITE ? TC_BLACK : TC_SILVER) | (1 << PALETTE_TEXT_RECOLOUR), CenterBounds(r.left, r.right, d.width - s), CenterBounds(r.top, r.bottom, d.height - s));
 			break;
 		}
 
