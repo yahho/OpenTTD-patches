@@ -359,7 +359,6 @@ class NetworkContentListWindow : public Window, ContentCallback {
 	static const uint EDITBOX_MAX_SIZE   =  50; ///< Maximum size of the editbox in characters.
 
 	static Listing last_sorting;     ///< The last sorting setting.
-	static Filtering last_filtering; ///< The last filtering setting.
 	static GUIContentList::SortFunction * const sorter_funcs[];   ///< Sorter functions
 	static GUIContentList::FilterFunction * const filter_funcs[]; ///< Filter functions.
 	GUIContentList content;      ///< List with content
@@ -596,7 +595,6 @@ public:
 
 		_network_content_client.AddCallback(this);
 		this->content.SetListing(this->last_sorting);
-		this->content.SetFiltering(this->last_filtering);
 		this->content.SetSortFuncs(this->sorter_funcs);
 		this->content.SetFilterFuncs(this->filter_funcs);
 		this->UpdateFilterState();
@@ -1068,7 +1066,6 @@ public:
 };
 
 Listing NetworkContentListWindow::last_sorting = {false, 1};
-Filtering NetworkContentListWindow::last_filtering = {false, 0};
 
 NetworkContentListWindow::GUIContentList::SortFunction * const NetworkContentListWindow::sorter_funcs[] = {
 	&StateSorter,
