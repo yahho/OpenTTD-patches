@@ -180,21 +180,6 @@ public:
 	}
 
 	/**
-	 * Import filter conditions
-	 *
-	 * @param f The filter conditions we want to use
-	 */
-	void SetFiltering(Filtering f)
-	{
-		if (f.state) {
-			SETBITS(this->flags, VL_FILTER);
-		} else {
-			CLRBITS(this->flags, VL_FILTER);
-		}
-		this->filter_type = f.criteria;
-	}
-
-	/**
 	 * Check if a resort is needed next loop
 	 *  If used the resort timer will decrease every call
 	 *  till 0. If 0 reached the resort bit will be set and
