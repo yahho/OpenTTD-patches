@@ -554,6 +554,7 @@ struct GameOptionsWindow : Window {
 				_gui_zoom = (ZoomLevel)(ZOOM_LVL_OUT_4X - index);
 				UpdateCursorSize();
 				LoadStringWidthTable();
+				UpdateAllVirtCoords();
 				break;
 
 			case WID_GO_SCREENSHOT_DROPDOWN: // Change screenshot format
