@@ -623,7 +623,6 @@ struct NewGRFWindow : public Window, NewGRFScanCallback {
 	static const uint EDITBOX_MAX_SIZE   =  50;
 
 	static Listing   last_sorting;   ///< Default sorting of #GUIGRFConfigList.
-	static Filtering last_filtering; ///< Default filtering of #GUIGRFConfigList.
 	static GUIGRFConfigList::SortFunction   * const sorter_funcs[]; ///< Sort functions of the #GUIGRFConfigList.
 	static GUIGRFConfigList::FilterFunction * const filter_funcs[]; ///< Filter functions of the #GUIGRFConfigList.
 
@@ -674,7 +673,6 @@ struct NewGRFWindow : public Window, NewGRFScanCallback {
 		}
 
 		this->avails.SetListing(this->last_sorting);
-		this->avails.SetFiltering(this->last_filtering);
 		this->avails.SetSortFuncs(this->sorter_funcs);
 		this->avails.SetFilterFuncs(this->filter_funcs);
 		this->avails.ForceRebuild();
@@ -1573,7 +1571,6 @@ void ShowMissingContentWindow(const GRFConfig *list)
 #endif
 
 Listing NewGRFWindow::last_sorting     = {false, 0};
-Filtering NewGRFWindow::last_filtering = {false, 0};
 
 NewGRFWindow::GUIGRFConfigList::SortFunction * const NewGRFWindow::sorter_funcs[] = {
 	&NameSorter,
