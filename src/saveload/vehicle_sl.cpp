@@ -433,6 +433,8 @@ void AfterLoadVehicles(const SavegameTypeVersion *stv)
 	FOR_ALL_VEHICLES(v) {
 		assert(v->first != NULL);
 
+		v->trip_occupancy = CalcPercentVehicleFilled(v, NULL);
+
 		switch (v->type) {
 			case VEH_TRAIN: {
 				Train *t = Train::From(v);
