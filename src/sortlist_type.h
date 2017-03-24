@@ -54,7 +54,6 @@ public:
 
 protected:
 	SortFunction * const *sort_func_list;     ///< the sort criteria functions
-	FilterFunction * const *filter_func_list; ///< the filter criteria functions
 	SortListFlags flags;                      ///< used to control sorting/resorting/etc.
 	uint8 sort_type;                          ///< what criteria to sort on
 	uint8 filter_type;                        ///< what criteria to filter on
@@ -82,7 +81,6 @@ protected:
 public:
 	GUIList() :
 		sort_func_list(NULL),
-		filter_func_list(NULL),
 		flags(VL_FIRST_SORT),
 		sort_type(0),
 		filter_type(0),
@@ -333,28 +331,6 @@ public:
 		}
 
 		return changed;
-	}
-
-	/**
-	 * Hand the array of filter function pointers to the sort list
-	 *
-	 * @param n_funcs The pointer to the first filter func
-	 */
-	void SetFilterFuncs(FilterFunction * const *n_funcs)
-	{
-		this->filter_func_list = n_funcs;
-	}
-
-	/**
-	 * Filter the data with the currently selected filter.
-	 *
-	 * @param filter_data Additional data passed to the filter function.
-	 * @return true if the list has been altered by filtering
-	 */
-	bool Filter(F filter_data)
-	{
-		if (this->filter_func_list == NULL) return false;
-		return this->Filter(this->filter_func_list[this->filter_type], filter_data);
 	}
 
 	/**

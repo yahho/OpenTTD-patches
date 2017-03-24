@@ -624,7 +624,6 @@ struct NewGRFWindow : public Window, NewGRFScanCallback {
 
 	static Listing   last_sorting;   ///< Default sorting of #GUIGRFConfigList.
 	static GUIGRFConfigList::SortFunction   * const sorter_funcs[]; ///< Sort functions of the #GUIGRFConfigList.
-	static GUIGRFConfigList::FilterFunction * const filter_funcs[]; ///< Filter functions of the #GUIGRFConfigList.
 
 	GUIGRFConfigList avails;    ///< Available (non-active) grfs.
 	const GRFConfig *avail_sel; ///< Currently selected available grf. \c NULL is none is selected.
@@ -674,7 +673,6 @@ struct NewGRFWindow : public Window, NewGRFScanCallback {
 
 		this->avails.SetListing(this->last_sorting);
 		this->avails.SetSortFuncs(this->sorter_funcs);
-		this->avails.SetFilterFuncs(this->filter_funcs);
 		this->avails.ForceRebuild();
 
 		this->OnInvalidateData(GOID_NEWGRF_LIST_EDITED);
@@ -1487,7 +1485,7 @@ private:
 			}
 		}
 
-		this->avails.Filter(this->string_filter);
+		this->avails.Filter (&TagNameFilter, this->string_filter);
 		this->avails.Compact();
 		this->avails.RebuildDone();
 		this->avails.Sort();
@@ -1574,10 +1572,6 @@ Listing NewGRFWindow::last_sorting     = {false, 0};
 
 NewGRFWindow::GUIGRFConfigList::SortFunction * const NewGRFWindow::sorter_funcs[] = {
 	&NameSorter,
-};
-
-NewGRFWindow::GUIGRFConfigList::FilterFunction * const NewGRFWindow::filter_funcs[] = {
-	&TagNameFilter,
 };
 
 /**

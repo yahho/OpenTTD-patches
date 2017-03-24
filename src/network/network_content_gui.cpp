@@ -360,7 +360,6 @@ class NetworkContentListWindow : public Window, ContentCallback {
 
 	static Listing last_sorting;     ///< The last sorting setting.
 	static GUIContentList::SortFunction * const sorter_funcs[];   ///< Sorter functions
-	static GUIContentList::FilterFunction * const filter_funcs[]; ///< Filter functions.
 	GUIContentList content;      ///< List with content
 	bool auto_select;            ///< Automatically select all content when the meta-data becomes available
 	ContentListFilterData filter_data; ///< Filter for content list
@@ -515,11 +514,11 @@ class NetworkContentListWindow : public Window, ContentCallback {
 		bool changed = false;
 		if (!this->filter_data.string_filter.IsEmpty()) {
 			this->content.SetFilterType(CONTENT_FILTER_TEXT);
-			changed |= this->content.Filter(this->filter_data);
+			changed |= this->content.Filter (&TagNameFilter, this->filter_data);
 		}
 		if (this->filter_data.types.any()) {
 			this->content.SetFilterType(CONTENT_FILTER_TYPE_OR_SELECTED);
-			changed |= this->content.Filter(this->filter_data);
+			changed |= this->content.Filter (&TypeOrSelectedFilter, this->filter_data);
 		}
 		if (!changed) return;
 
@@ -596,7 +595,6 @@ public:
 		_network_content_client.AddCallback(this);
 		this->content.SetListing(this->last_sorting);
 		this->content.SetSortFuncs(this->sorter_funcs);
-		this->content.SetFilterFuncs(this->filter_funcs);
 		this->UpdateFilterState();
 		this->content.ForceRebuild();
 		this->FilterContentList();
@@ -1071,11 +1069,6 @@ NetworkContentListWindow::GUIContentList::SortFunction * const NetworkContentLis
 	&StateSorter,
 	&TypeSorter,
 	&NameSorter,
-};
-
-NetworkContentListWindow::GUIContentList::FilterFunction * const NetworkContentListWindow::filter_funcs[] = {
-	&TagNameFilter,
-	&TypeOrSelectedFilter,
 };
 
 /** The widgets for the content list. */

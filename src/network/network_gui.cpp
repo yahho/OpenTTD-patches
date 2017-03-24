@@ -224,7 +224,6 @@ protected:
 
 	/* Constants for sorting servers */
 	static GUIGameServerList::SortFunction * const sorter_funcs[];
-	static GUIGameServerList::FilterFunction * const filter_funcs[];
 
 	NetworkGameList *server;      ///< selected server
 	NetworkGameList *last_joined; ///< the last joined server
@@ -260,7 +259,7 @@ protected:
 
 		if (!sf.IsEmpty()) {
 			this->servers.SetFilterState(true);
-			this->servers.Filter(sf);
+			this->servers.Filter (&NGameSearchFilter, sf);
 		} else {
 			this->servers.SetFilterState(false);
 		}
@@ -486,7 +485,6 @@ public:
 
 		this->servers.SetListing(this->last_sorting);
 		this->servers.SetSortFuncs(this->sorter_funcs);
-		this->servers.SetFilterFuncs(this->filter_funcs);
 		this->servers.ForceRebuild();
 	}
 
@@ -921,10 +919,6 @@ GUIGameServerList::SortFunction * const NetworkGameWindow::sorter_funcs[] = {
 	&NGameDateSorter,
 	&NGameYearsSorter,
 	&NGameAllowedSorter
-};
-
-GUIGameServerList::FilterFunction * const NetworkGameWindow::filter_funcs[] = {
-	&NGameSearchFilter
 };
 
 static NWidgetBase *MakeResizableHeader(int *biggest_index)

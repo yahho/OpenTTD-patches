@@ -531,10 +531,6 @@ static bool CDECL CargoFilter(const EngineID *eid, const CargoID cid)
 	return (cid == CF_NONE ? refit_mask == 0 : HasBit(refit_mask, cid));
 }
 
-static GUIEngineList::FilterFunction * const _filter_funcs[] = {
-	&CargoFilter,
-};
-
 /* Draw rail wagon specific details */
 static int DrawRailWagonPurchaseInfo (BlitArea *dpi, int left, int right,
 	int y, EngineID engine_number, const RailVehicleInfo *rvi)
@@ -1092,14 +1088,13 @@ struct BuildVehicleWindow : Window {
 			}
 		}
 
-		this->eng_list.SetFilterFuncs(_filter_funcs);
 		this->eng_list.SetFilterState(this->cargo_filter[this->cargo_filter_criteria] != CF_ANY);
 	}
 
 	/** Filter the engine list against the currently selected cargo filter */
 	void FilterEngineList()
 	{
-		this->eng_list.Filter(this->cargo_filter[this->cargo_filter_criteria]);
+		this->eng_list.Filter (&CargoFilter, this->cargo_filter[this->cargo_filter_criteria]);
 		if (0 == this->eng_list.Length()) { // no engine passed through the filter, invalidate the previously selected engine
 			this->sel_engine = INVALID_ENGINE;
 		} else if (!this->eng_list.Contains(this->sel_engine)) { // previously selected engine didn't pass the filter, select the first engine of the list
