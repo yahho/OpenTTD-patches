@@ -1495,6 +1495,7 @@ static SettingEntry _settings_interface_general[] = {
 	SettingEntry("gui.errmsg_duration"),
 	SettingEntry("gui.window_snap_radius"),
 	SettingEntry("gui.window_soft_limit"),
+	SettingEntry("gui.right_mouse_wnd_close"),
 };
 /** Interface/General sub-page */
 static SettingsPage _settings_interface_general_page = {_settings_interface_general, lengthof(_settings_interface_general)};
