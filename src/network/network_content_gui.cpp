@@ -339,12 +339,6 @@ public:
 	}
 };
 
-/** Filter data for NetworkContentListWindow. */
-struct ContentListFilterData {
-	StringFilter string_filter; ///< Text filter of content list
-	std::bitset<CONTENT_TYPE_END> types; ///< Content types displayed
-};
-
 /** Window that lists the content that's at the content server */
 class NetworkContentListWindow : public Window, ContentCallback {
 	/** List with content infos. */
@@ -356,7 +350,8 @@ class NetworkContentListWindow : public Window, ContentCallback {
 	static GUIContentList::SortFunction * const sorter_funcs[];   ///< Sorter functions
 	GUIContentList content;      ///< List with content
 	bool auto_select;            ///< Automatically select all content when the meta-data becomes available
-	ContentListFilterData filter_data; ///< Filter for content list
+	StringFilter string_filter;  ///< Text filter for content list
+	const std::bitset<CONTENT_TYPE_END> types; ///< Content types displayed
 	QueryStringN<EDITBOX_MAX_SIZE> filter_editbox;  ///< Filter editbox;
 	Dimension checkbox_size;     ///< Size of checkbox/"blot" sprite
 
@@ -508,11 +503,11 @@ class NetworkContentListWindow : public Window, ContentCallback {
 	{
 		/* Apply filters. */
 		bool changed = false;
-		if (!this->filter_data.string_filter.IsEmpty()) {
-			changed |= this->content.Filter (&TagNameFilter, &this->filter_data.string_filter);
+		if (!this->string_filter.IsEmpty()) {
+			changed |= this->content.Filter (&TagNameFilter, &this->string_filter);
 		}
-		if (this->filter_data.types.any()) {
-			changed |= this->content.Filter (&TypeOrSelectedFilter, this->filter_data.types);
+		if (this->types.any()) {
+			changed |= this->content.Filter (&TypeOrSelectedFilter, this->types);
 		}
 		if (!changed) return;
 
@@ -536,7 +531,7 @@ class NetworkContentListWindow : public Window, ContentCallback {
 	bool UpdateFilterState()
 	{
 		bool old_state = this->content.IsFilterEnabled();
-		bool new_state = !this->filter_data.string_filter.IsEmpty() || this->filter_data.types.any();
+		bool new_state = !this->string_filter.IsEmpty() || this->types.any();
 		if (new_state != old_state) {
 			this->content.SetFilterState(new_state);
 		}
@@ -566,7 +561,8 @@ public:
 			ContentCallback(),
 			content(),
 			auto_select(select_all),
-			filter_data(),
+			string_filter(),
+			types (types),
 			filter_editbox(),
 			checkbox_size (maxdim (maxdim (GetSpriteSize (SPR_BOX_EMPTY), GetSpriteSize (SPR_BOX_CHECKED)), GetSpriteSize (SPR_BLOT))),
 			selected(NULL),
@@ -584,7 +580,6 @@ public:
 		this->filter_editbox.cancel_button = QueryString::ACTION_CLEAR;
 		this->SetFocusedWidget(WID_NCL_FILTER);
 		this->SetWidgetDisabledState(WID_NCL_SEARCH_EXTERNAL, this->auto_select);
-		this->filter_data.types = types;
 
 		_network_content_client.AddCallback(this);
 		this->content.SetListing(this->last_sorting);
@@ -837,7 +832,7 @@ public:
 					this->content.ForceResort();
 				}
 
-				if (this->filter_data.types.any()) {
+				if (this->types.any()) {
 					this->content.ForceRebuild();
 				}
 
@@ -936,7 +931,7 @@ public:
 						this->content.ForceResort();
 						this->InvalidateData();
 					}
-					if (this->filter_data.types.any()) {
+					if (this->types.any()) {
 						this->content.ForceRebuild();
 						this->InvalidateData();
 					}
@@ -974,7 +969,7 @@ public:
 	virtual void OnEditboxChanged(int wid)
 	{
 		if (wid == WID_NCL_FILTER) {
-			this->filter_data.string_filter.SetFilterTerm(this->filter_editbox.GetText());
+			this->string_filter.SetFilterTerm (this->filter_editbox.GetText());
 			this->UpdateFilterState();
 			this->content.ForceRebuild();
 			this->InvalidateData();
