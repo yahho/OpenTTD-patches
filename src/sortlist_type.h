@@ -39,13 +39,11 @@ struct Listing {
 /**
  * List template of 'things' \p T to sort in a GUI.
  * @tparam T Type of data stored in the list to represent each item.
- * @tparam F Type of data fed as additional value to the filter function. @see FilterFunction
  */
-template <typename T, typename F = const char*>
+template <typename T>
 class GUIList : public SmallVector<T, 32> {
 public:
 	typedef int CDECL SortFunction(const T*, const T*); ///< Signature of sort function.
-	typedef bool CDECL FilterFunction(const T*, F);     ///< Signature of filter function.
 
 protected:
 	SortFunction * const *sort_func_list;     ///< the sort criteria functions
@@ -266,12 +264,13 @@ public:
 
 	/**
 	 * Filter the list.
-	 *
+	 * @tparam F Type of data fed as additional value to the filter function.
 	 * @param decide The function to decide about an item
 	 * @param filter_data Additional data passed to the filter function
 	 * @return true if the list has been altered by filtering
 	 */
-	bool Filter(FilterFunction *decide, F filter_data)
+	template <typename F>
+	bool Filter (bool CDECL decide (const T*, F), F filter_data)
 	{
 		/* Do not filter if the filter bit is not set */
 		if (!(this->flags & VL_FILTER)) return false;

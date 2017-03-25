@@ -37,7 +37,7 @@ struct SignList {
 	/**
 	 * A GUIList contains signs and uses a StringFilter for filtering.
 	 */
-	typedef GUIList<const Sign *, StringFilter &> GUISignList;
+	typedef GUIList <const Sign *> GUISignList;
 
 	static const Sign *last_sign;
 	GUISignList signs;
@@ -98,27 +98,28 @@ struct SignList {
 	}
 
 	/** Filter sign list by sign name */
-	static bool CDECL SignNameFilter(const Sign * const *a, StringFilter &filter)
+	static bool CDECL SignNameFilter (const Sign * const *a,
+		StringFilter *filter)
 	{
 		/* Get sign string */
 		char buf1[MAX_LENGTH_SIGN_NAME_CHARS * MAX_CHAR_LENGTH];
 		SetDParam(0, (*a)->index);
 		GetString (buf1, STR_SIGN_NAME);
 
-		filter.ResetState();
-		filter.AddLine(buf1);
-		return filter.GetState();
+		filter->ResetState();
+		filter->AddLine (buf1);
+		return filter->GetState();
 	}
 
 	/** Filter sign list excluding OWNER_DEITY */
-	static bool CDECL OwnerDeityFilter(const Sign * const *a, StringFilter &filter)
+	static bool CDECL OwnerDeityFilter (const Sign * const *a, int)
 	{
 		/* You should never be able to edit signs of owner DEITY */
 		return (*a)->owner != OWNER_DEITY;
 	}
 
 	/** Filter sign list by owner */
-	static bool CDECL OwnerVisibilityFilter(const Sign * const *a, StringFilter &filter)
+	static bool CDECL OwnerVisibilityFilter (const Sign * const *a, int)
 	{
 		assert(!HasBit(_display_opt, DO_SHOW_COMPETITOR_SIGNS));
 		/* Hide sign if non-own signs are hidden in the viewport */
@@ -128,10 +129,10 @@ struct SignList {
 	/** Filter out signs from the sign list that does not match the name filter */
 	void FilterSignList()
 	{
-		this->signs.Filter(&SignNameFilter, this->string_filter);
-		if (_game_mode != GM_EDITOR) this->signs.Filter(&OwnerDeityFilter, this->string_filter);
+		this->signs.Filter (&SignNameFilter, &this->string_filter);
+		if (_game_mode != GM_EDITOR) this->signs.Filter (&OwnerDeityFilter, 0);
 		if (!HasBit(_display_opt, DO_SHOW_COMPETITOR_SIGNS)) {
-			this->signs.Filter(&OwnerVisibilityFilter, this->string_filter);
+			this->signs.Filter (&OwnerVisibilityFilter, 0);
 		}
 	}
 };

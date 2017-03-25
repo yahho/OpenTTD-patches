@@ -618,7 +618,7 @@ static void ShowSavePresetWindow(const char *initial_text);
  * Window for showing NewGRF files
  */
 struct NewGRFWindow : public Window, NewGRFScanCallback {
-	typedef GUIList<const GRFConfig *, StringFilter &> GUIGRFConfigList;
+	typedef GUIList <const GRFConfig *> GUIGRFConfigList;
 
 	static const uint EDITBOX_MAX_SIZE   =  50;
 
@@ -1448,13 +1448,14 @@ private:
 	}
 
 	/** Filter grfs by tags/name */
-	static bool CDECL TagNameFilter(const GRFConfig * const *a, StringFilter &filter)
+	static bool CDECL TagNameFilter (const GRFConfig * const *a,
+		StringFilter *filter)
 	{
-		filter.ResetState();
-		filter.AddLine((*a)->GetName());
-		filter.AddLine((*a)->filename);
-		filter.AddLine((*a)->GetDescription());
-		return filter.GetState();;
+		filter->ResetState();
+		filter->AddLine ((*a)->GetName());
+		filter->AddLine ((*a)->filename);
+		filter->AddLine ((*a)->GetDescription());
+		return filter->GetState();;
 	}
 
 	void BuildAvailables()
@@ -1485,7 +1486,7 @@ private:
 			}
 		}
 
-		this->avails.Filter (&TagNameFilter, this->string_filter);
+		this->avails.Filter (&TagNameFilter, &this->string_filter);
 		this->avails.Compact();
 		this->avails.RebuildDone();
 		this->avails.Sort();

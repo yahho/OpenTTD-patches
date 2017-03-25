@@ -78,7 +78,7 @@ static const StringID _start_replace_dropdown[] = {
  * Window for the autoreplacing of vehicles.
  */
 class ReplaceVehicleWindow : public Window {
-	typedef GUIList <EngineID, CargoID> GUIEngineList;
+	typedef GUIList <EngineID> GUIEngineList;
 
 	EngineID sel_engine[2];       ///< Selected engine left and right.
 	GUIEngineList engines[2];     ///< Left and right list of engines.

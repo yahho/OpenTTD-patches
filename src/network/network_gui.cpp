@@ -85,7 +85,7 @@ void UpdateNetworkGameWindow()
 	InvalidateWindowData(WC_NETWORK_WINDOW, WN_NETWORK_WINDOW_GAME, 0);
 }
 
-typedef GUIList<NetworkGameList*, StringFilter&> GUIGameServerList;
+typedef GUIList <NetworkGameList*> GUIGameServerList;
 typedef uint16 ServerListPosition;
 static const ServerListPosition SLP_INVALID = 0xFFFF;
 
@@ -259,7 +259,7 @@ protected:
 
 		if (!sf.IsEmpty()) {
 			this->servers.SetFilterState(true);
-			this->servers.Filter (&NGameSearchFilter, sf);
+			this->servers.Filter (&NGameSearchFilter, &sf);
 		} else {
 			this->servers.SetFilterState(false);
 		}
@@ -359,14 +359,15 @@ protected:
 		}
 	}
 
-	static bool CDECL NGameSearchFilter(NetworkGameList * const *item, StringFilter &sf)
+	static bool CDECL NGameSearchFilter (NetworkGameList * const *item,
+		StringFilter *sf)
 	{
 		assert(item != NULL);
 		assert((*item) != NULL);
 
-		sf.ResetState();
-		sf.AddLine((*item)->info.server_name);
-		return sf.GetState();
+		sf->ResetState();
+		sf->AddLine ((*item)->info.server_name);
+		return sf->GetState();
 	}
 
 	/**

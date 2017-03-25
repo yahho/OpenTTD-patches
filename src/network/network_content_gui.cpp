@@ -348,7 +348,7 @@ struct ContentListFilterData {
 /** Window that lists the content that's at the content server */
 class NetworkContentListWindow : public Window, ContentCallback {
 	/** List with content infos. */
-	typedef GUIList<const ContentInfo *, ContentListFilterData &> GUIContentList;
+	typedef GUIList <const ContentInfo *> GUIContentList;
 
 	static const uint EDITBOX_MAX_SIZE   =  50; ///< Maximum size of the editbox in characters.
 
@@ -483,21 +483,23 @@ class NetworkContentListWindow : public Window, ContentCallback {
 	}
 
 	/** Filter content by tags/name */
-	static bool CDECL TagNameFilter(const ContentInfo * const *a, ContentListFilterData &filter)
+	static bool CDECL TagNameFilter (const ContentInfo * const *a,
+		StringFilter *filter)
 	{
-		filter.string_filter.ResetState();
+		filter->ResetState();
 		for (int i = 0; i < (*a)->tag_count; i++) {
-			filter.string_filter.AddLine((*a)->tags[i]);
+			filter->AddLine ((*a)->tags[i]);
 		}
-		filter.string_filter.AddLine((*a)->name);
-		return filter.string_filter.GetState();
+		filter->AddLine ((*a)->name);
+		return filter->GetState();
 	}
 
 	/** Filter content by type, but still show content selected for download. */
-	static bool CDECL TypeOrSelectedFilter(const ContentInfo * const *a, ContentListFilterData &filter)
+	static bool CDECL TypeOrSelectedFilter (const ContentInfo * const *a,
+		std::bitset<CONTENT_TYPE_END> types)
 	{
-		if (filter.types.none()) return true;
-		if (filter.types[(*a)->type]) return true;
+		if (types.none()) return true;
+		if (types[(*a)->type]) return true;
 		return ((*a)->state == ContentInfo::SELECTED || (*a)->state == ContentInfo::AUTOSELECTED);
 	}
 
@@ -507,10 +509,10 @@ class NetworkContentListWindow : public Window, ContentCallback {
 		/* Apply filters. */
 		bool changed = false;
 		if (!this->filter_data.string_filter.IsEmpty()) {
-			changed |= this->content.Filter (&TagNameFilter, this->filter_data);
+			changed |= this->content.Filter (&TagNameFilter, &this->filter_data.string_filter);
 		}
 		if (this->filter_data.types.any()) {
-			changed |= this->content.Filter (&TypeOrSelectedFilter, this->filter_data);
+			changed |= this->content.Filter (&TypeOrSelectedFilter, this->filter_data.types);
 		}
 		if (!changed) return;
 
