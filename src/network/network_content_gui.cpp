@@ -513,11 +513,9 @@ class NetworkContentListWindow : public Window, ContentCallback {
 		/* Apply filters. */
 		bool changed = false;
 		if (!this->filter_data.string_filter.IsEmpty()) {
-			this->content.SetFilterType(CONTENT_FILTER_TEXT);
 			changed |= this->content.Filter (&TagNameFilter, this->filter_data);
 		}
 		if (this->filter_data.types.any()) {
-			this->content.SetFilterType(CONTENT_FILTER_TYPE_OR_SELECTED);
 			changed |= this->content.Filter (&TypeOrSelectedFilter, this->filter_data);
 		}
 		if (!changed) return;

@@ -35,11 +35,6 @@ struct Listing {
 	bool order;    ///< Ascending/descending
 	byte criteria; ///< Sorting criteria
 };
-/** Data structure describing what to show in the list (filter criteria). */
-struct Filtering {
-	bool state;    ///< Filter on/off
-	byte criteria; ///< Filtering criteria
-};
 
 /**
  * List template of 'things' \p T to sort in a GUI.
@@ -56,7 +51,6 @@ protected:
 	SortFunction * const *sort_func_list;     ///< the sort criteria functions
 	SortListFlags flags;                      ///< used to control sorting/resorting/etc.
 	uint8 sort_type;                          ///< what criteria to sort on
-	uint8 filter_type;                        ///< what criteria to filter on
 	uint16 resort_timer;                      ///< resort list after a given amount of ticks if set
 
 	/**
@@ -83,7 +77,6 @@ public:
 		sort_func_list(NULL),
 		flags(VL_FIRST_SORT),
 		sort_type(0),
-		filter_type(0),
 		resort_timer(1)
 	{};
 
@@ -139,42 +132,6 @@ public:
 		this->sort_type = l.criteria;
 
 		SETBITS(this->flags, VL_FIRST_SORT);
-	}
-
-	/**
-	 * Get the filtertype of the list
-	 *
-	 * @return The current filtertype
-	 */
-	uint8 FilterType() const
-	{
-		return this->filter_type;
-	}
-
-	/**
-	 * Set the filtertype of the list
-	 *
-	 * @param n_type the new filter type
-	 */
-	void SetFilterType(uint8 n_type)
-	{
-		if (this->filter_type != n_type) {
-			this->filter_type = n_type;
-		}
-	}
-
-	/**
-	 * Export current filter conditions
-	 *
-	 * @return the current filter conditions
-	 */
-	Filtering GetFiltering() const
-	{
-		Filtering f;
-		f.state = (this->flags & VL_FILTER) != 0;
-		f.criteria = this->filter_type;
-
-		return f;
 	}
 
 	/**
