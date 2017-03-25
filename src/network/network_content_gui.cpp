@@ -541,12 +541,12 @@ class NetworkContentListWindow : public Window, ContentCallback {
 	 */
 	bool UpdateFilterState()
 	{
-		Filtering old_params = this->content.GetFiltering();
+		bool old_state = this->content.IsFilterEnabled();
 		bool new_state = !this->filter_data.string_filter.IsEmpty() || this->filter_data.types.any();
-		if (new_state != old_params.state) {
+		if (new_state != old_state) {
 			this->content.SetFilterState(new_state);
 		}
-		return new_state != old_params.state;
+		return new_state != old_state;
 	}
 
 	/** Make sure that the currently selected content info is within the visible part of the matrix */
