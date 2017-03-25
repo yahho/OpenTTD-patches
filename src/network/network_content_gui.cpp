@@ -345,12 +345,6 @@ struct ContentListFilterData {
 	std::bitset<CONTENT_TYPE_END> types; ///< Content types displayed
 };
 
-/** Filter criterias for NetworkContentListWindow. */
-enum ContentListFilterCriteria {
-	CONTENT_FILTER_TEXT = 0,        ///< Filter by query sting
-	CONTENT_FILTER_TYPE_OR_SELECTED,///< Filter by being of displayed type or selected for download
-};
-
 /** Window that lists the content that's at the content server */
 class NetworkContentListWindow : public Window, ContentCallback {
 	/** List with content infos. */
