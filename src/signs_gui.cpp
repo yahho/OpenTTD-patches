@@ -34,10 +34,8 @@
 #include "table/sprites.h"
 
 /** Filter function for the sign list. */
-static bool CDECL SignFilter (const Sign *const *a, StringFilter *filter)
+static bool SignFilter (const Sign *sign, StringFilter *filter)
 {
-	const Sign *sign = *a;
-
 	Owner owner = sign->owner;
 	if (owner == OWNER_DEITY) {
 		/* You should never be able to edit signs of owner DEITY. */
@@ -118,10 +116,13 @@ void SignList::BuildSignsList (void)
 	this->signs.Clear();
 
 	const Sign *si;
-	FOR_ALL_SIGNS(si) *this->signs.Append() = si;
+	FOR_ALL_SIGNS(si) {
+		if (SignFilter (si, &this->string_filter)) {
+			*this->signs.Append() = si;
+		}
+	}
 
 	this->signs.SetFilterState (true);
-	this->signs.Filter (&SignFilter, &this->string_filter);
 	this->signs.Compact();
 	this->signs.RebuildDone();
 }
