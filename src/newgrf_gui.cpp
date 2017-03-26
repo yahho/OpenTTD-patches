@@ -1469,9 +1469,7 @@ private:
 			for (const GRFConfig *grf = this->actives; grf != NULL && !found; grf = grf->next) found = grf->ident.matches (c->ident);
 			if (found) continue;
 
-			if (_settings_client.gui.newgrf_show_old_versions) {
-				*this->avails.Append() = c;
-			} else {
+			if (!_settings_client.gui.newgrf_show_old_versions) {
 				const GRFConfig *best = FindGRFConfig(c->ident.grfid, HasBit(c->flags, GCF_INVALID) ? FGCM_NEWEST : FGCM_NEWEST_VALID);
 				/*
 				 * If the best version is 0, then all NewGRF with this GRF ID
@@ -1480,10 +1478,12 @@ private:
 				 * If we are the best version, then we definitely want to
 				 * show that NewGRF!.
 				 */
-				if (best->version == 0 || best->ident.matches (c->ident)) {
-					*this->avails.Append() = c;
+				if (best->version != 0 && !best->ident.matches (c->ident)) {
+					continue;
 				}
 			}
+
+			*this->avails.Append() = c;
 		}
 
 		this->avails.Filter (&TagNameFilter, &this->string_filter);
