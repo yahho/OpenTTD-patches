@@ -1483,10 +1483,11 @@ private:
 				}
 			}
 
-			*this->avails.Append() = c;
+			if (TagNameFilter (&c, &this->string_filter)) {
+				*this->avails.Append() = c;
+			}
 		}
 
-		this->avails.Filter (&TagNameFilter, &this->string_filter);
 		this->avails.Compact();
 		this->avails.RebuildDone();
 		this->avails.Sort();
