@@ -33,6 +33,32 @@
 #include "table/strings.h"
 #include "table/sprites.h"
 
+/** Filter function for the sign list. */
+static bool CDECL SignFilter (const Sign *const *a, StringFilter *filter)
+{
+	const Sign *sign = *a;
+
+	Owner owner = sign->owner;
+	if (owner == OWNER_DEITY) {
+		/* You should never be able to edit signs of owner DEITY. */
+		if (_game_mode != GM_EDITOR) return false;
+	} else if (owner != _local_company) {
+		/* Hide sign if non-own signs are hidden in the viewport. */
+		if (!HasBit(_display_opt, DO_SHOW_COMPETITOR_SIGNS)) {
+			return false;
+		}
+	}
+
+	/* Get sign string */
+	char buf[MAX_LENGTH_SIGN_NAME_CHARS * MAX_CHAR_LENGTH];
+	SetDParam (0, sign->index);
+	GetString (buf, STR_SIGN_NAME);
+
+	filter->ResetState();
+	filter->AddLine (buf);
+	return filter->GetState();
+}
+
 struct SignList {
 	/**
 	 * A GUIList contains signs and uses a StringFilter for filtering.
@@ -97,43 +123,10 @@ struct SignList {
 		this->last_sign = NULL;
 	}
 
-	/** Filter sign list by sign name */
-	static bool CDECL SignNameFilter (const Sign * const *a,
-		StringFilter *filter)
-	{
-		/* Get sign string */
-		char buf1[MAX_LENGTH_SIGN_NAME_CHARS * MAX_CHAR_LENGTH];
-		SetDParam(0, (*a)->index);
-		GetString (buf1, STR_SIGN_NAME);
-
-		filter->ResetState();
-		filter->AddLine (buf1);
-		return filter->GetState();
-	}
-
-	/** Filter sign list excluding OWNER_DEITY */
-	static bool CDECL OwnerDeityFilter (const Sign * const *a, int)
-	{
-		/* You should never be able to edit signs of owner DEITY */
-		return (*a)->owner != OWNER_DEITY;
-	}
-
-	/** Filter sign list by owner */
-	static bool CDECL OwnerVisibilityFilter (const Sign * const *a, int)
-	{
-		assert(!HasBit(_display_opt, DO_SHOW_COMPETITOR_SIGNS));
-		/* Hide sign if non-own signs are hidden in the viewport */
-		return (*a)->owner == _local_company || (*a)->owner == OWNER_DEITY;
-	}
-
 	/** Filter out signs from the sign list that does not match the name filter */
 	void FilterSignList()
 	{
-		this->signs.Filter (&SignNameFilter, &this->string_filter);
-		if (_game_mode != GM_EDITOR) this->signs.Filter (&OwnerDeityFilter, 0);
-		if (!HasBit(_display_opt, DO_SHOW_COMPETITOR_SIGNS)) {
-			this->signs.Filter (&OwnerVisibilityFilter, 0);
-		}
+		this->signs.Filter (&SignFilter, &this->string_filter);
 	}
 };
 
