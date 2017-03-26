@@ -1100,13 +1100,6 @@ struct BuildVehicleWindow : Window {
 		}
 	}
 
-	/** Filter a single engine */
-	bool FilterSingleEngine(EngineID eid)
-	{
-		CargoID filter_type = this->cargo_filter[this->cargo_filter_criteria];
-		return (filter_type == CF_ANY || CargoFilter(&eid, filter_type));
-	}
-
 	/* Figure out what train EngineIDs to put in the list */
 	void GenerateBuildTrainList()
 	{
@@ -1132,7 +1125,8 @@ struct BuildVehicleWindow : Window {
 			if (!IsEngineBuildable(eid, VEH_TRAIN, _local_company)) continue;
 
 			/* Filter now! So num_engines and num_wagons is valid */
-			if (!FilterSingleEngine(eid)) continue;
+			CargoID filter_type = this->cargo_filter[this->cargo_filter_criteria];
+			if ((filter_type != CF_ANY) && !CargoFilter (&eid, filter_type)) continue;
 
 			*this->eng_list.Append() = eid;
 
