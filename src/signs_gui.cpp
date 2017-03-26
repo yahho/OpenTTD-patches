@@ -90,7 +90,7 @@ struct SignList {
 		FOR_ALL_SIGNS(si) *this->signs.Append() = si;
 
 		this->signs.SetFilterState(true);
-		this->FilterSignList();
+		this->signs.Filter (&SignFilter, &this->string_filter);
 		this->signs.Compact();
 		this->signs.RebuildDone();
 	}
@@ -121,12 +121,6 @@ struct SignList {
 
 		/* Reset the name sorter sort cache */
 		this->last_sign = NULL;
-	}
-
-	/** Filter out signs from the sign list that does not match the name filter */
-	void FilterSignList()
-	{
-		this->signs.Filter (&SignFilter, &this->string_filter);
 	}
 };
 
