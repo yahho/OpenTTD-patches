@@ -249,19 +249,15 @@ protected:
 		/* Create temporary array of games to use for listing */
 		this->servers.Clear();
 
-		for (NetworkGameList *ngl = _network_game_list; ngl != NULL; ngl = ngl->next) {
-			*this->servers.Append() = ngl;
-		}
-
 		/* Apply the filter condition immediately, if a search string has been provided. */
 		StringFilter sf;
 		sf.SetFilterTerm(this->filter_editbox.GetText());
+		this->servers.SetFilterState (!sf.IsEmpty());
 
-		if (!sf.IsEmpty()) {
-			this->servers.SetFilterState(true);
-			this->servers.Filter (&NGameSearchFilter, &sf);
-		} else {
-			this->servers.SetFilterState(false);
+		for (NetworkGameList *ngl = _network_game_list; ngl != NULL; ngl = ngl->next) {
+			if (!this->servers.IsFilterEnabled() || NGameSearchFilter (&ngl, &sf)) {
+				*this->servers.Append() = ngl;
+			}
 		}
 
 		this->servers.Compact();
