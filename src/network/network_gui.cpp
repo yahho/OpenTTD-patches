@@ -255,9 +255,13 @@ protected:
 		this->servers.SetFilterState (!sf.IsEmpty());
 
 		for (NetworkGameList *ngl = _network_game_list; ngl != NULL; ngl = ngl->next) {
-			if (!this->servers.IsFilterEnabled() || NGameSearchFilter (&ngl, &sf)) {
-				*this->servers.Append() = ngl;
+			if (this->servers.IsFilterEnabled()) {
+				sf.ResetState();
+				sf.AddLine (ngl->info.server_name);
+				if (!sf.GetState()) continue;
 			}
+
+			*this->servers.Append() = ngl;
 		}
 
 		this->servers.Compact();
@@ -353,17 +357,6 @@ protected:
 				break;
 			}
 		}
-	}
-
-	static bool CDECL NGameSearchFilter (NetworkGameList * const *item,
-		StringFilter *sf)
-	{
-		assert(item != NULL);
-		assert((*item) != NULL);
-
-		sf->ResetState();
-		sf->AddLine ((*item)->info.server_name);
-		return sf->GetState();
 	}
 
 	/**
