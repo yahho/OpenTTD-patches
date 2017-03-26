@@ -1447,17 +1447,6 @@ private:
 		return memcmp((*a)->ident.md5sum, (*b)->ident.md5sum, lengthof((*b)->ident.md5sum));
 	}
 
-	/** Filter grfs by tags/name */
-	static bool CDECL TagNameFilter (const GRFConfig * const *a,
-		StringFilter *filter)
-	{
-		filter->ResetState();
-		filter->AddLine ((*a)->GetName());
-		filter->AddLine ((*a)->filename);
-		filter->AddLine ((*a)->GetDescription());
-		return filter->GetState();;
-	}
-
 	void BuildAvailables()
 	{
 		if (!this->avails.NeedRebuild()) return;
@@ -1483,7 +1472,11 @@ private:
 				}
 			}
 
-			if (TagNameFilter (&c, &this->string_filter)) {
+			this->string_filter.ResetState();
+			this->string_filter.AddLine (c->GetName());
+			this->string_filter.AddLine (c->filename);
+			this->string_filter.AddLine (c->GetDescription());
+			if (this->string_filter.GetState()) {
 				*this->avails.Append() = c;
 			}
 		}
