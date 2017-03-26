@@ -78,22 +78,7 @@ struct SignList {
 	{
 	}
 
-	void BuildSignsList()
-	{
-		if (!this->signs.NeedRebuild()) return;
-
-		DEBUG(misc, 3, "Building sign list");
-
-		this->signs.Clear();
-
-		const Sign *si;
-		FOR_ALL_SIGNS(si) *this->signs.Append() = si;
-
-		this->signs.SetFilterState(true);
-		this->signs.Filter (&SignFilter, &this->string_filter);
-		this->signs.Compact();
-		this->signs.RebuildDone();
-	}
+	void BuildSignsList (void);
 
 	/** Sort signs by their name */
 	static int CDECL SignNameSorter(const Sign * const *a, const Sign * const *b)
@@ -123,6 +108,23 @@ struct SignList {
 		this->last_sign = NULL;
 	}
 };
+
+void SignList::BuildSignsList (void)
+{
+	if (!this->signs.NeedRebuild()) return;
+
+	DEBUG(misc, 3, "Building sign list");
+
+	this->signs.Clear();
+
+	const Sign *si;
+	FOR_ALL_SIGNS(si) *this->signs.Append() = si;
+
+	this->signs.SetFilterState (true);
+	this->signs.Filter (&SignFilter, &this->string_filter);
+	this->signs.Compact();
+	this->signs.RebuildDone();
+}
 
 const Sign *SignList::last_sign = NULL;
 bool SignList::match_case = false;
