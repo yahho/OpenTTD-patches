@@ -56,21 +56,49 @@ enum CargoSuffixType {
 
 static void ShowIndustryCargoesWindow(IndustryType id);
 
+/** Option flags for displaying accepted cargo in the industry view window. */
+enum CargoSuffixFlags {
+	CARGO_SUFFIX_FLAG_AMOUNT, ///< Display the amount of cargo.
+	CARGO_SUFFIX_FLAG_TEXT,   ///< Display extra text.
+};
+
+/** Options for displaying accepted cargo in the industry view window. */
+enum CargoSuffix {
+	CARGO_SUFFIX_NONE        = 0,
+	CARGO_SUFFIX_AMOUNT      = (1 << CARGO_SUFFIX_FLAG_AMOUNT),
+	CARGO_SUFFIX_TEXT        = (1 << CARGO_SUFFIX_FLAG_TEXT),
+	CARGO_SUFFIX_AMOUNT_TEXT = CARGO_SUFFIX_AMOUNT | CARGO_SUFFIX_TEXT,
+};
+
 /**
  * Gets the string to display after the cargo name for a given callback result.
  * @param suffix Buffer to which to append the suffix.
  * @param grffile GRF that defined the industry.
  * @param callback Result of callback 37.
+ * @return Display option for the industry view window.
  */
-static void GetCargoSuffix (stringb *suffix, const GRFFile *grffile, uint16 callback)
+static uint GetCargoSuffix (stringb *suffix, const GRFFile *grffile, uint16 callback)
 {
-	if (callback == CALLBACK_FAILED || callback == 0x400) return;
-	if (callback > 0x400) {
-		ErrorUnknownCallbackResult (grffile->grfid, CBID_INDUSTRY_CARGO_SUFFIX, callback);
-	} else if (grffile->grf_version >= 8 || GB(callback, 0, 8) != 0xFF) {
+	if (callback == CALLBACK_FAILED) return CARGO_SUFFIX_AMOUNT;
+
+	bool valid;
+	if (grffile->grf_version < 8) {
+		if (GB(callback, 0, 8) == 0xFF) return CARGO_SUFFIX_AMOUNT;
+		valid = (callback < 0x400);
+	} else {
+		if (callback == 0x400) return CARGO_SUFFIX_AMOUNT;
+		if (callback == 0x401) return CARGO_SUFFIX_NONE;
+		valid = ((callback & ~0x800) < 0x400);
+	}
+
+	if (valid) {
 		StartTextRefStackUsage (grffile, 6);
-		GetString (suffix, GetGRFStringID (grffile->grfid, 0xD000 + callback));
+		GetString (suffix, GetGRFStringID (grffile->grfid, 0xD000 + (callback & ~0x800)));
 		StopTextRefStackUsage();
+		return (callback & 0x800) != 0 ? CARGO_SUFFIX_TEXT : CARGO_SUFFIX_AMOUNT_TEXT;
+	} else {
+		ErrorUnknownCallbackResult (grffile->grfid, CBID_INDUSTRY_CARGO_SUFFIX, callback);
+		return CARGO_SUFFIX_AMOUNT;
 	}
 }
 
@@ -87,14 +115,22 @@ static void GetCargoSuffix (stringb *suffix, const GRFFile *grffile, uint16 call
  * @param ind_type the industry type
  * @param indspec the industry spec
  * @param suffix is filled with the string to display
+ * @return Display option for the industry view window.
  */
-static void GetCargoSuffix (uint cargo, CargoSuffixType cst, const Industry *ind, IndustryType ind_type, const IndustrySpec *indspec, stringb *suffix)
+static inline uint GetCargoSuffix (uint cargo, CargoSuffixType cst,
+	const Industry *ind, IndustryType ind_type,
+	const IndustrySpec *indspec, stringb *suffix)
 {
 	suffix->clear();
-	if (HasBit(indspec->callback_mask, CBM_IND_CARGO_SUFFIX)) {
-		uint16 callback = GetIndustryCallback(CBID_INDUSTRY_CARGO_SUFFIX, 0, (cst << 8) | cargo, const_cast<Industry *>(ind), ind_type, (cst != CST_FUND) ? ind->location.tile : INVALID_TILE);
-		GetCargoSuffix (suffix, indspec->grf_prop.grffile, callback);
+
+	if (!HasBit(indspec->callback_mask, CBM_IND_CARGO_SUFFIX)) {
+		return CARGO_SUFFIX_AMOUNT;
 	}
+
+	uint16 callback = GetIndustryCallback (CBID_INDUSTRY_CARGO_SUFFIX, 0,
+			(cst << 8) | cargo, const_cast<Industry *>(ind), ind_type,
+			(cst != CST_FUND) ? ind->location.tile : INVALID_TILE);
+	return GetCargoSuffix (suffix, indspec->grf_prop.grffile, callback);
 }
 
 IndustryType _sorted_industry_types[NUM_INDUSTRYTYPES]; ///< Industry types sorted by name.
