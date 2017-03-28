@@ -57,6 +57,24 @@ enum CargoSuffixType {
 static void ShowIndustryCargoesWindow(IndustryType id);
 
 /**
+ * Gets the string to display after the cargo name for a given callback result.
+ * @param suffix Buffer to which to append the suffix.
+ * @param grffile GRF that defined the industry.
+ * @param callback Result of callback 37.
+ */
+static void GetCargoSuffix (stringb *suffix, const GRFFile *grffile, uint16 callback)
+{
+	if (callback == CALLBACK_FAILED || callback == 0x400) return;
+	if (callback > 0x400) {
+		ErrorUnknownCallbackResult (grffile->grfid, CBID_INDUSTRY_CARGO_SUFFIX, callback);
+	} else if (grffile->grf_version >= 8 || GB(callback, 0, 8) != 0xFF) {
+		StartTextRefStackUsage (grffile, 6);
+		GetString (suffix, GetGRFStringID (grffile->grfid, 0xD000 + callback));
+		StopTextRefStackUsage();
+	}
+}
+
+/**
  * Gets the string to display after the cargo name (using callback 37)
  * @param cargo the cargo for which the suffix is requested
  * - 00 - first accepted cargo type
@@ -75,14 +93,7 @@ static void GetCargoSuffix (uint cargo, CargoSuffixType cst, const Industry *ind
 	suffix->clear();
 	if (HasBit(indspec->callback_mask, CBM_IND_CARGO_SUFFIX)) {
 		uint16 callback = GetIndustryCallback(CBID_INDUSTRY_CARGO_SUFFIX, 0, (cst << 8) | cargo, const_cast<Industry *>(ind), ind_type, (cst != CST_FUND) ? ind->location.tile : INVALID_TILE);
-		if (callback == CALLBACK_FAILED || callback == 0x400) return;
-		if (callback > 0x400) {
-			ErrorUnknownCallbackResult(indspec->grf_prop.grffile->grfid, CBID_INDUSTRY_CARGO_SUFFIX, callback);
-		} else if (indspec->grf_prop.grffile->grf_version >= 8 || GB(callback, 0, 8) != 0xFF) {
-			StartTextRefStackUsage(indspec->grf_prop.grffile, 6);
-			GetString (suffix, GetGRFStringID(indspec->grf_prop.grffile->grfid, 0xD000 + callback));
-			StopTextRefStackUsage();
-		}
+		GetCargoSuffix (suffix, indspec->grf_prop.grffile, callback);
 	}
 }
 
