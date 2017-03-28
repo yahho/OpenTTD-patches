@@ -752,21 +752,50 @@ public:
 			y += 2 * FONT_HEIGHT_NORMAL;
 		}
 
-		if (HasBit(ind->callback_mask, CBM_IND_PRODUCTION_CARGO_ARRIVAL) || HasBit(ind->callback_mask, CBM_IND_PRODUCTION_256_TICKS)) {
-			assert_compile(lengthof(i->accepts_cargo) <= lengthof(cargo_suffix));
+		bool stockpiling = HasBit(ind->callback_mask, CBM_IND_PRODUCTION_CARGO_ARRIVAL)
+				|| HasBit(ind->callback_mask, CBM_IND_PRODUCTION_256_TICKS);
+		bool has_suffix  = HasBit(ind->callback_mask, CBM_IND_CARGO_SUFFIX);
+
+		if (stockpiling || has_suffix) {
 			for (byte j = 0; j < lengthof(i->accepts_cargo); j++) {
 				if (i->accepts_cargo[j] == CT_INVALID) continue;
 				has_accept = true;
 				if (first) {
-					DrawString (dpi, left + WD_FRAMERECT_LEFT, right - WD_FRAMERECT_RIGHT, y, STR_INDUSTRY_VIEW_WAITING_FOR_PROCESSING);
+					DrawString (dpi, left + WD_FRAMERECT_LEFT, right - WD_FRAMERECT_RIGHT, y, STR_INDUSTRY_VIEW_REQUIRES);
 					y += FONT_HEIGHT_NORMAL;
 					first = false;
 				}
-				GetCargoSuffix (j, CST_VIEW, i, i->type, ind, &cargo_suffix[j]);
-				SetDParam(0, i->accepts_cargo[j]);
-				SetDParam(1, i->incoming_cargo_waiting[j]);
-				SetDParamStr(2, cargo_suffix[j].c_str());
-				DrawString (dpi, left + WD_FRAMETEXT_LEFT, right - WD_FRAMERECT_RIGHT, y, STR_INDUSTRY_VIEW_WAITING_STOCKPILE_CARGO);
+
+				uint opt;
+				if (!has_suffix) {
+					opt = CARGO_SUFFIX_AMOUNT;
+				} else {
+					opt = GetCargoSuffix (j, CST_VIEW, i, i->type, ind, &cargo_suffix[j]);
+					if ((opt == CARGO_SUFFIX_AMOUNT) && !stockpiling) {
+						opt = CARGO_SUFFIX_NONE;
+					}
+				}
+
+				byte p;
+				if (HasBit (opt, CARGO_SUFFIX_FLAG_AMOUNT)) {
+					SetDParam (0, i->accepts_cargo[j]);
+					SetDParam (1, i->incoming_cargo_waiting[j]);
+					p = 2;
+				} else {
+					SetDParam (0, CargoSpec::Get(i->accepts_cargo[j])->name);
+					p = 1;
+				}
+				if (HasBit (opt, CARGO_SUFFIX_FLAG_TEXT)) {
+					SetDParamStr (p, cargo_suffix[j].c_str());
+				}
+
+				assert_compile (STR_INDUSTRY_VIEW_ACCEPT_CARGO + CARGO_SUFFIX_NONE        == STR_INDUSTRY_VIEW_ACCEPT_CARGO);
+				assert_compile (STR_INDUSTRY_VIEW_ACCEPT_CARGO + CARGO_SUFFIX_AMOUNT      == STR_INDUSTRY_VIEW_ACCEPT_CARGO_AMOUNT);
+				assert_compile (STR_INDUSTRY_VIEW_ACCEPT_CARGO + CARGO_SUFFIX_TEXT        == STR_INDUSTRY_VIEW_ACCEPT_CARGO_TEXT);
+				assert_compile (STR_INDUSTRY_VIEW_ACCEPT_CARGO + CARGO_SUFFIX_AMOUNT_TEXT == STR_INDUSTRY_VIEW_ACCEPT_CARGO_AMOUNT_TEXT);
+
+				StringID str = STR_INDUSTRY_VIEW_ACCEPT_CARGO + opt;
+				DrawString (dpi, left + WD_FRAMETEXT_LEFT, right - WD_FRAMERECT_RIGHT, y, str);
 				y += FONT_HEIGHT_NORMAL;
 			}
 		} else {
