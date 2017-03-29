@@ -743,7 +743,6 @@ public:
 		Industry *i = Industry::Get(this->window_number);
 		const IndustrySpec *ind = GetIndustrySpec(i->type);
 		int y = top + WD_FRAMERECT_TOP;
-		bool first = true;
 		bool has_accept = false;
 		sstring<512> cargo_suffix [3];
 
@@ -759,11 +758,10 @@ public:
 		if (stockpiling || has_suffix) {
 			for (byte j = 0; j < lengthof(i->accepts_cargo); j++) {
 				if (i->accepts_cargo[j] == CT_INVALID) continue;
-				has_accept = true;
-				if (first) {
+				if (!has_accept) {
 					DrawString (dpi, left + WD_FRAMERECT_LEFT, right - WD_FRAMERECT_RIGHT, y, STR_INDUSTRY_VIEW_REQUIRES);
 					y += FONT_HEIGHT_NORMAL;
-					first = false;
+					has_accept = true;
 				}
 
 				uint opt;
@@ -816,7 +814,7 @@ public:
 			}
 		}
 
-		first = true;
+		bool first = true;
 		assert_compile(lengthof(i->produced_cargo) <= lengthof(cargo_suffix));
 		for (byte j = 0; j < lengthof(i->produced_cargo); j++) {
 			if (i->produced_cargo[j] == CT_INVALID) continue;
