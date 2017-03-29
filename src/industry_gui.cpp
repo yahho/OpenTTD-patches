@@ -180,6 +180,48 @@ static inline uint SetupCargoArrayParams (sstring<512> (&buffer) [3],
 					cst, offset);
 }
 
+/**
+ * Set up the string parameters for the accepted cargoes of an industry.
+ * @param buffer The buffer where to store the cargo suffixes, if any.
+ * @param type The industry type.
+ * @param spec The industry spec.
+ * @return The string to use.
+ */
+static StringID SetupAcceptedCargoParams (sstring<512> (&buffer) [3],
+	IndustryType type, const IndustrySpec *spec)
+{
+	static const StringID str = STR_INDUSTRY_VIEW_REQUIRES_CARGO;
+
+	uint p = SetupCargoArrayParams (buffer, NULL, type, spec,
+					spec->accepts_cargo, CST_FUND, 0);
+	if (p > 0) return str + p - 1;
+
+	SetDParam (0, STR_JUST_NOTHING);
+	SetDParamStr (1, "");
+	return str;
+}
+
+/**
+ * Set up the string parameters for the produced cargoes of an industry.
+ * @param buffer The buffer where to store the cargo suffixes, if any.
+ * @param type The industry type.
+ * @param spec The industry spec.
+ * @return The string to use.
+ */
+static StringID SetupProducedCargoParams (sstring<512> (&buffer) [3],
+	IndustryType type, const IndustrySpec *spec)
+{
+	static const StringID str = STR_INDUSTRY_VIEW_PRODUCES_CARGO;
+
+	uint p = SetupCargoArrayParams (buffer, NULL, type, spec,
+					spec->produced_cargo, CST_FUND, 3);
+	if (p > 0) return str + p - 1;
+
+	SetDParam (0, STR_JUST_NOTHING);
+	SetDParamStr (1, "");
+	return str;
+}
+
 IndustryType _sorted_industry_types[NUM_INDUSTRYTYPES]; ///< Industry types sorted by name.
 
 /** Sort industry types by their name. */
@@ -389,23 +431,13 @@ public:
 					const IndustrySpec *indsp = GetIndustrySpec(this->index[i]);
 
 					sstring<512> cargo_suffix [3];
-					StringID str = STR_INDUSTRY_VIEW_REQUIRES_CARGO;
-					SetDParam(0, STR_JUST_NOTHING);
-					SetDParamStr(1, "");
-					uint p = SetupCargoArrayParams (cargo_suffix,
-							NULL, this->index[i], indsp,
-							indsp->accepts_cargo, CST_FUND, 0);
-					if (p > 0) str += p - 1;
+					StringID str = SetupAcceptedCargoParams (cargo_suffix,
+							this->index[i], indsp);
 					d = maxdim(d, GetStringBoundingBox(str));
 
 					/* Draw the produced cargoes, if any. Otherwise, will print "Nothing". */
-					str = STR_INDUSTRY_VIEW_PRODUCES_CARGO;
-					SetDParam(0, STR_JUST_NOTHING);
-					SetDParamStr(1, "");
-					p = SetupCargoArrayParams (cargo_suffix,
-							NULL, this->index[i], indsp,
-							indsp->produced_cargo, CST_FUND, 3);
-					if (p > 0) str += p - 1;
+					str = SetupProducedCargoParams (cargo_suffix,
+							this->index[i], indsp);
 					d = maxdim(d, GetStringBoundingBox(str));
 				}
 
@@ -500,24 +532,14 @@ public:
 
 				/* Draw the accepted cargoes, if any. Otherwise, will print "Nothing". */
 				sstring<512> cargo_suffix [3];
-				StringID str = STR_INDUSTRY_VIEW_REQUIRES_CARGO;
-				SetDParam(0, STR_JUST_NOTHING);
-				SetDParamStr(1, "");
-				uint p = SetupCargoArrayParams (cargo_suffix,
-						NULL, this->selected_type, indsp,
-						indsp->accepts_cargo, CST_FUND, 0);
-				if (p > 0) str += p - 1;
+				StringID str = SetupAcceptedCargoParams (cargo_suffix,
+						this->selected_type, indsp);
 				DrawString (dpi, left, right, y, str);
 				y += FONT_HEIGHT_NORMAL;
 
 				/* Draw the produced cargoes, if any. Otherwise, will print "Nothing". */
-				str = STR_INDUSTRY_VIEW_PRODUCES_CARGO;
-				SetDParam(0, STR_JUST_NOTHING);
-				SetDParamStr(1, "");
-				p = SetupCargoArrayParams (cargo_suffix,
-						NULL, this->selected_type, indsp,
-						indsp->produced_cargo, CST_FUND, 3);
-				if (p > 0) str += p - 1;
+				str = SetupProducedCargoParams (cargo_suffix,
+						this->selected_type, indsp);
 				DrawString (dpi, left, right, y, str);
 				y += FONT_HEIGHT_NORMAL;
 
