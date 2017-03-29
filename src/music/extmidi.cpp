@@ -12,6 +12,7 @@
 #include "../stdafx.h"
 #include "../debug.h"
 #include "../string.h"
+#include "../core/alloc_func.hpp"
 #include "../sound/sound_driver.hpp"
 #include "../video/video_driver.hpp"
 #include "../gfx_func.h"
@@ -41,9 +42,33 @@ const char *MusicDriver_ExtMidi::Start(const char * const * parm)
 	}
 
 	const char *command = GetDriverParam(parm, "cmd");
+#ifndef MIDI_ARG
 	if (StrEmpty(command)) command = EXTERNAL_PLAYER;
+#else
+	if (StrEmpty(command)) command = EXTERNAL_PLAYER " " MIDI_ARG;
+#endif
 
-	this->command = xstrdup(command);
+	/* Count number of arguments, but include 3 extra slots: 1st for command, 2nd for song title, and 3rd for terminating NULL. */
+	uint num_args = 3;
+	for (const char *t = command; *t != '\0'; t++) if (*t == ' ') num_args++;
+
+	this->params = xcalloct<char *>(num_args);
+	this->params[0] = xstrdup(command);
+
+	/* Replace space with \0 and add next arg to params */
+	uint p = 1;
+	while (true) {
+		this->params[p] = strchr(this->params[p - 1], ' ');
+		if (this->params[p] == NULL) break;
+
+		this->params[p][0] = '\0';
+		this->params[p]++;
+		p++;
+	}
+
+	/* Last parameter is the song file. */
+	this->params[p] = this->song;
+
 	this->song[0] = '\0';
 	this->pid = -1;
 	return NULL;
@@ -76,7 +101,8 @@ static void DoStop (pid_t *pid)
 
 void MusicDriver_ExtMidi::Stop()
 {
-	free(command);
+	free(params[0]);
+	free(params);
 	this->song[0] = '\0';
 	DoStop (&this->pid);
 }
@@ -111,11 +137,7 @@ bool MusicDriver_ExtMidi::IsSongPlaying()
 			close(0);
 			int d = open("/dev/null", O_RDONLY);
 			if (d != -1 && dup2(d, 1) != -1 && dup2(d, 2) != -1) {
-				#if defined(MIDI_ARG)
-					execlp(this->command, "extmidi", MIDI_ARG, this->song, (char*)0);
-				#else
-					execlp(this->command, "extmidi", this->song, (char*)0);
-				#endif
+				execvp(this->params[0], this->params);
 			}
 			_exit(1);
 		}
