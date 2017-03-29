@@ -160,6 +160,26 @@ static uint SetupCargoArrayParams (sstring<512> (&buffer) [3],
 	return p / 2;
 }
 
+/**
+ * Set up the string parameters for an array of cargoes.
+ * @param buffer The buffer where to store the cargo suffixes, if any.
+ * @param i The industry (NULL if in fund window).
+ * @param type The industry type.
+ * @param spec The industry spec.
+ * @param c The array of cargoes.
+ * @param cst The cargo suffix type (for which window it is requested).
+ * @param offset Cargo offset for the callback (0 for accepts, 3 for production).
+ * @return The number of valid cargoes found.
+ */
+template <uint N>
+static inline uint SetupCargoArrayParams (sstring<512> (&buffer) [3],
+	const Industry *i, IndustryType type, const IndustrySpec *spec,
+	const CargoID (&c) [N], CargoSuffixType cst, uint offset)
+{
+	return SetupCargoArrayParams (buffer, i, type, spec, N, &c[0],
+					cst, offset);
+}
+
 IndustryType _sorted_industry_types[NUM_INDUSTRYTYPES]; ///< Industry types sorted by name.
 
 /** Sort industry types by their name. */
@@ -374,7 +394,6 @@ public:
 					SetDParamStr(1, "");
 					uint p = SetupCargoArrayParams (cargo_suffix,
 							NULL, this->index[i], indsp,
-							lengthof(indsp->accepts_cargo),
 							indsp->accepts_cargo, CST_FUND, 0);
 					if (p > 0) str += p - 1;
 					d = maxdim(d, GetStringBoundingBox(str));
@@ -385,7 +404,6 @@ public:
 					SetDParamStr(1, "");
 					p = SetupCargoArrayParams (cargo_suffix,
 							NULL, this->index[i], indsp,
-							lengthof(indsp->produced_cargo),
 							indsp->produced_cargo, CST_FUND, 3);
 					if (p > 0) str += p - 1;
 					d = maxdim(d, GetStringBoundingBox(str));
@@ -487,7 +505,6 @@ public:
 				SetDParamStr(1, "");
 				uint p = SetupCargoArrayParams (cargo_suffix,
 						NULL, this->selected_type, indsp,
-						lengthof(indsp->accepts_cargo),
 						indsp->accepts_cargo, CST_FUND, 0);
 				if (p > 0) str += p - 1;
 				DrawString (dpi, left, right, y, str);
@@ -499,7 +516,6 @@ public:
 				SetDParamStr(1, "");
 				p = SetupCargoArrayParams (cargo_suffix,
 						NULL, this->selected_type, indsp,
-						lengthof(indsp->produced_cargo),
 						indsp->produced_cargo, CST_FUND, 3);
 				if (p > 0) str += p - 1;
 				DrawString (dpi, left, right, y, str);
@@ -809,8 +825,7 @@ public:
 			}
 		} else {
 			uint p = SetupCargoArrayParams (cargo_suffix, i, i->type,
-					ind, lengthof(i->accepts_cargo),
-					i->accepts_cargo, CST_VIEW, 0);
+					ind, i->accepts_cargo, CST_VIEW, 0);
 			has_accept = (p > 0);
 			if (has_accept) {
 				StringID str = STR_INDUSTRY_VIEW_REQUIRES_CARGO + p - 1;
