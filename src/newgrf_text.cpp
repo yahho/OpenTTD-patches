@@ -26,6 +26,7 @@
 #include "string.h"
 #include "date_type.h"
 #include "debug.h"
+#include "core/pointer.h"
 #include "core/alloc_type.hpp"
 #include "core/smallmap_type.hpp"
 #include "language.h"
@@ -168,35 +169,6 @@ void GRFTextMap::add (byte langid, uint32 grfid, bool allow_newlines, const char
 }
 
 
-/** Helper structure for mapping choice lists. */
-struct UnmappedChoiceList : ZeroedMemoryAllocator {
-	/** Clean everything up. */
-	~UnmappedChoiceList()
-	{
-		for (SmallPair<byte, char *> *p = this->strings.Begin(); p < this->strings.End(); p++) {
-			free(p->second);
-		}
-	}
-
-	/**
-	 * Initialise the mapping.
-	 * @param type   The type of mapping.
-	 * @param old_d  The old begin of the string, i.e. from where to start writing again.
-	 * @param offset The offset to get the plural/gender from.
-	 */
-	UnmappedChoiceList(StringControlCode type, char *old_d, int offset) :
-		type(type), old_d(old_d), offset(offset)
-	{
-	}
-
-	StringControlCode type; ///< The type of choice list.
-	char *old_d;            ///< The old/original location of the "d" local variable.
-	int offset;             ///< The offset for the plural/gender form.
-
-	/** Mapping of NewGRF supplied ID to the different strings in the choice list. */
-	SmallMap<byte, char *> strings;
-};
-
 /**
  * Translate TTDPatch string codes into something OpenTTD can handle (better).
  * @param grfid          The (NewGRF) ID associated with this string
@@ -215,8 +187,13 @@ char *TranslateTTDPatchCodes(uint32 grfid, uint8 language_id, bool allow_newline
 	WChar c;
 	size_t len = Utf8Decode(&c, str);
 
-	/* Helper variable for a possible (string) mapping. */
-	UnmappedChoiceList *mapping = NULL;
+	/* Helper variables for a possible (string) mapping. */
+	char *mapping_old_d = NULL;
+	StringControlCode mapping_type;
+	int mapping_offset;
+
+	/* Mapping of NewGRF-supplied ID to the different strings in the choice list. */
+	ttd_unique_free_ptr<char> mapping_strings[256];
 
 	if (c == NFO_UTF8_IDENTIFIER) {
 		unicode = true;
@@ -346,36 +323,38 @@ char *TranslateTTDPatchCodes(uint32 grfid, uint8 language_id, bool allow_newline
 					case 0x10:
 					case 0x11:
 						if (str[0] == '\0') goto string_end;
-						if (mapping == NULL) {
+						if (mapping_old_d == NULL) {
 							if (code == 0x10) str++; // Skip the index
 							grfmsg(1, "choice list %s marker found when not expected", code == 0x10 ? "next" : "default");
 							break;
 						} else {
 							/* Terminate the previous string. */
 							*d = '\0';
-							int index = (code == 0x10 ? *str++ : 0);
-							if (mapping->strings.Contains(index)) {
+							byte index = (code == 0x10 ? *str++ : 0);
+							if (mapping_strings[index]) {
 								grfmsg(1, "duplicate choice list string, ignoring");
 								d++;
 							} else {
-								d = mapping->strings[index] = xmalloc (strlen(str) * 10 + 1);
+								d = xmalloc (strlen(str) * 10 + 1);
+								mapping_strings[index].reset (d);
 							}
 						}
 						break;
 
 					case 0x12:
-						if (mapping == NULL) {
+						if (mapping_old_d == NULL) {
 							grfmsg(1, "choice list end marker found when not expected");
 						} else {
 							/* Terminate the previous string. */
 							*d = '\0';
-							d = mapping->old_d;
+							d = mapping_old_d;
+							mapping_old_d = NULL;
 
-							if (!mapping->strings.Contains(0)) {
+							if (!mapping_strings[0]) {
 								/* In case of a (broken) NewGRF without a default,
 								 * assume an empty string. */
 								grfmsg(1, "choice list misses default value");
-								mapping->strings[0] = xstrdup("");
+								mapping_strings[0].reset (xstrdup (""));
 							}
 
 							/* Now we can start flushing everything and clean everything up. */
@@ -384,13 +363,13 @@ char *TranslateTTDPatchCodes(uint32 grfid, uint8 language_id, bool allow_newline
 								/* In case there is no mapping, just ignore everything but the default.
 								 * A probable cause for this happening is when the language file has
 								 * been removed by the user and as such no mapping could be made. */
-								size_t len = strlen (mapping->strings[0]);
-								memcpy (d, mapping->strings[0], len);
+								size_t len = strlen (mapping_strings[0].get());
+								memcpy (d, mapping_strings[0].get(), len);
 								d += len;
 							} else {
-								d += Utf8Encode (d, mapping->type);
+								d += Utf8Encode (d, mapping_type);
 
-								if (mapping->type == SCC_SWITCH_CASE) {
+								if (mapping_type == SCC_SWITCH_CASE) {
 									/*
 									 * Format for case switch:
 									 * <NUM CASES> <CASE1> <LEN1> <STRING1> <CASE2> <LEN2> <STRING2> <CASE3> <LEN3> <STRING3> <STRINGDEFAULT>
@@ -401,15 +380,16 @@ char *TranslateTTDPatchCodes(uint32 grfid, uint8 language_id, bool allow_newline
 									int count = 0;
 									for (uint8 i = 0; i < _current_language->num_cases; i++) {
 										/* Count the ones we have a mapped string for. */
-										if (mapping->strings.Contains (lm->GetReverseMapping (i, false))) count++;
+										int idx = lm->GetReverseMapping (i, false);
+										if ((idx >= 0) && mapping_strings[idx]) count++;
 									}
 									*d++ = count;
 
 									for (uint8 i = 0; i < _current_language->num_cases; i++) {
 										/* Resolve the string we're looking for. */
 										int idx = lm->GetReverseMapping (i, false);
-										if (!mapping->strings.Contains(idx)) continue;
-										char *str = mapping->strings[idx];
+										if ((idx < 0) || !mapping_strings[idx]) continue;
+										const char *str = mapping_strings[idx].get();
 
 										/* "<CASEn>" */
 										*d++ = i + 1;
@@ -425,11 +405,11 @@ char *TranslateTTDPatchCodes(uint32 grfid, uint8 language_id, bool allow_newline
 									}
 
 									/* "<STRINGDEFAULT>" */
-									size_t len = strlen (mapping->strings[0]) + 1;
-									memcpy (d, mapping->strings[0], len);
+									size_t len = strlen (mapping_strings[0].get()) + 1;
+									memcpy (d, mapping_strings[0].get(), len);
 									d += len;
 								} else {
-									if (mapping->type == SCC_PLURAL_LIST) {
+									if (mapping_type == SCC_PLURAL_LIST) {
 										*d++ = lm->plural_form;
 									}
 
@@ -439,16 +419,16 @@ char *TranslateTTDPatchCodes(uint32 grfid, uint8 language_id, bool allow_newline
 									 */
 
 									/* "<OFFSET>" */
-									*d++ = mapping->offset - 0x80;
+									*d++ = mapping_offset - 0x80;
 
 									/* "<NUM CHOICES>" */
-									int count = (mapping->type == SCC_GENDER_LIST ? _current_language->num_genders : LANGUAGE_MAX_PLURAL_FORMS);
+									int count = (mapping_type == SCC_GENDER_LIST ? _current_language->num_genders : LANGUAGE_MAX_PLURAL_FORMS);
 									*d++ = count;
 
 									/* "<LENs>" */
 									for (int i = 0; i < count; i++) {
-										int idx = (mapping->type == SCC_GENDER_LIST ? lm->GetReverseMapping (i, true) : i + 1);
-										const char *str = mapping->strings[mapping->strings.Contains(idx) ? idx : 0];
+										int idx = (mapping_type == SCC_GENDER_LIST ? lm->GetReverseMapping (i, true) : i + 1);
+										const char *str = mapping_strings[(idx >= 0) && mapping_strings[idx] ? idx : 0].get();
 										size_t len = strlen (str) + 1;
 										if (len > 0xFF) grfmsg(1, "choice list string is too long");
 										*d++ = GB(len, 0, 8);
@@ -456,8 +436,8 @@ char *TranslateTTDPatchCodes(uint32 grfid, uint8 language_id, bool allow_newline
 
 									/* "<STRINGs>" */
 									for (int i = 0; i < count; i++) {
-										int idx = (mapping->type == SCC_GENDER_LIST ? lm->GetReverseMapping (i, true) : i + 1);
-										const char *str = mapping->strings[mapping->strings.Contains(idx) ? idx : 0];
+										int idx = (mapping_type == SCC_GENDER_LIST ? lm->GetReverseMapping (i, true) : i + 1);
+										const char *str = mapping_strings[(idx >= 0) && mapping_strings[idx] ? idx : 0].get();
 										/* Limit the length of the string we copy to 0xFE. The length is written above
 										 * as a byte and we need room for the final '\0'. */
 										size_t len = min<size_t> (0xFE, strlen (str));
@@ -468,8 +448,9 @@ char *TranslateTTDPatchCodes(uint32 grfid, uint8 language_id, bool allow_newline
 								}
 							}
 
-							delete mapping;
-							mapping = NULL;
+							for (uint i = 0; i < lengthof(mapping_strings); i++) {
+								mapping_strings[i].reset();
+							}
 						}
 						break;
 
@@ -477,12 +458,14 @@ char *TranslateTTDPatchCodes(uint32 grfid, uint8 language_id, bool allow_newline
 					case 0x14:
 					case 0x15:
 						if (str[0] == '\0') goto string_end;
-						if (mapping != NULL) {
+						if (mapping_old_d != NULL) {
 							grfmsg(1, "choice lists can't be stacked, it's going to get messy now...");
 							if (code != 0x14) str++;
 						} else {
 							static const StringControlCode mp[] = { SCC_GENDER_LIST, SCC_SWITCH_CASE, SCC_PLURAL_LIST };
-							mapping = new UnmappedChoiceList(mp[code - 0x13], d, code == 0x14 ? 0 : *str++);
+							mapping_old_d = d;
+							mapping_type = mp[code - 0x13];
+							if (code != 0x14) mapping_offset = *str++;
 						}
 						break;
 
@@ -529,9 +512,9 @@ char *TranslateTTDPatchCodes(uint32 grfid, uint8 language_id, bool allow_newline
 	}
 
 string_end:
-	if (mapping != NULL) {
+	if (mapping_old_d != NULL) {
 		grfmsg(1, "choice list was incomplete, the whole list is ignored");
-		delete mapping;
+		d = mapping_old_d;
 	}
 
 	*d = '\0';
