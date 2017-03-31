@@ -195,111 +195,6 @@ struct UnmappedChoiceList : ZeroedMemoryAllocator {
 
 	/** Mapping of NewGRF supplied ID to the different strings in the choice list. */
 	SmallMap<byte, char *> strings;
-
-	/**
-	 * Flush this choice list into the old d variable.
-	 * @param lm  The current language mapping.
-	 * @return The new location of the output string.
-	 */
-	char *Flush(const LanguageMap *lm)
-	{
-		if (!this->strings.Contains(0)) {
-			/* In case of a (broken) NewGRF without a default,
-			 * assume an empty string. */
-			grfmsg(1, "choice list misses default value");
-			this->strings[0] = xstrdup("");
-		}
-
-		char *d = old_d;
-		if (lm == NULL) {
-			/* In case there is no mapping, just ignore everything but the default.
-			 * A probable cause for this happening is when the language file has
-			 * been removed by the user and as such no mapping could be made. */
-			size_t len = strlen(this->strings[0]);
-			memcpy(d, this->strings[0], len);
-			return d + len;
-		}
-
-		d += Utf8Encode(d, this->type);
-
-		if (this->type == SCC_SWITCH_CASE) {
-			/*
-			 * Format for case switch:
-			 * <NUM CASES> <CASE1> <LEN1> <STRING1> <CASE2> <LEN2> <STRING2> <CASE3> <LEN3> <STRING3> <STRINGDEFAULT>
-			 * Each LEN is printed using 2 bytes in big endian order.
-			 */
-
-			/* "<NUM CASES>" */
-			int count = 0;
-			for (uint8 i = 0; i < _current_language->num_cases; i++) {
-				/* Count the ones we have a mapped string for. */
-				if (this->strings.Contains(lm->GetReverseMapping(i, false))) count++;
-			}
-			*d++ = count;
-
-			for (uint8 i = 0; i < _current_language->num_cases; i++) {
-				/* Resolve the string we're looking for. */
-				int idx = lm->GetReverseMapping(i, false);
-				if (!this->strings.Contains(idx)) continue;
-				char *str = this->strings[idx];
-
-				/* "<CASEn>" */
-				*d++ = i + 1;
-
-				/* "<LENn>" */
-				size_t len = strlen(str) + 1;
-				*d++ = GB(len, 8, 8);
-				*d++ = GB(len, 0, 8);
-
-				/* "<STRINGn>" */
-				memcpy(d, str, len);
-				d += len;
-			}
-
-			/* "<STRINGDEFAULT>" */
-			size_t len = strlen(this->strings[0]) + 1;
-			memcpy(d, this->strings[0], len);
-			d += len;
-		} else {
-			if (this->type == SCC_PLURAL_LIST) {
-				*d++ = lm->plural_form;
-			}
-
-			/*
-			 * Format for choice list:
-			 * <OFFSET> <NUM CHOICES> <LENs> <STRINGs>
-			 */
-
-			/* "<OFFSET>" */
-			*d++ = this->offset - 0x80;
-
-			/* "<NUM CHOICES>" */
-			int count = (this->type == SCC_GENDER_LIST ? _current_language->num_genders : LANGUAGE_MAX_PLURAL_FORMS);
-			*d++ = count;
-
-			/* "<LENs>" */
-			for (int i = 0; i < count; i++) {
-				int idx = (this->type == SCC_GENDER_LIST ? lm->GetReverseMapping(i, true) : i + 1);
-				const char *str = this->strings[this->strings.Contains(idx) ? idx : 0];
-				size_t len = strlen(str) + 1;
-				if (len > 0xFF) grfmsg(1, "choice list string is too long");
-				*d++ = GB(len, 0, 8);
-			}
-
-			/* "<STRINGs>" */
-			for (int i = 0; i < count; i++) {
-				int idx = (this->type == SCC_GENDER_LIST ? lm->GetReverseMapping(i, true) : i + 1);
-				const char *str = this->strings[this->strings.Contains(idx) ? idx : 0];
-				/* Limit the length of the string we copy to 0xFE. The length is written above
-				 * as a byte and we need room for the final '\0'. */
-				size_t len = min<size_t>(0xFE, strlen(str));
-				memcpy(d, str, len);
-				d += len;
-				*d++ = '\0';
-			}
-		}
-		return d;
-	}
 };
 
 /**
@@ -474,9 +369,105 @@ char *TranslateTTDPatchCodes(uint32 grfid, uint8 language_id, bool allow_newline
 						} else {
 							/* Terminate the previous string. */
 							*d = '\0';
+							d = mapping->old_d;
+
+							if (!mapping->strings.Contains(0)) {
+								/* In case of a (broken) NewGRF without a default,
+								 * assume an empty string. */
+								grfmsg(1, "choice list misses default value");
+								mapping->strings[0] = xstrdup("");
+							}
 
 							/* Now we can start flushing everything and clean everything up. */
-							d = mapping->Flush(LanguageMap::GetLanguageMap(grfid, language_id));
+							const LanguageMap *lm = LanguageMap::GetLanguageMap (grfid, language_id);
+							if (lm == NULL) {
+								/* In case there is no mapping, just ignore everything but the default.
+								 * A probable cause for this happening is when the language file has
+								 * been removed by the user and as such no mapping could be made. */
+								size_t len = strlen (mapping->strings[0]);
+								memcpy (d, mapping->strings[0], len);
+								d += len;
+							} else {
+								d += Utf8Encode (d, mapping->type);
+
+								if (mapping->type == SCC_SWITCH_CASE) {
+									/*
+									 * Format for case switch:
+									 * <NUM CASES> <CASE1> <LEN1> <STRING1> <CASE2> <LEN2> <STRING2> <CASE3> <LEN3> <STRING3> <STRINGDEFAULT>
+									 * Each LEN is printed using 2 bytes in big endian order.
+									 */
+
+									/* "<NUM CASES>" */
+									int count = 0;
+									for (uint8 i = 0; i < _current_language->num_cases; i++) {
+										/* Count the ones we have a mapped string for. */
+										if (mapping->strings.Contains (lm->GetReverseMapping (i, false))) count++;
+									}
+									*d++ = count;
+
+									for (uint8 i = 0; i < _current_language->num_cases; i++) {
+										/* Resolve the string we're looking for. */
+										int idx = lm->GetReverseMapping (i, false);
+										if (!mapping->strings.Contains(idx)) continue;
+										char *str = mapping->strings[idx];
+
+										/* "<CASEn>" */
+										*d++ = i + 1;
+
+										/* "<LENn>" */
+										size_t len = strlen (str) + 1;
+										*d++ = GB(len, 8, 8);
+										*d++ = GB(len, 0, 8);
+
+										/* "<STRINGn>" */
+										memcpy (d, str, len);
+										d += len;
+									}
+
+									/* "<STRINGDEFAULT>" */
+									size_t len = strlen (mapping->strings[0]) + 1;
+									memcpy (d, mapping->strings[0], len);
+									d += len;
+								} else {
+									if (mapping->type == SCC_PLURAL_LIST) {
+										*d++ = lm->plural_form;
+									}
+
+									/*
+									 * Format for choice list:
+									 * <OFFSET> <NUM CHOICES> <LENs> <STRINGs>
+									 */
+
+									/* "<OFFSET>" */
+									*d++ = mapping->offset - 0x80;
+
+									/* "<NUM CHOICES>" */
+									int count = (mapping->type == SCC_GENDER_LIST ? _current_language->num_genders : LANGUAGE_MAX_PLURAL_FORMS);
+									*d++ = count;
+
+									/* "<LENs>" */
+									for (int i = 0; i < count; i++) {
+										int idx = (mapping->type == SCC_GENDER_LIST ? lm->GetReverseMapping (i, true) : i + 1);
+										const char *str = mapping->strings[mapping->strings.Contains(idx) ? idx : 0];
+										size_t len = strlen (str) + 1;
+										if (len > 0xFF) grfmsg(1, "choice list string is too long");
+										*d++ = GB(len, 0, 8);
+									}
+
+									/* "<STRINGs>" */
+									for (int i = 0; i < count; i++) {
+										int idx = (mapping->type == SCC_GENDER_LIST ? lm->GetReverseMapping (i, true) : i + 1);
+										const char *str = mapping->strings[mapping->strings.Contains(idx) ? idx : 0];
+										/* Limit the length of the string we copy to 0xFE. The length is written above
+										 * as a byte and we need room for the final '\0'. */
+										size_t len = min<size_t> (0xFE, strlen (str));
+										memcpy (d, str, len);
+										d += len;
+										*d++ = '\0';
+									}
+								}
+							}
+
 							delete mapping;
 							mapping = NULL;
 						}
