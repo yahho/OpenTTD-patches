@@ -27,6 +27,7 @@
 #include "date_type.h"
 #include "debug.h"
 #include "core/pointer.h"
+#include "core/flexarray.h"
 #include "core/alloc_type.hpp"
 #include "core/smallmap_type.hpp"
 #include "language.h"
@@ -106,6 +107,23 @@ int LanguageMap::GetReverseMapping(int openttd_id, bool gender) const
 }
 
 
+/** Allocated string with (some) built-in bounds checking. */
+struct mstring : stringb, FlexArray <char> {
+	char data[];
+
+private:
+	mstring (size_t n) : stringb (n, this->data)
+	{
+	}
+
+public:
+	static mstring *create (size_t n = 1)
+	{
+		return new (n) mstring (n);
+	}
+};
+
+
 /** Construct a copy of this text map. */
 GRFTextMap::GRFTextMap (const GRFTextMap &other)
 	: std::map <byte, GRFText *> (other)
@@ -181,19 +199,21 @@ void GRFTextMap::add (byte langid, uint32 grfid, bool allow_newlines, const char
  */
 char *TranslateTTDPatchCodes(uint32 grfid, uint8 language_id, bool allow_newlines, const char *str, int *olen, StringControlCode byte80)
 {
-	char *tmp = xmalloc (strlen(str) * 10 + 1); // Allocate space to allow for expansion
-	char *d = tmp;
+	size_t tmp_len = strlen (str) * 10 + 1; // Allocate space to allow for expansion
+	char *tmp = xmalloc (tmp_len);
+	stringb tmp_buf (tmp_len, tmp);
+	stringb *buf = &tmp_buf;
+
 	bool unicode = false;
 	WChar c;
 	size_t len = Utf8Decode(&c, str);
 
 	/* Helper variables for a possible (string) mapping. */
-	char *mapping_old_d = NULL;
-	StringControlCode mapping_type;
+	StringControlCode mapping_type = (StringControlCode)0;
 	int mapping_offset;
 
 	/* Mapping of NewGRF-supplied ID to the different strings in the choice list. */
-	ttd_unique_free_ptr<char> mapping_strings[256];
+	ttd_unique_free_ptr<mstring> mapping_strings[256];
 
 	if (c == NFO_UTF8_IDENTIFIER) {
 		unicode = true;
@@ -208,7 +228,7 @@ char *TranslateTTDPatchCodes(uint32 grfid, uint8 language_id, bool allow_newline
 				c = GB(c, 0, 8);
 			} else if (c >= 0x20) {
 				if (!IsValidChar(c, CS_ALPHANUMERAL)) c = '?';
-				d += Utf8Encode(d, c);
+				buf->append_utf8 (c);
 				continue;
 			}
 		} else {
@@ -219,67 +239,67 @@ char *TranslateTTDPatchCodes(uint32 grfid, uint8 language_id, bool allow_newline
 		switch (c) {
 			case 0x01:
 				if (str[0] == '\0') goto string_end;
-				d += Utf8Encode(d, ' ');
+				buf->append (' ');
 				str++;
 				break;
 			case 0x0A: break;
 			case 0x0D:
 				if (allow_newlines) {
-					*d++ = 0x0A;
+					buf->append (0x0A);
 				} else {
 					grfmsg(1, "Detected newline in string that does not allow one");
 				}
 				break;
-			case 0x0E: d += Utf8Encode(d, SCC_TINYFONT); break;
-			case 0x0F: d += Utf8Encode(d, SCC_BIGFONT); break;
+			case 0x0E: buf->append_utf8 (SCC_TINYFONT); break;
+			case 0x0F: buf->append_utf8 (SCC_BIGFONT); break;
 			case 0x1F:
 				if (str[0] == '\0' || str[1] == '\0') goto string_end;
-				d += Utf8Encode(d, ' ');
+				buf->append (' ');
 				str += 2;
 				break;
 			case 0x7B:
 			case 0x7C:
 			case 0x7D:
 			case 0x7E:
-			case 0x7F: d += Utf8Encode(d, SCC_NEWGRF_PRINT_DWORD_SIGNED + c - 0x7B); break;
-			case 0x80: d += Utf8Encode(d, byte80); break;
+			case 0x7F: buf->append_utf8 (SCC_NEWGRF_PRINT_DWORD_SIGNED + c - 0x7B); break;
+			case 0x80: buf->append_utf8 (byte80); break;
 			case 0x81: {
 				if (str[0] == '\0' || str[1] == '\0') goto string_end;
 				StringID string;
 				string  = ((uint8)*str++);
 				string |= ((uint8)*str++) << 8;
-				d += Utf8Encode(d, SCC_NEWGRF_STRINL);
-				d += Utf8Encode(d, MapGRFStringID(grfid, string));
+				buf->append_utf8 (SCC_NEWGRF_STRINL);
+				buf->append_utf8 (MapGRFStringID (grfid, string));
 				break;
 			}
 			case 0x82:
 			case 0x83:
-			case 0x84: d += Utf8Encode(d, SCC_NEWGRF_PRINT_WORD_DATE_LONG + c - 0x82); break;
-			case 0x85: d += Utf8Encode(d, SCC_NEWGRF_DISCARD_WORD);       break;
-			case 0x86: d += Utf8Encode(d, SCC_NEWGRF_ROTATE_TOP_4_WORDS); break;
-			case 0x87: d += Utf8Encode(d, SCC_NEWGRF_PRINT_WORD_VOLUME_LONG);  break;
-			case 0x88: d += Utf8Encode(d, SCC_BLUE);    break;
-			case 0x89: d += Utf8Encode(d, SCC_SILVER);  break;
-			case 0x8A: d += Utf8Encode(d, SCC_GOLD);    break;
-			case 0x8B: d += Utf8Encode(d, SCC_RED);     break;
-			case 0x8C: d += Utf8Encode(d, SCC_PURPLE);  break;
-			case 0x8D: d += Utf8Encode(d, SCC_LTBROWN); break;
-			case 0x8E: d += Utf8Encode(d, SCC_ORANGE);  break;
-			case 0x8F: d += Utf8Encode(d, SCC_GREEN);   break;
-			case 0x90: d += Utf8Encode(d, SCC_YELLOW);  break;
-			case 0x91: d += Utf8Encode(d, SCC_DKGREEN); break;
-			case 0x92: d += Utf8Encode(d, SCC_CREAM);   break;
-			case 0x93: d += Utf8Encode(d, SCC_BROWN);   break;
-			case 0x94: d += Utf8Encode(d, SCC_WHITE);   break;
-			case 0x95: d += Utf8Encode(d, SCC_LTBLUE);  break;
-			case 0x96: d += Utf8Encode(d, SCC_GRAY);    break;
-			case 0x97: d += Utf8Encode(d, SCC_DKBLUE);  break;
-			case 0x98: d += Utf8Encode(d, SCC_BLACK);   break;
+			case 0x84: buf->append_utf8 (SCC_NEWGRF_PRINT_WORD_DATE_LONG + c - 0x82); break;
+			case 0x85: buf->append_utf8 (SCC_NEWGRF_DISCARD_WORD);       break;
+			case 0x86: buf->append_utf8 (SCC_NEWGRF_ROTATE_TOP_4_WORDS); break;
+			case 0x87: buf->append_utf8 (SCC_NEWGRF_PRINT_WORD_VOLUME_LONG);  break;
+			case 0x88: buf->append_utf8 (SCC_BLUE);    break;
+			case 0x89: buf->append_utf8 (SCC_SILVER);  break;
+			case 0x8A: buf->append_utf8 (SCC_GOLD);    break;
+			case 0x8B: buf->append_utf8 (SCC_RED);     break;
+			case 0x8C: buf->append_utf8 (SCC_PURPLE);  break;
+			case 0x8D: buf->append_utf8 (SCC_LTBROWN); break;
+			case 0x8E: buf->append_utf8 (SCC_ORANGE);  break;
+			case 0x8F: buf->append_utf8 (SCC_GREEN);   break;
+			case 0x90: buf->append_utf8 (SCC_YELLOW);  break;
+			case 0x91: buf->append_utf8 (SCC_DKGREEN); break;
+			case 0x92: buf->append_utf8 (SCC_CREAM);   break;
+			case 0x93: buf->append_utf8 (SCC_BROWN);   break;
+			case 0x94: buf->append_utf8 (SCC_WHITE);   break;
+			case 0x95: buf->append_utf8 (SCC_LTBLUE);  break;
+			case 0x96: buf->append_utf8 (SCC_GRAY);    break;
+			case 0x97: buf->append_utf8 (SCC_DKBLUE);  break;
+			case 0x98: buf->append_utf8 (SCC_BLACK);   break;
 			case 0x9A: {
 				int code = *str++;
 				switch (code) {
 					case 0x00: goto string_end;
-					case 0x01: d += Utf8Encode(d, SCC_NEWGRF_PRINT_QWORD_CURRENCY); break;
+					case 0x01: buf->append_utf8 (SCC_NEWGRF_PRINT_QWORD_CURRENCY); break;
 					/* 0x02: ignore next colour byte is not supported. It works on the final
 					 * string and as such hooks into the string drawing routine. At that
 					 * point many things already happened, such as splitting up of strings
@@ -291,22 +311,22 @@ char *TranslateTTDPatchCodes(uint32 grfid, uint8 language_id, bool allow_newline
 						if (str[0] == '\0' || str[1] == '\0') goto string_end;
 						uint16 tmp  = ((uint8)*str++);
 						tmp        |= ((uint8)*str++) << 8;
-						d += Utf8Encode(d, SCC_NEWGRF_PUSH_WORD);
-						d += Utf8Encode(d, tmp);
+						buf->append_utf8 (SCC_NEWGRF_PUSH_WORD);
+						buf->append_utf8 (tmp);
 						break;
 					}
 					case 0x04:
 						if (str[0] == '\0') goto string_end;
-						d += Utf8Encode(d, SCC_NEWGRF_UNPRINT);
-						d += Utf8Encode(d, *str++);
+						buf->append_utf8 (SCC_NEWGRF_UNPRINT);
+						buf->append_utf8 (*str++);
 						break;
-					case 0x06: d += Utf8Encode(d, SCC_NEWGRF_PRINT_BYTE_HEX);          break;
-					case 0x07: d += Utf8Encode(d, SCC_NEWGRF_PRINT_WORD_HEX);          break;
-					case 0x08: d += Utf8Encode(d, SCC_NEWGRF_PRINT_DWORD_HEX);         break;
+					case 0x06: buf->append_utf8 (SCC_NEWGRF_PRINT_BYTE_HEX);          break;
+					case 0x07: buf->append_utf8 (SCC_NEWGRF_PRINT_WORD_HEX);          break;
+					case 0x08: buf->append_utf8 (SCC_NEWGRF_PRINT_DWORD_HEX);         break;
 					/* 0x09, 0x0A are TTDPatch internal use only string codes. */
-					case 0x0B: d += Utf8Encode(d, SCC_NEWGRF_PRINT_QWORD_HEX);         break;
-					case 0x0C: d += Utf8Encode(d, SCC_NEWGRF_PRINT_WORD_STATION_NAME); break;
-					case 0x0D: d += Utf8Encode(d, SCC_NEWGRF_PRINT_WORD_WEIGHT_LONG);  break;
+					case 0x0B: buf->append_utf8 (SCC_NEWGRF_PRINT_QWORD_HEX);         break;
+					case 0x0C: buf->append_utf8 (SCC_NEWGRF_PRINT_WORD_STATION_NAME); break;
+					case 0x0D: buf->append_utf8 (SCC_NEWGRF_PRINT_WORD_WEIGHT_LONG);  break;
 					case 0x0E:
 					case 0x0F: {
 						if (str[0] == '\0') goto string_end;
@@ -314,8 +334,8 @@ char *TranslateTTDPatchCodes(uint32 grfid, uint8 language_id, bool allow_newline
 						int index = *str++;
 						int mapped = lm != NULL ? lm->GetMapping(index, code == 0x0E) : -1;
 						if (mapped >= 0) {
-							d += Utf8Encode(d, code == 0x0E ? SCC_GENDER_INDEX : SCC_SET_CASE);
-							d += Utf8Encode(d, code == 0x0E ? mapped : mapped + 1);
+							buf->append_utf8 (code == 0x0E ? SCC_GENDER_INDEX : SCC_SET_CASE);
+							buf->append_utf8 (code == 0x0E ? mapped : mapped + 1);
 						}
 						break;
 					}
@@ -323,38 +343,36 @@ char *TranslateTTDPatchCodes(uint32 grfid, uint8 language_id, bool allow_newline
 					case 0x10:
 					case 0x11:
 						if (str[0] == '\0') goto string_end;
-						if (mapping_old_d == NULL) {
+						if (mapping_type == 0) {
 							if (code == 0x10) str++; // Skip the index
 							grfmsg(1, "choice list %s marker found when not expected", code == 0x10 ? "next" : "default");
 							break;
 						} else {
 							/* Terminate the previous string. */
-							*d = '\0';
 							byte index = (code == 0x10 ? *str++ : 0);
 							if (mapping_strings[index]) {
 								grfmsg(1, "duplicate choice list string, ignoring");
-								d++;
+								buf->append ('\0');
 							} else {
-								d = xmalloc (strlen(str) * 10 + 1);
-								mapping_strings[index].reset (d);
+								mstring *m = mstring::create (strlen(str) * 10 + 1);
+								mapping_strings[index].reset (m);
+								buf = m;
 							}
 						}
 						break;
 
 					case 0x12:
-						if (mapping_old_d == NULL) {
+						if (mapping_type == 0) {
 							grfmsg(1, "choice list end marker found when not expected");
 						} else {
 							/* Terminate the previous string. */
-							*d = '\0';
-							d = mapping_old_d;
-							mapping_old_d = NULL;
+							buf = &tmp_buf;
 
 							if (!mapping_strings[0]) {
 								/* In case of a (broken) NewGRF without a default,
 								 * assume an empty string. */
 								grfmsg(1, "choice list misses default value");
-								mapping_strings[0].reset (xstrdup (""));
+								mapping_strings[0].reset (mstring::create());
 							}
 
 							/* Now we can start flushing everything and clean everything up. */
@@ -363,11 +381,9 @@ char *TranslateTTDPatchCodes(uint32 grfid, uint8 language_id, bool allow_newline
 								/* In case there is no mapping, just ignore everything but the default.
 								 * A probable cause for this happening is when the language file has
 								 * been removed by the user and as such no mapping could be made. */
-								size_t len = strlen (mapping_strings[0].get());
-								memcpy (d, mapping_strings[0].get(), len);
-								d += len;
+								buf->append (mapping_strings[0]->c_str());
 							} else {
-								d += Utf8Encode (d, mapping_type);
+								buf->append_utf8 (mapping_type);
 
 								if (mapping_type == SCC_SWITCH_CASE) {
 									/*
@@ -383,34 +399,33 @@ char *TranslateTTDPatchCodes(uint32 grfid, uint8 language_id, bool allow_newline
 										int idx = lm->GetReverseMapping (i, false);
 										if ((idx >= 0) && mapping_strings[idx]) count++;
 									}
-									*d++ = count;
+									buf->append ((char)count);
 
 									for (uint8 i = 0; i < _current_language->num_cases; i++) {
 										/* Resolve the string we're looking for. */
 										int idx = lm->GetReverseMapping (i, false);
 										if ((idx < 0) || !mapping_strings[idx]) continue;
-										const char *str = mapping_strings[idx].get();
+										const mstring *m = mapping_strings[idx].get();
 
 										/* "<CASEn>" */
-										*d++ = i + 1;
+										buf->append ((char)(i + 1));
 
 										/* "<LENn>" */
-										size_t len = strlen (str) + 1;
-										*d++ = GB(len, 8, 8);
-										*d++ = GB(len, 0, 8);
+										size_t len = m->length() + 1;
+										buf->append ((char)GB(len, 8, 8));
+										buf->append ((char)GB(len, 0, 8));
 
 										/* "<STRINGn>" */
-										memcpy (d, str, len);
-										d += len;
+										buf->append (m->c_str());
+										buf->append ('\0');
 									}
 
 									/* "<STRINGDEFAULT>" */
-									size_t len = strlen (mapping_strings[0].get()) + 1;
-									memcpy (d, mapping_strings[0].get(), len);
-									d += len;
+									buf->append (mapping_strings[0]->c_str());
+									buf->append ('\0');
 								} else {
 									if (mapping_type == SCC_PLURAL_LIST) {
-										*d++ = lm->plural_form;
+										buf->append ((char)lm->plural_form);
 									}
 
 									/*
@@ -419,35 +434,35 @@ char *TranslateTTDPatchCodes(uint32 grfid, uint8 language_id, bool allow_newline
 									 */
 
 									/* "<OFFSET>" */
-									*d++ = mapping_offset - 0x80;
+									buf->append ((char)(mapping_offset - 0x80));
 
 									/* "<NUM CHOICES>" */
 									int count = (mapping_type == SCC_GENDER_LIST ? _current_language->num_genders : LANGUAGE_MAX_PLURAL_FORMS);
-									*d++ = count;
+									buf->append ((char)count);
 
 									/* "<LENs>" */
 									for (int i = 0; i < count; i++) {
 										int idx = (mapping_type == SCC_GENDER_LIST ? lm->GetReverseMapping (i, true) : i + 1);
-										const char *str = mapping_strings[(idx >= 0) && mapping_strings[idx] ? idx : 0].get();
-										size_t len = strlen (str) + 1;
+										const mstring *m = mapping_strings[(idx >= 0) && mapping_strings[idx] ? idx : 0].get();
+										size_t len = m->length() + 1;
 										if (len > 0xFF) grfmsg(1, "choice list string is too long");
-										*d++ = GB(len, 0, 8);
+										buf->append ((char)GB(len, 0, 8));
 									}
 
 									/* "<STRINGs>" */
 									for (int i = 0; i < count; i++) {
 										int idx = (mapping_type == SCC_GENDER_LIST ? lm->GetReverseMapping (i, true) : i + 1);
-										const char *str = mapping_strings[(idx >= 0) && mapping_strings[idx] ? idx : 0].get();
+										const mstring *m = mapping_strings[(idx >= 0) && mapping_strings[idx] ? idx : 0].get();
 										/* Limit the length of the string we copy to 0xFE. The length is written above
 										 * as a byte and we need room for the final '\0'. */
-										size_t len = min<size_t> (0xFE, strlen (str));
-										memcpy (d, str, len);
-										d += len;
-										*d++ = '\0';
+										size_t len = min<size_t> (0xFE, m->length());
+										buf->append_fmt ("%.*s", (int)len, m->c_str());
+										buf->append ('\0');
 									}
 								}
 							}
 
+							mapping_type = (StringControlCode)0;
 							for (uint i = 0; i < lengthof(mapping_strings); i++) {
 								mapping_strings[i].reset();
 							}
@@ -458,12 +473,11 @@ char *TranslateTTDPatchCodes(uint32 grfid, uint8 language_id, bool allow_newline
 					case 0x14:
 					case 0x15:
 						if (str[0] == '\0') goto string_end;
-						if (mapping_old_d != NULL) {
+						if (mapping_type != 0) {
 							grfmsg(1, "choice lists can't be stacked, it's going to get messy now...");
 							if (code != 0x14) str++;
 						} else {
 							static const StringControlCode mp[] = { SCC_GENDER_LIST, SCC_SWITCH_CASE, SCC_PLURAL_LIST };
-							mapping_old_d = d;
 							mapping_type = mp[code - 0x13];
 							if (code != 0x14) mapping_offset = *str++;
 						}
@@ -478,7 +492,7 @@ char *TranslateTTDPatchCodes(uint32 grfid, uint8 language_id, bool allow_newline
 					case 0x1C:
 					case 0x1D:
 					case 0x1E:
-						d += Utf8Encode(d, SCC_NEWGRF_PRINT_DWORD_DATE_LONG + code - 0x16);
+						buf->append_utf8 (SCC_NEWGRF_PRINT_DWORD_DATE_LONG + code - 0x16);
 						break;
 
 					default:
@@ -488,39 +502,36 @@ char *TranslateTTDPatchCodes(uint32 grfid, uint8 language_id, bool allow_newline
 				break;
 			}
 
-			case 0x9E: d += Utf8Encode(d, 0x20AC);               break; // Euro
-			case 0x9F: d += Utf8Encode(d, 0x0178);               break; // Y with diaeresis
-			case 0xA0: d += Utf8Encode(d, SCC_UP_ARROW);         break;
-			case 0xAA: d += Utf8Encode(d, SCC_DOWN_ARROW);       break;
-			case 0xAC: d += Utf8Encode(d, SCC_CHECKMARK);        break;
-			case 0xAD: d += Utf8Encode(d, SCC_CROSS);            break;
-			case 0xAF: d += Utf8Encode(d, SCC_RIGHT_ARROW);      break;
-			case 0xB4: d += Utf8Encode(d, SCC_TRAIN);            break;
-			case 0xB5: d += Utf8Encode(d, SCC_LORRY);            break;
-			case 0xB6: d += Utf8Encode(d, SCC_BUS);              break;
-			case 0xB7: d += Utf8Encode(d, SCC_PLANE);            break;
-			case 0xB8: d += Utf8Encode(d, SCC_SHIP);             break;
-			case 0xB9: d += Utf8Encode(d, SCC_SUPERSCRIPT_M1);   break;
-			case 0xBC: d += Utf8Encode(d, SCC_SMALL_UP_ARROW);   break;
-			case 0xBD: d += Utf8Encode(d, SCC_SMALL_DOWN_ARROW); break;
+			case 0x9E: buf->append_utf8 (0x20AC);               break; // Euro
+			case 0x9F: buf->append_utf8 (0x0178);               break; // Y with diaeresis
+			case 0xA0: buf->append_utf8 (SCC_UP_ARROW);         break;
+			case 0xAA: buf->append_utf8 (SCC_DOWN_ARROW);       break;
+			case 0xAC: buf->append_utf8 (SCC_CHECKMARK);        break;
+			case 0xAD: buf->append_utf8 (SCC_CROSS);            break;
+			case 0xAF: buf->append_utf8 (SCC_RIGHT_ARROW);      break;
+			case 0xB4: buf->append_utf8 (SCC_TRAIN);            break;
+			case 0xB5: buf->append_utf8 (SCC_LORRY);            break;
+			case 0xB6: buf->append_utf8 (SCC_BUS);              break;
+			case 0xB7: buf->append_utf8 (SCC_PLANE);            break;
+			case 0xB8: buf->append_utf8 (SCC_SHIP);             break;
+			case 0xB9: buf->append_utf8 (SCC_SUPERSCRIPT_M1);   break;
+			case 0xBC: buf->append_utf8 (SCC_SMALL_UP_ARROW);   break;
+			case 0xBD: buf->append_utf8 (SCC_SMALL_DOWN_ARROW); break;
 			default:
 				/* Validate any unhandled character */
 				if (!IsValidChar(c, CS_ALPHANUMERAL)) c = '?';
-				d += Utf8Encode(d, c);
+				buf->append_utf8 (c);
 				break;
 		}
 	}
 
 string_end:
-	if (mapping_old_d != NULL) {
+	if (mapping_type != 0) {
 		grfmsg(1, "choice list was incomplete, the whole list is ignored");
-		d = mapping_old_d;
 	}
 
-	*d = '\0';
-	if (olen != NULL) *olen = d - tmp + 1;
-	tmp = xrealloc (tmp, d - tmp + 1);
-	return tmp;
+	if (olen != NULL) *olen = tmp_buf.length() + 1;
+	return xrealloc (tmp, tmp_buf.length() + 1);
 }
 
 /**
