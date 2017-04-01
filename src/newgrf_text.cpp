@@ -124,6 +124,54 @@ public:
 };
 
 
+/** Dump the representation of a switch case mapping. */
+static void DumpSwitchMapping (stringb *buf, const LanguageMap *lm,
+	const ttd_unique_free_ptr<mstring> (&mapping) [256])
+{
+	/*
+	 * Format for case switch:
+	 * <NUM CASES> <CASE1> <LEN1> <STRING1> <CASE2> <LEN2> <STRING2> <CASE3> <LEN3> <STRING3> <STRINGDEFAULT>
+	 * Each LEN is printed using 2 bytes in big endian order.
+	 */
+	int cases [MAX_NUM_CASES];
+
+	assert (_current_language->num_cases <= lengthof(cases));
+
+	/* "<NUM CASES>" */
+	uint count = 0;
+	for (uint8 i = 0; i < _current_language->num_cases; i++) {
+		/* Count the ones we have a mapped string for. */
+		int idx = lm->GetReverseMapping (i, false);
+		cases[i] = idx;
+		if ((idx >= 0) && mapping[idx]) count++;
+	}
+	buf->append ((char)count);
+
+	for (uint8 i = 0; i < _current_language->num_cases; i++) {
+		/* Resolve the string we're looking for. */
+		int idx = cases[i];
+		if ((idx < 0) || !mapping[idx]) continue;
+		const mstring *m = mapping[idx].get();
+
+		/* "<CASEn>" */
+		buf->append ((char)(i + 1));
+
+		/* "<LENn>" */
+		size_t len = m->length() + 1;
+		buf->append ((char)GB(len, 8, 8));
+		buf->append ((char)GB(len, 0, 8));
+
+		/* "<STRINGn>" */
+		buf->append (m->c_str());
+		buf->append ('\0');
+	}
+
+	/* "<STRINGDEFAULT>" */
+	buf->append (mapping[0]->c_str());
+	buf->append ('\0');
+}
+
+
 /** Construct a copy of this text map. */
 GRFTextMap::GRFTextMap (const GRFTextMap &other)
 	: std::map <byte, GRFText *> (other)
@@ -386,43 +434,7 @@ char *TranslateTTDPatchCodes(uint32 grfid, uint8 language_id, bool allow_newline
 								buf->append_utf8 (mapping_type);
 
 								if (mapping_type == SCC_SWITCH_CASE) {
-									/*
-									 * Format for case switch:
-									 * <NUM CASES> <CASE1> <LEN1> <STRING1> <CASE2> <LEN2> <STRING2> <CASE3> <LEN3> <STRING3> <STRINGDEFAULT>
-									 * Each LEN is printed using 2 bytes in big endian order.
-									 */
-
-									/* "<NUM CASES>" */
-									int count = 0;
-									for (uint8 i = 0; i < _current_language->num_cases; i++) {
-										/* Count the ones we have a mapped string for. */
-										int idx = lm->GetReverseMapping (i, false);
-										if ((idx >= 0) && mapping_strings[idx]) count++;
-									}
-									buf->append ((char)count);
-
-									for (uint8 i = 0; i < _current_language->num_cases; i++) {
-										/* Resolve the string we're looking for. */
-										int idx = lm->GetReverseMapping (i, false);
-										if ((idx < 0) || !mapping_strings[idx]) continue;
-										const mstring *m = mapping_strings[idx].get();
-
-										/* "<CASEn>" */
-										buf->append ((char)(i + 1));
-
-										/* "<LENn>" */
-										size_t len = m->length() + 1;
-										buf->append ((char)GB(len, 8, 8));
-										buf->append ((char)GB(len, 0, 8));
-
-										/* "<STRINGn>" */
-										buf->append (m->c_str());
-										buf->append ('\0');
-									}
-
-									/* "<STRINGDEFAULT>" */
-									buf->append (mapping_strings[0]->c_str());
-									buf->append ('\0');
+									DumpSwitchMapping (buf, lm, mapping_strings);
 								} else {
 									if (mapping_type == SCC_PLURAL_LIST) {
 										buf->append ((char)lm->plural_form);
