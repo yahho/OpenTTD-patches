@@ -215,6 +215,35 @@ static void DumpChoiceList (stringb *buf, const LanguageMap *lm,
 	}
 }
 
+/** Dump the representation of a string mapping. */
+static void DumpMapping (stringb *buf, const LanguageMap *lm,
+	const ttd_unique_free_ptr<mstring> (&mapping) [256],
+	StringControlCode type, int offset)
+{
+	if (lm == NULL) {
+		/* In case there is no mapping, just ignore everything but the default.
+		 * A probable cause for this happening is when the language file has
+		 * been removed by the user and as such no mapping could be made. */
+		buf->append (mapping[0]->c_str());
+		return;
+	}
+
+	buf->append_utf8 (type);
+
+	switch (type) {
+		case SCC_SWITCH_CASE:
+			DumpSwitchMapping (buf, lm, mapping);
+			break;
+
+		case SCC_PLURAL_LIST:
+			buf->append ((char)lm->plural_form);
+			/* fall through */
+		default:
+			DumpChoiceList (buf, lm, mapping, offset, type == SCC_GENDER_LIST);
+			break;
+	}
+}
+
 
 /** Construct a copy of this text map. */
 GRFTextMap::GRFTextMap (const GRFTextMap &other)
@@ -469,24 +498,7 @@ char *TranslateTTDPatchCodes(uint32 grfid, uint8 language_id, bool allow_newline
 
 							/* Now we can start flushing everything and clean everything up. */
 							const LanguageMap *lm = LanguageMap::GetLanguageMap (grfid, language_id);
-							if (lm == NULL) {
-								/* In case there is no mapping, just ignore everything but the default.
-								 * A probable cause for this happening is when the language file has
-								 * been removed by the user and as such no mapping could be made. */
-								buf->append (mapping_strings[0]->c_str());
-							} else {
-								buf->append_utf8 (mapping_type);
-
-								if (mapping_type == SCC_SWITCH_CASE) {
-									DumpSwitchMapping (buf, lm, mapping_strings);
-								} else {
-									if (mapping_type == SCC_PLURAL_LIST) {
-										buf->append ((char)lm->plural_form);
-									}
-
-									DumpChoiceList (buf, lm, mapping_strings, mapping_offset, mapping_type == SCC_GENDER_LIST);
-								}
-							}
+							DumpMapping (buf, lm, mapping_strings, mapping_type, mapping_offset);
 
 							mapping_type = (StringControlCode)0;
 							for (uint i = 0; i < lengthof(mapping_strings); i++) {
