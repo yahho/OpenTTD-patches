@@ -320,6 +320,62 @@ void GRFTextMap::add (byte langid, uint32 grfid, bool allow_newlines, const char
  */
 char *TranslateTTDPatchCodes(uint32 grfid, uint8 language_id, bool allow_newlines, const char *str, int *olen, StringControlCode byte80)
 {
+	enum {
+		CTRL_EOF,   ///< End of string.
+		CTRL_HSKIP, ///< Variable space.
+		CTRL_NOP,   ///< Ignore.
+		CTRL_NL,    ///< New line.
+		CTRL_SETXY, ///< Set string position.
+		CTRL_PRSTK, ///< Print string from stack.
+		CTRL_PRSTR, ///< Print immediate string.
+		CTRL_EXT,   ///< Extended format code.
+	};
+
+	assert_compile (CTRL_EXT < 0x20);
+
+	static const uint16 ctrl [0xBE] = {
+		CTRL_EOF, CTRL_HSKIP, '?', '?', '?', '?', '?', '?',
+		'?', '?', CTRL_NOP, '?',
+			'?', CTRL_NL, SCC_TINYFONT, SCC_BIGFONT,
+		'?', '?', '?', '?', '?', '?', '?', '?',
+		'?', '?', '?', '?', '?', '?', '?', CTRL_SETXY,
+		0x20, 0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27,
+		0x28, 0x29, 0x2A, 0x2B, 0x2C, 0x2D, 0x2E, 0x2F,
+		0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37,
+		0x38, 0x39, 0x3A, 0x3B, 0x3C, 0x3D, 0x3E, 0x3F,
+		0x40, 0x41, 0x42, 0x43, 0x44, 0x45, 0x46, 0x47,
+		0x48, 0x49, 0x4A, 0x4B, 0x4C, 0x4D, 0x4E, 0x4F,
+		0x50, 0x51, 0x52, 0x53, 0x54, 0x55, 0x56, 0x57,
+		0x58, 0x59, 0x5A, 0x5B, 0x5C, 0x5D, 0x5E, 0x5F,
+		0x60, 0x61, 0x62, 0x63, 0x64, 0x65, 0x66, 0x67,
+		0x68, 0x69, 0x6A, 0x6B, 0x6C, 0x6D, 0x6E, 0x6F,
+		0x70, 0x71, 0x72, 0x73, 0x74, 0x75, 0x76, 0x77,
+		0x78, 0x79, 0x7A, SCC_NEWGRF_PRINT_DWORD_SIGNED,
+			SCC_NEWGRF_PRINT_WORD_SIGNED,           // 0x7C
+			SCC_NEWGRF_PRINT_BYTE_SIGNED,           // 0x7D
+			SCC_NEWGRF_PRINT_WORD_UNSIGNED,         // 0x7E
+			SCC_NEWGRF_PRINT_DWORD_CURRENCY,        // 0x7F
+		CTRL_PRSTK, CTRL_PRSTR,                         // 0x80, 0x81
+			SCC_NEWGRF_PRINT_WORD_DATE_LONG,        // 0x82
+			SCC_NEWGRF_PRINT_WORD_DATE_SHORT,       // 0x83
+			SCC_NEWGRF_PRINT_WORD_SPEED,            // 0x84
+			SCC_NEWGRF_DISCARD_WORD,                // 0x85
+			SCC_NEWGRF_ROTATE_TOP_4_WORDS,          // 0x86
+			SCC_NEWGRF_PRINT_WORD_VOLUME_LONG,      // 0x87
+		SCC_BLUE, SCC_SILVER, SCC_GOLD, SCC_RED,        // 0x88
+			SCC_PURPLE, SCC_LTBROWN, SCC_ORANGE, SCC_GREEN,
+		SCC_YELLOW, SCC_DKGREEN, SCC_CREAM, SCC_BROWN,  // 0x90
+			SCC_WHITE, SCC_LTBLUE, SCC_GRAY, SCC_DKBLUE,
+		SCC_BLACK, 0x99, CTRL_EXT, 0x9B, 0x9C, 0x9D, 0x20AC, 0x0178,
+		SCC_UP_ARROW, 0xA1, 0xA2, 0xA3, 0xA4, 0xA5, 0xA6, 0xA7,
+		0xA8, 0xA9, SCC_DOWN_ARROW, 0xAB,
+			SCC_CHECKMARK, SCC_CROSS, 0xAE, SCC_RIGHT_ARROW,
+		0xB0, 0xB1, 0xB2, 0xB3,
+			SCC_TRAIN, SCC_LORRY, SCC_BUS, SCC_PLANE,
+		SCC_SHIP, SCC_SUPERSCRIPT_M1, 0xBA, 0xBB,
+			SCC_SMALL_UP_ARROW, SCC_SMALL_DOWN_ARROW,
+	};
+
 	size_t tmp_len = strlen (str) * 10 + 1; // Allocate space to allow for expansion
 	char *tmp = xmalloc (tmp_len);
 	stringb tmp_buf (tmp_len, tmp);
@@ -355,36 +411,45 @@ char *TranslateTTDPatchCodes(uint32 grfid, uint8 language_id, bool allow_newline
 		} else {
 			c = (byte)*str++;
 		}
-		if (c == '\0') break;
+
+		if (c < lengthof(ctrl)) {
+			c = ctrl[c];
+		} else if (!IsPrintable (c)) {
+			c = '?';
+		}
 
 		switch (c) {
-			case 0x01:
+			case CTRL_EOF:
+				goto string_end;
+
+			case CTRL_HSKIP:
 				if (str[0] == '\0') goto string_end;
 				buf->append (' ');
 				str++;
 				break;
-			case 0x0A: break;
-			case 0x0D:
+
+			case CTRL_NOP:
+				break;
+
+			case CTRL_NL:
 				if (allow_newlines) {
 					buf->append (0x0A);
 				} else {
 					grfmsg(1, "Detected newline in string that does not allow one");
 				}
 				break;
-			case 0x0E: buf->append_utf8 (SCC_TINYFONT); break;
-			case 0x0F: buf->append_utf8 (SCC_BIGFONT); break;
-			case 0x1F:
+
+			case CTRL_SETXY:
 				if (str[0] == '\0' || str[1] == '\0') goto string_end;
 				buf->append (' ');
 				str += 2;
 				break;
-			case 0x7B:
-			case 0x7C:
-			case 0x7D:
-			case 0x7E:
-			case 0x7F: buf->append_utf8 (SCC_NEWGRF_PRINT_DWORD_SIGNED + c - 0x7B); break;
-			case 0x80: buf->append_utf8 (byte80); break;
-			case 0x81: {
+
+			case CTRL_PRSTK:
+				buf->append_utf8 (byte80);
+				break;
+
+			case CTRL_PRSTR: {
 				if (str[0] == '\0' || str[1] == '\0') goto string_end;
 				StringID string;
 				string  = ((uint8)*str++);
@@ -393,30 +458,8 @@ char *TranslateTTDPatchCodes(uint32 grfid, uint8 language_id, bool allow_newline
 				buf->append_utf8 (MapGRFStringID (grfid, string));
 				break;
 			}
-			case 0x82:
-			case 0x83:
-			case 0x84: buf->append_utf8 (SCC_NEWGRF_PRINT_WORD_DATE_LONG + c - 0x82); break;
-			case 0x85: buf->append_utf8 (SCC_NEWGRF_DISCARD_WORD);       break;
-			case 0x86: buf->append_utf8 (SCC_NEWGRF_ROTATE_TOP_4_WORDS); break;
-			case 0x87: buf->append_utf8 (SCC_NEWGRF_PRINT_WORD_VOLUME_LONG);  break;
-			case 0x88: buf->append_utf8 (SCC_BLUE);    break;
-			case 0x89: buf->append_utf8 (SCC_SILVER);  break;
-			case 0x8A: buf->append_utf8 (SCC_GOLD);    break;
-			case 0x8B: buf->append_utf8 (SCC_RED);     break;
-			case 0x8C: buf->append_utf8 (SCC_PURPLE);  break;
-			case 0x8D: buf->append_utf8 (SCC_LTBROWN); break;
-			case 0x8E: buf->append_utf8 (SCC_ORANGE);  break;
-			case 0x8F: buf->append_utf8 (SCC_GREEN);   break;
-			case 0x90: buf->append_utf8 (SCC_YELLOW);  break;
-			case 0x91: buf->append_utf8 (SCC_DKGREEN); break;
-			case 0x92: buf->append_utf8 (SCC_CREAM);   break;
-			case 0x93: buf->append_utf8 (SCC_BROWN);   break;
-			case 0x94: buf->append_utf8 (SCC_WHITE);   break;
-			case 0x95: buf->append_utf8 (SCC_LTBLUE);  break;
-			case 0x96: buf->append_utf8 (SCC_GRAY);    break;
-			case 0x97: buf->append_utf8 (SCC_DKBLUE);  break;
-			case 0x98: buf->append_utf8 (SCC_BLACK);   break;
-			case 0x9A: {
+
+			case CTRL_EXT: {
 				int code = *str++;
 				switch (code) {
 					case 0x00: goto string_end;
@@ -540,24 +583,7 @@ char *TranslateTTDPatchCodes(uint32 grfid, uint8 language_id, bool allow_newline
 				break;
 			}
 
-			case 0x9E: buf->append_utf8 (0x20AC);               break; // Euro
-			case 0x9F: buf->append_utf8 (0x0178);               break; // Y with diaeresis
-			case 0xA0: buf->append_utf8 (SCC_UP_ARROW);         break;
-			case 0xAA: buf->append_utf8 (SCC_DOWN_ARROW);       break;
-			case 0xAC: buf->append_utf8 (SCC_CHECKMARK);        break;
-			case 0xAD: buf->append_utf8 (SCC_CROSS);            break;
-			case 0xAF: buf->append_utf8 (SCC_RIGHT_ARROW);      break;
-			case 0xB4: buf->append_utf8 (SCC_TRAIN);            break;
-			case 0xB5: buf->append_utf8 (SCC_LORRY);            break;
-			case 0xB6: buf->append_utf8 (SCC_BUS);              break;
-			case 0xB7: buf->append_utf8 (SCC_PLANE);            break;
-			case 0xB8: buf->append_utf8 (SCC_SHIP);             break;
-			case 0xB9: buf->append_utf8 (SCC_SUPERSCRIPT_M1);   break;
-			case 0xBC: buf->append_utf8 (SCC_SMALL_UP_ARROW);   break;
-			case 0xBD: buf->append_utf8 (SCC_SMALL_DOWN_ARROW); break;
 			default:
-				/* Validate any unhandled character */
-				if (!IsValidChar(c, CS_ALPHANUMERAL)) c = '?';
 				buf->append_utf8 (c);
 				break;
 		}
