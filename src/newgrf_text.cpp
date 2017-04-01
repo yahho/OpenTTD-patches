@@ -171,6 +171,50 @@ static void DumpSwitchMapping (stringb *buf, const LanguageMap *lm,
 	buf->append ('\0');
 }
 
+/** Dump the representation of a choice list. */
+static void DumpChoiceList (stringb *buf, const LanguageMap *lm,
+	const ttd_unique_free_ptr<mstring> (&mapping) [256],
+	int offset, bool gender)
+{
+	/*
+	 * Format for choice list:
+	 * <OFFSET> <NUM CHOICES> <LENs> <STRINGs>
+	 */
+	const mstring *strs [(MAX_NUM_GENDERS > LANGUAGE_MAX_PLURAL_FORMS) ? MAX_NUM_GENDERS : LANGUAGE_MAX_PLURAL_FORMS];
+
+	/* "<OFFSET>" */
+	buf->append ((char)(offset - 0x80));
+
+	/* "<NUM CHOICES>" */
+	uint count = gender ? _current_language->num_genders : LANGUAGE_MAX_PLURAL_FORMS;
+	buf->append ((char)count);
+
+	assert (count <= lengthof(strs));
+
+	/* "<LENs>" */
+	for (uint i = 0; i < count; i++) {
+		int idx = gender ? lm->GetReverseMapping (i, true) : i + 1;
+		const mstring *m = mapping[(idx >= 0) && mapping[idx] ? idx : 0].get();
+		strs[i] = m;
+		size_t len = m->length() + 1;
+		if (len > 0xFF) {
+			grfmsg(1, "choice list string is too long");
+			len = 0xFF;
+		}
+		buf->append ((char)len);
+	}
+
+	/* "<STRINGs>" */
+	for (uint i = 0; i < count; i++) {
+		const mstring *m = strs[i];
+		/* Limit the length of the string we copy to 0xFE. The length is written above
+		 * as a byte and we need room for the final '\0'. */
+		size_t len = min<size_t> (0xFE, m->length());
+		buf->append_fmt ("%.*s", (int)len, m->c_str());
+		buf->append ('\0');
+	}
+}
+
 
 /** Construct a copy of this text map. */
 GRFTextMap::GRFTextMap (const GRFTextMap &other)
@@ -440,37 +484,7 @@ char *TranslateTTDPatchCodes(uint32 grfid, uint8 language_id, bool allow_newline
 										buf->append ((char)lm->plural_form);
 									}
 
-									/*
-									 * Format for choice list:
-									 * <OFFSET> <NUM CHOICES> <LENs> <STRINGs>
-									 */
-
-									/* "<OFFSET>" */
-									buf->append ((char)(mapping_offset - 0x80));
-
-									/* "<NUM CHOICES>" */
-									int count = (mapping_type == SCC_GENDER_LIST ? _current_language->num_genders : LANGUAGE_MAX_PLURAL_FORMS);
-									buf->append ((char)count);
-
-									/* "<LENs>" */
-									for (int i = 0; i < count; i++) {
-										int idx = (mapping_type == SCC_GENDER_LIST ? lm->GetReverseMapping (i, true) : i + 1);
-										const mstring *m = mapping_strings[(idx >= 0) && mapping_strings[idx] ? idx : 0].get();
-										size_t len = m->length() + 1;
-										if (len > 0xFF) grfmsg(1, "choice list string is too long");
-										buf->append ((char)GB(len, 0, 8));
-									}
-
-									/* "<STRINGs>" */
-									for (int i = 0; i < count; i++) {
-										int idx = (mapping_type == SCC_GENDER_LIST ? lm->GetReverseMapping (i, true) : i + 1);
-										const mstring *m = mapping_strings[(idx >= 0) && mapping_strings[idx] ? idx : 0].get();
-										/* Limit the length of the string we copy to 0xFE. The length is written above
-										 * as a byte and we need room for the final '\0'. */
-										size_t len = min<size_t> (0xFE, m->length());
-										buf->append_fmt ("%.*s", (int)len, m->c_str());
-										buf->append ('\0');
-									}
+									DumpChoiceList (buf, lm, mapping_strings, mapping_offset, mapping_type == SCC_GENDER_LIST);
 								}
 							}
 
