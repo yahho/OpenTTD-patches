@@ -529,6 +529,25 @@ string_end:
 }
 
 
+/**
+ * Allocate and assign a new GRFText with the given text,
+ * translating string codes.
+ * @param text The text to store in the new GRFText.
+ * @param grfid The grfid where this string is defined.
+ * @param langid The language of the new text.
+ * @param allow_newlines Whether newlines are allowed in this string.
+ */
+GRFText *GRFText::create (const char *text, uint32 grfid, byte langid,
+	bool allow_newlines)
+{
+	int len;
+	char *translatedtext = TranslateTTDPatchCodes (grfid, langid, allow_newlines, text, &len);
+	GRFText *newtext = GRFText::create (translatedtext, len);
+	free (translatedtext);
+	return newtext;
+}
+
+
 /** Construct a copy of this text map. */
 GRFTextMap::GRFTextMap (const GRFTextMap &other)
 	: std::map <byte, GRFText *> (other)
@@ -583,12 +602,7 @@ void GRFTextMap::add (byte langid, GRFText *text)
  */
 void GRFTextMap::add (byte langid, uint32 grfid, bool allow_newlines, const char *text)
 {
-	int len;
-	char *translatedtext = TranslateTTDPatchCodes (grfid, langid, allow_newlines, text, &len);
-	GRFText *newtext = GRFText::create (translatedtext, len);
-	free (translatedtext);
-
-	this->add (langid, newtext);
+	this->add (langid, GRFText::create (text, grfid, langid, allow_newlines));
 }
 
 
@@ -620,7 +634,6 @@ char *TranslateTTDPatchCodes(uint32 grfid, uint8 language_id, bool allow_newline
  */
 StringID AddGRFString(uint32 grfid, uint16 stringid, byte langid_to_add, bool new_scheme, bool allow_newlines, const char *text_to_add, StringID def_string)
 {
-	char *translatedtext;
 	uint id;
 
 	/* When working with the old language scheme (grf_version is less than 7) and
@@ -650,12 +663,7 @@ StringID AddGRFString(uint32 grfid, uint16 stringid, byte langid_to_add, bool ne
 	/* Too many strings allocated, return empty */
 	if (id == lengthof(_grf_text)) return STR_EMPTY;
 
-	int len;
-	translatedtext = TranslateTTDPatchCodes(grfid, langid_to_add, allow_newlines, text_to_add, &len);
-
-	GRFText *newtext = GRFText::create (translatedtext, len);
-
-	free(translatedtext);
+	GRFText *newtext = GRFText::create (text_to_add, grfid, langid_to_add, allow_newlines);
 
 	/* If we didn't find our stringid and grfid in the list, allocate a new id */
 	if (id == _num_grf_texts) _num_grf_texts++;
