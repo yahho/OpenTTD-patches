@@ -540,10 +540,16 @@ string_end:
 GRFText *GRFText::create (const char *text, uint32 grfid, byte langid,
 	bool allow_newlines)
 {
-	int len;
-	char *translatedtext = TranslateTTDPatchCodes (grfid, langid, allow_newlines, text, &len);
-	GRFText *newtext = GRFText::create (translatedtext, len);
-	free (translatedtext);
+	size_t tmp_len = strlen (text) * 10 + 1; // Allocate space to allow for expansion
+	char *tmp = xmalloc (tmp_len);
+	stringb tmp_buf (tmp_len, tmp);
+
+	TranslateStringCodes (&tmp_buf, text, grfid, langid, allow_newlines,
+				SCC_NEWGRF_PRINT_WORD_STRING_ID);
+
+	size_t len = tmp_buf.length() + 1;
+	GRFText *newtext = GRFText::create (tmp, len);
+	free (tmp);
 	return newtext;
 }
 
