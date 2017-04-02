@@ -244,81 +244,17 @@ static void DumpMapping (stringb *buf, const LanguageMap *lm,
 	}
 }
 
-
-/** Construct a copy of this text map. */
-GRFTextMap::GRFTextMap (const GRFTextMap &other)
-	: std::map <byte, GRFText *> (other)
-{
-	for (iterator iter = this->begin(); iter != this->end(); iter++) {
-		iter->second = iter->second->clone();
-	}
-}
-
-/** Destroy the text map. */
-GRFTextMap::~GRFTextMap()
-{
-	for (iterator iter = this->begin(); iter != this->end(); iter++) {
-		delete iter->second;
-	}
-}
-
-/** Get the GRFText for the current language, or a default. */
-const GRFText *GRFTextMap::get_current (void) const
-{
-	byte langs[4] = { _currentLangID, GRFLX_UNSPECIFIED, GRFLX_ENGLISH, GRFLX_AMERICAN };
-
-	for (uint i = 0; i < lengthof(langs); i++) {
-		const_iterator iter = this->find (langs[i]);
-		if (iter != this->end()) return iter->second;
-	}
-
-	return NULL;
-}
-
-/** Add a GRFText to this map. */
-void GRFTextMap::add (byte langid, GRFText *text)
-{
-	std::pair <iterator, bool> pair =
-			this->insert (std::make_pair (langid, text));
-
-	if (!pair.second) {
-		/* The langid already existed in the map. */
-		GRFText *old = pair.first->second;
-		pair.first->second = text;
-		delete old;
-	}
-}
-
 /**
- * Add a string to this map.
- * @param langid The language of the new text.
- * @param grfid The grfid where this string is defined.
- * @param allow_newlines Whether newlines are allowed in this string.
- * @param text The text to add to the list.
- * @note All text-codes will be translated.
- */
-void GRFTextMap::add (byte langid, uint32 grfid, bool allow_newlines, const char *text)
-{
-	int len;
-	char *translatedtext = TranslateTTDPatchCodes (grfid, langid, allow_newlines, text, &len);
-	GRFText *newtext = GRFText::create (translatedtext, len);
-	free (translatedtext);
-
-	this->add (langid, newtext);
-}
-
-
-/**
- * Translate TTDPatch string codes into something OpenTTD can handle (better).
+ * Translate TTDPatch string codes into something we can handle better.
+ * @param out            The string to append the result to.
+ * @param str            The string to translate.
  * @param grfid          The (NewGRF) ID associated with this string
  * @param language_id    The (NewGRF) language ID associated with this string.
  * @param allow_newlines Whether newlines are allowed in the string or not.
- * @param str            The string to translate.
- * @param [out] olen     The length of the final string.
  * @param byte80         The control code to use as replacement for the 0x80-value.
- * @return The translated string.
  */
-char *TranslateTTDPatchCodes(uint32 grfid, uint8 language_id, bool allow_newlines, const char *str, int *olen, StringControlCode byte80)
+static void TranslateStringCodes (stringb *out, const char *str, uint32 grfid,
+	uint8 language_id, bool allow_newlines, StringControlCode byte80)
 {
 	enum {
 		CTRL_EOF,   ///< End of string.
@@ -376,10 +312,7 @@ char *TranslateTTDPatchCodes(uint32 grfid, uint8 language_id, bool allow_newline
 			SCC_SMALL_UP_ARROW, SCC_SMALL_DOWN_ARROW,
 	};
 
-	size_t tmp_len = strlen (str) * 10 + 1; // Allocate space to allow for expansion
-	char *tmp = xmalloc (tmp_len);
-	stringb tmp_buf (tmp_len, tmp);
-	stringb *buf = &tmp_buf;
+	stringb *buf = out;
 
 	bool unicode = false;
 	WChar c;
@@ -530,7 +463,7 @@ char *TranslateTTDPatchCodes(uint32 grfid, uint8 language_id, bool allow_newline
 							grfmsg(1, "choice list end marker found when not expected");
 						} else {
 							/* Terminate the previous string. */
-							buf = &tmp_buf;
+							buf = out;
 
 							if (!mapping_strings[0]) {
 								/* In case of a (broken) NewGRF without a default,
@@ -593,6 +526,90 @@ string_end:
 	if (mapping_type != 0) {
 		grfmsg(1, "choice list was incomplete, the whole list is ignored");
 	}
+}
+
+
+/** Construct a copy of this text map. */
+GRFTextMap::GRFTextMap (const GRFTextMap &other)
+	: std::map <byte, GRFText *> (other)
+{
+	for (iterator iter = this->begin(); iter != this->end(); iter++) {
+		iter->second = iter->second->clone();
+	}
+}
+
+/** Destroy the text map. */
+GRFTextMap::~GRFTextMap()
+{
+	for (iterator iter = this->begin(); iter != this->end(); iter++) {
+		delete iter->second;
+	}
+}
+
+/** Get the GRFText for the current language, or a default. */
+const GRFText *GRFTextMap::get_current (void) const
+{
+	byte langs[4] = { _currentLangID, GRFLX_UNSPECIFIED, GRFLX_ENGLISH, GRFLX_AMERICAN };
+
+	for (uint i = 0; i < lengthof(langs); i++) {
+		const_iterator iter = this->find (langs[i]);
+		if (iter != this->end()) return iter->second;
+	}
+
+	return NULL;
+}
+
+/** Add a GRFText to this map. */
+void GRFTextMap::add (byte langid, GRFText *text)
+{
+	std::pair <iterator, bool> pair =
+			this->insert (std::make_pair (langid, text));
+
+	if (!pair.second) {
+		/* The langid already existed in the map. */
+		GRFText *old = pair.first->second;
+		pair.first->second = text;
+		delete old;
+	}
+}
+
+/**
+ * Add a string to this map.
+ * @param langid The language of the new text.
+ * @param grfid The grfid where this string is defined.
+ * @param allow_newlines Whether newlines are allowed in this string.
+ * @param text The text to add to the list.
+ * @note All text-codes will be translated.
+ */
+void GRFTextMap::add (byte langid, uint32 grfid, bool allow_newlines, const char *text)
+{
+	int len;
+	char *translatedtext = TranslateTTDPatchCodes (grfid, langid, allow_newlines, text, &len);
+	GRFText *newtext = GRFText::create (translatedtext, len);
+	free (translatedtext);
+
+	this->add (langid, newtext);
+}
+
+
+/**
+ * Translate TTDPatch string codes into something OpenTTD can handle (better).
+ * @param grfid          The (NewGRF) ID associated with this string
+ * @param language_id    The (NewGRF) language ID associated with this string.
+ * @param allow_newlines Whether newlines are allowed in the string or not.
+ * @param str            The string to translate.
+ * @param [out] olen     The length of the final string.
+ * @param byte80         The control code to use as replacement for the 0x80-value.
+ * @return The translated string.
+ */
+char *TranslateTTDPatchCodes(uint32 grfid, uint8 language_id, bool allow_newlines, const char *str, int *olen, StringControlCode byte80)
+{
+	size_t tmp_len = strlen (str) * 10 + 1; // Allocate space to allow for expansion
+	char *tmp = xmalloc (tmp_len);
+	stringb tmp_buf (tmp_len, tmp);
+
+	TranslateStringCodes (&tmp_buf, str, grfid, language_id,
+				allow_newlines, byte80);
 
 	if (olen != NULL) *olen = tmp_buf.length() + 1;
 	return xrealloc (tmp, tmp_buf.length() + 1);
