@@ -618,11 +618,11 @@ void GRFTextMap::add (byte langid, uint32 grfid, bool allow_newlines, const char
  * @param language_id    The (NewGRF) language ID associated with this string.
  * @param allow_newlines Whether newlines are allowed in the string or not.
  * @param str            The string to translate.
- * @param [out] olen     The length of the final string.
  * @param byte80         The control code to use as replacement for the 0x80-value.
  * @return The translated string.
  */
-char *TranslateTTDPatchCodes(uint32 grfid, uint8 language_id, bool allow_newlines, const char *str, int *olen, StringControlCode byte80)
+char *TranslateTTDPatchCodes (uint32 grfid, uint8 language_id,
+	bool allow_newlines, const char *str, StringControlCode byte80)
 {
 	size_t tmp_len = strlen (str) * 10 + 1; // Allocate space to allow for expansion
 	char *tmp = xmalloc (tmp_len);
@@ -631,7 +631,6 @@ char *TranslateTTDPatchCodes(uint32 grfid, uint8 language_id, bool allow_newline
 	TranslateStringCodes (&tmp_buf, str, grfid, language_id,
 				allow_newlines, byte80);
 
-	if (olen != NULL) *olen = tmp_buf.length() + 1;
 	return xrealloc (tmp, tmp_buf.length() + 1);
 }
 

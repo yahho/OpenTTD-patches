@@ -6391,7 +6391,7 @@ static int GRFLoadError (ByteReader *buf)
 		} else if (buf->HasData()) {
 			/* This is a custom error message. */
 			const char *message = buf->ReadString();
-			error->custom_message = TranslateTTDPatchCodes(_cur.grffile->grfid, lang, true, message, NULL, SCC_RAW_STRING_POINTER);
+			error->custom_message = TranslateTTDPatchCodes (_cur.grffile->grfid, lang, true, message, SCC_RAW_STRING_POINTER);
 		} else {
 			grfmsg(7, "GRFLoadError: No custom message supplied.");
 			error->custom_message = xstrdup("");

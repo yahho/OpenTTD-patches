@@ -88,7 +88,10 @@ StringID GetGRFStringID(uint32 grfid, uint16 stringid);
 const char *GetGRFStringPtr(uint16 stringid);
 void CleanUpStrings();
 void SetCurrentGrfLangID(byte language_id);
-char *TranslateTTDPatchCodes(uint32 grfid, uint8 language_id, bool allow_newlines, const char *str, int *olen = NULL, StringControlCode byte80 = SCC_NEWGRF_PRINT_WORD_STRING_ID);
+
+char *TranslateTTDPatchCodes (uint32 grfid, uint8 language_id,
+	bool allow_newlines, const char *str,
+	StringControlCode byte80 = SCC_NEWGRF_PRINT_WORD_STRING_ID);
 
 bool CheckGrfLangID(byte lang_id, byte grf_version);
 
