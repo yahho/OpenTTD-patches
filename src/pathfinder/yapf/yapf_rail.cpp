@@ -1126,9 +1126,17 @@ static bool CheckReservedWaypoint (const Train *v, const RailPathPos &pos)
 {
 	CFollowTrackRail ft (v);
 	ft.SetPos (pos);
+	/* Arbitrary maximum tiles to follow to avoid infinite loops. */
+	uint max_tiles = 20;
 
 	while (ft.FollowNext()) {
 		assert (ft.m_old.tile != ft.m_new.tile);
+
+		if (ft.m_new == pos || --max_tiles == 0) {
+			/* We looped back on ourself or found another loop, bail out. */
+			return true;
+		}
+
 		if (!ft.m_new.is_single()) {
 			/* We encountered a junction; it's going to be too
 			 * complex to handle this perfectly, so just bail out.
