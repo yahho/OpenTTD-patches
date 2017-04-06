@@ -43,9 +43,9 @@ public:
 	virtual void MainLoop() = 0;
 
 	/** Helper function to handle palette animation. */
-	static void PaletteAnimate (Blitter *blitter, const Palette &palette)
+	static void PaletteAnimate (const Colour (&palette) [256])
 	{
-		if (_screen_surface->palette_animate (palette.palette)) {
+		if (_screen_surface->palette_animate (palette)) {
 			GetActiveDriver()->MakeDirty (0, 0, _screen_width, _screen_height);
 		}
 	}

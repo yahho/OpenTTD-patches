@@ -103,7 +103,7 @@ static void CheckPaletteAnim()
 				break;
 
 			case Blitter::PALETTE_ANIMATION_BLITTER:
-				VideoDriver::PaletteAnimate (blitter, _cur_palette);
+				VideoDriver::PaletteAnimate (_cur_palette.palette);
 				break;
 
 			case Blitter::PALETTE_ANIMATION_NONE:
