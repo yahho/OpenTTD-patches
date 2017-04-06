@@ -162,7 +162,7 @@ void Blitter::list (stringb *buf)
 }
 
 
-bool Blitter::Surface::palette_animate (const Palette &palette)
+bool Blitter::Surface::palette_animate (const Colour (&palette) [256])
 {
 	/* The null driver does not need to animate anything, for the 8bpp
 	 * blitters the video backend takes care of the palette animation

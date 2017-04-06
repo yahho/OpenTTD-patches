@@ -64,7 +64,7 @@ public:
 
 		void scroll (void *video, int &left, int &top, int &width, int &height, int scroll_x, int scroll_y) OVERRIDE;
 
-		bool palette_animate (const Palette &palette) OVERRIDE;
+		bool palette_animate (const Colour (&palette) [256]) OVERRIDE;
 
 		void copy (Buffer *dst, int x, int y, uint width, uint height) OVERRIDE;
 
