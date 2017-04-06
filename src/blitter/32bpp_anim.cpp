@@ -462,11 +462,11 @@ void Blitter_32bppAnimBase::Surface::scroll (void *video, int &left, int &top, i
 
 bool Blitter_32bppAnimBase::Surface::palette_animate (const Palette &palette)
 {
-	this->palette = palette;
 	/* If first_dirty is 0, it is for 8bpp indication to send the new
 	 *  palette. However, only the animation colours might possibly change.
 	 *  Especially when going between toyland and non-toyland. */
-	assert (this->palette.first_dirty == PALETTE_ANIM_START || this->palette.first_dirty == 0);
+	assert (palette.first_dirty == PALETTE_ANIM_START || palette.first_dirty == 0);
+	this->set_palette (palette.palette);
 
 	const uint16 *anim = this->anim_buf;
 	Colour *dst = (Colour *)this->ptr;
