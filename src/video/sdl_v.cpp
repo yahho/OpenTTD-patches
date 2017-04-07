@@ -43,7 +43,12 @@ static ThreadObject *_draw_thread = NULL;
 static ThreadMutex *_draw_mutex = NULL;
 /** Should we keep continue drawing? */
 static volatile bool _draw_continue;
-static Palette _local_palette;
+/** Local palette. */
+static Colour _local_palette[256];
+/** First palette dirty element. */
+static int _local_palette_first_dirty;
+/** Number of palette dirty elements. */
+static int _local_palette_count_dirty;
 
 #define MAX_DIRTY_RECTS 100
 static SDL_Rect _dirty_rects[MAX_DIRTY_RECTS];
@@ -66,14 +71,14 @@ static void UpdatePalette(bool init = false)
 {
 	SDL_Color pal[256];
 
-	for (int i = 0; i != _local_palette.count_dirty; i++) {
-		pal[i].r = _local_palette.palette[_local_palette.first_dirty + i].r;
-		pal[i].g = _local_palette.palette[_local_palette.first_dirty + i].g;
-		pal[i].b = _local_palette.palette[_local_palette.first_dirty + i].b;
+	for (int i = 0; i != _local_palette_count_dirty; i++) {
+		pal[i].r = _local_palette[_local_palette_first_dirty + i].r;
+		pal[i].g = _local_palette[_local_palette_first_dirty + i].g;
+		pal[i].b = _local_palette[_local_palette_first_dirty + i].b;
 		pal[i].unused = 0;
 	}
 
-	SDL_CALL SDL_SetColors(_sdl_screen, pal, _local_palette.first_dirty, _local_palette.count_dirty);
+	SDL_CALL SDL_SetColors (_sdl_screen, pal, _local_palette_first_dirty, _local_palette_count_dirty);
 
 	if (_sdl_screen != _sdl_realscreen && init) {
 		/* When using a shadow surface, also set our palette on the real screen. This lets SDL
@@ -96,7 +101,7 @@ static void UpdatePalette(bool init = false)
 		 * palette change and the blitting below, so we only set
 		 * the real palette during initialisation.
 		 */
-		SDL_CALL SDL_SetColors(_sdl_realscreen, pal, _local_palette.first_dirty, _local_palette.count_dirty);
+		SDL_CALL SDL_SetColors (_sdl_realscreen, pal, _local_palette_first_dirty, _local_palette_count_dirty);
 	}
 
 	if (_sdl_screen != _sdl_realscreen && !init) {
@@ -117,9 +122,10 @@ static void UpdatePalette(bool init = false)
 
 static void InitPalette()
 {
-	_local_palette = _cur_palette;
-	_local_palette.first_dirty = 0;
-	_local_palette.count_dirty = 256;
+	assert_compile (sizeof(_local_palette) == sizeof(_cur_palette.palette));
+	memcpy (_local_palette, _cur_palette.palette, sizeof(_local_palette));
+	_local_palette_first_dirty = 0;
+	_local_palette_count_dirty = 256;
 	UpdatePalette(true);
 }
 
@@ -134,7 +140,7 @@ static void CheckPaletteAnim()
 				break;
 
 			case Blitter::PALETTE_ANIMATION_BLITTER:
-				VideoDriver::PaletteAnimate (_local_palette.palette);
+				VideoDriver::PaletteAnimate (_local_palette);
 				break;
 
 			case Blitter::PALETTE_ANIMATION_NONE:
@@ -756,7 +762,10 @@ void VideoDriver_SDL::MainLoop()
 			if (_draw_mutex != NULL) _draw_mutex->BeginCritical();
 
 			UpdateWindows();
-			_local_palette = _cur_palette;
+			assert_compile (sizeof(_local_palette) == sizeof(_cur_palette.palette));
+			memcpy (_local_palette, _cur_palette.palette, sizeof(_local_palette));
+			_local_palette_first_dirty = _cur_palette.first_dirty;
+			_local_palette_count_dirty = _cur_palette.count_dirty;
 		} else {
 			/* Release the thread while sleeping */
 			if (_draw_mutex != NULL) _draw_mutex->EndCritical();
