@@ -51,7 +51,9 @@ bool _exit_game;
 GameMode _game_mode;
 SwitchMode _switch_mode;  ///< The next mainloop command.
 PauseModeByte _pause_mode;
-Palette _cur_palette;
+Colour _cur_palette[256];
+int _cur_palette_first_dirty;
+int _cur_palette_count_dirty;
 
 byte _colour_gradient[COLOUR_END][8];
 
@@ -962,7 +964,7 @@ void DoPaletteAnimations()
 	uint i;
 	uint j;
 
-	Colour *palette_pos = &_cur_palette.palette[PALETTE_ANIM_START];  // Points to where animations are taking place on the palette
+	Colour *palette_pos = &_cur_palette[PALETTE_ANIM_START];  // Points to where animations are taking place on the palette
 	/* Makes a copy of the current animation palette in old_val,
 	 * so the work on the current palette could be compared, see if there has been any changes */
 	memcpy(old_val, palette_pos, sizeof(old_val));
@@ -1028,17 +1030,20 @@ void DoPaletteAnimations()
 		if (j >= EPV_CYCLES_GLITTER_WATER) j -= EPV_CYCLES_GLITTER_WATER;
 	}
 
-	if (!noanim && (memcmp (old_val, &_cur_palette.palette[PALETTE_ANIM_START], sizeof(old_val)) != 0)
-			&& (_cur_palette.count_dirty == 0)) {
+	if (!noanim && (memcmp (old_val, &_cur_palette[PALETTE_ANIM_START], sizeof(old_val)) != 0)
+			&& (_cur_palette_count_dirty == 0)) {
 		/* Did we changed anything on the palette? Seems so.  Mark it as dirty */
-		_cur_palette.first_dirty = PALETTE_ANIM_START;
-		_cur_palette.count_dirty = PALETTE_ANIM_SIZE;
+		_cur_palette_first_dirty = PALETTE_ANIM_START;
+		_cur_palette_count_dirty = PALETTE_ANIM_SIZE;
 	}
 }
 
 void GfxInitPalettes()
 {
+	assert_compile (sizeof(_cur_palette) == sizeof(_palette));
 	memcpy(&_cur_palette, &_palette, sizeof(_cur_palette));
+	_cur_palette_first_dirty = 0;
+	_cur_palette_count_dirty = 256;
 	DoPaletteAnimations();
 }
 
@@ -1049,7 +1054,7 @@ void GfxInitPalettes()
  */
 TextColour GetContrastColour(uint8 background)
 {
-	Colour c = _cur_palette.palette[background];
+	Colour c = _cur_palette[background];
 	/* Compute brightness according to http://www.w3.org/TR/AERT#color-contrast.
 	 * The following formula computes 1000 * brightness^2, with brightness being in range 0 to 255. */
 	uint sq1000_brightness = c.r * c.r * 299 + c.g * c.g * 587 + c.b * c.b * 114;

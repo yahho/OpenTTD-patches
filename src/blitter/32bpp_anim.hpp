@@ -38,7 +38,7 @@ public:
 			: Blitter_32bppBase::Surface (ptr, width, height, pitch),
 			  anim_buf (anim_buf)
 		{
-			this->set_palette (_cur_palette.palette);
+			this->set_palette (_cur_palette);
 			memset (anim_buf, 0, width * height * sizeof(uint16));
 		}
 

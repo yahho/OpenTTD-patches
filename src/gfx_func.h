@@ -81,7 +81,9 @@ extern int _screen_width, _screen_height;
 extern int _num_resolutions;
 extern Dimension _resolutions[32];
 extern Dimension _cur_resolution;
-extern Palette _cur_palette; ///< Current palette
+extern Colour _cur_palette[256];     ///< Current palette
+extern int _cur_palette_first_dirty; ///< First palette dirty element.
+extern int _cur_palette_count_dirty; ///< Number of palette dirty elements.
 
 void HandleKeypress(uint keycode, WChar key);
 void HandleTextInput(const char *str, bool marked = false, const char *caret = NULL, const char *insert_location = NULL, const char *replacement_end = NULL);

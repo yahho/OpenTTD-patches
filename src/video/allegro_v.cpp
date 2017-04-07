@@ -78,9 +78,9 @@ static void UpdatePalette(uint start, uint count)
 
 	uint end = start + count;
 	for (uint i = start; i != end; i++) {
-		pal[i].r = _cur_palette.palette[i].r / 4;
-		pal[i].g = _cur_palette.palette[i].g / 4;
-		pal[i].b = _cur_palette.palette[i].b / 4;
+		pal[i].r = _cur_palette[i].r / 4;
+		pal[i].g = _cur_palette[i].g / 4;
+		pal[i].b = _cur_palette[i].b / 4;
 		pal[i].filler = 0;
 	}
 
@@ -94,16 +94,16 @@ static void InitPalette()
 
 static void CheckPaletteAnim()
 {
-	if (_cur_palette.count_dirty != 0) {
+	if (_cur_palette_count_dirty != 0) {
 		Blitter *blitter = Blitter::get();
 
 		switch (blitter->UsePaletteAnimation()) {
 			case Blitter::PALETTE_ANIMATION_VIDEO_BACKEND:
-				UpdatePalette(_cur_palette.first_dirty, _cur_palette.count_dirty);
+				UpdatePalette (_cur_palette_first_dirty, _cur_palette_count_dirty);
 				break;
 
 			case Blitter::PALETTE_ANIMATION_BLITTER:
-				VideoDriver::PaletteAnimate (_cur_palette.palette);
+				VideoDriver::PaletteAnimate (_cur_palette);
 				break;
 
 			case Blitter::PALETTE_ANIMATION_NONE:
@@ -112,7 +112,7 @@ static void CheckPaletteAnim()
 			default:
 				NOT_REACHED();
 		}
-		_cur_palette.count_dirty = 0;
+		_cur_palette_count_dirty = 0;
 	}
 }
 

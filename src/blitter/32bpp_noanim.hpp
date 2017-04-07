@@ -26,7 +26,7 @@ public:
 	 */
 	static inline Colour LookupColourInPalette (uint index)
 	{
-		return _cur_palette.palette[index];
+		return _cur_palette[index];
 	}
 
 	/** Blitting surface. */

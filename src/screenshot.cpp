@@ -717,7 +717,7 @@ static bool MakeSmallScreenshot(bool crashlog)
 	const ScreenshotFormat *sf = _screenshot_formats + _cur_screenshot_format;
 	return sf->proc (MakeScreenshotName (SCREENSHOT_NAME, sf->extension, crashlog),
 			CurrentScreenCallback, NULL, _screen_width, _screen_height,
-			Blitter::get()->GetScreenDepth(), _cur_palette.palette);
+			Blitter::get()->GetScreenDepth(), _cur_palette);
 }
 
 /**
@@ -775,7 +775,7 @@ static bool MakeLargeWorldScreenshot(ScreenshotType t)
 
 	const ScreenshotFormat *sf = _screenshot_formats + _cur_screenshot_format;
 	return sf->proc(MakeScreenshotName(SCREENSHOT_NAME, sf->extension), LargeWorldCallback, &vp, vp.width, vp.height,
-			Blitter::get()->GetScreenDepth(), _cur_palette.palette);
+			Blitter::get()->GetScreenDepth(), _cur_palette);
 }
 
 /**

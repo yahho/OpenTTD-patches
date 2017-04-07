@@ -81,19 +81,19 @@ static void MakePalette()
 	pal->palNumEntries = 256;
 
 	for (uint i = 0; i != 256; i++) {
-		pal->palPalEntry[i].peRed   = _cur_palette.palette[i].r;
-		pal->palPalEntry[i].peGreen = _cur_palette.palette[i].g;
-		pal->palPalEntry[i].peBlue  = _cur_palette.palette[i].b;
+		pal->palPalEntry[i].peRed   = _cur_palette[i].r;
+		pal->palPalEntry[i].peGreen = _cur_palette[i].g;
+		pal->palPalEntry[i].peBlue  = _cur_palette[i].b;
 		pal->palPalEntry[i].peFlags = 0;
 
 	}
 	_wnd.gdi_palette = CreatePalette(pal);
 	if (_wnd.gdi_palette == NULL) usererror("CreatePalette failed!\n");
 
-	_cur_palette.first_dirty = 0;
-	_cur_palette.count_dirty = 256;
-	assert_compile (sizeof(_local_palette) == sizeof(_cur_palette.palette));
-	memcpy (_local_palette, _cur_palette.palette, sizeof(_local_palette));
+	_cur_palette_first_dirty = 0;
+	_cur_palette_count_dirty = 256;
+	assert_compile (sizeof(_local_palette) == sizeof(_cur_palette));
+	memcpy (_local_palette, _cur_palette, sizeof(_local_palette));
 	_local_palette_first_dirty = 0;
 	_local_palette_count_dirty = 256;
 }
@@ -194,10 +194,10 @@ static void ClientSizeChanged(int w, int h)
 	/* allocate new dib section of the new size */
 	if (AllocateDibSection(w, h)) {
 		/* mark all palette colours dirty */
-		_cur_palette.first_dirty = 0;
-		_cur_palette.count_dirty = 256;
-		assert_compile (sizeof(_local_palette) == sizeof(_cur_palette.palette));
-		memcpy (_local_palette, _cur_palette.palette, sizeof(_local_palette));
+		_cur_palette_first_dirty = 0;
+		_cur_palette_count_dirty = 256;
+		assert_compile (sizeof(_local_palette) == sizeof(_cur_palette));
+		memcpy (_local_palette, _cur_palette, sizeof(_local_palette));
 		_local_palette_first_dirty = 0;
 		_local_palette_count_dirty = 256;
 
@@ -369,7 +369,7 @@ static void PaintWindow(HDC dc)
 	HBITMAP old_bmp = (HBITMAP)SelectObject(dc2, _wnd.dib_sect);
 	HPALETTE old_palette = SelectPalette(dc, _wnd.gdi_palette, FALSE);
 
-	if (_cur_palette.count_dirty != 0) {
+	if (_cur_palette_count_dirty != 0) {
 		Blitter *blitter = Blitter::get();
 
 		switch (blitter->UsePaletteAnimation()) {
@@ -387,7 +387,7 @@ static void PaintWindow(HDC dc)
 			default:
 				NOT_REACHED();
 		}
-		_cur_palette.count_dirty = 0;
+		_cur_palette_count_dirty = 0;
 	}
 
 	BitBlt(dc, 0, 0, _wnd.width, _wnd.height, dc2, 0, 0, SRCCOPY);
@@ -1184,12 +1184,12 @@ void VideoDriver_Win32::MakeDirty(int left, int top, int width, int height)
 
 static void CheckPaletteAnim()
 {
-	if (_cur_palette.count_dirty == 0) return;
+	if (_cur_palette_count_dirty == 0) return;
 
-	assert_compile (sizeof(_local_palette) == sizeof(_cur_palette.palette));
-	memcpy (_local_palette, _cur_palette.palette, sizeof(_local_palette));
-	_local_palette_first_dirty = _cur_palette.first_dirty;
-	_local_palette_count_dirty = _cur_palette.count_dirty;
+	assert_compile (sizeof(_local_palette) == sizeof(_cur_palette));
+	memcpy (_local_palette, _cur_palette, sizeof(_local_palette));
+	_local_palette_first_dirty = _cur_palette_first_dirty;
+	_local_palette_count_dirty = _cur_palette_count_dirty;
 	InvalidateRect(_wnd.main_wnd, NULL, FALSE);
 }
 

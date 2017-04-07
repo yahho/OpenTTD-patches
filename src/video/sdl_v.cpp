@@ -122,8 +122,8 @@ static void UpdatePalette(bool init = false)
 
 static void InitPalette()
 {
-	assert_compile (sizeof(_local_palette) == sizeof(_cur_palette.palette));
-	memcpy (_local_palette, _cur_palette.palette, sizeof(_local_palette));
+	assert_compile (sizeof(_local_palette) == sizeof(_cur_palette));
+	memcpy (_local_palette, _cur_palette, sizeof(_local_palette));
 	_local_palette_first_dirty = 0;
 	_local_palette_count_dirty = 256;
 	UpdatePalette(true);
@@ -131,7 +131,7 @@ static void InitPalette()
 
 static void CheckPaletteAnim()
 {
-	if (_cur_palette.count_dirty != 0) {
+	if (_cur_palette_count_dirty != 0) {
 		Blitter *blitter = Blitter::get();
 
 		switch (blitter->UsePaletteAnimation()) {
@@ -149,7 +149,7 @@ static void CheckPaletteAnim()
 			default:
 				NOT_REACHED();
 		}
-		_cur_palette.count_dirty = 0;
+		_cur_palette_count_dirty = 0;
 	}
 }
 
@@ -762,10 +762,10 @@ void VideoDriver_SDL::MainLoop()
 			if (_draw_mutex != NULL) _draw_mutex->BeginCritical();
 
 			UpdateWindows();
-			assert_compile (sizeof(_local_palette) == sizeof(_cur_palette.palette));
-			memcpy (_local_palette, _cur_palette.palette, sizeof(_local_palette));
-			_local_palette_first_dirty = _cur_palette.first_dirty;
-			_local_palette_count_dirty = _cur_palette.count_dirty;
+			assert_compile (sizeof(_local_palette) == sizeof(_cur_palette));
+			memcpy (_local_palette, _cur_palette, sizeof(_local_palette));
+			_local_palette_first_dirty = _cur_palette_first_dirty;
+			_local_palette_count_dirty = _cur_palette_count_dirty;
 		} else {
 			/* Release the thread while sleeping */
 			if (_draw_mutex != NULL) _draw_mutex->EndCritical();
