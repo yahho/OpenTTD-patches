@@ -67,7 +67,11 @@ static HANDLE _draw_thread_initialized = NULL;
 /** Should we keep continue drawing? */
 static volatile bool _draw_continue;
 /** Local copy of the palette for use in the drawing thread. */
-static Palette _local_palette;
+static Colour _local_palette[256];
+/** First palette dirty element. */
+static int _local_palette_first_dirty;
+/** Number of palette dirty elements. */
+static int _local_palette_count_dirty;
 
 static void MakePalette()
 {
@@ -88,7 +92,10 @@ static void MakePalette()
 
 	_cur_palette.first_dirty = 0;
 	_cur_palette.count_dirty = 256;
-	_local_palette = _cur_palette;
+	assert_compile (sizeof(_local_palette) == sizeof(_cur_palette.palette));
+	memcpy (_local_palette, _cur_palette.palette, sizeof(_local_palette));
+	_local_palette_first_dirty = 0;
+	_local_palette_count_dirty = 256;
 }
 
 static void UpdatePalette(HDC dc, uint start, uint count)
@@ -97,9 +104,9 @@ static void UpdatePalette(HDC dc, uint start, uint count)
 	uint i;
 
 	for (i = 0; i != count; i++) {
-		rgb[i].rgbRed   = _local_palette.palette[start + i].r;
-		rgb[i].rgbGreen = _local_palette.palette[start + i].g;
-		rgb[i].rgbBlue  = _local_palette.palette[start + i].b;
+		rgb[i].rgbRed   = _local_palette[start + i].r;
+		rgb[i].rgbGreen = _local_palette[start + i].g;
+		rgb[i].rgbBlue  = _local_palette[start + i].b;
 		rgb[i].rgbReserved = 0;
 	}
 
@@ -189,7 +196,10 @@ static void ClientSizeChanged(int w, int h)
 		/* mark all palette colours dirty */
 		_cur_palette.first_dirty = 0;
 		_cur_palette.count_dirty = 256;
-		_local_palette = _cur_palette;
+		assert_compile (sizeof(_local_palette) == sizeof(_cur_palette.palette));
+		memcpy (_local_palette, _cur_palette.palette, sizeof(_local_palette));
+		_local_palette_first_dirty = 0;
+		_local_palette_count_dirty = 256;
 
 		GameSizeChanged();
 	}
@@ -364,11 +374,11 @@ static void PaintWindow(HDC dc)
 
 		switch (blitter->UsePaletteAnimation()) {
 			case Blitter::PALETTE_ANIMATION_VIDEO_BACKEND:
-				UpdatePalette(dc2, _local_palette.first_dirty, _local_palette.count_dirty);
+				UpdatePalette (dc2, _local_palette_first_dirty, _local_palette_count_dirty);
 				break;
 
 			case Blitter::PALETTE_ANIMATION_BLITTER:
-				VideoDriver::PaletteAnimate (_local_palette.palette);
+				VideoDriver::PaletteAnimate (_local_palette);
 				break;
 
 			case Blitter::PALETTE_ANIMATION_NONE:
@@ -1176,7 +1186,10 @@ static void CheckPaletteAnim()
 {
 	if (_cur_palette.count_dirty == 0) return;
 
-	_local_palette = _cur_palette;
+	assert_compile (sizeof(_local_palette) == sizeof(_cur_palette.palette));
+	memcpy (_local_palette, _cur_palette.palette, sizeof(_local_palette));
+	_local_palette_first_dirty = _cur_palette.first_dirty;
+	_local_palette_count_dirty = _cur_palette.count_dirty;
 	InvalidateRect(_wnd.main_wnd, NULL, FALSE);
 }
 
