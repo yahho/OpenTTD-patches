@@ -81,7 +81,7 @@ extern int _screen_width, _screen_height;
 extern int _num_resolutions;
 extern Dimension _resolutions[32];
 extern Dimension _cur_resolution;
-extern Colour _cur_palette[256];     ///< Current palette
+extern Palette _cur_palette;         ///< Current palette
 extern int _cur_palette_first_dirty; ///< First palette dirty element.
 extern int _cur_palette_count_dirty; ///< Number of palette dirty elements.
 

@@ -51,7 +51,7 @@ bool _exit_game;
 GameMode _game_mode;
 SwitchMode _switch_mode;  ///< The next mainloop command.
 PauseModeByte _pause_mode;
-Colour _cur_palette[256];
+Palette _cur_palette;
 int _cur_palette_first_dirty;
 int _cur_palette_count_dirty;
 

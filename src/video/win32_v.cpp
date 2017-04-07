@@ -67,7 +67,7 @@ static HANDLE _draw_thread_initialized = NULL;
 /** Should we keep continue drawing? */
 static volatile bool _draw_continue;
 /** Local copy of the palette for use in the drawing thread. */
-static Colour _local_palette[256];
+static Palette _local_palette;
 /** First palette dirty element. */
 static int _local_palette_first_dirty;
 /** Number of palette dirty elements. */

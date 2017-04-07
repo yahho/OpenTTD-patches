@@ -809,7 +809,7 @@ static void HeightmapCallback(void *userdata, void *buffer, uint y, uint pitch, 
  */
 bool MakeHeightmapScreenshot(const char *filename)
 {
-	Colour palette[256];
+	Palette palette;
 	for (uint i = 0; i < lengthof(palette); i++) {
 		palette[i].a = 0xff;
 		palette[i].r = i;

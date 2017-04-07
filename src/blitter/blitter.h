@@ -252,7 +252,7 @@ public:
 		 * @param palette The new palette.
 		 * @return Whether the screen should be invalidated.
 		 */
-		virtual bool palette_animate (const Colour (&palette) [256]);
+		virtual bool palette_animate (const Palette &palette);
 
 		/** Draw an image to the screen, given an amount of params defined above. */
 		virtual void draw (const BlitterParams *bp, BlitterMode mode, ZoomLevel zoom) = 0;

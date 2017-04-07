@@ -294,11 +294,7 @@ enum SpriteType {
 static const uint MILLISECONDS_PER_TICK = 30;
 
 /** Information about the currently used palette. */
-struct Palette {
-	Colour palette[256]; ///< Current palette. Entry 0 has to be always fully transparent!
-	int first_dirty;     ///< The first dirty element.
-	int count_dirty;     ///< The number of dirty elements.
-};
+typedef Colour Palette[256];
 
 /** Modes for 8bpp support */
 enum Support8bpp {

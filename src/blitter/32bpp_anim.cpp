@@ -460,7 +460,7 @@ void Blitter_32bppAnimBase::Surface::scroll (void *video, int &left, int &top, i
 	this->Blitter_32bppBase::Surface::scroll (video, left, top, width, height, scroll_x, scroll_y);
 }
 
-bool Blitter_32bppAnimBase::Surface::palette_animate (const Colour (&palette) [256])
+bool Blitter_32bppAnimBase::Surface::palette_animate (const Palette &palette)
 {
 	this->set_palette (palette);
 

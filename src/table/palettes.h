@@ -14,7 +14,7 @@
 #define M(r, g, b) Colour(r, g, b)
 
 /** Colour palette (DOS) */
-static const Colour _palette[256] = {
+static const Palette _palette = {
 	/* transparent */
 	Colour(0, 0, 0, 0),
 	/* grey scale */

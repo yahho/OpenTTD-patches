@@ -44,7 +44,7 @@ static ThreadMutex *_draw_mutex = NULL;
 /** Should we keep continue drawing? */
 static volatile bool _draw_continue;
 /** Local palette. */
-static Colour _local_palette[256];
+static Palette _local_palette;
 /** First palette dirty element. */
 static int _local_palette_first_dirty;
 /** Number of palette dirty elements. */

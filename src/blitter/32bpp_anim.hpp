@@ -25,10 +25,10 @@ public:
 
 	/** Blitting surface. */
 	struct Surface : Blitter_32bppBase::Surface {
-		Colour palette[256];    ///< The current palette.
+		Palette palette;        ///< The current palette.
 		uint16 *const anim_buf; ///< In this buffer we keep track of the 8bpp indexes so we can do palette animation
 
-		void set_palette (const Colour (&palette) [256])
+		void set_palette (const Palette &palette)
 		{
 			assert_compile (sizeof(this->palette) == sizeof(palette));
 			memcpy (this->palette, palette, sizeof(this->palette));
@@ -64,7 +64,7 @@ public:
 
 		void scroll (void *video, int &left, int &top, int &width, int &height, int scroll_x, int scroll_y) OVERRIDE;
 
-		bool palette_animate (const Colour (&palette) [256]) OVERRIDE;
+		bool palette_animate (const Palette &palette) OVERRIDE;
 
 		void copy (Buffer *dst, int x, int y, uint width, uint height) OVERRIDE;
 
