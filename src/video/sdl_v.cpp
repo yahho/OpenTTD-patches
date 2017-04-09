@@ -348,7 +348,7 @@ bool VideoDriver_SDL::CreateMainSurface(uint w, uint h)
 			DEBUG(driver, 0, "SDL: Restarting SDL video subsystem, to force hwpalette change");
 			SDL_CALL SDL_QuitSubSystem(SDL_INIT_VIDEO);
 			SDL_CALL SDL_InitSubSystem(SDL_INIT_VIDEO);
-			ClaimMousePointer();
+			SDL_CALL SDL_ShowCursor(0);
 			SetupKeyboard();
 		}
 	}
