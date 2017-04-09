@@ -257,12 +257,14 @@ static void CALLBACK TrackMouseTimerProc(HWND hwnd, UINT msg, UINT event, DWORD 
 	}
 }
 
+static bool ChangeResolution (int w, int h);
+
 /**
  * Instantiate a new window.
  * @param full_screen Whether to make a full screen window or not.
  * @return True if the window could be created.
  */
-bool VideoDriver_Win32::MakeWindow(bool full_screen)
+static bool MakeWindow (bool full_screen)
 {
 	_fullscreen = full_screen;
 
@@ -303,12 +305,12 @@ bool VideoDriver_Win32::MakeWindow(bool full_screen)
 			/* Guard against recursion. If we already failed here once, just fall through to
 			 * the next ChangeDisplaySettings call which will fail and error out appropriately. */
 			if ((int)settings.dmPelsWidth != r.right - r.left || (int)settings.dmPelsHeight != r.bottom - r.top) {
-				return this->ChangeResolution(r.right - r.left, r.bottom - r.top);
+				return ChangeResolution (r.right - r.left, r.bottom - r.top);
 			}
 		}
 
 		if (ChangeDisplaySettings(&settings, CDS_FULLSCREEN) != DISP_CHANGE_SUCCESSFUL) {
-			this->MakeWindow(false);  // don't care about the result
+			MakeWindow (false);  // don't care about the result
 			return false;  // the request failed
 		}
 	} else if (_wnd.fullscreen) {
@@ -993,7 +995,7 @@ static LRESULT CALLBACK WndProcGdi(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lP
 				if (active && minimized) {
 					/* Restore the game window */
 					ShowWindow(hwnd, SW_RESTORE);
-					static_cast<VideoDriver_Win32 *>(VideoDriver::GetActiveDriver())->MakeWindow(true);
+					MakeWindow (true);
 				} else if (!active && !minimized) {
 					/* Minimise the window and restore desktop */
 					ShowWindow(hwnd, SW_MINIMIZE);
@@ -1154,7 +1156,7 @@ const char *VideoDriver_Win32::Start(const char * const *parm)
 	_wnd.height_org = _cur_resolution.height;
 
 	AllocateDibSection(_cur_resolution.width, _cur_resolution.height);
-	this->MakeWindow(_fullscreen);
+	MakeWindow (_fullscreen);
 
 	MarkWholeScreenDirty();
 
@@ -1321,7 +1323,7 @@ void VideoDriver_Win32::MainLoop()
 	}
 }
 
-bool VideoDriver_Win32::ChangeResolution(int w, int h)
+static bool ChangeResolution (int w, int h)
 {
 	if (_draw_mutex != NULL) _draw_mutex->BeginCritical(true);
 	if (_window_maximize) ShowWindow(_wnd.main_wnd, SW_SHOWNORMAL);
@@ -1329,15 +1331,20 @@ bool VideoDriver_Win32::ChangeResolution(int w, int h)
 	_wnd.width = _wnd.width_org = w;
 	_wnd.height = _wnd.height_org = h;
 
-	bool ret = this->MakeWindow(_fullscreen); // _wnd.fullscreen screws up ingame resolution switching
+	bool ret = MakeWindow (_fullscreen); // _wnd.fullscreen screws up ingame resolution switching
 	if (_draw_mutex != NULL) _draw_mutex->EndCritical(true);
 	return ret;
+}
+
+bool VideoDriver_Win32::ChangeResolution(int w, int h)
+{
+	return ::ChangeResolution (w, h);
 }
 
 bool VideoDriver_Win32::ToggleFullscreen(bool full_screen)
 {
 	if (_draw_mutex != NULL) _draw_mutex->BeginCritical(true);
-	bool ret = this->MakeWindow(full_screen);
+	bool ret = MakeWindow (full_screen);
 	if (_draw_mutex != NULL) _draw_mutex->EndCritical(true);
 	return ret;
 }
@@ -1345,7 +1352,7 @@ bool VideoDriver_Win32::ToggleFullscreen(bool full_screen)
 bool VideoDriver_Win32::AfterBlitterChange()
 {
 	if (_draw_mutex != NULL) _draw_mutex->BeginCritical(true);
-	bool ret = AllocateDibSection (_screen_width, _screen_height, true) && this->MakeWindow (_fullscreen);
+	bool ret = AllocateDibSection (_screen_width, _screen_height, true) && MakeWindow (_fullscreen);
 	if (_draw_mutex != NULL) _draw_mutex->EndCritical(true);
 	return ret;
 }

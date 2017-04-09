@@ -34,8 +34,6 @@ public:
 	/* virtual */ bool ClaimMousePointer();
 
 	/* virtual */ void EditBoxLostFocus();
-
-	bool MakeWindow(bool full_screen);
 };
 
 #endif /* VIDEO_WIN32_H */
