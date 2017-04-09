@@ -274,16 +274,9 @@ static void GetAvailableVideoMode(uint *w, uint *h)
 	*h = _resolutions[best].height;
 }
 
-#ifdef WIN32
-/* Let's redefine the LoadBMP macro with because we are dynamically
- * loading SDL and need to 'SDL_CALL' all functions */
-#undef SDL_LoadBMP
-#define SDL_LoadBMP(file)	SDL_LoadBMP_RW(SDL_CALL SDL_RWFromFile(file, "rb"), 1)
-#endif
-
 static bool CreateMainSurface (uint w, uint h)
 {
-	SDL_Surface *newscreen, *icon;
+	SDL_Surface *newscreen;
 	char caption[50];
 	int bpp = Blitter::get()->GetScreenDepth();
 	bool want_hwpalette;
@@ -297,7 +290,7 @@ static bool CreateMainSurface (uint w, uint h)
 	char icon_path[MAX_PATH];
 	if (FioFindFullPath(icon_path, lengthof(icon_path), BASESET_DIR, "openttd.32.bmp") != NULL) {
 		/* Give the application an icon */
-		icon = SDL_CALL SDL_LoadBMP(icon_path);
+		SDL_Surface *icon = SDL_CALL SDL_LoadBMP_RW (SDL_CALL SDL_RWFromFile (icon_path, "rb"), 1);
 		if (icon != NULL) {
 			/* Get the colourkey, which will be magenta */
 			uint32 rgbmap = SDL_CALL SDL_MapRGB(icon->format, 255, 0, 255);
