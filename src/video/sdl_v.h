@@ -32,11 +32,6 @@ public:
 	/* virtual */ bool AfterBlitterChange();
 
 	/* virtual */ bool ClaimMousePointer();
-
-private:
-	int PollEvent();
-	bool CreateMainSurface(uint w, uint h);
-	void SetupKeyboard();
 };
 
 #endif /* VIDEO_SDL_H */

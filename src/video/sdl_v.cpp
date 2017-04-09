@@ -67,6 +67,12 @@ void VideoDriver_SDL::MakeDirty(int left, int top, int width, int height)
 	_num_dirty_rects++;
 }
 
+static void SetupKeyboard (void)
+{
+	SDL_CALL SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
+	SDL_CALL SDL_EnableUNICODE(1);
+}
+
 static void UpdatePalette(bool init = false)
 {
 	SDL_Color pal[256];
@@ -275,7 +281,7 @@ static void GetAvailableVideoMode(uint *w, uint *h)
 #define SDL_LoadBMP(file)	SDL_LoadBMP_RW(SDL_CALL SDL_RWFromFile(file, "rb"), 1)
 #endif
 
-bool VideoDriver_SDL::CreateMainSurface(uint w, uint h)
+static bool CreateMainSurface (uint w, uint h)
 {
 	SDL_Surface *newscreen, *icon;
 	char caption[50];
@@ -531,7 +537,7 @@ static uint ConvertSdlKeyIntoMy(SDL_keysym *sym, WChar *character)
 	return key;
 }
 
-int VideoDriver_SDL::PollEvent()
+static int PollEvent (void)
 {
 	SDL_Event ev;
 
@@ -647,12 +653,6 @@ const char *VideoDriver_SDL::Start(const char * const *parm)
 	_draw_threaded = GetDriverParam(parm, "no_threads") == NULL && GetDriverParam(parm, "no_thread") == NULL;
 
 	return NULL;
-}
-
-void VideoDriver_SDL::SetupKeyboard()
-{
-	SDL_CALL SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
-	SDL_CALL SDL_EnableUNICODE(1);
 }
 
 void VideoDriver_SDL::Stop()
