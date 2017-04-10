@@ -15,21 +15,13 @@
 #include "video_driver.hpp"
 
 /** The dedicated server video driver. */
-class VideoDriver_Dedicated : public VideoDriver {
+class VideoDriver_Dedicated : public GUILessVideoDriver {
 public:
 	/* virtual */ const char *Start(const char * const *param);
 
 	/* virtual */ void Stop();
 
-	/* virtual */ void MakeDirty(int left, int top, int width, int height);
-
 	/* virtual */ void MainLoop();
-
-	/* virtual */ bool ChangeResolution(int w, int h);
-
-	/* virtual */ bool ToggleFullscreen(bool fullscreen);
-
-	/* virtual */ bool HasGUI() const { return false; }
 };
 
 #endif /* VIDEO_DEDICATED_H */

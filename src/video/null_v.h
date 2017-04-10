@@ -15,7 +15,7 @@
 #include "video_driver.hpp"
 
 /** The null video driver. */
-class VideoDriver_Null : public VideoDriver {
+class VideoDriver_Null : public GUILessVideoDriver {
 private:
 	uint ticks; ///< Amount of ticks to run.
 
@@ -24,15 +24,7 @@ public:
 
 	/* virtual */ void Stop();
 
-	/* virtual */ void MakeDirty(int left, int top, int width, int height);
-
 	/* virtual */ void MainLoop();
-
-	/* virtual */ bool ChangeResolution(int w, int h);
-
-	/* virtual */ bool ToggleFullscreen(bool fullscreen);
-
-	/* virtual */ bool HasGUI() const { return false; }
 };
 
 #endif /* VIDEO_NULL_H */

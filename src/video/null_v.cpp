@@ -44,8 +44,6 @@ const char *VideoDriver_Null::Start(const char * const *parm)
 
 void VideoDriver_Null::Stop() { }
 
-void VideoDriver_Null::MakeDirty(int left, int top, int width, int height) {}
-
 void VideoDriver_Null::MainLoop()
 {
 	uint i;
@@ -55,7 +53,3 @@ void VideoDriver_Null::MainLoop()
 		UpdateWindows();
 	}
 }
-
-bool VideoDriver_Null::ChangeResolution(int w, int h) { return false; }
-
-bool VideoDriver_Null::ToggleFullscreen(bool fs) { return false; }

@@ -69,10 +69,7 @@ public:
 	 * Callback invoked after the blitter was changed.
 	 * @return True if no error.
 	 */
-	virtual bool AfterBlitterChange()
-	{
-		return true;
-	}
+	virtual bool AfterBlitterChange (void) = 0;
 
 	virtual bool ClaimMousePointer()
 	{
@@ -96,6 +93,34 @@ public:
 	 * An edit box lost the input focus. Abort character compositing if necessary.
 	 */
 	virtual void EditBoxLostFocus() {}
+};
+
+/** Common base for video drivers that do not have a GUI (null, dedicated). */
+class GUILessVideoDriver : public VideoDriver {
+public:
+	void MakeDirty (int left, int top, int width, int height) OVERRIDE
+	{
+	}
+
+	bool ChangeResolution (int w, int h) OVERRIDE
+	{
+		return false;
+	}
+
+	bool ToggleFullscreen (bool fullscreen) OVERRIDE
+	{
+		return false;
+	}
+
+	bool AfterBlitterChange (void) OVERRIDE
+	{
+		return true;
+	}
+
+	bool HasGUI (void) const FINAL_OVERRIDE
+	{
+		return false;
+	}
 };
 
 /** Video driver factory. */
