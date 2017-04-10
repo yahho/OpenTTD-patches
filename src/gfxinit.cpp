@@ -315,26 +315,6 @@ static const char *SelectNewGRFBlitter (void)
 }
 
 /**
- * Switch to a new blitter.
- * @param name The blitter to switch to.
- * @param old The old blitter in case we have to switch back.
- * @return False if switching failed and the old blitter could not be restored.
- */
-static bool SwitchBlitter (const char *name, const char *old)
-{
-	Blitter *new_blitter = Blitter::select (name);
-	/* Blitter::select only fails if it cannot find a blitter by the given
-	 * name, and all of the replacement blitters should be available. */
-	assert (new_blitter != NULL);
-
-	if (VideoDriver::GetActiveDriver()->AfterBlitterChange()) return true;
-
-	/* Failed to switch blitter, let's hope we can return to the old one. */
-	return (Blitter::select (old) != NULL)
-		&& VideoDriver::GetActiveDriver()->AfterBlitterChange();
-}
-
-/**
  * Check blitter needed by NewGRF config and switch if needed.
  * @return False when nothing changed, true otherwise.
  */
@@ -351,7 +331,7 @@ static bool SwitchNewGRFBlitter()
 	if (strcmp (repl_blitter, cur_blitter) == 0) return false;
 
 	DEBUG(misc, 1, "Switching blitter from '%s' to '%s'... ", cur_blitter, repl_blitter);
-	if (!SwitchBlitter (repl_blitter, cur_blitter)) {
+	if (!VideoDriver::GetActiveDriver()->SwitchBlitter (repl_blitter, cur_blitter)) {
 		usererror ("Failed to reinitialize video driver. Specify a fixed blitter in the config.");
 	}
 

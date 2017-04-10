@@ -71,6 +71,25 @@ public:
 	 */
 	virtual bool AfterBlitterChange (void) = 0;
 
+	/**
+	 * Switch to a new blitter.
+	 * @param name The blitter to switch to.
+	 * @param old The old blitter in case we have to switch back.
+	 * @return False if switching failed and the old blitter could not be restored.
+	 */
+	bool SwitchBlitter (const char *name, const char *old)
+	{
+		Blitter *new_blitter = Blitter::select (name);
+		/* Blitter::select only fails if it cannot find a blitter by the given
+		 * name, and all of the replacement blitters should be available. */
+		assert (new_blitter != NULL);
+
+		if (this->AfterBlitterChange()) return true;
+
+		/* Failed to switch blitter, let's hope we can return to the old one. */
+		return (Blitter::select (old) != NULL) && this->AfterBlitterChange();
+	}
+
 	virtual bool ClaimMousePointer()
 	{
 		return true;
