@@ -820,18 +820,6 @@ bool VideoDriver_SDL::ToggleFullscreen(bool fullscreen)
 }
 
 /**
- * Callback invoked after the blitter was changed.
- * @return True if no error.
- */
-bool VideoDriver_SDL::AfterBlitterChange()
-{
-	if (_draw_mutex != NULL) _draw_mutex->BeginCritical(true);
-	bool ret = CreateMainSurface (_screen_width, _screen_height);
-	if (_draw_mutex != NULL) _draw_mutex->EndCritical(true);
-	return ret;
-}
-
-/**
  * Switch to a new blitter.
  * @param name The blitter to switch to.
  * @param old The old blitter in case we have to switch back.
@@ -839,15 +827,22 @@ bool VideoDriver_SDL::AfterBlitterChange()
  */
 bool VideoDriver_SDL::SwitchBlitter (const char *name, const char *old)
 {
+	if (_draw_mutex != NULL) _draw_mutex->BeginCritical (true);
+
 	Blitter *new_blitter = Blitter::select (name);
 	/* Blitter::select only fails if it cannot find a blitter by the given
 	 * name, and all of the replacement blitters should be available. */
 	assert (new_blitter != NULL);
 
-	if (this->AfterBlitterChange()) return true;
+	bool ret = CreateMainSurface (_screen_width, _screen_height) ||
+			/* Failed to switch blitter, let's hope we can return
+			 * to the old one. */
+			((Blitter::select (old) != NULL) &&
+				CreateMainSurface (_screen_width, _screen_height));
 
-	/* Failed to switch blitter, let's hope we can return to the old one. */
-	return (Blitter::select (old) != NULL) && this->AfterBlitterChange();
+	if (_draw_mutex != NULL) _draw_mutex->EndCritical (true);
+
+	return ret;
 }
 
 #endif /* WITH_SDL */
