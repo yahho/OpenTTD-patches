@@ -45,10 +45,13 @@ public:
 	 */
 	/* virtual */ bool ToggleFullscreen(bool fullscreen);
 
-	/** Callback invoked after the blitter was changed.
-	 * @return True if no error.
+	/**
+	 * Switch to a new blitter.
+	 * @param name The blitter to switch to.
+	 * @param old The old blitter in case we have to switch back.
+	 * @return False if switching failed and the old blitter could not be restored.
 	 */
-	/* virtual */ bool AfterBlitterChange();
+	/* virtual */ bool SwitchBlitter (const char *name, const char *old);
 
 	/**
 	 * An edit box lost the input focus. Abort character compositing if necessary.

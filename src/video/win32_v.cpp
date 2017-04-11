@@ -1349,12 +1349,35 @@ bool VideoDriver_Win32::ToggleFullscreen(bool full_screen)
 	return ret;
 }
 
+/**
+ * Callback invoked after the blitter was changed.
+ * @return True if no error.
+ */
 bool VideoDriver_Win32::AfterBlitterChange()
 {
 	if (_draw_mutex != NULL) _draw_mutex->BeginCritical(true);
 	bool ret = AllocateDibSection (_screen_width, _screen_height, true) && MakeWindow (_fullscreen);
 	if (_draw_mutex != NULL) _draw_mutex->EndCritical(true);
 	return ret;
+}
+
+/**
+ * Switch to a new blitter.
+ * @param name The blitter to switch to.
+ * @param old The old blitter in case we have to switch back.
+ * @return False if switching failed and the old blitter could not be restored.
+ */
+bool VideoDriver_Win32::SwitchBlitter (const char *name, const char *old)
+{
+	Blitter *new_blitter = Blitter::select (name);
+	/* Blitter::select only fails if it cannot find a blitter by the given
+	 * name, and all of the replacement blitters should be available. */
+	assert (new_blitter != NULL);
+
+	if (this->AfterBlitterChange()) return true;
+
+	/* Failed to switch blitter, let's hope we can return to the old one. */
+	return (Blitter::select (old) != NULL) && this->AfterBlitterChange();
 }
 
 void VideoDriver_Win32::EditBoxLostFocus()

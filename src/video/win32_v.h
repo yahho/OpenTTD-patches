@@ -29,7 +29,9 @@ public:
 
 	/* virtual */ bool ToggleFullscreen(bool fullscreen);
 
-	/* virtual */ bool AfterBlitterChange();
+	bool AfterBlitterChange();
+
+	/* virtual */ bool SwitchBlitter (const char *name, const char *old);
 
 	/* virtual */ bool ClaimMousePointer();
 
