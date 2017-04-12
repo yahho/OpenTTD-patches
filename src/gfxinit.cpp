@@ -324,7 +324,7 @@ static bool SwitchNewGRFBlitter()
 	if (!Blitter::autodetected) return false;
 
 	/* Null driver => dedicated server => do nothing. */
-	if (Blitter::get()->GetScreenDepth() == 0) return false;
+	if (Blitter::get()->screen_depth == 0) return false;
 
 	const char *repl_blitter = SelectNewGRFBlitter();
 	const char *cur_blitter = Blitter::get_name();

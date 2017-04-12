@@ -17,8 +17,8 @@
 /** Base for all 8bpp blitters. */
 class Blitter_8bppBase : public Blitter {
 public:
-	/* virtual */ uint8 GetScreenDepth() { return 8; }
-	/* virtual */ Blitter::PaletteAnimation UsePaletteAnimation();
+	static const uint screen_depth = 8; ///< Screen depth.
+	static const PaletteAnimation palette_animation = PALETTE_ANIMATION_VIDEO_BACKEND; ///< Palette animation.
 
 	/** Blitting surface. */
 	struct Surface : Blitter::Surface {

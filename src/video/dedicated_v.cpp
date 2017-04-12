@@ -162,13 +162,13 @@ static VideoDriverFactory <VideoDriver_Dedicated>
 
 const char *VideoDriver_Dedicated::Start(const char * const *parm)
 {
-	Blitter *blitter = Blitter::get();
-	int bpp = blitter->GetScreenDepth();
+	const Blitter::Info *blitter = Blitter::get();
+	int bpp = blitter->screen_depth;
 	_dedicated_video_mem = (bpp == 0) ? NULL : xmalloct<byte>(_cur_resolution.width * _cur_resolution.height * (bpp / 8));
 
 	_screen_surface.reset (blitter->create (_dedicated_video_mem,
 				_cur_resolution.width, _cur_resolution.height,
-				_cur_resolution.width));
+				_cur_resolution.width, true));
 	_screen_width  = _cur_resolution.width;
 	_screen_height = _cur_resolution.height;
 	ScreenSizeChanged();

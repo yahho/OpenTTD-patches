@@ -95,9 +95,7 @@ static void InitPalette()
 static void CheckPaletteAnim()
 {
 	if (_cur_palette_count_dirty != 0) {
-		Blitter *blitter = Blitter::get();
-
-		switch (blitter->UsePaletteAnimation()) {
+		switch (Blitter::get()->palette_animation) {
 			case Blitter::PALETTE_ANIMATION_VIDEO_BACKEND:
 				UpdatePalette (_cur_palette_first_dirty, _cur_palette_count_dirty);
 				break;
@@ -194,7 +192,7 @@ static void GetAvailableVideoMode(uint *w, uint *h)
 
 static bool CreateMainSurface(uint w, uint h)
 {
-	int bpp = Blitter::get()->GetScreenDepth();
+	int bpp = Blitter::get()->screen_depth;
 	if (bpp == 0) usererror("Can't use a blitter that blits 0 bpp for normal visuals");
 	set_color_depth(bpp);
 
@@ -209,7 +207,7 @@ static bool CreateMainSurface(uint w, uint h)
 	_allegro_screen = create_bitmap_ex(bpp, screen->cr - screen->cl, screen->cb - screen->ct);
 	uint pitch = ((byte*)screen->line[1] - (byte*)screen->line[0]) / (bpp / 8);
 	_screen_surface.reset (Blitter::get()->create (_allegro_screen->line[0],
-			_allegro_screen->w, _allegro_screen->h, pitch));
+			_allegro_screen->w, _allegro_screen->h, pitch, true));
 	_screen_width = _allegro_screen->w;
 	_screen_height = _allegro_screen->h;
 
@@ -567,7 +565,7 @@ bool VideoDriver_Allegro::ToggleFullscreen(bool fullscreen)
  */
 bool VideoDriver_Allegro::SwitchBlitter (const char *name, const char *old)
 {
-	Blitter *new_blitter = Blitter::select (name);
+	const Blitter::Info *new_blitter = Blitter::select (name);
 	/* Blitter::select only fails if it cannot find a blitter by the given
 	 * name, and all of the replacement blitters should be available. */
 	assert (new_blitter != NULL);

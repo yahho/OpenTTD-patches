@@ -157,8 +157,3 @@ void Blitter_8bppBase::Surface::scroll (void *video, int &left, int &top, int &w
 		}
 	}
 }
-
-Blitter::PaletteAnimation Blitter_8bppBase::UsePaletteAnimation()
-{
-	return Blitter::PALETTE_ANIMATION_VIDEO_BACKEND;
-}

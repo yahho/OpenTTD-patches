@@ -16,10 +16,7 @@
 /** Base for 32bpp blitters without animation. */
 class Blitter_32bppNoanim : public Blitter_32bppBase {
 public:
-	Blitter::PaletteAnimation UsePaletteAnimation (void) OVERRIDE
-	{
-		return Blitter::PALETTE_ANIMATION_NONE;
-	}
+	static const PaletteAnimation palette_animation = PALETTE_ANIMATION_NONE; ///< Palette animation.
 
 	/**
 	 * Look up the colour in the current palette.

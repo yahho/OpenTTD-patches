@@ -122,7 +122,7 @@ public:
 	 */
 	bool SwitchBlitter (const char *name, const char *old) OVERRIDE
 	{
-		Blitter *new_blitter = Blitter::select (name);
+		const Blitter::Info *new_blitter = Blitter::select (name);
 		/* Blitter::select only fails if it cannot find a blitter by the given
 		 * name, and all of the replacement blitters should be available. */
 		assert (new_blitter != NULL);

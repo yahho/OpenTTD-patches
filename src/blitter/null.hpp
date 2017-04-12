@@ -20,9 +20,10 @@ public:
 	static const char name[]; ///< Name of the blitter.
 	static const char desc[]; ///< Description of the blitter.
 
-	/* virtual */ uint8 GetScreenDepth() { return 0; }
-	/* virtual */ Sprite *Encode (const RawSprite *sprite, bool is_font, AllocatorProc *allocator);
-	/* virtual */ Blitter::PaletteAnimation UsePaletteAnimation() { return Blitter::PALETTE_ANIMATION_NONE; };
+	static const uint screen_depth = 0; ///< Screen depth.
+	static const PaletteAnimation palette_animation = PALETTE_ANIMATION_NONE; ///< Palette animation.
+
+	static Sprite *Encode (const RawSprite *sprite, bool is_font, AllocatorProc *allocator);
 
 	/** Blitting surface. */
 	struct Surface : Blitter::Surface {
@@ -78,7 +79,7 @@ public:
 	};
 
 	/** Create a surface for this blitter. */
-	Surface *create (void *ptr, uint width, uint height, uint pitch, bool anim) OVERRIDE
+	static Blitter::Surface *create (void *ptr, uint width, uint height, uint pitch, bool anim)
 	{
 		return new Surface (ptr, width, height, pitch);
 	}

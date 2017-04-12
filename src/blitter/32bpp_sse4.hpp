@@ -41,7 +41,7 @@ public:
 	};
 
 	/** Create a surface for this blitter. */
-	Surface *create (void *ptr, uint width, uint height, uint pitch, bool anim) OVERRIDE
+	static Blitter::Surface *create (void *ptr, uint width, uint height, uint pitch, bool anim)
 	{
 		return new Surface (ptr, width, height, pitch);
 	}

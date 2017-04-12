@@ -122,7 +122,7 @@ void DisplaySplashImage()
 	uint xoff = (_screen_width - width) / 2;
 	uint yoff = (_screen_height - height) / 2;
 
-	switch (Blitter::get()->GetScreenDepth()) {
+	switch (Blitter::get()->screen_depth) {
 		case 8: {
 				uint8 *dst_ptr = (uint8 *)_screen_surface->ptr;
 				/* Initialize buffer */

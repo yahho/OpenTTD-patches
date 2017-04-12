@@ -32,24 +32,9 @@
 #endif
 #endif
 
-/** Blitter creation function template. */
-template <typename B>
-static Blitter *create_blitter (void)
-{
-	return new B;
-}
-
-/** Static per-blitter data. */
-struct BlitterInfo {
-	const char *name;           ///< The name of the blitter.
-	const char *desc;           ///< Description of the blitter.
-	bool (*usable) (void);      ///< Usability check function.
-	Blitter* (*create) (void);  ///< Instance creation function.
-};
-
 /** Static blitter data. */
-static const BlitterInfo blitter_data[] = {
-#define BLITTER(B) { B::name, B::desc, &B::usable, &create_blitter<B> }
+static const Blitter::Info blitter_data[] = {
+#define BLITTER(B) { B::name, B::desc, &B::usable, &B::create, &B::Encode, B::screen_depth, B::palette_animation }
 	BLITTER (Blitter_Null),
 #ifndef DEDICATED
 	BLITTER (Blitter_8bppSimple),
@@ -76,7 +61,7 @@ static BlitterSet get_usable_blitters (void)
 	BlitterSet set;
 
 	for (uint i = 0; i < set.size(); i++) {
-		const BlitterInfo *data = &blitter_data[i];
+		const Blitter::Info *data = &blitter_data[i];
 		bool usable = data->usable();
 		set.set (i, usable);
 		DEBUG(driver, 1, "Blitter %s%s registered", data->name,
@@ -94,10 +79,7 @@ static const BlitterSet usable_blitters (get_usable_blitters());
 char *Blitter::ini;
 
 /** Current blitter info. */
-static const BlitterInfo *current_info;
-
-/** Current blitter instance. */
-ttd_unique_ptr<Blitter> current_blitter;
+const Blitter::Info *current_blitter;
 
 /** Whether the current blitter was autodetected or specified by the user. */
 bool Blitter::autodetected;
@@ -107,11 +89,11 @@ bool Blitter::autodetected;
  * @param name The blitter to select.
  * @return The blitter data, or NULL when there isn't one with the wanted name.
  */
-static const BlitterInfo *find_blitter (const char *name)
+static const Blitter::Info *find_blitter (const char *name)
 {
 	for (uint i = 0; i < lengthof(blitter_data); i++) {
 		if (usable_blitters.test (i)) {
-			const BlitterInfo *data = &blitter_data[i];
+			const Blitter::Info *data = &blitter_data[i];
 			if (strcasecmp (name, data->name) == 0) return data;
 		}
 	}
@@ -124,25 +106,17 @@ static const BlitterInfo *find_blitter (const char *name)
  * @param name the blitter to select.
  * @post Sets the blitter so Blitter::get() returns it too.
  */
-Blitter *Blitter::select (const char *name)
+const Blitter::Info *Blitter::select (const char *name)
 {
 	assert (!StrEmpty (name));
 
-	const BlitterInfo *data = find_blitter (name);
+	const Blitter::Info *data = find_blitter (name);
 	if (data == NULL) return NULL;
 
-	Blitter *blitter = data->create();
-	current_blitter.reset (blitter);
-	current_info = data;
+	current_blitter = data;
 
 	DEBUG(driver, 1, "Successfully loaded blitter %s", data->name);
-	return blitter;
-}
-
-/** Get the name of the current blitter. */
-const char *Blitter::get_name (void)
-{
-	return current_info == NULL ? "none" : current_info->name;
+	return data;
 }
 
 /**
@@ -154,7 +128,7 @@ void Blitter::list (stringb *buf)
 	buf->append ("List of blitters:\n");
 	for (uint i = 0; i < lengthof(blitter_data); i++) {
 		if (usable_blitters.test (i)) {
-			const BlitterInfo *data = &blitter_data[i];
+			const Blitter::Info *data = &blitter_data[i];
 			buf->append_fmt ("%18s: %s\n", data->name, data->desc);
 		}
 	}

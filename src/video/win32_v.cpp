@@ -287,7 +287,7 @@ static bool MakeWindow (bool full_screen)
 			DM_PELSWIDTH |
 			DM_PELSHEIGHT |
 			(_display_hz != 0 ? DM_DISPLAYFREQUENCY : 0);
-		settings.dmBitsPerPel = Blitter::get()->GetScreenDepth();
+		settings.dmBitsPerPel = Blitter::get()->screen_depth;
 		settings.dmPelsWidth  = _wnd.width_org;
 		settings.dmPelsHeight = _wnd.height_org;
 		settings.dmDisplayFrequency = _display_hz;
@@ -372,9 +372,7 @@ static void PaintWindow(HDC dc)
 	HPALETTE old_palette = SelectPalette(dc, _wnd.gdi_palette, FALSE);
 
 	if (_cur_palette_count_dirty != 0) {
-		Blitter *blitter = Blitter::get();
-
-		switch (blitter->UsePaletteAnimation()) {
+		switch (Blitter::get()->palette_animation) {
 			case Blitter::PALETTE_ANIMATION_VIDEO_BACKEND:
 				UpdatePalette (dc2, _local_palette_first_dirty, _local_palette_count_dirty);
 				break;
@@ -1038,7 +1036,7 @@ static bool AllocateDibSection(int w, int h, bool force)
 {
 	BITMAPINFO *bi;
 	HDC dc;
-	uint bpp = Blitter::get()->GetScreenDepth();
+	uint bpp = Blitter::get()->screen_depth;
 
 	w = max(w, 64);
 	h = max(h, 64);
@@ -1055,7 +1053,7 @@ static bool AllocateDibSection(int w, int h, bool force)
 	bi->bmiHeader.biHeight = -(_wnd.height = h);
 
 	bi->bmiHeader.biPlanes = 1;
-	bi->bmiHeader.biBitCount = Blitter::get()->GetScreenDepth();
+	bi->bmiHeader.biBitCount = Blitter::get()->screen_depth;
 	bi->bmiHeader.biCompression = BI_RGB;
 
 	if (_wnd.dib_sect) DeleteObject(_wnd.dib_sect);
@@ -1066,7 +1064,7 @@ static bool AllocateDibSection(int w, int h, bool force)
 	ReleaseDC(0, dc);
 
 	_screen_surface.reset (Blitter::get()->create (_wnd.buffer_bits,
-					w, h, (bpp == 8) ? Align(w, 4) : w));
+				w, h, (bpp == 8) ? Align(w, 4) : w, true));
 	_screen_width = w;
 	_screen_height = h;
 
@@ -1098,7 +1096,7 @@ static void FindResolutions()
 	DEVMODEA dm;
 
 	/* Check modes for the relevant fullscreen bpp */
-	uint bpp = _support8bpp != S8BPP_HARDWARE ? 32 : Blitter::get()->GetScreenDepth();
+	uint bpp = _support8bpp != S8BPP_HARDWARE ? 32 : Blitter::get()->screen_depth;
 
 	/* XXX - EnumDisplaySettingsW crashes with unicows.dll on Windows95
 	 * Doesn't really matter since we don't pass a string anyways, but still
@@ -1368,7 +1366,7 @@ bool VideoDriver_Win32::SwitchBlitter (const char *name, const char *old)
 {
 	if (_draw_mutex != NULL) _draw_mutex->BeginCritical (true);
 
-	Blitter *new_blitter = Blitter::select (name);
+	const Blitter::Info *new_blitter = Blitter::select (name);
 	/* Blitter::select only fails if it cannot find a blitter by the given
 	 * name, and all of the replacement blitters should be available. */
 	assert (new_blitter != NULL);

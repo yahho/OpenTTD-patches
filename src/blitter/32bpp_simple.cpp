@@ -108,7 +108,7 @@ void Blitter_32bppSimple::Surface::draw (const BlitterParams *bp, BlitterMode mo
 			dst[i].v = rgb_max;
 
 			/* Pre-convert the mapping channel to a RGB value */
-			Colour colour = this->AdjustBrightness(this->LookupColourInPalette(src->m), dst[i].v);
+			Colour colour = AdjustBrightness (LookupColourInPalette(src->m), dst[i].v);
 			dst[i].r = colour.r;
 			dst[i].g = colour.g;
 			dst[i].b = colour.b;

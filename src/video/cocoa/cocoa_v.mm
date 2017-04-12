@@ -330,7 +330,7 @@ void QZ_GameSizeChanged()
 	_screen_width = _cocoa_subdriver->GetWidth();
 	_screen_height = _cocoa_subdriver->GetHeight();
 	_screen_surface.reset (Blitter::get()->create (_cocoa_subdriver->GetPixelBuffer(),
-				_screen_width, _screen_height, _screen_width));
+				_screen_width, _screen_height, _screen_width, true));
 	_fullscreen = _cocoa_subdriver->IsFullscreen();
 
 	GameSizeChanged();
@@ -460,7 +460,7 @@ const char *VideoDriver_Cocoa::Start(const char * const *parm)
 
 	int width  = _cur_resolution.width;
 	int height = _cur_resolution.height;
-	int bpp = Blitter::get()->GetScreenDepth();
+	int bpp = Blitter::get()->screen_depth;
 
 	_cocoa_subdriver = QZ_CreateSubdriver(width, height, bpp, _fullscreen, true);
 	if (_cocoa_subdriver == NULL) {
@@ -513,7 +513,7 @@ bool VideoDriver_Cocoa::ChangeResolution(int w, int h)
 {
 	assert(_cocoa_subdriver != NULL);
 
-	bool ret = _cocoa_subdriver->ChangeResolution(w, h, Blitter::get()->GetScreenDepth());
+	bool ret = _cocoa_subdriver->ChangeResolution(w, h, Blitter::get()->screen_depth);
 
 	QZ_GameSizeChanged();
 	QZ_UpdateVideoModes();
@@ -538,7 +538,7 @@ bool VideoDriver_Cocoa::ToggleFullscreen(bool full_screen)
 	if (full_screen != oldfs) {
 		int width  = _cocoa_subdriver->GetWidth();
 		int height = _cocoa_subdriver->GetHeight();
-		int bpp    = Blitter::get()->GetScreenDepth();
+		int bpp    = Blitter::get()->screen_depth;
 
 		delete _cocoa_subdriver;
 		_cocoa_subdriver = NULL;
@@ -564,7 +564,7 @@ bool VideoDriver_Cocoa::ToggleFullscreen(bool full_screen)
  */
 bool VideoDriver_Cocoa::SwitchBlitter (const char *name, const char *old)
 {
-	Blitter *new_blitter = Blitter::select (name);
+	const Blitter::Info *new_blitter = Blitter::select (name);
 	/* Blitter::select only fails if it cannot find a blitter by the given
 	 * name, and all of the replacement blitters should be available. */
 	assert (new_blitter != NULL);

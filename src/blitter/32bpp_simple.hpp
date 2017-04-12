@@ -33,7 +33,8 @@ public:
 	static const char name[]; ///< Name of the blitter.
 	static const char desc[]; ///< Description of the blitter.
 
-	::Sprite *Encode (const RawSprite *sprite, bool is_font, AllocatorProc *allocator) OVERRIDE;
+	/** Convert a sprite from the loader to our own format. */
+	static ::Sprite *Encode (const RawSprite *sprite, bool is_font, AllocatorProc *allocator);
 
 	/** Blitting surface. */
 	struct Surface : Blitter_32bppNoanim::Surface {
@@ -46,7 +47,7 @@ public:
 	};
 
 	/** Create a surface for this blitter. */
-	Surface *create (void *ptr, uint width, uint height, uint pitch, bool anim) OVERRIDE
+	static Blitter::Surface *create (void *ptr, uint width, uint height, uint pitch, bool anim)
 	{
 		return new Surface (ptr, width, height, pitch);
 	}

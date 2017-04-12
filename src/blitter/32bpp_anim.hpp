@@ -18,10 +18,7 @@
 /** Base for 32bpp blitters with palette animation. */
 class Blitter_32bppAnimBase : public Blitter_32bppBase {
 public:
-	Blitter::PaletteAnimation UsePaletteAnimation (void) OVERRIDE
-	{
-		return Blitter::PALETTE_ANIMATION_BLITTER;
-	}
+	static const PaletteAnimation palette_animation = PALETTE_ANIMATION_BLITTER; ///< Palette animation.
 
 	/** Blitting surface. */
 	struct Surface : Blitter_32bppBase::Surface {
@@ -80,7 +77,8 @@ public:
 	static const char name[]; ///< Name of the blitter.
 	static const char desc[]; ///< Description of the blitter.
 
-	::Sprite *Encode (const RawSprite *sprite, bool is_font, AllocatorProc *allocator) OVERRIDE
+	/** Convert a sprite from the loader to our own format. */
+	static ::Sprite *Encode (const RawSprite *sprite, bool is_font, AllocatorProc *allocator)
 	{
 		return Sprite::encode (sprite, is_font, allocator);
 	}
@@ -107,7 +105,7 @@ public:
 	};
 
 	/** Create a surface for this blitter. */
-	Blitter_32bppBase::Surface *create (void *ptr, uint width, uint height, uint pitch, bool anim) OVERRIDE
+	static Blitter::Surface *create (void *ptr, uint width, uint height, uint pitch, bool anim)
 	{
 		if (anim) {
 			return Surface::create (ptr, width, height, pitch);

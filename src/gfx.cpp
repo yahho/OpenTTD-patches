@@ -917,7 +917,7 @@ static void GfxBlitter (BlitArea *dpi, const Sprite * const sprite,
 		void *clicked = _newgrf_debug_sprite_picker.clicked_pixel;
 
 		if (topleft <= clicked && clicked <= bottomright) {
-			uint offset = (((size_t)clicked - (size_t)topleft) / (Blitter::get()->GetScreenDepth() / 8)) % bp.pitch;
+			uint offset = (((size_t)clicked - (size_t)topleft) / (Blitter::get()->screen_depth / 8)) % bp.pitch;
 			if (offset < (uint)bp.width) {
 				_newgrf_debug_sprite_picker.sprites.Include(sprite_id);
 			}
@@ -954,8 +954,8 @@ void DoPaletteAnimations()
 	static uint palette_animation_counter = 0;
 	palette_animation_counter++;
 
-	Blitter *blitter = Blitter::get();
-	bool noanim = (blitter != NULL) && (blitter->UsePaletteAnimation() == Blitter::PALETTE_ANIMATION_NONE);
+	const Blitter::Info *blitter = Blitter::get();
+	bool noanim = (blitter != NULL) && (blitter->palette_animation == Blitter::PALETTE_ANIMATION_NONE);
 	const uint tc = noanim ? 0 : palette_animation_counter;
 
 	const Colour *s;

@@ -311,7 +311,7 @@ struct GameOptionsWindow : Window {
 				list = new DropDownList();
 				*selected_index = _cur_screenshot_format;
 				for (uint i = 0; i < _num_screenshot_formats; i++) {
-					if (!GetScreenshotFormatSupports_32bpp(i) && Blitter::get()->GetScreenDepth() == 32) continue;
+					if (!GetScreenshotFormatSupports_32bpp(i) && Blitter::get()->screen_depth == 32) continue;
 					*list->Append() = new DropDownListStringItem(SPECSTR_SCREENSHOT_START + i, i, false);
 				}
 				break;

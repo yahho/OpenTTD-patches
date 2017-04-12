@@ -18,7 +18,7 @@
 /** Base for all 32bpp blitters. */
 class Blitter_32bppBase : public Blitter {
 public:
-	/* virtual */ uint8 GetScreenDepth() { return 32; }
+	static const uint screen_depth = 32; ///< Screen depth.
 
 	/**
 	 * Compose a colour based on RGBA values and the current pixel value.

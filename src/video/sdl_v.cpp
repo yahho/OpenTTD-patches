@@ -138,9 +138,7 @@ static void InitPalette()
 static void CheckPaletteAnim()
 {
 	if (_cur_palette_count_dirty != 0) {
-		Blitter *blitter = Blitter::get();
-
-		switch (blitter->UsePaletteAnimation()) {
+		switch (Blitter::get()->palette_animation) {
 			case Blitter::PALETTE_ANIMATION_VIDEO_BACKEND:
 				UpdatePalette();
 				break;
@@ -278,7 +276,7 @@ static bool CreateMainSurface (uint w, uint h)
 {
 	SDL_Surface *newscreen;
 	char caption[50];
-	int bpp = Blitter::get()->GetScreenDepth();
+	int bpp = Blitter::get()->screen_depth;
 	bool want_hwpalette;
 
 	GetAvailableVideoMode(&w, &h);
@@ -402,10 +400,9 @@ static bool CreateMainSurface (uint w, uint h)
 	 * appropriate event to know this. */
 	if (_fullscreen) _cursor.in_window = true;
 
-	Blitter *blitter = Blitter::get();
-	_screen_surface.reset (blitter->create (newscreen->pixels,
+	_screen_surface.reset (Blitter::get()->create (newscreen->pixels,
 					newscreen->w, newscreen->h,
-					newscreen->pitch / (bpp / 8)));
+					newscreen->pitch / (bpp / 8), true));
 	_screen_width   = newscreen->w;
 	_screen_height  = newscreen->h;
 
@@ -829,7 +826,7 @@ bool VideoDriver_SDL::SwitchBlitter (const char *name, const char *old)
 {
 	if (_draw_mutex != NULL) _draw_mutex->BeginCritical (true);
 
-	Blitter *new_blitter = Blitter::select (name);
+	const Blitter::Info *new_blitter = Blitter::select (name);
 	/* Blitter::select only fails if it cannot find a blitter by the given
 	 * name, and all of the replacement blitters should be available. */
 	assert (new_blitter != NULL);

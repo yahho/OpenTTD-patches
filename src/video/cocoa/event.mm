@@ -110,9 +110,7 @@ static void QZ_WarpCursor(int x, int y)
 static void QZ_CheckPaletteAnim()
 {
 	if (_cur_palette_count_dirty != 0) {
-		Blitter *blitter = Blitter::get();
-
-		switch (blitter->UsePaletteAnimation()) {
+		switch (Blitter::get()->palette_animation) {
 			case Blitter::PALETTE_ANIMATION_VIDEO_BACKEND:
 				_cocoa_subdriver->UpdatePalette(_cur_palette_first_dirty, _cur_palette_count_dirty);
 				break;
