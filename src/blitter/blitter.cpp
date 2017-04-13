@@ -102,6 +102,17 @@ const Blitter::Info *Blitter::find (const char *name)
 }
 
 /**
+ * Make the given blitter current.
+ * @param blitter Blitter to set.
+ * @post Sets the blitter so Blitter::get() returns it too.
+ */
+void Blitter::select (const Blitter::Info *blitter)
+{
+	current_blitter = blitter;
+	DEBUG(driver, 1, "Successfully loaded blitter %s", blitter->name);
+}
+
+/**
  * Find the requested blitter and return his class.
  * @param name the blitter to select.
  * @post Sets the blitter so Blitter::get() returns it too.
@@ -113,9 +124,8 @@ const Blitter::Info *Blitter::select (const char *name)
 	const Blitter::Info *data = Blitter::find (name);
 	if (data == NULL) return NULL;
 
-	current_blitter = data;
+	select (data);
 
-	DEBUG(driver, 1, "Successfully loaded blitter %s", data->name);
 	return data;
 }
 

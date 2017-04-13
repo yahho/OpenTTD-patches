@@ -289,6 +289,9 @@ public:
 	static const Info *find (const char *name);
 
 	/* Select a blitter. */
+	static void select (const Info *blitter);
+
+	/* Select a blitter. */
 	static const Info *select (const char *name);
 
 	/** Get the current active blitter (always set by calling select). */
