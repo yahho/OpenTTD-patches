@@ -89,7 +89,7 @@ bool Blitter::autodetected;
  * @param name The blitter to select.
  * @return The blitter data, or NULL when there isn't one with the wanted name.
  */
-static const Blitter::Info *find_blitter (const char *name)
+const Blitter::Info *Blitter::find (const char *name)
 {
 	for (uint i = 0; i < lengthof(blitter_data); i++) {
 		if (usable_blitters.test (i)) {
@@ -110,7 +110,7 @@ const Blitter::Info *Blitter::select (const char *name)
 {
 	assert (!StrEmpty (name));
 
-	const Blitter::Info *data = find_blitter (name);
+	const Blitter::Info *data = Blitter::find (name);
 	if (data == NULL) return NULL;
 
 	current_blitter = data;

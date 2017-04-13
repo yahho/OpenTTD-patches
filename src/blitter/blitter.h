@@ -285,6 +285,9 @@ public:
 	static char *ini;
 	static bool autodetected;
 
+	/* Find the blitter information for a given blitter name. */
+	static const Info *find (const char *name);
+
 	/* Select a blitter. */
 	static const Info *select (const char *name);
 
