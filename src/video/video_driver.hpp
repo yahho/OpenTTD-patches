@@ -67,11 +67,10 @@ public:
 
 	/**
 	 * Switch to a new blitter.
-	 * @param name The blitter to switch to.
-	 * @param old The old blitter in case we have to switch back.
+	 * @param blitter The blitter to switch to.
 	 * @return False if switching failed and the old blitter could not be restored.
 	 */
-	virtual bool SwitchBlitter (const char *name, const char *old) = 0;
+	virtual bool SwitchBlitter (const Blitter::Info *blitter) = 0;
 
 	virtual bool ClaimMousePointer()
 	{
@@ -116,17 +115,12 @@ public:
 
 	/**
 	 * Switch to a new blitter.
-	 * @param name The blitter to switch to.
-	 * @param old The old blitter in case we have to switch back.
+	 * @param blitter The blitter to switch to.
 	 * @return False if switching failed and the old blitter could not be restored.
 	 */
-	bool SwitchBlitter (const char *name, const char *old) OVERRIDE
+	bool SwitchBlitter (const Blitter::Info *blitter) OVERRIDE
 	{
-		const Blitter::Info *new_blitter = Blitter::select (name);
-		/* Blitter::select only fails if it cannot find a blitter by the given
-		 * name, and all of the replacement blitters should be available. */
-		assert (new_blitter != NULL);
-
+		Blitter::select (blitter);
 		return true;
 	}
 

@@ -29,7 +29,7 @@ public:
 
 	/* virtual */ bool ToggleFullscreen(bool fullscreen);
 
-	bool SwitchBlitter (const char *name, const char *old) OVERRIDE;
+	bool SwitchBlitter (const Blitter::Info *blitter) OVERRIDE;
 
 	/* virtual */ bool ClaimMousePointer();
 };

@@ -326,12 +326,14 @@ static bool SwitchNewGRFBlitter()
 	/* Null driver => dedicated server => do nothing. */
 	if (Blitter::get()->screen_depth == 0) return false;
 
-	const char *repl_blitter = SelectNewGRFBlitter();
-	const char *cur_blitter = Blitter::get_name();
-	if (strcmp (repl_blitter, cur_blitter) == 0) return false;
+	const Blitter::Info *repl = Blitter::find (SelectNewGRFBlitter());
+	/* The replacement blitter should always be available. */
+	assert (repl != NULL);
+	const Blitter::Info *cur  = Blitter::get();
+	if (repl == cur) return false;
 
-	DEBUG(misc, 1, "Switching blitter from '%s' to '%s'... ", cur_blitter, repl_blitter);
-	if (!VideoDriver::GetActiveDriver()->SwitchBlitter (repl_blitter, cur_blitter)) {
+	DEBUG(misc, 1, "Switching blitter from '%s' to '%s'... ", cur->name, repl->name);
+	if (!VideoDriver::GetActiveDriver()->SwitchBlitter (repl)) {
 		usererror ("Failed to reinitialize video driver. Specify a fixed blitter in the config.");
 	}
 

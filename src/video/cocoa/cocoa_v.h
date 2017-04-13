@@ -47,11 +47,10 @@ public:
 
 	/**
 	 * Switch to a new blitter.
-	 * @param name The blitter to switch to.
-	 * @param old The old blitter in case we have to switch back.
+	 * @param blitter The blitter to switch to.
 	 * @return False if switching failed and the old blitter could not be restored.
 	 */
-	/* virtual */ bool SwitchBlitter (const char *name, const char *old);
+	/* virtual */ bool SwitchBlitter (const Blitter::Info *blitter);
 
 	/**
 	 * An edit box lost the input focus. Abort character compositing if necessary.

@@ -559,22 +559,20 @@ bool VideoDriver_Allegro::ToggleFullscreen(bool fullscreen)
 
 /**
  * Switch to a new blitter.
- * @param name The blitter to switch to.
- * @param old The old blitter in case we have to switch back.
+ * @param blitter The blitter to switch to.
  * @return False if switching failed and the old blitter could not be restored.
  */
-bool VideoDriver_Allegro::SwitchBlitter (const char *name, const char *old)
+bool VideoDriver_Allegro::SwitchBlitter (const Blitter::Info *blitter)
 {
-	const Blitter::Info *new_blitter = Blitter::select (name);
-	/* Blitter::select only fails if it cannot find a blitter by the given
-	 * name, and all of the replacement blitters should be available. */
-	assert (new_blitter != NULL);
+	const Blitter::Info *old = Blitter::get();
+
+	Blitter::select (blitter);
 
 	if (CreateMainSurface (_screen_width, _screen_height)) return true;
 
 	/* Failed to switch blitter, let's hope we can return to the old one. */
-	return (Blitter::select (old) != NULL)
-			&& CreateMainSurface (_screen_width, _screen_height);
+	Blitter::select (old);
+	return CreateMainSurface (_screen_width, _screen_height);
 }
 
 #endif /* WITH_ALLEGRO */
