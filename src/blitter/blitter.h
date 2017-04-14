@@ -291,9 +291,6 @@ public:
 	/* Select a blitter. */
 	static void select (const Info *blitter);
 
-	/* Select a blitter. */
-	static const Info *select (const char *name);
-
 	/** Get the current active blitter (always set by calling select). */
 	static const Info *get (void)
 	{

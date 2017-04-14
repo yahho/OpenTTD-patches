@@ -113,23 +113,6 @@ void Blitter::select (const Blitter::Info *blitter)
 }
 
 /**
- * Find the requested blitter and return his class.
- * @param name the blitter to select.
- * @post Sets the blitter so Blitter::get() returns it too.
- */
-const Blitter::Info *Blitter::select (const char *name)
-{
-	assert (!StrEmpty (name));
-
-	const Blitter::Info *data = Blitter::find (name);
-	if (data == NULL) return NULL;
-
-	select (data);
-
-	return data;
-}
-
-/**
  * Fill a buffer with information about the blitters.
  * @param buf The buffer to fill.
  */

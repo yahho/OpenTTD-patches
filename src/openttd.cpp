@@ -786,12 +786,12 @@ int openttd_main(int argc, char *argv[])
 			DEBUG(driver, 1, "Probing blitter %s", sel);
 		}
 
-		if (Blitter::select (sel) == NULL) {
-			/* Blitter::select only fails if it cannot find
-			 * a blitter by the given name. */
+		const Blitter::Info *blitter = Blitter::find (sel);
+		if (blitter == NULL) {
 			assert (!autodetect);
 			usererror ("Failed to select requested blitter '%s'; does it exist?", sel);
 		}
+		Blitter::select (blitter);
 	}
 	free(blitter);
 
