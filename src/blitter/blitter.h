@@ -298,13 +298,6 @@ public:
 		return current_blitter;
 	}
 
-	/* Get the name of the current blitter. */
-	static const char *get_name (void)
-	{
-		const Info *info = get();
-		return info == NULL ? "none" : info->name;
-	}
-
 	/* Fill a buffer with information about available blitters. */
 	static void list (stringb *buf);
 };
