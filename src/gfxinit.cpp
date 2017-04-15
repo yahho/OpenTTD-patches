@@ -259,7 +259,7 @@ static void LoadSpriteTables()
  * Select the blitter needed by NewGRF config.
  * @return The blitter to switch to.
  */
-static const char *SelectNewGRFBlitter (void)
+static const Blitter::Info *SelectNewGRFBlitter (void)
 {
 	/* Get preferred depth.
 	 *  - base_wants_32bpp: Depth required by the baseset, i.e. the majority of the sprites.
@@ -283,35 +283,8 @@ static const char *SelectNewGRFBlitter (void)
 	}
 
 	/* Search the best blitter. */
-	static const struct {
-		const char *name;
-		byte animation;   ///< 0: no support, 1: do support, 2: both
-		byte base_depth;  ///< 0: 8bpp, 1: 32bpp, 2: both
-		byte grf_depth;   ///< 0: 8bpp, 1: 32bpp, 2: both
-	} replacement_blitters[] = {
-#ifdef WITH_SSE
-		{ "32bpp-sse4",       0,  1,  2 },
-		{ "32bpp-ssse3",      0,  1,  2 },
-		{ "32bpp-sse2",       0,  1,  2 },
-		{ "32bpp-sse4-anim",  1,  1,  2 },
-#endif
-		{ "8bpp-optimized",   2,  0,  0 },
-		{ "32bpp-optimized",  0,  2,  2 },
-		{ "32bpp-anim",       1,  2,  2 },
-	};
-
-	const bool animation_wanted = HasBit(_display_opt, DO_FULL_ANIMATION);
-
-	for (uint i = 0; ; i++) {
-		/* One of the last two blitters should always match. */
-		assert (i < lengthof(replacement_blitters));
-
-		if (replacement_blitters[i].animation  == (animation_wanted ? 0 : 1)) continue;
-		if (replacement_blitters[i].base_depth == (base_wants_32bpp ? 0 : 1)) continue;
-		if (replacement_blitters[i].grf_depth  == (grf_wants_32bpp  ? 0 : 1)) continue;
-
-		return replacement_blitters[i].name;
-	}
+	return Blitter::choose (HasBit(_display_opt, DO_FULL_ANIMATION),
+				base_wants_32bpp, grf_wants_32bpp);
 }
 
 /**
@@ -326,7 +299,7 @@ static bool SwitchNewGRFBlitter()
 	/* Null driver => dedicated server => do nothing. */
 	if (Blitter::get()->screen_depth == 0) return false;
 
-	const Blitter::Info *repl = Blitter::find (SelectNewGRFBlitter());
+	const Blitter::Info *repl = SelectNewGRFBlitter();
 	/* The replacement blitter should always be available. */
 	assert (repl != NULL);
 	const Blitter::Info *cur  = Blitter::get();

@@ -102,6 +102,44 @@ const Blitter::Info *Blitter::find (const char *name)
 }
 
 /**
+ * Find a replacement blitter given some requirements.
+ * @param anim       Whether animation is wanted.
+ * @param base_32bpp Whether the baseset requires 32 bpp.
+ * @param grf_32bpp  Whether a NewGRF requires 32 bpp.
+ * @return A suitable replacement blitter.
+ */
+const Blitter::Info *Blitter::choose (bool anim, bool base_32bpp, bool grf_32bpp)
+{
+	static const struct {
+		const char *name;
+		byte animation;   ///< 0: no support, 1: do support, 2: both
+		byte base_depth;  ///< 0: 8bpp, 1: 32bpp, 2: both
+		byte grf_depth;   ///< 0: 8bpp, 1: 32bpp, 2: both
+	} replacement_blitters[] = {
+#ifdef WITH_SSE
+		{ "32bpp-sse4",       0,  1,  2 },
+		{ "32bpp-ssse3",      0,  1,  2 },
+		{ "32bpp-sse2",       0,  1,  2 },
+		{ "32bpp-sse4-anim",  1,  1,  2 },
+#endif
+		{ "8bpp-optimized",   2,  0,  0 },
+		{ "32bpp-optimized",  0,  2,  2 },
+		{ "32bpp-anim",       1,  2,  2 },
+	};
+
+	for (uint i = 0; ; i++) {
+		/* One of the last two blitters should always match. */
+		assert (i < lengthof(replacement_blitters));
+
+		if (replacement_blitters[i].animation  == (anim       ? 0 : 1)) continue;
+		if (replacement_blitters[i].base_depth == (base_32bpp ? 0 : 1)) continue;
+		if (replacement_blitters[i].grf_depth  == (grf_32bpp  ? 0 : 1)) continue;
+
+		return find (replacement_blitters[i].name);
+	}
+}
+
+/**
  * Make the given blitter current.
  * @param blitter Blitter to set.
  * @post Sets the blitter so Blitter::get() returns it too.

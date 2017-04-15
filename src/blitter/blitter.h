@@ -288,6 +288,9 @@ public:
 	/* Find the blitter information for a given blitter name. */
 	static const Info *find (const char *name);
 
+	/* Find a replacement blitter. */
+	static const Info *choose (bool anim, bool base_32bpp, bool grf_32bpp);
+
 	/* Select a blitter. */
 	static void select (const Info *blitter);
 
