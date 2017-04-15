@@ -155,7 +155,8 @@ const Blitter::Info *Blitter::choose (bool anim, bool base_32bpp, bool grf_32bpp
 		if (replacement_blitters[i].base_depth == (base_32bpp ? 0 : 1)) continue;
 		if (replacement_blitters[i].grf_depth  == (grf_32bpp  ? 0 : 1)) continue;
 
-		return &blitter_data[replacement_blitters[i].blitter];
+		uint k = replacement_blitters[i].blitter;
+		if (usable_blitters[k]) return &blitter_data[k];
 	}
 #endif
 }
