@@ -32,23 +32,33 @@
 #endif
 #endif
 
+#ifdef DEDICATED
+#define IF_BLITTER_GUI(...)
+#else
+#define IF_BLITTER_GUI(...) __VA_ARGS__
+#endif
+
+#ifdef WITH_SSE
+#define IF_BLITTER_SSE IF_BLITTER_GUI
+#else
+#define IF_BLITTER_SSE(...)
+#endif
+
+#define BLITTER_LIST(p) p(Blitter_Null),            \
+	IF_BLITTER_GUI (p(Blitter_8bppSimple),)     \
+	IF_BLITTER_GUI (p(Blitter_8bppOptimized),)  \
+	IF_BLITTER_GUI (p(Blitter_32bppSimple),)    \
+	IF_BLITTER_GUI (p(Blitter_32bppOptimized),) \
+	IF_BLITTER_GUI (p(Blitter_32bppAnim),)      \
+	IF_BLITTER_SSE (p(Blitter_32bppSSE2),)      \
+	IF_BLITTER_SSE (p(Blitter_32bppSSSE3),)     \
+	IF_BLITTER_SSE (p(Blitter_32bppSSE4),)      \
+	IF_BLITTER_SSE (p(Blitter_32bppSSE4_Anim),)
+
 /** Static blitter data. */
 static const Blitter::Info blitter_data[] = {
 #define BLITTER(B) { B::name, B::desc, &B::usable, &B::create, &B::Encode, B::screen_depth, B::palette_animation }
-	BLITTER (Blitter_Null),
-#ifndef DEDICATED
-	BLITTER (Blitter_8bppSimple),
-	BLITTER (Blitter_8bppOptimized),
-	BLITTER (Blitter_32bppSimple),
-	BLITTER (Blitter_32bppOptimized),
-	BLITTER (Blitter_32bppAnim),
-#ifdef WITH_SSE
-	BLITTER (Blitter_32bppSSE2),
-	BLITTER (Blitter_32bppSSSE3),
-	BLITTER (Blitter_32bppSSE4),
-	BLITTER (Blitter_32bppSSE4_Anim),
-#endif /* WITH_SSE */
-#endif /* DEDICATED */
+BLITTER_LIST(BLITTER)
 #undef BLITTER
 };
 
