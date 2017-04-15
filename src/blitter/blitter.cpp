@@ -55,6 +55,13 @@
 	IF_BLITTER_SSE (p(Blitter_32bppSSE4),)      \
 	IF_BLITTER_SSE (p(Blitter_32bppSSE4_Anim),)
 
+/** List of blitters. */
+enum Blitters {
+#define BLITTER(B) BLITTER_##B
+BLITTER_LIST(BLITTER)
+#undef BLITTER
+};
+
 /** Static blitter data. */
 static const Blitter::Info blitter_data[] = {
 #define BLITTER(B) { B::name, B::desc, &B::usable, &B::create, &B::Encode, B::screen_depth, B::palette_animation }
@@ -120,21 +127,24 @@ const Blitter::Info *Blitter::find (const char *name)
  */
 const Blitter::Info *Blitter::choose (bool anim, bool base_32bpp, bool grf_32bpp)
 {
+#ifdef DEDICATED
+	return &blitter_data[BLITTER_Blitter_Null];
+#else
 	static const struct {
-		const char *name;
+		byte blitter;     ///< Blitter index into blitter_data.
 		byte animation;   ///< 0: no support, 1: do support, 2: both
 		byte base_depth;  ///< 0: 8bpp, 1: 32bpp, 2: both
 		byte grf_depth;   ///< 0: 8bpp, 1: 32bpp, 2: both
 	} replacement_blitters[] = {
 #ifdef WITH_SSE
-		{ "32bpp-sse4",       0,  1,  2 },
-		{ "32bpp-ssse3",      0,  1,  2 },
-		{ "32bpp-sse2",       0,  1,  2 },
-		{ "32bpp-sse4-anim",  1,  1,  2 },
+		{ BLITTER_Blitter_32bppSSE4,       0,  1,  2 },
+		{ BLITTER_Blitter_32bppSSSE3,      0,  1,  2 },
+		{ BLITTER_Blitter_32bppSSE2,       0,  1,  2 },
+		{ BLITTER_Blitter_32bppSSE4_Anim,  1,  1,  2 },
 #endif
-		{ "8bpp-optimized",   2,  0,  0 },
-		{ "32bpp-optimized",  0,  2,  2 },
-		{ "32bpp-anim",       1,  2,  2 },
+		{ BLITTER_Blitter_8bppOptimized,   2,  0,  0 },
+		{ BLITTER_Blitter_32bppOptimized,  0,  2,  2 },
+		{ BLITTER_Blitter_32bppAnim,       1,  2,  2 },
 	};
 
 	for (uint i = 0; ; i++) {
@@ -145,8 +155,9 @@ const Blitter::Info *Blitter::choose (bool anim, bool base_32bpp, bool grf_32bpp
 		if (replacement_blitters[i].base_depth == (base_32bpp ? 0 : 1)) continue;
 		if (replacement_blitters[i].grf_depth  == (grf_32bpp  ? 0 : 1)) continue;
 
-		return find (replacement_blitters[i].name);
+		return &blitter_data[replacement_blitters[i].blitter];
 	}
+#endif
 }
 
 /**
