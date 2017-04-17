@@ -2061,9 +2061,9 @@ static CommandCost CheckRailConversion(TileIndex tile, RailType totype)
 			/* Converting to the same type or converting 'hidden' elrail -> rail */
 			if (type == totype || (ignore_electric && type == RAILTYPE_ELECTRIC)) return CommandCost();
 
-			if (!IsCompatibleRail(type, totype)) {
-				CommandCost ret = EnsureNoVehicleOnGround(tile);
-				if (ret.Failed()) return ret;
+			if (!IsCompatibleRail (type, totype)
+					&& !CheckTrackBitsFree (tile, trackbits)) {
+				return_cmd_error(STR_ERROR_TRAIN_IN_THE_WAY);
 			}
 
 			cost.AddCost(RailConvertCost(type, totype) * CountBits(trackbits));
