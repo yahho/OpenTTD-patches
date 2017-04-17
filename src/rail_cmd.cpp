@@ -2035,17 +2035,15 @@ static CommandCost CheckRailConversion(TileIndex tile, RailType totype)
 				bool ignore2 = type2 == totype || (ignore_electric && type2 == RAILTYPE_ELECTRIC);
 				if (ignore1 && ignore2) return CommandCost();
 
-				Track track = (trackbits == TRACK_BIT_HORZ) ? TRACK_UPPER : TRACK_LEFT;
-				if (!ignore1 && !IsCompatibleRail(type, totype)) {
-					if (!CheckTrackBitsFree (tile, TrackToTrackBits (track))) {
-						return_cmd_error(STR_ERROR_TRAIN_IN_THE_WAY);
-					}
+				TrackBits check = trackbits;
+				if (ignore1 || IsCompatibleRail (type, totype)) {
+					check &= ~(TRACK_BIT_UPPER | TRACK_BIT_LEFT);
 				}
-
-				if (!ignore2 && !IsCompatibleRail(type2, totype)) {
-					if (!CheckTrackBitsFree (tile, TrackToTrackBits (TrackToOppositeTrack (track)))) {
-						return_cmd_error(STR_ERROR_TRAIN_IN_THE_WAY);
-					}
+				if (ignore2 || IsCompatibleRail (type2, totype)) {
+					check &= ~(TRACK_BIT_LOWER | TRACK_BIT_RIGHT);
+				}
+				if ((check != TRACK_BIT_NONE) && !CheckTrackBitsFree (tile, check)) {
+					return_cmd_error(STR_ERROR_TRAIN_IN_THE_WAY);
 				}
 
 				cost.AddCost(RailConvertCost(type, totype));
