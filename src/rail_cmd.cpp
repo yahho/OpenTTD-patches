@@ -222,7 +222,8 @@ static const byte _track_sloped_sprites[14] = {
 static CommandCost EnsureNoTrainOnTrack(TileIndex tile, Track track)
 {
 	TrackBits rail_bits = TrackToTrackBits(track);
-	return EnsureNoTrainOnTrackBits(tile, rail_bits);
+	if (!CheckTrackBitsFree (tile, rail_bits)) return_cmd_error(STR_ERROR_TRAIN_IN_THE_WAY);
+	return CommandCost();
 }
 
 /**

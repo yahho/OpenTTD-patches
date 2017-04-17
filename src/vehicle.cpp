@@ -694,7 +694,7 @@ static Track AllowedNonOverlappingTrack(TrackBits bits)
  * @param track_bits The track bits.
  * @return \c true if no train that interacts, is found. \c false if a train is found.
  */
-CommandCost EnsureNoTrainOnTrackBits(TileIndex tile, TrackBits track_bits)
+bool CheckTrackBitsFree (TileIndex tile, TrackBits track_bits)
 {
 	assert(track_bits != TRACK_BIT_NONE);
 
@@ -711,8 +711,7 @@ CommandCost EnsureNoTrainOnTrackBits(TileIndex tile, TrackBits track_bits)
 		if (TrackdirToTrack(trackdir) != allowed) iter.set_found();
 	}
 
-	if (iter.was_found()) return_cmd_error(STR_ERROR_TRAIN_IN_THE_WAY);
-	return CommandCost();
+	return !iter.was_found();
 }
 
 static bool EnsureNoTrainOnBridgeEndTrackBits (TileIndex tile, TrackBits bits)
