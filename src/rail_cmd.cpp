@@ -212,21 +212,6 @@ static const byte _track_sloped_sprites[14] = {
 
 
 /**
- * Tests if a vehicle interacts with the specified track.
- * All track bits interact except parallel #TRACK_BIT_HORZ or #TRACK_BIT_VERT.
- *
- * @param tile The tile.
- * @param track The track.
- * @return Succeeded command (no train found), or a failed command (a train was found).
- */
-static CommandCost EnsureNoTrainOnTrack(TileIndex tile, Track track)
-{
-	TrackBits rail_bits = TrackToTrackBits(track);
-	if (!CheckTrackBitsFree (tile, rail_bits)) return_cmd_error(STR_ERROR_TRAIN_IN_THE_WAY);
-	return CommandCost();
-}
-
-/**
  * Check that the new track bits may be built.
  * @param tile %Tile to build on.
  * @param to_build New track bits.
@@ -547,8 +532,9 @@ CommandCost CmdBuildSingleRail(TileIndex tile, DoCommandFlag flags, uint32 p1, u
 				if (!IsValidRailBridgeBits(tileh, GetTunnelBridgeDirection(tile), GetTrackBits(tile) | trackbit)) return_cmd_error(STR_ERROR_LAND_SLOPED_IN_WRONG_DIRECTION);
 			}
 
-			ret = EnsureNoTrainOnTrack(tile, track);
-			if (ret.Failed()) return ret;
+			if (!CheckTrackBitsFree (tile, TrackToTrackBits (track))) {
+				return_cmd_error(STR_ERROR_TRAIN_IN_THE_WAY);
+			}
 
 			if (flags & DC_EXEC) {
 				if (IsTileSubtype(tile, TT_TRACK)) SetRailGroundType(tile, RAIL_GROUND_BARREN);
@@ -696,8 +682,9 @@ static CommandCost RemoveRailTrack(TileIndex tile, Track track, DoCommandFlag fl
 		if (ret.Failed()) return ret;
 	}
 
-	CommandCost ret = EnsureNoTrainOnTrack(tile, track);
-	if (ret.Failed()) return ret;
+	if (!CheckTrackBitsFree (tile, TrackToTrackBits (track))) {
+		return_cmd_error(STR_ERROR_TRAIN_IN_THE_WAY);
+	}
 
 	TrackBits present = GetTrackBits(tile);
 	TrackBits trackbit = TrackToTrackBits(track);
@@ -1559,7 +1546,8 @@ CommandCost CmdBuildSingleSignal(TileIndex tile, DoCommandFlag flags, uint32 p1,
 				/* PBS signals should show red unless they are on reserved tiles without a train. */
 				uint mask = signalpair_get_present(&signals);
 				uint state = signalpair_get_states(&signals);
-				signalpair_set_states(&signals, HasReservedTrack(tile, track) && EnsureNoTrainOnTrack(tile, track).Succeeded() ? (state | mask) : (state & ~mask));
+				bool green = HasReservedTrack (tile, track) && CheckTrackBitsFree (tile, TrackToTrackBits (track));
+				signalpair_set_states (&signals, green ? (state | mask) : (state & ~mask));
 			}
 		}
 
@@ -2049,13 +2037,15 @@ static CommandCost CheckRailConversion(TileIndex tile, RailType totype)
 
 				Track track = (trackbits == TRACK_BIT_HORZ) ? TRACK_UPPER : TRACK_LEFT;
 				if (!ignore1 && !IsCompatibleRail(type, totype)) {
-					CommandCost ret = EnsureNoTrainOnTrack(tile, track);
-					if (ret.Failed()) return ret;
+					if (!CheckTrackBitsFree (tile, TrackToTrackBits (track))) {
+						return_cmd_error(STR_ERROR_TRAIN_IN_THE_WAY);
+					}
 				}
 
 				if (!ignore2 && !IsCompatibleRail(type2, totype)) {
-					CommandCost ret = EnsureNoTrainOnTrack(tile, TrackToOppositeTrack(track));
-					if (ret.Failed()) return ret;
+					if (!CheckTrackBitsFree (tile, TrackToTrackBits (TrackToOppositeTrack (track)))) {
+						return_cmd_error(STR_ERROR_TRAIN_IN_THE_WAY);
+					}
 				}
 
 				cost.AddCost(RailConvertCost(type, totype));
