@@ -714,7 +714,16 @@ bool CheckTrackBitsFree (TileIndex tile, TrackBits track_bits)
 	return !iter.was_found();
 }
 
-static bool EnsureNoTrainOnBridgeEndTrackBits (TileIndex tile, TrackBits bits)
+/**
+ * Check if there is a train that interacts with the specified track bits of a
+ * rail bridge head or is on the bridge middle part heading towards this end.
+ * Note that trains on the middle part of a bridge can have either bridge head
+ * as their tile.
+ * @param tile Bridge head tile.
+ * @param bits Track bits to check for.
+ * @return Whether there is a train on the bridge tracks or middle part.
+ */
+bool CheckBridgeEndTrackBitsFree (TileIndex tile, TrackBits bits)
 {
 	assert(bits != TRACK_BIT_NONE);
 
@@ -729,25 +738,6 @@ static bool EnsureNoTrainOnBridgeEndTrackBits (TileIndex tile, TrackBits bits)
 	}
 
 	return !iter.was_found();
-}
-
-/**
- * Tests if a train interacts with the specified track bits or is on the bridge middle part.
- *
- * @param tile1 one bridge end
- * @param bits1 track bits on first bridge end
- * @param tile2 the other bridge end
- * @param bits2 track bits on second bridge end
- * @return whether there is a train on the bridge tracks or middle part
- */
-CommandCost EnsureNoTrainOnBridgeTrackBits(TileIndex tile1, TrackBits bits1, TileIndex tile2, TrackBits bits2)
-{
-	if (!EnsureNoTrainOnBridgeEndTrackBits (tile1, bits1) ||
-			!EnsureNoTrainOnBridgeEndTrackBits (tile2, bits2)) {
-		return_cmd_error(STR_ERROR_TRAIN_IN_THE_WAY);
-	}
-
-	return CommandCost();
 }
 
 static bool EnsureNoTrainOnTunnelBridgeEndMiddle (TileIndex tile)

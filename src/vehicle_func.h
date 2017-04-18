@@ -163,7 +163,7 @@ static inline StringID GetErrSendToDepot(const BaseVehicle *v)
 CommandCost EnsureNoVehicleOnGround(TileIndex tile);
 
 bool CheckTrackBitsFree (TileIndex tile, TrackBits track_bits);
-CommandCost EnsureNoTrainOnBridgeTrackBits(TileIndex tile1, TrackBits bits1, TileIndex tile2, TrackBits bits2);
+bool CheckBridgeEndTrackBitsFree (TileIndex tile, TrackBits bits);
 CommandCost EnsureNoTrainOnTunnelBridgeMiddle(TileIndex tile1, TileIndex tile2);
 
 extern VehicleID _new_vehicle_id;

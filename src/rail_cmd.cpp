@@ -903,8 +903,10 @@ static CommandCost RemoveBridgeTrack(TileIndex tile, Track track, DoCommandFlag 
 
 	assert(other_remove != TRACK_BIT_NONE);
 
-	CommandCost ret = EnsureNoTrainOnBridgeTrackBits(tile, trackbit, other_tile, other_remove);
-	if (ret.Failed()) return ret;
+	if (!CheckBridgeEndTrackBitsFree (tile, trackbit) ||
+			!CheckBridgeEndTrackBitsFree (other_tile, other_remove)) {
+		return_cmd_error(STR_ERROR_TRAIN_IN_THE_WAY);
+	}
 
 	CommandCost cost(EXPENSES_CONSTRUCTION, (GetTunnelBridgeLength(tile, other_tile) + 2) * _price[PR_CLEAR_BRIDGE]);
 
@@ -2532,8 +2534,10 @@ static CommandCost ClearTile_Track(TileIndex tile, DoCommandFlag flags)
 
 		assert(other_remove != TRACK_BIT_NONE);
 
-		CommandCost ret = EnsureNoTrainOnBridgeTrackBits(tile, present, other_tile, other_remove);
-		if (ret.Failed()) return ret;
+		if (!CheckBridgeEndTrackBitsFree (tile, present) ||
+				!CheckBridgeEndTrackBitsFree (other_tile, other_remove)) {
+			return_cmd_error(STR_ERROR_TRAIN_IN_THE_WAY);
+		}
 
 		uint len = GetTunnelBridgeLength(tile, other_tile) + 2; // Don't forget the end tiles.
 
