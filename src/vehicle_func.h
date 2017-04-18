@@ -164,7 +164,7 @@ CommandCost EnsureNoVehicleOnGround(TileIndex tile);
 
 bool CheckTrackBitsFree (TileIndex tile, TrackBits track_bits);
 bool CheckBridgeEndTrackBitsFree (TileIndex tile, TrackBits bits);
-CommandCost EnsureNoTrainOnTunnelBridgeMiddle(TileIndex tile1, TileIndex tile2);
+bool CheckTunnelBridgeMiddleFree (TileIndex tile1, TileIndex tile2);
 
 extern VehicleID _new_vehicle_id;
 extern uint16 _returned_refit_capacity;

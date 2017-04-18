@@ -303,7 +303,7 @@ static SigFlags ExploreSegment(Owner owner)
 					if (ss.side == (SignalSideEnum)dir) continue;
 					if (ss.side == SIDE_INTO_BRIDGE) {
 						newss.tile = GetOtherBridgeEnd(ss.tile); // skip to exit tile
-						if (!(flags & SF_TRAIN) && EnsureNoTrainOnTunnelBridgeMiddle(ss.tile, newss.tile).Failed()) flags |= SF_TRAIN;
+						if (!(flags & SF_TRAIN) && !CheckTunnelBridgeMiddleFree (ss.tile, newss.tile)) flags |= SF_TRAIN;
 						newss.side = SIDE_FROM_BRIDGE;
 						ss.tile = newss.tile;
 						ss.side = SIDE_INTO_BRIDGE;
@@ -406,7 +406,7 @@ static SigFlags ExploreSegment(Owner owner)
 
 						if (ss.side == SIDE_INTO_TUNNEL) { // going into the wormhole
 							newss.tile = GetOtherTunnelEnd(ss.tile); // skip to exit tile
-							if (!(flags & SF_TRAIN) && EnsureNoTrainOnTunnelBridgeMiddle(ss.tile, newss.tile).Failed()) flags |= SF_TRAIN;
+							if (!(flags & SF_TRAIN) && !CheckTunnelBridgeMiddleFree (ss.tile, newss.tile)) flags |= SF_TRAIN;
 							newss.side = SIDE_FROM_TUNNEL;
 							ss.tile = newss.tile;
 							ss.side = SIDE_INTO_TUNNEL;

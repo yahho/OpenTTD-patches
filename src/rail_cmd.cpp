@@ -2168,9 +2168,9 @@ static CommandCost ConvertBridge(TileIndex tile, TileIndex endtile, RailType tot
 	if (_settings_game.vehicle.disable_elrails && totype == RAILTYPE_RAIL && type == RAILTYPE_ELECTRIC) return cost;
 
 	/* When not converting rail <-> el. rail, no vehicle can be in the bridge */
-	if (!IsCompatibleRail(type, totype)) {
-		CommandCost ret = EnsureNoTrainOnTunnelBridgeMiddle(tile, endtile);
-		if (ret.Failed()) return ret;
+	if (!IsCompatibleRail (type, totype)
+			&& !CheckTunnelBridgeMiddleFree (tile, endtile)) {
+		return_cmd_error(STR_ERROR_TRAIN_IN_THE_WAY);
 	}
 
 	uint len = GetTunnelBridgeLength(tile, endtile);

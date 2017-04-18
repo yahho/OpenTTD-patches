@@ -740,7 +740,7 @@ bool CheckBridgeEndTrackBitsFree (TileIndex tile, TrackBits bits)
 	return !iter.was_found();
 }
 
-static bool EnsureNoTrainOnTunnelBridgeEndMiddle (TileIndex tile)
+static bool CheckTunnelBridgeEndMiddleFree (TileIndex tile)
 {
 	VehicleTileFinder iter (tile);
 	while (!iter.finished()) {
@@ -756,14 +756,10 @@ static bool EnsureNoTrainOnTunnelBridgeEndMiddle (TileIndex tile)
  * @param tile2 the other bridge end
  * @return whether there is a train on the bridge
  */
-CommandCost EnsureNoTrainOnTunnelBridgeMiddle(TileIndex tile1, TileIndex tile2)
+bool CheckTunnelBridgeMiddleFree (TileIndex tile1, TileIndex tile2)
 {
-	if (!EnsureNoTrainOnTunnelBridgeEndMiddle(tile1) ||
-			!EnsureNoTrainOnTunnelBridgeEndMiddle(tile2)) {
-		return_cmd_error(STR_ERROR_TRAIN_IN_THE_WAY);
-	}
-
-	return CommandCost();
+	return  CheckTunnelBridgeEndMiddleFree (tile1) &&
+		CheckTunnelBridgeEndMiddleFree (tile2);
 }
 
 
