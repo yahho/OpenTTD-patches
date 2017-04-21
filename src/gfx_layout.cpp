@@ -752,98 +752,102 @@ public:
  */
 void FallbackParagraphLayout::build (LineVector *v, int max_width, bool)
 {
-	const WChar *buffer = this->data;
+	const WChar *p = this->data;
 
-	if (*buffer == '\0') {
+	if (*p == '\0') {
 		/* Only a newline. */
 		FallbackLine *l = new FallbackLine();
-		l->append (this->runs.front().second, buffer, 0, 0);
+		l->append (this->runs.front().second, p, 0, 0);
 		v->push_back (ttd_unique_ptr <const ParagraphLayouter::Line> (l));
 		return;
 	}
 
-	while (buffer != NULL) {
+	FontMap::const_iterator iter (this->runs.begin());
+	assert (iter != this->runs.end());
+	assert (iter->first > 0);
+
+	const WChar *begin = p;
+	const WChar *next_run = this->data + iter->first;
+
+	FallbackLine *l = NULL;
+	const WChar *last_space;
+	int width;
+
+	for (;;) {
 		/* Simple idea:
 		 *  - split a line at a newline character, or at a space where we can break a line.
 		 *  - split for a visual run whenever a new line happens, or the font changes.
 		 */
-		FallbackLine *l = new FallbackLine();
 
-		const WChar *begin = buffer;
-		const WChar *last_space = NULL;
-		const WChar *last_char = begin;
-		int width = 0;
-
-		int offset = buffer - this->data;
-		FontMap::const_iterator iter = this->runs.begin();
-		while (iter->first <= offset) {
-			iter++;
-			assert (iter != this->runs.end());
+		if (l == NULL) {
+			l = new FallbackLine();
+			v->push_back (ttd_unique_ptr <const ParagraphLayouter::Line> (l));
+			last_space = NULL;
+			width = 0;
 		}
 
-		FontCache *fc = iter->second->fc;
-		const WChar *next_run = this->data + iter->first;
+		assert (p < next_run);
 
-		for (;; buffer++) {
-			WChar c = *buffer;
-			last_char = buffer;
+		WChar c = *p;
+		assert (c != '\0');
 
-			if (c == '\0') {
-				buffer = NULL;
-				break;
-			}
+		if (IsWhitespace(c)) last_space = p;
 
-			if (buffer == next_run) {
-				int w = l->GetWidth();
-				l->append (iter->second, begin, buffer - begin, w);
-				iter++;
-				assert (iter != this->runs.end());
-
-				next_run = this->data + iter->first;
-				begin = buffer;
-
-				last_space = NULL;
-			}
-
-			if (IsWhitespace(c)) last_space = buffer;
-
-			if (!IsPrintable(c) || IsTextDirectionChar(c)) continue;
-
-			int char_width = fc->GetCharacterWidth (c);
+		if (IsPrintable(c) && !IsTextDirectionChar(c)) {
+			int char_width = iter->second->fc->GetCharacterWidth(c);
 			width += char_width;
-			if (width <= max_width) continue;
-
-			/* The string is longer than maximum width so we need
-			 * to decide what to do with it. */
-			if (width == char_width) {
-				/* The character is wider than allowed width; don't know
-				 * what to do with this case... bail out! */
-				v->push_back (ttd_unique_ptr <const ParagraphLayouter::Line> (l));
-				return;
-			}
-
-			if (last_space == NULL) {
-				/* No space has been found. Just terminate at our current
-				 * location. This usually happens for languages that do not
-				 * require spaces in strings, like Chinese, Japanese and
-				 * Korean. For other languages terminating mid-word might
-				 * not be the best, but terminating the whole string instead
-				 * of continuing the word at the next line is worse. */
+			if (width <= max_width) {
+				/* Within allowed maximum width; go on. */
+				p++;
 			} else {
-				/* A space is found; perfect place to terminate */
-				buffer = last_space + 1;
-				last_char = last_space;
+				/* The string is longer than maximum width so
+				 * we need to decide what to do with it. */
+				const WChar *end;
+				if (width == char_width) {
+					/* Single character that is too wide. */
+					end = ++p;
+				} else if (last_space != NULL) {
+					/* Rewind to last space. */
+					assert (last_space >= begin);
+					assert (last_space <= p);
+					end = last_space;
+					p = last_space + 1;
+				} else {
+					/* No space has been found. Just terminate at our current
+					 * location. This usually happens for languages that do not
+					 * require spaces in strings, like Chinese, Japanese and
+					 * Korean. For other languages terminating mid-word might
+					 * not be the best, but terminating the whole string instead
+					 * of continuing the word at the next line is worse. */
+					end = p;
+				}
+				int w = l->GetWidth();
+				l->append (iter->second, begin, end - begin, w);
+				begin = p;
+				l = NULL;
+			}
+		}
+
+		assert (p <= next_run);
+
+		if (p == next_run) {
+			/* Finish current font run, if any. */
+			if (l != NULL) {
+				int w = l->GetWidth();
+				l->append (iter->second, begin, p - begin, w);
 			}
 
-			break;
-		}
+			iter++;
 
-		if (l->CountRuns() == 0 || last_char - begin != 0) {
-			int w = l->GetWidth();
-			l->append (iter->second, begin, last_char - begin, w);
-		}
+			bool end = (*p == '\0');
+			assert (end == (iter == this->runs.end()));
+			if (end) return;
 
-		v->push_back (ttd_unique_ptr <const ParagraphLayouter::Line> (l));
+			next_run = this->data + iter->first;
+			assert (p < next_run);
+			begin = p;
+			last_space = NULL;
+		}
 	}
 }
 
