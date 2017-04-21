@@ -472,11 +472,26 @@ class FallbackVisualRun : public ParagraphLayouter::VisualRun,
 
 	FallbackVisualRun(Font *font, const WChar *chars, int glyph_count, int x);
 
+	/**
+	 * Create an empty visual run.
+	 * @param font The font to use for this run.
+	 */
+	FallbackVisualRun (Font *font) : font (font), glyph_count (0)
+	{
+		this->data[0].pos = 0;
+	}
+
 public:
 	/** Create a new visual run. */
 	static FallbackVisualRun *create (Font *font, const WChar *chars, int n, int x)
 	{
 		return new (n + 1) FallbackVisualRun (font, chars, n, x);
+	}
+
+	/** Create a new empty visual run. */
+	static FallbackVisualRun *create (Font *font)
+	{
+		return new (1) FallbackVisualRun (font);
 	}
 
 	/**
@@ -581,10 +596,23 @@ class FallbackLine : public ParagraphLayouter::Line {
 public:
 	typedef FallbackVisualRun VisualRun;
 
-	void append (Font *font, const WChar *chars, int glyph_count, int x)
+	/** Append an empty visual run to an empty line. */
+	void append (FallbackVisualRun *run)
 	{
-		FallbackVisualRun *run = FallbackVisualRun::create (font, chars, glyph_count, x);
 		this->runs.push_back (ttd_unique_ptr <FallbackVisualRun> (run));
+	}
+
+	/** Append an empty visual run to an empty line. */
+	void append (Font *font)
+	{
+		this->append (FallbackVisualRun::create (font));
+	}
+
+	/** Append a visual run to this line. */
+	void append (Font *font, const WChar *chars, int glyph_count)
+	{
+		this->append (FallbackVisualRun::create (font,
+				chars, glyph_count, this->GetWidth()));
 	}
 
 	int GetLeading (void) const OVERRIDE;
@@ -757,7 +785,7 @@ void FallbackParagraphLayout::build (LineVector *v, int max_width, bool)
 	if (*p == '\0') {
 		/* Only a newline. */
 		FallbackLine *l = new FallbackLine();
-		l->append (this->runs.front().second, p, 0, 0);
+		l->append (this->runs.front().second);
 		v->push_back (ttd_unique_ptr <const ParagraphLayouter::Line> (l));
 		return;
 	}
@@ -821,8 +849,7 @@ void FallbackParagraphLayout::build (LineVector *v, int max_width, bool)
 					 * of continuing the word at the next line is worse. */
 					end = p;
 				}
-				int w = l->GetWidth();
-				l->append (iter->second, begin, end - begin, w);
+				l->append (iter->second, begin, end - begin);
 				begin = p;
 				l = NULL;
 			}
@@ -833,8 +860,7 @@ void FallbackParagraphLayout::build (LineVector *v, int max_width, bool)
 		if (p == next_run) {
 			/* Finish current font run, if any. */
 			if (l != NULL) {
-				int w = l->GetWidth();
-				l->append (iter->second, begin, p - begin, w);
+				l->append (iter->second, begin, p - begin);
 			}
 
 			iter++;
