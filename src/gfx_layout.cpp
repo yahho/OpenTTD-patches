@@ -957,7 +957,7 @@ static inline ParagraphBuilder *GetLayouter (const char *&str, FontState &state)
 	 * whenever the font changes, and convert the wide characters into a format
 	 * usable by ParagraphLayout.
 	 */
-	bool just_inserted = false;
+	bool just_inserted = true;
 	for (; buff < buffer_last;) {
 		WChar c = Utf8Consume(const_cast<const char **>(&str));
 		if (c == '\0' || c == '\n') {
@@ -982,6 +982,8 @@ static inline ParagraphBuilder *GetLayouter (const char *&str, FontState &state)
 		if (!just_inserted) {
 			fontMapping.push_back (std::make_pair (buff - buffer, f));
 			just_inserted = true;
+		} else if (!fontMapping.empty()) {
+			assert (fontMapping.back().first == buff - buffer);
 		}
 		f = GetFont (state.fontsize, state.cur_colour);
 	}
@@ -990,10 +992,16 @@ static inline ParagraphBuilder *GetLayouter (const char *&str, FontState &state)
 	*buff = '\0';
 
 	if (!just_inserted) {
+		assert (buff > buffer);
 		fontMapping.push_back (std::make_pair (buff - buffer, f));
 	} else {
-		assert (!fontMapping.empty());
-		assert (fontMapping.back().first == buff - buffer);
+		assert ((buff == buffer) == fontMapping.empty());
+		if (buff == buffer) {
+			/* Insert an empty map. */
+			fontMapping.push_back (std::make_pair (0, f));
+		} else {
+			assert (fontMapping.back().first == (buff - buffer));
+		}
 	}
 
 	return GetParagraphLayout (buffer, buff - buffer, fontMapping);
