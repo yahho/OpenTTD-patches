@@ -1114,6 +1114,22 @@ static Sprite *MakeBuiltinQuestionMark (void)
 	return spr;
 }
 
+/** Copy the pixels from a glyph rendered by FreeType into a RawSprite. */
+static inline void CopyGlyphPixels (Blitter::RawSprite::Pixel *data,
+	uint width, FT_GlyphSlot slot, byte colour, bool aa = false)
+{
+	for (uint y = 0; y < (unsigned int)slot->bitmap.rows; y++) {
+		for (uint x = 0; x < (unsigned int)slot->bitmap.width; x++) {
+			byte a = aa ? slot->bitmap.buffer[x + y * slot->bitmap.pitch] :
+					HasBit(slot->bitmap.buffer[(x / 8) + y * slot->bitmap.pitch], 7 - (x % 8)) ? 0xFF : 0;
+			if (a > 0) {
+				data[x + y * width].m = colour;
+				data[x + y * width].a = a;
+			}
+		}
+	}
+}
+
 const FontCache::GlyphEntry *FontCache::GetGlyphPtr (GlyphID key)
 {
 	if (key == 0) {
@@ -1183,24 +1199,10 @@ const FontCache::GlyphEntry *FontCache::GetGlyphPtr (GlyphID key)
 
 	/* Draw shadow for medium size */
 	if (this->fs == FS_NORMAL && !aa) {
-		for (unsigned int y = 0; y < (unsigned int)slot->bitmap.rows; y++) {
-			for (unsigned int x = 0; x < (unsigned int)slot->bitmap.width; x++) {
-				if (aa ? (slot->bitmap.buffer[x + y * slot->bitmap.pitch] > 0) : HasBit(slot->bitmap.buffer[(x / 8) + y * slot->bitmap.pitch], 7 - (x % 8))) {
-					sprite.data[1 + x + (1 + y) * sprite.width].m = SHADOW_COLOUR;
-					sprite.data[1 + x + (1 + y) * sprite.width].a = aa ? slot->bitmap.buffer[x + y * slot->bitmap.pitch] : 0xFF;
-				}
-			}
-		}
+		CopyGlyphPixels (sprite.data + width + 1, width, slot, SHADOW_COLOUR);
 	}
 
-	for (unsigned int y = 0; y < (unsigned int)slot->bitmap.rows; y++) {
-		for (unsigned int x = 0; x < (unsigned int)slot->bitmap.width; x++) {
-			if (aa ? (slot->bitmap.buffer[x + y * slot->bitmap.pitch] > 0) : HasBit(slot->bitmap.buffer[(x / 8) + y * slot->bitmap.pitch], 7 - (x % 8))) {
-				sprite.data[x + y * sprite.width].m = FACE_COLOUR;
-				sprite.data[x + y * sprite.width].a = aa ? slot->bitmap.buffer[x + y * slot->bitmap.pitch] : 0xFF;
-			}
-		}
-	}
+	CopyGlyphPixels (sprite.data, width, slot, FACE_COLOUR, aa);
 
 	p->sprite = Blitter::get()->encode (&sprite, true, AllocateFont);
 	p->width  = slot->advance.x >> 6;
