@@ -54,7 +54,7 @@ private:
 	 * For character 0x20AC (Euro): sprite_map[0x20][0xAC]
 	 *
 	 * Currently only 256 segments are allocated, "limiting" us to 65536 characters.
-	 * This can be simply changed in the two functions Get & SetGlyphPtr.
+	 * This can be simply changed in the function GetGlyphPtr.
 	 */
 	GlyphEntry *sprite_map[0x100];
 
@@ -84,7 +84,6 @@ private:
 
 #ifdef WITH_FREETYPE
 
-	GlyphEntry *SetGlyphPtr (GlyphID key, Sprite *sprite, byte width, bool duplicate = false);
 	GlyphEntry *GetGlyphPtr (GlyphID key);
 
 #endif /* WITH_FREETYPE */

@@ -1067,22 +1067,6 @@ void FontCache::ClearFontCache (void)
 
 #ifdef WITH_FREETYPE
 
-FontCache::GlyphEntry *FontCache::SetGlyphPtr (GlyphID key,
-	Sprite *sprite, byte width, bool duplicate)
-{
-	if (this->sprite_map[GB(key, 8, 8)] == NULL) {
-		DEBUG(freetype, 3, "Allocating glyph cache for range 0x%02X00, size %u", GB(key, 8, 8), this->fs);
-		this->sprite_map[GB(key, 8, 8)] = xcalloct<GlyphEntry>(256);
-	}
-
-	DEBUG(freetype, 4, "Set glyph for unicode character 0x%04X, size %u", key, this->fs);
-	GlyphEntry *p = &this->sprite_map[GB(key, 8, 8)][GB(key, 0, 8)];
-	p->sprite    = sprite;
-	p->width     = width;
-	p->duplicate = duplicate;
-	return p;
-}
-
 static void *AllocateFont(size_t size)
 {
 	return xmalloc (size);
@@ -1135,9 +1119,16 @@ FontCache::GlyphEntry *FontCache::GetGlyphPtr (GlyphID key)
 	/* Check for the glyph in our cache */
 	GlyphEntry *p = this->sprite_map[GB(key, 8, 8)];
 	if (p != NULL) {
-		GlyphEntry *glyph = &p[GB(key, 0, 8)];
-		if (glyph->sprite != NULL) return glyph;
+		p += GB(key, 0, 8);
+		if (p->sprite != NULL) return p;
+	} else {
+		DEBUG(freetype, 3, "Allocating glyph cache for range 0x%02X00, size %u", GB(key, 8, 8), this->fs);
+		p = xcalloct<GlyphEntry>(256);
+		this->sprite_map[GB(key, 8, 8)] = p;
+		p += GB(key, 0, 8);
 	}
+
+	DEBUG(freetype, 4, "Set glyph for unicode character 0x%04X, size %u", key, this->fs);
 
 	FT_GlyphSlot slot = this->face->glyph;
 
@@ -1148,12 +1139,17 @@ FontCache::GlyphEntry *FontCache::GetGlyphPtr (GlyphID key)
 		if (question_glyph == 0) {
 			/* The font misses the '?' character. Use built-in sprite. */
 			Sprite *spr = MakeBuiltinQuestionMark();
-			return this->SetGlyphPtr (key, spr, spr->width + (this->fs != FS_NORMAL), false);
+			p->sprite = spr;
+			p->width  = spr->width + (this->fs != FS_NORMAL);
+			p->duplicate = false;
 		} else {
 			/* Use '?' for missing characters. */
 			GlyphEntry *glyph = this->GetGlyphPtr (question_glyph);
-			return this->SetGlyphPtr (key, glyph->sprite, glyph->width, true);
+			p->sprite = glyph->sprite;
+			p->width  = glyph->width;
+			p->duplicate = true;
 		}
+		return p;
 	}
 	FT_Load_Glyph(this->face, key, FT_LOAD_DEFAULT);
 	FT_Render_Glyph(this->face->glyph, aa ? FT_RENDER_MODE_NORMAL : FT_RENDER_MODE_MONO);
@@ -1199,9 +1195,10 @@ FontCache::GlyphEntry *FontCache::GetGlyphPtr (GlyphID key)
 		}
 	}
 
-	Sprite *spr = Blitter::get()->encode (&sprite, true, AllocateFont);
-
-	return this->SetGlyphPtr (key, spr, slot->advance.x >> 6);
+	p->sprite = Blitter::get()->encode (&sprite, true, AllocateFont);
+	p->width  = slot->advance.x >> 6;
+	p->duplicate = false;
+	return p;
 }
 
 #endif /* WITH_FREETYPE */
