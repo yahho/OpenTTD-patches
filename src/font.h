@@ -40,7 +40,6 @@ private:
 	struct GlyphEntry {
 		Sprite *sprite; ///< The loaded sprite.
 		byte width;     ///< The width of the glyph.
-		bool duplicate; ///< Whether this glyph entry is a duplicate, i.e. may this be freed?
 	};
 
 	/**
@@ -57,6 +56,8 @@ private:
 	 * This can be simply changed in the function GetGlyphPtr.
 	 */
 	GlyphEntry *sprite_map[0x100];
+
+	const GlyphEntry *missing_sprite; ///< Sprite for missing glyphs (question mark)
 
 	typedef SmallMap<uint32, SmallPair<size_t, const void*> > FontTable; ///< Table with font table cache
 
@@ -84,7 +85,7 @@ private:
 
 #ifdef WITH_FREETYPE
 
-	GlyphEntry *GetGlyphPtr (GlyphID key);
+	const GlyphEntry *GetGlyphPtr (GlyphID key);
 
 #endif /* WITH_FREETYPE */
 

@@ -80,7 +80,7 @@ void FontCache::ResetFontMetrics (void)
  */
 FontCache::FontCache (FontSize fs) :
 #ifdef WITH_FREETYPE
-	font_tables(), face (NULL),
+	missing_sprite (NULL), font_tables(), face (NULL),
 #endif /* WITH_FREETYPE */
 	fs (fs)
 {
@@ -1045,11 +1045,11 @@ void FontCache::ClearFontCache (void)
 	if (this->face == NULL) {
 		this->ResetFontMetrics();
 	} else {
+		this->missing_sprite = NULL;
 		for (int i = 0; i < 256; i++) {
 			if (this->sprite_map[i] == NULL) continue;
 
 			for (int j = 0; j < 256; j++) {
-				if (this->sprite_map[i][j].duplicate) continue;
 				free (this->sprite_map[i][j].sprite);
 			}
 
@@ -1114,8 +1114,23 @@ static Sprite *MakeBuiltinQuestionMark (void)
 	return spr;
 }
 
-FontCache::GlyphEntry *FontCache::GetGlyphPtr (GlyphID key)
+const FontCache::GlyphEntry *FontCache::GetGlyphPtr (GlyphID key)
 {
+	if (key == 0) {
+		const GlyphEntry *glyph = this->missing_sprite;
+		if (glyph != NULL) return glyph;
+
+		GlyphID question_glyph = this->MapCharToGlyph ('?');
+		if (question_glyph != 0) {
+			/* Use '?' for missing characters. */
+			glyph = this->GetGlyphPtr (question_glyph);
+			this->missing_sprite = glyph;
+			return glyph;
+		}
+
+		/* The font misses the '?' character. We handle this below. */
+	}
+
 	/* Check for the glyph in our cache */
 	GlyphEntry *p = this->sprite_map[GB(key, 8, 8)];
 	if (p != NULL) {
@@ -1130,27 +1145,19 @@ FontCache::GlyphEntry *FontCache::GetGlyphPtr (GlyphID key)
 
 	DEBUG(freetype, 4, "Set glyph for unicode character 0x%04X, size %u", key, this->fs);
 
+	if (key == 0) {
+		/* The font misses the '?' character. Use built-in sprite. */
+		this->missing_sprite = p;
+		Sprite *spr = MakeBuiltinQuestionMark();
+		p->sprite = spr;
+		p->width  = spr->width + (this->fs != FS_NORMAL);
+		return p;
+	}
+
 	FT_GlyphSlot slot = this->face->glyph;
 
 	bool aa = GetFontAAState(this->fs);
 
-	if (key == 0) {
-		GlyphID question_glyph = this->MapCharToGlyph('?');
-		if (question_glyph == 0) {
-			/* The font misses the '?' character. Use built-in sprite. */
-			Sprite *spr = MakeBuiltinQuestionMark();
-			p->sprite = spr;
-			p->width  = spr->width + (this->fs != FS_NORMAL);
-			p->duplicate = false;
-		} else {
-			/* Use '?' for missing characters. */
-			GlyphEntry *glyph = this->GetGlyphPtr (question_glyph);
-			p->sprite = glyph->sprite;
-			p->width  = glyph->width;
-			p->duplicate = true;
-		}
-		return p;
-	}
 	FT_Load_Glyph(this->face, key, FT_LOAD_DEFAULT);
 	FT_Render_Glyph(this->face->glyph, aa ? FT_RENDER_MODE_NORMAL : FT_RENDER_MODE_MONO);
 
@@ -1197,7 +1204,6 @@ FontCache::GlyphEntry *FontCache::GetGlyphPtr (GlyphID key)
 
 	p->sprite = Blitter::get()->encode (&sprite, true, AllocateFont);
 	p->width  = slot->advance.x >> 6;
-	p->duplicate = false;
 	return p;
 }
 
