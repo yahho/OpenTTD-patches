@@ -1383,14 +1383,4 @@ void InitFreeType(bool monospace)
 	}
 }
 
-/**
- * Free everything allocated w.r.t. fonts.
- */
-void UninitFreeType()
-{
-	for (FontSize fs = FS_BEGIN; fs < FS_END; fs++) {
-		FontCache::Get(fs)->UnloadFreeTypeFont();
-	}
-}
-
 #endif /* WITH_FREETYPE */

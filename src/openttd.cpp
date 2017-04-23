@@ -308,8 +308,6 @@ static void ShutdownGame()
 
 	/* Close all and any open filehandles */
 	FioCloseAll();
-
-	UninitFreeType();
 }
 
 /**

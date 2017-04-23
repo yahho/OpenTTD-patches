@@ -285,7 +285,6 @@ struct FreeTypeSettings {
 extern FreeTypeSettings _freetype;
 
 void InitFreeType(bool monospace);
-void UninitFreeType();
 
 /**
  * We would like to have a fallback font as the current one
@@ -302,10 +301,6 @@ bool SetFallbackFont (FreeTypeSettings *settings, const char *language_isocode, 
 #else /* WITH_FREETYPE */
 
 static inline void InitFreeType (bool monospace)
-{
-}
-
-static inline void UninitFreeType (void)
 {
 }
 
