@@ -139,6 +139,9 @@ public:
 	/* Load the freetype font. */
 	void LoadFreeTypeFont (void);
 
+	/* Clear the glyph cache. */
+	void ClearGlyphCache (void);
+
 	/* Unload the freetype font. */
 	void UnloadFreeTypeFont (void);
 

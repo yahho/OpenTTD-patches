@@ -1016,12 +1016,28 @@ found_face:
 	}
 }
 
+/* *Clear the glyph cache. */
+void FontCache::ClearGlyphCache (void)
+{
+	this->missing_sprite = NULL;
+	for (int i = 0; i < 256; i++) {
+		if (this->sprite_map[i] == NULL) continue;
+
+		for (int j = 0; j < 256; j++) {
+			free (this->sprite_map[i][j].sprite);
+		}
+
+		free (this->sprite_map[i]);
+		this->sprite_map[i] = NULL;
+	}
+}
+
 /** Unload the freetype font. */
 void FontCache::UnloadFreeTypeFont (void)
 {
 	if (this->face == NULL) return;
 
-	this->ClearFontCache();
+	this->ClearGlyphCache();
 
 	for (FontTable::iterator iter = this->font_tables.Begin(); iter != this->font_tables.End(); iter++) {
 		free(iter->second.second);
@@ -1045,17 +1061,7 @@ void FontCache::ClearFontCache (void)
 	if (this->face == NULL) {
 		this->ResetFontMetrics();
 	} else {
-		this->missing_sprite = NULL;
-		for (int i = 0; i < 256; i++) {
-			if (this->sprite_map[i] == NULL) continue;
-
-			for (int j = 0; j < 256; j++) {
-				free (this->sprite_map[i][j].sprite);
-			}
-
-			free (this->sprite_map[i]);
-			this->sprite_map[i] = NULL;
-		}
+		this->ClearGlyphCache();
 	}
 #else  /* WITH_FREETYPE */
 	this->ResetFontMetrics();
