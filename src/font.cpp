@@ -85,17 +85,9 @@ static const byte SHADOW_COLOUR = 2;
 #endif /* WITH_FREETYPE */
 
 
-/** Reset font metrics of the font. */
-void FontCache::ResetFontMetrics (void)
+/** Rebuild the glyph width cache of the font. */
+void FontCache::RebuildWidthCache (void)
 {
-	FontSize fs = this->fs;
-	int height   = _default_font_height[fs];
-	int ascender = _default_font_ascender[fs];
-	this->height    = ScaleGUITrad (height);
-	this->ascender  = ScaleGUITrad (ascender);
-	this->descender = ScaleGUITrad (ascender - height);
-	this->units_per_em = 1;
-
 	for (uint i = 0; i != 224; i++) {
 		this->glyph_widths[i] = this->GetGlyphWidth (this->MapCharToGlyph (i + 32));
 	}
@@ -118,6 +110,19 @@ void FontCache::ResetFontMetrics (void)
 	}
 	this->widest_digit = widest_digit;
 	this->digit_width = digit_width;
+}
+
+/** Reset font metrics of the font. */
+void FontCache::ResetFontMetrics (void)
+{
+	FontSize fs = this->fs;
+	int height   = _default_font_height[fs];
+	int ascender = _default_font_ascender[fs];
+	this->height    = ScaleGUITrad (height);
+	this->ascender  = ScaleGUITrad (ascender);
+	this->descender = ScaleGUITrad (ascender - height);
+	this->units_per_em = 1;
+	this->RebuildWidthCache();
 }
 
 /**
@@ -1106,6 +1111,7 @@ void FontCache::ClearFontCache (void)
 		this->ResetFontMetrics();
 	} else {
 		this->ClearGlyphCache();
+		this->RebuildWidthCache();
 	}
 #else  /* WITH_FREETYPE */
 	this->ResetFontMetrics();

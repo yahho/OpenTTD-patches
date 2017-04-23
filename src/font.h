@@ -78,6 +78,7 @@ private:
 	byte digit_width;           ///< Width of the widest digit.
 
 	void ResetFontMetrics (void);
+	void RebuildWidthCache (void);
 
 	void ClearGlyphToSpriteMap (void);
 
