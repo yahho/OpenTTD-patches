@@ -29,7 +29,53 @@ static const int _default_font_ascender[FS_END] = { 8, 5, 15,  8};
 
 #ifdef WITH_FREETYPE
 
-static FT_Library _library = NULL;
+/**
+ * Encapsulate accesses to FreeType. This allows us to declare a static
+ * handle below that will be autodestructed on program termination.
+ */
+class TTDFreeTypeHandle {
+	FT_Library library;
+
+	TTDFreeTypeHandle (const TTDFreeTypeHandle &) DELETED;
+
+	TTDFreeTypeHandle & operator = (const TTDFreeTypeHandle &) DELETED;
+
+public:
+	CONSTEXPR TTDFreeTypeHandle (void) : library (NULL)
+	{
+	}
+
+	operator bool (void) const
+	{
+		return this->library != NULL;
+	}
+
+	bool init (void)
+	{
+		assert (!*this);
+		return FT_Init_FreeType (&this->library) == FT_Err_Ok;
+	}
+
+	void done (void)
+	{
+		assert (*this);
+		FT_Done_FreeType (this->library);
+		this->library = NULL;
+	}
+
+	~TTDFreeTypeHandle()
+	{
+		if (*this) this->done();
+	}
+
+	FT_Error new_face (const char *path, FT_Face *face, FT_Long index = 0)
+	{
+		assert (*this);
+		return FT_New_Face (this->library, path, index, face);
+	}
+};
+
+static TTDFreeTypeHandle library;
 
 FreeTypeSettings _freetype;
 
@@ -364,7 +410,7 @@ static FT_Error GetFontByFaceName (const char *font_name, const char *alt_name, 
 
 	index = 0;
 	do {
-		err = FT_New_Face(_library, font_path, index, face);
+		err = library.new_face (font_path, face, index);
 		if (err != FT_Err_Ok) break;
 
 		if (strncasecmp(font_name, (*face)->family_name, strlen((*face)->family_name)) == 0) break;
@@ -523,18 +569,17 @@ static int CALLBACK EnumFontCallback(const ENUMLOGFONTEX *logfont, const NEWTEXT
 	GetEnglishFontName (logfont, english_name);
 
 	/* Check whether we can actually load the font. */
-	bool ft_init = _library != NULL;
+	bool ft_init = library;
 	bool found = false;
 	FT_Face face;
 	/* Init FreeType if needed. */
-	if ((ft_init || FT_Init_FreeType(&_library) == FT_Err_Ok) && GetFontByFaceName (font_name, english_name, &face) == FT_Err_Ok) {
+	if ((ft_init || library.init()) && GetFontByFaceName (font_name, english_name, &face) == FT_Err_Ok) {
 		FT_Done_Face(face);
 		found = true;
 	}
 	if (!ft_init) {
 		/* Uninit FreeType if we did the init. */
-		FT_Done_FreeType(_library);
-		_library = NULL;
+		library.done();
 	}
 
 	if (!found) return 1;
@@ -612,7 +657,7 @@ static FT_Error GetFontByFaceName (const char *font_name, FT_Face *face)
 		UInt8 file_path[PATH_MAX];
 		if (FSRefMakePath(&ref, file_path, sizeof(file_path)) == noErr) {
 			DEBUG(freetype, 3, "Font path for %s: %s", font_name, file_path);
-			err = FT_New_Face(_library, (const char *)file_path, 0, face);
+			err = library.new_face ((const char *)file_path, face);
 		}
 	}
 
@@ -796,7 +841,7 @@ static FT_Error GetFontByFaceName (const char *font_name, FT_Face *face)
 				 * wrongly a 'random' font, so check whether the family name is the
 				 * same as the supplied name */
 				if (strcasecmp(font_family, (char*)family) == 0) {
-					err = FT_New_Face(_library, (char *)file, 0, face);
+					err = library.new_face ((char *)file, face);
 				}
 			}
 		}
@@ -918,8 +963,8 @@ void FontCache::LoadFreeTypeFont (void)
 
 	if (StrEmpty(settings->font)) return;
 
-	if (_library == NULL) {
-		if (FT_Init_FreeType(&_library) != FT_Err_Ok) {
+	if (!library) {
+		if (!library.init()) {
 			ShowInfoF("Unable to initialize FreeType, using sprite fonts instead");
 			return;
 		}
@@ -928,7 +973,7 @@ void FontCache::LoadFreeTypeFont (void)
 	}
 
 	FT_Face face = NULL;
-	FT_Error err = FT_New_Face (_library, settings->font, 0, &face);
+	FT_Error err = library.new_face (settings->font, &face);
 
 	if (err != FT_Err_Ok) err = GetFontByFaceName (settings->font, &face);
 
@@ -1347,9 +1392,6 @@ void UninitFreeType()
 	for (FontSize fs = FS_BEGIN; fs < FS_END; fs++) {
 		FontCache::Get(fs)->UnloadFreeTypeFont();
 	}
-
-	FT_Done_FreeType(_library);
-	_library = NULL;
 }
 
 #endif /* WITH_FREETYPE */
