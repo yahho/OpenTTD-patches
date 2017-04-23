@@ -954,6 +954,7 @@ bool SetFallbackFont (FreeTypeSettings *settings, const char *language_isocode, 
 void FontCache::LoadFreeTypeFont (void)
 {
 	this->UnloadFreeTypeFont();
+	this->ResetFontMetrics();
 
 	assert (this->face == NULL);
 	assert (this->font_tables.Length() == 0);
@@ -1092,8 +1093,6 @@ void FontCache::UnloadFreeTypeFont (void)
 
 	FT_Done_Face(this->face);
 	this->face = NULL;
-
-	this->ResetFontMetrics();
 }
 
 #endif /* WITH_FREETYPE */
