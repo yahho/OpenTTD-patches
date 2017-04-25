@@ -1843,18 +1843,28 @@ static void LoadUnloadVehicle(Vehicle *front)
 		VehicleCargoList pool;
 
 		for (std::vector<LoadingVehicle>::iterator p (lv); p != last; p++) {
-			p->v->cargo.Reattach (&pool);
+			Vehicle *v = p->v;
+			v->cargo.Reattach (&pool);
+			assert (v->cargo.ReservedCount() == 0);
 		}
 
 		/* First pass, assign a loading step to each vehicle. */
 		for (std::vector<LoadingVehicle>::iterator p (lv); p != last && pool.TotalCount() > 0; p++) {
-			pool.Reattach (&p->v->cargo, p->load);
+			Vehicle *v = p->v;
+			assert (v->cargo.ReservedCount() == 0);
+			if (v->cargo.StoredCount() == 0) {
+				TriggerVehicle (v, VEHICLE_TRIGGER_NEW_CARGO);
+				p->load = GetLoadAmount (v);
+			}
+			pool.Reattach (&v->cargo, p->load);
+			assert (v->cargo.ReservedCount() > 0);
 		}
 
 		/* Second pass, dump remaining reservations. */
 		for (std::vector<LoadingVehicle>::iterator p (lv); pool.TotalCount() > 0; p++) {
 			assert (p != last);
 			Vehicle *v = p->v;
+			assert (v->cargo.ReservedCount() > 0);
 			pool.Reattach (&v->cargo, v->cargo_cap - v->cargo.TotalCount());
 		}
 
@@ -1865,7 +1875,10 @@ static void LoadUnloadVehicle(Vehicle *front)
 			assert (v->cargo.StoredCount() < v->cargo_cap);
 
 			if ((v->cargo.ReservedCount() > 0) || (ge->cargo.AvailableCount() > 0)) {
-				if (v->cargo.StoredCount() == 0) TriggerVehicle(v, VEHICLE_TRIGGER_NEW_CARGO);
+				if (v->cargo.TotalCount() == 0) {
+					TriggerVehicle (v, VEHICLE_TRIGGER_NEW_CARGO);
+					p->load = GetLoadAmount (v);
+				}
 
 				uint loaded = ge->cargo.Load (p->load, &v->cargo, st->xy, next_station);
 				if (v->cargo.ActionCount(VehicleCargoList::MTA_LOAD) > 0) {
