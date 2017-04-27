@@ -51,7 +51,7 @@ public:
 	public:
 		static Surface *create (void *ptr, uint width, uint height, uint pitch)
 		{
-			return new (width, height) Surface (ptr, width, height, pitch);
+			return new (pitch, height) Surface (ptr, width, height, pitch);
 		}
 
 		template <BlitterMode mode, SSESprite::ReadMode read_mode, SSESprite::BlockType bt_last, bool translucent, bool animated>

@@ -36,7 +36,7 @@ public:
 			  anim_buf (anim_buf)
 		{
 			this->set_palette (_cur_palette);
-			memset (anim_buf, 0, width * height * sizeof(uint16));
+			memset (anim_buf, 0, pitch * height * sizeof(uint16));
 		}
 
 		/** Get the animation pointer for a given video pointer. */
@@ -96,7 +96,7 @@ public:
 	public:
 		static Surface *create (void *ptr, uint width, uint height, uint pitch)
 		{
-			return new (width, height) Surface (ptr, width, height, pitch);
+			return new (pitch, height) Surface (ptr, width, height, pitch);
 		}
 
 		template <BlitterMode mode> void draw (const BlitterParams *bp, ZoomLevel zoom);
