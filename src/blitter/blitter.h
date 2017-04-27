@@ -138,16 +138,9 @@ public:
 
 		/** Helper function to implement move below. */
 		template <typename T, typename P, typename X, typename Y>
-		static T *movew (P *p, X x, Y y, int w)
-		{
-			return (T*) p + x + y * w;
-		}
-
-		/** Helper function to implement move below. */
-		template <typename T, typename P, typename X, typename Y>
 		T *movep (P *p, X x, Y y)
 		{
-			return movew <T, P, X, Y> (p, x, y, this->pitch);
+			return (T*) p + x + y * (int) this->pitch;
 		}
 
 		/**
