@@ -410,9 +410,8 @@ void Blitter_32bppAnimBase::Surface::copy (Buffer *dst, int x, int y, uint width
 	assert (udst <= &dst->data.front() + dst->data.size());
 }
 
-void Blitter_32bppAnimBase::Surface::scroll (void *video, int &left, int &top, int &width, int &height, int scroll_x, int scroll_y)
+void Blitter_32bppAnimBase::Surface::scroll (int left, int top, int width, int height, int scroll_x, int scroll_y)
 {
-	assert (video >= this->ptr && video <= (uint32 *)this->ptr + this->width + this->height * this->pitch);
 	uint16 *dst, *src;
 
 	/* We need to scroll the anim-buffer too */
@@ -457,7 +456,7 @@ void Blitter_32bppAnimBase::Surface::scroll (void *video, int &left, int &top, i
 		}
 	}
 
-	this->Blitter_32bppBase::Surface::scroll (video, left, top, width, height, scroll_x, scroll_y);
+	this->Blitter_32bppBase::Surface::scroll (left, top, width, height, scroll_x, scroll_y);
 }
 
 bool Blitter_32bppAnimBase::Surface::palette_animate (const Palette &palette)

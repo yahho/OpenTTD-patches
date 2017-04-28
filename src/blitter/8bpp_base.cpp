@@ -99,14 +99,14 @@ void Blitter_8bppBase::Surface::export_lines (void *dst, uint dst_pitch, uint y,
 	}
 }
 
-void Blitter_8bppBase::Surface::scroll (void *video, int &left, int &top, int &width, int &height, int scroll_x, int scroll_y)
+void Blitter_8bppBase::Surface::scroll (int left, int top, int width, int height, int scroll_x, int scroll_y)
 {
 	const uint8 *src;
 	uint8 *dst;
 
 	if (scroll_y > 0) {
 		/* Calculate pointers */
-		dst = this->movep <uint8> (video, left, top + height - 1);
+		dst = this->movep <uint8> (this->ptr, left, top + height - 1);
 		src = dst - scroll_y * this->pitch;
 
 		/* Decrease height and increase top */
@@ -131,7 +131,7 @@ void Blitter_8bppBase::Surface::scroll (void *video, int &left, int &top, int &w
 		}
 	} else {
 		/* Calculate pointers */
-		dst = this->movep <uint8> (video, left, top);
+		dst = this->movep <uint8> (this->ptr, left, top);
 		src = dst + (-scroll_y) * this->pitch;
 
 		/* Decrease height. (scroll_y is <=0). */

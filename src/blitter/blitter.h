@@ -209,15 +209,14 @@ public:
 
 		/**
 		 * Scroll the videobuffer some 'x' and 'y' value.
-		 * @param video The buffer to scroll into.
 		 * @param left The left value of the screen to scroll.
 		 * @param top The top value of the screen to scroll.
 		 * @param width The width of the screen to scroll.
 		 * @param height The height of the screen to scroll.
-		 * @param scroll_x How much to scroll in X.
-		 * @param scroll_y How much to scroll in Y.
+		 * @param dx How much to scroll in X.
+		 * @param dy How much to scroll in Y.
 		 */
-		virtual void scroll (void *video, int &left, int &top, int &width, int &height, int scroll_x, int scroll_y) = 0;
+		virtual void scroll (int left, int top, int width, int height, int dx, int dy) = 0;
 
 		/**
 		 * Called when the 8bpp palette is changed; you should redraw

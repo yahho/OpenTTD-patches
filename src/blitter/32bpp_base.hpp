@@ -160,7 +160,7 @@ public:
 
 		void *move (void *video, int x, int y) OVERRIDE;
 
-		void scroll (void *video, int &left, int &top, int &width, int &height, int scroll_x, int scroll_y) OVERRIDE;
+		void scroll (int left, int top, int width, int height, int dx, int dy) OVERRIDE;
 
 		void export_lines (void *dst, uint dst_pitch, uint y, uint height) OVERRIDE;
 	};

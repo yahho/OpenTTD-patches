@@ -82,11 +82,6 @@ static uint _dirty_bytes_per_line = 0;
 static byte *_dirty_blocks = NULL;
 extern uint _dirty_block_colour;
 
-static void GfxScroll (int left, int top, int width, int height, int xo, int yo)
-{
-	_screen_surface->scroll (_screen_surface->ptr, left, top, width, height, xo, yo);
-}
-
 
 /**
  * Applies a certain FillRectMode-operation to a rectangle [left, right] x [top, bottom] on the screen.
@@ -1194,7 +1189,7 @@ void ScrollScreenRect (int left, int top, int width, int height, int dx, int dy)
 	if (_networking) NetworkUndrawChatMessage();
 #endif /* ENABLE_NETWORK */
 
-	GfxScroll (left, top, width, height, dx, dy);
+	_screen_surface->scroll (left, top, width, height, dx, dy);
 
 	int l = left;
 	int w = width;
