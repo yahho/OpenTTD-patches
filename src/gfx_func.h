@@ -100,8 +100,7 @@ void UndrawMouseCursor();
 /** Size of the buffer used for drawing strings. */
 static const int DRAW_STRING_BUFFER = 2048;
 
-void RedrawScreenRect(int left, int top, int right, int bottom);
-void GfxScroll(int left, int top, int width, int height, int xo, int yo);
+void ScrollScreenRect (int left, int top, int width, int height, int dx, int dy);
 
 Dimension GetSpriteSize(SpriteID sprid, Point *offset = NULL, ZoomLevel zoom = ZOOM_LVL_GUI);
 void DrawSpriteViewport (DrawPixelInfo *dpi, SpriteID img, PaletteID pal, int x, int y, const SubSprite *sub = NULL);

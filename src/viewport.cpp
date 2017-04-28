@@ -299,33 +299,7 @@ static void DoSetViewportPosition(const Window *w, int left, int top, int width,
 		}
 	}
 
-	{
-		int xo = _vp_move_offs.x;
-		int yo = _vp_move_offs.y;
-
-		if (abs(xo) >= width || abs(yo) >= height) {
-			/* fully_outside */
-			RedrawScreenRect(left, top, left + width, top + height);
-			return;
-		}
-
-		GfxScroll(left, top, width, height, xo, yo);
-
-		if (xo > 0) {
-			RedrawScreenRect(left, top, xo + left, top + height);
-			left += xo;
-			width -= xo;
-		} else if (xo < 0) {
-			RedrawScreenRect(left + width + xo, top, left + width, top + height);
-			width += xo;
-		}
-
-		if (yo > 0) {
-			RedrawScreenRect(left, top, width + left, top + yo);
-		} else if (yo < 0) {
-			RedrawScreenRect(left, top + height + yo, width + left, top + height);
-		}
-	}
+	ScrollScreenRect (left, top, width, height, _vp_move_offs.x, _vp_move_offs.y);
 }
 
 static void SetViewportPosition(Window *w, int x, int y)

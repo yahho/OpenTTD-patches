@@ -82,7 +82,7 @@ static uint _dirty_bytes_per_line = 0;
 static byte *_dirty_blocks = NULL;
 extern uint _dirty_block_colour;
 
-void GfxScroll(int left, int top, int width, int height, int xo, int yo)
+static void GfxScroll (int left, int top, int width, int height, int xo, int yo)
 {
 	if (xo == 0 && yo == 0) return;
 
@@ -1167,7 +1167,7 @@ void DrawMouseCursor()
 	_cursor.dirty = false;
 }
 
-void RedrawScreenRect(int left, int top, int right, int bottom)
+static void RedrawScreenRect (int left, int top, int right, int bottom)
 {
 	assert (right <= _screen_width && bottom <= _screen_height);
 	if (_cursor.visible) {
@@ -1186,6 +1186,34 @@ void RedrawScreenRect(int left, int top, int right, int bottom)
 	DrawOverlappedWindowForAll(left, top, right, bottom);
 
 	VideoDriver::GetActiveDriver()->MakeDirty(left, top, right - left, bottom - top);
+}
+
+void ScrollScreenRect (int left, int top, int width, int height, int dx, int dy)
+{
+	assert ((dx != 0) || (dy != 0));
+
+	if (abs(dx) >= width || abs(dy) >= height) {
+		/* fully_outside */
+		RedrawScreenRect (left, top, left + width, top + height);
+		return;
+	}
+
+	GfxScroll (left, top, width, height, dx, dy);
+
+	if (dx > 0) {
+		RedrawScreenRect (left, top, dx + left, top + height);
+		left += dx;
+		width -= dx;
+	} else if (dx < 0) {
+		RedrawScreenRect (left + width + dx, top, left + width, top + height);
+		width += dx;
+	}
+
+	if (dy > 0) {
+		RedrawScreenRect (left, top, width + left, top + dy);
+	} else if (dy < 0) {
+		RedrawScreenRect (left, top + height + dy, width + left, top + height);
+	}
 }
 
 /**
