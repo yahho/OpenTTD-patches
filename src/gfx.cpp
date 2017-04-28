@@ -84,17 +84,7 @@ extern uint _dirty_block_colour;
 
 static void GfxScroll (int left, int top, int width, int height, int xo, int yo)
 {
-	if (xo == 0 && yo == 0) return;
-
-	if (_cursor.visible) UndrawMouseCursor();
-
-#ifdef ENABLE_NETWORK
-	if (_networking) NetworkUndrawChatMessage();
-#endif /* ENABLE_NETWORK */
-
 	_screen_surface->scroll (_screen_surface->ptr, left, top, width, height, xo, yo);
-	/* This part of the screen is now dirty. */
-	VideoDriver::GetActiveDriver()->MakeDirty(left, top, width, height);
 }
 
 
@@ -1198,22 +1188,32 @@ void ScrollScreenRect (int left, int top, int width, int height, int dx, int dy)
 		return;
 	}
 
+	if (_cursor.visible) UndrawMouseCursor();
+
+#ifdef ENABLE_NETWORK
+	if (_networking) NetworkUndrawChatMessage();
+#endif /* ENABLE_NETWORK */
+
 	GfxScroll (left, top, width, height, dx, dy);
 
+	int l = left;
+	int w = width;
 	if (dx > 0) {
-		RedrawScreenRect (left, top, dx + left, top + height);
-		left += dx;
-		width -= dx;
+		DrawOverlappedWindowForAll (left, top, dx + left, top + height);
+		l += dx;
+		w -= dx;
 	} else if (dx < 0) {
-		RedrawScreenRect (left + width + dx, top, left + width, top + height);
-		width += dx;
+		DrawOverlappedWindowForAll (left + width + dx, top, left + width, top + height);
+		w += dx;
 	}
 
 	if (dy > 0) {
-		RedrawScreenRect (left, top, width + left, top + dy);
+		DrawOverlappedWindowForAll (l, top, w + l, top + dy);
 	} else if (dy < 0) {
-		RedrawScreenRect (left, top + height + dy, width + left, top + height);
+		DrawOverlappedWindowForAll (l, top + height + dy, w + l, top + height);
 	}
+
+	VideoDriver::GetActiveDriver()->MakeDirty (left, top, width, height);
 }
 
 /**
