@@ -189,6 +189,60 @@ void Blitter::list (stringb *buf)
 }
 
 
+void Blitter::Surface::scroll (char *ptr, int pitch,
+	int left, int top, int width, int height, int dx, int dy)
+{
+	if (dy > 0) {
+		/* Calculate pointers */
+		char *dst = ptr + left + (top + height - 1) * pitch;
+		const char *src = dst - (int) (dy * pitch);
+
+		/* Decrease height and increase top */
+		height -= dy;
+		assert (height > 0);
+
+		/* Adjust left & width */
+		if (dx >= 0) {
+			dst += dx;
+			width -= dx;
+		} else {
+			src -= dx;
+			width += dx;
+		}
+
+		for (int h = height; h > 0; h--) {
+			memcpy (dst, src, width);
+			src -= pitch;
+			dst -= pitch;
+		}
+	} else {
+		/* Calculate pointers */
+		char *dst = ptr + left + top * pitch;
+		const char *src = dst - (int) (dy * pitch);
+
+		/* Decrease height (dy is <= 0) */
+		height += dy;
+		assert (height > 0);
+
+		/* Adjust left & width */
+		if (dx >= 0) {
+			dst += dx;
+			width -= dx;
+		} else {
+			src -= dx;
+			width += dx;
+		}
+
+		/* the y-displacement may be 0 therefore we have to use
+		 * memmove, because source and destination may overlap */
+		for (int h = height; h > 0; h--) {
+			memmove (dst, src, width);
+			src += pitch;
+			dst += pitch;
+		}
+	}
+}
+
 bool Blitter::Surface::palette_animate (const Palette &palette)
 {
 	/* The null driver does not need to animate anything, for the 8bpp

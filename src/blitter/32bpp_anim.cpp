@@ -410,53 +410,11 @@ void Blitter_32bppAnimBase::Surface::copy (Buffer *dst, int x, int y, uint width
 	assert (udst <= &dst->data.front() + dst->data.size());
 }
 
-void Blitter_32bppAnimBase::Surface::scroll (int left, int top, int width, int height, int scroll_x, int scroll_y)
+void Blitter_32bppAnimBase::Surface::scroll (int left, int top, int width, int height, int dx, int dy)
 {
-	uint16 *dst, *src;
-
+	this->Blitter::Surface::scroll<uint32> (this->ptr, left, top, width, height, dx, dy);
 	/* We need to scroll the anim-buffer too */
-	if (scroll_y > 0) {
-		dst = movep <uint16> (this->anim_buf, left, top + height - 1);
-		src = dst - scroll_y * this->pitch;
-
-		/* Adjust left & width */
-		if (scroll_x >= 0) {
-			dst += scroll_x;
-		} else {
-			src -= scroll_x;
-		}
-
-		uint tw = width + (scroll_x >= 0 ? -scroll_x : scroll_x);
-		uint th = height - scroll_y;
-		for (; th > 0; th--) {
-			memcpy(dst, src, tw * sizeof(uint16));
-			src -= this->pitch;
-			dst -= this->pitch;
-		}
-	} else {
-		/* Calculate pointers */
-		dst = movep <uint16> (this->anim_buf, left, top);
-		src = dst + (-scroll_y) * this->pitch;
-
-		/* Adjust left & width */
-		if (scroll_x >= 0) {
-			dst += scroll_x;
-		} else {
-			src -= scroll_x;
-		}
-
-		/* the y-displacement may be 0 therefore we have to use memmove,
-		 * because source and destination may overlap */
-		uint tw = width + (scroll_x >= 0 ? -scroll_x : scroll_x);
-		uint th = height + scroll_y;
-		for (; th > 0; th--) {
-			memmove(dst, src, tw * sizeof(uint16));
-			src += this->pitch;
-			dst += this->pitch;
-		}
-	}
-
-	this->Blitter_32bppBase::Surface::scroll (left, top, width, height, scroll_x, scroll_y);
+	this->Blitter::Surface::scroll<uint16> (this->anim_buf, left, top, width, height, dx, dy);
 }
 
 bool Blitter_32bppAnimBase::Surface::palette_animate (const Palette &palette)

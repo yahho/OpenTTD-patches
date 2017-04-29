@@ -143,6 +143,20 @@ public:
 			return (T*) p + x + y * (int) this->pitch;
 		}
 
+		/** Helper function to implement scroll below. */
+		static void scroll (char *ptr, int pitch, int left, int top,
+				int width, int height, int dx, int dy);
+
+		/** Helper function to implement scroll below. */
+		template <typename T>
+		void scroll (void *ptr, int left, int top,
+				int width, int height, int dx, int dy)
+		{
+			static const uint n = sizeof(T);
+			scroll ((char*)ptr, n * this->pitch, n * left, top,
+					n * width, height, n * dx, dy);
+		}
+
 		/**
 		 * Move the destination pointer the requested amount x and y,
 		 * keeping in mind any pitch and bpp of the renderer.
