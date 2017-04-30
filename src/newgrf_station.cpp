@@ -833,7 +833,7 @@ bool DrawStationTile (BlitArea *dpi, int x, int y, RailType railtype,
 	DrawTileSprites tmp_rail_layout;
 
 	if (statspec->renderdata == NULL) {
-		sprites = GetStationTileLayout(STATION_RAIL, tile + axis);
+		sprites = GetDefaultStationTileLayout() + (tile + axis);
 	} else {
 		layout = &statspec->renderdata[(tile < statspec->tiles) ? tile + axis : (uint)axis];
 		if (!layout->NeedsPreprocessing()) {
