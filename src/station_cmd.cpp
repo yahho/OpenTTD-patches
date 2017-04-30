@@ -2607,14 +2607,9 @@ static CommandCost RemoveDock(TileIndex tile, DoCommandFlag flags)
 
 #include "table/station_land.h"
 
-static const DrawTileSprites *GetStationTileLayout(StationType st, byte gfx)
-{
-	return &_station_display_datas[st][gfx];
-}
-
 const DrawTileSprites *GetDefaultStationTileLayout (void)
 {
-	return _station_display_datas[STATION_RAIL];
+	return _station_display_datas_rail;
 }
 
 /**
@@ -2707,7 +2702,7 @@ static void DrawTile_Airport (TileInfo *ti)
 			t = _station_display_datas_airport_flag_grass_fence_ne_2;
 			break;
 		default:
-			t = GetStationTileLayout (STATION_AIRPORT, gfx);
+			t = &_station_display_datas_airport[gfx];
 			anim = false;
 			break;
 	}
@@ -2764,7 +2759,8 @@ static void DrawTile_RailStation (TileInfo *ti)
 
 	if (layout == NULL && (t == NULL || t->seq == NULL)) {
 		StationGfx gfx = GetStationGfx (ti->tile);
-		t = GetStationTileLayout (GetStationType (ti->tile), gfx);
+		bool waypoint = (GetStationType (ti->tile) == STATION_WAYPOINT);
+		t = (waypoint ? _station_display_datas_waypoint : _station_display_datas_rail) + gfx;
 	}
 
 	if (ti->tileh != SLOPE_FLAT) {
@@ -2910,7 +2906,8 @@ static void DrawTile_RoadStop (TileInfo *ti)
 	}
 
 	StationGfx gfx = GetStationGfx(ti->tile);
-	const DrawTileSprites *t = GetStationTileLayout (GetStationType (ti->tile), gfx);
+	bool bus = (GetStationType (ti->tile) == STATION_BUS);
+	const DrawTileSprites *t = (bus ? _station_display_datas_bus : _station_display_datas_truck) + gfx;
 
 	Owner owner = GetTileOwner(ti->tile);
 	PaletteID palette = COMPANY_SPRITE_COLOUR(owner);
@@ -2938,7 +2935,7 @@ static void DrawTile_OilRig (TileInfo *ti)
 	}
 
 	StationGfx gfx = GetStationGfx(ti->tile);
-	const DrawTileSprites *t = GetStationTileLayout (STATION_OILRIG, gfx);
+	const DrawTileSprites *t = &_station_display_datas_oilrig[gfx];
 	DrawOrigTileSeq (ti, t, TO_BUILDINGS, PALETTE_TO_GREY);
 }
 
@@ -2972,7 +2969,7 @@ static void DrawTile_Dock (TileInfo *ti)
 		palette = PALETTE_TO_GREY;
 	}
 
-	const DrawTileSprites *t = GetStationTileLayout (STATION_DOCK, gfx);
+	const DrawTileSprites *t = &_station_display_datas_dock[gfx];
 	DrawRailTileSeq (ti, t, TO_BUILDINGS, total_offset, 0, palette);
 }
 
@@ -3009,7 +3006,7 @@ static void DrawTile_Station (TileInfo *ti)
 void RailStationPickerDrawSprite (BlitArea *dpi, int x, int y, bool waypoint, RailType railtype, int image)
 {
 	PaletteID pal = COMPANY_SPRITE_COLOUR(_local_company);
-	const DrawTileSprites *t = GetStationTileLayout (waypoint ? STATION_WAYPOINT : STATION_RAIL, image);
+	const DrawTileSprites *t = (waypoint ? _station_display_datas_waypoint : _station_display_datas_rail) + image;
 	const RailtypeInfo *rti = GetRailTypeInfo (railtype);
 	int32 total_offset = rti->GetRailtypeSpriteOffset();
 
@@ -3036,7 +3033,7 @@ void RailStationPickerDrawSprite (BlitArea *dpi, int x, int y, bool waypoint, Ra
 void RoadStationPickerDrawSprite (BlitArea *dpi, int x, int y, bool bus, bool tram, int image)
 {
 	PaletteID pal = COMPANY_SPRITE_COLOUR(_local_company);
-	const DrawTileSprites *t = GetStationTileLayout (bus ? STATION_BUS : STATION_TRUCK, image);
+	const DrawTileSprites *t = (bus ? _station_display_datas_bus : _station_display_datas_truck) + image;
 
 	SpriteID img = t->ground.sprite;
 	DrawSprite (dpi, img, HasBit(img, PALETTE_MODIFIER_COLOUR) ? pal : PAL_NONE, x, y);

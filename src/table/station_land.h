@@ -971,8 +971,6 @@ static const DrawTileSprites _station_display_datas_dock[] = {
 	TILE_SPRITE_LINE(SPR_FLAT_WATER_TILE,            _station_display_datas_82)
 };
 
-#define _station_display_datas_buoy (&_station_display_datas_dock[6])
-
 static const DrawTileSprites _station_display_datas_waypoint[] = {
 	TILE_SPRITE_LINE(SPR_RAIL_TRACK_X,               _station_display_datas_waypoint_X)
 	TILE_SPRITE_LINE(SPR_RAIL_TRACK_Y,               _station_display_datas_waypoint_Y)
@@ -990,14 +988,3 @@ static const DrawTileSprites _station_display_datas_waypoint[] = {
 /* Default waypoint is also drawn as fallback for NewGRF waypoints.
  * As these are drawn/build like stations, they may use the same number of layouts. */
 assert_compile(lengthof(_station_display_datas_rail) == lengthof(_station_display_datas_waypoint));
-
-static const DrawTileSprites * const _station_display_datas[] = {
-	_station_display_datas_rail,
-	_station_display_datas_airport,
-	_station_display_datas_truck,
-	_station_display_datas_bus,
-	_station_display_datas_oilrig,
-	_station_display_datas_dock,
-	_station_display_datas_buoy,
-	_station_display_datas_waypoint,
-};
