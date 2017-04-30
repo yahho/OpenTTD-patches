@@ -2939,17 +2939,10 @@ static void DrawTile_OilRig (TileInfo *ti)
 
 static void DrawTile_Dock (TileInfo *ti)
 {
-	StationGfx gfx = GetStationGfx(ti->tile);
-	const DrawTileSprites *t = GetStationTileLayout (GetStationType (ti->tile), gfx);
+	StationGfx gfx = IsBuoy (ti->tile) ? (int)GFX_DOCK_BUOY : GetStationGfx (ti->tile);
 
 	int32 total_offset = 0;
-	if (IsBuoy(ti->tile) || IsDockBuoy(ti->tile)) {
-		DrawWaterClassGround(ti);
-		SpriteID sprite = GetCanalSprite(CF_BUOY, ti->tile);
-		if (sprite != 0) total_offset = sprite - SPR_IMG_BUOY;
-	} else if (ti->tileh == SLOPE_FLAT) {
-		DrawWaterClassGround (ti);
-	} else {
+	if (gfx < DIAGDIR_END) {
 		TileIndex water_tile = GetOtherDockTile (ti->tile);
 		WaterClass wc = GetWaterClass (water_tile);
 		if (wc == WATER_CLASS_SEA) {
@@ -2957,6 +2950,12 @@ static void DrawTile_Dock (TileInfo *ti)
 		} else {
 			DrawClearLandTile (ti, 3);
 		}
+	} else if (gfx < GFX_DOCK_BUOY) {
+		DrawWaterClassGround (ti);
+	} else {
+		DrawWaterClassGround(ti);
+		SpriteID sprite = GetCanalSprite(CF_BUOY, ti->tile);
+		if (sprite != 0) total_offset = sprite - SPR_IMG_BUOY;
 	}
 
 	Owner owner = GetTileOwner(ti->tile);
@@ -2968,6 +2967,7 @@ static void DrawTile_Dock (TileInfo *ti)
 		palette = PALETTE_TO_GREY;
 	}
 
+	const DrawTileSprites *t = GetStationTileLayout (STATION_DOCK, gfx);
 	DrawRailTileSeq (ti, t, TO_BUILDINGS, total_offset, 0, palette);
 }
 
