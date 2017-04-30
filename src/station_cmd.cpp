@@ -2766,11 +2766,7 @@ static void DrawTile_Station(TileInfo *ti)
 		if (statspec != NULL && HasBit(statspec->flags, SSF_CUSTOM_FOUNDATIONS)) {
 			/* Station has custom foundations.
 			 * Check whether the foundation continues beyond the tile's upper sides. */
-			uint edge_info = 0;
-			int z;
-			Slope slope = GetFoundationPixelSlope(ti->tile, &z);
-			if (!HasFoundationNW(ti->tile, slope, z)) SetBit(edge_info, 0);
-			if (!HasFoundationNE(ti->tile, slope, z)) SetBit(edge_info, 1);
+			uint edge_info = GetFoundationSpriteBlock (ti->tile);
 			SpriteID image = GetCustomStationFoundationRelocation(statspec, st, ti->tile, tile_layout, edge_info);
 			if (image == 0) goto draw_default_foundation;
 
