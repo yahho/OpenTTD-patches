@@ -2669,100 +2669,100 @@ bool SplitGroundSpriteForOverlay(const TileInfo *ti, SpriteID *ground, RailTrack
 	return true;
 }
 
-static void DrawTile_Station(TileInfo *ti)
+static void DrawTile_Airport (TileInfo *ti)
 {
+	StationGfx gfx = GetAirportGfx (ti->tile);
+	if (gfx >= NEW_AIRPORTTILE_OFFSET) {
+		const AirportTileSpec *ats = AirportTileSpec::Get (gfx);
+		if (ats->grf_prop.spritegroup[0] != NULL && DrawNewAirportTile (ti, Station::GetByTile(ti->tile), gfx, ats)) {
+			return;
+		}
+		/* No sprite group (or no valid one) found, meaning no graphics associated.
+		 * Use the substitute one instead */
+		assert (ats->grf_prop.subst_id != INVALID_AIRPORTTILE);
+		gfx = ats->grf_prop.subst_id;
+	}
+
+	const DrawTileSprites *t;
+	bool anim = true;
+	switch (gfx) {
+		case APT_RADAR_GRASS_FENCE_SW:
+			t = _station_display_datas_airport_radar_grass_fence_sw;
+			break;
+		case APT_GRASS_FENCE_NE_FLAG:
+			t = _station_display_datas_airport_flag_grass_fence_ne;
+			break;
+		case APT_RADAR_FENCE_SW:
+			t = _station_display_datas_airport_radar_fence_sw;
+			break;
+		case APT_RADAR_FENCE_NE:
+			t = _station_display_datas_airport_radar_fence_ne;
+			break;
+		case APT_GRASS_FENCE_NE_FLAG_2:
+			t = _station_display_datas_airport_flag_grass_fence_ne_2;
+			break;
+		default:
+			t = GetStationTileLayout (STATION_AIRPORT, gfx);
+			anim = false;
+			break;
+	}
+	if (anim) t += GetAnimationFrame (ti->tile);
+
+	if (ti->tileh != SLOPE_FLAT) {
+		DrawFoundation (ti, FOUNDATION_LEVELED);
+	}
+
+	Owner owner = GetTileOwner (ti->tile);
+	PaletteID palette = COMPANY_SPRITE_COLOUR(owner);
+
+	SpriteID image = t->ground.sprite;
+	PaletteID pal  = t->ground.pal;
+	DrawGroundSprite (ti, image, GroundSpritePaletteTransform (image, pal, palette));
+
+	DrawOrigTileSeq (ti, t, TO_BUILDINGS, palette);
+}
+
+static void DrawTile_RailStation (TileInfo *ti)
+{
+	const RailtypeInfo *rti = GetRailTypeInfo (GetRailType (ti->tile));
+
 	const NewGRFSpriteLayout *layout = NULL;
-	DrawTileSprites tmp_rail_layout;
 	const DrawTileSprites *t = NULL;
-	RoadTypes roadtypes;
-	int32 total_offset;
-	const RailtypeInfo *rti = NULL;
-	uint32 relocation = 0;
-	uint32 ground_relocation = 0;
 	BaseStation *st = NULL;
 	const StationSpec *statspec = NULL;
 	uint tile_layout = 0;
 
-	if (HasStationRail(ti->tile)) {
-		rti = GetRailTypeInfo(GetRailType(ti->tile));
-		roadtypes = ROADTYPES_NONE;
-		total_offset = rti->GetRailtypeSpriteOffset();
+	uint spec_index = GetCustomStationSpecIndex (ti->tile);
+	if (spec_index != 0) {
+		/* look for customization */
+		st = BaseStation::GetByTile (ti->tile);
+		statspec = st->speclist[spec_index].spec;
 
-		uint spec_index = GetCustomStationSpecIndex (ti->tile);
-		if (spec_index != 0) {
-			/* look for customization */
-			st = BaseStation::GetByTile(ti->tile);
-			statspec = st->speclist[spec_index].spec;
+		if (statspec != NULL) {
+			tile_layout = GetStationGfx (ti->tile);
 
-			if (statspec != NULL) {
-				tile_layout = GetStationGfx(ti->tile);
+			if (HasBit(statspec->callback_mask, CBM_STATION_SPRITE_LAYOUT)) {
+				uint16 callback = GetStationCallback (CBID_STATION_SPRITE_LAYOUT, 0, 0, statspec, st, ti->tile);
+				if (callback != CALLBACK_FAILED) tile_layout = (callback & ~1) + GetRailStationAxis (ti->tile);
+			}
 
-				if (HasBit(statspec->callback_mask, CBM_STATION_SPRITE_LAYOUT)) {
-					uint16 callback = GetStationCallback(CBID_STATION_SPRITE_LAYOUT, 0, 0, statspec, st, ti->tile);
-					if (callback != CALLBACK_FAILED) tile_layout = (callback & ~1) + GetRailStationAxis(ti->tile);
-				}
-
-				/* Ensure the chosen tile layout is valid for this custom station */
-				if (statspec->renderdata != NULL) {
-					layout = &statspec->renderdata[tile_layout < statspec->tiles ? tile_layout : (uint)GetRailStationAxis(ti->tile)];
-					if (!layout->NeedsPreprocessing()) {
-						t = layout;
-						layout = NULL;
-					}
+			/* Ensure the chosen tile layout is valid for this custom station */
+			if (statspec->renderdata != NULL) {
+				layout = &statspec->renderdata[tile_layout < statspec->tiles ? tile_layout : (uint)GetRailStationAxis(ti->tile)];
+				if (!layout->NeedsPreprocessing()) {
+					t = layout;
+					layout = NULL;
 				}
 			}
 		}
-	} else {
-		roadtypes = IsRoadStop(ti->tile) ? GetRoadTypes(ti->tile) : ROADTYPES_NONE;
-		total_offset = 0;
 	}
 
-	StationGfx gfx = GetStationGfx(ti->tile);
-	if (IsAirport(ti->tile)) {
-		gfx = GetAirportGfx(ti->tile);
-		if (gfx >= NEW_AIRPORTTILE_OFFSET) {
-			const AirportTileSpec *ats = AirportTileSpec::Get(gfx);
-			if (ats->grf_prop.spritegroup[0] != NULL && DrawNewAirportTile(ti, Station::GetByTile(ti->tile), gfx, ats)) {
-				return;
-			}
-			/* No sprite group (or no valid one) found, meaning no graphics associated.
-			 * Use the substitute one instead */
-			assert(ats->grf_prop.subst_id != INVALID_AIRPORTTILE);
-			gfx = ats->grf_prop.subst_id;
-		}
-		switch (gfx) {
-			case APT_RADAR_GRASS_FENCE_SW:
-				t = &_station_display_datas_airport_radar_grass_fence_sw[GetAnimationFrame(ti->tile)];
-				break;
-			case APT_GRASS_FENCE_NE_FLAG:
-				t = &_station_display_datas_airport_flag_grass_fence_ne[GetAnimationFrame(ti->tile)];
-				break;
-			case APT_RADAR_FENCE_SW:
-				t = &_station_display_datas_airport_radar_fence_sw[GetAnimationFrame(ti->tile)];
-				break;
-			case APT_RADAR_FENCE_NE:
-				t = &_station_display_datas_airport_radar_fence_ne[GetAnimationFrame(ti->tile)];
-				break;
-			case APT_GRASS_FENCE_NE_FLAG_2:
-				t = &_station_display_datas_airport_flag_grass_fence_ne_2[GetAnimationFrame(ti->tile)];
-				break;
-		}
+	if (layout == NULL && (t == NULL || t->seq == NULL)) {
+		StationGfx gfx = GetStationGfx (ti->tile);
+		t = GetStationTileLayout (GetStationType (ti->tile), gfx);
 	}
 
-	Owner owner = GetTileOwner(ti->tile);
-
-	PaletteID palette;
-	if (Company::IsValidID(owner)) {
-		palette = COMPANY_SPRITE_COLOUR(owner);
-	} else {
-		/* Some stations are not owner by a company, namely oil rigs */
-		palette = PALETTE_TO_GREY;
-	}
-
-	if (layout == NULL && (t == NULL || t->seq == NULL)) t = GetStationTileLayout(GetStationType(ti->tile), gfx);
-
-	/* don't show foundation for docks */
-	if (ti->tileh != SLOPE_FLAT && !IsDock(ti->tile)) {
+	if (ti->tileh != SLOPE_FLAT) {
 		if (statspec != NULL && HasBit(statspec->flags, SSF_CUSTOM_FOUNDATIONS)) {
 			/* Station has custom foundations.
 			 * Check whether the foundation continues beyond the tile's upper sides. */
@@ -2828,80 +2828,66 @@ draw_default_foundation:
 		}
 	}
 
-	if (IsBuoy(ti->tile) || (IsDock(ti->tile) && IsDockBuoy(ti->tile))) {
-		DrawWaterClassGround(ti);
-		SpriteID sprite = GetCanalSprite(CF_BUOY, ti->tile);
-		if (sprite != 0) total_offset = sprite - SPR_IMG_BUOY;
-	} else if (IsDock(ti->tile) || (IsOilRig(ti->tile) && IsTileOnWater(ti->tile))) {
-		if (ti->tileh == SLOPE_FLAT) {
-			DrawWaterClassGround(ti);
-		} else {
-			assert(IsDock(ti->tile));
-			TileIndex water_tile = GetOtherDockTile (ti->tile);
-			WaterClass wc = GetWaterClass(water_tile);
-			if (wc == WATER_CLASS_SEA) {
-				DrawShoreTile (ti);
-			} else {
-				DrawClearLandTile(ti, 3);
-			}
+	int32 total_offset = rti->GetRailtypeSpriteOffset();
+	uint32 relocation = 0;
+	uint32 ground_relocation = 0;
+	DrawTileSprites tmp_rail_layout;
+
+	if (layout != NULL) {
+		/* Sprite layout which needs preprocessing */
+		bool separate_ground = HasBit(statspec->flags, SSF_SEPARATE_GROUND);
+		uint32 var10_values = layout->PrepareLayout (total_offset, rti->fallback_railtype, 0, 0, separate_ground);
+		uint8 var10;
+		FOR_EACH_SET_BIT(var10, var10_values) {
+			uint32 var10_relocation = GetCustomStationRelocation (statspec, st, ti->tile, var10);
+			layout->ProcessRegisters (var10, var10_relocation, separate_ground);
+		}
+		tmp_rail_layout.seq = layout->GetLayout (&tmp_rail_layout.ground);
+		t = &tmp_rail_layout;
+		total_offset = 0;
+	} else if (statspec != NULL) {
+		/* Simple sprite layout */
+		ground_relocation = relocation = GetCustomStationRelocation (statspec, st, ti->tile, 0);
+		if (HasBit(statspec->flags, SSF_SEPARATE_GROUND)) {
+			ground_relocation = GetCustomStationRelocation (statspec, st, ti->tile, 1);
+		}
+		ground_relocation += rti->fallback_railtype;
+	}
+
+	Owner owner = GetTileOwner (ti->tile);
+	PaletteID palette = COMPANY_SPRITE_COLOUR(owner);
+
+	bool reserved = _game_mode != GM_MENU && _settings_client.gui.show_track_reservation && HasStationReservation (ti->tile);
+	SpriteID image = t->ground.sprite;
+	PaletteID pal  = t->ground.pal;
+	RailTrackOffset overlay_offset;
+	if (rti->UsesOverlay() && SplitGroundSpriteForOverlay (ti, &image, &overlay_offset)) {
+		SpriteID ground = GetCustomRailSprite (rti, ti->tile, RTSG_GROUND);
+		DrawGroundSprite (ti, image, PAL_NONE);
+		DrawGroundSprite (ti, ground + overlay_offset, PAL_NONE);
+
+		if (reserved) {
+			image = GetCustomRailSprite (rti, ti->tile, RTSG_OVERLAY) + overlay_offset;
 		}
 	} else {
-		if (layout != NULL) {
-			/* Sprite layout which needs preprocessing */
-			bool separate_ground = HasBit(statspec->flags, SSF_SEPARATE_GROUND);
-			uint32 var10_values = layout->PrepareLayout(total_offset, rti->fallback_railtype, 0, 0, separate_ground);
-			uint8 var10;
-			FOR_EACH_SET_BIT(var10, var10_values) {
-				uint32 var10_relocation = GetCustomStationRelocation(statspec, st, ti->tile, var10);
-				layout->ProcessRegisters(var10, var10_relocation, separate_ground);
-			}
-			tmp_rail_layout.seq = layout->GetLayout(&tmp_rail_layout.ground);
-			t = &tmp_rail_layout;
-			total_offset = 0;
-		} else if (statspec != NULL) {
-			/* Simple sprite layout */
-			ground_relocation = relocation = GetCustomStationRelocation(statspec, st, ti->tile, 0);
-			if (HasBit(statspec->flags, SSF_SEPARATE_GROUND)) {
-				ground_relocation = GetCustomStationRelocation(statspec, st, ti->tile, 1);
-			}
-			ground_relocation += rti->fallback_railtype;
-		}
+		image += HasBit(image, SPRITE_MODIFIER_CUSTOM_SPRITE) ? ground_relocation : total_offset;
+		if (HasBit(pal, SPRITE_MODIFIER_CUSTOM_SPRITE)) pal += ground_relocation;
+		DrawGroundSprite (ti, image, GroundSpritePaletteTransform (image, pal, palette));
 
-		SpriteID image = t->ground.sprite;
-		PaletteID pal  = t->ground.pal;
-		RailTrackOffset overlay_offset;
-		if (rti != NULL && rti->UsesOverlay() && SplitGroundSpriteForOverlay(ti, &image, &overlay_offset)) {
-			SpriteID ground = GetCustomRailSprite(rti, ti->tile, RTSG_GROUND);
-			DrawGroundSprite (ti, image, PAL_NONE);
-			DrawGroundSprite (ti, ground + overlay_offset, PAL_NONE);
-
-			if (_game_mode != GM_MENU && _settings_client.gui.show_track_reservation && HasStationReservation(ti->tile)) {
-				SpriteID overlay = GetCustomRailSprite(rti, ti->tile, RTSG_OVERLAY);
-				DrawGroundSprite (ti, overlay + overlay_offset, PALETTE_CRASH);
-			}
-		} else {
-			image += HasBit(image, SPRITE_MODIFIER_CUSTOM_SPRITE) ? ground_relocation : total_offset;
-			if (HasBit(pal, SPRITE_MODIFIER_CUSTOM_SPRITE)) pal += ground_relocation;
-			DrawGroundSprite (ti, image, GroundSpritePaletteTransform(image, pal, palette));
-
-			/* PBS debugging, draw reserved tracks darker */
-			if (_game_mode != GM_MENU && _settings_client.gui.show_track_reservation && HasStationRail(ti->tile) && HasStationReservation(ti->tile)) {
-				const RailtypeInfo *rti = GetRailTypeInfo(GetRailType(ti->tile));
-				DrawGroundSprite (ti, rti->base_sprites.single[GetRailStationTrack(ti->tile)], PALETTE_CRASH);
-			}
+		if (reserved) {
+			image = rti->base_sprites.single[GetRailStationTrack(ti->tile)];
 		}
 	}
 
-	if (HasStationRail (ti->tile) && HasRailCatenaryDrawn (rti)) {
+	/* PBS debugging, draw reserved tracks darker */
+	if (reserved) {
+		DrawGroundSprite (ti, image, PALETTE_CRASH);
+	}
+
+	if (HasRailCatenaryDrawn (rti)) {
 		DrawRailAxisCatenary (ti, rti, GetRailStationAxis (ti->tile),
 				CanStationTileHavePylons (ti->tile),
 				CanStationTileHaveWires (ti->tile));
-	}
-
-	if (HasBit(roadtypes, ROADTYPE_TRAM)) {
-		Axis axis = GetRoadStopAxis(ti->tile); // tram stops are always drive-through
-		DrawGroundSprite (ti, (HasBit(roadtypes, ROADTYPE_ROAD) ? SPR_TRAMWAY_OVERLAY : SPR_TRAMWAY_TRAM) + (axis ^ 1), PAL_NONE);
-		DrawRoadCatenary(ti, axis == AXIS_X ? ROAD_X : ROAD_Y);
 	}
 
 	if (IsRailWaypoint(ti->tile)) {
@@ -2910,6 +2896,107 @@ draw_default_foundation:
 	}
 
 	DrawRailTileSeq(ti, t, TO_BUILDINGS, total_offset, relocation, palette);
+}
+
+static void DrawTile_RoadStop (TileInfo *ti)
+{
+	if (ti->tileh != SLOPE_FLAT) {
+		DrawFoundation (ti, FOUNDATION_LEVELED);
+	}
+
+	StationGfx gfx = GetStationGfx(ti->tile);
+	const DrawTileSprites *t = GetStationTileLayout (GetStationType (ti->tile), gfx);
+
+	Owner owner = GetTileOwner(ti->tile);
+	PaletteID palette = COMPANY_SPRITE_COLOUR(owner);
+
+	SpriteID image = t->ground.sprite;
+	PaletteID pal  = t->ground.pal;
+	DrawGroundSprite (ti, image, GroundSpritePaletteTransform (image, pal, palette));
+
+	RoadTypes roadtypes = GetRoadTypes (ti->tile);
+	if (HasBit(roadtypes, ROADTYPE_TRAM)) {
+		Axis axis = GetRoadStopAxis(ti->tile); // tram stops are always drive-through
+		DrawGroundSprite (ti, (HasBit(roadtypes, ROADTYPE_ROAD) ? SPR_TRAMWAY_OVERLAY : SPR_TRAMWAY_TRAM) + (axis ^ 1), PAL_NONE);
+		DrawRoadCatenary(ti, axis == AXIS_X ? ROAD_X : ROAD_Y);
+	}
+
+	DrawOrigTileSeq (ti, t, TO_BUILDINGS, palette);
+}
+
+static void DrawTile_OilRig (TileInfo *ti)
+{
+	if (IsTileOnWater (ti->tile)) {
+		DrawWaterClassGround (ti);
+	} else {
+		DrawGroundSprite (ti, SPR_FLAT_WATER_TILE, PAL_NONE);
+	}
+
+	StationGfx gfx = GetStationGfx(ti->tile);
+	const DrawTileSprites *t = GetStationTileLayout (STATION_OILRIG, gfx);
+	DrawOrigTileSeq (ti, t, TO_BUILDINGS, PALETTE_TO_GREY);
+}
+
+static void DrawTile_Dock (TileInfo *ti)
+{
+	StationGfx gfx = GetStationGfx(ti->tile);
+	const DrawTileSprites *t = GetStationTileLayout (GetStationType (ti->tile), gfx);
+
+	int32 total_offset = 0;
+	if (IsBuoy(ti->tile) || IsDockBuoy(ti->tile)) {
+		DrawWaterClassGround(ti);
+		SpriteID sprite = GetCanalSprite(CF_BUOY, ti->tile);
+		if (sprite != 0) total_offset = sprite - SPR_IMG_BUOY;
+	} else if (ti->tileh == SLOPE_FLAT) {
+		DrawWaterClassGround (ti);
+	} else {
+		TileIndex water_tile = GetOtherDockTile (ti->tile);
+		WaterClass wc = GetWaterClass (water_tile);
+		if (wc == WATER_CLASS_SEA) {
+			DrawShoreTile (ti);
+		} else {
+			DrawClearLandTile (ti, 3);
+		}
+	}
+
+	Owner owner = GetTileOwner(ti->tile);
+
+	PaletteID palette;
+	if (Company::IsValidID(owner)) {
+		palette = COMPANY_SPRITE_COLOUR(owner);
+	} else {
+		palette = PALETTE_TO_GREY;
+	}
+
+	DrawRailTileSeq (ti, t, TO_BUILDINGS, total_offset, 0, palette);
+}
+
+static void DrawTile_Station (TileInfo *ti)
+{
+	switch (GetStationType (ti->tile)) {
+		case STATION_RAIL:
+		case STATION_WAYPOINT:
+			DrawTile_RailStation (ti);
+			break;
+
+		case STATION_AIRPORT:
+			DrawTile_Airport (ti);
+			/* Airports cannot have bridges over them. */
+			return;
+
+		case STATION_TRUCK:
+		case STATION_BUS:
+			DrawTile_RoadStop (ti);
+			break;
+
+		case STATION_OILRIG:
+			DrawTile_OilRig (ti);
+			break;
+
+		default:
+			DrawTile_Dock (ti);
+			break;
+	}
 
 	DrawBridgeMiddle (ti);
 }
