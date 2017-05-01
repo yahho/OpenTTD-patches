@@ -3042,7 +3042,7 @@ void RoadStationPickerDrawSprite (BlitArea *dpi, int x, int y, bool bus, bool tr
 		DrawSprite (dpi, SPR_TRAMWAY_TRAM + (t->ground.sprite == SPR_ROAD_PAVED_STRAIGHT_X ? 1 : 0), PAL_NONE, x, y);
 	}
 
-	DrawOrigTileSeqInGUI (dpi, x, y, t, pal);
+	DrawOrigTileSeqInGUI (dpi, x, y, t->seq, pal);
 }
 
 static int GetSlopePixelZ_Station(TileIndex tile, uint x, uint y)

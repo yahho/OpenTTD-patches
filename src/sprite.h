@@ -127,9 +127,10 @@ static inline void DrawOrigTileSeq (const struct TileInfo *ti,
 /**
  * Draw TTD sprite sequence in GUI.
  */
-static inline void DrawOrigTileSeqInGUI (BlitArea *dpi, int x, int y, const DrawTileSprites *dts, PaletteID default_palette)
+static inline void DrawOrigTileSeqInGUI (BlitArea *dpi, int x, int y,
+	const DrawTileSeqStruct *seq, PaletteID default_palette)
 {
-	DrawCommonTileSeqInGUI (dpi, x, y, dts->seq, 0, 0, default_palette, false);
+	DrawCommonTileSeqInGUI (dpi, x, y, seq, 0, 0, default_palette, false);
 }
 
 /**
