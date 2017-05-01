@@ -544,7 +544,7 @@ static void DrawTileLayoutInGUI (BlitArea *dpi, int x, int y,
 			DrawSprite (dpi, image.sprite, GroundSpritePaletteTransform (image.sprite, image.pal, palette), x, y);
 		}
 	} else {
-		DrawNewGRFTileSeqInGUI (dpi, x, y, dts, stage, palette);
+		DrawNewGRFTileSeqInGUI (dpi, x, y, dts->seq, stage, palette);
 	}
 }
 

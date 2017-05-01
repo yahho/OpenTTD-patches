@@ -505,7 +505,7 @@ void DrawNewObjectTileInGUI (BlitArea *dpi, int x, int y, const ObjectSpec *spec
 		DrawSprite (dpi, image, GroundSpritePaletteTransform (image, pal, palette), x, y);
 	}
 
-	DrawNewGRFTileSeqInGUI (dpi, x, y, dts, 0, palette);
+	DrawNewGRFTileSeqInGUI (dpi, x, y, dts->seq, 0, palette);
 }
 
 /**
