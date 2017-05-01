@@ -3027,7 +3027,7 @@ void RailStationPickerDrawSprite (BlitArea *dpi, int x, int y, bool waypoint, Ra
 	DrawSprite (dpi, ground_spr, ground_pal, x, y);
 
 	/* Default waypoint has no railtype specific sprites */
-	DrawRailTileSeqInGUI (dpi, x, y, t, waypoint ? 0 : total_offset, 0, pal);
+	DrawRailTileSeqInGUI (dpi, x, y, t->seq, waypoint ? 0 : total_offset, 0, pal);
 }
 
 void RoadStationPickerDrawSprite (BlitArea *dpi, int x, int y, bool bus, bool tram, int image)

@@ -877,7 +877,7 @@ bool DrawStationTile (BlitArea *dpi, int x, int y, RailType railtype,
 		DrawSprite (dpi, image, GroundSpritePaletteTransform (image, pal, palette), x, y);
 	}
 
-	DrawRailTileSeqInGUI (dpi, x, y, sprites, total_offset, relocation, palette);
+	DrawRailTileSeqInGUI (dpi, x, y, sprites->seq, total_offset, relocation, palette);
 
 	return true;
 }

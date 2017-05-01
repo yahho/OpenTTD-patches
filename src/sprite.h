@@ -106,9 +106,12 @@ static inline void DrawRailTileSeq (const struct TileInfo *ti,
  * @param total_offset Spriteoffset from normal rail to current railtype.
  * @param newgrf_offset Startsprite of the Action1 to use.
  */
-static inline void DrawRailTileSeqInGUI (BlitArea *dpi, int x, int y, const DrawTileSprites *dts, int32 total_offset, uint32 newgrf_offset, PaletteID default_palette)
+static inline void DrawRailTileSeqInGUI (BlitArea *dpi, int x, int y,
+	const DrawTileSeqStruct *seq, int32 total_offset,
+	uint32 newgrf_offset, PaletteID default_palette)
 {
-	DrawCommonTileSeqInGUI (dpi, x, y, dts->seq, total_offset, newgrf_offset, default_palette, false);
+	DrawCommonTileSeqInGUI (dpi, x, y, seq, total_offset, newgrf_offset,
+				default_palette, false);
 }
 
 /**
