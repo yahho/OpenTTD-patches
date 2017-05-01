@@ -1930,7 +1930,7 @@ void DrawLevelCrossing(TileInfo *ti)
 		pal = (_game_mode != GM_MENU && _settings_client.gui.show_track_reservation && HasCrossingReservation(ti->tile)) ? PALETTE_CRASH : PAL_NONE;
 		DrawGroundSprite (ti, rail, pal);
 
-		DrawRailTileSeq(ti, &_crossing_layout, TO_CATENARY, rail, 0, PAL_NONE);
+		DrawRailTileSeq (ti, _crossing_layout.seq, TO_CATENARY, rail, 0, PAL_NONE);
 	} else {
 		SpriteID image = rti->base_sprites.crossing;
 

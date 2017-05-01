@@ -2896,7 +2896,7 @@ draw_default_foundation:
 		total_offset = 0;
 	}
 
-	DrawRailTileSeq(ti, t, TO_BUILDINGS, total_offset, relocation, palette);
+	DrawRailTileSeq (ti, t->seq, TO_BUILDINGS, total_offset, relocation, palette);
 }
 
 static void DrawTile_RoadStop (TileInfo *ti)
@@ -2970,7 +2970,7 @@ static void DrawTile_Dock (TileInfo *ti)
 	}
 
 	const DrawTileSprites *t = &_station_display_datas_dock[gfx];
-	DrawRailTileSeq (ti, t, TO_BUILDINGS, total_offset, 0, palette);
+	DrawRailTileSeq (ti, t->seq, TO_BUILDINGS, total_offset, 0, palette);
 }
 
 static void DrawTile_Station (TileInfo *ti)

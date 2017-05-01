@@ -265,7 +265,7 @@ static void DrawTrainDepot(TileInfo *ti)
 
 	int depot_sprite = GetCustomRailSprite(rti, ti->tile, RTSG_DEPOT);
 	SpriteID relocation = depot_sprite != 0 ? depot_sprite - SPR_RAIL_DEPOT_SE_1 : rti->GetRailtypeSpriteOffset();
-	DrawRailTileSeq(ti, dts, TO_BUILDINGS, relocation, 0, palette);
+	DrawRailTileSeq (ti, dts->seq, TO_BUILDINGS, relocation, 0, palette);
 }
 
 void DrawTrainDepotSprite (BlitArea *dpi, int x, int y, int dir, RailType railtype)
