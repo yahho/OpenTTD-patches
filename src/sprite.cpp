@@ -20,19 +20,21 @@
 /**
  * Draws a tile sprite sequence.
  * @param ti The tile to draw on
- * @param dts Sprite and subsprites to draw
+ * @param seq Sprite and subsprites to draw
  * @param to The transparency bit that toggles drawing of these sprites
  * @param orig_offset Sprite-Offset for original sprites
  * @param newgrf_offset Sprite-Offset for NewGRF defined sprites
  * @param default_palette The default recolour sprite to use (typically company colour)
  * @param child_offset_is_unsigned Whether child sprite offsets are interpreted signed or unsigned
  */
-void DrawCommonTileSeq(const TileInfo *ti, const DrawTileSprites *dts, TransparencyOption to, int32 orig_offset, uint32 newgrf_offset, PaletteID default_palette, bool child_offset_is_unsigned)
+void DrawCommonTileSeq (const TileInfo *ti, const DrawTileSeqStruct *seq,
+	TransparencyOption to, int32 orig_offset, uint32 newgrf_offset,
+	PaletteID default_palette, bool child_offset_is_unsigned)
 {
 	bool parent_sprite_encountered = false;
 	const DrawTileSeqStruct *dtss;
 	bool skip_childs = false;
-	foreach_draw_tile_seq(dtss, dts->seq) {
+	foreach_draw_tile_seq(dtss, seq) {
 		SpriteID image = dtss->image.sprite;
 		PaletteID pal = dtss->image.pal;
 

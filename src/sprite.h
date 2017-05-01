@@ -80,7 +80,10 @@ struct DrawBuildingsTileStruct {
 /** Iterate through all DrawTileSeqStructs in DrawTileSprites. */
 #define foreach_draw_tile_seq(idx, list) for (idx = list; !idx->IsTerminator(); idx++)
 
-void DrawCommonTileSeq(const struct TileInfo *ti, const DrawTileSprites *dts, TransparencyOption to, int32 orig_offset, uint32 newgrf_offset, PaletteID default_palette, bool child_offset_is_unsigned);
+void DrawCommonTileSeq (const struct TileInfo *ti, const DrawTileSeqStruct *seq,
+	TransparencyOption to, int32 orig_offset, uint32 newgrf_offset,
+	PaletteID default_palette, bool child_offset_is_unsigned);
+
 void DrawCommonTileSeqInGUI (BlitArea *dpi, int x, int y, const DrawTileSprites *dts, int32 orig_offset, uint32 newgrf_offset, PaletteID default_palette, bool child_offset_is_unsigned);
 
 /**
@@ -90,7 +93,7 @@ void DrawCommonTileSeqInGUI (BlitArea *dpi, int x, int y, const DrawTileSprites 
  */
 static inline void DrawRailTileSeq(const struct TileInfo *ti, const DrawTileSprites *dts, TransparencyOption to, int32 total_offset, uint32 newgrf_offset, PaletteID default_palette)
 {
-	DrawCommonTileSeq(ti, dts, to, total_offset, newgrf_offset, default_palette, false);
+	DrawCommonTileSeq (ti, dts->seq, to, total_offset, newgrf_offset, default_palette, false);
 }
 
 /**
@@ -108,7 +111,7 @@ static inline void DrawRailTileSeqInGUI (BlitArea *dpi, int x, int y, const Draw
  */
 static inline void DrawOrigTileSeq(const struct TileInfo *ti, const DrawTileSprites *dts, TransparencyOption to, PaletteID default_palette)
 {
-	DrawCommonTileSeq(ti, dts, to, 0, 0, default_palette, false);
+	DrawCommonTileSeq (ti, dts->seq, to, 0, 0, default_palette, false);
 }
 
 /**
@@ -125,7 +128,7 @@ static inline void DrawOrigTileSeqInGUI (BlitArea *dpi, int x, int y, const Draw
  */
 static inline void DrawNewGRFTileSeq(const struct TileInfo *ti, const DrawTileSprites *dts, TransparencyOption to, uint32 stage, PaletteID default_palette)
 {
-	DrawCommonTileSeq(ti, dts, to, 0, stage, default_palette, true);
+	DrawCommonTileSeq (ti, dts->seq, to, 0, stage, default_palette, true);
 }
 
 /**
