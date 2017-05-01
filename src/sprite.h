@@ -84,7 +84,9 @@ void DrawCommonTileSeq (const struct TileInfo *ti, const DrawTileSeqStruct *seq,
 	TransparencyOption to, int32 orig_offset, uint32 newgrf_offset,
 	PaletteID default_palette, bool child_offset_is_unsigned);
 
-void DrawCommonTileSeqInGUI (BlitArea *dpi, int x, int y, const DrawTileSprites *dts, int32 orig_offset, uint32 newgrf_offset, PaletteID default_palette, bool child_offset_is_unsigned);
+void DrawCommonTileSeqInGUI (BlitArea *dpi, int x, int y,
+	const DrawTileSeqStruct *seq, int32 orig_offset, uint32 newgrf_offset,
+	PaletteID default_palette, bool child_offset_is_unsigned);
 
 /**
  * Draw tile sprite sequence on tile with railroad specifics.
@@ -103,7 +105,7 @@ static inline void DrawRailTileSeq(const struct TileInfo *ti, const DrawTileSpri
  */
 static inline void DrawRailTileSeqInGUI (BlitArea *dpi, int x, int y, const DrawTileSprites *dts, int32 total_offset, uint32 newgrf_offset, PaletteID default_palette)
 {
-	DrawCommonTileSeqInGUI (dpi, x, y, dts, total_offset, newgrf_offset, default_palette, false);
+	DrawCommonTileSeqInGUI (dpi, x, y, dts->seq, total_offset, newgrf_offset, default_palette, false);
 }
 
 /**
@@ -119,7 +121,7 @@ static inline void DrawOrigTileSeq(const struct TileInfo *ti, const DrawTileSpri
  */
 static inline void DrawOrigTileSeqInGUI (BlitArea *dpi, int x, int y, const DrawTileSprites *dts, PaletteID default_palette)
 {
-	DrawCommonTileSeqInGUI (dpi, x, y, dts, 0, 0, default_palette, false);
+	DrawCommonTileSeqInGUI (dpi, x, y, dts->seq, 0, 0, default_palette, false);
 }
 
 /**
@@ -137,7 +139,7 @@ static inline void DrawNewGRFTileSeq(const struct TileInfo *ti, const DrawTileSp
  */
 static inline void DrawNewGRFTileSeqInGUI (BlitArea *dpi, int x, int y, const DrawTileSprites *dts, uint32 stage, PaletteID default_palette)
 {
-	DrawCommonTileSeqInGUI (dpi, x, y, dts, 0, stage, default_palette, true);
+	DrawCommonTileSeqInGUI (dpi, x, y, dts->seq, 0, stage, default_palette, true);
 }
 
 /**

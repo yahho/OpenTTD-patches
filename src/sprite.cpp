@@ -86,21 +86,21 @@ void DrawCommonTileSeq (const TileInfo *ti, const DrawTileSeqStruct *seq,
  * @param dpi Area to draw on.
  * @param x X position to draw to
  * @param y Y position to draw to
- * @param dts Sprite and subsprites to draw
+ * @param seq Sprite and subsprites to draw
  * @param orig_offset Sprite-Offset for original sprites
  * @param newgrf_offset Sprite-Offset for NewGRF defined sprites
  * @param default_palette The default recolour sprite to use (typically company colour)
  * @param child_offset_is_unsigned Whether child sprite offsets are interpreted signed or unsigned
  */
 void DrawCommonTileSeqInGUI (BlitArea *dpi, int x, int y,
-	const DrawTileSprites *dts, int32 orig_offset, uint32 newgrf_offset,
+	const DrawTileSeqStruct *seq, int32 orig_offset, uint32 newgrf_offset,
 	PaletteID default_palette, bool child_offset_is_unsigned)
 {
 	const DrawTileSeqStruct *dtss;
 	Point child_offset = {0, 0};
 
 	bool skip_childs = false;
-	foreach_draw_tile_seq(dtss, dts->seq) {
+	foreach_draw_tile_seq(dtss, seq) {
 		SpriteID image = dtss->image.sprite;
 		PaletteID pal = dtss->image.pal;
 
