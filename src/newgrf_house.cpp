@@ -516,7 +516,7 @@ static void DrawTileLayout(const TileInfo *ti, const TileLayoutSpriteGroup *grou
 		DrawGroundSprite (ti, image, GroundSpritePaletteTransform(image, pal, palette));
 	}
 
-	DrawNewGRFTileSeq(ti, dts, TO_HOUSES, stage, palette);
+	DrawNewGRFTileSeq (ti, dts->seq, TO_HOUSES, stage, palette);
 }
 
 static void DrawTileLayoutInGUI (BlitArea *dpi, int x, int y,

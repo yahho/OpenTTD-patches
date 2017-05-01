@@ -137,9 +137,11 @@ static inline void DrawOrigTileSeqInGUI (BlitArea *dpi, int x, int y,
  * Draw NewGRF industrytile or house sprite layout
  * @param stage Sprite inside the Action1 spritesets to use, i.e. construction stage.
  */
-static inline void DrawNewGRFTileSeq(const struct TileInfo *ti, const DrawTileSprites *dts, TransparencyOption to, uint32 stage, PaletteID default_palette)
+static inline void DrawNewGRFTileSeq (const struct TileInfo *ti,
+	const DrawTileSeqStruct *seq, TransparencyOption to,
+	uint32 stage, PaletteID default_palette)
 {
-	DrawCommonTileSeq (ti, dts->seq, to, 0, stage, default_palette, true);
+	DrawCommonTileSeq (ti, seq, to, 0, stage, default_palette, true);
 }
 
 /**

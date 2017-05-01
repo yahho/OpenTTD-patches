@@ -452,7 +452,7 @@ static void DrawTileLayout(const TileInfo *ti, const TileLayoutSpriteGroup *grou
 		}
 	}
 
-	DrawNewGRFTileSeq(ti, dts, TO_STRUCTURES, 0, palette);
+	DrawNewGRFTileSeq (ti, dts->seq, TO_STRUCTURES, 0, palette);
 }
 
 /**
