@@ -117,9 +117,11 @@ static inline void DrawRailTileSeqInGUI (BlitArea *dpi, int x, int y,
 /**
  * Draw TTD sprite sequence on tile.
  */
-static inline void DrawOrigTileSeq(const struct TileInfo *ti, const DrawTileSprites *dts, TransparencyOption to, PaletteID default_palette)
+static inline void DrawOrigTileSeq (const struct TileInfo *ti,
+	const DrawTileSeqStruct *seq, TransparencyOption to,
+	PaletteID default_palette)
 {
-	DrawCommonTileSeq (ti, dts->seq, to, 0, 0, default_palette, false);
+	DrawCommonTileSeq (ti, seq, to, 0, 0, default_palette, false);
 }
 
 /**

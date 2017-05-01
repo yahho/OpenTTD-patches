@@ -2719,7 +2719,7 @@ static void DrawTile_Airport (TileInfo *ti)
 	PaletteID pal  = t->ground.pal;
 	DrawGroundSprite (ti, image, GroundSpritePaletteTransform (image, pal, palette));
 
-	DrawOrigTileSeq (ti, t, TO_BUILDINGS, palette);
+	DrawOrigTileSeq (ti, t->seq, TO_BUILDINGS, palette);
 }
 
 static void DrawTile_RailStation (TileInfo *ti)
@@ -2923,7 +2923,7 @@ static void DrawTile_RoadStop (TileInfo *ti)
 		DrawRoadCatenary(ti, axis == AXIS_X ? ROAD_X : ROAD_Y);
 	}
 
-	DrawOrigTileSeq (ti, t, TO_BUILDINGS, palette);
+	DrawOrigTileSeq (ti, t->seq, TO_BUILDINGS, palette);
 }
 
 static void DrawTile_OilRig (TileInfo *ti)
@@ -2936,7 +2936,7 @@ static void DrawTile_OilRig (TileInfo *ti)
 
 	StationGfx gfx = GetStationGfx(ti->tile);
 	const DrawTileSprites *t = &_station_display_datas_oilrig[gfx];
-	DrawOrigTileSeq (ti, t, TO_BUILDINGS, PALETTE_TO_GREY);
+	DrawOrigTileSeq (ti, t->seq, TO_BUILDINGS, PALETTE_TO_GREY);
 }
 
 static void DrawTile_Dock (TileInfo *ti)

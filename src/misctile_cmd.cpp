@@ -312,7 +312,7 @@ static void DrawRoadDepot(TileInfo *ti)
 	}
 
 	DrawGroundSprite (ti, dts->ground.sprite, PAL_NONE);
-	DrawOrigTileSeq(ti, dts, TO_BUILDINGS, palette);
+	DrawOrigTileSeq (ti, dts->seq, TO_BUILDINGS, palette);
 }
 
 /**
