@@ -53,6 +53,7 @@ void DrawCommonTileSeq(const TileInfo *ti, const DrawTileSprites *dts, Transpare
 
 		pal = SpriteLayoutPaletteTransform(image, pal, default_palette);
 
+		bool transparent = !HasBit(image, SPRITE_MODIFIER_OPAQUE) && IsTransparencySet(to);
 		if (dtss->IsParentSprite()) {
 			parent_sprite_encountered = true;
 			AddSortableSpriteToDraw (ti->vd,
@@ -60,12 +61,11 @@ void DrawCommonTileSeq(const TileInfo *ti, const DrawTileSprites *dts, Transpare
 				ti->x + dtss->delta_x, ti->y + dtss->delta_y,
 				dtss->size_x, dtss->size_y,
 				dtss->size_z, ti->z + dtss->delta_z,
-				!HasBit(image, SPRITE_MODIFIER_OPAQUE) && IsTransparencySet(to)
+				transparent
 			);
 		} else {
 			int offs_x = child_offset_is_unsigned ? (uint8)dtss->delta_x : dtss->delta_x;
 			int offs_y = child_offset_is_unsigned ? (uint8)dtss->delta_y : dtss->delta_y;
-			bool transparent = !HasBit(image, SPRITE_MODIFIER_OPAQUE) && IsTransparencySet(to);
 			if (parent_sprite_encountered) {
 				AddChildSpriteScreen (ti->vd, image, pal, offs_x, offs_y, transparent);
 			} else {
