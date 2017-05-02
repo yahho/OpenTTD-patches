@@ -1199,7 +1199,6 @@
     <ClInclude Include="..\src\table\string_colours.h" />
     <ClInclude Include="..\src\..\objs\langs\table\strings.h" />
     <ClInclude Include="..\src\table\town_land.h" />
-    <ClInclude Include="..\src\table\track_land.h" />
     <ClInclude Include="..\src\table\train_cmd.h" />
     <ClInclude Include="..\src\table\tree_land.h" />
     <ClInclude Include="..\src\table\water_land.h" />

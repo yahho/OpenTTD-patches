@@ -644,7 +644,6 @@ table/strgen_tables.h
 table/string_colours.h
 ../objs/langs/table/strings.h
 table/town_land.h
-table/track_land.h
 table/train_cmd.h
 table/tree_land.h
 table/water_land.h

@@ -41,7 +41,6 @@
 #include "pathfinder/yapf/yapf.h"
 
 #include "table/strings.h"
-#include "table/track_land.h"
 #include "table/road_land.h"
 
 
@@ -192,6 +191,35 @@ static void DrawTunnel(TileInfo *ti)
 	DrawBridgeMiddle(ti);
 }
 
+
+#define TILE_SEQ_LINE(img, dx, dy, sx, sy) \
+	{ dx, dy, 0, sx, sy, 23, {(img) | (1 << PALETTE_MODIFIER_COLOUR), PAL_NONE} }
+#define TILE_SEQ_END() { (int8)0x80, 0, 0, 0, 0, 0, {0, 0} }
+
+static const DrawTileSeqStruct _depot_gfx_NE[] = {
+	TILE_SEQ_LINE(SPR_RAIL_DEPOT_NE,    2, 13, 13,  1),
+	TILE_SEQ_END()
+};
+
+static const DrawTileSeqStruct _depot_gfx_SE[] = {
+	TILE_SEQ_LINE(SPR_RAIL_DEPOT_SE_1,  2,  2,  1, 13),
+	TILE_SEQ_LINE(SPR_RAIL_DEPOT_SE_2, 13,  2,  1, 13),
+	TILE_SEQ_END()
+};
+
+static const DrawTileSeqStruct _depot_gfx_SW[] = {
+	TILE_SEQ_LINE(SPR_RAIL_DEPOT_SW_1,  2,  2, 13,  1),
+	TILE_SEQ_LINE(SPR_RAIL_DEPOT_SW_2,  2, 13, 13,  1),
+	TILE_SEQ_END()
+};
+
+static const DrawTileSeqStruct _depot_gfx_NW[] = {
+	TILE_SEQ_LINE(SPR_RAIL_DEPOT_NW,   13,  2,  1, 13),
+	TILE_SEQ_END()
+};
+
+#undef TILE_SEQ_LINE
+#undef TILE_SEQ_END
 
 struct TrainDepotSprites {
 	SpriteID ground[2]; ///< Ground sprites, visible and invisible.

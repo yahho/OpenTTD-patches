@@ -5611,10 +5611,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\..\src\table\track_land.h"
-				>
-			</File>
-			<File
 				RelativePath=".\..\src\table\train_cmd.h"
 				>
 			</File>

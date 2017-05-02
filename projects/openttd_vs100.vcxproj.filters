@@ -1917,9 +1917,6 @@
     <ClInclude Include="..\src\table\town_land.h">
       <Filter>Tables</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\table\track_land.h">
-      <Filter>Tables</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\table\train_cmd.h">
       <Filter>Tables</Filter>
     </ClInclude>
