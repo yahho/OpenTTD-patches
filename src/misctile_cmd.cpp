@@ -192,6 +192,19 @@ static void DrawTunnel(TileInfo *ti)
 	DrawBridgeMiddle(ti);
 }
 
+
+struct TrainDepotSprites {
+	SpriteID ground[2]; ///< Ground sprites, visible and invisible.
+	const DrawTileSeqStruct *seq; ///< Array of child sprites.
+};
+
+static const TrainDepotSprites _depot_gfx_table[DIAGDIR_END] = {
+	{ {SPR_FLAT_GRASS_TILE, SPR_RAIL_TRACK_X}, _depot_gfx_NE },
+	{ {SPR_RAIL_TRACK_Y,    SPR_RAIL_TRACK_Y}, _depot_gfx_SE },
+	{ {SPR_RAIL_TRACK_X,    SPR_RAIL_TRACK_X}, _depot_gfx_SW },
+	{ {SPR_FLAT_GRASS_TILE, SPR_RAIL_TRACK_Y}, _depot_gfx_NW },
+};
+
 static void DrawTrainDepotGroundSprite (TileInfo *ti, DiagDirection dir,
 	SpriteID image_x, SpriteID image_y, PaletteID pal)
 {
@@ -218,16 +231,14 @@ static void DrawTrainDepot(TileInfo *ti)
 
 	DiagDirection dir = GetGroundDepotDirection (ti->tile);
 
-	const DrawTileSprites *dts = IsInvisibilitySet(TO_BUILDINGS) ?
-		/* Draw rail instead of depot */
-		_depot_invisible_gfx_table : _depot_gfx_table;
-	dts = &dts[dir];
+	const TrainDepotSprites *dts = &_depot_gfx_table[dir];
 
 	SpriteID image;
 	if (rti->UsesOverlay()) {
 		image = SPR_FLAT_GRASS_TILE;
 	} else {
-		image = dts->ground.sprite;
+		/* Draw rail instead of depot if invisible. */
+		image = dts->ground[IsInvisibilitySet(TO_BUILDINGS)];
 		if (image != SPR_FLAT_GRASS_TILE) image += rti->GetRailtypeSpriteOffset();
 	}
 
@@ -270,9 +281,9 @@ static void DrawTrainDepot(TileInfo *ti)
 
 void DrawTrainDepotSprite (BlitArea *dpi, int x, int y, int dir, RailType railtype)
 {
-	const DrawTileSprites *dts = &_depot_gfx_table[dir];
+	const TrainDepotSprites *dts = &_depot_gfx_table[dir];
 	const RailtypeInfo *rti = GetRailTypeInfo(railtype);
-	SpriteID image = rti->UsesOverlay() ? SPR_FLAT_GRASS_TILE : dts->ground.sprite;
+	SpriteID image = rti->UsesOverlay() ? SPR_FLAT_GRASS_TILE : dts->ground[0];
 	uint32 offset = rti->GetRailtypeSpriteOffset();
 
 	if (image != SPR_FLAT_GRASS_TILE) image += offset;
