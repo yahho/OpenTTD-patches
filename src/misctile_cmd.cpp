@@ -362,13 +362,6 @@ static const DrawTileSeqStruct _road_depot_NW[] = {
 	TILE_SEQ_END()
 };
 
-static const DrawTileSeqStruct *_road_depot[] = {
-	_road_depot_NE,
-	_road_depot_SE,
-	_road_depot_SW,
-	_road_depot_NW,
-};
-
 static const DrawTileSeqStruct _tram_depot_NE[] = {
 	TILE_SEQ_LINE(SPR_TRAMWAY_BASE + 0x35, PAL_NONE,  0, 15, 16,  1),
 	TILE_SEQ_END()
@@ -391,11 +384,9 @@ static const DrawTileSeqStruct _tram_depot_NW[] = {
 	TILE_SEQ_END()
 };
 
-static const DrawTileSeqStruct *_tram_depot[] = {
-	_tram_depot_NE,
-	_tram_depot_SE,
-	_tram_depot_SW,
-	_tram_depot_NW,
+static const DrawTileSeqStruct *_road_depot[2][DIAGDIR_END] = {
+	{ _road_depot_NE, _road_depot_SE, _road_depot_SW, _road_depot_NW },
+	{ _tram_depot_NE, _tram_depot_SE, _tram_depot_SW, _tram_depot_NW },
 };
 
 #undef TILE_SEQ_LINE
@@ -409,15 +400,9 @@ static void DrawRoadDepot(TileInfo *ti)
 	DrawGroundSprite (ti, 0xA4A, PAL_NONE);
 
 	PaletteID palette = COMPANY_SPRITE_COLOUR(GetTileOwner(ti->tile));
-
-	const DrawTileSeqStruct *dts;
-	if (HasTileRoadType(ti->tile, ROADTYPE_TRAM)) {
-		dts = _tram_depot[GetGroundDepotDirection(ti->tile)];
-	} else {
-		dts = _road_depot[GetGroundDepotDirection(ti->tile)];
-	}
-
-	DrawOrigTileSeq (ti, dts, TO_BUILDINGS, palette);
+	bool tram = HasTileRoadType (ti->tile, ROADTYPE_TRAM);
+	DiagDirection dir = GetGroundDepotDirection (ti->tile);
+	DrawOrigTileSeq (ti, _road_depot[tram][dir], TO_BUILDINGS, palette);
 }
 
 /**
@@ -433,8 +418,7 @@ void DrawRoadDepotSprite (BlitArea *dpi, int x, int y, DiagDirection dir, RoadTy
 	DrawSprite (dpi, 0xA4A, PAL_NONE, x, y);
 
 	PaletteID palette = COMPANY_SPRITE_COLOUR(_local_company);
-	const DrawTileSeqStruct *dts = (rt == ROADTYPE_TRAM) ? _tram_depot[dir] : _road_depot[dir];
-	DrawOrigTileSeqInGUI (dpi, x, y, dts, palette);
+	DrawOrigTileSeqInGUI (dpi, x, y, _road_depot[rt][dir], palette);
 }
 
 static void DrawTile_Misc(TileInfo *ti)
