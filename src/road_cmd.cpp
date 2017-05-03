@@ -1913,6 +1913,22 @@ static void DrawTile_Road(TileInfo *ti)
 	DrawBridgeMiddle(ti);
 }
 
+#define TILE_SEQ_LINE(img, pal, dx, dy, sx, sy) { dx, dy, 0, sx, sy, 20, {img, pal} }
+#define TILE_SEQ_END() { (int8)0x80, 0, 0, 0, 0, 0, {0, 0} }
+
+/* Sprite layout for level crossings. The SpriteIDs are actually offsets
+ * from the base SpriteID returned from the NewGRF sprite resolver. */
+static const DrawTileSeqStruct _crossing_layout[] = {
+	TILE_SEQ_LINE(2, PAL_NONE,  0,  0, 3, 3),
+	TILE_SEQ_LINE(4, PAL_NONE,  0, 13, 3, 3),
+	TILE_SEQ_LINE(6, PAL_NONE, 13,  0, 3, 3),
+	TILE_SEQ_LINE(8, PAL_NONE, 13, 13, 3, 3),
+	TILE_SEQ_END()
+};
+
+#undef TILE_SEQ_LINE
+#undef TILE_SEQ_END
+
 void DrawLevelCrossing(TileInfo *ti)
 {
 	if (ti->tileh != SLOPE_FLAT) DrawFoundation(ti, FOUNDATION_LEVELED);
@@ -1930,7 +1946,7 @@ void DrawLevelCrossing(TileInfo *ti)
 		pal = (_game_mode != GM_MENU && _settings_client.gui.show_track_reservation && HasCrossingReservation(ti->tile)) ? PALETTE_CRASH : PAL_NONE;
 		DrawGroundSprite (ti, rail, pal);
 
-		DrawRailTileSeq (ti, _crossing_layout.seq, TO_CATENARY, rail, 0, PAL_NONE);
+		DrawRailTileSeq (ti, _crossing_layout, TO_CATENARY, rail, 0, PAL_NONE);
 	} else {
 		SpriteID image = rti->base_sprites.crossing;
 
