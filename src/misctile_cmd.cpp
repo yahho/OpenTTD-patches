@@ -335,6 +335,72 @@ void DrawTrainDepotSprite (BlitArea *dpi, int x, int y, int dir, RailType railty
 	DrawRailTileSeqInGUI (dpi, x, y, dts->seq, offset, 0, palette);
 }
 
+
+#define TILE_SEQ_LINE(img, pal, dx, dy, sx, sy) \
+	{ dx, dy, 0, sx, sy, 20, {(img) | (1 << PALETTE_MODIFIER_COLOUR), pal} }
+#define TILE_SEQ_END() { (int8)0x80, 0, 0, 0, 0, 0, {0, 0} }
+
+static const DrawTileSeqStruct _road_depot_NE[] = {
+	TILE_SEQ_LINE(0x584, PAL_NONE,  0, 15, 16,  1),
+	TILE_SEQ_END()
+};
+
+static const DrawTileSeqStruct _road_depot_SE[] = {
+	TILE_SEQ_LINE(0x580, PAL_NONE,  0,  0,  1, 16),
+	TILE_SEQ_LINE(0x581, PAL_NONE, 15,  0,  1, 16),
+	TILE_SEQ_END()
+};
+
+static const DrawTileSeqStruct _road_depot_SW[] = {
+	TILE_SEQ_LINE(0x582, PAL_NONE,  0,  0, 16,  1),
+	TILE_SEQ_LINE(0x583, PAL_NONE,  0, 15, 16,  1),
+	TILE_SEQ_END()
+};
+
+static const DrawTileSeqStruct _road_depot_NW[] = {
+	TILE_SEQ_LINE(0x585, PAL_NONE, 15,  0,  1, 16),
+	TILE_SEQ_END()
+};
+
+static const DrawTileSprites _road_depot[] = {
+	{ {0xA4A, PAL_NONE}, _road_depot_NE },
+	{ {0xA4A, PAL_NONE}, _road_depot_SE },
+	{ {0xA4A, PAL_NONE}, _road_depot_SW },
+	{ {0xA4A, PAL_NONE}, _road_depot_NW },
+};
+
+static const DrawTileSeqStruct _tram_depot_NE[] = {
+	TILE_SEQ_LINE(SPR_TRAMWAY_BASE + 0x35, PAL_NONE,  0, 15, 16,  1),
+	TILE_SEQ_END()
+};
+
+static const DrawTileSeqStruct _tram_depot_SE[] = {
+	TILE_SEQ_LINE(SPR_TRAMWAY_BASE + 0x31, PAL_NONE,  0,  0,  1, 16),
+	TILE_SEQ_LINE(SPR_TRAMWAY_BASE + 0x32, PAL_NONE, 15,  0,  1, 16),
+	TILE_SEQ_END()
+};
+
+static const DrawTileSeqStruct _tram_depot_SW[] = {
+	TILE_SEQ_LINE(SPR_TRAMWAY_BASE + 0x33, PAL_NONE,  0,  0, 16,  1),
+	TILE_SEQ_LINE(SPR_TRAMWAY_BASE + 0x34, PAL_NONE,  0, 15, 16,  1),
+	TILE_SEQ_END()
+};
+
+static const DrawTileSeqStruct _tram_depot_NW[] = {
+	TILE_SEQ_LINE(SPR_TRAMWAY_BASE + 0x36, PAL_NONE, 15,  0,  1, 16),
+	TILE_SEQ_END()
+};
+
+static const DrawTileSprites _tram_depot[] = {
+	{ {0xA4A, PAL_NONE}, _tram_depot_NE },
+	{ {0xA4A, PAL_NONE}, _tram_depot_SE },
+	{ {0xA4A, PAL_NONE}, _tram_depot_SW },
+	{ {0xA4A, PAL_NONE}, _tram_depot_NW },
+};
+
+#undef TILE_SEQ_LINE
+#undef TILE_SEQ_END
+
 static void DrawRoadDepot(TileInfo *ti)
 {
 	assert(IsRoadDepotTile(ti->tile));

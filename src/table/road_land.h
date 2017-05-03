@@ -18,7 +18,7 @@ struct DrawRoadTileStruct {
 	byte subcoord_y;
 };
 
-extern const DrawTileSprites _road_depot[], _tram_depot[], _crossing_layout;
+extern const DrawTileSprites _crossing_layout;
 
 extern const SpriteID _road_tile_sprites_1[16];
 extern const SpriteID _road_frontwire_sprites_1[16];
