@@ -718,22 +718,24 @@ static void DrawWaterLock(const TileInfo *ti)
 	const DrawTileSprites &dts = _lock_display_data[part][GetLockDirection(ti->tile)];
 
 	/* Draw ground sprite. */
-	SpriteID image = dts.ground.sprite;
-
-	SpriteID water_base = GetCanalSprite(CF_WATERSLOPE, ti->tile);
-	if (water_base == 0) {
-		/* Use default sprites. */
-		water_base = SPR_CANALS_BASE;
-	} else if (HasBit(_water_feature[CF_WATERSLOPE].flags, CFF_HAS_FLAT_SPRITE)) {
-		/* NewGRF supplies a flat sprite as first sprite. */
-		if (image == SPR_FLAT_WATER_TILE) {
-			image = water_base;
-		} else {
-			image++;
+	bool has_flat_water = HasBit(_water_feature[CF_WATERSLOPE].flags, CFF_HAS_FLAT_SPRITE);
+	bool use_default = true;
+	SpriteID image;
+	if (has_flat_water || (part == 0)) {
+		image = GetCanalSprite (CF_WATERSLOPE, ti->tile);
+		if (image != 0) {
+			use_default = false;
+			/* NewGRF supplies a flat sprite as first sprite? */
+			if (part == 0) image += has_flat_water;
 		}
 	}
 
-	if (image < 5) image += water_base;
+	if (use_default) {
+		/* Use default sprites. */
+		image = (part != 0) ? SPR_FLAT_WATER_TILE : SPR_CANALS_BASE;
+	}
+
+	if (part == 0) image += dts.ground.sprite;
 	DrawGroundSprite (ti, image, PAL_NONE);
 
 	/* Draw structures. */
