@@ -715,7 +715,7 @@ static void DrawWaterTileStruct(const TileInfo *ti, const DrawTileSeqStruct *dts
 static void DrawWaterLock(const TileInfo *ti)
 {
 	uint part = GetWaterTileType (ti->tile) - WATER_TILE_LOCK_MIDDLE;
-	const DrawTileSprites &dts = _lock_display_data[part][GetLockDirection(ti->tile)];
+	DiagDirection dir = GetLockDirection (ti->tile);
 
 	/* Draw ground sprite. */
 	bool has_flat_water = HasBit(_water_feature[CF_WATERSLOPE].flags, CFF_HAS_FLAT_SPRITE);
@@ -735,8 +735,11 @@ static void DrawWaterLock(const TileInfo *ti)
 		image = (part != 0) ? SPR_FLAT_WATER_TILE : SPR_CANALS_BASE;
 	}
 
-	if (part == 0) image += dts.ground.sprite;
+	static uint8 lock_middle_offset[DIAGDIR_END] = { 1, 0, 2, 3 };
+	if (part == 0) image += lock_middle_offset[dir];
 	DrawGroundSprite (ti, image, PAL_NONE);
+
+	const DrawTileSeqStruct *dts = _lock_display_data[part][dir];
 
 	/* Draw structures. */
 	uint     zoffs = 0;
@@ -750,7 +753,7 @@ static void DrawWaterLock(const TileInfo *ti)
 		zoffs = ti->z > z_threshold ? 24 : 0;
 	}
 
-	DrawWaterTileStruct(ti, dts.seq, base, zoffs, PAL_NONE, CF_LOCKS);
+	DrawWaterTileStruct (ti, dts, base, zoffs, PAL_NONE, CF_LOCKS);
 }
 
 /** Draw a ship depot tile. */
