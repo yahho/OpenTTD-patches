@@ -714,8 +714,8 @@ static void DrawWaterTileStruct(const TileInfo *ti, const DrawTileSeqStruct *dts
 /** Draw a lock tile. */
 static void DrawWaterLock(const TileInfo *ti)
 {
-	WaterTileType part = GetWaterTileType (ti->tile);
-	const DrawTileSprites &dts = _lock_display_data[part - WATER_TILE_LOCK_MIDDLE][GetLockDirection(ti->tile)];
+	uint part = GetWaterTileType (ti->tile) - WATER_TILE_LOCK_MIDDLE;
+	const DrawTileSprites &dts = _lock_display_data[part][GetLockDirection(ti->tile)];
 
 	/* Draw ground sprite. */
 	SpriteID image = dts.ground.sprite;
@@ -743,7 +743,8 @@ static void DrawWaterLock(const TileInfo *ti)
 	if (base == 0) {
 		/* If no custom graphics, use defaults. */
 		base = SPR_LOCK_BASE;
-		uint8 z_threshold = part == WATER_TILE_LOCK_UPPER ? 8 : 0;
+		bool upper = part == (WATER_TILE_LOCK_UPPER - WATER_TILE_LOCK_MIDDLE);
+		uint8 z_threshold = upper ? 8 : 0;
 		zoffs = ti->z > z_threshold ? 24 : 0;
 	}
 
