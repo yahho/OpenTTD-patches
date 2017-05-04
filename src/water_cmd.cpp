@@ -754,7 +754,8 @@ static void DrawWaterLock(const TileInfo *ti)
 static void DrawWaterDepot(const TileInfo *ti)
 {
 	DrawWaterClassGround(ti);
-	DrawWaterTileStruct(ti, _shipdepot_display_data[GetShipDepotDirection(ti->tile)].seq, 0, 0, COMPANY_SPRITE_COLOUR(GetTileOwner(ti->tile)), CF_END);
+	DrawWaterTileStruct (ti, _shipdepot_display_data[GetShipDepotDirection(ti->tile)],
+			0, 0, COMPANY_SPRITE_COLOUR(GetTileOwner(ti->tile)), CF_END);
 }
 
 static uint DrawRiverWater (const TileInfo *ti)
@@ -875,10 +876,9 @@ static void DrawTile_Water(TileInfo *ti)
 
 void DrawShipDepotSprite (BlitArea *dpi, int x, int y, DiagDirection dir)
 {
-	const DrawTileSprites &dts = _shipdepot_display_data[dir];
-
-	DrawSprite (dpi, dts.ground.sprite, dts.ground.pal, x, y);
-	DrawOrigTileSeqInGUI (dpi, x, y, dts.seq, COMPANY_SPRITE_COLOUR(_local_company));
+	DrawSprite (dpi, SPR_FLAT_WATER_TILE, PAL_NONE, x, y);
+	DrawOrigTileSeqInGUI (dpi, x, y, _shipdepot_display_data[dir],
+				COMPANY_SPRITE_COLOUR(_local_company));
 }
 
 

@@ -53,11 +53,11 @@ static const DrawTileSeqStruct _shipdepot_display_seq_se[] = {
 	TILE_SEQ_END()
 };
 
-static const DrawTileSprites _shipdepot_display_data[DIAGDIR_END] = {
-	TILE_SPRITE_LINE(0xFDD, _shipdepot_display_seq_ne) // DIAGDIR_NE
-	TILE_SPRITE_LINE(0xFDD, _shipdepot_display_seq_se) // DIAGDIR_SE
-	TILE_SPRITE_LINE(0xFDD, _shipdepot_display_seq_sw) // DIAGDIR_SW
-	TILE_SPRITE_LINE(0xFDD, _shipdepot_display_seq_nw) // DIAGDIR_NW
+static const DrawTileSeqStruct *_shipdepot_display_data[DIAGDIR_END] = {
+	_shipdepot_display_seq_ne, // DIAGDIR_NE
+	_shipdepot_display_seq_se, // DIAGDIR_SE
+	_shipdepot_display_seq_sw, // DIAGDIR_SW
+	_shipdepot_display_seq_nw, // DIAGDIR_NW
 };
 
 static const DrawTileSeqStruct _lock_display_seq_0[] = {
