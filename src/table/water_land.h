@@ -24,13 +24,6 @@
 /** Constructor macro for a terminating DrawTileSeqStruct entry in an array */
 #define TILE_SEQ_END() { (int8)0x80, 0, 0, 0, 0, 0, {0, 0} }
 
-/**
- * Constructor macro of a DrawTileSprites structure
- * @param img   Ground sprite without palette of the tile
- * @param dtss  Sequence child sprites of the tile
- */
-#define TILE_SPRITE_LINE(img, dtss) { {img, PAL_NONE}, dtss },
-
 static const DrawTileSeqStruct _shipdepot_display_seq_ne[] = {
 	TILE_SEQ_LINE( 0, 15, 0, 16, 1, 0x14, 0xFE8 | (1 << PALETTE_MODIFIER_COLOUR))
 	TILE_SEQ_END()
@@ -157,4 +150,3 @@ static const DrawTileSeqStruct *_lock_display_data[3][DIAGDIR_END] = {
 
 #undef TILE_SEQ_LINE
 #undef TILE_SEQ_END
-#undef TILE_SPRITE_LINE
