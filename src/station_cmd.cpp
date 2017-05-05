@@ -2931,10 +2931,6 @@ static void DrawTile_OilRig (TileInfo *ti)
 	} else {
 		DrawGroundSprite (ti, SPR_FLAT_WATER_TILE, PAL_NONE);
 	}
-
-	StationGfx gfx = GetStationGfx(ti->tile);
-	const DrawTileSprites *t = &_station_display_datas_oilrig[gfx];
-	DrawOrigTileSeq (ti, t->seq, TO_BUILDINGS, PALETTE_TO_GREY);
 }
 
 static void DrawTile_Dock (TileInfo *ti)
