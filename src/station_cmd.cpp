@@ -2683,30 +2683,32 @@ static void DrawTile_Airport (TileInfo *ti)
 		gfx = ats->grf_prop.subst_id;
 	}
 
-	const DrawTileSprites *t;
+	const DrawTileSprites *t = &_station_display_datas_airport[gfx];
+	PalSpriteID ground = t->ground;
+	const DrawTileSeqStruct *const *seq;
 	bool anim = true;
 	switch (gfx) {
 		case APT_RADAR_GRASS_FENCE_SW:
-			t = _station_display_datas_airport_radar_grass_fence_sw;
+			seq = _station_display_datas_airport_radar_grass_fence_sw;
 			break;
 		case APT_GRASS_FENCE_NE_FLAG:
-			t = _station_display_datas_airport_flag_grass_fence_ne;
+			seq = _station_display_datas_airport_flag_grass_fence_ne;
 			break;
 		case APT_RADAR_FENCE_SW:
-			t = _station_display_datas_airport_radar_fence_sw;
+			seq = _station_display_datas_airport_radar_fence_sw;
 			break;
 		case APT_RADAR_FENCE_NE:
-			t = _station_display_datas_airport_radar_fence_ne;
+			seq = _station_display_datas_airport_radar_fence_ne;
 			break;
 		case APT_GRASS_FENCE_NE_FLAG_2:
-			t = _station_display_datas_airport_flag_grass_fence_ne_2;
+			seq = _station_display_datas_airport_flag_grass_fence_ne_2;
 			break;
 		default:
-			t = &_station_display_datas_airport[gfx];
+			seq = &t->seq;
 			anim = false;
 			break;
 	}
-	if (anim) t += GetAnimationFrame (ti->tile);
+	if (anim) seq += GetAnimationFrame (ti->tile);
 
 	if (ti->tileh != SLOPE_FLAT) {
 		DrawFoundation (ti, FOUNDATION_LEVELED);
@@ -2715,11 +2717,11 @@ static void DrawTile_Airport (TileInfo *ti)
 	Owner owner = GetTileOwner (ti->tile);
 	PaletteID palette = COMPANY_SPRITE_COLOUR(owner);
 
-	SpriteID image = t->ground.sprite;
-	PaletteID pal  = t->ground.pal;
+	SpriteID image = ground.sprite;
+	PaletteID pal  = ground.pal;
 	DrawGroundSprite (ti, image, GroundSpritePaletteTransform (image, pal, palette));
 
-	DrawOrigTileSeq (ti, t->seq, TO_BUILDINGS, palette);
+	DrawOrigTileSeq (ti, *seq, TO_BUILDINGS, palette);
 }
 
 static void DrawTile_RailStation (TileInfo *ti)
