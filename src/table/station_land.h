@@ -878,21 +878,6 @@ static const DrawTileSprites _station_display_datas_airport[] = {
 	TILE_SPRITE_LINE(SPR_FLAT_GRASS_TILE,            NULL) // APT_GRASS_FENCE_NE_FLAG_2
 };
 
-static const DrawTileSeqStruct *const _station_display_datas_airport_radar_grass_fence_sw[] = {
-	_station_display_radar_1_fence_sw, // APT_RADAR_GRASS_FENCE_SW
-	_station_display_radar_2_fence_sw,
-	_station_display_radar_3_fence_sw,
-	_station_display_radar_4_fence_sw,
-	_station_display_radar_5_fence_sw,
-	_station_display_radar_6_fence_sw,
-	_station_display_radar_7_fence_sw,
-	_station_display_radar_8_fence_sw,
-	_station_display_radar_9_fence_sw,
-	_station_display_radar_10_fence_sw,
-	_station_display_radar_11_fence_sw,
-	_station_display_radar_12_fence_sw,
-};
-
 static const DrawTileSeqStruct *const _station_display_datas_airport_flag_grass_fence_ne[] = {
 	_station_display_flag_1_fence_ne, // APT_GRASS_FENCE_NE_FLAG
 	_station_display_flag_2_fence_ne,
@@ -928,13 +913,6 @@ static const DrawTileSeqStruct *const _station_display_datas_airport_radar_fence
 	_station_display_radar_10_fence_ne,
 	_station_display_radar_11_fence_ne,
 	_station_display_radar_12_fence_ne,
-};
-
-static const DrawTileSeqStruct *const _station_display_datas_airport_flag_grass_fence_ne_2[] = {
-	_station_display_flag_1_fence_ne, // APT_GRASS_FENCE_NE_FLAG_2
-	_station_display_flag_2_fence_ne,
-	_station_display_flag_3_fence_ne,
-	_station_display_flag_4_fence_ne,
 };
 
 

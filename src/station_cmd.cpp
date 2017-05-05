@@ -2688,20 +2688,16 @@ static void DrawTile_Airport (TileInfo *ti)
 	const DrawTileSeqStruct *const *seq;
 	bool anim = true;
 	switch (gfx) {
-		case APT_RADAR_GRASS_FENCE_SW:
-			seq = _station_display_datas_airport_radar_grass_fence_sw;
-			break;
 		case APT_GRASS_FENCE_NE_FLAG:
+		case APT_GRASS_FENCE_NE_FLAG_2:
 			seq = _station_display_datas_airport_flag_grass_fence_ne;
 			break;
+		case APT_RADAR_GRASS_FENCE_SW:
 		case APT_RADAR_FENCE_SW:
 			seq = _station_display_datas_airport_radar_fence_sw;
 			break;
 		case APT_RADAR_FENCE_NE:
 			seq = _station_display_datas_airport_radar_fence_ne;
-			break;
-		case APT_GRASS_FENCE_NE_FLAG_2:
-			seq = _station_display_datas_airport_flag_grass_fence_ne_2;
 			break;
 		default:
 			seq = &t->seq;
