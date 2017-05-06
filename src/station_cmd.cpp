@@ -2963,8 +2963,8 @@ static void DrawTile_Dock (TileInfo *ti)
 		palette = PALETTE_TO_GREY;
 	}
 
-	const DrawTileSprites *t = &_station_display_datas_dock[gfx];
-	DrawRailTileSeq (ti, t->seq, TO_BUILDINGS, total_offset, 0, palette);
+	DrawRailTileSeq (ti, _station_display_datas_dock[gfx], TO_BUILDINGS,
+				total_offset, 0, palette);
 }
 
 static void DrawTile_Station (TileInfo *ti)

@@ -934,14 +934,14 @@ static const DrawTileSprites _station_display_datas_bus[] = {
 	TILE_SPRITE_LINE(SPR_ROAD_PAVED_STRAIGHT_Y,      _station_display_datas_0171)
 };
 
-static const DrawTileSprites _station_display_datas_dock[] = {
-	TILE_SPRITE_LINE(SPR_SHORE_BASE + SLOPE_SW,      _station_display_datas_76)
-	TILE_SPRITE_LINE(SPR_SHORE_BASE + SLOPE_NW,      _station_display_datas_77)
-	TILE_SPRITE_LINE(SPR_SHORE_BASE + SLOPE_NE,      _station_display_datas_78)
-	TILE_SPRITE_LINE(SPR_SHORE_BASE + SLOPE_SE,      _station_display_datas_79)
-	TILE_SPRITE_LINE(SPR_FLAT_WATER_TILE,            _station_display_datas_80)
-	TILE_SPRITE_LINE(SPR_FLAT_WATER_TILE,            _station_display_datas_81)
-	TILE_SPRITE_LINE(SPR_FLAT_WATER_TILE,            _station_display_datas_82)
+static const DrawTileSeqStruct *const _station_display_datas_dock[] = {
+	_station_display_datas_76,
+	_station_display_datas_77,
+	_station_display_datas_78,
+	_station_display_datas_79,
+	_station_display_datas_80,
+	_station_display_datas_81,
+	_station_display_datas_82,
 };
 
 static const DrawTileSprites _station_display_datas_waypoint[] = {
