@@ -363,40 +363,29 @@ static const DrawTileSeqStruct _station_display_datas_74[] = {
 	TILE_SEQ_END()
 };
 
-static const DrawTileSeqStruct _station_display_datas_76[] = {
-	TILE_SEQ_LINE( 0,  4,  0, 16,  8,  8, SPR_DOCK_SLOPE_NE | (1U << PALETTE_MODIFIER_COLOUR))
-	TILE_SEQ_END()
-};
-
-static const DrawTileSeqStruct _station_display_datas_77[] = {
-	TILE_SEQ_LINE( 4,  0,  0,  8, 16,  8, SPR_DOCK_SLOPE_SE | (1U << PALETTE_MODIFIER_COLOUR))
-	TILE_SEQ_END()
-};
-
-static const DrawTileSeqStruct _station_display_datas_78[] = {
-	TILE_SEQ_LINE( 0,  4,  0, 16,  8,  8, SPR_DOCK_SLOPE_SW | (1U << PALETTE_MODIFIER_COLOUR))
-	TILE_SEQ_END()
-};
-
-static const DrawTileSeqStruct _station_display_datas_79[] = {
-	TILE_SEQ_LINE( 4,  0,  0,  8, 16,  8, SPR_DOCK_SLOPE_NW | (1U << PALETTE_MODIFIER_COLOUR))
-	TILE_SEQ_END()
-};
-
-static const DrawTileSeqStruct _station_display_datas_80[] = {
-	TILE_SEQ_LINE( 0,  4,  0, 16,  8,  8, SPR_DOCK_FLAT_X | (1U << PALETTE_MODIFIER_COLOUR))
-	TILE_SEQ_END()
-};
-
-static const DrawTileSeqStruct _station_display_datas_81[] = {
-	TILE_SEQ_LINE( 4,  0,  0,  8, 16,  8, SPR_DOCK_FLAT_Y | (1U << PALETTE_MODIFIER_COLOUR))
-	TILE_SEQ_END()
-};
-
-/* Buoy, which will _always_ drown under the ship */
-static const DrawTileSeqStruct _station_display_datas_82[] = {
-	TILE_SEQ_LINE( 4,  -1,  0,  0,  0,  0, SPR_IMG_BUOY)
-	TILE_SEQ_END()
+static const DrawTileSeqStruct _station_display_datas_dock[][2] = {
+	{
+		TILE_SEQ_LINE( 0, 4, 0, 16, 8, 8, SPR_DOCK_SLOPE_NE | (1U << PALETTE_MODIFIER_COLOUR))
+		TILE_SEQ_END()
+	}, {
+		TILE_SEQ_LINE( 4, 0, 0, 8, 16, 8, SPR_DOCK_SLOPE_SE | (1U << PALETTE_MODIFIER_COLOUR))
+		TILE_SEQ_END()
+	}, {
+		TILE_SEQ_LINE( 0, 4, 0, 16, 8, 8, SPR_DOCK_SLOPE_SW | (1U << PALETTE_MODIFIER_COLOUR))
+		TILE_SEQ_END()
+	}, {
+		TILE_SEQ_LINE( 4, 0, 0, 8, 16, 8, SPR_DOCK_SLOPE_NW | (1U << PALETTE_MODIFIER_COLOUR))
+		TILE_SEQ_END()
+	}, {
+		TILE_SEQ_LINE( 0, 4, 0, 16, 8, 8, SPR_DOCK_FLAT_X   | (1U << PALETTE_MODIFIER_COLOUR))
+		TILE_SEQ_END()
+	}, {
+		TILE_SEQ_LINE( 4, 0, 0, 8, 16, 8, SPR_DOCK_FLAT_Y   | (1U << PALETTE_MODIFIER_COLOUR))
+		TILE_SEQ_END()
+	}, { /* Buoy, which will _always_ drown under the ship */
+		TILE_SEQ_LINE( 4, -1, 0, 0, 0, 0, SPR_IMG_BUOY)
+		TILE_SEQ_END()
+	},
 };
 
 /* control tower without fence */
@@ -932,16 +921,6 @@ static const DrawTileSprites _station_display_datas_bus[] = {
 	TILE_SPRITE_LINE(SPR_BUS_STOP_NW_GROUND   | (1U << PALETTE_MODIFIER_COLOUR), _station_display_datas_74)
 	TILE_SPRITE_LINE(SPR_ROAD_PAVED_STRAIGHT_X,      _station_display_datas_0170)
 	TILE_SPRITE_LINE(SPR_ROAD_PAVED_STRAIGHT_Y,      _station_display_datas_0171)
-};
-
-static const DrawTileSeqStruct *const _station_display_datas_dock[] = {
-	_station_display_datas_76,
-	_station_display_datas_77,
-	_station_display_datas_78,
-	_station_display_datas_79,
-	_station_display_datas_80,
-	_station_display_datas_81,
-	_station_display_datas_82,
 };
 
 static const DrawTileSprites _station_display_datas_waypoint[] = {
