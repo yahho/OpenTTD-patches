@@ -2843,8 +2843,9 @@ static void DrawTile_RailStation (TileInfo *ti)
 	int32 total_offset = rti->GetRailtypeSpriteOffset();
 	uint32 relocation = 0;
 	uint32 ground_relocation = 0;
-	DrawTileSprites tmp_rail_layout;
 
+	PalSpriteID ground;
+	const DrawTileSeqStruct *seq;
 	if (layout != NULL) {
 		/* Sprite layout which needs preprocessing */
 		bool separate_ground = HasBit(statspec->flags, SSF_SEPARATE_GROUND);
@@ -2854,24 +2855,27 @@ static void DrawTile_RailStation (TileInfo *ti)
 			uint32 var10_relocation = GetCustomStationRelocation (statspec, st, ti->tile, var10);
 			layout->ProcessRegisters (var10, var10_relocation, separate_ground);
 		}
-		tmp_rail_layout.seq = layout->GetLayout (&tmp_rail_layout.ground);
-		t = &tmp_rail_layout;
+		seq = layout->GetLayout (&ground);
 		total_offset = 0;
-	} else if (statspec != NULL) {
-		/* Simple sprite layout */
-		ground_relocation = relocation = GetCustomStationRelocation (statspec, st, ti->tile, 0);
-		if (HasBit(statspec->flags, SSF_SEPARATE_GROUND)) {
-			ground_relocation = GetCustomStationRelocation (statspec, st, ti->tile, 1);
+	} else {
+		ground = t->ground;
+		seq = t->seq;
+		if (statspec != NULL) {
+			/* Simple sprite layout */
+			ground_relocation = relocation = GetCustomStationRelocation (statspec, st, ti->tile, 0);
+			if (HasBit(statspec->flags, SSF_SEPARATE_GROUND)) {
+				ground_relocation = GetCustomStationRelocation (statspec, st, ti->tile, 1);
+			}
+			ground_relocation += rti->fallback_railtype;
 		}
-		ground_relocation += rti->fallback_railtype;
 	}
 
 	Owner owner = GetTileOwner (ti->tile);
 	PaletteID palette = COMPANY_SPRITE_COLOUR(owner);
 
 	bool reserved = _game_mode != GM_MENU && _settings_client.gui.show_track_reservation && HasStationReservation (ti->tile);
-	SpriteID image = t->ground.sprite;
-	PaletteID pal  = t->ground.pal;
+	SpriteID image = ground.sprite;
+	PaletteID pal  = ground.pal;
 	RailTrackOffset overlay_offset;
 	if (rti->UsesOverlay() && SplitGroundSpriteForOverlay (ti, &image, &overlay_offset)) {
 		SpriteID ground = GetCustomRailSprite (rti, ti->tile, RTSG_GROUND);
@@ -2907,7 +2911,7 @@ static void DrawTile_RailStation (TileInfo *ti)
 		total_offset = 0;
 	}
 
-	DrawRailTileSeq (ti, t->seq, TO_BUILDINGS, total_offset, relocation, palette);
+	DrawRailTileSeq (ti, seq, TO_BUILDINGS, total_offset, relocation, palette);
 }
 
 static void DrawTile_RoadStop (TileInfo *ti)
