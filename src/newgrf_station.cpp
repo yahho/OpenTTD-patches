@@ -830,7 +830,6 @@ bool DrawStationTile (BlitArea *dpi, int x, int y, RailType railtype,
 	uint32 relocation = 0;
 	uint32 ground_relocation = 0;
 	const NewGRFSpriteLayout *layout = NULL;
-	DrawTileSprites tmp_rail_layout;
 
 	if (statspec->renderdata == NULL) {
 		sprites = GetDefaultStationTileLayout() + (tile + axis);
@@ -842,6 +841,8 @@ bool DrawStationTile (BlitArea *dpi, int x, int y, RailType railtype,
 		}
 	}
 
+	PalSpriteID ground;
+	const DrawTileSeqStruct *seq;
 	if (layout != NULL) {
 		/* Sprite layout which needs preprocessing */
 		bool separate_ground = HasBit(statspec->flags, SSF_SEPARATE_GROUND);
@@ -852,20 +853,21 @@ bool DrawStationTile (BlitArea *dpi, int x, int y, RailType railtype,
 			layout->ProcessRegisters(var10, var10_relocation, separate_ground);
 		}
 
-		tmp_rail_layout.seq = layout->GetLayout(&tmp_rail_layout.ground);
-		sprites = &tmp_rail_layout;
+		seq = layout->GetLayout (&ground);
 		total_offset = 0;
 	} else {
 		/* Simple sprite layout */
+		ground = sprites->ground;
+		seq = sprites->seq;
 		ground_relocation = relocation = GetCustomStationRelocation(statspec, NULL, INVALID_TILE, 0);
-		if (HasBit(sprites->ground.sprite, SPRITE_MODIFIER_CUSTOM_SPRITE)) {
+		if (HasBit(ground.sprite, SPRITE_MODIFIER_CUSTOM_SPRITE)) {
 			ground_relocation = GetCustomStationRelocation(statspec, NULL, INVALID_TILE, 1);
 		}
 		ground_relocation += rti->fallback_railtype;
 	}
 
-	SpriteID image = sprites->ground.sprite;
-	PaletteID pal = sprites->ground.pal;
+	SpriteID image = ground.sprite;
+	PaletteID pal = ground.pal;
 	RailTrackOffset overlay_offset;
 	if (rti->UsesOverlay() && SplitGroundSpriteForOverlay(NULL, &image, &overlay_offset)) {
 		SpriteID ground = GetCustomRailSprite(rti, INVALID_TILE, RTSG_GROUND);
@@ -877,7 +879,7 @@ bool DrawStationTile (BlitArea *dpi, int x, int y, RailType railtype,
 		DrawSprite (dpi, image, GroundSpritePaletteTransform (image, pal, palette), x, y);
 	}
 
-	DrawRailTileSeqInGUI (dpi, x, y, sprites->seq, total_offset, relocation, palette);
+	DrawRailTileSeqInGUI (dpi, x, y, seq, total_offset, relocation, palette);
 
 	return true;
 }
