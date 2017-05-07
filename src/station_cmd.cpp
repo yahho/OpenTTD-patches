@@ -2720,6 +2720,78 @@ static void DrawTile_Airport (TileInfo *ti)
 	DrawOrigTileSeq (ti, *seq, TO_BUILDINGS, palette);
 }
 
+/**
+ * Draw custom foundations for a station tile.
+ * @param ti TileInfo of the tile.
+ * @param statspec Station spec.
+ * @param st Station.
+ * @param tile_layout Tile layout.
+ * @return Whether foundations were actually drawn.
+ */
+static bool DrawRailStationFoundation (TileInfo *ti,
+	const StationSpec *statspec, BaseStation *st, uint tile_layout)
+{
+	/* Check whether the foundation continues beyond the tile's upper sides. */
+	uint edge_info = GetFoundationSpriteBlock (ti->tile);
+	SpriteID image = GetCustomStationFoundationRelocation (statspec, st, ti->tile, tile_layout, edge_info);
+	if (image == 0) return false;
+
+	if (HasBit(statspec->flags, SSF_EXTENDED_FOUNDATIONS)) {
+		/* Station provides extended foundations. */
+		static const uint8 foundation_parts[] = {
+			0, 0, 0, 0, // Invalid,  Invalid,   Invalid,   SLOPE_SW
+			0, 1, 2, 3, // Invalid,  SLOPE_EW,  SLOPE_SE,  SLOPE_WSE
+			0, 4, 5, 6, // Invalid,  SLOPE_NW,  SLOPE_NS,  SLOPE_NWS
+			7, 8, 9     // SLOPE_NE, SLOPE_ENW, SLOPE_SEN
+		};
+
+		AddSortableSpriteToDraw (ti->vd, image + foundation_parts[ti->tileh],
+					PAL_NONE, ti->x, ti->y, 16, 16, 7, ti->z);
+	} else {
+		/* Draw simple foundations, built up from 8 possible foundation sprites. */
+
+		/* Each set bit represents one of the eight composite sprites to be drawn.
+		 * 'Invalid' entries will not drawn but are included for completeness. */
+		static const uint8 composite_foundation_parts[] = {
+			/* Invalid  (00000000), Invalid   (11010001), Invalid   (11100100), SLOPE_SW  (11100000) */
+			   0x00,                0xD1,                 0xE4,                 0xE0,
+			/* Invalid  (11001010), SLOPE_EW  (11001001), SLOPE_SE  (11000100), SLOPE_WSE (11000000) */
+			   0xCA,                0xC9,                 0xC4,                 0xC0,
+			/* Invalid  (11010010), SLOPE_NW  (10010001), SLOPE_NS  (11100100), SLOPE_NWS (10100000) */
+			   0xD2,                0x91,                 0xE4,                 0xA0,
+			/* SLOPE_NE (01001010), SLOPE_ENW (00001001), SLOPE_SEN (01000100) */
+			   0x4A,                0x09,                 0x44
+		};
+
+		uint8 parts = composite_foundation_parts[ti->tileh];
+
+		/* If foundations continue beyond the tile's upper sides then
+		 * mask out the last two pieces. */
+		if (HasBit(edge_info, 0)) ClrBit(parts, 6);
+		if (HasBit(edge_info, 1)) ClrBit(parts, 7);
+
+		if (parts == 0) {
+			/* We always have to draw at least one sprite to make
+			 * sure there is a boundingbox and a sprite with the
+			 * correct offset for the childsprites. So, draw the
+			 * (completely empty) sprite of the default foundations. */
+			return false;
+		}
+
+		StartSpriteCombine (ti->vd);
+		for (int i = 0; i < 8; i++) {
+			if (HasBit(parts, i)) {
+				AddSortableSpriteToDraw (ti->vd, image + i, PAL_NONE, ti->x, ti->y, 16, 16, 7, ti->z);
+			}
+		}
+		EndSpriteCombine (ti->vd);
+	}
+
+	OffsetGroundSprite (ti->vd, 31, 1);
+	ti->z += ApplyPixelFoundationToSlope (FOUNDATION_LEVELED, &ti->tileh);
+	return true;
+}
+
 static void DrawTile_RailStation (TileInfo *ti)
 {
 	const RailtypeInfo *rti = GetRailTypeInfo (GetRailType (ti->tile));
@@ -2762,67 +2834,8 @@ static void DrawTile_RailStation (TileInfo *ti)
 	}
 
 	if (ti->tileh != SLOPE_FLAT) {
-		if (statspec != NULL && HasBit(statspec->flags, SSF_CUSTOM_FOUNDATIONS)) {
-			/* Station has custom foundations.
-			 * Check whether the foundation continues beyond the tile's upper sides. */
-			uint edge_info = GetFoundationSpriteBlock (ti->tile);
-			SpriteID image = GetCustomStationFoundationRelocation(statspec, st, ti->tile, tile_layout, edge_info);
-			if (image == 0) goto draw_default_foundation;
-
-			if (HasBit(statspec->flags, SSF_EXTENDED_FOUNDATIONS)) {
-				/* Station provides extended foundations. */
-
-				static const uint8 foundation_parts[] = {
-					0, 0, 0, 0, // Invalid,  Invalid,   Invalid,   SLOPE_SW
-					0, 1, 2, 3, // Invalid,  SLOPE_EW,  SLOPE_SE,  SLOPE_WSE
-					0, 4, 5, 6, // Invalid,  SLOPE_NW,  SLOPE_NS,  SLOPE_NWS
-					7, 8, 9     // SLOPE_NE, SLOPE_ENW, SLOPE_SEN
-				};
-
-				AddSortableSpriteToDraw (ti->vd, image + foundation_parts[ti->tileh], PAL_NONE, ti->x, ti->y, 16, 16, 7, ti->z);
-			} else {
-				/* Draw simple foundations, built up from 8 possible foundation sprites. */
-
-				/* Each set bit represents one of the eight composite sprites to be drawn.
-				 * 'Invalid' entries will not drawn but are included for completeness. */
-				static const uint8 composite_foundation_parts[] = {
-					/* Invalid  (00000000), Invalid   (11010001), Invalid   (11100100), SLOPE_SW  (11100000) */
-					   0x00,                0xD1,                 0xE4,                 0xE0,
-					/* Invalid  (11001010), SLOPE_EW  (11001001), SLOPE_SE  (11000100), SLOPE_WSE (11000000) */
-					   0xCA,                0xC9,                 0xC4,                 0xC0,
-					/* Invalid  (11010010), SLOPE_NW  (10010001), SLOPE_NS  (11100100), SLOPE_NWS (10100000) */
-					   0xD2,                0x91,                 0xE4,                 0xA0,
-					/* SLOPE_NE (01001010), SLOPE_ENW (00001001), SLOPE_SEN (01000100) */
-					   0x4A,                0x09,                 0x44
-				};
-
-				uint8 parts = composite_foundation_parts[ti->tileh];
-
-				/* If foundations continue beyond the tile's upper sides then
-				 * mask out the last two pieces. */
-				if (HasBit(edge_info, 0)) ClrBit(parts, 6);
-				if (HasBit(edge_info, 1)) ClrBit(parts, 7);
-
-				if (parts == 0) {
-					/* We always have to draw at least one sprite to make sure there is a boundingbox and a sprite with the
-					 * correct offset for the childsprites.
-					 * So, draw the (completely empty) sprite of the default foundations. */
-					goto draw_default_foundation;
-				}
-
-				StartSpriteCombine (ti->vd);
-				for (int i = 0; i < 8; i++) {
-					if (HasBit(parts, i)) {
-						AddSortableSpriteToDraw (ti->vd, image + i, PAL_NONE, ti->x, ti->y, 16, 16, 7, ti->z);
-					}
-				}
-				EndSpriteCombine (ti->vd);
-			}
-
-			OffsetGroundSprite (ti->vd, 31, 1);
-			ti->z += ApplyPixelFoundationToSlope(FOUNDATION_LEVELED, &ti->tileh);
-		} else {
-draw_default_foundation:
+		if (statspec == NULL || !HasBit(statspec->flags, SSF_CUSTOM_FOUNDATIONS)
+				|| !DrawRailStationFoundation (ti, statspec, st, tile_layout)) {
 			DrawFoundation(ti, FOUNDATION_LEVELED);
 		}
 	}
