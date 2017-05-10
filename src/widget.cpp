@@ -19,6 +19,7 @@
 #include "core/geometry_func.hpp"
 #include "settings_type.h"
 #include "querystring_gui.h"
+#include "spritecache.h"
 
 #include "table/sprites.h"
 #include "table/strings.h"
@@ -222,8 +223,13 @@ static inline void DrawImageButtons (BlitArea *dpi, const Rect &r,
 	DrawFrameRect (dpi, r.left, r.top, r.right, r.bottom, colour, (clicked) ? FR_LOWERED : FR_NONE);
 
 	if (var && clicked) img++; // Show different image when clicked for #WWT_IMGBTN_2.
-	Dimension d = GetSpriteSize(img);
-	DrawSprite (dpi, img, PAL_NONE, CenterBounds(r.left, r.right, d.width), CenterBounds(r.top, r.bottom, d.height));
+
+	const Sprite *sprite = GetSprite (img, ST_NORMAL);
+	int width  = UnScaleByZoom (sprite->width,  ZOOM_LVL_GUI);
+	int height = UnScaleByZoom (sprite->height, ZOOM_LVL_GUI);
+	int x = CenterBounds (r.left, r.right, width)  - UnScaleByZoom (sprite->x_offs, ZOOM_LVL_GUI);
+	int y = CenterBounds (r.top, r.bottom, height) - UnScaleByZoom (sprite->y_offs, ZOOM_LVL_GUI);
+	DrawSprite (dpi, img, PAL_NONE, x, y);
 }
 
 /**
