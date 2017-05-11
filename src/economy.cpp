@@ -1823,6 +1823,8 @@ static void LoadUnloadVehicle(Vehicle *front)
 			SetBit(cargo_full, v->cargo_type);
 		} else if ((v->cargo.TotalCount() > 0) || cargo_locked) {
 			to_load.push_back (LoadingVehicle (v, cap_left, load_amount));
+		} else {
+			SetBit(cargo_not_full, v->cargo_type);
 		}
 	}
 
