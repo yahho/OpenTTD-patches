@@ -115,9 +115,7 @@ void DriverSystem::erase (const char *name)
 void DriverSystem::select (const char *name)
 {
 	if (this->drivers->empty()) {
-		StrEmpty(name) ?
-			usererror ("Failed to autoprobe %s driver", this->desc) :
-			usererror ("Failed to select requested %s driver '%s'", this->desc, name);
+		usererror ("No %s drivers found", this->desc);
 	}
 
 	if (StrEmpty(name)) {
