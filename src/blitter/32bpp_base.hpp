@@ -18,7 +18,7 @@
 /** Base for all 32bpp blitters. */
 class Blitter_32bppBase : public Blitter {
 public:
-	/* virtual */ uint8 GetScreenDepth() { return 32; }
+	static const uint screen_depth = 32; ///< Screen depth.
 
 	/**
 	 * Compose a colour based on RGBA values and the current pixel value.
@@ -160,7 +160,7 @@ public:
 
 		void *move (void *video, int x, int y) OVERRIDE;
 
-		void scroll (void *video, int &left, int &top, int &width, int &height, int scroll_x, int scroll_y) OVERRIDE;
+		void scroll (int left, int top, int width, int height, int dx, int dy) OVERRIDE;
 
 		void export_lines (void *dst, uint dst_pitch, uint y, uint height) OVERRIDE;
 	};

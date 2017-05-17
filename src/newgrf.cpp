@@ -21,7 +21,7 @@
 #include "town.h"
 #include "newgrf_engine.h"
 #include "newgrf_text.h"
-#include "fontcache.h"
+#include "font.h"
 #include "currency.h"
 #include "landscape.h"
 #include "newgrf_cargo.h"
@@ -573,24 +573,29 @@ static StringID TTDPStringIDToOTTDStringIDMapping(StringID str)
  */
 StringID MapGRFStringID(uint32 grfid, StringID str)
 {
-	/* 0xD0 and 0xDC stand for all the TextIDs in the range
-	 * of 0xD000 (misc graphics texts) and 0xDC00 (misc persistent texts).
-	 * These strings are unique to each grf file, and thus require to be used with the
-	 * grfid in which they are declared */
-	switch (GB(str, 8, 8)) {
-		case 0xD0: case 0xD1: case 0xD2: case 0xD3:
-		case 0xDC:
-			return GetGRFStringID(grfid, str);
-
-		case 0xD4: case 0xD5: case 0xD6: case 0xD7:
-			/* Strings embedded via 0x81 have 0x400 added to them (no real
-			 * explanation why...) */
-			return GetGRFStringID(grfid, str - 0x400);
-
-		default: break;
+	if (IsInsideMM(str, 0xD800, 0xE000)) {
+		/* General text provided by NewGRF.
+		 * In the specs this is called the 0xDCxx range (misc presistent texts),
+		 * but we meanwhile extended the range to 0xD800-0xDFFF.
+		 * Note: We are not involved in the "persistent" business, since we do not store
+		 * any NewGRF strings in savegames. */
+		return GetGRFStringID(grfid, str);
+	} else if (IsInsideMM(str, 0xD000, 0xD800)) {
+		/* Callback text provided by NewGRF.
+		 * In the specs this is called the 0xD0xx range (misc graphics texts).
+		 * These texts can be returned by various callbacks.
+		 *
+		 * Due to how TTDP implements the GRF-local- to global-textid translation
+		 * texts included via 0x80 or 0x81 control codes have to add 0x400 to the textid.
+		 * We do not care about that difference and just mask out the 0x400 bit.
+		 */
+		str &= ~0x400;
+		return GetGRFStringID(grfid, str);
+	} else {
+		/* The NewGRF wants to include/reference an original TTD string.
+		 * Try our best to find an equivalent one. */
+		return TTDPStringIDToOTTDStringIDMapping(str);
 	}
-
-	return TTDPStringIDToOTTDStringIDMapping(str);
 }
 
 static std::map<uint32, uint32> _grf_id_overrides;
@@ -5506,13 +5511,12 @@ static int FeatureNewName (ByteReader *buf)
 				}
 				break;
 
-			case GSF_INDUSTRIES: {
-				AddGRFString(_cur.grffile->grfid, id, lang, new_scheme, true, name, STR_UNDEFINED);
-				break;
-			}
-
-			case GSF_HOUSES:
 			default:
+				if (IsInsideMM(id, 0xD000, 0xD400) || IsInsideMM(id, 0xD800, 0xE000)) {
+					AddGRFString(_cur.grffile->grfid, id, lang, new_scheme, true, name, STR_UNDEFINED);
+					break;
+				}
+
 				switch (GB(id, 8, 8)) {
 					case 0xC4: // Station class name
 						if (_cur.grffile->stations == NULL || _cur.grffile->stations[GB(id, 0, 8)] == NULL) {
@@ -5545,14 +5549,6 @@ static int FeatureNewName (ByteReader *buf)
 						} else {
 							_cur.grffile->housespec[GB(id, 0, 8)]->building_name = AddGRFString(_cur.grffile->grfid, id, lang, new_scheme, false, name, STR_UNDEFINED);
 						}
-						break;
-
-					case 0xD0:
-					case 0xD1:
-					case 0xD2:
-					case 0xD3:
-					case 0xDC:
-						AddGRFString(_cur.grffile->grfid, id, lang, new_scheme, true, name, STR_UNDEFINED);
 						break;
 
 					default:
@@ -5660,7 +5656,7 @@ static int GraphicsNew (ByteReader *buf)
 	uint16 offset = HasBit(type, 7) ? buf->ReadExtendedByte() : 0;
 	ClrBit(type, 7); // Clear the high bit as that only indicates whether there is an offset.
 
-	if ((type == 0x0D) && (num == 10) && _cur.grffile->is_ottdfile) {
+	if ((type == 0x0D) && (num == 10) && HasBit(_cur.grfconfig->flags, GCF_SYSTEM)) {
 		/* Special not-TTDP-compatible case used in openttd.grf
 		 * Missing shore sprites and initialisation of SPR_SHORE_BASE */
 		grfmsg(2, "GraphicsNew: Loading 10 missing shore sprites from extra grf.");
@@ -5718,7 +5714,7 @@ static int GraphicsNew (ByteReader *buf)
 		LoadNextSprite(replace == 0 ? _cur.spriteid++ : replace++, _cur.file_index, _cur.nfo_line, _cur.grf_container_ver);
 	}
 
-	if (type == 0x04 && (_cur.grffile->is_ottdfile || _cur.grfconfig->ident.grfid == BSWAP32(0xFF4F4701))) {
+	if (type == 0x04 && (HasBit(_cur.grfconfig->flags, GCF_SYSTEM) || _cur.grfconfig->ident.grfid == BSWAP32(0xFF4F4701))) {
 		/* Signal graphics action 5: Fill duplicate signal sprite block if this is a baseset GRF or OpenGFX */
 		const SpriteID end = offset + num;
 		for (SpriteID i = offset; i < end; i++) {
@@ -5741,35 +5737,6 @@ static int SkipAct5 (ByteReader *buf)
 	int skip = buf->ReadExtendedByte();
 	grfmsg (3, "SkipAct5: Skipping %d sprites", skip);
 	return skip;
-}
-
-/**
- * Check whether we are (obviously) missing some of the extra
- * (Action 0x05) sprites that we like to use.
- * When missing sprites are found a warning will be shown.
- */
-void CheckForMissingSprites()
-{
-	/* Don't break out quickly, but allow to check the other
-	 * sprites as well, so we can give the best information. */
-	bool missing = false;
-	for (uint8 i = 0; i < lengthof(_action5_types); i++) {
-		const Action5Type *type = &_action5_types[i];
-		if (type->block_type == A5BLOCK_INVALID) continue;
-
-		for (uint j = 0; j < type->max_sprites; j++) {
-			if (!SpriteExists(type->sprite_base + j)) {
-				DEBUG(grf, 0, "%s sprites are missing", type->name);
-				missing = true;
-				/* No need to log more of the same. */
-				break;
-			}
-		}
-	}
-
-	if (missing) {
-		ShowErrorMessage(IsReleasedVersion() ? STR_NEWGRF_ERROR_MISSING_SPRITES : STR_NEWGRF_ERROR_MISSING_SPRITES_UNSTABLE, INVALID_STRING_ID, WL_CRITICAL);
-	}
 }
 
 /**
@@ -6249,7 +6216,7 @@ static int ScanInfo (ByteReader *buf)
 	}
 
 	/* GRF IDs starting with 0xFF are reserved for internal TTDPatch use */
-	if (GB(grfid, 24, 8) == 0xFF) SetBit(_cur.grfconfig->flags, GCF_SYSTEM);
+	if (GB(grfid, 0, 8) == 0xFF) SetBit(_cur.grfconfig->flags, GCF_SYSTEM);
 
 	_cur.grfconfig->name->add (0x7F, grfid, false, name);
 
@@ -6428,7 +6395,7 @@ static int GRFLoadError (ByteReader *buf)
 		} else if (buf->HasData()) {
 			/* This is a custom error message. */
 			const char *message = buf->ReadString();
-			error->custom_message = TranslateTTDPatchCodes(_cur.grffile->grfid, lang, true, message, NULL, SCC_RAW_STRING_POINTER);
+			error->custom_message = TranslateTTDPatchCodes (_cur.grffile->grfid, lang, true, message, SCC_RAW_STRING_POINTER);
 		} else {
 			grfmsg(7, "GRFLoadError: No custom message supplied.");
 			error->custom_message = xstrdup("");
@@ -7343,7 +7310,7 @@ static int TranslateGRFStrings (ByteReader *buf)
 	byte num_strings = buf->ReadByte();
 	uint16 first_id  = buf->ReadWord();
 
-	if (!((first_id >= 0xD000 && first_id + num_strings <= 0xD3FF) || (first_id >= 0xDC00 && first_id + num_strings <= 0xDCFF))) {
+	if (!((first_id >= 0xD000 && first_id + num_strings <= 0xD400) || (first_id >= 0xD800 && first_id + num_strings <= 0xE000))) {
 		grfmsg(7, "TranslateGRFStrings: Attempting to set out-of-range string IDs in action 13 (first: 0x%4X, number: 0x%2X)", first_id, num_strings);
 		return 0;
 	}
@@ -8229,23 +8196,6 @@ static void BuildCargoTranslationMap()
 }
 
 /**
- * Prepare loading a NewGRF file with its config
- * @param config The NewGRF configuration struct with name, id, parameters and alike.
- */
-static void InitNewGRFFile(const GRFConfig *config)
-{
-	GRFFile *newfile = GetFileByFilename(config->filename);
-	if (newfile != NULL) {
-		/* We already loaded it once. */
-		_cur.grffile = newfile;
-		return;
-	}
-
-	newfile = new GRFFile(config);
-	*_grf_files.Append() = _cur.grffile = newfile;
-}
-
-/**
  * Constructor for GRFFile
  * @param config GRFConfig to copy name, grfid and parameters from.
  */
@@ -8891,31 +8841,9 @@ byte GetGRFContainerVersion()
  */
 void LoadNewGRFFile(GRFConfig *config, uint file_index, GrfLoadingStage stage, Subdirectory subdir)
 {
+	assert (file_index < MAX_FILE_SLOTS);
+
 	const char *filename = config->filename;
-
-	/* A .grf file is activated only if it was active when the game was
-	 * started.  If a game is loaded, only its active .grfs will be
-	 * reactivated, unless "loadallgraphics on" is used.  A .grf file is
-	 * considered active if its action 8 has been processed, i.e. its
-	 * action 8 hasn't been skipped using an action 7.
-	 *
-	 * During activation, only actions 0, 1, 2, 3, 4, 5, 7, 8, 9, 0A and 0B are
-	 * carried out.  All others are ignored, because they only need to be
-	 * processed once at initialization.  */
-	if (stage != GLS_FILESCAN && stage != GLS_SAFETYSCAN && stage != GLS_LABELSCAN) {
-		_cur.grffile = GetFileByFilename(filename);
-		if (_cur.grffile == NULL) usererror("File '%s' lost in cache.\n", filename);
-		if (stage == GLS_RESERVE && config->status != GCS_INITIALISED) return;
-		if (stage == GLS_ACTIVATION && !HasBit(config->flags, GCF_RESERVED)) return;
-		_cur.grffile->is_ottdfile = config->IsOpenTTDBaseGRF();
-	}
-
-	if (file_index > LAST_GRF_SLOT) {
-		DEBUG(grf, 0, "'%s' is not loaded as the maximum number of GRFs has been reached", filename);
-		config->status = GCS_DISABLED;
-		config->error  = new GRFError(STR_NEWGRF_ERROR_MSG_FATAL, STR_NEWGRF_ERROR_TOO_MANY_NEWGRFS_LOADED);
-		return;
-	}
 
 	FioOpenFile(file_index, filename, subdir);
 	_cur.file_index = file_index; // XXX
@@ -9236,8 +9164,9 @@ static void AfterLoadGRFs()
  * Load all the NewGRFs.
  * @param load_index The offset for the first sprite to add.
  * @param file_index The Fio index of the first NewGRF to load.
+ * @param num_baseset Number of NewGRFs at the front of the list to look up in the baseset dir instead of the newgrf dir.
  */
-void LoadNewGRF(uint load_index, uint file_index)
+void LoadNewGRF(uint load_index, uint file_index, uint num_baseset)
 {
 	/* In case of networking we need to "sync" the start values
 	 * so all NewGRFs are loaded equally. For this we use the
@@ -9277,6 +9206,7 @@ void LoadNewGRF(uint load_index, uint file_index)
 	/* Load newgrf sprites
 	 * in each loading stage, (try to) open each file specified in the config
 	 * and load information from it. */
+	uint num_non_static = 0;
 	for (GrfLoadingStage stage = GLS_LABELSCAN; stage <= GLS_ACTIVATION; stage++) {
 		/* Set activated grfs back to will-be-activated between reservation- and activation-stage.
 		 * This ensures that action7/9 conditions 0x06 - 0x0A work correctly. */
@@ -9302,14 +9232,58 @@ void LoadNewGRF(uint load_index, uint file_index)
 			if (c->status == GCS_DISABLED || c->status == GCS_NOT_FOUND) continue;
 			if (stage > GLS_INIT && HasBit(c->flags, GCF_INIT_ONLY)) continue;
 
-			Subdirectory subdir = slot == file_index ? BASESET_DIR : NEWGRF_DIR;
+			Subdirectory subdir = slot < file_index + num_baseset ? BASESET_DIR : NEWGRF_DIR;
 			if (!FioCheckFileExists(c->filename, subdir)) {
 				DEBUG(grf, 0, "NewGRF file is missing '%s'; disabling", c->filename);
 				c->status = GCS_NOT_FOUND;
 				continue;
 			}
 
-			if (stage == GLS_LABELSCAN) InitNewGRFFile(c);
+			/* A .grf file is activated only if it was active
+			 * when the game was started.  If a game is loaded,
+			 * only its active .grfs will be reactivated, unless
+			 * "loadallgraphics on" is used.  A .grf file is
+			 * considered active if its action 8 has been
+			 * processed, i.e. its action 8 hasn't been skipped
+			 * using an action 7.
+			 *
+			 * During activation, only actions 0, 1, 2, 3, 4, 5,
+			 * 7, 8, 9, 0A and 0B are carried out.  All others
+			 * are ignored, because they only need to be
+			 * processed once at initialization.  */
+
+			_cur.grffile = GetFileByFilename (c->filename);
+			if (stage == GLS_LABELSCAN) {
+				if (_cur.grffile == NULL) {
+					_cur.grffile = new GRFFile (c);
+					*_grf_files.Append() = _cur.grffile;
+				}
+
+				bool disable = false;
+				if (slot == MAX_FILE_SLOTS) {
+					DEBUG(grf, 0, "'%s' is not loaded as the maximum number of file slots has been reached", c->filename);
+					disable = true;
+				} else if (!HasBit(c->flags, GCF_STATIC) && !HasBit(c->flags, GCF_SYSTEM)) {
+					if (num_non_static == NETWORK_MAX_GRF_COUNT) {
+						DEBUG(grf, 0, "'%s' is not loaded as the maximum number of non-static GRFs has been reached", c->filename);
+						disable = true;
+					} else {
+						num_non_static++;
+					}
+				}
+				if (disable) {
+					c->status = GCS_DISABLED;
+					c->error  = new GRFError (STR_NEWGRF_ERROR_MSG_FATAL, STR_NEWGRF_ERROR_TOO_MANY_NEWGRFS_LOADED);
+					continue;
+				}
+			} else {
+				if (_cur.grffile == NULL) usererror ("File '%s' lost in cache.\n", c->filename);
+				if (stage == GLS_RESERVE && c->status != GCS_INITIALISED) return;
+				if (stage == GLS_ACTIVATION && !HasBit(c->flags, GCF_RESERVED)) return;
+			}
+
+			assert (slot < MAX_FILE_SLOTS);
+
 			LoadNewGRFFile(c, slot++, stage, subdir);
 			if (stage == GLS_RESERVE) {
 				SetBit(c->flags, GCF_RESERVED);

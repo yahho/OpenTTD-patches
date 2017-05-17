@@ -30,11 +30,13 @@ const char *VideoDriver_Null::Start(const char * const *parm)
 
 	/* Do not render, nor blit */
 	DEBUG(misc, 1, "Forcing blitter 'null'...");
-	Blitter *blitter = Blitter::select ("null");
+	const Blitter::Info *blitter = Blitter::find ("null");
 	/* The null blitter should always be available. */
 	assert (blitter != NULL);
+	Blitter::select (blitter);
 	_screen_surface.reset (blitter->create (NULL, _cur_resolution.width,
-				_cur_resolution.height, _cur_resolution.width));
+				_cur_resolution.height, _cur_resolution.width,
+				true));
 	_screen_width  = _cur_resolution.width;
 	_screen_height = _cur_resolution.height;
 	ScreenSizeChanged();
@@ -43,8 +45,6 @@ const char *VideoDriver_Null::Start(const char * const *parm)
 }
 
 void VideoDriver_Null::Stop() { }
-
-void VideoDriver_Null::MakeDirty(int left, int top, int width, int height) {}
 
 void VideoDriver_Null::MainLoop()
 {
@@ -55,7 +55,3 @@ void VideoDriver_Null::MainLoop()
 		UpdateWindows();
 	}
 }
-
-bool VideoDriver_Null::ChangeResolution(int w, int h) { return false; }
-
-bool VideoDriver_Null::ToggleFullscreen(bool fs) { return false; }

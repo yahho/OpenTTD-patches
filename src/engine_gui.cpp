@@ -198,6 +198,7 @@ static StringID GetAircraftEngineInfoString(const Engine *e)
 	uint i = 0;
 	SetDParam(i++, e->GetCost());
 	SetDParam(i++, e->GetDisplayMaxSpeed());
+	SetDParam(i++, e->GetAircraftTypeText());
 	if (range > 0) SetDParam(i++, range);
 	SetDParam(i++, cargo);
 	SetDParam(i++, capacity);
@@ -206,10 +207,10 @@ static StringID GetAircraftEngineInfoString(const Engine *e)
 		SetDParam(i++, CT_MAIL);
 		SetDParam(i++, mail_capacity);
 		SetDParam(i++, e->GetRunningCost());
-		return range > 0 ? STR_ENGINE_PREVIEW_COST_MAX_SPEED_RANGE_CAPACITY_CAPACITY_RUNCOST : STR_ENGINE_PREVIEW_COST_MAX_SPEED_CAPACITY_CAPACITY_RUNCOST;
+		return range > 0 ? STR_ENGINE_PREVIEW_COST_MAX_SPEED_TYPE_RANGE_CAP_CAP_RUNCOST : STR_ENGINE_PREVIEW_COST_MAX_SPEED_TYPE_CAP_CAP_RUNCOST;
 	} else {
 		SetDParam(i++, e->GetRunningCost());
-		return range > 0 ? STR_ENGINE_PREVIEW_COST_MAX_SPEED_RANGE_CAPACITY_RUNCOST : STR_ENGINE_PREVIEW_COST_MAX_SPEED_CAPACITY_RUNCOST;
+		return range > 0 ? STR_ENGINE_PREVIEW_COST_MAX_SPEED_TYPE_RANGE_CAP_RUNCOST : STR_ENGINE_PREVIEW_COST_MAX_SPEED_TYPE_CAP_RUNCOST;
 	}
 }
 
@@ -226,7 +227,7 @@ static StringID GetRoadVehEngineInfoString(const Engine *e)
 			SetDParam(2, CT_INVALID);
 		}
 		SetDParam(4, e->GetRunningCost());
-		return STR_ENGINE_PREVIEW_COST_MAX_SPEED_CAPACITY_RUNCOST;
+		return STR_ENGINE_PREVIEW_COST_MAX_SPEED_CAP_RUNCOST;
 	} else {
 		SetDParam(0, e->GetCost());
 		SetDParam(2, e->GetDisplayMaxSpeed());
@@ -254,7 +255,7 @@ static StringID GetShipEngineInfoString(const Engine *e)
 	SetDParam(2, e->GetDefaultCargoType());
 	SetDParam(3, e->GetDisplayDefaultCapacity());
 	SetDParam(4, e->GetRunningCost());
-	return STR_ENGINE_PREVIEW_COST_MAX_SPEED_CAPACITY_RUNCOST;
+	return STR_ENGINE_PREVIEW_COST_MAX_SPEED_CAP_RUNCOST;
 }
 
 
@@ -320,33 +321,3 @@ void DrawVehicleEngine (BlitArea *dpi, int left, int right, int preferred_x,
 		default: NOT_REACHED();
 	}
 }
-
-/**
- * Sort all items using quick sort and given 'CompareItems' function
- * @param el list to be sorted
- * @param compare function for evaluation of the quicksort
- */
-void EngList_Sort(GUIEngineList *el, EngList_SortTypeFunction compare)
-{
-	uint size = el->Length();
-	/* out-of-bounds access at the next line for size == 0 (even with operator[] at some systems)
-	 * generally, do not sort if there are less than 2 items */
-	if (size < 2) return;
-	QSortT(el->Begin(), size, compare);
-}
-
-/**
- * Sort selected range of items (on indices @ <begin, begin+num_items-1>)
- * @param el list to be sorted
- * @param compare function for evaluation of the quicksort
- * @param begin start of sorting
- * @param num_items count of items to be sorted
- */
-void EngList_SortPartial(GUIEngineList *el, EngList_SortTypeFunction compare, uint begin, uint num_items)
-{
-	if (num_items < 2) return;
-	assert(begin < el->Length());
-	assert(begin + num_items <= el->Length());
-	QSortT(el->Get(begin), num_items, compare);
-}
-

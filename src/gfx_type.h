@@ -166,7 +166,7 @@ union Colour {
 	 * @param b The channel for the blue colour.
 	 * @param a The channel for the alpha/transparency.
 	 */
-	Colour(uint8 r, uint8 g, uint8 b, uint8 a = 0xFF) :
+	CONSTEXPR Colour (uint8 r, uint8 g, uint8 b, uint8 a = 0xFF) :
 #if TTD_ENDIAN == TTD_BIG_ENDIAN
 		a(a), r(r), g(g), b(b)
 #else
@@ -179,7 +179,7 @@ union Colour {
 	 * Create a new colour.
 	 * @param The colour in the correct packed format.
 	 */
-	Colour(uint data = 0) : data(data)
+	CONSTEXPR Colour (uint data = 0) : data (data)
 	{
 	}
 };
@@ -294,11 +294,7 @@ enum SpriteType {
 static const uint MILLISECONDS_PER_TICK = 30;
 
 /** Information about the currently used palette. */
-struct Palette {
-	Colour palette[256]; ///< Current palette. Entry 0 has to be always fully transparent!
-	int first_dirty;     ///< The first dirty element.
-	int count_dirty;     ///< The number of dirty elements.
-};
+typedef Colour Palette[256];
 
 /** Modes for 8bpp support */
 enum Support8bpp {

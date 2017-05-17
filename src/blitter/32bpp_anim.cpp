@@ -32,13 +32,13 @@ inline void Blitter_32bppAnim::Surface::draw (const BlitterParams *bp, ZoomLevel
 	}
 
 	Colour *dst = (Colour *)bp->dst + bp->top * bp->pitch + bp->left;
-	uint16 *anim = this->get_anim_pos (bp->dst) + bp->top * this->width + bp->left;
+	uint16 *anim = this->get_anim_pos (bp->dst) + bp->top * bp->pitch + bp->left;
 
 	const byte *remap = bp->remap; // store so we don't have to access it via bp everytime
 
 	for (int y = 0; y < bp->height; y++) {
 		Colour *dst_ln = dst + bp->pitch;
-		uint16 *anim_ln = anim + this->width;
+		uint16 *anim_ln = anim + bp->pitch;
 
 		const Colour *src_px_ln = (const Colour *)((const byte *)src_px + *(const uint32 *)src_px);
 		src_px++;
@@ -271,7 +271,7 @@ void Blitter_32bppAnimBase::Surface::recolour_rect (void *dst, int width, int he
 				anim++;
 			}
 			udst = udst - width + this->pitch;
-			anim = anim - width + this->width;
+			anim = anim - width + this->pitch;
 		} while (--height);
 		return;
 	}
@@ -284,7 +284,7 @@ void Blitter_32bppAnimBase::Surface::recolour_rect (void *dst, int width, int he
 				anim++;
 			}
 			udst = udst - width + this->pitch;
-			anim = anim - width + this->width;
+			anim = anim - width + this->pitch;
 		} while (--height);
 		return;
 	}
@@ -298,7 +298,7 @@ void Blitter_32bppAnimBase::Surface::set_pixel (void *video, int x, int y, uint8
 
 	/* Set the colour in the anim-buffer too. */
 	uint16 *anim = this->get_anim_pos (video);
-	*(movew <uint16> (anim, x, y, this->width)) = colour | (DEFAULT_BRIGHTNESS << 8);
+	*(movep <uint16> (anim, x, y)) = colour | (DEFAULT_BRIGHTNESS << 8);
 }
 
 void Blitter_32bppAnimBase::Surface::draw_rect (void *video, int width, int height, uint8 colour)
@@ -318,7 +318,7 @@ void Blitter_32bppAnimBase::Surface::draw_rect (void *video, int width, int heig
 			anim++;
 		}
 		video = (uint32 *)video + this->pitch;
-		anim_line += this->width;
+		anim_line += this->pitch;
 	} while (--height);
 }
 
@@ -336,7 +336,7 @@ void Blitter_32bppAnimBase::Surface::draw_checker (void *video, uint width, uint
 			anim[i] = acolour;
 		}
 		dst  += this->pitch;
-		anim += this->width;
+		anim += this->pitch;
 	} while (--height > 0);
 }
 
@@ -360,7 +360,7 @@ void Blitter_32bppAnimBase::Surface::paste (const Buffer *src, int x, int y)
 		/* Copy back the anim-buffer */
 		memcpy(anim_line, usrc, width * sizeof(uint16));
 		usrc += width * sizeof(uint16);
-		anim_line += this->width;
+		anim_line += this->pitch;
 
 		/* Okay, it is *very* likely that the image we stored is using
 		 * the wrong palette animated colours. There are two things we
@@ -403,70 +403,23 @@ void Blitter_32bppAnimBase::Surface::copy (Buffer *dst, int x, int y, uint width
 		/* Copy the anim-buffer */
 		memcpy(udst, anim_line, width * sizeof(uint16));
 		udst += width * sizeof(uint16);
-		anim_line += this->width;
+		anim_line += this->pitch;
 	}
 
 	/* Sanity check that we did not overrun the buffer. */
 	assert (udst <= &dst->data.front() + dst->data.size());
 }
 
-void Blitter_32bppAnimBase::Surface::scroll (void *video, int &left, int &top, int &width, int &height, int scroll_x, int scroll_y)
+void Blitter_32bppAnimBase::Surface::scroll (int left, int top, int width, int height, int dx, int dy)
 {
-	assert (video >= this->ptr && video <= (uint32 *)this->ptr + this->width + this->height * this->pitch);
-	uint16 *dst, *src;
-
+	this->Blitter::Surface::scroll<uint32> (this->ptr, left, top, width, height, dx, dy);
 	/* We need to scroll the anim-buffer too */
-	if (scroll_y > 0) {
-		dst = movew <uint16> (this->anim_buf, left, top + height - 1, this->width);
-		src = dst - scroll_y * this->width;
-
-		/* Adjust left & width */
-		if (scroll_x >= 0) {
-			dst += scroll_x;
-		} else {
-			src -= scroll_x;
-		}
-
-		uint tw = width + (scroll_x >= 0 ? -scroll_x : scroll_x);
-		uint th = height - scroll_y;
-		for (; th > 0; th--) {
-			memcpy(dst, src, tw * sizeof(uint16));
-			src -= this->width;
-			dst -= this->width;
-		}
-	} else {
-		/* Calculate pointers */
-		dst = movew <uint16> (this->anim_buf, left, top, this->width);
-		src = dst + (-scroll_y) * this->width;
-
-		/* Adjust left & width */
-		if (scroll_x >= 0) {
-			dst += scroll_x;
-		} else {
-			src -= scroll_x;
-		}
-
-		/* the y-displacement may be 0 therefore we have to use memmove,
-		 * because source and destination may overlap */
-		uint tw = width + (scroll_x >= 0 ? -scroll_x : scroll_x);
-		uint th = height + scroll_y;
-		for (; th > 0; th--) {
-			memmove(dst, src, tw * sizeof(uint16));
-			src += this->width;
-			dst += this->width;
-		}
-	}
-
-	this->Blitter_32bppBase::Surface::scroll (video, left, top, width, height, scroll_x, scroll_y);
+	this->Blitter::Surface::scroll<uint16> (this->anim_buf, left, top, width, height, dx, dy);
 }
 
 bool Blitter_32bppAnimBase::Surface::palette_animate (const Palette &palette)
 {
-	this->palette = palette;
-	/* If first_dirty is 0, it is for 8bpp indication to send the new
-	 *  palette. However, only the animation colours might possibly change.
-	 *  Especially when going between toyland and non-toyland. */
-	assert (this->palette.first_dirty == PALETTE_ANIM_START || this->palette.first_dirty == 0);
+	this->set_palette (palette);
 
 	const uint16 *anim = this->anim_buf;
 	Colour *dst = (Colour *)this->ptr;
@@ -483,6 +436,7 @@ bool Blitter_32bppAnimBase::Surface::palette_animate (const Palette &palette)
 			anim++;
 		}
 		dst += this->pitch - this->width;
+		anim += this->pitch - this->width;
 	}
 
 	/* Make sure the backend redraws the whole screen */

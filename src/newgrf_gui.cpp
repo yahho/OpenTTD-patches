@@ -39,10 +39,6 @@
 
 #include <map>
 
-/* Maximum number of NewGRFs that may be loaded. Six reserved slots are:
- * 0 - config, 1 - sound, 2 - base, 3 - logos, 4 - climate, 5 - extra */
-static const int MAX_NEWGRFS = MAX_FILE_SLOTS - 6;
-
 /**
  * Show the first NewGRF error we can find.
  */
@@ -622,14 +618,12 @@ static void ShowSavePresetWindow(const char *initial_text);
  * Window for showing NewGRF files
  */
 struct NewGRFWindow : public Window, NewGRFScanCallback {
-	typedef GUIList<const GRFConfig *, StringFilter &> GUIGRFConfigList;
+	typedef GUIList <const GRFConfig *> GUIGRFConfigList;
 
 	static const uint EDITBOX_MAX_SIZE   =  50;
 
 	static Listing   last_sorting;   ///< Default sorting of #GUIGRFConfigList.
-	static Filtering last_filtering; ///< Default filtering of #GUIGRFConfigList.
 	static GUIGRFConfigList::SortFunction   * const sorter_funcs[]; ///< Sort functions of the #GUIGRFConfigList.
-	static GUIGRFConfigList::FilterFunction * const filter_funcs[]; ///< Filter functions of the #GUIGRFConfigList.
 
 	GUIGRFConfigList avails;    ///< Available (non-active) grfs.
 	const GRFConfig *avail_sel; ///< Currently selected available grf. \c NULL is none is selected.
@@ -678,9 +672,7 @@ struct NewGRFWindow : public Window, NewGRFScanCallback {
 		}
 
 		this->avails.SetListing(this->last_sorting);
-		this->avails.SetFiltering(this->last_filtering);
 		this->avails.SetSortFuncs(this->sorter_funcs);
-		this->avails.SetFilterFuncs(this->filter_funcs);
 		this->avails.ForceRebuild();
 
 		this->OnInvalidateData(GOID_NEWGRF_LIST_EDITED);
@@ -1285,7 +1277,6 @@ struct NewGRFWindow : public Window, NewGRFScanCallback {
 			/* All widgets are now enabled, so disable widgets we can't use */
 			if (this->active_sel == this->actives)    this->DisableWidget(WID_NS_MOVE_UP);
 			if (this->active_sel->next == NULL)       this->DisableWidget(WID_NS_MOVE_DOWN);
-			if (this->active_sel->IsOpenTTDBaseGRF()) this->DisableWidget(WID_NS_REMOVE);
 		}
 
 		this->SetWidgetDisabledState(WID_NS_PRESET_DELETE, this->preset == -1);
@@ -1456,16 +1447,6 @@ private:
 		return memcmp((*a)->ident.md5sum, (*b)->ident.md5sum, lengthof((*b)->ident.md5sum));
 	}
 
-	/** Filter grfs by tags/name */
-	static bool CDECL TagNameFilter(const GRFConfig * const *a, StringFilter &filter)
-	{
-		filter.ResetState();
-		filter.AddLine((*a)->GetName());
-		filter.AddLine((*a)->filename);
-		filter.AddLine((*a)->GetDescription());
-		return filter.GetState();;
-	}
-
 	void BuildAvailables()
 	{
 		if (!this->avails.NeedRebuild()) return;
@@ -1477,9 +1458,7 @@ private:
 			for (const GRFConfig *grf = this->actives; grf != NULL && !found; grf = grf->next) found = grf->ident.matches (c->ident);
 			if (found) continue;
 
-			if (_settings_client.gui.newgrf_show_old_versions) {
-				*this->avails.Append() = c;
-			} else {
+			if (!_settings_client.gui.newgrf_show_old_versions) {
 				const GRFConfig *best = FindGRFConfig(c->ident.grfid, HasBit(c->flags, GCF_INVALID) ? FGCM_NEWEST : FGCM_NEWEST_VALID);
 				/*
 				 * If the best version is 0, then all NewGRF with this GRF ID
@@ -1488,13 +1467,20 @@ private:
 				 * If we are the best version, then we definitely want to
 				 * show that NewGRF!.
 				 */
-				if (best->version == 0 || best->ident.matches (c->ident)) {
-					*this->avails.Append() = c;
+				if (best->version != 0 && !best->ident.matches (c->ident)) {
+					continue;
 				}
+			}
+
+			this->string_filter.ResetState();
+			this->string_filter.AddLine (c->GetName());
+			this->string_filter.AddLine (c->filename);
+			this->string_filter.AddLine (c->GetDescription());
+			if (this->string_filter.GetState()) {
+				*this->avails.Append() = c;
 			}
 		}
 
-		this->avails.Filter(this->string_filter);
 		this->avails.Compact();
 		this->avails.RebuildDone();
 		this->avails.Sort();
@@ -1516,7 +1502,7 @@ private:
 	{
 		if (this->avail_sel == NULL || !this->editable || HasBit(this->avail_sel->flags, GCF_INVALID)) return false;
 
-		int count = 0;
+		uint count = 0;
 		GRFConfig **entry = NULL;
 		GRFConfig **list;
 		/* Find last entry in the list, checking for duplicate grfid on the way */
@@ -1526,10 +1512,10 @@ private:
 				ShowErrorMessage(STR_NEWGRF_DUPLICATE_GRFID, INVALID_STRING_ID, WL_INFO);
 				return false;
 			}
-			count++;
+			if (!HasBit((*list)->flags, GCF_STATIC)) count++;
 		}
 		if (entry == NULL) entry = list;
-		if (count >= MAX_NEWGRFS) {
+		if (count >= NETWORK_MAX_GRF_COUNT) {
 			ShowErrorMessage(STR_NEWGRF_TOO_MANY_NEWGRFS, INVALID_STRING_ID, WL_INFO);
 			return false;
 		}
@@ -1578,14 +1564,9 @@ void ShowMissingContentWindow(const GRFConfig *list)
 #endif
 
 Listing NewGRFWindow::last_sorting     = {false, 0};
-Filtering NewGRFWindow::last_filtering = {false, 0};
 
 NewGRFWindow::GUIGRFConfigList::SortFunction * const NewGRFWindow::sorter_funcs[] = {
 	&NameSorter,
-};
-
-NewGRFWindow::GUIGRFConfigList::FilterFunction * const NewGRFWindow::filter_funcs[] = {
-	&TagNameFilter,
 };
 
 /**

@@ -20,29 +20,29 @@
 #include "core/string_compare_type.hpp"
 #include "gfx_type.h"
 #include "textfile.h"
+#include "ini_type.h"
 
 /* Forward declare these; can't do 'struct X' in functions as older GCCs barf on that */
-struct IniFile;
 struct ContentInfo;
-
-/** Structure holding filename and MD5 information about a single file */
-struct MD5File {
-	/** The result of a checksum check */
-	enum ChecksumResult {
-		CR_MATCH,    ///< The file did exist and the md5 checksum did match
-		CR_MISMATCH, ///< The file did exist, just the md5 checksum did not match
-		CR_NO_FILE,  ///< The file did not exist
-	};
-
-	const char *filename;        ///< filename
-	uint8 hash[16];              ///< md5 sum of the file
-	const char *missing_warning; ///< warning when this file is missing
-
-	ChecksumResult CheckMD5(Subdirectory subdir, size_t max_size) const;
-};
 
 /** Description of a single base set. */
 struct BaseSetDesc {
+public:
+	/** Structure holding filename and MD5 information about a single file */
+	struct FileDesc {
+		/** Actual status of this file. */
+		enum Status {
+			MATCH,    ///< The file did exist and the md5 checksum did match
+			MISMATCH, ///< The file did exist, just the md5 checksum did not match
+			MISSING,  ///< The file did not exist
+		};
+
+		const char *filename;        ///< filename
+		uint8 hash[16];              ///< md5 sum of the file
+		const char *missing_warning; ///< warning when this file is missing
+		Status status;               ///< status of this file
+	};
+
 private:
 	typedef std::map <const char *, ttd_unique_free_ptr<char>, StringCompare> StringMap;
 
@@ -84,6 +84,13 @@ public:
 
 	/* Add a description of this set for a given language. */
 	void add_desc (const char *lang, const char *desc);
+
+	/* Try to read a single piece of metadata from an ini file. */
+	static const IniItem *fetch_metadata (const IniGroup *metadata,
+		const char *name, const char *type, const char *filename);
+
+	/* Calculate and check the MD5 hash of the supplied file. */
+	static FileDesc::Status CheckMD5 (const FileDesc *file);
 };
 
 /**
@@ -96,7 +103,7 @@ struct BaseSet : BaseSetDesc {
 	/** Number of files in this set */
 	static const size_t NUM_FILES = Tnum_files;
 
-	MD5File files[NUM_FILES];      ///< All files part of this set
+	FileDesc files[NUM_FILES];     ///< All files part of this set
 	uint found_files;              ///< Number of the files that could be found
 	uint valid_files;              ///< Number of the files that could be found and are valid
 
@@ -147,20 +154,6 @@ struct BaseSet : BaseSetDesc {
 	}
 
 	/**
-	 * Calculate and check the MD5 hash of the supplied file.
-	 * @param file The file get the hash of.
-	 * @param subdir The sub directory to get the files from.
-	 * @return
-	 * - #CR_MATCH if the MD5 hash matches
-	 * - #CR_MISMATCH if the MD5 does not match
-	 * - #CR_NO_FILE if the file misses
-	 */
-	static MD5File::ChecksumResult CheckMD5(const MD5File *file, Subdirectory subdir)
-	{
-		return file->CheckMD5(subdir, SIZE_MAX);
-	}
-
-	/**
 	 * Search a textfile file next to this base media.
 	 * @param type The type of the textfile to search for.
 	 * @return A description for the textfile.
@@ -172,6 +165,19 @@ struct BaseSet : BaseSetDesc {
 			if (txt.valid()) return txt;
 		}
 		return TextfileDesc();
+	}
+
+	/**
+	 * Try to read a single piece of metadata from an ini file.
+	 * @param metadata The metadata group to search in.
+	 * @param name The name of the item to fetch.
+	 * @param filename The name of the filename for debugging output.
+	 * @return The associated item, or NULL if it doesn't exist.
+	 */
+	static const IniItem *fetch_metadata (const IniGroup *metadata,
+		const char *name, const char *filename)
+	{
+		return BaseSetDesc::fetch_metadata (metadata, name, T::set_type, filename);
 	}
 };
 
@@ -286,7 +292,7 @@ struct GraphicsSet : BaseSet<GraphicsSet, MAX_GFT> {
 	PaletteType palette;       ///< Palette of this graphics set
 	BlitterType blitter;       ///< Blitter of this graphics set
 
-	bool FillSetDetails(struct IniFile *ini, const char *path, const char *full_filename);
+	bool FillSetDetails (IniFile *ini, const char *path, const char *full_filename);
 
 	/** Check if this set is preferred to another one. */
 	bool IsPreferredTo (const GraphicsSet &other) const
@@ -294,12 +300,13 @@ struct GraphicsSet : BaseSet<GraphicsSet, MAX_GFT> {
 		return (this->palette == PAL_DOS) && (other.palette != PAL_DOS);
 	}
 
-	static MD5File::ChecksumResult CheckMD5(const MD5File *file, Subdirectory subdir);
+	static FileDesc::Status CheckMD5 (const FileDesc *file);
 };
 
 /** All data/functions related with replacing the base graphics. */
 class BaseGraphics : public BaseMediaS <GraphicsSet, true> {
 public:
+	static bool SetSet (const char *name);
 };
 
 /** All data of a sounds set. */
@@ -314,6 +321,7 @@ struct SoundsSet : BaseSet<SoundsSet, 1> {
 /** All data/functions related with replacing the base sounds */
 class BaseSounds : public BaseMediaS <SoundsSet, true> {
 public:
+	static bool SetSet (const char *name);
 };
 
 /** Maximum number of songs in the 'class' playlists. */
@@ -339,7 +347,7 @@ struct MusicSet : BaseSet<MusicSet, NUM_SONGS_AVAILABLE> {
 	byte track_nr[NUM_SONGS_AVAILABLE];
 	byte num_available;
 
-	bool FillSetDetails(struct IniFile *ini, const char *path, const char *full_filename);
+	bool FillSetDetails (IniFile *ini, const char *path, const char *full_filename);
 };
 
 /** All data/functions related with replacing the base music */

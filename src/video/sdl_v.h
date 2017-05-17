@@ -29,14 +29,9 @@ public:
 
 	/* virtual */ bool ToggleFullscreen(bool fullscreen);
 
-	/* virtual */ bool AfterBlitterChange();
+	bool SwitchBlitter (const Blitter::Info *blitter) OVERRIDE;
 
 	/* virtual */ bool ClaimMousePointer();
-
-private:
-	int PollEvent();
-	bool CreateMainSurface(uint w, uint h);
-	void SetupKeyboard();
 };
 
 #endif /* VIDEO_SDL_H */

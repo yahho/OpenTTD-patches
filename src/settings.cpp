@@ -41,7 +41,7 @@
 #include "company_func.h"
 #include "rev.h"
 #ifdef WITH_FREETYPE
-#include "fontcache.h"
+#include "font.h"
 #endif
 #include "textbuf_gui.h"
 #include "rail_gui.h"
@@ -1645,7 +1645,7 @@ struct ConfigIniFile : IniFile {
 };
 
 ConfigIniFile::ConfigIniFile()
-	: IniFile (_config_file, BASE_DIR, _list_group_names)
+	: IniFile (_config_file, NO_DIRECTORY, _list_group_names)
 {
 }
 

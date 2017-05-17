@@ -29,7 +29,7 @@
 #include "widgets/autoreplace_widget.h"
 
 void DrawEngineList (VehicleType type, BlitArea *dpi, int x, int r, int y,
-	const GUIEngineList *eng_list, uint16 min, uint16 max,
+	const EngineID *eng, uint num,
 	EngineID selected_id, bool show_count, GroupID selected_group);
 
 static int CDECL EngineNumberSorter(const EngineID *a, const EngineID *b)
@@ -78,6 +78,8 @@ static const StringID _start_replace_dropdown[] = {
  * Window for the autoreplacing of vehicles.
  */
 class ReplaceVehicleWindow : public Window {
+	typedef GUIList <EngineID> GUIEngineList;
+
 	EngineID sel_engine[2];       ///< Selected engine left and right.
 	GUIEngineList engines[2];     ///< Left and right list of engines.
 	bool replace_engines;         ///< If \c true, engines are replaced, if \c false, wagons are replaced (only for trains).
@@ -87,7 +89,7 @@ class ReplaceVehicleWindow : public Window {
 	byte sort_criteria;           ///< Criteria of sorting vehicles.
 	bool descending_sort_order;   ///< Order of sorting vehicles.
 	bool show_hidden_engines;     ///< Whether to show the hidden engines.
-	RailType sel_railtype;        ///< Type of rail tracks selected.
+	RailType sel_railtype;        ///< Type of rail tracks selected. #INVALID_RAILTYPE to show all.
 	Scrollbar *vscroll[2];
 
 	/**
@@ -104,7 +106,7 @@ class ReplaceVehicleWindow : public Window {
 		/* Ensure that the wagon/engine selection fits the engine. */
 		if ((rvi->railveh_type == RAILVEH_WAGON) == show_engines) return false;
 
-		if (draw_left && show_engines) {
+		if (draw_left && this->sel_railtype != INVALID_RAILTYPE) {
 			/* Ensure that the railtype is specific to the selected one */
 			if (rvi->railtype != this->sel_railtype) return false;
 		}
@@ -145,10 +147,10 @@ class ReplaceVehicleWindow : public Window {
 		}
 		this->sel_engine[side] = selected_engine; // update which engine we selected (the same or none, if it's not in the list anymore)
 		if (draw_left) {
-			EngList_Sort(list, &EngineNumberSorter);
+			list->SmallVector <EngineID, 32>::Sort (&EngineNumberSorter);
 		} else {
 			_engine_sort_direction = this->descending_sort_order;
-			EngList_Sort(list, _engine_sort_functions[this->window_number][this->sort_criteria]);
+			list->SmallVector <EngineID, 32>::Sort (_engine_sort_functions[this->window_number][this->sort_criteria]);
 		}
 	}
 
@@ -226,28 +228,10 @@ public:
 		  replace_engines (false), reset_sel_engine (false),
 		  sel_group (0), details_height (0), sort_criteria (0),
 		  descending_sort_order (false), show_hidden_engines (false),
-		  sel_railtype ((RailType)0), vscroll()
+		  sel_railtype (INVALID_RAILTYPE), vscroll()
 	{
 		this->sel_engine[0] = this->sel_engine[1] = (EngineID)0;
 		this->vscroll[0] = this->vscroll[1] = NULL;
-
-		if (vehicletype == VEH_TRAIN) {
-			/* For rail vehicles find the most used vehicle type, which is usually
-			 * better than 'just' the first/previous vehicle type. */
-			uint type_count[RAILTYPE_END];
-			memset(type_count, 0, sizeof(type_count));
-
-			const Engine *e;
-			FOR_ALL_ENGINES_OF_TYPE(e, VEH_TRAIN) {
-				if (e->u.rail.railveh_type == RAILVEH_WAGON) continue;
-				type_count[e->u.rail.railtype] += GetGroupNumEngines(_local_company, id_g, e->index);
-			}
-
-			this->sel_railtype = RAILTYPE_BEGIN;
-			for (RailType rt = RAILTYPE_BEGIN; rt < RAILTYPE_END; rt++) {
-				if (type_count[this->sel_railtype] < type_count[rt]) this->sel_railtype = rt;
-			}
-		}
 
 		this->replace_engines  = true; // start with locomotives (all other vehicles will not read this bool)
 		this->engines[0].ForceRebuild();
@@ -432,7 +416,8 @@ public:
 
 				/* Do the actual drawing */
 				DrawEngineList ((VehicleType)this->window_number, dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP,
-						&this->engines[side], start, end, this->sel_engine[side], side == 0, this->sel_group);
+						this->engines[side].Get(start), end - start,
+						this->sel_engine[side], side == 0, this->sel_group);
 				break;
 			}
 		}
@@ -461,7 +446,7 @@ public:
 
 		if (this->window_number == VEH_TRAIN) {
 			/* Show the selected railtype in the pulldown menu */
-			this->GetWidget<NWidgetCore>(WID_RV_TRAIN_RAILTYPE_DROPDOWN)->widget_data = GetRailTypeInfo(sel_railtype)->strings.replace_text;
+			this->GetWidget<NWidgetCore>(WID_RV_TRAIN_RAILTYPE_DROPDOWN)->widget_data = sel_railtype == INVALID_RAILTYPE ? STR_REPLACE_ALL_RAILTYPE : GetRailTypeInfo(sel_railtype)->strings.replace_text;
 		}
 
 		this->DrawWidgets (dpi);
@@ -521,7 +506,7 @@ public:
 			}
 
 			case WID_RV_TRAIN_RAILTYPE_DROPDOWN: // Railtype selection dropdown menu
-				ShowDropDownList(this, GetRailTypeDropDownList(true), sel_railtype, WID_RV_TRAIN_RAILTYPE_DROPDOWN);
+				ShowDropDownList(this, GetRailTypeDropDownList(true, true), sel_railtype, WID_RV_TRAIN_RAILTYPE_DROPDOWN);
 				break;
 
 			case WID_RV_TRAIN_WAGONREMOVE_TOGGLE: // toggle renew_keep_length

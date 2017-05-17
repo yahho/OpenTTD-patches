@@ -303,7 +303,7 @@ static SigFlags ExploreSegment(Owner owner)
 					if (ss.side == (SignalSideEnum)dir) continue;
 					if (ss.side == SIDE_INTO_BRIDGE) {
 						newss.tile = GetOtherBridgeEnd(ss.tile); // skip to exit tile
-						if (!(flags & SF_TRAIN) && EnsureNoTrainOnTunnelBridgeMiddle(ss.tile, newss.tile).Failed()) flags |= SF_TRAIN;
+						if (!(flags & SF_TRAIN) && !CheckTunnelBridgeMiddleFree (ss.tile, newss.tile)) flags |= SF_TRAIN;
 						newss.side = SIDE_FROM_BRIDGE;
 						ss.tile = newss.tile;
 						ss.side = SIDE_INTO_BRIDGE;
@@ -332,7 +332,7 @@ static SigFlags ExploreSegment(Owner owner)
 
 				if (HasAtMostOneBit(tracks)) { // only one track
 					Track track = TrackBitsToTrack(tracks); // get the only track
-					if (!(flags & SF_TRAIN) && EnsureNoTrainOnTrackBits(ss.tile, tracks).Failed()) flags |= SF_TRAIN;
+					if (!(flags & SF_TRAIN) && !CheckTrackBitsFree (ss.tile, tracks)) flags |= SF_TRAIN;
 
 					// tile can only have signals if it only has one bit
 					if (HasSignalOnTrack(ss.tile, track)) { // now check whole track, not trackdir
@@ -406,12 +406,12 @@ static SigFlags ExploreSegment(Owner owner)
 
 						if (ss.side == SIDE_INTO_TUNNEL) { // going into the wormhole
 							newss.tile = GetOtherTunnelEnd(ss.tile); // skip to exit tile
-							if (!(flags & SF_TRAIN) && EnsureNoTrainOnTunnelBridgeMiddle(ss.tile, newss.tile).Failed()) flags |= SF_TRAIN;
+							if (!(flags & SF_TRAIN) && !CheckTunnelBridgeMiddleFree (ss.tile, newss.tile)) flags |= SF_TRAIN;
 							newss.side = SIDE_FROM_TUNNEL;
 							ss.tile = newss.tile;
 							ss.side = SIDE_INTO_TUNNEL;
 						} else if (ss.side == SIDE_FROM_TUNNEL) { // incoming from the wormhole
-							if (!(flags & SF_TRAIN) && EnsureNoTrainOnTrackBits(ss.tile, TRACK_BIT_ALL).Failed()) flags |= SF_TRAIN;
+							if (!(flags & SF_TRAIN) && !CheckTrackBitsFree (ss.tile, TRACK_BIT_ALL)) flags |= SF_TRAIN;
 							if (maptile_has_tunnel_signals(ss.tile)) {
 								/* Only one-way signals supported in tunnels. */
 								assert(maptile_has_tunnel_signal(ss.tile, true) != maptile_has_tunnel_signal(ss.tile, false));
@@ -430,7 +430,7 @@ static SigFlags ExploreSegment(Owner owner)
 						} else { // neither into nor from the wormhole
 							assert(IsValidDiagDirection((DiagDirection)ss.side));
 							if (ss.side != (SignalSideEnum)ReverseDiagDir(dir)) continue;
-							if (!(flags & SF_TRAIN) && EnsureNoTrainOnTrackBits(ss.tile, TRACK_BIT_ALL).Failed()) flags |= SF_TRAIN;
+							if (!(flags & SF_TRAIN) && !CheckTrackBitsFree (ss.tile, TRACK_BIT_ALL)) flags |= SF_TRAIN;
 							if (maptile_has_tunnel_signals(ss.tile)) {
 								/* Only one-way signals supported in tunnels. */
 								assert(maptile_has_tunnel_signal(ss.tile, true) != maptile_has_tunnel_signal(ss.tile, false));

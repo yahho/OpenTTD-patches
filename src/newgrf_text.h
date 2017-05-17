@@ -48,7 +48,6 @@ private:
 		memcpy (this->text, text, len);
 	}
 
-public:
 	/**
 	 * Allocate and assign a new GRFText with the given text.
 	 * As these strings can have string terminations in them, e.g.
@@ -62,6 +61,10 @@ public:
 	{
 		return new (len) GRFText (text, len);
 	}
+
+public:
+	static GRFText *create (const char *text, uint32 grfid, byte langid,
+				bool allow_newlines);
 
 	/** Create a GRFText for a given string. */
 	static GRFText *create (const char *text)
@@ -85,7 +88,10 @@ StringID GetGRFStringID(uint32 grfid, uint16 stringid);
 const char *GetGRFStringPtr(uint16 stringid);
 void CleanUpStrings();
 void SetCurrentGrfLangID(byte language_id);
-char *TranslateTTDPatchCodes(uint32 grfid, uint8 language_id, bool allow_newlines, const char *str, int *olen = NULL, StringControlCode byte80 = SCC_NEWGRF_PRINT_WORD_STRING_ID);
+
+char *TranslateTTDPatchCodes (uint32 grfid, uint8 language_id,
+	bool allow_newlines, const char *str,
+	StringControlCode byte80 = SCC_NEWGRF_PRINT_WORD_STRING_ID);
 
 bool CheckGrfLangID(byte lang_id, byte grf_version);
 

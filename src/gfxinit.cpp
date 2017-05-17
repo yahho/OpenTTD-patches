@@ -13,7 +13,7 @@
 #include "fios.h"
 #include "newgrf.h"
 #include "3rdparty/md5/md5.h"
-#include "fontcache.h"
+#include "font.h"
 #include "gfx_func.h"
 #include "transparency.h"
 #include "blitter/blitter.h"
@@ -118,47 +118,60 @@ static void LoadGrfFileIndexed(const char *filename, const SpriteID *index_tbl, 
 }
 
 /**
- * Checks whether the MD5 checksums of the files are correct.
- *
- * @note Also checks sample.cat and other required non-NewGRF GRFs for corruption.
+ * Set the graphics set to be used.
+ * @param name of the set to use
+ * @return true if it could be loaded
  */
-void CheckExternalFiles()
+bool BaseGraphics::SetSet (const char *name)
 {
-	if (BaseGraphics::GetUsedSet() == NULL || BaseSounds::GetUsedSet() == NULL) return;
+	if (!BaseMedia<GraphicsSet>::SetSet (name)) return false;
 
 	const GraphicsSet *used_set = BaseGraphics::GetUsedSet();
+	if (used_set == NULL) return true;
 
 	DEBUG(grf, 1, "Using the %s base graphics set", used_set->get_name());
 
-	static const size_t ERROR_MESSAGE_LENGTH = 256;
-	static const size_t MISSING_FILE_MESSAGE_LENGTH = 128;
-
-	/* Allocate for a message for each missing file and for one error
-	 * message per set.
-	 */
-	sstring<MISSING_FILE_MESSAGE_LENGTH * (GraphicsSet::NUM_FILES + SoundsSet::NUM_FILES) + 2 * ERROR_MESSAGE_LENGTH> error_msg;
-
 	if (used_set->GetNumInvalid() != 0) {
 		/* Not all files were loaded successfully, see which ones */
-		error_msg.append_fmt ("Trying to load graphics set '%s', but it is incomplete. The game will probably not run correctly until you properly install this set or select another one. See section 4.1 of readme.txt.\n\nThe following files are corrupted or missing:\n", used_set->get_name());
+		sstring<1024> error_msg;
 		for (uint i = 0; i < GraphicsSet::NUM_FILES; i++) {
-			MD5File::ChecksumResult res = GraphicsSet::CheckMD5(&used_set->files[i], BASESET_DIR);
-			if (res != MD5File::CR_MATCH) error_msg.append_fmt ("\t%s is %s (%s)\n", used_set->files[i].filename, res == MD5File::CR_MISMATCH ? "corrupt" : "missing", used_set->files[i].missing_warning);
+			GraphicsSet::FileDesc::Status status = used_set->files[i].status;
+			if (status != GraphicsSet::FileDesc::MATCH) {
+				error_msg.append_fmt ("\t%s is %s (%s)\n",
+						used_set->files[i].filename,
+						status == GraphicsSet::FileDesc::MISMATCH ? "corrupt" : "missing",
+						used_set->files[i].missing_warning);
+			}
 		}
-		error_msg.append ('\n');
+		ShowInfoF ("Trying to load graphics set '%s', but it is incomplete. The game will probably not run correctly until you properly install this set or select another one. See section 4.1 of readme.txt.\n\nThe following files are corrupted or missing:\n%s", used_set->get_name(), error_msg.c_str());
 	}
 
-	const SoundsSet *sounds_set = BaseSounds::GetUsedSet();
-	if (sounds_set->GetNumInvalid() != 0) {
-		error_msg.append_fmt ("Trying to load sound set '%s', but it is incomplete. The game will probably not run correctly until you properly install this set or select another one. See section 4.1 of readme.txt.\n\nThe following files are corrupted or missing:\n", sounds_set->get_name());
+	return true;
+}
 
+/**
+ * Set the sounds set to be used.
+ * @param name of the set to use
+ * @return true if it could be loaded
+ */
+bool BaseSounds::SetSet (const char *name)
+{
+	if (!BaseMedia<SoundsSet>::SetSet (name)) return false;
+
+	const SoundsSet *sounds_set = BaseSounds::GetUsedSet();
+	if (sounds_set == NULL) return true;
+
+	if (sounds_set->GetNumInvalid() != 0) {
 		assert_compile(SoundsSet::NUM_FILES == 1);
 		/* No need to loop each file, as long as there is only a single
 		 * sound file. */
-		error_msg.append_fmt ("\t%s is %s (%s)\n", sounds_set->files->filename, SoundsSet::CheckMD5(sounds_set->files, BASESET_DIR) == MD5File::CR_MISMATCH ? "corrupt" : "missing", sounds_set->files->missing_warning);
+		ShowInfoF ("Trying to load sound set '%s', but it is incomplete. The game will probably not run correctly until you properly install this set or select another one. See section 4.1 of readme.txt.\n\nThe following files are corrupted or missing:\n\t%s is %s (%s)\n",
+				sounds_set->get_name(), sounds_set->files->filename,
+				sounds_set->files->status == SoundsSet::FileDesc::MISMATCH ? "corrupt" : "missing",
+				sounds_set->files->missing_warning);
 	}
 
-	if (!error_msg.empty()) ShowInfoF ("%s", error_msg.c_str());
+	return true;
 }
 
 /** Actually load the sprite tables. */
@@ -206,29 +219,46 @@ static void LoadSpriteTables()
 	InitializeUnicodeGlyphMap();
 
 	/*
-	 * Load the base NewGRF with OTTD required graphics as first NewGRF.
+	 * Load the base and extra NewGRF with OTTD required graphics as first NewGRF.
 	 * However, we do not want it to show up in the list of used NewGRFs,
 	 * so we have to manually add it, and then remove it later.
 	 */
 	GRFConfig *top = _grfconfig;
-	GRFConfig *master = new GRFConfig(used_set->files[GFT_EXTRA].filename);
+
+	/* Default extra graphics */
+	GRFConfig *master = new GRFConfig("OPENTTD.GRF");
+	master->palette |= GRFP_GRF_DOS;
+	FillGRFDetails(master, false, BASESET_DIR);
+	ClrBit(master->flags, GCF_INIT_ONLY);
+
+	/* Baseset extra graphics */
+	GRFConfig *extra = new GRFConfig(used_set->files[GFT_EXTRA].filename);
 
 	/* We know the palette of the base set, so if the base NewGRF is not
 	 * setting one, use the palette of the base set and not the global
 	 * one which might be the wrong palette for this base NewGRF.
 	 * The value set here might be overridden via action14 later. */
 	switch (used_set->palette) {
-		case PAL_DOS:     master->palette |= GRFP_GRF_DOS;     break;
-		case PAL_WINDOWS: master->palette |= GRFP_GRF_WINDOWS; break;
+		case PAL_DOS:     extra->palette |= GRFP_GRF_DOS;     break;
+		case PAL_WINDOWS: extra->palette |= GRFP_GRF_WINDOWS; break;
 		default: break;
 	}
-	FillGRFDetails(master, false, BASESET_DIR);
+	FillGRFDetails(extra, false, BASESET_DIR);
+	ClrBit(extra->flags, GCF_INIT_ONLY);
 
-	ClrBit(master->flags, GCF_INIT_ONLY);
-	master->next = top;
+	extra->next = top;
+	master->next = extra;
 	_grfconfig = master;
 
-	LoadNewGRF(SPR_NEWGRFS_BASE, i);
+	LoadNewGRF(SPR_NEWGRFS_BASE, i, 2);
+
+	uint total_extra_graphics = SPR_NEWGRFS_BASE - SPR_OPENTTD_BASE;
+	_missing_extra_graphics = GetSpriteCountForSlot(i, SPR_OPENTTD_BASE, SPR_NEWGRFS_BASE);
+	DEBUG(sprite, 1, "%u extra sprites, %u from baseset, %u from fallback", total_extra_graphics, total_extra_graphics - _missing_extra_graphics, _missing_extra_graphics);
+
+	/* The original baseset extra graphics intentionally make use of the fallback graphics.
+	 * Let's say everything which provides less than 500 sprites misses the rest intentionally. */
+	if (500 + _missing_extra_graphics > total_extra_graphics) _missing_extra_graphics = 0;
 
 	_first_user_grf_file_index = i + 1;
 	_opengfx_grf_file_index = -1;
@@ -243,6 +273,7 @@ static void LoadSpriteTables()
 	}
 
 	/* Free and remove the top element. */
+	delete extra;
 	delete master;
 	_grfconfig = top;
 }
@@ -252,7 +283,7 @@ static void LoadSpriteTables()
  * Select the blitter needed by NewGRF config.
  * @return The blitter to switch to.
  */
-static const char *SelectNewGRFBlitter (void)
+static const Blitter::Info *SelectNewGRFBlitter (void)
 {
 	/* Get preferred depth.
 	 *  - base_wants_32bpp: Depth required by the baseset, i.e. the majority of the sprites.
@@ -276,35 +307,8 @@ static const char *SelectNewGRFBlitter (void)
 	}
 
 	/* Search the best blitter. */
-	static const struct {
-		const char *name;
-		byte animation;   ///< 0: no support, 1: do support, 2: both
-		byte base_depth;  ///< 0: 8bpp, 1: 32bpp, 2: both
-		byte grf_depth;   ///< 0: 8bpp, 1: 32bpp, 2: both
-	} replacement_blitters[] = {
-#ifdef WITH_SSE
-		{ "32bpp-sse4",       0,  1,  2 },
-		{ "32bpp-ssse3",      0,  1,  2 },
-		{ "32bpp-sse2",       0,  1,  2 },
-		{ "32bpp-sse4-anim",  1,  1,  2 },
-#endif
-		{ "8bpp-optimized",   2,  0,  0 },
-		{ "32bpp-optimized",  0,  2,  2 },
-		{ "32bpp-anim",       1,  2,  2 },
-	};
-
-	const bool animation_wanted = HasBit(_display_opt, DO_FULL_ANIMATION);
-
-	for (uint i = 0; ; i++) {
-		/* One of the last two blitters should always match. */
-		assert (i < lengthof(replacement_blitters));
-
-		if (replacement_blitters[i].animation  == (animation_wanted ? 0 : 1)) continue;
-		if (replacement_blitters[i].base_depth == (base_wants_32bpp ? 0 : 1)) continue;
-		if (replacement_blitters[i].grf_depth  == (grf_wants_32bpp  ? 0 : 1)) continue;
-
-		return replacement_blitters[i].name;
-	}
+	return Blitter::choose (HasBit(_display_opt, DO_FULL_ANIMATION),
+				base_wants_32bpp, grf_wants_32bpp);
 }
 
 /**
@@ -317,25 +321,17 @@ static bool SwitchNewGRFBlitter()
 	if (!Blitter::autodetected) return false;
 
 	/* Null driver => dedicated server => do nothing. */
-	if (Blitter::get()->GetScreenDepth() == 0) return false;
+	if (Blitter::get()->screen_depth == 0) return false;
 
-	const char *repl_blitter = SelectNewGRFBlitter();
-	const char *cur_blitter = Blitter::get_name();
-	if (strcmp (repl_blitter, cur_blitter) == 0) return false;
+	const Blitter::Info *repl = SelectNewGRFBlitter();
+	/* The replacement blitter should always be available. */
+	assert (repl != NULL);
+	const Blitter::Info *cur  = Blitter::get();
+	if (repl == cur) return false;
 
-	DEBUG(misc, 1, "Switching blitter from '%s' to '%s'... ", cur_blitter, repl_blitter);
-	Blitter *new_blitter = Blitter::select (repl_blitter);
-	/* Blitter::select only fails if it cannot find a blitter by
-	 * the given name, and all of the replacement blitters in the
-	 * replacement list should be available. */
-	assert (new_blitter != NULL);
-	DEBUG(misc, 1, "Successfully switched to %s.", repl_blitter);
-
-	if (!VideoDriver::GetActiveDriver()->AfterBlitterChange()) {
-		/* Failed to switch blitter, let's hope we can return to the old one. */
-		if (Blitter::select (cur_blitter) == NULL || !VideoDriver::GetActiveDriver()->AfterBlitterChange()) {
-			usererror("Failed to reinitialize video driver. Specify a fixed blitter in the config");
-		}
+	DEBUG(misc, 1, "Switching blitter from '%s' to '%s'... ", cur->name, repl->name);
+	if (!VideoDriver::GetActiveDriver()->SwitchBlitter (repl)) {
+		usererror ("Failed to reinitialize video driver. Specify a fixed blitter in the config.");
 	}
 
 	return true;
@@ -372,7 +368,7 @@ bool GraphicsSet::FillSetDetails(IniFile *ini, const char *path, const char *ful
 		const IniGroup *metadata = ini->get_group ("metadata");
 		const IniItem *item;
 
-		item = fetch_metadata<GraphicsSet> (metadata, "palette", full_filename);
+		item = this->fetch_metadata (metadata, "palette", full_filename);
 		if (item == NULL) return false;
 		this->palette = (*item->value == 'D' || *item->value == 'd') ? PAL_DOS : PAL_WINDOWS;
 
@@ -384,60 +380,70 @@ bool GraphicsSet::FillSetDetails(IniFile *ini, const char *path, const char *ful
 }
 
 /**
- * Calculate and check the MD5 hash of the supplied GRF.
- * @param file The file get the hash of.
- * @param subdir The sub directory to get the files from.
- * @return
- * - #CR_MATCH if the MD5 hash matches
- * - #CR_MISMATCH if the MD5 does not match
- * - #CR_NO_FILE if the file misses
+ * Calculate and check the MD5 hash of the supplied file.
+ * @param f The file to check.
+ * @param hash The hash to check against.
+ * @param size Use only this many bytes from the file.
+ * @return Whether the file matches the given hash.
  */
-/* static */ MD5File::ChecksumResult GraphicsSet::CheckMD5(const MD5File *file, Subdirectory subdir)
+static bool check_md5 (FILE *f, const byte (&hash) [16], size_t size)
 {
-	size_t size = 0;
-	FILE *f = FioFOpenFile(file->filename, "rb", subdir, &size);
-	if (f == NULL) return MD5File::CR_NO_FILE;
-
-	size_t max = GRFGetSizeOfDataSection(f);
-
-	FioFCloseFile(f);
-
-	return file->CheckMD5(subdir, max);
-}
-
-
-/**
- * Calculate and check the MD5 hash of the supplied filename.
- * @param subdir The sub directory to get the files from
- * @param max_size Only calculate the hash for this many bytes from the file start.
- * @return
- * - #CR_MATCH if the MD5 hash matches
- * - #CR_MISMATCH if the MD5 does not match
- * - #CR_NO_FILE if the file misses
- */
-MD5File::ChecksumResult MD5File::CheckMD5(Subdirectory subdir, size_t max_size) const
-{
-	size_t size;
-	FILE *f = FioFOpenFile(this->filename, "rb", subdir, &size);
-
-	if (f == NULL) return CR_NO_FILE;
-
-	size = min(size, max_size);
-
 	Md5 checksum;
-	uint8 buffer[1024];
-	uint8 digest[16];
-	size_t len;
+	byte buffer[1024];
 
-	while ((len = fread(buffer, 1, (size > sizeof(buffer)) ? sizeof(buffer) : size, f)) != 0 && size != 0) {
+	while (size != 0) {
+		size_t len = fread (buffer, 1, min (size, sizeof(buffer)), f);
+		if (len == 0) break;
 		size -= len;
-		checksum.Append(buffer, len);
+		checksum.Append (buffer, len);
 	}
 
 	FioFCloseFile(f);
 
-	checksum.Finish(digest);
-	return memcmp(this->hash, digest, sizeof(this->hash)) == 0 ? CR_MATCH : CR_MISMATCH;
+	byte digest[16];
+	checksum.Finish (digest);
+	return memcmp (hash, digest, sizeof(hash)) == 0;
+}
+
+/**
+ * Calculate and check the MD5 hash of the supplied GRF.
+ * @param file The file get the hash of.
+ * @return
+ * - #MATCH if the MD5 hash matches
+ * - #MISMATCH if the MD5 does not match
+ * - #MISSING if the file misses
+ */
+/* static */ GraphicsSet::FileDesc::Status GraphicsSet::CheckMD5 (const FileDesc *file)
+{
+	size_t size = 0;
+	FILE *f = FioFOpenFile (file->filename, "rb", BASESET_DIR, &size);
+	if (f == NULL) return FileDesc::MISSING;
+
+	size = min (size, GRFGetSizeOfDataSection (f));
+
+	fseek (f, 0, SEEK_SET);
+
+	return check_md5 (f, file->hash, size) ?
+			FileDesc::MATCH : FileDesc::MISMATCH;
+}
+
+/**
+ * Calculate and check the MD5 hash of the supplied file.
+ * @param file The file get the hash of.
+ * @return
+ * - #MATCH if the MD5 hash matches
+ * - #MISMATCH if the MD5 does not match
+ * - #MISSING if the file misses
+ */
+BaseSetDesc::FileDesc::Status BaseSetDesc::CheckMD5 (const FileDesc *file)
+{
+	size_t size;
+	FILE *f = FioFOpenFile (file->filename, "rb", BASESET_DIR, &size);
+
+	if (f == NULL) return FileDesc::MISSING;
+
+	return check_md5 (f, file->hash, size) ?
+			FileDesc::MATCH : FileDesc::MISMATCH;
 }
 
 /** Names corresponding to the GraphicsFileType */

@@ -29,13 +29,11 @@ public:
 
 	/* virtual */ bool ToggleFullscreen(bool fullscreen);
 
-	/* virtual */ bool AfterBlitterChange();
+	/* virtual */ bool SwitchBlitter (const Blitter::Info *blitter);
 
 	/* virtual */ bool ClaimMousePointer();
 
 	/* virtual */ void EditBoxLostFocus();
-
-	bool MakeWindow(bool full_screen);
 };
 
 #endif /* VIDEO_WIN32_H */

@@ -32,38 +32,40 @@
 #endif
 #endif
 
-/** Blitter creation function template. */
-template <typename B>
-static Blitter *create_blitter (void)
-{
-	return new B;
-}
+#ifdef DEDICATED
+#define IF_BLITTER_GUI(...)
+#else
+#define IF_BLITTER_GUI(...) __VA_ARGS__
+#endif
 
-/** Static per-blitter data. */
-struct BlitterInfo {
-	const char *name;           ///< The name of the blitter.
-	const char *desc;           ///< Description of the blitter.
-	bool (*usable) (void);      ///< Usability check function.
-	Blitter* (*create) (void);  ///< Instance creation function.
+#ifdef WITH_SSE
+#define IF_BLITTER_SSE IF_BLITTER_GUI
+#else
+#define IF_BLITTER_SSE(...)
+#endif
+
+#define BLITTER_LIST(p) p(Blitter_Null),            \
+	IF_BLITTER_GUI (p(Blitter_8bppSimple),)     \
+	IF_BLITTER_GUI (p(Blitter_8bppOptimized),)  \
+	IF_BLITTER_GUI (p(Blitter_32bppSimple),)    \
+	IF_BLITTER_GUI (p(Blitter_32bppOptimized),) \
+	IF_BLITTER_GUI (p(Blitter_32bppAnim),)      \
+	IF_BLITTER_SSE (p(Blitter_32bppSSE2),)      \
+	IF_BLITTER_SSE (p(Blitter_32bppSSSE3),)     \
+	IF_BLITTER_SSE (p(Blitter_32bppSSE4),)      \
+	IF_BLITTER_SSE (p(Blitter_32bppSSE4_Anim),)
+
+/** List of blitters. */
+enum Blitters {
+#define BLITTER(B) BLITTER_##B
+BLITTER_LIST(BLITTER)
+#undef BLITTER
 };
 
 /** Static blitter data. */
-static const BlitterInfo blitter_data[] = {
-#define BLITTER(B) { B::name, B::desc, &B::usable, &create_blitter<B> }
-	BLITTER (Blitter_Null),
-#ifndef DEDICATED
-	BLITTER (Blitter_8bppSimple),
-	BLITTER (Blitter_8bppOptimized),
-	BLITTER (Blitter_32bppSimple),
-	BLITTER (Blitter_32bppOptimized),
-	BLITTER (Blitter_32bppAnim),
-#ifdef WITH_SSE
-	BLITTER (Blitter_32bppSSE2),
-	BLITTER (Blitter_32bppSSSE3),
-	BLITTER (Blitter_32bppSSE4),
-	BLITTER (Blitter_32bppSSE4_Anim),
-#endif /* WITH_SSE */
-#endif /* DEDICATED */
+static const Blitter::Info blitter_data[] = {
+#define BLITTER(B) { B::name, B::desc, &B::usable, &B::create, &B::Encode, B::screen_depth, B::palette_animation }
+BLITTER_LIST(BLITTER)
 #undef BLITTER
 };
 
@@ -76,7 +78,7 @@ static BlitterSet get_usable_blitters (void)
 	BlitterSet set;
 
 	for (uint i = 0; i < set.size(); i++) {
-		const BlitterInfo *data = &blitter_data[i];
+		const Blitter::Info *data = &blitter_data[i];
 		bool usable = data->usable();
 		set.set (i, usable);
 		DEBUG(driver, 1, "Blitter %s%s registered", data->name,
@@ -94,10 +96,7 @@ static const BlitterSet usable_blitters (get_usable_blitters());
 char *Blitter::ini;
 
 /** Current blitter info. */
-static const BlitterInfo *current_info;
-
-/** Current blitter instance. */
-ttd_unique_ptr<Blitter> current_blitter;
+const Blitter::Info *current_blitter;
 
 /** Whether the current blitter was autodetected or specified by the user. */
 bool Blitter::autodetected;
@@ -107,11 +106,11 @@ bool Blitter::autodetected;
  * @param name The blitter to select.
  * @return The blitter data, or NULL when there isn't one with the wanted name.
  */
-static const BlitterInfo *find_blitter (const char *name)
+const Blitter::Info *Blitter::find (const char *name)
 {
 	for (uint i = 0; i < lengthof(blitter_data); i++) {
 		if (usable_blitters.test (i)) {
-			const BlitterInfo *data = &blitter_data[i];
+			const Blitter::Info *data = &blitter_data[i];
 			if (strcasecmp (name, data->name) == 0) return data;
 		}
 	}
@@ -120,29 +119,57 @@ static const BlitterInfo *find_blitter (const char *name)
 }
 
 /**
- * Find the requested blitter and return his class.
- * @param name the blitter to select.
- * @post Sets the blitter so Blitter::get() returns it too.
+ * Find a replacement blitter given some requirements.
+ * @param anim       Whether animation is wanted.
+ * @param base_32bpp Whether the baseset requires 32 bpp.
+ * @param grf_32bpp  Whether a NewGRF requires 32 bpp.
+ * @return A suitable replacement blitter.
  */
-Blitter *Blitter::select (const char *name)
+const Blitter::Info *Blitter::choose (bool anim, bool base_32bpp, bool grf_32bpp)
 {
-	assert (!StrEmpty (name));
+#ifdef DEDICATED
+	return &blitter_data[BLITTER_Blitter_Null];
+#else
+	static const struct {
+		byte blitter;     ///< Blitter index into blitter_data.
+		byte animation;   ///< 0: no support, 1: do support, 2: both
+		byte base_depth;  ///< 0: 8bpp, 1: 32bpp, 2: both
+		byte grf_depth;   ///< 0: 8bpp, 1: 32bpp, 2: both
+	} replacement_blitters[] = {
+#ifdef WITH_SSE
+		{ BLITTER_Blitter_32bppSSE4,       0,  1,  2 },
+		{ BLITTER_Blitter_32bppSSSE3,      0,  1,  2 },
+		{ BLITTER_Blitter_32bppSSE2,       0,  1,  2 },
+		{ BLITTER_Blitter_32bppSSE4_Anim,  1,  1,  2 },
+#endif
+		{ BLITTER_Blitter_8bppOptimized,   2,  0,  0 },
+		{ BLITTER_Blitter_32bppOptimized,  0,  2,  2 },
+		{ BLITTER_Blitter_32bppAnim,       1,  2,  2 },
+	};
 
-	const BlitterInfo *data = find_blitter (name);
-	if (data == NULL) return NULL;
+	for (uint i = 0; ; i++) {
+		/* One of the last two blitters should always match. */
+		assert (i < lengthof(replacement_blitters));
 
-	Blitter *blitter = data->create();
-	current_blitter.reset (blitter);
-	current_info = data;
+		if (replacement_blitters[i].animation  == (anim       ? 0 : 1)) continue;
+		if (replacement_blitters[i].base_depth == (base_32bpp ? 0 : 1)) continue;
+		if (replacement_blitters[i].grf_depth  == (grf_32bpp  ? 0 : 1)) continue;
 
-	DEBUG(driver, 1, "Successfully loaded blitter %s", data->name);
-	return blitter;
+		uint k = replacement_blitters[i].blitter;
+		if (usable_blitters[k]) return &blitter_data[k];
+	}
+#endif
 }
 
-/** Get the name of the current blitter. */
-const char *Blitter::get_name (void)
+/**
+ * Make the given blitter current.
+ * @param blitter Blitter to set.
+ * @post Sets the blitter so Blitter::get() returns it too.
+ */
+void Blitter::select (const Blitter::Info *blitter)
 {
-	return current_info == NULL ? "none" : current_info->name;
+	current_blitter = blitter;
+	DEBUG(driver, 1, "Successfully loaded blitter %s", blitter->name);
 }
 
 /**
@@ -154,13 +181,67 @@ void Blitter::list (stringb *buf)
 	buf->append ("List of blitters:\n");
 	for (uint i = 0; i < lengthof(blitter_data); i++) {
 		if (usable_blitters.test (i)) {
-			const BlitterInfo *data = &blitter_data[i];
+			const Blitter::Info *data = &blitter_data[i];
 			buf->append_fmt ("%18s: %s\n", data->name, data->desc);
 		}
 	}
 	buf->append ('\n');
 }
 
+
+void Blitter::Surface::scroll (char *ptr, int pitch,
+	int left, int top, int width, int height, int dx, int dy)
+{
+	if (dy > 0) {
+		/* Calculate pointers */
+		char *dst = ptr + left + (top + height - 1) * pitch;
+		const char *src = dst - (int) (dy * pitch);
+
+		/* Decrease height and increase top */
+		height -= dy;
+		assert (height > 0);
+
+		/* Adjust left & width */
+		if (dx >= 0) {
+			dst += dx;
+			width -= dx;
+		} else {
+			src -= dx;
+			width += dx;
+		}
+
+		for (int h = height; h > 0; h--) {
+			memcpy (dst, src, width);
+			src -= pitch;
+			dst -= pitch;
+		}
+	} else {
+		/* Calculate pointers */
+		char *dst = ptr + left + top * pitch;
+		const char *src = dst - (int) (dy * pitch);
+
+		/* Decrease height (dy is <= 0) */
+		height += dy;
+		assert (height > 0);
+
+		/* Adjust left & width */
+		if (dx >= 0) {
+			dst += dx;
+			width -= dx;
+		} else {
+			src -= dx;
+			width += dx;
+		}
+
+		/* the y-displacement may be 0 therefore we have to use
+		 * memmove, because source and destination may overlap */
+		for (int h = height; h > 0; h--) {
+			memmove (dst, src, width);
+			src += pitch;
+			dst += pitch;
+		}
+	}
+}
 
 bool Blitter::Surface::palette_animate (const Palette &palette)
 {

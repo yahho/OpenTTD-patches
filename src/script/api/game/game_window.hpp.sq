@@ -582,6 +582,8 @@ static void SQGSWindow_Register (Squirrel *engine)
 	engine->AddConst ("WID_SGI_ARCTIC_LANDSCAPE",                  ScriptWindow::WID_SGI_ARCTIC_LANDSCAPE);
 	engine->AddConst ("WID_SGI_TROPIC_LANDSCAPE",                  ScriptWindow::WID_SGI_TROPIC_LANDSCAPE);
 	engine->AddConst ("WID_SGI_TOYLAND_LANDSCAPE",                 ScriptWindow::WID_SGI_TOYLAND_LANDSCAPE);
+	engine->AddConst ("WID_SGI_BASESET_SELECTION",                 ScriptWindow::WID_SGI_BASESET_SELECTION);
+	engine->AddConst ("WID_SGI_BASESET",                           ScriptWindow::WID_SGI_BASESET);
 	engine->AddConst ("WID_SGI_TRANSLATION_SELECTION",             ScriptWindow::WID_SGI_TRANSLATION_SELECTION);
 	engine->AddConst ("WID_SGI_TRANSLATION",                       ScriptWindow::WID_SGI_TRANSLATION);
 	engine->AddConst ("WID_SGI_OPTIONS",                           ScriptWindow::WID_SGI_OPTIONS);

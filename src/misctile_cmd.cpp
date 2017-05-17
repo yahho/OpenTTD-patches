@@ -41,7 +41,6 @@
 #include "pathfinder/yapf/yapf.h"
 
 #include "table/strings.h"
-#include "table/track_land.h"
 #include "table/road_land.h"
 
 
@@ -192,6 +191,48 @@ static void DrawTunnel(TileInfo *ti)
 	DrawBridgeMiddle(ti);
 }
 
+
+#define TILE_SEQ_LINE(img, dx, dy, sx, sy) \
+	{ dx, dy, 0, sx, sy, 23, {(img) | (1 << PALETTE_MODIFIER_COLOUR), PAL_NONE} }
+#define TILE_SEQ_END() { (int8)0x80, 0, 0, 0, 0, 0, {0, 0} }
+
+static const DrawTileSeqStruct _depot_gfx_NE[] = {
+	TILE_SEQ_LINE(SPR_RAIL_DEPOT_NE,    2, 13, 13,  1),
+	TILE_SEQ_END()
+};
+
+static const DrawTileSeqStruct _depot_gfx_SE[] = {
+	TILE_SEQ_LINE(SPR_RAIL_DEPOT_SE_1,  2,  2,  1, 13),
+	TILE_SEQ_LINE(SPR_RAIL_DEPOT_SE_2, 13,  2,  1, 13),
+	TILE_SEQ_END()
+};
+
+static const DrawTileSeqStruct _depot_gfx_SW[] = {
+	TILE_SEQ_LINE(SPR_RAIL_DEPOT_SW_1,  2,  2, 13,  1),
+	TILE_SEQ_LINE(SPR_RAIL_DEPOT_SW_2,  2, 13, 13,  1),
+	TILE_SEQ_END()
+};
+
+static const DrawTileSeqStruct _depot_gfx_NW[] = {
+	TILE_SEQ_LINE(SPR_RAIL_DEPOT_NW,   13,  2,  1, 13),
+	TILE_SEQ_END()
+};
+
+#undef TILE_SEQ_LINE
+#undef TILE_SEQ_END
+
+struct TrainDepotSprites {
+	SpriteID ground[2]; ///< Ground sprites, visible and invisible.
+	const DrawTileSeqStruct *seq; ///< Array of child sprites.
+};
+
+static const TrainDepotSprites _depot_gfx_table[DIAGDIR_END] = {
+	{ {SPR_FLAT_GRASS_TILE, SPR_RAIL_TRACK_X}, _depot_gfx_NE },
+	{ {SPR_RAIL_TRACK_Y,    SPR_RAIL_TRACK_Y}, _depot_gfx_SE },
+	{ {SPR_RAIL_TRACK_X,    SPR_RAIL_TRACK_X}, _depot_gfx_SW },
+	{ {SPR_FLAT_GRASS_TILE, SPR_RAIL_TRACK_Y}, _depot_gfx_NW },
+};
+
 static void DrawTrainDepotGroundSprite (TileInfo *ti, DiagDirection dir,
 	SpriteID image_x, SpriteID image_y, PaletteID pal)
 {
@@ -218,16 +259,14 @@ static void DrawTrainDepot(TileInfo *ti)
 
 	DiagDirection dir = GetGroundDepotDirection (ti->tile);
 
-	const DrawTileSprites *dts = IsInvisibilitySet(TO_BUILDINGS) ?
-		/* Draw rail instead of depot */
-		_depot_invisible_gfx_table : _depot_gfx_table;
-	dts = &dts[dir];
+	const TrainDepotSprites *dts = &_depot_gfx_table[dir];
 
 	SpriteID image;
 	if (rti->UsesOverlay()) {
 		image = SPR_FLAT_GRASS_TILE;
 	} else {
-		image = dts->ground.sprite;
+		/* Draw rail instead of depot if invisible. */
+		image = dts->ground[IsInvisibilitySet(TO_BUILDINGS)];
 		if (image != SPR_FLAT_GRASS_TILE) image += rti->GetRailtypeSpriteOffset();
 	}
 
@@ -265,14 +304,14 @@ static void DrawTrainDepot(TileInfo *ti)
 
 	int depot_sprite = GetCustomRailSprite(rti, ti->tile, RTSG_DEPOT);
 	SpriteID relocation = depot_sprite != 0 ? depot_sprite - SPR_RAIL_DEPOT_SE_1 : rti->GetRailtypeSpriteOffset();
-	DrawRailTileSeq(ti, dts, TO_BUILDINGS, relocation, 0, palette);
+	DrawRailTileSeq (ti, dts->seq, TO_BUILDINGS, relocation, 0, palette);
 }
 
 void DrawTrainDepotSprite (BlitArea *dpi, int x, int y, int dir, RailType railtype)
 {
-	const DrawTileSprites *dts = &_depot_gfx_table[dir];
+	const TrainDepotSprites *dts = &_depot_gfx_table[dir];
 	const RailtypeInfo *rti = GetRailTypeInfo(railtype);
-	SpriteID image = rti->UsesOverlay() ? SPR_FLAT_GRASS_TILE : dts->ground.sprite;
+	SpriteID image = rti->UsesOverlay() ? SPR_FLAT_GRASS_TILE : dts->ground[0];
 	uint32 offset = rti->GetRailtypeSpriteOffset();
 
 	if (image != SPR_FLAT_GRASS_TILE) image += offset;
@@ -293,26 +332,77 @@ void DrawTrainDepotSprite (BlitArea *dpi, int x, int y, int dir, RailType railty
 	int depot_sprite = GetCustomRailSprite(rti, INVALID_TILE, RTSG_DEPOT);
 	if (depot_sprite != 0) offset = depot_sprite - SPR_RAIL_DEPOT_SE_1;
 
-	DrawRailTileSeqInGUI (dpi, x, y, dts, offset, 0, palette);
+	DrawRailTileSeqInGUI (dpi, x, y, dts->seq, offset, 0, palette);
 }
+
+
+#define TILE_SEQ_LINE(img, pal, dx, dy, sx, sy) \
+	{ dx, dy, 0, sx, sy, 20, {(img) | (1 << PALETTE_MODIFIER_COLOUR), pal} }
+#define TILE_SEQ_END() { (int8)0x80, 0, 0, 0, 0, 0, {0, 0} }
+
+static const DrawTileSeqStruct _road_depot_NE[] = {
+	TILE_SEQ_LINE(0x584, PAL_NONE,  0, 15, 16,  1),
+	TILE_SEQ_END()
+};
+
+static const DrawTileSeqStruct _road_depot_SE[] = {
+	TILE_SEQ_LINE(0x580, PAL_NONE,  0,  0,  1, 16),
+	TILE_SEQ_LINE(0x581, PAL_NONE, 15,  0,  1, 16),
+	TILE_SEQ_END()
+};
+
+static const DrawTileSeqStruct _road_depot_SW[] = {
+	TILE_SEQ_LINE(0x582, PAL_NONE,  0,  0, 16,  1),
+	TILE_SEQ_LINE(0x583, PAL_NONE,  0, 15, 16,  1),
+	TILE_SEQ_END()
+};
+
+static const DrawTileSeqStruct _road_depot_NW[] = {
+	TILE_SEQ_LINE(0x585, PAL_NONE, 15,  0,  1, 16),
+	TILE_SEQ_END()
+};
+
+static const DrawTileSeqStruct _tram_depot_NE[] = {
+	TILE_SEQ_LINE(SPR_TRAMWAY_BASE + 0x35, PAL_NONE,  0, 15, 16,  1),
+	TILE_SEQ_END()
+};
+
+static const DrawTileSeqStruct _tram_depot_SE[] = {
+	TILE_SEQ_LINE(SPR_TRAMWAY_BASE + 0x31, PAL_NONE,  0,  0,  1, 16),
+	TILE_SEQ_LINE(SPR_TRAMWAY_BASE + 0x32, PAL_NONE, 15,  0,  1, 16),
+	TILE_SEQ_END()
+};
+
+static const DrawTileSeqStruct _tram_depot_SW[] = {
+	TILE_SEQ_LINE(SPR_TRAMWAY_BASE + 0x33, PAL_NONE,  0,  0, 16,  1),
+	TILE_SEQ_LINE(SPR_TRAMWAY_BASE + 0x34, PAL_NONE,  0, 15, 16,  1),
+	TILE_SEQ_END()
+};
+
+static const DrawTileSeqStruct _tram_depot_NW[] = {
+	TILE_SEQ_LINE(SPR_TRAMWAY_BASE + 0x36, PAL_NONE, 15,  0,  1, 16),
+	TILE_SEQ_END()
+};
+
+static const DrawTileSeqStruct *_road_depot[2][DIAGDIR_END] = {
+	{ _road_depot_NE, _road_depot_SE, _road_depot_SW, _road_depot_NW },
+	{ _tram_depot_NE, _tram_depot_SE, _tram_depot_SW, _tram_depot_NW },
+};
+
+#undef TILE_SEQ_LINE
+#undef TILE_SEQ_END
 
 static void DrawRoadDepot(TileInfo *ti)
 {
 	assert(IsRoadDepotTile(ti->tile));
 
 	if (ti->tileh != SLOPE_FLAT) DrawFoundation(ti, FOUNDATION_LEVELED);
+	DrawGroundSprite (ti, 0xA4A, PAL_NONE);
 
 	PaletteID palette = COMPANY_SPRITE_COLOUR(GetTileOwner(ti->tile));
-
-	const DrawTileSprites *dts;
-	if (HasTileRoadType(ti->tile, ROADTYPE_TRAM)) {
-		dts =  &_tram_depot[GetGroundDepotDirection(ti->tile)];
-	} else {
-		dts =  &_road_depot[GetGroundDepotDirection(ti->tile)];
-	}
-
-	DrawGroundSprite (ti, dts->ground.sprite, PAL_NONE);
-	DrawOrigTileSeq(ti, dts, TO_BUILDINGS, palette);
+	bool tram = HasTileRoadType (ti->tile, ROADTYPE_TRAM);
+	DiagDirection dir = GetGroundDepotDirection (ti->tile);
+	DrawOrigTileSeq (ti, _road_depot[tram][dir], TO_BUILDINGS, palette);
 }
 
 /**
@@ -325,11 +415,10 @@ static void DrawRoadDepot(TileInfo *ti)
  */
 void DrawRoadDepotSprite (BlitArea *dpi, int x, int y, DiagDirection dir, RoadType rt)
 {
-	PaletteID palette = COMPANY_SPRITE_COLOUR(_local_company);
-	const DrawTileSprites *dts = (rt == ROADTYPE_TRAM) ? &_tram_depot[dir] : &_road_depot[dir];
+	DrawSprite (dpi, 0xA4A, PAL_NONE, x, y);
 
-	DrawSprite (dpi, dts->ground.sprite, PAL_NONE, x, y);
-	DrawOrigTileSeqInGUI (dpi, x, y, dts, palette);
+	PaletteID palette = COMPANY_SPRITE_COLOUR(_local_company);
+	DrawOrigTileSeqInGUI (dpi, x, y, _road_depot[rt][dir], palette);
 }
 
 static void DrawTile_Misc(TileInfo *ti)
@@ -669,7 +758,9 @@ static void GetTileDesc_Misc(TileIndex tile, TileDesc *td)
 			Owner tram_owner = HasBit(rts, ROADTYPE_TRAM) ? GetRoadOwner(tile, ROADTYPE_TRAM) : INVALID_OWNER;
 			Owner rail_owner = GetTileOwner(tile);
 
-			td->rail_speed = GetRailTypeInfo(GetRailType(tile))->max_speed;
+			const RailtypeInfo *rti = GetRailTypeInfo (GetRailType (tile));
+			td->rail[0].type  = rti->strings.name;
+			td->rail[0].speed = rti->max_speed;
 
 			Owner first_owner = (road_owner == INVALID_OWNER ? tram_owner : road_owner);
 			bool mixed_owners = (tram_owner != INVALID_OWNER && tram_owner != first_owner) || (rail_owner != INVALID_OWNER && rail_owner != first_owner);
@@ -700,7 +791,9 @@ static void GetTileDesc_Misc(TileIndex tile, TileDesc *td)
 
 			if (GetTunnelTransportType(tile) == TRANSPORT_RAIL) {
 				td->str = STR_LAI_TUNNEL_DESCRIPTION_RAILROAD;
-				td->rail_speed = GetRailTypeInfo(GetRailType(tile))->max_speed;
+				const RailtypeInfo *rti = GetRailTypeInfo (GetRailType (tile));
+				td->rail[0].type  = rti->strings.name;
+				td->rail[0].speed = rti->max_speed;
 			} else {
 				td->str = STR_LAI_TUNNEL_DESCRIPTION_ROAD;
 
@@ -736,14 +829,14 @@ static void GetTileDesc_Misc(TileIndex tile, TileDesc *td)
 				td->str = STR_LAI_RAIL_DESCRIPTION_TRAIN_DEPOT;
 
 				const RailtypeInfo *rti = GetRailTypeInfo(GetRailType(tile));
-				SetDParamX(td->dparam, 0, rti->strings.name);
-				td->rail_speed = rti->max_speed;
+				td->rail[0].type  = rti->strings.name;
+				td->rail[0].speed = rti->max_speed;
 
 				if (_settings_game.vehicle.train_acceleration_model != AM_ORIGINAL) {
-					if (td->rail_speed > 0) {
-						td->rail_speed = min(td->rail_speed, 61);
+					if (td->rail[0].speed > 0) {
+						td->rail[0].speed = min (td->rail[0].speed, 61);
 					} else {
-						td->rail_speed = 61;
+						td->rail[0].speed = 61;
 					}
 				}
 			} else {

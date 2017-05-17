@@ -52,6 +52,8 @@ GameMode _game_mode;
 SwitchMode _switch_mode;  ///< The next mainloop command.
 PauseModeByte _pause_mode;
 Palette _cur_palette;
+int _cur_palette_first_dirty;
+int _cur_palette_count_dirty;
 
 byte _colour_gradient[COLOUR_END][8];
 
@@ -79,21 +81,6 @@ static const uint DIRTY_BLOCK_WIDTH    = 64;
 static uint _dirty_bytes_per_line = 0;
 static byte *_dirty_blocks = NULL;
 extern uint _dirty_block_colour;
-
-void GfxScroll(int left, int top, int width, int height, int xo, int yo)
-{
-	if (xo == 0 && yo == 0) return;
-
-	if (_cursor.visible) UndrawMouseCursor();
-
-#ifdef ENABLE_NETWORK
-	if (_networking) NetworkUndrawChatMessage();
-#endif /* ENABLE_NETWORK */
-
-	_screen_surface->scroll (_screen_surface->ptr, left, top, width, height, xo, yo);
-	/* This part of the screen is now dirty. */
-	VideoDriver::GetActiveDriver()->MakeDirty(left, top, width, height);
-}
 
 
 /**
@@ -433,23 +420,22 @@ static int DrawLayoutLine (const ParagraphLayouter::Line *line,
 		draw_shadow = colour != TC_BLACK && (colour & TC_NO_SHADE) == 0 && fc->GetDrawGlyphShadow();
 
 		for (int i = 0; i < run->GetGlyphCount(); i++) {
-			GlyphID glyph = run->GetGlyphs()[i];
-
+			ParagraphLayouter::GlyphPos gp;
 			/* Not a valid glyph (empty) */
-			if (glyph == 0xFFFF) continue;
+			if (!run->GetGlyphPos (&gp, i)) continue;
 
-			int begin_x = (int)run->GetPositions()[i * 2]     + left - offset_x;
-			int end_x   = (int)run->GetPositions()[i * 2 + 2] + left - offset_x  - 1;
-			int top     = (int)run->GetPositions()[i * 2 + 1] + y;
+			int begin_x = gp.x0 + left - offset_x;
+			int end_x   = gp.x1 + left - offset_x  - 1;
+			int top     = gp.y + y;
 
 			/* Truncated away. */
 			if (truncation && (begin_x < min_x || end_x > max_x)) continue;
 
-			const Sprite *sprite = fc->GetGlyph(glyph);
+			const Sprite *sprite = fc->GetGlyph (gp.glyph);
 			/* Check clipping (the "+ 1" is for the shadow). */
 			if (begin_x + sprite->x_offs > dpi_right || begin_x + sprite->x_offs + sprite->width /* - 1 + 1 */ < dpi_left) continue;
 
-			if (draw_shadow && (glyph & SPRITE_GLYPH) == 0) {
+			if (draw_shadow && (gp.glyph & SPRITE_GLYPH) == 0) {
 				SetColourRemap(TC_BLACK);
 				GfxMainBlitter (dpi, sprite, begin_x + 1, top + 1, BM_COLOUR_REMAP);
 				SetColourRemap(colour);
@@ -713,7 +699,7 @@ void DrawCharCentered (BlitArea *dpi, WChar c, int x, int y, TextColour colour)
 {
 	SetColourRemap(colour);
 	FontCache *fc = FontCache::Get (FS_NORMAL);
-	GfxMainBlitter (dpi, fc->GetGlyph (fc->MapCharToGlyph (c)),
+	GfxMainBlitter (dpi, fc->GetCharGlyph (c),
 			x - fc->GetCharacterWidth(c) / 2, y, BM_COLOUR_REMAP);
 }
 
@@ -916,7 +902,7 @@ static void GfxBlitter (BlitArea *dpi, const Sprite * const sprite,
 		void *clicked = _newgrf_debug_sprite_picker.clicked_pixel;
 
 		if (topleft <= clicked && clicked <= bottomright) {
-			uint offset = (((size_t)clicked - (size_t)topleft) / (Blitter::get()->GetScreenDepth() / 8)) % bp.pitch;
+			uint offset = (((size_t)clicked - (size_t)topleft) / (Blitter::get()->screen_depth / 8)) % bp.pitch;
 			if (offset < (uint)bp.width) {
 				_newgrf_debug_sprite_picker.sprites.Include(sprite_id);
 			}
@@ -953,8 +939,8 @@ void DoPaletteAnimations()
 	static uint palette_animation_counter = 0;
 	palette_animation_counter++;
 
-	Blitter *blitter = Blitter::get();
-	bool noanim = (blitter != NULL) && (blitter->UsePaletteAnimation() == Blitter::PALETTE_ANIMATION_NONE);
+	const Blitter::Info *blitter = Blitter::get();
+	bool noanim = (blitter != NULL) && (blitter->palette_animation == Blitter::PALETTE_ANIMATION_NONE);
 	const uint tc = noanim ? 0 : palette_animation_counter;
 
 	const Colour *s;
@@ -963,7 +949,7 @@ void DoPaletteAnimations()
 	uint i;
 	uint j;
 
-	Colour *palette_pos = &_cur_palette.palette[PALETTE_ANIM_START];  // Points to where animations are taking place on the palette
+	Colour *palette_pos = &_cur_palette[PALETTE_ANIM_START];  // Points to where animations are taking place on the palette
 	/* Makes a copy of the current animation palette in old_val,
 	 * so the work on the current palette could be compared, see if there has been any changes */
 	memcpy(old_val, palette_pos, sizeof(old_val));
@@ -1029,17 +1015,20 @@ void DoPaletteAnimations()
 		if (j >= EPV_CYCLES_GLITTER_WATER) j -= EPV_CYCLES_GLITTER_WATER;
 	}
 
-	if (!noanim && (memcmp (old_val, &_cur_palette.palette[PALETTE_ANIM_START], sizeof(old_val)) != 0)
-			&& (_cur_palette.count_dirty == 0)) {
+	if (!noanim && (memcmp (old_val, &_cur_palette[PALETTE_ANIM_START], sizeof(old_val)) != 0)
+			&& (_cur_palette_count_dirty == 0)) {
 		/* Did we changed anything on the palette? Seems so.  Mark it as dirty */
-		_cur_palette.first_dirty = PALETTE_ANIM_START;
-		_cur_palette.count_dirty = PALETTE_ANIM_SIZE;
+		_cur_palette_first_dirty = PALETTE_ANIM_START;
+		_cur_palette_count_dirty = PALETTE_ANIM_SIZE;
 	}
 }
 
 void GfxInitPalettes()
 {
+	assert_compile (sizeof(_cur_palette) == sizeof(_palette));
 	memcpy(&_cur_palette, &_palette, sizeof(_cur_palette));
+	_cur_palette_first_dirty = 0;
+	_cur_palette_count_dirty = 256;
 	DoPaletteAnimations();
 }
 
@@ -1050,7 +1039,7 @@ void GfxInitPalettes()
  */
 TextColour GetContrastColour(uint8 background)
 {
-	Colour c = _cur_palette.palette[background];
+	Colour c = _cur_palette[background];
 	/* Compute brightness according to http://www.w3.org/TR/AERT#color-contrast.
 	 * The following formula computes 1000 * brightness^2, with brightness being in range 0 to 255. */
 	uint sq1000_brightness = c.r * c.r * 299 + c.g * c.g * 587 + c.b * c.b * 114;
@@ -1163,7 +1152,7 @@ void DrawMouseCursor()
 	_cursor.dirty = false;
 }
 
-void RedrawScreenRect(int left, int top, int right, int bottom)
+static void RedrawScreenRect (int left, int top, int right, int bottom)
 {
 	assert (right <= _screen_width && bottom <= _screen_height);
 	if (_cursor.visible) {
@@ -1182,6 +1171,44 @@ void RedrawScreenRect(int left, int top, int right, int bottom)
 	DrawOverlappedWindowForAll(left, top, right, bottom);
 
 	VideoDriver::GetActiveDriver()->MakeDirty(left, top, right - left, bottom - top);
+}
+
+void ScrollScreenRect (int left, int top, int width, int height, int dx, int dy)
+{
+	assert ((dx != 0) || (dy != 0));
+
+	if (abs(dx) >= width || abs(dy) >= height) {
+		/* fully_outside */
+		RedrawScreenRect (left, top, left + width, top + height);
+		return;
+	}
+
+	if (_cursor.visible) UndrawMouseCursor();
+
+#ifdef ENABLE_NETWORK
+	if (_networking) NetworkUndrawChatMessage();
+#endif /* ENABLE_NETWORK */
+
+	_screen_surface->scroll (left, top, width, height, dx, dy);
+
+	int l = left;
+	int w = width;
+	if (dx > 0) {
+		DrawOverlappedWindowForAll (left, top, dx + left, top + height);
+		l += dx;
+		w -= dx;
+	} else if (dx < 0) {
+		DrawOverlappedWindowForAll (left + width + dx, top, left + width, top + height);
+		w += dx;
+	}
+
+	if (dy > 0) {
+		DrawOverlappedWindowForAll (l, top, w + l, top + dy);
+	} else if (dy < 0) {
+		DrawOverlappedWindowForAll (l, top + height + dy, w + l, top + height);
+	}
+
+	VideoDriver::GetActiveDriver()->MakeDirty (left, top, width, height);
 }
 
 /**

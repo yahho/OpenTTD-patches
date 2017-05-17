@@ -694,7 +694,7 @@ static Track AllowedNonOverlappingTrack(TrackBits bits)
  * @param track_bits The track bits.
  * @return \c true if no train that interacts, is found. \c false if a train is found.
  */
-CommandCost EnsureNoTrainOnTrackBits(TileIndex tile, TrackBits track_bits)
+bool CheckTrackBitsFree (TileIndex tile, TrackBits track_bits)
 {
 	assert(track_bits != TRACK_BIT_NONE);
 
@@ -711,11 +711,19 @@ CommandCost EnsureNoTrainOnTrackBits(TileIndex tile, TrackBits track_bits)
 		if (TrackdirToTrack(trackdir) != allowed) iter.set_found();
 	}
 
-	if (iter.was_found()) return_cmd_error(STR_ERROR_TRAIN_IN_THE_WAY);
-	return CommandCost();
+	return !iter.was_found();
 }
 
-static bool EnsureNoTrainOnBridgeEndTrackBits (TileIndex tile, TrackBits bits)
+/**
+ * Check if there is a train that interacts with the specified track bits of a
+ * rail bridge head or is on the bridge middle part heading towards this end.
+ * Note that trains on the middle part of a bridge can have either bridge head
+ * as their tile.
+ * @param tile Bridge head tile.
+ * @param bits Track bits to check for.
+ * @return Whether there is a train on the bridge tracks or middle part.
+ */
+bool CheckBridgeEndTrackBitsFree (TileIndex tile, TrackBits bits)
 {
 	assert(bits != TRACK_BIT_NONE);
 
@@ -732,26 +740,7 @@ static bool EnsureNoTrainOnBridgeEndTrackBits (TileIndex tile, TrackBits bits)
 	return !iter.was_found();
 }
 
-/**
- * Tests if a train interacts with the specified track bits or is on the bridge middle part.
- *
- * @param tile1 one bridge end
- * @param bits1 track bits on first bridge end
- * @param tile2 the other bridge end
- * @param bits2 track bits on second bridge end
- * @return whether there is a train on the bridge tracks or middle part
- */
-CommandCost EnsureNoTrainOnBridgeTrackBits(TileIndex tile1, TrackBits bits1, TileIndex tile2, TrackBits bits2)
-{
-	if (!EnsureNoTrainOnBridgeEndTrackBits (tile1, bits1) ||
-			!EnsureNoTrainOnBridgeEndTrackBits (tile2, bits2)) {
-		return_cmd_error(STR_ERROR_TRAIN_IN_THE_WAY);
-	}
-
-	return CommandCost();
-}
-
-static bool EnsureNoTrainOnTunnelBridgeEndMiddle (TileIndex tile)
+static bool CheckTunnelBridgeEndMiddleFree (TileIndex tile)
 {
 	VehicleTileFinder iter (tile);
 	while (!iter.finished()) {
@@ -767,14 +756,10 @@ static bool EnsureNoTrainOnTunnelBridgeEndMiddle (TileIndex tile)
  * @param tile2 the other bridge end
  * @return whether there is a train on the bridge
  */
-CommandCost EnsureNoTrainOnTunnelBridgeMiddle(TileIndex tile1, TileIndex tile2)
+bool CheckTunnelBridgeMiddleFree (TileIndex tile1, TileIndex tile2)
 {
-	if (!EnsureNoTrainOnTunnelBridgeEndMiddle(tile1) ||
-			!EnsureNoTrainOnTunnelBridgeEndMiddle(tile2)) {
-		return_cmd_error(STR_ERROR_TRAIN_IN_THE_WAY);
-	}
-
-	return CommandCost();
+	return  CheckTunnelBridgeEndMiddleFree (tile1) &&
+		CheckTunnelBridgeEndMiddleFree (tile2);
 }
 
 
@@ -977,7 +962,7 @@ void Vehicle::PreDestructor()
 		st->loading_vehicles.remove(this);
 
 		HideFillingPercent(&this->fill_percent_te_id);
-		this->CancelReservation(INVALID_STATION, st);
+		this->CancelReservation (st);
 		delete this->cargo_payment;
 		assert(this->cargo_payment == NULL); // cleared by ~CargoPayment
 	}
@@ -2219,13 +2204,13 @@ void Vehicle::BeginLoading()
  * staged for transfer.
  * @param st the station where the reserved packets should go.
  */
-void Vehicle::CancelReservation(StationID next, Station *st)
+void Vehicle::CancelReservation (Station *st)
 {
 	for (Vehicle *v = this; v != NULL; v = v->next) {
 		VehicleCargoList &cargo = v->cargo;
 		if (cargo.ActionCount(VehicleCargoList::MTA_LOAD) > 0) {
 			DEBUG(misc, 1, "cancelling cargo reservation");
-			cargo.Return(UINT_MAX, &st->goods[v->cargo_type].cargo, next);
+			cargo.Return (&st->goods[v->cargo_type].cargo);
 			cargo.SetTransferLoadPlace(st->xy);
 		}
 		cargo.KeepAll();
@@ -2266,10 +2251,11 @@ void Vehicle::LeaveStation()
 
 	this->current_order.MakeLeaveStation();
 	Station *st = Station::Get(this->last_station_visited);
-	this->CancelReservation(INVALID_STATION, st);
+	this->CancelReservation (st);
 	st->loading_vehicles.remove(this);
 
 	HideFillingPercent(&this->fill_percent_te_id);
+	trip_occupancy = CalcPercentVehicleFilled(this, NULL);
 
 	if (this->type == VEH_TRAIN && !(this->vehstatus & VS_CRASHED)) {
 		/* Trigger station animation (trains only) */

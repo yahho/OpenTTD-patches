@@ -38,7 +38,7 @@
 #include "station_func.h"
 #include "rail.h"
 #include "tracerestrict.h"
-#include "fontcache.h"
+#include "font.h"
 
 #include "map/rail.h"
 #include "map/depot.h"
@@ -178,7 +178,10 @@ static void PlaceRail_Waypoint(TileIndex tile)
 			/* Tile where we can't build rail waypoints. This is always going to fail,
 			 * but provides the user with a proper error message. */
 			DoCommandP (tile, 1 << 8 | 1 << 16, STAT_CLASS_WAYP | INVALID_STATION << 16, CMD_BUILD_RAIL_WAYPOINT);
+			return;
 	}
+
+	VpSetPlaceSizingLimit (_settings_game.station.station_spread);
 }
 
 void CcStation(const CommandCost &result, TileIndex tile, uint32 p1, uint32 p2)
@@ -1979,9 +1982,10 @@ void InitializeRailGUI()
 /**
  * Create a drop down list for all the rail types of the local company.
  * @param for_replacement Whether this list is for the replacement window.
+ * @param all_option Whether to add an 'all types' item.
  * @return The populated and sorted #DropDownList.
  */
-DropDownList *GetRailTypeDropDownList(bool for_replacement)
+DropDownList *GetRailTypeDropDownList(bool for_replacement, bool all_option)
 {
 	RailTypes used_railtypes = RAILTYPES_NONE;
 
@@ -1998,6 +2002,12 @@ DropDownList *GetRailTypeDropDownList(bool for_replacement)
 
 	const Company *c = Company::Get(_local_company);
 	DropDownList *list = new DropDownList();
+
+	if (all_option) {
+		DropDownListStringItem *item = new DropDownListStringItem(STR_REPLACE_ALL_RAILTYPE, INVALID_RAILTYPE, false);
+		*list->Append() = item;
+	}
+
 	RailType rt;
 	FOR_ALL_SORTED_RAILTYPES(rt) {
 		/* If it's not used ever, don't show it to the user. */

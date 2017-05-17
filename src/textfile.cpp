@@ -10,7 +10,7 @@
 #include "stdafx.h"
 #include "core/math_func.hpp"
 #include "fileio_func.h"
-#include "fontcache.h"
+#include "font.h"
 #include "gfx_type.h"
 #include "gfx_func.h"
 #include "string.h"

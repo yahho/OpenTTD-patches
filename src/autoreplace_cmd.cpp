@@ -131,11 +131,17 @@ void CheckCargoCapacity(Vehicle *v)
  */
 static void TransferCargo(Vehicle *old_veh, Vehicle *new_head, bool part_of_chain)
 {
-	assert(!part_of_chain || new_head->IsPrimaryVehicle());
+	if (part_of_chain) {
+		assert (new_head->IsPrimaryVehicle());
+	} else {
+		assert (old_veh->type == VEH_TRAIN);
+		assert (new_head->type == VEH_TRAIN);
+	}
+
 	/* Loop through source parts */
 	for (Vehicle *src = old_veh; src != NULL; src = src->Next()) {
 		assert(src->cargo.TotalCount() == src->cargo.ActionCount(VehicleCargoList::MTA_KEEP));
-		if (!part_of_chain && src->type == VEH_TRAIN && src != old_veh && src != Train::From(old_veh)->other_multiheaded_part && !src->IsArticulatedPart()) {
+		if (!part_of_chain && src != old_veh && src != Train::From(old_veh)->other_multiheaded_part && !src->IsArticulatedPart()) {
 			/* Skip vehicles, which do not belong to old_veh */
 			src = src->GetLastEnginePart();
 			continue;
@@ -145,7 +151,7 @@ static void TransferCargo(Vehicle *old_veh, Vehicle *new_head, bool part_of_chai
 		/* Find free space in the new chain */
 		for (Vehicle *dest = new_head; dest != NULL && src->cargo.TotalCount() > 0; dest = dest->Next()) {
 			assert(dest->cargo.TotalCount() == dest->cargo.ActionCount(VehicleCargoList::MTA_KEEP));
-			if (!part_of_chain && dest->type == VEH_TRAIN && dest != new_head && dest != Train::From(new_head)->other_multiheaded_part && !dest->IsArticulatedPart()) {
+			if (!part_of_chain && dest != new_head && dest != Train::From(new_head)->other_multiheaded_part && !dest->IsArticulatedPart()) {
 				/* Skip vehicles, which do not belong to new_head */
 				dest = dest->GetLastEnginePart();
 				continue;
@@ -158,9 +164,6 @@ static void TransferCargo(Vehicle *old_veh, Vehicle *new_head, bool part_of_chai
 			src->cargo.Shift(amount, &dest->cargo);
 		}
 	}
-
-	/* Update train weight etc., the old vehicle will be sold anyway */
-	if (part_of_chain && new_head->type == VEH_TRAIN) Train::From(new_head)->ConsistChanged(CCF_LOADUNLOAD);
 }
 
 /**
@@ -575,6 +578,8 @@ static CommandCost ReplaceChain(Vehicle **chain, DoCommandFlag flags, bool wagon
 					if (w->First() == new_head) continue;
 
 					if ((flags & DC_EXEC) != 0) TransferCargo(w, new_head, true);
+					/* Update train weight etc., the old vehicle will be sold anyway */
+					new_head->ConsistChanged (CCF_LOADUNLOAD);
 
 					/* Sell the vehicle.
 					 * Note: This might temporarly construct new trains, so use DC_AUTOREPLACE to prevent

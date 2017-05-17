@@ -3890,7 +3890,7 @@ static void DeleteLastWagon(Train *v)
 
 	if (trackdir == TRACKDIR_WORMHOLE) {
 		TileIndex endtile = GetOtherTunnelBridgeEnd(tile);
-		if (EnsureNoTrainOnTunnelBridgeMiddle(tile, endtile).Succeeded()) {
+		if (CheckTunnelBridgeMiddleFree (tile, endtile)) {
 			if (IsRailwayTile(tile)) {
 				SetBridgeMiddleReservation(tile, false);
 				SetBridgeMiddleReservation(endtile, false);

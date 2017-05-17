@@ -2607,9 +2607,9 @@ static CommandCost RemoveDock(TileIndex tile, DoCommandFlag flags)
 
 #include "table/station_land.h"
 
-const DrawTileSprites *GetStationTileLayout(StationType st, byte gfx)
+const DrawTileSprites *GetDefaultStationTileLayout (void)
 {
-	return &_station_display_datas[st][gfx];
+	return _station_display_datas_rail;
 }
 
 /**
@@ -2669,84 +2669,306 @@ bool SplitGroundSpriteForOverlay(const TileInfo *ti, SpriteID *ground, RailTrack
 	return true;
 }
 
-static void DrawTile_Station(TileInfo *ti)
+static void DrawTile_Airport (TileInfo *ti)
 {
+	StationGfx gfx = GetAirportGfx (ti->tile);
+	if (gfx >= NEW_AIRPORTTILE_OFFSET) {
+		const AirportTileSpec *ats = AirportTileSpec::Get (gfx);
+		if (ats->grf_prop.spritegroup[0] != NULL && DrawNewAirportTile (ti, Station::GetByTile(ti->tile), gfx, ats)) {
+			return;
+		}
+		/* No sprite group (or no valid one) found, meaning no graphics associated.
+		 * Use the substitute one instead */
+		assert (ats->grf_prop.subst_id != INVALID_AIRPORTTILE);
+		gfx = ats->grf_prop.subst_id;
+	}
+
+	const DrawTileSprites *t = &_station_display_datas_airport[gfx];
+	PalSpriteID ground = t->ground;
+	const DrawTileSeqStruct *const *seq;
+	bool anim = true;
+	switch (gfx) {
+		case APT_GRASS_FENCE_NE_FLAG:
+		case APT_GRASS_FENCE_NE_FLAG_2:
+			seq = _station_display_datas_airport_flag_grass_fence_ne;
+			break;
+		case APT_RADAR_GRASS_FENCE_SW:
+		case APT_RADAR_FENCE_SW:
+			seq = _station_display_datas_airport_radar_fence_sw;
+			break;
+		case APT_RADAR_FENCE_NE:
+			seq = _station_display_datas_airport_radar_fence_ne;
+			break;
+		default:
+			seq = &t->seq;
+			anim = false;
+			break;
+	}
+	if (anim) seq += GetAnimationFrame (ti->tile);
+
+	if (ti->tileh != SLOPE_FLAT) {
+		DrawFoundation (ti, FOUNDATION_LEVELED);
+	}
+
+	Owner owner = GetTileOwner (ti->tile);
+	PaletteID palette = COMPANY_SPRITE_COLOUR(owner);
+
+	SpriteID image = ground.sprite;
+	PaletteID pal  = ground.pal;
+	DrawGroundSprite (ti, image, GroundSpritePaletteTransform (image, pal, palette));
+
+	DrawOrigTileSeq (ti, *seq, TO_BUILDINGS, palette);
+}
+
+/**
+ * Draw custom foundations for a station tile.
+ * @param ti TileInfo of the tile.
+ * @param statspec Station spec.
+ * @param st Station.
+ * @param tile_layout Tile layout.
+ * @return Whether foundations were actually drawn.
+ */
+static bool DrawRailStationFoundation (TileInfo *ti,
+	const StationSpec *statspec, BaseStation *st, uint tile_layout)
+{
+	/* Check whether the foundation continues beyond the tile's upper sides. */
+	uint edge_info = GetFoundationSpriteBlock (ti->tile);
+	SpriteID image = GetCustomStationFoundationRelocation (statspec, st, ti->tile, tile_layout, edge_info);
+	if (image == 0) return false;
+
+	if (HasBit(statspec->flags, SSF_EXTENDED_FOUNDATIONS)) {
+		/* Station provides extended foundations. */
+		static const uint8 foundation_parts[] = {
+			0, 0, 0, 0, // Invalid,  Invalid,   Invalid,   SLOPE_SW
+			0, 1, 2, 3, // Invalid,  SLOPE_EW,  SLOPE_SE,  SLOPE_WSE
+			0, 4, 5, 6, // Invalid,  SLOPE_NW,  SLOPE_NS,  SLOPE_NWS
+			7, 8, 9     // SLOPE_NE, SLOPE_ENW, SLOPE_SEN
+		};
+
+		AddSortableSpriteToDraw (ti->vd, image + foundation_parts[ti->tileh],
+					PAL_NONE, ti->x, ti->y, 16, 16, 7, ti->z);
+	} else {
+		/* Draw simple foundations, built up from 8 possible foundation sprites. */
+
+		/* Each set bit represents one of the eight composite sprites to be drawn.
+		 * 'Invalid' entries will not drawn but are included for completeness. */
+		static const uint8 composite_foundation_parts[] = {
+			/* Invalid  (00000000), Invalid   (11010001), Invalid   (11100100), SLOPE_SW  (11100000) */
+			   0x00,                0xD1,                 0xE4,                 0xE0,
+			/* Invalid  (11001010), SLOPE_EW  (11001001), SLOPE_SE  (11000100), SLOPE_WSE (11000000) */
+			   0xCA,                0xC9,                 0xC4,                 0xC0,
+			/* Invalid  (11010010), SLOPE_NW  (10010001), SLOPE_NS  (11100100), SLOPE_NWS (10100000) */
+			   0xD2,                0x91,                 0xE4,                 0xA0,
+			/* SLOPE_NE (01001010), SLOPE_ENW (00001001), SLOPE_SEN (01000100) */
+			   0x4A,                0x09,                 0x44
+		};
+
+		uint8 parts = composite_foundation_parts[ti->tileh];
+
+		/* If foundations continue beyond the tile's upper sides then
+		 * mask out the last two pieces. */
+		if (HasBit(edge_info, 0)) ClrBit(parts, 6);
+		if (HasBit(edge_info, 1)) ClrBit(parts, 7);
+
+		if (parts == 0) {
+			/* We always have to draw at least one sprite to make
+			 * sure there is a boundingbox and a sprite with the
+			 * correct offset for the childsprites. So, draw the
+			 * (completely empty) sprite of the default foundations. */
+			return false;
+		}
+
+		StartSpriteCombine (ti->vd);
+		for (int i = 0; i < 8; i++) {
+			if (HasBit(parts, i)) {
+				AddSortableSpriteToDraw (ti->vd, image + i, PAL_NONE, ti->x, ti->y, 16, 16, 7, ti->z);
+			}
+		}
+		EndSpriteCombine (ti->vd);
+	}
+
+	OffsetGroundSprite (ti->vd, 31, 1);
+	ti->z += ApplyPixelFoundationToSlope (FOUNDATION_LEVELED, &ti->tileh);
+	return true;
+}
+
+static void DrawTile_RailStation (TileInfo *ti)
+{
+	const RailtypeInfo *rti = GetRailTypeInfo (GetRailType (ti->tile));
+
 	const NewGRFSpriteLayout *layout = NULL;
-	DrawTileSprites tmp_rail_layout;
 	const DrawTileSprites *t = NULL;
-	RoadTypes roadtypes;
-	int32 total_offset;
-	const RailtypeInfo *rti = NULL;
-	uint32 relocation = 0;
-	uint32 ground_relocation = 0;
 	BaseStation *st = NULL;
 	const StationSpec *statspec = NULL;
 	uint tile_layout = 0;
 
-	if (HasStationRail(ti->tile)) {
-		rti = GetRailTypeInfo(GetRailType(ti->tile));
-		roadtypes = ROADTYPES_NONE;
-		total_offset = rti->GetRailtypeSpriteOffset();
+	uint spec_index = GetCustomStationSpecIndex (ti->tile);
+	if (spec_index != 0) {
+		/* look for customization */
+		st = BaseStation::GetByTile (ti->tile);
+		statspec = st->speclist[spec_index].spec;
 
-		uint spec_index = GetCustomStationSpecIndex (ti->tile);
-		if (spec_index != 0) {
-			/* look for customization */
-			st = BaseStation::GetByTile(ti->tile);
-			statspec = st->speclist[spec_index].spec;
+		if (statspec != NULL) {
+			tile_layout = GetStationGfx (ti->tile);
 
-			if (statspec != NULL) {
-				tile_layout = GetStationGfx(ti->tile);
+			if (HasBit(statspec->callback_mask, CBM_STATION_SPRITE_LAYOUT)) {
+				uint16 callback = GetStationCallback (CBID_STATION_SPRITE_LAYOUT, 0, 0, statspec, st, ti->tile);
+				if (callback != CALLBACK_FAILED) tile_layout = (callback & ~1) + GetRailStationAxis (ti->tile);
+			}
 
-				if (HasBit(statspec->callback_mask, CBM_STATION_SPRITE_LAYOUT)) {
-					uint16 callback = GetStationCallback(CBID_STATION_SPRITE_LAYOUT, 0, 0, statspec, st, ti->tile);
-					if (callback != CALLBACK_FAILED) tile_layout = (callback & ~1) + GetRailStationAxis(ti->tile);
-				}
-
-				/* Ensure the chosen tile layout is valid for this custom station */
-				if (statspec->renderdata != NULL) {
-					layout = &statspec->renderdata[tile_layout < statspec->tiles ? tile_layout : (uint)GetRailStationAxis(ti->tile)];
-					if (!layout->NeedsPreprocessing()) {
-						t = layout;
-						layout = NULL;
-					}
+			/* Ensure the chosen tile layout is valid for this custom station */
+			if (statspec->renderdata != NULL) {
+				layout = &statspec->renderdata[tile_layout < statspec->tiles ? tile_layout : (uint)GetRailStationAxis(ti->tile)];
+				if (!layout->NeedsPreprocessing()) {
+					t = layout;
+					layout = NULL;
 				}
 			}
 		}
+	}
+
+	if (layout == NULL && (t == NULL || t->seq == NULL)) {
+		StationGfx gfx = GetStationGfx (ti->tile);
+		bool waypoint = (GetStationType (ti->tile) == STATION_WAYPOINT);
+		t = (waypoint ? _station_display_datas_waypoint : _station_display_datas_rail) + gfx;
+	}
+
+	if (ti->tileh != SLOPE_FLAT) {
+		if (statspec == NULL || !HasBit(statspec->flags, SSF_CUSTOM_FOUNDATIONS)
+				|| !DrawRailStationFoundation (ti, statspec, st, tile_layout)) {
+			DrawFoundation(ti, FOUNDATION_LEVELED);
+		}
+	}
+
+	int32 total_offset = rti->GetRailtypeSpriteOffset();
+	uint32 relocation = 0;
+	uint32 ground_relocation = 0;
+
+	PalSpriteID ground;
+	const DrawTileSeqStruct *seq;
+	if (layout != NULL) {
+		/* Sprite layout which needs preprocessing */
+		bool separate_ground = HasBit(statspec->flags, SSF_SEPARATE_GROUND);
+		uint32 var10_values = layout->PrepareLayout (total_offset, rti->fallback_railtype, 0, 0, separate_ground);
+		uint8 var10;
+		FOR_EACH_SET_BIT(var10, var10_values) {
+			uint32 var10_relocation = GetCustomStationRelocation (statspec, st, ti->tile, var10);
+			layout->ProcessRegisters (var10, var10_relocation, separate_ground);
+		}
+		seq = layout->GetLayout (&ground);
+		total_offset = 0;
 	} else {
-		roadtypes = IsRoadStop(ti->tile) ? GetRoadTypes(ti->tile) : ROADTYPES_NONE;
+		ground = t->ground;
+		seq = t->seq;
+		if (statspec != NULL) {
+			/* Simple sprite layout */
+			ground_relocation = relocation = GetCustomStationRelocation (statspec, st, ti->tile, 0);
+			if (HasBit(statspec->flags, SSF_SEPARATE_GROUND)) {
+				ground_relocation = GetCustomStationRelocation (statspec, st, ti->tile, 1);
+			}
+			ground_relocation += rti->fallback_railtype;
+		}
+	}
+
+	Owner owner = GetTileOwner (ti->tile);
+	PaletteID palette = COMPANY_SPRITE_COLOUR(owner);
+
+	bool reserved = _game_mode != GM_MENU && _settings_client.gui.show_track_reservation && HasStationReservation (ti->tile);
+	SpriteID image = ground.sprite;
+	PaletteID pal  = ground.pal;
+	RailTrackOffset overlay_offset;
+	if (rti->UsesOverlay() && SplitGroundSpriteForOverlay (ti, &image, &overlay_offset)) {
+		SpriteID ground = GetCustomRailSprite (rti, ti->tile, RTSG_GROUND);
+		DrawGroundSprite (ti, image, PAL_NONE);
+		DrawGroundSprite (ti, ground + overlay_offset, PAL_NONE);
+
+		if (reserved) {
+			image = GetCustomRailSprite (rti, ti->tile, RTSG_OVERLAY) + overlay_offset;
+		}
+	} else {
+		image += HasBit(image, SPRITE_MODIFIER_CUSTOM_SPRITE) ? ground_relocation : total_offset;
+		if (HasBit(pal, SPRITE_MODIFIER_CUSTOM_SPRITE)) pal += ground_relocation;
+		DrawGroundSprite (ti, image, GroundSpritePaletteTransform (image, pal, palette));
+
+		if (reserved) {
+			image = rti->base_sprites.single[GetRailStationTrack(ti->tile)];
+		}
+	}
+
+	/* PBS debugging, draw reserved tracks darker */
+	if (reserved) {
+		DrawGroundSprite (ti, image, PALETTE_CRASH);
+	}
+
+	if (HasRailCatenaryDrawn (rti)) {
+		DrawRailAxisCatenary (ti, rti, GetRailStationAxis (ti->tile),
+				CanStationTileHavePylons (ti->tile),
+				CanStationTileHaveWires (ti->tile));
+	}
+
+	if (IsRailWaypoint(ti->tile)) {
+		/* Don't offset the waypoint graphics; they're always the same. */
 		total_offset = 0;
 	}
 
+	DrawRailTileSeq (ti, seq, TO_BUILDINGS, total_offset, relocation, palette);
+}
+
+static void DrawTile_RoadStop (TileInfo *ti)
+{
+	if (ti->tileh != SLOPE_FLAT) {
+		DrawFoundation (ti, FOUNDATION_LEVELED);
+	}
+
 	StationGfx gfx = GetStationGfx(ti->tile);
-	if (IsAirport(ti->tile)) {
-		gfx = GetAirportGfx(ti->tile);
-		if (gfx >= NEW_AIRPORTTILE_OFFSET) {
-			const AirportTileSpec *ats = AirportTileSpec::Get(gfx);
-			if (ats->grf_prop.spritegroup[0] != NULL && DrawNewAirportTile(ti, Station::GetByTile(ti->tile), gfx, ats)) {
-				return;
-			}
-			/* No sprite group (or no valid one) found, meaning no graphics associated.
-			 * Use the substitute one instead */
-			assert(ats->grf_prop.subst_id != INVALID_AIRPORTTILE);
-			gfx = ats->grf_prop.subst_id;
+	bool bus = (GetStationType (ti->tile) == STATION_BUS);
+	const DrawTileSprites *t = (bus ? _station_display_datas_bus : _station_display_datas_truck) + gfx;
+
+	Owner owner = GetTileOwner(ti->tile);
+	PaletteID palette = COMPANY_SPRITE_COLOUR(owner);
+
+	SpriteID image = t->ground.sprite;
+	PaletteID pal  = t->ground.pal;
+	DrawGroundSprite (ti, image, GroundSpritePaletteTransform (image, pal, palette));
+
+	RoadTypes roadtypes = GetRoadTypes (ti->tile);
+	if (HasBit(roadtypes, ROADTYPE_TRAM)) {
+		Axis axis = GetRoadStopAxis(ti->tile); // tram stops are always drive-through
+		DrawGroundSprite (ti, (HasBit(roadtypes, ROADTYPE_ROAD) ? SPR_TRAMWAY_OVERLAY : SPR_TRAMWAY_TRAM) + (axis ^ 1), PAL_NONE);
+		DrawRoadCatenary(ti, axis == AXIS_X ? ROAD_X : ROAD_Y);
+	}
+
+	DrawOrigTileSeq (ti, t->seq, TO_BUILDINGS, palette);
+}
+
+static void DrawTile_OilRig (TileInfo *ti)
+{
+	if (IsTileOnWater (ti->tile)) {
+		DrawWaterClassGround (ti);
+	} else {
+		DrawGroundSprite (ti, SPR_FLAT_WATER_TILE, PAL_NONE);
+	}
+}
+
+static void DrawTile_Dock (TileInfo *ti)
+{
+	StationGfx gfx = IsBuoy (ti->tile) ? (int)GFX_DOCK_BUOY : GetStationGfx (ti->tile);
+
+	int32 total_offset = 0;
+	if (gfx < DIAGDIR_END) {
+		TileIndex water_tile = GetOtherDockTile (ti->tile);
+		WaterClass wc = GetWaterClass (water_tile);
+		if (wc == WATER_CLASS_SEA) {
+			DrawShoreTile (ti);
+		} else {
+			DrawClearLandTile (ti, 3);
 		}
-		switch (gfx) {
-			case APT_RADAR_GRASS_FENCE_SW:
-				t = &_station_display_datas_airport_radar_grass_fence_sw[GetAnimationFrame(ti->tile)];
-				break;
-			case APT_GRASS_FENCE_NE_FLAG:
-				t = &_station_display_datas_airport_flag_grass_fence_ne[GetAnimationFrame(ti->tile)];
-				break;
-			case APT_RADAR_FENCE_SW:
-				t = &_station_display_datas_airport_radar_fence_sw[GetAnimationFrame(ti->tile)];
-				break;
-			case APT_RADAR_FENCE_NE:
-				t = &_station_display_datas_airport_radar_fence_ne[GetAnimationFrame(ti->tile)];
-				break;
-			case APT_GRASS_FENCE_NE_FLAG_2:
-				t = &_station_display_datas_airport_flag_grass_fence_ne_2[GetAnimationFrame(ti->tile)];
-				break;
-		}
+	} else if (gfx < GFX_DOCK_BUOY) {
+		DrawWaterClassGround (ti);
+	} else {
+		DrawWaterClassGround(ti);
+		SpriteID sprite = GetCanalSprite(CF_BUOY, ti->tile);
+		if (sprite != 0) total_offset = sprite - SPR_IMG_BUOY;
 	}
 
 	Owner owner = GetTileOwner(ti->tile);
@@ -2755,165 +2977,39 @@ static void DrawTile_Station(TileInfo *ti)
 	if (Company::IsValidID(owner)) {
 		palette = COMPANY_SPRITE_COLOUR(owner);
 	} else {
-		/* Some stations are not owner by a company, namely oil rigs */
 		palette = PALETTE_TO_GREY;
 	}
 
-	if (layout == NULL && (t == NULL || t->seq == NULL)) t = GetStationTileLayout(GetStationType(ti->tile), gfx);
+	DrawRailTileSeq (ti, _station_display_datas_dock[gfx], TO_BUILDINGS,
+				total_offset, 0, palette);
+}
 
-	/* don't show foundation for docks */
-	if (ti->tileh != SLOPE_FLAT && !IsDock(ti->tile)) {
-		if (statspec != NULL && HasBit(statspec->flags, SSF_CUSTOM_FOUNDATIONS)) {
-			/* Station has custom foundations.
-			 * Check whether the foundation continues beyond the tile's upper sides. */
-			uint edge_info = 0;
-			int z;
-			Slope slope = GetFoundationPixelSlope(ti->tile, &z);
-			if (!HasFoundationNW(ti->tile, slope, z)) SetBit(edge_info, 0);
-			if (!HasFoundationNE(ti->tile, slope, z)) SetBit(edge_info, 1);
-			SpriteID image = GetCustomStationFoundationRelocation(statspec, st, ti->tile, tile_layout, edge_info);
-			if (image == 0) goto draw_default_foundation;
+static void DrawTile_Station (TileInfo *ti)
+{
+	switch (GetStationType (ti->tile)) {
+		case STATION_RAIL:
+		case STATION_WAYPOINT:
+			DrawTile_RailStation (ti);
+			break;
 
-			if (HasBit(statspec->flags, SSF_EXTENDED_FOUNDATIONS)) {
-				/* Station provides extended foundations. */
+		case STATION_AIRPORT:
+			DrawTile_Airport (ti);
+			/* Airports cannot have bridges over them. */
+			return;
 
-				static const uint8 foundation_parts[] = {
-					0, 0, 0, 0, // Invalid,  Invalid,   Invalid,   SLOPE_SW
-					0, 1, 2, 3, // Invalid,  SLOPE_EW,  SLOPE_SE,  SLOPE_WSE
-					0, 4, 5, 6, // Invalid,  SLOPE_NW,  SLOPE_NS,  SLOPE_NWS
-					7, 8, 9     // SLOPE_NE, SLOPE_ENW, SLOPE_SEN
-				};
+		case STATION_TRUCK:
+		case STATION_BUS:
+			DrawTile_RoadStop (ti);
+			break;
 
-				AddSortableSpriteToDraw (ti->vd, image + foundation_parts[ti->tileh], PAL_NONE, ti->x, ti->y, 16, 16, 7, ti->z);
-			} else {
-				/* Draw simple foundations, built up from 8 possible foundation sprites. */
+		case STATION_OILRIG:
+			DrawTile_OilRig (ti);
+			break;
 
-				/* Each set bit represents one of the eight composite sprites to be drawn.
-				 * 'Invalid' entries will not drawn but are included for completeness. */
-				static const uint8 composite_foundation_parts[] = {
-					/* Invalid  (00000000), Invalid   (11010001), Invalid   (11100100), SLOPE_SW  (11100000) */
-					   0x00,                0xD1,                 0xE4,                 0xE0,
-					/* Invalid  (11001010), SLOPE_EW  (11001001), SLOPE_SE  (11000100), SLOPE_WSE (11000000) */
-					   0xCA,                0xC9,                 0xC4,                 0xC0,
-					/* Invalid  (11010010), SLOPE_NW  (10010001), SLOPE_NS  (11100100), SLOPE_NWS (10100000) */
-					   0xD2,                0x91,                 0xE4,                 0xA0,
-					/* SLOPE_NE (01001010), SLOPE_ENW (00001001), SLOPE_SEN (01000100) */
-					   0x4A,                0x09,                 0x44
-				};
-
-				uint8 parts = composite_foundation_parts[ti->tileh];
-
-				/* If foundations continue beyond the tile's upper sides then
-				 * mask out the last two pieces. */
-				if (HasBit(edge_info, 0)) ClrBit(parts, 6);
-				if (HasBit(edge_info, 1)) ClrBit(parts, 7);
-
-				if (parts == 0) {
-					/* We always have to draw at least one sprite to make sure there is a boundingbox and a sprite with the
-					 * correct offset for the childsprites.
-					 * So, draw the (completely empty) sprite of the default foundations. */
-					goto draw_default_foundation;
-				}
-
-				StartSpriteCombine (ti->vd);
-				for (int i = 0; i < 8; i++) {
-					if (HasBit(parts, i)) {
-						AddSortableSpriteToDraw (ti->vd, image + i, PAL_NONE, ti->x, ti->y, 16, 16, 7, ti->z);
-					}
-				}
-				EndSpriteCombine (ti->vd);
-			}
-
-			OffsetGroundSprite (ti->vd, 31, 1);
-			ti->z += ApplyPixelFoundationToSlope(FOUNDATION_LEVELED, &ti->tileh);
-		} else {
-draw_default_foundation:
-			DrawFoundation(ti, FOUNDATION_LEVELED);
-		}
+		default:
+			DrawTile_Dock (ti);
+			break;
 	}
-
-	if (IsBuoy(ti->tile) || (IsDock(ti->tile) && IsDockBuoy(ti->tile))) {
-		DrawWaterClassGround(ti);
-		SpriteID sprite = GetCanalSprite(CF_BUOY, ti->tile);
-		if (sprite != 0) total_offset = sprite - SPR_IMG_BUOY;
-	} else if (IsDock(ti->tile) || (IsOilRig(ti->tile) && IsTileOnWater(ti->tile))) {
-		if (ti->tileh == SLOPE_FLAT) {
-			DrawWaterClassGround(ti);
-		} else {
-			assert(IsDock(ti->tile));
-			TileIndex water_tile = GetOtherDockTile (ti->tile);
-			WaterClass wc = GetWaterClass(water_tile);
-			if (wc == WATER_CLASS_SEA) {
-				DrawShoreTile (ti);
-			} else {
-				DrawClearLandTile(ti, 3);
-			}
-		}
-	} else {
-		if (layout != NULL) {
-			/* Sprite layout which needs preprocessing */
-			bool separate_ground = HasBit(statspec->flags, SSF_SEPARATE_GROUND);
-			uint32 var10_values = layout->PrepareLayout(total_offset, rti->fallback_railtype, 0, 0, separate_ground);
-			uint8 var10;
-			FOR_EACH_SET_BIT(var10, var10_values) {
-				uint32 var10_relocation = GetCustomStationRelocation(statspec, st, ti->tile, var10);
-				layout->ProcessRegisters(var10, var10_relocation, separate_ground);
-			}
-			tmp_rail_layout.seq = layout->GetLayout(&tmp_rail_layout.ground);
-			t = &tmp_rail_layout;
-			total_offset = 0;
-		} else if (statspec != NULL) {
-			/* Simple sprite layout */
-			ground_relocation = relocation = GetCustomStationRelocation(statspec, st, ti->tile, 0);
-			if (HasBit(statspec->flags, SSF_SEPARATE_GROUND)) {
-				ground_relocation = GetCustomStationRelocation(statspec, st, ti->tile, 1);
-			}
-			ground_relocation += rti->fallback_railtype;
-		}
-
-		SpriteID image = t->ground.sprite;
-		PaletteID pal  = t->ground.pal;
-		RailTrackOffset overlay_offset;
-		if (rti != NULL && rti->UsesOverlay() && SplitGroundSpriteForOverlay(ti, &image, &overlay_offset)) {
-			SpriteID ground = GetCustomRailSprite(rti, ti->tile, RTSG_GROUND);
-			DrawGroundSprite (ti, image, PAL_NONE);
-			DrawGroundSprite (ti, ground + overlay_offset, PAL_NONE);
-
-			if (_game_mode != GM_MENU && _settings_client.gui.show_track_reservation && HasStationReservation(ti->tile)) {
-				SpriteID overlay = GetCustomRailSprite(rti, ti->tile, RTSG_OVERLAY);
-				DrawGroundSprite (ti, overlay + overlay_offset, PALETTE_CRASH);
-			}
-		} else {
-			image += HasBit(image, SPRITE_MODIFIER_CUSTOM_SPRITE) ? ground_relocation : total_offset;
-			if (HasBit(pal, SPRITE_MODIFIER_CUSTOM_SPRITE)) pal += ground_relocation;
-			DrawGroundSprite (ti, image, GroundSpritePaletteTransform(image, pal, palette));
-
-			/* PBS debugging, draw reserved tracks darker */
-			if (_game_mode != GM_MENU && _settings_client.gui.show_track_reservation && HasStationRail(ti->tile) && HasStationReservation(ti->tile)) {
-				const RailtypeInfo *rti = GetRailTypeInfo(GetRailType(ti->tile));
-				DrawGroundSprite (ti, rti->base_sprites.single[GetRailStationTrack(ti->tile)], PALETTE_CRASH);
-			}
-		}
-	}
-
-	if (HasStationRail (ti->tile) && HasRailCatenaryDrawn (rti)) {
-		DrawRailAxisCatenary (ti, rti, GetRailStationAxis (ti->tile),
-				CanStationTileHavePylons (ti->tile),
-				CanStationTileHaveWires (ti->tile));
-	}
-
-	if (HasBit(roadtypes, ROADTYPE_TRAM)) {
-		Axis axis = GetRoadStopAxis(ti->tile); // tram stops are always drive-through
-		DrawGroundSprite (ti, (HasBit(roadtypes, ROADTYPE_ROAD) ? SPR_TRAMWAY_OVERLAY : SPR_TRAMWAY_TRAM) + (axis ^ 1), PAL_NONE);
-		DrawRoadCatenary(ti, axis == AXIS_X ? ROAD_X : ROAD_Y);
-	}
-
-	if (IsRailWaypoint(ti->tile)) {
-		/* Don't offset the waypoint graphics; they're always the same. */
-		total_offset = 0;
-	}
-
-	DrawRailTileSeq(ti, t, TO_BUILDINGS, total_offset, relocation, palette);
 
 	DrawBridgeMiddle (ti);
 }
@@ -2921,7 +3017,7 @@ draw_default_foundation:
 void RailStationPickerDrawSprite (BlitArea *dpi, int x, int y, bool waypoint, RailType railtype, int image)
 {
 	PaletteID pal = COMPANY_SPRITE_COLOUR(_local_company);
-	const DrawTileSprites *t = GetStationTileLayout (waypoint ? STATION_WAYPOINT : STATION_RAIL, image);
+	const DrawTileSprites *t = (waypoint ? _station_display_datas_waypoint : _station_display_datas_rail) + image;
 	const RailtypeInfo *rti = GetRailTypeInfo (railtype);
 	int32 total_offset = rti->GetRailtypeSpriteOffset();
 
@@ -2942,13 +3038,13 @@ void RailStationPickerDrawSprite (BlitArea *dpi, int x, int y, bool waypoint, Ra
 	DrawSprite (dpi, ground_spr, ground_pal, x, y);
 
 	/* Default waypoint has no railtype specific sprites */
-	DrawRailTileSeqInGUI (dpi, x, y, t, waypoint ? 0 : total_offset, 0, pal);
+	DrawRailTileSeqInGUI (dpi, x, y, t->seq, waypoint ? 0 : total_offset, 0, pal);
 }
 
 void RoadStationPickerDrawSprite (BlitArea *dpi, int x, int y, bool bus, bool tram, int image)
 {
 	PaletteID pal = COMPANY_SPRITE_COLOUR(_local_company);
-	const DrawTileSprites *t = GetStationTileLayout (bus ? STATION_BUS : STATION_TRUCK, image);
+	const DrawTileSprites *t = (bus ? _station_display_datas_bus : _station_display_datas_truck) + image;
 
 	SpriteID img = t->ground.sprite;
 	DrawSprite (dpi, img, HasBit(img, PALETTE_MODIFIER_COLOUR) ? pal : PAL_NONE, x, y);
@@ -2957,7 +3053,7 @@ void RoadStationPickerDrawSprite (BlitArea *dpi, int x, int y, bool bus, bool tr
 		DrawSprite (dpi, SPR_TRAMWAY_TRAM + (t->ground.sprite == SPR_ROAD_PAVED_STRAIGHT_X ? 1 : 0), PAL_NONE, x, y);
 	}
 
-	DrawOrigTileSeqInGUI (dpi, x, y, t, pal);
+	DrawOrigTileSeqInGUI (dpi, x, y, t->seq, pal);
 }
 
 static int GetSlopePixelZ_Station(TileIndex tile, uint x, uint y)
@@ -3011,7 +3107,8 @@ static void GetTileDesc_Station(TileIndex tile, TileDesc *td)
 		}
 
 		const RailtypeInfo *rti = GetRailTypeInfo(GetRailType(tile));
-		td->rail_speed = rti->max_speed;
+		td->rail[0].type  = rti->strings.name;
+		td->rail[0].speed = rti->max_speed;
 	}
 
 	if (IsAirport(tile)) {
@@ -3385,22 +3482,87 @@ static void UpdateStationRating(Station *st)
  * @param st Station to be rerouted at.
  * @param c Type of cargo.
  * @param avoid Original next hop of cargo, avoid this.
- * @param avoid2 Another station to be avoided when rerouting.
  */
-void RerouteCargo(Station *st, CargoID c, StationID avoid, StationID avoid2)
+void RerouteCargo (Station *st, CargoID c, StationID avoid)
 {
 	GoodsEntry &ge = st->goods[c];
 
 	/* Reroute cargo in station. */
-	ge.cargo.Reroute(UINT_MAX, &ge.cargo, avoid, avoid2, &ge);
+	ge.cargo.Reroute (avoid, st->index, &ge);
 
 	/* Reroute cargo staged to be transfered. */
 	for (std::list<Vehicle *>::iterator it(st->loading_vehicles.begin()); it != st->loading_vehicles.end(); ++it) {
 		for (Vehicle *v = *it; v != NULL; v = v->Next()) {
 			if (v->cargo_type != c) continue;
-			v->cargo.Reroute(UINT_MAX, &v->cargo, avoid, avoid2, &ge);
+			v->cargo.Reroute (avoid, st->index, &ge);
 		}
 	}
+}
+
+/**
+ * Check if an order list contains an order for both of the given stations.
+ * @param l The order list to check.
+ * @param st1 The first station to look for.
+ * @param st2 The second station to look for.
+ * @return Whether the order list has an order for both of the stations.
+ */
+static bool CheckOrderListLink (const OrderList *l, StationID st1,
+	StationID st2)
+{
+	bool found1 = false;
+	bool found2 = false;
+	for (const Order *order = l->GetFirstOrder(); order != NULL; order = order->next) {
+		if (!order->IsType(OT_GOTO_STATION) && !order->IsType(OT_IMPLICIT)) continue;
+		StationID dest = order->GetDestination();
+		if (dest == st1) {
+			found1 = true;
+			if (found2) return true;
+		} else if (dest == st2) {
+			found2 = true;
+			if (found1) return true;
+		}
+	}
+	return false;
+}
+
+/**
+ * Check if a link is stale.
+ * @param from Source station.
+ * @param to Destination station.
+ * @param edge Link to check.
+ * @return Whether the link has been updated.
+ */
+static bool CheckStaleLink (StationID from, StationID to,
+	const LinkGraph::Edge *edge)
+{
+	/* Have all vehicles refresh their next hops before deciding to
+	 * remove the node. */
+	OrderList *l;
+	SmallVector<Vehicle *, 32> vehicles;
+	FOR_ALL_ORDER_LISTS(l) {
+		if (!CheckOrderListLink (l, from, to)) continue;
+		*(vehicles.Append()) = l->GetFirstSharedVehicle();
+	}
+
+	Vehicle **iter = vehicles.Begin();
+	while (iter != vehicles.End()) {
+		Vehicle *v = *iter;
+
+		LinkRefresher::Run (v, false); // Don't allow merging. Otherwise lg might get deleted.
+		if (edge->LastUpdate() == _date) return true;
+
+		Vehicle *next_shared = v->NextShared();
+		if (next_shared) {
+			*iter = next_shared;
+			++iter;
+		} else {
+			vehicles.Erase (iter);
+		}
+
+		if (iter == vehicles.End()) iter = vehicles.Begin();
+	}
+
+	return false;
 }
 
 /**
@@ -3411,9 +3573,10 @@ void RerouteCargo(Station *st, CargoID c, StationID avoid, StationID avoid2)
  * doesn't hurt either.
  * @param from Station to check.
  */
-void DeleteStaleLinks(Station *from)
+static void DeleteStaleLinks (Station *from)
 {
 	for (CargoID c = 0; c < NUM_CARGO; ++c) {
+		const bool auto_distributed = (_settings_game.linkgraph.GetDistributionType(c) != DT_MANUAL);
 		GoodsEntry &ge = from->goods[c];
 		LinkGraph *lg = LinkGraph::GetIfValid(ge.link_graph);
 		if (lg == NULL) continue;
@@ -3426,46 +3589,16 @@ void DeleteStaleLinks(Station *from)
 			assert(_date >= edge->LastUpdate());
 			uint timeout = LinkGraph::MIN_TIMEOUT_DISTANCE + (DistanceManhattan(from->xy, to->xy) >> 3);
 			if ((uint)(_date - edge->LastUpdate()) > timeout) {
-				/* Have all vehicles refresh their next hops before deciding to
-				 * remove the node. */
-				bool updated = false;
-				OrderList *l;
-				FOR_ALL_ORDER_LISTS(l) {
-					bool found_from = false;
-					bool found_to = false;
-					for (Order *order = l->GetFirstOrder(); order != NULL; order = order->next) {
-						if (!order->IsType(OT_GOTO_STATION) && !order->IsType(OT_IMPLICIT)) continue;
-						if (order->GetDestination() == from->index) {
-							found_from = true;
-							if (found_to) break;
-						} else if (order->GetDestination() == to->index) {
-							found_to = true;
-							if (found_from) break;
-						}
-					}
-					if (!found_to || !found_from) continue;
-					for (Vehicle *v = l->GetFirstSharedVehicle(); !updated && v != NULL; v = v->NextShared()) {
-						/* There is potential for optimization here:
-						 * - Usually consists of the same order list are the same. It's probably better to
-						 *   first check the first of each list, then the second of each list and so on.
-						 * - We could try to figure out if we've seen a consist with the same cargo on the
-						 *   same list already and if the consist can actually carry the cargo we're looking
-						 *   for. With conditional and refit orders this is not quite trivial, though. */
-						LinkRefresher::Run(v, false); // Don't allow merging. Otherwise lg might get deleted.
-						if (edge->LastUpdate() == _date) updated = true;
-					}
-					if (updated) break;
-				}
-				if (!updated) {
+				if (!auto_distributed || !CheckStaleLink (from->index, to->index, edge)) {
 					/* If it's still considered dead remove it. */
 					lg->RemoveEdge (ge.node, to->goods[c].node);
 					ge.flows.DeleteFlows(to->index);
-					RerouteCargo(from, c, to->index, from->index);
+					RerouteCargo (from, c, to->index);
 				}
 			} else if (edge->LastUnrestrictedUpdate() != INVALID_DATE && (uint)(_date - edge->LastUnrestrictedUpdate()) > timeout) {
 				edge->Restrict();
 				ge.flows.RestrictFlows(to->index);
-				RerouteCargo(from, c, to->index, from->index);
+				RerouteCargo (from, c, to->index);
 			} else if (edge->LastRestrictedUpdate() != INVALID_DATE && (uint)(_date - edge->LastRestrictedUpdate()) > timeout) {
 				edge->Release();
 			}
@@ -4379,23 +4512,21 @@ void FlowStatMap::FinalizeLocalConsumption(StationID self)
 /**
  * Delete all flows at a station for specific cargo and destination.
  * @param via Remote station of flows to be deleted.
- * @return IDs of source stations for which the complete FlowStat, not only a
- *         share, has been erased.
+ * @param erased Station id stack to which to append the source stations
+ *         for which the complete FlowStat, not only a share, has been erased.
  */
-StationIDStack FlowStatMap::DeleteFlows(StationID via)
+void FlowStatMap::DeleteFlows (StationID via, StationIDStack *erased)
 {
-	StationIDStack ret;
 	for (FlowStatMap::iterator f_it = this->begin(); f_it != this->end();) {
 		FlowStat &s_flows = f_it->second;
 		s_flows.ChangeShare(via, INT_MIN);
 		if (s_flows.GetShares()->empty()) {
-			ret.Push(f_it->first);
+			if (erased != NULL) erased->push_back (f_it->first);
 			this->erase(f_it++);
 		} else {
 			++f_it;
 		}
 	}
-	return ret;
 }
 
 /**

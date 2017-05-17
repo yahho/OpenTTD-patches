@@ -15,6 +15,49 @@
 #include "strings_type.h"
 #include "string.h"
 #include "gfx_type.h"
+#include "core/bitmath_func.hpp"
+
+/**
+ * Extract the StringTab from a StringID.
+ * @param str String identifier
+ * @return StringTab from \a str
+ */
+static inline StringTab GetStringTab(StringID str)
+{
+	StringTab result = (StringTab)(str >> TAB_SIZE_BITS);
+	if (result >= TEXT_TAB_NEWGRF_START) return TEXT_TAB_NEWGRF_START;
+	if (result >= TEXT_TAB_GAMESCRIPT_START) return TEXT_TAB_GAMESCRIPT_START;
+	return result;
+}
+
+/**
+ * Extract the StringIndex from a StringID.
+ * @param str String identifier
+ * @return StringIndex from \a str
+ */
+static inline uint GetStringIndex(StringID str)
+{
+	return str - (GetStringTab(str) << TAB_SIZE_BITS);
+}
+
+/**
+ * Create a StringID
+ * @param tab StringTab
+ * @param index StringIndex
+ * @return StringID composed from \a tab and \a index
+ */
+static inline StringID MakeStringID(StringTab tab, uint index)
+{
+	if (tab == TEXT_TAB_NEWGRF_START) {
+		assert(index < TAB_SIZE_NEWGRF);
+	} else if (tab == TEXT_TAB_GAMESCRIPT_START) {
+		assert(index < TAB_SIZE_GAMESCRIPT);
+	} else {
+		assert(tab < TEXT_TAB_END);
+		assert(index < TAB_SIZE);
+	}
+	return (tab << TAB_SIZE_BITS) + index;
+}
 
 class StringParameters {
 	StringParameters *parent; ///< If not NULL, this instance references data from this parent instance.
@@ -157,17 +200,6 @@ uint ConvertKmhishSpeedToDisplaySpeed(uint speed);
 uint ConvertDisplaySpeedToKmhishSpeed(uint speed);
 
 /**
- * Set a string parameter \a v at index \a n in a given array \a s.
- * @param s Array of string parameters.
- * @param n Index of the string parameter.
- * @param v Value of the string parameter.
- */
-static inline void SetDParamX(uint64 *s, uint n, uint64 v)
-{
-	s[n] = v;
-}
-
-/**
  * Set a string parameter \a v at index \a n in the global string parameter array.
  * @param n Index of the string parameter.
  * @param v Value of the string parameter.
@@ -185,17 +217,6 @@ void SetDParamStr(uint n, const char *str);
 void CopyInDParam(int offs, const uint64 *src, int num);
 void CopyOutDParam(uint64 *dst, int offs, int num);
 void CopyOutDParam(uint64 *dst, const char **strings, StringID string, int num);
-
-/**
- * Get the current string parameter at index \a n from parameter array \a s.
- * @param s Array of string parameters.
- * @param n Index of the string parameter.
- * @return Value of the requested string parameter.
- */
-static inline uint64 GetDParamX(const uint64 *s, uint n)
-{
-	return s[n];
-}
 
 /**
  * Get the current string parameter at index \a n from the global string parameter array.
@@ -259,8 +280,6 @@ public:
 	{
 		return this->monospace;
 	}
-
-	void SetFontNames (struct FreeTypeSettings *settings, const char *font_name);
 
 	bool FindMissingGlyphs (void);
 };

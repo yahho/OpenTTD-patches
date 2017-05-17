@@ -114,9 +114,6 @@
     <ClCompile Include="..\src\bmp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\cargoaction.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\cargomonitor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -183,10 +180,7 @@
     <ClCompile Include="..\src\fios.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\fontcache.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\fontdetection.cpp">
+    <ClCompile Include="..\src\font.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\src\base_consist.cpp">
@@ -435,9 +429,6 @@
     <ClInclude Include="..\src\cargo_type.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\cargoaction.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\cargomonitor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -582,10 +573,7 @@
     <ClInclude Include="..\src\fios.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\fontcache.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\fontdetection.h">
+    <ClInclude Include="..\src\font.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\base_consist.h">
@@ -1255,9 +1243,6 @@
       <Filter>Core Source Code</Filter>
     </ClInclude>
     <ClInclude Include="..\src\core\smallmatrix_type.hpp">
-      <Filter>Core Source Code</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\core\smallstack_type.hpp">
       <Filter>Core Source Code</Filter>
     </ClInclude>
     <ClInclude Include="..\src\core\smallvec_type.hpp">
@@ -1930,9 +1915,6 @@
       <Filter>Tables</Filter>
     </ClInclude>
     <ClInclude Include="..\src\table\town_land.h">
-      <Filter>Tables</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\table\track_land.h">
       <Filter>Tables</Filter>
     </ClInclude>
     <ClInclude Include="..\src\table\train_cmd.h">

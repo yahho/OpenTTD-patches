@@ -16,7 +16,7 @@
 #include "music/music_driver.hpp"
 #include "video/video_driver.hpp"
 
-#include "fontcache.h"
+#include "font.h"
 #include "error.h"
 #include "string.h"
 #include "gui.h"
@@ -310,8 +310,6 @@ static void ShutdownGame()
 
 	/* Close all and any open filehandles */
 	FioCloseAll();
-
-	UninitFreeType();
 }
 
 /**
@@ -340,7 +338,6 @@ static void LoadIntroGame(bool load_newgrfs = true)
 	_pause_mode = PM_UNPAUSED;
 	_cursor.fix_at = false;
 
-	if (load_newgrfs) CheckForMissingSprites();
 	CheckForMissingGlyphs();
 
 	/* Play main theme */
@@ -741,13 +738,13 @@ int openttd_main(int argc, char *argv[])
 	InitWindowSystem();
 
 	BaseGraphics::FindSets();
-	if (graphics_set == NULL && BaseGraphics::ini_set != NULL) graphics_set = xstrdup(BaseGraphics::ini_set);
-	if (!BaseGraphics::SetSet(graphics_set)) {
-		if (!StrEmpty(graphics_set)) {
+	{
+		const char *sel = (graphics_set != NULL) ? graphics_set : BaseGraphics::ini_set;
+		if (!BaseGraphics::SetSet (sel) && !StrEmpty (sel)) {
 			BaseGraphics::SetSet(NULL);
 
 			ErrorMessageData msg(STR_CONFIG_ERROR, STR_CONFIG_ERROR_INVALID_BASE_GRAPHICS_NOT_FOUND);
-			msg.SetDParamStr(0, graphics_set);
+			msg.SetDParamStr (0, sel);
 			ScheduleErrorMessage(msg);
 		}
 	}
@@ -789,12 +786,12 @@ int openttd_main(int argc, char *argv[])
 			DEBUG(driver, 1, "Probing blitter %s", sel);
 		}
 
-		if (Blitter::select (sel) == NULL) {
-			/* Blitter::select only fails if it cannot find
-			 * a blitter by the given name. */
+		const Blitter::Info *blitter = Blitter::find (sel);
+		if (blitter == NULL) {
 			assert (!autodetect);
 			usererror ("Failed to select requested blitter '%s'; does it exist?", sel);
 		}
+		Blitter::select (blitter);
 	}
 	free(blitter);
 
@@ -830,27 +827,31 @@ int openttd_main(int argc, char *argv[])
 	InitializeScreenshotFormats();
 
 	BaseSounds::FindSets();
-	if (sounds_set == NULL && BaseSounds::ini_set != NULL) sounds_set = xstrdup(BaseSounds::ini_set);
-	if (!BaseSounds::SetSet(sounds_set)) {
-		if (StrEmpty(sounds_set) || !BaseSounds::SetSet(NULL)) {
-			usererror("Failed to find a sounds set. Please acquire a sounds set for OpenTTD. See section 4.1 of readme.txt.");
-		} else {
-			ErrorMessageData msg(STR_CONFIG_ERROR, STR_CONFIG_ERROR_INVALID_BASE_SOUNDS_NOT_FOUND);
-			msg.SetDParamStr(0, sounds_set);
-			ScheduleErrorMessage(msg);
+	{
+		const char *sel = (sounds_set != NULL) ? sounds_set : BaseSounds::ini_set;
+		if (!BaseSounds::SetSet (sel)) {
+			if (StrEmpty (sel) || !BaseSounds::SetSet (NULL)) {
+				usererror ("Failed to find a sounds set. Please acquire a sounds set for OpenTTD. See section 4.1 of readme.txt.");
+			} else {
+				ErrorMessageData msg (STR_CONFIG_ERROR, STR_CONFIG_ERROR_INVALID_BASE_SOUNDS_NOT_FOUND);
+				msg.SetDParamStr (0, sel);
+				ScheduleErrorMessage (msg);
+			}
 		}
 	}
 	free(sounds_set);
 
 	BaseMusic::FindSets();
-	if (music_set == NULL && BaseMusic::ini_set != NULL) music_set = xstrdup(BaseMusic::ini_set);
-	if (!BaseMusic::SetSet(music_set)) {
-		if (StrEmpty(music_set) || !BaseMusic::SetSet(NULL)) {
-			usererror("Failed to find a music set. Please acquire a music set for OpenTTD. See section 4.1 of readme.txt.");
-		} else {
-			ErrorMessageData msg(STR_CONFIG_ERROR, STR_CONFIG_ERROR_INVALID_BASE_MUSIC_NOT_FOUND);
-			msg.SetDParamStr(0, music_set);
-			ScheduleErrorMessage(msg);
+	{
+		const char *sel = (music_set != NULL) ? music_set : BaseMusic::ini_set;
+		if (!BaseMusic::SetSet (sel)) {
+			if (StrEmpty (sel) || !BaseMusic::SetSet (NULL)) {
+				usererror ("Failed to find a music set. Please acquire a music set for OpenTTD. See section 4.1 of readme.txt.");
+			} else {
+				ErrorMessageData msg (STR_CONFIG_ERROR, STR_CONFIG_ERROR_INVALID_BASE_MUSIC_NOT_FOUND);
+				msg.SetDParamStr (0, sel);
+				ScheduleErrorMessage (msg);
+			}
 		}
 	}
 	free(music_set);

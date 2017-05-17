@@ -162,13 +162,13 @@ static VideoDriverFactory <VideoDriver_Dedicated>
 
 const char *VideoDriver_Dedicated::Start(const char * const *parm)
 {
-	Blitter *blitter = Blitter::get();
-	int bpp = blitter->GetScreenDepth();
+	const Blitter::Info *blitter = Blitter::get();
+	int bpp = blitter->screen_depth;
 	_dedicated_video_mem = (bpp == 0) ? NULL : xmalloct<byte>(_cur_resolution.width * _cur_resolution.height * (bpp / 8));
 
 	_screen_surface.reset (blitter->create (_dedicated_video_mem,
 				_cur_resolution.width, _cur_resolution.height,
-				_cur_resolution.width));
+				_cur_resolution.width, true));
 	_screen_width  = _cur_resolution.width;
 	_screen_height = _cur_resolution.height;
 	ScreenSizeChanged();
@@ -203,10 +203,6 @@ void VideoDriver_Dedicated::Stop()
 #endif
 	free(_dedicated_video_mem);
 }
-
-void VideoDriver_Dedicated::MakeDirty(int left, int top, int width, int height) {}
-bool VideoDriver_Dedicated::ChangeResolution(int w, int h) { return false; }
-bool VideoDriver_Dedicated::ToggleFullscreen(bool fs) { return false; }
 
 #if defined(UNIX) || defined(__OS2__) || defined(PSP)
 static bool InputWaiting()

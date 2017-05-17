@@ -35,29 +35,20 @@ struct Listing {
 	bool order;    ///< Ascending/descending
 	byte criteria; ///< Sorting criteria
 };
-/** Data structure describing what to show in the list (filter criteria). */
-struct Filtering {
-	bool state;    ///< Filter on/off
-	byte criteria; ///< Filtering criteria
-};
 
 /**
  * List template of 'things' \p T to sort in a GUI.
  * @tparam T Type of data stored in the list to represent each item.
- * @tparam F Type of data fed as additional value to the filter function. @see FilterFunction
  */
-template <typename T, typename F = const char*>
+template <typename T>
 class GUIList : public SmallVector<T, 32> {
 public:
 	typedef int CDECL SortFunction(const T*, const T*); ///< Signature of sort function.
-	typedef bool CDECL FilterFunction(const T*, F);     ///< Signature of filter function.
 
 protected:
 	SortFunction * const *sort_func_list;     ///< the sort criteria functions
-	FilterFunction * const *filter_func_list; ///< the filter criteria functions
 	SortListFlags flags;                      ///< used to control sorting/resorting/etc.
 	uint8 sort_type;                          ///< what criteria to sort on
-	uint8 filter_type;                        ///< what criteria to filter on
 	uint16 resort_timer;                      ///< resort list after a given amount of ticks if set
 
 	/**
@@ -82,10 +73,8 @@ protected:
 public:
 	GUIList() :
 		sort_func_list(NULL),
-		filter_func_list(NULL),
 		flags(VL_FIRST_SORT),
 		sort_type(0),
-		filter_type(0),
 		resort_timer(1)
 	{};
 
@@ -141,57 +130,6 @@ public:
 		this->sort_type = l.criteria;
 
 		SETBITS(this->flags, VL_FIRST_SORT);
-	}
-
-	/**
-	 * Get the filtertype of the list
-	 *
-	 * @return The current filtertype
-	 */
-	uint8 FilterType() const
-	{
-		return this->filter_type;
-	}
-
-	/**
-	 * Set the filtertype of the list
-	 *
-	 * @param n_type the new filter type
-	 */
-	void SetFilterType(uint8 n_type)
-	{
-		if (this->filter_type != n_type) {
-			this->filter_type = n_type;
-		}
-	}
-
-	/**
-	 * Export current filter conditions
-	 *
-	 * @return the current filter conditions
-	 */
-	Filtering GetFiltering() const
-	{
-		Filtering f;
-		f.state = (this->flags & VL_FILTER) != 0;
-		f.criteria = this->filter_type;
-
-		return f;
-	}
-
-	/**
-	 * Import filter conditions
-	 *
-	 * @param f The filter conditions we want to use
-	 */
-	void SetFiltering(Filtering f)
-	{
-		if (f.state) {
-			SETBITS(this->flags, VL_FILTER);
-		} else {
-			CLRBITS(this->flags, VL_FILTER);
-		}
-		this->filter_type = f.criteria;
 	}
 
 	/**
@@ -326,12 +264,13 @@ public:
 
 	/**
 	 * Filter the list.
-	 *
+	 * @tparam F Type of data fed as additional value to the filter function.
 	 * @param decide The function to decide about an item
 	 * @param filter_data Additional data passed to the filter function
 	 * @return true if the list has been altered by filtering
 	 */
-	bool Filter(FilterFunction *decide, F filter_data)
+	template <typename F>
+	bool Filter (bool CDECL decide (const T*, F), F filter_data)
 	{
 		/* Do not filter if the filter bit is not set */
 		if (!(this->flags & VL_FILTER)) return false;
@@ -348,28 +287,6 @@ public:
 		}
 
 		return changed;
-	}
-
-	/**
-	 * Hand the array of filter function pointers to the sort list
-	 *
-	 * @param n_funcs The pointer to the first filter func
-	 */
-	void SetFilterFuncs(FilterFunction * const *n_funcs)
-	{
-		this->filter_func_list = n_funcs;
-	}
-
-	/**
-	 * Filter the data with the currently selected filter.
-	 *
-	 * @param filter_data Additional data passed to the filter function.
-	 * @return true if the list has been altered by filtering
-	 */
-	bool Filter(F filter_data)
-	{
-		if (this->filter_func_list == NULL) return false;
-		return this->Filter(this->filter_func_list[this->filter_type], filter_data);
 	}
 
 	/**

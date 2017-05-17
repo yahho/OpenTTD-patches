@@ -1,5 +1,3 @@
-/* $Id$ */
-
 /*
  * This file is part of OpenTTD.
  * OpenTTD is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, version 2.
@@ -7,10 +5,10 @@
  * See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with OpenTTD. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/** @file fontcache.h Functions to read fonts from files and cache them. */
+/** @file font.h Functions to read fonts from files and cache them. */
 
-#ifndef FONTCACHE_H
-#define FONTCACHE_H
+#ifndef FONT_H
+#define FONT_H
 
 #ifdef WITH_FREETYPE
 #include <ft2build.h>
@@ -42,7 +40,6 @@ private:
 	struct GlyphEntry {
 		Sprite *sprite; ///< The loaded sprite.
 		byte width;     ///< The width of the glyph.
-		bool duplicate; ///< Whether this glyph entry is a duplicate, i.e. may this be freed?
 	};
 
 	/**
@@ -56,9 +53,11 @@ private:
 	 * For character 0x20AC (Euro): sprite_map[0x20][0xAC]
 	 *
 	 * Currently only 256 segments are allocated, "limiting" us to 65536 characters.
-	 * This can be simply changed in the two functions Get & SetGlyphPtr.
+	 * This can be simply changed in the function GetGlyphPtr.
 	 */
 	GlyphEntry *sprite_map[0x100];
+
+	const GlyphEntry *missing_sprite; ///< Sprite for missing glyphs (question mark)
 
 	typedef SmallMap<uint32, SmallPair<size_t, const void*> > FontTable; ///< Table with font table cache
 
@@ -79,6 +78,7 @@ private:
 	byte digit_width;           ///< Width of the widest digit.
 
 	void ResetFontMetrics (void);
+	void RebuildWidthCache (void);
 
 	void ClearGlyphToSpriteMap (void);
 
@@ -86,8 +86,7 @@ private:
 
 #ifdef WITH_FREETYPE
 
-	GlyphEntry *SetGlyphPtr (GlyphID key, Sprite *sprite, byte width, bool duplicate = false);
-	GlyphEntry *GetGlyphPtr (GlyphID key);
+	const GlyphEntry *GetGlyphPtr (GlyphID key);
 
 #endif /* WITH_FREETYPE */
 
@@ -141,6 +140,9 @@ public:
 	/* Load the freetype font. */
 	void LoadFreeTypeFont (void);
 
+	/* Clear the glyph cache. */
+	void ClearGlyphCache (void);
+
 	/* Unload the freetype font. */
 	void UnloadFreeTypeFont (void);
 
@@ -175,6 +177,16 @@ public:
 	 * @return The glyph ID used to draw the character.
 	 */
 	GlyphID MapCharToGlyph (WChar key) const;
+
+	/**
+	 * Get the glyph (sprite) for a given character.
+	 * @param c The character to look up.
+	 * @return The sprite.
+	 */
+	const Sprite *GetCharGlyph (WChar c)
+	{
+		return this->GetGlyph (this->MapCharToGlyph (c));
+	}
 
 	/**
 	 * Read a font table from the font.
@@ -244,13 +256,6 @@ static inline void ClearFontCache()
 	}
 }
 
-/** Get the Sprite for a glyph */
-static inline const Sprite *GetGlyph(FontSize size, WChar key)
-{
-	FontCache *fc = FontCache::Get(size);
-	return fc->GetGlyph(fc->MapCharToGlyph(key));
-}
-
 /**
  * Return the maximum width of single digit.
  * @param size  Font of the digit
@@ -281,7 +286,18 @@ struct FreeTypeSettings {
 extern FreeTypeSettings _freetype;
 
 void InitFreeType(bool monospace);
-void UninitFreeType();
+
+/**
+ * We would like to have a fallback font as the current one
+ * doesn't contain all characters we need.
+ * This function must set all fonts of settings.
+ * @param settings the settings to overwrite the fontname of.
+ * @param language_isocode the language, e.g. en_GB.
+ * @param winlangid the language ID windows style.
+ * @param callback The function to call to check for missing glyphs.
+ * @return true if a font has been set, false otherwise.
+ */
+bool SetFallbackFont (FreeTypeSettings *settings, const char *language_isocode, int winlangid, class MissingGlyphSearcher *callback);
 
 #else /* WITH_FREETYPE */
 
@@ -289,10 +305,6 @@ static inline void InitFreeType (bool monospace)
 {
 }
 
-static inline void UninitFreeType (void)
-{
-}
-
 #endif /* WITH_FREETYPE */
 
-#endif /* FONTCACHE_H */
+#endif /* FONT_H */

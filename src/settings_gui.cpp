@@ -212,7 +212,7 @@ struct GameOptionsWindow : Window {
 					if (i == CURRENCY_CUSTOM) continue;
 					*list->Append() = new DropDownListStringItem(*items, i, HasBit(disabled, i));
 				}
-				QSortT(list->Begin(), list->Length(), DropDownListStringItem::NatSortFunc);
+				list->Sort (DropDownListStringItem::NatSortFunc);
 
 				/* Append custom currency at the end */
 				*list->Append() = new DropDownListItem(-1, false); // separator line
@@ -250,7 +250,7 @@ struct GameOptionsWindow : Window {
 					int result = N_ORIG_TOWN_NAME_GEN + i;
 					*list->Append() = new DropDownListStringItem (_grf_names[i], result, enabled_item != result && enabled_item >= 0);
 				}
-				QSortT(list->Begin(), list->Length(), DropDownListStringItem::NatSortFunc);
+				list->Sort (DropDownListStringItem::NatSortFunc);
 
 				int newgrf_size = list->Length();
 				/* Insert newgrf_names at the top of the list */
@@ -263,7 +263,7 @@ struct GameOptionsWindow : Window {
 				for (uint i = 0; i < N_ORIG_TOWN_NAME_GEN; i++) {
 					*list->Append() = new DropDownListStringItem(STR_GAME_OPTIONS_TOWN_NAME_ORIGINAL_ENGLISH + i, i, enabled_item != (int)i && enabled_item >= 0);
 				}
-				QSortT(list->Begin() + newgrf_size, list->Length() - newgrf_size, DropDownListStringItem::NatSortFunc);
+				list->Sort (DropDownListStringItem::NatSortFunc, newgrf_size);
 				break;
 			}
 
@@ -283,7 +283,7 @@ struct GameOptionsWindow : Window {
 					if (&_languages[i] == _current_language) *selected_index = i;
 					*list->Append() = new DropDownListStringItem(SPECSTR_LANGUAGE_START + i, i, false);
 				}
-				QSortT(list->Begin(), list->Length(), DropDownListStringItem::NatSortFunc);
+				list->Sort (DropDownListStringItem::NatSortFunc);
 				break;
 			}
 
@@ -311,7 +311,7 @@ struct GameOptionsWindow : Window {
 				list = new DropDownList();
 				*selected_index = _cur_screenshot_format;
 				for (uint i = 0; i < _num_screenshot_formats; i++) {
-					if (!GetScreenshotFormatSupports_32bpp(i) && Blitter::get()->GetScreenDepth() == 32) continue;
+					if (!GetScreenshotFormatSupports_32bpp(i) && Blitter::get()->screen_depth == 32) continue;
 					*list->Append() = new DropDownListStringItem(SPECSTR_SCREENSHOT_START + i, i, false);
 				}
 				break;
@@ -554,6 +554,7 @@ struct GameOptionsWindow : Window {
 				_gui_zoom = (ZoomLevel)(ZOOM_LVL_OUT_4X - index);
 				UpdateCursorSize();
 				LoadStringWidthTable();
+				UpdateAllVirtCoords();
 				break;
 
 			case WID_GO_SCREENSHOT_DROPDOWN: // Change screenshot format
@@ -1495,6 +1496,7 @@ static SettingEntry _settings_interface_general[] = {
 	SettingEntry("gui.errmsg_duration"),
 	SettingEntry("gui.window_snap_radius"),
 	SettingEntry("gui.window_soft_limit"),
+	SettingEntry("gui.right_mouse_wnd_close"),
 };
 /** Interface/General sub-page */
 static SettingsPage _settings_interface_general_page = {_settings_interface_general, lengthof(_settings_interface_general)};

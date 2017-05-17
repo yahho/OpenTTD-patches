@@ -164,7 +164,10 @@ public:
 		td.airport_class = STR_NULL;
 		td.airport_name = STR_NULL;
 		td.airport_tile_name = STR_NULL;
-		td.rail_speed = 0;
+		td.rail[0].type = STR_NULL;
+		td.rail[0].speed = 0;
+		td.rail[1].type = STR_NULL;
+		td.rail[1].speed = 0;
 		td.road_speed = 0;
 
 		td.grf = NULL;
@@ -176,8 +179,7 @@ public:
 		uint line_nr = 0;
 
 		/* Tiletype */
-		SetDParam(0, td.dparam[0]);
-		SetDParam(1, td.dparam[1]);
+		SetDParam (0, td.dparam);
 		GetString (this->landinfo_data[line_nr++], td.str);
 
 		/* Up to four owners */
@@ -264,10 +266,18 @@ public:
 			GetString (this->landinfo_data[line_nr++], STR_LAND_AREA_INFORMATION_AIRPORTTILE_NAME);
 		}
 
-		/* Rail speed limit */
-		if (td.rail_speed != 0) {
-			SetDParam(0, td.rail_speed);
-			GetString (this->landinfo_data[line_nr++], STR_LANG_AREA_INFORMATION_RAIL_SPEED_LIMIT);
+		for (uint i = 0; i < 2; i++) {
+			/* Rail type name */
+			if (td.rail[i].type != STR_NULL) {
+				SetDParam (0, td.rail[i].type);
+				GetString (this->landinfo_data[line_nr++], STR_LANG_AREA_INFORMATION_RAIL_TYPE);
+			}
+
+			/* Rail speed limit */
+			if (td.rail[i].speed != 0) {
+				SetDParam (0, td.rail[i].speed);
+				GetString (this->landinfo_data[line_nr++], STR_LANG_AREA_INFORMATION_RAIL_SPEED_LIMIT);
+			}
 		}
 
 		/* Road speed limit */

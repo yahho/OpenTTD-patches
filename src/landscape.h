@@ -129,9 +129,8 @@ static inline uint ApplyPixelFoundationToSlope(Foundation f, Slope *s)
 	return ApplyFoundationToSlope(f, s) * TILE_HEIGHT;
 }
 
+uint GetFoundationSpriteBlock (TileIndex tile, DiagDirection side = INVALID_DIAGDIR);
 void DrawFoundation(TileInfo *ti, Foundation f, DiagDirection side = INVALID_DIAGDIR);
-bool HasFoundationNW(TileIndex tile, Slope slope_here, uint z_here);
-bool HasFoundationNE(TileIndex tile, Slope slope_here, uint z_here);
 
 void DoClearSquare(TileIndex tile);
 void RunTileLoop();

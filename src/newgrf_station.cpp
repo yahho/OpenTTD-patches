@@ -183,25 +183,43 @@ static uint32 GetPlatformInfoHelper(TileIndex tile, bool check_type, bool check_
 
 static uint32 GetRailContinuationInfo(TileIndex tile)
 {
+	struct DataPair {
+		Direction dir;
+		DiagDirection exit;
+	};
+
 	/* Tile offsets and exit dirs for X axis */
-	static const Direction x_dir[8] = { DIR_SW, DIR_NE, DIR_SE, DIR_NW, DIR_S, DIR_E, DIR_W, DIR_N };
-	static const DiagDirection x_exits[8] = { DIAGDIR_SW, DIAGDIR_NE, DIAGDIR_SE, DIAGDIR_NW, DIAGDIR_SW, DIAGDIR_NE, DIAGDIR_SW, DIAGDIR_NE };
+	static const DataPair data_x[8] = {
+		{ DIR_SW, DIAGDIR_SW },
+		{ DIR_NE, DIAGDIR_NE },
+		{ DIR_SE, DIAGDIR_SE },
+		{ DIR_NW, DIAGDIR_NW },
+		{ DIR_S,  DIAGDIR_SW },
+		{ DIR_E,  DIAGDIR_NE },
+		{ DIR_W,  DIAGDIR_SW },
+		{ DIR_N,  DIAGDIR_NE },
+	};
 
 	/* Tile offsets and exit dirs for Y axis */
-	static const Direction y_dir[8] = { DIR_SE, DIR_NW, DIR_SW, DIR_NE, DIR_S, DIR_W, DIR_E, DIR_N };
-	static const DiagDirection y_exits[8] = { DIAGDIR_SE, DIAGDIR_NW, DIAGDIR_SW, DIAGDIR_NE, DIAGDIR_SE, DIAGDIR_NW, DIAGDIR_SE, DIAGDIR_NW };
+	static const DataPair data_y[8] = {
+		{ DIR_SE, DIAGDIR_SE },
+		{ DIR_NW, DIAGDIR_NW },
+		{ DIR_SW, DIAGDIR_SW },
+		{ DIR_NE, DIAGDIR_NE },
+		{ DIR_S,  DIAGDIR_SE },
+		{ DIR_W,  DIAGDIR_NW },
+		{ DIR_E,  DIAGDIR_SE },
+		{ DIR_N,  DIAGDIR_NW },
+	};
 
 	Axis axis = GetRailStationAxis(tile);
 
 	/* Choose appropriate lookup table to use */
-	const Direction *dir = axis == AXIS_X ? x_dir : y_dir;
-	const DiagDirection *diagdir = axis == AXIS_X ? x_exits : y_exits;
+	const DataPair *data = (axis == AXIS_X) ? data_x : data_y;
 
 	uint32 res = 0;
-	uint i;
-
-	for (i = 0; i < lengthof(x_dir); i++, dir++, diagdir++) {
-		TileIndex neighbour_tile = tile + TileOffsByDir(*dir);
+	for (uint i = 0; i < lengthof(data_x); i++, data++) {
+		TileIndex neighbour_tile = tile + TileOffsByDir (data->dir);
 		TrackBits trackbits = TrackStatusToTrackBits(GetTileRailwayStatus(neighbour_tile));
 		if (trackbits != TRACK_BIT_NONE) {
 			/* If there is any track on the tile, set the bit in the second byte */
@@ -209,12 +227,18 @@ static uint32 GetRailContinuationInfo(TileIndex tile)
 
 			/* With tunnels and bridges the tile has tracks, but they are not necessarily connected
 			 * with the next tile because the ramp is not going in the right direction. */
-			if ((IsTunnelTile(neighbour_tile) || IsBridgeHeadTile(neighbour_tile)) && GetTunnelBridgeDirection(neighbour_tile) != *diagdir) {
-				continue;
+			if (IsTunnelTile (neighbour_tile)) {
+				if (GetTunnelBridgeDirection (neighbour_tile) != data->exit) {
+					continue;
+				}
+			} else if (IsBridgeHeadTile (neighbour_tile)) {
+				if (GetTunnelBridgeDirection (neighbour_tile) == ReverseDiagDir (data->exit)) {
+					continue;
+				}
 			}
 
 			/* If any track reaches our exit direction, set the bit in the lower byte */
-			if (trackbits & DiagdirReachesTracks(*diagdir)) SetBit(res, i);
+			if (trackbits & DiagdirReachesTracks(data->exit)) SetBit(res, i);
 		}
 	}
 
@@ -806,10 +830,9 @@ bool DrawStationTile (BlitArea *dpi, int x, int y, RailType railtype,
 	uint32 relocation = 0;
 	uint32 ground_relocation = 0;
 	const NewGRFSpriteLayout *layout = NULL;
-	DrawTileSprites tmp_rail_layout;
 
 	if (statspec->renderdata == NULL) {
-		sprites = GetStationTileLayout(STATION_RAIL, tile + axis);
+		sprites = GetDefaultStationTileLayout() + (tile + axis);
 	} else {
 		layout = &statspec->renderdata[(tile < statspec->tiles) ? tile + axis : (uint)axis];
 		if (!layout->NeedsPreprocessing()) {
@@ -818,6 +841,8 @@ bool DrawStationTile (BlitArea *dpi, int x, int y, RailType railtype,
 		}
 	}
 
+	PalSpriteID ground;
+	const DrawTileSeqStruct *seq;
 	if (layout != NULL) {
 		/* Sprite layout which needs preprocessing */
 		bool separate_ground = HasBit(statspec->flags, SSF_SEPARATE_GROUND);
@@ -828,20 +853,21 @@ bool DrawStationTile (BlitArea *dpi, int x, int y, RailType railtype,
 			layout->ProcessRegisters(var10, var10_relocation, separate_ground);
 		}
 
-		tmp_rail_layout.seq = layout->GetLayout(&tmp_rail_layout.ground);
-		sprites = &tmp_rail_layout;
+		seq = layout->GetLayout (&ground);
 		total_offset = 0;
 	} else {
 		/* Simple sprite layout */
+		ground = sprites->ground;
+		seq = sprites->seq;
 		ground_relocation = relocation = GetCustomStationRelocation(statspec, NULL, INVALID_TILE, 0);
-		if (HasBit(sprites->ground.sprite, SPRITE_MODIFIER_CUSTOM_SPRITE)) {
+		if (HasBit(ground.sprite, SPRITE_MODIFIER_CUSTOM_SPRITE)) {
 			ground_relocation = GetCustomStationRelocation(statspec, NULL, INVALID_TILE, 1);
 		}
 		ground_relocation += rti->fallback_railtype;
 	}
 
-	SpriteID image = sprites->ground.sprite;
-	PaletteID pal = sprites->ground.pal;
+	SpriteID image = ground.sprite;
+	PaletteID pal = ground.pal;
 	RailTrackOffset overlay_offset;
 	if (rti->UsesOverlay() && SplitGroundSpriteForOverlay(NULL, &image, &overlay_offset)) {
 		SpriteID ground = GetCustomRailSprite(rti, INVALID_TILE, RTSG_GROUND);
@@ -853,7 +879,7 @@ bool DrawStationTile (BlitArea *dpi, int x, int y, RailType railtype,
 		DrawSprite (dpi, image, GroundSpritePaletteTransform (image, pal, palette), x, y);
 	}
 
-	DrawRailTileSeqInGUI (dpi, x, y, sprites, total_offset, relocation, palette);
+	DrawRailTileSeqInGUI (dpi, x, y, seq, total_offset, relocation, palette);
 
 	return true;
 }

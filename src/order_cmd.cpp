@@ -382,14 +382,15 @@ const Order *OrderList::GetNextDecisionNode(const Order *next, uint hops) const
 
 /**
  * Recursively determine the next deterministic station to stop at.
+ * @param result Station id stack to append the next stations to.
  * @param v The vehicle we're looking at.
  * @param first Order to start searching at or NULL to start at cur_implicit_order_index + 1.
  * @param hops Number of orders we have already looked at.
- * @return Next stoppping station or INVALID_STATION.
  * @pre The vehicle is currently loading and v->last_station_visited is meaningful.
  * @note This function may draw a random number. Don't use it from the GUI.
  */
-StationIDStack OrderList::GetNextStoppingStation(const Vehicle *v, const Order *first, uint hops) const
+void OrderList::AppendNextStoppingStations (StationIDStack *result,
+	const Vehicle *v, const Order *first, uint hops) const
 {
 
 	const Order *next = first;
@@ -397,7 +398,10 @@ StationIDStack OrderList::GetNextStoppingStation(const Vehicle *v, const Order *
 		next = this->GetOrderAt(v->cur_implicit_order_index);
 		if (next == NULL) {
 			next = this->GetFirstOrder();
-			if (next == NULL) return INVALID_STATION;
+			if (next == NULL) {
+				result->push_back (INVALID_STATION);
+				return;
+			}
 		} else {
 			/* GetNext never returns NULL if there is a valid station in the list.
 			 * As the given "next" is already valid and a station in the list, we
@@ -422,10 +426,9 @@ StationIDStack OrderList::GetNextStoppingStation(const Vehicle *v, const Order *
 			} else if (skip_to == NULL || skip_to == first) {
 				next = (advance == first) ? NULL : advance;
 			} else {
-				StationIDStack st1 = this->GetNextStoppingStation(v, skip_to, hops);
-				StationIDStack st2 = this->GetNextStoppingStation(v, advance, hops);
-				while (!st2.IsEmpty()) st1.Push(st2.Pop());
-				return st1;
+				this->AppendNextStoppingStations (result, v, skip_to, hops);
+				this->AppendNextStoppingStations (result, v, advance, hops);
+				return;
 			}
 			++hops;
 		}
@@ -434,11 +437,12 @@ StationIDStack OrderList::GetNextStoppingStation(const Vehicle *v, const Order *
 		if (next == NULL || ((next->IsType(OT_GOTO_STATION) || next->IsType(OT_IMPLICIT)) &&
 				next->GetDestination() == v->last_station_visited &&
 				(next->GetUnloadType() & (OUFB_TRANSFER | OUFB_UNLOAD)) != 0)) {
-			return INVALID_STATION;
+			result->push_back (INVALID_STATION);
+			return;
 		}
 	} while (next->IsType(OT_GOTO_DEPOT) || next->GetDestination() == v->last_station_visited);
 
-	return next->GetDestination();
+	result->push_back (next->GetDestination());
 }
 
 /**

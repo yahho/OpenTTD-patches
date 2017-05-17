@@ -105,25 +105,6 @@ public:
 		return true;
 	}
 
-	/**
-	 * Get the screen depth this blitter works for.
-	 *  This is either: 8, 16, 24 or 32.
-	 */
-	virtual uint8 GetScreenDepth() = 0;
-
-	/**
-	 * Convert a sprite from the loader to our own format.
-	 */
-	virtual Sprite *Encode (const RawSprite *sprite, bool is_font, AllocatorProc *allocator) = 0;
-
-	/**
-	 * Check if the blitter uses palette animation at all.
-	 * @return True if it uses palette animation.
-	 */
-	virtual Blitter::PaletteAnimation UsePaletteAnimation() = 0;
-
-	virtual ~Blitter() { }
-
 	/** Helper function to allocate a sprite in Encode. */
 	template <typename T>
 	static T *AllocateSprite (const RawSprite *sprite,
@@ -157,16 +138,23 @@ public:
 
 		/** Helper function to implement move below. */
 		template <typename T, typename P, typename X, typename Y>
-		static T *movew (P *p, X x, Y y, int w)
-		{
-			return (T*) p + x + y * w;
-		}
-
-		/** Helper function to implement move below. */
-		template <typename T, typename P, typename X, typename Y>
 		T *movep (P *p, X x, Y y)
 		{
-			return movew <T, P, X, Y> (p, x, y, this->pitch);
+			return (T*) p + x + y * (int) this->pitch;
+		}
+
+		/** Helper function to implement scroll below. */
+		static void scroll (char *ptr, int pitch, int left, int top,
+				int width, int height, int dx, int dy);
+
+		/** Helper function to implement scroll below. */
+		template <typename T>
+		void scroll (void *ptr, int left, int top,
+				int width, int height, int dx, int dy)
+		{
+			static const uint n = sizeof(T);
+			scroll ((char*)ptr, n * this->pitch, n * left, top,
+					n * width, height, n * dx, dy);
 		}
 
 		/**
@@ -235,15 +223,14 @@ public:
 
 		/**
 		 * Scroll the videobuffer some 'x' and 'y' value.
-		 * @param video The buffer to scroll into.
 		 * @param left The left value of the screen to scroll.
 		 * @param top The top value of the screen to scroll.
 		 * @param width The width of the screen to scroll.
 		 * @param height The height of the screen to scroll.
-		 * @param scroll_x How much to scroll in X.
-		 * @param scroll_y How much to scroll in Y.
+		 * @param dx How much to scroll in X.
+		 * @param dy How much to scroll in Y.
 		 */
-		virtual void scroll (void *video, int &left, int &top, int &width, int &height, int scroll_x, int scroll_y) = 0;
+		virtual void scroll (int left, int top, int width, int height, int dx, int dy) = 0;
 
 		/**
 		 * Called when the 8bpp palette is changed; you should redraw
@@ -287,25 +274,38 @@ public:
 		virtual void export_lines (void *dst, uint dst_pitch, uint y, uint height) = 0;
 	};
 
-	/** Create a surface for this blitter. */
-	virtual Surface *create (void *ptr, uint width, uint height, uint pitch, bool anim = true) = 0;
+	/** Static per-blitter data. */
+	struct Info {
+		const char *name;           ///< The name of the blitter.
+		const char *desc;           ///< Description of the blitter.
+		bool (*usable) (void);      ///< Usability check function.
+		Surface* (*create) (void *ptr, uint width, uint height,
+			uint pitch, bool anim); ///< Surface creation function.
+		Sprite* (*encode) (const RawSprite *sprite, bool is_font,
+			AllocatorProc *allocator);  ///< Encoding function.
+		uint screen_depth;          ///< Screen depth (0, 8 or 32).
+		PaletteAnimation palette_animation; ///< Palette animation.
+	};
 
 	/* Static stuff (active blitter). */
 	static char *ini;
 	static bool autodetected;
 
+	/* Find the blitter information for a given blitter name. */
+	static const Info *find (const char *name);
+
+	/* Find a replacement blitter. */
+	static const Info *choose (bool anim, bool base_32bpp, bool grf_32bpp);
+
 	/* Select a blitter. */
-	static Blitter *select (const char *name);
+	static void select (const Info *blitter);
 
 	/** Get the current active blitter (always set by calling select). */
-	static Blitter *get (void)
+	static const Info *get (void)
 	{
-		extern ttd_unique_ptr<Blitter> current_blitter;
-		return current_blitter.get();
+		extern const Info *current_blitter;
+		return current_blitter;
 	}
-
-	/* Get the name of the current blitter. */
-	static const char *get_name (void);
 
 	/* Fill a buffer with information about available blitters. */
 	static void list (stringb *buf);

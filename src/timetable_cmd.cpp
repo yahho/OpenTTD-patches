@@ -286,7 +286,7 @@ CommandCost CmdSetTimetableStart(TileIndex tile, DoCommandFlag flags, uint32 p1,
 		int num_vehs = vehs.Length();
 
 		if (num_vehs >= 2) {
-			QSortT(vehs.Begin(), vehs.Length(), &VehicleTimetableSorter);
+			vehs.Sort (&VehicleTimetableSorter);
 		}
 
 		int base = vehs.FindIndex(v);

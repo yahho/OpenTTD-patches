@@ -15,8 +15,7 @@
 #include <vector>
 
 #include "core/pointer.h"
-#include "fontcache.h"
-#include "gfx_func.h"
+#include "font.h"
 
 /** Common information about a font. */
 struct FontBase {
@@ -28,16 +27,26 @@ struct FontBase {
 
 /** Namespace for paragraph layout-related types. */
 namespace ParagraphLayouter {
+	/** A glyph and the position where it goes. */
+	struct GlyphPos {
+		int x0, x1, y;
+		GlyphID glyph;
+	};
+
 	/** Visual run contains data about the bit of text with the same font. */
 	class VisualRun {
 	public:
 		virtual ~VisualRun() {}
 		virtual const FontBase *GetFont() const = 0;
 		virtual int GetGlyphCount() const = 0;
-		virtual const GlyphID *GetGlyphs() const = 0;
-		virtual const float *GetPositions() const = 0;
-		virtual int GetLeading() const = 0;
-		virtual const int *GetGlyphToCharMap() const = 0;
+
+		/**
+		 * Get the glyph and position for a glyph.
+		 * @param gp Struct to receive the data.
+		 * @param i Index of the glyph whose data to get.
+		 * @return Whether the glyph is valid (non-empty).
+		 */
+		virtual bool GetGlyphPos (GlyphPos *gp, int i) const = 0;
 	};
 
 	/** A single line worth of VisualRuns. */
@@ -48,9 +57,8 @@ namespace ParagraphLayouter {
 		virtual int GetWidth() const = 0;
 		virtual int CountRuns() const = 0;
 		virtual const VisualRun *GetVisualRun(int run) const = 0;
-		virtual int GetInternalCharLength(WChar c) const = 0;
-		int GetCharPosition (const char *str, const char *ch) const;
-		const char *GetCharAtPosition (const char *str, int x) const;
+		virtual int GetCharPosition (const char *str, const char *ch) const = 0;
+		virtual const char *GetCharAtPosition (const char *str, int x) const = 0;
 	};
 };
 

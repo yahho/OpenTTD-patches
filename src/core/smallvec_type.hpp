@@ -14,6 +14,7 @@
 
 #include "alloc_func.hpp"
 #include "mem_func.hpp"
+#include "sort_func.hpp"
 
 /**
  * Simple vector template class.
@@ -352,6 +353,41 @@ public:
 	{
 		assert(index < this->items);
 		return this->data[index];
+	}
+
+	/** Sort function type for sort methods below. */
+	typedef int CDECL SortTypeFunction (const T*, const T*);
+
+	/**
+	 * Sort all items according to a given function.
+	 * @param compare Comparison function.
+	 */
+	void Sort (SortTypeFunction compare)
+	{
+		QSortT (this->Begin(), this->Length(), compare);
+	}
+
+	/**
+	 * Sort items after a given index according to a given function.
+	 * @param compare Comparison function.
+	 * @param begin Initial index of range.
+	 */
+	void Sort (SortTypeFunction compare, uint begin)
+	{
+		QSortT (this->Get(begin), this->Length() - begin, compare);
+	}
+
+	/**
+	 * Sort a given range of items according to a given function.
+	 * @param compare Comparison function.
+	 * @param begin Initial index of range.
+	 * @param num Length of range.
+	 */
+	void Sort (SortTypeFunction compare, uint begin, uint num)
+	{
+		assert (begin <= this->Length());
+		assert (num <= this->Length() - begin);
+		QSortT (this->Get(begin), num, compare);
 	}
 };
 

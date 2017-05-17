@@ -85,7 +85,7 @@ void UpdateNetworkGameWindow()
 	InvalidateWindowData(WC_NETWORK_WINDOW, WN_NETWORK_WINDOW_GAME, 0);
 }
 
-typedef GUIList<NetworkGameList*, StringFilter&> GUIGameServerList;
+typedef GUIList <NetworkGameList*> GUIGameServerList;
 typedef uint16 ServerListPosition;
 static const ServerListPosition SLP_INVALID = 0xFFFF;
 
@@ -224,7 +224,6 @@ protected:
 
 	/* Constants for sorting servers */
 	static GUIGameServerList::SortFunction * const sorter_funcs[];
-	static GUIGameServerList::FilterFunction * const filter_funcs[];
 
 	NetworkGameList *server;      ///< selected server
 	NetworkGameList *last_joined; ///< the last joined server
@@ -250,19 +249,19 @@ protected:
 		/* Create temporary array of games to use for listing */
 		this->servers.Clear();
 
-		for (NetworkGameList *ngl = _network_game_list; ngl != NULL; ngl = ngl->next) {
-			*this->servers.Append() = ngl;
-		}
-
 		/* Apply the filter condition immediately, if a search string has been provided. */
 		StringFilter sf;
 		sf.SetFilterTerm(this->filter_editbox.GetText());
+		this->servers.SetFilterState (!sf.IsEmpty());
 
-		if (!sf.IsEmpty()) {
-			this->servers.SetFilterState(true);
-			this->servers.Filter(sf);
-		} else {
-			this->servers.SetFilterState(false);
+		for (NetworkGameList *ngl = _network_game_list; ngl != NULL; ngl = ngl->next) {
+			if (this->servers.IsFilterEnabled()) {
+				sf.ResetState();
+				sf.AddLine (ngl->info.server_name);
+				if (!sf.GetState()) continue;
+			}
+
+			*this->servers.Append() = ngl;
 		}
 
 		this->servers.Compact();
@@ -358,16 +357,6 @@ protected:
 				break;
 			}
 		}
-	}
-
-	static bool CDECL NGameSearchFilter(NetworkGameList * const *item, StringFilter &sf)
-	{
-		assert(item != NULL);
-		assert((*item) != NULL);
-
-		sf.ResetState();
-		sf.AddLine((*item)->info.server_name);
-		return sf.GetState();
 	}
 
 	/**
@@ -486,7 +475,6 @@ public:
 
 		this->servers.SetListing(this->last_sorting);
 		this->servers.SetSortFuncs(this->sorter_funcs);
-		this->servers.SetFilterFuncs(this->filter_funcs);
 		this->servers.ForceRebuild();
 	}
 
@@ -921,10 +909,6 @@ GUIGameServerList::SortFunction * const NetworkGameWindow::sorter_funcs[] = {
 	&NGameDateSorter,
 	&NGameYearsSorter,
 	&NGameAllowedSorter
-};
-
-GUIGameServerList::FilterFunction * const NetworkGameWindow::filter_funcs[] = {
-	&NGameSearchFilter
 };
 
 static NWidgetBase *MakeResizableHeader(int *biggest_index)

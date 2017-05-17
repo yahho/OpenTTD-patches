@@ -43,7 +43,7 @@ public:
 	virtual void MainLoop() = 0;
 
 	/** Helper function to handle palette animation. */
-	static void PaletteAnimate (Blitter *blitter, const Palette &palette)
+	static void PaletteAnimate (const Palette &palette)
 	{
 		if (_screen_surface->palette_animate (palette)) {
 			GetActiveDriver()->MakeDirty (0, 0, _screen_width, _screen_height);
@@ -66,13 +66,11 @@ public:
 	virtual bool ToggleFullscreen(bool fullscreen) = 0;
 
 	/**
-	 * Callback invoked after the blitter was changed.
-	 * @return True if no error.
+	 * Switch to a new blitter.
+	 * @param blitter The blitter to switch to.
+	 * @return False if switching failed and the old blitter could not be restored.
 	 */
-	virtual bool AfterBlitterChange()
-	{
-		return true;
-	}
+	virtual bool SwitchBlitter (const Blitter::Info *blitter) = 0;
 
 	virtual bool ClaimMousePointer()
 	{
@@ -96,6 +94,40 @@ public:
 	 * An edit box lost the input focus. Abort character compositing if necessary.
 	 */
 	virtual void EditBoxLostFocus() {}
+};
+
+/** Common base for video drivers that do not have a GUI (null, dedicated). */
+class GUILessVideoDriver : public VideoDriver {
+public:
+	void MakeDirty (int left, int top, int width, int height) OVERRIDE
+	{
+	}
+
+	bool ChangeResolution (int w, int h) OVERRIDE
+	{
+		return false;
+	}
+
+	bool ToggleFullscreen (bool fullscreen) OVERRIDE
+	{
+		return false;
+	}
+
+	/**
+	 * Switch to a new blitter.
+	 * @param blitter The blitter to switch to.
+	 * @return False if switching failed and the old blitter could not be restored.
+	 */
+	bool SwitchBlitter (const Blitter::Info *blitter) OVERRIDE
+	{
+		Blitter::select (blitter);
+		return true;
+	}
+
+	bool HasGUI (void) const FINAL_OVERRIDE
+	{
+		return false;
+	}
 };
 
 /** Video driver factory. */

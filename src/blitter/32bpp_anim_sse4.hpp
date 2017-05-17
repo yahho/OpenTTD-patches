@@ -32,7 +32,8 @@ public:
 		return HasCPUIDFlag (1, 2, 19);
 	}
 
-	::Sprite *Encode (const RawSprite *sprite, bool is_font, AllocatorProc *allocator) OVERRIDE
+	/** Convert a sprite from the loader to our own format. */
+	static ::Sprite *Encode (const RawSprite *sprite, bool is_font, AllocatorProc *allocator)
 	{
 		return SSESprite::encode (sprite, is_font, allocator);
 	}
@@ -50,7 +51,7 @@ public:
 	public:
 		static Surface *create (void *ptr, uint width, uint height, uint pitch)
 		{
-			return new (width, height) Surface (ptr, width, height, pitch);
+			return new (pitch, height) Surface (ptr, width, height, pitch);
 		}
 
 		template <BlitterMode mode, SSESprite::ReadMode read_mode, SSESprite::BlockType bt_last, bool translucent, bool animated>
@@ -63,7 +64,7 @@ public:
 	};
 
 	/** Create a surface for this blitter. */
-	Blitter_32bppBase::Surface *create (void *ptr, uint width, uint height, uint pitch, bool anim) OVERRIDE
+	static Blitter::Surface *create (void *ptr, uint width, uint height, uint pitch, bool anim)
 	{
 		if (anim) {
 			return Surface::create (ptr, width, height, pitch);

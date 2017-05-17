@@ -10,6 +10,10 @@
 /** @file economy.cpp Handling of the economy. */
 
 #include "stdafx.h"
+
+#include <algorithm>
+#include <vector>
+
 #include "company_func.h"
 #include "command_func.h"
 #include "industry.h"
@@ -1261,7 +1265,8 @@ void PrepareUnload(Vehicle *front_v)
 	assert(CargoPayment::CanAllocateItem());
 	front_v->cargo_payment = new CargoPayment(front_v);
 
-	StationIDStack next_station = front_v->GetNextStoppingStation();
+	StationIDStack next_station;
+	front_v->AppendNextStoppingStations (&next_station);
 	if (front_v->orders.list == NULL || (front_v->current_order.GetUnloadType() & OUFB_NO_UNLOAD) == 0) {
 		Station *st = Station::Get(front_v->last_station_visited);
 		for (Vehicle *v = front_v; v != NULL; v = v->Next()) {
@@ -1395,14 +1400,13 @@ struct PrepareRefitAction
 struct ReturnCargoAction
 {
 	Station *st;        ///< Station to give the returned cargo to.
-	StationID next_hop; ///< Next hop the cargo should be assigned to.
 
 	/**
 	 * Construct a cargo return action.
 	 * @param st Station to give the returned cargo to.
 	 * @param next_one Next hop the cargo should be assigned to.
 	 */
-	ReturnCargoAction(Station *st, StationID next_one) : st(st), next_hop(next_one) {}
+	ReturnCargoAction (Station *st) : st(st) {}
 
 	/**
 	 * Return all reserved cargo from a vehicle.
@@ -1411,7 +1415,7 @@ struct ReturnCargoAction
 	 */
 	bool operator()(Vehicle *v)
 	{
-		v->cargo.Return(UINT_MAX, &this->st->goods[v->cargo_type].cargo, this->next_hop);
+		v->cargo.Return (&this->st->goods[v->cargo_type].cargo);
 		return true;
 	}
 };
@@ -1423,7 +1427,7 @@ struct FinalizeRefitAction
 {
 	CargoArray &consist_capleft;  ///< Capacities left in the consist.
 	Station *st;                  ///< Station to reserve cargo from.
-	StationIDStack &next_station; ///< Next hops to reserve cargo for.
+	const StationIDStack &next_station; ///< Next hops to reserve cargo for.
 	bool do_reserve;              ///< If the vehicle should reserve.
 
 	/**
@@ -1433,7 +1437,7 @@ struct FinalizeRefitAction
 	 * @param next_station Next hops to reserve cargo for.
 	 * @param do_reserve If we should reserve cargo or just add up the capacities.
 	 */
-	FinalizeRefitAction(CargoArray &consist_capleft, Station *st, StationIDStack &next_station, bool do_reserve) :
+	FinalizeRefitAction (CargoArray &consist_capleft, Station *st, const StationIDStack &next_station, bool do_reserve) :
 		consist_capleft(consist_capleft), st(st), next_station(next_station), do_reserve(do_reserve) {}
 
 	/**
@@ -1460,12 +1464,13 @@ struct FinalizeRefitAction
  * @param st Station the vehicle is loading at.
  * @param next_station Possible next stations the vehicle can travel to.
  * @param new_cid Target cargo mask for refit.
+ * @return Whether vehicle is locked to a cargo.
  */
-static void HandleStationRefit (Vehicle *v, CargoArray &consist_capleft,
-	Station *st, StationIDStack next_station, CargoMask new_mask)
+static bool HandleStationRefit (Vehicle *v, CargoArray &consist_capleft,
+	Station *st, const StationIDStack &next_station, CargoMask new_mask)
 {
 	Vehicle *v_start = v->GetFirstEnginePart();
-	if (!IterateVehicleParts(v_start, IsEmptyAction())) return;
+	if (!IterateVehicleParts(v_start, IsEmptyAction())) return true;
 
 	Backup<CompanyByte> cur_company(_current_company, v->owner, FILE_LINE);
 
@@ -1518,11 +1523,7 @@ static void HandleStationRefit (Vehicle *v, CargoArray &consist_capleft,
 		/* Refit if given a different cargo. */
 		if (new_cid == v_start->cargo_type) break;
 
-		/* INVALID_STATION because in the DT_MANUAL case that's correct and in the DT_(A)SYMMETRIC
-		 * cases the next hop of the vehicle doesn't really tell us anything if the cargo had been
-		 * "via any station" before reserving. We rather produce some more "any station" cargo than
-		 * misrouting it. */
-		IterateVehicleParts(v_start, ReturnCargoAction(st, INVALID_STATION));
+		IterateVehicleParts (v_start, ReturnCargoAction (st));
 		CommandCost cost = DoCommand(v_start->tile, v_start->index, new_cid | 1U << 6 | 0xFF << 8 | 1U << 16, DC_EXEC, CMD_REFIT_VEHICLE); // Auto-refit and only this vehicle including artic parts.
 		/* The command may return a success status even if it
 		 * actually fails to refit the vehicle, so we also have
@@ -1540,20 +1541,22 @@ static void HandleStationRefit (Vehicle *v, CargoArray &consist_capleft,
 			is_auto_refit || (v->First()->current_order.GetLoadType() & OLFB_FULL_LOAD) != 0));
 
 	cur_company.Restore();
+
+	return HasAtMostOneBit (new_mask);
 }
 
 struct ReserveCargoAction {
 	Station *st;
-	StationIDStack *next_station;
+	const StationIDStack &next_station;
 
-	ReserveCargoAction(Station *st, StationIDStack *next_station) :
+	ReserveCargoAction (Station *st, const StationIDStack &next_station) :
 		st(st), next_station(next_station) {}
 
 	bool operator()(Vehicle *v)
 	{
 		if (v->cargo_cap > v->cargo.RemainingCount()) {
 			st->goods[v->cargo_type].cargo.Reserve(v->cargo_cap - v->cargo.RemainingCount(),
-					&v->cargo, st->xy, *next_station);
+					&v->cargo, st->xy, next_station);
 		}
 
 		return true;
@@ -1569,7 +1572,8 @@ struct ReserveCargoAction {
  * @param consist_capleft If given, save free capacities after reserving there.
  * @param next_station Station(s) the vehicle will stop at next.
  */
-static void ReserveConsist(Station *st, Vehicle *u, CargoArray *consist_capleft, StationIDStack *next_station)
+static void ReserveConsist (Station *st, Vehicle *u,
+	CargoArray *consist_capleft, const StationIDStack &next_station)
 {
 	/* If there is a cargo payment not all vehicles of the consist have tried to do the refit.
 	 * In that case, only reserve if it's a fixed refit and the equivalent of "articulated chain"
@@ -1613,6 +1617,42 @@ static void UpdateLoadUnloadTicks(Vehicle *front, const Station *st, int ticks)
 	front->load_unload_ticks = max(1, ticks);
 }
 
+struct LoadingVehicle {
+	Vehicle *v;     ///< Loading vehicle.
+	uint left;      ///< Remaining capacity.
+	uint load;      ///< Loading step.
+	uint steps;     ///< Number of steps required for a full load.
+
+	LoadingVehicle (Vehicle *v, uint left, uint load) : v (v), left (left)
+	{
+		assert (left > 0);
+		if (!_settings_game.order.gradual_loading) {
+			this->load = left;
+			this->steps = 0; // ignored
+		} else if (load < left) {
+			this->load = load;
+			this->steps = CeilDiv (left, load);
+		} else {
+			this->load = left;
+			this->steps = 1;
+		}
+	}
+
+	bool operator < (const LoadingVehicle &other) const
+	{
+		/* Sort by cargo first... */
+		CargoID c  = this->v->cargo_type;
+		CargoID cc = other.v->cargo_type;
+		if (c != cc) return c < cc;
+
+		/* ...then by number of steps remaining for full load...*/
+		if (this->steps != other.steps) return this->steps > other.steps;
+
+		/* ...then by remaining capacity. */
+		return this->left > other.left;
+	}
+};
+
 /**
  * Loads/unload the vehicle if possible.
  * @param front the vehicle to be (un)loaded
@@ -1624,14 +1664,15 @@ static void LoadUnloadVehicle(Vehicle *front)
 	StationID last_visited = front->last_station_visited;
 	Station *st = Station::Get(last_visited);
 
-	StationIDStack next_station = front->GetNextStoppingStation();
+	StationIDStack next_station;
+	front->AppendNextStoppingStations (&next_station);
 	bool use_autorefit = front->current_order.IsAutoRefit();
 	CargoArray consist_capleft;
 	if (_settings_game.order.improved_load && use_autorefit ?
 			front->cargo_payment == NULL : (front->current_order.GetLoadType() & OLFB_FULL_LOAD) != 0) {
 		ReserveConsist(st, front,
 				(use_autorefit && front->load_unload_ticks != 0) ? &consist_capleft : NULL,
-				&next_station);
+				next_station);
 	}
 
 	/* We have not waited enough time till the next round of loading/unloading */
@@ -1657,13 +1698,16 @@ static void LoadUnloadVehicle(Vehicle *front)
 	uint32 cargo_full       = 0;
 	uint32 reservation_left = 0;
 
+	std::vector <LoadingVehicle> to_load;
+
 	front->cur_speed = 0;
 
 	CargoPayment *payment = front->cargo_payment;
 
+	bool cargo_locked = !front->current_order.IsRefit();
 	uint artic_part = 0; // Articulated part we are currently trying to load. (not counting parts without capacity)
 	for (Vehicle *v = front; v != NULL; v = v->Next()) {
-		if (v == front || !v->Previous()->HasArticulatedPart()) artic_part = 0;
+		if (!v->IsArticulatedPart()) artic_part = 0;
 		if (v->cargo_cap == 0) continue;
 		artic_part++;
 
@@ -1683,18 +1727,16 @@ static void LoadUnloadVehicle(Vehicle *front)
 				/* The station does not accept our goods anymore. */
 				if (front->current_order.GetUnloadType() & (OUFB_TRANSFER | OUFB_UNLOAD)) {
 					/* Transfer instead of delivering. */
-					v->cargo.Reassign<VehicleCargoList::MTA_DELIVER, VehicleCargoList::MTA_TRANSFER>(
-							v->cargo.ActionCount(VehicleCargoList::MTA_DELIVER), INVALID_STATION);
+					v->cargo.Transfer();
 				} else {
 					uint new_remaining = v->cargo.RemainingCount() + v->cargo.ActionCount(VehicleCargoList::MTA_DELIVER);
 					if (v->cargo_cap < new_remaining) {
 						/* Return some of the reserved cargo to not overload the vehicle. */
-						v->cargo.Return(new_remaining - v->cargo_cap, &ge->cargo, INVALID_STATION);
+						v->cargo.Return (&ge->cargo, new_remaining - v->cargo_cap);
 					}
 
 					/* Keep instead of delivering. This may lead to no cargo being unloaded, so ...*/
-					v->cargo.Reassign<VehicleCargoList::MTA_DELIVER, VehicleCargoList::MTA_KEEP>(
-							v->cargo.ActionCount(VehicleCargoList::MTA_DELIVER));
+					v->cargo.Keep (VehicleCargoList::MTA_DELIVER);
 
 					/* ... say we unloaded something, otherwise we'll think we didn't unload
 					 * something and we didn't load something, so we must be finished
@@ -1742,7 +1784,7 @@ static void LoadUnloadVehicle(Vehicle *front)
 
 		/* This order has a refit, if this is the first vehicle part carrying cargo and the whole vehicle is empty, try refitting. */
 		if (front->current_order.IsRefit() && artic_part == 1) {
-			HandleStationRefit (v, consist_capleft, st, next_station, front->current_order.GetRefitCargoMask());
+			cargo_locked = HandleStationRefit (v, consist_capleft, st, next_station, front->current_order.GetRefitCargoMask());
 			ge = &st->goods[v->cargo_type];
 		}
 
@@ -1777,54 +1819,114 @@ static void LoadUnloadVehicle(Vehicle *front)
 		/* If there's goods waiting at the station, and the vehicle
 		 * has capacity for it, load it on the vehicle. */
 		uint cap_left = v->cargo_cap - v->cargo.StoredCount();
-		if (cap_left > 0 && (v->cargo.ActionCount(VehicleCargoList::MTA_LOAD) > 0 || ge->cargo.AvailableCount() > 0)) {
-			if (_settings_game.order.gradual_loading) cap_left = min(cap_left, load_amount);
-			if (v->cargo.StoredCount() == 0) TriggerVehicle(v, VEHICLE_TRIGGER_NEW_CARGO);
-
-			uint loaded = ge->cargo.Load(cap_left, &v->cargo, st->xy, next_station);
-			if (v->cargo.ActionCount(VehicleCargoList::MTA_LOAD) > 0) {
-				/* Remember if there are reservations left so that we don't stop
-				 * loading before they're loaded. */
-				SetBit(reservation_left, v->cargo_type);
-			}
-
-			/* Store whether the maximum possible load amount was loaded or not.*/
-			if (loaded == cap_left) {
-				SetBit(full_load_amount, v->cargo_type);
-			} else {
-				ClrBit(full_load_amount, v->cargo_type);
-			}
-
-			/* TODO: Regarding this, when we do gradual loading, we
-			 * should first unload all vehicles and then start
-			 * loading them. Since this will cause
-			 * VEHICLE_TRIGGER_EMPTY to be called at the time when
-			 * the whole vehicle chain is really totally empty, the
-			 * completely_emptied assignment can then be safely
-			 * removed; that's how TTDPatch behaves too. --pasky */
-			if (loaded > 0) {
-				completely_emptied = false;
-				anything_loaded = true;
-
-				st->time_since_load = 0;
-				st->last_vehicle_type = v->type;
-
-				if (ge->cargo.TotalCount() == 0) {
-					TriggerStationRandomisation(st, st->xy, SRT_CARGO_TAKEN, v->cargo_type);
-					TriggerStationAnimation(st, st->xy, SAT_CARGO_TAKEN, v->cargo_type);
-					AirportAnimationTrigger(st, AAT_STATION_CARGO_TAKEN, v->cargo_type);
-				}
-
-				new_load_unload_ticks += loaded;
-
-				dirty_vehicle = dirty_station = true;
-			}
-		}
-
-		if (v->cargo.StoredCount() >= v->cargo_cap) {
+		if (cap_left == 0) {
 			SetBit(cargo_full, v->cargo_type);
+		} else if ((v->cargo.TotalCount() > 0) || cargo_locked) {
+			to_load.push_back (LoadingVehicle (v, cap_left, load_amount));
 		} else {
 			SetBit(cargo_not_full, v->cargo_type);
+		}
+	}
+
+	stable_sort (to_load.begin(), to_load.end());
+
+	std::vector<LoadingVehicle>::iterator lv (to_load.end());
+	while (lv != to_load.begin()) {
+		std::vector<LoadingVehicle>::iterator last (lv--);
+		CargoID c = lv->v->cargo_type;
+
+		while (lv != to_load.begin()) {
+			std::vector<LoadingVehicle>::iterator prev (lv - 1);
+			if (prev->v->cargo_type != c) break;
+			lv = prev;
+		}
+
+		/* Pool the reservations, if any, and redistribute them. */
+		VehicleCargoList pool;
+
+		for (std::vector<LoadingVehicle>::iterator p (lv); p != last; p++) {
+			Vehicle *v = p->v;
+			v->cargo.Reattach (&pool);
+			assert (v->cargo.ReservedCount() == 0);
+		}
+
+		/* First pass, assign a loading step to each vehicle. */
+		for (std::vector<LoadingVehicle>::iterator p (lv); p != last && pool.TotalCount() > 0; p++) {
+			Vehicle *v = p->v;
+			assert (v->cargo.ReservedCount() == 0);
+			if (v->cargo.StoredCount() == 0) {
+				TriggerVehicle (v, VEHICLE_TRIGGER_NEW_CARGO);
+				p->load = GetLoadAmount (v);
+			}
+			pool.Reattach (&v->cargo, p->load);
+			assert (v->cargo.ReservedCount() > 0);
+		}
+
+		/* Second pass, dump remaining reservations. */
+		for (std::vector<LoadingVehicle>::iterator p (lv); pool.TotalCount() > 0; p++) {
+			assert (p != last);
+			Vehicle *v = p->v;
+			assert (v->cargo.ReservedCount() > 0);
+			pool.Reattach (&v->cargo, v->cargo_cap - v->cargo.TotalCount());
+		}
+
+		/* Reservations redistributed, proceed with loading. */
+		GoodsEntry *ge = &st->goods[c];
+		for (std::vector<LoadingVehicle>::iterator p (lv); p != last; p++) {
+			Vehicle *v = p->v;
+			assert (v->cargo.StoredCount() < v->cargo_cap);
+
+			if ((v->cargo.ReservedCount() > 0) || (ge->cargo.AvailableCount() > 0)) {
+				if (v->cargo.TotalCount() == 0) {
+					TriggerVehicle (v, VEHICLE_TRIGGER_NEW_CARGO);
+					p->load = GetLoadAmount (v);
+				}
+
+				uint loaded = ge->cargo.Load (p->load, &v->cargo, st->xy, next_station);
+				if (v->cargo.ActionCount(VehicleCargoList::MTA_LOAD) > 0) {
+					/* Remember if there are reservations left so that we don't stop
+					 * loading before they're loaded. */
+					SetBit(reservation_left, v->cargo_type);
+				}
+
+				/* Store whether the maximum possible load amount was loaded or not.*/
+				if (loaded == p->load) {
+					SetBit(full_load_amount, v->cargo_type);
+				} else {
+					ClrBit(full_load_amount, v->cargo_type);
+				}
+
+				/* TODO: Regarding this, when we do gradual loading, we
+				 * should first unload all vehicles and then start
+				 * loading them. Since this will cause
+				 * VEHICLE_TRIGGER_EMPTY to be called at the time when
+				 * the whole vehicle chain is really totally empty, the
+				 * completely_emptied assignment can then be safely
+				 * removed; that's how TTDPatch behaves too. --pasky */
+				if (loaded > 0) {
+					completely_emptied = false;
+					anything_loaded = true;
+
+					st->time_since_load = 0;
+					st->last_vehicle_type = v->type;
+
+					if (ge->cargo.TotalCount() == 0) {
+						TriggerStationRandomisation(st, st->xy, SRT_CARGO_TAKEN, v->cargo_type);
+						TriggerStationAnimation(st, st->xy, SAT_CARGO_TAKEN, v->cargo_type);
+						AirportAnimationTrigger(st, AAT_STATION_CARGO_TAKEN, v->cargo_type);
+					}
+
+					new_load_unload_ticks += loaded;
+
+					dirty_vehicle = dirty_station = true;
+				}
+			}
+
+			if (v->cargo.StoredCount() >= v->cargo_cap) {
+				SetBit(cargo_full, v->cargo_type);
+			} else {
+				SetBit(cargo_not_full, v->cargo_type);
+			}
 		}
 	}
 

@@ -295,6 +295,7 @@ public:
 	uint16 refit_cap;                   ///< Capacity left over from before last refit.
 	VehicleCargoList cargo;             ///< The cargo this vehicle is carrying
 	uint16 cargo_age_counter;           ///< Ticks till cargo is aged next.
+	int8 trip_occupancy;                ///< NOSAVE: Occupancy of vehicle of the current trip (updated after leaving a station).
 
 	byte day_counter;                   ///< Increased by one for each day
 	byte tick_counter;                  ///< Increased by one for each tick
@@ -322,7 +323,7 @@ public:
 	virtual ~Vehicle();
 
 	void BeginLoading();
-	void CancelReservation(StationID next, Station *st);
+	void CancelReservation (Station *st);
 	void LeaveStation();
 
 	void DeleteUnreachedImplicitOrders();
@@ -657,11 +658,15 @@ public:
 
 	/**
 	 * Get the next station the vehicle will stop at.
-	 * @return ID of the next station the vehicle will stop at or INVALID_STATION.
+	 * @param result Station id stack to append the next stations to.
 	 */
-	inline StationIDStack GetNextStoppingStation() const
+	inline void AppendNextStoppingStations (StationIDStack *result) const
 	{
-		return (this->orders.list == NULL) ? INVALID_STATION : this->orders.list->GetNextStoppingStation(this);
+		if (this->orders.list == NULL) {
+			result->push_back (INVALID_STATION);
+		} else {
+			this->orders.list->AppendNextStoppingStations (result, this);
+		}
 	}
 
 	void ResetRefitCaps();

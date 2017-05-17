@@ -560,6 +560,25 @@ uint GetOriginFileSlot(SpriteID sprite)
 }
 
 /**
+ * Count the sprites which originate from a specific file slot in a range of SpriteIDs.
+ * @param file_slot FIOS file slot.
+ * @param begin First sprite in range.
+ * @param end First sprite not in range.
+ * @return Number of sprites.
+ */
+uint GetSpriteCountForSlot(uint file_slot, SpriteID begin, SpriteID end)
+{
+	uint count = 0;
+	for (SpriteID i = begin; i != end; i++) {
+		if (SpriteExists(i)) {
+			SpriteCache *sc = GetSpriteCache(i);
+			if (sc->file_slot == file_slot) count++;
+		}
+	}
+	return count;
+}
+
+/**
  * Get a reasonable (upper bound) estimate of the maximum
  * SpriteID used in OpenTTD; there will be no sprites with
  * a higher SpriteID, although there might be up to roughly
@@ -798,7 +817,7 @@ static void *ReadSprite (const SpriteCache *sc, SpriteID id)
 	Blitter::RawSprite sprite [ZOOM_LVL_COUNT];
 	uint8 sprite_avail = 0;
 
-	if ((Blitter::get()->GetScreenDepth() == 32) && (sc->container_ver >= 2)) {
+	if ((Blitter::get()->screen_depth == 32) && (sc->container_ver >= 2)) {
 		/* Try for 32bpp sprites first. */
 		sprite_avail = LoadSpriteV2 (sc, sprite, true);
 	}
@@ -825,7 +844,7 @@ static void *ReadSprite (const SpriteCache *sc, SpriteID id)
 		sprite[ZOOM_LVL_NORMAL].data   = sprite[ZOOM_LVL_GUI].data;
 	}
 
-	return Blitter::get()->Encode (sprite, sc->type == ST_FONT, AllocSprite);
+	return Blitter::get()->encode (sprite, sc->type == ST_FONT, AllocSprite);
 }
 
 
@@ -1288,7 +1307,7 @@ const MapGenSprite *GetMapGenSprite (SpriteID sprite)
 static void GfxInitSpriteCache()
 {
 	/* initialize sprite cache heap */
-	int bpp = Blitter::get()->GetScreenDepth();
+	int bpp = Blitter::get()->screen_depth;
 	uint target_size = (bpp > 0 ? _sprite_cache_size * bpp / 8 : 1) * 1024 * 1024;
 
 	/* Remember 'target_size' from the previous allocation attempt, so we do not try to reach the target_size multiple times in case of failure. */

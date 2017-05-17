@@ -18,22 +18,25 @@
 /** Base for 32bpp blitters with palette animation. */
 class Blitter_32bppAnimBase : public Blitter_32bppBase {
 public:
-	Blitter::PaletteAnimation UsePaletteAnimation (void) OVERRIDE
-	{
-		return Blitter::PALETTE_ANIMATION_BLITTER;
-	}
+	static const PaletteAnimation palette_animation = PALETTE_ANIMATION_BLITTER; ///< Palette animation.
 
 	/** Blitting surface. */
 	struct Surface : Blitter_32bppBase::Surface {
-		Palette palette;     ///< The current palette.
+		Palette palette;        ///< The current palette.
 		uint16 *const anim_buf; ///< In this buffer we keep track of the 8bpp indexes so we can do palette animation
+
+		void set_palette (const Palette &palette)
+		{
+			assert_compile (sizeof(this->palette) == sizeof(palette));
+			memcpy (this->palette, palette, sizeof(this->palette));
+		}
 
 		Surface (void *ptr, uint width, uint height, uint pitch, uint16 *anim_buf)
 			: Blitter_32bppBase::Surface (ptr, width, height, pitch),
 			  anim_buf (anim_buf)
 		{
-			memset (&this->palette, 0, sizeof(this->palette));
-			memset (anim_buf, 0, width * height * sizeof(uint16));
+			this->set_palette (_cur_palette);
+			memset (anim_buf, 0, pitch * height * sizeof(uint16));
 		}
 
 		/** Get the animation pointer for a given video pointer. */
@@ -45,7 +48,7 @@ public:
 		/** Look up the colour in the current palette. */
 		Colour lookup_colour (uint index) const
 		{
-			return this->palette.palette[index];
+			return this->palette[index];
 		}
 
 		void set_pixel (void *video, int x, int y, uint8 colour) OVERRIDE;
@@ -56,7 +59,7 @@ public:
 
 		void draw_checker (void *video, uint width, uint height, uint8 colour, byte bo) OVERRIDE;
 
-		void scroll (void *video, int &left, int &top, int &width, int &height, int scroll_x, int scroll_y) OVERRIDE;
+		void scroll (int left, int top, int width, int height, int dx, int dy) OVERRIDE;
 
 		bool palette_animate (const Palette &palette) OVERRIDE;
 
@@ -74,7 +77,8 @@ public:
 	static const char name[]; ///< Name of the blitter.
 	static const char desc[]; ///< Description of the blitter.
 
-	::Sprite *Encode (const RawSprite *sprite, bool is_font, AllocatorProc *allocator) OVERRIDE
+	/** Convert a sprite from the loader to our own format. */
+	static ::Sprite *Encode (const RawSprite *sprite, bool is_font, AllocatorProc *allocator)
 	{
 		return Sprite::encode (sprite, is_font, allocator);
 	}
@@ -92,7 +96,7 @@ public:
 	public:
 		static Surface *create (void *ptr, uint width, uint height, uint pitch)
 		{
-			return new (width, height) Surface (ptr, width, height, pitch);
+			return new (pitch, height) Surface (ptr, width, height, pitch);
 		}
 
 		template <BlitterMode mode> void draw (const BlitterParams *bp, ZoomLevel zoom);
@@ -101,7 +105,7 @@ public:
 	};
 
 	/** Create a surface for this blitter. */
-	Blitter_32bppBase::Surface *create (void *ptr, uint width, uint height, uint pitch, bool anim) OVERRIDE
+	static Blitter::Surface *create (void *ptr, uint width, uint height, uint pitch, bool anim)
 	{
 		if (anim) {
 			return Surface::create (ptr, width, height, pitch);

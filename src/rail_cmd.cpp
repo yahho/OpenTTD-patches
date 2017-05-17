@@ -50,8 +50,6 @@ RailtypeInfo _railtypes[RAILTYPE_END];
 RailType _sorted_railtypes[RAILTYPE_END];
 uint8 _sorted_railtypes_size;
 
-assert_compile(sizeof(_original_railtypes) <= sizeof(_railtypes));
-
 /** Enum holding the signal offset in the sprite sheet according to the side it is representing. */
 enum SignalOffsets {
 	SIGNAL_TO_NORTHEAST,
@@ -69,8 +67,20 @@ enum SignalOffsets {
  */
 void ResetRailTypes()
 {
-	memset(_railtypes, 0, sizeof(_railtypes));
-	memcpy(_railtypes, _original_railtypes, sizeof(_original_railtypes));
+	assert_compile(lengthof(_original_railtypes) <= lengthof(_railtypes));
+
+	uint i = 0;
+	for (; i < lengthof(_original_railtypes); i++) _railtypes[i] = _original_railtypes[i];
+
+	static const RailtypeInfo empty_railtype = {
+		{0,0,0,0,0,0,0,0,0,0,0,0},
+		{0,0,0,0,0,0,0,0,{}},
+		{0,0,0,0,0,0,0,0},
+		{0,0,0,0,0,0},
+		0, RAILTYPES_NONE, RAILTYPES_NONE, 0, 0, 0, RTFB_NONE, 0, 0, 0, 0, 0,
+		RailTypeLabelList(), 0, 0, RAILTYPES_NONE, RAILTYPES_NONE, 0,
+		{}, {} };
+	for (; i < lengthof(_railtypes);          i++) _railtypes[i] = empty_railtype;
 }
 
 void ResolveRailTypeGUISprites(RailtypeInfo *rti)
@@ -154,11 +164,9 @@ RailType AllocateRailType(RailTypeLabel label)
 
 		if (rti->label == 0) {
 			/* Set up new rail type */
-			memcpy(rti, &_railtypes[RAILTYPE_RAIL], sizeof(*rti));
+			*rti = _original_railtypes[RAILTYPE_RAIL];
 			rti->label = label;
-			/* Clear alternate label list. Can't use Reset() here as that would free
-			 * the data pointer of RAILTYPE_RAIL and not our new rail type. */
-			new (&rti->alternate_labels) RailTypeLabelList;
+			rti->alternate_labels.Clear();
 
 			/* Make us compatible with ourself. */
 			rti->powered_railtypes    = (RailTypes)(1 << rt);
@@ -204,20 +212,6 @@ static const byte _track_sloped_sprites[14] = {
  *         8
  */
 
-
-/**
- * Tests if a vehicle interacts with the specified track.
- * All track bits interact except parallel #TRACK_BIT_HORZ or #TRACK_BIT_VERT.
- *
- * @param tile The tile.
- * @param track The track.
- * @return Succeeded command (no train found), or a failed command (a train was found).
- */
-static CommandCost EnsureNoTrainOnTrack(TileIndex tile, Track track)
-{
-	TrackBits rail_bits = TrackToTrackBits(track);
-	return EnsureNoTrainOnTrackBits(tile, rail_bits);
-}
 
 /**
  * Check that the new track bits may be built.
@@ -540,8 +534,9 @@ CommandCost CmdBuildSingleRail(TileIndex tile, DoCommandFlag flags, uint32 p1, u
 				if (!IsValidRailBridgeBits(tileh, GetTunnelBridgeDirection(tile), GetTrackBits(tile) | trackbit)) return_cmd_error(STR_ERROR_LAND_SLOPED_IN_WRONG_DIRECTION);
 			}
 
-			ret = EnsureNoTrainOnTrack(tile, track);
-			if (ret.Failed()) return ret;
+			if (!CheckTrackBitsFree (tile, TrackToTrackBits (track))) {
+				return_cmd_error(STR_ERROR_TRAIN_IN_THE_WAY);
+			}
 
 			if (flags & DC_EXEC) {
 				if (IsTileSubtype(tile, TT_TRACK)) SetRailGroundType(tile, RAIL_GROUND_BARREN);
@@ -689,8 +684,9 @@ static CommandCost RemoveRailTrack(TileIndex tile, Track track, DoCommandFlag fl
 		if (ret.Failed()) return ret;
 	}
 
-	CommandCost ret = EnsureNoTrainOnTrack(tile, track);
-	if (ret.Failed()) return ret;
+	if (!CheckTrackBitsFree (tile, TrackToTrackBits (track))) {
+		return_cmd_error(STR_ERROR_TRAIN_IN_THE_WAY);
+	}
 
 	TrackBits present = GetTrackBits(tile);
 	TrackBits trackbit = TrackToTrackBits(track);
@@ -909,8 +905,10 @@ static CommandCost RemoveBridgeTrack(TileIndex tile, Track track, DoCommandFlag 
 
 	assert(other_remove != TRACK_BIT_NONE);
 
-	CommandCost ret = EnsureNoTrainOnBridgeTrackBits(tile, trackbit, other_tile, other_remove);
-	if (ret.Failed()) return ret;
+	if (!CheckBridgeEndTrackBitsFree (tile, trackbit) ||
+			!CheckBridgeEndTrackBitsFree (other_tile, other_remove)) {
+		return_cmd_error(STR_ERROR_TRAIN_IN_THE_WAY);
+	}
 
 	CommandCost cost(EXPENSES_CONSTRUCTION, (GetTunnelBridgeLength(tile, other_tile) + 2) * _price[PR_CLEAR_BRIDGE]);
 
@@ -1552,7 +1550,8 @@ CommandCost CmdBuildSingleSignal(TileIndex tile, DoCommandFlag flags, uint32 p1,
 				/* PBS signals should show red unless they are on reserved tiles without a train. */
 				uint mask = signalpair_get_present(&signals);
 				uint state = signalpair_get_states(&signals);
-				signalpair_set_states(&signals, HasReservedTrack(tile, track) && EnsureNoTrainOnTrack(tile, track).Succeeded() ? (state | mask) : (state & ~mask));
+				bool green = HasReservedTrack (tile, track) && CheckTrackBitsFree (tile, TrackToTrackBits (track));
+				signalpair_set_states (&signals, green ? (state | mask) : (state & ~mask));
 			}
 		}
 
@@ -2041,15 +2040,15 @@ static CommandCost CheckRailConversion(TileIndex tile, RailType totype)
 				bool ignore2 = type2 == totype || (ignore_electric && type2 == RAILTYPE_ELECTRIC);
 				if (ignore1 && ignore2) return CommandCost();
 
-				Track track = (trackbits == TRACK_BIT_HORZ) ? TRACK_UPPER : TRACK_LEFT;
-				if (!ignore1 && !IsCompatibleRail(type, totype)) {
-					CommandCost ret = EnsureNoTrainOnTrack(tile, track);
-					if (ret.Failed()) return ret;
+				TrackBits check = trackbits;
+				if (ignore1 || IsCompatibleRail (type, totype)) {
+					check &= ~(TRACK_BIT_UPPER | TRACK_BIT_LEFT);
 				}
-
-				if (!ignore2 && !IsCompatibleRail(type2, totype)) {
-					CommandCost ret = EnsureNoTrainOnTrack(tile, TrackToOppositeTrack(track));
-					if (ret.Failed()) return ret;
+				if (ignore2 || IsCompatibleRail (type2, totype)) {
+					check &= ~(TRACK_BIT_LOWER | TRACK_BIT_RIGHT);
+				}
+				if ((check != TRACK_BIT_NONE) && !CheckTrackBitsFree (tile, check)) {
+					return_cmd_error(STR_ERROR_TRAIN_IN_THE_WAY);
 				}
 
 				cost.AddCost(RailConvertCost(type, totype));
@@ -2067,9 +2066,9 @@ static CommandCost CheckRailConversion(TileIndex tile, RailType totype)
 			/* Converting to the same type or converting 'hidden' elrail -> rail */
 			if (type == totype || (ignore_electric && type == RAILTYPE_ELECTRIC)) return CommandCost();
 
-			if (!IsCompatibleRail(type, totype)) {
-				CommandCost ret = EnsureNoVehicleOnGround(tile);
-				if (ret.Failed()) return ret;
+			if (!IsCompatibleRail (type, totype)
+					&& !CheckTrackBitsFree (tile, trackbits)) {
+				return_cmd_error(STR_ERROR_TRAIN_IN_THE_WAY);
 			}
 
 			cost.AddCost(RailConvertCost(type, totype) * CountBits(trackbits));
@@ -2172,9 +2171,9 @@ static CommandCost ConvertBridge(TileIndex tile, TileIndex endtile, RailType tot
 	if (_settings_game.vehicle.disable_elrails && totype == RAILTYPE_RAIL && type == RAILTYPE_ELECTRIC) return cost;
 
 	/* When not converting rail <-> el. rail, no vehicle can be in the bridge */
-	if (!IsCompatibleRail(type, totype)) {
-		CommandCost ret = EnsureNoTrainOnTunnelBridgeMiddle(tile, endtile);
-		if (ret.Failed()) return ret;
+	if (!IsCompatibleRail (type, totype)
+			&& !CheckTunnelBridgeMiddleFree (tile, endtile)) {
+		return_cmd_error(STR_ERROR_TRAIN_IN_THE_WAY);
 	}
 
 	uint len = GetTunnelBridgeLength(tile, endtile);
@@ -2538,8 +2537,10 @@ static CommandCost ClearTile_Track(TileIndex tile, DoCommandFlag flags)
 
 		assert(other_remove != TRACK_BIT_NONE);
 
-		CommandCost ret = EnsureNoTrainOnBridgeTrackBits(tile, present, other_tile, other_remove);
-		if (ret.Failed()) return ret;
+		if (!CheckBridgeEndTrackBitsFree (tile, present) ||
+				!CheckBridgeEndTrackBitsFree (other_tile, other_remove)) {
+			return_cmd_error(STR_ERROR_TRAIN_IN_THE_WAY);
+		}
 
 		uint len = GetTunnelBridgeLength(tile, other_tile) + 2; // Don't forget the end tiles.
 
@@ -3657,13 +3658,32 @@ static void GetTileDesc_Track(TileIndex tile, TileDesc *td)
 		}
 	};
 
-	const RailtypeInfo *rti = GetRailTypeInfo(GetRailType(tile));
-	td->rail_speed = rti->max_speed;
+	RailType rt[2] = { INVALID_RAILTYPE, INVALID_RAILTYPE };
+	switch (GetTrackBits (tile)) {
+		case TRACK_BIT_LOWER:
+		case TRACK_BIT_RIGHT:
+			rt[0] = GetRailType (tile, TRACK_LOWER);
+			break;
+
+		case TRACK_BIT_HORZ:
+		case TRACK_BIT_VERT:
+			rt[1] = GetRailType (tile, TRACK_LOWER);
+			/* fall through */
+		default:
+			rt[0] = GetRailType (tile, TRACK_UPPER);
+			break;
+	}
+
+	for (uint i = 0; i < 2; i++) {
+		if (rt[i] == INVALID_RAILTYPE) continue;
+		const RailtypeInfo *rti = GetRailTypeInfo (rt[i]);
+		td->rail[i].type  = rti->strings.name;
+		td->rail[i].speed = rti->max_speed;
+	}
+
 	td->owner[0] = GetTileOwner(tile);
 
 	if (IsTileSubtype(tile, TT_TRACK)) {
-		SetDParamX(td->dparam, 0, rti->strings.name);
-
 		if (HasSignalOnTrack(tile, TRACK_UPPER)) {
 			SignalType primary = GetSignalType(tile, TRACK_UPPER);
 			SignalType secondary = HasSignalOnTrack(tile, TRACK_LOWER) ? GetSignalType(tile, TRACK_LOWER) : primary;
@@ -3676,8 +3696,7 @@ static void GetTileDesc_Track(TileIndex tile, TileDesc *td)
 		}
 
 		if (td->str != STR_LAI_RAIL_DESCRIPTION_TRACK && IsNormalRailTile(tile) && IsRestrictedSignal(tile)) {
-			SetDParamX(td->dparam, 0, td->str);
-			SetDParamX(td->dparam, 1, rti->strings.name);
+			td->dparam = td->str;
 			td->str = STR_LAI_RAIL_DESCRIPTION_RESTRICTED_SIGNAL;
 		}
 	} else {
@@ -3685,8 +3704,11 @@ static void GetTileDesc_Track(TileIndex tile, TileDesc *td)
 		td->str = spec->transport_name[TRANSPORT_RAIL];
 
 		uint16 spd = spec->speed;
-		if (td->rail_speed == 0 || spd < td->rail_speed) {
-			td->rail_speed = spd;
+		for (uint i = 0; i < 2; i++) {
+			if (rt[i] == INVALID_RAILTYPE) continue;
+			if (td->rail[i].speed == 0 || spd < td->rail[i].speed) {
+				td->rail[i].speed = spd;
+			}
 		}
 	}
 }

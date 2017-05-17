@@ -33,11 +33,35 @@
 #include "table/strings.h"
 #include "table/sprites.h"
 
+/** Filter function for the sign list. */
+static bool SignFilter (const Sign *sign, StringFilter *filter)
+{
+	Owner owner = sign->owner;
+	if (owner == OWNER_DEITY) {
+		/* You should never be able to edit signs of owner DEITY. */
+		if (_game_mode != GM_EDITOR) return false;
+	} else if (owner != _local_company) {
+		/* Hide sign if non-own signs are hidden in the viewport. */
+		if (!HasBit(_display_opt, DO_SHOW_COMPETITOR_SIGNS)) {
+			return false;
+		}
+	}
+
+	/* Get sign string */
+	char buf[MAX_LENGTH_SIGN_NAME_CHARS * MAX_CHAR_LENGTH];
+	SetDParam (0, sign->index);
+	GetString (buf, STR_SIGN_NAME);
+
+	filter->ResetState();
+	filter->AddLine (buf);
+	return filter->GetState();
+}
+
 struct SignList {
 	/**
 	 * A GUIList contains signs and uses a StringFilter for filtering.
 	 */
-	typedef GUIList<const Sign *, StringFilter &> GUISignList;
+	typedef GUIList <const Sign *> GUISignList;
 
 	static const Sign *last_sign;
 	GUISignList signs;
@@ -52,22 +76,7 @@ struct SignList {
 	{
 	}
 
-	void BuildSignsList()
-	{
-		if (!this->signs.NeedRebuild()) return;
-
-		DEBUG(misc, 3, "Building sign list");
-
-		this->signs.Clear();
-
-		const Sign *si;
-		FOR_ALL_SIGNS(si) *this->signs.Append() = si;
-
-		this->signs.SetFilterState(true);
-		this->FilterSignList();
-		this->signs.Compact();
-		this->signs.RebuildDone();
-	}
+	void BuildSignsList (void);
 
 	/** Sort signs by their name */
 	static int CDECL SignNameSorter(const Sign * const *a, const Sign * const *b)
@@ -96,45 +105,27 @@ struct SignList {
 		/* Reset the name sorter sort cache */
 		this->last_sign = NULL;
 	}
+};
 
-	/** Filter sign list by sign name */
-	static bool CDECL SignNameFilter(const Sign * const *a, StringFilter &filter)
-	{
-		/* Get sign string */
-		char buf1[MAX_LENGTH_SIGN_NAME_CHARS * MAX_CHAR_LENGTH];
-		SetDParam(0, (*a)->index);
-		GetString (buf1, STR_SIGN_NAME);
+void SignList::BuildSignsList (void)
+{
+	if (!this->signs.NeedRebuild()) return;
 
-		filter.ResetState();
-		filter.AddLine(buf1);
-		return filter.GetState();
-	}
+	DEBUG(misc, 3, "Building sign list");
 
-	/** Filter sign list excluding OWNER_DEITY */
-	static bool CDECL OwnerDeityFilter(const Sign * const *a, StringFilter &filter)
-	{
-		/* You should never be able to edit signs of owner DEITY */
-		return (*a)->owner != OWNER_DEITY;
-	}
+	this->signs.Clear();
 
-	/** Filter sign list by owner */
-	static bool CDECL OwnerVisibilityFilter(const Sign * const *a, StringFilter &filter)
-	{
-		assert(!HasBit(_display_opt, DO_SHOW_COMPETITOR_SIGNS));
-		/* Hide sign if non-own signs are hidden in the viewport */
-		return (*a)->owner == _local_company || (*a)->owner == OWNER_DEITY;
-	}
-
-	/** Filter out signs from the sign list that does not match the name filter */
-	void FilterSignList()
-	{
-		this->signs.Filter(&SignNameFilter, this->string_filter);
-		if (_game_mode != GM_EDITOR) this->signs.Filter(&OwnerDeityFilter, this->string_filter);
-		if (!HasBit(_display_opt, DO_SHOW_COMPETITOR_SIGNS)) {
-			this->signs.Filter(&OwnerVisibilityFilter, this->string_filter);
+	const Sign *si;
+	FOR_ALL_SIGNS(si) {
+		if (SignFilter (si, &this->string_filter)) {
+			*this->signs.Append() = si;
 		}
 	}
-};
+
+	this->signs.SetFilterState (true);
+	this->signs.Compact();
+	this->signs.RebuildDone();
+}
 
 const Sign *SignList::last_sign = NULL;
 bool SignList::match_case = false;

@@ -82,7 +82,8 @@ public:
 		return HasCPUIDFlag (1, 3, 26);
 	}
 
-	::Sprite *Encode (const RawSprite *sprite, bool is_font, AllocatorProc *allocator) OVERRIDE
+	/** Convert a sprite from the loader to our own format. */
+	static ::Sprite *Encode (const RawSprite *sprite, bool is_font, AllocatorProc *allocator)
 	{
 		return SSESprite::encode (sprite, is_font, allocator);
 	}
@@ -101,7 +102,7 @@ public:
 	};
 
 	/** Create a surface for this blitter. */
-	Surface *create (void *ptr, uint width, uint height, uint pitch, bool anim) OVERRIDE
+	static Blitter::Surface *create (void *ptr, uint width, uint height, uint pitch, bool anim)
 	{
 		return new Surface (ptr, width, height, pitch);
 	}

@@ -141,11 +141,13 @@ LinkGraphJob::~LinkGraphJob()
 					st2->goods[this->Cargo()].node != it.get_id() ||
 					(*lg)[node_id][it.get_id()].LastUpdate() == INVALID_DATE) {
 				/* Edge has been removed. Delete flows. */
-				StationIDStack erased = flows.DeleteFlows(to);
+				StationIDStack erased;
+				flows.DeleteFlows (to, &erased);
 				/* Delete old flows for source stations which have been deleted
 				 * from the new flows. This avoids flow cycles between old and
 				 * new flows. */
-				while (!erased.IsEmpty()) ge.flows.erase(erased.Pop());
+				StationIDStack::const_iterator iter (erased.begin());
+				while (iter != erased.end()) ge.flows.erase (*(iter++));
 			} else if ((*lg)[node_id][it.get_id()].LastUnrestrictedUpdate() == INVALID_DATE) {
 				/* Edge is fully restricted. */
 				flows.RestrictFlows(to);
@@ -168,7 +170,7 @@ LinkGraphJob::~LinkGraphJob()
 					ge.flows.erase(it++);
 					for (FlowStat::SharesMap::const_iterator shares_it(shares.GetShares()->begin());
 							shares_it != shares.GetShares()->end(); ++shares_it) {
-						RerouteCargo(st, this->Cargo(), shares_it->second, st->index);
+						RerouteCargo (st, this->Cargo(), shares_it->second);
 					}
 				}
 			} else {

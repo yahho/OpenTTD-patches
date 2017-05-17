@@ -11,6 +11,7 @@
 
 #include <set>
 
+#include "debug.h"
 #include "base_media_base.h"
 
 /** Set of isocodes. */
@@ -68,4 +69,24 @@ const char *BaseSetDesc::get_desc (const char *isocode) const
 
 	/* Then fall back */
 	return this->get_default_desc();
+}
+
+/**
+ * Try to read a single piece of metadata from an ini file.
+ * @param metadata The metadata group to search in.
+ * @param name The name of the item to read.
+ * @param type The type of the set for debugging output.
+ * @param filename The name of the filename for debugging output.
+ * @return The associated item, or NULL if it doesn't exist.
+ */
+const IniItem *BaseSetDesc::fetch_metadata (const IniGroup *metadata,
+	const char *name, const char *type, const char *filename)
+{
+	const IniItem *item = metadata->find (name);
+	if (item == NULL || StrEmpty (item->value)) {
+		DEBUG (grf, 0, "Base %sset detail loading: %s field missing in %s.",
+				type, name, filename);
+		return NULL;
+	}
+	return item;
 }

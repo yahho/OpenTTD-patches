@@ -17,8 +17,8 @@
 /** Base for all 8bpp blitters. */
 class Blitter_8bppBase : public Blitter {
 public:
-	/* virtual */ uint8 GetScreenDepth() { return 8; }
-	/* virtual */ Blitter::PaletteAnimation UsePaletteAnimation();
+	static const uint screen_depth = 8; ///< Screen depth.
+	static const PaletteAnimation palette_animation = PALETTE_ANIMATION_VIDEO_BACKEND; ///< Palette animation.
 
 	/** Blitting surface. */
 	struct Surface : Blitter::Surface {
@@ -37,7 +37,7 @@ public:
 
 		void draw_checker (void *video, uint width, uint height, uint8 colour, byte bo) OVERRIDE;
 
-		void scroll (void *video, int &left, int &top, int &width, int &height, int scroll_x, int scroll_y) OVERRIDE;
+		void scroll (int left, int top, int width, int height, int dx, int dy) OVERRIDE;
 
 		void copy (Buffer *dst, int x, int y, uint width, uint height) OVERRIDE;
 

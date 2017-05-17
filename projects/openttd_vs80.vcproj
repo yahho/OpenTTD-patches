@@ -459,10 +459,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\..\src\cargoaction.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\..\src\cargomonitor.cpp"
 				>
 			</File>
@@ -551,11 +547,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\..\src\fontcache.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\..\src\fontdetection.cpp"
+				RelativePath=".\..\src\font.cpp"
 				>
 			</File>
 			<File
@@ -1531,10 +1523,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\..\src\cargoaction.h"
-				>
-			</File>
-			<File
 				RelativePath=".\..\src\cargomonitor.h"
 				>
 			</File>
@@ -1727,11 +1715,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\..\src\fontcache.h"
-				>
-			</File>
-			<File
-				RelativePath=".\..\src\fontdetection.h"
+				RelativePath=".\..\src\font.h"
 				>
 			</File>
 			<File
@@ -2868,10 +2852,6 @@
 			</File>
 			<File
 				RelativePath=".\..\src\core\smallmatrix_type.hpp"
-				>
-			</File>
-			<File
-				RelativePath=".\..\src\core\smallstack_type.hpp"
 				>
 			</File>
 			<File
@@ -5628,10 +5608,6 @@
 			</File>
 			<File
 				RelativePath=".\..\src\table\town_land.h"
-				>
-			</File>
-			<File
-				RelativePath=".\..\src\table\track_land.h"
 				>
 			</File>
 			<File

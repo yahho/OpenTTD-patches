@@ -56,6 +56,52 @@ enum CargoSuffixType {
 
 static void ShowIndustryCargoesWindow(IndustryType id);
 
+/** Option flags for displaying accepted cargo in the industry view window. */
+enum CargoSuffixFlags {
+	CARGO_SUFFIX_FLAG_AMOUNT, ///< Display the amount of cargo.
+	CARGO_SUFFIX_FLAG_TEXT,   ///< Display extra text.
+};
+
+/** Options for displaying accepted cargo in the industry view window. */
+enum CargoSuffix {
+	CARGO_SUFFIX_NONE        = 0,
+	CARGO_SUFFIX_AMOUNT      = (1 << CARGO_SUFFIX_FLAG_AMOUNT),
+	CARGO_SUFFIX_TEXT        = (1 << CARGO_SUFFIX_FLAG_TEXT),
+	CARGO_SUFFIX_AMOUNT_TEXT = CARGO_SUFFIX_AMOUNT | CARGO_SUFFIX_TEXT,
+};
+
+/**
+ * Gets the string to display after the cargo name for a given callback result.
+ * @param suffix Buffer to which to append the suffix.
+ * @param grffile GRF that defined the industry.
+ * @param callback Result of callback 37.
+ * @return Display option for the industry view window.
+ */
+static uint GetCargoSuffix (stringb *suffix, const GRFFile *grffile, uint16 callback)
+{
+	if (callback == CALLBACK_FAILED) return CARGO_SUFFIX_AMOUNT;
+
+	bool valid;
+	if (grffile->grf_version < 8) {
+		if (GB(callback, 0, 8) == 0xFF) return CARGO_SUFFIX_AMOUNT;
+		valid = (callback < 0x400);
+	} else {
+		if (callback == 0x400) return CARGO_SUFFIX_AMOUNT;
+		if (callback == 0x401) return CARGO_SUFFIX_NONE;
+		valid = ((callback & ~0x800) < 0x400);
+	}
+
+	if (valid) {
+		StartTextRefStackUsage (grffile, 6);
+		GetString (suffix, GetGRFStringID (grffile->grfid, 0xD000 + (callback & ~0x800)));
+		StopTextRefStackUsage();
+		return (callback & 0x800) != 0 ? CARGO_SUFFIX_TEXT : CARGO_SUFFIX_AMOUNT_TEXT;
+	} else {
+		ErrorUnknownCallbackResult (grffile->grfid, CBID_INDUSTRY_CARGO_SUFFIX, callback);
+		return CARGO_SUFFIX_AMOUNT;
+	}
+}
+
 /**
  * Gets the string to display after the cargo name (using callback 37)
  * @param cargo the cargo for which the suffix is requested
@@ -69,21 +115,111 @@ static void ShowIndustryCargoesWindow(IndustryType id);
  * @param ind_type the industry type
  * @param indspec the industry spec
  * @param suffix is filled with the string to display
+ * @return Display option for the industry view window.
  */
-static void GetCargoSuffix (uint cargo, CargoSuffixType cst, const Industry *ind, IndustryType ind_type, const IndustrySpec *indspec, stringb *suffix)
+static inline uint GetCargoSuffix (uint cargo, CargoSuffixType cst,
+	const Industry *ind, IndustryType ind_type,
+	const IndustrySpec *indspec, stringb *suffix)
 {
 	suffix->clear();
-	if (HasBit(indspec->callback_mask, CBM_IND_CARGO_SUFFIX)) {
-		uint16 callback = GetIndustryCallback(CBID_INDUSTRY_CARGO_SUFFIX, 0, (cst << 8) | cargo, const_cast<Industry *>(ind), ind_type, (cst != CST_FUND) ? ind->location.tile : INVALID_TILE);
-		if (callback == CALLBACK_FAILED || callback == 0x400) return;
-		if (callback > 0x400) {
-			ErrorUnknownCallbackResult(indspec->grf_prop.grffile->grfid, CBID_INDUSTRY_CARGO_SUFFIX, callback);
-		} else if (indspec->grf_prop.grffile->grf_version >= 8 || GB(callback, 0, 8) != 0xFF) {
-			StartTextRefStackUsage(indspec->grf_prop.grffile, 6);
-			GetString (suffix, GetGRFStringID(indspec->grf_prop.grffile->grfid, 0xD000 + callback));
-			StopTextRefStackUsage();
-		}
+
+	if (!HasBit(indspec->callback_mask, CBM_IND_CARGO_SUFFIX)) {
+		return CARGO_SUFFIX_AMOUNT;
 	}
+
+	uint16 callback = GetIndustryCallback (CBID_INDUSTRY_CARGO_SUFFIX, 0,
+			(cst << 8) | cargo, const_cast<Industry *>(ind), ind_type,
+			(cst != CST_FUND) ? ind->location.tile : INVALID_TILE);
+	return GetCargoSuffix (suffix, indspec->grf_prop.grffile, callback);
+}
+
+/**
+ * Set up the string parameters for an array of cargoes.
+ * @param buffer The buffer where to store the cargo suffixes, if any.
+ * @param i The industry (NULL if in fund window).
+ * @param type The industry type.
+ * @param spec The industry spec.
+ * @param n The number of cargoes in the array.
+ * @param c The array of cargoes.
+ * @param cst The cargo suffix type (for which window it is requested).
+ * @param offset Cargo offset for the callback (0 for accepts, 3 for production).
+ * @return The number of valid cargoes found.
+ */
+static uint SetupCargoArrayParams (sstring<512> (&buffer) [3],
+	const Industry *i, IndustryType type, const IndustrySpec *spec,
+	uint n, const CargoID *c, CargoSuffixType cst, uint offset)
+{
+	assert (n <= lengthof(buffer));
+	uint p = 0;
+	for (uint j = 0; j < n; j++) {
+		if (c[j] == CT_INVALID) continue;
+		GetCargoSuffix (j + offset, cst, i, type, spec, &buffer[j]);
+		SetDParam (p++, CargoSpec::Get(c[j])->name);
+		SetDParamStr (p++, buffer[j].c_str());
+	}
+	return p / 2;
+}
+
+/**
+ * Set up the string parameters for an array of cargoes.
+ * @param buffer The buffer where to store the cargo suffixes, if any.
+ * @param i The industry (NULL if in fund window).
+ * @param type The industry type.
+ * @param spec The industry spec.
+ * @param c The array of cargoes.
+ * @param cst The cargo suffix type (for which window it is requested).
+ * @param offset Cargo offset for the callback (0 for accepts, 3 for production).
+ * @return The number of valid cargoes found.
+ */
+template <uint N>
+static inline uint SetupCargoArrayParams (sstring<512> (&buffer) [3],
+	const Industry *i, IndustryType type, const IndustrySpec *spec,
+	const CargoID (&c) [N], CargoSuffixType cst, uint offset)
+{
+	return SetupCargoArrayParams (buffer, i, type, spec, N, &c[0],
+					cst, offset);
+}
+
+/**
+ * Set up the string parameters for the accepted cargoes of an industry.
+ * @param buffer The buffer where to store the cargo suffixes, if any.
+ * @param type The industry type.
+ * @param spec The industry spec.
+ * @return The string to use.
+ */
+static StringID SetupAcceptedCargoParams (sstring<512> (&buffer) [3],
+	IndustryType type, const IndustrySpec *spec)
+{
+	static const StringID str = STR_INDUSTRY_VIEW_REQUIRES_CARGO;
+
+	uint p = SetupCargoArrayParams (buffer, NULL, type, spec,
+					spec->accepts_cargo, CST_FUND, 0);
+	if (p > 0) return str + p - 1;
+
+	SetDParam (0, STR_JUST_NOTHING);
+	SetDParamStr (1, "");
+	return str;
+}
+
+/**
+ * Set up the string parameters for the produced cargoes of an industry.
+ * @param buffer The buffer where to store the cargo suffixes, if any.
+ * @param type The industry type.
+ * @param spec The industry spec.
+ * @return The string to use.
+ */
+static StringID SetupProducedCargoParams (sstring<512> (&buffer) [3],
+	IndustryType type, const IndustrySpec *spec)
+{
+	static const StringID str = STR_INDUSTRY_VIEW_PRODUCES_CARGO;
+
+	uint p = SetupCargoArrayParams (buffer, NULL, type, spec,
+					spec->produced_cargo, CST_FUND, 3);
+	if (p > 0) return str + p - 1;
+
+	SetDParam (0, STR_JUST_NOTHING);
+	SetDParamStr (1, "");
+	return str;
 }
 
 IndustryType _sorted_industry_types[NUM_INDUSTRYTYPES]; ///< Industry types sorted by name.
@@ -295,33 +431,13 @@ public:
 					const IndustrySpec *indsp = GetIndustrySpec(this->index[i]);
 
 					sstring<512> cargo_suffix [3];
-					StringID str = STR_INDUSTRY_VIEW_REQUIRES_CARGO;
-					byte p = 0;
-					SetDParam(0, STR_JUST_NOTHING);
-					SetDParamStr(1, "");
-					assert_compile(lengthof(indsp->accepts_cargo) <= lengthof(cargo_suffix));
-					for (byte j = 0; j < lengthof(indsp->accepts_cargo); j++) {
-						if (indsp->accepts_cargo[j] == CT_INVALID) continue;
-						GetCargoSuffix (j, CST_FUND, NULL, this->index[i], indsp, &cargo_suffix[j]);
-						if (p > 0) str++;
-						SetDParam(p++, CargoSpec::Get(indsp->accepts_cargo[j])->name);
-						SetDParamStr(p++, cargo_suffix[j].c_str());
-					}
+					StringID str = SetupAcceptedCargoParams (cargo_suffix,
+							this->index[i], indsp);
 					d = maxdim(d, GetStringBoundingBox(str));
 
 					/* Draw the produced cargoes, if any. Otherwise, will print "Nothing". */
-					str = STR_INDUSTRY_VIEW_PRODUCES_CARGO;
-					p = 0;
-					SetDParam(0, STR_JUST_NOTHING);
-					SetDParamStr(1, "");
-					assert_compile(lengthof(indsp->produced_cargo) <= lengthof(cargo_suffix));
-					for (byte j = 0; j < lengthof(indsp->produced_cargo); j++) {
-						if (indsp->produced_cargo[j] == CT_INVALID) continue;
-						GetCargoSuffix (j + 3, CST_FUND, NULL, this->index[i], indsp, &cargo_suffix[j]);
-						if (p > 0) str++;
-						SetDParam(p++, CargoSpec::Get(indsp->produced_cargo[j])->name);
-						SetDParamStr(p++, cargo_suffix[j].c_str());
-					}
+					str = SetupProducedCargoParams (cargo_suffix,
+							this->index[i], indsp);
 					d = maxdim(d, GetStringBoundingBox(str));
 				}
 
@@ -416,34 +532,14 @@ public:
 
 				/* Draw the accepted cargoes, if any. Otherwise, will print "Nothing". */
 				sstring<512> cargo_suffix [3];
-				StringID str = STR_INDUSTRY_VIEW_REQUIRES_CARGO;
-				byte p = 0;
-				SetDParam(0, STR_JUST_NOTHING);
-				SetDParamStr(1, "");
-				assert_compile(lengthof(indsp->accepts_cargo) <= lengthof(cargo_suffix));
-				for (byte j = 0; j < lengthof(indsp->accepts_cargo); j++) {
-					if (indsp->accepts_cargo[j] == CT_INVALID) continue;
-					GetCargoSuffix (j, CST_FUND, NULL, this->selected_type, indsp, &cargo_suffix[j]);
-					if (p > 0) str++;
-					SetDParam(p++, CargoSpec::Get(indsp->accepts_cargo[j])->name);
-					SetDParamStr(p++, cargo_suffix[j].c_str());
-				}
+				StringID str = SetupAcceptedCargoParams (cargo_suffix,
+						this->selected_type, indsp);
 				DrawString (dpi, left, right, y, str);
 				y += FONT_HEIGHT_NORMAL;
 
 				/* Draw the produced cargoes, if any. Otherwise, will print "Nothing". */
-				str = STR_INDUSTRY_VIEW_PRODUCES_CARGO;
-				p = 0;
-				SetDParam(0, STR_JUST_NOTHING);
-				SetDParamStr(1, "");
-				assert_compile(lengthof(indsp->produced_cargo) <= lengthof(cargo_suffix));
-				for (byte j = 0; j < lengthof(indsp->produced_cargo); j++) {
-					if (indsp->produced_cargo[j] == CT_INVALID) continue;
-					GetCargoSuffix (j + 3, CST_FUND, NULL, this->selected_type, indsp, &cargo_suffix[j]);
-					if (p > 0) str++;
-					SetDParam(p++, CargoSpec::Get(indsp->produced_cargo[j])->name);
-					SetDParamStr(p++, cargo_suffix[j].c_str());
-				}
+				str = SetupProducedCargoParams (cargo_suffix,
+						this->selected_type, indsp);
 				DrawString (dpi, left, right, y, str);
 				y += FONT_HEIGHT_NORMAL;
 
@@ -696,7 +792,6 @@ public:
 		Industry *i = Industry::Get(this->window_number);
 		const IndustrySpec *ind = GetIndustrySpec(i->type);
 		int y = top + WD_FRAMERECT_TOP;
-		bool first = true;
 		bool has_accept = false;
 		sstring<512> cargo_suffix [3];
 
@@ -705,42 +800,63 @@ public:
 			y += 2 * FONT_HEIGHT_NORMAL;
 		}
 
-		if (HasBit(ind->callback_mask, CBM_IND_PRODUCTION_CARGO_ARRIVAL) || HasBit(ind->callback_mask, CBM_IND_PRODUCTION_256_TICKS)) {
-			assert_compile(lengthof(i->accepts_cargo) <= lengthof(cargo_suffix));
+		bool stockpiling = HasBit(ind->callback_mask, CBM_IND_PRODUCTION_CARGO_ARRIVAL)
+				|| HasBit(ind->callback_mask, CBM_IND_PRODUCTION_256_TICKS);
+		bool has_suffix  = HasBit(ind->callback_mask, CBM_IND_CARGO_SUFFIX);
+
+		if (stockpiling || has_suffix) {
 			for (byte j = 0; j < lengthof(i->accepts_cargo); j++) {
 				if (i->accepts_cargo[j] == CT_INVALID) continue;
-				has_accept = true;
-				if (first) {
-					DrawString (dpi, left + WD_FRAMERECT_LEFT, right - WD_FRAMERECT_RIGHT, y, STR_INDUSTRY_VIEW_WAITING_FOR_PROCESSING);
+				if (!has_accept) {
+					DrawString (dpi, left + WD_FRAMERECT_LEFT, right - WD_FRAMERECT_RIGHT, y, STR_INDUSTRY_VIEW_REQUIRES);
 					y += FONT_HEIGHT_NORMAL;
-					first = false;
+					has_accept = true;
 				}
-				GetCargoSuffix (j, CST_VIEW, i, i->type, ind, &cargo_suffix[j]);
-				SetDParam(0, i->accepts_cargo[j]);
-				SetDParam(1, i->incoming_cargo_waiting[j]);
-				SetDParamStr(2, cargo_suffix[j].c_str());
-				DrawString (dpi, left + WD_FRAMETEXT_LEFT, right - WD_FRAMERECT_RIGHT, y, STR_INDUSTRY_VIEW_WAITING_STOCKPILE_CARGO);
+
+				uint opt;
+				if (!has_suffix) {
+					opt = CARGO_SUFFIX_AMOUNT;
+				} else {
+					opt = GetCargoSuffix (j, CST_VIEW, i, i->type, ind, &cargo_suffix[j]);
+					if ((opt == CARGO_SUFFIX_AMOUNT) && !stockpiling) {
+						opt = CARGO_SUFFIX_NONE;
+					}
+				}
+
+				byte p;
+				if (HasBit (opt, CARGO_SUFFIX_FLAG_AMOUNT)) {
+					SetDParam (0, i->accepts_cargo[j]);
+					SetDParam (1, i->incoming_cargo_waiting[j]);
+					p = 2;
+				} else {
+					SetDParam (0, CargoSpec::Get(i->accepts_cargo[j])->name);
+					p = 1;
+				}
+				if (HasBit (opt, CARGO_SUFFIX_FLAG_TEXT)) {
+					SetDParamStr (p, cargo_suffix[j].c_str());
+				}
+
+				assert_compile (STR_INDUSTRY_VIEW_ACCEPT_CARGO + CARGO_SUFFIX_NONE        == STR_INDUSTRY_VIEW_ACCEPT_CARGO);
+				assert_compile (STR_INDUSTRY_VIEW_ACCEPT_CARGO + CARGO_SUFFIX_AMOUNT      == STR_INDUSTRY_VIEW_ACCEPT_CARGO_AMOUNT);
+				assert_compile (STR_INDUSTRY_VIEW_ACCEPT_CARGO + CARGO_SUFFIX_TEXT        == STR_INDUSTRY_VIEW_ACCEPT_CARGO_TEXT);
+				assert_compile (STR_INDUSTRY_VIEW_ACCEPT_CARGO + CARGO_SUFFIX_AMOUNT_TEXT == STR_INDUSTRY_VIEW_ACCEPT_CARGO_AMOUNT_TEXT);
+
+				StringID str = STR_INDUSTRY_VIEW_ACCEPT_CARGO + opt;
+				DrawString (dpi, left + WD_FRAMETEXT_LEFT, right - WD_FRAMERECT_RIGHT, y, str);
 				y += FONT_HEIGHT_NORMAL;
 			}
 		} else {
-			StringID str = STR_INDUSTRY_VIEW_REQUIRES_CARGO;
-			byte p = 0;
-			assert_compile(lengthof(i->accepts_cargo) <= lengthof(cargo_suffix));
-			for (byte j = 0; j < lengthof(i->accepts_cargo); j++) {
-				if (i->accepts_cargo[j] == CT_INVALID) continue;
-				has_accept = true;
-				GetCargoSuffix (j, CST_VIEW, i, i->type, ind, &cargo_suffix[j]);
-				if (p > 0) str++;
-				SetDParam(p++, CargoSpec::Get(i->accepts_cargo[j])->name);
-				SetDParamStr(p++, cargo_suffix[j].c_str());
-			}
+			uint p = SetupCargoArrayParams (cargo_suffix, i, i->type,
+					ind, i->accepts_cargo, CST_VIEW, 0);
+			has_accept = (p > 0);
 			if (has_accept) {
+				StringID str = STR_INDUSTRY_VIEW_REQUIRES_CARGO + p - 1;
 				DrawString (dpi, left + WD_FRAMERECT_LEFT, right - WD_FRAMERECT_RIGHT, y, str);
 				y += FONT_HEIGHT_NORMAL;
 			}
 		}
 
-		first = true;
+		bool first = true;
 		assert_compile(lengthof(i->produced_cargo) <= lengthof(cargo_suffix));
 		for (byte j = 0; j < lengthof(i->produced_cargo); j++) {
 			if (i->produced_cargo[j] == CT_INVALID) continue;

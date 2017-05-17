@@ -330,7 +330,7 @@ void QZ_GameSizeChanged()
 	_screen_width = _cocoa_subdriver->GetWidth();
 	_screen_height = _cocoa_subdriver->GetHeight();
 	_screen_surface.reset (Blitter::get()->create (_cocoa_subdriver->GetPixelBuffer(),
-				_screen_width, _screen_height, _screen_width));
+				_screen_width, _screen_height, _screen_width, true));
 	_fullscreen = _cocoa_subdriver->IsFullscreen();
 
 	GameSizeChanged();
@@ -460,7 +460,7 @@ const char *VideoDriver_Cocoa::Start(const char * const *parm)
 
 	int width  = _cur_resolution.width;
 	int height = _cur_resolution.height;
-	int bpp = Blitter::get()->GetScreenDepth();
+	int bpp = Blitter::get()->screen_depth;
 
 	_cocoa_subdriver = QZ_CreateSubdriver(width, height, bpp, _fullscreen, true);
 	if (_cocoa_subdriver == NULL) {
@@ -513,7 +513,7 @@ bool VideoDriver_Cocoa::ChangeResolution(int w, int h)
 {
 	assert(_cocoa_subdriver != NULL);
 
-	bool ret = _cocoa_subdriver->ChangeResolution(w, h, Blitter::get()->GetScreenDepth());
+	bool ret = _cocoa_subdriver->ChangeResolution(w, h, Blitter::get()->screen_depth);
 
 	QZ_GameSizeChanged();
 	QZ_UpdateVideoModes();
@@ -538,7 +538,7 @@ bool VideoDriver_Cocoa::ToggleFullscreen(bool full_screen)
 	if (full_screen != oldfs) {
 		int width  = _cocoa_subdriver->GetWidth();
 		int height = _cocoa_subdriver->GetHeight();
-		int bpp    = Blitter::get()->GetScreenDepth();
+		int bpp    = Blitter::get()->screen_depth;
 
 		delete _cocoa_subdriver;
 		_cocoa_subdriver = NULL;
@@ -557,12 +557,20 @@ bool VideoDriver_Cocoa::ToggleFullscreen(bool full_screen)
 }
 
 /**
- * Callback invoked after the blitter was changed.
- *
- * @return True if no error.
+ * Switch to a new blitter.
+ * @param blitter The blitter to switch to.
+ * @return False if switching failed and the old blitter could not be restored.
  */
-bool VideoDriver_Cocoa::AfterBlitterChange()
+bool VideoDriver_Cocoa::SwitchBlitter (const Blitter::Info *blitter)
 {
+	const Blitter::Info *old = Blitter::get();
+
+	Blitter::select (blitter);
+
+	if (this->ChangeResolution (_screen_width, _screen_height)) return true;
+
+	/* Failed to switch blitter, let's hope we can return to the old one. */
+	Blitter::select (old);
 	return this->ChangeResolution (_screen_width, _screen_height);
 }
 

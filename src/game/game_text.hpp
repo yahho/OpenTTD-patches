@@ -15,9 +15,6 @@
 #include <vector>
 #include "../core/pointer.h"
 
-/** The tab we place our strings in. */
-static const uint GAME_TEXT_TAB = 18;
-
 const char *GetGameStringPtr(uint id);
 void RegisterGameTranslation(class Squirrel *engine);
 void ReconsiderGameScriptLanguage();

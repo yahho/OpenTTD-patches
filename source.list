@@ -5,7 +5,6 @@ articulated_vehicles.cpp
 autoreplace.cpp
 base_media.cpp
 bmp.cpp
-cargoaction.cpp
 cargomonitor.cpp
 cargopacket.cpp
 cargotype.cpp
@@ -28,8 +27,7 @@ elrail.cpp
 engine.cpp
 fileio.cpp
 fios.cpp
-fontcache.cpp
-fontdetection.cpp
+font.cpp
 base_consist.cpp
 gamelog.cpp
 genworld.cpp
@@ -123,7 +121,6 @@ base_station_base.h
 bmp.h
 bridge.h
 cargo_type.h
-cargoaction.h
 cargomonitor.h
 cargopacket.h
 cargotype.h
@@ -172,8 +169,7 @@ error.h
 fileio_func.h
 fileio_type.h
 fios.h
-fontcache.h
-fontdetection.h
+font.h
 base_consist.h
 gamelog.h
 gamelog_entries.h
@@ -414,7 +410,6 @@ core/random_func.cpp
 core/random_func.hpp
 core/smallmap_type.hpp
 core/smallmatrix_type.hpp
-core/smallstack_type.hpp
 core/smallvec_type.hpp
 core/sort_func.hpp
 core/string_compare_type.hpp
@@ -649,7 +644,6 @@ table/strgen_tables.h
 table/string_colours.h
 ../objs/langs/table/strings.h
 table/town_land.h
-table/track_land.h
 table/train_cmd.h
 table/tree_land.h
 table/water_land.h

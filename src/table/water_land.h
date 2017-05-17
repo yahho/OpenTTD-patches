@@ -24,13 +24,6 @@
 /** Constructor macro for a terminating DrawTileSeqStruct entry in an array */
 #define TILE_SEQ_END() { (int8)0x80, 0, 0, 0, 0, 0, {0, 0} }
 
-/**
- * Constructor macro of a DrawTileSprites structure
- * @param img   Ground sprite without palette of the tile
- * @param dtss  Sequence child sprites of the tile
- */
-#define TILE_SPRITE_LINE(img, dtss) { {img, PAL_NONE}, dtss },
-
 static const DrawTileSeqStruct _shipdepot_display_seq_ne[] = {
 	TILE_SEQ_LINE( 0, 15, 0, 16, 1, 0x14, 0xFE8 | (1 << PALETTE_MODIFIER_COLOUR))
 	TILE_SEQ_END()
@@ -53,108 +46,75 @@ static const DrawTileSeqStruct _shipdepot_display_seq_se[] = {
 	TILE_SEQ_END()
 };
 
-static const DrawTileSprites _shipdepot_display_data[DIAGDIR_END] = {
-	TILE_SPRITE_LINE(0xFDD, _shipdepot_display_seq_ne) // DIAGDIR_NE
-	TILE_SPRITE_LINE(0xFDD, _shipdepot_display_seq_se) // DIAGDIR_SE
-	TILE_SPRITE_LINE(0xFDD, _shipdepot_display_seq_sw) // DIAGDIR_SW
-	TILE_SPRITE_LINE(0xFDD, _shipdepot_display_seq_nw) // DIAGDIR_NW
+static const DrawTileSeqStruct *_shipdepot_display_data[DIAGDIR_END] = {
+	_shipdepot_display_seq_ne, // DIAGDIR_NE
+	_shipdepot_display_seq_se, // DIAGDIR_SE
+	_shipdepot_display_seq_sw, // DIAGDIR_SW
+	_shipdepot_display_seq_nw, // DIAGDIR_NW
 };
 
-static const DrawTileSeqStruct _lock_display_seq_0[] = {
-	TILE_SEQ_LINE( 0,   0, 0, 0x10, 1, 0x14, 0 + 1)
-	TILE_SEQ_LINE( 0, 0xF, 0, 0x10, 1, 0x14, 4 + 1)
-	TILE_SEQ_END()
-};
 
-static const DrawTileSeqStruct _lock_display_seq_1[] = {
-	TILE_SEQ_LINE(   0, 0, 0, 1, 0x10, 0x14, 0)
-	TILE_SEQ_LINE( 0xF, 0, 0, 1, 0x10, 0x14, 4)
-	TILE_SEQ_END()
-};
-
-static const DrawTileSeqStruct _lock_display_seq_2[] = {
-	TILE_SEQ_LINE( 0,   0, 0, 0x10, 1, 0x14, 0 + 2)
-	TILE_SEQ_LINE( 0, 0xF, 0, 0x10, 1, 0x14, 4 + 2)
-	TILE_SEQ_END()
-};
-
-static const DrawTileSeqStruct _lock_display_seq_3[] = {
-	TILE_SEQ_LINE(   0, 0, 0, 1, 0x10, 0x14, 0 + 3)
-	TILE_SEQ_LINE( 0xF, 0, 0, 1, 0x10, 0x14, 4 + 3)
-	TILE_SEQ_END()
-};
-
-static const DrawTileSeqStruct _lock_display_seq_0b[] = {
-	TILE_SEQ_LINE( 0,   0, 0, 0x10, 1, 0x14, 8 + 1)
-	TILE_SEQ_LINE( 0, 0xF, 0, 0x10, 1, 0x14, 12 + 1)
-	TILE_SEQ_END()
-};
-
-static const DrawTileSeqStruct _lock_display_seq_1b[] = {
-	TILE_SEQ_LINE(   0, 0, 0, 0x1, 0x10, 0x14, 8)
-	TILE_SEQ_LINE( 0xF, 0, 0, 0x1, 0x10, 0x14, 12)
-	TILE_SEQ_END()
-};
-
-static const DrawTileSeqStruct _lock_display_seq_2b[] = {
-	TILE_SEQ_LINE( 0,   0, 0, 0x10, 1, 0x14, 8 + 2)
-	TILE_SEQ_LINE( 0, 0xF, 0, 0x10, 1, 0x14, 12 + 2)
-	TILE_SEQ_END()
-};
-
-static const DrawTileSeqStruct _lock_display_seq_3b[] = {
-	TILE_SEQ_LINE(   0, 0, 0, 1, 0x10, 0x14, 8 + 3)
-	TILE_SEQ_LINE( 0xF, 0, 0, 1, 0x10, 0x14, 12 + 3)
-	TILE_SEQ_END()
-};
-
-static const DrawTileSeqStruct _lock_display_seq_0t[] = {
-	TILE_SEQ_LINE( 0,   0, 0, 0x10, 1, 0x14, 16 + 1)
-	TILE_SEQ_LINE( 0, 0xF, 0, 0x10, 1, 0x14, 20 + 1)
-	TILE_SEQ_END()
-};
-
-static const DrawTileSeqStruct _lock_display_seq_1t[] = {
-	TILE_SEQ_LINE(   0, 0, 0, 0x1, 0x10, 0x14, 16)
-	TILE_SEQ_LINE( 0xF, 0, 0, 0x1, 0x10, 0x14, 20)
-	TILE_SEQ_END()
-};
-
-static const DrawTileSeqStruct _lock_display_seq_2t[] = {
-	TILE_SEQ_LINE( 0,   0, 0, 0x10, 1, 0x14, 16 + 2)
-	TILE_SEQ_LINE( 0, 0xF, 0, 0x10, 1, 0x14, 20 + 2)
-	TILE_SEQ_END()
-};
-
-static const DrawTileSeqStruct _lock_display_seq_3t[] = {
-	TILE_SEQ_LINE(   0, 0, 0, 1, 0x10, 0x14, 16 + 3)
-	TILE_SEQ_LINE( 0xF, 0, 0, 1, 0x10, 0x14, 20 + 3)
-	TILE_SEQ_END()
-};
-
-static const DrawTileSprites _lock_display_data[][DIAGDIR_END] = {
+static const DrawTileSeqStruct _lock_display_data[3][DIAGDIR_END][3] = {
 	{ // LOCK_PART_MIDDLE
-		TILE_SPRITE_LINE(1, _lock_display_seq_0) // NE
-		TILE_SPRITE_LINE(0, _lock_display_seq_1) // SE
-		TILE_SPRITE_LINE(2, _lock_display_seq_2) // SW
-		TILE_SPRITE_LINE(3, _lock_display_seq_3) // NW
+		{    // NE
+			TILE_SEQ_LINE( 0,   0, 0, 0x10, 1, 0x14,  0 + 1)
+			TILE_SEQ_LINE( 0, 0xF, 0, 0x10, 1, 0x14,  4 + 1)
+			TILE_SEQ_END()
+		}, { // SE
+			TILE_SEQ_LINE(   0, 0, 0, 1, 0x10, 0x14,  0)
+			TILE_SEQ_LINE( 0xF, 0, 0, 1, 0x10, 0x14,  4)
+			TILE_SEQ_END()
+		}, { // SW
+			TILE_SEQ_LINE( 0,   0, 0, 0x10, 1, 0x14,  0 + 2)
+			TILE_SEQ_LINE( 0, 0xF, 0, 0x10, 1, 0x14,  4 + 2)
+			TILE_SEQ_END()
+		}, { // NW
+			TILE_SEQ_LINE(   0, 0, 0, 1, 0x10, 0x14,  0 + 3)
+			TILE_SEQ_LINE( 0xF, 0, 0, 1, 0x10, 0x14,  4 + 3)
+			TILE_SEQ_END()
+		}
 	},
 
 	{ // LOCK_PART_LOWER
-		TILE_SPRITE_LINE(0xFDD, _lock_display_seq_0b) // NE
-		TILE_SPRITE_LINE(0xFDD, _lock_display_seq_1b) // SE
-		TILE_SPRITE_LINE(0xFDD, _lock_display_seq_2b) // SW
-		TILE_SPRITE_LINE(0xFDD, _lock_display_seq_3b) // NW
+		{    // NE
+			TILE_SEQ_LINE( 0,   0, 0, 0x10, 1, 0x14,  8 + 1)
+			TILE_SEQ_LINE( 0, 0xF, 0, 0x10, 1, 0x14, 12 + 1)
+			TILE_SEQ_END()
+		}, { // SE
+			TILE_SEQ_LINE(   0, 0, 0, 1, 0x10, 0x14,  8)
+			TILE_SEQ_LINE( 0xF, 0, 0, 1, 0x10, 0x14, 12)
+			TILE_SEQ_END()
+		}, { // SW
+			TILE_SEQ_LINE( 0,   0, 0, 0x10, 1, 0x14,  8 + 2)
+			TILE_SEQ_LINE( 0, 0xF, 0, 0x10, 1, 0x14, 12 + 2)
+			TILE_SEQ_END()
+		}, { // NW
+			TILE_SEQ_LINE(   0, 0, 0, 1, 0x10, 0x14,  8 + 3)
+			TILE_SEQ_LINE( 0xF, 0, 0, 1, 0x10, 0x14, 12 + 3)
+			TILE_SEQ_END()
+		}
 	},
 
 	{ // LOCK_PART_UPPER
-		TILE_SPRITE_LINE(0xFDD, _lock_display_seq_0t) // NE
-		TILE_SPRITE_LINE(0xFDD, _lock_display_seq_1t) // SE
-		TILE_SPRITE_LINE(0xFDD, _lock_display_seq_2t) // SW
-		TILE_SPRITE_LINE(0xFDD, _lock_display_seq_3t) // NW
+		{    // NE
+			TILE_SEQ_LINE( 0,   0, 0, 0x10, 1, 0x14, 16 + 1)
+			TILE_SEQ_LINE( 0, 0xF, 0, 0x10, 1, 0x14, 20 + 1)
+			TILE_SEQ_END()
+		}, { // SE
+			TILE_SEQ_LINE(   0, 0, 0, 1, 0x10, 0x14, 16)
+			TILE_SEQ_LINE( 0xF, 0, 0, 1, 0x10, 0x14, 20)
+			TILE_SEQ_END()
+		}, { // SW
+			TILE_SEQ_LINE( 0,   0, 0, 0x10, 1, 0x14, 16 + 2)
+			TILE_SEQ_LINE( 0, 0xF, 0, 0x10, 1, 0x14, 20 + 2)
+			TILE_SEQ_END()
+		}, { // NW
+			TILE_SEQ_LINE(   0, 0, 0, 1, 0x10, 0x14, 16 + 3)
+			TILE_SEQ_LINE( 0xF, 0, 0, 1, 0x10, 0x14, 20 + 3)
+			TILE_SEQ_END()
+		}
 	},
 };
 
 #undef TILE_SEQ_LINE
 #undef TILE_SEQ_END
-#undef TILE_SPRITE_LINE

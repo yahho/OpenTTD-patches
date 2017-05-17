@@ -78,9 +78,9 @@ static void UpdatePalette(uint start, uint count)
 
 	uint end = start + count;
 	for (uint i = start; i != end; i++) {
-		pal[i].r = _cur_palette.palette[i].r / 4;
-		pal[i].g = _cur_palette.palette[i].g / 4;
-		pal[i].b = _cur_palette.palette[i].b / 4;
+		pal[i].r = _cur_palette[i].r / 4;
+		pal[i].g = _cur_palette[i].g / 4;
+		pal[i].b = _cur_palette[i].b / 4;
 		pal[i].filler = 0;
 	}
 
@@ -94,16 +94,14 @@ static void InitPalette()
 
 static void CheckPaletteAnim()
 {
-	if (_cur_palette.count_dirty != 0) {
-		Blitter *blitter = Blitter::get();
-
-		switch (blitter->UsePaletteAnimation()) {
+	if (_cur_palette_count_dirty != 0) {
+		switch (Blitter::get()->palette_animation) {
 			case Blitter::PALETTE_ANIMATION_VIDEO_BACKEND:
-				UpdatePalette(_cur_palette.first_dirty, _cur_palette.count_dirty);
+				UpdatePalette (_cur_palette_first_dirty, _cur_palette_count_dirty);
 				break;
 
 			case Blitter::PALETTE_ANIMATION_BLITTER:
-				VideoDriver::PaletteAnimate (blitter, _cur_palette);
+				VideoDriver::PaletteAnimate (_cur_palette);
 				break;
 
 			case Blitter::PALETTE_ANIMATION_NONE:
@@ -112,7 +110,7 @@ static void CheckPaletteAnim()
 			default:
 				NOT_REACHED();
 		}
-		_cur_palette.count_dirty = 0;
+		_cur_palette_count_dirty = 0;
 	}
 }
 
@@ -194,7 +192,7 @@ static void GetAvailableVideoMode(uint *w, uint *h)
 
 static bool CreateMainSurface(uint w, uint h)
 {
-	int bpp = Blitter::get()->GetScreenDepth();
+	int bpp = Blitter::get()->screen_depth;
 	if (bpp == 0) usererror("Can't use a blitter that blits 0 bpp for normal visuals");
 	set_color_depth(bpp);
 
@@ -209,7 +207,7 @@ static bool CreateMainSurface(uint w, uint h)
 	_allegro_screen = create_bitmap_ex(bpp, screen->cr - screen->cl, screen->cb - screen->ct);
 	uint pitch = ((byte*)screen->line[1] - (byte*)screen->line[0]) / (bpp / 8);
 	_screen_surface.reset (Blitter::get()->create (_allegro_screen->line[0],
-			_allegro_screen->w, _allegro_screen->h, pitch));
+			_allegro_screen->w, _allegro_screen->h, pitch, true));
 	_screen_width = _allegro_screen->w;
 	_screen_height = _allegro_screen->h;
 
@@ -559,8 +557,21 @@ bool VideoDriver_Allegro::ToggleFullscreen(bool fullscreen)
 #endif
 }
 
-bool VideoDriver_Allegro::AfterBlitterChange()
+/**
+ * Switch to a new blitter.
+ * @param blitter The blitter to switch to.
+ * @return False if switching failed and the old blitter could not be restored.
+ */
+bool VideoDriver_Allegro::SwitchBlitter (const Blitter::Info *blitter)
 {
+	const Blitter::Info *old = Blitter::get();
+
+	Blitter::select (blitter);
+
+	if (CreateMainSurface (_screen_width, _screen_height)) return true;
+
+	/* Failed to switch blitter, let's hope we can return to the old one. */
+	Blitter::select (old);
 	return CreateMainSurface (_screen_width, _screen_height);
 }
 

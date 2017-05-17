@@ -529,10 +529,6 @@ static bool CDECL CargoFilter(const EngineID *eid, const CargoID cid)
 	return (cid == CF_NONE ? refit_mask == 0 : HasBit(refit_mask, cid));
 }
 
-static GUIEngineList::FilterFunction * const _filter_funcs[] = {
-	&CargoFilter,
-};
-
 /* Draw rail wagon specific details */
 static int DrawRailWagonPurchaseInfo (BlitArea *dpi, int left, int right,
 	int y, EngineID engine_number, const RailVehicleInfo *rvi)
@@ -705,7 +701,15 @@ static int DrawShipPurchaseInfo (BlitArea *dpi, int left, int right,
 	return y;
 }
 
-/* Draw aircraft specific details */
+/**
+ * Draw aircraft specific details in the buy window.
+ * @param left Left edge of the window to draw in.
+ * @param right Right edge of the window to draw in.
+ * @param y Top of the area to draw in.
+ * @param engine_number Engine to display.
+ * @param refittable If set, the aircraft can be refitted.
+ * @return Bottom of the used area.
+ */
 static int DrawAircraftPurchaseInfo (BlitArea *dpi, int left, int right,
 	int y, EngineID engine_number, bool refittable)
 {
@@ -742,6 +746,12 @@ static int DrawAircraftPurchaseInfo (BlitArea *dpi, int left, int right,
 	DrawString (dpi, left, right, y, STR_PURCHASE_INFO_RUNNINGCOST);
 	y += FONT_HEIGHT_NORMAL;
 
+	/* Aircraft type */
+	SetDParam(0, e->GetAircraftTypeText());
+	DrawString (dpi, left, right, y, STR_PURCHASE_INFO_AIRCRAFT_TYPE);
+	y += FONT_HEIGHT_NORMAL;
+
+	/* Aircraft range, if available. */
 	uint16 range = e->GetRange();
 	if (range != 0) {
 		SetDParam(0, range);
@@ -871,21 +881,17 @@ int DrawVehiclePurchaseInfo (BlitArea *dpi, int left, int right, int y, EngineID
  * @param l The left most location of the list
  * @param r The right most location of the list
  * @param y The top most location of the list
- * @param eng_list What engines to draw
- * @param min where to start in the list
- * @param max where in the list to end
+ * @param eng What engines to draw
+ * @param num Number of engines to draw
  * @param selected_id what engine to highlight as selected, if any
  * @param show_count Whether to show the amount of engines or not
  * @param selected_group the group to list the engines of
  */
 void DrawEngineList (VehicleType type, BlitArea *dpi, int l, int r, int y,
-	const GUIEngineList *eng_list, uint16 min, uint16 max,
+	const EngineID *eng, uint num,
 	EngineID selected_id, bool show_count, GroupID selected_group)
 {
 	static const int sprite_y_offsets[] = { -1, -1, -2, -2 };
-
-	/* Obligatory sanity checks! */
-	assert(max <= eng_list->Length());
 
 	bool rtl = _current_text_dir == TD_RTL;
 	int step_size = GetEngineListHeight(type);
@@ -914,8 +920,8 @@ void DrawEngineList (VehicleType type, BlitArea *dpi, int l, int r, int y,
 	int small_text_y_offset  = step_size - FONT_HEIGHT_SMALL - WD_FRAMERECT_BOTTOM - 1;
 	int replace_icon_y_offset = (step_size - replace_icon.height) / 2 - 1;
 
-	for (; min < max; min++, y += step_size) {
-		const EngineID engine = (*eng_list)[min];
+	for (; num-- > 0; eng++, y += step_size) {
+		const EngineID engine = *eng;
 		/* Note: num_engines is only used in the autoreplace GUI, so it is correct to use _local_company here. */
 		const uint num_engines = GetGroupNumEngines(_local_company, selected_group, engine);
 
@@ -978,7 +984,7 @@ struct BuildVehicleWindow : Window {
 	bool listview_mode;                         ///< If set, only display the available vehicles and do not show a 'build' button.
 	EngineID sel_engine;                        ///< Currently selected engine, or #INVALID_ENGINE
 	EngineID rename_engine;                     ///< Engine being renamed.
-	GUIEngineList eng_list;
+	GUIList <EngineID> eng_list;
 	CargoID cargo_filter[NUM_CARGO + 2];        ///< Available cargo filters; CargoID or CF_ANY or CF_NONE
 	StringID cargo_filter_texts[NUM_CARGO + 3]; ///< Texts for filter_cargo, terminated by INVALID_STRING_ID
 	byte cargo_filter_criteria;                 ///< Selected cargo filter
@@ -1055,7 +1061,7 @@ struct BuildVehicleWindow : Window {
 	}
 
 	/** Populate the filter list and set the cargo filter criteria. */
-	void SetCargoFilterArray()
+	void OnInit()
 	{
 		uint filter_items = 0;
 
@@ -1094,31 +1100,18 @@ struct BuildVehicleWindow : Window {
 			}
 		}
 
-		this->eng_list.SetFilterFuncs(_filter_funcs);
 		this->eng_list.SetFilterState(this->cargo_filter[this->cargo_filter_criteria] != CF_ANY);
-	}
-
-	void OnInit()
-	{
-		this->SetCargoFilterArray();
 	}
 
 	/** Filter the engine list against the currently selected cargo filter */
 	void FilterEngineList()
 	{
-		this->eng_list.Filter(this->cargo_filter[this->cargo_filter_criteria]);
+		this->eng_list.Filter (&CargoFilter, this->cargo_filter[this->cargo_filter_criteria]);
 		if (0 == this->eng_list.Length()) { // no engine passed through the filter, invalidate the previously selected engine
 			this->sel_engine = INVALID_ENGINE;
 		} else if (!this->eng_list.Contains(this->sel_engine)) { // previously selected engine didn't pass the filter, select the first engine of the list
 			this->sel_engine = this->eng_list[0];
 		}
-	}
-
-	/** Filter a single engine */
-	bool FilterSingleEngine(EngineID eid)
-	{
-		CargoID filter_type = this->cargo_filter[this->cargo_filter_criteria];
-		return (filter_type == CF_ANY || CargoFilter(&eid, filter_type));
 	}
 
 	/* Figure out what train EngineIDs to put in the list */
@@ -1146,7 +1139,8 @@ struct BuildVehicleWindow : Window {
 			if (!IsEngineBuildable(eid, VEH_TRAIN, _local_company)) continue;
 
 			/* Filter now! So num_engines and num_wagons is valid */
-			if (!FilterSingleEngine(eid)) continue;
+			CargoID filter_type = this->cargo_filter[this->cargo_filter_criteria];
+			if ((filter_type != CF_ANY) && !CargoFilter (&eid, filter_type)) continue;
 
 			*this->eng_list.Append() = eid;
 
@@ -1163,14 +1157,14 @@ struct BuildVehicleWindow : Window {
 
 		/* make engines first, and then wagons, sorted by selected sort_criteria */
 		_engine_sort_direction = false;
-		EngList_Sort(&this->eng_list, TrainEnginesThenWagonsSorter);
+		this->eng_list.SmallVector <EngineID, 32>::Sort (TrainEnginesThenWagonsSorter);
 
 		/* and then sort engines */
 		_engine_sort_direction = this->descending_sort_order;
-		EngList_SortPartial(&this->eng_list, _engine_sort_functions[0][this->sort_criteria], 0, num_engines);
+		this->eng_list.SmallVector <EngineID, 32>::Sort (_engine_sort_functions[0][this->sort_criteria], 0, num_engines);
 
 		/* and finally sort wagons */
-		EngList_SortPartial(&this->eng_list, _engine_sort_functions[0][this->sort_criteria], num_engines, num_wagons);
+		this->eng_list.SmallVector <EngineID, 32>::Sort (_engine_sort_functions[0][this->sort_criteria], num_engines, num_wagons);
 	}
 
 	/* Figure out what road vehicle EngineIDs to put in the list */
@@ -1264,7 +1258,7 @@ struct BuildVehicleWindow : Window {
 		this->FilterEngineList();
 
 		_engine_sort_direction = this->descending_sort_order;
-		EngList_Sort(&this->eng_list, _engine_sort_functions[this->vehicle_type][this->sort_criteria]);
+		this->eng_list.SmallVector <EngineID, 32>::Sort (_engine_sort_functions[this->vehicle_type][this->sort_criteria]);
 
 		this->eng_list.Compact();
 		this->eng_list.RebuildDone();
@@ -1420,9 +1414,18 @@ struct BuildVehicleWindow : Window {
 	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
 	{
 		switch (widget) {
-			case WID_BV_LIST:
-				DrawEngineList (this->vehicle_type, dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP, &this->eng_list, this->vscroll->GetPosition(), min (this->vscroll->GetPosition() + this->vscroll->GetCapacity(), this->eng_list.Length()), this->sel_engine, false, DEFAULT_GROUP);
+			case WID_BV_LIST: {
+				uint i = this->vscroll->GetPosition();
+				uint j = min (i + this->vscroll->GetCapacity(), this->eng_list.Length());
+				DrawEngineList (this->vehicle_type, dpi,
+						r.left + WD_FRAMERECT_LEFT,
+						r.right - WD_FRAMERECT_RIGHT,
+						r.top + WD_FRAMERECT_TOP,
+						this->eng_list.Get(i), j - i,
+						this->sel_engine, false,
+						DEFAULT_GROUP);
 				break;
+			}
 
 			case WID_BV_SORT_ASCENDING_DESCENDING:
 				this->DrawSortButtonState (dpi, WID_BV_SORT_ASCENDING_DESCENDING, this->descending_sort_order ? SBS_DOWN : SBS_UP);

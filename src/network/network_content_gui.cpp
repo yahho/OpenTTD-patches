@@ -339,32 +339,19 @@ public:
 	}
 };
 
-/** Filter data for NetworkContentListWindow. */
-struct ContentListFilterData {
-	StringFilter string_filter; ///< Text filter of content list
-	std::bitset<CONTENT_TYPE_END> types; ///< Content types displayed
-};
-
-/** Filter criterias for NetworkContentListWindow. */
-enum ContentListFilterCriteria {
-	CONTENT_FILTER_TEXT = 0,        ///< Filter by query sting
-	CONTENT_FILTER_TYPE_OR_SELECTED,///< Filter by being of displayed type or selected for download
-};
-
 /** Window that lists the content that's at the content server */
 class NetworkContentListWindow : public Window, ContentCallback {
 	/** List with content infos. */
-	typedef GUIList<const ContentInfo *, ContentListFilterData &> GUIContentList;
+	typedef GUIList <const ContentInfo *> GUIContentList;
 
 	static const uint EDITBOX_MAX_SIZE   =  50; ///< Maximum size of the editbox in characters.
 
 	static Listing last_sorting;     ///< The last sorting setting.
-	static Filtering last_filtering; ///< The last filtering setting.
 	static GUIContentList::SortFunction * const sorter_funcs[];   ///< Sorter functions
-	static GUIContentList::FilterFunction * const filter_funcs[]; ///< Filter functions.
 	GUIContentList content;      ///< List with content
 	bool auto_select;            ///< Automatically select all content when the meta-data becomes available
-	ContentListFilterData filter_data; ///< Filter for content list
+	StringFilter string_filter;  ///< Text filter for content list
+	const std::bitset<CONTENT_TYPE_END> types; ///< Content types displayed
 	QueryStringN<EDITBOX_MAX_SIZE> filter_editbox;  ///< Filter editbox;
 	Dimension checkbox_size;     ///< Size of checkbox/"blot" sprite
 
@@ -491,21 +478,23 @@ class NetworkContentListWindow : public Window, ContentCallback {
 	}
 
 	/** Filter content by tags/name */
-	static bool CDECL TagNameFilter(const ContentInfo * const *a, ContentListFilterData &filter)
+	static bool CDECL TagNameFilter (const ContentInfo * const *a,
+		StringFilter *filter)
 	{
-		filter.string_filter.ResetState();
+		filter->ResetState();
 		for (int i = 0; i < (*a)->tag_count; i++) {
-			filter.string_filter.AddLine((*a)->tags[i]);
+			filter->AddLine ((*a)->tags[i]);
 		}
-		filter.string_filter.AddLine((*a)->name);
-		return filter.string_filter.GetState();
+		filter->AddLine ((*a)->name);
+		return filter->GetState();
 	}
 
 	/** Filter content by type, but still show content selected for download. */
-	static bool CDECL TypeOrSelectedFilter(const ContentInfo * const *a, ContentListFilterData &filter)
+	static bool CDECL TypeOrSelectedFilter (const ContentInfo * const *a,
+		std::bitset<CONTENT_TYPE_END> types)
 	{
-		if (filter.types.none()) return true;
-		if (filter.types[(*a)->type]) return true;
+		if (types.none()) return true;
+		if (types[(*a)->type]) return true;
 		return ((*a)->state == ContentInfo::SELECTED || (*a)->state == ContentInfo::AUTOSELECTED);
 	}
 
@@ -514,13 +503,11 @@ class NetworkContentListWindow : public Window, ContentCallback {
 	{
 		/* Apply filters. */
 		bool changed = false;
-		if (!this->filter_data.string_filter.IsEmpty()) {
-			this->content.SetFilterType(CONTENT_FILTER_TEXT);
-			changed |= this->content.Filter(this->filter_data);
+		if (!this->string_filter.IsEmpty()) {
+			changed |= this->content.Filter (&TagNameFilter, &this->string_filter);
 		}
-		if (this->filter_data.types.any()) {
-			this->content.SetFilterType(CONTENT_FILTER_TYPE_OR_SELECTED);
-			changed |= this->content.Filter(this->filter_data);
+		if (this->types.any()) {
+			changed |= this->content.Filter (&TypeOrSelectedFilter, this->types);
 		}
 		if (!changed) return;
 
@@ -543,12 +530,12 @@ class NetworkContentListWindow : public Window, ContentCallback {
 	 */
 	bool UpdateFilterState()
 	{
-		Filtering old_params = this->content.GetFiltering();
-		bool new_state = !this->filter_data.string_filter.IsEmpty() || this->filter_data.types.any();
-		if (new_state != old_params.state) {
+		bool old_state = this->content.IsFilterEnabled();
+		bool new_state = !this->string_filter.IsEmpty() || this->types.any();
+		if (new_state != old_state) {
 			this->content.SetFilterState(new_state);
 		}
-		return new_state != old_params.state;
+		return new_state != old_state;
 	}
 
 	/** Make sure that the currently selected content info is within the visible part of the matrix */
@@ -574,7 +561,8 @@ public:
 			ContentCallback(),
 			content(),
 			auto_select(select_all),
-			filter_data(),
+			string_filter(),
+			types (types),
 			filter_editbox(),
 			checkbox_size (maxdim (maxdim (GetSpriteSize (SPR_BOX_EMPTY), GetSpriteSize (SPR_BOX_CHECKED)), GetSpriteSize (SPR_BLOT))),
 			selected(NULL),
@@ -592,13 +580,10 @@ public:
 		this->filter_editbox.cancel_button = QueryString::ACTION_CLEAR;
 		this->SetFocusedWidget(WID_NCL_FILTER);
 		this->SetWidgetDisabledState(WID_NCL_SEARCH_EXTERNAL, this->auto_select);
-		this->filter_data.types = types;
 
 		_network_content_client.AddCallback(this);
 		this->content.SetListing(this->last_sorting);
-		this->content.SetFiltering(this->last_filtering);
 		this->content.SetSortFuncs(this->sorter_funcs);
-		this->content.SetFilterFuncs(this->filter_funcs);
 		this->UpdateFilterState();
 		this->content.ForceRebuild();
 		this->FilterContentList();
@@ -847,7 +832,7 @@ public:
 					this->content.ForceResort();
 				}
 
-				if (this->filter_data.types.any()) {
+				if (this->types.any()) {
 					this->content.ForceRebuild();
 				}
 
@@ -946,7 +931,7 @@ public:
 						this->content.ForceResort();
 						this->InvalidateData();
 					}
-					if (this->filter_data.types.any()) {
+					if (this->types.any()) {
 						this->content.ForceRebuild();
 						this->InvalidateData();
 					}
@@ -984,7 +969,7 @@ public:
 	virtual void OnEditboxChanged(int wid)
 	{
 		if (wid == WID_NCL_FILTER) {
-			this->filter_data.string_filter.SetFilterTerm(this->filter_editbox.GetText());
+			this->string_filter.SetFilterTerm (this->filter_editbox.GetText());
 			this->UpdateFilterState();
 			this->content.ForceRebuild();
 			this->InvalidateData();
@@ -1068,17 +1053,11 @@ public:
 };
 
 Listing NetworkContentListWindow::last_sorting = {false, 1};
-Filtering NetworkContentListWindow::last_filtering = {false, 0};
 
 NetworkContentListWindow::GUIContentList::SortFunction * const NetworkContentListWindow::sorter_funcs[] = {
 	&StateSorter,
 	&TypeSorter,
 	&NameSorter,
-};
-
-NetworkContentListWindow::GUIContentList::FilterFunction * const NetworkContentListWindow::filter_funcs[] = {
-	&TagNameFilter,
-	&TypeOrSelectedFilter,
 };
 
 /** The widgets for the content list. */

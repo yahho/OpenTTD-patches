@@ -341,7 +341,7 @@ Slope GetFoundationSlope(TileIndex tile, int *z)
 }
 
 
-bool HasFoundationNW(TileIndex tile, Slope slope_here, uint z_here)
+static bool HasFoundationNW (TileIndex tile, Slope slope_here, uint z_here)
 {
 	int z;
 
@@ -358,7 +358,7 @@ bool HasFoundationNW(TileIndex tile, Slope slope_here, uint z_here)
 }
 
 
-bool HasFoundationNE(TileIndex tile, Slope slope_here, uint z_here)
+static bool HasFoundationNE (TileIndex tile, Slope slope_here, uint z_here)
 {
 	int z;
 
@@ -375,6 +375,29 @@ bool HasFoundationNE(TileIndex tile, Slope slope_here, uint z_here)
 }
 
 /**
+ * Get the sprite block to use for a foundation.
+ * @param tile Tile to draw a foundation on.
+ * @param side Side to skip.
+ */
+uint GetFoundationSpriteBlock (TileIndex tile, DiagDirection side)
+{
+	int z;
+	Slope slope = GetFoundationPixelSlope (tile, &z);
+
+	/* Select the needed block of foundations sprites
+	 * Block 0: Walls at NW and NE edge
+	 * Block 1: Wall  at        NE edge
+	 * Block 2: Wall  at NW        edge
+	 * Block 3: No walls at NW or NE edge
+	 */
+	uint block = 0;
+	if (side == DIAGDIR_NW || !HasFoundationNW (tile, slope, z)) block += 1;
+	if (side == DIAGDIR_NE || !HasFoundationNE (tile, slope, z)) block += 2;
+
+	return block;
+}
+
+/**
  * Draw foundation \a f at tile \a ti. Updates \a ti.
  * @param ti Tile to draw foundation on
  * @param f  Foundation to draw
@@ -387,18 +410,7 @@ void DrawFoundation(TileInfo *ti, Foundation f, DiagDirection side)
 	/* Two part foundations must be drawn separately */
 	assert(f != FOUNDATION_STEEP_BOTH);
 
-	uint sprite_block = 0;
-	int z;
-	Slope slope = GetFoundationPixelSlope(ti->tile, &z);
-
-	/* Select the needed block of foundations sprites
-	 * Block 0: Walls at NW and NE edge
-	 * Block 1: Wall  at        NE edge
-	 * Block 2: Wall  at NW        edge
-	 * Block 3: No walls at NW or NE edge
-	 */
-	if (side == DIAGDIR_NW || !HasFoundationNW(ti->tile, slope, z)) sprite_block += 1;
-	if (side == DIAGDIR_NE || !HasFoundationNE(ti->tile, slope, z)) sprite_block += 2;
+	uint sprite_block = GetFoundationSpriteBlock (ti->tile, side);
 
 	/* Use the original slope sprites if NW and NE borders should be visible */
 	SpriteID leveled_base = (sprite_block == 0 ? (int)SPR_FOUNDATION_BASE : (SPR_SLOPES_VIRTUAL_BASE + sprite_block * SPR_TRKFOUND_BLOCK_SIZE));

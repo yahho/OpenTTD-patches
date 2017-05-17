@@ -122,7 +122,7 @@ void DisplaySplashImage()
 	uint xoff = (_screen_width - width) / 2;
 	uint yoff = (_screen_height - height) / 2;
 
-	switch (Blitter::get()->GetScreenDepth()) {
+	switch (Blitter::get()->screen_depth) {
 		case 8: {
 				uint8 *dst_ptr = (uint8 *)_screen_surface->ptr;
 				/* Initialize buffer */
@@ -136,19 +136,19 @@ void DisplaySplashImage()
 				}
 
 				for (int i = 0; i < num_palette; i++) {
-					_cur_palette.palette[i].a = i == 0 ? 0 : 0xff;
-					_cur_palette.palette[i].r = palette[i].red;
-					_cur_palette.palette[i].g = palette[i].green;
-					_cur_palette.palette[i].b = palette[i].blue;
+					_cur_palette[i].a = i == 0 ? 0 : 0xff;
+					_cur_palette[i].r = palette[i].red;
+					_cur_palette[i].g = palette[i].green;
+					_cur_palette[i].b = palette[i].blue;
 				}
 
-				_cur_palette.palette[0xff].a = 0xff;
-				_cur_palette.palette[0xff].r = 0;
-				_cur_palette.palette[0xff].g = 0;
-				_cur_palette.palette[0xff].b = 0;
+				_cur_palette[0xff].a = 0xff;
+				_cur_palette[0xff].r = 0;
+				_cur_palette[0xff].g = 0;
+				_cur_palette[0xff].b = 0;
 
-				_cur_palette.first_dirty = 0;
-				_cur_palette.count_dirty = 256;
+				_cur_palette_first_dirty = 0;
+				_cur_palette_count_dirty = 256;
 				break;
 			}
 		case 32: {

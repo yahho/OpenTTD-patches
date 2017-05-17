@@ -13,33 +13,12 @@
 
 #include "base_media_base.h"
 #include "debug.h"
-#include "ini_type.h"
 #include "string.h"
 
 template <class Tbase_set> /* static */ const char *BaseMedia<Tbase_set>::ini_set;
 template <class Tbase_set> /* static */ const Tbase_set *BaseMedia<Tbase_set>::used_set;
 template <class Tbase_set> /* static */ Tbase_set *BaseMedia<Tbase_set>::available_sets;
 template <class Tbase_set> /* static */ Tbase_set *BaseMedia<Tbase_set>::duplicate_sets;
-
-/**
- * Try to read a single piece of metadata.
- * @param metadata the metadata group to search in.
- * @param name the name of the item to fetch.
- * @param filename the name of the filename for debugging output.
- * @return the associated item, or NULL if it doesn't exist.
- */
-template <typename T>
-static inline const IniItem *fetch_metadata (const IniGroup *metadata,
-	const char *name, const char *filename)
-{
-	const IniItem *item = metadata->find (name);
-	if (item == NULL || StrEmpty (item->value)) {
-		DEBUG (grf, 0, "Base %sset detail loading: %s field missing in %s.",
-				T::set_type, name, filename);
-		return NULL;
-	}
-	return item;
-}
 
 /**
  * Read the set information from a loaded ini.
@@ -65,11 +44,11 @@ bool BaseSet<T, Tnum_files>::FillSetDetails (IniFile *ini, const char *path, con
 
 	const IniItem *item;
 
-	item = fetch_metadata<T> (metadata, "name", full_filename);
+	item = this->fetch_metadata (metadata, "name", full_filename);
 	if (item == NULL) return false;
 	this->set_name (item->value);
 
-	item = fetch_metadata<T> (metadata, "description", full_filename);
+	item = this->fetch_metadata (metadata, "description", full_filename);
 	if (item == NULL) return false;
 	this->add_default_desc (item->value);
 
@@ -80,13 +59,13 @@ bool BaseSet<T, Tnum_files>::FillSetDetails (IniFile *ini, const char *path, con
 		this->add_desc (item->get_name() + 12, item->value);
 	}
 
-	item = fetch_metadata<T> (metadata, "shortname", full_filename);
+	item = this->fetch_metadata (metadata, "shortname", full_filename);
 	if (item == NULL) return false;
 	for (uint i = 0; item->value[i] != '\0' && i < 4; i++) {
 		this->shortname |= ((uint8)item->value[i]) << (i * 8);
 	}
 
-	item = fetch_metadata<T> (metadata, "version", full_filename);
+	item = this->fetch_metadata (metadata, "version", full_filename);
 	if (item == NULL) return false;
 	this->version = atoi(item->value);
 
@@ -98,7 +77,7 @@ bool BaseSet<T, Tnum_files>::FillSetDetails (IniFile *ini, const char *path, con
 	const IniGroup *md5s   = ini->get_group ("md5s");
 	const IniGroup *origin = ini->get_group ("origin");
 	for (uint i = 0; i < Tnum_files; i++) {
-		MD5File *file = &this->files[i];
+		FileDesc *file = &this->files[i];
 		/* Find the filename first. */
 		item = files->find (T::file_names[i]);
 		if (item == NULL || (item->value == NULL && !allow_empty_filename)) {
@@ -110,6 +89,7 @@ bool BaseSet<T, Tnum_files>::FillSetDetails (IniFile *ini, const char *path, con
 		if (filename == NULL) {
 			file->filename = NULL;
 			/* If we list no file, that file must be valid */
+			file->status = FileDesc::MATCH;
 			this->valid_files++;
 			this->found_files++;
 			continue;
@@ -153,18 +133,20 @@ bool BaseSet<T, Tnum_files>::FillSetDetails (IniFile *ini, const char *path, con
 			file->missing_warning = xstrdup(item->value);
 		}
 
-		switch (T::CheckMD5(file, BASESET_DIR)) {
-			case MD5File::CR_MATCH:
+		FileDesc::Status status = T::CheckMD5 (file);
+		file->status = status;
+		switch (status) {
+			case FileDesc::MATCH:
 				this->valid_files++;
 				this->found_files++;
 				break;
 
-			case MD5File::CR_MISMATCH:
+			case FileDesc::MISMATCH:
 				DEBUG(grf, 1, "MD5 checksum mismatch for: %s (in %s)", filename, full_filename);
 				this->found_files++;
 				break;
 
-			case MD5File::CR_NO_FILE:
+			case FileDesc::MISSING:
 				DEBUG(grf, 1, "The file %s specified in %s is missing", filename, full_filename);
 				break;
 		}
@@ -253,18 +235,13 @@ bool BaseMedia<Tbase_set>::Scanner::AddFile (const char *filename, size_t basepa
 template <class Tbase_set>
 /* static */ bool BaseMedia<Tbase_set>::SetSet(const char *name)
 {
-	extern void CheckExternalFiles();
-
 	if (StrEmpty(name)) {
-		if (!BaseMedia<Tbase_set>::DetermineBestSet()) return false;
-		CheckExternalFiles();
-		return true;
+		return BaseMedia<Tbase_set>::DetermineBestSet();
 	}
 
 	for (const Tbase_set *s = BaseMedia<Tbase_set>::available_sets; s != NULL; s = s->next) {
 		if (strcmp(name, s->get_name()) == 0) {
 			BaseMedia<Tbase_set>::used_set = s;
-			CheckExternalFiles();
 			return true;
 		}
 	}

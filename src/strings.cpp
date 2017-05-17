@@ -20,7 +20,7 @@
 #include "newgrf_text.h"
 #include "fileio_func.h"
 #include "signs_base.h"
-#include "fontdetection.h"
+#include "font.h"
 #include "error.h"
 #include "strings_func.h"
 #include "rev.h"
@@ -168,21 +168,19 @@ struct LanguagePack : public LanguagePackHeader {
 
 static char **_langpack_offs;
 static LanguagePack *_langpack;
-static uint _langtab_num[TAB_COUNT];   ///< Offset into langpack offs
-static uint _langtab_start[TAB_COUNT]; ///< Offset into langpack offs
+static uint _langtab_num[TEXT_TAB_END];   ///< Offset into langpack offs
+static uint _langtab_start[TEXT_TAB_END]; ///< Offset into langpack offs
 static bool _scan_for_gender_data = false;  ///< Are we scanning for the gender of the current string? (instead of formatting it)
 
 
 const char *GetStringPtr(StringID string)
 {
-	switch (GB(string, TAB_COUNT_OFFSET, TAB_COUNT_BITS)) {
-		case GAME_TEXT_TAB: return GetGameStringPtr(GB(string, TAB_SIZE_OFFSET, TAB_SIZE_BITS));
+	switch (GetStringTab(string)) {
+		case TEXT_TAB_GAMESCRIPT_START: return GetGameStringPtr(GetStringIndex(string));
 		/* 0xD0xx and 0xD4xx IDs have been converted earlier. */
-		case 26: NOT_REACHED();
-		case 28: return GetGRFStringPtr(GB(string, TAB_SIZE_OFFSET, TAB_SIZE_BITS));
-		case 29: return GetGRFStringPtr(GB(string, TAB_SIZE_OFFSET, TAB_SIZE_BITS) + 0x0800);
-		case 30: return GetGRFStringPtr(GB(string, TAB_SIZE_OFFSET, TAB_SIZE_BITS) + 0x1000);
-		default: return _langpack_offs[_langtab_start[GB(string, TAB_COUNT_OFFSET, TAB_COUNT_BITS)] + GB(string, TAB_SIZE_OFFSET, TAB_SIZE_BITS)];
+		case TEXT_TAB_OLD_NEWGRF: NOT_REACHED();
+		case TEXT_TAB_NEWGRF_START: return GetGRFStringPtr(GetStringIndex(string));
+		default: return _langpack_offs[_langtab_start[GetStringTab(string)] + GetStringIndex(string)];
 	}
 }
 
@@ -201,49 +199,44 @@ void AppendStringWithArgs (stringb *buf, StringID string, StringParameters *args
 		return;
 	}
 
-	uint index = GB(string, TAB_SIZE_OFFSET,  TAB_SIZE_BITS);
-	uint tab   = GB(string, TAB_COUNT_OFFSET, TAB_COUNT_BITS);
+	uint index = GetStringIndex(string);
+	StringTab tab = GetStringTab(string);
 
 	switch (tab) {
-		case 4:
+		case TEXT_TAB_TOWN:
 			if (index >= 0xC0 && !game_script) {
 				GenerateTownNameString (buf, index - 0xC0, args->GetInt32());
 				return;
 			}
 			break;
 
-		case 14:
+		case TEXT_TAB_SPECIAL:
 			if (index >= 0xE4 && !game_script) {
 				AppendSpecialNameString (buf, index - 0xE4, args);
 				return;
 			}
 			break;
 
-		case 15:
+		case TEXT_TAB_OLD_CUSTOM:
 			/* Old table for custom names. This is no longer used */
 			if (!game_script) {
 				error("Incorrect conversion of custom name string.");
 			}
 			break;
 
-		case GAME_TEXT_TAB:
+		case TEXT_TAB_GAMESCRIPT_START:
 			FormatString (buf, GetGameStringPtr(index), args, case_index, true);
 			return;
 
-		case 26:
+		case TEXT_TAB_OLD_NEWGRF:
 			NOT_REACHED();
 
-		case 28:
+		case TEXT_TAB_NEWGRF_START:
 			FormatString (buf, GetGRFStringPtr(index), args, case_index);
 			return;
 
-		case 29:
-			FormatString (buf, GetGRFStringPtr(index + 0x0800), args, case_index);
-			return;
-
-		case 30:
-			FormatString (buf, GetGRFStringPtr(index + 0x1000), args, case_index);
-			return;
+		default:
+			break;
 	}
 
 	if (index >= _langtab_num[tab]) {
@@ -787,17 +780,16 @@ static void FormatString (stringb *buf, const char *str_arg, StringParameters *a
 				sub_args.ClearTypeInformation();
 				memset(sub_args_need_free, 0, sizeof(sub_args_need_free));
 
-				uint16 stringid;
 				const char *s = str;
 				char *p;
-				stringid = strtol(str, &p, 16);
+				uint32 stringid = strtoul(str, &p, 16);
 				if (*p != ':' && *p != '\0') {
 					while (*p != '\0') p++;
 					str = p;
 					buf->append ("(invalid SCC_ENCODED)");
 					break;
 				}
-				if (stringid >= TAB_SIZE) {
+				if (stringid >= TAB_SIZE_GAMESCRIPT) {
 					while (*p != '\0') p++;
 					str = p;
 					buf->append ("(invalid StringID)");
@@ -845,13 +837,13 @@ static void FormatString (stringb *buf, const char *str_arg, StringParameters *a
 						param = strtoull(s, &p, 16);
 
 						if (lookup) {
-							if (param >= TAB_SIZE) {
+							if (param >= TAB_SIZE_GAMESCRIPT) {
 								while (*p != '\0') p++;
 								str = p;
 								buf->append ("(invalid sub-StringID)");
 								break;
 							}
-							param = (GAME_TEXT_TAB << TAB_COUNT_OFFSET) + param;
+							param = MakeStringID(TEXT_TAB_GAMESCRIPT_START, param);
 						}
 
 						sub_args.SetParam(i++, param);
@@ -865,7 +857,7 @@ static void FormatString (stringb *buf, const char *str_arg, StringParameters *a
 				/* If we didn't error out, we can actually print the string. */
 				if (*str != '\0') {
 					str = p;
-					AppendStringWithArgs (buf, (GAME_TEXT_TAB << TAB_COUNT_OFFSET) + stringid, &sub_args, true);
+					AppendStringWithArgs (buf, MakeStringID(TEXT_TAB_GAMESCRIPT_START, stringid), &sub_args, true);
 				}
 
 				for (int i = 0; i < 20; i++) {
@@ -980,7 +972,7 @@ static void FormatString (stringb *buf, const char *str_arg, StringParameters *a
 
 			case SCC_STRING: {// {STRING}
 				StringID str = args->GetInt32(SCC_STRING);
-				if (game_script && GB(str, TAB_COUNT_OFFSET, TAB_COUNT_BITS) != GAME_TEXT_TAB) break;
+				if (game_script && GetStringTab(str) != TEXT_TAB_GAMESCRIPT_START) break;
 				/* WARNING. It's prohibited for the included string to consume any arguments.
 				 * For included strings that consume argument, you should use STRING1, STRING2 etc.
 				 * To debug stuff you can set argv to NULL and it will tell you */
@@ -999,7 +991,7 @@ static void FormatString (stringb *buf, const char *str_arg, StringParameters *a
 			case SCC_STRING7: { // {STRING1..7}
 				/* Strings that consume arguments */
 				StringID str = args->GetInt32(b);
-				if (game_script && GB(str, TAB_COUNT_OFFSET, TAB_COUNT_BITS) != GAME_TEXT_TAB) break;
+				if (game_script && GetStringTab(str) != TEXT_TAB_GAMESCRIPT_START) break;
 				uint size = b - SCC_STRING1 + 1;
 				if (game_script && size > args->GetDataLeft()) {
 					buf->append ("(too many parameters)");
@@ -1653,13 +1645,13 @@ bool ReadLanguagePack(const LanguageMetadata *lang)
 	}
 
 #if TTD_ENDIAN == TTD_BIG_ENDIAN
-	for (uint i = 0; i < TAB_COUNT; i++) {
+	for (uint i = 0; i < TEXT_TAB_END; i++) {
 		lang_pack->offsets[i] = ReadLE16Aligned(&lang_pack->offsets[i]);
 	}
 #endif /* TTD_ENDIAN == TTD_BIG_ENDIAN */
 
 	uint count = 0;
-	for (uint i = 0; i < TAB_COUNT; i++) {
+	for (uint i = 0; i < TEXT_TAB_END; i++) {
 		uint16 num = lang_pack->offsets[i];
 		if (num > TAB_SIZE) {
 			free(lang_pack);
@@ -1916,24 +1908,6 @@ const char *GetCurrentLanguageIsoCode()
 }
 
 /**
- * Set the right font names.
- * @param settings  The settings to modify.
- * @param font_name The new font name.
- */
-void MissingGlyphSearcher::SetFontNames (struct FreeTypeSettings *settings, const char *font_name)
-{
-#ifdef WITH_FREETYPE
-	if (this->Monospace()) {
-		bstrcpy (settings->mono.font, font_name);
-	} else {
-		bstrcpy (settings->small.font,  font_name);
-		bstrcpy (settings->medium.font, font_name);
-		bstrcpy (settings->large.font,  font_name);
-	}
-#endif /* WITH_FREETYPE */
-}
-
-/**
  * Check whether there are glyphs missing in the current language.
  * @return If glyphs are missing, return \c true, else return \c false.
  */
@@ -1943,7 +1917,7 @@ bool MissingGlyphSearcher::FindMissingGlyphs (void)
 	const Sprite *question_mark[FS_END];
 
 	for (FontSize size = this->Monospace() ? FS_MONO : FS_BEGIN; size < (this->Monospace() ? FS_END : FS_MONO); size++) {
-		question_mark[size] = GetGlyph(size, '?');
+		question_mark[size] = FontCache::Get(size)->GetCharGlyph('?');
 	}
 
 	this->Reset();
@@ -1957,7 +1931,11 @@ bool MissingGlyphSearcher::FindMissingGlyphs (void)
 				size = FS_SMALL;
 			} else if (c == SCC_BIGFONT) {
 				size = FS_LARGE;
-			} else if (!IsInsideMM(c, SCC_SPRITE_START, SCC_SPRITE_END) && IsPrintable(c) && !IsTextDirectionChar(c) && c != '?' && GetGlyph(size, c) == question_mark[size]) {
+			} else if (!IsInsideMM (c, SCC_SPRITE_START, SCC_SPRITE_END)
+					&& IsPrintable (c)
+					&& !IsTextDirectionChar (c)
+					&& c != '?'
+					&& FontCache::Get(size)->GetCharGlyph(c) == question_mark[size]) {
 				/* The character is printable, but not in the normal font. This is the case we were testing for. */
 				return true;
 			}
@@ -1986,12 +1964,12 @@ private:
 
 	/* virtual */ const char *NextString()
 	{
-		if (this->i >= TAB_COUNT) return NULL;
+		if (this->i >= TEXT_TAB_END) return NULL;
 
 		const char *ret = _langpack_offs[_langtab_start[this->i] + this->j];
 
 		this->j++;
-		while (this->i < TAB_COUNT && this->j >= _langtab_num[this->i]) {
+		while (this->i < TEXT_TAB_END && this->j >= _langtab_num[this->i]) {
 			this->i++;
 			this->j = 0;
 		}

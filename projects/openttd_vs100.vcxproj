@@ -145,6 +145,9 @@
       <TargetMachine>MachineX86</TargetMachine>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
     </Link>
+    <Manifest>
+      <AdditionalManifestFiles>dpi_aware.manifest</AdditionalManifestFiles>
+    </Manifest>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Midl>
@@ -188,6 +191,9 @@
       </DataExecutionPrevention>
       <TargetMachine>MachineX86</TargetMachine>
     </Link>
+    <Manifest>
+      <AdditionalManifestFiles>dpi_aware.manifest</AdditionalManifestFiles>
+    </Manifest>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <Midl>
@@ -244,6 +250,9 @@
       <TargetMachine>MachineX64</TargetMachine>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
     </Link>
+    <Manifest>
+      <AdditionalManifestFiles>dpi_aware.manifest</AdditionalManifestFiles>
+    </Manifest>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Midl>
@@ -289,6 +298,9 @@
       <StackCommitSize>1048576</StackCommitSize>
       <TargetMachine>MachineX64</TargetMachine>
     </Link>
+    <Manifest>
+      <AdditionalManifestFiles>dpi_aware.manifest</AdditionalManifestFiles>
+    </Manifest>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\src\airport.cpp" />
@@ -297,7 +309,6 @@
     <ClCompile Include="..\src\autoreplace.cpp" />
     <ClCompile Include="..\src\base_media.cpp" />
     <ClCompile Include="..\src\bmp.cpp" />
-    <ClCompile Include="..\src\cargoaction.cpp" />
     <ClCompile Include="..\src\cargomonitor.cpp" />
     <ClCompile Include="..\src\cargopacket.cpp" />
     <ClCompile Include="..\src\cargotype.cpp" />
@@ -320,8 +331,7 @@
     <ClCompile Include="..\src\engine.cpp" />
     <ClCompile Include="..\src\fileio.cpp" />
     <ClCompile Include="..\src\fios.cpp" />
-    <ClCompile Include="..\src\fontcache.cpp" />
-    <ClCompile Include="..\src\fontdetection.cpp" />
+    <ClCompile Include="..\src\font.cpp" />
     <ClCompile Include="..\src\base_consist.cpp" />
     <ClCompile Include="..\src\gamelog.cpp" />
     <ClCompile Include="..\src\genworld.cpp" />
@@ -468,7 +478,6 @@
     <ClInclude Include="..\src\bmp.h" />
     <ClInclude Include="..\src\bridge.h" />
     <ClInclude Include="..\src\cargo_type.h" />
-    <ClInclude Include="..\src\cargoaction.h" />
     <ClInclude Include="..\src\cargomonitor.h" />
     <ClInclude Include="..\src\cargopacket.h" />
     <ClInclude Include="..\src\cargotype.h" />
@@ -517,8 +526,7 @@
     <ClInclude Include="..\src\fileio_func.h" />
     <ClInclude Include="..\src\fileio_type.h" />
     <ClInclude Include="..\src\fios.h" />
-    <ClInclude Include="..\src\fontcache.h" />
-    <ClInclude Include="..\src\fontdetection.h" />
+    <ClInclude Include="..\src\font.h" />
     <ClInclude Include="..\src\base_consist.h" />
     <ClInclude Include="..\src\gamelog.h" />
     <ClInclude Include="..\src\gamelog_entries.h" />
@@ -766,7 +774,6 @@
     <ClInclude Include="..\src\core\random_func.hpp" />
     <ClInclude Include="..\src\core\smallmap_type.hpp" />
     <ClInclude Include="..\src\core\smallmatrix_type.hpp" />
-    <ClInclude Include="..\src\core\smallstack_type.hpp" />
     <ClInclude Include="..\src\core\smallvec_type.hpp" />
     <ClInclude Include="..\src\core\sort_func.hpp" />
     <ClInclude Include="..\src\core\string_compare_type.hpp" />
@@ -1175,7 +1182,6 @@
     <ClInclude Include="..\src\table\string_colours.h" />
     <ClInclude Include="..\src\..\objs\langs\table\strings.h" />
     <ClInclude Include="..\src\table\town_land.h" />
-    <ClInclude Include="..\src\table\track_land.h" />
     <ClInclude Include="..\src\table\train_cmd.h" />
     <ClInclude Include="..\src\table\tree_land.h" />
     <ClInclude Include="..\src\table\water_land.h" />

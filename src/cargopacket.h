@@ -245,7 +245,9 @@ protected:
 
 public:
 	/** Create the cargo list. */
-	CargoList() {}
+	CargoList() : count(0), cargo_days_in_transit(0), packets()
+	{
+	}
 
 	~CargoList();
 
@@ -285,12 +287,6 @@ protected:
 	Money feeder_share;                     ///< Cache for the feeder share.
 	uint action_counts[NUM_MOVE_TO_ACTION]; ///< Counts of cargo to be transfered, delivered, kept and loaded.
 
-	template<class Taction>
-	void ShiftCargo(Taction action);
-
-	template<class Taction>
-	void PopCargo(Taction action);
-
 	/**
 	 * Assert that the designation counts add up.
 	 */
@@ -309,23 +305,21 @@ protected:
 	void RemoveFromMeta(const CargoPacket *cp, MoveToAction action, uint count);
 
 	static MoveToAction ChooseAction(const CargoPacket *cp, StationID cargo_next,
-			StationID current_station, bool accepted, StationIDStack next_station);
+			StationID current_station, bool accepted,
+			const StationIDStack &next_station);
 
 public:
+	VehicleCargoList() : feeder_share(0)
+	{
+		memset (this->action_counts, 0, sizeof(this->action_counts));
+	}
+
 	/** The station cargo list needs to control the unloading. */
 	friend class StationCargoList;
 	/** The super class ought to know what it's doing. */
 	friend class CargoList<VehicleCargoList, CargoPacketList>;
 	/** The vehicles have a cargo list (and we want that saved). */
 	friend const struct SaveLoad *GetVehicleDescription(VehicleType vt);
-
-	friend class CargoShift;
-	friend class CargoTransfer;
-	friend class CargoDelivery;
-	template<class Tsource>
-	friend class CargoRemoval;
-	friend class CargoReturn;
-	friend class VehicleCargoReroute;
 
 	/**
 	 * Returns source of the first cargo packet in this list.
@@ -409,7 +403,9 @@ public:
 
 	void SetTransferLoadPlace(TileIndex xy);
 
-	bool Stage(bool accepted, StationID current_station, StationIDStack next_station, uint8 order_flags, const GoodsEntry *ge, CargoPayment *payment);
+	bool Stage (bool accepted, StationID current_station,
+		const StationIDStack &next_station, uint8 order_flags,
+		const GoodsEntry *ge, CargoPayment *payment);
 
 	/**
 	 * Marks all cargo in the vehicle as to be kept. This is mostly useful for
@@ -422,17 +418,30 @@ public:
 		this->action_counts[MTA_KEEP] = this->count;
 	}
 
+	/**
+	 * Marks cargo previously set to load or deliver as to be kept.
+	 * @param from Previous designation of cargo (MTA_LOAD or MTA_DELIVER).
+	 * @param max_move Maximum amount of cargo to reassign.
+	 */
+	void Keep (MoveToAction from, uint max_move = UINT_MAX)
+	{
+		assert (from == MTA_DELIVER || from == MTA_LOAD);
+		max_move = min (this->action_counts[from], max_move);
+		this->action_counts[from] -= max_move;
+		this->action_counts[MTA_KEEP] += max_move;
+	}
+
 	/* Methods for moving cargo around. First parameter is always maximum
 	 * amount of cargo to be moved. Second parameter is destination (if
 	 * applicable), return value is amount of cargo actually moved. */
 
-	template<MoveToAction Tfrom, MoveToAction Tto>
-	uint Reassign(uint max_move, TileOrStationID update = INVALID_TILE);
-	uint Return(uint max_move, StationCargoList *dest, StationID next_station);
+	void Transfer (void);
+	uint Return (StationCargoList *dest, uint max_move = UINT_MAX);
 	uint Unload(uint max_move, StationCargoList *dest, CargoPayment *payment);
 	uint Shift(uint max_move, VehicleCargoList *dest);
 	uint Truncate(uint max_move = UINT_MAX);
-	uint Reroute(uint max_move, VehicleCargoList *dest, StationID avoid, StationID avoid2, const GoodsEntry *ge);
+	void Reroute (StationID avoid, StationID avoid2, const GoodsEntry *ge);
+	void Reattach (VehicleCargoList *dest, uint max_move = UINT_MAX);
 };
 
 typedef MultiMap<StationID, CargoPacket *> StationCargoPacketMap;
@@ -454,19 +463,10 @@ public:
 	/** The stations, via GoodsEntry, have a CargoList. */
 	friend const struct SaveLoad *GetGoodsDesc();
 
-	friend class CargoLoad;
-	friend class CargoTransfer;
-	template<class Tsource>
-	friend class CargoRemoval;
-	friend class CargoReservation;
-	friend class CargoReturn;
-	friend class StationCargoReroute;
+	friend class VehicleCargoList;
 
-	template<class Taction>
-	bool ShiftCargo(Taction &action, StationID next);
-
-	template<class Taction>
-	uint ShiftCargo(Taction action, StationIDStack next, bool include_invalid);
+	uint ShiftCargo (VehicleCargoList *dest, uint max_move,
+		TileIndex load_place, const StationIDStack &next, bool load);
 
 	void Append(CargoPacket *cp, StationID next);
 
@@ -475,10 +475,10 @@ public:
 	 * @param next Station the cargo is headed for.
 	 * @return If there is any cargo for that station.
 	 */
-	inline bool HasCargoFor(StationIDStack next) const
+	inline bool HasCargoFor (const StationIDStack &next) const
 	{
-		while (!next.IsEmpty()) {
-			if (this->packets.find(next.Pop()) != this->packets.end()) return true;
+		for (StationIDStack::const_iterator iter (next.begin()); iter != next.end(); iter++) {
+			if (this->packets.find (*iter) != this->packets.end()) return true;
 		}
 		/* Packets for INVALID_STTION can go anywhere. */
 		return this->packets.find(INVALID_STATION) != this->packets.end();
@@ -526,10 +526,23 @@ public:
 	 * amount of cargo to be moved. Second parameter is destination (if
 	 * applicable), return value is amount of cargo actually moved. */
 
-	uint Reserve(uint max_move, VehicleCargoList *dest, TileIndex load_place, StationIDStack next);
-	uint Load(uint max_move, VehicleCargoList *dest, TileIndex load_place, StationIDStack next);
+	/**
+	 * Reserves cargo for loading onto the vehicle.
+	 * @param max_move Maximum amount of cargo to reserve.
+	 * @param dest VehicleCargoList to reserve for.
+	 * @param load_place Tile index of the current station.
+	 * @param next Next station(s) the loading vehicle will visit.
+	 * @return Amount of cargo actually reserved.
+	 */
+	uint Reserve (uint max_move, VehicleCargoList *dest,
+		TileIndex load_place, const StationIDStack &next)
+	{
+		return this->ShiftCargo (dest, max_move, load_place, next, false);
+	}
+
+	uint Load (uint max_move, VehicleCargoList *dest, TileIndex load_place, const StationIDStack &next);
 	uint Truncate(uint max_move = UINT_MAX, StationCargoAmountMap *cargo_per_source = NULL);
-	uint Reroute(uint max_move, StationCargoList *dest, StationID avoid, StationID avoid2, const GoodsEntry *ge);
+	void Reroute (StationID avoid, StationID avoid2, const GoodsEntry *ge);
 };
 
 #endif /* CARGOPACKET_H */

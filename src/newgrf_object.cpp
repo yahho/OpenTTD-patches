@@ -452,7 +452,7 @@ static void DrawTileLayout(const TileInfo *ti, const TileLayoutSpriteGroup *grou
 		}
 	}
 
-	DrawNewGRFTileSeq(ti, dts, TO_STRUCTURES, 0, palette);
+	DrawNewGRFTileSeq (ti, dts->seq, TO_STRUCTURES, 0, palette);
 }
 
 /**
@@ -505,7 +505,7 @@ void DrawNewObjectTileInGUI (BlitArea *dpi, int x, int y, const ObjectSpec *spec
 		DrawSprite (dpi, image, GroundSpritePaletteTransform (image, pal, palette), x, y);
 	}
 
-	DrawNewGRFTileSeqInGUI (dpi, x, y, dts, 0, palette);
+	DrawNewGRFTileSeqInGUI (dpi, x, y, dts->seq, 0, palette);
 }
 
 /**

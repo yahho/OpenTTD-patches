@@ -19,6 +19,7 @@
 #include "core/geometry_func.hpp"
 #include "settings_type.h"
 #include "querystring_gui.h"
+#include "spritecache.h"
 
 #include "table/sprites.h"
 #include "table/strings.h"
@@ -222,7 +223,13 @@ static inline void DrawImageButtons (BlitArea *dpi, const Rect &r,
 	DrawFrameRect (dpi, r.left, r.top, r.right, r.bottom, colour, (clicked) ? FR_LOWERED : FR_NONE);
 
 	if (var && clicked) img++; // Show different image when clicked for #WWT_IMGBTN_2.
-	DrawSprite (dpi, img, PAL_NONE, r.left + WD_IMGBTN_LEFT, r.top + WD_IMGBTN_TOP);
+
+	const Sprite *sprite = GetSprite (img, ST_NORMAL);
+	int width  = UnScaleByZoom (sprite->width,  ZOOM_LVL_GUI);
+	int height = UnScaleByZoom (sprite->height, ZOOM_LVL_GUI);
+	int x = CenterBounds (r.left, r.right, width)  - UnScaleByZoom (sprite->x_offs, ZOOM_LVL_GUI);
+	int y = CenterBounds (r.top, r.bottom, height) - UnScaleByZoom (sprite->y_offs, ZOOM_LVL_GUI);
+	DrawSprite (dpi, img, PAL_NONE, x, y);
 }
 
 /**
@@ -2288,13 +2295,19 @@ void NWidgetLeaf::Draw (BlitArea *dpi, const Window *w)
 {
 	if (this->current_x == 0 || this->current_y == 0) return;
 
+	/* Setup a clipping rectangle... */
+	BlitArea new_dpi;
+	if (!InitBlitArea (dpi, &new_dpi, this->pos_x, this->pos_y, this->current_x, this->current_y)) return;
+	/* ...but keep coordinates relative to the window. */
+	new_dpi.left += this->pos_x;
+	new_dpi.top += this->pos_y;
+	dpi = &new_dpi;
+
 	Rect r;
 	r.left = this->pos_x;
 	r.right = this->pos_x + this->current_x - 1;
 	r.top = this->pos_y;
 	r.bottom = this->pos_y + this->current_y - 1;
-
-	if (dpi->left > r.right || dpi->left + dpi->width <= r.left || dpi->top > r.bottom || dpi->top + dpi->height <= r.top) return;
 
 	bool clicked = this->IsLowered();
 	switch (this->type) {
@@ -2366,28 +2379,24 @@ void NWidgetLeaf::Draw (BlitArea *dpi, const Window *w)
 		case WWT_SHADEBOX: {
 			assert(this->widget_data == 0);
 			bool clicked = w->IsShaded();
-			DrawFrameRect (dpi, r.left, r.top, r.right, r.bottom, this->colour, clicked ? FR_LOWERED : FR_NONE);
-			DrawSprite (dpi, clicked ? SPR_WINDOW_SHADE : SPR_WINDOW_UNSHADE, PAL_NONE, r.left + WD_SHADEBOX_LEFT, r.top + WD_SHADEBOX_TOP);
+			DrawImageButtons (dpi, r, this->colour, clicked ? SPR_WINDOW_SHADE : SPR_WINDOW_UNSHADE, clicked);
 			break;
 		}
 
 		case WWT_DEBUGBOX:
-			DrawFrameRect (dpi, r.left, r.top, r.right, r.bottom, this->colour, clicked ? FR_LOWERED : FR_NONE);
-			DrawSprite (dpi, SPR_WINDOW_DEBUG, PAL_NONE, r.left + WD_DEBUGBOX_LEFT, r.top + WD_DEBUGBOX_TOP);
+			DrawImageButtons (dpi, r, this->colour, SPR_WINDOW_DEBUG, clicked);
 			break;
 
 		case WWT_STICKYBOX: {
 			assert(this->widget_data == 0);
 			bool clicked = !!(w->flags & WF_STICKY);
-			DrawFrameRect (dpi, r.left, r.top, r.right, r.bottom, this->colour, clicked ? FR_LOWERED : FR_NONE);
-			DrawSprite (dpi, clicked ? SPR_PIN_UP : SPR_PIN_DOWN, PAL_NONE, r.left + WD_STICKYBOX_LEFT, r.top + WD_STICKYBOX_TOP);
+			DrawImageButtons (dpi, r, this->colour, clicked ? SPR_PIN_UP : SPR_PIN_DOWN, clicked);
 			break;
 		}
 
 		case WWT_DEFSIZEBOX:
 			assert(this->widget_data == 0);
-			DrawFrameRect (dpi, r.left, r.top, r.right, r.bottom, this->colour, clicked ? FR_LOWERED : FR_NONE);
-			DrawSprite (dpi, SPR_WINDOW_DEFSIZE, PAL_NONE, r.left + WD_DEFSIZEBOX_LEFT, r.top + WD_DEFSIZEBOX_TOP);
+			DrawImageButtons (dpi, r, this->colour, SPR_WINDOW_DEFSIZE, clicked);
 			break;
 
 		case WWT_RESIZEBOX: {
@@ -2406,7 +2415,9 @@ void NWidgetLeaf::Draw (BlitArea *dpi, const Window *w)
 		case WWT_CLOSEBOX: {
 			Colours colour = this->colour;
 			if (colour != COLOUR_WHITE) DrawFrameRect (dpi, r.left, r.top, r.right, r.bottom, colour, FR_NONE);
-			DrawSprite (dpi, SPR_CLOSEBOX, (colour != COLOUR_WHITE ? TC_BLACK : TC_SILVER) | (1 << PALETTE_TEXT_RECOLOUR), r.left + WD_CLOSEBOX_LEFT, r.top + WD_CLOSEBOX_TOP);
+			Dimension d = GetSpriteSize(SPR_CLOSEBOX);
+			int s = UnScaleGUI(1); /* Offset to account for shadow of SPR_CLOSEBOX */
+			DrawSprite (dpi, SPR_CLOSEBOX, (colour != COLOUR_WHITE ? TC_BLACK : TC_SILVER) | (1 << PALETTE_TEXT_RECOLOUR), CenterBounds(r.left, r.right, d.width - s), CenterBounds(r.top, r.bottom, d.height - s));
 			break;
 		}
 

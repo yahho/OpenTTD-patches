@@ -45,7 +45,7 @@ static inline void DrawObjectPreview (const ObjectSpec *spec, BlitArea *dpi,
 		if (spec->grf_prop.grffile == NULL) {
 			extern const DrawTileSprites _objects[];
 			const DrawTileSprites *dts = &_objects[spec->grf_prop.local_id];
-			DrawOrigTileSeqInGUI (&tmp_dpi, x, y, dts, PAL_NONE);
+			DrawOrigTileSeqInGUI (&tmp_dpi, x, y, dts->seq, PAL_NONE);
 		} else {
 			DrawNewObjectTileInGUI (&tmp_dpi, x, y, spec, view);
 		}

@@ -81,7 +81,9 @@ extern int _screen_width, _screen_height;
 extern int _num_resolutions;
 extern Dimension _resolutions[32];
 extern Dimension _cur_resolution;
-extern Palette _cur_palette; ///< Current palette
+extern Palette _cur_palette;         ///< Current palette
+extern int _cur_palette_first_dirty; ///< First palette dirty element.
+extern int _cur_palette_count_dirty; ///< Number of palette dirty elements.
 
 void HandleKeypress(uint keycode, WChar key);
 void HandleTextInput(const char *str, bool marked = false, const char *caret = NULL, const char *insert_location = NULL, const char *replacement_end = NULL);
@@ -98,8 +100,7 @@ void UndrawMouseCursor();
 /** Size of the buffer used for drawing strings. */
 static const int DRAW_STRING_BUFFER = 2048;
 
-void RedrawScreenRect(int left, int top, int right, int bottom);
-void GfxScroll(int left, int top, int width, int height, int xo, int yo);
+void ScrollScreenRect (int left, int top, int width, int height, int dx, int dy);
 
 Dimension GetSpriteSize(SpriteID sprid, Point *offset = NULL, ZoomLevel zoom = ZOOM_LVL_GUI);
 void DrawSpriteViewport (DrawPixelInfo *dpi, SpriteID img, PaletteID pal, int x, int y, const SubSprite *sub = NULL);
@@ -150,6 +151,18 @@ void CheckBlitter();
 
 bool InitBlitArea (const BlitArea *o, BlitArea *n, int left, int top, int width, int height);
 
+/**
+ * Determine where to draw a centred object inside a widget.
+ * @param min The top or left coordinate.
+ * @param max The bottom or right coordinate.
+ * @param size The height or width of the object to draw.
+ * @return Offset of where to start drawing the object.
+ */
+static inline int CenterBounds(int min, int max, int size)
+{
+	return min + (max - min - size + 1) / 2;
+}
+
 /* window.cpp */
 void DrawOverlappedWindowForAll(int left, int top, int right, int bottom);
 
@@ -165,16 +178,16 @@ bool ToggleFullScreen(bool fs);
 /* gfx.cpp */
 int GetCharacterHeight(FontSize size);
 
-/** Height of characters in the small (#FS_SMALL) font. */
+/** Height of characters in the small (#FS_SMALL) font. @note Some characters may be oversized. */
 #define FONT_HEIGHT_SMALL  (GetCharacterHeight(FS_SMALL))
 
-/** Height of characters in the normal (#FS_NORMAL) font. */
+/** Height of characters in the normal (#FS_NORMAL) font. @note Some characters may be oversized. */
 #define FONT_HEIGHT_NORMAL (GetCharacterHeight(FS_NORMAL))
 
-/** Height of characters in the large (#FS_LARGE) font. */
+/** Height of characters in the large (#FS_LARGE) font. @note Some characters may be oversized. */
 #define FONT_HEIGHT_LARGE  (GetCharacterHeight(FS_LARGE))
 
-/** Height of characters in the large (#FS_MONO) font. */
+/** Height of characters in the large (#FS_MONO) font. @note Some characters may be oversized. */
 #define FONT_HEIGHT_MONO  (GetCharacterHeight(FS_MONO))
 
 TextColour GetContrastColour(uint8 background);

@@ -714,27 +714,32 @@ static void DrawWaterTileStruct(const TileInfo *ti, const DrawTileSeqStruct *dts
 /** Draw a lock tile. */
 static void DrawWaterLock(const TileInfo *ti)
 {
-	WaterTileType part = GetWaterTileType (ti->tile);
-	const DrawTileSprites &dts = _lock_display_data[part - WATER_TILE_LOCK_MIDDLE][GetLockDirection(ti->tile)];
+	uint part = GetWaterTileType (ti->tile) - WATER_TILE_LOCK_MIDDLE;
+	DiagDirection dir = GetLockDirection (ti->tile);
 
 	/* Draw ground sprite. */
-	SpriteID image = dts.ground.sprite;
-
-	SpriteID water_base = GetCanalSprite(CF_WATERSLOPE, ti->tile);
-	if (water_base == 0) {
-		/* Use default sprites. */
-		water_base = SPR_CANALS_BASE;
-	} else if (HasBit(_water_feature[CF_WATERSLOPE].flags, CFF_HAS_FLAT_SPRITE)) {
-		/* NewGRF supplies a flat sprite as first sprite. */
-		if (image == SPR_FLAT_WATER_TILE) {
-			image = water_base;
-		} else {
-			image++;
+	bool has_flat_water = HasBit(_water_feature[CF_WATERSLOPE].flags, CFF_HAS_FLAT_SPRITE);
+	bool use_default = true;
+	SpriteID image;
+	if (has_flat_water || (part == 0)) {
+		image = GetCanalSprite (CF_WATERSLOPE, ti->tile);
+		if (image != 0) {
+			use_default = false;
+			/* NewGRF supplies a flat sprite as first sprite? */
+			if (part == 0) image += has_flat_water;
 		}
 	}
 
-	if (image < 5) image += water_base;
+	if (use_default) {
+		/* Use default sprites. */
+		image = (part != 0) ? SPR_FLAT_WATER_TILE : SPR_CANALS_BASE;
+	}
+
+	static uint8 lock_middle_offset[DIAGDIR_END] = { 1, 0, 2, 3 };
+	if (part == 0) image += lock_middle_offset[dir];
 	DrawGroundSprite (ti, image, PAL_NONE);
+
+	const DrawTileSeqStruct *dts = _lock_display_data[part][dir];
 
 	/* Draw structures. */
 	uint     zoffs = 0;
@@ -743,18 +748,20 @@ static void DrawWaterLock(const TileInfo *ti)
 	if (base == 0) {
 		/* If no custom graphics, use defaults. */
 		base = SPR_LOCK_BASE;
-		uint8 z_threshold = part == WATER_TILE_LOCK_UPPER ? 8 : 0;
+		bool upper = part == (WATER_TILE_LOCK_UPPER - WATER_TILE_LOCK_MIDDLE);
+		uint8 z_threshold = upper ? 8 : 0;
 		zoffs = ti->z > z_threshold ? 24 : 0;
 	}
 
-	DrawWaterTileStruct(ti, dts.seq, base, zoffs, PAL_NONE, CF_LOCKS);
+	DrawWaterTileStruct (ti, dts, base, zoffs, PAL_NONE, CF_LOCKS);
 }
 
 /** Draw a ship depot tile. */
 static void DrawWaterDepot(const TileInfo *ti)
 {
 	DrawWaterClassGround(ti);
-	DrawWaterTileStruct(ti, _shipdepot_display_data[GetShipDepotDirection(ti->tile)].seq, 0, 0, COMPANY_SPRITE_COLOUR(GetTileOwner(ti->tile)), CF_END);
+	DrawWaterTileStruct (ti, _shipdepot_display_data[GetShipDepotDirection(ti->tile)],
+			0, 0, COMPANY_SPRITE_COLOUR(GetTileOwner(ti->tile)), CF_END);
 }
 
 static uint DrawRiverWater (const TileInfo *ti)
@@ -875,10 +882,9 @@ static void DrawTile_Water(TileInfo *ti)
 
 void DrawShipDepotSprite (BlitArea *dpi, int x, int y, DiagDirection dir)
 {
-	const DrawTileSprites &dts = _shipdepot_display_data[dir];
-
-	DrawSprite (dpi, dts.ground.sprite, dts.ground.pal, x, y);
-	DrawOrigTileSeqInGUI (dpi, x, y, &dts, COMPANY_SPRITE_COLOUR(_local_company));
+	DrawSprite (dpi, SPR_FLAT_WATER_TILE, PAL_NONE, x, y);
+	DrawOrigTileSeqInGUI (dpi, x, y, _shipdepot_display_data[dir],
+				COMPANY_SPRITE_COLOUR(_local_company));
 }
 
 

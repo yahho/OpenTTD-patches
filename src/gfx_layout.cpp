@@ -22,6 +22,7 @@
 #include "core/pointer.h"
 #include "core/flexarray.h"
 #include "core/smallmap_type.hpp"
+#include "gfx_func.h"
 
 #include "table/control_codes.h"
 
@@ -165,6 +166,89 @@ public:
 	virtual void build (LineVector *v, int maxw, bool reflow) = 0;
 };
 
+/**
+ * Get the position of a character in a layout.
+ * @tparam Line Type of the layout line.
+ * @param line Layout line.
+ * @param str Layout string.
+ * @param ch Character to get the position of.
+ * @return Left position of the character relative to the start of the string.
+ * @note Will only work right for single-line strings.
+ */
+template <typename Line>
+static int GetCharPosition (const Line *line, const char *str, const char *ch)
+{
+	/* Find the code point index which corresponds to the char
+	 * pointer into our UTF-8 source string. */
+	size_t index = 0;
+	while (str < ch) {
+		WChar c;
+		size_t len = Utf8Decode (&c, str);
+		if (c == '\0' || c == '\n') return 0;
+		str += len;
+		index += line->GetInternalCharLength (c);
+	}
+
+	/* Valid character. */
+
+	/* Pointer to the end-of-string/line marker? Return total line width. */
+	if (*ch == '\0' || *ch == '\n') {
+		return line->GetWidth();
+	}
+
+	/* Scan all runs until we've found our code point index. */
+	for (int run_index = 0; run_index < line->CountRuns(); run_index++) {
+		const typename Line::VisualRun *run = line->GetVisualRun (run_index);
+
+		for (int i = 0; i < run->GetGlyphCount(); i++) {
+			/* Matching glyph? Return position. */
+			if ((size_t)run->GetGlyphToChar(i) == index) {
+				return run->GetPosition (i);
+			}
+		}
+	}
+
+	return 0;
+}
+
+/**
+ * Get the character that is at a position in a layout.
+ * @tparam Line Type of the layout line.
+ * @param line Layout line.
+ * @param str Layout string.
+ * @param x Position in the string.
+ * @return Pointer to the character at the position or NULL if no character is at the position.
+ */
+template <typename Line>
+static const char *GetCharAtPosition (const Line *line, const char *str, int x)
+{
+	for (int run_index = 0; run_index < line->CountRuns(); run_index++) {
+		const typename Line::VisualRun *run = line->GetVisualRun (run_index);
+
+		for (int i = 0; i < run->GetGlyphCount(); i++) {
+			/* Not a valid glyph (empty). */
+			if (run->GetGlyph(i) == 0xFFFF) continue;
+
+			int begin_x = run->GetPosition (i);
+			int end_x   = run->GetPosition (i + 1);
+
+			if (IsInsideMM(x, begin_x, end_x)) {
+				/* Found our glyph, now convert to UTF-8 string index. */
+				size_t index = run->GetGlyphToChar(i);
+
+				while (*str != '\0') {
+					if (index == 0) return str;
+
+					WChar c = Utf8Consume(&str);
+					index -= line->GetInternalCharLength (c);
+				}
+			}
+		}
+	}
+
+	return NULL;
+}
+
 
 #ifdef WITH_ICU_LAYOUT
 /** Visual run contains data about the bit of text with the same font. */
@@ -186,26 +270,57 @@ public:
 		return vr->getGlyphCount();
 	}
 
-	const GlyphID *GetGlyphs (void) const OVERRIDE
+	/**
+	 * Get a glyph of this run.
+	 * @param i The index of the glyph to get.
+	 * @return The glyph at that index.
+	 */
+	GlyphID GetGlyph (int i) const
 	{
-		return vr->getGlyphs();
+		return vr->getGlyphs()[i];
 	}
 
-	const float *GetPositions (void) const OVERRIDE
+	/**
+	 * Get the X position of a glyph.
+	 * @param i The index of the glyph.
+	 * @return The X position of the glyph.
+	 */
+	int GetPosition (int i) const
 	{
-		return vr->getPositions();
+		return vr->getPositions()[i * 2];
 	}
 
-	int GetLeading (void) const OVERRIDE
+	/**
+	 * Get the character index for a glyph index for this visual run.
+	 * @param i The glyph index.
+	 * @return The character index.
+	 */
+	int GetGlyphToChar (int i) const
 	{
-		return vr->getLeading();
+		return vr->getGlyphToCharMap()[i];
 	}
 
-	const int *GetGlyphToCharMap (void) const OVERRIDE
-	{
-		return vr->getGlyphToCharMap();
-	}
+	bool GetGlyphPos (ParagraphLayouter::GlyphPos *gp, int i) const OVERRIDE;
 };
+
+/**
+ * Get the glyph and position for a glyph.
+ * @param gp Struct to receive the data.
+ * @param i Index of the glyph whose data to get.
+ * @return Whether the glyph is valid (non-empty).
+ */
+bool ICUVisualRun::GetGlyphPos (ParagraphLayouter::GlyphPos *gp, int i) const
+{
+	GlyphID glyph = this->vr->getGlyphs()[i];
+	if (glyph == 0xFFFF) return false;
+
+	gp->glyph = glyph;
+	const float *pos = this->vr->getPositions();
+	gp->x0 = pos[i * 2];
+	gp->x1 = pos[i * 2 + 2];
+	gp->y  = pos[i * 2 + 1];
+	return true;
+}
 
 /** A single line worth of VisualRuns. */
 class ICULine : public ParagraphLayouter::Line {
@@ -213,6 +328,8 @@ class ICULine : public ParagraphLayouter::Line {
 	std::vector <ttd_unique_ptr <ICUVisualRun> > runs;
 
 public:
+	typedef ICUVisualRun VisualRun;
+
 	ICULine (ParagraphLayout::Line *l) : l (l), runs (l->countRuns())
 	{
 		for (int i = 0; i < l->countRuns(); i++) {
@@ -235,15 +352,38 @@ public:
 		return l->countRuns();
 	}
 
-	const ParagraphLayouter::VisualRun *GetVisualRun (int run) const OVERRIDE
+	const ICUVisualRun *GetVisualRun (int run) const OVERRIDE
 	{
 		return this->runs[run].get();
 	}
 
-	int GetInternalCharLength (WChar c) const OVERRIDE
+	static int GetInternalCharLength (WChar c)
 	{
 		/* ICU uses UTF-16 internally which means we need to account for surrogate pairs. */
 		return Utf8CharLen(c) < 4 ? 1 : 2;
+	}
+
+	/**
+	 * Get the position of a character in the layout.
+	 * @param str Layout string.
+	 * @param ch Character to get the position of.
+	 * @return Left position of the character relative to the start of the string.
+	 * @note Will only work right for single-line strings.
+	 */
+	int GetCharPosition (const char *str, const char *ch) const OVERRIDE
+	{
+		return ::GetCharPosition (this, str, ch);
+	}
+
+	/**
+	 * Get the character that is at a position.
+	 * @param str Layout string.
+	 * @param x Position in the string.
+	 * @return Pointer to the character at the position or NULL if no character is at the position.
+	 */
+	const char *GetCharAtPosition (const char *str, int x) const OVERRIDE
+	{
+		return ::GetCharAtPosition (this, str, x);
 	}
 };
 
@@ -318,17 +458,41 @@ static ICUParagraphLayout *GetParagraphLayout (const UChar *buffer, int32 length
 
 /*** Paragraph layout ***/
 
+struct FallbackGlyphData {
+	int pos;       ///< The X position of this glyph.
+	GlyphID glyph; ///< The glyph to draw.
+};
+
 /** Visual run contains data about the bit of text with the same font. */
-class FallbackVisualRun : public ParagraphLayouter::VisualRun {
+class FallbackVisualRun : public ParagraphLayouter::VisualRun,
+					FlexArray <FallbackGlyphData> {
 	Font *font;       ///< The font used to layout these.
-	GlyphID *glyphs;  ///< The glyphs we're drawing.
-	float *positions; ///< The positions of the glyphs.
-	int *glyph_to_char; ///< The char index of the glyphs.
 	int glyph_count;  ///< The number of glyphs.
+	FallbackGlyphData data[]; ///< Glyph data.
+
+	FallbackVisualRun(Font *font, const WChar *chars, int glyph_count, int x);
+
+	/**
+	 * Create an empty visual run.
+	 * @param font The font to use for this run.
+	 */
+	FallbackVisualRun (Font *font) : font (font), glyph_count (0)
+	{
+		this->data[0].pos = 0;
+	}
 
 public:
-	FallbackVisualRun(Font *font, const WChar *chars, int glyph_count, int x);
-	~FallbackVisualRun();
+	/** Create a new visual run. */
+	static FallbackVisualRun *create (Font *font, const WChar *chars, int n, int x)
+	{
+		return new (n + 1) FallbackVisualRun (font, chars, n, x);
+	}
+
+	/** Create a new empty visual run. */
+	static FallbackVisualRun *create (Font *font)
+	{
+		return new (1) FallbackVisualRun (font);
+	}
 
 	/**
 	 * Get the font associated with this run.
@@ -349,40 +513,42 @@ public:
 	}
 
 	/**
-	 * Get the glyphs of this run.
-	 * @return The glyphs.
+	 * Get a glyph of this run.
+	 * @param i The index of the glyph to get.
+	 * @return The glyph at that index.
 	 */
-	const GlyphID *GetGlyphs() const OVERRIDE
+	GlyphID GetGlyph (int i) const
 	{
-		return this->glyphs;
+		return this->data[i].glyph;
 	}
 
 	/**
-	 * Get the positions of this run.
-	 * @return The positions.
+	 * Get the X position of a glyph.
+	 * @param i The index of the glyph.
+	 * @return The X position of the glyph.
 	 */
-	const float *GetPositions() const OVERRIDE
+	int GetPosition (int i) const
 	{
-		return this->positions;
+		return this->data[i].pos;
+	}
+
+	/** Get the last X position of this run. */
+	int GetLastPosition (void) const
+	{
+		return this->data[this->glyph_count].pos;
 	}
 
 	/**
-	 * Get the height of this font.
-	 * @return The height of the font.
+	 * Get the character index for a glyph index for this visual run.
+	 * @param i The glyph index.
+	 * @return The character index.
 	 */
-	int GetLeading() const OVERRIDE
+	static int GetGlyphToChar (int i)
 	{
-		return this->GetFont()->fc->GetHeight();
+		return i;
 	}
 
-	/**
-	 * Get the glyph-to-character map for this visual run.
-	 * @return The glyph-to-character map.
-	 */
-	const int *GetGlyphToCharMap() const OVERRIDE
-	{
-		return this->glyph_to_char;
-	}
+	bool GetGlyphPos (ParagraphLayouter::GlyphPos *gp, int i) const OVERRIDE;
 };
 
 /**
@@ -395,28 +561,32 @@ public:
 FallbackVisualRun::FallbackVisualRun(Font *font, const WChar *chars, int char_count, int x) :
 		font(font), glyph_count(char_count)
 {
-	this->glyphs = xmalloct<GlyphID>(this->glyph_count);
-	this->glyph_to_char = xmalloct<int>(this->glyph_count);
-
 	/* Positions contains the location of the begin of each of the glyphs, and the end of the last one. */
-	this->positions = xmalloct<float>(this->glyph_count * 2 + 2);
-	this->positions[0] = x;
-	this->positions[1] = 0;
+	this->data[0].pos = x;
 
 	for (int i = 0; i < this->glyph_count; i++) {
-		this->glyphs[i] = font->fc->MapCharToGlyph(chars[i]);
-		this->positions[2 * i + 2] = this->positions[2 * i] + font->fc->GetGlyphWidth(this->glyphs[i]);
-		this->positions[2 * i + 3] = 0;
-		this->glyph_to_char[i] = i;
+		this->data[i].glyph = font->fc->MapCharToGlyph (chars[i]);
+		this->data[i + 1].pos = this->data[i].pos + font->fc->GetGlyphWidth (this->data[i].glyph);
 	}
 }
 
-/** Free all data. */
-FallbackVisualRun::~FallbackVisualRun()
+/**
+ * Get the glyph and position for a glyph.
+ * @param gp Struct to receive the data.
+ * @param i Index of the glyph whose data to get.
+ * @return Whether the glyph is valid (non-empty).
+ */
+bool FallbackVisualRun::GetGlyphPos (ParagraphLayouter::GlyphPos *gp, int i) const
 {
-	free(this->positions);
-	free(this->glyph_to_char);
-	free(this->glyphs);
+	const FallbackGlyphData *data = &this->data[i];
+	GlyphID glyph = data->glyph;
+	if (glyph == 0xFFFF) return false;
+
+	gp->glyph = glyph;
+	gp->x0 = data[0].pos;
+	gp->x1 = data[1].pos;
+	gp->y  = 0;
+	return true;
 }
 
 /** A single line worth of VisualRuns. */
@@ -424,10 +594,25 @@ class FallbackLine : public ParagraphLayouter::Line {
 	std::vector <ttd_unique_ptr <FallbackVisualRun> > runs;
 
 public:
-	void append (Font *font, const WChar *chars, int glyph_count, int x)
+	typedef FallbackVisualRun VisualRun;
+
+	/** Append an empty visual run to an empty line. */
+	void append (FallbackVisualRun *run)
 	{
-		FallbackVisualRun *run = new FallbackVisualRun (font, chars, glyph_count, x);
 		this->runs.push_back (ttd_unique_ptr <FallbackVisualRun> (run));
+	}
+
+	/** Append an empty visual run to an empty line. */
+	void append (Font *font)
+	{
+		this->append (FallbackVisualRun::create (font));
+	}
+
+	/** Append a visual run to this line. */
+	void append (Font *font, const WChar *chars, int glyph_count)
+	{
+		this->append (FallbackVisualRun::create (font,
+				chars, glyph_count, this->GetWidth()));
 	}
 
 	int GetLeading (void) const OVERRIDE;
@@ -446,14 +631,37 @@ public:
 	 * Get a specific visual run.
 	 * @return The visual run.
 	 */
-	const ParagraphLayouter::VisualRun *GetVisualRun (int run) const OVERRIDE
+	const FallbackVisualRun *GetVisualRun (int run) const OVERRIDE
 	{
 		return this->runs[run].get();
 	}
 
-	int GetInternalCharLength (WChar c) const OVERRIDE
+	static int GetInternalCharLength (WChar c)
 	{
 		return 1;
+	}
+
+	/**
+	 * Get the position of a character in the layout.
+	 * @param str Layout string.
+	 * @param ch Character to get the position of.
+	 * @return Left position of the character relative to the start of the string.
+	 * @note Will only work right for single-line strings.
+	 */
+	int GetCharPosition (const char *str, const char *ch) const OVERRIDE
+	{
+		return ::GetCharPosition (this, str, ch);
+	}
+
+	/**
+	 * Get the character that is at a position.
+	 * @param str Layout string.
+	 * @param x Position in the string.
+	 * @return Pointer to the character at the position or NULL if no character is at the position.
+	 */
+	const char *GetCharAtPosition (const char *str, int x) const OVERRIDE
+	{
+		return ::GetCharAtPosition (this, str, x);
 	}
 };
 
@@ -467,7 +675,7 @@ int FallbackLine::GetLeading (void) const
 	std::vector <ttd_unique_ptr <FallbackVisualRun> >::const_iterator
 			iter (this->runs.begin());
 	while (iter != this->runs.end()) {
-		leading = max (leading, (*iter++)->GetLeading());
+		leading = max (leading, (*iter++)->GetFont()->fc->GetHeight());
 	}
 	return leading;
 }
@@ -485,8 +693,7 @@ int FallbackLine::GetWidth (void) const
 	 * Since there is no left-to-right support, taking this value of
 	 * the last run gives us the end of the line and thus the width.
 	 */
-	const FallbackVisualRun *run = this->runs.back().get();
-	return (int)run->GetPositions()[run->GetGlyphCount() * 2];
+	return this->runs.back().get()->GetLastPosition();
 }
 
 /**
@@ -573,98 +780,100 @@ public:
  */
 void FallbackParagraphLayout::build (LineVector *v, int max_width, bool)
 {
-	const WChar *buffer = this->data;
+	const WChar *p = this->data;
 
-	if (*buffer == '\0') {
+	if (*p == '\0') {
 		/* Only a newline. */
 		FallbackLine *l = new FallbackLine();
-		l->append (this->runs.front().second, buffer, 0, 0);
+		l->append (this->runs.front().second);
 		v->push_back (ttd_unique_ptr <const ParagraphLayouter::Line> (l));
 		return;
 	}
 
-	while (buffer != NULL) {
+	FontMap::const_iterator iter (this->runs.begin());
+	assert (iter != this->runs.end());
+	assert (iter->first > 0);
+
+	const WChar *begin = p;
+	const WChar *next_run = this->data + iter->first;
+
+	FallbackLine *l = NULL;
+	const WChar *last_space;
+	int width;
+
+	for (;;) {
 		/* Simple idea:
 		 *  - split a line at a newline character, or at a space where we can break a line.
 		 *  - split for a visual run whenever a new line happens, or the font changes.
 		 */
-		FallbackLine *l = new FallbackLine();
 
-		const WChar *begin = buffer;
-		const WChar *last_space = NULL;
-		const WChar *last_char = begin;
-		int width = 0;
-
-		int offset = buffer - this->data;
-		FontMap::const_iterator iter = this->runs.begin();
-		while (iter->first <= offset) {
-			iter++;
-			assert (iter != this->runs.end());
+		if (l == NULL) {
+			l = new FallbackLine();
+			v->push_back (ttd_unique_ptr <const ParagraphLayouter::Line> (l));
+			last_space = NULL;
+			width = 0;
 		}
 
-		FontCache *fc = iter->second->fc;
-		const WChar *next_run = this->data + iter->first;
+		assert (p < next_run);
 
-		for (;; buffer++) {
-			WChar c = *buffer;
-			last_char = buffer;
+		WChar c = *p;
+		assert (c != '\0');
 
-			if (c == '\0') {
-				buffer = NULL;
-				break;
-			}
+		if (IsWhitespace(c)) last_space = p;
 
-			if (buffer == next_run) {
-				int w = l->GetWidth();
-				l->append (iter->second, begin, buffer - begin, w);
-				iter++;
-				assert (iter != this->runs.end());
-
-				next_run = this->data + iter->first;
-				begin = buffer;
-
-				last_space = NULL;
-			}
-
-			if (IsWhitespace(c)) last_space = buffer;
-
-			if (!IsPrintable(c) || IsTextDirectionChar(c)) continue;
-
-			int char_width = fc->GetCharacterWidth (c);
+		if (IsPrintable(c) && !IsTextDirectionChar(c)) {
+			int char_width = iter->second->fc->GetCharacterWidth(c);
 			width += char_width;
-			if (width <= max_width) continue;
-
-			/* The string is longer than maximum width so we need
-			 * to decide what to do with it. */
-			if (width == char_width) {
-				/* The character is wider than allowed width; don't know
-				 * what to do with this case... bail out! */
-				v->push_back (ttd_unique_ptr <const ParagraphLayouter::Line> (l));
-				return;
-			}
-
-			if (last_space == NULL) {
-				/* No space has been found. Just terminate at our current
-				 * location. This usually happens for languages that do not
-				 * require spaces in strings, like Chinese, Japanese and
-				 * Korean. For other languages terminating mid-word might
-				 * not be the best, but terminating the whole string instead
-				 * of continuing the word at the next line is worse. */
+			if (width <= max_width) {
+				/* Within allowed maximum width; go on. */
+				p++;
 			} else {
-				/* A space is found; perfect place to terminate */
-				buffer = last_space + 1;
-				last_char = last_space;
+				/* The string is longer than maximum width so
+				 * we need to decide what to do with it. */
+				const WChar *end;
+				if (width == char_width) {
+					/* Single character that is too wide. */
+					end = ++p;
+				} else if (last_space != NULL) {
+					/* Rewind to last space. */
+					assert (last_space >= begin);
+					assert (last_space <= p);
+					end = last_space;
+					p = last_space + 1;
+				} else {
+					/* No space has been found. Just terminate at our current
+					 * location. This usually happens for languages that do not
+					 * require spaces in strings, like Chinese, Japanese and
+					 * Korean. For other languages terminating mid-word might
+					 * not be the best, but terminating the whole string instead
+					 * of continuing the word at the next line is worse. */
+					end = p;
+				}
+				l->append (iter->second, begin, end - begin);
+				begin = p;
+				l = NULL;
+			}
+		}
+
+		assert (p <= next_run);
+
+		if (p == next_run) {
+			/* Finish current font run, if any. */
+			if (l != NULL) {
+				l->append (iter->second, begin, p - begin);
 			}
 
-			break;
-		}
+			iter++;
 
-		if (l->CountRuns() == 0 || last_char - begin != 0) {
-			int w = l->GetWidth();
-			l->append (iter->second, begin, last_char - begin, w);
-		}
+			bool end = (*p == '\0');
+			assert (end == (iter == this->runs.end()));
+			if (end) return;
 
-		v->push_back (ttd_unique_ptr <const ParagraphLayouter::Line> (l));
+			next_run = this->data + iter->first;
+			assert (p < next_run);
+			begin = p;
+			last_space = NULL;
+		}
 	}
 }
 
@@ -778,7 +987,7 @@ static inline ParagraphBuilder *GetLayouter (const char *&str, FontState &state)
 	 * whenever the font changes, and convert the wide characters into a format
 	 * usable by ParagraphLayout.
 	 */
-	bool just_inserted = false;
+	bool just_inserted = true;
 	for (; buff < buffer_last;) {
 		WChar c = Utf8Consume(const_cast<const char **>(&str));
 		if (c == '\0' || c == '\n') {
@@ -803,6 +1012,8 @@ static inline ParagraphBuilder *GetLayouter (const char *&str, FontState &state)
 		if (!just_inserted) {
 			fontMapping.push_back (std::make_pair (buff - buffer, f));
 			just_inserted = true;
+		} else if (!fontMapping.empty()) {
+			assert (fontMapping.back().first == buff - buffer);
 		}
 		f = GetFont (state.fontsize, state.cur_colour);
 	}
@@ -811,10 +1022,16 @@ static inline ParagraphBuilder *GetLayouter (const char *&str, FontState &state)
 	*buff = '\0';
 
 	if (!just_inserted) {
+		assert (buff > buffer);
 		fontMapping.push_back (std::make_pair (buff - buffer, f));
 	} else {
-		assert (!fontMapping.empty());
-		assert (fontMapping.back().first == buff - buffer);
+		assert ((buff == buffer) == fontMapping.empty());
+		if (buff == buffer) {
+			/* Insert an empty map. */
+			fontMapping.push_back (std::make_pair (0, f));
+		} else {
+			assert (fontMapping.back().first == (buff - buffer));
+		}
 	}
 
 	return GetParagraphLayout (buffer, buff - buffer, fontMapping);
@@ -903,83 +1120,6 @@ Dimension Layouter::GetBounds()
 		d.height += (*l)->GetLeading();
 	}
 	return d;
-}
-
-/**
- * Get the position of a character in the layout.
- * @param str Layout string.
- * @param ch Character to get the position of.
- * @return Left position of the character relative to the start of the string.
- * @note Will only work right for single-line strings.
- */
-int ParagraphLayouter::Line::GetCharPosition (const char *str, const char *ch) const
-{
-	/* Find the code point index which corresponds to the char
-	 * pointer into our UTF-8 source string. */
-	size_t index = 0;
-	while (str < ch) {
-		WChar c;
-		size_t len = Utf8Decode(&c, str);
-		if (c == '\0' || c == '\n') return 0;
-		str += len;
-		index += this->GetInternalCharLength(c);
-	}
-
-	/* Valid character. */
-
-	/* Pointer to the end-of-string/line marker? Return total line width. */
-	if (*ch == '\0' || *ch == '\n') {
-		return this->GetWidth();
-	}
-
-	/* Scan all runs until we've found our code point index. */
-	for (int run_index = 0; run_index < this->CountRuns(); run_index++) {
-		const ParagraphLayouter::VisualRun *run = this->GetVisualRun(run_index);
-
-		for (int i = 0; i < run->GetGlyphCount(); i++) {
-			/* Matching glyph? Return position. */
-			if ((size_t)run->GetGlyphToCharMap()[i] == index) {
-				return run->GetPositions()[i * 2];
-			}
-		}
-	}
-
-	return 0;
-}
-
-/**
- * Get the character that is at a position.
- * @param str Layout string.
- * @param x Position in the string.
- * @return Pointer to the character at the position or NULL if no character is at the position.
- */
-const char *ParagraphLayouter::Line::GetCharAtPosition (const char *str, int x) const
-{
-	for (int run_index = 0; run_index < this->CountRuns(); run_index++) {
-		const ParagraphLayouter::VisualRun *run = this->GetVisualRun(run_index);
-
-		for (int i = 0; i < run->GetGlyphCount(); i++) {
-			/* Not a valid glyph (empty). */
-			if (run->GetGlyphs()[i] == 0xFFFF) continue;
-
-			int begin_x = (int)run->GetPositions()[i * 2];
-			int end_x   = (int)run->GetPositions()[i * 2 + 2];
-
-			if (IsInsideMM(x, begin_x, end_x)) {
-				/* Found our glyph, now convert to UTF-8 string index. */
-				size_t index = run->GetGlyphToCharMap()[i];
-
-				while (*str != '\0') {
-					if (index == 0) return str;
-
-					WChar c = Utf8Consume(&str);
-					index -= this->GetInternalCharLength(c);
-				}
-			}
-		}
-	}
-
-	return NULL;
 }
 
 /**
