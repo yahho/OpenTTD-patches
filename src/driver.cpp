@@ -164,29 +164,31 @@ void DriverSystem::select (const char *name)
 		parms[np] = NULL;
 
 		/* Find this driver */
-		map::iterator it = this->drivers->begin();
-		for (; it != this->drivers->end(); ++it) {
-			DriverFactoryBase *d = (*it).second;
+		DriverFactoryBase *d;
+		for (map::iterator it = this->drivers->begin(); ; ) {
+			d = it->second;
 
 			/* Check driver name */
-			if (strcasecmp(buffer, d->name) != 0) continue;
+			if (strcasecmp (buffer, d->name) == 0) break;
 
-			/* Found our driver, let's try it */
-			Driver *newd = d->CreateInstance();
-
-			const char *err = newd->Start(parms);
-			if (err != NULL) {
-				delete newd;
-				usererror("Unable to load driver '%s'. The error was: %s", d->name, err);
+			if (++it == this->drivers->end()) {
+				usererror ("No such %s driver: %s\n", this->desc, buffer);
 			}
-
-			DEBUG(driver, 1, "Successfully loaded %s driver '%s'", this->desc, d->name);
-			delete this->active;
-			this->active = newd;
-			this->name = d->name;
-			return;
 		}
-		usererror ("No such %s driver: %s\n", this->desc, buffer);
+
+		/* Found our driver, let's try it */
+		Driver *newd = d->CreateInstance();
+
+		const char *err = newd->Start (parms);
+		if (err != NULL) {
+			delete newd;
+			usererror ("Unable to load driver '%s'. The error was: %s", d->name, err);
+		}
+
+		DEBUG(driver, 1, "Successfully loaded %s driver '%s'", this->desc, d->name);
+		delete this->active;
+		this->active = newd;
+		this->name = d->name;
 	}
 }
 
