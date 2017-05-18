@@ -114,6 +114,9 @@ void DriverSystem::erase (const char *name)
  */
 void DriverSystem::select (const char *name)
 {
+	assert (this->active == NULL);
+	assert (this->name == NULL);
+
 	if (this->drivers->empty()) {
 		usererror ("No %s drivers found", this->desc);
 	}
@@ -126,8 +129,6 @@ void DriverSystem::select (const char *name)
 				DriverFactoryBase *d = (*it).second;
 				if (d->priority != priority) continue;
 
-				Driver *oldd = this->active;
-				const char *oldn = this->name;
 				Driver *newd = d->CreateInstance();
 				this->active = newd;
 				this->name = d->name;
@@ -135,12 +136,11 @@ void DriverSystem::select (const char *name)
 				const char *err = newd->Start(NULL);
 				if (err == NULL) {
 					DEBUG(driver, 1, "Successfully probed %s driver '%s'", this->desc, d->name);
-					delete oldd;
 					return;
 				}
 
-				this->active = oldd;
-				this->name = oldn;
+				this->active = NULL;
+				this->name = NULL;
 				DEBUG(driver, 1, "Probing %s driver '%s' failed with error: %s", this->desc, d->name, err);
 				delete newd;
 			}
@@ -186,7 +186,6 @@ void DriverSystem::select (const char *name)
 		}
 
 		DEBUG(driver, 1, "Successfully loaded %s driver '%s'", this->desc, d->name);
-		delete this->active;
 		this->active = newd;
 		this->name = d->name;
 	}
