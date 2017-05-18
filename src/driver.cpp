@@ -154,17 +154,14 @@ void DriverSystem::select (const char *name)
 		/* Extract the driver name and put parameter list in parm */
 		bstrcpy (buffer, name);
 		parm = strchr(buffer, ':');
-		parms[0] = NULL;
-		if (parm != NULL) {
-			uint np = 0;
-			/* Tokenize the parm. */
-			do {
-				*parm++ = '\0';
-				if (np < lengthof(parms) - 1) parms[np++] = parm;
-				while (*parm != '\0' && *parm != ',') parm++;
-			} while (*parm == ',');
-			parms[np] = NULL;
+		uint np = 0;
+		while (parm != NULL) {
+			*parm++ = '\0';
+			if (np == lengthof(parms) - 1) break;
+			parms[np++] = parm;
+			parm = strchr (parm, ',');
 		}
+		parms[np] = NULL;
 
 		/* Find this driver */
 		map::iterator it = this->drivers->begin();
