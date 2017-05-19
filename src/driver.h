@@ -76,7 +76,7 @@ struct DriverFactoryBase {
 struct DriverSystem {
 	typedef std::map <const char *, DriverFactoryBase *, StringCompare> map;
 
-	map *drivers;           ///< Map of available drivers.
+	map drivers;            ///< Map of available drivers.
 	const char *const desc; ///< Name of the driver system.
 	Driver *active;         ///< Currently active driver.
 	const char *name;       ///< Name of the currently active driver.

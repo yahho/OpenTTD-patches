@@ -81,7 +81,7 @@ int GetDriverParamInt(const char * const *parm, const char *name, int def)
 
 /** Construct a DriverSystem. */
 DriverSystem::DriverSystem (const char *desc)
-	: drivers (new map), desc(desc), active(NULL), name(NULL)
+	: drivers(), desc(desc), active(NULL), name(NULL)
 {
 }
 
@@ -92,19 +92,17 @@ DriverSystem::DriverSystem (const char *desc)
  */
 void DriverSystem::insert (const char *name, DriverFactoryBase *factory)
 {
-	std::pair <map::iterator, bool> ins = this->drivers->insert (map::value_type (name, factory));
+	std::pair <map::iterator, bool> ins = this->drivers.insert (map::value_type (name, factory));
 	assert (ins.second);
 }
 
 /** Remove a driver factory from the list. */
 void DriverSystem::erase (const char *name)
 {
-	map::iterator it = this->drivers->find (name);
-	assert (it != this->drivers->end());
+	map::iterator it = this->drivers.find (name);
+	assert (it != this->drivers.end());
 
-	this->drivers->erase (it);
-
-	if (this->drivers->empty()) delete this->drivers;
+	this->drivers.erase (it);
 }
 
 /**
@@ -117,15 +115,15 @@ void DriverSystem::select (const char *name)
 	assert (this->active == NULL);
 	assert (this->name == NULL);
 
-	if (this->drivers->empty()) {
+	if (this->drivers.empty()) {
 		usererror ("No %s drivers found", this->desc);
 	}
 
 	if (StrEmpty(name)) {
 		/* Probe for this driver, but do not fall back to dedicated/null! */
 		for (int priority = 10; priority > 0; priority--) {
-			map::iterator it = this->drivers->begin();
-			for (; it != this->drivers->end(); ++it) {
+			map::iterator it = this->drivers.begin();
+			for (; it != this->drivers.end(); ++it) {
 				DriverFactoryBase *d = (*it).second;
 				if (d->priority != priority) continue;
 
@@ -165,13 +163,13 @@ void DriverSystem::select (const char *name)
 
 		/* Find this driver */
 		DriverFactoryBase *d;
-		for (map::iterator it = this->drivers->begin(); ; ) {
+		for (map::iterator it = this->drivers.begin(); ; ) {
 			d = it->second;
 
 			/* Check driver name */
 			if (strcasecmp (buffer, d->name) == 0) break;
 
-			if (++it == this->drivers->end()) {
+			if (++it == this->drivers.end()) {
 				usererror ("No such %s driver: %s\n", this->desc, buffer);
 			}
 		}
@@ -200,8 +198,8 @@ void DriverSystem::list (stringb *buf)
 	buf->append_fmt ("List of %s drivers:\n", this->desc);
 
 	for (int priority = 10; priority >= 0; priority--) {
-		map::iterator it = this->drivers->begin();
-		for (; it != this->drivers->end(); it++) {
+		map::iterator it = this->drivers.begin();
+		for (; it != this->drivers.end(); it++) {
 			DriverFactoryBase *d = (*it).second;
 			if (d->priority != priority) continue;
 			buf->append_fmt ("%18s: %s\n", d->name, d->description);
