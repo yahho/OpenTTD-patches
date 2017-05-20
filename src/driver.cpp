@@ -127,7 +127,7 @@ void DriverSystem::select (const char *name)
 				DriverFactoryBase *d = (*it).second;
 				if (d->priority != priority) continue;
 
-				Driver *newd = d->CreateInstance();
+				Driver *newd = d->create();
 				this->active = newd;
 				this->name = d->name;
 
@@ -175,7 +175,7 @@ void DriverSystem::select (const char *name)
 		}
 
 		/* Found our driver, let's try it */
-		Driver *newd = d->CreateInstance();
+		Driver *newd = d->create();
 
 		const char *err = newd->Start (parms);
 		if (err != NULL) {
