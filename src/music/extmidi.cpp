@@ -10,6 +10,7 @@
 /** @file extmidi.cpp Playing music via an external player. */
 
 #include "../stdafx.h"
+#include "../core/pointer.h"
 #include "../debug.h"
 #include "../string.h"
 #include "../core/alloc_func.hpp"
@@ -38,7 +39,7 @@ static MusicDriverFactory <MusicDriver_ExtMidi>
 static char extmidi_song[MAX_PATH];
 
 /** extmidi process parameters. */
-static char **extmidi_params;
+static ttd_unique_free_ptr <char*> extmidi_params;
 
 /** Pid of the running extmidi process. */
 static pid_t extmidi_pid = -1;
@@ -59,24 +60,31 @@ const char *MusicDriver_ExtMidi::Start(const char * const * parm)
 
 	/* Count number of arguments, but include 3 extra slots: 1st for command, 2nd for song title, and 3rd for terminating NULL. */
 	uint num_args = 3;
-	for (const char *t = command; *t != '\0'; t++) if (*t == ' ') num_args++;
+	const char *t = command;
+	while (*t != '\0') {
+		if (*(t++) == ' ') num_args++;
+	}
+	size_t len = t - command + 1; // include trailing null
 
-	extmidi_params = xcalloct<char *>(num_args);
-	extmidi_params[0] = xstrdup(command);
+	char **params = (char**) xmalloc ((num_args * sizeof(char*)) + len);
+	extmidi_params.reset (params);
+
+	char *s = (char*) (params + num_args);
+	memcpy (s, command, len);
 
 	/* Replace space with \0 and add next arg to params */
-	uint p = 1;
-	while (true) {
-		extmidi_params[p] = strchr(extmidi_params[p - 1], ' ');
-		if (extmidi_params[p] == NULL) break;
-
-		extmidi_params[p][0] = '\0';
-		extmidi_params[p]++;
-		p++;
+	uint p = 0;
+	for (;;) {
+		params[p++] = s;
+		s = strchr (s, ' ');
+		if (s == NULL) break;
+		*(s++) = '\0';
 	}
 
 	/* Last parameter is the song file. */
-	extmidi_params[p] = extmidi_song;
+	params[p++] = extmidi_song;
+	params[p++] = NULL;
+	assert (p == num_args);
 
 	return NULL;
 }
@@ -108,8 +116,6 @@ static void DoStop (void)
 
 void MusicDriver_ExtMidi::Stop()
 {
-	free (extmidi_params[0]);
-	free (extmidi_params);
 	extmidi_song[0] = '\0';
 	DoStop();
 }
@@ -144,7 +150,8 @@ bool MusicDriver_ExtMidi::IsSongPlaying()
 			close(0);
 			int d = open("/dev/null", O_RDONLY);
 			if (d != -1 && dup2(d, 1) != -1 && dup2(d, 2) != -1) {
-				execvp (extmidi_params[0], extmidi_params);
+				char **params = extmidi_params.get();
+				execvp (*params, params);
 			}
 			_exit(1);
 		}
