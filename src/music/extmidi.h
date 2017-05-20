@@ -15,11 +15,6 @@
 #include "music_driver.hpp"
 
 class MusicDriver_ExtMidi : public MusicDriver {
-private:
-	char **params;
-	char song[MAX_PATH];
-	pid_t pid;
-
 public:
 	/* virtual */ const char *Start(const char * const *param);
 

@@ -34,6 +34,15 @@
 static MusicDriverFactory <MusicDriver_ExtMidi>
 		iFMusicDriver_ExtMidi (3, "extmidi", "External MIDI Driver");
 
+/** Song currently playing. */
+static char extmidi_song[MAX_PATH];
+
+/** extmidi process parameters. */
+static char **extmidi_params;
+
+/** Pid of the running extmidi process. */
+static pid_t extmidi_pid = -1;
+
 const char *MusicDriver_ExtMidi::Start(const char * const * parm)
 {
 	if (strcmp (VideoDriver::GetActiveDriverName(), "allegro") == 0 ||
@@ -52,25 +61,23 @@ const char *MusicDriver_ExtMidi::Start(const char * const * parm)
 	uint num_args = 3;
 	for (const char *t = command; *t != '\0'; t++) if (*t == ' ') num_args++;
 
-	this->params = xcalloct<char *>(num_args);
-	this->params[0] = xstrdup(command);
+	extmidi_params = xcalloct<char *>(num_args);
+	extmidi_params[0] = xstrdup(command);
 
 	/* Replace space with \0 and add next arg to params */
 	uint p = 1;
 	while (true) {
-		this->params[p] = strchr(this->params[p - 1], ' ');
-		if (this->params[p] == NULL) break;
+		extmidi_params[p] = strchr(extmidi_params[p - 1], ' ');
+		if (extmidi_params[p] == NULL) break;
 
-		this->params[p][0] = '\0';
-		this->params[p]++;
+		extmidi_params[p][0] = '\0';
+		extmidi_params[p]++;
 		p++;
 	}
 
 	/* Last parameter is the song file. */
-	this->params[p] = this->song;
+	extmidi_params[p] = extmidi_song;
 
-	this->song[0] = '\0';
-	this->pid = -1;
 	return NULL;
 }
 
@@ -101,43 +108,43 @@ static void DoStop (pid_t *pid)
 
 void MusicDriver_ExtMidi::Stop()
 {
-	free(params[0]);
-	free(params);
-	this->song[0] = '\0';
-	DoStop (&this->pid);
+	free (extmidi_params[0]);
+	free (extmidi_params);
+	extmidi_song[0] = '\0';
+	DoStop (&extmidi_pid);
 }
 
 void MusicDriver_ExtMidi::PlaySong(const char *filename)
 {
-	bstrcpy (this->song, filename);
-	DoStop (&this->pid);
+	bstrcpy (extmidi_song, filename);
+	DoStop (&extmidi_pid);
 }
 
 void MusicDriver_ExtMidi::StopSong()
 {
-	this->song[0] = '\0';
-	DoStop (&this->pid);
+	extmidi_song[0] = '\0';
+	DoStop (&extmidi_pid);
 }
 
 bool MusicDriver_ExtMidi::IsSongPlaying()
 {
-	if (this->pid != -1) {
-		if (waitpid (this->pid, NULL, WNOHANG) == this->pid) {
-			this->pid = -1;
+	if (extmidi_pid != -1) {
+		if (waitpid (extmidi_pid, NULL, WNOHANG) == extmidi_pid) {
+			extmidi_pid = -1;
 		} else {
 			return true;
 		}
 	}
 
-	if (this->song[0] == '\0') return false;
+	if (extmidi_song[0] == '\0') return false;
 
-	this->pid = fork();
-	switch (this->pid) {
+	extmidi_pid = fork();
+	switch (extmidi_pid) {
 		case 0: {
 			close(0);
 			int d = open("/dev/null", O_RDONLY);
 			if (d != -1 && dup2(d, 1) != -1 && dup2(d, 2) != -1) {
-				execvp(this->params[0], this->params);
+				execvp (extmidi_params[0], extmidi_params);
 			}
 			_exit(1);
 		}
@@ -147,11 +154,11 @@ bool MusicDriver_ExtMidi::IsSongPlaying()
 			/* FALL THROUGH */
 
 		default:
-			this->song[0] = '\0';
+			extmidi_song[0] = '\0';
 			break;
 	}
 
-	return this->pid != -1;
+	return extmidi_pid != -1;
 }
 
 void MusicDriver_ExtMidi::SetVolume(byte vol)
