@@ -81,17 +81,17 @@ const char *MusicDriver_ExtMidi::Start(const char * const * parm)
 	return NULL;
 }
 
-static void DoStop (pid_t *pid)
+static void DoStop (void)
 {
-	if (*pid <= 0) return;
+	if (extmidi_pid <= 0) return;
 
 	/* First try to gracefully stop for about five seconds;
 	 * 5 seconds = 5000 milliseconds, 10 ms per cycle => 500 cycles. */
 	for (int i = 0; i < 500; i++) {
-		kill (*pid, SIGTERM);
-		if (waitpid (*pid, NULL, WNOHANG) == *pid) {
+		kill (extmidi_pid, SIGTERM);
+		if (waitpid (extmidi_pid, NULL, WNOHANG) == extmidi_pid) {
 			/* It has shut down, so we are done */
-			*pid = -1;
+			extmidi_pid = -1;
 			return;
 		}
 		/* Wait 10 milliseconds. */
@@ -101,9 +101,9 @@ static void DoStop (pid_t *pid)
 	DEBUG(driver, 0, "extmidi: gracefully stopping failed, trying the hard way");
 	/* Gracefully stopping failed. Do it the hard way
 	 * and wait till the process finally died. */
-	kill (*pid, SIGKILL);
-	waitpid (*pid, NULL, 0);
-	*pid = -1;
+	kill (extmidi_pid, SIGKILL);
+	waitpid (extmidi_pid, NULL, 0);
+	extmidi_pid = -1;
 }
 
 void MusicDriver_ExtMidi::Stop()
@@ -111,19 +111,19 @@ void MusicDriver_ExtMidi::Stop()
 	free (extmidi_params[0]);
 	free (extmidi_params);
 	extmidi_song[0] = '\0';
-	DoStop (&extmidi_pid);
+	DoStop();
 }
 
 void MusicDriver_ExtMidi::PlaySong(const char *filename)
 {
 	bstrcpy (extmidi_song, filename);
-	DoStop (&extmidi_pid);
+	DoStop();
 }
 
 void MusicDriver_ExtMidi::StopSong()
 {
 	extmidi_song[0] = '\0';
-	DoStop (&extmidi_pid);
+	DoStop();
 }
 
 bool MusicDriver_ExtMidi::IsSongPlaying()
