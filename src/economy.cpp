@@ -1856,7 +1856,7 @@ static void LoadUnloadVehicle(Vehicle *front)
 			assert (v->cargo.ReservedCount() == 0);
 			if (v->cargo.StoredCount() == 0) {
 				TriggerVehicle (v, VEHICLE_TRIGGER_NEW_CARGO);
-				p->load = GetLoadAmount (v);
+				p->load = min (p->left, GetLoadAmount(v));
 			}
 			pool.Reattach (&v->cargo, p->load);
 			assert (v->cargo.ReservedCount() > 0);
@@ -1879,7 +1879,7 @@ static void LoadUnloadVehicle(Vehicle *front)
 			if ((v->cargo.ReservedCount() > 0) || (ge->cargo.AvailableCount() > 0)) {
 				if (v->cargo.TotalCount() == 0) {
 					TriggerVehicle (v, VEHICLE_TRIGGER_NEW_CARGO);
-					p->load = GetLoadAmount (v);
+					p->load = min (p->left, GetLoadAmount(v));
 				}
 
 				uint loaded = ge->cargo.Load (p->load, &v->cargo, st->xy, next_station);
