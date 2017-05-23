@@ -10,8 +10,10 @@
 /** @file extmidi.cpp Playing music via an external player. */
 
 #include "../stdafx.h"
+#include "../core/pointer.h"
 #include "../debug.h"
 #include "../string.h"
+#include "../core/alloc_func.hpp"
 #include "../sound/sound_driver.hpp"
 #include "../video/video_driver.hpp"
 #include "../gfx_func.h"
@@ -33,6 +35,15 @@
 static MusicDriverFactory <MusicDriver_ExtMidi>
 		iFMusicDriver_ExtMidi (3, "extmidi", "External MIDI Driver");
 
+/** Song currently playing. */
+static char extmidi_song[MAX_PATH];
+
+/** extmidi process parameters. */
+static ttd_unique_free_ptr <char*> extmidi_params;
+
+/** Pid of the running extmidi process. */
+static pid_t extmidi_pid = -1;
+
 const char *MusicDriver_ExtMidi::Start(const char * const * parm)
 {
 	if (strcmp (VideoDriver::GetActiveDriverName(), "allegro") == 0 ||
@@ -41,25 +52,54 @@ const char *MusicDriver_ExtMidi::Start(const char * const * parm)
 	}
 
 	const char *command = GetDriverParam(parm, "cmd");
+#ifndef MIDI_ARG
 	if (StrEmpty(command)) command = EXTERNAL_PLAYER;
+#else
+	if (StrEmpty(command)) command = EXTERNAL_PLAYER " " MIDI_ARG;
+#endif
 
-	this->command = xstrdup(command);
-	this->song[0] = '\0';
-	this->pid = -1;
+	/* Count number of arguments, but include 3 extra slots: 1st for command, 2nd for song title, and 3rd for terminating NULL. */
+	uint num_args = 3;
+	const char *t = command;
+	while (*t != '\0') {
+		if (*(t++) == ' ') num_args++;
+	}
+	size_t len = t - command + 1; // include trailing null
+
+	char **params = (char**) xmalloc ((num_args * sizeof(char*)) + len);
+	extmidi_params.reset (params);
+
+	char *s = (char*) (params + num_args);
+	memcpy (s, command, len);
+
+	/* Replace space with \0 and add next arg to params */
+	uint p = 0;
+	for (;;) {
+		params[p++] = s;
+		s = strchr (s, ' ');
+		if (s == NULL) break;
+		*(s++) = '\0';
+	}
+
+	/* Last parameter is the song file. */
+	params[p++] = extmidi_song;
+	params[p++] = NULL;
+	assert (p == num_args);
+
 	return NULL;
 }
 
-static void DoStop (pid_t *pid)
+static void DoStop (void)
 {
-	if (*pid <= 0) return;
+	if (extmidi_pid <= 0) return;
 
 	/* First try to gracefully stop for about five seconds;
 	 * 5 seconds = 5000 milliseconds, 10 ms per cycle => 500 cycles. */
 	for (int i = 0; i < 500; i++) {
-		kill (*pid, SIGTERM);
-		if (waitpid (*pid, NULL, WNOHANG) == *pid) {
+		kill (extmidi_pid, SIGTERM);
+		if (waitpid (extmidi_pid, NULL, WNOHANG) == extmidi_pid) {
 			/* It has shut down, so we are done */
-			*pid = -1;
+			extmidi_pid = -1;
 			return;
 		}
 		/* Wait 10 milliseconds. */
@@ -69,53 +109,49 @@ static void DoStop (pid_t *pid)
 	DEBUG(driver, 0, "extmidi: gracefully stopping failed, trying the hard way");
 	/* Gracefully stopping failed. Do it the hard way
 	 * and wait till the process finally died. */
-	kill (*pid, SIGKILL);
-	waitpid (*pid, NULL, 0);
-	*pid = -1;
+	kill (extmidi_pid, SIGKILL);
+	waitpid (extmidi_pid, NULL, 0);
+	extmidi_pid = -1;
 }
 
 void MusicDriver_ExtMidi::Stop()
 {
-	free(command);
-	this->song[0] = '\0';
-	DoStop (&this->pid);
+	extmidi_song[0] = '\0';
+	DoStop();
 }
 
 void MusicDriver_ExtMidi::PlaySong(const char *filename)
 {
-	bstrcpy (this->song, filename);
-	DoStop (&this->pid);
+	bstrcpy (extmidi_song, filename);
+	DoStop();
 }
 
 void MusicDriver_ExtMidi::StopSong()
 {
-	this->song[0] = '\0';
-	DoStop (&this->pid);
+	extmidi_song[0] = '\0';
+	DoStop();
 }
 
 bool MusicDriver_ExtMidi::IsSongPlaying()
 {
-	if (this->pid != -1) {
-		if (waitpid (this->pid, NULL, WNOHANG) == this->pid) {
-			this->pid = -1;
+	if (extmidi_pid != -1) {
+		if (waitpid (extmidi_pid, NULL, WNOHANG) == extmidi_pid) {
+			extmidi_pid = -1;
 		} else {
 			return true;
 		}
 	}
 
-	if (this->song[0] == '\0') return false;
+	if (extmidi_song[0] == '\0') return false;
 
-	this->pid = fork();
-	switch (this->pid) {
+	extmidi_pid = fork();
+	switch (extmidi_pid) {
 		case 0: {
 			close(0);
 			int d = open("/dev/null", O_RDONLY);
 			if (d != -1 && dup2(d, 1) != -1 && dup2(d, 2) != -1) {
-				#if defined(MIDI_ARG)
-					execlp(this->command, "extmidi", MIDI_ARG, this->song, (char*)0);
-				#else
-					execlp(this->command, "extmidi", this->song, (char*)0);
-				#endif
+				char **params = extmidi_params.get();
+				execvp (*params, params);
 			}
 			_exit(1);
 		}
@@ -125,11 +161,11 @@ bool MusicDriver_ExtMidi::IsSongPlaying()
 			/* FALL THROUGH */
 
 		default:
-			this->song[0] = '\0';
+			extmidi_song[0] = '\0';
 			break;
 	}
 
-	return this->pid != -1;
+	return extmidi_pid != -1;
 }
 
 void MusicDriver_ExtMidi::SetVolume(byte vol)

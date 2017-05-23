@@ -44,6 +44,9 @@ public:
 
 /** Base for all driver factories. */
 struct DriverFactoryBase {
+	typedef Driver *inst_func (void); ///< Driver instance creation function type.
+
+	inst_func *const create;       ///< The function that creates the driver instance.
 	const char *const name;        ///< The name of the drivers of this factory.
 	const char *const description; ///< The description of this driver.
 	const int priority;            ///< The priority of this factory.
@@ -54,21 +57,12 @@ struct DriverFactoryBase {
 	 * @param description A long-ish description of the driver.
 	 * @param priority    The priority within the driver class.
 	 */
-	CONSTEXPR DriverFactoryBase (const char *name, const char *description, int priority)
-		: name(name), description(description), priority(priority)
+	CONSTEXPR DriverFactoryBase (inst_func *create, const char *name,
+			const char *description, int priority)
+		: create(create), name(name),
+			description(description), priority(priority)
 	{
 	}
-
-	/** Destruct a DriverFactory. */
-	virtual ~DriverFactoryBase()
-	{
-	}
-
-	/**
-	 * Create an instance of this driver-class.
-	 * @return The instance.
-	 */
-	virtual Driver *CreateInstance() const = 0;
 };
 
 
@@ -76,7 +70,7 @@ struct DriverFactoryBase {
 struct DriverSystem {
 	typedef std::map <const char *, DriverFactoryBase *, StringCompare> map;
 
-	map *drivers;           ///< Map of available drivers.
+	map drivers;            ///< Map of available drivers.
 	const char *const desc; ///< Name of the driver system.
 	Driver *active;         ///< Currently active driver.
 	const char *name;       ///< Name of the currently active driver.
@@ -169,13 +163,22 @@ template <class T, class D>
 class DriverFactory : DriverFactoryBase, public SharedDriverSystem <T> {
 public:
 	/**
+	 * Create an instance of this driver-class.
+	 * @return The instance.
+	 */
+	static Driver *create (void)
+	{
+		return new D;
+	}
+
+	/**
 	 * Construct a new DriverFactory.
 	 * @param priority    The priority within the driver class.
 	 * @param name        The name of the driver.
 	 * @param description A long-ish description of the driver.
 	 */
 	DriverFactory (int priority, const char *name, const char *description)
-		: DriverFactoryBase (name, description, priority)
+		: DriverFactoryBase (&create, name, description, priority)
 	{
 		SharedDriverSystem<T>::insert (name, this);
 	}
@@ -184,15 +187,6 @@ public:
 	~DriverFactory()
 	{
 		SharedDriverSystem<T>::erase (this->name);
-	}
-
-	/**
-	 * Create an instance of this driver-class.
-	 * @return The instance.
-	 */
-	D *CreateInstance (void) const FINAL_OVERRIDE
-	{
-		return new D;
 	}
 };
 

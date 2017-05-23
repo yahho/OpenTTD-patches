@@ -81,7 +81,7 @@ int GetDriverParamInt(const char * const *parm, const char *name, int def)
 
 /** Construct a DriverSystem. */
 DriverSystem::DriverSystem (const char *desc)
-	: drivers (new map), desc(desc), active(NULL), name(NULL)
+	: drivers(), desc(desc), active(NULL), name(NULL)
 {
 }
 
@@ -92,19 +92,17 @@ DriverSystem::DriverSystem (const char *desc)
  */
 void DriverSystem::insert (const char *name, DriverFactoryBase *factory)
 {
-	std::pair <map::iterator, bool> ins = this->drivers->insert (map::value_type (name, factory));
+	std::pair <map::iterator, bool> ins = this->drivers.insert (map::value_type (name, factory));
 	assert (ins.second);
 }
 
 /** Remove a driver factory from the list. */
 void DriverSystem::erase (const char *name)
 {
-	map::iterator it = this->drivers->find (name);
-	assert (it != this->drivers->end());
+	map::iterator it = this->drivers.find (name);
+	assert (it != this->drivers.end());
 
-	this->drivers->erase (it);
-
-	if (this->drivers->empty()) delete this->drivers;
+	this->drivers.erase (it);
 }
 
 /**
@@ -114,35 +112,33 @@ void DriverSystem::erase (const char *name)
  */
 void DriverSystem::select (const char *name)
 {
-	if (this->drivers->empty()) {
-		StrEmpty(name) ?
-			usererror ("Failed to autoprobe %s driver", this->desc) :
-			usererror ("Failed to select requested %s driver '%s'", this->desc, name);
+	assert (this->active == NULL);
+	assert (this->name == NULL);
+
+	if (this->drivers.empty()) {
+		usererror ("No %s drivers found", this->desc);
 	}
 
 	if (StrEmpty(name)) {
 		/* Probe for this driver, but do not fall back to dedicated/null! */
 		for (int priority = 10; priority > 0; priority--) {
-			map::iterator it = this->drivers->begin();
-			for (; it != this->drivers->end(); ++it) {
+			map::iterator it = this->drivers.begin();
+			for (; it != this->drivers.end(); ++it) {
 				DriverFactoryBase *d = (*it).second;
 				if (d->priority != priority) continue;
 
-				Driver *oldd = this->active;
-				const char *oldn = this->name;
-				Driver *newd = d->CreateInstance();
+				Driver *newd = d->create();
 				this->active = newd;
 				this->name = d->name;
 
 				const char *err = newd->Start(NULL);
 				if (err == NULL) {
 					DEBUG(driver, 1, "Successfully probed %s driver '%s'", this->desc, d->name);
-					delete oldd;
 					return;
 				}
 
-				this->active = oldd;
-				this->name = oldn;
+				this->active = NULL;
+				this->name = NULL;
 				DEBUG(driver, 1, "Probing %s driver '%s' failed with error: %s", this->desc, d->name, err);
 				delete newd;
 			}
@@ -156,42 +152,40 @@ void DriverSystem::select (const char *name)
 		/* Extract the driver name and put parameter list in parm */
 		bstrcpy (buffer, name);
 		parm = strchr(buffer, ':');
-		parms[0] = NULL;
-		if (parm != NULL) {
-			uint np = 0;
-			/* Tokenize the parm. */
-			do {
-				*parm++ = '\0';
-				if (np < lengthof(parms) - 1) parms[np++] = parm;
-				while (*parm != '\0' && *parm != ',') parm++;
-			} while (*parm == ',');
-			parms[np] = NULL;
+		uint np = 0;
+		while (parm != NULL) {
+			*parm++ = '\0';
+			if (np == lengthof(parms) - 1) break;
+			parms[np++] = parm;
+			parm = strchr (parm, ',');
 		}
+		parms[np] = NULL;
 
 		/* Find this driver */
-		map::iterator it = this->drivers->begin();
-		for (; it != this->drivers->end(); ++it) {
-			DriverFactoryBase *d = (*it).second;
+		DriverFactoryBase *d;
+		for (map::iterator it = this->drivers.begin(); ; ) {
+			d = it->second;
 
 			/* Check driver name */
-			if (strcasecmp(buffer, d->name) != 0) continue;
+			if (strcasecmp (buffer, d->name) == 0) break;
 
-			/* Found our driver, let's try it */
-			Driver *newd = d->CreateInstance();
-
-			const char *err = newd->Start(parms);
-			if (err != NULL) {
-				delete newd;
-				usererror("Unable to load driver '%s'. The error was: %s", d->name, err);
+			if (++it == this->drivers.end()) {
+				usererror ("No such %s driver: %s\n", this->desc, buffer);
 			}
-
-			DEBUG(driver, 1, "Successfully loaded %s driver '%s'", this->desc, d->name);
-			delete this->active;
-			this->active = newd;
-			this->name = d->name;
-			return;
 		}
-		usererror ("No such %s driver: %s\n", this->desc, buffer);
+
+		/* Found our driver, let's try it */
+		Driver *newd = d->create();
+
+		const char *err = newd->Start (parms);
+		if (err != NULL) {
+			delete newd;
+			usererror ("Unable to load driver '%s'. The error was: %s", d->name, err);
+		}
+
+		DEBUG(driver, 1, "Successfully loaded %s driver '%s'", this->desc, d->name);
+		this->active = newd;
+		this->name = d->name;
 	}
 }
 
@@ -204,8 +198,8 @@ void DriverSystem::list (stringb *buf)
 	buf->append_fmt ("List of %s drivers:\n", this->desc);
 
 	for (int priority = 10; priority >= 0; priority--) {
-		map::iterator it = this->drivers->begin();
-		for (; it != this->drivers->end(); it++) {
+		map::iterator it = this->drivers.begin();
+		for (; it != this->drivers.end(); it++) {
 			DriverFactoryBase *d = (*it).second;
 			if (d->priority != priority) continue;
 			buf->append_fmt ("%18s: %s\n", d->name, d->description);
