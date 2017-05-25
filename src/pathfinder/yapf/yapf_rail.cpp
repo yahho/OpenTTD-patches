@@ -141,7 +141,6 @@ struct CYapfRailSegment : CHashTableEntryT <CYapfRailSegment> {
 /** Yapf Node for rail YAPF */
 struct CYapfRailNodeTrackDir : CYapfNodeT<CYapfRailKey, CYapfRailNodeTrackDir> {
 	typedef CYapfNodeT<CYapfRailKey, CYapfRailNodeTrackDir> base;
-	typedef CYapfRailSegment CachedData;
 
 	enum {
 		FLAG_CHOICE_SEEN,         ///< node starts at a junction
@@ -307,9 +306,8 @@ static int TransitionCost (const YAPFSettings *settings,
 
 class CYapfRailBase : public AstarRailTrackDir {
 public:
-	typedef Node::CachedData CachedData;
-	typedef CSegmentCostCacheT<CachedData> Cache;
-	typedef SmallArray<CachedData> LocalCache;
+	typedef CSegmentCostCacheT<CYapfRailSegment> Cache;
+	typedef SmallArray<CYapfRailSegment> LocalCache;
 
 protected:
 	const YAPFSettings *const m_settings; ///< current settings (_settings_game.yapf)
@@ -394,7 +392,7 @@ public:
 
 	inline bool FindCachedSegment (Node *n)
 	{
-		CachedData *segment = m_global_cache.Find (n->GetKey());
+		CYapfRailSegment *segment = m_global_cache.Find (n->GetKey());
 		if (segment == NULL) return false;
 		n->m_segment = segment;
 		return true;
@@ -414,7 +412,7 @@ public:
 
 	inline void AttachLocalSegment (Node *n)
 	{
-		n->m_segment = new (m_local_cache.Append()) CachedData(n->GetKey());
+		n->m_segment = new (m_local_cache.Append()) CYapfRailSegment (n->GetKey());
 	}
 
 	/** Create and add a new node */
@@ -909,7 +907,7 @@ inline void CYapfRailBase::CalcNode (Node *n)
 				/* No further calculation needed. */
 				if (_debug_desync_level >= 2) {
 					Node test (*n);
-					CachedData segment (test.GetKey());
+					CYapfRailSegment segment (test.GetKey());
 					test.m_segment = &segment;
 					CalcSegment (&test, &this->tf);
 					/* m_num_signals_passed can differ when cached */
