@@ -257,6 +257,28 @@ struct CSegmentCostCacheT {
 	}
 };
 
+/** Global cache. */
+static CSegmentCostCacheT<CYapfRailSegment> m_global_cache;
+
+static void CheckGlobalCacheFlush (void)
+{
+	static uint last_rail_change_counter = 0;
+	static Date last_date = 0;
+
+	/* some statistics */
+	if (last_date != _date) {
+		last_date = _date;
+		DEBUG(yapf, 2, "Pf time today: %5d ms", _total_pf_time_us / 1000);
+		_total_pf_time_us = 0;
+	}
+
+	/* delete the cache sometimes... */
+	if (last_rail_change_counter != s_rail_change_counter) {
+		last_rail_change_counter = s_rail_change_counter;
+		m_global_cache.Flush();
+	}
+}
+
 
 /** Return the transition cost from one tile to another. */
 static int TransitionCost (const YAPFSettings *settings,
@@ -306,7 +328,6 @@ static int TransitionCost (const YAPFSettings *settings,
 
 class CYapfRailBase : public AstarRailTrackDir {
 public:
-	typedef CSegmentCostCacheT<CYapfRailSegment> Cache;
 	typedef SmallArray<CYapfRailSegment> LocalCache;
 
 protected:
@@ -320,7 +341,6 @@ public:
 	bool          m_stopped_on_first_two_way_signal;
 
 protected:
-	Cache        &m_global_cache;
 	LocalCache    m_local_cache;
 
 	std::vector<int>     m_sig_look_ahead_costs;
@@ -338,28 +358,6 @@ protected:
 
 	static const int s_max_segment_cost = 10000;
 
-	inline static Cache& stGetGlobalCache()
-	{
-		static uint last_rail_change_counter = 0;
-		static Date last_date = 0;
-		static Cache C;
-
-		/* some statistics */
-		if (last_date != _date) {
-			last_date = _date;
-			DEBUG(yapf, 2, "Pf time today: %5d ms", _total_pf_time_us / 1000);
-			_total_pf_time_us = 0;
-		}
-
-		/* delete the cache sometimes... */
-		if (last_rail_change_counter != s_rail_change_counter) {
-			last_rail_change_counter = s_rail_change_counter;
-			C.Flush();
-		}
-
-		return C;
-	}
-
 	CYapfRailBase (const Train *v, bool allow_90deg, bool override_rail_type, int max_cost, bool mask_reserved_tracks, bool first_red_eol)
 		: m_settings(&_settings_game.pf.yapf)
 		, m_veh(v)
@@ -368,13 +366,14 @@ protected:
 		, mask_reserved_tracks(mask_reserved_tracks)
 		, m_treat_first_red_two_way_signal_as_eol(first_red_eol)
 		, m_stopped_on_first_two_way_signal(false)
-		, m_global_cache(stGetGlobalCache())
 		, m_sig_look_ahead_costs(m_settings->rail_look_ahead_max_signals)
 		, m_stats_cost_calcs(0)
 		, m_stats_cache_hits(0)
 		, tf (v, allow_90deg, mask_reserved_tracks ? m_compatible_railtypes : v->compatible_railtypes)
 		, tf_local (v, allow_90deg, m_compatible_railtypes, &m_perf_ts_cost)
 	{
+		CheckGlobalCacheFlush();
+
 		/* pre-compute look-ahead penalties into array */
 		int p0 = m_settings->rail_look_ahead_signal_p0;
 		int p1 = m_settings->rail_look_ahead_signal_p1;
