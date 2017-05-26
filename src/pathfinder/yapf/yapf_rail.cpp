@@ -875,7 +875,7 @@ inline void CYapfRailBase::CalcNode (Node *n)
 	 * maximum cost and the node is not already cached and within the
 	 * maximum cost (because that may also make a segment end prematurely
 	 * if the maximum cost is reached when computing its cost). */
-	if (m_max_cost == 0 && !mask_reserved_tracks
+	if (!mask_reserved_tracks
 			&& (n->m_parent->m_num_signals_passed >= m_sig_look_ahead_costs.size())) {
 		/* look for the segment in the cache */
 		CYapfRailSegment *segment = m_global_cache.Find (n->GetKey());
