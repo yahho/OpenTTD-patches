@@ -279,6 +279,12 @@ static void CheckGlobalCacheFlush (void)
 	}
 }
 
+/** Check if a node (usually under construction) is being cached. */
+static inline bool IsNodeCached (const CYapfRailNodeTrackDir *n)
+{
+	return n->m_segment == m_global_cache.Find (n->GetKey());
+}
+
 
 /** Return the transition cost from one tile to another. */
 static int TransitionCost (const YAPFSettings *settings,
@@ -395,12 +401,6 @@ public:
 		if (segment == NULL) return false;
 		n->m_segment = segment;
 		return true;
-	}
-
-	/** Check if a node (usually under construction) is being cached. */
-	inline bool IsNodeCached (const Node *n) const
-	{
-		return n->m_segment == m_global_cache.Find (n->GetKey());
 	}
 
 	inline void AttachCachedSegment (Node *n)
