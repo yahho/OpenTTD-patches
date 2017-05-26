@@ -395,14 +395,6 @@ public:
 		return tf.m_allow_90deg;
 	}
 
-	inline bool FindCachedSegment (Node *n)
-	{
-		CYapfRailSegment *segment = m_global_cache.Find (n->GetKey());
-		if (segment == NULL) return false;
-		n->m_segment = segment;
-		return true;
-	}
-
 	inline void AttachCachedSegment (Node *n)
 	{
 		n->m_segment = m_global_cache.Create (n->GetKey());
@@ -886,14 +878,16 @@ inline void CYapfRailBase::CalcNode (Node *n)
 	if (m_max_cost == 0 && !mask_reserved_tracks
 			&& (n->m_parent->m_num_signals_passed >= m_sig_look_ahead_costs.size())) {
 		/* look for the segment in the cache */
-		if (FindCachedSegment(n)) {
-			assert (!n->m_segment->m_end_segment_reason.test(ESR_MAX_COST));
+		CYapfRailSegment *segment = m_global_cache.Find (n->GetKey());
+		if (segment != NULL) {
+			assert (!segment->m_end_segment_reason.test (ESR_MAX_COST));
 			/* The segment was found in the cache, but we can
 			 * only use it if it does not exceed the maximum cost
 			 * (otherwise, a fresh computation could stop midway). */
-			int cost = n->m_parent->m_cost + TransitionCost (n->m_parent->GetLastPos(), n->GetPos()) + n->m_segment->m_cost;
+			int cost = n->m_parent->m_cost + TransitionCost (n->m_parent->GetLastPos(), n->GetPos()) + segment->m_cost;
 			if ((m_max_cost == 0) || (cost < m_max_cost)) {
 				m_stats_cache_hits++;
+				n->m_segment = segment;
 				/* total node cost */
 				n->m_cost = cost;
 				/* We will need also some information about the last signal (if it was red). */
