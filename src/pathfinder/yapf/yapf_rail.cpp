@@ -333,6 +333,13 @@ static int TransitionCost (const RailPathPos &pos1, const RailPathPos &pos2)
 	return cost;
 }
 
+/** Return the entry cost to this node (parent cost plus transition cost). */
+static inline int EntryCost (const CYapfRailNodeTrackDir *n)
+{
+	const CYapfRailNodeTrackDir *parent = n->m_parent;
+	return parent->m_cost + TransitionCost (parent->GetLastPos(), n->GetPos());
+}
+
 
 class CYapfRailBase : public AstarRailTrackDir {
 public:
@@ -814,7 +821,7 @@ inline void CYapfRailBase::CalcSegment (Node *n, const CFollowTrackRail *tf)
 	assert (n->m_segment->m_end_segment_reason.none());
 
 	/* start at n and walk to the end of segment */
-	int entry_cost = n->m_parent->m_cost + TransitionCost (n->m_parent->GetLastPos(), n->GetPos());
+	int entry_cost = EntryCost (n);
 
 	TileIndex prev = n->m_parent->GetLastPos().tile;
 
@@ -878,7 +885,7 @@ inline void CYapfRailBase::CalcNode (Node *n)
 			/* The segment was found in the cache, but we can
 			 * only use it if it does not exceed the maximum cost
 			 * (otherwise, a fresh computation could stop midway). */
-			int cost = n->m_parent->m_cost + TransitionCost (n->m_parent->GetLastPos(), n->GetPos()) + segment->m_cost;
+			int cost = EntryCost (n) + segment->m_cost;
 			if ((m_max_cost == 0) || (cost < m_max_cost)) {
 				m_stats_cache_hits++;
 				n->m_segment = segment;
