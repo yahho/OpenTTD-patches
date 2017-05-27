@@ -340,6 +340,24 @@ static inline int EntryCost (const CYapfRailNodeTrackDir *n)
 	return parent->m_cost + TransitionCost (parent->GetLastPos(), n->GetPos());
 }
 
+/** Return one tile cost (base cost + level crossing penalty). */
+static int OneTileCost (const RailPathPos &pos)
+{
+	int cost = 0;
+	/* set base cost */
+	if (IsDiagonalTrackdir (pos.td)) {
+		cost += YAPF_TILE_LENGTH;
+		if (IsLevelCrossingTile (pos.tile)) {
+			/* Increase the cost for level crossings */
+			cost += m_settings->rail_crossing_penalty;
+		}
+	} else {
+		/* non-diagonal trackdir */
+		cost = YAPF_TILE_CORNER_LENGTH;
+	}
+	return cost;
+}
+
 
 class CYapfRailBase : public AstarRailTrackDir {
 public:
@@ -421,24 +439,6 @@ public:
 		/* initial nodes can never be used from the cache */
 		AttachLocalSegment (&node);
 		InsertInitialNode (node);
-	}
-
-	/** Return one tile cost (base cost + level crossing penalty). */
-	inline int OneTileCost (const RailPathPos &pos) const
-	{
-		int cost = 0;
-		/* set base cost */
-		if (IsDiagonalTrackdir(pos.td)) {
-			cost += YAPF_TILE_LENGTH;
-			if (IsLevelCrossingTile(pos.tile)) {
-				/* Increase the cost for level crossings */
-				cost += m_settings->rail_crossing_penalty;
-			}
-		} else {
-			/* non-diagonal trackdir */
-			cost = YAPF_TILE_CORNER_LENGTH;
-		}
-		return cost;
 	}
 
 	/** Return slope cost for a tile. */
