@@ -286,6 +286,9 @@ static inline bool IsNodeCached (const CYapfRailNodeTrackDir *n)
 }
 
 
+static const YAPFSettings *const m_settings = &_settings_game.pf.yapf; ///< current settings (_settings_game.yapf)
+
+
 /** Return the transition cost from one tile to another. */
 static int TransitionCost (const YAPFSettings *settings,
 	const RailPathPos &pos1, const RailPathPos &pos2)
@@ -337,7 +340,6 @@ public:
 	typedef SmallArray<CYapfRailSegment> LocalCache;
 
 protected:
-	const YAPFSettings *const m_settings; ///< current settings (_settings_game.yapf)
 	const Train        *const m_veh;      ///< vehicle that we are trying to drive
 	const RailTypes           m_compatible_railtypes;
 	const int                 m_max_cost;
@@ -365,8 +367,7 @@ protected:
 	static const int s_max_segment_cost = 10000;
 
 	CYapfRailBase (const Train *v, bool allow_90deg, bool override_rail_type, int max_cost, bool mask_reserved_tracks, bool first_red_eol)
-		: m_settings(&_settings_game.pf.yapf)
-		, m_veh(v)
+		: m_veh(v)
 		, m_compatible_railtypes(v->compatible_railtypes | (override_rail_type ? GetRailTypeInfo(v->railtype)->compatible_railtypes : RAILTYPES_NONE))
 		, m_max_cost(max_cost)
 		, mask_reserved_tracks(mask_reserved_tracks)
