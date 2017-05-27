@@ -290,8 +290,7 @@ static const YAPFSettings *const m_settings = &_settings_game.pf.yapf; ///< curr
 
 
 /** Return the transition cost from one tile to another. */
-static int TransitionCost (const YAPFSettings *settings,
-	const RailPathPos &pos1, const RailPathPos &pos2)
+static int TransitionCost (const RailPathPos &pos1, const RailPathPos &pos2)
 {
 	assert(IsValidTrackdir(pos1.td));
 	assert(IsValidTrackdir(pos2.td));
@@ -306,12 +305,12 @@ static int TransitionCost (const YAPFSettings *settings,
 			assert(TrackdirToTrack(pos1.td) == TrackdirToTrack(pos2.td));
 			return 0;
 		} else {
-			return (pos1.td == pos2.td) ? 0 : settings->rail_curve45_penalty;
+			return (pos1.td == pos2.td) ? 0 : m_settings->rail_curve45_penalty;
 		}
 	} else {
 		if (!rail2) {
 			assert(IsDiagonalTrackdir(pos2.td));
-			return (pos1.td == pos2.td) ? 0 : settings->rail_curve45_penalty;
+			return (pos1.td == pos2.td) ? 0 : m_settings->rail_curve45_penalty;
 		}
 	}
 
@@ -320,16 +319,16 @@ static int TransitionCost (const YAPFSettings *settings,
 	int cost = 0;
 	if ((TrackdirToTrackdirBits(pos2.td) & (TrackdirBits)TrackdirCrossesTrackdirs(pos1.td)) != 0) {
 		/* 90-deg curve penalty */
-		cost += settings->rail_curve90_penalty;
+		cost += m_settings->rail_curve90_penalty;
 	} else if (pos2.td != NextTrackdir(pos1.td)) {
 		/* 45-deg curve penalty */
-		cost += settings->rail_curve45_penalty;
+		cost += m_settings->rail_curve45_penalty;
 	}
 
 	DiagDirection exitdir = TrackdirToExitdir(pos1.td);
 	bool t1 = KillFirstBit(GetTrackBits(pos1.tile) & DiagdirReachesTracks(ReverseDiagDir(exitdir))) != TRACK_BIT_NONE;
 	bool t2 = KillFirstBit(GetTrackBits(pos2.tile) & DiagdirReachesTracks(exitdir)) != TRACK_BIT_NONE;
-	if (t1 && t2) cost += settings->rail_doubleslip_penalty;
+	if (t1 && t2) cost += m_settings->rail_doubleslip_penalty;
 
 	return cost;
 }
@@ -415,12 +414,6 @@ public:
 		/* initial nodes can never be used from the cache */
 		AttachLocalSegment (&node);
 		InsertInitialNode (node);
-	}
-
-	/** Return the transition cost from one tile to another. */
-	inline int TransitionCost (const RailPathPos &pos1, const RailPathPos &pos2) const
-	{
-		return ::TransitionCost (m_settings, pos1, pos2);
 	}
 
 	/** Return one tile cost (base cost + level crossing penalty). */
