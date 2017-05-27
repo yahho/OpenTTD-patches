@@ -358,6 +358,32 @@ static int OneTileCost (const RailPathPos &pos)
 	return cost;
 }
 
+/** Return slope cost for a tile. */
+static int SlopeCost (const RailPathPos &pos)
+{
+	if (pos.in_wormhole() || !IsDiagonalTrackdir (pos.td)) return 0;
+
+	/* Only rail tracks and bridgeheads can have sloped rail. */
+	if (!IsRailwayTile (pos.tile)) return 0;
+
+	bool uphill;
+	if (IsTileSubtype (pos.tile, TT_BRIDGE)) {
+		/* it is bridge ramp, check if we are entering the bridge */
+		DiagDirection dir = GetTunnelBridgeDirection (pos.tile);
+		if (dir != TrackdirToExitdir (pos.td)) return 0; // no, we are leaving it, no penalty
+		/* we are entering the bridge */
+		Slope tile_slope = GetTileSlope (pos.tile);
+		Axis axis = DiagDirToAxis (dir);
+		uphill = !HasBridgeFlatRamp (tile_slope, axis);
+	} else {
+		/* not bridge ramp */
+		Slope tile_slope = GetTileSlope (pos.tile);
+		uphill = IsUphillTrackdir (tile_slope, pos.td); // slopes uphill => apply penalty
+	}
+
+	return uphill ? m_settings->rail_slope_penalty : 0;
+}
+
 
 class CYapfRailBase : public AstarRailTrackDir {
 public:
@@ -439,34 +465,6 @@ public:
 		/* initial nodes can never be used from the cache */
 		AttachLocalSegment (&node);
 		InsertInitialNode (node);
-	}
-
-	/** Return slope cost for a tile. */
-	inline int SlopeCost (const RailPathPos &pos)
-	{
-		CPerfStart perf_cost(m_perf_slope_cost);
-
-		if (pos.in_wormhole() || !IsDiagonalTrackdir(pos.td)) return 0;
-
-		/* Only rail tracks and bridgeheads can have sloped rail. */
-		if (!IsRailwayTile(pos.tile)) return 0;
-
-		bool uphill;
-		if (IsTileSubtype(pos.tile, TT_BRIDGE)) {
-			/* it is bridge ramp, check if we are entering the bridge */
-			DiagDirection dir = GetTunnelBridgeDirection(pos.tile);
-			if (dir != TrackdirToExitdir(pos.td)) return 0; // no, we are leaving it, no penalty
-			/* we are entering the bridge */
-			Slope tile_slope = GetTileSlope(pos.tile);
-			Axis axis = DiagDirToAxis(dir);
-			uphill = !HasBridgeFlatRamp(tile_slope, axis);
-		} else {
-			/* not bridge ramp */
-			Slope tile_slope = GetTileSlope(pos.tile);
-			uphill = IsUphillTrackdir(tile_slope, pos.td); // slopes uphill => apply penalty
-		}
-
-		return uphill ? m_settings->rail_slope_penalty : 0;
 	}
 
 	/** Check for a reserved station platform. */
@@ -670,7 +668,10 @@ inline void CYapfRailBase::HandleNodeTile (Node *n, const CFollowTrackRail *tf, 
 	cost += YAPF_TILE_LENGTH * tf->m_tiles_skipped;
 
 	/* Slope cost. */
-	cost += SlopeCost(pos);
+	{
+		CPerfStart perf_cost (m_perf_slope_cost);
+		cost += SlopeCost (pos);
+	}
 
 	/* Signal cost (routine can modify segment data). */
 	cost += SignalCost(n, pos);
