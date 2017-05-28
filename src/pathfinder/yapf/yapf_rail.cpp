@@ -1121,6 +1121,34 @@ bool CYapfRailBase::TryReservePath (TileIndex origin, const NodePos *res)
 }
 
 
+/** Check if we should add an extra penalty for a reserved waypoint. */
+static bool CheckReservedWaypoint (const Train *v, const RailPathPos &pos)
+{
+	CFollowTrackRail ft (v);
+	ft.SetPos (pos);
+
+	while (ft.FollowNext()) {
+		assert (ft.m_old.tile != ft.m_new.tile);
+		if (!ft.m_new.is_single()) {
+			/* We encountered a junction; it's going to be too
+			 * complex to handle this perfectly, so just bail out.
+			 * There is no simple free path, so try the other
+			 * possibilities. */
+			return true;
+		}
+
+		/* If this is a safe waiting position we're done searching. */
+		switch (CheckWaitingPosition (v, ft.m_new, _settings_game.pf.forbid_90_deg)) {
+			case PBS_UNSAFE: break;
+			case PBS_BUSY:   return true;
+			default:         return false;
+		}
+	}
+
+	/* End of line. */
+	return !IsWaitingPositionFree (v, ft.m_old, _settings_game.pf.forbid_90_deg);
+}
+
 struct CYapfRailOrderT : CYapfRailBase {
 private:
 	TileIndex m_dest_tile;
@@ -1193,33 +1221,7 @@ public:
 				/* This waypoint is our destination; maybe this isn't an unreserved
 				 * one, so check that and if so see that as the last signal being
 				 * red. This way waypoints near stations should work better. */
-				CFollowTrackRail ft(v);
-				ft.SetPos(pos);
-
-				bool add_extra_cost;
-				for (;;) {
-					if (!ft.FollowNext()) {
-						/* end of line */
-						add_extra_cost = !IsWaitingPositionFree(v, ft.m_old, _settings_game.pf.forbid_90_deg);
-						break;
-					}
-
-					assert(ft.m_old.tile != ft.m_new.tile);
-					if (!ft.m_new.is_single()) {
-						/* We encountered a junction; it's going to be too complex to
-						 * handle this perfectly, so just bail out. There is no simple
-						 * free path, so try the other possibilities. */
-						add_extra_cost = true;
-						break;
-					}
-
-					/* If this is a safe waiting position we're done searching for it */
-					PBSPositionState state = CheckWaitingPosition (v, ft.m_new, _settings_game.pf.forbid_90_deg);
-					if (state != PBS_UNSAFE) {
-						add_extra_cost = state == PBS_BUSY;
-						break;
-					}
-				}
+				bool add_extra_cost = CheckReservedWaypoint (v, pos);
 
 				/* In the case this platform is (possibly) occupied we add penalty so the
 				 * other platforms of this waypoint are evaluated as well, i.e. we assume
