@@ -686,6 +686,8 @@ inline void CYapfRailBase::HandleNodeTile (Node *n, const CFollowTrackRail *tf, 
 		assert(IsRailDepotTile(pos.tile));
 		assert(pos.td == DiagDirToDiagTrackdir(GetGroundDepotDirection(pos.tile)));
 		cost += m_settings->rail_depot_reverse_penalty;
+
+	} else if (!pos.in_wormhole() && IsRailDepotTile(pos.tile)) {
 		/* We will end in this pass (depot is possible target) */
 		n->m_segment->m_end_segment_reason.set(ESR_DEPOT);
 
