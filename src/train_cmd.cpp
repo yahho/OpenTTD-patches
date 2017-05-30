@@ -2450,7 +2450,7 @@ static ExtendReservationResult ExtendTrainReservation(const Train *v, RailPathPo
 
 	for (;;) {
 		if (!ft.FollowNext()) {
-			if (ft.m_err == CFollowTrackRail::EC_OWNER || ft.m_err == CFollowTrackRail::EC_NO_WAY) {
+			if (ft.m_err == CFollowTrackRail::EC_NO_WAY) {
 				/* End of line, path valid and okay. */
 				*origin = ft.m_old;
 				return EXTEND_RESERVATION_SAFE;

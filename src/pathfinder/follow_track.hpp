@@ -39,10 +39,9 @@ struct CFollowTrackTypes
 
 	enum ErrorCode {
 		EC_NONE,
-		EC_OWNER,
+		EC_NO_WAY,
 		EC_RAIL_TYPE,
 		EC_90DEG,
-		EC_NO_WAY,
 		EC_RESERVED,
 	};
 
@@ -620,7 +619,7 @@ struct CFollowTrackRoadBase : CFollowTrackBase<RoadPathPos>
 			}
 			/* don't try to enter other company's depots */
 			if (GetTileOwner(m_new.tile) != m_veh_owner) {
-				m_err = EC_OWNER;
+				m_err = EC_NO_WAY;
 				return false;
 			}
 		}
