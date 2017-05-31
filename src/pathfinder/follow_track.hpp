@@ -42,7 +42,6 @@ struct CFollowTrackTypes
 		EC_NO_WAY,
 		EC_RAIL_TYPE,
 		EC_90DEG,
-		EC_RESERVED,
 	};
 
 	enum TileResult {
