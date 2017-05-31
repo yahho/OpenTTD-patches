@@ -731,7 +731,6 @@ inline void CYapfRailBase::HandleNodeTile (Node *n, const CFollowTrackRail *tf, 
 inline void CYapfRailBase::HandleNodeNextTile (Node *n, CFollowTrackRail *tf, RailType rail_type)
 {
 	CFollowTrackRail::ErrorCode err = tf->Follow (n->m_segment->m_last);
-	tf->m_err = err;
 	if (err != CFollowTrackRail::EC_NONE) {
 		/* Can't move to the next tile (EOL?). */
 		if (err == CFollowTrackRail::EC_RAIL_TYPE) {
@@ -1004,7 +1003,6 @@ inline const CYapfRailBase::Node *CYapfRailBase::FindSafePositionOnPath (const N
 			if (ft.m_new == node->GetLastPos()) break; // no safe position found in node
 
 			CFollowTrackRail::ErrorCode err = ft.FollowNext();
-			ft.m_err = err;
 			assert (err == CFollowTrackRail::EC_NONE);
 			assert (ft.m_new.is_single());
 		}
@@ -1098,7 +1096,7 @@ bool CYapfRailBase::TryReservePath (TileIndex origin, const NodePos *res)
 						UnreserveSingleTrack (ft.m_new, origin);
 						if (ft.m_new == res->pos) break;
 						if (ft.m_new == node->GetLastPos()) break;
-						ft.m_err = ft.FollowNext();
+						ft.FollowNext();
 					}
 				}
 				ft.SetPos (failed_node->GetPos());
@@ -1106,7 +1104,7 @@ bool CYapfRailBase::TryReservePath (TileIndex origin, const NodePos *res)
 					assert (ft.m_new != res->pos);
 					assert (ft.m_new != node->GetLastPos());
 					UnreserveSingleTrack (ft.m_new, origin);
-					ft.m_err = ft.FollowNext();
+					ft.FollowNext();
 				}
 				return false;
 			}
@@ -1114,7 +1112,6 @@ bool CYapfRailBase::TryReservePath (TileIndex origin, const NodePos *res)
 			if (ft.m_new == res->pos) break;
 			if (ft.m_new == node->GetLastPos()) break;
 			CFollowTrackRail::ErrorCode err = ft.FollowNext();
-			ft.m_err = err;
 			assert (err == CFollowTrackRail::EC_NONE);
 			assert (ft.m_new.is_single());
 		}
@@ -1132,7 +1129,7 @@ static bool CheckReservedWaypoint (const Train *v, const RailPathPos &pos)
 	/* Arbitrary maximum tiles to follow to avoid infinite loops. */
 	uint max_tiles = 20;
 
-	while ((ft.m_err = ft.FollowNext()) == CFollowTrackRail::EC_NONE) {
+	while (ft.FollowNext() == CFollowTrackRail::EC_NONE) {
 		assert (ft.m_old.tile != ft.m_new.tile);
 
 		if (ft.m_new == pos || --max_tiles == 0) {
@@ -1300,9 +1297,7 @@ struct CYapfRailT : public TBase {
 	/** Called by the A-star underlying class to find the neighbours of a node. */
 	inline void Follow (const Node *old_node)
 	{
-		CFollowTrackRail::ErrorCode err = TBase::tf.Follow (old_node->GetLastPos());
-		TBase::tf.m_err = err;
-		if (err != CFollowTrackRail::EC_NONE) return;
+		if (TBase::tf.Follow (old_node->GetLastPos()) != CFollowTrackRail::EC_NONE) return;
 		if (TBase::mask_reserved_tracks && !TBase::tf.MaskReservedTracks()) return;
 
 		bool is_choice = !TBase::tf.m_new.is_single();

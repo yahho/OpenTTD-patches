@@ -2167,9 +2167,7 @@ static void CheckNextTrainTile(Train *v)
 			pos.get_signal_state() == SIGNAL_STATE_RED) return;
 
 	CFollowTrackRail ft(v, !_settings_game.pf.forbid_90_deg);
-	CFollowTrackRail::ErrorCode err = ft.Follow (pos);
-	ft.m_err = err;
-	if (err != CFollowTrackRail::EC_NONE) return;
+	if (ft.Follow (pos) != CFollowTrackRail::EC_NONE) return;
 
 	if (ft.m_new.is_single() && ft.m_new.has_signal_along() &&
 			IsPbsSignal(ft.m_new.get_signal_type()) &&
@@ -2350,9 +2348,7 @@ static void FreeTrainTrackReservation (const Train *v, const RailPathPos *end)
 	for (;;) {
 		if (end != NULL && ft.m_new == *end) return;
 
-		CFollowTrackRail::ErrorCode err = ft.FollowNext();
-		ft.m_err = err;
-		if (err != CFollowTrackRail::EC_NONE) break;
+		if (ft.FollowNext() != CFollowTrackRail::EC_NONE) break;
 
 		if (!ft.m_new.in_wormhole()) {
 			TrackdirBits trackdirs = ft.m_new.trackdirs & TrackBitsToTrackdirBits(GetReservedTrackbits(ft.m_new.tile));
@@ -2454,7 +2450,6 @@ static ExtendReservationResult ExtendTrainReservation(const Train *v, RailPathPo
 
 	for (;;) {
 		CFollowTrackRail::ErrorCode err = ft.FollowNext();
-		ft.m_err = err;
 		if (err == CFollowTrackRail::EC_NO_WAY) {
 			/* End of line, path valid and okay. */
 			*origin = ft.m_old;
@@ -2522,9 +2517,7 @@ static ExtendReservationResult ExtendTrainReservation(const Train *v, RailPathPo
 	RailPathPos stopped = ft.m_old;
 	ft.SetPos(*origin);
 	while (ft.m_new != stopped) {
-		CFollowTrackRail::ErrorCode err = ft.FollowNext();
-		ft.m_err = err;
-		if (err != CFollowTrackRail::EC_NONE) NOT_REACHED();
+		if (ft.FollowNext() != CFollowTrackRail::EC_NONE) NOT_REACHED();
 
 		assert(!ft.m_new.is_empty());
 		assert(ft.m_new.is_single());
@@ -2787,9 +2780,8 @@ static bool TryPathExtend (Train *v, const RailPathPos &origin, bool mark_as_stu
 {
 	CFollowTrackRail ft (v, !_settings_game.pf.forbid_90_deg);
 
-	CFollowTrackRail::ErrorCode err = ft.Follow (origin);
-	ft.m_err = err;
-	if ((err == CFollowTrackRail::EC_NONE) && !ChooseTrainTrack (v, origin, ft.m_new, true)) {
+	if ((ft.Follow (origin) == CFollowTrackRail::EC_NONE)
+			&& !ChooseTrainTrack (v, origin, ft.m_new, true)) {
 		if (mark_as_stuck) MarkTrainAsStuck(v);
 		return false;
 	}

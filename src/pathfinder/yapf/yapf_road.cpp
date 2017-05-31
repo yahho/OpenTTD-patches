@@ -258,9 +258,7 @@ public:
 				}
 
 				/* if there are no reachable trackdirs on new tile, we have end of road */
-				CFollowTrackRoad::ErrorCode err = tf.FollowNext();
-				tf.m_err = err;
-				if (err != CFollowTrackRoad::EC_NONE) {
+				if (tf.FollowNext() != CFollowTrackRoad::EC_NONE) {
 					last_tile = tf.m_old.tile;
 					last_dir = TrackdirToExitdir (tf.m_old.td);
 					break;

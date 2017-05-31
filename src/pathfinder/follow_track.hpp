@@ -67,7 +67,6 @@ struct CFollowTrackBase : CFollowTrackTypes
 	DiagDirection       m_exitdir;       ///< exit direction (leaving the old tile)
 	TileFlag            m_flag;          ///< last turn passed station, tunnel or bridge
 	int                 m_tiles_skipped; ///< number of skipped tunnel or station tiles
-	ErrorCode           m_err;
 };
 
 
@@ -455,7 +454,6 @@ struct CFollowTrackRailBase : CFollowTrackBase<RailPathPos>
 			for (;;) {
 				if (HasStationReservation(tile)) {
 					m_new.clear_trackdirs();
-					m_err = EC_RESERVED;
 					return false;
 				}
 				if (tile == m_new.tile) return true;
@@ -467,7 +465,6 @@ struct CFollowTrackRailBase : CFollowTrackBase<RailPathPos>
 			assert(m_new.is_single());
 			if (HasReservedPos(m_new)) {
 				m_new.clear_trackdirs();
-				m_err = EC_RESERVED;
 				return false;
 			} else {
 				return true;
@@ -484,7 +481,6 @@ struct CFollowTrackRailBase : CFollowTrackBase<RailPathPos>
 		}
 		if (trackdirs == TRACKDIR_BIT_NONE) {
 			m_new.clear_trackdirs();
-			m_err = EC_RESERVED;
 			return false;
 		}
 		m_new.set_trackdirs (trackdirs);
