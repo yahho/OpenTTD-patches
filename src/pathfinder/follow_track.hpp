@@ -99,18 +99,16 @@ struct CFollowTrack : Base
 	 * Main follower routine. Attempts to follow track at the given
 	 * pathfinder position. On return:
 	 *  * m_old is always set to the position given as argument.
-	 *  * On success, true is returned, and all fields are filled in as
-	 * appropriate. m_err is guaranteed to be EC_NONE, and m_exitdir may
-	 * not be the natural exit direction of m_old.td, if the track
-	 * follower had to reverse.
-	 *  * On failure, false is returned, and m_err is set to a value
-	 * indicating why the track could not be followed. The rest of the
-	 * fields should be considered undefined.
+	 *  * On success, EC_NONE is returned, and all fields are filled in
+	 * as appropriate. m_exitdir may not be the natural exit direction
+	 * of m_old.td, if the track follower had to reverse.
+	 *  * On failure, a value other than EC_NONE is returned, indicating
+	 * why the track could not be followed. The rest of the fields should
+	 * be considered undefined.
 	 */
-	inline bool Follow(const typename Base::Pos &pos)
+	inline typename Base::ErrorCode Follow (const typename Base::Pos &pos)
 	{
 		Base::m_old = pos;
-		Base::m_err = Base::EC_NONE;
 		Base::m_exitdir = TrackdirToExitdir(Base::m_old.td);
 
 		if (Base::m_old.in_wormhole()) {
@@ -118,21 +116,20 @@ struct CFollowTrack : Base
 		} else {
 			switch (Base::CheckOldTile()) {
 				case Base::TR_NO_WAY:
-					Base::m_err = Base::EC_NO_WAY;
-					return false;
+					return Base::EC_NO_WAY;
 				case Base::TR_REVERSE:
 					Base::m_new.set (Base::m_old.tile, ReverseTrackdir(Base::m_old.td));
 					Base::m_exitdir = ReverseDiagDir(Base::m_exitdir);
 					Base::m_tiles_skipped = 0;
 					Base::m_flag = Base::TF_NONE;
-					return true;
+					return Base::EC_NONE;
 				case Base::TR_BRIDGE:
 					/* we are entering the bridge */
-					if (EnterWormhole(true)) return true;
+					if (EnterWormhole(true)) return Base::EC_NONE;
 					break;
 				case Base::TR_TUNNEL:
 					/* we are entering the tunnel */
-					if (EnterWormhole(false)) return true;
+					if (EnterWormhole(false)) return Base::EC_NONE;
 					break;
 				default:
 					/* normal or station tile, do one step */
@@ -160,7 +157,7 @@ struct CFollowTrack : Base
 				if (Base::m_new.is_empty()) {
 					Base::m_new.set_trackdir (DiagDirToDiagTrackdir (Base::m_exitdir));
 				}
-				return true;
+				return Base::EC_NONE;
 
 			case Base::TF_TUNNEL:
 				assert(IsTunnelTile(Base::m_new.tile));
@@ -168,36 +165,35 @@ struct CFollowTrack : Base
 
 				Base::m_new.set_trackdir (DiagDirToDiagTrackdir(Base::m_exitdir));
 				assert(Base::m_new.trackdirs == (Base::GetTrackStatusTrackdirBits(Base::m_new.tile) & DiagdirReachesTrackdirs(Base::m_exitdir)));
-				return true;
+				return Base::EC_NONE;
 
 			default: break;
 		}
 
 		CFollowTrackTypes::ErrorCode err = Base::CheckNewTile();
 		if (err != CFollowTrackTypes::EC_NONE) {
-			Base::m_err = err;
-			if (!Base::CheckEndOfLine()) return false;
-			Base::m_err = Base::EC_NONE; // clear error set by CheckNewTile
-			return true;
+			if (!Base::CheckEndOfLine()) return err;
+			return Base::EC_NONE;
 		}
 
 		if (!Base::Allow90deg()) {
 			TrackdirBits trackdirs = Base::m_new.trackdirs & (TrackdirBits)~(int)TrackdirCrossesTrackdirs(Base::m_old.td);
 			if (trackdirs == TRACKDIR_BIT_NONE) {
-				Base::m_err = Base::EC_90DEG;
-				return false;
+				return Base::EC_90DEG;
 			}
 			Base::m_new.set_trackdirs (trackdirs);
 		}
 
-		return true;
+		return Base::EC_NONE;
 	}
 
 	inline bool FollowNext()
 	{
 		assert(Base::m_new.is_valid());
 		assert(Base::m_new.is_single());
-		return Follow(Base::m_new);
+		typename Base::ErrorCode err = Follow (Base::m_new);
+		Base::m_err = err;
+		return err == Base::EC_NONE;
 	}
 
 	inline void SetPos(const typename Base::Pos &pos)

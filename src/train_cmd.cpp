@@ -2167,7 +2167,9 @@ static void CheckNextTrainTile(Train *v)
 			pos.get_signal_state() == SIGNAL_STATE_RED) return;
 
 	CFollowTrackRail ft(v, !_settings_game.pf.forbid_90_deg);
-	if (!ft.Follow(pos)) return;
+	CFollowTrackRail::ErrorCode err = ft.Follow (pos);
+	ft.m_err = err;
+	if (err != CFollowTrackRail::EC_NONE) return;
 
 	if (ft.m_new.is_single() && ft.m_new.has_signal_along() &&
 			IsPbsSignal(ft.m_new.get_signal_type()) &&
@@ -2780,7 +2782,9 @@ static bool TryPathExtend (Train *v, const RailPathPos &origin, bool mark_as_stu
 {
 	CFollowTrackRail ft (v, !_settings_game.pf.forbid_90_deg);
 
-	if (ft.Follow (origin) && !ChooseTrainTrack (v, origin, ft.m_new, true)) {
+	CFollowTrackRail::ErrorCode err = ft.Follow (origin);
+	ft.m_err = err;
+	if ((err == CFollowTrackRail::EC_NONE) && !ChooseTrainTrack (v, origin, ft.m_new, true)) {
 		if (mark_as_stuck) MarkTrainAsStuck(v);
 		return false;
 	}

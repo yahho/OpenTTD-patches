@@ -730,10 +730,11 @@ inline void CYapfRailBase::HandleNodeTile (Node *n, const CFollowTrackRail *tf, 
 /** Check for possible reasons to end a segment at the next tile. */
 inline void CYapfRailBase::HandleNodeNextTile (Node *n, CFollowTrackRail *tf, RailType rail_type)
 {
-	if (!tf->Follow(n->m_segment->m_last)) {
-		assert(tf->m_err != CFollowTrackRail::EC_NONE);
+	CFollowTrackRail::ErrorCode err = tf->Follow (n->m_segment->m_last);
+	tf->m_err = err;
+	if (err != CFollowTrackRail::EC_NONE) {
 		/* Can't move to the next tile (EOL?). */
-		if (tf->m_err == CFollowTrackRail::EC_RAIL_TYPE) {
+		if (err == CFollowTrackRail::EC_RAIL_TYPE) {
 			n->m_segment->m_end_segment_reason.set(ESR_RAIL_TYPE);
 		} else {
 			n->m_segment->m_end_segment_reason.set(ESR_DEAD_END);
@@ -1297,7 +1298,9 @@ struct CYapfRailT : public TBase {
 	/** Called by the A-star underlying class to find the neighbours of a node. */
 	inline void Follow (const Node *old_node)
 	{
-		if (!TBase::tf.Follow(old_node->GetLastPos())) return;
+		CFollowTrackRail::ErrorCode err = TBase::tf.Follow (old_node->GetLastPos());
+		TBase::tf.m_err = err;
+		if (err != CFollowTrackRail::EC_NONE) return;
 		if (TBase::mask_reserved_tracks && !TBase::tf.MaskReservedTracks()) return;
 
 		bool is_choice = !TBase::tf.m_new.is_single();
