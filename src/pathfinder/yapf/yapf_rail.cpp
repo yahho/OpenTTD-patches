@@ -1003,8 +1003,9 @@ inline const CYapfRailBase::Node *CYapfRailBase::FindSafePositionOnPath (const N
 
 			if (ft.m_new == node->GetLastPos()) break; // no safe position found in node
 
-			bool follow = ft.FollowNext();
-			assert (follow);
+			CFollowTrackRail::ErrorCode err = ft.FollowNext();
+			ft.m_err = err;
+			assert (err == CFollowTrackRail::EC_NONE);
 			assert (ft.m_new.is_single());
 		}
 
@@ -1097,7 +1098,7 @@ bool CYapfRailBase::TryReservePath (TileIndex origin, const NodePos *res)
 						UnreserveSingleTrack (ft.m_new, origin);
 						if (ft.m_new == res->pos) break;
 						if (ft.m_new == node->GetLastPos()) break;
-						ft.FollowNext();
+						ft.m_err = ft.FollowNext();
 					}
 				}
 				ft.SetPos (failed_node->GetPos());
@@ -1105,15 +1106,16 @@ bool CYapfRailBase::TryReservePath (TileIndex origin, const NodePos *res)
 					assert (ft.m_new != res->pos);
 					assert (ft.m_new != node->GetLastPos());
 					UnreserveSingleTrack (ft.m_new, origin);
-					ft.FollowNext();
+					ft.m_err = ft.FollowNext();
 				}
 				return false;
 			}
 
 			if (ft.m_new == res->pos) break;
 			if (ft.m_new == node->GetLastPos()) break;
-			bool follow = ft.FollowNext();
-			assert (follow);
+			CFollowTrackRail::ErrorCode err = ft.FollowNext();
+			ft.m_err = err;
+			assert (err == CFollowTrackRail::EC_NONE);
 			assert (ft.m_new.is_single());
 		}
 	}
@@ -1130,7 +1132,7 @@ static bool CheckReservedWaypoint (const Train *v, const RailPathPos &pos)
 	/* Arbitrary maximum tiles to follow to avoid infinite loops. */
 	uint max_tiles = 20;
 
-	while (ft.FollowNext()) {
+	while ((ft.m_err = ft.FollowNext()) == CFollowTrackRail::EC_NONE) {
 		assert (ft.m_old.tile != ft.m_new.tile);
 
 		if (ft.m_new == pos || --max_tiles == 0) {

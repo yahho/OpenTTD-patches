@@ -272,7 +272,7 @@ static bool FollowReservation(Owner o, RailTypes rts, RailPathPos *pos, bool ign
 	RailPathPos cur = *pos;
 	RailPathPos start;
 
-	while (ft.FollowNext()) {
+	while ((ft.m_err = ft.FollowNext()) == CFollowTrackRail::EC_NONE) {
 		/* No reservation --> path end found */
 		if (ft.m_new.in_wormhole()) {
 			if (!HasReservedPos(ft.m_new)) break;

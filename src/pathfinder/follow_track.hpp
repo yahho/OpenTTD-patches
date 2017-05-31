@@ -187,13 +187,12 @@ struct CFollowTrack : Base
 		return Base::EC_NONE;
 	}
 
-	inline bool FollowNext()
+	/** Call Follow on the previously new tile. */
+	inline typename Base::ErrorCode FollowNext (void)
 	{
 		assert(Base::m_new.is_valid());
 		assert(Base::m_new.is_single());
-		typename Base::ErrorCode err = Follow (Base::m_new);
-		Base::m_err = err;
-		return err == Base::EC_NONE;
+		return Follow (Base::m_new);
 	}
 
 	inline void SetPos(const typename Base::Pos &pos)

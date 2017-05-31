@@ -2350,7 +2350,9 @@ static void FreeTrainTrackReservation (const Train *v, const RailPathPos *end)
 	for (;;) {
 		if (end != NULL && ft.m_new == *end) return;
 
-		if (!ft.FollowNext()) break;
+		CFollowTrackRail::ErrorCode err = ft.FollowNext();
+		ft.m_err = err;
+		if (err != CFollowTrackRail::EC_NONE) break;
 
 		if (!ft.m_new.in_wormhole()) {
 			TrackdirBits trackdirs = ft.m_new.trackdirs & TrackBitsToTrackdirBits(GetReservedTrackbits(ft.m_new.tile));
@@ -2451,12 +2453,13 @@ static ExtendReservationResult ExtendTrainReservation(const Train *v, RailPathPo
 	ft.SetPos(*origin);
 
 	for (;;) {
-		if (!ft.FollowNext()) {
-			if (ft.m_err == CFollowTrackRail::EC_NO_WAY) {
-				/* End of line, path valid and okay. */
-				*origin = ft.m_old;
-				return EXTEND_RESERVATION_SAFE;
-			}
+		CFollowTrackRail::ErrorCode err = ft.FollowNext();
+		ft.m_err = err;
+		if (err == CFollowTrackRail::EC_NO_WAY) {
+			/* End of line, path valid and okay. */
+			*origin = ft.m_old;
+			return EXTEND_RESERVATION_SAFE;
+		} else if (err != CFollowTrackRail::EC_NONE) {
 			break;
 		}
 
@@ -2519,7 +2522,9 @@ static ExtendReservationResult ExtendTrainReservation(const Train *v, RailPathPo
 	RailPathPos stopped = ft.m_old;
 	ft.SetPos(*origin);
 	while (ft.m_new != stopped) {
-		if (!ft.FollowNext()) NOT_REACHED();
+		CFollowTrackRail::ErrorCode err = ft.FollowNext();
+		ft.m_err = err;
+		if (err != CFollowTrackRail::EC_NONE) NOT_REACHED();
 
 		assert(!ft.m_new.is_empty());
 		assert(ft.m_new.is_single());
