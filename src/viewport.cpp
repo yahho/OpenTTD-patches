@@ -199,7 +199,6 @@ void DeleteWindowViewport(Window *w)
 {
 	if (w->viewport == NULL) return;
 
-	delete w->viewport->overlay;
 	free(w->viewport);
 	w->viewport = NULL;
 }

@@ -205,12 +205,14 @@ enum {
 
 struct MainWindow : Window
 {
+	LinkGraphOverlay overlay;
 	uint refresh;
 
 	static const uint LINKGRAPH_REFRESH_PERIOD = 0xff;
 	static const uint LINKGRAPH_DELAY = 0xf;
 
-	MainWindow (const WindowDesc *desc) : Window (desc), refresh (0)
+	MainWindow (const WindowDesc *desc) : Window (desc),
+		overlay (this, WID_M_VIEWPORT, 0, 0, 3), refresh (0)
 	{
 		this->InitNested(0);
 		CLRBITS(this->flags, WF_WHITE_BORDER);
@@ -219,7 +221,7 @@ struct MainWindow : Window
 		NWidgetViewport *nvp = this->GetWidget<NWidgetViewport>(WID_M_VIEWPORT);
 		nvp->InitializeViewport(this, TileXY(32, 32), ZOOM_LVL_VIEWPORT);
 
-		this->viewport->overlay = new LinkGraphOverlay(this, WID_M_VIEWPORT, 0, 0, 3);
+		this->viewport->overlay = &this->overlay;
 		this->refresh = LINKGRAPH_DELAY;
 	}
 
@@ -229,12 +231,12 @@ struct MainWindow : Window
 
 		this->refresh = LINKGRAPH_REFRESH_PERIOD;
 
-		if (this->viewport->overlay->GetCargoMask() == 0 ||
-				this->viewport->overlay->GetCompanyMask() == 0) {
+		if (this->overlay.GetCargoMask() == 0 ||
+				this->overlay.GetCompanyMask() == 0) {
 			return;
 		}
 
-		this->viewport->overlay->RebuildCache();
+		this->overlay.RebuildCache();
 		this->GetWidget<NWidgetBase>(WID_M_VIEWPORT)->SetDirty(this);
 	}
 
