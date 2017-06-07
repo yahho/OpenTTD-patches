@@ -87,6 +87,35 @@ static void AddStats (uint new_cap, uint new_usg, uint new_plan, bool new_shared
 }
 
 /**
+ * Add all "interesting" links between the given stations to the cache.
+ * @param link The link cache item to add links to.
+ * @param cargo_mask The mask of cargoes to check.
+ * @param from The source station.
+ * @param to The destination station.
+ */
+static void AddLinks (LinkProperties &link, uint32 cargo_mask,
+	const Station *from, const Station *to)
+{
+	CargoID c;
+	FOR_EACH_SET_CARGO_ID(c, cargo_mask) {
+		if (!CargoSpec::Get(c)->IsValid()) continue;
+		const GoodsEntry &ge = from->goods[c];
+		if (!LinkGraph::IsValidID (ge.link_graph) ||
+				ge.link_graph != to->goods[c].link_graph) {
+			continue;
+		}
+		const LinkGraph &lg = *LinkGraph::Get (ge.link_graph);
+		const LinkGraph::Edge &edge = lg[ge.node][to->goods[c].node];
+		if (edge.Capacity() > 0) {
+			AddStats (lg.Monthly (edge.Capacity()), lg.Monthly (edge.Usage()),
+					ge.flows.GetFlowVia (to->index),
+					from->owner == OWNER_NONE || to->owner == OWNER_NONE,
+					link);
+		}
+	}
+}
+
+/**
  * Rebuild the cache and recalculate which links and stations to be shown.
  */
 void LinkGraphOverlay::RebuildCache()
@@ -134,37 +163,11 @@ void LinkGraphOverlay::RebuildCache()
 
 				if (!IsLinkVisible (pta, this->GetStationMiddle(stb), &dpi)) continue;
 
-				this->AddLinks(sta, stb);
-				seen_links[to]; // make sure it is created and marked as seen
+				AddLinks (seen_links[to], this->cargo_mask, sta, stb);
 			}
 		}
 		if (IsPointVisible (pta, &dpi)) {
 			this->cached_stations.push_back(std::make_pair(from, supply));
-		}
-	}
-}
-
-/**
- * Add all "interesting" links between the given stations to the cache.
- * @param from The source station.
- * @param to The destination station.
- */
-void LinkGraphOverlay::AddLinks(const Station *from, const Station *to)
-{
-	CargoID c;
-	FOR_EACH_SET_CARGO_ID(c, this->cargo_mask) {
-		if (!CargoSpec::Get(c)->IsValid()) continue;
-		const GoodsEntry &ge = from->goods[c];
-		if (!LinkGraph::IsValidID(ge.link_graph) ||
-				ge.link_graph != to->goods[c].link_graph) {
-			continue;
-		}
-		const LinkGraph &lg = *LinkGraph::Get(ge.link_graph);
-		const LinkGraph::Edge &edge = lg[ge.node][to->goods[c].node];
-		if (edge.Capacity() > 0) {
-			AddStats (lg.Monthly(edge.Capacity()), lg.Monthly(edge.Usage()),
-					ge.flows.GetFlowVia(to->index), from->owner == OWNER_NONE || to->owner == OWNER_NONE,
-					this->cached_links[from->index][to->index]);
 		}
 	}
 }

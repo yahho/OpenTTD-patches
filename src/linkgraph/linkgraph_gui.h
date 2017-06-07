@@ -77,8 +77,6 @@ protected:
 	uint scale;                        ///< Width of link lines.
 
 	Point GetStationMiddle(const Station *st) const;
-
-	void AddLinks(const Station *sta, const Station *stb);
 };
 
 void ShowLinkGraphLegend();
