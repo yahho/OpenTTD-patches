@@ -97,7 +97,6 @@ private:
 	LinkGraphOverlay *overlay;
 
 	void UpdateOverlayCompanies();
-	void UpdateOverlayCargoes();
 };
 
 #endif /* LINKGRAPH_GUI_H */

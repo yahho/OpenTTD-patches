@@ -497,20 +497,6 @@ void LinkGraphLegendWindow::UpdateOverlayCompanies()
 	this->overlay->SetCompanyMask(mask);
 }
 
-/**
- * Update the overlay with the new cargo selection.
- */
-void LinkGraphLegendWindow::UpdateOverlayCargoes()
-{
-	uint32 mask = 0;
-	for (uint c = 0; c < NUM_CARGO; c++) {
-		if (this->IsWidgetDisabled(c + WID_LGL_CARGO_FIRST)) continue;
-		if (!this->IsWidgetLowered(c + WID_LGL_CARGO_FIRST)) continue;
-		SetBit(mask, c);
-	}
-	this->overlay->SetCargoMask(mask);
-}
-
 void LinkGraphLegendWindow::OnClick(Point pt, int widget, int click_count)
 {
 	bool cargo;
@@ -545,7 +531,14 @@ void LinkGraphLegendWindow::OnClick(Point pt, int widget, int click_count)
 	}
 
 	if (cargo) {
-		this->UpdateOverlayCargoes();
+		/* Update the overlay with the new cargo selection. */
+		uint32 mask = 0;
+		for (uint c = 0; c < NUM_CARGO; c++) {
+			if (this->IsWidgetDisabled (c + WID_LGL_CARGO_FIRST)) continue;
+			if (!this->IsWidgetLowered (c + WID_LGL_CARGO_FIRST)) continue;
+			SetBit (mask, c);
+		}
+		this->overlay->SetCargoMask (mask);
 	} else {
 		this->UpdateOverlayCompanies();
 	}
