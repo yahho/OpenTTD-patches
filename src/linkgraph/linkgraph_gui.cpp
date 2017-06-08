@@ -513,31 +513,43 @@ void LinkGraphLegendWindow::UpdateOverlayCargoes()
 
 void LinkGraphLegendWindow::OnClick(Point pt, int widget, int click_count)
 {
+	bool cargo;
+
 	/* Check which button is clicked */
 	if (IsInsideMM(widget, WID_LGL_COMPANY_FIRST, WID_LGL_COMPANY_LAST + 1)) {
-		if (!this->IsWidgetDisabled(widget)) {
-			this->ToggleWidgetLoweredState(widget);
-			this->UpdateOverlayCompanies();
-		}
+		if (this->IsWidgetDisabled(widget)) return;
+		this->ToggleWidgetLoweredState (widget);
+		cargo = false;
+
 	} else if (widget == WID_LGL_COMPANIES_ALL || widget == WID_LGL_COMPANIES_NONE) {
 		for (uint c = 0; c < MAX_COMPANIES; c++) {
 			if (this->IsWidgetDisabled(c + WID_LGL_COMPANY_FIRST)) continue;
 			this->SetWidgetLoweredState(WID_LGL_COMPANY_FIRST + c, widget == WID_LGL_COMPANIES_ALL);
 		}
-		this->UpdateOverlayCompanies();
-		this->SetDirty();
+		cargo = false;
+
 	} else if (IsInsideMM(widget, WID_LGL_CARGO_FIRST, WID_LGL_CARGO_LAST + 1)) {
-		if (!this->IsWidgetDisabled(widget)) {
-			this->ToggleWidgetLoweredState(widget);
-			this->UpdateOverlayCargoes();
-		}
+		if (this->IsWidgetDisabled(widget)) return;
+		this->ToggleWidgetLoweredState (widget);
+		cargo = true;
+
 	} else if (widget == WID_LGL_CARGOES_ALL || widget == WID_LGL_CARGOES_NONE) {
 		for (uint c = 0; c < NUM_CARGO; c++) {
 			if (this->IsWidgetDisabled(c + WID_LGL_CARGO_FIRST)) continue;
 			this->SetWidgetLoweredState(WID_LGL_CARGO_FIRST + c, widget == WID_LGL_CARGOES_ALL);
 		}
-		this->UpdateOverlayCargoes();
+		cargo = true;
+
+	} else {
+		return;
 	}
+
+	if (cargo) {
+		this->UpdateOverlayCargoes();
+	} else {
+		this->UpdateOverlayCompanies();
+	}
+
 	this->SetDirty();
 }
 
