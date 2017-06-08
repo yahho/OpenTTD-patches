@@ -95,8 +95,6 @@ public:
 
 private:
 	LinkGraphOverlay *overlay;
-
-	void UpdateOverlayCompanies();
 };
 
 #endif /* LINKGRAPH_GUI_H */

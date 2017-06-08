@@ -483,20 +483,6 @@ void LinkGraphLegendWindow::DrawWidget (BlitArea *dpi, const Rect &r, int widget
 	}
 }
 
-/**
- * Update the overlay with the new company selection.
- */
-void LinkGraphLegendWindow::UpdateOverlayCompanies()
-{
-	uint32 mask = 0;
-	for (uint c = 0; c < MAX_COMPANIES; c++) {
-		if (this->IsWidgetDisabled(c + WID_LGL_COMPANY_FIRST)) continue;
-		if (!this->IsWidgetLowered(c + WID_LGL_COMPANY_FIRST)) continue;
-		SetBit(mask, c);
-	}
-	this->overlay->SetCompanyMask(mask);
-}
-
 void LinkGraphLegendWindow::OnClick(Point pt, int widget, int click_count)
 {
 	bool cargo;
@@ -540,7 +526,14 @@ void LinkGraphLegendWindow::OnClick(Point pt, int widget, int click_count)
 		}
 		this->overlay->SetCargoMask (mask);
 	} else {
-		this->UpdateOverlayCompanies();
+		/* Update the overlay with the new company selection. */
+		uint32 mask = 0;
+		for (uint c = 0; c < MAX_COMPANIES; c++) {
+			if (this->IsWidgetDisabled (c + WID_LGL_COMPANY_FIRST)) continue;
+			if (!this->IsWidgetLowered (c + WID_LGL_COMPANY_FIRST)) continue;
+			SetBit (mask, c);
+		}
+		this->overlay->SetCompanyMask (mask);
 	}
 
 	this->SetDirty();
