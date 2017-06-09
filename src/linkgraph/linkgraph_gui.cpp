@@ -19,6 +19,7 @@
 #include "../smallmap_gui.h"
 #include "../core/geometry_func.hpp"
 #include "../widgets/link_graph_legend_widget.h"
+#include "../widgets/main_widget.h"
 
 #include "table/strings.h"
 
@@ -287,7 +288,6 @@ void LinkGraphOverlay::SetCargoMask(uint32 cargo_mask)
 {
 	this->cargo_mask = cargo_mask;
 	this->RebuildCache();
-	this->window->GetWidget<NWidgetBase>(this->widget_id)->SetDirty(this->window);
 }
 
 /**
@@ -298,7 +298,6 @@ void LinkGraphOverlay::SetCompanyMask(uint32 company_mask)
 {
 	this->company_mask = company_mask;
 	this->RebuildCache();
-	this->window->GetWidget<NWidgetBase>(this->widget_id)->SetDirty(this->window);
 }
 
 /** Make a number of rows with buttons for each company for the linkgraph legend window. */
@@ -536,6 +535,7 @@ void LinkGraphLegendWindow::OnClick(Point pt, int widget, int click_count)
 		this->overlay->SetCompanyMask (mask);
 	}
 
+	FindWindowById (WC_MAIN_WINDOW, 0)->SetWidgetDirty (WID_M_VIEWPORT);
 	this->SetDirty();
 }
 
