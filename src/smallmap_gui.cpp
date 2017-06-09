@@ -1337,6 +1337,7 @@ void SmallMapWindow::SetOverlayCargoMask()
 		if (_legend_linkstats[i].show_on_map) SetBit(cargo_mask, _legend_linkstats[i].type);
 	}
 	this->overlay.SetCargoMask (cargo_mask);
+	this->overlay.RebuildCache();
 }
 
 /**
@@ -1563,9 +1564,8 @@ int SmallMapWindow::GetPositionOnLegend(Point pt)
 		uint32 company_mask = this->GetOverlayCompanyMask();
 		if (this->overlay.GetCompanyMask() != company_mask) {
 			this->overlay.SetCompanyMask (company_mask);
-		} else {
-			this->overlay.RebuildCache();
 		}
+		this->overlay.RebuildCache();
 	}
 	_smallmap_industry_highlight_state = !_smallmap_industry_highlight_state;
 

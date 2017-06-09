@@ -280,26 +280,6 @@ Point LinkGraphOverlay::GetStationMiddle(const Station *st) const
 	}
 }
 
-/**
- * Set a new cargo mask and rebuild the cache.
- * @param cargo_mask New cargo mask.
- */
-void LinkGraphOverlay::SetCargoMask(uint32 cargo_mask)
-{
-	this->cargo_mask = cargo_mask;
-	this->RebuildCache();
-}
-
-/**
- * Set a new company mask and rebuild the cache.
- * @param company_mask New company mask.
- */
-void LinkGraphOverlay::SetCompanyMask(uint32 company_mask)
-{
-	this->company_mask = company_mask;
-	this->RebuildCache();
-}
-
 /** Make a number of rows with buttons for each company for the linkgraph legend window. */
 NWidgetBase *MakeCompanyButtonRowsLinkGraphGUI(int *biggest_index)
 {
@@ -535,6 +515,7 @@ void LinkGraphLegendWindow::OnClick(Point pt, int widget, int click_count)
 		this->overlay->SetCompanyMask (mask);
 	}
 
+	this->overlay->RebuildCache();
 	FindWindowById (WC_MAIN_WINDOW, 0)->SetWidgetDirty (WID_M_VIEWPORT);
 	this->SetDirty();
 }
