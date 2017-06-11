@@ -24,10 +24,9 @@
  * @tparam Tbase       Instantiation of this class.
  * @tparam Tspec       NewGRF specification related to the animated tile.
  * @tparam Tobj        Object related to the animated tile.
- * @tparam Textra      Custom extra callback data.
  * @tparam GetCallback The callback function pointer.
  */
-template <typename Tbase, typename Tspec, typename Tobj, typename Textra, uint16 (*GetCallback) (CallbackID callback, uint32 param1, uint32 param2, const Tspec *statspec, Tobj *st, TileIndex tile)>
+template <typename Tbase, typename Tspec, typename Tobj, uint16 (*GetCallback) (CallbackID callback, uint32 param1, uint32 param2, const Tspec *statspec, Tobj *st, TileIndex tile)>
 struct AnimationBase {
 	/**
 	 * Animate a single tile.

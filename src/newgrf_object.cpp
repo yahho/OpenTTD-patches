@@ -524,7 +524,7 @@ uint16 StubGetObjectCallback (CallbackID callback, uint32 param1, uint32 param2,
 }
 
 /** Helper class for animation control. */
-struct ObjectAnimationBase : public AnimationBase<ObjectAnimationBase, ObjectSpec, Object, int, StubGetObjectCallback> {
+struct ObjectAnimationBase : public AnimationBase <ObjectAnimationBase, ObjectSpec, Object, StubGetObjectCallback> {
 	static const CallbackID cb_animation_speed      = CBID_OBJECT_ANIMATION_SPEED;
 	static const CallbackID cb_animation_next_frame = CBID_OBJECT_ANIMATION_NEXT_FRAME;
 
