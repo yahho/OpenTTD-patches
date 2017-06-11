@@ -106,20 +106,13 @@ struct AnimationBase {
 	}
 
 	/**
-	 * Check a callback to determine what the next animation step is and
-	 * execute that step. This includes stopping and starting animations
-	 * as well as updating animation frames and playing sounds.
-	 * @param cb          The callback to actually call.
-	 * @param spec        Specification related to the tile.
-	 * @param obj         Object related to the tile.
-	 * @param tile        Tile to consider animation changes for.
-	 * @param random_bits Random bits for this update. To be passed as parameter to the NewGRF.
-	 * @param trigger     What triggered this update? To be passed as parameter to the NewGRF.
-	 * @param extra_data  Custom extra data for callback processing.
+	 * Process an animation callback result.
+	 * @param spec     Specification related to the tile.
+	 * @param tile     Tile to consider animation changes for.
+	 * @param callback The callback result.
 	 */
-	static void ChangeAnimationFrame(CallbackID cb, const Tspec *spec, Tobj *obj, TileIndex tile, uint32 random_bits, uint32 trigger, Textra extra_data = 0)
+	static void ChangeAnimationFrame (const Tspec *spec, TileIndex tile, uint16 callback)
 	{
-		uint16 callback = GetCallback(cb, random_bits, trigger, spec, obj, tile, extra_data);
 		if (callback == CALLBACK_FAILED) return;
 
 		switch (callback & 0xFF) {
@@ -135,5 +128,23 @@ struct AnimationBase {
 		/* If the lower 7 bits of the upper byte of the callback
 		 * result are not empty, it is a sound effect. */
 		if (GB(callback, 8, 7) != 0 && _settings_client.sound.ambient) PlayTileSound(spec->grf_prop.grffile, GB(callback, 8, 7), tile);
+	}
+
+	/**
+	 * Check a callback to determine what the next animation step is and
+	 * execute that step. This includes stopping and starting animations
+	 * as well as updating animation frames and playing sounds.
+	 * @param cb          The callback to actually call.
+	 * @param spec        Specification related to the tile.
+	 * @param obj         Object related to the tile.
+	 * @param tile        Tile to consider animation changes for.
+	 * @param random_bits Random bits for this update. To be passed as parameter to the NewGRF.
+	 * @param trigger     What triggered this update? To be passed as parameter to the NewGRF.
+	 * @param extra_data  Custom extra data for callback processing.
+	 */
+	static void ChangeAnimationFrame(CallbackID cb, const Tspec *spec, Tobj *obj, TileIndex tile, uint32 random_bits, uint32 trigger, Textra extra_data = 0)
+	{
+		uint16 callback = GetCallback(cb, random_bits, trigger, spec, obj, tile, extra_data);
+		ChangeAnimationFrame (spec, tile, callback);
 	}
 };
