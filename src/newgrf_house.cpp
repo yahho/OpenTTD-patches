@@ -583,9 +583,9 @@ void DrawNewHouseTileInGUI (BlitArea *dpi, int x, int y, HouseID house_id, bool 
 }
 
 /* Simple wrapper for GetHouseCallback to keep the animation unified. */
-uint16 GetSimpleHouseCallback(CallbackID callback, uint32 param1, uint32 param2, const HouseSpec *spec, Town *town, TileIndex tile, uint32 extra_data)
+uint16 GetSimpleHouseCallback (CallbackID callback, uint32 param1, uint32 param2, const HouseSpec *spec, Town *town, TileIndex tile)
 {
-	return GetHouseCallback(callback, param1, param2, spec - HouseSpec::Get(0), town, tile, false, 0, extra_data);
+	return GetHouseCallback (callback, param1, param2, spec - HouseSpec::Get(0), town, tile, false, 0, 0);
 }
 
 /** Helper class for animation control. */

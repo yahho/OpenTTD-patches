@@ -935,7 +935,7 @@ bool CanStationTileHaveWires(TileIndex tile)
 }
 
 /** Wrapper for animation control, see #GetStationCallback. */
-uint16 GetAnimStationCallback(CallbackID callback, uint32 param1, uint32 param2, const StationSpec *statspec, BaseStation *st, TileIndex tile, int extra_data)
+uint16 GetAnimStationCallback (CallbackID callback, uint32 param1, uint32 param2, const StationSpec *statspec, BaseStation *st, TileIndex tile)
 {
 	return GetStationCallback(callback, param1, param2, statspec, st, tile);
 }

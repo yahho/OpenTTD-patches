@@ -244,7 +244,7 @@ static inline const SpriteGroup *AirportTileResolve (const AirportTileSpec *ats,
 	return SpriteGroup::Resolve (ats->grf_prop.spritegroup[0], object);
 }
 
-uint16 GetAirportTileCallback(CallbackID callback, uint32 param1, uint32 param2, const AirportTileSpec *ats, Station *st, TileIndex tile, int extra_data = 0)
+uint16 GetAirportTileCallback (CallbackID callback, uint32 param1, uint32 param2, const AirportTileSpec *ats, Station *st, TileIndex tile)
 {
 	return SpriteGroup::CallbackResult (AirportTileResolve (ats, tile, st, callback, param1, param2));
 }
