@@ -985,7 +985,11 @@ void TriggerStationAnimation(BaseStation *st, TileIndex tile, StationAnimationTr
 				} else {
 					cargo = ss->grf_prop.grffile->cargo_map[cargo_type];
 				}
-				StationAnimationBase::ChangeAnimationFrame(CBID_STATION_ANIM_START_STOP, ss, st, tile, (random_bits << 16) | Random(), (uint8)trigger | (cargo << 8));
+				uint16 callback = GetStationCallback (CBID_STATION_ANIM_START_STOP,
+						(random_bits << 16) | Random(),
+						(uint8)trigger | (cargo << 8),
+						ss, st, tile);
+				StationAnimationBase::ChangeAnimationFrame (ss, tile, callback);
 			}
 		}
 	}

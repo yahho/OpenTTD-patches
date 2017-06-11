@@ -284,11 +284,14 @@ void AnimateNewIndustryTile(TileIndex tile)
 
 bool StartStopIndustryTileAnimation(TileIndex tile, IndustryAnimationTrigger iat, uint32 random)
 {
-	const IndustryTileSpec *itspec = GetIndustryTileSpec(GetIndustryGfx(tile));
+	IndustryGfx gfx = GetIndustryGfx (tile);
+	const IndustryTileSpec *itspec = GetIndustryTileSpec (gfx);
 
 	if (!HasBit(itspec->animation.triggers, iat)) return false;
 
-	IndustryAnimationBase::ChangeAnimationFrame(CBID_INDTILE_ANIM_START_STOP, itspec, Industry::GetByTile(tile), tile, random, iat);
+	uint16 callback = GetIndustryTileCallback (CBID_INDTILE_ANIM_START_STOP,
+			random, iat, gfx, Industry::GetByTile(tile), tile);
+	IndustryAnimationBase::ChangeAnimationFrame (itspec, tile, callback);
 	return true;
 }
 

@@ -556,7 +556,9 @@ void TriggerObjectTileAnimation(Object *o, TileIndex tile, ObjectAnimationTrigge
 {
 	if (!HasBit(spec->animation.triggers, trigger)) return;
 
-	ObjectAnimationBase::ChangeAnimationFrame(CBID_OBJECT_ANIMATION_START_STOP, spec, o, tile, Random(), trigger);
+	uint16 callback = GetObjectCallback (CBID_OBJECT_ANIMATION_START_STOP,
+					Random(), trigger, spec, o, tile);
+	ObjectAnimationBase::ChangeAnimationFrame (spec, tile, callback);
 }
 
 /**

@@ -607,10 +607,13 @@ void AnimateNewHouseTile(TileIndex tile)
 
 void AnimateNewHouseConstruction(TileIndex tile)
 {
-	const HouseSpec *hs = HouseSpec::Get(GetHouseType(tile));
+	HouseID id = GetHouseType (tile);
+	const HouseSpec *hs = HouseSpec::Get (id);
 
 	if (HasBit(hs->callback_mask, CBM_HOUSE_CONSTRUCTION_STATE_CHANGE)) {
-		HouseAnimationBase::ChangeAnimationFrame(CBID_HOUSE_CONSTRUCTION_STATE_CHANGE, hs, Town::GetByTile(tile), tile, 0, 0);
+		uint16 callback = GetHouseCallback (CBID_HOUSE_CONSTRUCTION_STATE_CHANGE,
+					0, 0, id, Town::GetByTile(tile), tile, false, 0, 0);
+		HouseAnimationBase::ChangeAnimationFrame (hs, tile, callback);
 	}
 }
 
@@ -634,11 +637,14 @@ bool CanDeleteHouse(TileIndex tile)
 
 static void AnimationControl(TileIndex tile, uint16 random_bits)
 {
-	const HouseSpec *hs = HouseSpec::Get(GetHouseType(tile));
+	HouseID id = GetHouseType (tile);
+	const HouseSpec *hs = HouseSpec::Get (id);
 
 	if (HasBit(hs->callback_mask, CBM_HOUSE_ANIMATION_START_STOP)) {
 		uint32 param = (hs->extra_flags & SYNCHRONISED_CALLBACK_1B) ? (GB(Random(), 0, 16) | random_bits << 16) : Random();
-		HouseAnimationBase::ChangeAnimationFrame(CBID_HOUSE_ANIMATION_START_STOP, hs, Town::GetByTile(tile), tile, param, 0);
+		uint16 callback = GetHouseCallback (CBID_HOUSE_ANIMATION_START_STOP,
+					param, 0, id, Town::GetByTile(tile), tile, false, 0, 0);
+		HouseAnimationBase::ChangeAnimationFrame (hs, tile, callback);
 	}
 }
 
@@ -743,7 +749,12 @@ void DoWatchedCargoCallback(TileIndex tile, TileIndex origin, uint32 trigger_car
 {
 	CoordDiff diff = TileCoordDiff(origin, tile);
 	uint32 cb_info = random << 16 | (uint8)diff.y << 8 | (uint8)diff.x;
-	HouseAnimationBase::ChangeAnimationFrame(CBID_HOUSE_WATCHED_CARGO_ACCEPTED, HouseSpec::Get(GetHouseType(tile)), Town::GetByTile(tile), tile, 0, cb_info, trigger_cargoes);
+	HouseID id = GetHouseType (tile);
+	uint16 callback = GetHouseCallback (CBID_HOUSE_WATCHED_CARGO_ACCEPTED,
+					0, cb_info, id, Town::GetByTile(tile),
+					tile, false, 0, trigger_cargoes);
+	const HouseSpec *hs = HouseSpec::Get (id);
+	HouseAnimationBase::ChangeAnimationFrame (hs, tile, callback);
 }
 
 /**

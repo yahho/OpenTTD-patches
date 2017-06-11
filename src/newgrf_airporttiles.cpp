@@ -312,7 +312,10 @@ void AirportTileAnimationTrigger(Station *st, TileIndex tile, AirpAnimationTrigg
 	const AirportTileSpec *ats = AirportTileSpec::GetByTile(tile);
 	if (!HasBit(ats->animation.triggers, trigger)) return;
 
-	AirportTileAnimationBase::ChangeAnimationFrame(CBID_AIRPTILE_ANIM_START_STOP, ats, st, tile, Random(), (uint8)trigger | (cargo_type << 8));
+	uint16 callback = GetAirportTileCallback (CBID_AIRPTILE_ANIM_START_STOP,
+				Random(), (uint8)trigger | (cargo_type << 8),
+				ats, st, tile);
+	AirportTileAnimationBase::ChangeAnimationFrame (ats, tile, callback);
 }
 
 void AirportAnimationTrigger(Station *st, AirpAnimationTrigger trigger, CargoID cargo_type)
