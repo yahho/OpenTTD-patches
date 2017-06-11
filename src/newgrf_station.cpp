@@ -934,19 +934,19 @@ bool CanStationTileHaveWires(TileIndex tile)
 	return statspec == NULL || !HasBit(statspec->wires, GetStationGfx(tile));
 }
 
-/** Wrapper for animation control, see #GetStationCallback. */
-uint16 GetAnimStationCallback (CallbackID callback, uint32 param1, uint32 param2, const StationSpec *statspec, BaseStation *st, TileIndex tile)
-{
-	return GetStationCallback(callback, param1, param2, statspec, st, tile);
-}
-
 /** Helper class for animation control. */
-struct StationAnimationBase : public AnimationBase <StationAnimationBase, StationSpec, BaseStation, GetAnimStationCallback> {
+struct StationAnimationBase : public AnimationBase <StationAnimationBase, StationSpec, BaseStation> {
 	static const CallbackID cb_animation_speed      = CBID_STATION_ANIMATION_SPEED;
 	static const CallbackID cb_animation_next_frame = CBID_STATION_ANIM_NEXT_FRAME;
 
 	static const StationCallbackMask cbm_animation_speed      = CBM_STATION_ANIMATION_SPEED;
 	static const StationCallbackMask cbm_animation_next_frame = CBM_STATION_ANIMATION_NEXT_FRAME;
+
+	/** Callback wrapper for animation control. */
+	static uint16 get_callback (CallbackID callback, uint32 param1, uint32 param2, const StationSpec *statspec, BaseStation *st, TileIndex tile)
+	{
+		return GetStationCallback (callback, param1, param2, statspec, st, tile);
+	}
 };
 
 void AnimateStationTile(TileIndex tile)

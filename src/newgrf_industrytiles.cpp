@@ -259,19 +259,19 @@ CommandCost PerformIndustryTileSlopeCheck(TileIndex ind_base_tile, TileIndex ind
 	return GetErrorMessageFromLocationCallbackResult(callback_res, its->grf_prop.grffile, STR_ERROR_SITE_UNSUITABLE);
 }
 
-/* Simple wrapper for GetHouseCallback to keep the animation unified. */
-uint16 GetSimpleIndustryCallback (CallbackID callback, uint32 param1, uint32 param2, const IndustryTileSpec *spec, Industry *ind, TileIndex tile)
-{
-	return GetIndustryTileCallback(callback, param1, param2, spec - GetIndustryTileSpec(0), ind, tile);
-}
-
 /** Helper class for animation control. */
-struct IndustryAnimationBase : public AnimationBase <IndustryAnimationBase, IndustryTileSpec, Industry, GetSimpleIndustryCallback> {
+struct IndustryAnimationBase : public AnimationBase <IndustryAnimationBase, IndustryTileSpec, Industry> {
 	static const CallbackID cb_animation_speed      = CBID_INDTILE_ANIMATION_SPEED;
 	static const CallbackID cb_animation_next_frame = CBID_INDTILE_ANIM_NEXT_FRAME;
 
 	static const IndustryTileCallbackMask cbm_animation_speed      = CBM_INDT_ANIM_SPEED;
 	static const IndustryTileCallbackMask cbm_animation_next_frame = CBM_INDT_ANIM_NEXT_FRAME;
+
+	/** Callback wrapper for animation control. */
+	static uint16 get_callback (CallbackID callback, uint32 param1, uint32 param2, const IndustryTileSpec *spec, Industry *ind, TileIndex tile)
+	{
+		return GetIndustryTileCallback (callback, param1, param2, spec - GetIndustryTileSpec(0), ind, tile);
+	}
 };
 
 void AnimateNewIndustryTile(TileIndex tile)

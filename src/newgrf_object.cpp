@@ -508,28 +508,28 @@ void DrawNewObjectTileInGUI (BlitArea *dpi, int x, int y, const ObjectSpec *spec
 	DrawNewGRFTileSeqInGUI (dpi, x, y, dts->seq, 0, palette);
 }
 
-/**
- * Perform a callback for an object.
- * @param callback The callback to perform.
- * @param param1   The first parameter to pass to the NewGRF.
- * @param param2   The second parameter to pass to the NewGRF.
- * @param spec     The specification of the object / the entry point.
- * @param o        The object to call the callback for.
- * @param tile     The tile the callback is called for.
- * @return The result of the callback.
- */
-uint16 StubGetObjectCallback (CallbackID callback, uint32 param1, uint32 param2, const ObjectSpec *spec, Object *o, TileIndex tile)
-{
-	return GetObjectCallback(callback, param1, param2, spec, o, tile);
-}
-
 /** Helper class for animation control. */
-struct ObjectAnimationBase : public AnimationBase <ObjectAnimationBase, ObjectSpec, Object, StubGetObjectCallback> {
+struct ObjectAnimationBase : public AnimationBase <ObjectAnimationBase, ObjectSpec, Object> {
 	static const CallbackID cb_animation_speed      = CBID_OBJECT_ANIMATION_SPEED;
 	static const CallbackID cb_animation_next_frame = CBID_OBJECT_ANIMATION_NEXT_FRAME;
 
 	static const ObjectCallbackMask cbm_animation_speed      = CBM_OBJ_ANIMATION_SPEED;
 	static const ObjectCallbackMask cbm_animation_next_frame = CBM_OBJ_ANIMATION_NEXT_FRAME;
+
+	/**
+	 * Perform a callback for an object.
+	 * @param callback The callback to perform.
+	 * @param param1   The first parameter to pass to the NewGRF.
+	 * @param param2   The second parameter to pass to the NewGRF.
+	 * @param spec     The specification of the object / the entry point.
+	 * @param o        The object to call the callback for.
+	 * @param tile     The tile the callback is called for.
+	 * @return The result of the callback.
+	 */
+	static uint16 get_callback (CallbackID callback, uint32 param1, uint32 param2, const ObjectSpec *spec, Object *o, TileIndex tile)
+	{
+		return GetObjectCallback (callback, param1, param2, spec, o, tile);
+	}
 };
 
 /**

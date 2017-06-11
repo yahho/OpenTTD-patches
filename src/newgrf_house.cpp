@@ -582,19 +582,19 @@ void DrawNewHouseTileInGUI (BlitArea *dpi, int x, int y, HouseID house_id, bool 
 	}
 }
 
-/* Simple wrapper for GetHouseCallback to keep the animation unified. */
-uint16 GetSimpleHouseCallback (CallbackID callback, uint32 param1, uint32 param2, const HouseSpec *spec, Town *town, TileIndex tile)
-{
-	return GetHouseCallback (callback, param1, param2, spec - HouseSpec::Get(0), town, tile, false, 0, 0);
-}
-
 /** Helper class for animation control. */
-struct HouseAnimationBase : public AnimationBase <HouseAnimationBase, HouseSpec, Town, GetSimpleHouseCallback> {
+struct HouseAnimationBase : public AnimationBase <HouseAnimationBase, HouseSpec, Town> {
 	static const CallbackID cb_animation_speed      = CBID_HOUSE_ANIMATION_SPEED;
 	static const CallbackID cb_animation_next_frame = CBID_HOUSE_ANIMATION_NEXT_FRAME;
 
 	static const HouseCallbackMask cbm_animation_speed      = CBM_HOUSE_ANIMATION_SPEED;
 	static const HouseCallbackMask cbm_animation_next_frame = CBM_HOUSE_ANIMATION_NEXT_FRAME;
+
+	/** Callback wrapper for animation control. */
+	static uint16 get_callback (CallbackID callback, uint32 param1, uint32 param2, const HouseSpec *spec, Town *town, TileIndex tile)
+	{
+		return GetHouseCallback (callback, param1, param2, spec - HouseSpec::Get(0), town, tile, false, 0, 0);
+	}
 };
 
 void AnimateNewHouseTile(TileIndex tile)
