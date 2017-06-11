@@ -291,7 +291,7 @@ bool DrawNewAirportTile(TileInfo *ti, Station *st, StationGfx gfx, const Airport
 }
 
 /** Helper class for animation control. */
-struct AirportTileAnimationBase : public AnimationBase <AirportTileAnimationBase, AirportTileSpec, Station> {
+struct AirportTileAnimationBase {
 	static const CallbackID cb_animation_speed      = CBID_AIRPTILE_ANIMATION_SPEED;
 	static const CallbackID cb_animation_next_frame = CBID_AIRPTILE_ANIM_NEXT_FRAME;
 
@@ -310,7 +310,7 @@ void AnimateAirportTile(TileIndex tile)
 	const AirportTileSpec *ats = AirportTileSpec::GetByTile(tile);
 	if (ats == NULL) return;
 
-	AirportTileAnimationBase::AnimateTile(ats, Station::GetByTile(tile), tile, HasBit(ats->animation_special_flags, 0));
+	AnimationBase::AnimateTile <AirportTileAnimationBase> (ats, Station::GetByTile(tile), tile, HasBit(ats->animation_special_flags, 0));
 }
 
 void AirportTileAnimationTrigger(Station *st, TileIndex tile, AirpAnimationTrigger trigger, CargoID cargo_type)
@@ -321,7 +321,7 @@ void AirportTileAnimationTrigger(Station *st, TileIndex tile, AirpAnimationTrigg
 	uint16 callback = GetAirportTileCallback (CBID_AIRPTILE_ANIM_START_STOP,
 				Random(), (uint8)trigger | (cargo_type << 8),
 				ats, st, tile);
-	AirportTileAnimationBase::ChangeAnimationFrame (ats, tile, callback);
+	AnimationBase::ChangeAnimationFrame (ats, tile, callback);
 }
 
 void AirportAnimationTrigger(Station *st, AirpAnimationTrigger trigger, CargoID cargo_type)

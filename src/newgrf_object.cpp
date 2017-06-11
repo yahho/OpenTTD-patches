@@ -509,7 +509,7 @@ void DrawNewObjectTileInGUI (BlitArea *dpi, int x, int y, const ObjectSpec *spec
 }
 
 /** Helper class for animation control. */
-struct ObjectAnimationBase : public AnimationBase <ObjectAnimationBase, ObjectSpec, Object> {
+struct ObjectAnimationBase {
 	static const CallbackID cb_animation_speed      = CBID_OBJECT_ANIMATION_SPEED;
 	static const CallbackID cb_animation_next_frame = CBID_OBJECT_ANIMATION_NEXT_FRAME;
 
@@ -541,7 +541,7 @@ void AnimateNewObjectTile(TileIndex tile)
 	const ObjectSpec *spec = ObjectSpec::GetByTile(tile);
 	if (spec == NULL || !(spec->flags & OBJECT_FLAG_ANIMATION)) return;
 
-	ObjectAnimationBase::AnimateTile(spec, Object::GetByTile(tile), tile, (spec->flags & OBJECT_FLAG_ANIM_RANDOM_BITS) != 0);
+	AnimationBase::AnimateTile <ObjectAnimationBase> (spec, Object::GetByTile(tile), tile, (spec->flags & OBJECT_FLAG_ANIM_RANDOM_BITS) != 0);
 }
 
 /**
@@ -557,7 +557,7 @@ void TriggerObjectTileAnimation(Object *o, TileIndex tile, ObjectAnimationTrigge
 
 	uint16 callback = GetObjectCallback (CBID_OBJECT_ANIMATION_START_STOP,
 					Random(), trigger, spec, o, tile);
-	ObjectAnimationBase::ChangeAnimationFrame (spec, tile, callback);
+	AnimationBase::ChangeAnimationFrame (spec, tile, callback);
 }
 
 /**

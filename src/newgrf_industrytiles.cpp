@@ -260,7 +260,7 @@ CommandCost PerformIndustryTileSlopeCheck(TileIndex ind_base_tile, TileIndex ind
 }
 
 /** Helper class for animation control. */
-struct IndustryAnimationBase : public AnimationBase <IndustryAnimationBase, IndustryTileSpec, Industry> {
+struct IndustryAnimationBase {
 	static const CallbackID cb_animation_speed      = CBID_INDTILE_ANIMATION_SPEED;
 	static const CallbackID cb_animation_next_frame = CBID_INDTILE_ANIM_NEXT_FRAME;
 
@@ -279,7 +279,7 @@ void AnimateNewIndustryTile(TileIndex tile)
 	const IndustryTileSpec *itspec = GetIndustryTileSpec(GetIndustryGfx(tile));
 	if (itspec == NULL) return;
 
-	IndustryAnimationBase::AnimateTile(itspec, Industry::GetByTile(tile), tile, (itspec->special_flags & INDTILE_SPECIAL_NEXTFRAME_RANDOMBITS) != 0);
+	AnimationBase::AnimateTile <IndustryAnimationBase> (itspec, Industry::GetByTile(tile), tile, (itspec->special_flags & INDTILE_SPECIAL_NEXTFRAME_RANDOMBITS) != 0);
 }
 
 bool StartStopIndustryTileAnimation(TileIndex tile, IndustryAnimationTrigger iat, uint32 random)
@@ -291,7 +291,7 @@ bool StartStopIndustryTileAnimation(TileIndex tile, IndustryAnimationTrigger iat
 
 	uint16 callback = GetIndustryTileCallback (CBID_INDTILE_ANIM_START_STOP,
 			random, iat, gfx, Industry::GetByTile(tile), tile);
-	IndustryAnimationBase::ChangeAnimationFrame (itspec, tile, callback);
+	AnimationBase::ChangeAnimationFrame (itspec, tile, callback);
 	return true;
 }
 

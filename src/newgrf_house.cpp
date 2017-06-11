@@ -583,7 +583,7 @@ void DrawNewHouseTileInGUI (BlitArea *dpi, int x, int y, HouseID house_id, bool 
 }
 
 /** Helper class for animation control. */
-struct HouseAnimationBase : public AnimationBase <HouseAnimationBase, HouseSpec, Town> {
+struct HouseAnimationBase {
 	static const CallbackID cb_animation_speed      = CBID_HOUSE_ANIMATION_SPEED;
 	static const CallbackID cb_animation_next_frame = CBID_HOUSE_ANIMATION_NEXT_FRAME;
 
@@ -602,7 +602,7 @@ void AnimateNewHouseTile(TileIndex tile)
 	const HouseSpec *hs = HouseSpec::Get(GetHouseType(tile));
 	if (hs == NULL) return;
 
-	HouseAnimationBase::AnimateTile(hs, Town::GetByTile(tile), tile, HasBit(hs->extra_flags, CALLBACK_1A_RANDOM_BITS));
+	AnimationBase::AnimateTile <HouseAnimationBase> (hs, Town::GetByTile(tile), tile, HasBit(hs->extra_flags, CALLBACK_1A_RANDOM_BITS));
 }
 
 void AnimateNewHouseConstruction(TileIndex tile)
@@ -613,7 +613,7 @@ void AnimateNewHouseConstruction(TileIndex tile)
 	if (HasBit(hs->callback_mask, CBM_HOUSE_CONSTRUCTION_STATE_CHANGE)) {
 		uint16 callback = GetHouseCallback (CBID_HOUSE_CONSTRUCTION_STATE_CHANGE,
 					0, 0, id, Town::GetByTile(tile), tile, false, 0, 0);
-		HouseAnimationBase::ChangeAnimationFrame (hs, tile, callback);
+		AnimationBase::ChangeAnimationFrame (hs, tile, callback);
 	}
 }
 
@@ -644,7 +644,7 @@ static void AnimationControl(TileIndex tile, uint16 random_bits)
 		uint32 param = (hs->extra_flags & SYNCHRONISED_CALLBACK_1B) ? (GB(Random(), 0, 16) | random_bits << 16) : Random();
 		uint16 callback = GetHouseCallback (CBID_HOUSE_ANIMATION_START_STOP,
 					param, 0, id, Town::GetByTile(tile), tile, false, 0, 0);
-		HouseAnimationBase::ChangeAnimationFrame (hs, tile, callback);
+		AnimationBase::ChangeAnimationFrame (hs, tile, callback);
 	}
 }
 
@@ -754,7 +754,7 @@ void DoWatchedCargoCallback(TileIndex tile, TileIndex origin, uint32 trigger_car
 					0, cb_info, id, Town::GetByTile(tile),
 					tile, false, 0, trigger_cargoes);
 	const HouseSpec *hs = HouseSpec::Get (id);
-	HouseAnimationBase::ChangeAnimationFrame (hs, tile, callback);
+	AnimationBase::ChangeAnimationFrame (hs, tile, callback);
 }
 
 /**

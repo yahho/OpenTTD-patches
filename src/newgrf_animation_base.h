@@ -21,11 +21,7 @@
 
 /**
  * Helper class for a unified approach to NewGRF animation.
- * @tparam Tbase       Instantiation of this class.
- * @tparam Tspec       NewGRF specification related to the animated tile.
- * @tparam Tobj        Object related to the animated tile.
  */
-template <typename Tbase, typename Tspec, typename Tobj>
 struct AnimationBase {
 	/**
 	 * Animate a single tile.
@@ -34,7 +30,11 @@ struct AnimationBase {
 	 * @param obj         Object related to the tile.
 	 * @param tile        Tile to animate changes for.
 	 * @param random_animation Whether to pass random bits to the "next frame" callback.
+	 * @tparam Tbase      Instantiation of this class.
+	 * @tparam Tspec      NewGRF specification related to the animated tile.
+	 * @tparam Tobj       Object related to the animated tile.
 	 */
+	template <typename Tbase, typename Tspec, typename Tobj>
 	static void AnimateTile (const Tspec *spec, Tobj *obj, TileIndex tile, bool random_animation)
 	{
 		assert(spec != NULL);
@@ -108,6 +108,7 @@ struct AnimationBase {
 	 * @param tile     Tile to consider animation changes for.
 	 * @param callback The callback result.
 	 */
+	template <typename Tspec>
 	static void ChangeAnimationFrame (const Tspec *spec, TileIndex tile, uint16 callback)
 	{
 		if (callback == CALLBACK_FAILED) return;

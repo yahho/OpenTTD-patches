@@ -935,7 +935,7 @@ bool CanStationTileHaveWires(TileIndex tile)
 }
 
 /** Helper class for animation control. */
-struct StationAnimationBase : public AnimationBase <StationAnimationBase, StationSpec, BaseStation> {
+struct StationAnimationBase {
 	static const CallbackID cb_animation_speed      = CBID_STATION_ANIMATION_SPEED;
 	static const CallbackID cb_animation_next_frame = CBID_STATION_ANIM_NEXT_FRAME;
 
@@ -954,7 +954,7 @@ void AnimateStationTile(TileIndex tile)
 	const StationSpec *ss = GetStationSpec(tile);
 	if (ss == NULL) return;
 
-	StationAnimationBase::AnimateTile(ss, BaseStation::GetByTile(tile), tile, HasBit(ss->flags, SSF_CB141_RANDOM_BITS));
+	AnimationBase::AnimateTile <StationAnimationBase> (ss, BaseStation::GetByTile(tile), tile, HasBit(ss->flags, SSF_CB141_RANDOM_BITS));
 }
 
 void TriggerStationAnimation(BaseStation *st, TileIndex tile, StationAnimationTrigger trigger, CargoID cargo_type)
@@ -989,7 +989,7 @@ void TriggerStationAnimation(BaseStation *st, TileIndex tile, StationAnimationTr
 						(random_bits << 16) | Random(),
 						(uint8)trigger | (cargo << 8),
 						ss, st, tile);
-				StationAnimationBase::ChangeAnimationFrame (ss, tile, callback);
+				AnimationBase::ChangeAnimationFrame (ss, tile, callback);
 			}
 		}
 	}
