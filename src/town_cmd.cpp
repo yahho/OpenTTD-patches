@@ -175,16 +175,6 @@ Money HouseSpec::GetRemovalCost() const
 static bool BuildTownHouse(Town *t, TileIndex tile);
 static Town *CreateRandomTown(uint attempts, uint32 townnameparts, TownSize size, bool city, TownLayout layout);
 
-static void TownDrawHouseLift(const TileInfo *ti)
-{
-	AddChildSpriteScreen (ti->vd, SPR_LIFT, PAL_NONE, 14, 60 - GetLiftPosition(ti->tile));
-}
-
-typedef void TownDrawTileProc(const TileInfo *ti);
-static TownDrawTileProc * const _town_draw_tile_procs[1] = {
-	TownDrawHouseLift
-};
-
 /**
  * Return a random direction
  *
@@ -242,10 +232,10 @@ static void DrawTile_Town(TileInfo *ti)
 		if (IsTransparencySet(TO_HOUSES)) return;
 	}
 
-	{
-		int proc = dcts->draw_proc - 1;
-
-		if (proc >= 0) _town_draw_tile_procs[proc](ti);
+	/* Draw the lift */
+	if (dcts->draw_proc != 0) {
+		AddChildSpriteScreen (ti->vd, SPR_LIFT, PAL_NONE, 14,
+					60 - GetLiftPosition (ti->tile));
 	}
 }
 
