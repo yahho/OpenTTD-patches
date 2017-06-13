@@ -251,9 +251,11 @@ static void DrawOldHouseTileInGUI (BlitArea *dpi, int x, int y,
 			DrawSprite (dpi, dcts->building.sprite, dcts->building.pal,
 					x + ScaleGUITrad (2 * (dcts->subtile_y - dcts->subtile_x)),
 					y + ScaleGUITrad (dcts->subtile_x + dcts->subtile_y));
+			/* Draw the lift */
+			if (dcts->draw_proc != 0) {
+				DrawSprite (dpi, SPR_LIFT, PAL_NONE, x - 18, y + 7);
+			}
 		}
-		/* Draw the lift */
-		if (dcts->draw_proc == 1) DrawSprite (dpi, SPR_LIFT, PAL_NONE, x - 18, y + 7);
 	}
 }
 
