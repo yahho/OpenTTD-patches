@@ -229,13 +229,11 @@ static void DrawTile_Town(TileInfo *ti)
 			IsTransparencySet(TO_HOUSES)
 		);
 
-		if (IsTransparencySet(TO_HOUSES)) return;
-	}
-
-	/* Draw the lift */
-	if (dcts->draw_proc != 0) {
-		AddChildSpriteScreen (ti->vd, SPR_LIFT, PAL_NONE, 14,
+		/* Draw the lift */
+		if (!IsTransparencySet(TO_HOUSES) && (dcts->draw_proc != 0)) {
+			AddChildSpriteScreen (ti->vd, SPR_LIFT, PAL_NONE, 14,
 					60 - GetLiftPosition (ti->tile));
+		}
 	}
 }
 
