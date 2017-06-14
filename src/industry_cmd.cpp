@@ -359,12 +359,10 @@ static void DrawTile_Industry(TileInfo *ti)
 			ti->z,
 			IsTransparencySet(TO_INDUSTRIES));
 
-		if (IsTransparencySet(TO_INDUSTRIES)) return;
-	}
-
-	{
-		int proc = dits->draw_proc - 1;
-		if (proc >= 0) _industry_draw_tile_procs[proc](ti);
+		if (!IsTransparencySet(TO_INDUSTRIES)) {
+			int proc = dits->draw_proc - 1;
+			if (proc >= 0) _industry_draw_tile_procs[proc](ti);
+		}
 	}
 }
 
