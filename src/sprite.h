@@ -62,21 +62,6 @@ struct DrawTileSprites {
 	const DrawTileSeqStruct *seq; ///< Array of child sprites. Terminated with a terminator entry
 };
 
-/**
- * This structure is the same for both Industries and Houses.
- * Buildings here reference a general type of construction
- */
-struct DrawBuildingsTileStruct {
-	PalSpriteID ground;
-	PalSpriteID building;
-	byte subtile_x;
-	byte subtile_y;
-	byte width;
-	byte height;
-	byte dz;
-	byte draw_proc;  // this allows to specify a special drawing procedure.
-};
-
 /** Iterate through all DrawTileSeqStructs in DrawTileSprites. */
 #define foreach_draw_tile_seq(idx, list) for (idx = list; !idx->IsTerminator(); idx++)
 

@@ -9,6 +9,18 @@
 
 /** @file town_land.h Sprites to use and how to display them for town tiles. */
 
+/** House graphics data struct. */
+struct DrawBuildingsTileStruct {
+	PalSpriteID ground;
+	PalSpriteID building;
+	byte subtile_x;
+	byte subtile_y;
+	byte width;
+	byte height;
+	byte dz;
+	byte draw_proc;  // this allows to specify a special drawing procedure.
+};
+
 /** House graphics data. */
 
 static const DrawBuildingsTileStruct dbts_bare        = { { SPR_FLAT_BARE_LAND,       PAL_NONE }, {    0x0,                   PAL_NONE },   0,  0, 16, 16,  22, 0 };

@@ -9,6 +9,18 @@
 
 /** @file industry_land.h Information about the behaviour of the default industry tiles. */
 
+/** Industry tile graphics data struct. */
+struct DrawBuildingsTileStruct {
+	PalSpriteID ground;
+	PalSpriteID building;
+	byte subtile_x;
+	byte subtile_y;
+	byte width;
+	byte height;
+	byte dz;
+	byte draw_proc;  // this allows to specify a special drawing procedure.
+};
+
 /**
  * This is used to gather some data about animation
  * drawing in the industry code
