@@ -50,10 +50,7 @@ struct DrawIndustryCoordinates {
 #define PN(x) (x)
 #define PM(x) ((x) | (1 << PALETTE_MODIFIER_COLOUR))
 
-static const DrawIndustryTileStruct dbts_07e6_0    = {  PN(0x7e6),    PN(0x0),   0,  0,  1,  1,   0, 0 };
-static const DrawIndustryTileStruct dbts_07e6_1    = {  PN(0x7e6),    PN(0x0),   0,  0, 16, 16,  25, 0 };
-static const DrawIndustryTileStruct dbts_07e6_2    = {  PN(0x7e6),    PN(0x0),   0,  0, 16, 16,  50, 0 };
-
+static const DrawIndustryTileStruct dbts_07e6      = {  PN(0x7e6),    PN(0x0),   0,  0,  1,  1,   0, 0 };
 static const DrawIndustryTileStruct dbts_0f54_07db = {  PN(0xf54),  PN(0x7db),   7,  0,  9,  9,  10, 0 };
 static const DrawIndustryTileStruct dbts_0f54_07dc = {  PN(0xf54),  PN(0x7dc),   7,  0,  9,  9,  30, 0 };
 static const DrawIndustryTileStruct dbts_0f54_07dd = {  PN(0xf54),  PN(0x7dd),   7,  0,  9,  9,  30, 0 };
@@ -471,9 +468,9 @@ static const DrawIndustryTileStruct *const industry_draw_tile_data[NEW_INDUSTRYT
 	{ &dbts_07e6_07dd, &dbts_07e6_07de, &dbts_07e6_07df, &dbts_07e6_07df },
 	{ &dbts_0f54_07e0, &dbts_0f54_07e1, &dbts_0f54_07e2, &dbts_07e6_07e2 },
 	{ &dbts_0f54_07e3, &dbts_0f54_07e4, &dbts_0f54_07e5, &dbts_07e6_07e5 },
-	{ &dbts_0f54,      &dbts_0f54,      &dbts_07e6_0,    &dbts_07e9      },
-	{ &dbts_0f54,      &dbts_0f54,      &dbts_07e6_0,    &dbts_07e7      },
-	{ &dbts_0f54,      &dbts_0f54,      &dbts_07e6_0,    &dbts_07e8      },
+	{ &dbts_0f54,      &dbts_0f54,      &dbts_07e6,      &dbts_07e9      },
+	{ &dbts_0f54,      &dbts_0f54,      &dbts_07e6,      &dbts_07e7      },
+	{ &dbts_0f54,      &dbts_0f54,      &dbts_07e6,      &dbts_07e8      },
 	{ &dbts_0f54_07fd, &dbts_0f54_07fe, &dbts_0f54_07ff, &dbts_0f54_07ff },
 	{ &dbts_0f54_0800, &dbts_0f54_0801, &dbts_0f54_0802, &dbts_0f54_0802 },
 	{ &dbts_0f54_0803, &dbts_0f54_0804, &dbts_0f54_0805, &dbts_0f54_0805 },
@@ -496,16 +493,16 @@ static const DrawIndustryTileStruct *const industry_draw_tile_data[NEW_INDUSTRYT
 	{ &dbts_0fdd_0837, &dbts_0fdd_0834, &dbts_0fdd_0834, &dbts_0fdd_0830 },
 	{ &dbts_0fdd_0838, &dbts_0fdd_0835, &dbts_0fdd_0835, &dbts_0fdd_0831 },
 	{ &dbts_0fdd_0839, &dbts_0fdd_0836, &dbts_0fdd_0836, &dbts_0fdd_0832 },
-	{ &dbts_07e6_0,    &dbts_087d_087e, &dbts_087d_087e, &dbts_087d_087e },
+	{ &dbts_07e6,      &dbts_087d_087e, &dbts_087d_087e, &dbts_087d_087e },
 	{ &dbts_087d_087e, &dbts_087d_087f, &dbts_087d_0880, &dbts_087d_0881 },
 	{ &dbts_087d_0882, &dbts_087d_0883, &dbts_087d_0883, &dbts_087d_0882 },
 	{ &dbts_087d_0881, &dbts_087d_0880, &dbts_087d_087f, &dbts_087d_087e },
 	{ &dbts_083a_083c, &dbts_083a_083c, &dbts_083a_083c, &dbts_083a_083c },
 	{ &dbts_083b_083d, &dbts_083b_083d, &dbts_083b_083d, &dbts_083b_083d },
-	{ &dbts_07e6_0,    &dbts_083e_083f, &dbts_083e_083f, &dbts_083e_083f },
-	{ &dbts_07e6_0,    &dbts_0840_0841, &dbts_0840_0841, &dbts_0840_0841 },
-	{ &dbts_07e6_0,    &dbts_0842_0843, &dbts_0842_0843, &dbts_0842_0843 },
-	{ &dbts_07e6_0,    &dbts_0844_0845, &dbts_0844_0845, &dbts_0844_0845 },
+	{ &dbts_07e6,      &dbts_083e_083f, &dbts_083e_083f, &dbts_083e_083f },
+	{ &dbts_07e6,      &dbts_0840_0841, &dbts_0840_0841, &dbts_0840_0841 },
+	{ &dbts_07e6,      &dbts_0842_0843, &dbts_0842_0843, &dbts_0842_0843 },
+	{ &dbts_07e6,      &dbts_0844_0845, &dbts_0844_0845, &dbts_0844_0845 },
 	{ &dbts_07e6_0869, &dbts_07e6_086d, &dbts_07e6_086d, &dbts_0862_0866 },
 	{ &dbts_07e6_086a, &dbts_07e6_086e, &dbts_07e6_086e, &dbts_0863_0867 },
 	{ &dbts_07e6_086b, &dbts_07e6_086f, &dbts_07e6_086f, &dbts_0864_0868 },
@@ -532,13 +529,13 @@ static const DrawIndustryTileStruct *const industry_draw_tile_data[NEW_INDUSTRYT
 	{ &dbts_07e6_0892, &dbts_07e6_0893, &dbts_07e6_0893, &dbts_07e6_0894 },
 	{ &dbts_07e6_0895, &dbts_07e6_0896, &dbts_07e6_0896, &dbts_07e6_0897 },
 	{ &dbts_07e6_0898, &dbts_07e6_0899, &dbts_07e6_0899, &dbts_07e6_089a },
-	{ &dbts_07e6_1,    &dbts_07e6_1,    &dbts_07e6_1,    &dbts_07e6_08a6 },
+	{ &dbts_07e6,      &dbts_07e6,      &dbts_07e6,      &dbts_07e6_08a6 },
 	{ &dbts_07e6_089b, &dbts_07e6_089c, &dbts_07e6_089c, &dbts_07e6_089d },
-	{ &dbts_07e6_1,    &dbts_07e6_1,    &dbts_07e6_1,    &dbts_07e6_089e },
-	{ &dbts_07e6_1,    &dbts_07e6_089f, &dbts_07e6_08a0, &dbts_07e6_08a0 },
-	{ &dbts_07e6_1,    &dbts_07e6_089f, &dbts_07e6_08a0, &dbts_07e6_08a1 },
-	{ &dbts_07e6_1,    &dbts_07e6_08a2, &dbts_07e6_08a3, &dbts_07e6_08a4 },
-	{ &dbts_07e6_1,    &dbts_07e6_08a2, &dbts_07e6_08a3, &dbts_07e6_08a5 },
+	{ &dbts_07e6,      &dbts_07e6,      &dbts_07e6,      &dbts_07e6_089e },
+	{ &dbts_07e6,      &dbts_07e6_089f, &dbts_07e6_08a0, &dbts_07e6_08a0 },
+	{ &dbts_07e6,      &dbts_07e6_089f, &dbts_07e6_08a0, &dbts_07e6_08a1 },
+	{ &dbts_07e6,      &dbts_07e6_08a2, &dbts_07e6_08a3, &dbts_07e6_08a4 },
+	{ &dbts_07e6,      &dbts_07e6_08a2, &dbts_07e6_08a3, &dbts_07e6_08a5 },
 	{ &dbts_08a7,      &dbts_07e6_08b7, &dbts_07e6_08b7, &dbts_07e6_08c7 },
 	{ &dbts_08a8,      &dbts_08b8,      &dbts_08b8,      &dbts_08c8      },
 	{ &dbts_08a9,      &dbts_07e6_08b9, &dbts_07e6_08b9, &dbts_07e6_08c9 },
@@ -598,14 +595,14 @@ static const DrawIndustryTileStruct *const industry_draw_tile_data[NEW_INDUSTRYT
 	{ &dbts_07e6_0934, &dbts_07e6_0938, &dbts_07e6_0938, &dbts_07e6_093c },
 	{ &dbts_081d_0818, &dbts_081d_0819, &dbts_081d_081a, &dbts_081d_081b },
 	{ &dbts_081d_081c, &dbts_081d_081c, &dbts_081d_081c, &dbts_081d_081c },
-	{ &dbts_07e6_2,    &dbts_07e6_2,    &dbts_07e6_2,    &dbts_07e6_2    },
+	{ &dbts_07e6,      &dbts_07e6,      &dbts_07e6,      &dbts_07e6      },
 	{ &dbts_07e6_1245, &dbts_07e6_1248, &dbts_07e6_1248, &dbts_07e6_124b },
 	{ &dbts_07e6_1247, &dbts_07e6_124a, &dbts_07e6_124a, &dbts_07e6_124d },
 	{ &dbts_07e6_1246, &dbts_07e6_1249, &dbts_07e6_1249, &dbts_07e6_124c },
 	{ &dbts_081d_124e, &dbts_081d_124f, &dbts_081d_1250, &dbts_081d_1251 },
 	{ &dbts_081d_1252, &dbts_081d_1252, &dbts_081d_1252, &dbts_081d_1252 },
 	{ &dbts_081d_1253, &dbts_081d_1254, &dbts_081d_1254, &dbts_081d_1255 },
-	{ &dbts_07e6_2,    &dbts_07e6_2,    &dbts_07e6_2,    &dbts_07e6_2    },
+	{ &dbts_07e6,      &dbts_07e6,      &dbts_07e6,      &dbts_07e6      },
 	{ &dbts_07e6_125b, &dbts_07e6_125e, &dbts_07e6_125e, &dbts_07e6_1261 },
 	{ &dbts_07e6_125c, &dbts_07e6_125f, &dbts_07e6_125f, &dbts_07e6_1262 },
 	{ &dbts_07e6_125d, &dbts_07e6_1260, &dbts_07e6_1260, &dbts_07e6_1263 },
