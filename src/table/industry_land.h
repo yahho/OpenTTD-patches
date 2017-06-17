@@ -760,11 +760,3 @@ static const byte _industry_anim_offs_toffee[] = {
 	 10,   9,   7,   5,   3,   1, 255,   0,   0,   0,
 	  2,   4,   6,   8,  10,   9,   7,   5,   3,   1
 };
-
-/* this is ONLY used for the Bubble Generator*/
-static const byte _industry_anim_offs_bubbles[] = {
-	68, 69, 71, 74, 77, 80, 83, 85, 86, 86,
-	86, 86, 86, 86, 86, 86, 86, 86, 86, 86,
-	86, 86, 85, 84, 83, 82, 81, 80, 79, 78,
-	77, 76, 75, 74, 73, 72, 71, 70, 69, 68,
-};

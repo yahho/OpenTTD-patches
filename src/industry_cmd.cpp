@@ -256,8 +256,16 @@ static void IndustryDrawToffeeQuarry(const TileInfo *ti)
 
 static void IndustryDrawBubbleGenerator( const TileInfo *ti)
 {
+	static const byte bubbles[] = {
+		68, 69, 71, 74, 77, 80, 83, 85, 86, 86,
+		86, 86, 86, 86, 86, 86, 86, 86, 86, 86,
+		86, 86, 85, 84, 83, 82, 81, 80, 79, 78,
+		77, 76, 75, 74, 73, 72, 71, 70, 69, 68,
+	};
+
 	if (IsIndustryCompleted(ti->tile)) {
-		AddChildSpriteScreen (ti->vd, SPR_IT_BUBBLE_GENERATOR_BUBBLE, PAL_NONE, 5, _industry_anim_offs_bubbles[GetAnimationFrame(ti->tile)]);
+		AddChildSpriteScreen (ti->vd, SPR_IT_BUBBLE_GENERATOR_BUBBLE,
+			PAL_NONE, 5, bubbles[GetAnimationFrame(ti->tile)]);
 	}
 	AddChildSpriteScreen (ti->vd, SPR_IT_BUBBLE_GENERATOR_SPRING, PAL_NONE, 3, 67);
 }
