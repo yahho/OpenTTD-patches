@@ -21,30 +21,6 @@ struct DrawIndustryTileStruct {
 	byte draw_proc;  // this allows to specify a special drawing procedure.
 };
 
-/**
- * This is used to gather some data about animation
- * drawing in the industry code
- * Image_1-2-3 are in fact only offset in the sprites
- * used by the industry.
- * To specify an invalid one, either 255 or 0 is used,
- * depending of the industry.
- */
-struct DrawIndustryAnimationStruct {
-	int x;        ///< coordinate x of the first image offset
-	byte image_1; ///< image offset 1
-	byte image_2; ///< image offset 2
-	byte image_3; ///< image offset 3
-};
-
-/**
- * Simple structure gathering x,y coordinates for
- * industries animations
- */
-struct DrawIndustryCoordinates {
-	byte x;  ///< coordinate x of the pair
-	byte y;  ///< coordinate y of the pair
-};
-
 /** Industry graphics data. */
 
 #define PN(x) (x)
