@@ -280,14 +280,19 @@ static void IndustryDrawToyFactory(const TileInfo *ti)
 
 static void IndustryDrawCoalPlantSparks(const TileInfo *ti)
 {
+	/* Spark positions. */
+	static const byte sparks[][2] = {
+		{11, 23}, {11, 11}, {14, 6}, {13, 3}, {18, 1}, {15, 0},
+	};
+
 	if (IsIndustryCompleted(ti->tile)) {
 		uint8 image = GetAnimationFrame(ti->tile);
 
 		if (image != 0 && image < 7) {
 			AddChildSpriteScreen (ti->vd, image + SPR_IT_POWER_PLANT_TRANSFORMERS,
 				PAL_NONE,
-				_coal_plant_sparks[image - 1].x,
-				_coal_plant_sparks[image - 1].y
+				sparks[image - 1][0],
+				sparks[image - 1][1]
 			);
 		}
 	}

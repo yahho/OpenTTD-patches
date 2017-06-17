@@ -830,16 +830,3 @@ static const byte _industry_anim_offs_bubbles[] = {
 	86, 86, 85, 84, 83, 82, 81, 80, 79, 78,
 	77, 76, 75, 74, 73, 72, 71, 70, 69, 68,
 };
-
-/**
- * Movement of the sparks , only used for Power Station
- */
-static const DrawIndustryCoordinates _coal_plant_sparks[] = {
-	{11, 23},
-	{11, 11},
-	{14,  6},
-	{13,  3},
-	{18,  1},
-	{15,  0},
-};
-
