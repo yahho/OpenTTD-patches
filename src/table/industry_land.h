@@ -749,14 +749,3 @@ static const DrawIndustryCoordinates _drawtile_proc1[5] = {
 	{10, 66},
 	{ 8, 41},
 };
-
-/* this is ONLY used for Toffee Quarry*/
-static const byte _industry_anim_offs_toffee[] = {
-	255,   0,   0,   0,   2,   4,   6,   8,  10,   9,
-	  7,   5,   3,   1, 255,   0,   0,   0,   2,   4,
-	  6,   8,  10,   9,   7,   5,   3,   1, 255,   0,
-	  0,   0,   2,   4,   6,   8,  10,   9,   7,   5,
-	  3,   1, 255,   0,   0,   0,   2,   4,   6,   8,
-	 10,   9,   7,   5,   3,   1, 255,   0,   0,   0,
-	  2,   4,   6,   8,  10,   9,   7,   5,   3,   1
-};

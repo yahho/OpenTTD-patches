@@ -241,13 +241,14 @@ static void IndustryDrawSugarMine(const TileInfo *ti)
 
 static void IndustryDrawToffeeQuarry(const TileInfo *ti)
 {
+	static const byte anim[] = {
+		0, 0, 0, 0, 2, 4, 6, 8, 10, 9, 7, 5, 3, 1,
+	};
+
 	uint8 x = 0;
 
 	if (IsIndustryCompleted(ti->tile)) {
-		x = _industry_anim_offs_toffee[GetAnimationFrame(ti->tile)];
-		if (x == 0xFF) {
-			x = 0;
-		}
+		x = anim[GetAnimationFrame(ti->tile) % 14];
 	}
 
 	AddChildSpriteScreen (ti->vd, SPR_IT_TOFFEE_QUARRY_SHOVEL, PAL_NONE, 22 - x, 24 + x);
@@ -598,7 +599,7 @@ static void AnimateTile_Industry(TileIndex tile)
 		if ((_tick_counter & 3) == 0) {
 			byte m = GetAnimationFrame(tile);
 
-			if (_industry_anim_offs_toffee[m] == 0xFF && _settings_client.sound.ambient) {
+			if ((m % 14) == 0 && _settings_client.sound.ambient) {
 				SndPlayTileFx(SND_30_CARTOON_SOUND, tile);
 			}
 
