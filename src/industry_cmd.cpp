@@ -264,17 +264,39 @@ static void IndustryDrawBubbleGenerator( const TileInfo *ti)
 
 static void IndustryDrawToyFactory(const TileInfo *ti)
 {
-	const DrawIndustryAnimationStruct *d = &_industry_anim_offs_toys[GetAnimationFrame(ti->tile)];
+	static const byte anim[][2] = {
+		{ 255,  0 }, {  25,  0 }, {  24,  0 }, {  23,  0 }, {  22,  0 },
+		{  21,  0 }, {  20,  0 }, {  19,  0 }, {  18,  0 }, {  17,  0 },
+		{  16,  0 }, {  15,  0 }, {  14,  0 }, {  13,  0 }, {  12,  0 },
+		{  11,  0 }, {  10,  0 }, {   9,  0 }, {   8,  0 }, {   7,  0 },
+		{   7,  1 }, {   7,  2 }, {   7,  4 }, {   7,  6 }, {   7,  8 },
+		{   7, 11 }, {   7, 14 }, {   7, 17 }, {   7, 20 }, {   7, 24 },
+		{ 100, 29 }, { 100, 24 }, { 100, 20 }, { 100, 17 }, { 100, 14 },
+		{ 100, 11 }, { 100,  8 }, { 100,  6 }, { 100,  4 }, { 100,  2 },
+		{ 100,  1 }, { 101,  0 }, { 102,  0 }, { 103,  0 }, { 104,  0 },
+		{ 105,  0 }, { 106,  0 }, { 107,  0 }, { 108,  0 }, { 255,  0 },
+	};
 
-	if (d->image_1 != 0xFF) {
-		AddChildSpriteScreen (ti->vd, SPR_IT_TOY_FACTORY_CLAY, PAL_NONE, d->x, 96 + d->image_1);
+	const byte *b = anim[GetAnimationFrame(ti->tile)];
+
+	byte i = b[0];
+	int x, y;
+	SpriteID s;
+	if (i < 100) {
+		x = 2 * i;
+		y = 121 - i;
+		s = SPR_IT_TOY_FACTORY_CLAY;
+	} else if (i < 255) {
+		x = 216 - 2 * i;
+		y = i;
+		s = SPR_IT_TOY_FACTORY_ROBOT;
+	} else {
+		s = 0;
 	}
 
-	if (d->image_2 != 0xFF) {
-		AddChildSpriteScreen (ti->vd, SPR_IT_TOY_FACTORY_ROBOT, PAL_NONE, 16 - d->image_2 * 2, 100 + d->image_2);
-	}
+	if (s != 0) AddChildSpriteScreen (ti->vd, s, PAL_NONE, x, y);
 
-	AddChildSpriteScreen (ti->vd, SPR_IT_TOY_FACTORY_STAMP, PAL_NONE, 7, d->image_3);
+	AddChildSpriteScreen (ti->vd, SPR_IT_TOY_FACTORY_STAMP, PAL_NONE, 7, b[1]);
 	AddChildSpriteScreen (ti->vd, SPR_IT_TOY_FACTORY_STAMP_HOLDER, PAL_NONE, 0, 42);
 }
 

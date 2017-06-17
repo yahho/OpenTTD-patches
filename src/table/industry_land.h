@@ -750,68 +750,6 @@ static const DrawIndustryCoordinates _drawtile_proc1[5] = {
 	{ 8, 41},
 };
 
-/**
- * this is ONLY used for Toy Factory.
- * 255 means no drawing
- * @param img1 offset from base sprite SPR_IT_SUGAR_MINE_SIEVE
- * @param img2 offset from base sprite SPR_IT_SUGAR_MINE_CLOUDS
- * @param img3 offset from base sprite SPR_IT_SUGAR_MINE_PILE
- */
-#define MD( img1, img2, img3) { (50 - img1 * 2), img1, img2, img3 }
-static const DrawIndustryAnimationStruct _industry_anim_offs_toys[] = {
-	MD(255, 255,   0),
-	MD(  0, 255,   0),
-	MD(  1, 255,   0),
-	MD(  2, 255,   0),
-	MD(  3, 255,   0),
-	MD(  4, 255,   0),
-	MD(  5, 255,   0),
-	MD(  6, 255,   0),
-	MD(  7, 255,   0),
-	MD(  8, 255,   0),
-	MD(  9, 255,   0),
-	MD( 10, 255,   0),
-	MD( 11, 255,   0),
-	MD( 12, 255,   0),
-	MD( 13, 255,   0),
-	MD( 14, 255,   0),
-	MD( 15, 255,   0),
-	MD( 16, 255,   0),
-	MD( 17, 255,   0),
-	MD( 18, 255,   0),
-	MD( 18, 255,   1),
-	MD( 18, 255,   2),
-	MD( 18, 255,   4),
-	MD( 18, 255,   6),
-	MD( 18, 255,   8),
-	MD( 18, 255,  11),
-	MD( 18, 255,  14),
-	MD( 18, 255,  17),
-	MD( 18, 255,  20),
-	MD( 18, 255,  24),
-	MD(255,   0,  29),
-	MD(255,   0,  24),
-	MD(255,   0,  20),
-	MD(255,   0,  17),
-	MD(255,   0,  14),
-	MD(255,   0,  11),
-	MD(255,   0,   8),
-	MD(255,   0,   6),
-	MD(255,   0,   4),
-	MD(255,   0,   2),
-	MD(255,   0,   1),
-	MD(255,   1,   0),
-	MD(255,   2,   0),
-	MD(255,   3,   0),
-	MD(255,   4,   0),
-	MD(255,   5,   0),
-	MD(255,   6,   0),
-	MD(255,   7,   0),
-	MD(255,   8,   0),
-	MD(255, 255,   0),
-};
-#undef MD
-
 /* this is ONLY used for Toffee Quarry*/
 static const byte _industry_anim_offs_toffee[] = {
 	255,   0,   0,   0,   2,   4,   6,   8,  10,   9,
