@@ -223,19 +223,48 @@ void Industry::PostDestructor(size_t index)
 
 static void IndustryDrawSugarMine(const TileInfo *ti)
 {
+	static const byte anim[96][4] = {
+		{ 4, 0 }, { 0, 0 }, { 0, 0 }, { 0, 0 }, { 0, 0 }, { 0, 0 },
+		{ 0, 0 }, { 0, 0 }, { 0, 0 }, { 0, 0 }, { 0, 0 }, { 0, 1 },
+		{ 0, 1 }, { 0, 1 }, { 0, 1 }, { 0, 1 }, { 1, 1 }, { 1, 1 },
+		{ 1, 1 }, { 1, 1 }, { 1, 1 }, { 1, 1 }, { 1, 1 }, { 1, 2 },
+		{ 1, 2 }, { 1, 2 }, { 1, 2 }, { 1, 2 }, { 1, 2 }, { 1, 2 },
+		{ 1, 2 }, { 1, 2 }, { 2, 2 }, { 2, 2 }, { 2, 3 }, { 2, 3 },
+		{ 2, 3 }, { 2, 3 }, { 2, 3 }, { 2, 3 }, { 2, 3 }, { 2, 3 },
+		{ 2, 3 }, { 2, 3 }, { 2, 3 }, { 2, 4 }, { 2, 4 }, { 2, 4 },
+		{ 3, 4 }, { 3, 4 }, { 3, 4 }, { 3, 4 }, { 3, 4 }, { 3, 4 },
+		{ 3, 4 }, { 3, 4 }, { 3, 4 }, { 3, 4 }, { 3, 4 }, { 3, 4 },
+		{ 3, 4 }, { 3, 4 }, { 3, 4 }, { 3, 4 }, { 4, 4 }, { 4, 4 },
+		{ 4, 4 }, { 4, 4 }, { 4, 4 }, { 4, 4 }, { 4, 4 }, { 4, 4 },
+		{ 4, 4 }, { 4, 4 }, { 4, 4 }, { 4, 4 }, { 4, 4 }, { 4, 4 },
+		{ 4, 4 }, { 4, 4 }, { 4, 4 }, { 4, 4 }, { 4, 4 }, { 4, 4 },
+		{ 4, 4 }, { 4, 4 }, { 4, 4 }, { 4, 4 }, { 4, 4 }, { 4, 4 },
+		{ 4, 4 }, { 4, 4 }, { 4, 4 }, { 4, 4 }, { 4, 4 }, { 4, 4 },
+	};
+
+	static const byte sieve_x[8] = { 8, 6, 4, 6, 8, 10, 12, 10 };
+
+	static const byte pile_offsets[5][2] = {
+		{ 22, 73 }, { 17, 70 }, { 14, 69 }, { 10, 66 }, { 8, 41 },
+	};
+
 	if (!IsIndustryCompleted(ti->tile)) return;
 
-	const DrawIndustryAnimationStruct *d = &_draw_industry_spec1[GetAnimationFrame(ti->tile)];
+	byte m = GetAnimationFrame (ti->tile);
+	const byte *d = anim[m];
 
-	AddChildSpriteScreen (ti->vd, SPR_IT_SUGAR_MINE_SIEVE + d->image_1, PAL_NONE, d->x, 0);
+	AddChildSpriteScreen (ti->vd, SPR_IT_SUGAR_MINE_SIEVE + d[0],
+				PAL_NONE, sieve_x[m % 8], 0);
 
-	if (d->image_2 != 0) {
-		AddChildSpriteScreen (ti->vd, SPR_IT_SUGAR_MINE_CLOUDS + d->image_2 - 1, PAL_NONE, 8, 41);
+	if ((uint)(m - 1) < 66) {
+		AddChildSpriteScreen (ti->vd,
+				SPR_IT_SUGAR_MINE_CLOUDS + ((m - 1) % 6),
+				PAL_NONE, 8, 41);
 	}
 
-	if (d->image_3 != 0) {
-		AddChildSpriteScreen (ti->vd, SPR_IT_SUGAR_MINE_PILE + d->image_3 - 1, PAL_NONE,
-			_drawtile_proc1[d->image_3 - 1].x, _drawtile_proc1[d->image_3 - 1].y);
+	if (d[1] != 0) {
+		AddChildSpriteScreen (ti->vd, SPR_IT_SUGAR_MINE_PILE + d[1] - 1, PAL_NONE,
+			pile_offsets[d[1] - 1][0], pile_offsets[d[1] - 1][1]);
 	}
 }
 
