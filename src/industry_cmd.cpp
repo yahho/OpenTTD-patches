@@ -392,11 +392,11 @@ static void DrawTile_Industry(TileInfo *ti)
 		}
 	}
 
-	const DrawIndustryTileStruct *dits = industry_draw_tile_data[gfx][(indts->anim_state ?
+	const uint64 dits = industry_draw_tile_data[gfx][(indts->anim_state ?
 			GetAnimationFrame(ti->tile) & INDUSTRY_COMPLETED :
 			GetIndustryConstructionStage(ti->tile))];
 
-	SpriteID image = dits->ground;
+	SpriteID image = dits & (0xffff | (1 << PALETTE_MODIFIER_COLOUR));
 
 	/* DrawFoundation() modifies ti->z and ti->tileh */
 	if (ti->tileh != SLOPE_FLAT) DrawFoundation(ti, FOUNDATION_LEVELED);
@@ -413,20 +413,17 @@ static void DrawTile_Industry(TileInfo *ti)
 	if (IsInvisibilitySet(TO_INDUSTRIES)) return;
 
 	/* Add industry on top of the ground? */
-	image = dits->building;
+	image = (dits >> 32) & (0xffff | (1 << PALETTE_MODIFIER_COLOUR));
 	if (image != 0) {
 		AddSortableSpriteToDraw (ti->vd, image, SpriteLayoutPaletteTransform (image, PAL_NONE, GENERAL_SPRITE_COLOUR(ind->random_colour)),
-			ti->x + dits->subtile_x,
-			ti->y + dits->subtile_y,
-			dits->width,
-			dits->height,
-			dits->dz,
+			ti->x + GB(dits, 16, 3), ti->y + GB(dits, 19, 3),
+			GB(dits, 48, 5), GB(dits, 53, 5), GB(dits, 22, 7),
 			ti->z,
 			IsTransparencySet(TO_INDUSTRIES));
 
 		if (!IsTransparencySet(TO_INDUSTRIES)) {
-			int proc = dits->draw_proc - 1;
-			if (proc >= 0) _industry_draw_tile_procs[proc](ti);
+			uint proc = GB(dits, 58, 3);
+			if (proc > 0) _industry_draw_tile_procs[proc - 1](ti);
 		}
 	}
 }
