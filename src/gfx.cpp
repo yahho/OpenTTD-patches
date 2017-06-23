@@ -57,7 +57,6 @@ int _cur_palette_count_dirty;
 
 byte _colour_gradient[COLOUR_END][8];
 
-static void GfxMainBlitterViewport (DrawPixelInfo *dpi, const Sprite *sprite, int x, int y, BlitterMode mode, const SubSprite *sub = NULL, SpriteID sprite_id = SPR_CURSOR_MOUSE);
 static void GfxMainBlitter (BlitArea *dpi, const Sprite *sprite, int x, int y, BlitterMode mode, SpriteID sprite_id = SPR_CURSOR_MOUSE, ZoomLevel zoom = ZOOM_LVL_NORMAL);
 static void GfxCharBlitter (BlitArea *dpi, const Sprite *sprite, int x, int y);
 
@@ -753,23 +752,6 @@ static BlitterMode GetBlitterMode (SpriteID img, PaletteID pal)
 }
 
 /**
- * Draw a sprite in a viewport.
- * @param dpi  The area to draw on.
- * @param img  Image number to draw
- * @param pal  Palette to use.
- * @param x    Left coordinate of image in viewport, scaled by zoom
- * @param y    Top coordinate of image in viewport, scaled by zoom
- * @param sub  If available, draw only specified part of the sprite
- */
-void DrawSpriteViewport (DrawPixelInfo *dpi, SpriteID img, PaletteID pal,
-	int x, int y, const SubSprite *sub)
-{
-	BlitterMode bm = GetBlitterMode (img, pal);
-	SpriteID real_sprite = GB(img, 0, SPRITE_WIDTH);
-	GfxMainBlitterViewport (dpi, GetSprite (real_sprite, ST_NORMAL), x, y, bm, sub, real_sprite);
-}
-
-/**
  * Draw a sprite, not in a viewport
  * @param dpi  The area to draw on.
  * @param img  Image number to draw
@@ -913,8 +895,21 @@ static void GfxBlitter (BlitArea *dpi, const Sprite * const sprite,
 	dpi->surface->draw (&bp, mode, zoom);
 }
 
-static void GfxMainBlitterViewport (DrawPixelInfo *dpi, const Sprite *sprite, int x, int y, BlitterMode mode, const SubSprite *sub, SpriteID sprite_id)
+/**
+ * Draw a sprite in a viewport.
+ * @param dpi  The area to draw on.
+ * @param img  Image number to draw
+ * @param pal  Palette to use.
+ * @param x    Left coordinate of image in viewport, scaled by zoom
+ * @param y    Top coordinate of image in viewport, scaled by zoom
+ * @param sub  If available, draw only specified part of the sprite
+ */
+void DrawSpriteViewport (DrawPixelInfo *dpi, SpriteID img, PaletteID pal,
+	int x, int y, const SubSprite *sub)
 {
+	BlitterMode mode = GetBlitterMode (img, pal);
+	SpriteID sprite_id = GB(img, 0, SPRITE_WIDTH);
+	const Sprite *sprite = GetSprite (sprite_id, ST_NORMAL);
 	GfxBlitter <false> (dpi, sprite, x, y, mode, sub, sprite_id, dpi->zoom);
 }
 
