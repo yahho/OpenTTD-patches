@@ -59,6 +59,7 @@ byte _colour_gradient[COLOUR_END][8];
 
 static void GfxMainBlitterViewport (DrawPixelInfo *dpi, const Sprite *sprite, int x, int y, BlitterMode mode, const SubSprite *sub = NULL, SpriteID sprite_id = SPR_CURSOR_MOUSE);
 static void GfxMainBlitter (BlitArea *dpi, const Sprite *sprite, int x, int y, BlitterMode mode, SpriteID sprite_id = SPR_CURSOR_MOUSE, ZoomLevel zoom = ZOOM_LVL_NORMAL);
+static void GfxCharBlitter (BlitArea *dpi, const Sprite *sprite, int x, int y);
 
 static Blitter::Buffer _cursor_backup;
 
@@ -437,10 +438,10 @@ static int DrawLayoutLine (const ParagraphLayouter::Line *line,
 
 			if (draw_shadow && (gp.glyph & SPRITE_GLYPH) == 0) {
 				SetColourRemap(TC_BLACK);
-				GfxMainBlitter (dpi, sprite, begin_x + 1, top + 1, BM_COLOUR_REMAP);
+				GfxCharBlitter (dpi, sprite, begin_x + 1, top + 1);
 				SetColourRemap(colour);
 			}
-			GfxMainBlitter (dpi, sprite, begin_x, top, BM_COLOUR_REMAP);
+			GfxCharBlitter (dpi, sprite, begin_x, top);
 		}
 	}
 
@@ -449,10 +450,10 @@ static int DrawLayoutLine (const ParagraphLayouter::Line *line,
 		for (int i = 0; i < 3; i++, x += dot_width) {
 			if (draw_shadow) {
 				SetColourRemap(TC_BLACK);
-				GfxMainBlitter (dpi, dot_sprite, x + 1, y + 1, BM_COLOUR_REMAP);
+				GfxCharBlitter (dpi, dot_sprite, x + 1, y + 1);
 				SetColourRemap(colour);
 			}
-			GfxMainBlitter (dpi, dot_sprite, x, y, BM_COLOUR_REMAP);
+			GfxCharBlitter (dpi, dot_sprite, x, y);
 		}
 	}
 
@@ -699,8 +700,8 @@ void DrawCharCentered (BlitArea *dpi, WChar c, int x, int y, TextColour colour)
 {
 	SetColourRemap(colour);
 	FontCache *fc = FontCache::Get (FS_NORMAL);
-	GfxMainBlitter (dpi, fc->GetCharGlyph (c),
-			x - fc->GetCharacterWidth(c) / 2, y, BM_COLOUR_REMAP);
+	GfxCharBlitter (dpi, fc->GetCharGlyph (c),
+			x - fc->GetCharacterWidth(c) / 2, y);
 }
 
 /**
@@ -920,6 +921,12 @@ static void GfxMainBlitterViewport (DrawPixelInfo *dpi, const Sprite *sprite, in
 static void GfxMainBlitter (BlitArea *dpi, const Sprite *sprite, int x, int y, BlitterMode mode, SpriteID sprite_id, ZoomLevel zoom)
 {
 	GfxBlitter <true> (dpi, sprite, x, y, mode, NULL, sprite_id, zoom);
+}
+
+static void GfxCharBlitter (BlitArea *dpi, const Sprite *sprite, int x, int y)
+{
+	/* Either <true> or <false> will do here, since zoom is 0. */
+	GfxBlitter <true> (dpi, sprite, x, y, BM_COLOUR_REMAP, NULL, SPR_CURSOR_MOUSE, ZOOM_LVL_NORMAL);
 }
 
 /**
