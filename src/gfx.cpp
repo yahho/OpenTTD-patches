@@ -768,12 +768,6 @@ static void GfxBlitter (BlitArea *dpi, const Sprite * const sprite,
 {
 	Blitter::BlitterParams bp;
 
-	if (SCALED_XY) {
-		/* Scale it */
-		x = ScaleByZoom(x, zoom);
-		y = ScaleByZoom(y, zoom);
-	}
-
 	/* Move to the correct offset */
 	x += sprite->x_offs;
 	y += sprite->y_offs;
@@ -910,6 +904,10 @@ void DrawSprite (BlitArea *dpi, SpriteID img, PaletteID pal, int x, int y)
 	BlitterMode mode = GetBlitterMode (img, pal);
 	SpriteID sprite_id = GB(img, 0, SPRITE_WIDTH);
 	const Sprite *sprite = GetSprite (sprite_id, ST_NORMAL);
+
+	x = ScaleByZoom (x, ZOOM_LVL_GUI);
+	y = ScaleByZoom (y, ZOOM_LVL_GUI);
+
 	GfxBlitter <true> (dpi, sprite, x, y, mode, NULL, sprite_id, ZOOM_LVL_GUI);
 }
 
