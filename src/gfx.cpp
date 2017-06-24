@@ -756,15 +756,14 @@ static BlitterMode GetBlitterMode (SpriteID img, PaletteID pal)
  * @param sprite The sprite to draw.
  * @param x      The X location to draw.
  * @param y      The Y location to draw.
+ * @param scaled Whether the X and Y are scaled or unscaled.
  * @param mode   The settings for the blitter to pass.
  * @param sub    Whether to only draw a sub set of the sprite.
  * @param zoom   The zoom level at which to draw the sprites.
- * @tparam SCALED_XY Whether the X and Y are scaled or unscaled.
  */
-template <bool SCALED_XY>
 static void GfxBlitter (BlitArea *dpi, const Sprite * const sprite,
-	int x, int y, BlitterMode mode, const SubSprite * const sub,
-	SpriteID sprite_id, ZoomLevel zoom)
+	int x, int y, bool scaled, BlitterMode mode,
+	const SubSprite * const sub, SpriteID sprite_id, ZoomLevel zoom)
 {
 	Blitter::BlitterParams bp;
 
@@ -779,7 +778,7 @@ static void GfxBlitter (BlitArea *dpi, const Sprite * const sprite,
 		bp.width = UnScaleByZoom(sprite->width, zoom);
 		bp.height = UnScaleByZoom(sprite->height, zoom);
 	} else {
-		assert (!SCALED_XY);
+		assert (!scaled);
 
 		/* Amount of pixels to clip from the source sprite */
 		int clip_left   = max (0,                   -sprite->x_offs +  sub->left        * ZOOM_LVL_BASE );
@@ -814,7 +813,7 @@ static void GfxBlitter (BlitArea *dpi, const Sprite * const sprite,
 	if (bp.width <= 0) return;
 	if (bp.height <= 0) return;
 
-	y -= SCALED_XY ? ScaleByZoom(dpi->top, zoom) : dpi->top;
+	y -= scaled ? ScaleByZoom (dpi->top, zoom) : dpi->top;
 	int y_unscaled = UnScaleByZoom(y, zoom);
 	/* Check for top overflow */
 	if (y < 0) {
@@ -827,13 +826,13 @@ static void GfxBlitter (BlitArea *dpi, const Sprite * const sprite,
 	}
 
 	/* Check for bottom overflow */
-	y += SCALED_XY ? ScaleByZoom(bp.height - dpi->height, zoom) : ScaleByZoom(bp.height, zoom) - dpi->height;
+	y += scaled ? ScaleByZoom (bp.height - dpi->height, zoom) : ScaleByZoom (bp.height, zoom) - dpi->height;
 	if (y > 0) {
 		bp.height -= UnScaleByZoom(y, zoom);
 		if (bp.height <= 0) return;
 	}
 
-	x -= SCALED_XY ? ScaleByZoom(dpi->left, zoom) : dpi->left;
+	x -= scaled ? ScaleByZoom (dpi->left, zoom) : dpi->left;
 	int x_unscaled = UnScaleByZoom(x, zoom);
 	/* Check for left overflow */
 	if (x < 0) {
@@ -846,7 +845,7 @@ static void GfxBlitter (BlitArea *dpi, const Sprite * const sprite,
 	}
 
 	/* Check for right overflow */
-	x += SCALED_XY ? ScaleByZoom(bp.width - dpi->width, zoom) : ScaleByZoom(bp.width, zoom) - dpi->width;
+	x += scaled ? ScaleByZoom (bp.width - dpi->width, zoom) : ScaleByZoom (bp.width, zoom) - dpi->width;
 	if (x > 0) {
 		bp.width -= UnScaleByZoom(x, zoom);
 		if (bp.width <= 0) return;
@@ -888,7 +887,7 @@ void DrawSpriteViewport (DrawPixelInfo *dpi, SpriteID img, PaletteID pal,
 	BlitterMode mode = GetBlitterMode (img, pal);
 	SpriteID sprite_id = GB(img, 0, SPRITE_WIDTH);
 	const Sprite *sprite = GetSprite (sprite_id, ST_NORMAL);
-	GfxBlitter <false> (dpi, sprite, x, y, mode, sub, sprite_id, dpi->zoom);
+	GfxBlitter (dpi, sprite, x, y, false, mode, sub, sprite_id, dpi->zoom);
 }
 
 /**
@@ -908,13 +907,12 @@ void DrawSprite (BlitArea *dpi, SpriteID img, PaletteID pal, int x, int y)
 	x = ScaleByZoom (x, ZOOM_LVL_GUI);
 	y = ScaleByZoom (y, ZOOM_LVL_GUI);
 
-	GfxBlitter <true> (dpi, sprite, x, y, mode, NULL, sprite_id, ZOOM_LVL_GUI);
+	GfxBlitter (dpi, sprite, x, y, true, mode, NULL, sprite_id, ZOOM_LVL_GUI);
 }
 
 static void GfxCharBlitter (BlitArea *dpi, const Sprite *sprite, int x, int y)
 {
-	/* Either <true> or <false> will do here, since zoom is 0. */
-	GfxBlitter <true> (dpi, sprite, x, y, BM_COLOUR_REMAP, NULL, SPR_CURSOR_MOUSE, ZOOM_LVL_NORMAL);
+	GfxBlitter (dpi, sprite, x, y, false, BM_COLOUR_REMAP, NULL, SPR_CURSOR_MOUSE, ZOOM_LVL_NORMAL);
 }
 
 /**
