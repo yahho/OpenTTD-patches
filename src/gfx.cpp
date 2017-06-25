@@ -876,7 +876,7 @@ static void GfxBlitter (BlitArea *dpi, const Sprite * const sprite,
 		return;
 	}
 
-	/* We do not want to catch the mouse. However we also use that spritenumber for unknown (text) sprites. */
+	/* We do not want to catch the mouse. */
 	if (_newgrf_debug_sprite_picker.mode == SPM_REDRAW && sprite_id != SPR_CURSOR_MOUSE) {
 		void *topleft = dpi->surface->move (bp.dst, bp.left, bp.top);
 		void *bottomright = dpi->surface->move (topleft, bp.width - 1, bp.height - 1);
@@ -934,7 +934,10 @@ void DrawSprite (BlitArea *dpi, SpriteID img, PaletteID pal, int x, int y)
 
 static void GfxCharBlitter (BlitArea *dpi, const Sprite *sprite, int x, int y)
 {
-	GfxBlitter (dpi, sprite, x, y, false, BM_COLOUR_REMAP, NULL, SPR_CURSOR_MOUSE, ZOOM_LVL_NORMAL);
+	Blitter::BlitterParams bp;
+	if (SetupBlitterParams (&bp, dpi, sprite, x, y, false, NULL, ZOOM_LVL_NORMAL)) {
+		dpi->surface->draw (&bp, BM_COLOUR_REMAP, ZOOM_LVL_NORMAL);
+	}
 }
 
 /**
