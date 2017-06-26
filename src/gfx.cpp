@@ -859,18 +859,21 @@ static bool SetupBlitterParams (Blitter::BlitterParams *bp, BlitArea *dpi,
 /**
  * The code for setting up the blitter mode and sprite information before finally drawing the sprite.
  * @param dpi    The area to draw on.
- * @param sprite The sprite to draw.
+ * @param img    The sprite to draw.
+ * @param pal    The palette to use.
  * @param x      The X location to draw.
  * @param y      The Y location to draw.
  * @param scaled Whether the X and Y are scaled or unscaled.
- * @param mode   The settings for the blitter to pass.
  * @param sub    Whether to only draw a sub set of the sprite.
  * @param zoom   The zoom level at which to draw the sprites.
  */
-static void GfxBlitter (BlitArea *dpi, const Sprite * const sprite,
-	int x, int y, bool scaled, BlitterMode mode,
-	const SubSprite * const sub, SpriteID sprite_id, ZoomLevel zoom)
+static void GfxBlitter (BlitArea *dpi, SpriteID img, PaletteID pal,
+	int x, int y, bool scaled, const SubSprite * const sub, ZoomLevel zoom)
 {
+	BlitterMode mode = GetBlitterMode (img, pal);
+	SpriteID sprite_id = GB(img, 0, SPRITE_WIDTH);
+	const Sprite *sprite = GetSprite (sprite_id, ST_NORMAL);
+
 	Blitter::BlitterParams bp;
 	if (!SetupBlitterParams (&bp, dpi, sprite, x, y, scaled, sub, zoom)) {
 		return;
@@ -906,10 +909,7 @@ static void GfxBlitter (BlitArea *dpi, const Sprite * const sprite,
 void DrawSpriteViewport (DrawPixelInfo *dpi, SpriteID img, PaletteID pal,
 	int x, int y, const SubSprite *sub)
 {
-	BlitterMode mode = GetBlitterMode (img, pal);
-	SpriteID sprite_id = GB(img, 0, SPRITE_WIDTH);
-	const Sprite *sprite = GetSprite (sprite_id, ST_NORMAL);
-	GfxBlitter (dpi, sprite, x, y, false, mode, sub, sprite_id, dpi->zoom);
+	GfxBlitter (dpi, img, pal, x, y, false, sub, dpi->zoom);
 }
 
 /**
@@ -922,14 +922,10 @@ void DrawSpriteViewport (DrawPixelInfo *dpi, SpriteID img, PaletteID pal,
  */
 void DrawSprite (BlitArea *dpi, SpriteID img, PaletteID pal, int x, int y)
 {
-	BlitterMode mode = GetBlitterMode (img, pal);
-	SpriteID sprite_id = GB(img, 0, SPRITE_WIDTH);
-	const Sprite *sprite = GetSprite (sprite_id, ST_NORMAL);
-
 	x = ScaleByZoom (x, ZOOM_LVL_GUI);
 	y = ScaleByZoom (y, ZOOM_LVL_GUI);
 
-	GfxBlitter (dpi, sprite, x, y, true, mode, NULL, sprite_id, ZOOM_LVL_GUI);
+	GfxBlitter (dpi, img, pal, x, y, true, NULL, ZOOM_LVL_GUI);
 }
 
 static void GfxCharBlitter (BlitArea *dpi, const Sprite *sprite, int x, int y)
