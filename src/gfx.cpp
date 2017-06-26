@@ -725,32 +725,6 @@ Dimension GetSpriteSize(SpriteID sprid, Point *offset, ZoomLevel zoom)
 }
 
 /**
- * Set up the colour remap for a sprite.
- * @param img  The sprite to draw.
- * @param pal  The palette to use.
- * @return The BlitterMode to use for drawing.
- */
-static BlitterMode GetBlitterMode (SpriteID img, PaletteID pal)
-{
-	if (HasBit(img, PALETTE_MODIFIER_TRANSPARENT)) {
-		_colour_remap_ptr = GetNonSprite(GB(pal, 0, PALETTE_WIDTH), ST_RECOLOUR) + 1;
-		return BM_TRANSPARENT;
-	} else if (pal == PAL_NONE) {
-		return BM_NORMAL;
-	} else if (HasBit(pal, PALETTE_TEXT_RECOLOUR)) {
-		SetColourRemap ((TextColour)GB(pal, 0, PALETTE_WIDTH));
-		return BM_COLOUR_REMAP;
-	} else {
-		_colour_remap_ptr = GetNonSprite (GB(pal, 0, PALETTE_WIDTH), ST_RECOLOUR) + 1;
-		switch (pal) {
-			case PALETTE_CRASH:     return BM_CRASH_REMAP;
-			case PALETTE_ALL_BLACK: return BM_BLACK_REMAP;
-			default:                return BM_COLOUR_REMAP;
-		}
-	}
-}
-
-/**
  * Set up blitter params to draw a sprite.
  * @param bp     The BlitterParams to set up.
  * @param dpi    The area to draw on.
@@ -870,7 +844,27 @@ static bool SetupBlitterParams (Blitter::BlitterParams *bp, BlitArea *dpi,
 static void GfxBlitter (BlitArea *dpi, SpriteID img, PaletteID pal,
 	int x, int y, bool scaled, const SubSprite * const sub, ZoomLevel zoom)
 {
-	BlitterMode mode = GetBlitterMode (img, pal);
+	BlitterMode mode;
+	if (HasBit(img, PALETTE_MODIFIER_TRANSPARENT)) {
+		_colour_remap_ptr = GetNonSprite (GB(pal, 0, PALETTE_WIDTH), ST_RECOLOUR) + 1;
+		mode = BM_TRANSPARENT;
+
+	} else if (pal == PAL_NONE) {
+		mode = BM_NORMAL;
+
+	} else if (HasBit(pal, PALETTE_TEXT_RECOLOUR)) {
+		SetColourRemap ((TextColour)GB(pal, 0, PALETTE_WIDTH));
+		mode = BM_COLOUR_REMAP;
+
+	} else {
+		_colour_remap_ptr = GetNonSprite (GB(pal, 0, PALETTE_WIDTH), ST_RECOLOUR) + 1;
+		switch (pal) {
+			case PALETTE_CRASH:     mode = BM_CRASH_REMAP;  break;
+			case PALETTE_ALL_BLACK: mode = BM_BLACK_REMAP;  break;
+			default:                mode = BM_COLOUR_REMAP; break;
+		}
+	}
+
 	SpriteID sprite_id = GB(img, 0, SPRITE_WIDTH);
 	const Sprite *sprite = GetSprite (sprite_id, ST_NORMAL);
 
