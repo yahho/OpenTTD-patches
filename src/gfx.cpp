@@ -73,7 +73,6 @@ ZoomLevelByte _gui_zoom; ///< GUI Zoom level
  */
 static Rect _invalid_rect;
 static const byte *_colour_remap_ptr;
-static byte _string_colourremap[3]; ///< Recoloursprite for stringdrawing. The grf loader ensures that #ST_FONT sprites only use colours 0 to 2.
 
 static const uint DIRTY_BLOCK_HEIGHT   = 8;
 static const uint DIRTY_BLOCK_WIDTH    = 64;
@@ -290,9 +289,10 @@ void DrawBox (DrawPixelInfo *dpi, int x, int y, int dx1, int dy1, int dx2, int d
 
 /**
  * Set the colour remap to be for the given colour.
+ * @param remap the remap array.
  * @param colour the new colour of the remap.
  */
-static void SetColourRemap(TextColour colour)
+static void SetColourRemap (byte (&remap) [3], TextColour colour)
 {
 	if (colour == TC_INVALID) return;
 
@@ -302,9 +302,10 @@ static void SetColourRemap(TextColour colour)
 	bool raw_colour = (colour & TC_IS_PALETTE_COLOUR) != 0;
 	colour &= ~(TC_NO_SHADE | TC_IS_PALETTE_COLOUR);
 
-	_string_colourremap[1] = raw_colour ? (byte)colour : _string_colourmap[colour];
-	_string_colourremap[2] = no_shade ? 0 : 1;
-	_colour_remap_ptr = _string_colourremap;
+	/* The grf loader ensures that #ST_FONT sprites only use colours 0 to 2. */
+	remap[0] = 0;
+	remap[1] = raw_colour ? (byte)colour : _string_colourmap[colour];
+	remap[2] = no_shade ? 0 : 1;
 }
 
 /**
@@ -404,6 +405,9 @@ static int DrawLayoutLine (const ParagraphLayouter::Line *line,
 			NOT_REACHED();
 	}
 
+	static const byte remap_black[3] = { 0, _string_colourmap[TC_BLACK], 0 };
+	byte remap[3];
+	memcpy (remap, remap_black, sizeof(remap));
 	TextColour colour = TC_BLACK;
 	bool draw_shadow = false;
 	for (int run_index = 0; run_index < line->CountRuns(); run_index++) {
@@ -412,7 +416,7 @@ static int DrawLayoutLine (const ParagraphLayouter::Line *line,
 
 		FontCache *fc = f->fc;
 		colour = f->colour;
-		SetColourRemap(colour);
+		SetColourRemap (remap, colour);
 
 		int dpi_left  = dpi->left;
 		int dpi_right = dpi->left + dpi->width - 1;
@@ -436,11 +440,9 @@ static int DrawLayoutLine (const ParagraphLayouter::Line *line,
 			if (begin_x + sprite->x_offs > dpi_right || begin_x + sprite->x_offs + sprite->width /* - 1 + 1 */ < dpi_left) continue;
 
 			if (draw_shadow && (gp.glyph & SPRITE_GLYPH) == 0) {
-				SetColourRemap(TC_BLACK);
-				GfxCharBlitter (dpi, sprite, begin_x + 1, top + 1, _colour_remap_ptr);
-				SetColourRemap(colour);
+				GfxCharBlitter (dpi, sprite, begin_x + 1, top + 1, remap_black);
 			}
-			GfxCharBlitter (dpi, sprite, begin_x, top, _colour_remap_ptr);
+			GfxCharBlitter (dpi, sprite, begin_x, top, remap);
 		}
 	}
 
@@ -448,16 +450,14 @@ static int DrawLayoutLine (const ParagraphLayouter::Line *line,
 		int x = (_current_text_dir == TD_RTL) ? left : (right - 3 * dot_width);
 		for (int i = 0; i < 3; i++, x += dot_width) {
 			if (draw_shadow) {
-				SetColourRemap(TC_BLACK);
-				GfxCharBlitter (dpi, dot_sprite, x + 1, y + 1, _colour_remap_ptr);
-				SetColourRemap(colour);
+				GfxCharBlitter (dpi, dot_sprite, x + 1, y + 1, remap_black);
 			}
-			GfxCharBlitter (dpi, dot_sprite, x, y, _colour_remap_ptr);
+			GfxCharBlitter (dpi, dot_sprite, x, y, remap);
 		}
 	}
 
 	if (underline) {
-		GfxFillRect (dpi, left, y + h, right, y + h, _string_colourremap[1]);
+		GfxFillRect (dpi, left, y + h, right, y + h, remap[1]);
 	}
 
 	return (align & SA_HOR_MASK) == SA_RIGHT ? left : right;
@@ -697,10 +697,11 @@ Dimension GetStringBoundingBox(StringID strid)
  */
 void DrawCharCentered (BlitArea *dpi, WChar c, int x, int y, TextColour colour)
 {
-	SetColourRemap(colour);
+	byte remap[3];
+	SetColourRemap (remap, colour);
 	FontCache *fc = FontCache::Get (FS_NORMAL);
 	GfxCharBlitter (dpi, fc->GetCharGlyph (c),
-			x - fc->GetCharacterWidth(c) / 2, y, _colour_remap_ptr);
+			x - fc->GetCharacterWidth(c) / 2, y, remap);
 }
 
 /**
@@ -844,6 +845,8 @@ static bool SetupBlitterParams (Blitter::BlitterParams *bp, BlitArea *dpi,
 static void GfxBlitter (BlitArea *dpi, SpriteID img, PaletteID pal,
 	int x, int y, bool scaled, const SubSprite * const sub, ZoomLevel zoom)
 {
+	byte string_remap[3];
+
 	BlitterMode mode;
 	if (HasBit(img, PALETTE_MODIFIER_TRANSPARENT)) {
 		_colour_remap_ptr = GetNonSprite (GB(pal, 0, PALETTE_WIDTH), ST_RECOLOUR) + 1;
@@ -853,7 +856,8 @@ static void GfxBlitter (BlitArea *dpi, SpriteID img, PaletteID pal,
 		mode = BM_NORMAL;
 
 	} else if (HasBit(pal, PALETTE_TEXT_RECOLOUR)) {
-		SetColourRemap ((TextColour)GB(pal, 0, PALETTE_WIDTH));
+		SetColourRemap (string_remap, (TextColour)GB(pal, 0, PALETTE_WIDTH));
+		_colour_remap_ptr = string_remap;
 		mode = BM_COLOUR_REMAP;
 
 	} else {
