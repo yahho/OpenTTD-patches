@@ -72,7 +72,6 @@ ZoomLevelByte _gui_zoom; ///< GUI Zoom level
  * @ingroup dirty
  */
 static Rect _invalid_rect;
-static const byte *_colour_remap_ptr;
 
 static const uint DIRTY_BLOCK_HEIGHT   = 8;
 static const uint DIRTY_BLOCK_WIDTH    = 64;
@@ -846,10 +845,11 @@ static void GfxBlitter (BlitArea *dpi, SpriteID img, PaletteID pal,
 	int x, int y, bool scaled, const SubSprite * const sub, ZoomLevel zoom)
 {
 	byte string_remap[3];
+	const byte *remap_ptr = NULL;
 
 	BlitterMode mode;
 	if (HasBit(img, PALETTE_MODIFIER_TRANSPARENT)) {
-		_colour_remap_ptr = GetNonSprite (GB(pal, 0, PALETTE_WIDTH), ST_RECOLOUR) + 1;
+		remap_ptr = GetNonSprite (GB(pal, 0, PALETTE_WIDTH), ST_RECOLOUR) + 1;
 		mode = BM_TRANSPARENT;
 
 	} else if (pal == PAL_NONE) {
@@ -857,11 +857,11 @@ static void GfxBlitter (BlitArea *dpi, SpriteID img, PaletteID pal,
 
 	} else if (HasBit(pal, PALETTE_TEXT_RECOLOUR)) {
 		SetColourRemap (string_remap, (TextColour)GB(pal, 0, PALETTE_WIDTH));
-		_colour_remap_ptr = string_remap;
+		remap_ptr = string_remap;
 		mode = BM_COLOUR_REMAP;
 
 	} else {
-		_colour_remap_ptr = GetNonSprite (GB(pal, 0, PALETTE_WIDTH), ST_RECOLOUR) + 1;
+		remap_ptr = GetNonSprite (GB(pal, 0, PALETTE_WIDTH), ST_RECOLOUR) + 1;
 		switch (pal) {
 			case PALETTE_CRASH:     mode = BM_CRASH_REMAP;  break;
 			case PALETTE_ALL_BLACK: mode = BM_BLACK_REMAP;  break;
@@ -892,7 +892,7 @@ static void GfxBlitter (BlitArea *dpi, SpriteID img, PaletteID pal,
 		}
 	}
 
-	bp.remap = _colour_remap_ptr;
+	bp.remap = remap_ptr;
 
 	dpi->surface->draw (&bp, mode, zoom);
 }
