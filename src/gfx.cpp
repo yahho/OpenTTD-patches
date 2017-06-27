@@ -778,7 +778,6 @@ static bool SetupBlitterParams (Blitter::BlitterParams *bp, BlitArea *dpi,
 
 	bp->dst = dpi->dst_ptr;
 	bp->pitch = dpi->surface->pitch;
-	bp->remap = _colour_remap_ptr;
 
 	assert(sprite->width > 0);
 	assert(sprite->height > 0);
@@ -888,6 +887,8 @@ static void GfxBlitter (BlitArea *dpi, SpriteID img, PaletteID pal,
 		}
 	}
 
+	bp.remap = _colour_remap_ptr;
+
 	dpi->surface->draw (&bp, mode, zoom);
 }
 
@@ -926,6 +927,7 @@ static void GfxCharBlitter (BlitArea *dpi, const Sprite *sprite, int x, int y)
 {
 	Blitter::BlitterParams bp;
 	if (SetupBlitterParams (&bp, dpi, sprite, x, y, false, NULL, ZOOM_LVL_NORMAL)) {
+		bp.remap = _colour_remap_ptr;
 		dpi->surface->draw (&bp, BM_COLOUR_REMAP, ZOOM_LVL_NORMAL);
 	}
 }
