@@ -57,7 +57,8 @@ int _cur_palette_count_dirty;
 
 byte _colour_gradient[COLOUR_END][8];
 
-static void GfxCharBlitter (BlitArea *dpi, const Sprite *sprite, int x, int y);
+static void GfxCharBlitter (BlitArea *dpi, const Sprite *sprite, int x, int y,
+	const byte *remap);
 
 static Blitter::Buffer _cursor_backup;
 
@@ -436,10 +437,10 @@ static int DrawLayoutLine (const ParagraphLayouter::Line *line,
 
 			if (draw_shadow && (gp.glyph & SPRITE_GLYPH) == 0) {
 				SetColourRemap(TC_BLACK);
-				GfxCharBlitter (dpi, sprite, begin_x + 1, top + 1);
+				GfxCharBlitter (dpi, sprite, begin_x + 1, top + 1, _colour_remap_ptr);
 				SetColourRemap(colour);
 			}
-			GfxCharBlitter (dpi, sprite, begin_x, top);
+			GfxCharBlitter (dpi, sprite, begin_x, top, _colour_remap_ptr);
 		}
 	}
 
@@ -448,10 +449,10 @@ static int DrawLayoutLine (const ParagraphLayouter::Line *line,
 		for (int i = 0; i < 3; i++, x += dot_width) {
 			if (draw_shadow) {
 				SetColourRemap(TC_BLACK);
-				GfxCharBlitter (dpi, dot_sprite, x + 1, y + 1);
+				GfxCharBlitter (dpi, dot_sprite, x + 1, y + 1, _colour_remap_ptr);
 				SetColourRemap(colour);
 			}
-			GfxCharBlitter (dpi, dot_sprite, x, y);
+			GfxCharBlitter (dpi, dot_sprite, x, y, _colour_remap_ptr);
 		}
 	}
 
@@ -699,7 +700,7 @@ void DrawCharCentered (BlitArea *dpi, WChar c, int x, int y, TextColour colour)
 	SetColourRemap(colour);
 	FontCache *fc = FontCache::Get (FS_NORMAL);
 	GfxCharBlitter (dpi, fc->GetCharGlyph (c),
-			x - fc->GetCharacterWidth(c) / 2, y);
+			x - fc->GetCharacterWidth(c) / 2, y, _colour_remap_ptr);
 }
 
 /**
@@ -923,11 +924,12 @@ void DrawSprite (BlitArea *dpi, SpriteID img, PaletteID pal, int x, int y)
 	GfxBlitter (dpi, img, pal, x, y, true, NULL, ZOOM_LVL_GUI);
 }
 
-static void GfxCharBlitter (BlitArea *dpi, const Sprite *sprite, int x, int y)
+static void GfxCharBlitter (BlitArea *dpi, const Sprite *sprite, int x, int y,
+	const byte *remap)
 {
 	Blitter::BlitterParams bp;
 	if (SetupBlitterParams (&bp, dpi, sprite, x, y, false, NULL, ZOOM_LVL_NORMAL)) {
-		bp.remap = _colour_remap_ptr;
+		bp.remap = remap;
 		dpi->surface->draw (&bp, BM_COLOUR_REMAP, ZOOM_LVL_NORMAL);
 	}
 }
