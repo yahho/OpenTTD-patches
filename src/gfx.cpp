@@ -844,31 +844,6 @@ static bool SetupBlitterParams (Blitter::BlitterParams *bp, BlitArea *dpi,
 static void GfxBlitter (BlitArea *dpi, SpriteID img, PaletteID pal,
 	int x, int y, bool scaled, const SubSprite * const sub, ZoomLevel zoom)
 {
-	byte string_remap[3];
-	const byte *remap_ptr = NULL;
-
-	BlitterMode mode;
-	if (HasBit(img, PALETTE_MODIFIER_TRANSPARENT)) {
-		remap_ptr = GetNonSprite (GB(pal, 0, PALETTE_WIDTH), ST_RECOLOUR) + 1;
-		mode = BM_TRANSPARENT;
-
-	} else if (pal == PAL_NONE) {
-		mode = BM_NORMAL;
-
-	} else if (HasBit(pal, PALETTE_TEXT_RECOLOUR)) {
-		SetColourRemap (string_remap, (TextColour)GB(pal, 0, PALETTE_WIDTH));
-		remap_ptr = string_remap;
-		mode = BM_COLOUR_REMAP;
-
-	} else {
-		remap_ptr = GetNonSprite (GB(pal, 0, PALETTE_WIDTH), ST_RECOLOUR) + 1;
-		switch (pal) {
-			case PALETTE_CRASH:     mode = BM_CRASH_REMAP;  break;
-			case PALETTE_ALL_BLACK: mode = BM_BLACK_REMAP;  break;
-			default:                mode = BM_COLOUR_REMAP; break;
-		}
-	}
-
 	SpriteID sprite_id = GB(img, 0, SPRITE_WIDTH);
 	const Sprite *sprite = GetSprite (sprite_id, ST_NORMAL);
 
@@ -892,7 +867,28 @@ static void GfxBlitter (BlitArea *dpi, SpriteID img, PaletteID pal,
 		}
 	}
 
-	bp.remap = remap_ptr;
+	byte string_remap[3];
+	BlitterMode mode;
+	if (HasBit(img, PALETTE_MODIFIER_TRANSPARENT)) {
+		bp.remap = GetNonSprite (GB(pal, 0, PALETTE_WIDTH), ST_RECOLOUR) + 1;
+		mode = BM_TRANSPARENT;
+
+	} else if (pal == PAL_NONE) {
+		mode = BM_NORMAL;
+
+	} else if (HasBit(pal, PALETTE_TEXT_RECOLOUR)) {
+		SetColourRemap (string_remap, (TextColour)GB(pal, 0, PALETTE_WIDTH));
+		bp.remap = string_remap;
+		mode = BM_COLOUR_REMAP;
+
+	} else {
+		bp.remap = GetNonSprite (GB(pal, 0, PALETTE_WIDTH), ST_RECOLOUR) + 1;
+		switch (pal) {
+			case PALETTE_CRASH:     mode = BM_CRASH_REMAP;  break;
+			case PALETTE_ALL_BLACK: mode = BM_BLACK_REMAP;  break;
+			default:                mode = BM_COLOUR_REMAP; break;
+		}
+	}
 
 	dpi->surface->draw (&bp, mode, zoom);
 }
