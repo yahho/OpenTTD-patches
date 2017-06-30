@@ -140,26 +140,6 @@ static inline void DrawNewGRFTileSeqInGUI (BlitArea *dpi, int x, int y,
 }
 
 /**
- * Applies PALETTE_MODIFIER_TRANSPARENT and PALETTE_MODIFIER_COLOUR to a palette entry of a sprite layout entry
- * @note for ground sprites use #GroundSpritePaletteTransform
- * @note Not useable for OTTD internal spritelayouts from table/xxx_land.h as PALETTE_MODIFIER_TRANSPARENT is only set
- *       when to use the default palette.
- *
- * @param image The sprite to draw
- * @param pal The palette from the sprite layout
- * @param default_pal The default recolour sprite to use (typically company colour resp. random industry/house colour)
- * @return The palette to use
- */
-static inline PaletteID SpriteLayoutPaletteTransform(SpriteID image, PaletteID pal, PaletteID default_pal)
-{
-	if (HasBit(image, PALETTE_MODIFIER_TRANSPARENT) || HasBit(image, PALETTE_MODIFIER_COLOUR)) {
-		return (pal != 0 ? pal : default_pal);
-	} else {
-		return PAL_NONE;
-	}
-}
-
-/**
  * Applies PALETTE_MODIFIER_COLOUR to a palette entry of a ground sprite
  * @note Not useable for OTTD internal spritelayouts from table/xxx_land.h as PALETTE_MODIFIER_TRANSPARENT is only set
  *       when to use the default palette.

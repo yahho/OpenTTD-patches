@@ -415,7 +415,10 @@ static void DrawTile_Industry(TileInfo *ti)
 	/* Add industry on top of the ground? */
 	image = (dits >> 32) & (0xffff | (1 << PALETTE_MODIFIER_COLOUR));
 	if (image != 0) {
-		AddSortableSpriteToDraw (ti->vd, image, SpriteLayoutPaletteTransform (image, PAL_NONE, GENERAL_SPRITE_COLOUR(ind->random_colour)),
+		PaletteID pal = HasBit(image, PALETTE_MODIFIER_COLOUR) ?
+				GENERAL_SPRITE_COLOUR(ind->random_colour) :
+				PAL_NONE;
+		AddSortableSpriteToDraw (ti->vd, image, pal,
 			ti->x + GB(dits, 16, 3), ti->y + GB(dits, 19, 3),
 			GB(dits, 48, 5), GB(dits, 53, 5), GB(dits, 22, 7),
 			ti->z,

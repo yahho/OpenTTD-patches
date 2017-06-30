@@ -20,8 +20,12 @@
 static inline PaletteID SpriteLayoutPalette (SpriteID image, PaletteID pal,
 	uint32 offset, PaletteID def)
 {
-	if (HasBit(pal, SPRITE_MODIFIER_CUSTOM_SPRITE)) pal += offset;
-	return SpriteLayoutPaletteTransform (image, pal, def);
+	if (HasBit(image, PALETTE_MODIFIER_TRANSPARENT) || HasBit(image, PALETTE_MODIFIER_COLOUR)) {
+		if (HasBit(pal, SPRITE_MODIFIER_CUSTOM_SPRITE)) pal += offset;
+		return (pal != 0 ? pal : def);
+	} else {
+		return PAL_NONE;
+	}
 }
 
 /**
