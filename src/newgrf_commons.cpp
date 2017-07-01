@@ -730,6 +730,8 @@ uint32 NewGRFSpriteLayout::PrepareLayout (uint32 orig_offset, uint32 newgrf_grou
 	/* Determine the var10 values the action-1-2-3 chains needs to be resolved for,
 	 * and apply the default sprite offsets (unless disabled). */
 	const TileLayoutRegisters *regs = this->registers;
+	if (regs == NULL) constr_stage = 0;
+
 	bool ground = true;
 	foreach_draw_tile_seq(result, result_seq.Begin()) {
 		TileLayoutFlags flags = TLF_NOTHING;
@@ -745,7 +747,7 @@ uint32 NewGRFSpriteLayout::PrepareLayout (uint32 orig_offset, uint32 newgrf_grou
 		if (!(flags & TLF_SPRITE)) {
 			if (HasBit(result->image.sprite, SPRITE_MODIFIER_CUSTOM_SPRITE)) {
 				result->image.sprite += ground ? newgrf_ground_offset : 0;
-				if (constr_stage > 0 && regs != NULL) result->image.sprite += GetConstructionStageOffset(constr_stage, regs->max_sprite_offset);
+				if (constr_stage > 0) result->image.sprite += GetConstructionStageOffset (constr_stage, regs->max_sprite_offset);
 			} else {
 				result->image.sprite += orig_offset;
 			}
@@ -761,7 +763,7 @@ uint32 NewGRFSpriteLayout::PrepareLayout (uint32 orig_offset, uint32 newgrf_grou
 		if (!(flags & TLF_PALETTE)) {
 			if (HasBit(result->image.pal, SPRITE_MODIFIER_CUSTOM_SPRITE)) {
 				result->image.sprite += ground ? newgrf_ground_offset : 0;
-				if (constr_stage > 0 && regs != NULL) result->image.sprite += GetConstructionStageOffset(constr_stage, regs->max_palette_offset);
+				if (constr_stage > 0) result->image.sprite += GetConstructionStageOffset (constr_stage, regs->max_palette_offset);
 			}
 		}
 
