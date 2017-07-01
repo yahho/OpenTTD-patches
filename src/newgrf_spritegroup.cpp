@@ -337,7 +337,7 @@ const DrawTileSprites *TileLayoutSpriteGroup::ProcessRegisters(uint8 *stage) con
 
 	static DrawTileSprites result;
 	uint8 actual_stage = stage != NULL ? *stage : 0;
-	this->dts.PrepareLayout(0, 0, 0, actual_stage, false);
+	this->dts.PrepareLayout(0, 0, actual_stage, false);
 	this->dts.ProcessRegisters(0, 0, false);
 	result.seq = this->dts.GetLayout(&result.ground);
 

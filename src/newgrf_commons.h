@@ -154,7 +154,7 @@ struct NewGRFSpriteLayout : ZeroedMemoryAllocator, DrawTileSprites {
 		return this->registers != NULL;
 	}
 
-	uint32 PrepareLayout(uint32 orig_offset, uint32 newgrf_ground_offset, uint32 newgrf_offset, uint constr_stage, bool separate_ground) const;
+	uint32 PrepareLayout (uint32 orig_offset, uint32 newgrf_ground_offset, uint constr_stage, bool separate_ground) const;
 	void ProcessRegisters(uint8 resolved_var10, uint32 resolved_sprite, bool separate_ground) const;
 
 	/**

@@ -704,12 +704,11 @@ void NewGRFSpriteLayout::AllocateRegisters()
  *       That means, you have to use the sprite layout before calling #PrepareLayout() the next time.
  * @param orig_offset          Offset to apply to non-action-1 sprites.
  * @param newgrf_ground_offset Offset to apply to action-1 ground sprites.
- * @param newgrf_offset        Offset to apply to action-1 non-ground sprites.
  * @param constr_stage         Construction stage (0-3) to apply to all action-1 sprites.
  * @param separate_ground      Whether the ground sprite shall be resolved by a separate action-1-2-3 chain by default.
  * @return Bitmask of values for variable 10 to resolve action-1-2-3 chains for.
  */
-uint32 NewGRFSpriteLayout::PrepareLayout(uint32 orig_offset, uint32 newgrf_ground_offset, uint32 newgrf_offset, uint constr_stage, bool separate_ground) const
+uint32 NewGRFSpriteLayout::PrepareLayout (uint32 orig_offset, uint32 newgrf_ground_offset, uint constr_stage, bool separate_ground) const
 {
 	result_seq.Clear();
 	uint32 var10_values = 0;
@@ -745,7 +744,7 @@ uint32 NewGRFSpriteLayout::PrepareLayout(uint32 orig_offset, uint32 newgrf_groun
 		/* Add default sprite offset, unless there is a custom one */
 		if (!(flags & TLF_SPRITE)) {
 			if (HasBit(result->image.sprite, SPRITE_MODIFIER_CUSTOM_SPRITE)) {
-				result->image.sprite += ground ? newgrf_ground_offset : newgrf_offset;
+				result->image.sprite += ground ? newgrf_ground_offset : 0;
 				if (constr_stage > 0 && regs != NULL) result->image.sprite += GetConstructionStageOffset(constr_stage, regs->max_sprite_offset);
 			} else {
 				result->image.sprite += orig_offset;
@@ -761,7 +760,7 @@ uint32 NewGRFSpriteLayout::PrepareLayout(uint32 orig_offset, uint32 newgrf_groun
 		/* Add default palette offset, unless there is a custom one */
 		if (!(flags & TLF_PALETTE)) {
 			if (HasBit(result->image.pal, SPRITE_MODIFIER_CUSTOM_SPRITE)) {
-				result->image.sprite += ground ? newgrf_ground_offset : newgrf_offset;
+				result->image.sprite += ground ? newgrf_ground_offset : 0;
 				if (constr_stage > 0 && regs != NULL) result->image.sprite += GetConstructionStageOffset(constr_stage, regs->max_palette_offset);
 			}
 		}
