@@ -786,7 +786,7 @@ void NewGRFSpriteLayout::ProcessRegisters(uint8 resolved_var10, uint32 resolved_
 {
 	DrawTileSeqStruct *result;
 	const TileLayoutRegisters *regs = this->registers;
-	bool ground = true;
+	bool ground = separate_ground;
 	foreach_draw_tile_seq(result, result_seq.Begin()) {
 		TileLayoutFlags flags = TLF_NOTHING;
 		if (regs != NULL) flags = regs->flags;
@@ -794,7 +794,7 @@ void NewGRFSpriteLayout::ProcessRegisters(uint8 resolved_var10, uint32 resolved_
 		/* Is the sprite or bounding box affected by an action-1-2-3 chain? */
 		if (HasBit(result->image.sprite, SPRITE_MODIFIER_CUSTOM_SPRITE) || (flags & TLF_SPRITE_REG_FLAGS)) {
 			/* Does the var10 value apply to this sprite? */
-			uint8 var10 = (flags & TLF_SPRITE_VAR10) ? regs->sprite_var10 : (ground && separate_ground ? 1 : 0);
+			uint8 var10 = (flags & TLF_SPRITE_VAR10) ? regs->sprite_var10 : ground ? 1 : 0;
 			if (var10 == resolved_var10) {
 				/* Apply registers */
 				if ((flags & TLF_DODRAW) && GetRegister(regs->dodraw) == 0) {
@@ -827,7 +827,7 @@ void NewGRFSpriteLayout::ProcessRegisters(uint8 resolved_var10, uint32 resolved_
 		/* Is the palette affected by an action-1-2-3 chain? */
 		if (result->image.sprite != 0 && (HasBit(result->image.pal, SPRITE_MODIFIER_CUSTOM_SPRITE) || (flags & TLF_PALETTE_REG_FLAGS))) {
 			/* Does the var10 value apply to this sprite? */
-			uint8 var10 = (flags & TLF_PALETTE_VAR10) ? regs->palette_var10 : (ground && separate_ground ? 1 : 0);
+			uint8 var10 = (flags & TLF_PALETTE_VAR10) ? regs->palette_var10 : ground ? 1 : 0;
 			if (var10 == resolved_var10) {
 				/* Apply registers */
 				if (HasBit(result->image.pal, SPRITE_MODIFIER_CUSTOM_SPRITE)) result->image.pal += resolved_sprite;
