@@ -76,15 +76,20 @@ DECLARE_ENUM_AS_BIT_SET(TileLayoutFlags)
  */
 static inline uint GetConstructionStageOffset(uint construction_stage, uint num_sprites)
 {
+	/* If there is only one sprite, use it for all stages.
+	 * If there are two sprites, use the second one for stage 3.
+	 * If there are three sprites, use the middle one for stages 1 and 2.
+	 * If there are four sprites (or more), use one for each stage. */
 	assert(num_sprites > 0);
+	assert (construction_stage < 4);
 	if (num_sprites > 4) num_sprites = 4;
-	switch (construction_stage) {
-		case 0: return 0;
-		case 1: return num_sprites > 2 ? 1 : 0;
-		case 2: return num_sprites > 2 ? num_sprites - 2 : 0;
-		case 3: return num_sprites - 1;
-		default: NOT_REACHED();
-	}
+
+	/* m = (n == 1) ? 0 : (n == 2) ? 1 : (n == 3) ? 3 : 4 */
+	uint m = (num_sprites - 1) * 3 / 2;
+
+	/* (m == 0) => (0,0,0,0);  (m == 1) => (0,0,0,1);
+	   (m == 3) => (0,1,1,2);  (m == 4) => (0,1,2,3)  */
+	return ((m * construction_stage) + 1) / 4;
 }
 
 /**
