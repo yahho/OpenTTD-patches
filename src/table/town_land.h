@@ -230,9 +230,9 @@ static const DrawBuildingsTileStruct dbts_060c_060d   = { {  0x60c,             
 static const DrawBuildingsTileStruct dbts_060e_060f   = { {  0x60e,                   PAL_NONE }, {  0x60f,                   PAL_NONE },   0,  0, 16, 16,  95, 0 };
 
 static const DrawBuildingsTileStruct dbts_0600_0601   = { {  0x600,                   PAL_NONE }, {  0x601,                   PAL_NONE },   0,  0, 16, 16,  55, 0 };
-static const DrawBuildingsTileStruct dbts_0600_0601_w = { {  0x600,    PALETTE_TO_STRUCT_WHITE }, {  0x601,    PALETTE_TO_STRUCT_WHITE },   0,  0, 16, 16,  55, 0 };
+static const DrawBuildingsTileStruct dbts_0600_0601_w = { {  0x600,                   PAL_NONE }, {  0x601,    PALETTE_TO_STRUCT_WHITE },   0,  0, 16, 16,  55, 0 };
 static const DrawBuildingsTileStruct dbts_0602_0603   = { {  0x602,                   PAL_NONE }, {  0x603,                   PAL_NONE },   0,  0, 16, 16,  42, 0 };
-static const DrawBuildingsTileStruct dbts_0602_0603_c = { {  0x602, PALETTE_TO_STRUCT_CONCRETE }, {  0x603, PALETTE_TO_STRUCT_CONCRETE },   0,  0, 16, 16,  42, 0 };
+static const DrawBuildingsTileStruct dbts_0602_0603_c = { {  0x602,                   PAL_NONE }, {  0x603, PALETTE_TO_STRUCT_CONCRETE },   0,  0, 16, 16,  42, 0 };
 
 static const DrawBuildingsTileStruct dbts_0604_0605   = { {  0x604,                   PAL_NONE }, {  0x605,                   PAL_NONE },   0,  0, 16, 16,  88, 0 };
 static const DrawBuildingsTileStruct dbts_0606_0607   = { {  0x606,                   PAL_NONE }, {  0x607,                   PAL_NONE },   0,  0, 16, 16,  88, 0 };
@@ -256,14 +256,14 @@ static const DrawBuildingsTileStruct dbts_061a_061b   = { {  0x61a,             
 static const DrawBuildingsTileStruct dbts_061c_061d   = { {  0x61c,                   PAL_NONE }, {  0x61d,                   PAL_NONE },   0,  0, 16, 16, 100, 0 };
 
 static const DrawBuildingsTileStruct dbts_061e_061f   = { {  0x61e,                   PAL_NONE }, {  0x61f,                   PAL_NONE },   0,  0, 16, 16,  25, 0 };
-static const DrawBuildingsTileStruct dbts_061e_061f_w = { {  0x61e,    PALETTE_TO_STRUCT_WHITE }, {  0x61f,    PALETTE_TO_STRUCT_WHITE },   0,  0, 16, 16,  25, 0 };
+static const DrawBuildingsTileStruct dbts_061e_061f_w = { {  0x61e,                   PAL_NONE }, {  0x61f,    PALETTE_TO_STRUCT_WHITE },   0,  0, 16, 16,  25, 0 };
 static const DrawBuildingsTileStruct dbts_0620_0621   = { {  0x620,                   PAL_NONE }, {  0x621,                   PAL_NONE },   0,  0, 16, 16,  25, 0 };
-static const DrawBuildingsTileStruct dbts_0620_0621_c = { {  0x620,           PALETTE_TO_CREAM }, {  0x621,           PALETTE_TO_CREAM },   0,  0, 16, 16,  25, 0 };
+static const DrawBuildingsTileStruct dbts_0620_0621_c = { {  0x620,                   PAL_NONE }, {  0x621,           PALETTE_TO_CREAM },   0,  0, 16, 16,  25, 0 };
 
 static const DrawBuildingsTileStruct dbts_11da_11db   = { { 0x11da,                   PAL_NONE }, { 0x11db,                   PAL_NONE },   0,  0, 16, 16,  25, 0 };
-static const DrawBuildingsTileStruct dbts_11da_11db_w = { { 0x11da,    PALETTE_TO_STRUCT_WHITE }, { 0x11db,    PALETTE_TO_STRUCT_WHITE },   0,  0, 16, 16,  25, 0 };
+static const DrawBuildingsTileStruct dbts_11da_11db_w = { { 0x11da,                   PAL_NONE }, { 0x11db,    PALETTE_TO_STRUCT_WHITE },   0,  0, 16, 16,  25, 0 };
 static const DrawBuildingsTileStruct dbts_11dc_11dd   = { { 0x11dc,                   PAL_NONE }, { 0x11dd,                   PAL_NONE },   0,  0, 16, 16,  25, 0 };
-static const DrawBuildingsTileStruct dbts_11dc_11dd_c = { { 0x11dc,           PALETTE_TO_CREAM }, { 0x11dd,           PALETTE_TO_CREAM },   0,  0, 16, 16,  25, 0 };
+static const DrawBuildingsTileStruct dbts_11dc_11dd_c = { { 0x11dc,                   PAL_NONE }, { 0x11dd,           PALETTE_TO_CREAM },   0,  0, 16, 16,  25, 0 };
 
 static const DrawBuildingsTileStruct dbts_1134_1135   = { { 0x1134,                   PAL_NONE }, { 0x1135,                   PAL_NONE },   0,  0, 16, 16,  40, 0 };
 
