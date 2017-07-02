@@ -211,7 +211,7 @@ static void DrawTile_Town(TileInfo *ti)
 
 	if (ti->tileh != SLOPE_FLAT) DrawFoundation(ti, FOUNDATION_LEVELED);
 
-	DrawGroundSprite (ti, dcts->ground.sprite, dcts->ground.pal);
+	DrawGroundSprite (ti, dcts->ground, PAL_NONE);
 
 	/* If houses are invisible, do not draw the upper part */
 	if (IsInvisibilitySet(TO_HOUSES)) return;
@@ -244,7 +244,7 @@ static void DrawOldHouseTileInGUI (BlitArea *dpi, int x, int y,
 	const DrawBuildingsTileStruct *dcts = town_draw_tile_data[house_id][0][TOWN_HOUSE_COMPLETED];
 	if (ground) {
 		/* Draw the ground sprite */
-		DrawSprite (dpi, dcts->ground.sprite, dcts->ground.pal, x, y);
+		DrawSprite (dpi, dcts->ground, PAL_NONE, x, y);
 	} else {
 		/* Add a house on top of the ground? */
 		if (dcts->building.sprite != 0) {
