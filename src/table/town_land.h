@@ -23,7 +23,6 @@ struct DrawBuildingsTileStruct {
 
 /** House graphics data. */
 static const DrawBuildingsTileStruct dbts_bare        = { SPR_FLAT_BARE_LAND,  {    0x0,                   PAL_NONE },   0,  0, 16, 16,  22, 0 };
-static const DrawBuildingsTileStruct dbts_bare_u      = { SPR_FLAT_BARE_LAND,  {    0x0,                   PAL_NONE },   0,  0, 16, 16,  40, 0 };
 
 static const DrawBuildingsTileStruct dbts_bare_058d   = { SPR_FLAT_BARE_LAND,  {  0x58d,                   PAL_NONE },   0,  0, 14, 14,   8, 0 };
 static const DrawBuildingsTileStruct dbts_bare_058e   = { SPR_FLAT_BARE_LAND,  {  0x58e,                   PAL_NONE },   0,  0, 14, 14,  60, 0 };
@@ -102,15 +101,10 @@ static const DrawBuildingsTileStruct dbts_bare_05ac   = { SPR_FLAT_BARE_LAND,  {
 static const DrawBuildingsTileStruct dbts_bare_05ad   = { SPR_FLAT_BARE_LAND,  {  0x5ad,                   PAL_NONE },   0,  0, 16, 16,  45, 0 };
 static const DrawBuildingsTileStruct dbts_conc_05ad   = { SPR_CONCRETE_GROUND, {  0x5ad,                   PAL_NONE },   0,  0, 16, 16,  45, 0 };
 
-static const DrawBuildingsTileStruct dbts_bare_1      = { SPR_FLAT_BARE_LAND,  {    0x0,                   PAL_NONE },   6,  5,  3,  6,   8, 0 };
-static const DrawBuildingsTileStruct dbts_conc_1      = { SPR_CONCRETE_GROUND, {    0x0,                   PAL_NONE },   6,  5,  3,  6,   8, 0 };
+static const DrawBuildingsTileStruct dbts_conc        = { SPR_CONCRETE_GROUND, {    0x0,                   PAL_NONE },   6,  5,  3,  6,   8, 0 };
 static const DrawBuildingsTileStruct dbts_conc_05ae   = { SPR_CONCRETE_GROUND, {  0x5ae,                   PAL_NONE },   6,  5,  3,  6,   8, 0 };
-
-static const DrawBuildingsTileStruct dbts_bare_2      = { SPR_FLAT_BARE_LAND,  {    0x0,                   PAL_NONE },   3,  3,  9,  9,   8, 0 };
-static const DrawBuildingsTileStruct dbts_conc_2      = { SPR_CONCRETE_GROUND, {    0x0,                   PAL_NONE },   3,  3,  9,  9,   8, 0 };
 static const DrawBuildingsTileStruct dbts_conc_05af   = { SPR_CONCRETE_GROUND, {  0x5af,                   PAL_NONE },   3,  3,  9,  9,   8, 0 };
 
-static const DrawBuildingsTileStruct dbts_bare_3      = { SPR_FLAT_BARE_LAND,  {    0x0,                   PAL_NONE },   0,  0, 16, 16,  15, 0 };
 static const DrawBuildingsTileStruct dbts_grss_05b0   = { SPR_FLAT_GRASS_TILE, {  0x5b0,                   PAL_NONE },   0,  0, 16, 16,  15, 0 };
 static const DrawBuildingsTileStruct dbts_grss_05b1   = { SPR_FLAT_GRASS_TILE, {  0x5b1,                   PAL_NONE },   0,  0, 16, 16,  15, 0 };
 
@@ -501,7 +495,6 @@ static const DrawBuildingsTileStruct dbts_bare_11f2   = { SPR_FLAT_BARE_LAND,  {
 static const DrawBuildingsTileStruct dbts_bare_11f3   = { SPR_FLAT_BARE_LAND,  { 0x11f3,                   PAL_NONE },   0,  0, 16, 16,  40, 0 };
 static const DrawBuildingsTileStruct dbts_bare_11f4   = { SPR_FLAT_BARE_LAND,  { 0x11f4,                   PAL_NONE },   0,  0, 16, 16,  40, 0 };
 
-static const DrawBuildingsTileStruct dbts_bare_4      = { SPR_FLAT_BARE_LAND,  {    0x0,                   PAL_NONE },   0,  0, 16, 16,  20, 0 };
 static const DrawBuildingsTileStruct dbts_bare_11f5   = { SPR_FLAT_BARE_LAND,  { 0x11f5,                   PAL_NONE },   0,  0, 16, 16,  20, 0 };
 static const DrawBuildingsTileStruct dbts_bare_11f6   = { SPR_FLAT_BARE_LAND,  { 0x11f6,                   PAL_NONE },   0,  0, 16, 16,  20, 0 };
 static const DrawBuildingsTileStruct dbts_bare_11f7   = { SPR_FLAT_BARE_LAND,  { 0x11f7,                   PAL_NONE },   0,  0, 16, 16,  20, 0 };
@@ -719,25 +712,25 @@ static const DrawBuildingsTileStruct *const town_draw_tile_data[][4][4] = {
 		{ &dbts_bare_05ab, &dbts_bare_05ac, &dbts_bare_05ad, &dbts_conc_05ad },
 		{ &dbts_bare_05ab, &dbts_bare_05ac, &dbts_bare_05ad, &dbts_conc_05ad },
 	}, {
-		{ &dbts_bare_1, &dbts_conc_1, &dbts_conc_05ae, &dbts_conc_05ae },
-		{ &dbts_bare_1, &dbts_conc_1, &dbts_conc_05ae, &dbts_conc_05ae },
-		{ &dbts_bare_1, &dbts_conc_1, &dbts_conc_05ae, &dbts_conc_05ae },
-		{ &dbts_bare_1, &dbts_conc_1, &dbts_conc_05ae, &dbts_conc_05ae },
+		{ &dbts_bare, &dbts_conc, &dbts_conc_05ae, &dbts_conc_05ae },
+		{ &dbts_bare, &dbts_conc, &dbts_conc_05ae, &dbts_conc_05ae },
+		{ &dbts_bare, &dbts_conc, &dbts_conc_05ae, &dbts_conc_05ae },
+		{ &dbts_bare, &dbts_conc, &dbts_conc_05ae, &dbts_conc_05ae },
 	}, {
-		{ &dbts_bare_2, &dbts_conc_2, &dbts_conc_05af, &dbts_conc_05af },
-		{ &dbts_bare_2, &dbts_conc_2, &dbts_conc_05af, &dbts_conc_05af },
-		{ &dbts_bare_2, &dbts_conc_2, &dbts_conc_05af, &dbts_conc_05af },
-		{ &dbts_bare_2, &dbts_conc_2, &dbts_conc_05af, &dbts_conc_05af },
+		{ &dbts_bare, &dbts_conc, &dbts_conc_05af, &dbts_conc_05af },
+		{ &dbts_bare, &dbts_conc, &dbts_conc_05af, &dbts_conc_05af },
+		{ &dbts_bare, &dbts_conc, &dbts_conc_05af, &dbts_conc_05af },
+		{ &dbts_bare, &dbts_conc, &dbts_conc_05af, &dbts_conc_05af },
 	}, {
-		{ &dbts_bare_3, &dbts_grss_05b0, &dbts_grss_05b0, &dbts_grss_05b0 },
-		{ &dbts_bare_3, &dbts_grss_05b0, &dbts_grss_05b0, &dbts_grss_05b0 },
-		{ &dbts_bare_3, &dbts_grss_05b0, &dbts_grss_05b0, &dbts_grss_05b0 },
-		{ &dbts_bare_3, &dbts_grss_05b0, &dbts_grss_05b0, &dbts_grss_05b0 },
+		{ &dbts_bare, &dbts_grss_05b0, &dbts_grss_05b0, &dbts_grss_05b0 },
+		{ &dbts_bare, &dbts_grss_05b0, &dbts_grss_05b0, &dbts_grss_05b0 },
+		{ &dbts_bare, &dbts_grss_05b0, &dbts_grss_05b0, &dbts_grss_05b0 },
+		{ &dbts_bare, &dbts_grss_05b0, &dbts_grss_05b0, &dbts_grss_05b0 },
 	}, {
-		{ &dbts_bare_3, &dbts_grss_05b1, &dbts_grss_05b1, &dbts_grss_05b1 },
-		{ &dbts_bare_3, &dbts_grss_05b1, &dbts_grss_05b1, &dbts_grss_05b1 },
-		{ &dbts_bare_3, &dbts_grss_05b1, &dbts_grss_05b1, &dbts_grss_05b1 },
-		{ &dbts_bare_3, &dbts_grss_05b1, &dbts_grss_05b1, &dbts_grss_05b1 },
+		{ &dbts_bare, &dbts_grss_05b1, &dbts_grss_05b1, &dbts_grss_05b1 },
+		{ &dbts_bare, &dbts_grss_05b1, &dbts_grss_05b1, &dbts_grss_05b1 },
+		{ &dbts_bare, &dbts_grss_05b1, &dbts_grss_05b1, &dbts_grss_05b1 },
+		{ &dbts_bare, &dbts_grss_05b1, &dbts_grss_05b1, &dbts_grss_05b1 },
 	}, {
 		{ &dbts_bare_05b2,   &dbts_bare_05b3,   &dbts_bare_05b4,   &dbts_conc_05b4   },
 		{ &dbts_bare_05b2_w, &dbts_bare_05b3_w, &dbts_bare_05b4_w, &dbts_conc_05b4_w },
@@ -994,15 +987,15 @@ static const DrawBuildingsTileStruct *const town_draw_tile_data[][4][4] = {
 		{ &dbts_bare_1173_c, &dbts_bare_1174_c, &dbts_bare_1175_c, &dbts_11e4_11e5_c },
 		{ &dbts_bare_1173_x, &dbts_bare_1174_x, &dbts_bare_1175_x, &dbts_11e4_11e5_x },
 	}, {
-		{ &dbts_bare_u, &dbts_bare_1176,   &dbts_bare_1176,   &dbts_bare_1176   },
-		{ &dbts_bare_u, &dbts_bare_1176,   &dbts_bare_1176,   &dbts_bare_1176   },
-		{ &dbts_bare_u, &dbts_bare_1176_n, &dbts_bare_1176_n, &dbts_bare_1176_n },
-		{ &dbts_bare_u, &dbts_bare_1176_n, &dbts_bare_1176_n, &dbts_bare_1176_n },
+		{ &dbts_bare, &dbts_bare_1176,   &dbts_bare_1176,   &dbts_bare_1176   },
+		{ &dbts_bare, &dbts_bare_1176,   &dbts_bare_1176,   &dbts_bare_1176   },
+		{ &dbts_bare, &dbts_bare_1176_n, &dbts_bare_1176_n, &dbts_bare_1176_n },
+		{ &dbts_bare, &dbts_bare_1176_n, &dbts_bare_1176_n, &dbts_bare_1176_n },
 	}, {
-		{ &dbts_bare_u, &dbts_bare_11e6,   &dbts_bare_11e6,   &dbts_bare_11e6   },
-		{ &dbts_bare_u, &dbts_bare_11e6,   &dbts_bare_11e6,   &dbts_bare_11e6   },
-		{ &dbts_bare_u, &dbts_bare_11e6_n, &dbts_bare_11e6_n, &dbts_bare_11e6_n },
-		{ &dbts_bare_u, &dbts_bare_11e6_n, &dbts_bare_11e6_n, &dbts_bare_11e6_n },
+		{ &dbts_bare, &dbts_bare_11e6,   &dbts_bare_11e6,   &dbts_bare_11e6   },
+		{ &dbts_bare, &dbts_bare_11e6,   &dbts_bare_11e6,   &dbts_bare_11e6   },
+		{ &dbts_bare, &dbts_bare_11e6_n, &dbts_bare_11e6_n, &dbts_bare_11e6_n },
+		{ &dbts_bare, &dbts_bare_11e6_n, &dbts_bare_11e6_n, &dbts_bare_11e6_n },
 	}, {
 		{ &dbts_1177, &dbts_bare_1179, &dbts_bare_117b, &dbts_bare_117b },
 		{ &dbts_1177, &dbts_bare_1179, &dbts_bare_117b, &dbts_bare_117b },
@@ -1079,20 +1072,20 @@ static const DrawBuildingsTileStruct *const town_draw_tile_data[][4][4] = {
 		{ &dbts_bare_11f2, &dbts_bare_11f3, &dbts_bare_11f3, &dbts_bare_11f4 },
 		{ &dbts_bare_11f2, &dbts_bare_11f3, &dbts_bare_11f3, &dbts_bare_11f4 },
 	}, {
-		{ &dbts_bare_4, &dbts_bare_11f5, &dbts_bare_11f5, &dbts_bare_11f5 },
-		{ &dbts_bare_4, &dbts_bare_11f6, &dbts_bare_11f6, &dbts_bare_11f6 },
-		{ &dbts_bare_4, &dbts_bare_11f7, &dbts_bare_11f7, &dbts_bare_11f7 },
-		{ &dbts_bare_4, &dbts_bare_11f8, &dbts_bare_11f8, &dbts_bare_11f8 },
+		{ &dbts_bare, &dbts_bare_11f5, &dbts_bare_11f5, &dbts_bare_11f5 },
+		{ &dbts_bare, &dbts_bare_11f6, &dbts_bare_11f6, &dbts_bare_11f6 },
+		{ &dbts_bare, &dbts_bare_11f7, &dbts_bare_11f7, &dbts_bare_11f7 },
+		{ &dbts_bare, &dbts_bare_11f8, &dbts_bare_11f8, &dbts_bare_11f8 },
 	}, {
 		{ &dbts_bare_11f9, &dbts_bare_11fa, &dbts_bare_11fa, &dbts_bare_11fb },
 		{ &dbts_bare_11f9, &dbts_bare_11fa, &dbts_bare_11fa, &dbts_bare_11fb },
 		{ &dbts_bare_11f9, &dbts_bare_11fa, &dbts_bare_11fa, &dbts_bare_11fb },
 		{ &dbts_bare_11f9, &dbts_bare_11fa, &dbts_bare_11fa, &dbts_bare_11fb },
 	}, {
-		{ &dbts_bare_u, &dbts_bare_11fc, &dbts_bare_11fc, &dbts_bare_11fc },
-		{ &dbts_bare_u, &dbts_bare_11fc, &dbts_bare_11fc, &dbts_bare_11fc },
-		{ &dbts_bare_u, &dbts_bare_11fc, &dbts_bare_11fc, &dbts_bare_11fc },
-		{ &dbts_bare_u, &dbts_bare_11fc, &dbts_bare_11fc, &dbts_bare_11fc },
+		{ &dbts_bare, &dbts_bare_11fc, &dbts_bare_11fc, &dbts_bare_11fc },
+		{ &dbts_bare, &dbts_bare_11fc, &dbts_bare_11fc, &dbts_bare_11fc },
+		{ &dbts_bare, &dbts_bare_11fc, &dbts_bare_11fc, &dbts_bare_11fc },
+		{ &dbts_bare, &dbts_bare_11fc, &dbts_bare_11fc, &dbts_bare_11fc },
 	}, {
 		{ &dbts_bare_11fd, &dbts_bare_11fe, &dbts_bare_11fe, &dbts_bare_11ff },
 		{ &dbts_bare_11fd, &dbts_bare_11fe, &dbts_bare_11fe, &dbts_bare_11ff },
