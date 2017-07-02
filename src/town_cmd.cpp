@@ -206,31 +206,28 @@ static void DrawTile_Town(TileInfo *ti)
 		}
 	}
 
-	/* Retrieve pointer to the draw town tile struct */
-	const DrawBuildingsTileStruct *dcts = town_draw_tile_data[house_id][TileHash2Bit(ti->x, ti->y)][GetHouseBuildingStage(ti->tile)];
+	/* Retrieve draw town tile data. */
+	const uint64 dcts = town_draw_tile_data[house_id][TileHash2Bit(ti->x, ti->y)][GetHouseBuildingStage(ti->tile)];
 
 	if (ti->tileh != SLOPE_FLAT) DrawFoundation(ti, FOUNDATION_LEVELED);
 
-	DrawGroundSprite (ti, dcts->ground, PAL_NONE);
+	DrawGroundSprite (ti, dcts & 0x1fff, PAL_NONE);
 
 	/* If houses are invisible, do not draw the upper part */
 	if (IsInvisibilitySet(TO_HOUSES)) return;
 
 	/* Add a house on top of the ground? */
-	SpriteID image = dcts->building.sprite;
+	SpriteID image = (dcts >> 32) & 0x1fff;
 	if (image != 0) {
-		AddSortableSpriteToDraw (ti->vd, image, dcts->building.pal,
-			ti->x + dcts->subtile_x,
-			ti->y + dcts->subtile_y,
-			dcts->width,
-			dcts->height,
-			dcts->dz,
+		AddSortableSpriteToDraw (ti->vd, image, GB(dcts, 45, 11),
+			ti->x + GB(dcts, 21, 3), ti->y + GB(dcts, 29, 3),
+			GB(dcts, 16, 5), GB(dcts, 24, 5), GB(dcts, 56, 7),
 			ti->z,
 			IsTransparencySet(TO_HOUSES)
 		);
 
 		/* Draw the lift */
-		if (!IsTransparencySet(TO_HOUSES) && (dcts->draw_proc != 0)) {
+		if (!IsTransparencySet(TO_HOUSES) && HasBit(dcts, 14)) {
 			AddChildSpriteScreen (ti->vd, SPR_LIFT, PAL_NONE, 14,
 					60 - GetLiftPosition (ti->tile));
 		}
@@ -240,19 +237,22 @@ static void DrawTile_Town(TileInfo *ti)
 static void DrawOldHouseTileInGUI (BlitArea *dpi, int x, int y,
 	HouseID house_id, bool ground)
 {
-	/* Retrieve pointer to the draw town tile struct */
-	const DrawBuildingsTileStruct *dcts = town_draw_tile_data[house_id][0][TOWN_HOUSE_COMPLETED];
+	/* Retrieve draw town tile data. */
+	const uint64 dcts = town_draw_tile_data[house_id][0][TOWN_HOUSE_COMPLETED];
 	if (ground) {
 		/* Draw the ground sprite */
-		DrawSprite (dpi, dcts->ground, PAL_NONE, x, y);
+		DrawSprite (dpi, dcts & 0x1fff, PAL_NONE, x, y);
 	} else {
 		/* Add a house on top of the ground? */
-		if (dcts->building.sprite != 0) {
-			DrawSprite (dpi, dcts->building.sprite, dcts->building.pal,
-					x + ScaleGUITrad (2 * (dcts->subtile_y - dcts->subtile_x)),
-					y + ScaleGUITrad (dcts->subtile_x + dcts->subtile_y));
+		SpriteID image = (dcts >> 32) & 0x1fff;
+		if (image != 0) {
+			uint sx = GB(dcts, 21, 3);
+			uint sy = GB(dcts, 29, 3);
+			DrawSprite (dpi, image, GB(dcts, 45, 11),
+					x + ScaleGUITrad (2 * (sy - sx)),
+					y + ScaleGUITrad (sx + sy));
 			/* Draw the lift */
-			if (dcts->draw_proc != 0) {
+			if (HasBit(dcts, 14)) {
 				DrawSprite (dpi, SPR_LIFT, PAL_NONE, x - 18, y + 7);
 			}
 		}
