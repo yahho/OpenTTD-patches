@@ -2613,56 +2613,71 @@ const DrawTileSprites *GetDefaultStationTileLayout (void)
 }
 
 /**
- * Check whether a sprite is a track sprite, which can be replaced by a non-track ground sprite and a rail overlay.
- * If the ground sprite is suitable, \a ground is replaced with the new non-track ground sprite, and \a overlay_offset
- * is set to the overlay to draw.
- * @param          ti             Positional info for the tile to decide snowyness etc. May be NULL.
+ * Check whether a sprite is a track sprite that can be replaced by a non-track
+ * ground sprite and a rail overlay. If the ground sprite is suitable,
+ * \a ground is replaced with the new non-track ground sprite, and
+ * \a overlay_offset is set to the overlay to draw.
  * @param [in,out] ground         Groundsprite to draw.
  * @param [out]    overlay_offset Overlay to draw.
  * @return true if overlay can be drawn.
  */
-bool SplitGroundSpriteForOverlay(const TileInfo *ti, SpriteID *ground, RailTrackOffset *overlay_offset)
+bool SplitGroundSpriteForOverlay (SpriteID *ground, RailTrackOffset *overlay_offset)
 {
-	bool snow_desert;
 	switch (*ground) {
 		case SPR_RAIL_TRACK_X:
-			snow_desert = false;
+			*ground = SPR_FLAT_GRASS_TILE;
 			*overlay_offset = RTO_X;
-			break;
+			return true;
 
 		case SPR_RAIL_TRACK_Y:
-			snow_desert = false;
+			*ground = SPR_FLAT_GRASS_TILE;
 			*overlay_offset = RTO_Y;
-			break;
+			return true;
 
 		case SPR_RAIL_TRACK_X_SNOW:
-			snow_desert = true;
+			*ground = SPR_FLAT_SNOW_DESERT_TILE;
 			*overlay_offset = RTO_X;
-			break;
+			return true;
 
 		case SPR_RAIL_TRACK_Y_SNOW:
-			snow_desert = true;
+			*ground = SPR_FLAT_SNOW_DESERT_TILE;
 			*overlay_offset = RTO_Y;
-			break;
+			return true;
 
 		default:
 			return false;
 	}
+}
 
-	if (ti != NULL) {
-		/* Decide snow/desert from tile */
-		switch (_settings_game.game_creation.landscape) {
-			case LT_ARCTIC:
-				snow_desert = (uint)ti->z > GetSnowLine() * TILE_HEIGHT;
-				break;
+/**
+ * Check whether a sprite is a track sprite, which can be replaced by a non-track ground sprite and a rail overlay.
+ * If the ground sprite is suitable, \a ground is replaced with the new non-track ground sprite, and \a overlay_offset
+ * is set to the overlay to draw.
+ * @param          ti             Positional info for the tile to decide snowyness etc.
+ * @param [in,out] ground         Groundsprite to draw.
+ * @param [out]    overlay_offset Overlay to draw.
+ * @return true if overlay can be drawn.
+ */
+static bool SplitGroundSpriteForOverlay(const TileInfo *ti, SpriteID *ground, RailTrackOffset *overlay_offset)
+{
+	if (!SplitGroundSpriteForOverlay (ground, overlay_offset)) {
+		return false;
+	}
 
-			case LT_TROPIC:
-				snow_desert = GetTropicZone(ti->tile) == TROPICZONE_DESERT;
-				break;
+	bool snow_desert;
 
-			default:
-				break;
-		}
+	/* Decide snow/desert from tile */
+	switch (_settings_game.game_creation.landscape) {
+		case LT_ARCTIC:
+			snow_desert = (uint)ti->z > GetSnowLine() * TILE_HEIGHT;
+			break;
+
+		case LT_TROPIC:
+			snow_desert = GetTropicZone(ti->tile) == TROPICZONE_DESERT;
+			break;
+
+		default:
+			return true;
 	}
 
 	*ground = snow_desert ? SPR_FLAT_SNOW_DESERT_TILE : SPR_FLAT_GRASS_TILE;

@@ -869,7 +869,7 @@ bool DrawStationTile (BlitArea *dpi, int x, int y, RailType railtype,
 	SpriteID image = ground.sprite;
 	PaletteID pal = ground.pal;
 	RailTrackOffset overlay_offset;
-	if (rti->UsesOverlay() && SplitGroundSpriteForOverlay(NULL, &image, &overlay_offset)) {
+	if (rti->UsesOverlay() && SplitGroundSpriteForOverlay (&image, &overlay_offset)) {
 		SpriteID ground = GetCustomRailSprite(rti, INVALID_TILE, RTSG_GROUND);
 		DrawSprite (dpi, image, PAL_NONE, x, y);
 		DrawSprite (dpi, ground + overlay_offset, PAL_NONE, x, y);

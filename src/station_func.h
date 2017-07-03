@@ -99,7 +99,7 @@ bool CanStationTileHaveWires(TileIndex tile);
 
 void UpdateAirportsNoise();
 
-bool SplitGroundSpriteForOverlay(const TileInfo *ti, SpriteID *ground, RailTrackOffset *overlay_offset);
+bool SplitGroundSpriteForOverlay (SpriteID *ground, RailTrackOffset *overlay_offset);
 
 void IncreaseStats(Station *st, const Vehicle *v, StationID next_station_id);
 void IncreaseStats(Station *st, CargoID cargo, StationID next_station_id, uint capacity, uint usage, EdgeUpdateMode mode);
