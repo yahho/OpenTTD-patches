@@ -2650,20 +2650,12 @@ bool SplitGroundSpriteForOverlay (SpriteID *ground, RailTrackOffset *overlay_off
 }
 
 /**
- * Check whether a sprite is a track sprite, which can be replaced by a non-track ground sprite and a rail overlay.
- * If the ground sprite is suitable, \a ground is replaced with the new non-track ground sprite, and \a overlay_offset
- * is set to the overlay to draw.
- * @param          ti             Positional info for the tile to decide snowyness etc.
- * @param [in,out] ground         Groundsprite to draw.
- * @param [out]    overlay_offset Overlay to draw.
- * @return true if overlay can be drawn.
+ * Get the ground sprite to use for an overlay depending on landscape.
+ * @param          ti     Positional info for the tile to decide snowyness etc.
+ * @param [in,out] ground Groundsprite to draw.
  */
-static bool SplitGroundSpriteForOverlay(const TileInfo *ti, SpriteID *ground, RailTrackOffset *overlay_offset)
+static void AdjustGroundSpriteForOverlay (const TileInfo *ti, SpriteID *ground)
 {
-	if (!SplitGroundSpriteForOverlay (ground, overlay_offset)) {
-		return false;
-	}
-
 	bool snow_desert;
 
 	/* Decide snow/desert from tile */
@@ -2677,11 +2669,10 @@ static bool SplitGroundSpriteForOverlay(const TileInfo *ti, SpriteID *ground, Ra
 			break;
 
 		default:
-			return true;
+			return;
 	}
 
 	*ground = snow_desert ? SPR_FLAT_SNOW_DESERT_TILE : SPR_FLAT_GRASS_TILE;
-	return true;
 }
 
 static void DrawTile_Airport (TileInfo *ti)
@@ -2892,7 +2883,8 @@ static void DrawTile_RailStation (TileInfo *ti)
 	SpriteID image = ground.sprite;
 	PaletteID pal  = ground.pal;
 	RailTrackOffset overlay_offset;
-	if (rti->UsesOverlay() && SplitGroundSpriteForOverlay (ti, &image, &overlay_offset)) {
+	if (rti->UsesOverlay() && SplitGroundSpriteForOverlay (&image, &overlay_offset)) {
+		AdjustGroundSpriteForOverlay (ti, &image);
 		SpriteID ground = GetCustomRailSprite (rti, ti->tile, RTSG_GROUND);
 		DrawGroundSprite (ti, image, PAL_NONE);
 		DrawGroundSprite (ti, ground + overlay_offset, PAL_NONE);
