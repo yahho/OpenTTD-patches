@@ -21,8 +21,7 @@ enum PoolType {
 	PT_NORMAL  = 0x01, ///< Normal pool containing game objects.
 	PT_NCLIENT = 0x02, ///< Network client pools.
 	PT_NADMIN  = 0x04, ///< Network admin pool.
-	PT_DATA    = 0x08, ///< NewGRF or other data, that is not reset together with normal pools.
-	PT_ALL     = 0x0F, ///< All pool types.
+	PT_ALL     = 0x07, ///< All pool types.
 };
 DECLARE_ENUM_AS_BIT_SET(PoolType)
 
