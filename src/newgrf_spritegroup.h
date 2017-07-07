@@ -99,6 +99,12 @@ struct RealSpriteGroup : SpriteGroup {
 	const SpriteGroup **loaded;  ///< List of loaded groups (can be SpriteIDs or Callback results)
 	const SpriteGroup **loading; ///< List of loading groups (can be SpriteIDs or Callback results)
 
+	static RealSpriteGroup *create (void)
+	{
+		assert (CanAllocateItem());
+		return new RealSpriteGroup;
+	}
+
 protected:
 	const SpriteGroup *Resolve(ResolverObject &object) const;
 };
@@ -188,6 +194,12 @@ struct DeterministicSpriteGroup : SpriteGroup {
 	/* Dynamically allocated, this is the sole owner */
 	const SpriteGroup *default_group;
 
+	static DeterministicSpriteGroup *create (void)
+	{
+		assert (CanAllocateItem());
+		return new DeterministicSpriteGroup;
+	}
+
 protected:
 	const SpriteGroup *Resolve(ResolverObject &object) const;
 };
@@ -211,6 +223,12 @@ struct RandomizedSpriteGroup : SpriteGroup {
 	byte num_groups; ///< must be power of 2
 
 	const SpriteGroup **groups; ///< Take the group with appropriate index:
+
+	static RandomizedSpriteGroup *create (void)
+	{
+		assert (CanAllocateItem());
+		return new RandomizedSpriteGroup;
+	}
 
 protected:
 	const SpriteGroup *Resolve(ResolverObject &object) const;
@@ -240,6 +258,12 @@ struct CallbackResultSpriteGroup : SpriteGroup {
 
 	uint16 result;
 	uint16 GetCallbackResult() const { return this->result; }
+
+	static CallbackResultSpriteGroup *create (uint16 value, bool v8)
+	{
+		assert (CanAllocateItem());
+		return new CallbackResultSpriteGroup (value, v8);
+	}
 };
 
 
@@ -263,6 +287,12 @@ struct ResultSpriteGroup : SpriteGroup {
 	byte num_sprites;
 	SpriteID GetResult() const { return this->sprite; }
 	byte GetNumResults() const { return this->num_sprites; }
+
+	static ResultSpriteGroup *create (SpriteID sprite, byte num_sprites)
+	{
+		assert (CanAllocateItem());
+		return new ResultSpriteGroup (sprite, num_sprites);
+	}
 };
 
 /**
@@ -275,6 +305,12 @@ struct TileLayoutSpriteGroup : SpriteGroup {
 	NewGRFSpriteLayout dts;
 
 	const DrawTileSprites *ProcessRegisters(uint8 *stage) const;
+
+	static TileLayoutSpriteGroup *create (void)
+	{
+		assert (CanAllocateItem());
+		return new TileLayoutSpriteGroup;
+	}
 };
 
 struct IndustryProductionSpriteGroup : SpriteGroup {
@@ -284,6 +320,12 @@ struct IndustryProductionSpriteGroup : SpriteGroup {
 	int16 subtract_input[3];  // signed
 	uint16 add_output[2];     // unsigned
 	uint8 again;
+
+	static IndustryProductionSpriteGroup *create (void)
+	{
+		assert (CanAllocateItem());
+		return new IndustryProductionSpriteGroup;
+	}
 };
 
 /**
