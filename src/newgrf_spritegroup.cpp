@@ -14,8 +14,7 @@
 #include "newgrf_spritegroup.h"
 #include "core/pool_func.hpp"
 
-template<> SpriteGroup::Pool SpriteGroup::PoolItem::pool ("SpriteGroup");
-INSTANTIATE_POOL_METHODS(SpriteGroup)
+std::deque <ttd_unique_ptr <SpriteGroup> > SpriteGroup::pool;
 
 TemporaryStorageArray<int32, 0x110> _temp_store;
 

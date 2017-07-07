@@ -12,6 +12,10 @@
 #ifndef NEWGRF_SPRITEGROUP_H
 #define NEWGRF_SPRITEGROUP_H
 
+#include <deque>
+
+#include "core/pointer.h"
+
 #include "town_type.h"
 #include "engine_type.h"
 #include "house_type.h"
@@ -53,8 +57,25 @@ struct ResolverObject;
  * sprite. 64 = 2^6, so 2^30 should be enough (for now) */
 
 /* Common wrapper for all the different sprite group types */
-struct SpriteGroup : PooledItem <SpriteGroup, SpriteGroupID, 1024, 1 << 30, PT_DATA> {
+struct SpriteGroup : ZeroedMemoryAllocator {
 protected:
+	static const size_t MAX_SIZE = 1 << 30;
+
+	static std::deque <ttd_unique_ptr <SpriteGroup> > pool;
+
+	/**
+	 * Append a new sprite group to the pool.
+	 * @param group The sprite group to append.
+	 * @return The sprite group itself, for the convenience of our callers.
+	 */
+	template <typename T>
+	static T *append (T *group)
+	{
+		assert (pool.size() < MAX_SIZE);
+		pool.push_back (ttd_unique_ptr <SpriteGroup> (group));
+		return group;
+	}
+
 	SpriteGroup(SpriteGroupType type) : type(type) {}
 	/** Base sprite group resolver */
 	virtual const SpriteGroup *Resolve(ResolverObject &object) const { return this; };
@@ -77,6 +98,12 @@ public:
 	static uint16 CallbackResult (const SpriteGroup *result)
 	{
 		return result != NULL ? result->GetCallbackResult() : CALLBACK_FAILED;
+	}
+
+	/** Clear the sprite group pool. */
+	static void clear (void)
+	{
+		pool.clear();
 	}
 };
 
@@ -101,8 +128,7 @@ struct RealSpriteGroup : SpriteGroup {
 
 	static RealSpriteGroup *create (void)
 	{
-		assert (CanAllocateItem());
-		return new RealSpriteGroup;
+		return SpriteGroup::append (new RealSpriteGroup);
 	}
 
 protected:
@@ -196,8 +222,7 @@ struct DeterministicSpriteGroup : SpriteGroup {
 
 	static DeterministicSpriteGroup *create (void)
 	{
-		assert (CanAllocateItem());
-		return new DeterministicSpriteGroup;
+		return SpriteGroup::append (new DeterministicSpriteGroup);
 	}
 
 protected:
@@ -226,8 +251,7 @@ struct RandomizedSpriteGroup : SpriteGroup {
 
 	static RandomizedSpriteGroup *create (void)
 	{
-		assert (CanAllocateItem());
-		return new RandomizedSpriteGroup;
+		return SpriteGroup::append (new RandomizedSpriteGroup);
 	}
 
 protected:
@@ -261,8 +285,7 @@ struct CallbackResultSpriteGroup : SpriteGroup {
 
 	static CallbackResultSpriteGroup *create (uint16 value, bool v8)
 	{
-		assert (CanAllocateItem());
-		return new CallbackResultSpriteGroup (value, v8);
+		return SpriteGroup::append (new CallbackResultSpriteGroup (value, v8));
 	}
 };
 
@@ -290,8 +313,7 @@ struct ResultSpriteGroup : SpriteGroup {
 
 	static ResultSpriteGroup *create (SpriteID sprite, byte num_sprites)
 	{
-		assert (CanAllocateItem());
-		return new ResultSpriteGroup (sprite, num_sprites);
+		return SpriteGroup::append (new ResultSpriteGroup (sprite, num_sprites));
 	}
 };
 
@@ -308,8 +330,7 @@ struct TileLayoutSpriteGroup : SpriteGroup {
 
 	static TileLayoutSpriteGroup *create (void)
 	{
-		assert (CanAllocateItem());
-		return new TileLayoutSpriteGroup;
+		return SpriteGroup::append (new TileLayoutSpriteGroup);
 	}
 };
 
@@ -323,8 +344,7 @@ struct IndustryProductionSpriteGroup : SpriteGroup {
 
 	static IndustryProductionSpriteGroup *create (void)
 	{
-		assert (CanAllocateItem());
-		return new IndustryProductionSpriteGroup;
+		return SpriteGroup::append (new IndustryProductionSpriteGroup);
 	}
 };
 
