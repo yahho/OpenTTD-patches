@@ -519,7 +519,7 @@ uint32 Waypoint::GetNewGRFVariable (const GRFFile *grffile, byte variable, byte 
 /* virtual */ const SpriteGroup *StationResolverObject::ResolveReal(const RealSpriteGroup *group) const
 {
 	if (this->station_scope.st == NULL || this->station_scope.statspec->cls_id == STAT_CLASS_WAYP) {
-		return group->loading[0];
+		return group->get_first (true);
 	}
 
 	uint cargo = 0;
@@ -546,19 +546,22 @@ uint32 Waypoint::GetNewGRFVariable (const GRFFile *grffile, byte variable, byte 
 	if (HasBit(this->station_scope.statspec->flags, SSF_DIV_BY_STATION_SIZE)) cargo /= (st->train_station.w + st->train_station.h);
 	cargo = min(0xfff, cargo);
 
-	if (cargo > this->station_scope.statspec->cargo_threshold) {
-		if (group->num_loading > 0) {
-			uint set = ((cargo - this->station_scope.statspec->cargo_threshold) * group->num_loading) / (4096 - this->station_scope.statspec->cargo_threshold);
-			return group->loading[set];
+	uint threshold = this->station_scope.statspec->cargo_threshold;
+	if (cargo > threshold) {
+		uint count = group->get_count (true);
+		if (count > 0) {
+			uint set = ((cargo - threshold) * count) / (4096 - threshold);
+			return group->get_group (true, set);
 		}
 	} else {
-		if (group->num_loaded > 0) {
-			uint set = (cargo * group->num_loaded) / (this->station_scope.statspec->cargo_threshold + 1);
-			return group->loaded[set];
+		uint count = group->get_count (false);
+		if (count > 0) {
+			uint set = (cargo * count) / (threshold + 1);
+			return group->get_group (false, set);
 		}
 	}
 
-	return group->loading[0];
+	return group->get_first (false);
 }
 
 /**

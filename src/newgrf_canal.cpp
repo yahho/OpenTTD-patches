@@ -118,9 +118,7 @@ struct CanalResolverObject : public ResolverObject {
 
 /* virtual */ const SpriteGroup *CanalResolverObject::ResolveReal(const RealSpriteGroup *group) const
 {
-	if (group->num_loaded == 0) return NULL;
-
-	return group->loaded[0];
+	return group->get_first();
 }
 
 static const SpriteGroup *CanalResolve (CanalFeature feature, TileIndex tile,

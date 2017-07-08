@@ -15,6 +15,7 @@
 #include <deque>
 
 #include "core/pointer.h"
+#include "core/flexarray.h"
 
 #include "town_type.h"
 #include "engine_type.h"
@@ -134,10 +135,8 @@ public:
 
 /* 'Real' sprite groups contain a list of other result or callback sprite
  * groups. */
-struct RealSpriteGroup : ZeroedMemoryAllocator, SpriteGroup {
-	RealSpriteGroup() : SpriteGroup(SGT_REAL) {}
-	~RealSpriteGroup();
-
+struct RealSpriteGroup : SpriteGroup, FlexArray <SpriteGroup *> {
+private:
 	/* Loaded = in motion, loading = not moving
 	 * Each group contains several spritesets, for various loading stages */
 
@@ -145,18 +144,73 @@ struct RealSpriteGroup : ZeroedMemoryAllocator, SpriteGroup {
 	 * with small amount of cargo whilst loading is for stations with a lot
 	 * of da stuff. */
 
-	byte num_loaded;       ///< Number of loaded groups
-	byte num_loading;      ///< Number of loading groups
-	const SpriteGroup **loaded;  ///< List of loaded groups (can be SpriteIDs or Callback results)
-	const SpriteGroup **loading; ///< List of loading groups (can be SpriteIDs or Callback results)
+	const uint16 n;              ///< Total number of groups
+	const byte n1;               ///< Number of loaded groups
+	const byte n2;               ///< Number of loading groups
+	const SpriteGroup *groups[]; ///< List of groups (can be SpriteIDs or Callback results)
 
-	static RealSpriteGroup *create (void)
+	RealSpriteGroup (uint16 n, byte n1, byte n2)
+		: SpriteGroup (SGT_REAL), n (n), n1 (n1), n2 (n2)
 	{
-		return SpriteGroup::append (new RealSpriteGroup);
+		memset (this->groups, 0, n * sizeof(SpriteGroup *));
 	}
 
 protected:
-	const SpriteGroup *Resolve(ResolverObject &object) const;
+	const SpriteGroup *Resolve (ResolverObject &object) const OVERRIDE;
+
+public:
+	static RealSpriteGroup *create (byte n1, byte n2)
+	{
+		uint16 total = (uint16)n1 + (uint16)n2;
+		return SpriteGroup::append (new (total) RealSpriteGroup (total, n1, n2));
+	}
+
+	void set (uint i, const SpriteGroup *group)
+	{
+		this->groups[i] = group;
+	}
+
+	/**
+	 * Get the count of sprite groups.
+	 * @param alt Count the groups in the second (loading) set.
+	 * @return The count of sprite groups in the set.
+	 */
+	uint get_count (bool alt) const
+	{
+		return alt ? this->n2 : this->n1;
+	}
+
+	/**
+	 * Get a particular sprite group.
+	 * @param alt Look for the group in the second (loading) set.
+	 * @param i Index of the sprite group to get.
+	 * @return The requested sprite group.
+	 */
+	const SpriteGroup *get_group (bool alt, uint i) const
+	{
+		if (alt) i += this->n1;
+		return this->groups[i];
+	}
+
+	/**
+	 * Get the first available sprite group from the first set.
+	 * @return The first sprite group, or NULL if there isn't any.
+	 */
+	const SpriteGroup *get_first (void) const
+	{
+		return (this->n1 != 0) ? this->groups[0] : NULL;
+	}
+
+	/**
+	 * Get the first available sprite group from either set.
+	 * @param alt Try the second (loading) set of groups first.
+	 * @return The first sprite group, or NULL if there isn't any.
+	 */
+	const SpriteGroup *get_first (bool alt) const
+	{
+		return (alt && (this->n2 != 0)) ? this->groups[this->n1] :
+				(this->n != 0)  ? this->groups[0] : NULL;
+	}
 };
 
 /* Shared by deterministic and random groups. */

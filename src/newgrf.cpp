@@ -4770,27 +4770,17 @@ static int NewSpriteGroup (ByteReader *buf)
 						return 0;
 					}
 
-					RealSpriteGroup *group = RealSpriteGroup::create();
+					RealSpriteGroup *group = RealSpriteGroup::create (num_loaded, num_loading);
 					act_group = group;
-
-					group->num_loaded  = num_loaded;
-					group->num_loading = num_loading;
-					if (num_loaded  > 0) group->loaded = xcalloct<const SpriteGroup*>(num_loaded);
-					if (num_loading > 0) group->loading = xcalloct<const SpriteGroup*>(num_loading);
 
 					grfmsg(6, "NewSpriteGroup: New SpriteGroup 0x%02X, %u loaded, %u loading",
 							setid, num_loaded, num_loading);
 
-					for (uint i = 0; i < num_loaded; i++) {
+					uint total = (uint)num_loaded + (uint)num_loading;
+					for (uint i = 0; i < total; i++) {
 						uint16 spriteid = buf->ReadWord();
-						group->loaded[i] = CreateGroupFromGroupID(feature, setid, type, spriteid);
-						grfmsg(8, "NewSpriteGroup: + rg->loaded[%i]  = subset %u", i, spriteid);
-					}
-
-					for (uint i = 0; i < num_loading; i++) {
-						uint16 spriteid = buf->ReadWord();
-						group->loading[i] = CreateGroupFromGroupID(feature, setid, type, spriteid);
-						grfmsg(8, "NewSpriteGroup: + rg->loading[%i] = subset %u", i, spriteid);
+						group->set (i, CreateGroupFromGroupID (feature, setid, type, spriteid));
+						grfmsg(8, "NewSpriteGroup: + rg->groups[%i] = subset %u", i, spriteid);
 					}
 
 					break;

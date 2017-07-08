@@ -155,9 +155,7 @@ void AddGenericCallback(uint8 feature, const GRFFile *file, const SpriteGroup *g
 
 /* virtual */ const SpriteGroup *GenericResolverObject::ResolveReal(const RealSpriteGroup *group) const
 {
-	if (group->num_loaded == 0) return NULL;
-
-	return group->loaded[0];
+	return group->get_first();
 }
 
 
