@@ -596,7 +596,7 @@ void IndustryProductionCallback(Industry *ind, int reason)
 
 		SB(object.callback_param2, 8, 16, loop);
 		const SpriteGroup *tgroup = object.Resolve();
-		if (tgroup == NULL || tgroup->type != SGT_INDUSTRY_PRODUCTION) break;
+		if (tgroup == NULL || !tgroup->IsType (SGT_INDUSTRY_PRODUCTION)) break;
 		const IndustryProductionSpriteGroup *group = (const IndustryProductionSpriteGroup *)tgroup;
 
 		bool deref = (group->version == 1);

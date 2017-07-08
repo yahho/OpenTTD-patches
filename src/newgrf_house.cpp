@@ -566,7 +566,7 @@ void DrawNewHouseTile(TileInfo *ti, HouseID house_id)
 	HouseResolverObject object(house_id, ti->tile, Town::GetByTile(ti->tile));
 
 	const SpriteGroup *group = object.Resolve();
-	if (group != NULL && group->type == SGT_TILELAYOUT) {
+	if (group != NULL && group->IsType (SGT_TILELAYOUT)) {
 		/* Limit the building stage to the number of stages supplied. */
 		const TileLayoutSpriteGroup *tlgroup = (const TileLayoutSpriteGroup *)group;
 		byte stage = GetHouseBuildingStage(ti->tile);
@@ -577,7 +577,7 @@ void DrawNewHouseTile(TileInfo *ti, HouseID house_id)
 void DrawNewHouseTileInGUI (BlitArea *dpi, int x, int y, HouseID house_id, bool ground)
 {
 	const SpriteGroup *group = FakeHouseResolve (house_id);
-	if (group != NULL && group->type == SGT_TILELAYOUT) {
+	if (group != NULL && group->IsType (SGT_TILELAYOUT)) {
 		DrawTileLayoutInGUI (dpi, x, y, (const TileLayoutSpriteGroup*)group, house_id, ground);
 	}
 }

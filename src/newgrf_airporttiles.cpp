@@ -281,7 +281,7 @@ bool DrawNewAirportTile(TileInfo *ti, Station *st, StationGfx gfx, const Airport
 	}
 
 	const SpriteGroup *group = AirportTileResolve (airts, ti->tile, st);
-	if (group == NULL || group->type != SGT_TILELAYOUT) {
+	if (group == NULL || !group->IsType (SGT_TILELAYOUT)) {
 		return false;
 	}
 

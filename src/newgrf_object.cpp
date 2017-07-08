@@ -464,7 +464,7 @@ void DrawNewObjectTile(TileInfo *ti, const ObjectSpec *spec)
 {
 	Object *o = Object::GetByTile(ti->tile);
 	const SpriteGroup *group = ObjectResolve (spec, o, ti->tile);
-	if (group == NULL || group->type != SGT_TILELAYOUT) return;
+	if (group == NULL || !group->IsType (SGT_TILELAYOUT)) return;
 
 	DrawTileLayout(ti, (const TileLayoutSpriteGroup *)group, spec);
 }
@@ -480,7 +480,7 @@ void DrawNewObjectTile(TileInfo *ti, const ObjectSpec *spec)
 void DrawNewObjectTileInGUI (BlitArea *dpi, int x, int y, const ObjectSpec *spec, uint8 view)
 {
 	const SpriteGroup *group = ObjectResolve (spec, NULL, INVALID_TILE, view);
-	if (group == NULL || group->type != SGT_TILELAYOUT) return;
+	if (group == NULL || !group->IsType (SGT_TILELAYOUT)) return;
 
 	const DrawTileSprites *dts = ((const TileLayoutSpriteGroup *)group)->ProcessRegisters(NULL);
 

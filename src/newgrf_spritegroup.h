@@ -57,7 +57,7 @@ struct ResolverObject;
  * sprite. 64 = 2^6, so 2^30 should be enough (for now) */
 
 /* Common wrapper for all the different sprite group types */
-struct SpriteGroup : ZeroedMemoryAllocator {
+struct SpriteGroup {
 protected:
 	static const size_t MAX_SIZE = 1 << 30;
 
@@ -76,18 +76,42 @@ protected:
 		return group;
 	}
 
-	SpriteGroup(SpriteGroupType type) : type(type) {}
+	const SpriteGroupType type; ///< Type of the sprite group
+
+	CONSTEXPR SpriteGroup (SpriteGroupType type) : type (type)
+	{
+	}
+
 	/** Base sprite group resolver */
-	virtual const SpriteGroup *Resolve(ResolverObject &object) const { return this; };
+	virtual const SpriteGroup *Resolve (ResolverObject &object) const
+	{
+		return this;
+	}
 
 public:
-	virtual ~SpriteGroup() {}
+	virtual ~SpriteGroup()
+	{
+	}
 
-	SpriteGroupType type;
+	bool IsType (SpriteGroupType type) const
+	{
+		return this->type == type;
+	}
 
-	virtual SpriteID GetResult() const { return 0; }
-	virtual byte GetNumResults() const { return 0; }
-	virtual uint16 GetCallbackResult() const { return CALLBACK_FAILED; }
+	virtual SpriteID GetResult (void) const
+	{
+		return 0;
+	}
+
+	virtual byte GetNumResults (void) const
+	{
+		return 0;
+	}
+
+	virtual uint16 GetCallbackResult (void) const
+	{
+		return CALLBACK_FAILED;
+	}
 
 	static const SpriteGroup *Resolve(const SpriteGroup *group, ResolverObject &object, bool top_level = true);
 
@@ -110,7 +134,7 @@ public:
 
 /* 'Real' sprite groups contain a list of other result or callback sprite
  * groups. */
-struct RealSpriteGroup : SpriteGroup {
+struct RealSpriteGroup : ZeroedMemoryAllocator, SpriteGroup {
 	RealSpriteGroup() : SpriteGroup(SGT_REAL) {}
 	~RealSpriteGroup();
 
@@ -206,7 +230,7 @@ struct DeterministicSpriteGroupRange {
 };
 
 
-struct DeterministicSpriteGroup : SpriteGroup {
+struct DeterministicSpriteGroup : ZeroedMemoryAllocator, SpriteGroup {
 	DeterministicSpriteGroup() : SpriteGroup(SGT_DETERMINISTIC) {}
 	~DeterministicSpriteGroup();
 
@@ -234,7 +258,7 @@ enum RandomizedSpriteGroupCompareMode {
 	RSG_CMP_ALL,
 };
 
-struct RandomizedSpriteGroup : SpriteGroup {
+struct RandomizedSpriteGroup : ZeroedMemoryAllocator, SpriteGroup {
 	RandomizedSpriteGroup() : SpriteGroup(SGT_RANDOMIZED) {}
 	~RandomizedSpriteGroup();
 
@@ -261,7 +285,7 @@ protected:
 
 /* This contains a callback result. A failed callback has a value of
  * CALLBACK_FAILED */
-struct CallbackResultSpriteGroup : SpriteGroup {
+struct CallbackResultSpriteGroup : ZeroedMemoryAllocator, SpriteGroup {
 	/**
 	 * Creates a spritegroup representing a callback result
 	 * @param value The value that was used to represent this callback result
@@ -320,7 +344,7 @@ struct ResultSpriteGroup : SpriteGroup {
 /**
  * Action 2 sprite layout for houses, industry tiles, objects and airport tiles.
  */
-struct TileLayoutSpriteGroup : SpriteGroup {
+struct TileLayoutSpriteGroup : ZeroedMemoryAllocator, SpriteGroup {
 	TileLayoutSpriteGroup() : SpriteGroup(SGT_TILELAYOUT) {}
 	~TileLayoutSpriteGroup() {}
 
@@ -334,7 +358,7 @@ struct TileLayoutSpriteGroup : SpriteGroup {
 	}
 };
 
-struct IndustryProductionSpriteGroup : SpriteGroup {
+struct IndustryProductionSpriteGroup : ZeroedMemoryAllocator, SpriteGroup {
 	IndustryProductionSpriteGroup() : SpriteGroup(SGT_INDUSTRY_PRODUCTION) {}
 
 	uint8 version;
