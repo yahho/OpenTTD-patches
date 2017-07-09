@@ -14,6 +14,7 @@
 
 #include <deque>
 
+#include "core/align.h"
 #include "core/pointer.h"
 #include "core/flexarray.h"
 
@@ -284,27 +285,80 @@ struct DeterministicSpriteGroupRange {
 };
 
 
-struct DeterministicSpriteGroup : ZeroedMemoryAllocator, SpriteGroup {
-	DeterministicSpriteGroup() : SpriteGroup(SGT_DETERMINISTIC) {}
-	~DeterministicSpriteGroup();
-
-	VarSpriteGroupScope var_scope;
-	DeterministicSpriteGroupSize size;
-	uint num_adjusts;
-	byte num_ranges;
-	DeterministicSpriteGroupAdjust *adjusts;
-	DeterministicSpriteGroupRange *ranges; // Dynamically allocated
-
-	/* Dynamically allocated, this is the sole owner */
-	const SpriteGroup *default_group;
-
-	static DeterministicSpriteGroup *create (void)
+struct DeterministicSpriteGroup : SpriteGroup, FlexArrayBase {
+private:
+	template <typename T>
+	static CONSTEXPR T *offset_pointer (void *ptr, size_t offset)
 	{
-		return SpriteGroup::append (new DeterministicSpriteGroup);
+		return (T*) (((char*)ptr) + offset);
+	}
+
+	const VarSpriteGroupScope var_scope;    ///< Scope.
+	const DeterministicSpriteGroupSize size;        ///< Size.
+	const SpriteGroup *default_group;       ///< Default result group.
+	DeterministicSpriteGroupAdjust *const adjusts;  ///< Vector of adjusts.
+	DeterministicSpriteGroupRange *const ranges;    ///< Vector of result ranges.
+	const uint num_adjusts;                 ///< Adjust count.
+	const byte num_ranges;                  ///< Result range count.
+
+	static CONSTEXPR size_t adjusts_offset (void)
+	{
+		return ttd_align_up<DeterministicSpriteGroupAdjust> (sizeof(DeterministicSpriteGroup));
+	}
+
+	DeterministicSpriteGroup (bool parent_scope,
+			DeterministicSpriteGroupSize size, uint num_adjusts,
+			byte num_ranges, size_t ranges_offset,
+			const DeterministicSpriteGroupAdjust *adjusts)
+		: SpriteGroup (SGT_DETERMINISTIC),
+		  var_scope (parent_scope ? VSG_SCOPE_PARENT : VSG_SCOPE_SELF),
+		  size (size), default_group (NULL),
+		  adjusts (offset_pointer<DeterministicSpriteGroupAdjust> (this, adjusts_offset())),
+		  ranges  (offset_pointer<DeterministicSpriteGroupRange>  (this, ranges_offset)),
+		  num_adjusts (num_adjusts), num_ranges (num_ranges)
+	{
+		memcpy (this->adjusts, adjusts, num_adjusts * sizeof(DeterministicSpriteGroupAdjust));
+		memset (this->ranges, 0, num_ranges * sizeof(DeterministicSpriteGroupRange));
+	}
+
+	/** Custom operator new to account for the extra storage. */
+	void *operator new (size_t size, size_t total, size_t = 1)
+	{
+		assert (total >= size);
+		return ::operator new (total);
 	}
 
 protected:
 	const SpriteGroup *Resolve(ResolverObject &object) const;
+
+public:
+	static DeterministicSpriteGroup *create (bool parent_scope,
+		DeterministicSpriteGroupSize size, uint num_adjusts,
+		byte num_ranges, const DeterministicSpriteGroupAdjust *adjusts)
+	{
+		size_t adjusts_end = adjusts_offset() + num_adjusts * sizeof(DeterministicSpriteGroupAdjust);
+		size_t ranges_offset = ttd_align_up<DeterministicSpriteGroupRange> (adjusts_end);
+		size_t ranges_end = ranges_offset + num_ranges * sizeof(DeterministicSpriteGroupRange);
+		size_t total_size = ttd_align_up<DeterministicSpriteGroup> (ranges_end);
+		DeterministicSpriteGroup *group = new (total_size)
+				DeterministicSpriteGroup (parent_scope, size,
+						num_adjusts, num_ranges,
+						ranges_offset, adjusts);
+		return SpriteGroup::append (group);
+	}
+
+	void set_range (byte i, const SpriteGroup *group, uint32 low, uint32 high)
+	{
+		DeterministicSpriteGroupRange *range = &this->ranges[i];
+		range->group = group;
+		range->low   = low;
+		range->high  = high;
+	}
+
+	void set_default (const SpriteGroup *group)
+	{
+		this->default_group = group;
+	}
 };
 
 enum RandomizedSpriteGroupCompareMode {

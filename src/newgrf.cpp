@@ -4656,19 +4656,9 @@ static int NewSpriteGroup (ByteReader *buf)
 		case 0x89: // Self scope, dword
 		case 0x8A: // Parent scope, dword
 		{
+			byte varsize = (1 << GB(type, 2, 2));
+
 			byte varadjust;
-			byte varsize;
-
-			DeterministicSpriteGroup *group = DeterministicSpriteGroup::create();
-			act_group = group;
-			group->var_scope = HasBit(type, 1) ? VSG_SCOPE_PARENT : VSG_SCOPE_SELF;
-
-			switch (GB(type, 2, 2)) {
-				default: NOT_REACHED();
-				case 0: group->size = DSG_SIZE_BYTE;  varsize = 1; break;
-				case 1: group->size = DSG_SIZE_WORD;  varsize = 2; break;
-				case 2: group->size = DSG_SIZE_DWORD; varsize = 4; break;
-			}
 
 			static SmallVector<DeterministicSpriteGroupAdjust, 16> adjusts;
 			adjusts.Clear();
@@ -4704,19 +4694,22 @@ static int NewSpriteGroup (ByteReader *buf)
 				/* Continue reading var adjusts while bit 5 is set. */
 			} while (HasBit(varadjust, 5));
 
-			group->num_adjusts = adjusts.Length();
-			group->adjusts = xmemdupt (adjusts.Begin(), group->num_adjusts);
+			byte num_ranges = buf->ReadByte();
 
-			group->num_ranges = buf->ReadByte();
-			if (group->num_ranges > 0) group->ranges = xcalloct<DeterministicSpriteGroupRange>(group->num_ranges);
+			DeterministicSpriteGroup *group = DeterministicSpriteGroup::create (HasBit(type, 1),
+					(DeterministicSpriteGroupSize)(GB(type, 2, 2)),
+					adjusts.Length(), num_ranges,
+					adjusts.Begin());
+			act_group = group;
 
-			for (uint i = 0; i < group->num_ranges; i++) {
-				group->ranges[i].group = GetGroupFromGroupID(setid, type, buf->ReadWord());
-				group->ranges[i].low   = buf->ReadVarSize(varsize);
-				group->ranges[i].high  = buf->ReadVarSize(varsize);
+			for (uint i = 0; i < num_ranges; i++) {
+				const SpriteGroup *g = GetGroupFromGroupID (setid, type, buf->ReadWord());
+				uint32 low  = buf->ReadVarSize (varsize);
+				uint32 high = buf->ReadVarSize (varsize);
+				group->set_range (i, g, low, high);
 			}
 
-			group->default_group = GetGroupFromGroupID(setid, type, buf->ReadWord());
+			group->set_default (GetGroupFromGroupID (setid, type, buf->ReadWord()));
 			break;
 		}
 

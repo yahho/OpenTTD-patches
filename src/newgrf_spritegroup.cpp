@@ -38,12 +38,6 @@ TemporaryStorageArray<int32, 0x110> _temp_store;
 	return group->Resolve(object);
 }
 
-DeterministicSpriteGroup::~DeterministicSpriteGroup()
-{
-	free(this->adjusts);
-	free(this->ranges);
-}
-
 RandomizedSpriteGroup::~RandomizedSpriteGroup()
 {
 	free(this->groups);
