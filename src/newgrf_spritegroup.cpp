@@ -237,10 +237,14 @@ const SpriteGroup *DeterministicSpriteGroup::Resolve(ResolverObject &object) con
 			}
 
 			/* Note: 'last_value' and 'reseed' are shared between the main chain and the procedure */
-		} else if (adjust->variable == 0x7B) {
-			value = GetVariable(object, scope, adjust->parameter, last_value, &available);
 		} else {
-			value = GetVariable(object, scope, adjust->variable, adjust->parameter, &available);
+			byte variable = adjust->variable;
+			uint32 parameter = adjust->parameter;
+			if (variable == 0x7B) {
+				variable = parameter;
+				parameter = last_value;
+			}
+			value = GetVariable (object, scope, variable, parameter, &available);
 		}
 
 		if (!available) {
