@@ -226,43 +226,12 @@ enum VarSpriteGroupScope {
 };
 DECLARE_POSTFIX_INCREMENT(VarSpriteGroupScope)
 
-enum DeterministicSpriteGroupAdjustType {
-	DSGA_TYPE_NONE,
-	DSGA_TYPE_DIV,
-	DSGA_TYPE_MOD,
-};
-
-enum DeterministicSpriteGroupAdjustOperation {
-	DSGA_OP_ADD,  ///< a + b
-	DSGA_OP_SUB,  ///< a - b
-	DSGA_OP_SMIN, ///< (signed) min(a, b)
-	DSGA_OP_SMAX, ///< (signed) max(a, b)
-	DSGA_OP_UMIN, ///< (unsigned) min(a, b)
-	DSGA_OP_UMAX, ///< (unsigned) max(a, b)
-	DSGA_OP_SDIV, ///< (signed) a / b
-	DSGA_OP_SMOD, ///< (signed) a % b
-	DSGA_OP_UDIV, ///< (unsigned) a / b
-	DSGA_OP_UMOD, ///< (unsigned) a & b
-	DSGA_OP_MUL,  ///< a * b
-	DSGA_OP_AND,  ///< a & b
-	DSGA_OP_OR,   ///< a | b
-	DSGA_OP_XOR,  ///< a ^ b
-	DSGA_OP_STO,  ///< store a into temporary storage, indexed by b. return a
-	DSGA_OP_RST,  ///< return b
-	DSGA_OP_STOP, ///< store a into persistent storage, indexed by b, return a
-	DSGA_OP_ROR,  ///< rotate a b positions to the right
-	DSGA_OP_SCMP, ///< (signed) comparison (a < b -> 0, a == b = 1, a > b = 2)
-	DSGA_OP_UCMP, ///< (unsigned) comparison (a < b -> 0, a == b = 1, a > b = 2)
-	DSGA_OP_SHL,  ///< a << b
-	DSGA_OP_SHR,  ///< (unsigned) a >> b
-	DSGA_OP_SAR,  ///< (signed) a >> b
-};
 
 struct DeterministicSpriteGroup : SpriteGroup, FlexArrayBase {
 public:
 	struct Adjust {
-		DeterministicSpriteGroupAdjustOperation operation;
-		DeterministicSpriteGroupAdjustType type;
+		byte operation;
+		byte type;
 		byte variable;
 		byte parameter; ///< Used for variables between 0x60 and 0x7F inclusive.
 		byte shift_num;

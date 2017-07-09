@@ -4669,7 +4669,7 @@ static int NewSpriteGroup (ByteReader *buf)
 				DeterministicSpriteGroup::Adjust *adjust = adjusts.Append();
 
 				/* The first var adjust doesn't have an operation specified, so we set it to add. */
-				adjust->operation = adjusts.Length() == 1 ? DSGA_OP_ADD : (DeterministicSpriteGroupAdjustOperation)buf->ReadByte();
+				adjust->operation = adjusts.Length() == 1 ? 0 : buf->ReadByte();
 				adjust->variable  = buf->ReadByte();
 				if (adjust->variable == 0x7E) {
 					/* Link subroutine group */
@@ -4680,10 +4680,10 @@ static int NewSpriteGroup (ByteReader *buf)
 
 				varadjust = buf->ReadByte();
 				adjust->shift_num = GB(varadjust, 0, 5);
-				adjust->type      = (DeterministicSpriteGroupAdjustType)GB(varadjust, 6, 2);
+				adjust->type      = GB(varadjust, 6, 2);
 				adjust->and_mask  = buf->ReadVarSize(varsize);
 
-				if (adjust->type != DSGA_TYPE_NONE) {
+				if (adjust->type != 0) {
 					adjust->add_val    = buf->ReadVarSize(varsize);
 					adjust->divmod_val = buf->ReadVarSize(varsize);
 				} else {
