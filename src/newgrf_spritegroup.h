@@ -233,12 +233,14 @@ public:
 		byte operation;
 		byte type;
 		byte variable;
-		byte parameter; ///< Used for variables between 0x60 and 0x7F inclusive.
 		byte shift_num;
 		uint32 and_mask;
 		uint32 add_val;
 		uint32 divmod_val;
-		const SpriteGroup *subroutine;
+		union {
+			byte parameter; ///< Used for variables between 0x60 and 0x7F inclusive, except 0x7E.
+			const SpriteGroup *subroutine; ///< Used for variable 0x7E.
+		};
 	};
 
 	struct Range {
