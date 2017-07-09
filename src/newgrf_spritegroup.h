@@ -258,22 +258,20 @@ enum DeterministicSpriteGroupAdjustOperation {
 	DSGA_OP_SAR,  ///< (signed) a >> b
 };
 
-
-struct DeterministicSpriteGroupAdjust {
-	DeterministicSpriteGroupAdjustOperation operation;
-	DeterministicSpriteGroupAdjustType type;
-	byte variable;
-	byte parameter; ///< Used for variables between 0x60 and 0x7F inclusive.
-	byte shift_num;
-	uint32 and_mask;
-	uint32 add_val;
-	uint32 divmod_val;
-	const SpriteGroup *subroutine;
-};
-
-
 struct DeterministicSpriteGroup : SpriteGroup, FlexArrayBase {
 public:
+	struct Adjust {
+		DeterministicSpriteGroupAdjustOperation operation;
+		DeterministicSpriteGroupAdjustType type;
+		byte variable;
+		byte parameter; ///< Used for variables between 0x60 and 0x7F inclusive.
+		byte shift_num;
+		uint32 and_mask;
+		uint32 add_val;
+		uint32 divmod_val;
+		const SpriteGroup *subroutine;
+	};
+
 	struct Range {
 		const SpriteGroup *group;
 		uint32 low;
@@ -290,28 +288,28 @@ private:
 	const VarSpriteGroupScope var_scope;    ///< Scope.
 	const byte size;                        ///< Logarithmic size of accumulator (0 for int8, 1 for int16, 2 for int32).
 	const SpriteGroup *default_group;       ///< Default result group.
-	DeterministicSpriteGroupAdjust *const adjusts;  ///< Vector of adjusts.
+	Adjust *const adjusts;                  ///< Vector of adjusts.
 	Range *const ranges;                    ///< Vector of result ranges.
 	const uint num_adjusts;                 ///< Adjust count.
 	const byte num_ranges;                  ///< Result range count.
 
 	static CONSTEXPR size_t adjusts_offset (void)
 	{
-		return ttd_align_up<DeterministicSpriteGroupAdjust> (sizeof(DeterministicSpriteGroup));
+		return ttd_align_up<Adjust> (sizeof(DeterministicSpriteGroup));
 	}
 
 	DeterministicSpriteGroup (bool parent_scope,
 			byte size, uint num_adjusts,
 			byte num_ranges, size_t ranges_offset,
-			const DeterministicSpriteGroupAdjust *adjusts)
+			const Adjust *adjusts)
 		: SpriteGroup (SGT_DETERMINISTIC),
 		  var_scope (parent_scope ? VSG_SCOPE_PARENT : VSG_SCOPE_SELF),
 		  size (size), default_group (NULL),
-		  adjusts (offset_pointer<DeterministicSpriteGroupAdjust> (this, adjusts_offset())),
+		  adjusts (offset_pointer<Adjust> (this, adjusts_offset())),
 		  ranges  (offset_pointer<Range>  (this, ranges_offset)),
 		  num_adjusts (num_adjusts), num_ranges (num_ranges)
 	{
-		memcpy (this->adjusts, adjusts, num_adjusts * sizeof(DeterministicSpriteGroupAdjust));
+		memcpy (this->adjusts, adjusts, num_adjusts * sizeof(Adjust));
 		memset (this->ranges, 0, num_ranges * sizeof(Range));
 	}
 
@@ -327,10 +325,9 @@ protected:
 
 public:
 	static DeterministicSpriteGroup *create (bool parent_scope, byte size,
-		uint num_adjusts, byte num_ranges,
-		const DeterministicSpriteGroupAdjust *adjusts)
+		uint num_adjusts, byte num_ranges, const Adjust *adjusts)
 	{
-		size_t adjusts_end = adjusts_offset() + num_adjusts * sizeof(DeterministicSpriteGroupAdjust);
+		size_t adjusts_end = adjusts_offset() + num_adjusts * sizeof(Adjust);
 		size_t ranges_offset = ttd_align_up<Range> (adjusts_end);
 		size_t ranges_end = ranges_offset + num_ranges * sizeof(Range);
 		size_t total_size = ttd_align_up<DeterministicSpriteGroup> (ranges_end);

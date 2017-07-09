@@ -4660,13 +4660,13 @@ static int NewSpriteGroup (ByteReader *buf)
 
 			byte varadjust;
 
-			static SmallVector<DeterministicSpriteGroupAdjust, 16> adjusts;
+			static SmallVector <DeterministicSpriteGroup::Adjust, 16> adjusts;
 			adjusts.Clear();
 
 			/* Loop through the var adjusts. Unfortunately we don't know how many we have
 			 * from the outset, so we shall have to keep reallocing. */
 			do {
-				DeterministicSpriteGroupAdjust *adjust = adjusts.Append();
+				DeterministicSpriteGroup::Adjust *adjust = adjusts.Append();
 
 				/* The first var adjust doesn't have an operation specified, so we set it to add. */
 				adjust->operation = adjusts.Length() == 1 ? DSGA_OP_ADD : (DeterministicSpriteGroupAdjustOperation)buf->ReadByte();

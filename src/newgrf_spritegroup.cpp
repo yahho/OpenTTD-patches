@@ -171,7 +171,7 @@ static uint32 RotateRight(uint32 val, uint32 rot)
 /* Evaluate an adjustment for a variable of the given size.
  * U is the unsigned type and S is the signed type to use. */
 template <typename U, typename S>
-static U EvalAdjustT(const DeterministicSpriteGroupAdjust *adjust, ScopeResolver *scope, U last_value, uint32 value)
+static U EvalAdjustT (const DeterministicSpriteGroup::Adjust *adjust, ScopeResolver *scope, U last_value, uint32 value)
 {
 	value >>= adjust->shift_num;
 	value  &= adjust->and_mask;
@@ -222,7 +222,7 @@ const SpriteGroup *DeterministicSpriteGroup::Resolve(ResolverObject &object) con
 	ScopeResolver *scope = object.GetScope(this->var_scope);
 
 	for (i = 0; i < this->num_adjusts; i++) {
-		DeterministicSpriteGroupAdjust *adjust = &this->adjusts[i];
+		Adjust *adjust = &this->adjusts[i];
 
 		/* Try to get the variable. We shall assume it is available, unless told otherwise. */
 		bool available = true;
