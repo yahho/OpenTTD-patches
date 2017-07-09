@@ -226,12 +226,6 @@ enum VarSpriteGroupScope {
 };
 DECLARE_POSTFIX_INCREMENT(VarSpriteGroupScope)
 
-enum DeterministicSpriteGroupSize {
-	DSG_SIZE_BYTE,
-	DSG_SIZE_WORD,
-	DSG_SIZE_DWORD,
-};
-
 enum DeterministicSpriteGroupAdjustType {
 	DSGA_TYPE_NONE,
 	DSGA_TYPE_DIV,
@@ -294,7 +288,7 @@ private:
 	}
 
 	const VarSpriteGroupScope var_scope;    ///< Scope.
-	const DeterministicSpriteGroupSize size;        ///< Size.
+	const byte size;                        ///< Logarithmic size of accumulator (0 for int8, 1 for int16, 2 for int32).
 	const SpriteGroup *default_group;       ///< Default result group.
 	DeterministicSpriteGroupAdjust *const adjusts;  ///< Vector of adjusts.
 	DeterministicSpriteGroupRange *const ranges;    ///< Vector of result ranges.
@@ -307,7 +301,7 @@ private:
 	}
 
 	DeterministicSpriteGroup (bool parent_scope,
-			DeterministicSpriteGroupSize size, uint num_adjusts,
+			byte size, uint num_adjusts,
 			byte num_ranges, size_t ranges_offset,
 			const DeterministicSpriteGroupAdjust *adjusts)
 		: SpriteGroup (SGT_DETERMINISTIC),
@@ -332,9 +326,9 @@ protected:
 	const SpriteGroup *Resolve(ResolverObject &object) const;
 
 public:
-	static DeterministicSpriteGroup *create (bool parent_scope,
-		DeterministicSpriteGroupSize size, uint num_adjusts,
-		byte num_ranges, const DeterministicSpriteGroupAdjust *adjusts)
+	static DeterministicSpriteGroup *create (bool parent_scope, byte size,
+		uint num_adjusts, byte num_ranges,
+		const DeterministicSpriteGroupAdjust *adjusts)
 	{
 		size_t adjusts_end = adjusts_offset() + num_adjusts * sizeof(DeterministicSpriteGroupAdjust);
 		size_t ranges_offset = ttd_align_up<DeterministicSpriteGroupRange> (adjusts_end);

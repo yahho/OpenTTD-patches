@@ -248,9 +248,9 @@ const SpriteGroup *DeterministicSpriteGroup::Resolve(ResolverObject &object) con
 		}
 
 		switch (this->size) {
-			case DSG_SIZE_BYTE:  value = EvalAdjustT<uint8,  int8> (adjust, scope, last_value, value); break;
-			case DSG_SIZE_WORD:  value = EvalAdjustT<uint16, int16>(adjust, scope, last_value, value); break;
-			case DSG_SIZE_DWORD: value = EvalAdjustT<uint32, int32>(adjust, scope, last_value, value); break;
+			case 0: value = EvalAdjustT<uint8,  int8> (adjust, scope, last_value, value); break;
+			case 1: value = EvalAdjustT<uint16, int16>(adjust, scope, last_value, value); break;
+			case 2: value = EvalAdjustT<uint32, int32>(adjust, scope, last_value, value); break;
 			default: NOT_REACHED();
 		}
 		last_value = value;

@@ -4697,9 +4697,8 @@ static int NewSpriteGroup (ByteReader *buf)
 			byte num_ranges = buf->ReadByte();
 
 			DeterministicSpriteGroup *group = DeterministicSpriteGroup::create (HasBit(type, 1),
-					(DeterministicSpriteGroupSize)(GB(type, 2, 2)),
-					adjusts.Length(), num_ranges,
-					adjusts.Begin());
+					GB(type, 2, 2), adjusts.Length(),
+					num_ranges, adjusts.Begin());
 			act_group = group;
 
 			for (uint i = 0; i < num_ranges; i++) {
