@@ -365,27 +365,35 @@ public:
 
 /* This contains a callback result. A failed callback has a value of
  * CALLBACK_FAILED */
-struct CallbackResultSpriteGroup : ZeroedMemoryAllocator, SpriteGroup {
+struct CallbackResultSpriteGroup : SpriteGroup {
+	uint16 result;
+
+	/** Compute the result value to store based on GRF version. */
+	static CONSTEXPR uint16 compute_result (uint16 value, bool grf_version8)
+	{
+		/* Old style callback results (only valid for version < 8)
+		 * have the highest byte 0xFF to signify it is a callback
+		 * result. New style ones only have the highest bit set
+		 * (allows 15-bit results, instead of just 8). */
+		return (!grf_version8 && (value >> 8) == 0xFF) ?
+			(value & 0xFF) : (value & 0x7FFF);
+	}
+
 	/**
 	 * Creates a spritegroup representing a callback result
 	 * @param value The value that was used to represent this callback result
 	 * @param grf_version8 True, if we are dealing with a new NewGRF which uses GRF version >= 8.
 	 */
-	CallbackResultSpriteGroup(uint16 value, bool grf_version8) :
-		SpriteGroup(SGT_CALLBACK),
-		result(value)
+	CONSTEXPR CallbackResultSpriteGroup (uint16 value, bool grf_version8)
+		: SpriteGroup (SGT_CALLBACK),
+		  result (compute_result (value, grf_version8))
 	{
-		/* Old style callback results (only valid for version < 8) have the highest byte 0xFF so signify it is a callback result.
-		 * New style ones only have the highest bit set (allows 15-bit results, instead of just 8) */
-		if (!grf_version8 && (this->result >> 8) == 0xFF) {
-			this->result &= ~0xFF00;
-		} else {
-			this->result &= ~0x8000;
-		}
 	}
 
-	uint16 result;
-	uint16 GetCallbackResult() const { return this->result; }
+	uint16 GetCallbackResult (void) const
+	{
+		return this->result;
+	}
 
 	static CallbackResultSpriteGroup *create (uint16 value, bool v8)
 	{
