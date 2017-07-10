@@ -446,17 +446,23 @@ struct TileLayoutSpriteGroup : ZeroedMemoryAllocator, SpriteGroup {
 	}
 };
 
-struct IndustryProductionSpriteGroup : ZeroedMemoryAllocator, SpriteGroup {
-	IndustryProductionSpriteGroup() : SpriteGroup(SGT_INDUSTRY_PRODUCTION) {}
-
-	uint8 version;
+struct IndustryProductionSpriteGroup : SpriteGroup {
 	int16 subtract_input[3];  // signed
 	uint16 add_output[2];     // unsigned
+	const uint8 version;
 	uint8 again;
 
-	static IndustryProductionSpriteGroup *create (void)
+	IndustryProductionSpriteGroup (uint8 version)
+		: SpriteGroup (SGT_INDUSTRY_PRODUCTION),
+		  version (version), again (0)
 	{
-		return SpriteGroup::append (new IndustryProductionSpriteGroup);
+		memset (this->subtract_input, 0, sizeof(this->subtract_input));
+		memset (this->add_output, 0, sizeof(this->add_output));
+	}
+
+	static IndustryProductionSpriteGroup *create (uint8 version)
+	{
+		return SpriteGroup::append (new IndustryProductionSpriteGroup (version));
 	}
 };
 

@@ -4802,9 +4802,8 @@ static int NewSpriteGroup (ByteReader *buf)
 						break;
 					}
 
-					IndustryProductionSpriteGroup *group = IndustryProductionSpriteGroup::create();
+					IndustryProductionSpriteGroup *group = IndustryProductionSpriteGroup::create (type);
 					act_group = group;
-					group->version = type;
 					if (type == 0) {
 						for (uint i = 0; i < 3; i++) {
 							group->subtract_input[i] = (int16)buf->ReadWord(); // signed
@@ -4812,7 +4811,6 @@ static int NewSpriteGroup (ByteReader *buf)
 						for (uint i = 0; i < 2; i++) {
 							group->add_output[i] = buf->ReadWord(); // unsigned
 						}
-						group->again = buf->ReadByte();
 					} else {
 						for (uint i = 0; i < 3; i++) {
 							group->subtract_input[i] = buf->ReadByte();
@@ -4820,8 +4818,8 @@ static int NewSpriteGroup (ByteReader *buf)
 						for (uint i = 0; i < 2; i++) {
 							group->add_output[i] = buf->ReadByte();
 						}
-						group->again = buf->ReadByte();
 					}
+					group->again = buf->ReadByte();
 					break;
 				}
 
