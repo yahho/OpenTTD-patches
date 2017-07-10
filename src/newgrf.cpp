@@ -4717,24 +4717,26 @@ static int NewSpriteGroup (ByteReader *buf)
 		case 0x83: // Parent scope
 		case 0x84: // Relative scope
 		{
-			RandomizedSpriteGroup *group = RandomizedSpriteGroup::create();
-			act_group = group;
-			group->var_scope = HasBit(type, 1) ? VSG_SCOPE_PARENT : VSG_SCOPE_SELF;
-
+			VarSpriteGroupScope scope = HasBit(type, 1) ? VSG_SCOPE_PARENT : VSG_SCOPE_SELF;
+			byte count;
 			if (HasBit(type, 2)) {
-				if (feature <= GSF_AIRCRAFT) group->var_scope = VSG_SCOPE_RELATIVE;
-				group->count = buf->ReadByte();
+				if (feature <= GSF_AIRCRAFT) scope = VSG_SCOPE_RELATIVE;
+				count = buf->ReadByte();
+			} else {
+				count = 0;
 			}
 
 			uint8 triggers = buf->ReadByte();
-			group->triggers       = GB(triggers, 0, 7);
-			group->cmp_mode       = HasBit(triggers, 7) ? RSG_CMP_ALL : RSG_CMP_ANY;
-			group->lowest_randbit = buf->ReadByte();
-			group->num_groups     = buf->ReadByte();
-			group->groups = xcalloct<const SpriteGroup*>(group->num_groups);
+			uint8 bit      = buf->ReadByte();
+			uint8 num      = buf->ReadByte();
 
-			for (uint i = 0; i < group->num_groups; i++) {
-				group->groups[i] = GetGroupFromGroupID(setid, type, buf->ReadWord());
+			RandomizedSpriteGroup *group = RandomizedSpriteGroup::create (scope,
+					HasBit(triggers, 7), GB(triggers, 0, 7),
+					count, bit, num);
+			act_group = group;
+
+			for (uint i = 0; i < num; i++) {
+				group->set_group (i, GetGroupFromGroupID (setid, type, buf->ReadWord()));
 			}
 
 			break;

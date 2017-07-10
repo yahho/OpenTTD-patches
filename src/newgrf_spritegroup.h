@@ -323,33 +323,43 @@ public:
 	}
 };
 
-enum RandomizedSpriteGroupCompareMode {
-	RSG_CMP_ANY,
-	RSG_CMP_ALL,
-};
 
-struct RandomizedSpriteGroup : ZeroedMemoryAllocator, SpriteGroup {
-	RandomizedSpriteGroup() : SpriteGroup(SGT_RANDOMIZED) {}
-	~RandomizedSpriteGroup();
+struct RandomizedSpriteGroup : SpriteGroup, FlexArray <SpriteGroup *> {
+private:
+	const VarSpriteGroupScope var_scope;  ///< Take this object.
+	const bool cmp_mode;                  ///< Match all triggers, else any.
+	const byte triggers;                  ///< Check for these triggers.
+	const byte count;
+	const byte lowest_randbit;            ///< Look for this in the per-object randomized bitmask.
+	const byte num_groups;                ///< Group count; must be power of 2.
+	const SpriteGroup *groups[];          ///< Take the group with appropriate index.
 
-	VarSpriteGroupScope var_scope;  ///< Take this object:
-
-	RandomizedSpriteGroupCompareMode cmp_mode; ///< Check for these triggers:
-	byte triggers;
-	byte count;
-
-	byte lowest_randbit; ///< Look for this in the per-object randomized bitmask:
-	byte num_groups; ///< must be power of 2
-
-	const SpriteGroup **groups; ///< Take the group with appropriate index:
-
-	static RandomizedSpriteGroup *create (void)
+	RandomizedSpriteGroup (VarSpriteGroupScope scope, bool cmp_mode,
+			byte triggers, byte count, byte bit, byte num)
+		: SpriteGroup (SGT_RANDOMIZED), var_scope (scope),
+		  cmp_mode (cmp_mode), triggers (triggers), count (count),
+		  lowest_randbit (bit), num_groups (num)
 	{
-		return SpriteGroup::append (new RandomizedSpriteGroup);
+		memset (this->groups, 0, num * sizeof(SpriteGroup *));
 	}
 
 protected:
-	const SpriteGroup *Resolve(ResolverObject &object) const;
+	const SpriteGroup *Resolve (ResolverObject &object) const OVERRIDE;
+
+public:
+
+	static RandomizedSpriteGroup *create (VarSpriteGroupScope scope,
+		bool cmp_mode, byte triggers, byte count, byte bit, byte num)
+	{
+		return SpriteGroup::append (new (num)
+				RandomizedSpriteGroup (scope, cmp_mode,
+						triggers, count, bit, num));
+	}
+
+	void set_group (uint i, const SpriteGroup *group)
+	{
+		this->groups[i] = group;
+	}
 };
 
 

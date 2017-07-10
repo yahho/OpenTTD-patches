@@ -38,10 +38,6 @@ TemporaryStorageArray<int32, 0x110> _temp_store;
 	return group->Resolve(object);
 }
 
-RandomizedSpriteGroup::~RandomizedSpriteGroup()
-{
-	free(this->groups);
-}
 
 static inline uint32 GetVariable(const ResolverObject &object, ScopeResolver *scope, byte variable, uint32 parameter, bool *available)
 {
@@ -290,7 +286,7 @@ const SpriteGroup *RandomizedSpriteGroup::Resolve(ResolverObject &object) const
 		/* Magic code that may or may not do the right things... */
 		byte waiting_triggers = scope->GetTriggers();
 		byte match = this->triggers & (waiting_triggers | object.trigger);
-		bool res = (this->cmp_mode == RSG_CMP_ANY) ? (match != 0) : (match == this->triggers);
+		bool res = this->cmp_mode ? (match == this->triggers) : (match != 0);
 
 		if (res) {
 			waiting_triggers &= ~match;
