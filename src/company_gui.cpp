@@ -2410,7 +2410,7 @@ struct CompanyWindow : Window
 
 	virtual void OnPlaceObject(Point pt, TileIndex tile)
 	{
-		if (DoCommandP(tile, OBJECT_HQ, 0, CMD_BUILD_OBJECT)) {
+		if (DoCommandP(tile, OBJECT_HQ, 0, CMD_BUILD_OBJECT) && !_shift_pressed) {
 			ResetPointerMode();
 			this->RaiseButtons();
 		}
