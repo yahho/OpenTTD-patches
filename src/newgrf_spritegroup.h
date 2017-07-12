@@ -438,12 +438,19 @@ struct TileLayoutSpriteGroup : ZeroedMemoryAllocator, SpriteGroup {
 
 	NewGRFSpriteLayout dts;
 
-	const DrawTileSprites *ProcessRegisters(uint8 *stage) const;
-
 	static TileLayoutSpriteGroup *create (void)
 	{
 		return SpriteGroup::append (new TileLayoutSpriteGroup);
 	}
+
+	/** Struct for resolving layouts that may need preprocessing. */
+	struct Result {
+		const DrawTileSeqStruct *seq; ///< Array of child sprites.
+		PalSpriteID ground;           ///< Ground sprite and palette.
+		byte stage;                   ///< Stage offset for sprites.
+
+		Result (const TileLayoutSpriteGroup *group, byte stage = 0);
+	};
 };
 
 struct IndustryProductionSpriteGroup : SpriteGroup {

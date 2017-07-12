@@ -494,7 +494,7 @@ uint16 GetHouseCallback (CallbackID callback, uint32 param1, uint32 param2, Hous
 
 static void DrawTileLayout(const TileInfo *ti, const TileLayoutSpriteGroup *group, byte stage, HouseID house_id)
 {
-	const DrawTileSprites *dts = group->ProcessRegisters(&stage);
+	TileLayoutSpriteGroup::Result result (group, stage);
 
 	const HouseSpec *hs = HouseSpec::Get(house_id);
 	PaletteID palette = hs->random_colour[TileHash2Bit(ti->x, ti->y)] + PALETTE_RECOLOUR_START;
@@ -506,24 +506,23 @@ static void DrawTileLayout(const TileInfo *ti, const TileLayoutSpriteGroup *grou
 		}
 	}
 
-	SpriteID image = dts->ground.sprite;
-	PaletteID pal  = dts->ground.pal;
+	SpriteID image = result.ground.sprite;
+	PaletteID pal  = result.ground.pal;
 
-	if (HasBit(image, SPRITE_MODIFIER_CUSTOM_SPRITE)) image += stage;
-	if (HasBit(pal, SPRITE_MODIFIER_CUSTOM_SPRITE)) pal += stage;
+	if (HasBit(image, SPRITE_MODIFIER_CUSTOM_SPRITE)) image += result.stage;
+	if (HasBit(pal, SPRITE_MODIFIER_CUSTOM_SPRITE)) pal += result.stage;
 
 	if (GB(image, 0, SPRITE_WIDTH) != 0) {
 		DrawGroundSprite (ti, image, GroundSpritePaletteTransform(image, pal, palette));
 	}
 
-	DrawNewGRFTileSeq (ti, dts->seq, TO_HOUSES, stage, palette);
+	DrawNewGRFTileSeq (ti, result.seq, TO_HOUSES, result.stage, palette);
 }
 
 static void DrawTileLayoutInGUI (BlitArea *dpi, int x, int y,
 	const TileLayoutSpriteGroup *group, HouseID house_id, bool ground)
 {
-	byte stage = TOWN_HOUSE_COMPLETED;
-	const DrawTileSprites *dts = group->ProcessRegisters(&stage);
+	TileLayoutSpriteGroup::Result result (group, TOWN_HOUSE_COMPLETED);
 
 	const HouseSpec *hs = HouseSpec::Get(house_id);
 	PaletteID palette = hs->random_colour[0] + PALETTE_RECOLOUR_START;
@@ -536,15 +535,15 @@ static void DrawTileLayoutInGUI (BlitArea *dpi, int x, int y,
 	}
 
 	if (ground) {
-		PalSpriteID image = dts->ground;
-		if (HasBit(image.sprite, SPRITE_MODIFIER_CUSTOM_SPRITE)) image.sprite += stage;
-		if (HasBit(image.pal, SPRITE_MODIFIER_CUSTOM_SPRITE)) image.pal += stage;
+		PalSpriteID image = result.ground;
+		if (HasBit(image.sprite, SPRITE_MODIFIER_CUSTOM_SPRITE)) image.sprite += result.stage;
+		if (HasBit(image.pal, SPRITE_MODIFIER_CUSTOM_SPRITE)) image.pal += result.stage;
 
 		if (GB(image.sprite, 0, SPRITE_WIDTH) != 0) {
 			DrawSprite (dpi, image.sprite, GroundSpritePaletteTransform (image.sprite, image.pal, palette), x, y);
 		}
 	} else {
-		DrawNewGRFTileSeqInGUI (dpi, x, y, dts->seq, stage, palette);
+		DrawNewGRFTileSeqInGUI (dpi, x, y, result.seq, result.stage, palette);
 	}
 }
 

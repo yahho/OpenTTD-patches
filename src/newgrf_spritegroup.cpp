@@ -314,24 +314,23 @@ const SpriteGroup *RealSpriteGroup::Resolve(ResolverObject &object) const
  * Process registers and the construction stage into the sprite layout.
  * The passed construction stage might get reset to zero, if it gets incorporated into the layout
  * during the preprocessing.
- * @param [in, out] stage Construction stage (0-3), or NULL if not applicable.
- * @return sprite layout to draw.
+ * @param group Source layout.
+ * @param stage Construction stage (0-3).
  */
-const DrawTileSprites *TileLayoutSpriteGroup::ProcessRegisters(uint8 *stage) const
+TileLayoutSpriteGroup::Result::Result (const TileLayoutSpriteGroup *group, byte stage)
 {
-	if (!this->dts.NeedsPreprocessing()) {
-		if (stage != NULL && this->dts.consistent_max_offset > 0) *stage = GetConstructionStageOffset(*stage, this->dts.consistent_max_offset);
-		return &this->dts;
+	if (!group->dts.NeedsPreprocessing()) {
+		this->seq    = group->dts.seq;
+		this->ground = group->dts.ground;
+		uint n = group->dts.consistent_max_offset;
+		this->stage  = (n > 0) ? GetConstructionStageOffset (stage, n) : 0;
+		return;
 	}
 
-	static DrawTileSprites result;
-	uint8 actual_stage = stage != NULL ? *stage : 0;
-	this->dts.PrepareLayout(0, 0, actual_stage, false);
-	this->dts.ProcessRegisters(0, 0, false);
-	result.seq = this->dts.GetLayout(&result.ground);
+	group->dts.PrepareLayout (0, 0, stage, false);
+	group->dts.ProcessRegisters (0, 0, false);
+	this->seq = group->dts.GetLayout (&this->ground);
 
 	/* Stage has been processed by PrepareLayout(), set it to zero. */
-	if (stage != NULL) *stage = 0;
-
-	return &result;
+	this->stage = 0;
 }

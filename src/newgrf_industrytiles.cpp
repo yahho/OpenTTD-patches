@@ -166,13 +166,13 @@ IndustryTileScopeResolver::IndustryTileScopeResolver (const GRFFile *grffile, In
 
 static void IndustryDrawTileLayout(const TileInfo *ti, const TileLayoutSpriteGroup *group, byte rnd_colour, byte stage, IndustryGfx gfx)
 {
-	const DrawTileSprites *dts = group->ProcessRegisters(&stage);
+	TileLayoutSpriteGroup::Result result (group, stage);
 
-	SpriteID image = dts->ground.sprite;
-	PaletteID pal  = dts->ground.pal;
+	SpriteID image = result.ground.sprite;
+	PaletteID pal  = result.ground.pal;
 
-	if (HasBit(image, SPRITE_MODIFIER_CUSTOM_SPRITE)) image += stage;
-	if (HasBit(pal, SPRITE_MODIFIER_CUSTOM_SPRITE)) pal += stage;
+	if (HasBit(image, SPRITE_MODIFIER_CUSTOM_SPRITE)) image += result.stage;
+	if (HasBit(pal, SPRITE_MODIFIER_CUSTOM_SPRITE)) pal += result.stage;
 
 	if (GB(image, 0, SPRITE_WIDTH) != 0) {
 		/* If the ground sprite is the default flat water sprite, draw also canal/river borders
@@ -184,7 +184,7 @@ static void IndustryDrawTileLayout(const TileInfo *ti, const TileLayoutSpriteGro
 		}
 	}
 
-	DrawNewGRFTileSeq (ti, dts->seq, TO_INDUSTRIES, stage, GENERAL_SPRITE_COLOUR(rnd_colour));
+	DrawNewGRFTileSeq (ti, result.seq, TO_INDUSTRIES, result.stage, GENERAL_SPRITE_COLOUR(rnd_colour));
 }
 
 uint16 GetIndustryTileCallback(CallbackID callback, uint32 param1, uint32 param2, IndustryGfx gfx_id, Industry *industry, TileIndex tile)

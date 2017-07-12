@@ -436,11 +436,11 @@ uint16 GetObjectCallback(CallbackID callback, uint32 param1, uint32 param2, cons
  */
 static void DrawTileLayout(const TileInfo *ti, const TileLayoutSpriteGroup *group, const ObjectSpec *spec)
 {
-	const DrawTileSprites *dts = group->ProcessRegisters(NULL);
+	TileLayoutSpriteGroup::Result result (group);
 	PaletteID palette = ((spec->flags & OBJECT_FLAG_2CC_COLOUR) ? SPR_2CCMAP_BASE : PALETTE_RECOLOUR_START) + Object::GetByTile(ti->tile)->colour;
 
-	SpriteID image = dts->ground.sprite;
-	PaletteID pal  = dts->ground.pal;
+	SpriteID image = result.ground.sprite;
+	PaletteID pal  = result.ground.pal;
 
 	if (GB(image, 0, SPRITE_WIDTH) != 0) {
 		/* If the ground sprite is the default flat water sprite, draw also canal/river borders
@@ -452,7 +452,7 @@ static void DrawTileLayout(const TileInfo *ti, const TileLayoutSpriteGroup *grou
 		}
 	}
 
-	DrawNewGRFTileSeq (ti, dts->seq, TO_STRUCTURES, 0, palette);
+	DrawNewGRFTileSeq (ti, result.seq, TO_STRUCTURES, 0, palette);
 }
 
 /**
@@ -482,7 +482,7 @@ void DrawNewObjectTileInGUI (BlitArea *dpi, int x, int y, const ObjectSpec *spec
 	const SpriteGroup *group = ObjectResolve (spec, NULL, INVALID_TILE, view);
 	if (group == NULL || !group->IsType (SGT_TILELAYOUT)) return;
 
-	const DrawTileSprites *dts = ((const TileLayoutSpriteGroup *)group)->ProcessRegisters(NULL);
+	TileLayoutSpriteGroup::Result result ((const TileLayoutSpriteGroup *)group);
 
 	PaletteID palette;
 	if (Company::IsValidID(_local_company)) {
@@ -498,14 +498,14 @@ void DrawNewObjectTileInGUI (BlitArea *dpi, int x, int y, const ObjectSpec *spec
 		palette = (spec->flags & OBJECT_FLAG_2CC_COLOUR) ? SPR_2CCMAP_BASE : PALETTE_RECOLOUR_START;
 	}
 
-	SpriteID image = dts->ground.sprite;
-	PaletteID pal  = dts->ground.pal;
+	SpriteID image = result.ground.sprite;
+	PaletteID pal  = result.ground.pal;
 
 	if (GB(image, 0, SPRITE_WIDTH) != 0) {
 		DrawSprite (dpi, image, GroundSpritePaletteTransform (image, pal, palette), x, y);
 	}
 
-	DrawNewGRFTileSeqInGUI (dpi, x, y, dts->seq, 0, palette);
+	DrawNewGRFTileSeqInGUI (dpi, x, y, result.seq, 0, palette);
 }
 
 /** Helper class for animation control. */
