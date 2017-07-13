@@ -633,8 +633,6 @@ bool Convert8bitBooleanCallback(const GRFFile *grffile, uint16 cbid, uint16 cb_r
 }
 
 
-/* static */ SmallVector<DrawTileSeqStruct, 8> NewGRFSpriteLayout::result_seq;
-
 /**
  * Clone the building sprites of a spritelayout.
  * @param source The building sprites to copy.
@@ -700,40 +698,43 @@ void NewGRFSpriteLayout::AllocateRegisters()
 /**
  * Prepares a sprite layout before resolving action-1-2-3 chains.
  * Integrates offsets into the layout and determines which chains to resolve.
- * @note The function uses statically allocated temporary storage, which is reused everytime when calling the function.
- *       That means, you have to use the sprite layout before calling #PrepareLayout() the next time.
+ * @param layout               Source layout.
+ * @param constr_stage         Construction stage (0-3) to apply to all action-1 sprites.
  * @param orig_offset          Offset to apply to non-action-1 sprites.
  * @param newgrf_ground_offset Offset to apply to action-1 ground sprites.
- * @param constr_stage         Construction stage (0-3) to apply to all action-1 sprites.
  * @param separate_ground      Whether the ground sprite shall be resolved by a separate action-1-2-3 chain by default.
  * @return Bitmask of values for variable 10 to resolve action-1-2-3 chains for.
  */
-uint32 NewGRFSpriteLayout::PrepareLayout (uint32 orig_offset, uint32 newgrf_ground_offset, uint constr_stage, bool separate_ground) const
+uint32 NewGRFSpriteLayout::Result::prepare (const NewGRFSpriteLayout *layout,
+	uint constr_stage, uint32 orig_offset, uint32 newgrf_ground_offset,
+	bool separate_ground)
 {
-	result_seq.Clear();
 	uint32 var10_values = 0;
 
 	/* Create a copy of the spritelayout, so we can modify some values.
 	 * Also include the groundsprite into the sequence for easier processing. */
-	DrawTileSeqStruct *result = result_seq.Append();
-	result->image = ground;
-	result->delta_x = 0;
-	result->delta_y = 0;
-	result->delta_z = (int8)0x80;
+	this->data[0].image = layout->ground;
+	this->data[0].delta_x = 0;
+	this->data[0].delta_y = 0;
+	this->data[0].delta_z = (int8)0x80;
 
+	uint n = 1;
 	const DrawTileSeqStruct *dtss;
-	foreach_draw_tile_seq(dtss, this->seq) {
-		*result_seq.Append() = *dtss;
+	foreach_draw_tile_seq(dtss, layout->seq) {
+		assert (n < lengthof(this->data));
+		this->data[n++] = *dtss;
 	}
-	result_seq.Append()->MakeTerminator();
+	assert (n < lengthof(this->data));
+	this->data[n].MakeTerminator();
 
 	/* Determine the var10 values the action-1-2-3 chains needs to be resolved for,
 	 * and apply the default sprite offsets (unless disabled). */
-	const TileLayoutRegisters *regs = this->registers;
+	const TileLayoutRegisters *regs = layout->registers;
 	if (regs == NULL) constr_stage = 0;
 
 	bool ground = true;
-	foreach_draw_tile_seq(result, result_seq.Begin()) {
+	DrawTileSeqStruct *result;
+	foreach_draw_tile_seq(result, this->data) {
 		TileLayoutFlags flags = TLF_NOTHING;
 		if (regs != NULL) flags = regs->flags;
 
@@ -776,18 +777,20 @@ uint32 NewGRFSpriteLayout::PrepareLayout (uint32 orig_offset, uint32 newgrf_grou
 
 /**
  * Evaluates the register modifiers and integrates them into the preprocessed sprite layout.
- * @pre #PrepareLayout() needs calling first.
+ * @pre #prepare() needs calling first.
+ * @param layout          Source layout.
  * @param resolved_var10  The value of var10 the action-1-2-3 chain was evaluated for.
  * @param resolved_sprite Result sprite of the action-1-2-3 chain.
  * @param separate_ground Whether the ground sprite is resolved by a separate action-1-2-3 chain.
  * @return Resulting spritelayout after processing the registers.
  */
-void NewGRFSpriteLayout::ProcessRegisters(uint8 resolved_var10, uint32 resolved_sprite, bool separate_ground) const
+void NewGRFSpriteLayout::Result::process (const NewGRFSpriteLayout *layout,
+	uint8 resolved_var10, uint32 resolved_sprite, bool separate_ground)
 {
 	DrawTileSeqStruct *result;
-	const TileLayoutRegisters *regs = this->registers;
+	const TileLayoutRegisters *regs = layout->registers;
 	bool ground = separate_ground;
-	foreach_draw_tile_seq(result, result_seq.Begin()) {
+	foreach_draw_tile_seq(result, this->data) {
 		TileLayoutFlags flags = TLF_NOTHING;
 		if (regs != NULL) flags = regs->flags;
 

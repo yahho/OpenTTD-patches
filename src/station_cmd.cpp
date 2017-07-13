@@ -2850,18 +2850,20 @@ static void DrawTile_RailStation (TileInfo *ti)
 	uint32 relocation = 0;
 	uint32 ground_relocation = 0;
 
+	NewGRFSpriteLayout::Result result;
 	PalSpriteID ground;
 	const DrawTileSeqStruct *seq;
 	if (layout != NULL) {
 		/* Sprite layout which needs preprocessing */
 		bool separate_ground = HasBit(statspec->flags, SSF_SEPARATE_GROUND);
-		uint32 var10_values = layout->PrepareLayout (total_offset, rti->fallback_railtype, 0, separate_ground);
+		uint32 var10_values = result.prepare (layout, 0, total_offset, rti->fallback_railtype, separate_ground);
 		uint8 var10;
 		FOR_EACH_SET_BIT(var10, var10_values) {
 			uint32 var10_relocation = GetCustomStationRelocation (statspec, st, ti->tile, var10);
-			layout->ProcessRegisters (var10, var10_relocation, separate_ground);
+			result.process (layout, var10, var10_relocation, separate_ground);
 		}
-		seq = layout->GetLayout (&ground);
+		ground = result.get_ground();
+		seq = result.get_seq();
 		total_offset = 0;
 	} else {
 		ground = t->ground;

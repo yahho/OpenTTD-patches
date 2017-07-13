@@ -149,9 +149,8 @@ struct NewGRFSpriteLayout : ZeroedMemoryAllocator, DrawTileSprites {
 	}
 
 	/**
-	 * Tests whether this spritelayout needs preprocessing by
-	 * #PrepareLayout() and #ProcessRegisters(), or whether it can be
-	 * used directly.
+	 * Tests whether this spritelayout needs preprocessing,
+	 * or whether it can be used directly.
 	 * @return true if preprocessing is needed
 	 */
 	bool NeedsPreprocessing() const
@@ -159,23 +158,34 @@ struct NewGRFSpriteLayout : ZeroedMemoryAllocator, DrawTileSprites {
 		return this->registers != NULL;
 	}
 
-	uint32 PrepareLayout (uint32 orig_offset, uint32 newgrf_ground_offset, uint constr_stage, bool separate_ground) const;
-	void ProcessRegisters(uint8 resolved_var10, uint32 resolved_sprite, bool separate_ground) const;
+	/** Struct for resolving layouts that need preprocessing. */
+	struct Result {
+		/* Maximum number of building sprites per layout is 64,
+		 * plus ground and terminator. */
+		DrawTileSeqStruct data [66]; ///< Resolved sprites.
 
-	/**
-	 * Returns the result spritelayout after preprocessing.
-	 * @pre #PrepareLayout() and #ProcessRegisters() need calling first.
-	 * @return result spritelayout
-	 */
-	const DrawTileSeqStruct *GetLayout(PalSpriteID *ground) const
-	{
-		DrawTileSeqStruct *front = result_seq.Begin();
-		*ground = front->image;
-		return front + 1;
-	}
+		uint32 prepare (const NewGRFSpriteLayout *layout, uint stage,
+				uint32 orig_offset = 0,
+				uint32 newgrf_ground_offset = 0,
+				bool separate_ground = false);
 
-private:
-	static SmallVector<DrawTileSeqStruct, 8> result_seq; ///< Temporary storage when preprocessing spritelayouts.
+		void process (const NewGRFSpriteLayout *layout,
+				uint8 resolved_var10 = 0,
+				uint32 resolved_sprite = 0,
+				bool separate_ground = false);
+
+		/** Get the ground sprite and palette after processing. */
+		const PalSpriteID &get_ground (void) const
+		{
+			return this->data[0].image;
+		}
+
+		/** Get a pointer to the building sequence after processing. */
+		const DrawTileSeqStruct *get_seq (void) const
+		{
+			return &this->data[1];
+		}
+	};
 };
 
 /**

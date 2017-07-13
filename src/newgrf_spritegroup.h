@@ -444,7 +444,7 @@ struct TileLayoutSpriteGroup : ZeroedMemoryAllocator, SpriteGroup {
 	}
 
 	/** Struct for resolving layouts that may need preprocessing. */
-	struct Result {
+	struct Result : private NewGRFSpriteLayout::Result {
 		const DrawTileSeqStruct *seq; ///< Array of child sprites.
 		PalSpriteID ground;           ///< Ground sprite and palette.
 		byte stage;                   ///< Stage offset for sprites.

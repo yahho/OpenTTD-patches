@@ -327,9 +327,10 @@ TileLayoutSpriteGroup::Result::Result (const TileLayoutSpriteGroup *group, byte 
 		return;
 	}
 
-	group->dts.PrepareLayout (0, 0, stage, false);
-	group->dts.ProcessRegisters (0, 0, false);
-	this->seq = group->dts.GetLayout (&this->ground);
+	this->prepare (&group->dts, stage);
+	this->process (&group->dts);
+	this->ground = this->get_ground();
+	this->seq    = this->get_seq();
 
 	/* Stage has been processed by PrepareLayout(), set it to zero. */
 	this->stage = 0;
