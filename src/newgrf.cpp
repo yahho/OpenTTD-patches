@@ -234,6 +234,11 @@ public:
 		return val | (ReadWord() << 16);
 	}
 
+	uint32 ReadLabel (void)
+	{
+		return BSWAP32(this->ReadDWord());
+	}
+
 	uint32 ReadVarSize(byte size)
 	{
 		switch (size) {
@@ -1926,8 +1931,8 @@ static ChangeInfoResult StationChangeInfo(uint stid, int numinfo, int prop, Byte
 				if (*spec == NULL) *spec = xcalloct<StationSpec>();
 
 				/* Swap classid because we read it in BE meaning WAYP or DFLT */
-				uint32 classid = buf->ReadDWord();
-				(*spec)->cls_id = StationClass::Allocate(BSWAP32(classid));
+				uint32 classid = buf->ReadLabel();
+				(*spec)->cls_id = StationClass::Allocate (classid);
 				break;
 			}
 
@@ -2602,8 +2607,7 @@ static ChangeInfoResult LoadTranslationTable(uint gvid, int numinfo, ByteReader 
 
 	translation_table.Clear();
 	for (int i = 0; i < numinfo; i++) {
-		uint32 item = buf->ReadDWord();
-		*translation_table.Append() = BSWAP32(item);
+		*translation_table.Append() = buf->ReadLabel();
 	}
 
 	return CIR_SUCCESS;
@@ -2992,8 +2996,7 @@ static ChangeInfoResult CargoChangeInfo(uint cid, int numinfo, int prop, ByteRea
 				break;
 
 			case 0x17: // Cargo label
-				cs->label = buf->ReadDWord();
-				cs->label = BSWAP32(cs->label);
+				cs->label = buf->ReadLabel();
 				break;
 
 			case 0x18: { // Town growth substitute type
@@ -3957,8 +3960,8 @@ static ChangeInfoResult ObjectChangeInfo(uint id, int numinfo, int prop, ByteRea
 				}
 
 				/* Swap classid because we read it in BE. */
-				uint32 classid = buf->ReadDWord();
-				(*ospec)->cls_id = ObjectClass::Allocate(BSWAP32(classid));
+				uint32 classid = buf->ReadLabel();
+				(*ospec)->cls_id = ObjectClass::Allocate (classid);
 				(*ospec)->enabled = true;
 				break;
 			}
@@ -4111,8 +4114,8 @@ static ChangeInfoResult RailTypeChangeInfo(uint id, int numinfo, int prop, ByteR
 				 * default rail types. */
 				int n = buf->ReadByte();
 				for (int j = 0; j != n; j++) {
-					RailTypeLabel label = buf->ReadDWord();
-					RailType rt = GetRailTypeByLabel(BSWAP32(label), false);
+					RailTypeLabel label = buf->ReadLabel();
+					RailType rt = GetRailTypeByLabel (label, false);
 					if (rt != INVALID_RAILTYPE) {
 						switch (prop) {
 							case 0x0F: SetBit(rti->powered_railtypes, rt); // Powered implies compatible.
@@ -4198,8 +4201,7 @@ static ChangeInfoResult RailTypeReserveInfo(uint id, int numinfo, int prop, Byte
 		switch (prop) {
 			case 0x08: // Label of rail type
 			{
-				RailTypeLabel rtl = buf->ReadDWord();
-				rtl = BSWAP32(rtl);
+				RailTypeLabel rtl = buf->ReadLabel();
 
 				RailType rt = GetRailTypeByLabel(rtl, false);
 				if (rt == INVALID_RAILTYPE) {
@@ -4227,7 +4229,7 @@ static ChangeInfoResult RailTypeReserveInfo(uint id, int numinfo, int prop, Byte
 				if (_cur.grffile->railtype_map[id + i] != INVALID_RAILTYPE) {
 					int n = buf->ReadByte();
 					for (int j = 0; j != n; j++) {
-						*_railtypes[_cur.grffile->railtype_map[id + i]].alternate_labels.Append() = BSWAP32(buf->ReadDWord());
+						*_railtypes[_cur.grffile->railtype_map[id + i]].alternate_labels.Append() = buf->ReadLabel();
 					}
 					break;
 				}
