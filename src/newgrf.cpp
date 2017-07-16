@@ -894,16 +894,18 @@ static bool ReadSpriteLayoutRegisters (ByteReader *buf, TileLayoutFlags flags,
  */
 static bool ReadSpriteLayout(ByteReader *buf, uint num_building_sprites, bool use_cur_spritesets, byte feature, bool allow_var10, bool no_z_position, NewGRFSpriteLayout *dts)
 {
+	uint16 max_sprite_offset[256];
+	uint16 max_palette_offset[256];
+	assert (num_building_sprites < lengthof(max_sprite_offset));
+	assert (num_building_sprites < lengthof(max_palette_offset));
+	MemSetT (max_sprite_offset,  0, num_building_sprites + 1);
+	MemSetT (max_palette_offset, 0, num_building_sprites + 1);
+
 	bool has_flags = HasBit(num_building_sprites, 6);
 	ClrBit(num_building_sprites, 6);
 	TileLayoutFlags valid_flags = TLF_KNOWN_FLAGS;
 	if (!allow_var10) valid_flags &= ~TLF_VAR10_FLAGS;
 	dts->Allocate(num_building_sprites); // allocate before reading groundsprite flags
-
-	uint16 *max_sprite_offset = AllocaM(uint16, num_building_sprites + 1);
-	uint16 *max_palette_offset = AllocaM(uint16, num_building_sprites + 1);
-	MemSetT(max_sprite_offset, 0, num_building_sprites + 1);
-	MemSetT(max_palette_offset, 0, num_building_sprites + 1);
 
 	/* Groundsprite */
 	TileLayoutFlags flags;
