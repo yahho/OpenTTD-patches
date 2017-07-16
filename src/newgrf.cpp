@@ -4922,7 +4922,9 @@ static bool VehicleMapSpriteGroup (ByteReader *buf, byte feature, uint8 idcount)
 		}
 	}
 
-	EngineID *engines = AllocaM(EngineID, idcount);
+	EngineID engines[128];
+	assert (idcount < lengthof(engines));
+
 	for (uint i = 0; i < idcount; i++) {
 		Engine *e = GetNewEngine(_cur.grffile, (VehicleType)feature, buf->ReadExtendedByte());
 		if (e == NULL) {
