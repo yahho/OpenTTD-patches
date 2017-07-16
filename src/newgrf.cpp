@@ -269,6 +269,14 @@ public:
 		return data[0] | (data[1] << 8) | (data[2] << 16) | (data[3] << 24);
 	}
 
+	const byte *GetData (size_t n)
+	{
+		if (!HasData (n)) throw out_of_data();
+		const byte *p = data;
+		data += n;
+		return p;
+	}
+
 	inline void Skip(size_t len)
 	{
 		data += len;
@@ -4985,10 +4993,7 @@ static bool VehicleMapSpriteGroup (ByteReader *buf, byte feature, uint8 idcount)
 
 static void CanalMapSpriteGroup(ByteReader *buf, uint8 idcount)
 {
-	CanalFeature *cfs = AllocaM(CanalFeature, idcount);
-	for (uint i = 0; i < idcount; i++) {
-		cfs[i] = (CanalFeature)buf->ReadByte();
-	}
+	const byte *cfs = buf->GetData (idcount);
 
 	uint8 cidcount = buf->ReadByte();
 	buf->Skip(cidcount * 3);
@@ -4997,7 +5002,7 @@ static void CanalMapSpriteGroup(ByteReader *buf, uint8 idcount)
 	if (!IsValidGroupID(groupid, "CanalMapSpriteGroup")) return;
 
 	for (uint i = 0; i < idcount; i++) {
-		CanalFeature cf = cfs[i];
+		CanalFeature cf = (CanalFeature)cfs[i];
 
 		if (cf >= CF_END) {
 			grfmsg(1, "CanalMapSpriteGroup: Canal subset %d out of range, skipping", cf);
@@ -5012,10 +5017,7 @@ static void CanalMapSpriteGroup(ByteReader *buf, uint8 idcount)
 
 static void StationMapSpriteGroup(ByteReader *buf, uint8 idcount)
 {
-	uint8 *stations = AllocaM(uint8, idcount);
-	for (uint i = 0; i < idcount; i++) {
-		stations[i] = buf->ReadByte();
-	}
+	const byte *stations = buf->GetData (idcount);
 
 	uint8 cidcount = buf->ReadByte();
 	for (uint c = 0; c < cidcount; c++) {
@@ -5068,10 +5070,7 @@ static void StationMapSpriteGroup(ByteReader *buf, uint8 idcount)
 
 static void TownHouseMapSpriteGroup(ByteReader *buf, uint8 idcount)
 {
-	uint8 *houses = AllocaM(uint8, idcount);
-	for (uint i = 0; i < idcount; i++) {
-		houses[i] = buf->ReadByte();
-	}
+	const byte *houses = buf->GetData (idcount);
 
 	/* Skip the cargo type section, we only care about the default group */
 	uint8 cidcount = buf->ReadByte();
@@ -5099,10 +5098,7 @@ static void TownHouseMapSpriteGroup(ByteReader *buf, uint8 idcount)
 
 static void IndustryMapSpriteGroup(ByteReader *buf, uint8 idcount)
 {
-	uint8 *industries = AllocaM(uint8, idcount);
-	for (uint i = 0; i < idcount; i++) {
-		industries[i] = buf->ReadByte();
-	}
+	const byte *industries = buf->GetData (idcount);
 
 	/* Skip the cargo type section, we only care about the default group */
 	uint8 cidcount = buf->ReadByte();
@@ -5130,10 +5126,7 @@ static void IndustryMapSpriteGroup(ByteReader *buf, uint8 idcount)
 
 static void IndustrytileMapSpriteGroup(ByteReader *buf, uint8 idcount)
 {
-	uint8 *indtiles = AllocaM(uint8, idcount);
-	for (uint i = 0; i < idcount; i++) {
-		indtiles[i] = buf->ReadByte();
-	}
+	const byte *indtiles = buf->GetData (idcount);
 
 	/* Skip the cargo type section, we only care about the default group */
 	uint8 cidcount = buf->ReadByte();
@@ -5161,10 +5154,7 @@ static void IndustrytileMapSpriteGroup(ByteReader *buf, uint8 idcount)
 
 static void CargoMapSpriteGroup(ByteReader *buf, uint8 idcount)
 {
-	CargoID *cargoes = AllocaM(CargoID, idcount);
-	for (uint i = 0; i < idcount; i++) {
-		cargoes[i] = buf->ReadByte();
-	}
+	const byte *cargoes = buf->GetData (idcount);
 
 	/* Skip the cargo type section, we only care about the default group */
 	uint8 cidcount = buf->ReadByte();
@@ -5174,7 +5164,7 @@ static void CargoMapSpriteGroup(ByteReader *buf, uint8 idcount)
 	if (!IsValidGroupID(groupid, "CargoMapSpriteGroup")) return;
 
 	for (uint i = 0; i < idcount; i++) {
-		CargoID cid = cargoes[i];
+		CargoID cid = (CargoID)cargoes[i];
 
 		if (cid >= NUM_CARGO) {
 			grfmsg(1, "CargoMapSpriteGroup: Cargo ID %d out of range, skipping", cid);
@@ -5194,10 +5184,7 @@ static void ObjectMapSpriteGroup(ByteReader *buf, uint8 idcount)
 		return;
 	}
 
-	uint8 *objects = AllocaM(uint8, idcount);
-	for (uint i = 0; i < idcount; i++) {
-		objects[i] = buf->ReadByte();
-	}
+	const byte *objects = buf->GetData (idcount);
 
 	uint8 cidcount = buf->ReadByte();
 	for (uint c = 0; c < cidcount; c++) {
@@ -5249,10 +5236,7 @@ static void ObjectMapSpriteGroup(ByteReader *buf, uint8 idcount)
 
 static void RailTypeMapSpriteGroup(ByteReader *buf, uint8 idcount)
 {
-	uint8 *railtypes = AllocaM(uint8, idcount);
-	for (uint i = 0; i < idcount; i++) {
-		railtypes[i] = _cur.grffile->railtype_map[buf->ReadByte()];
-	}
+	const byte *railtypes = buf->GetData (idcount);
 
 	uint8 cidcount = buf->ReadByte();
 	for (uint c = 0; c < cidcount; c++) {
@@ -5264,8 +5248,9 @@ static void RailTypeMapSpriteGroup(ByteReader *buf, uint8 idcount)
 
 		extern RailtypeInfo _railtypes[RAILTYPE_END];
 		for (uint i = 0; i < idcount; i++) {
-			if (railtypes[i] != INVALID_RAILTYPE) {
-				RailtypeInfo *rti = &_railtypes[railtypes[i]];
+			RailType rt = _cur.grffile->railtype_map[railtypes[i]];
+			if (rt != INVALID_RAILTYPE) {
+				RailtypeInfo *rti = &_railtypes[rt];
 
 				rti->grffile[ctype] = _cur.grffile;
 				rti->group[ctype] = _cur.spritegroups[groupid];
@@ -5279,10 +5264,7 @@ static void RailTypeMapSpriteGroup(ByteReader *buf, uint8 idcount)
 
 static void AirportMapSpriteGroup(ByteReader *buf, uint8 idcount)
 {
-	uint8 *airports = AllocaM(uint8, idcount);
-	for (uint i = 0; i < idcount; i++) {
-		airports[i] = buf->ReadByte();
-	}
+	const byte *airports = buf->GetData (idcount);
 
 	/* Skip the cargo type section, we only care about the default group */
 	uint8 cidcount = buf->ReadByte();
@@ -5310,10 +5292,7 @@ static void AirportMapSpriteGroup(ByteReader *buf, uint8 idcount)
 
 static void AirportTileMapSpriteGroup(ByteReader *buf, uint8 idcount)
 {
-	uint8 *airptiles = AllocaM(uint8, idcount);
-	for (uint i = 0; i < idcount; i++) {
-		airptiles[i] = buf->ReadByte();
-	}
+	const byte *airptiles = buf->GetData (idcount);
 
 	/* Skip the cargo type section, we only care about the default group */
 	uint8 cidcount = buf->ReadByte();
