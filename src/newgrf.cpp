@@ -779,14 +779,13 @@ static void ReadPalSprite (ByteReader *buf, PalSpriteID *grf_sprite)
  * @param feature             GrfSpecFeature to use spritesets from.
  * @param [out] grf_sprite    Read sprite and palette.
  * @param [out] pflags        Read TileLayoutFlags.
- * @param [out] max_sprite_offset  Optionally returns the number of sprites in the spriteset of the sprite. (0 if no spritset)
- * @param [out] max_palette_offset Optionally returns the number of sprites in the spriteset of the palette. (0 if no spritset)
+ * @param [out] max_offset    Optionally returns the number of sprites in the spriteset of the sprite and palette (0 if no spritset).
  * @return Whether reading succeeded.
  */
 static bool ReadSpriteLayoutSprite (ByteReader *buf, bool read_flags,
 	bool invert_action1_flag, bool use_cur_spritesets, int feature,
 	PalSpriteID *grf_sprite, TileLayoutFlags *pflags = NULL,
-	uint16 *max_sprite_offset = NULL, uint16 *max_palette_offset = NULL)
+	uint16 *max_offset = NULL)
 {
 	ReadPalSprite (buf, grf_sprite);
 
@@ -804,7 +803,7 @@ static bool ReadSpriteLayoutSprite (ByteReader *buf, bool read_flags,
 			grf_sprite->pal = PAL_NONE;
 		} else {
 			SpriteID sprite = use_cur_spritesets ? _cur.GetSprite(feature, index) : index;
-			if (max_sprite_offset != NULL) *max_sprite_offset = use_cur_spritesets ? _cur.GetNumEnts(feature, index) : UINT16_MAX;
+			if (max_offset != NULL) max_offset[0] = use_cur_spritesets ? _cur.GetNumEnts (feature, index) : UINT16_MAX;
 			SB(grf_sprite->sprite, 0, SPRITE_WIDTH, sprite);
 			SetBit(grf_sprite->sprite, SPRITE_MODIFIER_CUSTOM_SPRITE);
 		}
@@ -822,7 +821,7 @@ static bool ReadSpriteLayoutSprite (ByteReader *buf, bool read_flags,
 			grf_sprite->pal = PAL_NONE;
 		} else {
 			SpriteID sprite = use_cur_spritesets ? _cur.GetSprite(feature, index) : index;
-			if (max_palette_offset != NULL) *max_palette_offset = use_cur_spritesets ? _cur.GetNumEnts(feature, index) : UINT16_MAX;
+			if (max_offset != NULL) max_offset[1] = use_cur_spritesets ? _cur.GetNumEnts (feature, index) : UINT16_MAX;
 			SB(grf_sprite->pal, 0, SPRITE_WIDTH, sprite);
 			SetBit(grf_sprite->pal, SPRITE_MODIFIER_CUSTOM_SPRITE);
 		}
@@ -902,12 +901,9 @@ static bool ReadSpriteLayoutRegisters (ByteReader *buf, TileLayoutFlags flags,
  */
 static bool ReadSpriteLayout(ByteReader *buf, uint num_building_sprites, bool use_cur_spritesets, byte feature, bool allow_var10, bool no_z_position, NewGRFSpriteLayout *dts)
 {
-	uint16 max_sprite_offset[256];
-	uint16 max_palette_offset[256];
-	assert (num_building_sprites < lengthof(max_sprite_offset));
-	assert (num_building_sprites < lengthof(max_palette_offset));
-	MemSetT (max_sprite_offset,  0, num_building_sprites + 1);
-	MemSetT (max_palette_offset, 0, num_building_sprites + 1);
+	uint16 max_offset[2 * 256]; // (sprite, palette) pairs
+	assert (2 * num_building_sprites < lengthof(max_offset));
+	memset (max_offset, 0, sizeof(max_offset));
 
 	bool has_flags = HasBit(num_building_sprites, 6);
 	ClrBit(num_building_sprites, 6);
@@ -919,7 +915,7 @@ static bool ReadSpriteLayout(ByteReader *buf, uint num_building_sprites, bool us
 	TileLayoutFlags flags;
 	if (!ReadSpriteLayoutSprite (buf, has_flags, false,
 			use_cur_spritesets, feature, &dts->ground, &flags,
-			max_sprite_offset, max_palette_offset)) {
+			max_offset)) {
 		return true;
 	}
 
@@ -938,7 +934,7 @@ static bool ReadSpriteLayout(ByteReader *buf, uint num_building_sprites, bool us
 
 		if (!ReadSpriteLayoutSprite (buf, has_flags, false,
 				use_cur_spritesets, feature, &seq->image, &flags,
-				max_sprite_offset + i + 1, max_palette_offset + i + 1)) {
+				max_offset + 2 * (i + 1))) {
 			return true;
 		}
 
@@ -967,19 +963,11 @@ static bool ReadSpriteLayout(ByteReader *buf, uint num_building_sprites, bool us
 	/* Check if the number of sprites per spriteset is consistent */
 	bool is_consistent = true;
 	dts->consistent_max_offset = 0;
-	for (uint i = 0; i < num_building_sprites + 1; i++) {
-		if (max_sprite_offset[i] > 0) {
+	for (uint i = 0; i < 2 * (num_building_sprites + 1); i++) {
+		if (max_offset[i] > 0) {
 			if (dts->consistent_max_offset == 0) {
-				dts->consistent_max_offset = max_sprite_offset[i];
-			} else if (dts->consistent_max_offset != max_sprite_offset[i]) {
-				is_consistent = false;
-				break;
-			}
-		}
-		if (max_palette_offset[i] > 0) {
-			if (dts->consistent_max_offset == 0) {
-				dts->consistent_max_offset = max_palette_offset[i];
-			} else if (dts->consistent_max_offset != max_palette_offset[i]) {
+				dts->consistent_max_offset = max_offset[i];
+			} else if (dts->consistent_max_offset != max_offset[i]) {
 				is_consistent = false;
 				break;
 			}
@@ -995,8 +983,8 @@ static bool ReadSpriteLayout(ByteReader *buf, uint num_building_sprites, bool us
 
 		for (uint i = 0; i < num_building_sprites + 1; i++) {
 			TileLayoutRegisters &regs = const_cast<TileLayoutRegisters&>(dts->registers[i]);
-			regs.max_sprite_offset = max_sprite_offset[i];
-			regs.max_palette_offset = max_palette_offset[i];
+			regs.max_sprite_offset  = max_offset[2 * i];
+			regs.max_palette_offset = max_offset[2 * i + 1];
 		}
 	}
 
