@@ -770,35 +770,26 @@ static void ReadPalSprite (ByteReader *buf, PalSpriteID *grf_sprite)
 }
 
 /**
- * Read a sprite and a palette from the GRF and convert them into a format
- * suitable to OpenTTD.
- * @param buf                 Input stream.
- * @param read_flags          Whether to read TileLayoutFlags.
+ * Adjust a sprite and a palette read from the GRF.
+ * @param grf_sprite          Sprite and palette to adjust.
+ * @param feature             GrfSpecFeature to use spritesets from.
  * @param invert_action1_flag Set to true, if palette bit 15 means 'not from action 1'.
  * @param use_cur_spritesets  Whether to use currently referenceable action 1 sets.
- * @param feature             GrfSpecFeature to use spritesets from.
- * @param [out] grf_sprite    Read sprite and palette.
- * @param [out] pflags        Read TileLayoutFlags.
+ * @param flags               Tile layout flags.
  * @param [out] max_offset    Optionally returns the number of sprites in the spriteset of the sprite and palette (0 if no spritset).
  * @return Whether reading succeeded.
  */
-static bool ReadSpriteLayoutSprite (ByteReader *buf, bool read_flags,
-	bool invert_action1_flag, bool use_cur_spritesets, int feature,
-	PalSpriteID *grf_sprite, TileLayoutFlags *pflags = NULL,
-	uint16 *max_offset = NULL)
+static bool AdjustSpriteLayoutSprite (PalSpriteID *grf_sprite, int feature,
+	bool invert_action1_flag, bool use_cur_spritesets = false,
+	TileLayoutFlags flags = TLF_NOTHING, uint16 *max_offset = NULL)
 {
-	ReadPalSprite (buf, grf_sprite);
-
-	TileLayoutFlags flags = read_flags ? (TileLayoutFlags)buf->ReadWord() : TLF_NOTHING;
-	if (pflags != NULL) *pflags = flags;
-
 	bool custom_sprite = HasBit(grf_sprite->pal, 15) != invert_action1_flag;
 	ClrBit(grf_sprite->pal, 15);
 	if (custom_sprite) {
 		/* Use sprite from Action 1 */
 		uint index = GB(grf_sprite->sprite, 0, 14);
 		if (use_cur_spritesets && (!_cur.IsValidSpriteSet(feature, index) || _cur.GetNumEnts(feature, index) == 0)) {
-			grfmsg(1, "ReadSpriteLayoutSprite: Spritelayout uses undefined custom spriteset %d", index);
+			grfmsg(1, "sprite layout uses undefined custom spriteset %d", index);
 			grf_sprite->sprite = SPR_IMG_QUERY;
 			grf_sprite->pal = PAL_NONE;
 		} else {
@@ -808,7 +799,7 @@ static bool ReadSpriteLayoutSprite (ByteReader *buf, bool read_flags,
 			SetBit(grf_sprite->sprite, SPRITE_MODIFIER_CUSTOM_SPRITE);
 		}
 	} else if ((flags & TLF_SPRITE_VAR10) && !(flags & TLF_SPRITE_REG_FLAGS)) {
-		grfmsg(1, "ReadSpriteLayoutSprite: Spritelayout specifies var10 value for non-action-1 sprite");
+		grfmsg(1, "sprite layout specifies var10 value for non-action-1 sprite");
 		DisableCur (STR_NEWGRF_ERROR_INVALID_SPRITE_LAYOUT);
 		return false;
 	}
@@ -817,7 +808,7 @@ static bool ReadSpriteLayoutSprite (ByteReader *buf, bool read_flags,
 		/* Use palette from Action 1 */
 		uint index = GB(grf_sprite->pal, 0, 14);
 		if (use_cur_spritesets && (!_cur.IsValidSpriteSet(feature, index) || _cur.GetNumEnts(feature, index) == 0)) {
-			grfmsg(1, "ReadSpriteLayoutSprite: Spritelayout uses undefined custom spriteset %d for 'palette'", index);
+			grfmsg(1, "sprite layout uses undefined custom spriteset %d for palette", index);
 			grf_sprite->pal = PAL_NONE;
 		} else {
 			SpriteID sprite = use_cur_spritesets ? _cur.GetSprite(feature, index) : index;
@@ -826,7 +817,7 @@ static bool ReadSpriteLayoutSprite (ByteReader *buf, bool read_flags,
 			SetBit(grf_sprite->pal, SPRITE_MODIFIER_CUSTOM_SPRITE);
 		}
 	} else if ((flags & TLF_PALETTE_VAR10) && !(flags & TLF_PALETTE_REG_FLAGS)) {
-		grfmsg(1, "ReadSpriteLayoutRegisters: Spritelayout specifies var10 value for non-action-1 palette");
+		grfmsg(1, "sprite layout specifies var10 value for non-action-1 palette");
 		DisableCur (STR_NEWGRF_ERROR_INVALID_SPRITE_LAYOUT);
 		return false;
 	}
@@ -912,10 +903,10 @@ static bool ReadSpriteLayout(ByteReader *buf, uint num_building_sprites, bool us
 	dts->Allocate(num_building_sprites); // allocate before reading groundsprite flags
 
 	/* Groundsprite */
-	TileLayoutFlags flags;
-	if (!ReadSpriteLayoutSprite (buf, has_flags, false,
-			use_cur_spritesets, feature, &dts->ground, &flags,
-			max_offset)) {
+	ReadPalSprite (buf, &dts->ground);
+	TileLayoutFlags flags = has_flags ? (TileLayoutFlags)buf->ReadWord() : TLF_NOTHING;
+	if (!AdjustSpriteLayoutSprite (&dts->ground, feature, false,
+			use_cur_spritesets, flags, max_offset)) {
 		return true;
 	}
 
@@ -932,8 +923,10 @@ static bool ReadSpriteLayout(ByteReader *buf, uint num_building_sprites, bool us
 	for (uint i = 0; i < num_building_sprites; i++) {
 		DrawTileSeqStruct *seq = const_cast<DrawTileSeqStruct*>(&dts->seq[i]);
 
-		if (!ReadSpriteLayoutSprite (buf, has_flags, false,
-				use_cur_spritesets, feature, &seq->image, &flags,
+		ReadPalSprite (buf, &seq->image);
+		flags = has_flags ? (TileLayoutFlags)buf->ReadWord() : TLF_NOTHING;
+		if (!AdjustSpriteLayoutSprite (&seq->image, feature, false,
+				use_cur_spritesets, flags,
 				max_offset + 2 * (i + 1))) {
 			return true;
 		}
@@ -1951,7 +1944,8 @@ static ChangeInfoResult StationChangeInfo(uint stid, int numinfo, int prop, Byte
 					}
 
 					/* On error, bail out immediately. Temporary GRF data was already freed */
-					if (!ReadSpriteLayoutSprite (buf, false, false, false, GSF_STATIONS, &dts->ground)) {
+					ReadPalSprite (buf, &dts->ground);
+					if (!AdjustSpriteLayoutSprite (&dts->ground, GSF_STATIONS, false)) {
 						return CIR_DISABLED;
 					}
 
@@ -1971,7 +1965,8 @@ static ChangeInfoResult StationChangeInfo(uint stid, int numinfo, int prop, Byte
 						dtss->size_z = buf->ReadByte();
 
 						/* On error, bail out immediately. Temporary GRF data was already freed */
-						if (!ReadSpriteLayoutSprite (buf, false, true, false, GSF_STATIONS, &dtss->image)) {
+						ReadPalSprite (buf, &dtss->image);
+						if (!AdjustSpriteLayoutSprite (&dtss->image, GSF_STATIONS, true)) {
 							return CIR_DISABLED;
 						}
 					}
