@@ -745,10 +745,10 @@ EngineID GetNewEngineID(const GRFFile *file, VehicleType type, uint16 internal_i
  * @param buf Input stream.
  * @param grf_sprite Pointer to the structure to read.
  */
-static void ReadPalSprite (ByteReader *buf, PalSpriteID *grf_sprite)
+static void ReadPalSprite (const byte *buf, PalSpriteID *grf_sprite)
 {
-	SpriteID  sprite = buf->ReadWord();
-	PaletteID pal    = buf->ReadWord();
+	SpriteID  sprite = buf[0] | (buf[1] << 8);
+	PaletteID pal    = buf[2] | (buf[3] << 8);
 
 	if (HasBit(pal, 14)) {
 		ClrBit(pal, 14);
@@ -767,6 +767,17 @@ static void ReadPalSprite (ByteReader *buf, PalSpriteID *grf_sprite)
 
 	grf_sprite->sprite = sprite;
 	grf_sprite->pal    = pal;
+}
+
+/**
+ * Read a sprite and paletteD from the GRF and map the colour modifiers
+ * of TTDPatch to those that Open is using.
+ * @param buf Input stream.
+ * @param grf_sprite Pointer to the structure to read.
+ */
+static void ReadPalSprite (ByteReader *buf, PalSpriteID *grf_sprite)
+{
+	ReadPalSprite (buf->GetData(4), grf_sprite);
 }
 
 /**
