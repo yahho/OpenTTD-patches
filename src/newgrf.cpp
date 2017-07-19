@@ -277,6 +277,11 @@ public:
 		return p;
 	}
 
+	const byte *GetData (void)
+	{
+		return data;
+	}
+
 	inline void Skip(size_t len)
 	{
 		data += len;
@@ -1960,28 +1965,33 @@ static ChangeInfoResult StationChangeInfo(uint stid, int numinfo, int prop, Byte
 						return CIR_DISABLED;
 					}
 
-					static SmallVector<DrawTileSeqStruct, 8> tmp_layout;
-					tmp_layout.Clear();
-					for (;;) {
+					const byte *p = buf->GetData();
+					uint num_building_sprites = 0;
+					while (buf->ReadByte() != 0x80) {
+						buf->Skip (9);
+						num_building_sprites++;
+					}
+
+					dts->Allocate (num_building_sprites);
+					for (uint i = 0; i < num_building_sprites; i++) {
 						/* no relative bounding box support */
-						DrawTileSeqStruct *dtss = tmp_layout.Append();
+						DrawTileSeqStruct *dtss = const_cast<DrawTileSeqStruct*> (&dts->seq[i]);
 						MemSetT(dtss, 0);
 
-						dtss->delta_x = buf->ReadByte();
-						if (dtss->IsTerminator()) break;
-						dtss->delta_y = buf->ReadByte();
-						dtss->delta_z = buf->ReadByte();
-						dtss->size_x = buf->ReadByte();
-						dtss->size_y = buf->ReadByte();
-						dtss->size_z = buf->ReadByte();
+						dtss->delta_x = *p++;
+						dtss->delta_y = *p++;
+						dtss->delta_z = *p++;
+						dtss->size_x  = *p++;
+						dtss->size_y  = *p++;
+						dtss->size_z  = *p++;
 
 						/* On error, bail out immediately. Temporary GRF data was already freed */
-						ReadPalSprite (buf, &dtss->image);
+						ReadPalSprite (p, &dtss->image);
 						if (!AdjustSpriteLayoutSprite (&dtss->image, GSF_STATIONS, true)) {
 							return CIR_DISABLED;
 						}
+						p += 4;
 					}
-					dts->Clone(tmp_layout.Begin());
 				}
 				break;
 
