@@ -846,18 +846,16 @@ static bool AdjustSpriteLayoutSprite (PalSpriteID *grf_sprite, int feature,
  * @param buf        Input stream.
  * @param flags      TileLayoutFlags to process.
  * @param is_parent  Whether the sprite is a parentsprite with a bounding box.
- * @param dts        Sprite layout to insert data into.
- * @param index      Sprite index to process; 0 for ground sprite.
+ * @param r          Where to store the registers.
  * @return Whether reading succeeded.
  */
 static bool ReadSpriteLayoutRegisters (ByteReader *buf, TileLayoutFlags flags,
-	bool is_parent, NewGRFSpriteLayout *dts, uint index)
+	bool is_parent, TileLayoutRegisters *r)
 {
-	if (!(flags & TLF_DRAWING_FLAGS)) return true;
+	TileLayoutRegisters &regs = *r;
+	regs.flags = flags;
 
-	if (dts->registers == NULL) dts->AllocateRegisters();
-	TileLayoutRegisters &regs = const_cast<TileLayoutRegisters&>(dts->registers[index]);
-	regs.flags = flags & TLF_DRAWING_FLAGS;
+	if (flags == TLF_NOTHING) return true; // nothing to read
 
 	if (flags & TLF_DODRAW)  regs.dodraw  = buf->ReadByte();
 	if (flags & TLF_SPRITE)  regs.sprite  = buf->ReadByte();
@@ -895,33 +893,49 @@ static bool ReadSpriteLayoutRegisters (ByteReader *buf, TileLayoutFlags flags,
 	return true;
 }
 
+struct SpriteLayoutReader {
+	static const uint MAX_BUILDING_SPRITES = 255;
+
+	PalSpriteID ground; ///< Ground sprite and palette.
+	DrawTileSeqStruct seq[MAX_BUILDING_SPRITES]; ///< Building sprites.
+	TileLayoutRegisters regs[MAX_BUILDING_SPRITES + 1]; ///< Registers.
+	uint num_building_sprites; ///< Amount of building sprites.
+	uint consistent_max_offset; ///< Maximum offset for sprites.
+	bool has_registers; ///< Any register is actually used.
+};
+
 /**
  * Read a spritelayout from the GRF.
+ * @param reader               Where to read the sprite into.
  * @param buf                  Input
  * @param num_building_sprites Number of building sprites to read
  * @param use_cur_spritesets   Whether to use currently referenceable action 1 sets.
  * @param feature              GrfSpecFeature to use spritesets from.
  * @param allow_var10          Whether the spritelayout may specifiy var10 values for resolving multiple action-1-2-3 chains
  * @param no_z_position        Whether bounding boxes have no Z offset
- * @param dts                  Layout container to output into
  * @return True on error (GRF was disabled).
  */
-static bool ReadSpriteLayout(ByteReader *buf, uint num_building_sprites, bool use_cur_spritesets, byte feature, bool allow_var10, bool no_z_position, NewGRFSpriteLayout *dts)
+static bool ReadSpriteLayout (SpriteLayoutReader *reader, ByteReader *buf,
+	uint num_building_sprites, bool use_cur_spritesets, byte feature,
+	bool allow_var10, bool no_z_position)
 {
-	uint16 max_offset[2 * 256]; // (sprite, palette) pairs
+	assert (num_building_sprites <= lengthof(reader->seq));
+	assert (num_building_sprites < lengthof(reader->regs));
+
+	uint16 max_offset[2 * (SpriteLayoutReader::MAX_BUILDING_SPRITES + 1)]; // (sprite, palette) pairs
 	assert (2 * num_building_sprites < lengthof(max_offset));
 	memset (max_offset, 0, sizeof(max_offset));
 
 	bool has_flags = HasBit(num_building_sprites, 6);
 	ClrBit(num_building_sprites, 6);
+	reader->num_building_sprites = num_building_sprites;
 	TileLayoutFlags valid_flags = TLF_KNOWN_FLAGS;
 	if (!allow_var10) valid_flags &= ~TLF_VAR10_FLAGS;
-	dts->Allocate(num_building_sprites); // allocate before reading groundsprite flags
 
 	/* Groundsprite */
-	ReadPalSprite (buf, &dts->ground);
+	ReadPalSprite (buf, &reader->ground);
 	TileLayoutFlags flags = has_flags ? (TileLayoutFlags)buf->ReadWord() : TLF_NOTHING;
-	if (!AdjustSpriteLayoutSprite (&dts->ground, feature, false,
+	if (!AdjustSpriteLayoutSprite (&reader->ground, feature, false,
 			use_cur_spritesets, flags, max_offset)) {
 		return true;
 	}
@@ -932,12 +946,14 @@ static bool ReadSpriteLayout(ByteReader *buf, uint num_building_sprites, bool us
 		return true;
 	}
 
-	if (!ReadSpriteLayoutRegisters (buf, flags, false, dts, 0)) {
+	flags &= TLF_DRAWING_FLAGS;
+	bool has_registers = (flags != TLF_NOTHING);
+	if (!ReadSpriteLayoutRegisters (buf, flags, false, &reader->regs[0])) {
 		return true;
 	}
 
 	for (uint i = 0; i < num_building_sprites; i++) {
-		DrawTileSeqStruct *seq = const_cast<DrawTileSeqStruct*>(&dts->seq[i]);
+		DrawTileSeqStruct *seq = &reader->seq[i];
 
 		ReadPalSprite (buf, &seq->image);
 		flags = has_flags ? (TileLayoutFlags)buf->ReadWord() : TLF_NOTHING;
@@ -955,8 +971,7 @@ static bool ReadSpriteLayout(ByteReader *buf, uint num_building_sprites, bool us
 
 		seq->delta_x = buf->ReadByte();
 		seq->delta_y = buf->ReadByte();
-
-		if (!no_z_position) seq->delta_z = buf->ReadByte();
+		seq->delta_z = no_z_position ? 0 : buf->ReadByte();
 
 		if (seq->IsParentSprite()) {
 			seq->size_x = buf->ReadByte();
@@ -964,19 +979,22 @@ static bool ReadSpriteLayout(ByteReader *buf, uint num_building_sprites, bool us
 			seq->size_z = buf->ReadByte();
 		}
 
-		if (!ReadSpriteLayoutRegisters (buf, flags, seq->IsParentSprite(), dts, i + 1)) {
+		flags &= TLF_DRAWING_FLAGS;
+		has_registers |= (flags != TLF_NOTHING);
+
+		if (!ReadSpriteLayoutRegisters (buf, flags, seq->IsParentSprite(), &reader->regs[i + 1])) {
 			return true;
 		}
 	}
 
 	/* Check if the number of sprites per spriteset is consistent */
 	bool is_consistent = true;
-	dts->consistent_max_offset = 0;
+	uint consistent_max_offset = 0;
 	for (uint i = 0; i < 2 * (num_building_sprites + 1); i++) {
 		if (max_offset[i] > 0) {
-			if (dts->consistent_max_offset == 0) {
-				dts->consistent_max_offset = max_offset[i];
-			} else if (dts->consistent_max_offset != max_offset[i]) {
+			if (consistent_max_offset == 0) {
+				consistent_max_offset = max_offset[i];
+			} else if (consistent_max_offset != max_offset[i]) {
 				is_consistent = false;
 				break;
 			}
@@ -984,18 +1002,21 @@ static bool ReadSpriteLayout(ByteReader *buf, uint num_building_sprites, bool us
 	}
 
 	/* When the Action1 sets are unknown, everything should be 0 (no spriteset usage) or UINT16_MAX (some spriteset usage) */
-	assert(use_cur_spritesets || (is_consistent && (dts->consistent_max_offset == 0 || dts->consistent_max_offset == UINT16_MAX)));
+	assert (use_cur_spritesets || (is_consistent && (consistent_max_offset == 0 || consistent_max_offset == UINT16_MAX)));
 
-	if (!is_consistent || dts->registers != NULL) {
-		dts->consistent_max_offset = 0;
-		if (dts->registers == NULL) dts->AllocateRegisters();
-
+	if (!is_consistent || has_registers) {
 		for (uint i = 0; i < num_building_sprites + 1; i++) {
-			TileLayoutRegisters &regs = const_cast<TileLayoutRegisters&>(dts->registers[i]);
+			TileLayoutRegisters &regs = reader->regs[i];
 			regs.max_sprite_offset  = max_offset[2 * i];
 			regs.max_palette_offset = max_offset[2 * i + 1];
 		}
+
+		consistent_max_offset = 0;
+		has_registers = true;
 	}
+
+	reader->consistent_max_offset = consistent_max_offset;
+	reader->has_registers = has_registers;
 
 	return false;
 }
@@ -2130,9 +2151,23 @@ static ChangeInfoResult StationChangeInfo(uint stid, int numinfo, int prop, Byte
 					NewGRFSpriteLayout *dts = &statspec->renderdata[t];
 					uint num_building_sprites = buf->ReadByte();
 					/* On error, bail out immediately. Temporary GRF data was already freed */
-					if (ReadSpriteLayout(buf, num_building_sprites, false, GSF_STATIONS, true, false, dts)) {
+					SpriteLayoutReader reader;
+					if (ReadSpriteLayout (&reader, buf, num_building_sprites, false, GSF_STATIONS, true, false)) {
 						return CIR_DISABLED;
 					}
+					num_building_sprites = reader.num_building_sprites;
+					dts->Allocate (num_building_sprites);
+					dts->ground = reader.ground;
+					for (uint i = 0; i < num_building_sprites; i++) {
+						const_cast<DrawTileSeqStruct&>(dts->seq[i]) = reader.seq[i];
+					}
+					if (reader.has_registers) {
+						dts->AllocateRegisters();
+						for (uint i = 0; i <= num_building_sprites; i++) {
+							const_cast<TileLayoutRegisters&>(dts->registers[i]) = reader.regs[i];
+						}
+					}
+					dts->consistent_max_offset = reader.consistent_max_offset;
 				}
 				break;
 
@@ -4806,9 +4841,24 @@ static int NewSpriteGroup (ByteReader *buf)
 					act_group = group;
 
 					/* On error, bail out immediately. Temporary GRF data was already freed */
-					if (ReadSpriteLayout(buf, num_building_sprites, true, feature, false, type == 0, &group->dts)) {
+					SpriteLayoutReader reader;
+					if (ReadSpriteLayout (&reader, buf, num_building_sprites, true, feature, false, type == 0)) {
 						return -1;
 					}
+					num_building_sprites = reader.num_building_sprites;
+					NewGRFSpriteLayout *dts = &group->dts;
+					dts->Allocate (num_building_sprites);
+					dts->ground = reader.ground;
+					for (uint i = 0; i < num_building_sprites; i++) {
+						const_cast<DrawTileSeqStruct&>(dts->seq[i]) = reader.seq[i];
+					}
+					if (reader.has_registers) {
+						dts->AllocateRegisters();
+						for (uint i = 0; i <= num_building_sprites; i++) {
+							const_cast<TileLayoutRegisters&>(dts->registers[i]) = reader.regs[i];
+						}
+					}
+					dts->consistent_max_offset = reader.consistent_max_offset;
 					break;
 				}
 
