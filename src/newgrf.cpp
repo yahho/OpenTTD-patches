@@ -988,23 +988,24 @@ static bool ReadSpriteLayout (SpriteLayoutReader *reader, ByteReader *buf,
 	}
 
 	/* Check if the number of sprites per spriteset is consistent */
-	bool is_consistent = true;
 	uint consistent_max_offset = 0;
 	for (uint i = 0; i < 2 * (num_building_sprites + 1); i++) {
 		if (max_offset[i] > 0) {
 			if (consistent_max_offset == 0) {
 				consistent_max_offset = max_offset[i];
 			} else if (consistent_max_offset != max_offset[i]) {
-				is_consistent = false;
+				assert (use_cur_spritesets);
+				/* Not consistent, so use registers. */
+				has_registers = true;
 				break;
 			}
 		}
 	}
 
 	/* When the Action1 sets are unknown, everything should be 0 (no spriteset usage) or UINT16_MAX (some spriteset usage) */
-	assert (use_cur_spritesets || (is_consistent && (consistent_max_offset == 0 || consistent_max_offset == UINT16_MAX)));
+	assert (use_cur_spritesets || (consistent_max_offset == 0 || consistent_max_offset == UINT16_MAX));
 
-	if (!is_consistent || has_registers) {
+	if (has_registers) {
 		for (uint i = 0; i < num_building_sprites + 1; i++) {
 			TileLayoutRegisters &regs = reader->regs[i];
 			regs.max_sprite_offset  = max_offset[2 * i];
@@ -1012,7 +1013,6 @@ static bool ReadSpriteLayout (SpriteLayoutReader *reader, ByteReader *buf,
 		}
 
 		consistent_max_offset = 0;
-		has_registers = true;
 	}
 
 	reader->consistent_max_offset = consistent_max_offset;
