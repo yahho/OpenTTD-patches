@@ -1922,6 +1922,122 @@ static ChangeInfoResult AircraftVehicleChangeInfo(uint engine, int numinfo, int 
 	return ret;
 }
 
+/** Sprite layout for a station tile. */
+struct StationTileSpriteLayout : NewGRFSpriteLayout, FlexArrayBase {
+private:
+	template <typename T>
+	static CONSTEXPR T *offset_pointer (void *ptr, size_t offset)
+	{
+		return (T*) (((char*)ptr) + offset);
+	}
+
+	static CONSTEXPR size_t seq_offset (void)
+	{
+		return ttd_align_up<DrawTileSeqStruct> (sizeof(StationTileSpriteLayout));
+	}
+
+	StationTileSpriteLayout (const PalSpriteID &ground, uint n,
+			DrawTileSeqStruct **pseq)
+	{
+		this->ground = ground;
+
+		DrawTileSeqStruct *q = offset_pointer<DrawTileSeqStruct> (this, seq_offset());
+		q[n].MakeTerminator();
+		this->seq = q;
+
+		this->registers = NULL;
+
+		this->consistent_max_offset = UINT16_MAX;
+
+		*pseq = q;
+	}
+
+	StationTileSpriteLayout (const PalSpriteID &ground, uint n,
+			const DrawTileSeqStruct *seq, size_t regs_offset,
+			const TileLayoutRegisters *regs,
+			uint consistent_max_offset)
+	{
+		this->ground = ground;
+
+		DrawTileSeqStruct *q = offset_pointer<DrawTileSeqStruct> (this, seq_offset());
+		memcpy (q, seq, n * sizeof(DrawTileSeqStruct));
+		q[n].MakeTerminator();
+		this->seq = q;
+
+		if (regs != NULL) {
+			TileLayoutRegisters *r = offset_pointer<TileLayoutRegisters> (this, regs_offset);
+			memcpy (r, regs, (n + 1) * sizeof(TileLayoutRegisters));
+			this->registers = r;
+		} else {
+			this->registers = NULL;
+		}
+
+		this->consistent_max_offset = consistent_max_offset;
+	}
+
+	/** Custom operator new to account for the extra storage. */
+	void *operator new (size_t size, size_t total, size_t = 1)
+	{
+		assert (total >= size);
+		return ::operator new (total);
+	}
+
+public:
+	static StationTileSpriteLayout *create (const PalSpriteID &ground,
+		uint n, const DrawTileSeqStruct *seq,
+		const TileLayoutRegisters *regs, uint consistent_max_offset);
+
+	static StationTileSpriteLayout *clone (const PalSpriteID &ground,
+		const DrawTileSeqStruct *seq)
+	{
+		size_t n = 1; // 1 for the terminator
+		const DrawTileSeqStruct *dtss;
+		foreach_draw_tile_seq(dtss, seq) n++;
+
+		return create (ground, n, seq, NULL, UINT16_MAX);
+	}
+
+	static StationTileSpriteLayout *clone (const NewGRFSpriteLayout *src)
+	{
+		size_t n = 1; // 1 for the terminator
+		const DrawTileSeqStruct *dtss;
+		foreach_draw_tile_seq(dtss, src->seq) n++;
+
+		return create (src->ground, n, src->seq, src->registers,
+				src->consistent_max_offset);
+	}
+
+	static StationTileSpriteLayout *init (const PalSpriteID &ground,
+		uint n, DrawTileSeqStruct **p)
+	{
+		/* Make room for terminator. */
+		size_t seq_end = seq_offset() + (n + 1) * sizeof(DrawTileSeqStruct);
+		size_t total_size = ttd_align_up<TileLayoutSpriteGroup> (seq_end);
+		return new (total_size) StationTileSpriteLayout (ground, n, p);
+	}
+};
+
+StationTileSpriteLayout *StationTileSpriteLayout::create (const PalSpriteID &ground,
+	uint n, const DrawTileSeqStruct *seq, const TileLayoutRegisters *regs,
+	uint consistent_max_offset)
+{
+	/* Make room for terminator. */
+	size_t seq_end = seq_offset() + (n + 1) * sizeof(DrawTileSeqStruct);
+
+	size_t regs_offset, regs_end;
+	if (regs != NULL) {
+		regs_offset = ttd_align_up<TileLayoutRegisters> (seq_end);
+		regs_end = regs_offset + (n + 1) * sizeof(TileLayoutRegisters);
+	} else {
+		regs_offset = 0;
+		regs_end = seq_end;
+	}
+
+	size_t total_size = ttd_align_up<TileLayoutSpriteGroup> (regs_end);
+	return new (total_size) StationTileSpriteLayout (ground, n, seq,
+			regs_offset, regs, consistent_max_offset);
+}
+
 /**
  * Define properties for stations
  * @param stdid StationID of the first station tile.
@@ -1971,20 +2087,20 @@ static ChangeInfoResult StationChangeInfo(uint stid, int numinfo, int prop, Byte
 
 				for (uint t = 0; t < n; t++) {
 					assert (statspec->renderdata.size() == t);
-					NewGRFSpriteLayout *dts = new NewGRFSpriteLayout;
-					statspec->renderdata.push_back (ttd_unique_ptr<NewGRFSpriteLayout> (dts));
-					dts->consistent_max_offset = UINT16_MAX; // Spritesets are unknown, so no limit.
 
 					if (buf->HasData(4) && buf->PeekDWord() == 0) {
 						buf->Skip(4);
 						extern const DrawTileSprites _station_display_datas_rail[8];
-						dts->Clone(&_station_display_datas_rail[t % 8]);
+						const DrawTileSprites *src = &_station_display_datas_rail[t % 8];
+						NewGRFSpriteLayout *dts = StationTileSpriteLayout::clone (src->ground, src->seq);
+						statspec->renderdata.push_back (ttd_unique_ptr<NewGRFSpriteLayout> (dts));
 						continue;
 					}
 
 					/* On error, bail out immediately. Temporary GRF data was already freed */
-					ReadPalSprite (buf, &dts->ground);
-					if (!AdjustSpriteLayoutSprite (&dts->ground, GSF_STATIONS, false)) {
+					PalSpriteID ground;
+					ReadPalSprite (buf, &ground);
+					if (!AdjustSpriteLayoutSprite (&ground, GSF_STATIONS, false)) {
 						return CIR_DISABLED;
 					}
 
@@ -1995,10 +2111,12 @@ static ChangeInfoResult StationChangeInfo(uint stid, int numinfo, int prop, Byte
 						num_building_sprites++;
 					}
 
-					dts->Allocate (num_building_sprites);
+					DrawTileSeqStruct *seq;
+					NewGRFSpriteLayout *dts = StationTileSpriteLayout::init (ground, num_building_sprites, &seq);
+					statspec->renderdata.push_back (ttd_unique_ptr<NewGRFSpriteLayout> (dts));
 					for (uint i = 0; i < num_building_sprites; i++) {
 						/* no relative bounding box support */
-						DrawTileSeqStruct *dtss = const_cast<DrawTileSeqStruct*> (&dts->seq[i]);
+						DrawTileSeqStruct *dtss = &seq[i];
 						MemSetT(dtss, 0);
 
 						dtss->delta_x = *p++;
@@ -2034,9 +2152,9 @@ static ChangeInfoResult StationChangeInfo(uint stid, int numinfo, int prop, Byte
 
 				for (uint t = 0; t < n; t++) {
 					assert (statspec->renderdata.size() == t);
-					NewGRFSpriteLayout *dts = new NewGRFSpriteLayout;
+					const NewGRFSpriteLayout *src = srcstatspec->renderdata[t].get();
+					NewGRFSpriteLayout *dts = StationTileSpriteLayout::clone (src);
 					statspec->renderdata.push_back (ttd_unique_ptr<NewGRFSpriteLayout> (dts));
-					dts->Clone (srcstatspec->renderdata[t].get());
 				}
 				break;
 			}
@@ -2155,27 +2273,18 @@ static ChangeInfoResult StationChangeInfo(uint stid, int numinfo, int prop, Byte
 
 				for (uint t = 0; t < n; t++) {
 					assert (statspec->renderdata.size() == t);
-					NewGRFSpriteLayout *dts = new NewGRFSpriteLayout;
-					statspec->renderdata.push_back (ttd_unique_ptr<NewGRFSpriteLayout> (dts));
 					uint num_building_sprites = buf->ReadByte();
 					/* On error, bail out immediately. Temporary GRF data was already freed */
 					SpriteLayoutReader reader;
 					if (ReadSpriteLayout (&reader, buf, num_building_sprites, false, GSF_STATIONS, true, false)) {
 						return CIR_DISABLED;
 					}
-					num_building_sprites = reader.num_building_sprites;
-					dts->Allocate (num_building_sprites);
-					dts->ground = reader.ground;
-					for (uint i = 0; i < num_building_sprites; i++) {
-						const_cast<DrawTileSeqStruct&>(dts->seq[i]) = reader.seq[i];
-					}
-					if (reader.has_registers) {
-						dts->AllocateRegisters();
-						for (uint i = 0; i <= num_building_sprites; i++) {
-							const_cast<TileLayoutRegisters&>(dts->registers[i]) = reader.regs[i];
-						}
-					}
-					dts->consistent_max_offset = reader.consistent_max_offset;
+
+					NewGRFSpriteLayout *dts = StationTileSpriteLayout::create (reader.ground,
+							reader.num_building_sprites, reader.seq,
+							reader.has_registers ? reader.regs : NULL,
+							reader.consistent_max_offset);
+					statspec->renderdata.push_back (ttd_unique_ptr<NewGRFSpriteLayout> (dts));
 				}
 				break;
 			}
@@ -4846,28 +4955,16 @@ static int NewSpriteGroup (ByteReader *buf)
 				case GSF_INDUSTRYTILES: {
 					byte num_building_sprites = max((uint8)1, type);
 
-					TileLayoutSpriteGroup *group = TileLayoutSpriteGroup::create();
-					act_group = group;
-
 					/* On error, bail out immediately. Temporary GRF data was already freed */
 					SpriteLayoutReader reader;
 					if (ReadSpriteLayout (&reader, buf, num_building_sprites, true, feature, false, type == 0)) {
 						return -1;
 					}
-					num_building_sprites = reader.num_building_sprites;
-					NewGRFSpriteLayout *dts = &group->dts;
-					dts->Allocate (num_building_sprites);
-					dts->ground = reader.ground;
-					for (uint i = 0; i < num_building_sprites; i++) {
-						const_cast<DrawTileSeqStruct&>(dts->seq[i]) = reader.seq[i];
-					}
-					if (reader.has_registers) {
-						dts->AllocateRegisters();
-						for (uint i = 0; i <= num_building_sprites; i++) {
-							const_cast<TileLayoutRegisters&>(dts->registers[i]) = reader.regs[i];
-						}
-					}
-					dts->consistent_max_offset = reader.consistent_max_offset;
+
+					act_group = TileLayoutSpriteGroup::create (reader.ground,
+							reader.num_building_sprites, reader.seq,
+							reader.has_registers ? reader.regs : NULL,
+							reader.consistent_max_offset);
 					break;
 				}
 

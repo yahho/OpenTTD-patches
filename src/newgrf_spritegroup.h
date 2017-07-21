@@ -432,15 +432,75 @@ struct ResultSpriteGroup : SpriteGroup {
 /**
  * Action 2 sprite layout for houses, industry tiles, objects and airport tiles.
  */
-struct TileLayoutSpriteGroup : ZeroedMemoryAllocator, SpriteGroup {
-	TileLayoutSpriteGroup() : SpriteGroup(SGT_TILELAYOUT) {}
-	~TileLayoutSpriteGroup() {}
-
+struct TileLayoutSpriteGroup : SpriteGroup, FlexArrayBase {
+private:
 	NewGRFSpriteLayout dts;
 
-	static TileLayoutSpriteGroup *create (void)
+	template <typename T>
+	static CONSTEXPR T *offset_pointer (void *ptr, size_t offset)
 	{
-		return SpriteGroup::append (new TileLayoutSpriteGroup);
+		return (T*) (((char*)ptr) + offset);
+	}
+
+	static CONSTEXPR size_t seq_offset (void)
+	{
+		return ttd_align_up<DrawTileSeqStruct> (sizeof(TileLayoutSpriteGroup));
+	}
+
+	TileLayoutSpriteGroup (const PalSpriteID &ground, uint n,
+			const DrawTileSeqStruct *seq, size_t regs_offset,
+			const TileLayoutRegisters *regs,
+			uint consistent_max_offset)
+		: SpriteGroup (SGT_TILELAYOUT)
+	{
+		this->dts.ground = ground;
+
+		DrawTileSeqStruct *q = offset_pointer<DrawTileSeqStruct> (this, seq_offset());
+		memcpy (q, seq, n * sizeof(DrawTileSeqStruct));
+		q[n].MakeTerminator();
+		this->dts.seq = q;
+
+		if (regs != NULL) {
+			TileLayoutRegisters *r = offset_pointer<TileLayoutRegisters> (this, regs_offset);
+			memcpy (r, regs, (n + 1) * sizeof(TileLayoutRegisters));
+			this->dts.registers = r;
+		} else {
+			this->dts.registers = NULL;
+		}
+
+		this->dts.consistent_max_offset = consistent_max_offset;
+	}
+
+	/** Custom operator new to account for the extra storage. */
+	void *operator new (size_t size, size_t total, size_t = 1)
+	{
+		assert (total >= size);
+		return ::operator new (total);
+	}
+
+public:
+	static TileLayoutSpriteGroup *create (const PalSpriteID &ground,
+		uint n, const DrawTileSeqStruct *seq,
+		const TileLayoutRegisters *regs, uint consistent_max_offset)
+	{
+		/* Make room for terminator. */
+		size_t seq_end = seq_offset() + (n + 1) * sizeof(DrawTileSeqStruct);
+
+		size_t regs_offset, regs_end;
+		if (regs != NULL) {
+			regs_offset = ttd_align_up<TileLayoutRegisters> (seq_end);
+			regs_end = regs_offset + (n + 1) * sizeof(TileLayoutRegisters);
+		} else {
+			regs_offset = 0;
+			regs_end = seq_end;
+		}
+
+		size_t total_size = ttd_align_up<TileLayoutSpriteGroup> (regs_end);
+		TileLayoutSpriteGroup *group = new (total_size)
+				TileLayoutSpriteGroup (ground, n,
+						seq, regs_offset, regs,
+						consistent_max_offset);
+		return SpriteGroup::append (group);
 	}
 
 	/** Struct for resolving layouts that may need preprocessing. */

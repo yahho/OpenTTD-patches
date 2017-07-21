@@ -634,68 +634,6 @@ bool Convert8bitBooleanCallback(const GRFFile *grffile, uint16 cbid, uint16 cb_r
 
 
 /**
- * Clone the building sprites of a spritelayout.
- * @param source The building sprites to copy.
- */
-void NewGRFSpriteLayout::Clone(const DrawTileSeqStruct *source)
-{
-	assert(this->seq == NULL);
-	assert(source != NULL);
-
-	size_t count = 1; // 1 for the terminator
-	const DrawTileSeqStruct *element;
-	foreach_draw_tile_seq(element, source) count++;
-
-	this->seq = xmemdupt (source, count);
-}
-
-/**
- * Clone a spritelayout.
- * @param source The spritelayout to copy.
- */
-void NewGRFSpriteLayout::Clone(const NewGRFSpriteLayout *source)
-{
-	this->Clone((const DrawTileSprites*)source);
-
-	if (source->registers != NULL) {
-		size_t count = 1; // 1 for the ground sprite
-		const DrawTileSeqStruct *element;
-		foreach_draw_tile_seq(element, source->seq) count++;
-
-		this->registers = xmemdupt (source->registers, count);
-	}
-}
-
-
-/**
- * Allocate a spritelayout for \a num_sprites building sprites.
- * @param num_sprites Number of building sprites to allocate memory for. (not counting the terminator)
- */
-void NewGRFSpriteLayout::Allocate(uint num_sprites)
-{
-	assert(this->seq == NULL);
-
-	DrawTileSeqStruct *sprites = xcalloct<DrawTileSeqStruct>(num_sprites + 1);
-	sprites[num_sprites].MakeTerminator();
-	this->seq = sprites;
-}
-
-/**
- * Allocate memory for register modifiers.
- */
-void NewGRFSpriteLayout::AllocateRegisters()
-{
-	assert(this->seq != NULL);
-	assert(this->registers == NULL);
-
-	size_t count = 1; // 1 for the ground sprite
-	const DrawTileSeqStruct *element;
-	foreach_draw_tile_seq(element, this->seq) count++;
-
-	this->registers = xcalloct<TileLayoutRegisters>(count);
-}
-
-/**
  * Prepares a sprite layout before resolving action-1-2-3 chains.
  * Integrates offsets into the layout and determines which chains to resolve.
  * @param layout               Source layout.

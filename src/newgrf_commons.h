@@ -117,7 +117,7 @@ static const uint TLR_MAX_VAR10 = 7; ///< Maximum value for var 10.
  * In contrast to #DrawTileSprites this struct is for allocated
  * layouts on the heap. It allocates data and frees them on destruction.
  */
-struct NewGRFSpriteLayout : ZeroedMemoryAllocator, DrawTileSprites {
+struct NewGRFSpriteLayout : DrawTileSprites {
 	const TileLayoutRegisters *registers;
 
 	/**
@@ -125,28 +125,6 @@ struct NewGRFSpriteLayout : ZeroedMemoryAllocator, DrawTileSprites {
 	 * If these numbers are inconsistent, then this is 0 and the real values are in \c registers.
 	 */
 	uint consistent_max_offset;
-
-	void Allocate(uint num_sprites);
-	void AllocateRegisters();
-	void Clone(const DrawTileSeqStruct *source);
-	void Clone(const NewGRFSpriteLayout *source);
-
-	/**
-	 * Clone a spritelayout.
-	 * @param source The spritelayout to copy.
-	 */
-	void Clone(const DrawTileSprites *source)
-	{
-		assert(source != NULL && this != source);
-		this->ground = source->ground;
-		this->Clone(source->seq);
-	}
-
-	virtual ~NewGRFSpriteLayout()
-	{
-		free(this->seq);
-		free(this->registers);
-	}
 
 	/**
 	 * Tests whether this spritelayout needs preprocessing,
