@@ -12,6 +12,9 @@
 #ifndef NEWGRF_STATION_H
 #define NEWGRF_STATION_H
 
+#include <vector>
+
+#include "core/pointer.h"
 #include "newgrf_animation_type.h"
 #include "newgrf_callbacks.h"
 #include "newgrf_class.h"
@@ -140,15 +143,14 @@ struct StationSpec {
 	byte disallowed_lengths;
 
 	/**
-	 * Number of tile layouts.
+	 * Tile layouts.
 	 * A minimum of 8 is required is required for stations.
 	 * 0-1 = plain platform
 	 * 2-3 = platform with building
 	 * 4-5 = platform with roof, left side
 	 * 6-7 = platform with roof, right side
 	 */
-	uint tiles;
-	NewGRFSpriteLayout *renderdata; ///< Array of tile layouts.
+	std::vector <ttd_unique_ptr <NewGRFSpriteLayout> > renderdata;
 
 	/**
 	 * Cargo threshold for choosing between little and lots of cargo

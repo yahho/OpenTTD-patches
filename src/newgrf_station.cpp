@@ -834,10 +834,11 @@ bool DrawStationTile (BlitArea *dpi, int x, int y, RailType railtype,
 	uint32 ground_relocation = 0;
 	const NewGRFSpriteLayout *layout = NULL;
 
-	if (statspec->renderdata == NULL) {
+	if (statspec->renderdata.empty()) {
 		sprites = GetDefaultStationTileLayout() + (tile + axis);
 	} else {
-		layout = &statspec->renderdata[(tile < statspec->tiles) ? tile + axis : (uint)axis];
+		uint t = (tile < statspec->renderdata.size()) ? tile : 0;
+		layout = statspec->renderdata[t + axis].get();
 		if (!layout->NeedsPreprocessing()) {
 			sprites = layout;
 			layout = NULL;
