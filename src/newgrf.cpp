@@ -210,6 +210,18 @@ static inline uint32 ReadDWord (const byte *p)
 	return p[0] | (p[1] << 8) | (p[2] << 16) | (p[3] << 24);
 }
 
+static uint32 ReadVarSize (const byte *p, byte size)
+{
+	switch (size) {
+		case 1: return *p;
+		case 2: return ReadWord (p);
+		case 4: return ReadDWord (p);
+		default:
+			NOT_REACHED();
+			return 0;
+	}
+}
+
 /** Class to read from a NewGRF file */
 class ByteReader {
 protected:
@@ -248,18 +260,6 @@ public:
 	uint32 ReadLabel (void)
 	{
 		return BSWAP32(this->ReadDWord());
-	}
-
-	uint32 ReadVarSize(byte size)
-	{
-		switch (size) {
-			case 1: return ReadByte();
-			case 2: return ReadWord();
-			case 4: return ReadDWord();
-			default:
-				NOT_REACHED();
-				return 0;
-		}
 	}
 
 	const char *ReadString (void);
@@ -4833,57 +4833,76 @@ static int NewSpriteGroup (ByteReader *buf)
 		{
 			byte varsize = (1 << GB(type, 2, 2));
 
-			byte varadjust;
+			/* Count the number of adjusts. */
+			const byte *data = buf->GetData();
+			uint num_adjusts = 1;
+			for (;;) {
+				byte variable = buf->ReadByte();
+				if (IsInsideMM(variable, 0x60, 0x80)) buf->ReadByte();
 
-			static SmallVector <DeterministicSpriteGroup::Adjust, 16> adjusts;
-			adjusts.Clear();
+				byte varadjust = buf->ReadByte();
+				buf->Skip (GB(varadjust, 6, 2) != 0 ? 3 * varsize : varsize);
 
-			/* Loop through the var adjusts. Unfortunately we don't know how many we have
-			 * from the outset, so we shall have to keep reallocing. */
-			do {
-				DeterministicSpriteGroup::Adjust *adjust = adjusts.Append();
+				/* Continue reading var adjusts while bit 5 is set. */
+				if (!HasBit(varadjust, 5)) break;
+				num_adjusts++;
+				buf->ReadByte();
+			}
+
+			byte num_ranges = buf->ReadByte();
+
+			DeterministicSpriteGroup *group = DeterministicSpriteGroup::create (HasBit(type, 1),
+					GB(type, 2, 2), num_adjusts, num_ranges);
+			act_group = group;
+
+			for (uint i = 0; i < num_adjusts; i++) {
+				DeterministicSpriteGroup::Adjust *adjust = group->get_adjust (i);
 
 				/* The first var adjust doesn't have an operation specified, so we set it to add. */
-				adjust->operation = adjusts.Length() == 1 ? 0 : buf->ReadByte();
-				adjust->variable  = buf->ReadByte();
+				adjust->operation = (i == 0) ? 0 : *data++;
+				adjust->variable  = *data++;
 				if (adjust->variable == 0x7E) {
 					/* Link subroutine group */
-					adjust->subroutine = GetGroupFromGroupID(setid, type, buf->ReadByte());
+					adjust->subroutine = GetGroupFromGroupID (setid, type, *data++);
 				} else {
-					adjust->parameter = IsInsideMM(adjust->variable, 0x60, 0x80) ? buf->ReadByte() : 0;
+					adjust->parameter = IsInsideMM (adjust->variable, 0x60, 0x80) ? *data++ : 0;
 				}
 
-				varadjust = buf->ReadByte();
+				byte varadjust = *data++;
 				adjust->shift_num = GB(varadjust, 0, 5);
 				adjust->type      = GB(varadjust, 6, 2);
-				adjust->and_mask  = buf->ReadVarSize(varsize);
+				adjust->and_mask  = ReadVarSize (data, varsize);
+				data += varsize;
 
 				if (adjust->type != 0) {
-					adjust->add_val    = buf->ReadVarSize(varsize);
-					adjust->divmod_val = buf->ReadVarSize(varsize);
+					adjust->add_val    = ReadVarSize (data, varsize);
+					data += varsize;
+					adjust->divmod_val = ReadVarSize (data, varsize);
+					data += varsize;
 				} else {
 					adjust->add_val    = 0;
 					adjust->divmod_val = 0;
 				}
 
 				/* Continue reading var adjusts while bit 5 is set. */
-			} while (HasBit(varadjust, 5));
+				assert (HasBit(varadjust, 5) == (i + 1 != num_adjusts));
+			}
 
-			byte num_ranges = buf->ReadByte();
+			data = buf->GetData (num_ranges * (2 * varsize + 2) + 2);
 
-			DeterministicSpriteGroup *group = DeterministicSpriteGroup::create (HasBit(type, 1),
-					GB(type, 2, 2), adjusts.Length(),
-					num_ranges, adjusts.Begin());
-			act_group = group;
-
-			for (uint i = 0; i < num_ranges; i++) {
-				const SpriteGroup *g = GetGroupFromGroupID (setid, type, buf->ReadWord());
-				uint32 low  = buf->ReadVarSize (varsize);
-				uint32 high = buf->ReadVarSize (varsize);
+			const SpriteGroup *g;
+			for (uint i = 0; ; i++) {
+				g = GetGroupFromGroupID (setid, type, ReadWord (data));
+				if (i == num_ranges) break;
+				data += 2;
+				uint32 low  = ReadVarSize (data, varsize);
+				data += varsize;
+				uint32 high = ReadVarSize (data, varsize);
+				data += varsize;
 				group->set_range (i, g, low, high);
 			}
 
-			group->set_default (GetGroupFromGroupID (setid, type, buf->ReadWord()));
+			group->set_default (g);
 			break;
 		}
 

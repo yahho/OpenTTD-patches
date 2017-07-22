@@ -271,8 +271,7 @@ private:
 
 	DeterministicSpriteGroup (bool parent_scope,
 			byte size, uint num_adjusts,
-			byte num_ranges, size_t ranges_offset,
-			const Adjust *adjusts)
+			byte num_ranges, size_t ranges_offset)
 		: SpriteGroup (SGT_DETERMINISTIC),
 		  var_scope (parent_scope ? VSG_SCOPE_PARENT : VSG_SCOPE_SELF),
 		  size (size), default_group (NULL),
@@ -280,7 +279,7 @@ private:
 		  ranges  (offset_pointer<Range>  (this, ranges_offset)),
 		  num_adjusts (num_adjusts), num_ranges (num_ranges)
 	{
-		memcpy (this->adjusts, adjusts, num_adjusts * sizeof(Adjust));
+		memset (this->adjusts, 0, num_adjusts * sizeof(Adjust));
 		memset (this->ranges, 0, num_ranges * sizeof(Range));
 	}
 
@@ -296,7 +295,7 @@ protected:
 
 public:
 	static DeterministicSpriteGroup *create (bool parent_scope, byte size,
-		uint num_adjusts, byte num_ranges, const Adjust *adjusts)
+		uint num_adjusts, byte num_ranges)
 	{
 		size_t adjusts_end = adjusts_offset() + num_adjusts * sizeof(Adjust);
 		size_t ranges_offset = ttd_align_up<Range> (adjusts_end);
@@ -305,8 +304,13 @@ public:
 		DeterministicSpriteGroup *group = new (total_size)
 				DeterministicSpriteGroup (parent_scope, size,
 						num_adjusts, num_ranges,
-						ranges_offset, adjusts);
+						ranges_offset);
 		return SpriteGroup::append (group);
+	}
+
+	Adjust *get_adjust (uint i)
+	{
+		return &this->adjusts[i];
 	}
 
 	void set_range (byte i, const SpriteGroup *group, uint32 low, uint32 high)
