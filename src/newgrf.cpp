@@ -263,12 +263,6 @@ public:
 		return Remaining() >= count;
 	}
 
-	uint32 PeekDWord() const
-	{
-		if (!HasData (4)) throw out_of_data();
-		return data[0] | (data[1] << 8) | (data[2] << 16) | (data[3] << 24);
-	}
-
 	const byte *GetData (size_t n)
 	{
 		if (!HasData (n)) throw out_of_data();
@@ -2088,8 +2082,10 @@ static ChangeInfoResult StationChangeInfo(uint stid, int numinfo, int prop, Byte
 				for (uint t = 0; t < n; t++) {
 					assert (statspec->renderdata.size() == t);
 
-					if (buf->HasData(4) && buf->PeekDWord() == 0) {
-						buf->Skip(4);
+					const byte *gp = buf->GetData (4);
+					uint gd = gp[0] | (gp[1] << 8) | (gp[2] << 16) | (gp[3] << 24);
+
+					if (gd == 0) {
 						extern const DrawTileSprites _station_display_datas_rail[8];
 						const DrawTileSprites *src = &_station_display_datas_rail[t % 8];
 						NewGRFSpriteLayout *dts = StationTileSpriteLayout::clone (src->ground, src->seq);
@@ -2099,7 +2095,7 @@ static ChangeInfoResult StationChangeInfo(uint stid, int numinfo, int prop, Byte
 
 					/* On error, bail out immediately. Temporary GRF data was already freed */
 					PalSpriteID ground;
-					ReadPalSprite (buf, &ground);
+					ReadPalSprite (gp, &ground);
 					if (!AdjustSpriteLayoutSprite (&ground, GSF_STATIONS, false)) {
 						return CIR_DISABLED;
 					}
