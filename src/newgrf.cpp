@@ -199,6 +199,17 @@ static inline bool IsValidNewGRFImageIndex(uint8 image_index)
 	return image_index == 0xFD || IsValidImageIndex<T>(image_index);
 }
 
+
+static inline uint16 ReadWord (const byte *p)
+{
+	return p[0] | (p[1] << 8);
+}
+
+static inline uint32 ReadDWord (const byte *p)
+{
+	return p[0] | (p[1] << 8) | (p[2] << 16) | (p[3] << 24);
+}
+
 /** Class to read from a NewGRF file */
 class ByteReader {
 protected:
@@ -746,8 +757,8 @@ EngineID GetNewEngineID(const GRFFile *file, VehicleType type, uint16 internal_i
  */
 static void ReadPalSprite (const byte *buf, PalSpriteID *grf_sprite)
 {
-	SpriteID  sprite = buf[0] | (buf[1] << 8);
-	PaletteID pal    = buf[2] | (buf[3] << 8);
+	SpriteID  sprite = ReadWord (buf);
+	PaletteID pal    = ReadWord (buf + 2);
 
 	if (HasBit(pal, 14)) {
 		ClrBit(pal, 14);
@@ -2083,9 +2094,8 @@ static ChangeInfoResult StationChangeInfo(uint stid, int numinfo, int prop, Byte
 					assert (statspec->renderdata.size() == t);
 
 					const byte *gp = buf->GetData (4);
-					uint gd = gp[0] | (gp[1] << 8) | (gp[2] << 16) | (gp[3] << 24);
 
-					if (gd == 0) {
+					if (ReadDWord (gp) == 0) {
 						extern const DrawTileSprites _station_display_datas_rail[8];
 						const DrawTileSprites *src = &_station_display_datas_rail[t % 8];
 						NewGRFSpriteLayout *dts = StationTileSpriteLayout::clone (src->ground, src->seq);
