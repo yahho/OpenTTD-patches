@@ -3378,77 +3378,39 @@ static ChangeInfoResult IndustrytilesChangeInfo(uint indtid, int numinfo, int pr
  */
 static ChangeInfoResult IgnoreIndustryProperty(int prop, ByteReader *buf)
 {
-	ChangeInfoResult ret = CIR_SUCCESS;
-
-	switch (prop) {
-		case 0x09:
-		case 0x0B:
-		case 0x0F:
-		case 0x12:
-		case 0x13:
-		case 0x14:
-		case 0x17:
-		case 0x18:
-		case 0x19:
-		case 0x21:
-		case 0x22:
-			buf->ReadByte();
-			break;
-
-		case 0x0C:
-		case 0x0D:
-		case 0x0E:
-		case 0x10:
-		case 0x1B:
-		case 0x1F:
-		case 0x24:
-			buf->ReadWord();
-			break;
-
-		case 0x11:
-		case 0x1A:
-		case 0x1C:
-		case 0x1D:
-		case 0x1E:
-		case 0x20:
-		case 0x23:
-			buf->ReadDWord();
-			break;
-
-		case 0x0A: {
-			byte num_table = buf->ReadByte();
-			for (byte j = 0; j < num_table; j++) {
-				for (uint k = 0;; k++) {
-					byte x = buf->ReadByte();
-					if (x == 0xFE && k == 0) {
-						buf->ReadByte();
-						buf->ReadByte();
-						break;
-					}
-
-					byte y = buf->ReadByte();
-					if (x == 0 && y == 0x80) break;
-
-					byte gfx = buf->ReadByte();
-					if (gfx == 0xFE) buf->ReadWord();
+	if (prop == 0x0A) {
+		for (byte j = buf->ReadByte(); j > 0; j--) {
+			for (uint k = 0;; k++) {
+				byte x = buf->ReadByte();
+				if (x == 0xFE && k == 0) {
+					buf->ReadByte();
+					buf->ReadByte();
+					break;
 				}
+
+				byte y = buf->ReadByte();
+				if (x == 0 && y == 0x80) break;
+
+				byte gfx = buf->ReadByte();
+				if (gfx == 0xFE) buf->ReadWord();
 			}
-			break;
 		}
-
-		case 0x16:
-			buf->Skip (3);
-			break;
-
-		case 0x15:
-			buf->Skip (buf->ReadByte());
-			break;
-
-		default:
-			ret = CIR_UNKNOWN;
-			break;
+		return CIR_SUCCESS;
 	}
-	return ret;
+
+	static const byte skip[] = {
+			/* 0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f  */
+		/* 00 */                              1, 0, 1, 2, 2, 2, 1,
+		/* 10 */   2, 4, 1, 1, 1, 0, 3, 1, 1, 1, 4, 2, 4, 4, 4, 2,
+		/* 20 */   4, 1, 1, 4, 2,
+	};
+
+	uint k = prop - 0x09;
+	if (k >= lengthof(skip)) return CIR_UNKNOWN;
+
+	byte s = skip[k];
+	buf->Skip (s != 0 ? s : buf->ReadByte());
+	return CIR_SUCCESS;
 }
 
 /**
