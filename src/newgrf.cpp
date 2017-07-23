@@ -3962,40 +3962,18 @@ static ChangeInfoResult AirportChangeInfo(uint airport, int numinfo, int prop, B
  */
 static ChangeInfoResult IgnoreObjectProperty(uint prop, ByteReader *buf)
 {
-	ChangeInfoResult ret = CIR_SUCCESS;
+	static const byte skip[] = {
+			/* 0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f  */
+		/* 00 */                           4, 2, 2, 1, 1, 1, 4, 4,
+		/* 10 */   2, 2, 1, 2, 1, 2, 1, 1,
+	};
 
-	switch (prop) {
-		case 0x0B:
-		case 0x0C:
-		case 0x0D:
-		case 0x12:
-		case 0x14:
-		case 0x16:
-		case 0x17:
-			buf->ReadByte();
-			break;
+	uint k = prop - 0x08;
+	if (k >= lengthof(skip)) return CIR_UNKNOWN;
 
-		case 0x09:
-		case 0x0A:
-		case 0x10:
-		case 0x11:
-		case 0x13:
-		case 0x15:
-			buf->ReadWord();
-			break;
-
-		case 0x08:
-		case 0x0E:
-		case 0x0F:
-			buf->ReadDWord();
-			break;
-
-		default:
-			ret = CIR_UNKNOWN;
-			break;
-	}
-
-	return ret;
+	byte s = skip[k];
+	buf->Skip (s);
+	return CIR_SUCCESS;
 }
 
 /**
