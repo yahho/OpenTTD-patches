@@ -2399,7 +2399,7 @@ static ChangeInfoResult BridgeChangeInfo(uint brid, int numinfo, int prop, ByteR
 				for (; numtables-- != 0; tableid++) {
 					if (tableid >= 7) { // skip invalid data
 						grfmsg(1, "BridgeChangeInfo: Table %d >= 7, skipping", tableid);
-						for (byte sprite = 0; sprite < 32; sprite++) buf->ReadDWord();
+						buf->Skip (32 * 4);
 						continue;
 					}
 
@@ -2498,14 +2498,12 @@ static ChangeInfoResult IgnoreTownHouseProperty(int prop, ByteReader *buf)
 			break;
 
 		case 0x17:
-			for (uint j = 0; j < 4; j++) buf->ReadByte();
+			buf->Skip (4);
 			break;
 
-		case 0x20: {
-			byte count = buf->ReadByte();
-			for (byte j = 0; j < count; j++) buf->ReadByte();
+		case 0x20:
+			buf->Skip (buf->ReadByte());
 			break;
-		}
 
 		default:
 			ret = CIR_UNKNOWN;
@@ -3487,16 +3485,12 @@ static ChangeInfoResult IgnoreIndustryProperty(int prop, ByteReader *buf)
 		}
 
 		case 0x16:
-			for (byte j = 0; j < 3; j++) buf->ReadByte();
+			buf->Skip (3);
 			break;
 
-		case 0x15: {
-			byte number_of_sounds = buf->ReadByte();
-			for (uint8 j = 0; j < number_of_sounds; j++) {
-				buf->ReadByte();
-			}
+		case 0x15:
+			buf->Skip (buf->ReadByte());
 			break;
-		}
 
 		default:
 			ret = CIR_UNKNOWN;
@@ -4347,7 +4341,7 @@ static ChangeInfoResult RailTypeChangeInfo(uint id, int numinfo, int prop, ByteR
 
 			case 0x1D: // Alternate rail type label list
 				/* Skipped here as this is loaded during reservation stage. */
-				for (int j = buf->ReadByte(); j != 0; j--) buf->ReadDWord();
+				buf->Skip (4 * buf->ReadByte());
 				break;
 
 			default:
@@ -4413,7 +4407,7 @@ static ChangeInfoResult RailTypeReserveInfo(uint id, int numinfo, int prop, Byte
 			case 0x0F: // Powered railtype list
 			case 0x18: // Railtype list required for date introduction
 			case 0x19: // Introduced railtype list
-				for (int j = buf->ReadByte(); j != 0; j--) buf->ReadDWord();
+				buf->Skip (4 * buf->ReadByte());
 				break;
 
 			case 0x10: // Rail Type flags
