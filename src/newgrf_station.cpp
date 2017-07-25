@@ -289,14 +289,9 @@ static struct {
 TownScopeResolver *StationResolverObject::GetTown()
 {
 	if (this->town_scope == NULL) {
-		Town *t = NULL;
-		if (this->station_scope.st != NULL) {
-			t = this->station_scope.st->town;
-		} else if (this->station_scope.tile != INVALID_TILE) {
-			t = ClosestTownFromTile(this->station_scope.tile);
-		}
+		Town *t = this->station_scope.st->town;
 		if (t == NULL) return NULL;
-		this->town_scope = new TownScopeResolver (this->grffile, t, this->station_scope.st == NULL);
+		this->town_scope = new TownScopeResolver (this->grffile, t, false);
 	}
 	return this->town_scope;
 }
@@ -518,7 +513,7 @@ uint32 Waypoint::GetNewGRFVariable (const GRFFile *grffile, byte variable, byte 
 
 /* virtual */ const SpriteGroup *StationResolverObject::ResolveReal(const RealSpriteGroup *group) const
 {
-	if (this->station_scope.st == NULL || this->station_scope.statspec->cls_id == STAT_CLASS_WAYP) {
+	if (this->station_scope.statspec->cls_id == STAT_CLASS_WAYP) {
 		return group->get_first (true);
 	}
 
@@ -578,15 +573,14 @@ StationResolverObject::StationResolverObject(const StationSpec *statspec, BaseSt
 	: ResolverObject(statspec->grf_prop.grffile, callback, callback_param1, callback_param2),
 	  station_scope (this->grffile, statspec, st, tile), town_scope(NULL)
 {
+	assert (st != NULL);
+
 	/* Invalidate all cached vars */
 	_svc.valid = 0;
 
 	CargoID ctype = CT_DEFAULT_NA;
 
-	if (this->station_scope.st == NULL) {
-		/* No station, so we are in a purchase list */
-		ctype = CT_PURCHASE;
-	} else if (!this->station_scope.st->IsWaypoint()) {
+	if (!this->station_scope.st->IsWaypoint()) {
 		const Station *st = Station::From(this->station_scope.st);
 		/* Pick the first cargo that we have waiting */
 		const CargoSpec *cs;
@@ -630,6 +624,105 @@ StationScopeResolver::StationScopeResolver (const GRFFile *grffile, const Statio
 	this->axis = INVALID_AXIS;
 }
 
+
+/** Resolver for stations not yet built. */
+struct FakeStationResolverObject : public ResolverObject {
+	StationScopeResolver station_scope; ///< The station scope resolver.
+	TownScopeResolver *town_scope;      ///< The town scope resolver (created on the first call).
+
+	const SpriteGroup *root_spritegroup; ///< Root SpriteGroup to use for resolving
+
+	/**
+	 * Resolver for stations not yet built.
+	 * @param statspec Station (type) specification.
+	 * @param tile %Tile of the station.
+	 * @param callback Callback ID.
+	 * @param callback_param1 First parameter (var 10) of the callback.
+	 * @param callback_param2 Second parameter (var 18) of the callback.
+	 */
+	FakeStationResolverObject (const StationSpec *statspec, TileIndex tile,
+			CallbackID callback = CBID_NO_CALLBACK,
+			uint32 callback_param1 = 0, uint32 callback_param2 = 0)
+		: ResolverObject (statspec->grf_prop.grffile,
+			callback, callback_param1, callback_param2),
+		  station_scope (this->grffile, statspec, NULL, tile),
+		  town_scope (NULL)
+	{
+		/* Invalidate all cached vars */
+		_svc.valid = 0;
+
+		/* No station, so we are in a purchase list */
+		CargoID ctype = CT_PURCHASE;
+
+		if (this->station_scope.statspec->grf_prop.spritegroup[ctype] == NULL) {
+			ctype = CT_DEFAULT;
+		}
+
+		/* Remember the cargo type we've picked */
+		this->station_scope.cargo_type = ctype;
+		this->root_spritegroup = this->station_scope.statspec->grf_prop.spritegroup[ctype];
+	}
+
+	~FakeStationResolverObject();
+
+	TownScopeResolver *GetTown (void);
+
+	ScopeResolver *GetScope (VarSpriteGroupScope scope = VSG_SCOPE_SELF, byte relative = 0) OVERRIDE
+	{
+		switch (scope) {
+			case VSG_SCOPE_SELF:
+				return &this->station_scope;
+
+			case VSG_SCOPE_PARENT: {
+				TownScopeResolver *tsr = this->GetTown();
+				if (tsr != NULL) return tsr;
+				/* FALL-THROUGH */
+			}
+
+			default:
+				return ResolverObject::GetScope (scope, relative);
+		}
+	}
+
+	const SpriteGroup *ResolveReal (const RealSpriteGroup *group) const OVERRIDE
+	{
+		return group->get_first (true);
+	}
+
+	/**
+	 * Resolve SpriteGroup.
+	 * @return Result spritegroup.
+	 */
+	const SpriteGroup *Resolve (void)
+	{
+		return SpriteGroup::Resolve (this->root_spritegroup, *this);
+	}
+};
+
+FakeStationResolverObject::~FakeStationResolverObject()
+{
+	delete this->town_scope;
+}
+
+/**
+ * Get the town scope associated with a station, if it exists.
+ * On the first call, the town scope is created (if possible).
+ * @return Town scope, if available.
+ */
+TownScopeResolver *FakeStationResolverObject::GetTown (void)
+{
+	if (this->town_scope == NULL) {
+		Town *t = NULL;
+		if (this->station_scope.tile != INVALID_TILE) {
+			t = ClosestTownFromTile(this->station_scope.tile);
+		}
+		if (t == NULL) return NULL;
+		this->town_scope = new TownScopeResolver (this->grffile, t, true);
+	}
+	return this->town_scope;
+}
+
+
 /**
  * Resolve sprites for drawing a station tile.
  * @param statspec Station spec
@@ -655,7 +748,7 @@ SpriteID GetCustomStationRelocation(const StationSpec *statspec, BaseStation *st
  */
 static SpriteID GetCustomStationRelocation (const StationSpec *statspec, uint32 var10)
 {
-	StationResolverObject object (statspec, NULL, INVALID_TILE, CBID_NO_CALLBACK, var10);
+	FakeStationResolverObject object (statspec, INVALID_TILE, CBID_NO_CALLBACK, var10);
 	const SpriteGroup *group = object.Resolve();
 	if (group == NULL || !group->IsType (SGT_RESULT)) return 0;
 	return group->GetResult() - 0x42D;
@@ -692,7 +785,7 @@ uint16 GetStationCallback(CallbackID callback, uint32 param1, uint32 param2, con
 
 uint16 GetStationCallback (CallbackID callback, uint32 param1, uint32 param2, const StationSpec *statspec, TileIndex tile)
 {
-	StationResolverObject object (statspec, NULL, tile, callback, param1, param2);
+	FakeStationResolverObject object (statspec, tile, callback, param1, param2);
 	return SpriteGroup::CallbackResult (object.Resolve());
 }
 
@@ -711,7 +804,7 @@ CommandCost PerformStationTileSlopeCheck(TileIndex north_tile, TileIndex cur_til
 	TileIndexDiff diff = cur_tile - north_tile;
 	Slope slope = GetTileSlope(cur_tile);
 
-	StationResolverObject object(statspec, NULL, cur_tile, CBID_STATION_LAND_SLOPE_CHECK,
+	FakeStationResolverObject object (statspec, cur_tile, CBID_STATION_LAND_SLOPE_CHECK,
 			(slope << 4) | (slope ^ (axis == AXIS_Y && HasBit(slope, CORNER_W) != HasBit(slope, CORNER_E) ? SLOPE_EW : 0)),
 			(numtracks << 24) | (plat_len << 16) | (axis == AXIS_Y ? TileX(diff) << 8 | TileY(diff) : TileY(diff) << 8 | TileX(diff)));
 	object.station_scope.axis = axis;
