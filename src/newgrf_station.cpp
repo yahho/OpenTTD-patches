@@ -633,14 +633,29 @@ StationScopeResolver::StationScopeResolver (const GRFFile *grffile, const Statio
 /**
  * Resolve sprites for drawing a station tile.
  * @param statspec Station spec
- * @param st Station (NULL in GUI)
- * @param tile Station tile being drawn (INVALID_TILE in GUI)
+ * @param st Station
+ * @param tile Station tile being drawn
  * @param var10 Value to put in variable 10; normally 0; 1 when resolving the groundsprite and SSF_SEPARATE_GROUND is set.
  * @return First sprite of the Action 1 spriteset to use, minus an offset of 0x42D to accommodate for weird NewGRF specs.
  */
 SpriteID GetCustomStationRelocation(const StationSpec *statspec, BaseStation *st, TileIndex tile, uint32 var10)
 {
+	assert (st != NULL);
 	StationResolverObject object(statspec, st, tile, CBID_NO_CALLBACK, var10);
+	const SpriteGroup *group = object.Resolve();
+	if (group == NULL || !group->IsType (SGT_RESULT)) return 0;
+	return group->GetResult() - 0x42D;
+}
+
+/**
+ * Resolve sprites for drawing a station tile in the GUI.
+ * @param statspec Station spec
+ * @param var10 Value to put in variable 10; normally 0; 1 when resolving the groundsprite and SSF_SEPARATE_GROUND is set.
+ * @return First sprite of the Action 1 spriteset to use, minus an offset of 0x42D to accommodate for weird NewGRF specs.
+ */
+static SpriteID GetCustomStationRelocation (const StationSpec *statspec, uint32 var10)
+{
+	StationResolverObject object (statspec, NULL, INVALID_TILE, CBID_NO_CALLBACK, var10);
 	const SpriteGroup *group = object.Resolve();
 	if (group == NULL || !group->IsType (SGT_RESULT)) return 0;
 	return group->GetResult() - 0x42D;
@@ -861,7 +876,7 @@ bool DrawStationTile (BlitArea *dpi, int x, int y, RailType railtype,
 		uint32 var10_values = result.prepare (layout, 0, total_offset, rti->fallback_railtype, separate_ground);
 		uint8 var10;
 		FOR_EACH_SET_BIT(var10, var10_values) {
-			uint32 var10_relocation = GetCustomStationRelocation(statspec, NULL, INVALID_TILE, var10);
+			uint32 var10_relocation = GetCustomStationRelocation (statspec, var10);
 			result.process (layout, var10, var10_relocation, separate_ground);
 		}
 		ground = result.get_ground();
@@ -871,9 +886,9 @@ bool DrawStationTile (BlitArea *dpi, int x, int y, RailType railtype,
 		/* Simple sprite layout */
 		ground = sprites->ground;
 		seq = sprites->seq;
-		ground_relocation = relocation = GetCustomStationRelocation(statspec, NULL, INVALID_TILE, 0);
+		ground_relocation = relocation = GetCustomStationRelocation (statspec, 0);
 		if (HasBit(ground.sprite, SPRITE_MODIFIER_CUSTOM_SPRITE)) {
-			ground_relocation = GetCustomStationRelocation(statspec, NULL, INVALID_TILE, 1);
+			ground_relocation = GetCustomStationRelocation (statspec, 1);
 		}
 		ground_relocation += rti->fallback_railtype;
 	}
