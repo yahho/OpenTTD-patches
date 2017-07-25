@@ -670,7 +670,14 @@ SpriteID GetCustomStationFoundationRelocation(const StationSpec *statspec, BaseS
 
 uint16 GetStationCallback(CallbackID callback, uint32 param1, uint32 param2, const StationSpec *statspec, BaseStation *st, TileIndex tile)
 {
+	assert (st != NULL);
 	StationResolverObject object(statspec, st, tile, callback, param1, param2);
+	return SpriteGroup::CallbackResult (object.Resolve());
+}
+
+uint16 GetStationCallback (CallbackID callback, uint32 param1, uint32 param2, const StationSpec *statspec, TileIndex tile)
+{
+	StationResolverObject object (statspec, NULL, tile, callback, param1, param2);
 	return SpriteGroup::CallbackResult (object.Resolve());
 }
 
@@ -825,7 +832,7 @@ bool DrawStationTile (BlitArea *dpi, int x, int y, RailType railtype,
 	if (statspec == NULL) return false;
 
 	if (HasBit(statspec->callback_mask, CBM_STATION_SPRITE_LAYOUT)) {
-		uint16 callback = GetStationCallback(CBID_STATION_SPRITE_LAYOUT, 0x2110000, 0, statspec, NULL, INVALID_TILE);
+		uint16 callback = GetStationCallback (CBID_STATION_SPRITE_LAYOUT, 0x2110000, 0, statspec);
 		if (callback != CALLBACK_FAILED) tile = callback;
 	}
 
