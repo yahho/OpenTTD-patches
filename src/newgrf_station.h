@@ -32,7 +32,6 @@ struct StationScopeResolver : public ScopeResolver {
 	struct BaseStation *st;             ///< Instance of the station.
 	const struct StationSpec *statspec; ///< Station (type) specification.
 	CargoID cargo_type;                 ///< Type of cargo of the station.
-	Axis axis;                          ///< Station axis, used only for the slope check callback.
 
 	StationScopeResolver (const GRFFile *grffile, const StationSpec *statspec, BaseStation *st, TileIndex tile);
 

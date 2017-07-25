@@ -249,13 +249,13 @@ static uint32 GetRailContinuationInfo(TileIndex tile)
 /* Station Resolver Functions */
 /* virtual */ uint32 StationScopeResolver::GetRandomBits() const
 {
-	return (this->st == NULL ? 0 : this->st->random_bits) | (this->tile == INVALID_TILE ? 0 : GetStationTileRandomBits(this->tile) << 16);
+	return this->st->random_bits | (this->tile == INVALID_TILE ? 0 : GetStationTileRandomBits (this->tile) << 16);
 }
 
 
 /* virtual */ uint32 StationScopeResolver::GetTriggers() const
 {
-	return this->st == NULL ? 0 : this->st->waiting_triggers;
+	return this->st->waiting_triggers;
 }
 
 
@@ -298,36 +298,6 @@ TownScopeResolver *StationResolverObject::GetTown()
 
 /* virtual */ uint32 StationScopeResolver::GetVariable(byte variable, uint32 parameter, bool *available) const
 {
-	if (this->st == NULL) {
-		/* Station does not exist, so we're in a purchase list or the land slope check callback. */
-		switch (variable) {
-			case 0x40:
-			case 0x41:
-			case 0x46:
-			case 0x47:
-			case 0x49: return 0x2110000;        // Platforms, tracks & position
-			case 0x42: return 0;                // Rail type (XXX Get current type from GUI?)
-			case 0x43: return GetCompanyInfo(_current_company); // Station owner
-			case 0x44: return 2;                // PBS status
-			case 0x67: // Land info of nearby tile
-				if (this->axis != INVALID_AXIS && this->tile != INVALID_TILE) {
-					TileIndex tile = this->tile;
-					if (parameter != 0) tile = GetNearbyTile(parameter, tile, true, this->axis); // only perform if it is required
-
-					Slope tileh = GetTileSlope(tile);
-					bool swap = (this->axis == AXIS_Y && HasBit(tileh, CORNER_W) != HasBit(tileh, CORNER_E));
-
-					return GetNearbyTileInformation (tile, this->grffile->grf_version >= 8) ^ (swap ? SLOPE_EW : 0);
-				}
-				break;
-
-			case 0xFA: return Clamp(_date - DAYS_TILL_ORIGINAL_BASE_YEAR, 0, 65535); // Build date, clamped to a 16 bit value
-		}
-
-		*available = false;
-		return UINT_MAX;
-	}
-
 	switch (variable) {
 		/* Calculated station variables */
 		case 0x40:
@@ -617,17 +587,65 @@ StationResolverObject::~StationResolverObject()
 StationScopeResolver::StationScopeResolver (const GRFFile *grffile, const StationSpec *statspec, BaseStation *st, TileIndex tile)
 	: ScopeResolver(), grffile(grffile)
 {
+	assert (st != NULL);
+
 	this->tile = tile;
 	this->st = st;
 	this->statspec = statspec;
 	this->cargo_type = CT_INVALID;
-	this->axis = INVALID_AXIS;
 }
 
 
+/** Scope resolver for stations not yet built. */
+struct FakeStationScopeResolver : public ScopeResolver {
+	const GRFFile *const grffile;       ///< GRFFile the resolved SpriteGroup belongs to.
+	TileIndex tile;                     ///< %Tile of the station.
+	const struct StationSpec *statspec; ///< Station (type) specification.
+	Axis axis;                          ///< Station axis, used only for the slope check callback.
+
+	FakeStationScopeResolver (const GRFFile *grffile, const StationSpec *statspec, TileIndex tile)
+		: ScopeResolver(), grffile(grffile), tile(tile),
+		  statspec(statspec), axis(INVALID_AXIS)
+	{
+	}
+
+	uint32 GetVariable (byte variable, uint32 parameter, bool *available) const OVERRIDE;
+};
+
+uint32 FakeStationScopeResolver::GetVariable (byte variable, uint32 parameter, bool *available) const
+{
+	/* Station does not exist, so we're in a purchase list or the land slope check callback. */
+	switch (variable) {
+		case 0x40:
+		case 0x41:
+		case 0x46:
+		case 0x47:
+		case 0x49: return 0x2110000;        // Platforms, tracks & position
+		case 0x42: return 0;                // Rail type (XXX Get current type from GUI?)
+		case 0x43: return GetCompanyInfo (_current_company); // Station owner
+		case 0x44: return 2;                // PBS status
+		case 0x67: // Land info of nearby tile
+			if (this->axis != INVALID_AXIS && this->tile != INVALID_TILE) {
+				TileIndex tile = this->tile;
+				if (parameter != 0) tile = GetNearbyTile (parameter, tile, true, this->axis); // only perform if it is required
+
+				Slope tileh = GetTileSlope(tile);
+				bool swap = (this->axis == AXIS_Y && HasBit(tileh, CORNER_W) != HasBit(tileh, CORNER_E));
+
+				return GetNearbyTileInformation (tile, this->grffile->grf_version >= 8) ^ (swap ? SLOPE_EW : 0);
+			}
+			break;
+
+		case 0xFA: return Clamp (_date - DAYS_TILL_ORIGINAL_BASE_YEAR, 0, 65535); // Build date, clamped to a 16 bit value
+	}
+
+	*available = false;
+	return UINT_MAX;
+}
+
 /** Resolver for stations not yet built. */
 struct FakeStationResolverObject : public ResolverObject {
-	StationScopeResolver station_scope; ///< The station scope resolver.
+	FakeStationScopeResolver station_scope; ///< The station scope resolver.
 	TownScopeResolver *town_scope;      ///< The town scope resolver (created on the first call).
 
 	const SpriteGroup *root_spritegroup; ///< Root SpriteGroup to use for resolving
@@ -645,22 +663,21 @@ struct FakeStationResolverObject : public ResolverObject {
 			uint32 callback_param1 = 0, uint32 callback_param2 = 0)
 		: ResolverObject (statspec->grf_prop.grffile,
 			callback, callback_param1, callback_param2),
-		  station_scope (this->grffile, statspec, NULL, tile),
+		  station_scope (this->grffile, statspec, tile),
 		  town_scope (NULL)
 	{
 		/* Invalidate all cached vars */
 		_svc.valid = 0;
 
 		/* No station, so we are in a purchase list */
-		CargoID ctype = CT_PURCHASE;
+		const SpriteGroup *const *groups = statspec->grf_prop.spritegroup;
+		const SpriteGroup *root = groups[CT_PURCHASE];
 
-		if (this->station_scope.statspec->grf_prop.spritegroup[ctype] == NULL) {
-			ctype = CT_DEFAULT;
+		if (root == NULL) {
+			root = groups[CT_DEFAULT];
 		}
 
-		/* Remember the cargo type we've picked */
-		this->station_scope.cargo_type = ctype;
-		this->root_spritegroup = this->station_scope.statspec->grf_prop.spritegroup[ctype];
+		this->root_spritegroup = root;
 	}
 
 	~FakeStationResolverObject();
