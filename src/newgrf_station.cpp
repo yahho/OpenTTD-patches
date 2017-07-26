@@ -603,9 +603,10 @@ struct FakeStationScopeResolver : public ScopeResolver {
 	const struct StationSpec *statspec; ///< Station (type) specification.
 	Axis axis;                          ///< Station axis, used only for the slope check callback.
 
-	FakeStationScopeResolver (const GRFFile *grffile, const StationSpec *statspec, TileIndex tile)
+	FakeStationScopeResolver (const GRFFile *grffile, const StationSpec *statspec,
+			TileIndex tile, Axis axis = INVALID_AXIS)
 		: ScopeResolver(), grffile(grffile), tile(tile),
-		  statspec(statspec), axis(INVALID_AXIS)
+		  statspec(statspec), axis(axis)
 	{
 	}
 
@@ -657,13 +658,15 @@ struct FakeStationResolverObject : public ResolverObject {
 	 * @param callback Callback ID.
 	 * @param callback_param1 First parameter (var 10) of the callback.
 	 * @param callback_param2 Second parameter (var 18) of the callback.
+	 * @param axis Axis of the station tile to build, if any.
 	 */
 	FakeStationResolverObject (const StationSpec *statspec, TileIndex tile,
 			CallbackID callback = CBID_NO_CALLBACK,
-			uint32 callback_param1 = 0, uint32 callback_param2 = 0)
+			uint32 callback_param1 = 0, uint32 callback_param2 = 0,
+			Axis axis = INVALID_AXIS)
 		: ResolverObject (statspec->grf_prop.grffile,
 			callback, callback_param1, callback_param2),
-		  station_scope (this->grffile, statspec, tile),
+		  station_scope (this->grffile, statspec, tile, axis),
 		  town_scope (NULL)
 	{
 		/* Invalidate all cached vars */
@@ -823,8 +826,8 @@ CommandCost PerformStationTileSlopeCheck(TileIndex north_tile, TileIndex cur_til
 
 	FakeStationResolverObject object (statspec, cur_tile, CBID_STATION_LAND_SLOPE_CHECK,
 			(slope << 4) | (slope ^ (axis == AXIS_Y && HasBit(slope, CORNER_W) != HasBit(slope, CORNER_E) ? SLOPE_EW : 0)),
-			(numtracks << 24) | (plat_len << 16) | (axis == AXIS_Y ? TileX(diff) << 8 | TileY(diff) : TileY(diff) << 8 | TileX(diff)));
-	object.station_scope.axis = axis;
+			(numtracks << 24) | (plat_len << 16) | (axis == AXIS_Y ? TileX(diff) << 8 | TileY(diff) : TileY(diff) << 8 | TileX(diff)),
+			axis);
 
 	uint16 cb_res = SpriteGroup::CallbackResult (object.Resolve());
 
