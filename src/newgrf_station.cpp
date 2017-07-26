@@ -601,12 +601,13 @@ struct FakeStationScopeResolver : public ScopeResolver {
 	const GRFFile *const grffile;       ///< GRFFile the resolved SpriteGroup belongs to.
 	TileIndex tile;                     ///< %Tile of the station.
 	const struct StationSpec *statspec; ///< Station (type) specification.
+	RailType railtype;                  ///< Rail type.
 	Axis axis;                          ///< Station axis, used only for the slope check callback.
 
 	FakeStationScopeResolver (const GRFFile *grffile, const StationSpec *statspec,
-			TileIndex tile, Axis axis = INVALID_AXIS)
+			TileIndex tile, RailType rt, Axis axis = INVALID_AXIS)
 		: ScopeResolver(), grffile(grffile), tile(tile),
-		  statspec(statspec), axis(axis)
+		  statspec(statspec), railtype(rt), axis(axis)
 	{
 	}
 
@@ -622,7 +623,7 @@ uint32 FakeStationScopeResolver::GetVariable (byte variable, uint32 parameter, b
 		case 0x46:
 		case 0x47:
 		case 0x49: return 0x2110000;        // Platforms, tracks & position
-		case 0x42: return 0;                // Rail type (XXX Get current type from GUI?)
+		case 0x42: return GetReverseRailTypeTranslation (this->railtype, this->statspec->grf_prop.grffile) << 8;
 		case 0x43: return GetCompanyInfo (_current_company); // Station owner
 		case 0x44: return 2;                // PBS status
 		case 0x67: // Land info of nearby tile
@@ -655,18 +656,19 @@ struct FakeStationResolverObject : public ResolverObject {
 	 * Resolver for stations not yet built.
 	 * @param statspec Station (type) specification.
 	 * @param tile %Tile of the station.
+	 * @param rt Rail type.
 	 * @param callback Callback ID.
 	 * @param callback_param1 First parameter (var 10) of the callback.
 	 * @param callback_param2 Second parameter (var 18) of the callback.
 	 * @param axis Axis of the station tile to build, if any.
 	 */
 	FakeStationResolverObject (const StationSpec *statspec, TileIndex tile,
-			CallbackID callback = CBID_NO_CALLBACK,
+			RailType rt, CallbackID callback = CBID_NO_CALLBACK,
 			uint32 callback_param1 = 0, uint32 callback_param2 = 0,
 			Axis axis = INVALID_AXIS)
 		: ResolverObject (statspec->grf_prop.grffile,
 			callback, callback_param1, callback_param2),
-		  station_scope (this->grffile, statspec, tile, axis),
+		  station_scope (this->grffile, statspec, tile, rt, axis),
 		  town_scope (NULL)
 	{
 		/* Invalidate all cached vars */
@@ -763,12 +765,14 @@ SpriteID GetCustomStationRelocation(const StationSpec *statspec, BaseStation *st
 /**
  * Resolve sprites for drawing a station tile in the GUI.
  * @param statspec Station spec
+ * @param rt Rail type.
  * @param var10 Value to put in variable 10; normally 0; 1 when resolving the groundsprite and SSF_SEPARATE_GROUND is set.
  * @return First sprite of the Action 1 spriteset to use, minus an offset of 0x42D to accommodate for weird NewGRF specs.
  */
-static SpriteID GetCustomStationRelocation (const StationSpec *statspec, uint32 var10)
+static SpriteID GetCustomStationRelocation (const StationSpec *statspec,
+	RailType rt, uint32 var10)
 {
-	FakeStationResolverObject object (statspec, INVALID_TILE, CBID_NO_CALLBACK, var10);
+	FakeStationResolverObject object (statspec, INVALID_TILE, rt, CBID_NO_CALLBACK, var10);
 	const SpriteGroup *group = object.Resolve();
 	if (group == NULL || !group->IsType (SGT_RESULT)) return 0;
 	return group->GetResult() - 0x42D;
@@ -803,9 +807,10 @@ uint16 GetStationCallback(CallbackID callback, uint32 param1, uint32 param2, con
 	return SpriteGroup::CallbackResult (object.Resolve());
 }
 
-uint16 GetStationCallback (CallbackID callback, uint32 param1, uint32 param2, const StationSpec *statspec, TileIndex tile)
+uint16 GetStationCallback (CallbackID callback, uint32 param1, uint32 param2,
+	const StationSpec *statspec, RailType rt, TileIndex tile)
 {
-	FakeStationResolverObject object (statspec, tile, callback, param1, param2);
+	FakeStationResolverObject object (statspec, tile, rt, callback, param1, param2);
 	return SpriteGroup::CallbackResult (object.Resolve());
 }
 
@@ -814,17 +819,20 @@ uint16 GetStationCallback (CallbackID callback, uint32 param1, uint32 param2, co
  * @param north_tile Norther tile of the station rect.
  * @param cur_tile Tile to check.
  * @param statspec Station spec.
+ * @param rt Rail type.
  * @param axis Axis of the new station.
  * @param plat_len Platform length.
  * @param numtracks Number of platforms.
  * @return Succeeded or failed command.
  */
-CommandCost PerformStationTileSlopeCheck(TileIndex north_tile, TileIndex cur_tile, const StationSpec *statspec, Axis axis, byte plat_len, byte numtracks)
+CommandCost PerformStationTileSlopeCheck (TileIndex north_tile,
+	TileIndex cur_tile, const StationSpec *statspec, RailType rt,
+	Axis axis, byte plat_len, byte numtracks)
 {
 	TileIndexDiff diff = cur_tile - north_tile;
 	Slope slope = GetTileSlope(cur_tile);
 
-	FakeStationResolverObject object (statspec, cur_tile, CBID_STATION_LAND_SLOPE_CHECK,
+	FakeStationResolverObject object (statspec, cur_tile, rt, CBID_STATION_LAND_SLOPE_CHECK,
 			(slope << 4) | (slope ^ (axis == AXIS_Y && HasBit(slope, CORNER_W) != HasBit(slope, CORNER_E) ? SLOPE_EW : 0)),
 			(numtracks << 24) | (plat_len << 16) | (axis == AXIS_Y ? TileX(diff) << 8 | TileY(diff) : TileY(diff) << 8 | TileX(diff)),
 			axis);
@@ -960,7 +968,7 @@ bool DrawStationTile (BlitArea *dpi, int x, int y, RailType railtype,
 	if (statspec == NULL) return false;
 
 	if (HasBit(statspec->callback_mask, CBM_STATION_SPRITE_LAYOUT)) {
-		uint16 callback = GetStationCallback (CBID_STATION_SPRITE_LAYOUT, 0x2110000, 0, statspec);
+		uint16 callback = GetStationCallback (CBID_STATION_SPRITE_LAYOUT, 0x2110000, 0, statspec, railtype);
 		if (callback != CALLBACK_FAILED) tile = callback;
 	}
 
@@ -989,7 +997,7 @@ bool DrawStationTile (BlitArea *dpi, int x, int y, RailType railtype,
 		uint32 var10_values = result.prepare (layout, 0, total_offset, rti->fallback_railtype, separate_ground);
 		uint8 var10;
 		FOR_EACH_SET_BIT(var10, var10_values) {
-			uint32 var10_relocation = GetCustomStationRelocation (statspec, var10);
+			uint32 var10_relocation = GetCustomStationRelocation (statspec, railtype, var10);
 			result.process (layout, var10, var10_relocation, separate_ground);
 		}
 		ground = result.get_ground();
@@ -999,9 +1007,9 @@ bool DrawStationTile (BlitArea *dpi, int x, int y, RailType railtype,
 		/* Simple sprite layout */
 		ground = sprites->ground;
 		seq = sprites->seq;
-		ground_relocation = relocation = GetCustomStationRelocation (statspec, 0);
+		ground_relocation = relocation = GetCustomStationRelocation (statspec, railtype, 0);
 		if (HasBit(ground.sprite, SPRITE_MODIFIER_CUSTOM_SPRITE)) {
-			ground_relocation = GetCustomStationRelocation (statspec, 1);
+			ground_relocation = GetCustomStationRelocation (statspec, railtype, 1);
 		}
 		ground_relocation += rti->fallback_railtype;
 	}

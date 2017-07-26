@@ -639,7 +639,7 @@ static CommandCost CheckFlatLandRailStation (TileArea tile_area,
 
 		if (slope_cb) {
 			/* Do slope check if requested. */
-			ret = PerformStationTileSlopeCheck(tile_area.tile, tile_cur, statspec, axis, plat_len, numtracks);
+			ret = PerformStationTileSlopeCheck (tile_area.tile, tile_cur, statspec, rt, axis, plat_len, numtracks);
 			if (ret.Failed()) return ret;
 		}
 
@@ -1221,7 +1221,7 @@ CommandCost CmdBuildRailStation(TileIndex tile_org, DoCommandFlag flags, uint32 
 
 		/* Check if the station is buildable */
 		if (HasBit(statspec->callback_mask, CBM_STATION_AVAIL)) {
-			uint16 cb_res = GetStationCallback (CBID_STATION_AVAILABILITY, 0, 0, statspec);
+			uint16 cb_res = GetStationCallback (CBID_STATION_AVAILABILITY, 0, 0, statspec, rt);
 			if (cb_res != CALLBACK_FAILED && !Convert8bitBooleanCallback(statspec->grf_prop.grffile, CBID_STATION_AVAILABILITY, cb_res)) return CMD_ERROR;
 		}
 	}
@@ -1282,7 +1282,7 @@ CommandCost CmdBuildRailStation(TileIndex tile_org, DoCommandFlag flags, uint32 
 					uint32 platinfo = GetPlatformInfo (AXIS_X, GetStationGfx(tile), plat_len, numtracks, j, i, false);
 
 					/* As the station is not yet completely finished, the station does not yet exist. */
-					uint16 callback = GetStationCallback (CBID_STATION_TILE_LAYOUT, platinfo, 0, statspec, tile);
+					uint16 callback = GetStationCallback (CBID_STATION_TILE_LAYOUT, platinfo, 0, statspec, rt, tile);
 					if (callback != CALLBACK_FAILED) {
 						if (callback < 8) {
 							SetStationGfx(tile, (callback & ~1) + axis);

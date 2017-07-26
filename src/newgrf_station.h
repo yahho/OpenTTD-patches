@@ -187,8 +187,11 @@ SpriteID GetCustomStationRelocation(const StationSpec *statspec, BaseStation *st
 SpriteID GetCustomStationFoundationRelocation(const StationSpec *statspec, BaseStation *st, TileIndex tile, uint layout, uint edge_info);
 uint16 GetStationCallback(CallbackID callback, uint32 param1, uint32 param2, const StationSpec *statspec, BaseStation *st, TileIndex tile);
 
-uint16 GetStationCallback (CallbackID callback, uint32 param1, uint32 param2, const StationSpec *statspec, TileIndex tile = INVALID_TILE);
-CommandCost PerformStationTileSlopeCheck(TileIndex north_tile, TileIndex cur_tile, const StationSpec *statspec, Axis axis, byte plat_len, byte numtracks);
+uint16 GetStationCallback (CallbackID callback, uint32 param1, uint32 param2,
+	const StationSpec *statspec, RailType rt, TileIndex tile = INVALID_TILE);
+CommandCost PerformStationTileSlopeCheck(TileIndex north_tile,
+	TileIndex cur_tile, const StationSpec *statspec, RailType rt,
+	Axis axis, byte plat_len, byte numtracks);
 
 /* Allocate a StationSpec to a Station. This is called once per build operation. */
 int AllocateSpecToStation(const StationSpec *statspec, BaseStation *st, bool exec);
