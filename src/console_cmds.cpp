@@ -76,6 +76,23 @@ public:
 
 static ConsoleFileList _console_file_list; ///< File storage cache for the console.
 
+/**
+ * Find an item in the console file list by name; warn if it is not found.
+ * @param file The file to find.
+ * @param force_reload Whether to forcibly reload the list.
+ * @return The item found, or NULL if it was not found.
+ */
+static const FiosItem *FindFile (const char *file, bool force_reload = false)
+{
+	_console_file_list.ValidateFileList (force_reload);
+	const FiosItem *item = _console_file_list.FindItem (file);
+	if (item == NULL) {
+		IConsolePrintF (CC_ERROR, "%s: No such file or directory.", file);
+	}
+	return item;
+}
+
+
 /* console command defines */
 #define DEF_CONSOLE_CMD(function) static bool function(byte argc, char *argv[])
 #define DEF_CONSOLE_HOOK(function) static ConsoleHookResult function(bool echo)
@@ -356,8 +373,7 @@ DEF_CONSOLE_CMD(ConLoad)
 	if (argc != 2) return false;
 
 	const char *file = argv[1];
-	_console_file_list.ValidateFileList();
-	const FiosItem *item = _console_file_list.FindItem(file);
+	const FiosItem *item = FindFile (file);
 	if (item != NULL) {
 		if (GetAbstractFileType(item->type) == FT_SAVEGAME) {
 			_switch_mode = SM_LOAD_GAME;
@@ -367,8 +383,6 @@ DEF_CONSOLE_CMD(ConLoad)
 		} else {
 			IConsolePrintF(CC_ERROR, "%s: Not a savegame.", file);
 		}
-	} else {
-		IConsolePrintF(CC_ERROR, "%s: No such file or directory.", file);
 	}
 
 	return true;
@@ -385,14 +399,9 @@ DEF_CONSOLE_CMD(ConRemove)
 	if (argc != 2) return false;
 
 	const char *file = argv[1];
-	_console_file_list.ValidateFileList();
-	const FiosItem *item = _console_file_list.FindItem(file);
-	if (item != NULL) {
-		if (!FiosDelete(item->name)) {
-			IConsolePrintF(CC_ERROR, "%s: Failed to delete file", file);
-		}
-	} else {
-		IConsolePrintF(CC_ERROR, "%s: No such file or directory.", file);
+	const FiosItem *item = FindFile (file);
+	if ((item != NULL) && !FiosDelete(item->name)) {
+		IConsolePrintF (CC_ERROR, "%s: Failed to delete file", file);
 	}
 
 	_console_file_list.InvalidateFileList();
@@ -427,8 +436,7 @@ DEF_CONSOLE_CMD(ConChangeDirectory)
 	if (argc != 2) return false;
 
 	const char *file = argv[1];
-	_console_file_list.ValidateFileList(true);
-	const FiosItem *item = _console_file_list.FindItem(file);
+	const FiosItem *item = FindFile (file, true);
 	if (item != NULL) {
 		switch (item->type) {
 			case FIOS_TYPE_DIR: case FIOS_TYPE_DRIVE: case FIOS_TYPE_PARENT:
@@ -436,8 +444,6 @@ DEF_CONSOLE_CMD(ConChangeDirectory)
 				break;
 			default: IConsolePrintF(CC_ERROR, "%s: Not a directory.", file);
 		}
-	} else {
-		IConsolePrintF(CC_ERROR, "%s: No such file or directory.", file);
 	}
 
 	_console_file_list.InvalidateFileList();
