@@ -85,11 +85,31 @@ static ConsoleFileList _console_file_list; ///< File storage cache for the conso
 static const FiosItem *FindFile (const char *file, bool force_reload = false)
 {
 	_console_file_list.ValidateFileList (force_reload);
-	const FiosItem *item = _console_file_list.FindItem (file);
-	if (item == NULL) {
-		IConsolePrintF (CC_ERROR, "%s: No such file or directory.", file);
+
+	for (const FiosItem *item = _console_file_list.Begin(); item != _console_file_list.End(); item++) {
+		if (strcmp (file, item->name)  == 0) return item;
+		if (strcmp (file, item->title) == 0) return item;
 	}
-	return item;
+
+	/* If no name matches, try to parse it as number */
+	char *endptr;
+	uint i = strtol (file, &endptr, 10);
+	if ((file != endptr) && (*endptr == '\0')
+			&& (i < _console_file_list.Length())) {
+		return _console_file_list.Get (i);
+	}
+
+	/* As a last effort assume it is an OpenTTD savegame and
+	 * that the ".sav" part was not given. */
+	char long_file[MAX_PATH];
+	bstrfmt (long_file, "%s.sav", file);
+	for (const FiosItem *item = _console_file_list.Begin(); item != _console_file_list.End(); item++) {
+		if (strcmp (long_file, item->name)  == 0) return item;
+		if (strcmp (long_file, item->title) == 0) return item;
+	}
+
+	IConsolePrintF (CC_ERROR, "%s: No such file or directory.", file);
+	return NULL;
 }
 
 

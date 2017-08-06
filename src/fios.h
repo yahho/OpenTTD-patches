@@ -190,7 +190,6 @@ public:
 	}
 
 	void BuildFileList(AbstractFileType abstract_filetype, SaveLoadOperation fop);
-	const FiosItem *FindItem(const char *file);
 
 	SmallVector<FiosItem, 32> files; ///< The list of files.
 };
