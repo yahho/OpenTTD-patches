@@ -644,7 +644,10 @@ int openttd_main(int argc, char *argv[])
 			}
 
 			sstring<80> title;
-			FiosGetSavegameListCallback (SLO_LOAD, mgo.opt, strrchr(mgo.opt, '.'), &title);
+			const char *dot = strrchr (mgo.opt, '.');
+			if (dot != NULL) {
+				FiosGetSavegameListCallback (SLO_LOAD, mgo.opt, dot, &title);
+			}
 
 			_load_check_data.Clear();
 			bool res = LoadGame (mgo.opt, true, false, SAVE_DIR);

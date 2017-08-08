@@ -414,8 +414,7 @@ FiosType FiosGetSavegameListCallback (SaveLoadOperation fop, const char *file, c
 	 * .SV1 Transport Tycoon Deluxe (Patch) saved game
 	 * .SV2 Transport Tycoon Deluxe (Patch) saved 2-player game */
 
-	/* Don't crash if we supply no extension */
-	if (ext == NULL) return FIOS_TYPE_INVALID;
+	assert (ext != NULL);
 
 	if (strcasecmp(ext, ".sav") == 0) {
 		GetFileTitle (file, title, SAVE_DIR);
