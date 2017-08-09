@@ -225,7 +225,7 @@ struct SaveLoadWindow : public Window {
 private:
 	QueryStringN<64> filename_editbox; ///< Filename editbox.
 	AbstractFileType abstract_filetype; /// Type of file to select.
-	SaveLoadOperation fop;        ///< File operation to perform.
+	bool save;                    ///< Whether the window is for saving.
 	FileList fios_items;          ///< Save game list.
 	FiosItem o_dir;
 	const FiosItem *selected;     ///< Selected game in #fios_items, or \c NULL.
@@ -239,15 +239,13 @@ public:
 		this->filename_editbox.UpdateSize();
 	}
 
-	SaveLoadWindow (const WindowDesc *desc, AbstractFileType abstract_filetype, SaveLoadOperation fop)
+	SaveLoadWindow (const WindowDesc *desc, AbstractFileType abstract_filetype, bool save)
 		: Window (desc), filename_editbox(),
-		  abstract_filetype (abstract_filetype), fop (fop),
+		  abstract_filetype (abstract_filetype), save (save),
 		  o_dir(), selected (NULL), vscroll (NULL)
 	{
-		assert(this->fop == SLO_SAVE || this->fop == SLO_LOAD);
-
 		/* For saving, construct an initial file name. */
-		if (this->fop == SLO_SAVE) {
+		if (save) {
 			switch (this->abstract_filetype) {
 				case FT_SAVEGAME:
 					this->GenerateFileName();
@@ -266,7 +264,7 @@ public:
 		this->filename_editbox.ok_button = WID_SL_SAVE_GAME;
 
 		this->CreateNestedTree();
-		if (this->fop == SLO_LOAD && this->abstract_filetype == FT_SAVEGAME) {
+		if (!save && this->abstract_filetype == FT_SAVEGAME) {
 			this->GetWidget<NWidgetStacked>(WID_SL_CONTENT_DOWNLOAD_SEL)->SetDisplayedPlane(SZSP_HORIZONTAL);
 		}
 
@@ -274,15 +272,15 @@ public:
 		StringID caption_string;
 		switch (this->abstract_filetype) {
 			case FT_SAVEGAME:
-				caption_string = (this->fop == SLO_SAVE) ? STR_SAVELOAD_SAVE_CAPTION : STR_SAVELOAD_LOAD_CAPTION;
+				caption_string = save ? STR_SAVELOAD_SAVE_CAPTION : STR_SAVELOAD_LOAD_CAPTION;
 				break;
 
 			case FT_SCENARIO:
-				caption_string = (this->fop == SLO_SAVE) ? STR_SAVELOAD_SAVE_SCENARIO : STR_SAVELOAD_LOAD_SCENARIO;
+				caption_string = save ? STR_SAVELOAD_SAVE_SCENARIO : STR_SAVELOAD_LOAD_SCENARIO;
 				break;
 
 			case FT_HEIGHTMAP:
-				caption_string = (this->fop == SLO_SAVE) ? STR_SAVELOAD_SAVE_HEIGHTMAP : STR_SAVELOAD_LOAD_HEIGHTMAP;
+				caption_string = save ? STR_SAVELOAD_SAVE_HEIGHTMAP : STR_SAVELOAD_LOAD_HEIGHTMAP;
 				break;
 
 			default:
@@ -328,7 +326,7 @@ public:
 		}
 
 		/* Focus the edit box by default in the save windows */
-		if (this->fop == SLO_SAVE) this->SetFocusedWidget(WID_SL_SAVE_OSK_TITLE);
+		if (save) this->SetFocusedWidget (WID_SL_SAVE_OSK_TITLE);
 	}
 
 	void OnDelete (void) FINAL_OVERRIDE
@@ -439,7 +437,7 @@ public:
 					}
 
 					/* Hide the NewGRF stuff when saving. We also hide the button. */
-					if (this->fop == SLO_LOAD && (this->abstract_filetype == FT_SAVEGAME || this->abstract_filetype == FT_SCENARIO)) {
+					if (!this->save && (this->abstract_filetype == FT_SAVEGAME || this->abstract_filetype == FT_SCENARIO)) {
 						y += WD_PAR_VSEP_NORMAL;
 						if (y > y_max) break;
 
@@ -589,14 +587,14 @@ public:
 
 							this->InvalidateData(1);
 						}
-						if (this->fop == SLO_SAVE) {
+						if (this->save) {
 							/* Copy clicked name to editbox */
 							this->filename_editbox.Assign(file->title);
 							this->SetWidgetDirty(WID_SL_SAVE_OSK_TITLE);
 						}
 					} else if (!_load_check_data.HasErrors()) {
 						this->selected = file;
-						if (this->fop == SLO_LOAD) {
+						if (!this->save) {
 							if (this->abstract_filetype == FT_SAVEGAME || this->abstract_filetype == FT_SCENARIO) {
 								this->OnClick(pt, WID_SL_LOAD_BUTTON, 1);
 							} else {
@@ -622,7 +620,7 @@ public:
 					ShowErrorMessage(STR_NETWORK_ERROR_NOTAVAILABLE, INVALID_STRING_ID, WL_ERROR);
 				} else {
 #if defined(ENABLE_NETWORK)
-					assert(this->fop == SLO_LOAD);
+					assert (!this->save);
 					switch (this->abstract_filetype) {
 						default: NOT_REACHED();
 						case FT_SCENARIO:  ShowNetworkContentListWindow(NULL, CONTENT_TYPE_SCENARIO);  break;
@@ -655,7 +653,7 @@ public:
 	virtual void OnTimeout()
 	{
 		/* Widgets WID_SL_DELETE_SELECTION and WID_SL_SAVE_GAME only exist when saving to a file. */
-		if (this->fop != SLO_SAVE) return;
+		if (!this->save) return;
 
 		if (this->IsWidgetLowered(WID_SL_DELETE_SELECTION)) { // Delete button clicked
 			if (!FiosDelete(this->filename_editbox.GetText())) {
@@ -699,7 +697,7 @@ public:
 				if (!gui_scope) break;
 
 				_fios_path_changed = true;
-				this->fios_items.BuildFileList(this->abstract_filetype, this->fop);
+				this->fios_items.BuildFileList (this->abstract_filetype, this->save ? SLO_SAVE : SLO_LOAD);
 				this->vscroll->SetCount(this->fios_items.Length());
 				this->selected = NULL;
 				_load_check_data.Clear();
@@ -708,7 +706,7 @@ public:
 				/* Selection changes */
 				if (!gui_scope) break;
 
-				if (this->fop != SLO_LOAD) break;
+				if (this->save) break;
 
 				switch (this->abstract_filetype) {
 					case FT_HEIGHTMAP:
@@ -791,5 +789,5 @@ void ShowSaveLoadDialog (AbstractFileType abstract_filetype, bool save)
 
 	_file_to_saveload.abstract_ftype = abstract_filetype;
 
-	new SaveLoadWindow (sld, abstract_filetype, save ? SLO_SAVE : SLO_LOAD);
+	new SaveLoadWindow (sld, abstract_filetype, save);
 }
