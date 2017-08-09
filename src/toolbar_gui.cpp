@@ -425,17 +425,17 @@ static CallBackFunction MenuClickSaveLoad(int index = 0)
 {
 	if (_game_mode == GM_EDITOR) {
 		switch (index) {
-			case SLEME_SAVE_SCENARIO:  ShowSaveLoadDialog(FT_SCENARIO, SLO_SAVE);  break;
-			case SLEME_LOAD_SCENARIO:  ShowSaveLoadDialog(FT_SCENARIO, SLO_LOAD);  break;
-			case SLEME_SAVE_HEIGHTMAP: ShowSaveLoadDialog(FT_HEIGHTMAP,SLO_SAVE); break;
-			case SLEME_LOAD_HEIGHTMAP: ShowSaveLoadDialog(FT_HEIGHTMAP,SLO_LOAD); break;
+			case SLEME_SAVE_SCENARIO:  ShowSaveLoadDialog (FT_SCENARIO,  true);  break;
+			case SLEME_LOAD_SCENARIO:  ShowSaveLoadDialog (FT_SCENARIO,  false); break;
+			case SLEME_SAVE_HEIGHTMAP: ShowSaveLoadDialog (FT_HEIGHTMAP, true);  break;
+			case SLEME_LOAD_HEIGHTMAP: ShowSaveLoadDialog (FT_HEIGHTMAP, false); break;
 			case SLEME_EXIT_TOINTRO:   AskExitToGameMenu();                    break;
 			case SLEME_EXIT_GAME:      HandleExitGameRequest();                break;
 		}
 	} else {
 		switch (index) {
-			case SLNME_SAVE_GAME:      ShowSaveLoadDialog(FT_SAVEGAME, SLO_SAVE); break;
-			case SLNME_LOAD_GAME:      ShowSaveLoadDialog(FT_SAVEGAME, SLO_LOAD); break;
+			case SLNME_SAVE_GAME:      ShowSaveLoadDialog (FT_SAVEGAME, true);  break;
+			case SLNME_LOAD_GAME:      ShowSaveLoadDialog (FT_SAVEGAME, false); break;
 			case SLNME_EXIT_TOINTRO:   AskExitToGameMenu();               break;
 			case SLNME_EXIT_GAME:      HandleExitGameRequest();           break;
 		}
@@ -2033,7 +2033,7 @@ struct MainToolbarWindow : Window {
 			case MTHK_FASTFORWARD: ToolbarFastForwardClick(this); break;
 			case MTHK_SETTINGS: ShowGameOptions(); break;
 			case MTHK_SAVEGAME: MenuClickSaveLoad(); break;
-			case MTHK_LOADGAME: ShowSaveLoadDialog(FT_SAVEGAME, SLO_LOAD); break;
+			case MTHK_LOADGAME: ShowSaveLoadDialog (FT_SAVEGAME); break;
 			case MTHK_SMALLMAP: ShowSmallMap(); break;
 			case MTHK_TOWNDIRECTORY: ShowTownDirectory(); break;
 			case MTHK_SUBSIDIES: ShowSubsidiesList(); break;

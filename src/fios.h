@@ -205,7 +205,7 @@ DECLARE_ENUM_AS_BIT_SET(SortingBits)
 /* Variables to display file lists */
 extern SortingBits _savegame_sort_order;
 
-void ShowSaveLoadDialog(AbstractFileType abstract_filetype, SaveLoadOperation fop);
+void ShowSaveLoadDialog (AbstractFileType abstract_filetype, bool save = false);
 
 void FiosGetSavegameList(SaveLoadOperation fop, FileList &file_list);
 void FiosGetScenarioList(SaveLoadOperation fop, FileList &file_list);

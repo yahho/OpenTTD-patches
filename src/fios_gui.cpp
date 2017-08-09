@@ -775,14 +775,14 @@ static const WindowDesc _save_dialog_desc(
 /**
  * Launch save/load dialog in the given mode.
  * @param abstract_filetype Kind of file to handle.
- * @param fop File operation to perform (load or save).
+ * @param save Whether the dialog is for saving, else for loading.
  */
-void ShowSaveLoadDialog(AbstractFileType abstract_filetype, SaveLoadOperation fop)
+void ShowSaveLoadDialog (AbstractFileType abstract_filetype, bool save)
 {
 	DeleteWindowById(WC_SAVELOAD, 0);
 
 	const WindowDesc *sld;
-	if (fop == SLO_SAVE) {
+	if (save) {
 		sld = &_save_dialog_desc;
 	} else {
 		/* Dialogue for loading a file. */
@@ -791,5 +791,5 @@ void ShowSaveLoadDialog(AbstractFileType abstract_filetype, SaveLoadOperation fo
 
 	_file_to_saveload.abstract_ftype = abstract_filetype;
 
-	new SaveLoadWindow(sld, abstract_filetype, fop);
+	new SaveLoadWindow (sld, abstract_filetype, save ? SLO_SAVE : SLO_LOAD);
 }
