@@ -697,7 +697,7 @@ public:
 				if (!gui_scope) break;
 
 				_fios_path_changed = true;
-				this->fios_items.BuildFileList (this->abstract_filetype, this->save ? SLO_SAVE : SLO_LOAD);
+				this->fios_items.BuildFileList (this->abstract_filetype, this->save);
 				this->vscroll->SetCount(this->fios_items.Length());
 				this->selected = NULL;
 				_load_check_data.Clear();

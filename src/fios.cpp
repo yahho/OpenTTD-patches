@@ -67,27 +67,26 @@ FileList::~FileList()
 /**
  * Construct a file list with the given kind of files, for the stated purpose.
  * @param abstract_filetype Kind of files to collect.
- * @param fop Purpose of the collection, either #SLO_LOAD or #SLO_SAVE.
+ * @param save Purpose of the collection, true for saving.
  */
-void FileList::BuildFileList(AbstractFileType abstract_filetype, SaveLoadOperation fop)
+void FileList::BuildFileList (AbstractFileType abstract_filetype, bool save)
 {
 	this->Clear();
 
-	assert(fop == SLO_LOAD || SLO_SAVE);
 	switch (abstract_filetype) {
 		case FT_NONE:
 			break;
 
 		case FT_SAVEGAME:
-			FiosGetSavegameList(fop, *this);
+			FiosGetSavegameList (save ? SLO_SAVE : SLO_LOAD, *this);
 			break;
 
 		case FT_SCENARIO:
-			FiosGetScenarioList(fop, *this);
+			FiosGetScenarioList (save ? SLO_SAVE : SLO_LOAD, *this);
 			break;
 
 		case FT_HEIGHTMAP:
-			FiosGetHeightmapList(fop, *this);
+			FiosGetHeightmapList (save ? SLO_SAVE : SLO_LOAD, *this);
 			break;
 
 		default:

@@ -189,7 +189,7 @@ public:
 		this->files.Compact();
 	}
 
-	void BuildFileList(AbstractFileType abstract_filetype, SaveLoadOperation fop);
+	void BuildFileList (AbstractFileType abstract_filetype, bool save);
 
 	SmallVector<FiosItem, 32> files; ///< The list of files.
 };
