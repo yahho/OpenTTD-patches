@@ -82,7 +82,7 @@ void FileList::BuildFileList (AbstractFileType abstract_filetype, bool save)
 			break;
 
 		case FT_SCENARIO:
-			FiosGetScenarioList (save ? SLO_SAVE : SLO_LOAD, *this);
+			FiosGetScenarioList (*this, save);
 			break;
 
 		case FT_HEIGHTMAP:
@@ -484,11 +484,11 @@ static FiosType FiosGetScenarioListCallback (SaveLoadOperation fop, const char *
 
 /**
  * Get a list of scenarios.
- * @param fop Purpose of collecting the list.
  * @param file_list Destination of the found files.
+ * @param save Purpose of collecting the list, true for saving.
  * @see FiosGetFileList
  */
-void FiosGetScenarioList(SaveLoadOperation fop, FileList &file_list)
+void FiosGetScenarioList (FileList &file_list, bool save)
 {
 	static char *fios_scn_path = NULL;
 
@@ -503,8 +503,8 @@ void FiosGetScenarioList(SaveLoadOperation fop, FileList &file_list)
 	char base_path[MAX_PATH];
 	FioGetDirectory(base_path, sizeof(base_path), SCENARIO_DIR);
 
-	Subdirectory subdir = (fop == SLO_LOAD && strcmp(base_path, _fios_path) == 0) ? SCENARIO_DIR : NO_DIRECTORY;
-	FiosGetFileList(fop, &FiosGetScenarioListCallback, subdir, file_list);
+	Subdirectory subdir = (!save && strcmp (base_path, _fios_path) == 0) ? SCENARIO_DIR : NO_DIRECTORY;
+	FiosGetFileList (save ? SLO_SAVE : SLO_LOAD, &FiosGetScenarioListCallback, subdir, file_list);
 }
 
 static FiosType FiosGetHeightmapListCallback (SaveLoadOperation fop, const char *file, const char *ext, stringb *title)
