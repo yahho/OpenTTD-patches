@@ -209,7 +209,7 @@ void ShowSaveLoadDialog (AbstractFileType abstract_filetype, bool save = false);
 
 void FiosGetSavegameList (FileList &file_list, bool save);
 void FiosGetScenarioList (FileList &file_list, bool save);
-void FiosGetHeightmapList(SaveLoadOperation fop, FileList &file_list);
+void FiosGetHeightmapList (FileList &file_list, bool save);
 
 const char *FiosBrowseTo(const FiosItem *item);
 

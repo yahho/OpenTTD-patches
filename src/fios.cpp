@@ -86,7 +86,7 @@ void FileList::BuildFileList (AbstractFileType abstract_filetype, bool save)
 			break;
 
 		case FT_HEIGHTMAP:
-			FiosGetHeightmapList (save ? SLO_SAVE : SLO_LOAD, *this);
+			FiosGetHeightmapList (*this, save);
 			break;
 
 		default:
@@ -553,10 +553,10 @@ static FiosType FiosGetHeightmapListCallback (SaveLoadOperation fop, const char 
 
 /**
  * Get a list of heightmaps.
- * @param fop Purpose of collecting the list.
  * @param file_list Destination of the found files.
+ * @param save Purpose of collecting the list, true for saving.
  */
-void FiosGetHeightmapList(SaveLoadOperation fop, FileList &file_list)
+void FiosGetHeightmapList (FileList &file_list, bool save)
 {
 	static char *fios_hmap_path = NULL;
 
@@ -571,7 +571,7 @@ void FiosGetHeightmapList(SaveLoadOperation fop, FileList &file_list)
 	FioGetDirectory(base_path, sizeof(base_path), HEIGHTMAP_DIR);
 
 	Subdirectory subdir = strcmp(base_path, _fios_path) == 0 ? HEIGHTMAP_DIR : NO_DIRECTORY;
-	FiosGetFileList(fop, &FiosGetHeightmapListCallback, subdir, file_list);
+	FiosGetFileList (save ? SLO_SAVE : SLO_LOAD, &FiosGetHeightmapListCallback, subdir, file_list);
 }
 
 /**
