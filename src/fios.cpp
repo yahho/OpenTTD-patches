@@ -78,7 +78,7 @@ void FileList::BuildFileList (AbstractFileType abstract_filetype, bool save)
 			break;
 
 		case FT_SAVEGAME:
-			FiosGetSavegameList (save ? SLO_SAVE : SLO_LOAD, *this);
+			FiosGetSavegameList (*this, save);
 			break;
 
 		case FT_SCENARIO:
@@ -433,11 +433,11 @@ FiosType FiosGetSavegameListCallback (SaveLoadOperation fop, const char *file, c
 
 /**
  * Get a list of savegames.
- * @param fop Purpose of collecting the list.
  * @param file_list Destination of the found files.
+ * @param save Purpose of collecting the list, true for saving.
  * @see FiosGetFileList
  */
-void FiosGetSavegameList(SaveLoadOperation fop, FileList &file_list)
+void FiosGetSavegameList (FileList &file_list, bool save)
 {
 	static char *fios_save_path = NULL;
 
@@ -448,7 +448,7 @@ void FiosGetSavegameList(SaveLoadOperation fop, FileList &file_list)
 
 	_fios_path = fios_save_path;
 
-	FiosGetFileList(fop, &FiosGetSavegameListCallback, NO_DIRECTORY, file_list);
+	FiosGetFileList (save ? SLO_SAVE : SLO_LOAD, &FiosGetSavegameListCallback, NO_DIRECTORY, file_list);
 }
 
 /**
