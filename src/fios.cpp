@@ -301,12 +301,13 @@ bool FiosFileScanner::AddFile(const char *filename, size_t basepath_length, cons
 
 /**
  * Fill the list of the files in a directory, according to some arbitrary rule.
- * @param fop Purpose of collecting the list.
  * @param callback_proc The function that is called where you need to do the filtering.
  * @param subdir The directory from where to start (global) searching.
  * @param file_list Destination of the found files.
+ * @param save Purpose of collecting the list, true for saving.
  */
-static void FiosGetFileList(SaveLoadOperation fop, fios_getlist_callback_proc *callback_proc, Subdirectory subdir, FileList &file_list)
+static void FiosGetFileList (fios_getlist_callback_proc *callback_proc,
+	Subdirectory subdir, FileList &file_list, bool save)
 {
 	struct stat sb;
 	struct dirent *dirent;
@@ -358,7 +359,7 @@ static void FiosGetFileList(SaveLoadOperation fop, fios_getlist_callback_proc *c
 	sort_start = file_list.Length();
 
 	/* Show files */
-	FiosFileScanner scanner(fop, callback_proc, file_list);
+	FiosFileScanner scanner (save ? SLO_SAVE : SLO_LOAD, callback_proc, file_list);
 	if (subdir == NO_DIRECTORY) {
 		scanner.Scan(NULL, _fios_path, NULL, false);
 	} else {
@@ -448,7 +449,7 @@ void FiosGetSavegameList (FileList &file_list, bool save)
 
 	_fios_path = fios_save_path;
 
-	FiosGetFileList (save ? SLO_SAVE : SLO_LOAD, &FiosGetSavegameListCallback, NO_DIRECTORY, file_list);
+	FiosGetFileList (&FiosGetSavegameListCallback, NO_DIRECTORY, file_list, save);
 }
 
 /**
@@ -504,7 +505,7 @@ void FiosGetScenarioList (FileList &file_list, bool save)
 	FioGetDirectory(base_path, sizeof(base_path), SCENARIO_DIR);
 
 	Subdirectory subdir = (!save && strcmp (base_path, _fios_path) == 0) ? SCENARIO_DIR : NO_DIRECTORY;
-	FiosGetFileList (save ? SLO_SAVE : SLO_LOAD, &FiosGetScenarioListCallback, subdir, file_list);
+	FiosGetFileList (&FiosGetScenarioListCallback, subdir, file_list, save);
 }
 
 static FiosType FiosGetHeightmapListCallback (SaveLoadOperation fop, const char *file, const char *ext, stringb *title)
@@ -571,7 +572,7 @@ void FiosGetHeightmapList (FileList &file_list, bool save)
 	FioGetDirectory(base_path, sizeof(base_path), HEIGHTMAP_DIR);
 
 	Subdirectory subdir = strcmp(base_path, _fios_path) == 0 ? HEIGHTMAP_DIR : NO_DIRECTORY;
-	FiosGetFileList (save ? SLO_SAVE : SLO_LOAD, &FiosGetHeightmapListCallback, subdir, file_list);
+	FiosGetFileList (&FiosGetHeightmapListCallback, subdir, file_list, save);
 }
 
 /**
