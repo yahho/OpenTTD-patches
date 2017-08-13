@@ -233,18 +233,18 @@ typedef FiosType fios_getlist_callback_proc (SaveLoadOperation fop, const char *
  * Scanner to scan for a particular type of FIOS file.
  */
 class FiosFileScanner : public FileScanner {
-	SaveLoadOperation fop;   ///< The kind of file we are looking for.
 	fios_getlist_callback_proc *callback_proc; ///< Callback to check whether the file may be added
 	FileList &file_list;     ///< Destination of the found files.
+	bool save;               ///< The kind of file we are looking for.
 public:
 	/**
 	 * Create the scanner
-	 * @param fop Purpose of collecting the list.
 	 * @param callback_proc The function that is called where you need to do the filtering.
 	 * @param file_list Destination of the found files.
+	 * @param save Purpose of collecting the list, true for saving.
 	 */
-	FiosFileScanner(SaveLoadOperation fop, fios_getlist_callback_proc *callback_proc, FileList &file_list) :
-			fop(fop), callback_proc(callback_proc), file_list(file_list)
+	FiosFileScanner (fios_getlist_callback_proc *callback_proc, FileList &file_list, bool save) :
+			callback_proc(callback_proc), file_list(file_list), save(save)
 	{}
 
 	/* virtual */ bool AddFile(const char *filename, size_t basepath_length, const char *tar_filename);
@@ -263,7 +263,7 @@ bool FiosFileScanner::AddFile(const char *filename, size_t basepath_length, cons
 
 	sstring<64> fios_title;
 
-	FiosType type = this->callback_proc(this->fop, filename, ext, &fios_title);
+	FiosType type = this->callback_proc (this->save ? SLO_SAVE : SLO_LOAD, filename, ext, &fios_title);
 	if (type == FIOS_TYPE_INVALID) return false;
 
 	for (const FiosItem *fios = file_list.Begin(); fios != file_list.End(); fios++) {
@@ -359,7 +359,7 @@ static void FiosGetFileList (fios_getlist_callback_proc *callback_proc,
 	sort_start = file_list.Length();
 
 	/* Show files */
-	FiosFileScanner scanner (save ? SLO_SAVE : SLO_LOAD, callback_proc, file_list);
+	FiosFileScanner scanner (callback_proc, file_list, save);
 	if (subdir == NO_DIRECTORY) {
 		scanner.Scan(NULL, _fios_path, NULL, false);
 	} else {
