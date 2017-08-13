@@ -113,7 +113,7 @@ ScriptInfo *ScriptInfoList::FindInfo (const char *name, int version, bool force_
 		if (e == NULL) return NULL;
 		version = atoi (e + 1);
 		script_name.truncate (e - script_name.c_str());
-		/* FALL THROUGH, like we were calling this function with a version. */
+		/* Continue, like we were calling this function with a version. */
 	}
 
 	if (force_exact_match) {

@@ -237,11 +237,20 @@ static void DrawTrainDepotGroundSprite (TileInfo *ti, DiagDirection dir,
 	SpriteID image_x, SpriteID image_y, PaletteID pal)
 {
 	switch (dir) {
-		case DIAGDIR_NE: if (!IsInvisibilitySet (TO_BUILDINGS)) break; // else FALL THROUGH
-		case DIAGDIR_SW: DrawGroundSprite (ti, image_x, pal); break;
-		case DIAGDIR_NW: if (!IsInvisibilitySet (TO_BUILDINGS)) break; // else FALL THROUGH
-		case DIAGDIR_SE: DrawGroundSprite (ti, image_y, pal); break;
-		default: break;
+		case DIAGDIR_NE:
+			if (!IsInvisibilitySet (TO_BUILDINGS)) break;
+			FALLTHROUGH;
+		case DIAGDIR_SW:
+			DrawGroundSprite (ti, image_x, pal);
+			break;
+		case DIAGDIR_NW:
+			if (!IsInvisibilitySet (TO_BUILDINGS)) break;
+			FALLTHROUGH;
+		case DIAGDIR_SE:
+			DrawGroundSprite (ti, image_y, pal);
+			break;
+		default:
+			break;
 	}
 }
 

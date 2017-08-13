@@ -292,7 +292,7 @@ void AfterLoadCompanyStats()
 						}
 					}
 				}
-				/* FALL THROUGH */
+				FALLTHROUGH;
 
 			case TT_OBJECT:
 				if (GetWaterClass(tile) == WATER_CLASS_CANAL) {

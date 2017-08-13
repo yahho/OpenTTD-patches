@@ -988,10 +988,12 @@ public:
 		switch (widget) {
 			case WID_QS_DEFAULT:
 				this->editbox.DeleteAll();
-				/* FALL THROUGH */
+				FALLTHROUGH;
+
 			case WID_QS_OK:
 				this->OnOk();
-				/* FALL THROUGH */
+				FALLTHROUGH;
+
 			case WID_QS_CANCEL:
 				this->Delete();
 				break;
@@ -1144,7 +1146,8 @@ struct QueryWindow : public Window {
 					this->proc(this->parent, true);
 					this->proc = NULL;
 				}
-				/* FALL THROUGH */
+				FALLTHROUGH;
+
 			case WKC_ESC:
 				this->Delete();
 				return ES_HANDLED;

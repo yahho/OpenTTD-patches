@@ -164,6 +164,17 @@
 		#define DELETED { NOT_REACHED(); }
 		#define CONSTEXPR
 	#endif
+
+	/* Use fallthrough attribute where supported */
+	#if __GNUC__ >= 7
+		#if __cplusplus > 201402L // C++17
+			#define FALLTHROUGH [[fallthrough]]
+		#else
+			#define FALLTHROUGH __attribute__((fallthrough))
+		#endif
+	#else
+		#define FALLTHROUGH
+	#endif
 #endif /* __GNUC__ */
 
 #if defined(__WATCOMC__)
@@ -176,6 +187,7 @@
 	#define FINAL_OVERRIDE
 	#define DELETED { NOT_REACHED(); }
 	#define CONSTEXPR
+	#define FALLTHROUGH
 	#include <malloc.h>
 #endif /* __WATCOMC__ */
 
@@ -250,6 +262,13 @@
 	#define FINAL_OVERRIDE
 	#define DELETED { NOT_REACHED(); }
 	#define CONSTEXPR
+
+	/* fallthrough attribute, VS 2017 */
+	#if (_MSC_VER >= 1910)
+		#define FALLTHROUGH [[fallthrough]]
+	#else
+		#define FALLTHROUGH
+	#endif
 
 	int CDECL snprintf(char *str, size_t size, const char *format, ...) WARN_FORMAT(3, 4);
 	#if defined(WINCE)

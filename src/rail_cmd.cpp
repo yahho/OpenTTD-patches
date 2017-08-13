@@ -628,7 +628,7 @@ CommandCost CmdBuildSingleRail(TileIndex tile, DoCommandFlag flags, uint32 p1, u
 			if (IsLevelCrossingTile(tile) && GetCrossingRailBits(tile) == trackbit) {
 				return_cmd_error(STR_ERROR_ALREADY_BUILT);
 			}
-			/* FALL THROUGH */
+			FALLTHROUGH;
 
 		try_clear:
 		default: {
@@ -1394,6 +1394,7 @@ CommandCost CmdBuildSingleSignal(TileIndex tile, DoCommandFlag flags, uint32 p1,
 				break;
 			}
 			/* build new signals--fall through */
+			FALLTHROUGH;
 		case SIGNALS_BUILD:
 			if (signalpair_has_signals(&signals)) {
 				/* it is free to change signal type: normal-pre-exit-combo */

@@ -2583,7 +2583,7 @@ void VpStartPlaceSizing (TileIndex tile, ViewportPlaceMethod method,
 			/* Placement starts from the centre of the tile. */
 			_thd.selstart.x += TILE_SIZE / 2;
 			_thd.selstart.y += TILE_SIZE / 2;
-			/* fall through */
+			FALLTHROUGH;
 		default:
 			assert (_thd.size.x == TILE_SIZE);
 			assert (_thd.size.y == TILE_SIZE);
@@ -2693,7 +2693,7 @@ static int CalcHeightdiff(HighLightStyle style, uint distance, TileIndex start_t
 				start_tile = TILE_ADD(start_tile, TileDiffXY(1, 0));
 				end_tile   = TILE_ADD(end_tile,   TileDiffXY(0, 1));
 			}
-			/* FALL THROUGH */
+			FALLTHROUGH;
 		case HT_POINT:
 			h0 = TileHeight(start_tile);
 			h1 = TileHeight(end_tile);
@@ -3109,7 +3109,7 @@ calc_heightdiff_single_direction:;
 				x = sx + Clamp (x - sx, -limit, limit);
 				y = sy + Clamp (y - sy, -limit, limit);
 			}
-			/* fall through */
+			FALLTHROUGH;
 		case VPM_X_AND_Y_ROTATED:
 			if (_settings_client.gui.measure_tooltip) {
 				static const StringID measure_strings_area[] = {
