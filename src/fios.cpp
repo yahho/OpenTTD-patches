@@ -227,7 +227,7 @@ bool FiosDelete(const char *name)
 	return unlink(filename) == 0;
 }
 
-typedef FiosType fios_getlist_callback_proc (SaveLoadOperation fop, const char *filename, const char *ext, stringb *title);
+typedef FiosType fios_getlist_callback_proc (const char *filename, const char *ext, stringb *title, bool save);
 
 /**
  * Scanner to scan for a particular type of FIOS file.
@@ -263,7 +263,7 @@ bool FiosFileScanner::AddFile(const char *filename, size_t basepath_length, cons
 
 	sstring<64> fios_title;
 
-	FiosType type = this->callback_proc (this->save ? SLO_SAVE : SLO_LOAD, filename, ext, &fios_title);
+	FiosType type = this->callback_proc (filename, ext, &fios_title, this->save);
 	if (type == FIOS_TYPE_INVALID) return false;
 
 	for (const FiosItem *fios = file_list.Begin(); fios != file_list.End(); fios++) {
@@ -398,15 +398,15 @@ static void GetFileTitle (const char *file, stringb *title, Subdirectory subdir)
 
 /**
  * Callback for FiosGetFileList. It tells if a file is a savegame or not.
- * @param fop Purpose of collecting the list.
  * @param file Name of the file to check.
  * @param ext A pointer to the extension identifier inside file
  * @param title Buffer if a callback wants to lookup the title of the file; NULL to skip the lookup
+ * @param save Purpose of collecting the list, true for saving.
  * @return a FIOS_TYPE_* type of the found file, FIOS_TYPE_INVALID if not a savegame
  * @see FiosGetFileList
  * @see FiosGetSavegameList
  */
-FiosType FiosGetSavegameListCallback (SaveLoadOperation fop, const char *file, const char *ext, stringb *title)
+FiosType FiosGetSavegameListCallback (const char *file, const char *ext, stringb *title, bool save)
 {
 	/* Show savegame files
 	 * .SAV OpenTTD saved game
@@ -421,7 +421,7 @@ FiosType FiosGetSavegameListCallback (SaveLoadOperation fop, const char *file, c
 		return FIOS_TYPE_FILE;
 	}
 
-	if (fop == SLO_LOAD) {
+	if (!save) {
 		if (strcasecmp(ext, ".ss1") == 0 || strcasecmp(ext, ".sv1") == 0 ||
 				strcasecmp(ext, ".sv2") == 0) {
 			if (title != NULL) GetOldSaveGameName (file, title);
@@ -454,15 +454,15 @@ void FiosGetSavegameList (FileList &file_list, bool save)
 
 /**
  * Callback for FiosGetFileList. It tells if a file is a scenario or not.
- * @param fop Purpose of collecting the list.
  * @param file Name of the file to check.
  * @param ext A pointer to the extension identifier inside file
  * @param title Buffer if a callback wants to lookup the title of the file
+ * @param save Purpose of collecting the list, true for saving.
  * @return a FIOS_TYPE_* type of the found file, FIOS_TYPE_INVALID if not a scenario
  * @see FiosGetFileList
  * @see FiosGetScenarioList
  */
-static FiosType FiosGetScenarioListCallback (SaveLoadOperation fop, const char *file, const char *ext, stringb *title)
+static FiosType FiosGetScenarioListCallback (const char *file, const char *ext, stringb *title, bool save)
 {
 	/* Show scenario files
 	 * .SCN OpenTTD style scenario file
@@ -473,7 +473,7 @@ static FiosType FiosGetScenarioListCallback (SaveLoadOperation fop, const char *
 		return FIOS_TYPE_SCENARIO;
 	}
 
-	if (fop == SLO_LOAD) {
+	if (!save) {
 		if (strcasecmp(ext, ".sv0") == 0 || strcasecmp(ext, ".ss0") == 0 ) {
 			GetOldSaveGameName (file, title);
 			return FIOS_TYPE_OLD_SCENARIO;
@@ -508,7 +508,7 @@ void FiosGetScenarioList (FileList &file_list, bool save)
 	FiosGetFileList (&FiosGetScenarioListCallback, subdir, file_list, save);
 }
 
-static FiosType FiosGetHeightmapListCallback (SaveLoadOperation fop, const char *file, const char *ext, stringb *title)
+static FiosType FiosGetHeightmapListCallback (const char *file, const char *ext, stringb *title, bool save)
 {
 	/* Show heightmap files
 	 * .PNG PNG Based heightmap files
