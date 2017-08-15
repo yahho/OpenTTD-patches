@@ -297,7 +297,6 @@ void VideoDriver_Dedicated::MainLoop()
 		_switch_mode = SM_NONE;
 		/* First we need to test if the savegame can be loaded, else we will end up playing the
 		 *  intro game... */
-		assert (_file_to_saveload.file_op == SLO_LOAD);
 		if (!SafeLoad (_file_to_saveload.name, _file_to_saveload.detail_ftype, GM_NORMAL, BASE_DIR)) {
 			/* Loading failed, pop out.. */
 			DEBUG(net, 0, "Loading requested map failed, aborting");

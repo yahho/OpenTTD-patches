@@ -1111,7 +1111,6 @@ void SwitchToMode(SwitchMode new_mode)
 			ResetGRFConfig(true);
 			ResetWindowSystem();
 
-			assert (_file_to_saveload.file_op == SLO_LOAD);
 			if (!SafeLoad (_file_to_saveload.name, _file_to_saveload.detail_ftype, GM_NORMAL, NO_DIRECTORY)) {
 				ShowSaveLoadErrorMessage (false);
 			} else {
@@ -1152,7 +1151,6 @@ void SwitchToMode(SwitchMode new_mode)
 			break;
 
 		case SM_LOAD_SCENARIO: { // Load scenario from scenario editor
-			assert (_file_to_saveload.file_op == SLO_LOAD);
 			if (SafeLoad (_file_to_saveload.name, _file_to_saveload.detail_ftype, GM_EDITOR, NO_DIRECTORY)) {
 				SetLocalCompany(OWNER_NONE);
 				_settings_newgame.game_creation.starting_year = _cur_year;

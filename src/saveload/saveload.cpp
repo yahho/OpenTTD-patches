@@ -954,13 +954,11 @@ void FileToSaveLoad::SetMode(FiosType ft)
 void FileToSaveLoad::SetMode (AbstractFileType aft, DetailedFileType dft)
 {
 	if (aft == FT_INVALID || aft == FT_NONE) {
-		this->file_op = SLO_INVALID;
 		this->detail_ftype = DFT_INVALID;
 		this->abstract_ftype = FT_INVALID;
 		return;
 	}
 
-	this->file_op = SLO_LOAD;
 	this->detail_ftype = dft;
 	this->abstract_ftype = aft;
 }
