@@ -943,16 +943,15 @@ void GenerateDefaultSaveName (stringb *buf)
  */
 void FileToSaveLoad::SetMode(FiosType ft)
 {
-	this->SetMode(SLO_LOAD, GetAbstractFileType(ft), GetDetailedFileType(ft));
+	this->SetMode (GetAbstractFileType(ft), GetDetailedFileType(ft));
 }
 
 /**
  * Set the mode and file type of the file to save or load.
- * @param fop File operation being performed.
  * @param aft Abstract file type.
  * @param dft Detailed file type.
  */
-void FileToSaveLoad::SetMode(SaveLoadOperation fop, AbstractFileType aft, DetailedFileType dft)
+void FileToSaveLoad::SetMode (AbstractFileType aft, DetailedFileType dft)
 {
 	if (aft == FT_INVALID || aft == FT_NONE) {
 		this->file_op = SLO_INVALID;
@@ -961,7 +960,7 @@ void FileToSaveLoad::SetMode(SaveLoadOperation fop, AbstractFileType aft, Detail
 		return;
 	}
 
-	this->file_op = fop;
+	this->file_op = SLO_LOAD;
 	this->detail_ftype = dft;
 	this->abstract_ftype = aft;
 }

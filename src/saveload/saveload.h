@@ -55,7 +55,7 @@ struct FileToSaveLoad {
 	char title[255];                 ///< Internal name of the game.
 
 	void SetMode(FiosType ft);
-	void SetMode(SaveLoadOperation fop, AbstractFileType aft, DetailedFileType dft);
+	void SetMode(AbstractFileType aft, DetailedFileType dft);
 	void SetName(const char *name);
 	void SetTitle(const char *title);
 };
