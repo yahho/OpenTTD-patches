@@ -45,15 +45,6 @@ enum DetailedFileType {
 	DFT_INVALID = 255, ///< Unknown or invalid file.
 };
 
-/** Operation performed on the file. */
-enum SaveLoadOperation {
-	SLO_CHECK,   ///< Load file for checking and/or preview.
-	SLO_LOAD,    ///< File is being loaded.
-	SLO_SAVE,    ///< File is being saved.
-
-	SLO_INVALID, ///< Unknown file operation.
-};
-
 /**
  * Construct an enum value for #FiosType as a combination of an abstract and a detailed file type.
  * @param abstract Abstract file type (one of #AbstractFileType).
