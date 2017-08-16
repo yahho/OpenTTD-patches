@@ -107,8 +107,6 @@ struct FiosItem {
 /** List of file information. */
 class FileList {
 public:
-	~FileList();
-
 	/**
 	 * Construct a new entry in the file list.
 	 * @return Pointer to the new items to be initialized.
