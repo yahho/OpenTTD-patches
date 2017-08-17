@@ -425,7 +425,6 @@ static void FiosGetSavegameList (FileList &file_list, bool save)
  * @param save Purpose of collecting the list, true for saving.
  * @return a FIOS_TYPE_* type of the found file, FIOS_TYPE_INVALID if not a scenario
  * @see FiosGetFileList
- * @see FiosGetScenarioList
  */
 static FiosType FiosGetScenarioListCallback (const char *file, const char *ext, stringb *title, bool save)
 {
@@ -446,31 +445,6 @@ static FiosType FiosGetScenarioListCallback (const char *file, const char *ext, 
 	}
 
 	return FIOS_TYPE_INVALID;
-}
-
-/**
- * Get a list of scenarios.
- * @param file_list Destination of the found files.
- * @param save Purpose of collecting the list, true for saving.
- * @see FiosGetFileList
- */
-static void FiosGetScenarioList (FileList &file_list, bool save)
-{
-	static char *fios_scn_path = NULL;
-
-	/* Copy the default path on first run or on 'New Game' */
-	if (fios_scn_path == NULL) {
-		fios_scn_path = xmalloc (MAX_PATH);
-		FioGetDirectory(fios_scn_path, MAX_PATH, SCENARIO_DIR);
-	}
-
-	_fios_path = fios_scn_path;
-
-	char base_path[MAX_PATH];
-	FioGetDirectory(base_path, sizeof(base_path), SCENARIO_DIR);
-
-	Subdirectory subdir = (!save && strcmp (base_path, _fios_path) == 0) ? SCENARIO_DIR : NO_DIRECTORY;
-	FiosGetFileList (&FiosGetScenarioListCallback, subdir, file_list, save);
 }
 
 static FiosType FiosGetHeightmapListCallback (const char *file, const char *ext, stringb *title, bool save)
@@ -534,9 +508,24 @@ void FileList::BuildFileList (AbstractFileType abstract_filetype, bool save)
 			FiosGetSavegameList (*this, save);
 			break;
 
-		case FT_SCENARIO:
-			FiosGetScenarioList (*this, save);
+		case FT_SCENARIO: {
+			static char *fios_scn_path = NULL;
+
+			/* Copy the default path on first run or on 'New Game' */
+			if (fios_scn_path == NULL) {
+				fios_scn_path = xmalloc (MAX_PATH);
+				FioGetDirectory (fios_scn_path, MAX_PATH, SCENARIO_DIR);
+			}
+
+			_fios_path = fios_scn_path;
+
+			char base_path[MAX_PATH];
+			FioGetDirectory (base_path, sizeof(base_path), SCENARIO_DIR);
+
+			Subdirectory subdir = (!save && strcmp (base_path, _fios_path) == 0) ? SCENARIO_DIR : NO_DIRECTORY;
+			FiosGetFileList (&FiosGetScenarioListCallback, subdir, *this, save);
 			break;
+		}
 
 		case FT_HEIGHTMAP: {
 			static char *fios_hmap_path = NULL;
