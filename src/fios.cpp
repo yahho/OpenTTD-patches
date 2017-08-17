@@ -369,7 +369,6 @@ static void GetFileTitle (const char *file, stringb *title, Subdirectory subdir)
  * @param save Purpose of collecting the list, true for saving.
  * @return a FIOS_TYPE_* type of the found file, FIOS_TYPE_INVALID if not a savegame
  * @see FiosGetFileList
- * @see FiosGetSavegameList
  */
 FiosType FiosGetSavegameListCallback (const char *file, const char *ext, stringb *title, bool save)
 {
@@ -395,26 +394,6 @@ FiosType FiosGetSavegameListCallback (const char *file, const char *ext, stringb
 	}
 
 	return FIOS_TYPE_INVALID;
-}
-
-/**
- * Get a list of savegames.
- * @param file_list Destination of the found files.
- * @param save Purpose of collecting the list, true for saving.
- * @see FiosGetFileList
- */
-static void FiosGetSavegameList (FileList &file_list, bool save)
-{
-	static char *fios_save_path = NULL;
-
-	if (fios_save_path == NULL) {
-		fios_save_path = xmalloc (MAX_PATH);
-		FioGetDirectory(fios_save_path, MAX_PATH, SAVE_DIR);
-	}
-
-	_fios_path = fios_save_path;
-
-	FiosGetFileList (&FiosGetSavegameListCallback, NO_DIRECTORY, file_list, save);
 }
 
 /**
@@ -504,9 +483,19 @@ void FileList::BuildFileList (AbstractFileType abstract_filetype, bool save)
 		case FT_NONE:
 			break;
 
-		case FT_SAVEGAME:
-			FiosGetSavegameList (*this, save);
+		case FT_SAVEGAME: {
+			static char *fios_save_path = NULL;
+
+			if (fios_save_path == NULL) {
+				fios_save_path = xmalloc (MAX_PATH);
+				FioGetDirectory (fios_save_path, MAX_PATH, SAVE_DIR);
+			}
+
+			_fios_path = fios_save_path;
+
+			FiosGetFileList (&FiosGetSavegameListCallback, NO_DIRECTORY, *this, save);
 			break;
+		}
 
 		case FT_SCENARIO: {
 			static char *fios_scn_path = NULL;
