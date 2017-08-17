@@ -59,36 +59,6 @@ int CDECL CompareFiosItems(const FiosItem *da, const FiosItem *db)
 	return r;
 }
 
-/**
- * Construct a file list with the given kind of files, for the stated purpose.
- * @param abstract_filetype Kind of files to collect.
- * @param save Purpose of the collection, true for saving.
- */
-void FileList::BuildFileList (AbstractFileType abstract_filetype, bool save)
-{
-	this->Clear();
-
-	switch (abstract_filetype) {
-		case FT_NONE:
-			break;
-
-		case FT_SAVEGAME:
-			FiosGetSavegameList (*this, save);
-			break;
-
-		case FT_SCENARIO:
-			FiosGetScenarioList (*this, save);
-			break;
-
-		case FT_HEIGHTMAP:
-			FiosGetHeightmapList (*this, save);
-			break;
-
-		default:
-			NOT_REACHED();
-	}
-}
-
 /** Get the current value of #_fios_path. */
 const char *FiosGetPath (void)
 {
@@ -433,7 +403,7 @@ FiosType FiosGetSavegameListCallback (const char *file, const char *ext, stringb
  * @param save Purpose of collecting the list, true for saving.
  * @see FiosGetFileList
  */
-void FiosGetSavegameList (FileList &file_list, bool save)
+static void FiosGetSavegameList (FileList &file_list, bool save)
 {
 	static char *fios_save_path = NULL;
 
@@ -484,7 +454,7 @@ static FiosType FiosGetScenarioListCallback (const char *file, const char *ext, 
  * @param save Purpose of collecting the list, true for saving.
  * @see FiosGetFileList
  */
-void FiosGetScenarioList (FileList &file_list, bool save)
+static void FiosGetScenarioList (FileList &file_list, bool save)
 {
 	static char *fios_scn_path = NULL;
 
@@ -552,7 +522,7 @@ static FiosType FiosGetHeightmapListCallback (const char *file, const char *ext,
  * @param file_list Destination of the found files.
  * @param save Purpose of collecting the list, true for saving.
  */
-void FiosGetHeightmapList (FileList &file_list, bool save)
+static void FiosGetHeightmapList (FileList &file_list, bool save)
 {
 	static char *fios_hmap_path = NULL;
 
@@ -568,6 +538,36 @@ void FiosGetHeightmapList (FileList &file_list, bool save)
 
 	Subdirectory subdir = strcmp(base_path, _fios_path) == 0 ? HEIGHTMAP_DIR : NO_DIRECTORY;
 	FiosGetFileList (&FiosGetHeightmapListCallback, subdir, file_list, save);
+}
+
+/**
+ * Construct a file list with the given kind of files, for the stated purpose.
+ * @param abstract_filetype Kind of files to collect.
+ * @param save Purpose of the collection, true for saving.
+ */
+void FileList::BuildFileList (AbstractFileType abstract_filetype, bool save)
+{
+	this->Clear();
+
+	switch (abstract_filetype) {
+		case FT_NONE:
+			break;
+
+		case FT_SAVEGAME:
+			FiosGetSavegameList (*this, save);
+			break;
+
+		case FT_SCENARIO:
+			FiosGetScenarioList (*this, save);
+			break;
+
+		case FT_HEIGHTMAP:
+			FiosGetHeightmapList (*this, save);
+			break;
+
+		default:
+			NOT_REACHED();
+	}
 }
 
 /**

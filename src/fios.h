@@ -205,10 +205,6 @@ extern SortingBits _savegame_sort_order;
 
 void ShowSaveLoadDialog (AbstractFileType abstract_filetype, bool save = false);
 
-void FiosGetSavegameList (FileList &file_list, bool save);
-void FiosGetScenarioList (FileList &file_list, bool save);
-void FiosGetHeightmapList (FileList &file_list, bool save);
-
 const char *FiosBrowseTo(const FiosItem *item);
 
 /* OS-specific functions are taken from their respective files (win32/unix/os2 .c) */
