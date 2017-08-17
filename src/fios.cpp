@@ -479,9 +479,14 @@ void FileList::BuildFileList (AbstractFileType abstract_filetype, bool save)
 {
 	this->Clear();
 
+	fios_getlist_callback_proc *callback;
+	Subdirectory subdir;
 	switch (abstract_filetype) {
+		default:
+			NOT_REACHED();
+
 		case FT_NONE:
-			break;
+			return;
 
 		case FT_SAVEGAME: {
 			static char *fios_save_path = NULL;
@@ -493,7 +498,8 @@ void FileList::BuildFileList (AbstractFileType abstract_filetype, bool save)
 
 			_fios_path = fios_save_path;
 
-			FiosGetFileList (&FiosGetSavegameListCallback, NO_DIRECTORY, *this, save);
+			subdir = NO_DIRECTORY;
+			callback = &FiosGetSavegameListCallback;
 			break;
 		}
 
@@ -511,8 +517,8 @@ void FileList::BuildFileList (AbstractFileType abstract_filetype, bool save)
 			char base_path[MAX_PATH];
 			FioGetDirectory (base_path, sizeof(base_path), SCENARIO_DIR);
 
-			Subdirectory subdir = (!save && strcmp (base_path, _fios_path) == 0) ? SCENARIO_DIR : NO_DIRECTORY;
-			FiosGetFileList (&FiosGetScenarioListCallback, subdir, *this, save);
+			subdir = (!save && strcmp (base_path, _fios_path) == 0) ? SCENARIO_DIR : NO_DIRECTORY;
+			callback = &FiosGetScenarioListCallback;
 			break;
 		}
 
@@ -529,14 +535,13 @@ void FileList::BuildFileList (AbstractFileType abstract_filetype, bool save)
 			char base_path[MAX_PATH];
 			FioGetDirectory (base_path, sizeof(base_path), HEIGHTMAP_DIR);
 
-			Subdirectory subdir = strcmp (base_path, _fios_path) == 0 ? HEIGHTMAP_DIR : NO_DIRECTORY;
-			FiosGetFileList (&FiosGetHeightmapListCallback, subdir, *this, save);
+			subdir = strcmp (base_path, _fios_path) == 0 ? HEIGHTMAP_DIR : NO_DIRECTORY;
+			callback = &FiosGetHeightmapListCallback;
 			break;
 		}
-
-		default:
-			NOT_REACHED();
 	}
+
+	FiosGetFileList (callback, subdir, *this, save);
 }
 
 /**
