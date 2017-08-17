@@ -518,29 +518,6 @@ static FiosType FiosGetHeightmapListCallback (const char *file, const char *ext,
 }
 
 /**
- * Get a list of heightmaps.
- * @param file_list Destination of the found files.
- * @param save Purpose of collecting the list, true for saving.
- */
-static void FiosGetHeightmapList (FileList &file_list, bool save)
-{
-	static char *fios_hmap_path = NULL;
-
-	if (fios_hmap_path == NULL) {
-		fios_hmap_path = xmalloc (MAX_PATH);
-		FioGetDirectory(fios_hmap_path, MAX_PATH, HEIGHTMAP_DIR);
-	}
-
-	_fios_path = fios_hmap_path;
-
-	char base_path[MAX_PATH];
-	FioGetDirectory(base_path, sizeof(base_path), HEIGHTMAP_DIR);
-
-	Subdirectory subdir = strcmp(base_path, _fios_path) == 0 ? HEIGHTMAP_DIR : NO_DIRECTORY;
-	FiosGetFileList (&FiosGetHeightmapListCallback, subdir, file_list, save);
-}
-
-/**
  * Construct a file list with the given kind of files, for the stated purpose.
  * @param abstract_filetype Kind of files to collect.
  * @param save Purpose of the collection, true for saving.
@@ -561,9 +538,23 @@ void FileList::BuildFileList (AbstractFileType abstract_filetype, bool save)
 			FiosGetScenarioList (*this, save);
 			break;
 
-		case FT_HEIGHTMAP:
-			FiosGetHeightmapList (*this, save);
+		case FT_HEIGHTMAP: {
+			static char *fios_hmap_path = NULL;
+
+			if (fios_hmap_path == NULL) {
+				fios_hmap_path = xmalloc (MAX_PATH);
+				FioGetDirectory (fios_hmap_path, MAX_PATH, HEIGHTMAP_DIR);
+			}
+
+			_fios_path = fios_hmap_path;
+
+			char base_path[MAX_PATH];
+			FioGetDirectory (base_path, sizeof(base_path), HEIGHTMAP_DIR);
+
+			Subdirectory subdir = strcmp (base_path, _fios_path) == 0 ? HEIGHTMAP_DIR : NO_DIRECTORY;
+			FiosGetFileList (&FiosGetHeightmapListCallback, subdir, *this, save);
 			break;
+		}
 
 		default:
 			NOT_REACHED();
