@@ -265,81 +265,6 @@ bool FiosFileScanner::AddFile(const char *filename, size_t basepath_length, cons
 
 
 /**
- * Fill the list of the files in a directory, according to some arbitrary rule.
- * @param callback_proc The function that is called where you need to do the filtering.
- * @param subdir The directory from where to start (global) searching.
- * @param file_list Destination of the found files.
- * @param save Purpose of collecting the list, true for saving.
- */
-static void FiosGetFileList (fios_getlist_callback_proc *callback_proc,
-	Subdirectory subdir, FileList &file_list, bool save)
-{
-	struct stat sb;
-	struct dirent *dirent;
-	DIR *dir;
-	FiosItem *fios;
-	int sort_start;
-	char d_name[sizeof(fios->name)];
-
-	file_list.Clear();
-
-	/* A parent directory link exists if we are not in the root directory */
-	if (!FiosIsRoot(_fios_path)) {
-		fios = file_list.Append();
-		fios->type = FIOS_TYPE_PARENT;
-		fios->mtime = 0;
-		bstrcpy (fios->name, "..");
-		bstrcpy (fios->title, ".. (Parent directory)");
-	}
-
-	/* Show subdirectories */
-	if ((dir = ttd_opendir(_fios_path)) != NULL) {
-		while ((dirent = readdir(dir)) != NULL) {
-			bstrcpy (d_name, FS2OTTD(dirent->d_name));
-
-			/* found file must be directory, but not '.' or '..' */
-			if (FiosIsValidFile(_fios_path, dirent, &sb) && S_ISDIR(sb.st_mode) &&
-					(!FiosIsHiddenFile(dirent) || strncasecmp(d_name, PERSONAL_DIR, strlen(d_name)) == 0) &&
-					strcmp(d_name, ".") != 0 && strcmp(d_name, "..") != 0) {
-				fios = file_list.Append();
-				fios->type = FIOS_TYPE_DIR;
-				fios->mtime = 0;
-				bstrcpy (fios->name, d_name);
-				bstrfmt (fios->title, "%s" PATHSEP " (Directory)", d_name);
-				str_validate(fios->title, lastof(fios->title));
-			}
-		}
-		closedir(dir);
-	}
-
-	/* Sort the subdirs always by name, ascending, remember user-sorting order */
-	{
-		SortingBits order = _savegame_sort_order;
-		_savegame_sort_order = SORT_BY_NAME | SORT_ASCENDING;
-		file_list.files.Sort (CompareFiosItems);
-		_savegame_sort_order = order;
-	}
-
-	/* This is where to start sorting for the filenames */
-	sort_start = file_list.Length();
-
-	/* Show files */
-	FiosFileScanner scanner (callback_proc, file_list, save);
-	if (subdir == NO_DIRECTORY) {
-		scanner.Scan(NULL, _fios_path, NULL, false);
-	} else {
-		scanner.Scan(NULL, subdir, true, true);
-	}
-
-	file_list.files.Sort (CompareFiosItems, sort_start);
-
-	/* Show drives */
-	FiosGetDrives(file_list);
-
-	file_list.Compact();
-}
-
-/**
  * Get the title of a file, which (if exists) is stored in a file named
  * the same as the data file but with '.title' added to it.
  * @param file filename to get the title for
@@ -362,13 +287,13 @@ static void GetFileTitle (const char *file, stringb *title, Subdirectory subdir)
 }
 
 /**
- * Callback for FiosGetFileList. It tells if a file is a savegame or not.
+ * Callback for FileList::BuildFileList. It tells if a file is a savegame or not.
  * @param file Name of the file to check.
  * @param ext A pointer to the extension identifier inside file
  * @param title Buffer if a callback wants to lookup the title of the file; NULL to skip the lookup
  * @param save Purpose of collecting the list, true for saving.
  * @return a FIOS_TYPE_* type of the found file, FIOS_TYPE_INVALID if not a savegame
- * @see FiosGetFileList
+ * @see FileList::BuildFileList
  */
 FiosType FiosGetSavegameListCallback (const char *file, const char *ext, stringb *title, bool save)
 {
@@ -397,13 +322,13 @@ FiosType FiosGetSavegameListCallback (const char *file, const char *ext, stringb
 }
 
 /**
- * Callback for FiosGetFileList. It tells if a file is a scenario or not.
+ * Callback for FileList::BuildFileList. It tells if a file is a scenario or not.
  * @param file Name of the file to check.
  * @param ext A pointer to the extension identifier inside file
  * @param title Buffer if a callback wants to lookup the title of the file
  * @param save Purpose of collecting the list, true for saving.
  * @return a FIOS_TYPE_* type of the found file, FIOS_TYPE_INVALID if not a scenario
- * @see FiosGetFileList
+ * @see FileList::BuildFileList
  */
 static FiosType FiosGetScenarioListCallback (const char *file, const char *ext, stringb *title, bool save)
 {
@@ -541,7 +466,65 @@ void FileList::BuildFileList (AbstractFileType abstract_filetype, bool save)
 		}
 	}
 
-	FiosGetFileList (callback, subdir, *this, save);
+	/* A parent directory link exists if we are not in the root directory */
+	if (!FiosIsRoot (_fios_path)) {
+		FiosItem *fios = this->Append();
+		fios->type = FIOS_TYPE_PARENT;
+		fios->mtime = 0;
+		bstrcpy (fios->name, "..");
+		bstrcpy (fios->title, ".. (Parent directory)");
+	}
+
+	/* Show subdirectories */
+	DIR *dir;
+	if ((dir = ttd_opendir (_fios_path)) != NULL) {
+		struct dirent *dirent;
+		while ((dirent = readdir (dir)) != NULL) {
+			FiosItem *fios;
+			char d_name[sizeof(fios->name)];
+			bstrcpy (d_name, FS2OTTD(dirent->d_name));
+
+			/* found file must be directory, but not '.' or '..' */
+			struct stat sb;
+			if (FiosIsValidFile (_fios_path, dirent, &sb) && S_ISDIR(sb.st_mode) &&
+					(!FiosIsHiddenFile (dirent) || strncasecmp (d_name, PERSONAL_DIR, strlen(d_name)) == 0) &&
+					strcmp (d_name, ".") != 0 && strcmp (d_name, "..") != 0) {
+				fios = this->Append();
+				fios->type = FIOS_TYPE_DIR;
+				fios->mtime = 0;
+				bstrcpy (fios->name, d_name);
+				bstrfmt (fios->title, "%s" PATHSEP " (Directory)", d_name);
+				str_validate (fios->title, lastof(fios->title));
+			}
+		}
+		closedir(dir);
+	}
+
+	/* Sort the subdirs always by name, ascending, remember user-sorting order */
+	{
+		SortingBits order = _savegame_sort_order;
+		_savegame_sort_order = SORT_BY_NAME | SORT_ASCENDING;
+		this->files.Sort (CompareFiosItems);
+		_savegame_sort_order = order;
+	}
+
+	/* This is where to start sorting for the filenames */
+	int sort_start = this->Length();
+
+	/* Show files */
+	FiosFileScanner scanner (callback, *this, save);
+	if (subdir == NO_DIRECTORY) {
+		scanner.Scan (NULL, _fios_path, NULL, false);
+	} else {
+		scanner.Scan (NULL, subdir, true, true);
+	}
+
+	this->files.Sort (CompareFiosItems, sort_start);
+
+	/* Show drives */
+	FiosGetDrives (*this);
+
+	this->Compact();
 }
 
 /**
