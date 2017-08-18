@@ -181,12 +181,6 @@ public:
 		this->files.Clear();
 	}
 
-	/** Compact the list down to the smallest block size boundary. */
-	inline void Compact()
-	{
-		this->files.Compact();
-	}
-
 	void BuildFileList (AbstractFileType abstract_filetype, bool save);
 
 	SmallVector<FiosItem, 32> files; ///< The list of files.

@@ -524,7 +524,7 @@ void FileList::BuildFileList (AbstractFileType abstract_filetype, bool save)
 	/* Show drives */
 	FiosGetDrives (*this);
 
-	this->Compact();
+	this->files.Compact();
 }
 
 /**
