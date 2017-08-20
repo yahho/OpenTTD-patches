@@ -1076,18 +1076,13 @@ static const CoordDiff _trackdelta[] = {
 
 static Trackdir ValidateAutoDrag (Track track, TileIndex start, TileIndex end)
 {
-	int x = TileX(start);
-	int y = TileY(start);
-	int ex = TileX(end);
-	int ey = TileY(end);
-
 	if (!ValParamTrackOrientation (track)) return INVALID_TRACKDIR;
 
 	Trackdir trackdir = TrackToTrackdir (track);
 
 	/* calculate delta x,y from start to end tile */
-	int dx = ex - x;
-	int dy = ey - y;
+	int dx = TileX(end) - TileX(start);
+	int dy = TileY(end) - TileY(start);
 
 	/* calculate delta x,y for the first direction */
 	int trdx = _trackdelta[trackdir].x;
