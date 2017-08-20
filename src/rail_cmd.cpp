@@ -1074,26 +1074,28 @@ static const CoordDiff _trackdelta[] = {
 };
 
 
-static CommandCost ValidateAutoDrag(Trackdir *trackdir, TileIndex start, TileIndex end)
+static Trackdir ValidateAutoDrag (Track track, TileIndex start, TileIndex end)
 {
 	int x = TileX(start);
 	int y = TileY(start);
 	int ex = TileX(end);
 	int ey = TileY(end);
 
-	if (!ValParamTrackOrientation(TrackdirToTrack(*trackdir))) return CMD_ERROR;
+	if (!ValParamTrackOrientation (track)) return INVALID_TRACKDIR;
+
+	Trackdir trackdir = TrackToTrackdir (track);
 
 	/* calculate delta x,y from start to end tile */
 	int dx = ex - x;
 	int dy = ey - y;
 
 	/* calculate delta x,y for the first direction */
-	int trdx = _trackdelta[*trackdir].x;
-	int trdy = _trackdelta[*trackdir].y;
+	int trdx = _trackdelta[trackdir].x;
+	int trdy = _trackdelta[trackdir].y;
 
-	if (!IsDiagonalTrackdir(*trackdir)) {
-		trdx += _trackdelta[*trackdir ^ 1].x;
-		trdy += _trackdelta[*trackdir ^ 1].y;
+	if (!IsDiagonalTrackdir (trackdir)) {
+		trdx += _trackdelta[trackdir ^ 1].x;
+		trdy += _trackdelta[trackdir ^ 1].y;
 	}
 
 	/* validate the direction */
@@ -1101,24 +1103,24 @@ static CommandCost ValidateAutoDrag(Trackdir *trackdir, TileIndex start, TileInd
 			(trdx >= 0 && dx < 0) ||
 			(trdy <= 0 && dy > 0) ||
 			(trdy >= 0 && dy < 0)) {
-		if (!HasBit(*trackdir, 3)) { // first direction is invalid, try the other
-			SetBit(*trackdir, 3); // reverse the direction
+		if (!HasBit(trackdir, 3)) { // first direction is invalid, try the other
+			SetBit(trackdir, 3); // reverse the direction
 			trdx = -trdx;
 			trdy = -trdy;
 		} else { // other direction is invalid too, invalid drag
-			return CMD_ERROR;
+			return INVALID_TRACKDIR;
 		}
 	}
 
 	/* (for diagonal tracks, this is already made sure of by above test), but:
 	 * for non-diagonal tracks, check if the start and end tile are on 1 line */
-	if (!IsDiagonalTrackdir(*trackdir)) {
-		trdx = _trackdelta[*trackdir].x;
-		trdy = _trackdelta[*trackdir].y;
-		if (abs(dx) != abs(dy) && abs(dx) + abs(trdy) != abs(dy) + abs(trdx)) return CMD_ERROR;
+	if (!IsDiagonalTrackdir (trackdir)) {
+		trdx = _trackdelta[trackdir].x;
+		trdy = _trackdelta[trackdir].y;
+		if (abs(dx) != abs(dy) && abs(dx) + abs(trdy) != abs(dy) + abs(trdx)) return INVALID_TRACKDIR;
 	}
 
-	return CommandCost();
+	return trackdir;
 }
 
 /**
@@ -1144,10 +1146,9 @@ static CommandCost CmdRailTrackHelper(TileIndex tile, DoCommandFlag flags, uint3
 	if ((!remove && !ValParamRailtype(railtype)) || !ValParamTrackOrientation(track)) return CMD_ERROR;
 	if (p1 >= MapSize()) return CMD_ERROR;
 	TileIndex end_tile = p1;
-	Trackdir trackdir = TrackToTrackdir(track);
 
-	CommandCost ret = ValidateAutoDrag(&trackdir, tile, end_tile);
-	if (ret.Failed()) return ret;
+	Trackdir trackdir = ValidateAutoDrag (track, tile, end_tile);
+	if (trackdir == INVALID_TRACKDIR) return CMD_ERROR;
 
 	bool had_success = false;
 	CommandCost last_error = CMD_ERROR;
@@ -1678,9 +1679,8 @@ static CommandCost CmdSignalTrackHelper(TileIndex tile, DoCommandFlag flags, uin
 	 * since the original amount will be too dense (shorter tracks) */
 	signal_density *= 2;
 
-	Trackdir trackdir = TrackToTrackdir(track);
-	CommandCost ret = ValidateAutoDrag(&trackdir, tile, end_tile);
-	if (ret.Failed()) return ret;
+	Trackdir trackdir = ValidateAutoDrag (track, tile, end_tile);
+	if (trackdir == INVALID_TRACKDIR) return CMD_ERROR;
 
 	track = TrackdirToTrack(trackdir); // trackdir might have changed, keep track in sync
 	Trackdir start_trackdir = trackdir;
