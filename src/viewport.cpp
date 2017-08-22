@@ -2617,41 +2617,6 @@ void VpSetPlaceSizingLimit (uint limit)
 }
 
 /**
- * returns information about the 2x1 piece to be build.
- * The lower bits (0-3) are the track type.
- */
-static HighLightStyle Check2x1AutoRail(int mode)
-{
-	int fxpy = _tile_fract_coords.x + _tile_fract_coords.y;
-	int sxpy = (_thd.selend.x & TILE_UNIT_MASK) + (_thd.selend.y & TILE_UNIT_MASK);
-	int fxmy = _tile_fract_coords.x - _tile_fract_coords.y;
-	int sxmy = (_thd.selend.x & TILE_UNIT_MASK) - (_thd.selend.y & TILE_UNIT_MASK);
-
-	switch (mode) {
-		default: NOT_REACHED();
-		case 0: // end piece is lower right
-			if (fxpy >= 20 && sxpy <= 12) return HT_RAIL_HL;
-			if (fxmy < -3 && sxmy > 3) return HT_RAIL_VR;
-			return HT_RAIL_Y;
-
-		case 1:
-			if (fxmy > 3 && sxmy < -3) return HT_RAIL_VL;
-			if (fxpy <= 12 && sxpy >= 20) return HT_RAIL_HU;
-			return HT_RAIL_Y;
-
-		case 2:
-			if (fxmy > 3 && sxmy < -3) return HT_RAIL_VL;
-			if (fxpy >= 20 && sxpy <= 12) return HT_RAIL_HL;
-			return HT_RAIL_X;
-
-		case 3:
-			if (fxmy < -3 && sxmy > 3) return HT_RAIL_VR;
-			if (fxpy <= 12 && sxpy >= 20) return HT_RAIL_HU;
-			return HT_RAIL_X;
-	}
-}
-
-/**
  * Check if the direction of start and end tile should be swapped based on
  * the dragging-style. Default directions are:
  * in the case of a line (HT_RAIL):  DIR_NE, DIR_NW, DIR_N, DIR_E
@@ -2910,25 +2875,39 @@ static void CalcRaildirsDrawstyle (int x, int y)
 					b = HT_RECT;
 				}
 
-			} else if (dy == 0) { // Is this in X direction?
-				if (dx == (int)TILE_SIZE) { // 2x1 special handling
-					b = Check2x1AutoRail(3);
-				} else if (dx == -(int)TILE_SIZE) {
-					b = Check2x1AutoRail(2);
-				} else {
-					b = HT_RAIL_X;
-				}
-				y = _thd.selstart.y;
+			} else if (dx == 0 || dy == 0) { // Is this in X or Y direction?
+				int fxpy = _tile_fract_coords.x + _tile_fract_coords.y;
+				int sxpy = (_thd.selend.x & TILE_UNIT_MASK) + (_thd.selend.y & TILE_UNIT_MASK);
+				int fxmy = _tile_fract_coords.x - _tile_fract_coords.y;
+				int sxmy = (_thd.selend.x & TILE_UNIT_MASK) - (_thd.selend.y & TILE_UNIT_MASK);
 
-			} else if (dx == 0) { // Or Y direction?
-				if (dy == (int)TILE_SIZE) { // 2x1 special handling
-					b = Check2x1AutoRail(1);
-				} else if (dy == -(int)TILE_SIZE) { // 2x1 other direction
-					b = Check2x1AutoRail(0);
+				if (dy == 0) {
+					if (dx == (int)TILE_SIZE) { // 2x1 special handling
+						b = (fxmy < -3 && sxmy > 3) ? HT_RAIL_VR :
+							(fxpy <= 12 && sxpy >= 20) ? HT_RAIL_HU :
+							HT_RAIL_X;
+					} else if (dx == -(int)TILE_SIZE) {
+						b = (fxmy > 3 && sxmy < -3) ? HT_RAIL_VL :
+							(fxpy >= 20 && sxpy <= 12) ? HT_RAIL_HL :
+							HT_RAIL_X;
+					} else {
+						b = HT_RAIL_X;
+					}
+					y = _thd.selstart.y;
 				} else {
-					b = HT_RAIL_Y;
+					if (dy == (int)TILE_SIZE) { // 2x1 special handling
+						b = (fxmy > 3 && sxmy < -3) ? HT_RAIL_VL :
+							(fxpy <= 12 && sxpy >= 20) ? HT_RAIL_HU :
+							HT_RAIL_Y;
+					} else if (dy == -(int)TILE_SIZE) { // 2x1 other direction
+						b = (fxmy < -3 && sxmy > 3) ? HT_RAIL_VR :
+							(fxpy >= 20 && sxpy <= 12) ? HT_RAIL_HL :
+							HT_RAIL_Y;
+					} else {
+						b = HT_RAIL_Y;
+					}
+					x = _thd.selstart.x;
 				}
-				x = _thd.selstart.x;
 
 			} else if (w > h * 2) { // still count as x dir?
 				b = HT_RAIL_X;
