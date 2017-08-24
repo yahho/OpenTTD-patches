@@ -881,6 +881,36 @@ static void HandleStationPlacement(TileIndex start, TileIndex end)
 	ShowSelectStationIfNeeded (&cmdcont, ta);
 }
 
+/** Check the selected number of tracks when turning drag&drop off. */
+static void CheckPlatformWidth (const StationSpec *statspec)
+{
+	byte disallowed = statspec->disallowed_platforms;
+	if (HasBit(disallowed, _settings_client.gui.station_numtracks - 1)) {
+		/* The previously selected number of tracks is invalid. */
+		for (uint i = 0; i < 7; i++) {
+			if (!HasBit(disallowed, i)) {
+				_settings_client.gui.station_numtracks = i + 1;
+				break;
+			}
+		}
+	}
+}
+
+/** Check the selected platform length when turning drag&drop off. */
+static void CheckPlatformLength (const StationSpec *statspec)
+{
+	byte disallowed = statspec->disallowed_lengths;
+	if (HasBit(disallowed, _settings_client.gui.station_platlength - 1)) {
+		/* The previously selected number of platforms is invalid. */
+		for (uint i = 0; i < 7; i++) {
+			if (!HasBit(disallowed, i)) {
+				_settings_client.gui.station_platlength = i + 1;
+				break;
+			}
+		}
+	}
+}
+
 /** Draw a station preview in a widget. */
 static void DrawStationPreview (BlitArea *dpi, const Rect &r,
 	StationClassID cls, uint type, uint image, bool check_avail)
@@ -1192,16 +1222,7 @@ public:
 				_settings_client.gui.station_dragdrop = false;
 
 				const StationSpec *statspec = _railstation.newstations ? StationClass::Get(_railstation.station_class)->GetSpec(_railstation.station_type) : NULL;
-				if (statspec != NULL && HasBit(statspec->disallowed_lengths, _settings_client.gui.station_platlength - 1)) {
-					/* The previously selected number of platforms in invalid */
-					for (uint i = 0; i < 7; i++) {
-						if (!HasBit(statspec->disallowed_lengths, i)) {
-							this->RaiseWidget(_settings_client.gui.station_platlength + WID_BRAS_PLATFORM_LEN_BEGIN);
-							_settings_client.gui.station_platlength = i + 1;
-							break;
-						}
-					}
-				}
+				if (statspec != NULL) CheckPlatformLength (statspec);
 
 				this->LowerWidget(_settings_client.gui.station_numtracks + WID_BRAS_PLATFORM_NUM_BEGIN);
 				this->LowerWidget(_settings_client.gui.station_platlength + WID_BRAS_PLATFORM_LEN_BEGIN);
@@ -1227,16 +1248,7 @@ public:
 				_settings_client.gui.station_dragdrop = false;
 
 				const StationSpec *statspec = _railstation.newstations ? StationClass::Get(_railstation.station_class)->GetSpec(_railstation.station_type) : NULL;
-				if (statspec != NULL && HasBit(statspec->disallowed_platforms, _settings_client.gui.station_numtracks - 1)) {
-					/* The previously selected number of tracks in invalid */
-					for (uint i = 0; i < 7; i++) {
-						if (!HasBit(statspec->disallowed_platforms, i)) {
-							this->RaiseWidget(_settings_client.gui.station_numtracks + WID_BRAS_PLATFORM_NUM_BEGIN);
-							_settings_client.gui.station_numtracks = i + 1;
-							break;
-						}
-					}
-				}
+				if (statspec != NULL) CheckPlatformWidth (statspec);
 
 				this->LowerWidget(_settings_client.gui.station_numtracks + WID_BRAS_PLATFORM_NUM_BEGIN);
 				this->LowerWidget(_settings_client.gui.station_platlength + WID_BRAS_PLATFORM_LEN_BEGIN);
@@ -1253,23 +1265,9 @@ public:
 
 				/* get the first allowed length/number of platforms */
 				const StationSpec *statspec = _railstation.newstations ? StationClass::Get(_railstation.station_class)->GetSpec(_railstation.station_type) : NULL;
-				if (statspec != NULL && HasBit(statspec->disallowed_lengths, _settings_client.gui.station_platlength - 1)) {
-					for (uint i = 0; i < 7; i++) {
-						if (!HasBit(statspec->disallowed_lengths, i)) {
-							this->RaiseWidget(_settings_client.gui.station_platlength + WID_BRAS_PLATFORM_LEN_BEGIN);
-							_settings_client.gui.station_platlength = i + 1;
-							break;
-						}
-					}
-				}
-				if (statspec != NULL && HasBit(statspec->disallowed_platforms, _settings_client.gui.station_numtracks - 1)) {
-					for (uint i = 0; i < 7; i++) {
-						if (!HasBit(statspec->disallowed_platforms, i)) {
-							this->RaiseWidget(_settings_client.gui.station_numtracks + WID_BRAS_PLATFORM_NUM_BEGIN);
-							_settings_client.gui.station_numtracks = i + 1;
-							break;
-						}
-					}
+				if (statspec != NULL) {
+					CheckPlatformLength (statspec);
+					CheckPlatformWidth (statspec);
 				}
 
 				this->SetWidgetLoweredState(_settings_client.gui.station_numtracks + WID_BRAS_PLATFORM_NUM_BEGIN, !_settings_client.gui.station_dragdrop);
