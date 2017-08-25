@@ -1230,16 +1230,19 @@ public:
 
 	virtual void OnClick(Point pt, int widget, int click_count)
 	{
+		enum {
+			CHANGED_NONE,  ///< Nothing changed.
+			CHANGED_DIRTY, ///< Play a sound and mark window dirty.
+			CHANGED_RESET, ///< The same, plus reset construction.
+		} changed = CHANGED_NONE;
+
 		switch (GB(widget, 0, 16)) {
 			case WID_BRAS_PLATFORM_DIR_X:
 			case WID_BRAS_PLATFORM_DIR_Y:
 				this->RaiseWidget(_railstation.orientation + WID_BRAS_PLATFORM_DIR_X);
 				_railstation.orientation = (Axis)(widget - WID_BRAS_PLATFORM_DIR_X);
 				this->LowerWidget(_railstation.orientation + WID_BRAS_PLATFORM_DIR_X);
-				if (_settings_client.sound.click_beep) SndPlayFx(SND_15_BEEP);
-				this->SetDirty();
-				DeleteWindowById(WC_SELECT_STATION, 0);
-				SetStationTileSelectSize();
+				changed = CHANGED_RESET;
 				break;
 
 			case WID_BRAS_PLATFORM_NUM_1:
@@ -1262,10 +1265,7 @@ public:
 
 				this->LowerWidget(_settings_client.gui.station_numtracks + WID_BRAS_PLATFORM_NUM_BEGIN);
 				this->LowerWidget(_settings_client.gui.station_platlength + WID_BRAS_PLATFORM_LEN_BEGIN);
-				if (_settings_client.sound.click_beep) SndPlayFx(SND_15_BEEP);
-				this->SetDirty();
-				DeleteWindowById(WC_SELECT_STATION, 0);
-				SetStationTileSelectSize();
+				changed = CHANGED_RESET;
 				break;
 			}
 
@@ -1289,10 +1289,7 @@ public:
 
 				this->LowerWidget(_settings_client.gui.station_numtracks + WID_BRAS_PLATFORM_NUM_BEGIN);
 				this->LowerWidget(_settings_client.gui.station_platlength + WID_BRAS_PLATFORM_LEN_BEGIN);
-				if (_settings_client.sound.click_beep) SndPlayFx(SND_15_BEEP);
-				this->SetDirty();
-				DeleteWindowById(WC_SELECT_STATION, 0);
-				SetStationTileSelectSize();
+				changed = CHANGED_RESET;
 				break;
 			}
 
@@ -1310,10 +1307,7 @@ public:
 
 				this->SetWidgetLoweredState(_settings_client.gui.station_numtracks + WID_BRAS_PLATFORM_NUM_BEGIN, !_settings_client.gui.station_dragdrop);
 				this->SetWidgetLoweredState(_settings_client.gui.station_platlength + WID_BRAS_PLATFORM_LEN_BEGIN, !_settings_client.gui.station_dragdrop);
-				if (_settings_client.sound.click_beep) SndPlayFx(SND_15_BEEP);
-				this->SetDirty();
-				DeleteWindowById(WC_SELECT_STATION, 0);
-				SetStationTileSelectSize();
+				changed = CHANGED_RESET;
 				break;
 			}
 
@@ -1323,8 +1317,7 @@ public:
 
 				this->SetWidgetLoweredState(WID_BRAS_HIGHLIGHT_OFF, !_settings_client.gui.station_show_coverage);
 				this->SetWidgetLoweredState(WID_BRAS_HIGHLIGHT_ON, _settings_client.gui.station_show_coverage);
-				if (_settings_client.sound.click_beep) SndPlayFx(SND_15_BEEP);
-				this->SetDirty();
+				changed = CHANGED_DIRTY;
 				break;
 
 			case WID_BRAS_NEWST_LIST: {
@@ -1345,10 +1338,7 @@ public:
 							matrix->SetCount(_railstation.station_count);
 							matrix->SetClicked(_railstation.station_type);
 						}
-						if (_settings_client.sound.click_beep) SndPlayFx(SND_15_BEEP);
-						this->SetDirty();
-						DeleteWindowById(WC_SELECT_STATION, 0);
-						SetStationTileSelectSize();
+						changed = CHANGED_RESET;
 						break;
 					}
 					y--;
@@ -1369,12 +1359,21 @@ public:
 				this->CheckSelectedSize(statspec);
 				this->GetWidget<NWidgetMatrix>(WID_BRAS_MATRIX)->SetClicked(_railstation.station_type);
 
-				if (_settings_client.sound.click_beep) SndPlayFx(SND_15_BEEP);
-				this->SetDirty();
-				DeleteWindowById(WC_SELECT_STATION, 0);
-				SetStationTileSelectSize();
+				changed = CHANGED_RESET;
 				break;
 			}
+		}
+
+		switch (changed) {
+			case CHANGED_RESET:
+				DeleteWindowById (WC_SELECT_STATION, 0);
+				SetStationTileSelectSize();
+				/* fall through */
+			case CHANGED_DIRTY:
+				if (_settings_client.sound.click_beep) SndPlayFx(SND_15_BEEP);
+				this->SetDirty();
+				/* fall through */
+			default: ;
 		}
 	}
 
