@@ -2575,19 +2575,32 @@ void VpStartPlaceSizing (TileIndex tile, ViewportPlaceMethod method,
 
 	_thd.select_method = method;
 	_thd.select_data   = userdata;
-	_thd.selend.x = TileX(tile) * TILE_SIZE;
 	_thd.selstart.x = TileX(tile) * TILE_SIZE;
-	_thd.selend.y = TileY(tile) * TILE_SIZE;
 	_thd.selstart.y = TileY(tile) * TILE_SIZE;
 
-	/* Needed so several things (road, autoroad, bridges, ...) are placed correctly.
-	 * In effect, placement starts from the centre of a tile
-	 */
-	if (method == VPM_X_OR_Y || method == VPM_X || method == VPM_Y) {
-		_thd.selend.x += TILE_SIZE / 2;
-		_thd.selend.y += TILE_SIZE / 2;
-		_thd.selstart.x += TILE_SIZE / 2;
-		_thd.selstart.y += TILE_SIZE / 2;
+	switch (method) {
+		case VPM_X_OR_Y:
+			/* Placement starts from the centre of the tile. */
+			_thd.selstart.x += TILE_SIZE / 2;
+			_thd.selstart.y += TILE_SIZE / 2;
+			/* fall through */
+		default:
+			assert (_thd.size.x == TILE_SIZE);
+			assert (_thd.size.y == TILE_SIZE);
+			_thd.selend = _thd.selstart;
+			break;
+
+		case VPM_X:
+			assert (_thd.size.x == TILE_SIZE);
+			_thd.selend.x = _thd.selstart.x + TILE_SIZE / 2;
+			_thd.selend.y = _thd.selstart.y + _thd.size.y - TILE_SIZE;
+			break;
+
+		case VPM_Y:
+			assert (_thd.size.y == TILE_SIZE);
+			_thd.selend.x = _thd.selstart.x + _thd.size.x - TILE_SIZE;
+			_thd.selend.y = _thd.selstart.y + TILE_SIZE / 2;
+			break;
 	}
 
 	switch (_pointer_mode) {
@@ -3055,12 +3068,12 @@ static void VpSelectTilesWithMethod (int x, int y, ViewportPlaceMethod method)
 			goto calc_heightdiff_single_direction;
 
 		case VPM_Y: // drag in Y direction
-			x = sx;
+			x = _thd.selend.x;
 			style = HT_RAIL_Y;
 			goto calc_heightdiff_single_direction;
 
 		case VPM_X: // drag in X direction
-			y = sy;
+			y = _thd.selend.y;
 			style = HT_RAIL_X;
 
 calc_heightdiff_single_direction:;
@@ -3172,8 +3185,21 @@ calc_heightdiff_single_direction:;
 /** Abort the current dragging operation, if any. */
 void VpStopPlaceSizing (void)
 {
+	switch (_thd.select_method) {
+		case VPM_X:
+			_thd.new_size.x = TILE_SIZE;
+			break;
+
+		case VPM_Y:
+			_thd.new_size.y = TILE_SIZE;
+			break;
+
+		default:
+			_thd.new_size.x = TILE_SIZE;
+			_thd.new_size.y = TILE_SIZE;
+			break;
+	}
 	_thd.select_method = VPM_NONE;
-	SetTileSelectSize(1, 1);
 }
 
 /**

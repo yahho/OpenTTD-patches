@@ -191,6 +191,14 @@ void CcStation(const CommandCost &result, TileIndex tile, uint32 p1, uint32 p2)
 	if (_railstation.station_class == STAT_CLASS_DFLT && _railstation.station_type == 0 && !_settings_client.gui.persistent_buildingtools) ResetPointerMode();
 }
 
+/** Get the only allowed bit, or a default if several are available. */
+static inline uint GetSingleAllowedValue (byte disallowed, uint def)
+{
+	/* Sign-extend bit 7. */
+	uint allowed = (int)(int8)(~disallowed);
+	return HasExactlyOneBit (allowed) ? (FindFirstBit (allowed) + 1) : def;
+}
+
 /**
  * Place a rail station.
  * @param tile Position to place or start dragging a station.
@@ -199,19 +207,45 @@ static void PlaceRail_Station(TileIndex tile)
 {
 	if (_remove_button_clicked) {
 		VpStartPlaceSizing (tile, VPM_X_AND_Y, DRAG_STATION);
-	} else if (_settings_client.gui.station_dragdrop) {
-		VpStartPlaceSizing (tile, VPM_X_AND_Y, DRAG_STATION, _settings_game.station.station_spread);
-	} else {
-		uint32 p1 = _cur_railtype | _railstation.orientation << 4 | _settings_client.gui.station_numtracks << 8 | _settings_client.gui.station_platlength << 16 | _ctrl_pressed << 24;
-		uint32 p2 = _railstation.station_class | _railstation.station_type << 8 | INVALID_STATION << 16;
-
-		int w = _settings_client.gui.station_numtracks;
-		int h = _settings_client.gui.station_platlength;
-		if (!_railstation.orientation) Swap(w, h);
-
-		Command cmdcont (tile, p1, p2, CMD_BUILD_RAIL_STATION);
-		ShowSelectStationIfNeeded (&cmdcont, TileArea(tile, w, h));
+		return;
 	}
+
+	uint w, h;
+	if (_settings_client.gui.station_dragdrop) {
+		const StationSpec *statspec = _railstation.newstations ? StationClass::Get(_railstation.station_class)->GetSpec(_railstation.station_type) : NULL;
+		if (statspec == NULL) {
+			w = h = 0;
+		} else {
+			w = GetSingleAllowedValue (statspec->disallowed_platforms, 0);
+			h = GetSingleAllowedValue (statspec->disallowed_lengths, 0);
+		}
+
+		ViewportPlaceMethod method;
+		if (w == 0 || h == 0) {
+			if (w != 0) {
+				/* fixed number of tracks */
+				method = _railstation.orientation ? VPM_Y : VPM_X;
+			} else if (h != 0) {
+				/* fixed platform length */
+				method = _railstation.orientation ? VPM_X : VPM_Y;
+			} else {
+				method = VPM_X_AND_Y;
+			}
+			VpStartPlaceSizing (tile, method, DRAG_STATION, _settings_game.station.station_spread);
+			return;
+		}
+	} else {
+		w = _settings_client.gui.station_numtracks;
+		h = _settings_client.gui.station_platlength;
+	}
+
+	uint32 p1 = _cur_railtype | _railstation.orientation << 4 | w << 8 | h << 16 | _ctrl_pressed << 24;
+	uint32 p2 = _railstation.station_class | _railstation.station_type << 8 | INVALID_STATION << 16;
+
+	if (!_railstation.orientation) Swap (w, h);
+
+	Command cmdcont (tile, p1, p2, CMD_BUILD_RAIL_STATION);
+	ShowSelectStationIfNeeded (&cmdcont, TileArea (tile, w, h));
 }
 
 StringID GetErrBuildSignals (TileIndex tile, uint32 p1, uint32 p2, const char *text)
@@ -322,6 +356,28 @@ static bool RailToolbar_CtrlChanged(Window *w)
 }
 
 
+/** Set the selection size for building a station. */
+static void SetStationTileSelectSize (void)
+{
+	uint x, y;
+	if (_settings_client.gui.station_dragdrop) {
+		const StationSpec *statspec = _railstation.newstations ? StationClass::Get(_railstation.station_class)->GetSpec(_railstation.station_type) : NULL;
+		if (statspec == NULL) {
+			x = y = 1;
+		} else {
+			x = GetSingleAllowedValue (statspec->disallowed_platforms, 1);
+			y = GetSingleAllowedValue (statspec->disallowed_lengths, 1);
+		}
+	} else {
+		x = _settings_client.gui.station_numtracks;
+		y = _settings_client.gui.station_platlength;
+	}
+
+	if (_railstation.orientation == AXIS_X) Swap(x, y);
+	SetTileSelectSize (x, y);
+	VpSetPlaceSizingLimit (_settings_game.station.station_spread);
+}
+
 /**
  * The "remove"-button click proc of the build-rail toolbar.
  * @param w Build-rail toolbar window
@@ -337,21 +393,11 @@ static void BuildRailClick_Remove(Window *w)
 	if (w->IsWidgetLowered(WID_RAT_BUILD_STATION)) {
 		if (_remove_button_clicked) {
 			/* starting drag & drop remove */
-			if (!_settings_client.gui.station_dragdrop) {
-				SetTileSelectSize(1, 1);
-			} else {
-				VpSetPlaceSizingLimit (0);
-			}
+			SetTileSelectSize(1, 1);
+			VpSetPlaceSizingLimit (0);
 		} else {
 			/* starting station build mode */
-			if (!_settings_client.gui.station_dragdrop) {
-				int x = _settings_client.gui.station_numtracks;
-				int y = _settings_client.gui.station_platlength;
-				if (_railstation.orientation == 0) Swap(x, y);
-				SetTileSelectSize(x, y);
-			} else {
-				VpSetPlaceSizingLimit(_settings_game.station.station_spread);
-			}
+			SetStationTileSelectSize();
 		}
 	} else if (w->IsWidgetLowered(WID_RAT_BUILD_WAYPOINT)) {
 		/* Dragging is different for waypoints when removing,
@@ -1041,17 +1087,6 @@ public:
 		bool newstations = _railstation.newstations;
 		const StationSpec *statspec = newstations ? StationClass::Get(_railstation.station_class)->GetSpec(_railstation.station_type) : NULL;
 
-		if (_settings_client.gui.station_dragdrop) {
-			SetTileSelectSize(1, 1);
-		} else {
-			int x = _settings_client.gui.station_numtracks;
-			int y = _settings_client.gui.station_platlength;
-			if (_railstation.orientation == AXIS_X) Swap(x, y);
-			if (!_remove_button_clicked) {
-				SetTileSelectSize(x, y);
-			}
-		}
-
 		int rad = (_settings_game.station.modified_catchment) ? CA_TRAIN : CA_UNMODIFIED;
 
 		if (_settings_client.gui.station_show_coverage) SetTileSelectBigSize(-rad, -rad, 2 * rad, 2 * rad);
@@ -1204,6 +1239,7 @@ public:
 				if (_settings_client.sound.click_beep) SndPlayFx(SND_15_BEEP);
 				this->SetDirty();
 				DeleteWindowById(WC_SELECT_STATION, 0);
+				SetStationTileSelectSize();
 				break;
 
 			case WID_BRAS_PLATFORM_NUM_1:
@@ -1229,6 +1265,7 @@ public:
 				if (_settings_client.sound.click_beep) SndPlayFx(SND_15_BEEP);
 				this->SetDirty();
 				DeleteWindowById(WC_SELECT_STATION, 0);
+				SetStationTileSelectSize();
 				break;
 			}
 
@@ -1255,6 +1292,7 @@ public:
 				if (_settings_client.sound.click_beep) SndPlayFx(SND_15_BEEP);
 				this->SetDirty();
 				DeleteWindowById(WC_SELECT_STATION, 0);
+				SetStationTileSelectSize();
 				break;
 			}
 
@@ -1275,6 +1313,7 @@ public:
 				if (_settings_client.sound.click_beep) SndPlayFx(SND_15_BEEP);
 				this->SetDirty();
 				DeleteWindowById(WC_SELECT_STATION, 0);
+				SetStationTileSelectSize();
 				break;
 			}
 
@@ -1309,6 +1348,7 @@ public:
 						if (_settings_client.sound.click_beep) SndPlayFx(SND_15_BEEP);
 						this->SetDirty();
 						DeleteWindowById(WC_SELECT_STATION, 0);
+						SetStationTileSelectSize();
 						break;
 					}
 					y--;
@@ -1332,6 +1372,7 @@ public:
 				if (_settings_client.sound.click_beep) SndPlayFx(SND_15_BEEP);
 				this->SetDirty();
 				DeleteWindowById(WC_SELECT_STATION, 0);
+				SetStationTileSelectSize();
 				break;
 			}
 		}
