@@ -181,7 +181,7 @@ typedef NewGRFClass<StationSpec, StationClassID, STAT_CLASS_MAX> StationClass;
 const StationSpec *GetStationSpec(TileIndex t);
 
 /* Evaluate a tile's position within a station, and return the result a bitstuffed format. */
-uint32 GetPlatformInfo(Axis axis, byte tile, int platforms, int length, int x, int y, bool centred);
+uint32 GetPlatformInfo (byte tile, int platforms, int length, int x, int y, bool centred);
 
 SpriteID GetCustomStationRelocation(const StationSpec *statspec, BaseStation *st, TileIndex tile, uint32 var10 = 0);
 SpriteID GetCustomStationFoundationRelocation(const StationSpec *statspec, BaseStation *st, TileIndex tile, uint layout, uint edge_info);

@@ -104,14 +104,9 @@ struct ETileArea : TileArea {
  * if centered, C/P start from the centre and c/p are not available.
  * @return Platform information in bit-stuffed format.
  */
-uint32 GetPlatformInfo(Axis axis, byte tile, int platforms, int length, int x, int y, bool centred)
+uint32 GetPlatformInfo (byte tile, int platforms, int length, int x, int y, bool centred)
 {
 	uint32 retval = 0;
-
-	if (axis == AXIS_X) {
-		Swap(platforms, length);
-		Swap(x, y);
-	}
 
 	if (centred) {
 		x -= platforms / 2;
@@ -177,7 +172,12 @@ static uint32 GetPlatformInfoHelper(TileIndex tile, bool check_type, bool check_
 	tx -= sx; ex -= sx;
 	ty -= sy; ey -= sy;
 
-	return GetPlatformInfo(GetRailStationAxis(tile), GetStationGfx(tile), ex, ey, tx, ty, centred);
+	if (GetRailStationAxis (tile) == AXIS_X) {
+		Swap(ex, ey);
+		Swap(tx, ty);
+	}
+
+	return GetPlatformInfo (GetStationGfx(tile), ex, ey, tx, ty, centred);
 }
 
 

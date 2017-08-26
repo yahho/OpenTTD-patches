@@ -1278,8 +1278,7 @@ CommandCost CmdBuildRailStation(TileIndex tile_org, DoCommandFlag flags, uint32 
 				c->infrastructure.station++;
 
 				if (statspec != NULL) {
-					/* Use a fixed axis for GetPlatformInfo as our platforms / numtracks are always the right way around */
-					uint32 platinfo = GetPlatformInfo (AXIS_X, GetStationGfx(tile), plat_len, numtracks, j, i, false);
+					uint32 platinfo = GetPlatformInfo (GetStationGfx(tile), numtracks, plat_len, i, j, false);
 
 					/* As the station is not yet completely finished, the station does not yet exist. */
 					uint16 callback = GetStationCallback (CBID_STATION_TILE_LAYOUT, platinfo, 0, statspec, rt, tile);
