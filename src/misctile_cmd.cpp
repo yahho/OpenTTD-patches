@@ -612,14 +612,6 @@ static CommandCost RemoveTunnel(TileIndex tile, DoCommandFlag flags)
 
 static CommandCost RemoveTrainDepot(TileIndex tile, DoCommandFlag flags)
 {
-	if (_current_company != OWNER_WATER) {
-		CommandCost ret = CheckTileOwnership(tile);
-		if (ret.Failed()) return ret;
-	}
-
-	CommandCost ret = EnsureNoVehicleOnGround(tile);
-	if (ret.Failed()) return ret;
-
 	if (flags & DC_EXEC) {
 		/* read variables before the depot is removed */
 		DiagDirection dir = GetGroundDepotDirection(tile);
@@ -645,14 +637,6 @@ static CommandCost RemoveTrainDepot(TileIndex tile, DoCommandFlag flags)
 
 static CommandCost RemoveRoadDepot(TileIndex tile, DoCommandFlag flags)
 {
-	if (_current_company != OWNER_WATER) {
-		CommandCost ret = CheckTileOwnership(tile);
-		if (ret.Failed()) return ret;
-	}
-
-	CommandCost ret = EnsureNoVehicleOnGround(tile);
-	if (ret.Failed()) return ret;
-
 	if (flags & DC_EXEC) {
 		Company *c = Company::GetIfValid(GetTileOwner(tile));
 		if (c != NULL) {
@@ -740,6 +724,15 @@ static CommandCost ClearTile_Misc(TileIndex tile, DoCommandFlag flags)
 				}
 				return_cmd_error(STR_ERROR_BUILDING_MUST_BE_DEMOLISHED);
 			}
+
+			if (_current_company != OWNER_WATER) {
+				CommandCost ret = CheckTileOwnership (tile);
+				if (ret.Failed()) return ret;
+			}
+
+			CommandCost ret = EnsureNoVehicleOnGround (tile);
+			if (ret.Failed()) return ret;
+
 			return IsRailDepot(tile) ? RemoveTrainDepot(tile, flags) : RemoveRoadDepot(tile, flags);
 	}
 }
