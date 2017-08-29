@@ -554,8 +554,8 @@ CommandCost CheckBuildableTile (TileIndex tile, uint invalid_dirs,
 		return_cmd_error(STR_ERROR_MUST_DEMOLISH_BRIDGE_FIRST);
 	}
 
-	CommandCost ret = EnsureNoVehicleOnGround(tile);
-	if (ret.Failed()) return ret;
+	StringID str = CheckVehicleOnGround (tile);
+	if (str != STR_NULL) return_cmd_error(str);
 
 	/* Prohibit building if
 	 *   1) The tile is "steep" (i.e. stretches two height levels).
@@ -1382,9 +1382,11 @@ static CommandCost RemoveFromRailBaseStation (TileIndex start,
 		if (!HasStationTileRail(tile)) continue;
 
 		/* If there is a vehicle on ground, do not allow to remove (flood) the tile */
-		CommandCost ret = EnsureNoVehicleOnGround(tile);
-		error.AddCost(ret);
-		if (ret.Failed()) continue;
+		StringID str = CheckVehicleOnGround (tile);
+		if (str != STR_NULL) {
+			error.AddCost (CommandCost (str));
+			continue;
+		}
 
 		/* Check ownership of station */
 		BaseStation *st = BaseStation::GetByTile (tile);
@@ -1534,8 +1536,8 @@ static CommandCost RemoveRailStation (BaseStation *st, DoCommandFlag flags,
 		/* only remove tiles that are actually train station tiles */
 		if (!st->TileBelongsToRailStation(tile)) continue;
 
-		CommandCost ret = EnsureNoVehicleOnGround(tile);
-		if (ret.Failed()) return ret;
+		StringID str = CheckVehicleOnGround (tile);
+		if (str != STR_NULL) return_cmd_error(str);
 
 		cost.AddCost(removal_cost);
 		if (flags & DC_EXEC) {
@@ -1815,8 +1817,8 @@ static CommandCost RemoveRoadStop(TileIndex tile, DoCommandFlag flags)
 			}
 		}
 	} else {
-		CommandCost ret = EnsureNoVehicleOnGround(tile);
-		if (ret.Failed()) return ret;
+		StringID str = CheckVehicleOnGround (tile);
+		if (str != STR_NULL) return_cmd_error(str);
 	}
 
 	if (flags & DC_EXEC) {
@@ -2080,8 +2082,8 @@ static CommandCost CanRemoveAirport(Station *st, DoCommandFlag flags)
 	TILE_AREA_LOOP(tile_cur, st->airport) {
 		if (!st->TileBelongsToAirport(tile_cur)) continue;
 
-		CommandCost ret = EnsureNoVehicleOnGround(tile_cur);
-		if (ret.Failed()) return ret;
+		StringID str = CheckVehicleOnGround (tile_cur);
+		if (str != STR_NULL) return_cmd_error(str);
 
 		cost.AddCost(_price[PR_CLEAR_STATION_AIRPORT]);
 	}
@@ -2545,9 +2547,9 @@ static CommandCost RemoveDock(TileIndex tile, DoCommandFlag flags)
 		d = &(*d)->next;
 	}
 
-	ret = EnsureNoVehicleOnGround(tile1);
-	if (ret.Succeeded() && tile2 != INVALID_TILE) ret = EnsureNoVehicleOnGround(tile2);
-	if (ret.Failed()) return ret;
+	StringID str = CheckVehicleOnGround (tile1);
+	if (str == STR_NULL && tile2 != INVALID_TILE) str = CheckVehicleOnGround (tile2);
+	if (str != STR_NULL) return_cmd_error(str);
 
 	if (flags & DC_EXEC) {
 		TileIndex docking_location = GetDockingTile(tile1);

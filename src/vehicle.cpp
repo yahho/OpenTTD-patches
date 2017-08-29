@@ -610,9 +610,9 @@ bool HasVehicleOnPosXY(int x, int y, void *data, VehicleFromPosProc *proc)
 /**
  * Ensure there is no vehicle at the ground at the given position.
  * @param tile Position to examine.
- * @return Succeeded command (ground is free) or failed command (a vehicle is found).
+ * @return STR_NULL (ground is free) or an error message (a vehicle is found).
  */
-CommandCost EnsureNoVehicleOnGround(TileIndex tile)
+StringID CheckVehicleOnGround (TileIndex tile)
 {
 	int z = GetTileMaxPixelZ(tile);
 
@@ -631,8 +631,8 @@ CommandCost EnsureNoVehicleOnGround(TileIndex tile)
 	 * error message only (which may be different for different machines).
 	 * Such a message does not affect MP synchronisation.
 	 */
-	if (iter.was_found()) return_cmd_error(STR_ERROR_TRAIN_IN_THE_WAY + v->type);
-	return CommandCost();
+	if (iter.was_found()) return STR_ERROR_TRAIN_IN_THE_WAY + v->type;
+	return STR_NULL;
 }
 
 /**

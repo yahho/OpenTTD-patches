@@ -218,9 +218,9 @@ static CommandCost RemoveShipDepot(TileIndex tile, DoCommandFlag flags)
 
 	/* do not check for ship on tile when company goes bankrupt */
 	if (!(flags & DC_BANKRUPT)) {
-		CommandCost ret = EnsureNoVehicleOnGround(tile);
-		if (ret.Succeeded()) ret = EnsureNoVehicleOnGround(tile2);
-		if (ret.Failed()) return ret;
+		StringID str = CheckVehicleOnGround (tile);
+		if (str == STR_NULL) str = CheckVehicleOnGround (tile2);
+		if (str != STR_NULL) return_cmd_error(str);
 	}
 
 	if (flags & DC_EXEC) {
@@ -256,14 +256,14 @@ CommandCost CmdBuildLock(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 
 	CommandCost cost(EXPENSES_CONSTRUCTION);
 
 	int delta = TileOffsByDiagDir(dir);
-	CommandCost ret = EnsureNoVehicleOnGround(tile);
-	if (ret.Succeeded()) ret = EnsureNoVehicleOnGround(tile + delta);
-	if (ret.Succeeded()) ret = EnsureNoVehicleOnGround(tile - delta);
-	if (ret.Failed()) return ret;
+	StringID str = CheckVehicleOnGround (tile);
+	if (str == STR_NULL) str = CheckVehicleOnGround (tile + delta);
+	if (str == STR_NULL) str = CheckVehicleOnGround (tile - delta);
+	if (str != STR_NULL) return_cmd_error(str);
 
 	/* middle tile */
 	WaterClass wc_middle = IsPlainWaterTile(tile) ? GetWaterClass(tile) : WATER_CLASS_CANAL;
-	ret = DoCommand(tile, 0, 0, flags, CMD_LANDSCAPE_CLEAR);
+	CommandCost ret = DoCommand (tile, 0, 0, flags, CMD_LANDSCAPE_CLEAR);
 	if (ret.Failed()) return ret;
 	cost.AddCost(ret);
 
@@ -335,10 +335,10 @@ static CommandCost RemoveLock(TileIndex tile, DoCommandFlag flags)
 	TileIndexDiff delta = TileOffsByDiagDir(GetLockDirection(tile));
 
 	/* make sure no vehicle is on the tile. */
-	CommandCost ret = EnsureNoVehicleOnGround(tile);
-	if (ret.Succeeded()) ret = EnsureNoVehicleOnGround(tile + delta);
-	if (ret.Succeeded()) ret = EnsureNoVehicleOnGround(tile - delta);
-	if (ret.Failed()) return ret;
+	StringID str = CheckVehicleOnGround (tile);
+	if (str == STR_NULL) str = CheckVehicleOnGround (tile + delta);
+	if (str == STR_NULL) str = CheckVehicleOnGround (tile - delta);
+	if (str != STR_NULL) return_cmd_error(str);
 
 	if (flags & DC_EXEC) {
 		/* Remove middle part from company infrastructure count. */
@@ -466,8 +466,8 @@ static CommandCost ClearTile_Water(TileIndex tile, DoCommandFlag flags)
 			}
 
 			/* Make sure no vehicle is on the tile */
-			CommandCost ret = EnsureNoVehicleOnGround(tile);
-			if (ret.Failed()) return ret;
+			StringID str = CheckVehicleOnGround (tile);
+			if (str != STR_NULL) return_cmd_error(str);
 
 			Owner owner = GetTileOwner(tile);
 			if (owner != OWNER_WATER && owner != OWNER_NONE) {
@@ -491,8 +491,8 @@ static CommandCost ClearTile_Water(TileIndex tile, DoCommandFlag flags)
 			Slope slope = GetTileSlope(tile);
 
 			/* Make sure no vehicle is on the tile */
-			CommandCost ret = EnsureNoVehicleOnGround(tile);
-			if (ret.Failed()) return ret;
+			StringID str = CheckVehicleOnGround (tile);
+			if (str != STR_NULL) return_cmd_error(str);
 
 			if (flags & DC_EXEC) {
 				DoClearSquare(tile);

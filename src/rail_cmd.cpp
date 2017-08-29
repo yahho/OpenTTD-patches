@@ -573,8 +573,8 @@ CommandCost CmdBuildSingleRail(TileIndex tile, DoCommandFlag flags, uint32 p1, u
 			/* Level crossings may only be built on these slopes */
 			if (!HasBit(VALID_LEVEL_CROSSING_SLOPES, tileh)) return_cmd_error(STR_ERROR_LAND_SLOPED_IN_WRONG_DIRECTION);
 
-			CommandCost ret = EnsureNoVehicleOnGround(tile);
-			if (ret.Failed()) return ret;
+			StringID str = CheckVehicleOnGround (tile);
+			if (str != STR_NULL) return_cmd_error(str);
 
 			if (HasRoadWorks(tile)) return_cmd_error(STR_ERROR_ROAD_WORKS_IN_PROGRESS);
 
@@ -947,8 +947,8 @@ static CommandCost RemoveCrossingTrack(TileIndex tile, DoCommandFlag flags)
 	}
 
 	if (!(flags & DC_BANKRUPT)) {
-		CommandCost ret = EnsureNoVehicleOnGround(tile);
-		if (ret.Failed()) return ret;
+		StringID str = CheckVehicleOnGround (tile);
+		if (str != STR_NULL) return_cmd_error(str);
 	}
 
 	CommandCost cost(EXPENSES_CONSTRUCTION, RailClearCost(GetRailType(tile)));
@@ -1354,11 +1354,12 @@ CommandCost CmdBuildSingleSignal(TileIndex tile, DoCommandFlag flags, uint32 p1,
 		if (ret.Failed()) return ret;
 
 		/* prevent updating signals in a busy tunnel */
-		ret = EnsureNoVehicleOnGround(tile);
-		if (ret.Failed()) return ret;
-		other_end = GetOtherTunnelEnd(tile);
-		ret = EnsureNoVehicleOnGround(other_end);
-		if (ret.Failed()) return ret;
+		StringID str = CheckVehicleOnGround (tile);
+		if (str == STR_NULL) {
+			other_end = GetOtherTunnelEnd (tile);
+			str = CheckVehicleOnGround (other_end);
+		}
+		if (str != STR_NULL) return_cmd_error(str);
 
 		signals = *maptile_tunnel_signalpair(tile);
 	} else {
@@ -1875,10 +1876,9 @@ CommandCost CmdRemoveSingleSignal(TileIndex tile, DoCommandFlag flags, uint32 p1
 
 	if (other_end != INVALID_TILE) {
 		/* prevent updating signals in a busy tunnel */
-		CommandCost ret = EnsureNoVehicleOnGround(tile);
-		if (ret.Failed()) return ret;
-		ret = EnsureNoVehicleOnGround(other_end);
-		if (ret.Failed()) return ret;
+		StringID str = CheckVehicleOnGround (tile);
+		if (str == STR_NULL) str = CheckVehicleOnGround (other_end);
+		if (str != STR_NULL) return_cmd_error(str);
 
 		if (signalpair_has_signal(signals, true)) {
 			/* We can remove a signal into a tunnel without
@@ -2317,8 +2317,8 @@ static CommandCost ConvertGeneric(TileIndex tile, RailType totype, Track track, 
 	if (_settings_game.vehicle.disable_elrails && totype == RAILTYPE_RAIL && type == RAILTYPE_ELECTRIC) return CommandCost();
 
 	if (!IsCompatibleRail(type, totype)) {
-		CommandCost ret = EnsureNoVehicleOnGround(tile);
-		if (ret.Failed()) return ret;
+		StringID str = CheckVehicleOnGround (tile);
+		if (str != STR_NULL) return_cmd_error(str);
 	}
 
 	if (flags & DC_EXEC) { // we can safely convert, too
@@ -2494,8 +2494,8 @@ static CommandCost ClearTile_Track(TileIndex tile, DoCommandFlag flags)
 		/* When bankrupting, don't make water dirty, there could be a ship on lower halftile.
 		 * Same holds for non-companies clearing the tile, e.g. disasters. */
 		if (water_ground && !(flags & DC_BANKRUPT) && Company::IsValidID(_current_company)) {
-			CommandCost ret = EnsureNoVehicleOnGround(tile);
-			if (ret.Failed()) return ret;
+			StringID str = CheckVehicleOnGround (tile);
+			if (str != STR_NULL) return_cmd_error(str);
 
 			/* The track was removed, and left a coast tile. Now also clear the water. */
 			if (flags & DC_EXEC) DoClearSquare(tile);

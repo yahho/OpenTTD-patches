@@ -205,10 +205,11 @@ static void ClearRoadType(TileIndex tile, RoadType rt)
  */
 static CommandCost RemoveRoad_Road(TileIndex tile, DoCommandFlag flags, RoadBits pieces, RoadType rt, bool town_check)
 {
-	CommandCost ret = EnsureNoVehicleOnGround(tile);
-	if (ret.Failed()) return ret;
+	StringID str = CheckVehicleOnGround (tile);
+	if (str != STR_NULL) return_cmd_error(str);
 
-	ret = CheckAllowRemoveRoad(tile, pieces, GetRoadOwner(tile, rt), rt, flags, town_check);
+	CommandCost ret = CheckAllowRemoveRoad (tile, pieces,
+			GetRoadOwner (tile, rt), rt, flags, town_check);
 	if (ret.Failed()) return ret;
 
 	if (HasRoadWorks(tile) && _current_company != OWNER_WATER) return_cmd_error(STR_ERROR_ROAD_WORKS_IN_PROGRESS);
@@ -326,8 +327,8 @@ static CommandCost RemoveRoad_Bridge(TileIndex tile, DoCommandFlag flags, RoadBi
 		/* Not removing the bridge piece */
 		other_end = INVALID_TILE;
 
-		ret = EnsureNoVehicleOnGround(tile);
-		if (ret.Failed()) return ret;
+		StringID str = CheckVehicleOnGround (tile);
+		if (str != STR_NULL) return_cmd_error(str);
 
 		cost.AddCost(CountBits(pieces) * _price[PR_CLEAR_ROAD]);
 	} else {
@@ -418,10 +419,11 @@ static CommandCost RemoveRoad_Bridge(TileIndex tile, DoCommandFlag flags, RoadBi
  */
 static CommandCost RemoveRoad_Crossing(TileIndex tile, DoCommandFlag flags, RoadBits pieces, RoadType rt, bool crossing_check, bool town_check)
 {
-	CommandCost ret = EnsureNoVehicleOnGround(tile);
-	if (ret.Failed()) return ret;
+	StringID str = CheckVehicleOnGround (tile);
+	if (str != STR_NULL) return_cmd_error(str);
 
-	ret = CheckAllowRemoveRoad(tile, pieces, GetRoadOwner(tile, rt), rt, flags, town_check);
+	CommandCost ret = CheckAllowRemoveRoad (tile, pieces,
+			GetRoadOwner (tile, rt), rt, flags, town_check);
 	if (ret.Failed()) return ret;
 
 	if (pieces & ComplementRoadBits(GetCrossingRoadBits(tile))) {
@@ -534,10 +536,11 @@ static CommandCost RemoveRoad_Station(TileIndex tile, DoCommandFlag flags, RoadB
 {
 	if (!IsDriveThroughStopTile(tile)) return CMD_ERROR;
 
-	CommandCost ret = EnsureNoVehicleOnGround(tile);
-	if (ret.Failed()) return ret;
+	StringID str = CheckVehicleOnGround (tile);
+	if (str != STR_NULL) return_cmd_error(str);
 
-	ret = CheckAllowRemoveRoad(tile, pieces, GetRoadOwner(tile, rt), rt, flags, town_check);
+	CommandCost ret = CheckAllowRemoveRoad (tile, pieces,
+			GetRoadOwner (tile, rt), rt, flags, town_check);
 	if (ret.Failed()) return ret;
 
 	/* If it's the last roadtype, just clear the whole tile */
@@ -797,8 +800,8 @@ static CommandCost BuildRoad_Road(TileIndex tile, DoCommandFlag flags, RoadType 
 			 * vehicles. As such, only when less is disallowed,
 			 * i.e. bits are removed, we skip the vehicle check. */
 			if (CountBits(dis_existing) <= CountBits(dis_new)) {
-				CommandCost ret = EnsureNoVehicleOnGround(tile);
-				if (ret.Failed()) return ret;
+				StringID str = CheckVehicleOnGround (tile);
+				if (str != STR_NULL) return_cmd_error(str);
 			}
 
 			/* Ignore half built tiles */
@@ -855,8 +858,8 @@ static CommandCost BuildRoad_Road(TileIndex tile, DoCommandFlag flags, RoadType 
 		}
 	}
 
-	CommandCost ret = EnsureNoVehicleOnGround(tile);
-	if (ret.Failed()) return ret;
+	StringID str = CheckVehicleOnGround (tile);
+	if (str != STR_NULL) return_cmd_error(str);
 
 	uint num_pieces = CountBits(pieces);
 	cost.AddCost(num_pieces * _price[PR_BUILD_ROAD]);
@@ -967,8 +970,8 @@ static CommandCost BuildRoad_Bridge(TileIndex tile, DoCommandFlag flags, RoadTyp
 			num += 2;
 		}
 	} else {
-		CommandCost ret = EnsureNoVehicleOnGround(tile);
-		if (ret.Failed()) return ret;
+		StringID str = CheckVehicleOnGround (tile);
+		if (str != STR_NULL) return_cmd_error(str);
 	}
 
 	if (flags & DC_EXEC) {
@@ -1028,8 +1031,8 @@ static CommandCost BuildRoad_Crossing(TileIndex tile, DoCommandFlag flags, RoadT
 
 	if (HasTileRoadType(tile, rt)) return_cmd_error(STR_ERROR_ALREADY_BUILT);
 
-	CommandCost ret = EnsureNoVehicleOnGround(tile);
-	if (ret.Failed()) return ret;
+	StringID str = CheckVehicleOnGround (tile);
+	if (str != STR_NULL) return_cmd_error(str);
 
 	if (flags & DC_EXEC) {
 		SetRoadTypes(tile, GetRoadTypes(tile) | RoadTypeToRoadTypes(rt));
@@ -1094,8 +1097,8 @@ static CommandCost BuildRoad_Railway(TileIndex tile, DoCommandFlag flags, RoadTy
 			return BuildRoad_Clear(tile, flags, rt, pieces, company, town, drd);
 	}
 
-	CommandCost ret = EnsureNoVehicleOnGround(tile);
-	if (ret.Failed()) return ret;
+	StringID str = CheckVehicleOnGround (tile);
+	if (str != STR_NULL) return_cmd_error(str);
 
 	if (flags & DC_EXEC) {
 		YapfNotifyTrackLayoutChange();
@@ -1196,8 +1199,8 @@ static CommandCost BuildRoad_Station(TileIndex tile, DoCommandFlag flags, RoadTy
 
 	if (HasTileRoadType(tile, rt)) return_cmd_error(STR_ERROR_ALREADY_BUILT);
 
-	CommandCost ret = EnsureNoVehicleOnGround(tile);
-	if (ret.Failed()) return ret;
+	StringID str = CheckVehicleOnGround (tile);
+	if (str != STR_NULL) return_cmd_error(str);
 
 	if (flags & DC_EXEC) {
 		SetRoadTypes(tile, GetRoadTypes(tile) | RoadTypeToRoadTypes(rt));
@@ -2104,7 +2107,7 @@ static void TileLoop_Road(TileIndex tile)
 					(DistanceManhattan(t->xy, tile) < 8 || grp != HZB_TOWN_EDGE) &&
 					!HasAtMostOneBit(GetAllRoadBits(tile)) &&
 					GetFoundationSlope(tile) == SLOPE_FLAT &&
-					EnsureNoVehicleOnGround(tile).Succeeded() &&
+					CheckVehicleOnGround(tile) == STR_NULL &&
 					Chance16(1, 40)) {
 				StartRoadWorks(tile);
 				/* Remove any trees or lamps in case or roadwork */

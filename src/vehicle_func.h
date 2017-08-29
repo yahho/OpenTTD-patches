@@ -160,7 +160,7 @@ static inline StringID GetErrSendToDepot(const BaseVehicle *v)
 	return GetErrSendToDepot(v->type);
 }
 
-CommandCost EnsureNoVehicleOnGround(TileIndex tile);
+StringID CheckVehicleOnGround (TileIndex tile);
 
 bool CheckTrackBitsFree (TileIndex tile, TrackBits track_bits);
 bool CheckBridgeEndTrackBitsFree (TileIndex tile, TrackBits bits);

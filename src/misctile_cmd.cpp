@@ -730,8 +730,8 @@ static CommandCost ClearTile_Misc(TileIndex tile, DoCommandFlag flags)
 				if (ret.Failed()) return ret;
 			}
 
-			CommandCost ret = EnsureNoVehicleOnGround (tile);
-			if (ret.Failed()) return ret;
+			StringID str = CheckVehicleOnGround (tile);
+			if (str != STR_NULL) return_cmd_error(str);
 
 			return IsRailDepot(tile) ? RemoveTrainDepot(tile, flags) : RemoveRoadDepot(tile, flags);
 	}

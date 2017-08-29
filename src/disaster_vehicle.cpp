@@ -57,7 +57,7 @@ uint16 _disaster_delay;
 
 static void DisasterClearSquare(TileIndex tile)
 {
-	if (EnsureNoVehicleOnGround(tile).Failed()) return;
+	if (CheckVehicleOnGround (tile) != STR_NULL) return;
 
 	if (IsHouseTile(tile)) {
 		Backup<CompanyByte> cur_company(_current_company, OWNER_NONE, FILE_LINE);
