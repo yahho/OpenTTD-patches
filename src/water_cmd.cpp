@@ -240,6 +240,20 @@ static CommandCost RemoveShipDepot(TileIndex tile, DoCommandFlag flags)
 }
 
 /**
+ * Ensure there is no vehicle at the ground in the given lock area.
+ * @param tile Central tile of lock area to examine.
+ * @param delta Lock direction.
+ * @return STR_NULL (ground is free) or an error message (a vehicle is found).
+ */
+static StringID CheckLockAreaFree (TileIndex tile, TileIndexDiff delta)
+{
+	StringID str = CheckVehicleOnGround (tile);
+	if (str == STR_NULL) str = CheckVehicleOnGround (tile + delta);
+	if (str == STR_NULL) str = CheckVehicleOnGround (tile - delta);
+	return str;
+}
+
+/**
  * Builds a lock.
  * @param tile tile where to place the lock
  * @param flags type of operation
@@ -256,9 +270,7 @@ CommandCost CmdBuildLock(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 
 	CommandCost cost(EXPENSES_CONSTRUCTION);
 
 	int delta = TileOffsByDiagDir(dir);
-	StringID str = CheckVehicleOnGround (tile);
-	if (str == STR_NULL) str = CheckVehicleOnGround (tile + delta);
-	if (str == STR_NULL) str = CheckVehicleOnGround (tile - delta);
+	StringID str = CheckLockAreaFree (tile, delta);
 	if (str != STR_NULL) return_cmd_error(str);
 
 	/* middle tile */
@@ -335,9 +347,7 @@ static CommandCost RemoveLock(TileIndex tile, DoCommandFlag flags)
 	TileIndexDiff delta = TileOffsByDiagDir(GetLockDirection(tile));
 
 	/* make sure no vehicle is on the tile. */
-	StringID str = CheckVehicleOnGround (tile);
-	if (str == STR_NULL) str = CheckVehicleOnGround (tile + delta);
-	if (str == STR_NULL) str = CheckVehicleOnGround (tile - delta);
+	StringID str = CheckLockAreaFree (tile, delta);
 	if (str != STR_NULL) return_cmd_error(str);
 
 	if (flags & DC_EXEC) {
