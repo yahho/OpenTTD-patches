@@ -501,11 +501,9 @@ static CommandCost ClearTile_Water(TileIndex tile, DoCommandFlag flags)
 				DoClearSquare(tile);
 				MarkCanalsAndRiversAroundDirty(tile);
 			}
-			if (IsSlopeWithOneCornerRaised(slope)) {
-				return CommandCost(EXPENSES_CONSTRUCTION, _price[PR_CLEAR_WATER]);
-			} else {
-				return CommandCost(EXPENSES_CONSTRUCTION, _price[PR_CLEAR_ROUGH]);
-			}
+			bool half = IsSlopeWithOneCornerRaised (slope);
+			return CommandCost (EXPENSES_CONSTRUCTION,
+				_price[half ? PR_CLEAR_WATER : PR_CLEAR_ROUGH]);
 		}
 
 		case WATER_TILE_DEPOT:
