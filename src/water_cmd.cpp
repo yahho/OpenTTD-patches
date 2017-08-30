@@ -66,17 +66,6 @@ static const uint8 _flood_from_dirs[] = {
 };
 
 /**
- * Marks tile dirty if it is a canal or river tile.
- * Called to avoid glitches when flooding tiles next to canal tile.
- *
- * @param tile tile to check
- */
-static inline void MarkTileDirtyIfCanalOrRiver(TileIndex tile)
-{
-	if (IsWaterTile(tile) && (IsCanal(tile) || IsRiver(tile))) MarkTileDirtyByTile(tile);
-}
-
-/**
  * Marks the tiles around a tile as dirty, if they are canals or rivers.
  *
  * @param tile The center of the tile where all other tiles are marked as dirty
@@ -85,7 +74,11 @@ static inline void MarkTileDirtyIfCanalOrRiver(TileIndex tile)
 static void MarkCanalsAndRiversAroundDirty(TileIndex tile)
 {
 	for (Direction dir = DIR_BEGIN; dir < DIR_END; dir++) {
-		MarkTileDirtyIfCanalOrRiver(tile + TileOffsByDir(dir));
+		TileIndex neighbour = tile + TileOffsByDir (dir);
+		if (IsWaterTile (neighbour)
+				&& (IsCanal(neighbour) || IsRiver(neighbour))) {
+			MarkTileDirtyByTile (neighbour);
+		}
 	}
 }
 
