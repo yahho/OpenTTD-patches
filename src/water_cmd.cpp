@@ -768,7 +768,6 @@ static void DrawWaterDepot(const TileInfo *ti)
 static uint DrawRiverWater (const TileInfo *ti)
 {
 	SpriteID image = SPR_FLAT_WATER_TILE;
-	uint     offset = 0;
 	uint     edges_offset = 0;
 
 	if (ti->tileh != SLOPE_FLAT || HasBit(_water_feature[CF_RIVER_SLOPE].flags, CFF_HAS_FLAT_SPRITE)) {
@@ -783,7 +782,7 @@ static uint DrawRiverWater (const TileInfo *ti)
 			}
 		} else {
 			/* Flag bit 0 indicates that the first sprite is flat water. */
-			offset = HasBit(_water_feature[CF_RIVER_SLOPE].flags, CFF_HAS_FLAT_SPRITE) ? 1 : 0;
+			uint offset = HasBit(_water_feature[CF_RIVER_SLOPE].flags, CFF_HAS_FLAT_SPRITE) ? 1 : 0;
 
 			switch (ti->tileh) {
 				case SLOPE_SE:              edges_offset += 12; break;
@@ -793,11 +792,11 @@ static uint DrawRiverWater (const TileInfo *ti)
 				default:       offset  = 0; break;
 			}
 
-			offset = GetCanalSpriteOffset(CF_RIVER_SLOPE, ti->tile, offset);
+			image += GetCanalSpriteOffset (CF_RIVER_SLOPE, ti->tile, offset);
 		}
 	}
 
-	DrawGroundSprite (ti, image + offset, PAL_NONE);
+	DrawGroundSprite (ti, image, PAL_NONE);
 
 	return edges_offset;
 }
