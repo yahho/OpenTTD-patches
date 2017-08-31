@@ -561,6 +561,12 @@ static const byte _vehicle_type_colours[6] = {
 };
 
 
+/** Notify the industry chain window to stop sending newly selected industries. */
+/* static */ void SmallMapWindow::BreakIndustryChainLink()
+{
+	InvalidateWindowClassesData(WC_INDUSTRY_CARGOES, NUM_INDUSTRYTYPES);
+}
+
 /**
  * Remap tile to location on this smallmap.
  * @param tile_x X coordinate of the tile.
@@ -1068,6 +1074,11 @@ SmallMapWindow::SmallMapWindow (const WindowDesc *desc, int window_number) :
 	this->SetOverlayCargoMask();
 }
 
+SmallMapWindow::~SmallMapWindow()
+{
+	this->BreakIndustryChainLink();
+}
+
 /**
  * Rebuilds the colour indices used for fast access to the smallmap contour colours based on the heightlevel.
  */
@@ -1277,6 +1288,7 @@ void SmallMapWindow::SwitchMapType(SmallMapType map_type)
 	this->SetupWidgetData();
 
 	if (map_type == SMT_LINKSTATS) this->overlay.RebuildCache();
+	if (map_type != SMT_INDUSTRY) this->BreakIndustryChainLink();
 	this->SetDirty();
 }
 
@@ -1328,6 +1340,8 @@ void SmallMapWindow::SelectLegendItem(int click_pos, LegendAndColour *legend, in
 	} else {
 		legend[click_pos].show_on_map = !legend[click_pos].show_on_map;
 	}
+
+	if (this->map_type == SMT_INDUSTRY) this->BreakIndustryChainLink();
 }
 
 /**
@@ -1383,9 +1397,6 @@ int SmallMapWindow::GetPositionOnLegend(Point pt)
 
 /* virtual */ void SmallMapWindow::OnClick(Point pt, int widget, int click_count)
 {
-	/* User clicked something, notify the industry chain window to stop sending newly selected industries. */
-	InvalidateWindowClassesData(WC_INDUSTRY_CARGOES, NUM_INDUSTRYTYPES);
-
 	switch (widget) {
 		case WID_SM_MAP: { // Map window
 			/*
@@ -1473,6 +1484,7 @@ int SmallMapWindow::GetPositionOnLegend(Point pt)
 			switch (this->map_type) {
 				case SMT_INDUSTRY:
 					tbl = _legend_from_industries;
+					this->BreakIndustryChainLink();
 					break;
 				case SMT_OWNER:
 					tbl = &(_legend_land_owners[NUM_NO_COMPANY_ENTRIES]);
