@@ -712,51 +712,6 @@ static void DrawWaterTileStruct(const TileInfo *ti, const DrawTileSeqStruct *dts
 	}
 }
 
-/** Draw a lock tile. */
-static void DrawWaterLock(const TileInfo *ti)
-{
-	uint part = GetWaterTileType (ti->tile) - WATER_TILE_LOCK_MIDDLE;
-	DiagDirection dir = GetLockDirection (ti->tile);
-
-	/* Draw ground sprite. */
-	bool has_flat_water = HasBit(_water_feature[CF_WATERSLOPE].flags, CFF_HAS_FLAT_SPRITE);
-	bool use_default = true;
-	SpriteID image;
-	if (has_flat_water || (part == 0)) {
-		image = GetCanalSprite (CF_WATERSLOPE, ti->tile);
-		if (image != 0) {
-			use_default = false;
-			/* NewGRF supplies a flat sprite as first sprite? */
-			if (part == 0) image += has_flat_water;
-		}
-	}
-
-	if (use_default) {
-		/* Use default sprites. */
-		image = (part != 0) ? SPR_FLAT_WATER_TILE : SPR_CANALS_BASE;
-	}
-
-	static uint8 lock_middle_offset[DIAGDIR_END] = { 1, 0, 2, 3 };
-	if (part == 0) image += lock_middle_offset[dir];
-	DrawGroundSprite (ti, image, PAL_NONE);
-
-	const DrawTileSeqStruct *dts = _lock_display_data[part][dir];
-
-	/* Draw structures. */
-	uint     zoffs = 0;
-	SpriteID base  = GetCanalSprite(CF_LOCKS, ti->tile);
-
-	if (base == 0) {
-		/* If no custom graphics, use defaults. */
-		base = SPR_LOCK_BASE;
-		bool upper = part == (WATER_TILE_LOCK_UPPER - WATER_TILE_LOCK_MIDDLE);
-		uint8 z_threshold = upper ? 8 : 0;
-		zoffs = ti->z > z_threshold ? 24 : 0;
-	}
-
-	DrawWaterTileStruct (ti, dts, base, zoffs, PAL_NONE, CF_LOCKS);
-}
-
 static uint DrawRiverWater (const TileInfo *ti)
 {
 	SpriteID image = SPR_FLAT_WATER_TILE;
@@ -850,7 +805,8 @@ void DrawWaterClassGround(const TileInfo *ti)
 
 static void DrawTile_Water(TileInfo *ti)
 {
-	switch (GetWaterTileType(ti->tile)) {
+	WaterTileType type = GetWaterTileType (ti->tile);
+	switch (type) {
 		case WATER_TILE_CLEAR:
 			DrawWaterClassGround(ti);
 			DrawBridgeMiddle(ti);
@@ -869,7 +825,46 @@ static void DrawTile_Water(TileInfo *ti)
 			break;
 
 		default:
-			DrawWaterLock(ti);
+			uint part = type - WATER_TILE_LOCK_MIDDLE;
+			DiagDirection dir = GetLockDirection (ti->tile);
+
+			/* Draw ground sprite. */
+			bool has_flat_water = HasBit(_water_feature[CF_WATERSLOPE].flags, CFF_HAS_FLAT_SPRITE);
+			bool use_default = true;
+			SpriteID image;
+			if (has_flat_water || (part == 0)) {
+				image = GetCanalSprite (CF_WATERSLOPE, ti->tile);
+				if (image != 0) {
+					/* NewGRF supplies a flat sprite as first sprite? */
+					if (part == 0) image += has_flat_water;
+					use_default = false;
+				}
+			}
+
+			if (use_default) {
+				/* Use default sprites. */
+				image = (part != 0) ? SPR_FLAT_WATER_TILE : SPR_CANALS_BASE;
+			}
+
+			static uint8 lock_middle_offset[DIAGDIR_END] = { 1, 0, 2, 3 };
+			if (part == 0) image += lock_middle_offset[dir];
+			DrawGroundSprite (ti, image, PAL_NONE);
+
+			const DrawTileSeqStruct *dts = _lock_display_data[part][dir];
+
+			/* Draw structures. */
+			uint     zoffs = 0;
+			SpriteID base  = GetCanalSprite (CF_LOCKS, ti->tile);
+
+			if (base == 0) {
+				/* If no custom graphics, use defaults. */
+				base = SPR_LOCK_BASE;
+				bool upper = part == (WATER_TILE_LOCK_UPPER - WATER_TILE_LOCK_MIDDLE);
+				uint8 z_threshold = upper ? 8 : 0;
+				zoffs = ti->z > z_threshold ? 24 : 0;
+			}
+
+			DrawWaterTileStruct (ti, dts, base, zoffs, PAL_NONE, CF_LOCKS);
 			break;
 	}
 }
