@@ -805,23 +805,34 @@ void DrawWaterClassGround(const TileInfo *ti)
 
 static void DrawTile_Water(TileInfo *ti)
 {
+	const DrawTileSeqStruct *dts;
+	SpriteID base;
+	uint zoffs;
+	PaletteID palette;
+	CanalFeature feature;
+
 	WaterTileType type = GetWaterTileType (ti->tile);
 	switch (type) {
 		case WATER_TILE_CLEAR:
 			DrawWaterClassGround(ti);
 			DrawBridgeMiddle(ti);
-			break;
+			/* No building sprites. */
+			return;
 
 		case WATER_TILE_COAST: {
 			DrawShoreTile (ti);
 			DrawBridgeMiddle(ti);
-			break;
+			/* No building sprites. */
+			return;
 		}
 
 		case WATER_TILE_DEPOT:
 			DrawWaterClassGround (ti);
-			DrawWaterTileStruct (ti, _shipdepot_display_data[GetShipDepotDirection(ti->tile)],
-					0, 0, COMPANY_SPRITE_COLOUR(GetTileOwner(ti->tile)), CF_END);
+			dts = _shipdepot_display_data[GetShipDepotDirection(ti->tile)];
+			base = 0;
+			zoffs = 0;
+			palette = COMPANY_SPRITE_COLOUR(GetTileOwner(ti->tile));
+			feature = CF_END;
 			break;
 
 		default:
@@ -850,11 +861,11 @@ static void DrawTile_Water(TileInfo *ti)
 			if (part == 0) image += lock_middle_offset[dir];
 			DrawGroundSprite (ti, image, PAL_NONE);
 
-			const DrawTileSeqStruct *dts = _lock_display_data[part][dir];
+			dts = _lock_display_data[part][dir];
 
 			/* Draw structures. */
-			uint     zoffs = 0;
-			SpriteID base  = GetCanalSprite (CF_LOCKS, ti->tile);
+			zoffs = 0;
+			base  = GetCanalSprite (CF_LOCKS, ti->tile);
 
 			if (base == 0) {
 				/* If no custom graphics, use defaults. */
@@ -864,9 +875,12 @@ static void DrawTile_Water(TileInfo *ti)
 				zoffs = ti->z > z_threshold ? 24 : 0;
 			}
 
-			DrawWaterTileStruct (ti, dts, base, zoffs, PAL_NONE, CF_LOCKS);
+			palette = PAL_NONE;
+			feature = CF_LOCKS;
 			break;
 	}
+
+	DrawWaterTileStruct (ti, dts, base, zoffs, palette, feature);
 }
 
 void DrawShipDepotSprite (BlitArea *dpi, int x, int y, DiagDirection dir)
