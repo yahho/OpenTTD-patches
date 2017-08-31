@@ -757,14 +757,6 @@ static void DrawWaterLock(const TileInfo *ti)
 	DrawWaterTileStruct (ti, dts, base, zoffs, PAL_NONE, CF_LOCKS);
 }
 
-/** Draw a ship depot tile. */
-static void DrawWaterDepot(const TileInfo *ti)
-{
-	DrawWaterClassGround(ti);
-	DrawWaterTileStruct (ti, _shipdepot_display_data[GetShipDepotDirection(ti->tile)],
-			0, 0, COMPANY_SPRITE_COLOUR(GetTileOwner(ti->tile)), CF_END);
-}
-
 static uint DrawRiverWater (const TileInfo *ti)
 {
 	SpriteID image = SPR_FLAT_WATER_TILE;
@@ -871,7 +863,9 @@ static void DrawTile_Water(TileInfo *ti)
 		}
 
 		case WATER_TILE_DEPOT:
-			DrawWaterDepot(ti);
+			DrawWaterClassGround (ti);
+			DrawWaterTileStruct (ti, _shipdepot_display_data[GetShipDepotDirection(ti->tile)],
+					0, 0, COMPANY_SPRITE_COLOUR(GetTileOwner(ti->tile)), CF_END);
 			break;
 
 		default:
