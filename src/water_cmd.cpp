@@ -687,31 +687,6 @@ static void DrawWaterEdges (const TileInfo *ti, bool canal, uint offset)
 
 #include "table/water_land.h"
 
-/**
- * Draw a build sprite sequence for water tiles.
- * If buildings are invisible, nothing will be drawn.
- * @param ti      Tile info.
- * @param dtss     Sprite sequence to draw.
- * @param base    Base sprite.
- * @param offset  Additional sprite offset.
- * @param palette Palette to use.
- */
-static void DrawWaterTileStruct(const TileInfo *ti, const DrawTileSeqStruct *dtss, SpriteID base, uint offset, PaletteID palette, CanalFeature feature)
-{
-	/* Don't draw if buildings are invisible. */
-	if (IsInvisibilitySet(TO_BUILDINGS)) return;
-
-	for (; !dtss->IsTerminator(); dtss++) {
-		uint tile_offs = offset + dtss->image.sprite;
-		if (feature < CF_END) tile_offs = GetCanalSpriteOffset(feature, ti->tile, tile_offs);
-		AddSortableSpriteToDraw (ti->vd, base + tile_offs, palette,
-			ti->x + dtss->delta_x, ti->y + dtss->delta_y,
-			dtss->size_x, dtss->size_y,
-			dtss->size_z, ti->z + dtss->delta_z,
-			IsTransparencySet(TO_BUILDINGS));
-	}
-}
-
 static uint DrawRiverWater (const TileInfo *ti)
 {
 	SpriteID image = SPR_FLAT_WATER_TILE;
@@ -880,7 +855,20 @@ static void DrawTile_Water(TileInfo *ti)
 			break;
 	}
 
-	DrawWaterTileStruct (ti, dts, base, zoffs, palette, feature);
+	/* Don't draw if buildings are invisible. */
+	if (IsInvisibilitySet(TO_BUILDINGS)) return;
+
+	for (; !dts->IsTerminator(); dts++) {
+		uint tile_offs = zoffs + dts->image.sprite;
+		if (feature < CF_END) {
+			tile_offs = GetCanalSpriteOffset (feature, ti->tile, tile_offs);
+		}
+		AddSortableSpriteToDraw (ti->vd, base + tile_offs, palette,
+				ti->x + dts->delta_x, ti->y + dts->delta_y,
+				dts->size_x, dts->size_y, dts->size_z,
+				ti->z + dts->delta_z,
+				IsTransparencySet(TO_BUILDINGS));
+	}
 }
 
 void DrawShipDepotSprite (BlitArea *dpi, int x, int y, DiagDirection dir)
