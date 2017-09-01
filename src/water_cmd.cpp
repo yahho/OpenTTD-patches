@@ -784,7 +784,6 @@ static void DrawTile_Water(TileInfo *ti)
 	SpriteID base;
 	uint zoffs;
 	PaletteID palette;
-	CanalFeature feature;
 
 	WaterTileType type = GetWaterTileType (ti->tile);
 	switch (type) {
@@ -811,7 +810,6 @@ static void DrawTile_Water(TileInfo *ti)
 			base = 0;
 			zoffs = 0;
 			palette = COMPANY_SPRITE_COLOUR(GetTileOwner(ti->tile));
-			feature = CF_END;
 			break;
 
 		default:
@@ -857,17 +855,19 @@ static void DrawTile_Water(TileInfo *ti)
 				zoffs = ti->z > z_threshold ? 24 : 0;
 			}
 
+			assert (base != 0);
+
 			palette = PAL_NONE;
-			feature = CF_LOCKS;
 			break;
 	}
 
 	for (; !dts->IsTerminator(); dts++) {
-		uint tile_offs = zoffs + dts->image.sprite;
-		if (feature < CF_END) {
-			tile_offs = GetCanalSpriteOffset (feature, ti->tile, tile_offs);
+		SpriteID image = dts->image.sprite;
+		if (base != 0) {
+			image = base + GetCanalSpriteOffset (CF_LOCKS,
+						ti->tile, image + zoffs);
 		}
-		AddSortableSpriteToDraw (ti->vd, base + tile_offs, palette,
+		AddSortableSpriteToDraw (ti->vd, image, palette,
 				ti->x + dts->delta_x, ti->y + dts->delta_y,
 				dts->size_x, dts->size_y, dts->size_z,
 				ti->z + dts->delta_z,
