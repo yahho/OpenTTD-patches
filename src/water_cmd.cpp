@@ -803,6 +803,10 @@ static void DrawTile_Water(TileInfo *ti)
 
 		case WATER_TILE_DEPOT:
 			DrawWaterClassGround (ti);
+
+			/* Don't draw if buildings are invisible. */
+			if (IsInvisibilitySet(TO_BUILDINGS)) return;
+
 			dts = _shipdepot_display_data[GetShipDepotDirection(ti->tile)];
 			base = 0;
 			zoffs = 0;
@@ -836,6 +840,9 @@ static void DrawTile_Water(TileInfo *ti)
 			if (part == 0) image += lock_middle_offset[dir];
 			DrawGroundSprite (ti, image, PAL_NONE);
 
+			/* Don't draw if buildings are invisible. */
+			if (IsInvisibilitySet(TO_BUILDINGS)) return;
+
 			dts = _lock_display_data[part][dir];
 
 			/* Draw structures. */
@@ -854,9 +861,6 @@ static void DrawTile_Water(TileInfo *ti)
 			feature = CF_LOCKS;
 			break;
 	}
-
-	/* Don't draw if buildings are invisible. */
-	if (IsInvisibilitySet(TO_BUILDINGS)) return;
 
 	for (; !dts->IsTerminator(); dts++) {
 		uint tile_offs = zoffs + dts->image.sprite;
