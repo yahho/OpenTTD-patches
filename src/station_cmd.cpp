@@ -2091,6 +2091,24 @@ static CommandCost CanRemoveAirport(Station *st, DoCommandFlag flags)
 	return cost;
 }
 
+/** Clear the map area of an airport and delete related windows. */
+static void ClearAirportArea (Station *st)
+{
+	TILE_AREA_LOOP(tile, st->airport) {
+		if (IsHangarTile (tile)) OrderBackup::Reset (tile, false);
+		DeleteAnimatedTile (tile);
+		DoClearSquare (tile);
+		DeleteNewGRFInspectWindow (GSF_AIRPORTTILES, tile);
+	}
+
+	for (uint i = 0; i < st->airport.GetNumHangars(); ++i) {
+		DeleteWindowById (WC_VEHICLE_DEPOT, st->airport.GetHangarTile(i));
+	}
+
+	/* Clear the persistent storage. */
+	delete st->airport.psa;
+	st->airport.psa = NULL;
+}
 
 /**
  * Place an Airport.
@@ -2217,18 +2235,7 @@ CommandCost CmdBuildAirport(TileIndex tile, DoCommandFlag flags, uint32 p1, uint
 				}
 			}
 
-			TILE_AREA_LOOP(tile_cur, st->airport) {
-				if (IsHangarTile(tile_cur)) OrderBackup::Reset(tile_cur, false);
-				DeleteAnimatedTile(tile_cur);
-				DoClearSquare(tile_cur);
-				DeleteNewGRFInspectWindow(GSF_AIRPORTTILES, tile_cur);
-			}
-
-			for (uint i = 0; i < st->airport.GetNumHangars(); ++i) {
-				DeleteWindowById(
-					WC_VEHICLE_DEPOT, st->airport.GetHangarTile(i)
-				);
-			}
+			ClearAirportArea (st);
 
 			st->AfterRemoveRect(st->airport);
 			st->airport.Clear();
@@ -2308,21 +2315,7 @@ static CommandCost RemoveAirport(TileIndex tile, DoCommandFlag flags)
 		Town *nearest = AirportGetNearestTown (as, st->airport.layout, st->airport.tile);
 		nearest->noise_reached -= GetAirportNoiseLevelForTown (as, st->airport.layout, st->airport.tile, nearest->xy);
 
-		TILE_AREA_LOOP(tile_cur, st->airport) {
-			if (IsHangarTile(tile_cur)) OrderBackup::Reset(tile_cur, false);
-			DeleteAnimatedTile(tile_cur);
-			DoClearSquare(tile_cur);
-			DeleteNewGRFInspectWindow(GSF_AIRPORTTILES, tile_cur);
-		}
-
-		/* Clear the persistent storage. */
-		delete st->airport.psa;
-
-		for (uint i = 0; i < st->airport.GetNumHangars(); ++i) {
-			DeleteWindowById(
-				WC_VEHICLE_DEPOT, st->airport.GetHangarTile(i)
-			);
-		}
+		ClearAirportArea (st);
 
 		st->AfterRemoveRect(st->airport);
 
