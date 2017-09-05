@@ -2094,15 +2094,16 @@ static CommandCost CanRemoveAirport(Station *st, DoCommandFlag flags)
 /** Clear the map area of an airport and delete related windows. */
 static void ClearAirportArea (Station *st)
 {
+	for (uint i = 0; i < st->airport.GetNumHangars(); ++i) {
+		TileIndex tile = st->airport.GetHangarTile (i);
+		DeleteWindowById (WC_VEHICLE_DEPOT, tile);
+		OrderBackup::Reset (tile, false);
+	}
+
 	TILE_AREA_LOOP(tile, st->airport) {
-		if (IsHangarTile (tile)) OrderBackup::Reset (tile, false);
 		DeleteAnimatedTile (tile);
 		DoClearSquare (tile);
 		DeleteNewGRFInspectWindow (GSF_AIRPORTTILES, tile);
-	}
-
-	for (uint i = 0; i < st->airport.GetNumHangars(); ++i) {
-		DeleteWindowById (WC_VEHICLE_DEPOT, st->airport.GetHangarTile(i));
 	}
 
 	/* Clear the persistent storage. */
