@@ -2101,9 +2101,11 @@ static void ClearAirportArea (Station *st)
 	}
 
 	TILE_AREA_LOOP(tile, st->airport) {
-		DeleteAnimatedTile (tile);
-		DoClearSquare (tile);
-		DeleteNewGRFInspectWindow (GSF_AIRPORTTILES, tile);
+		if (st->TileBelongsToAirport (tile)) {
+			DeleteAnimatedTile (tile);
+			DoClearSquare (tile);
+			DeleteNewGRFInspectWindow (GSF_AIRPORTTILES, tile);
+		}
 	}
 
 	/* Clear the persistent storage. */
