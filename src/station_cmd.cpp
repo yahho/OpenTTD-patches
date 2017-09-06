@@ -804,17 +804,20 @@ static CommandCost CheckFlatLandRoadStop(TileArea tile_area, DoCommandFlag flags
 
 /**
  * Checks if an airport can be built at the given area.
- * @param tile_area Area to check.
+ * @param airport_tile Airport reference tile.
+ * @param att Airport tile table.
  * @param flags Operation to perform.
  * @param station StationID of airport allowed in search area.
  * @return The cost in case of success, or an error code if it failed.
  */
-static CommandCost CheckFlatLandAirport(TileArea tile_area, DoCommandFlag flags, StationID *station)
+static CommandCost CheckFlatLandAirport (TileIndex airport_tile,
+	const AirportTileTable *att, DoCommandFlag flags, StationID *station)
 {
 	CommandCost cost(EXPENSES_CONSTRUCTION);
 	int allowed_z = -1;
 
-	TILE_AREA_LOOP(tile_cur, tile_area) {
+	for (AirportTileTableIterator iter (att, airport_tile); iter != INVALID_TILE; ++iter) {
+		TileIndex tile_cur = iter;
 		CommandCost ret = CheckBuildableTile(tile_cur, 0, allowed_z, true);
 		if (ret.Failed()) return ret;
 		cost.AddCost(ret);
@@ -2145,20 +2148,22 @@ CommandCost CmdBuildAirport(TileIndex tile, DoCommandFlag flags, uint32 p1, uint
 	int w = as->size_x;
 	int h = as->size_y;
 	if (rotation == DIR_E || rotation == DIR_W) Swap(w, h);
-	TileArea airport_area = TileArea(tile, w, h);
 
 	if (w > _settings_game.station.station_spread || h > _settings_game.station.station_spread) {
 		return_cmd_error(STR_ERROR_STATION_TOO_SPREAD_OUT);
 	}
 
 	StationID est = INVALID_STATION;
-	CommandCost cost = CheckFlatLandAirport(airport_area, flags, &est);
+	CommandCost cost = CheckFlatLandAirport (tile, as->table[layout],
+						flags, &est);
 	if (cost.Failed()) return cost;
 
 	Station *st = NULL;
-	ret = BuildStationPart (&st, airport_area, est, station_to_join,
-			HasBit (p2, 0), STR_ERROR_MUST_DEMOLISH_AIRPORT_FIRST,
-			flags, (GetAirport(airport_type)->flags & AirportFTAClass::AIRPLANES) ? STATIONNAMING_AIRPORT : STATIONNAMING_HELIPORT);
+	ret = BuildStationPart (&st, TileArea (tile, w, h), est,
+			station_to_join, HasBit (p2, 0),
+			STR_ERROR_MUST_DEMOLISH_AIRPORT_FIRST, flags,
+			(GetAirport(airport_type)->flags & AirportFTAClass::AIRPLANES) ?
+				STATIONNAMING_AIRPORT : STATIONNAMING_HELIPORT);
 	if (ret.Failed()) return ret;
 
 	/* action to be performed */
