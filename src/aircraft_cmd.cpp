@@ -1710,30 +1710,22 @@ static bool AirportMove(Aircraft *v, const AirportFTAClass *apc)
 
 	v->previous_pos = v->pos; // save previous location
 
-	/* there is only one choice to move to */
-	if (current->next == NULL) {
-		if (AirportSetBlocks(v, current, apc)) {
-			v->pos = current->next_position;
-			UpdateAircraftCache(v);
-		} // move to next position
-		return false;
+	if (current->next != NULL) {
+		/* there are more choices to choose from, choose the one that
+		 * matches our heading */
+		do {
+			current = current->next;
+			assert (current != NULL);
+		} while (current->heading != v->state
+				&& current->heading != TO_ALL);
 	}
 
-	/* there are more choices to choose from, choose the one that
-	 * matches our heading */
-	do {
-		if (v->state == current->heading || current->heading == TO_ALL) {
-			if (AirportSetBlocks(v, current, apc)) {
-				v->pos = current->next_position;
-				UpdateAircraftCache(v);
-			} // move to next position
-			return false;
-		}
-		current = current->next;
-	} while (current != NULL);
+	if (AirportSetBlocks (v, current, apc)) {
+		v->pos = current->next_position;
+		UpdateAircraftCache (v);
+	} // move to next position
 
-	DEBUG(misc, 0, "[Ap] cannot move further on Airport! (pos %d state %d) for vehicle %d", v->pos, v->state, v->index);
-	NOT_REACHED();
+	return false;
 }
 
 /** returns true if the road ahead is busy, eg. you must wait before proceeding. */
