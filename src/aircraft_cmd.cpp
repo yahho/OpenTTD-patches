@@ -1723,20 +1723,18 @@ static bool AirportMove(Aircraft *v, const AirportFTAClass *apc)
 	const AirportFTA *next = &apc->layout[current->next_position];
 	const AirportFTA *reference = &apc->layout[v->pos];
 
+	if (current == reference) {
+		assert (current->next == NULL);
+	}
+
 	/* If the next position is in another block, check it and wait
 	 * until it is free. */
-	if ((apc->layout[current->position].block & next->block) != next->block) {
+	if ((apc->layout[current->position].block & next->block) != next->block
+			&& current->block != next->block) {
 		uint64 airport_flags = next->block;
-		if (current == reference) {
-			assert (current->next == NULL);
-		} else {
+		if (current != reference) {
 			airport_flags |= current->block;
 		}
-
-		/* If the block to be checked is in the next position, then
-		 * exclude that from checking, because it has been set by the
-		 * airplane before. */
-		if (current->block == next->block) airport_flags ^= next->block;
 
 		Station *st = Station::Get (v->targetairport);
 		if (st->airport.flags & airport_flags) {
