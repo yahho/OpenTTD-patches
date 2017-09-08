@@ -1768,16 +1768,10 @@ static bool AirportSetBlocks(Aircraft *v, const AirportFTA *current_pos, const A
 	/* if the next position is in another block, check it and wait until it is free */
 	if ((apc->layout[current_pos->position].block & next->block) != next->block) {
 		uint64 airport_flags = next->block;
-		/* search for all all elements in the list with the same state, and blocks != N
-		 * this means more blocks should be checked/set */
-		const AirportFTA *current = current_pos;
-		if (current == reference) current = current->next;
-		while (current != NULL) {
-			if (current->heading == current_pos->heading && current->block != 0) {
-				airport_flags |= current->block;
-				break;
-			}
-			current = current->next;
+		if (current_pos == reference) {
+			assert (current_pos->next == NULL);
+		} else {
+			airport_flags |= current_pos->block;
 		}
 
 		/* if the block to be checked is in the next position, then exclude that from
