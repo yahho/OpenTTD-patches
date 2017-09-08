@@ -78,7 +78,6 @@ void Aircraft::UpdateDeltaXY(Direction direction)
 }
 
 static bool AirportMove(Aircraft *v, const AirportFTAClass *apc);
-static bool AirportSetBlocks(Aircraft *v, const AirportFTA *current_pos, const AirportFTAClass *apc);
 static bool AirportHasBlock(Aircraft *v, const AirportFTA *current_pos, const AirportFTAClass *apc);
 static bool AirportFindFreeTerminal(Aircraft *v, const AirportFTAClass *apc);
 static bool AirportFindFreeHelipad(Aircraft *v, const AirportFTAClass *apc);
@@ -1720,11 +1719,40 @@ static bool AirportMove(Aircraft *v, const AirportFTAClass *apc)
 				&& current->heading != TO_ALL);
 	}
 
-	if (AirportSetBlocks (v, current, apc)) {
-		v->pos = current->next_position;
-		UpdateAircraftCache (v);
-	} // move to next position
+	/* Reserve a block for the plane. */
+	const AirportFTA *next = &apc->layout[current->next_position];
+	const AirportFTA *reference = &apc->layout[v->pos];
 
+	/* If the next position is in another block, check it and wait
+	 * until it is free. */
+	if ((apc->layout[current->position].block & next->block) != next->block) {
+		uint64 airport_flags = next->block;
+		if (current == reference) {
+			assert (current->next == NULL);
+		} else {
+			airport_flags |= current->block;
+		}
+
+		/* If the block to be checked is in the next position, then
+		 * exclude that from checking, because it has been set by the
+		 * airplane before. */
+		if (current->block == next->block) airport_flags ^= next->block;
+
+		Station *st = Station::Get (v->targetairport);
+		if (st->airport.flags & airport_flags) {
+			v->cur_speed = 0;
+			v->subspeed = 0;
+			return false;
+		}
+
+		if (next->block != NOTHING_block) {
+			/* Occupy next block. */
+			SETBITS(st->airport.flags, airport_flags);
+		}
+	}
+
+	v->pos = current->next_position;
+	UpdateAircraftCache (v);
 	return false;
 }
 
@@ -1751,45 +1779,6 @@ static bool AirportHasBlock(Aircraft *v, const AirportFTA *current_pos, const Ai
 		}
 	}
 	return false;
-}
-
-/**
- * "reserve" a block for the plane
- * @param v airplane that requires the operation
- * @param current_pos of the vehicle in the list of blocks
- * @param apc airport on which block is requsted to be set
- * @returns true on success. Eg, next block was free and we have occupied it
- */
-static bool AirportSetBlocks(Aircraft *v, const AirportFTA *current_pos, const AirportFTAClass *apc)
-{
-	const AirportFTA *next = &apc->layout[current_pos->next_position];
-	const AirportFTA *reference = &apc->layout[v->pos];
-
-	/* if the next position is in another block, check it and wait until it is free */
-	if ((apc->layout[current_pos->position].block & next->block) != next->block) {
-		uint64 airport_flags = next->block;
-		if (current_pos == reference) {
-			assert (current_pos->next == NULL);
-		} else {
-			airport_flags |= current_pos->block;
-		}
-
-		/* if the block to be checked is in the next position, then exclude that from
-		 * checking, because it has been set by the airplane before */
-		if (current_pos->block == next->block) airport_flags ^= next->block;
-
-		Station *st = Station::Get(v->targetairport);
-		if (st->airport.flags & airport_flags) {
-			v->cur_speed = 0;
-			v->subspeed = 0;
-			return false;
-		}
-
-		if (next->block != NOTHING_block) {
-			SETBITS(st->airport.flags, airport_flags); // occupy next block
-		}
-	}
-	return true;
 }
 
 /**
