@@ -1555,26 +1555,26 @@ static void AircraftEventHandler_Flying(Aircraft *v, const AirportFTAClass *apc)
 		 * it is possible to choose from multiple landing runways, so loop until a free one is found */
 		byte landingtype = (v->subtype == AIR_HELICOPTER) ? HELILANDING : LANDING;
 		const AirportFTA *current = apc->layout[v->pos].next;
-		while (current != NULL) {
-			if (current->heading == landingtype) {
-				/* save speed before, since if AirportHasBlock is false, it resets them to 0
-				 * we don't want that for plane in air
-				 * hack for speed thingie */
-				uint16 tcur_speed = v->cur_speed;
-				uint16 tsubspeed = v->subspeed;
-				if (!AirportHasBlock(v, current, apc)) {
-					v->state = landingtype; // LANDING / HELILANDING
-					/* it's a bit dirty, but I need to set position to next position, otherwise
-					 * if there are multiple runways, plane won't know which one it took (because
-					 * they all have heading LANDING). And also occupy that block! */
-					v->pos = current->next_position;
-					SETBITS(st->airport.flags, apc->layout[v->pos].block);
-					return;
-				}
-				v->cur_speed = tcur_speed;
-				v->subspeed = tsubspeed;
-			}
+		while (current != NULL && current->heading != landingtype) {
 			current = current->next;
+		}
+		if (current != NULL) {
+			/* save speed before, since if AirportHasBlock is false, it resets them to 0
+			 * we don't want that for plane in air
+			 * hack for speed thingie */
+			uint16 tcur_speed = v->cur_speed;
+			uint16 tsubspeed = v->subspeed;
+			if (!AirportHasBlock(v, current, apc)) {
+				v->state = landingtype; // LANDING / HELILANDING
+				/* it's a bit dirty, but I need to set position to next position, otherwise
+				 * if there are multiple runways, plane won't know which one it took (because
+				 * they all have heading LANDING). And also occupy that block! */
+				v->pos = current->next_position;
+				SETBITS(st->airport.flags, apc->layout[v->pos].block);
+				return;
+			}
+			v->cur_speed = tcur_speed;
+			v->subspeed = tsubspeed;
 		}
 	}
 	v->state = FLYING;
