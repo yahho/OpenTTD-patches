@@ -78,7 +78,6 @@ void Aircraft::UpdateDeltaXY(Direction direction)
 }
 
 static bool AirportMove(Aircraft *v, const AirportFTAClass *apc);
-static bool AirportHasBlock(Aircraft *v, const AirportFTA *current_pos, const AirportFTAClass *apc);
 static bool AirportFindFreeTerminal(Aircraft *v, const AirportFTAClass *apc);
 static bool AirportFindFreeHelipad(Aircraft *v, const AirportFTAClass *apc);
 static void CrashAirplane(Aircraft *v);
@@ -1275,7 +1274,19 @@ static bool MaybeCrashAirplane(Aircraft *v)
 /** returns true if the road ahead is busy, eg. you must wait before proceeding. */
 static bool AirportHasBlock (Aircraft *v, const AirportFTAClass *apc)
 {
-	return AirportHasBlock (v, &apc->layout[v->pos], apc);
+	const AirportFTA *pos = &apc->layout[v->pos];
+	uint64 next_block = apc->layout[pos->next_position].block;
+
+	/* same block, then of course we can move */
+	if (pos->block == next_block) return false;
+
+	if (Station::Get(v->targetairport)->airport.flags & next_block) {
+		v->cur_speed = 0;
+		v->subspeed = 0;
+		return true;
+	}
+
+	return false;
 }
 
 /**
@@ -1560,27 +1571,29 @@ static void AircraftEventHandler_Flying(Aircraft *v, const AirportFTAClass *apc)
 		 * if it is an airplane, look for LANDING, for helicopter HELILANDING
 		 * it is possible to choose from multiple landing runways, so loop until a free one is found */
 		byte landingtype = (v->subtype == AIR_HELICOPTER) ? HELILANDING : LANDING;
-		const AirportFTA *current = apc->layout[v->pos].next;
+		const AirportFTA *reference = &apc->layout[v->pos];
+		const AirportFTA *current = reference->next;
 		while (current != NULL && current->heading != landingtype) {
 			current = current->next;
 		}
 		if (current != NULL) {
-			/* save speed before, since if AirportHasBlock is false, it resets them to 0
-			 * we don't want that for plane in air
-			 * hack for speed thingie */
-			uint16 tcur_speed = v->cur_speed;
-			uint16 tsubspeed = v->subspeed;
-			if (!AirportHasBlock(v, current, apc)) {
+			assert (current->position == v->pos);
+			assert (current->block != NOTHING_block);
+
+			uint64 next_block = apc->layout[current->next_position].block;
+			assert (reference->block != next_block);
+
+			if ((st->airport.flags & (next_block | current->block)) == 0) {
 				v->state = landingtype; // LANDING / HELILANDING
-				/* it's a bit dirty, but I need to set position to next position, otherwise
-				 * if there are multiple runways, plane won't know which one it took (because
-				 * they all have heading LANDING). And also occupy that block! */
+				/* It's a bit dirty, but I need to set position
+				 * to next position, otherwise if there are
+				 * multiple runways, plane won't know which one
+				 * it took (because they all have heading
+				 * LANDING). And also occupy that block! */
 				v->pos = current->next_position;
-				SETBITS(st->airport.flags, apc->layout[v->pos].block);
+				SETBITS(st->airport.flags, next_block);
 				return;
 			}
-			v->cur_speed = tcur_speed;
-			v->subspeed = tsubspeed;
 		}
 	}
 	v->state = FLYING;
@@ -1757,31 +1770,6 @@ static bool AirportMove(Aircraft *v, const AirportFTAClass *apc)
 
 	v->pos = current->next_position;
 	UpdateAircraftCache (v);
-	return false;
-}
-
-/** returns true if the road ahead is busy, eg. you must wait before proceeding. */
-static bool AirportHasBlock(Aircraft *v, const AirportFTA *current_pos, const AirportFTAClass *apc)
-{
-	const AirportFTA *reference = &apc->layout[v->pos];
-	const AirportFTA *next = &apc->layout[current_pos->next_position];
-
-	/* same block, then of course we can move */
-	if (apc->layout[current_pos->position].block != next->block) {
-		const Station *st = Station::Get(v->targetairport);
-		uint64 airport_flags = next->block;
-
-		/* check additional possible extra blocks */
-		if (current_pos != reference && current_pos->block != NOTHING_block) {
-			airport_flags |= current_pos->block;
-		}
-
-		if (st->airport.flags & airport_flags) {
-			v->cur_speed = 0;
-			v->subspeed = 0;
-			return true;
-		}
-	}
 	return false;
 }
 
