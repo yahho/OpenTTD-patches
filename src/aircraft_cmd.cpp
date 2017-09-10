@@ -1272,6 +1272,12 @@ static bool MaybeCrashAirplane(Aircraft *v)
 	return true;
 }
 
+/** returns true if the road ahead is busy, eg. you must wait before proceeding. */
+static bool AirportHasBlock (Aircraft *v, const AirportFTAClass *apc)
+{
+	return AirportHasBlock (v, &apc->layout[v->pos], apc);
+}
+
 /**
  * Aircraft arrives at a terminal. If it is the first aircraft, throw a party.
  * Start loading cargo.
@@ -1430,7 +1436,7 @@ static void AircraftEventHandler_InHangar(Aircraft *v, const AirportFTAClass *ap
 	}
 
 	/* if the block of the next position is busy, stay put */
-	if (AirportHasBlock(v, &apc->layout[v->pos], apc)) return;
+	if (AirportHasBlock (v, apc)) return;
 
 	/* We are already at the target airport, we need to find a terminal */
 	if (v->current_order.GetDestination() == v->targetairport) {
@@ -1473,7 +1479,7 @@ static void AircraftEventHandler_AtTerminal(Aircraft *v, const AirportFTAClass *
 	if (v->current_order.IsType(OT_NOTHING)) return;
 
 	/* if the block of the next position is busy, stay put */
-	if (AirportHasBlock(v, &apc->layout[v->pos], apc)) return;
+	if (AirportHasBlock (v, apc)) return;
 
 	/* airport-road is free. We either have to go to another airport, or to the hangar
 	 * ---> start moving */
@@ -1603,7 +1609,7 @@ static void AircraftEventHandler_HeliLanding(Aircraft *v, const AirportFTAClass 
 static void AircraftEventHandler_EndLanding(Aircraft *v, const AirportFTAClass *apc)
 {
 	/* next block busy, don't do a thing, just wait */
-	if (AirportHasBlock(v, &apc->layout[v->pos], apc)) return;
+	if (AirportHasBlock (v, apc)) return;
 
 	/* if going to terminal (OT_GOTO_STATION) choose one
 	 * 1. in case all terminals are busy AirportFindFreeTerminal() returns false or
@@ -1619,7 +1625,7 @@ static void AircraftEventHandler_EndLanding(Aircraft *v, const AirportFTAClass *
 static void AircraftEventHandler_HeliEndLanding(Aircraft *v, const AirportFTAClass *apc)
 {
 	/*  next block busy, don't do a thing, just wait */
-	if (AirportHasBlock(v, &apc->layout[v->pos], apc)) return;
+	if (AirportHasBlock (v, apc)) return;
 
 	/* if going to helipad (OT_GOTO_STATION) choose one. If airport doesn't have helipads, choose terminal
 	 * 1. in case all terminals/helipads are busy (AirportFindFreeHelipad() returns false) or
