@@ -1695,17 +1695,6 @@ static void AirportClearBlock(const Aircraft *v, const AirportFTAClass *apc)
 	}
 }
 
-static void AirportGoToNextPosition(Aircraft *v)
-{
-	/* if aircraft is not in position, wait until it is */
-	if (!AircraftController(v)) return;
-
-	const AirportFTAClass *apc = Station::Get(v->targetairport)->airport.GetFTA();
-
-	AirportClearBlock(v, apc);
-	AirportMove(v, apc); // move aircraft to next position
-}
-
 /* gets pos from vehicle and next orders */
 static bool AirportMove(Aircraft *v, const AirportFTAClass *apc)
 {
@@ -1942,7 +1931,14 @@ static bool AircraftEventHandler(Aircraft *v, int loop)
 		}
 	}
 
-	if (!HasBit(v->flags, VAF_DEST_TOO_FAR)) AirportGoToNextPosition(v);
+	/* If aircraft is not in position, wait until it is. */
+	if (!HasBit(v->flags, VAF_DEST_TOO_FAR) && AircraftController (v)) {
+		Station *st = Station::Get (v->targetairport);
+		const AirportFTAClass *apc = st->airport.GetFTA();
+
+		AirportClearBlock (v, apc);
+		AirportMove (v, apc); // move aircraft to next position
+	}
 
 	return true;
 }
