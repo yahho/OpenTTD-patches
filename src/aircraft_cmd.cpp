@@ -1685,16 +1685,6 @@ static AircraftStateHandler * const _aircraft_state_handlers[] = {
 	AircraftEventHandler_AtTerminal,     // HELIPAD3       = 21
 };
 
-static void AirportClearBlock(const Aircraft *v, const AirportFTAClass *apc)
-{
-	/* we have left the previous block, and entered the new one. Free the previous block */
-	if (apc->layout[v->previous_pos].block != apc->layout[v->pos].block) {
-		Station *st = Station::Get(v->targetairport);
-
-		CLRBITS(st->airport.flags, apc->layout[v->previous_pos].block);
-	}
-}
-
 /* gets pos from vehicle and next orders */
 static bool AirportMove(Aircraft *v, const AirportFTAClass *apc)
 {
@@ -1936,7 +1926,13 @@ static bool AircraftEventHandler(Aircraft *v, int loop)
 		Station *st = Station::Get (v->targetairport);
 		const AirportFTAClass *apc = st->airport.GetFTA();
 
-		AirportClearBlock (v, apc);
+		/* We have left the previous block, and entered the new one.
+		 * Free the previous block. */
+		uint64 prev_block = apc->layout[v->previous_pos].block;
+		if (prev_block != apc->layout[v->pos].block) {
+			CLRBITS(st->airport.flags, prev_block);
+		}
+
 		AirportMove (v, apc); // move aircraft to next position
 	}
 
