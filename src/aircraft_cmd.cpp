@@ -1653,37 +1653,68 @@ static void AircraftEventHandler_HeliEndLanding(Aircraft *v, const AirportFTACla
 	v->state = Station::Get(v->targetairport)->airport.HasHangar() ? HANGAR : HELITAKEOFF;
 }
 
-/**
- * Signature of the aircraft handler function.
- * @param v Aircraft to handle.
- * @param apc Airport state machine.
- */
-typedef void AircraftStateHandler(Aircraft *v, const AirportFTAClass *apc);
-/** Array of handler functions for each target of the aircraft. */
-static AircraftStateHandler * const _aircraft_state_handlers[] = {
-	AircraftEventHandler_General,        // TO_ALL         =  0
-	AircraftEventHandler_InHangar,       // HANGAR         =  1
-	AircraftEventHandler_AtTerminal,     // TERM1          =  2
-	AircraftEventHandler_AtTerminal,     // TERM2          =  3
-	AircraftEventHandler_AtTerminal,     // TERM3          =  4
-	AircraftEventHandler_AtTerminal,     // TERM4          =  5
-	AircraftEventHandler_AtTerminal,     // TERM5          =  6
-	AircraftEventHandler_AtTerminal,     // TERM6          =  7
-	AircraftEventHandler_AtTerminal,     // HELIPAD1       =  8
-	AircraftEventHandler_AtTerminal,     // HELIPAD2       =  9
-	AircraftEventHandler_TakeOff,        // TAKEOFF        = 10
-	AircraftEventHandler_StartTakeOff,   // STARTTAKEOFF   = 11
-	AircraftEventHandler_EndTakeOff,     // ENDTAKEOFF     = 12
-	AircraftEventHandler_HeliTakeOff,    // HELITAKEOFF    = 13
-	AircraftEventHandler_Flying,         // FLYING         = 14
-	AircraftEventHandler_Landing,        // LANDING        = 15
-	AircraftEventHandler_EndLanding,     // ENDLANDING     = 16
-	AircraftEventHandler_HeliLanding,    // HELILANDING    = 17
-	AircraftEventHandler_HeliEndLanding, // HELIENDLANDING = 18
-	AircraftEventHandler_AtTerminal,     // TERM7          = 19
-	AircraftEventHandler_AtTerminal,     // TERM8          = 20
-	AircraftEventHandler_AtTerminal,     // HELIPAD3       = 21
-};
+/* we have arrived in an important state (eg terminal, hangar, etc.) */
+static void AirportMoveEvent (Aircraft *v, const AirportFTAClass *apc)
+{
+	assert (apc->layout[v->pos].heading == v->state);
+
+	byte prev_pos = v->pos; // location could be changed in state, so save it before-hand
+	byte prev_state = v->state;
+
+	assert (v->state <= MAX_HEADINGS);
+	switch (v->state) {
+		case TO_ALL:
+			AircraftEventHandler_General (v, apc);
+			break;
+
+		case HANGAR:
+			AircraftEventHandler_InHangar (v, apc);
+			break;
+
+		case TAKEOFF:
+			AircraftEventHandler_TakeOff (v, apc);
+			break;
+
+		case STARTTAKEOFF:
+			AircraftEventHandler_StartTakeOff (v, apc);
+			break;
+
+		case ENDTAKEOFF:
+			AircraftEventHandler_EndTakeOff (v, apc);
+			break;
+
+		case HELITAKEOFF:
+			AircraftEventHandler_HeliTakeOff (v, apc);
+			break;
+
+		case FLYING:
+			AircraftEventHandler_Flying (v, apc);
+			break;
+
+		case LANDING:
+			AircraftEventHandler_Landing (v, apc);
+			break;
+
+		case ENDLANDING:
+			AircraftEventHandler_EndLanding (v, apc);
+			break;
+
+		case HELILANDING:
+			AircraftEventHandler_HeliLanding (v, apc);
+			break;
+
+		case HELIENDLANDING:
+			AircraftEventHandler_HeliEndLanding (v, apc);
+			break;
+
+		default:
+			AircraftEventHandler_AtTerminal (v, apc);
+			break;
+	}
+
+	if (v->state != FLYING) v->previous_pos = prev_pos;
+	if (v->state != prev_state || v->pos != prev_pos) UpdateAircraftCache(v);
+}
 
 /* gets pos from vehicle and next orders */
 static bool AirportMove(Aircraft *v, const AirportFTAClass *apc)
@@ -1697,11 +1728,7 @@ static bool AirportMove(Aircraft *v, const AirportFTAClass *apc)
 	const AirportFTA *current = &apc->layout[v->pos];
 	/* we have arrived in an important state (eg terminal, hangar, etc.) */
 	if (current->heading == v->state) {
-		byte prev_pos = v->pos; // location could be changed in state, so save it before-hand
-		byte prev_state = v->state;
-		_aircraft_state_handlers[v->state](v, apc);
-		if (v->state != FLYING) v->previous_pos = prev_pos;
-		if (v->state != prev_state || v->pos != prev_pos) UpdateAircraftCache(v);
+		AirportMoveEvent (v, apc);
 		return true;
 	}
 
