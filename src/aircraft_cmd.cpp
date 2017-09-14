@@ -1521,11 +1521,6 @@ static void AircraftEventHandler_AtTerminal(Aircraft *v, const AirportFTAClass *
 	AirportMove(v, apc);
 }
 
-static void AircraftEventHandler_General(Aircraft *v, const AirportFTAClass *apc)
-{
-	error("OK, you shouldn't be here, check your Airport Scheme!");
-}
-
 static void AircraftEventHandler_TakeOff(Aircraft *v, const AirportFTAClass *apc)
 {
 	PlayAircraftSound(v); // play takeoffsound for airplanes
@@ -1664,7 +1659,7 @@ static void AirportMoveEvent (Aircraft *v, const AirportFTAClass *apc)
 	assert (v->state <= MAX_HEADINGS);
 	switch (v->state) {
 		case TO_ALL:
-			AircraftEventHandler_General (v, apc);
+			error ("OK, you shouldn't be here, check your Airport Scheme!");
 			break;
 
 		case HANGAR:
