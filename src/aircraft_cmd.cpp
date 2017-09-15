@@ -1514,13 +1514,6 @@ static void AircraftEventHandler_AtTerminal(Aircraft *v, const AirportFTAClass *
 	AirportMove(v, apc);
 }
 
-static void AircraftEventHandler_EndTakeOff(Aircraft *v, const AirportFTAClass *apc)
-{
-	v->state = FLYING;
-	/* get the next position to go to, differs per airport */
-	AircraftNextAirportPos_and_Order(v);
-}
-
 static void AircraftEventHandler_HeliTakeOff(Aircraft *v, const AirportFTAClass *apc)
 {
 	v->state = FLYING;
@@ -1660,7 +1653,9 @@ static void AirportMoveEvent (Aircraft *v, const AirportFTAClass *apc)
 			break;
 
 		case ENDTAKEOFF:
-			AircraftEventHandler_EndTakeOff (v, apc);
+			v->state = FLYING;
+			/* get the next position to go to, differs per airport */
+			AircraftNextAirportPos_and_Order (v);
 			break;
 
 		case HELITAKEOFF:
