@@ -1521,12 +1521,6 @@ static void AircraftEventHandler_AtTerminal(Aircraft *v, const AirportFTAClass *
 	AirportMove(v, apc);
 }
 
-static void AircraftEventHandler_TakeOff(Aircraft *v, const AirportFTAClass *apc)
-{
-	PlayAircraftSound(v); // play takeoffsound for airplanes
-	v->state = STARTTAKEOFF;
-}
-
 static void AircraftEventHandler_StartTakeOff(Aircraft *v, const AirportFTAClass *apc)
 {
 	v->state = ENDTAKEOFF;
@@ -1667,7 +1661,8 @@ static void AirportMoveEvent (Aircraft *v, const AirportFTAClass *apc)
 			break;
 
 		case TAKEOFF:
-			AircraftEventHandler_TakeOff (v, apc);
+			PlayAircraftSound (v);
+			v->state = STARTTAKEOFF;
 			break;
 
 		case STARTTAKEOFF:
