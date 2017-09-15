@@ -1514,12 +1514,6 @@ static void AircraftEventHandler_AtTerminal(Aircraft *v, const AirportFTAClass *
 	AirportMove(v, apc);
 }
 
-static void AircraftEventHandler_StartTakeOff(Aircraft *v, const AirportFTAClass *apc)
-{
-	v->state = ENDTAKEOFF;
-	v->UpdateDeltaXY(INVALID_DIR);
-}
-
 static void AircraftEventHandler_EndTakeOff(Aircraft *v, const AirportFTAClass *apc)
 {
 	v->state = FLYING;
@@ -1661,7 +1655,8 @@ static void AirportMoveEvent (Aircraft *v, const AirportFTAClass *apc)
 			break;
 
 		case STARTTAKEOFF:
-			AircraftEventHandler_StartTakeOff (v, apc);
+			v->state = ENDTAKEOFF;
+			v->UpdateDeltaXY (INVALID_DIR);
 			break;
 
 		case ENDTAKEOFF:
