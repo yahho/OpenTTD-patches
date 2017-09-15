@@ -537,13 +537,6 @@ void SetAircraftPosition(Aircraft *v, int x, int y, int z)
 	}
 }
 
-static void PlayAircraftSound(const Vehicle *v)
-{
-	if (!PlayVehicleSound(v, VSE_START)) {
-		SndPlayVehicleFx(AircraftVehInfo(v->engine_type)->sfx, v);
-	}
-}
-
 
 /**
  * Update cached values of an aircraft.
@@ -1661,7 +1654,9 @@ static void AirportMoveEvent (Aircraft *v, const AirportFTAClass *apc)
 			break;
 
 		case TAKEOFF:
-			PlayAircraftSound (v);
+			if (!PlayVehicleSound (v, VSE_START)) {
+				SndPlayVehicleFx (AircraftVehInfo(v->engine_type)->sfx, v);
+			}
 			v->state = STARTTAKEOFF;
 			break;
 
