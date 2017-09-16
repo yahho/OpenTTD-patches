@@ -1601,6 +1601,7 @@ static void AirportMoveEvent (Aircraft *v, const AirportFTAClass *apc)
 	byte prev_pos = v->pos; // location could be changed in state, so save it before-hand
 	byte prev_state = v->state;
 
+	uint service_flag = 0;
 	assert (v->state <= MAX_HEADINGS);
 	switch (v->state) {
 		case TO_ALL:
@@ -1637,11 +1638,8 @@ static void AirportMoveEvent (Aircraft *v, const AirportFTAClass *apc)
 			AircraftNextAirportPos_and_Order (v);
 
 			/* Send the helicopter to a hangar if needed for replacement */
-			if (v->NeedsAutomaticServicing()) {
-				Backup<CompanyByte> cur_company (_current_company, v->owner, FILE_LINE);
-				DoCommand (v->tile, v->index | DEPOT_SERVICE | DEPOT_LOCATE_HANGAR, 0, DC_EXEC, CMD_SEND_VEHICLE_TO_DEPOT);
-				cur_company.Restore();
-			}
+			assert_compile (DEPOT_SERVICE != 0);
+			service_flag = DEPOT_SERVICE | DEPOT_LOCATE_HANGAR;
 			break;
 
 		case FLYING:
@@ -1654,11 +1652,8 @@ static void AirportMoveEvent (Aircraft *v, const AirportFTAClass *apc)
 
 			/* check if the aircraft needs to be replaced or
 			 * renewed and send it to a hangar if needed */
-			if (v->NeedsAutomaticServicing()) {
-				Backup<CompanyByte> cur_company (_current_company, v->owner, FILE_LINE);
-				DoCommand (v->tile, v->index | DEPOT_SERVICE, 0, DC_EXEC, CMD_SEND_VEHICLE_TO_DEPOT);
-				cur_company.Restore();
-			}
+			assert_compile (DEPOT_SERVICE != 0);
+			service_flag = DEPOT_SERVICE;
 			break;
 
 		case ENDLANDING:
@@ -1676,6 +1671,12 @@ static void AirportMoveEvent (Aircraft *v, const AirportFTAClass *apc)
 		default:
 			AircraftEventHandler_AtTerminal (v, apc);
 			break;
+	}
+
+	if ((service_flag != 0) && v->NeedsAutomaticServicing()) {
+		Backup<CompanyByte> cur_company (_current_company, v->owner, FILE_LINE);
+		DoCommand (v->tile, v->index | service_flag, 0, DC_EXEC, CMD_SEND_VEHICLE_TO_DEPOT);
+		cur_company.Restore();
 	}
 
 	if (v->state != FLYING) v->previous_pos = prev_pos;
