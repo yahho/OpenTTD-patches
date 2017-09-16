@@ -1514,22 +1514,6 @@ static void AircraftEventHandler_AtTerminal(Aircraft *v, const AirportFTAClass *
 	AirportMove(v, apc);
 }
 
-static void AircraftEventHandler_HeliTakeOff(Aircraft *v, const AirportFTAClass *apc)
-{
-	v->state = FLYING;
-	v->UpdateDeltaXY(INVALID_DIR);
-
-	/* get the next position to go to, differs per airport */
-	AircraftNextAirportPos_and_Order(v);
-
-	/* Send the helicopter to a hangar if needed for replacement */
-	if (v->NeedsAutomaticServicing()) {
-		Backup<CompanyByte> cur_company(_current_company, v->owner, FILE_LINE);
-		DoCommand(v->tile, v->index | DEPOT_SERVICE | DEPOT_LOCATE_HANGAR, 0, DC_EXEC, CMD_SEND_VEHICLE_TO_DEPOT);
-		cur_company.Restore();
-	}
-}
-
 static void AircraftEventHandler_Flying(Aircraft *v, const AirportFTAClass *apc)
 {
 	Station *st = Station::Get(v->targetairport);
@@ -1659,7 +1643,18 @@ static void AirportMoveEvent (Aircraft *v, const AirportFTAClass *apc)
 			break;
 
 		case HELITAKEOFF:
-			AircraftEventHandler_HeliTakeOff (v, apc);
+			v->state = FLYING;
+			v->UpdateDeltaXY (INVALID_DIR);
+
+			/* get the next position to go to, differs per airport */
+			AircraftNextAirportPos_and_Order (v);
+
+			/* Send the helicopter to a hangar if needed for replacement */
+			if (v->NeedsAutomaticServicing()) {
+				Backup<CompanyByte> cur_company (_current_company, v->owner, FILE_LINE);
+				DoCommand (v->tile, v->index | DEPOT_SERVICE | DEPOT_LOCATE_HANGAR, 0, DC_EXEC, CMD_SEND_VEHICLE_TO_DEPOT);
+				cur_company.Restore();
+			}
 			break;
 
 		case FLYING:
