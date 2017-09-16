@@ -1553,19 +1553,6 @@ static void AircraftEventHandler_Flying(Aircraft *v, const AirportFTAClass *apc)
 	v->pos = apc->layout[v->pos].next_position;
 }
 
-static void AircraftEventHandler_Landing(Aircraft *v, const AirportFTAClass *apc)
-{
-	v->state = ENDLANDING;
-	AircraftLandAirplane(v);  // maybe crash airplane
-
-	/* check if the aircraft needs to be replaced or renewed and send it to a hangar if needed */
-	if (v->NeedsAutomaticServicing()) {
-		Backup<CompanyByte> cur_company(_current_company, v->owner, FILE_LINE);
-		DoCommand(v->tile, v->index | DEPOT_SERVICE, 0, DC_EXEC, CMD_SEND_VEHICLE_TO_DEPOT);
-		cur_company.Restore();
-	}
-}
-
 static void AircraftEventHandler_HeliLanding(Aircraft *v, const AirportFTAClass *apc)
 {
 	v->state = HELIENDLANDING;
@@ -1662,7 +1649,16 @@ static void AirportMoveEvent (Aircraft *v, const AirportFTAClass *apc)
 			break;
 
 		case LANDING:
-			AircraftEventHandler_Landing (v, apc);
+			v->state = ENDLANDING;
+			AircraftLandAirplane (v); // maybe crash airplane
+
+			/* check if the aircraft needs to be replaced or
+			 * renewed and send it to a hangar if needed */
+			if (v->NeedsAutomaticServicing()) {
+				Backup<CompanyByte> cur_company (_current_company, v->owner, FILE_LINE);
+				DoCommand (v->tile, v->index | DEPOT_SERVICE, 0, DC_EXEC, CMD_SEND_VEHICLE_TO_DEPOT);
+				cur_company.Restore();
+			}
 			break;
 
 		case ENDLANDING:
