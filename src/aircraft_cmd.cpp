@@ -1306,19 +1306,6 @@ static void AircraftEntersTerminal(Aircraft *v)
 	v->BeginLoading();
 }
 
-/**
- * Aircraft touched down at the landing strip.
- * @param v Aircraft that landed.
- */
-static void AircraftLandAirplane(Aircraft *v)
-{
-	v->UpdateDeltaXY(INVALID_DIR);
-
-	if (!PlayVehicleSound(v, VSE_TOUCHDOWN)) {
-		SndPlayVehicleFx(SND_17_SKID_PLANE, v);
-	}
-}
-
 
 /** set the right pos when heading to other airports after takeoff */
 void AircraftNextAirportPos_and_Order(Aircraft *v)
@@ -1648,7 +1635,11 @@ static void AirportMoveEvent (Aircraft *v, const AirportFTAClass *apc)
 
 		case LANDING:
 			v->state = ENDLANDING;
-			AircraftLandAirplane (v); // maybe crash airplane
+			v->UpdateDeltaXY (INVALID_DIR);
+
+			if (!PlayVehicleSound (v, VSE_TOUCHDOWN)) {
+				SndPlayVehicleFx (SND_17_SKID_PLANE, v);
+			}
 
 			/* check if the aircraft needs to be replaced or
 			 * renewed and send it to a hangar if needed */
