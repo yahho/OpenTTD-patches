@@ -1540,22 +1540,6 @@ static void AircraftEventHandler_Flying(Aircraft *v, const AirportFTAClass *apc)
 	v->pos = apc->layout[v->pos].next_position;
 }
 
-static void AircraftEventHandler_EndLanding(Aircraft *v, const AirportFTAClass *apc)
-{
-	/* next block busy, don't do a thing, just wait */
-	if (AirportHasBlock (v, apc)) return;
-
-	/* if going to terminal (OT_GOTO_STATION) choose one
-	 * 1. in case all terminals are busy AirportFindFreeTerminal() returns false or
-	 * 2. not going for terminal (but depot, no order),
-	 * --> get out of the way to the hangar. */
-	if (v->current_order.IsType(OT_GOTO_STATION)) {
-		if (AirportFindFreeTerminal(v, apc)) return;
-	}
-	v->state = HANGAR;
-
-}
-
 static void AircraftEventHandler_HeliEndLanding(Aircraft *v, const AirportFTAClass *apc)
 {
 	/*  next block busy, don't do a thing, just wait */
@@ -1642,7 +1626,18 @@ static void AirportMoveEvent (Aircraft *v, const AirportFTAClass *apc)
 			break;
 
 		case ENDLANDING:
-			AircraftEventHandler_EndLanding (v, apc);
+			/* next block busy, don't do a thing, just wait */
+			if (AirportHasBlock (v, apc)) break;
+
+			/* if going to terminal (OT_GOTO_STATION) choose one
+			 * 1. in case all terminals are busy AirportFindFreeTerminal() returns false or
+			 * 2. not going for terminal (but depot, no order),
+			 * --> get out of the way to the hangar. */
+			if (!v->current_order.IsType (OT_GOTO_STATION)
+					|| !AirportFindFreeTerminal (v, apc)) {
+				v->state = HANGAR;
+			}
+
 			break;
 
 		case HELILANDING:
