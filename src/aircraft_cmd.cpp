@@ -1540,24 +1540,6 @@ static void AircraftEventHandler_Flying(Aircraft *v, const AirportFTAClass *apc)
 	v->pos = apc->layout[v->pos].next_position;
 }
 
-static void AircraftEventHandler_HeliEndLanding(Aircraft *v, const AirportFTAClass *apc)
-{
-	/*  next block busy, don't do a thing, just wait */
-	if (AirportHasBlock (v, apc)) return;
-
-	/* if going to helipad (OT_GOTO_STATION) choose one. If airport doesn't have helipads, choose terminal
-	 * 1. in case all terminals/helipads are busy (AirportFindFreeHelipad() returns false) or
-	 * 2. not going for terminal (but depot, no order),
-	 * --> get out of the way to the hangar IF there are terminals on the airport.
-	 * --> else TAKEOFF
-	 * the reason behind this is that if an airport has a terminal, it also has a hangar. Airplanes
-	 * must go to a hangar. */
-	if (v->current_order.IsType(OT_GOTO_STATION)) {
-		if (AirportFindFreeHelipad(v, apc)) return;
-	}
-	v->state = Station::Get(v->targetairport)->airport.HasHangar() ? HANGAR : HELITAKEOFF;
-}
-
 /* we have arrived in an important state (eg terminal, hangar, etc.) */
 static void AirportMoveEvent (Aircraft *v, const AirportFTAClass *apc)
 {
@@ -1646,7 +1628,22 @@ static void AirportMoveEvent (Aircraft *v, const AirportFTAClass *apc)
 			break;
 
 		case HELIENDLANDING:
-			AircraftEventHandler_HeliEndLanding (v, apc);
+			/* next block busy, don't do a thing, just wait */
+			if (AirportHasBlock (v, apc)) break;
+
+			/* if going to helipad (OT_GOTO_STATION) choose one. If airport doesn't have helipads, choose terminal
+			 * 1. in case all terminals/helipads are busy (AirportFindFreeHelipad() returns false) or
+			 * 2. not going for terminal (but depot, no order),
+			 * --> get out of the way to the hangar IF there are terminals on the airport.
+			 * --> else TAKEOFF
+			 * the reason behind this is that if an airport has a terminal, it also has a hangar. Airplanes
+			 * must go to a hangar. */
+			if (!v->current_order.IsType (OT_GOTO_STATION)
+					|| !AirportFindFreeHelipad (v, apc)) {
+				v->state = Station::Get(v->targetairport)->airport.HasHangar() ?
+						HANGAR : HELITAKEOFF;
+			}
+
 			break;
 
 		default:
