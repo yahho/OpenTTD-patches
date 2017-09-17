@@ -1540,12 +1540,6 @@ static void AircraftEventHandler_Flying(Aircraft *v, const AirportFTAClass *apc)
 	v->pos = apc->layout[v->pos].next_position;
 }
 
-static void AircraftEventHandler_HeliLanding(Aircraft *v, const AirportFTAClass *apc)
-{
-	v->state = HELIENDLANDING;
-	v->UpdateDeltaXY(INVALID_DIR);
-}
-
 static void AircraftEventHandler_EndLanding(Aircraft *v, const AirportFTAClass *apc)
 {
 	/* next block busy, don't do a thing, just wait */
@@ -1652,7 +1646,8 @@ static void AirportMoveEvent (Aircraft *v, const AirportFTAClass *apc)
 			break;
 
 		case HELILANDING:
-			AircraftEventHandler_HeliLanding (v, apc);
+			v->state = HELIENDLANDING;
+			v->UpdateDeltaXY (INVALID_DIR);
 			break;
 
 		case HELIENDLANDING:
