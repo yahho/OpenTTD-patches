@@ -1387,17 +1387,6 @@ static void AircraftEventHandler_EnterTerminal(Aircraft *v, const AirportFTAClas
 }
 
 /**
- * Aircraft arrived in an airport hangar.
- * @param v Aircraft in the hangar.
- * @param apc Airport description containing the hangar.
- */
-static void AircraftEventHandler_EnterHangar(Aircraft *v, const AirportFTAClass *apc)
-{
-	AircraftEnterDepot (v);
-	v->state = apc->layout[v->pos].heading;
-}
-
-/**
  * Handle aircraft movement/decision making in an airport hangar.
  * @param v Aircraft in the hangar.
  * @param apc Airport description containing the hangar.
@@ -1406,7 +1395,8 @@ static void AircraftEventHandler_InHangar(Aircraft *v, const AirportFTAClass *ap
 {
 	/* if we just arrived, execute EnterHangar first */
 	if (v->previous_pos != v->pos) {
-		AircraftEventHandler_EnterHangar(v, apc);
+		AircraftEnterDepot (v);
+		v->state = apc->layout[v->pos].heading;
 		return;
 	}
 
