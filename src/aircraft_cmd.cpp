@@ -1380,11 +1380,6 @@ static void AircraftEnterDepot (Aircraft *v)
 ////////////////////////////////////////////////////////////////////////////////
 ///////////////////   AIRCRAFT MOVEMENT SCHEME  ////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
-static void AircraftEventHandler_EnterTerminal(Aircraft *v, const AirportFTAClass *apc)
-{
-	AircraftEntersTerminal(v);
-	v->state = apc->layout[v->pos].heading;
-}
 
 /**
  * Handle aircraft movement/decision making in an airport hangar.
@@ -1442,7 +1437,8 @@ static void AircraftEventHandler_AtTerminal(Aircraft *v, const AirportFTAClass *
 {
 	/* if we just arrived, execute EnterTerminal first */
 	if (v->previous_pos != v->pos) {
-		AircraftEventHandler_EnterTerminal(v, apc);
+		AircraftEntersTerminal (v);
+		v->state = apc->layout[v->pos].heading;
 		/* on an airport with helipads, a helicopter will always land there
 		 * and get serviced at the same time - setting */
 		if (_settings_game.order.serviceathelipad) {
