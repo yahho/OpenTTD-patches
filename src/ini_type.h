@@ -184,6 +184,8 @@ struct IniLoadFile : IniList<IniGroup> {
 		return group;
 	}
 
+	void load (FILE *in, size_t end);
+
 	void LoadFromDisk(const char *filename, Subdirectory subdir);
 
 	/**

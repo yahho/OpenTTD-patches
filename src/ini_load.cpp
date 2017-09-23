@@ -163,11 +163,12 @@ IniGroup *IniLoadFile::get_group (const char *name, size_t len)
 
 /**
  * Load the Ini file's data from the disk.
- * @param filename the file to load.
- * @param subdir the sub directory to load the file from.
- * @pre nothing has been loaded yet.
+ * @param in File to load from.
+ * @param end Size of the file.
+ * @pre Nothing has been loaded yet.
+ * @post The stream is closed.
  */
-void IniLoadFile::LoadFromDisk(const char *filename, Subdirectory subdir)
+void IniLoadFile::load (FILE *in, size_t end)
 {
 	assert (this->begin() == this->end());
 
@@ -177,12 +178,6 @@ void IniLoadFile::LoadFromDisk(const char *filename, Subdirectory subdir)
 	char *comment = NULL;
 	uint comment_size = 0;
 	uint comment_alloc = 0;
-
-	size_t end;
-	FILE *in = this->OpenFile(filename, subdir, &end);
-	if (in == NULL) return;
-
-	end += ftell(in);
 
 	/* for each line in the file */
 	while ((size_t)ftell(in) < end && fgets(buffer, sizeof(buffer), in)) {
@@ -279,5 +274,22 @@ void IniLoadFile::LoadFromDisk(const char *filename, Subdirectory subdir)
 
 	free(comment);
 	fclose(in);
+}
+
+/**
+ * Load the Ini file's data from the disk.
+ * @param filename the file to load.
+ * @param subdir the sub directory to load the file from.
+ * @pre nothing has been loaded yet.
+ */
+void IniLoadFile::LoadFromDisk(const char *filename, Subdirectory subdir)
+{
+	size_t end;
+	FILE *in = this->OpenFile(filename, subdir, &end);
+	if (in == NULL) return;
+
+	end += ftell(in);
+
+	this->load (in, end);
 }
 
