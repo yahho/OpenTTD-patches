@@ -119,7 +119,7 @@ bool IniFile::SaveToDisk(const char *filename)
 	return true;
 }
 
-/* virtual */ FILE *IniFile::OpenFile(const char *filename, Subdirectory subdir, size_t *size)
+FILE *IniFile::OpenFile (const char *filename, Subdirectory subdir, size_t *size)
 {
 	/* Open the text file in binary mode to prevent end-of-line translations
 	 * done by ftell() and friends, as defined by K&R. */

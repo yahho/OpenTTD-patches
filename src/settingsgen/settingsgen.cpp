@@ -173,7 +173,14 @@ struct SettingsIniFile : IniLoadFile {
 	{
 	}
 
-	virtual FILE *OpenFile(const char *filename, Subdirectory subdir, size_t *size)
+	/**
+	 * Open the INI file.
+	 * @param filename Name of the INI file.
+	 * @param subdir The subdir to load the file from.
+	 * @param size [out] Size of the opened file.
+	 * @return File handle of the opened file, or \c NULL.
+	 */
+	FILE *OpenFile (const char *filename, Subdirectory subdir, size_t *size)
 	{
 		/* Open the text file in binary mode to prevent end-of-line translations
 		 * done by ftell() and friends, as defined by K&R. */
