@@ -410,7 +410,14 @@ static void ProcessIniFile(const char *fname)
 	static const char * const seq_groups[] = {PREAMBLE_GROUP_NAME, POSTAMBLE_GROUP_NAME, NULL};
 
 	SettingsIniFile ini_data (NULL, seq_groups);
-	ini_data.LoadFromDisk (fname, NO_DIRECTORY);
+
+	size_t end;
+	FILE *in = ini_data.OpenFile (fname, NO_DIRECTORY, &end);
+	if (in != NULL) {
+		end += ftell (in);
+		ini_data.load (in, end);
+	}
+
 	DumpGroup (&ini_data, PREAMBLE_GROUP_NAME);
 	DumpSections (&ini_data);
 	DumpGroup (&ini_data, POSTAMBLE_GROUP_NAME);

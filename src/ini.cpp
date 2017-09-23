@@ -32,7 +32,12 @@
 IniFile::IniFile (const char *filename, Subdirectory subdir, const char * const *list_group_names)
 	: IniLoadFile (list_group_names)
 {
-	this->LoadFromDisk (filename, subdir);
+	size_t end;
+	FILE *in = this->OpenFile (filename, subdir, &end);
+	if (in != NULL) {
+		end += ftell (in);
+		this->load (in, end);
+	}
 }
 
 /**

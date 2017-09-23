@@ -186,8 +186,6 @@ struct IniLoadFile : IniList<IniGroup> {
 
 	void load (FILE *in, size_t end);
 
-	void LoadFromDisk(const char *filename, Subdirectory subdir);
-
 	/**
 	 * Open the INI file.
 	 * @param filename Name of the INI file.
