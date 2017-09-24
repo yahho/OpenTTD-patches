@@ -22,6 +22,15 @@ then
 	exit 1
 fi
 
+# openttd_vs141.sln             is for MSVC 2017
+# openttd_vs141.vcxproj         is for MSVC 2017
+# openttd_vs141.vcxproj.filters is for MSVC 2017
+# langs_vs141.vcxproj           is for MSVC 2017
+# strgen_vs141.vcxproj          is for MSVC 2017
+# strgen_vs141.vcxproj.filters  is for MSVC 2017
+# generate_vs141.vcxproj        is for MSVC 2017
+# version_vs141.vcxproj         is for MSVC 2017
+
 # openttd_vs140.sln             is for MSVC 2015
 # openttd_vs140.vcxproj         is for MSVC 2015
 # openttd_vs140.vcxproj.filters is for MSVC 2015
@@ -264,6 +273,8 @@ generate "$openttdvcxproj" "openttd_vs100.vcxproj"
 generate "$openttdfiles" "openttd_vs100.vcxproj.filters" "$openttdfilters"
 generate "$openttdvcxproj" "openttd_vs140.vcxproj"
 generate "$openttdfiles" "openttd_vs140.vcxproj.filters" "$openttdfilters"
+generate "$openttdvcxproj" "openttd_vs141.vcxproj"
+generate "$openttdfiles" "openttd_vs141.vcxproj.filters" "$openttdfilters"
 
 
 txtfiles=`ls "$ROOT_DIR"/src/lang/*.txt | sed -e 's,^.*/,,' -e 's/\.txt$//' -e '/^english$/d'`
@@ -312,6 +323,8 @@ generate "$langvcxproj" "langs_vs100.vcxproj"
 generate "$langfiles" "langs_vs100.vcxproj.filters"
 generate "$langvcxproj" "langs_vs140.vcxproj"
 generate "$langfiles" "langs_vs140.vcxproj.filters"
+generate "$langvcxproj" "langs_vs141.vcxproj"
+generate "$langfiles" "langs_vs141.vcxproj.filters"
 
 
 inifiles=`ls "$ROOT_DIR"/src/table/*.ini | sed -e 's,^.*/,,'`
@@ -349,3 +362,5 @@ generate "$settingsvcxproj" "settings_vs100.vcxproj" "$settingscommand"
 generate "$settingsfiles" "settings_vs100.vcxproj.filters"
 generate "$settingsvcxproj" "settings_vs140.vcxproj" "$settingscommand"
 generate "$settingsfiles" "settings_vs140.vcxproj.filters"
+generate "$settingsvcxproj" "settings_vs141.vcxproj" "$settingscommand"
+generate "$settingsfiles" "settings_vs141.vcxproj.filters"
