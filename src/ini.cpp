@@ -32,8 +32,10 @@
 IniFile::IniFile (const char *filename, Subdirectory subdir, const char * const *list_group_names)
 	: IniLoadFile (list_group_names)
 {
+	/* Open the text file in binary mode to prevent end-of-line
+	 * translations done by ftell() and friends, as defined by K&R. */
 	size_t end;
-	FILE *in = this->OpenFile (filename, subdir, &end);
+	FILE *in = FioFOpenFile (filename, "rb", subdir, &end);
 	if (in != NULL) {
 		end += ftell (in);
 		this->load (in, end);
@@ -117,13 +119,6 @@ bool IniFile::SaveToDisk(const char *filename)
 #endif
 
 	return true;
-}
-
-FILE *IniFile::OpenFile (const char *filename, Subdirectory subdir, size_t *size)
-{
-	/* Open the text file in binary mode to prevent end-of-line translations
-	 * done by ftell() and friends, as defined by K&R. */
-	return FioFOpenFile(filename, "rb", subdir, size);
 }
 
 /* virtual */ void IniFile::ReportFileError(const char * const pre, const char * const buffer, const char * const post)
