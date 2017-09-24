@@ -731,7 +731,7 @@ namespace SQConvert {
 		int nparam, const char *params)
 	{
 		MethodCallbackData <Tmethod> data = { class_name, function_proc };
-		assert_tcompile ((const char**)(SQUserPointer)&data == &data.cname);
+		assert ((const char**)(SQUserPointer)&data == &data.cname);
 		engine->AddMethod (function_name, DefSQNonStaticCallback<Tmethod>, nparam, params, &data, sizeof(data));
 	}
 
@@ -765,7 +765,7 @@ namespace SQConvert {
 	{
 		typedef SQInteger (Tcls::*F) (HSQUIRRELVM);
 		MethodCallbackData <F> data = { class_name, function_proc };
-		assert_tcompile ((const char**)(SQUserPointer)&data == &data.cname);
+		assert ((const char**)(SQUserPointer)&data == &data.cname);
 		engine->AddMethod (function_name, DefSQAdvancedNonStaticCallback <Tcls>, 0, NULL, &data, sizeof(data));
 	}
 
