@@ -1338,13 +1338,17 @@ static void AddWindowToZOrdering(Window *w)
 		w->z_front = w->z_back = NULL;
 	} else {
 		/* Search down the z-ordering for its location. */
+		uint w_z_priority = GetWindowZPriority (w->window_class);
 		Window *v = _z_front_window;
 		uint last_z_priority = UINT_MAX;
-		while (v != NULL && (v->window_class == WC_INVALID || GetWindowZPriority(v->window_class) > GetWindowZPriority(w->window_class))) {
+		while (v != NULL) {
 			if (v->window_class != WC_INVALID) {
+				uint v_z_priority = GetWindowZPriority (v->window_class);
+				if (v_z_priority <= w_z_priority) break;
+
 				/* Sanity check z-ordering, while we're at it. */
-				assert(last_z_priority >= GetWindowZPriority(v->window_class));
-				last_z_priority = GetWindowZPriority(v->window_class);
+				assert (last_z_priority >= v_z_priority);
+				last_z_priority = v_z_priority;
 			}
 
 			v = v->z_back;
