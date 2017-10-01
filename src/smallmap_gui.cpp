@@ -562,7 +562,7 @@ static const byte _vehicle_type_colours[6] = {
 
 
 /** Notify the industry chain window to stop sending newly selected industries. */
-/* static */ void SmallMapWindow::BreakIndustryChainLink()
+static void BreakIndustryChainLink (void)
 {
 	InvalidateWindowClassesData(WC_INDUSTRY_CARGOES, NUM_INDUSTRYTYPES);
 }
@@ -1076,7 +1076,7 @@ SmallMapWindow::SmallMapWindow (const WindowDesc *desc, int window_number) :
 
 SmallMapWindow::~SmallMapWindow()
 {
-	this->BreakIndustryChainLink();
+	BreakIndustryChainLink();
 }
 
 /**
@@ -1288,7 +1288,7 @@ void SmallMapWindow::SwitchMapType(SmallMapType map_type)
 	this->SetupWidgetData();
 
 	if (map_type == SMT_LINKSTATS) this->overlay.RebuildCache();
-	if (map_type != SMT_INDUSTRY) this->BreakIndustryChainLink();
+	if (map_type != SMT_INDUSTRY) BreakIndustryChainLink();
 	this->SetDirty();
 }
 
@@ -1341,7 +1341,7 @@ void SmallMapWindow::SelectLegendItem(int click_pos, LegendAndColour *legend, in
 		legend[click_pos].show_on_map = !legend[click_pos].show_on_map;
 	}
 
-	if (this->map_type == SMT_INDUSTRY) this->BreakIndustryChainLink();
+	if (this->map_type == SMT_INDUSTRY) BreakIndustryChainLink();
 }
 
 /**
@@ -1484,7 +1484,7 @@ int SmallMapWindow::GetPositionOnLegend(Point pt)
 			switch (this->map_type) {
 				case SMT_INDUSTRY:
 					tbl = _legend_from_industries;
-					this->BreakIndustryChainLink();
+					BreakIndustryChainLink();
 					break;
 				case SMT_OWNER:
 					tbl = &(_legend_land_owners[NUM_NO_COMPANY_ENTRIES]);

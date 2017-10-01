@@ -85,8 +85,6 @@ protected:
 
 	uint8 refresh;   ///< Refresh counter, zeroed every FORCE_REFRESH_PERIOD ticks.
 
-	static void BreakIndustryChainLink();
-
 	/**
 	 * Compute minimal required width of the legends.
 	 * @return Minimally needed width for displaying the smallmap legends in pixels.
