@@ -1133,8 +1133,8 @@ static void DetermineBasePaths(const char *exe)
 	_searchpaths[SP_INSTALLATION_DIR] = BuildDirPath (GLOBAL_DATA_DIR);
 #endif
 #ifdef WITH_COCOA
-extern void cocoaSetApplicationBundleDir();
-	cocoaSetApplicationBundleDir();
+extern char *cocoaSetApplicationBundleDir();
+	_searchpaths[SP_APPLICATION_BUNDLE_DIR] = cocoaSetApplicationBundleDir();
 #else
 	_searchpaths[SP_APPLICATION_BUNDLE_DIR] = NULL;
 #endif
