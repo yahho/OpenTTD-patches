@@ -1226,7 +1226,6 @@ void DeterminePaths(const char *exe)
 	/* Make the necessary folders */
 #if !defined(__MORPHOS__) && !defined(__AMIGA__) && defined(WITH_PERSONAL_DIR)
 	FioCreateDirectory(config_dir);
-	if (config_dir != _personal_dir) FioCreateDirectory(_personal_dir);
 #endif
 
 	DEBUG(misc, 3, "%s found as personal directory", _personal_dir);
