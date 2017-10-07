@@ -1190,7 +1190,7 @@ void DeterminePaths(const char *exe)
 			config_dir = NULL;
 			for (uint i = 0; i < lengthof(new_openttd_cfg_order); i++) {
 				if (IsValidSearchPath(new_openttd_cfg_order[i])) {
-					config_dir = xstrdup(_searchpaths[new_openttd_cfg_order[i]]);
+					config_dir = _searchpaths[new_openttd_cfg_order[i]];
 					break;
 				}
 			}
