@@ -1169,7 +1169,6 @@ void DeterminePaths(const char *exe)
 			char *end = strrchr (config_buffer, PATHSEPCHAR);
 			if (end != NULL) end[1] = '\0';
 			config_dir = xstrdup (config_buffer);
-			_config_file = str_fmt("%sopenttd.cfg", config_dir);
 		} else {
 #if defined(WITH_XDG_BASEDIR) && defined(WITH_PERSONAL_DIR)
 			/* No previous configuration file found. Use the configuration folder from XDG. */
@@ -1196,8 +1195,8 @@ void DeterminePaths(const char *exe)
 			}
 			assert(config_dir != NULL);
 #endif
-			_config_file = str_fmt("%sopenttd.cfg", config_dir);
 		}
+		_config_file = str_fmt ("%sopenttd.cfg", config_dir);
 	}
 
 	DEBUG(misc, 3, "%s found as config directory", config_dir);
