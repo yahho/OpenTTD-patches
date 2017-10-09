@@ -35,18 +35,8 @@ void FioSkipBytes(int n);
  */
 extern const char *_searchpaths[NUM_SEARCHPATHS];
 
-/**
- * Checks whether the given search path is a valid search path
- * @param sp the search path to check
- * @return true if the search path is valid
- */
-static inline bool IsValidSearchPath(Searchpath sp)
-{
-	return sp < NUM_SEARCHPATHS && _searchpaths[sp] != NULL;
-}
-
 /** Iterator for all the search paths */
-#define FOR_ALL_SEARCHPATHS(sp) for (sp = SP_FIRST_DIR; sp < NUM_SEARCHPATHS; sp++) if (IsValidSearchPath(sp))
+#define FOR_ALL_SEARCHPATHS(sp) for (sp = SP_FIRST_DIR; sp < NUM_SEARCHPATHS; sp++) if (_searchpaths[sp] != NULL)
 
 void FioFCloseFile(FILE *f);
 FILE *FioFOpenFile(const char *filename, const char *mode, Subdirectory subdir, size_t *filesize = NULL);
