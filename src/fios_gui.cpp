@@ -778,6 +778,13 @@ static const WindowDesc _save_dialog_desc(
  */
 void ShowSaveLoadDialog (AbstractFileType abstract_filetype, bool save)
 {
+	assert_compile (FT_SAVEGAME  == 1);
+	assert_compile (FT_SCENARIO  == 2);
+	assert_compile (FT_HEIGHTMAP == 3);
+
+	assert ((abstract_filetype >= FT_SAVEGAME)
+			&& (abstract_filetype <= FT_HEIGHTMAP));
+
 	DeleteWindowById(WC_SAVELOAD, 0);
 
 	const WindowDesc *sld;
