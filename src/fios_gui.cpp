@@ -244,20 +244,19 @@ public:
 		  abstract_filetype (abstract_filetype), save (save),
 		  o_dir(), selected (NULL), vscroll (NULL)
 	{
+		assert_compile (FT_SAVEGAME  == 1);
+		assert_compile (FT_SCENARIO  == 2);
+		assert_compile (FT_HEIGHTMAP == 3);
+
+		assert ((abstract_filetype >= FT_SAVEGAME)
+				&& (abstract_filetype <= FT_HEIGHTMAP));
+
 		/* For saving, construct an initial file name. */
 		if (save) {
-			switch (this->abstract_filetype) {
-				case FT_SAVEGAME:
-					this->GenerateFileName();
-					break;
-
-				case FT_SCENARIO:
-				case FT_HEIGHTMAP:
-					this->filename_editbox.Assign("UNNAMED");
-					break;
-
-				default:
-					NOT_REACHED();
+			if (abstract_filetype == FT_SAVEGAME) {
+				this->GenerateFileName();
+			} else {
+				this->filename_editbox.Assign ("UNNAMED");
 			}
 		}
 		this->querystrings[WID_SL_SAVE_OSK_TITLE] = &this->filename_editbox;
