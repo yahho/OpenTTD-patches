@@ -268,24 +268,15 @@ public:
 		}
 
 		/* Select caption string of the window. */
-		StringID caption_string;
-		switch (this->abstract_filetype) {
-			case FT_SAVEGAME:
-				caption_string = save ? STR_SAVELOAD_SAVE_CAPTION : STR_SAVELOAD_LOAD_CAPTION;
-				break;
-
-			case FT_SCENARIO:
-				caption_string = save ? STR_SAVELOAD_SAVE_SCENARIO : STR_SAVELOAD_LOAD_SCENARIO;
-				break;
-
-			case FT_HEIGHTMAP:
-				caption_string = save ? STR_SAVELOAD_SAVE_HEIGHTMAP : STR_SAVELOAD_LOAD_HEIGHTMAP;
-				break;
-
-			default:
-				NOT_REACHED();
-		}
-		this->GetWidget<NWidgetCore>(WID_SL_CAPTION)->widget_data = caption_string;
+		static const StringID caption_base = STR_SAVELOAD_LOAD_CAPTION;
+		assert_compile (caption_base + 2 * (FT_SAVEGAME  - 1)     == STR_SAVELOAD_LOAD_CAPTION);
+		assert_compile (caption_base + 2 * (FT_SAVEGAME  - 1) + 1 == STR_SAVELOAD_SAVE_CAPTION);
+		assert_compile (caption_base + 2 * (FT_SCENARIO  - 1)     == STR_SAVELOAD_LOAD_SCENARIO);
+		assert_compile (caption_base + 2 * (FT_SCENARIO  - 1) + 1 == STR_SAVELOAD_SAVE_SCENARIO);
+		assert_compile (caption_base + 2 * (FT_HEIGHTMAP - 1)     == STR_SAVELOAD_LOAD_HEIGHTMAP);
+		assert_compile (caption_base + 2 * (FT_HEIGHTMAP - 1) + 1 == STR_SAVELOAD_SAVE_HEIGHTMAP);
+		this->GetWidget<NWidgetCore>(WID_SL_CAPTION)->widget_data =
+				caption_base + 2 * (abstract_filetype - 1) + save;
 
 		this->vscroll = this->GetScrollbar(WID_SL_SCROLLBAR);
 		this->InitNested(0);
