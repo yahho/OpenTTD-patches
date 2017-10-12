@@ -2655,10 +2655,10 @@ STR_ABOUT_VERSION                                               :{BLACK}OpenTTD 
 STR_ABOUT_COPYRIGHT_OPENTTD                                     :{BLACK}OpenTTD {COPYRIGHT} 2002-2017 OpenTTD darba grupa
 
 # Save/load game/scenario
-STR_SAVELOAD_SAVE_CAPTION                                       :{WHITE}Saglabāt spēli
 STR_SAVELOAD_LOAD_CAPTION                                       :{WHITE}Ielādēt spēli
-STR_SAVELOAD_SAVE_SCENARIO                                      :{WHITE}Saglabāt scenāriju
+STR_SAVELOAD_SAVE_CAPTION                                       :{WHITE}Saglabāt spēli
 STR_SAVELOAD_LOAD_SCENARIO                                      :{WHITE}Ielādēt scenāriju
+STR_SAVELOAD_SAVE_SCENARIO                                      :{WHITE}Saglabāt scenāriju
 STR_SAVELOAD_LOAD_HEIGHTMAP                                     :{WHITE}Ielādēt augstumu karti
 STR_SAVELOAD_SAVE_HEIGHTMAP                                     :{WHITE}Saglabāt augstumu karti
 STR_SAVELOAD_HOME_BUTTON                                        :{BLACK}Klikšķināt šeit, lai pārietu uz pašreizējo saglabāšanas/ielādēšanas mapi

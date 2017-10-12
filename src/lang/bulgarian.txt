@@ -2653,10 +2653,10 @@ STR_ABOUT_VERSION                                               :{BLACK}OpenTTD 
 STR_ABOUT_COPYRIGHT_OPENTTD                                     :{BLACK}OpenTTD {COPYRIGHT}2002-2017 The OpenTTD team
 
 # Save/load game/scenario
-STR_SAVELOAD_SAVE_CAPTION                                       :{WHITE}Запази играта
 STR_SAVELOAD_LOAD_CAPTION                                       :{WHITE}Отваряне на игра
-STR_SAVELOAD_SAVE_SCENARIO                                      :{WHITE}Запис на сценарии
+STR_SAVELOAD_SAVE_CAPTION                                       :{WHITE}Запази играта
 STR_SAVELOAD_LOAD_SCENARIO                                      :{WHITE}Зареждане на сценарии
+STR_SAVELOAD_SAVE_SCENARIO                                      :{WHITE}Запис на сценарии
 STR_SAVELOAD_LOAD_HEIGHTMAP                                     :{WHITE}Отваряне на височинна карта
 STR_SAVELOAD_SAVE_HEIGHTMAP                                     :{WHITE}Запис на височинна карта
 STR_SAVELOAD_HOME_BUTTON                                        :{BLACK}Прескачане към директорията за запис/зарездане по подразбиране

@@ -2814,10 +2814,10 @@ STR_ABOUT_VERSION                                               :{BLACK}OpenTTD 
 STR_ABOUT_COPYRIGHT_OPENTTD                                     :{BLACK}OpenTTD {COPYRIGHT} 2002-2017 OpenTTD tim
 
 # Save/load game/scenario
-STR_SAVELOAD_SAVE_CAPTION                                       :{WHITE}Spremi igru
 STR_SAVELOAD_LOAD_CAPTION                                       :{WHITE}Učitaj igru
-STR_SAVELOAD_SAVE_SCENARIO                                      :{WHITE}Spremi scenarij
+STR_SAVELOAD_SAVE_CAPTION                                       :{WHITE}Spremi igru
 STR_SAVELOAD_LOAD_SCENARIO                                      :{WHITE}Učitaj scenarij
+STR_SAVELOAD_SAVE_SCENARIO                                      :{WHITE}Spremi scenarij
 STR_SAVELOAD_LOAD_HEIGHTMAP                                     :{WHITE}Učitaj visinsku kartu
 STR_SAVELOAD_SAVE_HEIGHTMAP                                     :{WHITE}Spremi visinsku mapu
 STR_SAVELOAD_HOME_BUTTON                                        :{BLACK}Klikni ovdje za prelazak u trenutnu pretpostavljenu mapu za snimanje/učitavanje

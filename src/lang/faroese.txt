@@ -2446,10 +2446,10 @@ STR_ABOUT_VERSION                                               :{BLACK}OpenTTD 
 STR_ABOUT_COPYRIGHT_OPENTTD                                     :{BLACK}OpenTTD {COPYRIGHT} 2002-2017 OpenTTD toymi
 
 # Save/load game/scenario
-STR_SAVELOAD_SAVE_CAPTION                                       :{WHITE}Goym spæl
 STR_SAVELOAD_LOAD_CAPTION                                       :{WHITE}Heinta spæl
-STR_SAVELOAD_SAVE_SCENARIO                                      :{WHITE}Goym tilburð
+STR_SAVELOAD_SAVE_CAPTION                                       :{WHITE}Goym spæl
 STR_SAVELOAD_LOAD_SCENARIO                                      :{WHITE}Heinta tilburð
+STR_SAVELOAD_SAVE_SCENARIO                                      :{WHITE}Goym tilburð
 STR_SAVELOAD_LOAD_HEIGHTMAP                                     :{WHITE}Heinta hæddarkort
 STR_SAVELOAD_SAVE_HEIGHTMAP                                     :{WHITE}Goym hæddarkort
 STR_SAVELOAD_HOME_BUTTON                                        :{BLACK}Trýst her fyri at leypa til verðandi vanligu goym/heinta fíluskránna

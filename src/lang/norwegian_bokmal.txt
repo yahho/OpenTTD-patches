@@ -2722,10 +2722,10 @@ STR_ABOUT_VERSION                                               :{BLACK}OpenTTD 
 STR_ABOUT_COPYRIGHT_OPENTTD                                     :{BLACK}OpenTTD {COPYRIGHT} 2002-2017 OpenTTD-teamet
 
 # Save/load game/scenario
-STR_SAVELOAD_SAVE_CAPTION                                       :{WHITE}Lagre spill
 STR_SAVELOAD_LOAD_CAPTION                                       :{WHITE}Last inn spill
-STR_SAVELOAD_SAVE_SCENARIO                                      :{WHITE}Lagre scenario
+STR_SAVELOAD_SAVE_CAPTION                                       :{WHITE}Lagre spill
 STR_SAVELOAD_LOAD_SCENARIO                                      :{WHITE}Last inn scenario
+STR_SAVELOAD_SAVE_SCENARIO                                      :{WHITE}Lagre scenario
 STR_SAVELOAD_LOAD_HEIGHTMAP                                     :{WHITE}Last inn høydekart
 STR_SAVELOAD_SAVE_HEIGHTMAP                                     :{WHITE}Lagre høydekart
 STR_SAVELOAD_HOME_BUTTON                                        :{BLACK}Klikk her for å komme til standardmappen for lagring og innlasting

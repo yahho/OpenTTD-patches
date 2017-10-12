@@ -2282,10 +2282,10 @@ STR_ABOUT_VERSION                                               :{BLACK}OpenTTD-
 STR_ABOUT_COPYRIGHT_OPENTTD                                     :{BLACK}OpenTTD {COPYRIGHT}2002-2017 La teamo de OpenTTD
 
 # Save/load game/scenario
-STR_SAVELOAD_SAVE_CAPTION                                       :{WHITE}Konservu Ludon
 STR_SAVELOAD_LOAD_CAPTION                                       :{WHITE}Ŝarĝu Ludon
-STR_SAVELOAD_SAVE_SCENARIO                                      :{WHITE}Konservu Scenaron
+STR_SAVELOAD_SAVE_CAPTION                                       :{WHITE}Konservu Ludon
 STR_SAVELOAD_LOAD_SCENARIO                                      :{WHITE}Ŝarĝu Scenaron
+STR_SAVELOAD_SAVE_SCENARIO                                      :{WHITE}Konservu Scenaron
 STR_SAVELOAD_LOAD_HEIGHTMAP                                     :{WHITE}Ŝarĝu Altecmapon
 STR_SAVELOAD_SAVE_HEIGHTMAP                                     :{WHITE}Konservu altecmapon
 STR_SAVELOAD_HOME_BUTTON                                        :{BLACK}Klaku ĉi tie por salti al la nuna defaŭlta konserva dosierujo

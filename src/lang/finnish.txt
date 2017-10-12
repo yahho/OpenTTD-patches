@@ -2718,10 +2718,10 @@ STR_ABOUT_VERSION                                               :{BLACK}OpenTTD-
 STR_ABOUT_COPYRIGHT_OPENTTD                                     :{BLACK}OpenTTD {COPYRIGHT} 2002-2017 The OpenTTD team
 
 # Save/load game/scenario
-STR_SAVELOAD_SAVE_CAPTION                                       :{WHITE}Tallenna peli
 STR_SAVELOAD_LOAD_CAPTION                                       :{WHITE}Lataa peli
-STR_SAVELOAD_SAVE_SCENARIO                                      :{WHITE}Tallenna skenaario
+STR_SAVELOAD_SAVE_CAPTION                                       :{WHITE}Tallenna peli
 STR_SAVELOAD_LOAD_SCENARIO                                      :{WHITE}Lataa skenaario
+STR_SAVELOAD_SAVE_SCENARIO                                      :{WHITE}Tallenna skenaario
 STR_SAVELOAD_LOAD_HEIGHTMAP                                     :{WHITE}Lataa korkeuskartta
 STR_SAVELOAD_SAVE_HEIGHTMAP                                     :{WHITE}Tallenna korkeuskartta
 STR_SAVELOAD_HOME_BUTTON                                        :{BLACK}Siirry tallennusten oletuskansioon napsauttamalla tätä

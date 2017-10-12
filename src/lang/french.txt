@@ -2717,10 +2717,10 @@ STR_ABOUT_VERSION                                               :{BLACK}OpenTTD 
 STR_ABOUT_COPYRIGHT_OPENTTD                                     :{BLACK}OpenTTD {COPYRIGHT} 2002-2017 L'équipe OpenTTD
 
 # Save/load game/scenario
-STR_SAVELOAD_SAVE_CAPTION                                       :{WHITE}Sauvegarder la partie
 STR_SAVELOAD_LOAD_CAPTION                                       :{WHITE}Charger une partie
-STR_SAVELOAD_SAVE_SCENARIO                                      :{WHITE}Sauvegarder le scénario
+STR_SAVELOAD_SAVE_CAPTION                                       :{WHITE}Sauvegarder la partie
 STR_SAVELOAD_LOAD_SCENARIO                                      :{WHITE}Charger un scénario
+STR_SAVELOAD_SAVE_SCENARIO                                      :{WHITE}Sauvegarder le scénario
 STR_SAVELOAD_LOAD_HEIGHTMAP                                     :{WHITE}Charger une carte d'altitude
 STR_SAVELOAD_SAVE_HEIGHTMAP                                     :{WHITE}Sauvegarder la carte d'altitude
 STR_SAVELOAD_HOME_BUTTON                                        :{BLACK}Cliquer ici pour passer au répertoire par défaut actuel de charge/sauvegarde

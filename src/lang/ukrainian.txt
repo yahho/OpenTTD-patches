@@ -2845,10 +2845,10 @@ STR_ABOUT_VERSION                                               :{BLACK}OpenTTD 
 STR_ABOUT_COPYRIGHT_OPENTTD                                     :{BLACK}OpenTTD {COPYRIGHT} 2002-2017 команда OpenTTD
 
 # Save/load game/scenario
-STR_SAVELOAD_SAVE_CAPTION                                       :{WHITE}Зберегти гру
 STR_SAVELOAD_LOAD_CAPTION                                       :{WHITE}Завантажити гру
-STR_SAVELOAD_SAVE_SCENARIO                                      :{WHITE}Зберегти сценарій
+STR_SAVELOAD_SAVE_CAPTION                                       :{WHITE}Зберегти гру
 STR_SAVELOAD_LOAD_SCENARIO                                      :{WHITE}Завантажити сценарій
+STR_SAVELOAD_SAVE_SCENARIO                                      :{WHITE}Зберегти сценарій
 STR_SAVELOAD_LOAD_HEIGHTMAP                                     :{WHITE}Завантажити ландшафт
 STR_SAVELOAD_SAVE_HEIGHTMAP                                     :{WHITE}Зберегти карту висот
 STR_SAVELOAD_HOME_BUTTON                                        :{BLACK}Натисніть для переходу до поточного каталогу збереження/завантаження

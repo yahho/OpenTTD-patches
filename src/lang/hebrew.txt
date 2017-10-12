@@ -2728,10 +2728,10 @@ STR_ABOUT_VERSION                                               :{BLACK}{REV} ג
 STR_ABOUT_COPYRIGHT_OPENTTD                                     :{BLACK}OpenTTD {COPYRIGHT}2002-2017 The OpenTTD team
 
 # Save/load game/scenario
-STR_SAVELOAD_SAVE_CAPTION                                       :{WHITE}שמור משחק
 STR_SAVELOAD_LOAD_CAPTION                                       :{WHITE}טען משחק
-STR_SAVELOAD_SAVE_SCENARIO                                      :{WHITE}שמור תרחיש
+STR_SAVELOAD_SAVE_CAPTION                                       :{WHITE}שמור משחק
 STR_SAVELOAD_LOAD_SCENARIO                                      :{WHITE}טען תרחיש
+STR_SAVELOAD_SAVE_SCENARIO                                      :{WHITE}שמור תרחיש
 STR_SAVELOAD_LOAD_HEIGHTMAP                                     :{WHITE}טען מפת גבהים
 STR_SAVELOAD_SAVE_HEIGHTMAP                                     :{WHITE}שמור מפת גבהים
 STR_SAVELOAD_HOME_BUTTON                                        :{BLACK}לחץ כאן כדי לעבור לתיקית בחירת מחדל של שמירות

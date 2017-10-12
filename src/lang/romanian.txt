@@ -2680,10 +2680,10 @@ STR_ABOUT_VERSION                                               :{BLACK}OpenTTD 
 STR_ABOUT_COPYRIGHT_OPENTTD                                     :{BLACK}OpenTTD {COPYRIGHT} 2002-2017 Echipa OpenTTD
 
 # Save/load game/scenario
-STR_SAVELOAD_SAVE_CAPTION                                       :{WHITE}Salvează joc
 STR_SAVELOAD_LOAD_CAPTION                                       :{WHITE}Încarcă joc
-STR_SAVELOAD_SAVE_SCENARIO                                      :{WHITE}Salvează scenariu
+STR_SAVELOAD_SAVE_CAPTION                                       :{WHITE}Salvează joc
 STR_SAVELOAD_LOAD_SCENARIO                                      :{WHITE}Încarcă scenariu
+STR_SAVELOAD_SAVE_SCENARIO                                      :{WHITE}Salvează scenariu
 STR_SAVELOAD_LOAD_HEIGHTMAP                                     :{WHITE}Încarcă harta înălţimilor
 STR_SAVELOAD_SAVE_HEIGHTMAP                                     :{WHITE}Salvează harta înălţimilor
 STR_SAVELOAD_HOME_BUTTON                                        :{BLACK}Click aici pentru a ajunge la directorul predefinit pentru salvări

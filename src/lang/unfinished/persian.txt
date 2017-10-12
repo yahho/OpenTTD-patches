@@ -2408,10 +2408,10 @@ STR_ABOUT_VERSION                                               :{BLACK}OpenTTD 
 STR_ABOUT_COPYRIGHT_OPENTTD                                     :{BLACK}OpenTTD {COPYRIGHT}2002-2017 The OpenTTD team
 
 # Save/load game/scenario
-STR_SAVELOAD_SAVE_CAPTION                                       :{WHITE}ذخیره ی بازی
 STR_SAVELOAD_LOAD_CAPTION                                       :{WHITE}ادامه ی بازی
-STR_SAVELOAD_SAVE_SCENARIO                                      :{WHITE}ذخیره سناریو
+STR_SAVELOAD_SAVE_CAPTION                                       :{WHITE}ذخیره ی بازی
 STR_SAVELOAD_LOAD_SCENARIO                                      :{WHITE}بارگذاری سناریو
+STR_SAVELOAD_SAVE_SCENARIO                                      :{WHITE}ذخیره سناریو
 STR_SAVELOAD_LOAD_HEIGHTMAP                                     :{WHITE}بارگذاری نقشه پستی/بلندی
 STR_SAVELOAD_SAVE_HEIGHTMAP                                     :{WHITE}ذخیره Heightmap
 STR_SAVELOAD_HOME_BUTTON                                        :{BLACK}برای برگشت به پوشه پیش فرض ذخیره اینجا را کلیک کنید

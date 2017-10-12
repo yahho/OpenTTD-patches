@@ -2750,10 +2750,10 @@ STR_ABOUT_VERSION                                               :{BLACK}OpenTTD 
 STR_ABOUT_COPYRIGHT_OPENTTD                                     :{BLACK}OpenTTD {COPYRIGHT} 2002-2017 The OpenTTD team
 
 # Save/load game/scenario
-STR_SAVELOAD_SAVE_CAPTION                                       :{WHITE}Save Game
 STR_SAVELOAD_LOAD_CAPTION                                       :{WHITE}Load Game
-STR_SAVELOAD_SAVE_SCENARIO                                      :{WHITE}Save Scenario
+STR_SAVELOAD_SAVE_CAPTION                                       :{WHITE}Save Game
 STR_SAVELOAD_LOAD_SCENARIO                                      :{WHITE}Load Scenario
+STR_SAVELOAD_SAVE_SCENARIO                                      :{WHITE}Save Scenario
 STR_SAVELOAD_LOAD_HEIGHTMAP                                     :{WHITE}Load Heightmap
 STR_SAVELOAD_SAVE_HEIGHTMAP                                     :{WHITE}Save Heightmap
 STR_SAVELOAD_HOME_BUTTON                                        :{BLACK}Click here to jump to the current default save/load directory

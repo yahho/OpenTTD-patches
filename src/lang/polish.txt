@@ -3098,10 +3098,10 @@ STR_ABOUT_VERSION                                               :{BLACK}OpenTTD 
 STR_ABOUT_COPYRIGHT_OPENTTD                                     :{BLACK}OpenTTD {COPYRIGHT}2002-2017 Zespół OpenTTD
 
 # Save/load game/scenario
-STR_SAVELOAD_SAVE_CAPTION                                       :{WHITE}Zapisz grę
 STR_SAVELOAD_LOAD_CAPTION                                       :{WHITE}Wczytaj grę
-STR_SAVELOAD_SAVE_SCENARIO                                      :{WHITE}Zapisz scenariusz
+STR_SAVELOAD_SAVE_CAPTION                                       :{WHITE}Zapisz grę
 STR_SAVELOAD_LOAD_SCENARIO                                      :{WHITE}Wczytaj scenariusz
+STR_SAVELOAD_SAVE_SCENARIO                                      :{WHITE}Zapisz scenariusz
 STR_SAVELOAD_LOAD_HEIGHTMAP                                     :{WHITE}Wczytaj mapę wysokości
 STR_SAVELOAD_SAVE_HEIGHTMAP                                     :{WHITE}Zapisz mapę wysokości
 STR_SAVELOAD_HOME_BUTTON                                        :{BLACK}Kliknij tutaj aby przejść do domyślnego katalogu

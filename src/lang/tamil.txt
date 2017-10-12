@@ -2392,10 +2392,10 @@ STR_ABOUT_VERSION                                               :{BLACK}OpenTTD 
 STR_ABOUT_COPYRIGHT_OPENTTD                                     :{BLACK}OpenTTD {COPYRIGHT} 2002-2017 OpenTTD குழுமம்
 
 # Save/load game/scenario
-STR_SAVELOAD_SAVE_CAPTION                                       :{WHITE}ஆட்டத்தை பதிவு செய்
 STR_SAVELOAD_LOAD_CAPTION                                       :{WHITE}பதிவு செய்த ஆட்டத்தை தொடரு
-STR_SAVELOAD_SAVE_SCENARIO                                      :{WHITE}சித்திரக்காட்சியினைப் பதிவுசெய்
+STR_SAVELOAD_SAVE_CAPTION                                       :{WHITE}ஆட்டத்தை பதிவு செய்
 STR_SAVELOAD_LOAD_SCENARIO                                      :{WHITE}சித்திரக்காட்சியினைப் பதிவேற்று
+STR_SAVELOAD_SAVE_SCENARIO                                      :{WHITE}சித்திரக்காட்சியினைப் பதிவுசெய்
 STR_SAVELOAD_LOAD_HEIGHTMAP                                     :{WHITE}உயர்படத்தினை பதிவேற்று
 STR_SAVELOAD_SAVE_HEIGHTMAP                                     :{WHITE}வரைபடத்தினை சேமி
 STR_SAVELOAD_BYTES_FREE                                         :{BLACK}{BYTES} காலி

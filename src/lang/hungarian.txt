@@ -2782,10 +2782,10 @@ STR_ABOUT_VERSION                                               :{BLACK}OpenTTD 
 STR_ABOUT_COPYRIGHT_OPENTTD                                     :{BLACK}OpenTTD {COPYRIGHT}2002-2017 Az OpenTTD csapat
 
 # Save/load game/scenario
-STR_SAVELOAD_SAVE_CAPTION                                       :{WHITE}Játék mentése
 STR_SAVELOAD_LOAD_CAPTION                                       :{WHITE}Játék betöltése
-STR_SAVELOAD_SAVE_SCENARIO                                      :{WHITE}Pálya mentése
+STR_SAVELOAD_SAVE_CAPTION                                       :{WHITE}Játék mentése
 STR_SAVELOAD_LOAD_SCENARIO                                      :{WHITE}Pálya betöltése
+STR_SAVELOAD_SAVE_SCENARIO                                      :{WHITE}Pálya mentése
 STR_SAVELOAD_LOAD_HEIGHTMAP                                     :{WHITE}Magasságtérkép betöltése
 STR_SAVELOAD_SAVE_HEIGHTMAP                                     :{WHITE}Magasságtérkép mentése
 STR_SAVELOAD_HOME_BUTTON                                        :{BLACK}Kattints ide az aktuális mentési könyvtárra való ugráshoz

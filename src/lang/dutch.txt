@@ -2718,10 +2718,10 @@ STR_ABOUT_VERSION                                               :{BLACK}OpenTTD 
 STR_ABOUT_COPYRIGHT_OPENTTD                                     :{BLACK}OpenTTD {COPYRIGHT} 2002-2017 Het OpenTTD team
 
 # Save/load game/scenario
-STR_SAVELOAD_SAVE_CAPTION                                       :{WHITE}Spel Opslaan
 STR_SAVELOAD_LOAD_CAPTION                                       :{WHITE}Spel Laden
-STR_SAVELOAD_SAVE_SCENARIO                                      :{WHITE}Scenario Opslaan
+STR_SAVELOAD_SAVE_CAPTION                                       :{WHITE}Spel Opslaan
 STR_SAVELOAD_LOAD_SCENARIO                                      :{WHITE}Scenario Laden
+STR_SAVELOAD_SAVE_SCENARIO                                      :{WHITE}Scenario Opslaan
 STR_SAVELOAD_LOAD_HEIGHTMAP                                     :{WHITE}Laad Hoogtekaart
 STR_SAVELOAD_SAVE_HEIGHTMAP                                     :{WHITE}Hoogtekaart Opslaan
 STR_SAVELOAD_HOME_BUTTON                                        :{BLACK}Klik hier om naar de standaard bewaar-/laadmap te gaan

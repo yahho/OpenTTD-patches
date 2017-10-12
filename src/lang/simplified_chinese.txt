@@ -2715,10 +2715,10 @@ STR_ABOUT_VERSION                                               :{BLACK}OpenTTD 
 STR_ABOUT_COPYRIGHT_OPENTTD                                     :{BLACK}OpenTTD {COPYRIGHT} 2002-2017 OpenTTD 团队
 
 # Save/load game/scenario
-STR_SAVELOAD_SAVE_CAPTION                                       :{WHITE}保存游戏
 STR_SAVELOAD_LOAD_CAPTION                                       :{WHITE}读取存档
-STR_SAVELOAD_SAVE_SCENARIO                                      :{WHITE}保存场景
+STR_SAVELOAD_SAVE_CAPTION                                       :{WHITE}保存游戏
 STR_SAVELOAD_LOAD_SCENARIO                                      :{WHITE}读取场景
+STR_SAVELOAD_SAVE_SCENARIO                                      :{WHITE}保存场景
 STR_SAVELOAD_LOAD_HEIGHTMAP                                     :{WHITE}读取地形图
 STR_SAVELOAD_SAVE_HEIGHTMAP                                     :{WHITE}保存高度图
 STR_SAVELOAD_HOME_BUTTON                                        :{BLACK}点击这里返回默认的游戏存档目录

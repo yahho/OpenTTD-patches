@@ -2701,10 +2701,10 @@ STR_ABOUT_VERSION                                               :{BLACK}OpenTTD 
 STR_ABOUT_COPYRIGHT_OPENTTD                                     :{BLACK}OpenTTD {COPYRIGHT} 2002-2017 An fhoireann OpenTTD
 
 # Save/load game/scenario
-STR_SAVELOAD_SAVE_CAPTION                                       :{WHITE}Sábháil an Cluiche
 STR_SAVELOAD_LOAD_CAPTION                                       :{WHITE}Lódáil Cluiche
-STR_SAVELOAD_SAVE_SCENARIO                                      :{WHITE}Sábháil Scéal
+STR_SAVELOAD_SAVE_CAPTION                                       :{WHITE}Sábháil an Cluiche
 STR_SAVELOAD_LOAD_SCENARIO                                      :{WHITE}Lódáil Scéal
+STR_SAVELOAD_SAVE_SCENARIO                                      :{WHITE}Sábháil Scéal
 STR_SAVELOAD_LOAD_HEIGHTMAP                                     :{WHITE}Lódáil Mapa airde
 STR_SAVELOAD_SAVE_HEIGHTMAP                                     :{WHITE}Sábháil Mapa airde
 STR_SAVELOAD_HOME_BUTTON                                        :{BLACK}Cliceáil anseo le léim chuig an comhadlann réamhshocraithe sábhála/lódála reatha

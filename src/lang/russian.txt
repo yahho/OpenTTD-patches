@@ -2898,10 +2898,10 @@ STR_ABOUT_VERSION                                               :{BLACK}OpenTTD 
 STR_ABOUT_COPYRIGHT_OPENTTD                                     :{BLACK}OpenTTD {COPYRIGHT} 2002-2017 Команда разработчиков OpenTTD
 
 # Save/load game/scenario
-STR_SAVELOAD_SAVE_CAPTION                                       :{WHITE}Сохранить игру
 STR_SAVELOAD_LOAD_CAPTION                                       :{WHITE}Загрузить игру
-STR_SAVELOAD_SAVE_SCENARIO                                      :{WHITE}Сохранить сценарий
+STR_SAVELOAD_SAVE_CAPTION                                       :{WHITE}Сохранить игру
 STR_SAVELOAD_LOAD_SCENARIO                                      :{WHITE}Загрузить сценарий
+STR_SAVELOAD_SAVE_SCENARIO                                      :{WHITE}Сохранить сценарий
 STR_SAVELOAD_LOAD_HEIGHTMAP                                     :{WHITE}Загрузить карту
 STR_SAVELOAD_SAVE_HEIGHTMAP                                     :{WHITE}Сохранить карту высот
 STR_SAVELOAD_HOME_BUTTON                                        :{BLACK}Переход в каталог загрузки и сохранения, установленный по умолчанию

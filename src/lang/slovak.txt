@@ -2782,10 +2782,10 @@ STR_ABOUT_VERSION                                               :{BLACK}OpenTTD 
 STR_ABOUT_COPYRIGHT_OPENTTD                                     :{BLACK}OpenTTD {COPYRIGHT} 2002-2017 team OpenTTD
 
 # Save/load game/scenario
-STR_SAVELOAD_SAVE_CAPTION                                       :{WHITE}Uložiť hru
 STR_SAVELOAD_LOAD_CAPTION                                       :{WHITE}Nahrať hru
-STR_SAVELOAD_SAVE_SCENARIO                                      :{WHITE}Uložiť scenár
+STR_SAVELOAD_SAVE_CAPTION                                       :{WHITE}Uložiť hru
 STR_SAVELOAD_LOAD_SCENARIO                                      :{WHITE}Nahrať scenár
+STR_SAVELOAD_SAVE_SCENARIO                                      :{WHITE}Uložiť scenár
 STR_SAVELOAD_LOAD_HEIGHTMAP                                     :{WHITE}Nahrať výškovú mapu
 STR_SAVELOAD_SAVE_HEIGHTMAP                                     :{WHITE}Uložiť Výškovú mapu
 STR_SAVELOAD_HOME_BUTTON                                        :{BLACK}Kliknutim sem sa presuniete do sucasneho vychodzieho adresara pre ukladanie

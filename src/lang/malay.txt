@@ -2426,10 +2426,10 @@ STR_ABOUT_VERSION                                               :{BLACK}OpenTTD 
 STR_ABOUT_COPYRIGHT_OPENTTD                                     :{BLACK}OpenTTD {COPYRIGHT}2002-2017 The OpenTTD team
 
 # Save/load game/scenario
-STR_SAVELOAD_SAVE_CAPTION                                       :{WHITE}Simpankan Permainan
 STR_SAVELOAD_LOAD_CAPTION                                       :{WHITE}Buka Permainan
-STR_SAVELOAD_SAVE_SCENARIO                                      :{WHITE}Simpan Senario
+STR_SAVELOAD_SAVE_CAPTION                                       :{WHITE}Simpankan Permainan
 STR_SAVELOAD_LOAD_SCENARIO                                      :{WHITE}Buka Senario
+STR_SAVELOAD_SAVE_SCENARIO                                      :{WHITE}Simpan Senario
 STR_SAVELOAD_LOAD_HEIGHTMAP                                     :{WHITE}Buka Heightmap
 STR_SAVELOAD_SAVE_HEIGHTMAP                                     :{WHITE}Simpan Heightmap
 STR_SAVELOAD_HOME_BUTTON                                        :{BLACK}Klik di sini untuk terus ke direktori lazim semasa untuk simpan/buka

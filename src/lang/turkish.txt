@@ -2719,10 +2719,10 @@ STR_ABOUT_VERSION                                               :{BLACK}OpenTTD 
 STR_ABOUT_COPYRIGHT_OPENTTD                                     :{BLACK}OpenTTD {COPYRIGHT} 2002-2017 OpenTTD ekibi
 
 # Save/load game/scenario
-STR_SAVELOAD_SAVE_CAPTION                                       :{WHITE}Oyunu Kaydet
 STR_SAVELOAD_LOAD_CAPTION                                       :{WHITE}Yükle
-STR_SAVELOAD_SAVE_SCENARIO                                      :{WHITE}Senaryoyu Kaydet
+STR_SAVELOAD_SAVE_CAPTION                                       :{WHITE}Oyunu Kaydet
 STR_SAVELOAD_LOAD_SCENARIO                                      :{WHITE}Senaryoyu Yükle
+STR_SAVELOAD_SAVE_SCENARIO                                      :{WHITE}Senaryoyu Kaydet
 STR_SAVELOAD_LOAD_HEIGHTMAP                                     :{WHITE}Yükseklik haritası yükle
 STR_SAVELOAD_SAVE_HEIGHTMAP                                     :{WHITE}Yükseklik Haritasını Kaydet
 STR_SAVELOAD_HOME_BUTTON                                        :{BLACK}Şu anki varsayılan kayıt/yükleme dizinine gitmek için tıklayın

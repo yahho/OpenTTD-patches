@@ -2959,10 +2959,10 @@ STR_ABOUT_VERSION                                               :{BLACK}OpenTTD 
 STR_ABOUT_COPYRIGHT_OPENTTD                                     :{BLACK}OpenTTD {COPYRIGHT} 2002-2017 An sgioba OpenTTD
 
 # Save/load game/scenario
-STR_SAVELOAD_SAVE_CAPTION                                       :{WHITE}Sàbhail an geama
 STR_SAVELOAD_LOAD_CAPTION                                       :{WHITE}Luchdaich geama
-STR_SAVELOAD_SAVE_SCENARIO                                      :{WHITE}Sàbhail an cnàmh-sgeul
+STR_SAVELOAD_SAVE_CAPTION                                       :{WHITE}Sàbhail an geama
 STR_SAVELOAD_LOAD_SCENARIO                                      :{WHITE}Luchdaich cnàmh-sgeul
+STR_SAVELOAD_SAVE_SCENARIO                                      :{WHITE}Sàbhail an cnàmh-sgeul
 STR_SAVELOAD_LOAD_HEIGHTMAP                                     :{WHITE}Luchdaich mapa-àirde
 STR_SAVELOAD_SAVE_HEIGHTMAP                                     :{WHITE}Sàbhail am mapa-àirde
 STR_SAVELOAD_HOME_BUTTON                                        :{BLACK}Briog an-seo gus leum a ghearradh dhan phasgan shàbhalaidh/luchdaidh bhunasach làithreach

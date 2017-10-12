@@ -2719,10 +2719,10 @@ STR_ABOUT_VERSION                                               :{BLACK}OpenTTD 
 STR_ABOUT_COPYRIGHT_OPENTTD                                     :{BLACK}OpenTTD {COPYRIGHT} 2002-2017 OpenTTD 개발팀
 
 # Save/load game/scenario
-STR_SAVELOAD_SAVE_CAPTION                                       :{WHITE}게임 저장
 STR_SAVELOAD_LOAD_CAPTION                                       :{WHITE}게임 불러오기
-STR_SAVELOAD_SAVE_SCENARIO                                      :{WHITE}시나리오 저장하기
+STR_SAVELOAD_SAVE_CAPTION                                       :{WHITE}게임 저장
 STR_SAVELOAD_LOAD_SCENARIO                                      :{WHITE}시나리오 불러오기
+STR_SAVELOAD_SAVE_SCENARIO                                      :{WHITE}시나리오 저장하기
 STR_SAVELOAD_LOAD_HEIGHTMAP                                     :{WHITE}높이맵 불러오기
 STR_SAVELOAD_SAVE_HEIGHTMAP                                     :{WHITE}높이맵 저장
 STR_SAVELOAD_HOME_BUTTON                                        :{BLACK}기본 저장/불러오기 폴더로 이동하려면 여기를 클릭하세요

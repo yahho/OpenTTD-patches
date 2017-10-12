@@ -2867,10 +2867,10 @@ STR_ABOUT_VERSION                                               :{BLACK}OpenTTD 
 STR_ABOUT_COPYRIGHT_OPENTTD                                     :{BLACK}OpenTTD {COPYRIGHT}2002-2017 ekipa OpenTTD
 
 # Save/load game/scenario
-STR_SAVELOAD_SAVE_CAPTION                                       :{WHITE}Shrani igro
 STR_SAVELOAD_LOAD_CAPTION                                       :{WHITE}Naloži igro
-STR_SAVELOAD_SAVE_SCENARIO                                      :{WHITE}Shrani scenarij
+STR_SAVELOAD_SAVE_CAPTION                                       :{WHITE}Shrani igro
 STR_SAVELOAD_LOAD_SCENARIO                                      :{WHITE}Naloži scenarij
+STR_SAVELOAD_SAVE_SCENARIO                                      :{WHITE}Shrani scenarij
 STR_SAVELOAD_LOAD_HEIGHTMAP                                     :{WHITE}Naloži višinsko karto
 STR_SAVELOAD_SAVE_HEIGHTMAP                                     :{WHITE}Shrani višinsko karto
 STR_SAVELOAD_HOME_BUTTON                                        :{BLACK}Klikni tukaj za skok v mapo shrani/naloži
