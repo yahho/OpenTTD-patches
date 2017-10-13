@@ -298,24 +298,12 @@ public:
 		o_dir.type = FIOS_TYPE_DIRECT;
 		o_dir.mtime = 0;
 		o_dir.title[0] = '\0';
-		Subdirectory subdir;
-		switch (this->abstract_filetype) {
-			case FT_SAVEGAME:
-				subdir = SAVE_DIR;
-				break;
 
-			case FT_SCENARIO:
-				subdir = SCENARIO_DIR;
-				break;
-
-			case FT_HEIGHTMAP:
-				subdir = HEIGHTMAP_DIR;
-				break;
-
-			default:
-				NOT_REACHED();
-		}
-		FioGetDirectory (o_dir.name, lengthof(o_dir.name), subdir);
+		assert_compile ((FT_SAVEGAME  * 3) / 2 == SAVE_DIR);
+		assert_compile ((FT_SCENARIO  * 3) / 2 == SCENARIO_DIR);
+		assert_compile ((FT_HEIGHTMAP * 3) / 2 == HEIGHTMAP_DIR);
+		FioGetDirectory (o_dir.name, lengthof(o_dir.name),
+				(Subdirectory) ((this->abstract_filetype * 3) / 2));
 
 		/* Focus the edit box by default in the save windows */
 		if (save) this->SetFocusedWidget (WID_SL_SAVE_OSK_TITLE);
