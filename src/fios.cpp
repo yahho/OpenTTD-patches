@@ -403,6 +403,13 @@ static FiosType FiosGetHeightmapListCallback (const char *file, const char *ext,
  */
 void FileList::BuildFileList (AbstractFileType abstract_filetype, bool save)
 {
+	assert_compile (FT_SAVEGAME  == 1);
+	assert_compile (FT_SCENARIO  == 2);
+	assert_compile (FT_HEIGHTMAP == 3);
+
+	assert ((abstract_filetype >= FT_SAVEGAME)
+			&& (abstract_filetype <= FT_HEIGHTMAP));
+
 	this->Clear();
 
 	fios_getlist_callback_proc *callback;
@@ -410,9 +417,6 @@ void FileList::BuildFileList (AbstractFileType abstract_filetype, bool save)
 	switch (abstract_filetype) {
 		default:
 			NOT_REACHED();
-
-		case FT_NONE:
-			return;
 
 		case FT_SAVEGAME: {
 			static char *fios_save_path = NULL;
