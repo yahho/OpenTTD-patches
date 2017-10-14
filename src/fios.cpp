@@ -403,6 +403,8 @@ static FiosType FiosGetHeightmapListCallback (const char *file, const char *ext,
  */
 void FileList::BuildFileList (AbstractFileType abstract_filetype, bool save)
 {
+	static char fios_paths [3][MAX_PATH];
+
 	assert_compile (FT_SAVEGAME  == 1);
 	assert_compile (FT_SCENARIO  == 2);
 	assert_compile (FT_HEIGHTMAP == 3);
@@ -412,38 +414,30 @@ void FileList::BuildFileList (AbstractFileType abstract_filetype, bool save)
 
 	this->Clear();
 
+	assert_compile ((FT_SAVEGAME  * 3) / 2 == SAVE_DIR);
+	assert_compile ((FT_SCENARIO  * 3) / 2 == SCENARIO_DIR);
+	assert_compile ((FT_HEIGHTMAP * 3) / 2 == HEIGHTMAP_DIR);
+
+	Subdirectory subdir = (Subdirectory) ((abstract_filetype * 3) / 2);
+
+	/* Copy the default path on first run. */
+	char *path = fios_paths[abstract_filetype - 1];
+	if (*path == '\0') {
+		FioGetDirectory (path, MAX_PATH, subdir);
+	}
+	_fios_path = path;
+
 	fios_getlist_callback_proc *callback;
-	Subdirectory subdir;
 	switch (abstract_filetype) {
 		default:
 			NOT_REACHED();
 
-		case FT_SAVEGAME: {
-			static char *fios_save_path = NULL;
-
-			if (fios_save_path == NULL) {
-				fios_save_path = xmalloc (MAX_PATH);
-				FioGetDirectory (fios_save_path, MAX_PATH, SAVE_DIR);
-			}
-
-			_fios_path = fios_save_path;
-
+		case FT_SAVEGAME:
 			subdir = NO_DIRECTORY;
 			callback = &FiosGetSavegameListCallback;
 			break;
-		}
 
 		case FT_SCENARIO: {
-			static char *fios_scn_path = NULL;
-
-			/* Copy the default path on first run or on 'New Game' */
-			if (fios_scn_path == NULL) {
-				fios_scn_path = xmalloc (MAX_PATH);
-				FioGetDirectory (fios_scn_path, MAX_PATH, SCENARIO_DIR);
-			}
-
-			_fios_path = fios_scn_path;
-
 			char base_path[MAX_PATH];
 			FioGetDirectory (base_path, sizeof(base_path), SCENARIO_DIR);
 
@@ -453,15 +447,6 @@ void FileList::BuildFileList (AbstractFileType abstract_filetype, bool save)
 		}
 
 		case FT_HEIGHTMAP: {
-			static char *fios_hmap_path = NULL;
-
-			if (fios_hmap_path == NULL) {
-				fios_hmap_path = xmalloc (MAX_PATH);
-				FioGetDirectory (fios_hmap_path, MAX_PATH, HEIGHTMAP_DIR);
-			}
-
-			_fios_path = fios_hmap_path;
-
 			char base_path[MAX_PATH];
 			FioGetDirectory (base_path, sizeof(base_path), HEIGHTMAP_DIR);
 
