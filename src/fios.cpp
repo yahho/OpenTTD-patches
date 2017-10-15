@@ -418,7 +418,8 @@ void FileList::BuildFileList (AbstractFileType abstract_filetype, bool save)
 	/* Copy the default path on first run. */
 	Path *path = &fios_paths[abstract_filetype - 1];
 	if (path->cur[0] == '\0') {
-		FioGetDirectory (path->cur, MAX_PATH, subdir);
+		FioGetDirectory (path->home, lengthof(path->home), subdir);
+		path->reset();
 	}
 	this->path = path;
 
@@ -432,23 +433,15 @@ void FileList::BuildFileList (AbstractFileType abstract_filetype, bool save)
 			callback = &FiosGetSavegameListCallback;
 			break;
 
-		case FT_SCENARIO: {
-			char base_path[MAX_PATH];
-			FioGetDirectory (base_path, sizeof(base_path), SCENARIO_DIR);
-
-			subdir = (!save && strcmp (base_path, this->path->cur) == 0) ? SCENARIO_DIR : NO_DIRECTORY;
+		case FT_SCENARIO:
+			subdir = (!save && strcmp (path->home, path->cur) == 0) ? SCENARIO_DIR : NO_DIRECTORY;
 			callback = &FiosGetScenarioListCallback;
 			break;
-		}
 
-		case FT_HEIGHTMAP: {
-			char base_path[MAX_PATH];
-			FioGetDirectory (base_path, sizeof(base_path), HEIGHTMAP_DIR);
-
-			subdir = strcmp (base_path, this->path->cur) == 0 ? HEIGHTMAP_DIR : NO_DIRECTORY;
+		case FT_HEIGHTMAP:
+			subdir = strcmp (path->home, path->cur) == 0 ? HEIGHTMAP_DIR : NO_DIRECTORY;
 			callback = &FiosGetHeightmapListCallback;
 			break;
-		}
 	}
 
 	/* A parent directory link exists if we are not in the root directory */

@@ -108,11 +108,17 @@ struct FiosItem {
 class FileList {
 public:
 	struct Path {
+		char home [MAX_PATH];   ///< The home path.
 		char cur  [MAX_PATH];   ///< The current path.
+
+		void reset (void)
+		{
+			memcpy (this->cur, this->home, MAX_PATH);
+		}
 	};
 
 	SmallVector<FiosItem, 32> files; ///< The list of files.
-	Path *path;                      ///< The current path.
+	Path *path;                      ///< The current and home paths.
 
 	/**
 	 * Construct a new entry in the file list.

@@ -227,7 +227,6 @@ private:
 	AbstractFileType abstract_filetype; /// Type of file to select.
 	bool save;                    ///< Whether the window is for saving.
 	FileList fios_items;          ///< Save game list.
-	FiosItem o_dir;
 	const FiosItem *selected;     ///< Selected game in #fios_items, or \c NULL.
 	Scrollbar *vscroll;
 public:
@@ -242,7 +241,7 @@ public:
 	SaveLoadWindow (const WindowDesc *desc, AbstractFileType abstract_filetype, bool save)
 		: Window (desc), filename_editbox(),
 		  abstract_filetype (abstract_filetype), save (save),
-		  o_dir(), selected (NULL), vscroll (NULL)
+		  selected (NULL), vscroll (NULL)
 	{
 		assert_compile (FT_SAVEGAME  == 1);
 		assert_compile (FT_SCENARIO  == 2);
@@ -293,17 +292,6 @@ public:
 		this->OnInvalidateData(0);
 
 		ResetPointerMode();
-
-		/* Select the initial directory. */
-		o_dir.type = FIOS_TYPE_DIRECT;
-		o_dir.mtime = 0;
-		o_dir.title[0] = '\0';
-
-		assert_compile ((FT_SAVEGAME  * 3) / 2 == SAVE_DIR);
-		assert_compile ((FT_SCENARIO  * 3) / 2 == SCENARIO_DIR);
-		assert_compile ((FT_HEIGHTMAP * 3) / 2 == HEIGHTMAP_DIR);
-		FioGetDirectory (o_dir.name, lengthof(o_dir.name),
-				(Subdirectory) ((this->abstract_filetype * 3) / 2));
 
 		/* Focus the edit box by default in the save windows */
 		if (save) this->SetFocusedWidget (WID_SL_SAVE_OSK_TITLE);
@@ -507,8 +495,8 @@ public:
 				this->SetDirty();
 				break;
 
-			case WID_SL_HOME_BUTTON: // OpenTTD 'button', jumps to OpenTTD directory
-				FiosBrowseTo (this->fios_items.path->cur, &o_dir);
+			case WID_SL_HOME_BUTTON: // Home button, jumps to home directory
+				this->fios_items.path->reset();
 				this->InvalidateData();
 				break;
 
