@@ -40,7 +40,6 @@ enum DetailedFileType {
 	DFT_FIOS_DRIVE,  ///< A drive (letter) entry.
 	DFT_FIOS_PARENT, ///< A parent directory entry.
 	DFT_FIOS_DIR,    ///< A directory entry.
-	DFT_FIOS_DIRECT, ///< Direct filename.
 
 	DFT_INVALID = 255, ///< Unknown or invalid file.
 };
@@ -61,7 +60,6 @@ enum FiosType {
 	FIOS_TYPE_DRIVE  = MAKE_FIOS_TYPE(FT_NONE, DFT_FIOS_DRIVE),
 	FIOS_TYPE_PARENT = MAKE_FIOS_TYPE(FT_NONE, DFT_FIOS_PARENT),
 	FIOS_TYPE_DIR    = MAKE_FIOS_TYPE(FT_NONE, DFT_FIOS_DIR),
-	FIOS_TYPE_DIRECT = MAKE_FIOS_TYPE(FT_NONE, DFT_FIOS_DIRECT),
 
 	FIOS_TYPE_FILE         = MAKE_FIOS_TYPE(FT_SAVEGAME, DFT_GAME_FILE),
 	FIOS_TYPE_OLDFILE      = MAKE_FIOS_TYPE(FT_SAVEGAME, DFT_OLD_GAME_FILE),

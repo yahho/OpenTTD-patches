@@ -101,10 +101,6 @@ const char *FiosBrowseTo (char *path, const FiosItem *item)
 			strcat(path, PATHSEP);
 			break;
 
-		case FIOS_TYPE_DIRECT:
-			snprintf(path, MAX_PATH, "%s", item->name);
-			break;
-
 		case FIOS_TYPE_FILE:
 		case FIOS_TYPE_OLDFILE:
 		case FIOS_TYPE_SCENARIO:
