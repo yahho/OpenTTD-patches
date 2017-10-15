@@ -107,6 +107,13 @@ struct FiosItem {
 /** List of file information. */
 class FileList {
 public:
+	struct Path {
+		char cur  [MAX_PATH];   ///< The current path.
+	};
+
+	SmallVector<FiosItem, 32> files; ///< The list of files.
+	Path *path;                      ///< The current path.
+
 	/**
 	 * Construct a new entry in the file list.
 	 * @return Pointer to the new items to be initialized.
@@ -182,8 +189,6 @@ public:
 	}
 
 	void BuildFileList (AbstractFileType abstract_filetype, bool save);
-
-	SmallVector<FiosItem, 32> files; ///< The list of files.
 };
 
 enum SortingBits {
@@ -199,15 +204,14 @@ extern SortingBits _savegame_sort_order;
 
 void ShowSaveLoadDialog (AbstractFileType abstract_filetype, bool save = false);
 
-const char *FiosBrowseTo(const FiosItem *item);
+const char *FiosBrowseTo (char *path, const FiosItem *item);
 
 /* OS-specific functions are taken from their respective files (win32/unix/os2 .c) */
 bool FiosGetDiskFreeSpace (const char *path, uint64 *tot);
 
-const char *FiosGetPath (void);
-bool FiosDelete(const char *name);
-void FiosMakeHeightmapName(char *buf, const char *name, size_t size);
-void FiosMakeSavegameName(char *buf, const char *name, size_t size);
+bool FiosDelete (const char *path, const char *name);
+void FiosMakeHeightmapName (char *buf, const char *path, const char *name, size_t size);
+void FiosMakeSavegameName (char *buf, const char *path, const char *name, size_t size);
 
 FiosType FiosGetSavegameListCallback (const char *file, const char *ext, stringb *title = NULL, bool save = false);
 

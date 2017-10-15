@@ -333,7 +333,7 @@ public:
 				static uint64 tot = 0;
 
 				if (_fios_path_changed) {
-					path = FiosGetPath();
+					path = this->fios_items.path->cur;
 					str = FiosGetDiskFreeSpace (path, &tot) ? STR_SAVELOAD_BYTES_FREE : STR_ERROR_UNABLE_TO_READ_DRIVE;
 					_fios_path_changed = false;
 				}
@@ -508,7 +508,7 @@ public:
 				break;
 
 			case WID_SL_HOME_BUTTON: // OpenTTD 'button', jumps to OpenTTD directory
-				FiosBrowseTo(&o_dir);
+				FiosBrowseTo (this->fios_items.path->cur, &o_dir);
 				this->InvalidateData();
 				break;
 
@@ -552,7 +552,7 @@ public:
 
 				const FiosItem *file = this->fios_items.Get(y);
 
-				const char *name = FiosBrowseTo(file);
+				const char *name = FiosBrowseTo (this->fios_items.path->cur, file);
 				if (name != NULL) {
 					if (click_count == 1) {
 						if (this->selected != file) {
@@ -635,7 +635,7 @@ public:
 		if (!this->save) return;
 
 		if (this->IsWidgetLowered(WID_SL_DELETE_SELECTION)) { // Delete button clicked
-			if (!FiosDelete(this->filename_editbox.GetText())) {
+			if (!FiosDelete (this->fios_items.path->cur, this->filename_editbox.GetText())) {
 				ShowErrorMessage(STR_ERROR_UNABLE_TO_DELETE_FILE, INVALID_STRING_ID, WL_ERROR);
 			} else {
 				this->InvalidateData();
@@ -645,10 +645,12 @@ public:
 		} else if (this->IsWidgetLowered(WID_SL_SAVE_GAME)) { // Save button clicked
 			if (this->abstract_filetype == FT_SAVEGAME || this->abstract_filetype == FT_SCENARIO) {
 				_switch_mode = SM_SAVE_GAME;
-				FiosMakeSavegameName(_file_to_saveload.name, this->filename_editbox.GetText(), sizeof(_file_to_saveload.name));
+				FiosMakeSavegameName (_file_to_saveload.name, this->fios_items.path->cur,
+						this->filename_editbox.GetText(), sizeof(_file_to_saveload.name));
 			} else {
 				_switch_mode = SM_SAVE_HEIGHTMAP;
-				FiosMakeHeightmapName(_file_to_saveload.name, this->filename_editbox.GetText(), sizeof(_file_to_saveload.name));
+				FiosMakeHeightmapName (_file_to_saveload.name, this->fios_items.path->cur,
+						this->filename_editbox.GetText(), sizeof(_file_to_saveload.name));
 			}
 
 			/* In the editor set up the vehicle engines correctly (date might have changed) */

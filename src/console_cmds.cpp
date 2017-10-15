@@ -420,7 +420,7 @@ DEF_CONSOLE_CMD(ConRemove)
 
 	const char *file = argv[1];
 	const FiosItem *item = FindFile (file);
-	if ((item != NULL) && !FiosDelete(item->name)) {
+	if ((item != NULL) && !FiosDelete (_console_file_list.path->cur, item->name)) {
 		IConsolePrintF (CC_ERROR, "%s: Failed to delete file", file);
 	}
 
@@ -460,7 +460,7 @@ DEF_CONSOLE_CMD(ConChangeDirectory)
 	if (item != NULL) {
 		switch (item->type) {
 			case FIOS_TYPE_DIR: case FIOS_TYPE_DRIVE: case FIOS_TYPE_PARENT:
-				FiosBrowseTo(item);
+				FiosBrowseTo (_console_file_list.path->cur, item);
 				break;
 			default: IConsolePrintF(CC_ERROR, "%s: Not a directory.", file);
 		}
@@ -481,7 +481,7 @@ DEF_CONSOLE_CMD(ConPrintWorkingDirectory)
 	_console_file_list.ValidateFileList(true);
 	_console_file_list.InvalidateFileList();
 
-	IConsolePrint (CC_DEFAULT, FiosGetPath());
+	IConsolePrint (CC_DEFAULT, _console_file_list.path->cur);
 	return true;
 }
 
