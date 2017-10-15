@@ -514,9 +514,8 @@ public:
 
 			case WID_SL_LOAD_BUTTON:
 				if (this->selected != NULL && !_load_check_data.HasErrors()) {
-					const char *name = FiosBrowseTo(this->selected);
 					_file_to_saveload.SetMode(this->selected->type);
-					_file_to_saveload.SetName(name);
+					_file_to_saveload.SetName (this->selected->name);
 					_file_to_saveload.SetTitle(this->selected->title);
 
 					if (this->abstract_filetype == FT_HEIGHTMAP) {
