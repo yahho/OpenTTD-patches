@@ -395,14 +395,11 @@ DEF_CONSOLE_CMD(ConLoad)
 	const char *file = argv[1];
 	const FiosItem *item = FindFile (file);
 	if (item != NULL) {
-		if (GetAbstractFileType(item->type) == FT_SAVEGAME) {
-			_switch_mode = SM_LOAD_GAME;
-			_file_to_saveload.SetMode(item->type);
-			_file_to_saveload.SetName (item->name);
-			_file_to_saveload.SetTitle(item->title);
-		} else {
-			IConsolePrintF(CC_ERROR, "%s: Not a savegame.", file);
-		}
+		assert (GetAbstractFileType(item->type) == FT_SAVEGAME);
+		_switch_mode = SM_LOAD_GAME;
+		_file_to_saveload.SetMode (item->type);
+		_file_to_saveload.SetName (item->name);
+		_file_to_saveload.SetTitle (item->title);
 	}
 
 	return true;
