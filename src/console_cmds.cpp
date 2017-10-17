@@ -44,24 +44,14 @@
 /* scriptfile handling */
 static bool _script_running; ///< Script is running (used to abort execution when #ConReturn is encountered).
 
-/** File list storage for the console, for caching the last 'ls' command. */
-class ConsoleFileList : public FileList {
-public:
-	ConsoleFileList() : FileList()
-	{
-		this->file_list_valid = false;
-	}
-
-	bool file_list_valid; ///< If set, the file list is valid.
-};
-
-static ConsoleFileList _console_file_list; ///< File storage cache for the console.
+static FileList _console_file_list; ///< File storage cache for the console.
+static bool _console_file_list_valid; ///< If set, the file list is valid.
 
 /** Declare the file storage cache as being invalid, also clears all stored files. */
 static void InvalidateFileList (void)
 {
 	_console_file_list.Clear();
-	_console_file_list.file_list_valid = false;
+	_console_file_list_valid = false;
 }
 
 /**
@@ -70,9 +60,9 @@ static void InvalidateFileList (void)
  */
 static void ValidateFileList (bool force_reload)
 {
-	if (force_reload || !_console_file_list.file_list_valid) {
+	if (force_reload || !_console_file_list_valid) {
 		_console_file_list.BuildFileList (FT_SAVEGAME, false);
-		_console_file_list.file_list_valid = true;
+		_console_file_list_valid = true;
 	}
 }
 
