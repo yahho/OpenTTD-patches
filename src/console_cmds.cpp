@@ -59,22 +59,22 @@ public:
 		this->file_list_valid = false;
 	}
 
-	/**
-	 * (Re-)validate the file storage cache. Only makes a change if the storage was invalid, or if \a force_reload.
-	 * @param Always reload the file storage cache.
-	 */
-	void ValidateFileList(bool force_reload = false)
-	{
-		if (force_reload || !this->file_list_valid) {
-			this->BuildFileList (FT_SAVEGAME, false);
-			this->file_list_valid = true;
-		}
-	}
-
 	bool file_list_valid; ///< If set, the file list is valid.
 };
 
 static ConsoleFileList _console_file_list; ///< File storage cache for the console.
+
+/**
+ * (Re-)validate the file storage cache. Only makes a change if the storage was invalid, or if \a force_reload.
+ * @param Always reload the file storage cache.
+ */
+static void ValidateFileList (bool force_reload)
+{
+	if (force_reload || !_console_file_list.file_list_valid) {
+		_console_file_list.BuildFileList (FT_SAVEGAME, false);
+		_console_file_list.file_list_valid = true;
+	}
+}
 
 /**
  * Find an item in the console file list by name; warn if it is not found.
@@ -84,7 +84,7 @@ static ConsoleFileList _console_file_list; ///< File storage cache for the conso
  */
 static const FiosItem *FindFile (const char *file, bool force_reload = false)
 {
-	_console_file_list.ValidateFileList (force_reload);
+	ValidateFileList (force_reload);
 
 	for (const FiosItem *item = _console_file_list.Begin(); item != _console_file_list.End(); item++) {
 		if (strcmp (file, item->name)  == 0) return item;
@@ -434,7 +434,7 @@ DEF_CONSOLE_CMD(ConListFiles)
 		return true;
 	}
 
-	_console_file_list.ValidateFileList(true);
+	ValidateFileList (true);
 	for (uint i = 0; i < _console_file_list.Length(); i++) {
 		IConsolePrintF(CC_DEFAULT, "%d) %s", i, _console_file_list[i].title);
 	}
@@ -475,7 +475,7 @@ DEF_CONSOLE_CMD(ConPrintWorkingDirectory)
 	}
 
 	/* XXX - Workaround for broken file handling */
-	_console_file_list.ValidateFileList(true);
+	ValidateFileList (true);
 	_console_file_list.InvalidateFileList();
 
 	IConsolePrint (CC_DEFAULT, _console_file_list.path->cur);
