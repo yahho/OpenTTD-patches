@@ -52,17 +52,17 @@ public:
 		this->file_list_valid = false;
 	}
 
-	/** Declare the file storage cache as being invalid, also clears all stored files. */
-	void InvalidateFileList()
-	{
-		this->Clear();
-		this->file_list_valid = false;
-	}
-
 	bool file_list_valid; ///< If set, the file list is valid.
 };
 
 static ConsoleFileList _console_file_list; ///< File storage cache for the console.
+
+/** Declare the file storage cache as being invalid, also clears all stored files. */
+static void InvalidateFileList (void)
+{
+	_console_file_list.Clear();
+	_console_file_list.file_list_valid = false;
+}
 
 /**
  * (Re-)validate the file storage cache. Only makes a change if the storage was invalid, or if \a force_reload.
@@ -421,7 +421,7 @@ DEF_CONSOLE_CMD(ConRemove)
 		IConsolePrintF (CC_ERROR, "%s: Failed to delete file", file);
 	}
 
-	_console_file_list.InvalidateFileList();
+	InvalidateFileList();
 	return true;
 }
 
@@ -463,7 +463,7 @@ DEF_CONSOLE_CMD(ConChangeDirectory)
 		}
 	}
 
-	_console_file_list.InvalidateFileList();
+	InvalidateFileList();
 	return true;
 }
 
@@ -476,7 +476,7 @@ DEF_CONSOLE_CMD(ConPrintWorkingDirectory)
 
 	/* XXX - Workaround for broken file handling */
 	ValidateFileList (true);
-	_console_file_list.InvalidateFileList();
+	InvalidateFileList();
 
 	IConsolePrint (CC_DEFAULT, _console_file_list.path->cur);
 	return true;
