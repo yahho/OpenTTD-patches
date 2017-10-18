@@ -12,7 +12,7 @@
 #ifndef HEIGHTMAP_H
 #define HEIGHTMAP_H
 
-#include "fileio_type.h"
+#include "fios.h"
 
 /**
  * Order of these enums has to be the same as in lang/english.txt

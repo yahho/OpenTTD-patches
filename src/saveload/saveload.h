@@ -13,7 +13,7 @@
 #define SAVELOAD_H
 
 #include "../string.h"
-#include "../fileio_type.h"
+#include "../fios.h"
 #include "../strings_type.h"
 #include "saveload_data.h"
 #include "saveload_buffer.h"
