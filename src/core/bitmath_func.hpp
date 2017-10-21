@@ -377,7 +377,7 @@ static inline T ROR(const T x, const uint8 n)
 	 * @param x the variable to bitswap
 	 * @return the bitswapped value.
 	 */
-	static inline uint32 BSWAP32(uint32 x)
+	CONSTEXPR static inline uint32 BSWAP32 (uint32 x)
 	{
 #if !defined(__ICC) && defined(__GNUC__) && ((__GNUC__ > 4) || ((__GNUC__ == 4)  && __GNUC_MINOR__ >= 3))
 		/* GCC >= 4.3 provides a builtin, resulting in faster code */
@@ -392,7 +392,7 @@ static inline T ROR(const T x, const uint8 n)
 	 * @param x the variable to bitswap
 	 * @return the bitswapped value.
 	 */
-	static inline uint16 BSWAP16(uint16 x)
+	CONSTEXPR static inline uint16 BSWAP16 (uint16 x)
 	{
 		return (x >> 8) | (x << 8);
 	}
