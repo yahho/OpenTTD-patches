@@ -40,9 +40,4 @@
 	#define TO_LE32X(x)  (x)
 #endif /* TTD_ENDIAN == TTD_BIG_ENDIAN */
 
-static inline uint16 ReadLE16Aligned(const void *x)
-{
-	return FROM_LE16(*(const uint16*)x);
-}
-
 #endif /* ENDIAN_FUNC_HPP */

@@ -1646,7 +1646,7 @@ bool ReadLanguagePack(const LanguageMetadata *lang)
 
 #if TTD_ENDIAN == TTD_BIG_ENDIAN
 	for (uint i = 0; i < TEXT_TAB_END; i++) {
-		lang_pack->offsets[i] = ReadLE16Aligned(&lang_pack->offsets[i]);
+		lang_pack->offsets[i] = FROM_LE16(lang_pack->offsets[i]);
 	}
 #endif /* TTD_ENDIAN == TTD_BIG_ENDIAN */
 
