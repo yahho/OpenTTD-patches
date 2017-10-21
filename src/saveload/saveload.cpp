@@ -660,7 +660,7 @@ static void LoadSavegameFormat(LoadFilter **chain, SavegameTypeVersion *stv)
 
 	ChainLoadFilter *(*init_load) (LoadFilter *);
 
-	if (hdr == TO_BE32X('FTTD')) {
+	if (hdr == TO_BE32('FTTD')) {
 		/* native savegame, read compression format */
 		if ((*chain)->Read((byte*)&hdr, sizeof(hdr)) != sizeof(hdr)) throw SlException(STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE);
 		init_load = GetSavegameLoader(hdr);

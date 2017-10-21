@@ -428,19 +428,19 @@ struct SaveLoadFormat {
 static const SaveLoadFormat _saveload_formats[] = {
 #if defined(WITH_LZO)
 	/* Roughly 75% larger than zlib level 6 at only ~7% of the CPU usage. */
-	{"lzo",    TO_BE32X('LZO\0'),   TO_BE32X('OTTD'), CreateLoadFilter<LZOLoadFilter>,    CreateSaveFilter<LZOSaveFilter>,    0, 0, 0},
+	{"lzo",  TO_BE32('LZO\0'),   TO_BE32('OTTD'), CreateLoadFilter<LZOLoadFilter>,    CreateSaveFilter<LZOSaveFilter>,    0, 0, 0},
 #else
-	{"lzo",    TO_BE32X('LZO\0'),   TO_BE32X('OTTD'), NULL,                               NULL,                               0, 0, 0},
+	{"lzo",  TO_BE32('LZO\0'),   TO_BE32('OTTD'), NULL,                               NULL,                               0, 0, 0},
 #endif
 	/* Roughly 5 times larger at only 1% of the CPU usage over zlib level 6. */
-	{"none",   TO_BE32X('RAW\0'),   TO_BE32X('OTTN'), CreateLoadFilter<NoCompLoadFilter>, CreateSaveFilter<NoCompSaveFilter>, 0, 0, 0},
+	{"none", TO_BE32('RAW\0'),   TO_BE32('OTTN'), CreateLoadFilter<NoCompLoadFilter>, CreateSaveFilter<NoCompSaveFilter>, 0, 0, 0},
 #if defined(WITH_ZLIB)
 	/* After level 6 the speed reduction is significant (1.5x to 2.5x slower per level), but the reduction in filesize is
 	 * fairly insignificant (~1% for each step). Lower levels become ~5-10% bigger by each level than level 6 while level
 	 * 1 is "only" 3 times as fast. Level 0 results in uncompressed savegames at about 8 times the cost of "none". */
-	{"zlib",   TO_BE32X('Z\0\0\0'), TO_BE32X('OTTZ'), CreateLoadFilter<ZlibLoadFilter>,   CreateSaveFilter<ZlibSaveFilter>,   0, 6, 9},
+	{"zlib", TO_BE32('Z\0\0\0'), TO_BE32('OTTZ'), CreateLoadFilter<ZlibLoadFilter>,   CreateSaveFilter<ZlibSaveFilter>,   0, 6, 9},
 #else
-	{"zlib",   TO_BE32X('Z\0\0\0'), TO_BE32X('OTTZ'), NULL,                               NULL,                               0, 0, 0},
+	{"zlib", TO_BE32('Z\0\0\0'), TO_BE32('OTTZ'), NULL,                               NULL,                               0, 0, 0},
 #endif
 #if defined(WITH_LZMA)
 	/* Level 2 compression is speed wise as fast as zlib level 6 compression (old default), but results in ~10% smaller saves.
@@ -448,9 +448,9 @@ static const SaveLoadFormat _saveload_formats[] = {
 	 * The next significant reduction in file size is at level 4, but that is already 4 times slower. Level 3 is primarily 50%
 	 * slower while not improving the filesize, while level 0 and 1 are faster, but don't reduce savegame size much.
 	 * It's OTTX and not e.g. OTTL because liblzma is part of xz-utils and .tar.xz is preferred over .tar.lzma. */
-	{"lzma",   TO_BE32X('XZ\0\0'),  TO_BE32X('OTTX'), CreateLoadFilter<LZMALoadFilter>,   CreateSaveFilter<LZMASaveFilter>,   0, 2, 9},
+	{"lzma", TO_BE32('XZ\0\0'),  TO_BE32('OTTX'), CreateLoadFilter<LZMALoadFilter>,   CreateSaveFilter<LZMASaveFilter>,   0, 2, 9},
 #else
-	{"lzma",   TO_BE32X('XZ\0\0'),  TO_BE32X('OTTX'), NULL,                               NULL,                               0, 0, 0},
+	{"lzma", TO_BE32('XZ\0\0'),  TO_BE32('OTTX'), NULL,                               NULL,                               0, 0, 0},
 #endif
 };
 
@@ -517,7 +517,7 @@ static const SaveLoadFormat *GetSavegameFormat(char *s, byte *compression_level)
  */
 ChainSaveFilter *GetSavegameWriter(char *format, uint version, SaveFilter *writer)
 {
-	static const uint32 magic = TO_BE32X('FTTD');
+	static const uint32 magic = TO_BE32('FTTD');
 
 	byte compression;
 	const SaveLoadFormat *fmt = GetSavegameFormat(format, &compression);
