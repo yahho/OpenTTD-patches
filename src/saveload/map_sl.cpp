@@ -1137,13 +1137,11 @@ static void Load_MAP2(LoadBuffer *reader)
 
 static void Save_MAP2(SaveDumper *dumper)
 {
-	SmallStackSafeStackAlloc<uint16, MAP_SL_BUF_SIZE> buf;
 	TileIndex size = MapSize();
 
 	dumper->WriteRIFFSize(size * sizeof(uint16));
 	for (TileIndex i = 0; i != size;) {
-		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) buf[j] = _mc[i++].m2;
-		dumper->WriteArray(buf, MAP_SL_BUF_SIZE, SLE_UINT16);
+		dumper->WriteUint16 (_mc[i++].m2);
 	}
 }
 
