@@ -1126,15 +1126,12 @@ static void Save_MAP1(SaveDumper *dumper)
 
 static void Load_MAP2(LoadBuffer *reader)
 {
-	SmallStackSafeStackAlloc<uint16, MAP_SL_BUF_SIZE> buf;
 	TileIndex size = MapSize();
 
 	for (TileIndex i = 0; i != size;) {
-		reader->ReadArray(buf, MAP_SL_BUF_SIZE,
-			/* In those versions the m2 was 8 bits */
-			reader->IsOTTDVersionBefore(5) ? SLE_FILE_U8 | SLE_VAR_U16 : SLE_UINT16
-		);
-		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) _mc[i++].m2 = buf[j];
+		/* In those versions the m2 was 8 bits */
+		_mc[i++].m2 = reader->IsOTTDVersionBefore (5) ?
+				reader->ReadByte() : reader->ReadUint16();
 	}
 }
 
