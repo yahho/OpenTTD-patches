@@ -239,13 +239,6 @@ static uint32 GetRailContinuationInfo(TileIndex tile)
 }
 
 
-/* virtual */ void StationScopeResolver::SetTriggers(int triggers) const
-{
-	BaseStation *st = const_cast<BaseStation *>(this->st);
-	assert(st != NULL);
-	st->waiting_triggers = triggers;
-}
-
 /**
  * Station variable cache
  * This caches 'expensive' station variable lookups which iterate over
@@ -1140,8 +1133,10 @@ void TriggerStationRandomisation(Station *st, TileIndex tile, StationRandomTrigg
 		cargo_mask = ~empty_mask;
 	}
 
-	/* Convert trigger to bit */
+	/* Store triggers now for var 5F */
 	uint8 trigger_bit = 1 << trigger;
+	st->waiting_triggers |= trigger_bit;
+	uint32 used_triggers = 0;
 
 	TileArea area;
 	if ((whole & trigger_bit) != 0) {
@@ -1162,10 +1157,12 @@ void TriggerStationRandomisation(Station *st, TileIndex tile, StationRandomTrigg
 
 			if (cargo_type == CT_INVALID || HasBit(ss->cargo_triggers, cargo_type)) {
 				StationResolverObject object(ss, st, tile, CBID_RANDOM_TRIGGER, 0);
-				object.trigger = trigger_bit;
+				object.waiting_triggers = st->waiting_triggers;
 
 				const SpriteGroup *group = object.Resolve();
 				if (group == NULL) continue;
+
+				used_triggers |= object.used_triggers;
 
 				uint32 reseed = object.GetReseedSum();
 				if (reseed != 0) {
@@ -1185,6 +1182,7 @@ void TriggerStationRandomisation(Station *st, TileIndex tile, StationRandomTrigg
 	}
 
 	/* Update whole station random bits */
+	st->waiting_triggers &= ~used_triggers;
 	if ((whole_reseed & 0xFFFF) != 0) {
 		st->random_bits &= ~whole_reseed;
 		st->random_bits |= Random() & whole_reseed;
