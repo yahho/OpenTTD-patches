@@ -1114,9 +1114,10 @@ static void Load_MAPn (LoadBuffer *reader, byte Tile::*m)
 	}
 }
 
-static void Load_MAP1(LoadBuffer *reader)
+template <byte Tile::*M>
+static void Load_MAPn (LoadBuffer *reader)
 {
-	Load_MAPn (reader, &Tile::m1);
+	Load_MAPn (reader, M);
 }
 
 static void Save_MAP1(SaveDumper *dumper)
@@ -1152,11 +1153,6 @@ static void Save_MAP2(SaveDumper *dumper)
 	}
 }
 
-static void Load_MAP3(LoadBuffer *reader)
-{
-	Load_MAPn (reader, &Tile::m3);
-}
-
 static void Save_MAP3(SaveDumper *dumper)
 {
 	SmallStackSafeStackAlloc<byte, MAP_SL_BUF_SIZE> buf;
@@ -1169,11 +1165,6 @@ static void Save_MAP3(SaveDumper *dumper)
 	}
 }
 
-static void Load_MAP4(LoadBuffer *reader)
-{
-	Load_MAPn (reader, &Tile::m4);
-}
-
 static void Save_MAP4(SaveDumper *dumper)
 {
 	SmallStackSafeStackAlloc<byte, MAP_SL_BUF_SIZE> buf;
@@ -1184,11 +1175,6 @@ static void Save_MAP4(SaveDumper *dumper)
 		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) buf[j] = _mc[i++].m4;
 		dumper->CopyBytes (buf, MAP_SL_BUF_SIZE);
 	}
-}
-
-static void Load_MAP5(LoadBuffer *reader)
-{
-	Load_MAPn (reader, &Tile::m5);
 }
 
 static void Save_MAP5(SaveDumper *dumper)
@@ -1236,11 +1222,6 @@ static void Save_MAP0(SaveDumper *dumper)
 	}
 }
 
-static void Load_MAP7(LoadBuffer *reader)
-{
-	Load_MAPn (reader, &Tile::m7);
-}
-
 static void Save_MAP7(SaveDumper *dumper)
 {
 	SmallStackSafeStackAlloc<byte, MAP_SL_BUF_SIZE> buf;
@@ -1254,14 +1235,14 @@ static void Save_MAP7(SaveDumper *dumper)
 }
 
 extern const ChunkHandler _map_chunk_handlers[] = {
-	{ 'MAPS', Save_MAPS, Load_MAPS, NULL, Check_MAPS, CH_RIFF },
-	{ 'MAPH', Save_MAPH, Load_MAPH, NULL, NULL,       CH_RIFF },
-	{ 'MAPT', Save_MAPT, Load_MAPT, NULL, NULL,       CH_RIFF },
-	{ 'MAPO', Save_MAP1, Load_MAP1, NULL, NULL,       CH_RIFF },
-	{ 'MAP2', Save_MAP2, Load_MAP2, NULL, NULL,       CH_RIFF },
-	{ 'M3LO', Save_MAP3, Load_MAP3, NULL, NULL,       CH_RIFF },
-	{ 'M3HI', Save_MAP4, Load_MAP4, NULL, NULL,       CH_RIFF },
-	{ 'MAP5', Save_MAP5, Load_MAP5, NULL, NULL,       CH_RIFF },
-	{ 'MAPE', Save_MAP0, Load_MAP0, NULL, NULL,       CH_RIFF },
-	{ 'MAP7', Save_MAP7, Load_MAP7, NULL, NULL,       CH_RIFF | CH_LAST },
+	{ 'MAPS', Save_MAPS, Load_MAPS,            NULL, Check_MAPS, CH_RIFF },
+	{ 'MAPH', Save_MAPH, Load_MAPH,            NULL, NULL,       CH_RIFF },
+	{ 'MAPT', Save_MAPT, Load_MAPT,            NULL, NULL,       CH_RIFF },
+	{ 'MAPO', Save_MAP1, Load_MAPn<&Tile::m1>, NULL, NULL,       CH_RIFF },
+	{ 'MAP2', Save_MAP2, Load_MAP2,            NULL, NULL,       CH_RIFF },
+	{ 'M3LO', Save_MAP3, Load_MAPn<&Tile::m3>, NULL, NULL,       CH_RIFF },
+	{ 'M3HI', Save_MAP4, Load_MAPn<&Tile::m4>, NULL, NULL,       CH_RIFF },
+	{ 'MAP5', Save_MAP5, Load_MAPn<&Tile::m5>, NULL, NULL,       CH_RIFF },
+	{ 'MAPE', Save_MAP0, Load_MAP0,            NULL, NULL,       CH_RIFF },
+	{ 'MAP7', Save_MAP7, Load_MAPn<&Tile::m7>, NULL, NULL,       CH_RIFF | CH_LAST },
 };
