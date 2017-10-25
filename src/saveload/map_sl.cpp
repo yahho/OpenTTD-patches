@@ -1101,15 +1101,22 @@ static void Save_MAPT(SaveDumper *dumper)
 	}
 }
 
-static void Load_MAP1(LoadBuffer *reader)
+static void Load_MAPn (LoadBuffer *reader, byte Tile::*m)
 {
 	SmallStackSafeStackAlloc<byte, MAP_SL_BUF_SIZE> buf;
 	TileIndex size = MapSize();
 
 	for (TileIndex i = 0; i != size;) {
 		reader->CopyBytes (buf, MAP_SL_BUF_SIZE);
-		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) _mc[i++].m1 = buf[j];
+		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) {
+			_mc[i++].*m = buf[j];
+		}
 	}
+}
+
+static void Load_MAP1(LoadBuffer *reader)
+{
+	Load_MAPn (reader, &Tile::m1);
 }
 
 static void Save_MAP1(SaveDumper *dumper)
@@ -1147,13 +1154,7 @@ static void Save_MAP2(SaveDumper *dumper)
 
 static void Load_MAP3(LoadBuffer *reader)
 {
-	SmallStackSafeStackAlloc<byte, MAP_SL_BUF_SIZE> buf;
-	TileIndex size = MapSize();
-
-	for (TileIndex i = 0; i != size;) {
-		reader->CopyBytes (buf, MAP_SL_BUF_SIZE);
-		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) _mc[i++].m3 = buf[j];
-	}
+	Load_MAPn (reader, &Tile::m3);
 }
 
 static void Save_MAP3(SaveDumper *dumper)
@@ -1170,13 +1171,7 @@ static void Save_MAP3(SaveDumper *dumper)
 
 static void Load_MAP4(LoadBuffer *reader)
 {
-	SmallStackSafeStackAlloc<byte, MAP_SL_BUF_SIZE> buf;
-	TileIndex size = MapSize();
-
-	for (TileIndex i = 0; i != size;) {
-		reader->CopyBytes (buf, MAP_SL_BUF_SIZE);
-		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) _mc[i++].m4 = buf[j];
-	}
+	Load_MAPn (reader, &Tile::m4);
 }
 
 static void Save_MAP4(SaveDumper *dumper)
@@ -1193,13 +1188,7 @@ static void Save_MAP4(SaveDumper *dumper)
 
 static void Load_MAP5(LoadBuffer *reader)
 {
-	SmallStackSafeStackAlloc<byte, MAP_SL_BUF_SIZE> buf;
-	TileIndex size = MapSize();
-
-	for (TileIndex i = 0; i != size;) {
-		reader->CopyBytes (buf, MAP_SL_BUF_SIZE);
-		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) _mc[i++].m5 = buf[j];
-	}
+	Load_MAPn (reader, &Tile::m5);
 }
 
 static void Save_MAP5(SaveDumper *dumper)
@@ -1216,10 +1205,10 @@ static void Save_MAP5(SaveDumper *dumper)
 
 static void Load_MAP0(LoadBuffer *reader)
 {
-	SmallStackSafeStackAlloc<byte, MAP_SL_BUF_SIZE> buf;
-	TileIndex size = MapSize();
-
 	if (reader->IsOTTDVersionBefore(42)) {
+		SmallStackSafeStackAlloc <byte, MAP_SL_BUF_SIZE> buf;
+		TileIndex size = MapSize();
+
 		for (TileIndex i = 0; i != size;) {
 			/* 1024, otherwise we overflow on 64x64 maps! */
 			reader->CopyBytes (buf, 1024);
@@ -1231,10 +1220,7 @@ static void Load_MAP0(LoadBuffer *reader)
 			}
 		}
 	} else {
-		for (TileIndex i = 0; i != size;) {
-			reader->CopyBytes (buf, MAP_SL_BUF_SIZE);
-			for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) _mc[i++].m0 = buf[j];
-		}
+		Load_MAPn (reader, &Tile::m0);
 	}
 }
 
@@ -1252,13 +1238,7 @@ static void Save_MAP0(SaveDumper *dumper)
 
 static void Load_MAP7(LoadBuffer *reader)
 {
-	SmallStackSafeStackAlloc<byte, MAP_SL_BUF_SIZE> buf;
-	TileIndex size = MapSize();
-
-	for (TileIndex i = 0; i != size;) {
-		reader->CopyBytes (buf, MAP_SL_BUF_SIZE);
-		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) _mc[i++].m7 = buf[j];
-	}
+	Load_MAPn (reader, &Tile::m7);
 }
 
 static void Save_MAP7(SaveDumper *dumper)
