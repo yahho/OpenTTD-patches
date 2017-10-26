@@ -1120,16 +1120,23 @@ static void Load_MAPn (LoadBuffer *reader)
 	Load_MAPn (reader, M);
 }
 
-static void Save_MAP1(SaveDumper *dumper)
+static void Save_MAPn (SaveDumper *dumper, byte Tile::*m)
 {
 	SmallStackSafeStackAlloc<byte, MAP_SL_BUF_SIZE> buf;
 	TileIndex size = MapSize();
 
 	dumper->WriteRIFFSize(size);
 	for (TileIndex i = 0; i != size;) {
-		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) buf[j] = _mc[i++].m1;
+		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) {
+			buf[j] = _mc[i++].*m;
+		}
 		dumper->CopyBytes (buf, MAP_SL_BUF_SIZE);
 	}
+}
+
+static void Save_MAP1(SaveDumper *dumper)
+{
+	Save_MAPn (dumper, &Tile::m1);
 }
 
 static void Load_MAP2(LoadBuffer *reader)
@@ -1155,38 +1162,17 @@ static void Save_MAP2(SaveDumper *dumper)
 
 static void Save_MAP3(SaveDumper *dumper)
 {
-	SmallStackSafeStackAlloc<byte, MAP_SL_BUF_SIZE> buf;
-	TileIndex size = MapSize();
-
-	dumper->WriteRIFFSize(size);
-	for (TileIndex i = 0; i != size;) {
-		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) buf[j] = _mc[i++].m3;
-		dumper->CopyBytes (buf, MAP_SL_BUF_SIZE);
-	}
+	Save_MAPn (dumper, &Tile::m3);
 }
 
 static void Save_MAP4(SaveDumper *dumper)
 {
-	SmallStackSafeStackAlloc<byte, MAP_SL_BUF_SIZE> buf;
-	TileIndex size = MapSize();
-
-	dumper->WriteRIFFSize(size);
-	for (TileIndex i = 0; i != size;) {
-		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) buf[j] = _mc[i++].m4;
-		dumper->CopyBytes (buf, MAP_SL_BUF_SIZE);
-	}
+	Save_MAPn (dumper, &Tile::m4);
 }
 
 static void Save_MAP5(SaveDumper *dumper)
 {
-	SmallStackSafeStackAlloc<byte, MAP_SL_BUF_SIZE> buf;
-	TileIndex size = MapSize();
-
-	dumper->WriteRIFFSize(size);
-	for (TileIndex i = 0; i != size;) {
-		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) buf[j] = _mc[i++].m5;
-		dumper->CopyBytes (buf, MAP_SL_BUF_SIZE);
-	}
+	Save_MAPn (dumper, &Tile::m5);
 }
 
 static void Load_MAP0(LoadBuffer *reader)
@@ -1212,26 +1198,12 @@ static void Load_MAP0(LoadBuffer *reader)
 
 static void Save_MAP0(SaveDumper *dumper)
 {
-	SmallStackSafeStackAlloc<byte, MAP_SL_BUF_SIZE> buf;
-	TileIndex size = MapSize();
-
-	dumper->WriteRIFFSize(size);
-	for (TileIndex i = 0; i != size;) {
-		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) buf[j] = _mc[i++].m0;
-		dumper->CopyBytes (buf, MAP_SL_BUF_SIZE);
-	}
+	Save_MAPn (dumper, &Tile::m0);
 }
 
 static void Save_MAP7(SaveDumper *dumper)
 {
-	SmallStackSafeStackAlloc<byte, MAP_SL_BUF_SIZE> buf;
-	TileIndex size = MapSize();
-
-	dumper->WriteRIFFSize(size);
-	for (TileIndex i = 0; i != size;) {
-		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) buf[j] = _mc[i++].m7;
-		dumper->CopyBytes (buf, MAP_SL_BUF_SIZE);
-	}
+	Save_MAPn (dumper, &Tile::m7);
 }
 
 extern const ChunkHandler _map_chunk_handlers[] = {
