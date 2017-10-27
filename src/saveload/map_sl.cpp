@@ -1091,14 +1091,10 @@ static void Save_MAPx (SaveDumper *dumper, byte TileZH::*m)
 	}
 }
 
-static void Save_MAPH(SaveDumper *dumper)
+template <byte TileZH::*M>
+static void Save_MAPx (SaveDumper *dumper)
 {
-	Save_MAPx (dumper, &TileZH::height);
-}
-
-static void Save_MAPT(SaveDumper *dumper)
-{
-	Save_MAPx (dumper, &TileZH::zb);
+	Save_MAPx (dumper, M);
 }
 
 static void Load_MAPn (LoadBuffer *reader, byte Tile::*m)
@@ -1184,8 +1180,8 @@ static void Load_MAP0(LoadBuffer *reader)
 
 extern const ChunkHandler _map_chunk_handlers[] = {
 	{ 'MAPS', Save_MAPS,            Load_MAPS,            NULL, Check_MAPS, CH_RIFF },
-	{ 'MAPH', Save_MAPH,            Load_MAPH,            NULL, NULL,       CH_RIFF },
-	{ 'MAPT', Save_MAPT,            Load_MAPT,            NULL, NULL,       CH_RIFF },
+	{ 'MAPH', Save_MAPx<&TileZH::height>, Load_MAPH,      NULL, NULL,       CH_RIFF },
+	{ 'MAPT', Save_MAPx<&TileZH::zb>,     Load_MAPT,      NULL, NULL,       CH_RIFF },
 	{ 'MAPO', Save_MAPn<&Tile::m1>, Load_MAPn<&Tile::m1>, NULL, NULL,       CH_RIFF },
 	{ 'MAP2', Save_MAP2,            Load_MAP2,            NULL, NULL,       CH_RIFF },
 	{ 'M3LO', Save_MAPn<&Tile::m3>, Load_MAPn<&Tile::m3>, NULL, NULL,       CH_RIFF },
