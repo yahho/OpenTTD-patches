@@ -1058,18 +1058,6 @@ static void Load_MAPH(LoadBuffer *reader)
 	}
 }
 
-static void Save_MAPH(SaveDumper *dumper)
-{
-	SmallStackSafeStackAlloc<byte, MAP_SL_BUF_SIZE> buf;
-	TileIndex size = MapSize();
-
-	dumper->WriteRIFFSize(size);
-	for (TileIndex i = 0; i != size;) {
-		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) buf[j] = _mth[i++].height;
-		dumper->CopyBytes (buf, MAP_SL_BUF_SIZE);
-	}
-}
-
 static void Load_MAPT(LoadBuffer *reader)
 {
 	SmallStackSafeStackAlloc<byte, MAP_SL_BUF_SIZE> buf;
@@ -1089,16 +1077,28 @@ static void Load_MAPT(LoadBuffer *reader)
 	}
 }
 
-static void Save_MAPT(SaveDumper *dumper)
+static void Save_MAPx (SaveDumper *dumper, byte TileZH::*m)
 {
 	SmallStackSafeStackAlloc<byte, MAP_SL_BUF_SIZE> buf;
 	TileIndex size = MapSize();
 
 	dumper->WriteRIFFSize(size);
 	for (TileIndex i = 0; i != size;) {
-		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) buf[j] = _mth[i++].zb;
+		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) {
+			buf[j] = _mth[i++].*m;
+		}
 		dumper->CopyBytes (buf, MAP_SL_BUF_SIZE);
 	}
+}
+
+static void Save_MAPH(SaveDumper *dumper)
+{
+	Save_MAPx (dumper, &TileZH::height);
+}
+
+static void Save_MAPT(SaveDumper *dumper)
+{
+	Save_MAPx (dumper, &TileZH::zb);
 }
 
 static void Load_MAPn (LoadBuffer *reader, byte Tile::*m)
