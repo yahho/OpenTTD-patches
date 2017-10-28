@@ -144,27 +144,26 @@ static void Load_ORDR(LoadBuffer *reader)
 			/* Pre-version 5 had another layout for orders
 			 * (uint16 instead of uint32) */
 			len /= sizeof(uint16);
-			uint16 *orders = xmalloct<uint16>(len + 1);
 
-			reader->ReadArray(orders, len, SLE_UINT16);
+			/* Handle buggy openttd savegame version 0,
+			 * where arrays were not byte-swapped. */
+			bool buggy = (reader->stv->type == SGT_OTTD)
+					&& (reader->stv->ottd.version == 0);
 
 			for (size_t i = 0; i < len; ++i) {
+				uint16 order = reader->ReadUint16();
+				if (buggy) order = BSWAP16(order);
 				Order *o = new (i) Order();
-				o->AssignOrder(UnpackVersion4Order(orders[i]));
+				o->AssignOrder (UnpackVersion4Order (order));
 			}
 
-			free(orders);
 		} else {
 			len /= sizeof(uint32);
-			uint32 *orders = xmalloct<uint32>(len + 1);
-
-			reader->ReadArray(orders, len, SLE_UINT32);
 
 			for (size_t i = 0; i < len; ++i) {
-				new (i) Order(orders[i]);
+				uint32 order = reader->ReadUint32();
+				new (i) Order (order);
 			}
-
-			free(orders);
 		}
 
 		/* Update all the next pointer */
