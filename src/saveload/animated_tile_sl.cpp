@@ -25,7 +25,9 @@ extern uint _animated_tile_allocated;
 static void Save_ANIT(SaveDumper *dumper)
 {
 	dumper->WriteRIFFSize(_animated_tile_count * sizeof(*_animated_tile_list));
-	dumper->WriteArray(_animated_tile_list, _animated_tile_count, SLE_UINT32);
+	for (uint i = 0; i < _animated_tile_count; i++) {
+		dumper->WriteUint32 (_animated_tile_list[i]);
+	}
 }
 
 /**
@@ -36,10 +38,14 @@ static void Load_ANIT(LoadBuffer *reader)
 	/* Before legacy version 80 we did NOT have a variable length animated tile table */
 	if (reader->IsOTTDVersionBefore(80)) {
 		/* In pre version 6, we has 16bit per tile, now we have 32bit per tile, convert it ;) */
-		reader->ReadArray(_animated_tile_list, 256, reader->IsOTTDVersionBefore(6) ? (SLE_FILE_U16 | SLE_VAR_U32) : SLE_UINT32);
-
+		bool pre6 = reader->IsOTTDVersionBefore (6);
 		for (_animated_tile_count = 0; _animated_tile_count < 256; _animated_tile_count++) {
-			if (_animated_tile_list[_animated_tile_count] == 0) break;
+			uint32 tile = pre6 ? reader->ReadUint16() : reader->ReadUint32();
+			if (tile == 0) {
+				reader->Skip ((255 - _animated_tile_count) * (pre6 ? 2 : 4));
+				break;
+			}
+			_animated_tile_list[_animated_tile_count] = tile;
 		}
 		return;
 	}
@@ -51,7 +57,9 @@ static void Load_ANIT(LoadBuffer *reader)
 	while (_animated_tile_allocated < _animated_tile_count) _animated_tile_allocated *= 2;
 
 	_animated_tile_list = xrealloct<TileIndex>(_animated_tile_list, _animated_tile_allocated);
-	reader->ReadArray(_animated_tile_list, _animated_tile_count, SLE_UINT32);
+	for (uint i = 0; i < _animated_tile_count; i++) {
+		_animated_tile_list[i] = reader->ReadUint32();
+	}
 }
 
 /**
