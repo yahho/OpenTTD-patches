@@ -8919,34 +8919,41 @@ void LoadNewGRFFile(GRFConfig *config, uint file_index, GrfLoadingStage stage, S
 		byte type = FioReadByte();
 		_cur.nfo_line++;
 
-		if (type == 0xFF) {
-			if (skip_sprites == 0) {
-				skip_sprites = DecodeSpecialSprite (buf.Allocate(num), num, stage);
-
-				/* Stop all processing if we are to skip the remaining sprites */
-				if (skip_sprites == -1) break;
-
-				continue;
-			} else {
-				FioSkipBytes(num);
-			}
-		} else {
-			if (skip_sprites == 0) {
-				grfmsg(0, "LoadNewGRFFile: Unexpected sprite, disabling");
-				DisableCur (STR_NEWGRF_ERROR_UNEXPECTED_SPRITE);
-				break;
+		if (skip_sprites != 0) {
+			bool skip_real;
+			switch (type) {
+				case 0xFF:
+					skip_real = false;
+					break;
+				case 0xFD:
+					/* Reference to data section. Container version >= 2 only. */
+					skip_real = (_cur.grf_container_ver < 2);
+					break;
+				default:
+					skip_real = true;
+					break;
 			}
 
-			if (_cur.grf_container_ver >= 2 && type == 0xFD) {
-				/* Reference to data section. Container version >= 2 only. */
-				FioSkipBytes(num);
-			} else {
+			if (skip_real) {
 				FioSkipBytes(7);
 				SkipSpriteData(type, num - 8);
+			} else {
+				FioSkipBytes (num);
 			}
-		}
 
-		if (skip_sprites > 0) skip_sprites--;
+			skip_sprites--;
+
+		} else if (type == 0xFF) {
+			skip_sprites = DecodeSpecialSprite (buf.Allocate(num), num, stage);
+
+			/* Stop all processing if we are to skip the remaining sprites */
+			if (skip_sprites == -1) break;
+
+		} else {
+			grfmsg (0, "LoadNewGRFFile: Unexpected sprite, disabling");
+			DisableCur (STR_NEWGRF_ERROR_UNEXPECTED_SPRITE);
+			break;
+		}
 	}
 }
 
