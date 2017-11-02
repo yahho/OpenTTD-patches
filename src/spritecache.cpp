@@ -515,7 +515,8 @@ bool SkipSpriteData(byte type, uint16 num)
 		while (num > 0) {
 			int8 i = FioReadByte();
 			if (i >= 0) {
-				int size = (i == 0) ? 0x80 : i;
+				/* size = (i == 0) ? 0x80 : i; */
+				uint size = 1 + (uint) ((i - 1) & 0x7F);
 				if (size > num) return false;
 				num -= size;
 				FioSkipBytes(size);
