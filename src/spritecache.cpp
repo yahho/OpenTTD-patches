@@ -508,8 +508,10 @@ static void *AllocSprite(size_t mem_req);
 bool SkipSpriteData(byte type, uint16 num)
 {
 	if (type & 2) {
-		FioSkipBytes(num);
+		FioSkipBytes (num - 1);
 	} else {
+		FioSkipBytes (7);
+		num -= 8;
 		while (num > 0) {
 			int8 i = FioReadByte();
 			if (i >= 0) {
@@ -928,8 +930,7 @@ bool LoadNextSprite(int load_index, byte file_slot, uint file_sprite_id, byte co
 		file_pos = GetGRFSpriteOffset(FioReadDword());
 		type = ST_NORMAL;
 	} else {
-		FioSkipBytes(7);
-		type = SkipSpriteData(grf_type, num - 8) ? ST_NORMAL : ST_INVALID;
+		type = SkipSpriteData (grf_type, num) ? ST_NORMAL : ST_INVALID;
 		/* Inline sprites are not supported for container version >= 2. */
 		if (container_version >= 2) return false;
 	}

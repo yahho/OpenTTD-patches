@@ -7171,8 +7171,7 @@ static int GRFSound (ByteReader *buf)
 
 		if (type != 0xFF) {
 			grfmsg(1, "GRFSound: Unexpected RealSprite found, skipping");
-			FioSkipBytes(7);
-			SkipSpriteData(type, len - 8);
+			SkipSpriteData (type, len);
 			continue;
 		}
 
@@ -8935,8 +8934,7 @@ void LoadNewGRFFile(GRFConfig *config, uint file_index, GrfLoadingStage stage, S
 			}
 
 			if (skip_real) {
-				FioSkipBytes(7);
-				SkipSpriteData(type, num - 8);
+				SkipSpriteData (type, num);
 			} else {
 				FioSkipBytes (num);
 			}
