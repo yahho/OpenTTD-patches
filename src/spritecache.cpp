@@ -931,12 +931,12 @@ bool LoadNextSprite(int load_index, byte file_slot, uint file_sprite_id, byte co
 		file_pos = GetGRFSpriteOffset(FioReadDword());
 		type = ST_NORMAL;
 	} else {
-		type = SkipSpriteData (grf_type, num) ? ST_NORMAL : ST_INVALID;
 		/* Inline sprites are not supported for container version >= 2. */
-		if (container_version >= 2) return false;
+		if (!SkipSpriteData (grf_type, num) || container_version >= 2) {
+			return false;
+		}
+		type = ST_NORMAL;
 	}
-
-	if (type == ST_INVALID) return false;
 
 	if (load_index >= MAX_SPRITES) {
 		usererror("Tried to load too many sprites (#%d; max %d)", load_index, MAX_SPRITES);
