@@ -541,14 +541,14 @@ bool SpriteExists(SpriteID id)
 }
 
 /**
- * Get the sprite type of a given sprite.
+ * Check if a sprite is a normal sprite.
  * @param sprite The sprite to look at.
- * @return the type of sprite.
+ * @return Whether the sprite exists and is of type ST_NORMAL.
  */
-SpriteType GetSpriteType(SpriteID sprite)
+bool IsNormalSprite (SpriteID sprite)
 {
-	if (!SpriteExists(sprite)) return ST_INVALID;
-	return GetSpriteCache(sprite)->type;
+	return SpriteExists (sprite)
+			&& GetSpriteCache(sprite)->type == ST_NORMAL;
 }
 
 /**

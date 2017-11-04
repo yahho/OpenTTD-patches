@@ -21,7 +21,7 @@ extern uint _sprite_cache_size;
 void *GetRawSprite (SpriteID sprite, SpriteType type, bool cache = true);
 bool SpriteExists(SpriteID sprite);
 
-SpriteType GetSpriteType(SpriteID sprite);
+bool IsNormalSprite (SpriteID sprite);
 uint GetOriginFileSlot(SpriteID sprite);
 uint GetSpriteCountForSlot(uint file_slot, SpriteID begin, SpriteID end);
 uint GetMaxSpriteID();

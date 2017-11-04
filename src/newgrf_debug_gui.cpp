@@ -833,7 +833,7 @@ struct SpriteAlignerWindow : Window {
 		this->InitNested(wno);
 
 		/* Oh yes, we assume there is at least one normal sprite! */
-		while (GetSpriteType(this->current_sprite) != ST_NORMAL) this->current_sprite++;
+		while (!IsNormalSprite (this->current_sprite)) this->current_sprite++;
 	}
 
 	virtual void SetStringParameters(int widget) const
@@ -924,7 +924,7 @@ struct SpriteAlignerWindow : Window {
 			case WID_SA_PREVIOUS:
 				do {
 					this->current_sprite = (this->current_sprite == 0 ? GetMaxSpriteID() :  this->current_sprite) - 1;
-				} while (GetSpriteType(this->current_sprite) != ST_NORMAL);
+				} while (!IsNormalSprite (this->current_sprite));
 				this->SetDirty();
 				break;
 
@@ -935,7 +935,7 @@ struct SpriteAlignerWindow : Window {
 			case WID_SA_NEXT:
 				do {
 					this->current_sprite = (this->current_sprite + 1) % GetMaxSpriteID();
-				} while (GetSpriteType(this->current_sprite) != ST_NORMAL);
+				} while (!IsNormalSprite (this->current_sprite));
 				this->SetDirty();
 				break;
 
@@ -952,7 +952,7 @@ struct SpriteAlignerWindow : Window {
 				uint i = this->vscroll->GetPosition() + (pt.y - nwid->pos_y) / step_size;
 				if (i < _newgrf_debug_sprite_picker.sprites.Length()) {
 					SpriteID spr = _newgrf_debug_sprite_picker.sprites[i];
-					if (GetSpriteType(spr) == ST_NORMAL) this->current_sprite = spr;
+					if (IsNormalSprite (spr)) this->current_sprite = spr;
 				}
 				this->SetDirty();
 				break;
@@ -1008,7 +1008,7 @@ struct SpriteAlignerWindow : Window {
 
 		this->current_sprite = atoi(str);
 		if (this->current_sprite >= GetMaxSpriteID()) this->current_sprite = 0;
-		while (GetSpriteType(this->current_sprite) != ST_NORMAL) {
+		while (!IsNormalSprite (this->current_sprite)) {
 			this->current_sprite = (this->current_sprite + 1) % GetMaxSpriteID();
 		}
 		this->SetDirty();
