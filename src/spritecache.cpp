@@ -1216,7 +1216,6 @@ static void *HandleInvalidSpriteRequest (SpriteID sprite, SpriteType requested, 
 void *GetRawSprite (SpriteID sprite, SpriteType type, bool cache)
 {
 	assert(type != ST_MAPGEN);
-	assert(type < ST_INVALID);
 	assert (!IsMapgenSpriteID (sprite));
 
 	if (!SpriteExists(sprite)) {

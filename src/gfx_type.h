@@ -287,7 +287,6 @@ enum SpriteType {
 	ST_MAPGEN   = 1,      ///< Special sprite for the map generator
 	ST_FONT     = 2,      ///< A sprite used for fonts
 	ST_RECOLOUR = 3,      ///< Recolour sprite
-	ST_INVALID  = 4,      ///< Pseudosprite or other unusable sprite, used only internally
 };
 
 /** The number of milliseconds per game tick. */

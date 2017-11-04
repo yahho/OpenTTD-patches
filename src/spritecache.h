@@ -29,8 +29,7 @@ uint GetMaxSpriteID();
 
 static inline const Sprite *GetSprite(SpriteID sprite, SpriteType type)
 {
-	assert(type != ST_MAPGEN);
-	assert(type != ST_RECOLOUR);
+	assert (type == ST_NORMAL || type == ST_FONT);
 	return (Sprite*)GetRawSprite(sprite, type);
 }
 
