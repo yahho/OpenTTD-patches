@@ -2167,7 +2167,7 @@ static void CheckNextTrainTile(Train *v)
 			pos.get_signal_state() == SIGNAL_STATE_RED) return;
 
 	CFollowTrackRail ft(v, !_settings_game.pf.forbid_90_deg);
-	if (!ft.Follow(pos)) return;
+	if (ft.Follow (pos) != CFollowTrackRail::EC_NONE) return;
 
 	if (ft.m_new.is_single() && ft.m_new.has_signal_along() &&
 			IsPbsSignal(ft.m_new.get_signal_type()) &&
@@ -2348,7 +2348,7 @@ static void FreeTrainTrackReservation (const Train *v, const RailPathPos *end)
 	for (;;) {
 		if (end != NULL && ft.m_new == *end) return;
 
-		if (!ft.FollowNext()) break;
+		if (ft.FollowNext() != CFollowTrackRail::EC_NONE) break;
 
 		if (!ft.m_new.in_wormhole()) {
 			TrackdirBits trackdirs = ft.m_new.trackdirs & TrackBitsToTrackdirBits(GetReservedTrackbits(ft.m_new.tile));
@@ -2449,12 +2449,12 @@ static ExtendReservationResult ExtendTrainReservation(const Train *v, RailPathPo
 	ft.SetPos(*origin);
 
 	for (;;) {
-		if (!ft.FollowNext()) {
-			if (ft.m_err == CFollowTrackRail::EC_OWNER || ft.m_err == CFollowTrackRail::EC_NO_WAY) {
-				/* End of line, path valid and okay. */
-				*origin = ft.m_old;
-				return EXTEND_RESERVATION_SAFE;
-			}
+		CFollowTrackRail::ErrorCode err = ft.FollowNext();
+		if (err == CFollowTrackRail::EC_NO_WAY) {
+			/* End of line, path valid and okay. */
+			*origin = ft.m_old;
+			return EXTEND_RESERVATION_SAFE;
+		} else if (err != CFollowTrackRail::EC_NONE) {
 			break;
 		}
 
@@ -2517,7 +2517,7 @@ static ExtendReservationResult ExtendTrainReservation(const Train *v, RailPathPo
 	RailPathPos stopped = ft.m_old;
 	ft.SetPos(*origin);
 	while (ft.m_new != stopped) {
-		if (!ft.FollowNext()) NOT_REACHED();
+		if (ft.FollowNext() != CFollowTrackRail::EC_NONE) NOT_REACHED();
 
 		assert(!ft.m_new.is_empty());
 		assert(ft.m_new.is_single());
@@ -2596,6 +2596,7 @@ public:
 				case OT_GOTO_DEPOT:
 					/* Skip service in depot orders when the train doesn't need service. */
 					if ((order->GetDepotOrderType() & ODTFB_SERVICE) && !this->v->NeedsServicing()) break;
+					FALLTHROUGH;
 				case OT_GOTO_STATION:
 				case OT_GOTO_WAYPOINT:
 					this->v->current_order = *order;
@@ -2780,7 +2781,8 @@ static bool TryPathExtend (Train *v, const RailPathPos &origin, bool mark_as_stu
 {
 	CFollowTrackRail ft (v, !_settings_game.pf.forbid_90_deg);
 
-	if (ft.Follow (origin) && !ChooseTrainTrack (v, origin, ft.m_new, true)) {
+	if ((ft.Follow (origin) == CFollowTrackRail::EC_NONE)
+			&& !ChooseTrainTrack (v, origin, ft.m_new, true)) {
 		if (mark_as_stuck) MarkTrainAsStuck(v);
 		return false;
 	}
@@ -4040,7 +4042,7 @@ static bool TrainApproachingLineEnd(Train *v, bool signal, bool reverse)
 	 * for other directions, it will be 1, 3, 5, ..., 15 */
 	switch (v->direction) {
 		case DIR_N : x = ~x + ~y + 25; break;
-		case DIR_NW: x = y;            // FALL THROUGH
+		case DIR_NW: x = y;            FALLTHROUGH;
 		case DIR_NE: x = ~x + 16;      break;
 		case DIR_E : x = ~x + y + 9;   break;
 		case DIR_SE: x = y;            break;

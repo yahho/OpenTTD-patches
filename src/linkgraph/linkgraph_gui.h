@@ -58,8 +58,24 @@ public:
 
 	void RebuildCache();
 	void Draw (BlitArea *dpi) const;
-	void SetCargoMask(uint32 cargo_mask);
-	void SetCompanyMask(uint32 company_mask);
+
+	/**
+	 * Set a new cargo mask.
+	 * @param cargo_mask New cargo mask.
+	 */
+	void SetCargoMask (uint32 cargo_mask)
+	{
+		this->cargo_mask = cargo_mask;
+	}
+
+	/**
+	 * Set a new company mask.
+	 * @param company_mask New company mask.
+	 */
+	void SetCompanyMask (uint32 company_mask)
+	{
+		this->company_mask = company_mask;
+	}
 
 	/** Get a bitmask of the currently shown cargoes. */
 	uint32 GetCargoMask() { return this->cargo_mask; }
@@ -77,8 +93,6 @@ protected:
 	uint scale;                        ///< Width of link lines.
 
 	Point GetStationMiddle(const Station *st) const;
-
-	void AddLinks(const Station *sta, const Station *stb);
 };
 
 void ShowLinkGraphLegend();
@@ -97,9 +111,6 @@ public:
 
 private:
 	LinkGraphOverlay *overlay;
-
-	void UpdateOverlayCompanies();
-	void UpdateOverlayCargoes();
 };
 
 #endif /* LINKGRAPH_GUI_H */

@@ -12,6 +12,9 @@
 #ifndef NEWGRF_STATION_H
 #define NEWGRF_STATION_H
 
+#include <vector>
+
+#include "core/pointer.h"
 #include "newgrf_animation_type.h"
 #include "newgrf_callbacks.h"
 #include "newgrf_class.h"
@@ -29,7 +32,6 @@ struct StationScopeResolver : public ScopeResolver {
 	struct BaseStation *st;             ///< Instance of the station.
 	const struct StationSpec *statspec; ///< Station (type) specification.
 	CargoID cargo_type;                 ///< Type of cargo of the station.
-	Axis axis;                          ///< Station axis, used only for the slope check callback.
 
 	StationScopeResolver (const GRFFile *grffile, const StationSpec *statspec, BaseStation *st, TileIndex tile);
 
@@ -62,8 +64,8 @@ struct StationResolverObject : public ResolverObject {
 			case VSG_SCOPE_PARENT: {
 				TownScopeResolver *tsr = this->GetTown();
 				if (tsr != NULL) return tsr;
-				/* FALL-THROUGH */
 			}
+			FALLTHROUGH;
 
 			default:
 				return ResolverObject::GetScope(scope, relative);
@@ -140,15 +142,14 @@ struct StationSpec {
 	byte disallowed_lengths;
 
 	/**
-	 * Number of tile layouts.
+	 * Tile layouts.
 	 * A minimum of 8 is required is required for stations.
 	 * 0-1 = plain platform
 	 * 2-3 = platform with building
 	 * 4-5 = platform with roof, left side
 	 * 6-7 = platform with roof, right side
 	 */
-	uint tiles;
-	NewGRFSpriteLayout *renderdata; ///< Array of tile layouts.
+	std::vector <ttd_unique_ptr <NewGRFSpriteLayout> > renderdata;
 
 	/**
 	 * Cargo threshold for choosing between little and lots of cargo
@@ -180,12 +181,17 @@ typedef NewGRFClass<StationSpec, StationClassID, STAT_CLASS_MAX> StationClass;
 const StationSpec *GetStationSpec(TileIndex t);
 
 /* Evaluate a tile's position within a station, and return the result a bitstuffed format. */
-uint32 GetPlatformInfo(Axis axis, byte tile, int platforms, int length, int x, int y, bool centred);
+uint32 GetPlatformInfo (byte tile, int platforms, int length, int x, int y, bool centred);
 
 SpriteID GetCustomStationRelocation(const StationSpec *statspec, BaseStation *st, TileIndex tile, uint32 var10 = 0);
 SpriteID GetCustomStationFoundationRelocation(const StationSpec *statspec, BaseStation *st, TileIndex tile, uint layout, uint edge_info);
 uint16 GetStationCallback(CallbackID callback, uint32 param1, uint32 param2, const StationSpec *statspec, BaseStation *st, TileIndex tile);
-CommandCost PerformStationTileSlopeCheck(TileIndex north_tile, TileIndex cur_tile, const StationSpec *statspec, Axis axis, byte plat_len, byte numtracks);
+
+uint16 GetStationCallback (CallbackID callback, uint32 param1, uint32 param2,
+	const StationSpec *statspec, RailType rt, TileIndex tile = INVALID_TILE);
+CommandCost PerformStationTileSlopeCheck(TileIndex north_tile,
+	TileIndex cur_tile, const StationSpec *statspec, RailType rt,
+	Axis axis, byte plat_len, byte numtracks);
 
 /* Allocate a StationSpec to a Station. This is called once per build operation. */
 int AllocateSpecToStation(const StationSpec *statspec, BaseStation *st, bool exec);

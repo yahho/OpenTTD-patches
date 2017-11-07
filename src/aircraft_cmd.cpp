@@ -78,8 +78,6 @@ void Aircraft::UpdateDeltaXY(Direction direction)
 }
 
 static bool AirportMove(Aircraft *v, const AirportFTAClass *apc);
-static bool AirportSetBlocks(Aircraft *v, const AirportFTA *current_pos, const AirportFTAClass *apc);
-static bool AirportHasBlock(Aircraft *v, const AirportFTA *current_pos, const AirportFTAClass *apc);
 static bool AirportFindFreeTerminal(Aircraft *v, const AirportFTAClass *apc);
 static bool AirportFindFreeHelipad(Aircraft *v, const AirportFTAClass *apc);
 static void CrashAirplane(Aircraft *v);
@@ -536,13 +534,6 @@ void SetAircraftPosition(Aircraft *v, int x, int y, int z)
 		u->z_pos = z + ROTOR_Z_OFFSET;
 
 		u->UpdatePositionAndViewport();
-	}
-}
-
-static void PlayAircraftSound(const Vehicle *v)
-{
-	if (!PlayVehicleSound(v, VSE_START)) {
-		SndPlayVehicleFx(AircraftVehInfo(v->engine_type)->sfx, v);
 	}
 }
 
@@ -1273,6 +1264,24 @@ static bool MaybeCrashAirplane(Aircraft *v)
 	return true;
 }
 
+/** returns true if the road ahead is busy, eg. you must wait before proceeding. */
+static bool AirportHasBlock (Aircraft *v, const AirportFTAClass *apc)
+{
+	const AirportFTA *pos = &apc->layout[v->pos];
+	uint64 next_block = apc->layout[pos->next_position].block;
+
+	/* same block, then of course we can move */
+	if (pos->block == next_block) return false;
+
+	if (Station::Get(v->targetairport)->airport.flags & next_block) {
+		v->cur_speed = 0;
+		v->subspeed = 0;
+		return true;
+	}
+
+	return false;
+}
+
 /**
  * Aircraft arrives at a terminal. If it is the first aircraft, throw a party.
  * Start loading cargo.
@@ -1295,19 +1304,6 @@ static void AircraftEntersTerminal(Aircraft *v)
 	}
 
 	v->BeginLoading();
-}
-
-/**
- * Aircraft touched down at the landing strip.
- * @param v Aircraft that landed.
- */
-static void AircraftLandAirplane(Aircraft *v)
-{
-	v->UpdateDeltaXY(INVALID_DIR);
-
-	if (!PlayVehicleSound(v, VSE_TOUCHDOWN)) {
-		SndPlayVehicleFx(SND_17_SKID_PLANE, v);
-	}
 }
 
 
@@ -1384,22 +1380,6 @@ static void AircraftEnterDepot (Aircraft *v)
 ////////////////////////////////////////////////////////////////////////////////
 ///////////////////   AIRCRAFT MOVEMENT SCHEME  ////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
-static void AircraftEventHandler_EnterTerminal(Aircraft *v, const AirportFTAClass *apc)
-{
-	AircraftEntersTerminal(v);
-	v->state = apc->layout[v->pos].heading;
-}
-
-/**
- * Aircraft arrived in an airport hangar.
- * @param v Aircraft in the hangar.
- * @param apc Airport description containing the hangar.
- */
-static void AircraftEventHandler_EnterHangar(Aircraft *v, const AirportFTAClass *apc)
-{
-	AircraftEnterDepot (v);
-	v->state = apc->layout[v->pos].heading;
-}
 
 /**
  * Handle aircraft movement/decision making in an airport hangar.
@@ -1410,7 +1390,8 @@ static void AircraftEventHandler_InHangar(Aircraft *v, const AirportFTAClass *ap
 {
 	/* if we just arrived, execute EnterHangar first */
 	if (v->previous_pos != v->pos) {
-		AircraftEventHandler_EnterHangar(v, apc);
+		AircraftEnterDepot (v);
+		v->state = apc->layout[v->pos].heading;
 		return;
 	}
 
@@ -1431,7 +1412,7 @@ static void AircraftEventHandler_InHangar(Aircraft *v, const AirportFTAClass *ap
 	}
 
 	/* if the block of the next position is busy, stay put */
-	if (AirportHasBlock(v, &apc->layout[v->pos], apc)) return;
+	if (AirportHasBlock (v, apc)) return;
 
 	/* We are already at the target airport, we need to find a terminal */
 	if (v->current_order.GetDestination() == v->targetairport) {
@@ -1456,7 +1437,8 @@ static void AircraftEventHandler_AtTerminal(Aircraft *v, const AirportFTAClass *
 {
 	/* if we just arrived, execute EnterTerminal first */
 	if (v->previous_pos != v->pos) {
-		AircraftEventHandler_EnterTerminal(v, apc);
+		AircraftEntersTerminal (v);
+		v->state = apc->layout[v->pos].heading;
 		/* on an airport with helipads, a helicopter will always land there
 		 * and get serviced at the same time - setting */
 		if (_settings_game.order.serviceathelipad) {
@@ -1474,7 +1456,7 @@ static void AircraftEventHandler_AtTerminal(Aircraft *v, const AirportFTAClass *
 	if (v->current_order.IsType(OT_NOTHING)) return;
 
 	/* if the block of the next position is busy, stay put */
-	if (AirportHasBlock(v, &apc->layout[v->pos], apc)) return;
+	if (AirportHasBlock (v, apc)) return;
 
 	/* airport-road is free. We either have to go to another airport, or to the hangar
 	 * ---> start moving */
@@ -1505,46 +1487,6 @@ static void AircraftEventHandler_AtTerminal(Aircraft *v, const AirportFTAClass *
 	AirportMove(v, apc);
 }
 
-static void AircraftEventHandler_General(Aircraft *v, const AirportFTAClass *apc)
-{
-	error("OK, you shouldn't be here, check your Airport Scheme!");
-}
-
-static void AircraftEventHandler_TakeOff(Aircraft *v, const AirportFTAClass *apc)
-{
-	PlayAircraftSound(v); // play takeoffsound for airplanes
-	v->state = STARTTAKEOFF;
-}
-
-static void AircraftEventHandler_StartTakeOff(Aircraft *v, const AirportFTAClass *apc)
-{
-	v->state = ENDTAKEOFF;
-	v->UpdateDeltaXY(INVALID_DIR);
-}
-
-static void AircraftEventHandler_EndTakeOff(Aircraft *v, const AirportFTAClass *apc)
-{
-	v->state = FLYING;
-	/* get the next position to go to, differs per airport */
-	AircraftNextAirportPos_and_Order(v);
-}
-
-static void AircraftEventHandler_HeliTakeOff(Aircraft *v, const AirportFTAClass *apc)
-{
-	v->state = FLYING;
-	v->UpdateDeltaXY(INVALID_DIR);
-
-	/* get the next position to go to, differs per airport */
-	AircraftNextAirportPos_and_Order(v);
-
-	/* Send the helicopter to a hangar if needed for replacement */
-	if (v->NeedsAutomaticServicing()) {
-		Backup<CompanyByte> cur_company(_current_company, v->owner, FILE_LINE);
-		DoCommand(v->tile, v->index | DEPOT_SERVICE | DEPOT_LOCATE_HANGAR, 0, DC_EXEC, CMD_SEND_VEHICLE_TO_DEPOT);
-		cur_company.Restore();
-	}
-}
-
 static void AircraftEventHandler_Flying(Aircraft *v, const AirportFTAClass *apc)
 {
 	Station *st = Station::Get(v->targetairport);
@@ -1555,137 +1497,154 @@ static void AircraftEventHandler_Flying(Aircraft *v, const AirportFTAClass *apc)
 		 * if it is an airplane, look for LANDING, for helicopter HELILANDING
 		 * it is possible to choose from multiple landing runways, so loop until a free one is found */
 		byte landingtype = (v->subtype == AIR_HELICOPTER) ? HELILANDING : LANDING;
-		const AirportFTA *current = apc->layout[v->pos].next;
-		while (current != NULL) {
-			if (current->heading == landingtype) {
-				/* save speed before, since if AirportHasBlock is false, it resets them to 0
-				 * we don't want that for plane in air
-				 * hack for speed thingie */
-				uint16 tcur_speed = v->cur_speed;
-				uint16 tsubspeed = v->subspeed;
-				if (!AirportHasBlock(v, current, apc)) {
-					v->state = landingtype; // LANDING / HELILANDING
-					/* it's a bit dirty, but I need to set position to next position, otherwise
-					 * if there are multiple runways, plane won't know which one it took (because
-					 * they all have heading LANDING). And also occupy that block! */
-					v->pos = current->next_position;
-					SETBITS(st->airport.flags, apc->layout[v->pos].block);
-					return;
-				}
-				v->cur_speed = tcur_speed;
-				v->subspeed = tsubspeed;
-			}
+		const AirportFTA *reference = &apc->layout[v->pos];
+		const AirportFTA *current = reference->next;
+		while (current != NULL && current->heading != landingtype) {
 			current = current->next;
+		}
+		if (current != NULL) {
+			assert (current->position == v->pos);
+			assert (current->block != NOTHING_block);
+
+			uint64 next_block = apc->layout[current->next_position].block;
+			assert (reference->block != next_block);
+
+			if ((st->airport.flags & (next_block | current->block)) == 0) {
+				v->state = landingtype; // LANDING / HELILANDING
+				/* It's a bit dirty, but I need to set position
+				 * to next position, otherwise if there are
+				 * multiple runways, plane won't know which one
+				 * it took (because they all have heading
+				 * LANDING). And also occupy that block! */
+				v->pos = current->next_position;
+				SETBITS(st->airport.flags, next_block);
+				return;
+			}
 		}
 	}
 	v->state = FLYING;
 	v->pos = apc->layout[v->pos].next_position;
 }
 
-static void AircraftEventHandler_Landing(Aircraft *v, const AirportFTAClass *apc)
+/* we have arrived in an important state (eg terminal, hangar, etc.) */
+static void AirportMoveEvent (Aircraft *v, const AirportFTAClass *apc)
 {
-	v->state = ENDLANDING;
-	AircraftLandAirplane(v);  // maybe crash airplane
+	assert (apc->layout[v->pos].heading == v->state);
 
-	/* check if the aircraft needs to be replaced or renewed and send it to a hangar if needed */
-	if (v->NeedsAutomaticServicing()) {
-		Backup<CompanyByte> cur_company(_current_company, v->owner, FILE_LINE);
-		DoCommand(v->tile, v->index | DEPOT_SERVICE, 0, DC_EXEC, CMD_SEND_VEHICLE_TO_DEPOT);
+	byte prev_pos = v->pos; // location could be changed in state, so save it before-hand
+	byte prev_state = v->state;
+
+	uint service_flag = 0;
+	assert (v->state <= MAX_HEADINGS);
+	switch (v->state) {
+		case TO_ALL:
+			error ("OK, you shouldn't be here, check your Airport Scheme!");
+			break;
+
+		case HANGAR:
+			AircraftEventHandler_InHangar (v, apc);
+			break;
+
+		case TAKEOFF:
+			if (!PlayVehicleSound (v, VSE_START)) {
+				SndPlayVehicleFx (AircraftVehInfo(v->engine_type)->sfx, v);
+			}
+			v->state = STARTTAKEOFF;
+			break;
+
+		case STARTTAKEOFF:
+			v->state = ENDTAKEOFF;
+			v->UpdateDeltaXY (INVALID_DIR);
+			break;
+
+		case ENDTAKEOFF:
+			v->state = FLYING;
+			/* get the next position to go to, differs per airport */
+			AircraftNextAirportPos_and_Order (v);
+			break;
+
+		case HELITAKEOFF:
+			v->state = FLYING;
+			v->UpdateDeltaXY (INVALID_DIR);
+
+			/* get the next position to go to, differs per airport */
+			AircraftNextAirportPos_and_Order (v);
+
+			/* Send the helicopter to a hangar if needed for replacement */
+			assert_compile (DEPOT_SERVICE != 0);
+			service_flag = DEPOT_SERVICE | DEPOT_LOCATE_HANGAR;
+			break;
+
+		case FLYING:
+			AircraftEventHandler_Flying (v, apc);
+			break;
+
+		case LANDING:
+			v->state = ENDLANDING;
+			v->UpdateDeltaXY (INVALID_DIR);
+
+			if (!PlayVehicleSound (v, VSE_TOUCHDOWN)) {
+				SndPlayVehicleFx (SND_17_SKID_PLANE, v);
+			}
+
+			/* check if the aircraft needs to be replaced or
+			 * renewed and send it to a hangar if needed */
+			assert_compile (DEPOT_SERVICE != 0);
+			service_flag = DEPOT_SERVICE;
+			break;
+
+		case ENDLANDING:
+			/* next block busy, don't do a thing, just wait */
+			if (AirportHasBlock (v, apc)) break;
+
+			/* if going to terminal (OT_GOTO_STATION) choose one
+			 * 1. in case all terminals are busy AirportFindFreeTerminal() returns false or
+			 * 2. not going for terminal (but depot, no order),
+			 * --> get out of the way to the hangar. */
+			if (!v->current_order.IsType (OT_GOTO_STATION)
+					|| !AirportFindFreeTerminal (v, apc)) {
+				v->state = HANGAR;
+			}
+
+			break;
+
+		case HELILANDING:
+			v->state = HELIENDLANDING;
+			v->UpdateDeltaXY (INVALID_DIR);
+			break;
+
+		case HELIENDLANDING:
+			/* next block busy, don't do a thing, just wait */
+			if (AirportHasBlock (v, apc)) break;
+
+			/* if going to helipad (OT_GOTO_STATION) choose one. If airport doesn't have helipads, choose terminal
+			 * 1. in case all terminals/helipads are busy (AirportFindFreeHelipad() returns false) or
+			 * 2. not going for terminal (but depot, no order),
+			 * --> get out of the way to the hangar IF there are terminals on the airport.
+			 * --> else TAKEOFF
+			 * the reason behind this is that if an airport has a terminal, it also has a hangar. Airplanes
+			 * must go to a hangar. */
+			if (!v->current_order.IsType (OT_GOTO_STATION)
+					|| !AirportFindFreeHelipad (v, apc)) {
+				v->state = Station::Get(v->targetairport)->airport.HasHangar() ?
+						HANGAR : HELITAKEOFF;
+			}
+
+			break;
+
+		default:
+			AircraftEventHandler_AtTerminal (v, apc);
+			break;
+	}
+
+	if ((service_flag != 0) && v->NeedsAutomaticServicing()) {
+		Backup<CompanyByte> cur_company (_current_company, v->owner, FILE_LINE);
+		DoCommand (v->tile, v->index | service_flag, 0, DC_EXEC, CMD_SEND_VEHICLE_TO_DEPOT);
 		cur_company.Restore();
 	}
-}
 
-static void AircraftEventHandler_HeliLanding(Aircraft *v, const AirportFTAClass *apc)
-{
-	v->state = HELIENDLANDING;
-	v->UpdateDeltaXY(INVALID_DIR);
-}
-
-static void AircraftEventHandler_EndLanding(Aircraft *v, const AirportFTAClass *apc)
-{
-	/* next block busy, don't do a thing, just wait */
-	if (AirportHasBlock(v, &apc->layout[v->pos], apc)) return;
-
-	/* if going to terminal (OT_GOTO_STATION) choose one
-	 * 1. in case all terminals are busy AirportFindFreeTerminal() returns false or
-	 * 2. not going for terminal (but depot, no order),
-	 * --> get out of the way to the hangar. */
-	if (v->current_order.IsType(OT_GOTO_STATION)) {
-		if (AirportFindFreeTerminal(v, apc)) return;
-	}
-	v->state = HANGAR;
-
-}
-
-static void AircraftEventHandler_HeliEndLanding(Aircraft *v, const AirportFTAClass *apc)
-{
-	/*  next block busy, don't do a thing, just wait */
-	if (AirportHasBlock(v, &apc->layout[v->pos], apc)) return;
-
-	/* if going to helipad (OT_GOTO_STATION) choose one. If airport doesn't have helipads, choose terminal
-	 * 1. in case all terminals/helipads are busy (AirportFindFreeHelipad() returns false) or
-	 * 2. not going for terminal (but depot, no order),
-	 * --> get out of the way to the hangar IF there are terminals on the airport.
-	 * --> else TAKEOFF
-	 * the reason behind this is that if an airport has a terminal, it also has a hangar. Airplanes
-	 * must go to a hangar. */
-	if (v->current_order.IsType(OT_GOTO_STATION)) {
-		if (AirportFindFreeHelipad(v, apc)) return;
-	}
-	v->state = Station::Get(v->targetairport)->airport.HasHangar() ? HANGAR : HELITAKEOFF;
-}
-
-/**
- * Signature of the aircraft handler function.
- * @param v Aircraft to handle.
- * @param apc Airport state machine.
- */
-typedef void AircraftStateHandler(Aircraft *v, const AirportFTAClass *apc);
-/** Array of handler functions for each target of the aircraft. */
-static AircraftStateHandler * const _aircraft_state_handlers[] = {
-	AircraftEventHandler_General,        // TO_ALL         =  0
-	AircraftEventHandler_InHangar,       // HANGAR         =  1
-	AircraftEventHandler_AtTerminal,     // TERM1          =  2
-	AircraftEventHandler_AtTerminal,     // TERM2          =  3
-	AircraftEventHandler_AtTerminal,     // TERM3          =  4
-	AircraftEventHandler_AtTerminal,     // TERM4          =  5
-	AircraftEventHandler_AtTerminal,     // TERM5          =  6
-	AircraftEventHandler_AtTerminal,     // TERM6          =  7
-	AircraftEventHandler_AtTerminal,     // HELIPAD1       =  8
-	AircraftEventHandler_AtTerminal,     // HELIPAD2       =  9
-	AircraftEventHandler_TakeOff,        // TAKEOFF        = 10
-	AircraftEventHandler_StartTakeOff,   // STARTTAKEOFF   = 11
-	AircraftEventHandler_EndTakeOff,     // ENDTAKEOFF     = 12
-	AircraftEventHandler_HeliTakeOff,    // HELITAKEOFF    = 13
-	AircraftEventHandler_Flying,         // FLYING         = 14
-	AircraftEventHandler_Landing,        // LANDING        = 15
-	AircraftEventHandler_EndLanding,     // ENDLANDING     = 16
-	AircraftEventHandler_HeliLanding,    // HELILANDING    = 17
-	AircraftEventHandler_HeliEndLanding, // HELIENDLANDING = 18
-	AircraftEventHandler_AtTerminal,     // TERM7          = 19
-	AircraftEventHandler_AtTerminal,     // TERM8          = 20
-	AircraftEventHandler_AtTerminal,     // HELIPAD3       = 21
-};
-
-static void AirportClearBlock(const Aircraft *v, const AirportFTAClass *apc)
-{
-	/* we have left the previous block, and entered the new one. Free the previous block */
-	if (apc->layout[v->previous_pos].block != apc->layout[v->pos].block) {
-		Station *st = Station::Get(v->targetairport);
-
-		CLRBITS(st->airport.flags, apc->layout[v->previous_pos].block);
-	}
-}
-
-static void AirportGoToNextPosition(Aircraft *v)
-{
-	/* if aircraft is not in position, wait until it is */
-	if (!AircraftController(v)) return;
-
-	const AirportFTAClass *apc = Station::Get(v->targetairport)->airport.GetFTA();
-
-	AirportClearBlock(v, apc);
-	AirportMove(v, apc); // move aircraft to next position
+	if (v->state != FLYING) v->previous_pos = prev_pos;
+	if (v->state != prev_state || v->pos != prev_pos) UpdateAircraftCache(v);
 }
 
 /* gets pos from vehicle and next orders */
@@ -1700,99 +1659,40 @@ static bool AirportMove(Aircraft *v, const AirportFTAClass *apc)
 	const AirportFTA *current = &apc->layout[v->pos];
 	/* we have arrived in an important state (eg terminal, hangar, etc.) */
 	if (current->heading == v->state) {
-		byte prev_pos = v->pos; // location could be changed in state, so save it before-hand
-		byte prev_state = v->state;
-		_aircraft_state_handlers[v->state](v, apc);
-		if (v->state != FLYING) v->previous_pos = prev_pos;
-		if (v->state != prev_state || v->pos != prev_pos) UpdateAircraftCache(v);
+		AirportMoveEvent (v, apc);
 		return true;
 	}
 
 	v->previous_pos = v->pos; // save previous location
 
-	/* there is only one choice to move to */
-	if (current->next == NULL) {
-		if (AirportSetBlocks(v, current, apc)) {
-			v->pos = current->next_position;
-			UpdateAircraftCache(v);
-		} // move to next position
-		return false;
-	}
-
-	/* there are more choices to choose from, choose the one that
-	 * matches our heading */
-	do {
-		if (v->state == current->heading || current->heading == TO_ALL) {
-			if (AirportSetBlocks(v, current, apc)) {
-				v->pos = current->next_position;
-				UpdateAircraftCache(v);
-			} // move to next position
-			return false;
-		}
-		current = current->next;
-	} while (current != NULL);
-
-	DEBUG(misc, 0, "[Ap] cannot move further on Airport! (pos %d state %d) for vehicle %d", v->pos, v->state, v->index);
-	NOT_REACHED();
-}
-
-/** returns true if the road ahead is busy, eg. you must wait before proceeding. */
-static bool AirportHasBlock(Aircraft *v, const AirportFTA *current_pos, const AirportFTAClass *apc)
-{
-	const AirportFTA *reference = &apc->layout[v->pos];
-	const AirportFTA *next = &apc->layout[current_pos->next_position];
-
-	/* same block, then of course we can move */
-	if (apc->layout[current_pos->position].block != next->block) {
-		const Station *st = Station::Get(v->targetairport);
-		uint64 airport_flags = next->block;
-
-		/* check additional possible extra blocks */
-		if (current_pos != reference && current_pos->block != NOTHING_block) {
-			airport_flags |= current_pos->block;
-		}
-
-		if (st->airport.flags & airport_flags) {
-			v->cur_speed = 0;
-			v->subspeed = 0;
-			return true;
-		}
-	}
-	return false;
-}
-
-/**
- * "reserve" a block for the plane
- * @param v airplane that requires the operation
- * @param current_pos of the vehicle in the list of blocks
- * @param apc airport on which block is requsted to be set
- * @returns true on success. Eg, next block was free and we have occupied it
- */
-static bool AirportSetBlocks(Aircraft *v, const AirportFTA *current_pos, const AirportFTAClass *apc)
-{
-	const AirportFTA *next = &apc->layout[current_pos->next_position];
-	const AirportFTA *reference = &apc->layout[v->pos];
-
-	/* if the next position is in another block, check it and wait until it is free */
-	if ((apc->layout[current_pos->position].block & next->block) != next->block) {
-		uint64 airport_flags = next->block;
-		/* search for all all elements in the list with the same state, and blocks != N
-		 * this means more blocks should be checked/set */
-		const AirportFTA *current = current_pos;
-		if (current == reference) current = current->next;
-		while (current != NULL) {
-			if (current->heading == current_pos->heading && current->block != 0) {
-				airport_flags |= current->block;
-				break;
-			}
+	if (current->next != NULL) {
+		/* there are more choices to choose from, choose the one that
+		 * matches our heading */
+		do {
 			current = current->next;
+			assert (current != NULL);
+		} while (current->heading != v->state
+				&& current->heading != TO_ALL);
+	}
+
+	/* Reserve a block for the plane. */
+	const AirportFTA *next = &apc->layout[current->next_position];
+	const AirportFTA *reference = &apc->layout[v->pos];
+
+	if (current == reference) {
+		assert (current->next == NULL);
+	}
+
+	/* If the next position is in another block, check it and wait
+	 * until it is free. */
+	if ((apc->layout[current->position].block & next->block) != next->block
+			&& current->block != next->block) {
+		uint64 airport_flags = next->block;
+		if (current != reference) {
+			airport_flags |= current->block;
 		}
 
-		/* if the block to be checked is in the next position, then exclude that from
-		 * checking, because it has been set by the airplane before */
-		if (current_pos->block == next->block) airport_flags ^= next->block;
-
-		Station *st = Station::Get(v->targetairport);
+		Station *st = Station::Get (v->targetairport);
 		if (st->airport.flags & airport_flags) {
 			v->cur_speed = 0;
 			v->subspeed = 0;
@@ -1800,10 +1700,14 @@ static bool AirportSetBlocks(Aircraft *v, const AirportFTA *current_pos, const A
 		}
 
 		if (next->block != NOTHING_block) {
-			SETBITS(st->airport.flags, airport_flags); // occupy next block
+			/* Occupy next block. */
+			SETBITS(st->airport.flags, airport_flags);
 		}
 	}
-	return true;
+
+	v->pos = current->next_position;
+	UpdateAircraftCache (v);
+	return false;
 }
 
 /**
@@ -1853,20 +1757,6 @@ static bool FreeTerminal(Aircraft *v, byte i, byte last_terminal)
 }
 
 /**
- * Get the number of terminals at the airport.
- * @param afc Airport description.
- * @return Number of terminals.
- */
-static uint GetNumTerminals(const AirportFTAClass *apc)
-{
-	uint num = 0;
-
-	for (uint i = apc->terminals[0]; i > 0; i--) num += apc->terminals[i];
-
-	return num;
-}
-
-/**
  * Find a free terminal, and assign it if available.
  * @param v Aircraft to handle.
  * @param apc Airport state machine.
@@ -1895,15 +1785,10 @@ static bool AirportFindFreeTerminal(Aircraft *v, const AirportFTAClass *apc)
 					 * (the first free group) */
 					uint target_group = temp->next_position + 1;
 
-					/* at what terminal does the group start?
-					 * that means, sum up all terminals of
-					 * groups with lower number */
-					uint group_start = 0;
-					for (uint i = 1; i < target_group; i++) {
-						group_start += apc->terminals[i];
-					}
+					/* at what terminal does the group start? */
+					byte group_start = apc->terminals[target_group];
 
-					uint group_end = group_start + apc->terminals[target_group];
+					byte group_end = apc->terminals[target_group + 1];
 					if (FreeTerminal(v, group_start, group_end)) return true;
 				}
 			} else {
@@ -1916,7 +1801,7 @@ static bool AirportFindFreeTerminal(Aircraft *v, const AirportFTAClass *apc)
 	}
 
 	/* if there is only 1 terminalgroup, all terminals are checked (starting from 0 to max) */
-	return FreeTerminal(v, 0, GetNumTerminals(apc));
+	return FreeTerminal (v, 0, apc->terminals[apc->terminals[0] + 1]);
 }
 
 /**
@@ -1994,7 +1879,20 @@ static bool AircraftEventHandler(Aircraft *v, int loop)
 		}
 	}
 
-	if (!HasBit(v->flags, VAF_DEST_TOO_FAR)) AirportGoToNextPosition(v);
+	/* If aircraft is not in position, wait until it is. */
+	if (!HasBit(v->flags, VAF_DEST_TOO_FAR) && AircraftController (v)) {
+		Station *st = Station::Get (v->targetairport);
+		const AirportFTAClass *apc = st->airport.GetFTA();
+
+		/* We have left the previous block, and entered the new one.
+		 * Free the previous block. */
+		uint64 prev_block = apc->layout[v->previous_pos].block;
+		if (prev_block != apc->layout[v->pos].block) {
+			CLRBITS(st->airport.flags, prev_block);
+		}
+
+		AirportMove (v, apc); // move aircraft to next position
+	}
 
 	return true;
 }

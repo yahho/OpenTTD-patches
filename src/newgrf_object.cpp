@@ -232,7 +232,7 @@ static uint32 GetCountAndDistanceOfClosestInstance(byte local_id, uint32 grfid, 
 
 		case 0xFFFFFFFF: // current grf
 			grf_id = grfid;
-			/* FALL THROUGH */
+			FALLTHROUGH;
 
 		default: // use the grfid specified in register 100h
 			idx = _object_mngr.GetID(local_id, grf_id);
@@ -436,11 +436,11 @@ uint16 GetObjectCallback(CallbackID callback, uint32 param1, uint32 param2, cons
  */
 static void DrawTileLayout(const TileInfo *ti, const TileLayoutSpriteGroup *group, const ObjectSpec *spec)
 {
-	const DrawTileSprites *dts = group->ProcessRegisters(NULL);
+	TileLayoutSpriteGroup::Result result (group);
 	PaletteID palette = ((spec->flags & OBJECT_FLAG_2CC_COLOUR) ? SPR_2CCMAP_BASE : PALETTE_RECOLOUR_START) + Object::GetByTile(ti->tile)->colour;
 
-	SpriteID image = dts->ground.sprite;
-	PaletteID pal  = dts->ground.pal;
+	SpriteID image = result.ground.sprite;
+	PaletteID pal  = result.ground.pal;
 
 	if (GB(image, 0, SPRITE_WIDTH) != 0) {
 		/* If the ground sprite is the default flat water sprite, draw also canal/river borders
@@ -452,7 +452,7 @@ static void DrawTileLayout(const TileInfo *ti, const TileLayoutSpriteGroup *grou
 		}
 	}
 
-	DrawNewGRFTileSeq (ti, dts->seq, TO_STRUCTURES, 0, palette);
+	DrawNewGRFTileSeq (ti, result.seq, TO_STRUCTURES, 0, palette);
 }
 
 /**
@@ -464,7 +464,7 @@ void DrawNewObjectTile(TileInfo *ti, const ObjectSpec *spec)
 {
 	Object *o = Object::GetByTile(ti->tile);
 	const SpriteGroup *group = ObjectResolve (spec, o, ti->tile);
-	if (group == NULL || group->type != SGT_TILELAYOUT) return;
+	if (group == NULL || !group->IsType (SGT_TILELAYOUT)) return;
 
 	DrawTileLayout(ti, (const TileLayoutSpriteGroup *)group, spec);
 }
@@ -480,9 +480,9 @@ void DrawNewObjectTile(TileInfo *ti, const ObjectSpec *spec)
 void DrawNewObjectTileInGUI (BlitArea *dpi, int x, int y, const ObjectSpec *spec, uint8 view)
 {
 	const SpriteGroup *group = ObjectResolve (spec, NULL, INVALID_TILE, view);
-	if (group == NULL || group->type != SGT_TILELAYOUT) return;
+	if (group == NULL || !group->IsType (SGT_TILELAYOUT)) return;
 
-	const DrawTileSprites *dts = ((const TileLayoutSpriteGroup *)group)->ProcessRegisters(NULL);
+	TileLayoutSpriteGroup::Result result ((const TileLayoutSpriteGroup *)group);
 
 	PaletteID palette;
 	if (Company::IsValidID(_local_company)) {
@@ -498,39 +498,38 @@ void DrawNewObjectTileInGUI (BlitArea *dpi, int x, int y, const ObjectSpec *spec
 		palette = (spec->flags & OBJECT_FLAG_2CC_COLOUR) ? SPR_2CCMAP_BASE : PALETTE_RECOLOUR_START;
 	}
 
-	SpriteID image = dts->ground.sprite;
-	PaletteID pal  = dts->ground.pal;
+	SpriteID image = result.ground.sprite;
+	PaletteID pal  = result.ground.pal;
 
 	if (GB(image, 0, SPRITE_WIDTH) != 0) {
 		DrawSprite (dpi, image, GroundSpritePaletteTransform (image, pal, palette), x, y);
 	}
 
-	DrawNewGRFTileSeqInGUI (dpi, x, y, dts->seq, 0, palette);
-}
-
-/**
- * Perform a callback for an object.
- * @param callback The callback to perform.
- * @param param1   The first parameter to pass to the NewGRF.
- * @param param2   The second parameter to pass to the NewGRF.
- * @param spec     The specification of the object / the entry point.
- * @param o        The object to call the callback for.
- * @param tile     The tile the callback is called for.
- * @param extra_data Ignored.
- * @return The result of the callback.
- */
-uint16 StubGetObjectCallback(CallbackID callback, uint32 param1, uint32 param2, const ObjectSpec *spec, Object *o, TileIndex tile, int extra_data)
-{
-	return GetObjectCallback(callback, param1, param2, spec, o, tile);
+	DrawNewGRFTileSeqInGUI (dpi, x, y, result.seq, 0, palette);
 }
 
 /** Helper class for animation control. */
-struct ObjectAnimationBase : public AnimationBase<ObjectAnimationBase, ObjectSpec, Object, int, StubGetObjectCallback> {
+struct ObjectAnimationBase {
 	static const CallbackID cb_animation_speed      = CBID_OBJECT_ANIMATION_SPEED;
 	static const CallbackID cb_animation_next_frame = CBID_OBJECT_ANIMATION_NEXT_FRAME;
 
 	static const ObjectCallbackMask cbm_animation_speed      = CBM_OBJ_ANIMATION_SPEED;
 	static const ObjectCallbackMask cbm_animation_next_frame = CBM_OBJ_ANIMATION_NEXT_FRAME;
+
+	/**
+	 * Perform a callback for an object.
+	 * @param callback The callback to perform.
+	 * @param param1   The first parameter to pass to the NewGRF.
+	 * @param param2   The second parameter to pass to the NewGRF.
+	 * @param spec     The specification of the object / the entry point.
+	 * @param o        The object to call the callback for.
+	 * @param tile     The tile the callback is called for.
+	 * @return The result of the callback.
+	 */
+	static uint16 get_callback (CallbackID callback, uint32 param1, uint32 param2, const ObjectSpec *spec, Object *o, TileIndex tile)
+	{
+		return GetObjectCallback (callback, param1, param2, spec, o, tile);
+	}
 };
 
 /**
@@ -542,7 +541,7 @@ void AnimateNewObjectTile(TileIndex tile)
 	const ObjectSpec *spec = ObjectSpec::GetByTile(tile);
 	if (spec == NULL || !(spec->flags & OBJECT_FLAG_ANIMATION)) return;
 
-	ObjectAnimationBase::AnimateTile(spec, Object::GetByTile(tile), tile, (spec->flags & OBJECT_FLAG_ANIM_RANDOM_BITS) != 0);
+	AnimationBase::AnimateTile <ObjectAnimationBase> (spec, Object::GetByTile(tile), tile, (spec->flags & OBJECT_FLAG_ANIM_RANDOM_BITS) != 0);
 }
 
 /**
@@ -556,7 +555,9 @@ void TriggerObjectTileAnimation(Object *o, TileIndex tile, ObjectAnimationTrigge
 {
 	if (!HasBit(spec->animation.triggers, trigger)) return;
 
-	ObjectAnimationBase::ChangeAnimationFrame(CBID_OBJECT_ANIMATION_START_STOP, spec, o, tile, Random(), trigger);
+	uint16 callback = GetObjectCallback (CBID_OBJECT_ANIMATION_START_STOP,
+					Random(), trigger, spec, o, tile);
+	AnimationBase::ChangeAnimationFrame (spec, tile, callback);
 }
 
 /**

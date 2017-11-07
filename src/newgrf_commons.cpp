@@ -633,106 +633,46 @@ bool Convert8bitBooleanCallback(const GRFFile *grffile, uint16 cbid, uint16 cb_r
 }
 
 
-/* static */ SmallVector<DrawTileSeqStruct, 8> NewGRFSpriteLayout::result_seq;
-
-/**
- * Clone the building sprites of a spritelayout.
- * @param source The building sprites to copy.
- */
-void NewGRFSpriteLayout::Clone(const DrawTileSeqStruct *source)
-{
-	assert(this->seq == NULL);
-	assert(source != NULL);
-
-	size_t count = 1; // 1 for the terminator
-	const DrawTileSeqStruct *element;
-	foreach_draw_tile_seq(element, source) count++;
-
-	this->seq = xmemdupt (source, count);
-}
-
-/**
- * Clone a spritelayout.
- * @param source The spritelayout to copy.
- */
-void NewGRFSpriteLayout::Clone(const NewGRFSpriteLayout *source)
-{
-	this->Clone((const DrawTileSprites*)source);
-
-	if (source->registers != NULL) {
-		size_t count = 1; // 1 for the ground sprite
-		const DrawTileSeqStruct *element;
-		foreach_draw_tile_seq(element, source->seq) count++;
-
-		this->registers = xmemdupt (source->registers, count);
-	}
-}
-
-
-/**
- * Allocate a spritelayout for \a num_sprites building sprites.
- * @param num_sprites Number of building sprites to allocate memory for. (not counting the terminator)
- */
-void NewGRFSpriteLayout::Allocate(uint num_sprites)
-{
-	assert(this->seq == NULL);
-
-	DrawTileSeqStruct *sprites = xcalloct<DrawTileSeqStruct>(num_sprites + 1);
-	sprites[num_sprites].MakeTerminator();
-	this->seq = sprites;
-}
-
-/**
- * Allocate memory for register modifiers.
- */
-void NewGRFSpriteLayout::AllocateRegisters()
-{
-	assert(this->seq != NULL);
-	assert(this->registers == NULL);
-
-	size_t count = 1; // 1 for the ground sprite
-	const DrawTileSeqStruct *element;
-	foreach_draw_tile_seq(element, this->seq) count++;
-
-	this->registers = xcalloct<TileLayoutRegisters>(count);
-}
-
 /**
  * Prepares a sprite layout before resolving action-1-2-3 chains.
  * Integrates offsets into the layout and determines which chains to resolve.
- * @note The function uses statically allocated temporary storage, which is reused everytime when calling the function.
- *       That means, you have to use the sprite layout before calling #PrepareLayout() the next time.
+ * @param layout               Source layout.
+ * @param constr_stage         Construction stage (0-3) to apply to all action-1 sprites.
  * @param orig_offset          Offset to apply to non-action-1 sprites.
  * @param newgrf_ground_offset Offset to apply to action-1 ground sprites.
- * @param newgrf_offset        Offset to apply to action-1 non-ground sprites.
- * @param constr_stage         Construction stage (0-3) to apply to all action-1 sprites.
  * @param separate_ground      Whether the ground sprite shall be resolved by a separate action-1-2-3 chain by default.
  * @return Bitmask of values for variable 10 to resolve action-1-2-3 chains for.
  */
-uint32 NewGRFSpriteLayout::PrepareLayout(uint32 orig_offset, uint32 newgrf_ground_offset, uint32 newgrf_offset, uint constr_stage, bool separate_ground) const
+uint32 NewGRFSpriteLayout::Result::prepare (const NewGRFSpriteLayout *layout,
+	uint constr_stage, uint32 orig_offset, uint32 newgrf_ground_offset,
+	bool separate_ground)
 {
-	result_seq.Clear();
 	uint32 var10_values = 0;
 
 	/* Create a copy of the spritelayout, so we can modify some values.
 	 * Also include the groundsprite into the sequence for easier processing. */
-	DrawTileSeqStruct *result = result_seq.Append();
-	result->image = ground;
-	result->delta_x = 0;
-	result->delta_y = 0;
-	result->delta_z = (int8)0x80;
+	this->data[0].image = layout->ground;
+	this->data[0].delta_x = 0;
+	this->data[0].delta_y = 0;
+	this->data[0].delta_z = (int8)0x80;
 
+	uint n = 1;
 	const DrawTileSeqStruct *dtss;
-	foreach_draw_tile_seq(dtss, this->seq) {
-		*result_seq.Append() = *dtss;
+	foreach_draw_tile_seq(dtss, layout->seq) {
+		assert (n < lengthof(this->data));
+		this->data[n++] = *dtss;
 	}
-	result_seq.Append()->MakeTerminator();
+	assert (n < lengthof(this->data));
+	this->data[n].MakeTerminator();
 
 	/* Determine the var10 values the action-1-2-3 chains needs to be resolved for,
 	 * and apply the default sprite offsets (unless disabled). */
-	const TileLayoutRegisters *regs = this->registers;
+	const TileLayoutRegisters *regs = layout->registers;
+	if (regs == NULL) constr_stage = 0;
+
 	bool ground = true;
-	foreach_draw_tile_seq(result, result_seq.Begin()) {
+	DrawTileSeqStruct *result;
+	foreach_draw_tile_seq(result, this->data) {
 		TileLayoutFlags flags = TLF_NOTHING;
 		if (regs != NULL) flags = regs->flags;
 
@@ -745,8 +685,8 @@ uint32 NewGRFSpriteLayout::PrepareLayout(uint32 orig_offset, uint32 newgrf_groun
 		/* Add default sprite offset, unless there is a custom one */
 		if (!(flags & TLF_SPRITE)) {
 			if (HasBit(result->image.sprite, SPRITE_MODIFIER_CUSTOM_SPRITE)) {
-				result->image.sprite += ground ? newgrf_ground_offset : newgrf_offset;
-				if (constr_stage > 0 && regs != NULL) result->image.sprite += GetConstructionStageOffset(constr_stage, regs->max_sprite_offset);
+				result->image.sprite += ground ? newgrf_ground_offset : 0;
+				if (constr_stage > 0) result->image.sprite += GetConstructionStageOffset (constr_stage, regs->max_sprite_offset);
 			} else {
 				result->image.sprite += orig_offset;
 			}
@@ -761,8 +701,8 @@ uint32 NewGRFSpriteLayout::PrepareLayout(uint32 orig_offset, uint32 newgrf_groun
 		/* Add default palette offset, unless there is a custom one */
 		if (!(flags & TLF_PALETTE)) {
 			if (HasBit(result->image.pal, SPRITE_MODIFIER_CUSTOM_SPRITE)) {
-				result->image.sprite += ground ? newgrf_ground_offset : newgrf_offset;
-				if (constr_stage > 0 && regs != NULL) result->image.sprite += GetConstructionStageOffset(constr_stage, regs->max_palette_offset);
+				result->image.sprite += ground ? newgrf_ground_offset : 0;
+				if (constr_stage > 0) result->image.sprite += GetConstructionStageOffset (constr_stage, regs->max_palette_offset);
 			}
 		}
 
@@ -775,25 +715,27 @@ uint32 NewGRFSpriteLayout::PrepareLayout(uint32 orig_offset, uint32 newgrf_groun
 
 /**
  * Evaluates the register modifiers and integrates them into the preprocessed sprite layout.
- * @pre #PrepareLayout() needs calling first.
+ * @pre #prepare() needs calling first.
+ * @param layout          Source layout.
  * @param resolved_var10  The value of var10 the action-1-2-3 chain was evaluated for.
  * @param resolved_sprite Result sprite of the action-1-2-3 chain.
  * @param separate_ground Whether the ground sprite is resolved by a separate action-1-2-3 chain.
  * @return Resulting spritelayout after processing the registers.
  */
-void NewGRFSpriteLayout::ProcessRegisters(uint8 resolved_var10, uint32 resolved_sprite, bool separate_ground) const
+void NewGRFSpriteLayout::Result::process (const NewGRFSpriteLayout *layout,
+	uint8 resolved_var10, uint32 resolved_sprite, bool separate_ground)
 {
 	DrawTileSeqStruct *result;
-	const TileLayoutRegisters *regs = this->registers;
-	bool ground = true;
-	foreach_draw_tile_seq(result, result_seq.Begin()) {
+	const TileLayoutRegisters *regs = layout->registers;
+	bool ground = separate_ground;
+	foreach_draw_tile_seq(result, this->data) {
 		TileLayoutFlags flags = TLF_NOTHING;
 		if (regs != NULL) flags = regs->flags;
 
 		/* Is the sprite or bounding box affected by an action-1-2-3 chain? */
 		if (HasBit(result->image.sprite, SPRITE_MODIFIER_CUSTOM_SPRITE) || (flags & TLF_SPRITE_REG_FLAGS)) {
 			/* Does the var10 value apply to this sprite? */
-			uint8 var10 = (flags & TLF_SPRITE_VAR10) ? regs->sprite_var10 : (ground && separate_ground ? 1 : 0);
+			uint8 var10 = (flags & TLF_SPRITE_VAR10) ? regs->sprite_var10 : ground ? 1 : 0;
 			if (var10 == resolved_var10) {
 				/* Apply registers */
 				if ((flags & TLF_DODRAW) && GetRegister(regs->dodraw) == 0) {
@@ -826,7 +768,7 @@ void NewGRFSpriteLayout::ProcessRegisters(uint8 resolved_var10, uint32 resolved_
 		/* Is the palette affected by an action-1-2-3 chain? */
 		if (result->image.sprite != 0 && (HasBit(result->image.pal, SPRITE_MODIFIER_CUSTOM_SPRITE) || (flags & TLF_PALETTE_REG_FLAGS))) {
 			/* Does the var10 value apply to this sprite? */
-			uint8 var10 = (flags & TLF_PALETTE_VAR10) ? regs->palette_var10 : (ground && separate_ground ? 1 : 0);
+			uint8 var10 = (flags & TLF_PALETTE_VAR10) ? regs->palette_var10 : ground ? 1 : 0;
 			if (var10 == resolved_var10) {
 				/* Apply registers */
 				if (HasBit(result->image.pal, SPRITE_MODIFIER_CUSTOM_SPRITE)) result->image.pal += resolved_sprite;

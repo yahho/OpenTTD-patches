@@ -244,17 +244,17 @@ static inline const SpriteGroup *AirportTileResolve (const AirportTileSpec *ats,
 	return SpriteGroup::Resolve (ats->grf_prop.spritegroup[0], object);
 }
 
-uint16 GetAirportTileCallback(CallbackID callback, uint32 param1, uint32 param2, const AirportTileSpec *ats, Station *st, TileIndex tile, int extra_data = 0)
+uint16 GetAirportTileCallback (CallbackID callback, uint32 param1, uint32 param2, const AirportTileSpec *ats, Station *st, TileIndex tile)
 {
 	return SpriteGroup::CallbackResult (AirportTileResolve (ats, tile, st, callback, param1, param2));
 }
 
 static void AirportDrawTileLayout(const TileInfo *ti, const TileLayoutSpriteGroup *group, byte colour, StationGfx gfx)
 {
-	const DrawTileSprites *dts = group->ProcessRegisters(NULL);
+	TileLayoutSpriteGroup::Result result (group);
 
-	SpriteID image = dts->ground.sprite;
-	SpriteID pal   = dts->ground.pal;
+	SpriteID image = result.ground.sprite;
+	PaletteID pal  = result.ground.pal;
 
 	if (GB(image, 0, SPRITE_WIDTH) != 0) {
 		if (image == SPR_FLAT_WATER_TILE && IsTileOnWater(ti->tile)) {
@@ -264,7 +264,7 @@ static void AirportDrawTileLayout(const TileInfo *ti, const TileLayoutSpriteGrou
 		}
 	}
 
-	DrawNewGRFTileSeq (ti, dts->seq, TO_BUILDINGS, 0, GENERAL_SPRITE_COLOUR(colour));
+	DrawNewGRFTileSeq (ti, result.seq, TO_BUILDINGS, 0, GENERAL_SPRITE_COLOUR(colour));
 }
 
 bool DrawNewAirportTile(TileInfo *ti, Station *st, StationGfx gfx, const AirportTileSpec *airts)
@@ -281,7 +281,7 @@ bool DrawNewAirportTile(TileInfo *ti, Station *st, StationGfx gfx, const Airport
 	}
 
 	const SpriteGroup *group = AirportTileResolve (airts, ti->tile, st);
-	if (group == NULL || group->type != SGT_TILELAYOUT) {
+	if (group == NULL || !group->IsType (SGT_TILELAYOUT)) {
 		return false;
 	}
 
@@ -291,12 +291,18 @@ bool DrawNewAirportTile(TileInfo *ti, Station *st, StationGfx gfx, const Airport
 }
 
 /** Helper class for animation control. */
-struct AirportTileAnimationBase : public AnimationBase<AirportTileAnimationBase, AirportTileSpec, Station, int, GetAirportTileCallback> {
+struct AirportTileAnimationBase {
 	static const CallbackID cb_animation_speed      = CBID_AIRPTILE_ANIMATION_SPEED;
 	static const CallbackID cb_animation_next_frame = CBID_AIRPTILE_ANIM_NEXT_FRAME;
 
 	static const AirportTileCallbackMask cbm_animation_speed      = CBM_AIRT_ANIM_SPEED;
 	static const AirportTileCallbackMask cbm_animation_next_frame = CBM_AIRT_ANIM_NEXT_FRAME;
+
+	/** Callback wrapper for animation control. */
+	static uint16 get_callback (CallbackID callback, uint32 param1, uint32 param2, const AirportTileSpec *ats, Station *st, TileIndex tile)
+	{
+		return GetAirportTileCallback (callback, param1, param2, ats, st, tile);
+	}
 };
 
 void AnimateAirportTile(TileIndex tile)
@@ -304,7 +310,7 @@ void AnimateAirportTile(TileIndex tile)
 	const AirportTileSpec *ats = AirportTileSpec::GetByTile(tile);
 	if (ats == NULL) return;
 
-	AirportTileAnimationBase::AnimateTile(ats, Station::GetByTile(tile), tile, HasBit(ats->animation_special_flags, 0));
+	AnimationBase::AnimateTile <AirportTileAnimationBase> (ats, Station::GetByTile(tile), tile, HasBit(ats->animation_special_flags, 0));
 }
 
 void AirportTileAnimationTrigger(Station *st, TileIndex tile, AirpAnimationTrigger trigger, CargoID cargo_type)
@@ -312,7 +318,10 @@ void AirportTileAnimationTrigger(Station *st, TileIndex tile, AirpAnimationTrigg
 	const AirportTileSpec *ats = AirportTileSpec::GetByTile(tile);
 	if (!HasBit(ats->animation.triggers, trigger)) return;
 
-	AirportTileAnimationBase::ChangeAnimationFrame(CBID_AIRPTILE_ANIM_START_STOP, ats, st, tile, Random(), (uint8)trigger | (cargo_type << 8));
+	uint16 callback = GetAirportTileCallback (CBID_AIRPTILE_ANIM_START_STOP,
+				Random(), (uint8)trigger | (cargo_type << 8),
+				ats, st, tile);
+	AnimationBase::ChangeAnimationFrame (ats, tile, callback);
 }
 
 void AirportAnimationTrigger(Station *st, AirpAnimationTrigger trigger, CargoID cargo_type)

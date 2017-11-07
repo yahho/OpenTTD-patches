@@ -496,10 +496,13 @@ struct NetworkChatWindow : public Window {
 	virtual void OnClick(Point pt, int widget, int click_count)
 	{
 		switch (widget) {
-			/* Send */
-			case WID_NC_SENDBUTTON: SendChat(this->message_editbox.GetText(), this->dtype, this->dest);
-				/* FALL THROUGH */
-			case WID_NC_CLOSE: /* Cancel */ this->Delete(); break;
+			case WID_NC_SENDBUTTON: /* Send */
+				SendChat(this->message_editbox.GetText(), this->dtype, this->dest);
+				FALLTHROUGH;
+
+			case WID_NC_CLOSE: /* Cancel */
+				this->Delete();
+				break;
 		}
 	}
 

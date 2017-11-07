@@ -237,11 +237,20 @@ static void DrawTrainDepotGroundSprite (TileInfo *ti, DiagDirection dir,
 	SpriteID image_x, SpriteID image_y, PaletteID pal)
 {
 	switch (dir) {
-		case DIAGDIR_NE: if (!IsInvisibilitySet (TO_BUILDINGS)) break; // else FALL THROUGH
-		case DIAGDIR_SW: DrawGroundSprite (ti, image_x, pal); break;
-		case DIAGDIR_NW: if (!IsInvisibilitySet (TO_BUILDINGS)) break; // else FALL THROUGH
-		case DIAGDIR_SE: DrawGroundSprite (ti, image_y, pal); break;
-		default: break;
+		case DIAGDIR_NE:
+			if (!IsInvisibilitySet (TO_BUILDINGS)) break;
+			FALLTHROUGH;
+		case DIAGDIR_SW:
+			DrawGroundSprite (ti, image_x, pal);
+			break;
+		case DIAGDIR_NW:
+			if (!IsInvisibilitySet (TO_BUILDINGS)) break;
+			FALLTHROUGH;
+		case DIAGDIR_SE:
+			DrawGroundSprite (ti, image_y, pal);
+			break;
+		default:
+			break;
 	}
 }
 
@@ -612,14 +621,6 @@ static CommandCost RemoveTunnel(TileIndex tile, DoCommandFlag flags)
 
 static CommandCost RemoveTrainDepot(TileIndex tile, DoCommandFlag flags)
 {
-	if (_current_company != OWNER_WATER) {
-		CommandCost ret = CheckTileOwnership(tile);
-		if (ret.Failed()) return ret;
-	}
-
-	CommandCost ret = EnsureNoVehicleOnGround(tile);
-	if (ret.Failed()) return ret;
-
 	if (flags & DC_EXEC) {
 		/* read variables before the depot is removed */
 		DiagDirection dir = GetGroundDepotDirection(tile);
@@ -645,14 +646,6 @@ static CommandCost RemoveTrainDepot(TileIndex tile, DoCommandFlag flags)
 
 static CommandCost RemoveRoadDepot(TileIndex tile, DoCommandFlag flags)
 {
-	if (_current_company != OWNER_WATER) {
-		CommandCost ret = CheckTileOwnership(tile);
-		if (ret.Failed()) return ret;
-	}
-
-	CommandCost ret = EnsureNoVehicleOnGround(tile);
-	if (ret.Failed()) return ret;
-
 	if (flags & DC_EXEC) {
 		Company *c = Company::GetIfValid(GetTileOwner(tile));
 		if (c != NULL) {
@@ -740,6 +733,15 @@ static CommandCost ClearTile_Misc(TileIndex tile, DoCommandFlag flags)
 				}
 				return_cmd_error(STR_ERROR_BUILDING_MUST_BE_DEMOLISHED);
 			}
+
+			if (_current_company != OWNER_WATER) {
+				CommandCost ret = CheckTileOwnership (tile);
+				if (ret.Failed()) return ret;
+			}
+
+			StringID str = CheckVehicleOnGround (tile);
+			if (str != STR_NULL) return_cmd_error(str);
+
 			return IsRailDepot(tile) ? RemoveTrainDepot(tile, flags) : RemoveRoadDepot(tile, flags);
 	}
 }

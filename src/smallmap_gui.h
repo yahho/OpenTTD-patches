@@ -72,6 +72,8 @@ protected:
 	static const uint FORCE_REFRESH_PERIOD = 0x1F; ///< map is redrawn after that many ticks
 	static const uint BLINK_PERIOD         = 0x0F; ///< highlight blinking interval
 
+	LinkGraphOverlay overlay;   ///< Link graph overlay.
+
 	uint min_number_of_columns;    ///< Minimal number of columns in legends.
 	uint min_number_of_fixed_rows; ///< Minimal number of rows in the legends for the fixed layouts only (all except #SMT_INDUSTRY).
 	uint column_width;             ///< Width of a column in the #WID_SM_LEGEND widget.
@@ -82,7 +84,6 @@ protected:
 	int zoom;        ///< Zoom level. Bigger number means more zoom-out (further away).
 
 	uint8 refresh;   ///< Refresh counter, zeroed every FORCE_REFRESH_PERIOD ticks.
-	LinkGraphOverlay *overlay;
 
 	/**
 	 * Compute minimal required width of the legends.
@@ -148,7 +149,7 @@ public:
 	friend class NWidgetSmallmapDisplay;
 
 	SmallMapWindow (const WindowDesc *desc, int window_number);
-	virtual ~SmallMapWindow() { delete this->overlay; }
+	virtual ~SmallMapWindow();
 
 	void SmallMapCenterOnCurrentPos();
 	Point GetStationMiddle(const Station *st) const;

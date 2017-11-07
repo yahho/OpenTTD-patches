@@ -19,6 +19,7 @@
 #include "../smallmap_gui.h"
 #include "../core/geometry_func.hpp"
 #include "../widgets/link_graph_legend_widget.h"
+#include "../widgets/main_widget.h"
 
 #include "table/strings.h"
 
@@ -87,6 +88,35 @@ static void AddStats (uint new_cap, uint new_usg, uint new_plan, bool new_shared
 }
 
 /**
+ * Add all "interesting" links between the given stations to the cache.
+ * @param link The link cache item to add links to.
+ * @param cargo_mask The mask of cargoes to check.
+ * @param from The source station.
+ * @param to The destination station.
+ */
+static void AddLinks (LinkProperties &link, uint32 cargo_mask,
+	const Station *from, const Station *to)
+{
+	CargoID c;
+	FOR_EACH_SET_CARGO_ID(c, cargo_mask) {
+		if (!CargoSpec::Get(c)->IsValid()) continue;
+		const GoodsEntry &ge = from->goods[c];
+		if (!LinkGraph::IsValidID (ge.link_graph) ||
+				ge.link_graph != to->goods[c].link_graph) {
+			continue;
+		}
+		const LinkGraph &lg = *LinkGraph::Get (ge.link_graph);
+		const LinkGraph::Edge &edge = lg[ge.node][to->goods[c].node];
+		if (edge.Capacity() > 0) {
+			AddStats (lg.Monthly (edge.Capacity()), lg.Monthly (edge.Usage()),
+					ge.flows.GetFlowVia (to->index),
+					from->owner == OWNER_NONE || to->owner == OWNER_NONE,
+					link);
+		}
+	}
+}
+
+/**
  * Rebuild the cache and recalculate which links and stations to be shown.
  */
 void LinkGraphOverlay::RebuildCache()
@@ -134,37 +164,11 @@ void LinkGraphOverlay::RebuildCache()
 
 				if (!IsLinkVisible (pta, this->GetStationMiddle(stb), &dpi)) continue;
 
-				this->AddLinks(sta, stb);
-				seen_links[to]; // make sure it is created and marked as seen
+				AddLinks (seen_links[to], this->cargo_mask, sta, stb);
 			}
 		}
 		if (IsPointVisible (pta, &dpi)) {
 			this->cached_stations.push_back(std::make_pair(from, supply));
-		}
-	}
-}
-
-/**
- * Add all "interesting" links between the given stations to the cache.
- * @param from The source station.
- * @param to The destination station.
- */
-void LinkGraphOverlay::AddLinks(const Station *from, const Station *to)
-{
-	CargoID c;
-	FOR_EACH_SET_CARGO_ID(c, this->cargo_mask) {
-		if (!CargoSpec::Get(c)->IsValid()) continue;
-		const GoodsEntry &ge = from->goods[c];
-		if (!LinkGraph::IsValidID(ge.link_graph) ||
-				ge.link_graph != to->goods[c].link_graph) {
-			continue;
-		}
-		const LinkGraph &lg = *LinkGraph::Get(ge.link_graph);
-		const LinkGraph::Edge &edge = lg[ge.node][to->goods[c].node];
-		if (edge.Capacity() > 0) {
-			AddStats (lg.Monthly(edge.Capacity()), lg.Monthly(edge.Usage()),
-					ge.flows.GetFlowVia(to->index), from->owner == OWNER_NONE || to->owner == OWNER_NONE,
-					this->cached_links[from->index][to->index]);
 		}
 	}
 }
@@ -274,28 +278,6 @@ Point LinkGraphOverlay::GetStationMiddle(const Station *st) const
 		/* assume this is a smallmap */
 		return static_cast<const SmallMapWindow *>(this->window)->GetStationMiddle(st);
 	}
-}
-
-/**
- * Set a new cargo mask and rebuild the cache.
- * @param cargo_mask New cargo mask.
- */
-void LinkGraphOverlay::SetCargoMask(uint32 cargo_mask)
-{
-	this->cargo_mask = cargo_mask;
-	this->RebuildCache();
-	this->window->GetWidget<NWidgetBase>(this->widget_id)->SetDirty(this->window);
-}
-
-/**
- * Set a new company mask and rebuild the cache.
- * @param company_mask New company mask.
- */
-void LinkGraphOverlay::SetCompanyMask(uint32 company_mask)
-{
-	this->company_mask = company_mask;
-	this->RebuildCache();
-	this->window->GetWidget<NWidgetBase>(this->widget_id)->SetDirty(this->window);
 }
 
 /** Make a number of rows with buttons for each company for the linkgraph legend window. */
@@ -480,61 +462,61 @@ void LinkGraphLegendWindow::DrawWidget (BlitArea *dpi, const Rect &r, int widget
 	}
 }
 
-/**
- * Update the overlay with the new company selection.
- */
-void LinkGraphLegendWindow::UpdateOverlayCompanies()
-{
-	uint32 mask = 0;
-	for (uint c = 0; c < MAX_COMPANIES; c++) {
-		if (this->IsWidgetDisabled(c + WID_LGL_COMPANY_FIRST)) continue;
-		if (!this->IsWidgetLowered(c + WID_LGL_COMPANY_FIRST)) continue;
-		SetBit(mask, c);
-	}
-	this->overlay->SetCompanyMask(mask);
-}
-
-/**
- * Update the overlay with the new cargo selection.
- */
-void LinkGraphLegendWindow::UpdateOverlayCargoes()
-{
-	uint32 mask = 0;
-	for (uint c = 0; c < NUM_CARGO; c++) {
-		if (this->IsWidgetDisabled(c + WID_LGL_CARGO_FIRST)) continue;
-		if (!this->IsWidgetLowered(c + WID_LGL_CARGO_FIRST)) continue;
-		SetBit(mask, c);
-	}
-	this->overlay->SetCargoMask(mask);
-}
-
 void LinkGraphLegendWindow::OnClick(Point pt, int widget, int click_count)
 {
+	bool cargo;
+
 	/* Check which button is clicked */
 	if (IsInsideMM(widget, WID_LGL_COMPANY_FIRST, WID_LGL_COMPANY_LAST + 1)) {
-		if (!this->IsWidgetDisabled(widget)) {
-			this->ToggleWidgetLoweredState(widget);
-			this->UpdateOverlayCompanies();
-		}
+		if (this->IsWidgetDisabled(widget)) return;
+		this->ToggleWidgetLoweredState (widget);
+		cargo = false;
+
 	} else if (widget == WID_LGL_COMPANIES_ALL || widget == WID_LGL_COMPANIES_NONE) {
 		for (uint c = 0; c < MAX_COMPANIES; c++) {
 			if (this->IsWidgetDisabled(c + WID_LGL_COMPANY_FIRST)) continue;
 			this->SetWidgetLoweredState(WID_LGL_COMPANY_FIRST + c, widget == WID_LGL_COMPANIES_ALL);
 		}
-		this->UpdateOverlayCompanies();
-		this->SetDirty();
+		cargo = false;
+
 	} else if (IsInsideMM(widget, WID_LGL_CARGO_FIRST, WID_LGL_CARGO_LAST + 1)) {
-		if (!this->IsWidgetDisabled(widget)) {
-			this->ToggleWidgetLoweredState(widget);
-			this->UpdateOverlayCargoes();
-		}
+		if (this->IsWidgetDisabled(widget)) return;
+		this->ToggleWidgetLoweredState (widget);
+		cargo = true;
+
 	} else if (widget == WID_LGL_CARGOES_ALL || widget == WID_LGL_CARGOES_NONE) {
 		for (uint c = 0; c < NUM_CARGO; c++) {
 			if (this->IsWidgetDisabled(c + WID_LGL_CARGO_FIRST)) continue;
 			this->SetWidgetLoweredState(WID_LGL_CARGO_FIRST + c, widget == WID_LGL_CARGOES_ALL);
 		}
-		this->UpdateOverlayCargoes();
+		cargo = true;
+
+	} else {
+		return;
 	}
+
+	if (cargo) {
+		/* Update the overlay with the new cargo selection. */
+		uint32 mask = 0;
+		for (uint c = 0; c < NUM_CARGO; c++) {
+			if (this->IsWidgetDisabled (c + WID_LGL_CARGO_FIRST)) continue;
+			if (!this->IsWidgetLowered (c + WID_LGL_CARGO_FIRST)) continue;
+			SetBit (mask, c);
+		}
+		this->overlay->SetCargoMask (mask);
+	} else {
+		/* Update the overlay with the new company selection. */
+		uint32 mask = 0;
+		for (uint c = 0; c < MAX_COMPANIES; c++) {
+			if (this->IsWidgetDisabled (c + WID_LGL_COMPANY_FIRST)) continue;
+			if (!this->IsWidgetLowered (c + WID_LGL_COMPANY_FIRST)) continue;
+			SetBit (mask, c);
+		}
+		this->overlay->SetCompanyMask (mask);
+	}
+
+	this->overlay->RebuildCache();
+	FindWindowById (WC_MAIN_WINDOW, 0)->SetWidgetDirty (WID_M_VIEWPORT);
 	this->SetDirty();
 }
 

@@ -129,7 +129,7 @@ static uint32 GetCountAndDistanceOfClosestInstance(byte param_setID, byte layout
 
 		case 0xFFFFFFFF: // current grf
 			GrfID = GetIndustrySpec(current->type)->grf_prop.grffile->grfid;
-			/* FALL THROUGH */
+			FALLTHROUGH;
 
 		default: // use the grfid specified in register 100h
 			SetBit(param_setID, 7); // bit 7 means it is not an old type
@@ -596,7 +596,7 @@ void IndustryProductionCallback(Industry *ind, int reason)
 
 		SB(object.callback_param2, 8, 16, loop);
 		const SpriteGroup *tgroup = object.Resolve();
-		if (tgroup == NULL || tgroup->type != SGT_INDUSTRY_PRODUCTION) break;
+		if (tgroup == NULL || !tgroup->IsType (SGT_INDUSTRY_PRODUCTION)) break;
 		const IndustryProductionSpriteGroup *group = (const IndustryProductionSpriteGroup *)tgroup;
 
 		bool deref = (group->version == 1);

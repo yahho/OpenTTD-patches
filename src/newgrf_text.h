@@ -84,7 +84,7 @@ public:
 
 
 StringID AddGRFString(uint32 grfid, uint16 stringid, byte langid, bool new_scheme, bool allow_newlines, const char *text_to_add, StringID def_string);
-StringID GetGRFStringID(uint32 grfid, uint16 stringid);
+StringID GetGRFStringID(uint32 grfid, StringID stringid);
 const char *GetGRFStringPtr(uint16 stringid);
 void CleanUpStrings();
 void SetCurrentGrfLangID(byte language_id);

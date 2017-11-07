@@ -16,6 +16,17 @@
 #include "spritecache.h"
 #include "zoom_func.h"
 
+/** Compute the palette to use for a layout sprite. */
+static inline PaletteID SpriteLayoutPalette (SpriteID image, PaletteID pal,
+	uint32 offset, PaletteID def)
+{
+	if (HasBit(image, PALETTE_MODIFIER_TRANSPARENT) || HasBit(image, PALETTE_MODIFIER_COLOUR)) {
+		if (HasBit(pal, SPRITE_MODIFIER_CUSTOM_SPRITE)) pal += offset;
+		return (pal != 0 ? pal : def);
+	} else {
+		return PAL_NONE;
+	}
+}
 
 /**
  * Draws a tile sprite sequence.
@@ -36,7 +47,6 @@ void DrawCommonTileSeq (const TileInfo *ti, const DrawTileSeqStruct *seq,
 	bool skip_childs = false;
 	foreach_draw_tile_seq(dtss, seq) {
 		SpriteID image = dtss->image.sprite;
-		PaletteID pal = dtss->image.pal;
 
 		if (skip_childs) {
 			if (!dtss->IsParentSprite()) continue;
@@ -51,9 +61,9 @@ void DrawCommonTileSeq (const TileInfo *ti, const DrawTileSeqStruct *seq,
 		}
 
 		image += (HasBit(image, SPRITE_MODIFIER_CUSTOM_SPRITE) ? newgrf_offset : orig_offset);
-		if (HasBit(pal, SPRITE_MODIFIER_CUSTOM_SPRITE)) pal += newgrf_offset;
 
-		pal = SpriteLayoutPaletteTransform(image, pal, default_palette);
+		PaletteID pal = SpriteLayoutPalette (image, dtss->image.pal,
+					newgrf_offset, default_palette);
 
 		bool transparent = !HasBit(image, SPRITE_MODIFIER_OPAQUE) && IsTransparencySet(to);
 		if (dtss->IsParentSprite()) {
@@ -102,7 +112,6 @@ void DrawCommonTileSeqInGUI (BlitArea *dpi, int x, int y,
 	bool skip_childs = false;
 	foreach_draw_tile_seq(dtss, seq) {
 		SpriteID image = dtss->image.sprite;
-		PaletteID pal = dtss->image.pal;
 
 		if (skip_childs) {
 			if (!dtss->IsParentSprite()) continue;
@@ -116,9 +125,9 @@ void DrawCommonTileSeqInGUI (BlitArea *dpi, int x, int y,
 		}
 
 		image += (HasBit(image, SPRITE_MODIFIER_CUSTOM_SPRITE) ? newgrf_offset : orig_offset);
-		if (HasBit(pal, SPRITE_MODIFIER_CUSTOM_SPRITE)) pal += newgrf_offset;
 
-		pal = SpriteLayoutPaletteTransform(image, pal, default_palette);
+		PaletteID pal = SpriteLayoutPalette (image, dtss->image.pal,
+					newgrf_offset, default_palette);
 
 		if (dtss->IsParentSprite()) {
 			Point pt = RemapCoords(dtss->delta_x, dtss->delta_y, dtss->delta_z);

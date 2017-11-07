@@ -127,8 +127,10 @@ static CommandCost IsValidTileForWaypoint (TileIndex tile, Axis axis, int check_
 
 	Owner owner = GetTileOwner(tile);
 	CommandCost ret = CheckOwnership(owner);
-	if (ret.Succeeded()) ret = EnsureNoVehicleOnGround(tile);
 	if (ret.Failed()) return ret;
+
+	StringID str = CheckVehicleOnGround (tile);
+	if (str != STR_NULL) return_cmd_error(str);
 
 	Slope tileh = GetTileSlope(tile);
 	if (tileh != SLOPE_FLAT &&
@@ -354,8 +356,8 @@ CommandCost RemoveBuoy(TileIndex tile, DoCommandFlag flags)
 	if (HasStationInUse(wp->index, false, _current_company)) return_cmd_error(STR_ERROR_BUOY_IS_IN_USE);
 	/* remove the buoy if there is a ship on tile when company goes bankrupt... */
 	if (!(flags & DC_BANKRUPT)) {
-		CommandCost ret = EnsureNoVehicleOnGround(tile);
-		if (ret.Failed()) return ret;
+		StringID str = CheckVehicleOnGround (tile);
+		if (str != STR_NULL) return_cmd_error(str);
 	}
 
 	if (flags & DC_EXEC) {

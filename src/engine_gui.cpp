@@ -125,9 +125,9 @@ struct EnginePreviewWindow : Window {
 		switch (widget) {
 			case WID_EP_YES:
 				DoCommandP(0, this->window_number, 0, CMD_WANT_ENGINE_PREVIEW);
-				/* FALL THROUGH */
+				FALLTHROUGH;
 			case WID_EP_NO:
-				this->Delete();
+				if (!_shift_pressed) this->Delete();
 				break;
 		}
 	}

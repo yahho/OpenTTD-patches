@@ -247,7 +247,10 @@ CommandCost CmdBuildObject(TileIndex tile, DoCommandFlag flags, uint32 p1, uint3
 					if (o != OWNER_NONE && o != OWNER_WATER) cost.AddCost(CheckOwnership(o, t));
 
 					/* However, the tile has to be clear of vehicles. */
-					cost.AddCost(EnsureNoVehicleOnGround(t));
+					StringID str = CheckVehicleOnGround (t);
+					if (str != STR_NULL) {
+						cost.AddCost (CommandCost (str));
+					}
 				}
 			} else {
 				if (!allow_ground) return_cmd_error(STR_ERROR_MUST_BE_BUILT_ON_WATER);

@@ -575,8 +575,8 @@ CommandCost CmdBuildSingleRail(TileIndex tile, DoCommandFlag flags, uint32 p1, u
 			/* Level crossings may only be built on these slopes */
 			if (!HasBit(VALID_LEVEL_CROSSING_SLOPES, tileh)) return_cmd_error(STR_ERROR_LAND_SLOPED_IN_WRONG_DIRECTION);
 
-			CommandCost ret = EnsureNoVehicleOnGround(tile);
-			if (ret.Failed()) return ret;
+			StringID str = CheckVehicleOnGround (tile);
+			if (str != STR_NULL) return_cmd_error(str);
 
 			if (HasRoadWorks(tile)) return_cmd_error(STR_ERROR_ROAD_WORKS_IN_PROGRESS);
 
@@ -630,7 +630,7 @@ CommandCost CmdBuildSingleRail(TileIndex tile, DoCommandFlag flags, uint32 p1, u
 			if (IsLevelCrossingTile(tile) && GetCrossingRailBits(tile) == trackbit) {
 				return_cmd_error(STR_ERROR_ALREADY_BUILT);
 			}
-			/* FALL THROUGH */
+			FALLTHROUGH;
 
 		try_clear:
 		default: {
@@ -949,8 +949,8 @@ static CommandCost RemoveCrossingTrack(TileIndex tile, DoCommandFlag flags)
 	}
 
 	if (!(flags & DC_BANKRUPT)) {
-		CommandCost ret = EnsureNoVehicleOnGround(tile);
-		if (ret.Failed()) return ret;
+		StringID str = CheckVehicleOnGround (tile);
+		if (str != STR_NULL) return_cmd_error(str);
 	}
 
 	CommandCost cost(EXPENSES_CONSTRUCTION, RailClearCost(GetRailType(tile)));
@@ -1076,26 +1076,23 @@ static const CoordDiff _trackdelta[] = {
 };
 
 
-static CommandCost ValidateAutoDrag(Trackdir *trackdir, TileIndex start, TileIndex end)
+static Trackdir ValidateAutoDrag (Track track, TileIndex start, TileIndex end)
 {
-	int x = TileX(start);
-	int y = TileY(start);
-	int ex = TileX(end);
-	int ey = TileY(end);
+	if (!ValParamTrackOrientation (track)) return INVALID_TRACKDIR;
 
-	if (!ValParamTrackOrientation(TrackdirToTrack(*trackdir))) return CMD_ERROR;
+	Trackdir trackdir = TrackToTrackdir (track);
 
 	/* calculate delta x,y from start to end tile */
-	int dx = ex - x;
-	int dy = ey - y;
+	int dx = TileX(end) - TileX(start);
+	int dy = TileY(end) - TileY(start);
 
 	/* calculate delta x,y for the first direction */
-	int trdx = _trackdelta[*trackdir].x;
-	int trdy = _trackdelta[*trackdir].y;
+	int trdx = _trackdelta[trackdir].x;
+	int trdy = _trackdelta[trackdir].y;
 
-	if (!IsDiagonalTrackdir(*trackdir)) {
-		trdx += _trackdelta[*trackdir ^ 1].x;
-		trdy += _trackdelta[*trackdir ^ 1].y;
+	if (!IsDiagonalTrackdir (trackdir)) {
+		trdx += _trackdelta[trackdir ^ 1].x;
+		trdy += _trackdelta[trackdir ^ 1].y;
 	}
 
 	/* validate the direction */
@@ -1103,24 +1100,24 @@ static CommandCost ValidateAutoDrag(Trackdir *trackdir, TileIndex start, TileInd
 			(trdx >= 0 && dx < 0) ||
 			(trdy <= 0 && dy > 0) ||
 			(trdy >= 0 && dy < 0)) {
-		if (!HasBit(*trackdir, 3)) { // first direction is invalid, try the other
-			SetBit(*trackdir, 3); // reverse the direction
+		if (!HasBit(trackdir, 3)) { // first direction is invalid, try the other
+			SetBit(trackdir, 3); // reverse the direction
 			trdx = -trdx;
 			trdy = -trdy;
 		} else { // other direction is invalid too, invalid drag
-			return CMD_ERROR;
+			return INVALID_TRACKDIR;
 		}
 	}
 
 	/* (for diagonal tracks, this is already made sure of by above test), but:
 	 * for non-diagonal tracks, check if the start and end tile are on 1 line */
-	if (!IsDiagonalTrackdir(*trackdir)) {
-		trdx = _trackdelta[*trackdir].x;
-		trdy = _trackdelta[*trackdir].y;
-		if (abs(dx) != abs(dy) && abs(dx) + abs(trdy) != abs(dy) + abs(trdx)) return CMD_ERROR;
+	if (!IsDiagonalTrackdir (trackdir)) {
+		trdx = _trackdelta[trackdir].x;
+		trdy = _trackdelta[trackdir].y;
+		if (abs(dx) != abs(dy) && abs(dx) + abs(trdy) != abs(dy) + abs(trdx)) return INVALID_TRACKDIR;
 	}
 
-	return CommandCost();
+	return trackdir;
 }
 
 /**
@@ -1146,10 +1143,9 @@ static CommandCost CmdRailTrackHelper(TileIndex tile, DoCommandFlag flags, uint3
 	if ((!remove && !ValParamRailtype(railtype)) || !ValParamTrackOrientation(track)) return CMD_ERROR;
 	if (p1 >= MapSize()) return CMD_ERROR;
 	TileIndex end_tile = p1;
-	Trackdir trackdir = TrackToTrackdir(track);
 
-	CommandCost ret = ValidateAutoDrag(&trackdir, tile, end_tile);
-	if (ret.Failed()) return ret;
+	Trackdir trackdir = ValidateAutoDrag (track, tile, end_tile);
+	if (trackdir == INVALID_TRACKDIR) return CMD_ERROR;
 
 	bool had_success = false;
 	CommandCost last_error = CMD_ERROR;
@@ -1360,11 +1356,12 @@ CommandCost CmdBuildSingleSignal(TileIndex tile, DoCommandFlag flags, uint32 p1,
 		if (ret.Failed()) return ret;
 
 		/* prevent updating signals in a busy tunnel */
-		ret = EnsureNoVehicleOnGround(tile);
-		if (ret.Failed()) return ret;
-		other_end = GetOtherTunnelEnd(tile);
-		ret = EnsureNoVehicleOnGround(other_end);
-		if (ret.Failed()) return ret;
+		StringID str = CheckVehicleOnGround (tile);
+		if (str == STR_NULL) {
+			other_end = GetOtherTunnelEnd (tile);
+			str = CheckVehicleOnGround (other_end);
+		}
+		if (str != STR_NULL) return_cmd_error(str);
 
 		signals = *maptile_tunnel_signalpair(tile);
 	} else {
@@ -1399,6 +1396,7 @@ CommandCost CmdBuildSingleSignal(TileIndex tile, DoCommandFlag flags, uint32 p1,
 				break;
 			}
 			/* build new signals--fall through */
+			FALLTHROUGH;
 		case SIGNALS_BUILD:
 			if (signalpair_has_signals(&signals)) {
 				/* it is free to change signal type: normal-pre-exit-combo */
@@ -1680,9 +1678,8 @@ static CommandCost CmdSignalTrackHelper(TileIndex tile, DoCommandFlag flags, uin
 	 * since the original amount will be too dense (shorter tracks) */
 	signal_density *= 2;
 
-	Trackdir trackdir = TrackToTrackdir(track);
-	CommandCost ret = ValidateAutoDrag(&trackdir, tile, end_tile);
-	if (ret.Failed()) return ret;
+	Trackdir trackdir = ValidateAutoDrag (track, tile, end_tile);
+	if (trackdir == INVALID_TRACKDIR) return CMD_ERROR;
 
 	track = TrackdirToTrack(trackdir); // trackdir might have changed, keep track in sync
 	Trackdir start_trackdir = trackdir;
@@ -1882,10 +1879,9 @@ CommandCost CmdRemoveSingleSignal(TileIndex tile, DoCommandFlag flags, uint32 p1
 
 	if (other_end != INVALID_TILE) {
 		/* prevent updating signals in a busy tunnel */
-		CommandCost ret = EnsureNoVehicleOnGround(tile);
-		if (ret.Failed()) return ret;
-		ret = EnsureNoVehicleOnGround(other_end);
-		if (ret.Failed()) return ret;
+		StringID str = CheckVehicleOnGround (tile);
+		if (str == STR_NULL) str = CheckVehicleOnGround (other_end);
+		if (str != STR_NULL) return_cmd_error(str);
 
 		if (signalpair_has_signal(signals, true)) {
 			/* We can remove a signal into a tunnel without
@@ -2325,8 +2321,8 @@ static CommandCost ConvertGeneric(TileIndex tile, RailType totype, Track track, 
 	if (_settings_game.vehicle.disable_elrails && totype == RAILTYPE_RAIL && type == RAILTYPE_ELECTRIC) return CommandCost();
 
 	if (!IsCompatibleRail(type, totype)) {
-		CommandCost ret = EnsureNoVehicleOnGround(tile);
-		if (ret.Failed()) return ret;
+		StringID str = CheckVehicleOnGround (tile);
+		if (str != STR_NULL) return_cmd_error(str);
 	}
 
 	if (flags & DC_EXEC) { // we can safely convert, too
@@ -2502,8 +2498,8 @@ static CommandCost ClearTile_Track(TileIndex tile, DoCommandFlag flags)
 		/* When bankrupting, don't make water dirty, there could be a ship on lower halftile.
 		 * Same holds for non-companies clearing the tile, e.g. disasters. */
 		if (water_ground && !(flags & DC_BANKRUPT) && Company::IsValidID(_current_company)) {
-			CommandCost ret = EnsureNoVehicleOnGround(tile);
-			if (ret.Failed()) return ret;
+			StringID str = CheckVehicleOnGround (tile);
+			if (str != STR_NULL) return_cmd_error(str);
 
 			/* The track was removed, and left a coast tile. Now also clear the water. */
 			if (flags & DC_EXEC) DoClearSquare(tile);

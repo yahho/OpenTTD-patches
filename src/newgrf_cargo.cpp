@@ -34,10 +34,7 @@ struct CargoResolverObject : public ResolverObject {
 {
 	/* Cargo action 2s should always have only 1 "loaded" state, but some
 	 * times things don't follow the spec... */
-	if (group->num_loaded > 0) return group->loaded[0];
-	if (group->num_loading > 0) return group->loading[0];
-
-	return NULL;
+	return group->get_first (false);
 }
 
 static inline const SpriteGroup *CargoResolve (const CargoSpec *cs,

@@ -916,22 +916,18 @@ static uint32 VehicleGetVariable(Vehicle *v, const VehicleScopeResolver *object,
 {
 	const Vehicle *v = this->self_scope.v;
 
-	if (v == NULL) {
-		if (group->num_loading > 0) return group->loading[0];
-		if (group->num_loaded  > 0) return group->loaded[0];
-		return NULL;
-	}
+	if (v == NULL) return group->get_first (true);
 
-	bool in_motion = !v->First()->current_order.IsType(OT_LOADING);
+	bool loading = v->First()->current_order.IsType(OT_LOADING);
 
-	uint totalsets = in_motion ? group->num_loaded : group->num_loading;
+	uint totalsets = group->get_count (loading);
 
 	if (totalsets == 0) return NULL;
 
 	uint set = (v->cargo.StoredCount() * totalsets) / max((uint16)1, v->cargo_cap);
 	set = min(set, totalsets - 1);
 
-	return in_motion ? group->loaded[set] : group->loading[set];
+	return group->get_group (loading, set);
 }
 
 /**

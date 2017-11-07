@@ -99,7 +99,7 @@ static bool IsStationAvailable(const StationSpec *statspec)
 {
 	if (statspec == NULL || !HasBit(statspec->callback_mask, CBM_STATION_AVAIL)) return true;
 
-	uint16 cb_res = GetStationCallback(CBID_STATION_AVAILABILITY, 0, 0, statspec, NULL, INVALID_TILE);
+	uint16 cb_res = GetStationCallback (CBID_STATION_AVAILABILITY, 0, 0, statspec, _cur_railtype);
 	if (cb_res == CALLBACK_FAILED) return true;
 
 	return Convert8bitBooleanCallback(statspec->grf_prop.grffile, CBID_STATION_AVAILABILITY, cb_res);
@@ -193,6 +193,14 @@ void CcStation(const CommandCost &result, TileIndex tile, uint32 p1, uint32 p2)
 	if (_railstation.station_class == STAT_CLASS_DFLT && _railstation.station_type == 0 && !_settings_client.gui.persistent_buildingtools) ResetPointerMode();
 }
 
+/** Get the only allowed bit, or a default if several are available. */
+static inline uint GetSingleAllowedValue (byte disallowed, uint def)
+{
+	/* Sign-extend bit 7. */
+	uint allowed = (int)(int8)(~disallowed);
+	return HasExactlyOneBit (allowed) ? (FindFirstBit (allowed) + 1) : def;
+}
+
 /**
  * Place a rail station.
  * @param tile Position to place or start dragging a station.
@@ -201,19 +209,45 @@ static void PlaceRail_Station(TileIndex tile)
 {
 	if (_remove_button_clicked) {
 		VpStartPlaceSizing (tile, VPM_X_AND_Y, DRAG_STATION);
-	} else if (_settings_client.gui.station_dragdrop) {
-		VpStartPlaceSizing (tile, VPM_X_AND_Y, DRAG_STATION, _settings_game.station.station_spread);
-	} else {
-		uint32 p1 = _cur_railtype | _railstation.orientation << 4 | _settings_client.gui.station_numtracks << 8 | _settings_client.gui.station_platlength << 16 | _ctrl_pressed << 24;
-		uint32 p2 = _railstation.station_class | _railstation.station_type << 8 | INVALID_STATION << 16;
-
-		int w = _settings_client.gui.station_numtracks;
-		int h = _settings_client.gui.station_platlength;
-		if (!_railstation.orientation) Swap(w, h);
-
-		Command cmdcont (tile, p1, p2, CMD_BUILD_RAIL_STATION);
-		ShowSelectStationIfNeeded (&cmdcont, TileArea(tile, w, h));
+		return;
 	}
+
+	uint w, h;
+	if (_settings_client.gui.station_dragdrop) {
+		const StationSpec *statspec = _railstation.newstations ? StationClass::Get(_railstation.station_class)->GetSpec(_railstation.station_type) : NULL;
+		if (statspec == NULL) {
+			w = h = 0;
+		} else {
+			w = GetSingleAllowedValue (statspec->disallowed_platforms, 0);
+			h = GetSingleAllowedValue (statspec->disallowed_lengths, 0);
+		}
+
+		ViewportPlaceMethod method;
+		if (w == 0 || h == 0) {
+			if (w != 0) {
+				/* fixed number of tracks */
+				method = _railstation.orientation ? VPM_Y : VPM_X;
+			} else if (h != 0) {
+				/* fixed platform length */
+				method = _railstation.orientation ? VPM_X : VPM_Y;
+			} else {
+				method = VPM_X_AND_Y;
+			}
+			VpStartPlaceSizing (tile, method, DRAG_STATION, _settings_game.station.station_spread);
+			return;
+		}
+	} else {
+		w = _settings_client.gui.station_numtracks;
+		h = _settings_client.gui.station_platlength;
+	}
+
+	uint32 p1 = _cur_railtype | _railstation.orientation << 4 | w << 8 | h << 16 | _ctrl_pressed << 24;
+	uint32 p2 = _railstation.station_class | _railstation.station_type << 8 | INVALID_STATION << 16;
+
+	if (!_railstation.orientation) Swap (w, h);
+
+	Command cmdcont (tile, p1, p2, CMD_BUILD_RAIL_STATION);
+	ShowSelectStationIfNeeded (&cmdcont, TileArea (tile, w, h));
 }
 
 StringID GetErrBuildSignals (TileIndex tile, uint32 p1, uint32 p2, const char *text)
@@ -328,6 +362,28 @@ static bool RailToolbar_CtrlChanged(Window *w)
 }
 
 
+/** Set the selection size for building a station. */
+static void SetStationTileSelectSize (void)
+{
+	uint x, y;
+	if (_settings_client.gui.station_dragdrop) {
+		const StationSpec *statspec = _railstation.newstations ? StationClass::Get(_railstation.station_class)->GetSpec(_railstation.station_type) : NULL;
+		if (statspec == NULL) {
+			x = y = 1;
+		} else {
+			x = GetSingleAllowedValue (statspec->disallowed_platforms, 1);
+			y = GetSingleAllowedValue (statspec->disallowed_lengths, 1);
+		}
+	} else {
+		x = _settings_client.gui.station_numtracks;
+		y = _settings_client.gui.station_platlength;
+	}
+
+	if (_railstation.orientation == AXIS_X) Swap(x, y);
+	SetTileSelectSize (x, y);
+	VpSetPlaceSizingLimit (_settings_game.station.station_spread);
+}
+
 /**
  * The "remove"-button click proc of the build-rail toolbar.
  * @param w Build-rail toolbar window
@@ -343,21 +399,11 @@ static void BuildRailClick_Remove(Window *w)
 	if (w->IsWidgetLowered(WID_RAT_BUILD_STATION)) {
 		if (_remove_button_clicked) {
 			/* starting drag & drop remove */
-			if (!_settings_client.gui.station_dragdrop) {
-				SetTileSelectSize(1, 1);
-			} else {
-				VpSetPlaceSizingLimit (0);
-			}
+			SetTileSelectSize(1, 1);
+			VpSetPlaceSizingLimit (0);
 		} else {
 			/* starting station build mode */
-			if (!_settings_client.gui.station_dragdrop) {
-				int x = _settings_client.gui.station_numtracks;
-				int y = _settings_client.gui.station_platlength;
-				if (_railstation.orientation == 0) Swap(x, y);
-				SetTileSelectSize(x, y);
-			} else {
-				VpSetPlaceSizingLimit(_settings_game.station.station_spread);
-			}
+			SetStationTileSelectSize();
 		}
 	} else if (w->IsWidgetLowered(WID_RAT_BUILD_WAYPOINT)) {
 		/* Dragging is different for waypoints when removing,
@@ -887,6 +933,36 @@ static void HandleStationPlacement(TileIndex start, TileIndex end)
 	ShowSelectStationIfNeeded (&cmdcont, ta);
 }
 
+/** Check the selected number of tracks when turning drag&drop off. */
+static void CheckPlatformWidth (const StationSpec *statspec)
+{
+	byte disallowed = statspec->disallowed_platforms;
+	if (HasBit(disallowed, _settings_client.gui.station_numtracks - 1)) {
+		/* The previously selected number of tracks is invalid. */
+		for (uint i = 0; i < 7; i++) {
+			if (!HasBit(disallowed, i)) {
+				_settings_client.gui.station_numtracks = i + 1;
+				break;
+			}
+		}
+	}
+}
+
+/** Check the selected platform length when turning drag&drop off. */
+static void CheckPlatformLength (const StationSpec *statspec)
+{
+	byte disallowed = statspec->disallowed_lengths;
+	if (HasBit(disallowed, _settings_client.gui.station_platlength - 1)) {
+		/* The previously selected number of platforms is invalid. */
+		for (uint i = 0; i < 7; i++) {
+			if (!HasBit(disallowed, i)) {
+				_settings_client.gui.station_platlength = i + 1;
+				break;
+			}
+		}
+	}
+}
+
 /** Draw a station preview in a widget. */
 static void DrawStationPreview (BlitArea *dpi, const Rect &r,
 	StationClassID cls, uint type, uint image, bool check_avail)
@@ -1016,17 +1092,6 @@ public:
 	{
 		bool newstations = _railstation.newstations;
 		const StationSpec *statspec = newstations ? StationClass::Get(_railstation.station_class)->GetSpec(_railstation.station_type) : NULL;
-
-		if (_settings_client.gui.station_dragdrop) {
-			SetTileSelectSize(1, 1);
-		} else {
-			int x = _settings_client.gui.station_numtracks;
-			int y = _settings_client.gui.station_platlength;
-			if (_railstation.orientation == AXIS_X) Swap(x, y);
-			if (!_remove_button_clicked) {
-				SetTileSelectSize(x, y);
-			}
-		}
 
 		int rad = (_settings_game.station.modified_catchment) ? CA_TRAIN : CA_UNMODIFIED;
 
@@ -1171,15 +1236,19 @@ public:
 
 	virtual void OnClick(Point pt, int widget, int click_count)
 	{
+		enum {
+			CHANGED_NONE,  ///< Nothing changed.
+			CHANGED_DIRTY, ///< Play a sound and mark window dirty.
+			CHANGED_RESET, ///< The same, plus reset construction.
+		} changed = CHANGED_NONE;
+
 		switch (GB(widget, 0, 16)) {
 			case WID_BRAS_PLATFORM_DIR_X:
 			case WID_BRAS_PLATFORM_DIR_Y:
 				this->RaiseWidget(_railstation.orientation + WID_BRAS_PLATFORM_DIR_X);
 				_railstation.orientation = (Axis)(widget - WID_BRAS_PLATFORM_DIR_X);
 				this->LowerWidget(_railstation.orientation + WID_BRAS_PLATFORM_DIR_X);
-				if (_settings_client.sound.click_beep) SndPlayFx(SND_15_BEEP);
-				this->SetDirty();
-				DeleteWindowById(WC_SELECT_STATION, 0);
+				changed = CHANGED_RESET;
 				break;
 
 			case WID_BRAS_PLATFORM_NUM_1:
@@ -1198,22 +1267,11 @@ public:
 				_settings_client.gui.station_dragdrop = false;
 
 				const StationSpec *statspec = _railstation.newstations ? StationClass::Get(_railstation.station_class)->GetSpec(_railstation.station_type) : NULL;
-				if (statspec != NULL && HasBit(statspec->disallowed_lengths, _settings_client.gui.station_platlength - 1)) {
-					/* The previously selected number of platforms in invalid */
-					for (uint i = 0; i < 7; i++) {
-						if (!HasBit(statspec->disallowed_lengths, i)) {
-							this->RaiseWidget(_settings_client.gui.station_platlength + WID_BRAS_PLATFORM_LEN_BEGIN);
-							_settings_client.gui.station_platlength = i + 1;
-							break;
-						}
-					}
-				}
+				if (statspec != NULL) CheckPlatformLength (statspec);
 
 				this->LowerWidget(_settings_client.gui.station_numtracks + WID_BRAS_PLATFORM_NUM_BEGIN);
 				this->LowerWidget(_settings_client.gui.station_platlength + WID_BRAS_PLATFORM_LEN_BEGIN);
-				if (_settings_client.sound.click_beep) SndPlayFx(SND_15_BEEP);
-				this->SetDirty();
-				DeleteWindowById(WC_SELECT_STATION, 0);
+				changed = CHANGED_RESET;
 				break;
 			}
 
@@ -1233,22 +1291,11 @@ public:
 				_settings_client.gui.station_dragdrop = false;
 
 				const StationSpec *statspec = _railstation.newstations ? StationClass::Get(_railstation.station_class)->GetSpec(_railstation.station_type) : NULL;
-				if (statspec != NULL && HasBit(statspec->disallowed_platforms, _settings_client.gui.station_numtracks - 1)) {
-					/* The previously selected number of tracks in invalid */
-					for (uint i = 0; i < 7; i++) {
-						if (!HasBit(statspec->disallowed_platforms, i)) {
-							this->RaiseWidget(_settings_client.gui.station_numtracks + WID_BRAS_PLATFORM_NUM_BEGIN);
-							_settings_client.gui.station_numtracks = i + 1;
-							break;
-						}
-					}
-				}
+				if (statspec != NULL) CheckPlatformWidth (statspec);
 
 				this->LowerWidget(_settings_client.gui.station_numtracks + WID_BRAS_PLATFORM_NUM_BEGIN);
 				this->LowerWidget(_settings_client.gui.station_platlength + WID_BRAS_PLATFORM_LEN_BEGIN);
-				if (_settings_client.sound.click_beep) SndPlayFx(SND_15_BEEP);
-				this->SetDirty();
-				DeleteWindowById(WC_SELECT_STATION, 0);
+				changed = CHANGED_RESET;
 				break;
 			}
 
@@ -1259,30 +1306,14 @@ public:
 
 				/* get the first allowed length/number of platforms */
 				const StationSpec *statspec = _railstation.newstations ? StationClass::Get(_railstation.station_class)->GetSpec(_railstation.station_type) : NULL;
-				if (statspec != NULL && HasBit(statspec->disallowed_lengths, _settings_client.gui.station_platlength - 1)) {
-					for (uint i = 0; i < 7; i++) {
-						if (!HasBit(statspec->disallowed_lengths, i)) {
-							this->RaiseWidget(_settings_client.gui.station_platlength + WID_BRAS_PLATFORM_LEN_BEGIN);
-							_settings_client.gui.station_platlength = i + 1;
-							break;
-						}
-					}
-				}
-				if (statspec != NULL && HasBit(statspec->disallowed_platforms, _settings_client.gui.station_numtracks - 1)) {
-					for (uint i = 0; i < 7; i++) {
-						if (!HasBit(statspec->disallowed_platforms, i)) {
-							this->RaiseWidget(_settings_client.gui.station_numtracks + WID_BRAS_PLATFORM_NUM_BEGIN);
-							_settings_client.gui.station_numtracks = i + 1;
-							break;
-						}
-					}
+				if (statspec != NULL) {
+					CheckPlatformLength (statspec);
+					CheckPlatformWidth (statspec);
 				}
 
 				this->SetWidgetLoweredState(_settings_client.gui.station_numtracks + WID_BRAS_PLATFORM_NUM_BEGIN, !_settings_client.gui.station_dragdrop);
 				this->SetWidgetLoweredState(_settings_client.gui.station_platlength + WID_BRAS_PLATFORM_LEN_BEGIN, !_settings_client.gui.station_dragdrop);
-				if (_settings_client.sound.click_beep) SndPlayFx(SND_15_BEEP);
-				this->SetDirty();
-				DeleteWindowById(WC_SELECT_STATION, 0);
+				changed = CHANGED_RESET;
 				break;
 			}
 
@@ -1292,8 +1323,7 @@ public:
 
 				this->SetWidgetLoweredState(WID_BRAS_HIGHLIGHT_OFF, !_settings_client.gui.station_show_coverage);
 				this->SetWidgetLoweredState(WID_BRAS_HIGHLIGHT_ON, _settings_client.gui.station_show_coverage);
-				if (_settings_client.sound.click_beep) SndPlayFx(SND_15_BEEP);
-				this->SetDirty();
+				changed = CHANGED_DIRTY;
 				break;
 
 			case WID_BRAS_NEWST_LIST: {
@@ -1314,9 +1344,7 @@ public:
 							matrix->SetCount(_railstation.station_count);
 							matrix->SetClicked(_railstation.station_type);
 						}
-						if (_settings_client.sound.click_beep) SndPlayFx(SND_15_BEEP);
-						this->SetDirty();
-						DeleteWindowById(WC_SELECT_STATION, 0);
+						changed = CHANGED_RESET;
 						break;
 					}
 					y--;
@@ -1337,11 +1365,21 @@ public:
 				this->CheckSelectedSize(statspec);
 				this->GetWidget<NWidgetMatrix>(WID_BRAS_MATRIX)->SetClicked(_railstation.station_type);
 
-				if (_settings_client.sound.click_beep) SndPlayFx(SND_15_BEEP);
-				this->SetDirty();
-				DeleteWindowById(WC_SELECT_STATION, 0);
+				changed = CHANGED_RESET;
 				break;
 			}
+		}
+
+		switch (changed) {
+			case CHANGED_RESET:
+				DeleteWindowById (WC_SELECT_STATION, 0);
+				SetStationTileSelectSize();
+				/* fall through */
+			case CHANGED_DIRTY:
+				if (_settings_client.sound.click_beep) SndPlayFx(SND_15_BEEP);
+				this->SetDirty();
+				/* fall through */
+			default: ;
 		}
 	}
 

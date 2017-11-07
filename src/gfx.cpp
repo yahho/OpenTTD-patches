@@ -57,8 +57,8 @@ int _cur_palette_count_dirty;
 
 byte _colour_gradient[COLOUR_END][8];
 
-static void GfxMainBlitterViewport (DrawPixelInfo *dpi, const Sprite *sprite, int x, int y, BlitterMode mode, const SubSprite *sub = NULL, SpriteID sprite_id = SPR_CURSOR_MOUSE);
-static void GfxMainBlitter (BlitArea *dpi, const Sprite *sprite, int x, int y, BlitterMode mode, SpriteID sprite_id = SPR_CURSOR_MOUSE, ZoomLevel zoom = ZOOM_LVL_NORMAL);
+static void GfxCharBlitter (BlitArea *dpi, const Sprite *sprite, int x, int y,
+	const byte *remap);
 
 static Blitter::Buffer _cursor_backup;
 
@@ -72,8 +72,6 @@ ZoomLevelByte _gui_zoom; ///< GUI Zoom level
  * @ingroup dirty
  */
 static Rect _invalid_rect;
-static const byte *_colour_remap_ptr;
-static byte _string_colourremap[3]; ///< Recoloursprite for stringdrawing. The grf loader ensures that #ST_FONT sprites only use colours 0 to 2.
 
 static const uint DIRTY_BLOCK_HEIGHT   = 8;
 static const uint DIRTY_BLOCK_WIDTH    = 64;
@@ -290,9 +288,10 @@ void DrawBox (DrawPixelInfo *dpi, int x, int y, int dx1, int dy1, int dx2, int d
 
 /**
  * Set the colour remap to be for the given colour.
+ * @param remap the remap array.
  * @param colour the new colour of the remap.
  */
-static void SetColourRemap(TextColour colour)
+static void SetColourRemap (byte (&remap) [3], TextColour colour)
 {
 	if (colour == TC_INVALID) return;
 
@@ -302,9 +301,10 @@ static void SetColourRemap(TextColour colour)
 	bool raw_colour = (colour & TC_IS_PALETTE_COLOUR) != 0;
 	colour &= ~(TC_NO_SHADE | TC_IS_PALETTE_COLOUR);
 
-	_string_colourremap[1] = raw_colour ? (byte)colour : _string_colourmap[colour];
-	_string_colourremap[2] = no_shade ? 0 : 1;
-	_colour_remap_ptr = _string_colourremap;
+	/* The grf loader ensures that #ST_FONT sprites only use colours 0 to 2. */
+	remap[0] = 0;
+	remap[1] = raw_colour ? (byte)colour : _string_colourmap[colour];
+	remap[2] = no_shade ? 0 : 1;
 }
 
 /**
@@ -404,6 +404,9 @@ static int DrawLayoutLine (const ParagraphLayouter::Line *line,
 			NOT_REACHED();
 	}
 
+	static const byte remap_black[3] = { 0, _string_colourmap[TC_BLACK], 0 };
+	byte remap[3];
+	memcpy (remap, remap_black, sizeof(remap));
 	TextColour colour = TC_BLACK;
 	bool draw_shadow = false;
 	for (int run_index = 0; run_index < line->CountRuns(); run_index++) {
@@ -412,7 +415,7 @@ static int DrawLayoutLine (const ParagraphLayouter::Line *line,
 
 		FontCache *fc = f->fc;
 		colour = f->colour;
-		SetColourRemap(colour);
+		SetColourRemap (remap, colour);
 
 		int dpi_left  = dpi->left;
 		int dpi_right = dpi->left + dpi->width - 1;
@@ -436,11 +439,9 @@ static int DrawLayoutLine (const ParagraphLayouter::Line *line,
 			if (begin_x + sprite->x_offs > dpi_right || begin_x + sprite->x_offs + sprite->width /* - 1 + 1 */ < dpi_left) continue;
 
 			if (draw_shadow && (gp.glyph & SPRITE_GLYPH) == 0) {
-				SetColourRemap(TC_BLACK);
-				GfxMainBlitter (dpi, sprite, begin_x + 1, top + 1, BM_COLOUR_REMAP);
-				SetColourRemap(colour);
+				GfxCharBlitter (dpi, sprite, begin_x + 1, top + 1, remap_black);
 			}
-			GfxMainBlitter (dpi, sprite, begin_x, top, BM_COLOUR_REMAP);
+			GfxCharBlitter (dpi, sprite, begin_x, top, remap);
 		}
 	}
 
@@ -448,16 +449,14 @@ static int DrawLayoutLine (const ParagraphLayouter::Line *line,
 		int x = (_current_text_dir == TD_RTL) ? left : (right - 3 * dot_width);
 		for (int i = 0; i < 3; i++, x += dot_width) {
 			if (draw_shadow) {
-				SetColourRemap(TC_BLACK);
-				GfxMainBlitter (dpi, dot_sprite, x + 1, y + 1, BM_COLOUR_REMAP);
-				SetColourRemap(colour);
+				GfxCharBlitter (dpi, dot_sprite, x + 1, y + 1, remap_black);
 			}
-			GfxMainBlitter (dpi, dot_sprite, x, y, BM_COLOUR_REMAP);
+			GfxCharBlitter (dpi, dot_sprite, x, y, remap);
 		}
 	}
 
 	if (underline) {
-		GfxFillRect (dpi, left, y + h, right, y + h, _string_colourremap[1]);
+		GfxFillRect (dpi, left, y + h, right, y + h, remap[1]);
 	}
 
 	return (align & SA_HOR_MASK) == SA_RIGHT ? left : right;
@@ -697,10 +696,11 @@ Dimension GetStringBoundingBox(StringID strid)
  */
 void DrawCharCentered (BlitArea *dpi, WChar c, int x, int y, TextColour colour)
 {
-	SetColourRemap(colour);
+	byte remap[3];
+	SetColourRemap (remap, colour);
 	FontCache *fc = FontCache::Get (FS_NORMAL);
-	GfxMainBlitter (dpi, fc->GetCharGlyph (c),
-			x - fc->GetCharacterWidth(c) / 2, y, BM_COLOUR_REMAP);
+	GfxCharBlitter (dpi, fc->GetCharGlyph (c),
+			x - fc->GetCharacterWidth(c) / 2, y, remap);
 }
 
 /**
@@ -726,99 +726,33 @@ Dimension GetSpriteSize(SpriteID sprid, Point *offset, ZoomLevel zoom)
 }
 
 /**
- * Set up the colour remap for a sprite.
- * @param img  The sprite to draw.
- * @param pal  The palette to use.
- * @return The BlitterMode to use for drawing.
- */
-static BlitterMode GetBlitterMode (SpriteID img, PaletteID pal)
-{
-	if (HasBit(img, PALETTE_MODIFIER_TRANSPARENT)) {
-		_colour_remap_ptr = GetNonSprite(GB(pal, 0, PALETTE_WIDTH), ST_RECOLOUR) + 1;
-		return BM_TRANSPARENT;
-	} else if (pal == PAL_NONE) {
-		return BM_NORMAL;
-	} else if (HasBit(pal, PALETTE_TEXT_RECOLOUR)) {
-		SetColourRemap ((TextColour)GB(pal, 0, PALETTE_WIDTH));
-		return BM_COLOUR_REMAP;
-	} else {
-		_colour_remap_ptr = GetNonSprite (GB(pal, 0, PALETTE_WIDTH), ST_RECOLOUR) + 1;
-		switch (pal) {
-			case PALETTE_CRASH:     return BM_CRASH_REMAP;
-			case PALETTE_ALL_BLACK: return BM_BLACK_REMAP;
-			default:                return BM_COLOUR_REMAP;
-		}
-	}
-}
-
-/**
- * Draw a sprite in a viewport.
- * @param dpi  The area to draw on.
- * @param img  Image number to draw
- * @param pal  Palette to use.
- * @param x    Left coordinate of image in viewport, scaled by zoom
- * @param y    Top coordinate of image in viewport, scaled by zoom
- * @param sub  If available, draw only specified part of the sprite
- */
-void DrawSpriteViewport (DrawPixelInfo *dpi, SpriteID img, PaletteID pal,
-	int x, int y, const SubSprite *sub)
-{
-	BlitterMode bm = GetBlitterMode (img, pal);
-	SpriteID real_sprite = GB(img, 0, SPRITE_WIDTH);
-	GfxMainBlitterViewport (dpi, GetSprite (real_sprite, ST_NORMAL), x, y, bm, sub, real_sprite);
-}
-
-/**
- * Draw a sprite, not in a viewport
- * @param dpi  The area to draw on.
- * @param img  Image number to draw
- * @param pal  Palette to use.
- * @param x    Left coordinate of image in pixels
- * @param y    Top coordinate of image in pixels
- */
-void DrawSprite (BlitArea *dpi, SpriteID img, PaletteID pal, int x, int y)
-{
-	BlitterMode bm = GetBlitterMode (img, pal);
-	SpriteID real_sprite = GB(img, 0, SPRITE_WIDTH);
-	GfxMainBlitter (dpi, GetSprite (real_sprite, ST_NORMAL), x, y, bm, real_sprite, ZOOM_LVL_GUI);
-}
-
-/**
- * The code for setting up the blitter mode and sprite information before finally drawing the sprite.
+ * Set up blitter params to draw a sprite.
+ * @param bp     The BlitterParams to set up.
  * @param dpi    The area to draw on.
  * @param sprite The sprite to draw.
  * @param x      The X location to draw.
  * @param y      The Y location to draw.
- * @param mode   The settings for the blitter to pass.
+ * @param scaled Whether the X and Y are scaled or unscaled.
  * @param sub    Whether to only draw a sub set of the sprite.
  * @param zoom   The zoom level at which to draw the sprites.
- * @tparam SCALED_XY Whether the X and Y are scaled or unscaled.
+ * @return Whether there is anything to draw (false if sprite is off bounds).
  */
-template <bool SCALED_XY>
-static void GfxBlitter (BlitArea *dpi, const Sprite * const sprite,
-	int x, int y, BlitterMode mode, const SubSprite * const sub,
-	SpriteID sprite_id, ZoomLevel zoom)
+static bool SetupBlitterParams (Blitter::BlitterParams *bp, BlitArea *dpi,
+	const Sprite * const sprite, int x, int y, bool scaled,
+	const SubSprite * const sub, ZoomLevel zoom)
 {
-	Blitter::BlitterParams bp;
-
-	if (SCALED_XY) {
-		/* Scale it */
-		x = ScaleByZoom(x, zoom);
-		y = ScaleByZoom(y, zoom);
-	}
-
 	/* Move to the correct offset */
 	x += sprite->x_offs;
 	y += sprite->y_offs;
 
 	if (sub == NULL) {
 		/* No clipping. */
-		bp.skip_left = 0;
-		bp.skip_top = 0;
-		bp.width = UnScaleByZoom(sprite->width, zoom);
-		bp.height = UnScaleByZoom(sprite->height, zoom);
+		bp->skip_left = 0;
+		bp->skip_top  = 0;
+		bp->width  = UnScaleByZoom (sprite->width,  zoom);
+		bp->height = UnScaleByZoom (sprite->height, zoom);
 	} else {
-		assert (!SCALED_XY);
+		assert (!scaled);
 
 		/* Amount of pixels to clip from the source sprite */
 		int clip_left   = max (0,                   -sprite->x_offs +  sub->left        * ZOOM_LVL_BASE );
@@ -826,75 +760,99 @@ static void GfxBlitter (BlitArea *dpi, const Sprite * const sprite,
 		int clip_right  = max (0, sprite->width  - (-sprite->x_offs + (sub->right + 1)  * ZOOM_LVL_BASE));
 		int clip_bottom = max (0, sprite->height - (-sprite->y_offs + (sub->bottom + 1) * ZOOM_LVL_BASE));
 
-		if (clip_left + clip_right >= sprite->width) return;
-		if (clip_top + clip_bottom >= sprite->height) return;
+		if (clip_left + clip_right >= sprite->width)  return false;
+		if (clip_top + clip_bottom >= sprite->height) return false;
 
-		bp.skip_left = UnScaleByZoomLower(clip_left, zoom);
-		bp.skip_top = UnScaleByZoomLower(clip_top, zoom);
-		bp.width = UnScaleByZoom(sprite->width - clip_left - clip_right, zoom);
-		bp.height = UnScaleByZoom(sprite->height - clip_top - clip_bottom, zoom);
+		bp->skip_left = UnScaleByZoomLower (clip_left, zoom);
+		bp->skip_top  = UnScaleByZoomLower (clip_top,  zoom);
+		bp->width  = UnScaleByZoom (sprite->width  - clip_left - clip_right,  zoom);
+		bp->height = UnScaleByZoom (sprite->height - clip_top  - clip_bottom, zoom);
 
-		x += ScaleByZoom(bp.skip_left, zoom);
-		y += ScaleByZoom(bp.skip_top, zoom);
+		x += ScaleByZoom (bp->skip_left, zoom);
+		y += ScaleByZoom (bp->skip_top,  zoom);
 	}
 
 	/* Copy the main data directly from the sprite */
-	bp.sprite = sprite;
-	bp.top = 0;
-	bp.left = 0;
+	bp->sprite = sprite;
+	bp->top  = 0;
+	bp->left = 0;
 
-	bp.dst = dpi->dst_ptr;
-	bp.pitch = dpi->surface->pitch;
-	bp.remap = _colour_remap_ptr;
+	bp->dst = dpi->dst_ptr;
+	bp->pitch = dpi->surface->pitch;
 
 	assert(sprite->width > 0);
 	assert(sprite->height > 0);
 
-	if (bp.width <= 0) return;
-	if (bp.height <= 0) return;
+	if (bp->width  <= 0) return false;
+	if (bp->height <= 0) return false;
 
-	y -= SCALED_XY ? ScaleByZoom(dpi->top, zoom) : dpi->top;
+	y -= scaled ? ScaleByZoom (dpi->top, zoom) : dpi->top;
 	int y_unscaled = UnScaleByZoom(y, zoom);
 	/* Check for top overflow */
 	if (y < 0) {
-		bp.height -= -y_unscaled;
-		if (bp.height <= 0) return;
-		bp.skip_top += -y_unscaled;
+		bp->height -= -y_unscaled;
+		if (bp->height <= 0) return false;
+		bp->skip_top += -y_unscaled;
 		y = 0;
 	} else {
-		bp.top = y_unscaled;
+		bp->top = y_unscaled;
 	}
 
 	/* Check for bottom overflow */
-	y += SCALED_XY ? ScaleByZoom(bp.height - dpi->height, zoom) : ScaleByZoom(bp.height, zoom) - dpi->height;
+	y += scaled ? ScaleByZoom (bp->height - dpi->height, zoom) : ScaleByZoom (bp->height, zoom) - dpi->height;
 	if (y > 0) {
-		bp.height -= UnScaleByZoom(y, zoom);
-		if (bp.height <= 0) return;
+		bp->height -= UnScaleByZoom (y, zoom);
+		if (bp->height <= 0) return false;
 	}
 
-	x -= SCALED_XY ? ScaleByZoom(dpi->left, zoom) : dpi->left;
+	x -= scaled ? ScaleByZoom (dpi->left, zoom) : dpi->left;
 	int x_unscaled = UnScaleByZoom(x, zoom);
 	/* Check for left overflow */
 	if (x < 0) {
-		bp.width -= -x_unscaled;
-		if (bp.width <= 0) return;
-		bp.skip_left += -x_unscaled;
+		bp->width -= -x_unscaled;
+		if (bp->width <= 0) return false;
+		bp->skip_left += -x_unscaled;
 		x = 0;
 	} else {
-		bp.left = x_unscaled;
+		bp->left = x_unscaled;
 	}
 
 	/* Check for right overflow */
-	x += SCALED_XY ? ScaleByZoom(bp.width - dpi->width, zoom) : ScaleByZoom(bp.width, zoom) - dpi->width;
+	x += scaled ? ScaleByZoom (bp->width - dpi->width, zoom) : ScaleByZoom (bp->width, zoom) - dpi->width;
 	if (x > 0) {
-		bp.width -= UnScaleByZoom(x, zoom);
-		if (bp.width <= 0) return;
+		bp->width -= UnScaleByZoom (x, zoom);
+		if (bp->width <= 0) return false;
 	}
 
-	assert(bp.skip_left + bp.width <= UnScaleByZoom(sprite->width, zoom));
-	assert(bp.skip_top + bp.height <= UnScaleByZoom(sprite->height, zoom));
+	assert (bp->skip_left + bp->width  <= UnScaleByZoom (sprite->width,  zoom));
+	assert (bp->skip_top  + bp->height <= UnScaleByZoom (sprite->height, zoom));
 
-	/* We do not want to catch the mouse. However we also use that spritenumber for unknown (text) sprites. */
+	return true;
+}
+
+/**
+ * The code for setting up the blitter mode and sprite information before finally drawing the sprite.
+ * @param dpi    The area to draw on.
+ * @param img    The sprite to draw.
+ * @param pal    The palette to use.
+ * @param x      The X location to draw.
+ * @param y      The Y location to draw.
+ * @param scaled Whether the X and Y are scaled or unscaled.
+ * @param sub    Whether to only draw a sub set of the sprite.
+ * @param zoom   The zoom level at which to draw the sprites.
+ */
+static void GfxBlitter (BlitArea *dpi, SpriteID img, PaletteID pal,
+	int x, int y, bool scaled, const SubSprite * const sub, ZoomLevel zoom)
+{
+	SpriteID sprite_id = GB(img, 0, SPRITE_WIDTH);
+	const Sprite *sprite = GetSprite (sprite_id, ST_NORMAL);
+
+	Blitter::BlitterParams bp;
+	if (!SetupBlitterParams (&bp, dpi, sprite, x, y, scaled, sub, zoom)) {
+		return;
+	}
+
+	/* We do not want to catch the mouse. */
 	if (_newgrf_debug_sprite_picker.mode == SPM_REDRAW && sprite_id != SPR_CURSOR_MOUSE) {
 		void *topleft = dpi->surface->move (bp.dst, bp.left, bp.top);
 		void *bottomright = dpi->surface->move (topleft, bp.width - 1, bp.height - 1);
@@ -909,17 +867,71 @@ static void GfxBlitter (BlitArea *dpi, const Sprite * const sprite,
 		}
 	}
 
+	byte string_remap[3];
+	BlitterMode mode;
+	if (HasBit(img, PALETTE_MODIFIER_TRANSPARENT)) {
+		bp.remap = GetNonSprite (GB(pal, 0, PALETTE_WIDTH), ST_RECOLOUR) + 1;
+		mode = BM_TRANSPARENT;
+
+	} else if (pal == PAL_NONE) {
+		mode = BM_NORMAL;
+
+	} else if (HasBit(pal, PALETTE_TEXT_RECOLOUR)) {
+		SetColourRemap (string_remap, (TextColour)GB(pal, 0, PALETTE_WIDTH));
+		bp.remap = string_remap;
+		mode = BM_COLOUR_REMAP;
+
+	} else {
+		bp.remap = GetNonSprite (GB(pal, 0, PALETTE_WIDTH), ST_RECOLOUR) + 1;
+		switch (pal) {
+			case PALETTE_CRASH:     mode = BM_CRASH_REMAP;  break;
+			case PALETTE_ALL_BLACK: mode = BM_BLACK_REMAP;  break;
+			default:                mode = BM_COLOUR_REMAP; break;
+		}
+	}
+
 	dpi->surface->draw (&bp, mode, zoom);
 }
 
-static void GfxMainBlitterViewport (DrawPixelInfo *dpi, const Sprite *sprite, int x, int y, BlitterMode mode, const SubSprite *sub, SpriteID sprite_id)
+/**
+ * Draw a sprite in a viewport.
+ * @param dpi  The area to draw on.
+ * @param img  Image number to draw
+ * @param pal  Palette to use.
+ * @param x    Left coordinate of image in viewport, scaled by zoom
+ * @param y    Top coordinate of image in viewport, scaled by zoom
+ * @param sub  If available, draw only specified part of the sprite
+ */
+void DrawSpriteViewport (DrawPixelInfo *dpi, SpriteID img, PaletteID pal,
+	int x, int y, const SubSprite *sub)
 {
-	GfxBlitter <false> (dpi, sprite, x, y, mode, sub, sprite_id, dpi->zoom);
+	GfxBlitter (dpi, img, pal, x, y, false, sub, dpi->zoom);
 }
 
-static void GfxMainBlitter (BlitArea *dpi, const Sprite *sprite, int x, int y, BlitterMode mode, SpriteID sprite_id, ZoomLevel zoom)
+/**
+ * Draw a sprite, not in a viewport
+ * @param dpi  The area to draw on.
+ * @param img  Image number to draw
+ * @param pal  Palette to use.
+ * @param x    Left coordinate of image in pixels
+ * @param y    Top coordinate of image in pixels
+ */
+void DrawSprite (BlitArea *dpi, SpriteID img, PaletteID pal, int x, int y)
 {
-	GfxBlitter <true> (dpi, sprite, x, y, mode, NULL, sprite_id, zoom);
+	x = ScaleByZoom (x, ZOOM_LVL_GUI);
+	y = ScaleByZoom (y, ZOOM_LVL_GUI);
+
+	GfxBlitter (dpi, img, pal, x, y, true, NULL, ZOOM_LVL_GUI);
+}
+
+static void GfxCharBlitter (BlitArea *dpi, const Sprite *sprite, int x, int y,
+	const byte *remap)
+{
+	Blitter::BlitterParams bp;
+	if (SetupBlitterParams (&bp, dpi, sprite, x, y, false, NULL, ZOOM_LVL_NORMAL)) {
+		bp.remap = remap;
+		dpi->surface->draw (&bp, BM_COLOUR_REMAP, ZOOM_LVL_NORMAL);
+	}
 }
 
 /**

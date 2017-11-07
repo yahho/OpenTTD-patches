@@ -173,20 +173,6 @@ struct SettingsIniFile : IniLoadFile {
 	{
 	}
 
-	virtual FILE *OpenFile(const char *filename, Subdirectory subdir, size_t *size)
-	{
-		/* Open the text file in binary mode to prevent end-of-line translations
-		 * done by ftell() and friends, as defined by K&R. */
-		FILE *in = fopen(filename, "rb");
-		if (in == NULL) return NULL;
-
-		fseek(in, 0L, SEEK_END);
-		*size = ftell(in);
-
-		fseek(in, 0L, SEEK_SET); // Seek back to the start of the file.
-		return in;
-	}
-
 	virtual void ReportFileError(const char * const pre, const char * const buffer, const char * const post)
 	{
 		error("%s%s%s", pre, buffer, post);
@@ -410,7 +396,18 @@ static void ProcessIniFile(const char *fname)
 	static const char * const seq_groups[] = {PREAMBLE_GROUP_NAME, POSTAMBLE_GROUP_NAME, NULL};
 
 	SettingsIniFile ini_data (NULL, seq_groups);
-	ini_data.LoadFromDisk (fname, NO_DIRECTORY);
+
+	/* Open the text file in binary mode to prevent end-of-line
+	 * translations done by ftell() and friends, as defined by K&R. */
+	FILE *in = fopen (fname, "rb");
+	if (in != NULL) {
+		fseek (in, 0L, SEEK_END);
+		size_t end = ftell (in);
+
+		fseek (in, 0L, SEEK_SET); // Seek back to the start of the file.
+		ini_data.load (in, end);
+	}
+
 	DumpGroup (&ini_data, PREAMBLE_GROUP_NAME);
 	DumpSections (&ini_data);
 	DumpGroup (&ini_data, POSTAMBLE_GROUP_NAME);

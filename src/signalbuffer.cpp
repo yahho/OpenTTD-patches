@@ -668,7 +668,7 @@ SigSegState UpdateSignalsInBuffer()
 					_tbdset.Add(SignalSideFrom(ss.tile + TileOffsByDiagDir((DiagDirection)ss.side), (SignalSideEnum)ReverseDiagDir((DiagDirection)ss.side)));
 					break;
 				}
-				/* FALL THROUGH */
+				FALLTHROUGH;
 			default:
 				/* jump to next tile */
 			next_tile:

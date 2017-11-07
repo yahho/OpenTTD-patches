@@ -199,6 +199,29 @@ static inline bool IsValidNewGRFImageIndex(uint8 image_index)
 	return image_index == 0xFD || IsValidImageIndex<T>(image_index);
 }
 
+
+static inline uint16 ReadWord (const byte *p)
+{
+	return p[0] | (p[1] << 8);
+}
+
+static inline uint32 ReadDWord (const byte *p)
+{
+	return p[0] | (p[1] << 8) | (p[2] << 16) | (p[3] << 24);
+}
+
+static uint32 ReadVarSize (const byte *p, byte size)
+{
+	switch (size) {
+		case 1: return *p;
+		case 2: return ReadWord (p);
+		case 4: return ReadDWord (p);
+		default:
+			NOT_REACHED();
+			return 0;
+	}
+}
+
 /** Class to read from a NewGRF file */
 class ByteReader {
 protected:
@@ -234,16 +257,9 @@ public:
 		return val | (ReadWord() << 16);
 	}
 
-	uint32 ReadVarSize(byte size)
+	uint32 ReadLabel (void)
 	{
-		switch (size) {
-			case 1: return ReadByte();
-			case 2: return ReadWord();
-			case 4: return ReadDWord();
-			default:
-				NOT_REACHED();
-				return 0;
-		}
+		return BSWAP32(this->ReadDWord());
 	}
 
 	const char *ReadString (void);
@@ -258,10 +274,17 @@ public:
 		return Remaining() >= count;
 	}
 
-	uint32 PeekDWord() const
+	const byte *GetData (size_t n)
 	{
-		if (!HasData (4)) throw out_of_data();
-		return data[0] | (data[1] << 8) | (data[2] << 16) | (data[3] << 24);
+		if (!HasData (n)) throw out_of_data();
+		const byte *p = data;
+		data += n;
+		return p;
+	}
+
+	const byte *GetData (void)
+	{
+		return data;
 	}
 
 	inline void Skip(size_t len)
@@ -732,10 +755,10 @@ EngineID GetNewEngineID(const GRFFile *file, VehicleType type, uint16 internal_i
  * @param buf Input stream.
  * @param grf_sprite Pointer to the structure to read.
  */
-static void ReadPalSprite (ByteReader *buf, PalSpriteID *grf_sprite)
+static void ReadPalSprite (const byte *buf, PalSpriteID *grf_sprite)
 {
-	SpriteID  sprite = buf->ReadWord();
-	PaletteID pal    = buf->ReadWord();
+	SpriteID  sprite = ReadWord (buf);
+	PaletteID pal    = ReadWord (buf + 2);
 
 	if (HasBit(pal, 14)) {
 		ClrBit(pal, 14);
@@ -757,46 +780,47 @@ static void ReadPalSprite (ByteReader *buf, PalSpriteID *grf_sprite)
 }
 
 /**
- * Read a sprite and a palette from the GRF and convert them into a format
- * suitable to OpenTTD.
- * @param buf                 Input stream.
- * @param read_flags          Whether to read TileLayoutFlags.
+ * Read a sprite and paletteD from the GRF and map the colour modifiers
+ * of TTDPatch to those that Open is using.
+ * @param buf Input stream.
+ * @param grf_sprite Pointer to the structure to read.
+ */
+static void ReadPalSprite (ByteReader *buf, PalSpriteID *grf_sprite)
+{
+	ReadPalSprite (buf->GetData(4), grf_sprite);
+}
+
+/**
+ * Adjust a sprite and a palette read from the GRF.
+ * @param grf_sprite          Sprite and palette to adjust.
+ * @param feature             GrfSpecFeature to use spritesets from.
  * @param invert_action1_flag Set to true, if palette bit 15 means 'not from action 1'.
  * @param use_cur_spritesets  Whether to use currently referenceable action 1 sets.
- * @param feature             GrfSpecFeature to use spritesets from.
- * @param [out] grf_sprite    Read sprite and palette.
- * @param [out] pflags        Read TileLayoutFlags.
- * @param [out] max_sprite_offset  Optionally returns the number of sprites in the spriteset of the sprite. (0 if no spritset)
- * @param [out] max_palette_offset Optionally returns the number of sprites in the spriteset of the palette. (0 if no spritset)
+ * @param flags               Tile layout flags.
+ * @param [out] max_offset    Optionally returns the number of sprites in the spriteset of the sprite and palette (0 if no spritset).
  * @return Whether reading succeeded.
  */
-static bool ReadSpriteLayoutSprite (ByteReader *buf, bool read_flags,
-	bool invert_action1_flag, bool use_cur_spritesets, int feature,
-	PalSpriteID *grf_sprite, TileLayoutFlags *pflags = NULL,
-	uint16 *max_sprite_offset = NULL, uint16 *max_palette_offset = NULL)
+static bool AdjustSpriteLayoutSprite (PalSpriteID *grf_sprite, int feature,
+	bool invert_action1_flag, bool use_cur_spritesets = false,
+	TileLayoutFlags flags = TLF_NOTHING, uint16 *max_offset = NULL)
 {
-	ReadPalSprite (buf, grf_sprite);
-
-	TileLayoutFlags flags = read_flags ? (TileLayoutFlags)buf->ReadWord() : TLF_NOTHING;
-	if (pflags != NULL) *pflags = flags;
-
 	bool custom_sprite = HasBit(grf_sprite->pal, 15) != invert_action1_flag;
 	ClrBit(grf_sprite->pal, 15);
 	if (custom_sprite) {
 		/* Use sprite from Action 1 */
 		uint index = GB(grf_sprite->sprite, 0, 14);
 		if (use_cur_spritesets && (!_cur.IsValidSpriteSet(feature, index) || _cur.GetNumEnts(feature, index) == 0)) {
-			grfmsg(1, "ReadSpriteLayoutSprite: Spritelayout uses undefined custom spriteset %d", index);
+			grfmsg(1, "sprite layout uses undefined custom spriteset %d", index);
 			grf_sprite->sprite = SPR_IMG_QUERY;
 			grf_sprite->pal = PAL_NONE;
 		} else {
 			SpriteID sprite = use_cur_spritesets ? _cur.GetSprite(feature, index) : index;
-			if (max_sprite_offset != NULL) *max_sprite_offset = use_cur_spritesets ? _cur.GetNumEnts(feature, index) : UINT16_MAX;
+			if (max_offset != NULL) max_offset[0] = use_cur_spritesets ? _cur.GetNumEnts (feature, index) : UINT16_MAX;
 			SB(grf_sprite->sprite, 0, SPRITE_WIDTH, sprite);
 			SetBit(grf_sprite->sprite, SPRITE_MODIFIER_CUSTOM_SPRITE);
 		}
 	} else if ((flags & TLF_SPRITE_VAR10) && !(flags & TLF_SPRITE_REG_FLAGS)) {
-		grfmsg(1, "ReadSpriteLayoutSprite: Spritelayout specifies var10 value for non-action-1 sprite");
+		grfmsg(1, "sprite layout specifies var10 value for non-action-1 sprite");
 		DisableCur (STR_NEWGRF_ERROR_INVALID_SPRITE_LAYOUT);
 		return false;
 	}
@@ -805,16 +829,16 @@ static bool ReadSpriteLayoutSprite (ByteReader *buf, bool read_flags,
 		/* Use palette from Action 1 */
 		uint index = GB(grf_sprite->pal, 0, 14);
 		if (use_cur_spritesets && (!_cur.IsValidSpriteSet(feature, index) || _cur.GetNumEnts(feature, index) == 0)) {
-			grfmsg(1, "ReadSpriteLayoutSprite: Spritelayout uses undefined custom spriteset %d for 'palette'", index);
+			grfmsg(1, "sprite layout uses undefined custom spriteset %d for palette", index);
 			grf_sprite->pal = PAL_NONE;
 		} else {
 			SpriteID sprite = use_cur_spritesets ? _cur.GetSprite(feature, index) : index;
-			if (max_palette_offset != NULL) *max_palette_offset = use_cur_spritesets ? _cur.GetNumEnts(feature, index) : UINT16_MAX;
+			if (max_offset != NULL) max_offset[1] = use_cur_spritesets ? _cur.GetNumEnts (feature, index) : UINT16_MAX;
 			SB(grf_sprite->pal, 0, SPRITE_WIDTH, sprite);
 			SetBit(grf_sprite->pal, SPRITE_MODIFIER_CUSTOM_SPRITE);
 		}
 	} else if ((flags & TLF_PALETTE_VAR10) && !(flags & TLF_PALETTE_REG_FLAGS)) {
-		grfmsg(1, "ReadSpriteLayoutRegisters: Spritelayout specifies var10 value for non-action-1 palette");
+		grfmsg(1, "sprite layout specifies var10 value for non-action-1 palette");
 		DisableCur (STR_NEWGRF_ERROR_INVALID_SPRITE_LAYOUT);
 		return false;
 	}
@@ -827,18 +851,16 @@ static bool ReadSpriteLayoutSprite (ByteReader *buf, bool read_flags,
  * @param buf        Input stream.
  * @param flags      TileLayoutFlags to process.
  * @param is_parent  Whether the sprite is a parentsprite with a bounding box.
- * @param dts        Sprite layout to insert data into.
- * @param index      Sprite index to process; 0 for ground sprite.
+ * @param r          Where to store the registers.
  * @return Whether reading succeeded.
  */
 static bool ReadSpriteLayoutRegisters (ByteReader *buf, TileLayoutFlags flags,
-	bool is_parent, NewGRFSpriteLayout *dts, uint index)
+	bool is_parent, TileLayoutRegisters *r)
 {
-	if (!(flags & TLF_DRAWING_FLAGS)) return true;
+	TileLayoutRegisters &regs = *r;
+	regs.flags = flags;
 
-	if (dts->registers == NULL) dts->AllocateRegisters();
-	TileLayoutRegisters &regs = const_cast<TileLayoutRegisters&>(dts->registers[index]);
-	regs.flags = flags & TLF_DRAWING_FLAGS;
+	if (flags == TLF_NOTHING) return true; // nothing to read
 
 	if (flags & TLF_DODRAW)  regs.dodraw  = buf->ReadByte();
 	if (flags & TLF_SPRITE)  regs.sprite  = buf->ReadByte();
@@ -876,35 +898,50 @@ static bool ReadSpriteLayoutRegisters (ByteReader *buf, TileLayoutFlags flags,
 	return true;
 }
 
+struct SpriteLayoutReader {
+	static const uint MAX_BUILDING_SPRITES = 255;
+
+	PalSpriteID ground; ///< Ground sprite and palette.
+	DrawTileSeqStruct seq[MAX_BUILDING_SPRITES]; ///< Building sprites.
+	TileLayoutRegisters regs[MAX_BUILDING_SPRITES + 1]; ///< Registers.
+	uint num_building_sprites; ///< Amount of building sprites.
+	uint consistent_max_offset; ///< Maximum offset for sprites.
+	bool has_registers; ///< Any register is actually used.
+};
+
 /**
  * Read a spritelayout from the GRF.
+ * @param reader               Where to read the sprite into.
  * @param buf                  Input
  * @param num_building_sprites Number of building sprites to read
  * @param use_cur_spritesets   Whether to use currently referenceable action 1 sets.
  * @param feature              GrfSpecFeature to use spritesets from.
  * @param allow_var10          Whether the spritelayout may specifiy var10 values for resolving multiple action-1-2-3 chains
  * @param no_z_position        Whether bounding boxes have no Z offset
- * @param dts                  Layout container to output into
  * @return True on error (GRF was disabled).
  */
-static bool ReadSpriteLayout(ByteReader *buf, uint num_building_sprites, bool use_cur_spritesets, byte feature, bool allow_var10, bool no_z_position, NewGRFSpriteLayout *dts)
+static bool ReadSpriteLayout (SpriteLayoutReader *reader, ByteReader *buf,
+	uint num_building_sprites, bool use_cur_spritesets, byte feature,
+	bool allow_var10, bool no_z_position)
 {
+	assert (num_building_sprites <= lengthof(reader->seq));
+	assert (num_building_sprites < lengthof(reader->regs));
+
+	uint16 max_offset[2 * (SpriteLayoutReader::MAX_BUILDING_SPRITES + 1)]; // (sprite, palette) pairs
+	assert (2 * num_building_sprites < lengthof(max_offset));
+	memset (max_offset, 0, sizeof(max_offset));
+
 	bool has_flags = HasBit(num_building_sprites, 6);
 	ClrBit(num_building_sprites, 6);
+	reader->num_building_sprites = num_building_sprites;
 	TileLayoutFlags valid_flags = TLF_KNOWN_FLAGS;
 	if (!allow_var10) valid_flags &= ~TLF_VAR10_FLAGS;
-	dts->Allocate(num_building_sprites); // allocate before reading groundsprite flags
-
-	uint16 *max_sprite_offset = AllocaM(uint16, num_building_sprites + 1);
-	uint16 *max_palette_offset = AllocaM(uint16, num_building_sprites + 1);
-	MemSetT(max_sprite_offset, 0, num_building_sprites + 1);
-	MemSetT(max_palette_offset, 0, num_building_sprites + 1);
 
 	/* Groundsprite */
-	TileLayoutFlags flags;
-	if (!ReadSpriteLayoutSprite (buf, has_flags, false,
-			use_cur_spritesets, feature, &dts->ground, &flags,
-			max_sprite_offset, max_palette_offset)) {
+	ReadPalSprite (buf, &reader->ground);
+	TileLayoutFlags flags = has_flags ? (TileLayoutFlags)buf->ReadWord() : TLF_NOTHING;
+	if (!AdjustSpriteLayoutSprite (&reader->ground, feature, false,
+			use_cur_spritesets, flags, max_offset)) {
 		return true;
 	}
 
@@ -914,16 +951,20 @@ static bool ReadSpriteLayout(ByteReader *buf, uint num_building_sprites, bool us
 		return true;
 	}
 
-	if (!ReadSpriteLayoutRegisters (buf, flags, false, dts, 0)) {
+	flags &= TLF_DRAWING_FLAGS;
+	bool has_registers = (flags != TLF_NOTHING);
+	if (!ReadSpriteLayoutRegisters (buf, flags, false, &reader->regs[0])) {
 		return true;
 	}
 
 	for (uint i = 0; i < num_building_sprites; i++) {
-		DrawTileSeqStruct *seq = const_cast<DrawTileSeqStruct*>(&dts->seq[i]);
+		DrawTileSeqStruct *seq = &reader->seq[i];
 
-		if (!ReadSpriteLayoutSprite (buf, has_flags, false,
-				use_cur_spritesets, feature, &seq->image, &flags,
-				max_sprite_offset + i + 1, max_palette_offset + i + 1)) {
+		ReadPalSprite (buf, &seq->image);
+		flags = has_flags ? (TileLayoutFlags)buf->ReadWord() : TLF_NOTHING;
+		if (!AdjustSpriteLayoutSprite (&seq->image, feature, false,
+				use_cur_spritesets, flags,
+				max_offset + 2 * (i + 1))) {
 			return true;
 		}
 
@@ -935,8 +976,7 @@ static bool ReadSpriteLayout(ByteReader *buf, uint num_building_sprites, bool us
 
 		seq->delta_x = buf->ReadByte();
 		seq->delta_y = buf->ReadByte();
-
-		if (!no_z_position) seq->delta_z = buf->ReadByte();
+		seq->delta_z = no_z_position ? 0 : buf->ReadByte();
 
 		if (seq->IsParentSprite()) {
 			seq->size_x = buf->ReadByte();
@@ -944,46 +984,44 @@ static bool ReadSpriteLayout(ByteReader *buf, uint num_building_sprites, bool us
 			seq->size_z = buf->ReadByte();
 		}
 
-		if (!ReadSpriteLayoutRegisters (buf, flags, seq->IsParentSprite(), dts, i + 1)) {
+		flags &= TLF_DRAWING_FLAGS;
+		has_registers |= (flags != TLF_NOTHING);
+
+		if (!ReadSpriteLayoutRegisters (buf, flags, seq->IsParentSprite(), &reader->regs[i + 1])) {
 			return true;
 		}
 	}
 
 	/* Check if the number of sprites per spriteset is consistent */
-	bool is_consistent = true;
-	dts->consistent_max_offset = 0;
-	for (uint i = 0; i < num_building_sprites + 1; i++) {
-		if (max_sprite_offset[i] > 0) {
-			if (dts->consistent_max_offset == 0) {
-				dts->consistent_max_offset = max_sprite_offset[i];
-			} else if (dts->consistent_max_offset != max_sprite_offset[i]) {
-				is_consistent = false;
-				break;
-			}
-		}
-		if (max_palette_offset[i] > 0) {
-			if (dts->consistent_max_offset == 0) {
-				dts->consistent_max_offset = max_palette_offset[i];
-			} else if (dts->consistent_max_offset != max_palette_offset[i]) {
-				is_consistent = false;
+	uint consistent_max_offset = 0;
+	for (uint i = 0; i < 2 * (num_building_sprites + 1); i++) {
+		if (max_offset[i] > 0) {
+			if (consistent_max_offset == 0) {
+				consistent_max_offset = max_offset[i];
+			} else if (consistent_max_offset != max_offset[i]) {
+				assert (use_cur_spritesets);
+				/* Not consistent, so use registers. */
+				has_registers = true;
 				break;
 			}
 		}
 	}
 
 	/* When the Action1 sets are unknown, everything should be 0 (no spriteset usage) or UINT16_MAX (some spriteset usage) */
-	assert(use_cur_spritesets || (is_consistent && (dts->consistent_max_offset == 0 || dts->consistent_max_offset == UINT16_MAX)));
+	assert (use_cur_spritesets || (consistent_max_offset == 0 || consistent_max_offset == UINT16_MAX));
 
-	if (!is_consistent || dts->registers != NULL) {
-		dts->consistent_max_offset = 0;
-		if (dts->registers == NULL) dts->AllocateRegisters();
-
+	if (has_registers) {
 		for (uint i = 0; i < num_building_sprites + 1; i++) {
-			TileLayoutRegisters &regs = const_cast<TileLayoutRegisters&>(dts->registers[i]);
-			regs.max_sprite_offset = max_sprite_offset[i];
-			regs.max_palette_offset = max_palette_offset[i];
+			TileLayoutRegisters &regs = reader->regs[i];
+			regs.max_sprite_offset  = max_offset[2 * i];
+			regs.max_palette_offset = max_offset[2 * i + 1];
 		}
+
+		consistent_max_offset = 0;
 	}
+
+	reader->consistent_max_offset = consistent_max_offset;
+	reader->has_registers = has_registers;
 
 	return false;
 }
@@ -1889,6 +1927,122 @@ static ChangeInfoResult AircraftVehicleChangeInfo(uint engine, int numinfo, int 
 	return ret;
 }
 
+/** Sprite layout for a station tile. */
+struct StationTileSpriteLayout : NewGRFSpriteLayout, FlexArrayBase {
+private:
+	template <typename T>
+	static CONSTEXPR T *offset_pointer (void *ptr, size_t offset)
+	{
+		return (T*) (((char*)ptr) + offset);
+	}
+
+	static CONSTEXPR size_t seq_offset (void)
+	{
+		return ttd_align_up<DrawTileSeqStruct> (sizeof(StationTileSpriteLayout));
+	}
+
+	StationTileSpriteLayout (const PalSpriteID &ground, uint n,
+			DrawTileSeqStruct **pseq)
+	{
+		this->ground = ground;
+
+		DrawTileSeqStruct *q = offset_pointer<DrawTileSeqStruct> (this, seq_offset());
+		q[n].MakeTerminator();
+		this->seq = q;
+
+		this->registers = NULL;
+
+		this->consistent_max_offset = UINT16_MAX;
+
+		*pseq = q;
+	}
+
+	StationTileSpriteLayout (const PalSpriteID &ground, uint n,
+			const DrawTileSeqStruct *seq, size_t regs_offset,
+			const TileLayoutRegisters *regs,
+			uint consistent_max_offset)
+	{
+		this->ground = ground;
+
+		DrawTileSeqStruct *q = offset_pointer<DrawTileSeqStruct> (this, seq_offset());
+		memcpy (q, seq, n * sizeof(DrawTileSeqStruct));
+		q[n].MakeTerminator();
+		this->seq = q;
+
+		if (regs != NULL) {
+			TileLayoutRegisters *r = offset_pointer<TileLayoutRegisters> (this, regs_offset);
+			memcpy (r, regs, (n + 1) * sizeof(TileLayoutRegisters));
+			this->registers = r;
+		} else {
+			this->registers = NULL;
+		}
+
+		this->consistent_max_offset = consistent_max_offset;
+	}
+
+	/** Custom operator new to account for the extra storage. */
+	void *operator new (size_t size, size_t total, size_t = 1)
+	{
+		assert (total >= size);
+		return ::operator new (total);
+	}
+
+public:
+	static StationTileSpriteLayout *create (const PalSpriteID &ground,
+		uint n, const DrawTileSeqStruct *seq,
+		const TileLayoutRegisters *regs, uint consistent_max_offset);
+
+	static StationTileSpriteLayout *clone (const PalSpriteID &ground,
+		const DrawTileSeqStruct *seq)
+	{
+		size_t n = 1; // 1 for the terminator
+		const DrawTileSeqStruct *dtss;
+		foreach_draw_tile_seq(dtss, seq) n++;
+
+		return create (ground, n, seq, NULL, UINT16_MAX);
+	}
+
+	static StationTileSpriteLayout *clone (const NewGRFSpriteLayout *src)
+	{
+		size_t n = 1; // 1 for the terminator
+		const DrawTileSeqStruct *dtss;
+		foreach_draw_tile_seq(dtss, src->seq) n++;
+
+		return create (src->ground, n, src->seq, src->registers,
+				src->consistent_max_offset);
+	}
+
+	static StationTileSpriteLayout *init (const PalSpriteID &ground,
+		uint n, DrawTileSeqStruct **p)
+	{
+		/* Make room for terminator. */
+		size_t seq_end = seq_offset() + (n + 1) * sizeof(DrawTileSeqStruct);
+		size_t total_size = ttd_align_up<TileLayoutSpriteGroup> (seq_end);
+		return new (total_size) StationTileSpriteLayout (ground, n, p);
+	}
+};
+
+StationTileSpriteLayout *StationTileSpriteLayout::create (const PalSpriteID &ground,
+	uint n, const DrawTileSeqStruct *seq, const TileLayoutRegisters *regs,
+	uint consistent_max_offset)
+{
+	/* Make room for terminator. */
+	size_t seq_end = seq_offset() + (n + 1) * sizeof(DrawTileSeqStruct);
+
+	size_t regs_offset, regs_end;
+	if (regs != NULL) {
+		regs_offset = ttd_align_up<TileLayoutRegisters> (seq_end);
+		regs_end = regs_offset + (n + 1) * sizeof(TileLayoutRegisters);
+	} else {
+		regs_offset = 0;
+		regs_end = seq_end;
+	}
+
+	size_t total_size = ttd_align_up<TileLayoutSpriteGroup> (regs_end);
+	return new (total_size) StationTileSpriteLayout (ground, n, seq,
+			regs_offset, regs, consistent_max_offset);
+}
+
 /**
  * Define properties for stations
  * @param stdid StationID of the first station tile.
@@ -1926,55 +2080,68 @@ static ChangeInfoResult StationChangeInfo(uint stid, int numinfo, int prop, Byte
 				if (*spec == NULL) *spec = xcalloct<StationSpec>();
 
 				/* Swap classid because we read it in BE meaning WAYP or DFLT */
-				uint32 classid = buf->ReadDWord();
-				(*spec)->cls_id = StationClass::Allocate(BSWAP32(classid));
+				uint32 classid = buf->ReadLabel();
+				(*spec)->cls_id = StationClass::Allocate (classid);
 				break;
 			}
 
-			case 0x09: // Define sprite layout
-				statspec->tiles = buf->ReadExtendedByte();
-				delete[] statspec->renderdata; // delete earlier loaded stuff
-				statspec->renderdata = new NewGRFSpriteLayout[statspec->tiles];
+			case 0x09: { // Define sprite layout
+				statspec->renderdata.clear(); // delete earlier loaded stuff
+				uint n = buf->ReadExtendedByte();
+				statspec->renderdata.reserve (n);
 
-				for (uint t = 0; t < statspec->tiles; t++) {
-					NewGRFSpriteLayout *dts = &statspec->renderdata[t];
-					dts->consistent_max_offset = UINT16_MAX; // Spritesets are unknown, so no limit.
+				for (uint t = 0; t < n; t++) {
+					assert (statspec->renderdata.size() == t);
 
-					if (buf->HasData(4) && buf->PeekDWord() == 0) {
-						buf->Skip(4);
+					const byte *gp = buf->GetData (4);
+
+					if (ReadDWord (gp) == 0) {
 						extern const DrawTileSprites _station_display_datas_rail[8];
-						dts->Clone(&_station_display_datas_rail[t % 8]);
+						const DrawTileSprites *src = &_station_display_datas_rail[t % 8];
+						NewGRFSpriteLayout *dts = StationTileSpriteLayout::clone (src->ground, src->seq);
+						statspec->renderdata.push_back (ttd_unique_ptr<NewGRFSpriteLayout> (dts));
 						continue;
 					}
 
 					/* On error, bail out immediately. Temporary GRF data was already freed */
-					if (!ReadSpriteLayoutSprite (buf, false, false, false, GSF_STATIONS, &dts->ground)) {
+					PalSpriteID ground;
+					ReadPalSprite (gp, &ground);
+					if (!AdjustSpriteLayoutSprite (&ground, GSF_STATIONS, false)) {
 						return CIR_DISABLED;
 					}
 
-					static SmallVector<DrawTileSeqStruct, 8> tmp_layout;
-					tmp_layout.Clear();
-					for (;;) {
+					const byte *p = buf->GetData();
+					uint num_building_sprites = 0;
+					while (buf->ReadByte() != 0x80) {
+						buf->Skip (9);
+						num_building_sprites++;
+					}
+
+					DrawTileSeqStruct *seq;
+					NewGRFSpriteLayout *dts = StationTileSpriteLayout::init (ground, num_building_sprites, &seq);
+					statspec->renderdata.push_back (ttd_unique_ptr<NewGRFSpriteLayout> (dts));
+					for (uint i = 0; i < num_building_sprites; i++) {
 						/* no relative bounding box support */
-						DrawTileSeqStruct *dtss = tmp_layout.Append();
+						DrawTileSeqStruct *dtss = &seq[i];
 						MemSetT(dtss, 0);
 
-						dtss->delta_x = buf->ReadByte();
-						if (dtss->IsTerminator()) break;
-						dtss->delta_y = buf->ReadByte();
-						dtss->delta_z = buf->ReadByte();
-						dtss->size_x = buf->ReadByte();
-						dtss->size_y = buf->ReadByte();
-						dtss->size_z = buf->ReadByte();
+						dtss->delta_x = *p++;
+						dtss->delta_y = *p++;
+						dtss->delta_z = *p++;
+						dtss->size_x  = *p++;
+						dtss->size_y  = *p++;
+						dtss->size_z  = *p++;
 
 						/* On error, bail out immediately. Temporary GRF data was already freed */
-						if (!ReadSpriteLayoutSprite (buf, false, true, false, GSF_STATIONS, &dtss->image)) {
+						ReadPalSprite (p, &dtss->image);
+						if (!AdjustSpriteLayoutSprite (&dtss->image, GSF_STATIONS, true)) {
 							return CIR_DISABLED;
 						}
+						p += 4;
 					}
-					dts->Clone(tmp_layout.Begin());
 				}
 				break;
+			}
 
 			case 0x0A: { // Copy sprite layout
 				byte srcid = buf->ReadByte();
@@ -1985,12 +2152,15 @@ static ChangeInfoResult StationChangeInfo(uint stid, int numinfo, int prop, Byte
 					continue;
 				}
 
-				delete[] statspec->renderdata; // delete earlier loaded stuff
+				statspec->renderdata.clear(); // delete earlier loaded stuff
+				uint n = srcstatspec->renderdata.size();
+				statspec->renderdata.reserve (n);
 
-				statspec->tiles = srcstatspec->tiles;
-				statspec->renderdata = new NewGRFSpriteLayout[statspec->tiles];
-				for (uint t = 0; t < statspec->tiles; t++) {
-					statspec->renderdata[t].Clone(&srcstatspec->renderdata[t]);
+				for (uint t = 0; t < n; t++) {
+					assert (statspec->renderdata.size() == t);
+					const NewGRFSpriteLayout *src = srcstatspec->renderdata[t].get();
+					NewGRFSpriteLayout *dts = StationTileSpriteLayout::clone (src);
+					statspec->renderdata.push_back (ttd_unique_ptr<NewGRFSpriteLayout> (dts));
 				}
 				break;
 			}
@@ -2102,20 +2272,28 @@ static ChangeInfoResult StationChangeInfo(uint stid, int numinfo, int prop, Byte
 				statspec->animation.triggers = buf->ReadWord();
 				break;
 
-			case 0x1A: // Advanced sprite layout
-				statspec->tiles = buf->ReadExtendedByte();
-				delete[] statspec->renderdata; // delete earlier loaded stuff
-				statspec->renderdata = new NewGRFSpriteLayout[statspec->tiles];
+			case 0x1A: { // Advanced sprite layout
+				statspec->renderdata.clear(); // delete earlier loaded stuff
+				uint n = buf->ReadExtendedByte();
+				statspec->renderdata.reserve (n);
 
-				for (uint t = 0; t < statspec->tiles; t++) {
-					NewGRFSpriteLayout *dts = &statspec->renderdata[t];
+				for (uint t = 0; t < n; t++) {
+					assert (statspec->renderdata.size() == t);
 					uint num_building_sprites = buf->ReadByte();
 					/* On error, bail out immediately. Temporary GRF data was already freed */
-					if (ReadSpriteLayout(buf, num_building_sprites, false, GSF_STATIONS, true, false, dts)) {
+					SpriteLayoutReader reader;
+					if (ReadSpriteLayout (&reader, buf, num_building_sprites, false, GSF_STATIONS, true, false)) {
 						return CIR_DISABLED;
 					}
+
+					NewGRFSpriteLayout *dts = StationTileSpriteLayout::create (reader.ground,
+							reader.num_building_sprites, reader.seq,
+							reader.has_registers ? reader.regs : NULL,
+							reader.consistent_max_offset);
+					statspec->renderdata.push_back (ttd_unique_ptr<NewGRFSpriteLayout> (dts));
 				}
 				break;
+			}
 
 			default:
 				ret = CIR_UNKNOWN;
@@ -2221,7 +2399,7 @@ static ChangeInfoResult BridgeChangeInfo(uint brid, int numinfo, int prop, ByteR
 				for (; numtables-- != 0; tableid++) {
 					if (tableid >= 7) { // skip invalid data
 						grfmsg(1, "BridgeChangeInfo: Table %d >= 7, skipping", tableid);
-						for (byte sprite = 0; sprite < 32; sprite++) buf->ReadDWord();
+						buf->Skip (32 * 4);
 						continue;
 					}
 
@@ -2283,57 +2461,19 @@ static ChangeInfoResult BridgeChangeInfo(uint brid, int numinfo, int prop, ByteR
  */
 static ChangeInfoResult IgnoreTownHouseProperty(int prop, ByteReader *buf)
 {
-	ChangeInfoResult ret = CIR_SUCCESS;
+	static const byte skip[] = {
+			/* 0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f  */
+		/* 00 */                              1, 2, 1, 1, 1, 1, 1,
+		/* 10 */   2, 1, 2, 2, 1, 1, 1, 4, 1, 1, 1, 1, 1, 1, 4, 1,
+		/* 20 */   0, 2, 2,
+	};
 
-	switch (prop) {
-		case 0x09:
-		case 0x0B:
-		case 0x0C:
-		case 0x0D:
-		case 0x0E:
-		case 0x0F:
-		case 0x11:
-		case 0x14:
-		case 0x15:
-		case 0x16:
-		case 0x18:
-		case 0x19:
-		case 0x1A:
-		case 0x1B:
-		case 0x1C:
-		case 0x1D:
-		case 0x1F:
-			buf->ReadByte();
-			break;
+	uint k = prop - 0x09;
+	if (k >= lengthof(skip)) return CIR_UNKNOWN;
 
-		case 0x0A:
-		case 0x10:
-		case 0x12:
-		case 0x13:
-		case 0x21:
-		case 0x22:
-			buf->ReadWord();
-			break;
-
-		case 0x1E:
-			buf->ReadDWord();
-			break;
-
-		case 0x17:
-			for (uint j = 0; j < 4; j++) buf->ReadByte();
-			break;
-
-		case 0x20: {
-			byte count = buf->ReadByte();
-			for (byte j = 0; j < count; j++) buf->ReadByte();
-			break;
-		}
-
-		default:
-			ret = CIR_UNKNOWN;
-			break;
-	}
-	return ret;
+	byte s = skip[k];
+	buf->Skip (s != 0 ? s : buf->ReadByte());
+	return CIR_SUCCESS;
 }
 
 /**
@@ -2602,8 +2742,7 @@ static ChangeInfoResult LoadTranslationTable(uint gvid, int numinfo, ByteReader 
 
 	translation_table.Clear();
 	for (int i = 0; i < numinfo; i++) {
-		uint32 item = buf->ReadDWord();
-		*translation_table.Append() = BSWAP32(item);
+		*translation_table.Append() = buf->ReadLabel();
 	}
 
 	return CIR_SUCCESS;
@@ -2992,8 +3131,7 @@ static ChangeInfoResult CargoChangeInfo(uint cid, int numinfo, int prop, ByteRea
 				break;
 
 			case 0x17: // Cargo label
-				cs->label = buf->ReadDWord();
-				cs->label = BSWAP32(cs->label);
+				cs->label = buf->ReadLabel();
 				break;
 
 			case 0x18: { // Town growth substitute type
@@ -3007,7 +3145,7 @@ static ChangeInfoResult CargoChangeInfo(uint cid, int numinfo, int prop, ByteRea
 					case 0x0B: cs->town_effect = TE_FOOD; break;
 					default:
 						grfmsg(1, "CargoChangeInfo: Unknown town growth substitute value %d, setting to none.", substitute_type);
-						/* FALL THROUGH */
+						FALLTHROUGH;
 					case 0xFF: cs->town_effect = TE_NONE; break;
 				}
 				break;
@@ -3100,30 +3238,18 @@ static ChangeInfoResult SoundEffectChangeInfo(uint sid, int numinfo, int prop, B
  */
 static ChangeInfoResult IgnoreIndustryTileProperty(int prop, ByteReader *buf)
 {
-	ChangeInfoResult ret = CIR_SUCCESS;
+	static const byte skip[] = {
+			/* 0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f  */
+		/* 00 */                              1, 2, 2, 2, 1, 1, 2,
+		/* 10 */   1, 1, 1,
+	};
 
-	switch (prop) {
-		case 0x09:
-		case 0x0D:
-		case 0x0E:
-		case 0x10:
-		case 0x11:
-		case 0x12:
-			buf->ReadByte();
-			break;
+	uint k = prop - 0x09;
+	if (k >= lengthof(skip)) return CIR_UNKNOWN;
 
-		case 0x0A:
-		case 0x0B:
-		case 0x0C:
-		case 0x0F:
-			buf->ReadWord();
-			break;
-
-		default:
-			ret = CIR_UNKNOWN;
-			break;
-	}
-	return ret;
+	byte s = skip[k];
+	buf->Skip (s);
+	return CIR_SUCCESS;
 }
 
 /**
@@ -3252,81 +3378,39 @@ static ChangeInfoResult IndustrytilesChangeInfo(uint indtid, int numinfo, int pr
  */
 static ChangeInfoResult IgnoreIndustryProperty(int prop, ByteReader *buf)
 {
-	ChangeInfoResult ret = CIR_SUCCESS;
-
-	switch (prop) {
-		case 0x09:
-		case 0x0B:
-		case 0x0F:
-		case 0x12:
-		case 0x13:
-		case 0x14:
-		case 0x17:
-		case 0x18:
-		case 0x19:
-		case 0x21:
-		case 0x22:
-			buf->ReadByte();
-			break;
-
-		case 0x0C:
-		case 0x0D:
-		case 0x0E:
-		case 0x10:
-		case 0x1B:
-		case 0x1F:
-		case 0x24:
-			buf->ReadWord();
-			break;
-
-		case 0x11:
-		case 0x1A:
-		case 0x1C:
-		case 0x1D:
-		case 0x1E:
-		case 0x20:
-		case 0x23:
-			buf->ReadDWord();
-			break;
-
-		case 0x0A: {
-			byte num_table = buf->ReadByte();
-			for (byte j = 0; j < num_table; j++) {
-				for (uint k = 0;; k++) {
-					byte x = buf->ReadByte();
-					if (x == 0xFE && k == 0) {
-						buf->ReadByte();
-						buf->ReadByte();
-						break;
-					}
-
-					byte y = buf->ReadByte();
-					if (x == 0 && y == 0x80) break;
-
-					byte gfx = buf->ReadByte();
-					if (gfx == 0xFE) buf->ReadWord();
+	if (prop == 0x0A) {
+		for (byte j = buf->ReadByte(); j > 0; j--) {
+			for (uint k = 0;; k++) {
+				byte x = buf->ReadByte();
+				if (x == 0xFE && k == 0) {
+					buf->ReadByte();
+					buf->ReadByte();
+					break;
 				}
+
+				byte y = buf->ReadByte();
+				if (x == 0 && y == 0x80) break;
+
+				byte gfx = buf->ReadByte();
+				if (gfx == 0xFE) buf->ReadWord();
 			}
-			break;
 		}
-
-		case 0x16:
-			for (byte j = 0; j < 3; j++) buf->ReadByte();
-			break;
-
-		case 0x15: {
-			byte number_of_sounds = buf->ReadByte();
-			for (uint8 j = 0; j < number_of_sounds; j++) {
-				buf->ReadByte();
-			}
-			break;
-		}
-
-		default:
-			ret = CIR_UNKNOWN;
-			break;
+		return CIR_SUCCESS;
 	}
-	return ret;
+
+	static const byte skip[] = {
+			/* 0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f  */
+		/* 00 */                              1, 0, 1, 2, 2, 2, 1,
+		/* 10 */   2, 4, 1, 1, 1, 0, 3, 1, 1, 1, 4, 2, 4, 4, 4, 2,
+		/* 20 */   4, 1, 1, 4, 2,
+	};
+
+	uint k = prop - 0x09;
+	if (k >= lengthof(skip)) return CIR_UNKNOWN;
+
+	byte s = skip[k];
+	buf->Skip (s != 0 ? s : buf->ReadByte());
+	return CIR_SUCCESS;
 }
 
 /**
@@ -3878,40 +3962,18 @@ static ChangeInfoResult AirportChangeInfo(uint airport, int numinfo, int prop, B
  */
 static ChangeInfoResult IgnoreObjectProperty(uint prop, ByteReader *buf)
 {
-	ChangeInfoResult ret = CIR_SUCCESS;
+	static const byte skip[] = {
+			/* 0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f  */
+		/* 00 */                           4, 2, 2, 1, 1, 1, 4, 4,
+		/* 10 */   2, 2, 1, 2, 1, 2, 1, 1,
+	};
 
-	switch (prop) {
-		case 0x0B:
-		case 0x0C:
-		case 0x0D:
-		case 0x12:
-		case 0x14:
-		case 0x16:
-		case 0x17:
-			buf->ReadByte();
-			break;
+	uint k = prop - 0x08;
+	if (k >= lengthof(skip)) return CIR_UNKNOWN;
 
-		case 0x09:
-		case 0x0A:
-		case 0x10:
-		case 0x11:
-		case 0x13:
-		case 0x15:
-			buf->ReadWord();
-			break;
-
-		case 0x08:
-		case 0x0E:
-		case 0x0F:
-			buf->ReadDWord();
-			break;
-
-		default:
-			ret = CIR_UNKNOWN;
-			break;
-	}
-
-	return ret;
+	byte s = skip[k];
+	buf->Skip (s);
+	return CIR_SUCCESS;
 }
 
 /**
@@ -3957,8 +4019,8 @@ static ChangeInfoResult ObjectChangeInfo(uint id, int numinfo, int prop, ByteRea
 				}
 
 				/* Swap classid because we read it in BE. */
-				uint32 classid = buf->ReadDWord();
-				(*ospec)->cls_id = ObjectClass::Allocate(BSWAP32(classid));
+				uint32 classid = buf->ReadLabel();
+				(*ospec)->cls_id = ObjectClass::Allocate (classid);
 				(*ospec)->enabled = true;
 				break;
 			}
@@ -4111,11 +4173,11 @@ static ChangeInfoResult RailTypeChangeInfo(uint id, int numinfo, int prop, ByteR
 				 * default rail types. */
 				int n = buf->ReadByte();
 				for (int j = 0; j != n; j++) {
-					RailTypeLabel label = buf->ReadDWord();
-					RailType rt = GetRailTypeByLabel(BSWAP32(label), false);
+					RailTypeLabel label = buf->ReadLabel();
+					RailType rt = GetRailTypeByLabel (label, false);
 					if (rt != INVALID_RAILTYPE) {
 						switch (prop) {
-							case 0x0F: SetBit(rti->powered_railtypes, rt); // Powered implies compatible.
+							case 0x0F: SetBit(rti->powered_railtypes, rt);               FALLTHROUGH; // Powered implies compatible.
 							case 0x0E: SetBit(rti->compatible_railtypes, rt);            break;
 							case 0x18: SetBit(rti->introduction_required_railtypes, rt); break;
 							case 0x19: SetBit(rti->introduces_railtypes, rt);            break;
@@ -4171,7 +4233,7 @@ static ChangeInfoResult RailTypeChangeInfo(uint id, int numinfo, int prop, ByteR
 
 			case 0x1D: // Alternate rail type label list
 				/* Skipped here as this is loaded during reservation stage. */
-				for (int j = buf->ReadByte(); j != 0; j--) buf->ReadDWord();
+				buf->Skip (4 * buf->ReadByte());
 				break;
 
 			default:
@@ -4198,8 +4260,7 @@ static ChangeInfoResult RailTypeReserveInfo(uint id, int numinfo, int prop, Byte
 		switch (prop) {
 			case 0x08: // Label of rail type
 			{
-				RailTypeLabel rtl = buf->ReadDWord();
-				rtl = BSWAP32(rtl);
+				RailTypeLabel rtl = buf->ReadLabel();
 
 				RailType rt = GetRailTypeByLabel(rtl, false);
 				if (rt == INVALID_RAILTYPE) {
@@ -4227,18 +4288,18 @@ static ChangeInfoResult RailTypeReserveInfo(uint id, int numinfo, int prop, Byte
 				if (_cur.grffile->railtype_map[id + i] != INVALID_RAILTYPE) {
 					int n = buf->ReadByte();
 					for (int j = 0; j != n; j++) {
-						*_railtypes[_cur.grffile->railtype_map[id + i]].alternate_labels.Append() = BSWAP32(buf->ReadDWord());
+						*_railtypes[_cur.grffile->railtype_map[id + i]].alternate_labels.Append() = buf->ReadLabel();
 					}
 					break;
 				}
 				grfmsg(1, "RailTypeReserveInfo: Ignoring property 1D for rail type %u because no label was set", id + i);
-				/* FALL THROUGH */
+				FALLTHROUGH;
 
 			case 0x0E: // Compatible railtype list
 			case 0x0F: // Powered railtype list
 			case 0x18: // Railtype list required for date introduction
 			case 0x19: // Introduced railtype list
-				for (int j = buf->ReadByte(); j != 0; j--) buf->ReadDWord();
+				buf->Skip (4 * buf->ReadByte());
 				break;
 
 			case 0x10: // Rail Type flags
@@ -4369,7 +4430,7 @@ static bool HandleChangeInfoResult(const char *caller, ChangeInfoResult cir, uin
 
 		case CIR_UNKNOWN:
 			grfmsg(0, "%s: Unknown property 0x%02X of feature 0x%02X, disabling", caller, property, feature);
-			/* FALL THROUGH */
+			FALLTHROUGH;
 
 		case CIR_INVALID_ID: {
 			/* No debug message for an invalid ID, as it has already been output */
@@ -4585,8 +4646,7 @@ static int SkipAct1 (ByteReader *buf)
 static const SpriteGroup *GetGroupFromGroupID(byte setid, byte type, uint16 groupid)
 {
 	if (HasBit(groupid, 15)) {
-		assert(CallbackResultSpriteGroup::CanAllocateItem());
-		return new CallbackResultSpriteGroup(groupid, _cur.grffile->grf_version >= 8);
+		return CallbackResultSpriteGroup::create (groupid, _cur.grffile->grf_version >= 8);
 	}
 
 	if (groupid > MAX_SPRITEGROUP || _cur.spritegroups[groupid] == NULL) {
@@ -4608,8 +4668,7 @@ static const SpriteGroup *GetGroupFromGroupID(byte setid, byte type, uint16 grou
 static const SpriteGroup *CreateGroupFromGroupID(byte feature, byte setid, byte type, uint16 spriteid)
 {
 	if (HasBit(spriteid, 15)) {
-		assert(CallbackResultSpriteGroup::CanAllocateItem());
-		return new CallbackResultSpriteGroup(spriteid, _cur.grffile->grf_version >= 8);
+		return CallbackResultSpriteGroup::create (spriteid, _cur.grffile->grf_version >= 8);
 	}
 
 	if (!_cur.IsValidSpriteSet(feature, spriteid)) {
@@ -4623,8 +4682,7 @@ static const SpriteGroup *CreateGroupFromGroupID(byte feature, byte setid, byte 
 	/* Ensure that the sprites are loeded */
 	assert(spriteset_start + num_sprites <= _cur.spriteid);
 
-	assert(ResultSpriteGroup::CanAllocateItem());
-	return new ResultSpriteGroup(spriteset_start, num_sprites);
+	return ResultSpriteGroup::create (spriteset_start, num_sprites);
 }
 
 /* Action 0x02 */
@@ -4659,68 +4717,78 @@ static int NewSpriteGroup (ByteReader *buf)
 		case 0x89: // Self scope, dword
 		case 0x8A: // Parent scope, dword
 		{
-			byte varadjust;
-			byte varsize;
+			byte varsize = (1 << GB(type, 2, 2));
 
-			assert(DeterministicSpriteGroup::CanAllocateItem());
-			DeterministicSpriteGroup *group = new DeterministicSpriteGroup();
-			act_group = group;
-			group->var_scope = HasBit(type, 1) ? VSG_SCOPE_PARENT : VSG_SCOPE_SELF;
+			/* Count the number of adjusts. */
+			const byte *data = buf->GetData();
+			uint num_adjusts = 1;
+			for (;;) {
+				byte variable = buf->ReadByte();
+				if (IsInsideMM(variable, 0x60, 0x80)) buf->ReadByte();
 
-			switch (GB(type, 2, 2)) {
-				default: NOT_REACHED();
-				case 0: group->size = DSG_SIZE_BYTE;  varsize = 1; break;
-				case 1: group->size = DSG_SIZE_WORD;  varsize = 2; break;
-				case 2: group->size = DSG_SIZE_DWORD; varsize = 4; break;
+				byte varadjust = buf->ReadByte();
+				buf->Skip (GB(varadjust, 6, 2) != 0 ? 3 * varsize : varsize);
+
+				/* Continue reading var adjusts while bit 5 is set. */
+				if (!HasBit(varadjust, 5)) break;
+				num_adjusts++;
+				buf->ReadByte();
 			}
 
-			static SmallVector<DeterministicSpriteGroupAdjust, 16> adjusts;
-			adjusts.Clear();
+			byte num_ranges = buf->ReadByte();
 
-			/* Loop through the var adjusts. Unfortunately we don't know how many we have
-			 * from the outset, so we shall have to keep reallocing. */
-			do {
-				DeterministicSpriteGroupAdjust *adjust = adjusts.Append();
+			DeterministicSpriteGroup *group = DeterministicSpriteGroup::create (HasBit(type, 1),
+					GB(type, 2, 2), num_adjusts, num_ranges);
+			act_group = group;
+
+			for (uint i = 0; i < num_adjusts; i++) {
+				DeterministicSpriteGroup::Adjust *adjust = group->get_adjust (i);
 
 				/* The first var adjust doesn't have an operation specified, so we set it to add. */
-				adjust->operation = adjusts.Length() == 1 ? DSGA_OP_ADD : (DeterministicSpriteGroupAdjustOperation)buf->ReadByte();
-				adjust->variable  = buf->ReadByte();
+				adjust->operation = (i == 0) ? 0 : *data++;
+				adjust->variable  = *data++;
 				if (adjust->variable == 0x7E) {
 					/* Link subroutine group */
-					adjust->subroutine = GetGroupFromGroupID(setid, type, buf->ReadByte());
+					adjust->subroutine = GetGroupFromGroupID (setid, type, *data++);
 				} else {
-					adjust->parameter = IsInsideMM(adjust->variable, 0x60, 0x80) ? buf->ReadByte() : 0;
+					adjust->parameter = IsInsideMM (adjust->variable, 0x60, 0x80) ? *data++ : 0;
 				}
 
-				varadjust = buf->ReadByte();
+				byte varadjust = *data++;
 				adjust->shift_num = GB(varadjust, 0, 5);
-				adjust->type      = (DeterministicSpriteGroupAdjustType)GB(varadjust, 6, 2);
-				adjust->and_mask  = buf->ReadVarSize(varsize);
+				adjust->type      = GB(varadjust, 6, 2);
+				adjust->and_mask  = ReadVarSize (data, varsize);
+				data += varsize;
 
-				if (adjust->type != DSGA_TYPE_NONE) {
-					adjust->add_val    = buf->ReadVarSize(varsize);
-					adjust->divmod_val = buf->ReadVarSize(varsize);
+				if (adjust->type != 0) {
+					adjust->add_val    = ReadVarSize (data, varsize);
+					data += varsize;
+					adjust->divmod_val = ReadVarSize (data, varsize);
+					data += varsize;
 				} else {
 					adjust->add_val    = 0;
 					adjust->divmod_val = 0;
 				}
 
 				/* Continue reading var adjusts while bit 5 is set. */
-			} while (HasBit(varadjust, 5));
-
-			group->num_adjusts = adjusts.Length();
-			group->adjusts = xmemdupt (adjusts.Begin(), group->num_adjusts);
-
-			group->num_ranges = buf->ReadByte();
-			if (group->num_ranges > 0) group->ranges = xcalloct<DeterministicSpriteGroupRange>(group->num_ranges);
-
-			for (uint i = 0; i < group->num_ranges; i++) {
-				group->ranges[i].group = GetGroupFromGroupID(setid, type, buf->ReadWord());
-				group->ranges[i].low   = buf->ReadVarSize(varsize);
-				group->ranges[i].high  = buf->ReadVarSize(varsize);
+				assert (HasBit(varadjust, 5) == (i + 1 != num_adjusts));
 			}
 
-			group->default_group = GetGroupFromGroupID(setid, type, buf->ReadWord());
+			data = buf->GetData (num_ranges * (2 * varsize + 2) + 2);
+
+			const SpriteGroup *g;
+			for (uint i = 0; ; i++) {
+				g = GetGroupFromGroupID (setid, type, ReadWord (data));
+				if (i == num_ranges) break;
+				data += 2;
+				uint32 low  = ReadVarSize (data, varsize);
+				data += varsize;
+				uint32 high = ReadVarSize (data, varsize);
+				data += varsize;
+				group->set_range (i, g, low, high);
+			}
+
+			group->set_default (g);
 			break;
 		}
 
@@ -4729,25 +4797,26 @@ static int NewSpriteGroup (ByteReader *buf)
 		case 0x83: // Parent scope
 		case 0x84: // Relative scope
 		{
-			assert(RandomizedSpriteGroup::CanAllocateItem());
-			RandomizedSpriteGroup *group = new RandomizedSpriteGroup();
-			act_group = group;
-			group->var_scope = HasBit(type, 1) ? VSG_SCOPE_PARENT : VSG_SCOPE_SELF;
-
+			VarSpriteGroupScope scope = HasBit(type, 1) ? VSG_SCOPE_PARENT : VSG_SCOPE_SELF;
+			byte count;
 			if (HasBit(type, 2)) {
-				if (feature <= GSF_AIRCRAFT) group->var_scope = VSG_SCOPE_RELATIVE;
-				group->count = buf->ReadByte();
+				if (feature <= GSF_AIRCRAFT) scope = VSG_SCOPE_RELATIVE;
+				count = buf->ReadByte();
+			} else {
+				count = 0;
 			}
 
 			uint8 triggers = buf->ReadByte();
-			group->triggers       = GB(triggers, 0, 7);
-			group->cmp_mode       = HasBit(triggers, 7) ? RSG_CMP_ALL : RSG_CMP_ANY;
-			group->lowest_randbit = buf->ReadByte();
-			group->num_groups     = buf->ReadByte();
-			group->groups = xcalloct<const SpriteGroup*>(group->num_groups);
+			uint8 bit      = buf->ReadByte();
+			uint8 num      = buf->ReadByte();
 
-			for (uint i = 0; i < group->num_groups; i++) {
-				group->groups[i] = GetGroupFromGroupID(setid, type, buf->ReadWord());
+			RandomizedSpriteGroup *group = RandomizedSpriteGroup::create (scope,
+					HasBit(triggers, 7), GB(triggers, 0, 7),
+					count, bit, num);
+			act_group = group;
+
+			for (uint i = 0; i < num; i++) {
+				group->set_group (i, GetGroupFromGroupID (setid, type, buf->ReadWord()));
 			}
 
 			break;
@@ -4775,28 +4844,17 @@ static int NewSpriteGroup (ByteReader *buf)
 						return 0;
 					}
 
-					assert(RealSpriteGroup::CanAllocateItem());
-					RealSpriteGroup *group = new RealSpriteGroup();
+					RealSpriteGroup *group = RealSpriteGroup::create (num_loaded, num_loading);
 					act_group = group;
-
-					group->num_loaded  = num_loaded;
-					group->num_loading = num_loading;
-					if (num_loaded  > 0) group->loaded = xcalloct<const SpriteGroup*>(num_loaded);
-					if (num_loading > 0) group->loading = xcalloct<const SpriteGroup*>(num_loading);
 
 					grfmsg(6, "NewSpriteGroup: New SpriteGroup 0x%02X, %u loaded, %u loading",
 							setid, num_loaded, num_loading);
 
-					for (uint i = 0; i < num_loaded; i++) {
+					uint total = (uint)num_loaded + (uint)num_loading;
+					for (uint i = 0; i < total; i++) {
 						uint16 spriteid = buf->ReadWord();
-						group->loaded[i] = CreateGroupFromGroupID(feature, setid, type, spriteid);
-						grfmsg(8, "NewSpriteGroup: + rg->loaded[%i]  = subset %u", i, spriteid);
-					}
-
-					for (uint i = 0; i < num_loading; i++) {
-						uint16 spriteid = buf->ReadWord();
-						group->loading[i] = CreateGroupFromGroupID(feature, setid, type, spriteid);
-						grfmsg(8, "NewSpriteGroup: + rg->loading[%i] = subset %u", i, spriteid);
+						group->set (i, CreateGroupFromGroupID (feature, setid, type, spriteid));
+						grfmsg(8, "NewSpriteGroup: + rg->groups[%i] = subset %u", i, spriteid);
 					}
 
 					break;
@@ -4808,14 +4866,16 @@ static int NewSpriteGroup (ByteReader *buf)
 				case GSF_INDUSTRYTILES: {
 					byte num_building_sprites = max((uint8)1, type);
 
-					assert(TileLayoutSpriteGroup::CanAllocateItem());
-					TileLayoutSpriteGroup *group = new TileLayoutSpriteGroup();
-					act_group = group;
-
 					/* On error, bail out immediately. Temporary GRF data was already freed */
-					if (ReadSpriteLayout(buf, num_building_sprites, true, feature, false, type == 0, &group->dts)) {
+					SpriteLayoutReader reader;
+					if (ReadSpriteLayout (&reader, buf, num_building_sprites, true, feature, false, type == 0)) {
 						return -1;
 					}
+
+					act_group = TileLayoutSpriteGroup::create (reader.ground,
+							reader.num_building_sprites, reader.seq,
+							reader.has_registers ? reader.regs : NULL,
+							reader.consistent_max_offset);
 					break;
 				}
 
@@ -4825,10 +4885,8 @@ static int NewSpriteGroup (ByteReader *buf)
 						break;
 					}
 
-					assert(IndustryProductionSpriteGroup::CanAllocateItem());
-					IndustryProductionSpriteGroup *group = new IndustryProductionSpriteGroup();
+					IndustryProductionSpriteGroup *group = IndustryProductionSpriteGroup::create (type);
 					act_group = group;
-					group->version = type;
 					if (type == 0) {
 						for (uint i = 0; i < 3; i++) {
 							group->subtract_input[i] = (int16)buf->ReadWord(); // signed
@@ -4836,7 +4894,6 @@ static int NewSpriteGroup (ByteReader *buf)
 						for (uint i = 0; i < 2; i++) {
 							group->add_output[i] = buf->ReadWord(); // unsigned
 						}
-						group->again = buf->ReadByte();
 					} else {
 						for (uint i = 0; i < 3; i++) {
 							group->subtract_input[i] = buf->ReadByte();
@@ -4844,8 +4901,8 @@ static int NewSpriteGroup (ByteReader *buf)
 						for (uint i = 0; i < 2; i++) {
 							group->add_output[i] = buf->ReadByte();
 						}
-						group->again = buf->ReadByte();
 					}
+					group->again = buf->ReadByte();
 					break;
 				}
 
@@ -4944,7 +5001,9 @@ static bool VehicleMapSpriteGroup (ByteReader *buf, byte feature, uint8 idcount)
 		}
 	}
 
-	EngineID *engines = AllocaM(EngineID, idcount);
+	EngineID engines[128];
+	assert (idcount < lengthof(engines));
+
 	for (uint i = 0; i < idcount; i++) {
 		Engine *e = GetNewEngine(_cur.grffile, (VehicleType)feature, buf->ReadExtendedByte());
 		if (e == NULL) {
@@ -5005,10 +5064,7 @@ static bool VehicleMapSpriteGroup (ByteReader *buf, byte feature, uint8 idcount)
 
 static void CanalMapSpriteGroup(ByteReader *buf, uint8 idcount)
 {
-	CanalFeature *cfs = AllocaM(CanalFeature, idcount);
-	for (uint i = 0; i < idcount; i++) {
-		cfs[i] = (CanalFeature)buf->ReadByte();
-	}
+	const byte *cfs = buf->GetData (idcount);
 
 	uint8 cidcount = buf->ReadByte();
 	buf->Skip(cidcount * 3);
@@ -5017,7 +5073,7 @@ static void CanalMapSpriteGroup(ByteReader *buf, uint8 idcount)
 	if (!IsValidGroupID(groupid, "CanalMapSpriteGroup")) return;
 
 	for (uint i = 0; i < idcount; i++) {
-		CanalFeature cf = cfs[i];
+		CanalFeature cf = (CanalFeature)cfs[i];
 
 		if (cf >= CF_END) {
 			grfmsg(1, "CanalMapSpriteGroup: Canal subset %d out of range, skipping", cf);
@@ -5032,10 +5088,7 @@ static void CanalMapSpriteGroup(ByteReader *buf, uint8 idcount)
 
 static void StationMapSpriteGroup(ByteReader *buf, uint8 idcount)
 {
-	uint8 *stations = AllocaM(uint8, idcount);
-	for (uint i = 0; i < idcount; i++) {
-		stations[i] = buf->ReadByte();
-	}
+	const byte *stations = buf->GetData (idcount);
 
 	uint8 cidcount = buf->ReadByte();
 	for (uint c = 0; c < cidcount; c++) {
@@ -5088,10 +5141,7 @@ static void StationMapSpriteGroup(ByteReader *buf, uint8 idcount)
 
 static void TownHouseMapSpriteGroup(ByteReader *buf, uint8 idcount)
 {
-	uint8 *houses = AllocaM(uint8, idcount);
-	for (uint i = 0; i < idcount; i++) {
-		houses[i] = buf->ReadByte();
-	}
+	const byte *houses = buf->GetData (idcount);
 
 	/* Skip the cargo type section, we only care about the default group */
 	uint8 cidcount = buf->ReadByte();
@@ -5119,10 +5169,7 @@ static void TownHouseMapSpriteGroup(ByteReader *buf, uint8 idcount)
 
 static void IndustryMapSpriteGroup(ByteReader *buf, uint8 idcount)
 {
-	uint8 *industries = AllocaM(uint8, idcount);
-	for (uint i = 0; i < idcount; i++) {
-		industries[i] = buf->ReadByte();
-	}
+	const byte *industries = buf->GetData (idcount);
 
 	/* Skip the cargo type section, we only care about the default group */
 	uint8 cidcount = buf->ReadByte();
@@ -5150,10 +5197,7 @@ static void IndustryMapSpriteGroup(ByteReader *buf, uint8 idcount)
 
 static void IndustrytileMapSpriteGroup(ByteReader *buf, uint8 idcount)
 {
-	uint8 *indtiles = AllocaM(uint8, idcount);
-	for (uint i = 0; i < idcount; i++) {
-		indtiles[i] = buf->ReadByte();
-	}
+	const byte *indtiles = buf->GetData (idcount);
 
 	/* Skip the cargo type section, we only care about the default group */
 	uint8 cidcount = buf->ReadByte();
@@ -5181,10 +5225,7 @@ static void IndustrytileMapSpriteGroup(ByteReader *buf, uint8 idcount)
 
 static void CargoMapSpriteGroup(ByteReader *buf, uint8 idcount)
 {
-	CargoID *cargoes = AllocaM(CargoID, idcount);
-	for (uint i = 0; i < idcount; i++) {
-		cargoes[i] = buf->ReadByte();
-	}
+	const byte *cargoes = buf->GetData (idcount);
 
 	/* Skip the cargo type section, we only care about the default group */
 	uint8 cidcount = buf->ReadByte();
@@ -5194,7 +5235,7 @@ static void CargoMapSpriteGroup(ByteReader *buf, uint8 idcount)
 	if (!IsValidGroupID(groupid, "CargoMapSpriteGroup")) return;
 
 	for (uint i = 0; i < idcount; i++) {
-		CargoID cid = cargoes[i];
+		CargoID cid = (CargoID)cargoes[i];
 
 		if (cid >= NUM_CARGO) {
 			grfmsg(1, "CargoMapSpriteGroup: Cargo ID %d out of range, skipping", cid);
@@ -5214,10 +5255,7 @@ static void ObjectMapSpriteGroup(ByteReader *buf, uint8 idcount)
 		return;
 	}
 
-	uint8 *objects = AllocaM(uint8, idcount);
-	for (uint i = 0; i < idcount; i++) {
-		objects[i] = buf->ReadByte();
-	}
+	const byte *objects = buf->GetData (idcount);
 
 	uint8 cidcount = buf->ReadByte();
 	for (uint c = 0; c < cidcount; c++) {
@@ -5269,10 +5307,7 @@ static void ObjectMapSpriteGroup(ByteReader *buf, uint8 idcount)
 
 static void RailTypeMapSpriteGroup(ByteReader *buf, uint8 idcount)
 {
-	uint8 *railtypes = AllocaM(uint8, idcount);
-	for (uint i = 0; i < idcount; i++) {
-		railtypes[i] = _cur.grffile->railtype_map[buf->ReadByte()];
-	}
+	const byte *railtypes = buf->GetData (idcount);
 
 	uint8 cidcount = buf->ReadByte();
 	for (uint c = 0; c < cidcount; c++) {
@@ -5284,8 +5319,9 @@ static void RailTypeMapSpriteGroup(ByteReader *buf, uint8 idcount)
 
 		extern RailtypeInfo _railtypes[RAILTYPE_END];
 		for (uint i = 0; i < idcount; i++) {
-			if (railtypes[i] != INVALID_RAILTYPE) {
-				RailtypeInfo *rti = &_railtypes[railtypes[i]];
+			RailType rt = _cur.grffile->railtype_map[railtypes[i]];
+			if (rt != INVALID_RAILTYPE) {
+				RailtypeInfo *rti = &_railtypes[rt];
 
 				rti->grffile[ctype] = _cur.grffile;
 				rti->group[ctype] = _cur.spritegroups[groupid];
@@ -5299,10 +5335,7 @@ static void RailTypeMapSpriteGroup(ByteReader *buf, uint8 idcount)
 
 static void AirportMapSpriteGroup(ByteReader *buf, uint8 idcount)
 {
-	uint8 *airports = AllocaM(uint8, idcount);
-	for (uint i = 0; i < idcount; i++) {
-		airports[i] = buf->ReadByte();
-	}
+	const byte *airports = buf->GetData (idcount);
 
 	/* Skip the cargo type section, we only care about the default group */
 	uint8 cidcount = buf->ReadByte();
@@ -5330,10 +5363,7 @@ static void AirportMapSpriteGroup(ByteReader *buf, uint8 idcount)
 
 static void AirportTileMapSpriteGroup(ByteReader *buf, uint8 idcount)
 {
-	uint8 *airptiles = AllocaM(uint8, idcount);
-	for (uint i = 0; i < idcount; i++) {
-		airptiles[i] = buf->ReadByte();
-	}
+	const byte *airptiles = buf->GetData (idcount);
 
 	/* Skip the cargo type section, we only care about the default group */
 	uint8 cidcount = buf->ReadByte();
@@ -7908,7 +7938,7 @@ static void ResetCustomStations()
 			if (stations[i] == NULL) continue;
 			StationSpec *statspec = stations[i];
 
-			delete[] statspec->renderdata;
+			statspec->renderdata.clear();
 
 			/* Release platforms and layouts */
 			if (!statspec->copied_layouts) {
@@ -8155,7 +8185,7 @@ void ResetNewGRFData()
 	_grf_id_overrides.clear();
 
 	InitializeSoundPool();
-	SpriteGroup::pool.CleanPool();
+	SpriteGroup::clear();
 }
 
 /**

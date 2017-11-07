@@ -383,6 +383,7 @@ video/cocoa/cocoa_v.h
 #end
 
 # Core Source Code
+core/align.h
 core/alloc_func.cpp
 core/alloc_func.hpp
 core/alloc_type.hpp

@@ -14,8 +14,7 @@
 #include "newgrf_spritegroup.h"
 #include "core/pool_func.hpp"
 
-template<> SpriteGroup::Pool SpriteGroup::PoolItem::pool ("SpriteGroup");
-INSTANTIATE_POOL_METHODS(SpriteGroup)
+std::deque <ttd_unique_ptr <SpriteGroup> > SpriteGroup::pool;
 
 TemporaryStorageArray<int32, 0x110> _temp_store;
 
@@ -39,22 +38,6 @@ TemporaryStorageArray<int32, 0x110> _temp_store;
 	return group->Resolve(object);
 }
 
-RealSpriteGroup::~RealSpriteGroup()
-{
-	free(this->loaded);
-	free(this->loading);
-}
-
-DeterministicSpriteGroup::~DeterministicSpriteGroup()
-{
-	free(this->adjusts);
-	free(this->ranges);
-}
-
-RandomizedSpriteGroup::~RandomizedSpriteGroup()
-{
-	free(this->groups);
-}
 
 static inline uint32 GetVariable(const ResolverObject &object, ScopeResolver *scope, byte variable, uint32 parameter, bool *available)
 {
@@ -184,44 +167,46 @@ static uint32 RotateRight(uint32 val, uint32 rot)
 /* Evaluate an adjustment for a variable of the given size.
  * U is the unsigned type and S is the signed type to use. */
 template <typename U, typename S>
-static U EvalAdjustT(const DeterministicSpriteGroupAdjust *adjust, ScopeResolver *scope, U last_value, uint32 value)
+static U EvalAdjustT (const DeterministicSpriteGroup::Adjust *adjust, ScopeResolver *scope, U last_value, uint32 value)
 {
 	value >>= adjust->shift_num;
 	value  &= adjust->and_mask;
 
-	if (adjust->type != DSGA_TYPE_NONE) value += (S)adjust->add_val;
+	if (adjust->type != 0) {
+		value += (S)adjust->add_val;
 
-	switch (adjust->type) {
-		case DSGA_TYPE_DIV:  value = (S)value / (S)adjust->divmod_val; break;
-		case DSGA_TYPE_MOD:  value = (S)value % (S)adjust->divmod_val; break;
-		case DSGA_TYPE_NONE: break;
+		if (adjust->type == 1) {
+			value = (S)value / (S)adjust->divmod_val;
+		} else {
+			value = (S)value % (S)adjust->divmod_val;
+		}
 	}
 
 	switch (adjust->operation) {
-		case DSGA_OP_ADD:  return last_value + value;
-		case DSGA_OP_SUB:  return last_value - value;
-		case DSGA_OP_SMIN: return min((S)last_value, (S)value);
-		case DSGA_OP_SMAX: return max((S)last_value, (S)value);
-		case DSGA_OP_UMIN: return min((U)last_value, (U)value);
-		case DSGA_OP_UMAX: return max((U)last_value, (U)value);
-		case DSGA_OP_SDIV: return value == 0 ? (S)last_value : (S)last_value / (S)value;
-		case DSGA_OP_SMOD: return value == 0 ? (S)last_value : (S)last_value % (S)value;
-		case DSGA_OP_UDIV: return value == 0 ? (U)last_value : (U)last_value / (U)value;
-		case DSGA_OP_UMOD: return value == 0 ? (U)last_value : (U)last_value % (U)value;
-		case DSGA_OP_MUL:  return last_value * value;
-		case DSGA_OP_AND:  return last_value & value;
-		case DSGA_OP_OR:   return last_value | value;
-		case DSGA_OP_XOR:  return last_value ^ value;
-		case DSGA_OP_STO:  _temp_store.StoreValue((U)value, (S)last_value); return last_value;
-		case DSGA_OP_RST:  return value;
-		case DSGA_OP_STOP: scope->StorePSA((U)value, (S)last_value); return last_value;
-		case DSGA_OP_ROR:  return RotateRight(last_value, value);
-		case DSGA_OP_SCMP: return ((S)last_value == (S)value) ? 1 : ((S)last_value < (S)value ? 0 : 2);
-		case DSGA_OP_UCMP: return ((U)last_value == (U)value) ? 1 : ((U)last_value < (U)value ? 0 : 2);
-		case DSGA_OP_SHL:  return (uint32)(U)last_value << ((U)value & 0x1F); // Same behaviour as in ParamSet, mask 'value' to 5 bits, which should behave the same on all architectures.
-		case DSGA_OP_SHR:  return (uint32)(U)last_value >> ((U)value & 0x1F);
-		case DSGA_OP_SAR:  return (int32)(S)last_value >> ((U)value & 0x1F);
-		default:           return value;
+		case  0: return last_value + value;
+		case  1: return last_value - value;
+		case  2: return min ((S)last_value, (S)value);
+		case  3: return max ((S)last_value, (S)value);
+		case  4: return min ((U)last_value, (U)value);
+		case  5: return max ((U)last_value, (U)value);
+		case  6: return value == 0 ? (S)last_value : (S)last_value / (S)value;
+		case  7: return value == 0 ? (S)last_value : (S)last_value % (S)value;
+		case  8: return value == 0 ? (U)last_value : (U)last_value / (U)value;
+		case  9: return value == 0 ? (U)last_value : (U)last_value % (U)value;
+		case 10: return last_value * value;
+		case 11: return last_value & value;
+		case 12: return last_value | value;
+		case 13: return last_value ^ value;
+		case 14: _temp_store.StoreValue ((U)value, (S)last_value); return last_value;
+		case 15: return value;
+		case 16: scope->StorePSA ((U)value, (S)last_value); return last_value;
+		case 17: return RotateRight (last_value, value);
+		case 18: return ((S)last_value == (S)value) ? 1 : ((S)last_value < (S)value ? 0 : 2);
+		case 19: return ((U)last_value == (U)value) ? 1 : ((U)last_value < (U)value ? 0 : 2);
+		case 20: return (uint32)(U)last_value << ((U)value & 0x1F); // Same behaviour as in ParamSet, mask 'value' to 5 bits, which should behave the same on all architectures.
+		case 21: return (uint32)(U)last_value >> ((U)value & 0x1F);
+		case 22: return (int32) (S)last_value >> ((U)value & 0x1F);
+		default: return value;
 	}
 }
 
@@ -235,7 +220,7 @@ const SpriteGroup *DeterministicSpriteGroup::Resolve(ResolverObject &object) con
 	ScopeResolver *scope = object.GetScope(this->var_scope);
 
 	for (i = 0; i < this->num_adjusts; i++) {
-		DeterministicSpriteGroupAdjust *adjust = &this->adjusts[i];
+		Adjust *adjust = &this->adjusts[i];
 
 		/* Try to get the variable. We shall assume it is available, unless told otherwise. */
 		bool available = true;
@@ -248,10 +233,14 @@ const SpriteGroup *DeterministicSpriteGroup::Resolve(ResolverObject &object) con
 			}
 
 			/* Note: 'last_value' and 'reseed' are shared between the main chain and the procedure */
-		} else if (adjust->variable == 0x7B) {
-			value = GetVariable(object, scope, adjust->parameter, last_value, &available);
 		} else {
-			value = GetVariable(object, scope, adjust->variable, adjust->parameter, &available);
+			byte variable = adjust->variable;
+			uint32 parameter = adjust->parameter;
+			if (variable == 0x7B) {
+				variable = parameter;
+				parameter = last_value;
+			}
+			value = GetVariable (object, scope, variable, parameter, &available);
 		}
 
 		if (!available) {
@@ -261,9 +250,9 @@ const SpriteGroup *DeterministicSpriteGroup::Resolve(ResolverObject &object) con
 		}
 
 		switch (this->size) {
-			case DSG_SIZE_BYTE:  value = EvalAdjustT<uint8,  int8> (adjust, scope, last_value, value); break;
-			case DSG_SIZE_WORD:  value = EvalAdjustT<uint16, int16>(adjust, scope, last_value, value); break;
-			case DSG_SIZE_DWORD: value = EvalAdjustT<uint32, int32>(adjust, scope, last_value, value); break;
+			case 0: value = EvalAdjustT<uint8,  int8> (adjust, scope, last_value, value); break;
+			case 1: value = EvalAdjustT<uint16, int16>(adjust, scope, last_value, value); break;
+			case 2: value = EvalAdjustT<uint32, int32>(adjust, scope, last_value, value); break;
 			default: NOT_REACHED();
 		}
 		last_value = value;
@@ -297,7 +286,7 @@ const SpriteGroup *RandomizedSpriteGroup::Resolve(ResolverObject &object) const
 		/* Magic code that may or may not do the right things... */
 		byte waiting_triggers = scope->GetTriggers();
 		byte match = this->triggers & (waiting_triggers | object.trigger);
-		bool res = (this->cmp_mode == RSG_CMP_ANY) ? (match != 0) : (match == this->triggers);
+		bool res = this->cmp_mode ? (match == this->triggers) : (match != 0);
 
 		if (res) {
 			waiting_triggers &= ~match;
@@ -325,24 +314,24 @@ const SpriteGroup *RealSpriteGroup::Resolve(ResolverObject &object) const
  * Process registers and the construction stage into the sprite layout.
  * The passed construction stage might get reset to zero, if it gets incorporated into the layout
  * during the preprocessing.
- * @param [in, out] stage Construction stage (0-3), or NULL if not applicable.
- * @return sprite layout to draw.
+ * @param group Source layout.
+ * @param stage Construction stage (0-3).
  */
-const DrawTileSprites *TileLayoutSpriteGroup::ProcessRegisters(uint8 *stage) const
+TileLayoutSpriteGroup::Result::Result (const TileLayoutSpriteGroup *group, byte stage)
 {
-	if (!this->dts.NeedsPreprocessing()) {
-		if (stage != NULL && this->dts.consistent_max_offset > 0) *stage = GetConstructionStageOffset(*stage, this->dts.consistent_max_offset);
-		return &this->dts;
+	if (!group->dts.NeedsPreprocessing()) {
+		this->seq    = group->dts.seq;
+		this->ground = group->dts.ground;
+		uint n = group->dts.consistent_max_offset;
+		this->stage  = (n > 0) ? GetConstructionStageOffset (stage, n) : 0;
+		return;
 	}
 
-	static DrawTileSprites result;
-	uint8 actual_stage = stage != NULL ? *stage : 0;
-	this->dts.PrepareLayout(0, 0, 0, actual_stage, false);
-	this->dts.ProcessRegisters(0, 0, false);
-	result.seq = this->dts.GetLayout(&result.ground);
+	this->prepare (&group->dts, stage);
+	this->process (&group->dts);
+	this->ground = this->get_ground();
+	this->seq    = this->get_seq();
 
 	/* Stage has been processed by PrepareLayout(), set it to zero. */
-	if (stage != NULL) *stage = 0;
-
-	return &result;
+	this->stage = 0;
 }

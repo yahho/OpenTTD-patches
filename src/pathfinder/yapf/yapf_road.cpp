@@ -63,11 +63,11 @@ static inline bool IsUphill (const RoadPathPos &pos)
 }
 
 /** return one tile cost */
-static int OneTileCost(const YAPFSettings *settings, const RoadPathPos &pos)
+static int OneTileCost (const RoadPathPos &pos)
 {
 	if (!IsDiagonalTrackdir(pos.td)) {
 		/* non-diagonal trackdir */
-		return YAPF_TILE_CORNER_LENGTH + settings->road_curve_penalty;
+		return YAPF_TILE_CORNER_LENGTH + _settings_game.pf.yapf.road_curve_penalty;
 	}
 
 	/* set base cost */
@@ -76,7 +76,7 @@ static int OneTileCost(const YAPFSettings *settings, const RoadPathPos &pos)
 		case TT_MISC:
 			/* Increase the cost for level crossings */
 			if (IsLevelCrossingTile(pos.tile)) {
-				cost += settings->road_crossing_penalty;
+				cost += _settings_game.pf.yapf.road_crossing_penalty;
 			}
 			break;
 
@@ -84,17 +84,17 @@ static int OneTileCost(const YAPFSettings *settings, const RoadPathPos &pos)
 			const RoadStop *rs = RoadStop::GetByTile(pos.tile, GetRoadStopType(pos.tile));
 			if (IsDriveThroughStopTile(pos.tile)) {
 				/* Increase the cost for drive-through road stops */
-				cost += settings->road_stop_penalty;
+				cost += _settings_game.pf.yapf.road_stop_penalty;
 				DiagDirection dir = TrackdirToExitdir(pos.td);
 				if (!RoadStop::IsDriveThroughRoadStopContinuation(pos.tile, pos.tile - TileOffsByDiagDir(dir))) {
 					/* When we're the first road stop in a 'queue' of them we increase
 					 * cost based on the fill percentage of the whole queue. */
 					const RoadStop::Platform *platform = rs->GetPlatform();
-					cost += platform->GetOccupied(dir) * settings->road_stop_occupied_penalty / platform->GetLength();
+					cost += platform->GetOccupied(dir) * _settings_game.pf.yapf.road_stop_occupied_penalty / platform->GetLength();
 				}
 			} else {
 				/* Increase cost for filled road stops */
-				cost += settings->road_stop_bay_occupied_penalty * (!rs->IsFreeBay(0) + !rs->IsFreeBay(1)) / 2;
+				cost += _settings_game.pf.yapf.road_stop_bay_occupied_penalty * (!rs->IsFreeBay(0) + !rs->IsFreeBay(1)) / 2;
 			}
 			break;
 		}
@@ -105,7 +105,7 @@ static int OneTileCost(const YAPFSettings *settings, const RoadPathPos &pos)
 
 	/* add slope cost */
 	if (IsUphill (pos)) {
-		cost += settings->road_slope_penalty;
+		cost += _settings_game.pf.yapf.road_slope_penalty;
 	}
 
 	return cost;
@@ -187,7 +187,6 @@ public:
 	typedef typename TAstar::Node Node; ///< this will be our node type
 
 protected:
-	const YAPFSettings *const m_settings; ///< current settings (_settings_game.yapf)
 	const RoadVehicle  *const m_veh;      ///< vehicle that we are trying to drive
 	const CYapfRoadDest m_dest;           ///< pathfinding destination
 	CFollowTrackRoad    tf;               ///< track follower
@@ -198,10 +197,7 @@ public:
 	 * @param rv The road vehicle to pathfind for
 	 */
 	CYapfRoadT (const RoadVehicle *rv)
-		: m_settings(&_settings_game.pf.yapf)
-		, m_veh(rv)
-		, m_dest(rv)
-		, tf(rv)
+		: m_veh (rv), m_dest (rv), tf (rv)
 	{
 	}
 
@@ -211,10 +207,7 @@ public:
 	 * @param ignored Ignored
 	 */
 	CYapfRoadT (const RoadVehicle *rv, bool ignored)
-		: m_settings(&_settings_game.pf.yapf)
-		, m_veh(rv)
-		, m_dest(rv, true)
-		, tf(rv)
+		: m_veh (rv), m_dest (rv, true), tf (rv)
 	{
 	}
 
@@ -242,7 +235,7 @@ public:
 			bool is_target = false;
 			for (;;) {
 				/* base tile cost depending on distance between edges */
-				segment_cost += OneTileCost (m_settings, tf.m_new);
+				segment_cost += OneTileCost (tf.m_new);
 
 				/* add max speed penalty */
 				int speed_penalty = SpeedPenalty (m_veh, tf.m_new);
@@ -265,7 +258,7 @@ public:
 				}
 
 				/* if there are no reachable trackdirs on new tile, we have end of road */
-				if (!tf.FollowNext()) {
+				if (tf.FollowNext() != CFollowTrackRoad::EC_NONE) {
 					last_tile = tf.m_old.tile;
 					last_dir = TrackdirToExitdir (tf.m_old.td);
 					break;
@@ -319,7 +312,7 @@ public:
 		perf.Start();
 #endif /* !NO_DEBUG_MESSAGES */
 
-		bool bDestFound = TAstar::FindPath (Follow, m_settings->max_search_nodes);
+		bool bDestFound = TAstar::FindPath (Follow, _settings_game.pf.yapf.max_search_nodes);
 
 #ifndef NO_DEBUG_MESSAGES
 		perf.Stop();

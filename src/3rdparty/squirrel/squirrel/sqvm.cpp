@@ -212,7 +212,7 @@ bool SQVM::ObjCmp(const SQObjectPtr &o1,const SQObjectPtr &o2,SQInteger &result)
 					_RET_SUCCEED(_integer(res))
 				}
 			}
-			//continues through (no break needed)
+			FALLTHROUGH;
 		default:
 			_RET_SUCCEED( _userpointer(o1) < _userpointer(o2)?-1:1 );
 		}
@@ -284,6 +284,7 @@ void SQVM::ToString(const SQObjectPtr &o,SQObjectPtr &res)
 				//else keeps going to the default
 			}
 		}
+		FALLTHROUGH;
 	default:
 		bstrfmt (buf, "(%s : 0x%p)", GetTypeName(o), (void*)_rawval(o));
 	}
@@ -534,7 +535,7 @@ bool SQVM::FOREACH_OP(SQObjectPtr &o1,SQObjectPtr &o2,SQObjectPtr
 			_generator(o1)->Resume(this, arg_2+1);
 			_FINISH(0);
 		}
-		/* FALL THROUGH */
+		FALLTHROUGH;
 	default:
 		Raise_Error("cannot iterate %s", GetTypeName(o1));
 	}
@@ -764,7 +765,7 @@ exception_restore:
 					ct_stackbase = _stackbase;
 					goto common_call;
 				}
-				/* FALL THROUGH */
+				FALLTHROUGH;
 			case _OP_CALL: {
 					ct_tailcall = false;
 					ct_target = arg0;
@@ -1325,7 +1326,7 @@ bool SQVM::Set(const SQObjectPtr &self,const SQObjectPtr &key,const SQObjectPtr 
 				return true;
 			}
 		}
-		//keeps going
+		FALLTHROUGH;
 	case OT_USERDATA:
 		if(_delegable(self)->_delegate) {
 			SQObjectPtr t;

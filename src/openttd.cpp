@@ -620,12 +620,12 @@ int openttd_main(int argc, char *argv[])
 				_file_to_saveload.SetName(mgo.opt);
 				bool is_scenario = _switch_mode == SM_EDITOR || _switch_mode == SM_LOAD_SCENARIO;
 				_switch_mode = is_scenario ? SM_LOAD_SCENARIO : SM_LOAD_GAME;
-				_file_to_saveload.SetMode(SLO_LOAD, is_scenario ? FT_SCENARIO : FT_SAVEGAME, DFT_GAME_FILE);
+				_file_to_saveload.SetMode (is_scenario ? FT_SCENARIO : FT_SAVEGAME, DFT_GAME_FILE);
 
 				/* if the file doesn't exist or it is not a valid savegame, let the saveload code show an error */
 				const char *t = strrchr(_file_to_saveload.name, '.');
 				if (t != NULL) {
-					FiosType ft = FiosGetSavegameListCallback(SLO_LOAD, _file_to_saveload.name, t);
+					FiosType ft = FiosGetSavegameListCallback (_file_to_saveload.name, t);
 					if (ft != FIOS_TYPE_INVALID) _file_to_saveload.SetMode(ft);
 				}
 
@@ -646,7 +646,10 @@ int openttd_main(int argc, char *argv[])
 			}
 
 			sstring<80> title;
-			FiosGetSavegameListCallback (SLO_LOAD, mgo.opt, strrchr(mgo.opt, '.'), &title);
+			const char *dot = strrchr (mgo.opt, '.');
+			if (dot != NULL) {
+				FiosGetSavegameListCallback (mgo.opt, dot, &title);
+			}
 
 			_load_check_data.Clear();
 			bool res = LoadGame (mgo.opt, true, false, SAVE_DIR);
@@ -1110,7 +1113,6 @@ void SwitchToMode(SwitchMode new_mode)
 			ResetGRFConfig(true);
 			ResetWindowSystem();
 
-			assert (_file_to_saveload.file_op == SLO_LOAD);
 			if (!SafeLoad (_file_to_saveload.name, _file_to_saveload.detail_ftype, GM_NORMAL, NO_DIRECTORY)) {
 				ShowSaveLoadErrorMessage (false);
 			} else {
@@ -1151,7 +1153,6 @@ void SwitchToMode(SwitchMode new_mode)
 			break;
 
 		case SM_LOAD_SCENARIO: { // Load scenario from scenario editor
-			assert (_file_to_saveload.file_op == SLO_LOAD);
 			if (SafeLoad (_file_to_saveload.name, _file_to_saveload.detail_ftype, GM_EDITOR, NO_DIRECTORY)) {
 				SetLocalCompany(OWNER_NONE);
 				_settings_newgame.game_creation.starting_year = _cur_year;

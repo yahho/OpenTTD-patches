@@ -70,7 +70,7 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 					if (GB(_mc[tile].m5, 4, 2) == 1 && HasBit(_mc[tile].m3, 7)) {
 						_mc[tile].m3 = OWNER_TOWN;
 					}
-					/* FALL THROUGH */
+					FALLTHROUGH;
 
 				case OLD_MP_TUNNELBRIDGE:
 					if (_mc[tile].m1 & 0x80) SB(_mc[tile].m1, 0, 5, OWNER_TOWN);

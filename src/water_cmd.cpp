@@ -66,17 +66,6 @@ static const uint8 _flood_from_dirs[] = {
 };
 
 /**
- * Marks tile dirty if it is a canal or river tile.
- * Called to avoid glitches when flooding tiles next to canal tile.
- *
- * @param tile tile to check
- */
-static inline void MarkTileDirtyIfCanalOrRiver(TileIndex tile)
-{
-	if (IsWaterTile(tile) && (IsCanal(tile) || IsRiver(tile))) MarkTileDirtyByTile(tile);
-}
-
-/**
  * Marks the tiles around a tile as dirty, if they are canals or rivers.
  *
  * @param tile The center of the tile where all other tiles are marked as dirty
@@ -85,7 +74,11 @@ static inline void MarkTileDirtyIfCanalOrRiver(TileIndex tile)
 static void MarkCanalsAndRiversAroundDirty(TileIndex tile)
 {
 	for (Direction dir = DIR_BEGIN; dir < DIR_END; dir++) {
-		MarkTileDirtyIfCanalOrRiver(tile + TileOffsByDir(dir));
+		TileIndex neighbour = tile + TileOffsByDir (dir);
+		if (IsWaterTile (neighbour)
+				&& (IsCanal(neighbour) || IsRiver(neighbour))) {
+			MarkTileDirtyByTile (neighbour);
+		}
 	}
 }
 
@@ -218,9 +211,9 @@ static CommandCost RemoveShipDepot(TileIndex tile, DoCommandFlag flags)
 
 	/* do not check for ship on tile when company goes bankrupt */
 	if (!(flags & DC_BANKRUPT)) {
-		CommandCost ret = EnsureNoVehicleOnGround(tile);
-		if (ret.Succeeded()) ret = EnsureNoVehicleOnGround(tile2);
-		if (ret.Failed()) return ret;
+		StringID str = CheckVehicleOnGround (tile);
+		if (str == STR_NULL) str = CheckVehicleOnGround (tile2);
+		if (str != STR_NULL) return_cmd_error(str);
 	}
 
 	if (flags & DC_EXEC) {
@@ -240,6 +233,20 @@ static CommandCost RemoveShipDepot(TileIndex tile, DoCommandFlag flags)
 }
 
 /**
+ * Ensure there is no vehicle at the ground in the given lock area.
+ * @param tile Central tile of lock area to examine.
+ * @param delta Lock direction.
+ * @return STR_NULL (ground is free) or an error message (a vehicle is found).
+ */
+static StringID CheckLockAreaFree (TileIndex tile, TileIndexDiff delta)
+{
+	StringID str = CheckVehicleOnGround (tile);
+	if (str == STR_NULL) str = CheckVehicleOnGround (tile + delta);
+	if (str == STR_NULL) str = CheckVehicleOnGround (tile - delta);
+	return str;
+}
+
+/**
  * Builds a lock.
  * @param tile tile where to place the lock
  * @param flags type of operation
@@ -256,14 +263,12 @@ CommandCost CmdBuildLock(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32 
 	CommandCost cost(EXPENSES_CONSTRUCTION);
 
 	int delta = TileOffsByDiagDir(dir);
-	CommandCost ret = EnsureNoVehicleOnGround(tile);
-	if (ret.Succeeded()) ret = EnsureNoVehicleOnGround(tile + delta);
-	if (ret.Succeeded()) ret = EnsureNoVehicleOnGround(tile - delta);
-	if (ret.Failed()) return ret;
+	StringID str = CheckLockAreaFree (tile, delta);
+	if (str != STR_NULL) return_cmd_error(str);
 
 	/* middle tile */
 	WaterClass wc_middle = IsPlainWaterTile(tile) ? GetWaterClass(tile) : WATER_CLASS_CANAL;
-	ret = DoCommand(tile, 0, 0, flags, CMD_LANDSCAPE_CLEAR);
+	CommandCost ret = DoCommand (tile, 0, 0, flags, CMD_LANDSCAPE_CLEAR);
 	if (ret.Failed()) return ret;
 	cost.AddCost(ret);
 
@@ -335,10 +340,8 @@ static CommandCost RemoveLock(TileIndex tile, DoCommandFlag flags)
 	TileIndexDiff delta = TileOffsByDiagDir(GetLockDirection(tile));
 
 	/* make sure no vehicle is on the tile. */
-	CommandCost ret = EnsureNoVehicleOnGround(tile);
-	if (ret.Succeeded()) ret = EnsureNoVehicleOnGround(tile + delta);
-	if (ret.Succeeded()) ret = EnsureNoVehicleOnGround(tile - delta);
-	if (ret.Failed()) return ret;
+	StringID str = CheckLockAreaFree (tile, delta);
+	if (str != STR_NULL) return_cmd_error(str);
 
 	if (flags & DC_EXEC) {
 		/* Remove middle part from company infrastructure count. */
@@ -428,7 +431,7 @@ CommandCost CmdBuildCanal(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32
 						MakeSea(tile);
 						break;
 					}
-					/* FALL THROUGH */
+					FALLTHROUGH;
 
 				default:
 					MakeCanal(tile, _current_company, Random());
@@ -466,8 +469,8 @@ static CommandCost ClearTile_Water(TileIndex tile, DoCommandFlag flags)
 			}
 
 			/* Make sure no vehicle is on the tile */
-			CommandCost ret = EnsureNoVehicleOnGround(tile);
-			if (ret.Failed()) return ret;
+			StringID str = CheckVehicleOnGround (tile);
+			if (str != STR_NULL) return_cmd_error(str);
 
 			Owner owner = GetTileOwner(tile);
 			if (owner != OWNER_WATER && owner != OWNER_NONE) {
@@ -491,18 +494,16 @@ static CommandCost ClearTile_Water(TileIndex tile, DoCommandFlag flags)
 			Slope slope = GetTileSlope(tile);
 
 			/* Make sure no vehicle is on the tile */
-			CommandCost ret = EnsureNoVehicleOnGround(tile);
-			if (ret.Failed()) return ret;
+			StringID str = CheckVehicleOnGround (tile);
+			if (str != STR_NULL) return_cmd_error(str);
 
 			if (flags & DC_EXEC) {
 				DoClearSquare(tile);
 				MarkCanalsAndRiversAroundDirty(tile);
 			}
-			if (IsSlopeWithOneCornerRaised(slope)) {
-				return CommandCost(EXPENSES_CONSTRUCTION, _price[PR_CLEAR_WATER]);
-			} else {
-				return CommandCost(EXPENSES_CONSTRUCTION, _price[PR_CLEAR_ROUGH]);
-			}
+			bool half = IsSlopeWithOneCornerRaised (slope);
+			return CommandCost (EXPENSES_CONSTRUCTION,
+				_price[half ? PR_CLEAR_WATER : PR_CLEAR_ROUGH]);
 		}
 
 		case WATER_TILE_DEPOT:
@@ -686,88 +687,9 @@ static void DrawWaterEdges (const TileInfo *ti, bool canal, uint offset)
 
 #include "table/water_land.h"
 
-/**
- * Draw a build sprite sequence for water tiles.
- * If buildings are invisible, nothing will be drawn.
- * @param ti      Tile info.
- * @param dtss     Sprite sequence to draw.
- * @param base    Base sprite.
- * @param offset  Additional sprite offset.
- * @param palette Palette to use.
- */
-static void DrawWaterTileStruct(const TileInfo *ti, const DrawTileSeqStruct *dtss, SpriteID base, uint offset, PaletteID palette, CanalFeature feature)
-{
-	/* Don't draw if buildings are invisible. */
-	if (IsInvisibilitySet(TO_BUILDINGS)) return;
-
-	for (; !dtss->IsTerminator(); dtss++) {
-		uint tile_offs = offset + dtss->image.sprite;
-		if (feature < CF_END) tile_offs = GetCanalSpriteOffset(feature, ti->tile, tile_offs);
-		AddSortableSpriteToDraw (ti->vd, base + tile_offs, palette,
-			ti->x + dtss->delta_x, ti->y + dtss->delta_y,
-			dtss->size_x, dtss->size_y,
-			dtss->size_z, ti->z + dtss->delta_z,
-			IsTransparencySet(TO_BUILDINGS));
-	}
-}
-
-/** Draw a lock tile. */
-static void DrawWaterLock(const TileInfo *ti)
-{
-	uint part = GetWaterTileType (ti->tile) - WATER_TILE_LOCK_MIDDLE;
-	DiagDirection dir = GetLockDirection (ti->tile);
-
-	/* Draw ground sprite. */
-	bool has_flat_water = HasBit(_water_feature[CF_WATERSLOPE].flags, CFF_HAS_FLAT_SPRITE);
-	bool use_default = true;
-	SpriteID image;
-	if (has_flat_water || (part == 0)) {
-		image = GetCanalSprite (CF_WATERSLOPE, ti->tile);
-		if (image != 0) {
-			use_default = false;
-			/* NewGRF supplies a flat sprite as first sprite? */
-			if (part == 0) image += has_flat_water;
-		}
-	}
-
-	if (use_default) {
-		/* Use default sprites. */
-		image = (part != 0) ? SPR_FLAT_WATER_TILE : SPR_CANALS_BASE;
-	}
-
-	static uint8 lock_middle_offset[DIAGDIR_END] = { 1, 0, 2, 3 };
-	if (part == 0) image += lock_middle_offset[dir];
-	DrawGroundSprite (ti, image, PAL_NONE);
-
-	const DrawTileSeqStruct *dts = _lock_display_data[part][dir];
-
-	/* Draw structures. */
-	uint     zoffs = 0;
-	SpriteID base  = GetCanalSprite(CF_LOCKS, ti->tile);
-
-	if (base == 0) {
-		/* If no custom graphics, use defaults. */
-		base = SPR_LOCK_BASE;
-		bool upper = part == (WATER_TILE_LOCK_UPPER - WATER_TILE_LOCK_MIDDLE);
-		uint8 z_threshold = upper ? 8 : 0;
-		zoffs = ti->z > z_threshold ? 24 : 0;
-	}
-
-	DrawWaterTileStruct (ti, dts, base, zoffs, PAL_NONE, CF_LOCKS);
-}
-
-/** Draw a ship depot tile. */
-static void DrawWaterDepot(const TileInfo *ti)
-{
-	DrawWaterClassGround(ti);
-	DrawWaterTileStruct (ti, _shipdepot_display_data[GetShipDepotDirection(ti->tile)],
-			0, 0, COMPANY_SPRITE_COLOUR(GetTileOwner(ti->tile)), CF_END);
-}
-
 static uint DrawRiverWater (const TileInfo *ti)
 {
 	SpriteID image = SPR_FLAT_WATER_TILE;
-	uint     offset = 0;
 	uint     edges_offset = 0;
 
 	if (ti->tileh != SLOPE_FLAT || HasBit(_water_feature[CF_RIVER_SLOPE].flags, CFF_HAS_FLAT_SPRITE)) {
@@ -782,7 +704,7 @@ static uint DrawRiverWater (const TileInfo *ti)
 			}
 		} else {
 			/* Flag bit 0 indicates that the first sprite is flat water. */
-			offset = HasBit(_water_feature[CF_RIVER_SLOPE].flags, CFF_HAS_FLAT_SPRITE) ? 1 : 0;
+			uint offset = HasBit(_water_feature[CF_RIVER_SLOPE].flags, CFF_HAS_FLAT_SPRITE) ? 1 : 0;
 
 			switch (ti->tileh) {
 				case SLOPE_SE:              edges_offset += 12; break;
@@ -792,11 +714,11 @@ static uint DrawRiverWater (const TileInfo *ti)
 				default:       offset  = 0; break;
 			}
 
-			offset = GetCanalSpriteOffset(CF_RIVER_SLOPE, ti->tile, offset);
+			image += GetCanalSpriteOffset (CF_RIVER_SLOPE, ti->tile, offset);
 		}
 	}
 
-	DrawGroundSprite (ti, image + offset, PAL_NONE);
+	DrawGroundSprite (ti, image, PAL_NONE);
 
 	return edges_offset;
 }
@@ -858,25 +780,98 @@ void DrawWaterClassGround(const TileInfo *ti)
 
 static void DrawTile_Water(TileInfo *ti)
 {
-	switch (GetWaterTileType(ti->tile)) {
+	const DrawTileSeqStruct *dts;
+	SpriteID base;
+	uint zoffs;
+	PaletteID palette;
+
+	WaterTileType type = GetWaterTileType (ti->tile);
+	switch (type) {
 		case WATER_TILE_CLEAR:
 			DrawWaterClassGround(ti);
 			DrawBridgeMiddle(ti);
-			break;
+			/* No building sprites. */
+			return;
 
 		case WATER_TILE_COAST: {
 			DrawShoreTile (ti);
 			DrawBridgeMiddle(ti);
-			break;
+			/* No building sprites. */
+			return;
 		}
 
 		case WATER_TILE_DEPOT:
-			DrawWaterDepot(ti);
+			DrawWaterClassGround (ti);
+
+			/* Don't draw if buildings are invisible. */
+			if (IsInvisibilitySet(TO_BUILDINGS)) return;
+
+			dts = _shipdepot_display_data[GetShipDepotDirection(ti->tile)];
+			base = 0;
+			zoffs = 0;
+			palette = COMPANY_SPRITE_COLOUR(GetTileOwner(ti->tile));
 			break;
 
 		default:
-			DrawWaterLock(ti);
+			uint part = type - WATER_TILE_LOCK_MIDDLE;
+			DiagDirection dir = GetLockDirection (ti->tile);
+
+			/* Draw ground sprite. */
+			bool has_flat_water = HasBit(_water_feature[CF_WATERSLOPE].flags, CFF_HAS_FLAT_SPRITE);
+			bool use_default = true;
+			SpriteID image;
+			if (has_flat_water || (part == 0)) {
+				image = GetCanalSprite (CF_WATERSLOPE, ti->tile);
+				if (image != 0) {
+					/* NewGRF supplies a flat sprite as first sprite? */
+					if (part == 0) image += has_flat_water;
+					use_default = false;
+				}
+			}
+
+			if (use_default) {
+				/* Use default sprites. */
+				image = (part != 0) ? SPR_FLAT_WATER_TILE : SPR_CANALS_BASE;
+			}
+
+			static uint8 lock_middle_offset[DIAGDIR_END] = { 1, 0, 2, 3 };
+			if (part == 0) image += lock_middle_offset[dir];
+			DrawGroundSprite (ti, image, PAL_NONE);
+
+			/* Don't draw if buildings are invisible. */
+			if (IsInvisibilitySet(TO_BUILDINGS)) return;
+
+			dts = _lock_display_data[part][dir];
+
+			/* Draw structures. */
+			zoffs = 0;
+			base  = GetCanalSprite (CF_LOCKS, ti->tile);
+
+			if (base == 0) {
+				/* If no custom graphics, use defaults. */
+				base = SPR_LOCK_BASE;
+				bool upper = part == (WATER_TILE_LOCK_UPPER - WATER_TILE_LOCK_MIDDLE);
+				uint8 z_threshold = upper ? 8 : 0;
+				zoffs = ti->z > z_threshold ? 24 : 0;
+			}
+
+			assert (base != 0);
+
+			palette = PAL_NONE;
 			break;
+	}
+
+	for (; !dts->IsTerminator(); dts++) {
+		SpriteID image = dts->image.sprite;
+		if (base != 0) {
+			image = base + GetCanalSpriteOffset (CF_LOCKS,
+						ti->tile, image + zoffs);
+		}
+		AddSortableSpriteToDraw (ti->vd, image, palette,
+				ti->x + dts->delta_x, ti->y + dts->delta_y,
+				dts->size_x, dts->size_y, dts->size_z,
+				ti->z + dts->delta_z,
+				IsTransparencySet(TO_BUILDINGS));
 	}
 }
 
@@ -1028,7 +1023,7 @@ FloodingBehaviour GetFloodingBehaviour(TileIndex tile)
 				Slope tileh = GetTileSlope(tile);
 				return (IsSlopeWithOneCornerRaised(tileh) ? FLOOD_ACTIVE : FLOOD_DRYUP);
 			}
-			/* FALL THROUGH */
+			FALLTHROUGH;
 		case TT_STATION:
 		case TT_OBJECT:
 			return (GetWaterClass(tile) == WATER_CLASS_SEA) ? FLOOD_ACTIVE : FLOOD_NONE;

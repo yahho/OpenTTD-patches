@@ -494,7 +494,7 @@ uint16 GetHouseCallback (CallbackID callback, uint32 param1, uint32 param2, Hous
 
 static void DrawTileLayout(const TileInfo *ti, const TileLayoutSpriteGroup *group, byte stage, HouseID house_id)
 {
-	const DrawTileSprites *dts = group->ProcessRegisters(&stage);
+	TileLayoutSpriteGroup::Result result (group, stage);
 
 	const HouseSpec *hs = HouseSpec::Get(house_id);
 	PaletteID palette = hs->random_colour[TileHash2Bit(ti->x, ti->y)] + PALETTE_RECOLOUR_START;
@@ -506,24 +506,23 @@ static void DrawTileLayout(const TileInfo *ti, const TileLayoutSpriteGroup *grou
 		}
 	}
 
-	SpriteID image = dts->ground.sprite;
-	PaletteID pal  = dts->ground.pal;
+	SpriteID image = result.ground.sprite;
+	PaletteID pal  = result.ground.pal;
 
-	if (HasBit(image, SPRITE_MODIFIER_CUSTOM_SPRITE)) image += stage;
-	if (HasBit(pal, SPRITE_MODIFIER_CUSTOM_SPRITE)) pal += stage;
+	if (HasBit(image, SPRITE_MODIFIER_CUSTOM_SPRITE)) image += result.stage;
+	if (HasBit(pal, SPRITE_MODIFIER_CUSTOM_SPRITE)) pal += result.stage;
 
 	if (GB(image, 0, SPRITE_WIDTH) != 0) {
 		DrawGroundSprite (ti, image, GroundSpritePaletteTransform(image, pal, palette));
 	}
 
-	DrawNewGRFTileSeq (ti, dts->seq, TO_HOUSES, stage, palette);
+	DrawNewGRFTileSeq (ti, result.seq, TO_HOUSES, result.stage, palette);
 }
 
 static void DrawTileLayoutInGUI (BlitArea *dpi, int x, int y,
 	const TileLayoutSpriteGroup *group, HouseID house_id, bool ground)
 {
-	byte stage = TOWN_HOUSE_COMPLETED;
-	const DrawTileSprites *dts = group->ProcessRegisters(&stage);
+	TileLayoutSpriteGroup::Result result (group, TOWN_HOUSE_COMPLETED);
 
 	const HouseSpec *hs = HouseSpec::Get(house_id);
 	PaletteID palette = hs->random_colour[0] + PALETTE_RECOLOUR_START;
@@ -536,15 +535,15 @@ static void DrawTileLayoutInGUI (BlitArea *dpi, int x, int y,
 	}
 
 	if (ground) {
-		PalSpriteID image = dts->ground;
-		if (HasBit(image.sprite, SPRITE_MODIFIER_CUSTOM_SPRITE)) image.sprite += stage;
-		if (HasBit(image.pal, SPRITE_MODIFIER_CUSTOM_SPRITE)) image.pal += stage;
+		PalSpriteID image = result.ground;
+		if (HasBit(image.sprite, SPRITE_MODIFIER_CUSTOM_SPRITE)) image.sprite += result.stage;
+		if (HasBit(image.pal, SPRITE_MODIFIER_CUSTOM_SPRITE)) image.pal += result.stage;
 
 		if (GB(image.sprite, 0, SPRITE_WIDTH) != 0) {
 			DrawSprite (dpi, image.sprite, GroundSpritePaletteTransform (image.sprite, image.pal, palette), x, y);
 		}
 	} else {
-		DrawNewGRFTileSeqInGUI (dpi, x, y, dts->seq, stage, palette);
+		DrawNewGRFTileSeqInGUI (dpi, x, y, result.seq, result.stage, palette);
 	}
 }
 
@@ -566,7 +565,7 @@ void DrawNewHouseTile(TileInfo *ti, HouseID house_id)
 	HouseResolverObject object(house_id, ti->tile, Town::GetByTile(ti->tile));
 
 	const SpriteGroup *group = object.Resolve();
-	if (group != NULL && group->type == SGT_TILELAYOUT) {
+	if (group != NULL && group->IsType (SGT_TILELAYOUT)) {
 		/* Limit the building stage to the number of stages supplied. */
 		const TileLayoutSpriteGroup *tlgroup = (const TileLayoutSpriteGroup *)group;
 		byte stage = GetHouseBuildingStage(ti->tile);
@@ -577,24 +576,24 @@ void DrawNewHouseTile(TileInfo *ti, HouseID house_id)
 void DrawNewHouseTileInGUI (BlitArea *dpi, int x, int y, HouseID house_id, bool ground)
 {
 	const SpriteGroup *group = FakeHouseResolve (house_id);
-	if (group != NULL && group->type == SGT_TILELAYOUT) {
+	if (group != NULL && group->IsType (SGT_TILELAYOUT)) {
 		DrawTileLayoutInGUI (dpi, x, y, (const TileLayoutSpriteGroup*)group, house_id, ground);
 	}
 }
 
-/* Simple wrapper for GetHouseCallback to keep the animation unified. */
-uint16 GetSimpleHouseCallback(CallbackID callback, uint32 param1, uint32 param2, const HouseSpec *spec, Town *town, TileIndex tile, uint32 extra_data)
-{
-	return GetHouseCallback(callback, param1, param2, spec - HouseSpec::Get(0), town, tile, false, 0, extra_data);
-}
-
 /** Helper class for animation control. */
-struct HouseAnimationBase : public AnimationBase<HouseAnimationBase, HouseSpec, Town, uint32, GetSimpleHouseCallback> {
+struct HouseAnimationBase {
 	static const CallbackID cb_animation_speed      = CBID_HOUSE_ANIMATION_SPEED;
 	static const CallbackID cb_animation_next_frame = CBID_HOUSE_ANIMATION_NEXT_FRAME;
 
 	static const HouseCallbackMask cbm_animation_speed      = CBM_HOUSE_ANIMATION_SPEED;
 	static const HouseCallbackMask cbm_animation_next_frame = CBM_HOUSE_ANIMATION_NEXT_FRAME;
+
+	/** Callback wrapper for animation control. */
+	static uint16 get_callback (CallbackID callback, uint32 param1, uint32 param2, const HouseSpec *spec, Town *town, TileIndex tile)
+	{
+		return GetHouseCallback (callback, param1, param2, spec - HouseSpec::Get(0), town, tile, false, 0, 0);
+	}
 };
 
 void AnimateNewHouseTile(TileIndex tile)
@@ -602,15 +601,18 @@ void AnimateNewHouseTile(TileIndex tile)
 	const HouseSpec *hs = HouseSpec::Get(GetHouseType(tile));
 	if (hs == NULL) return;
 
-	HouseAnimationBase::AnimateTile(hs, Town::GetByTile(tile), tile, HasBit(hs->extra_flags, CALLBACK_1A_RANDOM_BITS));
+	AnimationBase::AnimateTile <HouseAnimationBase> (hs, Town::GetByTile(tile), tile, HasBit(hs->extra_flags, CALLBACK_1A_RANDOM_BITS));
 }
 
 void AnimateNewHouseConstruction(TileIndex tile)
 {
-	const HouseSpec *hs = HouseSpec::Get(GetHouseType(tile));
+	HouseID id = GetHouseType (tile);
+	const HouseSpec *hs = HouseSpec::Get (id);
 
 	if (HasBit(hs->callback_mask, CBM_HOUSE_CONSTRUCTION_STATE_CHANGE)) {
-		HouseAnimationBase::ChangeAnimationFrame(CBID_HOUSE_CONSTRUCTION_STATE_CHANGE, hs, Town::GetByTile(tile), tile, 0, 0);
+		uint16 callback = GetHouseCallback (CBID_HOUSE_CONSTRUCTION_STATE_CHANGE,
+					0, 0, id, Town::GetByTile(tile), tile, false, 0, 0);
+		AnimationBase::ChangeAnimationFrame (hs, tile, callback);
 	}
 }
 
@@ -634,11 +636,14 @@ bool CanDeleteHouse(TileIndex tile)
 
 static void AnimationControl(TileIndex tile, uint16 random_bits)
 {
-	const HouseSpec *hs = HouseSpec::Get(GetHouseType(tile));
+	HouseID id = GetHouseType (tile);
+	const HouseSpec *hs = HouseSpec::Get (id);
 
 	if (HasBit(hs->callback_mask, CBM_HOUSE_ANIMATION_START_STOP)) {
 		uint32 param = (hs->extra_flags & SYNCHRONISED_CALLBACK_1B) ? (GB(Random(), 0, 16) | random_bits << 16) : Random();
-		HouseAnimationBase::ChangeAnimationFrame(CBID_HOUSE_ANIMATION_START_STOP, hs, Town::GetByTile(tile), tile, param, 0);
+		uint16 callback = GetHouseCallback (CBID_HOUSE_ANIMATION_START_STOP,
+					param, 0, id, Town::GetByTile(tile), tile, false, 0, 0);
+		AnimationBase::ChangeAnimationFrame (hs, tile, callback);
 	}
 }
 
@@ -743,7 +748,12 @@ void DoWatchedCargoCallback(TileIndex tile, TileIndex origin, uint32 trigger_car
 {
 	CoordDiff diff = TileCoordDiff(origin, tile);
 	uint32 cb_info = random << 16 | (uint8)diff.y << 8 | (uint8)diff.x;
-	HouseAnimationBase::ChangeAnimationFrame(CBID_HOUSE_WATCHED_CARGO_ACCEPTED, HouseSpec::Get(GetHouseType(tile)), Town::GetByTile(tile), tile, 0, cb_info, trigger_cargoes);
+	HouseID id = GetHouseType (tile);
+	uint16 callback = GetHouseCallback (CBID_HOUSE_WATCHED_CARGO_ACCEPTED,
+					0, cb_info, id, Town::GetByTile(tile),
+					tile, false, 0, trigger_cargoes);
+	const HouseSpec *hs = HouseSpec::Get (id);
+	AnimationBase::ChangeAnimationFrame (hs, tile, callback);
 }
 
 /**

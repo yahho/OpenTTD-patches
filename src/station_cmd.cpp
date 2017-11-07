@@ -554,8 +554,8 @@ CommandCost CheckBuildableTile (TileIndex tile, uint invalid_dirs,
 		return_cmd_error(STR_ERROR_MUST_DEMOLISH_BRIDGE_FIRST);
 	}
 
-	CommandCost ret = EnsureNoVehicleOnGround(tile);
-	if (ret.Failed()) return ret;
+	StringID str = CheckVehicleOnGround (tile);
+	if (str != STR_NULL) return_cmd_error(str);
 
 	/* Prohibit building if
 	 *   1) The tile is "steep" (i.e. stretches two height levels).
@@ -639,7 +639,7 @@ static CommandCost CheckFlatLandRailStation (TileArea tile_area,
 
 		if (slope_cb) {
 			/* Do slope check if requested. */
-			ret = PerformStationTileSlopeCheck(tile_area.tile, tile_cur, statspec, axis, plat_len, numtracks);
+			ret = PerformStationTileSlopeCheck (tile_area.tile, tile_cur, statspec, rt, axis, plat_len, numtracks);
 			if (ret.Failed()) return ret;
 		}
 
@@ -804,17 +804,20 @@ static CommandCost CheckFlatLandRoadStop(TileArea tile_area, DoCommandFlag flags
 
 /**
  * Checks if an airport can be built at the given area.
- * @param tile_area Area to check.
+ * @param airport_tile Airport reference tile.
+ * @param att Airport tile table.
  * @param flags Operation to perform.
  * @param station StationID of airport allowed in search area.
  * @return The cost in case of success, or an error code if it failed.
  */
-static CommandCost CheckFlatLandAirport(TileArea tile_area, DoCommandFlag flags, StationID *station)
+static CommandCost CheckFlatLandAirport (TileIndex airport_tile,
+	const AirportTileTable *att, DoCommandFlag flags, StationID *station)
 {
 	CommandCost cost(EXPENSES_CONSTRUCTION);
 	int allowed_z = -1;
 
-	TILE_AREA_LOOP(tile_cur, tile_area) {
+	for (AirportTileTableIterator iter (att, airport_tile); iter != INVALID_TILE; ++iter) {
+		TileIndex tile_cur = iter;
 		CommandCost ret = CheckBuildableTile(tile_cur, 0, allowed_z, true);
 		if (ret.Failed()) return ret;
 		cost.AddCost(ret);
@@ -1221,7 +1224,7 @@ CommandCost CmdBuildRailStation(TileIndex tile_org, DoCommandFlag flags, uint32 
 
 		/* Check if the station is buildable */
 		if (HasBit(statspec->callback_mask, CBM_STATION_AVAIL)) {
-			uint16 cb_res = GetStationCallback(CBID_STATION_AVAILABILITY, 0, 0, statspec, NULL, INVALID_TILE);
+			uint16 cb_res = GetStationCallback (CBID_STATION_AVAILABILITY, 0, 0, statspec, rt);
 			if (cb_res != CALLBACK_FAILED && !Convert8bitBooleanCallback(statspec->grf_prop.grffile, CBID_STATION_AVAILABILITY, cb_res)) return CMD_ERROR;
 		}
 	}
@@ -1278,11 +1281,10 @@ CommandCost CmdBuildRailStation(TileIndex tile_org, DoCommandFlag flags, uint32 
 				c->infrastructure.station++;
 
 				if (statspec != NULL) {
-					/* Use a fixed axis for GetPlatformInfo as our platforms / numtracks are always the right way around */
-					uint32 platinfo = GetPlatformInfo (AXIS_X, GetStationGfx(tile), plat_len, numtracks, j, i, false);
+					uint32 platinfo = GetPlatformInfo (GetStationGfx(tile), numtracks, plat_len, i, j, false);
 
 					/* As the station is not yet completely finished, the station does not yet exist. */
-					uint16 callback = GetStationCallback(CBID_STATION_TILE_LAYOUT, platinfo, 0, statspec, NULL, tile);
+					uint16 callback = GetStationCallback (CBID_STATION_TILE_LAYOUT, platinfo, 0, statspec, rt, tile);
 					if (callback != CALLBACK_FAILED) {
 						if (callback < 8) {
 							SetStationGfx(tile, (callback & ~1) + axis);
@@ -1383,9 +1385,11 @@ static CommandCost RemoveFromRailBaseStation (TileIndex start,
 		if (!HasStationTileRail(tile)) continue;
 
 		/* If there is a vehicle on ground, do not allow to remove (flood) the tile */
-		CommandCost ret = EnsureNoVehicleOnGround(tile);
-		error.AddCost(ret);
-		if (ret.Failed()) continue;
+		StringID str = CheckVehicleOnGround (tile);
+		if (str != STR_NULL) {
+			error.AddCost (CommandCost (str));
+			continue;
+		}
 
 		/* Check ownership of station */
 		BaseStation *st = BaseStation::GetByTile (tile);
@@ -1535,8 +1539,8 @@ static CommandCost RemoveRailStation (BaseStation *st, DoCommandFlag flags,
 		/* only remove tiles that are actually train station tiles */
 		if (!st->TileBelongsToRailStation(tile)) continue;
 
-		CommandCost ret = EnsureNoVehicleOnGround(tile);
-		if (ret.Failed()) return ret;
+		StringID str = CheckVehicleOnGround (tile);
+		if (str != STR_NULL) return_cmd_error(str);
 
 		cost.AddCost(removal_cost);
 		if (flags & DC_EXEC) {
@@ -1816,8 +1820,8 @@ static CommandCost RemoveRoadStop(TileIndex tile, DoCommandFlag flags)
 			}
 		}
 	} else {
-		CommandCost ret = EnsureNoVehicleOnGround(tile);
-		if (ret.Failed()) return ret;
+		StringID str = CheckVehicleOnGround (tile);
+		if (str != STR_NULL) return_cmd_error(str);
 	}
 
 	if (flags & DC_EXEC) {
@@ -2081,8 +2085,8 @@ static CommandCost CanRemoveAirport(Station *st, DoCommandFlag flags)
 	TILE_AREA_LOOP(tile_cur, st->airport) {
 		if (!st->TileBelongsToAirport(tile_cur)) continue;
 
-		CommandCost ret = EnsureNoVehicleOnGround(tile_cur);
-		if (ret.Failed()) return ret;
+		StringID str = CheckVehicleOnGround (tile_cur);
+		if (str != STR_NULL) return_cmd_error(str);
 
 		cost.AddCost(_price[PR_CLEAR_STATION_AIRPORT]);
 	}
@@ -2090,6 +2094,27 @@ static CommandCost CanRemoveAirport(Station *st, DoCommandFlag flags)
 	return cost;
 }
 
+/** Clear the map area of an airport and delete related windows. */
+static void ClearAirportArea (Station *st)
+{
+	for (uint i = 0; i < st->airport.GetNumHangars(); ++i) {
+		TileIndex tile = st->airport.GetHangarTile (i);
+		DeleteWindowById (WC_VEHICLE_DEPOT, tile);
+		OrderBackup::Reset (tile, false);
+	}
+
+	TILE_AREA_LOOP(tile, st->airport) {
+		if (st->TileBelongsToAirport (tile)) {
+			DeleteAnimatedTile (tile);
+			DoClearSquare (tile);
+			DeleteNewGRFInspectWindow (GSF_AIRPORTTILES, tile);
+		}
+	}
+
+	/* Clear the persistent storage. */
+	delete st->airport.psa;
+	st->airport.psa = NULL;
+}
 
 /**
  * Place an Airport.
@@ -2123,20 +2148,22 @@ CommandCost CmdBuildAirport(TileIndex tile, DoCommandFlag flags, uint32 p1, uint
 	int w = as->size_x;
 	int h = as->size_y;
 	if (rotation == DIR_E || rotation == DIR_W) Swap(w, h);
-	TileArea airport_area = TileArea(tile, w, h);
 
 	if (w > _settings_game.station.station_spread || h > _settings_game.station.station_spread) {
 		return_cmd_error(STR_ERROR_STATION_TOO_SPREAD_OUT);
 	}
 
 	StationID est = INVALID_STATION;
-	CommandCost cost = CheckFlatLandAirport(airport_area, flags, &est);
+	CommandCost cost = CheckFlatLandAirport (tile, as->table[layout],
+						flags, &est);
 	if (cost.Failed()) return cost;
 
 	Station *st = NULL;
-	ret = BuildStationPart (&st, airport_area, est, station_to_join,
-			HasBit (p2, 0), STR_ERROR_MUST_DEMOLISH_AIRPORT_FIRST,
-			flags, (GetAirport(airport_type)->flags & AirportFTAClass::AIRPLANES) ? STATIONNAMING_AIRPORT : STATIONNAMING_HELIPORT);
+	ret = BuildStationPart (&st, TileArea (tile, w, h), est,
+			station_to_join, HasBit (p2, 0),
+			STR_ERROR_MUST_DEMOLISH_AIRPORT_FIRST, flags,
+			(GetAirport(airport_type)->flags & AirportFTAClass::AIRPLANES) ?
+				STATIONNAMING_AIRPORT : STATIONNAMING_HELIPORT);
 	if (ret.Failed()) return ret;
 
 	/* action to be performed */
@@ -2216,18 +2243,7 @@ CommandCost CmdBuildAirport(TileIndex tile, DoCommandFlag flags, uint32 p1, uint
 				}
 			}
 
-			TILE_AREA_LOOP(tile_cur, st->airport) {
-				if (IsHangarTile(tile_cur)) OrderBackup::Reset(tile_cur, false);
-				DeleteAnimatedTile(tile_cur);
-				DoClearSquare(tile_cur);
-				DeleteNewGRFInspectWindow(GSF_AIRPORTTILES, tile_cur);
-			}
-
-			for (uint i = 0; i < st->airport.GetNumHangars(); ++i) {
-				DeleteWindowById(
-					WC_VEHICLE_DEPOT, st->airport.GetHangarTile(i)
-				);
-			}
+			ClearAirportArea (st);
 
 			st->AfterRemoveRect(st->airport);
 			st->airport.Clear();
@@ -2307,21 +2323,7 @@ static CommandCost RemoveAirport(TileIndex tile, DoCommandFlag flags)
 		Town *nearest = AirportGetNearestTown (as, st->airport.layout, st->airport.tile);
 		nearest->noise_reached -= GetAirportNoiseLevelForTown (as, st->airport.layout, st->airport.tile, nearest->xy);
 
-		TILE_AREA_LOOP(tile_cur, st->airport) {
-			if (IsHangarTile(tile_cur)) OrderBackup::Reset(tile_cur, false);
-			DeleteAnimatedTile(tile_cur);
-			DoClearSquare(tile_cur);
-			DeleteNewGRFInspectWindow(GSF_AIRPORTTILES, tile_cur);
-		}
-
-		/* Clear the persistent storage. */
-		delete st->airport.psa;
-
-		for (uint i = 0; i < st->airport.GetNumHangars(); ++i) {
-			DeleteWindowById(
-				WC_VEHICLE_DEPOT, st->airport.GetHangarTile(i)
-			);
-		}
+		ClearAirportArea (st);
 
 		st->AfterRemoveRect(st->airport);
 
@@ -2546,9 +2548,9 @@ static CommandCost RemoveDock(TileIndex tile, DoCommandFlag flags)
 		d = &(*d)->next;
 	}
 
-	ret = EnsureNoVehicleOnGround(tile1);
-	if (ret.Succeeded() && tile2 != INVALID_TILE) ret = EnsureNoVehicleOnGround(tile2);
-	if (ret.Failed()) return ret;
+	StringID str = CheckVehicleOnGround (tile1);
+	if (str == STR_NULL && tile2 != INVALID_TILE) str = CheckVehicleOnGround (tile2);
+	if (str != STR_NULL) return_cmd_error(str);
 
 	if (flags & DC_EXEC) {
 		TileIndex docking_location = GetDockingTile(tile1);
@@ -2613,60 +2615,66 @@ const DrawTileSprites *GetDefaultStationTileLayout (void)
 }
 
 /**
- * Check whether a sprite is a track sprite, which can be replaced by a non-track ground sprite and a rail overlay.
- * If the ground sprite is suitable, \a ground is replaced with the new non-track ground sprite, and \a overlay_offset
- * is set to the overlay to draw.
- * @param          ti             Positional info for the tile to decide snowyness etc. May be NULL.
+ * Check whether a sprite is a track sprite that can be replaced by a non-track
+ * ground sprite and a rail overlay. If the ground sprite is suitable,
+ * \a ground is replaced with the new non-track ground sprite, and
+ * \a overlay_offset is set to the overlay to draw.
  * @param [in,out] ground         Groundsprite to draw.
  * @param [out]    overlay_offset Overlay to draw.
  * @return true if overlay can be drawn.
  */
-bool SplitGroundSpriteForOverlay(const TileInfo *ti, SpriteID *ground, RailTrackOffset *overlay_offset)
+bool SplitGroundSpriteForOverlay (SpriteID *ground, RailTrackOffset *overlay_offset)
 {
-	bool snow_desert;
 	switch (*ground) {
 		case SPR_RAIL_TRACK_X:
-			snow_desert = false;
+			*ground = SPR_FLAT_GRASS_TILE;
 			*overlay_offset = RTO_X;
-			break;
+			return true;
 
 		case SPR_RAIL_TRACK_Y:
-			snow_desert = false;
+			*ground = SPR_FLAT_GRASS_TILE;
 			*overlay_offset = RTO_Y;
-			break;
+			return true;
 
 		case SPR_RAIL_TRACK_X_SNOW:
-			snow_desert = true;
+			*ground = SPR_FLAT_SNOW_DESERT_TILE;
 			*overlay_offset = RTO_X;
-			break;
+			return true;
 
 		case SPR_RAIL_TRACK_Y_SNOW:
-			snow_desert = true;
+			*ground = SPR_FLAT_SNOW_DESERT_TILE;
 			*overlay_offset = RTO_Y;
-			break;
+			return true;
 
 		default:
 			return false;
 	}
+}
 
-	if (ti != NULL) {
-		/* Decide snow/desert from tile */
-		switch (_settings_game.game_creation.landscape) {
-			case LT_ARCTIC:
-				snow_desert = (uint)ti->z > GetSnowLine() * TILE_HEIGHT;
-				break;
+/**
+ * Get the ground sprite to use for an overlay depending on landscape.
+ * @param          ti     Positional info for the tile to decide snowyness etc.
+ * @param [in,out] ground Groundsprite to draw.
+ */
+static void AdjustGroundSpriteForOverlay (const TileInfo *ti, SpriteID *ground)
+{
+	bool snow_desert;
 
-			case LT_TROPIC:
-				snow_desert = GetTropicZone(ti->tile) == TROPICZONE_DESERT;
-				break;
+	/* Decide snow/desert from tile */
+	switch (_settings_game.game_creation.landscape) {
+		case LT_ARCTIC:
+			snow_desert = (uint)ti->z > GetSnowLine() * TILE_HEIGHT;
+			break;
 
-			default:
-				break;
-		}
+		case LT_TROPIC:
+			snow_desert = GetTropicZone(ti->tile) == TROPICZONE_DESERT;
+			break;
+
+		default:
+			return;
 	}
 
 	*ground = snow_desert ? SPR_FLAT_SNOW_DESERT_TILE : SPR_FLAT_GRASS_TILE;
-	return true;
 }
 
 static void DrawTile_Airport (TileInfo *ti)
@@ -2817,8 +2825,9 @@ static void DrawTile_RailStation (TileInfo *ti)
 			}
 
 			/* Ensure the chosen tile layout is valid for this custom station */
-			if (statspec->renderdata != NULL) {
-				layout = &statspec->renderdata[tile_layout < statspec->tiles ? tile_layout : (uint)GetRailStationAxis(ti->tile)];
+			if (!statspec->renderdata.empty()) {
+				uint i = (tile_layout < statspec->renderdata.size()) ? tile_layout : (uint)GetRailStationAxis(ti->tile);
+				layout = statspec->renderdata[i].get();
 				if (!layout->NeedsPreprocessing()) {
 					t = layout;
 					layout = NULL;
@@ -2844,18 +2853,20 @@ static void DrawTile_RailStation (TileInfo *ti)
 	uint32 relocation = 0;
 	uint32 ground_relocation = 0;
 
+	NewGRFSpriteLayout::Result result;
 	PalSpriteID ground;
 	const DrawTileSeqStruct *seq;
 	if (layout != NULL) {
 		/* Sprite layout which needs preprocessing */
 		bool separate_ground = HasBit(statspec->flags, SSF_SEPARATE_GROUND);
-		uint32 var10_values = layout->PrepareLayout (total_offset, rti->fallback_railtype, 0, 0, separate_ground);
+		uint32 var10_values = result.prepare (layout, 0, total_offset, rti->fallback_railtype, separate_ground);
 		uint8 var10;
 		FOR_EACH_SET_BIT(var10, var10_values) {
 			uint32 var10_relocation = GetCustomStationRelocation (statspec, st, ti->tile, var10);
-			layout->ProcessRegisters (var10, var10_relocation, separate_ground);
+			result.process (layout, var10, var10_relocation, separate_ground);
 		}
-		seq = layout->GetLayout (&ground);
+		ground = result.get_ground();
+		seq = result.get_seq();
 		total_offset = 0;
 	} else {
 		ground = t->ground;
@@ -2877,7 +2888,8 @@ static void DrawTile_RailStation (TileInfo *ti)
 	SpriteID image = ground.sprite;
 	PaletteID pal  = ground.pal;
 	RailTrackOffset overlay_offset;
-	if (rti->UsesOverlay() && SplitGroundSpriteForOverlay (ti, &image, &overlay_offset)) {
+	if (rti->UsesOverlay() && SplitGroundSpriteForOverlay (&image, &overlay_offset)) {
+		AdjustGroundSpriteForOverlay (ti, &image);
 		SpriteID ground = GetCustomRailSprite (rti, ti->tile, RTSG_GROUND);
 		DrawGroundSprite (ti, image, PAL_NONE);
 		DrawGroundSprite (ti, ground + overlay_offset, PAL_NONE);
@@ -3202,7 +3214,8 @@ static void TileLoop_Station(TileIndex tile)
 
 		case STATION_DOCK:
 			if (!IsTileFlat(tile)) break; // only handle water part
-			/* FALL THROUGH */
+			FALLTHROUGH;
+
 		case STATION_OILRIG: //(station part)
 		case STATION_BUOY:
 			TileLoop_Water(tile);

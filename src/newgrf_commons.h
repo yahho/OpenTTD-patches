@@ -76,15 +76,20 @@ DECLARE_ENUM_AS_BIT_SET(TileLayoutFlags)
  */
 static inline uint GetConstructionStageOffset(uint construction_stage, uint num_sprites)
 {
+	/* If there is only one sprite, use it for all stages.
+	 * If there are two sprites, use the second one for stage 3.
+	 * If there are three sprites, use the middle one for stages 1 and 2.
+	 * If there are four sprites (or more), use one for each stage. */
 	assert(num_sprites > 0);
+	assert (construction_stage < 4);
 	if (num_sprites > 4) num_sprites = 4;
-	switch (construction_stage) {
-		case 0: return 0;
-		case 1: return num_sprites > 2 ? 1 : 0;
-		case 2: return num_sprites > 2 ? num_sprites - 2 : 0;
-		case 3: return num_sprites - 1;
-		default: NOT_REACHED();
-	}
+
+	/* m = (n == 1) ? 0 : (n == 2) ? 1 : (n == 3) ? 3 : 4 */
+	uint m = (num_sprites - 1) * 3 / 2;
+
+	/* (m == 0) => (0,0,0,0);  (m == 1) => (0,0,0,1);
+	   (m == 3) => (0,1,1,2);  (m == 4) => (0,1,2,3)  */
+	return ((m * construction_stage) + 1) / 4;
 }
 
 /**
@@ -112,7 +117,7 @@ static const uint TLR_MAX_VAR10 = 7; ///< Maximum value for var 10.
  * In contrast to #DrawTileSprites this struct is for allocated
  * layouts on the heap. It allocates data and frees them on destruction.
  */
-struct NewGRFSpriteLayout : ZeroedMemoryAllocator, DrawTileSprites {
+struct NewGRFSpriteLayout : DrawTileSprites {
 	const TileLayoutRegisters *registers;
 
 	/**
@@ -121,32 +126,9 @@ struct NewGRFSpriteLayout : ZeroedMemoryAllocator, DrawTileSprites {
 	 */
 	uint consistent_max_offset;
 
-	void Allocate(uint num_sprites);
-	void AllocateRegisters();
-	void Clone(const DrawTileSeqStruct *source);
-	void Clone(const NewGRFSpriteLayout *source);
-
 	/**
-	 * Clone a spritelayout.
-	 * @param source The spritelayout to copy.
-	 */
-	void Clone(const DrawTileSprites *source)
-	{
-		assert(source != NULL && this != source);
-		this->ground = source->ground;
-		this->Clone(source->seq);
-	}
-
-	virtual ~NewGRFSpriteLayout()
-	{
-		free(this->seq);
-		free(this->registers);
-	}
-
-	/**
-	 * Tests whether this spritelayout needs preprocessing by
-	 * #PrepareLayout() and #ProcessRegisters(), or whether it can be
-	 * used directly.
+	 * Tests whether this spritelayout needs preprocessing,
+	 * or whether it can be used directly.
 	 * @return true if preprocessing is needed
 	 */
 	bool NeedsPreprocessing() const
@@ -154,23 +136,34 @@ struct NewGRFSpriteLayout : ZeroedMemoryAllocator, DrawTileSprites {
 		return this->registers != NULL;
 	}
 
-	uint32 PrepareLayout(uint32 orig_offset, uint32 newgrf_ground_offset, uint32 newgrf_offset, uint constr_stage, bool separate_ground) const;
-	void ProcessRegisters(uint8 resolved_var10, uint32 resolved_sprite, bool separate_ground) const;
+	/** Struct for resolving layouts that need preprocessing. */
+	struct Result {
+		/* Maximum number of building sprites per layout is 64,
+		 * plus ground and terminator. */
+		DrawTileSeqStruct data [66]; ///< Resolved sprites.
 
-	/**
-	 * Returns the result spritelayout after preprocessing.
-	 * @pre #PrepareLayout() and #ProcessRegisters() need calling first.
-	 * @return result spritelayout
-	 */
-	const DrawTileSeqStruct *GetLayout(PalSpriteID *ground) const
-	{
-		DrawTileSeqStruct *front = result_seq.Begin();
-		*ground = front->image;
-		return front + 1;
-	}
+		uint32 prepare (const NewGRFSpriteLayout *layout, uint stage,
+				uint32 orig_offset = 0,
+				uint32 newgrf_ground_offset = 0,
+				bool separate_ground = false);
 
-private:
-	static SmallVector<DrawTileSeqStruct, 8> result_seq; ///< Temporary storage when preprocessing spritelayouts.
+		void process (const NewGRFSpriteLayout *layout,
+				uint8 resolved_var10 = 0,
+				uint32 resolved_sprite = 0,
+				bool separate_ground = false);
+
+		/** Get the ground sprite and palette after processing. */
+		const PalSpriteID &get_ground (void) const
+		{
+			return this->data[0].image;
+		}
+
+		/** Get a pointer to the building sequence after processing. */
+		const DrawTileSeqStruct *get_seq (void) const
+		{
+			return &this->data[1];
+		}
+	};
 };
 
 /**

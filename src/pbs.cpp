@@ -272,7 +272,7 @@ static bool FollowReservation(Owner o, RailTypes rts, RailPathPos *pos, bool ign
 	RailPathPos cur = *pos;
 	RailPathPos start;
 
-	while (ft.FollowNext()) {
+	while (ft.FollowNext() == CFollowTrackRail::EC_NONE) {
 		/* No reservation --> path end found */
 		if (ft.m_new.in_wormhole()) {
 			if (!HasReservedPos(ft.m_new)) break;
@@ -517,7 +517,7 @@ PBSPositionState CheckWaitingPosition(const Train *v, const RailPathPos &pos, bo
 	CFollowTrackRail ft(v, !forbid_90deg, v->railtype);
 
 	/* End of track? Safe position. */
-	if (!ft.Follow(pos)) return state;
+	if (ft.Follow (pos) != CFollowTrackRail::EC_NONE) return state;
 
 	assert(!ft.m_new.is_empty());
 	assert((state == PBS_FREE) || (cb == PBS_CHECK_FULL));

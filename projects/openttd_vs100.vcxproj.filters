@@ -1164,6 +1164,9 @@
     <ClInclude Include="..\src\zoom_type.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\core\align.h">
+      <Filter>Core Source Code</Filter>
+    </ClInclude>
     <ClCompile Include="..\src\core\alloc_func.cpp">
       <Filter>Core Source Code</Filter>
     </ClCompile>

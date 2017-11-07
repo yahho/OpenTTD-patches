@@ -610,9 +610,9 @@ bool HasVehicleOnPosXY(int x, int y, void *data, VehicleFromPosProc *proc)
 /**
  * Ensure there is no vehicle at the ground at the given position.
  * @param tile Position to examine.
- * @return Succeeded command (ground is free) or failed command (a vehicle is found).
+ * @return STR_NULL (ground is free) or an error message (a vehicle is found).
  */
-CommandCost EnsureNoVehicleOnGround(TileIndex tile)
+StringID CheckVehicleOnGround (TileIndex tile)
 {
 	int z = GetTileMaxPixelZ(tile);
 
@@ -631,8 +631,8 @@ CommandCost EnsureNoVehicleOnGround(TileIndex tile)
 	 * error message only (which may be different for different machines).
 	 * Such a message does not affect MP synchronisation.
 	 */
-	if (iter.was_found()) return_cmd_error(STR_ERROR_TRAIN_IN_THE_WAY + v->type);
-	return CommandCost();
+	if (iter.was_found()) return STR_ERROR_TRAIN_IN_THE_WAY + v->type;
+	return STR_NULL;
 }
 
 /**
@@ -1418,7 +1418,7 @@ bool Vehicle::HandleBreakdown()
 			SetWindowDirty(WC_VEHICLE_VIEW, this->index);
 			SetWindowDirty(WC_VEHICLE_DETAILS, this->index);
 
-			/* FALL THROUGH */
+			FALLTHROUGH;
 		case 1:
 			/* Aircraft breakdowns end only when arriving at the airport */
 			if (this->type == VEH_AIRCRAFT) return false;
@@ -2743,7 +2743,7 @@ void Vehicle::RemoveFromShared()
 	if (this->orders.list->GetNumVehicles() == 1) {
 		/* When there is only one vehicle, remove the shared order list window. */
 		DeleteWindowById(GetWindowClassForVehicleType(this->type), vli.Pack());
-		InvalidateVehicleOrder(this->FirstShared(), 0);
+		InvalidateVehicleOrder(this->FirstShared(), VIWD_MODIFY_ORDERS);
 	} else if (were_first) {
 		/* If we were the first one, update to the new first one.
 		 * Note: FirstShared() is already the new first */

@@ -199,7 +199,6 @@ void DeleteWindowViewport(Window *w)
 {
 	if (w->viewport == NULL) return;
 
-	delete w->viewport->overlay;
 	free(w->viewport);
 	w->viewport = NULL;
 }
@@ -2576,19 +2575,32 @@ void VpStartPlaceSizing (TileIndex tile, ViewportPlaceMethod method,
 
 	_thd.select_method = method;
 	_thd.select_data   = userdata;
-	_thd.selend.x = TileX(tile) * TILE_SIZE;
 	_thd.selstart.x = TileX(tile) * TILE_SIZE;
-	_thd.selend.y = TileY(tile) * TILE_SIZE;
 	_thd.selstart.y = TileY(tile) * TILE_SIZE;
 
-	/* Needed so several things (road, autoroad, bridges, ...) are placed correctly.
-	 * In effect, placement starts from the centre of a tile
-	 */
-	if (method == VPM_X_OR_Y || method == VPM_X || method == VPM_Y) {
-		_thd.selend.x += TILE_SIZE / 2;
-		_thd.selend.y += TILE_SIZE / 2;
-		_thd.selstart.x += TILE_SIZE / 2;
-		_thd.selstart.y += TILE_SIZE / 2;
+	switch (method) {
+		case VPM_X_OR_Y:
+			/* Placement starts from the centre of the tile. */
+			_thd.selstart.x += TILE_SIZE / 2;
+			_thd.selstart.y += TILE_SIZE / 2;
+			FALLTHROUGH;
+		default:
+			assert (_thd.size.x == TILE_SIZE);
+			assert (_thd.size.y == TILE_SIZE);
+			_thd.selend = _thd.selstart;
+			break;
+
+		case VPM_X:
+			assert (_thd.size.x == TILE_SIZE);
+			_thd.selend.x = _thd.selstart.x + TILE_SIZE / 2;
+			_thd.selend.y = _thd.selstart.y + _thd.size.y - TILE_SIZE;
+			break;
+
+		case VPM_Y:
+			assert (_thd.size.y == TILE_SIZE);
+			_thd.selend.x = _thd.selstart.x + _thd.size.x - TILE_SIZE;
+			_thd.selend.y = _thd.selstart.y + TILE_SIZE / 2;
+			break;
 	}
 
 	switch (_pointer_mode) {
@@ -2615,41 +2627,6 @@ void VpStartPlaceSizing (TileIndex tile, ViewportPlaceMethod method,
 void VpSetPlaceSizingLimit (uint limit)
 {
 	_thd.sizelimit = limit;
-}
-
-/**
- * returns information about the 2x1 piece to be build.
- * The lower bits (0-3) are the track type.
- */
-static HighLightStyle Check2x1AutoRail(int mode)
-{
-	int fxpy = _tile_fract_coords.x + _tile_fract_coords.y;
-	int sxpy = (_thd.selend.x & TILE_UNIT_MASK) + (_thd.selend.y & TILE_UNIT_MASK);
-	int fxmy = _tile_fract_coords.x - _tile_fract_coords.y;
-	int sxmy = (_thd.selend.x & TILE_UNIT_MASK) - (_thd.selend.y & TILE_UNIT_MASK);
-
-	switch (mode) {
-		default: NOT_REACHED();
-		case 0: // end piece is lower right
-			if (fxpy >= 20 && sxpy <= 12) return HT_RAIL_HL;
-			if (fxmy < -3 && sxmy > 3) return HT_RAIL_VR;
-			return HT_RAIL_Y;
-
-		case 1:
-			if (fxmy > 3 && sxmy < -3) return HT_RAIL_VL;
-			if (fxpy <= 12 && sxpy >= 20) return HT_RAIL_HU;
-			return HT_RAIL_Y;
-
-		case 2:
-			if (fxmy > 3 && sxmy < -3) return HT_RAIL_VL;
-			if (fxpy >= 20 && sxpy <= 12) return HT_RAIL_HL;
-			return HT_RAIL_X;
-
-		case 3:
-			if (fxmy < -3 && sxmy > 3) return HT_RAIL_VR;
-			if (fxpy <= 12 && sxpy >= 20) return HT_RAIL_HU;
-			return HT_RAIL_X;
-	}
 }
 
 /**
@@ -2716,7 +2693,7 @@ static int CalcHeightdiff(HighLightStyle style, uint distance, TileIndex start_t
 				start_tile = TILE_ADD(start_tile, TileDiffXY(1, 0));
 				end_tile   = TILE_ADD(end_tile,   TileDiffXY(0, 1));
 			}
-			/* FALL THROUGH */
+			FALLTHROUGH;
 		case HT_POINT:
 			h0 = TileHeight(start_tile);
 			h1 = TileHeight(end_tile);
@@ -2804,184 +2781,211 @@ static void CalcRaildirsDrawstyle (int x, int y)
 
 	int dx = _thd.selstart.x - (_thd.selend.x & ~TILE_UNIT_MASK);
 	int dy = _thd.selstart.y - (_thd.selend.y & ~TILE_UNIT_MASK);
-	uint w = abs(dx) + TILE_SIZE;
-	uint h = abs(dy) + TILE_SIZE;
 
 	assert_compile (POINTER_RAIL_LAST == POINTER_RAIL_AUTO);
 
-	if ((_pointer_mode >= POINTER_RAIL_FIRST) && (_pointer_mode < POINTER_RAIL_LAST)) {
-		/* We 'force' a selection direction; first four rail buttons. */
-		int raw_dx = _thd.selstart.x - _thd.selend.x;
-		int raw_dy = _thd.selstart.y - _thd.selend.y;
-		switch (_pointer_mode) {
-			case POINTER_RAIL_Y:
-				b = HT_RAIL_Y;
-				x = _thd.selstart.x;
-				break;
+	switch (_pointer_mode) {
+		case POINTER_RAIL_X:
+			b = HT_RAIL_X;
+			y = _thd.selstart.y;
+			break;
 
-			case POINTER_RAIL_X:
+		case POINTER_RAIL_Y:
+			b = HT_RAIL_Y;
+			x = _thd.selstart.x;
+			break;
+
+		case POINTER_RAIL_H: {
+			int d = dx + dy;
+			if (d == 0) {
+				/* We are on a straight horizontal line. Determine the 'rail'
+				 * to build based the sub tile location. */
+				b = (x & TILE_UNIT_MASK) + (y & TILE_UNIT_MASK) >= TILE_SIZE ? HT_RAIL_HL : HT_RAIL_HU;
+				break;
+			}
+
+			/* We are not on a straight line. Determine the rail to build
+			 * based on whether we are above or below it. */
+			b = d >= (int)TILE_SIZE ? HT_RAIL_HU : HT_RAIL_HL;
+
+			/* Calculate where a horizontal line through the start point and
+			 * a vertical line from the selected end point intersect and
+			 * use that point as the end point. */
+			int raw_dx = _thd.selstart.x - _thd.selend.x;
+			int raw_dy = _thd.selstart.y - _thd.selend.y;
+			int offset = (raw_dx - raw_dy) / 2;
+			x = _thd.selstart.x - (offset & ~TILE_UNIT_MASK);
+			y = _thd.selstart.y + (offset & ~TILE_UNIT_MASK);
+
+			/* 'Build' the last half rail tile if needed */
+			if ((offset & TILE_UNIT_MASK) > (TILE_SIZE / 2)) {
+				if (d >= (int)TILE_SIZE) {
+					x -= TILE_SIZE;
+				} else {
+					y += (d < 0) ? (int)TILE_SIZE : -(int)TILE_SIZE;
+				}
+			}
+
+			/* Make sure we do not overflow the map! */
+			CheckUnderflow (x, y, 1);
+			CheckUnderflow (y, x, 1);
+			CheckOverflow (x, y, (MapMaxX() - 1) * TILE_SIZE, 1);
+			CheckOverflow (y, x, (MapMaxY() - 1) * TILE_SIZE, 1);
+			assert (x >= 0 && y >= 0 && x <= (int)(MapMaxX() * TILE_SIZE) && y <= (int)(MapMaxY() * TILE_SIZE));
+
+			break;
+		}
+
+		case POINTER_RAIL_V: {
+			int d = dx - dy;
+			if (d == 0) {
+				/* We are on a straight vertical line. Determine the 'rail'
+				 * to build based the sub tile location. */
+				b = (x & TILE_UNIT_MASK) > (y & TILE_UNIT_MASK) ? HT_RAIL_VL : HT_RAIL_VR;
+				break;
+			}
+
+			/* We are not on a straight line. Determine the rail to build
+			 * based on whether we are left or right from it. */
+			b = d < 0 ? HT_RAIL_VL : HT_RAIL_VR;
+
+			/* Calculate where a vertical line through the start point and
+			 * a horizontal line from the selected end point intersect and
+			 * use that point as the end point. */
+			int raw_dx = _thd.selstart.x - _thd.selend.x;
+			int raw_dy = _thd.selstart.y - _thd.selend.y;
+			int offset = (raw_dx + raw_dy + (int)TILE_SIZE) / 2;
+			x = _thd.selstart.x - (offset & ~TILE_UNIT_MASK);
+			y = _thd.selstart.y - (offset & ~TILE_UNIT_MASK);
+
+			/* 'Build' the last half rail tile if needed */
+			if ((offset & TILE_UNIT_MASK) > (TILE_SIZE / 2)) {
+				if (d < 0) {
+					y -= TILE_SIZE;
+				} else {
+					x -= TILE_SIZE;
+				}
+			}
+
+			/* Make sure we do not overflow the map! */
+			CheckUnderflow (x, y, -1);
+			CheckUnderflow (y, x, -1);
+			CheckOverflow (x, y, (MapMaxX() - 1) * TILE_SIZE, -1);
+			CheckOverflow (y, x, (MapMaxY() - 1) * TILE_SIZE, -1);
+			assert (x >= 0 && y >= 0 && x <= (int)(MapMaxX() * TILE_SIZE) && y <= (int)(MapMaxY() * TILE_SIZE));
+
+			break;
+		}
+
+		default:
+			uint w = abs(dx) + TILE_SIZE;
+			uint h = abs(dy) + TILE_SIZE;
+
+			if (dx == 0 && dy == 0) { // check if we're only within one tile
+				if (_pointer_mode == POINTER_RAIL_AUTO) {
+					b = GetAutorailHT (x, y);
+				} else { // rect for autosignals on one tile
+					b = HT_RECT;
+				}
+
+			} else if (dx == 0 || dy == 0) { // Is this in X or Y direction?
+				int fxpy = _tile_fract_coords.x + _tile_fract_coords.y;
+				int sxpy = (_thd.selend.x & TILE_UNIT_MASK) + (_thd.selend.y & TILE_UNIT_MASK);
+				int fxmy = _tile_fract_coords.x - _tile_fract_coords.y;
+				int sxmy = (_thd.selend.x & TILE_UNIT_MASK) - (_thd.selend.y & TILE_UNIT_MASK);
+
+				if (dy == 0) {
+					if (dx == (int)TILE_SIZE) { // 2x1 special handling
+						b = (fxmy < -3 && sxmy > 3) ? HT_RAIL_VR :
+							(fxpy <= 12 && sxpy >= 20) ? HT_RAIL_HU :
+							HT_RAIL_X;
+					} else if (dx == -(int)TILE_SIZE) {
+						b = (fxmy > 3 && sxmy < -3) ? HT_RAIL_VL :
+							(fxpy >= 20 && sxpy <= 12) ? HT_RAIL_HL :
+							HT_RAIL_X;
+					} else {
+						b = HT_RAIL_X;
+					}
+					y = _thd.selstart.y;
+				} else {
+					if (dy == (int)TILE_SIZE) { // 2x1 special handling
+						b = (fxmy > 3 && sxmy < -3) ? HT_RAIL_VL :
+							(fxpy <= 12 && sxpy >= 20) ? HT_RAIL_HU :
+							HT_RAIL_Y;
+					} else if (dy == -(int)TILE_SIZE) { // 2x1 other direction
+						b = (fxmy < -3 && sxmy > 3) ? HT_RAIL_VR :
+							(fxpy >= 20 && sxpy <= 12) ? HT_RAIL_HL :
+							HT_RAIL_Y;
+					} else {
+						b = HT_RAIL_Y;
+					}
+					x = _thd.selstart.x;
+				}
+
+			} else if (w > h * 2) { // still count as x dir?
 				b = HT_RAIL_X;
 				y = _thd.selstart.y;
-				break;
 
-			case POINTER_RAIL_H:
-				if (dx == -dy) {
-					/* We are on a straight horizontal line. Determine the 'rail'
-					 * to build based the sub tile location. */
-					b = (x & TILE_UNIT_MASK) + (y & TILE_UNIT_MASK) >= TILE_SIZE ? HT_RAIL_HL : HT_RAIL_HU;
-				} else {
-					/* We are not on a straight line. Determine the rail to build
-					 * based on whether we are above or below it. */
-					b = dx + dy >= (int)TILE_SIZE ? HT_RAIL_HU : HT_RAIL_HL;
+			} else if (h > w * 2) { // still count as y dir?
+				b = HT_RAIL_Y;
+				x = _thd.selstart.x;
 
-					/* Calculate where a horizontal line through the start point and
-					 * a vertical line from the selected end point intersect and
-					 * use that point as the end point. */
-					int offset = (raw_dx - raw_dy) / 2;
-					x = _thd.selstart.x - (offset & ~TILE_UNIT_MASK);
-					y = _thd.selstart.y + (offset & ~TILE_UNIT_MASK);
+			} else { // complicated direction
+				int d = w - h;
+				_thd.selend.x = _thd.selend.x & ~TILE_UNIT_MASK;
+				_thd.selend.y = _thd.selend.y & ~TILE_UNIT_MASK;
 
-					/* 'Build' the last half rail tile if needed */
-					if ((offset & TILE_UNIT_MASK) > (TILE_SIZE / 2)) {
-						if (dx + dy >= (int)TILE_SIZE) {
-							x += (dx + dy < 0) ? (int)TILE_SIZE : -(int)TILE_SIZE;
+				/* four cases. */
+				bool xpos = x > _thd.selstart.x;
+				bool ypos = y > _thd.selstart.y;
+				if (d == 0) {
+					uint xm = x & TILE_UNIT_MASK;
+					uint ym = y & TILE_UNIT_MASK;
+					b = (xpos == ypos) ?
+							(xm > ym ? HT_RAIL_VL : HT_RAIL_VR) :
+							(xm + ym >= TILE_SIZE ? HT_RAIL_HL : HT_RAIL_HU);
+				} else if (xpos) {
+					if (ypos) {
+						/* south */
+						if (d > 0) {
+							x = _thd.selstart.x + h;
+							b = HT_RAIL_VL;
 						} else {
-							y += (dx + dy < 0) ? (int)TILE_SIZE : -(int)TILE_SIZE;
+							y = _thd.selstart.y + w;
+							b = HT_RAIL_VR;
+						}
+					} else {
+						/* west */
+						if (d > 0) {
+							x = _thd.selstart.x + h;
+							b = HT_RAIL_HL;
+						} else {
+							y = _thd.selstart.y - w;
+							b = HT_RAIL_HU;
 						}
 					}
-
-					/* Make sure we do not overflow the map! */
-					CheckUnderflow(x, y, 1);
-					CheckUnderflow(y, x, 1);
-					CheckOverflow(x, y, (MapMaxX() - 1) * TILE_SIZE, 1);
-					CheckOverflow(y, x, (MapMaxY() - 1) * TILE_SIZE, 1);
-					assert(x >= 0 && y >= 0 && x <= (int)(MapMaxX() * TILE_SIZE) && y <= (int)(MapMaxY() * TILE_SIZE));
-				}
-				break;
-
-			case POINTER_RAIL_V:
-				if (dx == dy) {
-					/* We are on a straight vertical line. Determine the 'rail'
-					 * to build based the sub tile location. */
-					b = (x & TILE_UNIT_MASK) > (y & TILE_UNIT_MASK) ? HT_RAIL_VL : HT_RAIL_VR;
 				} else {
-					/* We are not on a straight line. Determine the rail to build
-					 * based on whether we are left or right from it. */
-					b = dx < dy ? HT_RAIL_VL : HT_RAIL_VR;
-
-					/* Calculate where a vertical line through the start point and
-					 * a horizontal line from the selected end point intersect and
-					 * use that point as the end point. */
-					int offset = (raw_dx + raw_dy + (int)TILE_SIZE) / 2;
-					x = _thd.selstart.x - (offset & ~TILE_UNIT_MASK);
-					y = _thd.selstart.y - (offset & ~TILE_UNIT_MASK);
-
-					/* 'Build' the last half rail tile if needed */
-					if ((offset & TILE_UNIT_MASK) > (TILE_SIZE / 2)) {
-						if (dx - dy < 0) {
-							y += (dx > dy) ? (int)TILE_SIZE : -(int)TILE_SIZE;
+					if (ypos) {
+						/* east */
+						if (d > 0) {
+							x = _thd.selstart.x - h;
+							b = HT_RAIL_HU;
 						} else {
-							x += (dx < dy) ? (int)TILE_SIZE : -(int)TILE_SIZE;
+							y = _thd.selstart.y + w;
+							b = HT_RAIL_HL;
+						}
+					} else {
+						/* north */
+						if (d > 0) {
+							x = _thd.selstart.x - h;
+							b = HT_RAIL_VR;
+						} else {
+							y = _thd.selstart.y - w;
+							b = HT_RAIL_VL;
 						}
 					}
-
-					/* Make sure we do not overflow the map! */
-					CheckUnderflow(x, y, -1);
-					CheckUnderflow(y, x, -1);
-					CheckOverflow(x, y, (MapMaxX() - 1) * TILE_SIZE, -1);
-					CheckOverflow(y, x, (MapMaxY() - 1) * TILE_SIZE, -1);
-					assert(x >= 0 && y >= 0 && x <= (int)(MapMaxX() * TILE_SIZE) && y <= (int)(MapMaxY() * TILE_SIZE));
-				}
-				break;
-
-			default:
-				NOT_REACHED();
-		}
-	} else if (TileVirtXY(_thd.selstart.x, _thd.selstart.y) == TileVirtXY(x, y)) { // check if we're only within one tile
-		if (_pointer_mode == POINTER_RAIL_AUTO) {
-			b = GetAutorailHT(x, y);
-		} else { // rect for autosignals on one tile
-			b = HT_RECT;
-		}
-	} else if (h == TILE_SIZE) { // Is this in X direction?
-		if (dx == (int)TILE_SIZE) { // 2x1 special handling
-			b = Check2x1AutoRail(3);
-		} else if (dx == -(int)TILE_SIZE) {
-			b = Check2x1AutoRail(2);
-		} else {
-			b = HT_RAIL_X;
-		}
-		y = _thd.selstart.y;
-	} else if (w == TILE_SIZE) { // Or Y direction?
-		if (dy == (int)TILE_SIZE) { // 2x1 special handling
-			b = Check2x1AutoRail(1);
-		} else if (dy == -(int)TILE_SIZE) { // 2x1 other direction
-			b = Check2x1AutoRail(0);
-		} else {
-			b = HT_RAIL_Y;
-		}
-		x = _thd.selstart.x;
-	} else if (w > h * 2) { // still count as x dir?
-		b = HT_RAIL_X;
-		y = _thd.selstart.y;
-	} else if (h > w * 2) { // still count as y dir?
-		b = HT_RAIL_Y;
-		x = _thd.selstart.x;
-	} else { // complicated direction
-		int d = w - h;
-		_thd.selend.x = _thd.selend.x & ~TILE_UNIT_MASK;
-		_thd.selend.y = _thd.selend.y & ~TILE_UNIT_MASK;
-
-		/* four cases. */
-		if (x > _thd.selstart.x) {
-			if (y > _thd.selstart.y) {
-				/* south */
-				if (d == 0) {
-					b = (x & TILE_UNIT_MASK) > (y & TILE_UNIT_MASK) ? HT_RAIL_VL : HT_RAIL_VR;
-				} else if (d >= 0) {
-					x = _thd.selstart.x + h;
-					b = HT_RAIL_VL;
-				} else {
-					y = _thd.selstart.y + w;
-					b = HT_RAIL_VR;
-				}
-			} else {
-				/* west */
-				if (d == 0) {
-					b = (x & TILE_UNIT_MASK) + (y & TILE_UNIT_MASK) >= TILE_SIZE ? HT_RAIL_HL : HT_RAIL_HU;
-				} else if (d >= 0) {
-					x = _thd.selstart.x + h;
-					b = HT_RAIL_HL;
-				} else {
-					y = _thd.selstart.y - w;
-					b = HT_RAIL_HU;
 				}
 			}
-		} else {
-			if (y > _thd.selstart.y) {
-				/* east */
-				if (d == 0) {
-					b = (x & TILE_UNIT_MASK) + (y & TILE_UNIT_MASK) >= TILE_SIZE ? HT_RAIL_HL : HT_RAIL_HU;
-				} else if (d >= 0) {
-					x = _thd.selstart.x - h;
-					b = HT_RAIL_HU;
-				} else {
-					y = _thd.selstart.y + w;
-					b = HT_RAIL_HL;
-				}
-			} else {
-				/* north */
-				if (d == 0) {
-					b = (x & TILE_UNIT_MASK) > (y & TILE_UNIT_MASK) ? HT_RAIL_VL : HT_RAIL_VR;
-				} else if (d >= 0) {
-					x = _thd.selstart.x - h;
-					b = HT_RAIL_VR;
-				} else {
-					y = _thd.selstart.y - w;
-					b = HT_RAIL_VL;
-				}
-			}
-		}
 	}
 
 	if (_settings_client.gui.measure_tooltip) {
@@ -3064,12 +3068,12 @@ static void VpSelectTilesWithMethod (int x, int y, ViewportPlaceMethod method)
 			goto calc_heightdiff_single_direction;
 
 		case VPM_Y: // drag in Y direction
-			x = sx;
+			x = _thd.selend.x;
 			style = HT_RAIL_Y;
 			goto calc_heightdiff_single_direction;
 
 		case VPM_X: // drag in X direction
-			y = sy;
+			y = _thd.selend.y;
 			style = HT_RAIL_X;
 
 calc_heightdiff_single_direction:;
@@ -3105,7 +3109,7 @@ calc_heightdiff_single_direction:;
 				x = sx + Clamp (x - sx, -limit, limit);
 				y = sy + Clamp (y - sy, -limit, limit);
 			}
-			/* fall through */
+			FALLTHROUGH;
 		case VPM_X_AND_Y_ROTATED:
 			if (_settings_client.gui.measure_tooltip) {
 				static const StringID measure_strings_area[] = {
@@ -3181,8 +3185,21 @@ calc_heightdiff_single_direction:;
 /** Abort the current dragging operation, if any. */
 void VpStopPlaceSizing (void)
 {
+	switch (_thd.select_method) {
+		case VPM_X:
+			_thd.new_size.x = TILE_SIZE;
+			break;
+
+		case VPM_Y:
+			_thd.new_size.y = TILE_SIZE;
+			break;
+
+		default:
+			_thd.new_size.x = TILE_SIZE;
+			_thd.new_size.y = TILE_SIZE;
+			break;
+	}
 	_thd.select_method = VPM_NONE;
-	SetTileSelectSize(1, 1);
 }
 
 /**

@@ -107,8 +107,6 @@ struct FiosItem {
 /** List of file information. */
 class FileList {
 public:
-	~FileList();
-
 	/**
 	 * Construct a new entry in the file list.
 	 * @return Pointer to the new items to be initialized.
@@ -183,14 +181,7 @@ public:
 		this->files.Clear();
 	}
 
-	/** Compact the list down to the smallest block size boundary. */
-	inline void Compact()
-	{
-		this->files.Compact();
-	}
-
-	void BuildFileList(AbstractFileType abstract_filetype, SaveLoadOperation fop);
-	const FiosItem *FindItem(const char *file);
+	void BuildFileList (AbstractFileType abstract_filetype, bool save);
 
 	SmallVector<FiosItem, 32> files; ///< The list of files.
 };
@@ -206,11 +197,7 @@ DECLARE_ENUM_AS_BIT_SET(SortingBits)
 /* Variables to display file lists */
 extern SortingBits _savegame_sort_order;
 
-void ShowSaveLoadDialog(AbstractFileType abstract_filetype, SaveLoadOperation fop);
-
-void FiosGetSavegameList(SaveLoadOperation fop, FileList &file_list);
-void FiosGetScenarioList(SaveLoadOperation fop, FileList &file_list);
-void FiosGetHeightmapList(SaveLoadOperation fop, FileList &file_list);
+void ShowSaveLoadDialog (AbstractFileType abstract_filetype, bool save = false);
 
 const char *FiosBrowseTo(const FiosItem *item);
 
@@ -222,7 +209,7 @@ bool FiosDelete(const char *name);
 void FiosMakeHeightmapName(char *buf, const char *name, size_t size);
 void FiosMakeSavegameName(char *buf, const char *name, size_t size);
 
-FiosType FiosGetSavegameListCallback (SaveLoadOperation fop, const char *file, const char *ext, stringb *title = NULL);
+FiosType FiosGetSavegameListCallback (const char *file, const char *ext, stringb *title = NULL, bool save = false);
 
 int CDECL CompareFiosItems(const FiosItem *a, const FiosItem *b);
 

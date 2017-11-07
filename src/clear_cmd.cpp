@@ -406,7 +406,7 @@ static void HandleTreeGrowth(TileIndex tile)
 							SetTreeGrowth(tile, 0);
 							break;
 						}
-						/* FALL THROUGH */
+						FALLTHROUGH;
 
 					case 2: // add a neighbouring tree
 						AddNeighbouringTree(tile);

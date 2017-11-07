@@ -223,31 +223,61 @@ void Industry::PostDestructor(size_t index)
 
 static void IndustryDrawSugarMine(const TileInfo *ti)
 {
+	static const byte anim[96][4] = {
+		{ 4, 0 }, { 0, 0 }, { 0, 0 }, { 0, 0 }, { 0, 0 }, { 0, 0 },
+		{ 0, 0 }, { 0, 0 }, { 0, 0 }, { 0, 0 }, { 0, 0 }, { 0, 1 },
+		{ 0, 1 }, { 0, 1 }, { 0, 1 }, { 0, 1 }, { 1, 1 }, { 1, 1 },
+		{ 1, 1 }, { 1, 1 }, { 1, 1 }, { 1, 1 }, { 1, 1 }, { 1, 2 },
+		{ 1, 2 }, { 1, 2 }, { 1, 2 }, { 1, 2 }, { 1, 2 }, { 1, 2 },
+		{ 1, 2 }, { 1, 2 }, { 2, 2 }, { 2, 2 }, { 2, 3 }, { 2, 3 },
+		{ 2, 3 }, { 2, 3 }, { 2, 3 }, { 2, 3 }, { 2, 3 }, { 2, 3 },
+		{ 2, 3 }, { 2, 3 }, { 2, 3 }, { 2, 4 }, { 2, 4 }, { 2, 4 },
+		{ 3, 4 }, { 3, 4 }, { 3, 4 }, { 3, 4 }, { 3, 4 }, { 3, 4 },
+		{ 3, 4 }, { 3, 4 }, { 3, 4 }, { 3, 4 }, { 3, 4 }, { 3, 4 },
+		{ 3, 4 }, { 3, 4 }, { 3, 4 }, { 3, 4 }, { 4, 4 }, { 4, 4 },
+		{ 4, 4 }, { 4, 4 }, { 4, 4 }, { 4, 4 }, { 4, 4 }, { 4, 4 },
+		{ 4, 4 }, { 4, 4 }, { 4, 4 }, { 4, 4 }, { 4, 4 }, { 4, 4 },
+		{ 4, 4 }, { 4, 4 }, { 4, 4 }, { 4, 4 }, { 4, 4 }, { 4, 4 },
+		{ 4, 4 }, { 4, 4 }, { 4, 4 }, { 4, 4 }, { 4, 4 }, { 4, 4 },
+		{ 4, 4 }, { 4, 4 }, { 4, 4 }, { 4, 4 }, { 4, 4 }, { 4, 4 },
+	};
+
+	static const byte sieve_x[8] = { 8, 6, 4, 6, 8, 10, 12, 10 };
+
+	static const byte pile_offsets[5][2] = {
+		{ 22, 73 }, { 17, 70 }, { 14, 69 }, { 10, 66 }, { 8, 41 },
+	};
+
 	if (!IsIndustryCompleted(ti->tile)) return;
 
-	const DrawIndustryAnimationStruct *d = &_draw_industry_spec1[GetAnimationFrame(ti->tile)];
+	byte m = GetAnimationFrame (ti->tile);
+	const byte *d = anim[m];
 
-	AddChildSpriteScreen (ti->vd, SPR_IT_SUGAR_MINE_SIEVE + d->image_1, PAL_NONE, d->x, 0);
+	AddChildSpriteScreen (ti->vd, SPR_IT_SUGAR_MINE_SIEVE + d[0],
+				PAL_NONE, sieve_x[m % 8], 0);
 
-	if (d->image_2 != 0) {
-		AddChildSpriteScreen (ti->vd, SPR_IT_SUGAR_MINE_CLOUDS + d->image_2 - 1, PAL_NONE, 8, 41);
+	if ((uint)(m - 1) < 66) {
+		AddChildSpriteScreen (ti->vd,
+				SPR_IT_SUGAR_MINE_CLOUDS + ((m - 1) % 6),
+				PAL_NONE, 8, 41);
 	}
 
-	if (d->image_3 != 0) {
-		AddChildSpriteScreen (ti->vd, SPR_IT_SUGAR_MINE_PILE + d->image_3 - 1, PAL_NONE,
-			_drawtile_proc1[d->image_3 - 1].x, _drawtile_proc1[d->image_3 - 1].y);
+	if (d[1] != 0) {
+		AddChildSpriteScreen (ti->vd, SPR_IT_SUGAR_MINE_PILE + d[1] - 1, PAL_NONE,
+			pile_offsets[d[1] - 1][0], pile_offsets[d[1] - 1][1]);
 	}
 }
 
 static void IndustryDrawToffeeQuarry(const TileInfo *ti)
 {
+	static const byte anim[] = {
+		0, 0, 0, 0, 2, 4, 6, 8, 10, 9, 7, 5, 3, 1,
+	};
+
 	uint8 x = 0;
 
 	if (IsIndustryCompleted(ti->tile)) {
-		x = _industry_anim_offs_toffee[GetAnimationFrame(ti->tile)];
-		if (x == 0xFF) {
-			x = 0;
-		}
+		x = anim[GetAnimationFrame(ti->tile) % 14];
 	}
 
 	AddChildSpriteScreen (ti->vd, SPR_IT_TOFFEE_QUARRY_SHOVEL, PAL_NONE, 22 - x, 24 + x);
@@ -256,38 +286,73 @@ static void IndustryDrawToffeeQuarry(const TileInfo *ti)
 
 static void IndustryDrawBubbleGenerator( const TileInfo *ti)
 {
+	static const byte bubbles[] = {
+		68, 69, 71, 74, 77, 80, 83, 85, 86, 86,
+		86, 86, 86, 86, 86, 86, 86, 86, 86, 86,
+		86, 86, 85, 84, 83, 82, 81, 80, 79, 78,
+		77, 76, 75, 74, 73, 72, 71, 70, 69, 68,
+	};
+
 	if (IsIndustryCompleted(ti->tile)) {
-		AddChildSpriteScreen (ti->vd, SPR_IT_BUBBLE_GENERATOR_BUBBLE, PAL_NONE, 5, _industry_anim_offs_bubbles[GetAnimationFrame(ti->tile)]);
+		AddChildSpriteScreen (ti->vd, SPR_IT_BUBBLE_GENERATOR_BUBBLE,
+			PAL_NONE, 5, bubbles[GetAnimationFrame(ti->tile)]);
 	}
 	AddChildSpriteScreen (ti->vd, SPR_IT_BUBBLE_GENERATOR_SPRING, PAL_NONE, 3, 67);
 }
 
 static void IndustryDrawToyFactory(const TileInfo *ti)
 {
-	const DrawIndustryAnimationStruct *d = &_industry_anim_offs_toys[GetAnimationFrame(ti->tile)];
+	static const byte anim[][2] = {
+		{ 255,  0 }, {  25,  0 }, {  24,  0 }, {  23,  0 }, {  22,  0 },
+		{  21,  0 }, {  20,  0 }, {  19,  0 }, {  18,  0 }, {  17,  0 },
+		{  16,  0 }, {  15,  0 }, {  14,  0 }, {  13,  0 }, {  12,  0 },
+		{  11,  0 }, {  10,  0 }, {   9,  0 }, {   8,  0 }, {   7,  0 },
+		{   7,  1 }, {   7,  2 }, {   7,  4 }, {   7,  6 }, {   7,  8 },
+		{   7, 11 }, {   7, 14 }, {   7, 17 }, {   7, 20 }, {   7, 24 },
+		{ 100, 29 }, { 100, 24 }, { 100, 20 }, { 100, 17 }, { 100, 14 },
+		{ 100, 11 }, { 100,  8 }, { 100,  6 }, { 100,  4 }, { 100,  2 },
+		{ 100,  1 }, { 101,  0 }, { 102,  0 }, { 103,  0 }, { 104,  0 },
+		{ 105,  0 }, { 106,  0 }, { 107,  0 }, { 108,  0 }, { 255,  0 },
+	};
 
-	if (d->image_1 != 0xFF) {
-		AddChildSpriteScreen (ti->vd, SPR_IT_TOY_FACTORY_CLAY, PAL_NONE, d->x, 96 + d->image_1);
+	const byte *b = anim[GetAnimationFrame(ti->tile)];
+
+	byte i = b[0];
+	int x, y;
+	SpriteID s;
+	if (i < 100) {
+		x = 2 * i;
+		y = 121 - i;
+		s = SPR_IT_TOY_FACTORY_CLAY;
+	} else if (i < 255) {
+		x = 216 - 2 * i;
+		y = i;
+		s = SPR_IT_TOY_FACTORY_ROBOT;
+	} else {
+		s = 0;
 	}
 
-	if (d->image_2 != 0xFF) {
-		AddChildSpriteScreen (ti->vd, SPR_IT_TOY_FACTORY_ROBOT, PAL_NONE, 16 - d->image_2 * 2, 100 + d->image_2);
-	}
+	if (s != 0) AddChildSpriteScreen (ti->vd, s, PAL_NONE, x, y);
 
-	AddChildSpriteScreen (ti->vd, SPR_IT_TOY_FACTORY_STAMP, PAL_NONE, 7, d->image_3);
+	AddChildSpriteScreen (ti->vd, SPR_IT_TOY_FACTORY_STAMP, PAL_NONE, 7, b[1]);
 	AddChildSpriteScreen (ti->vd, SPR_IT_TOY_FACTORY_STAMP_HOLDER, PAL_NONE, 0, 42);
 }
 
 static void IndustryDrawCoalPlantSparks(const TileInfo *ti)
 {
+	/* Spark positions. */
+	static const byte sparks[][2] = {
+		{11, 23}, {11, 11}, {14, 6}, {13, 3}, {18, 1}, {15, 0},
+	};
+
 	if (IsIndustryCompleted(ti->tile)) {
 		uint8 image = GetAnimationFrame(ti->tile);
 
 		if (image != 0 && image < 7) {
 			AddChildSpriteScreen (ti->vd, image + SPR_IT_POWER_PLANT_TRANSFORMERS,
 				PAL_NONE,
-				_coal_plant_sparks[image - 1].x,
-				_coal_plant_sparks[image - 1].y
+				sparks[image - 1][0],
+				sparks[image - 1][1]
 			);
 		}
 	}
@@ -327,11 +392,11 @@ static void DrawTile_Industry(TileInfo *ti)
 		}
 	}
 
-	const DrawBuildingsTileStruct *dits = industry_draw_tile_data[gfx][(indts->anim_state ?
+	const uint64 dits = industry_draw_tile_data[gfx][(indts->anim_state ?
 			GetAnimationFrame(ti->tile) & INDUSTRY_COMPLETED :
 			GetIndustryConstructionStage(ti->tile))];
 
-	SpriteID image = dits->ground.sprite;
+	SpriteID image = dits & (0xffff | (1 << PALETTE_MODIFIER_COLOUR));
 
 	/* DrawFoundation() modifies ti->z and ti->tileh */
 	if (ti->tileh != SLOPE_FLAT) DrawFoundation(ti, FOUNDATION_LEVELED);
@@ -341,30 +406,28 @@ static void DrawTile_Industry(TileInfo *ti)
 	if (image == SPR_FLAT_WATER_TILE && IsTileOnWater(ti->tile)) {
 		DrawWaterClassGround(ti);
 	} else {
-		DrawGroundSprite (ti, image, GroundSpritePaletteTransform(image, dits->ground.pal, GENERAL_SPRITE_COLOUR(ind->random_colour)));
+		DrawGroundSprite (ti, image, GroundSpritePaletteTransform (image, PAL_NONE, GENERAL_SPRITE_COLOUR(ind->random_colour)));
 	}
 
 	/* If industries are transparent and invisible, do not draw the upper part */
 	if (IsInvisibilitySet(TO_INDUSTRIES)) return;
 
 	/* Add industry on top of the ground? */
-	image = dits->building.sprite;
+	image = (dits >> 32) & (0xffff | (1 << PALETTE_MODIFIER_COLOUR));
 	if (image != 0) {
-		AddSortableSpriteToDraw (ti->vd, image, SpriteLayoutPaletteTransform(image, dits->building.pal, GENERAL_SPRITE_COLOUR(ind->random_colour)),
-			ti->x + dits->subtile_x,
-			ti->y + dits->subtile_y,
-			dits->width,
-			dits->height,
-			dits->dz,
+		PaletteID pal = HasBit(image, PALETTE_MODIFIER_COLOUR) ?
+				GENERAL_SPRITE_COLOUR(ind->random_colour) :
+				PAL_NONE;
+		AddSortableSpriteToDraw (ti->vd, image, pal,
+			ti->x + GB(dits, 16, 3), ti->y + GB(dits, 19, 3),
+			GB(dits, 48, 5), GB(dits, 53, 5), GB(dits, 22, 7),
 			ti->z,
 			IsTransparencySet(TO_INDUSTRIES));
 
-		if (IsTransparencySet(TO_INDUSTRIES)) return;
-	}
-
-	{
-		int proc = dits->draw_proc - 1;
-		if (proc >= 0) _industry_draw_tile_procs[proc](ti);
+		if (!IsTransparencySet(TO_INDUSTRIES)) {
+			uint proc = GB(dits, 58, 3);
+			if (proc > 0) _industry_draw_tile_procs[proc - 1](ti);
+		}
 	}
 }
 
@@ -565,7 +628,7 @@ static void AnimateTile_Industry(TileIndex tile)
 		if ((_tick_counter & 3) == 0) {
 			byte m = GetAnimationFrame(tile);
 
-			if (_industry_anim_offs_toffee[m] == 0xFF && _settings_client.sound.ambient) {
+			if ((m % 14) == 0 && _settings_client.sound.ambient) {
 				SndPlayTileFx(SND_30_CARTOON_SOUND, tile);
 			}
 
@@ -1359,8 +1422,9 @@ static CommandCost CheckIfIndustryTilesAreFree(TileIndex tile, const IndustryTil
 				return_cmd_error(STR_ERROR_SITE_UNSUITABLE);
 			}
 		} else {
-			CommandCost ret = EnsureNoVehicleOnGround(cur_tile);
-			if (ret.Failed()) return ret;
+			StringID str = CheckVehicleOnGround (cur_tile);
+			if (str != STR_NULL) return_cmd_error(str);
+
 			if (HasBridgeAbove(cur_tile)) return_cmd_error(STR_ERROR_SITE_UNSUITABLE);
 
 			const IndustryTileSpec *its = GetIndustryTileSpec(gfx);

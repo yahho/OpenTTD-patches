@@ -176,7 +176,7 @@ public:
 
 	const AirportMovingData *moving_data; ///< Movement data.
 	struct AirportFTA *layout;            ///< state machine for airport
-	const byte *terminals;                ///< %Array with the number of terminal groups, followed by the number of terminals in each group.
+	const byte *terminals;                ///< %Array with the number of terminal groups, followed by the first terminal in each group.
 	const byte num_helipads;              ///< Number of helipads on this airport. When 0 helicopters will go to normal terminals.
 	Flags flags;                          ///< Flags for this airport type.
 	byte nofelements;                     ///< number of positions the airport consists of

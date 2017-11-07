@@ -561,6 +561,12 @@ static const byte _vehicle_type_colours[6] = {
 };
 
 
+/** Notify the industry chain window to stop sending newly selected industries. */
+static void BreakIndustryChainLink (void)
+{
+	InvalidateWindowClassesData(WC_INDUSTRY_CARGOES, NUM_INDUSTRYTYPES);
+}
+
 /**
  * Remap tile to location on this smallmap.
  * @param tile_x X coordinate of the tile.
@@ -661,7 +667,7 @@ void SmallMapWindow::SetZoomLevel(ZoomLevelChange change, const Point *zoom_pt)
 			this->SetNewScroll(this->scroll_x + (tile.x - new_tile.x) * TILE_SIZE,
 					this->scroll_y + (tile.y - new_tile.y) * TILE_SIZE, sub);
 		} else if (this->map_type == SMT_LINKSTATS) {
-			this->overlay->RebuildCache();
+			this->overlay.RebuildCache();
 		}
 		this->SetWidgetDisabledState(WID_SM_ZOOM_IN,  this->zoom == zoomlevels[MIN_ZOOM_INDEX]);
 		this->SetWidgetDisabledState(WID_SM_ZOOM_OUT, this->zoom == zoomlevels[MAX_ZOOM_INDEX]);
@@ -990,7 +996,7 @@ void SmallMapWindow::DrawSmallMap (BlitArea *dpi) const
 	if (this->map_type == SMT_CONTOUR || this->map_type == SMT_VEHICLES) this->DrawVehicles (dpi);
 
 	/* Draw link stat overlay */
-	if (this->map_type == SMT_LINKSTATS) this->overlay->Draw(dpi);
+	if (this->map_type == SMT_LINKSTATS) this->overlay.Draw (dpi);
 
 	/* Draw town names */
 	if (this->show_towns) this->DrawTowns(dpi);
@@ -1046,10 +1052,10 @@ void SmallMapWindow::SetupWidgetData()
 
 SmallMapWindow::SmallMapWindow (const WindowDesc *desc, int window_number) :
 	Window (desc),
+	overlay (this, WID_SM_MAP, 0, this->GetOverlayCompanyMask(), 1),
 	min_number_of_columns (0), min_number_of_fixed_rows (0),
 	column_width (0), scroll_x (0), scroll_y (0), subscroll (0),
-	zoom (0), refresh (FORCE_REFRESH_PERIOD),
-	overlay (new LinkGraphOverlay(this, WID_SM_MAP, 0, this->GetOverlayCompanyMask(), 1))
+	zoom (0), refresh (FORCE_REFRESH_PERIOD)
 {
 	_smallmap_industry_highlight = INVALID_INDUSTRYTYPE;
 	this->InitNested(window_number);
@@ -1066,6 +1072,11 @@ SmallMapWindow::SmallMapWindow (const WindowDesc *desc, int window_number) :
 	this->SetZoomLevel(ZLC_INITIALIZE, NULL);
 	this->SmallMapCenterOnCurrentPos();
 	this->SetOverlayCargoMask();
+}
+
+SmallMapWindow::~SmallMapWindow()
+{
+	BreakIndustryChainLink();
 }
 
 /**
@@ -1228,10 +1239,12 @@ void SmallMapWindow::DrawWidget (BlitArea *dpi, const Rect &r, int widget) const
 						if (tbl->show_on_map && tbl->type == _smallmap_industry_highlight) {
 							legend_colour = _smallmap_industry_highlight_state ? PC_WHITE : PC_BLACK;
 						}
-						/* FALL THROUGH */
+						FALLTHROUGH;
+
 					case SMT_LINKSTATS:
 						SetDParam(0, tbl->legend);
-						/* FALL_THROUGH */
+						FALLTHROUGH;
+
 					case SMT_OWNER:
 						if (this->map_type != SMT_OWNER || tbl->company != INVALID_COMPANY) {
 							if (this->map_type == SMT_OWNER) SetDParam(0, tbl->company);
@@ -1245,7 +1258,8 @@ void SmallMapWindow::DrawWidget (BlitArea *dpi, const Rect &r, int widget) const
 							}
 							break;
 						}
-						/* FALL_THROUGH */
+						FALLTHROUGH;
+
 					default:
 						if (this->map_type == SMT_CONTOUR) SetDParam(0, tbl->height * TILE_HEIGHT_STEP);
 						/* Anything that is not an industry or a company is using normal process */
@@ -1273,7 +1287,8 @@ void SmallMapWindow::SwitchMapType(SmallMapType map_type)
 
 	this->SetupWidgetData();
 
-	if (map_type == SMT_LINKSTATS) this->overlay->RebuildCache();
+	if (map_type == SMT_LINKSTATS) this->overlay.RebuildCache();
+	if (map_type != SMT_INDUSTRY) BreakIndustryChainLink();
 	this->SetDirty();
 }
 
@@ -1325,6 +1340,8 @@ void SmallMapWindow::SelectLegendItem(int click_pos, LegendAndColour *legend, in
 	} else {
 		legend[click_pos].show_on_map = !legend[click_pos].show_on_map;
 	}
+
+	if (this->map_type == SMT_INDUSTRY) BreakIndustryChainLink();
 }
 
 /**
@@ -1336,7 +1353,8 @@ void SmallMapWindow::SetOverlayCargoMask()
 	for (int i = 0; i != _smallmap_cargo_count; ++i) {
 		if (_legend_linkstats[i].show_on_map) SetBit(cargo_mask, _legend_linkstats[i].type);
 	}
-	this->overlay->SetCargoMask(cargo_mask);
+	this->overlay.SetCargoMask (cargo_mask);
+	this->overlay.RebuildCache();
 }
 
 /**
@@ -1379,9 +1397,6 @@ int SmallMapWindow::GetPositionOnLegend(Point pt)
 
 /* virtual */ void SmallMapWindow::OnClick(Point pt, int widget, int click_count)
 {
-	/* User clicked something, notify the industry chain window to stop sending newly selected industries. */
-	InvalidateWindowClassesData(WC_INDUSTRY_CARGOES, NUM_INDUSTRYTYPES);
-
 	switch (widget) {
 		case WID_SM_MAP: { // Map window
 			/*
@@ -1464,12 +1479,12 @@ int SmallMapWindow::GetPositionOnLegend(Point pt)
 			break;
 
 		case WID_SM_ENABLE_ALL:
-			/* FALL THROUGH */
 		case WID_SM_DISABLE_ALL: {
 			LegendAndColour *tbl = NULL;
 			switch (this->map_type) {
 				case SMT_INDUSTRY:
 					tbl = _legend_from_industries;
+					BreakIndustryChainLink();
 					break;
 				case SMT_OWNER:
 					tbl = &(_legend_land_owners[NUM_NO_COMPANY_ENTRIES]);
@@ -1561,11 +1576,10 @@ int SmallMapWindow::GetPositionOnLegend(Point pt)
 
 	if (this->map_type == SMT_LINKSTATS) {
 		uint32 company_mask = this->GetOverlayCompanyMask();
-		if (this->overlay->GetCompanyMask() != company_mask) {
-			this->overlay->SetCompanyMask(company_mask);
-		} else {
-			this->overlay->RebuildCache();
+		if (this->overlay.GetCompanyMask() != company_mask) {
+			this->overlay.SetCompanyMask (company_mask);
 		}
+		this->overlay.RebuildCache();
 	}
 	_smallmap_industry_highlight_state = !_smallmap_industry_highlight_state;
 
@@ -1607,7 +1621,7 @@ void SmallMapWindow::SetNewScroll(int sx, int sy, int sub)
 	this->scroll_x = sx;
 	this->scroll_y = sy;
 	this->subscroll = sub;
-	if (this->map_type == SMT_LINKSTATS) this->overlay->RebuildCache();
+	if (this->map_type == SMT_LINKSTATS) this->overlay.RebuildCache();
 }
 
 /* virtual */ void SmallMapWindow::OnScroll(Point delta)

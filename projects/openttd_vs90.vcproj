@@ -2504,6 +2504,10 @@
 			Name="Core Source Code"
 			>
 			<File
+				RelativePath=".\..\src\core\align.h"
+				>
+			</File>
+			<File
 				RelativePath=".\..\src\core\alloc_func.cpp"
 				>
 				<FileConfiguration

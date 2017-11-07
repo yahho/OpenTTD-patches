@@ -856,14 +856,13 @@ static bool MayBeShown(const Window *w)
  * The function goes recursively upwards in the window stack, and splits the rectangle
  * into multiple pieces at the window edges, so obscured parts are not redrawn.
  *
- * @param dp Area to draw on
  * @param w Window that needs to be repainted
  * @param left Left edge of the rectangle that should be repainted
  * @param top Top edge of the rectangle that should be repainted
  * @param right Right edge of the rectangle that should be repainted
  * @param bottom Bottom edge of the rectangle that should be repainted
  */
-static void DrawOverlappedWindow (BlitArea *dp, Window *w, int left, int top, int right, int bottom)
+static void DrawOverlappedWindow (Window *w, int left, int top, int right, int bottom)
 {
 	const Window *v;
 	FOR_ALL_WINDOWS_FROM_BACK_FROM(v, w->z_front) {
@@ -876,26 +875,26 @@ static void DrawOverlappedWindow (BlitArea *dp, Window *w, int left, int top, in
 			int x;
 
 			if (left < (x = v->left)) {
-				DrawOverlappedWindow (dp, w, left, top, x, bottom);
-				DrawOverlappedWindow (dp, w, x, top, right, bottom);
+				DrawOverlappedWindow (w, left, top, x, bottom);
+				DrawOverlappedWindow (w, x, top, right, bottom);
 				return;
 			}
 
 			if (right > (x = v->left + v->width)) {
-				DrawOverlappedWindow (dp, w, left, top, x, bottom);
-				DrawOverlappedWindow (dp, w, x, top, right, bottom);
+				DrawOverlappedWindow (w, left, top, x, bottom);
+				DrawOverlappedWindow (w, x, top, right, bottom);
 				return;
 			}
 
 			if (top < (x = v->top)) {
-				DrawOverlappedWindow (dp, w, left, top, right, x);
-				DrawOverlappedWindow (dp, w, left, x, right, bottom);
+				DrawOverlappedWindow (w, left, top, right, x);
+				DrawOverlappedWindow (w, left, x, right, bottom);
 				return;
 			}
 
 			if (bottom > (x = v->top + v->height)) {
-				DrawOverlappedWindow (dp, w, left, top, right, x);
-				DrawOverlappedWindow (dp, w, left, x, right, bottom);
+				DrawOverlappedWindow (w, left, top, right, x);
+				DrawOverlappedWindow (w, left, x, right, bottom);
 				return;
 			}
 
@@ -904,12 +903,15 @@ static void DrawOverlappedWindow (BlitArea *dp, Window *w, int left, int top, in
 	}
 
 	/* Setup blitter, and dispatch a repaint event to window *wz */
-	dp->width = right - left;
-	dp->height = bottom - top;
-	dp->left = left - w->left;
-	dp->top = top - w->top;
-	dp->dst_ptr = _screen_surface->move (_screen_surface->ptr, left, top);
-	w->OnPaint (dp);
+	Blitter::Surface *surface = _screen_surface.get();
+	BlitArea dp;
+	dp.surface = surface;
+	dp.dst_ptr = surface->move (surface->ptr, left, top);
+	dp.width = right - left;
+	dp.height = bottom - top;
+	dp.left = left - w->left;
+	dp.top = top - w->top;
+	w->OnPaint (&dp);
 }
 
 /**
@@ -923,9 +925,6 @@ static void DrawOverlappedWindow (BlitArea *dp, Window *w, int left, int top, in
 void DrawOverlappedWindowForAll(int left, int top, int right, int bottom)
 {
 	Window *w;
-	BlitArea bk;
-	bk.surface = _screen_surface.get();
-
 	FOR_ALL_WINDOWS_FROM_BACK(w) {
 		if (MayBeShown(w) &&
 				right > w->left &&
@@ -933,7 +932,7 @@ void DrawOverlappedWindowForAll(int left, int top, int right, int bottom)
 				left < w->left + w->width &&
 				top < w->top + w->height) {
 			/* Window w intersects with the rectangle => needs repaint */
-			DrawOverlappedWindow (&bk, w, max(left, w->left), max(top, w->top), min(right, w->left + w->width), min(bottom, w->top + w->height));
+			DrawOverlappedWindow (w, max(left, w->left), max(top, w->top), min(right, w->left + w->width), min(bottom, w->top + w->height));
 		}
 	}
 }
@@ -1247,39 +1246,46 @@ static inline bool IsVitalWindow(const Window *w)
  * Get the z-priority for a given window. This is used in comparison with other z-priority values;
  * a window with a given z-priority will appear above other windows with a lower value, and below
  * those with a higher one (the ordering within z-priorities is arbitrary).
- * @param w The window to get the z-priority for
- * @pre w->window_class != WC_INVALID
+ * @param wc The window class of window to get the z-priority for
+ * @pre wc != WC_INVALID
  * @return The window's z-priority
  */
-static uint GetWindowZPriority(const Window *w)
+static uint GetWindowZPriority(WindowClass wc)
 {
-	assert(w->window_class != WC_INVALID);
+	assert(wc != WC_INVALID);
 
 	uint z_priority = 0;
 
-	switch (w->window_class) {
+	switch (wc) {
 		case WC_ENDSCREEN:
 			++z_priority;
+			FALLTHROUGH;
 
 		case WC_HIGHSCORE:
 			++z_priority;
+			FALLTHROUGH;
 
 		case WC_TOOLTIPS:
 			++z_priority;
+			FALLTHROUGH;
 
 		case WC_DROPDOWN_MENU:
 			++z_priority;
+			FALLTHROUGH;
 
 		case WC_MAIN_TOOLBAR:
 		case WC_STATUS_BAR:
 			++z_priority;
+			FALLTHROUGH;
 
 		case WC_OSK:
 			++z_priority;
+			FALLTHROUGH;
 
 		case WC_QUERY_STRING:
 		case WC_SEND_NETWORK_MSG:
 			++z_priority;
+			FALLTHROUGH;
 
 		case WC_ERRMSG:
 		case WC_CONFIRM_POPUP_QUERY:
@@ -1287,6 +1293,7 @@ static uint GetWindowZPriority(const Window *w)
 		case WC_NETWORK_STATUS_WINDOW:
 		case WC_SAVE_PRESET:
 			++z_priority;
+			FALLTHROUGH;
 
 		case WC_GENERATE_LANDSCAPE:
 		case WC_SAVELOAD:
@@ -1298,15 +1305,19 @@ static uint GetWindowZPriority(const Window *w)
 		case WC_AI_SETTINGS:
 		case WC_TEXTFILE:
 			++z_priority;
+			FALLTHROUGH;
 
 		case WC_CONSOLE:
 			++z_priority;
+			FALLTHROUGH;
 
 		case WC_NEWS_WINDOW:
 			++z_priority;
+			FALLTHROUGH;
 
 		default:
 			++z_priority;
+			FALLTHROUGH;
 
 		case WC_MAIN_WINDOW:
 			return z_priority;
@@ -1327,13 +1338,17 @@ static void AddWindowToZOrdering(Window *w)
 		w->z_front = w->z_back = NULL;
 	} else {
 		/* Search down the z-ordering for its location. */
+		uint w_z_priority = GetWindowZPriority (w->window_class);
 		Window *v = _z_front_window;
 		uint last_z_priority = UINT_MAX;
-		while (v != NULL && (v->window_class == WC_INVALID || GetWindowZPriority(v) > GetWindowZPriority(w))) {
+		while (v != NULL) {
 			if (v->window_class != WC_INVALID) {
+				uint v_z_priority = GetWindowZPriority (v->window_class);
+				if (v_z_priority <= w_z_priority) break;
+
 				/* Sanity check z-ordering, while we're at it. */
-				assert(last_z_priority >= GetWindowZPriority(v));
-				last_z_priority = GetWindowZPriority(v);
+				assert (last_z_priority >= v_z_priority);
+				last_z_priority = v_z_priority;
 			}
 
 			v = v->z_back;
@@ -1468,16 +1483,16 @@ void Window::FindWindowPlacementAndResize(int def_width, int def_height)
  * @param top     Top edge of the rectangle
  * @param width   Width of the rectangle
  * @param height  Height of the rectangle
+ * @param toolbar_y Height of main toolbar
  * @param pos     If rectangle is good, use this parameter to return the top-left corner of the new window
  * @return Boolean indication that the rectangle is a good place for the new window
  */
-static bool IsGoodAutoPlace1(int left, int top, int width, int height, Point &pos)
+static bool IsGoodAutoPlace1(int left, int top, int width, int height, int toolbar_y, Point &pos)
 {
 	int right  = width + left;
 	int bottom = height + top;
 
-	const Window *main_toolbar = FindWindowByClass(WC_MAIN_TOOLBAR);
-	if (left < 0 || (main_toolbar != NULL && top < main_toolbar->height) || right > _screen_width || bottom > _screen_height) return false;
+	if (left < 0 || top < toolbar_y || right > _screen_width || bottom > _screen_height) return false;
 
 	/* Make sure it is not obscured by any window. */
 	const Window *w;
@@ -1505,17 +1520,25 @@ static bool IsGoodAutoPlace1(int left, int top, int width, int height, Point &po
  * @param top     Top edge of the rectangle
  * @param width   Width of the rectangle
  * @param height  Height of the rectangle
+ * @param toolbar_y Height of main toolbar
  * @param pos     If rectangle is good, use this parameter to return the top-left corner of the new window
  * @return Boolean indication that the rectangle is a good place for the new window
  */
-static bool IsGoodAutoPlace2(int left, int top, int width, int height, Point &pos)
+static bool IsGoodAutoPlace2(int left, int top, int width, int height, int toolbar_y, Point &pos)
 {
+	bool rtl = _current_text_dir == TD_RTL;
+
 	/* Left part of the rectangle may be at most 1/4 off-screen,
 	 * right part of the rectangle may be at most 1/2 off-screen
 	 */
-	if (left < -(width >> 2) || left > _screen_width - (width >> 1)) return false;
+	if (rtl) {
+		if (left < -(width >> 1) || left > _screen_width - (width >> 2)) return false;
+	} else {
+		if (left < -(width >> 2) || left > _screen_width - (width >> 1)) return false;
+	}
+
 	/* Bottom part of the rectangle may be at most 1/4 off-screen */
-	if (top < 22 || top > _screen_height - (height >> 2)) return false;
+	if (top < toolbar_y || top > _screen_height - (height >> 2)) return false;
 
 	/* Make sure it is not obscured by any window. */
 	const Window *w;
@@ -1545,11 +1568,14 @@ static Point GetAutoPlacePosition(int width, int height)
 {
 	Point pt;
 
+	bool rtl = _current_text_dir == TD_RTL;
+
 	/* First attempt, try top-left of the screen */
 	const Window *main_toolbar = FindWindowByClass(WC_MAIN_TOOLBAR);
-	if (IsGoodAutoPlace1(0, main_toolbar != NULL ? main_toolbar->height + 2 : 2, width, height, pt)) return pt;
+	const int toolbar_y =  main_toolbar != NULL ? main_toolbar->height : 0;
+	if (IsGoodAutoPlace1(rtl ? _screen_width - width : 0, toolbar_y, width, height, toolbar_y, pt)) return pt;
 
-	/* Second attempt, try around all existing windows with a distance of 2 pixels.
+	/* Second attempt, try around all existing windows.
 	 * The new window must be entirely on-screen, and not overlap with an existing window.
 	 * Eight starting points are tried, two at each corner.
 	 */
@@ -1557,39 +1583,41 @@ static Point GetAutoPlacePosition(int width, int height)
 	FOR_ALL_WINDOWS_FROM_BACK(w) {
 		if (w->window_class == WC_MAIN_WINDOW) continue;
 
-		if (IsGoodAutoPlace1(w->left + w->width + 2, w->top, width, height, pt)) return pt;
-		if (IsGoodAutoPlace1(w->left - width - 2,    w->top, width, height, pt)) return pt;
-		if (IsGoodAutoPlace1(w->left, w->top + w->height + 2, width, height, pt)) return pt;
-		if (IsGoodAutoPlace1(w->left, w->top - height - 2,    width, height, pt)) return pt;
-		if (IsGoodAutoPlace1(w->left + w->width + 2, w->top + w->height - height, width, height, pt)) return pt;
-		if (IsGoodAutoPlace1(w->left - width - 2,    w->top + w->height - height, width, height, pt)) return pt;
-		if (IsGoodAutoPlace1(w->left + w->width - width, w->top + w->height + 2, width, height, pt)) return pt;
-		if (IsGoodAutoPlace1(w->left + w->width - width, w->top - height - 2,    width, height, pt)) return pt;
+		if (IsGoodAutoPlace1(w->left + w->width,         w->top,                      width, height, toolbar_y, pt)) return pt;
+		if (IsGoodAutoPlace1(w->left            - width, w->top,                      width, height, toolbar_y, pt)) return pt;
+		if (IsGoodAutoPlace1(w->left,                    w->top + w->height,          width, height, toolbar_y, pt)) return pt;
+		if (IsGoodAutoPlace1(w->left,                    w->top             - height, width, height, toolbar_y, pt)) return pt;
+		if (IsGoodAutoPlace1(w->left + w->width,         w->top + w->height - height, width, height, toolbar_y, pt)) return pt;
+		if (IsGoodAutoPlace1(w->left            - width, w->top + w->height - height, width, height, toolbar_y, pt)) return pt;
+		if (IsGoodAutoPlace1(w->left + w->width - width, w->top + w->height,          width, height, toolbar_y, pt)) return pt;
+		if (IsGoodAutoPlace1(w->left + w->width - width, w->top             - height, width, height, toolbar_y, pt)) return pt;
 	}
 
-	/* Third attempt, try around all existing windows with a distance of 2 pixels.
+	/* Third attempt, try around all existing windows.
 	 * The new window may be partly off-screen, and must not overlap with an existing window.
 	 * Only four starting points are tried.
 	 */
 	FOR_ALL_WINDOWS_FROM_BACK(w) {
 		if (w->window_class == WC_MAIN_WINDOW) continue;
 
-		if (IsGoodAutoPlace2(w->left + w->width + 2, w->top, width, height, pt)) return pt;
-		if (IsGoodAutoPlace2(w->left - width - 2,    w->top, width, height, pt)) return pt;
-		if (IsGoodAutoPlace2(w->left, w->top + w->height + 2, width, height, pt)) return pt;
-		if (IsGoodAutoPlace2(w->left, w->top - height - 2,    width, height, pt)) return pt;
+		if (IsGoodAutoPlace2(w->left + w->width, w->top,             width, height, toolbar_y, pt)) return pt;
+		if (IsGoodAutoPlace2(w->left    - width, w->top,             width, height, toolbar_y, pt)) return pt;
+		if (IsGoodAutoPlace2(w->left,            w->top + w->height, width, height, toolbar_y, pt)) return pt;
+		if (IsGoodAutoPlace2(w->left,            w->top - height,    width, height, toolbar_y, pt)) return pt;
 	}
 
-	/* Fourth and final attempt, put window at diagonal starting from (0, 24), try multiples
-	 * of (+5, +5)
+	/* Fourth and final attempt, put window at diagonal starting from (0, toolbar_y), try multiples
+	 * of the closebox
 	 */
-	int left = 0, top = 24;
+	int left = rtl ? _screen_width - width : 0, top = toolbar_y;
+	int offset_x = rtl ? -NWidgetLeaf::closebox_dimension.width : NWidgetLeaf::closebox_dimension.width;
+	int offset_y = max<int>(NWidgetLeaf::closebox_dimension.height, FONT_HEIGHT_NORMAL + WD_CAPTIONTEXT_TOP + WD_CAPTIONTEXT_BOTTOM);
 
 restart:
 	FOR_ALL_WINDOWS_FROM_BACK(w) {
 		if (w->left == left && w->top == top) {
-			left += 5;
-			top += 5;
+			left += offset_x;
+			top += offset_y;
 			goto restart;
 		}
 	}
@@ -1638,16 +1666,31 @@ static Point LocalGetWindowPlacement(const WindowDesc *desc, int16 sm_width, int
 	int16 default_width  = max(desc->GetDefaultWidth(),  sm_width);
 	int16 default_height = max(desc->GetDefaultHeight(), sm_height);
 
-	if (desc->parent_cls != 0 /* WC_MAIN_WINDOW */ &&
-			(w = FindWindowById(desc->parent_cls, window_number)) != NULL &&
-			w->left < _screen_width - 20 && w->left > -60 && w->top < _screen_height - 20) {
-
-		pt.x = w->left + ((desc->parent_cls == WC_BUILD_TOOLBAR || desc->parent_cls == WC_SCEN_LAND_GEN) ? 0 : 10);
-		if (pt.x > _screen_width + 10 - default_width) {
-			pt.x = (_screen_width + 10 - default_width) - 20;
+	if (desc->parent_cls != 0 /* WC_MAIN_WINDOW */ && (w = FindWindowById(desc->parent_cls, window_number)) != NULL) {
+		bool rtl = _current_text_dir == TD_RTL;
+		if (desc->parent_cls == WC_BUILD_TOOLBAR || desc->parent_cls == WC_SCEN_LAND_GEN) {
+			pt.x = w->left + (rtl ? w->width - default_width : 0);
+			pt.y = w->top + w->height;
+			return pt;
+		} else {
+			/* Position child window with offset of closebox, but make sure that either closebox or resizebox is visible
+			 *  - Y position: closebox of parent + closebox of child + statusbar
+			 *  - X position: closebox on left/right, resizebox on right/left (depending on ltr/rtl)
+			 */
+			int indent_y = max<int>(NWidgetLeaf::closebox_dimension.height, FONT_HEIGHT_NORMAL + WD_CAPTIONTEXT_TOP + WD_CAPTIONTEXT_BOTTOM);
+			if (w->top + 3 * indent_y < _screen_height) {
+				pt.y = w->top + indent_y;
+				int indent_close = NWidgetLeaf::closebox_dimension.width;
+				int indent_resize = NWidgetLeaf::resizebox_dimension.width;
+				if (_current_text_dir == TD_RTL) {
+					pt.x = max(w->left + w->width - default_width - indent_close, 0);
+					if (pt.x + default_width >= indent_close && pt.x + indent_resize <= _screen_width) return pt;
+				} else {
+					pt.x = min(w->left + indent_close, _screen_width - default_width);
+					if (pt.x + default_width >= indent_resize && pt.x + indent_close <= _screen_width) return pt;
+				}
+			}
 		}
-		pt.y = w->top + ((desc->parent_cls == WC_BUILD_TOOLBAR || desc->parent_cls == WC_SCEN_LAND_GEN) ? w->height : 10);
-		return pt;
 	}
 
 	switch (desc->default_pos) {
@@ -2821,7 +2864,7 @@ static void MouseLoop(MouseClick click, int mousewheel)
 				if (!scrollwheel_scrolling || w == NULL || w->window_class != WC_SMALLMAP) break;
 				/* We try to use the scrollwheel to scroll since we didn't touch any of the buttons.
 				 * Simulate a right button click so we can get started. */
-				/* FALL THROUGH */
+				FALLTHROUGH;
 
 			case MC_RIGHT: DispatchRightClickEvent(w, x - w->left, y - w->top); break;
 

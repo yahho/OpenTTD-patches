@@ -39,7 +39,6 @@ public:
 	typedef typename TAstar::Node Node; ///< this will be our node type
 
 protected:
-	const YAPFSettings *const m_settings; ///< current settings (_settings_game.yapf)
 	const Ship         *const m_veh;      ///< vehicle that we are trying to drive
 	const Station      *const m_dest_station; ///< destination station, or NULL if target is not a station
 	const TileIndex           m_dest_tile;    ///< destination tile, or the special marker INVALID_TILE to search for any depot
@@ -47,8 +46,7 @@ protected:
 	const bool                m_allow_90deg;  ///< whether to allow 90-degree turns
 
 	CYapfShipT (const Ship *ship, bool allow_90deg, bool depot = false)
-		: m_settings(&_settings_game.pf.yapf)
-		, m_veh(ship)
+		: m_veh(ship)
 		, m_dest_station (!depot && ship->current_order.IsType(OT_GOTO_STATION) ? Station::Get(ship->current_order.GetDestination()) : NULL)
 		, m_dest_tile    (depot ? INVALID_TILE : ship->current_order.IsType(OT_GOTO_STATION) ? m_dest_station->GetClosestTile(ship->tile, STATION_DOCK) : ship->dest_tile)
 		, svi(ShipVehInfo(ship->engine_type))
@@ -157,7 +155,7 @@ public:
 		perf.Start();
 #endif /* !NO_DEBUG_MESSAGES */
 
-		bool bDestFound = TAstar::FindPath (Follow, m_settings->max_search_nodes);
+		bool bDestFound = TAstar::FindPath (Follow, _settings_game.pf.yapf.max_search_nodes);
 
 #ifndef NO_DEBUG_MESSAGES
 		perf.Stop();

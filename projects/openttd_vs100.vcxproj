@@ -723,6 +723,7 @@
     <ClInclude Include="..\src\window_type.h" />
     <ClInclude Include="..\src\zoom_func.h" />
     <ClInclude Include="..\src\zoom_type.h" />
+    <ClInclude Include="..\src\core\align.h" />
     <ClCompile Include="..\src\core\alloc_func.cpp">
       <AssemblerListingLocation>$(IntDir)\core\</AssemblerListingLocation>
       <ObjectFileName>$(IntDir)\core\</ObjectFileName>

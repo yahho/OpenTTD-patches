@@ -39,11 +39,9 @@ struct CFollowTrackTypes
 
 	enum ErrorCode {
 		EC_NONE,
-		EC_OWNER,
+		EC_NO_WAY,
 		EC_RAIL_TYPE,
 		EC_90DEG,
-		EC_NO_WAY,
-		EC_RESERVED,
 	};
 
 	enum TileResult {
@@ -68,7 +66,6 @@ struct CFollowTrackBase : CFollowTrackTypes
 	DiagDirection       m_exitdir;       ///< exit direction (leaving the old tile)
 	TileFlag            m_flag;          ///< last turn passed station, tunnel or bridge
 	int                 m_tiles_skipped; ///< number of skipped tunnel or station tiles
-	ErrorCode           m_err;
 };
 
 
@@ -100,18 +97,16 @@ struct CFollowTrack : Base
 	 * Main follower routine. Attempts to follow track at the given
 	 * pathfinder position. On return:
 	 *  * m_old is always set to the position given as argument.
-	 *  * On success, true is returned, and all fields are filled in as
-	 * appropriate. m_err is guaranteed to be EC_NONE, and m_exitdir may
-	 * not be the natural exit direction of m_old.td, if the track
-	 * follower had to reverse.
-	 *  * On failure, false is returned, and m_err is set to a value
-	 * indicating why the track could not be followed. The rest of the
-	 * fields should be considered undefined.
+	 *  * On success, EC_NONE is returned, and all fields are filled in
+	 * as appropriate. m_exitdir may not be the natural exit direction
+	 * of m_old.td, if the track follower had to reverse.
+	 *  * On failure, a value other than EC_NONE is returned, indicating
+	 * why the track could not be followed. The rest of the fields should
+	 * be considered undefined.
 	 */
-	inline bool Follow(const typename Base::Pos &pos)
+	inline typename Base::ErrorCode Follow (const typename Base::Pos &pos)
 	{
 		Base::m_old = pos;
-		Base::m_err = Base::EC_NONE;
 		Base::m_exitdir = TrackdirToExitdir(Base::m_old.td);
 
 		if (Base::m_old.in_wormhole()) {
@@ -119,21 +114,20 @@ struct CFollowTrack : Base
 		} else {
 			switch (Base::CheckOldTile()) {
 				case Base::TR_NO_WAY:
-					Base::m_err = Base::EC_NO_WAY;
-					return false;
+					return Base::EC_NO_WAY;
 				case Base::TR_REVERSE:
 					Base::m_new.set (Base::m_old.tile, ReverseTrackdir(Base::m_old.td));
 					Base::m_exitdir = ReverseDiagDir(Base::m_exitdir);
 					Base::m_tiles_skipped = 0;
 					Base::m_flag = Base::TF_NONE;
-					return true;
+					return Base::EC_NONE;
 				case Base::TR_BRIDGE:
 					/* we are entering the bridge */
-					if (EnterWormhole(true)) return true;
+					if (EnterWormhole(true)) return Base::EC_NONE;
 					break;
 				case Base::TR_TUNNEL:
 					/* we are entering the tunnel */
-					if (EnterWormhole(false)) return true;
+					if (EnterWormhole(false)) return Base::EC_NONE;
 					break;
 				default:
 					/* normal or station tile, do one step */
@@ -161,7 +155,7 @@ struct CFollowTrack : Base
 				if (Base::m_new.is_empty()) {
 					Base::m_new.set_trackdir (DiagDirToDiagTrackdir (Base::m_exitdir));
 				}
-				return true;
+				return Base::EC_NONE;
 
 			case Base::TF_TUNNEL:
 				assert(IsTunnelTile(Base::m_new.tile));
@@ -169,35 +163,34 @@ struct CFollowTrack : Base
 
 				Base::m_new.set_trackdir (DiagDirToDiagTrackdir(Base::m_exitdir));
 				assert(Base::m_new.trackdirs == (Base::GetTrackStatusTrackdirBits(Base::m_new.tile) & DiagdirReachesTrackdirs(Base::m_exitdir)));
-				return true;
+				return Base::EC_NONE;
 
 			default: break;
 		}
 
-		if (!Base::CheckNewTile()) {
-			assert(Base::m_err != Base::EC_NONE);
-			if (!Base::CheckEndOfLine()) return false;
-			Base::m_err = Base::EC_NONE; // clear error set by CheckNewTile
-			return true;
+		CFollowTrackTypes::ErrorCode err = Base::CheckNewTile();
+		if (err != CFollowTrackTypes::EC_NONE) {
+			if (!Base::CheckEndOfLine()) return err;
+			return Base::EC_NONE;
 		}
 
 		if (!Base::Allow90deg()) {
 			TrackdirBits trackdirs = Base::m_new.trackdirs & (TrackdirBits)~(int)TrackdirCrossesTrackdirs(Base::m_old.td);
 			if (trackdirs == TRACKDIR_BIT_NONE) {
-				Base::m_err = Base::EC_90DEG;
-				return false;
+				return Base::EC_90DEG;
 			}
 			Base::m_new.set_trackdirs (trackdirs);
 		}
 
-		return true;
+		return Base::EC_NONE;
 	}
 
-	inline bool FollowNext()
+	/** Call Follow on the previously new tile. */
+	inline typename Base::ErrorCode FollowNext (void)
 	{
 		assert(Base::m_new.is_valid());
 		assert(Base::m_new.is_single());
-		return Follow(Base::m_new);
+		return Follow (Base::m_new);
 	}
 
 	inline void SetPos(const typename Base::Pos &pos)
@@ -305,7 +298,7 @@ struct CFollowTrackRailBase : CFollowTrackBase<RailPathPos>
 	}
 
 	/** stores track status (available trackdirs) for the new tile into m_new.trackdirs */
-	inline bool CheckNewTile()
+	inline ErrorCode CheckNewTile (void)
 	{
 		CPerfStart perf(*m_pPerf);
 
@@ -318,8 +311,7 @@ struct CFollowTrackRailBase : CFollowTrackBase<RailPathPos>
 
 		trackdirs &= DiagdirReachesTrackdirs(m_exitdir);
 		if (trackdirs == TRACKDIR_BIT_NONE) {
-			m_err = EC_NO_WAY;
-			return false;
+			return EC_NO_WAY;
 		}
 
 		m_new.set_trackdirs (trackdirs);
@@ -329,16 +321,14 @@ struct CFollowTrackRailBase : CFollowTrackBase<RailPathPos>
 		if (IsRailDepotTile(m_new.tile)) {
 			DiagDirection exitdir = GetGroundDepotDirection(m_new.tile);
 			if (ReverseDiagDir(exitdir) != m_exitdir) {
-				m_err = EC_NO_WAY;
-				return false;
+				return EC_NO_WAY;
 			}
 		}
 
 		/* rail transport is possible only on tiles with the same owner as vehicle */
 		if (GetTileOwner(m_new.tile) != m_veh_owner) {
 			/* different owner */
-			m_err = EC_NO_WAY;
-			return false;
+			return EC_NO_WAY;
 		}
 
 		/* rail transport is possible only on compatible rail types */
@@ -346,8 +336,7 @@ struct CFollowTrackRailBase : CFollowTrackBase<RailPathPos>
 		if (IsRailwayTile(m_new.tile)) {
 			rail_type = GetSideRailType(m_new.tile, ReverseDiagDir(m_exitdir));
 			if (rail_type == INVALID_RAILTYPE) {
-				m_err = EC_NO_WAY;
-				return false;
+				return EC_NO_WAY;
 			}
 		} else {
 			rail_type = GetRailType(m_new.tile);
@@ -355,8 +344,7 @@ struct CFollowTrackRailBase : CFollowTrackBase<RailPathPos>
 
 		if (!HasBit(m_railtypes, rail_type)) {
 			/* incompatible rail type */
-			m_err = EC_RAIL_TYPE;
-			return false;
+			return EC_RAIL_TYPE;
 		}
 
 		/* tunnel holes and bridge ramps can be entered only from proper direction */
@@ -364,13 +352,11 @@ struct CFollowTrackRailBase : CFollowTrackBase<RailPathPos>
 		assert(m_flag != TF_TUNNEL);
 		if (IsTunnelTile(m_new.tile)) {
 			if (GetTunnelBridgeDirection(m_new.tile) != m_exitdir) {
-				m_err = EC_NO_WAY;
-				return false;
+				return EC_NO_WAY;
 			}
 		} else if (IsRailBridgeTile(m_new.tile)) {
 			if (GetTunnelBridgeDirection(m_new.tile) == ReverseDiagDir(m_exitdir)) {
-				m_err = EC_NO_WAY;
-				return false;
+				return EC_NO_WAY;
 			}
 		}
 
@@ -387,7 +373,7 @@ struct CFollowTrackRailBase : CFollowTrackBase<RailPathPos>
 			m_new.tile = TILE_ADD(m_new.tile, diff);
 		}
 
-		return true;
+		return EC_NONE;
 	}
 
 	/** return true if we successfully reversed at end of road/track */
@@ -467,7 +453,6 @@ struct CFollowTrackRailBase : CFollowTrackBase<RailPathPos>
 			for (;;) {
 				if (HasStationReservation(tile)) {
 					m_new.clear_trackdirs();
-					m_err = EC_RESERVED;
 					return false;
 				}
 				if (tile == m_new.tile) return true;
@@ -479,7 +464,6 @@ struct CFollowTrackRailBase : CFollowTrackBase<RailPathPos>
 			assert(m_new.is_single());
 			if (HasReservedPos(m_new)) {
 				m_new.clear_trackdirs();
-				m_err = EC_RESERVED;
 				return false;
 			} else {
 				return true;
@@ -496,7 +480,6 @@ struct CFollowTrackRailBase : CFollowTrackBase<RailPathPos>
 		}
 		if (trackdirs == TRACKDIR_BIT_NONE) {
 			m_new.clear_trackdirs();
-			m_err = EC_RESERVED;
 			return false;
 		}
 		m_new.set_trackdirs (trackdirs);
@@ -577,7 +560,7 @@ struct CFollowTrackRoadBase : CFollowTrackBase<RoadPathPos>
 	}
 
 	/** stores track status (available trackdirs) for the new tile into m_new.trackdirs */
-	inline bool CheckNewTile()
+	inline ErrorCode CheckNewTile (void)
 	{
 		TrackdirBits trackdirs = GetTrackStatusTrackdirBits(m_new.tile);
 
@@ -587,17 +570,15 @@ struct CFollowTrackRoadBase : CFollowTrackBase<RoadPathPos>
 			if (IsTram() && IsRoadTile (m_new.tile) &&
 					GetRoadBits (m_new.tile, ROADTYPE_TRAM) == DiagDirToRoadBits (ReverseDiagDir (m_exitdir))) {
 				m_new.set_trackdir (DiagDirToDiagTrackdir(m_exitdir));
-				return true;
+				return EC_NONE;
 			} else {
-				m_err = EC_NO_WAY;
-				return false;
+				return EC_NO_WAY;
 			}
 		}
 
 		trackdirs &= DiagdirReachesTrackdirs(m_exitdir);
 		if (trackdirs == TRACKDIR_BIT_NONE) {
-			m_err = EC_NO_WAY;
-			return false;
+			return EC_NO_WAY;
 		}
 
 		m_new.set_trackdirs (trackdirs);
@@ -606,8 +587,7 @@ struct CFollowTrackRoadBase : CFollowTrackBase<RoadPathPos>
 			/* road stop can be entered from one direction only unless it's a drive-through stop */
 			DiagDirection exitdir = GetRoadStopDir(m_new.tile);
 			if (ReverseDiagDir(exitdir) != m_exitdir) {
-				m_err = EC_NO_WAY;
-				return false;
+				return EC_NO_WAY;
 			}
 		}
 
@@ -615,13 +595,11 @@ struct CFollowTrackRoadBase : CFollowTrackBase<RoadPathPos>
 		if (IsRoadDepotTile(m_new.tile)) {
 			DiagDirection exitdir = GetGroundDepotDirection(m_new.tile);
 			if (ReverseDiagDir(exitdir) != m_exitdir) {
-				m_err = EC_NO_WAY;
-				return false;
+				return EC_NO_WAY;
 			}
 			/* don't try to enter other company's depots */
 			if (GetTileOwner(m_new.tile) != m_veh_owner) {
-				m_err = EC_OWNER;
-				return false;
+				return EC_NO_WAY;
 			}
 		}
 
@@ -630,17 +608,15 @@ struct CFollowTrackRoadBase : CFollowTrackBase<RoadPathPos>
 		assert(m_flag != TF_TUNNEL);
 		if (IsTunnelTile(m_new.tile)) {
 			if (GetTunnelBridgeDirection(m_new.tile) != m_exitdir) {
-				m_err = EC_NO_WAY;
-				return false;
+				return EC_NO_WAY;
 			}
 		} else if (IsRoadBridgeTile(m_new.tile)) {
 			if (GetTunnelBridgeDirection(m_new.tile) == ReverseDiagDir(m_exitdir)) {
-				m_err = EC_NO_WAY;
-				return false;
+				return EC_NO_WAY;
 			}
 		}
 
-		return true;
+		return EC_NONE;
 	}
 
 	/** return true if we successfully reversed at end of road/track */
