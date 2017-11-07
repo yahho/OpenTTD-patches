@@ -8831,47 +8831,33 @@ static int DecodeSpecialSprite (byte *buf, uint num, GrfLoadingStage stage)
 extern const byte _grf_cont_v2_sig[8] = {'G', 'R', 'F', 0x82, 0x0D, 0x0A, 0x1A, 0x0A};
 
 /**
- * Get the container version of the currently opened GRF file.
- * @return Container version of the GRF file or 0 if the file is corrupt/no GRF file.
- */
-byte GetGRFContainerVersion()
-{
-	size_t pos = FioGetPos();
-
-	if (FioReadWord() == 0) {
-		/* Check for GRF container version 2, which is identified by the bytes
-		 * '47 52 46 82 0D 0A 1A 0A' at the start of the file. */
-		for (uint i = 0; i < lengthof(_grf_cont_v2_sig); i++) {
-			if (FioReadByte() != _grf_cont_v2_sig[i]) return 0; // Invalid format
-		}
-
-		return 2;
-	}
-
-	/* Container version 1 has no header, rewind to start. */
-	FioSeekTo(pos, SEEK_SET);
-	return 1;
-}
-
-/**
  * Read the header of a GRF header.
  * @param header Struct to fill with data.
  * @return Whether the header is valid.
  */
 bool ReadGRFHeader (GRFHeader *header)
 {
-	byte ver = GetGRFContainerVersion();
-	if (ver == 0) return false;
-	header->version = ver;
+	size_t pos = FioGetPos();
 
-	if (ver >= 2) {
+	if (FioReadWord() != 0) {
+		/* Container version 1 has no header, rewind to start. */
+		FioSeekTo (pos, SEEK_SET);
+
+		header->version = 1;
+		header->sprite_offset = 0;
+	} else {
+		/* Check for GRF container version 2, which is identified by the
+		 * bytes '47 52 46 82 0D 0A 1A 0A' at the start of the file. */
+		for (uint i = 0; i < lengthof(_grf_cont_v2_sig); i++) {
+			if (FioReadByte() != _grf_cont_v2_sig[i]) return false;
+		}
+
+		header->version = 2;
 		uint32 offset = FioReadDword();
 		header->sprite_offset = offset + FioGetPos();
 
 		/* Read compression value. */
 		if (FioReadByte() != 0) return false;
-	} else {
-		header->sprite_offset = 0;
 	}
 
 	return true;
