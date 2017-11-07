@@ -8854,6 +8854,30 @@ byte GetGRFContainerVersion()
 }
 
 /**
+ * Read the header of a GRF header.
+ * @param header Struct to fill with data.
+ * @return Whether the header is valid.
+ */
+bool ReadGRFHeader (GRFHeader *header)
+{
+	byte ver = GetGRFContainerVersion();
+	if (ver == 0) return false;
+	header->version = ver;
+
+	if (ver >= 2) {
+		uint32 offset = FioReadDword();
+		header->sprite_offset = offset + FioGetPos();
+
+		/* Read compression value. */
+		if (FioReadByte() != 0) return false;
+	} else {
+		header->sprite_offset = 0;
+	}
+
+	return true;
+}
+
+/**
  * Load a particular NewGRF.
  * @param config     The configuration of the to be loaded NewGRF.
  * @param file_index The Fio index of the first NewGRF to load.
@@ -8874,28 +8898,18 @@ void LoadNewGRFFile(GRFConfig *config, uint file_index, GrfLoadingStage stage, S
 
 	DEBUG(grf, 2, "LoadNewGRFFile: Reading NewGRF-file '%s'", filename);
 
-	_cur.grf_container_ver = GetGRFContainerVersion();
-	if (_cur.grf_container_ver == 0) {
+	GRFHeader header;
+	if (!ReadGRFHeader (&header)) {
 		DEBUG(grf, 7, "LoadNewGRFFile: Custom .grf has invalid format");
 		return;
 	}
 
+	_cur.grf_container_ver = header.version;
+
 	if (stage == GLS_INIT || stage == GLS_ACTIVATION) {
 		/* We need the sprite offsets in the init stage for NewGRF sounds
 		 * and in the activation stage for real sprites. */
-		ReadGRFSpriteOffsets(_cur.grf_container_ver);
-	} else {
-		/* Skip sprite section offset if present. */
-		if (_cur.grf_container_ver >= 2) FioReadDword();
-	}
-
-	if (_cur.grf_container_ver >= 2) {
-		/* Read compression value. */
-		byte compression = FioReadByte();
-		if (compression != 0) {
-			DEBUG(grf, 7, "LoadNewGRFFile: Unsupported compression format");
-			return;
-		}
+		ReadGRFSpriteOffsets (&header);
 	}
 
 	/* Skip the first sprite; we don't care about how many sprites this

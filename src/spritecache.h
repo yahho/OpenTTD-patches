@@ -50,7 +50,7 @@ void GfxInitSpriteMem();
 void GfxClearSpriteCache();
 void IncreaseSpriteLRU();
 
-void ReadGRFSpriteOffsets(byte container_version);
+void ReadGRFSpriteOffsets (const struct GRFHeader *header);
 size_t GetGRFSpriteOffset(uint32 id);
 bool LoadNextSprite(int load_index, byte file_index, uint file_sprite_id, byte container_version);
 bool SkipSpriteData(byte type, uint16 num);

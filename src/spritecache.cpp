@@ -27,6 +27,7 @@
 #include "core/bitmath_func.hpp"
 #include "core/mem_func.hpp"
 #include "strings_func.h"
+#include "newgrf.h"
 
 #include "table/sprites.h"
 #include "table/strings.h"
@@ -866,17 +867,16 @@ size_t GetGRFSpriteOffset(uint32 id)
 
 /**
  * Parse the sprite section of GRFs.
- * @param container_version Container version of the GRF we're currently processing.
+ * @param header GRF header data.
  */
-void ReadGRFSpriteOffsets(byte container_version)
+void ReadGRFSpriteOffsets (const GRFHeader *header)
 {
 	_grf_sprite_offsets.clear();
 
-	if (container_version >= 2) {
+	if (header->version >= 2) {
 		/* Seek to sprite section of the GRF. */
-		size_t data_offset = FioReadDword();
 		size_t old_pos = FioGetPos();
-		FioSeekTo(data_offset, SEEK_CUR);
+		FioSeekTo (header->sprite_offset, SEEK_SET);
 
 		/* Loop over all sprite section entries and store the file
 		 * offset for each newly encountered ID. */

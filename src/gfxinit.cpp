@@ -56,16 +56,14 @@ static uint LoadGrfFile(const char *filename, uint load_index, int file_index)
 
 	DEBUG(sprite, 2, "Reading grf-file '%s'", filename);
 
-	byte container_ver = GetGRFContainerVersion();
-	if (container_ver == 0) usererror("Base grf '%s' is corrupt", filename);
-	ReadGRFSpriteOffsets(container_ver);
-	if (container_ver >= 2) {
-		/* Read compression. */
-		byte compression = FioReadByte();
-		if (compression != 0) usererror("Unsupported compression format");
+	GRFHeader header;
+	if (!ReadGRFHeader (&header)) {
+		usererror ("Base grf '%s' is corrupt", filename);
 	}
 
-	while (LoadNextSprite(load_index, file_index, sprite_id, container_ver)) {
+	ReadGRFSpriteOffsets (&header);
+
+	while (LoadNextSprite (load_index, file_index, sprite_id, header.version)) {
 		load_index++;
 		sprite_id++;
 		if (load_index >= MAX_SPRITES) {
@@ -93,20 +91,18 @@ static void LoadGrfFileIndexed(const char *filename, const SpriteID *index_tbl, 
 
 	DEBUG(sprite, 2, "Reading indexed grf-file '%s'", filename);
 
-	byte container_ver = GetGRFContainerVersion();
-	if (container_ver == 0) usererror("Base grf '%s' is corrupt", filename);
-	ReadGRFSpriteOffsets(container_ver);
-	if (container_ver >= 2) {
-		/* Read compression. */
-		byte compression = FioReadByte();
-		if (compression != 0) usererror("Unsupported compression format");
+	GRFHeader header;
+	if (!ReadGRFHeader (&header)) {
+		usererror ("Base grf '%s' is corrupt", filename);
 	}
+
+	ReadGRFSpriteOffsets (&header);
 
 	while ((start = *index_tbl++) != END) {
 		uint end = *index_tbl++;
 
 		do {
-			bool b = LoadNextSprite(start, file_index, sprite_id, container_ver);
+			bool b = LoadNextSprite (start, file_index, sprite_id, header.version);
 			assert(b);
 			sprite_id++;
 		} while (++start <= end);
