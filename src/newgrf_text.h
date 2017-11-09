@@ -20,16 +20,12 @@
 #include "core/smallvec_type.hpp"
 #include "table/control_codes.h"
 
-/** This character, the thorn ('þ'), indicates a unicode string to NFO. */
-static const WChar NFO_UTF8_IDENTIFIER = 0x00DE;
-
 /** Skip the NFO unicode string marker, if present. */
 static inline bool skip_nfo_utf8_identifier (const char **str)
 {
-	WChar c;
-	size_t len = Utf8Decode (&c, *str);
-	if (c != NFO_UTF8_IDENTIFIER) return false;
-	*str += len;
+	/* This character, the thorn, indicates a unicode string to NFO. */
+	if ((*str)[0] != '\xC3' || (*str)[1] != '\x9E') return false;
+	*str += 2;
 	return true;
 }
 
