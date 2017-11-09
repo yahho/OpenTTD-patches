@@ -2938,9 +2938,7 @@ static ChangeInfoResult GlobalVarChangeInfo(uint gvid, int numinfo, int prop, By
 					 * safe as OpenTTD's strings gender/cases are usually in ASCII which
 					 * is just a subset of UTF8, or they need the bigger UTF8 characters
 					 * such as Cyrillic. Thus we will simply assume they're all UTF8. */
-					WChar c;
-					size_t len = Utf8Decode(&c, name);
-					if (c == NFO_UTF8_IDENTIFIER) name += len;
+					skip_nfo_utf8_identifier (&name);
 
 					LanguageMap::Mapping map;
 					map.newgrf_id = newgrf_id;

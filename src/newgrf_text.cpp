@@ -314,10 +314,6 @@ static void TranslateStringCodes (stringb *out, const char *str, uint32 grfid,
 
 	stringb *buf = out;
 
-	bool unicode = false;
-	WChar c;
-	size_t len = Utf8Decode(&c, str);
-
 	/* Helper variables for a possible (string) mapping. */
 	StringControlCode mapping_type = (StringControlCode)0;
 	int mapping_offset;
@@ -325,12 +321,10 @@ static void TranslateStringCodes (stringb *out, const char *str, uint32 grfid,
 	/* Mapping of NewGRF-supplied ID to the different strings in the choice list. */
 	ttd_unique_free_ptr<mstring> mapping_strings[256];
 
-	if (c == NFO_UTF8_IDENTIFIER) {
-		unicode = true;
-		str += len;
-	}
+	bool unicode = skip_nfo_utf8_identifier (&str);
 
 	for (;;) {
+		WChar c;
 		if (unicode && Utf8EncodedCharLen(*str) != 0) {
 			c = Utf8Consume(&str);
 			/* 'Magic' range of control codes. */

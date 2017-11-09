@@ -23,6 +23,16 @@
 /** This character, the thorn ('þ'), indicates a unicode string to NFO. */
 static const WChar NFO_UTF8_IDENTIFIER = 0x00DE;
 
+/** Skip the NFO unicode string marker, if present. */
+static inline bool skip_nfo_utf8_identifier (const char **str)
+{
+	WChar c;
+	size_t len = Utf8Decode (&c, *str);
+	if (c != NFO_UTF8_IDENTIFIER) return false;
+	*str += len;
+	return true;
+}
+
 
 /**
  * Element of the linked list.
