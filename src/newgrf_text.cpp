@@ -325,21 +325,20 @@ static void TranslateStringCodes (stringb *out, const char *str, uint32 grfid,
 
 	for (;;) {
 		WChar c;
+		bool try_control = true;
 		if (unicode && Utf8EncodedCharLen(*str) != 0) {
 			c = Utf8Consume(&str);
 			/* 'Magic' range of control codes. */
 			if (GB(c, 8, 8) == 0xE0) {
 				c = GB(c, 0, 8);
 			} else if (c >= 0x20) {
-				if (!IsPrintable (c)) c = '?';
-				buf->append_utf8 (c);
-				continue;
+				try_control = false;
 			}
 		} else {
 			c = (byte)*str++;
 		}
 
-		if (c < lengthof(ctrl)) {
+		if (try_control && (c < lengthof(ctrl))) {
 			c = ctrl[c];
 		} else if (!IsPrintable (c)) {
 			c = '?';
