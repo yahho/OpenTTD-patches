@@ -412,7 +412,7 @@ void IConsoleCmdExec(const char *cmdstr)
 	if (cmdstr[0] == '#') return; // comments
 
 	for (cmdptr = cmdstr; *cmdptr != '\0'; cmdptr++) {
-		if (!IsValidChar(*cmdptr, CS_ALPHANUMERAL)) {
+		if (!IsPrintable (*cmdptr)) {
 			IConsoleError("command contains malformed characters, aborting");
 			IConsolePrintF(CC_ERROR, "ERROR: command was: '%s'", cmdstr);
 			return;

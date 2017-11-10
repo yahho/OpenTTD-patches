@@ -331,7 +331,7 @@ static void TranslateStringCodes (stringb *out, const char *str, uint32 grfid,
 			if (GB(c, 8, 8) == 0xE0) {
 				c = GB(c, 0, 8);
 			} else if (c >= 0x20) {
-				if (!IsValidChar(c, CS_ALPHANUMERAL)) c = '?';
+				if (!IsPrintable (c)) c = '?';
 				buf->append_utf8 (c);
 				continue;
 			}
