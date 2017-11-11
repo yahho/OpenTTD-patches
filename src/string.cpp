@@ -362,24 +362,6 @@ size_t Utf8StringLength(const char *s)
 }
 
 /**
- * Only allow certain keys. You can define the filter to be used. This makes
- *  sure no invalid keys can get into an editbox, like BELL.
- * @param key character to be checked
- * @param afilter the filter to use
- * @return true or false depending if the character is printable/valid or not
- */
-bool IsValidChar(WChar key, CharSetFilter afilter)
-{
-	switch (afilter) {
-		case CS_ALPHANUMERAL:  return IsPrintable(key);
-		case CS_NUMERAL:       return (key >= '0' && key <= '9');
-		case CS_HEXADECIMAL:   return (key >= '0' && key <= '9') || (key >= 'a' && key <= 'f') || (key >= 'A' && key <= 'F');
-	}
-
-	return false;
-}
-
-/**
  * Checks whether the given string is valid, i.e. contains only
  * valid (printable) characters and is properly terminated.
  * @param str  The string to validate.

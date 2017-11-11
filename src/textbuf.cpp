@@ -379,7 +379,7 @@ bool Textbuf::InsertString(const char *str, bool marked, const char *caret, cons
 	uint16 bytes = 0, chars = 0;
 	WChar c;
 	for (const char *ptr = str; (c = Utf8Consume(&ptr)) != '\0';) {
-		if (!IsValidChar(c, this->afilter)) break;
+		if (!this->IsValidChar (c)) break;
 
 		byte len = Utf8CharLen(c);
 		if (this->len   + bytes + len >= this->capacity) break;
@@ -587,6 +587,23 @@ Textbuf::Textbuf (uint16 max_bytes, char *buf, uint16 max_chars)
 }
 
 /**
+ * Only allow certain keys. You can define the filter to be used. This makes
+ *  sure no invalid keys can get into an editbox, like BELL.
+ * @param key character to be checked
+ * @return true or false depending if the character is printable/valid or not
+ */
+bool Textbuf::IsValidChar (WChar key) const
+{
+	switch (this->afilter) {
+		case CS_ALPHANUMERAL: return IsPrintable (key);
+		case CS_NUMERAL:      return (key >= '0' && key <= '9');
+		case CS_HEXADECIMAL:  return (key >= '0' && key <= '9') || (key >= 'a' && key <= 'f') || (key >= 'A' && key <= 'F');
+	}
+
+	return false;
+}
+
+/**
  * Render a string into the textbuffer.
  * @param string String
  */
@@ -715,7 +732,7 @@ HandleKeyPressResult Textbuf::HandleKeyPress(WChar key, uint16 keycode)
 			break;
 
 		default:
-			if (IsValidChar(key, this->afilter)) {
+			if (this->IsValidChar (key)) {
 				edited = this->InsertChar(key);
 			} else {
 				return HKPR_NOT_HANDLED;

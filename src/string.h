@@ -233,17 +233,6 @@ static inline bool IsWhitespace(WChar c)
 	return c == 0x0020 /* SPACE */ || c == 0x3000; /* IDEOGRAPHIC SPACE */
 }
 
-/**
- * Valid filter types for IsValidChar.
- */
-enum CharSetFilter {
-	CS_ALPHANUMERAL,      ///< Both numeric and alphabetic and spaces and stuff
-	CS_NUMERAL,           ///< Only numeric ones
-	CS_HEXADECIMAL,       ///< Only hexadecimal characters
-};
-
-bool IsValidChar(WChar key, CharSetFilter afilter);
-
 /** Settings for the string validation. */
 enum StringValidationSettings {
 	SVS_NONE                       = 0,      ///< Allow nothing and replace nothing.

@@ -23,6 +23,15 @@
 #endif
 
 /**
+ * Valid filter types for Textbuf::IsValidChar.
+ */
+enum CharSetFilter {
+	CS_ALPHANUMERAL,      ///< Both numeric and alphabetic and spaces and stuff
+	CS_NUMERAL,           ///< Only numeric ones
+	CS_HEXADECIMAL,       ///< Only hexadecimal characters
+};
+
+/**
  * Return values for Textbuf::HandleKeypress
  */
 enum HandleKeyPressResult
@@ -49,6 +58,8 @@ struct Textbuf : stringb {
 	uint16 marklength;        ///< the length of the marked area in pixels
 
 	explicit Textbuf (uint16 max_bytes, char *buf, uint16 max_chars = UINT16_MAX);
+
+	bool IsValidChar (WChar key) const;
 
 	void Assign(StringID string);
 	void Assign(const char *text);
