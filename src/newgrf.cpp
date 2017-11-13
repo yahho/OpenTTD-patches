@@ -5522,66 +5522,59 @@ static int FeatureNewName (ByteReader *buf)
 		const char *name = buf->ReadString();
 		grfmsg(8, "FeatureNewName: 0x%04X <- %s", id, name);
 
-		switch (feature) {
-			case GSF_TRAINS:
-			case GSF_ROADVEHICLES:
-			case GSF_SHIPS:
-			case GSF_AIRCRAFT:
-				if (!generic) {
-					Engine *e = GetNewEngine(_cur.grffile, (VehicleType)feature, id, HasBit(_cur.grfconfig->flags, GCF_STATIC));
-					if (e == NULL) break;
+		if (feature <= GSF_AIRCRAFT) {
+			if (generic) {
+				AddGRFString (_cur.grffile->grfid, id, lang, new_scheme, true, name, STR_UNDEFINED);
+			} else {
+				Engine *e = GetNewEngine (_cur.grffile, (VehicleType)feature, id, HasBit(_cur.grfconfig->flags, GCF_STATIC));
+				if (e != NULL) {
 					StringID string = AddGRFString(_cur.grffile->grfid, e->index, lang, new_scheme, false, name, e->info.string_id);
 					e->info.string_id = string;
-				} else {
-					AddGRFString(_cur.grffile->grfid, id, lang, new_scheme, true, name, STR_UNDEFINED);
 				}
-				break;
+			}
 
-			default:
-				if (IsInsideMM(id, 0xD000, 0xD400) || IsInsideMM(id, 0xD800, 0xE000)) {
-					AddGRFString(_cur.grffile->grfid, id, lang, new_scheme, true, name, STR_UNDEFINED);
+		} else if (IsInsideMM (id, 0xD000, 0xD400) || IsInsideMM (id, 0xD800, 0xE000)) {
+			AddGRFString (_cur.grffile->grfid, id, lang, new_scheme, true, name, STR_UNDEFINED);
+
+		} else {
+			switch (GB(id, 8, 8)) {
+				case 0xC4: // Station class name
+					if (_cur.grffile->stations == NULL || _cur.grffile->stations[GB(id, 0, 8)] == NULL) {
+						grfmsg(1, "FeatureNewName: Attempt to name undefined station 0x%X, ignoring", GB(id, 0, 8));
+					} else {
+						StationClassID cls_id = _cur.grffile->stations[GB(id, 0, 8)]->cls_id;
+						StationClass::Get(cls_id)->name = AddGRFString (_cur.grffile->grfid, id, lang, new_scheme, false, name, STR_UNDEFINED);
+					}
 					break;
-				}
 
-				switch (GB(id, 8, 8)) {
-					case 0xC4: // Station class name
-						if (_cur.grffile->stations == NULL || _cur.grffile->stations[GB(id, 0, 8)] == NULL) {
-							grfmsg(1, "FeatureNewName: Attempt to name undefined station 0x%X, ignoring", GB(id, 0, 8));
-						} else {
-							StationClassID cls_id = _cur.grffile->stations[GB(id, 0, 8)]->cls_id;
-							StationClass::Get(cls_id)->name = AddGRFString(_cur.grffile->grfid, id, lang, new_scheme, false, name, STR_UNDEFINED);
-						}
-						break;
+				case 0xC5: // Station name
+					if (_cur.grffile->stations == NULL || _cur.grffile->stations[GB(id, 0, 8)] == NULL) {
+						grfmsg(1, "FeatureNewName: Attempt to name undefined station 0x%X, ignoring", GB(id, 0, 8));
+					} else {
+						_cur.grffile->stations[GB(id, 0, 8)]->name = AddGRFString (_cur.grffile->grfid, id, lang, new_scheme, false, name, STR_UNDEFINED);
+					}
+					break;
 
-					case 0xC5: // Station name
-						if (_cur.grffile->stations == NULL || _cur.grffile->stations[GB(id, 0, 8)] == NULL) {
-							grfmsg(1, "FeatureNewName: Attempt to name undefined station 0x%X, ignoring", GB(id, 0, 8));
-						} else {
-							_cur.grffile->stations[GB(id, 0, 8)]->name = AddGRFString(_cur.grffile->grfid, id, lang, new_scheme, false, name, STR_UNDEFINED);
-						}
-						break;
+				case 0xC7: // Airporttile name
+					if (_cur.grffile->airtspec == NULL || _cur.grffile->airtspec[GB(id, 0, 8)] == NULL) {
+						grfmsg(1, "FeatureNewName: Attempt to name undefined airport tile 0x%X, ignoring", GB(id, 0, 8));
+					} else {
+						_cur.grffile->airtspec[GB(id, 0, 8)]->name = AddGRFString (_cur.grffile->grfid, id, lang, new_scheme, false, name, STR_UNDEFINED);
+					}
+					break;
 
-					case 0xC7: // Airporttile name
-						if (_cur.grffile->airtspec == NULL || _cur.grffile->airtspec[GB(id, 0, 8)] == NULL) {
-							grfmsg(1, "FeatureNewName: Attempt to name undefined airport tile 0x%X, ignoring", GB(id, 0, 8));
-						} else {
-							_cur.grffile->airtspec[GB(id, 0, 8)]->name = AddGRFString(_cur.grffile->grfid, id, lang, new_scheme, false, name, STR_UNDEFINED);
-						}
-						break;
+				case 0xC9: // House name
+					if (_cur.grffile->housespec == NULL || _cur.grffile->housespec[GB(id, 0, 8)] == NULL) {
+						grfmsg(1, "FeatureNewName: Attempt to name undefined house 0x%X, ignoring.", GB(id, 0, 8));
+					} else {
+						_cur.grffile->housespec[GB(id, 0, 8)]->building_name = AddGRFString (_cur.grffile->grfid, id, lang, new_scheme, false, name, STR_UNDEFINED);
+					}
+					break;
 
-					case 0xC9: // House name
-						if (_cur.grffile->housespec == NULL || _cur.grffile->housespec[GB(id, 0, 8)] == NULL) {
-							grfmsg(1, "FeatureNewName: Attempt to name undefined house 0x%X, ignoring.", GB(id, 0, 8));
-						} else {
-							_cur.grffile->housespec[GB(id, 0, 8)]->building_name = AddGRFString(_cur.grffile->grfid, id, lang, new_scheme, false, name, STR_UNDEFINED);
-						}
-						break;
-
-					default:
-						grfmsg(7, "FeatureNewName: Unsupported ID (0x%04X)", id);
-						break;
-				}
-				break;
+				default:
+					grfmsg(7, "FeatureNewName: Unsupported ID (0x%04X)", id);
+					break;
+			}
 		}
 	}
 
