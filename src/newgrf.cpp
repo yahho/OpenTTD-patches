@@ -5515,12 +5515,10 @@ static int FeatureNewName (ByteReader *buf)
 
 	ClrBit(lang, 7);
 
-	uint16 endid = id + num;
-
 	grfmsg(6, "FeatureNewName: About to rename engines %d..%d (feature %d) in language 0x%02X",
-	               id, endid, feature, lang);
+			id, id + num, feature, lang);
 
-	for (; id < endid && buf->HasData(); id++) {
+	for (; num-- > 0 && buf->HasData(); id++) {
 		const char *name = buf->ReadString();
 		grfmsg(8, "FeatureNewName: 0x%04X <- %s", id, name);
 
