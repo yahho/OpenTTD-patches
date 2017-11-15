@@ -630,6 +630,26 @@ char *TranslateTTDPatchCodes (uint32 grfid, uint8 language_id,
 /**
  * Add the new read string into our structure.
  */
+static StringID AddGRFString (uint textid, byte langid, const char *text,
+	bool allow_newlines)
+{
+	GRFTextEntry *entry = &_grf_text[textid];
+	GRFText *newtext = GRFText::create (text, entry->grfid,
+					langid, allow_newlines);
+	entry->map->add (langid, newtext);
+
+	StringID str = MakeStringID (TEXT_TAB_NEWGRF_START, textid);
+
+	grfmsg (3, "Added 0x%X: grfid %08X string 0x%X lang 0x%X string '%s' (%X)",
+			textid, entry->grfid, entry->stringid, langid,
+			newtext->text, str);
+
+	return str;
+}
+
+/**
+ * Add the new read string into our structure.
+ */
 StringID AddGRFString(uint32 grfid, uint16 stringid, byte langid_to_add, bool new_scheme, bool allow_newlines, const char *text_to_add, StringID def_string)
 {
 	uint id;
@@ -661,8 +681,6 @@ StringID AddGRFString(uint32 grfid, uint16 stringid, byte langid_to_add, bool ne
 	/* Too many strings allocated, return empty */
 	if (id == lengthof(_grf_text)) return STR_EMPTY;
 
-	GRFText *newtext = GRFText::create (text_to_add, grfid, langid_to_add, allow_newlines);
-
 	/* If we didn't find our stringid and grfid in the list, allocate a new id */
 	if (id == _num_grf_texts) _num_grf_texts++;
 
@@ -672,11 +690,8 @@ StringID AddGRFString(uint32 grfid, uint16 stringid, byte langid_to_add, bool ne
 		_grf_text[id].def_string = def_string;
 		_grf_text[id].map        = new GRFTextMap;
 	}
-	_grf_text[id].map->add (langid_to_add, newtext);
 
-	grfmsg (3, "Added 0x%X: grfid %08X string 0x%X lang 0x%X string '%s' (%X)", id, grfid, stringid, langid_to_add, newtext->text, MakeStringID(TEXT_TAB_NEWGRF_START, id));
-
-	return MakeStringID(TEXT_TAB_NEWGRF_START, id);
+	return AddGRFString (id, langid_to_add, text_to_add, allow_newlines);
 }
 
 /**
