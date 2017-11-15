@@ -653,25 +653,6 @@ static StringID AddGRFString (uint textid, byte langid, const char *text,
 StringID AddGRFString(uint32 grfid, uint16 stringid, byte langid_to_add, bool new_scheme, bool allow_newlines, const char *text_to_add, StringID def_string)
 {
 	uint id;
-
-	/* When working with the old language scheme (grf_version is less than 7) and
-	 * English or American is among the set bits, simply add it as English in
-	 * the new scheme, i.e. as langid = 1.
-	 * If English is set, it is pretty safe to assume the translations are not
-	 * actually translated.
-	 */
-	if (!new_scheme) {
-		if (langid_to_add & (GRFLB_AMERICAN | GRFLB_ENGLISH)) {
-			langid_to_add = GRFLX_ENGLISH;
-		} else {
-			StringID ret = STR_EMPTY;
-			if (langid_to_add & GRFLB_GERMAN)  ret = AddGRFString(grfid, stringid, GRFLX_GERMAN,  true, allow_newlines, text_to_add, def_string);
-			if (langid_to_add & GRFLB_FRENCH)  ret = AddGRFString(grfid, stringid, GRFLX_FRENCH,  true, allow_newlines, text_to_add, def_string);
-			if (langid_to_add & GRFLB_SPANISH) ret = AddGRFString(grfid, stringid, GRFLX_SPANISH, true, allow_newlines, text_to_add, def_string);
-			return ret;
-		}
-	}
-
 	for (id = 0; id < _num_grf_texts; id++) {
 		if (_grf_text[id].grfid == grfid && _grf_text[id].stringid == stringid) {
 			break;
@@ -689,6 +670,24 @@ StringID AddGRFString(uint32 grfid, uint16 stringid, byte langid_to_add, bool ne
 		_grf_text[id].stringid   = stringid;
 		_grf_text[id].def_string = def_string;
 		_grf_text[id].map        = new GRFTextMap;
+	}
+
+	/* When working with the old language scheme (grf_version is less
+	 * than 7) and English or American is among the set bits, simply
+	 * add it as English in the new scheme, i.e. as langid = 1.
+	 * If English is set, it is pretty safe to assume the translations
+	 * are not actually translated.
+	 */
+	if (!new_scheme) {
+		if (langid_to_add & (GRFLB_AMERICAN | GRFLB_ENGLISH)) {
+			langid_to_add = GRFLX_ENGLISH;
+		} else {
+			StringID ret = STR_EMPTY;
+			if (langid_to_add & GRFLB_GERMAN)  ret = AddGRFString (id, GRFLX_GERMAN,  text_to_add, allow_newlines);
+			if (langid_to_add & GRFLB_FRENCH)  ret = AddGRFString (id, GRFLX_FRENCH,  text_to_add, allow_newlines);
+			if (langid_to_add & GRFLB_SPANISH) ret = AddGRFString (id, GRFLX_SPANISH, text_to_add, allow_newlines);
+			return ret;
+		}
 	}
 
 	return AddGRFString (id, langid_to_add, text_to_add, allow_newlines);
