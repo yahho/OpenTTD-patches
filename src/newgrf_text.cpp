@@ -647,17 +647,23 @@ static StringID AddGRFString (uint textid, byte langid, const char *text,
 	return str;
 }
 
+/** Find a GRF string entry. */
+static uint FindGRFStringEntry (uint32 grfid, uint16 stringid)
+{
+	for (uint id = 0; id < _num_grf_texts; id++) {
+		if (_grf_text[id].grfid == grfid && _grf_text[id].stringid == stringid) {
+			return id;
+		}
+	}
+	return _num_grf_texts;
+}
+
 /**
  * Add the new read string into our structure.
  */
 StringID AddGRFString(uint32 grfid, uint16 stringid, byte langid_to_add, bool new_scheme, bool allow_newlines, const char *text_to_add, StringID def_string)
 {
-	uint id;
-	for (id = 0; id < _num_grf_texts; id++) {
-		if (_grf_text[id].grfid == grfid && _grf_text[id].stringid == stringid) {
-			break;
-		}
-	}
+	uint id = FindGRFStringEntry (grfid, stringid);
 
 	/* Too many strings allocated, return empty */
 	if (id == lengthof(_grf_text)) return STR_EMPTY;
@@ -698,13 +704,9 @@ StringID AddGRFString(uint32 grfid, uint16 stringid, byte langid_to_add, bool ne
  */
 StringID GetGRFStringID(uint32 grfid, StringID stringid)
 {
-	for (uint id = 0; id < _num_grf_texts; id++) {
-		if (_grf_text[id].grfid == grfid && _grf_text[id].stringid == stringid) {
-			return MakeStringID(TEXT_TAB_NEWGRF_START, id);
-		}
-	}
-
-	return STR_UNDEFINED;
+	uint id = FindGRFStringEntry (grfid, stringid);
+	return (id == _num_grf_texts) ? STR_UNDEFINED :
+			MakeStringID (TEXT_TAB_NEWGRF_START, id);
 }
 
 
