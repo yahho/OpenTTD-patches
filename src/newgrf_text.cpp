@@ -83,14 +83,14 @@ static byte _currentLangID = GRFLX_ENGLISH;  ///< by default, english is used.
 
 /**
  * Get the mapping from the NewGRF supplied ID to OpenTTD's internal ID.
+ * @param map The mapping list to search.
  * @param newgrf_id The NewGRF ID to map.
- * @param gender    Whether to map genders or cases.
  * @return The, to OpenTTD's internal ID, mapped index, or -1 if there is no mapping.
  */
-int LanguageMap::GetMapping(int newgrf_id, bool gender) const
+static int GetLanguageMapping (const SmallVector <LanguageMap::Mapping, 1> &map,
+	int newgrf_id)
 {
-	const SmallVector<Mapping, 1> &map = gender ? this->gender_map : this->case_map;
-	for (const Mapping *m = map.Begin(); m != map.End(); m++) {
+	for (const LanguageMap::Mapping *m = map.Begin(); m != map.End(); m++) {
 		if (m->newgrf_id == newgrf_id) return m->openttd_id;
 	}
 	return -1;
@@ -427,7 +427,8 @@ static void TranslateStringCodes (stringb *out, const char *str, uint32 grfid,
 						if (str[0] == '\0') goto string_end;
 						const LanguageMap *lm = LanguageMap::GetLanguageMap(grfid, language_id);
 						int index = *str++;
-						int mapped = lm != NULL ? lm->GetMapping(index, code == 0x0E) : -1;
+						int mapped = lm != NULL ? GetLanguageMapping (code == 0x0E ?
+									lm->gender_map : lm->case_map, index) : -1;
 						if (mapped >= 0) {
 							buf->append_utf8 (code == 0x0E ? SCC_GENDER_INDEX : SCC_SET_CASE);
 							buf->append_utf8 (code == 0x0E ? mapped : mapped + 1);
