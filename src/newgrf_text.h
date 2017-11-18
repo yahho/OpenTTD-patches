@@ -127,7 +127,6 @@ struct LanguageMap {
 	SmallVector<Mapping, 1> case_map;   ///< Mapping of NewGRF and OpenTTD IDs for cases.
 	int plural_form;                    ///< The plural form used for this language.
 
-	int GetReverseMapping(int openttd_id, bool gender) const;
 	static const LanguageMap *GetLanguageMap(uint32 grfid, uint8 language_id);
 };
 

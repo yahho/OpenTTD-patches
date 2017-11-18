@@ -98,14 +98,14 @@ static int GetLanguageMapping (const SmallVector <LanguageMap::Mapping, 1> &map,
 
 /**
  * Get the mapping from OpenTTD's internal ID to the NewGRF supplied ID.
+ * @param map The mapping list to search.
  * @param openttd_id The OpenTTD ID to map.
- * @param gender     Whether to map genders or cases.
  * @return The, to the NewGRF supplied ID, mapped index, or -1 if there is no mapping.
  */
-int LanguageMap::GetReverseMapping(int openttd_id, bool gender) const
+static int GetReverseLanguageMapping (const SmallVector <LanguageMap::Mapping, 1> &map,
+	int openttd_id)
 {
-	const SmallVector<Mapping, 1> &map = gender ? this->gender_map : this->case_map;
-	for (const Mapping *m = map.Begin(); m != map.End(); m++) {
+	for (const LanguageMap::Mapping *m = map.Begin(); m != map.End(); m++) {
 		if (m->openttd_id == openttd_id) return m->newgrf_id;
 	}
 	return -1;
@@ -146,7 +146,7 @@ static void DumpSwitchMapping (stringb *buf, const LanguageMap *lm,
 	uint count = 0;
 	for (uint8 i = 0; i < _current_language->num_cases; i++) {
 		/* Count the ones we have a mapped string for. */
-		int idx = lm->GetReverseMapping (i, false);
+		int idx = GetReverseLanguageMapping (lm->case_map, i);
 		cases[i] = idx;
 		if ((idx >= 0) && mapping[idx]) count++;
 	}
@@ -198,7 +198,7 @@ static void DumpChoiceList (stringb *buf, const LanguageMap *lm,
 
 	/* "<LENs>" */
 	for (uint i = 0; i < count; i++) {
-		int idx = gender ? lm->GetReverseMapping (i, true) : i + 1;
+		int idx = gender ? GetReverseLanguageMapping (lm->gender_map, i) : i + 1;
 		const mstring *m = mapping[(idx >= 0) && mapping[idx] ? idx : 0].get();
 		strs[i] = m;
 		size_t len = m->length() + 1;
