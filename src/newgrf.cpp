@@ -2790,6 +2790,12 @@ static ChangeInfoResult GlobalVarChangeInfo(uint gvid, int numinfo, int prop, By
 			}
 			return CIR_SUCCESS;
 
+		case 0x11: // GRF match for engine allocation
+			/* This is loaded during the reservation stage,
+			 * so just skip it here. Each entry is 8 bytes. */
+			buf->Skip (8 * numinfo);
+			return CIR_SUCCESS;
+
 		case 0x12: // Rail type translation table; loading during both reservation and activation stage (in case it is selected depending on defined railtypes)
 			return LoadTranslationTable(gvid, numinfo, buf, _cur.grffile->railtype_list, "Rail type");
 
@@ -2891,12 +2897,6 @@ static ChangeInfoResult GlobalVarChangeInfo(uint gvid, int numinfo, int prop, By
 				}
 				break;
 			}
-
-			case 0x11: // GRF match for engine allocation
-				/* This is loaded during the reservation stage, so just skip it here. */
-				/* Each entry is 8 bytes. */
-				buf->Skip(8);
-				break;
 
 			case 0x13:   // Gender translation table
 			case 0x14:   // Case translation table
