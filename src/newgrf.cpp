@@ -2763,6 +2763,33 @@ static ChangeInfoResult GlobalVarChangeInfo(uint gvid, int numinfo, int prop, By
 		case 0x09: // Cargo Translation Table; loading during both reservation and activation stage (in case it is selected depending on defined cargos)
 			return LoadTranslationTable(gvid, numinfo, buf, _cur.grffile->cargo_list, "Cargo");
 
+		case 0x10: // Snow line height table
+			if (numinfo != 1 || IsSnowLineSet()) {
+				grfmsg (1, "GlobalVarChangeInfo: The snowline can only be set once (%d)", numinfo);
+			} else if (!buf->HasData (SNOW_LINE_MONTHS * SNOW_LINE_DAYS)) {
+				grfmsg (1, "GlobalVarChangeInfo: Not enough entries set in the snowline table (" PRINTF_SIZE ")", buf->Remaining());
+			} else {
+				byte table[SNOW_LINE_MONTHS][SNOW_LINE_DAYS];
+
+				for (uint i = 0; i < SNOW_LINE_MONTHS; i++) {
+					for (uint j = 0; j < SNOW_LINE_DAYS; j++) {
+						table[i][j] = buf->ReadByte();
+						if (_cur.grffile->grf_version >= 8) {
+							if (table[i][j] != 0xFF) table[i][j] = table[i][j] * (1 + _settings_game.construction.max_heightlevel) / 256;
+						} else {
+							if (table[i][j] >= 128) {
+								/* no snow */
+								table[i][j] = 0xFF;
+							} else {
+								table[i][j] = table[i][j] * (1 + _settings_game.construction.max_heightlevel) / 128;
+							}
+						}
+					}
+				}
+				SetSnowLine (table);
+			}
+			return CIR_SUCCESS;
+
 		case 0x12: // Rail type translation table; loading during both reservation and activation stage (in case it is selected depending on defined railtypes)
 			return LoadTranslationTable(gvid, numinfo, buf, _cur.grffile->railtype_list, "Rail type");
 
@@ -2864,33 +2891,6 @@ static ChangeInfoResult GlobalVarChangeInfo(uint gvid, int numinfo, int prop, By
 				}
 				break;
 			}
-
-			case 0x10: // Snow line height table
-				if (numinfo > 1 || IsSnowLineSet()) {
-					grfmsg(1, "GlobalVarChangeInfo: The snowline can only be set once (%d)", numinfo);
-				} else if (!buf->HasData (SNOW_LINE_MONTHS * SNOW_LINE_DAYS)) {
-					grfmsg(1, "GlobalVarChangeInfo: Not enough entries set in the snowline table (" PRINTF_SIZE ")", buf->Remaining());
-				} else {
-					byte table[SNOW_LINE_MONTHS][SNOW_LINE_DAYS];
-
-					for (uint i = 0; i < SNOW_LINE_MONTHS; i++) {
-						for (uint j = 0; j < SNOW_LINE_DAYS; j++) {
-							table[i][j] = buf->ReadByte();
-							if (_cur.grffile->grf_version >= 8) {
-								if (table[i][j] != 0xFF) table[i][j] = table[i][j] * (1 + _settings_game.construction.max_heightlevel) / 256;
-							} else {
-								if (table[i][j] >= 128) {
-									/* no snow */
-									table[i][j] = 0xFF;
-								} else {
-									table[i][j] = table[i][j] * (1 + _settings_game.construction.max_heightlevel) / 128;
-								}
-							}
-						}
-					}
-					SetSnowLine(table);
-				}
-				break;
 
 			case 0x11: // GRF match for engine allocation
 				/* This is loaded during the reservation stage, so just skip it here. */
