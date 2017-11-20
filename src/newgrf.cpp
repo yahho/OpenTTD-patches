@@ -2805,11 +2805,11 @@ static ChangeInfoResult GlobalVarChangeInfo(uint gvid, int numinfo, int prop, By
 
 	/* Properties which are handled per item */
 	ChangeInfoResult ret = CIR_SUCCESS;
-	for (int i = 0; i < numinfo; i++) {
+	for (; numinfo-- > 0; gvid++) {
 		switch (prop) {
 			case 0x08: { // Cost base factor
 				int factor = buf->ReadByte();
-				uint price = gvid + i;
+				uint price = gvid;
 
 				if (price < PR_END) {
 					_cur.grffile->price_base_multipliers[price] = min<int>(factor - 8, MAX_PRICE_MODIFIER);
@@ -2820,7 +2820,7 @@ static ChangeInfoResult GlobalVarChangeInfo(uint gvid, int numinfo, int prop, By
 			}
 
 			case 0x0A: { // Currency display names
-				uint curidx = GetNewgrfCurrencyIdConverted(gvid + i);
+				uint curidx = GetNewgrfCurrencyIdConverted (gvid);
 				StringID newone = GetGRFStringID(_cur.grffile->grfid, buf->ReadWord());
 
 				if ((newone != STR_UNDEFINED) && (curidx < CURRENCY_END)) {
@@ -2830,7 +2830,7 @@ static ChangeInfoResult GlobalVarChangeInfo(uint gvid, int numinfo, int prop, By
 			}
 
 			case 0x0B: { // Currency multipliers
-				uint curidx = GetNewgrfCurrencyIdConverted(gvid + i);
+				uint curidx = GetNewgrfCurrencyIdConverted (gvid);
 				uint32 rate = buf->ReadDWord();
 
 				if (curidx < CURRENCY_END) {
@@ -2845,7 +2845,7 @@ static ChangeInfoResult GlobalVarChangeInfo(uint gvid, int numinfo, int prop, By
 			}
 
 			case 0x0C: { // Currency options
-				uint curidx = GetNewgrfCurrencyIdConverted(gvid + i);
+				uint curidx = GetNewgrfCurrencyIdConverted (gvid);
 				uint16 options = buf->ReadWord();
 
 				if (curidx < CURRENCY_END) {
@@ -2861,7 +2861,7 @@ static ChangeInfoResult GlobalVarChangeInfo(uint gvid, int numinfo, int prop, By
 			}
 
 			case 0x0D: { // Currency prefix symbol
-				uint curidx = GetNewgrfCurrencyIdConverted(gvid + i);
+				uint curidx = GetNewgrfCurrencyIdConverted (gvid);
 				uint32 tempfix = buf->ReadDWord();
 
 				if (curidx < CURRENCY_END) {
@@ -2874,7 +2874,7 @@ static ChangeInfoResult GlobalVarChangeInfo(uint gvid, int numinfo, int prop, By
 			}
 
 			case 0x0E: { // Currency suffix symbol
-				uint curidx = GetNewgrfCurrencyIdConverted(gvid + i);
+				uint curidx = GetNewgrfCurrencyIdConverted (gvid);
 				uint32 tempfix = buf->ReadDWord();
 
 				if (curidx < CURRENCY_END) {
@@ -2887,7 +2887,7 @@ static ChangeInfoResult GlobalVarChangeInfo(uint gvid, int numinfo, int prop, By
 			}
 
 			case 0x0F: { //  Euro introduction dates
-				uint curidx = GetNewgrfCurrencyIdConverted(gvid + i);
+				uint curidx = GetNewgrfCurrencyIdConverted (gvid);
 				Year year_euro = buf->ReadWord();
 
 				if (curidx < CURRENCY_END) {
@@ -2901,7 +2901,7 @@ static ChangeInfoResult GlobalVarChangeInfo(uint gvid, int numinfo, int prop, By
 			case 0x13:   // Gender translation table
 			case 0x14:   // Case translation table
 			case 0x15: { // Plural form translation
-				uint curidx = gvid + i; // The current index, i.e. language.
+				uint curidx = gvid; // The current index, i.e. language.
 				const LanguageMetadata *lang = curidx < MAX_LANG ? GetLanguage(curidx) : NULL;
 				if (lang == NULL) {
 					grfmsg(1, "GlobalVarChangeInfo: Language %d is not known, ignoring", curidx);
