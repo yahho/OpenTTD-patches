@@ -2809,12 +2809,10 @@ static ChangeInfoResult GlobalVarChangeInfo(uint gvid, int numinfo, int prop, By
 		switch (prop) {
 			case 0x08: { // Cost base factor
 				int factor = buf->ReadByte();
-				uint price = gvid;
-
-				if (price < PR_END) {
-					_cur.grffile->price_base_multipliers[price] = min<int>(factor - 8, MAX_PRICE_MODIFIER);
+				if (gvid < PR_END) {
+					_cur.grffile->price_base_multipliers[gvid] = min<int> (factor - 8, MAX_PRICE_MODIFIER);
 				} else {
-					grfmsg(1, "GlobalVarChangeInfo: Price %d out of range, ignoring", price);
+					grfmsg (1, "GlobalVarChangeInfo: Price %d out of range, ignoring", gvid);
 				}
 				break;
 			}
@@ -2901,10 +2899,9 @@ static ChangeInfoResult GlobalVarChangeInfo(uint gvid, int numinfo, int prop, By
 			case 0x13:   // Gender translation table
 			case 0x14:   // Case translation table
 			case 0x15: { // Plural form translation
-				uint curidx = gvid; // The current index, i.e. language.
-				const LanguageMetadata *lang = curidx < MAX_LANG ? GetLanguage(curidx) : NULL;
+				const LanguageMetadata *lang = gvid < MAX_LANG ? GetLanguage(gvid) : NULL;
 				if (lang == NULL) {
-					grfmsg(1, "GlobalVarChangeInfo: Language %d is not known, ignoring", curidx);
+					grfmsg (1, "GlobalVarChangeInfo: Language %d is not known, ignoring", gvid);
 					/* Skip over the data. */
 					if (prop == 0x15) {
 						buf->ReadByte();
@@ -2923,7 +2920,7 @@ static ChangeInfoResult GlobalVarChangeInfo(uint gvid, int numinfo, int prop, By
 					if (plural_form >= LANGUAGE_MAX_PLURAL) {
 						grfmsg(1, "GlobalVarChanceInfo: Plural form %d is out of range, ignoring", plural_form);
 					} else {
-						_cur.grffile->language_map[curidx].plural_form = plural_form;
+						_cur.grffile->language_map[gvid].plural_form = plural_form;
 					}
 					break;
 				}
@@ -2947,14 +2944,14 @@ static ChangeInfoResult GlobalVarChangeInfo(uint gvid, int numinfo, int prop, By
 						if (map.openttd_id >= MAX_NUM_GENDERS) {
 							grfmsg(1, "GlobalVarChangeInfo: Gender name %s is not known, ignoring", name);
 						} else {
-							*_cur.grffile->language_map[curidx].gender_map.Append() = map;
+							*_cur.grffile->language_map[gvid].gender_map.Append() = map;
 						}
 					} else {
 						map.openttd_id = lang->GetCaseIndex(name);
 						if (map.openttd_id >= MAX_NUM_CASES) {
 							grfmsg(1, "GlobalVarChangeInfo: Case name %s is not known, ignoring", name);
 						} else {
-							*_cur.grffile->language_map[curidx].case_map.Append() = map;
+							*_cur.grffile->language_map[gvid].case_map.Append() = map;
 						}
 					}
 				}
