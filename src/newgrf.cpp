@@ -2858,26 +2858,18 @@ static ChangeInfoResult GlobalVarChangeInfo(uint gvid, int numinfo, int prop, By
 				break;
 			}
 
-			case 0x0D: { // Currency prefix symbol
-				uint curidx = GetNewgrfCurrencyIdConverted (gvid);
-				uint32 tempfix = buf->ReadDWord();
-
-				if (curidx < CURRENCY_END) {
-					memcpy(_currency_specs[curidx].prefix, &tempfix, 4);
-					_currency_specs[curidx].prefix[4] = 0;
-				} else {
-					grfmsg(1, "GlobalVarChangeInfo: Currency symbol %d out of range, ignoring", curidx);
-				}
-				break;
-			}
-
+			case 0x0D:   // Currency prefix symbol
 			case 0x0E: { // Currency suffix symbol
 				uint curidx = GetNewgrfCurrencyIdConverted (gvid);
 				uint32 tempfix = buf->ReadDWord();
 
 				if (curidx < CURRENCY_END) {
-					memcpy(&_currency_specs[curidx].suffix, &tempfix, 4);
-					_currency_specs[curidx].suffix[4] = 0;
+					CurrencySpec *cur = &_currency_specs[curidx];
+					assert_compile (lengthof(cur->prefix) > 4);
+					assert_compile (lengthof(cur->suffix) > 4);
+					char *s = (prop == 0x0E) ? cur->suffix : cur->prefix;
+					memcpy (s, &tempfix, 4);
+					s[4] = 0;
 				} else {
 					grfmsg(1, "GlobalVarChangeInfo: Currency symbol %d out of range, ignoring", curidx);
 				}
