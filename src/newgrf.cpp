@@ -2751,13 +2751,25 @@ static ChangeInfoResult LoadTranslationTable(uint gvid, int numinfo, ByteReader 
 /** Get the currency spec for a given NewGRF currency index. */
 static CurrencySpec *GetNewgrfCurrencySpec (uint id)
 {
-	id = GetNewgrfCurrencyIdConverted (id);
-	if (id < CURRENCY_END) {
-		return &_currency_specs[id];
-	} else {
+	/* Mapping of NewGRF (TTDPatch) currency indices to ours. */
+	static const byte ttdp_map[] = {
+		CURRENCY_GBP, CURRENCY_USD, CURRENCY_FRF, CURRENCY_DEM,
+		CURRENCY_JPY, CURRENCY_ESP, CURRENCY_HUF, CURRENCY_PLN,
+		CURRENCY_ATS, CURRENCY_BEF, CURRENCY_DKK, CURRENCY_FIM,
+		CURRENCY_GRD, CURRENCY_CHF, CURRENCY_NLG, CURRENCY_ITL,
+		CURRENCY_SEK, CURRENCY_RUR, CURRENCY_EUR,
+	};
+
+	assert_compile (lengthof(ttdp_map) < CURRENCY_END);
+
+	if (id < lengthof(ttdp_map)) {
+		id = ttdp_map[id];
+	} else if (id >= CURRENCY_END) {
 		grfmsg (1, "GlobalVarChangeInfo: Currency id %u out of range, ignoring", id);
 		return NULL;
 	}
+
+	return &_currency_specs[id];
 }
 
 /**
