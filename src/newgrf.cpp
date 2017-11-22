@@ -2748,6 +2748,18 @@ static ChangeInfoResult LoadTranslationTable(uint gvid, int numinfo, ByteReader 
 	return CIR_SUCCESS;
 }
 
+/** Get the currency spec for a given NewGRF currency index. */
+static CurrencySpec *GetNewgrfCurrencySpec (uint id)
+{
+	id = GetNewgrfCurrencyIdConverted (id);
+	if (id < CURRENCY_END) {
+		return &_currency_specs[id];
+	} else {
+		grfmsg (1, "GlobalVarChangeInfo: Currency id %u out of range, ignoring", id);
+		return NULL;
+	}
+}
+
 /**
  * Define properties for global variables
  * @param gvid ID of the global variable.
@@ -2818,72 +2830,63 @@ static ChangeInfoResult GlobalVarChangeInfo(uint gvid, int numinfo, int prop, By
 			}
 
 			case 0x0A: { // Currency display names
-				uint curidx = GetNewgrfCurrencyIdConverted (gvid);
+				CurrencySpec *cur = GetNewgrfCurrencySpec (gvid);
 				StringID newone = GetGRFStringID(_cur.grffile->grfid, buf->ReadWord());
 
-				if ((newone != STR_UNDEFINED) && (curidx < CURRENCY_END)) {
-					_currency_specs[curidx].name = newone;
+				if ((newone != STR_UNDEFINED) && (cur != NULL)) {
+					cur->name = newone;
 				}
 				break;
 			}
 
 			case 0x0B: { // Currency multipliers
-				uint curidx = GetNewgrfCurrencyIdConverted (gvid);
+				CurrencySpec *cur = GetNewgrfCurrencySpec (gvid);
 				uint32 rate = buf->ReadDWord();
 
-				if (curidx < CURRENCY_END) {
+				if (cur != NULL) {
 					/* TTDPatch uses a multiple of 1000 for its conversion calculations,
 					 * which OTTD does not. For this reason, divide grf value by 1000,
 					 * to be compatible */
-					_currency_specs[curidx].rate = rate / 1000;
-				} else {
-					grfmsg(1, "GlobalVarChangeInfo: Currency multipliers %d out of range, ignoring", curidx);
+					cur->rate = rate / 1000;
 				}
 				break;
 			}
 
 			case 0x0C: { // Currency options
-				uint curidx = GetNewgrfCurrencyIdConverted (gvid);
+				CurrencySpec *cur = GetNewgrfCurrencySpec (gvid);
 				uint16 options = buf->ReadWord();
 
-				if (curidx < CURRENCY_END) {
-					_currency_specs[curidx].separator[0] = GB(options, 0, 8);
-					_currency_specs[curidx].separator[1] = '\0';
+				if (cur != NULL) {
+					cur->separator[0] = GB(options, 0, 8);
+					cur->separator[1] = '\0';
 					/* By specifying only one bit, we prevent errors,
 					 * since newgrf specs said that only 0 and 1 can be set for symbol_pos */
-					_currency_specs[curidx].symbol_pos = GB(options, 8, 1);
-				} else {
-					grfmsg(1, "GlobalVarChangeInfo: Currency option %d out of range, ignoring", curidx);
+					cur->symbol_pos = GB(options, 8, 1);
 				}
 				break;
 			}
 
 			case 0x0D:   // Currency prefix symbol
 			case 0x0E: { // Currency suffix symbol
-				uint curidx = GetNewgrfCurrencyIdConverted (gvid);
+				CurrencySpec *cur = GetNewgrfCurrencySpec (gvid);
 				uint32 tempfix = buf->ReadDWord();
 
-				if (curidx < CURRENCY_END) {
-					CurrencySpec *cur = &_currency_specs[curidx];
+				if (cur != NULL) {
 					assert_compile (lengthof(cur->prefix) > 4);
 					assert_compile (lengthof(cur->suffix) > 4);
 					char *s = (prop == 0x0E) ? cur->suffix : cur->prefix;
 					memcpy (s, &tempfix, 4);
 					s[4] = 0;
-				} else {
-					grfmsg(1, "GlobalVarChangeInfo: Currency symbol %d out of range, ignoring", curidx);
 				}
 				break;
 			}
 
 			case 0x0F: { //  Euro introduction dates
-				uint curidx = GetNewgrfCurrencyIdConverted (gvid);
+				CurrencySpec *cur = GetNewgrfCurrencySpec (gvid);
 				Year year_euro = buf->ReadWord();
 
-				if (curidx < CURRENCY_END) {
-					_currency_specs[curidx].to_euro = year_euro;
-				} else {
-					grfmsg(1, "GlobalVarChangeInfo: Euro intro date %d out of range, ignoring", curidx);
+				if (cur != NULL) {
+					cur->to_euro = year_euro;
 				}
 				break;
 			}
