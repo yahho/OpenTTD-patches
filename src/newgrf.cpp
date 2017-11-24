@@ -3526,61 +3526,67 @@ static ChangeInfoResult IndustriesChangeInfo(uint indid, int numinfo, int prop, 
 			}
 
 			case 0x0A: { // Set industry layout(s)
+				struct {
+					const byte *p;
+					size_t size;
+				} layouts [256];
+
 				byte new_num_layouts = buf->ReadByte(); // Number of layaouts
-				/* We read the total size in bytes, but we can't rely on the
-				 * newgrf to provide a sane value. First assume the value is
-				 * sane but later on we make sure we enlarge the array if the
-				 * newgrf contains more data. Each tile uses either 3 or 5
-				 * bytes, so to play it safe we assume 3. */
-				uint32 def_num_tiles = buf->ReadDWord() / 3 + 1;
+				/* Discard total size in bytes. */
+				buf->Skip (4);
+
+				for (byte j = 0; j < new_num_layouts; j++) {
+					const byte *p = buf->GetData (2);
+					layouts[j].p = p;
+
+					if (p[0] == 0xFE) {
+						/* This means we have to borrow the layout from an old industry */
+						buf->ReadByte();
+					} else {
+						/* Count the number of tiles. */
+						size_t size = 0;
+						for (; (p[0] != 0) || (p[1] != 0x80); size++) {
+							byte gfx = buf->ReadByte();
+							if (gfx == 0xFE) {
+								buf->Skip (2);
+							}
+							p = buf->GetData (2);
+						}
+						layouts[j].size = size;
+					}
+				}
+
 				IndustryTileTable **tile_table = xcalloct<IndustryTileTable*>(new_num_layouts); // Table with tiles to compose an industry
-				IndustryTileTable *itt = xcalloct<IndustryTileTable>(def_num_tiles); // Temporary array to read the tile layouts from the GRF
-				uint size;
-				const IndustryTileTable *copy_from;
 
-				try {
-					for (byte j = 0; j < new_num_layouts; j++) {
-						for (uint k = 0;; k++) {
-							if (k >= def_num_tiles) {
-								grfmsg(3, "IndustriesChangeInfo: Incorrect size for industry tile layout definition for industry %u.", indid);
-								/* Size reported by newgrf was not big enough so enlarge the array. */
-								def_num_tiles *= 2;
-								itt = xrealloct<IndustryTileTable>(itt, def_num_tiles);
-							}
+				uint n = 0; // Count number of valid layouts
+				for (byte j = 0; j < new_num_layouts; j++) {
+					const byte *p = layouts[j].p;
 
-							itt[k].ti.x = buf->ReadByte(); // Offsets from northermost tile
+					if (p[0] == 0xFE) {
+						/* This means we have to borrow the layout from an old industry */
+						IndustryType type = p[1]; // industry holding required layout
+						byte laynbr = p[2];       // layout number to borrow
 
-							if (itt[k].ti.x == 0xFE && k == 0) {
-								/* This means we have to borrow the layout from an old industry */
-								IndustryType type = buf->ReadByte();  // industry holding required layout
-								byte laynbr = buf->ReadByte();        // layout number to borrow
+						const IndustryTileTable *copy_from = _origin_industry_specs[type].table[laynbr];
+						uint size;
+						for (size = 1;; size++) {
+							if (copy_from[size - 1].ti.x == -0x80 && copy_from[size - 1].ti.y == 0) break;
+						}
+						tile_table[n++] = xmemdupt (copy_from, size);
+					} else {
+						size_t size = layouts[j].size;
+						IndustryTileTable *itt = xmalloct <IndustryTileTable> (size + 1);
 
-								copy_from = _origin_industry_specs[type].table[laynbr];
-								for (size = 1;; size++) {
-									if (copy_from[size - 1].ti.x == -0x80 && copy_from[size - 1].ti.y == 0) break;
-								}
-								break;
-							}
-
-							itt[k].ti.y = buf->ReadByte(); // Or table definition finalisation
-
-							if (itt[k].ti.x == 0 && itt[k].ti.y == 0x80) {
-								/*  Not the same terminator.  The one we are using is rather
-								 x = -80, y = x .  So, adjust it. */
-								itt[k].ti.x = -0x80;
-								itt[k].ti.y =  0;
-								itt[k].gfx  =  0;
-
-								size = k + 1;
-								copy_from = itt;
-								break;
-							}
-
-							itt[k].gfx = buf->ReadByte();
+						for (size_t k = 0; k < size; k++) {
+							assert (p[0] != 0 || p[1] != 0x80);
+							itt[k].ti.x = *p++; // Offsets from northermost tile
+							itt[k].ti.y = *p++;
+							itt[k].gfx  = *p++;
 
 							if (itt[k].gfx == 0xFE) {
 								/* Use a new tile from this GRF */
-								int local_tile_id = buf->ReadWord();
+								int local_tile_id = ReadWord (p);
+								p += 2;
 
 								/* Read the ID from the _industile_mngr. */
 								int tempid = _industile_mngr.GetID(local_tile_id, _cur.grffile->grfid);
@@ -3590,8 +3596,6 @@ static ChangeInfoResult IndustriesChangeInfo(uint indid, int numinfo, int prop, 
 								} else {
 									/* Declared as been valid, can be used */
 									itt[k].gfx = tempid;
-									size = k + 1;
-									copy_from = itt;
 								}
 							} else if (itt[k].gfx == 0xFF) {
 								itt[k].ti.x = (int8)GB(itt[k].ti.x, 0, 8);
@@ -3608,31 +3612,29 @@ static ChangeInfoResult IndustriesChangeInfo(uint indid, int numinfo, int prop, 
 							}
 						}
 
-						if (!ValidateIndustryLayout(copy_from, size)) {
+						/* Append terminator. */
+						assert (p[0] == 0);
+						assert (p[1] == 0x80);
+						itt[size].ti.x = -0x80;
+						itt[size].ti.y =  0;
+						itt[size].gfx  =  0;
+
+						if (!ValidateIndustryLayout (itt, size + 1)) {
 							/* The industry layout was not valid, so skip this one. */
 							grfmsg(1, "IndustriesChangeInfo: Invalid industry layout for industry id %u. Ignoring", indid);
-							new_num_layouts--;
-							j--;
+							free (itt);
 						} else {
-							tile_table[j] = xmemdupt (copy_from, size);
+							tile_table[n++] = itt;
 						}
 					}
-				} catch (...) {
-					for (int i = 0; i < new_num_layouts; i++) {
-						free(tile_table[i]);
-					}
-					free(tile_table);
-					free(itt);
-					throw;
 				}
 
 				/* Clean the tile table if it was already set by a previous prop A. */
 				CleanIndustryTileTable(indsp);
 				/* Install final layout construction in the industry spec */
-				indsp->num_table = new_num_layouts;
+				indsp->num_table = n;
 				indsp->table = tile_table;
 				SetBit(indsp->cleanup_flag, CLEAN_TILELAYOUT);
-				free(itt);
 				break;
 			}
 
