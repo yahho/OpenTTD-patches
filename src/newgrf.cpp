@@ -3438,11 +3438,6 @@ static bool ValidateIndustryLayout(const IndustryTileTable *layout, int size)
 static void CleanIndustryTileTable(IndustrySpec *ind)
 {
 	if (HasBit(ind->cleanup_flag, CLEAN_TILELAYOUT) && ind->table != NULL) {
-		for (int j = 0; j < ind->num_table; j++) {
-			/* remove the individual layouts */
-			free(ind->table[j]);
-		}
-		/* remove the layouts pointers */
 		free(ind->table);
 		ind->table = NULL;
 	}
@@ -3530,6 +3525,7 @@ static ChangeInfoResult IndustriesChangeInfo(uint indid, int numinfo, int prop, 
 					const byte *p;
 					size_t size;
 				} layouts [256];
+				size_t total_tiles = 0;
 
 				byte new_num_layouts = buf->ReadByte(); // Number of layaouts
 				/* Discard total size in bytes. */
@@ -3553,10 +3549,16 @@ static ChangeInfoResult IndustriesChangeInfo(uint indid, int numinfo, int prop, 
 							p = buf->GetData (2);
 						}
 						layouts[j].size = size;
+						total_tiles += size + 1;
 					}
 				}
 
-				IndustryTileTable **tile_table = xcalloct<IndustryTileTable*>(new_num_layouts); // Table with tiles to compose an industry
+				size_t table_offset = ttd_align_up<IndustryTileTable> (new_num_layouts * sizeof(IndustryTileTable*));
+				void *alloc = malloc (table_offset + (total_tiles * sizeof(IndustryTileTable)));
+				memset (alloc, 0, new_num_layouts * sizeof(IndustryTileTable*));
+				const IndustryTileTable **tile_table = (const IndustryTileTable **) alloc;
+				IndustryTileTable *itt = (IndustryTileTable*) (((char*)alloc) + table_offset);
+				assert ((void*)itt >= (void*)(tile_table + new_num_layouts));
 
 				uint n = 0; // Count number of valid layouts
 				for (byte j = 0; j < new_num_layouts; j++) {
@@ -3566,24 +3568,16 @@ static ChangeInfoResult IndustriesChangeInfo(uint indid, int numinfo, int prop, 
 						/* This means we have to borrow the layout from an old industry */
 						IndustryType type = p[1]; // industry holding required layout
 						byte laynbr = p[2];       // layout number to borrow
-
-						const IndustryTileTable *copy_from = _origin_industry_specs[type].table[laynbr];
-						uint size;
-						for (size = 1;; size++) {
-							if (copy_from[size - 1].ti.x == -0x80 && copy_from[size - 1].ti.y == 0) break;
-						}
-						tile_table[n++] = xmemdupt (copy_from, size);
+						tile_table[n++] = _origin_industry_specs[type].table[laynbr];
 					} else {
-						size_t size = layouts[j].size;
-						IndustryTileTable *itt = xmalloct <IndustryTileTable> (size + 1);
-
-						for (size_t k = 0; k < size; k++) {
+						tile_table[n] = itt;
+						for (size_t k = layouts[j].size; k-- > 0; itt++) {
 							assert (p[0] != 0 || p[1] != 0x80);
-							itt[k].ti.x = *p++; // Offsets from northermost tile
-							itt[k].ti.y = *p++;
-							itt[k].gfx  = *p++;
+							itt->ti.x = *p++; // Offsets from northermost tile
+							itt->ti.y = *p++;
+							itt->gfx  = *p++;
 
-							if (itt[k].gfx == 0xFE) {
+							if (itt->gfx == 0xFE) {
 								/* Use a new tile from this GRF */
 								int local_tile_id = ReadWord (p);
 								p += 2;
@@ -3595,36 +3589,36 @@ static ChangeInfoResult IndustriesChangeInfo(uint indid, int numinfo, int prop, 
 									grfmsg(2, "IndustriesChangeInfo: Attempt to use industry tile %u with industry id %u, not yet defined. Ignoring.", local_tile_id, indid);
 								} else {
 									/* Declared as been valid, can be used */
-									itt[k].gfx = tempid;
+									itt->gfx = tempid;
 								}
-							} else if (itt[k].gfx == 0xFF) {
-								itt[k].ti.x = (int8)GB(itt[k].ti.x, 0, 8);
-								itt[k].ti.y = (int8)GB(itt[k].ti.y, 0, 8);
+							} else if (itt->gfx == 0xFF) {
+								itt->ti.x = (int8)GB(itt->ti.x, 0, 8);
+								itt->ti.y = (int8)GB(itt->ti.y, 0, 8);
 
 								/* When there were only 256x256 maps, TileIndex was a uint16 and
-								 * itt[k].ti was just a TileIndexDiff that was added to it.
+								 * itt->ti was just a TileIndexDiff that was added to it.
 								 * As such negative "x" values were shifted into the "y" position.
 								 *   x = -1, y = 1 -> x = 255, y = 0
 								 * Since GRF version 8 the position is interpreted as pair of independent int8.
 								 * For GRF version < 8 we need to emulate the old shifting behaviour.
 								 */
-								if (_cur.grffile->grf_version < 8 && itt[k].ti.x < 0) itt[k].ti.y += 1;
+								if (_cur.grffile->grf_version < 8 && itt->ti.x < 0) itt->ti.y += 1;
 							}
 						}
 
 						/* Append terminator. */
 						assert (p[0] == 0);
 						assert (p[1] == 0x80);
-						itt[size].ti.x = -0x80;
-						itt[size].ti.y =  0;
-						itt[size].gfx  =  0;
+						itt->ti.x = -0x80;
+						itt->ti.y =  0;
+						itt->gfx  =  0;
+						itt++;
 
-						if (!ValidateIndustryLayout (itt, size + 1)) {
+						if (!ValidateIndustryLayout (tile_table[n], layouts[j].size + 1)) {
 							/* The industry layout was not valid, so skip this one. */
 							grfmsg(1, "IndustriesChangeInfo: Invalid industry layout for industry id %u. Ignoring", indid);
-							free (itt);
 						} else {
-							tile_table[n++] = itt;
+							n++;
 						}
 					}
 				}
