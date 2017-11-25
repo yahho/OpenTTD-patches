@@ -3845,75 +3845,87 @@ static ChangeInfoResult AirportChangeInfo(uint airport, int numinfo, int prop, B
 			}
 
 			case 0x0A: { // Set airport layout
-				as->num_table = buf->ReadByte(); // Number of layaouts
-				as->rotation = xmalloct<Direction>(as->num_table);
-				uint32 defsize = buf->ReadDWord();  // Total size of the definition
-				AirportTileTable **tile_table = xcalloct<AirportTileTable*>(as->num_table); // Table with tiles to compose the airport
-				AirportTileTable *att = xcalloct<AirportTileTable>(defsize); // Temporary array to read the tile layouts from the GRF
-				int size;
-				const AirportTileTable *copy_from;
-				try {
-					for (byte j = 0; j < as->num_table; j++) {
-						as->rotation[j] = (Direction)buf->ReadByte();
-						for (int k = 0;; k++) {
-							att[k].ti.x = buf->ReadByte(); // Offsets from northermost tile
-							att[k].ti.y = buf->ReadByte();
+				struct {
+					const byte *p;
+					size_t size;
+				} layouts [256];
 
-							if (att[k].ti.x == 0 && att[k].ti.y == 0x80) {
-								/*  Not the same terminator.  The one we are using is rather
-								 * x = -80, y = 0 .  So, adjust it. */
-								att[k].ti.x = -0x80;
-								att[k].ti.y =  0;
-								att[k].gfx  =  0;
+				uint new_num_layouts = buf->ReadByte(); // Number of layouts
+				buf->Skip (4); // Total size of the definition
 
-								size = k + 1;
-								copy_from = att;
-								break;
-							}
+				for (uint j = 0; j < new_num_layouts; j++) {
+					/* First byte is rotation. */
+					const byte *p = buf->GetData (3);
+					layouts[j].p = p++;
 
-							att[k].gfx = buf->ReadByte();
-
-							if (att[k].gfx == 0xFE) {
-								/* Use a new tile from this GRF */
-								int local_tile_id = buf->ReadWord();
-
-								/* Read the ID from the _airporttile_mngr. */
-								uint16 tempid = _airporttile_mngr.GetID(local_tile_id, _cur.grffile->grfid);
-
-								if (tempid == INVALID_AIRPORTTILE) {
-									grfmsg(2, "AirportChangeInfo: Attempt to use airport tile %u with airport id %u, not yet defined. Ignoring.", local_tile_id, airport + i);
-								} else {
-									/* Declared as been valid, can be used */
-									att[k].gfx = tempid;
-									size = k + 1;
-									copy_from = att;
-								}
-							} else if (att[k].gfx == 0xFF) {
-								att[k].ti.x = (int8)GB(att[k].ti.x, 0, 8);
-								att[k].ti.y = (int8)GB(att[k].ti.y, 0, 8);
-							}
-
-							if (as->rotation[j] == DIR_E || as->rotation[j] == DIR_W) {
-								as->size_x = max<byte>(as->size_x, att[k].ti.y + 1);
-								as->size_y = max<byte>(as->size_y, att[k].ti.x + 1);
-							} else {
-								as->size_x = max<byte>(as->size_x, att[k].ti.x + 1);
-								as->size_y = max<byte>(as->size_y, att[k].ti.y + 1);
-							}
+					/* Count the number of tiles. */
+					size_t size = 0;
+					for (; (p[0] != 0) || (p[1] != 0x80); size++) {
+						byte gfx = buf->ReadByte();
+						if (gfx == 0xFE) {
+							buf->Skip (2);
 						}
-						tile_table[j] = xmemdupt (copy_from, size);
+						p = buf->GetData (2);
 					}
-					/* Install final layout construction in the airport spec */
-					as->table = tile_table;
-					free(att);
-				} catch (...) {
-					for (int i = 0; i < as->num_table; i++) {
-						free(tile_table[i]);
-					}
-					free(tile_table);
-					free(att);
-					throw;
+					layouts[j].size = size;
 				}
+
+				as->num_table = new_num_layouts; // Number of layouts
+				as->rotation = xmalloct<Direction>(as->num_table);
+				AirportTileTable **tile_table = xcalloct<AirportTileTable*>(as->num_table); // Table with tiles to compose the airport
+
+				for (uint j = 0; j < as->num_table; j++) {
+					const byte *p = layouts[j].p;
+					as->rotation[j] = (Direction)*p++;
+					size_t size = layouts[j].size;
+					AirportTileTable *att = xmalloct <AirportTileTable> (size + 1);
+
+					for (size_t k = 0; k < size; k++) {
+						assert (p[0] != 0 || p[1] != 0x80);
+						att[k].ti.x = *p++; // Offsets from northermost tile
+						att[k].ti.y = *p++;
+						att[k].gfx  = *p++;
+
+						if (att[k].gfx == 0xFE) {
+							/* Use a new tile from this GRF */
+							int local_tile_id = ReadWord (p);
+							p += 2;
+
+							/* Read the ID from the _airporttile_mngr. */
+							uint16 tempid = _airporttile_mngr.GetID (local_tile_id, _cur.grffile->grfid);
+
+							if (tempid == INVALID_AIRPORTTILE) {
+								grfmsg (2, "AirportChangeInfo: Attempt to use airport tile %u with airport id %u, not yet defined. Ignoring.", local_tile_id, airport + i);
+							} else {
+								/* Declared as been valid, can be used */
+								att[k].gfx = tempid;
+							}
+						} else if (att[k].gfx == 0xFF) {
+							att[k].ti.x = (int8)GB(att[k].ti.x, 0, 8);
+							att[k].ti.y = (int8)GB(att[k].ti.y, 0, 8);
+						}
+
+						if (as->rotation[j] == DIR_E || as->rotation[j] == DIR_W) {
+							as->size_x = max<byte> (as->size_x, att[k].ti.y + 1);
+							as->size_y = max<byte> (as->size_y, att[k].ti.x + 1);
+						} else {
+							as->size_x = max<byte> (as->size_x, att[k].ti.x + 1);
+							as->size_y = max<byte> (as->size_y, att[k].ti.y + 1);
+						}
+					}
+
+					/* Append terminator. */
+					assert (p[0] == 0);
+					assert (p[1] == 0x80);
+					att[size].ti.x = -0x80;
+					att[size].ti.y =  0;
+					att[size].gfx  =  0;
+
+					tile_table[j] = att;
+				}
+
+				/* Install final layout construction in the airport spec */
+				as->table = tile_table;
 				break;
 			}
 
