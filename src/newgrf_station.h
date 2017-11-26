@@ -173,6 +173,31 @@ struct StationSpec {
 	byte *platforms;
 	StationLayout **layouts;
 	bool copied_layouts;
+
+	StationSpec (void) : grf_prop(), cls_id (STAT_CLASS_DFLT), name (0),
+		disallowed_platforms (0), disallowed_lengths (0),
+		cargo_threshold (0), cargo_triggers (0), callback_mask (0),
+		flags (0), pylons (0), wires (0), blocked (0),
+		lengths (0), platforms (NULL), layouts (NULL),
+		copied_layouts (false)
+	{
+		memset (&this->animation, 0, sizeof(this->animation));
+	}
+
+	~StationSpec()
+	{
+		/* Release platforms and layouts */
+		if (!this->copied_layouts) {
+			for (uint l = 0; l < this->lengths; l++) {
+				for (uint p = 0; p < this->platforms[l]; p++) {
+					free (this->layouts[l][p]);
+				}
+				free (this->layouts[l]);
+			}
+			free (this->layouts);
+			free (this->platforms);
+		}
+	}
 };
 
 /** Struct containing information relating to station classes. */
