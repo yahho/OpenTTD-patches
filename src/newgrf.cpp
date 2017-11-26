@@ -2177,8 +2177,15 @@ static ChangeInfoResult StationChangeInfo(uint stid, int numinfo, int prop, Byte
 				statspec->disallowed_lengths = buf->ReadByte();
 				break;
 
-			case 0x0E: // Define custom layout
-				statspec->copied_layouts = false;
+			case 0x0E: { // Define custom layout
+				byte max_length [256]; // 0 is max width
+				memset (max_length, 0, sizeof(max_length));
+				byte &max_width = max_length[0];
+
+				const byte *p = buf->GetData();
+
+				/* Total layout size. */
+				size_t size = 0;
 
 				while (buf->HasData()) {
 					byte length = buf->ReadByte();
@@ -2186,35 +2193,66 @@ static ChangeInfoResult StationChangeInfo(uint stid, int numinfo, int prop, Byte
 
 					if (length == 0 || number == 0) break;
 
-					if (length > statspec->lengths) {
-						statspec->platforms = xrealloct (statspec->platforms, length);
-						memset(statspec->platforms + statspec->lengths, 0, length - statspec->lengths);
+					max_width = max (max_width, number);
+					max_length[number] = max (max_length[number], length);
 
-						statspec->layouts = xrealloct (statspec->layouts, length);
-						memset(statspec->layouts + statspec->lengths, 0,
-						       (length - statspec->lengths) * sizeof(*statspec->layouts));
-
-						statspec->lengths = length;
-					}
-
-					uint l = length - 1; // index is zero-based
-
-					if (number > statspec->platforms[l]) {
-						statspec->layouts[l] = xrealloct (statspec->layouts[l], number);
-						/* We expect NULL being 0 here, but C99 guarantees that. */
-						memset(statspec->layouts[l] + statspec->platforms[l], 0,
-						       (number - statspec->platforms[l]) * sizeof(**statspec->layouts));
-
-						statspec->platforms[l] = number;
-					}
-
-					StationLayout layout = buf->Dup (length * number);
-
-					StationLayout *p = &statspec->layouts[l][number - 1];
-					free (*p);
-					*p = layout;
+					uint n = length * number;
+					size += n;
+					buf->Skip (n);
 				}
+
+				/* Compute how many pointers we need. */
+				uint nptr = max_width;
+				for (uint i = 1; i <= max_width; i++) {
+					nptr += max_length[i];
+				}
+
+				assert_compile (sizeof(void*) == sizeof(byte*));
+				assert_compile (sizeof(void*) == sizeof(byte**));
+
+				void **alloc = (void**) xmalloc (nptr * sizeof(void*) + max_width + size);
+				memset (alloc, 0, nptr * sizeof(void*));
+
+				byte ***layouts = (byte***) alloc;
+				byte **q = (byte**) (alloc + max_width);
+				for (uint i = 1; i <= max_width; i++) {
+					if (max_length[i] != 0) {
+						layouts[i - 1] = q;
+						q += max_length[i];
+					}
+				}
+				assert ((void*)(alloc + nptr) == (void*)q);
+
+				struct delete_free {
+					void operator() (void *p) { free(p); }
+				};
+
+				byte *buffer = (byte*) q;
+				statspec->layouts.reset (layouts, delete_free());
+				statspec->max_layout_length = buffer - 1;
+				statspec->max_layout_width = max_width;
+
+				memcpy (buffer, &max_length[1], max_width);
+				buffer += max_width;
+
+				for (;;) {
+					byte length = *p++;
+					byte number = *p++;
+
+					if (length == 0 || number == 0) break;
+
+					layouts[number - 1][length - 1] = buffer;
+
+					uint n = length * number;
+					memcpy (buffer, p, n);
+					buffer += n;
+					p += n;
+				}
+
+				assert (p == buf->GetData());
+
 				break;
+			}
 
 			case 0x0F: { // Copy custom layout
 				byte srcid = buf->ReadByte();
@@ -2225,10 +2263,9 @@ static ChangeInfoResult StationChangeInfo(uint stid, int numinfo, int prop, Byte
 					continue;
 				}
 
-				statspec->lengths   = srcstatspec->lengths;
-				statspec->platforms = srcstatspec->platforms;
 				statspec->layouts   = srcstatspec->layouts;
-				statspec->copied_layouts = true;
+				statspec->max_layout_length = srcstatspec->max_layout_length;
+				statspec->max_layout_width  = srcstatspec->max_layout_width;
 				break;
 			}
 

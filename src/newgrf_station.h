@@ -169,34 +169,17 @@ struct StationSpec {
 
 	AnimationInfo animation;
 
-	byte lengths;
-	byte *platforms;
-	StationLayout **layouts;
-	bool copied_layouts;
+	ttd_shared_ptr <const byte *const *const> layouts; ///< Custom layouts, if any.
+	const byte *max_layout_length; ///< Maximum platform length per width.
+	byte max_layout_width; ///< Maximum number of tracks in any layout.
 
 	StationSpec (void) : grf_prop(), cls_id (STAT_CLASS_DFLT), name (0),
 		disallowed_platforms (0), disallowed_lengths (0),
 		cargo_threshold (0), cargo_triggers (0), callback_mask (0),
 		flags (0), pylons (0), wires (0), blocked (0),
-		lengths (0), platforms (NULL), layouts (NULL),
-		copied_layouts (false)
+		layouts(), max_layout_length (NULL), max_layout_width (0)
 	{
 		memset (&this->animation, 0, sizeof(this->animation));
-	}
-
-	~StationSpec()
-	{
-		/* Release platforms and layouts */
-		if (!this->copied_layouts) {
-			for (uint l = 0; l < this->lengths; l++) {
-				for (uint p = 0; p < this->platforms[l]; p++) {
-					free (this->layouts[l][p]);
-				}
-				free (this->layouts[l]);
-			}
-			free (this->layouts);
-			free (this->platforms);
-		}
 	}
 };
 

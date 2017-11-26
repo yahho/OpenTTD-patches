@@ -901,13 +901,14 @@ static inline byte *CreateMulti(byte *layout, int n, byte b)
  */
 void GetStationLayout(byte *layout, int numtracks, int plat_len, const StationSpec *statspec)
 {
-	if (statspec != NULL && statspec->lengths >= plat_len &&
-			statspec->platforms[plat_len - 1] >= numtracks &&
-			statspec->layouts[plat_len - 1][numtracks - 1]) {
-		/* Custom layout defined, follow it. */
-		memcpy(layout, statspec->layouts[plat_len - 1][numtracks - 1],
-			plat_len * numtracks);
-		return;
+	if (statspec != NULL && numtracks <= statspec->max_layout_width
+			&& plat_len <= statspec->max_layout_length[numtracks]) {
+		const byte *p = statspec->layouts.get()[numtracks - 1][plat_len - 1];
+		if (p != NULL) {
+			/* Custom layout defined, follow it. */
+			memcpy (layout, p, plat_len * numtracks);
+			return;
+		}
 	}
 
 	if (plat_len == 1) {
