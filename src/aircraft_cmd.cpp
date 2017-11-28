@@ -1665,32 +1665,32 @@ static bool AirportMove(Aircraft *v, const AirportFTAClass *apc)
 
 	v->previous_pos = v->pos; // save previous location
 
+	byte next_position;
+	uint64 required_block;
 	if (current->next != NULL) {
 		/* there are more choices to choose from, choose the one that
 		 * matches our heading */
+		const AirportFTA *p = current;
 		do {
-			current = current->next;
-			assert (current != NULL);
-		} while (current->heading != v->state
-				&& current->heading != TO_ALL);
+			p = p->next;
+			assert (p != NULL);
+		} while (p->heading != v->state && p->heading != TO_ALL);
+		next_position  = p->next_position;
+		required_block = p->block;
+	} else {
+		/* there is only one choice to move to */
+		next_position  = current->next_position;
+		required_block = 0;
 	}
 
 	/* Reserve a block for the plane. */
-	const AirportFTA *next = &apc->layout[current->next_position];
-	const AirportFTA *reference = &apc->layout[v->pos];
-
-	if (current == reference) {
-		assert (current->next == NULL);
-	}
+	uint64 next_block = apc->layout[next_position].block;
 
 	/* If the next position is in another block, check it and wait
 	 * until it is free. */
-	if ((apc->layout[current->position].block & next->block) != next->block
-			&& current->block != next->block) {
-		uint64 airport_flags = next->block;
-		if (current != reference) {
-			airport_flags |= current->block;
-		}
+	if ((current->block & next_block) != next_block
+			&& required_block != next_block) {
+		uint64 airport_flags = next_block | required_block;
 
 		Station *st = Station::Get (v->targetairport);
 		if (st->airport.flags & airport_flags) {
@@ -1699,13 +1699,13 @@ static bool AirportMove(Aircraft *v, const AirportFTAClass *apc)
 			return false;
 		}
 
-		if (next->block != NOTHING_block) {
+		if (next_block != NOTHING_block) {
 			/* Occupy next block. */
 			SETBITS(st->airport.flags, airport_flags);
 		}
 	}
 
-	v->pos = current->next_position;
+	v->pos = next_position;
 	UpdateAircraftCache (v);
 	return false;
 }
