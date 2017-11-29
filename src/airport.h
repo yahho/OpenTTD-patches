@@ -136,8 +136,6 @@ struct AirportMovingData {
 	DirectionByte direction; ///< Direction to turn the aircraft after reaching the destination.
 };
 
-AirportMovingData RotateAirportMovingData(const AirportMovingData *orig, Direction rotation, uint num_tiles_x, uint num_tiles_y);
-
 struct AirportFTAbuildup;
 
 /** Finite sTate mAchine (FTA) of an airport. */

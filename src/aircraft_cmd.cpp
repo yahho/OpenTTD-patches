@@ -832,13 +832,13 @@ static bool AircraftController(Aircraft *v)
 	}
 
 	/*  get airport moving data */
-	const AirportMovingData amd = RotateAirportMovingData(afc->MovingData(v->pos), rotation, size_x, size_y);
+	const AirportMovingData *amd = afc->MovingData (v->pos);
 
 	int x = TileX(tile) * TILE_SIZE;
 	int y = TileY(tile) * TILE_SIZE;
 
 	/* Helicopter raise */
-	if (amd.flag & AMED_HELI_RAISE) {
+	if (amd->flag & AMED_HELI_RAISE) {
 		Aircraft *u = v->Next()->Next();
 
 		/* Make sure the rotors don't rotate too fast */
@@ -869,7 +869,7 @@ static bool AircraftController(Aircraft *v)
 	}
 
 	/* Helicopter landing. */
-	if (amd.flag & AMED_HELI_LOWER) {
+	if (amd->flag & AMED_HELI_LOWER) {
 		if (st == NULL) {
 			/* FIXME - AircraftController -> if station no longer exists, do not land
 			 * helicopter will circle until sign disappears, then go to next order
@@ -905,16 +905,42 @@ static bool AircraftController(Aircraft *v)
 		return false;
 	}
 
+	int amd_x = x;
+	int amd_y = y;
+	switch (rotation) {
+		case DIR_N:
+			amd_x += amd->x;
+			amd_y += amd->y;
+			break;
+
+		case DIR_E:
+			amd_x += amd->y;
+			amd_y += size_y * TILE_SIZE - amd->x - 1;
+			break;
+
+		case DIR_S:
+			amd_x += size_x * TILE_SIZE - amd->x - 1;
+			amd_y += size_y * TILE_SIZE - amd->y - 1;
+			break;
+
+		case DIR_W:
+			amd_x += size_x * TILE_SIZE - amd->y - 1;
+			amd_y += amd->x;
+			break;
+
+		default: NOT_REACHED();
+	}
+
 	/* Get distance from destination pos to current pos. */
-	uint dist = abs(x + amd.x - v->x_pos) +  abs(y + amd.y - v->y_pos);
+	uint dist = abs (amd_x - v->x_pos) + abs (amd_y - v->y_pos);
 
 	/* Need exact position? */
-	if (!(amd.flag & AMED_EXACTPOS) && dist <= (amd.flag & AMED_SLOWTURN ? 8U : 4U)) return true;
+	if (!(amd->flag & AMED_EXACTPOS) && dist <= (amd->flag & AMED_SLOWTURN ? 8U : 4U)) return true;
 
 	/* At final pos? */
 	if (dist == 0) {
 		/* Change direction smoothly to final direction. */
-		DirDiff dirdiff = DirDifference(amd.direction, v->direction);
+		DirDiff dirdiff = DirDifference (ChangeDir (amd->direction, (DirDiff) rotation), v->direction);
 		/* if distance is 0, and plane points in right direction, no point in calling
 		 * UpdateAircraftSpeed(). So do it only afterwards */
 		if (dirdiff == DIRDIFF_SAME) {
@@ -931,17 +957,17 @@ static bool AircraftController(Aircraft *v)
 		return false;
 	}
 
-	if (amd.flag & AMED_BRAKE && v->cur_speed > SPEED_LIMIT_TAXI * _settings_game.vehicle.plane_speed) {
+	if (amd->flag & AMED_BRAKE && v->cur_speed > SPEED_LIMIT_TAXI * _settings_game.vehicle.plane_speed) {
 		if (MaybeCrashAirplane(v)) return false;
 	}
 
 	uint speed_limit = SPEED_LIMIT_TAXI;
 	bool hard_limit = true;
 
-	if (amd.flag & AMED_NOSPDCLAMP)   speed_limit = SPEED_LIMIT_NONE;
-	if (amd.flag & AMED_HOLD)       { speed_limit = SPEED_LIMIT_HOLD;     hard_limit = false; }
-	if (amd.flag & AMED_LAND)       { speed_limit = SPEED_LIMIT_APPROACH; hard_limit = false; }
-	if (amd.flag & AMED_BRAKE)      { speed_limit = SPEED_LIMIT_TAXI;     hard_limit = false; }
+	if (amd->flag & AMED_NOSPDCLAMP)   speed_limit = SPEED_LIMIT_NONE;
+	if (amd->flag & AMED_HOLD)       { speed_limit = SPEED_LIMIT_HOLD;     hard_limit = false; }
+	if (amd->flag & AMED_LAND)       { speed_limit = SPEED_LIMIT_APPROACH; hard_limit = false; }
+	if (amd->flag & AMED_BRAKE)      { speed_limit = SPEED_LIMIT_TAXI;     hard_limit = false; }
 
 	count = UpdateAircraftSpeed(v, speed_limit, hard_limit);
 	if (count == 0) return false;
@@ -951,9 +977,9 @@ static bool AircraftController(Aircraft *v)
 	do {
 		FullPosTile gp;
 
-		if (dist < 4 || (amd.flag & AMED_LAND)) {
+		if (dist < 4 || (amd->flag & AMED_LAND)) {
 			/* move vehicle one pixel towards target */
-			gp.set_towards (v->x_pos, v->y_pos, x + amd.x, y + amd.y);
+			gp.set_towards (v->x_pos, v->y_pos, amd_x, amd_y);
 
 			/* Oilrigs must keep v->tile as st->airport.tile, since the landing pad is in a non-airport tile */
 			if (st->airport.type == AT_OILRIG) gp.tile = st->airport.tile;
@@ -961,12 +987,12 @@ static bool AircraftController(Aircraft *v)
 		} else {
 
 			/* Turn. Do it slowly if in the air. */
-			Direction newdir = GetDirectionTowards(v, x + amd.x, y + amd.y);
+			Direction newdir = GetDirectionTowards (v, amd_x, amd_y);
 			if (newdir == v->direction) {
 				v->number_consecutive_turns = 0;
 				/* Move vehicle. */
 				gp = GetNewVehiclePos(v);
-			} else if (amd.flag & AMED_SLOWTURN && v->number_consecutive_turns < 8 && v->subtype == AIR_AIRCRAFT) {
+			} else if (amd->flag & AMED_SLOWTURN && v->number_consecutive_turns < 8 && v->subtype == AIR_AIRCRAFT) {
 				if (v->turn_counter == 0 || newdir == v->last_direction) {
 					if (newdir == v->last_direction) {
 						v->number_consecutive_turns = 0;
@@ -995,21 +1021,21 @@ static bool AircraftController(Aircraft *v)
 
 		v->tile = gp.tile;
 		/* If vehicle is in the air, use tile coordinate 0. */
-		if (amd.flag & (AMED_TAKEOFF | AMED_SLOWTURN | AMED_LAND)) v->tile = 0;
+		if (amd->flag & (AMED_TAKEOFF | AMED_SLOWTURN | AMED_LAND)) v->tile = 0;
 
 		/* Adjust Z for land or takeoff? */
 		int z = v->z_pos;
 
-		if (amd.flag & AMED_TAKEOFF) {
+		if (amd->flag & AMED_TAKEOFF) {
 			z = GetAircraftFlightLevel(v, true);
-		} else if (amd.flag & AMED_HOLD) {
+		} else if (amd->flag & AMED_HOLD) {
 			/* Let the plane drop from normal flight altitude to holding pattern altitude */
 			if (z > GetAircraftHoldMaxAltitude(v)) z--;
-		} else if ((amd.flag & AMED_SLOWTURN) && (amd.flag & AMED_NOSPDCLAMP)) {
+		} else if ((amd->flag & AMED_SLOWTURN) && (amd->flag & AMED_NOSPDCLAMP)) {
 			z = GetAircraftFlightLevel(v);
 		}
 
-		if (amd.flag & AMED_LAND) {
+		if (amd->flag & AMED_LAND) {
 			if (st->airport.tile == INVALID_TILE) {
 				/* Airport has been removed, abort the landing procedure */
 				v->state = FLYING;
@@ -1020,7 +1046,7 @@ static bool AircraftController(Aircraft *v)
 				continue;
 			}
 
-			int curz = GetSlopePixelZ(x + amd.x, y + amd.y) + 1;
+			int curz = GetSlopePixelZ (amd_x, amd_y) + 1;
 
 			/* We're not flying below our destination, right? */
 			assert(curz <= z);
@@ -1035,7 +1061,7 @@ static bool AircraftController(Aircraft *v)
 		}
 
 		/* We've landed. Decrease speed when we're reaching end of runway. */
-		if (amd.flag & AMED_BRAKE) {
+		if (amd->flag & AMED_BRAKE) {
 			int curz = GetSlopePixelZ(x, y) + 1;
 
 			if (z > curz) {
