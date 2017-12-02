@@ -981,7 +981,7 @@ static void FloodVehicles(TileIndex tile)
 
 					/* We compare v->z_pos against delta_z + 1 because the shadow
 					 * is at delta_z and the actual aircraft at delta_z + 1. */
-					const AirportFTAClass *airport = st->airport.GetFTA();
+					const AirportFTA *airport = st->airport.GetFTA();
 					if (v->z_pos == airport->delta_z + 1) FloodVehicle(v);
 				}
 			}

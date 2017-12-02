@@ -128,7 +128,7 @@ static const uint64
 	AIRPORT_CLOSED_block     = 1ULL << 63; ///< Dummy block for indicating a closed airport.
 
 /** Finite sTate mAchine (FTA) of an airport. */
-struct AirportFTAClass {
+struct AirportFTA {
 public:
 	/** Bitmask of airport flags. */
 	enum Flags {
@@ -166,7 +166,7 @@ public:
 	byte delta_z;                         ///< Z adjustment for helicopter pads
 
 	template <size_t N>
-	CONSTEXPR AirportFTAClass (const Position (&data) [N],
+	CONSTEXPR AirportFTA (const Position (&data) [N],
 			const byte *terminals, const byte num_helipads,
 			const byte *entry_points, Flags flags, byte delta_z) :
 		data (data), terminals (terminals),
@@ -179,10 +179,10 @@ public:
 	}
 };
 
-DECLARE_ENUM_AS_BIT_SET(AirportFTAClass::Flags)
+DECLARE_ENUM_AS_BIT_SET(AirportFTA::Flags)
 
 
-const AirportFTAClass *GetAirport(const byte airport_type);
+const AirportFTA *GetAirport (const byte airport_type);
 byte GetVehiclePosOnBuild(TileIndex hangar_tile);
 
 #endif /* AIRPORT_H */

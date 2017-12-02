@@ -93,7 +93,7 @@ struct HangarTileTable {
  * Defines the data structure for an airport.
  */
 struct AirportSpec {
-	const struct AirportFTAClass *fsm;     ///< the finite statemachine for the default airports
+	const struct AirportFTA *fsm;          ///< the finite statemachine for the default airports
 	const AirportTileTable * const *table; ///< list of the tiles composing the airport
 	Direction *rotation;                   ///< the rotation of each tiletable
 	byte num_table;                        ///< number of elements in the table

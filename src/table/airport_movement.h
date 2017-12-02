@@ -16,7 +16,7 @@
 ///////////////////////////////////////////////////////////////////////
 /////**********Movement Machine on Airports*********************///////
 static const byte _airport_entries_dummy[] = {0, 1, 2, 3};
-static const AirportFTAClass::Position _airport_fta_dummy[] = {
+static const AirportFTA::Position _airport_fta_dummy[] = {
 	{ 0, 0, 3,   0,  0, DIR_N | AMED_NOSPDCLAMP | AMED_SLOWTURN, NULL },
 	{ 0, 0, 0,   0, 96, DIR_N | AMED_NOSPDCLAMP | AMED_SLOWTURN, NULL },
 	{ 0, 0, 1,  96, 96, DIR_N | AMED_NOSPDCLAMP | AMED_SLOWTURN, NULL },
@@ -29,32 +29,32 @@ static const HangarTileTable _airport_depots_country[] = { {{3, 0}, DIR_SE, 0} }
 static const byte _airport_terminal_country[] = { 1, 0, 2 };
 static const byte _airport_entries_country[] = {16, 15, 18, 17};
 
-static const AirportFTAClass::Transition _airport_fta_country_1[] = {
+static const AirportFTA::Transition _airport_fta_country_1[] = {
 	{ 0,           HANGAR,       0, false },
 	{ TERM1_block, TERM1,        2, false },
 	{ 0,           TERM2,        4, false },
 	{ 0,           HELITAKEOFF, 19, false },
 	{ 0,           0,            6, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_country_4[] = {
+static const AirportFTA::Transition _airport_fta_country_4[] = {
 	{ 0,           TERM2,        5, false },
 	{ 0,           HANGAR,       1, false },
 	{ 0,           TAKEOFF,      6, false },
 	{ 0,           HELITAKEOFF,  1, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_country_5[] = {
+static const AirportFTA::Transition _airport_fta_country_5[] = {
 	{ TERM2_block, TERM2,        3, false },
 	{ 0,           0,            4, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_country_10[] = {
+static const AirportFTA::Transition _airport_fta_country_10[] = {
 	{ 0,           LANDING,     11, false },
 	{ 0,           HELILANDING, 20, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_country_13[] = {
+static const AirportFTA::Transition _airport_fta_country_13[] = {
 	{ 0,           TERM2,        5, false },
 	{ 0,           0,           14, true  }
 };
-static const AirportFTAClass::Position _airport_fta_country[22] = {
+static const AirportFTA::Position _airport_fta_country[22] = {
 	{ NOTHING_block,      HANGAR,          1,   53,   3, DIR_SE | AMED_EXACTPOS,                   NULL                    }, // 00 In Hangar
 	{ AIRPORT_BUSY_block, 255,             0,   53,  27, DIR_N,                                    _airport_fta_country_1  }, // 01 Taxi to right outside depot
 	{ TERM1_block,        TERM1,           1,   32,  23, DIR_NW | AMED_EXACTPOS,                   NULL                    }, // 02 Terminal 1
@@ -86,11 +86,11 @@ static const HangarTileTable _airport_depots_commuter[] = { {{4, 0}, DIR_SE, 0} 
 static const byte _airport_terminal_commuter[] = { 1, 0, 3 };
 static const byte _airport_entries_commuter[] = {22, 21, 24, 23};
 
-static const AirportFTAClass::Transition _airport_fta_commuter_0[] = {
+static const AirportFTA::Transition _airport_fta_commuter_0[] = {
 	{ HELIPAD2_block,     HELITAKEOFF,  1, false },
 	{ 0,                  0,            1, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_commuter_1[] = {
+static const AirportFTA::Transition _airport_fta_commuter_1[] = {
 	{ 0,                  HANGAR,       0, false },
 	{ 0,                  TAKEOFF,     11, false },
 	{ TAXIWAY_BUSY_block, TERM1,       10, false },
@@ -101,7 +101,7 @@ static const AirportFTAClass::Transition _airport_fta_commuter_1[] = {
 	{ TAXIWAY_BUSY_block, HELITAKEOFF, 10, false },
 	{ 0,                  0,            0, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_commuter_2[] = {
+static const AirportFTA::Transition _airport_fta_commuter_2[] = {
 	{ 0,                  HANGAR,       8, false },
 	{ 0,                  TERM1,        8, false },
 	{ 0,                  TERM2,        8, false },
@@ -111,36 +111,36 @@ static const AirportFTAClass::Transition _airport_fta_commuter_2[] = {
 	{ 0,                  HELITAKEOFF,  8, false },
 	{ 0,                  0,            2, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_commuter_3[] = {
+static const AirportFTA::Transition _airport_fta_commuter_3[] = {
 	{ 0,                  HANGAR,       8, false },
 	{ 0,                  TAKEOFF,      8, false },
 	{ 0,                  0,            3, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_commuter_4[] = {
+static const AirportFTA::Transition _airport_fta_commuter_4[] = {
 	{ 0,                  HANGAR,       9, false },
 	{ 0,                  TAKEOFF,      9, false },
 	{ 0,                  0,            4, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_commuter_5[] = {
+static const AirportFTA::Transition _airport_fta_commuter_5[] = {
 	{ 0,                  HANGAR,      10, false },
 	{ 0,                  TAKEOFF,     10, false },
 	{ 0,                  0,            5, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_commuter_6[] = {
+static const AirportFTA::Transition _airport_fta_commuter_6[] = {
 	{ TAXIWAY_BUSY_block, HANGAR,       9, false },
 	{ 0,                  HELITAKEOFF, 35, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_commuter_7[] = {
+static const AirportFTA::Transition _airport_fta_commuter_7[] = {
 	{ TAXIWAY_BUSY_block, HANGAR,      10, false },
 	{ 0,                  HELITAKEOFF, 36, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_commuter_8[] = {
+static const AirportFTA::Transition _airport_fta_commuter_8[] = {
 	{ TAXIWAY_BUSY_block, TAKEOFF,      9, false },
 	{ TAXIWAY_BUSY_block, HANGAR,       9, false },
 	{ TERM1_block,        TERM1,        3, false },
 	{ TAXIWAY_BUSY_block, 0,            9, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_commuter_9[] = {
+static const AirportFTA::Transition _airport_fta_commuter_9[] = {
 	{ TAXIWAY_BUSY_block, TAKEOFF,     10, false },
 	{ TAXIWAY_BUSY_block, HANGAR,      10, false },
 	{ TERM2_block,        TERM2,        4, false },
@@ -149,7 +149,7 @@ static const AirportFTAClass::Transition _airport_fta_commuter_9[] = {
 	{ TAXIWAY_BUSY_block, TERM1,        8, false },
 	{ TAXIWAY_BUSY_block, 0,           10, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_commuter_10[] = {
+static const AirportFTA::Transition _airport_fta_commuter_10[] = {
 	{ TERM3_block,        TERM3,        5, false },
 	{ 0,                  HELIPAD1,     9, false },
 	{ HELIPAD2_block,     HELIPAD2,     7, false },
@@ -158,22 +158,22 @@ static const AirportFTAClass::Transition _airport_fta_commuter_10[] = {
 	{ TAXIWAY_BUSY_block, HANGAR,       1, false },
 	{ TAXIWAY_BUSY_block, 0,            9, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_commuter_16[] = {
+static const AirportFTA::Transition _airport_fta_commuter_16[] = {
 	{ IN_WAY_block,       LANDING,     17, false },
 	{ 0,                  HELILANDING, 25, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_commuter_26[] = {
+static const AirportFTA::Transition _airport_fta_commuter_26[] = {
 	{ 0,                  HELIPAD1,    27, false },
 	{ 0,                  HELIPAD2,    28, false },
 	{ 0,                  HANGAR,      33, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_commuter_29[] = {
+static const AirportFTA::Transition _airport_fta_commuter_29[] = {
 	{ HELIPAD1_block,     HELIPAD1,     6, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_commuter_30[] = {
+static const AirportFTA::Transition _airport_fta_commuter_30[] = {
 	{ HELIPAD2_block,     HELIPAD2,     7, true  }
 };
-static const AirportFTAClass::Position _airport_fta_commuter[37] = {
+static const AirportFTA::Position _airport_fta_commuter[37] = {
 	{ NOTHING_block,          HANGAR,          1,   69,   3, DIR_SE | AMED_EXACTPOS,                   _airport_fta_commuter_0  }, // 00 In Hangar
 	{ TAXIWAY_BUSY_block,     255,             0,   72,  22, DIR_N,                                    _airport_fta_commuter_1  }, // 01 Taxi to right outside depot
 	{ AIRPORT_ENTRANCE_block, 255,             2,    8,  22, DIR_SW | AMED_EXACTPOS,                   _airport_fta_commuter_2  }, // 01 Taxi to right outside depot
@@ -223,51 +223,51 @@ static const HangarTileTable _airport_depots_city[] = { {{5, 0}, DIR_SE, 0} };
 static const byte _airport_terminal_city[] = { 1, 0, 3 };
 static const byte _airport_entries_city[] = {26, 29, 27, 28};
 
-static const AirportFTAClass::Transition _airport_fta_city_0[] = {
+static const AirportFTA::Transition _airport_fta_city_0[] = {
 	{ OUT_WAY_block, TAKEOFF,      1, false },
 	{ 0,             0,            1, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_city_1[] = {
+static const AirportFTA::Transition _airport_fta_city_1[] = {
 	{ 0,             HANGAR,       0, false },
 	{ 0,             TERM2,        6, false },
 	{ 0,             TERM3,        6, false },
 	{ 0,             0,            7, true  } // for all else, go to 7
 };
-static const AirportFTAClass::Transition _airport_fta_city_2[] = {
+static const AirportFTA::Transition _airport_fta_city_2[] = {
 	{ OUT_WAY_block, TAKEOFF,      7, false },
 	{ 0,             0,            7, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_city_3[] = {
+static const AirportFTA::Transition _airport_fta_city_3[] = {
 	{ OUT_WAY_block, TAKEOFF,      6, false },
 	{ 0,             0,            6, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_city_4[] = {
+static const AirportFTA::Transition _airport_fta_city_4[] = {
 	{ OUT_WAY_block, TAKEOFF,      5, false },
 	{ 0,             0,            5, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_city_5[] = {
+static const AirportFTA::Transition _airport_fta_city_5[] = {
 	{ TERM2_block,   TERM2,        3, false },
 	{ TERM3_block,   TERM3,        4, false },
 	{ 0,             0,            6, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_city_6[] = {
+static const AirportFTA::Transition _airport_fta_city_6[] = {
 	{ TERM2_block,   TERM2,        3, false },
 	{ 0,             TERM3,        5, false },
 	{ 0,             HANGAR,       1, false },
 	{ 0,             0,            7, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_city_7[] = {
+static const AirportFTA::Transition _airport_fta_city_7[] = {
 	{ TERM1_block,   TERM1,        2, false },
 	{ OUT_WAY_block, TAKEOFF,      8, false },
 	{ 0,             HELITAKEOFF, 22, false },
 	{ 0,             HANGAR,       1, false },
 	{ 0,             0,            6, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_city_13[] = {
+static const AirportFTA::Transition _airport_fta_city_13[] = {
 	{ 0,             LANDING,     14, false },
 	{ 0,             HELILANDING, 23, true  }
 };
-static const AirportFTAClass::Position _airport_fta_city[] = {
+static const AirportFTA::Position _airport_fta_city[] = {
 	{ NOTHING_block,       HANGAR,          1,   85,   3, DIR_SE | AMED_EXACTPOS,                   _airport_fta_city_0  }, // 00 In Hangar
 	{ TAXIWAY_BUSY_block,  255,             0,   85,  22, DIR_N,                                    _airport_fta_city_1  }, // 01 Taxi to right outside depot
 	{ TERM1_block,         TERM1,           7,   26,  41, DIR_SW | AMED_EXACTPOS,                   _airport_fta_city_2  }, // 02 Terminal 1
@@ -308,45 +308,45 @@ static const HangarTileTable _airport_depots_metropolitan[] = { {{5, 0}, DIR_SE,
 static const byte _airport_terminal_metropolitan[] = { 1, 0, 3 };
 static const byte _airport_entries_metropolitan[] = {20, 19, 22, 21};
 
-static const AirportFTAClass::Transition _airport_fta_metropolitan_1[] = {
+static const AirportFTA::Transition _airport_fta_metropolitan_1[] = {
 	{ 0,            HANGAR,       0, false },
 	{ 0,            TERM2,        6, false },
 	{ 0,            TERM3,        6, false },
 	{ 0,            0,            7, true  } // for all else, go to 7
 };
-static const AirportFTAClass::Transition _airport_fta_metropolitan_5[] = {
+static const AirportFTA::Transition _airport_fta_metropolitan_5[] = {
 	{ TERM2_block,  TERM2,        3, false },
 	{ TERM3_block,  TERM3,        4, false },
 	{ 0,            0,            6, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_metropolitan_6[] = {
+static const AirportFTA::Transition _airport_fta_metropolitan_6[] = {
 	{ TERM2_block,  TERM2,        3, false },
 	{ 0,            TERM3,        5, false },
 	{ 0,            HANGAR,       1, false },
 	{ 0,            0,            7, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_metropolitan_7[] = {
+static const AirportFTA::Transition _airport_fta_metropolitan_7[] = {
 	{ TERM1_block,  TERM1,        2, false },
 	{ 0,            TAKEOFF,      8, false },
 	{ 0,            HELITAKEOFF, 23, false },
 	{ 0,            HANGAR,       1, false },
 	{ 0,            0,            6, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_metropolitan_13[] = {
+static const AirportFTA::Transition _airport_fta_metropolitan_13[] = {
 	{ 0,            LANDING,     14, false },
 	{ 0,            HELILANDING, 25, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_metropolitan_16[] = {
+static const AirportFTA::Transition _airport_fta_metropolitan_16[] = {
 	{ IN_WAY_block, ENDLANDING,  17, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_metropolitan_17[] = {
+static const AirportFTA::Transition _airport_fta_metropolitan_17[] = {
 	{ IN_WAY_block, ENDLANDING,  18, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_metropolitan_27[] = {
+static const AirportFTA::Transition _airport_fta_metropolitan_27[] = {
 	{ TERM1_block,  TERM1,        2, false },
 	{ 0,            0,            7, true  }
 };
-static const AirportFTAClass::Position _airport_fta_metropolitan[28] = {
+static const AirportFTA::Position _airport_fta_metropolitan[28] = {
 	{ NOTHING_block,      HANGAR,          1,   85,   3, DIR_SE | AMED_EXACTPOS,                   NULL                         }, // 00 In Hangar
 	{ TAXIWAY_BUSY_block, 255,             0,   85,  22, DIR_N,                                    _airport_fta_metropolitan_1  }, // 01 Taxi to right outside depot
 	{ TERM1_block,        TERM1,           7,   26,  41, DIR_SW | AMED_EXACTPOS,                   NULL                         }, // 02 Terminal 1
@@ -385,18 +385,18 @@ static const HangarTileTable _airport_depots_international[] = { {{0, 3}, DIR_SE
 static const byte _airport_terminal_international[] = { 2, 0, 3, 6 };
 static const byte _airport_entries_international[] = { 38, 37, 40, 39 };
 
-static const AirportFTAClass::Transition _airport_fta_international_0[] = {
+static const AirportFTA::Transition _airport_fta_international_0[] = {
 	{ TERM_GROUP1_block,        255,          0, false },
 	{ TERM_GROUP2_ENTER1_block, 255,          1, false },
 	{ HELIPAD1_block,           HELITAKEOFF,  2, false },
 	{ 0,                        0,            2, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_international_1[] = {
+static const AirportFTA::Transition _airport_fta_international_1[] = {
 	{ HANGAR2_AREA_block,       255,          1, false },
 	{ HELIPAD2_block,           HELITAKEOFF,  3, false },
 	{ 0,                        0,            3, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_international_2[] = {
+static const AirportFTA::Transition _airport_fta_international_2[] = {
 	{ 0,                        HANGAR,       0, false },
 	{ 0,                        TERM4,       12, false },
 	{ 0,                        TERM5,       12, false },
@@ -406,49 +406,49 @@ static const AirportFTAClass::Transition _airport_fta_international_2[] = {
 	{ 0,                        HELITAKEOFF, 12, false },
 	{ 0,                        0,           23, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_international_3[] = {
+static const AirportFTA::Transition _airport_fta_international_3[] = {
 	{ 0,                        HANGAR,       1, false },
 	{ 0,                        0,           18, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_international_4[] = {
+static const AirportFTA::Transition _airport_fta_international_4[] = {
 	{ AIRPORT_ENTRANCE_block,   HANGAR,      23, false },
 	{ 0,                        0,           23, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_international_5[] = {
+static const AirportFTA::Transition _airport_fta_international_5[] = {
 	{ AIRPORT_ENTRANCE_block,   HANGAR,      24, false },
 	{ 0,                        0,           24, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_international_6[] = {
+static const AirportFTA::Transition _airport_fta_international_6[] = {
 	{ AIRPORT_ENTRANCE_block,   HANGAR,      25, false },
 	{ 0,                        0,           25, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_international_7[] = {
+static const AirportFTA::Transition _airport_fta_international_7[] = {
 	{ HANGAR2_AREA_block,       HANGAR,      16, false },
 	{ 0,                        0,           16, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_international_8[] = {
+static const AirportFTA::Transition _airport_fta_international_8[] = {
 	{ HANGAR2_AREA_block,       HANGAR,      17, false },
 	{ 0,                        0,           17, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_international_9[] = {
+static const AirportFTA::Transition _airport_fta_international_9[] = {
 	{ HANGAR2_AREA_block,       HANGAR,      18, false },
 	{ 0,                        0,           18, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_international_10[] = {
+static const AirportFTA::Transition _airport_fta_international_10[] = {
 	{ HANGAR2_AREA_block,       HANGAR,      16, false },
 	{ 0,                        HELITAKEOFF, 47, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_international_11[] = {
+static const AirportFTA::Transition _airport_fta_international_11[] = {
 	{ HANGAR2_AREA_block,       HANGAR,      17, false },
 	{ 0,                        HELITAKEOFF, 48, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_international_16[] = {
+static const AirportFTA::Transition _airport_fta_international_16[] = {
 	{ TERM4_block,              TERM4,        7, false },
 	{ HELIPAD1_block,           HELIPAD1,    10, false },
 	{ HELIPAD1_block,           HELITAKEOFF, 10, false },
 	{ 0,                        0,           17, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_international_17[] = {
+static const AirportFTA::Transition _airport_fta_international_17[] = {
 	{ TERM5_block,              TERM5,        8, false },
 	{ 0,                        TERM4,       16, false },
 	{ 0,                        HELIPAD1,    16, false },
@@ -456,37 +456,37 @@ static const AirportFTAClass::Transition _airport_fta_international_17[] = {
 	{ HELIPAD2_block,           HELITAKEOFF, 11, false },
 	{ 0,                        0,           18, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_international_18[] = {
+static const AirportFTA::Transition _airport_fta_international_18[] = {
 	{ TERM6_block,              TERM6,        9, false },
 	{ 0,                        TAKEOFF,     19, false },
 	{ HANGAR2_AREA_block,       HANGAR,       3, false },
 	{ 0,                        0,           17, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_international_23[] = {
+static const AirportFTA::Transition _airport_fta_international_23[] = {
 	{ TERM1_block,              TERM1,        4, false },
 	{ AIRPORT_ENTRANCE_block,   HANGAR,       2, false },
 	{ 0,                        0,           24, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_international_24[] = {
+static const AirportFTA::Transition _airport_fta_international_24[] = {
 	{ TERM2_block,              TERM2,        5, false },
 	{ 0,                        TERM1,       23, false },
 	{ 0,                        HANGAR,      23, false },
 	{ 0,                        0,           25, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_international_25[] = {
+static const AirportFTA::Transition _airport_fta_international_25[] = {
 	{ TERM3_block,              TERM3,        6, false },
 	{ 0,                        TAKEOFF,     26, false },
 	{ 0,                        0,           24, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_international_26[] = {
+static const AirportFTA::Transition _airport_fta_international_26[] = {
 	{ 0,                        TAKEOFF,     27, false },
 	{ 0,                        0,           25, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_international_32[] = {
+static const AirportFTA::Transition _airport_fta_international_32[] = {
 	{ 0,                        LANDING,     33, false },
 	{ 0,                        HELILANDING, 41, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_international_36[] = {
+static const AirportFTA::Transition _airport_fta_international_36[] = {
 	{ TERM_GROUP1_block,        255,          0, false },
 	{ TERM_GROUP2_ENTER1_block, 255,          1, false },
 	{ 0,                        TERM4,       12, false },
@@ -494,18 +494,18 @@ static const AirportFTAClass::Transition _airport_fta_international_36[] = {
 	{ 0,                        TERM6,       12, false },
 	{ 0,                        0,            2, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_international_42[] = {
+static const AirportFTA::Transition _airport_fta_international_42[] = {
 	{ 0,                        HELIPAD1,    43, false },
 	{ 0,                        HELIPAD2,    44, false },
 	{ 0,                        HANGAR,      49, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_international_45[] = {
+static const AirportFTA::Transition _airport_fta_international_45[] = {
 	{ HELIPAD1_block,           HELIPAD1,    10, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_international_46[] = {
+static const AirportFTA::Transition _airport_fta_international_46[] = {
 	{ HELIPAD2_block,           HELIPAD2,    11, true  }
 };
-static const AirportFTAClass::Position _airport_fta_international[51] = {
+static const AirportFTA::Position _airport_fta_international[51] = {
 	{ NOTHING_block,            HANGAR,          2,    7,  55, DIR_SE | AMED_EXACTPOS,                   _airport_fta_international_0  }, // 00 In Hangar 1
 	{ NOTHING_block,            HANGAR,          3,  100,  21, DIR_SE | AMED_EXACTPOS,                   _airport_fta_international_1  }, // 01 In Hangar 2
 	{ AIRPORT_ENTRANCE_block,   255,             0,    7,  70, DIR_N,                                    _airport_fta_international_2  }, // 02 Taxi to right outside depot
@@ -570,18 +570,18 @@ static const HangarTileTable _airport_depots_intercontinental[] = { {{0, 5}, DIR
 static const byte _airport_terminal_intercontinental[] = { 2, 0, 4, 8 };
 static const byte _airport_entries_intercontinental[] = { 44, 43, 46, 45 };
 
-static const AirportFTAClass::Transition _airport_fta_intercontinental_0[] = {
+static const AirportFTA::Transition _airport_fta_intercontinental_0[] = {
 	{ HANGAR1_AREA_block | TERM_GROUP1_block, 255,          0, false },
 	{ HANGAR1_AREA_block | TERM_GROUP1_block, 255,          1, false },
 	{ HANGAR1_AREA_block | TERM_GROUP1_block, TAKEOFF,      2, false },
 	{ 0,                                      0,            2, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_intercontinental_1[] = {
+static const AirportFTA::Transition _airport_fta_intercontinental_1[] = {
 	{ HANGAR2_AREA_block,                     255,          1, false },
 	{ HANGAR2_AREA_block,                     255,          0, false },
 	{ 0,                                      0,            3, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_intercontinental_2[] = {
+static const AirportFTA::Transition _airport_fta_intercontinental_2[] = {
 	{ TERM_GROUP1_block,                      255,          0, false },
 	{ TERM_GROUP1_block,                      255,          1, false },
 	{ 0,                                      HANGAR,       0, false },
@@ -595,66 +595,66 @@ static const AirportFTAClass::Transition _airport_fta_intercontinental_2[] = {
 	{ 0,                                      HELITAKEOFF, 74, false },
 	{ 0,                                      0,           27, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_intercontinental_3[] = {
+static const AirportFTA::Transition _airport_fta_intercontinental_3[] = {
 	{ 0,                                      HANGAR,       1, false },
 	{ 0,                                      HELITAKEOFF, 75, false },
 	{ 0,                                      TAKEOFF,     59, false },
 	{ 0,                                      0,           20, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_intercontinental_4[] = {
+static const AirportFTA::Transition _airport_fta_intercontinental_4[] = {
 	{ HANGAR1_AREA_block | TERM_GROUP1_block, HANGAR,      26, false },
 	{ 0,                                      0,           26, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_intercontinental_5[] = {
+static const AirportFTA::Transition _airport_fta_intercontinental_5[] = {
 	{ HANGAR1_AREA_block | TERM_GROUP1_block, HANGAR,      27, false },
 	{ 0,                                      0,           27, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_intercontinental_6[] = {
+static const AirportFTA::Transition _airport_fta_intercontinental_6[] = {
 	{ HANGAR1_AREA_block | TERM_GROUP1_block, HANGAR,      28, false },
 	{ 0,                                      0,           28, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_intercontinental_7[] = {
+static const AirportFTA::Transition _airport_fta_intercontinental_7[] = {
 	{ HANGAR1_AREA_block | TERM_GROUP1_block, HANGAR,      29, false },
 	{ 0,                                      0,           29, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_intercontinental_8[] = {
+static const AirportFTA::Transition _airport_fta_intercontinental_8[] = {
 	{ HANGAR2_AREA_block,                     HANGAR,      18, false },
 	{ 0,                                      0,           18, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_intercontinental_9[] = {
+static const AirportFTA::Transition _airport_fta_intercontinental_9[] = {
 	{ HANGAR2_AREA_block,                     HANGAR,      19, false },
 	{ 0,                                      0,           19, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_intercontinental_10[] = {
+static const AirportFTA::Transition _airport_fta_intercontinental_10[] = {
 	{ HANGAR2_AREA_block,                     HANGAR,      20, false },
 	{ 0,                                      0,           20, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_intercontinental_11[] = {
+static const AirportFTA::Transition _airport_fta_intercontinental_11[] = {
 	{ HANGAR2_AREA_block,                     HANGAR,      21, false },
 	{ 0,                                      0,           21, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_intercontinental_12[] = {
+static const AirportFTA::Transition _airport_fta_intercontinental_12[] = {
 	{ 0,                                      HANGAR,      70, false },
 	{ 0,                                      HELITAKEOFF, 72, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_intercontinental_13[] = {
+static const AirportFTA::Transition _airport_fta_intercontinental_13[] = {
 	{ 0,                                      HANGAR,      71, false },
 	{ 0,                                      HELITAKEOFF, 73, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_intercontinental_18[] = {
+static const AirportFTA::Transition _airport_fta_intercontinental_18[] = {
 	{ TERM5_block,                            TERM5,        8, false },
 	{ 0,                                      TAKEOFF,     19, false },
 	{ HELIPAD1_block,                         HELITAKEOFF, 19, false },
 	{ TERM_GROUP2_EXIT1_block,                0,           19, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_intercontinental_19[] = {
+static const AirportFTA::Transition _airport_fta_intercontinental_19[] = {
 	{ TERM6_block,                            TERM6,        9, false },
 	{ 0,                                      TERM5,       18, false },
 	{ 0,                                      TAKEOFF,     57, false },
 	{ HELIPAD1_block,                         HELITAKEOFF, 20, false },
 	{ TERM_GROUP2_EXIT1_block,                0,           20, true  } // add exit to runway out 2
 };
-static const AirportFTAClass::Transition _airport_fta_intercontinental_20[] = {
+static const AirportFTA::Transition _airport_fta_intercontinental_20[] = {
 	{ TERM7_block,                            TERM7,       10, false },
 	{ 0,                                      TERM5,       19, false },
 	{ 0,                                      TERM6,       19, false },
@@ -662,7 +662,7 @@ static const AirportFTAClass::Transition _airport_fta_intercontinental_20[] = {
 	{ 0,                                      TAKEOFF,     19, false },
 	{ TERM_GROUP2_EXIT1_block,                0,           21, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_intercontinental_21[] = {
+static const AirportFTA::Transition _airport_fta_intercontinental_21[] = {
 	{ TERM8_block,                            TERM8,       11, false },
 	{ HANGAR2_AREA_block,                     HANGAR,      20, false },
 	{ 0,                                      TERM5,       20, false },
@@ -671,7 +671,7 @@ static const AirportFTAClass::Transition _airport_fta_intercontinental_21[] = {
 	{ 0,                                      TAKEOFF,     20, false },
 	{ TERM_GROUP2_EXIT1_block,                0,           22, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_intercontinental_22[] = {
+static const AirportFTA::Transition _airport_fta_intercontinental_22[] = {
 	{ 0,                                      HANGAR,      21, false },
 	{ 0,                                      TERM5,       21, false },
 	{ 0,                                      TERM6,       21, false },
@@ -680,11 +680,11 @@ static const AirportFTAClass::Transition _airport_fta_intercontinental_22[] = {
 	{ 0,                                      TAKEOFF,     21, false },
 	{ 0,                                      0,           23, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_intercontinental_25[] = {
+static const AirportFTA::Transition _airport_fta_intercontinental_25[] = {
 	{ HANGAR1_AREA_block | TERM_GROUP1_block, HANGAR,      29, false },
 	{ 0,                                      0,           29, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_intercontinental_26[] = {
+static const AirportFTA::Transition _airport_fta_intercontinental_26[] = {
 	{ TERM1_block,                            TERM1,        4, false },
 	{ HANGAR1_AREA_block,                     HANGAR,      27, false },
 	{ TERM_GROUP2_ENTER1_block,               TERM5,       14, false },
@@ -696,7 +696,7 @@ static const AirportFTAClass::Transition _airport_fta_intercontinental_26[] = {
 	{ TERM_GROUP2_ENTER1_block,               HELITAKEOFF, 14, false },
 	{ 0,                                      0,           27, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_intercontinental_27[] = {
+static const AirportFTA::Transition _airport_fta_intercontinental_27[] = {
 	{ TERM2_block,                            TERM2,        5, false },
 	{ HANGAR1_AREA_block,                     HANGAR,       2, false },
 	{ 0,                                      TERM1,       26, false },
@@ -708,7 +708,7 @@ static const AirportFTAClass::Transition _airport_fta_intercontinental_27[] = {
 	{ 0,                                      HELIPAD2,    14, false },
 	{ 0,                                      0,           28, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_intercontinental_28[] = {
+static const AirportFTA::Transition _airport_fta_intercontinental_28[] = {
 	{ TERM3_block,                            TERM3,        6, false },
 	{ HANGAR1_AREA_block,                     HANGAR,      27, false },
 	{ 0,                                      TERM1,       27, false },
@@ -722,74 +722,74 @@ static const AirportFTAClass::Transition _airport_fta_intercontinental_28[] = {
 	{ 0,                                      HELIPAD2,    14, false },
 	{ 0,                                      0,           29, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_intercontinental_29[] = {
+static const AirportFTA::Transition _airport_fta_intercontinental_29[] = {
 	{ TERM4_block,                            TERM4,        7, false },
 	{ HANGAR1_AREA_block,                     HANGAR,      27, false },
 	{ 0,                                      TAKEOFF,     30, false },
 	{ 0,                                      0,           28, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_intercontinental_42[] = {
+static const AirportFTA::Transition _airport_fta_intercontinental_42[] = {
 	{ TERM_GROUP1_block,                      255,          0, false },
 	{ TERM_GROUP1_block,                      255,          1, false },
 	{ 0,                                      HANGAR,       2, false },
 	{ 0,                                      0,           26, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_intercontinental_44[] = {
+static const AirportFTA::Transition _airport_fta_intercontinental_44[] = {
 	{ 0,                                      HELILANDING, 47, false },
 	{ 0,                                      LANDING,     69, false },
 	{ 0,                                      0,           45, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_intercontinental_46[] = {
+static const AirportFTA::Transition _airport_fta_intercontinental_46[] = {
 	{ 0,                                      LANDING,     76, false },
 	{ 0,                                      0,           43, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_intercontinental_48[] = {
+static const AirportFTA::Transition _airport_fta_intercontinental_48[] = {
 	{ 0,                                      HELIPAD1,    49, false },
 	{ 0,                                      HELIPAD2,    50, false },
 	{ 0,                                      HANGAR,      55, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_intercontinental_51[] = {
+static const AirportFTA::Transition _airport_fta_intercontinental_51[] = {
 	{ HELIPAD1_block,                         HELIPAD1,    12, false },
 	{ 0,                                      HANGAR,      55, false },
 	{ 0,                                      0,           12, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_intercontinental_52[] = {
+static const AirportFTA::Transition _airport_fta_intercontinental_52[] = {
 	{ HELIPAD2_block,                         HELIPAD2,    13, false },
 	{ 0,                                      HANGAR,      55, false },
 	{ 0,                                      0,           13, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_intercontinental_57[] = {
+static const AirportFTA::Transition _airport_fta_intercontinental_57[] = {
 	{ 0,                                      TAKEOFF,     58, false },
 	{ 0,                                      0,           58, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_intercontinental_66[] = {
+static const AirportFTA::Transition _airport_fta_intercontinental_66[] = {
 	{ 0,                                      255,          1, false },
 	{ 0,                                      255,          0, false },
 	{ 0,                                      0,           67, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_intercontinental_68[] = {
+static const AirportFTA::Transition _airport_fta_intercontinental_68[] = {
 	{ TERM_GROUP2_block,                      255,          1, false },
 	{ TERM_GROUP1_block,                      255,          0, false },
 	{ HANGAR2_AREA_block,                     HANGAR,      22, false },
 	{ 0,                                      0,           22, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_intercontinental_69[] = {
+static const AirportFTA::Transition _airport_fta_intercontinental_69[] = {
 	{ RUNWAY_IN2_block,                       0,           63, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_intercontinental_70[] = {
+static const AirportFTA::Transition _airport_fta_intercontinental_70[] = {
 	{ HELIPAD1_block,                         HELIPAD1,    12, false },
 	{ HELIPAD1_block,                         HELITAKEOFF, 12, false },
 	{ 0,                                      0,           71, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_intercontinental_71[] = {
+static const AirportFTA::Transition _airport_fta_intercontinental_71[] = {
 	{ HELIPAD2_block,                         HELIPAD2,    13, false },
 	{ HELIPAD1_block,                         HELITAKEOFF, 12, false },
 	{ 0,                                      0,           24, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_intercontinental_76[] = {
+static const AirportFTA::Transition _airport_fta_intercontinental_76[] = {
 	{ RUNWAY_IN_block,                        0,           37, true  }
 };
-static const AirportFTAClass::Position _airport_fta_intercontinental[77] = {
+static const AirportFTA::Position _airport_fta_intercontinental[77] = {
 	{ NOTHING_block,            HANGAR,          2,     8,   87, DIR_SE | AMED_EXACTPOS,                   _airport_fta_intercontinental_0  }, // 00 In Hangar 1
 	{ NOTHING_block,            HANGAR,          3,   136,   72, DIR_SE | AMED_EXACTPOS,                   _airport_fta_intercontinental_1  }, // 01 In Hangar 2
 	{ HANGAR1_AREA_block,       255,             0,     8,  104, DIR_N,                                    _airport_fta_intercontinental_2  }, // 02 Taxi to right outside depot 1
@@ -881,18 +881,18 @@ static const AirportFTAClass::Position _airport_fta_intercontinental[77] = {
 /* heliports, oilrigs don't have depots */
 static const byte _airport_entries_heliport[] = { 7, 7, 7, 7 };
 
-static const AirportFTAClass::Transition _airport_fta_heliport_2[] = {
+static const AirportFTA::Transition _airport_fta_heliport_2[] = {
 	{ 0,              HELILANDING, 3, false },
 	{ 0,              HELITAKEOFF, 1, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_heliport_4[] = {
+static const AirportFTA::Transition _airport_fta_heliport_4[] = {
 	{ HELIPAD1_block, HELIPAD1,    0, false },
 	{ 0,              HELITAKEOFF, 2, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_heliport_8[] = {
+static const AirportFTA::Transition _airport_fta_heliport_8[] = {
 	{ HELIPAD1_block, HELILANDING, 2, true  }
 };
-static const AirportFTAClass::Position _airport_fta_heliport[9] = {
+static const AirportFTA::Position _airport_fta_heliport[9] = {
 	{ HELIPAD1_block,     HELIPAD1,       1,    5,   9, DIR_NE | AMED_EXACTPOS,                   NULL                    }, // 0 - At heliport terminal
 	{ NOTHING_block,      HELITAKEOFF,    0,    2,   9, DIR_N  | AMED_HELI_RAISE,                 NULL                    }, // 1 - Take off (play sound)
 	{ AIRPORT_BUSY_block, 255,            0,   -3,   9, DIR_N  | AMED_NOSPDCLAMP | AMED_SLOWTURN, _airport_fta_heliport_2 }, // 2 - In position above landing spot helicopter
@@ -907,7 +907,7 @@ static const AirportFTAClass::Position _airport_fta_heliport[9] = {
 
 #define _airport_entries_oilrig _airport_entries_heliport
 
-static const AirportFTAClass::Position _airport_fta_oilrig[9] = {
+static const AirportFTA::Position _airport_fta_oilrig[9] = {
 	{ HELIPAD1_block,     HELIPAD1,       1,   31,   9, DIR_NE | AMED_EXACTPOS,                   NULL                    }, // 0 - At oilrig terminal
 	{ NOTHING_block,      HELITAKEOFF,    0,   28,   9, DIR_N  | AMED_HELI_RAISE,                 NULL                    }, // 1 - Take off (play sound)
 	{ AIRPORT_BUSY_block, 255,            0,   23,   9, DIR_N  | AMED_NOSPDCLAMP | AMED_SLOWTURN, _airport_fta_heliport_2 }, // 2 - In position above landing spot helicopter
@@ -924,32 +924,32 @@ static const AirportFTAClass::Position _airport_fta_oilrig[9] = {
 static const HangarTileTable _airport_depots_helidepot[] = { {{1, 0}, DIR_SE, 0} };
 static const byte _airport_entries_helidepot[] = { 4, 4, 4, 4 };
 
-static const AirportFTAClass::Transition _airport_fta_helidepot_1[] = {
+static const AirportFTA::Transition _airport_fta_helidepot_1[] = {
 	{ 0,                 HANGAR,       0, false },
 	{ HELIPAD1_block,    HELIPAD1,    14, false },
 	{ 0,                 HELITAKEOFF, 15, false },
 	{ 0,                 0,            0, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_helidepot_2[] = {
+static const AirportFTA::Transition _airport_fta_helidepot_2[] = {
 	{ PRE_HELIPAD_block, HELILANDING,  7, false },
 	{ 0,                 HANGAR,      12, false },
 	{ NOTHING_block,     HELITAKEOFF, 16, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_helidepot_8[] = {
+static const AirportFTA::Transition _airport_fta_helidepot_8[] = {
 	{ 0,                 HELIPAD1,     9, false },
 	{ 0,                 HANGAR,      12, false },
 	{ 0,                 0,            2, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_helidepot_10[] = {
+static const AirportFTA::Transition _airport_fta_helidepot_10[] = {
 	{ HELIPAD1_block,    HELIPAD1,    14, false },
 	{ 0,                 HANGAR,       1, false },
 	{ 0,                 0,           14, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_helidepot_14[] = {
+static const AirportFTA::Transition _airport_fta_helidepot_14[] = {
 	{ 0,                 HANGAR,       1, false },
 	{ 0,                 HELITAKEOFF, 17, true  }
 };
-static const AirportFTAClass::Position _airport_fta_helidepot[18] = {
+static const AirportFTA::Position _airport_fta_helidepot[18] = {
 	{ NOTHING_block,      HANGAR,          1,   24,   4, DIR_NE | AMED_EXACTPOS,                   NULL                      }, // 0 - At depot
 	{ HANGAR2_AREA_block, 255,             0,   24,  28, DIR_N,                                    _airport_fta_helidepot_1  }, // 1 Taxi to right outside depot
 	{ NOTHING_block,      FLYING,          3,    5,  38, DIR_N  | AMED_NOSPDCLAMP | AMED_SLOWTURN, _airport_fta_helidepot_2  }, // 2 Flying
@@ -978,70 +978,70 @@ static const AirportFTAClass::Position _airport_fta_helidepot[18] = {
 static const HangarTileTable _airport_depots_helistation[] = { {{0, 0}, DIR_SE, 0} };
 static const byte _airport_entries_helistation[] = { 25, 25, 25, 25 };
 
-static const AirportFTAClass::Transition _airport_fta_helistation_0[] = {
+static const AirportFTA::Transition _airport_fta_helistation_0[] = {
 	{ 0,                  HELIPAD1,     1, false },
 	{ 0,                  HELIPAD2,     1, false },
 	{ 0,                  HELIPAD3,     1, false },
 	{ 0,                  HELITAKEOFF,  1, false },
 	{ 0,                  0,            0, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_helistation_1[] = {
+static const AirportFTA::Transition _airport_fta_helistation_1[] = {
 	{ 0,                  HANGAR,       0, false },
 	{ 0,                  HELITAKEOFF,  3, false },
 	{ 0,                  0,            4, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_helistation_2[] = {
+static const AirportFTA::Transition _airport_fta_helistation_2[] = {
 	{ 0,                  HELILANDING, 15, false },
 	{ 0,                  0,           28, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_helistation_4[] = {
+static const AirportFTA::Transition _airport_fta_helistation_4[] = {
 	{ HANGAR2_AREA_block, HANGAR,       1, false },
 	{ 0,                  HELITAKEOFF,  1, false },
 	{ 0,                  0,            5, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_helistation_5[] = {
+static const AirportFTA::Transition _airport_fta_helistation_5[] = {
 	{ HELIPAD1_block,     HELIPAD1,     6, false },
 	{ HELIPAD2_block,     HELIPAD2,     7, false },
 	{ HELIPAD3_block,     HELIPAD3,     8, false },
 	{ 0,                  0,            4, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_helistation_6[] = {
+static const AirportFTA::Transition _airport_fta_helistation_6[] = {
 	{ HANGAR2_AREA_block, HANGAR,       5, false },
 	{ 0,                  HELITAKEOFF,  9, false },
 	{ 0,                  0,            6, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_helistation_7[] = {
+static const AirportFTA::Transition _airport_fta_helistation_7[] = {
 	{ HANGAR2_AREA_block, HANGAR,       5, false },
 	{ 0,                  HELITAKEOFF, 10, false },
 	{ 0,                  0,            7, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_helistation_8[] = {
+static const AirportFTA::Transition _airport_fta_helistation_8[] = {
 	{ HANGAR2_AREA_block, HANGAR,       5, false },
 	{ 0,                  HELITAKEOFF, 11, false },
 	{ 0,                  0,            8, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_helistation_16[] = {
+static const AirportFTA::Transition _airport_fta_helistation_16[] = {
 	{ 0,                  HELIPAD1,    17, false },
 	{ 0,                  HELIPAD2,    18, false },
 	{ 0,                  HELIPAD3,    19, false },
 	{ 0,                  HANGAR,      23, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_helistation_20[] = {
+static const AirportFTA::Transition _airport_fta_helistation_20[] = {
 	{ HELIPAD1_block,     HELIPAD1,     6, false },
 	{ 0,                  HANGAR,      23, false },
 	{ 0,                  0,            6, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_helistation_21[] = {
+static const AirportFTA::Transition _airport_fta_helistation_21[] = {
 	{ HELIPAD2_block,     HELIPAD2,     7, false },
 	{ 0,                  HANGAR,      23, false },
 	{ 0,                  0,            7, true  }
 };
-static const AirportFTAClass::Transition _airport_fta_helistation_22[] = {
+static const AirportFTA::Transition _airport_fta_helistation_22[] = {
 	{ HELIPAD3_block,     HELIPAD3,     8, false },
 	{ 0,                  HANGAR,      23, false },
 	{ 0,                  0,            8, true  }
 };
-static const AirportFTAClass::Position _airport_fta_helistation[33] = {
+static const AirportFTA::Position _airport_fta_helistation[33] = {
 	{ NOTHING_block,      HANGAR,          8,    8,   3, DIR_SE | AMED_EXACTPOS,                   _airport_fta_helistation_0  }, // 00 In Hangar2
 	{ HANGAR2_AREA_block, 255,             0,    8,  22, DIR_N,                                    _airport_fta_helistation_1  }, // 01 outside hangar 2
 	/* landing */

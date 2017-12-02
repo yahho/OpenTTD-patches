@@ -77,9 +77,9 @@ void Aircraft::UpdateDeltaXY(Direction direction)
 	}
 }
 
-static bool AirportMove(Aircraft *v, const AirportFTAClass *apc);
-static bool AirportFindFreeTerminal(Aircraft *v, const AirportFTAClass *apc);
-static bool AirportFindFreeHelipad(Aircraft *v, const AirportFTAClass *apc);
+static bool AirportMove (Aircraft *v, const AirportFTA *apc);
+static bool AirportFindFreeTerminal (Aircraft *v, const AirportFTA *apc);
+static bool AirportFindFreeHelipad (Aircraft *v, const AirportFTA *apc);
 static void CrashAirplane(Aircraft *v);
 
 static const SpriteID _aircraft_sprite[] = {
@@ -124,10 +124,10 @@ static StationID FindNearestHangar(const Aircraft *v)
 	FOR_ALL_STATIONS(st) {
 		if (st->owner != v->owner || !(st->facilities & FACIL_AIRPORT)) continue;
 
-		const AirportFTAClass *afc = st->airport.GetFTA();
+		const AirportFTA *afc = st->airport.GetFTA();
 		if (!st->airport.HasHangar() || (
 					/* don't crash the plane if we know it can't land at the airport */
-					(afc->flags & AirportFTAClass::SHORT_STRIP) &&
+					(afc->flags & AirportFTA::SHORT_STRIP) &&
 					(avi->subtype & AIR_FAST) &&
 					!_cheats.no_jetcrash.value)) {
 			continue;
@@ -751,7 +751,7 @@ int GetAircraftFlightLevel (const Vehicle *v, byte *flags, bool takeoff)
  * @param rotation The rotation of the airport.
  * @return   The index of the entry point
  */
-static byte AircraftGetEntryPoint(const Aircraft *v, const AirportFTAClass *apc, Direction rotation)
+static byte AircraftGetEntryPoint (const Aircraft *v, const AirportFTA *apc, Direction rotation)
 {
 	assert(v != NULL);
 	assert(apc != NULL);
@@ -813,7 +813,7 @@ static bool AircraftController(Aircraft *v)
 		}
 	}
 	/* DUMMY if there is no station or no airport */
-	const AirportFTAClass *afc = tile == INVALID_TILE ? GetAirport(AT_DUMMY) : st->airport.GetFTA();
+	const AirportFTA *afc = tile == INVALID_TILE ? GetAirport(AT_DUMMY) : st->airport.GetFTA();
 
 	/* prevent going to INVALID_TILE if airport is deleted. */
 	if (st == NULL || st->airport.tile == INVALID_TILE) {
@@ -833,7 +833,7 @@ static bool AircraftController(Aircraft *v)
 
 	/*  get airport moving data */
 	assert (v->pos < afc->nofelements);
-	const AirportFTAClass::Position *amd = &afc->data[v->pos];
+	const AirportFTA::Position *amd = &afc->data[v->pos];
 
 	int x = TileX(tile) * TILE_SIZE;
 	int y = TileY(tile) * TILE_SIZE;
@@ -1273,7 +1273,7 @@ static bool MaybeCrashAirplane(Aircraft *v)
 
 	/* FIXME -- MaybeCrashAirplane -> increase crashing chances of very modern airplanes on smaller than AT_METROPOLITAN airports */
 	uint32 prob = (0x4000 << _settings_game.vehicle.plane_crashes);
-	if ((st->airport.GetFTA()->flags & AirportFTAClass::SHORT_STRIP) &&
+	if ((st->airport.GetFTA()->flags & AirportFTA::SHORT_STRIP) &&
 			(AircraftVehInfo(v->engine_type)->subtype & AIR_FAST) &&
 			!_cheats.no_jetcrash.value) {
 		prob /= 20;
@@ -1294,9 +1294,9 @@ static bool MaybeCrashAirplane(Aircraft *v)
 }
 
 /** returns true if the road ahead is busy, eg. you must wait before proceeding. */
-static bool AirportHasBlock (Aircraft *v, const AirportFTAClass *apc)
+static bool AirportHasBlock (Aircraft *v, const AirportFTA *apc)
 {
-	const AirportFTAClass::Position *pos = &apc->data[v->pos];
+	const AirportFTA::Position *pos = &apc->data[v->pos];
 	uint64 next_block = apc->data[pos->next_position].block;
 
 	/* same block, then of course we can move */
@@ -1344,7 +1344,7 @@ void AircraftNextAirportPos_and_Order(Aircraft *v)
 	}
 
 	const Station *st = GetTargetAirportIfValid(v);
-	const AirportFTAClass *apc = st == NULL ? GetAirport(AT_DUMMY) : st->airport.GetFTA();
+	const AirportFTA *apc = st == NULL ? GetAirport(AT_DUMMY) : st->airport.GetFTA();
 	Direction rotation = st == NULL ? DIR_N : st->airport.rotation;
 	v->pos = v->previous_pos = AircraftGetEntryPoint(v, apc, rotation);
 }
@@ -1415,7 +1415,7 @@ static void AircraftEnterDepot (Aircraft *v)
  * @param v Aircraft in the hangar.
  * @param apc Airport description containing the hangar.
  */
-static void AircraftEventHandler_InHangar(Aircraft *v, const AirportFTAClass *apc)
+static void AircraftEventHandler_InHangar (Aircraft *v, const AirportFTA *apc)
 {
 	/* if we just arrived, execute EnterHangar first */
 	if (v->previous_pos != v->pos) {
@@ -1462,7 +1462,7 @@ static void AircraftEventHandler_InHangar(Aircraft *v, const AirportFTAClass *ap
 }
 
 /** At one of the Airport's Terminals */
-static void AircraftEventHandler_AtTerminal(Aircraft *v, const AirportFTAClass *apc)
+static void AircraftEventHandler_AtTerminal (Aircraft *v, const AirportFTA *apc)
 {
 	/* if we just arrived, execute EnterTerminal first */
 	if (v->previous_pos != v->pos) {
@@ -1516,7 +1516,7 @@ static void AircraftEventHandler_AtTerminal(Aircraft *v, const AirportFTAClass *
 	AirportMove(v, apc);
 }
 
-static void AircraftEventHandler_Flying(Aircraft *v, const AirportFTAClass *apc)
+static void AircraftEventHandler_Flying (Aircraft *v, const AirportFTA *apc)
 {
 	Station *st = Station::Get(v->targetairport);
 
@@ -1526,8 +1526,8 @@ static void AircraftEventHandler_Flying(Aircraft *v, const AirportFTAClass *apc)
 		 * if it is an airplane, look for LANDING, for helicopter HELILANDING
 		 * it is possible to choose from multiple landing runways, so loop until a free one is found */
 		byte landingtype = (v->subtype == AIR_HELICOPTER) ? HELILANDING : LANDING;
-		const AirportFTAClass::Position *reference = &apc->data[v->pos];
-		const AirportFTAClass::Transition *current = reference->transitions;
+		const AirportFTA::Position *reference = &apc->data[v->pos];
+		const AirportFTA::Transition *current = reference->transitions;
 		assert (current != NULL);
 		do {
 			if (current->heading == landingtype) {
@@ -1556,7 +1556,7 @@ static void AircraftEventHandler_Flying(Aircraft *v, const AirportFTAClass *apc)
 }
 
 /* we have arrived in an important state (eg terminal, hangar, etc.) */
-static void AirportMoveEvent (Aircraft *v, const AirportFTAClass *apc)
+static void AirportMoveEvent (Aircraft *v, const AirportFTA *apc)
 {
 	assert (apc->data[v->pos].heading == v->state);
 
@@ -1677,7 +1677,7 @@ static void AirportMoveEvent (Aircraft *v, const AirportFTAClass *apc)
 }
 
 /* gets pos from vehicle and next orders */
-static bool AirportMove(Aircraft *v, const AirportFTAClass *apc)
+static bool AirportMove (Aircraft *v, const AirportFTA *apc)
 {
 	/* error handling */
 	if (v->pos >= apc->nofelements) {
@@ -1685,7 +1685,7 @@ static bool AirportMove(Aircraft *v, const AirportFTAClass *apc)
 		assert(v->pos < apc->nofelements);
 	}
 
-	const AirportFTAClass::Position *current = &apc->data[v->pos];
+	const AirportFTA::Position *current = &apc->data[v->pos];
 	/* we have arrived in an important state (eg terminal, hangar, etc.) */
 	if (current->heading == v->state) {
 		AirportMoveEvent (v, apc);
@@ -1699,7 +1699,7 @@ static bool AirportMove(Aircraft *v, const AirportFTAClass *apc)
 	if (current->transitions != NULL) {
 		/* there are more choices to choose from, choose the one that
 		 * matches our heading */
-		const AirportFTAClass::Transition *p = current->transitions;
+		const AirportFTA::Transition *p = current->transitions;
 		while (p->heading != v->state && p->heading != TO_ALL) {
 			assert (!p->last);
 			p++;
@@ -1791,7 +1791,7 @@ static bool FreeTerminal(Aircraft *v, byte i, byte last_terminal)
  * @param apc Airport state machine.
  * @return Found a free terminal and assigned it.
  */
-static bool AirportFindFreeTerminal(Aircraft *v, const AirportFTAClass *apc)
+static bool AirportFindFreeTerminal (Aircraft *v, const AirportFTA *apc)
 {
 	/* example of more terminalgroups
 	 * {0,HANGAR,NOTHING_block,1}, {0,255,TERM_GROUP1_block,0}, {0,255,TERM_GROUP2_ENTER_block,1}, {0,0,N,1},
@@ -1805,7 +1805,7 @@ static bool AirportFindFreeTerminal(Aircraft *v, const AirportFTAClass *apc)
 	 */
 	if (apc->terminals[0] > 1) {
 		const Station *st = Station::Get(v->targetairport);
-		const AirportFTAClass::Transition *temp = apc->data[v->pos].transitions;
+		const AirportFTA::Transition *temp = apc->data[v->pos].transitions;
 
 		if (temp != NULL) {
 			do {
@@ -1840,7 +1840,7 @@ static bool AirportFindFreeTerminal(Aircraft *v, const AirportFTAClass *apc)
  * @param apc Airport state machine.
  * @return Found a free helipad and assigned it.
  */
-static bool AirportFindFreeHelipad(Aircraft *v, const AirportFTAClass *apc)
+static bool AirportFindFreeHelipad (Aircraft *v, const AirportFTA *apc)
 {
 	/* if an airport doesn't have helipads, use terminals */
 	if (apc->num_helipads == 0) return AirportFindFreeTerminal(v, apc);
@@ -1912,7 +1912,7 @@ static bool AircraftEventHandler(Aircraft *v, int loop)
 	/* If aircraft is not in position, wait until it is. */
 	if (!HasBit(v->flags, VAF_DEST_TOO_FAR) && AircraftController (v)) {
 		Station *st = Station::Get (v->targetairport);
-		const AirportFTAClass *apc = st->airport.GetFTA();
+		const AirportFTA *apc = st->airport.GetFTA();
 
 		/* We have left the previous block, and entered the new one.
 		 * Free the previous block. */
@@ -1971,7 +1971,7 @@ Station *GetTargetAirportIfValid(const Aircraft *v)
 void UpdateAirplanesOnNewStation(const Station *st)
 {
 	/* only 1 station is updated per function call, so it is enough to get entry_point once */
-	const AirportFTAClass *ap = st->airport.GetFTA();
+	const AirportFTA *ap = st->airport.GetFTA();
 	Direction rotation = st->airport.tile == INVALID_TILE ? DIR_N : st->airport.rotation;
 
 	Aircraft *v;

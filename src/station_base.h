@@ -345,7 +345,7 @@ struct Airport : public TileArea {
 	 * @pre this->type < NEW_AIRPORT_OFFSET.
 	 * @return The state machine for this airport.
 	 */
-	const AirportFTAClass *GetFTA() const
+	const AirportFTA *GetFTA() const
 	{
 		return this->GetSpec()->fsm;
 	}

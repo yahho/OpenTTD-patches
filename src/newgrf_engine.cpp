@@ -166,7 +166,7 @@ static byte MapAircraftMovementState(const Aircraft *v)
 	const Station *st = GetTargetAirportIfValid(v);
 	if (st == NULL) return AMS_TTDP_FLIGHT_TO_TOWER;
 
-	const AirportFTAClass *afc = st->airport.GetFTA();
+	const AirportFTA *afc = st->airport.GetFTA();
 	assert (v->pos < afc->nofelements);
 	uint16 amdflag = afc->data[v->pos].flags;
 

@@ -25,7 +25,7 @@
  * @param delta_z Height of the airport above the land.
  */
 #define AIRPORT_GENERIC(name, terminals, num_helipads, flags, delta_z) \
-	static const AirportFTAClass _airportfta_ ## name (_airport_fta_ ## name, terminals, \
+	static const AirportFTA _airportfta_ ## name (_airport_fta_ ## name, terminals, \
 			num_helipads, _airport_entries_ ## name, flags, delta_z);
 
 /**
@@ -35,7 +35,7 @@
  * @param short_strip Airport has a short land/take-off strip.
  */
 #define AIRPORT(name, num_helipads, short_strip) \
-	AIRPORT_GENERIC(name, _airport_terminal_ ## name, num_helipads, AirportFTAClass::ALL | (short_strip ? AirportFTAClass::SHORT_STRIP : (AirportFTAClass::Flags)0), 0)
+	AIRPORT_GENERIC(name, _airport_terminal_ ## name, num_helipads, AirportFTA::ALL | (short_strip ? AirportFTA::SHORT_STRIP : (AirportFTA::Flags)0), 0)
 
 /**
  * Define a heliport.
@@ -44,7 +44,7 @@
  * @param delta_z Height of the airport above the land.
  */
 #define HELIPORT(name, num_helipads, delta_z) \
-	AIRPORT_GENERIC(name, NULL, num_helipads, AirportFTAClass::HELICOPTERS, delta_z)
+	AIRPORT_GENERIC(name, NULL, num_helipads, AirportFTA::HELICOPTERS, delta_z)
 
 AIRPORT(country, 0, true)
 AIRPORT(city, 0, false)
@@ -56,7 +56,7 @@ HELIPORT(helidepot, 1, 0)
 AIRPORT(intercontinental, 2, false)
 HELIPORT(helistation, 3, 0)
 HELIPORT(oilrig, 1, 54)
-AIRPORT_GENERIC(dummy, NULL, 0, AirportFTAClass::ALL, 0)
+AIRPORT_GENERIC(dummy, NULL, 0, AirportFTA::ALL, 0)
 
 #undef HELIPORT
 #undef AIRPORT
@@ -70,7 +70,7 @@ AIRPORT_GENERIC(dummy, NULL, 0, AirportFTAClass::ALL, 0)
  * @param airport_type %Airport type to query FTA from. @see AirportTypes
  * @return Finite state machine of the airport.
  */
-const AirportFTAClass *GetAirport(const byte airport_type)
+const AirportFTA *GetAirport (const byte airport_type)
 {
 	if (airport_type == AT_DUMMY) return &_airportfta_dummy;
 	return AirportSpec::Get(airport_type)->fsm;
@@ -84,7 +84,7 @@ const AirportFTAClass *GetAirport(const byte airport_type)
 byte GetVehiclePosOnBuild(TileIndex hangar_tile)
 {
 	const Station *st = Station::GetByTile(hangar_tile);
-	const AirportFTAClass *apc = st->airport.GetFTA();
+	const AirportFTA *apc = st->airport.GetFTA();
 	/* When we click on hangar we know the tile it is on. By that we know
 	 * its position in the array of depots the airport has.....we can search
 	 * layout for #th position of depot. Since layout must start with a listing
