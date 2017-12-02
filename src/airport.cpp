@@ -25,8 +25,8 @@
  * @param delta_z Height of the airport above the land.
  */
 #define AIRPORT_GENERIC(name, terminals, num_helipads, flags, delta_z) \
-	static AirportFTAClass _airportfta_ ## name(_airport_moving_data_ ## name, terminals, \
-			num_helipads, _airport_entries_ ## name, flags, _airport_fta_ ## name, delta_z);
+	static const AirportFTAClass _airportfta_ ## name (_airport_fta_ ## name, terminals, \
+			num_helipads, _airport_entries_ ## name, flags, delta_z);
 
 /**
  * Define an airport.
@@ -65,101 +65,6 @@ AIRPORT_GENERIC(dummy, NULL, 0, AirportFTAClass::ALL, 0)
 #include "table/airport_defaults.h"
 
 
-static uint16 AirportGetNofElements(const AirportFTAbuildup *apFA);
-static AirportFTA *AirportBuildAutomata(uint nofelements, const AirportFTAbuildup *apFA);
-
-
-AirportFTAClass::AirportFTAClass(
-	const AirportMovingData *moving_data_,
-	const byte *terminals_,
-	const byte num_helipads_,
-	const byte *entry_points_,
-	Flags flags_,
-	const AirportFTAbuildup *apFA,
-	byte delta_z_
-) :
-	moving_data(moving_data_),
-	terminals(terminals_),
-	num_helipads(num_helipads_),
-	flags(flags_),
-	nofelements(AirportGetNofElements(apFA)),
-	entry_points(entry_points_),
-	delta_z(delta_z_)
-{
-	/* Build the state machine itself */
-	this->layout = AirportBuildAutomata(this->nofelements, apFA);
-}
-
-AirportFTAClass::~AirportFTAClass()
-{
-	for (uint i = 0; i < nofelements; i++) {
-		AirportFTA *current = layout[i].next;
-		while (current != NULL) {
-			AirportFTA *next = current->next;
-			free(current);
-			current = next;
-		}
-	}
-	free(layout);
-}
-
-/**
- * Get the number of elements of a source Airport state automata
- * Since it is actually just a big array of AirportFTA types, we only
- * know one element from the other by differing 'position' identifiers
- */
-static uint16 AirportGetNofElements(const AirportFTAbuildup *apFA)
-{
-	uint16 nofelements = 0;
-	int temp = apFA[0].position;
-
-	for (uint i = 0; i < MAX_ELEMENTS; i++) {
-		if (temp != apFA[i].position) {
-			nofelements++;
-			temp = apFA[i].position;
-		}
-		if (apFA[i].position == MAX_ELEMENTS) break;
-	}
-	return nofelements;
-}
-
-/**
- * Construct the FTA given a description.
- * @param nofelements The number of elements in the FTA.
- * @param apFA The description of the FTA.
- * @return The FTA describing the airport.
- */
-static AirportFTA *AirportBuildAutomata(uint nofelements, const AirportFTAbuildup *apFA)
-{
-	AirportFTA *FAutomata = xmalloct<AirportFTA>(nofelements);
-	uint16 internalcounter = 0;
-
-	for (uint i = 0; i < nofelements; i++) {
-		AirportFTA *current = &FAutomata[i];
-		current->position      = apFA[internalcounter].position;
-		current->heading       = apFA[internalcounter].heading;
-		current->block         = apFA[internalcounter].block;
-		current->next_position = apFA[internalcounter].next;
-
-		/* outgoing nodes from the same position, create linked list */
-		while (current->position == apFA[internalcounter + 1].position) {
-			AirportFTA *newNode = xmalloct<AirportFTA>();
-
-			newNode->position      = apFA[internalcounter + 1].position;
-			newNode->heading       = apFA[internalcounter + 1].heading;
-			newNode->block         = apFA[internalcounter + 1].block;
-			newNode->next_position = apFA[internalcounter + 1].next;
-			/* create link */
-			current->next = newNode;
-			current = current->next;
-			internalcounter++;
-		}
-		current->next = NULL;
-		internalcounter++;
-	}
-	return FAutomata;
-}
-
 /**
  * Get the finite state machine of an airport type.
  * @param airport_type %Airport type to query FTA from. @see AirportTypes
@@ -186,8 +91,8 @@ byte GetVehiclePosOnBuild(TileIndex hangar_tile)
 	 * of all depots, it is simple */
 	for (uint i = 0;; i++) {
 		if (st->airport.GetHangarTile(i) == hangar_tile) {
-			assert(apc->layout[i].heading == HANGAR);
-			return apc->layout[i].position;
+			assert(apc->data[i].heading == HANGAR);
+			return i;
 		}
 	}
 	NOT_REACHED();

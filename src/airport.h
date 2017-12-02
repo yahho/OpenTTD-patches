@@ -18,7 +18,6 @@
 /** Some airport-related constants */
 static const uint MAX_TERMINALS =   8;                       ///< maximum number of terminals per airport
 static const uint MAX_HELIPADS  =   3;                       ///< maximum number of helipads per airport
-static const uint MAX_ELEMENTS  = 255;                       ///< maximum number of aircraft positions at airport
 
 static const uint NUM_AIRPORTTILES_PER_GRF = 255;            ///< Number of airport tiles per NewGRF; limited to 255 to allow extending Action3 with an extended byte later on.
 
@@ -47,15 +46,15 @@ enum AirportTypes {
 
 /** Flags for airport movement data. */
 enum AirportMovingDataFlags {
-	AMED_NOSPDCLAMP = 1 << 0, ///< No speed restrictions.
-	AMED_TAKEOFF    = 1 << 1, ///< Takeoff movement.
-	AMED_SLOWTURN   = 1 << 2, ///< Turn slowly (mostly used in the air).
-	AMED_LAND       = 1 << 3, ///< Landing onto landing strip.
-	AMED_EXACTPOS   = 1 << 4, ///< Go exactly to the destination coordinates.
-	AMED_BRAKE      = 1 << 5, ///< Taxiing at the airport.
-	AMED_HELI_RAISE = 1 << 6, ///< Helicopter take-off.
-	AMED_HELI_LOWER = 1 << 7, ///< Helicopter landing.
-	AMED_HOLD       = 1 << 8, ///< Holding pattern movement (above the airport).
+	AMED_NOSPDCLAMP = 1 <<  4, ///< No speed restrictions.
+	AMED_TAKEOFF    = 1 <<  5, ///< Takeoff movement.
+	AMED_SLOWTURN   = 1 <<  6, ///< Turn slowly (mostly used in the air).
+	AMED_LAND       = 1 <<  7, ///< Landing onto landing strip.
+	AMED_EXACTPOS   = 1 <<  8, ///< Go exactly to the destination coordinates.
+	AMED_BRAKE      = 1 <<  9, ///< Taxiing at the airport.
+	AMED_HELI_RAISE = 1 << 10, ///< Helicopter take-off.
+	AMED_HELI_LOWER = 1 << 11, ///< Helicopter landing.
+	AMED_HOLD       = 1 << 12, ///< Holding pattern movement (above the airport).
 };
 
 /** Movement States on Airports (headings target) */
@@ -128,16 +127,6 @@ static const uint64
 	NOTHING_block            = 1ULL << 30,
 	AIRPORT_CLOSED_block     = 1ULL << 63; ///< Dummy block for indicating a closed airport.
 
-/** A single location on an airport where aircraft can move to. */
-struct AirportMovingData {
-	int16 x;                 ///< x-coordinate of the destination.
-	int16 y;                 ///< y-coordinate of the destination.
-	uint16 flag;             ///< special flags when moving towards the destination.
-	DirectionByte direction; ///< Direction to turn the aircraft after reaching the destination.
-};
-
-struct AirportFTAbuildup;
-
 /** Finite sTate mAchine (FTA) of an airport. */
 struct AirportFTAClass {
 public:
@@ -149,50 +138,49 @@ public:
 		SHORT_STRIP = 0x4,                     ///< This airport has a short landing strip, dangerous for fast aircraft.
 	};
 
-	AirportFTAClass(
-		const AirportMovingData *moving_data,
-		const byte *terminals,
-		const byte num_helipads,
-		const byte *entry_points,
-		Flags flags,
-		const AirportFTAbuildup *apFA,
-		byte delta_z
-	);
+	/** A possible transition between two positions in the machine. */
+	struct Transition {
+		uint64 block;       ///< 64-bit block (st->airport.flags), should be enough for the most complex airports
+		byte heading;       ///< heading (current orders), guiding an airplane to its target on an airport
+		byte next_position; ///< next position from this heading
+		bool last;          ///< last array element flag
+	};
 
-	~AirportFTAClass();
+	/** A logical position in the machine. */
+	struct Position {
+		uint64 block;       ///< 64-bit block (st->airport.flags), should be enough for the most complex airports
+		byte heading;       ///< heading (current orders), guiding an airplane to its target on an airport
+		byte next_position; ///< next position from this position, if unique
+		int16 x;            ///< x-coordinate of the destination
+		int16 y;            ///< y-coordinate of the destination
+		uint16 flags;       ///< destination direction and special movement flags
+		const Transition *transitions; ///< possible transitions, if not unique
+	};
 
-	/**
-	 * Get movement data at a position.
-	 * @param position Element number to get movement data about.
-	 * @return Pointer to the movement data.
-	 */
-	const AirportMovingData *MovingData(byte position) const
-	{
-		assert(position < nofelements);
-		return &moving_data[position];
-	}
-
-	const AirportMovingData *moving_data; ///< Movement data.
-	struct AirportFTA *layout;            ///< state machine for airport
+	const Position *data;                 ///< State machine and movement data.
 	const byte *terminals;                ///< %Array with the number of terminal groups, followed by the first terminal in each group.
 	const byte num_helipads;              ///< Number of helipads on this airport. When 0 helicopters will go to normal terminals.
 	Flags flags;                          ///< Flags for this airport type.
 	byte nofelements;                     ///< number of positions the airport consists of
 	const byte *entry_points;             ///< when an airplane arrives at this airport, enter it at position entry_point, index depends on direction
 	byte delta_z;                         ///< Z adjustment for helicopter pads
+
+	template <size_t N>
+	CONSTEXPR AirportFTAClass (const Position (&data) [N],
+			const byte *terminals, const byte num_helipads,
+			const byte *entry_points, Flags flags, byte delta_z) :
+		data (data), terminals (terminals),
+		num_helipads (num_helipads), flags (flags),
+		nofelements (N), entry_points (entry_points),
+		delta_z (delta_z)
+	{
+		assert_tcompile (N > 0);
+		assert_tcompile (N < 256);
+	}
 };
 
 DECLARE_ENUM_AS_BIT_SET(AirportFTAClass::Flags)
 
-
-/** Internal structure used in openttd - Finite sTate mAchine --> FTA */
-struct AirportFTA {
-	AirportFTA *next;        ///< possible extra movement choices from this position
-	uint64 block;            ///< 64 bit blocks (st->airport.flags), should be enough for the most complex airports
-	byte position;           ///< the position that an airplane is at
-	byte next_position;      ///< next position from this position
-	byte heading;            ///< heading (current orders), guiding an airplane to its target on an airport
-};
 
 const AirportFTAClass *GetAirport(const byte airport_type);
 byte GetVehiclePosOnBuild(TileIndex hangar_tile);
