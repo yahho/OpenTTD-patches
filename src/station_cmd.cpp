@@ -83,9 +83,9 @@ bool IsHangar(TileIndex t)
 	if (!IsAirport(t)) return false;
 
 	const Station *st = Station::GetByTile(t);
-	const AirportSpec *as = st->airport.GetSpec();
+	const AirportFTA *fta = st->airport.GetFTA();
 
-	for (uint i = 0; i < as->nof_depots; i++) {
+	for (uint i = 0; i < fta->num_hangars; i++) {
 		if (st->airport.GetHangarTile(i) == t) return true;
 	}
 

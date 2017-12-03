@@ -3814,8 +3814,6 @@ static AirportSpec *CloneAirportSpec (const AirportSpec *src)
 	}
 	as->table = table_list;
 
-	as->depot_table = xmemdupt (src->depot_table, src->nof_depots);
-
 	return as;
 }
 
@@ -8028,7 +8026,6 @@ static void ResetCustomAirports()
 						free(as->table[j]);
 					}
 					free(as->table);
-					free(as->depot_table);
 
 					free(as);
 				}

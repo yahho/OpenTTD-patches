@@ -353,7 +353,7 @@ struct Airport : public TileArea {
 	/** Check if this airport has at least one hangar. */
 	inline bool HasHangar() const
 	{
-		return this->GetSpec()->nof_depots > 0;
+		return this->GetFTA()->num_hangars > 0;
 	}
 
 	/**
@@ -361,20 +361,20 @@ struct Airport : public TileArea {
 	 * The base tile is the northernmost tile of this airport. This function
 	 * helps to make sure that getting the tile of a hangar works even for
 	 * rotated airport layouts without requiring a rotated array of hangar tiles.
-	 * @param tidc The tilediff to add to the airport tile.
-	 * @return The tile of this airport plus the rotated offset.
+	 * @param h The hangar whose tile to get.
+	 * @return The effective hangar tile.
 	 */
-	inline TileIndex GetRotatedTileFromOffset(CoordDiff diff) const
+	TileIndex GetRotatedHangarTile (const AirportFTA::Hangar *h) const
 	{
 		const AirportSpec *as = this->GetSpec();
 		switch (this->rotation) {
-			case DIR_N: return this->tile + ToTileIndexDiff(diff);
+			case DIR_N: return this->tile + TileDiffXY (h->x, h->y);
 
-			case DIR_E: return this->tile + TileDiffXY(diff.y, as->size_x - 1 - diff.x);
+			case DIR_E: return this->tile + TileDiffXY (h->y, as->size_x - 1 - h->x);
 
-			case DIR_S: return this->tile + TileDiffXY(as->size_x - 1 - diff.x, as->size_y - 1 - diff.y);
+			case DIR_S: return this->tile + TileDiffXY (as->size_x - 1 - h->x, as->size_y - 1 - h->y);
 
-			case DIR_W: return this->tile + TileDiffXY(as->size_y - 1 - diff.y, diff.x);
+			case DIR_W: return this->tile + TileDiffXY (as->size_y - 1 - h->y, h->x);
 
 			default: NOT_REACHED();
 		}
@@ -388,13 +388,9 @@ struct Airport : public TileArea {
 	 */
 	inline TileIndex GetHangarTile(uint hangar_num) const
 	{
-		const AirportSpec *as = this->GetSpec();
-		for (uint i = 0; i < as->nof_depots; i++) {
-			if (as->depot_table[i].hangar_num == hangar_num) {
-				return this->GetRotatedTileFromOffset(as->depot_table[i].ti);
-			}
-		}
-		NOT_REACHED();
+		const AirportFTA *fta = this->GetFTA();
+		assert (hangar_num < fta->num_hangars);
+		return this->GetRotatedHangarTile (&fta->hangars[hangar_num]);
 	}
 
 	/**
@@ -406,8 +402,8 @@ struct Airport : public TileArea {
 	inline Direction GetHangarExitDirection(TileIndex tile) const
 	{
 		const AirportSpec *as = this->GetSpec();
-		const HangarTileTable *htt = GetHangarDataByTile(tile);
-		return ChangeDir(htt->dir, DirDifference(this->rotation, as->rotation[0]));
+		return ChangeDir ((Direction)this->GetHangarDataByTile(tile)->dir,
+				DirDifference (this->rotation, as->rotation[0]));
 	}
 
 	/**
@@ -418,23 +414,13 @@ struct Airport : public TileArea {
 	 */
 	inline uint GetHangarNum(TileIndex tile) const
 	{
-		const HangarTileTable *htt = GetHangarDataByTile(tile);
-		return htt->hangar_num;
+		return this->GetHangarDataByTile(tile)->id;
 	}
 
 	/** Get the number of hangars on this airport. */
 	inline uint GetNumHangars() const
 	{
-		uint num = 0;
-		uint counted = 0;
-		const AirportSpec *as = this->GetSpec();
-		for (uint i = 0; i < as->nof_depots; i++) {
-			if (!HasBit(counted, as->depot_table[i].hangar_num)) {
-				num++;
-				SetBit(counted, as->depot_table[i].hangar_num);
-			}
-		}
-		return num;
+		return this->GetFTA()->num_hangars;
 	}
 
 private:
@@ -444,12 +430,12 @@ private:
 	 * @return The requested hangar information.
 	 * @pre The \a tile must be at a hangar tile at an airport.
 	 */
-	inline const HangarTileTable *GetHangarDataByTile(TileIndex tile) const
+	const AirportFTA::Hangar *GetHangarDataByTile (TileIndex tile) const
 	{
-		const AirportSpec *as = this->GetSpec();
-		for (uint i = 0; i < as->nof_depots; i++) {
-			if (this->GetRotatedTileFromOffset(as->depot_table[i].ti) == tile) {
-				return as->depot_table + i;
+		const AirportFTA *fta = this->GetFTA();
+		for (uint i = 0; i < fta->num_hangars; i++) {
+			if (this->GetRotatedHangarTile (&fta->hangars[i]) == tile) {
+				return &fta->hangars[i];
 			}
 		}
 		NOT_REACHED();

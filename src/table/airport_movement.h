@@ -23,9 +23,7 @@ static const AirportFTA::Position _airport_fta_dummy[] = {
 	{ 0, 0, 2,  96,  0, DIR_N | AMED_NOSPDCLAMP | AMED_SLOWTURN, NULL },
 };
 
-/* First element of terminals array tells us how many depots there are (to know size of array)
- * this may be changed later when airports are moved to external file  */
-static const HangarTileTable _airport_depots_country[] = { {{3, 0}, DIR_SE, 0} };
+static const AirportFTA::Hangar _airport_depots_country[] = { { 3, 0, DIR_SE, 0 } };
 static const byte _airport_terminal_country[] = { 1, 0, 2 };
 static const byte _airport_entries_country[] = {16, 15, 18, 17};
 
@@ -82,7 +80,7 @@ static const AirportFTA::Position _airport_fta_country[22] = {
 	{ AIRPORT_BUSY_block, HELIENDLANDING,  1,   44,  40, DIR_N  | AMED_HELI_LOWER,                 NULL                    }, // 21 Helicopter landing
 };
 
-static const HangarTileTable _airport_depots_commuter[] = { {{4, 0}, DIR_SE, 0} };
+static const AirportFTA::Hangar _airport_depots_commuter[] = { { 4, 0, DIR_SE, 0 } };
 static const byte _airport_terminal_commuter[] = { 1, 0, 3 };
 static const byte _airport_entries_commuter[] = {22, 21, 24, 23};
 
@@ -219,7 +217,7 @@ static const AirportFTA::Position _airport_fta_commuter[37] = {
 	{ HELIPAD2_block,         0,              32,   56,   8, DIR_N  | AMED_EXACTPOS,                   NULL                     }, // 36 pre-helitakeoff helipad 2
 };
 
-static const HangarTileTable _airport_depots_city[] = { {{5, 0}, DIR_SE, 0} };
+static const AirportFTA::Hangar _airport_depots_city[] = { { 5, 0, DIR_SE, 0 } };
 static const byte _airport_terminal_city[] = { 1, 0, 3 };
 static const byte _airport_entries_city[] = {26, 29, 27, 28};
 
@@ -304,7 +302,7 @@ static const AirportFTA::Position _airport_fta_city[] = {
 	{ NOTHING_block,       0,              26,  -32, 120, DIR_N  | AMED_NOSPDCLAMP | AMED_SLOWTURN, NULL                 }, // 29 Initial approach fix (east)
 };
 
-static const HangarTileTable _airport_depots_metropolitan[] = { {{5, 0}, DIR_SE, 0} };
+static const AirportFTA::Hangar _airport_depots_metropolitan[] = { { 5, 0, DIR_SE, 0 } };
 static const byte _airport_terminal_metropolitan[] = { 1, 0, 3 };
 static const byte _airport_entries_metropolitan[] = {20, 19, 22, 21};
 
@@ -381,7 +379,7 @@ static const AirportFTA::Position _airport_fta_metropolitan[28] = {
 	{ TAXIWAY_BUSY_block, 255,            27,   21,  58, DIR_SW | AMED_EXACTPOS,                   _airport_fta_metropolitan_27 }, // 27 Transitions after landing to on-ground movement
 };
 
-static const HangarTileTable _airport_depots_international[] = { {{0, 3}, DIR_SE, 0}, {{6, 1}, DIR_SE, 1} };
+static const AirportFTA::Hangar _airport_depots_international[] = { { 0, 3, DIR_SE, 0 }, { 6, 1, DIR_SE, 1 } };
 static const byte _airport_terminal_international[] = { 2, 0, 3, 6 };
 static const byte _airport_entries_international[] = { 38, 37, 40, 39 };
 
@@ -566,7 +564,7 @@ static const AirportFTA::Position _airport_fta_international[51] = {
 };
 
 /* intercontinental */
-static const HangarTileTable _airport_depots_intercontinental[] = { {{0, 5}, DIR_SE, 0}, {{8, 4}, DIR_SE, 1} };
+static const AirportFTA::Hangar _airport_depots_intercontinental[] = { { 0, 5, DIR_SE, 0 }, { 8, 4, DIR_SE, 1 } };
 static const byte _airport_terminal_intercontinental[] = { 2, 0, 4, 8 };
 static const byte _airport_entries_intercontinental[] = { 44, 43, 46, 45 };
 
@@ -921,7 +919,7 @@ static const AirportFTA::Position _airport_fta_oilrig[9] = {
 };
 
 /* helidepots */
-static const HangarTileTable _airport_depots_helidepot[] = { {{1, 0}, DIR_SE, 0} };
+static const AirportFTA::Hangar _airport_depots_helidepot[] = { { 1, 0, DIR_SE, 0 } };
 static const byte _airport_entries_helidepot[] = { 4, 4, 4, 4 };
 
 static const AirportFTA::Transition _airport_fta_helidepot_1[] = {
@@ -975,7 +973,7 @@ static const AirportFTA::Position _airport_fta_helidepot[18] = {
 };
 
 /* helistation */
-static const HangarTileTable _airport_depots_helistation[] = { {{0, 0}, DIR_SE, 0} };
+static const AirportFTA::Hangar _airport_depots_helistation[] = { { 0, 0, DIR_SE, 0 } };
 static const byte _airport_entries_helistation[] = { 25, 25, 25, 25 };
 
 static const AirportFTA::Transition _airport_fta_helistation_0[] = {

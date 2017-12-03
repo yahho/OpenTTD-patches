@@ -157,22 +157,45 @@ public:
 		const Transition *transitions; ///< possible transitions, if not unique
 	};
 
+	/** A hangar in the machine. */
+	struct Hangar {
+		uint8 x, y;         ///< Tile coordinates of the hangar.
+		uint8 dir;          ///< Direction of the exit.
+		uint8 id;           ///< Hangar index.
+	};
+
 	const Position *data;                 ///< State machine and movement data.
+	const Hangar *hangars;                ///< Airport hangars.
 	const byte *terminals;                ///< %Array with the number of terminal groups, followed by the first terminal in each group.
-	const byte num_helipads;              ///< Number of helipads on this airport. When 0 helicopters will go to normal terminals.
-	Flags flags;                          ///< Flags for this airport type.
-	byte nofelements;                     ///< number of positions the airport consists of
 	const byte *entry_points;             ///< when an airplane arrives at this airport, enter it at position entry_point, index depends on direction
+	const byte nofelements;               ///< Number of positions in the state machine.
+	const byte num_hangars;               ///< Number of hangars in the airport.
+	const byte num_helipads;              ///< Number of helipads on this airport. When 0 helicopters will go to normal terminals.
 	byte delta_z;                         ///< Z adjustment for helicopter pads
+	Flags flags;                          ///< Flags for this airport type.
+
+	template <size_t N, size_t M>
+	CONSTEXPR AirportFTA (const Position (&data) [N],
+			const byte *terminals, const byte num_helipads,
+			const byte *entry_points, Flags flags, byte delta_z,
+			const Hangar (&hangars) [M]) :
+		data (data), hangars (hangars), terminals (terminals),
+		entry_points (entry_points), nofelements (N), num_hangars (M),
+		num_helipads (num_helipads), delta_z (delta_z), flags (flags)
+	{
+		assert_tcompile (N > 0);
+		assert_tcompile (N < 256);
+		assert_tcompile (M > 0);
+		assert_tcompile (M < 256);
+	}
 
 	template <size_t N>
 	CONSTEXPR AirportFTA (const Position (&data) [N],
 			const byte *terminals, const byte num_helipads,
 			const byte *entry_points, Flags flags, byte delta_z) :
-		data (data), terminals (terminals),
-		num_helipads (num_helipads), flags (flags),
-		nofelements (N), entry_points (entry_points),
-		delta_z (delta_z)
+		data (data), hangars (NULL), terminals (terminals),
+		entry_points (entry_points), nofelements (N), num_hangars (0),
+		num_helipads (num_helipads), delta_z (delta_z), flags (flags)
 	{
 		assert_tcompile (N > 0);
 		assert_tcompile (N < 256);

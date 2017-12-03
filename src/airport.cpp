@@ -24,9 +24,9 @@
  * @param flags Information about the class of FTA.
  * @param delta_z Height of the airport above the land.
  */
-#define AIRPORT_GENERIC(name, terminals, num_helipads, flags, delta_z) \
+#define AIRPORT_GENERIC(name, terminals, num_helipads, ...) \
 	static const AirportFTA _airportfta_ ## name (_airport_fta_ ## name, terminals, \
-			num_helipads, _airport_entries_ ## name, flags, delta_z);
+			num_helipads, _airport_entries_ ## name, __VA_ARGS__);
 
 /**
  * Define an airport.
@@ -35,7 +35,9 @@
  * @param short_strip Airport has a short land/take-off strip.
  */
 #define AIRPORT(name, num_helipads, short_strip) \
-	AIRPORT_GENERIC(name, _airport_terminal_ ## name, num_helipads, AirportFTA::ALL | (short_strip ? AirportFTA::SHORT_STRIP : (AirportFTA::Flags)0), 0)
+	AIRPORT_GENERIC(name, _airport_terminal_ ## name, num_helipads, \
+		AirportFTA::ALL | (short_strip ? AirportFTA::SHORT_STRIP : \
+			(AirportFTA::Flags)0), 0, _airport_depots_ ## name)
 
 /**
  * Define a heliport.
@@ -43,8 +45,8 @@
  * @param num_helipads Number of heli pads.
  * @param delta_z Height of the airport above the land.
  */
-#define HELIPORT(name, num_helipads, delta_z) \
-	AIRPORT_GENERIC(name, NULL, num_helipads, AirportFTA::HELICOPTERS, delta_z)
+#define HELIPORT(name, num_helipads, ...) \
+	AIRPORT_GENERIC(name, NULL, num_helipads, AirportFTA::HELICOPTERS, __VA_ARGS__)
 
 AIRPORT(country, 0, true)
 AIRPORT(city, 0, false)
@@ -52,9 +54,9 @@ HELIPORT(heliport, 1, 60)
 AIRPORT(metropolitan, 0, false)
 AIRPORT(international, 2, false)
 AIRPORT(commuter, 2, true)
-HELIPORT(helidepot, 1, 0)
+HELIPORT(helidepot, 1, 0, _airport_depots_helidepot)
 AIRPORT(intercontinental, 2, false)
-HELIPORT(helistation, 3, 0)
+HELIPORT(helistation, 3, 0, _airport_depots_helistation)
 HELIPORT(oilrig, 1, 54)
 AIRPORT_GENERIC(dummy, NULL, 0, AirportFTA::ALL, 0)
 
