@@ -406,17 +406,6 @@ struct Airport : public TileArea {
 				DirDifference (this->rotation, as->rotation[0]));
 	}
 
-	/**
-	 * Get the hangar number of the hangar at a specific tile.
-	 * @param tile The tile to query.
-	 * @pre IsHangarTile(tile).
-	 * @return The hangar number of the hangar at the given tile.
-	 */
-	inline uint GetHangarNum(TileIndex tile) const
-	{
-		return this->GetHangarDataByTile(tile)->id;
-	}
-
 	/** Get the number of hangars on this airport. */
 	inline uint GetNumHangars() const
 	{

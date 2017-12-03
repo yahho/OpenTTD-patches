@@ -256,9 +256,6 @@ CommandCost CmdBuildAircraft(TileIndex tile, DoCommandFlag flags, const Engine *
 	/* Prevent building aircraft types at places which can't handle them */
 	if (!CanVehicleUseStation(e->index, st)) return CMD_ERROR;
 
-	/* Make sure all aircraft end up in the first tile of the hangar. */
-	tile = st->airport.GetHangarTile(st->airport.GetHangarNum(tile));
-
 	if (flags & DC_EXEC) {
 		Aircraft *v = new Aircraft(); // aircraft
 		Aircraft *u = new Aircraft(); // shadow

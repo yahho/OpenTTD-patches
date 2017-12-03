@@ -3247,8 +3247,7 @@ static bool ClickTile_Station(TileIndex tile)
 	if (bst->IsWaypoint()) {
 		ShowWaypointWindow(Waypoint::From(bst));
 	} else if (IsHangar(tile)) {
-		const Station *st = Station::From(bst);
-		ShowDepotWindow(st->airport.GetHangarTile(st->airport.GetHangarNum(tile)), VEH_AIRCRAFT);
+		ShowDepotWindow (tile, VEH_AIRCRAFT);
 	} else {
 		ShowStationViewWindow(bst->index);
 	}
