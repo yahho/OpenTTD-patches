@@ -200,6 +200,8 @@ public:
 		assert_tcompile (N > 0);
 		assert_tcompile (N < 256);
 	}
+
+	static const AirportFTA dummy; ///< The dummy airport finite state machine.
 };
 
 DECLARE_ENUM_AS_BIT_SET(AirportFTA::Flags)

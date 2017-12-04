@@ -58,7 +58,6 @@ HELIPORT(helidepot, 1, 0, _airport_depots_helidepot)
 AIRPORT(intercontinental, 2, false)
 HELIPORT(helistation, 3, 0, _airport_depots_helistation)
 HELIPORT(oilrig, 1, 54)
-AIRPORT_GENERIC(dummy, NULL, 0, AirportFTA::ALL, 0)
 
 #undef HELIPORT
 #undef AIRPORT
@@ -66,6 +65,8 @@ AIRPORT_GENERIC(dummy, NULL, 0, AirportFTA::ALL, 0)
 
 #include "table/airport_defaults.h"
 
+const AirportFTA AirportFTA::dummy (_airport_fta_dummy, NULL, 0,
+				_airport_entries_dummy, AirportFTA::ALL, 0);
 
 /**
  * Get the finite state machine of an airport type.
@@ -74,7 +75,7 @@ AIRPORT_GENERIC(dummy, NULL, 0, AirportFTA::ALL, 0)
  */
 const AirportFTA *GetAirport (const byte airport_type)
 {
-	if (airport_type == AT_DUMMY) return &_airportfta_dummy;
+	if (airport_type == AT_DUMMY) return &AirportFTA::dummy;
 	return AirportSpec::Get(airport_type)->fsm;
 }
 

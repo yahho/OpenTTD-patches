@@ -119,8 +119,6 @@ struct AirportSpec {
 		return (byte)(this - specs);
 	}
 
-	static AirportSpec dummy; ///< The dummy airport.
-
 private:
 	static AirportSpec specs[NUM_AIRPORTS]; ///< Specs of the airports.
 };

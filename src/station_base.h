@@ -329,13 +329,12 @@ struct Airport : public TileArea {
 	PersistentStorage *psa; ///< Persistent storage for NewGRF airports.
 
 	/**
-	 * Get the AirportSpec that from the airport type of this airport. If there
-	 * is no airport (\c tile == INVALID_TILE) then return the dummy AirportSpec.
+	 * Get the AirportSpec that from the airport type of this airport.
 	 * @return The AirportSpec for this airport.
 	 */
 	const AirportSpec *GetSpec() const
 	{
-		if (this->tile == INVALID_TILE) return &AirportSpec::dummy;
+		assert (this->tile != INVALID_TILE);
 		return AirportSpec::Get(this->type);
 	}
 
@@ -347,6 +346,7 @@ struct Airport : public TileArea {
 	 */
 	const AirportFTA *GetFTA() const
 	{
+		if (this->tile == INVALID_TILE) return &AirportFTA::dummy;
 		return this->GetSpec()->fsm;
 	}
 
@@ -421,6 +421,7 @@ private:
 	 */
 	const AirportFTA::Hangar *GetHangarDataByTile (TileIndex tile) const
 	{
+		assert (this->Contains (tile));
 		const AirportFTA *fta = this->GetFTA();
 		for (uint i = 0; i < fta->num_hangars; i++) {
 			if (this->GetRotatedHangarTile (&fta->hangars[i]) == tile) {
