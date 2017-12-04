@@ -810,7 +810,7 @@ static bool AircraftController(Aircraft *v)
 		}
 	}
 	/* DUMMY if there is no station or no airport */
-	const AirportFTA *afc = tile == INVALID_TILE ? GetAirport(AT_DUMMY) : st->airport.GetFTA();
+	const AirportFTA *afc = tile == INVALID_TILE ? &AirportFTA::dummy : st->airport.GetFTA();
 
 	/* prevent going to INVALID_TILE if airport is deleted. */
 	if (st == NULL || st->airport.tile == INVALID_TILE) {
@@ -1341,7 +1341,7 @@ void AircraftNextAirportPos_and_Order(Aircraft *v)
 	}
 
 	const Station *st = GetTargetAirportIfValid(v);
-	const AirportFTA *apc = st == NULL ? GetAirport(AT_DUMMY) : st->airport.GetFTA();
+	const AirportFTA *apc = st == NULL ? &AirportFTA::dummy : st->airport.GetFTA();
 	Direction rotation = st == NULL ? DIR_N : st->airport.rotation;
 	v->pos = v->previous_pos = AircraftGetEntryPoint(v, apc, rotation);
 }

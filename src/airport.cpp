@@ -69,17 +69,6 @@ const AirportFTA AirportFTA::dummy (_airport_fta_dummy, NULL, 0,
 				_airport_entries_dummy, AirportFTA::ALL, 0);
 
 /**
- * Get the finite state machine of an airport type.
- * @param airport_type %Airport type to query FTA from. @see AirportTypes
- * @return Finite state machine of the airport.
- */
-const AirportFTA *GetAirport (const byte airport_type)
-{
-	if (airport_type == AT_DUMMY) return &AirportFTA::dummy;
-	return AirportSpec::Get(airport_type)->fsm;
-}
-
-/**
  * Get the vehicle position when an aircraft is build at the given tile
  * @param hangar_tile The tile on which the vehicle is build
  * @return The position (index in airport node array) where the aircraft ends up

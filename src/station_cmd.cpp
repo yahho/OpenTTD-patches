@@ -2163,7 +2163,7 @@ CommandCost CmdBuildAirport(TileIndex tile, DoCommandFlag flags, uint32 p1, uint
 	ret = BuildStationPart (&st, TileArea (tile, w, h), est,
 			station_to_join, HasBit (p2, 0),
 			STR_ERROR_MUST_DEMOLISH_AIRPORT_FIRST, flags,
-			(GetAirport(airport_type)->flags & AirportFTA::AIRPLANES) ?
+			(as->fsm->flags & AirportFTA::AIRPLANES) ?
 				STATIONNAMING_AIRPORT : STATIONNAMING_HELIPORT);
 	if (ret.Failed()) return ret;
 

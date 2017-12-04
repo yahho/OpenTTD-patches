@@ -207,7 +207,6 @@ public:
 DECLARE_ENUM_AS_BIT_SET(AirportFTA::Flags)
 
 
-const AirportFTA *GetAirport (const byte airport_type);
 byte GetVehiclePosOnBuild(TileIndex hangar_tile);
 
 #endif /* AIRPORT_H */
