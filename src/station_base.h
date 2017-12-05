@@ -404,6 +404,8 @@ struct Airport : public TileArea {
 		return this->tile + this->GetRotatedHangarDiff (&fta->hangars[hangar_num]);
 	}
 
+	const AirportFTA::Hangar *GetHangarDataByTile (TileIndex tile) const;
+
 	/**
 	 * Get the exit direction of the hangar at a specific tile.
 	 * @param tile The tile to query.
@@ -412,8 +414,10 @@ struct Airport : public TileArea {
 	 */
 	inline Direction GetHangarExitDirection(TileIndex tile) const
 	{
+		const AirportFTA::Hangar *h = this->GetHangarDataByTile(tile);
+		assert (h != NULL);
 		const AirportSpec *as = this->GetSpec();
-		return ChangeDir ((Direction)this->GetHangarDataByTile(tile)->dir,
+		return ChangeDir ((Direction)h->dir,
 				DirDifference (this->rotation, as->rotation[0]));
 	}
 
@@ -421,26 +425,6 @@ struct Airport : public TileArea {
 	inline uint GetNumHangars() const
 	{
 		return this->GetFTA()->num_hangars;
-	}
-
-private:
-	/**
-	 * Retrieve hangar information of a hangar at a given tile.
-	 * @param tile %Tile containing the hangar.
-	 * @return The requested hangar information.
-	 * @pre The \a tile must be at a hangar tile at an airport.
-	 */
-	const AirportFTA::Hangar *GetHangarDataByTile (TileIndex tile) const
-	{
-		assert (this->Contains (tile));
-		TileIndexDiff diff = tile - this->tile;
-		const AirportFTA *fta = this->GetFTA();
-		for (uint i = 0; i < fta->num_hangars; i++) {
-			if (this->GetRotatedHangarDiff (&fta->hangars[i]) == diff) {
-				return &fta->hangars[i];
-			}
-		}
-		NOT_REACHED();
 	}
 };
 

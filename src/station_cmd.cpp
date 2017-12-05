@@ -70,6 +70,24 @@
 /* static */ const FlowStat::SharesMap FlowStat::empty_sharesmap;
 
 /**
+ * Retrieve hangar information of a hangar at a given tile.
+ * @param tile %Tile containing the hangar.
+ * @return The requested hangar information, or NULL if the tile is not a hangar.
+ */
+const AirportFTA::Hangar *Airport::GetHangarDataByTile (TileIndex tile) const
+{
+	assert (this->Contains (tile));
+	TileIndexDiff diff = tile - this->tile;
+	const AirportFTA *fta = this->GetFTA();
+	for (uint i = 0; i < fta->num_hangars; i++) {
+		if (this->GetRotatedHangarDiff (&fta->hangars[i]) == diff) {
+			return &fta->hangars[i];
+		}
+	}
+	return NULL;
+}
+
+/**
  * Check whether the given tile is a hangar.
  * @param t the tile to of whether it is a hangar.
  * @pre IsStationTile(t)
@@ -83,13 +101,7 @@ bool IsHangar(TileIndex t)
 	if (!IsAirport(t)) return false;
 
 	const Station *st = Station::GetByTile(t);
-	const AirportFTA *fta = st->airport.GetFTA();
-
-	for (uint i = 0; i < fta->num_hangars; i++) {
-		if (st->airport.GetHangarTile(i) == t) return true;
-	}
-
-	return false;
+	return st->airport.GetHangarDataByTile(t) != NULL;
 }
 
 /**
