@@ -357,27 +357,38 @@ struct Airport : public TileArea {
 	}
 
 	/**
-	 * Add the tileoffset to the base tile of this airport but rotate it first.
-	 * The base tile is the northernmost tile of this airport. This function
-	 * helps to make sure that getting the tile of a hangar works even for
-	 * rotated airport layouts without requiring a rotated array of hangar tiles.
+	 * Get the tile offset to add to the base tile of this airport for the
+	 * given hangar taking rotation into account. The base tile is the
+	 * northernmost tile of this airport. This function helps to make sure
+	 * that getting the tile of a hangar works even for rotated airport
+	 * layouts without requiring a rotated array of hangar tiles.
 	 * @param h The hangar whose tile to get.
-	 * @return The effective hangar tile.
+	 * @return The rotated offset.
 	 */
-	TileIndex GetRotatedHangarTile (const AirportFTA::Hangar *h) const
+	TileIndexDiff GetRotatedHangarDiff (const AirportFTA::Hangar *h) const
 	{
 		const AirportSpec *as = this->GetSpec();
+		int x, y;
 		switch (this->rotation) {
-			case DIR_N: return this->tile + TileDiffXY (h->x, h->y);
-
-			case DIR_E: return this->tile + TileDiffXY (h->y, as->size_x - 1 - h->x);
-
-			case DIR_S: return this->tile + TileDiffXY (as->size_x - 1 - h->x, as->size_y - 1 - h->y);
-
-			case DIR_W: return this->tile + TileDiffXY (as->size_y - 1 - h->y, h->x);
-
+			case DIR_N:
+				x = h->x;
+				y = h->y;
+				break;
+			case DIR_E:
+				x = h->y;
+				y = as->size_x - 1 - h->x;
+				break;
+			case DIR_S:
+				x = as->size_x - 1 - h->x;
+				y = as->size_y - 1 - h->y;
+				break;
+			case DIR_W:
+				x = as->size_y - 1 - h->y;
+				y = h->x;
+				break;
 			default: NOT_REACHED();
 		}
+		return TileDiffXY (x, y);
 	}
 
 	/**
@@ -390,7 +401,7 @@ struct Airport : public TileArea {
 	{
 		const AirportFTA *fta = this->GetFTA();
 		assert (hangar_num < fta->num_hangars);
-		return this->GetRotatedHangarTile (&fta->hangars[hangar_num]);
+		return this->tile + this->GetRotatedHangarDiff (&fta->hangars[hangar_num]);
 	}
 
 	/**
@@ -422,9 +433,10 @@ private:
 	const AirportFTA::Hangar *GetHangarDataByTile (TileIndex tile) const
 	{
 		assert (this->Contains (tile));
+		TileIndexDiff diff = tile - this->tile;
 		const AirportFTA *fta = this->GetFTA();
 		for (uint i = 0; i < fta->num_hangars; i++) {
-			if (this->GetRotatedHangarTile (&fta->hangars[i]) == tile) {
+			if (this->GetRotatedHangarDiff (&fta->hangars[i]) == diff) {
 				return &fta->hangars[i];
 			}
 		}
