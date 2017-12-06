@@ -12,8 +12,7 @@
 #ifndef AIRPORT_H
 #define AIRPORT_H
 
-#include "map/coord.h"
-#include "direction_type.h"
+#include "core/enum_type.hpp"
 
 /** Some airport-related constants */
 static const uint MAX_TERMINALS =   8;                       ///< maximum number of terminals per airport
@@ -205,8 +204,5 @@ public:
 };
 
 DECLARE_ENUM_AS_BIT_SET(AirportFTA::Flags)
-
-
-byte GetVehiclePosOnBuild(TileIndex hangar_tile);
 
 #endif /* AIRPORT_H */

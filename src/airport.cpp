@@ -10,7 +10,7 @@
 /** @file airport.cpp Functions related to airports. */
 
 #include "stdafx.h"
-#include "station_base.h"
+#include "newgrf_airport.h"
 #include "table/strings.h"
 #include "table/airport_movement.h"
 #include "table/airporttile_ids.h"
@@ -67,21 +67,3 @@ HELIPORT(oilrig, 1, 54)
 
 const AirportFTA AirportFTA::dummy (_airport_fta_dummy, NULL, 0,
 				_airport_entries_dummy, AirportFTA::ALL, 0);
-
-/**
- * Get the vehicle position when an aircraft is build at the given tile
- * @param hangar_tile The tile on which the vehicle is build
- * @return The position (index in airport node array) where the aircraft ends up
- */
-byte GetVehiclePosOnBuild(TileIndex hangar_tile)
-{
-	const Station *st = Station::GetByTile(hangar_tile);
-	const AirportFTA *apc = st->airport.GetFTA();
-	/* When we click on hangar we know the tile it is on. By that we know
-	 * its position in the array of depots the airport has.....we can search
-	 * layout for #th position of depot. Since layout must start with a listing
-	 * of all depots, it is simple */
-	uint i = st->airport.GetHangarDataByTile(hangar_tile)->id;
-	assert (apc->data[i].heading == HANGAR);
-	return i;
-}

@@ -309,7 +309,10 @@ CommandCost CmdBuildAircraft(TileIndex tile, DoCommandFlag flags, const Engine *
 
 		_new_vehicle_id = v->index;
 
-		v->pos = GetVehiclePosOnBuild(tile);
+		/* Depots are always the first positions in the finite state
+		 * machine of an airport, in order. */
+		v->pos = st->airport.GetHangarDataByTile(tile)->id;
+		assert (st->airport.GetFTA()->data[v->pos].heading == HANGAR);
 
 		v->state = HANGAR;
 		v->previous_pos = v->pos;
