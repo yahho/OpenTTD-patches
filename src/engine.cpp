@@ -70,12 +70,14 @@ Engine::Engine() :
 	overrides_count(0),
 	overrides(NULL)
 {
+	memset (this->spritegroup, 0, sizeof(this->spritegroup));
 }
 
 Engine::Engine(VehicleType type, EngineID base)
 {
 	this->type = type;
 	this->grf_prop.local_id = base;
+	memset (this->spritegroup, 0, sizeof(this->spritegroup));
 	this->list_position = base;
 	this->preview_company = INVALID_COMPANY;
 

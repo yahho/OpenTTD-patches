@@ -84,12 +84,12 @@ void UnloadWagonOverrides(Engine *e)
 void SetCustomEngineSprites(EngineID engine, byte cargo, const SpriteGroup *group)
 {
 	Engine *e = Engine::Get(engine);
-	assert(cargo < lengthof(e->grf_prop.spritegroup));
+	assert (cargo < lengthof(e->spritegroup));
 
-	if (e->grf_prop.spritegroup[cargo] != NULL) {
+	if (e->spritegroup[cargo] != NULL) {
 		grfmsg(6, "SetCustomEngineSprites: engine %d cargo %d already has group -- replacing", engine, cargo);
 	}
-	e->grf_prop.spritegroup[cargo] = group;
+	e->spritegroup[cargo] = group;
 }
 
 
@@ -986,8 +986,8 @@ static const SpriteGroup *GetVehicleResolverRoot (EngineID engine_type,
 	if (root == NULL) {
 		const Engine *e = Engine::Get (engine_type);
 		CargoID cargo = v != NULL ? v->cargo_type : CT_PURCHASE;
-		assert (cargo < lengthof(e->grf_prop.spritegroup));
-		root = e->grf_prop.spritegroup[cargo] != NULL ? e->grf_prop.spritegroup[cargo] : e->grf_prop.spritegroup[CT_DEFAULT];
+		assert (cargo < lengthof(e->spritegroup));
+		root = e->spritegroup[cargo] != NULL ? e->spritegroup[cargo] : e->spritegroup[CT_DEFAULT];
 	}
 
 	return root;

@@ -120,13 +120,13 @@ typedef byte *StationLayout;
 
 /** Station specification. */
 struct StationSpec {
+	GRFFilePropsBase grf_prop; ///< Properties related the the grf file.
 	/**
-	 * Properties related the the grf file.
 	 * NUM_CARGO real cargo plus three pseudo cargo sprite groups.
 	 * Used for obtaining the sprite offset of custom sprites, and for
 	 * evaluating callbacks.
 	 */
-	GRFFilePropsBase<NUM_CARGO + 3> grf_prop;
+	const SpriteGroup *spritegroup[NUM_CARGO + 3];
 	StationClassID cls_id;     ///< The class to which this spec belongs.
 	StringID name;             ///< Name of this station.
 
@@ -179,6 +179,7 @@ struct StationSpec {
 		flags (0), pylons (0), wires (0), blocked (0),
 		layouts(), max_layout_length (NULL), max_layout_width (0)
 	{
+		memset (this->spritegroup, 0, sizeof(this->spritegroup));
 		memset (&this->animation, 0, sizeof(this->animation));
 	}
 };

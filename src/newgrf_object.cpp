@@ -405,7 +405,7 @@ static const SpriteGroup *ObjectResolve (const ObjectSpec *spec, Object *o,
 {
 	ObjectResolverObject object (spec, o, tile, view, callback, param1, param2);
 
-	const SpriteGroup *const *group = spec->grf_prop.spritegroup;
+	const SpriteGroup *const *group = spec->spritegroup;
 	const SpriteGroup *root = (o == NULL && group[CT_PURCHASE_OBJECT] != NULL) ?
 			group[CT_PURCHASE_OBJECT] : group[0];
 

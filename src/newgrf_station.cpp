@@ -555,7 +555,7 @@ StationResolverObject::StationResolverObject(const StationSpec *statspec, BaseSt
 		/* Pick the first cargo that we have waiting */
 		const CargoSpec *cs;
 		FOR_ALL_CARGOSPECS(cs) {
-			if (this->station_scope.statspec->grf_prop.spritegroup[cs->Index()] != NULL &&
+			if (this->station_scope.statspec->spritegroup[cs->Index()] != NULL &&
 					st->goods[cs->Index()].cargo.TotalCount() > 0) {
 				ctype = cs->Index();
 				break;
@@ -563,13 +563,13 @@ StationResolverObject::StationResolverObject(const StationSpec *statspec, BaseSt
 		}
 	}
 
-	if (this->station_scope.statspec->grf_prop.spritegroup[ctype] == NULL) {
+	if (this->station_scope.statspec->spritegroup[ctype] == NULL) {
 		ctype = CT_DEFAULT;
 	}
 
 	/* Remember the cargo type we've picked */
 	this->station_scope.cargo_type = ctype;
-	this->root_spritegroup = this->station_scope.statspec->grf_prop.spritegroup[this->station_scope.cargo_type];
+	this->root_spritegroup = this->station_scope.statspec->spritegroup[this->station_scope.cargo_type];
 }
 
 StationResolverObject::~StationResolverObject()
@@ -675,7 +675,7 @@ struct FakeStationResolverObject : public ResolverObject {
 		_svc.valid = 0;
 
 		/* No station, so we are in a purchase list */
-		const SpriteGroup *const *groups = statspec->grf_prop.spritegroup;
+		const SpriteGroup *const *groups = statspec->spritegroup;
 		const SpriteGroup *root = groups[CT_PURCHASE];
 
 		if (root == NULL) {
