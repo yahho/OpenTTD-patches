@@ -198,7 +198,7 @@ static void DrawTile_Town(TileInfo *ti)
 		/* Houses don't necessarily need new graphics. If they don't have a
 		 * spritegroup associated with them, then the sprite for the substitute
 		 * house id is drawn instead. */
-		if (HouseSpec::Get(house_id)->grf_prop.spritegroup[0] != NULL) {
+		if (HouseSpec::Get(house_id)->grf_prop.spritegroup != NULL) {
 			DrawNewHouseTile(ti, house_id);
 			return;
 		} else {
@@ -291,7 +291,7 @@ void DrawHouseImage (HouseID house_id, BlitArea *dpi,
 		/* Houses don't necessarily need new graphics. If they don't
 		 * have a spritegroup associated with them, then the sprite
 		 * for the substitute house id is drawn instead. */
-		if (hs->grf_prop.spritegroup[0] != NULL) {
+		if (hs->grf_prop.spritegroup != NULL) {
 			new_house = true;
 		} else {
 			house_id = hs->grf_prop.subst_id;
@@ -341,7 +341,7 @@ static Foundation GetFoundation_Town(TileIndex tile, Slope tileh)
 	 */
 	if (hid >= NEW_HOUSE_OFFSET) {
 		const HouseSpec *hs = HouseSpec::Get(hid);
-		if (hs->grf_prop.spritegroup[0] != NULL && HasBit(hs->callback_mask, CBM_HOUSE_DRAW_FOUNDATIONS)) {
+		if (hs->grf_prop.spritegroup != NULL && HasBit(hs->callback_mask, CBM_HOUSE_DRAW_FOUNDATIONS)) {
 			uint32 callback_res = GetHouseCallback(CBID_HOUSE_DRAW_FOUNDATIONS, 0, 0, hid, Town::GetByTile(tile), tile);
 			if (callback_res != CALLBACK_FAILED && !ConvertBooleanCallback(hs->grf_prop.grffile, CBID_HOUSE_DRAW_FOUNDATIONS, callback_res)) return FOUNDATION_NONE;
 		}

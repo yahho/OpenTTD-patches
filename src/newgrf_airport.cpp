@@ -250,7 +250,7 @@ static const SpriteGroup *AirportResolve (TileIndex tile, Station *st, const Air
 	CallbackID callback = CBID_NO_CALLBACK, uint32 param1 = 0, uint32 param2 = 0)
 {
 	AirportResolverObject object (tile, st, as, layout, callback, param1, param2);
-	return SpriteGroup::Resolve (as->grf_prop.spritegroup[0], object);
+	return SpriteGroup::Resolve (as->grf_prop.spritegroup, object);
 }
 
 SpriteID GetCustomAirportSprite(const AirportSpec *as, byte layout)

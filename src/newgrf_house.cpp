@@ -81,7 +81,7 @@ HouseResolverObject::HouseResolverObject(HouseID house_id, TileIndex tile, Town 
 	  house_scope (this->grffile, house_id, tile, town, not_yet_constructed, initial_random_bits, watched_cargo_triggers),
 	  town_scope (this->grffile, town, not_yet_constructed) // Don't access StorePSA if house is not yet constructed.
 {
-	this->root_spritegroup = HouseSpec::Get(house_id)->grf_prop.spritegroup[0];
+	this->root_spritegroup = HouseSpec::Get(house_id)->grf_prop.spritegroup;
 }
 
 /**
@@ -484,7 +484,7 @@ static inline const SpriteGroup *FakeHouseResolve (HouseID house_id,
 {
 	const HouseSpec *hs = HouseSpec::Get (house_id);
 	FakeHouseResolverObject object (hs, callback, param1, param2);
-	return SpriteGroup::Resolve (hs->grf_prop.spritegroup[0], object);
+	return SpriteGroup::Resolve (hs->grf_prop.spritegroup, object);
 }
 
 uint16 GetHouseCallback (CallbackID callback, uint32 param1, uint32 param2, HouseID house_id)
@@ -698,7 +698,7 @@ static void DoTriggerHouse(TileIndex tile, HouseTrigger trigger, byte base_rando
 	HouseID hid = GetHouseType(tile);
 	HouseSpec *hs = HouseSpec::Get(hid);
 
-	if (hs->grf_prop.spritegroup[0] == NULL) return;
+	if (hs->grf_prop.spritegroup == NULL) return;
 
 	HouseResolverObject object(hid, tile, Town::GetByTile(tile), CBID_RANDOM_TRIGGER);
 	object.trigger = trigger;

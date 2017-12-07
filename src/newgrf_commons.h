@@ -311,14 +311,13 @@ struct GRFFilePropsBase {
 /** Data related to the handling of grf files. */
 struct GRFFileProps : GRFFilePropsBase {
 	/** Set all default data constructor for the props. */
-	GRFFileProps(uint16 subst_id = 0) :
-			GRFFilePropsBase(),
+	CONSTEXPR GRFFileProps (uint16 subst_id = 0) :
+			GRFFilePropsBase(), spritegroup (NULL),
 			subst_id (subst_id), override (subst_id)
 	{
-		memset (spritegroup, 0, sizeof(spritegroup));
 	}
 
-	const struct SpriteGroup *spritegroup[1]; ///< pointer to the different sprites of the entity
+	const struct SpriteGroup *spritegroup; ///< pointer to the entity sprite
 	uint16 subst_id;
 	uint16 override;                      ///< id of the entity been replaced by
 };
