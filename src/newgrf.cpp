@@ -3906,14 +3906,13 @@ static ChangeInfoResult AirportChangeInfo(uint airport, int numinfo, int prop, B
 				}
 
 				as->num_table = new_num_layouts; // Number of layouts
-				as->rotation = xmalloct<Direction>(as->num_table);
 				AirportTileTable **tile_table = xcalloct<AirportTileTable*>(as->num_table); // Table with tiles to compose the airport
 
 				for (uint j = 0; j < as->num_table; j++) {
 					const byte *p = layouts[j].p;
-					as->rotation[j] = (Direction)*p++;
 					size_t size = layouts[j].size;
 					AirportTileTable *att = xmalloct <AirportTileTable> (size + 1);
+					att->rotation = *p++;
 
 					for (size_t k = 0; k < size; k++) {
 						assert (p[0] != 0 || p[1] != 0x80);
@@ -3940,7 +3939,7 @@ static ChangeInfoResult AirportChangeInfo(uint airport, int numinfo, int prop, B
 							att[k].ti.y = (int8)GB(att[k].ti.y, 0, 8);
 						}
 
-						if (as->rotation[j] == DIR_E || as->rotation[j] == DIR_W) {
+						if (att->rotation == DIR_E || att->rotation == DIR_W) {
 							as->size_x = max<byte> (as->size_x, att[k].ti.y + 1);
 							as->size_y = max<byte> (as->size_y, att[k].ti.x + 1);
 						} else {

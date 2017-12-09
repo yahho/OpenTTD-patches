@@ -418,7 +418,8 @@ struct Airport : public TileArea {
 		assert (h != NULL);
 		const AirportSpec *as = this->GetSpec();
 		return ChangeDir ((Direction)h->dir,
-				DirDifference (this->rotation, as->rotation[0]));
+				DirDifference (this->rotation,
+					(Direction)as->table[0]->rotation));
 	}
 
 	/** Get the number of hangars on this airport. */

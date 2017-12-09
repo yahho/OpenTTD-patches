@@ -445,7 +445,7 @@ public:
 			const AirportSpec *as = AirportClass::Get(_selected_airport_class)->GetSpec(_selected_airport_index);
 			int w = as->size_x;
 			int h = as->size_y;
-			Direction rotation = as->rotation[_selected_airport_layout];
+			uint rotation = as->table[_selected_airport_layout]->rotation;
 			if (rotation == DIR_E || rotation == DIR_W) Swap(w, h);
 			SetTileSelectSize(w, h);
 

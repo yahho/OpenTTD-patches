@@ -2157,7 +2157,7 @@ CommandCost CmdBuildAirport(TileIndex tile, DoCommandFlag flags, uint32 p1, uint
 	const AirportSpec *as = AirportSpec::Get(airport_type);
 	if (!as->IsAvailable() || layout >= as->num_table) return CMD_ERROR;
 
-	Direction rotation = as->rotation[layout];
+	Direction rotation = (Direction)as->table[layout]->rotation;
 	int w = as->size_x;
 	int h = as->size_y;
 	if (rotation == DIR_E || rotation == DIR_W) Swap(w, h);

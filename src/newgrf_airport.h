@@ -25,7 +25,14 @@ typedef byte StationGfx;
 struct AirportTileTable {
 	CoordDiff ti;      ///< Tile offset from  the top-most airport tile.
 	StationGfx gfx;    ///< AirportTile to use for this tile.
+	byte rotation;     ///< Rotation of this layout (first tile only).
 };
+
+/* The rotation field of struct AirportTileTable is only used in the
+ * first tile of a layout; make sure that this does not increase memory
+ * requirements for the struct, as most tiles will not be using it. */
+assert_compile (sizeof(AirportTileTable) == sizeof(CoordDiff) + 2);
+assert_compile (sizeof(AirportTileTable) % 2 == 0);
 
 /** Iterator to iterate over all tiles belonging to an airport spec. */
 class AirportTileTableIterator : public TileIterator {
@@ -88,7 +95,6 @@ enum TTDPAirportType {
 struct AirportSpec {
 	const struct AirportFTA *fsm;          ///< the finite statemachine for the default airports
 	const AirportTileTable * const *table; ///< list of the tiles composing the airport
-	Direction *rotation;                   ///< the rotation of each tiletable
 	byte num_table;                        ///< number of elements in the table
 	byte size_x;                           ///< size of airport in x direction
 	byte size_y;                           ///< size of airport in y direction
