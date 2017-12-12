@@ -85,13 +85,15 @@ public:
 	virtual void OnClick(Point pt, int widget, int click_count)
 	{
 		switch (widget) {
-			case WID_W_CENTER_VIEW: // scroll to location
+			case WID_W_CENTER_VIEW: { // scroll to location
+				TileIndex tile = this->GetCenterTile();
 				if (_ctrl_pressed) {
-					ShowExtraViewPortWindow(this->GetCenterTile());
+					ShowExtraViewPortWindow (tile);
 				} else {
-					ScrollMainWindowToTile(this->GetCenterTile());
+					ScrollMainWindowToTile (tile);
 				}
 				break;
+			}
 
 			case WID_W_RENAME: // rename
 				SetDParam(0, this->wp->index);
