@@ -40,11 +40,9 @@ private:
 	 */
 	TileIndex GetCenterTile() const
 	{
-		if (!this->wp->IsInUse()) return this->wp->xy;
-
-		TileArea ta;
-		this->wp->GetTileArea(&ta, this->vt == VEH_TRAIN ? STATION_WAYPOINT : STATION_BUOY);
-		return ta.GetCenterTile();
+		return (this->wp->IsInUse() && (this->vt == VEH_TRAIN)) ?
+				this->wp->train_station.GetCenterTile() :
+				this->wp->xy;
 	}
 
 public:
