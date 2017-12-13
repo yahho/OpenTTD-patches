@@ -85,7 +85,7 @@ struct ETileArea : TileArea {
 			}
 
 			case TA_WHOLE:
-				st->GetTileArea(this, st->IsWaypoint() ? STATION_WAYPOINT : STATION_RAIL);
+				*static_cast<TileArea*>(this) = st->train_station;
 				break;
 		}
 	}
