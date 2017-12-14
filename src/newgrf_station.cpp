@@ -58,6 +58,20 @@ enum TriggerArea {
 	TA_WHOLE,
 };
 
+static void MakePlatformArea (TileArea *area, TileIndex tile)
+{
+	TileIndex start, end;
+	Axis axis = GetRailStationAxis (tile);
+	TileIndexDiff delta = TileOffsByDiagDir (AxisToDiagDir (axis));
+
+	for (end = tile; IsRailStationTile(end + delta) && IsCompatibleTrainStationTile(end + delta, tile); end += delta) { /* Nothing */ }
+	for (start = tile; IsRailStationTile(start - delta) && IsCompatibleTrainStationTile(start - delta, tile); start -= delta) { /* Nothing */ }
+
+	area->tile = start;
+	area->w = TileX(end) - TileX(start) + 1;
+	area->h = TileY(end) - TileY(start) + 1;
+}
+
 struct ETileArea : TileArea {
 	ETileArea(const BaseStation *st, TileIndex tile, TriggerArea ta)
 	{
@@ -70,19 +84,9 @@ struct ETileArea : TileArea {
 				this->h    = 1;
 				break;
 
-			case TA_PLATFORM: {
-				TileIndex start, end;
-				Axis axis = GetRailStationAxis(tile);
-				TileIndexDiff delta = TileOffsByDiagDir(AxisToDiagDir(axis));
-
-				for (end = tile; IsRailStationTile(end + delta) && IsCompatibleTrainStationTile(end + delta, tile); end += delta) { /* Nothing */ }
-				for (start = tile; IsRailStationTile(start - delta) && IsCompatibleTrainStationTile(start - delta, tile); start -= delta) { /* Nothing */ }
-
-				this->tile = start;
-				this->w = TileX(end) - TileX(start) + 1;
-				this->h = TileY(end) - TileY(start) + 1;
+			case TA_PLATFORM:
+				MakePlatformArea (this, tile);
 				break;
-			}
 
 			case TA_WHOLE:
 				*static_cast<TileArea*>(this) = st->train_station;
