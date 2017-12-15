@@ -60,16 +60,21 @@ enum TriggerArea {
 
 static void MakePlatformArea (TileArea *area, TileIndex tile)
 {
-	TileIndex start, end;
 	Axis axis = GetRailStationAxis (tile);
 	TileIndexDiff delta = TileOffsByDiagDir (AxisToDiagDir (axis));
 
-	for (end = tile; IsCompatibleTrainStationTile (end + delta, tile); end += delta) { /* Nothing */ }
-	for (start = tile; IsCompatibleTrainStationTile (start - delta, tile); start -= delta) { /* Nothing */ }
+	TileIndex ends[2];
+	for (uint i = 0; i < 2; i++, delta = -delta) {
+		TileIndex t = tile;
+		while (IsCompatibleTrainStationTile (t + delta, tile)) {
+			t += delta;
+		}
+		ends[i] = t;
+	}
 
-	area->tile = start;
-	area->w = TileX(end) - TileX(start) + 1;
-	area->h = TileY(end) - TileY(start) + 1;
+	area->tile = ends[1];
+	area->w = TileX(ends[0]) - TileX(ends[1]) + 1;
+	area->h = TileY(ends[0]) - TileY(ends[1]) + 1;
 }
 
 struct ETileArea : TileArea {
