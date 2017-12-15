@@ -64,8 +64,8 @@ static void MakePlatformArea (TileArea *area, TileIndex tile)
 	Axis axis = GetRailStationAxis (tile);
 	TileIndexDiff delta = TileOffsByDiagDir (AxisToDiagDir (axis));
 
-	for (end = tile; IsRailStationTile(end + delta) && IsCompatibleTrainStationTile(end + delta, tile); end += delta) { /* Nothing */ }
-	for (start = tile; IsRailStationTile(start - delta) && IsCompatibleTrainStationTile(start - delta, tile); start -= delta) { /* Nothing */ }
+	for (end = tile; IsCompatibleTrainStationTile (end + delta, tile); end += delta) { /* Nothing */ }
+	for (start = tile; IsCompatibleTrainStationTile (start - delta, tile); start -= delta) { /* Nothing */ }
 
 	area->tile = start;
 	area->w = TileX(end) - TileX(start) + 1;
