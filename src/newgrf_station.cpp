@@ -77,29 +77,6 @@ static void MakePlatformArea (TileArea *area, TileIndex tile)
 	area->h = TileY(ends[0]) - TileY(ends[1]) + 1;
 }
 
-struct ETileArea : TileArea {
-	ETileArea(const BaseStation *st, TileIndex tile, TriggerArea ta)
-	{
-		switch (ta) {
-			default: NOT_REACHED();
-
-			case TA_TILE:
-				this->tile = tile;
-				this->w    = 1;
-				this->h    = 1;
-				break;
-
-			case TA_PLATFORM:
-				MakePlatformArea (this, tile);
-				break;
-
-			case TA_WHOLE:
-				*static_cast<TileArea*>(this) = st->train_station;
-				break;
-		}
-	}
-};
-
 
 /**
  * Evaluate a tile's position within a station, and return the result in a bit-stuffed format.
@@ -1128,7 +1105,16 @@ void TriggerStationAnimation(BaseStation *st, TileIndex tile, StationAnimationTr
 	if (!HasBit(st->cached_anim_triggers, trigger)) return;
 
 	uint16 random_bits = Random();
-	ETileArea area = ETileArea(st, tile, tas[trigger]);
+	TileArea area;
+	if (trigger == SAT_BUILT) {
+		area.tile = tile;
+		area.w    = 1;
+		area.h    = 1;
+	} else if (tas[trigger] == TA_WHOLE) {
+		area = st->train_station;
+	} else {
+		MakePlatformArea (&area, tile);
+	}
 
 	/* Check all tiles over the station to check if the specindex is still in use */
 	TILE_AREA_LOOP(tile, area) {
@@ -1174,7 +1160,12 @@ void TriggerStationRandomisation(Station *st, TileIndex tile, StationRandomTrigg
 	if (cargo_type != CT_INVALID && !HasBit(st->cached_cargo_triggers, cargo_type)) return;
 
 	uint32 whole_reseed = 0;
-	ETileArea area = ETileArea(st, tile, tas[trigger]);
+	TileArea area;
+	if (tas[trigger] == TA_WHOLE) {
+		area = st->train_station;
+	} else {
+		MakePlatformArea (&area, tile);
+	}
 
 	uint32 empty_mask = 0;
 	if (trigger == SRT_CARGO_TAKEN) {
