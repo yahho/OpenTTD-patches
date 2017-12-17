@@ -1167,14 +1167,16 @@ void TriggerStationRandomisation(Station *st, TileIndex tile, StationRandomTrigg
 		MakePlatformArea (&area, tile);
 	}
 
-	uint32 empty_mask = 0;
+	uint32 cargo_mask = 0;
 	if (trigger == SRT_CARGO_TAKEN) {
 		/* Create a bitmask of completely empty cargo types to be matched */
+		uint32 empty_mask = 0;
 		for (CargoID i = 0; i < NUM_CARGO; i++) {
 			if (st->goods[i].cargo.TotalCount() == 0) {
 				SetBit(empty_mask, i);
 			}
 		}
+		cargo_mask = ~empty_mask;
 	}
 
 	/* Convert trigger to bit */
@@ -1188,9 +1190,7 @@ void TriggerStationRandomisation(Station *st, TileIndex tile, StationRandomTrigg
 
 			/* Cargo taken "will only be triggered if all of those
 			 * cargo types have no more cargo waiting." */
-			if (trigger == SRT_CARGO_TAKEN) {
-				if ((ss->cargo_triggers & ~empty_mask) != 0) continue;
-			}
+			if ((ss->cargo_triggers & cargo_mask) != 0) continue;
 
 			if (cargo_type == CT_INVALID || HasBit(ss->cargo_triggers, cargo_type)) {
 				StationResolverObject object(ss, st, tile, CBID_RANDOM_TRIGGER, 0);
