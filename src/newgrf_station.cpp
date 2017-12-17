@@ -52,12 +52,6 @@ INSTANTIATE_NEWGRF_CLASS_METHODS(StationClass)
 
 static const uint NUM_STATIONSSPECS_PER_STATION = 255; ///< Maximum number of parts per station.
 
-enum TriggerArea {
-	TA_TILE,
-	TA_PLATFORM,
-	TA_WHOLE,
-};
-
 static void MakePlatformArea (TileArea *area, TileIndex tile)
 {
 	Axis axis = GetRailStationAxis (tile);
@@ -1092,10 +1086,10 @@ void AnimateStationTile(TileIndex tile)
 
 void TriggerStationAnimation(BaseStation *st, TileIndex tile, StationAnimationTrigger trigger, CargoID cargo_type)
 {
-	/* List of coverage areas for each animation trigger */
-	static const TriggerArea tas[] = {
-		TA_TILE, TA_WHOLE, TA_WHOLE, TA_PLATFORM, TA_PLATFORM, TA_PLATFORM, TA_WHOLE
-	};
+	/* Bitmask of animation triggers that affect the whole station. */
+	static const uint whole = (1 << SAT_NEW_CARGO)
+				| (1 << SAT_CARGO_TAKEN)
+				| (1 << SAT_250_TICKS);
 
 	/* Get Station if it wasn't supplied */
 	if (st == NULL) st = BaseStation::GetByTile(tile);
@@ -1110,7 +1104,7 @@ void TriggerStationAnimation(BaseStation *st, TileIndex tile, StationAnimationTr
 		area.tile = tile;
 		area.w    = 1;
 		area.h    = 1;
-	} else if (tas[trigger] == TA_WHOLE) {
+	} else if (HasBit(whole, trigger)) {
 		area = st->train_station;
 	} else {
 		MakePlatformArea (&area, tile);
@@ -1146,10 +1140,9 @@ void TriggerStationAnimation(BaseStation *st, TileIndex tile, StationAnimationTr
  */
 void TriggerStationRandomisation(Station *st, TileIndex tile, StationRandomTrigger trigger, CargoID cargo_type)
 {
-	/* List of coverage areas for each animation trigger */
-	static const TriggerArea tas[] = {
-		TA_WHOLE, TA_WHOLE, TA_PLATFORM, TA_PLATFORM, TA_PLATFORM, TA_PLATFORM
-	};
+	/* Bitmask of randomisation triggers that affect the whole station. */
+	static const uint whole = (1 << SRT_NEW_CARGO)
+				| (1 << SRT_CARGO_TAKEN);
 
 	/* Get Station if it wasn't supplied */
 	if (st == NULL) st = Station::GetByTile(tile);
@@ -1160,12 +1153,6 @@ void TriggerStationRandomisation(Station *st, TileIndex tile, StationRandomTrigg
 	if (cargo_type != CT_INVALID && !HasBit(st->cached_cargo_triggers, cargo_type)) return;
 
 	uint32 whole_reseed = 0;
-	TileArea area;
-	if (tas[trigger] == TA_WHOLE) {
-		area = st->train_station;
-	} else {
-		MakePlatformArea (&area, tile);
-	}
 
 	uint32 cargo_mask = 0;
 	if (trigger == SRT_CARGO_TAKEN) {
@@ -1181,6 +1168,13 @@ void TriggerStationRandomisation(Station *st, TileIndex tile, StationRandomTrigg
 
 	/* Convert trigger to bit */
 	uint8 trigger_bit = 1 << trigger;
+
+	TileArea area;
+	if ((whole & trigger_bit) != 0) {
+		area = st->train_station;
+	} else {
+		MakePlatformArea (&area, tile);
+	}
 
 	/* Check all tiles over the station to check if the specindex is still in use */
 	TILE_AREA_LOOP(tile, area) {
