@@ -99,13 +99,6 @@ struct BaseStation : PooledItem <BaseStation, StationID, 32, 64000> {
 	 */
 	virtual void UpdateVirtCoord() = 0;
 
-	/**
-	 * Get the tile area for a given station type.
-	 * @param ta tile area to fill.
-	 * @param type the type of the area
-	 */
-	virtual void GetTileArea(TileArea *ta, StationType type) const = 0;
-
 	/* Test if adding an area would exceed the maximum station spread. */
 	bool TestAddRect (const TileArea &ta);
 

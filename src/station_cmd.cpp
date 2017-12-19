@@ -306,34 +306,6 @@ static Station *GetClosestDeletedStation(TileIndex tile)
 }
 
 
-void Station::GetTileArea(TileArea *ta, StationType type) const
-{
-	switch (type) {
-		case STATION_RAIL:
-			*ta = this->train_station;
-			return;
-
-		case STATION_AIRPORT:
-			*ta = this->airport;
-			return;
-
-		case STATION_TRUCK:
-			*ta = this->truck_station;
-			return;
-
-		case STATION_BUS:
-			*ta = this->bus_station;
-			return;
-
-		case STATION_DOCK:
-		case STATION_OILRIG:
-			*ta = this->dock_area;
-			return;
-
-		default: NOT_REACHED();
-	}
-}
-
 /**
  * Update the virtual coords needed to draw the station sign.
  */

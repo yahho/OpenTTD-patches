@@ -508,8 +508,6 @@ public:
 	}
 
 	uint32 GetNewGRFVariable (const struct GRFFile *grffile, byte variable, byte parameter, bool *available) const OVERRIDE;
-
-	/* virtual */ void GetTileArea(TileArea *ta, StationType type) const;
 };
 
 #define FOR_ALL_STATIONS(var) FOR_ALL_BASE_STATIONS_OF_TYPE(Station, var)
