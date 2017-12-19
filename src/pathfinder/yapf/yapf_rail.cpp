@@ -1168,10 +1168,12 @@ public:
 	{
 		switch (v->current_order.GetType()) {
 			case OT_GOTO_WAYPOINT:
-			case OT_GOTO_STATION:
+			case OT_GOTO_STATION: {
 				m_dest_station_id = v->current_order.GetDestination();
-				m_dest_tile = BaseStation::Get(m_dest_station_id)->GetClosestTile(v->tile, v->current_order.IsType(OT_GOTO_STATION) ? STATION_RAIL : STATION_WAYPOINT);
+				const BaseStation *st = BaseStation::Get (m_dest_station_id);
+				m_dest_tile = st->GetClosestTile (v->tile, st->train_station);
 				break;
+			}
 
 			default:
 				m_dest_station_id = INVALID_STATION;

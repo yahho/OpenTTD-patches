@@ -119,17 +119,14 @@ struct BaseStation : PooledItem <BaseStation, StationID, 32, 64000> {
 	}
 
 	/**
-	 * Calculates the tile of the given station type that is closest to a given tile.
+	 * Calculates the tile of the given area that is closest to a given tile.
 	 * @param tile The tile from where to calculate the distance
-	 * @param station_type the station type to get the closest tile of
-	 * @return The closest station tile to the given tile.
+	 * @param ta the tile area to get the closest tile of
+	 * @return The tile in the area that is closest to the given tile.
 	 */
-	TileIndex GetClosestTile(TileIndex tile, StationType station_type) const
+	TileIndex GetClosestTile (TileIndex tile, const TileArea &ta) const
 	{
-		TileArea ta;
-		this->GetTileArea(&ta, station_type);
-
-		/* If the station does not have the given station type, use the station sign */
+		/* If the area does not have any tiles, use the station sign */
 		tile = ta.get_closest_tile(tile);
 		return (tile != INVALID_TILE) ? tile : this->xy;
 	}
