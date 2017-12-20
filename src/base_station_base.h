@@ -120,8 +120,7 @@ struct BaseStation : PooledItem <BaseStation, StationID, 32, 64000> {
 	TileIndex GetClosestTile (TileIndex tile, const TileArea &ta) const
 	{
 		/* If the area does not have any tiles, use the station sign */
-		tile = ta.get_closest_tile(tile);
-		return (tile != INVALID_TILE) ? tile : this->xy;
+		return ta.empty() ? this->xy : ta.get_closest_tile(tile);
 	}
 
 
