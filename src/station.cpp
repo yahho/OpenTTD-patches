@@ -226,9 +226,15 @@ void Station::MarkTilesDirty(bool cargo_change) const
 	}
 }
 
-/* virtual */ uint Station::GetPlatformLength(TileIndex tile) const
+/**
+ * Obtain the length of a platform
+ * @pre tile must be a rail station tile
+ * @param tile A tile that contains the platform in question
+ * @return The length of the platform
+ */
+uint Station::GetPlatformLength (TileIndex tile)
 {
-	assert(this->TileBelongsToRailStation(tile));
+	assert (HasStationTileRail (tile));
 
 	TileIndexDiff delta = (GetRailStationAxis(tile) == AXIS_X ? TileDiffXY(1, 0) : TileDiffXY(0, 1));
 

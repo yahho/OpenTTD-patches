@@ -1607,7 +1607,9 @@ static void UpdateLoadUnloadTicks(Vehicle *front, const Station *st, int ticks)
 {
 	if (front->type == VEH_TRAIN) {
 		/* Each platform tile is worth 2 rail vehicles. */
-		int overhang = Train::From(front)->gcache.cached_total_length - st->GetPlatformLength(front->tile) * TILE_SIZE;
+		assert (st->TileBelongsToRailStation (front->tile));
+		int overhang = Train::From(front)->gcache.cached_total_length
+				- Station::GetPlatformLength(front->tile) * TILE_SIZE;
 		if (overhang > 0) {
 			ticks <<= 1;
 			ticks += (overhang * ticks) / 8;

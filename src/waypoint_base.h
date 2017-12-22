@@ -39,11 +39,6 @@ struct Waypoint FINAL : SpecializedStation<Waypoint, true> {
 		return 1;
 	}
 
-	/* virtual */ uint GetPlatformLength(TileIndex tile) const
-	{
-		return 1;
-	}
-
 	/**
 	 * Is this a single tile waypoint?
 	 * @return true if it is.

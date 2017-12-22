@@ -481,7 +481,7 @@ public:
 	}
 
 	/* virtual */ uint GetPlatformLength(TileIndex tile, DiagDirection dir) const;
-	/* virtual */ uint GetPlatformLength(TileIndex tile) const;
+	static uint GetPlatformLength (TileIndex tile);
 	void RecomputeIndustriesNear();
 	static void RecomputeIndustriesNearForAll();
 
