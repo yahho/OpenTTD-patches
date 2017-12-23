@@ -361,10 +361,11 @@ struct CFollowTrackRailBase : CFollowTrackBase<RailPathPos>
 		}
 
 		/* special handling for rail stations - get to the end of platform */
-		if (m_flag == TF_STATION) {
+		if ((m_flag == TF_STATION)
+				&& !BaseStation::GetByTile(m_new.tile)->IsWaypoint()) {
 			/* entered railway station
 			 * get platform length */
-			uint length = BaseStation::GetByTile(m_new.tile)->GetPlatformLength(m_new.tile, m_exitdir);
+			uint length = Station::GetPlatformLength (m_new.tile, m_exitdir);
 			/* how big step we must do to get to the last platform tile; */
 			m_tiles_skipped = length - 1;
 			/* move to the platform end */

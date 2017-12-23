@@ -254,7 +254,14 @@ uint Station::GetPlatformLength (TileIndex tile)
 	return len - 1;
 }
 
-/* virtual */ uint Station::GetPlatformLength(TileIndex tile, DiagDirection dir) const
+/**
+ * Determines the REMAINING length of a platform, starting at (and including)
+ * the given tile.
+ * @param tile the tile from which to start searching. Must be a rail station tile
+ * @param dir The direction in which to search.
+ * @return The platform length
+ */
+uint Station::GetPlatformLength (TileIndex tile, DiagDirection dir)
 {
 	TileIndex start_tile = tile;
 	uint length = 0;

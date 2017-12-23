@@ -260,7 +260,7 @@ int GetTrainStopLocation(StationID station_id, TileIndex tile, const Train *v, i
 {
 	const Station *st = Station::Get(station_id);
 	assert (st->TileBelongsToRailStation (tile));
-	*station_ahead  = st->GetPlatformLength(tile, DirToDiagDir(v->direction)) * TILE_SIZE;
+	*station_ahead  = Station::GetPlatformLength (tile, DirToDiagDir (v->direction)) * TILE_SIZE;
 	*station_length = Station::GetPlatformLength(tile) * TILE_SIZE;
 
 	/* Default to the middle of the station for stations stops that are not in

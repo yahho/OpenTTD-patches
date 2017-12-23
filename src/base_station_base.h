@@ -125,15 +125,6 @@ struct BaseStation : PooledItem <BaseStation, StationID, 32, 64000> {
 
 
 	/**
-	 * Determines the REMAINING length of a platform, starting at (and including)
-	 * the given tile.
-	 * @param tile the tile from which to start searching. Must be a rail station tile
-	 * @param dir The direction in which to search.
-	 * @return The platform length
-	 */
-	virtual uint GetPlatformLength(TileIndex tile, DiagDirection dir) const = 0;
-
-	/**
 	 * Get the base station belonging to a specific tile.
 	 * @param tile The tile to get the base station from.
 	 * @return the station associated with that tile.

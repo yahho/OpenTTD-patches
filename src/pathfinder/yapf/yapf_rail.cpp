@@ -1209,9 +1209,7 @@ public:
 		if (v->current_order.GetType() == OT_GOTO_STATION) {
 			const RailPathPos &pos = n->GetLastPos();
 			assert (GetStationIndex(pos.tile) == m_dest_station_id);
-			const BaseStation *st = BaseStation::Get(m_dest_station_id);
-			assert(st != NULL);
-			uint platform_length = st->GetPlatformLength(pos.tile, ReverseDiagDir(TrackdirToExitdir(pos.td)));
+			uint platform_length = Station::GetPlatformLength (pos.tile, ReverseDiagDir (TrackdirToExitdir (pos.td)));
 			/* Reduce the extra cost caused by passing-station penalty (each station receives it in the segment cost). */
 			n->m_cost -= m_settings->rail_station_penalty * platform_length;
 			/* Add penalty for the inappropriate platform length. */

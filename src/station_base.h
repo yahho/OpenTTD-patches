@@ -480,7 +480,7 @@ public:
 		return (this->facilities & f) != 0;
 	}
 
-	/* virtual */ uint GetPlatformLength(TileIndex tile, DiagDirection dir) const;
+	static uint GetPlatformLength (TileIndex tile, DiagDirection dir);
 	static uint GetPlatformLength (TileIndex tile);
 	void RecomputeIndustriesNear();
 	static void RecomputeIndustriesNearForAll();
