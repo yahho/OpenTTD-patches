@@ -474,22 +474,19 @@ int Train::GetCurrentMaxSpeed() const
 		if (this->current_order.ShouldStopAtStation(this, sid)) {
 			/* The distance to go is whatever is still ahead of the train minus the
 			 * distance from the train's stop location to the end of the platform */
-			int distance_to_go = GetDistanceToStopLocation (sid,
+			int distance_to_go = max (0,
+					GetDistanceToStopLocation (sid,
 						this->tile, this,
-						this->x_pos, this->y_pos)
-					/ TILE_SIZE + 1;
+						this->x_pos, this->y_pos));
 
-			if (distance_to_go > 0) {
-				int st_max_speed = 120;
+			/* If we are going very fast, try to brake evenly
+			 * along all available space. Otherwise, try to brake
+			 * smoothly. */
+			int cur = this->cur_speed;
+			int st_max_speed = max (2 * distance_to_go + 20,
+					cur - (cur / (distance_to_go + 1)));
 
-				int delta_v = this->cur_speed / (distance_to_go + 1);
-				if (max_speed > (this->cur_speed - delta_v)) {
-					st_max_speed = this->cur_speed - (delta_v / 10);
-				}
-
-				st_max_speed = max(st_max_speed, 25 * distance_to_go);
-				max_speed = min(max_speed, st_max_speed);
-			}
+			max_speed = min (max_speed, st_max_speed);
 		}
 	}
 
