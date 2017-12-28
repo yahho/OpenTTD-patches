@@ -283,7 +283,8 @@ static int GetDistanceToStopLocation (StationID station_id, TileIndex tile,
 	x -= (v->gcache.cached_veh_length + 1) / 2;
 
 	/* Now subtract how far from the end we should stop. */
-	int station_length = Station::GetPlatformLength(tile) * TILE_SIZE;
+	uint behind = Station::GetPlatformLength (tile, ReverseDiagDir (dir));
+	int station_length = (ahead + behind) * TILE_SIZE;
 
 	/* Default to the middle of the station for stations stops that are not in
 	 * the order list like intermediate stations when non-stop is disabled */
