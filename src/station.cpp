@@ -227,34 +227,6 @@ void Station::MarkTilesDirty(bool cargo_change) const
 }
 
 /**
- * Obtain the length of a platform
- * @pre tile must be a rail station tile
- * @param tile A tile that contains the platform in question
- * @return The length of the platform
- */
-uint Station::GetPlatformLength (TileIndex tile)
-{
-	assert (HasStationTileRail (tile));
-
-	TileIndexDiff delta = (GetRailStationAxis(tile) == AXIS_X ? TileDiffXY(1, 0) : TileDiffXY(0, 1));
-
-	TileIndex t = tile;
-	uint len = 0;
-	do {
-		t -= delta;
-		len++;
-	} while (IsCompatibleTrainStationTile(t, tile));
-
-	t = tile;
-	do {
-		t += delta;
-		len++;
-	} while (IsCompatibleTrainStationTile(t, tile));
-
-	return len - 1;
-}
-
-/**
  * Determines the REMAINING length of a platform, starting at (and including)
  * the given tile.
  * @param tile the tile from which to start searching. Must be a rail station tile

@@ -481,7 +481,7 @@ public:
 	}
 
 	static uint GetPlatformLength (TileIndex tile, DiagDirection dir);
-	static uint GetPlatformLength (TileIndex tile);
+
 	void RecomputeIndustriesNear();
 	static void RecomputeIndustriesNearForAll();
 
