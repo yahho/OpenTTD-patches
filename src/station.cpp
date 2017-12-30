@@ -239,10 +239,11 @@ uint Station::GetPlatformLength (TileIndex tile, DiagDirection dir)
 	uint length = 0;
 	assert(IsRailStationTile(tile));
 	assert(dir < DIAGDIR_END);
+	TileIndexDiff delta = TileOffsByDiagDir (dir);
 
 	do {
 		length++;
-		tile += TileOffsByDiagDir(dir);
+		tile += delta;
 	} while (IsCompatibleTrainStationTile(tile, start_tile));
 
 	return length;
