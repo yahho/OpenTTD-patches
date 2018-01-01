@@ -2898,9 +2898,11 @@ static void DrawTile_RailStation (TileInfo *ti)
 	}
 
 	if (HasRailCatenaryDrawn (rti)) {
+		uint gfx = GetStationGfx (ti->tile);
 		DrawRailAxisCatenary (ti, rti, GetRailStationAxis (ti->tile),
-				CanStationTileHavePylons (ti->tile),
-				CanStationTileHaveWires (ti->tile));
+				/* Default stations do not draw pylons under roofs (gfx >= 4) */
+				statspec != NULL ? HasBit(statspec->pylons, gfx) : gfx < 4,
+				statspec == NULL || !HasBit(statspec->wires, gfx));
 	}
 
 	if (IsRailWaypoint(ti->tile)) {

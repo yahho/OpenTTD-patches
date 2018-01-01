@@ -71,6 +71,7 @@
 #include "company_base.h"
 #include "newgrf_railtype.h"
 #include "station_func.h"
+#include "newgrf_station.h"
 
 
 /** Which PPPs are possible at all on a given PCP */
@@ -219,10 +220,17 @@ static TrackBits MaskWireBits(TileIndex t, TrackBits tracks)
 		 * axis that still display wires to preserve visual continuity. */
 		TileIndex next_tile = TileAddByDiagDir(t, d);
 		TrackBits reachable = TrackStatusToTrackBits(GetTileRailwayStatus(next_tile)) & DiagdirReachesTracks(d);
-		RailType rt;
-		if ((reachable != TRACK_BIT_NONE) ?
-				((rt = GetRailType(next_tile, FindFirstTrack(reachable))) == INVALID_RAILTYPE || !HasRailCatenary(rt)) :
-				(!HasStationTileRail(next_tile) || GetRailStationAxis(next_tile) != DiagDirToAxis(d) || !CanStationTileHaveWires(next_tile))) {
+		bool add;
+		if (reachable != TRACK_BIT_NONE) {
+			RailType rt = GetRailType (next_tile, FindFirstTrack (reachable));
+			add = (rt == INVALID_RAILTYPE || !HasRailCatenary(rt));
+		} else if (!HasStationTileRail(next_tile) || GetRailStationAxis(next_tile) != DiagDirToAxis(d)) {
+			add = true;
+		} else {
+			const StationSpec *statspec = GetStationSpec (next_tile);
+			add = (statspec != NULL) && HasBit(statspec->wires, GetStationGfx (next_tile));
+		}
+		if (add) {
 			neighbour_tdb |= DiagdirReachesTrackdirs(ReverseDiagDir(d));
 		}
 	}
@@ -543,13 +551,19 @@ static uint CheckNeighbourPCP (TileIndex tile, DiagDirection side,
 			}
 			break;
 
-		case TT_STATION:
+		case TT_STATION: {
 			if (!HasStationRail (tile)) return PCP_NB_NONE;
 			if (!HasRailCatenary (GetRailType (tile))) return PCP_NB_NONE;
 			/* Ignore neighbouring station tiles that allow neither wires nor pylons. */
-			if (!CanStationTileHavePylons (tile) && !CanStationTileHaveWires (tile)) return PCP_NB_NONE;
+			const StationSpec *statspec = GetStationSpec (tile);
+			if (statspec != NULL) {
+				byte mask = statspec->wires & ~statspec->pylons;
+				uint gfx = GetStationGfx (tile);
+				if (HasBit(mask, gfx)) return PCP_NB_NONE;
+			}
 			axis = GetRailStationAxis (tile);
 			break;
+		}
 
 		default:
 			return PCP_NB_NONE;
