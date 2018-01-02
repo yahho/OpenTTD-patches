@@ -391,25 +391,6 @@ static bool CheckCatenarySide (TrackBits tracks, TrackBits wires,
 }
 
 /**
- * Mask preferred and allowed pylon position points on a tile side,
- * when there is a single track along an axis on the tile.
- * @param axis Axis of the track.
- * @param side Tile side to check.
- * @param preferred Pointer to preferred positions to mask.
- * @return Whether the pylon control point is in use from this tile.
- */
-static inline bool CheckCatenarySideAxis (Axis axis, DiagDirection side,
-	byte *preferred)
-{
-	/* We check whether the track in question is present. */
-	if (DiagDirToAxis (side) != axis) return false;
-
-	/* track found */
-	*preferred &= side_tracks[side][0].preferred;
-	return true;
-}
-
-/**
  * Check if the pylon on a tile side should be elided on long track runs.
  * @param side Tile side to check.
  * @param preferred Preferred pylon positions.
@@ -570,10 +551,12 @@ static uint CheckNeighbourPCP (TileIndex tile, DiagDirection side,
 	}
 
 	/* Crossing or station tile, so just one flat track along an axis. */
-	if (!CheckCatenarySideAxis (axis, side, preferred)) {
-		return PCP_NB_NONE;
-	}
 
+	/* We check whether the track in question is present. */
+	if (DiagDirToAxis (side) != axis) return PCP_NB_NONE;
+
+	/* Track found. */
+	*preferred &= side_tracks[side][0].preferred;
 	*slope = SLOPE_FLAT;
 	return PCP_NB_TRY_ELIDE;
 }
