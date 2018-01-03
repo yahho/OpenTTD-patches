@@ -385,6 +385,12 @@ static bool CheckCatenarySide (TrackBits tracks, TrackBits wires,
 		}
 	}
 
+	/* At least the PPPs along the tile side must be in the allowed set. */
+	byte test = (DiagDirToAxis(side) == AXIS_X) ?
+			(1 << DIR_SE) | (1 << DIR_NW) :
+			(1 << DIR_NE) | (1 << DIR_SW);
+	assert ((amask & test) == test);
+
 	*preferred &= pmask;
 	*allowed &= amask;
 	return pcp_in_use;
@@ -613,14 +619,17 @@ static std::pair <uint, byte> CheckSidePCP (TileIndex tile,
 			break;
 	}
 
+	/* At least the PPPs along the tile side must be in the allowed set. */
+	byte test = (DiagDirToAxis(side) == AXIS_X) ?
+			(1 << DIR_SE) | (1 << DIR_NW) :
+			(1 << DIR_NE) | (1 << DIR_SW);
+	assert ((PPPallowed & test) == test);
+
 	/* Now decide where we draw our pylons. First try the preferred PPPs,
 	 * but they may not exist. In that case, we try the any of the allowed
-	 * ones. if they don't exist either, don't draw anything. Note that
-	 * the preferred PPPs still contain the end-of-line markers. Remove
-	 * those (simply by ANDing with allowed, since these markers are never
-	 * allowed) */
-	if (PPPallowed == 0) return std::make_pair (PCP_NONE, 0);
-
+	 * ones. Note that the preferred PPPs still contain the end-of-line
+	 * markers. Remove those (simply by ANDing with allowed, since these
+	 * markers are never allowed). */
 	if ((PPPallowed & PPPpreferred) != 0) PPPallowed &= PPPpreferred;
 	return std::make_pair (pcp_neighbour ? PCP_IN_USE_BOTH : PCP_IN_USE, PPPallowed);
 }
