@@ -630,8 +630,9 @@ static std::pair <uint, byte> CheckSidePCP (TileIndex tile,
 	 * ones. Note that the preferred PPPs still contain the end-of-line
 	 * markers. Remove those (simply by ANDing with allowed, since these
 	 * markers are never allowed). */
-	if ((PPPallowed & PPPpreferred) != 0) PPPallowed &= PPPpreferred;
-	return std::make_pair (pcp_neighbour ? PCP_IN_USE_BOTH : PCP_IN_USE, PPPallowed);
+	PPPpreferred &= PPPallowed;
+	return std::make_pair (pcp_neighbour ? PCP_IN_USE_BOTH : PCP_IN_USE,
+			PPPpreferred != 0 ? PPPpreferred : PPPallowed);
 }
 
 /**
