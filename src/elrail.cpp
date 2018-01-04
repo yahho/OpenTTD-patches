@@ -532,8 +532,6 @@ static uint CheckNeighbourPCP (TileIndex tile, DiagDirection side,
 					if (!HasRailCatenary (GetRailType (tile))) return PCP_NB_NONE;
 					/* ignore tunnels facing the wrong way for neighbouring tiles */
 					if (GetTunnelBridgeDirection (tile) != ReverseDiagDir (side)) return PCP_NB_NONE;
-					/* force tunnels to always have a pylon (no elision) */
-					*preferred = 0;
 					return PCP_NB_TUNNEL;
 			}
 			break;
@@ -609,10 +607,12 @@ static std::pair <uint, byte> CheckSidePCP (TileIndex tile,
 			if (CheckPylonElision (side, PPPpreferred, odd, home_slope == nb_slope)) {
 				return std::make_pair (PCP_NONE, 0);
 			}
-			/* fall through */
-		case PCP_NB_TUNNEL:
 			pcp_neighbour = true;
 			break;
+
+		case PCP_NB_TUNNEL:
+			/* force tunnels to always have a pylon (no elision) */
+			return std::make_pair (PCP_IN_USE_BOTH, PPPallowed);
 
 		case PCP_NB_NONE:
 			pcp_neighbour = false;
