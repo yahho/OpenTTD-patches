@@ -443,6 +443,7 @@ static bool CheckPylonElision (DiagDirection side, byte preferred,
 enum {
 	PCP_NB_NONE,      ///< PCP not in use from the neighbour tile
 	PCP_NB_TUNNEL,    ///< PCP in use by a tunnel from the neighbour tile
+	PCP_NB_IN_USE,    ///< PCP is in use and may not be elided
 	PCP_NB_TRY_ELIDE, ///< PCP is in use and may be subject to elision
 };
 
@@ -470,9 +471,12 @@ static uint CheckRailNeighbourPCP (TileIndex tile, DiagDirection side,
 	TrackBits nb_wires = MaskWireBits (tile, nb_tracks);
 
 	/* Tracks inciding from the neighbour tile */
-	if (CheckCatenarySide (nb_tracks, nb_wires, side, preferred, allowed)
-			== 0) {
-		return PCP_NB_NONE;
+	switch (CheckCatenarySide (nb_tracks, nb_wires, side,
+					preferred, allowed)) {
+		case 0: return PCP_NB_NONE;
+		case 1: break;
+		default: /* more than one wire, so we need the pylon */
+			return PCP_NB_IN_USE;
 	}
 
 	/* Read the foundations if they are present, and adjust the tileh */
@@ -609,6 +613,8 @@ static std::pair <uint, byte> CheckSidePCP (TileIndex tile,
 			if (CheckPylonElision (side, PPPpreferred, odd, home_slope == nb_slope)) {
 				return std::make_pair (PCP_NONE, 0);
 			}
+			FALLTHROUGH;
+		case PCP_NB_IN_USE:
 			pcp_neighbour = true;
 			break;
 
@@ -1036,7 +1042,8 @@ void DrawRailTunnelCatenary (const TileInfo *ti, DiagDirection dir)
 	byte dummy_preferred, dummy_allowed;
 	Slope dummy_slope;
 	bool pcp_neighbour = CheckNeighbourPCP (tile + TileOffsByDiagDir (rev),
-				dir, &dummy_preferred, &dummy_allowed, &dummy_slope);
+				dir, &dummy_preferred, &dummy_allowed, &dummy_slope)
+			!= PCP_NB_NONE;
 
 	int pos = ChoosePylonPosition (rev, AllowedPPPonPCP[rev],
 			IsOddX(tile), IsOddY(tile), pcp_neighbour);
