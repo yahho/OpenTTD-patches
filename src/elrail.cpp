@@ -362,12 +362,12 @@ static const byte allowed_ppp[TRACK_END] = {
  * @param side Tile side to check.
  * @param preferred Pointer to preferred positions to mask.
  * @param allowed Pointer to allowed positions to mask.
- * @return Whether the pylon control point is in use from this tile.
+ * @return The number of wires inciding on the given side.
  */
-static bool CheckCatenarySide (TrackBits tracks, TrackBits wires,
+static uint CheckCatenarySide (TrackBits tracks, TrackBits wires,
 	DiagDirection side, byte *preferred, byte *allowed)
 {
-	bool pcp_in_use = false;
+	uint pcp_in_use = 0;
 	byte pmask = 0xFF;
 	byte amask = 0xFF;
 
@@ -377,7 +377,7 @@ static bool CheckCatenarySide (TrackBits tracks, TrackBits wires,
 		byte track = data->track;
 		if (HasBit(wires, track)) {
 			/* track found */
-			pcp_in_use = true;
+			pcp_in_use++;
 			pmask &= data->preferred;
 		}
 		if (HasBit(tracks, track)) {
@@ -470,7 +470,8 @@ static uint CheckRailNeighbourPCP (TileIndex tile, DiagDirection side,
 	TrackBits nb_wires = MaskWireBits (tile, nb_tracks);
 
 	/* Tracks inciding from the neighbour tile */
-	if (!CheckCatenarySide (nb_tracks, nb_wires, side, preferred, allowed)) {
+	if (CheckCatenarySide (nb_tracks, nb_wires, side, preferred, allowed)
+			== 0) {
 		return PCP_NB_NONE;
 	}
 
@@ -593,7 +594,8 @@ static std::pair <uint, byte> CheckSidePCP (TileIndex tile,
 	byte PPPallowed = AllowedPPPonPCP[side];
 
 	/* Tracks inciding from the home tile */
-	if (!CheckCatenarySide (home_tracks, home_wires, side, &PPPpreferred, &PPPallowed)) {
+	if (CheckCatenarySide (home_tracks, home_wires, side, &PPPpreferred,
+			&PPPallowed) == 0) {
 		/* PCP not used at all from this tile. */
 		return std::make_pair (PCP_NONE, 0);
 	}
