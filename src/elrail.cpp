@@ -822,7 +822,7 @@ static void DrawRailCatenary (const TileInfo *ti, const RailtypeInfo *rti,
 
 	byte pcp_status = 0;
 
-	SpriteID pylon_base = GetPylonBase (rti, ti->tile, context);
+	SpriteID pylon_base = draw_pylons ? GetPylonBase (rti, ti->tile, context) : 0;
 
 	for (DiagDirection side = DIAGDIR_BEGIN; side < DIAGDIR_END; side++) {
 		bool pcp_neighbour;
@@ -845,7 +845,7 @@ static void DrawRailCatenary (const TileInfo *ti, const RailtypeInfo *rti,
 			ppp_allowed = AllowedPPPonPCP[side];
 		}
 
-		if (!draw_pylons) continue;
+		if (pylon_base == 0) continue;
 
 		if (HasBridgeAbove(ti->tile)) {
 			if (GetBridgeAxis (ti->tile) == DiagDirToAxis (side)) {
