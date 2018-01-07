@@ -667,16 +667,17 @@ static int ChoosePylonPosition (DiagDirection side, byte allowed,
 
 	assert (allowed != 0);
 
+	byte own = owned[side] & allowed;
+	byte mask = nb ? allowed : own;
+
 	for (Direction k = DIR_BEGIN; k < DIR_END; k++) {
 		byte pos = order[k];
 
-		if (!HasBit(allowed, pos)) continue;
-
 		/* Don't build the pylon if it would be outside the tile */
-		if (HasBit(owned[side], pos)) return pos;
-
-		/* We have a neighbour that will draw it, bail out */
-		if (nb) return -1;
+		if (HasBit(mask, pos)) {
+			/* We have a neighbour that will draw it, bail out */
+			return HasBit(own, pos) ? pos : -1;
+		}
 	}
 
 	NOT_REACHED();
