@@ -727,6 +727,29 @@ static inline int ChoosePylonPosition (DiagDirection side, byte allowed,
 	return ChoosePylonPosition (side, allowed, order[odd_x][odd_y][side], nb);
 }
 
+/**
+ * Choose the pylon position point to use for a pylon.
+ * @param side Tile side where the pylon will be drawn.
+ * @param odd_x Whether the tile is on an odd X coordinate.
+ * @param odd_y Whether the tile is on an odd Y coordinate.
+ * @param nb Whether there is a neighbour tile that could draw this pylon.
+ * @return The pylon position point to use.
+ */
+static int ChoosePylonPosition (DiagDirection side, bool odd_x, bool odd_y,
+	bool nb)
+{
+	/* This is a clone of the previous function for the particular case
+	 * where all pylon position points are allowed. */
+
+	if (nb) {
+		/* We have a neighbour that will draw it, bail out. */
+		bool owned = (DiagDirToAxis(side) == AXIS_X) ? odd_y : odd_x;
+		if (!owned ^ HasBit(side, 1)) return -1;
+	}
+
+	return DiagDirToDir (ChangeDiagDir (side, DIAGDIRDIFF_90RIGHT));
+}
+
 /*
  * Add a pylon sprite for a tile.
  * @param ti The TileInfo struct of the tile being drawn.
@@ -1046,7 +1069,7 @@ void DrawRailTunnelCatenary (const TileInfo *ti, DiagDirection dir)
 				dir, &dummy_preferred, &dummy_allowed, &dummy_slope)
 			!= PCP_NB_NONE;
 
-	int pos = ChoosePylonPosition (rev, AllowedPPPonPCP[rev],
+	int pos = ChoosePylonPosition (rev,
 			IsOddX(tile), IsOddY(tile), pcp_neighbour);
 
 	const RailtypeInfo *rti = GetRailTypeInfo (GetRailType (tile));
