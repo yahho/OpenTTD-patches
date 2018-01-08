@@ -586,7 +586,7 @@ enum {
  * @param side The side to check.
  * @param odd Array of tile coordinate parity per axis.
  * @return A value representing the PCP state at the given side, plus
- *  a bitmask of allowed directions for the pylon, if any.
+ *  a bitmask of preferred directions for the pylon, if any.
  */
 static std::pair <uint, byte> CheckSidePCP (TileIndex tile,
 	TrackBits home_tracks, TrackBits home_wires, Slope home_slope,
@@ -620,7 +620,7 @@ static std::pair <uint, byte> CheckSidePCP (TileIndex tile,
 
 		case PCP_NB_TUNNEL:
 			/* force tunnels to always have a pylon (no elision) */
-			return std::make_pair (PCP_IN_USE_BOTH, PPPallowed);
+			return std::make_pair (PCP_IN_USE_BOTH, 0);
 
 		case PCP_NB_NONE:
 			pcp_neighbour = false;
@@ -638,9 +638,8 @@ static std::pair <uint, byte> CheckSidePCP (TileIndex tile,
 	 * ones. Note that the preferred PPPs still contain the end-of-line
 	 * markers. Remove those (simply by ANDing with allowed, since these
 	 * markers are never allowed). */
-	PPPpreferred &= PPPallowed;
 	return std::make_pair (pcp_neighbour ? PCP_IN_USE_BOTH : PCP_IN_USE,
-			PPPpreferred != 0 ? PPPpreferred : PPPallowed);
+				PPPpreferred & PPPallowed);
 }
 
 /**
@@ -866,7 +865,7 @@ static void DrawRailCatenary (const TileInfo *ti, const RailtypeInfo *rti,
 			/* Pylon is drawn by the middle part if there is any. */
 			if (GetTunnelBridgeLength (ti->tile, GetOtherBridgeEnd (ti->tile)) > 0) continue;
 			pcp_neighbour = true;
-			ppp_allowed = AllowedPPPonPCP[side];
+			ppp_allowed = 0;
 		}
 
 		if (pylon_base == 0) continue;
@@ -880,8 +879,11 @@ static void DrawRailCatenary (const TileInfo *ti, const RailtypeInfo *rti,
 			}
 		}
 
-		int pos = ChoosePylonPosition (side, ppp_allowed,
-			odd[AXIS_X], odd[AXIS_Y], pcp_neighbour);
+		int pos = (ppp_allowed != 0) ? ChoosePylonPosition (side,
+						ppp_allowed, odd[AXIS_X],
+						odd[AXIS_Y], pcp_neighbour) :
+				ChoosePylonPosition (side, odd[AXIS_X],
+						odd[AXIS_Y], pcp_neighbour);
 		if (pos >= 0) {
 			DrawPylon (ti, side, (Direction)pos, pylon_base);
 		}
