@@ -652,7 +652,7 @@ static std::pair <uint, byte> CheckSidePCP (TileIndex tile,
  * @note Use the overloaded variant below.
  */
 static int ChoosePylonPosition (DiagDirection side, byte allowed,
-	const Direction *order, bool nb)
+	uint32 order, bool nb)
 {
 	/* Which of the PPPs are inside the tile. For the two PPPs on the tile
 	 * border the following system is used: if you rotate the PCP so that
@@ -669,8 +669,8 @@ static int ChoosePylonPosition (DiagDirection side, byte allowed,
 	byte own = owned[side] & allowed;
 	byte mask = nb ? allowed : own;
 
-	for (Direction k = DIR_BEGIN; k < DIR_END; k++) {
-		byte pos = order[k];
+	for (Direction k = DIR_BEGIN; k < DIR_END; k++, order >>= 4) {
+		byte pos = order & 0xF;
 
 		/* Don't build the pylon if it would be outside the tile */
 		if (HasBit(mask, pos)) {
@@ -694,10 +694,13 @@ static int ChoosePylonPosition (DiagDirection side, byte allowed,
 static inline int ChoosePylonPosition (DiagDirection side, byte allowed,
 	bool odd_x, bool odd_y, bool nb)
 {
+	assert_compile (DIR_END == 8);
+
 	/* Several PPPs maybe exist, here they are sorted in order of preference. */
+#define D(x,n) (DIR_##x << (4 * n))
 #define M(a,b,c,d,e,f,g,h) \
-	{ DIR_##a, DIR_##b, DIR_##c, DIR_##d, DIR_##e, DIR_##f, DIR_##g, DIR_##h }
-	static const Direction order[2][2][DIAGDIR_END][DIR_END] = {
+	D(a,0) | D(b,1) | D(c,2) | D(d,3) | D(e,4) | D(f,5) | D(g,6) | D(h,7)
+	static const uint32 order[2][2][DIAGDIR_END] = {
 		{    // X even
 			{    // Y even
 				M (NE, NW, SE, SW, N, E, S, W), // NE
@@ -725,6 +728,7 @@ static inline int ChoosePylonPosition (DiagDirection side, byte allowed,
 		}
 	};
 #undef M
+#undef D
 
 	return ChoosePylonPosition (side, allowed, order[odd_x][odd_y][side], nb);
 }
