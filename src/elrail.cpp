@@ -695,33 +695,36 @@ static inline int ChoosePylonPosition (DiagDirection side, byte allowed,
 	bool odd_x, bool odd_y, bool nb)
 {
 	/* Several PPPs maybe exist, here they are sorted in order of preference. */
+#define M(a,b,c,d,e,f,g,h) \
+	{ DIR_##a, DIR_##b, DIR_##c, DIR_##d, DIR_##e, DIR_##f, DIR_##g, DIR_##h }
 	static const Direction order[2][2][DIAGDIR_END][DIR_END] = {
 		{    // X even
 			{    // Y even
-				{DIR_NE, DIR_NW, DIR_SE, DIR_SW, DIR_N, DIR_E, DIR_S, DIR_W}, // NE
-				{DIR_NE, DIR_NW, DIR_SE, DIR_SW, DIR_S, DIR_E, DIR_N, DIR_W}, // SE
-				{DIR_NE, DIR_NW, DIR_SE, DIR_SW, DIR_S, DIR_W, DIR_N, DIR_E}, // SW
-				{DIR_NE, DIR_NW, DIR_SE, DIR_SW, DIR_N, DIR_W, DIR_S, DIR_E}, // NW
+				M (NE, NW, SE, SW, N, E, S, W), // NE
+				M (NE, NW, SE, SW, S, E, N, W), // SE
+				M (NE, NW, SE, SW, S, W, N, E), // SW
+				M (NE, NW, SE, SW, N, W, S, E), // NW
 			}, { // Y odd
-				{DIR_NE, DIR_SE, DIR_SW, DIR_NW, DIR_S, DIR_W, DIR_N, DIR_E}, // NE
-				{DIR_NE, DIR_SE, DIR_SW, DIR_NW, DIR_N, DIR_W, DIR_S, DIR_E}, // SE
-				{DIR_NE, DIR_SE, DIR_SW, DIR_NW, DIR_N, DIR_E, DIR_S, DIR_W}, // SW
-				{DIR_NE, DIR_SE, DIR_SW, DIR_NW, DIR_S, DIR_E, DIR_N, DIR_W}, // NW
+				M (NE, SE, SW, NW, S, W, N, E), // NE
+				M (NE, SE, SW, NW, N, W, S, E), // SE
+				M (NE, SE, SW, NW, N, E, S, W), // SW
+				M (NE, SE, SW, NW, S, E, N, W), // NW
 			}
 		}, { // X odd
 			{    // Y even
-				{DIR_SW, DIR_NW, DIR_NE, DIR_SE, DIR_S, DIR_W, DIR_N, DIR_E}, // NE
-				{DIR_SW, DIR_NW, DIR_NE, DIR_SE, DIR_N, DIR_W, DIR_S, DIR_E}, // SE
-				{DIR_SW, DIR_NW, DIR_NE, DIR_SE, DIR_N, DIR_E, DIR_S, DIR_W}, // SW
-				{DIR_SW, DIR_NW, DIR_NE, DIR_SE, DIR_S, DIR_E, DIR_N, DIR_W}, // NW
+				M (SW, NW, NE, SE, S, W, N, E), // NE
+				M (SW, NW, NE, SE, N, W, S, E), // SE
+				M (SW, NW, NE, SE, N, E, S, W), // SW
+				M (SW, NW, NE, SE, S, E, N, W), // NW
 			}, { // Y odd
-				{DIR_SW, DIR_SE, DIR_NE, DIR_NW, DIR_N, DIR_E, DIR_S, DIR_W}, // NE
-				{DIR_SW, DIR_SE, DIR_NE, DIR_NW, DIR_S, DIR_E, DIR_N, DIR_W}, // SE
-				{DIR_SW, DIR_SE, DIR_NE, DIR_NW, DIR_S, DIR_W, DIR_N, DIR_E}, // SW
-				{DIR_SW, DIR_SE, DIR_NE, DIR_NW, DIR_N, DIR_W, DIR_S, DIR_E}, // NW
+				M (SW, SE, NE, NW, N, E, S, W), // NE
+				M (SW, SE, NE, NW, S, E, N, W), // SE
+				M (SW, SE, NE, NW, S, W, N, E), // SW
+				M (SW, SE, NE, NW, N, W, S, E), // NW
 			}
 		}
 	};
+#undef M
 
 	return ChoosePylonPosition (side, allowed, order[odd_x][odd_y][side], nb);
 }
