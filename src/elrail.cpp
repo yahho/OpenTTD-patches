@@ -646,46 +646,6 @@ static std::pair <uint, byte> CheckSidePCP (TileIndex tile,
  * Choose the pylon position point to use for a pylon.
  * @param side Tile side where the pylon will be drawn.
  * @param allowed Mask of allowed pylon position points.
- * @param order Possible pylon positions arranged by preference.
- * @param nb Whether there is a neighbour tile that could draw this pylon.
- * @return The pylon position point to use, or -1 for none.
- * @note Use the overloaded variant below.
- */
-static int ChoosePylonPosition (DiagDirection side, byte allowed,
-	uint32 order, bool nb)
-{
-	/* Which of the PPPs are inside the tile. For the two PPPs on the tile
-	 * border the following system is used: if you rotate the PCP so that
-	 * it is in the north, the eastern PPP belongs to the tile. */
-	static const byte owned[DIAGDIR_END] = {
-		1 << DIR_SE | 1 << DIR_S  | 1 << DIR_SW | 1 << DIR_W,
-		1 << DIR_N  | 1 << DIR_SW | 1 << DIR_W  | 1 << DIR_NW,
-		1 << DIR_N  | 1 << DIR_NE | 1 << DIR_E  | 1 << DIR_NW,
-		1 << DIR_NE | 1 << DIR_E  | 1 << DIR_SE | 1 << DIR_S,
-	};
-
-	assert (allowed != 0);
-
-	byte own = owned[side] & allowed;
-	byte mask = nb ? allowed : own;
-
-	for (Direction k = DIR_BEGIN; k < DIR_END; k++, order >>= 4) {
-		byte pos = order & 0xF;
-
-		/* Don't build the pylon if it would be outside the tile */
-		if (HasBit(mask, pos)) {
-			/* We have a neighbour that will draw it, bail out */
-			return HasBit(own, pos) ? pos : -1;
-		}
-	}
-
-	NOT_REACHED();
-}
-
-/**
- * Choose the pylon position point to use for a pylon.
- * @param side Tile side where the pylon will be drawn.
- * @param allowed Mask of allowed pylon position points.
  * @param odd_x Whether the tile is on an odd X coordinate.
  * @param odd_y Whether the tile is on an odd Y coordinate.
  * @param nb Whether there is a neighbour tile that could draw this pylon.
@@ -730,7 +690,35 @@ static inline int ChoosePylonPosition (DiagDirection side, byte allowed,
 #undef M
 #undef D
 
-	return ChoosePylonPosition (side, allowed, order[odd_x][odd_y][side], nb);
+	/* Which of the PPPs are inside the tile. For the two PPPs on the tile
+	 * border the following system is used: if you rotate the PCP so that
+	 * it is in the north, the eastern PPP belongs to the tile. */
+	static const byte owned[DIAGDIR_END] = {
+		1 << DIR_SE | 1 << DIR_S  | 1 << DIR_SW | 1 << DIR_W,
+		1 << DIR_N  | 1 << DIR_SW | 1 << DIR_W  | 1 << DIR_NW,
+		1 << DIR_N  | 1 << DIR_NE | 1 << DIR_E  | 1 << DIR_NW,
+		1 << DIR_NE | 1 << DIR_E  | 1 << DIR_SE | 1 << DIR_S,
+	};
+
+	assert (allowed != 0);
+
+	uint32 x = order[odd_x][odd_y][side];
+
+	byte own = owned[side] & allowed;
+	byte mask = nb ? allowed : own;
+
+	for (;;) {
+		byte pos = x & 0xF;
+
+		/* Don't build the pylon if it would be outside the tile */
+		if (HasBit(mask, pos)) {
+			/* We have a neighbour that will draw it, bail out */
+			return HasBit(own, pos) ? pos : -1;
+		}
+
+		assert (x != 0);
+		x >>= 4;
+	}
 }
 
 /**
