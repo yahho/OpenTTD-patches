@@ -658,32 +658,31 @@ static inline int ChoosePylonPosition (DiagDirection side, byte allowed,
 
 	/* Several PPPs maybe exist, here they are sorted in order of preference. */
 #define D(x,n) (DIR_##x << (4 * n))
-#define M(a,b,c,d,e,f,g,h) \
-	D(a,0) | D(b,1) | D(c,2) | D(d,3) | D(e,4) | D(f,5) | D(g,6) | D(h,7)
+#define M(a,b,c,d,e,f)  D(a,0) | D(b,1) | D(c,2) | D(d,3) | D(e,4) | D(f,5)
 	static const uint32 order[2][2][DIAGDIR_END] = {
 		{    // X even
 			{    // Y even
-				M (NE, NW, SE, SW, N, E, S, W), // NE
-				M (NE, NW, SE, SW, S, E, N, W), // SE
-				M (NE, NW, SE, SW, S, W, N, E), // SW
-				M (NE, NW, SE, SW, N, W, S, E), // NW
+				M (NW, SE, N, E, S, W), // NE
+				M (NE, SW, S, E, N, W), // SE
+				M (NW, SE, S, W, N, E), // SW
+				M (NE, SW, N, W, S, E), // NW
 			}, { // Y odd
-				M (NE, SE, SW, NW, S, W, N, E), // NE
-				M (NE, SE, SW, NW, N, W, S, E), // SE
-				M (NE, SE, SW, NW, N, E, S, W), // SW
-				M (NE, SE, SW, NW, S, E, N, W), // NW
+				M (SE, NW, S, W, N, E), // NE
+				M (NE, SW, N, W, S, E), // SE
+				M (SE, NW, N, E, S, W), // SW
+				M (NE, SW, S, E, N, W), // NW
 			}
 		}, { // X odd
 			{    // Y even
-				M (SW, NW, NE, SE, S, W, N, E), // NE
-				M (SW, NW, NE, SE, N, W, S, E), // SE
-				M (SW, NW, NE, SE, N, E, S, W), // SW
-				M (SW, NW, NE, SE, S, E, N, W), // NW
+				M (NW, SE, S, W, N, E), // NE
+				M (SW, NE, N, W, S, E), // SE
+				M (NW, SE, N, E, S, W), // SW
+				M (SW, NE, S, E, N, W), // NW
 			}, { // Y odd
-				M (SW, SE, NE, NW, N, E, S, W), // NE
-				M (SW, SE, NE, NW, S, E, N, W), // SE
-				M (SW, SE, NE, NW, S, W, N, E), // SW
-				M (SW, SE, NE, NW, N, W, S, E), // NW
+				M (SE, NW, N, E, S, W), // NE
+				M (SW, NE, S, E, N, W), // SE
+				M (SE, NW, S, W, N, E), // SW
+				M (SW, NE, N, W, S, E), // NW
 			}
 		}
 	};
