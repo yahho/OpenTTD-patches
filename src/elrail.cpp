@@ -407,36 +407,42 @@ static uint CheckCatenarySide (TrackBits tracks, TrackBits wires,
 static bool CheckPylonElision (DiagDirection side, byte preferred,
 	const bool *odd, bool level)
 {
-	Axis axis = DiagDirToAxis (side);
-	bool ignore;
-	switch (preferred) {
-		case 1 << DIR_NW | 1 << DIR_SE:
-			if (!level) return false;
-			ignore = false; // must be X axis
-			break;
+	/* Preferred pylon positions must be a pair of opposite directions. */
+	if (((preferred ^ (preferred >> 4)) & 0xF) != 0) return false;
+	assert (HasAtMostOneBit (preferred & 0xF));
 
-		case 1 << DIR_NE | 1 << DIR_SW:
-			if (!level) return false;
-			ignore = true;  // must be Y axis
-			break;
+	/* Direction bits to test for pylon elision. */
+	static const byte masks[2][2][DIAGDIR_END] = {
+		{    // X even
+			{    // Y even
+				(1 << DIR_N) | (1 << DIR_E),                 // NE
+				(1 << DIR_N)                | (1 << DIR_NE), // SE
+				                              (1 << DIR_SE), // SW
+				               (1 << DIR_E),                 // NW
+			}, { // Y odd
+				0,                                           // NE
+				               (1 << DIR_E),                 // SE
+				(1 << DIR_N) | (1 << DIR_E) | (1 << DIR_SE), // SW
+				(1 << DIR_N)                | (1 << DIR_NE), // NW
+			}
+		}, { // X odd
+			{    // Y even
+				                              (1 << DIR_SE), // NE
+				               (1 << DIR_E) | (1 << DIR_NE), // SE
+				(1 << DIR_N) | (1 << DIR_E),                 // SW
+				(1 << DIR_N),                                // NW
+			}, { // Y odd
+				(1 << DIR_N) | (1 << DIR_E) | (1 << DIR_SE), // NE
+				(1 << DIR_N),                                // SE
+				0,                                           // SW
+				               (1 << DIR_E) | (1 << DIR_NE), // NW
+			}
+		}
+	};
 
-		case 1 << DIR_E | 1 << DIR_W:
-			/* Non-orthogonal tracks must always be level. */
-			ignore = (axis == AXIS_X) ? !odd[AXIS_Y] : odd[AXIS_X];
-			break;
-
-		case 1 << DIR_N | 1 << DIR_S:
-			/* Non-orthogonal tracks must always be level. */
-			ignore = !odd[OtherAxis(axis)];
-			break;
-
-		default:
-			return false;
-	}
-
-	/* This configuration may be subject to pylon elision. */
-	/* Toggle ignore if we are in an odd row, or heading the other way. */
-	return (ignore ^ odd[axis] ^ HasBit(side, 1));
+	byte test = masks[odd[AXIS_X]][odd[AXIS_Y]][side];
+	if (!level) test &= (1 << DIR_N) | (1 << DIR_E);
+	return (preferred & test) != 0;
 }
 
 /** Possible return values for CheckNeighbourPCP below. */
