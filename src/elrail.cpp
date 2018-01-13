@@ -648,44 +648,39 @@ static std::pair <uint, byte> CheckSidePCP (TileIndex tile,
  * Choose the pylon position point to use for a pylon.
  * @param side Tile side where the pylon will be drawn.
  * @param allowed Mask of allowed pylon position points.
- * @param odd_x Whether the tile is on an odd X coordinate.
- * @param odd_y Whether the tile is on an odd Y coordinate.
+ * @param odd Bitmask of tile coordinate parity per axis.
  * @param nb Whether there is a neighbour tile that could draw this pylon.
  * @return The pylon position point to use.
  */
 static inline int ChoosePylonPosition (DiagDirection side, byte allowed,
-	bool odd_x, bool odd_y, bool nb)
+	byte odd, bool nb)
 {
 	assert_compile (DIR_END == 8);
 
 	/* Several PPPs maybe exist, here they are sorted in order of preference. */
 #define D(x,n) (DIR_##x << (4 * n))
 #define M(a,b,c,d,e,f)  D(a,0) | D(b,1) | D(c,2) | D(d,3) | D(e,4) | D(f,5)
-	static const uint32 order[2][2][DIAGDIR_END] = {
-		{    // X even
-			{    // Y even
-				M (NW, SE, N, E, S, W), // NE
-				M (NE, SW, S, E, N, W), // SE
-				M (NW, SE, S, W, N, E), // SW
-				M (NE, SW, N, W, S, E), // NW
-			}, { // Y odd
-				M (SE, NW, S, W, N, E), // NE
-				M (NE, SW, N, W, S, E), // SE
-				M (SE, NW, N, E, S, W), // SW
-				M (NE, SW, S, E, N, W), // NW
-			}
-		}, { // X odd
-			{    // Y even
-				M (NW, SE, S, W, N, E), // NE
-				M (SW, NE, N, W, S, E), // SE
-				M (NW, SE, N, E, S, W), // SW
-				M (SW, NE, S, E, N, W), // NW
-			}, { // Y odd
-				M (SE, NW, N, E, S, W), // NE
-				M (SW, NE, S, E, N, W), // SE
-				M (SE, NW, S, W, N, E), // SW
-				M (SW, NE, N, W, S, E), // NW
-			}
+	static const uint32 order[4][DIAGDIR_END] = {
+		{    // Y even, X even
+			M (NW, SE, N, E, S, W), // NE
+			M (NE, SW, S, E, N, W), // SE
+			M (NW, SE, S, W, N, E), // SW
+			M (NE, SW, N, W, S, E), // NW
+		}, { // Y even, X odd
+			M (NW, SE, S, W, N, E), // NE
+			M (SW, NE, N, W, S, E), // SE
+			M (NW, SE, N, E, S, W), // SW
+			M (SW, NE, S, E, N, W), // NW
+		}, { // Y odd, X even
+			M (SE, NW, S, W, N, E), // NE
+			M (NE, SW, N, W, S, E), // SE
+			M (SE, NW, N, E, S, W), // SW
+			M (NE, SW, S, E, N, W), // NW
+		}, { // Y odd, X odd
+			M (SE, NW, N, E, S, W), // NE
+			M (SW, NE, S, E, N, W), // SE
+			M (SE, NW, S, W, N, E), // SW
+			M (SW, NE, N, W, S, E), // NW
 		}
 	};
 #undef M
@@ -703,7 +698,7 @@ static inline int ChoosePylonPosition (DiagDirection side, byte allowed,
 
 	assert (allowed != 0);
 
-	uint32 x = order[odd_x][odd_y][side];
+	uint32 x = order[odd][side];
 
 	byte own = owned[side] & allowed;
 	byte mask = nb ? allowed : own;
@@ -876,8 +871,7 @@ static void DrawRailCatenary (const TileInfo *ti, const RailtypeInfo *rti,
 		}
 
 		int pos = (ppp_allowed != 0) ? ChoosePylonPosition (side,
-					ppp_allowed, HasBit(odd, AXIS_X),
-					HasBit(odd, AXIS_Y), pcp_neighbour) :
+					ppp_allowed, odd, pcp_neighbour) :
 				ChoosePylonPosition (side, HasBit(odd, AXIS_X),
 					HasBit(odd, AXIS_Y), pcp_neighbour);
 		if (pos >= 0) {
