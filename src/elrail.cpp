@@ -400,47 +400,43 @@ static uint CheckCatenarySide (TrackBits tracks, TrackBits wires,
  * Check if the pylon on a tile side should be elided on long track runs.
  * @param side Tile side to check.
  * @param preferred Preferred pylon positions.
- * @param odd Array of tile coordinate parity per axis.
+ * @param odd Bitmask of tile coordinate parity per axis.
  * @param level Whether the land is level (for tracks running along an axis).
  * @return Whether the pylon should be elided.
  */
 static bool CheckPylonElision (DiagDirection side, byte preferred,
-	const bool *odd, bool level)
+	byte odd, bool level)
 {
 	/* Preferred pylon positions must be a pair of opposite directions. */
 	if (((preferred ^ (preferred >> 4)) & 0xF) != 0) return false;
 	assert (HasAtMostOneBit (preferred & 0xF));
 
 	/* Direction bits to test for pylon elision. */
-	static const byte masks[2][2][DIAGDIR_END] = {
-		{    // X even
-			{    // Y even
-				(1 << DIR_N) | (1 << DIR_E),                 // NE
-				(1 << DIR_N)                | (1 << DIR_NE), // SE
-				                              (1 << DIR_SE), // SW
-				               (1 << DIR_E),                 // NW
-			}, { // Y odd
-				0,                                           // NE
-				               (1 << DIR_E),                 // SE
-				(1 << DIR_N) | (1 << DIR_E) | (1 << DIR_SE), // SW
-				(1 << DIR_N)                | (1 << DIR_NE), // NW
-			}
-		}, { // X odd
-			{    // Y even
-				                              (1 << DIR_SE), // NE
-				               (1 << DIR_E) | (1 << DIR_NE), // SE
-				(1 << DIR_N) | (1 << DIR_E),                 // SW
-				(1 << DIR_N),                                // NW
-			}, { // Y odd
-				(1 << DIR_N) | (1 << DIR_E) | (1 << DIR_SE), // NE
-				(1 << DIR_N),                                // SE
-				0,                                           // SW
-				               (1 << DIR_E) | (1 << DIR_NE), // NW
-			}
+	static const byte masks[4][DIAGDIR_END] = {
+		{    // Y even, X even
+			(1 << DIR_N) | (1 << DIR_E),                 // NE
+			(1 << DIR_N)                | (1 << DIR_NE), // SE
+			                              (1 << DIR_SE), // SW
+			               (1 << DIR_E),                 // NW
+		}, { // Y even, X odd
+			                              (1 << DIR_SE), // NE
+			               (1 << DIR_E) | (1 << DIR_NE), // SE
+			(1 << DIR_N) | (1 << DIR_E),                 // SW
+			(1 << DIR_N),                                // NW
+		}, { // Y odd, X even
+			0,                                           // NE
+			               (1 << DIR_E),                 // SE
+			(1 << DIR_N) | (1 << DIR_E) | (1 << DIR_SE), // SW
+			(1 << DIR_N)                | (1 << DIR_NE), // NW
+		}, { // Y odd, X odd
+			(1 << DIR_N) | (1 << DIR_E) | (1 << DIR_SE), // NE
+			(1 << DIR_N),                                // SE
+			0,                                           // SW
+			               (1 << DIR_E) | (1 << DIR_NE), // NW
 		}
 	};
 
-	byte test = masks[odd[AXIS_X]][odd[AXIS_Y]][side];
+	byte test = masks[odd][side];
 	if (!level) test &= (1 << DIR_N) | (1 << DIR_E);
 	return (preferred & test) != 0;
 }
@@ -590,13 +586,13 @@ enum {
  * @param home_wires Electrified tracks present on the home tile.
  * @param home_slope Slope of the home tile, adjusted for foundations.
  * @param side The side to check.
- * @param odd Array of tile coordinate parity per axis.
+ * @param odd Bitmask of tile coordinate parity per axis.
  * @return A value representing the PCP state at the given side, plus
  *  a bitmask of preferred directions for the pylon, if any.
  */
 static std::pair <uint, byte> CheckSidePCP (TileIndex tile,
 	TrackBits home_tracks, TrackBits home_wires, Slope home_slope,
-	DiagDirection side, const bool *odd)
+	DiagDirection side, byte odd)
 {
 	/* We cycle through all the existing tracks at a PCP and see what
 	 * PPPs we want to have, or may not have at all */
@@ -839,9 +835,9 @@ static void DrawRailCatenary (const TileInfo *ti, const RailtypeInfo *rti,
 	bool draw_pylons, bool draw_wires, TileContext context = TCX_NORMAL,
 	DiagDirection bridge = INVALID_DIAGDIR)
 {
-	bool odd[AXIS_END];
-	odd[AXIS_X] = IsOddX(ti->tile);
-	odd[AXIS_Y] = IsOddY(ti->tile);
+	byte odd = 0;
+	if (IsOddX(ti->tile)) SetBit(odd, AXIS_X);
+	if (IsOddY(ti->tile)) SetBit(odd, AXIS_Y);
 
 	byte pcp_status = 0;
 
@@ -880,10 +876,10 @@ static void DrawRailCatenary (const TileInfo *ti, const RailtypeInfo *rti,
 		}
 
 		int pos = (ppp_allowed != 0) ? ChoosePylonPosition (side,
-						ppp_allowed, odd[AXIS_X],
-						odd[AXIS_Y], pcp_neighbour) :
-				ChoosePylonPosition (side, odd[AXIS_X],
-						odd[AXIS_Y], pcp_neighbour);
+					ppp_allowed, HasBit(odd, AXIS_X),
+					HasBit(odd, AXIS_Y), pcp_neighbour) :
+				ChoosePylonPosition (side, HasBit(odd, AXIS_X),
+					HasBit(odd, AXIS_Y), pcp_neighbour);
 		if (pos >= 0) {
 			DrawPylon (ti, side, (Direction)pos, pylon_base);
 		}
