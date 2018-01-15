@@ -3491,20 +3491,18 @@ static void TileLoop_Track(TileIndex tile)
 			}
 		}
 
-		switch (fences) {
-			case 0: break;
-			case (1 << DIAGDIR_NE): new_ground = RAIL_GROUND_FENCE_NE; break;
-			case (1 << DIAGDIR_SE): new_ground = RAIL_GROUND_FENCE_SE; break;
-			case (1 << DIAGDIR_SW): new_ground = RAIL_GROUND_FENCE_SW; break;
-			case (1 << DIAGDIR_NW): new_ground = RAIL_GROUND_FENCE_NW; break;
-			case (1 << DIAGDIR_NE) | (1 << DIAGDIR_SW): new_ground = RAIL_GROUND_FENCE_NESW; break;
-			case (1 << DIAGDIR_SE) | (1 << DIAGDIR_NW): new_ground = RAIL_GROUND_FENCE_SENW; break;
-			case (1 << DIAGDIR_NE) | (1 << DIAGDIR_SE): new_ground = RAIL_GROUND_FENCE_VERT1; break;
-			case (1 << DIAGDIR_NE) | (1 << DIAGDIR_NW): new_ground = RAIL_GROUND_FENCE_HORIZ2; break;
-			case (1 << DIAGDIR_SE) | (1 << DIAGDIR_SW): new_ground = RAIL_GROUND_FENCE_HORIZ1; break;
-			case (1 << DIAGDIR_SW) | (1 << DIAGDIR_NW): new_ground = RAIL_GROUND_FENCE_VERT2; break;
-			default: NOT_REACHED();
-		}
+		static const byte rgt[16] = {
+			RAIL_GROUND_GRASS,        RAIL_GROUND_FENCE_NE,
+			RAIL_GROUND_FENCE_SE,     RAIL_GROUND_FENCE_VERT1,
+			RAIL_GROUND_FENCE_SW,     RAIL_GROUND_FENCE_NESW,
+			RAIL_GROUND_FENCE_HORIZ1, 0,
+			RAIL_GROUND_FENCE_NW,     RAIL_GROUND_FENCE_HORIZ2,
+			RAIL_GROUND_FENCE_SENW,   0,
+			RAIL_GROUND_FENCE_VERT2,  0,
+			0,                        0,
+		};
+
+		new_ground = (RailGroundType) rgt[fences];
 	}
 
 set_ground:
