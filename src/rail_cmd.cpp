@@ -3373,37 +3373,9 @@ static Foundation GetFoundation_Track(TileIndex tile, Slope tileh)
 		GetBridgeFoundation(tileh, DiagDirToAxis(GetTunnelBridgeDirection(tile)));
 }
 
-static void TileLoop_Track(TileIndex tile)
+/** Get the new ground type to use for a railway tile in the tile loop. */
+static RailGroundType GetNewRailGroundType (TileIndex tile, RailGroundType old_ground)
 {
-	if (IsTileSubtype(tile, TT_BRIDGE)) {
-		bool snow_or_desert = IsOnSnow(tile);
-		switch (_settings_game.game_creation.landscape) {
-			default: return;
-
-			case LT_ARCTIC:
-				/* As long as we do not have a snow density, we want to use the density
-				 * from the entry edge. For bridges this is the highest point.
-				 * (Independent of foundations) */
-				if (snow_or_desert == (GetTileMaxZ(tile) > GetSnowLine())) return;
-				break;
-
-			case LT_TROPIC:
-				if (GetTropicZone(tile) != TROPICZONE_DESERT || snow_or_desert) return;
-				break;
-		}
-		ToggleSnow(tile);
-		MarkTileDirtyByTile(tile);
-		return;
-	}
-
-	RailGroundType old_ground = GetRailGroundType(tile);
-	RailGroundType new_ground;
-
-	if (old_ground == RAIL_GROUND_WATER) {
-		TileLoop_Water(tile);
-		return;
-	}
-
 	switch (_settings_game.game_creation.landscape) {
 		case LT_ARCTIC: {
 			int z;
@@ -3448,64 +3420,95 @@ static void TileLoop_Track(TileIndex tile)
 			if (z > GetSnowLine()) {
 				if (half && z - GetSnowLine() == 1) {
 					/* track on non-continuous foundation, lower part is not under snow */
-					new_ground = RAIL_GROUND_HALF_SNOW;
+					return RAIL_GROUND_HALF_SNOW;
 				} else {
-					new_ground = RAIL_GROUND_ICE_DESERT;
+					return RAIL_GROUND_ICE_DESERT;
 				}
-				goto set_ground;
 			}
 			break;
 			}
 
 		case LT_TROPIC:
 			if (GetTropicZone(tile) == TROPICZONE_DESERT) {
-				new_ground = RAIL_GROUND_ICE_DESERT;
-				goto set_ground;
+				return RAIL_GROUND_ICE_DESERT;
 			}
 			break;
 	}
 
-	new_ground = RAIL_GROUND_GRASS;
-
-	if (old_ground != RAIL_GROUND_BARREN) { // wait until bottom is green
-		/* determine direction of fence */
-		TrackBits rail = GetTrackBits(tile);
-
-		Owner owner = GetTileOwner(tile);
-		byte fences = 0;
-
-		for (DiagDirection d = DIAGDIR_BEGIN; d < DIAGDIR_END; d++) {
-			static const TrackBits dir_to_trackbits[DIAGDIR_END] = {TRACK_BIT_3WAY_NE, TRACK_BIT_3WAY_SE, TRACK_BIT_3WAY_SW, TRACK_BIT_3WAY_NW};
-
-			/* Track bit on this edge => no fence. */
-			if ((rail & dir_to_trackbits[d]) != TRACK_BIT_NONE) continue;
-
-			TileIndex tile2 = tile + TileOffsByDiagDir(d);
-
-			/* Show fences if it's a house, industry, object, road, tunnelbridge or not owned by us. */
-			if (!IsValidTile(tile2) || IsHouseTile(tile2) || IsIndustryTile(tile2) ||
-					(IsTileType(tile2, TT_MISC) && !IsRailDepotTile(tile2)) ||
-					IsRoadTile(tile2) || (IsRailBridgeTile(tile2) && !IsExtendedRailBridge(tile2)) ||
-					(IsObjectTile(tile2) && !IsObjectType(tile2, OBJECT_OWNED_LAND)) || !IsTileOwner(tile2, owner)) {
-				fences |= 1 << d;
-			}
-		}
-
-		static const byte rgt[16] = {
-			RAIL_GROUND_GRASS,        RAIL_GROUND_FENCE_NE,
-			RAIL_GROUND_FENCE_SE,     RAIL_GROUND_FENCE_VERT1,
-			RAIL_GROUND_FENCE_SW,     RAIL_GROUND_FENCE_NESW,
-			RAIL_GROUND_FENCE_HORIZ1, 0,
-			RAIL_GROUND_FENCE_NW,     RAIL_GROUND_FENCE_HORIZ2,
-			RAIL_GROUND_FENCE_SENW,   0,
-			RAIL_GROUND_FENCE_VERT2,  0,
-			0,                        0,
-		};
-
-		new_ground = (RailGroundType) rgt[fences];
+	if (old_ground == RAIL_GROUND_BARREN) {
+		return RAIL_GROUND_GRASS; // wait until bottom is green
 	}
 
-set_ground:
+	/* determine direction of fence */
+	TrackBits rail = GetTrackBits (tile);
+
+	Owner owner = GetTileOwner (tile);
+	byte fences = 0;
+
+	for (DiagDirection d = DIAGDIR_BEGIN; d < DIAGDIR_END; d++) {
+		static const TrackBits dir_to_trackbits[DIAGDIR_END] =
+			{ TRACK_BIT_3WAY_NE, TRACK_BIT_3WAY_SE, TRACK_BIT_3WAY_SW, TRACK_BIT_3WAY_NW };
+
+		/* Track bit on this edge => no fence. */
+		if ((rail & dir_to_trackbits[d]) != TRACK_BIT_NONE) continue;
+
+		TileIndex tile2 = tile + TileOffsByDiagDir(d);
+
+		/* Show fences if it's a house, industry, object, road, tunnelbridge or not owned by us. */
+		if (!IsValidTile(tile2) || IsHouseTile(tile2) || IsIndustryTile(tile2) ||
+				(IsTileType (tile2, TT_MISC) && !IsRailDepotTile(tile2)) ||
+				IsRoadTile(tile2) || (IsRailBridgeTile(tile2) && !IsExtendedRailBridge(tile2)) ||
+				(IsObjectTile(tile2) && !IsObjectType (tile2, OBJECT_OWNED_LAND)) || !IsTileOwner (tile2, owner)) {
+			fences |= 1 << d;
+		}
+	}
+
+	static const byte rgt[16] = {
+		RAIL_GROUND_GRASS,        RAIL_GROUND_FENCE_NE,
+		RAIL_GROUND_FENCE_SE,     RAIL_GROUND_FENCE_VERT1,
+		RAIL_GROUND_FENCE_SW,     RAIL_GROUND_FENCE_NESW,
+		RAIL_GROUND_FENCE_HORIZ1, 0,
+		RAIL_GROUND_FENCE_NW,     RAIL_GROUND_FENCE_HORIZ2,
+		RAIL_GROUND_FENCE_SENW,   0,
+		RAIL_GROUND_FENCE_VERT2,  0,
+		0,                        0,
+	};
+
+	return (RailGroundType) rgt[fences];
+}
+
+static void TileLoop_Track(TileIndex tile)
+{
+	if (IsTileSubtype(tile, TT_BRIDGE)) {
+		bool snow_or_desert = IsOnSnow(tile);
+		switch (_settings_game.game_creation.landscape) {
+			default: return;
+
+			case LT_ARCTIC:
+				/* As long as we do not have a snow density, we want to use the density
+				 * from the entry edge. For bridges this is the highest point.
+				 * (Independent of foundations) */
+				if (snow_or_desert == (GetTileMaxZ(tile) > GetSnowLine())) return;
+				break;
+
+			case LT_TROPIC:
+				if (GetTropicZone(tile) != TROPICZONE_DESERT || snow_or_desert) return;
+				break;
+		}
+		ToggleSnow(tile);
+		MarkTileDirtyByTile(tile);
+		return;
+	}
+
+	RailGroundType old_ground = GetRailGroundType(tile);
+
+	if (old_ground == RAIL_GROUND_WATER) {
+		TileLoop_Water(tile);
+		return;
+	}
+
+	RailGroundType new_ground = GetNewRailGroundType (tile, old_ground);
+
 	if (old_ground != new_ground) {
 		SetRailGroundType(tile, new_ground);
 		MarkTileDirtyByTile(tile);
