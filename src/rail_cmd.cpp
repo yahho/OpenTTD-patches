@@ -2713,8 +2713,7 @@ static void DrawTrackFence_SW (const TileInfo *ti, const SpriteGroupData *sprite
  */
 static void DrawTrackDetails(const TileInfo *ti, TrackBits tracks)
 {
-	const RailtypeInfo *rti;
-
+	RailType rt;
 	switch (tracks) {
 		case TRACK_BIT_HORZ:
 		case TRACK_BIT_VERT:
@@ -2723,13 +2722,15 @@ static void DrawTrackDetails(const TileInfo *ti, TrackBits tracks)
 		case TRACK_BIT_LOWER:
 		case TRACK_BIT_RIGHT:
 		case TRACK_BIT_LOWER_RIGHT:
-			rti = GetRailTypeInfo(GetRailType(ti->tile, TRACK_LOWER));
+			rt = GetRailType (ti->tile, TRACK_LOWER);
 			break;
 
 		default:
-			rti = GetRailTypeInfo(GetRailType(ti->tile, TRACK_UPPER));
+			rt = GetRailType (ti->tile, TRACK_UPPER);
 			break;
 	}
+
+	const RailtypeInfo *rti = GetRailTypeInfo (rt);
 
 	/* Base sprite for track fences.
 	 * Note: Halftile slopes only have fences on the upper part. */
