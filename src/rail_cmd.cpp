@@ -2730,31 +2730,60 @@ static void DrawTrackDetails(const TileInfo *ti, TrackBits tracks)
 
 	assert (sprites.num_sprites > 0);
 
-	switch (GetRailGroundType(ti->tile)) {
-		case RAIL_GROUND_FENCE_NW:     DrawSideTrackFence (ti, &sprites, DIAGDIR_NW); break;
-		case RAIL_GROUND_FENCE_SE:     DrawSideTrackFence (ti, &sprites, DIAGDIR_SE); break;
-		case RAIL_GROUND_FENCE_SENW:   DrawSideTrackFence (ti, &sprites, DIAGDIR_NW);
-		                               DrawSideTrackFence (ti, &sprites, DIAGDIR_SE); break;
-		case RAIL_GROUND_FENCE_NE:     DrawSideTrackFence (ti, &sprites, DIAGDIR_NE); break;
-		case RAIL_GROUND_FENCE_SW:     DrawSideTrackFence (ti, &sprites, DIAGDIR_SW); break;
-		case RAIL_GROUND_FENCE_NESW:   DrawSideTrackFence (ti, &sprites, DIAGDIR_NE);
-		                               DrawSideTrackFence (ti, &sprites, DIAGDIR_SW); break;
-		case RAIL_GROUND_FENCE_VERT1:  DrawCornerTrackFence (ti, &sprites, CORNER_W); break;
-		case RAIL_GROUND_FENCE_VERT2:  DrawCornerTrackFence (ti, &sprites, CORNER_E); break;
-		case RAIL_GROUND_FENCE_HORIZ1: DrawCornerTrackFence (ti, &sprites, CORNER_N); break;
-		case RAIL_GROUND_FENCE_HORIZ2: DrawCornerTrackFence (ti, &sprites, CORNER_S); break;
-		case RAIL_GROUND_WATER: {
-			Corner track_corner;
+	/* Types of fences to draw. */
+	enum {
+		DRAW_NONE,      // No fence
+		DRAW_FENCE_1,   // Single fence on a side
+		DRAW_FENCE_2,   // Fences on opposite sides
+		DRAW_CORNER,    // Fence along a diagonal
+		DRAW_WATER,     // Fence along a diagonal, water on lower half
+	};
+
+	/* Fence data per rail ground type.
+	 * First byte is type of fence, second byte is side or corner. */
+	static const struct { byte draw, data; } fence_data[16] = {
+		{ DRAW_NONE,    0          }, // RAIL_GROUND_BARREN
+		{ DRAW_NONE,    0          }, // RAIL_GROUND_GRASS
+		{ DRAW_FENCE_1, DIAGDIR_NW }, // RAIL_GROUND_FENCE_NW
+		{ DRAW_FENCE_1, DIAGDIR_SE }, // RAIL_GROUND_FENCE_SE
+		{ DRAW_FENCE_2, DIAGDIR_NW }, // RAIL_GROUND_FENCE_SENW
+		{ DRAW_FENCE_1, DIAGDIR_NE }, // RAIL_GROUND_FENCE_NE
+		{ DRAW_FENCE_1, DIAGDIR_SW }, // RAIL_GROUND_FENCE_SW
+		{ DRAW_FENCE_2, DIAGDIR_NE }, // RAIL_GROUND_FENCE_NESW
+		{ DRAW_CORNER,  CORNER_W   }, // RAIL_GROUND_FENCE_VERT1
+		{ DRAW_CORNER,  CORNER_E   }, // RAIL_GROUND_FENCE_VERT2
+		{ DRAW_CORNER,  CORNER_N   }, // RAIL_GROUND_FENCE_HORIZ1
+		{ DRAW_CORNER,  CORNER_S   }, // RAIL_GROUND_FENCE_HORIZ2
+		{ DRAW_NONE,    0          }, // RAIL_GROUND_ICE_DESERT
+		{ DRAW_WATER,   0          }, // RAIL_GROUND_WATER
+		{ DRAW_NONE,    0          }, // RAIL_GROUND_HALF_SNOW
+		{ DRAW_NONE,    0          }, // unused
+	};
+
+	RailGroundType rgt = GetRailGroundType (ti->tile);
+	byte data = fence_data[rgt].data;
+	switch (fence_data[rgt].draw) {
+		case DRAW_FENCE_2:
+			DrawSideTrackFence (ti, &sprites, (DiagDirection)data);
+			data = ReverseDiagDir ((DiagDirection)data);
+			FALLTHROUGH;
+		case DRAW_FENCE_1:
+			DrawSideTrackFence (ti, &sprites, (DiagDirection)data);
+			break;
+
+		case DRAW_WATER:
 			if (IsHalftileSlope(ti->tileh)) {
 				/* Steep slope or one-corner-raised slope with halftile foundation */
-				track_corner = GetHalftileSlopeCorner(ti->tileh);
+				data = GetHalftileSlopeCorner (ti->tileh);
 			} else {
 				/* Three-corner-raised slope */
-				track_corner = OppositeCorner(GetHighestSlopeCorner(ComplementSlope(ti->tileh)));
+				data = OppositeCorner (GetHighestSlopeCorner (ComplementSlope (ti->tileh)));
 			}
-			DrawCornerTrackFence (ti, &sprites, track_corner);
+			FALLTHROUGH;
+		case DRAW_CORNER:
+			DrawCornerTrackFence (ti, &sprites, (Corner)data);
 			break;
-		}
+
 		default: break;
 	}
 }
