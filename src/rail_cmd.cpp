@@ -2650,23 +2650,6 @@ static void DrawTrackFence (const TileInfo *ti,
 }
 
 /**
- * Draw a corner track fence.
- * @param ti Tile drawing information.
- * @param sprites Sprite group to draw.
- * @param rfo Fence to draw.
- */
-static void DrawCornerTrackFence (const TileInfo *ti,
-	const SpriteGroupData *sprites, Corner corner)
-{
-	static const RailFenceOffset rfo [4] = {
-		RFO_FLAT_LEFT, RFO_FLAT_LOWER, RFO_FLAT_RIGHT, RFO_FLAT_UPPER,
-	};
-
-	DrawTrackFence (ti, sprites, rfo[corner],
-			GetSlopePixelZInCorner (RemoveHalftileSlope (ti->tileh), corner));
-}
-
-/**
  * Draw a fence at a tile side.
  * @param ti Tile drawing information.
  * @param sprites Sprite group to draw.
@@ -2760,6 +2743,11 @@ static void DrawTrackDetails(const TileInfo *ti, TrackBits tracks)
 		{ DRAW_NONE,    0          }, // unused
 	};
 
+	/* Rail fence offsets to use for diagonal fences per corner. */
+	static const byte rfo_corner [4] = {
+		RFO_FLAT_LEFT, RFO_FLAT_LOWER, RFO_FLAT_RIGHT, RFO_FLAT_UPPER,
+	};
+
 	RailGroundType rgt = GetRailGroundType (ti->tile);
 	byte data = fence_data[rgt].data;
 	switch (fence_data[rgt].draw) {
@@ -2781,7 +2769,9 @@ static void DrawTrackDetails(const TileInfo *ti, TrackBits tracks)
 			}
 			FALLTHROUGH;
 		case DRAW_CORNER:
-			DrawCornerTrackFence (ti, &sprites, (Corner)data);
+			DrawTrackFence (ti, &sprites, (RailFenceOffset)rfo_corner[data],
+					GetSlopePixelZInCorner (RemoveHalftileSlope (ti->tileh),
+							(Corner)data));
 			break;
 
 		default: break;
