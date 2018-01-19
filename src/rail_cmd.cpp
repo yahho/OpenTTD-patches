@@ -2737,6 +2737,8 @@ static void DrawTrackDetails(const TileInfo *ti, TrackBits tracks)
 
 	RailGroundType rgt = GetRailGroundType (ti->tile);
 	byte data = fence_data[rgt].data;
+	RailFenceOffset rfo;
+	int dz;
 	switch (fence_data[rgt].draw) {
 		case DRAW_FENCE_2:
 			DrawTrackFence (ti, &sprites,
@@ -2744,8 +2746,8 @@ static void DrawTrackDetails(const TileInfo *ti, TrackBits tracks)
 			data = ReverseDiagDir ((DiagDirection)data);
 			FALLTHROUGH;
 		case DRAW_FENCE_1:
-			DrawTrackFence (ti, &sprites,
-					(RailFenceOffset)rfo_side[data][ti->tileh & rfo_side[data][15]]);
+			rfo = (RailFenceOffset)rfo_side[data][ti->tileh & rfo_side[data][15]];
+			dz = 0;
 			break;
 
 		case DRAW_WATER:
@@ -2758,13 +2760,16 @@ static void DrawTrackDetails(const TileInfo *ti, TrackBits tracks)
 			}
 			FALLTHROUGH;
 		case DRAW_CORNER:
-			DrawTrackFence (ti, &sprites, (RailFenceOffset)rfo_corner[data],
-					GetSlopePixelZInCorner (RemoveHalftileSlope (ti->tileh),
-							(Corner)data));
+			rfo = (RailFenceOffset)rfo_corner[data];
+			dz = GetSlopePixelZInCorner (RemoveHalftileSlope (ti->tileh),
+							(Corner)data);
 			break;
 
-		default: break;
+		default:
+			return;
 	}
+
+	DrawTrackFence (ti, &sprites, rfo, dz);
 }
 
 /* SubSprite for drawing track halftiles. */
