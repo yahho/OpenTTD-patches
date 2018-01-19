@@ -2650,28 +2650,6 @@ static void DrawTrackFence (const TileInfo *ti,
 }
 
 /**
- * Draw a fence at a tile side.
- * @param ti Tile drawing information.
- * @param sprites Sprite group to draw.
- * @param side Tile side at which to draw the fence.
- */
-static void DrawSideTrackFence (const TileInfo *ti,
-	const SpriteGroupData *sprites, DiagDirection side)
-{
-	/* Array of rail fence offsets to use per side and slope.
-	 * Slope 15 is never used, so we store the slope test mask there. */
-	static const byte rfo[DIAGDIR_END][16] = {
-		{ RFO_FLAT_Y_NE, 0, 0, 0, RFO_SLOPE_SE_NE, 0, 0, 0, RFO_SLOPE_NW_NE, 0, 0, 0, 0, 0, 0, SLOPE_NE },
-		{ RFO_FLAT_X_SE, 0, RFO_SLOPE_SW_SE, 0, RFO_SLOPE_NE_SE, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, SLOPE_SE },
-		{ RFO_FLAT_Y_SW, RFO_SLOPE_NW_SW, RFO_SLOPE_SE_SW, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, SLOPE_SW },
-		{ RFO_FLAT_X_NW, RFO_SLOPE_SW_NW, 0, 0, 0, 0, 0, 0, RFO_SLOPE_NE_NW, 0, 0, 0, 0, 0, 0, SLOPE_NW },
-	};
-
-	DrawTrackFence (ti, sprites,
-			(RailFenceOffset)rfo[side][ti->tileh & rfo[side][15]]);
-}
-
-/**
  * Draw track fences.
  * @param ti Tile drawing information.
  * @param rti Rail type information.
@@ -2743,6 +2721,15 @@ static void DrawTrackDetails(const TileInfo *ti, TrackBits tracks)
 		{ DRAW_NONE,    0          }, // unused
 	};
 
+	/* Array of rail fence offsets to use per side and slope.
+	 * Slope 15 is never used, so we store the slope test mask there. */
+	static const byte rfo_side[DIAGDIR_END][16] = {
+		{ RFO_FLAT_Y_NE, 0, 0, 0, RFO_SLOPE_SE_NE, 0, 0, 0, RFO_SLOPE_NW_NE, 0, 0, 0, 0, 0, 0, SLOPE_NE },
+		{ RFO_FLAT_X_SE, 0, RFO_SLOPE_SW_SE, 0, RFO_SLOPE_NE_SE, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, SLOPE_SE },
+		{ RFO_FLAT_Y_SW, RFO_SLOPE_NW_SW, RFO_SLOPE_SE_SW, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, SLOPE_SW },
+		{ RFO_FLAT_X_NW, RFO_SLOPE_SW_NW, 0, 0, 0, 0, 0, 0, RFO_SLOPE_NE_NW, 0, 0, 0, 0, 0, 0, SLOPE_NW },
+	};
+
 	/* Rail fence offsets to use for diagonal fences per corner. */
 	static const byte rfo_corner [4] = {
 		RFO_FLAT_LEFT, RFO_FLAT_LOWER, RFO_FLAT_RIGHT, RFO_FLAT_UPPER,
@@ -2752,11 +2739,13 @@ static void DrawTrackDetails(const TileInfo *ti, TrackBits tracks)
 	byte data = fence_data[rgt].data;
 	switch (fence_data[rgt].draw) {
 		case DRAW_FENCE_2:
-			DrawSideTrackFence (ti, &sprites, (DiagDirection)data);
+			DrawTrackFence (ti, &sprites,
+					(RailFenceOffset)rfo_side[data][ti->tileh & rfo_side[data][15]]);
 			data = ReverseDiagDir ((DiagDirection)data);
 			FALLTHROUGH;
 		case DRAW_FENCE_1:
-			DrawSideTrackFence (ti, &sprites, (DiagDirection)data);
+			DrawTrackFence (ti, &sprites,
+					(RailFenceOffset)rfo_side[data][ti->tileh & rfo_side[data][15]]);
 			break;
 
 		case DRAW_WATER:
