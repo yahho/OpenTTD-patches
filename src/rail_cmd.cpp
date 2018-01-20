@@ -2594,8 +2594,6 @@ static int GetSlopePixelZ_Track(TileIndex tile, uint x, uint y)
 }
 
 
-static uint32 _drawtile_track_palette;
-
 /**
  * Draw a track fence.
  * @param ti Tile drawing information.
@@ -2636,7 +2634,7 @@ static inline void DrawTrackFence (const TileInfo *ti, SpriteID base_image,
 	};
 
 	AddSortableSpriteToDraw (ti->vd, base_image + (rfo % num),
-		_drawtile_track_palette,
+		COMPANY_SPRITE_COLOUR(GetTileOwner(ti->tile)),
 		ti->x + offsets[rfo].x_offs,
 		ti->y + offsets[rfo].y_offs,
 		offsets[rfo].x_size,
@@ -3286,8 +3284,6 @@ static void DrawSignals (const TileInfo *ti, TrackBits rails)
 static void DrawTile_Track(TileInfo *ti)
 {
 	if (IsTileSubtype(ti->tile, TT_TRACK) || IsExtendedRailBridge(ti->tile)) {
-		_drawtile_track_palette = COMPANY_SPRITE_COLOUR(GetTileOwner(ti->tile));
-
 		TrackBits rails = GetTrackBits(ti->tile);
 
 		DrawTrack(ti, rails);
