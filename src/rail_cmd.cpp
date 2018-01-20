@@ -2596,34 +2596,6 @@ static int GetSlopePixelZ_Track(TileIndex tile, uint x, uint y)
 
 static uint32 _drawtile_track_palette;
 
-/** Offsets for drawing fences */
-struct FenceOffset {
-	int x_offs;         //!< Bounding box X offset.
-	int y_offs;         //!< Bounding box Y offset.
-	int x_size;         //!< Bounding box X size.
-	int y_size;         //!< Bounding box Y size.
-};
-
-/** Offsets for drawing fences */
-static const FenceOffset _fence_offsets[] = {
-	{  0,  1, 16,  1 }, // RFO_FLAT_X_NW
-	{  1,  0,  1, 16 }, // RFO_FLAT_Y_NE
-	{  8,  8,  1,  1 }, // RFO_FLAT_LEFT
-	{  8,  8,  1,  1 }, // RFO_FLAT_UPPER
-	{  0,  1, 16,  1 }, // RFO_SLOPE_SW_NW
-	{  1,  0,  1, 16 }, // RFO_SLOPE_SE_NE
-	{  0,  1, 16,  1 }, // RFO_SLOPE_NE_NW
-	{  1,  0,  1, 16 }, // RFO_SLOPE_NW_NE
-	{  0, 15, 16,  1 }, // RFO_FLAT_X_SE
-	{ 15,  0,  1, 16 }, // RFO_FLAT_Y_SW
-	{  8,  8,  1,  1 }, // RFO_FLAT_RIGHT
-	{  8,  8,  1,  1 }, // RFO_FLAT_LOWER
-	{  0, 15, 16,  1 }, // RFO_SLOPE_SW_SE
-	{ 15,  0,  1, 16 }, // RFO_SLOPE_SE_SW
-	{  0, 15, 16,  1 }, // RFO_SLOPE_NE_SE
-	{ 15,  0,  1, 16 }, // RFO_SLOPE_NW_SW
-};
-
 /**
  * Draw a track fence.
  * @param ti Tile drawing information.
@@ -2635,12 +2607,40 @@ static const FenceOffset _fence_offsets[] = {
 static inline void DrawTrackFence (const TileInfo *ti, SpriteID base_image,
 	uint num, RailFenceOffset rfo, int dz = 0)
 {
+	/** Offsets for drawing fences */
+	struct FenceOffset {
+		byte x_offs;        //!< Bounding box X offset.
+		byte y_offs;        //!< Bounding box Y offset.
+		byte x_size;        //!< Bounding box X size.
+		byte y_size;        //!< Bounding box Y size.
+	};
+
+	/** Offsets for drawing fences */
+	static const FenceOffset offsets[] = {
+		{  0,  1, 16,  1 }, // RFO_FLAT_X_NW
+		{  1,  0,  1, 16 }, // RFO_FLAT_Y_NE
+		{  8,  8,  1,  1 }, // RFO_FLAT_LEFT
+		{  8,  8,  1,  1 }, // RFO_FLAT_UPPER
+		{  0,  1, 16,  1 }, // RFO_SLOPE_SW_NW
+		{  1,  0,  1, 16 }, // RFO_SLOPE_SE_NE
+		{  0,  1, 16,  1 }, // RFO_SLOPE_NE_NW
+		{  1,  0,  1, 16 }, // RFO_SLOPE_NW_NE
+		{  0, 15, 16,  1 }, // RFO_FLAT_X_SE
+		{ 15,  0,  1, 16 }, // RFO_FLAT_Y_SW
+		{  8,  8,  1,  1 }, // RFO_FLAT_RIGHT
+		{  8,  8,  1,  1 }, // RFO_FLAT_LOWER
+		{  0, 15, 16,  1 }, // RFO_SLOPE_SW_SE
+		{ 15,  0,  1, 16 }, // RFO_SLOPE_SE_SW
+		{  0, 15, 16,  1 }, // RFO_SLOPE_NE_SE
+		{ 15,  0,  1, 16 }, // RFO_SLOPE_NW_SW
+	};
+
 	AddSortableSpriteToDraw (ti->vd, base_image + (rfo % num),
 		_drawtile_track_palette,
-		ti->x + _fence_offsets[rfo].x_offs,
-		ti->y + _fence_offsets[rfo].y_offs,
-		_fence_offsets[rfo].x_size,
-		_fence_offsets[rfo].y_size,
+		ti->x + offsets[rfo].x_offs,
+		ti->y + offsets[rfo].y_offs,
+		offsets[rfo].x_size,
+		offsets[rfo].y_size,
 		4, ti->z + dz);
 }
 
