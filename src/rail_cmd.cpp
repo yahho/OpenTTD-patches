@@ -2596,12 +2596,6 @@ static int GetSlopePixelZ_Track(TileIndex tile, uint x, uint y)
 
 static uint32 _drawtile_track_palette;
 
-/** Base sprite and number of sprites for a fence sprite group. */
-struct SpriteGroupData {
-	SpriteID base_image; ///< Base sprite
-	uint num_sprites;    ///< Number of sprites
-};
-
 /** Offsets for drawing fences */
 struct FenceOffset {
 	int x_offs;         //!< Bounding box X offset.
@@ -2633,14 +2627,15 @@ static const FenceOffset _fence_offsets[] = {
 /**
  * Draw a track fence.
  * @param ti Tile drawing information.
- * @param sprites Sprite group to draw.
+ * @param base_image Base fence sprite.
+ * @param num Number of fence sprites.
  * @param rfo Fence to draw.
  * @param dz Vertical offset of the sprite.
  */
-static void DrawTrackFence (const TileInfo *ti,
-	const SpriteGroupData *sprites, RailFenceOffset rfo, int dz = 0)
+static inline void DrawTrackFence (const TileInfo *ti, SpriteID base_image,
+	uint num, RailFenceOffset rfo, int dz = 0)
 {
-	AddSortableSpriteToDraw (ti->vd, sprites->base_image + (rfo % sprites->num_sprites),
+	AddSortableSpriteToDraw (ti->vd, base_image + (rfo % num),
 		_drawtile_track_palette,
 		ti->x + _fence_offsets[rfo].x_offs,
 		ti->y + _fence_offsets[rfo].y_offs,
@@ -2680,16 +2675,18 @@ static void DrawTrackDetails(const TileInfo *ti, TrackBits tracks)
 	const SpriteGroup *sprite_group = GetCustomRailSpriteGroup (rti,
 			ti->tile, RTSG_FENCES, IsHalftileSlope(ti->tileh) ?
 				TCX_UPPER_HALFTILE : TCX_NORMAL);
-	SpriteGroupData sprites;
+
+	SpriteID base_image;
+	uint num_sprites;
 	if (sprite_group != NULL) {
-		sprites.base_image = sprite_group->GetResult();
-		sprites.num_sprites = sprite_group->GetNumResults();
+		base_image  = sprite_group->GetResult();
+		num_sprites = sprite_group->GetNumResults();
 	} else {
-		sprites.base_image = SPR_TRACK_FENCE_FLAT_X;
-		sprites.num_sprites = 8;
+		base_image  = SPR_TRACK_FENCE_FLAT_X;
+		num_sprites = 8;
 	}
 
-	assert (sprites.num_sprites > 0);
+	assert (num_sprites > 0);
 
 	/* Types of fences to draw. */
 	enum {
@@ -2741,7 +2738,7 @@ static void DrawTrackDetails(const TileInfo *ti, TrackBits tracks)
 	int dz;
 	switch (fence_data[rgt].draw) {
 		case DRAW_FENCE_2:
-			DrawTrackFence (ti, &sprites,
+			DrawTrackFence (ti, base_image, num_sprites,
 					(RailFenceOffset)rfo_side[data][ti->tileh & rfo_side[data][15]]);
 			data = ReverseDiagDir ((DiagDirection)data);
 			FALLTHROUGH;
@@ -2769,7 +2766,7 @@ static void DrawTrackDetails(const TileInfo *ti, TrackBits tracks)
 			return;
 	}
 
-	DrawTrackFence (ti, &sprites, rfo, dz);
+	DrawTrackFence (ti, base_image, num_sprites, rfo, dz);
 }
 
 /* SubSprite for drawing track halftiles. */
