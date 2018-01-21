@@ -85,29 +85,6 @@ enum RailTrackBridgeOffset {
 	RTBO_SLOPE, ///< Sloped rail pieces, in order NE, SE, SW, NW
 };
 
-/**
- * Offsets from base sprite for fence sprites. These are in the order of
- *  the sprites in the original data files.
- */
-enum RailFenceOffset {
-	RFO_FLAT_X_NW,     //!< Slope FLAT, Track X,     Fence NW
-	RFO_FLAT_Y_NE,     //!< Slope FLAT, Track Y,     Fence NE
-	RFO_FLAT_LEFT,     //!< Slope FLAT, Track LEFT,  Fence E
-	RFO_FLAT_UPPER,    //!< Slope FLAT, Track UPPER, Fence S
-	RFO_SLOPE_SW_NW,   //!< Slope SW,   Track X,     Fence NW
-	RFO_SLOPE_SE_NE,   //!< Slope SE,   Track Y,     Fence NE
-	RFO_SLOPE_NE_NW,   //!< Slope NE,   Track X,     Fence NW
-	RFO_SLOPE_NW_NE,   //!< Slope NW,   Track Y,     Fence NE
-	RFO_FLAT_X_SE,     //!< Slope FLAT, Track X,     Fence SE
-	RFO_FLAT_Y_SW,     //!< Slope FLAT, Track Y,     Fence SW
-	RFO_FLAT_RIGHT,    //!< Slope FLAT, Track RIGHT, Fence W
-	RFO_FLAT_LOWER,    //!< Slope FLAT, Track LOWER, Fence N
-	RFO_SLOPE_SW_SE,   //!< Slope SW,   Track X,     Fence SE
-	RFO_SLOPE_SE_SW,   //!< Slope SE,   Track Y,     Fence SW
-	RFO_SLOPE_NE_SE,   //!< Slope NE,   Track X,     Fence SE
-	RFO_SLOPE_NW_SW,   //!< Slope NW,   Track Y,     Fence SW
-};
-
 /** List of rail type labels. */
 typedef SmallVector<RailTypeLabel, 4> RailTypeLabelList;
 
