@@ -3342,10 +3342,10 @@ static void DrawTile_Track(TileInfo *ti)
 			if (surface != 0) {
 				int dz;
 				if (HasBridgeFlatRamp(ti->tileh, DiagDirToAxis(dir))) {
-					surface += (DiagDirToAxis(dir) == AXIS_X) ? RTBO_X : RTBO_Y;
+					surface += DiagDirToAxis (dir);
 					dz = 8;
 				} else {
-					surface += RTBO_SLOPE + dir;
+					surface += dir + 2;
 					dz = 0;
 				}
 				AddSortableSpriteToDraw (ti->vd, surface, PAL_NONE, ti->x, ti->y, 16, 16, 8 - dz, ti->z + dz);

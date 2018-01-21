@@ -76,15 +76,6 @@ enum RailTrackOffset {
 	RTO_JUNCTION_NSEW,///< Ballast for full junction
 };
 
-/**
- * Offsets for sprites within a bridge surface overlay set.
- */
-enum RailTrackBridgeOffset {
-	RTBO_X,     ///< Piece of rail in X direction
-	RTBO_Y,     ///< Piece of rail in Y direction
-	RTBO_SLOPE, ///< Sloped rail pieces, in order NE, SE, SW, NW
-};
-
 /** List of rail type labels. */
 typedef SmallVector<RailTypeLabel, 4> RailTypeLabelList;
 
