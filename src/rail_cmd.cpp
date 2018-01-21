@@ -3340,11 +3340,15 @@ static void DrawTile_Track(TileInfo *ti)
 		if (rti->UsesOverlay()) {
 			SpriteID surface = GetCustomRailSprite(rti, ti->tile, RTSG_BRIDGE);
 			if (surface != 0) {
+				int dz;
 				if (HasBridgeFlatRamp(ti->tileh, DiagDirToAxis(dir))) {
-					AddSortableSpriteToDraw (ti->vd, surface + ((DiagDirToAxis(dir) == AXIS_X) ? RTBO_X : RTBO_Y), PAL_NONE, ti->x, ti->y, 16, 16, 0, ti->z + 8);
+					surface += (DiagDirToAxis(dir) == AXIS_X) ? RTBO_X : RTBO_Y;
+					dz = 8;
 				} else {
-					AddSortableSpriteToDraw (ti->vd, surface + RTBO_SLOPE + dir, PAL_NONE, ti->x, ti->y, 16, 16, 8, ti->z);
+					surface += RTBO_SLOPE + dir;
+					dz = 0;
 				}
+				AddSortableSpriteToDraw (ti->vd, surface, PAL_NONE, ti->x, ti->y, 16, 16, 8 - dz, ti->z + dz);
 			}
 			/* Don't fallback to non-overlay sprite -- the spec states that
 			 * if an overlay is present then the bridge surface must be
