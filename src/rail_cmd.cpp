@@ -2813,27 +2813,39 @@ static inline void DrawTrackSprite(SpriteID sprite, PaletteID pal, const TileInf
 
 static void DrawTrackGround(TileInfo *ti, RailGroundType rgt, bool has_track)
 {
-	if (rgt == RAIL_GROUND_WATER) {
-		if (has_track || IsSteepSlope(ti->tileh)) {
-			/* three-corner-raised slope or steep slope with track on upper part */
-			DrawShoreTile (ti);
-		} else {
+	bool add_offset = true;
+	SpriteID image;
+	switch (rgt) {
+		case RAIL_GROUND_WATER:
+			if (has_track || IsSteepSlope(ti->tileh)) {
+				/* three-corner-raised slope or steep slope
+				 * with track on upper part */
+				DrawShoreTile (ti);
+				return;
+			}
+
 			/* single-corner-raised slope with track on upper part */
-			DrawGroundSprite (ti, SPR_FLAT_WATER_TILE, PAL_NONE);
-		}
-	} else {
-		SpriteID image;
+			image = SPR_FLAT_WATER_TILE;
+			add_offset = false;
+			break;
 
-		switch (rgt) {
-			case RAIL_GROUND_BARREN:     image = SPR_FLAT_BARE_LAND;  break;
-			case RAIL_GROUND_ICE_DESERT: image = SPR_FLAT_SNOW_DESERT_TILE; break;
-			default:                     image = SPR_FLAT_GRASS_TILE; break;
-		}
+		case RAIL_GROUND_BARREN:
+			image = SPR_FLAT_BARE_LAND;
+			break;
 
-		image += SlopeToSpriteOffset(ti->tileh);
+		case RAIL_GROUND_ICE_DESERT:
+			image = SPR_FLAT_SNOW_DESERT_TILE;
+			break;
 
-		DrawGroundSprite (ti, image, PAL_NONE);
+		default:
+			image = SPR_FLAT_GRASS_TILE;
+			break;
 	}
+
+	if (add_offset) image += SlopeToSpriteOffset (ti->tileh);
+
+	DrawGroundSprite (ti, image, PAL_NONE);
+
 }
 
 static void DrawTrackBitsOverlay(TileInfo *ti, TrackBits track, const RailtypeInfo *rti)
