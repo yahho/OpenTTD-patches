@@ -3091,10 +3091,10 @@ static void DrawUpperHalftileOverlay(TileInfo *ti, Corner corner, const Railtype
 		case CORNER_W: offset = RTO_W; break;
 	}
 
-	DrawTrackSprite(ground + offset, PAL_NONE, ti, fake_slope);
+	DrawGroundSprite (ti, ground + offset, PAL_NONE, NULL, 0, -8);
 	if (_settings_client.gui.show_track_reservation
 			&& HasReservedTracks (ti->tile, CornerToTrackBits (corner))) {
-		DrawTrackSprite(overlay + offset, PALETTE_CRASH, ti, fake_slope);
+		DrawGroundSprite (ti, overlay + offset, PALETTE_CRASH, NULL, 0, -8);
 	}
 }
 
