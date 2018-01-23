@@ -3079,22 +3079,21 @@ static void DrawUpperHalftileOverlay(TileInfo *ti, Corner corner, const Railtype
 
 	DrawGroundSprite (ti, image, PAL_NONE, &_halftile_sub_sprite_upper[corner]);
 
-	TrackBits track = CornerToTrackBits(corner);
-
 	SpriteID overlay = GetCustomRailSprite(rti, ti->tile, RTSG_OVERLAY, TCX_UPPER_HALFTILE);
 	SpriteID ground = GetCustomRailSprite(rti, ti->tile, RTSG_GROUND, TCX_UPPER_HALFTILE);
 
 	int offset;
-	switch (track) {
+	switch (corner) {
 		default: NOT_REACHED();
-		case TRACK_BIT_UPPER: offset = RTO_N; break;
-		case TRACK_BIT_LOWER: offset = RTO_S; break;
-		case TRACK_BIT_RIGHT: offset = RTO_E; break;
-		case TRACK_BIT_LEFT:  offset = RTO_W; break;
+		case CORNER_N: offset = RTO_N; break;
+		case CORNER_S: offset = RTO_S; break;
+		case CORNER_E: offset = RTO_E; break;
+		case CORNER_W: offset = RTO_W; break;
 	}
 
 	DrawTrackSprite(ground + offset, PAL_NONE, ti, fake_slope);
-	if (_settings_client.gui.show_track_reservation && HasReservedTracks(ti->tile, track)) {
+	if (_settings_client.gui.show_track_reservation
+			&& HasReservedTracks (ti->tile, CornerToTrackBits (corner))) {
 		DrawTrackSprite(overlay + offset, PALETTE_CRASH, ti, fake_slope);
 	}
 }
