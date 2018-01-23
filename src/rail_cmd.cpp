@@ -3008,7 +3008,8 @@ static void DrawTrackBits(TileInfo *ti, TrackBits track, const RailtypeInfo *rti
 
 }
 
-static void DrawHalftileOverlay(TileInfo *ti, Corner corner, const RailtypeInfo *rti, RailGroundType rgt)
+static inline void DrawHalftileOverlay (TileInfo *ti, Corner corner,
+	const RailtypeInfo *rti, bool upper = false)
 {
 	SpriteID offset;
 	switch (corner) {
@@ -3019,10 +3020,18 @@ static void DrawHalftileOverlay(TileInfo *ti, Corner corner, const RailtypeInfo 
 		case CORNER_W: offset = RTO_W; break;
 	}
 
-	DrawGroundSprite (ti, offset + GetCustomRailSprite(rti, ti->tile, RTSG_GROUND), PAL_NONE, &_halftile_sub_sprite[corner]);
+	SpriteID sprite = GetCustomRailSprite (rti, ti->tile, RTSG_GROUND,
+				upper ? TCX_UPPER_HALFTILE : TCX_NORMAL);
+	DrawGroundSprite (ti, sprite + offset, PAL_NONE,
+				upper ? NULL : &_halftile_sub_sprite[corner],
+				0, upper ? -8 : 0);
 
 	if (_settings_client.gui.show_track_reservation && HasReservedTracks(ti->tile, CornerToTrackBits(corner))) {
-		DrawGroundSprite (ti, offset + GetCustomRailSprite(rti, ti->tile, RTSG_OVERLAY), PALETTE_CRASH, &_halftile_sub_sprite[corner]);
+		sprite = GetCustomRailSprite (rti, ti->tile, RTSG_OVERLAY,
+				upper ? TCX_UPPER_HALFTILE : TCX_NORMAL);
+		DrawGroundSprite (ti, sprite + offset, PALETTE_CRASH,
+				upper ? NULL : &_halftile_sub_sprite[corner],
+				0, upper ? -8 : 0);
 	}
 }
 
@@ -3056,7 +3065,7 @@ static void DrawHalftileNonOverlay(TileInfo *ti, Corner corner, const RailtypeIn
 static void DrawHalftile(TileInfo *ti, Corner corner, const RailtypeInfo *rti, RailGroundType rgt)
 {
 	if (rti->UsesOverlay()) {
-		DrawHalftileOverlay(ti, corner, rti, rgt);
+		DrawHalftileOverlay (ti, corner, rti);
 	} else {
 		DrawHalftileNonOverlay(ti, corner, rti, rgt);
 	}
@@ -3079,23 +3088,7 @@ static void DrawUpperHalftileOverlay(TileInfo *ti, Corner corner, const Railtype
 
 	DrawGroundSprite (ti, image, PAL_NONE, &_halftile_sub_sprite_upper[corner]);
 
-	SpriteID overlay = GetCustomRailSprite(rti, ti->tile, RTSG_OVERLAY, TCX_UPPER_HALFTILE);
-	SpriteID ground = GetCustomRailSprite(rti, ti->tile, RTSG_GROUND, TCX_UPPER_HALFTILE);
-
-	int offset;
-	switch (corner) {
-		default: NOT_REACHED();
-		case CORNER_N: offset = RTO_N; break;
-		case CORNER_S: offset = RTO_S; break;
-		case CORNER_E: offset = RTO_E; break;
-		case CORNER_W: offset = RTO_W; break;
-	}
-
-	DrawGroundSprite (ti, ground + offset, PAL_NONE, NULL, 0, -8);
-	if (_settings_client.gui.show_track_reservation
-			&& HasReservedTracks (ti->tile, CornerToTrackBits (corner))) {
-		DrawGroundSprite (ti, overlay + offset, PALETTE_CRASH, NULL, 0, -8);
-	}
+	DrawHalftileOverlay (ti, corner, rti, true);
 }
 
 static void DrawUpperHalftileNonOverlay(TileInfo *ti, Corner corner, const RailtypeInfo *rti, RailGroundType rgt)
