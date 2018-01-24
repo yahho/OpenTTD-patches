@@ -2806,6 +2806,13 @@ static const SubSprite _halftile_sub_sprite_upper[4] = {
 };
 static const byte _corner_to_track_sprite[] = {3, 1, 2, 0};
 
+/** Check if a corner track in a rail track tile is reserved. */
+static inline bool HasReservedCorner (TileIndex tile, Corner corner)
+{
+	TrackBits reserved = GetRailReservationTrackBits (tile);
+	return (reserved & CornerToTrackBits (corner)) != TRACK_BIT_NONE;
+}
+
 static inline void DrawTrackSprite(SpriteID sprite, PaletteID pal, const TileInfo *ti, Slope s)
 {
 	DrawGroundSprite (ti, sprite, pal, NULL, 0, (ti->tileh & s) ? -8 : 0);
@@ -3026,7 +3033,8 @@ static inline void DrawHalftileOverlay (TileInfo *ti, Corner corner,
 				upper ? NULL : &_halftile_sub_sprite[corner],
 				0, upper ? -8 : 0);
 
-	if (_settings_client.gui.show_track_reservation && HasReservedTracks(ti->tile, CornerToTrackBits(corner))) {
+	if (_settings_client.gui.show_track_reservation
+			&& HasReservedCorner (ti->tile, corner)) {
 		sprite = GetCustomRailSprite (rti, ti->tile, RTSG_OVERLAY,
 				upper ? TCX_UPPER_HALFTILE : TCX_NORMAL);
 		DrawGroundSprite (ti, sprite + offset, PALETTE_CRASH,
@@ -3057,7 +3065,8 @@ static void DrawHalftileNonOverlay(TileInfo *ti, Corner corner, const RailtypeIn
 	DrawGroundSprite (ti, image, pal, &_halftile_sub_sprite[corner]);
 
 	/* PBS debugging, draw reserved tracks darker */
-	if (_game_mode != GM_MENU && _settings_client.gui.show_track_reservation && HasReservedTracks(ti->tile, CornerToTrackBits(corner))) {
+	if (_game_mode != GM_MENU && _settings_client.gui.show_track_reservation
+			&& HasReservedCorner (ti->tile, corner)) {
 		DrawGroundSprite (ti, _corner_to_track_sprite[corner] + rti->base_sprites.single[TRACK_UPPER], PALETTE_CRASH, NULL, 0, 0);
 	}
 }
@@ -3107,7 +3116,8 @@ static void DrawUpperHalftileNonOverlay(TileInfo *ti, Corner corner, const Railt
 
 	DrawGroundSprite (ti, image, pal, &_halftile_sub_sprite_upper[corner]);
 
-	if (_game_mode != GM_MENU && _settings_client.gui.show_track_reservation && HasReservedTracks(ti->tile, CornerToTrackBits(corner))) {
+	if (_game_mode != GM_MENU && _settings_client.gui.show_track_reservation
+			&& HasReservedCorner (ti->tile, corner)) {
 		DrawGroundSprite (ti, _corner_to_track_sprite[corner] + rti->base_sprites.single[TRACK_UPPER], PALETTE_CRASH, NULL, 0, -(int)TILE_HEIGHT);
 	}
 }
