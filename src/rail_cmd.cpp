@@ -2899,19 +2899,21 @@ static void DrawTrackBitsOverlay(TileInfo *ti, TrackBits track, const RailtypeIn
 		case TRACK_BIT_VERT:  DrawTrackSprite(ground + RTO_E, PAL_NONE, ti, SLOPE_E);
 		                      DrawTrackSprite(ground + RTO_W, PAL_NONE, ti, SLOPE_W); break;
 
-		default:
+		default: {
 			/* We're drawing a junction tile */
+			RailTrackOffset rto;
 			if ((track & TRACK_BIT_3WAY_NE) == 0) {
-				DrawGroundSprite (ti, ground + RTO_JUNCTION_SW, PAL_NONE);
+				rto = RTO_JUNCTION_SW;
 			} else if ((track & TRACK_BIT_3WAY_SW) == 0) {
-				DrawGroundSprite (ti, ground + RTO_JUNCTION_NE, PAL_NONE);
+				rto = RTO_JUNCTION_NE;
 			} else if ((track & TRACK_BIT_3WAY_NW) == 0) {
-				DrawGroundSprite (ti, ground + RTO_JUNCTION_SE, PAL_NONE);
+				rto = RTO_JUNCTION_SE;
 			} else if ((track & TRACK_BIT_3WAY_SE) == 0) {
-				DrawGroundSprite (ti, ground + RTO_JUNCTION_NW, PAL_NONE);
+				rto = RTO_JUNCTION_NW;
 			} else {
-				DrawGroundSprite (ti, ground + RTO_JUNCTION_NSEW, PAL_NONE);
+				rto = RTO_JUNCTION_NSEW;
 			}
+			DrawGroundSprite (ti, ground + rto, PAL_NONE);
 
 			/* Mask out PBS bits as we shall draw them afterwards anyway. */
 			track &= ~pbs;
@@ -2923,6 +2925,7 @@ static void DrawTrackBitsOverlay(TileInfo *ti, TrackBits track, const RailtypeIn
 			if (track & TRACK_BIT_LOWER) DrawGroundSprite (ti, overlay + RTO_S, PAL_NONE);
 			if (track & TRACK_BIT_RIGHT) DrawGroundSprite (ti, overlay + RTO_E, PAL_NONE);
 			if (track & TRACK_BIT_LEFT)  DrawGroundSprite (ti, overlay + RTO_W, PAL_NONE);
+		}
 	}
 
 	/* Draw reserved track bits */
