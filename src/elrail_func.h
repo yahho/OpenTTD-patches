@@ -64,7 +64,7 @@ void DrawRailTunnelCatenary (const TileInfo *ti, DiagDirection dir);
 static inline void DrawRailDepotCatenary (const TileInfo *ti,
 	const RailtypeInfo *rti, DiagDirection dir)
 {
-	DrawRailTunnelDepotCatenary (ti, rti, true, dir);
+	DrawRailTunnelDepotCatenary (ti, rti, true, ReverseDiagDir(dir));
 }
 
 void DrawRailCatenaryOnBridge(const TileInfo *ti);
