@@ -243,8 +243,6 @@ static void DrawTrainDepot(TileInfo *ti)
 
 	/* draw depot */
 
-	if (ti->tileh != SLOPE_FLAT) DrawFoundation(ti, FOUNDATION_LEVELED);
-
 	DiagDirection dir = GetGroundDepotDirection (ti->tile);
 
 	const TrainDepotSprites *dts = &_depot_gfx_table[dir];
@@ -396,7 +394,6 @@ static void DrawRoadDepot(TileInfo *ti)
 {
 	assert(IsRoadDepotTile(ti->tile));
 
-	if (ti->tileh != SLOPE_FLAT) DrawFoundation(ti, FOUNDATION_LEVELED);
 	DrawGroundSprite (ti, 0xA4A, PAL_NONE);
 
 	PaletteID palette = COMPANY_SPRITE_COLOUR(GetTileOwner(ti->tile));
@@ -440,6 +437,10 @@ static void DrawTile_Misc(TileInfo *ti)
 			break;
 
 		case TT_MISC_DEPOT:
+			if (ti->tileh != SLOPE_FLAT) {
+				DrawFoundation (ti, FOUNDATION_LEVELED);
+			}
+
 			if (IsRailDepot(ti->tile)) {
 				DrawTrainDepot(ti);
 			} else {
