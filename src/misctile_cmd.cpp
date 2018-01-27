@@ -233,27 +233,6 @@ static const TrainDepotSprites _depot_gfx_table[DIAGDIR_END] = {
 	{ {SPR_FLAT_GRASS_TILE, SPR_RAIL_TRACK_Y}, _depot_gfx_NW },
 };
 
-static void DrawTrainDepotGroundSprite (TileInfo *ti, DiagDirection dir,
-	SpriteID image_x, SpriteID image_y, PaletteID pal)
-{
-	switch (dir) {
-		case DIAGDIR_NE:
-			if (!IsInvisibilitySet (TO_BUILDINGS)) break;
-			FALLTHROUGH;
-		case DIAGDIR_SW:
-			DrawGroundSprite (ti, image_x, pal);
-			break;
-		case DIAGDIR_NW:
-			if (!IsInvisibilitySet (TO_BUILDINGS)) break;
-			FALLTHROUGH;
-		case DIAGDIR_SE:
-			DrawGroundSprite (ti, image_y, pal);
-			break;
-		default:
-			break;
-	}
-}
-
 static void DrawTrainDepot(TileInfo *ti)
 {
 	assert(IsRailDepotTile(ti->tile));
@@ -291,21 +270,27 @@ static void DrawTrainDepot(TileInfo *ti)
 
 	DrawGroundSprite (ti, image, GroundSpritePaletteTransform (image, PAL_NONE, palette));
 
-	if (rti->UsesOverlay()) {
-		SpriteID ground = GetCustomRailSprite(rti, ti->tile, RTSG_GROUND);
-		DrawTrainDepotGroundSprite (ti, dir,
-				ground + RTO_X, ground + RTO_Y, PAL_NONE);
+	Axis axis = DiagDirToAxis (dir);
+	if ((dir == AxisToDiagDir(axis)) || IsInvisibilitySet(TO_BUILDINGS)) {
+		/* The depot faces south or buildings are set to invisible. */
+		if (rti->UsesOverlay()) {
+			assert_compile ((int)AXIS_X == (int)RTO_X);
+			assert_compile ((int)AXIS_Y == (int)RTO_Y);
 
-		if (_settings_client.gui.show_track_reservation && HasDepotReservation(ti->tile)) {
-			SpriteID overlay = GetCustomRailSprite(rti, ti->tile, RTSG_OVERLAY);
-			DrawTrainDepotGroundSprite (ti, dir,
-					overlay + RTO_X, overlay + RTO_Y, PALETTE_CRASH);
-		}
-	} else {
-		/* PBS debugging, draw reserved tracks darker */
-		if (_game_mode != GM_MENU && _settings_client.gui.show_track_reservation && HasDepotReservation(ti->tile)) {
-			DrawTrainDepotGroundSprite (ti, dir,
-					rti->base_sprites.single[TRACK_X], rti->base_sprites.single[TRACK_Y], PALETTE_CRASH);
+			SpriteID ground = GetCustomRailSprite (rti, ti->tile, RTSG_GROUND);
+			DrawGroundSprite (ti, ground + axis, PAL_NONE);
+
+			if (_settings_client.gui.show_track_reservation
+					&& HasDepotReservation (ti->tile)) {
+				SpriteID overlay = GetCustomRailSprite (rti, ti->tile, RTSG_OVERLAY);
+				DrawGroundSprite (ti, overlay + axis, PALETTE_CRASH);
+			}
+		} else if (_game_mode != GM_MENU
+				&& _settings_client.gui.show_track_reservation
+				&& HasDepotReservation (ti->tile)) {
+			/* PBS debugging, draw reserved tracks darker */
+			SpriteID sprite = rti->base_sprites.single[AxisToTrack(axis)];
+			DrawGroundSprite (ti, sprite, PALETTE_CRASH);
 		}
 	}
 
