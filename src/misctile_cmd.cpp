@@ -273,6 +273,8 @@ static void DrawTrainDepot(TileInfo *ti)
 	Axis axis = DiagDirToAxis (dir);
 	if ((dir == AxisToDiagDir(axis)) || IsInvisibilitySet(TO_BUILDINGS)) {
 		/* The depot faces south or buildings are set to invisible. */
+		bool reserved = false;
+		SpriteID overlay;
 		if (rti->UsesOverlay()) {
 			assert_compile ((int)AXIS_X == (int)RTO_X);
 			assert_compile ((int)AXIS_Y == (int)RTO_Y);
@@ -282,15 +284,19 @@ static void DrawTrainDepot(TileInfo *ti)
 
 			if (_settings_client.gui.show_track_reservation
 					&& HasDepotReservation (ti->tile)) {
-				SpriteID overlay = GetCustomRailSprite (rti, ti->tile, RTSG_OVERLAY);
-				DrawGroundSprite (ti, overlay + axis, PALETTE_CRASH);
+				overlay = GetCustomRailSprite (rti, ti->tile,
+							RTSG_OVERLAY) + axis;
+				reserved = true;
 			}
 		} else if (_game_mode != GM_MENU
 				&& _settings_client.gui.show_track_reservation
 				&& HasDepotReservation (ti->tile)) {
 			/* PBS debugging, draw reserved tracks darker */
-			SpriteID sprite = rti->base_sprites.single[AxisToTrack(axis)];
-			DrawGroundSprite (ti, sprite, PALETTE_CRASH);
+			overlay = rti->base_sprites.single[AxisToTrack(axis)];
+			reserved = true;
+		}
+		if (reserved) {
+			DrawGroundSprite (ti, overlay, PALETTE_CRASH);
 		}
 	}
 
