@@ -51,7 +51,8 @@
  */
 static void DrawTunnel(TileInfo *ti)
 {
-	TransportType transport_type = GetTunnelTransportType(ti->tile);
+	const RailtypeInfo *rti = (GetTunnelTransportType(ti->tile) == TRANSPORT_RAIL) ?
+			GetRailTypeInfo (GetRailType (ti->tile)) : NULL;
 	DiagDirection tunnelbridge_direction = GetTunnelBridgeDirection(ti->tile);
 
 	/* Front view of tunnel bounding boxes:
@@ -77,8 +78,7 @@ static void DrawTunnel(TileInfo *ti)
 
 	SpriteID image;
 	SpriteID railtype_overlay = 0;
-	if (transport_type == TRANSPORT_RAIL) {
-		const RailtypeInfo *rti = GetRailTypeInfo(GetRailType(ti->tile));
+	if (rti != NULL) {
 		image = rti->base_sprites.tunnel;
 		if (rti->UsesOverlay()) {
 			/* Check if the railtype has custom tunnel portals. */
@@ -95,8 +95,8 @@ static void DrawTunnel(TileInfo *ti)
 	DrawGroundSprite (ti, image, PAL_NONE);
 
 	/* PBS debugging, draw reserved tracks darker */
-	if (_game_mode != GM_MENU && _settings_client.gui.show_track_reservation && (transport_type == TRANSPORT_RAIL && HasTunnelHeadReservation(ti->tile))) {
-		const RailtypeInfo *rti = GetRailTypeInfo(GetRailType(ti->tile));
+	if (_game_mode != GM_MENU && _settings_client.gui.show_track_reservation
+			&& rti != NULL && HasTunnelHeadReservation (ti->tile)) {
 		Axis axis = DiagDirToAxis (tunnelbridge_direction);
 		SpriteID image = rti->UsesOverlay() ?
 				GetCustomRailSprite (rti, ti->tile, RTSG_OVERLAY) + RTO_X + axis :
@@ -104,7 +104,7 @@ static void DrawTunnel(TileInfo *ti)
 		DrawGroundSprite (ti, image, PALETTE_CRASH);
 	}
 
-	if (transport_type == TRANSPORT_ROAD) {
+	if (rti == NULL) {
 		RoadTypes rts = GetRoadTypes(ti->tile);
 
 		if (HasBit(rts, ROADTYPE_TRAM)) {
@@ -120,7 +120,6 @@ static void DrawTunnel(TileInfo *ti)
 			}
 		}
 	} else {
-		const RailtypeInfo *rti = GetRailTypeInfo(GetRailType(ti->tile));
 		if (rti->UsesOverlay()) {
 			SpriteID surface = GetCustomRailSprite(rti, ti->tile, RTSG_TUNNEL);
 			if (surface != 0) DrawGroundSprite (ti, surface + tunnelbridge_direction, PAL_NONE);
