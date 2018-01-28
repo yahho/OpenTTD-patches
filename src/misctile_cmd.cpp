@@ -317,14 +317,13 @@ void DrawTrainDepotSprite (BlitArea *dpi, int x, int y, int dir, RailType railty
 
 	DrawSprite (dpi, image, PAL_NONE, x, y);
 
-	if (rti->UsesOverlay()) {
-		SpriteID ground = GetCustomRailSprite(rti, INVALID_TILE, RTSG_GROUND);
+	Axis axis = DiagDirToAxis ((DiagDirection)dir);
+	if ((dir == AxisToDiagDir(axis)) && rti->UsesOverlay()) {
+		assert_compile ((int)AXIS_X == (int)RTO_X);
+		assert_compile ((int)AXIS_Y == (int)RTO_Y);
 
-		switch (dir) {
-			case DIAGDIR_SW: DrawSprite (dpi, ground + RTO_X, PAL_NONE, x, y); break;
-			case DIAGDIR_SE: DrawSprite (dpi, ground + RTO_Y, PAL_NONE, x, y); break;
-			default: break;
-		}
+		SpriteID ground = GetCustomRailSprite(rti, INVALID_TILE, RTSG_GROUND);
+		DrawSprite (dpi, ground + axis, PAL_NONE, x, y);
 	}
 
 	int depot_sprite = GetCustomRailSprite(rti, INVALID_TILE, RTSG_DEPOT);
