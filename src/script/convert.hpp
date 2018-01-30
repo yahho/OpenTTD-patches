@@ -796,13 +796,6 @@ namespace SQConvert {
 		}
 	}
 
-	/** This defines a static method inside a class for Squirrel. */
-	template <typename Func>
-	inline void DefSQStaticMethod (Squirrel *engine, Func function_proc, const char *function_name)
-	{
-		engine->AddMethod (function_name, DefSQStaticCallback<Func>, 0, NULL, &function_proc, sizeof(function_proc));
-	}
-
 	/**
 	 * This defines a static method inside a class for Squirrel with defined params.
 	 * @note If you define nparam, make sure that he first param is always 'x',
