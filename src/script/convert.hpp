@@ -719,16 +719,6 @@ namespace SQConvert {
 		}
 	}
 
-	/** This defines a method inside a class for Squirrel. */
-	template <typename Tmethod>
-	inline void DefSQMethod (Squirrel *engine, const char *class_name,
-		Tmethod function_proc, const char *function_name)
-	{
-		MethodCallbackData <Tmethod> data = { class_name, function_proc };
-		assert_tcompile ((const char**)(SQUserPointer)&data == &data.cname);
-		engine->AddMethod (function_name, DefSQNonStaticCallback<Tmethod>, 0, NULL, &data, sizeof(data));
-	}
-
 	/**
 	 * This defines a method inside a class for Squirrel with defined params.
 	 * @note If you define nparam, make sure that he first param is always 'x',
