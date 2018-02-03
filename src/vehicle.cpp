@@ -2782,19 +2782,16 @@ void VehiclesYearlyLoop()
 
 
 /**
- * Can this station be used by the given engine type?
- * @param engine_type the type of vehicles to test
+ * Can this station be used by the given engine?
+ * @param e the engine to test
  * @param st the station to test for
  * @return true if and only if the vehicle of the type can use this station.
  * @note For road vehicles the Vehicle is needed to determine whether it can
  *       use the station. This function will return true for road vehicles
  *       when at least one of the facilities is available.
  */
-bool CanVehicleUseStation(EngineID engine_type, const Station *st)
+bool CanEngineUseStation (const Engine *e, const Station *st)
 {
-	const Engine *e = Engine::GetIfValid(engine_type);
-	assert(e != NULL);
-
 	switch (e->type) {
 		case VEH_TRAIN:
 			return (st->facilities & FACIL_TRAIN) != 0;
@@ -2827,7 +2824,7 @@ bool CanVehicleUseStation(const Vehicle *v, const Station *st)
 {
 	if (v->type == VEH_ROAD) return st->GetPrimaryRoadStop(RoadVehicle::From(v)) != NULL;
 
-	return CanVehicleUseStation(v->engine_type, st);
+	return CanEngineUseStation (Engine::Get (v->engine_type), st);
 }
 
 /**

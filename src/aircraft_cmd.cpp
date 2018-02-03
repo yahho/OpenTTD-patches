@@ -254,7 +254,7 @@ CommandCost CmdBuildAircraft(TileIndex tile, DoCommandFlag flags, const Engine *
 	const Station *st = Station::GetByTile(tile);
 
 	/* Prevent building aircraft types at places which can't handle them */
-	if (!CanVehicleUseStation(e->index, st)) return CMD_ERROR;
+	if (!CanEngineUseStation (e, st)) return CMD_ERROR;
 
 	if (flags & DC_EXEC) {
 		Aircraft *v = new Aircraft(); // aircraft

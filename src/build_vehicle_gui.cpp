@@ -1224,7 +1224,7 @@ struct BuildVehicleWindow : Window {
 			EngineID eid = e->index;
 			if (!IsEngineBuildable(eid, VEH_AIRCRAFT, _local_company)) continue;
 			/* First VEH_END window_numbers are fake to allow a window open for all different types at once */
-			if (!this->listview_mode && !CanVehicleUseStation(eid, st)) continue;
+			if (!this->listview_mode && !CanEngineUseStation (e, st)) continue;
 
 			*this->eng_list.Append() = eid;
 			if (eid == this->sel_engine) sel_id = eid;
