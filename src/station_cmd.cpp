@@ -134,25 +134,16 @@ static bool CMSAMine(TileIndex tile)
 #define M(x) ((x) - STR_SV_STNAME)
 
 enum StationNaming {
-	STATIONNAMING_RAIL,
-	STATIONNAMING_ROAD,
-	STATIONNAMING_AIRPORT,
-	STATIONNAMING_OILRIG,
-	STATIONNAMING_DOCK,
-	STATIONNAMING_HELIPORT,
+	STATIONNAMING_RAIL     = 0,
+	STATIONNAMING_ROAD     = 0,
+	STATIONNAMING_AIRPORT  = 1U << M(STR_SV_STNAME_AIRPORT),
+	STATIONNAMING_OILRIG   = 1U << M(STR_SV_STNAME_OILFIELD),
+	STATIONNAMING_DOCK     = 1U << M(STR_SV_STNAME_DOCKS),
+	STATIONNAMING_HELIPORT = 1U << M(STR_SV_STNAME_HELIPORT),
 };
 
 static StringID GenerateStationName(Station *st, TileIndex tile, StationNaming name_class)
 {
-	static const uint32 _gen_station_name_bits[] = {
-		0,                                       // STATIONNAMING_RAIL
-		0,                                       // STATIONNAMING_ROAD
-		1U << M(STR_SV_STNAME_AIRPORT),          // STATIONNAMING_AIRPORT
-		1U << M(STR_SV_STNAME_OILFIELD),         // STATIONNAMING_OILRIG
-		1U << M(STR_SV_STNAME_DOCKS),            // STATIONNAMING_DOCK
-		1U << M(STR_SV_STNAME_HELIPORT),         // STATIONNAMING_HELIPORT
-	};
-
 	const Town *t = st->town;
 	uint32 free_names = UINT32_MAX;
 
@@ -209,7 +200,7 @@ static StringID GenerateStationName(Station *st, TileIndex tile, StationNaming n
 	}
 
 	/* check default names */
-	uint32 tmp = free_names & _gen_station_name_bits[name_class];
+	uint32 tmp = free_names & name_class;
 	if (tmp != 0) return STR_SV_STNAME + FindFirstBit(tmp);
 
 	TileArea around (tile);
