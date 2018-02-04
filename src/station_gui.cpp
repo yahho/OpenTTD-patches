@@ -1409,14 +1409,16 @@ struct StationViewWindow : public Window {
 				size->height = WD_FRAMERECT_TOP + ((this->GetWidget<NWidgetCore>(WID_SV_ACCEPTS_RATINGS)->widget_data == STR_STATION_VIEW_RATINGS_BUTTON) ? this->accepts_lines : this->rating_lines) * FONT_HEIGHT_NORMAL + WD_FRAMERECT_BOTTOM;
 				break;
 
-			case WID_SV_CLOSE_AIRPORT:
-				if (!(Station::Get(this->window_number)->facilities & FACIL_AIRPORT)) {
-					/* Hide 'Close Airport' button if no airport present. */
+			case WID_SV_CLOSE_AIRPORT: {
+				/* Hide 'Close Airport' button if no airport present, and in oilrigs. */
+				const Station *st = Station::Get (this->window_number);
+				if (!(st->facilities & FACIL_AIRPORT) || (st->owner == OWNER_NONE)) {
 					size->width = 0;
 					resize->width = 0;
 					fill->width = 0;
 				}
 				break;
+			}
 		}
 	}
 
