@@ -59,6 +59,7 @@
 #include "signalbuffer.h"
 #include "map/zoneheight.h"
 #include "map/road.h"
+#include "network/network.h"
 
 #include "table/strings.h"
 
@@ -3817,8 +3818,10 @@ CommandCost CmdRenameStation(TileIndex tile, DoCommandFlag flags, uint32 p1, uin
 	Station *st = Station::GetIfValid(p1);
 	if (st == NULL) return CMD_ERROR;
 
-	CommandCost ret = CheckOwnership(st->owner);
-	if (ret.Failed()) return ret;
+	if (_networking || (st->owner != OWNER_NONE)) {
+		CommandCost ret = CheckOwnership (st->owner);
+		if (ret.Failed()) return ret;
+	}
 
 	bool reset = StrEmpty(text);
 

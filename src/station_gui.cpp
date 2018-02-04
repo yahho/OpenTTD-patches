@@ -35,6 +35,7 @@
 #include "linkgraph/linkgraph.h"
 #include "station_func.h"
 #include "zoom_func.h"
+#include "network/network.h"
 
 #include "widgets/station_widget.h"
 
@@ -1424,7 +1425,8 @@ struct StationViewWindow : public Window {
 		const Station *st = Station::Get(this->window_number);
 
 		/* disable some buttons */
-		this->SetWidgetDisabledState(WID_SV_RENAME,   st->owner != _local_company);
+		this->SetWidgetDisabledState (WID_SV_RENAME,
+					(st->owner != _local_company) && ((st->owner != OWNER_NONE) || _networking));
 		this->SetWidgetDisabledState(WID_SV_TRAINS,   !(st->facilities & FACIL_TRAIN));
 		this->SetWidgetDisabledState(WID_SV_ROADVEHS, !(st->facilities & FACIL_TRUCK_STOP) && !(st->facilities & FACIL_BUS_STOP));
 		this->SetWidgetDisabledState(WID_SV_SHIPS,    !(st->facilities & FACIL_DOCK));
