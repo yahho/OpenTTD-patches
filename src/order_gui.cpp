@@ -1414,9 +1414,9 @@ public:
 		}
 	}
 
-	virtual EventState OnHotkey(int hotkey)
+	bool OnHotkey (int hotkey) OVERRIDE
 	{
-		if (this->vehicle->owner != _local_company) return ES_NOT_HANDLED;
+		if (this->vehicle->owner != _local_company) return false;
 
 		switch (hotkey) {
 			case OHK_SKIP:           this->OrderClick_Skip();          break;
@@ -1430,9 +1430,9 @@ public:
 			case OHK_TRANSFER:       this->OrderHotkey_Transfer();     break;
 			case OHK_NO_UNLOAD:      this->OrderHotkey_NoUnload();     break;
 			case OHK_NO_LOAD:        this->OrderHotkey_NoLoad();       break;
-			default: return ES_NOT_HANDLED;
+			default: return false;
 		}
-		return ES_HANDLED;
+		return true;
 	}
 
 	virtual void OnPlaceObject(Point pt, TileIndex tile)

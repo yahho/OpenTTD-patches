@@ -260,45 +260,45 @@ struct MainWindow : Window
 		}
 	}
 
-	virtual EventState OnHotkey(int hotkey)
+	bool OnHotkey (int hotkey) OVERRIDE
 	{
 		if (hotkey == GHK_QUIT) {
 			HandleExitGameRequest();
-			return ES_HANDLED;
+			return true;
 		}
 
 		/* Disable all key shortcuts, except quit shortcuts when
 		 * generating the world, otherwise they create threading
 		 * problem during the generating, resulting in random
 		 * assertions that are hard to trigger and debug */
-		if (HasModalProgress()) return ES_NOT_HANDLED;
+		if (HasModalProgress()) return false;
 
 		switch (hotkey) {
 			case GHK_ABANDON:
 				/* No point returning from the main menu to itself */
-				if (_game_mode == GM_MENU) return ES_HANDLED;
+				if (_game_mode == GM_MENU) return true;
 				if (_settings_client.gui.autosave_on_exit) {
 					DoExitSave();
 					_switch_mode = SM_MENU;
 				} else {
 					AskExitToGameMenu();
 				}
-				return ES_HANDLED;
+				return true;
 
 			case GHK_CONSOLE:
 				IConsoleSwitch();
-				return ES_HANDLED;
+				return true;
 
 			case GHK_BOUNDING_BOXES:
 				ToggleBoundingBoxes();
-				return ES_HANDLED;
+				return true;
 
 			case GHK_DIRTY_BLOCKS:
 				ToggleDirtyBlocks();
-				return ES_HANDLED;
+				return true;
 		}
 
-		if (_game_mode == GM_MENU) return ES_NOT_HANDLED;
+		if (_game_mode == GM_MENU) return false;
 
 		switch (hotkey) {
 			case GHK_CENTER:
@@ -399,9 +399,9 @@ struct MainWindow : Window
 				break;
 #endif
 
-			default: return ES_NOT_HANDLED;
+			default: return false;
 		}
-		return ES_HANDLED;
+		return true;
 	}
 
 	virtual void OnScroll(Point delta)

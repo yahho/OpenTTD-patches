@@ -294,7 +294,7 @@ static EventState TerraformToolbarGlobalHotkeys(int hotkey)
 	if (_game_mode != GM_NORMAL) return ES_NOT_HANDLED;
 	Window *w = ShowTerraformToolbar(NULL);
 	if (w == NULL) return ES_NOT_HANDLED;
-	return w->OnHotkey(hotkey);
+	return w->OnHotkey(hotkey) ? ES_HANDLED : ES_NOT_HANDLED;
 }
 
 static const Hotkey terraform_hotkeys[] = {
@@ -706,7 +706,7 @@ static EventState TerraformToolbarEditorGlobalHotkeys(int hotkey)
 	if (_game_mode != GM_EDITOR) return ES_NOT_HANDLED;
 	Window *w = ShowEditorTerraformToolbar();
 	if (w == NULL) return ES_NOT_HANDLED;
-	return w->OnHotkey(hotkey);
+	return w->OnHotkey(hotkey) ? ES_HANDLED : ES_NOT_HANDLED;
 }
 
 static const Hotkey terraform_editor_hotkeys[] = {

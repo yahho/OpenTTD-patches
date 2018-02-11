@@ -156,7 +156,7 @@ static EventState AirportToolbarGlobalHotkeys(int hotkey)
 	if (_game_mode != GM_NORMAL || !CanBuildVehicleInfrastructure(VEH_AIRCRAFT)) return ES_NOT_HANDLED;
 	Window *w = ShowBuildAirToolbar();
 	if (w == NULL) return ES_NOT_HANDLED;
-	return w->OnHotkey(hotkey);
+	return w->OnHotkey(hotkey) ? ES_HANDLED : ES_NOT_HANDLED;
 }
 
 static const Hotkey airtoolbar_hotkeys[] = {

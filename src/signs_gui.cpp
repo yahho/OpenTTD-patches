@@ -273,7 +273,7 @@ struct SignListWindow : Window, SignList {
 		}
 	}
 
-	virtual EventState OnHotkey(int hotkey)
+	bool OnHotkey (int hotkey) OVERRIDE
 	{
 		switch (hotkey) {
 			case SLHK_FOCUS_FILTER_BOX:
@@ -282,10 +282,10 @@ struct SignListWindow : Window, SignList {
 				break;
 
 			default:
-				return ES_NOT_HANDLED;
+				return false;
 		}
 
-		return ES_HANDLED;
+		return true;
 	}
 
 	virtual void OnEditboxChanged(int widget)
@@ -340,7 +340,7 @@ static EventState SignListGlobalHotkeys(int hotkey)
 	if (_game_mode == GM_MENU) return ES_NOT_HANDLED;
 	Window *w = ShowSignList();
 	if (w == NULL) return ES_NOT_HANDLED;
-	return w->OnHotkey(hotkey);
+	return w->OnHotkey(hotkey) ? ES_HANDLED : ES_NOT_HANDLED;
 }
 
 static const Hotkey signlist_hotkeys[] = {

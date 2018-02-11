@@ -291,7 +291,7 @@ static EventState DockToolbarGlobalHotkeys(int hotkey)
 	if (_game_mode != GM_NORMAL) return ES_NOT_HANDLED;
 	Window *w = ShowBuildDocksToolbar();
 	if (w == NULL) return ES_NOT_HANDLED;
-	return w->OnHotkey(hotkey);
+	return w->OnHotkey(hotkey) ? ES_HANDLED : ES_NOT_HANDLED;
 }
 
 static const Hotkey dockstoolbar_hotkeys[] = {

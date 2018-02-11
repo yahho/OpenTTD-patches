@@ -622,7 +622,7 @@ public:
 	 */
 	virtual EventState OnKeyPress(WChar key, uint16 keycode) { return ES_NOT_HANDLED; }
 
-	virtual EventState OnHotkey(int hotkey);
+	virtual bool OnHotkey (int hotkey);
 
 	/**
 	 * The state of the control key has changed

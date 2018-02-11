@@ -565,17 +565,17 @@ void Window::SetWidgetDirty(byte widget_index) const
 /**
  * A hotkey has been pressed.
  * @param hotkey  Hotkey index, by default a widget index of a button or editbox.
- * @return #ES_HANDLED if the key press has been handled, and the hotkey is not unavailable for some reason.
+ * @return Whether the key press has been handled, and the hotkey is not unavailable for some reason.
  */
-EventState Window::OnHotkey(int hotkey)
+bool Window::OnHotkey (int hotkey)
 {
-	if (hotkey < 0) return ES_NOT_HANDLED;
+	if (hotkey < 0) return false;
 
 	NWidgetCore *nw = this->GetWidget<NWidgetCore>(hotkey);
-	if (nw == NULL || nw->IsDisabled()) return ES_NOT_HANDLED;
+	if (nw == NULL || nw->IsDisabled()) return false;
 
 	if (nw->type == WWT_EDITBOX) {
-		if (this->IsShaded()) return ES_NOT_HANDLED;
+		if (this->IsShaded()) return false;
 
 		/* Focus editbox */
 		this->SetFocusedWidget(hotkey);
@@ -584,7 +584,7 @@ EventState Window::OnHotkey(int hotkey)
 		/* Click button */
 		this->OnClick(Point(), hotkey, 1);
 	}
-	return ES_HANDLED;
+	return true;
 }
 
 /**
@@ -2616,7 +2616,7 @@ void HandleKeypress(uint keycode, WChar key)
 		if (w->window_class == WC_MAIN_TOOLBAR) continue;
 		if (w->window_desc->hotkeys != NULL) {
 			int hotkey = w->window_desc->hotkeys->CheckMatch(keycode);
-			if (hotkey >= 0 && w->OnHotkey(hotkey) == ES_HANDLED) return;
+			if (hotkey >= 0 && w->OnHotkey(hotkey)) return;
 		}
 		if (w->OnKeyPress(key, keycode) == ES_HANDLED) return;
 	}
@@ -2626,7 +2626,7 @@ void HandleKeypress(uint keycode, WChar key)
 	if (w != NULL) {
 		if (w->window_desc->hotkeys != NULL) {
 			int hotkey = w->window_desc->hotkeys->CheckMatch(keycode);
-			if (hotkey >= 0 && w->OnHotkey(hotkey) == ES_HANDLED) return;
+			if (hotkey >= 0 && w->OnHotkey(hotkey)) return;
 		}
 		if (w->OnKeyPress(key, keycode) == ES_HANDLED) return;
 	}

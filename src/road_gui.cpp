@@ -457,7 +457,7 @@ struct BuildRoadToolbarWindow : Window {
 		if (_ctrl_pressed) RoadToolbar_CtrlChanged(this);
 	}
 
-	virtual EventState OnHotkey(int hotkey)
+	bool OnHotkey (int hotkey) OVERRIDE
 	{
 		MarkTileDirtyByTile(TileVirtXY(_thd.pos.x, _thd.pos.y)); // redraw tile selection
 		return Window::OnHotkey(hotkey);
@@ -686,7 +686,7 @@ static EventState RoadToolbarGlobalHotkeys(int hotkey)
 	}
 
 	if (w == NULL) return ES_NOT_HANDLED;
-	return w->OnHotkey(hotkey);
+	return w->OnHotkey(hotkey) ? ES_HANDLED : ES_NOT_HANDLED;
 }
 
 static const Hotkey roadtoolbar_hotkeys[] = {
