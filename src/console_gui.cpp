@@ -242,9 +242,9 @@ struct IConsoleWindow : Window
 		if (_iconsole_cmdline.HandleCaret()) this->SetDirty();
 	}
 
-	virtual EventState OnKeyPress(WChar key, uint16 keycode)
+	bool OnKeyPress (WChar key, uint16 keycode) OVERRIDE
 	{
-		if (_focused_window != this) return ES_NOT_HANDLED;
+		if (_focused_window != this) return false;
 
 		const int scroll_height = (this->height / this->line_height) - 1;
 		switch (keycode) {
@@ -306,11 +306,11 @@ struct IConsoleWindow : Window
 					IConsoleResetHistoryPos();
 					this->SetDirty();
 				} else {
-					return ES_NOT_HANDLED;
+					return false;
 				}
 				break;
 		}
-		return ES_HANDLED;
+		return true;
 	}
 
 	virtual void InsertTextString(int wid, const char *str, bool marked, const char *caret, const char *insert_location, const char *replacement_end)

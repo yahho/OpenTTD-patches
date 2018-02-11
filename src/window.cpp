@@ -2604,7 +2604,7 @@ void HandleKeypress(uint keycode, WChar key)
 	if (EditBoxInGlobalFocus()) {
 		/* All input will in this case go to the focused editbox */
 		if (_focused_window->window_class == WC_CONSOLE) {
-			if (_focused_window->OnKeyPress(key, keycode) == ES_HANDLED) return;
+			if (_focused_window->OnKeyPress (key, keycode)) return;
 		} else {
 			if (_focused_window->HandleEditBoxKey(_focused_window->nested_focus->index, key, keycode) == ES_HANDLED) return;
 		}
@@ -2618,7 +2618,7 @@ void HandleKeypress(uint keycode, WChar key)
 			int hotkey = w->window_desc->hotkeys->CheckMatch(keycode);
 			if (hotkey >= 0 && w->OnHotkey(hotkey)) return;
 		}
-		if (w->OnKeyPress(key, keycode) == ES_HANDLED) return;
+		if (w->OnKeyPress (key, keycode)) return;
 	}
 
 	w = FindWindowById(WC_MAIN_TOOLBAR, 0);
@@ -2628,7 +2628,7 @@ void HandleKeypress(uint keycode, WChar key)
 			int hotkey = w->window_desc->hotkeys->CheckMatch(keycode);
 			if (hotkey >= 0 && w->OnHotkey(hotkey)) return;
 		}
-		if (w->OnKeyPress(key, keycode) == ES_HANDLED) return;
+		if (w->OnKeyPress (key, keycode)) return;
 	}
 
 	HandleGlobalHotkeys(key, keycode);

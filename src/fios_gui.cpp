@@ -606,14 +606,14 @@ public:
 		}
 	}
 
-	virtual EventState OnKeyPress(WChar key, uint16 keycode)
+	bool OnKeyPress (WChar key, uint16 keycode) OVERRIDE
 	{
 		if (keycode == WKC_ESC) {
 			this->Delete();
-			return ES_HANDLED;
+			return true;
 		}
 
-		return ES_NOT_HANDLED;
+		return false;
 	}
 
 	virtual void OnTimeout()

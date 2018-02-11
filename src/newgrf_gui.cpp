@@ -1308,9 +1308,9 @@ struct NewGRFWindow : public Window, NewGRFScanCallback {
 		this->SetWidgetDisabledState(WID_NS_PRESET_SAVE, has_missing);
 	}
 
-	virtual EventState OnKeyPress(WChar key, uint16 keycode)
+	bool OnKeyPress (WChar key, uint16 keycode) OVERRIDE
 	{
-		if (!this->editable) return ES_NOT_HANDLED;
+		if (!this->editable) return false;
 
 		switch (keycode) {
 			case WKC_UP:
@@ -1344,7 +1344,7 @@ struct NewGRFWindow : public Window, NewGRFScanCallback {
 				break;
 
 			default:
-				return ES_NOT_HANDLED;
+				return false;
 		}
 
 		if (this->avails.Length() == 0) this->avail_pos = -1;
@@ -1354,7 +1354,7 @@ struct NewGRFWindow : public Window, NewGRFScanCallback {
 			this->InvalidateData(0);
 		}
 
-		return ES_HANDLED;
+		return true;
 	}
 
 	virtual void OnEditboxChanged(int wid)

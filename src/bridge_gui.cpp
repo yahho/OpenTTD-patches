@@ -269,16 +269,16 @@ public:
 		}
 	}
 
-	virtual EventState OnKeyPress(WChar key, uint16 keycode)
+	bool OnKeyPress (WChar key, uint16 keycode) OVERRIDE
 	{
 		const uint8 i = keycode - '1';
 		if (i < 9 && i < this->bridges->Length()) {
 			/* Build the requested bridge */
 			this->BuildBridge(i);
 			this->Delete();
-			return ES_HANDLED;
+			return true;
 		}
-		return ES_NOT_HANDLED;
+		return false;
 	}
 
 	virtual void OnClick(Point pt, int widget, int click_count)

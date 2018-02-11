@@ -1136,7 +1136,7 @@ struct QueryWindow : public Window {
 		}
 	}
 
-	virtual EventState OnKeyPress(WChar key, uint16 keycode)
+	bool OnKeyPress (WChar key, uint16 keycode) OVERRIDE
 	{
 		/* ESC closes the window, Enter confirms the action */
 		switch (keycode) {
@@ -1150,9 +1150,9 @@ struct QueryWindow : public Window {
 
 			case WKC_ESC:
 				this->Delete();
-				return ES_HANDLED;
+				return true;
 		}
-		return ES_NOT_HANDLED;
+		return false;
 	}
 };
 

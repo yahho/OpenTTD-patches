@@ -617,10 +617,13 @@ public:
 	 * A key has been pressed.
 	 * @param key     the Unicode value of the key.
 	 * @param keycode the untranslated key code including shift state.
-	 * @return #ES_HANDLED if the key press has been handled and no other
+	 * @return Whether the key press has been handled and no other
 	 *         window should receive the event.
 	 */
-	virtual EventState OnKeyPress(WChar key, uint16 keycode) { return ES_NOT_HANDLED; }
+	virtual bool OnKeyPress (WChar key, uint16 keycode)
+	{
+		return false;
+	}
 
 	virtual bool OnHotkey (int hotkey);
 

@@ -67,12 +67,12 @@ struct EndGameHighScoreBaseWindow : Window {
 		this->Delete();
 	}
 
-	virtual EventState OnKeyPress(WChar key, uint16 keycode)
+	bool OnKeyPress (WChar key, uint16 keycode) OVERRIDE
 	{
 		/* All keys are 'handled' by this window but we want to make
 		 * sure that 'quit' still works correctly. Not handling the
 		 * quit key is enough so the main toolbar can handle it. */
-		if (IsQuitKey(keycode)) return ES_NOT_HANDLED;
+		if (IsQuitKey(keycode)) return false;
 
 		switch (keycode) {
 			/* Keys for telling we want to go on */
@@ -80,13 +80,13 @@ struct EndGameHighScoreBaseWindow : Window {
 			case WKC_ESC:
 			case WKC_SPACE:
 				this->Delete();
-				return ES_HANDLED;
+				return true;
 
 			default:
 				/* We want to handle all keys; we don't want windows in
 				 * the background to open. Especially the ones that do
 				 * locate themselves based on the status-/toolbars. */
-				return ES_HANDLED;
+				return true;
 		}
 	}
 };
