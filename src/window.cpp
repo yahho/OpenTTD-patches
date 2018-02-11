@@ -1927,13 +1927,13 @@ static void DecreaseWindowCounters()
 
 /**
  * Handle dragging and dropping in mouse dragging mode (#WSM_DRAGDROP).
- * @return State of handling the event.
+ * @return Whether the event was handled.
  */
-static EventState HandleMouseDragDrop()
+static bool HandleMouseDragDrop (void)
 {
-	if (_pointer_mode != POINTER_DRAG) return ES_NOT_HANDLED;
+	if (_pointer_mode != POINTER_DRAG) return false;
 
-	if (_left_button_down && _cursor.delta.x == 0 && _cursor.delta.y == 0) return ES_HANDLED; // Dragging, but the mouse did not move.
+	if (_left_button_down && _cursor.delta.x == 0 && _cursor.delta.y == 0) return true; // Dragging, but the mouse did not move.
 
 	Window *w = _thd.GetCallbackWnd();
 	if (w != NULL) {
@@ -1949,7 +1949,7 @@ static EventState HandleMouseDragDrop()
 	}
 
 	if (!_left_button_down) ResetPointerMode(); // Button released, finished dragging.
-	return ES_HANDLED;
+	return true;
 }
 
 /** Report position of the mouse to the underlying window. */
@@ -2794,7 +2794,7 @@ static void MouseLoop(MouseClick click, int mousewheel)
 	UpdateTileSelection();
 
 	if (VpHandlePlaceSizingDrag())  return;
-	if (HandleMouseDragDrop()      == ES_HANDLED) return;
+	if (HandleMouseDragDrop())      return;
 	if (HandleWindowDragging()     == ES_HANDLED) return;
 	if (HandleScrollbarScrolling() == ES_HANDLED) return;
 	if (HandleViewportScroll()     == ES_HANDLED) return;
