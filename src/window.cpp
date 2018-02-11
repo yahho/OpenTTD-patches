@@ -2128,15 +2128,15 @@ static bool _dragging_window; ///< A window is being dragged or resized.
 
 /**
  * Handle dragging/resizing of a window.
- * @return State of handling the event.
+ * @return Whether the event was handled.
  */
-static EventState HandleWindowDragging()
+static bool HandleWindowDragging (void)
 {
 	/* Get out immediately if no window is being dragged at all. */
-	if (!_dragging_window) return ES_NOT_HANDLED;
+	if (!_dragging_window) return false;
 
 	/* If button still down, but cursor hasn't moved, there is nothing to do. */
-	if (_left_button_down && _cursor.delta.x == 0 && _cursor.delta.y == 0) return ES_HANDLED;
+	if (_left_button_down && _cursor.delta.x == 0 && _cursor.delta.y == 0) return true;
 
 	/* Otherwise find the window... */
 	Window *w;
@@ -2234,7 +2234,7 @@ static EventState HandleWindowDragging()
 			EnsureVisibleCaption(w, nx, ny);
 
 			w->SetDirty();
-			return ES_HANDLED;
+			return true;
 		} else if (w->flags & WF_SIZING) {
 			/* Stop the sizing if the left mouse button was released */
 			if (!_left_button_down) {
@@ -2277,7 +2277,7 @@ static EventState HandleWindowDragging()
 			}
 
 			/* Window already on size */
-			if (x == 0 && y == 0) return ES_HANDLED;
+			if (x == 0 && y == 0) return true;
 
 			/* Now find the new cursor pos.. this is NOT _cursor, because we move in steps. */
 			_drag_delta.y += y;
@@ -2292,12 +2292,12 @@ static EventState HandleWindowDragging()
 
 			/* ResizeWindow sets both pre- and after-size to dirty for redrawal */
 			ResizeWindow(w, x, y);
-			return ES_HANDLED;
+			return true;
 		}
 	}
 
 	_dragging_window = false;
-	return ES_HANDLED;
+	return true;
 }
 
 /**
@@ -2795,7 +2795,7 @@ static void MouseLoop(MouseClick click, int mousewheel)
 
 	if (VpHandlePlaceSizingDrag())  return;
 	if (HandleMouseDragDrop())      return;
-	if (HandleWindowDragging()     == ES_HANDLED) return;
+	if (HandleWindowDragging())     return;
 	if (HandleScrollbarScrolling() == ES_HANDLED) return;
 	if (HandleViewportScroll()     == ES_HANDLED) return;
 
