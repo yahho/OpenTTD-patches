@@ -2387,13 +2387,13 @@ static bool HandleScrollbarScrolling (void)
 
 /**
  * Handle viewport scrolling with the mouse.
- * @return State of handling the event.
+ * @return Whether the event was handled.
  */
-static EventState HandleViewportScroll()
+static bool HandleViewportScroll (void)
 {
 	bool scrollwheel_scrolling = _settings_client.gui.scrollwheel_scrolling == 1 && (_cursor.v_wheel != 0 || _cursor.h_wheel != 0);
 
-	if (!_scrolling_viewport) return ES_NOT_HANDLED;
+	if (!_scrolling_viewport) return false;
 
 	/* When we don't have a last scroll window we are starting to scroll.
 	 * When the last scroll window and this are not the same we went
@@ -2404,14 +2404,14 @@ static EventState HandleViewportScroll()
 		_cursor.fix_at = false;
 		_scrolling_viewport = false;
 		_last_scroll_window = NULL;
-		return ES_NOT_HANDLED;
+		return false;
 	}
 
 	if (_last_scroll_window == FindWindowById(WC_MAIN_WINDOW, 0) && _last_scroll_window->viewport->follow_vehicle != INVALID_VEHICLE) {
 		/* If the main window is following a vehicle, then first let go of it! */
 		const Vehicle *veh = Vehicle::Get(_last_scroll_window->viewport->follow_vehicle);
 		ScrollMainWindowTo(veh->x_pos, veh->y_pos, veh->z_pos, true); // This also resets follow_vehicle
-		return ES_NOT_HANDLED;
+		return false;
 	}
 
 	Point delta;
@@ -2436,7 +2436,7 @@ static EventState HandleViewportScroll()
 
 	_cursor.delta.x = 0;
 	_cursor.delta.y = 0;
-	return ES_HANDLED;
+	return true;
 }
 
 /**
@@ -2797,7 +2797,7 @@ static void MouseLoop(MouseClick click, int mousewheel)
 	if (HandleMouseDragDrop())      return;
 	if (HandleWindowDragging())     return;
 	if (HandleScrollbarScrolling()) return;
-	if (HandleViewportScroll()     == ES_HANDLED) return;
+	if (HandleViewportScroll())     return;
 
 	HandleMouseOver();
 
