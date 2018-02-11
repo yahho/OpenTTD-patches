@@ -2731,7 +2731,8 @@ enum MouseClick {
 	TIME_BETWEEN_DOUBLE_CLICK = 500, ///< Time between 2 left clicks before it becoming a double click, in ms
 	MAX_OFFSET_HOVER = 5,            ///< Maximum mouse movement before stopping a hover event.
 };
-extern EventState VpHandlePlaceSizingDrag();
+
+extern bool VpHandlePlaceSizingDrag (void);
 
 static void ScrollMainViewport(int x, int y)
 {
@@ -2792,7 +2793,7 @@ static void MouseLoop(MouseClick click, int mousewheel)
 
 	UpdateTileSelection();
 
-	if (VpHandlePlaceSizingDrag()  == ES_HANDLED) return;
+	if (VpHandlePlaceSizingDrag())  return;
 	if (HandleMouseDragDrop()      == ES_HANDLED) return;
 	if (HandleWindowDragging()     == ES_HANDLED) return;
 	if (HandleScrollbarScrolling() == ES_HANDLED) return;
