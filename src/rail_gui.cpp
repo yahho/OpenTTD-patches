@@ -809,15 +809,14 @@ struct BuildRailToolbarWindow : Window {
 /**
  * Handler for global hotkeys of the BuildRailToolbarWindow.
  * @param hotkey Hotkey
- * @return ES_HANDLED if hotkey was accepted.
+ * @return Whether the hotkey was handled.
  */
-static EventState RailToolbarGlobalHotkeys(int hotkey)
+static bool RailToolbarGlobalHotkeys (int hotkey)
 {
-	if (_game_mode != GM_NORMAL || !CanBuildVehicleInfrastructure(VEH_TRAIN)) return ES_NOT_HANDLED;
+	if (_game_mode != GM_NORMAL || !CanBuildVehicleInfrastructure(VEH_TRAIN)) return false;
 	extern RailType _last_built_railtype;
 	Window *w = ShowBuildRailToolbar(_last_built_railtype);
-	if (w == NULL) return ES_NOT_HANDLED;
-	return w->OnHotkey(hotkey) ? ES_HANDLED : ES_NOT_HANDLED;
+	return (w != NULL) && w->OnHotkey (hotkey);
 }
 
 static const Hotkey railtoolbar_hotkeys[] = {

@@ -285,7 +285,7 @@ void HandleGlobalHotkeys(WChar key, uint16 keycode)
 		if (it->global_hotkey_handler == NULL) continue;
 
 		int hotkey = it->CheckMatch (keycode, true);
-		if (hotkey >= 0 && (it->global_hotkey_handler(hotkey) == ES_HANDLED)) return;
+		if (hotkey >= 0 && it->global_hotkey_handler(hotkey)) return;
 	}
 }
 

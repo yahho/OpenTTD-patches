@@ -284,14 +284,13 @@ struct BuildDocksToolbarWindow : Window {
 /**
  * Handler for global hotkeys of the BuildDocksToolbarWindow.
  * @param hotkey Hotkey
- * @return ES_HANDLED if hotkey was accepted.
+ * @return Whether the hotkey was handled.
  */
-static EventState DockToolbarGlobalHotkeys(int hotkey)
+static bool DockToolbarGlobalHotkeys (int hotkey)
 {
-	if (_game_mode != GM_NORMAL) return ES_NOT_HANDLED;
+	if (_game_mode != GM_NORMAL) return false;
 	Window *w = ShowBuildDocksToolbar();
-	if (w == NULL) return ES_NOT_HANDLED;
-	return w->OnHotkey(hotkey) ? ES_HANDLED : ES_NOT_HANDLED;
+	return (w != NULL) && w->OnHotkey (hotkey);
 }
 
 static const Hotkey dockstoolbar_hotkeys[] = {

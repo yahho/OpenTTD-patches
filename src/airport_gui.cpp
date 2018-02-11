@@ -149,14 +149,13 @@ struct BuildAirToolbarWindow : Window {
 /**
  * Handler for global hotkeys of the BuildAirToolbarWindow.
  * @param hotkey Hotkey
- * @return ES_HANDLED if hotkey was accepted.
+ * @return Whether the hotkey was handled.
  */
-static EventState AirportToolbarGlobalHotkeys(int hotkey)
+static bool AirportToolbarGlobalHotkeys (int hotkey)
 {
-	if (_game_mode != GM_NORMAL || !CanBuildVehicleInfrastructure(VEH_AIRCRAFT)) return ES_NOT_HANDLED;
+	if (_game_mode != GM_NORMAL || !CanBuildVehicleInfrastructure(VEH_AIRCRAFT)) return false;
 	Window *w = ShowBuildAirToolbar();
-	if (w == NULL) return ES_NOT_HANDLED;
-	return w->OnHotkey(hotkey) ? ES_HANDLED : ES_NOT_HANDLED;
+	return (w != NULL) && w->OnHotkey (hotkey);
 }
 
 static const Hotkey airtoolbar_hotkeys[] = {

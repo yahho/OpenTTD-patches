@@ -665,9 +665,9 @@ struct BuildRoadToolbarWindow : Window {
 /**
  * Handler for global hotkeys of the BuildRoadToolbarWindow.
  * @param hotkey Hotkey
- * @return ES_HANDLED if hotkey was accepted.
+ * @return Whether the hotkey was handled.
  */
-static EventState RoadToolbarGlobalHotkeys(int hotkey)
+static bool RoadToolbarGlobalHotkeys (int hotkey)
 {
 	Window *w = NULL;
 	switch (_game_mode) {
@@ -685,8 +685,7 @@ static EventState RoadToolbarGlobalHotkeys(int hotkey)
 			break;
 	}
 
-	if (w == NULL) return ES_NOT_HANDLED;
-	return w->OnHotkey(hotkey) ? ES_HANDLED : ES_NOT_HANDLED;
+	return (w != NULL) && w->OnHotkey (hotkey);
 }
 
 static const Hotkey roadtoolbar_hotkeys[] = {

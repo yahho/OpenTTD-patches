@@ -1431,14 +1431,13 @@ NWidgetBase *MakeCompanyButtonRowsAIDebug(int *biggest_index)
 /**
  * Handler for global hotkeys of the AIDebugWindow.
  * @param hotkey Hotkey
- * @return ES_HANDLED if hotkey was accepted.
+ * @return Whether the hotkey was handled.
  */
-static EventState AIDebugGlobalHotkeys(int hotkey)
+static bool AIDebugGlobalHotkeys (int hotkey)
 {
-	if (_game_mode != GM_NORMAL) return ES_NOT_HANDLED;
+	if (_game_mode != GM_NORMAL) return false;
 	Window *w = ShowAIDebugWindow(INVALID_COMPANY);
-	if (w == NULL) return ES_NOT_HANDLED;
-	return w->OnHotkey(hotkey) ? ES_HANDLED : ES_NOT_HANDLED;
+	return (w != NULL) && w->OnHotkey (hotkey);
 }
 
 static const Hotkey aidebug_hotkeys[] = {

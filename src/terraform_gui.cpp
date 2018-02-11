@@ -287,14 +287,13 @@ struct TerraformToolbarWindow : Window {
 /**
  * Handler for global hotkeys of the TerraformToolbarWindow.
  * @param hotkey Hotkey
- * @return ES_HANDLED if hotkey was accepted.
+ * @return Whether the hotkey was handled.
  */
-static EventState TerraformToolbarGlobalHotkeys(int hotkey)
+static bool TerraformToolbarGlobalHotkeys (int hotkey)
 {
-	if (_game_mode != GM_NORMAL) return ES_NOT_HANDLED;
+	if (_game_mode != GM_NORMAL) return false;
 	Window *w = ShowTerraformToolbar(NULL);
-	if (w == NULL) return ES_NOT_HANDLED;
-	return w->OnHotkey(hotkey) ? ES_HANDLED : ES_NOT_HANDLED;
+	return (w != NULL) && w->OnHotkey (hotkey);
 }
 
 static const Hotkey terraform_hotkeys[] = {
@@ -699,14 +698,13 @@ struct ScenarioEditorLandscapeGenerationWindow : Window {
 /**
  * Handler for global hotkeys of the ScenarioEditorLandscapeGenerationWindow.
  * @param hotkey Hotkey
- * @return ES_HANDLED if hotkey was accepted.
+ * @return Whether the hotkey was handled.
  */
-static EventState TerraformToolbarEditorGlobalHotkeys(int hotkey)
+static bool TerraformToolbarEditorGlobalHotkeys (int hotkey)
 {
-	if (_game_mode != GM_EDITOR) return ES_NOT_HANDLED;
+	if (_game_mode != GM_EDITOR) return false;
 	Window *w = ShowEditorTerraformToolbar();
-	if (w == NULL) return ES_NOT_HANDLED;
-	return w->OnHotkey(hotkey) ? ES_HANDLED : ES_NOT_HANDLED;
+	return (w != NULL) && w->OnHotkey (hotkey);
 }
 
 static const Hotkey terraform_editor_hotkeys[] = {

@@ -50,7 +50,7 @@ struct IniFile;
  */
 struct HotkeyList : ForwardListLink<HotkeyList> {
 private:
-	typedef EventState (*GlobalHotkeyHandlerFunc)(int hotkey);
+	typedef bool (*GlobalHotkeyHandlerFunc) (int hotkey);
 
 	struct Mapping {
 		uint16 keycode;
