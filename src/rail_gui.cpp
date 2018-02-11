@@ -796,11 +796,12 @@ struct BuildRailToolbarWindow : Window {
 		if (_build_tunnel_endtile != 0) *tile2 = _build_tunnel_endtile;
 	}
 
-	virtual EventState OnCTRLStateChange()
+	bool OnCTRLStateChange (void) OVERRIDE
 	{
 		/* do not toggle Remove button by Ctrl when placing station */
-		if (!this->IsWidgetLowered(WID_RAT_BUILD_STATION) && !this->IsWidgetLowered(WID_RAT_BUILD_WAYPOINT) && RailToolbar_CtrlChanged(this)) return ES_HANDLED;
-		return ES_NOT_HANDLED;
+		return !this->IsWidgetLowered (WID_RAT_BUILD_STATION)
+			&& !this->IsWidgetLowered (WID_RAT_BUILD_WAYPOINT)
+			&& RailToolbar_CtrlChanged (this);
 	}
 
 	static HotkeyList hotkeys;

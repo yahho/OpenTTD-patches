@@ -1079,15 +1079,15 @@ struct DepotWindow : Window {
 		}
 	}
 
-	virtual EventState OnCTRLStateChange()
+	bool OnCTRLStateChange (void) OVERRIDE
 	{
 		if (this->sel != INVALID_VEHICLE) {
 			this->sel_chain = _ctrl_pressed;
 			this->SetWidgetDirty(WID_D_MATRIX);
-			return ES_HANDLED;
+			return true;
 		}
 
-		return ES_NOT_HANDLED;
+		return false;
 	}
 };
 

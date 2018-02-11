@@ -653,10 +653,9 @@ struct BuildRoadToolbarWindow : Window {
 		if (_build_tunnel_endtile != 0) *tile2 = _build_tunnel_endtile;
 	}
 
-	virtual EventState OnCTRLStateChange()
+	bool OnCTRLStateChange (void) OVERRIDE
 	{
-		if (RoadToolbar_CtrlChanged(this)) return ES_HANDLED;
-		return ES_NOT_HANDLED;
+		return RoadToolbar_CtrlChanged (this);
 	}
 
 	static HotkeyList hotkeys;

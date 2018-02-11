@@ -629,10 +629,13 @@ public:
 
 	/**
 	 * The state of the control key has changed
-	 * @return #ES_HANDLED if the change has been handled and no other
+	 * @return Whether the change has been handled and no other
 	 *         window should receive the event.
 	 */
-	virtual EventState OnCTRLStateChange() { return ES_NOT_HANDLED; }
+	virtual bool OnCTRLStateChange (void)
+	{
+		return false;
+	}
 
 
 	/**

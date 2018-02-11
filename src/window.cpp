@@ -2642,7 +2642,7 @@ void HandleCtrlChanged()
 	/* Call the event, start with the uppermost window. */
 	Window *w;
 	FOR_ALL_WINDOWS_FROM_FRONT(w) {
-		if (w->OnCTRLStateChange() == ES_HANDLED) return;
+		if (w->OnCTRLStateChange()) return;
 	}
 }
 
