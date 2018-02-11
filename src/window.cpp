@@ -2337,9 +2337,9 @@ static void StartWindowSizing(Window *w, bool to_left)
 
 /**
  * handle scrollbar scrolling with the mouse.
- * @return State of handling the event.
+ * @return Whether the event was handled.
  */
-static EventState HandleScrollbarScrolling()
+static bool HandleScrollbarScrolling (void)
 {
 	Window *w;
 	FOR_ALL_WINDOWS_FROM_BACK(w) {
@@ -2348,7 +2348,7 @@ static EventState HandleScrollbarScrolling()
 			if (!_left_button_down) {
 				w->scrolling_scrollbar = -1;
 				w->SetDirty();
-				return ES_HANDLED;
+				return true;
 			}
 
 			int i;
@@ -2368,7 +2368,7 @@ static EventState HandleScrollbarScrolling()
 					sb->UpdatePosition(rtl == HasBit(sb->disp_flags, NDB_SCROLLBAR_UP) ? 1 : -1);
 					w->SetDirty();
 				}
-				return ES_HANDLED;
+				return true;
 			}
 
 			/* Find the item we want to move to and make sure it's inside bounds. */
@@ -2378,11 +2378,11 @@ static EventState HandleScrollbarScrolling()
 				sb->SetPosition(pos);
 				w->SetDirty();
 			}
-			return ES_HANDLED;
+			return true;
 		}
 	}
 
-	return ES_NOT_HANDLED;
+	return false;
 }
 
 /**
@@ -2796,7 +2796,7 @@ static void MouseLoop(MouseClick click, int mousewheel)
 	if (VpHandlePlaceSizingDrag())  return;
 	if (HandleMouseDragDrop())      return;
 	if (HandleWindowDragging())     return;
-	if (HandleScrollbarScrolling() == ES_HANDLED) return;
+	if (HandleScrollbarScrolling()) return;
 	if (HandleViewportScroll()     == ES_HANDLED) return;
 
 	HandleMouseOver();
