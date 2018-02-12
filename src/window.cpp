@@ -2512,25 +2512,24 @@ EventState Window::HandleEditBoxKey(int wid, WChar key, uint16 keycode)
 	QueryString *query = this->GetQueryString(wid);
 	if (query == NULL) return ES_NOT_HANDLED;
 
-	int action = QueryString::ACTION_NOTHING;
+	int action;
 
 	switch (query->HandleKeyPress(key, keycode)) {
 		case HKPR_EDITING:
 			this->SetWidgetDirty(wid);
 			this->OnEditboxChanged(wid);
-			break;
+			return ES_HANDLED;
 
 		case HKPR_CURSOR:
 			this->SetWidgetDirty(wid);
 			/* For the OSK also invalidate the parent window */
 			if (this->window_class == WC_OSK) this->InvalidateData();
-			break;
+			return ES_HANDLED;
 
 		case HKPR_CONFIRM:
 			if (this->window_class == WC_OSK) {
-				this->OnClick(Point(), WID_OSK_OK, 1);
-			} else if (query->ok_button >= 0) {
-				this->OnClick(Point(), query->ok_button, 1);
+				assert_compile (WID_OSK_OK >= 0);
+				action = WID_OSK_OK;
 			} else {
 				action = query->ok_button;
 			}
@@ -2538,9 +2537,8 @@ EventState Window::HandleEditBoxKey(int wid, WChar key, uint16 keycode)
 
 		case HKPR_CANCEL:
 			if (this->window_class == WC_OSK) {
-				this->OnClick(Point(), WID_OSK_CANCEL, 1);
-			} else if (query->cancel_button >= 0) {
-				this->OnClick(Point(), query->cancel_button, 1);
+				assert_compile (WID_OSK_CANCEL >= 0);
+				action = WID_OSK_CANCEL;
 			} else {
 				action = query->cancel_button;
 			}
@@ -2549,7 +2547,13 @@ EventState Window::HandleEditBoxKey(int wid, WChar key, uint16 keycode)
 		case HKPR_NOT_HANDLED:
 			return ES_NOT_HANDLED;
 
-		default: break;
+		default:
+			return ES_HANDLED;
+	}
+
+	if (action >= 0) {
+		this->OnClick (Point(), action, 1);
+		return ES_HANDLED;
 	}
 
 	switch (action) {
