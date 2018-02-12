@@ -2553,19 +2553,18 @@ EventState Window::HandleEditBoxKey(int wid, WChar key, uint16 keycode)
 	}
 
 	switch (action) {
-		case QueryString::ACTION_DESELECT:
-			this->UnfocusFocusedWidget();
-			break;
-
 		case QueryString::ACTION_CLEAR:
-			if (query->empty()) {
-				/* If already empty, unfocus instead */
-				this->UnfocusFocusedWidget();
-			} else {
+			if (!query->empty()) {
 				query->DeleteAll();
 				this->SetWidgetDirty(wid);
 				this->OnEditboxChanged(wid);
+				break;
 			}
+			/* If already empty, unfocus instead */
+			FALLTHROUGH;
+
+		case QueryString::ACTION_DESELECT:
+			this->UnfocusFocusedWidget();
 			break;
 
 		default:
