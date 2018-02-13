@@ -2501,33 +2501,34 @@ static bool MaybeBringWindowToFront(Window *w)
 
 /**
  * Process keypress for editbox widget.
+ * @param w Window.
  * @param wid Editbox widget.
  * @param key     the Unicode value of the key.
  * @param keycode the untranslated key code including shift state.
- * @return #ES_HANDLED if the key press has been handled and no other
+ * @return Whether the key press has been handled and no other
  *         window should receive the event.
  */
-EventState Window::HandleEditBoxKey(int wid, WChar key, uint16 keycode)
+static bool HandleEditBoxKey (Window *w, int wid, WChar key, uint16 keycode)
 {
-	QueryString *query = this->GetQueryString(wid);
-	if (query == NULL) return ES_NOT_HANDLED;
+	QueryString *query = w->GetQueryString (wid);
+	if (query == NULL) return false;
 
 	int action;
 
 	switch (query->HandleKeyPress(key, keycode)) {
 		case HKPR_EDITING:
-			this->SetWidgetDirty(wid);
-			this->OnEditboxChanged(wid);
-			return ES_HANDLED;
+			w->SetWidgetDirty (wid);
+			w->OnEditboxChanged (wid);
+			return true;
 
 		case HKPR_CURSOR:
-			this->SetWidgetDirty(wid);
+			w->SetWidgetDirty (wid);
 			/* For the OSK also invalidate the parent window */
-			if (this->window_class == WC_OSK) this->InvalidateData();
-			return ES_HANDLED;
+			if (w->window_class == WC_OSK) w->InvalidateData();
+			return true;
 
 		case HKPR_CONFIRM:
-			if (this->window_class == WC_OSK) {
+			if (w->window_class == WC_OSK) {
 				assert_compile (WID_OSK_OK >= 0);
 				action = WID_OSK_OK;
 			} else {
@@ -2536,7 +2537,7 @@ EventState Window::HandleEditBoxKey(int wid, WChar key, uint16 keycode)
 			break;
 
 		case HKPR_CANCEL:
-			if (this->window_class == WC_OSK) {
+			if (w->window_class == WC_OSK) {
 				assert_compile (WID_OSK_CANCEL >= 0);
 				action = WID_OSK_CANCEL;
 			} else {
@@ -2545,37 +2546,37 @@ EventState Window::HandleEditBoxKey(int wid, WChar key, uint16 keycode)
 			break;
 
 		case HKPR_NOT_HANDLED:
-			return ES_NOT_HANDLED;
+			return false;
 
 		default:
-			return ES_HANDLED;
+			return true;
 	}
 
 	if (action >= 0) {
-		this->OnClick (Point(), action, 1);
-		return ES_HANDLED;
+		w->OnClick (Point(), action, 1);
+		return true;
 	}
 
 	switch (action) {
 		case QueryString::ACTION_CLEAR:
 			if (!query->empty()) {
 				query->DeleteAll();
-				this->SetWidgetDirty(wid);
-				this->OnEditboxChanged(wid);
+				w->SetWidgetDirty (wid);
+				w->OnEditboxChanged (wid);
 				break;
 			}
 			/* If already empty, unfocus instead */
 			FALLTHROUGH;
 
 		case QueryString::ACTION_DESELECT:
-			this->UnfocusFocusedWidget();
+			w->UnfocusFocusedWidget();
 			break;
 
 		default:
 			break;
 	}
 
-	return ES_HANDLED;
+	return true;
 }
 
 /**
@@ -2609,7 +2610,7 @@ void HandleKeypress(uint keycode, WChar key)
 		if (_focused_window->window_class == WC_CONSOLE) {
 			if (_focused_window->OnKeyPress (key, keycode)) return;
 		} else {
-			if (_focused_window->HandleEditBoxKey(_focused_window->nested_focus->index, key, keycode) == ES_HANDLED) return;
+			if (HandleEditBoxKey (_focused_window, _focused_window->nested_focus->index, key, keycode)) return;
 		}
 	}
 
