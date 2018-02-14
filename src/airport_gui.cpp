@@ -128,11 +128,9 @@ struct BuildAirToolbarWindow : Window {
 		}
 	}
 
-	void OnPlaceMouseUp (int userdata, Point pt, TileIndex start_tile, TileIndex end_tile) OVERRIDE
+	void OnPlaceMouseUp (int userdata, TileIndex start_tile, TileIndex end_tile) OVERRIDE
 	{
-		if (pt.x != -1) {
-			HandleDemolishMouseUp (start_tile, end_tile);
-		}
+		HandleDemolishMouseUp (start_tile, end_tile);
 	}
 
 	virtual void OnPlaceObjectAbort()

@@ -587,62 +587,60 @@ struct BuildRoadToolbarWindow : Window {
 		return true;
 	}
 
-	void OnPlaceMouseUp (int userdata, Point pt, TileIndex start_tile, TileIndex end_tile) OVERRIDE
+	void OnPlaceMouseUp (int userdata, TileIndex start_tile, TileIndex end_tile) OVERRIDE
 	{
-		if (pt.x != -1) {
-			switch (userdata) {
-				default: NOT_REACHED();
-				case DRAG_BUILD_BRIDGE:
-					HandleBuildRoadBridge (start_tile, end_tile);
-					break;
+		switch (userdata) {
+			default: NOT_REACHED();
+			case DRAG_BUILD_BRIDGE:
+				HandleBuildRoadBridge (start_tile, end_tile);
+				break;
 
-				case DRAG_DEMOLISH_AREA:
-					HandleDemolishMouseUp (start_tile, end_tile);
-					break;
+			case DRAG_DEMOLISH_AREA:
+				HandleDemolishMouseUp (start_tile, end_tile);
+				break;
 
-				case DRAG_PLACE_ROAD_X_DIR:
-				case DRAG_PLACE_ROAD_Y_DIR:
-				case DRAG_PLACE_AUTOROAD:
-					/* Flag description:
-					 * Use the first three bits (0x07) if dir == Y
-					 * else use the last 2 bits (X dir has
-					 * not the 3rd bit set) */
-					_place_road_flag = (RoadFlags)((_place_road_flag & RF_DIR_Y) ? (_place_road_flag & 0x07) : (_place_road_flag >> 3));
+			case DRAG_PLACE_ROAD_X_DIR:
+			case DRAG_PLACE_ROAD_Y_DIR:
+			case DRAG_PLACE_AUTOROAD:
+				/* Flag description:
+				 * Use the first three bits (0x07) if dir == Y
+				 * else use the last 2 bits (X dir has
+				 * not the 3rd bit set) */
+				_place_road_flag = (RoadFlags)((_place_road_flag & RF_DIR_Y) ? (_place_road_flag & 0x07) : (_place_road_flag >> 3));
 
-					DoCommandP(start_tile, end_tile, _place_road_flag | (_cur_roadtype << 3) | (_one_way_button_clicked << 5),
-							_remove_button_clicked ? CMD_REMOVE_LONG_ROAD : CMD_BUILD_LONG_ROAD);
-					break;
+				DoCommandP (start_tile, end_tile, _place_road_flag | (_cur_roadtype << 3) | (_one_way_button_clicked << 5),
+						_remove_button_clicked ? CMD_REMOVE_LONG_ROAD : CMD_BUILD_LONG_ROAD);
+				break;
 
-				case DRAG_BUILD_BUSSTOP:
-				case DRAG_BUILD_TRUCKSTOP: {
-					uint32 p2 = (INVALID_STATION << 16) | (_ctrl_pressed << 5) |
-							RoadTypeToRoadTypes(_cur_roadtype) << 2 |
-							(userdata == DRAG_BUILD_TRUCKSTOP ? ROADSTOP_TRUCK : ROADSTOP_BUS);
+			case DRAG_BUILD_BUSSTOP:
+			case DRAG_BUILD_TRUCKSTOP: {
+				uint32 p2 = (INVALID_STATION << 16) | (_ctrl_pressed << 5) |
+						RoadTypeToRoadTypes(_cur_roadtype) << 2 |
+						(userdata == DRAG_BUILD_TRUCKSTOP ? ROADSTOP_TRUCK : ROADSTOP_BUS);
 
-					uint8 ddir = _road_station_picker_orientation;
-					if (ddir >= DIAGDIR_END) {
-						SetBit (p2, 1); // It's a drive-through stop.
-						ddir -= DIAGDIR_END; // Adjust picker result to actual direction.
-					}
-					p2 |= ddir << 6; // Set the DiagDirecion into p2 bits 6 and 7.
-
-					TileArea ta (start_tile, end_tile);
-					Command cmdcont (ta.tile, ta.w | ta.h << 8, p2, CMD_BUILD_ROAD_STOP);
-					ShowSelectStationIfNeeded (&cmdcont, ta);
-					break;
+				uint8 ddir = _road_station_picker_orientation;
+				if (ddir >= DIAGDIR_END) {
+					SetBit (p2, 1); // It's a drive-through stop.
+					ddir -= DIAGDIR_END; // Adjust picker result to actual direction.
 				}
+				p2 |= ddir << 6; // Set the DiagDirecion into p2 bits 6 and 7.
 
-				case DRAG_REMOVE_BUSSTOP: {
-					TileArea ta(start_tile, end_tile);
-					DoCommandP(ta.tile, ta.w | ta.h << 8, (_ctrl_pressed << 1) | ROADSTOP_BUS | (_cur_roadtype << 2), CMD_REMOVE_ROAD_STOP);
-					break;
-				}
+				TileArea ta (start_tile, end_tile);
+				Command cmdcont (ta.tile, ta.w | ta.h << 8, p2, CMD_BUILD_ROAD_STOP);
+				ShowSelectStationIfNeeded (&cmdcont, ta);
+				break;
+			}
 
-				case DRAG_REMOVE_TRUCKSTOP: {
-					TileArea ta(start_tile, end_tile);
-					DoCommandP(ta.tile, ta.w | ta.h << 8, (_ctrl_pressed << 1) | ROADSTOP_TRUCK | (_cur_roadtype << 2), CMD_REMOVE_ROAD_STOP);
-					break;
-				}
+			case DRAG_REMOVE_BUSSTOP: {
+				TileArea ta (start_tile, end_tile);
+				DoCommandP (ta.tile, ta.w | ta.h << 8, (_ctrl_pressed << 1) | ROADSTOP_BUS | (_cur_roadtype << 2), CMD_REMOVE_ROAD_STOP);
+				break;
+			}
+
+			case DRAG_REMOVE_TRUCKSTOP: {
+				TileArea ta (start_tile, end_tile);
+				DoCommandP (ta.tile, ta.w | ta.h << 8, (_ctrl_pressed << 1) | ROADSTOP_TRUCK | (_cur_roadtype << 2), CMD_REMOVE_ROAD_STOP);
+				break;
 			}
 		}
 	}

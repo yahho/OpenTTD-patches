@@ -261,18 +261,16 @@ struct TerraformToolbarWindow : Window {
 		return pt;
 	}
 
-	void OnPlaceMouseUp (int userdata, Point pt, TileIndex start_tile, TileIndex end_tile) OVERRIDE
+	void OnPlaceMouseUp (int userdata, TileIndex start_tile, TileIndex end_tile) OVERRIDE
 	{
-		if (pt.x != -1) {
-			switch (userdata) {
-				default: NOT_REACHED();
-				case PLACE_DEMOLISH_AREA:
-				case PLACE_LOWER_AREA:
-				case PLACE_RAISE_AREA:
-				case PLACE_LEVEL_AREA:
-					GUIPlaceProcDragXY (userdata, start_tile, end_tile);
-					break;
-			}
+		switch (userdata) {
+			default: NOT_REACHED();
+			case PLACE_DEMOLISH_AREA:
+			case PLACE_LOWER_AREA:
+			case PLACE_RAISE_AREA:
+			case PLACE_LEVEL_AREA:
+				GUIPlaceProcDragXY (userdata, start_tile, end_tile);
+				break;
 		}
 	}
 
@@ -669,20 +667,18 @@ struct ScenarioEditorLandscapeGenerationWindow : Window {
 		}
 	}
 
-	void OnPlaceMouseUp (int userdata, Point pt, TileIndex start_tile, TileIndex end_tile) OVERRIDE
+	void OnPlaceMouseUp (int userdata, TileIndex start_tile, TileIndex end_tile) OVERRIDE
 	{
-		if (pt.x != -1) {
-			switch (userdata) {
-				default: NOT_REACHED();
-				case PLACE_DEMOLISH_AREA:
-				case PLACE_LOWER_AREA:
-				case PLACE_RAISE_AREA:
-				case PLACE_LEVEL_AREA:
-				case PLACE_CREATE_ROCKS:
-				case PLACE_CREATE_DESERT:
-					GUIPlaceProcDragXY (userdata, start_tile, end_tile);
-					break;
-			}
+		switch (userdata) {
+			default: NOT_REACHED();
+			case PLACE_DEMOLISH_AREA:
+			case PLACE_LOWER_AREA:
+			case PLACE_RAISE_AREA:
+			case PLACE_LEVEL_AREA:
+			case PLACE_CREATE_ROCKS:
+			case PLACE_CREATE_DESERT:
+				GUIPlaceProcDragXY (userdata, start_tile, end_tile);
+				break;
 		}
 	}
 

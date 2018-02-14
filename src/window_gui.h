@@ -787,11 +787,10 @@ public:
 	 * The user has dragged over the map when the tile highlight mode
 	 * has been set.
 	 * @param userdata      data set by the function that started the selection
-	 * @param pt            the exact point on the map where the mouse was released.
 	 * @param start_tile    the begin tile of the drag.
 	 * @param end_tile      the end tile of the drag.
 	 */
-	virtual void OnPlaceMouseUp (int userdata, Point pt, TileIndex start_tile, TileIndex end_tile) {}
+	virtual void OnPlaceMouseUp (int userdata, TileIndex start_tile, TileIndex end_tile) {}
 
 	/**
 	 * The user moves over the map when a tile highlight mode has been set

@@ -142,11 +142,9 @@ public:
 		VpStartPlaceSizing (tile, VPM_X_AND_Y);
 	}
 
-	void OnPlaceMouseUp (int userdata, Point pt, TileIndex start_tile, TileIndex end_tile) OVERRIDE
+	void OnPlaceMouseUp (int userdata, TileIndex start_tile, TileIndex end_tile) OVERRIDE
 	{
-		if (pt.x != -1) {
-			DoCommandP(end_tile, this->tree_to_plant, start_tile, CMD_PLANT_TREE);
-		}
+		DoCommandP (end_tile, this->tree_to_plant, start_tile, CMD_PLANT_TREE);
 	}
 
 	/**

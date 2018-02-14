@@ -233,22 +233,20 @@ struct BuildDocksToolbarWindow : Window {
 		}
 	}
 
-	void OnPlaceMouseUp (int userdata, Point pt, TileIndex start_tile, TileIndex end_tile) OVERRIDE
+	void OnPlaceMouseUp (int userdata, TileIndex start_tile, TileIndex end_tile) OVERRIDE
 	{
-		if (pt.x != -1) {
-			switch (userdata) {
-				case DRAG_DEMOLISH_AREA:
-					HandleDemolishMouseUp (start_tile, end_tile);
-					break;
-				case DRAG_CREATE_WATER:
-					DoCommandP(end_tile, start_tile, (_game_mode == GM_EDITOR && _ctrl_pressed) ? WATER_CLASS_SEA : WATER_CLASS_CANAL, CMD_BUILD_CANAL);
-					break;
-				case DRAG_CREATE_RIVER:
-					DoCommandP(end_tile, start_tile, WATER_CLASS_RIVER, CMD_BUILD_CANAL);
-					break;
+		switch (userdata) {
+			case DRAG_DEMOLISH_AREA:
+				HandleDemolishMouseUp (start_tile, end_tile);
+				break;
+			case DRAG_CREATE_WATER:
+				DoCommandP (end_tile, start_tile, (_game_mode == GM_EDITOR && _ctrl_pressed) ? WATER_CLASS_SEA : WATER_CLASS_CANAL, CMD_BUILD_CANAL);
+				break;
+			case DRAG_CREATE_RIVER:
+				DoCommandP (end_tile, start_tile, WATER_CLASS_RIVER, CMD_BUILD_CANAL);
+				break;
 
-				default: break;
-			}
+			default: break;
 		}
 	}
 
