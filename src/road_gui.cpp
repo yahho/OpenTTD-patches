@@ -631,15 +631,13 @@ struct BuildRoadToolbarWindow : Window {
 				break;
 			}
 
-			case DRAG_REMOVE_BUSSTOP: {
-				TileArea ta (start_tile, end_tile);
-				DoCommandP (ta.tile, ta.w | ta.h << 8, (_ctrl_pressed << 1) | ROADSTOP_BUS | (_cur_roadtype << 2), CMD_REMOVE_ROAD_STOP);
-				break;
-			}
-
+			case DRAG_REMOVE_BUSSTOP:
 			case DRAG_REMOVE_TRUCKSTOP: {
+				assert_compile ((DRAG_REMOVE_BUSSTOP - ROADSTOP_BUS) == (DRAG_REMOVE_TRUCKSTOP - ROADSTOP_TRUCK));
 				TileArea ta (start_tile, end_tile);
-				DoCommandP (ta.tile, ta.w | ta.h << 8, (_ctrl_pressed << 1) | ROADSTOP_TRUCK | (_cur_roadtype << 2), CMD_REMOVE_ROAD_STOP);
+				DoCommandP (ta.tile, ta.w | ta.h << 8,
+						(_ctrl_pressed << 1) | (userdata - (DRAG_REMOVE_BUSSTOP - ROADSTOP_BUS)) | (_cur_roadtype << 2),
+						CMD_REMOVE_ROAD_STOP);
 				break;
 			}
 		}
