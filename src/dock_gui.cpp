@@ -235,19 +235,25 @@ struct BuildDocksToolbarWindow : Window {
 
 	void OnPlaceMouseUp (int userdata, TileIndex start_tile, TileIndex end_tile) OVERRIDE
 	{
+		WaterClass wc;
 		switch (userdata) {
 			case DRAG_DEMOLISH_AREA:
 				HandleDemolishMouseUp (start_tile, end_tile);
-				break;
+				return;
+
 			case DRAG_CREATE_WATER:
-				DoCommandP (end_tile, start_tile, (_game_mode == GM_EDITOR && _ctrl_pressed) ? WATER_CLASS_SEA : WATER_CLASS_CANAL, CMD_BUILD_CANAL);
+				wc = (_game_mode == GM_EDITOR && _ctrl_pressed) ?
+						WATER_CLASS_SEA : WATER_CLASS_CANAL;
 				break;
 			case DRAG_CREATE_RIVER:
-				DoCommandP (end_tile, start_tile, WATER_CLASS_RIVER, CMD_BUILD_CANAL);
+				wc = WATER_CLASS_RIVER;
 				break;
 
-			default: break;
+			default:
+				return;
 		}
+
+		DoCommandP (end_tile, start_tile, wc, CMD_BUILD_CANAL);
 	}
 
 	virtual void OnPlaceObjectAbort()
