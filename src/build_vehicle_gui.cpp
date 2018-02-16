@@ -1416,14 +1416,17 @@ struct BuildVehicleWindow : Window {
 		switch (widget) {
 			case WID_BV_LIST: {
 				uint i = this->vscroll->GetPosition();
-				uint j = min (i + this->vscroll->GetCapacity(), this->eng_list.Length());
-				DrawEngineList (this->vehicle_type, dpi,
+				uint j = this->eng_list.Length();
+				if (i < j) {
+					uint n = min (j - i, this->vscroll->GetCapacity());
+					DrawEngineList (this->vehicle_type, dpi,
 						r.left + WD_FRAMERECT_LEFT,
 						r.right - WD_FRAMERECT_RIGHT,
 						r.top + WD_FRAMERECT_TOP,
-						this->eng_list.Get(i), j - i,
+						this->eng_list.Get(i), n,
 						this->sel_engine, false,
 						DEFAULT_GROUP);
+					}
 				break;
 			}
 
