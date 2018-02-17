@@ -92,12 +92,12 @@ private:
 	 * @param n The Nth set bit from which we want to know the position
 	 * @return The position of the Nth set bit
 	 */
-	static int GetNthSetBit(uint32 bits, int n)
+	static int GetNthSetBit (uint bits, uint n)
 	{
 		uint i;
 		FOR_EACH_SET_BIT(i, bits) {
 			n--;
-			if (n < 0) return i;
+			if (n == 0) return i;
 		}
 		return -1;
 	}
@@ -277,7 +277,7 @@ public:
 				y += this->vscroll->GetPosition();
 				if (y == 0) break;
 
-				y = GetNthSetBit (GetMaskOfTownActions (NULL, _local_company, this->town), y - 1);
+				y = GetNthSetBit (GetMaskOfTownActions (NULL, _local_company, this->town), y);
 				if (y < 0) break;
 
 				this->sel_index = y;
