@@ -277,12 +277,12 @@ public:
 				if (!IsInsideMM(y, 0, 5)) return;
 
 				y = GetNthSetBit(GetMaskOfTownActions(NULL, _local_company, this->town), y + this->vscroll->GetPosition() - 1);
-				if (y >= 0) {
-					this->sel_index = y;
-					this->SetDirty();
-				}
+				if (y < 0) break;
+
+				this->sel_index = y;
+				this->SetDirty();
 				/* When double-clicking, continue */
-				if (click_count == 1 || y < 0) break;
+				if (click_count == 1) break;
 			}
 			FALLTHROUGH;
 
