@@ -94,12 +94,10 @@ private:
 	 */
 	static int GetNthSetBit(uint32 bits, int n)
 	{
-		if (n >= 0) {
-			uint i;
-			FOR_EACH_SET_BIT(i, bits) {
-				n--;
-				if (n < 0) return i;
-			}
+		uint i;
+		FOR_EACH_SET_BIT(i, bits) {
+			n--;
+			if (n < 0) return i;
 		}
 		return -1;
 	}
@@ -276,7 +274,10 @@ public:
 				int y = this->GetRowFromWidget(pt.y, WID_TA_COMMAND_LIST, 1, FONT_HEIGHT_NORMAL);
 				if (!IsInsideMM(y, 0, 5)) return;
 
-				y = GetNthSetBit(GetMaskOfTownActions(NULL, _local_company, this->town), y + this->vscroll->GetPosition() - 1);
+				y += this->vscroll->GetPosition();
+				if (y == 0) break;
+
+				y = GetNthSetBit (GetMaskOfTownActions (NULL, _local_company, this->town), y - 1);
 				if (y < 0) break;
 
 				this->sel_index = y;
