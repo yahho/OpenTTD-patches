@@ -179,9 +179,7 @@ void WindowDesc::SaveToConfig()
 int Window::GetRowFromWidget(int clickpos, int widget, int padding, int line_height) const
 {
 	const NWidgetBase *wid = this->GetWidget<NWidgetBase>(widget);
-	if (line_height < 0) line_height = wid->resize_y;
-	if (clickpos < (int)wid->pos_y + padding) return INT_MAX;
-	return (clickpos - (int)wid->pos_y - padding) / line_height;
+	return wid->GetRow (clickpos, padding, line_height);
 }
 
 /**

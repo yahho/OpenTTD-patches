@@ -157,6 +157,8 @@ public:
 	inline uint GetHorizontalStepSize(SizingType sizing) const;
 	inline uint GetVerticalStepSize(SizingType sizing) const;
 
+	int GetRow (int clickpos, int padding, int line_height) const;
+
 	virtual void Draw (BlitArea *dpi, const Window *w) = 0;
 	virtual void SetDirty(const Window *w) const;
 

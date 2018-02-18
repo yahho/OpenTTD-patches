@@ -631,6 +631,22 @@ NWidgetBase::NWidgetBase(WidgetType tp) : ZeroedMemoryAllocator()
 /* ~NWidgetContainer() takes care of #next and #prev data members. */
 
 /**
+ * Compute the row of a widget that a user clicked in.
+ * @param clickpos    Vertical position of the mouse click.
+ * @param padding     Amount of empty space between the widget edge and the top of the first row.
+ * @param line_height Height of a single row. A negative value means using the vertical resize step of the widget.
+ * @return Row number clicked at. If clicked at a wrong position, #INT_MAX is returned.
+ * @note The widget does not know where a list printed at the widget ends, so below a list is not a wrong position.
+ */
+int NWidgetBase::GetRow (int clickpos, int padding, int line_height) const
+{
+	int y = this->pos_y + padding;
+	if (clickpos < y) return INT_MAX;
+	if (line_height < 0) line_height = this->resize_y;
+	return (clickpos - y) / line_height;
+}
+
+/**
  * @fn void NWidgetBase::SetupSmallestSize(Window *w, bool init_array)
  * Compute smallest size needed by the widget.
  *
