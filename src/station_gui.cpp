@@ -1832,9 +1832,9 @@ struct StationViewWindow : public Window {
 	 * Handle a click on a specific row in the cargo view.
 	 * @param row Row being clicked.
 	 */
-	void HandleCargoWaitingClick(int row)
+	void HandleCargoWaitingClick (uint row)
 	{
-		if (row < 0 || (uint)row >= this->displayed_rows.size()) return;
+		if (row >= this->displayed_rows.size()) return;
 		if (_ctrl_pressed) {
 			this->scroll_to_row = row;
 		} else {
@@ -1859,7 +1859,7 @@ struct StationViewWindow : public Window {
 	{
 		switch (widget) {
 			case WID_SV_WAITING:
-				this->HandleCargoWaitingClick(this->vscroll->GetScrolledRowFromWidget(pt.y, this, WID_SV_WAITING, WD_FRAMERECT_TOP, FONT_HEIGHT_NORMAL) - this->vscroll->GetPosition());
+				this->HandleCargoWaitingClick (this->GetWidget<NWidgetBase>(WID_SV_WAITING)->GetRow (pt.y, WD_FRAMERECT_TOP, FONT_HEIGHT_NORMAL));
 				break;
 
 			case WID_SV_LOCATION:
