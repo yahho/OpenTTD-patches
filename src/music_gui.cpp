@@ -44,7 +44,7 @@ static const char *GetSongName(int index)
  * @param index of the song.
  * @return the track number of the song.
  */
-static int GetTrackNumber(int index)
+static uint GetTrackNumber (int index)
 {
 	return BaseMusic::GetUsedSet()->track_nr[index];
 }
@@ -409,10 +409,10 @@ struct MusicTrackSelectionWindow : public Window {
 	{
 		switch (widget) {
 			case WID_MTS_LIST_LEFT: { // add to playlist
-				int y = this->GetRowFromWidget(pt.y, widget, 0, FONT_HEIGHT_SMALL);
-
 				if (_settings_client.music.playlist < 4) return;
-				if (!IsInsideMM(y, 0, BaseMusic::GetUsedSet()->num_available)) return;
+
+				uint y = this->GetWidget<NWidgetBase>(widget)->GetRow (pt.y, 0, FONT_HEIGHT_SMALL);
+				if (y >= BaseMusic::GetUsedSet()->num_available) return;
 
 				byte *p = _playlists[_settings_client.music.playlist];
 				for (uint i = 0; i != NUM_SONGS_PLAYLIST - 1; i++) {
@@ -434,10 +434,10 @@ struct MusicTrackSelectionWindow : public Window {
 			}
 
 			case WID_MTS_LIST_RIGHT: { // remove from playlist
-				int y = this->GetRowFromWidget(pt.y, widget, 0, FONT_HEIGHT_SMALL);
-
 				if (_settings_client.music.playlist < 4) return;
-				if (!IsInsideMM(y, 0, NUM_SONGS_PLAYLIST)) return;
+
+				uint y = this->GetWidget<NWidgetBase>(widget)->GetRow (pt.y, 0, FONT_HEIGHT_SMALL);
+				if (y >= NUM_SONGS_PLAYLIST) return;
 
 				byte *p = _playlists[_settings_client.music.playlist];
 				for (uint i = y; i != NUM_SONGS_PLAYLIST - 1; i++) {

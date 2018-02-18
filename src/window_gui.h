@@ -514,7 +514,6 @@ public:
 	virtual void InsertTextString(int wid, const char *str, bool marked, const char *caret, const char *insert_location, const char *replacement_end);
 
 	void HandleButtonClick(byte widget);
-	int GetRowFromWidget(int clickpos, int widget, int padding, int line_height = -1) const;
 
 	void RaiseButtons(bool autoraise = false);
 	void CDECL SetWidgetsDisabledState(bool disab_stat, int widgets, ...);

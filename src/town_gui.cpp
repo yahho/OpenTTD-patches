@@ -271,16 +271,16 @@ public:
 	{
 		switch (widget) {
 			case WID_TA_COMMAND_LIST: {
-				int y = this->GetRowFromWidget(pt.y, WID_TA_COMMAND_LIST, 1, FONT_HEIGHT_NORMAL);
-				if (!IsInsideMM(y, 0, 5)) return;
+				uint y = this->GetWidget<NWidgetBase>(WID_TA_COMMAND_LIST)->GetRow (pt.y, 1, FONT_HEIGHT_NORMAL);
+				if (y >= 5) return;
 
 				y += this->vscroll->GetPosition();
 				if (y == 0) break;
 
-				y = GetNthSetBit (GetMaskOfTownActions (NULL, _local_company, this->town), y);
-				if (y < 0) break;
+				int sel = GetNthSetBit (GetMaskOfTownActions (NULL, _local_company, this->town), y);
+				if (sel < 0) break;
 
-				this->sel_index = y;
+				this->sel_index = sel;
 				this->SetDirty();
 				/* When double-clicking, continue */
 				if (click_count == 1) break;

@@ -168,21 +168,6 @@ void WindowDesc::SaveToConfig()
 
 
 /**
- * Compute the row of a widget that a user clicked in.
- * @param clickpos    Vertical position of the mouse click.
- * @param widget      Widget number of the widget clicked in.
- * @param padding     Amount of empty space between the widget edge and the top of the first row.
- * @param line_height Height of a single row. A negative value means using the vertical resize step of the widget.
- * @return Row number clicked at. If clicked at a wrong position, #INT_MAX is returned.
- * @note The widget does not know where a list printed at the widget ends, so below a list is not a wrong position.
- */
-int Window::GetRowFromWidget(int clickpos, int widget, int padding, int line_height) const
-{
-	const NWidgetBase *wid = this->GetWidget<NWidgetBase>(widget);
-	return wid->GetRow (clickpos, padding, line_height);
-}
-
-/**
  * Disable the highlighted status of all widgets.
  */
 void Window::DisableAllWidgetHighlight()

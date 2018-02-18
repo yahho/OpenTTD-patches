@@ -1876,7 +1876,7 @@ void NWidgetViewport::UpdateViewportCoordinates(Window *w)
  */
 int Scrollbar::GetScrolledRowFromWidget(int clickpos, const Window * const w, int widget, int padding, int line_height) const
 {
-	uint pos = w->GetRowFromWidget(clickpos, widget, padding, line_height);
+	uint pos = w->GetWidget<NWidgetBase>(widget)->GetRow (clickpos, padding, line_height);
 	if (pos != INT_MAX) pos += this->GetPosition();
 	return (pos >= this->GetCount()) ? INT_MAX : pos;
 }
