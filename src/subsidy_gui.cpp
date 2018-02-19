@@ -48,6 +48,15 @@ static void SetupSubsidyDecodeParams (const Subsidy *s)
 	SetupSubsidyDecodeParam (4, s->dst);
 }
 
+static inline TileIndex GetSubsidyTile (const CargoSource &src)
+{
+	switch (src.type) {
+		case ST_INDUSTRY: return Industry::Get(src.id)->location.tile;
+		case ST_TOWN:     return     Town::Get(src.id)->xy;
+		default: NOT_REACHED();
+	}
+}
+
 struct SubsidyListWindow : Window {
 	Scrollbar *vscroll;
 
@@ -94,15 +103,6 @@ struct SubsidyListWindow : Window {
 					return;
 				}
 			}
-		}
-	}
-
-	static inline TileIndex GetSubsidyTile (const CargoSource &src)
-	{
-		switch (src.type) {
-			case ST_INDUSTRY: return Industry::Get(src.id)->location.tile;
-			case ST_TOWN:     return     Town::Get(src.id)->xy;
-			default: NOT_REACHED();
 		}
 	}
 
