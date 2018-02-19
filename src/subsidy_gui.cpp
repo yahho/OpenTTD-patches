@@ -57,6 +57,25 @@ static inline TileIndex GetSubsidyTile (const CargoSource &src)
 	}
 }
 
+static inline void HandleClick (const Subsidy *s)
+{
+	/* determine src coordinate for subsidy and try to scroll to it */
+	TileIndex xy = GetSubsidyTile (s->src);
+
+	if (_ctrl_pressed || !ScrollMainWindowToTile(xy)) {
+		if (_ctrl_pressed) ShowExtraViewPortWindow (xy);
+
+		/* otherwise determine dst coordinate for subsidy and scroll to it */
+		xy = GetSubsidyTile (s->dst);
+
+		if (_ctrl_pressed) {
+			ShowExtraViewPortWindow (xy);
+		} else {
+			ScrollMainWindowToTile (xy);
+		}
+	}
+}
+
 struct SubsidyListWindow : Window {
 	Scrollbar *vscroll;
 
@@ -80,7 +99,7 @@ struct SubsidyListWindow : Window {
 			if (!s->IsAwarded()) {
 				y--;
 				if (y == 0) {
-					this->HandleClick(s);
+					HandleClick (s);
 					return;
 				}
 				num++;
@@ -99,28 +118,9 @@ struct SubsidyListWindow : Window {
 			if (s->IsAwarded()) {
 				y--;
 				if (y == 0) {
-					this->HandleClick(s);
+					HandleClick (s);
 					return;
 				}
-			}
-		}
-	}
-
-	void HandleClick(const Subsidy *s)
-	{
-		/* determine src coordinate for subsidy and try to scroll to it */
-		TileIndex xy = GetSubsidyTile (s->src);
-
-		if (_ctrl_pressed || !ScrollMainWindowToTile(xy)) {
-			if (_ctrl_pressed) ShowExtraViewPortWindow(xy);
-
-			/* otherwise determine dst coordinate for subsidy and scroll to it */
-			xy = GetSubsidyTile (s->dst);
-
-			if (_ctrl_pressed) {
-				ShowExtraViewPortWindow(xy);
-			} else {
-				ScrollMainWindowToTile(xy);
 			}
 		}
 	}
