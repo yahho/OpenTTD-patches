@@ -93,34 +93,36 @@ struct SubsidyListWindow : Window {
 		if (widget != WID_SUL_PANEL) return;
 
 		int y = this->vscroll->GetScrolledRowFromWidget(pt.y, this, WID_SUL_PANEL, WD_FRAMERECT_TOP);
+		if (y == 0) return; // "Subsidies on offer for services taking:"
+		y--;
+
 		int num = 0;
 		const Subsidy *s;
 		FOR_ALL_SUBSIDIES(s) {
 			if (!s->IsAwarded()) {
-				y--;
 				if (y == 0) {
 					HandleClick (s);
 					return;
 				}
+				y--;
 				num++;
 			}
 		}
 
-		if (num == 0) {
-			y--; // "None"
-			if (y < 0) return;
-		}
+		int skip = (num == 0) ?
+				3 : // "None"
+				2;  // "Services already subsidised:"
 
-		y -= 2; // "Services already subsidised:"
-		if (y < 0) return;
+		if (y < skip) return;
+		y -= skip;
 
 		FOR_ALL_SUBSIDIES(s) {
 			if (s->IsAwarded()) {
-				y--;
 				if (y == 0) {
 					HandleClick (s);
 					return;
 				}
+				y--;
 			}
 		}
 	}
