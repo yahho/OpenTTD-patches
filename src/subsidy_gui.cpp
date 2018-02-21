@@ -127,27 +127,6 @@ struct SubsidyListWindow : Window {
 		}
 	}
 
-	/**
-	 * Count the number of lines in this window.
-	 * @return the number of lines
-	 */
-	uint CountLines()
-	{
-		/* Count number of (non) awarded subsidies */
-		uint num[2] = { 0, 0 };
-		const Subsidy *s;
-		FOR_ALL_SUBSIDIES(s) {
-			num[s->IsAwarded()]++;
-		}
-
-		/* Count the 'none' lines */
-		if (num[0] == 0) num[0] = 1;
-		if (num[1] == 0) num[1] = 1;
-
-		/* Offered, accepted and an empty line before the accepted ones. */
-		return num[0] + num[1] + 3;
-	}
-
 	virtual void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize)
 	{
 		if (widget != WID_SUL_PANEL) return;
@@ -239,7 +218,20 @@ struct SubsidyListWindow : Window {
 	virtual void OnInvalidateData(int data = 0, bool gui_scope = true)
 	{
 		if (!gui_scope) return;
-		this->vscroll->SetCount(this->CountLines());
+
+		/* Count number of (non) awarded subsidies */
+		uint num[2] = { 0, 0 };
+		const Subsidy *s;
+		FOR_ALL_SUBSIDIES(s) {
+			num[s->IsAwarded()]++;
+		}
+
+		/* Count the 'none' lines */
+		if (num[0] == 0) num[0] = 1;
+		if (num[1] == 0) num[1] = 1;
+
+		/* Offered, accepted and an empty line before the accepted ones. */
+		this->vscroll->SetCount (num[0] + num[1] + 3);
 	}
 };
 
