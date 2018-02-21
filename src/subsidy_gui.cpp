@@ -134,23 +134,18 @@ struct SubsidyListWindow : Window {
 	uint CountLines()
 	{
 		/* Count number of (non) awarded subsidies */
-		uint num_awarded = 0;
-		uint num_not_awarded = 0;
+		uint num[2] = { 0, 0 };
 		const Subsidy *s;
 		FOR_ALL_SUBSIDIES(s) {
-			if (!s->IsAwarded()) {
-				num_not_awarded++;
-			} else {
-				num_awarded++;
-			}
+			num[s->IsAwarded()]++;
 		}
 
 		/* Count the 'none' lines */
-		if (num_awarded     == 0) num_awarded = 1;
-		if (num_not_awarded == 0) num_not_awarded = 1;
+		if (num[0] == 0) num[0] = 1;
+		if (num[1] == 0) num[1] = 1;
 
 		/* Offered, accepted and an empty line before the accepted ones. */
-		return 3 + num_awarded + num_not_awarded;
+		return num[0] + num[1] + 3;
 	}
 
 	virtual void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize)
