@@ -635,40 +635,43 @@ struct DepotWindow : Window {
 
 			case VEH_TRAIN:
 				this->GetWidget<NWidgetCore>(WID_D_VEHICLE_LIST)->widget_data = STR_TRAIN;
-
-				/* Sprites */
-				this->GetWidget<NWidgetCore>(WID_D_SELL)->widget_data        = SPR_SELL_TRAIN;
-				this->GetWidget<NWidgetCore>(WID_D_SELL_ALL)->widget_data    = SPR_SELL_ALL_TRAIN;
-				this->GetWidget<NWidgetCore>(WID_D_AUTOREPLACE)->widget_data = SPR_REPLACE_TRAIN;
 				break;
 
 			case VEH_ROAD:
 				this->GetWidget<NWidgetCore>(WID_D_VEHICLE_LIST)->widget_data = STR_LORRY;
-
-				/* Sprites */
-				this->GetWidget<NWidgetCore>(WID_D_SELL)->widget_data        = SPR_SELL_ROADVEH;
-				this->GetWidget<NWidgetCore>(WID_D_SELL_ALL)->widget_data    = SPR_SELL_ALL_ROADVEH;
-				this->GetWidget<NWidgetCore>(WID_D_AUTOREPLACE)->widget_data = SPR_REPLACE_ROADVEH;
 				break;
 
 			case VEH_SHIP:
 				this->GetWidget<NWidgetCore>(WID_D_VEHICLE_LIST)->widget_data = STR_SHIP;
-
-				/* Sprites */
-				this->GetWidget<NWidgetCore>(WID_D_SELL)->widget_data        = SPR_SELL_SHIP;
-				this->GetWidget<NWidgetCore>(WID_D_SELL_ALL)->widget_data    = SPR_SELL_ALL_SHIP;
-				this->GetWidget<NWidgetCore>(WID_D_AUTOREPLACE)->widget_data = SPR_REPLACE_SHIP;
 				break;
 
 			case VEH_AIRCRAFT:
 				this->GetWidget<NWidgetCore>(WID_D_VEHICLE_LIST)->widget_data = STR_PLANE;
-
-				/* Sprites */
-				this->GetWidget<NWidgetCore>(WID_D_SELL)->widget_data        = SPR_SELL_AIRCRAFT;
-				this->GetWidget<NWidgetCore>(WID_D_SELL_ALL)->widget_data    = SPR_SELL_ALL_AIRCRAFT;
-				this->GetWidget<NWidgetCore>(WID_D_AUTOREPLACE)->widget_data = SPR_REPLACE_AIRCRAFT;
 				break;
 		}
+
+		/* Sprites */
+
+		assert_compile (SPR_SELL_TRAIN + VEH_TRAIN    == SPR_SELL_TRAIN);
+		assert_compile (SPR_SELL_TRAIN + VEH_ROAD     == SPR_SELL_ROADVEH);
+		assert_compile (SPR_SELL_TRAIN + VEH_SHIP     == SPR_SELL_SHIP);
+		assert_compile (SPR_SELL_TRAIN + VEH_AIRCRAFT == SPR_SELL_AIRCRAFT);
+
+		this->GetWidget<NWidgetCore>(WID_D_SELL)->widget_data = SPR_SELL_TRAIN + type;
+
+		assert_compile (SPR_SELL_ALL_TRAIN + VEH_TRAIN    == SPR_SELL_ALL_TRAIN);
+		assert_compile (SPR_SELL_ALL_TRAIN + VEH_ROAD     == SPR_SELL_ALL_ROADVEH);
+		assert_compile (SPR_SELL_ALL_TRAIN + VEH_SHIP     == SPR_SELL_ALL_SHIP);
+		assert_compile (SPR_SELL_ALL_TRAIN + VEH_AIRCRAFT == SPR_SELL_ALL_AIRCRAFT);
+
+		this->GetWidget<NWidgetCore>(WID_D_SELL_ALL)->widget_data = SPR_SELL_ALL_TRAIN + type;
+
+		assert_compile (SPR_REPLACE_TRAIN + VEH_TRAIN    == SPR_REPLACE_TRAIN);
+		assert_compile (SPR_REPLACE_TRAIN + VEH_ROAD     == SPR_REPLACE_ROADVEH);
+		assert_compile (SPR_REPLACE_TRAIN + VEH_SHIP     == SPR_REPLACE_SHIP);
+		assert_compile (SPR_REPLACE_TRAIN + VEH_AIRCRAFT == SPR_REPLACE_AIRCRAFT);
+
+		this->GetWidget<NWidgetCore>(WID_D_AUTOREPLACE)->widget_data = SPR_REPLACE_TRAIN + type;
 	}
 
 	uint count_width;
