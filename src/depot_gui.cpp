@@ -375,14 +375,16 @@ struct DepotWindow : Window {
 		int text_left  = rtl ? right - this->header_width - 1 : left + diff_x;
 		int text_right = rtl ? right - diff_x : left + this->header_width - 1;
 
+		StringID str;
 		if (free_wagon) {
-			DrawString (dpi, text_left, text_right, y + 2, STR_DEPOT_NO_ENGINE);
+			str = STR_DEPOT_NO_ENGINE;
 		} else {
 			DrawSprite (dpi, (v->vehstatus & VS_STOPPED) ? SPR_FLAG_VEH_STOPPED : SPR_FLAG_VEH_RUNNING, PAL_NONE, rtl ? right - this->flag_width : left + WD_FRAMERECT_LEFT, y + diff_y);
 
 			SetDParam(0, v->unitnumber);
-			DrawString (dpi, text_left, text_right, y + 2, (uint16)(v->max_age - DAYS_IN_LEAP_YEAR) >= v->age ? STR_BLACK_COMMA : STR_RED_COMMA);
+			str = (uint16)(v->max_age - DAYS_IN_LEAP_YEAR) >= v->age ? STR_BLACK_COMMA : STR_RED_COMMA;
 		}
+		DrawString (dpi, text_left, text_right, y + 2, str);
 	}
 
 	void DrawWidget (BlitArea *dpi, const Rect &r, int widget) const OVERRIDE
