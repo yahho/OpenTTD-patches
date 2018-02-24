@@ -427,12 +427,15 @@ struct DepotWindow : Window {
 			for (byte i = 0; i < this->num_columns && num < maxval; i++, num++) {
 				/* Draw all vehicles in the current row */
 				const Vehicle *v = this->vehicle_list[num];
+				int left, right;
 				if (this->num_columns == 1) {
-					this->DrawVehicleInDepot (v, dpi, r.left, r.right, y);
+					left  = r.left;
+					right = r.right;
 				} else {
-					int x = r.left + (rtl ? (this->num_columns - i - 1) : i) * this->resize.step_width;
-					this->DrawVehicleInDepot (v, dpi, x, x + this->resize.step_width - 1, y);
+					left  = r.left + (rtl ? (this->num_columns - i - 1) : i) * this->resize.step_width;
+					right = left + this->resize.step_width - 1;
 				}
+				this->DrawVehicleInDepot (v, dpi, left, right, y);
 			}
 		}
 
