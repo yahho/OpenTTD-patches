@@ -630,25 +630,15 @@ struct DepotWindow : Window {
 		this->GetWidget<NWidgetCore>(WID_D_AUTOREPLACE)->tool_tip  = STR_DEPOT_AUTOREPLACE_TRAIN_TOOLTIP + type;
 		this->GetWidget<NWidgetCore>(WID_D_MATRIX)->tool_tip       = STR_DEPOT_TRAIN_LIST_TOOLTIP + this->type;
 
+		StringID str;
 		switch (type) {
 			default: NOT_REACHED();
-
-			case VEH_TRAIN:
-				this->GetWidget<NWidgetCore>(WID_D_VEHICLE_LIST)->widget_data = STR_TRAIN;
-				break;
-
-			case VEH_ROAD:
-				this->GetWidget<NWidgetCore>(WID_D_VEHICLE_LIST)->widget_data = STR_LORRY;
-				break;
-
-			case VEH_SHIP:
-				this->GetWidget<NWidgetCore>(WID_D_VEHICLE_LIST)->widget_data = STR_SHIP;
-				break;
-
-			case VEH_AIRCRAFT:
-				this->GetWidget<NWidgetCore>(WID_D_VEHICLE_LIST)->widget_data = STR_PLANE;
-				break;
+			case VEH_TRAIN:    str = STR_TRAIN; break;
+			case VEH_ROAD:     str = STR_LORRY; break;
+			case VEH_SHIP:     str = STR_SHIP;  break;
+			case VEH_AIRCRAFT: str = STR_PLANE; break;
 		}
+		this->GetWidget<NWidgetCore>(WID_D_VEHICLE_LIST)->widget_data = str;
 
 		/* Sprites */
 
