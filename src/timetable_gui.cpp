@@ -173,24 +173,6 @@ struct TimetableWindow : Window {
 		this->owner = this->vehicle->owner;
 	}
 
-	/**
-	 * Build the arrival-departure list for a given vehicle
-	 * @param v the vehicle to make the list for
-	 * @param table the table to fill
-	 * @return if next arrival will be early
-	 */
-	static bool BuildArrivalDepartureList(const Vehicle *v, TimetableArrivalDeparture *table)
-	{
-		assert(HasBit(v->vehicle_flags, VF_TIMETABLE_STARTED));
-
-		bool travelling = (!v->current_order.IsType(OT_LOADING) || v->current_order.GetNonStopType() == ONSF_STOP_EVERYWHERE);
-		Ticks start_time = _date_fract - v->current_order_time;
-
-		FillTimetableArrivalDepartureTable(v, v->cur_real_order_index % v->GetNumOrders(), travelling, table, start_time);
-
-		return (travelling && v->lateness_counter < 0);
-	}
-
 	virtual void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize)
 	{
 		switch (widget) {
@@ -432,7 +414,14 @@ struct TimetableWindow : Window {
 				TimetableArrivalDeparture *arr_dep = AllocaM(TimetableArrivalDeparture, v->GetNumOrders());
 				const VehicleOrderID cur_order = v->cur_real_order_index % v->GetNumOrders();
 
-				VehicleOrderID earlyID = BuildArrivalDepartureList(v, arr_dep) ? cur_order : (VehicleOrderID)INVALID_VEH_ORDER_ID;
+				bool travelling = !v->current_order.IsType(OT_LOADING)
+						|| (v->current_order.GetNonStopType() == ONSF_STOP_EVERYWHERE);
+				Ticks start_time = _date_fract - v->current_order_time;
+
+				FillTimetableArrivalDepartureTable (v, cur_order, travelling, arr_dep, start_time);
+
+				VehicleOrderID earlyID = (travelling && v->lateness_counter < 0) ?
+							cur_order : (VehicleOrderID)INVALID_VEH_ORDER_ID;
 
 				int y = r.top + WD_FRAMERECT_TOP;
 
