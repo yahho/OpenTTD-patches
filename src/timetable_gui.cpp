@@ -420,8 +420,8 @@ struct TimetableWindow : Window {
 
 				FillTimetableArrivalDepartureTable (v, cur_order, travelling, arr_dep, start_time);
 
-				VehicleOrderID earlyID = (travelling && v->lateness_counter < 0) ?
-							cur_order : (VehicleOrderID)INVALID_VEH_ORDER_ID;
+				int early_pos = (this->show_expected && travelling && v->lateness_counter < 0) ?
+							2 * cur_order : -1;
 
 				int y = r.top + WD_FRAMERECT_TOP;
 
@@ -441,7 +441,7 @@ struct TimetableWindow : Window {
 					if (i % 2 == 0) {
 						if (arr_dep[i / 2].arrival != INVALID_TICKS) {
 							DrawString (dpi, abbr_left, abbr_right, y, STR_TIMETABLE_ARRIVAL_ABBREVIATION, i == selected ? TC_WHITE : TC_BLACK);
-							if (this->show_expected && i / 2 == earlyID) {
+							if (i == early_pos) {
 								SetDParam(0, _date + arr_dep[i / 2].arrival / DAY_TICKS);
 								DrawString (dpi, time_left, time_right, y, STR_JUST_DATE_TINY, TC_GREEN);
 							} else {
