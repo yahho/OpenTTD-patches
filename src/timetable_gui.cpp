@@ -420,13 +420,12 @@ struct TimetableWindow : Window {
 
 				FillTimetableArrivalDepartureTable (v, cur_order, travelling, arr_dep, start_time);
 
-				int early_pos = (this->show_expected && travelling && v->lateness_counter < 0) ?
+				Ticks lateness = v->lateness_counter;
+				int early_pos = (this->show_expected && travelling && lateness < 0) ?
 							2 * cur_order : -1;
+				bool show_late = this->show_expected && lateness > DAY_TICKS;
 
 				int y = r.top + WD_FRAMERECT_TOP;
-
-				bool show_late = this->show_expected && v->lateness_counter > DAY_TICKS;
-				Ticks offset = show_late ? 0 : -v->lateness_counter;
 
 				bool rtl = _current_text_dir == TD_RTL;
 				int abbr_left  = rtl ? r.right - WD_FRAMERECT_RIGHT - this->deparr_abbr_width : r.left + WD_FRAMERECT_LEFT;
@@ -451,7 +450,7 @@ struct TimetableWindow : Window {
 						} else if (show_late) {
 							colour = TC_RED;
 						} else {
-							date += offset;
+							date -= lateness;
 						}
 						SetDParam (0, _date + date / DAY_TICKS);
 						DrawString (dpi, time_left, time_right, y, STR_JUST_DATE_TINY, colour);
