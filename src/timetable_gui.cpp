@@ -438,25 +438,23 @@ struct TimetableWindow : Window {
 					/* Don't draw anything if it extends past the end of the window. */
 					if (!this->vscroll->IsVisible(i)) break;
 
-					if (i % 2 == 0) {
-						if (arr_dep[i / 2].arrival != INVALID_TICKS) {
-							DrawString (dpi, abbr_left, abbr_right, y, STR_TIMETABLE_ARRIVAL_ABBREVIATION, i == selected ? TC_WHITE : TC_BLACK);
-							if (i == early_pos) {
-								SetDParam(0, _date + arr_dep[i / 2].arrival / DAY_TICKS);
-								DrawString (dpi, time_left, time_right, y, STR_JUST_DATE_TINY, TC_GREEN);
-							} else {
-								SetDParam(0, _date + (arr_dep[i / 2].arrival + offset) / DAY_TICKS);
-								DrawString (dpi, time_left, time_right, y, STR_JUST_DATE_TINY,
-										show_late ? TC_RED : i == selected ? TC_WHITE : TC_BLACK);
-							}
+					assert_compile (STR_TIMETABLE_DEPARTURE_ABBREVIATION == STR_TIMETABLE_ARRIVAL_ABBREVIATION + 1);
+
+					Ticks date = (i % 2 == 0) ? arr_dep[i / 2].arrival : arr_dep[i / 2].departure;
+					if (date != INVALID_TICKS) {
+						TextColour colour = (i == selected) ? TC_WHITE : TC_BLACK;
+						DrawString (dpi, abbr_left, abbr_right, y,
+								STR_TIMETABLE_ARRIVAL_ABBREVIATION + (i % 2),
+								colour);
+						if (i == early_pos) {
+							colour = TC_GREEN;
+						} else if (show_late) {
+							colour = TC_RED;
+						} else {
+							date += offset;
 						}
-					} else {
-						if (arr_dep[i / 2].departure != INVALID_TICKS) {
-							DrawString (dpi, abbr_left, abbr_right, y, STR_TIMETABLE_DEPARTURE_ABBREVIATION, i == selected ? TC_WHITE : TC_BLACK);
-							SetDParam(0, _date + (arr_dep[i/2].departure + offset) / DAY_TICKS);
-							DrawString (dpi, time_left, time_right, y, STR_JUST_DATE_TINY,
-									show_late ? TC_RED : i == selected ? TC_WHITE : TC_BLACK);
-						}
+						SetDParam (0, _date + date / DAY_TICKS);
+						DrawString (dpi, time_left, time_right, y, STR_JUST_DATE_TINY, colour);
 					}
 					y += FONT_HEIGHT_NORMAL;
 				}
