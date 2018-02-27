@@ -877,6 +877,7 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 						SB(_mc[t].m3, 6, 2, GB(_mc[t].m5, 0, 2));
 						SB(_mc[t].m5, 6, 2, GB(_mc[t].m5, 2, 2));
 						SB(_mc[t].m5, 0, 4, tram);
+						_mc[t].m7 = 0;
 					}
 					break;
 
