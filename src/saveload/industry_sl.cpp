@@ -56,7 +56,7 @@ static const SaveLoad _industry_desc[] = {
 	SLEG_ARR(_old_ind_persistent_storage.storage, SLE_UINT32, 16,             , ,  76, 160),
 	SLE_REF(Industry, psa,                        REF_STORAGE,               0, , 161,    ),
 
-	SLE_VAR(Industry, random_triggers,            SLE_UINT8,                 0, ,  82,    ),
+	SLE_NULL(1,  0, 24,  82, 196),
 	SLE_VAR(Industry, random,                     SLE_UINT16,                0, ,  82,    ),
 
 	SLE_NULL(32, , , 2, 143), // old reserved space

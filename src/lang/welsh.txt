@@ -2715,10 +2715,10 @@ STR_ABOUT_VERSION                                               :{BLACK}fersiwn 
 STR_ABOUT_COPYRIGHT_OPENTTD                                     :{BLACK}OpenTTD {COPYRIGHT}2002-2017 Y tîm OpenTTD
 
 # Save/load game/scenario
-STR_SAVELOAD_SAVE_CAPTION                                       :{WHITE}Cadw Gêm
 STR_SAVELOAD_LOAD_CAPTION                                       :{WHITE}Llwytho Gêm
-STR_SAVELOAD_SAVE_SCENARIO                                      :{WHITE}Cadw Senario
+STR_SAVELOAD_SAVE_CAPTION                                       :{WHITE}Cadw Gêm
 STR_SAVELOAD_LOAD_SCENARIO                                      :{WHITE}Llwytho Senario
+STR_SAVELOAD_SAVE_SCENARIO                                      :{WHITE}Cadw Senario
 STR_SAVELOAD_LOAD_HEIGHTMAP                                     :{WHITE}Llwytho Heightmap
 STR_SAVELOAD_SAVE_HEIGHTMAP                                     :{WHITE}Cadw Siart Uchder
 STR_SAVELOAD_HOME_BUTTON                                        :{BLACK}Cliciwch yma i newid i'r cyfeiriadur cadw/llwytho diofyn cyfredol

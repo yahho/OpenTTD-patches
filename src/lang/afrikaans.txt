@@ -2715,10 +2715,10 @@ STR_ABOUT_VERSION                                               :{BLACK}OpenTTD 
 STR_ABOUT_COPYRIGHT_OPENTTD                                     :{BLACK}OpenTTD {COPYRIGHT} 2002-2017 Die OpenTTD span
 
 # Save/load game/scenario
-STR_SAVELOAD_SAVE_CAPTION                                       :{WHITE}Spaar Spel
 STR_SAVELOAD_LOAD_CAPTION                                       :{WHITE}Laai Spel
-STR_SAVELOAD_SAVE_SCENARIO                                      :{WHITE}Stoor Scenario
+STR_SAVELOAD_SAVE_CAPTION                                       :{WHITE}Spaar Spel
 STR_SAVELOAD_LOAD_SCENARIO                                      :{WHITE}Laai Scenario
+STR_SAVELOAD_SAVE_SCENARIO                                      :{WHITE}Stoor Scenario
 STR_SAVELOAD_LOAD_HEIGHTMAP                                     :{WHITE}Laai reliëfkaart
 STR_SAVELOAD_SAVE_HEIGHTMAP                                     :{WHITE}Stoor reliëfkaart
 STR_SAVELOAD_HOME_BUTTON                                        :{BLACK}Klik hier om na die huidige spaar/laai lêer te gaan

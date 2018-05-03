@@ -229,38 +229,24 @@ void Station::MarkTilesDirty(bool cargo_change) const
 	}
 }
 
-/* virtual */ uint Station::GetPlatformLength(TileIndex tile) const
-{
-	assert(this->TileBelongsToRailStation(tile));
-
-	TileIndexDiff delta = (GetRailStationAxis(tile) == AXIS_X ? TileDiffXY(1, 0) : TileDiffXY(0, 1));
-
-	TileIndex t = tile;
-	uint len = 0;
-	do {
-		t -= delta;
-		len++;
-	} while (IsCompatibleTrainStationTile(t, tile));
-
-	t = tile;
-	do {
-		t += delta;
-		len++;
-	} while (IsCompatibleTrainStationTile(t, tile));
-
-	return len - 1;
-}
-
-/* virtual */ uint Station::GetPlatformLength(TileIndex tile, DiagDirection dir) const
+/**
+ * Determines the REMAINING length of a platform, starting at (and including)
+ * the given tile.
+ * @param tile the tile from which to start searching. Must be a rail station tile
+ * @param dir The direction in which to search.
+ * @return The platform length
+ */
+uint Station::GetPlatformLength (TileIndex tile, DiagDirection dir)
 {
 	TileIndex start_tile = tile;
 	uint length = 0;
 	assert(IsRailStationTile(tile));
 	assert(dir < DIAGDIR_END);
+	TileIndexDiff delta = TileOffsByDiagDir (dir);
 
 	do {
 		length++;
-		tile += TileOffsByDiagDir(dir);
+		tile += delta;
 	} while (IsCompatibleTrainStationTile(tile, start_tile));
 
 	return length;

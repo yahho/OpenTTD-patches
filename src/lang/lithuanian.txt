@@ -2933,10 +2933,10 @@ STR_ABOUT_VERSION                                               :{BLACK}OpenTTD 
 STR_ABOUT_COPYRIGHT_OPENTTD                                     :{BLACK}OpenTTD {COPYRIGHT}2002-2017 OpenTTD komanda
 
 # Save/load game/scenario
-STR_SAVELOAD_SAVE_CAPTION                                       :{WHITE}Išsaugoti žaidimą
 STR_SAVELOAD_LOAD_CAPTION                                       :{WHITE}Įkelti žaidimą
-STR_SAVELOAD_SAVE_SCENARIO                                      :{WHITE}Išsaugoti scenarijų
+STR_SAVELOAD_SAVE_CAPTION                                       :{WHITE}Išsaugoti žaidimą
 STR_SAVELOAD_LOAD_SCENARIO                                      :{WHITE}Įkelti scenarijų
+STR_SAVELOAD_SAVE_SCENARIO                                      :{WHITE}Išsaugoti scenarijų
 STR_SAVELOAD_LOAD_HEIGHTMAP                                     :{WHITE}Įkelti teminį žemėlapį
 STR_SAVELOAD_SAVE_HEIGHTMAP                                     :{WHITE}Išsaugoti teminį žemėlapį
 STR_SAVELOAD_HOME_BUTTON                                        :{BLACK}Šokti į numatytąjį saugojimo/įkėlimo katalogą

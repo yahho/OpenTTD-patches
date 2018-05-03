@@ -664,7 +664,7 @@ static void LoadSavegameFormat(LoadFilter **chain, SavegameTypeVersion *stv)
 
 	ChainLoadFilter *(*init_load) (LoadFilter *);
 
-	if (hdr == TO_BE32X('FTTD')) {
+	if (hdr == TO_BE32('FTTD')) {
 		/* native savegame, read compression format */
 		if ((*chain)->Read((byte*)&hdr, sizeof(hdr)) != sizeof(hdr)) throw SlException(STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE);
 		init_load = GetSavegameLoader(hdr);
@@ -684,7 +684,7 @@ static void LoadSavegameFormat(LoadFilter **chain, SavegameTypeVersion *stv)
 		/* Is the version higher than the current? */
 		} else if (stv->fttd.version > SAVEGAME_VERSION) {
 			throw SlException(STR_GAME_SAVELOAD_ERROR_TOO_NEW_SAVEGAME);
-		} else if (hdr == TO_BE32X('TRRT')) {
+		} else if (hdr == TO_BE32('TRRT')) {
 			uint32 flags;
 			uint32 tr_version;
 			if ((*chain)->Read((byte*)&flags, sizeof(flags)) != sizeof(flags)) throw SlException(STR_GAME_SAVELOAD_ERROR_FILE_NOT_READABLE);

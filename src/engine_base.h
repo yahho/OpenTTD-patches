@@ -83,13 +83,13 @@ struct Engine : PooledItem <Engine, EngineID, 64, 64000>, EngineState {
 	} u;
 
 	/* NewGRF related data */
+	GRFFilePropsBase grf_prop;  ///< Properties related the the grf file.
 	/**
-	 * Properties related the the grf file.
 	 * NUM_CARGO real cargo plus two pseudo cargo sprite groups.
 	 * Used for obtaining the sprite offset of custom sprites, and for
 	 * evaluating callbacks.
 	 */
-	GRFFilePropsBase<NUM_CARGO + 2> grf_prop;
+	const struct SpriteGroup *spritegroup[NUM_CARGO + 2];
 	uint16 overrides_count;
 	struct WagonOverride *overrides;
 	uint16 list_position;

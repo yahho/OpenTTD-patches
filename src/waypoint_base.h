@@ -34,18 +34,6 @@ struct Waypoint FINAL : SpecializedStation<Waypoint, true> {
 
 	uint32 GetNewGRFVariable (const struct GRFFile *grffile, byte variable, byte parameter, bool *available) const OVERRIDE;
 
-	/* virtual */ void GetTileArea(TileArea *ta, StationType type) const;
-
-	/* virtual */ uint GetPlatformLength(TileIndex tile, DiagDirection dir) const
-	{
-		return 1;
-	}
-
-	/* virtual */ uint GetPlatformLength(TileIndex tile) const
-	{
-		return 1;
-	}
-
 	/**
 	 * Is this a single tile waypoint?
 	 * @return true if it is.

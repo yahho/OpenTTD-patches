@@ -2719,10 +2719,10 @@ STR_ABOUT_VERSION                                               :{BLACK}OpenTTD-
 STR_ABOUT_COPYRIGHT_OPENTTD                                     :{BLACK}OpenTTD {COPYRIGHT} 2002-2017 OpenTTD-Team
 
 # Save/load game/scenario
-STR_SAVELOAD_SAVE_CAPTION                                       :{WHITE}Spiel speichern
 STR_SAVELOAD_LOAD_CAPTION                                       :{WHITE}Spiel laden
-STR_SAVELOAD_SAVE_SCENARIO                                      :{WHITE}Szenario speichern
+STR_SAVELOAD_SAVE_CAPTION                                       :{WHITE}Spiel speichern
 STR_SAVELOAD_LOAD_SCENARIO                                      :{WHITE}Szenario laden
+STR_SAVELOAD_SAVE_SCENARIO                                      :{WHITE}Szenario speichern
 STR_SAVELOAD_LOAD_HEIGHTMAP                                     :{WHITE}Reliefkarte laden
 STR_SAVELOAD_SAVE_HEIGHTMAP                                     :{WHITE}Reliefkarte speichern
 STR_SAVELOAD_HOME_BUTTON                                        :{BLACK}Hier klicken, um zum Standardverzeichnis für Spielstände zu gehen

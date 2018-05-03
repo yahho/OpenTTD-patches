@@ -84,7 +84,7 @@ struct OrthogonalTileArea {
 	 */
 	TileIndex get_closest_tile(TileIndex t) const
 	{
-		if (this->empty()) return INVALID_TILE;
+		assert (!this->empty());
 
 		/* clamp x coordinate */
 		uint x = TileX(this->tile);

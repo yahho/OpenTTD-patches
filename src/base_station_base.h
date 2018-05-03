@@ -99,13 +99,6 @@ struct BaseStation : PooledItem <BaseStation, StationID, 32, 64000> {
 	 */
 	virtual void UpdateVirtCoord() = 0;
 
-	/**
-	 * Get the tile area for a given station type.
-	 * @param ta tile area to fill.
-	 * @param type the type of the area
-	 */
-	virtual void GetTileArea(TileArea *ta, StationType type) const = 0;
-
 	/* Test if adding an area would exceed the maximum station spread. */
 	bool TestAddRect (const TileArea &ta);
 
@@ -119,38 +112,17 @@ struct BaseStation : PooledItem <BaseStation, StationID, 32, 64000> {
 	}
 
 	/**
-	 * Calculates the tile of the given station type that is closest to a given tile.
+	 * Calculates the tile of the given area that is closest to a given tile.
 	 * @param tile The tile from where to calculate the distance
-	 * @param station_type the station type to get the closest tile of
-	 * @return The closest station tile to the given tile.
+	 * @param ta the tile area to get the closest tile of
+	 * @return The tile in the area that is closest to the given tile.
 	 */
-	TileIndex GetClosestTile(TileIndex tile, StationType station_type) const
+	TileIndex GetClosestTile (TileIndex tile, const TileArea &ta) const
 	{
-		TileArea ta;
-		this->GetTileArea(&ta, station_type);
-
-		/* If the station does not have the given station type, use the station sign */
-		tile = ta.get_closest_tile(tile);
-		return (tile != INVALID_TILE) ? tile : this->xy;
+		/* If the area does not have any tiles, use the station sign */
+		return ta.empty() ? this->xy : ta.get_closest_tile(tile);
 	}
 
-
-	/**
-	 * Obtain the length of a platform
-	 * @pre tile must be a rail station tile
-	 * @param tile A tile that contains the platform in question
-	 * @return The length of the platform
-	 */
-	virtual uint GetPlatformLength(TileIndex tile) const = 0;
-
-	/**
-	 * Determines the REMAINING length of a platform, starting at (and including)
-	 * the given tile.
-	 * @param tile the tile from which to start searching. Must be a rail station tile
-	 * @param dir The direction in which to search.
-	 * @return The platform length
-	 */
-	virtual uint GetPlatformLength(TileIndex tile, DiagDirection dir) const = 0;
 
 	/**
 	 * Get the base station belonging to a specific tile.

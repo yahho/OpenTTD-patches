@@ -2822,10 +2822,10 @@ STR_ABOUT_VERSION                                               :{BLACK}Έκδο
 STR_ABOUT_COPYRIGHT_OPENTTD                                     :{BLACK}OpenTTD {COPYRIGHT} 2002-2017 Η ομάδα του OpenTTD
 
 # Save/load game/scenario
-STR_SAVELOAD_SAVE_CAPTION                                       :{WHITE}Αποθήκευση Παιχνιδιού
 STR_SAVELOAD_LOAD_CAPTION                                       :{WHITE}Φόρτωση Παιχνιδιού
-STR_SAVELOAD_SAVE_SCENARIO                                      :{WHITE}Αποθήκευση Σεναρίου
+STR_SAVELOAD_SAVE_CAPTION                                       :{WHITE}Αποθήκευση Παιχνιδιού
 STR_SAVELOAD_LOAD_SCENARIO                                      :{WHITE}Φόρτωση Σεναρίου
+STR_SAVELOAD_SAVE_SCENARIO                                      :{WHITE}Αποθήκευση Σεναρίου
 STR_SAVELOAD_LOAD_HEIGHTMAP                                     :{WHITE}Φόρτωση Χάρτη Υψομετρίας
 STR_SAVELOAD_SAVE_HEIGHTMAP                                     :{WHITE}Αποθήκευση Χάρτη Υψομετρίας
 STR_SAVELOAD_HOME_BUTTON                                        :{BLACK}Πατήστε εδώ για να πάτε στον τρέχων φάκελο αποθήκευσης

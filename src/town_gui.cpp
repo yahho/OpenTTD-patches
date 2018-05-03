@@ -92,14 +92,12 @@ private:
 	 * @param n The Nth set bit from which we want to know the position
 	 * @return The position of the Nth set bit
 	 */
-	static int GetNthSetBit(uint32 bits, int n)
+	static int GetNthSetBit (uint bits, uint n)
 	{
-		if (n >= 0) {
-			uint i;
-			FOR_EACH_SET_BIT(i, bits) {
-				n--;
-				if (n < 0) return i;
-			}
+		uint i;
+		FOR_EACH_SET_BIT(i, bits) {
+			n--;
+			if (n == 0) return i;
 		}
 		return -1;
 	}
@@ -273,16 +271,19 @@ public:
 	{
 		switch (widget) {
 			case WID_TA_COMMAND_LIST: {
-				int y = this->GetRowFromWidget(pt.y, WID_TA_COMMAND_LIST, 1, FONT_HEIGHT_NORMAL);
-				if (!IsInsideMM(y, 0, 5)) return;
+				uint y = this->GetWidget<NWidgetBase>(WID_TA_COMMAND_LIST)->GetRow (pt.y, 1, FONT_HEIGHT_NORMAL);
+				if (y >= 5) return;
 
-				y = GetNthSetBit(GetMaskOfTownActions(NULL, _local_company, this->town), y + this->vscroll->GetPosition() - 1);
-				if (y >= 0) {
-					this->sel_index = y;
-					this->SetDirty();
-				}
+				y += this->vscroll->GetPosition();
+				if (y == 0) break;
+
+				int sel = GetNthSetBit (GetMaskOfTownActions (NULL, _local_company, this->town), y);
+				if (sel < 0) break;
+
+				this->sel_index = sel;
+				this->SetDirty();
 				/* When double-clicking, continue */
-				if (click_count == 1 || y < 0) break;
+				if (click_count == 1) break;
 			}
 			FALLTHROUGH;
 

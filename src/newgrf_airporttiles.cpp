@@ -147,7 +147,7 @@ static uint32 GetAirportTileIDAtOffset(TileIndex tile, const Station *st, uint32
 		}
 	}
 	/* Not an 'old type' tile */
-	if (ats->grf_prop.spritegroup[0] != NULL) { // tile has a spritegroup ?
+	if (ats->grf_prop.spritegroup != NULL) { // tile has a spritegroup ?
 		if (ats->grf_prop.grffile->grfid == cur_grfid) { // same airport, same grf ?
 			return ats->grf_prop.local_id;
 		} else {
@@ -241,7 +241,7 @@ static inline const SpriteGroup *AirportTileResolve (const AirportTileSpec *ats,
 	uint32 param1 = 0, uint32 param2 = 0)
 {
 	AirportTileResolverObject object (ats, tile, st, callback, param1, param2);
-	return SpriteGroup::Resolve (ats->grf_prop.spritegroup[0], object);
+	return SpriteGroup::Resolve (ats->grf_prop.spritegroup, object);
 }
 
 uint16 GetAirportTileCallback (CallbackID callback, uint32 param1, uint32 param2, const AirportTileSpec *ats, Station *st, TileIndex tile)

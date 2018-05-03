@@ -1210,9 +1210,9 @@ public:
 		}
 	}
 
-	virtual EventState OnCTRLStateChange() {
+	virtual bool OnCTRLStateChange() OVERRIDE {
 		this->UpdateButtonState();
-		return ES_NOT_HANDLED;
+		return false;
 	}
 
 private:

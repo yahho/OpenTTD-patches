@@ -412,12 +412,14 @@ public:
 			case WID_RV_RIGHT_MATRIX: {
 				int side = (widget == WID_RV_LEFT_MATRIX) ? 0 : 1;
 				EngineID start  = this->vscroll[side]->GetPosition(); // what is the offset for the start (scrolling)
-				EngineID end    = min(this->vscroll[side]->GetCapacity() + start, this->engines[side].Length());
-
+				EngineID end    = this->engines[side].Length();
 				/* Do the actual drawing */
-				DrawEngineList ((VehicleType)this->window_number, dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP,
-						this->engines[side].Get(start), end - start,
+				if (start < end) {
+					uint n = min (end - start, this->vscroll[side]->GetCapacity());
+					DrawEngineList ((VehicleType)this->window_number, dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, r.top + WD_FRAMERECT_TOP,
+						this->engines[side].Get(start), n,
 						this->sel_engine[side], side == 0, this->sel_group);
+				}
 				break;
 			}
 		}

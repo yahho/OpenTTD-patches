@@ -2718,10 +2718,10 @@ STR_ABOUT_VERSION                                               :{BLACK}OpenTTD 
 STR_ABOUT_COPYRIGHT_OPENTTD                                     :{BLACK}OpenTTD {COPYRIGHT} 2002-2017 Nhóm OpenTTD
 
 # Save/load game/scenario
-STR_SAVELOAD_SAVE_CAPTION                                       :{WHITE}Lưu Ván Chơi
 STR_SAVELOAD_LOAD_CAPTION                                       :{WHITE}Nạp Ván Chơi
-STR_SAVELOAD_SAVE_SCENARIO                                      :{WHITE}Lưu màn chơi kịch bản
+STR_SAVELOAD_SAVE_CAPTION                                       :{WHITE}Lưu Ván Chơi
 STR_SAVELOAD_LOAD_SCENARIO                                      :{WHITE}Nạp màn chơi kịch bản
+STR_SAVELOAD_SAVE_SCENARIO                                      :{WHITE}Lưu màn chơi kịch bản
 STR_SAVELOAD_LOAD_HEIGHTMAP                                     :{WHITE}Nạp bản đồ địa hình
 STR_SAVELOAD_SAVE_HEIGHTMAP                                     :{WHITE}Lưu bản đồ địa hình
 STR_SAVELOAD_HOME_BUTTON                                        :{BLACK}Nháy vào đây để tới thư mục mặc định hiện thời để nạp/lưu

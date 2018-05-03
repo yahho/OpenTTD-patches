@@ -511,11 +511,9 @@ public:
 	void UnfocusFocusedWidget();
 	bool SetFocusedWidget(int widget_index);
 
-	EventState HandleEditBoxKey(int wid, WChar key, uint16 keycode);
 	virtual void InsertTextString(int wid, const char *str, bool marked, const char *caret, const char *insert_location, const char *replacement_end);
 
 	void HandleButtonClick(byte widget);
-	int GetRowFromWidget(int clickpos, int widget, int padding, int line_height = -1) const;
 
 	void RaiseButtons(bool autoraise = false);
 	void CDECL SetWidgetsDisabledState(bool disab_stat, int widgets, ...);
@@ -617,19 +615,25 @@ public:
 	 * A key has been pressed.
 	 * @param key     the Unicode value of the key.
 	 * @param keycode the untranslated key code including shift state.
-	 * @return #ES_HANDLED if the key press has been handled and no other
+	 * @return Whether the key press has been handled and no other
 	 *         window should receive the event.
 	 */
-	virtual EventState OnKeyPress(WChar key, uint16 keycode) { return ES_NOT_HANDLED; }
+	virtual bool OnKeyPress (WChar key, uint16 keycode)
+	{
+		return false;
+	}
 
-	virtual EventState OnHotkey(int hotkey);
+	virtual bool OnHotkey (int hotkey);
 
 	/**
 	 * The state of the control key has changed
-	 * @return #ES_HANDLED if the change has been handled and no other
+	 * @return Whether the change has been handled and no other
 	 *         window should receive the event.
 	 */
-	virtual EventState OnCTRLStateChange() { return ES_NOT_HANDLED; }
+	virtual bool OnCTRLStateChange (void)
+	{
+		return false;
+	}
 
 
 	/**
@@ -782,11 +786,10 @@ public:
 	 * The user has dragged over the map when the tile highlight mode
 	 * has been set.
 	 * @param userdata      data set by the function that started the selection
-	 * @param pt            the exact point on the map where the mouse was released.
 	 * @param start_tile    the begin tile of the drag.
 	 * @param end_tile      the end tile of the drag.
 	 */
-	virtual void OnPlaceMouseUp (int userdata, Point pt, TileIndex start_tile, TileIndex end_tile) {}
+	virtual void OnPlaceMouseUp (int userdata, TileIndex start_tile, TileIndex end_tile) {}
 
 	/**
 	 * The user moves over the map when a tile highlight mode has been set

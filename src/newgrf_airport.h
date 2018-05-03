@@ -25,7 +25,14 @@ typedef byte StationGfx;
 struct AirportTileTable {
 	CoordDiff ti;      ///< Tile offset from  the top-most airport tile.
 	StationGfx gfx;    ///< AirportTile to use for this tile.
+	byte rotation;     ///< Rotation of this layout (first tile only).
 };
+
+/* The rotation field of struct AirportTileTable is only used in the
+ * first tile of a layout; make sure that this does not increase memory
+ * requirements for the struct, as most tiles will not be using it. */
+assert_compile (sizeof(AirportTileTable) == sizeof(CoordDiff) + 2);
+assert_compile (sizeof(AirportTileTable) % 2 == 0);
 
 /** Iterator to iterate over all tiles belonging to an airport spec. */
 class AirportTileTableIterator : public TileIterator {
@@ -82,23 +89,13 @@ enum TTDPAirportType {
 	ATP_TTDP_OILRIG,   ///< Same as AT_OILRIG
 };
 
-/** A list of all hangar tiles in an airport */
-struct HangarTileTable {
-	CoordDiff ti;      ///< Tile offset from the top-most airport tile.
-	Direction dir;     ///< Direction of the exit.
-	byte hangar_num;   ///< The hangar to which this tile belongs.
-};
-
 /**
  * Defines the data structure for an airport.
  */
 struct AirportSpec {
-	const struct AirportFTAClass *fsm;     ///< the finite statemachine for the default airports
+	const struct AirportFTA *fsm;          ///< the finite statemachine for the default airports
 	const AirportTileTable * const *table; ///< list of the tiles composing the airport
-	Direction *rotation;                   ///< the rotation of each tiletable
 	byte num_table;                        ///< number of elements in the table
-	const HangarTileTable *depot_table;    ///< gives the position of the depots on the airports
-	byte nof_depots;                       ///< the number of hangar tiles in this airport
 	byte size_x;                           ///< size of airport in x direction
 	byte size_y;                           ///< size of airport in y direction
 	byte noise_level;                      ///< noise that this airport generates
@@ -127,8 +124,6 @@ struct AirportSpec {
 		assert(this >= specs && this < endof(specs));
 		return (byte)(this - specs);
 	}
-
-	static AirportSpec dummy; ///< The dummy airport.
 
 private:
 	static AirportSpec specs[NUM_AIRPORTS]; ///< Specs of the airports.

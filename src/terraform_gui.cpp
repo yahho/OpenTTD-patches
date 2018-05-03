@@ -261,18 +261,16 @@ struct TerraformToolbarWindow : Window {
 		return pt;
 	}
 
-	void OnPlaceMouseUp (int userdata, Point pt, TileIndex start_tile, TileIndex end_tile) OVERRIDE
+	void OnPlaceMouseUp (int userdata, TileIndex start_tile, TileIndex end_tile) OVERRIDE
 	{
-		if (pt.x != -1) {
-			switch (userdata) {
-				default: NOT_REACHED();
-				case PLACE_DEMOLISH_AREA:
-				case PLACE_LOWER_AREA:
-				case PLACE_RAISE_AREA:
-				case PLACE_LEVEL_AREA:
-					GUIPlaceProcDragXY (userdata, start_tile, end_tile);
-					break;
-			}
+		switch (userdata) {
+			default: NOT_REACHED();
+			case PLACE_DEMOLISH_AREA:
+			case PLACE_LOWER_AREA:
+			case PLACE_RAISE_AREA:
+			case PLACE_LEVEL_AREA:
+				GUIPlaceProcDragXY (userdata, start_tile, end_tile);
+				break;
 		}
 	}
 
@@ -287,14 +285,13 @@ struct TerraformToolbarWindow : Window {
 /**
  * Handler for global hotkeys of the TerraformToolbarWindow.
  * @param hotkey Hotkey
- * @return ES_HANDLED if hotkey was accepted.
+ * @return Whether the hotkey was handled.
  */
-static EventState TerraformToolbarGlobalHotkeys(int hotkey)
+static bool TerraformToolbarGlobalHotkeys (int hotkey)
 {
-	if (_game_mode != GM_NORMAL) return ES_NOT_HANDLED;
+	if (_game_mode != GM_NORMAL) return false;
 	Window *w = ShowTerraformToolbar(NULL);
-	if (w == NULL) return ES_NOT_HANDLED;
-	return w->OnHotkey(hotkey);
+	return (w != NULL) && w->OnHotkey (hotkey);
 }
 
 static const Hotkey terraform_hotkeys[] = {
@@ -670,20 +667,18 @@ struct ScenarioEditorLandscapeGenerationWindow : Window {
 		}
 	}
 
-	void OnPlaceMouseUp (int userdata, Point pt, TileIndex start_tile, TileIndex end_tile) OVERRIDE
+	void OnPlaceMouseUp (int userdata, TileIndex start_tile, TileIndex end_tile) OVERRIDE
 	{
-		if (pt.x != -1) {
-			switch (userdata) {
-				default: NOT_REACHED();
-				case PLACE_DEMOLISH_AREA:
-				case PLACE_LOWER_AREA:
-				case PLACE_RAISE_AREA:
-				case PLACE_LEVEL_AREA:
-				case PLACE_CREATE_ROCKS:
-				case PLACE_CREATE_DESERT:
-					GUIPlaceProcDragXY (userdata, start_tile, end_tile);
-					break;
-			}
+		switch (userdata) {
+			default: NOT_REACHED();
+			case PLACE_DEMOLISH_AREA:
+			case PLACE_LOWER_AREA:
+			case PLACE_RAISE_AREA:
+			case PLACE_LEVEL_AREA:
+			case PLACE_CREATE_ROCKS:
+			case PLACE_CREATE_DESERT:
+				GUIPlaceProcDragXY (userdata, start_tile, end_tile);
+				break;
 		}
 	}
 
@@ -699,14 +694,13 @@ struct ScenarioEditorLandscapeGenerationWindow : Window {
 /**
  * Handler for global hotkeys of the ScenarioEditorLandscapeGenerationWindow.
  * @param hotkey Hotkey
- * @return ES_HANDLED if hotkey was accepted.
+ * @return Whether the hotkey was handled.
  */
-static EventState TerraformToolbarEditorGlobalHotkeys(int hotkey)
+static bool TerraformToolbarEditorGlobalHotkeys (int hotkey)
 {
-	if (_game_mode != GM_EDITOR) return ES_NOT_HANDLED;
+	if (_game_mode != GM_EDITOR) return false;
 	Window *w = ShowEditorTerraformToolbar();
-	if (w == NULL) return ES_NOT_HANDLED;
-	return w->OnHotkey(hotkey);
+	return (w != NULL) && w->OnHotkey (hotkey);
 }
 
 static const Hotkey terraform_editor_hotkeys[] = {

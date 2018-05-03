@@ -35,6 +35,7 @@
 #include "linkgraph/linkgraph.h"
 #include "station_func.h"
 #include "zoom_func.h"
+#include "network/network.h"
 
 #include "widgets/station_widget.h"
 
@@ -1408,14 +1409,16 @@ struct StationViewWindow : public Window {
 				size->height = WD_FRAMERECT_TOP + ((this->GetWidget<NWidgetCore>(WID_SV_ACCEPTS_RATINGS)->widget_data == STR_STATION_VIEW_RATINGS_BUTTON) ? this->accepts_lines : this->rating_lines) * FONT_HEIGHT_NORMAL + WD_FRAMERECT_BOTTOM;
 				break;
 
-			case WID_SV_CLOSE_AIRPORT:
-				if (!(Station::Get(this->window_number)->facilities & FACIL_AIRPORT)) {
-					/* Hide 'Close Airport' button if no airport present. */
+			case WID_SV_CLOSE_AIRPORT: {
+				/* Hide 'Close Airport' button if no airport present, and in oilrigs. */
+				const Station *st = Station::Get (this->window_number);
+				if (!(st->facilities & FACIL_AIRPORT) || (st->owner == OWNER_NONE)) {
 					size->width = 0;
 					resize->width = 0;
 					fill->width = 0;
 				}
 				break;
+			}
 		}
 	}
 
@@ -1424,7 +1427,8 @@ struct StationViewWindow : public Window {
 		const Station *st = Station::Get(this->window_number);
 
 		/* disable some buttons */
-		this->SetWidgetDisabledState(WID_SV_RENAME,   st->owner != _local_company);
+		this->SetWidgetDisabledState (WID_SV_RENAME,
+					(st->owner != _local_company) && ((st->owner != OWNER_NONE) || _networking));
 		this->SetWidgetDisabledState(WID_SV_TRAINS,   !(st->facilities & FACIL_TRAIN));
 		this->SetWidgetDisabledState(WID_SV_ROADVEHS, !(st->facilities & FACIL_TRUCK_STOP) && !(st->facilities & FACIL_BUS_STOP));
 		this->SetWidgetDisabledState(WID_SV_SHIPS,    !(st->facilities & FACIL_DOCK));
@@ -1828,9 +1832,9 @@ struct StationViewWindow : public Window {
 	 * Handle a click on a specific row in the cargo view.
 	 * @param row Row being clicked.
 	 */
-	void HandleCargoWaitingClick(int row)
+	void HandleCargoWaitingClick (uint row)
 	{
-		if (row < 0 || (uint)row >= this->displayed_rows.size()) return;
+		if (row >= this->displayed_rows.size()) return;
 		if (_ctrl_pressed) {
 			this->scroll_to_row = row;
 		} else {
@@ -1855,7 +1859,7 @@ struct StationViewWindow : public Window {
 	{
 		switch (widget) {
 			case WID_SV_WAITING:
-				this->HandleCargoWaitingClick(this->vscroll->GetScrolledRowFromWidget(pt.y, this, WID_SV_WAITING, WD_FRAMERECT_TOP, FONT_HEIGHT_NORMAL) - this->vscroll->GetPosition());
+				this->HandleCargoWaitingClick (this->GetWidget<NWidgetBase>(WID_SV_WAITING)->GetRow (pt.y, WD_FRAMERECT_TOP, FONT_HEIGHT_NORMAL));
 				break;
 
 			case WID_SV_LOCATION:

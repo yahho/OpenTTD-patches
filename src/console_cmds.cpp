@@ -44,37 +44,27 @@
 /* scriptfile handling */
 static bool _script_running; ///< Script is running (used to abort execution when #ConReturn is encountered).
 
-/** File list storage for the console, for caching the last 'ls' command. */
-class ConsoleFileList : public FileList {
-public:
-	ConsoleFileList() : FileList()
-	{
-		this->file_list_valid = false;
+static FileList _console_file_list; ///< File storage cache for the console.
+static bool _console_file_list_valid; ///< If set, the file list is valid.
+
+/** Declare the file storage cache as being invalid, also clears all stored files. */
+static void InvalidateFileList (void)
+{
+	_console_file_list.Clear();
+	_console_file_list_valid = false;
+}
+
+/**
+ * (Re-)validate the file storage cache. Only makes a change if the storage was invalid, or if \a force_reload.
+ * @param Always reload the file storage cache.
+ */
+static void ValidateFileList (bool force_reload)
+{
+	if (force_reload || !_console_file_list_valid) {
+		_console_file_list.BuildFileList (FT_SAVEGAME, false);
+		_console_file_list_valid = true;
 	}
-
-	/** Declare the file storage cache as being invalid, also clears all stored files. */
-	void InvalidateFileList()
-	{
-		this->Clear();
-		this->file_list_valid = false;
-	}
-
-	/**
-	 * (Re-)validate the file storage cache. Only makes a change if the storage was invalid, or if \a force_reload.
-	 * @param Always reload the file storage cache.
-	 */
-	void ValidateFileList(bool force_reload = false)
-	{
-		if (force_reload || !this->file_list_valid) {
-			this->BuildFileList (FT_SAVEGAME, false);
-			this->file_list_valid = true;
-		}
-	}
-
-	bool file_list_valid; ///< If set, the file list is valid.
-};
-
-static ConsoleFileList _console_file_list; ///< File storage cache for the console.
+}
 
 /**
  * Find an item in the console file list by name; warn if it is not found.
@@ -84,7 +74,7 @@ static ConsoleFileList _console_file_list; ///< File storage cache for the conso
  */
 static const FiosItem *FindFile (const char *file, bool force_reload = false)
 {
-	_console_file_list.ValidateFileList (force_reload);
+	ValidateFileList (force_reload);
 
 	for (const FiosItem *item = _console_file_list.Begin(); item != _console_file_list.End(); item++) {
 		if (strcmp (file, item->name)  == 0) return item;
@@ -395,14 +385,11 @@ DEF_CONSOLE_CMD(ConLoad)
 	const char *file = argv[1];
 	const FiosItem *item = FindFile (file);
 	if (item != NULL) {
-		if (GetAbstractFileType(item->type) == FT_SAVEGAME) {
-			_switch_mode = SM_LOAD_GAME;
-			_file_to_saveload.SetMode(item->type);
-			_file_to_saveload.SetName(FiosBrowseTo(item));
-			_file_to_saveload.SetTitle(item->title);
-		} else {
-			IConsolePrintF(CC_ERROR, "%s: Not a savegame.", file);
-		}
+		assert (GetAbstractFileType(item->type) == FT_SAVEGAME);
+		_switch_mode = SM_LOAD_GAME;
+		_file_to_saveload.SetMode (item->type);
+		_file_to_saveload.SetName (item->name);
+		_file_to_saveload.SetTitle (item->title);
 	}
 
 	return true;
@@ -420,11 +407,11 @@ DEF_CONSOLE_CMD(ConRemove)
 
 	const char *file = argv[1];
 	const FiosItem *item = FindFile (file);
-	if ((item != NULL) && !FiosDelete(item->name)) {
+	if ((item != NULL) && !FiosDelete (_console_file_list.path->cur, item->name)) {
 		IConsolePrintF (CC_ERROR, "%s: Failed to delete file", file);
 	}
 
-	_console_file_list.InvalidateFileList();
+	InvalidateFileList();
 	return true;
 }
 
@@ -437,7 +424,7 @@ DEF_CONSOLE_CMD(ConListFiles)
 		return true;
 	}
 
-	_console_file_list.ValidateFileList(true);
+	ValidateFileList (true);
 	for (uint i = 0; i < _console_file_list.Length(); i++) {
 		IConsolePrintF(CC_DEFAULT, "%d) %s", i, _console_file_list[i].title);
 	}
@@ -460,13 +447,13 @@ DEF_CONSOLE_CMD(ConChangeDirectory)
 	if (item != NULL) {
 		switch (item->type) {
 			case FIOS_TYPE_DIR: case FIOS_TYPE_DRIVE: case FIOS_TYPE_PARENT:
-				FiosBrowseTo(item);
+				FiosBrowseTo (_console_file_list.path->cur, item);
 				break;
 			default: IConsolePrintF(CC_ERROR, "%s: Not a directory.", file);
 		}
 	}
 
-	_console_file_list.InvalidateFileList();
+	InvalidateFileList();
 	return true;
 }
 
@@ -478,10 +465,10 @@ DEF_CONSOLE_CMD(ConPrintWorkingDirectory)
 	}
 
 	/* XXX - Workaround for broken file handling */
-	_console_file_list.ValidateFileList(true);
-	_console_file_list.InvalidateFileList();
+	ValidateFileList (true);
+	InvalidateFileList();
 
-	IConsolePrint (CC_DEFAULT, FiosGetPath());
+	IConsolePrint (CC_DEFAULT, _console_file_list.path->cur);
 	return true;
 }
 
@@ -575,29 +562,36 @@ DEF_CONSOLE_CMD(ConBan)
 
 DEF_CONSOLE_CMD(ConUnBan)
 {
-
 	if (argc == 0) {
-		IConsoleHelp("Unban a client from a network game. Usage: 'unban <ip | client-id>'");
+		IConsoleHelp("Unban a client from a network game. Usage: 'unban <ip | banlist-index>'");
 		IConsoleHelp("For a list of banned IP's, see the command 'banlist'");
 		return true;
 	}
 
 	if (argc != 2) return false;
 
-	uint index = (strchr(argv[1], '.') == NULL) ? atoi(argv[1]) : 0;
-	index--;
-	uint i = 0;
-
-	for (char **iter = _network_ban_list.Begin(); iter != _network_ban_list.End(); iter++, i++) {
-		if (strcmp(_network_ban_list[i], argv[1]) == 0 || index == i) {
-			free(_network_ban_list[i]);
-			_network_ban_list.Erase(iter);
-			IConsolePrint(CC_DEFAULT, "IP unbanned.");
-			return true;
-		}
+	/* Try by IP. */
+	uint index;
+	for (index = 0; index < _network_ban_list.Length(); index++) {
+		if (strcmp(_network_ban_list[index], argv[1]) == 0) break;
 	}
 
-	IConsolePrint(CC_DEFAULT, "IP not in ban-list.");
+	/* Try by index. */
+	if (index >= _network_ban_list.Length()) {
+		index = atoi(argv[1]) - 1U; // let it wrap
+	}
+
+	if (index < _network_ban_list.Length()) {
+		char msg[64];
+		bstrfmt (msg, "Unbanned %s", _network_ban_list[index]);
+		IConsolePrint(CC_DEFAULT, msg);
+		free(_network_ban_list[index]);
+		_network_ban_list.Erase(_network_ban_list.Get(index));
+	} else {
+		IConsolePrint(CC_DEFAULT, "Invalid list index or IP not in ban-list.");
+		IConsolePrint(CC_DEFAULT, "For a list of banned IP's, see the command 'banlist'");
+	}
+
 	return true;
 }
 

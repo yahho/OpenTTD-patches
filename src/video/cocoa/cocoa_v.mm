@@ -623,17 +623,14 @@ void CocoaDialog(const char *title, const char *message, const char *buttonLabel
  * This is needed since OS X application bundles do not have a
  * current directory and the data files are 'somewhere' in the bundle.
  */
-void cocoaSetApplicationBundleDir()
+char *cocoaSetApplicationBundleDir()
 {
 	char tmp[MAXPATHLEN];
 	CFURLRef url = CFBundleCopyResourcesDirectoryURL(CFBundleGetMainBundle());
-	if (CFURLGetFileSystemRepresentation(url, true, (unsigned char*)tmp, MAXPATHLEN)) {
-		_searchpaths[SP_APPLICATION_BUNDLE_DIR] = BuildDirPath (tmp);
-	} else {
-		_searchpaths[SP_APPLICATION_BUNDLE_DIR] = NULL;
-	}
-
+	bool success = CFURLGetFileSystemRepresentation(url, true, (unsigned char*)tmp, MAXPATHLEN);
 	CFRelease(url);
+
+	return success ? BuildDirPath (tmp) : NULL;
 }
 
 /**

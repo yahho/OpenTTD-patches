@@ -80,7 +80,7 @@ uint32 GetIndustryIDAtOffset(TileIndex tile, const Industry *i, uint32 cur_grfid
 		}
 	}
 	/* Not an 'old type' tile */
-	if (indtsp->grf_prop.spritegroup[0] != NULL) { // tile has a spritegroup ?
+	if (indtsp->grf_prop.spritegroup != NULL) { // tile has a spritegroup ?
 		if (indtsp->grf_prop.grffile->grfid == cur_grfid) { // same industry, same grf ?
 			return indtsp->grf_prop.local_id;
 		} else {
@@ -381,13 +381,7 @@ static uint32 GetCountAndDistanceOfClosestInstance(byte param_setID, byte layout
 
 /* virtual */ uint32 IndustriesScopeResolver::GetTriggers() const
 {
-	return this->industry != NULL ? this->industry->random_triggers : 0;
-}
-
-/* virtual */ void IndustriesScopeResolver::SetTriggers(int triggers) const
-{
-	assert(this->industry != NULL && this->industry->index != INVALID_INDUSTRY);
-	this->industry->random_triggers = triggers;
+	return 0;
 }
 
 /* virtual */ void IndustriesScopeResolver::StorePSA(uint pos, int32 value)
@@ -435,7 +429,7 @@ IndustriesResolverObject::IndustriesResolverObject(TileIndex tile, Industry *ind
 	industries_scope(*this, tile, indus, type, random_bits),
 	town_scope(NULL)
 {
-	this->root_spritegroup = GetIndustrySpec(type)->grf_prop.spritegroup[0];
+	this->root_spritegroup = GetIndustrySpec(type)->grf_prop.spritegroup;
 }
 
 IndustriesResolverObject::~IndustriesResolverObject()

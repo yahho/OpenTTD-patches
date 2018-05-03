@@ -2772,10 +2772,10 @@ STR_ABOUT_VERSION                                               :{BLACK}OpenTTD 
 STR_ABOUT_COPYRIGHT_OPENTTD                                     :{BLACK}OpenTTD {COPYRIGHT}2002-2017 OpenTTD meeskond
 
 # Save/load game/scenario
-STR_SAVELOAD_SAVE_CAPTION                                       :{WHITE}Mängu salvestamine
 STR_SAVELOAD_LOAD_CAPTION                                       :{WHITE}Mängu jätkamine
-STR_SAVELOAD_SAVE_SCENARIO                                      :{WHITE}Salvesta stsenaarium
+STR_SAVELOAD_SAVE_CAPTION                                       :{WHITE}Mängu salvestamine
 STR_SAVELOAD_LOAD_SCENARIO                                      :{WHITE}Laadi stsenaariumit
+STR_SAVELOAD_SAVE_SCENARIO                                      :{WHITE}Salvesta stsenaarium
 STR_SAVELOAD_LOAD_HEIGHTMAP                                     :{WHITE}Laadi kõrguskaart
 STR_SAVELOAD_SAVE_HEIGHTMAP                                     :{WHITE}Salvesta kõrguskaart
 STR_SAVELOAD_HOME_BUTTON                                        :{BLACK}Vajutamisel avaneb salvestuste ja jätkamiste jaoks määratud algne kataloog

@@ -3047,10 +3047,10 @@ STR_ABOUT_VERSION                                               :{BLACK}OpenTTD 
 STR_ABOUT_COPYRIGHT_OPENTTD                                     :{BLACK}OpenTTD {COPYRIGHT} 2002–2017 Каманда распрацоўнікаў OpenTTD
 
 # Save/load game/scenario
-STR_SAVELOAD_SAVE_CAPTION                                       :{WHITE}Захаваць гульню
 STR_SAVELOAD_LOAD_CAPTION                                       :{WHITE}Загрузіць гульню
-STR_SAVELOAD_SAVE_SCENARIO                                      :{WHITE}Захаваць сцэнар
+STR_SAVELOAD_SAVE_CAPTION                                       :{WHITE}Захаваць гульню
 STR_SAVELOAD_LOAD_SCENARIO                                      :{WHITE}Загрузіць сцэнар
+STR_SAVELOAD_SAVE_SCENARIO                                      :{WHITE}Захаваць сцэнар
 STR_SAVELOAD_LOAD_HEIGHTMAP                                     :{WHITE}Загрузіць мапу вышыняў
 STR_SAVELOAD_SAVE_HEIGHTMAP                                     :{WHITE}Захаваць мапу вышыняў
 STR_SAVELOAD_HOME_BUTTON                                        :{BLACK}Націсьніце тут, каб перайсьці да вызначанага па змоўчаньні каталёга захаваньня/загрузкі

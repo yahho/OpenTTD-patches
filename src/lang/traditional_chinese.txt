@@ -2714,10 +2714,10 @@ STR_ABOUT_VERSION                                               :{BLACK}OpenTTD 
 STR_ABOUT_COPYRIGHT_OPENTTD                                     :{BLACK}OpenTTD {COPYRIGHT} 2002-2017 OpenTTD 開發小組
 
 # Save/load game/scenario
-STR_SAVELOAD_SAVE_CAPTION                                       :{WHITE}儲存遊戲
 STR_SAVELOAD_LOAD_CAPTION                                       :{WHITE}載入遊戲
-STR_SAVELOAD_SAVE_SCENARIO                                      :{WHITE}儲存場景
+STR_SAVELOAD_SAVE_CAPTION                                       :{WHITE}儲存遊戲
 STR_SAVELOAD_LOAD_SCENARIO                                      :{WHITE}載入場景
+STR_SAVELOAD_SAVE_SCENARIO                                      :{WHITE}儲存場景
 STR_SAVELOAD_LOAD_HEIGHTMAP                                     :{WHITE}載入高度圖
 STR_SAVELOAD_SAVE_HEIGHTMAP                                     :{WHITE}儲存高度圖
 STR_SAVELOAD_HOME_BUTTON                                        :{BLACK}點選這裡跳到預設儲存目錄

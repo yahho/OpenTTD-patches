@@ -191,7 +191,6 @@ static const TextColour _fios_colours[] = {
 	TC_LIGHT_BLUE,   // DFT_FIOS_DRIVE
 	TC_DARK_GREEN,   // DFT_FIOS_PARENT
 	TC_DARK_GREEN,   // DFT_FIOS_DIR
-	TC_ORANGE,       // DFT_FIOS_DIRECT
 };
 
 
@@ -227,7 +226,6 @@ private:
 	AbstractFileType abstract_filetype; /// Type of file to select.
 	bool save;                    ///< Whether the window is for saving.
 	FileList fios_items;          ///< Save game list.
-	FiosItem o_dir;
 	const FiosItem *selected;     ///< Selected game in #fios_items, or \c NULL.
 	Scrollbar *vscroll;
 public:
@@ -242,22 +240,21 @@ public:
 	SaveLoadWindow (const WindowDesc *desc, AbstractFileType abstract_filetype, bool save)
 		: Window (desc), filename_editbox(),
 		  abstract_filetype (abstract_filetype), save (save),
-		  o_dir(), selected (NULL), vscroll (NULL)
+		  selected (NULL), vscroll (NULL)
 	{
+		assert_compile (FT_SAVEGAME  == 1);
+		assert_compile (FT_SCENARIO  == 2);
+		assert_compile (FT_HEIGHTMAP == 3);
+
+		assert ((abstract_filetype >= FT_SAVEGAME)
+				&& (abstract_filetype <= FT_HEIGHTMAP));
+
 		/* For saving, construct an initial file name. */
 		if (save) {
-			switch (this->abstract_filetype) {
-				case FT_SAVEGAME:
-					this->GenerateFileName();
-					break;
-
-				case FT_SCENARIO:
-				case FT_HEIGHTMAP:
-					this->filename_editbox.Assign("UNNAMED");
-					break;
-
-				default:
-					NOT_REACHED();
+			if (abstract_filetype == FT_SAVEGAME) {
+				this->GenerateFileName();
+			} else {
+				this->filename_editbox.Assign ("UNNAMED");
 			}
 		}
 		this->querystrings[WID_SL_SAVE_OSK_TITLE] = &this->filename_editbox;
@@ -269,24 +266,15 @@ public:
 		}
 
 		/* Select caption string of the window. */
-		StringID caption_string;
-		switch (this->abstract_filetype) {
-			case FT_SAVEGAME:
-				caption_string = save ? STR_SAVELOAD_SAVE_CAPTION : STR_SAVELOAD_LOAD_CAPTION;
-				break;
-
-			case FT_SCENARIO:
-				caption_string = save ? STR_SAVELOAD_SAVE_SCENARIO : STR_SAVELOAD_LOAD_SCENARIO;
-				break;
-
-			case FT_HEIGHTMAP:
-				caption_string = save ? STR_SAVELOAD_SAVE_HEIGHTMAP : STR_SAVELOAD_LOAD_HEIGHTMAP;
-				break;
-
-			default:
-				NOT_REACHED();
-		}
-		this->GetWidget<NWidgetCore>(WID_SL_CAPTION)->widget_data = caption_string;
+		static const StringID caption_base = STR_SAVELOAD_LOAD_CAPTION;
+		assert_compile (caption_base + 2 * (FT_SAVEGAME  - 1)     == STR_SAVELOAD_LOAD_CAPTION);
+		assert_compile (caption_base + 2 * (FT_SAVEGAME  - 1) + 1 == STR_SAVELOAD_SAVE_CAPTION);
+		assert_compile (caption_base + 2 * (FT_SCENARIO  - 1)     == STR_SAVELOAD_LOAD_SCENARIO);
+		assert_compile (caption_base + 2 * (FT_SCENARIO  - 1) + 1 == STR_SAVELOAD_SAVE_SCENARIO);
+		assert_compile (caption_base + 2 * (FT_HEIGHTMAP - 1)     == STR_SAVELOAD_LOAD_HEIGHTMAP);
+		assert_compile (caption_base + 2 * (FT_HEIGHTMAP - 1) + 1 == STR_SAVELOAD_SAVE_HEIGHTMAP);
+		this->GetWidget<NWidgetCore>(WID_SL_CAPTION)->widget_data =
+				caption_base + 2 * (abstract_filetype - 1) + save;
 
 		this->vscroll = this->GetScrollbar(WID_SL_SCROLLBAR);
 		this->InitNested(0);
@@ -303,27 +291,6 @@ public:
 		this->OnInvalidateData(0);
 
 		ResetPointerMode();
-
-		/* Select the initial directory. */
-		o_dir.type = FIOS_TYPE_DIRECT;
-		o_dir.mtime = 0;
-		o_dir.title[0] = '\0';
-		switch (this->abstract_filetype) {
-			case FT_SAVEGAME:
-				FioGetDirectory(o_dir.name, lengthof(o_dir.name), SAVE_DIR);
-				break;
-
-			case FT_SCENARIO:
-				FioGetDirectory(o_dir.name, lengthof(o_dir.name), SCENARIO_DIR);
-				break;
-
-			case FT_HEIGHTMAP:
-				FioGetDirectory(o_dir.name, lengthof(o_dir.name), HEIGHTMAP_DIR);
-				break;
-
-			default:
-				bstrcpy (o_dir.name, _personal_dir);
-		}
 
 		/* Focus the edit box by default in the save windows */
 		if (save) this->SetFocusedWidget (WID_SL_SAVE_OSK_TITLE);
@@ -353,7 +320,7 @@ public:
 				static uint64 tot = 0;
 
 				if (_fios_path_changed) {
-					path = FiosGetPath();
+					path = this->fios_items.path->cur;
 					str = FiosGetDiskFreeSpace (path, &tot) ? STR_SAVELOAD_BYTES_FREE : STR_ERROR_UNABLE_TO_READ_DRIVE;
 					_fios_path_changed = false;
 				}
@@ -527,16 +494,15 @@ public:
 				this->SetDirty();
 				break;
 
-			case WID_SL_HOME_BUTTON: // OpenTTD 'button', jumps to OpenTTD directory
-				FiosBrowseTo(&o_dir);
+			case WID_SL_HOME_BUTTON: // Home button, jumps to home directory
+				this->fios_items.path->reset();
 				this->InvalidateData();
 				break;
 
 			case WID_SL_LOAD_BUTTON:
 				if (this->selected != NULL && !_load_check_data.HasErrors()) {
-					const char *name = FiosBrowseTo(this->selected);
 					_file_to_saveload.SetMode(this->selected->type);
-					_file_to_saveload.SetName(name);
+					_file_to_saveload.SetName (this->selected->name);
 					_file_to_saveload.SetTitle(this->selected->title);
 
 					if (this->abstract_filetype == FT_HEIGHTMAP) {
@@ -573,7 +539,7 @@ public:
 
 				const FiosItem *file = this->fios_items.Get(y);
 
-				const char *name = FiosBrowseTo(file);
+				const char *name = FiosBrowseTo (this->fios_items.path->cur, file);
 				if (name != NULL) {
 					if (click_count == 1) {
 						if (this->selected != file) {
@@ -640,14 +606,14 @@ public:
 		}
 	}
 
-	virtual EventState OnKeyPress(WChar key, uint16 keycode)
+	bool OnKeyPress (WChar key, uint16 keycode) OVERRIDE
 	{
 		if (keycode == WKC_ESC) {
 			this->Delete();
-			return ES_HANDLED;
+			return true;
 		}
 
-		return ES_NOT_HANDLED;
+		return false;
 	}
 
 	virtual void OnTimeout()
@@ -656,7 +622,7 @@ public:
 		if (!this->save) return;
 
 		if (this->IsWidgetLowered(WID_SL_DELETE_SELECTION)) { // Delete button clicked
-			if (!FiosDelete(this->filename_editbox.GetText())) {
+			if (!FiosDelete (this->fios_items.path->cur, this->filename_editbox.GetText())) {
 				ShowErrorMessage(STR_ERROR_UNABLE_TO_DELETE_FILE, INVALID_STRING_ID, WL_ERROR);
 			} else {
 				this->InvalidateData();
@@ -666,10 +632,12 @@ public:
 		} else if (this->IsWidgetLowered(WID_SL_SAVE_GAME)) { // Save button clicked
 			if (this->abstract_filetype == FT_SAVEGAME || this->abstract_filetype == FT_SCENARIO) {
 				_switch_mode = SM_SAVE_GAME;
-				FiosMakeSavegameName(_file_to_saveload.name, this->filename_editbox.GetText(), sizeof(_file_to_saveload.name));
+				FiosMakeSavegameName (_file_to_saveload.name, this->fios_items.path->cur,
+						this->filename_editbox.GetText(), sizeof(_file_to_saveload.name));
 			} else {
 				_switch_mode = SM_SAVE_HEIGHTMAP;
-				FiosMakeHeightmapName(_file_to_saveload.name, this->filename_editbox.GetText(), sizeof(_file_to_saveload.name));
+				FiosMakeHeightmapName (_file_to_saveload.name, this->fios_items.path->cur,
+						this->filename_editbox.GetText(), sizeof(_file_to_saveload.name));
 			}
 
 			/* In the editor set up the vehicle engines correctly (date might have changed) */
@@ -778,6 +746,13 @@ static const WindowDesc _save_dialog_desc(
  */
 void ShowSaveLoadDialog (AbstractFileType abstract_filetype, bool save)
 {
+	assert_compile (FT_SAVEGAME  == 1);
+	assert_compile (FT_SCENARIO  == 2);
+	assert_compile (FT_HEIGHTMAP == 3);
+
+	assert ((abstract_filetype >= FT_SAVEGAME)
+			&& (abstract_filetype <= FT_HEIGHTMAP));
+
 	DeleteWindowById(WC_SAVELOAD, 0);
 
 	const WindowDesc *sld;

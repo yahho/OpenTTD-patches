@@ -59,6 +59,7 @@
 #include "signalbuffer.h"
 #include "map/zoneheight.h"
 #include "map/road.h"
+#include "network/network.h"
 
 #include "table/strings.h"
 
@@ -68,6 +69,24 @@
  *       Lazy creation on first usage results in a data race between the CDist threads.
  */
 /* static */ const FlowStat::SharesMap FlowStat::empty_sharesmap;
+
+/**
+ * Retrieve hangar information of a hangar at a given tile.
+ * @param tile %Tile containing the hangar.
+ * @return The requested hangar information, or NULL if the tile is not a hangar.
+ */
+const AirportFTA::Hangar *Airport::GetHangarDataByTile (TileIndex tile) const
+{
+	assert (this->Contains (tile));
+	TileIndexDiff diff = tile - this->tile;
+	const AirportFTA *fta = this->GetFTA();
+	for (uint i = 0; i < fta->num_hangars; i++) {
+		if (this->GetRotatedHangarDiff (&fta->hangars[i]) == diff) {
+			return &fta->hangars[i];
+		}
+	}
+	return NULL;
+}
 
 /**
  * Check whether the given tile is a hangar.
@@ -83,13 +102,7 @@ bool IsHangar(TileIndex t)
 	if (!IsAirport(t)) return false;
 
 	const Station *st = Station::GetByTile(t);
-	const AirportSpec *as = st->airport.GetSpec();
-
-	for (uint i = 0; i < as->nof_depots; i++) {
-		if (st->airport.GetHangarTile(i) == t) return true;
-	}
-
-	return false;
+	return st->airport.GetHangarDataByTile(t) != NULL;
 }
 
 /**
@@ -122,25 +135,16 @@ static bool CMSAMine(TileIndex tile)
 #define M(x) ((x) - STR_SV_STNAME)
 
 enum StationNaming {
-	STATIONNAMING_RAIL,
-	STATIONNAMING_ROAD,
-	STATIONNAMING_AIRPORT,
-	STATIONNAMING_OILRIG,
-	STATIONNAMING_DOCK,
-	STATIONNAMING_HELIPORT,
+	STATIONNAMING_RAIL     = 0,
+	STATIONNAMING_ROAD     = 0,
+	STATIONNAMING_AIRPORT  = 1U << M(STR_SV_STNAME_AIRPORT),
+	STATIONNAMING_OILRIG   = 1U << M(STR_SV_STNAME_OILFIELD),
+	STATIONNAMING_DOCK     = 1U << M(STR_SV_STNAME_DOCKS),
+	STATIONNAMING_HELIPORT = 1U << M(STR_SV_STNAME_HELIPORT),
 };
 
 static StringID GenerateStationName(Station *st, TileIndex tile, StationNaming name_class)
 {
-	static const uint32 _gen_station_name_bits[] = {
-		0,                                       // STATIONNAMING_RAIL
-		0,                                       // STATIONNAMING_ROAD
-		1U << M(STR_SV_STNAME_AIRPORT),          // STATIONNAMING_AIRPORT
-		1U << M(STR_SV_STNAME_OILFIELD),         // STATIONNAMING_OILRIG
-		1U << M(STR_SV_STNAME_DOCKS),            // STATIONNAMING_DOCK
-		1U << M(STR_SV_STNAME_HELIPORT),         // STATIONNAMING_HELIPORT
-	};
-
 	const Town *t = st->town;
 	uint32 free_names = UINT32_MAX;
 
@@ -197,7 +201,7 @@ static StringID GenerateStationName(Station *st, TileIndex tile, StationNaming n
 	}
 
 	/* check default names */
-	uint32 tmp = free_names & _gen_station_name_bits[name_class];
+	uint32 tmp = free_names & name_class;
 	if (tmp != 0) return STR_SV_STNAME + FindFirstBit(tmp);
 
 	TileArea around (tile);
@@ -293,34 +297,6 @@ static Station *GetClosestDeletedStation(TileIndex tile)
 	return best_station;
 }
 
-
-void Station::GetTileArea(TileArea *ta, StationType type) const
-{
-	switch (type) {
-		case STATION_RAIL:
-			*ta = this->train_station;
-			return;
-
-		case STATION_AIRPORT:
-			*ta = this->airport;
-			return;
-
-		case STATION_TRUCK:
-			*ta = this->truck_station;
-			return;
-
-		case STATION_BUS:
-			*ta = this->bus_station;
-			return;
-
-		case STATION_DOCK:
-		case STATION_OILRIG:
-			*ta = this->dock_area;
-			return;
-
-		default: NOT_REACHED();
-	}
-}
 
 /**
  * Update the virtual coords needed to draw the station sign.
@@ -901,13 +877,14 @@ static inline byte *CreateMulti(byte *layout, int n, byte b)
  */
 void GetStationLayout(byte *layout, int numtracks, int plat_len, const StationSpec *statspec)
 {
-	if (statspec != NULL && statspec->lengths >= plat_len &&
-			statspec->platforms[plat_len - 1] >= numtracks &&
-			statspec->layouts[plat_len - 1][numtracks - 1]) {
-		/* Custom layout defined, follow it. */
-		memcpy(layout, statspec->layouts[plat_len - 1][numtracks - 1],
-			plat_len * numtracks);
-		return;
+	if (statspec != NULL && numtracks <= statspec->max_layout_width
+			&& plat_len <= statspec->max_layout_length[numtracks]) {
+		const byte *p = statspec->layouts.get()[numtracks - 1][plat_len - 1];
+		if (p != NULL) {
+			/* Custom layout defined, follow it. */
+			memcpy (layout, p, plat_len * numtracks);
+			return;
+		}
 	}
 
 	if (plat_len == 1) {
@@ -2144,7 +2121,7 @@ CommandCost CmdBuildAirport(TileIndex tile, DoCommandFlag flags, uint32 p1, uint
 	const AirportSpec *as = AirportSpec::Get(airport_type);
 	if (!as->IsAvailable() || layout >= as->num_table) return CMD_ERROR;
 
-	Direction rotation = as->rotation[layout];
+	Direction rotation = (Direction)as->table[layout]->rotation;
 	int w = as->size_x;
 	int h = as->size_y;
 	if (rotation == DIR_E || rotation == DIR_W) Swap(w, h);
@@ -2162,7 +2139,7 @@ CommandCost CmdBuildAirport(TileIndex tile, DoCommandFlag flags, uint32 p1, uint
 	ret = BuildStationPart (&st, TileArea (tile, w, h), est,
 			station_to_join, HasBit (p2, 0),
 			STR_ERROR_MUST_DEMOLISH_AIRPORT_FIRST, flags,
-			(GetAirport(airport_type)->flags & AirportFTAClass::AIRPLANES) ?
+			(as->fsm->flags & AirportFTA::AIRPLANES) ?
 				STATIONNAMING_AIRPORT : STATIONNAMING_HELIPORT);
 	if (ret.Failed()) return ret;
 
@@ -2682,7 +2659,7 @@ static void DrawTile_Airport (TileInfo *ti)
 	StationGfx gfx = GetAirportGfx (ti->tile);
 	if (gfx >= NEW_AIRPORTTILE_OFFSET) {
 		const AirportTileSpec *ats = AirportTileSpec::Get (gfx);
-		if (ats->grf_prop.spritegroup[0] != NULL && DrawNewAirportTile (ti, Station::GetByTile(ti->tile), gfx, ats)) {
+		if (ats->grf_prop.spritegroup != NULL && DrawNewAirportTile (ti, Station::GetByTile(ti->tile), gfx, ats)) {
 			return;
 		}
 		/* No sprite group (or no valid one) found, meaning no graphics associated.
@@ -2913,9 +2890,11 @@ static void DrawTile_RailStation (TileInfo *ti)
 	}
 
 	if (HasRailCatenaryDrawn (rti)) {
+		uint gfx = GetStationGfx (ti->tile);
 		DrawRailAxisCatenary (ti, rti, GetRailStationAxis (ti->tile),
-				CanStationTileHavePylons (ti->tile),
-				CanStationTileHaveWires (ti->tile));
+				/* Default stations do not draw pylons under roofs (gfx >= 4) */
+				statspec != NULL ? HasBit(statspec->pylons, gfx) : gfx < 4,
+				statspec == NULL || !HasBit(statspec->wires, gfx));
 	}
 
 	if (IsRailWaypoint(ti->tile)) {
@@ -3246,8 +3225,7 @@ static bool ClickTile_Station(TileIndex tile)
 	if (bst->IsWaypoint()) {
 		ShowWaypointWindow(Waypoint::From(bst));
 	} else if (IsHangar(tile)) {
-		const Station *st = Station::From(bst);
-		ShowDepotWindow(st->airport.GetHangarTile(st->airport.GetHangarNum(tile)), VEH_AIRCRAFT);
+		ShowDepotWindow (tile, VEH_AIRCRAFT);
 	} else {
 		ShowStationViewWindow(bst->index);
 	}
@@ -3840,8 +3818,10 @@ CommandCost CmdRenameStation(TileIndex tile, DoCommandFlag flags, uint32 p1, uin
 	Station *st = Station::GetIfValid(p1);
 	if (st == NULL) return CMD_ERROR;
 
-	CommandCost ret = CheckOwnership(st->owner);
-	if (ret.Failed()) return ret;
+	if (_networking || (st->owner != OWNER_NONE)) {
+		CommandCost ret = CheckOwnership (st->owner);
+		if (ret.Failed()) return ret;
+	}
 
 	bool reset = StrEmpty(text);
 

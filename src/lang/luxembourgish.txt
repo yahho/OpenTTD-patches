@@ -2718,10 +2718,10 @@ STR_ABOUT_VERSION                                               :{BLACK}OpenTTD 
 STR_ABOUT_COPYRIGHT_OPENTTD                                     :{BLACK}OpenTTD {COPYRIGHT} 2002-2017 D'OpenTTD team
 
 # Save/load game/scenario
-STR_SAVELOAD_SAVE_CAPTION                                       :{WHITE}Spill späicheren
 STR_SAVELOAD_LOAD_CAPTION                                       :{WHITE}Spill lueden
-STR_SAVELOAD_SAVE_SCENARIO                                      :{WHITE}Szenario späicheren
+STR_SAVELOAD_SAVE_CAPTION                                       :{WHITE}Spill späicheren
 STR_SAVELOAD_LOAD_SCENARIO                                      :{WHITE}Szenario lueden
+STR_SAVELOAD_SAVE_SCENARIO                                      :{WHITE}Szenario späicheren
 STR_SAVELOAD_LOAD_HEIGHTMAP                                     :{WHITE}Héichtekaart lueden
 STR_SAVELOAD_SAVE_HEIGHTMAP                                     :{WHITE}Héichtenkaart späichern
 STR_SAVELOAD_HOME_BUTTON                                        :{BLACK}Klick hei fir op d'Standard Späicher-/Luedverzeeschnis ze goen

@@ -2905,10 +2905,10 @@ STR_ABOUT_VERSION                                               :{BLACK}OpenTTD 
 STR_ABOUT_COPYRIGHT_OPENTTD                                     :{BLACK}OpenTTD {COPYRIGHT} 2002-2017 OpenTTD tim
 
 # Save/load game/scenario
-STR_SAVELOAD_SAVE_CAPTION                                       :{WHITE}Sačuvaj poziciju
 STR_SAVELOAD_LOAD_CAPTION                                       :{WHITE}Učitavanje Partije
-STR_SAVELOAD_SAVE_SCENARIO                                      :{WHITE}Sačuvaj scenario
+STR_SAVELOAD_SAVE_CAPTION                                       :{WHITE}Sačuvaj poziciju
 STR_SAVELOAD_LOAD_SCENARIO                                      :{WHITE}Učitaj scenario
+STR_SAVELOAD_SAVE_SCENARIO                                      :{WHITE}Sačuvaj scenario
 STR_SAVELOAD_LOAD_HEIGHTMAP                                     :{WHITE}Učitavanje Elevacione karte
 STR_SAVELOAD_SAVE_HEIGHTMAP                                     :{WHITE}Sačuvaj Elevacionu kartu
 STR_SAVELOAD_HOME_BUTTON                                        :{BLACK}Pritisnite ovde kako biste otišli u uobičajeni direktorijum za čuvanje pozicije

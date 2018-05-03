@@ -2026,7 +2026,7 @@ struct MainToolbarWindow : Window {
 		if (cbf != CBF_NONE) _last_started_action = cbf;
 	}
 
-	virtual EventState OnHotkey(int hotkey)
+	bool OnHotkey (int hotkey) OVERRIDE
 	{
 		switch (hotkey) {
 			case MTHK_PAUSE: ToolbarPauseClick(this); break;
@@ -2069,9 +2069,9 @@ struct MainToolbarWindow : Window {
 			case MTHK_CLIENT_LIST: if (_networking) ShowClientList(); break;
 #endif
 			case MTHK_SIGN_LIST: ShowSignList(); break;
-			default: return ES_NOT_HANDLED;
+			default: return false;
 		}
-		return ES_HANDLED;
+		return true;
 	}
 
 	virtual void OnPlaceObject(Point pt, TileIndex tile)
@@ -2382,7 +2382,7 @@ struct ScenarioEditorToolbarWindow : Window {
 		if (_settings_client.sound.click_beep) SndPlayFx(SND_15_BEEP);
 	}
 
-	virtual EventState OnHotkey(int hotkey)
+	bool OnHotkey (int hotkey) OVERRIDE
 	{
 		CallBackFunction cbf = CBF_NONE;
 		switch (hotkey) {
@@ -2408,10 +2408,10 @@ struct ScenarioEditorToolbarWindow : Window {
 			case MTEHK_TERRAFORM:              ShowEditorTerraformToolbar(); break;
 			case MTEHK_SMALLMAP:               ShowSmallMap(); break;
 			case MTEHK_EXTRA_VIEWPORT:         ShowExtraViewPortWindowForTileUnderCursor(); break;
-			default: return ES_NOT_HANDLED;
+			default: return false;
 		}
 		if (cbf != CBF_NONE) _last_started_action = cbf;
-		return ES_HANDLED;
+		return true;
 	}
 
 	virtual void OnPlaceObject(Point pt, TileIndex tile)

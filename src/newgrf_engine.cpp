@@ -84,12 +84,12 @@ void UnloadWagonOverrides(Engine *e)
 void SetCustomEngineSprites(EngineID engine, byte cargo, const SpriteGroup *group)
 {
 	Engine *e = Engine::Get(engine);
-	assert(cargo < lengthof(e->grf_prop.spritegroup));
+	assert (cargo < lengthof(e->spritegroup));
 
-	if (e->grf_prop.spritegroup[cargo] != NULL) {
+	if (e->spritegroup[cargo] != NULL) {
 		grfmsg(6, "SetCustomEngineSprites: engine %d cargo %d already has group -- replacing", engine, cargo);
 	}
-	e->grf_prop.spritegroup[cargo] = group;
+	e->spritegroup[cargo] = group;
 }
 
 
@@ -166,8 +166,9 @@ static byte MapAircraftMovementState(const Aircraft *v)
 	const Station *st = GetTargetAirportIfValid(v);
 	if (st == NULL) return AMS_TTDP_FLIGHT_TO_TOWER;
 
-	const AirportFTAClass *afc = st->airport.GetFTA();
-	uint16 amdflag = afc->MovingData(v->pos)->flag;
+	const AirportFTA *afc = st->airport.GetFTA();
+	assert (v->pos < afc->nofelements);
+	uint16 amdflag = afc->data[v->pos].flags;
 
 	switch (v->state) {
 		case HANGAR:
@@ -343,21 +344,6 @@ static byte MapAircraftMovementAction(const Aircraft *v)
 /* virtual */ uint32 VehicleScopeResolver::GetTriggers() const
 {
 	return this->v == NULL ? 0 : this->v->waiting_triggers;
-}
-
-/* virtual */ void VehicleScopeResolver::SetTriggers(int triggers) const
-{
-	/* Evil cast to get around const-ness. This used to be achieved by an
-	 * innocent looking function pointer cast... Currently I cannot see a
-	 * way of avoiding this without removing consts deep within gui code.
-	 */
-	Vehicle *v = const_cast<Vehicle *>(this->v);
-
-	/* This function must only be called when processing triggers -- any
-	 * other time is an error. */
-	assert(this->ro.trigger != 0);
-
-	if (v != NULL) v->waiting_triggers = triggers;
 }
 
 
@@ -985,8 +971,8 @@ static const SpriteGroup *GetVehicleResolverRoot (EngineID engine_type,
 	if (root == NULL) {
 		const Engine *e = Engine::Get (engine_type);
 		CargoID cargo = v != NULL ? v->cargo_type : CT_PURCHASE;
-		assert (cargo < lengthof(e->grf_prop.spritegroup));
-		root = e->grf_prop.spritegroup[cargo] != NULL ? e->grf_prop.spritegroup[cargo] : e->grf_prop.spritegroup[CT_DEFAULT];
+		assert (cargo < lengthof(e->spritegroup));
+		root = e->spritegroup[cargo] != NULL ? e->spritegroup[cargo] : e->spritegroup[CT_DEFAULT];
 	}
 
 	return root;
@@ -1135,14 +1121,19 @@ static void DoTriggerVehicle(Vehicle *v, VehicleTrigger trigger, byte base_rando
 	assert(v != NULL);
 
 	VehicleResolverObject object (v->engine_type, v, false, CBID_RANDOM_TRIGGER);
-	object.trigger = trigger;
+	object.waiting_triggers = v->waiting_triggers | trigger;
+	v->waiting_triggers = object.waiting_triggers; // store now for var 5F
 
 	const SpriteGroup *root = GetVehicleResolverRoot (v->engine_type, v, WO_CACHED);
 	const SpriteGroup *group = SpriteGroup::Resolve (root, object);
 	if (group == NULL) return;
 
+	/* Store remaining triggers. */
+	v->waiting_triggers = object.GetRemainingTriggers();
+
+	/* Rerandomise bits. Scopes other than SELF are invalid for rerandomisation. For bug-to-bug-compatibility with TTDP we ignore the scope. */
 	byte new_random_bits = Random();
-	uint32 reseed = object.GetReseedSum(); // The scope only affects triggers, not the reseeding
+	uint32 reseed = object.GetReseedSum();
 	v->random_bits &= ~reseed;
 	v->random_bits |= (first ? new_random_bits : base_random_bits) & reseed;
 

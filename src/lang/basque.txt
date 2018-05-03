@@ -2616,10 +2616,10 @@ STR_ABOUT_VERSION                                               :{BLACK}OpenTTD 
 STR_ABOUT_COPYRIGHT_OPENTTD                                     :{BLACK}OpenTTD {COPYRIGHT} 2002-2017 The OpenTTD team
 
 # Save/load game/scenario
-STR_SAVELOAD_SAVE_CAPTION                                       :{WHITE}Gordetako jokoa
 STR_SAVELOAD_LOAD_CAPTION                                       :{WHITE}Jokoa kargatu
-STR_SAVELOAD_SAVE_SCENARIO                                      :{WHITE}Eszenatokia gorde
+STR_SAVELOAD_SAVE_CAPTION                                       :{WHITE}Gordetako jokoa
 STR_SAVELOAD_LOAD_SCENARIO                                      :{WHITE}Eszenatokia kargatu
+STR_SAVELOAD_SAVE_SCENARIO                                      :{WHITE}Eszenatokia gorde
 STR_SAVELOAD_LOAD_HEIGHTMAP                                     :{WHITE}Garaiera mapa kargatu
 STR_SAVELOAD_SAVE_HEIGHTMAP                                     :{WHITE}Garaiera mapa gorde
 STR_SAVELOAD_HOME_BUTTON                                        :{BLACK}Hemen klikatu gorde/kargatu direktoriora joateko

@@ -551,7 +551,7 @@ static void FioCreateDirectory(const char *name)
  * @param buf    string to append the separator to
  * @return true iff the operation succeeded
  */
-static bool AppendPathSeparator (sstring<MAX_PATH> *buf)
+static bool AppendPathSeparator (stringb *buf)
 {
 	size_t s = buf->length();
 
@@ -1133,8 +1133,8 @@ static void DetermineBasePaths(const char *exe)
 	_searchpaths[SP_INSTALLATION_DIR] = BuildDirPath (GLOBAL_DATA_DIR);
 #endif
 #ifdef WITH_COCOA
-extern void cocoaSetApplicationBundleDir();
-	cocoaSetApplicationBundleDir();
+extern char *cocoaSetApplicationBundleDir();
+	_searchpaths[SP_APPLICATION_BUNDLE_DIR] = cocoaSetApplicationBundleDir();
 #else
 	_searchpaths[SP_APPLICATION_BUNDLE_DIR] = NULL;
 #endif
@@ -1153,30 +1153,26 @@ void DeterminePaths(const char *exe)
 {
 	DetermineBasePaths(exe);
 
-#if defined(WITH_XDG_BASEDIR) && defined(WITH_PERSONAL_DIR)
-	sstring<MAX_PATH> config_home;
-#endif
-
 	Searchpath sp;
 	FOR_ALL_SEARCHPATHS(sp) {
 		if (sp == SP_WORKING_DIR && !_do_scan_working_directory) continue;
 		DEBUG(misc, 4, "%s added as search path", _searchpaths[sp]);
 	}
 
+	char config_buffer[MAX_PATH];
 	const char *config_dir;
 	if (_config_file != NULL) {
 		char *end = strrchr(_config_file, PATHSEPCHAR);
 		config_dir = (end == NULL) ? "" : xstrmemdup (_config_file, end - _config_file);
 	} else {
-		char personal_dir[MAX_PATH];
-		if (FioFindFullPath(personal_dir, lengthof(personal_dir), BASE_DIR, "openttd.cfg") != NULL) {
-			char *end = strrchr(personal_dir, PATHSEPCHAR);
+		if (FioFindFullPath (config_buffer, lengthof(config_buffer), BASE_DIR, "openttd.cfg") != NULL) {
+			char *end = strrchr (config_buffer, PATHSEPCHAR);
 			if (end != NULL) end[1] = '\0';
-			config_dir = xstrdup(personal_dir);
-			_config_file = str_fmt("%sopenttd.cfg", config_dir);
+			config_dir = xstrdup (config_buffer);
 		} else {
 #if defined(WITH_XDG_BASEDIR) && defined(WITH_PERSONAL_DIR)
 			/* No previous configuration file found. Use the configuration folder from XDG. */
+			stringb config_home (config_buffer);
 			const char *xdg_config_home = xdgConfigHome (NULL);
 			config_home.fmt ("%s" PATHSEP "%s", xdg_config_home,
 					PERSONAL_DIR[0] == '.' ? &PERSONAL_DIR[1] : PERSONAL_DIR);
@@ -1184,23 +1180,20 @@ void DeterminePaths(const char *exe)
 
 			AppendPathSeparator (&config_home);
 
-			config_dir = config_home.c_str();
+			config_dir = config_buffer;
 #else
 			static const Searchpath new_openttd_cfg_order[] = {
 					SP_PERSONAL_DIR, SP_BINARY_DIR, SP_WORKING_DIR, SP_SHARED_DIR, SP_INSTALLATION_DIR
 				};
 
-			config_dir = NULL;
-			for (uint i = 0; i < lengthof(new_openttd_cfg_order); i++) {
-				if (IsValidSearchPath(new_openttd_cfg_order[i])) {
-					config_dir = xstrdup(_searchpaths[new_openttd_cfg_order[i]]);
-					break;
-				}
+			for (uint i = 0; ; i++) {
+				assert (i < lengthof(new_openttd_cfg_order));
+				config_dir = _searchpaths[new_openttd_cfg_order[i]];
+				if (config_dir != NULL) break;
 			}
-			assert(config_dir != NULL);
 #endif
-			_config_file = str_fmt("%sopenttd.cfg", config_dir);
 		}
+		_config_file = str_fmt ("%sopenttd.cfg", config_dir);
 	}
 
 	DEBUG(misc, 3, "%s found as config directory", config_dir);
@@ -1212,7 +1205,7 @@ void DeterminePaths(const char *exe)
 	_windows_file = str_fmt("%swindows.cfg", config_dir);
 
 #if defined(WITH_XDG_BASEDIR) && defined(WITH_PERSONAL_DIR)
-	if (config_dir == config_home.c_str()) {
+	if (config_dir == config_buffer) {
 		/* We are using the XDG configuration home for the config file,
 		 * then store the rest in the XDG data home folder. */
 		_personal_dir = _searchpaths[SP_PERSONAL_DIR_XDG];
@@ -1226,7 +1219,6 @@ void DeterminePaths(const char *exe)
 	/* Make the necessary folders */
 #if !defined(__MORPHOS__) && !defined(__AMIGA__) && defined(WITH_PERSONAL_DIR)
 	FioCreateDirectory(config_dir);
-	if (config_dir != _personal_dir) FioCreateDirectory(_personal_dir);
 #endif
 
 	DEBUG(misc, 3, "%s found as personal directory", _personal_dir);

@@ -14,6 +14,7 @@
 
 #include <vector>
 
+#include "core/forward_list.h"
 #include "core/smallvec_type.hpp"
 #include "gfx_type.h"
 #include "window_type.h"
@@ -47,9 +48,9 @@ struct IniFile;
 /**
  * List of hotkeys for a window.
  */
-struct HotkeyList {
+struct HotkeyList : ForwardListLink<HotkeyList> {
 private:
-	typedef EventState (*GlobalHotkeyHandlerFunc)(int hotkey);
+	typedef bool (*GlobalHotkeyHandlerFunc) (int hotkey);
 
 	struct Mapping {
 		uint16 keycode;

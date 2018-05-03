@@ -13,7 +13,7 @@
 #define TEXTBUF_GUI_H
 
 #include "window_type.h"
-#include "string.h"
+#include "textbuf_type.h"
 #include "strings_type.h"
 
 /** Flags used in ShowQueryString() call */

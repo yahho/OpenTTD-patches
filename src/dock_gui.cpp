@@ -233,23 +233,27 @@ struct BuildDocksToolbarWindow : Window {
 		}
 	}
 
-	void OnPlaceMouseUp (int userdata, Point pt, TileIndex start_tile, TileIndex end_tile) OVERRIDE
+	void OnPlaceMouseUp (int userdata, TileIndex start_tile, TileIndex end_tile) OVERRIDE
 	{
-		if (pt.x != -1) {
-			switch (userdata) {
-				case DRAG_DEMOLISH_AREA:
-					HandleDemolishMouseUp (start_tile, end_tile);
-					break;
-				case DRAG_CREATE_WATER:
-					DoCommandP(end_tile, start_tile, (_game_mode == GM_EDITOR && _ctrl_pressed) ? WATER_CLASS_SEA : WATER_CLASS_CANAL, CMD_BUILD_CANAL);
-					break;
-				case DRAG_CREATE_RIVER:
-					DoCommandP(end_tile, start_tile, WATER_CLASS_RIVER, CMD_BUILD_CANAL);
-					break;
+		WaterClass wc;
+		switch (userdata) {
+			case DRAG_DEMOLISH_AREA:
+				HandleDemolishMouseUp (start_tile, end_tile);
+				return;
 
-				default: break;
-			}
+			case DRAG_CREATE_WATER:
+				wc = (_game_mode == GM_EDITOR && _ctrl_pressed) ?
+						WATER_CLASS_SEA : WATER_CLASS_CANAL;
+				break;
+			case DRAG_CREATE_RIVER:
+				wc = WATER_CLASS_RIVER;
+				break;
+
+			default:
+				return;
 		}
+
+		DoCommandP (end_tile, start_tile, wc, CMD_BUILD_CANAL);
 	}
 
 	virtual void OnPlaceObjectAbort()
@@ -284,14 +288,13 @@ struct BuildDocksToolbarWindow : Window {
 /**
  * Handler for global hotkeys of the BuildDocksToolbarWindow.
  * @param hotkey Hotkey
- * @return ES_HANDLED if hotkey was accepted.
+ * @return Whether the hotkey was handled.
  */
-static EventState DockToolbarGlobalHotkeys(int hotkey)
+static bool DockToolbarGlobalHotkeys (int hotkey)
 {
-	if (_game_mode != GM_NORMAL) return ES_NOT_HANDLED;
+	if (_game_mode != GM_NORMAL) return false;
 	Window *w = ShowBuildDocksToolbar();
-	if (w == NULL) return ES_NOT_HANDLED;
-	return w->OnHotkey(hotkey);
+	return (w != NULL) && w->OnHotkey (hotkey);
 }
 
 static const Hotkey dockstoolbar_hotkeys[] = {

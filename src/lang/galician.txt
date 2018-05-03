@@ -2717,10 +2717,10 @@ STR_ABOUT_VERSION                                               :{BLACK}OpenTTD 
 STR_ABOUT_COPYRIGHT_OPENTTD                                     :{BLACK}OpenTTD {COPYRIGHT}2002-2017 O equipo de OpenTTD
 
 # Save/load game/scenario
-STR_SAVELOAD_SAVE_CAPTION                                       :{WHITE}Gravar partida
 STR_SAVELOAD_LOAD_CAPTION                                       :{WHITE}Cargar partida
-STR_SAVELOAD_SAVE_SCENARIO                                      :{WHITE}Gravar escenario
+STR_SAVELOAD_SAVE_CAPTION                                       :{WHITE}Gravar partida
 STR_SAVELOAD_LOAD_SCENARIO                                      :{WHITE}Cargar escenario
+STR_SAVELOAD_SAVE_SCENARIO                                      :{WHITE}Gravar escenario
 STR_SAVELOAD_LOAD_HEIGHTMAP                                     :{WHITE}Cargar mapa de alturas
 STR_SAVELOAD_SAVE_HEIGHTMAP                                     :{WHITE}Gravar mapa de alturas
 STR_SAVELOAD_HOME_BUTTON                                        :{BLACK}Pincha aquí para ir ao directorio por defecto actual para gravar/cargar

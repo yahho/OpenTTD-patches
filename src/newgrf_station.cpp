@@ -52,44 +52,24 @@ INSTANTIATE_NEWGRF_CLASS_METHODS(StationClass)
 
 static const uint NUM_STATIONSSPECS_PER_STATION = 255; ///< Maximum number of parts per station.
 
-enum TriggerArea {
-	TA_TILE,
-	TA_PLATFORM,
-	TA_WHOLE,
-};
+static void MakePlatformArea (TileArea *area, TileIndex tile)
+{
+	Axis axis = GetRailStationAxis (tile);
+	TileIndexDiff delta = TileOffsByDiagDir (AxisToDiagDir (axis));
 
-struct ETileArea : TileArea {
-	ETileArea(const BaseStation *st, TileIndex tile, TriggerArea ta)
-	{
-		switch (ta) {
-			default: NOT_REACHED();
-
-			case TA_TILE:
-				this->tile = tile;
-				this->w    = 1;
-				this->h    = 1;
-				break;
-
-			case TA_PLATFORM: {
-				TileIndex start, end;
-				Axis axis = GetRailStationAxis(tile);
-				TileIndexDiff delta = TileOffsByDiagDir(AxisToDiagDir(axis));
-
-				for (end = tile; IsRailStationTile(end + delta) && IsCompatibleTrainStationTile(end + delta, tile); end += delta) { /* Nothing */ }
-				for (start = tile; IsRailStationTile(start - delta) && IsCompatibleTrainStationTile(start - delta, tile); start -= delta) { /* Nothing */ }
-
-				this->tile = start;
-				this->w = TileX(end) - TileX(start) + 1;
-				this->h = TileY(end) - TileY(start) + 1;
-				break;
-			}
-
-			case TA_WHOLE:
-				st->GetTileArea(this, st->IsWaypoint() ? STATION_WAYPOINT : STATION_RAIL);
-				break;
+	TileIndex ends[2];
+	for (uint i = 0; i < 2; i++, delta = -delta) {
+		TileIndex t = tile;
+		while (IsCompatibleTrainStationTile (t + delta, tile)) {
+			t += delta;
 		}
+		ends[i] = t;
 	}
-};
+
+	area->tile = ends[1];
+	area->w = TileX(ends[0]) - TileX(ends[1]) + 1;
+	area->h = TileY(ends[0]) - TileY(ends[1]) + 1;
+}
 
 
 /**
@@ -258,13 +238,6 @@ static uint32 GetRailContinuationInfo(TileIndex tile)
 	return this->st->waiting_triggers;
 }
 
-
-/* virtual */ void StationScopeResolver::SetTriggers(int triggers) const
-{
-	BaseStation *st = const_cast<BaseStation *>(this->st);
-	assert(st != NULL);
-	st->waiting_triggers = triggers;
-}
 
 /**
  * Station variable cache
@@ -555,7 +528,7 @@ StationResolverObject::StationResolverObject(const StationSpec *statspec, BaseSt
 		/* Pick the first cargo that we have waiting */
 		const CargoSpec *cs;
 		FOR_ALL_CARGOSPECS(cs) {
-			if (this->station_scope.statspec->grf_prop.spritegroup[cs->Index()] != NULL &&
+			if (this->station_scope.statspec->spritegroup[cs->Index()] != NULL &&
 					st->goods[cs->Index()].cargo.TotalCount() > 0) {
 				ctype = cs->Index();
 				break;
@@ -563,13 +536,13 @@ StationResolverObject::StationResolverObject(const StationSpec *statspec, BaseSt
 		}
 	}
 
-	if (this->station_scope.statspec->grf_prop.spritegroup[ctype] == NULL) {
+	if (this->station_scope.statspec->spritegroup[ctype] == NULL) {
 		ctype = CT_DEFAULT;
 	}
 
 	/* Remember the cargo type we've picked */
 	this->station_scope.cargo_type = ctype;
-	this->root_spritegroup = this->station_scope.statspec->grf_prop.spritegroup[this->station_scope.cargo_type];
+	this->root_spritegroup = this->station_scope.statspec->spritegroup[this->station_scope.cargo_type];
 }
 
 StationResolverObject::~StationResolverObject()
@@ -675,7 +648,7 @@ struct FakeStationResolverObject : public ResolverObject {
 		_svc.valid = 0;
 
 		/* No station, so we are in a purchase list */
-		const SpriteGroup *const *groups = statspec->grf_prop.spritegroup;
+		const SpriteGroup *const *groups = statspec->spritegroup;
 		const SpriteGroup *root = groups[CT_PURCHASE];
 
 		if (root == NULL) {
@@ -913,9 +886,8 @@ void DeallocateSpecFromStation(BaseStation *st, byte specindex)
 	/* specindex of 0 (default) is never freeable */
 	if (specindex == 0) return;
 
-	ETileArea area = ETileArea(st, INVALID_TILE, TA_WHOLE);
 	/* Check all tiles over the station to check if the specindex is still in use */
-	TILE_AREA_LOOP(tile, area) {
+	TILE_AREA_LOOP(tile, st->train_station) {
 		if (st->TileBelongsToRailStation(tile) && GetCustomStationSpecIndex(tile) == specindex) {
 			return;
 		}
@@ -1056,32 +1028,6 @@ bool IsStationTileBlocked(TileIndex tile)
 	return statspec != NULL && HasBit(statspec->blocked, GetStationGfx(tile));
 }
 
-/**
- * Check if a rail station tile shall have pylons when electrified.
- * @param tile %Tile to test.
- * @return Tile shall have pylons.
- * @note This could be cached (during build) in the map array to save on all the dereferencing.
- */
-bool CanStationTileHavePylons(TileIndex tile)
-{
-	const StationSpec *statspec = GetStationSpec(tile);
-	uint gfx = GetStationGfx(tile);
-	/* Default stations do not draw pylons under roofs (gfx >= 4) */
-	return statspec != NULL ? HasBit(statspec->pylons, gfx) : gfx < 4;
-}
-
-/**
- * Check if a rail station tile shall have wires when electrified.
- * @param tile %Tile to test.
- * @return Tile shall have wires.
- * @note This could be cached (during build) in the map array to save on all the dereferencing.
- */
-bool CanStationTileHaveWires(TileIndex tile)
-{
-	const StationSpec *statspec = GetStationSpec(tile);
-	return statspec == NULL || !HasBit(statspec->wires, GetStationGfx(tile));
-}
-
 /** Helper class for animation control. */
 struct StationAnimationBase {
 	static const CallbackID cb_animation_speed      = CBID_STATION_ANIMATION_SPEED;
@@ -1107,10 +1053,10 @@ void AnimateStationTile(TileIndex tile)
 
 void TriggerStationAnimation(BaseStation *st, TileIndex tile, StationAnimationTrigger trigger, CargoID cargo_type)
 {
-	/* List of coverage areas for each animation trigger */
-	static const TriggerArea tas[] = {
-		TA_TILE, TA_WHOLE, TA_WHOLE, TA_PLATFORM, TA_PLATFORM, TA_PLATFORM, TA_WHOLE
-	};
+	/* Bitmask of animation triggers that affect the whole station. */
+	static const uint whole = (1 << SAT_NEW_CARGO)
+				| (1 << SAT_CARGO_TAKEN)
+				| (1 << SAT_250_TICKS);
 
 	/* Get Station if it wasn't supplied */
 	if (st == NULL) st = BaseStation::GetByTile(tile);
@@ -1120,7 +1066,16 @@ void TriggerStationAnimation(BaseStation *st, TileIndex tile, StationAnimationTr
 	if (!HasBit(st->cached_anim_triggers, trigger)) return;
 
 	uint16 random_bits = Random();
-	ETileArea area = ETileArea(st, tile, tas[trigger]);
+	TileArea area;
+	if (trigger == SAT_BUILT) {
+		area.tile = tile;
+		area.w    = 1;
+		area.h    = 1;
+	} else if (HasBit(whole, trigger)) {
+		area = st->train_station;
+	} else {
+		MakePlatformArea (&area, tile);
+	}
 
 	/* Check all tiles over the station to check if the specindex is still in use */
 	TILE_AREA_LOOP(tile, area) {
@@ -1152,10 +1107,9 @@ void TriggerStationAnimation(BaseStation *st, TileIndex tile, StationAnimationTr
  */
 void TriggerStationRandomisation(Station *st, TileIndex tile, StationRandomTrigger trigger, CargoID cargo_type)
 {
-	/* List of coverage areas for each animation trigger */
-	static const TriggerArea tas[] = {
-		TA_WHOLE, TA_WHOLE, TA_PLATFORM, TA_PLATFORM, TA_PLATFORM, TA_PLATFORM
-	};
+	/* Bitmask of randomisation triggers that affect the whole station. */
+	static const uint whole = (1 << SRT_NEW_CARGO)
+				| (1 << SRT_CARGO_TAKEN);
 
 	/* Get Station if it wasn't supplied */
 	if (st == NULL) st = Station::GetByTile(tile);
@@ -1166,20 +1120,30 @@ void TriggerStationRandomisation(Station *st, TileIndex tile, StationRandomTrigg
 	if (cargo_type != CT_INVALID && !HasBit(st->cached_cargo_triggers, cargo_type)) return;
 
 	uint32 whole_reseed = 0;
-	ETileArea area = ETileArea(st, tile, tas[trigger]);
 
-	uint32 empty_mask = 0;
+	uint32 cargo_mask = 0;
 	if (trigger == SRT_CARGO_TAKEN) {
 		/* Create a bitmask of completely empty cargo types to be matched */
+		uint32 empty_mask = 0;
 		for (CargoID i = 0; i < NUM_CARGO; i++) {
 			if (st->goods[i].cargo.TotalCount() == 0) {
 				SetBit(empty_mask, i);
 			}
 		}
+		cargo_mask = ~empty_mask;
 	}
 
-	/* Convert trigger to bit */
+	/* Store triggers now for var 5F */
 	uint8 trigger_bit = 1 << trigger;
+	st->waiting_triggers |= trigger_bit;
+	uint32 used_triggers = 0;
+
+	TileArea area;
+	if ((whole & trigger_bit) != 0) {
+		area = st->train_station;
+	} else {
+		MakePlatformArea (&area, tile);
+	}
 
 	/* Check all tiles over the station to check if the specindex is still in use */
 	TILE_AREA_LOOP(tile, area) {
@@ -1189,16 +1153,16 @@ void TriggerStationRandomisation(Station *st, TileIndex tile, StationRandomTrigg
 
 			/* Cargo taken "will only be triggered if all of those
 			 * cargo types have no more cargo waiting." */
-			if (trigger == SRT_CARGO_TAKEN) {
-				if ((ss->cargo_triggers & ~empty_mask) != 0) continue;
-			}
+			if ((ss->cargo_triggers & cargo_mask) != 0) continue;
 
 			if (cargo_type == CT_INVALID || HasBit(ss->cargo_triggers, cargo_type)) {
 				StationResolverObject object(ss, st, tile, CBID_RANDOM_TRIGGER, 0);
-				object.trigger = trigger_bit;
+				object.waiting_triggers = st->waiting_triggers;
 
 				const SpriteGroup *group = object.Resolve();
 				if (group == NULL) continue;
+
+				used_triggers |= object.used_triggers;
 
 				uint32 reseed = object.GetReseedSum();
 				if (reseed != 0) {
@@ -1218,6 +1182,7 @@ void TriggerStationRandomisation(Station *st, TileIndex tile, StationRandomTrigg
 	}
 
 	/* Update whole station random bits */
+	st->waiting_triggers &= ~used_triggers;
 	if ((whole_reseed & 0xFFFF) != 0) {
 		st->random_bits &= ~whole_reseed;
 		st->random_bits |= Random() & whole_reseed;

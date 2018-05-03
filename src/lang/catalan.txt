@@ -2719,10 +2719,10 @@ STR_ABOUT_VERSION                                               :{BLACK}Versió 
 STR_ABOUT_COPYRIGHT_OPENTTD                                     :{BLACK}OpenTTD {COPYRIGHT} 2002-2017 L'equip de l'OpenTTD
 
 # Save/load game/scenario
-STR_SAVELOAD_SAVE_CAPTION                                       :{WHITE}Desa la Partida
 STR_SAVELOAD_LOAD_CAPTION                                       :{WHITE}Carrega una Partida
-STR_SAVELOAD_SAVE_SCENARIO                                      :{WHITE}Desa l'escenari
+STR_SAVELOAD_SAVE_CAPTION                                       :{WHITE}Desa la Partida
 STR_SAVELOAD_LOAD_SCENARIO                                      :{WHITE}Carrega un escenari
+STR_SAVELOAD_SAVE_SCENARIO                                      :{WHITE}Desa l'escenari
 STR_SAVELOAD_LOAD_HEIGHTMAP                                     :{WHITE}Carrega un mapa d'alçades
 STR_SAVELOAD_SAVE_HEIGHTMAP                                     :{WHITE}Desa el mapa d'alçades
 STR_SAVELOAD_HOME_BUTTON                                        :{BLACK}Clica aquí per anar a la carpeta predeterminada de desa/carrega actual

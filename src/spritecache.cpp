@@ -27,6 +27,7 @@
 #include "core/bitmath_func.hpp"
 #include "core/mem_func.hpp"
 #include "strings_func.h"
+#include "newgrf.h"
 
 #include "table/sprites.h"
 #include "table/strings.h"
@@ -508,12 +509,15 @@ static void *AllocSprite(size_t mem_req);
 bool SkipSpriteData(byte type, uint16 num)
 {
 	if (type & 2) {
-		FioSkipBytes(num);
+		FioSkipBytes (num - 1);
 	} else {
+		FioSkipBytes (7);
+		num -= 8;
 		while (num > 0) {
 			int8 i = FioReadByte();
 			if (i >= 0) {
-				int size = (i == 0) ? 0x80 : i;
+				/* size = (i == 0) ? 0x80 : i; */
+				uint size = 1 + (uint) ((i - 1) & 0x7F);
 				if (size > num) return false;
 				num -= size;
 				FioSkipBytes(size);
@@ -538,14 +542,14 @@ bool SpriteExists(SpriteID id)
 }
 
 /**
- * Get the sprite type of a given sprite.
+ * Check if a sprite is a normal sprite.
  * @param sprite The sprite to look at.
- * @return the type of sprite.
+ * @return Whether the sprite exists and is of type ST_NORMAL.
  */
-SpriteType GetSpriteType(SpriteID sprite)
+bool IsNormalSprite (SpriteID sprite)
 {
-	if (!SpriteExists(sprite)) return ST_INVALID;
-	return GetSpriteCache(sprite)->type;
+	return SpriteExists (sprite)
+			&& GetSpriteCache(sprite)->type == ST_NORMAL;
 }
 
 /**
@@ -863,17 +867,16 @@ size_t GetGRFSpriteOffset(uint32 id)
 
 /**
  * Parse the sprite section of GRFs.
- * @param container_version Container version of the GRF we're currently processing.
+ * @param header GRF header data.
  */
-void ReadGRFSpriteOffsets(byte container_version)
+void ReadGRFSpriteOffsets (const GRFHeader *header)
 {
 	_grf_sprite_offsets.clear();
 
-	if (container_version >= 2) {
+	if (header->version >= 2) {
 		/* Seek to sprite section of the GRF. */
-		size_t data_offset = FioReadDword();
 		size_t old_pos = FioGetPos();
-		FioSeekTo(data_offset, SEEK_CUR);
+		FioSeekTo (header->sprite_offset, SEEK_SET);
 
 		/* Loop over all sprite section entries and store the file
 		 * offset for each newly encountered ID. */
@@ -928,13 +931,12 @@ bool LoadNextSprite(int load_index, byte file_slot, uint file_sprite_id, byte co
 		file_pos = GetGRFSpriteOffset(FioReadDword());
 		type = ST_NORMAL;
 	} else {
-		FioSkipBytes(7);
-		type = SkipSpriteData(grf_type, num - 8) ? ST_NORMAL : ST_INVALID;
 		/* Inline sprites are not supported for container version >= 2. */
-		if (container_version >= 2) return false;
+		if (!SkipSpriteData (grf_type, num) || container_version >= 2) {
+			return false;
+		}
+		type = ST_NORMAL;
 	}
-
-	if (type == ST_INVALID) return false;
 
 	if (load_index >= MAX_SPRITES) {
 		usererror("Tried to load too many sprites (#%d; max %d)", load_index, MAX_SPRITES);
@@ -1214,7 +1216,6 @@ static void *HandleInvalidSpriteRequest (SpriteID sprite, SpriteType requested, 
 void *GetRawSprite (SpriteID sprite, SpriteType type, bool cache)
 {
 	assert(type != ST_MAPGEN);
-	assert(type < ST_INVALID);
 	assert (!IsMapgenSpriteID (sprite));
 
 	if (!SpriteExists(sprite)) {

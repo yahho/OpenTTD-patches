@@ -895,7 +895,7 @@ public:
 		}
 	}
 
-	virtual EventState OnKeyPress(WChar key, uint16 keycode)
+	bool OnKeyPress (WChar key, uint16 keycode) OVERRIDE
 	{
 		switch (keycode) {
 			case WKC_UP:
@@ -935,13 +935,13 @@ public:
 						this->content.ForceRebuild();
 						this->InvalidateData();
 					}
-					return ES_HANDLED;
+					return true;
 				}
 				/* space is pressed and filter is focused. */
 				FALLTHROUGH;
 
 			default:
-				return ES_NOT_HANDLED;
+				return false;
 		}
 
 		if (this->content.Length() == 0) {
@@ -950,7 +950,7 @@ public:
 				this->content.ForceRebuild();
 				this->InvalidateData();
 			}
-			return ES_HANDLED;
+			return true;
 		}
 
 		this->selected = *this->content.Get(this->list_pos);
@@ -964,7 +964,7 @@ public:
 
 		/* redraw window */
 		this->InvalidateData();
-		return ES_HANDLED;
+		return true;
 	}
 
 	virtual void OnEditboxChanged(int wid)

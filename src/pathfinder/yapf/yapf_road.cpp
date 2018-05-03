@@ -123,6 +123,12 @@ static int SpeedPenalty (const RoadVehicle *v, const RoadPathPos &pos)
 }
 
 
+/** Get the destination tile for a station. */
+static TileIndex GetStationTile (const Station *st, TileIndex tile, bool bus)
+{
+	return st->GetClosestTile (tile, bus ? st->bus_station : st->truck_station);
+}
+
 /** Destination of a road vehicle. */
 struct CYapfRoadDest {
 	const union {
@@ -139,7 +145,7 @@ struct CYapfRoadDest {
 		  is_bus   (rv->IsBus()),
 		  is_artic (rv->HasArticulatedPart()),
 		  tile     (rv->current_order.IsType(OT_GOTO_STATION) ?
-				Station::Get(station)->GetClosestTile (rv->tile, is_bus ? STATION_BUS : STATION_TRUCK) :
+				GetStationTile (Station::Get(station), rv->tile, is_bus) :
 				rv->dest_tile)
 	{
 		assert (this->tile != INVALID_TILE);

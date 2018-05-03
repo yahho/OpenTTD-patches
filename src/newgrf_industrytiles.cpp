@@ -116,12 +116,6 @@ uint32 GetRelativePosition(TileIndex tile, TileIndex ind_tile)
 	return GetIndustryTriggers(this->tile);
 }
 
-/* virtual */ void IndustryTileScopeResolver::SetTriggers(int triggers) const
-{
-	assert(this->industry != NULL && this->industry->index != INVALID_INDUSTRY && IsValidTile(this->tile) && IsIndustryTile(this->tile));
-	SetIndustryTriggers(this->tile, triggers);
-}
-
 /**
  * Get the associated NewGRF file from the industry graphics.
  * @param gfx Graphics to query.
@@ -148,7 +142,7 @@ IndustryTileResolverObject::IndustryTileResolverObject(IndustryGfx gfx, TileInde
 	indtile_scope(this->grffile, indus, tile),
 	ind_scope(*this, tile, indus, indus->type)
 {
-	this->root_spritegroup = GetIndustryTileSpec(gfx)->grf_prop.spritegroup[0];
+	this->root_spritegroup = GetIndustryTileSpec(gfx)->grf_prop.spritegroup;
 }
 
 /**
@@ -326,14 +320,19 @@ static void DoTriggerIndustryTile(TileIndex tile, IndustryTileTrigger trigger, I
 	IndustryGfx gfx = GetIndustryGfx(tile);
 	const IndustryTileSpec *itspec = GetIndustryTileSpec(gfx);
 
-	if (itspec->grf_prop.spritegroup[0] == NULL) return;
+	if (itspec->grf_prop.spritegroup == NULL) return;
 
 	IndustryTileResolverObject object(gfx, tile, ind, CBID_RANDOM_TRIGGER);
-	object.trigger = trigger;
+	object.waiting_triggers = GetIndustryTriggers(tile) | trigger;
+	SetIndustryTriggers(tile, object.waiting_triggers); // store now for var 5F
 
 	const SpriteGroup *group = object.Resolve();
 	if (group == NULL) return;
 
+	/* Store remaining triggers. */
+	SetIndustryTriggers(tile, object.GetRemainingTriggers());
+
+	/* Rerandomise tile bits */
 	byte new_random_bits = Random();
 	byte random_bits = GetIndustryRandomBits(tile);
 	random_bits &= ~object.reseed[VSG_SCOPE_SELF];

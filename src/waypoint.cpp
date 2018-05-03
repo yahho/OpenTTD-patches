@@ -18,23 +18,6 @@
 #include "station_func.h"
 #include "tracerestrict.h"
 
-void Waypoint::GetTileArea(TileArea *ta, StationType type) const
-{
-	switch (type) {
-		case STATION_WAYPOINT:
-			*ta = this->train_station;
-			return;
-
-		case STATION_BUOY:
-			ta->tile = this->xy;
-			ta->w    = 1;
-			ta->h    = 1;
-			break;
-
-		default: NOT_REACHED();
-	}
-}
-
 Waypoint::~Waypoint()
 {
 	if (CleaningPool()) return;

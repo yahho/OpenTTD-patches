@@ -48,7 +48,10 @@ protected:
 	CYapfShipT (const Ship *ship, bool allow_90deg, bool depot = false)
 		: m_veh(ship)
 		, m_dest_station (!depot && ship->current_order.IsType(OT_GOTO_STATION) ? Station::Get(ship->current_order.GetDestination()) : NULL)
-		, m_dest_tile    (depot ? INVALID_TILE : ship->current_order.IsType(OT_GOTO_STATION) ? m_dest_station->GetClosestTile(ship->tile, STATION_DOCK) : ship->dest_tile)
+		, m_dest_tile    (depot ? INVALID_TILE :
+				ship->current_order.IsType (OT_GOTO_STATION) ?
+					m_dest_station->GetClosestTile (ship->tile, m_dest_station->dock_area) :
+				ship->dest_tile)
 		, svi(ShipVehInfo(ship->engine_type))
 		, m_allow_90deg(allow_90deg)
 	{

@@ -48,6 +48,34 @@ static void SetupSubsidyDecodeParams (const Subsidy *s)
 	SetupSubsidyDecodeParam (4, s->dst);
 }
 
+static inline TileIndex GetSubsidyTile (const CargoSource &src)
+{
+	switch (src.type) {
+		case ST_INDUSTRY: return Industry::Get(src.id)->location.tile;
+		case ST_TOWN:     return     Town::Get(src.id)->xy;
+		default: NOT_REACHED();
+	}
+}
+
+static inline void HandleClick (const Subsidy *s)
+{
+	/* determine src coordinate for subsidy and try to scroll to it */
+	TileIndex xy = GetSubsidyTile (s->src);
+
+	if (_ctrl_pressed || !ScrollMainWindowToTile(xy)) {
+		if (_ctrl_pressed) ShowExtraViewPortWindow (xy);
+
+		/* otherwise determine dst coordinate for subsidy and scroll to it */
+		xy = GetSubsidyTile (s->dst);
+
+		if (_ctrl_pressed) {
+			ShowExtraViewPortWindow (xy);
+		} else {
+			ScrollMainWindowToTile (xy);
+		}
+	}
+}
+
 struct SubsidyListWindow : Window {
 	Scrollbar *vscroll;
 
@@ -65,90 +93,38 @@ struct SubsidyListWindow : Window {
 		if (widget != WID_SUL_PANEL) return;
 
 		int y = this->vscroll->GetScrolledRowFromWidget(pt.y, this, WID_SUL_PANEL, WD_FRAMERECT_TOP);
+		if (y == 0) return; // "Subsidies on offer for services taking:"
+		y--;
+
 		int num = 0;
 		const Subsidy *s;
 		FOR_ALL_SUBSIDIES(s) {
 			if (!s->IsAwarded()) {
-				y--;
 				if (y == 0) {
-					this->HandleClick(s);
+					HandleClick (s);
 					return;
 				}
+				y--;
 				num++;
 			}
 		}
 
-		if (num == 0) {
-			y--; // "None"
-			if (y < 0) return;
-		}
+		int skip = (num == 0) ?
+				3 : // "None"
+				2;  // "Services already subsidised:"
 
-		y -= 2; // "Services already subsidised:"
-		if (y < 0) return;
+		if (y < skip) return;
+		y -= skip;
 
 		FOR_ALL_SUBSIDIES(s) {
 			if (s->IsAwarded()) {
-				y--;
 				if (y == 0) {
-					this->HandleClick(s);
+					HandleClick (s);
 					return;
 				}
+				y--;
 			}
 		}
-	}
-
-	static inline TileIndex GetSubsidyTile (const CargoSource &src)
-	{
-		switch (src.type) {
-			case ST_INDUSTRY: return Industry::Get(src.id)->location.tile;
-			case ST_TOWN:     return     Town::Get(src.id)->xy;
-			default: NOT_REACHED();
-		}
-	}
-
-	void HandleClick(const Subsidy *s)
-	{
-		/* determine src coordinate for subsidy and try to scroll to it */
-		TileIndex xy = GetSubsidyTile (s->src);
-
-		if (_ctrl_pressed || !ScrollMainWindowToTile(xy)) {
-			if (_ctrl_pressed) ShowExtraViewPortWindow(xy);
-
-			/* otherwise determine dst coordinate for subsidy and scroll to it */
-			xy = GetSubsidyTile (s->dst);
-
-			if (_ctrl_pressed) {
-				ShowExtraViewPortWindow(xy);
-			} else {
-				ScrollMainWindowToTile(xy);
-			}
-		}
-	}
-
-	/**
-	 * Count the number of lines in this window.
-	 * @return the number of lines
-	 */
-	uint CountLines()
-	{
-		/* Count number of (non) awarded subsidies */
-		uint num_awarded = 0;
-		uint num_not_awarded = 0;
-		const Subsidy *s;
-		FOR_ALL_SUBSIDIES(s) {
-			if (!s->IsAwarded()) {
-				num_not_awarded++;
-			} else {
-				num_awarded++;
-			}
-		}
-
-		/* Count the 'none' lines */
-		if (num_awarded     == 0) num_awarded = 1;
-		if (num_not_awarded == 0) num_not_awarded = 1;
-
-		/* Offered, accepted and an empty line before the accepted ones. */
-		return 3 + num_awarded + num_not_awarded;
 	}
 
 	virtual void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize)
@@ -242,7 +218,20 @@ struct SubsidyListWindow : Window {
 	virtual void OnInvalidateData(int data = 0, bool gui_scope = true)
 	{
 		if (!gui_scope) return;
-		this->vscroll->SetCount(this->CountLines());
+
+		/* Count number of (non) awarded subsidies */
+		uint num[2] = { 0, 0 };
+		const Subsidy *s;
+		FOR_ALL_SUBSIDIES(s) {
+			num[s->IsAwarded()]++;
+		}
+
+		/* Count the 'none' lines */
+		if (num[0] == 0) num[0] = 1;
+		if (num[1] == 0) num[1] = 1;
+
+		/* Offered, accepted and an empty line before the accepted ones. */
+		this->vscroll->SetCount (num[0] + num[1] + 3);
 	}
 };
 

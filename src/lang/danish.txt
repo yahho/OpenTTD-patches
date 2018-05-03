@@ -2714,10 +2714,10 @@ STR_ABOUT_VERSION                                               :{BLACK}OpenTTD 
 STR_ABOUT_COPYRIGHT_OPENTTD                                     :{BLACK}OpenTTD {COPYRIGHT} 2002-2017 OpenTTD teamet
 
 # Save/load game/scenario
-STR_SAVELOAD_SAVE_CAPTION                                       :{WHITE}Gem spil
 STR_SAVELOAD_LOAD_CAPTION                                       :{WHITE}Hent spil
-STR_SAVELOAD_SAVE_SCENARIO                                      :{WHITE}Gem scenarie
+STR_SAVELOAD_SAVE_CAPTION                                       :{WHITE}Gem spil
 STR_SAVELOAD_LOAD_SCENARIO                                      :{WHITE}Hent scenarie
+STR_SAVELOAD_SAVE_SCENARIO                                      :{WHITE}Gem scenarie
 STR_SAVELOAD_LOAD_HEIGHTMAP                                     :{WHITE}Hent højdekort
 STR_SAVELOAD_SAVE_HEIGHTMAP                                     :{WHITE}Gem højdekort
 STR_SAVELOAD_HOME_BUTTON                                        :{BLACK}Klik her for at gå til det nuværende standard gemme/hente bibliotek

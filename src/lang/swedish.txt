@@ -2718,10 +2718,10 @@ STR_ABOUT_VERSION                                               :{BLACK}OpenTTD-
 STR_ABOUT_COPYRIGHT_OPENTTD                                     :{BLACK}OpenTTD {COPYRIGHT} 2002-2017 OpenTTD-teamet
 
 # Save/load game/scenario
-STR_SAVELOAD_SAVE_CAPTION                                       :{WHITE}Spara spel
 STR_SAVELOAD_LOAD_CAPTION                                       :{WHITE}Ladda spel
-STR_SAVELOAD_SAVE_SCENARIO                                      :{WHITE}Spara scenario
+STR_SAVELOAD_SAVE_CAPTION                                       :{WHITE}Spara spel
 STR_SAVELOAD_LOAD_SCENARIO                                      :{WHITE}Öppna scenario
+STR_SAVELOAD_SAVE_SCENARIO                                      :{WHITE}Spara scenario
 STR_SAVELOAD_LOAD_HEIGHTMAP                                     :{WHITE}Läs höjdkarta
 STR_SAVELOAD_SAVE_HEIGHTMAP                                     :{WHITE}Spara höjdkarta
 STR_SAVELOAD_HOME_BUTTON                                        :{BLACK}Klicka här för att gå till standardkatalogen för spara/ladda

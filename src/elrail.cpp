@@ -71,6 +71,7 @@
 #include "company_base.h"
 #include "newgrf_railtype.h"
 #include "station_func.h"
+#include "newgrf_station.h"
 
 
 /** Which PPPs are possible at all on a given PCP */
@@ -219,10 +220,17 @@ static TrackBits MaskWireBits(TileIndex t, TrackBits tracks)
 		 * axis that still display wires to preserve visual continuity. */
 		TileIndex next_tile = TileAddByDiagDir(t, d);
 		TrackBits reachable = TrackStatusToTrackBits(GetTileRailwayStatus(next_tile)) & DiagdirReachesTracks(d);
-		RailType rt;
-		if ((reachable != TRACK_BIT_NONE) ?
-				((rt = GetRailType(next_tile, FindFirstTrack(reachable))) == INVALID_RAILTYPE || !HasRailCatenary(rt)) :
-				(!HasStationTileRail(next_tile) || GetRailStationAxis(next_tile) != DiagDirToAxis(d) || !CanStationTileHaveWires(next_tile))) {
+		bool add;
+		if (reachable != TRACK_BIT_NONE) {
+			RailType rt = GetRailType (next_tile, FindFirstTrack (reachable));
+			add = (rt == INVALID_RAILTYPE || !HasRailCatenary(rt));
+		} else if (!HasStationTileRail(next_tile) || GetRailStationAxis(next_tile) != DiagDirToAxis(d)) {
+			add = true;
+		} else {
+			const StationSpec *statspec = GetStationSpec (next_tile);
+			add = (statspec != NULL) && HasBit(statspec->wires, GetStationGfx (next_tile));
+		}
+		if (add) {
 			neighbour_tdb |= DiagdirReachesTrackdirs(ReverseDiagDir(d));
 		}
 	}
@@ -354,12 +362,12 @@ static const byte allowed_ppp[TRACK_END] = {
  * @param side Tile side to check.
  * @param preferred Pointer to preferred positions to mask.
  * @param allowed Pointer to allowed positions to mask.
- * @return Whether the pylon control point is in use from this tile.
+ * @return The number of wires inciding on the given side.
  */
-static bool CheckCatenarySide (TrackBits tracks, TrackBits wires,
+static uint CheckCatenarySide (TrackBits tracks, TrackBits wires,
 	DiagDirection side, byte *preferred, byte *allowed)
 {
-	bool pcp_in_use = false;
+	uint pcp_in_use = 0;
 	byte pmask = 0xFF;
 	byte amask = 0xFF;
 
@@ -369,7 +377,7 @@ static bool CheckCatenarySide (TrackBits tracks, TrackBits wires,
 		byte track = data->track;
 		if (HasBit(wires, track)) {
 			/* track found */
-			pcp_in_use = true;
+			pcp_in_use++;
 			pmask &= data->preferred;
 		}
 		if (HasBit(tracks, track)) {
@@ -377,77 +385,67 @@ static bool CheckCatenarySide (TrackBits tracks, TrackBits wires,
 		}
 	}
 
+	/* At least the PPPs along the tile side must be in the allowed set. */
+	byte test = (DiagDirToAxis(side) == AXIS_X) ?
+			(1 << DIR_SE) | (1 << DIR_NW) :
+			(1 << DIR_NE) | (1 << DIR_SW);
+	assert ((amask & test) == test);
+
 	*preferred &= pmask;
 	*allowed &= amask;
 	return pcp_in_use;
 }
 
 /**
- * Mask preferred and allowed pylon position points on a tile side,
- * when there is a single track along an axis on the tile.
- * @param axis Axis of the track.
- * @param side Tile side to check.
- * @param preferred Pointer to preferred positions to mask.
- * @return Whether the pylon control point is in use from this tile.
- */
-static inline bool CheckCatenarySideAxis (Axis axis, DiagDirection side,
-	byte *preferred)
-{
-	/* We check whether the track in question is present. */
-	if (DiagDirToAxis (side) != axis) return false;
-
-	/* track found */
-	*preferred &= side_tracks[side][0].preferred;
-	return true;
-}
-
-/**
  * Check if the pylon on a tile side should be elided on long track runs.
  * @param side Tile side to check.
  * @param preferred Preferred pylon positions.
- * @param odd Array of tile coordinate parity per axis.
+ * @param odd Bitmask of tile coordinate parity per axis.
  * @param level Whether the land is level (for tracks running along an axis).
  * @return Whether the pylon should be elided.
  */
 static bool CheckPylonElision (DiagDirection side, byte preferred,
-	const bool *odd, bool level)
+	byte odd, bool level)
 {
-	Axis axis = DiagDirToAxis (side);
-	bool ignore;
-	switch (preferred) {
-		case 1 << DIR_NW | 1 << DIR_SE:
-			if (!level) return false;
-			ignore = false; // must be X axis
-			break;
+	/* Preferred pylon positions must be a pair of opposite directions. */
+	if (((preferred ^ (preferred >> 4)) & 0xF) != 0) return false;
+	assert (HasAtMostOneBit (preferred & 0xF));
 
-		case 1 << DIR_NE | 1 << DIR_SW:
-			if (!level) return false;
-			ignore = true;  // must be Y axis
-			break;
+	/* Direction bits to test for pylon elision. */
+	static const byte masks[4][DIAGDIR_END] = {
+		{    // Y even, X even
+			(1 << DIR_N) | (1 << DIR_E),                 // NE
+			(1 << DIR_N)                | (1 << DIR_NE), // SE
+			                              (1 << DIR_SE), // SW
+			               (1 << DIR_E),                 // NW
+		}, { // Y even, X odd
+			                              (1 << DIR_SE), // NE
+			               (1 << DIR_E) | (1 << DIR_NE), // SE
+			(1 << DIR_N) | (1 << DIR_E),                 // SW
+			(1 << DIR_N),                                // NW
+		}, { // Y odd, X even
+			0,                                           // NE
+			               (1 << DIR_E),                 // SE
+			(1 << DIR_N) | (1 << DIR_E) | (1 << DIR_SE), // SW
+			(1 << DIR_N)                | (1 << DIR_NE), // NW
+		}, { // Y odd, X odd
+			(1 << DIR_N) | (1 << DIR_E) | (1 << DIR_SE), // NE
+			(1 << DIR_N),                                // SE
+			0,                                           // SW
+			               (1 << DIR_E) | (1 << DIR_NE), // NW
+		}
+	};
 
-		case 1 << DIR_E | 1 << DIR_W:
-			/* Non-orthogonal tracks must always be level. */
-			ignore = (axis == AXIS_X) ? !odd[AXIS_Y] : odd[AXIS_X];
-			break;
-
-		case 1 << DIR_N | 1 << DIR_S:
-			/* Non-orthogonal tracks must always be level. */
-			ignore = !odd[OtherAxis(axis)];
-			break;
-
-		default:
-			return false;
-	}
-
-	/* This configuration may be subject to pylon elision. */
-	/* Toggle ignore if we are in an odd row, or heading the other way. */
-	return (ignore ^ odd[axis] ^ HasBit(side, 1));
+	byte test = masks[odd][side];
+	if (!level) test &= (1 << DIR_N) | (1 << DIR_E);
+	return (preferred & test) != 0;
 }
 
 /** Possible return values for CheckNeighbourPCP below. */
 enum {
 	PCP_NB_NONE,      ///< PCP not in use from the neighbour tile
 	PCP_NB_TUNNEL,    ///< PCP in use by a tunnel from the neighbour tile
+	PCP_NB_IN_USE,    ///< PCP is in use and may not be elided
 	PCP_NB_TRY_ELIDE, ///< PCP is in use and may be subject to elision
 };
 
@@ -475,8 +473,12 @@ static uint CheckRailNeighbourPCP (TileIndex tile, DiagDirection side,
 	TrackBits nb_wires = MaskWireBits (tile, nb_tracks);
 
 	/* Tracks inciding from the neighbour tile */
-	if (!CheckCatenarySide (nb_tracks, nb_wires, side, preferred, allowed)) {
-		return PCP_NB_NONE;
+	switch (CheckCatenarySide (nb_tracks, nb_wires, side,
+					preferred, allowed)) {
+		case 0: return PCP_NB_NONE;
+		case 1: break;
+		default: /* more than one wire, so we need the pylon */
+			return PCP_NB_IN_USE;
 	}
 
 	/* Read the foundations if they are present, and adjust the tileh */
@@ -537,29 +539,35 @@ static uint CheckNeighbourPCP (TileIndex tile, DiagDirection side,
 					if (!HasRailCatenary (GetRailType (tile))) return PCP_NB_NONE;
 					/* ignore tunnels facing the wrong way for neighbouring tiles */
 					if (GetTunnelBridgeDirection (tile) != ReverseDiagDir (side)) return PCP_NB_NONE;
-					/* force tunnels to always have a pylon (no elision) */
-					*preferred = 0;
 					return PCP_NB_TUNNEL;
 			}
 			break;
 
-		case TT_STATION:
+		case TT_STATION: {
 			if (!HasStationRail (tile)) return PCP_NB_NONE;
 			if (!HasRailCatenary (GetRailType (tile))) return PCP_NB_NONE;
 			/* Ignore neighbouring station tiles that allow neither wires nor pylons. */
-			if (!CanStationTileHavePylons (tile) && !CanStationTileHaveWires (tile)) return PCP_NB_NONE;
+			const StationSpec *statspec = GetStationSpec (tile);
+			if (statspec != NULL) {
+				byte mask = statspec->wires & ~statspec->pylons;
+				uint gfx = GetStationGfx (tile);
+				if (HasBit(mask, gfx)) return PCP_NB_NONE;
+			}
 			axis = GetRailStationAxis (tile);
 			break;
+		}
 
 		default:
 			return PCP_NB_NONE;
 	}
 
 	/* Crossing or station tile, so just one flat track along an axis. */
-	if (!CheckCatenarySideAxis (axis, side, preferred)) {
-		return PCP_NB_NONE;
-	}
 
+	/* We check whether the track in question is present. */
+	if (DiagDirToAxis (side) != axis) return PCP_NB_NONE;
+
+	/* Track found. */
+	*preferred &= side_tracks[side][0].preferred;
 	*slope = SLOPE_FLAT;
 	return PCP_NB_TRY_ELIDE;
 }
@@ -578,13 +586,13 @@ enum {
  * @param home_wires Electrified tracks present on the home tile.
  * @param home_slope Slope of the home tile, adjusted for foundations.
  * @param side The side to check.
- * @param odd Array of tile coordinate parity per axis.
+ * @param odd Bitmask of tile coordinate parity per axis.
  * @return A value representing the PCP state at the given side, plus
- *  a bitmask of allowed directions for the pylon, if any.
+ *  a bitmask of preferred directions for the pylon, if any.
  */
 static std::pair <uint, byte> CheckSidePCP (TileIndex tile,
 	TrackBits home_tracks, TrackBits home_wires, Slope home_slope,
-	DiagDirection side, const bool *odd)
+	DiagDirection side, byte odd)
 {
 	/* We cycle through all the existing tracks at a PCP and see what
 	 * PPPs we want to have, or may not have at all */
@@ -592,7 +600,8 @@ static std::pair <uint, byte> CheckSidePCP (TileIndex tile,
 	byte PPPallowed = AllowedPPPonPCP[side];
 
 	/* Tracks inciding from the home tile */
-	if (!CheckCatenarySide (home_tracks, home_wires, side, &PPPpreferred, &PPPallowed)) {
+	if (CheckCatenarySide (home_tracks, home_wires, side, &PPPpreferred,
+			&PPPallowed) == 0) {
 		/* PCP not used at all from this tile. */
 		return std::make_pair (PCP_NONE, 0);
 	}
@@ -606,40 +615,77 @@ static std::pair <uint, byte> CheckSidePCP (TileIndex tile,
 			if (CheckPylonElision (side, PPPpreferred, odd, home_slope == nb_slope)) {
 				return std::make_pair (PCP_NONE, 0);
 			}
-			/* fall through */
-		case PCP_NB_TUNNEL:
+			FALLTHROUGH;
+		case PCP_NB_IN_USE:
 			pcp_neighbour = true;
 			break;
+
+		case PCP_NB_TUNNEL:
+			/* force tunnels to always have a pylon (no elision) */
+			return std::make_pair (PCP_IN_USE_BOTH, 0);
 
 		case PCP_NB_NONE:
 			pcp_neighbour = false;
 			break;
 	}
 
+	/* At least the PPPs along the tile side must be in the allowed set. */
+	byte test = (DiagDirToAxis(side) == AXIS_X) ?
+			(1 << DIR_SE) | (1 << DIR_NW) :
+			(1 << DIR_NE) | (1 << DIR_SW);
+	assert ((PPPallowed & test) == test);
+
 	/* Now decide where we draw our pylons. First try the preferred PPPs,
 	 * but they may not exist. In that case, we try the any of the allowed
-	 * ones. if they don't exist either, don't draw anything. Note that
-	 * the preferred PPPs still contain the end-of-line markers. Remove
-	 * those (simply by ANDing with allowed, since these markers are never
-	 * allowed) */
-	if (PPPallowed == 0) return std::make_pair (PCP_NONE, 0);
-
-	if ((PPPallowed & PPPpreferred) != 0) PPPallowed &= PPPpreferred;
-	return std::make_pair (pcp_neighbour ? PCP_IN_USE_BOTH : PCP_IN_USE, PPPallowed);
+	 * ones. Note that the preferred PPPs still contain the end-of-line
+	 * markers. Remove those (simply by ANDing with allowed, since these
+	 * markers are never allowed). */
+	return std::make_pair (pcp_neighbour ? PCP_IN_USE_BOTH : PCP_IN_USE,
+				PPPpreferred & PPPallowed);
 }
 
 /**
  * Choose the pylon position point to use for a pylon.
  * @param side Tile side where the pylon will be drawn.
  * @param allowed Mask of allowed pylon position points.
- * @param order Possible pylon positions arranged by preference.
+ * @param odd Bitmask of tile coordinate parity per axis.
  * @param nb Whether there is a neighbour tile that could draw this pylon.
- * @return The pylon position point to use, or -1 for none.
- * @note Use the overloaded variant below.
+ * @return The pylon position point to use.
  */
-static int ChoosePylonPosition (DiagDirection side, byte allowed,
-	const Direction *order, bool nb)
+static inline int ChoosePylonPosition (DiagDirection side, byte allowed,
+	byte odd, bool nb)
 {
+	assert_compile (DIR_END == 8);
+
+	/* Several PPPs maybe exist, here they are sorted in order of preference. */
+#define D(x,n) (DIR_##x << (4 * n))
+#define M(a,b,c,d,e,f)  D(a,0) | D(b,1) | D(c,2) | D(d,3) | D(e,4) | D(f,5)
+	static const uint32 order[4][DIAGDIR_END] = {
+		{    // Y even, X even
+			M (NW, SE, N, E, S, W), // NE
+			M (NE, SW, S, E, N, W), // SE
+			M (NW, SE, S, W, N, E), // SW
+			M (NE, SW, N, W, S, E), // NW
+		}, { // Y even, X odd
+			M (NW, SE, S, W, N, E), // NE
+			M (SW, NE, N, W, S, E), // SE
+			M (NW, SE, N, E, S, W), // SW
+			M (SW, NE, S, E, N, W), // NW
+		}, { // Y odd, X even
+			M (SE, NW, S, W, N, E), // NE
+			M (NE, SW, N, W, S, E), // SE
+			M (SE, NW, N, E, S, W), // SW
+			M (NE, SW, S, E, N, W), // NW
+		}, { // Y odd, X odd
+			M (SE, NW, N, E, S, W), // NE
+			M (SW, NE, S, E, N, W), // SE
+			M (SE, NW, S, W, N, E), // SW
+			M (SW, NE, N, W, S, E), // NW
+		}
+	};
+#undef M
+#undef D
+
 	/* Which of the PPPs are inside the tile. For the two PPPs on the tile
 	 * border the following system is used: if you rotate the PCP so that
 	 * it is in the north, the eastern PPP belongs to the tile. */
@@ -652,63 +698,46 @@ static int ChoosePylonPosition (DiagDirection side, byte allowed,
 
 	assert (allowed != 0);
 
-	for (Direction k = DIR_BEGIN; k < DIR_END; k++) {
-		byte pos = order[k];
+	uint32 x = order[odd][side];
 
-		if (!HasBit(allowed, pos)) continue;
+	byte own = owned[side] & allowed;
+	byte mask = nb ? allowed : own;
+
+	for (;;) {
+		byte pos = x & 0xF;
 
 		/* Don't build the pylon if it would be outside the tile */
-		if (HasBit(owned[side], pos)) return pos;
+		if (HasBit(mask, pos)) {
+			/* We have a neighbour that will draw it, bail out */
+			return HasBit(own, pos) ? pos : -1;
+		}
 
-		/* We have a neighbour that will draw it, bail out */
-		if (nb) return -1;
+		assert (x != 0);
+		x >>= 4;
 	}
-
-	NOT_REACHED();
 }
 
 /**
  * Choose the pylon position point to use for a pylon.
  * @param side Tile side where the pylon will be drawn.
- * @param allowed Mask of allowed pylon position points.
  * @param odd_x Whether the tile is on an odd X coordinate.
  * @param odd_y Whether the tile is on an odd Y coordinate.
  * @param nb Whether there is a neighbour tile that could draw this pylon.
  * @return The pylon position point to use.
  */
-static inline int ChoosePylonPosition (DiagDirection side, byte allowed,
-	bool odd_x, bool odd_y, bool nb)
+static int ChoosePylonPosition (DiagDirection side, bool odd_x, bool odd_y,
+	bool nb)
 {
-	/* Several PPPs maybe exist, here they are sorted in order of preference. */
-	static const Direction order[2][2][DIAGDIR_END][DIR_END] = {
-		{    // X even
-			{    // Y even
-				{DIR_NE, DIR_NW, DIR_SE, DIR_SW, DIR_N, DIR_E, DIR_S, DIR_W}, // NE
-				{DIR_NE, DIR_NW, DIR_SE, DIR_SW, DIR_S, DIR_E, DIR_N, DIR_W}, // SE
-				{DIR_NE, DIR_NW, DIR_SE, DIR_SW, DIR_S, DIR_W, DIR_N, DIR_E}, // SW
-				{DIR_NE, DIR_NW, DIR_SE, DIR_SW, DIR_N, DIR_W, DIR_S, DIR_E}, // NW
-			}, { // Y odd
-				{DIR_NE, DIR_SE, DIR_SW, DIR_NW, DIR_S, DIR_W, DIR_N, DIR_E}, // NE
-				{DIR_NE, DIR_SE, DIR_SW, DIR_NW, DIR_N, DIR_W, DIR_S, DIR_E}, // SE
-				{DIR_NE, DIR_SE, DIR_SW, DIR_NW, DIR_N, DIR_E, DIR_S, DIR_W}, // SW
-				{DIR_NE, DIR_SE, DIR_SW, DIR_NW, DIR_S, DIR_E, DIR_N, DIR_W}, // NW
-			}
-		}, { // X odd
-			{    // Y even
-				{DIR_SW, DIR_NW, DIR_NE, DIR_SE, DIR_S, DIR_W, DIR_N, DIR_E}, // NE
-				{DIR_SW, DIR_NW, DIR_NE, DIR_SE, DIR_N, DIR_W, DIR_S, DIR_E}, // SE
-				{DIR_SW, DIR_NW, DIR_NE, DIR_SE, DIR_N, DIR_E, DIR_S, DIR_W}, // SW
-				{DIR_SW, DIR_NW, DIR_NE, DIR_SE, DIR_S, DIR_E, DIR_N, DIR_W}, // NW
-			}, { // Y odd
-				{DIR_SW, DIR_SE, DIR_NE, DIR_NW, DIR_N, DIR_E, DIR_S, DIR_W}, // NE
-				{DIR_SW, DIR_SE, DIR_NE, DIR_NW, DIR_S, DIR_E, DIR_N, DIR_W}, // SE
-				{DIR_SW, DIR_SE, DIR_NE, DIR_NW, DIR_S, DIR_W, DIR_N, DIR_E}, // SW
-				{DIR_SW, DIR_SE, DIR_NE, DIR_NW, DIR_N, DIR_W, DIR_S, DIR_E}, // NW
-			}
-		}
-	};
+	/* This is a clone of the previous function for the particular case
+	 * where all pylon position points are allowed. */
 
-	return ChoosePylonPosition (side, allowed, order[odd_x][odd_y][side], nb);
+	if (nb) {
+		/* We have a neighbour that will draw it, bail out. */
+		bool owned = (DiagDirToAxis(side) == AXIS_X) ? odd_y : odd_x;
+		if (!owned ^ HasBit(side, 1)) return -1;
+	}
+
+	return DiagDirToDir (ChangeDiagDir (side, DIAGDIRDIFF_90RIGHT));
 }
 
 /*
@@ -801,13 +830,13 @@ static void DrawRailCatenary (const TileInfo *ti, const RailtypeInfo *rti,
 	bool draw_pylons, bool draw_wires, TileContext context = TCX_NORMAL,
 	DiagDirection bridge = INVALID_DIAGDIR)
 {
-	bool odd[AXIS_END];
-	odd[AXIS_X] = IsOddX(ti->tile);
-	odd[AXIS_Y] = IsOddY(ti->tile);
+	byte odd = 0;
+	if (IsOddX(ti->tile)) SetBit(odd, AXIS_X);
+	if (IsOddY(ti->tile)) SetBit(odd, AXIS_Y);
 
 	byte pcp_status = 0;
 
-	SpriteID pylon_base = GetPylonBase (rti, ti->tile, context);
+	SpriteID pylon_base = draw_pylons ? GetPylonBase (rti, ti->tile, context) : 0;
 
 	for (DiagDirection side = DIAGDIR_BEGIN; side < DIAGDIR_END; side++) {
 		bool pcp_neighbour;
@@ -827,10 +856,10 @@ static void DrawRailCatenary (const TileInfo *ti, const RailtypeInfo *rti,
 			/* Pylon is drawn by the middle part if there is any. */
 			if (GetTunnelBridgeLength (ti->tile, GetOtherBridgeEnd (ti->tile)) > 0) continue;
 			pcp_neighbour = true;
-			ppp_allowed = AllowedPPPonPCP[side];
+			ppp_allowed = 0;
 		}
 
-		if (!draw_pylons) continue;
+		if (pylon_base == 0) continue;
 
 		if (HasBridgeAbove(ti->tile)) {
 			if (GetBridgeAxis (ti->tile) == DiagDirToAxis (side)) {
@@ -841,8 +870,10 @@ static void DrawRailCatenary (const TileInfo *ti, const RailtypeInfo *rti,
 			}
 		}
 
-		int pos = ChoosePylonPosition (side, ppp_allowed,
-			odd[AXIS_X], odd[AXIS_Y], pcp_neighbour);
+		int pos = (ppp_allowed != 0) ? ChoosePylonPosition (side,
+					ppp_allowed, odd, pcp_neighbour) :
+				ChoosePylonPosition (side, HasBit(odd, AXIS_X),
+					HasBit(odd, AXIS_Y), pcp_neighbour);
 		if (pos >= 0) {
 			DrawPylon (ti, side, (Direction)pos, pylon_base);
 		}
@@ -1027,9 +1058,10 @@ void DrawRailTunnelCatenary (const TileInfo *ti, DiagDirection dir)
 	byte dummy_preferred, dummy_allowed;
 	Slope dummy_slope;
 	bool pcp_neighbour = CheckNeighbourPCP (tile + TileOffsByDiagDir (rev),
-				dir, &dummy_preferred, &dummy_allowed, &dummy_slope);
+				dir, &dummy_preferred, &dummy_allowed, &dummy_slope)
+			!= PCP_NB_NONE;
 
-	int pos = ChoosePylonPosition (rev, AllowedPPPonPCP[rev],
+	int pos = ChoosePylonPosition (rev,
 			IsOddX(tile), IsOddY(tile), pcp_neighbour);
 
 	const RailtypeInfo *rti = GetRailTypeInfo (GetRailType (tile));

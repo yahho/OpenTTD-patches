@@ -802,32 +802,30 @@ public:
 		this->SetDirty();
 	}
 
-	virtual EventState OnKeyPress(WChar key, uint16 keycode)
+	bool OnKeyPress (WChar key, uint16 keycode) OVERRIDE
 	{
-		EventState state = ES_NOT_HANDLED;
-
 		/* handle up, down, pageup, pagedown, home and end */
 		if (keycode == WKC_UP || keycode == WKC_DOWN || keycode == WKC_PAGEUP || keycode == WKC_PAGEDOWN || keycode == WKC_HOME || keycode == WKC_END) {
-			if (this->servers.Length() == 0) return ES_HANDLED;
+			if (this->servers.Length() == 0) return true;
 			switch (keycode) {
 				case WKC_UP:
 					/* scroll up by one */
-					if (this->list_pos == SLP_INVALID) return ES_HANDLED;
+					if (this->list_pos == SLP_INVALID) return true;
 					if (this->list_pos > 0) this->list_pos--;
 					break;
 				case WKC_DOWN:
 					/* scroll down by one */
-					if (this->list_pos == SLP_INVALID) return ES_HANDLED;
+					if (this->list_pos == SLP_INVALID) return true;
 					if (this->list_pos < this->servers.Length() - 1) this->list_pos++;
 					break;
 				case WKC_PAGEUP:
 					/* scroll up a page */
-					if (this->list_pos == SLP_INVALID) return ES_HANDLED;
+					if (this->list_pos == SLP_INVALID) return true;
 					this->list_pos = (this->list_pos < this->vscroll->GetCapacity()) ? 0 : this->list_pos - this->vscroll->GetCapacity();
 					break;
 				case WKC_PAGEDOWN:
 					/* scroll down a page */
-					if (this->list_pos == SLP_INVALID) return ES_HANDLED;
+					if (this->list_pos == SLP_INVALID) return true;
 					this->list_pos = min(this->list_pos + this->vscroll->GetCapacity(), (int)this->servers.Length() - 1);
 					break;
 				case WKC_HOME:
@@ -848,7 +846,7 @@ public:
 
 			/* redraw window */
 			this->SetDirty();
-			return ES_HANDLED;
+			return true;
 		}
 
 		if (this->server != NULL) {
@@ -860,7 +858,7 @@ public:
 			}
 		}
 
-		return state;
+		return false;
 	}
 
 	virtual void OnEditboxChanged(int wid)

@@ -173,24 +173,6 @@ struct TimetableWindow : Window {
 		this->owner = this->vehicle->owner;
 	}
 
-	/**
-	 * Build the arrival-departure list for a given vehicle
-	 * @param v the vehicle to make the list for
-	 * @param table the table to fill
-	 * @return if next arrival will be early
-	 */
-	static bool BuildArrivalDepartureList(const Vehicle *v, TimetableArrivalDeparture *table)
-	{
-		assert(HasBit(v->vehicle_flags, VF_TIMETABLE_STARTED));
-
-		bool travelling = (!v->current_order.IsType(OT_LOADING) || v->current_order.GetNonStopType() == ONSF_STOP_EVERYWHERE);
-		Ticks start_time = _date_fract - v->current_order_time;
-
-		FillTimetableArrivalDepartureTable(v, v->cur_real_order_index % v->GetNumOrders(), travelling, table, start_time);
-
-		return (travelling && v->lateness_counter < 0);
-	}
-
 	virtual void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize)
 	{
 		switch (widget) {
@@ -432,12 +414,18 @@ struct TimetableWindow : Window {
 				TimetableArrivalDeparture *arr_dep = AllocaM(TimetableArrivalDeparture, v->GetNumOrders());
 				const VehicleOrderID cur_order = v->cur_real_order_index % v->GetNumOrders();
 
-				VehicleOrderID earlyID = BuildArrivalDepartureList(v, arr_dep) ? cur_order : (VehicleOrderID)INVALID_VEH_ORDER_ID;
+				bool travelling = !v->current_order.IsType(OT_LOADING)
+						|| (v->current_order.GetNonStopType() == ONSF_STOP_EVERYWHERE);
+				Ticks start_time = _date_fract - v->current_order_time;
+
+				FillTimetableArrivalDepartureTable (v, cur_order, travelling, arr_dep, start_time);
+
+				Ticks lateness = v->lateness_counter;
+				int early_pos = (this->show_expected && travelling && lateness < 0) ?
+							2 * cur_order : -1;
+				bool show_late = this->show_expected && lateness > DAY_TICKS;
 
 				int y = r.top + WD_FRAMERECT_TOP;
-
-				bool show_late = this->show_expected && v->lateness_counter > DAY_TICKS;
-				Ticks offset = show_late ? 0 : -v->lateness_counter;
 
 				bool rtl = _current_text_dir == TD_RTL;
 				int abbr_left  = rtl ? r.right - WD_FRAMERECT_RIGHT - this->deparr_abbr_width : r.left + WD_FRAMERECT_LEFT;
@@ -449,25 +437,23 @@ struct TimetableWindow : Window {
 					/* Don't draw anything if it extends past the end of the window. */
 					if (!this->vscroll->IsVisible(i)) break;
 
-					if (i % 2 == 0) {
-						if (arr_dep[i / 2].arrival != INVALID_TICKS) {
-							DrawString (dpi, abbr_left, abbr_right, y, STR_TIMETABLE_ARRIVAL_ABBREVIATION, i == selected ? TC_WHITE : TC_BLACK);
-							if (this->show_expected && i / 2 == earlyID) {
-								SetDParam(0, _date + arr_dep[i / 2].arrival / DAY_TICKS);
-								DrawString (dpi, time_left, time_right, y, STR_JUST_DATE_TINY, TC_GREEN);
-							} else {
-								SetDParam(0, _date + (arr_dep[i / 2].arrival + offset) / DAY_TICKS);
-								DrawString (dpi, time_left, time_right, y, STR_JUST_DATE_TINY,
-										show_late ? TC_RED : i == selected ? TC_WHITE : TC_BLACK);
-							}
+					assert_compile (STR_TIMETABLE_DEPARTURE_ABBREVIATION == STR_TIMETABLE_ARRIVAL_ABBREVIATION + 1);
+
+					Ticks date = (i % 2 == 0) ? arr_dep[i / 2].arrival : arr_dep[i / 2].departure;
+					if (date != INVALID_TICKS) {
+						TextColour colour = (i == selected) ? TC_WHITE : TC_BLACK;
+						DrawString (dpi, abbr_left, abbr_right, y,
+								STR_TIMETABLE_ARRIVAL_ABBREVIATION + (i % 2),
+								colour);
+						if (i == early_pos) {
+							colour = TC_GREEN;
+						} else if (show_late) {
+							colour = TC_RED;
+						} else {
+							date -= lateness;
 						}
-					} else {
-						if (arr_dep[i / 2].departure != INVALID_TICKS) {
-							DrawString (dpi, abbr_left, abbr_right, y, STR_TIMETABLE_DEPARTURE_ABBREVIATION, i == selected ? TC_WHITE : TC_BLACK);
-							SetDParam(0, _date + (arr_dep[i/2].departure + offset) / DAY_TICKS);
-							DrawString (dpi, time_left, time_right, y, STR_JUST_DATE_TINY,
-									show_late ? TC_RED : i == selected ? TC_WHITE : TC_BLACK);
-						}
+						SetDParam (0, _date + date / DAY_TICKS);
+						DrawString (dpi, time_left, time_right, y, STR_JUST_DATE_TINY, colour);
 					}
 					y += FONT_HEIGHT_NORMAL;
 				}
@@ -484,22 +470,24 @@ struct TimetableWindow : Window {
 				}
 				y += FONT_HEIGHT_NORMAL;
 
+				StringID str;
 				if (v->timetable_start != 0) {
 					/* We are running towards the first station so we can start the
 					 * timetable at the given time. */
 					SetDParam(0, STR_JUST_DATE_TINY);
 					SetDParam(1, v->timetable_start);
-					DrawString (dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_TIMETABLE_STATUS_START_AT);
+					str = STR_TIMETABLE_STATUS_START_AT;
 				} else if (!HasBit(v->vehicle_flags, VF_TIMETABLE_STARTED)) {
 					/* We aren't running on a timetable yet, so how can we be "on time"
 					 * when we aren't even "on service"/"on duty"? */
-					DrawString (dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_TIMETABLE_STATUS_NOT_STARTED);
+					str = STR_TIMETABLE_STATUS_NOT_STARTED;
 				} else if (v->lateness_counter == 0 || (!_settings_client.gui.timetable_in_ticks && v->lateness_counter / DAY_TICKS == 0)) {
-					DrawString (dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_TIMETABLE_STATUS_ON_TIME);
+					str = STR_TIMETABLE_STATUS_ON_TIME;
 				} else {
 					SetTimetableParams(0, 1, abs(v->lateness_counter));
-					DrawString (dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, v->lateness_counter < 0 ? STR_TIMETABLE_STATUS_EARLY : STR_TIMETABLE_STATUS_LATE);
+					str = v->lateness_counter < 0 ? STR_TIMETABLE_STATUS_EARLY : STR_TIMETABLE_STATUS_LATE;
 				}
+				DrawString (dpi, r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, str);
 				break;
 			}
 		}

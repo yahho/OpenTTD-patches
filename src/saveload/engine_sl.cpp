@@ -136,16 +136,20 @@ void CopyTempEngineData()
 
 static void Load_ENGS(LoadBuffer *reader)
 {
+	/* Handle buggy openttd savegame version 0,
+	 * where arrays were not byte-swapped. */
+	bool buggy = (reader->stv->type == SGT_OTTD)
+			&& (reader->stv->ottd.version == 0);
+
 	/* Load old separate String ID list into a temporary array. This
 	 * was always 256 entries. */
-	StringID names[256];
-
-	reader->ReadArray(names, lengthof(names), SLE_STRINGID);
-
-	/* Copy each string into the temporary engine array. */
-	for (EngineID engine = 0; engine < lengthof(names); engine++) {
+	for (EngineID engine = 0; engine < 256; engine++) {
+		uint16 name = reader->ReadUint16();
+		if (buggy) name = BSWAP16(name);
+		/* Copy each string into the temporary engine array. */
 		EngineState *e = GetTempDataEngine (engine);
-		e->name = CopyFromOldName(reader->stv, names[engine]);
+		e->name = CopyFromOldName (reader->stv,
+						RemapOldStringID (name));
 	}
 }
 

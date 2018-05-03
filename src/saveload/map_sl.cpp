@@ -877,6 +877,7 @@ void AfterLoadMap(const SavegameTypeVersion *stv)
 						SB(_mc[t].m3, 6, 2, GB(_mc[t].m5, 0, 2));
 						SB(_mc[t].m5, 6, 2, GB(_mc[t].m5, 2, 2));
 						SB(_mc[t].m5, 0, 4, tram);
+						_mc[t].m7 = 0;
 					}
 					break;
 
@@ -1058,18 +1059,6 @@ static void Load_MAPH(LoadBuffer *reader)
 	}
 }
 
-static void Save_MAPH(SaveDumper *dumper)
-{
-	SmallStackSafeStackAlloc<byte, MAP_SL_BUF_SIZE> buf;
-	TileIndex size = MapSize();
-
-	dumper->WriteRIFFSize(size);
-	for (TileIndex i = 0; i != size;) {
-		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) buf[j] = _mth[i++].height;
-		dumper->CopyBytes (buf, MAP_SL_BUF_SIZE);
-	}
-}
-
 static void Load_MAPT(LoadBuffer *reader)
 {
 	SmallStackSafeStackAlloc<byte, MAP_SL_BUF_SIZE> buf;
@@ -1089,142 +1078,92 @@ static void Load_MAPT(LoadBuffer *reader)
 	}
 }
 
-static void Save_MAPT(SaveDumper *dumper)
+static void Save_MAPx (SaveDumper *dumper, byte TileZH::*m)
 {
 	SmallStackSafeStackAlloc<byte, MAP_SL_BUF_SIZE> buf;
 	TileIndex size = MapSize();
 
 	dumper->WriteRIFFSize(size);
 	for (TileIndex i = 0; i != size;) {
-		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) buf[j] = _mth[i++].zb;
+		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) {
+			buf[j] = _mth[i++].*m;
+		}
 		dumper->CopyBytes (buf, MAP_SL_BUF_SIZE);
 	}
 }
 
-static void Load_MAP1(LoadBuffer *reader)
+template <byte TileZH::*M>
+static void Save_MAPx (SaveDumper *dumper)
+{
+	Save_MAPx (dumper, M);
+}
+
+static void Load_MAPn (LoadBuffer *reader, byte Tile::*m)
 {
 	SmallStackSafeStackAlloc<byte, MAP_SL_BUF_SIZE> buf;
 	TileIndex size = MapSize();
 
 	for (TileIndex i = 0; i != size;) {
 		reader->CopyBytes (buf, MAP_SL_BUF_SIZE);
-		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) _mc[i++].m1 = buf[j];
+		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) {
+			_mc[i++].*m = buf[j];
+		}
 	}
 }
 
-static void Save_MAP1(SaveDumper *dumper)
+template <byte Tile::*M>
+static void Load_MAPn (LoadBuffer *reader)
+{
+	Load_MAPn (reader, M);
+}
+
+static void Save_MAPn (SaveDumper *dumper, byte Tile::*m)
 {
 	SmallStackSafeStackAlloc<byte, MAP_SL_BUF_SIZE> buf;
 	TileIndex size = MapSize();
 
 	dumper->WriteRIFFSize(size);
 	for (TileIndex i = 0; i != size;) {
-		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) buf[j] = _mc[i++].m1;
+		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) {
+			buf[j] = _mc[i++].*m;
+		}
 		dumper->CopyBytes (buf, MAP_SL_BUF_SIZE);
 	}
 }
 
+template <byte Tile::*M>
+static void Save_MAPn (SaveDumper *dumper)
+{
+	Save_MAPn (dumper, M);
+}
+
 static void Load_MAP2(LoadBuffer *reader)
 {
-	SmallStackSafeStackAlloc<uint16, MAP_SL_BUF_SIZE> buf;
 	TileIndex size = MapSize();
 
 	for (TileIndex i = 0; i != size;) {
-		reader->ReadArray(buf, MAP_SL_BUF_SIZE,
-			/* In those versions the m2 was 8 bits */
-			reader->IsOTTDVersionBefore(5) ? SLE_FILE_U8 | SLE_VAR_U16 : SLE_UINT16
-		);
-		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) _mc[i++].m2 = buf[j];
+		/* In those versions the m2 was 8 bits */
+		_mc[i++].m2 = reader->IsOTTDVersionBefore (5) ?
+				reader->ReadByte() : reader->ReadUint16();
 	}
 }
 
 static void Save_MAP2(SaveDumper *dumper)
 {
-	SmallStackSafeStackAlloc<uint16, MAP_SL_BUF_SIZE> buf;
 	TileIndex size = MapSize();
 
 	dumper->WriteRIFFSize(size * sizeof(uint16));
 	for (TileIndex i = 0; i != size;) {
-		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) buf[j] = _mc[i++].m2;
-		dumper->WriteArray(buf, MAP_SL_BUF_SIZE, SLE_UINT16);
-	}
-}
-
-static void Load_MAP3(LoadBuffer *reader)
-{
-	SmallStackSafeStackAlloc<byte, MAP_SL_BUF_SIZE> buf;
-	TileIndex size = MapSize();
-
-	for (TileIndex i = 0; i != size;) {
-		reader->CopyBytes (buf, MAP_SL_BUF_SIZE);
-		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) _mc[i++].m3 = buf[j];
-	}
-}
-
-static void Save_MAP3(SaveDumper *dumper)
-{
-	SmallStackSafeStackAlloc<byte, MAP_SL_BUF_SIZE> buf;
-	TileIndex size = MapSize();
-
-	dumper->WriteRIFFSize(size);
-	for (TileIndex i = 0; i != size;) {
-		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) buf[j] = _mc[i++].m3;
-		dumper->CopyBytes (buf, MAP_SL_BUF_SIZE);
-	}
-}
-
-static void Load_MAP4(LoadBuffer *reader)
-{
-	SmallStackSafeStackAlloc<byte, MAP_SL_BUF_SIZE> buf;
-	TileIndex size = MapSize();
-
-	for (TileIndex i = 0; i != size;) {
-		reader->CopyBytes (buf, MAP_SL_BUF_SIZE);
-		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) _mc[i++].m4 = buf[j];
-	}
-}
-
-static void Save_MAP4(SaveDumper *dumper)
-{
-	SmallStackSafeStackAlloc<byte, MAP_SL_BUF_SIZE> buf;
-	TileIndex size = MapSize();
-
-	dumper->WriteRIFFSize(size);
-	for (TileIndex i = 0; i != size;) {
-		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) buf[j] = _mc[i++].m4;
-		dumper->CopyBytes (buf, MAP_SL_BUF_SIZE);
-	}
-}
-
-static void Load_MAP5(LoadBuffer *reader)
-{
-	SmallStackSafeStackAlloc<byte, MAP_SL_BUF_SIZE> buf;
-	TileIndex size = MapSize();
-
-	for (TileIndex i = 0; i != size;) {
-		reader->CopyBytes (buf, MAP_SL_BUF_SIZE);
-		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) _mc[i++].m5 = buf[j];
-	}
-}
-
-static void Save_MAP5(SaveDumper *dumper)
-{
-	SmallStackSafeStackAlloc<byte, MAP_SL_BUF_SIZE> buf;
-	TileIndex size = MapSize();
-
-	dumper->WriteRIFFSize(size);
-	for (TileIndex i = 0; i != size;) {
-		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) buf[j] = _mc[i++].m5;
-		dumper->CopyBytes (buf, MAP_SL_BUF_SIZE);
+		dumper->WriteUint16 (_mc[i++].m2);
 	}
 }
 
 static void Load_MAP0(LoadBuffer *reader)
 {
-	SmallStackSafeStackAlloc<byte, MAP_SL_BUF_SIZE> buf;
-	TileIndex size = MapSize();
-
 	if (reader->IsOTTDVersionBefore(42)) {
+		SmallStackSafeStackAlloc <byte, MAP_SL_BUF_SIZE> buf;
+		TileIndex size = MapSize();
+
 		for (TileIndex i = 0; i != size;) {
 			/* 1024, otherwise we overflow on 64x64 maps! */
 			reader->CopyBytes (buf, 1024);
@@ -1236,57 +1175,19 @@ static void Load_MAP0(LoadBuffer *reader)
 			}
 		}
 	} else {
-		for (TileIndex i = 0; i != size;) {
-			reader->CopyBytes (buf, MAP_SL_BUF_SIZE);
-			for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) _mc[i++].m0 = buf[j];
-		}
-	}
-}
-
-static void Save_MAP0(SaveDumper *dumper)
-{
-	SmallStackSafeStackAlloc<byte, MAP_SL_BUF_SIZE> buf;
-	TileIndex size = MapSize();
-
-	dumper->WriteRIFFSize(size);
-	for (TileIndex i = 0; i != size;) {
-		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) buf[j] = _mc[i++].m0;
-		dumper->CopyBytes (buf, MAP_SL_BUF_SIZE);
-	}
-}
-
-static void Load_MAP7(LoadBuffer *reader)
-{
-	SmallStackSafeStackAlloc<byte, MAP_SL_BUF_SIZE> buf;
-	TileIndex size = MapSize();
-
-	for (TileIndex i = 0; i != size;) {
-		reader->CopyBytes (buf, MAP_SL_BUF_SIZE);
-		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) _mc[i++].m7 = buf[j];
-	}
-}
-
-static void Save_MAP7(SaveDumper *dumper)
-{
-	SmallStackSafeStackAlloc<byte, MAP_SL_BUF_SIZE> buf;
-	TileIndex size = MapSize();
-
-	dumper->WriteRIFFSize(size);
-	for (TileIndex i = 0; i != size;) {
-		for (uint j = 0; j != MAP_SL_BUF_SIZE; j++) buf[j] = _mc[i++].m7;
-		dumper->CopyBytes (buf, MAP_SL_BUF_SIZE);
+		Load_MAPn (reader, &Tile::m0);
 	}
 }
 
 extern const ChunkHandler _map_chunk_handlers[] = {
-	{ 'MAPS', Save_MAPS, Load_MAPS, NULL, Check_MAPS, CH_RIFF },
-	{ 'MAPH', Save_MAPH, Load_MAPH, NULL, NULL,       CH_RIFF },
-	{ 'MAPT', Save_MAPT, Load_MAPT, NULL, NULL,       CH_RIFF },
-	{ 'MAPO', Save_MAP1, Load_MAP1, NULL, NULL,       CH_RIFF },
-	{ 'MAP2', Save_MAP2, Load_MAP2, NULL, NULL,       CH_RIFF },
-	{ 'M3LO', Save_MAP3, Load_MAP3, NULL, NULL,       CH_RIFF },
-	{ 'M3HI', Save_MAP4, Load_MAP4, NULL, NULL,       CH_RIFF },
-	{ 'MAP5', Save_MAP5, Load_MAP5, NULL, NULL,       CH_RIFF },
-	{ 'MAPE', Save_MAP0, Load_MAP0, NULL, NULL,       CH_RIFF },
-	{ 'MAP7', Save_MAP7, Load_MAP7, NULL, NULL,       CH_RIFF | CH_LAST },
+	{ 'MAPS', Save_MAPS,            Load_MAPS,            NULL, Check_MAPS, CH_RIFF },
+	{ 'MAPH', Save_MAPx<&TileZH::height>, Load_MAPH,      NULL, NULL,       CH_RIFF },
+	{ 'MAPT', Save_MAPx<&TileZH::zb>,     Load_MAPT,      NULL, NULL,       CH_RIFF },
+	{ 'MAPO', Save_MAPn<&Tile::m1>, Load_MAPn<&Tile::m1>, NULL, NULL,       CH_RIFF },
+	{ 'MAP2', Save_MAP2,            Load_MAP2,            NULL, NULL,       CH_RIFF },
+	{ 'M3LO', Save_MAPn<&Tile::m3>, Load_MAPn<&Tile::m3>, NULL, NULL,       CH_RIFF },
+	{ 'M3HI', Save_MAPn<&Tile::m4>, Load_MAPn<&Tile::m4>, NULL, NULL,       CH_RIFF },
+	{ 'MAP5', Save_MAPn<&Tile::m5>, Load_MAPn<&Tile::m5>, NULL, NULL,       CH_RIFF },
+	{ 'MAPE', Save_MAPn<&Tile::m0>, Load_MAP0,            NULL, NULL,       CH_RIFF },
+	{ 'MAP7', Save_MAPn<&Tile::m7>, Load_MAPn<&Tile::m7>, NULL, NULL,       CH_RIFF | CH_LAST },
 };

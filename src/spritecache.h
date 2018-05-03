@@ -21,7 +21,7 @@ extern uint _sprite_cache_size;
 void *GetRawSprite (SpriteID sprite, SpriteType type, bool cache = true);
 bool SpriteExists(SpriteID sprite);
 
-SpriteType GetSpriteType(SpriteID sprite);
+bool IsNormalSprite (SpriteID sprite);
 uint GetOriginFileSlot(SpriteID sprite);
 uint GetSpriteCountForSlot(uint file_slot, SpriteID begin, SpriteID end);
 uint GetMaxSpriteID();
@@ -29,8 +29,7 @@ uint GetMaxSpriteID();
 
 static inline const Sprite *GetSprite(SpriteID sprite, SpriteType type)
 {
-	assert(type != ST_MAPGEN);
-	assert(type != ST_RECOLOUR);
+	assert (type == ST_NORMAL || type == ST_FONT);
 	return (Sprite*)GetRawSprite(sprite, type);
 }
 
@@ -51,7 +50,7 @@ void GfxInitSpriteMem();
 void GfxClearSpriteCache();
 void IncreaseSpriteLRU();
 
-void ReadGRFSpriteOffsets(byte container_version);
+void ReadGRFSpriteOffsets (const struct GRFHeader *header);
 size_t GetGRFSpriteOffset(uint32 id);
 bool LoadNextSprite(int load_index, byte file_index, uint file_sprite_id, byte container_version);
 bool SkipSpriteData(byte type, uint16 num);

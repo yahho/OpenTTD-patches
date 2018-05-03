@@ -719,16 +719,6 @@ namespace SQConvert {
 		}
 	}
 
-	/** This defines a method inside a class for Squirrel. */
-	template <typename Tmethod>
-	inline void DefSQMethod (Squirrel *engine, const char *class_name,
-		Tmethod function_proc, const char *function_name)
-	{
-		MethodCallbackData <Tmethod> data = { class_name, function_proc };
-		assert_tcompile ((const char**)(SQUserPointer)&data == &data.cname);
-		engine->AddMethod (function_name, DefSQNonStaticCallback<Tmethod>, 0, NULL, &data, sizeof(data));
-	}
-
 	/**
 	 * This defines a method inside a class for Squirrel with defined params.
 	 * @note If you define nparam, make sure that he first param is always 'x',
@@ -741,7 +731,7 @@ namespace SQConvert {
 		int nparam, const char *params)
 	{
 		MethodCallbackData <Tmethod> data = { class_name, function_proc };
-		assert_tcompile ((const char**)(SQUserPointer)&data == &data.cname);
+		assert ((const char**)(SQUserPointer)&data == &data.cname);
 		engine->AddMethod (function_name, DefSQNonStaticCallback<Tmethod>, nparam, params, &data, sizeof(data));
 	}
 
@@ -775,7 +765,7 @@ namespace SQConvert {
 	{
 		typedef SQInteger (Tcls::*F) (HSQUIRRELVM);
 		MethodCallbackData <F> data = { class_name, function_proc };
-		assert_tcompile ((const char**)(SQUserPointer)&data == &data.cname);
+		assert ((const char**)(SQUserPointer)&data == &data.cname);
 		engine->AddMethod (function_name, DefSQAdvancedNonStaticCallback <Tcls>, 0, NULL, &data, sizeof(data));
 	}
 
@@ -804,13 +794,6 @@ namespace SQConvert {
 		} catch (SQInteger e) {
 			return e;
 		}
-	}
-
-	/** This defines a static method inside a class for Squirrel. */
-	template <typename Func>
-	inline void DefSQStaticMethod (Squirrel *engine, Func function_proc, const char *function_name)
-	{
-		engine->AddMethod (function_name, DefSQStaticCallback<Func>, 0, NULL, &function_proc, sizeof(function_proc));
 	}
 
 	/**

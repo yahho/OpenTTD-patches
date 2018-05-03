@@ -2662,10 +2662,10 @@ STR_ABOUT_VERSION                                               :{BLACK}OpenTTD 
 STR_ABOUT_COPYRIGHT_OPENTTD                                     :{BLACK}ลิขสิทธิ์ OpenTTD {COPYRIGHT}2002-2017 ของ The OpenTTD team
 
 # Save/load game/scenario
-STR_SAVELOAD_SAVE_CAPTION                                       :{WHITE}บันทึกเกม
 STR_SAVELOAD_LOAD_CAPTION                                       :{WHITE}โหลดเกม
-STR_SAVELOAD_SAVE_SCENARIO                                      :{WHITE}บันทึกแผนที่
+STR_SAVELOAD_SAVE_CAPTION                                       :{WHITE}บันทึกเกม
 STR_SAVELOAD_LOAD_SCENARIO                                      :{WHITE}โหลดแผนที่
+STR_SAVELOAD_SAVE_SCENARIO                                      :{WHITE}บันทึกแผนที่
 STR_SAVELOAD_LOAD_HEIGHTMAP                                     :{WHITE}โหลดแผนที่ระดับสูง
 STR_SAVELOAD_SAVE_HEIGHTMAP                                     :{WHITE}บันทึกแผนที่จำลองเสมือนจริง
 STR_SAVELOAD_HOME_BUTTON                                        :{BLACK}กดที่นี่เพื่อเข้าสู่ตำแหน่งบันทึกเกม/โหลดเกมที่ใช้อยู่

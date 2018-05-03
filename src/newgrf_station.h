@@ -37,7 +37,6 @@ struct StationScopeResolver : public ScopeResolver {
 
 	/* virtual */ uint32 GetRandomBits() const;
 	/* virtual */ uint32 GetTriggers() const;
-	/* virtual */ void SetTriggers(int triggers) const;
 
 	/* virtual */ uint32 GetVariable(byte variable, uint32 parameter, bool *available) const;
 };
@@ -120,13 +119,13 @@ typedef byte *StationLayout;
 
 /** Station specification. */
 struct StationSpec {
+	GRFFilePropsBase grf_prop; ///< Properties related the the grf file.
 	/**
-	 * Properties related the the grf file.
 	 * NUM_CARGO real cargo plus three pseudo cargo sprite groups.
 	 * Used for obtaining the sprite offset of custom sprites, and for
 	 * evaluating callbacks.
 	 */
-	GRFFilePropsBase<NUM_CARGO + 3> grf_prop;
+	const SpriteGroup *spritegroup[NUM_CARGO + 3];
 	StationClassID cls_id;     ///< The class to which this spec belongs.
 	StringID name;             ///< Name of this station.
 
@@ -169,10 +168,19 @@ struct StationSpec {
 
 	AnimationInfo animation;
 
-	byte lengths;
-	byte *platforms;
-	StationLayout **layouts;
-	bool copied_layouts;
+	ttd_shared_ptr <const byte *const *const> layouts; ///< Custom layouts, if any.
+	const byte *max_layout_length; ///< Maximum platform length per width.
+	byte max_layout_width; ///< Maximum number of tracks in any layout.
+
+	StationSpec (void) : grf_prop(), cls_id (STAT_CLASS_DFLT), name (0),
+		disallowed_platforms (0), disallowed_lengths (0),
+		cargo_threshold (0), cargo_triggers (0), callback_mask (0),
+		flags (0), pylons (0), wires (0), blocked (0),
+		layouts(), max_layout_length (NULL), max_layout_width (0)
+	{
+		memset (this->spritegroup, 0, sizeof(this->spritegroup));
+		memset (&this->animation, 0, sizeof(this->animation));
+	}
 };
 
 /** Struct containing information relating to station classes. */

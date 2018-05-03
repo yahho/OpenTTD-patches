@@ -3204,17 +3204,17 @@ void VpStopPlaceSizing (void)
 
 /**
  * Handle the mouse while dragging for placement/resizing.
- * @return State of handling the event.
+ * @return Whether the event was handled.
  */
-EventState VpHandlePlaceSizingDrag()
+bool VpHandlePlaceSizingDrag (void)
 {
-	if (_thd.select_method == VPM_NONE) return ES_NOT_HANDLED;
+	if (_thd.select_method == VPM_NONE) return false;
 
 	/* stop drag mode if the window has been closed */
 	Window *w = _thd.GetCallbackWnd();
 	if (w == NULL) {
 		ResetPointerMode();
-		return ES_HANDLED;
+		return true;
 	}
 
 	/* while dragging execute the drag procedure of the corresponding window */
@@ -3223,16 +3223,20 @@ EventState VpHandlePlaceSizingDrag()
 		if (w->OnPlaceDrag (_thd.select_data, pt)) {
 			VpSelectTilesWithMethod (pt.x, pt.y, _thd.select_method);
 		}
-		return ES_HANDLED;
+		return true;
 	}
 
 	/* mouse button released..
 	 * keep the selected tool, but reset it to the original mode. */
 	VpStopPlaceSizing();
 
-	w->OnPlaceMouseUp (_thd.select_data, _thd.selend, TileVirtXY(_thd.selstart.x, _thd.selstart.y), TileVirtXY(_thd.selend.x, _thd.selend.y));
+	if (_thd.selend.x != -1) {
+		w->OnPlaceMouseUp (_thd.select_data,
+				TileVirtXY (_thd.selstart.x, _thd.selstart.y),
+				TileVirtXY (_thd.selend.x, _thd.selend.y));
+	}
 
-	return ES_HANDLED;
+	return true;
 }
 
 #include "table/animcursors.h"

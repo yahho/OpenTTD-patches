@@ -479,7 +479,7 @@ STR_ABOUT_MENU_GIANT_SCREENSHOT                                 :스크린샷 �
 STR_ABOUT_MENU_ABOUT_OPENTTD                                    :'OpenTTD'에 대해서
 STR_ABOUT_MENU_SPRITE_ALIGNER                                   :스프라이트 정렬도구
 STR_ABOUT_MENU_TOGGLE_BOUNDING_BOXES                            :박스 경계선 보기 전환
-STR_ABOUT_MENU_TOGGLE_DIRTY_BLOCKS                              :더러운 블록 색상 전환
+STR_ABOUT_MENU_TOGGLE_DIRTY_BLOCKS                              :시각적 업데이트 블록 표시 전환
 ############ range ends here
 
 ############ range for ordinal numbers used for the place in the highscore window
@@ -2719,10 +2719,10 @@ STR_ABOUT_VERSION                                               :{BLACK}OpenTTD 
 STR_ABOUT_COPYRIGHT_OPENTTD                                     :{BLACK}OpenTTD {COPYRIGHT} 2002-2017 OpenTTD 개발팀
 
 # Save/load game/scenario
-STR_SAVELOAD_SAVE_CAPTION                                       :{WHITE}게임 저장
 STR_SAVELOAD_LOAD_CAPTION                                       :{WHITE}게임 불러오기
-STR_SAVELOAD_SAVE_SCENARIO                                      :{WHITE}시나리오 저장하기
+STR_SAVELOAD_SAVE_CAPTION                                       :{WHITE}게임 저장
 STR_SAVELOAD_LOAD_SCENARIO                                      :{WHITE}시나리오 불러오기
+STR_SAVELOAD_SAVE_SCENARIO                                      :{WHITE}시나리오 저장하기
 STR_SAVELOAD_LOAD_HEIGHTMAP                                     :{WHITE}높이맵 불러오기
 STR_SAVELOAD_SAVE_HEIGHTMAP                                     :{WHITE}높이맵 저장
 STR_SAVELOAD_HOME_BUTTON                                        :{BLACK}기본 저장/불러오기 폴더로 이동하려면 여기를 클릭하세요

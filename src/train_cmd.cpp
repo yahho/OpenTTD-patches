@@ -247,25 +247,49 @@ void Train::ConsistChanged(ConsistChangeFlags allowed_changes)
 }
 
 /**
- * Get the stop location of (the center) of the front vehicle of a train at
- * a platform of a station.
+ * Get the remaining distance to the stopping location at a station.
  * @param station_id     the ID of the station where we're stopping
  * @param tile           the tile where the vehicle currently is
  * @param v              the vehicle to get the stop location of
- * @param station_ahead  'return' the amount of 1/16th tiles in front of the train
- * @param station_length 'return' the station length in 1/16th tiles
- * @return the location, calculated from the begin of the station to stop at.
+ * @param x              x position of the vehicle
+ * @param y              y position of the vehicle
+ * @return The remaining distance to the stopping location.
  */
-int GetTrainStopLocation(StationID station_id, TileIndex tile, const Train *v, int *station_ahead, int *station_length)
+static int GetDistanceToStopLocation (StationID station_id, TileIndex tile,
+	const Train *v, int x, int y)
 {
 	const Station *st = Station::Get(station_id);
-	*station_ahead  = st->GetPlatformLength(tile, DirToDiagDir(v->direction)) * TILE_SIZE;
-	*station_length = st->GetPlatformLength(tile) * TILE_SIZE;
+	assert (st->TileBelongsToRailStation (tile));
+
+	/* Compute our distance to the end of the platform. */
+
+	/* First compute our distance to the end of the current tile. */
+	DiagDirection dir = DirToDiagDir (v->direction);
+	x &= 0xF;
+	y &= 0xF;
+	if (DiagDirToAxis(dir) != AXIS_X) Swap (x, y);
+	assert (y == TILE_SIZE / 2);
+	if (dir == DIAGDIR_SE || dir == DIAGDIR_SW) {
+		x = TILE_SIZE - x;
+	} else {
+		x++;
+	}
+
+	/* Now add the number of whole tiles ahead of us. */
+	uint ahead = Station::GetPlatformLength (tile, dir) - 1;
+	x += ahead * TILE_SIZE;
+
+	/* Subtract half the front vehicle length. */
+	x -= (v->gcache.cached_veh_length + 1) / 2;
+
+	/* Now subtract how far from the end we should stop. */
+	uint behind = Station::GetPlatformLength (tile, ReverseDiagDir (dir));
+	int station_length = (ahead + behind) * TILE_SIZE;
 
 	/* Default to the middle of the station for stations stops that are not in
 	 * the order list like intermediate stations when non-stop is disabled */
 	OrderStopLocation osl = OSL_PLATFORM_MIDDLE;
-	if (v->gcache.cached_total_length >= *station_length) {
+	if (v->gcache.cached_total_length >= station_length) {
 		/* The train is longer than the station, make it stop at the far end of the platform */
 		osl = OSL_PLATFORM_FAR_END;
 	} else if (v->current_order.IsType(OT_GOTO_STATION) && v->current_order.GetDestination() == station_id) {
@@ -273,26 +297,23 @@ int GetTrainStopLocation(StationID station_id, TileIndex tile, const Train *v, i
 	}
 
 	/* The stop location of the FRONT! of the train */
-	int stop;
 	switch (osl) {
 		default: NOT_REACHED();
 
 		case OSL_PLATFORM_NEAR_END:
-			stop = v->gcache.cached_total_length;
+			x -= station_length - v->gcache.cached_total_length;
 			break;
 
 		case OSL_PLATFORM_MIDDLE:
-			stop = *station_length - (*station_length - v->gcache.cached_total_length) / 2;
+			x -= (station_length - v->gcache.cached_total_length) / 2;
 			break;
 
 		case OSL_PLATFORM_FAR_END:
-			stop = *station_length;
+			/* nothing to do */
 			break;
 	}
 
-	/* Subtract half the front vehicle length of the train so we get the real
-	 * stop location of the train. */
-	return stop - (v->gcache.cached_veh_length + 1) / 2;
+	return x;
 }
 
 
@@ -452,25 +473,21 @@ int Train::GetCurrentMaxSpeed() const
 	if (_settings_game.vehicle.train_acceleration_model == AM_REALISTIC && IsRailStationTile(this->tile)) {
 		StationID sid = GetStationIndex(this->tile);
 		if (this->current_order.ShouldStopAtStation(this, sid)) {
-			int station_ahead;
-			int station_length;
-			int stop_at = GetTrainStopLocation(sid, this->tile, this, &station_ahead, &station_length);
-
 			/* The distance to go is whatever is still ahead of the train minus the
 			 * distance from the train's stop location to the end of the platform */
-			int distance_to_go = station_ahead / TILE_SIZE - (station_length - stop_at) / TILE_SIZE;
+			int distance_to_go = max (0,
+					GetDistanceToStopLocation (sid,
+						this->tile, this,
+						this->x_pos, this->y_pos));
 
-			if (distance_to_go > 0) {
-				int st_max_speed = 120;
+			/* If we are going very fast, try to brake evenly
+			 * along all available space. Otherwise, try to brake
+			 * smoothly. */
+			int cur = this->cur_speed;
+			int st_max_speed = max (2 * distance_to_go + 20,
+					cur - (cur / (distance_to_go + 1)));
 
-				int delta_v = this->cur_speed / (distance_to_go + 1);
-				if (max_speed > (this->cur_speed - delta_v)) {
-					st_max_speed = this->cur_speed - (delta_v / 10);
-				}
-
-				st_max_speed = max(st_max_speed, 25 * distance_to_go);
-				max_speed = min(max_speed, st_max_speed);
-			}
+			max_speed = min (max_speed, st_max_speed);
 		}
 	}
 
@@ -3281,33 +3298,14 @@ static StationID TrainEnter_Station(Train *v, TileIndex tile, int x, int y)
 	if (!v->current_order.ShouldStopAtStation(v, station_id)) return INVALID_STATION;
 	if (!IsRailStation(tile) || !v->IsFrontEngine()) return INVALID_STATION;
 
-	int station_ahead;
-	int station_length;
-	int stop = GetTrainStopLocation(station_id, tile, Train::From(v), &station_ahead, &station_length);
-
-	/* Stop whenever that amount of station ahead + the distance from the
-	 * begin of the platform to the stop location is longer than the length
-	 * of the platform. Station ahead 'includes' the current tile where the
-	 * vehicle is on, so we need to subtract that. */
-	if (stop + station_ahead - (int)TILE_SIZE >= station_length) return INVALID_STATION;
-
-	DiagDirection dir = DirToDiagDir(v->direction);
-
-	x &= 0xF;
-	y &= 0xF;
-
-	if (DiagDirToAxis(dir) != AXIS_X) Swap(x, y);
-	if (y == TILE_SIZE / 2) {
-		if (dir != DIAGDIR_SE && dir != DIAGDIR_SW) x = TILE_SIZE - 1 - x;
-		stop &= TILE_SIZE - 1;
-
-		if (x == stop) {
-			return station_id; // enter station
-		} else if (x < stop) {
-			v->vehstatus |= VS_TRAIN_SLOWING;
-			uint16 spd = max(0, (stop - x) * 20 - 15);
-			if (spd < v->cur_speed) v->cur_speed = spd;
-		}
+	int dist = GetDistanceToStopLocation (station_id, tile,
+						Train::From(v), x, y);
+	if (dist == 0) {
+		return station_id; // enter station
+	} else if ((uint)dist < TILE_SIZE) {
+		v->vehstatus |= VS_TRAIN_SLOWING;
+		uint16 spd = dist * 20 - 15;
+		if (spd < v->cur_speed) v->cur_speed = spd;
 	}
 
 	return INVALID_STATION;

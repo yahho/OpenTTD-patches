@@ -21,9 +21,13 @@ template <class T, typename S = void>
 struct ForwardListLink {
 	T *next;
 
-	ForwardListLink() : next(NULL) { }
+	CONSTEXPR ForwardListLink (void) : next (NULL)
+	{
+	}
 
-	ForwardListLink (const ForwardListLink &) : next(NULL) { }
+	CONSTEXPR ForwardListLink (const ForwardListLink &) : next (NULL)
+	{
+	}
 
 	ForwardListLink& operator = (const ForwardListLink &)
 	{
@@ -64,7 +68,9 @@ protected:
 	T *head;
 
 public:
-	ForwardListBase() : head(NULL) { }
+	CONSTEXPR ForwardListBase (void) : head (NULL)
+	{
+	}
 
 	ForwardListBase (const ForwardListBase &other) : head(NULL)
 	{
@@ -262,7 +268,9 @@ struct ForwardListBase <T, true, S> : ForwardListBase <T, false, S> {
 protected:
 	T **tail;
 
-	ForwardListBase() : Base(), tail(&this->Base::head) { }
+	CONSTEXPR ForwardListBase (void) : Base(), tail (&this->Base::head)
+	{
+	}
 
 	ForwardListBase (const ForwardListBase &other)
 		: Base(other), tail(&this->Base::head)

@@ -2333,10 +2333,10 @@ STR_ABOUT_VERSION                                               :{BLACK}النس
 STR_ABOUT_COPYRIGHT_OPENTTD                                     :{BLACK}النسخة المفتوحة {COPYRIGHT}2002-2017 فريق النسخة المفتوحة
 
 # Save/load game/scenario
-STR_SAVELOAD_SAVE_CAPTION                                       :{WHITE}حفظ اللعبة
 STR_SAVELOAD_LOAD_CAPTION                                       :{WHITE}فتح
-STR_SAVELOAD_SAVE_SCENARIO                                      :{WHITE}حفظ خريطة
+STR_SAVELOAD_SAVE_CAPTION                                       :{WHITE}حفظ اللعبة
 STR_SAVELOAD_LOAD_SCENARIO                                      :{WHITE}فتح خريطة
+STR_SAVELOAD_SAVE_SCENARIO                                      :{WHITE}حفظ خريطة
 STR_SAVELOAD_LOAD_HEIGHTMAP                                     :{WHITE}حمل خريطة مرتفعات
 STR_SAVELOAD_SAVE_HEIGHTMAP                                     :{WHITE}حفظ خريطة مرتفعات مصورة
 STR_SAVELOAD_HOME_BUTTON                                        :{BLACK}اضغط هنا لتوجة الى دليل الحفظ/الفتح القياسي

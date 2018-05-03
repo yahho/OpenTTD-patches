@@ -165,23 +165,17 @@ static void AppendKeycodeDescription (stringb *buf, uint16 keycode)
  * List of all HotkeyLists.
  * This is a pointer to ensure initialisation order with the various static HotkeyList instances.
  */
-static std::vector <HotkeyList *> *_hotkey_lists = NULL;
+static ForwardList<HotkeyList> *hotkey_lists;
 
 void HotkeyList::init (void)
 {
-	if (_hotkey_lists == NULL) _hotkey_lists = new std::vector <HotkeyList *>;
-	_hotkey_lists->push_back (this);
+	if (hotkey_lists == NULL) hotkey_lists = new ForwardList<HotkeyList>;
+	hotkey_lists->append (this);
 }
 
 HotkeyList::~HotkeyList()
 {
-	std::vector<HotkeyList *>::iterator it = _hotkey_lists->begin();
-	for (;;) {
-		assert (it != _hotkey_lists->end());
-		if (*it == this) break;
-		it++;
-	}
-	_hotkey_lists->erase (it);
+	hotkey_lists->remove (this);
 }
 
 /**
@@ -265,9 +259,9 @@ void LoadHotkeysFromConfig()
 {
 	IniFile ini (_hotkeys_file, NO_DIRECTORY);
 
-	std::vector<HotkeyList *>::iterator it = _hotkey_lists->begin();
-	for (; it != _hotkey_lists->end(); it++) {
-		(*it)->Load (&ini);
+	ForwardList<HotkeyList>::iterator it (hotkey_lists->begin());
+	for (; it != hotkey_lists->end(); it++) {
+		it->Load (&ini);
 	}
 }
 
@@ -276,9 +270,9 @@ void SaveHotkeysToConfig()
 {
 	IniFile ini (_hotkeys_file, NO_DIRECTORY);
 
-	std::vector<HotkeyList *>::const_iterator it = _hotkey_lists->begin();
-	for (; it != _hotkey_lists->end(); it++) {
-		(*it)->Save (&ini);
+	ForwardList<HotkeyList>::const_iterator it (hotkey_lists->cbegin());
+	for (; it != hotkey_lists->cend(); it++) {
+		it->Save (&ini);
 	}
 
 	ini.SaveToDisk (_hotkeys_file);
@@ -286,13 +280,12 @@ void SaveHotkeysToConfig()
 
 void HandleGlobalHotkeys(WChar key, uint16 keycode)
 {
-	std::vector<HotkeyList *>::const_iterator it = _hotkey_lists->begin();
-	for (; it != _hotkey_lists->end(); it++) {
-		const HotkeyList *list = *it;
-		if (list->global_hotkey_handler == NULL) continue;
+	ForwardList<HotkeyList>::const_iterator it (hotkey_lists->cbegin());
+	for (; it != hotkey_lists->cend(); it++) {
+		if (it->global_hotkey_handler == NULL) continue;
 
-		int hotkey = list->CheckMatch (keycode, true);
-		if (hotkey >= 0 && (list->global_hotkey_handler(hotkey) == ES_HANDLED)) return;
+		int hotkey = it->CheckMatch (keycode, true);
+		if (hotkey >= 0 && it->global_hotkey_handler(hotkey)) return;
 	}
 }
 

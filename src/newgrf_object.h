@@ -59,8 +59,8 @@ DECLARE_POSTFIX_INCREMENT(ObjectClassID)
  * default objects in table/object_land.h
  */
 struct ObjectSpec {
-	/* 2 because of the "normal" and "buy" sprite stacks. */
-	GRFFilePropsBase<2> grf_prop; ///< Properties related the the grf file
+	GRFFilePropsBase grf_prop;    ///< Properties related the the grf file
+	const SpriteGroup *spritegroup[2]; ///< Normal and purchase sprites.
 	ObjectClassID cls_id;         ///< The class to which this spec belongs.
 	StringID name;                ///< The name for this object.
 

@@ -51,7 +51,8 @@
  */
 static void DrawTunnel(TileInfo *ti)
 {
-	TransportType transport_type = GetTunnelTransportType(ti->tile);
+	const RailtypeInfo *rti = (GetTunnelTransportType(ti->tile) == TRANSPORT_RAIL) ?
+			GetRailTypeInfo (GetRailType (ti->tile)) : NULL;
 	DiagDirection tunnelbridge_direction = GetTunnelBridgeDirection(ti->tile);
 
 	/* Front view of tunnel bounding boxes:
@@ -77,8 +78,7 @@ static void DrawTunnel(TileInfo *ti)
 
 	SpriteID image;
 	SpriteID railtype_overlay = 0;
-	if (transport_type == TRANSPORT_RAIL) {
-		const RailtypeInfo *rti = GetRailTypeInfo(GetRailType(ti->tile));
+	if (rti != NULL) {
 		image = rti->base_sprites.tunnel;
 		if (rti->UsesOverlay()) {
 			/* Check if the railtype has custom tunnel portals. */
@@ -95,8 +95,8 @@ static void DrawTunnel(TileInfo *ti)
 	DrawGroundSprite (ti, image, PAL_NONE);
 
 	/* PBS debugging, draw reserved tracks darker */
-	if (_game_mode != GM_MENU && _settings_client.gui.show_track_reservation && (transport_type == TRANSPORT_RAIL && HasTunnelHeadReservation(ti->tile))) {
-		const RailtypeInfo *rti = GetRailTypeInfo(GetRailType(ti->tile));
+	if (_game_mode != GM_MENU && _settings_client.gui.show_track_reservation
+			&& rti != NULL && HasTunnelHeadReservation (ti->tile)) {
 		Axis axis = DiagDirToAxis (tunnelbridge_direction);
 		SpriteID image = rti->UsesOverlay() ?
 				GetCustomRailSprite (rti, ti->tile, RTSG_OVERLAY) + RTO_X + axis :
@@ -104,7 +104,7 @@ static void DrawTunnel(TileInfo *ti)
 		DrawGroundSprite (ti, image, PALETTE_CRASH);
 	}
 
-	if (transport_type == TRANSPORT_ROAD) {
+	if (rti == NULL) {
 		RoadTypes rts = GetRoadTypes(ti->tile);
 
 		if (HasBit(rts, ROADTYPE_TRAM)) {
@@ -120,7 +120,6 @@ static void DrawTunnel(TileInfo *ti)
 			}
 		}
 	} else {
-		const RailtypeInfo *rti = GetRailTypeInfo(GetRailType(ti->tile));
 		if (rti->UsesOverlay()) {
 			SpriteID surface = GetCustomRailSprite(rti, ti->tile, RTSG_TUNNEL);
 			if (surface != 0) DrawGroundSprite (ti, surface + tunnelbridge_direction, PAL_NONE);
@@ -233,27 +232,6 @@ static const TrainDepotSprites _depot_gfx_table[DIAGDIR_END] = {
 	{ {SPR_FLAT_GRASS_TILE, SPR_RAIL_TRACK_Y}, _depot_gfx_NW },
 };
 
-static void DrawTrainDepotGroundSprite (TileInfo *ti, DiagDirection dir,
-	SpriteID image_x, SpriteID image_y, PaletteID pal)
-{
-	switch (dir) {
-		case DIAGDIR_NE:
-			if (!IsInvisibilitySet (TO_BUILDINGS)) break;
-			FALLTHROUGH;
-		case DIAGDIR_SW:
-			DrawGroundSprite (ti, image_x, pal);
-			break;
-		case DIAGDIR_NW:
-			if (!IsInvisibilitySet (TO_BUILDINGS)) break;
-			FALLTHROUGH;
-		case DIAGDIR_SE:
-			DrawGroundSprite (ti, image_y, pal);
-			break;
-		default:
-			break;
-	}
-}
-
 static void DrawTrainDepot(TileInfo *ti)
 {
 	assert(IsRailDepotTile(ti->tile));
@@ -263,8 +241,6 @@ static void DrawTrainDepot(TileInfo *ti)
 	uint32 palette = COMPANY_SPRITE_COLOUR(GetTileOwner(ti->tile));
 
 	/* draw depot */
-
-	if (ti->tileh != SLOPE_FLAT) DrawFoundation(ti, FOUNDATION_LEVELED);
 
 	DiagDirection dir = GetGroundDepotDirection (ti->tile);
 
@@ -291,21 +267,33 @@ static void DrawTrainDepot(TileInfo *ti)
 
 	DrawGroundSprite (ti, image, GroundSpritePaletteTransform (image, PAL_NONE, palette));
 
-	if (rti->UsesOverlay()) {
-		SpriteID ground = GetCustomRailSprite(rti, ti->tile, RTSG_GROUND);
-		DrawTrainDepotGroundSprite (ti, dir,
-				ground + RTO_X, ground + RTO_Y, PAL_NONE);
+	Axis axis = DiagDirToAxis (dir);
+	if ((dir == AxisToDiagDir(axis)) || IsInvisibilitySet(TO_BUILDINGS)) {
+		/* The depot faces south or buildings are set to invisible. */
+		bool reserved = false;
+		SpriteID overlay;
+		if (rti->UsesOverlay()) {
+			assert_compile ((int)AXIS_X == (int)RTO_X);
+			assert_compile ((int)AXIS_Y == (int)RTO_Y);
 
-		if (_settings_client.gui.show_track_reservation && HasDepotReservation(ti->tile)) {
-			SpriteID overlay = GetCustomRailSprite(rti, ti->tile, RTSG_OVERLAY);
-			DrawTrainDepotGroundSprite (ti, dir,
-					overlay + RTO_X, overlay + RTO_Y, PALETTE_CRASH);
+			SpriteID ground = GetCustomRailSprite (rti, ti->tile, RTSG_GROUND);
+			DrawGroundSprite (ti, ground + axis, PAL_NONE);
+
+			if (_settings_client.gui.show_track_reservation
+					&& HasDepotReservation (ti->tile)) {
+				overlay = GetCustomRailSprite (rti, ti->tile,
+							RTSG_OVERLAY) + axis;
+				reserved = true;
+			}
+		} else if (_game_mode != GM_MENU
+				&& _settings_client.gui.show_track_reservation
+				&& HasDepotReservation (ti->tile)) {
+			/* PBS debugging, draw reserved tracks darker */
+			overlay = rti->base_sprites.single[AxisToTrack(axis)];
+			reserved = true;
 		}
-	} else {
-		/* PBS debugging, draw reserved tracks darker */
-		if (_game_mode != GM_MENU && _settings_client.gui.show_track_reservation && HasDepotReservation(ti->tile)) {
-			DrawTrainDepotGroundSprite (ti, dir,
-					rti->base_sprites.single[TRACK_X], rti->base_sprites.single[TRACK_Y], PALETTE_CRASH);
+		if (reserved) {
+			DrawGroundSprite (ti, overlay, PALETTE_CRASH);
 		}
 	}
 
@@ -328,14 +316,13 @@ void DrawTrainDepotSprite (BlitArea *dpi, int x, int y, int dir, RailType railty
 
 	DrawSprite (dpi, image, PAL_NONE, x, y);
 
-	if (rti->UsesOverlay()) {
-		SpriteID ground = GetCustomRailSprite(rti, INVALID_TILE, RTSG_GROUND);
+	Axis axis = DiagDirToAxis ((DiagDirection)dir);
+	if ((dir == AxisToDiagDir(axis)) && rti->UsesOverlay()) {
+		assert_compile ((int)AXIS_X == (int)RTO_X);
+		assert_compile ((int)AXIS_Y == (int)RTO_Y);
 
-		switch (dir) {
-			case DIAGDIR_SW: DrawSprite (dpi, ground + RTO_X, PAL_NONE, x, y); break;
-			case DIAGDIR_SE: DrawSprite (dpi, ground + RTO_Y, PAL_NONE, x, y); break;
-			default: break;
-		}
+		SpriteID ground = GetCustomRailSprite(rti, INVALID_TILE, RTSG_GROUND);
+		DrawSprite (dpi, ground + axis, PAL_NONE, x, y);
 	}
 
 	int depot_sprite = GetCustomRailSprite(rti, INVALID_TILE, RTSG_DEPOT);
@@ -405,7 +392,6 @@ static void DrawRoadDepot(TileInfo *ti)
 {
 	assert(IsRoadDepotTile(ti->tile));
 
-	if (ti->tileh != SLOPE_FLAT) DrawFoundation(ti, FOUNDATION_LEVELED);
 	DrawGroundSprite (ti, 0xA4A, PAL_NONE);
 
 	PaletteID palette = COMPANY_SPRITE_COLOUR(GetTileOwner(ti->tile));
@@ -449,6 +435,10 @@ static void DrawTile_Misc(TileInfo *ti)
 			break;
 
 		case TT_MISC_DEPOT:
+			if (ti->tileh != SLOPE_FLAT) {
+				DrawFoundation (ti, FOUNDATION_LEVELED);
+			}
+
 			if (IsRailDepot(ti->tile)) {
 				DrawTrainDepot(ti);
 			} else {

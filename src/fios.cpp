@@ -27,7 +27,6 @@
 #include "table/strings.h"
 
 /* Variables to display file lists */
-static char *_fios_path;
 SortingBits _savegame_sort_order = SORT_BY_DATE | SORT_DESCENDING;
 
 /* OS-specific functions are taken from their respective files (win32/unix/os2 .c) */
@@ -59,21 +58,14 @@ int CDECL CompareFiosItems(const FiosItem *da, const FiosItem *db)
 	return r;
 }
 
-/** Get the current value of #_fios_path. */
-const char *FiosGetPath (void)
-{
-	return _fios_path;
-}
-
 /**
- * Browse to a new path based on the passed \a item, starting at #_fios_path.
+ * Browse to a new path based on the passed \a item.
+ * @param path Directory path.
  * @param *item Item telling us what to do.
  * @return A filename w/path if we reached a file, otherwise \c NULL.
  */
-const char *FiosBrowseTo(const FiosItem *item)
+const char *FiosBrowseTo (char *path, const FiosItem *item)
 {
-	char *path = _fios_path;
-
 	switch (item->type) {
 		case FIOS_TYPE_DRIVE:
 #if defined(WINCE)
@@ -107,10 +99,6 @@ const char *FiosBrowseTo(const FiosItem *item)
 		case FIOS_TYPE_DIR:
 			strcat(path, item->name);
 			strcat(path, PATHSEP);
-			break;
-
-		case FIOS_TYPE_DIRECT:
-			snprintf(path, MAX_PATH, "%s", item->name);
 			break;
 
 		case FIOS_TYPE_FILE:
@@ -160,36 +148,39 @@ static void FiosMakeFilename(char *buf, const char *path, const char *name, cons
 /**
  * Make a save game or scenario filename from a name.
  * @param buf Destination buffer for saving the filename.
+ * @param path Directory path, may be \c NULL.
  * @param name Name of the file.
  * @param size Length of buffer \a buf.
  */
-void FiosMakeSavegameName(char *buf, const char *name, size_t size)
+void FiosMakeSavegameName (char *buf, const char *path, const char *name, size_t size)
 {
 	const char *extension = (_game_mode == GM_EDITOR) ? ".scn" : ".sav";
 
-	FiosMakeFilename(buf, _fios_path, name, extension, size);
+	FiosMakeFilename (buf, path, name, extension, size);
 }
 
 /**
  * Construct a filename for a height map.
  * @param buf Destination buffer.
+ * @param path Directory path, may be \c NULL.
  * @param name Filename.
  * @param size Size of \a buf.
  */
-void FiosMakeHeightmapName(char *buf, const char *name, size_t size)
+void FiosMakeHeightmapName (char *buf, const char *path, const char *name, size_t size)
 {
-	FiosMakeFilename (buf, _fios_path, name, GetCurrentScreenshotExtension(), size);
+	FiosMakeFilename (buf, path, name, GetCurrentScreenshotExtension(), size);
 }
 
 /**
  * Delete a file.
+ * @param path Directory path, may be \c NULL.
  * @param name Filename to delete.
  */
-bool FiosDelete(const char *name)
+bool FiosDelete (const char *path, const char *name)
 {
 	char filename[512];
 
-	FiosMakeSavegameName(filename, name, lengthof(filename));
+	FiosMakeSavegameName (filename, path, name, lengthof(filename));
 	return unlink(filename) == 0;
 }
 
@@ -403,72 +394,54 @@ static FiosType FiosGetHeightmapListCallback (const char *file, const char *ext,
  */
 void FileList::BuildFileList (AbstractFileType abstract_filetype, bool save)
 {
+	static Path fios_paths [3];
+
+	assert_compile (FT_SAVEGAME  == 1);
+	assert_compile (FT_SCENARIO  == 2);
+	assert_compile (FT_HEIGHTMAP == 3);
+
+	assert ((abstract_filetype >= FT_SAVEGAME)
+			&& (abstract_filetype <= FT_HEIGHTMAP));
+
 	this->Clear();
 
+	assert_compile ((FT_SAVEGAME  * 3) / 2 == SAVE_DIR);
+	assert_compile ((FT_SCENARIO  * 3) / 2 == SCENARIO_DIR);
+	assert_compile ((FT_HEIGHTMAP * 3) / 2 == HEIGHTMAP_DIR);
+
+	Subdirectory subdir = (Subdirectory) ((abstract_filetype * 3) / 2);
+
+	/* Copy the default path on first run. */
+	Path *path = &fios_paths[abstract_filetype - 1];
+	if (path->cur[0] == '\0') {
+		FioGetDirectory (path->home, lengthof(path->home), subdir);
+		path->reset();
+	}
+	this->path = path;
+
 	fios_getlist_callback_proc *callback;
-	Subdirectory subdir;
 	switch (abstract_filetype) {
 		default:
 			NOT_REACHED();
 
-		case FT_NONE:
-			return;
-
-		case FT_SAVEGAME: {
-			static char *fios_save_path = NULL;
-
-			if (fios_save_path == NULL) {
-				fios_save_path = xmalloc (MAX_PATH);
-				FioGetDirectory (fios_save_path, MAX_PATH, SAVE_DIR);
-			}
-
-			_fios_path = fios_save_path;
-
+		case FT_SAVEGAME:
 			subdir = NO_DIRECTORY;
 			callback = &FiosGetSavegameListCallback;
 			break;
-		}
 
-		case FT_SCENARIO: {
-			static char *fios_scn_path = NULL;
-
-			/* Copy the default path on first run or on 'New Game' */
-			if (fios_scn_path == NULL) {
-				fios_scn_path = xmalloc (MAX_PATH);
-				FioGetDirectory (fios_scn_path, MAX_PATH, SCENARIO_DIR);
-			}
-
-			_fios_path = fios_scn_path;
-
-			char base_path[MAX_PATH];
-			FioGetDirectory (base_path, sizeof(base_path), SCENARIO_DIR);
-
-			subdir = (!save && strcmp (base_path, _fios_path) == 0) ? SCENARIO_DIR : NO_DIRECTORY;
+		case FT_SCENARIO:
+			subdir = (!save && strcmp (path->home, path->cur) == 0) ? SCENARIO_DIR : NO_DIRECTORY;
 			callback = &FiosGetScenarioListCallback;
 			break;
-		}
 
-		case FT_HEIGHTMAP: {
-			static char *fios_hmap_path = NULL;
-
-			if (fios_hmap_path == NULL) {
-				fios_hmap_path = xmalloc (MAX_PATH);
-				FioGetDirectory (fios_hmap_path, MAX_PATH, HEIGHTMAP_DIR);
-			}
-
-			_fios_path = fios_hmap_path;
-
-			char base_path[MAX_PATH];
-			FioGetDirectory (base_path, sizeof(base_path), HEIGHTMAP_DIR);
-
-			subdir = strcmp (base_path, _fios_path) == 0 ? HEIGHTMAP_DIR : NO_DIRECTORY;
+		case FT_HEIGHTMAP:
+			subdir = strcmp (path->home, path->cur) == 0 ? HEIGHTMAP_DIR : NO_DIRECTORY;
 			callback = &FiosGetHeightmapListCallback;
 			break;
-		}
 	}
 
 	/* A parent directory link exists if we are not in the root directory */
-	if (!FiosIsRoot (_fios_path)) {
+	if (!FiosIsRoot (this->path->cur)) {
 		FiosItem *fios = this->Append();
 		fios->type = FIOS_TYPE_PARENT;
 		fios->mtime = 0;
@@ -477,8 +450,8 @@ void FileList::BuildFileList (AbstractFileType abstract_filetype, bool save)
 	}
 
 	/* Show subdirectories */
-	DIR *dir;
-	if ((dir = ttd_opendir (_fios_path)) != NULL) {
+	DIR *dir = ttd_opendir (this->path->cur);
+	if (dir != NULL) {
 		struct dirent *dirent;
 		while ((dirent = readdir (dir)) != NULL) {
 			FiosItem *fios;
@@ -487,7 +460,7 @@ void FileList::BuildFileList (AbstractFileType abstract_filetype, bool save)
 
 			/* found file must be directory, but not '.' or '..' */
 			struct stat sb;
-			if (FiosIsValidFile (_fios_path, dirent, &sb) && S_ISDIR(sb.st_mode) &&
+			if (FiosIsValidFile (this->path->cur, dirent, &sb) && S_ISDIR(sb.st_mode) &&
 					(!FiosIsHiddenFile (dirent) || strncasecmp (d_name, PERSONAL_DIR, strlen(d_name)) == 0) &&
 					strcmp (d_name, ".") != 0 && strcmp (d_name, "..") != 0) {
 				fios = this->Append();
@@ -515,7 +488,7 @@ void FileList::BuildFileList (AbstractFileType abstract_filetype, bool save)
 	/* Show files */
 	FiosFileScanner scanner (callback, *this, save);
 	if (subdir == NO_DIRECTORY) {
-		scanner.Scan (NULL, _fios_path, NULL, false);
+		scanner.Scan (NULL, this->path->cur, NULL, false);
 	} else {
 		scanner.Scan (NULL, subdir, true, true);
 	}

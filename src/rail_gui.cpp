@@ -665,7 +665,7 @@ struct BuildRailToolbarWindow : Window {
 		if (_ctrl_pressed) RailToolbar_CtrlChanged(this);
 	}
 
-	virtual EventState OnHotkey(int hotkey)
+	bool OnHotkey (int hotkey) OVERRIDE
 	{
 		MarkTileDirtyByTile(TileVirtXY(_thd.pos.x, _thd.pos.y)); // redraw tile selection
 		return Window::OnHotkey(hotkey);
@@ -731,54 +731,52 @@ struct BuildRailToolbarWindow : Window {
 				|| !this->IsWidgetLowered (WID_RAT_BUILD_SIGNALS);
 	}
 
-	void OnPlaceMouseUp (int userdata, Point pt, TileIndex start_tile, TileIndex end_tile) OVERRIDE
+	void OnPlaceMouseUp (int userdata, TileIndex start_tile, TileIndex end_tile) OVERRIDE
 	{
-		if (pt.x != -1) {
-			switch (userdata) {
-				default: NOT_REACHED();
-				case DRAG_BUILD_BRIDGE:
-					HandleBuildRailBridge (start_tile, end_tile);
-					break;
+		switch (userdata) {
+			default: NOT_REACHED();
+			case DRAG_BUILD_BRIDGE:
+				HandleBuildRailBridge (start_tile, end_tile);
+				break;
 
-				case DRAG_PLACE_RAIL:
-					HandleAutodirPlacement (start_tile, end_tile);
-					break;
+			case DRAG_PLACE_RAIL:
+				HandleAutodirPlacement (start_tile, end_tile);
+				break;
 
-				case DRAG_BUILD_SIGNALS:
-					HandleAutoSignalPlacement (start_tile, end_tile);
-					break;
+			case DRAG_BUILD_SIGNALS:
+				HandleAutoSignalPlacement (start_tile, end_tile);
+				break;
 
-				case DRAG_DEMOLISH_AREA:
-					HandleDemolishMouseUp (start_tile, end_tile);
-					break;
+			case DRAG_DEMOLISH_AREA:
+				HandleDemolishMouseUp (start_tile, end_tile);
+				break;
 
-				case DRAG_CONVERT_RAIL:
-					DoCommandP(end_tile, start_tile, _cur_railtype | (_ctrl_pressed ? 0x10 : 0), CMD_CONVERT_RAIL);
-					break;
+			case DRAG_CONVERT_RAIL:
+				DoCommandP (end_tile, start_tile, _cur_railtype | (_ctrl_pressed ? 0x10 : 0), CMD_CONVERT_RAIL);
+				break;
 
-				case DRAG_STATION:
-					if (_remove_button_clicked) {
-						DoCommandP (end_tile, start_tile, _ctrl_pressed ? 0 : 1, CMD_REMOVE_FROM_RAIL_STATION);
-					} else {
-						HandleStationPlacement (start_tile, end_tile);
-					}
-					break;
-
-				case DRAG_BUILD_WAYPOINT_X:
-				case DRAG_BUILD_WAYPOINT_Y: {
-					TileArea ta (start_tile, end_tile);
-					uint32 p1 = _cur_railtype | (userdata == DRAG_BUILD_WAYPOINT_X ? AXIS_X : AXIS_Y) << 4 | ta.w << 8 | ta.h << 16 | _ctrl_pressed << 24;
-					uint32 p2 = STAT_CLASS_WAYP | _cur_waypoint_type << 8 | INVALID_STATION << 16;
-
-					Command cmdcont (ta.tile, p1, p2, CMD_BUILD_RAIL_WAYPOINT);
-					ShowSelectWaypointIfNeeded (&cmdcont, ta);
-					break;
+			case DRAG_STATION:
+				if (_remove_button_clicked) {
+					DoCommandP (end_tile, start_tile, _ctrl_pressed ? 0 : 1, CMD_REMOVE_FROM_RAIL_STATION);
+				} else {
+					HandleStationPlacement (start_tile, end_tile);
 				}
+				break;
 
-				case DRAG_REMOVE_WAYPOINT:
-					DoCommandP (end_tile, start_tile, _ctrl_pressed ? 0 : 1, CMD_REMOVE_FROM_RAIL_WAYPOINT);
-					break;
+			case DRAG_BUILD_WAYPOINT_X:
+			case DRAG_BUILD_WAYPOINT_Y: {
+				TileArea ta (start_tile, end_tile);
+				uint32 p1 = _cur_railtype | (userdata == DRAG_BUILD_WAYPOINT_X ? AXIS_X : AXIS_Y) << 4 | ta.w << 8 | ta.h << 16 | _ctrl_pressed << 24;
+				uint32 p2 = STAT_CLASS_WAYP | _cur_waypoint_type << 8 | INVALID_STATION << 16;
+
+				Command cmdcont (ta.tile, p1, p2, CMD_BUILD_RAIL_WAYPOINT);
+				ShowSelectWaypointIfNeeded (&cmdcont, ta);
+				break;
 			}
+
+			case DRAG_REMOVE_WAYPOINT:
+				DoCommandP (end_tile, start_tile, _ctrl_pressed ? 0 : 1, CMD_REMOVE_FROM_RAIL_WAYPOINT);
+				break;
 		}
 	}
 
@@ -802,11 +800,12 @@ struct BuildRailToolbarWindow : Window {
 		if (_build_tunnel_endtile != 0) *tile2 = _build_tunnel_endtile;
 	}
 
-	virtual EventState OnCTRLStateChange()
+	bool OnCTRLStateChange (void) OVERRIDE
 	{
 		/* do not toggle Remove button by Ctrl when placing station */
-		if (!this->IsWidgetLowered(WID_RAT_BUILD_STATION) && !this->IsWidgetLowered(WID_RAT_BUILD_WAYPOINT) && RailToolbar_CtrlChanged(this)) return ES_HANDLED;
-		return ES_NOT_HANDLED;
+		return !this->IsWidgetLowered (WID_RAT_BUILD_STATION)
+			&& !this->IsWidgetLowered (WID_RAT_BUILD_WAYPOINT)
+			&& RailToolbar_CtrlChanged (this);
 	}
 
 	static HotkeyList hotkeys;
@@ -815,15 +814,14 @@ struct BuildRailToolbarWindow : Window {
 /**
  * Handler for global hotkeys of the BuildRailToolbarWindow.
  * @param hotkey Hotkey
- * @return ES_HANDLED if hotkey was accepted.
+ * @return Whether the hotkey was handled.
  */
-static EventState RailToolbarGlobalHotkeys(int hotkey)
+static bool RailToolbarGlobalHotkeys (int hotkey)
 {
-	if (_game_mode != GM_NORMAL || !CanBuildVehicleInfrastructure(VEH_TRAIN)) return ES_NOT_HANDLED;
+	if (_game_mode != GM_NORMAL || !CanBuildVehicleInfrastructure(VEH_TRAIN)) return false;
 	extern RailType _last_built_railtype;
 	Window *w = ShowBuildRailToolbar(_last_built_railtype);
-	if (w == NULL) return ES_NOT_HANDLED;
-	return w->OnHotkey(hotkey);
+	return (w != NULL) && w->OnHotkey (hotkey);
 }
 
 static const Hotkey railtoolbar_hotkeys[] = {

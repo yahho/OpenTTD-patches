@@ -2557,10 +2557,10 @@ STR_ABOUT_VERSION                                               :{BLACK}OpenTTD 
 STR_ABOUT_COPYRIGHT_OPENTTD                                     :{BLACK}OpenTTD {COPYRIGHT}2002-2017 OpenTTD hópurinn
 
 # Save/load game/scenario
-STR_SAVELOAD_SAVE_CAPTION                                       :{WHITE}Vista leik
 STR_SAVELOAD_LOAD_CAPTION                                       :{WHITE}Opna leik
-STR_SAVELOAD_SAVE_SCENARIO                                      :{WHITE}Vista kort
+STR_SAVELOAD_SAVE_CAPTION                                       :{WHITE}Vista leik
 STR_SAVELOAD_LOAD_SCENARIO                                      :{WHITE}Opna kort
+STR_SAVELOAD_SAVE_SCENARIO                                      :{WHITE}Vista kort
 STR_SAVELOAD_LOAD_HEIGHTMAP                                     :{WHITE}Hlaða hæðakorti
 STR_SAVELOAD_SAVE_HEIGHTMAP                                     :{WHITE}Vista hæðarkort
 STR_SAVELOAD_HOME_BUTTON                                        :{BLACK}Smelltu hér til að opna möppu fyrir vistaða leiki

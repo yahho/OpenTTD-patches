@@ -1544,6 +1544,7 @@ STR_CONFIG_SETTING_RIGHT_MOUSE_BTN_EMU_OFF                      :Izklop
 
 STR_CONFIG_SETTING_LEFT_MOUSE_BTN_SCROLLING                     :Premik slike z levim klikom: {STRING}
 STR_CONFIG_SETTING_LEFT_MOUSE_BTN_SCROLLING_HELPTEXT            :Omogoči pomik pogleda z levim klikom miške in vlečenjem. Primerno za dotične zaslone.
+STR_CONFIG_SETTING_RIGHT_MOUSE_WND_CLOSE                        :Zapri okno z desnim klikom: {STRING}
 
 STR_CONFIG_SETTING_AUTOSAVE                                     :Samodejno shrani: {STRING}
 STR_CONFIG_SETTING_AUTOSAVE_HELPTEXT                            :Izberi časovni interval samodejnega shranjevanja igre
@@ -2867,10 +2868,10 @@ STR_ABOUT_VERSION                                               :{BLACK}OpenTTD 
 STR_ABOUT_COPYRIGHT_OPENTTD                                     :{BLACK}OpenTTD {COPYRIGHT}2002-2017 ekipa OpenTTD
 
 # Save/load game/scenario
-STR_SAVELOAD_SAVE_CAPTION                                       :{WHITE}Shrani igro
 STR_SAVELOAD_LOAD_CAPTION                                       :{WHITE}Naloži igro
-STR_SAVELOAD_SAVE_SCENARIO                                      :{WHITE}Shrani scenarij
+STR_SAVELOAD_SAVE_CAPTION                                       :{WHITE}Shrani igro
 STR_SAVELOAD_LOAD_SCENARIO                                      :{WHITE}Naloži scenarij
+STR_SAVELOAD_SAVE_SCENARIO                                      :{WHITE}Shrani scenarij
 STR_SAVELOAD_LOAD_HEIGHTMAP                                     :{WHITE}Naloži višinsko karto
 STR_SAVELOAD_SAVE_HEIGHTMAP                                     :{WHITE}Shrani višinsko karto
 STR_SAVELOAD_HOME_BUTTON                                        :{BLACK}Klikni tukaj za skok v mapo shrani/naloži
@@ -3706,6 +3707,7 @@ STR_ENGINE_PREVIEW_MAGLEV_LOCOMOTIVE                            :magnetna lokomo
 STR_ENGINE_PREVIEW_COST_WEIGHT_SPEED_POWER                      :{BLACK}Cena: {CURRENCY_LONG} Teža: {WEIGHT_SHORT}{}Hitrost: {VELOCITY}  Moč: {POWER}{}Cena delovanja: {CURRENCY_LONG}/leto{}Zmogljivost: {CARGO_LONG}
 STR_ENGINE_PREVIEW_COST_WEIGHT_SPEED_POWER_MAX_TE               :{BLACK}Cena: {CURRENCY_LONG} Teža: {WEIGHT_SHORT}{}Hitrost: {VELOCITY}  Moč: {POWER}  Max. T.E.: {6:FORCE}{}Stroški: {4:CURRENCY_LONG}/yr{}Zmogljivost: {5:CARGO_LONG}
 STR_ENGINE_PREVIEW_COST_MAX_SPEED_CAP_RUNCOST                   :{BLACK}Cena: {CURRENCY_LONG} Max. hitrost: {VELOCITY}{}Zmogljivost: {CARGO_LONG}{}Cena delovanja: {CURRENCY_LONG}/leto
+STR_ENGINE_PREVIEW_COST_MAX_SPEED_TYPE_CAP_RUNCOST              :{BLACK}Cena: {CURRENCY_LONG} Max. hitrost: {VELOCITY}{}Vrsta letala: {STRING}{}Zmogljivost: {CARGO_LONG}{}Stroški obratovanja: {CURRENCY_LONG}/leto
 
 # Autoreplace window
 STR_REPLACE_VEHICLES_WHITE                                      :{WHITE}Zamenjaj {STRING} - {STRING}

@@ -94,9 +94,6 @@ static inline bool IsCompatibleTrainStationTile(TileIndex test_tile, TileIndex s
 			!IsStationTileBlocked(test_tile);
 }
 
-bool CanStationTileHavePylons(TileIndex tile);
-bool CanStationTileHaveWires(TileIndex tile);
-
 void UpdateAirportsNoise();
 
 bool SplitGroundSpriteForOverlay (SpriteID *ground, RailTrackOffset *overlay_offset);

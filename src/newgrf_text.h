@@ -20,8 +20,14 @@
 #include "core/smallvec_type.hpp"
 #include "table/control_codes.h"
 
-/** This character, the thorn ('þ'), indicates a unicode string to NFO. */
-static const WChar NFO_UTF8_IDENTIFIER = 0x00DE;
+/** Skip the NFO unicode string marker, if present. */
+static inline bool skip_nfo_utf8_identifier (const char **str)
+{
+	/* This character, the thorn, indicates a unicode string to NFO. */
+	if ((*str)[0] != '\xC3' || (*str)[1] != '\x9E') return false;
+	*str += 2;
+	return true;
+}
 
 
 /**
@@ -121,8 +127,6 @@ struct LanguageMap {
 	SmallVector<Mapping, 1> case_map;   ///< Mapping of NewGRF and OpenTTD IDs for cases.
 	int plural_form;                    ///< The plural form used for this language.
 
-	int GetMapping(int newgrf_id, bool gender) const;
-	int GetReverseMapping(int openttd_id, bool gender) const;
 	static const LanguageMap *GetLanguageMap(uint32 grfid, uint8 language_id);
 };
 

@@ -506,14 +506,13 @@ struct NetworkChatWindow : public Window {
 		}
 	}
 
-	virtual EventState OnKeyPress(WChar key, uint16 keycode)
+	bool OnKeyPress (WChar key, uint16 keycode) OVERRIDE
 	{
-		EventState state = ES_NOT_HANDLED;
 		if (keycode == WKC_TAB) {
 			ChatTabCompletion();
-			state = ES_HANDLED;
+			return true;
 		}
-		return state;
+		return false;
 	}
 
 	virtual void OnEditboxChanged(int wid)

@@ -258,7 +258,9 @@ static void Save_TOWN(SaveDumper *dumper)
 		temp.WriteObject(&t->cargo_accepted, GetTileMatrixDesc());
 		if (t->cargo_accepted.area.w != 0) {
 			uint arr_len = t->cargo_accepted.area.w / AcceptanceMatrix::GRID * t->cargo_accepted.area.h / AcceptanceMatrix::GRID;
-			temp.WriteArray(t->cargo_accepted.data, arr_len, SLE_UINT32);
+			for (uint i = 0; i < arr_len; i++) {
+				temp.WriteUint32 (t->cargo_accepted.data[i]);
+			}
 		}
 
 		dumper->WriteElementHeader(t->index, temp.GetSize());
@@ -294,7 +296,9 @@ static void Load_TOWN(LoadBuffer *reader)
 		if (t->cargo_accepted.area.w != 0) {
 			uint arr_len = t->cargo_accepted.area.w / AcceptanceMatrix::GRID * t->cargo_accepted.area.h / AcceptanceMatrix::GRID;
 			t->cargo_accepted.data = xmalloct<uint32>(arr_len);
-			reader->ReadArray(t->cargo_accepted.data, arr_len, SLE_UINT32);
+			for (uint i = 0; i < arr_len; i++) {
+				t->cargo_accepted.data[i] = reader->ReadUint32();
+			}
 
 			/* Rebuild total cargo acceptance. */
 			UpdateTownCargoTotal(t);

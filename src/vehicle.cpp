@@ -980,8 +980,8 @@ void Vehicle::PreDestructor()
 		Aircraft *a = Aircraft::From(this);
 		Station *st = GetTargetAirportIfValid(a);
 		if (st != NULL) {
-			const AirportFTA *layout = st->airport.GetFTA()->layout;
-			CLRBITS(st->airport.flags, layout[a->previous_pos].block | layout[a->pos].block);
+			const AirportFTA::Position *data = st->airport.GetFTA()->data;
+			CLRBITS(st->airport.flags, data[a->previous_pos].block | data[a->pos].block);
 		}
 	}
 
@@ -2782,19 +2782,16 @@ void VehiclesYearlyLoop()
 
 
 /**
- * Can this station be used by the given engine type?
- * @param engine_type the type of vehicles to test
+ * Can this station be used by the given engine?
+ * @param e the engine to test
  * @param st the station to test for
  * @return true if and only if the vehicle of the type can use this station.
  * @note For road vehicles the Vehicle is needed to determine whether it can
  *       use the station. This function will return true for road vehicles
  *       when at least one of the facilities is available.
  */
-bool CanVehicleUseStation(EngineID engine_type, const Station *st)
+bool CanEngineUseStation (const Engine *e, const Station *st)
 {
-	const Engine *e = Engine::GetIfValid(engine_type);
-	assert(e != NULL);
-
 	switch (e->type) {
 		case VEH_TRAIN:
 			return (st->facilities & FACIL_TRAIN) != 0;
@@ -2810,7 +2807,7 @@ bool CanVehicleUseStation(EngineID engine_type, const Station *st)
 
 		case VEH_AIRCRAFT:
 			return (st->facilities & FACIL_AIRPORT) != 0 &&
-					(st->airport.GetFTA()->flags & (e->u.air.subtype & AIR_CTOL ? AirportFTAClass::AIRPLANES : AirportFTAClass::HELICOPTERS)) != 0;
+					(st->airport.GetFTA()->flags & (e->u.air.subtype & AIR_CTOL ? AirportFTA::AIRPLANES : AirportFTA::HELICOPTERS)) != 0;
 
 		default:
 			return false;
@@ -2827,7 +2824,7 @@ bool CanVehicleUseStation(const Vehicle *v, const Station *st)
 {
 	if (v->type == VEH_ROAD) return st->GetPrimaryRoadStop(RoadVehicle::From(v)) != NULL;
 
-	return CanVehicleUseStation(v->engine_type, st);
+	return CanEngineUseStation (Engine::Get (v->engine_type), st);
 }
 
 /**

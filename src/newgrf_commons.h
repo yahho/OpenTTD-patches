@@ -298,30 +298,26 @@ bool Convert8bitBooleanCallback(const struct GRFFile *grffile, uint16 cbid, uint
 
 /**
  * Data related to the handling of grf files.
- * @tparam Tcnt Number of spritegroups
  */
-template <size_t Tcnt>
 struct GRFFilePropsBase {
-	GRFFilePropsBase() : local_id(0), grffile(0)
+	CONSTEXPR GRFFilePropsBase (void) : local_id(0), grffile(0)
 	{
-		/* The lack of some compilers to provide default constructors complying to the specs
-		 * requires us to zero the stuff ourself. */
-		memset(spritegroup, 0, sizeof(spritegroup));
 	}
 
 	uint16 local_id;                             ///< id defined by the grf file for this entity
 	const struct GRFFile *grffile;               ///< grf file that introduced this entity
-	const struct SpriteGroup *spritegroup[Tcnt]; ///< pointer to the different sprites of the entity
 };
 
 /** Data related to the handling of grf files. */
-struct GRFFileProps : GRFFilePropsBase<1> {
+struct GRFFileProps : GRFFilePropsBase {
 	/** Set all default data constructor for the props. */
-	GRFFileProps(uint16 subst_id = 0) :
-			GRFFilePropsBase<1>(), subst_id(subst_id), override(subst_id)
+	CONSTEXPR GRFFileProps (uint16 subst_id = 0) :
+			GRFFilePropsBase(), spritegroup (NULL),
+			subst_id (subst_id), override (subst_id)
 	{
 	}
 
+	const struct SpriteGroup *spritegroup; ///< pointer to the entity sprite
 	uint16 subst_id;
 	uint16 override;                      ///< id of the entity been replaced by
 };

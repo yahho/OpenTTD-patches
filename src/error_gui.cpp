@@ -320,11 +320,11 @@ public:
 		if (_window_system_initialized) ShowFirstError();
 	}
 
-	virtual EventState OnKeyPress(WChar key, uint16 keycode)
+	bool OnKeyPress (WChar key, uint16 keycode) OVERRIDE
 	{
-		if (keycode != WKC_SPACE) return ES_NOT_HANDLED;
+		if (keycode != WKC_SPACE) return false;
 		this->Delete();
-		return ES_HANDLED;
+		return true;
 	}
 
 	/**

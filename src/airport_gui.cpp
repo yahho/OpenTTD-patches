@@ -128,11 +128,9 @@ struct BuildAirToolbarWindow : Window {
 		}
 	}
 
-	void OnPlaceMouseUp (int userdata, Point pt, TileIndex start_tile, TileIndex end_tile) OVERRIDE
+	void OnPlaceMouseUp (int userdata, TileIndex start_tile, TileIndex end_tile) OVERRIDE
 	{
-		if (pt.x != -1) {
-			HandleDemolishMouseUp (start_tile, end_tile);
-		}
+		HandleDemolishMouseUp (start_tile, end_tile);
 	}
 
 	virtual void OnPlaceObjectAbort()
@@ -149,14 +147,13 @@ struct BuildAirToolbarWindow : Window {
 /**
  * Handler for global hotkeys of the BuildAirToolbarWindow.
  * @param hotkey Hotkey
- * @return ES_HANDLED if hotkey was accepted.
+ * @return Whether the hotkey was handled.
  */
-static EventState AirportToolbarGlobalHotkeys(int hotkey)
+static bool AirportToolbarGlobalHotkeys (int hotkey)
 {
-	if (_game_mode != GM_NORMAL || !CanBuildVehicleInfrastructure(VEH_AIRCRAFT)) return ES_NOT_HANDLED;
+	if (_game_mode != GM_NORMAL || !CanBuildVehicleInfrastructure(VEH_AIRCRAFT)) return false;
 	Window *w = ShowBuildAirToolbar();
-	if (w == NULL) return ES_NOT_HANDLED;
-	return w->OnHotkey(hotkey);
+	return (w != NULL) && w->OnHotkey (hotkey);
 }
 
 static const Hotkey airtoolbar_hotkeys[] = {
@@ -445,7 +442,7 @@ public:
 			const AirportSpec *as = AirportClass::Get(_selected_airport_class)->GetSpec(_selected_airport_index);
 			int w = as->size_x;
 			int h = as->size_y;
-			Direction rotation = as->rotation[_selected_airport_layout];
+			uint rotation = as->table[_selected_airport_layout]->rotation;
 			if (rotation == DIR_E || rotation == DIR_W) Swap(w, h);
 			SetTileSelectSize(w, h);
 
