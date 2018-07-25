@@ -12,12 +12,13 @@
 #ifndef SCOPE_INFO_H
 #define SCOPE_INFO_H
 
-#ifdef USE_SCOPE_INFO
 #include <functional>
 #include <vector>
 
 struct Vehicle;
 struct BaseStation;
+
+#ifdef USE_SCOPE_INFO
 
 extern std::vector<std::function<int(char *, const char *)>> _scope_stack;
 
