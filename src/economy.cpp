@@ -1275,13 +1275,13 @@ void CargoPayment::PayFinalDelivery(CargoPacket *cp, uint count)
 	}
 
 	/* Handle end of route payment */
-	Money profit = DeliverGoods(count, this->ct, this->current_station, cp->SourceStationXY(), cp->DaysInTransit(), this->owner, cp->SourceSubsidyType(), cp->SourceSubsidyID());
+	Money profit = DeliverGoods(count, this->ct, this->current_station, cp->LoadedAtXY(), cp->DaysInTransit(), this->owner, cp->SourceSubsidyType(), cp->SourceSubsidyID());
 
-	profit -= cp->FeederShare(count);
+	// profit -= cp->FeederShare(count);
 
 	/* For Infrastructure patch. Handling transfers between other companies */
 	this->route_profit += profit;
-	cp->PayDeferredPayments();
+	// cp->PayDeferredPayments();
 
 	/* The vehicle's profit is whatever route profit there is minus feeder shares. */
 	this->visual_profit += profit;
@@ -1295,18 +1295,22 @@ void CargoPayment::PayFinalDelivery(CargoPacket *cp, uint count)
  */
 Money CargoPayment::PayTransfer(CargoPacket *cp, uint count)
 {
-	Money profit = -cp->FeederShare(count) + GetTransportedGoodsIncome(
+	// Money profit = -cp->FeederShare(count) + GetTransportedGoodsIncome(
+	Money profit = GetTransportedGoodsIncome(
 			count,
 			/* pay transfer vehicle the difference between the payment for the journey from
 			 * the source to the current point, and the sum of the previous transfer payments */
-			DistanceManhattan(cp->SourceStationXY(), Station::Get(this->current_station)->xy),
+			// DistanceManhattan(cp->SourceStationXY(), Station::Get(this->current_station)->xy),
+			DistanceManhattan(cp->LoadedAtXY(), Station::Get(this->current_station)->xy),
 			cp->DaysInTransit(),
 			this->ct);
 
-	profit = profit * _settings_game.economy.feeder_payment_share / 100;
+	// profit = profit * _settings_game.economy.feeder_payment_share / 100;
 
 	/* For Infrastructure patch. Handling transfers between other companies */
 	cp->RegisterDeferredCargoPayment(this->front->owner, this->front->type, profit);
+
+	this->route_profit += profit;
 
 	this->visual_transfer += profit; // accumulate transfer profits for whole vehicle
 	return profit; // account for the (virtual) profit already made for the cargo packet

@@ -87,7 +87,11 @@ public:
 	 * Sets the tile where the packet was loaded last.
 	 * @param load_place Tile where the packet was loaded last.
 	 */
-	void SetLoadPlace(TileIndex load_place) { this->loaded_at_xy = load_place; }
+	void SetLoadPlace(TileIndex load_place)
+	{
+		this->loaded_at_xy = load_place;
+		this->days_in_transit = 0;
+	}
 
 	/**
 	 * Sets the station where the packet is supposed to go next.
