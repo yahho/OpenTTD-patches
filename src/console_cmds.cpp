@@ -53,6 +53,9 @@
 #include "linkgraph/linkgraphjob.h"
 #include "base_media_base.h"
 #include "debug_settings.h"
+#include "debug_desync.h"
+#include "scope_info.h"
+#include "event_logs.h"
 #include <time.h>
 
 #include "safeguards.h"
@@ -2247,6 +2250,19 @@ DEF_CONSOLE_CMD(ConDumpCommandLog)
 	return true;
 }
 
+DEF_CONSOLE_CMD(ConDumpSpecialEventsLog)
+{
+	if (argc == 0) {
+		IConsoleHelp("Dump log of special events.");
+		return true;
+	}
+
+	char buffer[32768];
+	DumpSpecialEventsLog(buffer, lastof(buffer));
+	PrintLineByLine(buffer);
+	return true;
+}
+
 DEF_CONSOLE_CMD(ConDumpDesyncMsgLog)
 {
 	if (argc == 0) {
@@ -2622,6 +2638,23 @@ DEF_CONSOLE_CMD(ConDumpCargoTypes)
 	return true;
 }
 
+DEF_CONSOLE_CMD(ConDumpVehicle)
+{
+	if (argc != 2) {
+		IConsoleHelp("Debug: Show vehicle information.  Usage: 'dump_vehicle <vehicle-id>'");
+		return true;
+	}
+
+	const Vehicle *v = Vehicle::GetIfValid(atoi(argv[1]));
+	if (v != nullptr) {
+		IConsolePrint(CC_DEFAULT, scope_dumper().VehicleInfo(v));
+	} else {
+		IConsolePrint(CC_DEFAULT, "No such vehicle");
+	}
+
+	return true;
+}
+
 /**
  * Dump the state of a tile on the map.
  * param x tile number or tile x coordinate.
@@ -2677,7 +2710,7 @@ DEF_CONSOLE_CMD(ConDumpTile)
 DEF_CONSOLE_CMD(ConCheckCaches)
 {
 	if (argc == 0) {
-		IConsoleHelp("Debug: Check caches");
+		IConsoleHelp("Debug: Check caches. Usage: 'check_caches [<broadcast>]'");
 		return true;
 	}
 
@@ -2687,8 +2720,7 @@ DEF_CONSOLE_CMD(ConCheckCaches)
 	if (broadcast) {
 		DoCommandP(0, 0, 0, CMD_DESYNC_CHECK);
 	} else {
-		extern void CheckCaches(bool force_check, std::function<void(const char *)> log);
-		CheckCaches(true, nullptr);
+		CheckCaches(true, nullptr, CHECK_CACHE_ALL | CHECK_CACHE_EMIT_LOG);
 	}
 
 	return true;
@@ -3451,6 +3483,7 @@ void IConsoleStdLibRegister()
 
 	IConsole::CmdRegister("getfulldate",             ConGetFullDate,      nullptr, true);
 	IConsole::CmdRegister("dump_command_log",        ConDumpCommandLog,   nullptr, true);
+	IConsole::CmdRegister("dump_special_events_log", ConDumpSpecialEventsLog, nullptr, true);
 	IConsole::CmdRegister("dump_desync_msgs",        ConDumpDesyncMsgLog, nullptr, true);
 	IConsole::CmdRegister("dump_inflation",          ConDumpInflation,    nullptr, true);
 	IConsole::CmdRegister("dump_cpdp_stats",         ConDumpCpdpStats,    nullptr, true);
@@ -3465,6 +3498,7 @@ void IConsoleStdLibRegister()
 	IConsole::CmdRegister("dump_rail_types",         ConDumpRailTypes,    nullptr, true);
 	IConsole::CmdRegister("dump_bridge_types",       ConDumpBridgeTypes,  nullptr, true);
 	IConsole::CmdRegister("dump_cargo_types",        ConDumpCargoTypes,   nullptr, true);
+	IConsole::CmdRegister("dump_vehicle",            ConDumpVehicle,      nullptr, true);
 	IConsole::CmdRegister("dump_tile",               ConDumpTile,         nullptr, true);
 	IConsole::CmdRegister("check_caches",            ConCheckCaches,      nullptr, true);
 	IConsole::CmdRegister("show_town_window",        ConShowTownWindow,   nullptr, true);

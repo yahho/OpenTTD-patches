@@ -67,6 +67,7 @@
 #include "../animated_tile.h"
 #include "../company_func.h"
 #include "../infrastructure_func.h"
+#include "../event_logs.h"
 
 
 #include "saveload_internal.h"
@@ -3743,7 +3744,7 @@ bool AfterLoadGame()
 		}
 	}
 
-	if (IsSavegameVersionUntil(SLV_ENDING_YEAR) || !SlXvIsFeaturePresent(XSLFI_MULTIPLE_DOCKS, 2) || !SlXvIsFeaturePresent(XSLFI_DOCKING_CACHE_VER, 1)) {
+	if (IsSavegameVersionUntil(SLV_ENDING_YEAR) || !SlXvIsFeaturePresent(XSLFI_MULTIPLE_DOCKS, 2) || !SlXvIsFeaturePresent(XSLFI_DOCKING_CACHE_VER, 2)) {
 		/* Update station docking tiles. Was only needed for pre-SLV_MULTITLE_DOCKS
 		 * savegames, but a bug in docking tiles touched all savegames between
 		 * SLV_MULTITILE_DOCKS and SLV_ENDING_YEAR. */
@@ -4030,6 +4031,7 @@ bool AfterLoadGame()
 void ReloadNewGRFData()
 {
 	RegisterGameEvents(GEF_RELOAD_NEWGRF);
+	AppendSpecialEventsLogEntry("NewGRF reload");
 
 	RailTypeLabel rail_type_label_map[RAILTYPE_END];
 	for (RailType rt = RAILTYPE_BEGIN; rt != RAILTYPE_END; rt++) {
