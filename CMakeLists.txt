@@ -119,7 +119,12 @@ find_package(Threads REQUIRED)
 find_package(ZLIB)
 find_package(LibLZMA)
 find_package(LZO)
-find_package(ZSTD 1.4 CONFIG)
+if (VCPKG_TOOLCHAIN)
+    find_package(ZSTD 1.4 CONFIG)
+else()
+    find_package(ZSTD 1.4)
+endif ()
+
 find_package(PNG)
 
 if(NOT OPTION_DEDICATED)
