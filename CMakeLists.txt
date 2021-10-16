@@ -96,6 +96,7 @@ if(OPTION_TOOLS_ONLY)
                     -DCPACK_BINARY_DIR=${CMAKE_BINARY_DIR}
                     -DREV_MAJOR=${PROJECT_VERSION_MAJOR}
                     -DREV_MINOR=${PROJECT_VERSION_MINOR}
+                    -DREV_BUILD=${PROJECT_VERSION_PATCH}
                     $<$<PLATFORM_ID:Windows>:-DWIN32=TRUE>
                     -P "${CMAKE_SOURCE_DIR}/cmake/scripts/FindVersion.cmake"
             WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
@@ -118,7 +119,7 @@ find_package(Threads REQUIRED)
 find_package(ZLIB)
 find_package(LibLZMA)
 find_package(LZO)
-find_package(ZSTD 1.4)
+find_package(ZSTD 1.4 CONFIG)
 find_package(PNG)
 find_package(nlohmann_json)
 
@@ -345,7 +346,11 @@ link_package(PNG TARGET PNG::PNG ENCOURAGED)
 link_package(ZLIB TARGET ZLIB::ZLIB ENCOURAGED)
 link_package(LIBLZMA TARGET LibLZMA::LibLZMA ENCOURAGED)
 link_package(LZO)
-link_package(ZSTD TARGET ZSTD::ZSTD RECOMMENDED)
+if(VCPKG_TOOLCHAIN)
+    link_package(ZSTD TARGET zstd::libzstd_static RECOMMENDED)
+else()
+    link_package(ZSTD TARGET ZSTD::ZSTD RECOMMENDED)
+endif()
 link_package(nlohmann_json ENCOURAGED)
 
 if(NOT WIN32 AND NOT EMSCRIPTEN)
@@ -501,6 +506,7 @@ add_custom_target(find_version
                 -DCPACK_BINARY_DIR=${CMAKE_BINARY_DIR}
                 -DREV_MAJOR=${PROJECT_VERSION_MAJOR}
                 -DREV_MINOR=${PROJECT_VERSION_MINOR}
+                -DREV_BUILD=${PROJECT_VERSION_PATCH}
                 -DCONFIGURE_DEFINES="${CFG_DEFS}"
                 $<$<PLATFORM_ID:Windows>:-DWIN32=TRUE>
                 -P "${CMAKE_SOURCE_DIR}/cmake/scripts/FindVersion.cmake"
