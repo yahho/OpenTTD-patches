@@ -717,6 +717,7 @@ jobs:
           libpng \
           lzo \
           zlib \
+          zstd \
           # EOF
 
     - name: Install MSVC problem matcher

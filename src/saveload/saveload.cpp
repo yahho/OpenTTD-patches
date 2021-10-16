@@ -83,7 +83,7 @@ FileToSaveLoad _file_to_saveload; ///< File to save or load in the openttd loop.
 uint32 _ttdp_version;        ///< version of TTDP savegame (if applicable)
 SaveLoadVersion _sl_version; ///< the major savegame version identifier
 byte   _sl_minor_version;    ///< the minor savegame version, DO NOT USE!
-char _savegame_format[8];    ///< how to compress savegames
+char _savegame_format[10];    ///< how to compress savegames
 bool _do_autosave;           ///< are we doing an autosave at the moment?
 
 extern bool _sl_is_ext_version;

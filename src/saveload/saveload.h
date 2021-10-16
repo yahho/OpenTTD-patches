@@ -1133,7 +1133,7 @@ bool SaveloadCrashWithMissingNewGRFs();
 void SlResetVENC();
 void SlProcessVENC();
 
-extern char _savegame_format[8];
+extern char _savegame_format[10];
 extern bool _do_autosave;
 
 #endif /* SAVELOAD_H */
