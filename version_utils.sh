@@ -130,7 +130,7 @@ if [ -n "$RELEASETAG" ]; then
 		exit 1
 	fi
 	if ! git diff-index --quiet --cached HEAD; then
-		echo "Repo is dirty, aborting" >&2
+		echo "Repo(Cached) is dirty, aborting" >&2
 		exit 1
 	fi
 	if [ "${RELEASETAG:0:9}" = "jgrpp-ya-" -a -n "${RELEASETAG:9}" ]; then
