@@ -1,6 +1,9 @@
 name: Release
 
 on:
+  push:
+    tags:
+      - 'jgrpp-ya-[0-9]+.[0-9]+.[0-9]+\+[0-9]+'
   workflow_dispatch:
     inputs:
       ref:
@@ -81,3 +84,33 @@ jobs:
     with:
       is_tag: ${{ needs.source.outputs.is_tag }}
       survey_key: ${{ needs.source.outputs.survey_key }}
+
+  upload-gh-rel:
+    name: Upload (GitHub Release)
+    needs:
+      - source
+      - linux
+      - linux_distros
+      - macos
+      - windows
+    if: always() && (github.event_name == 'release' || github.event_name == 'push' || github.event_name == 'workflow_dispatch') && needs.linux.result == 'success' && (needs.linux_distros.result == 'success' || needs.linux_distros.result == 'skipped') && needs.macos.result == 'success' && needs.windows.result == 'success'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download all bundles
+        uses: actions/download-artifact@v2
+
+      - name: Prepare files for Release
+        run: |
+          echo "::group::Rip some files & Move bundles to a single folder"
+          rm -rf openttd-docs
+          rm -rf openttd-source
+          rm openttd-macos-universal/openttd-${{ needs.source.outputs.version }}-*.zip
+          mkdir bundles
+          mv openttd-*/* bundles/
+          echo "::endgroup::"
+
+      - name: Upload bundles to GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: bundles/openttd-*

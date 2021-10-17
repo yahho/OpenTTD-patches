@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Script to scan the OpenTTD source-tree for STR_ entries that are defined but
 no longer used.
@@ -22,6 +23,7 @@ from enum import Enum
 
 LENGTH_NAME_LOOKUP = {
     "VEHICLE_TYPES": 4,
+    "VEHICLE_TYPES_TRAIN_SEPARATE": 6,
 }
 
 
@@ -173,11 +175,11 @@ def scan_source_files(path, strings_found):
             p = subprocess.run(["g++", "-E", new_path], stdout=subprocess.PIPE)
             output = p.stdout.decode()
         else:
-            with open(new_path) as fp:
+            with open(new_path, encoding='utf-8') as fp:
                 output = fp.read()
 
         # Find all the string references.
-        matches = re.findall(r"[^A-Z_](STR_[A-Z0-9_]*)", output)
+        matches = re.findall(r"[^A-Z_](STR_[A-Zx0-9_]*)", output)
         strings_found.update(matches)
 
 
@@ -193,10 +195,15 @@ def main():
     # These are mentioned in comments, not really a string.
     strings_found.remove("STR_XXX")
     strings_found.remove("STR_NEWS")
-    strings_found.remove("STR_CONTENT_TYPE_")
+    strings_found.remove("STR_CONTENT_TYPE_xxx")
 
     # This string is added for completion, but never used.
     strings_defined.remove("STR_JUST_DATE_SHORT")
+    #strings_defined.remove("STR_JUST_DATE_WALLCLOCK_SHORT")
+    #strings_defined.remove("STR_JUST_DATE_WALLCLOCK_LONG")
+    #strings_defined.remove("STR_JUST_DATE_WALLCLOCK_ISO")
+    #strings_defined.remove("STR_JUST_TIME_HHMM")
+    strings_defined.remove("STR_WHITE_DATE_WALLCLOCK_SHORT")
 
     strings_defined = sorted(strings_defined)
     strings_found = sorted(list(strings_found))
