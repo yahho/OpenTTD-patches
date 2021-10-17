@@ -65,6 +65,8 @@ function handle_source {
 function find_hasher {
 	if [ "`echo -n "test" | sha256sum 2> /dev/null`" == "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08  -" ]; then
 		HASH_CMD=sha256sum
+	elif [ "`echo -n "test" | sha256sum 2> /dev/null`" == "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08 *-" ]; then
+		HASH_CMD="sha256sum -t"
 	elif [ "`echo -n "test" | shasum -a 256 2> /dev/null`" == "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08  -" ]; then
 		HASH_CMD="shasum -a 256"
 	elif [ "`echo -n "test" | shasum -a 256 -p 2> /dev/null`" == "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08  -" ]; then
@@ -116,23 +118,23 @@ if [ -n "$WRITE" ]; then
 fi
 
 function unignore_files {
-	git update-index --no-assume-unchanged README.md jgrpp-changelog.md .ottdrev-vc
+	git update-index --no-assume-unchanged README.md jgrpp-ya-changelog.md .ottdrev-vc
 }
 
 if [ -n "$RELEASETAG" ]; then
-	git update-index --assume-unchanged README.md jgrpp-changelog.md .ottdrev-vc
+	git update-index --assume-unchanged README.md jgrpp-ya-changelog.md .ottdrev-vc
 	trap unignore_files EXIT
 	if ! git diff-index --quiet HEAD; then
 		echo "Repo is dirty, aborting" >&2
 		exit 1
 	fi
 	if ! git diff-index --quiet --cached HEAD; then
-		echo "Repo is dirty, aborting" >&2
+		echo "Repo(Cached) is dirty, aborting" >&2
 		exit 1
 	fi
-	if [ "${RELEASETAG:0:6}" = "jgrpp-" -a -n "${RELEASETAG:6}" ]; then
-		if ! grep -q -e "^### v${RELEASETAG:6} (" jgrpp-changelog.md; then
-			echo "v${RELEASETAG:6} is not in changelog, aborting" >&2
+	if [ "${RELEASETAG:0:9}" = "jgrpp-ya-" -a -n "${RELEASETAG:9}" ]; then
+		if ! grep -q -e "^### v${RELEASETAG:9} (" jgrpp-ya-changelog.md; then
+			echo "v${RELEASETAG:9} is not in changelog, aborting" >&2
 			exit 1
 		fi
 	fi
@@ -145,10 +147,10 @@ if [ -n "$RELEASETAG" ]; then
 	fi
 	unignore_files
 	trap '' EXIT
-	if [ "${RELEASETAG:0:6}" = "jgrpp-" -a -n "${RELEASETAG:6}" ]; then
-		sed -i "1 s/^\(## JGR's Patchpack version \).\+/\1${RELEASETAG:6}/" README.md
+	if [ "${RELEASETAG:0:9}" = "jgrpp-ya-" -a -n "${RELEASETAG:9}" ]; then
+		sed -i "1 s/^\(## JGR's Patchpack + Yahho's additions version \).\+/\1${RELEASETAG:9}/" README.md
 	fi
-	git add .ottdrev-vc README.md jgrpp-changelog.md
+	git add .ottdrev-vc README.md jgrpp-ya-changelog.md
 	git commit -m "Version: Committing version data for tag: $RELEASETAG"
 	git tag -f "$RELEASETAG"
 fi

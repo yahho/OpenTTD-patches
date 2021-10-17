@@ -7,3 +7,5 @@ docs/source/*
 /out
 /vcpkg_installed
 *.tmp
+/cmake-*
+/.idea
