@@ -1,4 +1,4 @@
-## JGR's Patchpack version 0.55.3
+## JGR's Patchpack + Yahho's additions version 0.54.5+0
 
 This is a collection of patches applied to [OpenTTD](http://www.openttd.org/)
 
@@ -197,7 +197,6 @@ See [installation.md](/installation.md) for instructions on how to install.
 * Add public roads (road network automatically built between towns) at map generation and in the scenario editor.
 * Add settings for if/when towns can build road bridges and tunnels.
 * Add setting to limit length of continuous inclined roads built by towns.
-* Add setting for whether to allow converting town road to non-house types.
 * Allow overriding town road construction settings and whether town growth is enabled on a per-town basis, add setting to enable this for multiplayer clients.
 * Allow NewGRFs to set town zone radii.
 * Show town count in town directory window.
@@ -229,7 +228,7 @@ See [installation.md](/installation.md) for instructions on how to install.
 * Add setting to disable object expiry after a given year.
 * Add setting to ignore object introduction dates.
 * Add setting for whether to confirm before demolishing industries and/or rail stations.
-* Add picker tool for objects, rail types, road types, rail stations/waypoint, road stops/waypoints and signals, to the main toolbar help menu.
+* Add picker tool for objects, rail types, road types, rail stations/waypoints and road stops/waypoints, to the main toolbar help menu.
 
 #### Scenario Editor
 
@@ -561,6 +560,9 @@ See `src/3rdparty/squirrel/COPYRIGHT` for the complete license text.
 
 The md5 implementation in `src/3rdparty/md5` is licensed under the Zlib license.
 See the comments in the source files in `src/3rdparty/md5` for the complete license text.
+
+The implementations of Posix `getaddrinfo` and `getnameinfo` for OS/2 in `src/3rdparty/os2` are distributed partly under the GNU Lesser General Public License 2.1, and partly under the (3-clause) BSD license.
+The exact licensing terms can be found in `src/3rdparty/os2/getaddrinfo.c` resp. `src/3rdparty/os2/getnameinfo.c`.
 
 The fmt implementation in `src/3rdparty/fmt` is licensed under the MIT license.
 See `src/3rdparty/fmt/LICENSE.rst` for the complete license text.
