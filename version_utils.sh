@@ -119,11 +119,11 @@ if [ -n "$WRITE" ]; then
 fi
 
 function unignore_files {
-	git update-index --no-assume-unchanged README.md jgrpp-changelog.md .ottdrev-vc
+	git update-index --no-assume-unchanged README.md jgrpp-ya-changelog.md .ottdrev-vc
 }
 
 if [ -n "$RELEASETAG" ]; then
-	git update-index --assume-unchanged README.md jgrpp-changelog.md .ottdrev-vc
+	git update-index --assume-unchanged README.md jgrpp-ya-changelog.md .ottdrev-vc
 	trap unignore_files EXIT
 	if ! git diff-index --quiet HEAD; then
 		echo "Repo is dirty, aborting" >&2
@@ -133,9 +133,9 @@ if [ -n "$RELEASETAG" ]; then
 		echo "Repo is dirty, aborting" >&2
 		exit 1
 	fi
-	if [ "${RELEASETAG:0:6}" = "jgrpp-" -a -n "${RELEASETAG:6}" ]; then
-		if ! grep -q -e "^### v${RELEASETAG:6} (" jgrpp-changelog.md; then
-			echo "v${RELEASETAG:6} is not in changelog, aborting" >&2
+	if [ "${RELEASETAG:0:9}" = "jgrpp-ya-" -a -n "${RELEASETAG:9}" ]; then
+		if ! grep -q -e "^### v${RELEASETAG:9} (" jgrpp-ya-changelog.md; then
+			echo "v${RELEASETAG:9} is not in changelog, aborting" >&2
 			exit 1
 		fi
 	fi
@@ -148,10 +148,10 @@ if [ -n "$RELEASETAG" ]; then
 	fi
 	unignore_files
 	trap '' EXIT
-	if [ "${RELEASETAG:0:6}" = "jgrpp-" -a -n "${RELEASETAG:6}" ]; then
-		sed -i "1 s/^\(## JGR's Patchpack version \).\+/\1${RELEASETAG:6}/" README.md
+	if [ "${RELEASETAG:0:9}" = "jgrpp-ya-" -a -n "${RELEASETAG:9}" ]; then
+		sed -i "1 s/^\(## JGR's Patchpack + Yahho's additions version \).\+/\1${RELEASETAG:9}/" README.md
 	fi
-	git add .ottdrev-vc README.md jgrpp-changelog.md
+	git add .ottdrev-vc README.md jgrpp-ya-changelog.md
 	git commit -m "Version: Committing version data for tag: $RELEASETAG"
 	git tag -f "$RELEASETAG"
 fi
