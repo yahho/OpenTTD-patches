@@ -176,8 +176,8 @@ else()
     set(REV_YEAR "1970")
 endif()
 
-string(REGEX MATCH "^jgrpp-[0-9]+(\.[0-9]+)?(\.[0-9]+)?" REV_RELEASE "${REV_RELEASE}")
-string(REPLACE "jgrpp-" "" REV_RELEASE "${REV_RELEASE}")
+string(REGEX MATCH "^jgrpp-ya-[0-9]+(\.[0-9]+)?(\.[0-9]+)?" REV_RELEASE "${REV_RELEASE}")
+string(REPLACE "jgrpp-ya-" "" REV_RELEASE "${REV_RELEASE}")
 
 message(STATUS "Version string: ${REV_VERSION}, Release: ${REV_RELEASE}")
 
