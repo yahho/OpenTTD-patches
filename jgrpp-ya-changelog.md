@@ -2,8 +2,11 @@
 
 * * *
 
+### v0.43.1+2 (2021-10-19)
+* Fix Release failure
+
 ### v0.43.1+1 (2021-10-18)
-* include upstream BugFix
+* Include upstream BugFix
 * Add Command createtown
 
 ### v0.43.1+0 (2021-10-17)
