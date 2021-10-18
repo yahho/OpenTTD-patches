@@ -821,6 +821,37 @@ jobs:
         path: build/bundles
         retention-days: 5
 
+  upload-gh-rel:
+    name: Upload (GitHub Release)
+    needs:
+      - source
+      - linux
+      - linux-distro
+      - macos
+      - windows
+    if: always() && github.event_name == 'release' && needs.linux.result == 'success' && (needs.linux-distro.result == 'success' || needs.linux-distro.result == 'skipped') && needs.macos.result == 'success' && needs.windows.result == 'success'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download all bundles
+        uses: actions/download-artifact@v2
+
+      - name: Prepair files for Release
+        run: |
+          echo "::group::Rip some files & Move bundles to a single folder"
+          rm -rf openttd-docs
+          rm -rf openttd-sources
+          rm openttd-macos-universal/openttd-${{ needs.source.outputs.version }}-*.zip
+          rm openttd-windows-*/openttd-${{ needs.source.outputs.version }}-*.exe
+          mkdir bundles
+          mv openttd-*/* bundles/
+          echo "::endgroup::"
+
+      - name: Upload bundles to GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: bundles/*
+
   upload:
     name: Upload (AWS)
     needs:

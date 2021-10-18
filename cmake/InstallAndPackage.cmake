@@ -41,6 +41,7 @@ install(FILES
                 ${CMAKE_SOURCE_DIR}/docs/multiplayer.md
                 ${CMAKE_SOURCE_DIR}/known-bugs.txt
                 ${CMAKE_SOURCE_DIR}/jgrpp-changelog.md
+                ${CMAKE_SOURCE_DIR}/jgrpp-ya-changelog.md
         DESTINATION ${DOCS_DESTINATION_DIR}
         COMPONENT docs)
 
@@ -101,12 +102,12 @@ endif()
 set(CPACK_SYSTEM_NAME "${ARCHITECTURE}")
 
 set(CPACK_PACKAGE_NAME "openttd")
-set(CPACK_PACKAGE_VENDOR "OpenTTD (JGRPP)")
-set(CPACK_PACKAGE_DESCRIPTION "OpenTTD (JGRPP)")
-set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "OpenTTD (JGRPP)")
-set(CPACK_PACKAGE_HOMEPAGE_URL "https://github.com/JGRennison/OpenTTD-patches")
-set(CPACK_PACKAGE_CONTACT "https://github.com/JGRennison/OpenTTD-patches")
-set(CPACK_PACKAGE_INSTALL_DIRECTORY "OpenTTD-JGRPP")
+set(CPACK_PACKAGE_VENDOR "OpenTTD (JGRPP + YA)")
+set(CPACK_PACKAGE_DESCRIPTION "OpenTTD (JGRPP + YA)")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "OpenTTD (JGRPP + YA)")
+set(CPACK_PACKAGE_HOMEPAGE_URL "https://github.com/yahho/OpenTTD-patches")
+set(CPACK_PACKAGE_CONTACT "https://github.com/yahho/OpenTTD-patches")
+set(CPACK_PACKAGE_INSTALL_DIRECTORY "OpenTTD-JGRPP-YA")
 set(CPACK_PACKAGE_CHECKSUM "SHA256")
 
 if((APPLE OR WIN32) AND EXISTS ${PANDOC_EXECUTABLE})
