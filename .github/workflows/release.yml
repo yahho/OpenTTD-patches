@@ -1,6 +1,9 @@
 name: Release
 
 on:
+  push:
+    tags:
+      - 'jgrpp-ya-[0-9]+.[0-9]+.[0-9]+\+[0-9]+'
   workflow_dispatch:
     inputs:
       ref:
@@ -840,7 +843,7 @@ jobs:
         run: |
           echo "::group::Rip some files & Move bundles to a single folder"
           rm -rf openttd-docs
-          rm -rf openttd-sources
+          rm -rf openttd-source
           rm openttd-macos-universal/openttd-${{ needs.source.outputs.version }}-*.zip
           rm openttd-windows-*/openttd-${{ needs.source.outputs.version }}-*.exe
           mkdir bundles
@@ -850,7 +853,7 @@ jobs:
       - name: Upload bundles to GitHub Release
         uses: softprops/action-gh-release@v1
         with:
-          files: bundles/*
+          files: bundles/openttd-*
 
   upload:
     name: Upload (AWS)
