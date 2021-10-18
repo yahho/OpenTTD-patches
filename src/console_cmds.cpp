@@ -48,6 +48,7 @@
 #include "waypoint_func.h"
 #include "economy_func.h"
 #include "town.h"
+#include "town_type.h"
 #include "industry.h"
 #include "string_func_extra.h"
 #include "linkgraph/linkgraphjob.h"
@@ -3350,6 +3351,37 @@ DEF_CONSOLE_CMD(ConDumpInfo)
 	return false;
 }
 
+void CcCreateTown(const CommandCost& result, TileIndex tile, uint32 p1, uint32 p2, uint64 p3, uint32 cmd)
+{
+
+}
+
+DEF_CONSOLE_CMD(ConCreateTown)
+{
+	if (argc < 3) {
+		IConsoleHelp("Create a town");
+		IConsoleHelp("Usage: createtown x y name");
+		return true;
+	}
+
+	uint32 x, y;
+	TileIndex tile;
+	if (GetArgumentInteger(&x, argv[1]) && GetArgumentInteger(&y, argv[2])) {
+		if (x >= MapSizeX() || y >= MapSizeY()) {
+			IConsolePrint(CC_ERROR, "Tile does not exist");
+			return true;
+		}
+
+		tile = TileXY(x, y);
+		uint32 townnameparts = 0;
+		ScrollMainWindowToTile(tile);
+
+		return DoCommandP(tile, TSZ_MEDIUM | 0 | TL_BETTER_ROADS << 3, townnameparts, CMD_FOUND_TOWN, CcCreateTown, argv[3]);
+	}
+
+	return false;
+}
+
 /*******************************
  * console command registration
  *******************************/
@@ -3503,6 +3535,7 @@ void IConsoleStdLibRegister()
 	IConsole::CmdRegister("fps_wnd",                 ConFramerateWindow);
 
 	IConsole::CmdRegister("find_non_realistic_braking_signal", ConFindNonRealisticBrakingSignal);
+	IConsole::CmdRegister("create_town", ConCreateTown);
 
 	IConsole::CmdRegister("getfulldate",             ConGetFullDate,      nullptr, true);
 	IConsole::CmdRegister("dump_command_log",        ConDumpCommandLog,   nullptr, true);
