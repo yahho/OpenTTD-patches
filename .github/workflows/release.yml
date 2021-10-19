@@ -83,7 +83,7 @@ jobs:
       - linux-distro
       - macos
       - windows
-    if: always() && github.event_name == 'release' && needs.linux.result == 'success' && (needs.linux-distro.result == 'success' || needs.linux-distro.result == 'skipped') && needs.macos.result == 'success' && needs.windows.result == 'success'
+    if: always() && (github.event_name == 'release' || github.event_name == 'push') && needs.linux.result == 'success' && (needs.linux-distro.result == 'success' || needs.linux-distro.result == 'skipped') && needs.macos.result == 'success' && needs.windows.result == 'success'
     runs-on: ubuntu-latest
 
     steps:

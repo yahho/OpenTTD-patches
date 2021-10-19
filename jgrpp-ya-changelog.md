@@ -2,14 +2,14 @@
 
 * * *
 
-### v0.43.1+2 (2021-10-19)
+### v0.43.1+2 (2021-10-20)
 * Fix Release failure
 * Add result message for command 'createtown'
 * Include upstream(jgrpp) BugFix
 
 ### v0.43.1+1 (2021-10-18)
 * Include upstream(jgrpp) BugFix
-* Add Command 'createtown'
+* Cherry-pick sjcl's 'createtown' command patch
 
 ### v0.43.1+0 (2021-10-17)
 * Fix zstd for windows build
