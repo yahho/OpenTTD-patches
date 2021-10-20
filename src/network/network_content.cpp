@@ -219,7 +219,20 @@ void ClientNetworkContentSocketHandler::RequestContentList(ContentType type)
 	 */
 
 	p->Send_string("jgrpp");
-	p->Send_string(_openttd_release_version);
+    // workaround
+    short len = 0;
+    for (short i = 0; i < strlen(_openttd_release_version) && i != MAXSHORT; ++i) {
+        if (_openttd_release_version[i] == '+') {
+            len = i;
+            break;
+        }
+    }
+    if (len == 0) p->Send_string(_openttd_release_version);
+    else {
+        char *_workaround_relver = new char [len];
+        strecpy(_workaround_relver, _openttd_release_version, _workaround_relver + len);
+        p->Send_string(_workaround_relver);
+    }
 
 	this->SendPacket(p);
 }
