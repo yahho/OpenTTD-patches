@@ -2,6 +2,10 @@
 
 * * *
 
+### v0.43.1+3 (2021-10-21)
+* Add workaround online contents browser issue
+* Fix some Japanese translation
+
 ### v0.43.1+2 (2021-10-20)
 * Fix Release failure
 * Add result message for command 'createtown'
