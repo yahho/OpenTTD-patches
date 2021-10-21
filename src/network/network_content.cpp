@@ -221,7 +221,7 @@ void ClientNetworkContentSocketHandler::RequestContentList(ContentType type)
 	p->Send_string("jgrpp");
     // workaround
     short len = 0;
-    for (short i = 0; i < strlen(_openttd_release_version) && i != MAXSHORT; ++i) {
+    for (short i = 0; i < strlen(_openttd_release_version) && i != 0x7fff; ++i) {
         if (_openttd_release_version[i] == '+') {
             len = i;
             break;
