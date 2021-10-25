@@ -178,8 +178,9 @@ endif()
 
 string(REGEX MATCH "^jgrpp-ya-[0-9]+(\\.[0-9]+)?(\\.[0-9]+)?(\\+[0-9]+)?" REV_RELEASE "${REV_RELEASE}")
 string(REPLACE "jgrpp-ya-" "" REV_RELEASE "${REV_RELEASE}")
+string(REGEX MATCH "^[0-9]+(\\.[0-9]+)?(\\.[0-9]+)?" REV_JGRPP "${REV_RELEASE}")
 
-message(STATUS "Version string: ${REV_VERSION}, Release: ${REV_RELEASE}")
+message(STATUS "Version string: ${REV_VERSION}, Release: ${REV_RELEASE}, Online contents compatible jgrpp version: ${REV_JGRPP}")
 
 if(GENERATE_OTTDREV)
     message(STATUS "Generating ${GENERATE_OTTDREV}")

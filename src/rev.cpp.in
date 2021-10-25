@@ -40,6 +40,12 @@ const char _openttd_revision[] = "${REV_VERSION}";
 const char _openttd_release_version[] = "${REV_RELEASE}";
 
 /**
+ * The based JGR's patch pack version.
+ * This presents compatible jgrpp version for online contents
+ */
+const char _jgrpp_content_version[] = "${REV_JGRPP}";
+
+/**
  * The text version of OpenTTD's build date.
  * Updating the build date in this file is the safest as it generally gets
  * updated for each revision in contrary to most other files that only see
