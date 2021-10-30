@@ -809,7 +809,7 @@ jobs:
       run: |
         cd ${GITHUB_WORKSPACE}/build
         echo "::group::Run CPack"
-        cpack
+        "C:\Program Files\CMake\bin\cpack.exe"
         echo "::endgroup::"
 
         echo "::group::Prepare PDB to be bundled"
