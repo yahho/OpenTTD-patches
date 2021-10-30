@@ -2,6 +2,9 @@
 
 * * *
 
+### v0.43.2+0 (2021-10-30)
+* Update base jgrpp version to 0.43.2
+
 ### v0.43.1+3 (2021-10-21)
 * Add workaround online contents browser issue
 * Fix some Japanese translation
