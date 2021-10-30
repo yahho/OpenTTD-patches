@@ -2155,6 +2155,12 @@ STR_CONFIG_SETTING_INDUSTRY_CARGO_FACTOR                        :産業の貨物
 STR_CONFIG_SETTING_INDUSTRY_CARGO_FACTOR_HELPTEXT               :一次産業の貨物生産がおおよそ2の因数乗(指数関数)でスケールします。 これには林業は含まれません。{}すべての産業NewGRFと完全な互換性があることは保障されていません。
 STR_CONFIG_SETTING_TOWN_ABOVE_HEIGHT                            :街がなくなる標高: {STRING}
 STR_CONFIG_SETTING_TOWN_ABOVE_HEIGHT_HELPTEXT                   :マップ生成時に指定された以上の標高の場所に街が生成されなくなります。
+STR_CONFIG_SETTING_MIN_TOWN_LAND_AREA                           :街の最小隣接土地面積: {STRING}
+STR_CONFIG_SETTING_MIN_TOWN_LAND_AREA_HELPTEXT                  :街は、少なくともこれだけの数の隣接する陸地タイルにのみ配置できます。
+STR_CONFIG_SETTING_MIN_CITY_LAND_AREA                           :都市の最小隣接土地面積: {STRING}
+STR_CONFIG_SETTING_MIN_CITY_LAND_AREA_HELPTEXT                  :都市は少なくともこれだけの数の隣接する陸地タイルにのみ配置できます。
+STR_CONFIG_SETTING_MIN_LAND_AREA_VALUE                          :{NUM}
+STR_CONFIG_SETTING_MIN_LAND_AREA_ZERO                           :オフ
 
 STR_CONFIG_SETTING_EXTRA_TREE_PLACEMENT                         :樹木の自然成長: {STRING}
 STR_CONFIG_SETTING_EXTRA_TREE_PLACEMENT_HELPTEXT                :ゲーム中、ランダムに生えてくる樹種を設定します。設定によっては樹木の生育に依存する産業に悪影響が生じる可能性があります(「不可」にした場合、亜熱帯地域の伐採所を機能させ続けるためには手動で植林し続ける必要があります)
@@ -3332,12 +3338,18 @@ STR_TRACE_RESTRICT_NO_PBS_BACK_PENALTY_CANCEL_SHORT             :パス信号裏
 STR_TRACE_RESTRICT_TIME_MINUTE                                  :現在の分 (0 - 59)
 STR_TRACE_RESTRICT_TIME_HOUR                                    :現在の時 (0 - 23)
 STR_TRACE_RESTRICT_TIME_HOUR_MINUTE                             :現在の時と分 (0 - 2359)
+STR_TRACE_RESTRICT_TIME_DAY                                     :現在の日 (1 - 31)
+STR_TRACE_RESTRICT_TIME_MONTH                                   :現在の月 (1 - 12)
 STR_TRACE_RESTRICT_TIME_MINUTE_ITEM                             :現在の分
 STR_TRACE_RESTRICT_TIME_HOUR_ITEM                               :現在の時
 STR_TRACE_RESTRICT_TIME_HOUR_MINUTE_ITEM                        :現在の時と分
+STR_TRACE_RESTRICT_TIME_DAY_ITEM                                :現在の日
+STR_TRACE_RESTRICT_TIME_MONTH_ITEM                              :現在の月
 STR_TRACE_RESTRICT_TIME_MINUTE_SHORT                            :分
 STR_TRACE_RESTRICT_TIME_HOUR_SHORT                              :時
 STR_TRACE_RESTRICT_TIME_HOUR_MINUTE_SHORT                       :時と分
+STR_TRACE_RESTRICT_TIME_DAY_ITEM_SHORT                          :日
+STR_TRACE_RESTRICT_TIME_MONTH_ITEM_SHORT                        :月
 STR_TRACE_RESTRICT_TIMETABLE_LATENESS                           :延着
 STR_TRACE_RESTRICT_TIMETABLE_EARLINESS                          :早着
 STR_TRACE_RESTRICT_VALUE_CAPTION                                :{WHITE}値
