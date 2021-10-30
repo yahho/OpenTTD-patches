@@ -4,6 +4,8 @@
 
 ### v0.43.2+0 (2021-10-30)
 * Update base jgrpp version to 0.43.2
+* Cherry-pick sjcl's non-cheat industry remove patch
+* Update Japanese translation
 
 ### v0.43.1+3 (2021-10-21)
 * Add workaround online contents browser issue
