@@ -508,7 +508,7 @@ static CommandCost ClearTile_Industry(TileIndex tile, DoCommandFlag flags)
 	 * (area around OILRIG is water, so water shouldn't flood it
 	 */
 	if ((_current_company != OWNER_WATER && _game_mode != GM_EDITOR &&
-			!_cheats.magic_bulldozer.value) ||
+			/* !_cheats.magic_bulldozer.value */ false) ||
 			((flags & DC_AUTO) != 0) ||
 			(_current_company == OWNER_WATER &&
 				((indspec->behaviour & INDUSTRYBEH_BUILT_ONWATER) ||
@@ -3087,7 +3087,12 @@ Money IndustrySpec::GetConstructionCost() const
  */
 Money IndustrySpec::GetRemovalCost() const
 {
-	return (_price[PR_CLEAR_INDUSTRY] * this->removal_cost_multiplier) >> 8;
+	if (this->removal_cost_multiplier == 0) {
+		return (_price[PR_CLEAR_INDUSTRY] * 100000) >> 8;
+	}
+	else {
+		return (_price[PR_CLEAR_INDUSTRY] * this->removal_cost_multiplier) >> 8;
+	}
 }
 
 /**
