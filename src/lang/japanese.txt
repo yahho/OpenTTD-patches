@@ -189,7 +189,6 @@ STR_COLOUR_BROWN                                                :茶
 STR_COLOUR_GREY                                                 :灰
 STR_COLOUR_WHITE                                                :白
 STR_COLOUR_RANDOM                                               :ランダム
-STR_COLOUR_DEFAULT                                              :デフォルト
 
 # Units used in OpenTTD
 STR_UNITS_VELOCITY_IMPERIAL                                     :{COMMA}mph
@@ -422,6 +421,7 @@ STR_SETTINGS_MENU_FULL_DETAIL                                   :ディテール
 STR_SETTINGS_MENU_TRANSPARENT_BUILDINGS                         :建物を透過表示
 STR_SETTINGS_MENU_TRANSPARENT_SIGNS                             :標識を透過表示
 STR_SETTINGS_MENU_MONEY_TEXT_EFFECTS                            :収益/費用テキストを表示
+############ range ends here
 
 # File menu
 ###length 5

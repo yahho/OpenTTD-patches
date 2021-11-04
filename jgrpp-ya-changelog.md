@@ -2,6 +2,10 @@
 
 * * *
 
+### v0.44-rc1+0 (2021-11-05)
+* Update base jgrpp version to 0.44-rc1
+* Update & fix Japanese translation
+
 ### v0.43.2+0 (2021-10-30)
 * Update base jgrpp version to 0.43.2
 * Cherry-pick sjcl's non-cheat industry remove patch
