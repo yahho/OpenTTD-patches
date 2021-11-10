@@ -196,6 +196,7 @@ STR_UNITS_VELOCITY_METRIC                                       :{COMMA}km/h
 STR_UNITS_VELOCITY_SI                                           :{COMMA}m/s
 STR_UNITS_VELOCITY_GAMEUNITS                                    :{DECIMAL}{NBSP}タイル/日
 
+###length 4
 STR_UNIT_NAME_VELOCITY_IMPERIAL                                 :mph
 STR_UNIT_NAME_VELOCITY_METRIC                                   :km/h
 STR_UNIT_NAME_VELOCITY_SI                                       :m/s
@@ -404,7 +405,7 @@ STR_SCENEDIT_FILE_MENU_SEPARATOR                                :―――――
 STR_SCENEDIT_FILE_MENU_QUIT                                     :OpenTTDを終了
 
 # Settings menu
-###length 14
+###length 16
 STR_SETTINGS_MENU_GAME_OPTIONS                                  :ゲームオプション設定
 STR_SETTINGS_MENU_CONFIG_SETTINGS_TREE                          :設定
 STR_SETTINGS_MENU_SCRIPT_SETTINGS                               :AI/ゲームスクリプト設定
@@ -421,7 +422,6 @@ STR_SETTINGS_MENU_FULL_DETAIL                                   :ディテール
 STR_SETTINGS_MENU_TRANSPARENT_BUILDINGS                         :建物を透過表示
 STR_SETTINGS_MENU_TRANSPARENT_SIGNS                             :標識を透過表示
 STR_SETTINGS_MENU_MONEY_TEXT_EFFECTS                            :収益/費用テキストを表示
-############ range ends here
 
 # File menu
 ###length 5
@@ -432,7 +432,7 @@ STR_FILE_MENU_SEPARATOR                                         :―――――
 STR_FILE_MENU_EXIT                                              :OpenTTDを終了
 
 # Map menu
-###length 4
+###length 5
 STR_MAP_MENU_MAP_OF_WORLD                                       :地図
 STR_MAP_MENU_EXTRA_VIEWPORT                                     :ビューポートを開く
 STR_MAP_MENU_LINGRAPH_LEGEND                                    :貨物輸送履歴
@@ -506,7 +506,7 @@ STR_NEWS_MENU_MESSAGE_HISTORY_MENU                              :メッセージ
 STR_NEWS_MENU_DELETE_ALL_MESSAGES                               :メッセージをすべて削除
 
 # About menu
-###length 10
+###length 11
 STR_ABOUT_MENU_LAND_BLOCK_INFO                                  :地域情報
 STR_ABOUT_MENU_SEPARATOR                                        :―――――――――――――――――
 STR_ABOUT_MENU_TOGGLE_CONSOLE                                   :コンソールの表示切替
@@ -1156,7 +1156,7 @@ STR_SEA_LEVEL_HIGH                                              :高い
 STR_SEA_LEVEL_CUSTOM                                            :カスタム
 STR_SEA_LEVEL_CUSTOM_PERCENTAGE                                 :カスタム ({NUM}%)
 
-###length 4
+###length 6
 STR_RIVERS_NONE                                                 :なし
 STR_RIVERS_FEW                                                  :少ない
 STR_RIVERS_MODERATE                                             :中程度
@@ -1246,6 +1246,7 @@ STR_CONFIG_SETTING_COMPANIES_ALL                                :全社
 STR_CONFIG_SETTING_NONE                                         :なし
 STR_CONFIG_SETTING_ORIGINAL                                     :オリジナル
 STR_CONFIG_SETTING_REALISTIC                                    :リアル
+###next-name-looks-similar
 
 STR_CONFIG_SETTING_TRAIN_BRAKING_REALISTIC                      :リアル {PUSH_COLOUR}{RED}(上級者向け){POP_COLOUR}
 
@@ -1393,9 +1394,11 @@ STR_CONFIG_SETTING_NONSTOP_BY_DEFAULT_HELPTEXT                  :通常、輸送
 
 STR_CONFIG_SETTING_STOP_LOCATION                                :新規列車の停車位置: プラットホームの{STRING}
 STR_CONFIG_SETTING_STOP_LOCATION_HELPTEXT                       :デフォルトで列車がプラットホームのどの位置に止まるかを設定します。「先端」ではホームの進入地点と列車終端、「中間」ではホームと列車の中間地点、「終端」では進入地点逆端と列車先端がそれぞれ一致する位置に止まります。注意: この設定は新規の指令にのみ作用します。またこの設定が有効であっても、個別に停車位置を設定することは可能です。
+###length 3
 STR_CONFIG_SETTING_STOP_LOCATION_NEAR_END                       :先端
 STR_CONFIG_SETTING_STOP_LOCATION_MIDDLE                         :中間
 STR_CONFIG_SETTING_STOP_LOCATION_FAR_END                        :終端
+
 STR_CONFIG_SETTING_IMPROVED_BREAKDOWNS                          :改善された故障: {STRING}
 STR_CONFIG_SETTING_AUTOSCROLL                                   :エッジスクロール: {STRING}
 STR_CONFIG_SETTING_AUTOSCROLL_HELPTEXT                          :有効にすると、ウィンドウの端にカーソルを持っていくとスクロールするようになります
@@ -1472,9 +1475,11 @@ STR_CONFIG_SETTING_WARN_RESTRICTION_WAIT_VEHICLE                :ルーティン
 STR_CONFIG_SETTING_WARN_RESTRICTION_WAIT_VEHICLE_HELPTEXT       :ルーティング制限により長時間パス式信号で待つことで列車がスタックしている場合にメッセージを出します
 STR_CONFIG_SETTING_ORDER_REVIEW                                 :輸送車両の指令を監査: {STRING}
 STR_CONFIG_SETTING_ORDER_REVIEW_HELPTEXT                        :有効にすると、輸送車両の各指令は定期的にチェックされ、何か問題(指令の重複など)が見つかった場合にはメッセージで知らせてくるようになります
+###length 3
 STR_CONFIG_SETTING_ORDER_REVIEW_OFF                             :無効
 STR_CONFIG_SETTING_ORDER_REVIEW_EXDEPOT                         :有効 (車庫で待機中の車両は除く)
 STR_CONFIG_SETTING_ORDER_REVIEW_ON                              :有効 (全車両)
+
 STR_CONFIG_SETTING_WARN_NO_DEPOT_ORDER                          :輸送機器に車庫への指令が存在しない場合の注意喚起: {STRING}
 STR_CONFIG_SETTING_WARN_NO_DEPOT_ORDER_HELPTEXT                 :輸送機器の指令を監査とともに有効になっているとき 列車、道路車両、船舶に対して車庫への指令がない場合にメッセージで知らせてくるようになります
 STR_CONFIG_SETTING_WARN_INCOME_LESS                             :赤字車両の警告表示: {STRING}
@@ -1485,10 +1490,12 @@ STR_CONFIG_SETTING_NEVER_EXPIRE_VEHICLES_HELPTEXT               :有効にする
 STR_CONFIG_SETTING_NO_EXPIRE_VEHICLES_AFTER                     :輸送機器の旧式化撤廃が起きる年: {STRING}
 STR_CONFIG_SETTING_NO_EXPIRE_VEHICLES_AFTER_HELPTEXT            :設定された年の時点で旧式化していない輸送機器が以後永久に購入できるようになります
 STR_CONFIG_SETTING_NO_EXPIRE_VEHICLES_AFTER_VALUE               :{NUM}
+###setting-zero-is-special
 STR_CONFIG_SETTING_NO_EXPIRE_VEHICLES_AFTER_ZERO                :オフ
 STR_CONFIG_SETTING_NO_INTRODUCE_VEHICLES_AFTER                  :新しい輸送機器が発表されなくなる年: {STRING}
 STR_CONFIG_SETTING_NO_INTRODUCE_VEHICLES_AFTER_HELPTEXT         :設定された年の時点で発表されていない輸送機器は日の目を見ることができなくなります
 STR_CONFIG_SETTING_NO_INTRODUCE_VEHICLES_AFTER_VALUE            :{NUM}
+###setting-zero-is-special
 STR_CONFIG_SETTING_NO_INTRODUCE_VEHICLES_AFTER_ZERO             :オフ
 STR_CONFIG_SETTING_AUTORENEW_VEHICLE                            :老朽車両の自動交換: {STRING}
 STR_CONFIG_SETTING_AUTORENEW_VEHICLE_HELPTEXT                   :有効にすると、耐用年数を越えた輸送機器は自動で更新されるようになります(交換には一度格納施設に戻る必要があります)。具体的な交換時期は下の設定で変更できます。
@@ -1615,8 +1622,10 @@ STR_CONFIG_SETTING_RAINFORESTLINE_HEIGHT                        :雨林線の位
 STR_CONFIG_SETTING_RAINFORESTLINE_HEIGHT_HELPTEXT               :亜熱帯気候での雨林線の高さを設定します。 雨林はまた、産業の生成と町の成長に影響があります
 STR_CONFIG_SETTING_CLIMATE_THRESHOLD_MODE                       :気候のしきい値モード: {STRING}
 STR_CONFIG_SETTING_CLIMATE_THRESHOLD_MODE_HELPTEXT              :雪線や雨林/砂漠線を割合のパーセントから自動的に計算するか手動で設定するかを決めます。
+###length 2
 STR_CONFIG_SETTING_CLIMATE_THRESHOLD_COVERAGE                   :割合
 STR_CONFIG_SETTING_CLIMATE_THRESHOLD_MANUAL                     :手動
+
 STR_CONFIG_SETTING_ROUGHNESS_OF_TERRAIN                         :地形の起伏: {STRING}
 STR_CONFIG_SETTING_ROUGHNESS_OF_TERRAIN_HELPTEXT                :(TerraGenesisのみ) 地形の起伏度を設定します。なだらかな地形では丘陵の数は減り、裾野が長くなります。起伏が多い地形では丘陵が多くなりますが、似たり寄ったりな地形の繰り返しに見えることがあります
 ###length 4
@@ -1638,6 +1647,7 @@ STR_CONFIG_SETTING_RIVER_TROPICS_WIDTH_HELPTEXT                 :亜熱帯気候
 STR_CONFIG_SETTING_LAKE_SIZE                                    :湖の大きさ: {STRING}
 STR_CONFIG_SETTING_LAKE_SIZE_HELPTEXT                           :河川に沿って生成される湖の大きさを設定します。
 STR_CONFIG_SETTING_LAKE_SIZE_VALUE                              :{NUM}
+###setting-zero-is-special
 STR_CONFIG_SETTING_LAKE_SIZE_ZERO                               :湖なし
 STR_CONFIG_SETTING_LAKES_ALLOWED_IN_DESERTS                     :亜熱帯気候の砂漠地域に湖を生成する: {STRING}
 STR_CONFIG_SETTING_LAKES_ALLOWED_IN_DESERTS_HELPTEXT            :亜熱帯気候の砂漠地域に湖を生成できるようにするか同化を設定します。
@@ -1726,6 +1736,7 @@ STR_CONFIG_SETTING_OSK_ACTIVATION_DISABLED                      :無効
 STR_CONFIG_SETTING_OSK_ACTIVATION_DOUBLE_CLICK                  :ダブルクリック
 STR_CONFIG_SETTING_OSK_ACTIVATION_SINGLE_CLICK_FOCUS            :クリック(フォーカス後)
 STR_CONFIG_SETTING_OSK_ACTIVATION_SINGLE_CLICK                  :クリック(即時)
+
 STR_CONFIG_SETTING_SHOW_VEHICLE_ROUTE_STEPS                     :輸送機器の経路順を表示する: {STRING}
 STR_CONFIG_SETTING_SHOW_VEHICLE_LIST_COMPANY_COLOUR             :リストで他会社の輸送機器をそれぞれの会社色でマークする: {STRING}
 STR_CONFIG_SETTING_SHOW_VEHICLE_LIST_COMPANY_COLOUR_HELPTEXT    :輸送機器リストでリストの所有者ではない会社の輸送機器にそれぞれの会社色の四角形のマークを付与します。
@@ -1737,24 +1748,33 @@ STR_CONFIG_SETTING_VIEWPORT_MAP_SHOW_SLOPES                     :坂を表示: {
 STR_CONFIG_SETTING_VIEWPORT_MAP_SHOW_BRIDGES                    :橋梁を表示: {STRING}
 STR_CONFIG_SETTING_VIEWPORT_MAP_SHOW_TUNNELS                    :トンネルを表示: {STRING}
 STR_CONFIG_SETTING_VIEWPORT_MAP_SHOW_SCROLLING_VP               :スクロール中のビューポートの表示: {STRING}
+###length 4
 STR_CONFIG_SETTING_VIEWPORT_MAP_SHOW_SCROLLING_VP_NOTHING       :しない
 STR_CONFIG_SETTING_VIEWPORT_MAP_SHOW_SCROLLING_VP_CONTOUR       :輪郭
 STR_CONFIG_SETTING_VIEWPORT_MAP_SHOW_SCROLLING_VP_BLEND         :白をブレンド (32bppのみ)
 STR_CONFIG_SETTING_VIEWPORT_MAP_SHOW_SCROLLING_VP_ALL           :輪郭とブレンド
+
 STR_CONFIG_SETTING_VIEWPORT_MAP_USE_OWNER_COLOUR_BRIDGE_TUNNEL  :橋梁やトンネルに所有者の色を使用する: {STRING}
 STR_CONFIG_SETTING_VIEWPORT_MAP_DEFAULT_MODE                    :標準のモード: {STRING}
+###length 3
 STR_CONFIG_SETTING_VIEWPORT_MAP_DEFAULT_MODE_VEGETATION         :植生
 STR_CONFIG_SETTING_VIEWPORT_MAP_DEFAULT_MODE_OWNER              :所有者
 STR_CONFIG_SETTING_VIEWPORT_MAP_DEFAULT_MODE_INDUSTRY           :産業
+
 STR_CONFIG_SETTING_VIEWPORT_MAP_ACTION_DBLCLICK                 :ダブルクリックの機能: {STRING}
+###length 3
 STR_CONFIG_SETTING_VIEWPORT_MAP_ACTION_DBLCLICK_DO_NOTHING      :何もしない
 STR_CONFIG_SETTING_VIEWPORT_MAP_ACTION_DBLCLICK_ZOOM_MAIN       :等倍にズーム
 STR_CONFIG_SETTING_VIEWPORT_MAP_ACTION_DBLCLICK_NEW_EXTRA       :新たにビューポートを開く
+
 STR_CONFIG_SETTING_VIEWPORT_MAP_SHOW_VEHICLE_ROUTE              :輸送機器の経路表示: {STRING}
+###length 2
 STR_CONFIG_SETTING_VIEWPORT_MAP_SHOW_VEHICLE_ROUTE_NO           :しない
 STR_CONFIG_SETTING_VIEWPORT_MAP_SHOW_VEHICLE_ROUTE_SIMPLE       :簡潔
+
 STR_CONFIG_SETTING_VIEWPORT_MAP_DRAW_ROUTE_DASH                 :輸送機器の経路の表現方法: {STRING}
 STR_CONFIG_SETTING_VIEWPORT_MAP_DRAW_ROUTE_DASH_VALUE           :{COMMA}ピクセル間隔の破線
+###setting-zero-is-special
 STR_CONFIG_SETTING_VIEWPORT_MAP_DRAW_ROUTE_DASH_DISABLED        :実線
 
 STR_CONFIG_SETTING_USE_RELAY_SERVICE                            :中継サービスを利用: {STRING}
@@ -1789,6 +1809,7 @@ STR_CONFIG_SETTING_DATE_FORMAT_IN_SAVE_NAMES_ISO                :ISO標準 (2008
 
 STR_CONFIG_SETTING_SAVEGAME_OVERWRITE_CONFIRM                   :セーブデータファイルを上書きする前に確認する: {STRING}
 STR_CONFIG_SETTING_SAVEGAME_OVERWRITE_CONFIRM_HELPTEXT          :セーブデータやハイトマップを既存のファイルに上書きする際、確認ダイアログを表示します。
+###length 4
 STR_CONFIG_SETTING_SAVEGAME_OVERWRITE_CONFIRM_DISABLED          :しない
 STR_CONFIG_SETTING_SAVEGAME_OVERWRITE_CONFIRM_DIFFERENT         :内容が異なる場合
 STR_CONFIG_SETTING_SAVEGAME_OVERWRITE_CONFIRM_DIFFERENT_UNKNOWN :内容が異なるか不明な場合
@@ -1828,14 +1849,18 @@ STR_CONFIG_SETTING_DATE_WITH_TIME                               :ステータス
 STR_CONFIG_SETTING_DATE_WITH_TIME_HELPTEXT                      :ステータスバーに現実のゲーム時を時刻とともに表示します
 STR_CONFIG_SETTING_CLOCK_OFFSET                                 :時計のオフセット分: {STRING}
 STR_CONFIG_SETTING_CLOCK_OFFSET_HELPTEXT                        :時計のオフセットの数値を分で設定します
+###length 4
 STR_CONFIG_SETTING_DATE_WITH_TIME_NONE                          :なし
 STR_CONFIG_SETTING_DATE_WITH_TIME_Y                             :年
 STR_CONFIG_SETTING_DATE_WITH_TIME_YM                            :月と年
 STR_CONFIG_SETTING_DATE_WITH_TIME_YMD                           :完全な日付
+
 STR_CONFIG_SETTING_TIMETABLE_START_TEXT_ENTRY                   :ダイヤの開始時刻をテキストで入力 (時刻は分である必要があります): {STRING}
 STR_CONFIG_SETTING_TIMETABLE_START_TEXT_ENTRY_HELPTEXT          :時刻を分で表示する場合にダイヤの開始時刻をテキストで入力できるようにするかどうか選択します
+# these strings look like unused
 STR_CONFIG_SETTING_TIMETABLE_SEPARATION                         :輸送機器の分離を確保するためにダイヤを使用する: {STRING}
 STR_CONFIG_SETTING_TIMETABLE_SEPARATION_HELPTEXT                :自動ダイヤ利用時に輸送機器の分離を確保するかどうか選択します
+
 STR_CONFIG_SETTING_TIMETABLE_SEPARATION_RATE                    :自動ダイヤの輸送機器分離因数: {STRING}
 STR_CONFIG_SETTING_TIMETABLE_SEPARATION_RATE_HELPTEXT           :各ステップで適用する輸送機器分離自動ダイヤの変更量です
 STR_CONFIG_SETTING_TIMETABLE_SHOW_ARRIVAL_DEPARTURE             :ダイヤに発着情報を表示: {STRING}
@@ -1850,6 +1875,7 @@ STR_CONFIG_SETTING_DEFAULT_RAIL_TYPE                            :デフォルト
 STR_CONFIG_SETTING_DEFAULT_RAIL_TYPE_HELPTEXT                   :新規ゲーム/ゲームロード直後に選択される線路の種類を指定します。「最初」では最初に開発された種類(普通は非電化の線路)、「最新」では最も新しく開発された種類、「最多」はマップ内で一番使われている種類になります
 STR_CONFIG_SETTING_DEFAULT_ROAD_TYPE                            :デフォルトの道路/軌道種類 (新規ゲーム/ゲームロード後): {STRING}
 STR_CONFIG_SETTING_DEFAULT_ROAD_TYPE_HELPTEXT                   :新規ゲーム/ゲームロード直後に選択される道路/軌道の種類を指定します。 「最初」では最初に開発された種類、 「最新」では最も新しく開発された種類、 「最多」はマップ内で一番使われている種類、 そして「デフォルト」はデフォルトの種類になります
+###length 4
 STR_CONFIG_SETTING_DEFAULT_RAIL_TYPE_FIRST                      :最初
 STR_CONFIG_SETTING_DEFAULT_RAIL_TYPE_LAST                       :最新
 STR_CONFIG_SETTING_DEFAULT_RAIL_TYPE_MOST_USED                  :最多
@@ -1994,6 +2020,8 @@ STR_CONFIG_SETTING_NEWS_ARRIVAL_FIRST_VEHICLE_OTHER_HELPTEXT    :他社の新し
 STR_CONFIG_SETTING_NEWS_ACCIDENTS_DISASTERS                     :事故/災害: {STRING}
 STR_CONFIG_SETTING_NEWS_ACCIDENTS_DISASTERS_HELPTEXT            :事故や災害が発生したときにニュースを表示するかを設定します
 
+STR_CONFIG_SETTING_NEWS_ACCIDENT_OTHER                          :競合他社の事故: {STRING}
+STR_CONFIG_SETTING_NEWS_ACCIDENT_OTHER_HELPTEXT                 :競合他社が引き起こした事故のニュースを表示するかを設定します
 
 STR_CONFIG_SETTING_NEWS_COMPANY_INFORMATION                     :会社情報: {STRING}
 STR_CONFIG_SETTING_NEWS_COMPANY_INFORMATION_HELPTEXT            :新会社の設立や社の経営危機などのニュースを表示するかを設定します
@@ -2115,6 +2143,7 @@ STR_CONFIG_SETTING_TOWN_CARGOGENMODE_HELPTEXT                   :街の総人口
 ###length 2
 STR_CONFIG_SETTING_TOWN_CARGOGENMODE_ORIGINAL                   :二次的（オリジナル）
 STR_CONFIG_SETTING_TOWN_CARGOGENMODE_BITCOUNT                   :線形
+
 STR_CONFIG_SETTING_TOWN_CARGO_FACTOR                            :街の貨物生産因数 (少ない < 0 < 多い): {STRING}
 STR_CONFIG_SETTING_TOWN_CARGO_FACTOR_HELPTEXT                   :旅客、郵便物、およびその他の街の貨物生産がおおよそ2の因数乗(指数関数)でスケールします
 STR_CONFIG_SETTING_INDUSTRY_CARGO_FACTOR                        :産業の貨物生産因数 (少ない < 0 < 多い): {STRING}
@@ -2126,6 +2155,7 @@ STR_CONFIG_SETTING_MIN_TOWN_LAND_AREA_HELPTEXT                  :街は、少な
 STR_CONFIG_SETTING_MIN_CITY_LAND_AREA                           :都市の最小隣接土地面積: {STRING}
 STR_CONFIG_SETTING_MIN_CITY_LAND_AREA_HELPTEXT                  :都市は少なくともこれだけの数の隣接する陸地タイルにのみ配置できます。
 STR_CONFIG_SETTING_MIN_LAND_AREA_VALUE                          :{NUM}
+###setting-zero-is-special
 STR_CONFIG_SETTING_MIN_LAND_AREA_ZERO                           :オフ
 
 STR_CONFIG_SETTING_EXTRA_TREE_PLACEMENT                         :樹木の自然成長: {STRING}
@@ -2143,12 +2173,14 @@ STR_CONFIG_SETTING_TREES_AROUND_SNOWLINE_RANGE_HELPTEXT         :雪線周辺の
 
 STR_CONFIG_SETTING_BUILD_PUBLIC_ROADS                           :街同士を接続する公道の建設: {STRING}
 STR_CONFIG_SETTING_BUILD_PUBLIC_ROADS_HELPTEXT                  :街同士を接続する公道を生成します。 大きなマップでは少し時間がかかります。 「カーブを避けて建設」はカーブを避けたとてもグリッド状な接続で生成されます。
+###length 3
 STR_CONFIG_SETTING_BUILD_PUBLIC_ROADS_NONE                      :しない (デフォルト)
 STR_CONFIG_SETTING_BUILD_PUBLIC_ROADS_WITH_CURVES               :カーブ有で建設
 STR_CONFIG_SETTING_BUILD_PUBLIC_ROADS_AVOID_CURVES              :カーブを避けて建設
 
 STR_CONFIG_SETTING_TREE_GROWTH                                  :木の成長速度: {STRING}
 STR_CONFIG_SETTING_TREE_GROWTH_HELPTEXT                         :ゲーム中の樹木の成長レートをコントロールします。 製材所などの木の成長に依存する産業に影響する可能性があります。
+###length 5
 STR_CONFIG_SETTING_TREE_GROWTH_NORMAL                           :通常
 STR_CONFIG_SETTING_TREE_GROWTH_SLOW                             :遅い
 STR_CONFIG_SETTING_TREE_GROWTH_VERY_SLOW                        :とても遅い
@@ -2353,6 +2385,7 @@ STR_CONFIG_SETTING_SCENARIO_EDITOR                              :{ORANGE}シナ�
 
 STR_CONFIG_SETTING_REROUTE_RV_ON_LAYOUT_CHANGE                  :道路レイアウト変更時に経路を変更: {STRING}
 STR_CONFIG_SETTING_REROUTE_RV_ON_LAYOUT_CHANGE_HELPTEXT         :道路レイアウトが変更された時に全道路車両で経路を変更するか設定します。{}これはパフォーマンスを犠牲にして道路レイアウトの変更に対する道路車両の応答性を改善することができます。{}「はい」に設定すると街の成長が道路車両の経路変更を引き起こすことで、大きなマップでゲーム速度が低下する可能性があることに注意してください。
+###length 3
 STR_CONFIG_SETTING_REROUTE_RV_ON_LAYOUT_CHANGE_NO               :しない
 STR_CONFIG_SETTING_REROUTE_RV_ON_LAYOUT_CHANGE_REMOVE_ONLY      :道路の撤去時のみ
 STR_CONFIG_SETTING_REROUTE_RV_ON_LAYOUT_CHANGE_YES              :する
@@ -2392,6 +2425,7 @@ STR_CONFIG_SETTING_PURCHASE_LAND_PERMITTED_HELPTEXT             :会社による
 STR_CONFIG_SETTING_BUILD_OBJECT_PERMITTED                       :オブジェクトのバルク建設を許可: {STRING}
 STR_CONFIG_SETTING_BUILD_OBJECT_PERMITTED_HELPTEXT              :一度に1つでなく範囲でオブジェクトを配置することを会社に許可します。
 
+###length 3
 STR_PURCHASE_LAND_PERMITTED_NO                                  :しない
 STR_PURCHASE_LAND_PERMITTED_SINGLE                              :一度に1タイルで許可する
 STR_PURCHASE_LAND_PERMITTED_AREA                                :一度に大きな範囲で許可する
@@ -2431,6 +2465,7 @@ STR_CONFIG_SETTING_SCENARIO_HOUSE_IGNORE_ZONES_HELPTEXT         :街区にそぐ
 STR_CONFIG_SETTING_SCENARIO_HOUSE_IGNORE_GRF                    :家屋のGRF制限を無視する: {STRING}
 STR_CONFIG_SETTING_SCENARIO_HOUSE_IGNORE_GRF_HELPTEXT           :GRFによって許可されていない場合でも家屋を手動で配置することを許可します。
 
+###length 3
 STR_CONFIG_SETTING_SCENARIO_HOUSE_IGNORE_ZONES_OFF              :オフ
 STR_CONFIG_SETTING_SCENARIO_HOUSE_IGNORE_ZONES_WITHIN_TOWN      :街の中
 STR_CONFIG_SETTING_SCENARIO_HOUSE_IGNORE_ZONES_ANYWHERE         :どこでも
@@ -2452,6 +2487,7 @@ STR_CONFIG_ERROR_INVALID_SAVEGAME_COMPRESSION_ALGORITHM         :{WHITE}デー�
 STR_CONFIG_ERROR_INVALID_BASE_GRAPHICS_NOT_FOUND                :{WHITE}ファイルが見つからないため、基本グラフィックセット'{STRING}'は読み込まれませんでした
 STR_CONFIG_ERROR_INVALID_BASE_SOUNDS_NOT_FOUND                  :{WHITE}ファイルが見つからないため、基本効果音セット '{STRING}'は読み込まれませんでした
 STR_CONFIG_ERROR_INVALID_BASE_MUSIC_NOT_FOUND                   :{WHITE}ファイルが見つからないため、基本音楽セット'{STRING}'は読み込まれませんでした
+# these strings looks like unused in jgrpp, but official codes are still in use
 STR_CONFIG_ERROR_OUT_OF_MEMORY                                  :{WHITE}メモリー不足
 STR_CONFIG_ERROR_SPRITECACHE_TOO_BIG                            :{WHITE}スプライトキャッシュ中、{BYTES}の割り当てに失敗しました。スプライトキャッシュは{BYTES}に減ったため、OpenTTDの処理速度が低下する恐れがあります。必要メモリ量を減らすには32bitグラフィックを無効にするか、最大ズームイン・ズームアウトのレベルを下げてください
 
@@ -3280,16 +3316,20 @@ STR_TRACE_RESTRICT_TIME_HOUR                                    :現在の時 (0
 STR_TRACE_RESTRICT_TIME_HOUR_MINUTE                             :現在の時と分 (0 - 2359)
 STR_TRACE_RESTRICT_TIME_DAY                                     :現在の日 (1 - 31)
 STR_TRACE_RESTRICT_TIME_MONTH                                   :現在の月 (1 - 12)
+###length 5
 STR_TRACE_RESTRICT_TIME_MINUTE_ITEM                             :現在の分
 STR_TRACE_RESTRICT_TIME_HOUR_ITEM                               :現在の時
 STR_TRACE_RESTRICT_TIME_HOUR_MINUTE_ITEM                        :現在の時と分
 STR_TRACE_RESTRICT_TIME_DAY_ITEM                                :現在の日
 STR_TRACE_RESTRICT_TIME_MONTH_ITEM                              :現在の月
+
+###length 5
 STR_TRACE_RESTRICT_TIME_MINUTE_SHORT                            :分
 STR_TRACE_RESTRICT_TIME_HOUR_SHORT                              :時
 STR_TRACE_RESTRICT_TIME_HOUR_MINUTE_SHORT                       :時と分
 STR_TRACE_RESTRICT_TIME_DAY_ITEM_SHORT                          :日
 STR_TRACE_RESTRICT_TIME_MONTH_ITEM_SHORT                        :月
+
 STR_TRACE_RESTRICT_TIMETABLE_LATENESS                           :延着
 STR_TRACE_RESTRICT_TIMETABLE_EARLINESS                          :早着
 STR_TRACE_RESTRICT_VALUE_CAPTION                                :{WHITE}値
@@ -4477,14 +4517,23 @@ STR_DEPARTURES_CALLING_AT_LIST_LARGE                            :{ORANGE}{STRING
 STR_DEPARTURES_CALLING_AT_LIST_SMART_TERMINUS                   :{TINY_FONT}{ORANGE}{STRING}. 続きまして {STATION}.
 STR_DEPARTURES_CALLING_AT_LIST_SMART_TERMINUS_LARGE             :{ORANGE}{STRING}. 続きまして {STATION}.
 
+###length 2
 STR_DEPARTURES_TYPE_TRAIN                                       :{ORANGE}{TRAIN}
 STR_DEPARTURES_TYPE_TRAIN_SILVER                                :{SILVER}{TRAIN}
+
+###length 2
 STR_DEPARTURES_TYPE_BUS                                         :{ORANGE}{BUS}
 STR_DEPARTURES_TYPE_BUS_SILVER                                  :{SILVER}{BUS}
+
+###length 2
 STR_DEPARTURES_TYPE_LORRY                                       :{ORANGE}{LORRY}
 STR_DEPARTURES_TYPE_LORRY_SILVER                                :{SILVER}{LORRY}
+
+###length 2
 STR_DEPARTURES_TYPE_PLANE                                       :{ORANGE}{PLANE}
 STR_DEPARTURES_TYPE_PLANE_SILVER                                :{SILVER}{PLANE}
+
+###length 2
 STR_DEPARTURES_TYPE_SHIP                                        :{ORANGE}{SHIP}
 STR_DEPARTURES_TYPE_SHIP_SILVER                                 :{SILVER}{SHIP}
 
@@ -4501,7 +4550,9 @@ STR_DEPARTURES_EXPECTED                                         :{YELLOW} {DATE_
 STR_DEPARTURES_CANCELLED                                        :{RED}運休
 
 ############ config settings
+# this string looks like unused
 STR_CONFIG_SETTING_DEPARTUREBOARDS                              :{ORANGE}発車標
+
 STR_CONFIG_MAX_DEPARTURES                                       :各駅の発車標に最大 {STRING} 便表示する
 STR_CONFIG_MAX_DEPARTURES_HELPTEXT                              :発車標に表示する最大件数を設定します
 STR_CONFIG_MAX_DEPARTURE_TIME                                   :直近 {STRING} 日分先の便まで表示する
@@ -4530,9 +4581,11 @@ STR_CONFIG_DEPARTURE_SMART_TERMINUS                             :後発の輸送
 STR_CONFIG_DEPARTURE_SMART_TERMINUS_HELPTEXT                    :遅く出発する別の輸送機器でより早く到達できる終点を表示しません。
 STR_CONFIG_DEPARTURE_CONDITIONALS                               :条件付き指令ジャンプを: {STRING}
 STR_CONFIG_DEPARTURE_CONDITIONALS_HELPTEXT                      :発車標の計算時に条件付き指令をどのように処理するか選択します。
+###length 3
 STR_CONFIG_DEPARTURE_CONDITIONALS_1                             :処理しない
 STR_CONFIG_DEPARTURE_CONDITIONALS_2                             :条件の結果が真であると仮定して処理する
 STR_CONFIG_DEPARTURE_CONDITIONALS_3                             :条件の結果が偽であると仮定して処理する
+
 STR_CONFIG_DEPARTURE_SHOW_ALL_STOPS                             :発車標の停車場案内に運転停車の停車場を含む: {STRING}
 STR_CONFIG_DEPARTURE_SHOW_ALL_STOPS_HELPTEXT                    :発車標に表示されている停車場案内に運転停車の停車場を含めて表示します。
 STR_CONFIG_DEPARTURE_MERGE_IDENTICAL                            :発車標で同一のものをまとめる: {STRING}
@@ -4552,7 +4605,7 @@ STR_FINANCES_CAPTION                                            :{WHITE}{COMPANY
 STR_FINANCES_EXPENDITURE_INCOME_TITLE                           :{WHITE}支出/収入
 STR_FINANCES_YEAR                                               :{WHITE}{NUM}
 
-###length 13
+###length 15
 STR_FINANCES_SECTION_CONSTRUCTION                               :{GOLD}建設費
 STR_FINANCES_SECTION_NEW_VEHICLES                               :{GOLD}輸送機器購入費
 STR_FINANCES_SECTION_TRAIN_RUNNING_COSTS                        :{GOLD}列車運用費
@@ -4704,6 +4757,7 @@ STR_VEHICLE_LIST_TRAIN_LIST_TOOLTIP                             :{BLACK}列車 -
 STR_VEHICLE_LIST_ROAD_VEHICLE_TOOLTIP                           :{BLACK}車両 - 情報を見るには車両をクリックします
 STR_VEHICLE_LIST_SHIP_TOOLTIP                                   :{BLACK}船舶 - 情報を見るには船舶をクリックします
 STR_VEHICLE_LIST_AIRCRAFT_TOOLTIP                               :{BLACK}航空機 - 情報を見るには航空機をクリックします
+###next-name-looks-similar
 
 STR_VEHICLE_LIST_PROFIT_THIS_YEAR_LAST_YEAR                     :{TINY_FONT}{BLACK}収益(今年): {CURRENCY_LONG} (収益(去年): {CURRENCY_LONG})
 STR_VEHICLE_LIST_PROFIT_THIS_YEAR_LAST_YEAR_LIFETIME            :{STRING} (生涯: {CURRENCY_LONG})
@@ -4754,6 +4808,7 @@ STR_VEHICLE_LIST_SHARED_ORDERS_LIST_CAPTION                     :{WHITE}{COMMA}�
 
 STR_VEHICLE_LIST_CHANGE_ORDER_STATION                           :指令を別の駅に移動
 STR_VEHICLE_LIST_CHANGE_ORDER_WAYPOINT                          :指令を別の中継駅に移動
+###length VEHICLE_TYPES
 STR_VEHICLE_LIST_CHANGE_ORDER_TRAIN_DEPOT                       :指令を別の列車庫に移動
 STR_VEHICLE_LIST_CHANGE_ORDER_ROAD_VEHICLE_DEPOT                :指令を別の車庫に移動
 STR_VEHICLE_LIST_CHANGE_ORDER_SHIP_DEPOT                        :指令を別の造船所に移動
@@ -4814,6 +4869,7 @@ STR_BUY_VEHICLE_TRAIN_ALL_CAPTION                               :新規列車
 STR_BUY_VEHICLE_ROAD_VEHICLE_ALL_CAPTION                        :新規車両
 STR_BUY_VEHICLE_SHIP_CAPTION                                    :新規船舶
 STR_BUY_VEHICLE_AIRCRAFT_CAPTION                                :新規航空機
+###next-name-looks-similar
 
 STR_BUY_VEHICLE_TRAIN_LOCOMOTIVES                               :機関車と動力車
 STR_BUY_VEHICLE_TRAIN_WAGONS                                    :客車
@@ -4853,10 +4909,11 @@ STR_BUY_VEHICLE_ROAD_VEHICLE_LIST_TOOLTIP                       :{BLACK}車両�
 STR_BUY_VEHICLE_SHIP_LIST_TOOLTIP                               :{BLACK}船舶リスト - 個々の情報を見るには船舶をクリックします。Ctrl+クリックでその船舶機種の表示/非表示を切り替えます
 STR_BUY_VEHICLE_AIRCRAFT_LIST_TOOLTIP                           :{BLACK}航空機リスト - 個々の情報を見るには航空機をクリックします。Ctrl+クリックでその航空機種の表示/非表示を切り替えます
 
+# these strings looks like unused...
 STR_BUY_REFIT_VEHICLE_BUY_VEHICLE_BUTTON                        :{BLACK}購入後に改造
 STR_BUY_REFIT_VEHICLE_BUY_VEHICLE_TOOLTIP                       :{BLACK}選択した輸送機器を購入後自動的に指定した貨物向けに改造します
 
-###length VEHICLE_TYPES
+###length VEHICLE_TYPES_TRAIN_SEPARATE
 STR_BUY_VEHICLE_TRAIN_BUY_VEHICLE_BUTTON                        :{BLACK}列車を購入
 STR_BUY_VEHICLE_ROAD_VEHICLE_BUY_VEHICLE_BUTTON                 :{BLACK}車両を購入
 STR_BUY_VEHICLE_SHIP_BUY_VEHICLE_BUTTON                         :{BLACK}船舶を購入
@@ -4864,7 +4921,7 @@ STR_BUY_VEHICLE_AIRCRAFT_BUY_VEHICLE_BUTTON                     :{BLACK}航空�
 STR_BUY_VEHICLE_TRAIN_BUY_LOCOMOTIVE_BUTTON                     :{BLACK}動力車を購入
 STR_BUY_VEHICLE_TRAIN_BUY_WAGON_BUTTON                          :{BLACK}客車を購入
 
-###length VEHICLE_TYPES
+###length VEHICLE_TYPES_TRAIN_SEPARATE
 STR_BUY_VEHICLE_TRAIN_BUY_REFIT_VEHICLE_BUTTON                  :{BLACK}購入し改造する
 STR_BUY_VEHICLE_ROAD_VEHICLE_BUY_REFIT_VEHICLE_BUTTON           :{BLACK}購入し改造する
 STR_BUY_VEHICLE_SHIP_BUY_REFIT_VEHICLE_BUTTON                   :{BLACK}船の購入と改造
@@ -4872,7 +4929,7 @@ STR_BUY_VEHICLE_AIRCRAFT_BUY_REFIT_VEHICLE_BUTTON               :{BLACK}航空�
 STR_BUY_VEHICLE_TRAIN_BUY_REFIT_LOCOMOTIVE_BUTTON               :{BLACK}動力車の購入と改造
 STR_BUY_VEHICLE_TRAIN_BUY_REFIT_WAGON_BUTTON                    :{BLACK}客車の購入と改造
 
-###length VEHICLE_TYPES
+###length VEHICLE_TYPES_TRAIN_SEPARATE
 STR_BUY_VEHICLE_TRAIN_BUY_VEHICLE_TOOLTIP                       :{BLACK}選択した列車を購入します。Shift+クリックで購入費を見積もります
 STR_BUY_VEHICLE_ROAD_VEHICLE_BUY_VEHICLE_TOOLTIP                :{BLACK}選択した車両を購入します。Shift+クリックで購入費を見積もります
 STR_BUY_VEHICLE_SHIP_BUY_VEHICLE_TOOLTIP                        :{BLACK}選択した船舶を購入します。Shift+クリックで購入費を見積もります
@@ -4880,7 +4937,7 @@ STR_BUY_VEHICLE_AIRCRAFT_BUY_VEHICLE_TOOLTIP                    :{BLACK}選択�
 STR_BUY_VEHICLE_TRAIN_BUY_LOCOMOTIVE_TOOLTIP                    :{BLACK}選択した動力車を購入します。Shift+クリックで購入費を見積もります
 STR_BUY_VEHICLE_TRAIN_BUY_WAGON_TOOLTIP                         :{BLACK}選択した客車を購入します。Shift+クリックで購入費を見積もります
 
-###length VEHICLE_TYPES
+###length VEHICLE_TYPES_TRAIN_SEPARATE
 STR_BUY_VEHICLE_TRAIN_BUY_REFIT_VEHICLE_TOOLTIP                 :{BLACK}ハイライトされた車両を購入して改造します。Shift +クリックすると、購入なしの推定コストが表示されます
 STR_BUY_VEHICLE_ROAD_VEHICLE_BUY_REFIT_VEHICLE_TOOLTIP          :{BLACK}ハイライトされた車両を購入して改造します。Shift +クリックすると、購入なしの推定コストが表示されます
 STR_BUY_VEHICLE_SHIP_BUY_REFIT_VEHICLE_TOOLTIP                  :{BLACK}ハイライトされた船を購入して改造します。Shift +クリックすると、購入なしの推定コストが表示されます
@@ -4888,7 +4945,7 @@ STR_BUY_VEHICLE_AIRCRAFT_BUY_REFIT_VEHICLE_TOOLTIP              :{BLACK}ハイ�
 STR_BUY_VEHICLE_TRAIN_BUY_REFIT_LOCOMOTIVE_TOOLTIP              :{BLACK}ハイライトされた動力車を購入して改造します。Shift +クリックすると、購入なしの推定コストが表示されます
 STR_BUY_VEHICLE_TRAIN_BUY_REFIT_WAGON_TOOLTIP                   :{BLACK}ハイライトされた客車を購入して改造します。Shift +クリックすると、購入なしの推定コストが表示されます
 
-###length VEHICLE_TYPES
+###length VEHICLE_TYPES_TRAIN_SEPARATE
 STR_BUY_VEHICLE_TRAIN_RENAME_BUTTON                             :{BLACK}名称を変更
 STR_BUY_VEHICLE_ROAD_VEHICLE_RENAME_BUTTON                      :{BLACK}名称を変更
 STR_BUY_VEHICLE_SHIP_RENAME_BUTTON                              :{BLACK}名称を変更
@@ -4896,7 +4953,7 @@ STR_BUY_VEHICLE_AIRCRAFT_RENAME_BUTTON                          :{BLACK}名称�
 STR_BUY_VEHICLE_TRAIN_RENAME_LOCOMOTIVE_BUTTON                  :{BLACK}名称を変更
 STR_BUY_VEHICLE_TRAIN_RENAME_WAGON_BUTTON                       :{BLACK}名称を変更
 
-###length VEHICLE_TYPES
+###length VEHICLE_TYPES_TRAIN_SEPARATE
 STR_BUY_VEHICLE_TRAIN_RENAME_TOOLTIP                            :{BLACK}列車の名称を変更
 STR_BUY_VEHICLE_ROAD_VEHICLE_RENAME_TOOLTIP                     :{BLACK}車両の名称を変更
 STR_BUY_VEHICLE_SHIP_RENAME_TOOLTIP                             :{BLACK}船舶の名称を変更
@@ -4922,7 +4979,7 @@ STR_BUY_VEHICLE_ROAD_VEHICLE_HIDE_SHOW_TOGGLE_TOOLTIP           :{BLACK}指定�
 STR_BUY_VEHICLE_SHIP_HIDE_SHOW_TOGGLE_TOOLTIP                   :{BLACK}指定の船舶機種の非表示/表示を切り替えます
 STR_BUY_VEHICLE_AIRCRAFT_HIDE_SHOW_TOGGLE_TOOLTIP               :{BLACK}指定の航空機種の非表示/表示を切り替えます
 
-###length VEHICLE_TYPES
+###length VEHICLE_TYPES_TRAIN_SEPARATE
 STR_QUERY_RENAME_TRAIN_TYPE_CAPTION                             :{WHITE}列車の機種名を変更
 STR_QUERY_RENAME_ROAD_VEHICLE_TYPE_CAPTION                      :{WHITE}車両の機種名を変更
 STR_QUERY_RENAME_SHIP_TYPE_CAPTION                              :{WHITE}船舶の機種名を変更
@@ -5104,6 +5161,7 @@ STR_VEHICLE_VIEW_TRAIN_SEND_TO_DEPOT_TOOLTIP                    :{BLACK}列車�
 STR_VEHICLE_VIEW_ROAD_VEHICLE_SEND_TO_DEPOT_TOOLTIP             :{BLACK}車両を車庫へ回送します。Ctrl+クリックすると点検後、再出庫します
 STR_VEHICLE_VIEW_SHIP_SEND_TO_DEPOT_TOOLTIP                     :{BLACK}船舶を造船所へ回送します。Ctrl+クリックすると点検後、再出庫します
 STR_VEHICLE_VIEW_AIRCRAFT_SEND_TO_DEPOT_TOOLTIP                 :{BLACK}航空機を格納庫へ回送します。Ctrl+クリックすると点検後、再出庫します
+###next-name-looks-similar
 
 STR_VEHICLE_VIEW_SEND_TO_DEPOT_TOOLTIP_SHIFT                    :{STRING}。Shift+クリックで選択します
 STR_VEHICLE_VIEW_SEND_TO_DEPOT_MENU                             :{BLACK}車庫/格納庫への回送を取り消します。Ctrl+クリックでメニューを開きます。 Shift+クリックで車庫/格納庫を選択します
@@ -5161,12 +5219,15 @@ STR_VEHICLE_STATUS_TRAIN_WAITING_TIMETABLE                      :{ORANGE}ダイ�
 STR_VEHICLE_STATUS_TRAIN_REVERSING                              :{ORANGE}折り返し中, {VELOCITY}
 STR_VEHICLE_STATUS_TRAIN_MOVING_DEPOT                           :{ORANGE}車庫へ向かっています
 
+###length 6
 STR_BREAKDOWN_TYPE_CRITICAL                                     :機械的な故障
 STR_BREAKDOWN_TYPE_EM_STOP                                      :緊急停止
 STR_BREAKDOWN_TYPE_LOW_SPEED                                    :速度の制限: {VELOCITY}
 STR_BREAKDOWN_TYPE_LOW_POWER                                    :出力 {COMMA}%
 STR_BREAKDOWN_TYPE_HIT_RV                                       :道路車両と接触
 STR_BREAKDOWN_TYPE_BRAKES_OVERHEATED                            :ブレーキの過熱
+###next-name-looks-similar
+
 STR_BREAKDOWN_TYPE_DEPOT                                        :修理のため {STATION} の格納庫へ向かっています
 STR_BREAKDOWN_TYPE_LANDING                                      :緊急着陸のため {STATION} へ向かっています
 STR_ERROR_TRAIN_TOO_HEAVY                                       :{WHITE}{VEHICLE} が重すぎます
@@ -5372,6 +5433,7 @@ STR_ORDER_SERVICE_TOOLTIP                                       :{BLACK}点検�
 STR_ORDER_CONDITIONAL_VARIABLE_TOOLTIP                          :{BLACK}輸送機器データに基づく条件分岐
 
 # Conditional order variables, must follow order of OrderConditionVariable enum
+###length 19
 STR_ORDER_CONDITIONAL_LOAD_PERCENTAGE                           :積載率
 STR_ORDER_CONDITIONAL_RELIABILITY                               :信頼度
 STR_ORDER_CONDITIONAL_MAX_SPEED                                 :最高速度
@@ -5391,11 +5453,14 @@ STR_ORDER_CONDITIONAL_CARGO_WAITING_AMOUNT                      :待機貨物量
 STR_ORDER_CONDITIONAL_COUNTER_VALUE                             :カウンタ値
 STR_ORDER_CONDITIONAL_TIME_DATE_VALUE                           :現在時刻/日付
 STR_ORDER_CONDITIONAL_TIMETABLE_STATE                           :ダイヤの状態
+###next-name-looks-similar
 
+# these string look like unused currently
 STR_ORDER_CONDITIONAL_REQUIRES_SERVICE_ORDER                    :点検が必要 {STRING}
 STR_ORDER_CONDITIONAL_CARGO_WAITING_ORDER                       :次駅 {STRING} {STRING} 待機中
 STR_ORDER_CONDITIONAL_ACCEPTANCE                                :次駅 {STRING} {STRING}
-STR_CONDITIONAL_FREE_PLATFORMS                                  :次駅に {2:COMMA} つの空きプラットフォーム {1:STRING} 指令{0:COMMA} へ飛ぶ
+
+STR_CONDITIONAL_FREE_PLATFORMS                                  :次駅の空きプラットフォームが {2:COMMA} つ {1:STRING} ならば指令{0:COMMA} へ飛ぶ
 STR_CONDITIONAL_PERCENT                                         :{1:COMMA} パーセントの回数で指令{0:COMMA} へ飛ぶ
 
 STR_ORDER_CONDITIONAL_NEXT_STATION                              :次の駅
@@ -5472,6 +5537,7 @@ STR_ORDERS_NEW_GROUP_TOOLTIP                                    :{BLACK}単一�
 # String parts to build the order string
 STR_ORDER_GO_TO_WAYPOINT                                        :{WAYPOINT}を経由する
 STR_ORDER_GO_NON_STOP_TO_WAYPOINT                               :直通運転で{WAYPOINT}を経由する
+###length 2
 STR_ORDER_GO_TO_WAYPOINT_REVERSE                                :{WAYPOINT}を経由して折り返す
 STR_ORDER_GO_NON_STOP_TO_WAYPOINT_REVERSE                       :直通運転で{WAYPOINT}を経由して折り返す
 
@@ -5547,7 +5613,7 @@ STR_ORDER_CARGO_TYPE_UNLOAD_CARGO_TYPE_LOAD_REFIT               :(貨物の種�
 
 STR_ORDER_AUTO_REFIT_ANY                                        :改造可能な貨物種類
 
-###length 3
+###length 4
 STR_ORDER_STOP_LOCATION_NEAR_END                                :[停止位置:先端]
 STR_ORDER_STOP_LOCATION_MIDDLE                                  :[停止位置:中間]
 STR_ORDER_STOP_LOCATION_FAR_END                                 :[停止位置:終端]
@@ -5556,9 +5622,9 @@ STR_ORDER_STOP_LOCATION_THROUGH                                 :[スルー積�
 STR_ORDER_OUT_OF_RANGE                                          :{RED} (航続距離不足)
 
 STR_ORDER_CONDITIONAL_UNCONDITIONAL                             :指令{COMMA}に飛ぶ
-STR_ORDER_CONDITIONAL_NUM                                       :{1:STRING}が{3:COMMA}{2:STRING}時、指令{0:COMMA}に飛ぶ
-STR_ORDER_CONDITIONAL_CARGO_ACCEPTANCE                          :次の駅が {1:STRING} {2:STRING}時、指令{0:COMMA}に飛ぶ
-STR_ORDER_CONDITIONAL_CARGO_WAITING_DISPLAY                     :次の駅が {1:STRING} {2:STRING}時、指令{0:COMMA}に飛ぶ
+STR_ORDER_CONDITIONAL_NUM                                       :{1:STRING} が {3:COMMA} {2:STRING} 時、指令{0:COMMA}に飛ぶ
+STR_ORDER_CONDITIONAL_CARGO_ACCEPTANCE                          :次の駅が {2:STRING} を {1:STRING} 時、指令{0:COMMA}に飛ぶ
+STR_ORDER_CONDITIONAL_CARGO_WAITING_DISPLAY                     :次の駅が {2:STRING} の積み込み待ち {1:STRING} 時、指令{0:COMMA}に飛ぶ
 STR_ORDER_CONDITIONAL_SLOT                                      :{1:TRSLOT} が {2:STRING}時、指令{0:COMMA}に飛ぶ
 STR_ORDER_CONDITIONAL_INVALID_SLOT                              :{PUSH_COLOUR}{RED}{1:STRING}{POP_COLOUR} が {2:STRING}時、指令{0:COMMA}に飛ぶ
 STR_ORDER_CONDITIONAL_IN_SLOT                                   :スロット: {2:TRSLOT} に {1:STRING} 時、指令{0:COMMA}に飛ぶ
@@ -5648,9 +5714,11 @@ STR_TIMETABLE_EXPECTED_TOOLTIP                                  :{BLACK}予想�
 
 STR_TIMETABLE_LOCK_ORDER_TIME_TOOLTIP                           :{BLACK}指定した指令の時刻をロック/ロック解除します(Ctrl+クリックで全ての指令の状態をロックします)。{}ロックされた時刻はオートフィルや自動化により変更されることはありません。
 
+###length 3
 STR_TIMETABLE_LEAVE_EARLY_ORDER                                 :[早発]
 STR_TIMETABLE_LEAVE_EARLY_ORDER_FULL_ANY                        :[いずれかの貨物が満載時に早発]
 STR_TIMETABLE_LEAVE_EARLY_ORDER_FULL_ALL                        :[全ての貨物が満載時に早発]
+
 STR_TIMETABLE_LEAVE_NORMAL                                      :ダイヤ通りに発車
 STR_TIMETABLE_LEAVE_EARLY                                       :早発
 STR_TIMETABLE_LEAVE_EARLY_FULL_ANY                              :いずれかが満載時に早発
@@ -5684,15 +5752,22 @@ STR_DATE_MINUTES_DAY_TOOLTIP                                    :{BLACK}分を�
 STR_DATE_MINUTES_MONTH_TOOLTIP                                  :{BLACK}時を選択
 
 # Cargo type orders Window
+###length 2
 STR_CARGO_TYPE_ORDERS_LOAD_CAPTION                              :{WHITE}{VEHICLE} ({NUM}: {STATION} で積載)
 STR_CARGO_TYPE_ORDERS_UNLOAD_CAPTION                            :{WHITE}{VEHICLE} ({NUM}: {STATION}で荷下ろし)
+
+###length 2
 STR_CARGO_TYPE_ORDERS_LOAD_TITLE                                :{GOLD}積載する貨物の種類の選択:
 STR_CARGO_TYPE_ORDERS_UNLOAD_TITLE                              :{GOLD}荷下ろしする貨物の種類の選択:
+###next-name-looks-similar
+
 STR_CARGO_TYPE_ORDERS_CLOSE_BUTTON                              :{BLACK}閉じる
 
 STR_CARGO_TYPE_ORDERS_DROP_FULL_LOAD                            :全積載
+###length 2
 STR_CARGO_TYPE_LOAD_ORDERS_DROP_TOOLTIP                         :{BLACK}この貨物の種類の積載の挙動を設定します
 STR_CARGO_TYPE_UNLOAD_ORDERS_DROP_TOOLTIP                       :{BLACK}この貨物の種類の荷下ろしの挙動を設定します
+###next-name-looks-similar
 
 STR_CARGO_TYPE_ORDERS_SET_TO_ALL_LABEL                          :{BLACK}すべて次に設定する:
 STR_CARGO_TYPE_ORDERS_SET_TO_ALL_TOOLTIP                        :{BLACK}すべての貨物の種類の指令をドロップダウンで選択されたものに設定します
@@ -6165,7 +6240,9 @@ STR_ERROR_TUNNEL_TOO_LONG                                       :{WHITE}トン�
 STR_ERROR_CHUNNEL_RAMP                                          :{WHITE}海底トンネルでは、5 〜 {NUM} タイルの坂の長さのみが許可されます。
 STR_ERROR_TUNNEL_TOO_MANY                                       :{WHITE}トンネルが多すぎます
 STR_ERROR_NO_DRILLING_ABOVE_CHUNNEL                             :{WHITE}海底トンネルを海上油田の下に建設することはできません。
+# this string looks like no longer used
 STR_ERROR_ANOTHER_TUNNEL_IN_THE_WAY_FOR_CHUNNEL                 :{WHITE}他のトンネルの下を通るためには3タイル必要です。
+
 STR_ERROR_CHUNNEL_ONLY_OVER_SEA                                 :{WHITE}海底トンネルは海を横断する場合にのみ利用可能です。
 
 # Object related errors
@@ -6321,6 +6398,7 @@ STR_BASEMUSIC_DOS_DESCRIPTION                                   :Transport Tycoo
 STR_BASEMUSIC_TTO_DESCRIPTION                                   :オリジナルトランスポートタイクーン（オリジナル/ワールドエディター）DOS版の音楽。
 STR_BASEMUSIC_NONE_DESCRIPTION                                  :音源の含まれない音楽セット
 
+###length VEHICLE_TYPES
 STR_TRADITIONAL_TRAIN_NAME                                      :列車{COMMA}
 STR_TRADITIONAL_ROAD_VEHICLE_NAME                               :車両{COMMA}
 STR_TRADITIONAL_SHIP_NAME                                       :船舶{COMMA}
@@ -6718,6 +6796,7 @@ STR_FORMAT_DATE_SHORT                                           :{1:NUM}年{0:ST
 STR_FORMAT_DATE_LONG                                            :{2:NUM}年{1:STRING}月{0:STRING}日
 STR_FORMAT_DATE_ISO                                             :{2:NUM}-{1:STRING}-{0:STRING}
 
+###length 4
 STR_FORMAT_DATE_MINUTES                                         :{0:STRING}:{1:STRING}
 STR_FORMAT_DATE_MINUTES_WITH_Y                                  :{0:STRING}:{1:STRING} / {2:NUM}
 STR_FORMAT_DATE_MINUTES_WITH_YM                                 :{0:STRING}:{1:STRING} / {2:DATE_SHORT}
@@ -6765,18 +6844,23 @@ STR_VIEWPORT_SHOW_VEHICLE_ROUTE_STEP_IMPLICIT                   :{GRAY}黙
 STR_VIEWPORT_SHOW_VEHICLE_ROUTE_STEP_DEPOT                      :{RED}庫
 STR_VIEWPORT_SHOW_VEHICLE_ROUTE_STEP_OVERFLOW                   :{RED}{NUM}x
 
+###length 5
 STR_VIEWPORT_TOWN_POP_VERY_POOR_RATING                          :{WHITE}{TOWN} {RED}({COMMA})
 STR_VIEWPORT_TOWN_POP_MEDIOCRE_RATING                           :{WHITE}{TOWN} {ORANGE}({COMMA})
 STR_VIEWPORT_TOWN_POP_GOOD_RATING                               :{WHITE}{TOWN} {YELLOW}({COMMA})
 STR_VIEWPORT_TOWN_POP                                           :{WHITE}{TOWN} ({COMMA})
 STR_VIEWPORT_TOWN_POP_EXCELLENT_RATING                          :{WHITE}{TOWN} {GREEN}({COMMA})
+
+###length 5
 STR_VIEWPORT_TOWN_VERY_POOR_RATING                              :{RED}{TOWN}
 STR_VIEWPORT_TOWN_MEDIOCRE_RATING                               :{ORANGE}{TOWN}
 STR_VIEWPORT_TOWN_GOOD_RATING                                   :{YELLOW}{TOWN}
 STR_VIEWPORT_TOWN                                               :{WHITE}{TOWN}
 STR_VIEWPORT_TOWN_EXCELLENT_RATING                              :{GREEN}{TOWN}
+###next-name-looks-similar
 
 STR_VIEWPORT_TOWN_TINY_BLACK                                    :{TINY_FONT}{BLACK}{TOWN}
+###length 5
 STR_VIEWPORT_TOWN_TINY_VERY_POOR_RATING                         :{TINY_FONT}{RED}{TOWN}
 STR_VIEWPORT_TOWN_TINY_MEDIOCRE_RATING                          :{TINY_FONT}{ORANGE}{TOWN}
 STR_VIEWPORT_TOWN_TINY_GOOD_RATING                              :{TINY_FONT}{YELLOW}{TOWN}
@@ -6821,10 +6905,12 @@ STR_JUST_DATE_SHORT                                             :{DATE_SHORT}
 STR_JUST_DATE_LONG                                              :{DATE_LONG}
 STR_JUST_DATE_ISO                                               :{DATE_ISO}
 STR_JUST_DATE_WALLCLOCK_TINY                                    :{DATE_WALLCLOCK_TINY}
+# are these strings kind of STR_JUST_DATE_SHORT ?
 STR_JUST_DATE_WALLCLOCK_SHORT                                   :{DATE_WALLCLOCK_SHORT}
 STR_JUST_DATE_WALLCLOCK_LONG                                    :{DATE_WALLCLOCK_LONG}
 STR_JUST_DATE_WALLCLOCK_ISO                                     :{DATE_WALLCLOCK_ISO}
 STR_JUST_TIME_HHMM                                              :{TIME_HHMM}
+
 STR_JUST_STRING                                                 :{STRING}
 STR_JUST_STRING1                                                :{STRING}
 STR_JUST_STRING2                                                :{STRING}
@@ -6845,7 +6931,9 @@ STR_COMPANY_MONEY                                               :{WHITE}{CURRENC
 STR_BLACK_DATE_LONG                                             :{BLACK}{DATE_LONG}
 STR_WHITE_DATE_LONG                                             :{WHITE}{DATE_LONG}
 STR_WHITE_DATE_WALLCLOCK_LONG                                   :{WHITE}{DATE_WALLCLOCK_LONG}
+# is this string kind of STR_JUST_DATE_SHORT
 STR_WHITE_DATE_WALLCLOCK_SHORT                                  :{WHITE}{DATE_WALLCLOCK_SHORT}
+
 STR_SHORT_DATE                                                  :{WHITE}{DATE_TINY}
 STR_DATE_LONG_SMALL                                             :{TINY_FONT}{BLACK}{DATE_LONG}
 STR_BLACK_TIME_HHMM                                             :{BLACK}{TIME_HHMM}
@@ -6913,8 +7001,10 @@ STR_STATION_RATING_TOOLTIP_TOTAL_RATING                         :総合評価: {
 STR_STATION_RATING_TOOLTIP_USING_CHEAT                          :チートが有効
 
 STR_STATION_RATING_TOOLTIP_NEWGRF_RATING                        :NewGRF駅の評価: {STRING} {BLACK}次がベース
+###length 2
 STR_STATION_RATING_TOOLTIP_NEWGRF_RATING_0                      :{GOLD}{PLUS_NUM}%
 STR_STATION_RATING_TOOLTIP_NEWGRF_RATING_1                      :{LTBLUE}{PLUS_NUM}%
+
 STR_STATION_RATING_TOOLTIP_NEWGRF_SPEED                         :最後の最高速: {LTBLUE}{VELOCITY} ({STRING})
 STR_STATION_RATING_TOOLTIP_NEWGRF_WAITUNITS                     :貨物の待機 (次の停留所までの平均): {LTBLUE}{NUM}
 STR_STATION_RATING_TOOLTIP_NEWGRF_WAITTIME                      :最後の積載からの時間: {LTBLUE}{NUM} 日
@@ -6925,12 +7015,14 @@ STR_STATION_RATING_PERCENTAGE_COMMA                             :, {PLUS_NUM}%
 
 STR_STATION_RATING_TOOLTIP_SPEED                                :最後の輸送機器{STRING}の最高速度: {STRING} ({STRING})
 STR_STATION_RATING_TOOLTIP_SPEED_ZERO                           :{RED}{VELOCITY}{STRING}
+###length 4
 STR_STATION_RATING_TOOLTIP_SPEED_0                              :{ORANGE}{VELOCITY}{STRING}
 STR_STATION_RATING_TOOLTIP_SPEED_1                              :{GOLD}{VELOCITY}{STRING}
 STR_STATION_RATING_TOOLTIP_SPEED_2                              :{YELLOW}{VELOCITY}{STRING}
 STR_STATION_RATING_TOOLTIP_SPEED_3                              :{GREEN}{VELOCITY}{STRING}
 
 STR_STATION_RATING_TOOLTIP_AGE                                  :最後の輸送機器{STRING}の運用年数: {STRING}
+###length 4
 STR_STATION_RATING_TOOLTIP_AGE_0                                :{ORANGE}{NUM} 年{STRING}
 STR_STATION_RATING_TOOLTIP_AGE_1                                :{GOLD}{NUM} 年{STRING}
 STR_STATION_RATING_TOOLTIP_AGE_2                                :{YELLOW}{NUM} 年{STRING}
@@ -6938,6 +7030,7 @@ STR_STATION_RATING_TOOLTIP_AGE_3                                :{GREEN}{NUM} �
 
 STR_STATION_RATING_TOOLTIP_WAITTIME                             :最後の{STRING}積載からの時間: {STRING}
 STR_STATION_RATING_TOOLTIP_WAITTIME_SHIP                        :最後の{STRING}積載からの時間: {STRING} (運送による)
+###length 5
 STR_STATION_RATING_TOOLTIP_WAITTIME_0                           :{RED}{NUM} 日{STRING}
 STR_STATION_RATING_TOOLTIP_WAITTIME_1                           :{ORANGE}{NUM} 日{STRING}
 STR_STATION_RATING_TOOLTIP_WAITTIME_2                           :{GOLD}{NUM} 日{STRING}
@@ -6945,6 +7038,7 @@ STR_STATION_RATING_TOOLTIP_WAITTIME_3                           :{YELLOW}{NUM} �
 STR_STATION_RATING_TOOLTIP_WAITTIME_4                           :{GREEN}{NUM} 日{STRING}
 
 STR_STATION_RATING_TOOLTIP_WAITUNITS                            :待機貨物 (次の停留所{STRING}毎の平均): {STRING}
+###length 6
 STR_STATION_RATING_TOOLTIP_WAITUNITS_0                          :{RED}{NUM}{STRING}
 STR_STATION_RATING_TOOLTIP_WAITUNITS_1                          :{ORANGE}{NUM}{STRING}
 STR_STATION_RATING_TOOLTIP_WAITUNITS_2                          :{GOLD}{NUM}{STRING}
@@ -6964,19 +7058,25 @@ STR_STATION_RATING_TOOLTIP_INVALID                              :N/A
 
 STR_TMPL_RPL_TITLE                                              :{WHITE}テンプレート置換
 STR_TMPL_TEMPLATE_REPLACEMENT                                   :テンプレート置換
+# this string looks like unused
 STR_TMPL_TRAINS_IN_GROUP                                        :{BLACK}グループ内の列車
+
 STR_TMPL_AVAILABLE_TEMPLATES                                    :{BLACK}利用可能なテンプレート
 STR_TMPL_DEFINE_TEMPLATE                                        :{BLACK}新規
 STR_TMPL_EDIT_TEMPLATE                                          :{BLACK}編集
 STR_TMPL_CREATE_CLONE_VEH                                       :{BLACK}クローン
 STR_TMPL_DELETE_TEMPLATE                                        :{BLACK}削除
+# these strings look like unused
 STR_TMPL_RPL_ALL_TMPL                                           :{BLACK}すべてのテンプレートを置換
 STR_TMPL_NEW_VEHICLE                                            :{BLACK}新しい輸送機器
+
 STR_TMPL_CONFIRM                                                :{BLACK}Ok
 STR_TMPL_CANCEL                                                 :{BLACK}取り消し
 STR_TMPL_NEW                                                    :{BLACK}新しいテンプレート輸送機器
 STR_TMPL_REFIT                                                  :{BLACK}改造
+# this string looks like unused
 STR_TMPL_GROUP_INFO                                             :{BLACK}グループ情報: {ORANGE}
+
 STR_TMPL_TEMPLATE_INFO                                          :{BLACK}テンプレート情報: {ORANGE}
 STR_TMPL_RPL_START                                              :{BLACK}置換開始
 STR_TMPL_RPL_STOP                                               :{BLACK}置換停止
@@ -6989,7 +7089,9 @@ STR_TMPL_WARNING_VEH_UNAVAILABLE                                :{RED}列車購�
 STR_TMPL_GROUP_USES_TEMPLATE                                    :{BLACK}使用中のテンプレート: {NUM}
 STR_TMP_TEMPLATE_IN_USE                                         :使用中のテンプレート
 STR_TMP_TEMPLATE_FROM_PARENT_GROUP                              :親グループからテンプレートを利用
+# this string looks like unused
 STR_TMPL_GROUP_NUM_TRAINS                                       :{BLACK}{NUM}
+
 STR_TMPL_CREATEGUI_TITLE                                        :{WHITE}テンプレート輸送機器の作成/編集
 STR_TMPL_MAINGUI_DEFINEDGROUPS                                  :{BLACK}会社で定義されたグループ
 STR_TMPL_TMPLRPL_EX_DIFF_RAILTYPE                               :異なるレールの種類のテンプレートを使う
@@ -7004,7 +7106,7 @@ STR_TMPL_SET_OLD_ONLY                                           :{BLACK}古い�
 STR_TMPL_SET_OLD_ONLY_TIP                                       :{BLACK}設定すると古くて自動交換が必要な輸送機器のみを交換します
 
 STR_TMPL_CONFIG_USEDEPOT                                        :列車庫を使用
-STR_TMPL_CONFIG_KEEPREMAINDERS                                  :メモの記憶
+STR_TMPL_CONFIG_KEEPREMAINDERS                                  :保存
 STR_TMPL_CONFIG_REFIT                                           :改造
 STR_TMPL_CONFIG_OLD_ONLY                                        :古いのだけ
 
@@ -7013,6 +7115,7 @@ STR_TMPL_NUM_TRAINS_NEED_RPL                                    :# 置換され�
 STR_TMPL_CARGO_SUMMARY                                          :{CARGO_LONG}
 STR_TMPL_CARGO_SUMMARY_MULTI                                    :{CARGO_LONG} (x{NUM})
 
+# these strings look like unused
 STR_TMPL_RPLALLGUI_TITLE                                        :{WHITE}全てのテンプレート輸送機器を置換
 STR_TMPL_RPLALLGUI_INSET_TOP                                    :{BLACK}輸送機器の種類と置換を選択
 STR_TMPL_RPLALLGUI_INSET_TOP_1                                  :{BLACK}テンプレートエンジン
