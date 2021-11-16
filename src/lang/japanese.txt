@@ -3211,6 +3211,7 @@ STR_TRACE_RESTRICT_CONDITIONAL_ORDER_DEPOT                      :{STRING} {STRIN
 STR_TRACE_RESTRICT_CONDITIONAL_CARGO                            :{STRING} 列車の貨物が {2:STRING} を {1:STRING} ならば(then)
 STR_TRACE_RESTRICT_CONDITIONAL_ENTRY_DIRECTION                  :{STRING} 列車が {2:STRING} のタイル境界から進入したの {1:STRING} ならば(then)
 STR_TRACE_RESTRICT_CONDITIONAL_ENTRY_SIGNAL_FACE                :{STRING} 列車が信号の {2:STRING} から進入したの {1:STRING} ならば(then)
+STR_TRACE_RESTRICT_CONDITIONAL_ENTRY_SIGNAL_TYPE                :{STRING} 列車が {2:STRING} するの {1:STRING} ならば(then)
 STR_TRACE_RESTRICT_CONDITIONAL_TILE_INDEX                       :{STRING} {STRING} が {3:NUM} x {4:NUM} に存在するもの {2:STRING} ならば(then)
 STR_TRACE_RESTRICT_CONDITIONAL_GROUP                            :{STRING} 列車がグループ: {2:GROUP} の所属 {1:STRING} ならば(then)
 STR_TRACE_RESTRICT_CONDITIONAL_GROUP_STR                        :{STRING} 列車がグループ: {2:STRING} {3:STRING} {BLACK}の所属 {1:STRING}ならば(then)
@@ -3254,6 +3255,8 @@ STR_TRACE_RESTRICT_DIRECTION_NE                                 :北東
 STR_TRACE_RESTRICT_DIRECTION_SE                                 :南東
 STR_TRACE_RESTRICT_DIRECTION_SW                                 :南西
 STR_TRACE_RESTRICT_DIRECTION_NW                                 :北西
+STR_TRACE_RESTRICT_DIRECTION_TUNBRIDGE_ENTRANCE                 :トンネル/橋梁へ進入
+STR_TRACE_RESTRICT_DIRECTION_TUNBRIDGE_EXIT                     :トンネル/橋梁から退出
 STR_TRACE_RESTRICT_COMPANY                                      :会社
 STR_TRACE_RESTRICT_UNDEFINED_COMPANY                            :未定義の会社
 STR_TRACE_RESTRICT_SLOT_OP                                      :スロット操作

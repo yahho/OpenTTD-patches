@@ -2,6 +2,10 @@
 
 * * *
 
+### v0.44.0+1 (2021-11-16)
+* Update base jgrpp to #25a46773
+* Update Japanese translation
+
 ### v0.44.0+0 (2021-11-11)
 * Update base jgrpp version to 0.44.0
 * Update & fix Japanese translation
