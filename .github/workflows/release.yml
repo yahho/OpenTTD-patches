@@ -96,7 +96,6 @@ jobs:
           rm -rf openttd-docs
           rm -rf openttd-source
           rm openttd-macos-universal/openttd-${{ needs.source.outputs.version }}-*.zip
-          rm openttd-windows-*/openttd-${{ needs.source.outputs.version }}-*.exe
           mkdir bundles
           mv openttd-*/* bundles/
           echo "::endgroup::"
