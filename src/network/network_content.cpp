@@ -220,12 +220,12 @@ void ClientNetworkContentSocketHandler::RequestContentList(ContentType type)
 
 	p->Send_string("jgrpp");
 
-    /* Branch version parts should be all integer.
-     * So, my patch builds shouldn't be sent _openttd_release_version
-     * because it's not suitable versioning scheme for BaNaNaS backend.
-     * And for presenting compatibility to online contents or/and avoiding make trouble related to BaNaNaS,
-     * should be sent _jgrpp_content_version.
-     */
+	/* Branch version parts should be all integer.
+	 * So, my patch builds shouldn't be sent _openttd_release_version
+	 * because it's not suitable versioning scheme for BaNaNaS backend.
+	 * And for presenting compatibility to online contents or/and avoiding make trouble related to BaNaNaS,
+	 * should be sent _jgrpp_content_version.
+	 */
 
 	p->Send_string(_jgrpp_content_version);
 
