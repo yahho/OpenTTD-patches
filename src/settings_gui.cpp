@@ -1930,6 +1930,8 @@ static SettingsContainer &GetSettingsTree()
 			accounting->Add(new SettingEntry("economy.feeder_payment_share"));
 			accounting->Add(new SettingEntry("economy.infrastructure_maintenance"));
 			accounting->Add(new SettingEntry("difficulty.vehicle_costs"));
+			accounting->Add(new SettingEntry("difficulty.vehicle_costs_in_depot"));
+			accounting->Add(new SettingEntry("difficulty.vehicle_costs_when_stopped"));
 			accounting->Add(new SettingEntry("difficulty.construction_cost"));
 		}
 
@@ -1949,6 +1951,7 @@ static SettingsContainer &GetSettingsTree()
 				physics->Add(new SettingEntry("vehicle.plane_speed"));
 				physics->Add(new SettingEntry("vehicle.ship_collision_avoidance"));
 				physics->Add(new SettingEntry("vehicle.roadveh_articulated_overtaking"));
+				physics->Add(new SettingEntry("vehicle.roadveh_cant_quantum_tunnel"));
 				physics->Add(new SettingEntry("vehicle.slow_road_vehicles_in_curves"));
 			}
 
