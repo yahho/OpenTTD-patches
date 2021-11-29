@@ -1270,7 +1270,7 @@ STR_CONFIG_SETTING_RUNNING_COSTS_IN_DEPOT                       :車庫内の輸
 STR_CONFIG_SETTING_RUNNING_COSTS_IN_DEPOT_HELPTEXT              :車両(停止していない)が車庫で待機中の時のメンテナンスコストを設定します
 STR_CONFIG_SETTING_RUNNING_COSTS_IN_DEPOT_VALUE                 :{COMMA} 分の1
 
-STR_CONFIG_SETTING_RUNNING_COSTS_WHEN_STOPPED                   :静止している輸送機器の維持費: {STRING2}
+STR_CONFIG_SETTING_RUNNING_COSTS_WHEN_STOPPED                   :静止している輸送機器の維持費: {STRING}
 STR_CONFIG_SETTING_RUNNING_COSTS_WHEN_STOPPED_HELPTEXT          :車両が車庫以外で静止している時のメンテナンスコストを設定します
 STR_CONFIG_SETTING_RUNNING_COSTS_WHEN_STOPPED_VALUE             :{COMMA} 分の1
 
@@ -1468,7 +1468,7 @@ STR_CONFIG_SETTING_FLIP_DIRECTION_ALL_TRAINS_HELPTEXT           :NewGRFで有効
 STR_CONFIG_SETTING_ROADVEH_ARTICULATED_OVERTAKING               :道路車両が渋滞を追い越すようにする: {STRING}
 STR_CONFIG_SETTING_ROADVEH_ARTICULATED_OVERTAKING_HELPTEXT      :道路車両が連なっている場合、車両は他の車両を追い越すことができるようにします。
 
-STR_CONFIG_SETTING_ROADVEH_CANT_QUANTUM_TUNNEL                  :道路車両が妨げられている場合に互いに通過できないようにする: {STRING2}
+STR_CONFIG_SETTING_ROADVEH_CANT_QUANTUM_TUNNEL                  :道路車両が妨げられている場合に互いに通過できないようにする: {STRING}
 STR_CONFIG_SETTING_ROADVEH_CANT_QUANTUM_TUNNEL_HELPTEXT         :長時間にわたり経路が妨げられている場合の道路車両の相互通行を無効化します。
 
 STR_CONFIG_SETTING_DRIVE_THROUGH_TRAIN_DEPOT                    :ドライブスルー列車庫: {STRING}
@@ -4496,7 +4496,7 @@ STR_STATION_VIEW_SCHEDULED_TRAINS_TOOLTIP                       :{BLACK}この�
 STR_STATION_VIEW_SCHEDULED_ROAD_VEHICLES_TOOLTIP                :{BLACK}このバス停/荷役所が指令リストに入っている全車両を表示します
 STR_STATION_VIEW_SCHEDULED_AIRCRAFT_TOOLTIP                     :{BLACK}この空港が指令リストに入っている全航空機を表示します
 STR_STATION_VIEW_SCHEDULED_SHIPS_TOOLTIP                        :{BLACK}この埠頭が指令リストに入っている全船舶を表示します
-STR_STATION_VIEW_SCHEDULED_TOOLTIP_CTRL_SUFFIX                  :{BLACK}{STRING}。 Ctrl+Click で排他的に表示します
+STR_STATION_VIEW_SCHEDULED_TOOLTIP_CTRL_SUFFIX                  :{BLACK}{STRING}。 Ctrl+クリックで排他的に表示します
 
 STR_STATION_VIEW_RENAME_STATION_CAPTION                         :停留施設の名称を変更
 STR_STATION_VIEW_CLOSE_AIRPORT                                  :{BLACK}空港を閉鎖
@@ -5706,19 +5706,19 @@ STR_TIMETABLE_STARTING_DATE_TOOLTIP                             :{BLACK}始発�
 
 STR_TIMETABLE_CHANGE_TIME                                       :{BLACK}時間を変更
 STR_TIMETABLE_WAIT_TIME_TOOLTIP                                 :{BLACK}選択した指令の行程時間を変更します
-STR_TIMETABLE_WAIT_TIME_TOOLTIP_EXTRA                           :{BLACK}{STRING} (Ctrl+Click ですべての指令に時間を設定します)
+STR_TIMETABLE_WAIT_TIME_TOOLTIP_EXTRA                           :{BLACK}{STRING} (Ctrl+クリックですべての指令に時間を設定します)
 
 STR_TIMETABLE_CLEAR_TIME                                        :{BLACK}時刻を消去
 STR_TIMETABLE_CLEAR_TIME_TOOLTIP                                :{BLACK}選択した指令の行程時間を消去します
-STR_TIMETABLE_CLEAR_TIME_TOOLTIP_EXTRA                          :{BLACK}{STRING} (Ctrl+Click ですべての指令の時間を消去します)
+STR_TIMETABLE_CLEAR_TIME_TOOLTIP_EXTRA                          :{BLACK}{STRING} (Ctrl+クリックですべての指令の時間を消去します)
 
 STR_TIMETABLE_CHANGE_SPEED                                      :{BLACK}制限速度を変更
 STR_TIMETABLE_CHANGE_SPEED_TOOLTIP                              :{BLACK}選択した移動区間での最高速度を設定します
-STR_TIMETABLE_CHANGE_SPEED_TOOLTIP_EXTRA                        :{BLACK}{STRING} (Ctrl+Click ですべての指令に速度を設定します)
+STR_TIMETABLE_CHANGE_SPEED_TOOLTIP_EXTRA                        :{BLACK}{STRING} (Ctrl+クリックですべての指令に速度を設定します)
 
 STR_TIMETABLE_CLEAR_SPEED                                       :{BLACK}制限速度を撤廃
 STR_TIMETABLE_CLEAR_SPEED_TOOLTIP                               :{BLACK}選択した移動区間にある最高速度を撤廃します
-STR_TIMETABLE_CLEAR_SPEED_TOOLTIP_EXTRA                         :{BLACK}{STRING} (Ctrl+Click ですべての指令の速度を消去します)
+STR_TIMETABLE_CLEAR_SPEED_TOOLTIP_EXTRA                         :{BLACK}{STRING} (Ctrl+クリックですべての指令の速度を消去します)
 
 STR_TIMETABLE_RESET_LATENESS                                    :{BLACK}遅延をリセット
 STR_TIMETABLE_RESET_LATENESS_TOOLTIP                            :{BLACK}ダイヤからの遅延量をリセットして、現状を定刻にします
@@ -7164,7 +7164,7 @@ STR_SCHDISPATCH_ENABLED                                         :{BLACK}有効
 STR_SCHDISPATCH_ENABLED_TOOLTIP                                 :{BLACK}この指令で計画発送を有効にします。自動分離をオフにする必要があります。
 STR_SCHDISPATCH_ADD                                             :{BLACK}発車スロットを追加
 STR_SCHDISPATCH_ADD_TOOLTIP                                     :{BLACK}この計画に新しい発車スロットを追加します
-STR_SCHDISPATCH_ADD_TOOLTIP_EXTRA                               :{BLACK}{STRING} Ctrl+Click で一度に複数の発車スロットを追加します。
+STR_SCHDISPATCH_ADD_TOOLTIP_EXTRA                               :{BLACK}{STRING} Ctrl+クリックで一度に複数の発車スロットを追加します。
 STR_SCHDISPATCH_ADD_CAPTION                                     :{BLACK}発車スロット
 STR_SCHDISPATCH_DURATION                                        :{BLACK}期間
 STR_SCHDISPATCH_DURATION_TOOLTIP                                :{BLACK}計画の期間を設定します
