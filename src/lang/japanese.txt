@@ -1266,6 +1266,14 @@ STR_CONFIG_SETTING_INTEREST_RATE_HELPTEXT                       :借入利率を
 STR_CONFIG_SETTING_RUNNING_COSTS                                :維持費: {STRING}
 STR_CONFIG_SETTING_RUNNING_COSTS_HELPTEXT                       :車両や施設のメンテナンスコストを設定します
 
+STR_CONFIG_SETTING_RUNNING_COSTS_IN_DEPOT                       :車庫内の輸送機器の維持費: {STRING}
+STR_CONFIG_SETTING_RUNNING_COSTS_IN_DEPOT_HELPTEXT              :車両(停止していない)が車庫で待機中の時のメンテナンスコストを設定します
+STR_CONFIG_SETTING_RUNNING_COSTS_IN_DEPOT_VALUE                 :{COMMA} 分の1
+
+STR_CONFIG_SETTING_RUNNING_COSTS_WHEN_STOPPED                   :静止している輸送機器の維持費: {STRING2}
+STR_CONFIG_SETTING_RUNNING_COSTS_WHEN_STOPPED_HELPTEXT          :車両が車庫以外で静止している時のメンテナンスコストを設定します
+STR_CONFIG_SETTING_RUNNING_COSTS_WHEN_STOPPED_VALUE             :{COMMA} 分の1
+
 STR_CONFIG_SETTING_CONSTRUCTION_SPEED                           :建設速度: {STRING}
 STR_CONFIG_SETTING_CONSTRUCTION_SPEED_HELPTEXT                  :AIの建設速度を設定します
 
@@ -1459,6 +1467,9 @@ STR_CONFIG_SETTING_FLIP_DIRECTION_ALL_TRAINS_HELPTEXT           :NewGRFで有効
 
 STR_CONFIG_SETTING_ROADVEH_ARTICULATED_OVERTAKING               :道路車両が渋滞を追い越すようにする: {STRING}
 STR_CONFIG_SETTING_ROADVEH_ARTICULATED_OVERTAKING_HELPTEXT      :道路車両が連なっている場合、車両は他の車両を追い越すことができるようにします。
+
+STR_CONFIG_SETTING_ROADVEH_CANT_QUANTUM_TUNNEL                  :道路車両が妨げられている場合に互いに通過できないようにする: {STRING2}
+STR_CONFIG_SETTING_ROADVEH_CANT_QUANTUM_TUNNEL_HELPTEXT         :長時間にわたり経路が妨げられている場合の道路車両の相互通行を無効化します。
 
 STR_CONFIG_SETTING_DRIVE_THROUGH_TRAIN_DEPOT                    :ドライブスルー列車庫: {STRING}
 STR_CONFIG_SETTING_DRIVE_THROUGH_TRAIN_DEPOT_HELPTEXT           :ドライブスルー列車庫のエミュレーションを可能にします。 列車は背中合わせに配置された列車庫間を移動できるようになります。前述した2つの列車庫の間に追加で列車庫を置くこともできます。 YAPF経路探索アルゴリズムを使用する必要があります。
@@ -2206,8 +2217,7 @@ STR_CONFIG_SETTING_ZOOM_MIN                                     :最大ズーム
 STR_CONFIG_SETTING_ZOOM_MIN_HELPTEXT                            :ズームインの最大倍率を設定します。倍率を高くすればするほどメモリー使用量が増えます
 STR_CONFIG_SETTING_ZOOM_MAX                                     :最大ズームアウトレベル:{STRING}
 STR_CONFIG_SETTING_ZOOM_MAX_HELPTEXT                            :ズームアウトの最大倍率を設定します。ズームアウトの倍率が大きいと、処理遅延が発生する可能性があります
-STR_CONFIG_SETTING_SPRITE_ZOOM_MIN                              :使用する最高解像度のスプライト：{STRING}
-STR_CONFIG_SETTING_SPRITE_ZOOM_MIN_HELPTEXT                     :スプライトに使用する最大解像度を制限します。 スプライトの解像度を制限すると使用可能な場合でも高解像度のグラフィックを使用できなくなります。 これにより、高解像度のグラフィックを使用する場合と使用しない場合のGRFファイルを組み合わせて使用する場合にゲームの外観を統一できます。
+###length 10
 STR_CONFIG_SETTING_ZOOM_LVL_MIN                                 :4倍
 STR_CONFIG_SETTING_ZOOM_LVL_IN_2X                               :2倍
 STR_CONFIG_SETTING_ZOOM_LVL_NORMAL                              :普通
@@ -2218,9 +2228,14 @@ STR_CONFIG_SETTING_ZOOM_LVL_OUT_16X                             :16倍
 STR_CONFIG_SETTING_ZOOM_LVL_OUT_32X                             :32倍
 STR_CONFIG_SETTING_ZOOM_LVL_OUT_64X                             :64倍
 STR_CONFIG_SETTING_ZOOM_LVL_OUT_128X                            :128倍
+
+STR_CONFIG_SETTING_SPRITE_ZOOM_MIN                              :使用する最高解像度のスプライト：{STRING}
+STR_CONFIG_SETTING_SPRITE_ZOOM_MIN_HELPTEXT                     :スプライトに使用する最大解像度を制限します。 スプライトの解像度を制限すると使用可能な場合でも高解像度のグラフィックを使用できなくなります。 これにより、高解像度のグラフィックを使用する場合と使用しない場合のGRFファイルを組み合わせて使用する場合にゲームの外観を統一できます。
+###length 3
 STR_CONFIG_SETTING_SPRITE_ZOOM_LVL_MIN                          :4倍
 STR_CONFIG_SETTING_SPRITE_ZOOM_LVL_IN_2X                        :2倍
 STR_CONFIG_SETTING_SPRITE_ZOOM_LVL_NORMAL                       :1倍
+
 STR_CONFIG_SETTING_TOWN_ZONES                                   :{ORANGE}カスタム街区域
 STR_CONFIG_SETTING_TOWN_ZONE_CALC_MODE                          :カスタム街区域計算の使用: {STRING}
 STR_CONFIG_SETTING_TOWN_ZONE_CALC_MODE_HELPTEXT                 :街によって生成される街区域の大きさの手動構成を許可します。 カスタム街区域設定のデフォルト値はデフォルトの街生成と同一です。 一部の区域では小さな変更のみ必要な一方、区域0は大きな値で特に恩恵を受けます。
@@ -2274,11 +2289,6 @@ STR_CONFIG_SETTING_LINKGRAPH_TIME                               :分配グラフ
 STR_CONFIG_SETTING_LINKGRAPH_TIME_HELPTEXT                      :グラフの単一要素に関わる再計算にかけられる時間を設定します。再計算が開始されると、この日数のみ実行可能なスレッドが生成されます。この設定が短いと、期日までにスレッドが終了していない可能性が高くなり、終了するまでゲームが停止します(ラグ)。長くした場合、経路が変更された場合に分配が更新されるまでに時間がかかるようになります
 STR_CONFIG_SETTING_LINKGRAPH_NOT_DAYLENGTH_SCALED               :リンクグラフの日数を日の長さの因数でスケールしない: {STRING}
 STR_CONFIG_SETTING_LINKGRAPH_NOT_DAYLENGTH_SCALED_HELPTEXT      :有効にするとリンクグラフの再計算の間隔と時刻が、日の長さでスケールした暦日の代わりにスケールされていないオリジナルの日の長さの単位になります。
-STR_CONFIG_SETTING_DISTRIBUTION_MANUAL                          :無効
-STR_CONFIG_SETTING_DISTRIBUTION_ASYMMETRIC                      :非対称
-STR_CONFIG_SETTING_DISTRIBUTION_ASYMMETRIC_EQ                   :非対称 (均等配分)
-STR_CONFIG_SETTING_DISTRIBUTION_ASYMMETRIC_NEAREST              :非対称 (最寄り)
-STR_CONFIG_SETTING_DISTRIBUTION_SYMMETRIC                       :対称
 STR_CONFIG_SETTING_DISTRIBUTION_PAX                             :旅客の行先分配法: {STRING}
 STR_CONFIG_SETTING_DISTRIBUTION_PAX_HELPTEXT                    :旅客がどのように行き先別に分配されるかを設定します。「対称」ではAからBへ向かう乗客とほぼ同数が、BからAに向かうようになります。 「非対称」ではそれぞれの方向に向かう旅客数は独立に決められます。「無効」では行き先別分配をしなくなります
 STR_CONFIG_SETTING_DISTRIBUTION_MAIL                            :郵便物の行先分配法: {STRING}
@@ -2287,6 +2297,13 @@ STR_CONFIG_SETTING_DISTRIBUTION_ARMOURED                        :装甲車輸送
 STR_CONFIG_SETTING_DISTRIBUTION_ARMOURED_HELPTEXT               :装甲車輸送品とは貴重品(温帯)、金(亜寒帯)、ダイヤモンド(亜熱帯)のことです(NewGRFの導入状況よっては変わることがあります)。これらの品目ががどのように行き先別に分配されるかを設定します。「対称」ではAからBへ向かう輸送品とほぼ同数が、BからAに向かうようになります。 「非対称」ではそれぞれの方向に向かう輸送品数は独立に決められます。「手動」では自動での行き先別分配をしなくなります。亜熱帯・温帯では銀行同士で貴重品のやりとりがあるので「対称」を選択しても問題ありませんが、金やダイヤモンドが銀行から鉱山に送られるようなことはないので、亜寒帯では「非対称」か「手動」にすることをお勧めします。
 STR_CONFIG_SETTING_DISTRIBUTION_DEFAULT                         :一般貨物の行先分配法: {STRING}
 STR_CONFIG_SETTING_DISTRIBUTION_DEFAULT_HELPTEXT                :一般的な貨物がどのように行き先別に分配されるかを設定します。「非対称」ではそれぞれの方向に向かう貨物数はプログラムの任意に決められます。「無効」では行き先別分配をしなくなります。
+###length 5
+STR_CONFIG_SETTING_DISTRIBUTION_MANUAL                          :無効
+STR_CONFIG_SETTING_DISTRIBUTION_ASYMMETRIC                      :非対称
+STR_CONFIG_SETTING_DISTRIBUTION_ASYMMETRIC_EQ                   :非対称 (均等配分)
+STR_CONFIG_SETTING_DISTRIBUTION_ASYMMETRIC_NEAREST              :非対称 (最寄り)
+STR_CONFIG_SETTING_DISTRIBUTION_SYMMETRIC                       :対称
+
 STR_CONFIG_SETTING_DISTRIBUTION_PER_CARGO                       :この貨物に対する上書き行先分配法: {STRING}
 STR_CONFIG_SETTING_DISTRIBUTION_PER_CARGO_PARAM                 :{STRING}に対する上書き行先分配法: {STRING}
 STR_CONFIG_SETTING_DISTRIBUTION_PER_CARGO_HELPTEXT              :「(デフォルト)」はこの貨物の種類のデフォルトの行先分配法を意味します。「対称」ではAからBへ向かう乗客とほぼ同数が、BからAに向かうようになります。 「非対称」ではそれぞれの方向に向かう旅客数は独立に決められます。「無効」では行き先別分配をしなくなります
@@ -4479,6 +4496,7 @@ STR_STATION_VIEW_SCHEDULED_TRAINS_TOOLTIP                       :{BLACK}この�
 STR_STATION_VIEW_SCHEDULED_ROAD_VEHICLES_TOOLTIP                :{BLACK}このバス停/荷役所が指令リストに入っている全車両を表示します
 STR_STATION_VIEW_SCHEDULED_AIRCRAFT_TOOLTIP                     :{BLACK}この空港が指令リストに入っている全航空機を表示します
 STR_STATION_VIEW_SCHEDULED_SHIPS_TOOLTIP                        :{BLACK}この埠頭が指令リストに入っている全船舶を表示します
+STR_STATION_VIEW_SCHEDULED_TOOLTIP_CTRL_SUFFIX                  :{BLACK}{STRING}。 Ctrl+Click で排他的に表示します
 
 STR_STATION_VIEW_RENAME_STATION_CAPTION                         :停留施設の名称を変更
 STR_STATION_VIEW_CLOSE_AIRPORT                                  :{BLACK}空港を閉鎖
@@ -4762,8 +4780,6 @@ STR_VEHICLE_LIST_SHIP_TOOLTIP                                   :{BLACK}船舶 -
 STR_VEHICLE_LIST_AIRCRAFT_TOOLTIP                               :{BLACK}航空機 - 情報を見るには航空機をクリックします
 ###next-name-looks-similar
 
-STR_VEHICLE_LIST_PROFIT_THIS_YEAR_LAST_YEAR                     :{TINY_FONT}{BLACK}収益(今年): {CURRENCY_LONG} (収益(去年): {CURRENCY_LONG})
-STR_VEHICLE_LIST_PROFIT_THIS_YEAR_LAST_YEAR_LIFETIME            :{STRING} (生涯: {CURRENCY_LONG})
 STR_VEHICLE_LIST_AGE                                            :{STRING}, 使用年数: {COMMA} 年 ({COMMA})
 STR_VEHICLE_LIST_AGE_RED                                        :{STRING}, 使用年数: {RED}{COMMA} {BLACK}年 ({COMMA})
 STR_VEHICLE_LIST_CARGO                                          :{STRING}, 貨物: {CARGO_LIST}
@@ -4791,6 +4807,8 @@ STR_VEHICLE_LIST_MANAGE_LIST                                    :{BLACK}リス�
 STR_VEHICLE_LIST_MANAGE_LIST_TOOLTIP                            :{BLACK}このリスト内のすべての車両に指令を送信する
 STR_VEHICLE_LIST_REPLACE_VEHICLES                               :輸送機器更新
 STR_VEHICLE_LIST_SEND_FOR_SERVICING                             :回送して点検
+STR_VEHICLE_LIST_PROFIT_THIS_YEAR_LAST_YEAR                     :{TINY_FONT}{BLACK}収益(今年): {CURRENCY_LONG} (収益(去年): {CURRENCY_LONG})
+STR_VEHICLE_LIST_PROFIT_THIS_YEAR_LAST_YEAR_LIFETIME            :{STRING} (生涯: {CURRENCY_LONG})
 STR_VEHICLE_LIST_CANCEL_DEPOT_SERVICE                           :回送/点検をキャンセル
 
 STR_VEHICLE_LIST_SEND_TRAIN_TO_DEPOT                            :列車庫へ回送
@@ -5667,8 +5685,12 @@ STR_TIMETABLE_AND_TRAVEL_FOR                                    :して{STRING}�
 STR_TIMETABLE_DAYS                                              :{COMMA}日
 STR_TIMETABLE_TICKS                                             :{COMMA}ゲーム時
 STR_TIMETABLE_MINUTES                                           :{COMMA}分
+STR_TIMETABLE_HOURS                                             :{COMMA}時間
+STR_TIMETABLE_HOURS_MINUTES                                     :{COMMA}時間{COMMA}分
 
 STR_TIMETABLE_LEFTOVER_TICKS                                    :{STRING} + {COMMA}ゲーム時
+
+STR_TIMETABLE_MINUTES_LONG                                      :{COMMA}分 ({STRING}){STRING}
 
 STR_TIMETABLE_TOTAL_TIME                                        :{BLACK}このダイヤを実行するには{STRING}必要です
 STR_TIMETABLE_TOTAL_TIME_INCOMPLETE                             :{BLACK}このダイヤを実行するには少なくとも{STRING}必要です(ダイヤが組まれていない区間があります)
@@ -5684,15 +5706,19 @@ STR_TIMETABLE_STARTING_DATE_TOOLTIP                             :{BLACK}始発�
 
 STR_TIMETABLE_CHANGE_TIME                                       :{BLACK}時間を変更
 STR_TIMETABLE_WAIT_TIME_TOOLTIP                                 :{BLACK}選択した指令の行程時間を変更します
+STR_TIMETABLE_WAIT_TIME_TOOLTIP_EXTRA                           :{BLACK}{STRING} (Ctrl+Click ですべての指令に時間を設定します)
 
 STR_TIMETABLE_CLEAR_TIME                                        :{BLACK}時刻を消去
 STR_TIMETABLE_CLEAR_TIME_TOOLTIP                                :{BLACK}選択した指令の行程時間を消去します
+STR_TIMETABLE_CLEAR_TIME_TOOLTIP_EXTRA                          :{BLACK}{STRING} (Ctrl+Click ですべての指令の時間を消去します)
 
 STR_TIMETABLE_CHANGE_SPEED                                      :{BLACK}制限速度を変更
 STR_TIMETABLE_CHANGE_SPEED_TOOLTIP                              :{BLACK}選択した移動区間での最高速度を設定します
+STR_TIMETABLE_CHANGE_SPEED_TOOLTIP_EXTRA                        :{BLACK}{STRING} (Ctrl+Click ですべての指令に速度を設定します)
 
 STR_TIMETABLE_CLEAR_SPEED                                       :{BLACK}制限速度を撤廃
 STR_TIMETABLE_CLEAR_SPEED_TOOLTIP                               :{BLACK}選択した移動区間にある最高速度を撤廃します
+STR_TIMETABLE_CLEAR_SPEED_TOOLTIP_EXTRA                         :{BLACK}{STRING} (Ctrl+Click ですべての指令の速度を消去します)
 
 STR_TIMETABLE_RESET_LATENESS                                    :{BLACK}遅延をリセット
 STR_TIMETABLE_RESET_LATENESS_TOOLTIP                            :{BLACK}ダイヤからの遅延量をリセットして、現状を定刻にします
@@ -5751,8 +5777,9 @@ STR_DATE_SET_DATE_TOOLTIP                                       :{BLACK}現在�
 STR_DATE_DAY_TOOLTIP                                            :{BLACK}日を選択
 STR_DATE_MONTH_TOOLTIP                                          :{BLACK}月を選択
 STR_DATE_YEAR_TOOLTIP                                           :{BLACK}年を選択
-STR_DATE_MINUTES_DAY_TOOLTIP                                    :{BLACK}分を選択
-STR_DATE_MINUTES_MONTH_TOOLTIP                                  :{BLACK}時を選択
+STR_DATE_MINUTES_MINUTE_TOOLTIP                                 :{BLACK}分を選択
+STR_DATE_MINUTES_HOUR_TOOLTIP                                   :{BLACK}時を選択
+STR_TIME_CAPTION                                                :{WHITE}時刻設定
 
 # Cargo type orders Window
 ###length 2
@@ -7137,29 +7164,40 @@ STR_SCHDISPATCH_ENABLED                                         :{BLACK}有効
 STR_SCHDISPATCH_ENABLED_TOOLTIP                                 :{BLACK}この指令で計画発送を有効にします。自動分離をオフにする必要があります。
 STR_SCHDISPATCH_ADD                                             :{BLACK}発車スロットを追加
 STR_SCHDISPATCH_ADD_TOOLTIP                                     :{BLACK}この計画に新しい発車スロットを追加します
+STR_SCHDISPATCH_ADD_TOOLTIP_EXTRA                               :{BLACK}{STRING} Ctrl+Click で一度に複数の発車スロットを追加します。
 STR_SCHDISPATCH_ADD_CAPTION                                     :{BLACK}発車スロット
 STR_SCHDISPATCH_DURATION                                        :{BLACK}期間
 STR_SCHDISPATCH_DURATION_TOOLTIP                                :{BLACK}計画の期間を設定します
 STR_SCHDISPATCH_DURATION_CAPTION_MINUTE                         :{BLACK}期間 (分)
 STR_SCHDISPATCH_DURATION_CAPTION_DAY                            :{BLACK}期間 (日)
+STR_SCHDISPATCH_DURATION_CAPTION_TICKS                          :{BLACK}期間 (ゲーム時)
 STR_SCHDISPATCH_START                                           :{BLACK}開始日
+STR_SCHDISPATCH_SET_START                                       :{BLACK}開始日を設定
 STR_SCHDISPATCH_START_TOOLTIP                                   :{BLACK}計画の開始日を指定します。
 STR_SCHDISPATCH_START_CAPTION_MINUTE                            :{BLACK}開始日 (hhmm)
 STR_SCHDISPATCH_DELAY                                           :{BLACK}遅延
 STR_SCHDISPATCH_DELAY_TOOLTIP                                   :{BLACK}スロットがスキップされるまでの最大遅延を設定します.
 STR_SCHDISPATCH_DELAY_CAPTION_MINUTE                            :{BLACK}遅延 (分)
 STR_SCHDISPATCH_DELAY_CAPTION_DAY                               :{BLACK}遅延 (日)
+STR_SCHDISPATCH_DELAY_CAPTION_TICKS                             :{BLACK}遅延 (ゲーム時)
 STR_SCHDISPATCH_RESET_LAST_DISPATCH                             :{BLACK}最終発送をリセット
 STR_SCHDISPATCH_RESET_LAST_DISPATCH_TOOLTIP                     :{BLACK}計画から輸送機器が最後に発送されたときリセットします
 
 STR_SCHDISPATCH_SUMMARY_LAST_DEPARTURE_PAST                     :{BLACK}最終発車は {DATE_WALLCLOCK_TINY}です。
 STR_SCHDISPATCH_SUMMARY_LAST_DEPARTURE_FUTURE                   :{BLACK}最終発車はまだありません。{DATE_WALLCLOCK_TINY}に発車予定です。
 STR_SCHDISPATCH_SUMMARY_L1                                      :{BLACK}この計画には {COMMA} つの輸送機器が必要です。
-STR_SCHDISPATCH_SUMMARY_L2                                      :{BLACK}この計画は {STRING} 毎にリピートします。{DATE_WALLCLOCK_TINY} に始まり、{DATE_WALLCLOCK_TINY} に終了します。
-STR_SCHDISPATCH_SUMMARY_L3                                      :{BLACK}最大で {STRING} のスロットがスキップされる前の遅延が許されています。
+STR_SCHDISPATCH_SUMMARY_L2                                      :{BLACK}この計画は {STRING} 毎にリピートします。
+STR_SCHDISPATCH_SUMMARY_L3                                      :{BLACK}この計画は {DATE_WALLCLOCK_TINY} に始まり、{DATE_WALLCLOCK_TINY} に終了します。
+STR_SCHDISPATCH_SUMMARY_L4                                      :{BLACK}スロットがスキップされるまでに最大で {STRING} の遅延が許されています。
 STR_SCHDISPATCH_SUMMARY_NOT_ENABLED                             :{BLACK}計画は非アクティブです。
 
 STR_SCHDISPATCH_SLOT_OUTSIDE_SCHEDULE                           :{BLACK}1つ以上の発車スロットが計画期間の外です。
+
+STR_SCHDISPATCH_ADD_DEPARTURE_SLOTS_START                       :{BLACK}開始:
+STR_SCHDISPATCH_ADD_DEPARTURE_SLOTS_STEP                        :{BLACK}行程:
+STR_SCHDISPATCH_ADD_DEPARTURE_SLOTS_END                         :{BLACK}終了:
+
+STR_ERROR_SCHDISPATCH_TRIED_TO_ADD_TOO_MANY_SLOTS               :{WHITE}一度に大量の発車スロットを追加しようとしました
 
 # Modifier key toggle window
 STR_MODIFIER_KEY_TOGGLE_CAPTION                                 :{WHITE}修飾キー
