@@ -1,4 +1,4 @@
-## JGR's Patchpack + Yahho's additions version 0.44.0+1
+## JGR's Patchpack + Yahho's additions version 0.44.1+0
 
 This is a collection of patches applied to [OpenTTD](http://www.openttd.org/)
 
