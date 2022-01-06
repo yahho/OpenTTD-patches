@@ -39,6 +39,7 @@
 #include "rev.h"
 #include "video/video_driver.hpp"
 #include "music/music_driver.hpp"
+#include "scope.h"
 
 #include <vector>
 #include <functional>
@@ -60,6 +61,8 @@ static const StringID _autosave_dropdown[] = {
 	STR_GAME_OPTIONS_AUTOSAVE_DROPDOWN_EVERY_3_MONTHS,
 	STR_GAME_OPTIONS_AUTOSAVE_DROPDOWN_EVERY_6_MONTHS,
 	STR_GAME_OPTIONS_AUTOSAVE_DROPDOWN_EVERY_12_MONTHS,
+	STR_GAME_OPTIONS_AUTOSAVE_DROPDOWN_EVERY_DAYS_CUSTOM_LABEL,
+	STR_GAME_OPTIONS_AUTOSAVE_DROPDOWN_EVERY_MINUTES_CUSTOM_LABEL,
 	INVALID_STRING_ID,
 };
 
@@ -167,6 +170,13 @@ static void AddCustomRefreshRates()
 struct GameOptionsWindow : Window {
 	GameSettings *opt;
 	bool reload;
+
+	enum class QueryTextItem {
+		None,
+		AutosaveCustomDays,
+		AutosaveCustomRealTimeMinutes,
+	};
+	QueryTextItem current_query_text_item = QueryTextItem::None;
 
 	GameOptionsWindow(WindowDesc *desc) : Window(desc)
 	{
@@ -307,7 +317,18 @@ struct GameOptionsWindow : Window {
 	{
 		switch (widget) {
 			case WID_GO_CURRENCY_DROPDOWN:     SetDParam(0, _currency_specs[this->opt->locale.currency].name); break;
-			case WID_GO_AUTOSAVE_DROPDOWN:     SetDParam(0, _autosave_dropdown[_settings_client.gui.autosave]); break;
+			case WID_GO_AUTOSAVE_DROPDOWN: {
+				if (_settings_client.gui.autosave == 5) {
+					SetDParam(0, _settings_client.gui.autosave_custom_days == 1 ? STR_GAME_OPTIONS_AUTOSAVE_DROPDOWN_EVERY_DAYS_CUSTOM_SINGULAR : STR_GAME_OPTIONS_AUTOSAVE_DROPDOWN_EVERY_DAYS_CUSTOM);
+					SetDParam(1, _settings_client.gui.autosave_custom_days);
+				} else if (_settings_client.gui.autosave == 6) {
+					SetDParam(0, STR_GAME_OPTIONS_AUTOSAVE_DROPDOWN_EVERY_MINUTES_CUSTOM);
+					SetDParam(1, _settings_client.gui.autosave_custom_minutes);
+				} else {
+					SetDParam(0, _autosave_dropdown[_settings_client.gui.autosave]);
+				}
+				break;
+			}
 			case WID_GO_LANG_DROPDOWN:         SetDParamStr(0, _current_language->own_name); break;
 			case WID_GO_GUI_ZOOM_DROPDOWN:     SetDParam(0, _gui_zoom_dropdown[_gui_zoom_cfg != ZOOM_LVL_CFG_AUTO ? ZOOM_LVL_OUT_4X - _gui_zoom_cfg + 1 : 0]); break;
 			case WID_GO_FONT_ZOOM_DROPDOWN:    SetDParam(0, _font_zoom_dropdown[_font_zoom_cfg != ZOOM_LVL_CFG_AUTO ? ZOOM_LVL_OUT_4X - _font_zoom_cfg + 1 : 0]); break;
@@ -534,8 +555,18 @@ struct GameOptionsWindow : Window {
 				break;
 
 			case WID_GO_AUTOSAVE_DROPDOWN: // Autosave options
-				_settings_client.gui.autosave = index;
-				this->SetDirty();
+				if (index == 5) {
+					this->current_query_text_item = QueryTextItem::AutosaveCustomDays;
+					SetDParam(0, _settings_client.gui.autosave_custom_days);
+					ShowQueryString(STR_JUST_INT, STR_GAME_OPTIONS_AUTOSAVE_DAYS_QUERY_CAPT, 4, this, CS_NUMERAL, QSF_ACCEPT_UNCHANGED);
+				} else if (index == 6) {
+					this->current_query_text_item = QueryTextItem::AutosaveCustomRealTimeMinutes;
+					SetDParam(0, _settings_client.gui.autosave_custom_minutes);
+					ShowQueryString(STR_JUST_INT, STR_GAME_OPTIONS_AUTOSAVE_MINUTES_QUERY_CAPT, 4, this, CS_NUMERAL, QSF_ACCEPT_UNCHANGED);
+				} else {
+					_settings_client.gui.autosave = index;
+					this->SetDirty();
+				}
 				break;
 
 			case WID_GO_LANG_DROPDOWN: // Change interface language
@@ -605,6 +636,36 @@ struct GameOptionsWindow : Window {
 			case WID_GO_BASE_MUSIC_DROPDOWN:
 				ChangeMusicSet(index);
 				break;
+		}
+	}
+
+	void OnQueryTextFinished(char *str) override
+	{
+		auto guard = scope_guard([this]() {
+			this->current_query_text_item = QueryTextItem::None;
+		});
+
+		/* Was 'cancel' pressed? */
+		if (str == nullptr) return;
+
+		if (!StrEmpty(str)) {
+			int value = atoi(str);
+			switch (this->current_query_text_item) {
+				case QueryTextItem::None:
+					break;
+
+				case QueryTextItem::AutosaveCustomDays:
+					_settings_client.gui.autosave = 5;
+					_settings_client.gui.autosave_custom_days = Clamp(value, 1, 4000);
+					this->SetDirty();
+					break;
+
+				case QueryTextItem::AutosaveCustomRealTimeMinutes:
+					_settings_client.gui.autosave = 6;
+					_settings_client.gui.autosave_custom_minutes = Clamp(value, 1, 8000);
+					this->SetDirty();
+					break;
+			}
 		}
 	}
 
@@ -1704,6 +1765,7 @@ static SettingsContainer &GetSettingsTree()
 			graphics->Add(new SettingEntry("gui.show_vehicle_route"));
 			graphics->Add(new SettingEntry("gui.dash_level_of_route_lines"));
 			graphics->Add(new SettingEntry("gui.show_restricted_signal_default"));
+			graphics->Add(new SettingEntry("gui.show_all_signal_default"));
 		}
 
 		SettingsPage *sound = main->Add(new SettingsPage(STR_CONFIG_SETTING_SOUND));
@@ -1836,6 +1898,8 @@ static SettingsContainer &GetSettingsTree()
 
 			interface->Add(new SettingEntry("gui.fast_forward_speed_limit"));
 			interface->Add(new SettingEntry("gui.autosave"));
+			interface->Add(new ConditionallyHiddenSettingEntry("gui.autosave_custom_days", []() -> bool { return _settings_client.gui.autosave != 5; }));
+			interface->Add(new ConditionallyHiddenSettingEntry("gui.autosave_custom_minutes", []() -> bool { return _settings_client.gui.autosave != 6; }));
 			interface->Add(new SettingEntry("gui.autosave_on_network_disconnect"));
 			interface->Add(new SettingEntry("gui.savegame_overwrite_confirm"));
 			interface->Add(new SettingEntry("gui.toolbar_pos"));
@@ -2117,6 +2181,7 @@ static SettingsContainer &GetSettingsTree()
 				industries->Add(new SettingEntry("economy.type"));
 				industries->Add(new SettingEntry("station.serve_neutral_industries"));
 				industries->Add(new SettingEntry("economy.industry_cargo_scale_factor"));
+				industries->Add(new SettingEntry("station.station_delivery_mode"));
 			}
 
 			SettingsPage *cdist = environment->Add(new SettingsPage(STR_CONFIG_SETTING_ENVIRONMENT_CARGODIST));
@@ -2140,6 +2205,7 @@ static SettingsContainer &GetSettingsTree()
 				cdist->Add(new SettingEntry("linkgraph.demand_size"));
 				cdist->Add(new SettingEntry("linkgraph.short_path_saturation"));
 				cdist->Add(new SettingEntry("linkgraph.recalc_not_scaled_by_daylength"));
+				cdist->Add(new SettingEntry("linkgraph.aircraft_link_scale"));
 			}
 			SettingsPage *treedist = environment->Add(new SettingsPage(STR_CONFIG_SETTING_ENVIRONMENT_TREES));
 			{

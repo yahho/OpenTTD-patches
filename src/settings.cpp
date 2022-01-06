@@ -143,6 +143,7 @@ typedef void SettingDescProc(IniFile &ini, const SettingTable &desc, const char 
 typedef void SettingDescProcList(IniFile &ini, const char *grpname, StringList &list);
 
 static bool IsSignedVarMemType(VarType vt);
+static bool DecodeHexText(const char *pos, uint8 *dest, size_t dest_size);
 
 
 /**
@@ -386,6 +387,10 @@ void OneOfManySettingDesc::FormatValue(char *buf, const char *last, const void *
 void ManyOfManySettingDesc::FormatValue(char *buf, const char *last, const void *object) const
 {
 	uint bitmask = (uint)this->Read(object);
+	if (bitmask == 0) {
+		buf[0] = '\0';
+		return;
+	}
 	bool first = true;
 	for (uint id : SetBitIterator(bitmask)) {
 		if (!first) buf = strecpy(buf, "|", last);
@@ -658,6 +663,10 @@ void StringSettingDesc::ParseValue(const IniItem *item, void *object) const
 {
 	std::string str = (item == nullptr) ? this->def : item->value.value_or("");
 	this->MakeValueValid(str);
+	if (this->flags & SF_RUN_CALLBACKS_ON_PARSE) {
+		if (this->pre_check != nullptr && !this->pre_check(str)) str = this->def;
+		if (this->post_callback != nullptr) this->post_callback(str);
+	}
 	this->Write(object, str);
 }
 
@@ -1406,6 +1415,10 @@ static void TrainSpeedAdaptationChanged(int32 new_value) {
 	}
 }
 
+static void AutosaveModeChanged(int32 new_value) {
+	InvalidateWindowClassesData(WC_GAME_OPTIONS);
+}
+
 /** Checks if any settings are set to incorrect values, and sets them to correct values in that case. */
 static void ValidateSettings()
 {
@@ -1670,6 +1683,38 @@ static bool ReplaceAsteriskWithEmptyPassword(std::string &newval)
 {
 	if (newval.compare("*") == 0) newval.clear();
 	return true;
+}
+
+static bool IsValidHexKeyString(const std::string &newval)
+{
+	for (const char c : newval) {
+		if (!IsValidChar(c, CS_HEXADECIMAL)) return false;
+	}
+	return true;
+}
+
+static bool IsValidHex128BitKeyString(std::string &newval)
+{
+	return newval.size() == 32 && IsValidHexKeyString(newval);
+}
+
+static bool IsValidHex256BitKeyString(std::string &newval)
+{
+	return newval.size() == 64 && IsValidHexKeyString(newval);
+}
+
+static void ParseCompanyPasswordStorageToken(const std::string &value)
+{
+	extern uint8 _network_company_password_storage_token[16];
+	if (value.size() != 32) return;
+	DecodeHexText(value.c_str(), _network_company_password_storage_token, 16);
+}
+
+static void ParseCompanyPasswordStorageSecret(const std::string &value)
+{
+	extern uint8 _network_company_password_storage_key[32];
+	if (value.size() != 64) return;
+	DecodeHexText(value.c_str(), _network_company_password_storage_key, 32);
 }
 
 /** Update the game info, and send it to the clients when we are running as a server. */
