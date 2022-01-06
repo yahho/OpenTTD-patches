@@ -1036,6 +1036,14 @@ STR_GAME_OPTIONS_AUTOSAVE_DROPDOWN_EVERY_1_MONTH                :毎月
 STR_GAME_OPTIONS_AUTOSAVE_DROPDOWN_EVERY_3_MONTHS               :3ヶ月毎
 STR_GAME_OPTIONS_AUTOSAVE_DROPDOWN_EVERY_6_MONTHS               :6ヶ月毎
 STR_GAME_OPTIONS_AUTOSAVE_DROPDOWN_EVERY_12_MONTHS              :12ヶ月毎
+STR_GAME_OPTIONS_AUTOSAVE_DROPDOWN_EVERY_DAYS_CUSTOM_LABEL      :カスタム間隔 (日)
+STR_GAME_OPTIONS_AUTOSAVE_DROPDOWN_EVERY_MINUTES_CUSTOM_LABEL   :カスタム間隔 (現実時間の分)
+STR_GAME_OPTIONS_AUTOSAVE_DROPDOWN_EVERY_DAYS_CUSTOM            :{COMMA} 日毎
+STR_GAME_OPTIONS_AUTOSAVE_DROPDOWN_EVERY_DAYS_CUSTOM_SINGULAR   :毎日
+STR_GAME_OPTIONS_AUTOSAVE_DROPDOWN_EVERY_MINUTES_CUSTOM         :現実時間で {COMMA} 分毎
+
+STR_GAME_OPTIONS_AUTOSAVE_DAYS_QUERY_CAPT                       :{WHITE}日数でのオートセーブ間隔
+STR_GAME_OPTIONS_AUTOSAVE_MINUTES_QUERY_CAPT                    :{WHITE}現実時間の分でのオートセーブ間隔
 
 STR_GAME_OPTIONS_LANGUAGE                                       :{BLACK}言語
 STR_GAME_OPTIONS_LANGUAGE_TOOLTIP                               :{BLACK}ゲームの言語を選択します
@@ -1252,6 +1260,8 @@ STR_CONFIG_SETTING_TRAIN_BRAKING_REALISTIC                      :リアル {PUSH
 
 STR_CONFIG_SETTING_REALISTIC_BRAKING_SIGNALS_NOT_ALLOWED        :{WHITE}リアルなブレーキを有効にできません。 少なくとも一つの事前信号又は双方向信号が存在します。
 
+STR_CONFIG_SETTING_DELIVERY_BALANCED                            :バランス
+
 ###length 3
 STR_CONFIG_SETTING_HORIZONTAL_POS_LEFT                          :左
 STR_CONFIG_SETTING_HORIZONTAL_POS_CENTER                        :中央
@@ -1332,6 +1342,9 @@ STR_CONFIG_SETTING_STATION_RATING_SIZE_CARGO_AMOUNT             :駅の大きさ
 STR_CONFIG_SETTING_STATION_RATING_SIZE_CARGO_AMOUNT_HELPTEXT    :有効にすると、待機貨物の前のステーションの貨物容量が切り捨てられ、待機貨物量が与えるその貨物の駅評価への影響が駅の大きさによって変動するようになります。 より大きな駅はより多くの貨物を保管でき、大量の待機貨物に対してより耐性が高くなります。
 STR_CONFIG_SETTING_EXTRADYNAMITE                                :街有道路・橋・トンネルの撤去容認: {STRING}
 STR_CONFIG_SETTING_EXTRADYNAMITE_HELPTEXT                       :街有の交通インフラや建物の撤去をより容易にします
+
+STR_CONFIG_SETTING_CARGO_DELIVERY_MODE                          :貨物配送の配送モード: {STRING}
+STR_CONFIG_SETTING_CARGO_DELIVERY_MODE_HELPTEXT                 :駅周辺の産業への貨物の配送方法を選択します。
 
 STR_CONFIG_SETTING_TRAIN_LENGTH                                 :列車の最大長: {STRING}
 STR_CONFIG_SETTING_TRAIN_LENGTH_HELPTEXT                        :列車の最大長を設定します
@@ -1543,8 +1556,10 @@ STR_CONFIG_SETTING_SHOW_VEHICLE_GROUP_IN_DETAILS                :詳細に輸送
 STR_CONFIG_SETTING_SHOW_VEHICLE_GROUP_IN_DETAILS_HELPTEXT       :輸送機器の詳細情報ウィンドウに輸送機器のグループを表示します
 STR_CONFIG_SETTING_SHOW_TRAIN_WEIGHT_RATIOS_IN_DETAILS          :詳細に列車の重量比を表示する: {STRING}
 STR_CONFIG_SETTING_SHOW_TRAIN_WEIGHT_RATIOS_IN_DETAILS_HELPTEXT :輸送機器の詳細情報ウィンドウに列車の重量比を表示します
-STR_CONFIG_SETTING_SHOW_RESTRICTED_SIG_DEF                      :電気式制限信号をデフォルトのテクスチャで表示する: {STRING}
-STR_CONFIG_SETTING_SHOW_RESTRICTED_SIG_DEF_HELPTEXT             :ルーティング制限プログラムが適用されている電気式信号をNewGRFのものではなくポールの青いデフォルトのテクスチャで表示します。 これにより制限信号を視覚的に判別しやすくなります。
+STR_CONFIG_SETTING_SHOW_RESTRICTED_SIG_DEF                      :色灯式制限信号をデフォルトのテクスチャで表示する: {STRING}
+STR_CONFIG_SETTING_SHOW_RESTRICTED_SIG_DEF_HELPTEXT             :ルーティング制限プログラムが適用されている色灯式信号をNewGRFのものを使用せずにポールの青いデフォルトのテクスチャで表示します。 これにより制限信号を視覚的に判別しやすくなります。
+STR_CONFIG_SETTING_SHOW_ALL_SIG_DEF                             :すべての信号をデフォルトのテクスチャで表示する: {STRING}
+STR_CONFIG_SETTING_SHOW_ALL_SIG_DEF_HELPTEXT                    :すべての信号をNewGRFのものを使用せずにデフォルトのテクスチャで表示します。 これによりNewGRFが提供する信号テクスチャが不明瞭または判別の難しいものである場合に、信号の種類と状態を判別しやすくなります。
 STR_CONFIG_SETTING_SHOW_ADV_TRACE_RESTRICT_FEATURES             :発展的なルーティング制限機能を表示する: {STRING}
 STR_CONFIG_SETTING_SHOW_ADV_TRACE_RESTRICT_FEATURES_HELPTEXT    :発展的なルーティング制限機能を表示します。 無効な場合、いくつかの発展的な機能がUIに表示されなくなりますが、それらは全てのプレイヤーが引き続き利用可能です。
 STR_CONFIG_SETTING_SHOW_PROGSIG_FEATURES                        :プログラム可能な事前信号機能を表示する: {STRING}
@@ -1807,6 +1822,12 @@ STR_CONFIG_SETTING_RIGHT_MOUSE_WND_CLOSE_HELPTEXT               :ウィンドウ
 
 STR_CONFIG_SETTING_AUTOSAVE                                     :オートセーブ: {STRING}
 STR_CONFIG_SETTING_AUTOSAVE_HELPTEXT                            :オートセーブの間隔を設定します
+
+STR_CONFIG_SETTING_AUTOSAVE_CUSTOM_DAYS                         :オートセーブの間隔のカスタム日数: {STRING}
+STR_CONFIG_SETTING_AUTOSAVE_CUSTOM_DAYS_HELPTEXT                :オートセーブの間隔を日数で設定します
+
+STR_CONFIG_SETTING_AUTOSAVE_CUSTOM_MINUTES                      :オートセーブの間隔のカスタム現実時間の分: {STRING}
+STR_CONFIG_SETTING_AUTOSAVE_CUSTOM_MINUTES_HELPTEXT             :オートセーブの間隔を現実時間の分で設定します
 
 STR_CONFIG_SETTING_AUTOSAVE_ON_NETWORK_DISCONNECT               :ネットワーク切断時に自動セーブ: {STRING}
 STR_CONFIG_SETTING_AUTOSAVE_ON_NETWORK_DISCONNECT_HELPTEXT      :有効にするとマルチプレイヤークライアントはサーバーから切断されたときに自動でゲームを保存します。
@@ -2322,6 +2343,9 @@ STR_CONFIG_SETTING_DEMAND_SIZE_HELPTEXT                         :この値を100
 
 STR_CONFIG_SETTING_SHORT_PATH_SATURATION                        :高収容力経路より速達経路を優先飽和: {STRING}
 STR_CONFIG_SETTING_SHORT_PATH_SATURATION_HELPTEXT               :二つの停留施設間を結ぶ経路が複数存在することは往々にしてあります。そのような場合、貨物分配アルゴリズムは最初に最短となる経路を飽和するまで使用し、次いで2番目の最短経路を使用するというように埋めていきます。飽和したかどうかは、推定収容力、輸送計画によって判断されます。すべての経路を飽和してもまだ需要を満たせない場合、高容量な経路を優先しつつ、すべての経路に負荷を掛けます。しかしほとんどの場合、アルゴリズムは経路の輸送力を正確に見積もることができません。この設定では、高収容力の路線を使用し始める前にどの程度最短経路を飽和するかを設定します。収容力より需要が上回ると推定される時には、停留施設が混み合うのを避けるために100%未満に設定して下さい。
+
+STR_CONFIG_SETTING_AIRCRAFT_PATH_COST                           :空路の距離スケール: {STRING}
+STR_CONFIG_SETTING_AIRCRAFT_PATH_COST_HELPTEXT                  :航空機を利用する経路のコスト(距離指標)を、実際よりも長く/短く判定されるようにスケーリングします。これにより航空機を使用する直接の経路が過負荷になる傾向が軽減されます。
 
 STR_CONFIG_SETTING_LOCALISATION_UNITS_VELOCITY                  :速度単位: {STRING}
 STR_CONFIG_SETTING_LOCALISATION_UNITS_VELOCITY_HELPTEXT         :ゲーム中の速度をいずれの単位系で表すか決定します
@@ -7179,12 +7203,16 @@ STR_SCHDISPATCH_SET_START                                       :{BLACK}開始�
 STR_SCHDISPATCH_START_TOOLTIP                                   :{BLACK}計画の開始日を指定します。
 STR_SCHDISPATCH_START_CAPTION_MINUTE                            :{BLACK}開始日 (hhmm)
 STR_SCHDISPATCH_DELAY                                           :{BLACK}遅延
-STR_SCHDISPATCH_DELAY_TOOLTIP                                   :{BLACK}スロットがスキップされるまでの最大遅延を設定します.
+STR_SCHDISPATCH_DELAY_TOOLTIP                                   :{BLACK}スロットがスキップされるまでの最大遅延を設定します
 STR_SCHDISPATCH_DELAY_CAPTION_MINUTE                            :{BLACK}遅延 (分)
 STR_SCHDISPATCH_DELAY_CAPTION_DAY                               :{BLACK}遅延 (日)
 STR_SCHDISPATCH_DELAY_CAPTION_TICKS                             :{BLACK}遅延 (ゲーム時)
 STR_SCHDISPATCH_RESET_LAST_DISPATCH                             :{BLACK}最終発送をリセット
 STR_SCHDISPATCH_RESET_LAST_DISPATCH_TOOLTIP                     :{BLACK}計画から輸送機器が最後に発送されたときリセットします
+STR_SCHDISPATCH_CLEAR                                           :{BLACK}発車スロットをクリア
+STR_SCHDISPATCH_CLEAR_TOOLTIP                                   :{BLACK}計画にあるすべての発車スロットをクリアします
+STR_SCHDISPATCH_MANAGE                                          :{BLACK}計画の管理
+STR_SCHDISPATCH_MANAGE_TOOLTIP                                  :{STRING}{}{}{STRING}
 
 STR_SCHDISPATCH_SUMMARY_LAST_DEPARTURE_PAST                     :{BLACK}最終発車は {DATE_WALLCLOCK_TINY}です。
 STR_SCHDISPATCH_SUMMARY_LAST_DEPARTURE_FUTURE                   :{BLACK}最終発車はまだありません。{DATE_WALLCLOCK_TINY}に発車予定です。
