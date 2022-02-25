@@ -873,6 +873,11 @@ public:
 		return IsRailStationTile(tile) && GetStationIndex(tile) == this->index;
 	}
 
+	inline bool TileBelongsToRoadStop(TileIndex tile) const
+	{
+		return IsAnyRoadStopTile(tile) && GetStationIndex(tile) == this->index;
+	}
+
 	inline bool TileBelongsToAirport(TileIndex tile) const
 	{
 		return IsAirportTile(tile) && GetStationIndex(tile) == this->index;
@@ -880,7 +885,7 @@ public:
 
 	bool IsWithinRangeOfDockingTile(TileIndex tile, uint max_distance) const;
 
-	uint32 GetNewGRFVariable(const ResolverObject &object, byte variable, byte parameter, bool *available) const override;
+	uint32 GetNewGRFVariable(const ResolverObject &object, uint16 variable, byte parameter, bool *available) const override;
 
 	void GetTileArea(TileArea *ta, StationType type) const override;
 };

@@ -322,7 +322,7 @@ static uint32 GetDistanceFromNearbyHouse(uint8 parameter, TileIndex tile, HouseI
 /**
  * @note Used by the resolver to get values for feature 07 deterministic spritegroups.
  */
-/* virtual */ uint32 HouseScopeResolver::GetVariable(byte variable, uint32 parameter, GetVariableExtra *extra) const
+/* virtual */ uint32 HouseScopeResolver::GetVariable(uint16 variable, uint32 parameter, GetVariableExtra *extra) const
 {
 	switch (variable) {
 		/* Construction stage. */
@@ -446,7 +446,7 @@ static uint32 GetDistanceFromNearbyHouse(uint8 parameter, TileIndex tile, HouseI
 /**
  * @note Used by the resolver to get values for feature 07 deterministic spritegroups.
  */
-/* virtual */ uint32 FakeHouseScopeResolver::GetVariable(byte variable, uint32 parameter, GetVariableExtra *extra) const
+/* virtual */ uint32 FakeHouseScopeResolver::GetVariable(uint16 variable, uint32 parameter, GetVariableExtra *extra) const
 {
 	switch (variable) {
 		/* Construction stage. */
@@ -637,7 +637,7 @@ uint16 GetSimpleHouseCallback(CallbackID callback, uint32 param1, uint32 param2,
 }
 
 /** Helper class for animation control. */
-struct HouseAnimationBase : public AnimationBase<HouseAnimationBase, HouseSpec, Town, CargoTypes, GetSimpleHouseCallback> {
+struct HouseAnimationBase : public AnimationBase<HouseAnimationBase, HouseSpec, Town, CargoTypes, GetSimpleHouseCallback, TileAnimationFrameAnimationHelper<Town> > {
 	static const CallbackID cb_animation_speed      = CBID_HOUSE_ANIMATION_SPEED;
 	static const CallbackID cb_animation_next_frame = CBID_HOUSE_ANIMATION_NEXT_FRAME;
 

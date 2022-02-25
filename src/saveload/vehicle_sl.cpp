@@ -674,11 +674,11 @@ SaveLoadTable GetVehicleDescription(VehicleType vt)
 
 		     SLE_VAR(Vehicle, day_counter,           SLE_UINT8),
 		     SLE_VAR(Vehicle, tick_counter,          SLE_UINT8),
-		SLE_CONDVAR_X(Vehicle, running_ticks,        SLE_FILE_U8  | SLE_VAR_U16,  SLV_88, SL_MAX_VERSION, SlXvFeatureTest([](uint16 version, bool version_in_range) -> bool {
-			return version_in_range && !(SlXvIsFeaturePresent(XSLFI_SPRINGPP, 3) || SlXvIsFeaturePresent(XSLFI_JOKERPP) || SlXvIsFeaturePresent(XSLFI_CHILLPP) || SlXvIsFeaturePresent(XSLFI_VARIABLE_DAY_LENGTH, 2));
+		SLE_CONDVAR_X(Vehicle, running_ticks,        SLE_FILE_U8  | SLE_VAR_U16,  SLV_88, SL_MAX_VERSION, SlXvFeatureTest([](uint16 version, bool version_in_range, uint16 feature_versions[XSLFI_SIZE]) -> bool {
+			return version_in_range && !(SlXvIsFeaturePresent(feature_versions, XSLFI_SPRINGPP, 3) || SlXvIsFeaturePresent(feature_versions, XSLFI_JOKERPP) || SlXvIsFeaturePresent(feature_versions, XSLFI_CHILLPP) || SlXvIsFeaturePresent(feature_versions, XSLFI_VARIABLE_DAY_LENGTH, 2));
 		})),
-		SLE_CONDVAR_X(Vehicle, running_ticks,        SLE_UINT16,                  SLV_88, SL_MAX_VERSION, SlXvFeatureTest([](uint16 version, bool version_in_range) -> bool {
-			return version_in_range && (SlXvIsFeaturePresent(XSLFI_SPRINGPP, 2) || SlXvIsFeaturePresent(XSLFI_JOKERPP) || SlXvIsFeaturePresent(XSLFI_CHILLPP) || SlXvIsFeaturePresent(XSLFI_VARIABLE_DAY_LENGTH, 2));
+		SLE_CONDVAR_X(Vehicle, running_ticks,        SLE_UINT16,                  SLV_88, SL_MAX_VERSION, SlXvFeatureTest([](uint16 version, bool version_in_range, uint16 feature_versions[XSLFI_SIZE]) -> bool {
+			return version_in_range && (SlXvIsFeaturePresent(feature_versions, XSLFI_SPRINGPP, 2) || SlXvIsFeaturePresent(feature_versions, XSLFI_JOKERPP) || SlXvIsFeaturePresent(feature_versions, XSLFI_CHILLPP) || SlXvIsFeaturePresent(feature_versions, XSLFI_VARIABLE_DAY_LENGTH, 2));
 		})),
 
 		     SLE_VAR(Vehicle, cur_implicit_order_index,   SLE_VEHORDERID),
@@ -738,8 +738,9 @@ SaveLoadTable GetVehicleDescription(VehicleType vt)
 
 		     SLE_VAR(Vehicle, load_unload_ticks,     SLE_UINT16),
 		SLEG_CONDVAR(         _cargo_paid_for,       SLE_UINT16,                  SLV_45, SL_MAX_VERSION),
-		 SLE_CONDVAR(Vehicle, vehicle_flags,         SLE_FILE_U8 | SLE_VAR_U16,   SLV_40, SLV_180),
-		 SLE_CONDVAR(Vehicle, vehicle_flags,         SLE_UINT16,                 SLV_180, SL_MAX_VERSION),
+		 SLE_CONDVAR(Vehicle, vehicle_flags,         SLE_FILE_U8  | SLE_VAR_U32,  SLV_40, SLV_180),
+		SLE_CONDVAR_X(Vehicle, vehicle_flags,        SLE_FILE_U16 | SLE_VAR_U32,          SLV_180, SL_MAX_VERSION, SlXvFeatureTest(XSLFTO_AND, XSLFI_VEHICLE_FLAGS_EXTRA, 0, 0)),
+		SLE_CONDVAR_X(Vehicle, vehicle_flags,        SLE_UINT32,                   SL_MIN_VERSION, SL_MAX_VERSION, SlXvFeatureTest(XSLFTO_AND, XSLFI_VEHICLE_FLAGS_EXTRA, 1)),
 
 		 SLE_CONDVAR(Vehicle, profit_this_year,      SLE_FILE_I32 | SLE_VAR_I64,   SL_MIN_VERSION,  SLV_65),
 		 SLE_CONDVAR(Vehicle, profit_this_year,      SLE_INT64,                   SLV_65, SL_MAX_VERSION),

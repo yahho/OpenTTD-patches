@@ -45,6 +45,7 @@ enum ObjectCtrlFlags {
 	OBJECT_CTRL_FLAG_USE_LAND_GROUND    = 1 <<  0, ///< Use land for ground sprite.
 	OBJECT_CTRL_FLAG_EDGE_FOUNDATION    = 1 <<  1, ///< Use edge foundation mode.
 	OBJECT_CTRL_FLAG_FLOOD_RESISTANT    = 1 <<  2, ///< Object is flood-resistant.
+	OBJECT_CTRL_FLAG_VPORT_MAP_TYPE     = 1 <<  3, ///< Viewport map type is set.
 };
 DECLARE_ENUM_AS_BIT_SET(ObjectCtrlFlags)
 
@@ -52,6 +53,7 @@ enum ObjectEdgeFoundationFlags {
 	/* Bits 0 and 1 use for edge DiagDirection */
 	OBJECT_EF_FLAG_ADJUST_Z             = 1 <<  2, ///< Adjust sprite z position to z at edge.
 	OBJECT_EF_FLAG_FOUNDATION_LOWER     = 1 <<  3, ///< If edge is lower than tile max z, add foundation.
+	OBJECT_EF_FLAG_INCLINE_FOUNDATION   = 1 <<  4, ///< Use inclined foundations where possible when edge at tile max z.
 };
 DECLARE_ENUM_AS_BIT_SET(ObjectEdgeFoundationFlags)
 
@@ -65,6 +67,20 @@ enum ObjectClassID {
 };
 /** Allow incrementing of ObjectClassID variables */
 DECLARE_POSTFIX_INCREMENT(ObjectClassID)
+
+enum ObjectViewportMapType {
+	OVMT_DEFAULT = 0,
+	OVMT_CLEAR,
+	OVMT_GRASS,
+	OVMT_ROUGH,
+	OVMT_ROCKS,
+	OVMT_FIELDS,
+	OVMT_SNOW,
+	OVMT_DESERT,
+	OVMT_TREES,
+	OVMT_HOUSE,
+	OVMT_WATER,
+};
 
 /** An object that isn't use for transport, industries or houses.
  * @note If you change this struct, adopt the initialization of
@@ -91,6 +107,8 @@ struct ObjectSpec {
 	uint8 views;                  ///< The number of views.
 	uint8 generate_amount;        ///< Number of objects which are attempted to be generated per 256^2 map during world generation.
 	bool enabled;                 ///< Is this spec enabled?
+	ObjectViewportMapType vport_map_type; ///< Viewport map type
+	uint16 vport_map_subtype;     ///< Viewport map subtype
 
 	/**
 	 * Get the cost for building a structure of this type.
@@ -133,7 +151,7 @@ struct ObjectScopeResolver : public ScopeResolver {
 	}
 
 	uint32 GetRandomBits() const override;
-	uint32 GetVariable(byte variable, uint32 parameter, GetVariableExtra *extra) const override;
+	uint32 GetVariable(uint16 variable, uint32 parameter, GetVariableExtra *extra) const override;
 };
 
 /** A resolver object to be used with feature 0F spritegroups. */

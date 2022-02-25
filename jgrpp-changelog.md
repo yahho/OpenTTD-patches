@@ -2,6 +2,54 @@
 
 * * *
 
+### v0.46.1 (2022-02-07)
+* Fix crash or incorrect text in the scheduled dispatch window when a dispatch schedule is assigned to a depot order.
+* Fix crash which could occur when using aircraft with cargodist after loading a 12.x vanilla savegame/scenario.
+* Fix some non-vanilla settings having invalid values after loading a 12.x vanilla savegame/scenario.
+* Add NewGRF properties for NewGRF object tile type to use in the small map window and in viewport map mode.
+* Bump trunk base from commit 2c42b6adc87765750436dc5005e9e186db84daeb to commit 83b6defbfb0fa649a854767ae7c8b5a18f917e80.
+
+### v0.46.0 (2022-02-01)
+* Add build vehicle window sort mode: cargo capacity / running cost.
+* Add Korean translations by TELK.
+* Bump trunk base from commit 9e47df298faf6889c8be7dd0b0eeedeb65db1cdc to commit 2c42b6adc87765750436dc5005e9e186db84daeb.
+
+### v0.46-rc2 (2022-01-29)
+* Road waypoints:
+  * Fix crash when changing one-way state of road waypoints.
+  * Fix crash in road vehicle overtaking checks with road waypoints.
+  * Fix removal of road waypoints during bankruptcy.
+  * Road waypoints no longer block road inferred one-way state interpolation.
+* Fix crash when opening rail waypoint window if there are now fewer types available than the type that was last selected.
+* Add Korean translations by TELK.
+
+### v0.46-rc1 (2022-01-28)
+* Fix timetable wait times not being cleared when changing to a non-stopping order.
+* Fix text input and display of speeds in tiles/day units in routing restriction window.
+* Fix industry monthly production figures being able to overflow when industry production scaling is set to a high value.
+* Fix station catchment highlight from coverage button in station window not being redrawn when station extents changed.
+* Fix various issues in unserved industries zoning overlay mode.
+* Fix wrong error message when building a bridge over an obstructing station.
+* Fix window preference save/load of build vehicle windows.
+* Conditional orders:
+  * Fix crash when evaluating a train in slot conditional order when no slot was assigned.
+  * Fix manual setting of conditional order jump taken travel times.
+  * Improve handling of conditional order waiting loops.
+  * Follow predictable conditional orders in timetable and departure windows.
+* Add support for multiple scheduled dispatch schedules per order list.
+* Allow non-train vehicles to test counter values in conditional orders.
+* Add road waypoints.
+* Allow road vehicle go to station/waypoint orders to have an associated required stop/bay/waypoint direction.
+* Add slot support to road vehicles, ships and aircraft.
+* Add train through load speed limit setting.
+* Add client setting for whether to sync localisation settings with the server in multiplayer.
+* Add client setting to allow hiding viewport labels of individual waypoints.
+* Add NewGRF properties for default object map generation amounts.
+* Remember the last-used signal type between games.
+* Disable touchbar support to fix crash issues on MacOS.
+* Add Korean translations by TELK.
+* Bump trunk base from commit 93e8d4871d3c927cf08eaa322bfdcd2cb73a1730 to commit 9e47df298faf6889c8be7dd0b0eeedeb65db1cdc.
+
 ### v0.45.1 (2022-01-10)
 * Fix crash which could occur when removing invalidated link graph flows.
 * Fix template replacement without refitting selecting the wrong cargo when using zero capacity engines with a livery cargo.

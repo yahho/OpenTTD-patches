@@ -324,6 +324,7 @@ STR_SORT_BY_INTRO_DATE                                          :Introduction da
 STR_SORT_BY_RUNNING_COST                                        :Running cost
 STR_SORT_BY_POWER_VS_RUNNING_COST                               :Power/Running cost
 STR_SORT_BY_CARGO_CAPACITY                                      :Cargo capacity
+STR_SORT_BY_CARGO_CAPACITY_VS_RUNNING_COST                      :Cargo capacity/Running cost
 STR_SORT_BY_VEHICLE_COUNT                                       :Vehicle count
 STR_SORT_BY_RANGE                                               :Range
 STR_SORT_BY_POPULATION                                          :Population
@@ -405,7 +406,7 @@ STR_SCENEDIT_FILE_MENU_SEPARATOR                                :
 STR_SCENEDIT_FILE_MENU_QUIT                                     :Exit
 
 # Settings menu
-###length 16
+###length 15
 STR_SETTINGS_MENU_GAME_OPTIONS                                  :Game options
 STR_SETTINGS_MENU_CONFIG_SETTINGS_TREE                          :Settings
 STR_SETTINGS_MENU_SCRIPT_SETTINGS                               :AI/Game script settings
@@ -421,7 +422,10 @@ STR_SETTINGS_MENU_FULL_ANIMATION                                :Full animation
 STR_SETTINGS_MENU_FULL_DETAIL                                   :Full detail
 STR_SETTINGS_MENU_TRANSPARENT_BUILDINGS                         :Transparent buildings
 STR_SETTINGS_MENU_TRANSPARENT_SIGNS                             :Transparent signs
+############ range ends here
+
 STR_SETTINGS_MENU_MONEY_TEXT_EFFECTS                            :Income/cost texts displayed
+STR_SETTINGS_MENU_SHOW_HIDDEN_SIGNS                             :Hidden signs and names displayed
 
 # File menu
 ###length 5
@@ -597,6 +601,12 @@ STR_MONTH_SEP                                                   :September
 STR_MONTH_OCT                                                   :October
 STR_MONTH_NOV                                                   :November
 STR_MONTH_DEC                                                   :December
+
+###length VEHICLE_TYPES
+STR_VEHICLE_TYPE_TRAINS                                         :Trains
+STR_VEHICLE_TYPE_ROAD_VEHICLES                                  :Road Vehicles
+STR_VEHICLE_TYPE_SHIPS                                          :Ships
+STR_VEHICLE_TYPE_AIRCRAFT                                       :Aircraft
 
 # Graph window
 STR_GRAPH_KEY_BUTTON                                            :{BLACK}Key
@@ -1192,8 +1202,8 @@ STR_TERRAIN_TYPE_ALPINIST                                       :Alpinist
 STR_TERRAIN_TYPE_CUSTOM                                         :Custom height
 STR_TERRAIN_TYPE_CUSTOM_VALUE                                   :Custom height ({NUM})
 
-###length 4
 STR_CITY_APPROVAL_INDIFFERENT                                   :Indifferent
+###length 3
 STR_CITY_APPROVAL_PERMISSIVE                                    :Permissive
 STR_CITY_APPROVAL_TOLERANT                                      :Tolerant
 STR_CITY_APPROVAL_HOSTILE                                       :Hostile
@@ -1233,6 +1243,8 @@ STR_CONFIG_SETTING_TYPE_DROPDOWN_GAME_MENU                      :Game settings (
 STR_CONFIG_SETTING_TYPE_DROPDOWN_GAME_INGAME                    :Game settings (stored in save; affect only current game)
 STR_CONFIG_SETTING_TYPE_DROPDOWN_COMPANY_MENU                   :Company settings (stored in saves; affect only new games)
 STR_CONFIG_SETTING_TYPE_DROPDOWN_COMPANY_INGAME                 :Company settings (stored in save; affect only current company)
+
+STR_CONFIG_SETTING_ADVISED_LEAVE_DEFAULT                        :You are advised to leave this setting at the default value
 
 STR_CONFIG_SETTINGS_NONE                                        :{WHITE}- None -
 ###length 3
@@ -1366,6 +1378,10 @@ STR_CONFIG_SETTING_PERCENTAGE                                   :{COMMA}%
 
 STR_CONFIG_SETTING_ROAD_VEHICLE_SLOPE_STEEPNESS                 :Slope steepness for road vehicles: {STRING2}
 STR_CONFIG_SETTING_ROAD_VEHICLE_SLOPE_STEEPNESS_HELPTEXT        :Steepness of a sloped tile for a road vehicle. Higher values make it more difficult to climb a hill
+
+STR_CONFIG_SETTING_THROUGH_LOAD_SPEED_LIMIT                     :Train through load maximum speed: {STRING2}
+STR_CONFIG_SETTING_THROUGH_LOAD_SPEED_LIMIT_HELPTEXT            :The maximum permitted speed for trains when through loading at a station
+STR_CONFIG_SETTING_THROUGH_LOAD_SPEED_LIMIT_VAL                 :{VELOCITY}
 
 STR_CONFIG_SETTING_FORBID_90_DEG                                :Forbid trains from making 90° turns: {STRING2}
 STR_CONFIG_SETTING_FORBID_90_DEG_HELPTEXT                       :90 degree turns occur when a horizontal track is directly followed by a vertical track piece on the adjacent tile, thus making the train turn by 90 degree when traversing the tile edge instead of the usual 45 degrees for other track combinations.
@@ -1569,7 +1585,7 @@ STR_CONFIG_SETTING_SHOW_NOENTRYSIG_FEATURES_HELPTEXT            :Show no-entry s
 STR_CONFIG_SETTING_SHOW_VEH_LIST_CARGO_FILTER                   :Show cargo type filter in vehicle lists: {STRING2}
 STR_CONFIG_SETTING_SHOW_VEH_LIST_CARGO_FILTER_HELPTEXT          :Show cargo type filter in vehicle lists. When enabled vehicle list windows include an additional filter dropdown.
 STR_CONFIG_SETTING_SHOW_ADV_LOADING_MODE_FEATURES               :Show advanced loading mode features: {STRING2}
-STR_CONFIG_SETTING_SHOW_ADV_LOADING_MODE_FEATURES_HELPTEXT      :Show advanced loading mode features (through load/unload). When disabled, some advanced loading mode features are not shown in the UI, but are still available to all players.
+STR_CONFIG_SETTING_SHOW_ADV_LOADING_MODE_FEATURES_HELPTEXT      :Show advanced loading mode features (through load/unload, road vehicle direction). When disabled, some advanced loading mode features are not shown in the UI, but are still available to all players.
 STR_CONFIG_SETTING_DISABLE_TOP_VEH_LIST_MASS_ACTIONS            :Disable mass action buttons for top-level vehicle lists: {STRING2}
 STR_CONFIG_SETTING_DISABLE_TOP_VEH_LIST_MASS_ACTIONS_HELPTEXT   :This disables depot/service and start/stop buttons for all vehicle and all ungrouped vehicle lists. This is intended to help avoid the negative impact of accidentally pressing one of these buttons.
 STR_CONFIG_SETTING_SHOW_DEPOT_SELL_GUI                          :Show go to depot/hangar and sell feature: {STRING2}
@@ -1607,6 +1623,9 @@ STR_CONFIG_SETTING_DEMOLISH_CONFIRM_MODE_ALL                    :Industries and 
 
 STR_CONFIG_SETTING_DUAL_PANE_TRAIN_PURCHASE_WINDOW              :Separate locomotives and wagons in train purchase window: {STRING2}
 STR_CONFIG_SETTING_DUAL_PANE_TRAIN_PURCHASE_WINDOW_HELPTEXT     :When enabled, the train purchase window shows locomotives and wagons in separate side-by-side lists.
+
+STR_CONFIG_SETTING_ALLOW_HIDE_WAYPOINT_LABEL                    :Allow hiding waypoint viewport labels: {STRING2}
+STR_CONFIG_SETTING_ALLOW_HIDE_WAYPOINT_LABEL_HELPTEXT           :When enabled, waypoints can have their viewport labels individually hidden.{}This is useful when waypoints are used decoratively or when minor waypoints do not require a label.
 
 STR_CONFIG_SETTING_ADV_SIG_BRIDGE_TUN_MODES                     :Enable signals on bridges/tunnels advanced modes: {STRING2}
 STR_CONFIG_SETTING_ADV_SIG_BRIDGE_TUN_MODES_HELPTEXT            :Enables use of advanced modes of signal simulation on bridges and tunnels. When disabled, bridges/tunnels which are not already in an advanced mode cannot be changed to an advanced mode, however other players may choose to enable this setting and use an advanced mode.
@@ -2255,6 +2274,7 @@ STR_CONFIG_SETTING_ZOOM_LVL_OUT_128X                            :128x
 
 STR_CONFIG_SETTING_SPRITE_ZOOM_MIN                              :Highest resolution sprites to use: {STRING2}
 STR_CONFIG_SETTING_SPRITE_ZOOM_MIN_HELPTEXT                     :Limit the maximum resolution to use for sprites. Limiting sprite resolution will avoid using high resolution graphics even when available. This can help keep the game appearance unified when using a mix of GRF files with and without high resolution graphics.
+STR_CONFIG_SETTING_SPRITE_ZOOM_MIN_HELPTEXT_EXTRA               :{STRING}{}{}Changing this setting from its default value will cause many extra-zoom/high-definition NewGRFs to display placeholder/incorrect graphics or no graphics at all (transparent sprites). If any graphical problems occur when the setting is not at its default value, change the setting back to its default value.
 ###length 3
 STR_CONFIG_SETTING_SPRITE_ZOOM_LVL_MIN                          :4x
 STR_CONFIG_SETTING_SPRITE_ZOOM_LVL_IN_2X                        :2x
@@ -2390,6 +2410,9 @@ STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT_IMPERIAL           :Imperial (ft)
 STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT_METRIC             :Metric (m)
 STR_CONFIG_SETTING_LOCALISATION_UNITS_HEIGHT_SI                 :SI (m)
 
+STR_CONFIG_SETTING_SYNC_LOCALE_SETTINGS_NETWORK_SERVER          :Sync localisation settings with server in multiplayer: {STRING2}
+STR_CONFIG_SETTING_SYNC_LOCALE_SETTINGS_NETWORK_SERVER_HELPTEXT :When joining a multiplayer game as a network client, change the localisation settings to match the server
+
 STR_CONFIG_SETTING_LOCALISATION                                 :{ORANGE}Localisation
 STR_CONFIG_SETTING_GRAPHICS                                     :{ORANGE}Graphics
 STR_CONFIG_SETTING_SOUND                                        :{ORANGE}Sound
@@ -2459,6 +2482,7 @@ STR_CONFIG_SETTING_ALLOW_GRF_STATIONS_UNDER_BRIDGES_HELPTEXT    :If enabled, New
 
 STR_CONFIG_SETTING_ALLOW_ROAD_STATIONS_UNDER_BRIDGES            :Allow road/tram stops under bridges: {STRING2}
 STR_CONFIG_SETTING_ALLOW_ROAD_STATIONS_UNDER_BRIDGES_HELPTEXT   :Allow road/tram stops under bridges. Drive through stops require 1 height level of clearance, drive in bays require 2 height levels of clearance.
+STR_CONFIG_SETTING_ALLOW_ROAD_STATIONS_UNDER_BRIDGES_HELPTEXT_EXTRA :{STRING}{}{}NewGRF road/tram stops may override this setting and allow or disallow custom stops under bridges, and set custom height clearance requirements.
 
 STR_CONFIG_SETTING_ALLOW_DOCKS_UNDER_BRIDGES                    :Allow docks under bridges: {STRING2}
 STR_CONFIG_SETTING_ALLOW_DOCKS_UNDER_BRIDGES_HELPTEXT           :Allow docks under bridges. Docks require 2 height levels of clearance.{}This may result in graphical issues.
@@ -3326,6 +3350,7 @@ STR_TRACE_RESTRICT_SLOT_PBS_RES_END_ACQUIRE_WAIT_ITEM           :PBS reservation
 STR_TRACE_RESTRICT_SLOT_PBS_RES_END_TRY_ACQUIRE_ITEM            :PBS reservation ending here: Acquire slot: {STRING1}{BLACK}{STRING}, or continue anyway
 STR_TRACE_RESTRICT_SLOT_PBS_RES_END_RELEASE_ITEM                :PBS reservation ending here: Release slot: {STRING1}{BLACK}{STRING}
 STR_TRACE_RESTRICT_SLOT_NAME                                    :{TRSLOT}
+STR_TRACE_RESTRICT_SLOT_NAME_PREFIXED                           :[{STRING}] {TRSLOT}
 STR_TRACE_RESTRICT_SLOT_LIST_HEADER                             :{BLACK}Slot{CONSUME_ARG}{P "" s}: {LTBLUE}
 STR_TRACE_RESTRICT_SLOT_LIST_SEPARATOR                          :{BLACK}, {LTBLUE}
 STR_TRACE_RESTRICT_COUNTER_NAME                                 :{TRCOUNTER}
@@ -3395,7 +3420,7 @@ STR_TRACE_RESTRICT_SLOT_CREATE_TOOLTIP                          :{BLACK}Click to
 STR_TRACE_RESTRICT_SLOT_DELETE_TOOLTIP                          :{BLACK}Delete the selected slot
 STR_TRACE_RESTRICT_SLOT_RENAME_TOOLTIP                          :{BLACK}Rename the selected slot
 STR_TRACE_RESTRICT_SLOT_SET_MAX_OCCUPANCY_TOOLTIP               :{BLACK}Set the maximum occupancy of the selected slot
-STR_TRACE_RESTRICT_SLOT_CAPTION                                 :{WHITE}Routing Restrictions - Slot Management
+STR_TRACE_RESTRICT_SLOT_CAPTION                                 :{WHITE}Routing Restrictions - Slot Management ({STRING})
 STR_TRACE_RESTRICT_SLOT_MANAGE                                  :Manage slots
 STR_TRACE_RESTRICT_SLOT_MAX_OCCUPANCY                           :{TINY_FONT}{COMMA} / {COMMA}
 STR_TRACE_RESTRICT_SLOT_RENAME_CAPTION                          :{BLACK}Rename a slot
@@ -3568,6 +3593,8 @@ STR_ROAD_TOOLBAR_TOOLTIP_BUILD_AUTOROAD                         :{BLACK}Build ro
 STR_ROAD_TOOLBAR_TOOLTIP_BUILD_AUTOTRAM                         :{BLACK}Build tramway section using the Autotram mode. Ctrl toggles build/remove for tramway construction. Shift toggles building/showing cost estimate
 STR_ROAD_TOOLBAR_TOOLTIP_BUILD_ROAD_VEHICLE_DEPOT               :{BLACK}Build road vehicle depot (for buying and servicing vehicles). Shift toggles building/showing cost estimate
 STR_ROAD_TOOLBAR_TOOLTIP_BUILD_TRAM_VEHICLE_DEPOT               :{BLACK}Build tram vehicle depot (for buying and servicing vehicles). Shift toggles building/showing cost estimate
+STR_ROAD_TOOLBAR_TOOLTIP_CONVERT_ROAD_TO_WAYPOINT               :{BLACK}Convert road to waypoint. Ctrl enables joining waypoints. Shift toggles building/showing cost estimate
+STR_ROAD_TOOLBAR_TOOLTIP_CONVERT_TRAM_TO_WAYPOINT               :{BLACK}Convert tram to waypoint. Ctrl enables joining waypoints. Shift toggles building/showing cost estimate
 STR_ROAD_TOOLBAR_TOOLTIP_BUILD_BUS_STATION                      :{BLACK}Build bus station. Ctrl enables joining stations. Shift toggles building/showing cost estimate
 STR_ROAD_TOOLBAR_TOOLTIP_BUILD_PASSENGER_TRAM_STATION           :{BLACK}Build passenger tram station. Ctrl enables joining stations. Shift toggles building/showing cost estimate
 STR_ROAD_TOOLBAR_TOOLTIP_BUILD_TRUCK_LOADING_BAY                :{BLACK}Build lorry loading bay. Ctrl enables joining stations. Shift toggles building/showing cost estimate
@@ -4241,6 +4268,7 @@ STR_NEWGRF_ERROR_TOO_MANY_NEWGRFS_LOADED                        :Too many NewGRF
 STR_NEWGRF_ERROR_STATIC_GRF_CAUSES_DESYNC                       :Loading {1:RAW_STRING} as static NewGRF with {RAW_STRING} could cause desyncs
 STR_NEWGRF_ERROR_UNEXPECTED_SPRITE                              :Unexpected sprite (sprite {3:NUM})
 STR_NEWGRF_ERROR_UNKNOWN_PROPERTY                               :Unknown Action 0 property {4:HEX} (sprite {3:NUM})
+STR_NEWGRF_ERROR_UNIMPLEMETED_MAPPED_FEATURE_ID                 :Unimplemented remapped feature ID: name: {2:RAW_STRING}, mapped to: {5:HEX} (sprite {3:NUM})
 STR_NEWGRF_ERROR_UNIMPLEMETED_MAPPED_PROPERTY                   :Unimplemented remapped Action 0 property feature: {4:HEX}, name: {2:RAW_STRING}, mapped to: {5:HEX} (sprite {3:NUM})
 STR_NEWGRF_ERROR_UNIMPLEMETED_MAPPED_ACTION5_TYPE               :Unimplemented remapped Action 5 type: name: {2:RAW_STRING}, mapped to: {4:HEX} (sprite {3:NUM})
 STR_NEWGRF_ERROR_INVALID_ID                                     :Attempt to use invalid ID (sprite {3:NUM})
@@ -4647,6 +4675,8 @@ STR_BUOY_VIEW_CENTER_TOOLTIP                                    :{BLACK}Centre m
 STR_BUOY_VIEW_CHANGE_BUOY_NAME                                  :{BLACK}Change buoy name
 
 STR_EDIT_WAYPOINT_NAME                                          :{WHITE}Edit waypoint name
+
+STR_WAYPOINT_VIEW_HIDE_VIEWPORT_LABEL                           :{BLACK}Hide the name label for this waypoint
 
 # Finances window
 STR_FINANCES_CAPTION                                            :{WHITE}{COMPANY} Finances {BLACK}{COMPANY_NUM}
@@ -5503,6 +5533,8 @@ STR_ORDER_CONDITIONAL_TIME_DATE_VALUE                           :Current time/da
 STR_ORDER_CONDITIONAL_TIMETABLE_STATE                           :Timetable state
 ###next-name-looks-similar
 
+STR_ORDER_CONDITIONAL_VEHICLE_IN_SLOT                           :Vehicle in slot
+
 # these string look like unused currently
 STR_ORDER_CONDITIONAL_REQUIRES_SERVICE_ORDER                    :Requires service {STRING}
 STR_ORDER_CONDITIONAL_CARGO_WAITING_ORDER                       :Next station {STRING} {STRING} waiting
@@ -5548,6 +5580,10 @@ STR_ORDER_CONDITIONAL_COMPARATOR_TRAIN_IN_SLOT                  :train is in
 STR_ORDER_CONDITIONAL_COMPARATOR_TRAIN_NOT_IN_SLOT              :train is not in
 STR_ORDER_CONDITIONAL_COMPARATOR_TRAIN_IN_ACQUIRE_SLOT          :train is in/acquire
 STR_ORDER_CONDITIONAL_COMPARATOR_TRAIN_NOT_IN_ACQUIRE_SLOT      :train is not in/can't acquire
+STR_ORDER_CONDITIONAL_COMPARATOR_VEHICLE_IN_SLOT                :vehicle is in
+STR_ORDER_CONDITIONAL_COMPARATOR_VEHICLE_NOT_IN_SLOT            :vehicle is not in
+STR_ORDER_CONDITIONAL_COMPARATOR_VEHICLE_IN_ACQUIRE_SLOT        :vehicle is in/acquire
+STR_ORDER_CONDITIONAL_COMPARATOR_VEHICLE_NOT_IN_ACQUIRE_SLOT    :vehicle is not in/can't acquire
 
 STR_ORDERS_SKIP_BUTTON                                          :{BLACK}Skip
 STR_ORDERS_SKIP_TOOLTIP                                         :{BLACK}Skip the current order, and start the next. Ctrl+Click skips to the selected order
@@ -5667,6 +5703,11 @@ STR_ORDER_STOP_LOCATION_MIDDLE                                  :[middle]
 STR_ORDER_STOP_LOCATION_FAR_END                                 :[far end]
 STR_ORDER_STOP_LOCATION_THROUGH                                 :[through load]
 
+STR_ORDER_RV_DIR_NE                                             :[north-east direction]
+STR_ORDER_RV_DIR_SE                                             :[south-east direction]
+STR_ORDER_RV_DIR_SW                                             :[south-west direction]
+STR_ORDER_RV_DIR_NW                                             :[north-west direction]
+
 STR_ORDER_OUT_OF_RANGE                                          :{RED} (Next destination is out of range)
 
 STR_ORDER_CONDITIONAL_UNCONDITIONAL                             :Jump to order {COMMA}
@@ -5761,8 +5802,9 @@ STR_TIMETABLE_AUTO_SEPARATION_TOOLTIP                           :{BLACK}Automati
 
 STR_TIMETABLE_SCHEDULED_DISPATCH                                :{BLACK}Scheduled Dispatch
 STR_TIMETABLE_SCHEDULED_DISPATCH_TOOLTIP                        :{BLACK}Open scheduled dispatch windows for automatic setting of timetable start time
-STR_TIMETABLE_SCHEDULED_DISPATCH_ORDER                          :[scheduled dispatch]
-STR_TIMETABLE_SCHEDULED_DISPATCH_ORDER_NO_WAIT_TIME             :{PUSH_COLOUR}{RED}[scheduled dispatch - no wait time timetabled]{POP_COLOUR}
+STR_TIMETABLE_SCHEDULED_DISPATCH_ORDER                          :{PUSH_COLOUR}{YELLOW}[{STRING1}scheduled dispatch]{POP_COLOUR}
+STR_TIMETABLE_SCHEDULED_DISPATCH_ORDER_NO_WAIT_TIME             :{PUSH_COLOUR}{RED}[{STRING1}scheduled dispatch - no wait time timetabled]{POP_COLOUR}
+STR_TIMETABLE_SCHEDULED_DISPATCH_ORDER_SCHEDULE_INDEX           :{NUM}{NBSP}-{NBSP}
 
 STR_TIMETABLE_EXPECTED                                          :{BLACK}Expected
 STR_TIMETABLE_SCHEDULED                                         :{BLACK}Scheduled
@@ -5783,6 +5825,11 @@ STR_TIMETABLE_LEAVE_EARLY_FULL_ALL                              :Leave early if 
 STR_TIMETABLE_EXTRA_DROP_DOWN                                   :{BLACK}Extra
 STR_TIMETABLE_EXTRA_DROP_DOWN_TOOLTIP                           :{BLACK}Extra Options{}{}Leave as timetabled: Vehicles wait until their timetabled departure time before leaving (default).{}Leave Early: Vehicles leave as soon as loading/unloading is done, possibly before the timetabled departure time.{}Leave Early if Any Full: As above, if any cargo is fully loaded.{}Leave Early if All Full: As above, if all cargoes are fully loaded.
 
+STR_TIMETABLE_ASSIGN_SCHEDULE_DROP_DOWN                         :{BLACK}Assign Schedule
+STR_TIMETABLE_ASSIGN_SCHEDULE_DROP_DOWN_TOOLTIP                 :{BLACK}Assign or unassign a scheduled dispatch schedule to the selected order
+STR_TIMETABLE_ASSIGN_SCHEDULE_NONE                              :No Schedule
+STR_TIMETABLE_ASSIGN_SCHEDULE_ID                                :Schedule {NUM}
+
 STR_TIMETABLE_ARRIVAL_ABBREVIATION                              :A:
 STR_TIMETABLE_DEPARTURE_ABBREVIATION                            :D:
 
@@ -5792,10 +5839,13 @@ STR_TIMETABLE_AUTOSEP_SINGLE_VEH                                :{BLACK}This tim
 STR_TIMETABLE_WARNING_AUTOSEP_CONDITIONAL                       :{BLACK}Cannot auto separate timetable: conditional order(s) present
 STR_TIMETABLE_WARNING_AUTOSEP_MISSING_TIMINGS                   :{BLACK}Cannot auto separate timetable: wait or travel time(s) missing
 STR_TIMETABLE_WARNING_FULL_LOAD                                 :{BLACK}Timetabling full-load orders is not recommended
-STR_TIMETABLE_WARNING_AUTOFILL_CONDITIONAL                      :{BLACK}Autofill will only update taken branch of conditional orders.
-STR_TIMETABLE_NON_TIMETABLED_BRANCH                             :{BLACK}Not all conditional order branch-taken travel times are timetabled.
-STR_TIMETABLE_WARNING_NO_SCHEDULED_DISPATCH_ORDER               :{BLACK}No order is suitable for use with scheduled dispatch.
-STR_TIMETABLE_WARNING_SCHEDULED_DISPATCH_ORDER_NO_WAIT_TIME     :{BLACK}The scheduled dispatch order should have a timetabled wait time.
+STR_TIMETABLE_WARNING_AUTOFILL_CONDITIONAL                      :{BLACK}Autofill will only update taken branch of conditional orders
+STR_TIMETABLE_NON_TIMETABLED_BRANCH                             :{BLACK}Not all conditional order branch-taken travel times are timetabled
+STR_TIMETABLE_WARNING_NO_SCHEDULED_DISPATCH_ORDER_ASSIGNED      :{BLACK}The dispatch schedule is not assigned to an order
+STR_TIMETABLE_WARNING_SCHEDULED_DISPATCH_ORDER_NO_WAIT_TIME     :{BLACK}The scheduled dispatch order should have a timetabled wait time
+STR_TIMETABLE_WARNING_SCHEDULE_ID                               :{BLACK}Schedule {NUM}: {STRING}
+
+STR_TIMETABLE_WARNINGS_OMITTED                                  :{BLACK}{NUM} further warnings omitted...
 
 # Date window (for timetable)
 STR_DATE_CAPTION                                                :{WHITE}Set date
@@ -6179,11 +6229,14 @@ STR_ERROR_WAYPOINT_ADJOINS_MORE_THAN_ONE_EXISTING               :{WHITE}Adjoins 
 STR_ERROR_TOO_CLOSE_TO_ANOTHER_WAYPOINT                         :{WHITE}Too close to another waypoint
 
 STR_ERROR_CAN_T_BUILD_TRAIN_WAYPOINT                            :{WHITE}Can't build train waypoint here...
+STR_ERROR_CAN_T_BUILD_ROAD_WAYPOINT                             :{WHITE}Can't build road waypoint here...
 STR_ERROR_CAN_T_POSITION_BUOY_HERE                              :{WHITE}Can't place buoy here...
 STR_ERROR_CAN_T_CHANGE_WAYPOINT_NAME                            :{WHITE}Can't change waypoint name...
 
 STR_ERROR_CAN_T_REMOVE_TRAIN_WAYPOINT                           :{WHITE}Can't remove train waypoint here...
+STR_ERROR_CAN_T_REMOVE_ROAD_WAYPOINT                            :{WHITE}Can't remove road waypoint here...
 STR_ERROR_MUST_REMOVE_RAILWAYPOINT_FIRST                        :{WHITE}Must remove rail waypoint first
+STR_ERROR_MUST_REMOVE_ROADWAYPOINT_FIRST                        :{WHITE}Must remove road waypoint first
 STR_ERROR_BUOY_IN_THE_WAY                                       :{WHITE}... buoy in the way
 STR_ERROR_BUOY_IS_IN_USE                                        :{WHITE}... buoy is in use by another company!
 
@@ -7212,7 +7265,17 @@ STR_SCHDISPATCH_RESET_LAST_DISPATCH_TOOLTIP                     :{BLACK}Reset wh
 STR_SCHDISPATCH_CLEAR                                           :{BLACK}Clear Departure Slots
 STR_SCHDISPATCH_CLEAR_TOOLTIP                                   :{BLACK}Clear all departure slots from the schedule.
 STR_SCHDISPATCH_MANAGE                                          :{BLACK}Manage Schedule
-STR_SCHDISPATCH_MANAGE_TOOLTIP                                  :{STRING}{}{}{STRING}
+STR_SCHDISPATCH_MANAGE_TOOLTIP                                  :{STRING}{}{}{STRING}{}{}{STRING}
+STR_SCHDISPATCH_PREV_SCHEDULE                                   :{BLACK}Previous
+STR_SCHDISPATCH_PREV_SCHEDULE_TOOLTIP                           :{BLACK}Go to previous dispatch schedule
+STR_SCHDISPATCH_NEXT_SCHEDULE                                   :{BLACK}Next
+STR_SCHDISPATCH_NEXT_SCHEDULE_TOOLTIP                           :{BLACK}Go to next dispatch schedule
+STR_SCHDISPATCH_ADD_SCHEDULE                                    :{BLACK}Add
+STR_SCHDISPATCH_ADD_SCHEDULE_TOOLTIP                            :{BLACK}Add a new dispatch schedule
+STR_SCHDISPATCH_REMOVE_SCHEDULE                                 :{BLACK}Remove Current Schedule
+STR_SCHDISPATCH_REMOVE_SCHEDULE_TOOLTIP                         :{BLACK}Remove this dispatch schedule entirely.
+STR_SCHDISPATCH_NO_SCHEDULES                                    :{BLACK}No Schedules
+STR_SCHDISPATCH_SCHEDULE_ID                                     :{BLACK}Schedule {NUM} of {NUM}
 
 STR_SCHDISPATCH_SUMMARY_LAST_DEPARTURE_PAST                     :{BLACK}Last departure at {DATE_WALLCLOCK_TINY}.
 STR_SCHDISPATCH_SUMMARY_LAST_DEPARTURE_FUTURE                   :{BLACK}Last departure has not left yet, it will depart at {DATE_WALLCLOCK_TINY}.
@@ -7224,9 +7287,18 @@ STR_SCHDISPATCH_SUMMARY_NOT_ENABLED                             :{BLACK}This sch
 
 STR_SCHDISPATCH_SLOT_OUTSIDE_SCHEDULE                           :{BLACK}One or more departure slots are outside the schedule duration.
 
+STR_SCHDISPATCH_NOT_ASSIGNED_TO_ORDER                           :{BLACK}This dispatch schedule is not assigned to an order.
+STR_SCHDISPATCH_ASSIGNED_TO_ORDER                               :{BLACK}This dispatch schedule is assigned to order {NUM}: {STRING2}.
+
 STR_SCHDISPATCH_ADD_DEPARTURE_SLOTS_START                       :{BLACK}Start:
 STR_SCHDISPATCH_ADD_DEPARTURE_SLOTS_STEP                        :{BLACK}Period:
 STR_SCHDISPATCH_ADD_DEPARTURE_SLOTS_END                         :{BLACK}End:
+
+STR_SCHDISPATCH_QUERY_CLEAR_SCHEDULE_CAPTION                    :{WHITE}Clear Departure Slots
+STR_SCHDISPATCH_QUERY_CLEAR_SCHEDULE_TEXT                       :{WHITE}Are you sure you want to clear all {NUM} departure slot{P "" s} from this schedule?
+
+STR_SCHDISPATCH_QUERY_REMOVE_SCHEDULE_CAPTION                   :{WHITE}Delete Schedule
+STR_SCHDISPATCH_QUERY_REMOVE_SCHEDULE_TEXT                      :{WHITE}Are you sure you want to delete this schedule (containing  {NUM} departure slot{P "" s})?
 
 STR_ERROR_SCHDISPATCH_TRIED_TO_ADD_TOO_MANY_SLOTS               :{WHITE}Tried to add too many departure slots at once
 

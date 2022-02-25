@@ -133,7 +133,7 @@ void AdjustAllSignalSpeedRestrictionTickValues(DateTicksScaled delta)
 /** Removes all speed restrictions which have passed their timeout from all signals */
 void ClearOutOfDateSignalSpeedRestrictions()
 {
-	for(auto key_value_pair = _signal_speeds.begin(); key_value_pair != _signal_speeds.end(); ) {
+	for (auto key_value_pair = _signal_speeds.begin(); key_value_pair != _signal_speeds.end(); ) {
 		if (IsOutOfDate(key_value_pair->second)) {
 			key_value_pair = _signal_speeds.erase(key_value_pair);
 		} else {
@@ -472,11 +472,9 @@ int GetTileMarginInFrontOfTrain(const Train *v, int x_pos, int y_pos)
  * @param update_train_state whether the state of the train v may be changed
  * @param station_ahead  'return' the amount of 1/16th tiles in front of the train
  * @param station_length 'return' the station length in 1/16th tiles
- * @param x_pos          vehicle x position
- * @param y_pos          vehicle y position
  * @return the location, calculated from the begin of the station to stop at.
  */
-int GetTrainStopLocation(StationID station_id, TileIndex tile, Train *v, bool update_train_state, int *station_ahead, int *station_length, int x_pos, int y_pos)
+int GetTrainStopLocation(StationID station_id, TileIndex tile, Train *v, bool update_train_state, int *station_ahead, int *station_length)
 {
 	Train *front = v->First();
 	if (IsRailWaypoint(tile)) {
@@ -700,7 +698,7 @@ void AdvanceOrderIndex(const Vehicle *v, VehicleOrderID &index)
 			case OT_GOTO_WAYPOINT:
 				return;
 			case OT_CONDITIONAL: {
-				VehicleOrderID next = ProcessConditionalOrder(order, v, true);
+				VehicleOrderID next = ProcessConditionalOrder(order, v, PCO_DRY_RUN);
 				if (next != INVALID_VEH_ORDER_ID) {
 					depth++;
 					index = next;
@@ -748,26 +746,40 @@ int PredictStationStoppingLocation(const Train *v, const Order *order, int stati
 	}
 	if (osl == OSL_PLATFORM_THROUGH && overhang > 0) {
 		/* The train is longer than the station, and we can run through the station to load/unload */
-		for (const Train *u = v; u != nullptr; u = u->Next()) {
-			if (overhang > 0 && !u->IsArticulatedPart()) {
-				bool skip = true;
-				for (const Train *part = u; part != nullptr; part = part->HasArticulatedPart() ? part->GetNextArticulatedPart() : nullptr) {
-					if (part->cargo_cap != 0) {
-						skip = false;
-						break;
-					}
-				}
-				if (skip) {
-					for (const Train *part = u; part != nullptr; part = part->HasArticulatedPart() ? part->GetNextArticulatedPart() : nullptr) {
-						overhang -= part->gcache.cached_veh_length;
-						adjust += part->gcache.cached_veh_length;
-					}
-					continue;
-				}
+
+		/* Check whether the train has already reached the platform and set VRF_BEYOND_PLATFORM_END on the front part */
+		if (HasBit(v->flags, VRF_BEYOND_PLATFORM_END)) {
+			/* Compute how much of the train should stop beyond the station, using already set flags */
+			int beyond = 0;
+			for (const Train *u = v; u != nullptr && HasBit(u->flags, VRF_BEYOND_PLATFORM_END); u = u->Next()) {
+				beyond += u->gcache.cached_veh_length;
 			}
-			break;
+			/* Adjust for the remaining amount of train being less than the station length */
+			int overshoot = station_length - std::min(v->gcache.cached_total_length - beyond, station_length);
+			adjust = beyond - overshoot;
+		} else {
+			/* Train hasn't reached the platform yet, or no advancing has occured, use predictive mode */
+			for (const Train *u = v; u != nullptr; u = u->Next()) {
+				if (overhang > 0 && !u->IsArticulatedPart()) {
+					bool skip = true;
+					for (const Train *part = u; part != nullptr; part = part->HasArticulatedPart() ? part->GetNextArticulatedPart() : nullptr) {
+						if (part->cargo_cap != 0) {
+							skip = false;
+							break;
+						}
+					}
+					if (skip) {
+						for (const Train *part = u; part != nullptr; part = part->HasArticulatedPart() ? part->GetNextArticulatedPart() : nullptr) {
+							overhang -= part->gcache.cached_veh_length;
+							adjust += part->gcache.cached_veh_length;
+						}
+						continue;
+					}
+				}
+				break;
+			}
+			if (overhang < 0) adjust += overhang;
 		}
-		if (overhang < 0) adjust += overhang;
 	} else if (overhang >= 0) {
 		/* The train is longer than the station, make it stop at the far end of the platform */
 		osl = OSL_PLATFORM_FAR_END;
@@ -1016,7 +1028,7 @@ Train::MaxSpeedInfo Train::GetCurrentMaxSpeedInfoInternal(bool update_state) con
 			this->gcache.cached_max_track_speed :
 			std::min<int>(this->tcache.cached_max_curve_speed, this->gcache.cached_max_track_speed);
 
-	if (this->current_order.IsType(OT_LOADING_ADVANCE)) max_speed = std::min(max_speed, 15);
+	if (this->current_order.IsType(OT_LOADING_ADVANCE)) max_speed = std::min<int>(max_speed, _settings_game.vehicle.through_load_speed_limit);
 
 	int advisory_max_speed = max_speed;
 
@@ -2127,6 +2139,7 @@ CommandCost CmdMoveRailVehicle(TileIndex tile, DoCommandFlag flags, uint32 p1, u
 			DeleteWindowById(WC_VEHICLE_REFIT, src->index);
 			DeleteWindowById(WC_VEHICLE_DETAILS, src->index);
 			DeleteWindowById(WC_VEHICLE_TIMETABLE, src->index);
+			DeleteWindowById(WC_SCHDISPATCH_SLOTS, src->index);
 			DeleteNewGRFInspectWindow(GSF_TRAINS, src->index);
 			SetWindowDirty(WC_COMPANY, _current_company);
 
@@ -2135,9 +2148,9 @@ CommandCost CmdMoveRailVehicle(TileIndex tile, DoCommandFlag flags, uint32 p1, u
 			DeleteVehicleOrders(src);
 			RemoveVehicleFromGroup(src);
 			src->unitnumber = 0;
-			if (HasBit(src->flags, VRF_HAVE_SLOT)) {
+			if (HasBit(src->vehicle_flags, VF_HAVE_SLOT)) {
 				TraceRestrictRemoveVehicleFromAllSlots(src->index);
-				ClrBit(src->flags, VRF_HAVE_SLOT);
+				ClrBit(src->vehicle_flags, VF_HAVE_SLOT);
 			}
 			OrderBackup::ClearVehicle(src);
 		}
@@ -3867,7 +3880,7 @@ public:
 					this->v->current_order = *order;
 					return UpdateOrderDest(this->v, order, 0, true);
 				case OT_CONDITIONAL: {
-					VehicleOrderID next = ProcessConditionalOrder(order, this->v, true);
+					VehicleOrderID next = ProcessConditionalOrder(order, this->v, PCO_DRY_RUN);
 					if (next != INVALID_VEH_ORDER_ID) {
 						depth++;
 						this->v->cur_real_order_index = next;
@@ -5597,28 +5610,38 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 					v->wait_counter = (TILE_SIZE * simulated_wormhole_signals) - TILE_SIZE;
 					v->tunnel_bridge_signal_num = 0;
 
-					if (v->IsFrontEngine() && IsTunnelBridgeSignalSimulationEntrance(old_tile) && IsTunnelBridgeRestrictedSignal(old_tile)) {
+					if (v->IsFrontEngine() && IsTunnelBridgeSignalSimulationEntrance(old_tile) && (IsTunnelBridgeRestrictedSignal(old_tile) || _settings_game.vehicle.train_speed_adaptation)) {
 						const Trackdir trackdir = GetTunnelBridgeEntranceTrackdir(old_tile);
-						const TraceRestrictProgram *prog = GetExistingTraceRestrictProgram(old_tile, TrackdirToTrack(trackdir));
-						if (prog && prog->actions_used_flags & (TRPAUF_SLOT_ACQUIRE | TRPAUF_SLOT_RELEASE_FRONT | TRPAUF_SPEED_RESTRICTION | TRPAUF_CHANGE_COUNTER)) {
-							TraceRestrictProgramResult out;
-							TraceRestrictProgramInput input(old_tile, trackdir, nullptr, nullptr);
-							input.permitted_slot_operations = TRPISP_ACQUIRE | TRPISP_RELEASE_FRONT | TRPISP_CHANGE_COUNTER;
-							prog->Execute(v, input, out);
-							HandleTraceRestrictSpeedRestrictionAction(out, v, trackdir);
+						if (IsTunnelBridgeRestrictedSignal(old_tile)) {
+							const TraceRestrictProgram *prog = GetExistingTraceRestrictProgram(old_tile, TrackdirToTrack(trackdir));
+							if (prog && prog->actions_used_flags & (TRPAUF_SLOT_ACQUIRE | TRPAUF_SLOT_RELEASE_FRONT | TRPAUF_SPEED_RESTRICTION | TRPAUF_CHANGE_COUNTER)) {
+								TraceRestrictProgramResult out;
+								TraceRestrictProgramInput input(old_tile, trackdir, nullptr, nullptr);
+								input.permitted_slot_operations = TRPISP_ACQUIRE | TRPISP_RELEASE_FRONT | TRPISP_CHANGE_COUNTER;
+								prog->Execute(v, input, out);
+								HandleTraceRestrictSpeedRestrictionAction(out, v, trackdir);
+							}
+						}
+						if (_settings_game.vehicle.train_speed_adaptation) {
+							SetSignalTrainAdaptationSpeed(v, old_tile, TrackdirToTrack(trackdir));
 						}
 					}
 
-					if (v->Next() == nullptr && IsTunnelBridgeSignalSimulationEntrance(old_tile) && IsTunnelBridgeRestrictedSignal(old_tile)) {
+					if (v->Next() == nullptr && IsTunnelBridgeSignalSimulationEntrance(old_tile) && (IsTunnelBridgeRestrictedSignal(old_tile) || _settings_game.vehicle.train_speed_adaptation)) {
 						const Trackdir trackdir = GetTunnelBridgeEntranceTrackdir(old_tile);
 						const Track track = TrackdirToTrack(trackdir);
 
-						const TraceRestrictProgram *prog = GetExistingTraceRestrictProgram(old_tile, track);
-						if (prog && prog->actions_used_flags & TRPAUF_SLOT_RELEASE_BACK) {
-							TraceRestrictProgramResult out;
-							TraceRestrictProgramInput input(old_tile, trackdir, nullptr, nullptr);
-							input.permitted_slot_operations = TRPISP_RELEASE_BACK;
-							prog->Execute(first, input, out);
+						if (IsTunnelBridgeRestrictedSignal(old_tile)) {
+							const TraceRestrictProgram *prog = GetExistingTraceRestrictProgram(old_tile, track);
+							if (prog && prog->actions_used_flags & TRPAUF_SLOT_RELEASE_BACK) {
+								TraceRestrictProgramResult out;
+								TraceRestrictProgramInput input(old_tile, trackdir, nullptr, nullptr);
+								input.permitted_slot_operations = TRPISP_RELEASE_BACK;
+								prog->Execute(first, input, out);
+							}
+						}
+						if (_settings_game.vehicle.train_speed_adaptation) {
+							ApplySignalTrainAdaptationSpeed(v, old_tile, track);
 						}
 					}
 				}
@@ -5659,10 +5682,18 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 							SetBridgeEntranceSimulatedSignalState(v->tile, v->tunnel_bridge_signal_num, SIGNAL_STATE_RED);
 							MarkSingleBridgeSignalDirty(gp.new_tile, v->tile);
 						}
+						if (_settings_game.vehicle.train_speed_adaptation && distance == 0 && IsTunnelBridgeSignalSimulationEntrance(v->tile)) {
+							ApplySignalTrainAdaptationSpeed(v, v->tile, 0x100 + v->tunnel_bridge_signal_num);
+						}
 					}
 				}
 				if (v->Next() == nullptr) {
-					if (v->tunnel_bridge_signal_num > 0 && distance == (TILE_SIZE * simulated_wormhole_signals) - TILE_SIZE) HandleSignalBehindTrain(v, v->tunnel_bridge_signal_num - 2);
+					if (v->tunnel_bridge_signal_num > 0 && distance == (TILE_SIZE * simulated_wormhole_signals) - TILE_SIZE) {
+						HandleSignalBehindTrain(v, v->tunnel_bridge_signal_num - 2);
+						if (_settings_game.vehicle.train_speed_adaptation) {
+							SetSignalTrainAdaptationSpeed(v, v->tile, 0x100 + v->tunnel_bridge_signal_num - 1);
+						}
+					}
 					DiagDirection tunnel_bridge_dir = GetTunnelBridgeDirection(v->tile);
 					Axis axis = DiagDirToAxis(tunnel_bridge_dir);
 					DiagDirection axial_dir = DirToDiagDirAlongAxis(v->direction, axis);
@@ -5790,25 +5821,13 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 					const TrackdirBits rev_tracks = TrackBitsToTrackdirBits(GetTrackBits(gp.old_tile)) & DiagdirReachesTrackdirs(ReverseDiagDir(enterdir));
 					const Trackdir rev_trackdir = FindFirstTrackdir(rev_tracks);
 					if (HasSignalOnTrackdir(gp.old_tile, ReverseTrackdir(rev_trackdir))) {
-						const Track track = TrackdirToTrack(rev_trackdir);
-						SignalSpeedKey speed_key = {
-							speed_key.signal_tile = gp.old_tile,
-							speed_key.signal_track = track,
-							speed_key.last_passing_train_dir = v->GetVehicleTrackdir()
-						};
-						const auto found_speed_restriction = _signal_speeds.find(speed_key);
-
-						if (found_speed_restriction != _signal_speeds.end()) {
-							if (IsOutOfDate(found_speed_restriction->second)) {
-								_signal_speeds.erase(found_speed_restriction);
-								v->signal_speed_restriction = 0;
-							} else {
-								v->signal_speed_restriction = std::max<uint16>(25, found_speed_restriction->second.train_speed);
-							}
-						} else {
-							v->signal_speed_restriction = 0;
-						}
+						ApplySignalTrainAdaptationSpeed(v, gp.old_tile, TrackdirToTrack(rev_trackdir));
 					}
+				}
+				if (_settings_game.vehicle.train_speed_adaptation && IsTileType(gp.old_tile, MP_TUNNELBRIDGE) && IsTunnelBridgeSignalSimulationExit(gp.old_tile)) {
+					const TrackdirBits rev_tracks = TrackBitsToTrackdirBits(GetTunnelBridgeTrackBits(gp.old_tile)) & DiagdirReachesTrackdirs(ReverseDiagDir(enterdir));
+					const Trackdir rev_trackdir = FindFirstTrackdir(rev_tracks);
+					ApplySignalTrainAdaptationSpeed(v, gp.old_tile, TrackdirToTrack(rev_trackdir));
 				}
 
 				switch (TrainMovedChangeSignal(v, gp.new_tile, enterdir, true)) {
@@ -5854,16 +5873,7 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 					const Track track = TrackdirToTrack(rev_trackdir);
 
 					if (_settings_game.vehicle.train_speed_adaptation && HasSignalOnTrackdir(gp.old_tile, ReverseTrackdir(rev_trackdir))) {
-						SignalSpeedKey speed_key = {
-							speed_key.signal_tile = gp.old_tile,
-							speed_key.signal_track = track,
-							speed_key.last_passing_train_dir = v->GetVehicleTrackdir()
-						};
-						SignalSpeedValue speed_value = {
-							speed_value.train_speed = v->First()->cur_speed,
-							speed_value.time_stamp = GetSpeedRestrictionTimeout(v->First())
-						};
-						_signal_speeds[speed_key] = speed_value;
+						SetSignalTrainAdaptationSpeed(v, gp.old_tile, track);
 					}
 
 					if (HasSignalOnTrack(gp.old_tile, track)) {
@@ -5879,18 +5889,23 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 					}
 				}
 
-				if (IsTileType(gp.old_tile, MP_TUNNELBRIDGE) && IsTunnelBridgeSignalSimulationExit(gp.old_tile) && IsTunnelBridgeRestrictedSignal(gp.old_tile)) {
+				if (IsTileType(gp.old_tile, MP_TUNNELBRIDGE) && IsTunnelBridgeSignalSimulationExit(gp.old_tile) && (IsTunnelBridgeRestrictedSignal(gp.old_tile) || _settings_game.vehicle.train_speed_adaptation)) {
 					const TrackdirBits rev_tracks = TrackBitsToTrackdirBits(GetTunnelBridgeTrackBits(gp.old_tile)) & DiagdirReachesTrackdirs(ReverseDiagDir(enterdir));
 					const Trackdir rev_trackdir = FindFirstTrackdir(rev_tracks);
 					const Track track = TrackdirToTrack(rev_trackdir);
 
 					if (TrackdirEntersTunnelBridge(gp.old_tile, rev_trackdir)) {
-						const TraceRestrictProgram *prog = GetExistingTraceRestrictProgram(gp.old_tile, track);
-						if (prog && prog->actions_used_flags & TRPAUF_SLOT_RELEASE_BACK) {
-							TraceRestrictProgramResult out;
-							TraceRestrictProgramInput input(gp.old_tile, ReverseTrackdir(rev_trackdir), nullptr, nullptr);
-							input.permitted_slot_operations = TRPISP_RELEASE_BACK;
-							prog->Execute(first, input, out);
+						if (IsTunnelBridgeRestrictedSignal(gp.old_tile)) {
+							const TraceRestrictProgram *prog = GetExistingTraceRestrictProgram(gp.old_tile, track);
+							if (prog && prog->actions_used_flags & TRPAUF_SLOT_RELEASE_BACK) {
+								TraceRestrictProgramResult out;
+								TraceRestrictProgramInput input(gp.old_tile, ReverseTrackdir(rev_trackdir), nullptr, nullptr);
+								input.permitted_slot_operations = TRPISP_RELEASE_BACK;
+								prog->Execute(first, input, out);
+							}
+						}
+						if (_settings_game.vehicle.train_speed_adaptation) {
+							SetSignalTrainAdaptationSpeed(v, gp.old_tile, track);
 						}
 					}
 				}
@@ -6355,6 +6370,7 @@ static bool TrainLocoHandler(Train *v, bool mode)
 	if (CheckTrainStayInDepot(v)) return true;
 
 	if (v->current_order.IsType(OT_WAITING) && v->reverse_distance == 0) {
+		if (mode) return true;
 		v->HandleWaiting(false, true);
 		if (v->current_order.IsType(OT_WAITING)) return true;
 		if (IsRailWaypointTile(v->tile)) {
@@ -7256,4 +7272,39 @@ int GetTrainEstimatedMaxAchievableSpeed(const Train *train, const int mass, cons
 	} while (acceleration > 0 && max_speed < speed_cap);
 
 	return max_speed;
+}
+
+void SetSignalTrainAdaptationSpeed(const Train *v, TileIndex tile, uint16 track)
+{
+	SignalSpeedKey speed_key = {
+		speed_key.signal_tile = tile,
+		speed_key.signal_track = track,
+		speed_key.last_passing_train_dir = v->GetVehicleTrackdir()
+	};
+	SignalSpeedValue speed_value = {
+		speed_value.train_speed = v->First()->cur_speed,
+		speed_value.time_stamp = GetSpeedRestrictionTimeout(v->First())
+	};
+	_signal_speeds[speed_key] = speed_value;
+}
+
+void ApplySignalTrainAdaptationSpeed(Train *v, TileIndex tile, uint16 track)
+{
+	SignalSpeedKey speed_key = {
+		speed_key.signal_tile = tile,
+		speed_key.signal_track = track,
+		speed_key.last_passing_train_dir = v->GetVehicleTrackdir()
+	};
+	const auto found_speed_restriction = _signal_speeds.find(speed_key);
+
+	if (found_speed_restriction != _signal_speeds.end()) {
+		if (IsOutOfDate(found_speed_restriction->second)) {
+			_signal_speeds.erase(found_speed_restriction);
+			v->signal_speed_restriction = 0;
+		} else {
+			v->signal_speed_restriction = std::max<uint16>(25, found_speed_restriction->second.train_speed);
+		}
+	} else {
+		v->signal_speed_restriction = 0;
+	}
 }

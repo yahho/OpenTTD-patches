@@ -49,6 +49,7 @@
 #include "newgrf_station.h"
 #include "station_func.h"
 #include "tracerestrict.h"
+#include "newgrf_roadstop.h"
 
 #include "table/strings.h"
 #include "table/bridge_land.h"
@@ -63,13 +64,13 @@ TileIndex _build_tunnel_endtile; ///< The end of a tunnel; as hidden return from
 static const int BRIDGE_Z_START = 3;
 
 extern void DrawTrackBits(TileInfo *ti, TrackBits track);
-extern void DrawRoadBits(TileInfo *ti);
+extern void DrawRoadBitsTunnelBridge(TileInfo *ti);
 extern const RoadBits _invalid_tileh_slopes_road[2][15];
 
 extern CommandCost IsRailStationBridgeAboveOk(TileIndex tile, const StationSpec *statspec, byte layout, TileIndex northern_bridge_end, TileIndex southern_bridge_end, int bridge_height,
 		BridgeType bridge_type, TransportType bridge_transport_type);
 
-extern CommandCost IsRoadStopBridgeAboveOK(TileIndex tile, bool drive_through, DiagDirection entrance,
+extern CommandCost IsRoadStopBridgeAboveOK(TileIndex tile, const RoadStopSpec *spec, bool drive_through, DiagDirection entrance,
 		TileIndex northern_bridge_end, TileIndex southern_bridge_end, int bridge_height,
 		BridgeType bridge_type, TransportType bridge_transport_type);
 
@@ -549,8 +550,9 @@ CommandCost CmdBuildBridge(TileIndex end_tile, DoCommandFlag flags, uint32 p1, u
 					}
 
 					case STATION_BUS:
-					case STATION_TRUCK: {
-						CommandCost ret = IsRoadStopBridgeAboveOK(tile, IsDriveThroughStopTile(tile), GetRoadStopDir(tile),
+					case STATION_TRUCK:
+					case STATION_ROADWAYPOINT: {
+						CommandCost ret = IsRoadStopBridgeAboveOK(tile, GetRoadStopSpec(tile), IsDriveThroughStopTile(tile), GetRoadStopDir(tile),
 								tile_start, tile_end, z_start + 1, bridge_type, transport_type);
 						if (ret.Failed()) {
 							if (ret.GetErrorMessage() != INVALID_STRING_ID) return ret;
@@ -672,8 +674,9 @@ CommandCost CmdBuildBridge(TileIndex end_tile, DoCommandFlag flags, uint32 p1, u
 						}
 
 						case STATION_BUS:
-						case STATION_TRUCK: {
-							CommandCost ret = IsRoadStopBridgeAboveOK(tile, IsDriveThroughStopTile(tile), GetRoadStopDir(tile),
+						case STATION_TRUCK:
+						case STATION_ROADWAYPOINT: {
+							CommandCost ret = IsRoadStopBridgeAboveOK(tile, GetRoadStopSpec(tile), IsDriveThroughStopTile(tile), GetRoadStopDir(tile),
 									tile_start, tile_end, z_start + 1, bridge_type, transport_type);
 							if (ret.Failed()) {
 								if (ret.GetErrorMessage() != INVALID_STRING_ID) return ret;
@@ -2122,7 +2125,7 @@ static void DrawTile_TunnelBridge(TileInfo *ti, DrawTileProcParams params)
 		DrawBridgeMiddle(ti);
 	} else { // IsBridge(ti->tile)
 		if (transport_type == TRANSPORT_ROAD && IsRoadCustomBridgeHead(ti->tile)) {
-			DrawRoadBits(ti);
+			DrawRoadBitsTunnelBridge(ti);
 			DrawBridgeMiddle(ti);
 			return;
 		}

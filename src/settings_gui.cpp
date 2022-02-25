@@ -1361,7 +1361,14 @@ void SettingEntry::DrawSettingString(uint left, uint right, int y, bool highligh
 {
 	std::unique_ptr<SettingEntry::SetValueDParamsTempData> tempdata;
 	this->SetValueDParams(1, value, tempdata);
-	DrawString(left, right, y, this->setting->str, highlight ? TC_WHITE : TC_LIGHT_BLUE);
+	int edge = DrawString(left, right, y, this->setting->str, highlight ? TC_WHITE : TC_LIGHT_BLUE);
+	if (this->setting->flags & SF_GUI_ADVISE_DEFAULT && value != this->setting->def && edge != 0) {
+		const Dimension warning_dimensions = GetSpriteSize(SPR_WARNING_SIGN);
+		if ((int)warning_dimensions.height <= SETTING_HEIGHT) {
+			DrawSprite(SPR_WARNING_SIGN, 0, (_current_text_dir == TD_RTL) ? edge - warning_dimensions.width - 5 : edge + 5,
+					y + (((int)FONT_HEIGHT_NORMAL - (int)warning_dimensions.height) / 2));
+		}
+	}
 }
 
 /* == CargoDestPerCargoSettingEntry methods == */
@@ -1750,6 +1757,7 @@ static SettingsContainer &GetSettingsTree()
 			localisation->Add(new SettingEntry("locale.units_force"));
 			localisation->Add(new SettingEntry("locale.units_height"));
 			localisation->Add(new SettingEntry("gui.date_format_in_default_names"));
+			localisation->Add(new SettingEntry("client_locale.sync_locale_network_server"));
 		}
 
 		SettingsPage *graphics = main->Add(new SettingsPage(STR_CONFIG_SETTING_GRAPHICS));
@@ -1922,6 +1930,7 @@ static SettingsContainer &GetSettingsTree()
 			interface->Add(new SettingEntry("gui.vehicle_names"));
 			interface->Add(new SettingEntry("gui.station_rating_tooltip_mode"));
 			interface->Add(new SettingEntry("gui.dual_pane_train_purchase_window"));
+			interface->Add(new SettingEntry("gui.allow_hiding_waypoint_labels"));
 		}
 
 		SettingsPage *advisors = main->Add(new SettingsPage(STR_CONFIG_SETTING_ADVISORS));
@@ -2059,6 +2068,7 @@ static SettingsContainer &GetSettingsTree()
 			limitations->Add(new SettingEntry("vehicle.max_aircraft"));
 			limitations->Add(new SettingEntry("vehicle.max_ships"));
 			limitations->Add(new SettingEntry("vehicle.max_train_length"));
+			limitations->Add(new SettingEntry("vehicle.through_load_speed_limit"));
 			limitations->Add(new SettingEntry("station.station_spread"));
 			limitations->Add(new SettingEntry("station.distant_join_stations"));
 			limitations->Add(new SettingEntry("construction.road_stop_on_town_road"));
@@ -2512,6 +2522,26 @@ struct GameSettingsWindow : Window {
 					DrawString(r.left, r.right, y, STR_CONFIG_SETTING_DEFAULT_VALUE);
 					y += FONT_HEIGHT_NORMAL + WD_PAR_VSEP_NORMAL;
 
+					if (sd->flags & SF_GUI_ADVISE_DEFAULT) {
+						const Dimension warning_dimensions = GetSpriteSize(SPR_WARNING_SIGN);
+						const int step_height = std::max<int>(warning_dimensions.height, FONT_HEIGHT_NORMAL);
+						const int text_offset_y = (step_height - FONT_HEIGHT_NORMAL) / 2;
+						const int warning_offset_y = (step_height - warning_dimensions.height) / 2;
+						const bool rtl = _current_text_dir == TD_RTL;
+
+						int left = r.left;
+						int right = r.right;
+						DrawSprite(SPR_WARNING_SIGN, 0, rtl ? right - warning_dimensions.width - 5 : left + 5, y + warning_offset_y);
+						if (rtl) {
+							right -= (warning_dimensions.width + 10);
+						} else {
+							left += (warning_dimensions.width + 10);
+						}
+						DrawString(left, right, y + text_offset_y, STR_CONFIG_SETTING_ADVISED_LEAVE_DEFAULT, TC_RED);
+
+						y += step_height + WD_PAR_VSEP_NORMAL;
+					}
+
 					DrawStringMultiLine(r.left, r.right, y, r.bottom, this->last_clicked->GetHelpText(), TC_WHITE);
 				}
 				break;
@@ -2717,11 +2747,12 @@ struct GameSettingsWindow : Window {
 			/* Only open editbox if clicked for the second time, and only for types where it is sensible for. */
 			if (this->last_clicked == pe && !sd->IsBoolSetting() && !(sd->flags & (SF_GUI_DROPDOWN | SF_ENUM))) {
 				int64 value64 = value;
-				/* Show the correct currency-translated value */
+				/* Show the correct currency or velocity translated value */
 				if (sd->flags & SF_GUI_CURRENCY) value64 *= _currency->rate;
+				if (sd->flags & SF_GUI_VELOCITY) value64 = ConvertKmhishSpeedToDisplaySpeed((uint)value64);
 
 				this->valuewindow_entry = pe;
-				if (sd->flags & SF_DECIMAL1) {
+				if (sd->flags & SF_DECIMAL1 || (sd->flags & SF_GUI_VELOCITY && _settings_game.locale.units_velocity == 3)) {
 					SetDParam(0, value64);
 					ShowQueryString(STR_JUST_DECIMAL1, STR_CONFIG_SETTING_QUERY_CAPTION, 10, this, CS_NUMERAL_DECIMAL, QSF_ENABLE_DEFAULT);
 				} else {
@@ -2754,7 +2785,7 @@ struct GameSettingsWindow : Window {
 		int32 value;
 		if (!StrEmpty(str)) {
 			long long llvalue;
-			if (sd->flags & SF_DECIMAL1) {
+			if (sd->flags & SF_DECIMAL1 || (sd->flags & SF_GUI_VELOCITY && _settings_game.locale.units_velocity == 3)) {
 				llvalue = atof(str) * 10;
 			} else {
 				llvalue = atoll(str);
@@ -2764,6 +2795,9 @@ struct GameSettingsWindow : Window {
 			if (sd->flags & SF_GUI_CURRENCY) llvalue /= _currency->rate;
 
 			value = (int32)ClampToI32(llvalue);
+
+			/* Save the correct velocity-translated value */
+			if (sd->flags & SF_GUI_VELOCITY) value = ConvertDisplaySpeedToKmhishSpeed(value);
 		} else {
 			value = sd->def;
 		}

@@ -57,6 +57,7 @@ void RebuildStationKdtree()
 BaseStation::~BaseStation()
 {
 	free(this->speclist);
+	free(this->roadstop_speclist);
 
 	if (CleaningPool()) return;
 
@@ -66,11 +67,6 @@ BaseStation::~BaseStation()
 	DeleteWindowById(WC_AIRCRAFT_LIST, VehicleListIdentifier(VL_STATION_LIST, VEH_AIRCRAFT, this->owner, this->index).Pack());
 	DeleteWindowById(WC_DEPARTURES_BOARD, this->index);
 	DeleteWindowById(WC_STATION_CARGO, this->index);
-
-	if (HasBit(_display_opt, Station::IsExpected(this) ? DO_SHOW_STATION_NAMES : DO_SHOW_WAYPOINT_NAMES) &&
-			!(_local_company != this->owner && this->owner != OWNER_NONE && !HasBit(_display_opt, DO_SHOW_COMPETITOR_SIGNS))) {
-		this->sign.MarkDirty(ZOOM_LVL_DRAW_SPR);
-	}
 }
 
 Station::Station(TileIndex tile) :
@@ -174,6 +170,8 @@ Station::~Station()
 
 	_station_kdtree.Remove(this->index);
 	if (_viewport_sign_kdtree_valid && this->sign.kdtree_valid) _viewport_sign_kdtree.Remove(ViewportSignKdtreeItem::MakeStation(this->index));
+
+	if (ShouldShowBaseStationViewportLabel(this)) this->sign.MarkDirty(ZOOM_LVL_DRAW_SPR);
 }
 
 
@@ -185,6 +183,31 @@ Station::~Station()
 void BaseStation::PostDestructor(size_t index)
 {
 	InvalidateWindowData(WC_SELECT_STATION, 0, 0);
+}
+
+void BaseStation::SetRoadStopTileData(TileIndex tile, byte data, byte offset)
+{
+	for (size_t i = 0; i < this->custom_road_stop_tiles.size(); i++) {
+		if (this->custom_road_stop_tiles[i] == tile) {
+			SB(this->custom_road_stop_data[i], offset, 8, data);
+			return;
+		}
+	}
+	this->custom_road_stop_tiles.push_back(tile);
+	this->custom_road_stop_data.push_back(((uint)data) << offset);
+}
+
+void BaseStation::RemoveRoadStopTileData(TileIndex tile)
+{
+	for (size_t i = 0; i < this->custom_road_stop_tiles.size(); i++) {
+		if (this->custom_road_stop_tiles[i] == tile) {
+			this->custom_road_stop_tiles[i] = this->custom_road_stop_tiles.back();
+			this->custom_road_stop_data[i] = this->custom_road_stop_data.back();
+			this->custom_road_stop_tiles.pop_back();
+			this->custom_road_stop_data.pop_back();
+			return;
+		}
+	}
 }
 
 /**
@@ -317,13 +340,15 @@ static uint GetTileCatchmentRadius(TileIndex tile, const Station *st)
 
 			default: NOT_REACHED();
 			case STATION_BUOY:
-			case STATION_WAYPOINT: return CA_NONE;
+			case STATION_WAYPOINT:
+			case STATION_ROADWAYPOINT: return CA_NONE;
 		}
 	} else {
 		switch (GetStationType(tile)) {
 			default:               return CA_UNMODIFIED + inc;
 			case STATION_BUOY:
-			case STATION_WAYPOINT: return CA_NONE;
+			case STATION_WAYPOINT:
+			case STATION_ROADWAYPOINT: return CA_NONE;
 		}
 	}
 }

@@ -832,7 +832,7 @@ static void IniSaveSettingList(IniFile &ini, const char *grpname, StringList &li
  * Load a WindowDesc from config.
  * @param ini IniFile handle to the ini file with the source data
  * @param grpname character string identifying the section-header of the ini file that will be parsed
- * @param desc Destination WindowDesc
+ * @param desc Destination WindowDescPreferences
  */
 void IniLoadWindowSettings(IniFile &ini, const char *grpname, void *desc)
 {
@@ -843,7 +843,7 @@ void IniLoadWindowSettings(IniFile &ini, const char *grpname, void *desc)
  * Save a WindowDesc to config.
  * @param ini IniFile handle to the ini file where the destination data is saved
  * @param grpname character string identifying the section-header of the ini file
- * @param desc Source WindowDesc
+ * @param desc Source WindowDescPreferences
  */
 void IniSaveWindowSettings(IniFile &ini, const char *grpname, void *desc)
 {
@@ -933,6 +933,8 @@ static void StationSpreadChanged(int32 new_value)
 {
 	InvalidateWindowData(WC_SELECT_STATION, 0);
 	InvalidateWindowData(WC_BUILD_STATION, 0);
+	InvalidateWindowData(WC_BUS_STATION, 0);
+	InvalidateWindowData(WC_TRUCK_STATION, 0);
 }
 
 static void UpdateConsists(int32 new_value)
@@ -1394,6 +1396,7 @@ static void ClimateThresholdModeChanged(int32 new_value)
 
 static void VelocityUnitsChanged(int32 new_value) {
 	InvalidateWindowClassesData(WC_PAYMENT_RATES);
+	InvalidateWindowClassesData(WC_TRACE_RESTRICT);
 	MarkWholeScreenDirty();
 }
 
@@ -1765,6 +1768,32 @@ static bool LinkGraphDistributionSettingGUI(SettingOnGuiCtrlData &data)
 		case SOGCT_DESCRIPTION_TEXT:
 			SetDParam(0, data.text);
 			data.text = STR_CONFIG_SETTING_DISTRIBUTION_HELPTEXT_EXTRA;
+			return true;
+
+		default:
+			return false;
+	}
+}
+
+static bool SpriteZoomMinSettingGUI(SettingOnGuiCtrlData &data)
+{
+	switch (data.type) {
+		case SOGCT_DESCRIPTION_TEXT:
+			SetDParam(0, data.text);
+			data.text = STR_CONFIG_SETTING_SPRITE_ZOOM_MIN_HELPTEXT_EXTRA;
+			return true;
+
+		default:
+			return false;
+	}
+}
+
+static bool AllowRoadStopsUnderBridgesSettingGUI(SettingOnGuiCtrlData &data)
+{
+	switch (data.type) {
+		case SOGCT_DESCRIPTION_TEXT:
+			SetDParam(0, data.text);
+			data.text = STR_CONFIG_SETTING_ALLOW_ROAD_STATIONS_UNDER_BRIDGES_HELPTEXT_EXTRA;
 			return true;
 
 		default:

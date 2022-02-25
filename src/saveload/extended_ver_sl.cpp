@@ -52,6 +52,7 @@
 #include "../safeguards.h"
 
 uint16 _sl_xv_feature_versions[XSLFI_SIZE];                 ///< array of all known feature types and their current versions
+uint16 _sl_xv_feature_static_versions[XSLFI_SIZE];          ///< array of all known feature types and their static current version versions
 bool _sl_is_ext_version;                                    ///< is this an extended savegame version, with more info in the SLXI chunk?
 bool _sl_is_faked_ext;                                      ///< is this a faked extended savegame version, with no SLXI chunk? See: SlXvCheckSpecialSavegameVersions.
 bool _sl_maybe_springpp;                                    ///< is this possibly a SpringPP savegame?
@@ -69,9 +70,9 @@ static uint32 saveLC(const SlxiSubChunkInfo *info, bool dry_run);
 
 const SlxiSubChunkInfo _sl_xv_sub_chunk_infos[] = {
 	{ XSLFI_VERSION_LABEL,          XSCF_IGNORABLE_ALL,       1,   1, "version_label",             saveVL,  loadVL,  nullptr        },
-	{ XSLFI_TRACE_RESTRICT,         XSCF_NULL,               12,  12, "tracerestrict",             nullptr, nullptr, "TRRM,TRRP,TRRS" },
+	{ XSLFI_TRACE_RESTRICT,         XSCF_NULL,               13,  13, "tracerestrict",             nullptr, nullptr, "TRRM,TRRP,TRRS" },
 	{ XSLFI_TRACE_RESTRICT_OWNER,   XSCF_NULL,                1,   1, "tracerestrict_owner",       nullptr, nullptr, nullptr        },
-	{ XSLFI_TRACE_RESTRICT_ORDRCND, XSCF_NULL,                3,   3, "tracerestrict_order_cond",  nullptr, nullptr, nullptr        },
+	{ XSLFI_TRACE_RESTRICT_ORDRCND, XSCF_NULL,                4,   4, "tracerestrict_order_cond",  nullptr, nullptr, nullptr        },
 	{ XSLFI_TRACE_RESTRICT_STATUSCND,XSCF_NULL,               1,   1, "tracerestrict_status_cond", nullptr, nullptr, nullptr        },
 	{ XSLFI_TRACE_RESTRICT_REVERSE, XSCF_NULL,                1,   1, "tracerestrict_reverse",     nullptr, nullptr, nullptr        },
 	{ XSLFI_TRACE_RESTRICT_NEWSCTRL,XSCF_NULL,                1,   1, "tracerestrict_newsctrl",    nullptr, nullptr, nullptr        },
@@ -109,11 +110,12 @@ const SlxiSubChunkInfo _sl_xv_sub_chunk_infos[] = {
 	{ XSLFI_STATION_CATCHMENT_INC,  XSCF_NULL,                1,   1, "station_catchment_inc",     nullptr, nullptr, nullptr        },
 	{ XSLFI_CUSTOM_BRIDGE_HEADS,    XSCF_NULL,                4,   4, "custom_bridge_heads",       nullptr, nullptr, nullptr        },
 	{ XSLFI_CHUNNEL,                XSCF_NULL,                2,   2, "chunnel",                   nullptr, nullptr, "TUNN"      },
-	{ XSLFI_SCHEDULED_DISPATCH,     XSCF_NULL,                2,   2, "scheduled_dispatch",        nullptr, nullptr, nullptr        },
+	{ XSLFI_SCHEDULED_DISPATCH,     XSCF_NULL,                3,   3, "scheduled_dispatch",        nullptr, nullptr, nullptr        },
 	{ XSLFI_MORE_TOWN_GROWTH_RATES, XSCF_NULL,                1,   1, "more_town_growth_rates",    nullptr, nullptr, nullptr        },
 	{ XSLFI_MULTIPLE_DOCKS,         XSCF_NULL,                2,   2, "multiple_docks",            nullptr, nullptr, nullptr        },
 	{ XSLFI_TIMETABLE_EXTRA,        XSCF_NULL,                7,   7, "timetable_extra",           nullptr, nullptr, "ORDX"      },
 	{ XSLFI_TRAIN_FLAGS_EXTRA,      XSCF_NULL,                1,   1, "train_flags_extra",         nullptr, nullptr, nullptr        },
+	{ XSLFI_VEHICLE_FLAGS_EXTRA,    XSCF_NULL,                1,   1, "veh_flags_extra",           nullptr, nullptr, nullptr        },
 	{ XSLFI_TRAIN_THROUGH_LOAD,     XSCF_NULL,                2,   2, "train_through_load",        nullptr, nullptr, nullptr        },
 	{ XSLFI_ORDER_EXTRA_DATA,       XSCF_NULL,                1,   1, "order_extra_data",          nullptr, nullptr, nullptr        },
 	{ XSLFI_WHOLE_MAP_CHUNK,        XSCF_NULL,                2,   2, "whole_map_chunk",           nullptr, nullptr, "WMAP"      },
@@ -154,15 +156,21 @@ const SlxiSubChunkInfo _sl_xv_sub_chunk_infos[] = {
 	{ XSLFI_MORE_HOUSES,            XSCF_NULL,                2,   2, "more_houses",               nullptr, nullptr, nullptr        },
 	{ XSLFI_CUSTOM_TOWN_ZONE,       XSCF_IGNORABLE_UNKNOWN,   1,   1, "custom_town_zone",          nullptr, nullptr, nullptr        },
 	{ XSLFI_STATION_CARGO_HISTORY,  XSCF_NULL,                1,   1, "station_cargo_history",     nullptr, nullptr, nullptr        },
-	{ XSLFI_TRAIN_SPEED_ADAPTATION, XSCF_NULL,                1,   1, "train_speed_adaptation",    nullptr, nullptr, "TSAS"         },
+	{ XSLFI_TRAIN_SPEED_ADAPTATION, XSCF_NULL,                2,   2, "train_speed_adaptation",    nullptr, nullptr, "TSAS"         },
 	{ XSLFI_EXTRA_STATION_NAMES,    XSCF_NULL,                1,   1, "extra_station_names",       nullptr, nullptr, nullptr        },
 	{ XSLFI_DEPOT_ORDER_EXTRA_FLAGS,XSCF_IGNORABLE_UNKNOWN,   1,   1, "depot_order_extra_flags",   nullptr, nullptr, nullptr        },
 	{ XSLFI_EXTRA_SIGNAL_TYPES,     XSCF_NULL,                1,   1, "extra_signal_types",        nullptr, nullptr, nullptr        },
 	{ XSLFI_BANKRUPTCY_EXTRA,       XSCF_NULL,                1,   1, "bankruptcy_extra",          nullptr, nullptr, nullptr        },
-	{ XSLFI_OBJECT_GROUND_TYPES,    XSCF_NULL,                1,   1, "object_ground_types",       nullptr, nullptr, nullptr        },
+	{ XSLFI_OBJECT_GROUND_TYPES,    XSCF_NULL,                3,   3, "object_ground_types",       nullptr, nullptr, nullptr        },
 	{ XSLFI_LINKGRAPH_AIRCRAFT,     XSCF_NULL,                1,   1, "linkgraph_aircraft",        nullptr, nullptr, nullptr        },
 	{ XSLFI_COMPANY_PW,             XSCF_IGNORABLE_ALL,       1,   1, "company_password",          nullptr, nullptr, "PLYP"         },
 	{ XSLFI_ST_INDUSTRY_CARGO_MODE, XSCF_IGNORABLE_UNKNOWN,   1,   1, "st_industry_cargo_mode",    nullptr, nullptr, nullptr        },
+	{ XSLFI_TL_SPEED_LIMIT,         XSCF_IGNORABLE_UNKNOWN,   1,   1, "tl_speed_limit",            nullptr, nullptr, nullptr        },
+	{ XSLFI_WAYPOINT_FLAGS,         XSCF_NULL,                1,   1, "waypoint_flags",            nullptr, nullptr, nullptr        },
+	{ XSLFI_ROAD_WAYPOINTS,         XSCF_NULL,                1,   1, "road_waypoints",            nullptr, nullptr, nullptr        },
+	{ XSLFI_MORE_STATION_TYPES,     XSCF_NULL,                1,   1, "more_station_types",        nullptr, nullptr, nullptr        },
+	{ XSLFI_RV_ORDER_EXTRA_FLAGS,   XSCF_IGNORABLE_UNKNOWN,   1,   1, "rv_order_extra_flags",      nullptr, nullptr, nullptr        },
+	{ XSLFI_GRF_ROADSTOPS,          XSCF_NULL,                1,   1, "grf_road_stops",            nullptr, nullptr, nullptr        },
 	{ XSLFI_SCRIPT_INT64,           XSCF_NULL,                1,   1, "script_int64",              nullptr, nullptr, nullptr        },
 	{ XSLFI_NULL, XSCF_NULL, 0, 0, nullptr, nullptr, nullptr, nullptr },// This is the end marker
 };
@@ -175,15 +183,15 @@ const SlxiSubChunkInfo _sl_xv_sub_chunk_infos[] = {
  * and return the combination of the two tests using the operator defined in the constructor.
  * Otherwise just returns the result of the savegame version test
  */
-bool SlXvFeatureTest::IsFeaturePresent(SaveLoadVersion savegame_version, SaveLoadVersion savegame_version_from, SaveLoadVersion savegame_version_to) const
+bool SlXvFeatureTest::IsFeaturePresent(uint16 feature_versions[XSLFI_SIZE], SaveLoadVersion savegame_version, SaveLoadVersion savegame_version_from, SaveLoadVersion savegame_version_to) const
 {
 	bool savegame_version_ok = savegame_version >= savegame_version_from && savegame_version < savegame_version_to;
 
-	if (this->functor) return (*this->functor)(savegame_version, savegame_version_ok);
+	if (this->functor) return (*this->functor)(savegame_version, savegame_version_ok, feature_versions);
 
 	if (this->feature == XSLFI_NULL) return savegame_version_ok;
 
-	bool feature_ok = SlXvIsFeaturePresent(this->feature, this->min_version, this->max_version);
+	bool feature_ok = SlXvIsFeaturePresent(feature_versions, this->feature, this->min_version, this->max_version);
 
 	switch (op) {
 		case XSLFTO_OR:
@@ -201,10 +209,10 @@ bool SlXvFeatureTest::IsFeaturePresent(SaveLoadVersion savegame_version, SaveLoa
 /**
  * Returns true if @p feature is present and has a version inclusively bounded by @p min_version and @p max_version
  */
-bool SlXvIsFeaturePresent(SlXvFeatureIndex feature, uint16 min_version, uint16 max_version)
+bool SlXvIsFeaturePresent(uint16 feature_versions[XSLFI_SIZE], SlXvFeatureIndex feature, uint16 min_version, uint16 max_version)
 {
 	assert(feature < XSLFI_SIZE);
-	return _sl_xv_feature_versions[feature] >= min_version && _sl_xv_feature_versions[feature] <= max_version;
+	return feature_versions[feature] >= min_version && feature_versions[feature] <= max_version;
 }
 
 /**
@@ -250,6 +258,19 @@ void SlXvSetCurrentState()
 	}
 	if (MapSizeX() > 8192 || MapSizeY() > 8192) {
 		_sl_xv_feature_versions[XSLFI_EXTRA_LARGE_MAP] = 1;
+	}
+}
+
+/**
+ * Set all extended feature versions in the current static version array to their currently enabled versions, i.e. versions suitable for saving
+ */
+void SlXvSetStaticCurrentVersions()
+{
+	memset(_sl_xv_feature_static_versions, 0, sizeof(_sl_xv_feature_static_versions));
+
+	const SlxiSubChunkInfo *info = _sl_xv_sub_chunk_infos;
+	for (; info->index != XSLFI_NULL; ++info) {
+		_sl_xv_feature_static_versions[info->index] = info->save_version;
 	}
 }
 
