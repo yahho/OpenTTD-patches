@@ -70,7 +70,9 @@
 		<tr><td>animation_triggers</td><td>bitmask(ANIM_TRIGGER_ROAD_STOP_XXX, ...)</td><td>Bitmask of triggers that will trigger the <span class="code">anim_control</span> callback, see the <a href="#roadstop_anim_triggers">table</a> below.</td></tr>
 		<tr><td>general_flags</td><td>bitmask(RST_GENERAL_FLAG_XXX, ...)</td><td>
 			<p><b>RST_GENERAL_FLAG_RANDOM_ANIMATION</b><br />
-			<span class="indent">animation callback requires random bits in variable <span class="code">extra_callback_info1</span>.</span></p>
+			<span class="indent">Animation callback requires random bits in variable <span class="code">extra_callback_info1</span>.</span></p>
+			<p><b>RST_GENERAL_FLAG_NO_ONE_WAY_OVERLAY</b><br />
+			<span class="indent">Do not show one way road overlay sprites, this should only be set if different graphics are provided for the different one-way states using the <span class="code">one_way_info</span> variable.</span></p>
 		</td></tr>
 		<tr><td>minimum_bridge_height</td><td>Array of 6 items [0..255, ...]</td><td>Minimum clearances required for a bridge for each of the <a href="#roadstop_views">6 views/rotations</a> (or 0 to not allow any bridge). Values are given in height level units (1 level == 8px).</td></tr>
 		<tr><td>disallowed_bridge_pillars</td><td>Array of 6 items [bitmask(RST_BRIDGE_PILLAR_FLAG_, ...), ...]</td><td>
@@ -119,6 +121,7 @@
 		<tr><td>animation_frame</td><td>0..255</td><td>Animation frame of the current tile</td></tr>
 		<tr><td>waiting_triggers</td><td>0..255</td><td>Waiting triggers</td></tr>
 		<tr><td>random_bits</td><td>0..16777215</td><td>Random bits</td></tr>
+		<tr><td>one_way_info</td><td>RST_OWI_XXX</td><td>One-way road information of drive-through stop tile<br />XXX = TWO_WAY | NORTH_BOUND | SOUTH_BOUND | NO_ENTRY</td></tr>
 	</table>
 	<br />
 	Variables that require one or more parameters:
@@ -138,10 +141,12 @@
 		<tr><td>nearby_tile_other_grf</td><td>x, y offset (-8..7)</td><td>0 | 1</td><td>Is a road stop on a nearby tile defined by another GRF?</td></tr>
 		<tr><td>nearby_tile_original_gfx</td><td>x, y offset (-8..7)</td><td>0 | 1</td><td>Is a road stop on a nearby tile using original graphics?</td></tr>
 		<tr><td>nearby_tile_same_station</td><td>x, y offset (-8..7)</td><td>0 | 1</td><td>Is a road stop on a nearby tile the same station as this?</td></tr>
-		<tr><td>nearby_tile_different_view</td><td>x, y offset (-8..7)</td><td>0 | 1</td><td>Is the <a href="#roadstop_views">view/rotation</a> of a road stop on a nearby tile different to that of this tile?</td></tr>
 		<tr><td>nearby_tile_view</td><td>x, y offset (-8..7)</td><td>0..5</td><td>The <a href="#roadstop_views">view/rotation</a> of a nearby road stop tile</td></tr>
+		<tr><td>nearby_tile_different_view</td><td>x, y offset (-8..7)</td><td>0 | 1</td><td>Is the <a href="#roadstop_views">view/rotation</a> of a road stop on a nearby tile different to that of this tile?</td></tr>
+		<tr><td>nearby_tile_is_drive_through</td><td>x, y offset (-8..7)</td><td>0 | 1</td><td>Is nearby road stop tile a drive-through road stop?</td></tr>
 		<tr><td>nearby_tile_stop_type</td><td>x, y offset (-8..7)</td><td>RST_TYPE_XXX</td><td>See stop_type</td></tr>
 		<tr><td>nearby_tile_same_stop_type</td><td>x, y offset (-8..7)</td><td>0 | 1</td><td>Is the stop type of a nearby road stop tile the same as this tile?</td></tr>
+		<tr><td>nearby_tile_one_way_info</td><td>x, y offset (-8..7)</td><td>RST_OWI_XXX</td><td>One-way state of nearby drive-through road stop tile</td></tr>
 		<tr><td>nearby_tile_road_stop_info</td><td>x, y offset (-8..7)</td><td></td><td>Above nearby road stop tile variables in one variable (all of variable 0x68)</td></tr>
 		<tr><td>nearby_tile_grfid</td><td>x, y offset (-8..7)</td><td>-1, 0 or a GRFID</td><td>Return value is -1 if the tile is not a road stop, 0 if the tile is a non-custom road stop, or else the GRFID of the NewGRF defining the road stop</td></tr>
 	</table>
