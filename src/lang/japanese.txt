@@ -406,7 +406,7 @@ STR_SCENEDIT_FILE_MENU_SEPARATOR                                :―――――
 STR_SCENEDIT_FILE_MENU_QUIT                                     :OpenTTDを終了
 
 # Settings menu
-###length 16
+###length 15
 STR_SETTINGS_MENU_GAME_OPTIONS                                  :ゲームオプション設定
 STR_SETTINGS_MENU_CONFIG_SETTINGS_TREE                          :設定
 STR_SETTINGS_MENU_SCRIPT_SETTINGS                               :AI/ゲームスクリプト設定
@@ -422,7 +422,7 @@ STR_SETTINGS_MENU_FULL_ANIMATION                                :アニメーシ
 STR_SETTINGS_MENU_FULL_DETAIL                                   :ディテールのフル表示
 STR_SETTINGS_MENU_TRANSPARENT_BUILDINGS                         :建物を透過表示
 STR_SETTINGS_MENU_TRANSPARENT_SIGNS                             :標識を透過表示
-############ range ends here
+###next-name-looks-similar
 
 STR_SETTINGS_MENU_MONEY_TEXT_EFFECTS                            :収益/費用テキストを表示
 STR_SETTINGS_MENU_SHOW_HIDDEN_SIGNS                             :非表示の標識と名前を表示
@@ -1040,7 +1040,7 @@ STR_GAME_OPTIONS_AUTOSAVE_FRAME                                 :{BLACK}オー�
 STR_GAME_OPTIONS_AUTOSAVE_DROPDOWN_TOOLTIP                      :{BLACK}自動保存の間隔を選択します
 
 # Autosave dropdown
-###length 5
+###length 7
 STR_GAME_OPTIONS_AUTOSAVE_DROPDOWN_OFF                          :しない
 STR_GAME_OPTIONS_AUTOSAVE_DROPDOWN_EVERY_1_MONTH                :毎月
 STR_GAME_OPTIONS_AUTOSAVE_DROPDOWN_EVERY_3_MONTHS               :3ヶ月毎
@@ -1048,6 +1048,7 @@ STR_GAME_OPTIONS_AUTOSAVE_DROPDOWN_EVERY_6_MONTHS               :6ヶ月毎
 STR_GAME_OPTIONS_AUTOSAVE_DROPDOWN_EVERY_12_MONTHS              :12ヶ月毎
 STR_GAME_OPTIONS_AUTOSAVE_DROPDOWN_EVERY_DAYS_CUSTOM_LABEL      :カスタム間隔 (日)
 STR_GAME_OPTIONS_AUTOSAVE_DROPDOWN_EVERY_MINUTES_CUSTOM_LABEL   :カスタム間隔 (現実時間の分)
+###next-name-looks-similar
 STR_GAME_OPTIONS_AUTOSAVE_DROPDOWN_EVERY_DAYS_CUSTOM            :{COMMA} 日毎
 STR_GAME_OPTIONS_AUTOSAVE_DROPDOWN_EVERY_DAYS_CUSTOM_SINGULAR   :毎日
 STR_GAME_OPTIONS_AUTOSAVE_DROPDOWN_EVERY_MINUTES_CUSTOM         :現実時間で {COMMA} 分毎
@@ -2307,6 +2308,7 @@ STR_CONFIG_SETTING_TOWN_GROWTH                                  :街の成長速
 STR_CONFIG_SETTING_TOWN_GROWTH_HELPTEXT                         :街の成長速度を設定します
 STR_CONFIG_SETTING_TOWN_GROWTH_CARGO_TRANSPORTED                :輸送貨物による街の成長速度: {STRING}
 STR_CONFIG_SETTING_TOWN_GROWTH_CARGO_TRANSPORTED_HELPTEXT       :先月輸送した街の貨物の割合による街の成長速度のパーセンテージです。
+###length 7
 STR_CONFIG_SETTING_TOWN_GROWTH_EXTREME_SLOW                     :非常に遅い
 STR_CONFIG_SETTING_TOWN_GROWTH_VERY_SLOW                        :とても遅い
 STR_CONFIG_SETTING_TOWN_GROWTH_NONE                             :成長しない
@@ -2347,6 +2349,7 @@ STR_CONFIG_SETTING_DISTRIBUTION_ASYMMETRIC                      :非対称
 STR_CONFIG_SETTING_DISTRIBUTION_ASYMMETRIC_EQ                   :非対称 (均等配分)
 STR_CONFIG_SETTING_DISTRIBUTION_ASYMMETRIC_NEAREST              :非対称 (最寄り)
 STR_CONFIG_SETTING_DISTRIBUTION_SYMMETRIC                       :対称
+###next-name-looks-similar
 
 STR_CONFIG_SETTING_DISTRIBUTION_PER_CARGO                       :この貨物に対する上書き行先分配法: {STRING}
 STR_CONFIG_SETTING_DISTRIBUTION_PER_CARGO_PARAM                 :{STRING}に対する上書き行先分配法: {STRING}
@@ -5703,6 +5706,7 @@ STR_ORDER_STOP_LOCATION_MIDDLE                                  :[停止位置:�
 STR_ORDER_STOP_LOCATION_FAR_END                                 :[停止位置:終端]
 STR_ORDER_STOP_LOCATION_THROUGH                                 :[スルー積載]
 
+###length 4
 STR_ORDER_RV_DIR_NE                                             :[北東方面]
 STR_ORDER_RV_DIR_SE                                             :[南東方面]
 STR_ORDER_RV_DIR_SW                                             :[南西方面]
@@ -7248,18 +7252,22 @@ STR_SCHDISPATCH_ADD_TOOLTIP_EXTRA                               :{BLACK}{STRING}
 STR_SCHDISPATCH_ADD_CAPTION                                     :{BLACK}発車スロット
 STR_SCHDISPATCH_DURATION                                        :{BLACK}期間
 STR_SCHDISPATCH_DURATION_TOOLTIP                                :{BLACK}計画の期間を設定します
+###length 3
 STR_SCHDISPATCH_DURATION_CAPTION_MINUTE                         :{BLACK}期間 (分)
 STR_SCHDISPATCH_DURATION_CAPTION_DAY                            :{BLACK}期間 (日)
 STR_SCHDISPATCH_DURATION_CAPTION_TICKS                          :{BLACK}期間 (ゲーム時)
+
 STR_SCHDISPATCH_START                                           :{BLACK}開始日
 STR_SCHDISPATCH_SET_START                                       :{BLACK}開始日を設定
 STR_SCHDISPATCH_START_TOOLTIP                                   :{BLACK}計画の開始日を指定します。
 STR_SCHDISPATCH_START_CAPTION_MINUTE                            :{BLACK}開始日 (hhmm)
 STR_SCHDISPATCH_DELAY                                           :{BLACK}遅延
 STR_SCHDISPATCH_DELAY_TOOLTIP                                   :{BLACK}スロットがスキップされるまでの最大遅延を設定します
+###length 3
 STR_SCHDISPATCH_DELAY_CAPTION_MINUTE                            :{BLACK}遅延 (分)
 STR_SCHDISPATCH_DELAY_CAPTION_DAY                               :{BLACK}遅延 (日)
 STR_SCHDISPATCH_DELAY_CAPTION_TICKS                             :{BLACK}遅延 (ゲーム時)
+
 STR_SCHDISPATCH_RESET_LAST_DISPATCH                             :{BLACK}最終発送をリセット
 STR_SCHDISPATCH_RESET_LAST_DISPATCH_TOOLTIP                     :{BLACK}計画から輸送機器が最後に発送されたときリセットします
 STR_SCHDISPATCH_CLEAR                                           :{BLACK}発車スロットをクリア
