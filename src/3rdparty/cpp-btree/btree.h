@@ -724,6 +724,13 @@ class btree_node {
   void operator=(const btree_node&);
 };
 
+#ifndef _MSC_VER
+#pragma GCC diagnostic push
+#if (__GNUC__ >= 9) || (defined __clang_major__ && __clang_major__ >= 10)
+#pragma GCC diagnostic ignored "-Wdeprecated-copy"
+#endif
+#endif /* _MSC_VER */
+
 template <typename Node, typename Reference, typename Pointer>
 struct btree_iterator {
   typedef typename Node::key_type key_type;
@@ -825,6 +832,10 @@ struct btree_iterator {
   // The position within the node of the tree the iterator is pointing at.
   int position;
 };
+
+#ifndef _MSC_VER
+#pragma GCC diagnostic pop
+#endif /* _MSC_VER */
 
 // Dispatch helper class for using btree::internal_locate with plain compare.
 struct btree_internal_locate_plain_compare {

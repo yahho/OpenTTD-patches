@@ -725,6 +725,12 @@ STR_MONTH_OCT                                                   :Октябрь
 STR_MONTH_NOV                                                   :Ноябрь
 STR_MONTH_DEC                                                   :Декабрь
 
+###length VEHICLE_TYPES
+STR_VEHICLE_TYPE_TRAINS                                         :Ж/д транспорт
+STR_VEHICLE_TYPE_ROAD_VEHICLES                                  :Автотранспорт
+STR_VEHICLE_TYPE_SHIPS                                          :Водный транспорт
+STR_VEHICLE_TYPE_AIRCRAFT                                       :Авиатранспорт
+
 # Graph window
 STR_GRAPH_KEY_BUTTON                                            :{BLACK}Легенда
 STR_GRAPH_KEY_TOOLTIP                                           :{BLACK}Показать легенду к графикам
@@ -1900,6 +1906,9 @@ STR_CONFIG_SETTING_NEWS_ARRIVAL_FIRST_VEHICLE_OTHER_HELPTEXT    :Показыв�
 
 STR_CONFIG_SETTING_NEWS_ACCIDENTS_DISASTERS                     :Аварии и катастрофы: {STRING}
 STR_CONFIG_SETTING_NEWS_ACCIDENTS_DISASTERS_HELPTEXT            :Показывать новости об авариях и катастрофах
+
+STR_CONFIG_SETTING_NEWS_ACCIDENT_OTHER                          :Аварии, произошедшие с транспортом конкурентов: {STRING}
+STR_CONFIG_SETTING_NEWS_ACCIDENT_OTHER_HELPTEXT                 :Показывать новости об авариях, произошедших с транспортными средствами конкурирующих компаний
 
 STR_CONFIG_SETTING_NEWS_COMPANY_INFORMATION                     :Информация о компании: {STRING}
 STR_CONFIG_SETTING_NEWS_COMPANY_INFORMATION_HELPTEXT            :Показывать новости об основании и риске банкротства транспортных компаний

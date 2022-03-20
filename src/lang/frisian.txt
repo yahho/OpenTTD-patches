@@ -566,6 +566,12 @@ STR_MONTH_OCT                                                   :Oktober
 STR_MONTH_NOV                                                   :Novimber
 STR_MONTH_DEC                                                   :Desimber
 
+###length VEHICLE_TYPES
+STR_VEHICLE_TYPE_TRAINS                                         :Treinen
+STR_VEHICLE_TYPE_ROAD_VEHICLES                                  :Auto's
+STR_VEHICLE_TYPE_SHIPS                                          :Skippen
+STR_VEHICLE_TYPE_AIRCRAFT                                       :Fleantugen
+
 # Graph window
 STR_GRAPH_KEY_BUTTON                                            :{BLACK}Kaai
 STR_GRAPH_KEY_TOOLTIP                                           :{BLACK}Lit kaai foar grafyk sjen
@@ -1629,6 +1635,7 @@ STR_CONFIG_SETTING_NEWS_ARRIVAL_FIRST_VEHICLE_OTHER_HELPTEXT    :Lit in krantebe
 
 STR_CONFIG_SETTING_NEWS_ACCIDENTS_DISASTERS                     :Ûngelokken / rampen: {STRING}
 STR_CONFIG_SETTING_NEWS_ACCIDENTS_DISASTERS_HELPTEXT            :Lit in kranteberjocht sjen at der in ûngelok of ramp foarfalt
+
 
 STR_CONFIG_SETTING_NEWS_COMPANY_INFORMATION                     :Bedriuws ynformaasje: {STRING}
 STR_CONFIG_SETTING_NEWS_COMPANY_INFORMATION_HELPTEXT            :Lit in kranteberjocht sjen at in nij bedriuw starten wurdt of at in bedriuw it risiko rint fallyt te gean

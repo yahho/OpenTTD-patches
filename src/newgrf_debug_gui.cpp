@@ -110,7 +110,13 @@ static const int CBM_NO_BIT = UINT8_MAX;
 /** Representation on the NewGRF variables. */
 struct NIVariable {
 	const char *name;
-	byte var;
+	uint16 var;
+};
+
+struct NIExtraInfoOutput {
+	std::function<void(const char *)> print;
+	std::function<void(uint)> register_next_line_click_flag_toggle;
+	uint32 flags;
 };
 
 /** Helper class to wrap some functionality/queries in. */
@@ -206,7 +212,7 @@ public:
 		return {};
 	}
 
-	virtual void ExtraInfo(uint index, std::function<void(const char *)> print) const {}
+	virtual void ExtraInfo(uint index, NIExtraInfoOutput &output) const {}
 	virtual void SpriteDump(uint index, std::function<void(const char *)> print) const {}
 	virtual bool ShowExtraInfoOnly(uint index) const { return false; };
 	virtual bool ShowSpriteDumpButton(uint index) const { return false; };
@@ -309,6 +315,9 @@ struct NewGRFInspectWindow : Window {
 	bool auto_refresh = false;
 	bool log_console = false;
 	bool sprite_dump = false;
+
+	uint32 extra_info_flags = 0;
+	btree::btree_map<int, uint> extra_info_click_flag_toggles;
 
 	/**
 	 * Check whether the given variable has a parameter.
@@ -516,7 +525,13 @@ struct NewGRFInspectWindow : Window {
 			nih->SpriteDump(index, line_handler);
 			return;
 		} else {
-			nih->ExtraInfo(index, line_handler);
+			NewGRFInspectWindow *this_mutable = const_cast<NewGRFInspectWindow *>(this);
+			this_mutable->extra_info_click_flag_toggles.clear();
+			auto register_next_line_click_flag_toggle = [this_mutable, &i](uint flag) {
+				this_mutable->extra_info_click_flag_toggles[i] = flag;
+			};
+			NIExtraInfoOutput output { line_handler, register_next_line_click_flag_toggle, this->extra_info_flags };
+			nih->ExtraInfo(index, output);
 		}
 
 		if (nih->ShowExtraInfoOnly(index)) return;
@@ -536,6 +551,20 @@ struct NewGRFInspectWindow : Window {
 
 		if (nif->variables != nullptr) {
 			this->DrawString(r, i++, "Variables:");
+			uint prefix_width = 0;
+			for (const NIVariable *niv = nif->variables; niv->name != nullptr; niv++) {
+				if (niv->var >= 0x100) {
+					extern const GRFVariableMapDefinition _grf_action2_remappable_variables[];
+					for (const GRFVariableMapDefinition *info = _grf_action2_remappable_variables; info->name != nullptr; info++) {
+						if (niv->var == info->id) {
+							char buf[512];
+							seprintf(buf, lastof(buf), "  %s: ", info->name);
+							prefix_width = std::max<uint>(prefix_width, GetStringBoundingBox(buf).width);
+							break;
+						}
+					}
+				}
+			}
 			for (const NIVariable *niv = nif->variables; niv->name != nullptr; niv++) {
 				GetVariableExtra extra;
 				uint param = HasVariableParameter(niv->var) ? NewGRFInspectWindow::var60params[GetFeatureNum(this->window_number)][niv->var - 0x60] : 0;
@@ -545,6 +574,28 @@ struct NewGRFInspectWindow : Window {
 
 				if (HasVariableParameter(niv->var)) {
 					this->DrawString(r, i++, "  %02x[%02x]: %08x (%s)", niv->var, param, value, niv->name);
+				} else if (niv->var >= 0x100) {
+					extern const GRFVariableMapDefinition _grf_action2_remappable_variables[];
+					for (const GRFVariableMapDefinition *info = _grf_action2_remappable_variables; info->name != nullptr; info++) {
+						if (niv->var == info->id) {
+							if (_current_text_dir == TD_RTL) {
+								this->DrawString(r, i++, "  %s: %08x (%s)", info->name, value, niv->name);
+							} else {
+								if (this->log_console) DEBUG(misc, 0, "    %s: %08x (%s)", info->name, value, niv->name);
+
+								int offset = i - this->vscroll->GetPosition();
+								i++;
+								if (offset >= 0 && offset < this->vscroll->GetCapacity()) {
+									char buf[512];
+									seprintf(buf, lastof(buf), "  %s: ", info->name);
+									::DrawString(r.left + LEFT_OFFSET, r.right - RIGHT_OFFSET, r.top + TOP_OFFSET + (offset * this->resize.step_height), buf, TC_BLACK);
+									seprintf(buf, lastof(buf), "%08x (%s)", value, niv->name);
+									::DrawString(r.left + LEFT_OFFSET + prefix_width, r.right - RIGHT_OFFSET, r.top + TOP_OFFSET + (offset * this->resize.step_height), buf, TC_BLACK);
+								}
+							}
+							break;
+						}
+					}
 				} else {
 					this->DrawString(r, i++, "  %02x: %08x (%s)", niv->var, value, niv->name);
 				}
@@ -661,13 +712,22 @@ struct NewGRFInspectWindow : Window {
 
 			case WID_NGRFI_MAINPANEL: {
 				if (this->sprite_dump) return;
-				/* Does this feature have variables? */
-				const NIFeature *nif  = GetFeature(this->window_number);
-				if (nif->variables == nullptr) return;
 
 				/* Get the line, make sure it's within the boundaries. */
 				int line = this->vscroll->GetScrolledRowFromWidget(pt.y, this, WID_NGRFI_MAINPANEL, TOP_OFFSET);
 				if (line == INT_MAX) return;
+
+				auto iter = this->extra_info_click_flag_toggles.find(line);
+				if (iter != this->extra_info_click_flag_toggles.end()) {
+					this->extra_info_flags ^= iter->second;
+					this->SetDirty();
+					return;
+				}
+
+				/* Does this feature have variables? */
+				const NIFeature *nif  = GetFeature(this->window_number);
+				if (nif->variables == nullptr) return;
+
 				if (line < this->first_variable_line_index) return;
 				line -= this->first_variable_line_index;
 
@@ -905,7 +965,14 @@ GrfSpecFeature GetGrfSpecFeature(TileIndex tile)
 			switch (GetStationType(tile)) {
 				case STATION_RAIL:    return GSF_STATIONS;
 				case STATION_AIRPORT: return GSF_AIRPORTTILES;
-				default:              return GSF_INVALID;
+
+				case STATION_BUS:
+				case STATION_TRUCK:
+				case STATION_ROADWAYPOINT:
+					return GSF_ROADSTOPS;
+
+				default:
+					return GSF_INVALID;
 			}
 	}
 }

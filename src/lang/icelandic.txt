@@ -544,6 +544,12 @@ STR_MONTH_OCT                                                   :Október
 STR_MONTH_NOV                                                   :Nóvember
 STR_MONTH_DEC                                                   :Desember
 
+###length VEHICLE_TYPES
+STR_VEHICLE_TYPE_TRAINS                                         :Lestar
+STR_VEHICLE_TYPE_ROAD_VEHICLES                                  :Bifreiðir
+STR_VEHICLE_TYPE_SHIPS                                          :Skip
+STR_VEHICLE_TYPE_AIRCRAFT                                       :Flugvélar
+
 # Graph window
 STR_GRAPH_KEY_BUTTON                                            :{BLACK}Lykill
 STR_GRAPH_KEY_TOOLTIP                                           :{BLACK}Sýna lykilmynd
@@ -1576,6 +1582,7 @@ STR_CONFIG_SETTING_NEWS_ARRIVAL_FIRST_VEHICLE_OTHER_HELPTEXT    :Birta dagblöð
 
 STR_CONFIG_SETTING_NEWS_ACCIDENTS_DISASTERS                     :Slys / hamfarir: {STRING}
 STR_CONFIG_SETTING_NEWS_ACCIDENTS_DISASTERS_HELPTEXT            :Birta dagblöð þegar slys eða hörmungar gerast
+
 
 STR_CONFIG_SETTING_NEWS_COMPANY_INFORMATION                     :Fyrirtækisupplýsingar: {STRING}
 STR_CONFIG_SETTING_NEWS_COMPANY_INFORMATION_HELPTEXT            :Birta dagblöð þegar nýtt fyrirtæki byrjar, eða þegar fyrirtæki eru í hættu á gjaldþroti

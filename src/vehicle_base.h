@@ -46,25 +46,24 @@ enum VehStatus {
 
 /** Bit numbers in #Vehicle::vehicle_flags. */
 enum VehicleFlags {
-	VF_LOADING_FINISHED,        ///< Vehicle has finished loading.
-	VF_CARGO_UNLOADING,         ///< Vehicle is unloading cargo.
-	VF_BUILT_AS_PROTOTYPE,      ///< Vehicle is a prototype (accepted as exclusive preview).
-	VF_TIMETABLE_STARTED,       ///< Whether the vehicle has started running on the timetable yet.
-	VF_AUTOFILL_TIMETABLE,      ///< Whether the vehicle should fill in the timetable automatically.
-	VF_AUTOFILL_PRES_WAIT_TIME, ///< Whether non-destructive auto-fill should preserve waiting times
-	VF_STOP_LOADING,            ///< Don't load anymore during the next load cycle.
-	VF_PATHFINDER_LOST,         ///< Vehicle's pathfinder is lost.
-	VF_SERVINT_IS_CUSTOM,       ///< Service interval is custom.
-	VF_SERVINT_IS_PERCENT,      ///< Service interval is percent.
-
-	// Additional flags not in trunk are added at the end to avoid clashing with any new
-	// flags which get added in future trunk, and to avoid re-ordering flags which are in trunk already,
-	// as this breaks savegame compatibility.
-	VF_SEPARATION_ACTIVE = 11, ///< Whether timetable auto-separation is currently active
-	VF_SCHEDULED_DISPATCH = 12, ///< Whether the vehicle should follow a timetabled dispatching schedule
-	VF_LAST_LOAD_ST_SEP = 13,   ///< Each vehicle of this chain has its last_loading_station field set separately
-	VF_TIMETABLE_SEPARATION = 14,///< Whether timetable auto-separation is enabled
-	VF_AUTOMATE_TIMETABLE = 15, ///< Whether the vehicle should manage the timetable automatically.
+	VF_LOADING_FINISHED         =  0, ///< Vehicle has finished loading.
+	VF_CARGO_UNLOADING          =  1, ///< Vehicle is unloading cargo.
+	VF_BUILT_AS_PROTOTYPE       =  2, ///< Vehicle is a prototype (accepted as exclusive preview).
+	VF_TIMETABLE_STARTED        =  3, ///< Whether the vehicle has started running on the timetable yet.
+	VF_AUTOFILL_TIMETABLE       =  4, ///< Whether the vehicle should fill in the timetable automatically.
+	VF_AUTOFILL_PRES_WAIT_TIME  =  5, ///< Whether non-destructive auto-fill should preserve waiting times
+	VF_STOP_LOADING             =  6, ///< Don't load anymore during the next load cycle.
+	VF_PATHFINDER_LOST          =  7, ///< Vehicle's pathfinder is lost.
+	VF_SERVINT_IS_CUSTOM        =  8, ///< Service interval is custom.
+	VF_SERVINT_IS_PERCENT       =  9, ///< Service interval is percent.
+	/* gap, above are common with upstream */
+	VF_SEPARATION_ACTIVE        = 11, ///< Whether timetable auto-separation is currently active
+	VF_SCHEDULED_DISPATCH       = 12, ///< Whether the vehicle should follow a timetabled dispatching schedule
+	VF_LAST_LOAD_ST_SEP         = 13, ///< Each vehicle of this chain has its last_loading_station field set separately
+	VF_TIMETABLE_SEPARATION     = 14, ///< Whether timetable auto-separation is enabled
+	VF_AUTOMATE_TIMETABLE       = 15, ///< Whether the vehicle should manage the timetable automatically.
+	VF_HAVE_SLOT                = 16, ///< Vehicle has 1 or more slots
+	VF_COND_ORDER_WAIT          = 17, ///< Vehicle is waiting due to conditional order loop
 };
 
 /** Bit numbers used to indicate which of the #NewGRFCache values are valid. */
@@ -369,9 +368,9 @@ public:
 	Order current_order;                ///< The current order (+ status, like: loading)
 
 	union {
-		OrderList *list;            ///< Pointer to the order list for this vehicle
-		Order     *old;             ///< Only used during conversion of old save games
-	} orders;                           ///< The orders currently assigned to the vehicle.
+		OrderList *orders;              ///< Pointer to the order list for this vehicle
+		Order *old_orders;              ///< Only used during conversion of old save games
+	};
 
 	uint16 load_unload_ticks;           ///< Ticks to wait before starting next cycle.
 	GroupID group_id;                   ///< Index of group Pool array
@@ -616,6 +615,12 @@ public:
 	virtual void OnNewDay() {};
 
 	/**
+	 * Calls the periodic handler of the vehicle
+	 * OnPeriodic is decoupled from OnNewDay at day lengths >= 8
+	 */
+	virtual void OnPeriodic() {};
+
+	/**
 	 * Crash the (whole) vehicle chain.
 	 * @param flooded whether the cause of the crash is flooding or not.
 	 * @return the number of lost souls.
@@ -741,7 +746,7 @@ public:
 	 * Get the first order of the vehicles order list.
 	 * @return first order of order list.
 	 */
-	inline Order *GetFirstOrder() const { return (this->orders.list == nullptr) ? nullptr : this->orders.list->GetFirstOrder(); }
+	inline Order *GetFirstOrder() const { return (this->orders == nullptr) ? nullptr : this->orders->GetFirstOrder(); }
 
 	/**
 	 * Clears this vehicle's separation status
@@ -767,25 +772,25 @@ public:
 	 * Get the first vehicle of this vehicle chain.
 	 * @return the first vehicle of the chain.
 	 */
-	inline Vehicle *FirstShared() const { return (this->orders.list == nullptr) ? this->First() : this->orders.list->GetFirstSharedVehicle(); }
+	inline Vehicle *FirstShared() const { return (this->orders == nullptr) ? this->First() : this->orders->GetFirstSharedVehicle(); }
 
 	/**
 	 * Check if we share our orders with another vehicle.
 	 * @return true if there are other vehicles sharing the same order
 	 */
-	inline bool IsOrderListShared() const { return this->orders.list != nullptr && this->orders.list->IsShared(); }
+	inline bool IsOrderListShared() const { return this->orders != nullptr && this->orders->IsShared(); }
 
 	/**
 	 * Get the number of orders this vehicle has.
 	 * @return the number of orders this vehicle has.
 	 */
-	inline VehicleOrderID GetNumOrders() const { return (this->orders.list == nullptr) ? 0 : this->orders.list->GetNumOrders(); }
+	inline VehicleOrderID GetNumOrders() const { return (this->orders == nullptr) ? 0 : this->orders->GetNumOrders(); }
 
 	/**
 	 * Get the number of manually added orders this vehicle has.
 	 * @return the number of manually added orders this vehicle has.
 	 */
-	inline VehicleOrderID GetNumManualOrders() const { return (this->orders.list == nullptr) ? 0 : this->orders.list->GetNumManualOrders(); }
+	inline VehicleOrderID GetNumManualOrders() const { return (this->orders == nullptr) ? 0 : this->orders->GetNumManualOrders(); }
 
 	/**
 	 * Get the next station the vehicle will stop at.
@@ -794,7 +799,7 @@ public:
 	inline CargoStationIDStackSet GetNextStoppingStation() const
 	{
 		CargoStationIDStackSet set;
-		if (this->orders.list != nullptr) set.FillNextStoppingStation(this, this->orders.list);
+		if (this->orders != nullptr) set.FillNextStoppingStation(this, this->orders);
 		return set;
 	}
 
@@ -805,7 +810,7 @@ public:
 	inline StationIDStack GetNextStoppingStationCargoIndependent() const
 	{
 		StationIDStack set;
-		if (this->orders.list != nullptr) set = this->orders.list->GetNextStoppingStation(this, 0).station;
+		if (this->orders != nullptr) set = this->orders->GetNextStoppingStation(this, 0).station;
 		return set;
 	}
 
@@ -998,7 +1003,7 @@ public:
 	 */
 	inline Order *GetOrder(int index) const
 	{
-		return (this->orders.list == nullptr) ? nullptr : this->orders.list->GetOrderAt(index);
+		return (this->orders == nullptr) ? nullptr : this->orders->GetOrderAt(index);
 	}
 
 	/**
@@ -1008,7 +1013,7 @@ public:
 	 */
 	inline VehicleOrderID GetIndexOfOrder(const Order *order) const
 	{
-		return (this->orders.list == nullptr) ? INVALID_VEH_ORDER_ID : this->orders.list->GetIndexOfOrder(order);
+		return (this->orders == nullptr) ? INVALID_VEH_ORDER_ID : this->orders->GetIndexOfOrder(order);
 	}
 
 	/**
@@ -1017,7 +1022,7 @@ public:
 	 */
 	inline Order *GetLastOrder() const
 	{
-		return (this->orders.list == nullptr) ? nullptr : this->orders.list->GetLastOrder();
+		return (this->orders == nullptr) ? nullptr : this->orders->GetLastOrder();
 	}
 
 	bool IsEngineCountable() const;
@@ -1145,6 +1150,7 @@ public:
 	}
 
 	char *DumpVehicleFlags(char *b, const char *last, bool include_tile) const;
+	char *DumpVehicleFlagsMultiline(char *b, const char *last, const char *base_indent, const char *extra_indent) const;
 
 	/**
 	 * Iterator to iterate orders
@@ -1193,7 +1199,7 @@ public:
 	 * Returns an iterable ensemble of orders of a vehicle
 	 * @return an iterable ensemble of orders of a vehicle
 	 */
-	IterateWrapper Orders() const { return IterateWrapper(this->orders.list); }
+	IterateWrapper Orders() const { return IterateWrapper(this->orders); }
 };
 
 inline bool IsPointInViewportVehicleRedrawArea(const std::vector<Rect> &viewport_redraw_rects, const Point &pt)

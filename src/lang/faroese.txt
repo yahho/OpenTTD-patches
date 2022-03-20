@@ -545,6 +545,12 @@ STR_MONTH_OCT                                                   :Oktobur
 STR_MONTH_NOV                                                   :Novembur
 STR_MONTH_DEC                                                   :Desembur
 
+###length VEHICLE_TYPES
+STR_VEHICLE_TYPE_TRAINS                                         :Tok
+STR_VEHICLE_TYPE_ROAD_VEHICLES                                  :Akfør
+STR_VEHICLE_TYPE_SHIPS                                          :Skip
+STR_VEHICLE_TYPE_AIRCRAFT                                       :Flogfør
+
 # Graph window
 STR_GRAPH_KEY_BUTTON                                            :{BLACK}Lykil
 STR_GRAPH_KEY_TOOLTIP                                           :{BLACK}Vís lykil til graf
@@ -1577,6 +1583,7 @@ STR_CONFIG_SETTING_NEWS_ARRIVAL_FIRST_VEHICLE_OTHER_HELPTEXT    :Vís eitt tíð
 
 STR_CONFIG_SETTING_NEWS_ACCIDENTS_DISASTERS                     :Vanlukkur/ Ólukkur: {STRING}
 STR_CONFIG_SETTING_NEWS_ACCIDENTS_DISASTERS_HELPTEXT            :Vís eitt tíðindablað tá vanlukkur ella ólukkur koma fyri
+
 
 STR_CONFIG_SETTING_NEWS_COMPANY_INFORMATION                     :Fyritøku kunning: {STRING}
 STR_CONFIG_SETTING_NEWS_COMPANY_INFORMATION_HELPTEXT            :Vís eitt tíðindablað tá ein nýggj fyritøka byrjar, ella tá fyritøkur eru í vanda fyri at fara á húsagang

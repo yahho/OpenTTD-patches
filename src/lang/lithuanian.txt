@@ -779,6 +779,12 @@ STR_MONTH_OCT                                                   :Spalis
 STR_MONTH_NOV                                                   :Lapkritis
 STR_MONTH_DEC                                                   :Gruodis
 
+###length VEHICLE_TYPES
+STR_VEHICLE_TYPE_TRAINS                                         :Traukiniai
+STR_VEHICLE_TYPE_ROAD_VEHICLES                                  :Automobiliai
+STR_VEHICLE_TYPE_SHIPS                                          :Laivai
+STR_VEHICLE_TYPE_AIRCRAFT                                       :Lėktuvai
+
 # Graph window
 STR_GRAPH_KEY_BUTTON                                            :{BLACK}Spalva
 STR_GRAPH_KEY_TOOLTIP                                           :{BLACK}Rodo žaidėjų spalvas
@@ -1946,6 +1952,7 @@ STR_CONFIG_SETTING_NEWS_ARRIVAL_FIRST_VEHICLE_OTHER_HELPTEXT    :Rodyti naujienr
 
 STR_CONFIG_SETTING_NEWS_ACCIDENTS_DISASTERS                     :Avarijos / nelaimės: {STRING}
 STR_CONFIG_SETTING_NEWS_ACCIDENTS_DISASTERS_HELPTEXT            :Rodyti naujienraštį atsitikus incidentui ar katastrofai
+
 
 STR_CONFIG_SETTING_NEWS_COMPANY_INFORMATION                     :Kompanijos informacija: {STRING}
 STR_CONFIG_SETTING_NEWS_COMPANY_INFORMATION_HELPTEXT            :Rodyti naujienraštį įsikūrus naujai kompanijai (arba esamai susidūrus su sunkumais)

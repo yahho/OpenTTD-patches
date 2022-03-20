@@ -41,6 +41,7 @@ enum StationType {
 	STATION_DOCK,
 	STATION_BUOY,
 	STATION_WAYPOINT,
+	STATION_ROADWAYPOINT,
 };
 
 /** Types of RoadStops */
@@ -85,6 +86,11 @@ enum CatchmentArea {
 	CA_UNMODIFIED      =  4, ///< Catchment for all stations with "modified catchment" disabled
 
 	MAX_CATCHMENT      = 10, ///< Maximum catchment for airports with "modified catchment" enabled
+};
+
+enum StationDelivery : byte {
+	SD_NEAREST_FIRST = 0, ///< Station delivers cargo only to the nearest accepting industry
+	SD_BALANCED      = 1  ///< Station delivers cargo equally among accepting industries
 };
 
 static const uint MAX_LENGTH_STATION_NAME_CHARS = 128; ///< The maximum length of a station name in characters including '\0'

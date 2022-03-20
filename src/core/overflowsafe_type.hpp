@@ -12,11 +12,12 @@
 
 #include "math_func.hpp"
 #include <type_traits>
+#include <limits>
 
 /**
  * Overflow safe template for integers, i.e. integers that will never overflow
- * you multiply the maximum value with 2, or add 2, or subtract something from
- * the minimum value, etc.
+ * when you multiply the maximum value with 2, or add 2, or subtract something
+ * from the minimum value, etc.
  * @param T     the type these integers are stored with.
  */
 template <class T>

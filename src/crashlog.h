@@ -24,6 +24,8 @@ struct DesyncExtraInfo {
 	};
 
 	Flags flags = DEIF_NONE;
+	const char *client_name = nullptr;
+	int client_id = -1;
 	FILE **log_file = nullptr; ///< save unclosed log file handle here
 };
 DECLARE_ENUM_AS_BIT_SET(DesyncExtraInfo::Flags)
@@ -152,7 +154,8 @@ public:
 	bool WriteSavegame(char *filename, const char *filename_last, const char *name = "crash") const;
 	bool WriteScreenshot(char *filename, const char *filename_last, const char *name = "crash") const;
 
-	bool MakeCrashLog();
+	bool MakeCrashLog(char *buffer, const char *last);
+	bool MakeCrashLogWithStackBuffer();
 	bool MakeDesyncCrashLog(const std::string *log_in, std::string *log_out, const DesyncExtraInfo &info) const;
 	bool MakeInconsistencyLog(const InconsistencyExtraInfo &info) const;
 	bool MakeVersionInfoLog() const;

@@ -679,6 +679,12 @@ STR_MONTH_NOV.gen                                               :listopadu
 STR_MONTH_DEC                                                   :Prosinec
 STR_MONTH_DEC.gen                                               :prosince
 
+###length VEHICLE_TYPES
+STR_VEHICLE_TYPE_TRAINS                                         :Vlaky
+STR_VEHICLE_TYPE_ROAD_VEHICLES                                  :Silniční vozidla
+STR_VEHICLE_TYPE_SHIPS                                          :Lodě
+STR_VEHICLE_TYPE_AIRCRAFT                                       :Letadla
+
 # Graph window
 STR_GRAPH_KEY_BUTTON                                            :{BLACK}Legenda
 STR_GRAPH_KEY_TOOLTIP                                           :{BLACK}Zobrazit legendu ke grafům
@@ -1996,6 +2002,8 @@ STR_CONFIG_SETTING_NEWS_ARRIVAL_FIRST_VEHICLE_OTHER_HELPTEXT    :Zobrazovat novi
 STR_CONFIG_SETTING_NEWS_ACCIDENTS_DISASTERS                     :Nehody a katastrofy: {STRING}
 STR_CONFIG_SETTING_NEWS_ACCIDENTS_DISASTERS_HELPTEXT            :Zobrazovat noviny o nehodách a katastrofách
 
+STR_CONFIG_SETTING_NEWS_ACCIDENT_OTHER                          :Nehody konkurenčních vozidel: {STRING}
+
 STR_CONFIG_SETTING_NEWS_COMPANY_INFORMATION                     :Informace o společnosti: {STRING}
 STR_CONFIG_SETTING_NEWS_COMPANY_INFORMATION_HELPTEXT            :Zobrazovat noviny když společnost začne nebo hrozí krach
 
@@ -2616,6 +2624,7 @@ STR_NETWORK_SERVER_LIST_LANDSCAPE                               :{SILVER}Prostř
 STR_NETWORK_SERVER_LIST_MAP_SIZE                                :{SILVER}Velikost mapy: {WHITE}{COMMA}x{COMMA}
 STR_NETWORK_SERVER_LIST_SERVER_VERSION                          :{SILVER}Verze hry na serveru: {WHITE}{STRING}
 STR_NETWORK_SERVER_LIST_SERVER_ADDRESS                          :{SILVER}Adresa serveru: {WHITE}{STRING}
+STR_NETWORK_SERVER_LIST_INVITE_CODE                             :{SILVER}Zvací kód: {WHITE}{STRING}
 STR_NETWORK_SERVER_LIST_START_DATE                              :{SILVER}Počáteční datum: {WHITE}{DATE_SHORT}
 STR_NETWORK_SERVER_LIST_CURRENT_DATE                            :{SILVER}Současné datum: {WHITE}{DATE_SHORT}
 STR_NETWORK_SERVER_LIST_GAMESCRIPT                              :{SILVER}Herní skript: {WHITE}{STRING} (v{NUM})
@@ -2641,7 +2650,7 @@ STR_NETWORK_SERVER_LIST_START_SERVER                            :{BLACK}Spustit 
 STR_NETWORK_SERVER_LIST_START_SERVER_TOOLTIP                    :{BLACK}Spustit vlastní server
 
 STR_NETWORK_SERVER_LIST_PLAYER_NAME_OSKTITLE                    :{BLACK}Zadej své jméno
-STR_NETWORK_SERVER_LIST_ENTER_SERVER_ADDRESS                    :{BLACK}Zadej adresu serveru nebo kód pozvánky
+STR_NETWORK_SERVER_LIST_ENTER_SERVER_ADDRESS                    :{BLACK}Zadej adresu serveru nebo zvací kód
 
 # Start new multiplayer server
 STR_NETWORK_START_SERVER_CAPTION                                :{WHITE}Začít novou hru
@@ -2697,8 +2706,8 @@ STR_NETWORK_CLIENT_LIST_SERVER_NAME_EDIT_TOOLTIP                :{BLACK}Upravte 
 STR_NETWORK_CLIENT_LIST_SERVER_NAME_QUERY_CAPTION               :Název serveru
 STR_NETWORK_CLIENT_LIST_SERVER_VISIBILITY                       :{BLACK}Viditelnost
 STR_NETWORK_CLIENT_LIST_SERVER_VISIBILITY_TOOLTIP               :{BLACK}Zda mohou ostatní hráči vidět váš server ve veřejném seznamu
-STR_NETWORK_CLIENT_LIST_SERVER_INVITE_CODE                      :{BLACK}Pozvánkový kód
-STR_NETWORK_CLIENT_LIST_SERVER_INVITE_CODE_TOOLTIP              :{BLACK}Kód pozvánky, který mohou ostatní hráči použít k připojení k tomuto serveru.
+STR_NETWORK_CLIENT_LIST_SERVER_INVITE_CODE                      :{BLACK}Zvací kód
+STR_NETWORK_CLIENT_LIST_SERVER_INVITE_CODE_TOOLTIP              :{BLACK}Zvací kód, který mohou ostatní hráči použít k připojení k tomuto serveru.
 STR_NETWORK_CLIENT_LIST_SERVER_CONNECTION_TYPE                  :{BLACK}Typ spojení
 STR_NETWORK_CLIENT_LIST_SERVER_CONNECTION_TYPE_TOOLTIP          :{BLACK}Jestli a jak může být tvůj server dostupný pro ostatní
 STR_NETWORK_CLIENT_LIST_PLAYER                                  :{BLACK}Hráč
@@ -3036,6 +3045,7 @@ STR_STATION_CLASS_WAYP                                          :Směrování
 
 # Signal window
 STR_BUILD_SIGNAL_CAPTION                                        :{WHITE}Výběr návěstidel
+STR_BUILD_SIGNAL_TOGGLE_ADVANCED_SIGNAL_TOOLTIP                 :{BLACK}Zobrazit dokonalejší návěstidla
 STR_BUILD_SIGNAL_SEMAPHORE_NORM_TOOLTIP                         :{BLACK}Obyčejné návěstidlo (semafor){}Návěstidla jsou nutná, aby nedocházelo ke srážkám vlaků na tratích, kde jezdí více než jeden vlak
 STR_BUILD_SIGNAL_SEMAPHORE_ENTRY_TOOLTIP                        :{BLACK}Vjezdové návěstidlo (semafor){}Svítí zeleně do té doby, kdy v následujícím úseku trati je alespoň jedno další svítící zeleně. Jinak svítí červeně
 STR_BUILD_SIGNAL_SEMAPHORE_EXIT_TOOLTIP                         :{BLACK}Výjezdové návěstidlo (semafor){}Chová se stejně jako obyčejné, ale je nezbytné nastavit správnou barvu vjezdových a kombinovaných pre-signálů
@@ -3188,7 +3198,7 @@ STR_TRACE_RESTRICT_SET_SPEED_RESTRICTION                        :Omezit rychlost
 STR_TRACE_RESTRICT_REMOVE_SPEED_RESTRICTION                     :Zrušit omezení rychlosti vlaku
 STR_TRACE_RESTRICT_VALUE_CAPTION                                :{WHITE}Hodnota
 STR_TRACE_RESTRICT_CAPTION                                      :{WHITE}Omezení směrování
-STR_TRACE_RESTRICT_CAPTION_SHARED                               :{WHITE}Omezení směrování - sdíleno s {COMMA} návěstidly
+STR_TRACE_RESTRICT_CAPTION_SHARED                               :{WHITE}Omezení směrování - sdíleno {COMMA} návěstidly
 STR_TRACE_RESTRICT_UP_BTN_TOOLTIP                               :{BLACK}Přesunout vybranou instrukci nahoru{}Ctrl+kliknutí posune podmíněnou instrukci namísto celého bloku
 STR_TRACE_RESTRICT_DOWN_BTN_TOOLTIP                             :{BLACK}Přesunout vybranou instrukci dolů{}Ctrl+kliknutí posune podmíněnou instrukci namísto celého bloku
 STR_TRACE_RESTRICT_TYPE_TOOLTIP                                 :{BLACK}Typ
@@ -3202,7 +3212,7 @@ STR_TRACE_RESTRICT_SLOT_CREATE_TOOLTIP                          :{BLACK}Kliknut�
 STR_TRACE_RESTRICT_SLOT_DELETE_TOOLTIP                          :{BLACK}Smazat vybraný slot
 STR_TRACE_RESTRICT_SLOT_RENAME_TOOLTIP                          :{BLACK}Přejmenovat vybraný slot
 STR_TRACE_RESTRICT_SLOT_SET_MAX_OCCUPANCY_TOOLTIP               :{BLACK}Nastavit maximální obsazenost vybraného slotu
-STR_TRACE_RESTRICT_SLOT_CAPTION                                 :{WHITE}Omezení směrování - Správa slotů
+STR_TRACE_RESTRICT_SLOT_CAPTION                                 :{WHITE}Omezení směrování - Správa slotů ({STRING})
 STR_TRACE_RESTRICT_SLOT_MANAGE                                  :Spravovat sloty
 STR_TRACE_RESTRICT_SLOT_MAX_OCCUPANCY                           :{TINY_FONT}{COMMA} / {COMMA}
 STR_TRACE_RESTRICT_SLOT_RENAME_CAPTION                          :{BLACK}Přejmenovat slot

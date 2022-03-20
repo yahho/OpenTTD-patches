@@ -641,6 +641,12 @@ STR_MONTH_OCT                                                   :oktoober
 STR_MONTH_NOV                                                   :november
 STR_MONTH_DEC                                                   :detsember
 
+###length VEHICLE_TYPES
+STR_VEHICLE_TYPE_TRAINS                                         :Rongid
+STR_VEHICLE_TYPE_ROAD_VEHICLES                                  :Mootorsõidukid
+STR_VEHICLE_TYPE_SHIPS                                          :Laevad
+STR_VEHICLE_TYPE_AIRCRAFT                                       :Õhusõidukid
+
 # Graph window
 STR_GRAPH_KEY_BUTTON                                            :{BLACK}Selgitus
 STR_GRAPH_KEY_TOOLTIP                                           :{BLACK}Näita selgitust graafikute juures
@@ -1788,6 +1794,7 @@ STR_CONFIG_SETTING_NEWS_ARRIVAL_FIRST_VEHICLE_OTHER_HELPTEXT    :Kui vastasettev
 
 STR_CONFIG_SETTING_NEWS_ACCIDENTS_DISASTERS                     :Õnnetused / katastroofid: {STRING}
 STR_CONFIG_SETTING_NEWS_ACCIDENTS_DISASTERS_HELPTEXT            :Õnnetusi või katastroofi esinemisel näidatakse seda ajalehes
+
 
 STR_CONFIG_SETTING_NEWS_COMPANY_INFORMATION                     :Ettevõtte teave: {STRING}
 STR_CONFIG_SETTING_NEWS_COMPANY_INFORMATION_HELPTEXT            :Kui uus ettevõte alustab, või ettevõte riskib pankrotiga, näidatakse seda ajalehes

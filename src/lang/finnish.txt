@@ -586,6 +586,12 @@ STR_MONTH_OCT                                                   :Lokakuu
 STR_MONTH_NOV                                                   :Marraskuu
 STR_MONTH_DEC                                                   :Joulukuu
 
+###length VEHICLE_TYPES
+STR_VEHICLE_TYPE_TRAINS                                         :Junat
+STR_VEHICLE_TYPE_ROAD_VEHICLES                                  :Ajoneuvot
+STR_VEHICLE_TYPE_SHIPS                                          :Laivat
+STR_VEHICLE_TYPE_AIRCRAFT                                       :Ilma-alukset
+
 # Graph window
 STR_GRAPH_KEY_BUTTON                                            :{BLACK}Selite
 STR_GRAPH_KEY_TOOLTIP                                           :{BLACK}Näytä kuvaajan selite
@@ -1748,6 +1754,9 @@ STR_CONFIG_SETTING_NEWS_ARRIVAL_FIRST_VEHICLE_OTHER_HELPTEXT    :Näytä sanomal
 
 STR_CONFIG_SETTING_NEWS_ACCIDENTS_DISASTERS                     :Vahingot/onnettomuudet: {STRING}
 STR_CONFIG_SETTING_NEWS_ACCIDENTS_DISASTERS_HELPTEXT            :Näytä sanomalehti vahingon tai onnettomuuden sattuessa
+
+STR_CONFIG_SETTING_NEWS_ACCIDENT_OTHER                          :Kilpailijan kulkuneuvojen vahingot: {STRING}
+STR_CONFIG_SETTING_NEWS_ACCIDENT_OTHER_HELPTEXT                 :Näytä sanomalehti vahingon sattuessa kilpailijan kulkuneuvoille
 
 STR_CONFIG_SETTING_NEWS_COMPANY_INFORMATION                     :Yhtiön tiedot: {STRING}
 STR_CONFIG_SETTING_NEWS_COMPANY_INFORMATION_HELPTEXT            :Näytä sanomalehti kun uusi yhtiö aloittaa toimintansa tai kun jokin yhtiö on lähellä konkurssia

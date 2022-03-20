@@ -566,6 +566,12 @@ STR_MONTH_OCT                                                   :Hydref
 STR_MONTH_NOV                                                   :Tachwedd
 STR_MONTH_DEC                                                   :Rhagfyr
 
+###length VEHICLE_TYPES
+STR_VEHICLE_TYPE_TRAINS                                         :Trenau
+STR_VEHICLE_TYPE_ROAD_VEHICLES                                  :Cerbydau Ffordd
+STR_VEHICLE_TYPE_SHIPS                                          :Llongau
+STR_VEHICLE_TYPE_AIRCRAFT                                       :Awyrennau
+
 # Graph window
 STR_GRAPH_KEY_BUTTON                                            :{BLACK}Allwedd
 STR_GRAPH_KEY_TOOLTIP                                           :{BLACK}Dangos allwedd i'r graffiau
@@ -1646,6 +1652,7 @@ STR_CONFIG_SETTING_NEWS_ARRIVAL_FIRST_VEHICLE_OTHER_HELPTEXT    :Dangos papur ne
 
 STR_CONFIG_SETTING_NEWS_ACCIDENTS_DISASTERS                     :Damweiniau / trychinebau: {STRING}
 STR_CONFIG_SETTING_NEWS_ACCIDENTS_DISASTERS_HELPTEXT            :Dangos papur newydd pan fo damweiniau neu drychinebau'n digwydd
+
 
 STR_CONFIG_SETTING_NEWS_COMPANY_INFORMATION                     :Gwybodaeth Cwmnïau: {STRING}
 STR_CONFIG_SETTING_NEWS_COMPANY_INFORMATION_HELPTEXT            :Dangos papur newydd pan fo cwmni newydd yn dechrau, neu pan fo cwmnïau ar fin taro'r wal

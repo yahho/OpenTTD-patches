@@ -581,6 +581,12 @@ STR_MONTH_OCT                                                   :אוקטובר
 STR_MONTH_NOV                                                   :נובמבר
 STR_MONTH_DEC                                                   :דצמבר
 
+###length VEHICLE_TYPES
+STR_VEHICLE_TYPE_TRAINS                                         :רכבות
+STR_VEHICLE_TYPE_ROAD_VEHICLES                                  :כלי רכב
+STR_VEHICLE_TYPE_SHIPS                                          :כלי שייט
+STR_VEHICLE_TYPE_AIRCRAFT                                       :כלי טייס
+
 # Graph window
 STR_GRAPH_KEY_BUTTON                                            :{BLACK}
 STR_GRAPH_KEY_TOOLTIP                                           :{BLACK}הצג מפתחות לגרפים
@@ -1665,6 +1671,7 @@ STR_CONFIG_SETTING_NEWS_ARRIVAL_FIRST_VEHICLE_OTHER_HELPTEXT    :הצג עיתו
 
 STR_CONFIG_SETTING_NEWS_ACCIDENTS_DISASTERS                     :תאונות / אסונות: {STRING}
 STR_CONFIG_SETTING_NEWS_ACCIDENTS_DISASTERS_HELPTEXT            :הצג עיתון כאשר מתרחשים תאונות או אסונות
+
 
 STR_CONFIG_SETTING_NEWS_COMPANY_INFORMATION                     :מידע על החברה: {STRING}
 STR_CONFIG_SETTING_NEWS_COMPANY_INFORMATION_HELPTEXT            :הצג עיתון כאשר חברה נוסדת, או כאשר חברות בסכנת פשיטת רגל

@@ -145,6 +145,7 @@ void DrawCaption(const Rect &r, Colours colour, Owner owner, TextColour text_col
 /* window.cpp */
 extern WindowBase *_z_front_window;
 extern WindowBase *_z_back_window;
+extern WindowBase *_first_window;
 extern Window *_focused_window;
 
 inline uint64 GetWindowUpdateNumber()
@@ -172,6 +173,12 @@ Point GetToolbarAlignedWindowPosition(int window_width);
 
 struct HotkeyList;
 
+struct WindowDescPreferences {
+	bool pref_sticky;              ///< Preferred stickyness.
+	int16 pref_width;              ///< User-preferred width of the window. Zero if unset.
+	int16 pref_height;             ///< User-preferred height of the window. Zero if unset.
+};
+
 /**
  * High level window description
  */
@@ -179,7 +186,7 @@ struct WindowDesc {
 
 	WindowDesc(WindowPosition default_pos, const char *ini_key, int16 def_width_trad, int16 def_height_trad,
 			WindowClass window_class, WindowClass parent_class, uint32 flags,
-			const NWidgetPart *nwid_parts, int16 nwid_length, HotkeyList *hotkeys = nullptr);
+			const NWidgetPart *nwid_parts, int16 nwid_length, HotkeyList *hotkeys = nullptr, WindowDesc *ini_parent = nullptr);
 
 	~WindowDesc();
 
@@ -191,10 +198,12 @@ struct WindowDesc {
 	const NWidgetPart *nwid_parts; ///< Nested widget parts describing the window.
 	int16 nwid_length;             ///< Length of the #nwid_parts array.
 	HotkeyList *hotkeys;           ///< Hotkeys for the window.
+	WindowDesc *ini_parent;        ///< Other window desc to use for WindowDescPreferences.
 
-	bool pref_sticky;              ///< Preferred stickyness.
-	int16 pref_width;              ///< User-preferred width of the window. Zero if unset.
-	int16 pref_height;             ///< User-preferred height of the window. Zero if unset.
+	WindowDescPreferences prefs;   ///< Preferences for this window
+
+	const WindowDescPreferences &GetPreferences() const;
+	WindowDescPreferences &GetPreferences() { return const_cast<WindowDescPreferences &>(const_cast<const WindowDesc*>(this)->GetPreferences()); }
 
 	int16 GetDefaultWidth() const;
 	int16 GetDefaultHeight() const;
@@ -291,6 +300,7 @@ enum TooltipCloseCondition {
 struct WindowBase {
 	WindowBase *z_front;             ///< The window in front of us in z-order.
 	WindowBase *z_back;              ///< The window behind us in z-order.
+	WindowBase *next_window;         ///< The next window in arbitrary iteration order.
 	WindowClass window_class;        ///< Window class
 
 	virtual ~WindowBase() {}
@@ -884,12 +894,18 @@ public:
 	template<class T>
 	using window_base_t = std::conditional_t<std::is_const<T>{}, WindowBase const, WindowBase>;
 
+	enum IterationMode {
+		IM_FROM_FRONT,
+		IM_FROM_BACK,
+		IM_ARBITRARY,
+	};
+
 	/**
 	 * Iterator to iterate all valid Windows
 	 * @tparam T Type of the class/struct that is going to be iterated
-	 * @tparam Tfront Wether we iterate from front
+	 * @tparam Tmode Iteration mode
 	 */
-	template <class T, bool Tfront>
+	template <class T, IterationMode Tmode>
 	struct WindowIterator {
 		typedef T value_type;
 		typedef T *pointer;
@@ -910,7 +926,23 @@ public:
 	private:
 		window_base_t<T> *w;
 		void Validate() { while (this->w != nullptr && this->w->window_class == WC_INVALID) this->Next(); }
-		void Next() { if (this->w != nullptr) this->w = Tfront ? this->w->z_back : this->w->z_front; }
+
+		void Next()
+		{
+			if (this->w != nullptr) {
+				switch (Tmode) {
+					case IM_FROM_FRONT:
+						this->w = this->w->z_back;
+						break;
+					case IM_FROM_BACK:
+						this->w = this->w->z_front;
+						break;
+					case IM_ARBITRARY:
+						this->w = this->w->next_window;
+						break;
+				}
+			}
+		}
 	};
 
 	/**
@@ -918,11 +950,11 @@ public:
 	 * @tparam T Type of the class/struct that is going to be iterated
 	 * @tparam Tfront Wether we iterate from front
 	 */
-	template <class T, bool Tfront>
+	template <class T, IterationMode Tmode>
 	struct Iterate {
 		Iterate(window_base_t<T> *from) : from(from) {}
-		WindowIterator<T, Tfront> begin() { return WindowIterator<T, Tfront>(this->from); }
-		WindowIterator<T, Tfront> end() { return WindowIterator<T, Tfront>(nullptr); }
+		WindowIterator<T, Tmode> begin() { return WindowIterator<T, Tmode>(this->from); }
+		WindowIterator<T, Tmode> end() { return WindowIterator<T, Tmode>(nullptr); }
 		bool empty() { return this->begin() == this->end(); }
 	private:
 		window_base_t<T> *from;
@@ -935,7 +967,7 @@ public:
 	 * @return an iterable ensemble of all valid Window
 	 */
 	template <class T = Window>
-	static Iterate<T, false> IterateFromBack(window_base_t<T> *from = _z_back_window) { return Iterate<T, false>(from); }
+	static Iterate<T, IM_FROM_BACK> IterateFromBack(window_base_t<T> *from = _z_back_window) { return Iterate<T, IM_FROM_BACK>(from); }
 
 	/**
 	 * Returns an iterable ensemble of all valid Window from front to back
@@ -944,7 +976,16 @@ public:
 	 * @return an iterable ensemble of all valid Window
 	 */
 	template <class T = Window>
-	static Iterate<T, true> IterateFromFront(window_base_t<T> *from = _z_front_window) { return Iterate<T, true>(from); }
+	static Iterate<T, IM_FROM_FRONT> IterateFromFront(window_base_t<T> *from = _z_front_window) { return Iterate<T, IM_FROM_FRONT>(from); }
+
+	/**
+	 * Returns an iterable ensemble of all valid Window in an arbitrary order which is safe to use when deleting
+	 * @tparam T Type of the class/struct that is going to be iterated
+	 * @param from index of the first Window to consider
+	 * @return an iterable ensemble of all valid Window
+	 */
+	template <class T = Window>
+	static Iterate<T, IM_ARBITRARY> IterateUnordered(window_base_t<T> *from = _first_window) { return Iterate<T, IM_ARBITRARY>(from); }
 };
 
 /**
@@ -1068,5 +1109,11 @@ inline bool MayBeShown(const Window *w)
 			return false;
 	}
 }
+
+struct GeneralVehicleWindow : public Window {
+	const Vehicle *vehicle;
+
+	GeneralVehicleWindow(WindowDesc *desc, const Vehicle *v) : Window(desc), vehicle(v) {}
+};
 
 #endif /* WINDOW_GUI_H */

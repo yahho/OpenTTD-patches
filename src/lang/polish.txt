@@ -965,6 +965,12 @@ STR_MONTH_OCT                                                   :Październik
 STR_MONTH_NOV                                                   :Listopad
 STR_MONTH_DEC                                                   :Grudzień
 
+###length VEHICLE_TYPES
+STR_VEHICLE_TYPE_TRAINS                                         :Pociągi
+STR_VEHICLE_TYPE_ROAD_VEHICLES                                  :Samochody i tramwaje
+STR_VEHICLE_TYPE_SHIPS                                          :Statki
+STR_VEHICLE_TYPE_AIRCRAFT                                       :Samoloty
+
 # Graph window
 STR_GRAPH_KEY_BUTTON                                            :{BLACK}Legenda
 STR_GRAPH_KEY_TOOLTIP                                           :{BLACK}Pokaż legendę na wykresie
@@ -2128,6 +2134,9 @@ STR_CONFIG_SETTING_NEWS_ARRIVAL_FIRST_VEHICLE_OTHER_HELPTEXT    :Wyświetl wiado
 
 STR_CONFIG_SETTING_NEWS_ACCIDENTS_DISASTERS                     :Wypadki / klęski: {STRING}
 STR_CONFIG_SETTING_NEWS_ACCIDENTS_DISASTERS_HELPTEXT            :Wyświetl wiadomość w gazecie kiedy zdarzy się wypadek lub nastąpi katastrofa
+
+STR_CONFIG_SETTING_NEWS_ACCIDENT_OTHER                          :Wypadki pojazdów konkurentów: {STRING}
+STR_CONFIG_SETTING_NEWS_ACCIDENT_OTHER_HELPTEXT                 :Wyświetl wiadomość w gazecie o rozbitych pojazdach konkurentów
 
 STR_CONFIG_SETTING_NEWS_COMPANY_INFORMATION                     :Informacja firmy: {STRING}
 STR_CONFIG_SETTING_NEWS_COMPANY_INFORMATION_HELPTEXT            :Wyświetl wiadomość w gazecie kiedy powstaje nowa firma lub kiedy istniejącym firmom grozi bankructwo

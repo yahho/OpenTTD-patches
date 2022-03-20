@@ -56,7 +56,7 @@ TemporaryStorageArray<int32, 0x110> _temp_store;
 	}
 }
 
-static inline uint32 GetVariable(const ResolverObject &object, ScopeResolver *scope, byte variable, uint32 parameter, GetVariableExtra *extra)
+static inline uint32 GetVariable(const ResolverObject &object, ScopeResolver *scope, uint16 variable, uint32 parameter, GetVariableExtra *extra)
 {
 	uint32 value;
 	switch (variable) {
@@ -106,7 +106,7 @@ static inline uint32 GetVariable(const ResolverObject &object, ScopeResolver *sc
  * @param[out] available Set to false, in case the variable does not exist.
  * @return Value
  */
-/* virtual */ uint32 ScopeResolver::GetVariable(byte variable, uint32 parameter, GetVariableExtra *extra) const
+/* virtual */ uint32 ScopeResolver::GetVariable(uint16 variable, uint32 parameter, GetVariableExtra *extra) const
 {
 	DEBUG(grf, 1, "Unhandled scope variable 0x%X", variable);
 	extra->available = false;
@@ -586,7 +586,16 @@ void SpriteGroupDumper::DumpSpriteGroup(const SpriteGroup *sg, int padding, uint
 			for (const auto &adjust : dsg->adjusts) {
 				char *p = this->buffer;
 				p += seprintf(p, lastof(this->buffer), "%*svar: %X", padding, "", adjust.variable);
-				if (adjust.variable >= 0x60 && adjust.variable <= 0x7F) p += seprintf(p, lastof(this->buffer), " (parameter: %X)", adjust.parameter);
+				if (adjust.variable >= 0x100) {
+					extern const GRFVariableMapDefinition _grf_action2_remappable_variables[];
+					for (const GRFVariableMapDefinition *info = _grf_action2_remappable_variables; info->name != nullptr; info++) {
+						if (adjust.variable == info->id) {
+							p += seprintf(p, lastof(this->buffer), " (%s)", info->name);
+							break;
+						}
+					}
+				}
+				if ((adjust.variable >= 0x60 && adjust.variable <= 0x7F) || adjust.parameter != 0) p += seprintf(p, lastof(this->buffer), " (parameter: %X)", adjust.parameter);
 				p += seprintf(p, lastof(this->buffer), ", shift: %X, and: %X", adjust.shift_num, adjust.and_mask);
 				switch (adjust.type) {
 					case DSGA_TYPE_DIV: p += seprintf(p, lastof(this->buffer), ", add: %X, div: %X", adjust.add_val, adjust.divmod_val); break;
@@ -618,10 +627,10 @@ void SpriteGroupDumper::DumpSpriteGroup(const SpriteGroup *sg, int padding, uint
 			seprintf(this->buffer, lastof(this->buffer), "%*sRandom (%s, %s, triggers: %X, count: %X, lowest_randbit: %X, groups: %u) [%u]",
 					padding, "", _sg_scope_names[rsg->var_scope], rsg->cmp_mode == RSG_CMP_ANY ? "ANY" : "ALL",
 					rsg->triggers, rsg->count, rsg->lowest_randbit, (uint)rsg->groups.size(), rsg->nfo_line);
+			this->print();
 			for (const auto &group : rsg->groups) {
 				this->DumpSpriteGroup(group, padding + 2, 0);
 			}
-			this->print();
 			break;
 		}
 		case SGT_CALLBACK:

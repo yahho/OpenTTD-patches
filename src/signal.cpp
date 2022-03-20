@@ -464,6 +464,10 @@ static SigInfo ExploreSegment(Owner owner)
 							info.flags |= SF_FULL;
 							return info;
 						}
+						if (_extra_aspects > 0 && IsTunnelBridgeSignalSimulationEntrance(tile)) {
+							info.out_signal_tile = tile;
+							info.out_signal_trackdir = GetTunnelBridgeEntranceTrackdir(tile, tunnel_bridge_dir);
+						}
 						Trackdir exit_track = GetTunnelBridgeExitTrackdir(tile, tunnel_bridge_dir);
 						exitdir = TrackdirToExitdir(exit_track);
 						enterdir = ReverseDiagDir(exitdir);
@@ -571,12 +575,14 @@ uint8 GetForwardAspectFollowingTrack(TileIndex tile, Trackdir trackdir)
 	Owner owner = GetTileOwner(tile);
 	DiagDirection exitdir = TrackdirToExitdir(trackdir);
 	DiagDirection enterdir = ReverseDiagDir(exitdir);
+	bool wormhole = false;
 	if (IsTileType(tile, MP_TUNNELBRIDGE) && TrackdirEntersTunnelBridge(tile, trackdir)) {
 		TileIndex other = GetOtherTunnelBridgeEnd(tile);
 		if (IsTunnelBridgeWithSignalSimulation(tile)) {
 			return GetSignalledTunnelBridgeEntranceForwardAspect(tile, other);
 		}
 		tile = other;
+		wormhole = true;
 	} else {
 		tile += TileOffsByDiagDir(exitdir);
 	}
@@ -642,6 +648,7 @@ uint8 GetForwardAspectFollowingTrack(TileIndex tile, Trackdir trackdir)
 			case MP_TUNNELBRIDGE: {
 				if (!IsOneSignalBlock(owner, GetTileOwner(tile))) return 0;
 				if (GetTunnelBridgeTransportType(tile) != TRANSPORT_RAIL) return 0;
+				if ((enterdir == GetTunnelBridgeDirection(tile)) != wormhole) return 0;
 
 				TrackBits tracks = GetTunnelBridgeTrackBits(tile); // trackbits of tile
 				TrackBits tracks_masked = (TrackBits)(tracks & _enterdir_to_trackbits[enterdir]); // only incidating trackbits
@@ -666,10 +673,12 @@ uint8 GetForwardAspectFollowingTrack(TileIndex tile, Trackdir trackdir)
 					tile = GetOtherTunnelBridgeEnd(tile);
 					enterdir = GetTunnelBridgeDirection(tile);
 					exitdir = ReverseDiagDir(enterdir);
+					wormhole = true;
 				} else {
 					exitdir = TrackdirToExitdir(trackdir);
 					enterdir = ReverseDiagDir(exitdir);
 					tile += TileOffsByDiagDir(exitdir);
+					wormhole = false;
 				}
 				break;
 			}
@@ -1258,11 +1267,13 @@ void PropagateAspectChange(TileIndex tile, Trackdir trackdir, uint8 aspect)
 	Owner owner = GetTileOwner(tile);
 	DiagDirection exitdir = TrackdirToExitdir(ReverseTrackdir(trackdir));
 	DiagDirection enterdir = ReverseDiagDir(exitdir);
+	bool wormhole = false;
 	if (IsTileType(tile, MP_TUNNELBRIDGE) && TrackdirExitsTunnelBridge(tile, trackdir)) {
 		TileIndex other = GetOtherTunnelBridgeEnd(tile);
 		if (IsBridge(tile)) RefreshBridgeOnExitAspectChange(other, tile);
 		aspect = std::min<uint>(GetSignalledTunnelBridgeEntranceForwardAspect(other, tile) + 1, _extra_aspects + 1);
 		tile = other;
+		wormhole = true;
 	} else {
 		tile += TileOffsByDiagDir(exitdir);
 	}
@@ -1333,6 +1344,7 @@ void PropagateAspectChange(TileIndex tile, Trackdir trackdir, uint8 aspect)
 			case MP_TUNNELBRIDGE: {
 				if (!IsOneSignalBlock(owner, GetTileOwner(tile))) return;
 				if (GetTunnelBridgeTransportType(tile) != TRANSPORT_RAIL) return;
+				if ((enterdir == GetTunnelBridgeDirection(tile)) != wormhole) return;
 
 				TrackBits tracks = GetTunnelBridgeTrackBits(tile); // trackbits of tile
 				TrackBits tracks_masked = (TrackBits)(tracks & _enterdir_to_trackbits[enterdir]); // only incidating trackbits
@@ -1363,6 +1375,7 @@ void PropagateAspectChange(TileIndex tile, Trackdir trackdir, uint8 aspect)
 					enterdir = GetTunnelBridgeDirection(other);
 					exitdir = ReverseDiagDir(enterdir);
 					tile = other;
+					wormhole = true;
 				} else {
 					if (TrackdirEntersTunnelBridge(tile, ReverseTrackdir(trackdir))) {
 						if (IsTunnelBridgeWithSignalSimulation(tile)) {
@@ -1377,6 +1390,7 @@ void PropagateAspectChange(TileIndex tile, Trackdir trackdir, uint8 aspect)
 					exitdir = TrackdirToExitdir(trackdir);
 					enterdir = ReverseDiagDir(exitdir);
 					tile += TileOffsByDiagDir(exitdir);
+					wormhole = false;
 				}
 				break;
 			}

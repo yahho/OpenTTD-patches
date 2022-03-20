@@ -207,7 +207,7 @@ static int GetIncompatibleRefitOrderIdForAutoreplace(const Vehicle *v, EngineID 
 	const Order *o;
 	const Vehicle *u = (v->type == VEH_TRAIN) ? v->First() : v;
 
-	const OrderList *orders = u->orders.list;
+	const OrderList *orders = u->orders;
 	if (orders == nullptr) return -1;
 	for (VehicleOrderID i = 0; i < orders->GetNumOrders(); i++) {
 		o = orders->GetOrderAt(i);
@@ -429,12 +429,14 @@ CommandCost CopyHeadSpecificThings(Vehicle *old_head, Vehicle *new_head, DoComma
 
 		if (old_head->type == VEH_TRAIN) {
 			Train::From(new_head)->speed_restriction = Train::From(old_head)->speed_restriction;
-			/* Transfer any acquired trace restrict slots to the new vehicle */
-			if (HasBit(Train::From(old_head)->flags, VRF_HAVE_SLOT)) {
-				TraceRestrictTransferVehicleOccupantInAllSlots(old_head->index, new_head->index);
-				ClrBit(Train::From(old_head)->flags, VRF_HAVE_SLOT);
-				SetBit(Train::From(new_head)->flags, VRF_HAVE_SLOT);
-			}
+			SB(Train::From(new_head)->flags, VRF_SPEED_ADAPTATION_EXEMPT, 1, GB(Train::From(old_head)->flags, VRF_SPEED_ADAPTATION_EXEMPT, 1));
+		}
+
+		/* Transfer any acquired trace restrict slots to the new vehicle */
+		if (HasBit(old_head->vehicle_flags, VF_HAVE_SLOT)) {
+			TraceRestrictTransferVehicleOccupantInAllSlots(old_head->index, new_head->index);
+			ClrBit(old_head->vehicle_flags, VF_HAVE_SLOT);
+			SetBit(new_head->vehicle_flags, VF_HAVE_SLOT);
 		}
 	}
 

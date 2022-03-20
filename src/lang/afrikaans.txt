@@ -576,6 +576,12 @@ STR_MONTH_OCT                                                   :Oktober
 STR_MONTH_NOV                                                   :November
 STR_MONTH_DEC                                                   :Desember
 
+###length VEHICLE_TYPES
+STR_VEHICLE_TYPE_TRAINS                                         :Treine
+STR_VEHICLE_TYPE_ROAD_VEHICLES                                  :Padvoertuie
+STR_VEHICLE_TYPE_SHIPS                                          :Skepe
+STR_VEHICLE_TYPE_AIRCRAFT                                       :Vliegtuie
+
 # Graph window
 STR_GRAPH_KEY_BUTTON                                            :{BLACK}Sleutel
 STR_GRAPH_KEY_TOOLTIP                                           :{BLACK}Wys sleutel van grafieke
@@ -1675,6 +1681,7 @@ STR_CONFIG_SETTING_NEWS_ARRIVAL_FIRST_VEHICLE_OTHER_HELPTEXT    :Vertoon 'n koer
 
 STR_CONFIG_SETTING_NEWS_ACCIDENTS_DISASTERS                     :Ongelukke / rampe: {STRING}
 STR_CONFIG_SETTING_NEWS_ACCIDENTS_DISASTERS_HELPTEXT            :Vertoon 'n koerantberig wanneer daar ongelukke of natuurrampe voorkom
+
 
 STR_CONFIG_SETTING_NEWS_COMPANY_INFORMATION                     :Maatskappy informasie: {STRING}
 STR_CONFIG_SETTING_NEWS_COMPANY_INFORMATION_HELPTEXT            :Vertoon 'n koerantberig wanneer 'n nuwe maatskappy begin, of wanneer 'n maatskappy in gevaar is om bankkrot te speel

@@ -539,6 +539,12 @@ STR_MONTH_OCT                                                   :Октомвр�
 STR_MONTH_NOV                                                   :ноември
 STR_MONTH_DEC                                                   :декември
 
+###length VEHICLE_TYPES
+STR_VEHICLE_TYPE_TRAINS                                         :Возови
+STR_VEHICLE_TYPE_ROAD_VEHICLES                                  :Патни Возила
+STR_VEHICLE_TYPE_SHIPS                                          :Бродови
+STR_VEHICLE_TYPE_AIRCRAFT                                       :Летала
+
 # Graph window
 STR_GRAPH_KEY_BUTTON                                            :{BLACK}Клучни
 STR_GRAPH_KEY_TOOLTIP                                           :{BLACK}Прикажи клуч за графикони
@@ -1039,6 +1045,7 @@ STR_CONFIG_SETTING_NEWS_ARRIVAL_FIRST_VEHICLE_OWN               :Пристиг�
 STR_CONFIG_SETTING_NEWS_ARRIVAL_FIRST_VEHICLE_OTHER             :Пристигнување на прво возило на конкурентска станица: {STRING}
 
 STR_CONFIG_SETTING_NEWS_ACCIDENTS_DISASTERS                     :Несреќи / хаварии: {STRING}
+
 
 STR_CONFIG_SETTING_NEWS_COMPANY_INFORMATION                     :Информации за компанијата: {STRING}
 

@@ -652,7 +652,9 @@ static void TownGenerateCargo (Town *t, CargoID ct, uint amount, StationFinder &
 		amount = (amount + 1) >> 1;
 	}
 
-	amount = ScaleQuantity(amount, _settings_game.economy.town_cargo_scale_factor);
+	amount = ScaleQuantity(amount, _settings_game.economy.town_cargo_scale_factor, true);
+
+	if (amount == 0) return;
 
 	// calculate for town stats
 
@@ -1299,7 +1301,7 @@ static bool CanRoadContinueIntoNextTile(const Town *t, const TileIndex tile, con
 	/* If the next tile is a station, allow if it's a road station facing the proper direction. Otherwise return false. */
 	if (IsTileType(next_tile, MP_STATION)) {
 		/* If the next tile is a road station, allow if it can be entered by the new tunnel/bridge, otherwise disallow. */
-		return IsRoadStop(next_tile) && (GetRoadStopDir(next_tile) == ReverseDiagDir(road_dir) || (IsDriveThroughStopTile(next_tile) && GetRoadStopDir(next_tile) == road_dir));
+		return IsAnyRoadStop(next_tile) && (GetRoadStopDir(next_tile) == ReverseDiagDir(road_dir) || (IsDriveThroughStopTile(next_tile) && GetRoadStopDir(next_tile) == road_dir));
 	}
 
 	/* If the next tile is a road depot, allow if it's facing the right way. */

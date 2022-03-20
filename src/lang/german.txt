@@ -597,6 +597,12 @@ STR_MONTH_OCT                                                   :Oktober
 STR_MONTH_NOV                                                   :November
 STR_MONTH_DEC                                                   :Dezember
 
+###length VEHICLE_TYPES
+STR_VEHICLE_TYPE_TRAINS                                         :Züge
+STR_VEHICLE_TYPE_ROAD_VEHICLES                                  :Fahrzeuge
+STR_VEHICLE_TYPE_SHIPS                                          :Schiffe
+STR_VEHICLE_TYPE_AIRCRAFT                                       :Flugzeuge
+
 # Graph window
 STR_GRAPH_KEY_BUTTON                                            :{BLACK}Legende
 STR_GRAPH_KEY_TOOLTIP                                           :{BLACK}Legende des Diagramms anzeigen
@@ -1925,6 +1931,9 @@ STR_CONFIG_SETTING_NEWS_ARRIVAL_FIRST_VEHICLE_OTHER_HELPTEXT    :Zeitung anzeige
 STR_CONFIG_SETTING_NEWS_ACCIDENTS_DISASTERS                     :Unfälle und Katastrophen: {STRING}
 STR_CONFIG_SETTING_NEWS_ACCIDENTS_DISASTERS_HELPTEXT            :Zeitung anzeigen, wenn Unfälle oder Katastrophen auftreten
 
+STR_CONFIG_SETTING_NEWS_ACCIDENT_OTHER                          :Unfälle von Mitbewerberfahrzeugen: {STRING}
+STR_CONFIG_SETTING_NEWS_ACCIDENT_OTHER_HELPTEXT                 :Zeitung anzeigen, wenn Fahrzeuge eines Mitbewerbers Unfälle haben
+
 STR_CONFIG_SETTING_NEWS_COMPANY_INFORMATION                     :Firmenmitteilungen: {STRING}
 STR_CONFIG_SETTING_NEWS_COMPANY_INFORMATION_HELPTEXT            :Zeitung anzeigen, wenn neue Firmen gegründet werden oder kurz vor dem Bankrott stehen
 
@@ -3181,7 +3190,7 @@ STR_TRACE_RESTRICT_SLOT_CREATE_TOOLTIP                          :{BLACK}Einen ne
 STR_TRACE_RESTRICT_SLOT_DELETE_TOOLTIP                          :{BLACK}Den markierten Slot löschen
 STR_TRACE_RESTRICT_SLOT_RENAME_TOOLTIP                          :{BLACK}Den markierten Slot umbenennen
 STR_TRACE_RESTRICT_SLOT_SET_MAX_OCCUPANCY_TOOLTIP               :{BLACK}Die maximale Kapazität des markierten Slots festlegen
-STR_TRACE_RESTRICT_SLOT_CAPTION                                 :{WHITE}Routing-Beschränkungen - Slot-Verwaltung
+STR_TRACE_RESTRICT_SLOT_CAPTION                                 :{WHITE}Routing-Beschränkungen - Slot-Verwaltung ({STRING})
 STR_TRACE_RESTRICT_SLOT_MANAGE                                  :Verwalte Slots
 STR_TRACE_RESTRICT_SLOT_MAX_OCCUPANCY                           :{TINY_FONT}{COMMA} / {COMMA}
 STR_TRACE_RESTRICT_SLOT_RENAME_CAPTION                          :{BLACK}Slot umbenennen
@@ -5476,8 +5485,8 @@ STR_TIMETABLE_AUTO_SEPARATION_TOOLTIP                           :{BLACK}Passt au
 
 STR_TIMETABLE_SCHEDULED_DISPATCH                                :{BLACK}Geplante Beförderung
 STR_TIMETABLE_SCHEDULED_DISPATCH_TOOLTIP                        :{BLACK}Öffnet das Fenster für die geplante Beförderung, um den Beginn des Fahrplans automatisch zu setzen
-STR_TIMETABLE_SCHEDULED_DISPATCH_ORDER                          :[Geplante Beförderung]
-STR_TIMETABLE_SCHEDULED_DISPATCH_ORDER_NO_WAIT_TIME             :{PUSH_COLOUR}{RED}[Geplante Beförderung - keine Wartezeit geplant]{POP_COLOUR}
+STR_TIMETABLE_SCHEDULED_DISPATCH_ORDER                          :{PUSH_COLOUR}{YELLOW}[{STRING}Geplante Beförderung]{POP_COLOUR}
+STR_TIMETABLE_SCHEDULED_DISPATCH_ORDER_NO_WAIT_TIME             :{PUSH_COLOUR}{RED}[{STRING}Geplante Beförderung - keine Wartezeit geplant]{POP_COLOUR}
 
 STR_TIMETABLE_EXPECTED                                          :{BLACK}Voraussichtlich
 STR_TIMETABLE_SCHEDULED                                         :{BLACK}Fahrplanmäßig
@@ -5507,7 +5516,6 @@ STR_TIMETABLE_WARNING_AUTOSEP_MISSING_TIMINGS                   :{BLACK}Kann Fah
 STR_TIMETABLE_WARNING_FULL_LOAD                                 :{BLACK}Volllade-Aufträge zu planen ist nicht empfohlen
 STR_TIMETABLE_WARNING_AUTOFILL_CONDITIONAL                      :{BLACK}Es werden nur bedingte Sprünge erfasst, die genommen wurden
 STR_TIMETABLE_NON_TIMETABLED_BRANCH                             :{BLACK}Nicht alle Reisezeiten der bedingten Sprünge sind geplant
-STR_TIMETABLE_WARNING_NO_SCHEDULED_DISPATCH_ORDER               :{BLACK}Kein Auftrag ist geeignet für die Nutzung der geplanten Beförderung
 STR_TIMETABLE_WARNING_SCHEDULED_DISPATCH_ORDER_NO_WAIT_TIME     :{BLACK}Der geplant beförderte Auftrag sollte eine geplante Wartezeit haben
 
 # Date window (for timetable)
@@ -5517,8 +5525,8 @@ STR_DATE_SET_DATE_TOOLTIP                                       :{BLACK}Setze de
 STR_DATE_DAY_TOOLTIP                                            :{BLACK}Tag auswählen
 STR_DATE_MONTH_TOOLTIP                                          :{BLACK}Monat auswählen
 STR_DATE_YEAR_TOOLTIP                                           :{BLACK}Jahr auswählen
-STR_DATE_MINUTES_DAY_TOOLTIP                                    :{BLACK}Minute auswählen
-STR_DATE_MINUTES_MONTH_TOOLTIP                                  :{BLACK}Stunde auswählen
+STR_DATE_MINUTES_MINUTE_TOOLTIP                                 :{BLACK}Minute auswählen
+STR_DATE_MINUTES_HOUR_TOOLTIP                                   :{BLACK}Stunde auswählen
 
 # Cargo type orders Window
 STR_CARGO_TYPE_ORDERS_LOAD_CAPTION                              :{WHITE}{VEHICLE} ({NUM}: Lade in {STATION})
@@ -6816,8 +6824,9 @@ STR_SCHDISPATCH_RESET_LAST_DISPATCH_TOOLTIP                     :{BLACK}Setzt di
 STR_SCHDISPATCH_SUMMARY_LAST_DEPARTURE_PAST                     :{BLACK}Letzte Abfahrt am {DATE_WALLCLOCK_TINY}.
 STR_SCHDISPATCH_SUMMARY_LAST_DEPARTURE_FUTURE                   :{BLACK}Letzte Abfahrt hat den Bahnhof noch nicht verlassen; Abfahrt am {DATE_WALLCLOCK_TINY}.
 STR_SCHDISPATCH_SUMMARY_L1                                      :{BLACK}Dieser Fahrplan erfordert {COMMA} Fahrzeug{P "" e}.
-STR_SCHDISPATCH_SUMMARY_L2                                      :{BLACK}Dieser Fahrplan wiederholt sich alle {STRING} und begann am {DATE_WALLCLOCK_TINY} und endet am {DATE_WALLCLOCK_TINY}.
-STR_SCHDISPATCH_SUMMARY_L3                                      :{BLACK}Es ist eine maximale Verspätung von {STRING} erlaubt, ehe der Slot übersprungen wird.
+STR_SCHDISPATCH_SUMMARY_L2                                      :{BLACK}Dieser Fahrplan wiederholt sich alle {STRING}.
+STR_SCHDISPATCH_SUMMARY_L3                                      :{BLACK}Dieser Fahrplan begann am {DATE_WALLCLOCK_TINY} und endet am {DATE_WALLCLOCK_TINY}.
+STR_SCHDISPATCH_SUMMARY_L4                                      :{BLACK}Es ist eine maximale Verspätung von {STRING} erlaubt, ehe der Slot übersprungen wird.
 STR_SCHDISPATCH_SUMMARY_NOT_ENABLED                             :{BLACK}Dieser Fahrplan ist nicht aktiv.
 
 STR_SCHDISPATCH_SLOT_OUTSIDE_SCHEDULE                           :{BLACK}Ein oder mehrere Abfahrtslots befinden sich außerhalb der geplanten Dauer.

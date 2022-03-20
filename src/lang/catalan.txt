@@ -587,6 +587,12 @@ STR_MONTH_OCT                                                   :Octubre
 STR_MONTH_NOV                                                   :Novembre
 STR_MONTH_DEC                                                   :Desembre
 
+###length VEHICLE_TYPES
+STR_VEHICLE_TYPE_TRAINS                                         :Trens
+STR_VEHICLE_TYPE_ROAD_VEHICLES                                  :Automòbils
+STR_VEHICLE_TYPE_SHIPS                                          :Vaixells
+STR_VEHICLE_TYPE_AIRCRAFT                                       :Avions
+
 # Graph window
 STR_GRAPH_KEY_BUTTON                                            :{BLACK}Llegenda
 STR_GRAPH_KEY_TOOLTIP                                           :{BLACK}Mostra la llegenda dels gràfics
@@ -1749,6 +1755,9 @@ STR_CONFIG_SETTING_NEWS_ARRIVAL_FIRST_VEHICLE_OTHER_HELPTEXT    :Mostra les not�
 
 STR_CONFIG_SETTING_NEWS_ACCIDENTS_DISASTERS                     :Accidents / desastres: {STRING}
 STR_CONFIG_SETTING_NEWS_ACCIDENTS_DISASTERS_HELPTEXT            :Mostra un diari quan passin accidents i desastres
+
+STR_CONFIG_SETTING_NEWS_ACCIDENT_OTHER                          :Accidents dels vehicles de competidors: {STRING}
+STR_CONFIG_SETTING_NEWS_ACCIDENT_OTHER_HELPTEXT                 :Mostra un diari amb notícies dels accidents dels vehicles dels oponents.
 
 STR_CONFIG_SETTING_NEWS_COMPANY_INFORMATION                     :Informació de la companyia: {STRING}
 STR_CONFIG_SETTING_NEWS_COMPANY_INFORMATION_HELPTEXT            :Mostra les notícies de companyies noves que es creen i de companyies en risc de fer fallida

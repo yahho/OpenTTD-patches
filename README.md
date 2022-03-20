@@ -1,4 +1,4 @@
-## JGR's Patchpack version 0.44-rc1
+## JGR's Patchpack version 0.47.0
 
 This is a collection of patches applied to [OpenTTD](http://www.openttd.org/)
 
@@ -31,7 +31,6 @@ See [installation.md](/installation.md) for instructions on how to install.
 * Drive-through train depots.
 * [Template-based train replacement](http://www.tt-forums.net/viewtopic.php?f=33&t=58904).
 * [Routing restrictions](http://www.tt-forums.net/viewtopic.php?f=33&t=73397).  
-  This also includes slots and counters.  
   See the [guide on the wiki](https://github.com/JGRennison/OpenTTD-patches/wiki/Signalling) for more information.
 * [Programmable pre-signals](http://www.tt-forums.net/viewtopic.php?f=33&t=47690).  
   These are not shown in the build signal window by default.  
@@ -55,6 +54,8 @@ See [installation.md](/installation.md) for instructions on how to install.
   This requires a NewGRF which supports this and realistic train braking.
 * No-entry signals.  
   These are not shown in the build signal window by default.
+* Add client setting to show all signals using the default baseset sprites.
+* Remember the last-used signal type between games.
 
 #### Roads and Road Vehicles
 
@@ -66,6 +67,8 @@ See [installation.md](/installation.md) for instructions on how to install.
 * Improve road vehicle pathfinding when multiple vehicles are simultaneously heading to a station with multiple bay/stop entrances.
 * Add setting for default road/tram types.
 * Add a setting to turn off road vehicles slowing in curves.
+* Add a setting to disable road vehicles from passing through each other when blocked for an extended period of time.
+* Allow road vehicle go to station/waypoint orders to have an associated required stop/bay/waypoint direction.
 
 #### Level Crossings
 
@@ -73,6 +76,7 @@ See [installation.md](/installation.md) for instructions on how to install.
 * Prevent road vehicles from being stopped on level crossings.
 * Add setting to enable improved level crossing safety.
 * Trains break down after colliding with a road vehicle.
+* Only show level crossing overlay sprites on the outsides of multi-track crossings when using both adjacent and safer crossings settings.
 
 #### Bridges and Tunnels
 
@@ -112,6 +116,11 @@ See [installation.md](/installation.md) for instructions on how to install.
 * Add a setting for whether to open the new vehicle GUI when share-cloning.
 * Add setting to disable mass action buttons for top-level vehicle lists.
 * Add feature to create a new auto-named group when dragging and dropping a vehicle onto the new group button (ctrl includes shared order vehicles).
+* Add settings to reduce vehicle running costs when a vehicle is stationary or in a depot.
+* If a vehicle's next order is for the current station when leaving, start loading again without moving, instead of leaving.
+* Slots and counters.  
+  See the [guide on the wiki](https://github.com/JGRennison/OpenTTD-patches/wiki/Signalling) for more information.
+* Add cargo capacity / running cost sort mode to the build vehicle window.
 
 #### Orders and Timetabling
 
@@ -125,7 +134,8 @@ See [installation.md](/installation.md) for instructions on how to install.
 * Order occupancy.  
   Add column to the orders GUI to show occupancy running average, show the average order occupancy, and add a vehicle sort mode.
 * [Timetabling waiting time in depots](http://www.tt-forums.net/viewtopic.php?f=33&t=70969).
-* [Scheduled dispatch](https://github.com/innocenat/OpenTTD-patches/tree/scheduled-dispatch-sx).
+* Scheduled dispatch.  
+  This allows dispatching vehicles from timing points using one or more repeating schedules. This is useful for clock-face timetabling.
 * [More conditional orders](http://www.tt-forums.net/viewtopic.php?f=33&t=38317).  
   Next station: is cargo waiting, is cargo accepted, number of free platforms, amount of cargo waiting.  
   Percent of times, per-cargo load percentage, current time/date, timetable lateness.  
@@ -146,6 +156,8 @@ See [installation.md](/installation.md) for instructions on how to install.
 #### Stations
 
 * [Departure boards](https://www.tt-forums.net/viewtopic.php?f=33&t=49956).
+* Add road waypoints.
+* Add NewGRF road stops.
 * Add a setting to increase the station catchment radius.
 * Station rating: track "last visited vehicle type" separately per cargo.
 * Add setting to scale station cargo capacity and rating tolerance by size.
@@ -158,6 +170,8 @@ See [installation.md](/installation.md) for instructions on how to install.
 * Add a tooltip to show station rating details (controlled by a setting).
 * [Allow NewGRFs to supply additional station name strings](https://github.com/JGRennison/OpenTTD-patches/wiki/GRF-features#extra-station-names).
 * Add sort by number of vehicles calling to the station list window.
+* Add setting to distribute cargo received at a station to all accepting industries equally, instead of just one of them.
+* Add setting to allow hiding viewport labels of individual waypoints.
 
 #### Towns
 
@@ -180,7 +194,7 @@ See [installation.md](/installation.md) for instructions on how to install.
 * [Adjusted arctic tree placement](http://www.tt-forums.net/viewtopic.php?f=33&t=72502).
 * Add a new tree placement mode (perfect).
 * [Minimum town distance](https://www.tt-forums.net/viewtopic.php?f=33&t=33625).
-* Add map generation settings to control river/lake and rocky patch generation.
+* Add map generation settings to control river/lake, rocky patch, and tropic zone generation.
 * Add generation of wide rivers.
 * Add settings to customise the size of town zones, and city zones.
 
@@ -221,13 +235,13 @@ See [installation.md](/installation.md) for instructions on how to install.
 
 #### Limits
 
-* Increase maximum number of NewGRFs to 255 in single player and multiplayer.
 * [Extra large maps](http://www.tt-forums.net/viewtopic.php?f=33&t=33137).
   Maximum map size is now 256M tiles, ranging from 16k x 16k to 256 x 1M.
 * Increase the limit of NewGRF house IDs in a single game from 512 to 1024.
 * Increase per-vehicle order limit from 254 to 64k.
 * Increase maximum setting limits for per-company vehicle-type limits.
 * Increase maximum permitted vehicle, group, depot and station/waypoint name lengths.
+* Increase maximum permitted rail waypoint types from 256 to 64k.
 
 #### Time and Date
 
@@ -246,6 +260,8 @@ See [installation.md](/installation.md) for instructions on how to install.
 * Various changes to reduce the probability of desyncs and improve desync reporting/diagnostics.
 * Add support for zstd savegame compression for autosaves and network joins.
 * Increase the number of settings which can be changed in multiplayer.
+* Store company passwords in network server saves in an encrypted form such that they are automatically restored when loaded into the same network server.
+* Add client setting for whether to sync localisation settings (such as measurement units) with the server.
 
 #### Money
 
@@ -269,6 +285,7 @@ See [installation.md](/installation.md) for instructions on how to install.
 * Add new link graph distribution modes: asymmetric (equal) and asymmetric (nearest).
 * Allow overriding distribution mode on a per-cargo basis, in game.
 * Fix inaccurate cargo distribution and link graph overlays, and various other problems with large link graphs.
+* Add setting to increase the cargodist link graph distance/cost metric of aircraft links.
 
 #### Input
 
@@ -286,14 +303,15 @@ See [installation.md](/installation.md) for instructions on how to install.
 * Pause on savegame load if ctrl key is pressed.
 * Ctrl-click up/down in NewGRF window to move to top or bottom.
 * Add setting for when to ask for confirmation before overwriting an existing savegame file, add unique ID to savegames.
+* Allow setting the autosave interval to a custom number of in-game days or real-time minutes.
 * Add more hotkeys.
 * Allow AI/GS developers to reload GSs.
 * Various extensions to the NewGRF developer debug tools.
 * Various performance improvements.
 * Various minor fixes, see changelog.
-* [NewGRF specification additions](docs/newgrf-additions.html) ([online copy](https://htmlpreview.github.io/?https://github.com/JGRennison/OpenTTD-patches/blob/jgrpp/docs/newgrf-additions.html)).
-* [NML specification additions](docs/newgrf-additions-nml.html) ([online copy](https://htmlpreview.github.io/?https://github.com/JGRennison/OpenTTD-patches/blob/jgrpp/docs/newgrf-additions-nml.html)).
-* [AI/GS script additions](docs/script-additions.html) ([online copy](https://htmlpreview.github.io/?https://github.com/JGRennison/OpenTTD-patches/blob/jgrpp/docs/script-additions.html)).
+* [NewGRF specification additions](docs/newgrf-additions.html) ([online copy](https://jgrennison.github.io/OpenTTD-patches/newgrf-additions.html)).
+* [NML specification additions](docs/newgrf-additions-nml.html) ([online copy](https://jgrennison.github.io/OpenTTD-patches/newgrf-additions-nml.html)).
+* [AI/GS script additions](docs/script-additions.html) ([online copy](https://jgrennison.github.io/OpenTTD-patches/script-additions.html)).
 * [Low-level code/performance changes](docs/jgrpp-low-level-changes.md).
 
 #### Translations
@@ -426,9 +444,9 @@ For some platforms, you will need to refer to [the installation guide](https://w
 The free data files, split into OpenGFX for graphics, OpenSFX for sounds and
 OpenMSX for music can be found at:
 
-- https://www.openttd.org/downloads/opengfx-releases/ for OpenGFX
-- https://www.openttd.org/downloads/opensfx-releases/ for OpenSFX
-- https://www.openttd.org/downloads/openmsx-releases/ for OpenMSX
+- https://www.openttd.org/downloads/opengfx-releases/latest for OpenGFX
+- https://www.openttd.org/downloads/opensfx-releases/latest for OpenSFX
+- https://www.openttd.org/downloads/openmsx-releases/latest for OpenMSX
 
 Please follow the readme of these packages about the installation procedure.
 The Windows installer can optionally download and install these packages.
@@ -512,7 +530,7 @@ If you want to compile OpenTTD from source, instructions can be found in [COMPIL
 
 - [OpenTTD website](https://www.openttd.org)
 - IRC chat using #openttd on irc.oftc.net [more info about our irc channel](https://wiki.openttd.org/en/Development/IRC%20channel)
-- [OpenTTD on Github](https://github.com/openTTD/) for code repositories and for reporting issues
+- [OpenTTD on Github](https://github.com/OpenTTD/) for code repositories and for reporting issues
 - [forum.openttd.org](https://forum.openttd.org/) - the primary community forum site for discussing OpenTTD and related games
 - [OpenTTD wiki](https://wiki.openttd.org/) community-maintained wiki, including topics like gameplay guide, detailed explanation of some game mechanics, how to use add-on content (mods) and much more
 

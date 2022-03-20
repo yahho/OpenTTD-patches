@@ -199,7 +199,7 @@ Industry::~Industry()
 	CargoPacket::InvalidateAllFrom(ST_INDUSTRY, this->index);
 
 	for (Station *st : this->stations_near) {
-		st->industries_near.erase(this);
+		st->RemoveIndustryToDeliver(this);
 	}
 
 	if (_game_mode == GM_NORMAL) RegisterGameEvents(GEF_INDUSTRY_DELETE);
@@ -537,14 +537,14 @@ static bool TransportIndustryGoods(TileIndex tile)
 	bool moved_cargo = false;
 
 	for (uint j = 0; j < lengthof(i->produced_cargo_waiting); j++) {
-		uint cw = std::min<uint>(i->produced_cargo_waiting[j], 255u);
+		uint cw = std::min<uint>(i->produced_cargo_waiting[j], ScaleQuantity(255u, _settings_game.economy.industry_cargo_scale_factor));
 		if (cw > indspec->minimal_cargo && i->produced_cargo[j] != CT_INVALID) {
 			i->produced_cargo_waiting[j] -= cw;
 
 			/* fluctuating economy? */
 			if (EconomyIsInRecession()) cw = (cw + 1) / 2;
 
-			i->this_month_production[j] += cw;
+			i->this_month_production[j] = std::min<uint>(i->this_month_production[j] + cw, 0xFFFF);
 
 			uint am = MoveGoodsToStation(i->produced_cargo[j], cw, ST_INDUSTRY, i->index, &i->stations_near, i->exclusive_consumer);
 			i->this_month_transported[j] += am;
@@ -1772,15 +1772,14 @@ static void PopulateStationsNearby(Industry *ind)
 		/* Industry has a neutral station. Use it and ignore any other nearby stations. */
 		ind->stations_near.insert(ind->neutral_station);
 		ind->neutral_station->industries_near.clear();
-		ind->neutral_station->industries_near.insert(ind);
+		ind->neutral_station->industries_near.insert(IndustryListEntry{0, ind});
 		return;
 	}
 
 	ForAllStationsAroundTiles(ind->location, [ind](Station *st, TileIndex tile) {
 		if (!IsTileType(tile, MP_INDUSTRY) || GetIndustryIndex(tile) != ind->index) return false;
-		ind->stations_near.insert(st);
-		st->AddIndustryToDeliver(ind);
-		return true;
+		st->AddIndustryToDeliver(ind, tile);
+		return false;
 	});
 }
 
@@ -2192,7 +2191,7 @@ CommandCost CmdIndustryCtrl(TileIndex tile, DoCommandFlag flags, uint32 p1, uint
 		}
 
 		default:
-			NOT_REACHED();
+			return CMD_ERROR;
 	}
 
 	return CommandCost();
@@ -2284,10 +2283,12 @@ static uint GetNumberOfIndustries()
 		25,   // low
 		55,   // normal
 		80,   // high
+		0,    // custom
 	};
 
 	assert(lengthof(numof_industry_table) == ID_END);
 	uint difficulty = (_game_mode != GM_EDITOR) ? _settings_game.difficulty.industry_density : (uint)ID_VERY_LOW;
+	if (difficulty == ID_CUSTOM) return std::min<uint>(IndustryPool::MAX_SIZE, _settings_game.game_creation.custom_industry_number);
 	return std::min<uint>(IndustryPool::MAX_SIZE, ScaleByMapSize(numof_industry_table[difficulty]));
 }
 
@@ -3158,7 +3159,8 @@ extern const TileTypeProcs _tile_type_industry_procs = {
 	TerraformTile_Industry,      // terraform_tile_proc
 };
 
-bool IndustryCompare::operator() (const Industry *lhs, const Industry *rhs) const
+bool IndustryCompare::operator() (const IndustryListEntry &lhs, const IndustryListEntry &rhs) const
 {
-	return lhs->index < rhs->index;
+	/* Compare by distance first and use index as a tiebreaker. */
+	return std::tie(lhs.distance, lhs.industry->index) < std::tie(rhs.distance, rhs.industry->index);
 }

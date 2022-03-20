@@ -2,6 +2,146 @@
 
 * * *
 
+### v0.47.0 (2022-03-12)
+* Fix crash in scheduled dispatch window with nearest depot dispatch order.
+* Fix non-rail bridge construction setting polyrail endpoints.
+* Fix the autosave interval setting being reset at startup when it was previously set to use a custom interval.
+* Add NewGRF road stops.
+* Add routing restriction action to make the train exempt from automatic train speed adaptation.
+* Add hotkeys for building road waypoints to the road/tram toolbars.
+* Implement automatic train speed adaptation on signalled tunnels/bridges.
+* Allow configuring the width of tropic zones around water during map generation.
+* If an aircraft or road vehicle's next order is for the current station when leaving, start loading again without moving, instead of leaving.
+* Bump trunk base from commit 83b6defbfb0fa649a854767ae7c8b5a18f917e80 to commit 0d8fbf647b2c819bee0a0883b5fc831aa64e4ee0.
+
+### v0.46.1 (2022-02-07)
+* Fix crash or incorrect text in the scheduled dispatch window when a dispatch schedule is assigned to a depot order.
+* Fix crash which could occur when using aircraft with cargodist after loading a 12.x vanilla savegame/scenario.
+* Fix some non-vanilla settings having invalid values after loading a 12.x vanilla savegame/scenario.
+* Add NewGRF properties for NewGRF object tile type to use in the small map window and in viewport map mode.
+* Bump trunk base from commit 2c42b6adc87765750436dc5005e9e186db84daeb to commit 83b6defbfb0fa649a854767ae7c8b5a18f917e80.
+
+### v0.46.0 (2022-02-01)
+* Add build vehicle window sort mode: cargo capacity / running cost.
+* Add Korean translations by TELK.
+* Bump trunk base from commit 9e47df298faf6889c8be7dd0b0eeedeb65db1cdc to commit 2c42b6adc87765750436dc5005e9e186db84daeb.
+
+### v0.46-rc2 (2022-01-29)
+* Road waypoints:
+  * Fix crash when changing one-way state of road waypoints.
+  * Fix crash in road vehicle overtaking checks with road waypoints.
+  * Fix removal of road waypoints during bankruptcy.
+  * Road waypoints no longer block road inferred one-way state interpolation.
+* Fix crash when opening rail waypoint window if there are now fewer types available than the type that was last selected.
+* Add Korean translations by TELK.
+
+### v0.46-rc1 (2022-01-28)
+* Fix timetable wait times not being cleared when changing to a non-stopping order.
+* Fix text input and display of speeds in tiles/day units in routing restriction window.
+* Fix industry monthly production figures being able to overflow when industry production scaling is set to a high value.
+* Fix station catchment highlight from coverage button in station window not being redrawn when station extents changed.
+* Fix various issues in unserved industries zoning overlay mode.
+* Fix wrong error message when building a bridge over an obstructing station.
+* Fix window preference save/load of build vehicle windows.
+* Conditional orders:
+  * Fix crash when evaluating a train in slot conditional order when no slot was assigned.
+  * Fix manual setting of conditional order jump taken travel times.
+  * Improve handling of conditional order waiting loops.
+  * Follow predictable conditional orders in timetable and departure windows.
+* Add support for multiple scheduled dispatch schedules per order list.
+* Allow non-train vehicles to test counter values in conditional orders.
+* Add road waypoints.
+* Allow road vehicle go to station/waypoint orders to have an associated required stop/bay/waypoint direction.
+* Add slot support to road vehicles, ships and aircraft.
+* Add train through load speed limit setting.
+* Add client setting for whether to sync localisation settings with the server in multiplayer.
+* Add client setting to allow hiding viewport labels of individual waypoints.
+* Add NewGRF properties for default object map generation amounts.
+* Remember the last-used signal type between games.
+* Disable touchbar support to fix crash issues on MacOS.
+* Add Korean translations by TELK.
+* Bump trunk base from commit 93e8d4871d3c927cf08eaa322bfdcd2cb73a1730 to commit 9e47df298faf6889c8be7dd0b0eeedeb65db1cdc.
+
+### v0.45.1 (2022-01-10)
+* Fix crash which could occur when removing invalidated link graph flows.
+* Fix template replacement without refitting selecting the wrong cargo when using zero capacity engines with a livery cargo.
+* Fix wrong signal aspects when track was built up to the rear of a tunnel/bridge entrance.
+* Fix ground/tree tile vegetation changes not updating map mode viewports in vegetation mode.
+* Scale limit on cargo which can be moved from industries to stations in one step by the cargo production scaling factor.
+* Add support for automatic numbering of screenshots saved using the screenshot console command.
+* AI/GS script: Add methods related to road and tram types.
+* Bump trunk base from commit d62c5667cff2eed82deb18e28d98345500b30d3f to commit 93e8d4871d3c927cf08eaa322bfdcd2cb73a1730.
+
+### v0.45.0 (2022-01-05)
+* Fix crash when removing signals from a bridge or tunnel when one or more routing restriction programs were attached.
+* Fix crash when a template replacement train had an engine with an invalid cargo type.
+* Fix multiplayer desync which could occur after removing track with a signal on it at the end of a PBS reservation with a moving train approaching and realistic braking enabled.
+* Fix multiplayer desync which could occur after estimating building a road stop.
+* Fix invalid data being wrtten to the config file when display of income texts was disabled.
+* Fix give money chat message showing the wrong value in some cases.
+* Fix through load failed due to a depot news messages being shown when no problem actually occured in some circumstances.
+* Fix re-routing of unrelated cargo to "any station" when removing invalidated link graph flow.
+* Fix incorrect window and column widths in the departure boards window.
+* Fix newly generated network server ID not being saved in the config file in some circumstances.
+* Add support for having more than 256 rail waypoint types.
+* Add setting to distribute cargo received at a station to all accepting industries equally, instead of just one of them.
+* Add setting to increase the cargodist link graph distance/cost metric of aircraft links.
+* Add clear schedule function to the scheduled dispatch window.
+* Add client setting to show all signals using the default baseset sprites.
+* Store company passwords in network server saves in an encrypted form such that they are automaticaly restored when loaded into the same network server.
+* Show vehicle destination when mousing over a vehicle breakdown in the vehicle status bar.
+* Allow setting the autosave interval to a custom number of in-game days or real-time minutes.
+* Adjust automatic servicing behaviour to avoid unnecessarily cancelling automatic servicing orders.
+* If a ship's next order is for the current station when leaving, start loading again without moving, instead of leaving.
+* Enable news warning for missing depot order in order list by default.
+* Fix dedicated network servers logging too much by default.
+* Bump trunk base from commit 6953df7b5e52d749e50275640197e5fc17e2310c to commit d62c5667cff2eed82deb18e28d98345500b30d3f.
+
+### v0.44.2 (2021-12-10)
+* Fix multiplayer desync which could occur when using order backups in some circumstances.
+* Fix loading of the game log from upstream 12.x savegames.
+* Apply negative values of the town cargo generation factor setting more strictly/accurately.
+* Add a "default" mode to the timetable autofill rounding setting, use as the new default.
+* Add NewGRF properties for NewGRF object ground sprite mode, slope/foundation mode and flood resistance.
+* On dedicated servers, save a copy of the last autosave when a crash occurs (when not using the keep_all_autosave setting).
+* Add Korean translations by TELK and Galician translations by pvillaverde.
+
+### v0.44.1 (2021-11-29)
+* Signals on bridges/tunnels:
+  * Fix crash when the ignore signals button is used for wrong-way running on a signalled tunnel/bridge when using a multi-aspect signal GRF.
+  * Fix incorrect exit signal state when unable to leave a signalled custom bridge head when the exit direction is different to the bridge direction.
+  * Fix pending speed restriction changes not being applied on signalled tunnel/bridges.
+  * Fix incorrect PBS reservations in the case where a single-vehicle train's reservation from a tunnel/bridge exit enters the corresponding tunnel/bridge entrance at the opposite end, and the tunnel/bridge is otherwise empty.
+  * Fix signals on approach to a tunnel/bridge entrance temporarily showing an incorrect aspect with multi-aspect signalling in the case where the signalling on the tunnel/bridge was modified.
+  * Allow placing routing restrictions on tunnel/bridge entrance/exit signals (this does not include reserve through support).
+* Realistic braking:
+  * Try to extend PBS reservations when approaching the sighting distance of non-end signals.
+  * Fix PBS reservations not being extended sufficiently after a target at which the train reverses is found.
+* Scheduled dispatch:
+  * Fix entering the dispatch duration and max slot delay when using days instead of minutes.
+  * Also show hours and minutes for dispatch duration when using minutes.
+  * Allow adding multiple departure slots at once.
+* Fix trains with non-front parts needing repair not being serviced.
+* Fix not all windows being deleted as expected when using the delete key in some cases.
+* Fix the ctrl-click signal cycling setting.
+* Fix station/waypoint vehicle tooltip showing incorrect ctrl-click text.
+* Add settings to reduce vehicle running costs when a vehicle is stationary or in a depot.
+* Add setting to disable road vehicles from passing through each other when blocked for an extended period of time (default off).
+* Change the map generation allow lakes to spawn in deserts setting to also allow spawning rivers in deserts.
+* If a train's next order is for the current station when leaving, start loading again without moving, instead of leaving.
+* Run most "daily" vehicle tasks at a fixed frequency instead of daily at day lengths of 8 or more (running cost accounting, track sharing costs, breakdown checks, servicing checks, order checks).
+* Only show level crossing overlay sprites on the outsides of multi-track crossings when using both the adjacent crossings and safer crossings settings.
+* Increase the object class limit.
+* Connect new plan lines to end of the previous line when ctrl-clicking.
+* Fix compilation issues on some platforms.
+* Bump trunk base from commit 48c1c7f221cd51fbe4fda3771eaed09edacef997 to commit 6953df7b5e52d749e50275640197e5fc17e2310c.
+
+### v0.44.0 (2021-11-10)
+* Fix crash on non-GCC/clang compilers.
+* Fix custom signal NewGRFs never showing semaphore signals as having a routing restriction program attached.
+* Fix compilation issues on some platforms.
+* Bump trunk base from commit 9edb75ec0b4ecfb2803728d129b353d1d224beaf to commit 48c1c7f221cd51fbe4fda3771eaed09edacef997.
+
 ### v0.44-rc1 (2021-11-03)
 * Merge OpenTTD 12.0, including new networking, savegames and configs.
 * Bump trunk base from commit 8fa53f543a5929bdbb12c8776ae9577594f9eba7 to commit 9edb75ec0b4ecfb2803728d129b353d1d224beaf.
@@ -36,10 +176,10 @@
 * Fix signals on dual railtype tiles using wrong per-railtype custom signals.
 * Fix conditional order loops on leaving a depot when a timetabled wait time is set.
 * Signals on bridges/tunnels:
- * Fix tunnel exit signal not being set to red when train exited.
- * Fix signals on bridge middle parts not using per-railtype custom signals.
- * The signal spacing distance is now fixed at signalling time, changing the company spacing setting now only affects newly signalled bridges/tunnels, not existing ones.
- * The signal spacing distance is now automatically adjusted to fit the tunnel/bridge length. This is to avoid the last middle signal being too close to the exit signal.
+  * Fix tunnel exit signal not being set to red when train exited.
+  * Fix signals on bridge middle parts not using per-railtype custom signals.
+  * The signal spacing distance is now fixed at signalling time, changing the company spacing setting now only affects newly signalled bridges/tunnels, not existing ones.
+  * The signal spacing distance is now automatically adjusted to fit the tunnel/bridge length. This is to avoid the last middle signal being too close to the exit signal.
 * Routing restrictions:
   * Add slot action: try to acquire (only on reserve).
   * Fix last station visited not being set when the reservation ends at the target station, this could cause long-reserve conditionals to use the wrong last station visited value.

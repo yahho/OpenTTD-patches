@@ -714,6 +714,12 @@ STR_MONTH_OCT                                                   :Жовтень
 STR_MONTH_NOV                                                   :Листопад
 STR_MONTH_DEC                                                   :Грудень
 
+###length VEHICLE_TYPES
+STR_VEHICLE_TYPE_TRAINS                                         :Поїзди
+STR_VEHICLE_TYPE_ROAD_VEHICLES                                  :Авто
+STR_VEHICLE_TYPE_SHIPS                                          :Кораблі
+STR_VEHICLE_TYPE_AIRCRAFT                                       :Авіація
+
 # Graph window
 STR_GRAPH_KEY_BUTTON                                            :{BLACK}Легенда
 STR_GRAPH_KEY_TOOLTIP                                           :{BLACK}Показати легенду графіка
@@ -1876,6 +1882,7 @@ STR_CONFIG_SETTING_NEWS_ARRIVAL_FIRST_VEHICLE_OTHER_HELPTEXT    :Показат�
 
 STR_CONFIG_SETTING_NEWS_ACCIDENTS_DISASTERS                     :Нещасні випадки / стихійні лиха: {STRING}
 STR_CONFIG_SETTING_NEWS_ACCIDENTS_DISASTERS_HELPTEXT            :Показати газету при аварії або катастрофі
+
 
 STR_CONFIG_SETTING_NEWS_COMPANY_INFORMATION                     :Інформація щодо компанії: {STRING}
 STR_CONFIG_SETTING_NEWS_COMPANY_INFORMATION_HELPTEXT            :Показати газету коли відкривається нова компанія, або коли компанії ризикують збанкрутувати

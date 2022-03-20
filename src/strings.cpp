@@ -1299,7 +1299,8 @@ static char *FormatString(char *buff, const char *str_arg, StringParameters *arg
 			case SCC_STRING4:
 			case SCC_STRING5:
 			case SCC_STRING6:
-			case SCC_STRING7: { // {STRING1..7}
+			case SCC_STRING7:
+			case SCC_STRING8: { // {STRING1..8}
 				/* Strings that consume arguments */
 				StringID str = args->GetInt32(b);
 				if (game_script && GetStringTab(str) != TEXT_TAB_GAMESCRIPT_START) break;
@@ -2485,6 +2486,7 @@ void CheckForMissingGlyphs(bool base_font, MissingGlyphSearcher *searcher)
 	if (bad_font) {
 		/* We found an unprintable character... lets try whether we can find
 		 * a fallback font that can print the characters in the current language. */
+		bool any_font_configured = !_freetype.medium.font.empty();
 		FreeTypeSettings backup = _freetype;
 
 		_freetype.mono.os_handle = nullptr;
@@ -2494,10 +2496,10 @@ void CheckForMissingGlyphs(bool base_font, MissingGlyphSearcher *searcher)
 
 		_freetype = backup;
 
-		if (!bad_font) {
-			/* Show that we loaded fallback font. To do this properly we have
-			 * to set the colour of the string, otherwise we end up with a lot
-			 * of artifacts.* The colour 'character' might change in the
+		if (!bad_font && any_font_configured) {
+			/* If the user configured a bad font, and we found a better one,
+			 * show that we loaded the better font instead of the configured one.
+			 * The colour 'character' might change in the
 			 * future, so for safety we just Utf8 Encode it into the string,
 			 * which takes exactly three characters, so it replaces the "XXX"
 			 * with the colour marker. */
