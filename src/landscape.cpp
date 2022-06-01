@@ -103,6 +103,9 @@ static TileIndex _current_estuary = INVALID_TILE;
 static bool _is_main_river = false;
 
 byte _cached_snowline = 0;
+byte _cached_highest_snowline = 0;
+byte _cached_lowest_snowline = 0;
+byte _cached_tree_placement_highest_snowline = 0;
 
 /**
  * Map 2D viewport or smallmap coordinate to 3D world or tile coordinate.
@@ -657,6 +660,7 @@ void SetSnowLine(byte table[SNOW_LINE_MONTHS][SNOW_LINE_DAYS])
 	}
 
 	UpdateCachedSnowLine();
+	UpdateCachedSnowLineBounds();
 }
 
 /**
@@ -677,23 +681,16 @@ void UpdateCachedSnowLine()
 }
 
 /**
- * Get the highest possible snow line height, either variable or static.
- * @return the highest snow line height.
+ * Cache the lowest and highest possible snow line heights, either variable or static.
  * @ingroup SnowLineGroup
  */
-byte HighestSnowLine()
+void UpdateCachedSnowLineBounds()
 {
-	return _snow_line == nullptr ? _settings_game.game_creation.snow_line_height : _snow_line->highest_value;
-}
+	_cached_highest_snowline = _snow_line == nullptr ? _settings_game.game_creation.snow_line_height : _snow_line->highest_value;
+	_cached_lowest_snowline = _snow_line == nullptr ? _settings_game.game_creation.snow_line_height : _snow_line->lowest_value;
 
-/**
- * Get the lowest possible snow line height, either variable or static.
- * @return the lowest snow line height.
- * @ingroup SnowLineGroup
- */
-byte LowestSnowLine()
-{
-	return _snow_line == nullptr ? _settings_game.game_creation.snow_line_height : _snow_line->lowest_value;
+	uint snowline_range = ((_settings_game.construction.trees_around_snow_line_dynamic_range * (HighestSnowLine() - LowestSnowLine())) + 50) / 100;
+	_cached_tree_placement_highest_snowline = LowestSnowLine() + snowline_range;
 }
 
 /**
@@ -705,6 +702,7 @@ void ClearSnowLine()
 	free(_snow_line);
 	_snow_line = nullptr;
 	UpdateCachedSnowLine();
+	UpdateCachedSnowLineBounds();
 }
 
 /**
@@ -755,7 +753,7 @@ CommandCost CmdLandscapeClear(TileIndex tile, DoCommandFlag flags, uint32 p1, ui
 
 	if (flags & DC_EXEC) {
 		if (c != nullptr) c->clear_limit -= 1 << 16;
-		if (do_clear) DoClearSquare(tile);
+		if (do_clear) ForceClearWaterTile(tile);
 	}
 	return cost;
 }
@@ -1001,22 +999,52 @@ static void GenerateTerrain(int type, uint flag)
 
 #include "table/genland.h"
 
+static std::pair<const Rect16 *, const Rect16 *> GetDesertOrRainforestData()
+{
+	switch (_settings_game.game_creation.coast_tropics_width) {
+		case 0:
+			return { _make_desert_or_rainforest_data, endof(_make_desert_or_rainforest_data) };
+		case 1:
+			return { _make_desert_or_rainforest_data_medium, endof(_make_desert_or_rainforest_data_medium) };
+		case 2:
+			return { _make_desert_or_rainforest_data_large, endof(_make_desert_or_rainforest_data_large) };
+		case 3:
+			return { _make_desert_or_rainforest_data_extralarge, endof(_make_desert_or_rainforest_data_extralarge) };
+		default:
+			NOT_REACHED();
+	}
+}
+
+template <typename F>
+void DesertOrRainforestProcessTiles(const std::pair<const Rect16 *, const Rect16 *> desert_rainforest_data, const Rect16 *&data, TileIndex tile, F handle_tile)
+{
+	for (data = desert_rainforest_data.first; data != desert_rainforest_data.second; ++data) {
+		const Rect16 r = *data;
+		for (int16 x = r.left; x <= r.right; x++) {
+			for (int16 y = r.top; y <= r.bottom; y++) {
+				TileIndex t = AddTileIndexDiffCWrap(tile, { x, y });
+				if (handle_tile(t)) return;
+			}
+		}
+	}
+}
+
 static void CreateDesertOrRainForest(uint desert_tropic_line)
 {
 	TileIndex update_freq = MapSize() / 4;
-	const TileIndexDiffC *data;
+	const Rect16 *data;
+
+	const std::pair<const Rect16 *, const Rect16 *> desert_rainforest_data = GetDesertOrRainforestData();
 
 	for (TileIndex tile = 0; tile != MapSize(); ++tile) {
 		if ((tile % update_freq) == 0) IncreaseGeneratingWorldProgress(GWP_LANDSCAPE);
 
 		if (!IsValidTile(tile)) continue;
 
-		for (data = _make_desert_or_rainforest_data;
-				data != endof(_make_desert_or_rainforest_data); ++data) {
-			TileIndex t = AddTileIndexDiffCWrap(tile, *data);
-			if (t != INVALID_TILE && (TileHeight(t) >= desert_tropic_line || IsTileType(t, MP_WATER))) break;
-		}
-		if (data == endof(_make_desert_or_rainforest_data)) {
+		DesertOrRainforestProcessTiles(desert_rainforest_data, data, tile, [&](TileIndex t) -> bool {
+			return (t != INVALID_TILE && (TileHeight(t) >= desert_tropic_line || IsTileType(t, MP_WATER)));
+		});
+		if (data == desert_rainforest_data.second) {
 			SetTropicZone(tile, TROPICZONE_DESERT);
 		}
 	}
@@ -1032,12 +1060,10 @@ static void CreateDesertOrRainForest(uint desert_tropic_line)
 
 		if (!IsValidTile(tile)) continue;
 
-		for (data = _make_desert_or_rainforest_data;
-				data != endof(_make_desert_or_rainforest_data); ++data) {
-			TileIndex t = AddTileIndexDiffCWrap(tile, *data);
-			if (t != INVALID_TILE && IsTileType(t, MP_CLEAR) && IsClearGround(t, CLEAR_DESERT)) break;
-		}
-		if (data == endof(_make_desert_or_rainforest_data)) {
+		DesertOrRainforestProcessTiles(desert_rainforest_data, data, tile, [&](TileIndex t) -> bool {
+			return (t != INVALID_TILE && IsTileType(t, MP_CLEAR) && IsClearGround(t, CLEAR_DESERT));
+		});
+		if (data == desert_rainforest_data.second) {
 			SetTropicZone(tile, TROPICZONE_RAINFOREST);
 		}
 	}
@@ -1128,7 +1154,7 @@ static bool MakeLake(TileIndex tile, void *user_data)
 			MarkTileDirtyByTile(tile);
 			/* Remove desert directly around the river tile. */
 			TileIndex t = tile;
-			CircularTileSearch(&t, _settings_game.game_creation.river_tropics_width, RiverModifyDesertZone, nullptr);
+			CircularTileSearch(&t, _settings_game.game_creation.lake_tropics_width, RiverModifyDesertZone, nullptr);
 			return false;
 		}
 	}
@@ -1218,7 +1244,7 @@ static void River_FoundEndNode(AyStar *aystar, OpenListNode *current)
 			const uint current_river_length = DistanceManhattan(_current_spring, path->node.tile);
 			const uint long_river_length = _settings_game.game_creation.min_river_length * 4;
 			const uint radius = std::min(3u, (current_river_length / (long_river_length / 3u)) + 1u);
-			
+
 			MarkTileDirtyByTile(tile);
 
 			if (_is_main_river && (radius > 1)) {
@@ -1512,6 +1538,7 @@ static void CalculateSnowLine()
 		_settings_game.game_creation.snow_line_height = std::max(CalculateCoverageLine(_settings_game.game_creation.snow_coverage, 0), 2u);
 	}
 	UpdateCachedSnowLine();
+	UpdateCachedSnowLineBounds();
 }
 
 /**

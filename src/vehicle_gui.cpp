@@ -1759,7 +1759,7 @@ static void DrawSmallOrderList(const Vehicle *v, int left, int right, int y, uin
 		oid++;
 		order = order->next;
 		if (order == nullptr) {
-			order = v->orders.list->GetFirstOrder();
+			order = v->orders->GetFirstOrder();
 			oid = 0;
 		}
 	} while (oid != start);
@@ -2460,7 +2460,7 @@ public:
 		if (IsDepotTile(tile) && GetDepotVehicleType(tile) == this->vli.vtype) {
 			if (this->vli.type != VL_DEPOT_LIST) return;
 			if (!IsInfraTileUsageAllowed(this->vli.vtype, this->vli.company, tile)) return;
-			if (this->vli.vtype == VEH_ROAD && GetRoadTypes(Depot::Get(this->vli.index)->xy) != GetRoadTypes(tile)) return;
+			if (this->vli.vtype == VEH_ROAD && GetPresentRoadTypes(Depot::Get(this->vli.index)->xy) != GetRoadTypes(tile)) return;
 
 			DestinationID dest = (this->vli.vtype == VEH_AIRCRAFT) ? GetStationIndex(tile) : GetDepotIndex(tile);
 			DoCommandP(0, this->vli.index | (this->vli.vtype << 16) | (OT_GOTO_DEPOT << 20), dest, CMD_MASS_CHANGE_ORDER);
@@ -2731,6 +2731,7 @@ struct VehicleDetailsWindow : Window {
 	bool vehicle_weight_ratio_line_shown;
 	bool vehicle_slots_line_shown;
 	bool vehicle_speed_restriction_line_shown;
+	bool vehicle_speed_adaptation_exempt_line_shown;
 
 	/** Initialize a newly created vehicle details window */
 	VehicleDetailsWindow(WindowDesc *desc, WindowNumber window_number) : Window(desc)
@@ -2830,6 +2831,12 @@ struct VehicleDetailsWindow : Window {
 		return Train::From(v)->speed_restriction != 0;
 	}
 
+	bool ShouldShowSpeedAdaptationExemptLine(const Vehicle *v) const
+	{
+		if (v->type != VEH_TRAIN) return false;
+		return HasBit(Train::From(v)->flags, VRF_SPEED_ADAPTATION_EXEMPT);
+	}
+
 	void UpdateWidgetSize(int widget, Dimension *size, const Dimension &padding, Dimension *fill, Dimension *resize) override
 	{
 		switch (widget) {
@@ -2840,11 +2847,13 @@ struct VehicleDetailsWindow : Window {
 				this->vehicle_weight_ratio_line_shown = ShouldShowWeightRatioLine(v);
 				this->vehicle_slots_line_shown = ShouldShowSlotsLine(v);
 				this->vehicle_speed_restriction_line_shown = ShouldShowSpeedRestrictionLine(v);
+				this->vehicle_speed_adaptation_exempt_line_shown = ShouldShowSpeedAdaptationExemptLine(v);
 				int lines = 4;
 				if (this->vehicle_group_line_shown) lines++;
 				if (this->vehicle_weight_ratio_line_shown) lines++;
 				if (this->vehicle_slots_line_shown) lines++;
 				if (this->vehicle_speed_restriction_line_shown) lines++;
+				if (this->vehicle_speed_adaptation_exempt_line_shown) lines++;
 				size->height = WD_FRAMERECT_TOP + lines * FONT_HEIGHT_NORMAL + WD_FRAMERECT_BOTTOM;
 
 				for (uint i = 0; i < 5; i++) SetDParamMaxValue(i, INT16_MAX);
@@ -3105,10 +3114,17 @@ struct VehicleDetailsWindow : Window {
 					y += FONT_HEIGHT_NORMAL;
 				}
 
+				bool should_show_speed_adaptation_exempt = this->ShouldShowSpeedAdaptationExemptLine(v);
+				if (should_show_speed_adaptation_exempt) {
+					DrawString(r.left + WD_FRAMERECT_LEFT, r.right - WD_FRAMERECT_RIGHT, y, STR_VEHICLE_INFO_SPEED_ADAPTATION_EXEMPT);
+					y += FONT_HEIGHT_NORMAL;
+				}
+
 				if (this->vehicle_weight_ratio_line_shown != should_show_weight_ratio ||
 						this->vehicle_weight_ratio_line_shown != should_show_weight_ratio ||
 						this->vehicle_slots_line_shown != should_show_slots ||
-						this->vehicle_speed_restriction_line_shown != should_show_speed_restriction) {
+						this->vehicle_speed_restriction_line_shown != should_show_speed_restriction ||
+						this->vehicle_speed_adaptation_exempt_line_shown != should_show_speed_adaptation_exempt) {
 					const_cast<VehicleDetailsWindow *>(this)->ReInit();
 				}
 				break;
@@ -3410,7 +3426,7 @@ void CcStartStopVehicle(const CommandCost &result, TileIndex tile, uint32 p1, ui
 	if (result.Failed()) return;
 
 	const Vehicle *v = Vehicle::GetIfValid(p1);
-	if (v == nullptr || !v->IsPrimaryVehicle() || v->owner != _local_company) return;
+	if (v == nullptr || !v->IsPrimaryVehicle()) return;
 
 	StringID msg = (v->vehstatus & VS_STOPPED) ? STR_VEHICLE_COMMAND_STOPPED : STR_VEHICLE_COMMAND_STARTED;
 	Point pt = RemapCoords(v->x_pos, v->y_pos, v->z_pos);
@@ -4151,6 +4167,7 @@ void SetMouseCursorVehicle(const Vehicle *v, EngineImageType image_type)
 	int total_width = 0;
 	int y_offset = 0;
 	bool rotor_seq = false; // Whether to draw the rotor of the vehicle in this step.
+	bool is_ground_vehicle = v->IsGroundVehicle();
 
 	while (v != nullptr) {
 		if (total_width >= ScaleGUITrad(2 * (int)VEHICLEINFO_FULL_VEHICLE_WIDTH)) break;
@@ -4186,10 +4203,13 @@ void SetMouseCursorVehicle(const Vehicle *v, EngineImageType image_type)
 		}
 	}
 
-	int offs = (ScaleGUITrad(VEHICLEINFO_FULL_VEHICLE_WIDTH) - total_width) / 2;
-	if (rtl) offs = -offs;
-	for (uint i = 0; i < _cursor.sprite_count; ++i) {
-		_cursor.sprite_pos[i].x += offs;
+	if (is_ground_vehicle) {
+		/* Center trains and road vehicles on the front vehicle */
+		int offs = (ScaleGUITrad(VEHICLEINFO_FULL_VEHICLE_WIDTH) - total_width) / 2;
+		if (rtl) offs = -offs;
+		for (uint i = 0; i < _cursor.sprite_count; ++i) {
+			_cursor.sprite_pos[i].x += offs;
+		}
 	}
 
 	UpdateCursorSize();

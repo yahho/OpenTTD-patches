@@ -20,6 +20,7 @@
 #include "../waypoint_base.h"
 #include "../string_func_extra.h"
 #include "../newgrf_extension.h"
+#include "../animated_tile.h"
 
 /* Helper for filling property tables */
 #define NIP(prop, base, variable, type, name) { name, (ptrdiff_t)cpp_offsetof(base, variable), cpp_sizeof(base, variable), prop, type }
@@ -182,8 +183,8 @@ class NIHVehicle : public NIHelper {
 		}
 		if (v->type == VEH_TRAIN) {
 			const Train *t = Train::From(v);
-			seprintf(buffer, lastof(buffer), "  T cache: tilt: %d, curve speed mod: %d, engines: %u",
-					(t->tcache.cached_tflags & TCF_TILT) ? 1 : 0, t->tcache.cached_curve_speed_mod, t->tcache.cached_num_engines);
+			seprintf(buffer, lastof(buffer), "  T cache: tilt: %d, speed varies by railtype: %d, curve speed mod: %d, engines: %u",
+					(t->tcache.cached_tflags & TCF_TILT) ? 1 : 0, (t->tcache.cached_tflags & TCF_SPD_RAILTYPE) ? 1 : 0, t->tcache.cached_curve_speed_mod, t->tcache.cached_num_engines);
 			output.print(buffer);
 			seprintf(buffer, lastof(buffer), "  T cache: RL braking: %d, decel: %u, uncapped decel: %u, centre mass: %u",
 					(t->UsingRealisticBraking()) ? 1 : 0, t->tcache.cached_deceleration, t->tcache.cached_uncapped_decel, t->tcache.cached_centre_mass);
@@ -213,6 +214,7 @@ class NIHVehicle : public NIHelper {
 				TrainDecelerationStats stats(t);
 
 				auto print_braking_speed = [&](int position, int end_speed, int end_z) {
+					if (!t->UsingRealisticBraking()) return;
 					extern void LimitSpeedFromLookAhead(int &max_speed, const TrainDecelerationStats &stats, int current_position, int position, int end_speed, int z_delta);
 					int speed = INT_MAX;
 					LimitSpeedFromLookAhead(speed, stats, l.current_position, position, end_speed, end_z - stats.z_pos);
@@ -309,8 +311,8 @@ class NIHVehicle : public NIHelper {
 			output.print(buffer);
 		}
 
-		seprintf(buffer, lastof(buffer), "  Cached sprite bounds: (%d, %d) to (%d, %d)",
-				v->sprite_seq_bounds.left, v->sprite_seq_bounds.top, v->sprite_seq_bounds.right, v->sprite_seq_bounds.bottom);
+		seprintf(buffer, lastof(buffer), "  Cached sprite bounds: (%d, %d) to (%d, %d), offs: (%d, %d)",
+				v->sprite_seq_bounds.left, v->sprite_seq_bounds.top, v->sprite_seq_bounds.right, v->sprite_seq_bounds.bottom, v->x_offs, v->y_offs);
 		output.print(buffer);
 
 		if (HasBit(v->vehicle_flags, VF_SEPARATION_ACTIVE)) {
@@ -453,6 +455,7 @@ static const NIVariable _niv_stations[] = {
 class NIHStation : public NIHelper {
 	bool IsInspectable(uint index) const override        { return GetStationSpec(index) != nullptr; }
 	uint GetParent(uint index) const override            { return GetInspectWindowNumber(GSF_FAKE_TOWNS, Station::GetByTile(index)->town->index); }
+	bool ShowSpriteDumpButton(uint index) const override { return true; }
 	const void *GetInstance(uint index)const override    { return nullptr; }
 	const void *GetSpec(uint index) const override       { return GetStationSpec(index); }
 	void SetStringParameters(uint index) const override  { this->SetObjectAtStringParameters(STR_STATION_NAME, GetStationIndex(index), index); }
@@ -462,6 +465,12 @@ class NIHStation : public NIHelper {
 	{
 		StationResolverObject ro(GetStationSpec(index), Station::GetByTile(index), index, INVALID_RAILTYPE);
 		return ro.GetScope(VSG_SCOPE_SELF)->GetVariable(var, param, extra);
+	}
+
+	/* virtual */ void SpriteDump(uint index, std::function<void(const char *)> print) const override
+	{
+		StationResolverObject ro(GetStationSpec(index), Station::GetByTile(index), index, INVALID_RAILTYPE);
+		DumpSpriteGroup(ro.root_spritegroup, std::move(print));
 	}
 };
 
@@ -601,6 +610,7 @@ static const NIVariable _niv_industrytiles[] = {
 
 class NIHIndustryTile : public NIHelper {
 	bool IsInspectable(uint index) const override        { return GetIndustryTileSpec(GetIndustryGfx(index))->grf_prop.grffile != nullptr; }
+	bool ShowSpriteDumpButton(uint index) const override { return true; }
 	uint GetParent(uint index) const override            { return GetInspectWindowNumber(GSF_INDUSTRIES, GetIndustryIndex(index)); }
 	const void *GetInstance(uint index)const override    { return nullptr; }
 	const void *GetSpec(uint index) const override       { return GetIndustryTileSpec(GetIndustryGfx(index)); }
@@ -617,7 +627,7 @@ class NIHIndustryTile : public NIHelper {
 	{
 		char buffer[1024];
 		output.print("Debug Info:");
-		seprintf(buffer, lastof(buffer), "  Gfx Index: %u", GetIndustryGfx(index));
+		seprintf(buffer, lastof(buffer), "  Gfx Index: %u, animated tile: %d", GetIndustryGfx(index), _animated_tiles.find(index) != _animated_tiles.end());
 		output.print(buffer);
 		const IndustryTileSpec *indts = GetIndustryTileSpec(GetIndustryGfx(index));
 		if (indts) {
@@ -627,6 +637,15 @@ class NIHIndustryTile : public NIHelper {
 			output.print(buffer);
 			seprintf(buffer, lastof(buffer), "  special_flags: 0x%X, enabled: %u", indts->special_flags, indts->enabled);
 			output.print(buffer);
+		}
+	}
+
+	/* virtual */ void SpriteDump(uint index, std::function<void(const char *)> print) const override
+	{
+		const IndustryTileSpec *indts = GetIndustryTileSpec(GetIndustryGfx(index));
+		if (indts) {
+			extern void DumpIndustryTileSpriteGroup(const IndustryTileSpec *spec, std::function<void(const char *)> print);
+			DumpIndustryTileSpriteGroup(indts, std::move(print));
 		}
 	}
 };
@@ -727,6 +746,7 @@ static const NIVariable _niv_industries[] = {
 class NIHIndustry : public NIHelper {
 	bool IsInspectable(uint index) const override        { return true; }
 	bool ShowExtraInfoOnly(uint index) const override    { return GetIndustrySpec(Industry::Get(index)->type)->grf_prop.grffile == nullptr; }
+	bool ShowSpriteDumpButton(uint index) const override { return true; }
 	uint GetParent(uint index) const override            { return GetInspectWindowNumber(GSF_FAKE_TOWNS, Industry::Get(index)->town->index); }
 	const void *GetInstance(uint index)const override    { return Industry::Get(index); }
 	const void *GetSpec(uint index) const override       { return GetIndustrySpec(Industry::Get(index)->type); }
@@ -803,6 +823,21 @@ class NIHIndustry : public NIHelper {
 				seprintf(buffer, lastof(buffer), "  Counter production interval: %u", ScaleQuantity(INDUSTRY_PRODUCE_TICKS, -_settings_game.economy.industry_cargo_scale_factor));
 				output.print(buffer);
 			}
+			seprintf(buffer, lastof(buffer), "  Number of layouts: %u", (uint)indsp->layouts.size());
+			output.print(buffer);
+			for (size_t i = 0; i < indsp->layout_anim_masks.size(); i++) {
+				seprintf(buffer, lastof(buffer), "  Layout anim inhibit mask %u: " OTTD_PRINTFHEX64, (uint)i, indsp->layout_anim_masks[i]);
+				output.print(buffer);
+			}
+		}
+	}
+
+	/* virtual */ void SpriteDump(uint index, std::function<void(const char *)> print) const override
+	{
+		const Industry *ind = Industry::GetIfValid(index);
+		if (ind) {
+			extern void DumpIndustrySpriteGroup(const IndustrySpec *spec, std::function<void(const char *)> print);
+			DumpIndustrySpriteGroup(GetIndustrySpec(ind->type), std::move(print));
 		}
 	}
 };
@@ -1264,8 +1299,8 @@ class NIHStationStruct : public NIHelper {
 			}
 			seprintf(buffer, lastof(buffer), "  Nearby industries: %u", (uint) st->industries_near.size());
 			output.print(buffer);
-			for (const Industry *ind : st->industries_near) {
-				seprintf(buffer, lastof(buffer), "    %u: %s", ind->index, ind->GetCachedName());
+			for (const auto &i : st->industries_near) {
+				seprintf(buffer, lastof(buffer), "    %u: %s, distance: %u", i.industry->index, i.industry->GetCachedName(), i.distance);
 				output.print(buffer);
 			}
 			seprintf(buffer, lastof(buffer), "  Station tiles: %u", st->station_tiles);

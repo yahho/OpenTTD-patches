@@ -46,6 +46,7 @@ enum VehicleRailFlags {
 	VRF_CONSIST_BREAKDOWN             = 19,///< one or more vehicles in this consist have a breakdown of some sort (breakdown_ctr != 0)
 	VRF_CONSIST_SPEED_REDUCTION       = 20,///< one or more vehicles in this consist may be in a depot or on a bridge (may be false positive but not false negative)
 	VRF_PENDING_SPEED_RESTRICTION     = 21,///< This vehicle has one or more pending speed restriction changes
+	VRF_SPEED_ADAPTATION_EXEMPT       = 22,///< This vehicle is exempt from train speed adaptation
 
 	VRF_IS_BROKEN = (1 << VRF_BREAKDOWN_POWER) | (1 << VRF_BREAKDOWN_SPEED) | (1 << VRF_BREAKDOWN_STOPPED), ///< Bitmask of all flags that indicate a broken train (braking is not included)
 };
@@ -95,9 +96,10 @@ inline int GetTrainRealisticBrakingTargetDecelerationLimit(int acceleration_type
 
 /** Flags for TrainCache::cached_tflags */
 enum TrainCacheFlags : byte {
-	TCF_NONE       = 0,        ///< No flags
-	TCF_TILT       = 0x01,     ///< Train can tilt; feature provides a bonus in curves.
-	TCF_RL_BRAKING = 0x02,     ///< Train realistic braking (movement physics) in effect for this vehicle
+	TCF_NONE         = 0,        ///< No flags
+	TCF_TILT         = 0x01,     ///< Train can tilt; feature provides a bonus in curves.
+	TCF_RL_BRAKING   = 0x02,     ///< Train realistic braking (movement physics) in effect for this vehicle
+	TCF_SPD_RAILTYPE = 0x04,     ///< Train speed varies depending on railtype
 };
 DECLARE_ENUM_AS_BIT_SET(TrainCacheFlags)
 
@@ -159,7 +161,7 @@ struct Train FINAL : public GroundVehicle<Train, VEH_TRAIN> {
 
 	void MarkDirty();
 	void UpdateDeltaXY();
-	ExpensesType GetExpenseType(bool income) const { return income ? EXPENSES_TRAIN_INC : EXPENSES_TRAIN_RUN; }
+	ExpensesType GetExpenseType(bool income) const { return income ? EXPENSES_TRAIN_REVENUE : EXPENSES_TRAIN_RUN; }
 	void PlayLeaveStationSound() const;
 	bool IsPrimaryVehicle() const { return this->IsFrontEngine(); }
 	void GetImage(Direction direction, EngineImageType image_type, VehicleSpriteSeq *result) const;

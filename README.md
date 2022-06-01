@@ -117,7 +117,7 @@ See [installation.md](/installation.md) for instructions on how to install.
 * Add setting to disable mass action buttons for top-level vehicle lists.
 * Add feature to create a new auto-named group when dragging and dropping a vehicle onto the new group button (ctrl includes shared order vehicles).
 * Add settings to reduce vehicle running costs when a vehicle is stationary or in a depot.
-* If a train or ship's next order is for the current station when leaving, start loading again without moving, instead of leaving.
+* If a vehicle's next order is for the current station when leaving, start loading again without moving, instead of leaving.
 * Slots and counters.  
   See the [guide on the wiki](https://github.com/JGRennison/OpenTTD-patches/wiki/Signalling) for more information.
 * Add cargo capacity / running cost sort mode to the build vehicle window.
@@ -157,6 +157,7 @@ See [installation.md](/installation.md) for instructions on how to install.
 
 * [Departure boards](https://www.tt-forums.net/viewtopic.php?f=33&t=49956).
 * Add road waypoints.
+* Add NewGRF road stops.
 * Add a setting to increase the station catchment radius.
 * Station rating: track "last visited vehicle type" separately per cargo.
 * Add setting to scale station cargo capacity and rating tolerance by size.
@@ -167,10 +168,11 @@ See [installation.md](/installation.md) for instructions on how to install.
 * Add setting to show a company-coloured mark next to vehicles in vehicle list windows, if their owner does not match the list owner.
 * Add a waiting cargo history graph for stations.
 * Add a tooltip to show station rating details (controlled by a setting).
-* [Allow NewGRFs to supply additional station name strings](https://github.com/JGRennison/OpenTTD-patches/wiki/GRF-features#extra-station-names).
 * Add sort by number of vehicles calling to the station list window.
 * Add setting to distribute cargo received at a station to all accepting industries equally, instead of just one of them.
 * Add setting to allow hiding viewport labels of individual waypoints.
+* Increase the distance a station can be from the town centre and still be assigned have the same name as the town (no suffix/prefix), for large towns.
+* [Allow NewGRFs to supply additional station name strings](https://github.com/JGRennison/OpenTTD-patches/wiki/GRF-features#extra-station-names).
 
 #### Towns
 
@@ -193,7 +195,7 @@ See [installation.md](/installation.md) for instructions on how to install.
 * [Adjusted arctic tree placement](http://www.tt-forums.net/viewtopic.php?f=33&t=72502).
 * Add a new tree placement mode (perfect).
 * [Minimum town distance](https://www.tt-forums.net/viewtopic.php?f=33&t=33625).
-* Add map generation settings to control river/lake and rocky patch generation.
+* Add map generation settings to control river/lake, rocky patch, and tropic zone generation.
 * Add generation of wide rivers.
 * Add settings to customise the size of town zones, and city zones.
 
@@ -231,6 +233,7 @@ See [installation.md](/installation.md) for instructions on how to install.
 * Topography and industry screenshots.
 * Make smallmap refresh period variable with map mode/zoom and pause state.
 * Add display setting for income/cost text effects.
+* Make the company infrastructure window scrollable.
 
 #### Limits
 

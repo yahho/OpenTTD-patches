@@ -253,6 +253,8 @@ static void ShowHelp()
 		"  -x                  = Never save configuration changes to disk\n"
 		"  -X                  = Don't use global folders to search for files\n"
 		"  -q savegame         = Write some information about the savegame and exit\n"
+		"  -Q                  = Don't scan for/load NewGRF files on startup\n"
+		"  -QQ                 = Disable NewGRF scanning/loading entirely\n"
 		"  -Z                  = Write detailed version information and exit\n"
 		"\n",
 		lastof(buf)
@@ -471,6 +473,7 @@ static void ShutdownGame()
 	_game_load_tick_skip_counter = 0;
 	_game_load_time = 0;
 	_extra_station_names_used = 0;
+	_extra_station_names_probability = 0;
 	_extra_aspects = 0;
 	_loadgame_DBGL_data.clear();
 	_loadgame_DBGC_data.clear();
@@ -665,6 +668,7 @@ static const OptionData _options[] = {
 	 GETOPT_SHORT_VALUE('q'),
 	 GETOPT_SHORT_VALUE('K'),
 	 GETOPT_SHORT_NOVAL('h'),
+	 GETOPT_SHORT_NOVAL('Q'),
 	 GETOPT_SHORT_VALUE('J'),
 	 GETOPT_SHORT_NOVAL('Z'),
 	GETOPT_END()
@@ -804,6 +808,11 @@ int openttd_main(int argc, char *argv[])
 				WriteSavegameDebugData(title);
 			}
 			return ret;
+		}
+		case 'Q': {
+			extern int _skip_all_newgrf_scanning;
+			_skip_all_newgrf_scanning += 1;
+			break;
 		}
 		case 'G': scanner->generation_seed = strtoul(mgo.opt, nullptr, 10); break;
 		case 'c': _config_file = mgo.opt; break;

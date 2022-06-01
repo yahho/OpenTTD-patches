@@ -337,6 +337,7 @@ struct GameOptionsWindow : Window {
 			case WID_GO_BASE_SFX_DROPDOWN:     SetDParamStr(0, BaseSounds::GetUsedSet()->name); break;
 			case WID_GO_BASE_MUSIC_DROPDOWN:   SetDParamStr(0, BaseMusic::GetUsedSet()->name); break;
 			case WID_GO_BASE_MUSIC_STATUS:     SetDParam(0, BaseMusic::GetUsedSet()->GetNumInvalid()); break;
+			case WID_GO_VIDEO_DRIVER_INFO:     SetDParamStr(0, VideoDriver::GetInstance()->GetInfoString()); break;
 			case WID_GO_REFRESH_RATE_DROPDOWN: SetDParam(0, _settings_client.gui.refresh_rate); break;
 			case WID_GO_RESOLUTION_DROPDOWN: {
 				auto current_resolution = GetCurrentResolutionIndex();
@@ -759,6 +760,9 @@ static const NWidgetPart _nested_game_options_widgets[] = {
 						NWidget(WWT_TEXTBTN, COLOUR_GREY, WID_GO_VIDEO_VSYNC_BUTTON), SetMinimalSize(21, 9), SetDataTip(STR_EMPTY, STR_GAME_OPTIONS_VIDEO_VSYNC_TOOLTIP),
 					EndContainer(),
 #endif
+					NWidget(NWID_HORIZONTAL),
+						NWidget(WWT_TEXT, COLOUR_GREY, WID_GO_VIDEO_DRIVER_INFO), SetMinimalSize(0, 12), SetFill(1, 0), SetDataTip(STR_GAME_OPTIONS_VIDEO_DRIVER_INFO, STR_NULL),
+					EndContainer(),
 				EndContainer(),
 			EndContainer(),
 		EndContainer(),
@@ -1914,7 +1918,6 @@ static SettingsContainer &GetSettingsTree()
 			interface->Add(new SettingEntry("gui.statusbar_pos"));
 			interface->Add(new SettingEntry("gui.prefer_teamchat"));
 			interface->Add(new SettingEntry("gui.advanced_vehicle_list"));
-			interface->Add(new SettingEntry("gui.expenses_layout"));
 			interface->Add(new SettingEntry("gui.show_newgrf_name"));
 			interface->Add(new SettingEntry("gui.show_train_length_in_details"));
 			interface->Add(new SettingEntry("gui.show_train_weight_ratios_in_details"));
@@ -2108,6 +2111,8 @@ static SettingsContainer &GetSettingsTree()
 				rivers->Add(new SettingEntry("game_creation.river_route_random"));
 				rivers->Add(new SettingEntry("game_creation.rivers_top_of_hill"));
 				rivers->Add(new SettingEntry("game_creation.river_tropics_width"));
+				rivers->Add(new SettingEntry("game_creation.lake_tropics_width"));
+				rivers->Add(new SettingEntry("game_creation.coast_tropics_width"));
 				rivers->Add(new SettingEntry("game_creation.lake_size"));
 				rivers->Add(new SettingEntry("game_creation.lakes_allowed_in_deserts"));
 			}
@@ -2222,6 +2227,7 @@ static SettingsContainer &GetSettingsTree()
 				treedist->Add(new SettingEntry("construction.extra_tree_placement"));
 				treedist->Add(new SettingEntry("construction.trees_around_snow_line_enabled"));
 				treedist->Add(new SettingEntry("construction.trees_around_snow_line_range"));
+				treedist->Add(new SettingEntry("construction.trees_around_snow_line_dynamic_range"));
 				treedist->Add(new SettingEntry("construction.tree_growth_rate"));
 			}
 

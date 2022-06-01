@@ -15,6 +15,8 @@
 #include "vehicle_type.h"
 #include "newgrf_cache_check.h"
 #include "string_func.h"
+#include "newgrf_extension.h"
+#include "newgrf_industrytiles_analysis.h"
 
 #include "safeguards.h"
 
@@ -182,7 +184,24 @@ static U EvalAdjustT(const DeterministicSpriteGroupAdjust &adjust, ScopeResolver
 		case DSGA_OP_SHL:  return (uint32)(U)last_value << ((U)value & 0x1F); // Same behaviour as in ParamSet, mask 'value' to 5 bits, which should behave the same on all architectures.
 		case DSGA_OP_SHR:  return (uint32)(U)last_value >> ((U)value & 0x1F);
 		case DSGA_OP_SAR:  return (int32)(S)last_value >> ((U)value & 0x1F);
+		case DSGA_OP_TERNARY: return (last_value != 0) ? value : adjust.add_val;
+		case DSGA_OP_EQ:   return (last_value == value) ? 1 : 0;
+		case DSGA_OP_SLT:  return ((S)last_value <  (S)value) ? 1 : 0;
+		case DSGA_OP_SGE:  return ((S)last_value >= (S)value) ? 1 : 0;
+		case DSGA_OP_SLE:  return ((S)last_value <= (S)value) ? 1 : 0;
+		case DSGA_OP_SGT:  return ((S)last_value >  (S)value) ? 1 : 0;
+		case DSGA_OP_RSUB: return value - last_value;
 		default:           return value;
+	}
+}
+
+uint32 EvaluateDeterministicSpriteGroupAdjust(DeterministicSpriteGroupSize size, const DeterministicSpriteGroupAdjust &adjust, ScopeResolver *scope, uint32 last_value, uint32 value)
+{
+	switch (size) {
+		case DSG_SIZE_BYTE:  return EvalAdjustT<uint8,  int8> (adjust, scope, last_value, value); break;
+		case DSG_SIZE_WORD:  return EvalAdjustT<uint16, int16>(adjust, scope, last_value, value); break;
+		case DSG_SIZE_DWORD: return EvalAdjustT<uint32, int32>(adjust, scope, last_value, value); break;
+		default: NOT_REACHED();
 	}
 }
 
@@ -267,16 +286,12 @@ void DeterministicSpriteGroup::AnalyseCallbacks(AnalyseCallbackOperation &op) co
 		return;
 	}
 
+	if (op.mode == ACOM_INDUSTRY_TILE && op.data.indtile->anim_state_at_offset) return;
+
 	auto check_1A_range = [&]() -> bool {
-		if (this->adjusts.size() == 1 && this->adjusts[0].variable == 0x1A) {
+		if (this->GroupMayBeBypassed()) {
 			/* Not clear why some GRFs do this, perhaps a way of commenting out a branch */
-			uint32 value = 0;
-			switch (this->size) {
-				case DSG_SIZE_BYTE:  value = EvalAdjustT<uint8,  int8> (this->adjusts[0], nullptr, 0, UINT_MAX); break;
-				case DSG_SIZE_WORD:  value = EvalAdjustT<uint16, int16>(this->adjusts[0], nullptr, 0, UINT_MAX); break;
-				case DSG_SIZE_DWORD: value = EvalAdjustT<uint32, int32>(this->adjusts[0], nullptr, 0, UINT_MAX); break;
-				default: NOT_REACHED();
-			}
+			uint32 value = (this->adjusts.size() == 1) ? EvaluateDeterministicSpriteGroupAdjust(this->size, this->adjusts[0], nullptr, 0, UINT_MAX) : 0;
 			for (const auto &range : this->ranges) {
 				if (range.low <= value && value <= range.high) {
 					if (range.group != nullptr) range.group->AnalyseCallbacks(op);
@@ -295,19 +310,24 @@ void DeterministicSpriteGroup::AnalyseCallbacks(AnalyseCallbackOperation &op) co
 			return;
 		} else if (!op.cb_result_found) {
 			if (check_1A_range()) return;
-			if (this->adjusts.size() == 1 && this->adjusts[0].variable == 0xC) {
-				const auto &adjust = this->adjusts[0];
-				if (adjust.shift_num == 0 && (adjust.and_mask & 0xFF) == 0xFF && adjust.type == DSGA_TYPE_NONE) {
-					for (const auto &range : this->ranges) {
-						if (range.low == range.high && range.low == 0xC) {
-							if (range.group != nullptr) range.group->AnalyseCallbacks(op);
-							return;
+			auto check_var_filter = [&](uint8 var, uint value) -> bool {
+				if (this->adjusts.size() == 1 && this->adjusts[0].variable == var && (this->adjusts[0].operation == DSGA_OP_ADD || this->adjusts[0].operation == DSGA_OP_RST)) {
+					const auto &adjust = this->adjusts[0];
+					if (adjust.shift_num == 0 && (adjust.and_mask & 0xFF) == 0xFF && adjust.type == DSGA_TYPE_NONE) {
+						for (const auto &range : this->ranges) {
+							if (range.low == range.high && range.low == value) {
+								if (range.group != nullptr) range.group->AnalyseCallbacks(op);
+								return true;
+							}
 						}
+						if (this->default_group != nullptr) this->default_group->AnalyseCallbacks(op);
+						return true;
 					}
-					if (this->default_group != nullptr) this->default_group->AnalyseCallbacks(op);
-					return;
 				}
-			}
+				return false;
+			};
+			if (check_var_filter(0xC, op.data.cb_result.callback)) return;
+			if (op.data.cb_result.check_var_10 && check_var_filter(0x10, op.data.cb_result.var_10_value)) return;
 			for (const auto &range : this->ranges) {
 				if (range.group != nullptr) range.group->AnalyseCallbacks(op);
 			}
@@ -318,18 +338,16 @@ void DeterministicSpriteGroup::AnalyseCallbacks(AnalyseCallbackOperation &op) co
 
 	if (check_1A_range()) return;
 
-	auto find_cb_result = [&]() -> bool {
-		if (this->calculated_result) return true;
+	auto find_cb_result = [&](const SpriteGroup *group, AnalyseCallbackOperation::FindCBResultData data) -> bool {
+		if (group == nullptr) return false;
 		AnalyseCallbackOperation cbr_op;
 		cbr_op.mode = ACOM_FIND_CB_RESULT;
-		for (const auto &range : this->ranges) {
-			if (range.group != nullptr) range.group->AnalyseCallbacks(cbr_op);
-		}
-		if (this->default_group != nullptr) this->default_group->AnalyseCallbacks(cbr_op);
+		cbr_op.data.cb_result = data;
+		group->AnalyseCallbacks(cbr_op);
 		return cbr_op.cb_result_found;
 	};
 
-	if (this->adjusts.size() == 1 && !this->calculated_result) {
+	if (this->adjusts.size() == 1 && !this->calculated_result && (this->adjusts[0].operation == DSGA_OP_ADD || this->adjusts[0].operation == DSGA_OP_RST)) {
 		const auto &adjust = this->adjusts[0];
 		if (op.mode == ACOM_CB_VAR && adjust.variable == 0xC) {
 			if (adjust.shift_num == 0 && (adjust.and_mask & 0xFF) == 0xFF && adjust.type == DSGA_TYPE_NONE) {
@@ -354,6 +372,7 @@ void DeterministicSpriteGroup::AnalyseCallbacks(AnalyseCallbackOperation &op) co
 									cb36_op.mode = ACOM_CB36_PROP;
 									range.group->AnalyseCallbacks(cb36_op);
 									op.properties_used |= cb36_op.properties_used;
+									op.callbacks_used |= cb36_op.callbacks_used;
 								}
 								break;
 						}
@@ -370,7 +389,18 @@ void DeterministicSpriteGroup::AnalyseCallbacks(AnalyseCallbackOperation &op) co
 				for (const auto &range : this->ranges) {
 					if (range.low == range.high) {
 						if (range.low < 64) {
-							if (find_cb_result()) SetBit(op.properties_used, range.low);
+							if (find_cb_result(range.group, { CBID_VEHICLE_MODIFY_PROPERTY, true, (uint8)range.low })) {
+								SetBit(op.properties_used, range.low);
+								if (range.low == 0x9) {
+									/* Speed */
+									if (range.group != nullptr) {
+										AnalyseCallbackOperation cb36_speed;
+										cb36_speed.mode = ACOM_CB36_SPEED;
+										range.group->AnalyseCallbacks(cb36_speed);
+										op.callbacks_used |= cb36_speed.callbacks_used;
+									}
+								}
+							}
 						}
 					} else {
 						if (range.group != nullptr) range.group->AnalyseCallbacks(op);
@@ -392,18 +422,105 @@ void DeterministicSpriteGroup::AnalyseCallbacks(AnalyseCallbackOperation &op) co
 				return;
 			}
 		}
+		if (op.mode == ACOM_CB36_SPEED && adjust.variable == 0x4A) {
+			op.callbacks_used |= SGCU_CB36_SPEED_RAILTYPE;
+			return;
+		}
+		if (op.mode == ACOM_INDUSTRY_TILE && adjust.variable == 0xC) {
+			if (adjust.shift_num == 0 && (adjust.and_mask & 0xFF) == 0xFF && adjust.type == DSGA_TYPE_NONE) {
+				/* Callback switch, skip to the default/graphics chain */
+				for (const auto &range : this->ranges) {
+					if (range.low == 0) {
+						if (range.group != nullptr) range.group->AnalyseCallbacks(op);
+						return;
+					}
+				}
+				if (this->default_group != nullptr) this->default_group->AnalyseCallbacks(op);
+				return;
+			}
+		}
+		if (op.mode == ACOM_INDUSTRY_TILE && adjust.variable == 0x44 && this->var_scope == VSG_SCOPE_PARENT) {
+			if (adjust.shift_num == 0 && (adjust.and_mask & 0xFF) == 0xFF && adjust.type == DSGA_TYPE_NONE) {
+				/* Layout index switch */
+				for (const auto &range : this->ranges) {
+					if (range.low <= op.data.indtile->layout_index && op.data.indtile->layout_index <= range.high) {
+						if (range.group != nullptr) range.group->AnalyseCallbacks(op);
+						return;
+					}
+				}
+				if (this->default_group != nullptr) this->default_group->AnalyseCallbacks(op);
+				return;
+			}
+		}
+		if (op.mode == ACOM_INDUSTRY_TILE && adjust.variable == 0x43 && this->var_scope == VSG_SCOPE_SELF) {
+			if (adjust.shift_num == 0 && adjust.and_mask == 0xFFFF && adjust.type == DSGA_TYPE_NONE) {
+				/* Relative position switch */
+				uint64 default_mask = op.data.indtile->check_mask;
+				for (const auto &range : this->ranges) {
+					if (range.high - range.low < 32) {
+						uint64 new_check_mask = 0;
+						for (uint i = range.low; i <= range.high; i++) {
+							int16 x = i & 0xFF;
+							int16 y = (i >> 8) & 0xFF;
+							for (uint bit : SetBitIterator<uint, uint64>(op.data.indtile->check_mask)) {
+								const TileIndexDiffC &ti = (*(op.data.indtile->layout))[bit].ti;
+								if (ti.x == x && ti.y == y) {
+									SetBit(new_check_mask, bit);
+								}
+							}
+						}
+						default_mask &= ~new_check_mask;
+						if (range.group != nullptr) {
+							AnalyseCallbackOperationIndustryTileData data = *(op.data.indtile);
+							data.check_mask = new_check_mask;
+
+							AnalyseCallbackOperation sub_op;
+							sub_op.mode = ACOM_INDUSTRY_TILE;
+							sub_op.data.indtile = &data;
+							range.group->AnalyseCallbacks(sub_op);
+
+							if (data.anim_state_at_offset) {
+								op.data.indtile->anim_state_at_offset = true;
+								return;
+							}
+						}
+					} else {
+						if (range.group != nullptr) range.group->AnalyseCallbacks(op);
+					}
+				}
+				if (this->default_group != nullptr) {
+					AnalyseCallbackOperationIndustryTileData data = *(op.data.indtile);
+					data.check_mask = default_mask;
+
+					AnalyseCallbackOperation sub_op;
+					sub_op.mode = ACOM_INDUSTRY_TILE;
+					sub_op.data.indtile = &data;
+
+					this->default_group->AnalyseCallbacks(sub_op);
+				}
+				return;
+			}
+		}
 	}
 	for (const auto &adjust : this->adjusts) {
 		if (op.mode == ACOM_CB_VAR && adjust.variable == 0xC) {
 			op.callbacks_used |= SGCU_ALL;
 		}
 		if (op.mode == ACOM_CB36_PROP && adjust.variable == 0x10) {
-			if (find_cb_result()) {
+			if (find_cb_result(this, { CBID_VEHICLE_MODIFY_PROPERTY, false, 0 })) {
 				op.properties_used |= UINT64_MAX;
 			}
 		}
 		if (adjust.variable == 0x7E && adjust.subroutine != nullptr) {
 			adjust.subroutine->AnalyseCallbacks(op);
+		}
+		if (op.mode == ACOM_INDUSTRY_TILE && this->var_scope == VSG_SCOPE_SELF && (adjust.variable == 0x44 || (adjust.variable == 0x61 && adjust.parameter == 0))) {
+			*(op.data.indtile->result_mask) &= ~op.data.indtile->check_mask;
+			return;
+		}
+		if (op.mode == ACOM_INDUSTRY_TILE && ((this->var_scope == VSG_SCOPE_SELF && adjust.variable == 0x61) || (this->var_scope == VSG_SCOPE_PARENT && adjust.variable == 0x63))) {
+			op.data.indtile->anim_state_at_offset = true;
+			return;
 		}
 	}
 	if (!this->calculated_result) {
@@ -412,6 +529,14 @@ void DeterministicSpriteGroup::AnalyseCallbacks(AnalyseCallbackOperation &op) co
 		}
 		if (this->default_group != nullptr) this->default_group->AnalyseCallbacks(op);
 	}
+}
+
+bool DeterministicSpriteGroup::GroupMayBeBypassed() const
+{
+	if (this->calculated_result) return false;
+	if (this->adjusts.size() == 0) return true;
+	if ((this->adjusts.size() == 1 && this->adjusts[0].variable == 0x1A && (this->adjusts[0].operation == DSGA_OP_ADD || this->adjusts[0].operation == DSGA_OP_RST))) return true;
+	return false;
 }
 
 void CallbackResultSpriteGroup::AnalyseCallbacks(AnalyseCallbackOperation &op) const
@@ -442,6 +567,10 @@ const SpriteGroup *RandomizedSpriteGroup::Resolve(ResolverObject &object) const
 void RandomizedSpriteGroup::AnalyseCallbacks(AnalyseCallbackOperation &op) const
 {
 	if (op.mode == ACOM_CB_VAR) op.callbacks_used |= SGCU_RANDOM_TRIGGER;
+
+	for (const SpriteGroup *group: this->groups) {
+		if (group != nullptr) group->AnalyseCallbacks(op);
+	}
 }
 
 const SpriteGroup *RealSpriteGroup::Resolve(ResolverObject &object) const
@@ -522,6 +651,17 @@ static const char *_dsg_op_names[] {
 };
 static_assert(lengthof(_dsg_op_names) == DSGA_OP_END);
 
+static const char *_dsg_op_special_names[] {
+	"TERNARY",
+	"EQ",
+	"SLT",
+	"SGE",
+	"SLE",
+	"SGT",
+	"RSUB",
+};
+static_assert(lengthof(_dsg_op_special_names) == DSGA_OP_SPECIAL_END - DSGA_OP_TERNARY);
+
 static const char *_sg_scope_names[] {
 	"SELF",
 	"PARENT",
@@ -534,6 +674,13 @@ static const char *_sg_size_names[] {
 	"WORD",
 	"DWORD",
 };
+
+static const char *GetAdjustOperationName(DeterministicSpriteGroupAdjustOperation operation)
+{
+	if (operation < DSGA_OP_END) return _dsg_op_names[operation];
+	if (operation >= DSGA_OP_TERNARY && operation < DSGA_OP_SPECIAL_END) return _dsg_op_special_names[operation - DSGA_OP_TERNARY];
+	return "???";
+}
 
 void SpriteGroupDumper::DumpSpriteGroup(const SpriteGroup *sg, int padding, uint flags)
 {
@@ -585,8 +732,15 @@ void SpriteGroupDumper::DumpSpriteGroup(const SpriteGroup *sg, int padding, uint
 			padding += 2;
 			for (const auto &adjust : dsg->adjusts) {
 				char *p = this->buffer;
+				if (adjust.operation == DSGA_OP_TERNARY) {
+					p += seprintf(p, lastof(this->buffer), "%*sTERNARY: true: %X, false: %X", padding, "", adjust.and_mask, adjust.add_val);
+					this->print();
+					continue;
+				}
 				p += seprintf(p, lastof(this->buffer), "%*svar: %X", padding, "", adjust.variable);
-				if (adjust.variable >= 0x100) {
+				if (adjust.variable == A2VRI_VEHICLE_CURRENT_SPEED_SCALED) {
+					p += seprintf(p, lastof(this->buffer), " (current_speed_scaled)");
+				} else if (adjust.variable >= 0x100) {
 					extern const GRFVariableMapDefinition _grf_action2_remappable_variables[];
 					for (const GRFVariableMapDefinition *info = _grf_action2_remappable_variables; info->name != nullptr; info++) {
 						if (adjust.variable == info->id) {
@@ -595,15 +749,18 @@ void SpriteGroupDumper::DumpSpriteGroup(const SpriteGroup *sg, int padding, uint
 						}
 					}
 				}
-				if ((adjust.variable >= 0x60 && adjust.variable <= 0x7F) || adjust.parameter != 0) p += seprintf(p, lastof(this->buffer), " (parameter: %X)", adjust.parameter);
+				if ((adjust.variable >= 0x60 && adjust.variable <= 0x7F && adjust.variable != 0x7E) || adjust.parameter != 0) p += seprintf(p, lastof(this->buffer), " (parameter: %X)", adjust.parameter);
 				p += seprintf(p, lastof(this->buffer), ", shift: %X, and: %X", adjust.shift_num, adjust.and_mask);
 				switch (adjust.type) {
 					case DSGA_TYPE_DIV: p += seprintf(p, lastof(this->buffer), ", add: %X, div: %X", adjust.add_val, adjust.divmod_val); break;
 					case DSGA_TYPE_MOD:  p += seprintf(p, lastof(this->buffer), ", add: %X, mod: %X", adjust.add_val, adjust.divmod_val); break;
 					case DSGA_TYPE_NONE: break;
 				}
-				p += seprintf(p, lastof(this->buffer), ", op: %X (%s)", adjust.operation, adjust.operation < DSGA_OP_END ? _dsg_op_names[adjust.operation] : "???");
+				p += seprintf(p, lastof(this->buffer), ", op: %X (%s)", adjust.operation, GetAdjustOperationName(adjust.operation));
 				this->print();
+				if (adjust.variable == 0x7E && adjust.subroutine != nullptr) {
+					this->DumpSpriteGroup(adjust.subroutine, padding + 5, 0);
+				}
 			}
 			if (dsg->calculated_result) {
 				seprintf(this->buffer, lastof(this->buffer), "%*scalculated_result", padding, "");
@@ -642,14 +799,84 @@ void SpriteGroupDumper::DumpSpriteGroup(const SpriteGroup *sg, int padding, uint
 					padding, "", ((const ResultSpriteGroup *) sg)->sprite, ((const ResultSpriteGroup *) sg)->num_sprites);
 			this->print();
 			break;
-		case SGT_TILELAYOUT:
+		case SGT_TILELAYOUT: {
+			const TileLayoutSpriteGroup *tlsg = (const TileLayoutSpriteGroup*)sg;
 			seprintf(this->buffer, lastof(this->buffer), "%*sTile Layout [%u]", padding, "", sg->nfo_line);
 			this->print();
+			padding += 2;
+			if (tlsg->dts.registers != nullptr) {
+				const TileLayoutRegisters *registers = tlsg->dts.registers;
+				size_t count = 1; // 1 for the ground sprite
+				const DrawTileSeqStruct *element;
+				foreach_draw_tile_seq(element, tlsg->dts.seq) count++;
+				for (size_t i = 0; i < count; i ++) {
+					const TileLayoutRegisters *reg = registers + i;
+					seprintf(this->buffer, lastof(this->buffer), "%*ssection: %X, register flags: %X", padding, "", (uint)i, reg->flags);
+					this->print();
+					if (reg->flags & TLF_DODRAW) {
+						seprintf(this->buffer, lastof(this->buffer), "%*sTLF_DODRAW reg: %X", padding + 2, "", reg->dodraw);
+						this->print();
+					}
+					if (reg->flags & TLF_SPRITE) {
+						seprintf(this->buffer, lastof(this->buffer), "%*sTLF_SPRITE reg: %X", padding + 2, "", reg->sprite);
+						this->print();
+					}
+					if (reg->flags & TLF_PALETTE) {
+						seprintf(this->buffer, lastof(this->buffer), "%*sTLF_PALETTE reg: %X", padding + 2, "", reg->palette);
+						this->print();
+					}
+					if (reg->flags & TLF_BB_XY_OFFSET) {
+						seprintf(this->buffer, lastof(this->buffer), "%*sTLF_BB_XY_OFFSET reg: %X, %X", padding + 2, "", reg->delta.parent[0], reg->delta.parent[1]);
+						this->print();
+					}
+					if (reg->flags & TLF_BB_Z_OFFSET) {
+						seprintf(this->buffer, lastof(this->buffer), "%*sTLF_BB_Z_OFFSET reg: %X", padding + 2, "", reg->delta.parent[2]);
+						this->print();
+					}
+					if (reg->flags & TLF_CHILD_X_OFFSET) {
+						seprintf(this->buffer, lastof(this->buffer), "%*sTLF_CHILD_X_OFFSET reg: %X", padding + 2, "", reg->delta.child[0]);
+						this->print();
+					}
+					if (reg->flags & TLF_CHILD_Y_OFFSET) {
+						seprintf(this->buffer, lastof(this->buffer), "%*sTLF_CHILD_Y_OFFSET reg: %X", padding + 2, "", reg->delta.child[1]);
+						this->print();
+					}
+					if (reg->flags & TLF_SPRITE_VAR10) {
+						seprintf(this->buffer, lastof(this->buffer), "%*sTLF_SPRITE_VAR10 value: %X", padding + 2, "", reg->sprite_var10);
+						this->print();
+					}
+					if (reg->flags & TLF_PALETTE_VAR10) {
+						seprintf(this->buffer, lastof(this->buffer), "%*sTLF_PALETTE_VAR10 value: %X", padding + 2, "", reg->palette_var10);
+						this->print();
+					}
+				}
+			}
 			break;
-		case SGT_INDUSTRY_PRODUCTION:
-			seprintf(this->buffer, lastof(this->buffer), "%*sIndustry Production [%u]", padding, "", sg->nfo_line);
+		}
+		case SGT_INDUSTRY_PRODUCTION: {
+			const IndustryProductionSpriteGroup *ipsg = (const IndustryProductionSpriteGroup*)sg;
+			seprintf(this->buffer, lastof(this->buffer), "%*sIndustry Production (version %X) [%u]", padding, "", ipsg->version, ipsg->nfo_line);
+			this->print();
+			auto log_io = [&](const char *prefix, int i, int quantity, CargoID cargo) {
+				if (ipsg->version >= 2) {
+					seprintf(this->buffer, lastof(this->buffer), "%*s%s %X: reg %X, cargo ID: %X", padding + 2, "", prefix, i, quantity, cargo);
+					this->print();
+				} else {
+					const char *type = (ipsg->version >= 1) ? "reg" : "value";
+					seprintf(this->buffer, lastof(this->buffer), "%*s%s %X: %s %X", padding + 2, "", prefix, i, type, quantity);
+					this->print();
+				}
+			};
+			for (int i = 0; i < ipsg->num_input; i++) {
+				log_io("Subtract input", i, ipsg->subtract_input[i], ipsg->cargo_input[i]);
+			}
+			for (int i = 0; i < ipsg->num_output; i++) {
+				log_io("Add input", i, ipsg->add_output[i], ipsg->cargo_output[i]);
+			}
+			seprintf(this->buffer, lastof(this->buffer), "%*sAgain: %s %X", padding + 2, "", (ipsg->version >= 1) ? "reg" : "value", ipsg->again);
 			this->print();
 			break;
+		}
 	}
 }
 

@@ -212,7 +212,6 @@ struct GUISettings : public TimeSettings {
 	bool   station_dragdrop;                 ///< whether drag and drop is enabled for stations
 	bool   station_show_coverage;            ///< whether to highlight coverage area
 	bool   persistent_buildingtools;         ///< keep the building tools active after usage
-	bool   expenses_layout;                  ///< layout of expenses window
 	uint32 last_newgrf_count;                ///< the numbers of NewGRFs we found during the last scan
 	byte   missing_strings_threshold;        ///< the number of missing strings before showing the warning
 	uint8  graph_line_thickness;             ///< the thickness of the lines in the various graph guis
@@ -413,6 +412,8 @@ struct GameCreationSettings {
 	byte   amount_of_rivers;                 ///< the amount of rivers
 	bool   rivers_top_of_hill;               ///< do rivers require starting near the tops of hills?
 	uint8  river_tropics_width;              ///< the configured width of tropics around rivers
+	uint8  lake_tropics_width;               ///< the configured width of tropics around lakes
+	uint8  coast_tropics_width;              ///< the configured width of tropics around coasts
 	uint8  lake_size;                        ///< how large can lakes get?
 	bool   lakes_allowed_in_deserts;         ///< are lakes allowed in deserts?
 	uint8  amount_of_rocks;                  ///< the amount of rocks
@@ -439,6 +440,7 @@ struct ConstructionSettings {
 	uint8  extra_tree_placement;             ///< (dis)allow building extra trees in-game
 	uint8  trees_around_snow_line_range;     ///< range around snowline for mixed and arctic forest.
 	bool   trees_around_snow_line_enabled;   ///< enable mixed and arctic forest around snowline, and no trees above snowline
+	uint8  trees_around_snow_line_dynamic_range; ///< how much of the snow line dynamic range to use as the snowline for arctic tree placement
 	uint8  command_pause_level;              ///< level/amount of commands that can't be executed while paused
 	uint16 maximum_signal_evaluations;       ///< maximum number of programmable pre-signals which may be evaluated in one pass
 	bool   enable_build_river;               ///< enable building rivers in-game

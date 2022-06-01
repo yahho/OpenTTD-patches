@@ -264,6 +264,7 @@ void Train::ConsistChanged(ConsistChangeFlags allowed_changes)
 	this->tcache.cached_num_engines = 0;
 
 	bool train_can_tilt = true;
+	bool speed_varies_by_railtype = false;
 	int min_curve_speed_mod = INT_MAX;
 
 	for (Train *u = this; u != nullptr; u = u->Next()) {
@@ -304,6 +305,7 @@ void Train::ConsistChanged(ConsistChangeFlags allowed_changes)
 		const RailVehicleInfo *rvi_u = &e_u->u.rail;
 
 		if (!HasBit(e_u->info.misc_flags, EF_RAIL_TILTS)) train_can_tilt = false;
+		if (e_u->callbacks_used & SGCU_CB36_SPEED_RAILTYPE) speed_varies_by_railtype = true;
 		min_curve_speed_mod = std::min(min_curve_speed_mod, u->GetCurveSpeedModifier());
 
 		/* Cache wagon override sprite group. nullptr is returned if there is none */
@@ -390,7 +392,7 @@ void Train::ConsistChanged(ConsistChangeFlags allowed_changes)
 
 	/* store consist weight/max speed in cache */
 	this->vcache.cached_max_speed = max_speed;
-	this->tcache.cached_tflags = (train_can_tilt ? TCF_TILT : TCF_NONE);
+	this->tcache.cached_tflags = (train_can_tilt ? TCF_TILT : TCF_NONE) | (speed_varies_by_railtype ? TCF_SPD_RAILTYPE : TCF_NONE);
 	this->tcache.cached_curve_speed_mod = min_curve_speed_mod;
 	this->tcache.cached_max_curve_speed = this->GetCurveSpeedLimit();
 
@@ -1091,7 +1093,7 @@ Train::MaxSpeedInfo Train::GetCurrentMaxSpeedInfoInternal(bool update_state) con
 	if (this->speed_restriction != 0) {
 		advisory_max_speed = std::min<int>(advisory_max_speed, this->speed_restriction);
 	}
-	if (this->signal_speed_restriction != 0 && _settings_game.vehicle.train_speed_adaptation) {
+	if (this->signal_speed_restriction != 0 && _settings_game.vehicle.train_speed_adaptation && !HasBit(this->flags, VRF_SPEED_ADAPTATION_EXEMPT)) {
 		advisory_max_speed = std::min<int>(advisory_max_speed, this->signal_speed_restriction);
 	}
 	if (this->reverse_distance > 1) {
@@ -2247,7 +2249,7 @@ CommandCost CmdSellRailWagon(DoCommandFlag flags, Vehicle *t, uint16 data, uint3
 		return ret;
 	}
 
-	if (first->orders.list == nullptr && !OrderList::CanAllocateItem()) {
+	if (first->orders == nullptr && !OrderList::CanAllocateItem()) {
 		/* Restore the train we had. */
 		RestoreTrainBackup(original);
 		return_cmd_error(STR_ERROR_NO_MORE_SPACE_FOR_ORDERS);
@@ -2264,13 +2266,14 @@ CommandCost CmdSellRailWagon(DoCommandFlag flags, Vehicle *t, uint16 data, uint3
 		if (v == first && v->IsEngine() && !sell_chain && new_head != nullptr && new_head->IsFrontEngine()) {
 			/* We are selling the front engine. In this case we want to
 			 * 'give' the order, unit number and such to the new head. */
-			new_head->orders.list = first->orders.list;
+			new_head->orders = first->orders;
 			new_head->AddToShared(first);
 			DeleteVehicleOrders(first);
 
 			/* Copy other important data from the front engine */
 			new_head->CopyVehicleConfigAndStatistics(first);
 			new_head->speed_restriction = first->speed_restriction;
+			SB(Train::From(new_head)->flags, VRF_SPEED_ADAPTATION_EXEMPT, 1, GB(Train::From(first)->flags, VRF_SPEED_ADAPTATION_EXEMPT, 1));
 			GroupStatistics::CountVehicle(new_head, 1); // after copying over the profit
 		} else if (v->IsPrimaryVehicle() && data & (MAKE_ORDER_BACKUP_FLAG >> 20)) {
 			OrderBackup::Backup(v, user);
@@ -5268,6 +5271,14 @@ void HandleTraceRestrictSpeedRestrictionAction(const TraceRestrictProgramResult 
 		pending_speed_restriction_change_map.insert({ v->index, { (uint16) (v->gcache.cached_total_length + (HasBit(flags, PSRCF_DIAGONAL) ? 8 : 4)), out.speed_restriction, v->speed_restriction, flags } });
 		if ((uint16) (out.speed_restriction + 0xFFFF) < (uint16) (v->speed_restriction + 0xFFFF)) v->speed_restriction = out.speed_restriction;
 	}
+	if (out.flags & TRPRF_SPEED_ADAPT_EXEMPT && !HasBit(v->flags, VRF_SPEED_ADAPTATION_EXEMPT)) {
+		SetBit(v->flags, VRF_SPEED_ADAPTATION_EXEMPT);
+		SetWindowDirty(WC_VEHICLE_DETAILS, v->index);
+	}
+	if (out.flags & TRPRF_RM_SPEED_ADAPT_EXEMPT && HasBit(v->flags, VRF_SPEED_ADAPTATION_EXEMPT)) {
+		ClrBit(v->flags, VRF_SPEED_ADAPTATION_EXEMPT);
+		SetWindowDirty(WC_VEHICLE_DETAILS, v->index);
+	}
 }
 
 /**
@@ -5456,7 +5467,7 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 							const Trackdir dir = FindFirstTrackdir(trackdirbits);
 							if (HasSignalOnTrack(gp.new_tile, TrackdirToTrack(dir))) {
 								const TraceRestrictProgram *prog = GetExistingTraceRestrictProgram(gp.new_tile, TrackdirToTrack(dir));
-								if (prog && prog->actions_used_flags & (TRPAUF_SLOT_ACQUIRE | TRPAUF_SLOT_RELEASE_FRONT | TRPAUF_REVERSE | TRPAUF_SPEED_RESTRICTION | TRPAUF_CHANGE_COUNTER)) {
+								if (prog && prog->actions_used_flags & (TRPAUF_SLOT_ACQUIRE | TRPAUF_SLOT_RELEASE_FRONT | TRPAUF_REVERSE | TRPAUF_SPEED_RESTRICTION | TRPAUF_SPEED_ADAPTATION | TRPAUF_CHANGE_COUNTER)) {
 									TraceRestrictProgramResult out;
 									TraceRestrictProgramInput input(gp.new_tile, dir, nullptr, nullptr);
 									input.permitted_slot_operations = TRPISP_ACQUIRE | TRPISP_RELEASE_FRONT | TRPISP_CHANGE_COUNTER;
@@ -5614,7 +5625,7 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 						const Trackdir trackdir = GetTunnelBridgeEntranceTrackdir(old_tile);
 						if (IsTunnelBridgeRestrictedSignal(old_tile)) {
 							const TraceRestrictProgram *prog = GetExistingTraceRestrictProgram(old_tile, TrackdirToTrack(trackdir));
-							if (prog && prog->actions_used_flags & (TRPAUF_SLOT_ACQUIRE | TRPAUF_SLOT_RELEASE_FRONT | TRPAUF_SPEED_RESTRICTION | TRPAUF_CHANGE_COUNTER)) {
+							if (prog && prog->actions_used_flags & (TRPAUF_SLOT_ACQUIRE | TRPAUF_SLOT_RELEASE_FRONT | TRPAUF_SPEED_RESTRICTION | TRPAUF_SPEED_ADAPTATION | TRPAUF_CHANGE_COUNTER)) {
 								TraceRestrictProgramResult out;
 								TraceRestrictProgramInput input(old_tile, trackdir, nullptr, nullptr);
 								input.permitted_slot_operations = TRPISP_ACQUIRE | TRPISP_RELEASE_FRONT | TRPISP_CHANGE_COUNTER;
@@ -5662,7 +5673,7 @@ bool TrainController(Train *v, Vehicle *nomove, bool reverse)
 						if (IsTunnelBridgeRestrictedSignal(gp.new_tile) && IsTunnelBridgeSignalSimulationExit(gp.new_tile)) {
 							const Trackdir trackdir = GetTunnelBridgeExitTrackdir(gp.new_tile);
 							const TraceRestrictProgram *prog = GetExistingTraceRestrictProgram(gp.new_tile, TrackdirToTrack(trackdir));
-							if (prog && prog->actions_used_flags & (TRPAUF_SLOT_ACQUIRE | TRPAUF_SLOT_RELEASE_FRONT | TRPAUF_SPEED_RESTRICTION | TRPAUF_CHANGE_COUNTER)) {
+							if (prog && prog->actions_used_flags & (TRPAUF_SLOT_ACQUIRE | TRPAUF_SLOT_RELEASE_FRONT | TRPAUF_SPEED_RESTRICTION | TRPAUF_SPEED_ADAPTATION | TRPAUF_CHANGE_COUNTER)) {
 								TraceRestrictProgramResult out;
 								TraceRestrictProgramInput input(gp.new_tile, trackdir, nullptr, nullptr);
 								input.permitted_slot_operations = TRPISP_ACQUIRE | TRPISP_RELEASE_FRONT | TRPISP_CHANGE_COUNTER;

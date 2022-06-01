@@ -2,6 +2,44 @@
 
 * * *
 
+### v0.47.2 (2022-05-01)
+* Fix crash and/or multiplayer desync after a new industry is built within the catchment of an existing station.
+* Fix multiplayer desync after a raise land action removed a water object next to a dock.
+* Fix wrong water infrastructure total and multiplayer desync after building canal/river over a canal tile with an object on it.
+* Fix adding a new scheduled dispatch schedule not updating the window in multiplayer.
+* Make the company infrastructure window scrollable.
+* Snow:
+  * Fix arctic tree range around snow line setting not handling seasonally variable snow lines.
+  * Add a setting to adjust seasonally variable snow line width for arctic tree placement.
+  * Fix flat road tiles with foundations on the snow line not being drawn with snow.
+* Station names:
+  * Increase the distance a station can be from the town centre and still be assigned have the same name as the town (no suffix/prefix), for large towns.
+  * Allow extra station name GRFs to use extra names even when there are default names available.
+* Bump trunk base from commit 8537fa72063a7376065fd996fa249cc7dbfdb2f3 to commit e79724ea22b2c4428ab402a808b7ab777fec2985.
+
+### v0.47.1 (2022-04-02)
+* Fix crash when a road vehicle leaves a bus/truck stop when it is has no orders.
+* Fix road vehicles incorrectly being allowed to be ordered to incompatible depots.
+* Fix viewport town/industry tooltips being shown on mouseover when in right-click to show tooltips mode.
+* Routing restrictions:
+  * Fix deny and penalty actions not being applied to no-entry signals.
+  * Fix the restricted signal zoning overlay mode not including tunnels/bridges with restricted signals.
+  * Fix the PBS reservation end actions incorrectly handling the case where the state of a slot is tested after an instruction which would change the vehicle's membership of the slot.
+* Include a specific reason why a vehicle cannot be ordered to a particular station in the error message.
+* Bump trunk base from commit 0d8fbf647b2c819bee0a0883b5fc831aa64e4ee0 to commit 8537fa72063a7376065fd996fa249cc7dbfdb2f3.
+
+### v0.47.0 (2022-03-12)
+* Fix crash in scheduled dispatch window with nearest depot dispatch order.
+* Fix non-rail bridge construction setting polyrail endpoints.
+* Fix the autosave interval setting being reset at startup when it was previously set to use a custom interval.
+* Add NewGRF road stops.
+* Add routing restriction action to make the train exempt from automatic train speed adaptation.
+* Add hotkeys for building road waypoints to the road/tram toolbars.
+* Implement automatic train speed adaptation on signalled tunnels/bridges.
+* Allow configuring the width of tropic zones around water during map generation.
+* If an aircraft or road vehicle's next order is for the current station when leaving, start loading again without moving, instead of leaving.
+* Bump trunk base from commit 83b6defbfb0fa649a854767ae7c8b5a18f917e80 to commit 0d8fbf647b2c819bee0a0883b5fc831aa64e4ee0.
+
 ### v0.46.1 (2022-02-07)
 * Fix crash or incorrect text in the scheduled dispatch window when a dispatch schedule is assigned to a depot order.
 * Fix crash which could occur when using aircraft with cargodist after loading a 12.x vanilla savegame/scenario.

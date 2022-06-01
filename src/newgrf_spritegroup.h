@@ -53,14 +53,28 @@ enum AnalyseCallbackOperationMode {
 	ACOM_CB_VAR,
 	ACOM_CB36_PROP,
 	ACOM_FIND_CB_RESULT,
+	ACOM_CB36_SPEED,
+	ACOM_INDUSTRY_TILE,
 };
 
+struct AnalyseCallbackOperationIndustryTileData;
+
 struct AnalyseCallbackOperation {
+	struct FindCBResultData {
+		uint16 callback;
+		bool check_var_10;
+		uint8 var_10_value;
+	};
+
 	btree::btree_set<const SpriteGroup *> seen;
 	AnalyseCallbackOperationMode mode = ACOM_CB_VAR;
 	SpriteGroupCallbacksUsed callbacks_used = SGCU_NONE;
 	uint64 properties_used = 0;
 	bool cb_result_found = false;
+	union {
+		FindCBResultData cb_result;
+		AnalyseCallbackOperationIndustryTileData *indtile;
+	} data;
 };
 
 /* SPRITE_WIDTH is 24. ECS has roughly 30 sprite groups per real sprite.
@@ -160,15 +174,132 @@ enum DeterministicSpriteGroupAdjustOperation {
 	DSGA_OP_SAR,  ///< (signed) a >> b
 
 	DSGA_OP_END,
+
+	DSGA_OP_TERNARY = 0x80, ///< a == 0 ? b : c,
+	DSGA_OP_EQ,             ///< a == b ? 1 : 0,
+	DSGA_OP_SLT,            ///< (signed) a < b ? 1 : 0,
+	DSGA_OP_SGE,            ///< (signed) a >= b ? 1 : 0,
+	DSGA_OP_SLE,            ///< (signed) a <= b ? 1 : 0,
+	DSGA_OP_SGT,            ///< (signed) a > b ? 1 : 0,
+	DSGA_OP_RSUB,           ///< b - a
+
+	DSGA_OP_SPECIAL_END,
 };
 
+static_assert((DSGA_OP_SLT ^ 1) == DSGA_OP_SGE);
+static_assert((DSGA_OP_SLE ^ 1) == DSGA_OP_SGT);
+
+inline bool IsEvalAdjustWithZeroRemovable(DeterministicSpriteGroupAdjustOperation op)
+{
+	switch (op) {
+		case DSGA_OP_ADD:
+		case DSGA_OP_SUB:
+		case DSGA_OP_OR:
+		case DSGA_OP_XOR:
+		case DSGA_OP_ROR:
+		case DSGA_OP_SHL:
+		case DSGA_OP_SHR:
+		case DSGA_OP_SAR:
+			return true;
+
+		default:
+			return false;
+	}
+}
+
+inline bool IsEvalAdjustWithZeroAlwaysZero(DeterministicSpriteGroupAdjustOperation op)
+{
+	switch (op) {
+		case DSGA_OP_UMIN:
+		case DSGA_OP_MUL:
+		case DSGA_OP_AND:
+		case DSGA_OP_RST:
+			return true;
+
+		default:
+			return false;
+	}
+}
+
+inline bool IsEvalAdjustWithSideEffects(DeterministicSpriteGroupAdjustOperation op)
+{
+	switch (op) {
+		case DSGA_OP_STO:
+		case DSGA_OP_STOP:
+			return true;
+
+		default:
+			return false;
+	}
+}
+
+inline bool IsEvalAdjustUsableForConstantPropagation(DeterministicSpriteGroupAdjustOperation op)
+{
+	switch (op) {
+		case DSGA_OP_ADD:
+		case DSGA_OP_SUB:
+		case DSGA_OP_SMIN:
+		case DSGA_OP_SMAX:
+		case DSGA_OP_UMIN:
+		case DSGA_OP_UMAX:
+		case DSGA_OP_SDIV:
+		case DSGA_OP_SMOD:
+		case DSGA_OP_UDIV:
+		case DSGA_OP_UMOD:
+		case DSGA_OP_MUL:
+		case DSGA_OP_AND:
+		case DSGA_OP_OR:
+		case DSGA_OP_XOR:
+		case DSGA_OP_ROR:
+		case DSGA_OP_SCMP:
+		case DSGA_OP_UCMP:
+		case DSGA_OP_SHL:
+		case DSGA_OP_SHR:
+		case DSGA_OP_SAR:
+			return true;
+
+		default:
+			return false;
+	}
+}
+
+inline bool IsEvalAdjustOperationCommutative(DeterministicSpriteGroupAdjustOperation op)
+{
+	switch (op) {
+		case DSGA_OP_ADD:
+		case DSGA_OP_MUL:
+		case DSGA_OP_AND:
+		case DSGA_OP_OR:
+		case DSGA_OP_XOR:
+			return true;
+
+		default:
+			return false;
+	}
+}
+
+inline bool IsEvalAdjustOperationOnConstantEffectiveLoad(DeterministicSpriteGroupAdjustOperation op, uint32 constant)
+{
+	switch (op) {
+		case DSGA_OP_ADD:
+		case DSGA_OP_OR:
+		case DSGA_OP_XOR:
+			return constant == 0;
+
+		case DSGA_OP_MUL:
+			return constant == 1;
+
+		default:
+			return false;
+	}
+}
 
 struct DeterministicSpriteGroupAdjust {
 	DeterministicSpriteGroupAdjustOperation operation;
 	DeterministicSpriteGroupAdjustType type;
 	uint16 variable;
-	byte parameter; ///< Used for variables between 0x60 and 0x7F inclusive.
 	byte shift_num;
+	uint32 parameter; ///< Used for variables between 0x60 and 0x7F inclusive.
 	uint32 and_mask;
 	uint32 add_val;
 	uint32 divmod_val;
@@ -198,6 +329,7 @@ struct DeterministicSpriteGroup : SpriteGroup {
 	const SpriteGroup *error_group; // was first range, before sorting ranges
 
 	void AnalyseCallbacks(AnalyseCallbackOperation &op) const override;
+	bool GroupMayBeBypassed() const;
 
 protected:
 	const SpriteGroup *Resolve(ResolverObject &object) const override;
@@ -438,5 +570,6 @@ struct ResolverObject {
 };
 
 void DumpSpriteGroup(const SpriteGroup *sg, std::function<void(const char *)> print);
+uint32 EvaluateDeterministicSpriteGroupAdjust(DeterministicSpriteGroupSize size, const DeterministicSpriteGroupAdjust &adjust, ScopeResolver *scope, uint32 last_value, uint32 value);
 
 #endif /* NEWGRF_SPRITEGROUP_H */

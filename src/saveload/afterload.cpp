@@ -69,6 +69,7 @@
 #include "../infrastructure_func.h"
 #include "../event_logs.h"
 #include "../newgrf_object.h"
+#include "../newgrf_industrytiles.h"
 
 
 #include "saveload_internal.h"
@@ -635,6 +636,7 @@ bool AfterLoadGame()
 	RebuildTownKdtree();
 	RebuildStationKdtree();
 	UpdateCachedSnowLine();
+	UpdateCachedSnowLineBounds();
 
 	_viewport_sign_kdtree_valid = false;
 
@@ -949,6 +951,7 @@ bool AfterLoadGame()
 	}
 
 	AfterLoadEngines();
+	AnalyseIndustryTileSpriteGroups();
 
 	/* Update all vehicles */
 	AfterLoadVehicles(true);
@@ -2037,9 +2040,9 @@ bool AfterLoadGame()
 		for (Order *order : Order::Iterate()) order->ConvertFromOldSavegame();
 
 		for (Vehicle *v : Vehicle::Iterate()) {
-			if (v->orders.list != nullptr && v->orders.list->GetFirstOrder() != nullptr && v->orders.list->GetFirstOrder()->IsType(OT_NOTHING)) {
-				v->orders.list->FreeChain();
-				v->orders.list = nullptr;
+			if (v->orders != nullptr && v->orders->GetFirstOrder() != nullptr && v->orders->GetFirstOrder()->IsType(OT_NOTHING)) {
+				v->orders->FreeChain();
+				v->orders = nullptr;
 			}
 
 			v->current_order.ConvertFromOldSavegame();
@@ -3129,6 +3132,7 @@ bool AfterLoadGame()
 	if (IsSavegameVersionBefore(SLV_164) && _settings_game.game_creation.snow_line_height >= MIN_SNOWLINE_HEIGHT * TILE_HEIGHT && SlXvIsFeatureMissing(XSLFI_CHILLPP)) {
 		_settings_game.game_creation.snow_line_height /= TILE_HEIGHT;
 		UpdateCachedSnowLine();
+		UpdateCachedSnowLineBounds();
 	}
 
 	if (IsSavegameVersionBefore(SLV_164) && !IsSavegameVersionBefore(SLV_32)) {
@@ -4047,6 +4051,10 @@ bool AfterLoadGame()
 		}
 	}
 
+	if (SlXvIsFeatureMissing(XSLFI_INDUSTRY_ANIM_MASK)) {
+		ApplyIndustryTileAnimMasking();
+	}
+
 	InitializeRoadGUI();
 
 	/* This needs to be done after conversion. */
@@ -4136,6 +4144,7 @@ void ReloadNewGRFData()
 	/* reload vehicles */
 	ResetVehicleHash();
 	AfterLoadEngines();
+	AnalyseIndustryTileSpriteGroups();
 	AfterLoadVehicles(false);
 	StartupEngines();
 	GroupStatistics::UpdateAfterLoad();
