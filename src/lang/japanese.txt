@@ -1075,6 +1075,7 @@ STR_GAME_OPTIONS_VIDEO_ACCELERATION_RESTART                     :{WHITE}この�
 STR_GAME_OPTIONS_VIDEO_VSYNC                                    :{BLACK}垂直同期
 STR_GAME_OPTIONS_VIDEO_VSYNC_TOOLTIP                            :{BLACK}ここをチェックして垂直同期を有効にします。設定はゲームを再起動した後に適用されます。ハードウェアアクセラレーションが有効な環境でのみ機能します。
 
+STR_GAME_OPTIONS_VIDEO_DRIVER_INFO                              :{BLACK}使用中のドライバ: {STRING}
 
 STR_GAME_OPTIONS_GUI_ZOOM_FRAME                                 :{BLACK}インターフェイスのサイズ
 STR_GAME_OPTIONS_GUI_ZOOM_DROPDOWN_TOOLTIP                      :{BLACK}インターフェイス上の単位サイズを指定します
@@ -1205,10 +1206,10 @@ STR_TERRAIN_TYPE_CUSTOM                                         :カスタム高
 STR_TERRAIN_TYPE_CUSTOM_VALUE                                   :カスタム高度 ({NUM})
 
 ###length 4
-STR_CITY_APPROVAL_INDIFFERENT                                   :無関心
-STR_CITY_APPROVAL_PERMISSIVE                                    :寛大
+STR_CITY_APPROVAL_LENIENT                                       :寛大
 STR_CITY_APPROVAL_TOLERANT                                      :寛容
 STR_CITY_APPROVAL_HOSTILE                                       :対立
+STR_CITY_APPROVAL_PERMISSIVE                                    :寛大 (会社の行動による影響を受けない)
 
 STR_WARNING_NO_SUITABLE_AI                                      :{WHITE}適切なAIがありません...{}AIは「オンライン項目を確認」からダウンロード可能です
 
@@ -1326,7 +1327,7 @@ STR_CONFIG_SETTING_TRAIN_REVERSING_HELPTEXT                     :設定を有効
 STR_CONFIG_SETTING_DISASTERS                                    :災害: {STRING}
 STR_CONFIG_SETTING_DISASTERS_HELPTEXT                           :設定を有効にすると時折、乗り物や交通インフラを遮断・破壊する災害が起きるようになります
 
-STR_CONFIG_SETTING_CITY_APPROVAL                                :地域の再編に対する街の姿勢: {STRING}
+STR_CONFIG_SETTING_CITY_APPROVAL                                :自治体の姿勢: {STRING}
 STR_CONFIG_SETTING_CITY_APPROVAL_HELPTEXT                       :会社が街域で引き起こした騒音(主に空港)や環境破壊がどの程度、街での評価や同じ地域での更なる建設行為に影響するかを設定します
 STR_CONFIG_SETTING_MONEY_CHEAT_MULTIPLAYER                      :マルチプレイクライアントに所持金チートの使用を許可: {STRING}
 STR_CONFIG_SETTING_MONEY_CHEAT_MULTIPLAYER_HELPTEXT             :有効にすると管理者ではないマルチプレイクライアントが所持金チートを使用できるようになります。 マルチプレイのサーバー管理者やシングルプレイの場合常に所持金チートは利用可能です。
@@ -1691,7 +1692,17 @@ STR_CONFIG_SETTING_RIVER_ROUTE_RANDOM_HELPTEXT                  :どの程度河
 STR_CONFIG_SETTING_RIVERS_TOP_OF_HILL                           :河川は丘の頂上に水源が生成されている必要があります: {STRING}
 STR_CONFIG_SETTING_RIVERS_TOP_OF_HILL_HELPTEXT                  :河川が生成されるとき丘の頂上に水源が生成されている必要があるかどうかを設定します。
 STR_CONFIG_SETTING_RIVER_TROPICS_WIDTH                          :河川周辺の熱帯の幅: {STRING}
-STR_CONFIG_SETTING_RIVER_TROPICS_WIDTH_HELPTEXT                 :亜熱帯気候において河川の周辺にある熱帯地域の幅を設定します。
+STR_CONFIG_SETTING_RIVER_TROPICS_WIDTH_HELPTEXT                 :亜熱帯気候において河川の周辺にある熱帯地域の幅を設定します。{}設定値は河川の両側の領域の全幅です。
+STR_CONFIG_SETTING_LAKE_TROPICS_WIDTH                           :湖沼周辺の熱帯の幅: {STRING}
+STR_CONFIG_SETTING_LAKE_TROPICS_WIDTH_HELPTEXT                  :亜熱帯気候において湖沼の周辺にある熱帯地域の幅を設定します。{}設定値は湖沼の両側の領域の全幅です。
+STR_CONFIG_SETTING_COAST_TROPICS_WIDTH                          :海岸周辺の熱帯の幅: {STRING}
+STR_CONFIG_SETTING_COAST_TROPICS_WIDTH_HELPTEXT                 :亜熱帯気候において海岸の周辺にある熱帯地域の幅を設定します。
+###length 4
+STR_CONFIG_SETTING_COAST_TROPICS_WIDTH_DEFAULT                  :デフォルト
+STR_CONFIG_SETTING_COAST_TROPICS_WIDTH_MEDIUM                   :中
+STR_CONFIG_SETTING_COAST_TROPICS_WIDTH_LARGE                    :大
+STR_CONFIG_SETTING_COAST_TROPICS_WIDTH_EXTRALARGE               :特大
+
 STR_CONFIG_SETTING_LAKE_SIZE                                    :湖の大きさ: {STRING}
 STR_CONFIG_SETTING_LAKE_SIZE_HELPTEXT                           :河川に沿って生成される湖の大きさを設定します。
 STR_CONFIG_SETTING_LAKE_SIZE_VALUE                              :{NUM}
@@ -2224,6 +2235,8 @@ STR_CONFIG_SETTING_TREES_AROUND_SNOWLINE                        :亜寒帯の植
 STR_CONFIG_SETTING_TREES_AROUND_SNOWLINE_HELPTEXT               :亜寒帯気候における雪線付近の樹木の設置を調整します。 雪線を超えると木が疎になります。 雪線のすぐ下では寒帯の木と温帯の木が混在します。 それより下は温帯の木があります。
 STR_CONFIG_SETTING_TREES_AROUND_SNOWLINE_RANGE                  :寒帯の木の範囲: {STRING}
 STR_CONFIG_SETTING_TREES_AROUND_SNOWLINE_RANGE_HELPTEXT         :雪線周辺の寒帯の木のおおよその範囲
+STR_CONFIG_SETTING_TREES_AROUND_SNOWLINE_DYNAMIC_RANGE          :季節的な寒帯の木の雪線の幅: {STRING}
+STR_CONFIG_SETTING_TREES_AROUND_SNOWLINE_DYNAMIC_RANGE_HELPTEXT :季節で変化する雪線を使用する場合、寒帯の木を配置する雪線に適用する変化率をパーセントで指定します。0%で低い(冬)雪線が、100%で夏と冬の間全域で変動する雪線が適用されます。
 
 STR_CONFIG_SETTING_BUILD_PUBLIC_ROADS                           :街同士を接続する公道の建設: {STRING}
 STR_CONFIG_SETTING_BUILD_PUBLIC_ROADS_HELPTEXT                  :街同士を接続する公道を生成します。 大きなマップでは少し時間がかかります。 「カーブを避けて建設」はカーブを避けたとてもグリッド状な接続で生成されます。
@@ -2483,7 +2496,7 @@ STR_CONFIG_SETTING_ALLOW_GRF_STATIONS_UNDER_BRIDGES             :橋梁の下に
 STR_CONFIG_SETTING_ALLOW_GRF_STATIONS_UNDER_BRIDGES_HELPTEXT    :有効にすると橋梁の下に配置できるか指定されていないNewGRF列車駅/中継点を制限なく配置できるようになります。{}描画に問題が発生する場合があります。
 
 STR_CONFIG_SETTING_ALLOW_ROAD_STATIONS_UNDER_BRIDGES            :橋梁の下における道路/軌道駅の配置を許可: {STRING}
-STR_CONFIG_SETTING_ALLOW_ROAD_STATIONS_UNDER_BRIDGES_HELPTEXT   :橋梁の下に道路/軌道の停留所を配置することを許可します。ドライブスルー型停留所は1高度単位分の、湾型停留所は2高度単位分のクリアランスが必要です。
+STR_CONFIG_SETTING_ALLOW_ROAD_STATIONS_UNDER_BRIDGES_HELPTEXT   :橋梁の下に道路/軌道の停留所を配置することを許可します。路側型停留所は1高度単位分の、湾型停留所は2高度単位分のクリアランスが必要です。
 STR_CONFIG_SETTING_ALLOW_ROAD_STATIONS_UNDER_BRIDGES_HELPTEXT_EXTRA :{STRING}{}{}NewGRFの道路/軌道の停留所はこの設定をオーバーライドして橋梁の下における停留所配置の許可/拒否やカスタム高度クリアランスを設定している可能性があります。
 
 STR_CONFIG_SETTING_ALLOW_DOCKS_UNDER_BRIDGES                    :橋梁の下における埠頭の配置を許可: {STRING}
@@ -3335,6 +3348,7 @@ STR_TRACE_RESTRICT_SPEED_RESTRICTION                            :速度制限
 STR_TRACE_RESTRICT_NEWS_CONTROL                                 :ニュース制御
 STR_TRACE_RESTRICT_COUNTER_OP                                   :カウンタ操作
 STR_TRACE_RESTRICT_PF_PENALTY_CONTROL                           :ペナルティ設定
+STR_TRACE_RESTRICT_SPEED_ADAPTATION_CONTROL                     :速度適応制御
 STR_TRACE_RESTRICT_SLOT_ACQUIRE_WAIT                            :取得か待機
 STR_TRACE_RESTRICT_SLOT_TRY_ACQUIRE                             :取得を試みる
 STR_TRACE_RESTRICT_SLOT_TRY_ACQUIRE_ON_RES                      :取得を試みる (予約時)
@@ -3385,6 +3399,10 @@ STR_TRACE_RESTRICT_NO_PBS_BACK_PENALTY                          :このパス信
 STR_TRACE_RESTRICT_NO_PBS_BACK_PENALTY_CANCEL                   :このパス信号の裏から通過するときペナルティを適用しないようにしたのを解除する
 STR_TRACE_RESTRICT_NO_PBS_BACK_PENALTY_SHORT                    :パス信号裏無ペナルティ
 STR_TRACE_RESTRICT_NO_PBS_BACK_PENALTY_CANCEL_SHORT             :パス信号裏無ペナルティの解除
+STR_TRACE_RESTRICT_MAKE_TRAIN_SPEED_ADAPTATION_EXEMPT           :列車に対する自動適応速度を免除する
+STR_TRACE_RESTRICT_REMOVE_TRAIN_SPEED_ADAPTATION_EXEMPT         :列車に対する自動適応速度の免除を解除する
+STR_TRACE_RESTRICT_MAKE_TRAIN_SPEED_ADAPTATION_EXEMPT_SHORT     :免除
+STR_TRACE_RESTRICT_REMOVE_TRAIN_SPEED_ADAPTATION_EXEMPT_SHORT   :免除を解除
 STR_TRACE_RESTRICT_TIME_MINUTE                                  :現在の分 (0 - 59)
 STR_TRACE_RESTRICT_TIME_HOUR                                    :現在の時 (0 - 23)
 STR_TRACE_RESTRICT_TIME_HOUR_MINUTE                             :現在の時と分 (0 - 2359)
@@ -3641,6 +3659,7 @@ STR_WATERWAYS_TOOLBAR_BUOY_TOOLTIP                              :{BLACK}通過�
 STR_WATERWAYS_TOOLBAR_BUILD_AQUEDUCT_TOOLTIP                    :{BLACK}水路橋を建設します。Shiftを押しながら決定すると費用の見積が出ます
 STR_WATERWAYS_TOOLBAR_CREATE_LAKE_TOOLTIP                       :{BLACK}水域を作成します。{}通常操作では運河を建設しますが、海水位にある地域でCtrl+クリックするとその地域を水域にします
 STR_WATERWAYS_TOOLBAR_CREATE_RIVER_TOOLTIP                      :{BLACK}川を造成します。Ctrlで斜めに選択できます。
+STR_WATERWAYS_TOOLBAR_CREATE_RIVER_IN_GAME_TOOLTIP              :{BLACK}河川の造成
 
 # Ship depot construction window
 STR_DEPOT_BUILD_SHIP_CAPTION                                    :{WHITE}造船所建設
@@ -4686,6 +4705,9 @@ STR_FINANCES_CAPTION                                            :{WHITE}{COMPANY
 STR_FINANCES_YEAR                                               :{WHITE}{NUM}
 
 ###length 3
+STR_FINANCES_REVENUE_TITLE                                      :{WHITE}収益
+STR_FINANCES_OPERATING_EXPENSES_TITLE                           :{WHITE}営業経費
+STR_FINANCES_CAPITAL_EXPENSES_TITLE                             :{WHITE}資本的支出
 
 
 ###length 15
@@ -4707,9 +4729,11 @@ STR_FINANCES_SECTION_INFRASTRUCTURE_INCOME                      :{GOLD}共有イ
 
 STR_FINANCES_NEGATIVE_INCOME                                    :{BLACK}-{CURRENCY_LONG}
 STR_FINANCES_POSITIVE_INCOME                                    :{BLACK}+{CURRENCY_LONG}
-STR_FINANCES_TOTAL_CAPTION                                      :{WHITE}総計:
+STR_FINANCES_NET_PROFIT                                         :{WHITE}純利益
 STR_FINANCES_BANK_BALANCE_TITLE                                 :{WHITE}預金残高
+STR_FINANCES_OWN_FUNDS_TITLE                                    :{WHITE}自己資金
 STR_FINANCES_LOAN_TITLE                                         :{WHITE}借入金
+STR_FINANCES_INTEREST_RATE                                      :{WHITE}利子: {BLACK}{NUM}%
 STR_FINANCES_MAX_LOAN                                           :{WHITE}借入上限: {BLACK}{CURRENCY_LONG}
 STR_FINANCES_TOTAL_CURRENCY                                     :{BLACK}{CURRENCY_LONG}
 STR_FINANCES_BORROW_BUTTON                                      :{BLACK}{CURRENCY_LONG}を借入
@@ -5388,6 +5412,7 @@ STR_VEHICLE_INFO_CAPACITY_CAPACITY                              :{BLACK}収容�
 STR_VEHICLE_INFO_FEEDER_CARGO_VALUE                             :{BLACK}転送による部分払い: {LTBLUE}{CURRENCY_LONG}
 
 STR_VEHICLE_INFO_SPEED_RESTRICTION                              :{BLACK}速度制限: {LTBLUE}{VELOCITY}
+STR_VEHICLE_INFO_SPEED_ADAPTATION_EXEMPT                        :{BLACK}適応速度の免除
 
 STR_VEHICLE_DETAILS_SERVICING_INTERVAL_DAYS                     :{BLACK}点検周期: {LTBLUE}{COMMA}日{BLACK}  最終点検日: {LTBLUE}{DATE_LONG}
 STR_VEHICLE_DETAILS_SERVICING_INTERVAL_PERCENT                  :{BLACK}点検周期: {LTBLUE}{COMMA}%{BLACK}　最終点検日: {LTBLUE}{DATE_LONG}
@@ -5412,8 +5437,8 @@ STR_VEHICLE_DETAILS_TRAIN_WAGON_VALUE                           :{LTBLUE}{ENGINE
 STR_VEHICLE_DETAILS_TRAIN_WAGON_VALUE_AND_SPEED                 :{LTBLUE}{ENGINE}{BLACK}　車両価値: {LTBLUE}{CURRENCY_LONG} {BLACK}最高速度: {LTBLUE}{VELOCITY}
 
 STR_VEHICLE_DETAILS_TRAIN_TOTAL_CAPACITY_TEXT                   :{BLACK}この列車の貨物最大収容量:
-STR_VEHICLE_DETAILS_TRAIN_TOTAL_CAPACITY                        :{LTBLUE}- {CARGO_LONG} ({CARGO_SHORT})
-STR_VEHICLE_DETAILS_TRAIN_TOTAL_CAPACITY_MULT                   :{LTBLUE}- {CARGO_LONG} ({CARGO_SHORT}) (x{NUM})
+STR_VEHICLE_DETAILS_TRAIN_TOTAL_CAPACITY                        :{LTBLUE}{CARGO_LONG} ({CARGO_SHORT})
+STR_VEHICLE_DETAILS_TRAIN_TOTAL_CAPACITY_MULT                   :{LTBLUE}{CARGO_LONG} ({CARGO_SHORT}) (x{NUM})
 
 STR_VEHICLE_DETAILS_CARGO_EMPTY                                 :{LTBLUE}空荷
 STR_VEHICLE_DETAILS_CARGO_FROM                                  :{LTBLUE}{CARGO_LONG} (積載地: {STATION})
@@ -5801,7 +5826,7 @@ STR_TIMETABLE_AUTOFILL                                          :{BLACK}オー�
 STR_TIMETABLE_AUTOFILL_TOOLTIP                                  :{BLACK}実際に各指令が実行された時の所要時間を収集してダイヤを作成します。Ctrl+クリックでは既存の停車時間は維持して移動時間のみ更新します(輸送機器を上位モデルに置き換えたときに便利です)
 
 STR_TIMETABLE_AUTOMATE                                          :{BLACK}自動化
-STR_TIMETABLE_AUTOMATE_TOOLTIP                                  :{BLACK}ダイヤを道程毎に自動で更新して管理します(Ctrl+クリックで現在のダイヤを保ったまま無効化できます)
+STR_TIMETABLE_AUTOMATE_TOOLTIP                                  :{BLACK}ダイヤを道程毎に自動で更新して管理します
 
 STR_TIMETABLE_AUTO_SEPARATION                                   :{BLACK}自動分離
 STR_TIMETABLE_AUTO_SEPARATION_TOOLTIP                           :{BLACK}自動的にダイヤの開始時刻を調整して輸送機器の分離を確保します
@@ -6003,7 +6028,6 @@ STR_PLANS_LIST_ITEM_NAMED_PLAN                                  :{STRING}: {NUM}
 STR_PLANS_LIST_ITEM_LINE                                        : -- 第{NUM}線: {NUM} セグメント
 STR_PLANS_LIST_TOOLTIP                                          :{BLACK}ダブルクリックで計画の詳細な表示・編集出来ます。{}Ctrl+クリックでスクロールします。
 STR_PLANS_QUERY_RENAME_PLAN                                     :{WHITE}計画名を変更
-
 
 # Vehicle loading indicators
 STR_PERCENT_UP_SMALL                                            :{TINY_FONT}{WHITE}{NUM}%{UP_ARROW}
@@ -6480,6 +6504,19 @@ STR_ERROR_CAN_T_STOP_SHARING_ORDER_LIST                         :{WHITE}指令�
 STR_ERROR_CAN_T_COPY_ORDER_LIST                                 :{WHITE}指令リストをコピーできません
 STR_ERROR_TOO_FAR_FROM_PREVIOUS_DESTINATION                     :{WHITE}前の目的地から遠すぎます
 STR_ERROR_AIRCRAFT_NOT_ENOUGH_RANGE                             :{WHITE}航続距離が足りません
+
+STR_ERROR_NO_RAIL_STATION                                       :{WHITE}鉄道駅がありません...
+STR_ERROR_NO_BUS_STATION                                        :{WHITE}バス停がありません...
+STR_ERROR_NO_TRUCK_STATION                                      :{WHITE}荷受所がありません...
+STR_ERROR_NO_DOCK                                               :{WHITE}港がありません...
+STR_ERROR_NO_AIRPORT                                            :{WHITE}空港/ヘリポートがありません...
+STR_ERROR_NO_STOP_COMPATIBLE_ROAD_TYPE                          :{WHITE}道路/トラムの種類に適合する停留所がありません...
+STR_ERROR_NO_STOP_ARTIC_VEH                                     :{WHITE}連結式車両に適合する停留所がありません。{}連結式車両には湾型停留所ではなく路側型停留所が必要です...
+STR_ERROR_AIRPORT_NO_PLANES                                     :{WHITE}この航空機はヘリポートに着陸できません...
+STR_ERROR_AIRPORT_NO_HELIS                                      :{WHITE}このヘリコプターはこの空港に着陸できません...
+STR_ERROR_NO_RAIL_WAYPOINT                                      :{WHITE}中継駅がありません...
+STR_ERROR_NO_ROAD_WAYPOINT                                      :{WHITE}通過点がありません...
+STR_ERROR_NO_BUOY                                               :{WHITE}ブイがありません...
 
 # Timetable related errors
 STR_ERROR_CAN_T_TIMETABLE_VEHICLE                               :{WHITE}この輸送機器にダイヤを設定できません

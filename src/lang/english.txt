@@ -1561,6 +1561,7 @@ STR_CONFIG_SETTING_HOVER_DELAY_HELPTEXT                         :Delay before to
 STR_CONFIG_SETTING_HOVER_DELAY_VALUE                            :Hover for {COMMA} millisecond{P 0 "" s}
 ###setting-zero-is-special
 STR_CONFIG_SETTING_HOVER_DELAY_DISABLED                         :Right click
+
 STR_CONFIG_SETTING_POPULATION_IN_LABEL                          :Show town population in the town name label: {STRING2}
 STR_CONFIG_SETTING_POPULATION_IN_LABEL_HELPTEXT                 :Display the population of towns in their label on the map
 
@@ -1701,6 +1702,7 @@ STR_CONFIG_SETTING_COAST_TROPICS_WIDTH_DEFAULT                  :Default
 STR_CONFIG_SETTING_COAST_TROPICS_WIDTH_MEDIUM                   :Medium
 STR_CONFIG_SETTING_COAST_TROPICS_WIDTH_LARGE                    :Large
 STR_CONFIG_SETTING_COAST_TROPICS_WIDTH_EXTRALARGE               :Extra Large
+
 STR_CONFIG_SETTING_LAKE_SIZE                                    :Size of lakes: {STRING}
 STR_CONFIG_SETTING_LAKE_SIZE_HELPTEXT                           :Controls the size of lakes that are generated along rivers.
 STR_CONFIG_SETTING_LAKE_SIZE_VALUE                              :{NUM}
@@ -4573,6 +4575,7 @@ STR_STATION_VIEW_SCHEDULED_SHIPS_TOOLTIP                        :{BLACK}Show all
 STR_STATION_VIEW_SCHEDULED_TOOLTIP_CTRL_SUFFIX                  :{BLACK}{STRING}. Ctrl+Click to show exclusively.
 
 STR_STATION_VIEW_RENAME_STATION_CAPTION                         :Rename station/loading area
+
 STR_STATION_VIEW_CLOSE_AIRPORT                                  :{BLACK}Close airport
 STR_STATION_VIEW_CLOSE_AIRPORT_TOOLTIP                          :{BLACK}Prevent aircraft from landing on this airport
 
