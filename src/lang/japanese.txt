@@ -1631,6 +1631,12 @@ STR_CONFIG_SETTING_DUAL_PANE_TRAIN_PURCHASE_WINDOW_HELPTEXT     :有効にする
 STR_CONFIG_SETTING_ALLOW_HIDE_WAYPOINT_LABEL                    :通過点の名称表示を隠せるようにする: {STRING}
 STR_CONFIG_SETTING_ALLOW_HIDE_WAYPOINT_LABEL_HELPTEXT           :有効にすると、通過点の名称表示を個人的に隠すことができるようになります。{}通過点を装飾として利用する場合や名称表示の必要がない些細な通過点である場合に便利です。
 
+STR_CONFIG_SETTING_DISABLE_WATER_ANIMATION                      :水のアニメーションを無効にする: {STRING}
+STR_CONFIG_SETTING_DISABLE_WATER_ANIMATION_HELPTEXT             :有効にすると、指定されたズームレベルを超えてズームアウトしたときに水のアニメーションを無効にします。{}これはいくつかのベースセットで発生する高ズームレベルでの水のアニメーションによるノイズを排除するために有用です。
+STR_CONFIG_SETTING_DISABLE_WATER_ANIMATION_8X                   :8倍ズーム以上
+STR_CONFIG_SETTING_DISABLE_WATER_ANIMATION_16X                  :16倍ズーム以上
+STR_CONFIG_SETTING_DISABLE_WATER_ANIMATION_32X                  :32倍ズーム以上
+
 STR_CONFIG_SETTING_ADV_SIG_BRIDGE_TUN_MODES                     :発展的なモードで橋梁上/トンネル内の信号を有効にする: {STRING}
 STR_CONFIG_SETTING_ADV_SIG_BRIDGE_TUN_MODES_HELPTEXT            :発展的なモードで橋梁やトンネルの信号シミュレーションの使用を有効にします。 無効にすると発展的なモードになっていない橋梁やトンネルを発展的なモードにすることができなくなりますが、他のプレイヤーがこの設定を有効にして発展的なモードを利用することができます。
 
@@ -2507,6 +2513,14 @@ STR_CONFIG_SETTING_PURCHASE_LAND_PERMITTED_HELPTEXT             :会社による
 
 STR_CONFIG_SETTING_BUILD_OBJECT_PERMITTED                       :オブジェクトのバルク建設を許可: {STRING}
 STR_CONFIG_SETTING_BUILD_OBJECT_PERMITTED_HELPTEXT              :一度に1つでなく範囲でオブジェクトを配置することを会社に許可します。
+
+STR_CONFIG_SETTING_NO_EXPIRE_OBJECTS_AFTER                      :この年以降オブジェクトを旧式化しない: {STRING}
+STR_CONFIG_SETTING_NO_EXPIRE_OBJECTS_AFTER_HELPTEXT             :オブジェクトがこの年以降に旧式化する場合は永久に利用可能になります
+STR_CONFIG_SETTING_NO_EXPIRE_OBJECTS_AFTER_VALUE                :{NUM}
+STR_CONFIG_SETTING_NO_EXPIRE_OBJECTS_AFTER_ZERO                 :オフ
+
+STR_CONFIG_SETTING_IGNORE_OBJECT_INTRO_DATES                    :オブジェクトが利用可能になる日付を無視する: {STRING}
+STR_CONFIG_SETTING_IGNORE_OBJECT_INTRO_DATES_HELPTEXT           :利用可能になる前にプレイヤーがオブジェクトを建設することを許可します。{}この設定はマップ生成時には適用されません。
 
 ###length 3
 STR_PURCHASE_LAND_PERMITTED_NO                                  :しない
@@ -3839,6 +3853,7 @@ STR_INDUSTRY_CARGOES_SELECT_CARGO                               :{BLACK}貨物�
 STR_INDUSTRY_CARGOES_SELECT_CARGO_TOOLTIP                       :{BLACK}産業チェーンを表示したい貨物を選択します
 STR_INDUSTRY_CARGOES_SELECT_INDUSTRY                            :{BLACK}産業を選択
 STR_INDUSTRY_CARGOES_SELECT_INDUSTRY_TOOLTIP                    :{BLACK}産業チェーンを表示したい産業を選択します
+STR_INDUSTRY_CARGOES_NOTIFY_SMALLMAP_ALL                        :すべての産業
 
 # Land area window
 STR_LAND_AREA_INFORMATION_CAPTION                               :{WHITE}地域情報
@@ -4243,6 +4258,7 @@ STR_NEWGRF_INSPECT_LOG_CONSOLE                                  :{BLACK}L
 STR_NEWGRF_INSPECT_LOG_CONSOLE_TOOLTIP                          :{BLACK}このウィンドウのテキストコンテンツをコンソールにログ出力します
 STR_NEWGRF_INSPECT_SPRITE_DUMP                                  :{BLACK}S
 STR_NEWGRF_INSPECT_SPRITE_DUMP_TOOLTIP                          :{BLACK}現在のスプライトチェーンを表示します
+STR_NEWGRF_INSPECT_SPRITE_DUMP_PANEL_TOOLTIP                    :{BLACK}クリックでスプライトグループをハイライトします{}Shift+クリックでスプライトグループを畳みます{}Ctrl+クリックで一時ストレージレジスタをハイライトします
 
 STR_NEWGRF_INSPECT_CAPTION_OBJECT_AT                            :{1:HEX}の{0:STRING}
 STR_NEWGRF_INSPECT_CAPTION_OBJECT_AT_OBJECT                     :オブジェクト
