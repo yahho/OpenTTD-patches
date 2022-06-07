@@ -213,7 +213,7 @@ public:
 	}
 
 	virtual void ExtraInfo(uint index, NIExtraInfoOutput &output) const {}
-	virtual void SpriteDump(uint index, std::function<void(const char *)> print) const {}
+	virtual void SpriteDump(uint index, DumpSpriteGroupPrinter print) const {}
 	virtual bool ShowExtraInfoOnly(uint index) const { return false; };
 	virtual bool ShowSpriteDumpButton(uint index) const { return false; };
 
@@ -318,6 +318,11 @@ struct NewGRFInspectWindow : Window {
 
 	uint32 extra_info_flags = 0;
 	btree::btree_map<int, uint> extra_info_click_flag_toggles;
+	btree::btree_map<int, const SpriteGroup *> sprite_group_lines;
+	const SpriteGroup *selected_sprite_group = nullptr;
+	btree::btree_map<int, uint32> highlight_tag_lines;
+	uint32 selected_highlight_tag = 0;
+	btree::btree_set<const SpriteGroup *> collapsed_groups;
 
 	/**
 	 * Check whether the given variable has a parameter.
@@ -521,8 +526,45 @@ struct NewGRFInspectWindow : Window {
 
 			::DrawString(r.left + LEFT_OFFSET, r.right - RIGHT_OFFSET, r.top + TOP_OFFSET + (offset * this->resize.step_height), buf, TC_BLACK);
 		};
+		const_cast<NewGRFInspectWindow *>(this)->sprite_group_lines.clear();
 		if (this->sprite_dump) {
-			nih->SpriteDump(index, line_handler);
+			bool collapsed = false;
+			const SpriteGroup *collapse_group = nullptr;
+			uint collapse_lines = 0;
+			char tmp_buf[256];
+			nih->SpriteDump(index, [&](const SpriteGroup *group, DumpSpriteGroupPrintOp operation, uint32 highlight_tag, const char *buf) {
+				if (this->log_console && operation == DSGPO_PRINT) DEBUG(misc, 0, "  %s", buf);
+
+				if (operation == DSGPO_START && !collapsed && this->collapsed_groups.count(group)) {
+					collapsed = true;
+					collapse_group = group;
+					collapse_lines = 0;
+				}
+				if (operation == DSGPO_END && collapsed && collapse_group == group) {
+					seprintf(tmp_buf, lastof(tmp_buf), "%*sCOLLAPSED: %u lines omitted", highlight_tag + 2, "", collapse_lines);
+					buf = tmp_buf;
+					collapsed = false;
+					highlight_tag = 0;
+					operation = DSGPO_PRINT;
+				}
+
+				if (operation != DSGPO_PRINT) return;
+				if (collapsed) {
+					collapse_lines++;
+					return;
+				}
+
+				int offset = i++;
+				int scroll_offset = offset - this->vscroll->GetPosition();
+				if (scroll_offset < 0 || scroll_offset >= this->vscroll->GetCapacity()) return;
+
+				if (group != nullptr) const_cast<NewGRFInspectWindow *>(this)->sprite_group_lines[offset] = group;
+				if (highlight_tag != 0) const_cast<NewGRFInspectWindow *>(this)->highlight_tag_lines[offset] = highlight_tag;
+
+				TextColour colour = (this->selected_sprite_group == group && group != nullptr) ? TC_LIGHT_BLUE : TC_BLACK;
+				if (highlight_tag != 0 && this->selected_highlight_tag == highlight_tag) colour = TC_YELLOW;
+				::DrawString(r.left + LEFT_OFFSET, r.right - RIGHT_OFFSET, r.top + TOP_OFFSET + (scroll_offset * this->resize.step_height), buf, colour);
+			});
 			return;
 		} else {
 			NewGRFInspectWindow *this_mutable = const_cast<NewGRFInspectWindow *>(this);
@@ -711,11 +753,44 @@ struct NewGRFInspectWindow : Window {
 				break;
 
 			case WID_NGRFI_MAINPANEL: {
-				if (this->sprite_dump) return;
-
 				/* Get the line, make sure it's within the boundaries. */
 				int line = this->vscroll->GetScrolledRowFromWidget(pt.y, this, WID_NGRFI_MAINPANEL, TOP_OFFSET);
 				if (line == INT_MAX) return;
+
+				if (this->sprite_dump) {
+					if (_ctrl_pressed) {
+						uint32 highlight_tag = 0;
+						auto iter = this->highlight_tag_lines.find(line);
+						if (iter != this->highlight_tag_lines.end()) highlight_tag = iter->second;
+						if (highlight_tag != 0 || this->selected_highlight_tag != 0) {
+							this->selected_highlight_tag = (highlight_tag == this->selected_highlight_tag) ? 0 : highlight_tag;
+							this->SetWidgetDirty(WID_NGRFI_MAINPANEL);
+						}
+					} else if (_shift_pressed) {
+						const SpriteGroup *group = nullptr;
+						auto iter = this->sprite_group_lines.find(line);
+						if (iter != this->sprite_group_lines.end()) group = iter->second;
+						if (group != nullptr) {
+							auto iter = this->collapsed_groups.lower_bound(group);
+							if (iter != this->collapsed_groups.end() && *iter == group) {
+								this->collapsed_groups.erase(iter);
+							} else {
+								this->collapsed_groups.insert(iter, group);
+							}
+							this->SetWidgetDirty(WID_NGRFI_MAINPANEL);
+						}
+
+					} else {
+						const SpriteGroup *group = nullptr;
+						auto iter = this->sprite_group_lines.find(line);
+						if (iter != this->sprite_group_lines.end()) group = iter->second;
+						if (group != nullptr || this->selected_sprite_group != nullptr) {
+							this->selected_sprite_group = (group == this->selected_sprite_group) ? nullptr : group;
+							this->SetWidgetDirty(WID_NGRFI_MAINPANEL);
+						}
+					}
+					return;
+				}
 
 				auto iter = this->extra_info_click_flag_toggles.find(line);
 				if (iter != this->extra_info_click_flag_toggles.end()) {
@@ -759,6 +834,7 @@ struct NewGRFInspectWindow : Window {
 			case WID_NGRFI_SPRITE_DUMP: {
 				this->sprite_dump = !this->sprite_dump;
 				this->SetWidgetLoweredState(WID_NGRFI_SPRITE_DUMP, this->sprite_dump);
+				this->GetWidget<NWidgetCore>(WID_NGRFI_MAINPANEL)->SetToolTip(this->sprite_dump ? STR_NEWGRF_INSPECT_SPRITE_DUMP_PANEL_TOOLTIP : STR_NULL);
 				this->SetWidgetDirty(WID_NGRFI_SPRITE_DUMP);
 				this->SetWidgetDirty(WID_NGRFI_MAINPANEL);
 				this->SetWidgetDirty(WID_NGRFI_SCROLLBAR);

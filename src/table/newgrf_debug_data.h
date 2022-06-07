@@ -211,7 +211,7 @@ class NIHVehicle : public NIHelper {
 			if (t->lookahead != nullptr) {
 				output.print("  Look ahead:");
 				const TrainReservationLookAhead &l = *t->lookahead;
-				TrainDecelerationStats stats(t);
+				TrainDecelerationStats stats(t, l.cached_zpos);
 
 				auto print_braking_speed = [&](int position, int end_speed, int end_z) {
 					if (!t->UsingRealisticBraking()) return;
@@ -227,6 +227,11 @@ class NIHVehicle : public NIHelper {
 				if (l.next_extend_position > l.current_position) {
 					b += seprintf(b, lastof(buffer), ", next extend position: %d (dist: %d)", l.next_extend_position, l.next_extend_position - l.current_position);
 				}
+				output.print(buffer);
+
+				const int overall_zpos = t->CalculateOverallZPos();
+				seprintf(buffer, lastof(buffer), "    Cached zpos: %u (actual: %u, delta: %d), positions to refresh: %u",
+						l.cached_zpos, overall_zpos, (l.cached_zpos - overall_zpos), l.zpos_refresh_remaining);
 				output.print(buffer);
 
 				b = buffer + seprintf(buffer, lastof(buffer), "    Reservation ends at %X (%u x %u), trackdir: %02X, z: %d",
@@ -368,6 +373,16 @@ class NIHVehicle : public NIHelper {
 						output.print(buffer);
 					}
 				}
+				if (e->refit_capacity_values != nullptr) {
+					const EngineRefitCapacityValue *caps = e->refit_capacity_values.get();
+					CargoTypes seen = 0;
+					while (seen != ALL_CARGOTYPES) {
+						seprintf(buffer, lastof(buffer), "    Refit capacity cache: cargoes: 0x" OTTD_PRINTFHEX64 " --> 0x%X", caps->cargoes, caps->capacity);
+						output.print(buffer);
+						seen |= caps->cargoes;
+						caps++;
+					}
+				}
 				YearMonthDay ymd;
 				ConvertDateToYMD(e->intro_date, &ymd);
 				seprintf(buffer, lastof(buffer), "    Intro: %4i-%02i-%02i, Age: %u, Base life: %u, Durations: %u %u %u (sum: %u)",
@@ -397,9 +412,9 @@ class NIHVehicle : public NIHelper {
 		output.print(buffer);
 	}
 
-	/* virtual */ void SpriteDump(uint index, std::function<void(const char *)> print) const override
+	/* virtual */ void SpriteDump(uint index, DumpSpriteGroupPrinter print) const override
 	{
-		extern void DumpVehicleSpriteGroup(const Vehicle *v, std::function<void(const char *)> print);
+		extern void DumpVehicleSpriteGroup(const Vehicle *v, DumpSpriteGroupPrinter print);
 		DumpVehicleSpriteGroup(Vehicle::Get(index), std::move(print));
 	}
 };
@@ -467,7 +482,7 @@ class NIHStation : public NIHelper {
 		return ro.GetScope(VSG_SCOPE_SELF)->GetVariable(var, param, extra);
 	}
 
-	/* virtual */ void SpriteDump(uint index, std::function<void(const char *)> print) const override
+	/* virtual */ void SpriteDump(uint index, DumpSpriteGroupPrinter print) const override
 	{
 		StationResolverObject ro(GetStationSpec(index), Station::GetByTile(index), index, INVALID_RAILTYPE);
 		DumpSpriteGroup(ro.root_spritegroup, std::move(print));
@@ -567,7 +582,7 @@ class NIHHouse : public NIHelper {
 		}
 	}
 
-	/* virtual */ void SpriteDump(uint index, std::function<void(const char *)> print) const override
+	/* virtual */ void SpriteDump(uint index, DumpSpriteGroupPrinter print) const override
 	{
 		DumpSpriteGroup(HouseSpec::Get(GetHouseType(index))->grf_prop.spritegroup[0], std::move(print));
 	}
@@ -640,11 +655,11 @@ class NIHIndustryTile : public NIHelper {
 		}
 	}
 
-	/* virtual */ void SpriteDump(uint index, std::function<void(const char *)> print) const override
+	/* virtual */ void SpriteDump(uint index, DumpSpriteGroupPrinter print) const override
 	{
 		const IndustryTileSpec *indts = GetIndustryTileSpec(GetIndustryGfx(index));
 		if (indts) {
-			extern void DumpIndustryTileSpriteGroup(const IndustryTileSpec *spec, std::function<void(const char *)> print);
+			extern void DumpIndustryTileSpriteGroup(const IndustryTileSpec *spec, DumpSpriteGroupPrinter print);
 			DumpIndustryTileSpriteGroup(indts, std::move(print));
 		}
 	}
@@ -832,11 +847,11 @@ class NIHIndustry : public NIHelper {
 		}
 	}
 
-	/* virtual */ void SpriteDump(uint index, std::function<void(const char *)> print) const override
+	/* virtual */ void SpriteDump(uint index, DumpSpriteGroupPrinter print) const override
 	{
 		const Industry *ind = Industry::GetIfValid(index);
 		if (ind) {
-			extern void DumpIndustrySpriteGroup(const IndustrySpec *spec, std::function<void(const char *)> print);
+			extern void DumpIndustrySpriteGroup(const IndustrySpec *spec, DumpSpriteGroupPrinter print);
 			DumpIndustrySpriteGroup(GetIndustrySpec(ind->type), std::move(print));
 		}
 	}
@@ -970,9 +985,9 @@ class NIHObject : public NIHelper {
 		}
 	}
 
-	/* virtual */ void SpriteDump(uint index, std::function<void(const char *)> print) const override
+	/* virtual */ void SpriteDump(uint index, DumpSpriteGroupPrinter print) const override
 	{
-		extern void DumpObjectSpriteGroup(const ObjectSpec *spec, std::function<void(const char *)> print);
+		extern void DumpObjectSpriteGroup(const ObjectSpec *spec, DumpSpriteGroupPrinter print);
 		DumpObjectSpriteGroup(ObjectSpec::GetByTile(index), std::move(print));
 	}
 };
@@ -1482,9 +1497,9 @@ class NIHRoadStop : public NIHelper {
 		}
 	}
 
-	/* virtual */ void SpriteDump(uint index, std::function<void(const char *)> print) const override
+	/* virtual */ void SpriteDump(uint index, DumpSpriteGroupPrinter print) const override
 	{
-		extern void DumpRoadStopSpriteGroup(const BaseStation *st, const RoadStopSpec *spec, std::function<void(const char *)> print);
+		extern void DumpRoadStopSpriteGroup(const BaseStation *st, const RoadStopSpec *spec, DumpSpriteGroupPrinter print);
 		DumpRoadStopSpriteGroup(BaseStation::GetByTile(index), GetRoadStopSpec(index), std::move(print));
 	}
 };

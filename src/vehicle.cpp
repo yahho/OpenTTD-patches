@@ -3418,6 +3418,7 @@ void Vehicle::LeaveStation()
 		}
 
 		SetBit(Train::From(this)->flags, VRF_LEAVING_STATION);
+		if (Train::From(this)->lookahead != nullptr) Train::From(this)->lookahead->zpos_refresh_remaining = 0;
 	}
 	if (this->type == VEH_ROAD && !(this->vehstatus & VS_CRASHED)) {
 		/* Trigger road stop animation */
@@ -3477,6 +3478,7 @@ void Vehicle::AdvanceLoadingInStation()
 	HideFillingPercent(&this->fill_percent_te_id);
 	this->current_order.MakeLoadingAdvance(this->last_station_visited);
 	this->current_order.SetNonStopType(ONSF_NO_STOP_AT_ANY_STATION);
+	if (Train::From(this)->lookahead != nullptr) Train::From(this)->lookahead->zpos_refresh_remaining = 0;
 	this->MarkDirty();
 }
 
@@ -3865,9 +3867,10 @@ int ReversingDistanceTargetSpeed(const Train *v);
 
 /**
  * Draw visual effects (smoke and/or sparks) for a vehicle chain.
+ * @param max_speed The speed as limited by underground and orders, UINT_MAX if not already known
  * @pre this->IsPrimaryVehicle()
  */
-void Vehicle::ShowVisualEffect() const
+void Vehicle::ShowVisualEffect(uint max_speed) const
 {
 	assert(this->IsPrimaryVehicle());
 	bool sound = false;
@@ -3883,8 +3886,7 @@ void Vehicle::ShowVisualEffect() const
 		return;
 	}
 
-	/* Use the speed as limited by underground and orders. */
-	uint max_speed = this->GetCurrentMaxSpeed();
+	if (max_speed == UINT_MAX) max_speed = this->GetCurrentMaxSpeed();
 
 	if (this->type == VEH_TRAIN) {
 		const Train *t = Train::From(this);

@@ -70,7 +70,7 @@ bool ObjectSpec::IsEverAvailable() const
  */
 bool ObjectSpec::WasEverAvailable() const
 {
-	return this->IsEverAvailable() && _date > this->introduction_date;
+	return this->IsEverAvailable() && (_date > this->introduction_date || (_settings_game.construction.ignore_object_intro_dates && !_generating_world));
 }
 
 /**
@@ -80,7 +80,8 @@ bool ObjectSpec::WasEverAvailable() const
 bool ObjectSpec::IsAvailable() const
 {
 	return this->WasEverAvailable() &&
-			(_date < this->end_of_life_date || this->end_of_life_date < this->introduction_date + 365);
+			(_date < this->end_of_life_date || this->end_of_life_date < this->introduction_date + 365 ||
+			(_settings_game.construction.no_expire_objects_after != 0 && _cur_year >= _settings_game.construction.no_expire_objects_after));
 }
 
 /**
@@ -617,7 +618,7 @@ void TriggerObjectAnimation(Object *o, ObjectAnimationTrigger trigger, const Obj
 	}
 }
 
-void DumpObjectSpriteGroup(const ObjectSpec *spec, std::function<void(const char *)> print)
+void DumpObjectSpriteGroup(const ObjectSpec *spec, DumpSpriteGroupPrinter print)
 {
 	DumpSpriteGroup(spec->grf_prop.spritegroup[0], std::move(print));
 }

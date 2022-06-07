@@ -35,7 +35,7 @@ static inline uint32 GetRegister(uint i)
 }
 
 /* List of different sprite group types */
-enum SpriteGroupType {
+enum SpriteGroupType : uint8 {
 	SGT_REAL,
 	SGT_DETERMINISTIC,
 	SGT_RANDOMIZED,
@@ -49,15 +49,24 @@ struct SpriteGroup;
 typedef uint32 SpriteGroupID;
 struct ResolverObject;
 
-enum AnalyseCallbackOperationMode {
+enum AnalyseCallbackOperationMode : uint8 {
 	ACOM_CB_VAR,
 	ACOM_CB36_PROP,
 	ACOM_FIND_CB_RESULT,
 	ACOM_CB36_SPEED,
 	ACOM_INDUSTRY_TILE,
+	ACOM_CB_REFIT_CAPACITY,
 };
 
 struct AnalyseCallbackOperationIndustryTileData;
+
+enum AnalyseCallbackOperationResultFlags : uint8 {
+	ACORF_NONE                              = 0,
+	ACORF_CB_RESULT_FOUND                   = 1 << 0,
+	ACORF_CB_REFIT_CAP_NON_WHITELIST_FOUND  = 1 << 1,
+	ACORF_CB_REFIT_CAP_SEEN_VAR_47          = 1 << 2,
+};
+DECLARE_ENUM_AS_BIT_SET(AnalyseCallbackOperationResultFlags)
 
 struct AnalyseCallbackOperation {
 	struct FindCBResultData {
@@ -69,8 +78,8 @@ struct AnalyseCallbackOperation {
 	btree::btree_set<const SpriteGroup *> seen;
 	AnalyseCallbackOperationMode mode = ACOM_CB_VAR;
 	SpriteGroupCallbacksUsed callbacks_used = SGCU_NONE;
+	AnalyseCallbackOperationResultFlags result_flags = ACORF_NONE;
 	uint64 properties_used = 0;
-	bool cb_result_found = false;
 	union {
 		FindCBResultData cb_result;
 		AnalyseCallbackOperationIndustryTileData *indtile;
@@ -125,7 +134,7 @@ protected:
 };
 
 /* Shared by deterministic and random groups. */
-enum VarSpriteGroupScope {
+enum VarSpriteGroupScope : uint8 {
 	VSG_BEGIN,
 
 	VSG_SCOPE_SELF = VSG_BEGIN, ///< Resolved object itself
@@ -136,19 +145,22 @@ enum VarSpriteGroupScope {
 };
 DECLARE_POSTFIX_INCREMENT(VarSpriteGroupScope)
 
-enum DeterministicSpriteGroupSize {
+enum DeterministicSpriteGroupSize : uint8 {
 	DSG_SIZE_BYTE,
 	DSG_SIZE_WORD,
 	DSG_SIZE_DWORD,
 };
 
-enum DeterministicSpriteGroupAdjustType {
+enum DeterministicSpriteGroupAdjustType : uint8 {
 	DSGA_TYPE_NONE,
 	DSGA_TYPE_DIV,
 	DSGA_TYPE_MOD,
+
+	DSGA_TYPE_EQ,
+	DSGA_TYPE_NEQ,
 };
 
-enum DeterministicSpriteGroupAdjustOperation {
+enum DeterministicSpriteGroupAdjustOperation : uint8 {
 	DSGA_OP_ADD,  ///< a + b
 	DSGA_OP_SUB,  ///< a - b
 	DSGA_OP_SMIN, ///< (signed) min(a, b)
@@ -182,12 +194,20 @@ enum DeterministicSpriteGroupAdjustOperation {
 	DSGA_OP_SLE,            ///< (signed) a <= b ? 1 : 0,
 	DSGA_OP_SGT,            ///< (signed) a > b ? 1 : 0,
 	DSGA_OP_RSUB,           ///< b - a
+	DSGA_OP_STO_NC,         ///< store b into temporary storage, indexed by c. return a
 
 	DSGA_OP_SPECIAL_END,
 };
 
 static_assert((DSGA_OP_SLT ^ 1) == DSGA_OP_SGE);
 static_assert((DSGA_OP_SLE ^ 1) == DSGA_OP_SGT);
+
+enum DeterministicSpriteGroupAdjustFlags : uint8 {
+	DSGAF_NONE               = 0,
+	DSGAF_SKIP_ON_ZERO       = 1 << 0,
+	DSGAF_SKIP_ON_LSB_SET    = 1 << 1,
+};
+DECLARE_ENUM_AS_BIT_SET(DeterministicSpriteGroupAdjustFlags);
 
 inline bool IsEvalAdjustWithZeroRemovable(DeterministicSpriteGroupAdjustOperation op)
 {
@@ -294,11 +314,33 @@ inline bool IsEvalAdjustOperationOnConstantEffectiveLoad(DeterministicSpriteGrou
 	}
 }
 
+inline bool IsEvalAdjustWithZeroLastValueAlwaysZero(DeterministicSpriteGroupAdjustOperation op)
+{
+	switch (op) {
+		case DSGA_OP_SDIV:
+		case DSGA_OP_SMOD:
+		case DSGA_OP_UDIV:
+		case DSGA_OP_UMOD:
+		case DSGA_OP_UMIN:
+		case DSGA_OP_MUL:
+		case DSGA_OP_AND:
+		case DSGA_OP_ROR:
+		case DSGA_OP_SHL:
+		case DSGA_OP_SHR:
+		case DSGA_OP_SAR:
+			return true;
+
+		default:
+			return false;
+	}
+}
+
 struct DeterministicSpriteGroupAdjust {
 	DeterministicSpriteGroupAdjustOperation operation;
 	DeterministicSpriteGroupAdjustType type;
 	uint16 variable;
 	byte shift_num;
+	DeterministicSpriteGroupAdjustFlags adjust_flags = DSGAF_NONE;
 	uint32 parameter; ///< Used for variables between 0x60 and 0x7F inclusive.
 	uint32 and_mask;
 	uint32 add_val;
@@ -306,13 +348,17 @@ struct DeterministicSpriteGroupAdjust {
 	const SpriteGroup *subroutine;
 };
 
-
 struct DeterministicSpriteGroupRange {
 	const SpriteGroup *group;
 	uint32 low;
 	uint32 high;
 };
 
+enum DeterministicSpriteGroupFlags : uint8 {
+	DSGF_NONE                 = 0,
+	DSGF_NO_DSE               = 1 << 0,
+};
+DECLARE_ENUM_AS_BIT_SET(DeterministicSpriteGroupFlags)
 
 struct DeterministicSpriteGroup : SpriteGroup {
 	DeterministicSpriteGroup() : SpriteGroup(SGT_DETERMINISTIC) {}
@@ -320,6 +366,7 @@ struct DeterministicSpriteGroup : SpriteGroup {
 	VarSpriteGroupScope var_scope;
 	DeterministicSpriteGroupSize size;
 	bool calculated_result;
+	DeterministicSpriteGroupFlags dsg_flags = DSGF_NONE;
 	std::vector<DeterministicSpriteGroupAdjust> adjusts;
 	std::vector<DeterministicSpriteGroupRange> ranges; // Dynamically allocated
 
@@ -365,19 +412,25 @@ protected:
 struct CallbackResultSpriteGroup : SpriteGroup {
 	/**
 	 * Creates a spritegroup representing a callback result
+	 * @param result The result as returned from TransformResultValue
+	 */
+	CallbackResultSpriteGroup(uint16 result) :
+		SpriteGroup(SGT_CALLBACK),
+		result(result) {}
+
+	/**
+	 * Transforms a callback result value
 	 * @param value The value that was used to represent this callback result
 	 * @param grf_version8 True, if we are dealing with a new NewGRF which uses GRF version >= 8.
 	 */
-	CallbackResultSpriteGroup(uint16 value, bool grf_version8) :
-		SpriteGroup(SGT_CALLBACK),
-		result(value)
+	static uint16 TransformResultValue(uint16 value, bool grf_version8)
 	{
 		/* Old style callback results (only valid for version < 8) have the highest byte 0xFF so signify it is a callback result.
 		 * New style ones only have the highest bit set (allows 15-bit results, instead of just 8) */
-		if (!grf_version8 && (this->result >> 8) == 0xFF) {
-			this->result &= ~0xFF00;
+		if (!grf_version8 && (value >> 8) == 0xFF) {
+			return value & ~0xFF00;
 		} else {
-			this->result &= ~0x8000;
+			return value & ~0x8000;
 		}
 	}
 
@@ -569,7 +622,33 @@ struct ResolverObject {
 	virtual uint32 GetDebugID() const { return 0; }
 };
 
-void DumpSpriteGroup(const SpriteGroup *sg, std::function<void(const char *)> print);
+enum DumpSpriteGroupPrintOp {
+	DSGPO_PRINT,
+	DSGPO_START,
+	DSGPO_END,
+};
+
+using DumpSpriteGroupPrinter = std::function<void(const SpriteGroup *, DumpSpriteGroupPrintOp, uint32, const char *)>;
+
+struct SpriteGroupDumper {
+private:
+	char buffer[1024];
+	DumpSpriteGroupPrinter print_fn;
+
+	const SpriteGroup *top_default_group = nullptr;
+	btree::btree_set<const DeterministicSpriteGroup *> seen_dsgs;
+
+	enum SpriteGroupDumperFlags {
+		SGDF_DEFAULT          = 1 << 0,
+	};
+
+public:
+	SpriteGroupDumper(DumpSpriteGroupPrinter print) : print_fn(print) {}
+
+	void DumpSpriteGroup(const SpriteGroup *sg, int padding, uint flags);
+};
+
+void DumpSpriteGroup(const SpriteGroup *sg, DumpSpriteGroupPrinter print);
 uint32 EvaluateDeterministicSpriteGroupAdjust(DeterministicSpriteGroupSize size, const DeterministicSpriteGroupAdjust &adjust, ScopeResolver *scope, uint32 last_value, uint32 value);
 
 #endif /* NEWGRF_SPRITEGROUP_H */

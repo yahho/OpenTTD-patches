@@ -246,6 +246,7 @@ struct GUISettings : public TimeSettings {
 	uint8  demolish_confirm_mode;            ///< Demolition confirmation mode
 	bool   dual_pane_train_purchase_window;  ///< Dual pane train purchase window
 	bool   allow_hiding_waypoint_labels;     ///< Allow hiding waypoint viewport labels
+	uint8  disable_water_animation;          ///< Disable water animation depending on zoom level
 
 	uint16 console_backlog_timeout;          ///< the minimum amount of time items should be in the console backlog before they will be removed in ~3 seconds granularity.
 	uint16 console_backlog_length;           ///< the minimum amount of items in the console backlog before items will be removed.
@@ -454,6 +455,8 @@ struct ConstructionSettings {
 	bool   allow_docks_under_bridges;        ///< allow docks under bridges
 	byte   purchase_land_permitted;          ///< whether and how purchasing land is permitted
 	bool   build_object_area_permitted;      ///< whether building objects by area is permitted
+	Year   no_expire_objects_after;          ///< do not expire objects after this year
+	bool   ignore_object_intro_dates;        ///< allow players to build objects before their introduction dates (does not include during map generation)
 
 	uint32 terraform_per_64k_frames;         ///< how many tile heights may, over a long period, be terraformed per 65536 frames?
 	uint16 terraform_frame_burst;            ///< how many tile heights may, over a short period, be terraformed?
@@ -615,8 +618,8 @@ struct VehicleSettings {
 	uint8  freight_trains;                   ///< value to multiply the weight of cargo by
 	bool   dynamic_engines;                  ///< enable dynamic allocation of engine data
 	bool   never_expire_vehicles;            ///< never expire vehicles
-	Year   no_expire_vehicles_after;         ///< do not expire vehicles ater this year
-	Year   no_introduce_vehicles_after;      ///< do not introduce vehicles ater this year
+	Year   no_expire_vehicles_after;         ///< do not expire vehicles after this year
+	Year   no_introduce_vehicles_after;      ///< do not introduce vehicles after this year
 	byte   extend_vehicle_life;              ///< extend vehicle life by this many years
 	byte   road_side;                        ///< the side of the road vehicles drive on
 	uint8  plane_crashes;                    ///< number of plane crashes, 0 = none, 1 = reduced, 2 = normal
@@ -755,6 +758,7 @@ struct CompanySettings {
 /** Debug settings. */
 struct DebugSettings {
 	uint32 chicken_bits;                     ///< chicken bits
+	uint32 newgrf_optimiser_flags;           ///< NewGRF optimiser flags
 };
 
 /** Scenario editor settings. */

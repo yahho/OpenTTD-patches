@@ -185,14 +185,14 @@ struct Train FINAL : public GroundVehicle<Train, VEH_TRAIN> {
 
 	void ConsistChanged(ConsistChangeFlags allowed_changes);
 
-	int UpdateSpeed();
-
-	void UpdateAcceleration();
-
 	struct MaxSpeedInfo {
 		int strict_max_speed;
 		int advisory_max_speed;
 	};
+
+	int UpdateSpeed(MaxSpeedInfo max_speed_info);
+
+	void UpdateAcceleration();
 
 	bool ConsistNeedsRepair() const;
 
@@ -211,6 +211,13 @@ public:
 	}
 
 	int GetCurrentMaxSpeed() const;
+
+	uint8 GetZPosCacheUpdateInterval() const
+	{
+		return Clamp<uint16>(std::min<uint16>(this->gcache.cached_total_length / 4, this->tcache.cached_centre_mass / 2), 2, 32);
+	}
+
+	uint32 CalculateOverallZPos() const;
 
 	bool UsingRealisticBraking() const { return this->tcache.cached_tflags & TCF_RL_BRAKING; }
 
@@ -494,7 +501,7 @@ struct TrainDecelerationStats {
 	int z_pos;
 	const Train *t;
 
-	TrainDecelerationStats(const Train *t);
+	TrainDecelerationStats(const Train *t, int z_pos);
 };
 
 CommandCost CmdMoveRailVehicle(TileIndex, DoCommandFlag , uint32, uint32, const char *);
