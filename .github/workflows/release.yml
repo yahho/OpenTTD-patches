@@ -798,7 +798,7 @@ jobs:
         cd build
 
         echo "::group::Config NSIS for unicode support"
-        cp "C:\Program Files\CMake\share\cmake-3.22\Modules\Internal\CPack\NSIS.template.in" "${GITHUB_WORKSPACE}\cmake\NSIS.template.in"
+        cp /c/Program\ Files/CMake/share/cmake-*/Modules/Internal/CPack/NSIS.template.in "${GITHUB_WORKSPACE}\cmake\NSIS.template.in"
         sed -i -e "1a Unicode true" "${GITHUB_WORKSPACE}\cmake\NSIS.template.in"
         echo "NSIS unicode enabled"
         echo "::endgroup::"
