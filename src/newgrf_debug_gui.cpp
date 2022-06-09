@@ -20,6 +20,7 @@
 #include "vehicle_gui.h"
 #include "zoom_func.h"
 #include "scope.h"
+#include "debug_settings.h"
 
 #include "engine_base.h"
 #include "industry.h"
@@ -311,14 +312,18 @@ struct NewGRFInspectWindow : Window {
 	Scrollbar *vscroll;
 
 	int first_variable_line_index = 0;
+	bool redraw_panel = false;
+	bool redraw_scrollbar = false;
 
 	bool auto_refresh = false;
 	bool log_console = false;
 	bool sprite_dump = false;
+	bool sprite_dump_unopt = false;
 
 	uint32 extra_info_flags = 0;
 	btree::btree_map<int, uint> extra_info_click_flag_toggles;
 	btree::btree_map<int, const SpriteGroup *> sprite_group_lines;
+	btree::btree_map<int, uint16> nfo_line_lines;
 	const SpriteGroup *selected_sprite_group = nullptr;
 	btree::btree_map<int, uint32> highlight_tag_lines;
 	uint32 selected_highlight_tag = 0;
@@ -387,7 +392,12 @@ struct NewGRFInspectWindow : Window {
 	{
 		this->CreateNestedTree();
 		this->vscroll = this->GetScrollbar(WID_NGRFI_SCROLLBAR);
-		this->GetWidget<NWidgetStacked>(WID_NGRFI_SPRITE_DUMP_SEL)->SetDisplayedPlane(GetFeatureHelper(wno)->ShowSpriteDumpButton(::GetFeatureIndex(wno)) ? 0 : SZSP_NONE);
+		bool show_sprite_dump_button = GetFeatureHelper(wno)->ShowSpriteDumpButton(::GetFeatureIndex(wno));
+		this->GetWidget<NWidgetStacked>(WID_NGRFI_SPRITE_DUMP_SEL)->SetDisplayedPlane(show_sprite_dump_button ? 0 : SZSP_NONE);
+		this->GetWidget<NWidgetStacked>(WID_NGRFI_SPRITE_DUMP_UNOPT_SEL)->SetDisplayedPlane(show_sprite_dump_button ? 0 : SZSP_NONE);
+		this->GetWidget<NWidgetStacked>(WID_NGRFI_SPRITE_DUMP_GOTO_SEL)->SetDisplayedPlane(show_sprite_dump_button ? 0 : SZSP_NONE);
+		this->SetWidgetDisabledState(WID_NGRFI_SPRITE_DUMP_UNOPT, true);
+		this->SetWidgetDisabledState(WID_NGRFI_SPRITE_DUMP_GOTO, true);
 		this->FinishInitNested(wno);
 
 		this->vscroll->SetCount(0);
@@ -513,7 +523,12 @@ struct NewGRFInspectWindow : Window {
 				/* Not nice and certainly a hack, but it beats duplicating
 				 * this whole function just to count the actual number of
 				 * elements. Especially because they need to be redrawn. */
+				uint position = this->vscroll->GetPosition();
 				const_cast<NewGRFInspectWindow*>(this)->vscroll->SetCount(count);
+				const_cast<NewGRFInspectWindow*>(this)->redraw_scrollbar = true;
+				if (position != this->vscroll->GetPosition()) {
+					const_cast<NewGRFInspectWindow*>(this)->redraw_panel = true;
+				}
 			}
 		});
 
@@ -527,13 +542,26 @@ struct NewGRFInspectWindow : Window {
 			::DrawString(r.left + LEFT_OFFSET, r.right - RIGHT_OFFSET, r.top + TOP_OFFSET + (offset * this->resize.step_height), buf, TC_BLACK);
 		};
 		const_cast<NewGRFInspectWindow *>(this)->sprite_group_lines.clear();
+		const_cast<NewGRFInspectWindow *>(this)->highlight_tag_lines.clear();
+		const_cast<NewGRFInspectWindow *>(this)->nfo_line_lines.clear();
 		if (this->sprite_dump) {
+			SpriteGroupDumper::use_shadows = this->sprite_dump_unopt;
 			bool collapsed = false;
 			const SpriteGroup *collapse_group = nullptr;
 			uint collapse_lines = 0;
 			char tmp_buf[256];
 			nih->SpriteDump(index, [&](const SpriteGroup *group, DumpSpriteGroupPrintOp operation, uint32 highlight_tag, const char *buf) {
 				if (this->log_console && operation == DSGPO_PRINT) DEBUG(misc, 0, "  %s", buf);
+
+				if (operation == DSGPO_NFO_LINE) {
+					btree::btree_map<int, uint16> &lines = const_cast<NewGRFInspectWindow *>(this)->nfo_line_lines;
+					auto iter = lines.lower_bound(highlight_tag);
+					if (iter != lines.end() && iter->first == (int)highlight_tag) {
+						/* Already stored, don't insert again */
+					} else {
+						lines.insert(iter, std::make_pair<int, uint16>(highlight_tag, std::min<uint>(UINT16_MAX, i)));
+					}
+				}
 
 				if (operation == DSGPO_START && !collapsed && this->collapsed_groups.count(group)) {
 					collapsed = true;
@@ -565,6 +593,7 @@ struct NewGRFInspectWindow : Window {
 				if (highlight_tag != 0 && this->selected_highlight_tag == highlight_tag) colour = TC_YELLOW;
 				::DrawString(r.left + LEFT_OFFSET, r.right - RIGHT_OFFSET, r.top + TOP_OFFSET + (scroll_offset * this->resize.step_height), buf, colour);
 			});
+			SpriteGroupDumper::use_shadows = false;
 			return;
 		} else {
 			NewGRFInspectWindow *this_mutable = const_cast<NewGRFInspectWindow *>(this);
@@ -724,6 +753,20 @@ struct NewGRFInspectWindow : Window {
 		}
 	}
 
+	bool UnOptimisedSpriteDumpOK() const
+	{
+		if (_grfs_loaded_with_sg_shadow_enable) return true;
+
+		if (_networking && !_network_server) return false;
+
+		extern uint NetworkClientCount();
+		if (_networking && NetworkClientCount() > 1) {
+			return false;
+		}
+
+		return true;
+	}
+
 	void OnClick(Point pt, int widget, int click_count) override
 	{
 		switch (widget) {
@@ -831,13 +874,53 @@ struct NewGRFInspectWindow : Window {
 				break;
 			}
 
+			case WID_NGRFI_DUPLICATE: {
+				NewGRFInspectWindow *w = new NewGRFInspectWindow(this->window_desc, this->window_number);
+				w->SetCallerGRFID(this->caller_grfid);
+				break;
+			}
+
 			case WID_NGRFI_SPRITE_DUMP: {
 				this->sprite_dump = !this->sprite_dump;
 				this->SetWidgetLoweredState(WID_NGRFI_SPRITE_DUMP, this->sprite_dump);
+				this->SetWidgetDisabledState(WID_NGRFI_SPRITE_DUMP_UNOPT, !this->sprite_dump || !UnOptimisedSpriteDumpOK());
+				this->SetWidgetDisabledState(WID_NGRFI_SPRITE_DUMP_GOTO, !this->sprite_dump);
 				this->GetWidget<NWidgetCore>(WID_NGRFI_MAINPANEL)->SetToolTip(this->sprite_dump ? STR_NEWGRF_INSPECT_SPRITE_DUMP_PANEL_TOOLTIP : STR_NULL);
 				this->SetWidgetDirty(WID_NGRFI_SPRITE_DUMP);
+				this->SetWidgetDirty(WID_NGRFI_SPRITE_DUMP_UNOPT);
+				this->SetWidgetDirty(WID_NGRFI_SPRITE_DUMP_GOTO);
 				this->SetWidgetDirty(WID_NGRFI_MAINPANEL);
 				this->SetWidgetDirty(WID_NGRFI_SCROLLBAR);
+				break;
+			}
+
+			case WID_NGRFI_SPRITE_DUMP_UNOPT: {
+				if (!this->sprite_dump_unopt) {
+					if (!UnOptimisedSpriteDumpOK()) {
+						this->SetWidgetDisabledState(WID_NGRFI_SPRITE_DUMP_UNOPT, true);
+						this->SetWidgetDirty(WID_NGRFI_SPRITE_DUMP_UNOPT);
+						return;
+					}
+					if (!_grfs_loaded_with_sg_shadow_enable) {
+						SetBit(_misc_debug_flags, MDF_NEWGRF_SG_SAVE_RAW);
+
+						ReloadNewGRFData();
+
+						extern void PostCheckNewGRFLoadWarnings();
+						PostCheckNewGRFLoadWarnings();
+					}
+				}
+				this->sprite_dump_unopt = !this->sprite_dump_unopt;
+				this->SetWidgetLoweredState(WID_NGRFI_SPRITE_DUMP_UNOPT, this->sprite_dump_unopt);
+				this->SetWidgetDirty(WID_NGRFI_SPRITE_DUMP_UNOPT);
+				this->SetWidgetDirty(WID_NGRFI_MAINPANEL);
+				this->SetWidgetDirty(WID_NGRFI_SCROLLBAR);
+				break;
+			}
+
+			case WID_NGRFI_SPRITE_DUMP_GOTO: {
+				this->current_edit_param = 0;
+				ShowQueryString(STR_EMPTY, STR_SPRITE_ALIGNER_GOTO_CAPTION, 10, this, CS_NUMERAL, QSF_NONE);
 				break;
 			}
 		}
@@ -847,8 +930,17 @@ struct NewGRFInspectWindow : Window {
 	{
 		if (StrEmpty(str)) return;
 
-		NewGRFInspectWindow::var60params[GetFeatureNum(this->window_number)][this->current_edit_param - 0x60] = strtol(str, nullptr, 16);
-		this->SetDirty();
+		if (this->current_edit_param == 0 && this->sprite_dump) {
+			auto iter = this->nfo_line_lines.find(atoi(str));
+			if (iter != this->nfo_line_lines.end()) {
+				this->vscroll->SetPosition(std::min<int>(iter->second, std::max<int>(0, this->vscroll->GetCount() - this->vscroll->GetCapacity())));
+				this->SetWidgetDirty(WID_NGRFI_MAINPANEL);
+				this->SetWidgetDirty(WID_NGRFI_SCROLLBAR);
+			}
+		} else if (this->current_edit_param != 0 && !this->sprite_dump) {
+			NewGRFInspectWindow::var60params[GetFeatureNum(this->window_number)][this->current_edit_param - 0x60] = strtol(str, nullptr, 16);
+			this->SetDirty();
+		}
 	}
 
 	void OnResize() override
@@ -874,7 +966,14 @@ struct NewGRFInspectWindow : Window {
 
 	void OnRealtimeTick(uint delta_ms) override
 	{
-		if (this->auto_refresh) this->SetDirty();
+		if (this->auto_refresh) {
+			this->SetDirty();
+		} else {
+			if (this->redraw_panel) this->SetWidgetDirty(WID_NGRFI_MAINPANEL);
+			if (this->redraw_scrollbar) this->SetWidgetDirty(WID_NGRFI_SCROLLBAR);
+		}
+		this->redraw_panel = false;
+		this->redraw_scrollbar = false;
 	}
 };
 
@@ -884,9 +983,16 @@ static const NWidgetPart _nested_newgrf_inspect_chain_widgets[] = {
 	NWidget(NWID_HORIZONTAL),
 		NWidget(WWT_CLOSEBOX, COLOUR_GREY),
 		NWidget(WWT_CAPTION, COLOUR_GREY, WID_NGRFI_CAPTION), SetDataTip(STR_NEWGRF_INSPECT_CAPTION, STR_TOOLTIP_WINDOW_TITLE_DRAG_THIS),
+		NWidget(NWID_SELECTION, INVALID_COLOUR, WID_NGRFI_SPRITE_DUMP_GOTO_SEL),
+			NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_NGRFI_SPRITE_DUMP_GOTO), SetDataTip(STR_NEWGRF_INSPECT_SPRITE_DUMP_GOTO, STR_NEWGRF_INSPECT_SPRITE_DUMP_GOTO_TOOLTIP),
+		EndContainer(),
+		NWidget(NWID_SELECTION, INVALID_COLOUR, WID_NGRFI_SPRITE_DUMP_UNOPT_SEL),
+			NWidget(WWT_TEXTBTN, COLOUR_GREY, WID_NGRFI_SPRITE_DUMP_UNOPT), SetDataTip(STR_NEWGRF_INSPECT_SPRITE_DUMP_UNOPT, STR_NEWGRF_INSPECT_SPRITE_DUMP_UNOPT_TOOLTIP),
+		EndContainer(),
 		NWidget(NWID_SELECTION, INVALID_COLOUR, WID_NGRFI_SPRITE_DUMP_SEL),
 			NWidget(WWT_TEXTBTN, COLOUR_GREY, WID_NGRFI_SPRITE_DUMP), SetDataTip(STR_NEWGRF_INSPECT_SPRITE_DUMP, STR_NEWGRF_INSPECT_SPRITE_DUMP_TOOLTIP),
 		EndContainer(),
+		NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_NGRFI_DUPLICATE), SetDataTip(STR_NEWGRF_INSPECT_DUPLICATE, STR_NEWGRF_INSPECT_DUPLICATE_TOOLTIP),
 		NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_NGRFI_LOG_CONSOLE), SetDataTip(STR_NEWGRF_INSPECT_LOG_CONSOLE, STR_NEWGRF_INSPECT_LOG_CONSOLE_TOOLTIP),
 		NWidget(WWT_TEXTBTN, COLOUR_GREY, WID_NGRFI_REFRESH), SetDataTip(STR_NEWGRF_INSPECT_REFRESH, STR_NEWGRF_INSPECT_REFRESH_TOOLTIP),
 		NWidget(WWT_SHADEBOX, COLOUR_GREY),
@@ -914,9 +1020,16 @@ static const NWidgetPart _nested_newgrf_inspect_widgets[] = {
 		NWidget(WWT_CLOSEBOX, COLOUR_GREY),
 		NWidget(WWT_CAPTION, COLOUR_GREY, WID_NGRFI_CAPTION), SetDataTip(STR_NEWGRF_INSPECT_CAPTION, STR_TOOLTIP_WINDOW_TITLE_DRAG_THIS),
 		NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_NGRFI_PARENT), SetDataTip(STR_NEWGRF_INSPECT_PARENT_BUTTON, STR_NEWGRF_INSPECT_PARENT_TOOLTIP),
+		NWidget(NWID_SELECTION, INVALID_COLOUR, WID_NGRFI_SPRITE_DUMP_GOTO_SEL),
+			NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_NGRFI_SPRITE_DUMP_GOTO), SetDataTip(STR_NEWGRF_INSPECT_SPRITE_DUMP_GOTO, STR_NEWGRF_INSPECT_SPRITE_DUMP_GOTO_TOOLTIP),
+		EndContainer(),
+		NWidget(NWID_SELECTION, INVALID_COLOUR, WID_NGRFI_SPRITE_DUMP_UNOPT_SEL),
+			NWidget(WWT_TEXTBTN, COLOUR_GREY, WID_NGRFI_SPRITE_DUMP_UNOPT), SetDataTip(STR_NEWGRF_INSPECT_SPRITE_DUMP_UNOPT, STR_NEWGRF_INSPECT_SPRITE_DUMP_UNOPT_TOOLTIP),
+		EndContainer(),
 		NWidget(NWID_SELECTION, INVALID_COLOUR, WID_NGRFI_SPRITE_DUMP_SEL),
 			NWidget(WWT_TEXTBTN, COLOUR_GREY, WID_NGRFI_SPRITE_DUMP), SetDataTip(STR_NEWGRF_INSPECT_SPRITE_DUMP, STR_NEWGRF_INSPECT_SPRITE_DUMP_TOOLTIP),
 		EndContainer(),
+		NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_NGRFI_DUPLICATE), SetDataTip(STR_NEWGRF_INSPECT_DUPLICATE, STR_NEWGRF_INSPECT_DUPLICATE_TOOLTIP),
 		NWidget(WWT_PUSHTXTBTN, COLOUR_GREY, WID_NGRFI_LOG_CONSOLE), SetDataTip(STR_NEWGRF_INSPECT_LOG_CONSOLE, STR_NEWGRF_INSPECT_LOG_CONSOLE_TOOLTIP),
 		NWidget(WWT_TEXTBTN, COLOUR_GREY, WID_NGRFI_REFRESH), SetDataTip(STR_NEWGRF_INSPECT_REFRESH, STR_NEWGRF_INSPECT_REFRESH_TOOLTIP),
 		NWidget(WWT_SHADEBOX, COLOUR_GREY),
@@ -997,7 +1110,7 @@ void DeleteNewGRFInspectWindow(GrfSpecFeature feature, uint index)
 	if (index >= (1 << 27)) return;
 
 	WindowNumber wno = GetInspectWindowNumber(feature, index);
-	DeleteWindowById(WC_NEWGRF_INSPECT, wno);
+	DeleteAllWindowsById(WC_NEWGRF_INSPECT, wno);
 
 	/* Reinitialise the land information window to remove the "debug" sprite if needed.
 	 * Note: Since we might be called from a command here, it is important to not execute

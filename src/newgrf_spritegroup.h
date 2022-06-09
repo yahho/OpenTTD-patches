@@ -22,6 +22,8 @@
 
 #include "3rdparty/cpp-btree/btree_set.h"
 
+#include <map>
+
 /**
  * Gets the value of a so-called newgrf "register".
  * @param i index of the register
@@ -104,6 +106,7 @@ public:
 
 	uint32 nfo_line;
 	SpriteGroupType type;
+	GrfSpecFeature feature;
 
 	virtual SpriteID GetResult() const { return 0; }
 	virtual byte GetNumResults() const { return 0; }
@@ -298,6 +301,58 @@ inline bool IsEvalAdjustOperationCommutative(DeterministicSpriteGroupAdjustOpera
 	}
 }
 
+inline bool IsEvalAdjustOperationAntiCommutative(DeterministicSpriteGroupAdjustOperation op)
+{
+	switch (op) {
+		case DSGA_OP_SUB:
+		case DSGA_OP_RSUB:
+			return true;
+
+		default:
+			return false;
+	}
+}
+
+inline bool IsEvalAdjustOperationReversable(DeterministicSpriteGroupAdjustOperation op)
+{
+	return IsEvalAdjustOperationCommutative(op) || IsEvalAdjustOperationAntiCommutative(op);
+}
+
+inline DeterministicSpriteGroupAdjustOperation ReverseEvalAdjustOperation(DeterministicSpriteGroupAdjustOperation op)
+{
+	if (IsEvalAdjustOperationCommutative(op)) return op;
+
+	switch (op) {
+		case DSGA_OP_SUB:
+			return DSGA_OP_RSUB;
+		case DSGA_OP_RSUB:
+			return DSGA_OP_SUB;
+
+		default:
+			NOT_REACHED();
+	}
+}
+
+inline bool IsEvalAdjustOperationRelationalComparison(DeterministicSpriteGroupAdjustOperation op)
+{
+	switch (op) {
+		case DSGA_OP_SLT:
+		case DSGA_OP_SGE:
+		case DSGA_OP_SLE:
+		case DSGA_OP_SGT:
+			return true;
+
+		default:
+			return false;
+	}
+}
+
+inline DeterministicSpriteGroupAdjustOperation InvertEvalAdjustRelationalComparisonOperation(DeterministicSpriteGroupAdjustOperation op)
+{
+	assert(IsEvalAdjustOperationRelationalComparison(op));
+	return (DeterministicSpriteGroupAdjustOperation)(op ^ 1);
+}
+
 inline bool IsEvalAdjustOperationOnConstantEffectiveLoad(DeterministicSpriteGroupAdjustOperation op, uint32 constant)
 {
 	switch (op) {
@@ -335,6 +390,24 @@ inline bool IsEvalAdjustWithZeroLastValueAlwaysZero(DeterministicSpriteGroupAdju
 	}
 }
 
+inline bool IsConstantComparisonAdjustType(DeterministicSpriteGroupAdjustType adjust_type)
+{
+	switch (adjust_type) {
+		case DSGA_TYPE_EQ:
+		case DSGA_TYPE_NEQ:
+			return true;
+
+		default:
+			return false;
+	}
+}
+
+inline DeterministicSpriteGroupAdjustType InvertConstantComparisonAdjustType(DeterministicSpriteGroupAdjustType adjust_type)
+{
+	assert(IsConstantComparisonAdjustType(adjust_type));
+	return (adjust_type == DSGA_TYPE_EQ) ? DSGA_TYPE_NEQ : DSGA_TYPE_EQ;
+}
+
 struct DeterministicSpriteGroupAdjust {
 	DeterministicSpriteGroupAdjustOperation operation;
 	DeterministicSpriteGroupAdjustType type;
@@ -343,8 +416,8 @@ struct DeterministicSpriteGroupAdjust {
 	DeterministicSpriteGroupAdjustFlags adjust_flags = DSGAF_NONE;
 	uint32 parameter; ///< Used for variables between 0x60 and 0x7F inclusive.
 	uint32 and_mask;
-	uint32 add_val;
-	uint32 divmod_val;
+	uint32 add_val;    ///< Also used for DSGA_TYPE_EQ/DSGA_TYPE_NEQ constants and DSGA_OP_TERNARY false value
+	uint32 divmod_val; ///< Also used for DSGA_OP_STO_NC
 	const SpriteGroup *subroutine;
 };
 
@@ -355,10 +428,18 @@ struct DeterministicSpriteGroupRange {
 };
 
 enum DeterministicSpriteGroupFlags : uint8 {
-	DSGF_NONE                 = 0,
-	DSGF_NO_DSE               = 1 << 0,
+	DSGF_NONE                    = 0,
+	DSGF_NO_DSE                  = 1 << 0,
+	DSGF_DSE_RECURSIVE_DISABLE   = 1 << 1,
+	DSGF_VAR_TRACKING_PENDING    = 1 << 2,
 };
 DECLARE_ENUM_AS_BIT_SET(DeterministicSpriteGroupFlags)
+
+struct DeterministicSpriteGroupShadowCopy {
+	std::vector<DeterministicSpriteGroupAdjust> adjusts;
+	std::vector<DeterministicSpriteGroupRange> ranges;
+	const SpriteGroup *default_group;
+};
 
 struct DeterministicSpriteGroup : SpriteGroup {
 	DeterministicSpriteGroup() : SpriteGroup(SGT_DETERMINISTIC) {}
@@ -387,6 +468,10 @@ enum RandomizedSpriteGroupCompareMode {
 	RSG_CMP_ALL,
 };
 
+struct RandomizedSpriteGroupShadowCopy {
+	std::vector<const SpriteGroup *> groups;
+};
+
 struct RandomizedSpriteGroup : SpriteGroup {
 	RandomizedSpriteGroup() : SpriteGroup(SGT_RANDOMIZED) {}
 
@@ -406,6 +491,9 @@ protected:
 	const SpriteGroup *Resolve(ResolverObject &object) const override;
 };
 
+extern std::map<const DeterministicSpriteGroup *, DeterministicSpriteGroupShadowCopy> _deterministic_sg_shadows;
+extern std::map<const RandomizedSpriteGroup *, RandomizedSpriteGroupShadowCopy> _randomized_sg_shadows;
+extern bool _grfs_loaded_with_sg_shadow_enable;
 
 /* This contains a callback result. A failed callback has a value of
  * CALLBACK_FAILED */
@@ -626,11 +714,14 @@ enum DumpSpriteGroupPrintOp {
 	DSGPO_PRINT,
 	DSGPO_START,
 	DSGPO_END,
+	DSGPO_NFO_LINE,
 };
 
 using DumpSpriteGroupPrinter = std::function<void(const SpriteGroup *, DumpSpriteGroupPrintOp, uint32, const char *)>;
 
 struct SpriteGroupDumper {
+	static bool use_shadows;
+
 private:
 	char buffer[1024];
 	DumpSpriteGroupPrinter print_fn;

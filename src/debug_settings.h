@@ -33,6 +33,7 @@ enum NewGRFOptimiserFlags {
 	NGOF_NO_OPT_VARACT2_GROUP_PRUNE     = 2,
 	NGOF_NO_OPT_VARACT2_EXPENSIVE_VARS  = 3,
 	NGOF_NO_OPT_VARACT2_SIMPLIFY_STORES = 4,
+	NGOF_NO_OPT_VARACT2_ADJUST_ORDERING = 5,
 };
 
 inline bool HasGrfOptimiserFlag(NewGRFOptimiserFlags flag)
@@ -45,6 +46,7 @@ enum MiscDebugFlags {
 	MDF_ZONING_RS_WATER_FLOOD_STATE,
 	MDF_ZONING_RS_TROPIC_ZONE,
 	MDF_ZONING_RS_ANIMATED_TILE,
+	MDF_NEWGRF_SG_SAVE_RAW,
 };
 extern uint32 _misc_debug_flags;
 

@@ -26,6 +26,10 @@ INSTANTIATE_POOL_METHODS(SpriteGroup)
 
 TemporaryStorageArray<int32, 0x110> _temp_store;
 
+std::map<const DeterministicSpriteGroup *, DeterministicSpriteGroupShadowCopy> _deterministic_sg_shadows;
+std::map<const RandomizedSpriteGroup *, RandomizedSpriteGroupShadowCopy> _randomized_sg_shadows;
+bool _grfs_loaded_with_sg_shadow_enable = false;
+
 
 /**
  * ResolverObject (re)entry point.
@@ -195,7 +199,7 @@ static U EvalAdjustT(const DeterministicSpriteGroupAdjust &adjust, ScopeResolver
 		case DSGA_OP_SLE:  return ((S)last_value <= (S)value) ? 1 : 0;
 		case DSGA_OP_SGT:  return ((S)last_value >  (S)value) ? 1 : 0;
 		case DSGA_OP_RSUB: return value - last_value;
-		case DSGA_OP_STO_NC: _temp_store.StoreValue(adjust.add_val, (S)value); return last_value;
+		case DSGA_OP_STO_NC: _temp_store.StoreValue(adjust.divmod_val, (S)value); return last_value;
 		default:           return value;
 	}
 }
@@ -702,8 +706,68 @@ static char *GetAdjustOperationName(char *str, const char *last, DeterministicSp
 	return str + seprintf(str, last, "\?\?\?(0x%X)", operation);
 }
 
+static char *DumpSpriteGroupAdjust(char *p, const char *last, const DeterministicSpriteGroupAdjust &adjust, int padding, uint32 &highlight_tag)
+{
+	if (adjust.variable == 0x7D) {
+		/* Temp storage load */
+		highlight_tag = (1 << 16) | (adjust.parameter & 0xFFFF);
+	}
+
+	auto append_flags = [&]() {
+		if (adjust.adjust_flags & DSGAF_SKIP_ON_ZERO) {
+			p += seprintf(p, last, ", skip on zero");
+		}
+		if (adjust.adjust_flags & DSGAF_SKIP_ON_LSB_SET) {
+			p += seprintf(p, last, ", skip on LSB set");
+		}
+	};
+
+	if (adjust.operation == DSGA_OP_TERNARY) {
+		p += seprintf(p, last, "%*sTERNARY: true: %X, false: %X", padding, "", adjust.and_mask, adjust.add_val);
+		append_flags();
+		return p;
+	}
+	if (adjust.operation == DSGA_OP_STO && adjust.type == DSGA_TYPE_NONE && adjust.variable == 0x1A && adjust.shift_num == 0) {
+		/* Temp storage store */
+		highlight_tag = (1 << 16) | (adjust.and_mask & 0xFFFF);
+	}
+	p += seprintf(p, last, "%*svar: %X", padding, "", adjust.variable);
+	if (adjust.variable == A2VRI_VEHICLE_CURRENT_SPEED_SCALED) {
+		p += seprintf(p, last, " (current_speed_scaled)");
+	} else if (adjust.variable >= 0x100) {
+		extern const GRFVariableMapDefinition _grf_action2_remappable_variables[];
+		for (const GRFVariableMapDefinition *info = _grf_action2_remappable_variables; info->name != nullptr; info++) {
+			if (adjust.variable == info->id) {
+				p += seprintf(p, last, " (%s)", info->name);
+				break;
+			}
+		}
+	}
+	if ((adjust.variable >= 0x60 && adjust.variable <= 0x7F && adjust.variable != 0x7E) || adjust.parameter != 0) p += seprintf(p, last, " (parameter: %X)", adjust.parameter);
+	p += seprintf(p, last, ", shift: %X, and: %X", adjust.shift_num, adjust.and_mask);
+	switch (adjust.type) {
+		case DSGA_TYPE_DIV: p += seprintf(p, last, ", add: %X, div: %X", adjust.add_val, adjust.divmod_val); break;
+		case DSGA_TYPE_MOD: p += seprintf(p, last, ", add: %X, mod: %X", adjust.add_val, adjust.divmod_val); break;
+		case DSGA_TYPE_EQ:  p += seprintf(p, last, ", eq: %X", adjust.add_val); break;
+		case DSGA_TYPE_NEQ: p += seprintf(p, last, ", neq: %X", adjust.add_val); break;
+		case DSGA_TYPE_NONE: break;
+	}
+	if (adjust.operation == DSGA_OP_STO_NC) {
+		p += seprintf(p, last, ", store to: %X", adjust.divmod_val);
+		highlight_tag = (1 << 16) | adjust.divmod_val;
+	}
+	p += seprintf(p, last, ", op: ");
+	p = GetAdjustOperationName(p, last, adjust.operation);
+	append_flags();
+	return p;
+}
+
+bool SpriteGroupDumper::use_shadows = false;
+
 void SpriteGroupDumper::DumpSpriteGroup(const SpriteGroup *sg, int padding, uint flags)
 {
+	if (sg->nfo_line != 0) this->print_fn(sg, DSGPO_NFO_LINE, sg->nfo_line, nullptr);
+
 	uint32 highlight_tag = 0;
 	auto print = [&]() {
 		this->print_fn(sg, DSGPO_PRINT, highlight_tag, this->buffer);
@@ -748,8 +812,22 @@ void SpriteGroupDumper::DumpSpriteGroup(const SpriteGroup *sg, int padding, uint
 		}
 		case SGT_DETERMINISTIC: {
 			const DeterministicSpriteGroup *dsg = (const DeterministicSpriteGroup*)sg;
-			if (padding == 0 && !dsg->calculated_result && dsg->default_group != nullptr) {
-				this->top_default_group = dsg->default_group;
+
+			const SpriteGroup *default_group = dsg->default_group;
+			const std::vector<DeterministicSpriteGroupAdjust> *adjusts = &(dsg->adjusts);
+			const std::vector<DeterministicSpriteGroupRange> *ranges = &(dsg->ranges);
+
+			if (SpriteGroupDumper::use_shadows) {
+				auto iter = _deterministic_sg_shadows.find(dsg);
+				if (iter != _deterministic_sg_shadows.end()) {
+					default_group = iter->second.default_group;
+					adjusts = &(iter->second.adjusts);
+					ranges = &(iter->second.ranges);
+				}
+			}
+
+			if (padding == 0 && !dsg->calculated_result && default_group != nullptr) {
+				this->top_default_group = default_group;
 			}
 			if (dsg == this->top_default_group && !(padding == 4 && (flags & SGDF_DEFAULT))) {
 				seprintf(this->buffer, lastof(this->buffer), "%*sTOP LEVEL DEFAULT GROUP: Deterministic (%s, %s), [%u]",
@@ -769,60 +847,8 @@ void SpriteGroupDumper::DumpSpriteGroup(const SpriteGroup *sg, int padding, uint
 			print();
 			emit_start();
 			padding += 2;
-			for (const auto &adjust : dsg->adjusts) {
-				char *p = this->buffer;
-				if (adjust.variable == 0x7D) {
-					/* Temp storage load */
-					highlight_tag = (1 << 16) | (adjust.parameter & 0xFFFF);
-				}
-
-				auto append_flags = [&]() {
-					if (adjust.adjust_flags & DSGAF_SKIP_ON_ZERO) {
-						p += seprintf(p, lastof(this->buffer), ", skip on zero");
-					}
-					if (adjust.adjust_flags & DSGAF_SKIP_ON_LSB_SET) {
-						p += seprintf(p, lastof(this->buffer), ", skip on LSB set");
-					}
-				};
-
-				if (adjust.operation == DSGA_OP_TERNARY) {
-					p += seprintf(p, lastof(this->buffer), "%*sTERNARY: true: %X, false: %X", padding, "", adjust.and_mask, adjust.add_val);
-					append_flags();
-					print();
-					continue;
-				}
-				if (adjust.operation == DSGA_OP_STO && adjust.type == DSGA_TYPE_NONE && adjust.variable == 0x1A && adjust.shift_num == 0) {
-					/* Temp storage store */
-					highlight_tag = (1 << 16) | (adjust.and_mask & 0xFFFF);
-				}
-				p += seprintf(p, lastof(this->buffer), "%*svar: %X", padding, "", adjust.variable);
-				if (adjust.variable == A2VRI_VEHICLE_CURRENT_SPEED_SCALED) {
-					p += seprintf(p, lastof(this->buffer), " (current_speed_scaled)");
-				} else if (adjust.variable >= 0x100) {
-					extern const GRFVariableMapDefinition _grf_action2_remappable_variables[];
-					for (const GRFVariableMapDefinition *info = _grf_action2_remappable_variables; info->name != nullptr; info++) {
-						if (adjust.variable == info->id) {
-							p += seprintf(p, lastof(this->buffer), " (%s)", info->name);
-							break;
-						}
-					}
-				}
-				if ((adjust.variable >= 0x60 && adjust.variable <= 0x7F && adjust.variable != 0x7E) || adjust.parameter != 0) p += seprintf(p, lastof(this->buffer), " (parameter: %X)", adjust.parameter);
-				p += seprintf(p, lastof(this->buffer), ", shift: %X, and: %X", adjust.shift_num, adjust.and_mask);
-				switch (adjust.type) {
-					case DSGA_TYPE_DIV: p += seprintf(p, lastof(this->buffer), ", add: %X, div: %X", adjust.add_val, adjust.divmod_val); break;
-					case DSGA_TYPE_MOD: p += seprintf(p, lastof(this->buffer), ", add: %X, mod: %X", adjust.add_val, adjust.divmod_val); break;
-					case DSGA_TYPE_EQ:  p += seprintf(p, lastof(this->buffer), ", eq: %X", adjust.add_val); break;
-					case DSGA_TYPE_NEQ: p += seprintf(p, lastof(this->buffer), ", neq: %X", adjust.add_val); break;
-					case DSGA_TYPE_NONE: break;
-				}
-				if (adjust.operation == DSGA_OP_STO_NC) {
-					p += seprintf(p, lastof(this->buffer), ", store to: %X", adjust.add_val);
-					highlight_tag = (1 << 16) | adjust.add_val;
-				}
-				p += seprintf(p, lastof(this->buffer), ", op: ");
-				p = GetAdjustOperationName(p, lastof(this->buffer), adjust.operation);
-				append_flags();
+			for (const auto &adjust : (*adjusts)) {
+				DumpSpriteGroupAdjust(this->buffer, lastof(this->buffer), adjust, padding, highlight_tag);
 				print();
 				if (adjust.variable == 0x7E && adjust.subroutine != nullptr) {
 					this->DumpSpriteGroup(adjust.subroutine, padding + 5, 0);
@@ -832,27 +858,37 @@ void SpriteGroupDumper::DumpSpriteGroup(const SpriteGroup *sg, int padding, uint
 				seprintf(this->buffer, lastof(this->buffer), "%*scalculated_result", padding, "");
 				print();
 			} else {
-				for (const auto &range : dsg->ranges) {
+				for (const auto &range : (*ranges)) {
 					seprintf(this->buffer, lastof(this->buffer), "%*srange: %X -> %X", padding, "", range.low, range.high);
 					print();
 					this->DumpSpriteGroup(range.group, padding + 2, 0);
 				}
-				if (dsg->default_group != nullptr) {
+				if (default_group != nullptr) {
 					seprintf(this->buffer, lastof(this->buffer), "%*sdefault", padding, "");
 					print();
-					this->DumpSpriteGroup(dsg->default_group, padding + 2, SGDF_DEFAULT);
+					this->DumpSpriteGroup(default_group, padding + 2, SGDF_DEFAULT);
 				}
 			}
 			break;
 		}
 		case SGT_RANDOMIZED: {
 			const RandomizedSpriteGroup *rsg = (const RandomizedSpriteGroup*)sg;
+
+			const std::vector<const SpriteGroup *> *groups = &(rsg->groups);
+
+			if (SpriteGroupDumper::use_shadows) {
+				auto iter = _randomized_sg_shadows.find(rsg);
+				if (iter != _randomized_sg_shadows.end()) {
+					groups = &(iter->second.groups);
+				}
+			}
+
 			seprintf(this->buffer, lastof(this->buffer), "%*sRandom (%s, %s, triggers: %X, count: %X, lowest_randbit: %X, groups: %u) [%u]",
 					padding, "", _sg_scope_names[rsg->var_scope], rsg->cmp_mode == RSG_CMP_ANY ? "ANY" : "ALL",
 					rsg->triggers, rsg->count, rsg->lowest_randbit, (uint)rsg->groups.size(), rsg->nfo_line);
 			print();
 			emit_start();
-			for (const auto &group : rsg->groups) {
+			for (const auto &group : (*groups)) {
 				this->DumpSpriteGroup(group, padding + 2, 0);
 			}
 			break;
