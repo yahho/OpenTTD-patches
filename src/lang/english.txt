@@ -2517,6 +2517,7 @@ STR_CONFIG_SETTING_BUILD_OBJECT_PERMITTED_HELPTEXT              :Set whether com
 STR_CONFIG_SETTING_NO_EXPIRE_OBJECTS_AFTER                      :No objects expire after: {STRING2}
 STR_CONFIG_SETTING_NO_EXPIRE_OBJECTS_AFTER_HELPTEXT             :Objects which would otherwise expire after this year remain available forever
 STR_CONFIG_SETTING_NO_EXPIRE_OBJECTS_AFTER_VALUE                :{NUM}
+###setting-zero-is-special
 STR_CONFIG_SETTING_NO_EXPIRE_OBJECTS_AFTER_ZERO                 :Off
 
 STR_CONFIG_SETTING_IGNORE_OBJECT_INTRO_DATES                    :Ignore object introduction dates: {STRING2}

@@ -2517,6 +2517,7 @@ STR_CONFIG_SETTING_BUILD_OBJECT_PERMITTED_HELPTEXT              :一度に1つ�
 STR_CONFIG_SETTING_NO_EXPIRE_OBJECTS_AFTER                      :この年以降オブジェクトを旧式化しない: {STRING}
 STR_CONFIG_SETTING_NO_EXPIRE_OBJECTS_AFTER_HELPTEXT             :オブジェクトがこの年以降に旧式化する場合は永久に利用可能になります
 STR_CONFIG_SETTING_NO_EXPIRE_OBJECTS_AFTER_VALUE                :{NUM}
+###setting-zero-is-special
 STR_CONFIG_SETTING_NO_EXPIRE_OBJECTS_AFTER_ZERO                 :オフ
 
 STR_CONFIG_SETTING_IGNORE_OBJECT_INTRO_DATES                    :オブジェクトが利用可能になる日付を無視する: {STRING}
@@ -4256,8 +4257,14 @@ STR_NEWGRF_INSPECT_REFRESH                                      :{BLACK}R
 STR_NEWGRF_INSPECT_REFRESH_TOOLTIP                              :{BLACK}フレーム毎にコンテンツを更新するか切り替えます
 STR_NEWGRF_INSPECT_LOG_CONSOLE                                  :{BLACK}L
 STR_NEWGRF_INSPECT_LOG_CONSOLE_TOOLTIP                          :{BLACK}このウィンドウのテキストコンテンツをコンソールにログ出力します
+STR_NEWGRF_INSPECT_DUPLICATE                                    :{BLACK}D
+STR_NEWGRF_INSPECT_DUPLICATE_TOOLTIP                            :{BLACK}このウィンドウを複製します
 STR_NEWGRF_INSPECT_SPRITE_DUMP                                  :{BLACK}S
 STR_NEWGRF_INSPECT_SPRITE_DUMP_TOOLTIP                          :{BLACK}現在のスプライトチェーンを表示します
+STR_NEWGRF_INSPECT_SPRITE_DUMP_UNOPT                            :{BLACK}U
+STR_NEWGRF_INSPECT_SPRITE_DUMP_UNOPT_TOOLTIP                    :{BLACK}スプライトグループを最適化の適用をせずに表示します。{}{}以前に有効化されていない場合NewGRFの再読み込みが必要です (misc_debug 10)。
+STR_NEWGRF_INSPECT_SPRITE_DUMP_GOTO                             :{BLACK}G
+STR_NEWGRF_INSPECT_SPRITE_DUMP_GOTO_TOOLTIP                     :{BLACK}スプライト番号にスクロールします
 STR_NEWGRF_INSPECT_SPRITE_DUMP_PANEL_TOOLTIP                    :{BLACK}クリックでスプライトグループをハイライトします{}Shift+クリックでスプライトグループを畳みます{}Ctrl+クリックで一時ストレージレジスタをハイライトします
 
 STR_NEWGRF_INSPECT_CAPTION_OBJECT_AT                            :{1:HEX}の{0:STRING}

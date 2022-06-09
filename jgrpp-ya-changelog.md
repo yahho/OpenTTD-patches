@@ -2,6 +2,10 @@
 
 * * *
 
+### v0.47.3+0 (2022-06-09)
+* Update base jgrpp to 0.47.3
+* Update Japanese translation
+
 ### v0.45.1+0 (2022-01-10)
 * Update base jgrpp to 0.45.1
 
