@@ -66,6 +66,9 @@ DECLARE_ENUM_AS_BIT_SET(RoadStopDrawMode)
 enum RoadStopSpecFlags {
 	RSF_CB141_RANDOM_BITS,    ///< Callback 141 needs random bits.
 	RSF_NO_ONE_WAY_OVERLAY,   ///< Do not show one-way road overlays.
+	RSF_NO_CATENARY,          ///< Do not show catenary.
+	RSF_DRIVE_THROUGH_ONLY,   ///< Stop is drive-through only.
+	RSF_NO_AUTO_ROAD_CONNECTION, ///< No auto road connection.
 };
 
 enum RoadStopSpecIntlFlags {

@@ -11,6 +11,7 @@
 
 #include <stdarg.h>
 
+#include "newgrf_internal.h"
 #include "debug.h"
 #include "fileio_func.h"
 #include "engine_func.h"
@@ -27,6 +28,7 @@
 #include "newgrf_sound.h"
 #include "newgrf_station.h"
 #include "industrytype.h"
+#include "industry_map.h"
 #include "newgrf_canal.h"
 #include "newgrf_townname.h"
 #include "newgrf_industries.h"
@@ -34,6 +36,7 @@
 #include "newgrf_airport.h"
 #include "newgrf_object.h"
 #include "newgrf_newsignals.h"
+#include "newgrf_newlandscape.h"
 #include "newgrf_extension.h"
 #include "rev.h"
 #include "fios.h"
@@ -49,6 +52,7 @@
 #include "vehicle_base.h"
 #include "road.h"
 #include "newgrf_roadstop.h"
+#include "debug_settings.h"
 
 #include "table/strings.h"
 #include "table/build_industry.h"
@@ -75,6 +79,8 @@ const std::vector<GRFFile *> &GetAllGRFFiles()
 	return _grf_files;
 }
 
+static btree::btree_map<uint16, const CallbackResultSpriteGroup *> _callback_result_cache;
+
 /** Miscellaneous GRF features, set by Action 0x0D, parameter 0x9E */
 byte _misc_grf_features = 0;
 
@@ -84,122 +90,7 @@ static uint32 _ttdpatch_flags[8];
 /** Indicates which are the newgrf features currently loaded ingame */
 GRFLoadedFeatures _loaded_newgrf_features;
 
-static const uint MAX_SPRITEGROUP = UINT8_MAX; ///< Maximum GRF-local ID for a spritegroup.
-
-/** Base GRF ID for OpenTTD's base graphics GRFs. */
-static const uint32 OPENTTD_GRAPHICS_BASE_GRF_ID = BSWAP32(0xFF4F5400);
-
-/** Temporary data during loading of GRFs */
-struct GrfProcessingState {
-private:
-	/** Definition of a single Action1 spriteset */
-	struct SpriteSet {
-		SpriteID sprite;  ///< SpriteID of the first sprite of the set.
-		uint num_sprites; ///< Number of sprites in the set.
-	};
-
-	/** Currently referenceable spritesets */
-	btree::btree_map<uint, SpriteSet> spritesets[GSF_END];
-
-public:
-	/* Global state */
-	GrfLoadingStage stage;    ///< Current loading stage
-	SpriteID spriteid;        ///< First available SpriteID for loading realsprites.
-
-	/* Local state in the file */
-	SpriteFile *file;         ///< File of currently processed GRF file.
-	GRFFile *grffile;         ///< Currently processed GRF file.
-	GRFConfig *grfconfig;     ///< Config of the currently processed GRF file.
-	uint32 nfo_line;          ///< Currently processed pseudo sprite number in the GRF.
-
-	/* Kind of return values when processing certain actions */
-	int skip_sprites;         ///< Number of pseudo sprites to skip before processing the next one. (-1 to skip to end of file)
-
-	/* Currently referenceable spritegroups */
-	const SpriteGroup *spritegroups[MAX_SPRITEGROUP + 1];
-
-	/** Clear temporary data before processing the next file in the current loading stage */
-	void ClearDataForNextFile()
-	{
-		this->nfo_line = 0;
-		this->skip_sprites = 0;
-
-		for (uint i = 0; i < GSF_END; i++) {
-			this->spritesets[i].clear();
-		}
-
-		memset(this->spritegroups, 0, sizeof(this->spritegroups));
-	}
-
-	/**
-	 * Records new spritesets.
-	 * @param feature GrfSpecFeature the set is defined for.
-	 * @param first_sprite SpriteID of the first sprite in the set.
-	 * @param first_set First spriteset to define.
-	 * @param numsets Number of sets to define.
-	 * @param numents Number of sprites per set to define.
-	 */
-	void AddSpriteSets(byte feature, SpriteID first_sprite, uint first_set, uint numsets, uint numents)
-	{
-		assert(feature < GSF_END);
-		for (uint i = 0; i < numsets; i++) {
-			SpriteSet &set = this->spritesets[feature][first_set + i];
-			set.sprite = first_sprite + i * numents;
-			set.num_sprites = numents;
-		}
-	}
-
-	/**
-	 * Check whether there are any valid spritesets for a feature.
-	 * @param feature GrfSpecFeature to check.
-	 * @return true if there are any valid sets.
-	 * @note Spritesets with zero sprites are valid to allow callback-failures.
-	 */
-	bool HasValidSpriteSets(byte feature) const
-	{
-		assert(feature < GSF_END);
-		return !this->spritesets[feature].empty();
-	}
-
-	/**
-	 * Check whether a specific set is defined.
-	 * @param feature GrfSpecFeature to check.
-	 * @param set Set to check.
-	 * @return true if the set is valid.
-	 * @note Spritesets with zero sprites are valid to allow callback-failures.
-	 */
-	bool IsValidSpriteSet(byte feature, uint set) const
-	{
-		assert(feature < GSF_END);
-		return this->spritesets[feature].find(set) != this->spritesets[feature].end();
-	}
-
-	/**
-	 * Returns the first sprite of a spriteset.
-	 * @param feature GrfSpecFeature to query.
-	 * @param set Set to query.
-	 * @return First sprite of the set.
-	 */
-	SpriteID GetSprite(byte feature, uint set) const
-	{
-		assert(IsValidSpriteSet(feature, set));
-		return this->spritesets[feature].find(set)->second.sprite;
-	}
-
-	/**
-	 * Returns the number of sprites in a spriteset
-	 * @param feature GrfSpecFeature to query.
-	 * @param set Set to query.
-	 * @return Number of sprites in the set.
-	 */
-	uint GetNumEnts(byte feature, uint set) const
-	{
-		assert(IsValidSpriteSet(feature, set));
-		return this->spritesets[feature].find(set)->second.num_sprites;
-	}
-};
-
-static GrfProcessingState _cur;
+GrfProcessingState _cur;
 
 
 /**
@@ -386,6 +277,7 @@ struct GRFLocation {
 static btree::btree_map<GRFLocation, SpriteID> _grm_sprites;
 typedef btree::btree_map<GRFLocation, byte*> GRFLineToSpriteOverride;
 static GRFLineToSpriteOverride _grf_line_to_action6_sprite_override;
+static bool _action6_override_active = false;
 
 /**
  * DEBUG() function dedicated to newGRF debugging messages
@@ -420,6 +312,17 @@ GRFFile *GetFileByGRFID(uint32 grfid)
 		if (file->grfid == grfid) return file;
 	}
 	return nullptr;
+}
+
+/**
+ * Obtain a NewGRF file by its grfID,  expect it to usually be the current GRF's grfID
+ * @param grfid The grfID to obtain the file for
+ * @return The file.
+ */
+GRFFile *GetFileByGRFIDExpectCurrent(uint32 grfid)
+{
+	if (_cur.grffile->grfid == grfid) return _cur.grffile;
+	return GetFileByGRFID(grfid);
 }
 
 /**
@@ -2919,6 +2822,12 @@ static ChangeInfoResult GlobalVarChangeInfo(uint gvid, int numinfo, int prop, co
 				break;
 			}
 
+			case A0RPI_GLOBALVAR_EXTRA_STATION_NAMES_PROBABILITY: {
+				if (MappedPropertyLengthMismatch(buf, 1, mapping_entry)) break;
+				_extra_station_names_probability = buf->ReadByte();
+				break;
+			}
+
 			case A0RPI_GLOBALVAR_LIGHTHOUSE_GENERATE_AMOUNT:
 			case A0RPI_GLOBALVAR_TRANSMITTER_GENERATE_AMOUNT: {
 				if (MappedPropertyLengthMismatch(buf, 1, mapping_entry)) break;
@@ -2997,6 +2906,7 @@ static ChangeInfoResult GlobalVarReserveInfo(uint gvid, int numinfo, int prop, c
 				break;
 
 			case A0RPI_GLOBALVAR_EXTRA_STATION_NAMES:
+			case A0RPI_GLOBALVAR_EXTRA_STATION_NAMES_PROBABILITY:
 			case A0RPI_GLOBALVAR_LIGHTHOUSE_GENERATE_AMOUNT:
 			case A0RPI_GLOBALVAR_TRANSMITTER_GENERATE_AMOUNT:
 				buf->Skip(buf->ReadExtendedByte());
@@ -3485,6 +3395,8 @@ static ChangeInfoResult IgnoreIndustryProperty(int prop, ByteReader *buf)
 static bool ValidateIndustryLayout(const IndustryTileLayout &layout)
 {
 	const size_t size = layout.size();
+	if (size == 0) return false;
+
 	for (size_t i = 0; i < size - 1; i++) {
 		for (size_t j = i + 1; j < size; j++) {
 			if (layout[i].ti.x == layout[j].ti.x &&
@@ -3493,7 +3405,16 @@ static bool ValidateIndustryLayout(const IndustryTileLayout &layout)
 			}
 		}
 	}
-	return true;
+
+	bool have_regular_tile = false;
+	for (size_t i = 0; i < size; i++) {
+		if (layout[i].gfx != GFX_WATERTILE_SPECIALCHECK) {
+			have_regular_tile = true;
+			break;
+		}
+	}
+
+	return have_regular_tile;
 }
 
 /**
@@ -3644,7 +3565,7 @@ static ChangeInfoResult IndustriesChangeInfo(uint indid, int numinfo, int prop, 
 								/* Declared as been valid, can be used */
 								it.gfx = tempid;
 							}
-						} else if (it.gfx == 0xFF) {
+						} else if (it.gfx == GFX_WATERTILE_SPECIALCHECK) {
 							it.ti.x = (int8)GB(it.ti.x, 0, 8);
 							it.ti.y = (int8)GB(it.ti.y, 0, 8);
 
@@ -4127,6 +4048,119 @@ static ChangeInfoResult SignalsChangeInfo(uint id, int numinfo, int prop, const 
 				if (MappedPropertyLengthMismatch(buf, 1, mapping_entry)) break;
 				_cur.grffile->new_signal_extra_aspects = std::min<byte>(buf->ReadByte(), NEW_SIGNALS_MAX_EXTRA_ASPECT);
 				break;
+
+			case A0RPI_SIGNALS_NO_DEFAULT_STYLE:
+				if (MappedPropertyLengthMismatch(buf, 1, mapping_entry)) break;
+				SB(_cur.grffile->new_signal_style_mask, 0, 1, (buf->ReadByte() != 0 ? 0 : 1));
+				break;
+
+			case A0RPI_SIGNALS_DEFINE_STYLE: {
+				if (MappedPropertyLengthMismatch(buf, 1, mapping_entry)) break;
+				uint8 local_id = buf->ReadByte();
+				if (_num_new_signal_styles < MAX_NEW_SIGNAL_STYLES) {
+					NewSignalStyle &style = _new_signal_styles[_num_new_signal_styles];
+					style = {};
+					_num_new_signal_styles++;
+					SetBit(_cur.grffile->new_signal_style_mask, _num_new_signal_styles);
+					style.grf_local_id = local_id;
+					style.grffile = _cur.grffile;
+					_cur.grffile->current_new_signal_style = &style;
+				} else {
+					_cur.grffile->current_new_signal_style = nullptr;
+				}
+				break;
+			}
+
+			case A0RPI_SIGNALS_STYLE_NAME: {
+				if (MappedPropertyLengthMismatch(buf, 2, mapping_entry)) break;
+				uint16 str = buf->ReadWord();
+				if (_cur.grffile->current_new_signal_style != nullptr) {
+					AddStringForMapping(str, &(_cur.grffile->current_new_signal_style->name));
+				}
+				break;
+			}
+
+			case A0RPI_SIGNALS_STYLE_NO_ASPECT_INCREASE: {
+				if (MappedPropertyLengthMismatch(buf, 1, mapping_entry)) break;
+				uint8 value = buf->ReadByte();
+				if (_cur.grffile->current_new_signal_style != nullptr) {
+					SB(_cur.grffile->current_new_signal_style->style_flags, NSSF_NO_ASPECT_INC, 1, (value != 0 ? 1 : 0));
+				}
+				break;
+			}
+
+			case A0RPI_SIGNALS_STYLE_ALWAYS_RESERVE_THROUGH: {
+				if (MappedPropertyLengthMismatch(buf, 1, mapping_entry)) break;
+				uint8 value = buf->ReadByte();
+				if (_cur.grffile->current_new_signal_style != nullptr) {
+					SB(_cur.grffile->current_new_signal_style->style_flags, NSSF_ALWAYS_RESERVE_THROUGH, 1, (value != 0 ? 1 : 0));
+				}
+				break;
+			}
+
+			case A0RPI_SIGNALS_STYLE_LOOKAHEAD_EXTRA_ASPECTS: {
+				if (MappedPropertyLengthMismatch(buf, 1, mapping_entry)) break;
+				uint8 value = std::min<byte>(buf->ReadByte(), NEW_SIGNALS_MAX_EXTRA_ASPECT);
+				if (_cur.grffile->current_new_signal_style != nullptr) {
+					SetBit(_cur.grffile->current_new_signal_style->style_flags, NSSF_LOOKAHEAD_ASPECTS_SET);
+					_cur.grffile->current_new_signal_style->lookahead_extra_aspects = value;
+				}
+				break;
+			}
+
+			case A0RPI_SIGNALS_STYLE_LOOKAHEAD_SINGLE_SIGNAL_ONLY: {
+				if (MappedPropertyLengthMismatch(buf, 1, mapping_entry)) break;
+				uint8 value = buf->ReadByte();
+				if (_cur.grffile->current_new_signal_style != nullptr) {
+					SB(_cur.grffile->current_new_signal_style->style_flags, NSSF_LOOKAHEAD_SINGLE_SIGNAL, 1, (value != 0 ? 1 : 0));
+				}
+				break;
+			}
+
+			case A0RPI_SIGNALS_STYLE_SEMAPHORE_ENABLED: {
+				if (MappedPropertyLengthMismatch(buf, 4, mapping_entry)) break;
+				uint32 mask = buf->ReadDWord();
+				if (_cur.grffile->current_new_signal_style != nullptr) {
+					_cur.grffile->current_new_signal_style->semaphore_mask = (uint8)mask;
+				}
+				break;
+			}
+
+			case A0RPI_SIGNALS_STYLE_ELECTRIC_ENABLED: {
+				if (MappedPropertyLengthMismatch(buf, 4, mapping_entry)) break;
+				uint32 mask = buf->ReadDWord();
+				if (_cur.grffile->current_new_signal_style != nullptr) {
+					_cur.grffile->current_new_signal_style->electric_mask = (uint8)mask;
+				}
+				break;
+			}
+
+			case A0RPI_SIGNALS_STYLE_OPPOSITE_SIDE: {
+				if (MappedPropertyLengthMismatch(buf, 1, mapping_entry)) break;
+				uint8 value = buf->ReadByte();
+				if (_cur.grffile->current_new_signal_style != nullptr) {
+					SB(_cur.grffile->current_new_signal_style->style_flags, NSSF_OPPOSITE_SIDE, 1, (value != 0 ? 1 : 0));
+				}
+				break;
+			}
+
+			case A0RPI_SIGNALS_STYLE_COMBINED_NORMAL_SHUNT: {
+				if (MappedPropertyLengthMismatch(buf, 1, mapping_entry)) break;
+				uint8 value = buf->ReadByte();
+				if (_cur.grffile->current_new_signal_style != nullptr) {
+					SB(_cur.grffile->current_new_signal_style->style_flags, NSSF_COMBINED_NORMAL_SHUNT, 1, (value != 0 ? 1 : 0));
+				}
+				break;
+			}
+
+			case A0RPI_SIGNALS_STYLE_REALISTIC_BRAKING_ONLY: {
+				if (MappedPropertyLengthMismatch(buf, 1, mapping_entry)) break;
+				uint8 value = buf->ReadByte();
+				if (_cur.grffile->current_new_signal_style != nullptr) {
+					SB(_cur.grffile->current_new_signal_style->style_flags, NSSF_REALISTIC_BRAKING_ONLY, 1, (value != 0 ? 1 : 0));
+				}
+				break;
+			}
 
 			default:
 				ret = HandleAction0PropertyDefault(buf, prop);
@@ -5105,6 +5139,38 @@ static ChangeInfoResult RoadStopChangeInfo(uint id, int numinfo, int prop, const
 	return ret;
 }
 
+/**
+ * Define properties for new landscape
+ * @param id Landscape type.
+ * @param numinfo Number of subsequent IDs to change the property for.
+ * @param prop The property to change.
+ * @param buf The property value.
+ * @return ChangeInfoResult.
+ */
+static ChangeInfoResult NewLandscapeChangeInfo(uint id, int numinfo, int prop, const GRFFilePropertyRemapEntry *mapping_entry, ByteReader *buf)
+{
+	/* Properties which are handled per item */
+	ChangeInfoResult ret = CIR_SUCCESS;
+	for (int i = 0; i < numinfo; i++) {
+		switch (prop) {
+			case A0RPI_NEWLANDSCAPE_ENABLE_RECOLOUR: {
+				if (MappedPropertyLengthMismatch(buf, 1, mapping_entry)) break;
+				bool enabled = (buf->ReadByte() != 0 ? 1 : 0);
+				if (id == NLA3ID_CUSTOM_ROCKS) {
+					SB(_cur.grffile->new_landscape_ctrl_flags, NLCF_ROCKS_RECOLOUR_ENABLED, 1, enabled);
+				}
+				break;
+			}
+
+			default:
+				ret = HandleAction0PropertyDefault(buf, prop);
+				break;
+		}
+	}
+
+	return ret;
+}
+
 static bool HandleChangeInfoResult(const char *caller, ChangeInfoResult cir, GrfSpecFeature feature, int property)
 {
 	switch (cir) {
@@ -5185,6 +5251,7 @@ static const char *_feature_names[] = {
 	"ROADTYPES",
 	"TRAMTYPES",
 	"ROADSTOPS",
+	"NEWLANDSCAPE",
 };
 static_assert(lengthof(_feature_names) == GSF_END);
 
@@ -5290,6 +5357,7 @@ static void FeatureChangeInfo(ByteReader *buf)
 		/* GSF_ROADTYPES */     RoadTypeChangeInfo,
 		/* GSF_TRAMTYPES */     TramTypeChangeInfo,
 		/* GSF_ROADSTOPS */     RoadStopChangeInfo,
+		/* GSF_NEWLANDSCAPE */  NewLandscapeChangeInfo,
 	};
 	static_assert(GSF_END == lengthof(handler));
 	static_assert(lengthof(handler) == lengthof(_cur.grffile->action0_property_remaps), "Action 0 feature list length mismatch");
@@ -5471,13 +5539,28 @@ static void SkipAct1(ByteReader *buf)
 	grfmsg(3, "SkipAct1: Skipping %d sprites", _cur.skip_sprites);
 }
 
+const CallbackResultSpriteGroup *NewCallbackResultSpriteGroupNoTransform(uint16 result)
+{
+	const CallbackResultSpriteGroup *&ptr = _callback_result_cache[result];
+	if (ptr == nullptr) {
+		assert(CallbackResultSpriteGroup::CanAllocateItem());
+		ptr = new CallbackResultSpriteGroup(result);
+	}
+	return ptr;
+}
+
+static const CallbackResultSpriteGroup *NewCallbackResultSpriteGroup(uint16 groupid)
+{
+	uint16 result = CallbackResultSpriteGroup::TransformResultValue(groupid, _cur.grffile->grf_version >= 8);
+	return NewCallbackResultSpriteGroupNoTransform(result);
+}
+
 /* Helper function to either create a callback or link to a previously
  * defined spritegroup. */
 static const SpriteGroup *GetGroupFromGroupID(byte setid, byte type, uint16 groupid)
 {
 	if (HasBit(groupid, 15)) {
-		assert(CallbackResultSpriteGroup::CanAllocateItem());
-		return new CallbackResultSpriteGroup(groupid, _cur.grffile->grf_version >= 8);
+		return NewCallbackResultSpriteGroup(groupid);
 	}
 
 	if (groupid > MAX_SPRITEGROUP || _cur.spritegroups[groupid] == nullptr) {
@@ -5485,7 +5568,15 @@ static const SpriteGroup *GetGroupFromGroupID(byte setid, byte type, uint16 grou
 		return nullptr;
 	}
 
-	return _cur.spritegroups[groupid];
+	const SpriteGroup *result = _cur.spritegroups[groupid];
+	if (likely(!HasBit(_misc_debug_flags, MDF_NEWGRF_SG_SAVE_RAW))) result = PruneTargetSpriteGroup(result);
+	return result;
+}
+
+static const SpriteGroup *GetGroupByID(uint16 groupid)
+{
+	const SpriteGroup *result = _cur.spritegroups[groupid];
+	return result;
 }
 
 /**
@@ -5499,8 +5590,7 @@ static const SpriteGroup *GetGroupFromGroupID(byte setid, byte type, uint16 grou
 static const SpriteGroup *CreateGroupFromGroupID(byte feature, byte setid, byte type, uint16 spriteid)
 {
 	if (HasBit(spriteid, 15)) {
-		assert(CallbackResultSpriteGroup::CanAllocateItem());
-		return new CallbackResultSpriteGroup(spriteid, _cur.grffile->grf_version >= 8);
+		return NewCallbackResultSpriteGroup(spriteid);
 	}
 
 	if (!_cur.IsValidSpriteSet(feature, spriteid)) {
@@ -5516,6 +5606,46 @@ static const SpriteGroup *CreateGroupFromGroupID(byte feature, byte setid, byte 
 
 	assert(ResultSpriteGroup::CanAllocateItem());
 	return new ResultSpriteGroup(spriteset_start, num_sprites);
+}
+
+static void ProcessDeterministicSpriteGroupRanges(const std::vector<DeterministicSpriteGroupRange> &ranges, std::vector<DeterministicSpriteGroupRange> &ranges_out, const SpriteGroup *default_group)
+{
+	/* Sort ranges ascending. When ranges overlap, this may required clamping or splitting them */
+	std::vector<uint32> bounds;
+	for (uint i = 0; i < ranges.size(); i++) {
+		bounds.push_back(ranges[i].low);
+		if (ranges[i].high != UINT32_MAX) bounds.push_back(ranges[i].high + 1);
+	}
+	std::sort(bounds.begin(), bounds.end());
+	bounds.erase(std::unique(bounds.begin(), bounds.end()), bounds.end());
+
+	std::vector<const SpriteGroup *> target;
+	for (uint j = 0; j < bounds.size(); ++j) {
+		uint32 v = bounds[j];
+		const SpriteGroup *t = default_group;
+		for (uint i = 0; i < ranges.size(); i++) {
+			if (ranges[i].low <= v && v <= ranges[i].high) {
+				t = ranges[i].group;
+				break;
+			}
+		}
+		target.push_back(t);
+	}
+	assert(target.size() == bounds.size());
+
+	for (uint j = 0; j < bounds.size(); ) {
+		if (target[j] != default_group) {
+			DeterministicSpriteGroupRange &r = ranges_out.emplace_back();
+			r.group = target[j];
+			r.low = bounds[j];
+			while (j < bounds.size() && target[j] == r.group) {
+				j++;
+			}
+			r.high = j < bounds.size() ? bounds[j] - 1 : UINT32_MAX;
+		} else {
+			j++;
+		}
+	}
 }
 
 /* Action 0x02 */
@@ -5559,9 +5689,13 @@ static void NewSpriteGroup(ByteReader *buf)
 			byte varadjust;
 			byte varsize;
 
+			bool first_adjust = true;
+
 			assert(DeterministicSpriteGroup::CanAllocateItem());
 			DeterministicSpriteGroup *group = new DeterministicSpriteGroup();
 			group->nfo_line = _cur.nfo_line;
+			group->feature = feature;
+			if (_action6_override_active) group->sg_flags |= SGF_ACTION6;
 			act_group = group;
 			group->var_scope = HasBit(type, 1) ? VSG_SCOPE_PARENT : VSG_SCOPE_SELF;
 
@@ -5572,13 +5706,25 @@ static void NewSpriteGroup(ByteReader *buf)
 				case 2: group->size = DSG_SIZE_DWORD; varsize = 4; break;
 			}
 
+			DeterministicSpriteGroupShadowCopy *shadow = nullptr;
+			if (unlikely(HasBit(_misc_debug_flags, MDF_NEWGRF_SG_SAVE_RAW))) {
+				shadow = &(_deterministic_sg_shadows[group]);
+			}
+
+			VarAction2OptimiseState va2_opt_state;
+			/* The initial value is always the constant 0 */
+			va2_opt_state.inference = VA2AIF_SIGNED_NON_NEGATIVE | VA2AIF_ONE_OR_ZERO | VA2AIF_HAVE_CONSTANT;
+			va2_opt_state.current_constant = 0;
+
 			/* Loop through the var adjusts. Unfortunately we don't know how many we have
 			 * from the outset, so we shall have to keep reallocing. */
 			do {
 				DeterministicSpriteGroupAdjust &adjust = group->adjusts.emplace_back();
 
 				/* The first var adjust doesn't have an operation specified, so we set it to add. */
-				adjust.operation = group->adjusts.size() == 1 ? DSGA_OP_ADD : (DeterministicSpriteGroupAdjustOperation)buf->ReadByte();
+				adjust.operation = first_adjust ? DSGA_OP_ADD : (DeterministicSpriteGroupAdjustOperation)buf->ReadByte();
+				first_adjust = false;
+				if (adjust.operation > DSGA_OP_END) adjust.operation = DSGA_OP_END;
 				adjust.variable  = buf->ReadByte();
 				if (adjust.variable == 0x7E) {
 					/* Link subroutine group */
@@ -5620,6 +5766,13 @@ static void NewSpriteGroup(ByteReader *buf)
 					adjust.add_val    = 0;
 					adjust.divmod_val = 0;
 				}
+				if (unlikely(shadow != nullptr)) {
+					shadow->adjusts.push_back(adjust);
+					/* Pruning was turned off so that the unpruned target could be saved in the shadow, prune now */
+					if (adjust.subroutine != nullptr) adjust.subroutine = PruneTargetSpriteGroup(adjust.subroutine);
+				}
+
+				OptimiseVarAction2Adjust(va2_opt_state, feature, varsize, group, adjust);
 
 				/* Continue reading var adjusts while bit 5 is set. */
 			} while (HasBit(varadjust, 5));
@@ -5633,47 +5786,26 @@ static void NewSpriteGroup(ByteReader *buf)
 			}
 
 			group->default_group = GetGroupFromGroupID(setid, type, buf->ReadWord());
+
+			if (unlikely(shadow != nullptr)) {
+				shadow->calculated_result = ranges.size() == 0;
+				ProcessDeterministicSpriteGroupRanges(ranges, shadow->ranges, group->default_group);
+				shadow->default_group = group->default_group;
+
+				/* Pruning was turned off so that the unpruned targets could be saved in the shadow ranges, prune now */
+				for (DeterministicSpriteGroupRange &range : ranges) {
+					range.group = PruneTargetSpriteGroup(range.group);
+				}
+				group->default_group = PruneTargetSpriteGroup(group->default_group);
+			}
+
 			group->error_group = ranges.size() > 0 ? ranges[0].group : group->default_group;
 			/* nvar == 0 is a special case -- we turn our value into a callback result */
 			group->calculated_result = ranges.size() == 0;
 
-			/* Sort ranges ascending. When ranges overlap, this may required clamping or splitting them */
-			std::vector<uint32> bounds;
-			for (uint i = 0; i < ranges.size(); i++) {
-				bounds.push_back(ranges[i].low);
-				if (ranges[i].high != UINT32_MAX) bounds.push_back(ranges[i].high + 1);
-			}
-			std::sort(bounds.begin(), bounds.end());
-			bounds.erase(std::unique(bounds.begin(), bounds.end()), bounds.end());
+			ProcessDeterministicSpriteGroupRanges(ranges, group->ranges, group->default_group);
 
-			std::vector<const SpriteGroup *> target;
-			for (uint j = 0; j < bounds.size(); ++j) {
-				uint32 v = bounds[j];
-				const SpriteGroup *t = group->default_group;
-				for (uint i = 0; i < ranges.size(); i++) {
-					if (ranges[i].low <= v && v <= ranges[i].high) {
-						t = ranges[i].group;
-						break;
-					}
-				}
-				target.push_back(t);
-			}
-			assert(target.size() == bounds.size());
-
-			for (uint j = 0; j < bounds.size(); ) {
-				if (target[j] != group->default_group) {
-					DeterministicSpriteGroupRange &r = group->ranges.emplace_back();
-					r.group = target[j];
-					r.low = bounds[j];
-					while (j < bounds.size() && target[j] == r.group) {
-						j++;
-					}
-					r.high = j < bounds.size() ? bounds[j] - 1 : UINT32_MAX;
-				} else {
-					j++;
-				}
-			}
-
+			OptimiseVarAction2DeterministicSpriteGroup(va2_opt_state, feature, varsize, group);
 			break;
 		}
 
@@ -5685,6 +5817,7 @@ static void NewSpriteGroup(ByteReader *buf)
 			assert(RandomizedSpriteGroup::CanAllocateItem());
 			RandomizedSpriteGroup *group = new RandomizedSpriteGroup();
 			group->nfo_line = _cur.nfo_line;
+			if (_action6_override_active) group->sg_flags |= SGF_ACTION6;
 			act_group = group;
 			group->var_scope = HasBit(type, 1) ? VSG_SCOPE_PARENT : VSG_SCOPE_SELF;
 
@@ -5707,6 +5840,16 @@ static void NewSpriteGroup(ByteReader *buf)
 				group->groups.push_back(GetGroupFromGroupID(setid, type, buf->ReadWord()));
 			}
 
+			if (unlikely(HasBit(_misc_debug_flags, MDF_NEWGRF_SG_SAVE_RAW))) {
+				RandomizedSpriteGroupShadowCopy *shadow = &(_randomized_sg_shadows[group]);
+				shadow->groups = group->groups;
+
+				/* Pruning was turned off so that the unpruned targets could be saved in the shadow groups, prune now */
+				for (const SpriteGroup *&group : group->groups) {
+					group = PruneTargetSpriteGroup(group);
+				}
+			}
+
 			break;
 		}
 
@@ -5726,6 +5869,7 @@ static void NewSpriteGroup(ByteReader *buf)
 				case GSF_ROADTYPES:
 				case GSF_TRAMTYPES:
 				case GSF_SIGNALS:
+				case GSF_NEWLANDSCAPE:
 				{
 					byte num_loaded  = type;
 					byte num_loading = buf->ReadByte();
@@ -5782,6 +5926,7 @@ static void NewSpriteGroup(ByteReader *buf)
 					assert(RealSpriteGroup::CanAllocateItem());
 					RealSpriteGroup *group = new RealSpriteGroup();
 					group->nfo_line = _cur.nfo_line;
+					if (_action6_override_active) group->sg_flags |= SGF_ACTION6;
 					act_group = group;
 
 					for (uint16 spriteid : loaded) {
@@ -5807,6 +5952,7 @@ static void NewSpriteGroup(ByteReader *buf)
 					assert(TileLayoutSpriteGroup::CanAllocateItem());
 					TileLayoutSpriteGroup *group = new TileLayoutSpriteGroup();
 					group->nfo_line = _cur.nfo_line;
+					if (_action6_override_active) group->sg_flags |= SGF_ACTION6;
 					act_group = group;
 
 					/* On error, bail out immediately. Temporary GRF data was already freed */
@@ -5823,6 +5969,7 @@ static void NewSpriteGroup(ByteReader *buf)
 					assert(IndustryProductionSpriteGroup::CanAllocateItem());
 					IndustryProductionSpriteGroup *group = new IndustryProductionSpriteGroup();
 					group->nfo_line = _cur.nfo_line;
+					if (_action6_override_active) group->sg_flags |= SGF_ACTION6;
 					act_group = group;
 					group->version = type;
 					if (type == 0) {
@@ -6029,9 +6176,9 @@ static void VehicleMapSpriteGroup(ByteReader *buf, byte feature, uint8 idcount)
 			grfmsg(7, "VehicleMapSpriteGroup: [%d] Engine %d...", i, engine);
 
 			if (wagover) {
-				SetWagonOverrideSprites(engine, ctype, _cur.spritegroups[groupid], last_engines, last_engines_count);
+				SetWagonOverrideSprites(engine, ctype, GetGroupByID(groupid), last_engines, last_engines_count);
 			} else {
-				SetCustomEngineSprites(engine, ctype, _cur.spritegroups[groupid]);
+				SetCustomEngineSprites(engine, ctype, GetGroupByID(groupid));
 			}
 		}
 	}
@@ -6045,9 +6192,9 @@ static void VehicleMapSpriteGroup(ByteReader *buf, byte feature, uint8 idcount)
 		EngineID engine = engines[i];
 
 		if (wagover) {
-			SetWagonOverrideSprites(engine, CT_DEFAULT, _cur.spritegroups[groupid], last_engines, last_engines_count);
+			SetWagonOverrideSprites(engine, CT_DEFAULT, GetGroupByID(groupid), last_engines, last_engines_count);
 		} else {
-			SetCustomEngineSprites(engine, CT_DEFAULT, _cur.spritegroups[groupid]);
+			SetCustomEngineSprites(engine, CT_DEFAULT, GetGroupByID(groupid));
 			SetEngineGRF(engine, _cur.grffile);
 		}
 	}
@@ -6076,7 +6223,7 @@ static void CanalMapSpriteGroup(ByteReader *buf, uint8 idcount)
 		}
 
 		_water_feature[cf].grffile = _cur.grffile;
-		_water_feature[cf].group = _cur.spritegroups[groupid];
+		_water_feature[cf].group = GetGroupByID(groupid);
 	}
 }
 
@@ -6105,7 +6252,7 @@ static void StationMapSpriteGroup(ByteReader *buf, uint8 idcount)
 				continue;
 			}
 
-			statspec->grf_prop.spritegroup[ctype] = _cur.spritegroups[groupid];
+			statspec->grf_prop.spritegroup[ctype] = GetGroupByID(groupid);
 		}
 	}
 
@@ -6125,7 +6272,7 @@ static void StationMapSpriteGroup(ByteReader *buf, uint8 idcount)
 			continue;
 		}
 
-		statspec->grf_prop.spritegroup[CT_DEFAULT] = _cur.spritegroups[groupid];
+		statspec->grf_prop.spritegroup[CT_DEFAULT] = GetGroupByID(groupid);
 		statspec->grf_prop.grffile = _cur.grffile;
 		statspec->grf_prop.local_id = stations[i];
 		StationClass::Assign(statspec);
@@ -6160,7 +6307,7 @@ static void TownHouseMapSpriteGroup(ByteReader *buf, uint8 idcount)
 			continue;
 		}
 
-		hs->grf_prop.spritegroup[0] = _cur.spritegroups[groupid];
+		hs->grf_prop.spritegroup[0] = GetGroupByID(groupid);
 	}
 }
 
@@ -6191,7 +6338,7 @@ static void IndustryMapSpriteGroup(ByteReader *buf, uint8 idcount)
 			continue;
 		}
 
-		indsp->grf_prop.spritegroup[0] = _cur.spritegroups[groupid];
+		indsp->grf_prop.spritegroup[0] = GetGroupByID(groupid);
 	}
 }
 
@@ -6222,7 +6369,7 @@ static void IndustrytileMapSpriteGroup(ByteReader *buf, uint8 idcount)
 			continue;
 		}
 
-		indtsp->grf_prop.spritegroup[0] = _cur.spritegroups[groupid];
+		indtsp->grf_prop.spritegroup[0] = GetGroupByID(groupid);
 	}
 }
 
@@ -6250,7 +6397,7 @@ static void CargoMapSpriteGroup(ByteReader *buf, uint8 idcount)
 
 		CargoSpec *cs = CargoSpec::Get(cid);
 		cs->grffile = _cur.grffile;
-		cs->group = _cur.spritegroups[groupid];
+		cs->group = GetGroupByID(groupid);
 	}
 }
 
@@ -6273,7 +6420,7 @@ static void SignalsMapSpriteGroup(ByteReader *buf, uint8 idcount)
 
 		switch (id) {
 			case NSA3ID_CUSTOM_SIGNALS:
-				_cur.grffile->new_signals_group = _cur.spritegroups[groupid];
+				_cur.grffile->new_signals_group = GetGroupByID(groupid);
 				if (!HasBit(_cur.grffile->new_signal_ctrl_flags, NSCF_GROUPSET)) {
 					SetBit(_cur.grffile->new_signal_ctrl_flags, NSCF_GROUPSET);
 					_new_signals_grfs.push_back(_cur.grffile);
@@ -6316,7 +6463,7 @@ static void ObjectMapSpriteGroup(ByteReader *buf, uint8 idcount)
 				continue;
 			}
 
-			spec->grf_prop.spritegroup[ctype] = _cur.spritegroups[groupid];
+			spec->grf_prop.spritegroup[ctype] = GetGroupByID(groupid);
 		}
 	}
 
@@ -6336,7 +6483,7 @@ static void ObjectMapSpriteGroup(ByteReader *buf, uint8 idcount)
 			continue;
 		}
 
-		spec->grf_prop.spritegroup[0] = _cur.spritegroups[groupid];
+		spec->grf_prop.spritegroup[0] = GetGroupByID(groupid);
 		spec->grf_prop.grffile        = _cur.grffile;
 		spec->grf_prop.local_id       = objects[i];
 	}
@@ -6364,7 +6511,7 @@ static void RailTypeMapSpriteGroup(ByteReader *buf, uint8 idcount)
 				RailtypeInfo *rti = &_railtypes[railtypes[i]];
 
 				rti->grffile[ctype] = _cur.grffile;
-				rti->group[ctype] = _cur.spritegroups[groupid];
+				rti->group[ctype] = GetGroupByID(groupid);
 			}
 		}
 	}
@@ -6397,7 +6544,7 @@ static void RoadTypeMapSpriteGroup(ByteReader *buf, uint8 idcount, RoadTramType 
 				RoadTypeInfo *rti = &_roadtypes[roadtypes[i]];
 
 				rti->grffile[ctype] = _cur.grffile;
-				rti->group[ctype] = _cur.spritegroups[groupid];
+				rti->group[ctype] = GetGroupByID(groupid);
 			}
 		}
 	}
@@ -6433,7 +6580,7 @@ static void AirportMapSpriteGroup(ByteReader *buf, uint8 idcount)
 			continue;
 		}
 
-		as->grf_prop.spritegroup[0] = _cur.spritegroups[groupid];
+		as->grf_prop.spritegroup[0] = GetGroupByID(groupid);
 	}
 }
 
@@ -6464,7 +6611,7 @@ static void AirportTileMapSpriteGroup(ByteReader *buf, uint8 idcount)
 			continue;
 		}
 
-		airtsp->grf_prop.spritegroup[0] = _cur.spritegroups[groupid];
+		airtsp->grf_prop.spritegroup[0] = GetGroupByID(groupid);
 	}
 }
 
@@ -6492,7 +6639,7 @@ static void RoadStopMapSpriteGroup(ByteReader *buf, uint8 idcount)
 				continue;
 			}
 
-			roadstopspec->grf_prop.spritegroup[ctype] = _cur.spritegroups[groupid];
+			roadstopspec->grf_prop.spritegroup[ctype] = GetGroupByID(groupid);
 		}
 	}
 
@@ -6517,10 +6664,43 @@ static void RoadStopMapSpriteGroup(ByteReader *buf, uint8 idcount)
 			continue;
 		}
 
-		roadstopspec->grf_prop.spritegroup[CT_DEFAULT] = _cur.spritegroups[groupid];
+		roadstopspec->grf_prop.spritegroup[CT_DEFAULT] = GetGroupByID(groupid);
 		roadstopspec->grf_prop.grffile = _cur.grffile;
 		roadstopspec->grf_prop.local_id = roadstops[i];
 		RoadStopClass::Assign(roadstopspec);
+	}
+}
+
+static void NewLandscapeMapSpriteGroup(ByteReader *buf, uint8 idcount)
+{
+	uint8 *ids = AllocaM(uint8, idcount);
+	for (uint i = 0; i < idcount; i++) {
+		ids[i] = buf->ReadByte();
+	}
+
+	/* Skip the cargo type section, we only care about the default group */
+	uint8 cidcount = buf->ReadByte();
+	buf->Skip(cidcount * 3);
+
+	uint16 groupid = buf->ReadWord();
+	if (!IsValidGroupID(groupid, "NewLandscapeMapSpriteGroup")) return;
+
+	for (uint i = 0; i < idcount; i++) {
+		uint8 id = ids[i];
+
+		switch (id) {
+			case NLA3ID_CUSTOM_ROCKS:
+				_cur.grffile->new_rocks_group = GetGroupByID(groupid);
+				if (!HasBit(_cur.grffile->new_landscape_ctrl_flags, NLCF_ROCKS_SET)) {
+					SetBit(_cur.grffile->new_landscape_ctrl_flags, NLCF_ROCKS_SET);
+					_new_landscape_rocks_grfs.push_back(_cur.grffile);
+				}
+				break;
+
+			default:
+				grfmsg(1, "NewLandscapeMapSpriteGroup: ID not implemented: %d", id);
+			break;
+		}
 	}
 }
 
@@ -6559,7 +6739,7 @@ static void FeatureMapSpriteGroup(ByteReader *buf)
 
 		grfmsg(6, "FeatureMapSpriteGroup: Adding generic feature callback for feature %s", GetFeatureString(feature_ref));
 
-		AddGenericCallback(feature, _cur.grffile, _cur.spritegroups[groupid]);
+		AddGenericCallback(feature, _cur.grffile, GetGroupByID(groupid));
 		return;
 	}
 
@@ -6630,6 +6810,10 @@ static void FeatureMapSpriteGroup(ByteReader *buf)
 
 		case GSF_ROADSTOPS:
 			RoadStopMapSpriteGroup(buf, idcount);
+			return;
+
+		case GSF_NEWLANDSCAPE:
+			NewLandscapeMapSpriteGroup(buf, idcount);
 			return;
 
 		default:
@@ -7750,6 +7934,10 @@ static uint32 GetPatchVariable(uint8 param)
 		/* Shore base sprite */
 		case 0x16:
 			return SPR_SHORE_BASE;
+
+		/* Game map seed */
+		case 0x17:
+			return _settings_game.game_creation.generation_seed;
 
 		default:
 			grfmsg(2, "ParamSet: Unknown Patch variable 0x%02X.", param);
@@ -9888,6 +10076,9 @@ static void ResetNewGRF()
 	_grf_files.clear();
 	_cur.grffile   = nullptr;
 	_new_signals_grfs.clear();
+	MemSetT<NewSignalStyle>(_new_signal_styles.data(), 0, MAX_NEW_SIGNAL_STYLES);
+	_num_new_signal_styles = 0;
+	_new_landscape_rocks_grfs.clear();
 }
 
 /** Clear all NewGRF errors */
@@ -9997,6 +10188,10 @@ void ResetNewGRFData()
 
 	InitializeSoundPool();
 	_spritegroup_pool.CleanPool();
+	_callback_result_cache.clear();
+	_deterministic_sg_shadows.clear();
+	_randomized_sg_shadows.clear();
+	_grfs_loaded_with_sg_shadow_enable = HasBit(_misc_debug_flags, MDF_NEWGRF_SG_SAVE_RAW);
 }
 
 /**
@@ -10069,6 +10264,11 @@ GRFFile::GRFFile(const GRFConfig *config)
 	this->new_signals_group = nullptr;
 	this->new_signal_ctrl_flags = 0;
 	this->new_signal_extra_aspects = 0;
+	this->new_signal_style_mask = 1;
+	this->current_new_signal_style = nullptr;
+
+	this->new_rocks_group = nullptr;
+	this->new_landscape_ctrl_flags = 0;
 
 	/* Mark price_base_multipliers as 'not set' */
 	for (Price i = PR_BEGIN; i < PR_END; i++) {
@@ -10668,6 +10868,7 @@ static void DecodeSpecialSprite(byte *buf, uint num, GrfLoadingStage stage)
 	GRFLocation location(_cur.grfconfig->ident.grfid, _cur.nfo_line);
 
 	GRFLineToSpriteOverride::iterator it = _grf_line_to_action6_sprite_override.find(location);
+	_action6_override_active = (it != _grf_line_to_action6_sprite_override.end());
 	if (it == _grf_line_to_action6_sprite_override.end()) {
 		/* No preloaded sprite to work with; read the
 		 * pseudo sprite content. */
@@ -11231,6 +11432,7 @@ void LoadNewGRF(uint load_index, uint num_baseset)
 				assert(GetFileByGRFID(c->ident.grfid) == _cur.grffile);
 				ClearTemporaryNewGRFData(_cur.grffile);
 				BuildCargoTranslationMap();
+				HandleVarAction2OptimisationPasses();
 				DEBUG(sprite, 2, "LoadNewGRF: Currently %i sprites are loaded", _cur.spriteid);
 			} else if (stage == GLS_INIT && HasBit(c->flags, GCF_INIT_ONLY)) {
 				/* We're not going to activate this, so free whatever data we allocated */
@@ -11241,6 +11443,7 @@ void LoadNewGRF(uint load_index, uint num_baseset)
 
 	/* Pseudo sprite processing is finished; free temporary stuff */
 	_cur.ClearDataForNextFile();
+	_callback_result_cache.clear();
 
 	/* Call any functions that should be run after GRFs have been loaded. */
 	AfterLoadGRFs();

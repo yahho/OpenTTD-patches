@@ -104,13 +104,13 @@ int DrawStringMultiLine(int left, int right, int top, int bottom, StringID str, 
 void DrawCharCentered(WChar c, const Rect &r, TextColour colour);
 
 void GfxFillRect(int left, int top, int right, int bottom, int colour, FillRectMode mode = FILLRECT_OPAQUE);
-void GfxFillPolygon(const std::vector<Point> &shape, int colour, FillRectMode mode = FILLRECT_OPAQUE);
+void GfxFillPolygon(const std::vector<Point> &shape, int colour, FillRectMode mode = FILLRECT_OPAQUE, GfxFillRectModeFunctor *fill_functor = nullptr);
 void GfxDrawLine(int left, int top, int right, int bottom, int colour, int width = 1, int dash = 0);
 void DrawBox(int x, int y, int dx1, int dy1, int dx2, int dy2, int dx3, int dy3);
 
 Dimension GetStringBoundingBox(const char *str, FontSize start_fontsize = FS_NORMAL);
 Dimension GetStringBoundingBox(const std::string &str, FontSize start_fontsize = FS_NORMAL);
-Dimension GetStringBoundingBox(StringID strid);
+Dimension GetStringBoundingBox(StringID strid, FontSize start_fontsize = FS_NORMAL);
 int GetStringHeight(const char *str, int maxw, FontSize fontsize = FS_NORMAL);
 int GetStringHeight(StringID str, int maxw);
 int GetStringLineCount(StringID str, int maxw);
@@ -157,6 +157,7 @@ void SetMouseCursor(CursorID cursor, PaletteID pal);
 void SetAnimatedMouseCursor(const AnimCursor *table);
 void CursorTick();
 void UpdateCursorSize();
+void UpdateRouteStepSpriteSize();
 bool ChangeResInGame(int w, int h);
 void SortResolutions();
 bool ToggleFullScreen(bool fs);

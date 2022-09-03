@@ -20,6 +20,8 @@
 #include "../disaster_vehicle.h"
 #include "../scope_info.h"
 #include "../string_func.h"
+#include "../error.h"
+#include "../strings_func.h"
 
 #include "saveload.h"
 
@@ -238,9 +240,13 @@ static void CheckValidVehicles()
 
 extern byte _age_cargo_skip_counter; // From misc_sl.cpp
 
+static std::vector<Vehicle *> _load_invalid_vehicles_to_delete;
+
 /** Called after load to update coordinates */
 void AfterLoadVehicles(bool part_of_load)
 {
+	_load_invalid_vehicles_to_delete.clear();
+
 	const Vehicle *si_v = nullptr;
 	SCOPE_INFO_FMT([&si_v], "AfterLoadVehicles: %s", scope_dumper().VehicleInfo(si_v));
 	for (Vehicle *v : Vehicle::Iterate()) {
@@ -427,9 +433,16 @@ void AfterLoadVehicles(bool part_of_load)
 
 					rv->roadtype = Engine::Get(rv->engine_type)->u.road.roadtype;
 					rv->compatible_roadtypes = GetRoadTypeInfo(rv->roadtype)->powered_roadtypes;
+					bool is_invalid = false;
 					for (RoadVehicle *u = rv; u != nullptr; u = u->Next()) {
 						u->roadtype = rv->roadtype;
 						u->compatible_roadtypes = rv->compatible_roadtypes;
+						if (GetRoadType(u->tile, GetRoadTramType(u->roadtype)) == INVALID_ROADTYPE) is_invalid = true;
+					}
+
+					if (is_invalid && part_of_load) {
+						_load_invalid_vehicles_to_delete.push_back(rv);
+						break;
 					}
 
 					RoadVehUpdateCache(rv);
@@ -508,6 +521,21 @@ void AfterLoadVehicles(bool part_of_load)
 		v->UpdateViewport(false);
 		v->cargo.AssertCountConsistency();
 	}
+}
+
+void AfterLoadVehiclesRemoveAnyFoundInvalid()
+{
+	if (!_load_invalid_vehicles_to_delete.empty()) {
+		DEBUG(sl, 0, "Removing %u vehicles found to be uncorrectably invalid during load", (uint)_load_invalid_vehicles_to_delete.size());
+		SetDParam(0, (uint)_load_invalid_vehicles_to_delete.size());
+		ShowErrorMessage(STR_WARNING_LOADGAME_REMOVED_UNCORRECTABLE_VEHICLES, INVALID_STRING_ID, WL_CRITICAL);
+		GroupStatistics::UpdateAfterLoad();
+	}
+
+	for (Vehicle *v : _load_invalid_vehicles_to_delete) {
+		delete v;
+	}
+	_load_invalid_vehicles_to_delete.clear();
 }
 
 bool TrainController(Train *v, Vehicle *nomove, bool reverse = true); // From train_cmd.cpp
@@ -1137,6 +1165,7 @@ struct train_venc {
 	uint8 cached_tflags;
 	uint8 cached_num_engines;
 	uint16 cached_centre_mass;
+	uint16 cached_braking_length;
 	uint16 cached_veh_weight;
 	uint16 cached_uncapped_decel;
 	uint8 cached_deceleration;
@@ -1206,6 +1235,7 @@ void Save_VENC()
 			SlWriteByte(t->tcache.cached_tflags);
 			SlWriteByte(t->tcache.cached_num_engines);
 			SlWriteUint16(t->tcache.cached_centre_mass);
+			SlWriteUint16(t->tcache.cached_braking_length);
 			SlWriteUint16(t->tcache.cached_veh_weight);
 			SlWriteUint16(t->tcache.cached_uncapped_decel);
 			SlWriteByte(t->tcache.cached_deceleration);
@@ -1268,6 +1298,7 @@ void Load_VENC()
 		venc.cached_tflags = SlReadByte();
 		venc.cached_num_engines = SlReadByte();
 		venc.cached_centre_mass = SlReadUint16();
+		venc.cached_braking_length = SlReadUint16();
 		venc.cached_veh_weight = SlReadUint16();
 		venc.cached_uncapped_decel = SlReadUint16();
 		venc.cached_deceleration = SlReadByte();
@@ -1356,6 +1387,7 @@ void SlProcessVENC()
 		CheckVehicleVENCProp(t->tcache.cached_tflags, (TrainCacheFlags)venc.cached_tflags, t, "cached_tflags");
 		CheckVehicleVENCProp(t->tcache.cached_num_engines, venc.cached_num_engines, t, "cached_num_engines");
 		CheckVehicleVENCProp(t->tcache.cached_centre_mass, venc.cached_centre_mass, t, "cached_centre_mass");
+		CheckVehicleVENCProp(t->tcache.cached_braking_length, venc.cached_braking_length, t, "cached_braking_length");
 		CheckVehicleVENCProp(t->tcache.cached_veh_weight, venc.cached_veh_weight, t, "cached_veh_weight");
 		CheckVehicleVENCProp(t->tcache.cached_uncapped_decel, venc.cached_uncapped_decel, t, "cached_uncapped_decel");
 		CheckVehicleVENCProp(t->tcache.cached_deceleration, venc.cached_deceleration, t, "cached_deceleration");
@@ -1387,11 +1419,14 @@ const SaveLoadTable GetVehicleLookAheadDescription()
 		     SLE_VAR(TrainReservationLookAhead, reservation_end_trackdir,     SLE_UINT8),
 		     SLE_VAR(TrainReservationLookAhead, current_position,             SLE_INT32),
 		     SLE_VAR(TrainReservationLookAhead, reservation_end_position,     SLE_INT32),
+		SLE_CONDVAR_X(TrainReservationLookAhead, lookahead_end_position,      SLE_INT32,  SL_MIN_VERSION, SL_MAX_VERSION, SlXvFeatureTest(XSLFTO_AND, XSLFI_REALISTIC_TRAIN_BRAKING, 9)),
 		     SLE_VAR(TrainReservationLookAhead, reservation_end_z,            SLE_INT16),
 		     SLE_VAR(TrainReservationLookAhead, tunnel_bridge_reserved_tiles, SLE_INT16),
 		     SLE_VAR(TrainReservationLookAhead, flags,                        SLE_UINT16),
 		     SLE_VAR(TrainReservationLookAhead, speed_restriction,            SLE_UINT16),
 		SLE_CONDVAR_X(TrainReservationLookAhead, next_extend_position,        SLE_INT32,  SL_MIN_VERSION, SL_MAX_VERSION, SlXvFeatureTest(XSLFTO_AND, XSLFI_REALISTIC_TRAIN_BRAKING, 5)),
+		SLE_CONDVAR_X(TrainReservationLookAhead, cached_zpos,                 SLE_INT32,  SL_MIN_VERSION, SL_MAX_VERSION, SlXvFeatureTest(XSLFTO_AND, XSLFI_REALISTIC_TRAIN_BRAKING, 6)),
+		SLE_CONDVAR_X(TrainReservationLookAhead, zpos_refresh_remaining,      SLE_UINT8,  SL_MIN_VERSION, SL_MAX_VERSION, SlXvFeatureTest(XSLFTO_AND, XSLFI_REALISTIC_TRAIN_BRAKING, 6)),
 	};
 
 	return _vehicle_look_ahead_desc;
@@ -1404,6 +1439,7 @@ const SaveLoadTable GetVehicleLookAheadItemDescription()
 		     SLE_VAR(TrainReservationLookAheadItem, end,                      SLE_INT32),
 		     SLE_VAR(TrainReservationLookAheadItem, z_pos,                    SLE_INT16),
 		     SLE_VAR(TrainReservationLookAheadItem, data_id,                  SLE_UINT16),
+		SLE_CONDVAR_X(TrainReservationLookAheadItem, data_aux,                SLE_UINT16,  SL_MIN_VERSION, SL_MAX_VERSION, SlXvFeatureTest(XSLFTO_AND, XSLFI_REALISTIC_TRAIN_BRAKING, 9)),
 		     SLE_VAR(TrainReservationLookAheadItem, type,                     SLE_UINT8),
 	};
 

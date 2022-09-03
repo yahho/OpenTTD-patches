@@ -1120,6 +1120,10 @@ int DrawVehiclePurchaseInfo(int left, int right, int y, EngineID engine_number, 
 		SetDParam(0, ToPercent16(e->reliability));
 		DrawString(left, right, y, STR_PURCHASE_INFO_RELIABILITY);
 		y += FONT_HEIGHT_NORMAL;
+	} else if (_settings_client.gui.show_wagon_intro_year) {
+		SetDParam(0, ymd.year);
+		DrawString(left, right, y, STR_PURCHASE_INFO_DESIGNED);
+		y += FONT_HEIGHT_NORMAL;
 	}
 
 	if (refittable) y = ShowRefitOptionsList(left, right, y, engine_number);
@@ -1452,7 +1456,7 @@ struct BuildVehicleWindow : BuildVehicleWindowBase {
 				SavedRandomSeeds saved_seeds;
 				SaveRandomSeeds(&saved_seeds);
 				StringID err;
-				Train *t = CmdBuildVirtualRailVehicle(this->sel_engine, err, 0);
+				Train *t = BuildVirtualRailVehicle(this->sel_engine, err, 0, false);
 				if (t != nullptr) {
 					const CommandCost ret = CmdRefitVehicle(0, DC_QUERY_COST, t->index, cargo | (1 << 16), nullptr);
 					this->te.cost          = ret.GetCost();
@@ -2234,7 +2238,7 @@ struct BuildVehicleWindowTrainAdvanced final : BuildVehicleWindowBase {
 				SavedRandomSeeds saved_seeds;
 				SaveRandomSeeds(&saved_seeds);
 				StringID err;
-				Train *t = CmdBuildVirtualRailVehicle(state.sel_engine, err, 0);
+				Train *t = BuildVirtualRailVehicle(state.sel_engine, err, 0, false);
 				if (t != nullptr) {
 					const CommandCost ret = CmdRefitVehicle(0, DC_QUERY_COST, t->index, cargo | (1 << 16), nullptr);
 					state.te.cost          = ret.GetCost();

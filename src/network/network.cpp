@@ -158,6 +158,10 @@ byte NetworkSpectatorCount()
 	return count;
 }
 
+uint NetworkClientCount() {
+	return (uint)NetworkClientInfo::GetNumItems();
+}
+
 /**
  * Change the company password of a given company.
  * @param company_id ID of the company the password should be changed for.
@@ -1210,6 +1214,7 @@ void NetworkGameLoop()
 		}
 
 		NetworkExecuteLocalCommandQueue();
+		if (_pause_countdown > 0 && --_pause_countdown == 0) DoCommandP(0, PM_PAUSED_NORMAL, 1, CMD_PAUSE);
 
 		/* Then we make the frame */
 		StateGameLoop();

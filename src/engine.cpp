@@ -76,6 +76,8 @@ Engine::Engine(VehicleType type, EngineID base)
 
 	/* Check if this base engine is within the original engine data range */
 	if (base >= _engine_counts[type]) {
+		/* 'power' defaults to zero, so we also have to default to 'wagon' */
+		if (type == VEH_TRAIN) this->u.rail.railveh_type = RAILVEH_WAGON;
 		/* Set model life to maximum to make wagons available */
 		this->info.base_life = 0xFF;
 		/* Set road vehicle tractive effort to the default value */
@@ -207,7 +209,19 @@ uint Engine::DetermineCapacity(const Vehicle *v, uint16 *mail_capacity) const
 	/* Check the refit capacity callback if we are not in the default configuration, or if we are using the new multiplier algorithm. */
 	if (HasBit(this->info.callback_mask, CBM_VEHICLE_REFIT_CAPACITY) &&
 			(new_multipliers || default_cargo != cargo_type || (v != nullptr && v->cargo_subtype != 0))) {
-		uint16 callback = GetVehicleCallback(CBID_VEHICLE_REFIT_CAPACITY, 0, 0, this->index, v);
+		uint16 callback;
+		if (this->refit_capacity_values != nullptr) {
+			const EngineRefitCapacityValue *caps = this->refit_capacity_values.get();
+			while (true) {
+				if (HasBit(caps->cargoes, cargo_type)) {
+					callback = caps->capacity;
+					break;
+				}
+				caps++;
+			}
+		} else {
+			callback = GetVehicleCallback(CBID_VEHICLE_REFIT_CAPACITY, 0, 0, this->index, v);
+		}
 		if (callback != CALLBACK_FAILED) return callback;
 	}
 

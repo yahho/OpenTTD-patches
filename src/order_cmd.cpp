@@ -38,6 +38,7 @@
 #include "vehiclelist.h"
 #include "tracerestrict.h"
 #include "train.h"
+#include "date_func.h"
 
 #include "table/strings.h"
 
@@ -984,9 +985,9 @@ CommandCost CmdInsertOrderIntl(DoCommandFlag flags, Vehicle *v, VehicleOrderID s
 				if (ret.Failed()) return ret;
 			}
 
-			if (!CanVehicleUseStation(v, st)) return_cmd_error(STR_ERROR_CAN_T_ADD_ORDER);
+			if (!CanVehicleUseStation(v, st)) return CommandCost::DualErrorMessage(STR_ERROR_CAN_T_ADD_ORDER, GetVehicleCannotUseStationReason(v, st));
 			for (Vehicle *u = v->FirstShared(); u != nullptr; u = u->NextShared()) {
-				if (!CanVehicleUseStation(u, st)) return_cmd_error(STR_ERROR_CAN_T_ADD_ORDER_SHARED);
+				if (!CanVehicleUseStation(u, st)) return CommandCost::DualErrorMessage(STR_ERROR_CAN_T_ADD_ORDER_SHARED, GetVehicleCannotUseStationReason(u, st));
 			}
 
 			/* Non stop only allowed for ground vehicles. */
@@ -1055,7 +1056,7 @@ CommandCost CmdInsertOrderIntl(DoCommandFlag flags, Vehicle *v, VehicleOrderID s
 
 						case VEH_ROAD:
 							if (!IsRoadDepotTile(dp->xy)) return CMD_ERROR;
-							if ((GetRoadTypes(dp->xy) & RoadVehicle::From(v)->compatible_roadtypes) == 0) return CMD_ERROR;
+							if ((GetPresentRoadTypes(dp->xy) & RoadVehicle::From(v)->compatible_roadtypes) == 0) return CMD_ERROR;
 							break;
 
 						case VEH_SHIP:
@@ -1083,7 +1084,7 @@ CommandCost CmdInsertOrderIntl(DoCommandFlag flags, Vehicle *v, VehicleOrderID s
 				default: return CMD_ERROR;
 
 				case VEH_TRAIN: {
-					if (!(wp->facilities & FACIL_TRAIN)) return_cmd_error(STR_ERROR_CAN_T_ADD_ORDER);
+					if (!(wp->facilities & FACIL_TRAIN)) return CommandCost::DualErrorMessage(STR_ERROR_CAN_T_ADD_ORDER, STR_ERROR_NO_RAIL_WAYPOINT);
 
 					CommandCost ret = CheckInfraUsageAllowed(v->type, wp->owner);
 					if (ret.Failed()) return ret;
@@ -1091,7 +1092,7 @@ CommandCost CmdInsertOrderIntl(DoCommandFlag flags, Vehicle *v, VehicleOrderID s
 				}
 
 				case VEH_ROAD: {
-					if (!(wp->facilities & FACIL_BUS_STOP) || !(wp->facilities & FACIL_TRUCK_STOP)) return_cmd_error(STR_ERROR_CAN_T_ADD_ORDER);
+					if (!(wp->facilities & FACIL_BUS_STOP) || !(wp->facilities & FACIL_TRUCK_STOP)) return CommandCost::DualErrorMessage(STR_ERROR_CAN_T_ADD_ORDER, STR_ERROR_NO_ROAD_WAYPOINT);
 
 					CommandCost ret = CheckInfraUsageAllowed(v->type, wp->owner);
 					if (ret.Failed()) return ret;
@@ -1099,7 +1100,7 @@ CommandCost CmdInsertOrderIntl(DoCommandFlag flags, Vehicle *v, VehicleOrderID s
 				}
 
 				case VEH_SHIP:
-					if (!(wp->facilities & FACIL_DOCK)) return_cmd_error(STR_ERROR_CAN_T_ADD_ORDER);
+					if (!(wp->facilities & FACIL_DOCK)) return CommandCost::DualErrorMessage(STR_ERROR_CAN_T_ADD_ORDER, STR_ERROR_NO_BUOY);
 					if (wp->owner != OWNER_NONE) {
 						CommandCost ret = CheckInfraUsageAllowed(v->type, wp->owner);
 						if (ret.Failed()) return ret;
@@ -1793,6 +1794,7 @@ CommandCost CmdModifyOrder(TileIndex tile, DoCommandFlag flags, uint32 p1, uint3
 				case OCV_CARGO_ACCEPTANCE:
 				case OCV_CARGO_WAITING:
 				case OCV_SLOT_OCCUPANCY:
+				case OCV_DISPATCH_SLOT:
 					if (data != OCC_IS_TRUE && data != OCC_IS_FALSE) return CMD_ERROR;
 					break;
 
@@ -1844,6 +1846,7 @@ CommandCost CmdModifyOrder(TileIndex tile, DoCommandFlag flags, uint32 p1, uint3
 				case OCV_COUNTER_VALUE:
 				case OCV_TIME_DATE:
 				case OCV_TIMETABLE:
+				case OCV_DISPATCH_SLOT:
 					break;
 
 				default:
@@ -1869,6 +1872,10 @@ CommandCost CmdModifyOrder(TileIndex tile, DoCommandFlag flags, uint32 p1, uint3
 
 				case OCV_TIMETABLE:
 					if (data >= OTCM_END) return CMD_ERROR;
+					break;
+
+				case OCV_DISPATCH_SLOT:
+					if (data >= OSDSCM_END) return CMD_ERROR;
 					break;
 
 				default:
@@ -2048,6 +2055,11 @@ CommandCost CmdModifyOrder(TileIndex tile, DoCommandFlag flags, uint32 p1, uint3
 						if (occ != OCC_IS_TRUE && occ != OCC_IS_FALSE) order->SetConditionComparator(OCC_IS_TRUE);
 						order->SetConditionValue(0);
 						break;
+					case OCV_DISPATCH_SLOT:
+						if (occ != OCC_IS_TRUE && occ != OCC_IS_FALSE) order->SetConditionComparator(OCC_IS_TRUE);
+						order->SetConditionValue(0);
+						order->GetXDataRef() = UINT16_MAX;
+						break;
 
 					case OCV_PERCENT:
 						order->SetConditionComparator(OCC_EQUALS);
@@ -2088,6 +2100,7 @@ CommandCost CmdModifyOrder(TileIndex tile, DoCommandFlag flags, uint32 p1, uint3
 
 					case OCV_CARGO_WAITING_AMOUNT:
 					case OCV_COUNTER_VALUE:
+					case OCV_DISPATCH_SLOT:
 						SB(order->GetXDataRef(), 0, 16, data);
 						break;
 
@@ -2311,7 +2324,7 @@ CommandCost CmdCloneOrder(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32
 				}
 				if (OrderGoesToRoadDepot(dst, order)) {
 					const Depot *dp = Depot::GetIfValid(order->GetDestination());
-					if (!dp || (GetRoadTypes(dp->xy) & RoadVehicle::From(dst)->compatible_roadtypes) == 0) {
+					if (!dp || (GetPresentRoadTypes(dp->xy) & RoadVehicle::From(dst)->compatible_roadtypes) == 0) {
 						return_cmd_error(STR_ERROR_CAN_T_COPY_SHARE_ORDER);
 					}
 				}
@@ -2393,7 +2406,7 @@ CommandCost CmdCloneOrder(TileIndex tile, DoCommandFlag flags, uint32 p1, uint32
 				}
 				if (OrderGoesToRoadDepot(dst, order)) {
 					const Depot *dp = Depot::GetIfValid(order->GetDestination());
-					if (!dp || (GetRoadTypes(dp->xy) & RoadVehicle::From(dst)->compatible_roadtypes) == 0) {
+					if (!dp || (GetPresentRoadTypes(dp->xy) & RoadVehicle::From(dst)->compatible_roadtypes) == 0) {
 						return_cmd_error(STR_ERROR_CAN_T_COPY_SHARE_ORDER);
 					}
 				}
@@ -2789,6 +2802,38 @@ static uint16 GetFreeStationPlatforms(StationID st_id)
 	return counter;
 }
 
+bool EvaluateDispatchSlotConditionalOrder(const Order *order, const Vehicle *v, DateTicksScaled date_time, bool *predicted)
+{
+	uint schedule_index = GB(order->GetXData(), 0, 16);
+	if (schedule_index >= v->orders->GetScheduledDispatchScheduleCount()) return false;
+	const DispatchSchedule &sched = v->orders->GetDispatchScheduleByIndex(schedule_index);
+	if (sched.GetScheduledDispatch().size() == 0) return false;
+
+	if (predicted != nullptr) *predicted = true;
+
+	int32 offset;
+	if (order->GetConditionValue() & 2) {
+		int32 last = sched.GetScheduledDispatchLastDispatch();
+		if (last < 0) {
+			last += sched.GetScheduledDispatchDuration() * (1 + (-last / sched.GetScheduledDispatchDuration()));
+		}
+		offset = last % sched.GetScheduledDispatchDuration();
+	} else {
+		extern DateTicksScaled GetScheduledDispatchTime(const DispatchSchedule &ds, DateTicksScaled leave_time);
+		DateTicksScaled slot = GetScheduledDispatchTime(sched, _scaled_date_ticks);
+		offset = (slot - sched.GetScheduledDispatchStartTick()) % sched.GetScheduledDispatchDuration();
+	}
+
+	bool value;
+	if (order->GetConditionValue() & 1) {
+		value = (offset == (int)sched.GetScheduledDispatch().back());
+	} else {
+		value = (offset == (int)sched.GetScheduledDispatch().front());
+	}
+
+	return OrderConditionCompare(order->GetConditionComparator(), value, 0);
+}
+
 /** Gets the next 'real' station in the order list
  * @param v the vehicle in question
  * @param order the current (conditional) order
@@ -2939,6 +2984,10 @@ VehicleOrderID ProcessConditionalOrder(const Order *order, const Vehicle *v, Pro
 					break;
 			}
 			skip_order = OrderConditionCompare(occ, tt_value, order->GetXData());
+			break;
+		}
+		case OCV_DISPATCH_SLOT: {
+			skip_order = EvaluateDispatchSlotConditionalOrder(order, v, _scaled_date_ticks, nullptr);
 			break;
 		}
 		default: NOT_REACHED();

@@ -163,6 +163,14 @@ static void FillTimetableArrivalDepartureTable(const Vehicle *v, VehicleOrderID 
 					break;
 				}
 
+				case OCV_DISPATCH_SLOT: {
+					DateTicksScaled time = _scaled_date_ticks + sum;
+					if (!no_offset) time -= v->lateness_counter;
+					extern bool EvaluateDispatchSlotConditionalOrder(const Order *order, const Vehicle *v, DateTicksScaled date_time, bool *predicted);
+					jump = EvaluateDispatchSlotConditionalOrder(order, v, time, &predicted);
+					break;
+				}
+
 				default:
 					return;
 			}
@@ -1017,7 +1025,6 @@ struct TimetableWindow : GeneralVehicleWindow {
 			case WID_VT_AUTOMATE: {
 				uint32 p2 = 0;
 				if (!HasBit(v->vehicle_flags, VF_AUTOMATE_TIMETABLE)) SetBit(p2, 0);
-				if (_ctrl_pressed) SetBit(p2, 1);
 				DoCommandP(0, v->index, p2, CMD_AUTOMATE_TIMETABLE | CMD_MSG(STR_ERROR_CAN_T_TIMETABLE_VEHICLE));
 				break;
 			}

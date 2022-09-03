@@ -199,11 +199,23 @@ void CcRoadStop(const CommandCost &result, TileIndex tile, uint32 p1, uint32 p2,
 	DiagDirection dir = (DiagDirection)GB(p2, 3, 2);
 	if (_settings_client.sound.confirm) SndPlayTileFx(SND_1F_CONSTRUCTION_OTHER, tile);
 	if (!_settings_client.gui.persistent_buildingtools) ResetObjectToPlace();
-	TileArea roadstop_area(tile, GB(p1, 0, 8), GB(p1, 8, 8));
-	for (TileIndex cur_tile : roadstop_area) {
-		ConnectRoadToStructure(cur_tile, dir);
-		/* For a drive-through road stop build connecting road for other entrance. */
-		if (HasBit(p2, 1)) ConnectRoadToStructure(cur_tile, ReverseDiagDir(dir));
+
+	bool connect_to_road = true;
+
+	RoadStopClassID spec_class = Extract<RoadStopClassID, 0, 8>(p3);
+	byte spec_index            = GB(p3, 8, 8);
+	if ((uint)spec_class < RoadStopClass::GetClassCount() && spec_index < RoadStopClass::Get(spec_class)->GetSpecCount()) {
+		const RoadStopSpec *roadstopspec = RoadStopClass::Get(spec_class)->GetSpec(spec_index);
+		if (roadstopspec != nullptr && HasBit(roadstopspec->flags, RSF_NO_AUTO_ROAD_CONNECTION)) connect_to_road = false;
+	}
+
+	if (connect_to_road) {
+		TileArea roadstop_area(tile, GB(p1, 0, 8), GB(p1, 8, 8));
+		for (TileIndex cur_tile : roadstop_area) {
+			ConnectRoadToStructure(cur_tile, dir);
+			/* For a drive-through road stop build connecting road for other entrance. */
+			if (HasBit(p2, 1)) ConnectRoadToStructure(cur_tile, ReverseDiagDir(dir));
+		}
 	}
 }
 
@@ -534,7 +546,11 @@ struct BuildRoadToolbarWindow : Window {
 				if (HandlePlacePushButton(this, WID_ROT_BUILD_WAYPOINT, SPR_CURSOR_WAYPOINT, HT_RECT)) {
 					this->last_started_action = widget;
 					_waypoint_count = RoadStopClass::Get(ROADSTOP_CLASS_WAYP)->GetSpecCount();
-					if (_waypoint_count > 1) ShowBuildWaypointPicker(this);
+					if (_waypoint_count > 1) {
+						ShowBuildWaypointPicker(this);
+					} else {
+						_cur_waypoint_type = 0;
+					}
 				}
 				break;
 
@@ -1209,6 +1225,19 @@ private:
 		this->vscrollList->ScrollTowards(pos);
 	}
 
+	void CheckOrientationValid()
+	{
+		if (_roadstop_gui_settings.orientation >= DIAGDIR_END) return;
+		const RoadStopSpec *spec = RoadStopClass::Get(_roadstop_gui_settings.roadstop_class)->GetSpec(_roadstop_gui_settings.roadstop_type);
+		if (spec != nullptr && HasBit(spec->flags, RSF_DRIVE_THROUGH_ONLY)) {
+			this->RaiseWidget(_roadstop_gui_settings.orientation + WID_BROS_STATION_NE);
+			_roadstop_gui_settings.orientation = DIAGDIR_END;
+			this->LowerWidget(_roadstop_gui_settings.orientation + WID_BROS_STATION_NE);
+			this->SetDirty();
+			DeleteWindowById(WC_SELECT_STATION, 0);
+		}
+	}
+
 public:
 	BuildRoadStationWindow(WindowDesc *desc, Window *parent, RoadStopType rs) : PickerWindowBase(desc, parent), filter_editbox(EDITBOX_MAX_SIZE * MAX_CHAR_LENGTH, EDITBOX_MAX_SIZE)
 	{
@@ -1291,6 +1320,7 @@ public:
 			matrix->SetClicked(_roadstop_gui_settings.roadstop_type);
 
 			this->EnsureSelectedClassIsVisible();
+			this->CheckOrientationValid();
 		}
 	}
 
@@ -1479,8 +1509,10 @@ public:
 			case WID_BROS_STATION_Y: {
 				StationType st = GetRoadStationTypeByWindowClass(this->window_class);
 				const RoadStopSpec *spec = RoadStopClass::Get(_roadstop_gui_settings.roadstop_class)->GetSpec(_roadstop_gui_settings.roadstop_type);
-				if (spec == nullptr) {
+				bool disabled = (spec != nullptr && widget < WID_BROS_STATION_X && HasBit(spec->flags, RSF_DRIVE_THROUGH_ONLY));
+				if (spec == nullptr || disabled) {
 					StationPickerDrawSprite(r.left + WD_MATRIX_LEFT + ScaleGUITrad(31), r.bottom - ScaleGUITrad(31), st, INVALID_RAILTYPE, _cur_roadtype, widget - WID_BROS_STATION_NE);
+					if (disabled) GfxFillRect(r.left + 1, r.top + 1, r.right - 1, r.bottom - 1, PC_BLACK, FILLRECT_CHECKER);
 				} else {
 					DrawRoadStopTile(r.left + WD_MATRIX_LEFT + ScaleGUITrad(31), r.bottom - ScaleGUITrad(31), _cur_roadtype, spec, st, (int)widget - WID_BROS_STATION_NE);
 				}
@@ -1523,7 +1555,9 @@ public:
 					if (spec == nullptr) {
 						StationPickerDrawSprite(r.left + 1 + ScaleGUITrad(31), r.bottom - ScaleGUITrad(31), st, INVALID_RAILTYPE, _cur_roadtype, _roadstop_gui_settings.orientation);
 					} else {
-						DrawRoadStopTile(x, y, _cur_roadtype, spec, st, (uint8)_roadstop_gui_settings.orientation);
+						DiagDirection orientation = _roadstop_gui_settings.orientation;
+						if (orientation < DIAGDIR_END && HasBit(spec->flags, RSF_DRIVE_THROUGH_ONLY)) orientation = DIAGDIR_END;
+						DrawRoadStopTile(x, y, _cur_roadtype, spec, st, (uint8)orientation);
 					}
 					_cur_dpi = old_dpi;
 				}
@@ -1554,6 +1588,10 @@ public:
 			case WID_BROS_STATION_NW:
 			case WID_BROS_STATION_X:
 			case WID_BROS_STATION_Y:
+				if (widget < WID_BROS_STATION_X) {
+					const RoadStopSpec *spec = RoadStopClass::Get(_roadstop_gui_settings.roadstop_class)->GetSpec(_roadstop_gui_settings.roadstop_type);
+					if (spec != nullptr && HasBit(spec->flags, RSF_DRIVE_THROUGH_ONLY)) return;
+				}
 				this->RaiseWidget(_roadstop_gui_settings.orientation + WID_BROS_STATION_NE);
 				_roadstop_gui_settings.orientation = (DiagDirection)(widget - WID_BROS_STATION_NE);
 				this->LowerWidget(_roadstop_gui_settings.orientation + WID_BROS_STATION_NE);
@@ -1585,6 +1623,7 @@ public:
 					NWidgetMatrix *matrix = this->GetWidget<NWidgetMatrix>(WID_BROS_MATRIX);
 					matrix->SetCount(_roadstop_gui_settings.roadstop_count);
 					matrix->SetClicked(_roadstop_gui_settings.roadstop_type);
+					this->CheckOrientationValid();
 				}
 				if (_settings_client.sound.click_beep) SndPlayFx(SND_15_BEEP);
 				this->SetDirty();
@@ -1609,6 +1648,7 @@ public:
 				if (_settings_client.sound.click_beep) SndPlayFx(SND_15_BEEP);
 				this->SetDirty();
 				DeleteWindowById(WC_SELECT_STATION, 0);
+				this->CheckOrientationValid();
 				break;
 			}
 
@@ -1763,10 +1803,7 @@ static const NWidgetPart _nested_tram_station_picker_widgets[] = {
 				NWidget(NWID_SELECTION, INVALID_COLOUR, WID_BROS_SHOW_NEWST_ORIENTATION),
 					NWidget(WWT_LABEL, COLOUR_DARK_GREEN), SetMinimalSize(144, 11), SetDataTip(STR_STATION_BUILD_ORIENTATION, STR_NULL), SetPadding(4, 2, 1, 2),
 				EndContainer(),
-				NWidget(NWID_SPACER), SetMinimalSize(0, 3),
-				NWidget(WWT_LABEL, COLOUR_DARK_GREEN), SetMinimalSize(144, 11), SetDataTip(STR_STATION_BUILD_ORIENTATION, STR_NULL), SetPadding(1, 2, 0, 2),
-				NWidget(NWID_SPACER), SetMinimalSize(0, 1),
-				NWidget(NWID_HORIZONTAL), SetPIP(0, 2, 0),
+				NWidget(NWID_HORIZONTAL), SetPIP(0, 2, 0), SetPadding(0, 0, 1, 0),
 					NWidget(NWID_SPACER), SetFill(1, 0),
 					NWidget(WWT_PANEL, COLOUR_GREY, WID_BROS_STATION_X),  SetMinimalSize(66, 50), SetFill(0, 0), EndContainer(),
 					NWidget(WWT_PANEL, COLOUR_GREY, WID_BROS_STATION_Y),  SetMinimalSize(66, 50), SetFill(0, 0), EndContainer(),
