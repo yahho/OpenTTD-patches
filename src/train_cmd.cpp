@@ -1419,7 +1419,7 @@ static CommandCost CmdBuildRailWagon(TileIndex tile, DoCommandFlag flags, const 
 	const RailVehicleInfo *rvi = &e->u.rail;
 
 	/* Check that the wagon can drive on the track in question */
-	if (!IsCompatibleRail(rvi->railtype, GetRailType(tile))) return CMD_ERROR;
+	if (!IsCompatibleRail(rvi->railtype, GetRailType(tile))) return_cmd_error(STR_ERROR_DEPOT_HAS_WRONG_RAIL_TYPE);
 
 	if (flags & DC_EXEC) {
 		Train *v = new Train();
@@ -7091,14 +7091,13 @@ CommandCost CmdTemplateReplaceVehicle(TileIndex tile, DoCommandFlag flags, uint3
 		}
 	} else {
 		CommandCost buyCost = TestBuyAllTemplateVehiclesInChain(tv, tile);
-		if (!buyCost.Succeeded() || !CheckCompanyHasMoney(buyCost)) {
+		if (!buyCost.Succeeded()) {
 			if (leaveDepot) incoming->vehstatus &= ~VS_STOPPED;
-
-			if (!buyCost.Succeeded() && buyCost.GetErrorMessage() != INVALID_STRING_ID) {
-				return buyCost;
-			} else {
-				return_cmd_error(STR_ERROR_NOT_ENOUGH_CASH_REQUIRES_CURRENCY);
-			}
+			if (buyCost.GetErrorMessage() == INVALID_STRING_ID) return_cmd_error(STR_ERROR_CAN_T_BUY_TRAIN);
+			return buyCost;
+		} else if (!CheckCompanyHasMoney(buyCost)) {
+			if (leaveDepot) incoming->vehstatus &= ~VS_STOPPED;
+			return_cmd_error(STR_ERROR_NOT_ENOUGH_CASH_REQUIRES_CURRENCY);
 		}
 	}
 
@@ -7320,10 +7319,12 @@ int GetTrainRealisticAccelerationAtSpeed(const int speed, const int mass, const 
 	return acceleration;
 }
 
-int GetTrainEstimatedMaxAchievableSpeed(const Train *train, const int mass, const int speed_cap)
+int GetTrainEstimatedMaxAchievableSpeed(const Train *train, int mass, const int speed_cap)
 {
 	int max_speed = 0;
 	int acceleration;
+
+	if (mass < 1) mass = 1;
 
 	do
 	{
