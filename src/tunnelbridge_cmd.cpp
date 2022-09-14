@@ -850,14 +850,13 @@ CommandCost CmdBuildBridge(TileIndex end_tile, DoCommandFlag flags, uint32_t p1,
  */
 static inline StringID IsRampBetweenLimits(TileIndex ramp_start, TileIndex tile, TileIndexDiff delta)
 {
-	uint min_length = 4;
-	uint max_length = 9;
-	if (Delta(ramp_start, tile) < (uint)abs(delta) * min_length || (uint)abs(delta) * max_length < Delta(ramp_start, tile)) {
-		/* Add 1 in message to have consistency with cursor count in game. */
-		SetDParam(0, min_length - 1);
-		SetDParam(1, max_length - 1);
-		return STR_ERROR_CHUNNEL_RAMP;
-	}
+	//uint min_length = 4;
+	//uint max_length = 7;
+	//if (Delta(ramp_start, tile) < (uint)abs(delta) * min_length || (uint)abs(delta) * max_length < Delta(ramp_start, tile)) {
+	//	/* Add 1 in message to have consistency with cursor count in game. */
+	//	SetDParam(0, max_length + 1);
+	//	return STR_ERROR_CHUNNEL_RAMP;
+	//}
 
 	return STR_NULL;
 }
