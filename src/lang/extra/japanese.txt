@@ -68,7 +68,7 @@ STR_CONFIG_SETTING_IMPROVED_BREAKDOWNS                          :改善された
 STR_CONFIG_SETTING_SHIP_COLLISION_AVOIDANCE                     :船舶の衝突回避: {STRING}
 STR_CONFIG_SETTING_SHIP_COLLISION_AVOIDANCE_HELPTEXT            :有効にすると船舶同士が通過することを回避しようとするようになります。 90°旋回が禁止されているときに最適な結果が得られます。
 STR_CONFIG_SETTING_CHUNNEL                                      :水面下を通るトンネルの建設を許可: {STRING}
-STR_CONFIG_SETTING_CHUNNEL_HELPTEXT                             :有効にするとトンネルを海水面より下を通るように建設できるようになります。 これを行うには岸から最低3タイル離れた地点にトンネル出入口がある必要があります。
+STR_CONFIG_SETTING_CHUNNEL_HELPTEXT                             :有効にするとトンネルを海水面より下を通るように建設できるようになります。
 STR_CONFIG_SETTING_NO_TRAIN_CRASH_OTHER_COMPANY                 :別会社の列車同士が衝突しないようにする: {STRING}
 STR_CONFIG_SETTING_NO_TRAIN_CRASH_OTHER_COMPANY_HELPTEXT        :この設定は主にマルチプレイのレールインフラ共有が有効なゲームにおいて信頼できないプレイヤーが他社の列車を巻き込む事故を故意に発生させることを防止するためのものです。
 STR_CONFIG_SETTING_ROADVEH_ARTICULATED_OVERTAKING               :道路車両が渋滞を追い越すようにする: {STRING}
