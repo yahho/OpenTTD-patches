@@ -34,6 +34,7 @@
 #include "debug_desync.h"
 #include "order_backup.h"
 #include <array>
+#include <deque>
 
 #include "table/strings.h"
 
@@ -214,6 +215,8 @@ CommandProc CmdVirtualTrainFromTrain;
 CommandProc CmdDeleteVirtualTrain;
 CommandProc CmdBuildVirtualRailVehicle;
 CommandProc CmdReplaceTemplateVehicle;
+CommandProc CmdMoveVirtualRailVehicle;
+CommandProc CmdSellVirtualVehicle;
 
 CommandProc CmdTemplateVehicleFromTrain;
 CommandProc CmdDeleteTemplateVehicle;
@@ -390,7 +393,7 @@ static const Command _command_proc_table[] = {
 	DEF_CMD(CmdBuyShareInCompany,                              0, CMDT_MONEY_MANAGEMENT      ), // CMD_BUY_SHARE_IN_COMPANY
 	DEF_CMD(CmdSellShareInCompany,                             0, CMDT_MONEY_MANAGEMENT      ), // CMD_SELL_SHARE_IN_COMPANY
 	DEF_CMD(CmdBuyCompany,                                     0, CMDT_MONEY_MANAGEMENT      ), // CMD_BUY_COMPANY
-	DEF_CMD(CmdDeclineBuyCompany,                              0, CMDT_MONEY_MANAGEMENT      ), // CMD_DECLINE_BUY_COMPANY
+	DEF_CMD(CmdDeclineBuyCompany,                              0, CMDT_SERVER_SETTING        ), // CMD_DECLINE_BUY_COMPANY
 
 	DEF_CMD(CmdFoundTown,                CMD_DEITY | CMD_NO_TEST, CMDT_LANDSCAPE_CONSTRUCTION), // CMD_FOUND_TOWN; founding random town can fail only in exec run
 	DEF_CMD(CmdRenameTown,                CMD_DEITY | CMD_SERVER, CMDT_OTHER_MANAGEMENT      ), // CMD_RENAME_TOWN
@@ -456,6 +459,8 @@ static const Command _command_proc_table[] = {
 	DEF_CMD(CmdDeleteVirtualTrain,                                              CMD_ALL_TILES, CMDT_VEHICLE_MANAGEMENT), // CMD_DELETE_VIRTUAL_TRAIN
 	DEF_CMD(CmdBuildVirtualRailVehicle,           CMD_CLIENT_ID | CMD_NO_TEST | CMD_ALL_TILES, CMDT_VEHICLE_MANAGEMENT), // CMD_BUILD_VIRTUAL_RAIL_VEHICLE
 	DEF_CMD(CmdReplaceTemplateVehicle,                                          CMD_ALL_TILES, CMDT_VEHICLE_MANAGEMENT), // CMD_REPLACE_TEMPLATE_VEHICLE
+	DEF_CMD(CmdMoveVirtualRailVehicle,                                          CMD_ALL_TILES, CMDT_VEHICLE_MANAGEMENT), // CMD_MOVE_VIRTUAL_RAIL_VEHICLE
+	DEF_CMD(CmdSellVirtualVehicle,                              CMD_CLIENT_ID | CMD_ALL_TILES, CMDT_VEHICLE_MANAGEMENT), // CMD_SELL_VIRTUAL_VEHICLE
 
 	DEF_CMD(CmdTemplateVehicleFromTrain,           CMD_ALL_TILES, CMDT_VEHICLE_MANAGEMENT    ), // CMD_CLONE_TEMPLATE_VEHICLE_FROM_TRAIN
 	DEF_CMD(CmdDeleteTemplateVehicle,              CMD_ALL_TILES, CMDT_VEHICLE_MANAGEMENT    ), // CMD_DELETE_TEMPLATE_VEHICLE
@@ -584,6 +589,12 @@ struct CommandLog {
 
 static CommandLog _command_log;
 static CommandLog _command_log_aux;
+
+struct CommandQueueItem {
+	CommandContainer cmd;
+	CompanyID company;
+};
+static std::deque<CommandQueueItem> _command_queue;
 
 void ClearCommandLog()
 {
@@ -881,6 +892,7 @@ bool DoCommandPEx(TileIndex tile, uint32 p1, uint32 p2, uint64 p3, uint32 cmd, C
 	bool estimate_only = _shift_pressed && IsLocalCompany() &&
 			!_generating_world &&
 			!(cmd & CMD_NETWORK_COMMAND) &&
+			!(cmd & CMD_NO_SHIFT_ESTIMATE) &&
 			!(GetCommandFlags(cmd) & CMD_NO_EST);
 
 	/* We're only sending the command, so don't do
@@ -970,6 +982,33 @@ CommandCost DoCommandPScript(TileIndex tile, uint32 p1, uint32 p2, uint64 p3, ui
 	}
 
 	return res;
+}
+
+void ExecuteCommandQueue()
+{
+	while (!_command_queue.empty()) {
+		Backup<CompanyID> cur_company(_current_company, FILE_LINE);
+		cur_company.Change(_command_queue.front().company);
+		DoCommandP(&_command_queue.front().cmd);
+		cur_company.Restore();
+		_command_queue.pop_front();
+	}
+}
+
+void ClearCommandQueue()
+{
+	_command_queue.clear();
+}
+
+void EnqueueDoCommandP(CommandContainer cmd)
+{
+	if (_docommand_recursive == 0) {
+		DoCommandP(&cmd);
+	} else {
+		CommandQueueItem &item = _command_queue.emplace_back();
+		item.cmd = std::move(cmd);
+		item.company = _current_company;
+	}
 }
 
 

@@ -212,9 +212,11 @@ static void DrawCategories(const Rect &r)
 static void DrawPrice(Money amount, int left, int right, int top, TextColour colour)
 {
 	StringID str = STR_FINANCES_NEGATIVE_INCOME;
-	if (amount < 0) {
+	if (amount == 0) {
+		str = STR_FINANCES_ZERO_INCOME;
+	} else if (amount < 0) {
 		amount = -amount;
-		str++;
+		str = STR_FINANCES_POSITIVE_INCOME;
 	}
 	SetDParam(0, amount);
 	DrawString(left, right, top, str, colour, SA_RIGHT);
@@ -2891,8 +2893,8 @@ struct BuyCompanyWindow : Window {
 	~BuyCompanyWindow()
 	{
 		const Company *c = Company::GetIfValid((CompanyID)this->window_number);
-		if (c != nullptr && HasBit(c->bankrupt_asked, this->owner)) {
-			DoCommandP(0, this->window_number, 0, CMD_DECLINE_BUY_COMPANY);
+		if (c != nullptr && HasBit(c->bankrupt_asked, this->owner) && _current_company == this->owner) {
+			EnqueueDoCommandP(NewCommandContainerBasic(0, this->window_number, 0, CMD_DECLINE_BUY_COMPANY | CMD_NO_SHIFT_ESTIMATE));
 		}
 	}
 

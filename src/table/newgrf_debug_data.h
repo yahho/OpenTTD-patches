@@ -199,8 +199,8 @@ class NIHVehicle : public NIHelper {
 			seprintf(buffer, lastof(buffer), "  Speed restriction: %u, signal speed restriction (ATC): %u",
 					t->speed_restriction, t->signal_speed_restriction);
 			output.print(buffer);
-			seprintf(buffer, lastof(buffer), "  Railtype: %u, compatible_railtypes: 0x" OTTD_PRINTFHEX64,
-					t->railtype, t->compatible_railtypes);
+			seprintf(buffer, lastof(buffer), "  Railtype: %u, compatible_railtypes: 0x" OTTD_PRINTFHEX64 ", acceleration type: %u",
+					t->railtype, t->compatible_railtypes, t->GetAccelerationType());
 			output.print(buffer);
 			if (t->vehstatus & VS_CRASHED) {
 				seprintf(buffer, lastof(buffer), "  CRASHED: anim pos: %u", t->crash_anim_pos);
@@ -1252,6 +1252,8 @@ class NIHRailType : public NIHelper {
 			seprintf(buffer, lastof(buffer), "  All compatible: 0x" OTTD_PRINTFHEX64, info->all_compatible_railtypes);
 			output.print(buffer);
 			PrintTypeLabels(buffer, lastof(buffer), info->label, (const uint32*) info->alternate_labels.data(), info->alternate_labels.size(), output.print);
+			seprintf(buffer, lastof(buffer), "  Cost multiplier: %u/8, Maintenance multiplier: %u/8", info->cost_multiplier, info->maintenance_multiplier);
+			output.print(buffer);
 		};
 
 		output.print("Debug Info:");
@@ -1561,6 +1563,8 @@ class NIHRoadType : public NIHelper {
 			seprintf(buffer, lastof(buffer), "    Powered: 0x" OTTD_PRINTFHEX64, rti->powered_roadtypes);
 			output.print(buffer);
 			PrintTypeLabels(buffer, lastof(buffer), rti->label, (const uint32*) rti->alternate_labels.data(), rti->alternate_labels.size(), output.print);
+			seprintf(buffer, lastof(buffer), "    Cost multiplier: %u/8, Maintenance multiplier: %u/8", rti->cost_multiplier, rti->maintenance_multiplier);
+			output.print(buffer);
 		};
 		writeInfo(RTT_ROAD);
 		writeInfo(RTT_TRAM);

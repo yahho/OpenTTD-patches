@@ -583,8 +583,8 @@ Company *DoStartupNewCompany(DoStartupNewCompanyFlag flags, CompanyID company)
 	c->inaugurated_year = _cur_year;
 
 	/* If starting a player company in singleplayer and a favorite company manager face is selected, choose it. Otherwise, use a random face.
-	 * In a network game, we'll choose the favorite face later in CmdCompanyCtrl to sync it to all clients. */
-	if (_company_manager_face != 0 && !is_ai && !_networking) {
+	 * In a network game, we'll choose the favorite face later in CmdCompanyCtrl to sync it to all clients, but we choose it here for the first (host) company. */
+	if (_company_manager_face != 0 && !is_ai) {
 		c->face = _company_manager_face;
 	} else {
 		RandomCompanyManagerFaceBits(c->face, (GenderEthnicity)Random(), false, false);
@@ -684,6 +684,16 @@ static void HandleBankruptcyTakeover(Company *c)
 
 	/* We're currently asking some company to buy 'us' */
 	if (c->bankrupt_timeout != 0) {
+		if (!Company::IsValidID(c->bankrupt_last_asked)) {
+			c->bankrupt_timeout = 0;
+			return;
+		}
+		if (_network_server && Company::IsValidHumanID(c->bankrupt_last_asked) && !NetworkCompanyHasClients(c->bankrupt_last_asked)) {
+			/* This company can no longer accept the offer as there are no clients connected, decline the offer on the company's behalf */
+			Backup<CompanyID> cur_company(_current_company, c->bankrupt_last_asked, FILE_LINE);
+			DoCommandP(0, c->index, 0, CMD_DECLINE_BUY_COMPANY | CMD_NO_SHIFT_ESTIMATE);
+			cur_company.Restore();
+		}
 		c->bankrupt_timeout -= MAX_COMPANIES;
 		if (c->bankrupt_timeout > 0) return;
 		c->bankrupt_timeout = 0;
@@ -731,7 +741,7 @@ static void HandleBankruptcyTakeover(Company *c)
 	} else if (!_networking || (_network_server && !NetworkCompanyHasClients(best->index))) {
 		/* This company can never accept the offer as there are no clients connected, decline the offer on the company's behalf */
 		Backup<CompanyID> cur_company(_current_company, best->index, FILE_LINE);
-		DoCommandP(0, c->index, 0, CMD_DECLINE_BUY_COMPANY);
+		DoCommandP(0, c->index, 0, CMD_DECLINE_BUY_COMPANY | CMD_NO_SHIFT_ESTIMATE);
 		cur_company.Restore();
 	}
 }

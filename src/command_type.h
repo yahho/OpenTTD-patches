@@ -391,6 +391,8 @@ enum Commands {
 	CMD_DELETE_VIRTUAL_TRAIN,         ///< Delete a virtual train
 	CMD_BUILD_VIRTUAL_RAIL_VEHICLE,   ///< Build a virtual train
 	CMD_REPLACE_TEMPLATE_VEHICLE,     ///< Replace a template vehicle with another one based on a virtual train
+	CMD_MOVE_VIRTUAL_RAIL_VEHICLE,    ///< Move a virtual rail vehicle
+	CMD_SELL_VIRTUAL_VEHICLE,         ///< Sell a virtual vehicle
 
 	CMD_CLONE_TEMPLATE_VEHICLE_FROM_TRAIN, ///< clone a train and create a new template vehicle based on it
 	CMD_DELETE_TEMPLATE_VEHICLE,      ///< delete a template vehicle
@@ -510,6 +512,7 @@ DECLARE_ENUM_AS_BIT_SET(DoCommandFlag)
  */
 enum FlaggedCommands {
 	CMD_NETWORK_COMMAND       = 0x0100, ///< execute the command without sending it on the network
+	CMD_NO_SHIFT_ESTIMATE     = 0x0200, ///< do not check shift key state for whether to estimate command
 	CMD_FLAGS_MASK            = 0xFF00, ///< mask for all command flags
 	CMD_ID_MASK               = 0x00FF, ///< mask for the command ID
 };

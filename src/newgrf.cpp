@@ -1889,6 +1889,12 @@ static ChangeInfoResult StationChangeInfo(uint stid, int numinfo, int prop, cons
 					}
 					dts->Clone(tmp_layout.data());
 				}
+
+				/* Number of layouts must be even, alternating X and Y */
+				if (statspec->renderdata.size() & 1) {
+					grfmsg(1, "StationChangeInfo: Station %u defines an odd number of sprite layouts, dropping the last item", stid + i);
+					statspec->renderdata.pop_back();
+				}
 				break;
 			}
 
@@ -2010,6 +2016,12 @@ static ChangeInfoResult StationChangeInfo(uint stid, int numinfo, int prop, cons
 					uint num_building_sprites = buf->ReadByte();
 					/* On error, bail out immediately. Temporary GRF data was already freed */
 					if (ReadSpriteLayout(buf, num_building_sprites, false, GSF_STATIONS, true, false, dts)) return CIR_DISABLED;
+				}
+
+				/* Number of layouts must be even, alternating X and Y */
+				if (statspec->renderdata.size() & 1) {
+					grfmsg(1, "StationChangeInfo: Station %u defines an odd number of sprite layouts, dropping the last item", stid + i);
+					statspec->renderdata.pop_back();
 				}
 				break;
 			}
@@ -11195,11 +11207,11 @@ static void FinalisePriceBaseMultipliers()
 				if (!HasBit(file->grf_features, _price_base_specs[p].grf_feature)) {
 					/* The grf does not define any objects of the feature,
 					 * so it must be a difficulty setting. Apply it globally */
-					DEBUG(grf, 3, "'%s' sets global price base multiplier %d", file->filename, p);
+					DEBUG(grf, 3, "'%s' sets global price base multiplier %d to %d", file->filename, p, price_base_multipliers[p]);
 					SetPriceBaseMultiplier(p, price_base_multipliers[p]);
 					price_base_multipliers[p] = 0;
 				} else {
-					DEBUG(grf, 3, "'%s' sets local price base multiplier %d", file->filename, p);
+					DEBUG(grf, 3, "'%s' sets local price base multiplier %d to %d", file->filename, p, price_base_multipliers[p]);
 				}
 			}
 		}

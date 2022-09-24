@@ -1574,9 +1574,9 @@ struct CheckDeterministicSpriteGroupOutputVarBitsProcedureHandler {
 			VarAction2GroupVariableTracking *var_tracking = _cur.GetVarAction2GroupVariableTracking(sub, true);
 			std::bitset<256> new_proc_call_out = (is_leaf_node ? this->output_bits : child_input_bits) | var_tracking->proc_call_out;
 			if (new_proc_call_out != var_tracking->proc_call_out) {
-				var_tracking->proc_call_out = new_proc_call_out;
 				std::bitset<256> old_total = var_tracking->out | var_tracking->proc_call_out;
 				std::bitset<256> new_total = var_tracking->out | new_proc_call_out;
+				var_tracking->proc_call_out = new_proc_call_out;
 				if (old_total != new_total) {
 					CheckDeterministicSpriteGroupOutputVarBits(sub, new_total, input_bits, false);
 				}
@@ -2453,9 +2453,9 @@ void OptimiseVarAction2DeterministicSpriteGroup(VarAction2OptimiseState &state, 
 			}
 		}
 
-		if (bits.any()) {
+		std::bitset<256> in_bits = bits | pending_bits;
+		if (in_bits.any()) {
 			state.GetVarTracking(group)->out = bits;
-			std::bitset<256> in_bits = bits | pending_bits;
 			for (auto &it : state.temp_stores) {
 				in_bits.set(it.first, false);
 			}
