@@ -1636,6 +1636,9 @@ STR_CONFIG_SETTING_DISABLE_WATER_ANIMATION_32X                  :32x zoom and ab
 STR_CONFIG_SETTING_SHOW_ORDER_OCCUPANCY_BY_DEFAULT              :Show order occupancy by default: {STRING2}
 STR_CONFIG_SETTING_SHOW_ORDER_OCCUPANCY_BY_DEFAULT_HELPTEXT     :Show detailed per-order occupancy by default when opening a vehicle's orders window
 
+STR_CONFIG_SETTING_SHOW_ORDER_MANAGEMENT_BY_DEFAULT             :Show order management button: {STRING2}
+STR_CONFIG_SETTING_SHOW_ORDER_MANAGEMENT_BY_DEFAULT_HELPTEXT    :Show a button for order management in the vehicle order window
+
 STR_CONFIG_SETTING_SHOW_GROUP_HIERARCHY_NAME                    :Show group hierarchy in name: {STRING2}
 STR_CONFIG_SETTING_SHOW_GROUP_HIERARCHY_NAME_HELPTEXT           :When enabled, group names include the full hierarchy of their parent group names
 
@@ -2032,6 +2035,7 @@ STR_CONFIG_SETTING_SHARING_FEE_RAIL                             :Daily track tol
 STR_CONFIG_SETTING_SHARING_FEE_ROAD                             :Stopping fee for road vehicles: {STRING2} per day
 STR_CONFIG_SETTING_SHARING_FEE_WATER                            :Docking fee for ships: {STRING2} per day
 STR_CONFIG_SETTING_SHARING_FEE_AIR                              :Terminal fee for aircraft: {STRING2} per day
+STR_CONFIG_SETTING_SHARING_FEE_HELPTEXT                         :This fee is paid per unscaled day (i.e. the duration of a day at a day length of 1, this is 74 ticks).
 STR_CONFIG_SETTING_SHARING_PAYMENT_IN_DEBT                      :Allow companies in debt to pay sharing fees: {STRING2}
 STR_CONFIG_SETTING_SHARING_USED_BY_VEHICLES                     :Can't change this setting, vehicles are using shared infrastructure.
 STR_CONFIG_SETTING_SHARING_ORDERS_TO_OTHERS                     :Can't change this setting, vehicles have orders to destinations of others.
@@ -2183,6 +2187,18 @@ STR_CONFIG_SETTING_ALLOW_TOWN_ROADS                             :Towns are allow
 STR_CONFIG_SETTING_ALLOW_TOWN_ROADS_HELPTEXT                    :Allow towns to build roads for growth. Disable to prevent town authorities from building roads themselves
 STR_CONFIG_SETTING_ALLOW_TOWN_LEVEL_CROSSINGS                   :Towns are allowed to build level crossings: {STRING2}
 STR_CONFIG_SETTING_ALLOW_TOWN_LEVEL_CROSSINGS_HELPTEXT          :Enabling this setting allows towns to build level crossings
+
+STR_CONFIG_SETTING_TOWN_TUNNELS                                 :Towns are allowed to build tunnels: {STRING2}
+STR_CONFIG_SETTING_TOWN_TUNNELS_HELPTEXT                        :Under what conditions are towns allowed to build road tunnels
+###length 3
+STR_CONFIG_SETTING_TOWN_TUNNELS_FORBIDDEN                       :Forbidden
+STR_CONFIG_SETTING_TOWN_TUNNELS_ALLOWED_OBSTRUCTION             :Allowed only for small obstructions
+STR_CONFIG_SETTING_TOWN_TUNNELS_ALLOWED                         :Allowed
+
+STR_CONFIG_SETTING_TOWN_MAX_ROAD_SLOPE                          :Limit towns building continuous inclined roads: {STRING2}
+STR_CONFIG_SETTING_TOWN_MAX_ROAD_SLOPE_HELPTEXT                 :Limit the length of consecutive sloped road tiles which towns will build. This can be used to prevent towns from growing long straight road segments up or down mountain sides
+STR_CONFIG_SETTING_TOWN_MAX_ROAD_SLOPE_VALUE                    :{NUM} tile{P "" s}
+STR_CONFIG_SETTING_TOWN_MAX_ROAD_SLOPE_ZERO                     :No limit
 
 STR_CONFIG_SETTING_NOISE_LEVEL                                  :Allow town controlled noise level for airports: {STRING2}
 STR_CONFIG_SETTING_NOISE_LEVEL_HELPTEXT                         :With this setting disabled, there can be two airports in each town. With this setting enabled, the number of airports in a town is limited by the noise acceptance of the town, which depends on population and airport size and distance
@@ -3271,7 +3287,7 @@ STR_TRACE_RESTRICT_VARIABLE_TRAIN_STATUS                        :train status
 STR_TRACE_RESTRICT_VARIABLE_TRAIN_ENGINE_CLASS                  :engine class
 STR_TRACE_RESTRICT_VARIABLE_ORDER_TARGET_DIRECTION              :direction of order target
 STR_TRACE_RESTRICT_VARIABLE_UNDEFINED                           :undefined
-STR_TRACE_RESTRICT_VARIABLE_UNDEFINED_RED                       :{RED}undefined
+STR_TRACE_RESTRICT_VARIABLE_UNDEFINED_RED                       :{PUSH_COLOUR}{RED}undefined{POP_COLOUR}
 STR_TRACE_RESTRICT_CONDITIONAL_COMPARE_INTEGER                  :{STRING} {STRING} {STRING} {COMMA} then
 STR_TRACE_RESTRICT_CONDITIONAL_COMPARE_SPEED                    :{STRING} {STRING} {STRING} {VELOCITY} then
 STR_TRACE_RESTRICT_CONDITIONAL_COMPARE_WEIGHT                   :{STRING} {STRING} {STRING} {WEIGHT_SHORT} then
@@ -3367,9 +3383,9 @@ STR_TRACE_RESTRICT_COUNTER_NAME                                 :{TRCOUNTER}
 STR_TRACE_RESTRICT_COUNTER_INCREASE                             :Increase
 STR_TRACE_RESTRICT_COUNTER_DECREASE                             :Decrease
 STR_TRACE_RESTRICT_COUNTER_SET                                  :Set
-STR_TRACE_RESTRICT_COUNTER_INCREASE_ITEM                        :Increase counter: {STRING1}{BLACK}{STRING} by {COMMA}
-STR_TRACE_RESTRICT_COUNTER_DECREASE_ITEM                        :Decrease counter: {STRING1}{BLACK}{STRING} by {COMMA}
-STR_TRACE_RESTRICT_COUNTER_SET_ITEM                             :Set counter: {STRING1}{BLACK}{STRING} to {COMMA}
+STR_TRACE_RESTRICT_COUNTER_INCREASE_ITEM                        :Increase counter: {STRING1} by {COMMA}
+STR_TRACE_RESTRICT_COUNTER_DECREASE_ITEM                        :Decrease counter: {STRING1} by {COMMA}
+STR_TRACE_RESTRICT_COUNTER_SET_ITEM                             :Set counter: {STRING1} to {COMMA}
 STR_TRACE_RESTRICT_TRAIN_STATUS_EMPTY                           :empty
 STR_TRACE_RESTRICT_TRAIN_STATUS_FULL                            :full
 STR_TRACE_RESTRICT_TRAIN_STATUS_BROKEN_DOWN                     :broken down
@@ -5627,8 +5643,12 @@ STR_ORDERS_SKIP_TOOLTIP                                         :{BLACK}Skip the
 
 STR_ORDERS_MANAGE_LIST                                          :{BLACK}Manage List
 STR_ORDERS_MANAGE_LIST_TOOLTIP                                  :{BLACK}Manage this order list
+STR_ORDERS_MANAGE_ORDER                                         :{BLACK}Manage Order
+STR_ORDERS_MANAGE_ORDER_TOOLTIP                                 :{BLACK}Manage this order
 STR_ORDER_REVERSE_ORDER_LIST                                    :Reverse order list
 STR_ORDER_APPEND_REVERSED_ORDER_LIST                            :Append reversed order list
+STR_ORDER_DUPLICATE_ORDER                                       :Duplicate order
+STR_ORDER_CHANGE_JUMP_TARGET                                    :Change jump target
 
 STR_ORDERS_DELETE_BUTTON                                        :{BLACK}Delete
 STR_ORDERS_DELETE_TOOLTIP                                       :{BLACK}Delete the highlighted order
@@ -5642,9 +5662,12 @@ STR_ORDER_GO_TO_NEAREST_HANGAR                                  :Go to nearest h
 STR_ORDER_CONDITIONAL                                           :Conditional order jump
 STR_ORDER_SHARE                                                 :Share orders
 STR_ORDER_RELEASE_SLOT_BUTTON                                   :Release slot
+STR_ORDER_CHANGE_COUNTER_BUTTON                                 :Change counter
 STR_ORDERS_GO_TO_TOOLTIP                                        :{BLACK}Insert a new order before the highlighted order, or add to end of list. Ctrl makes station orders 'full load any cargo', waypoint orders 'non-stop' and depot orders 'service'. 'Share orders' or Ctrl lets this vehicle share orders with the selected vehicle. Clicking a vehicle copies the orders from that vehicle. A depot order disables automatic servicing of the vehicle
 
 STR_ORDER_RELEASE_SLOT_TOOLTIP                                  :{BLACK}The train slot to release
+
+STR_ORDER_CHANGE_COUNTER_TOOLTIP                                :{BLACK}The counter to change
 
 STR_ORDERS_VEH_WITH_SHARED_ORDERS_LIST_TOOLTIP                  :{BLACK}Show all vehicles that share this schedule
 
@@ -5879,6 +5902,8 @@ STR_TIMETABLE_NON_TIMETABLED_BRANCH                             :{BLACK}Not all 
 STR_TIMETABLE_WARNING_NO_SCHEDULED_DISPATCH_ORDER_ASSIGNED      :{BLACK}The dispatch schedule is not assigned to an order
 STR_TIMETABLE_WARNING_SCHEDULED_DISPATCH_ORDER_NO_WAIT_TIME     :{BLACK}The scheduled dispatch order should have a timetabled wait time
 STR_TIMETABLE_WARNING_SCHEDULE_ID                               :{BLACK}Schedule {NUM}: {STRING}
+STR_TIMETABLE_FILL_TIMETABLE_SUGGESTION                         :{BLACK}Enable 'Automate' to automatically fill in and update the wait and travel times.
+STR_TIMETABLE_FILL_TIMETABLE_SUGGESTION_2                       :{BLACK}(Alternatively, enable 'Autofill' or manually fill in all the timetable fields).
 
 STR_TIMETABLE_WARNINGS_OMITTED                                  :{BLACK}{NUM} further warnings omitted...
 

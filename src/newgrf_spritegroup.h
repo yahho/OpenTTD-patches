@@ -61,6 +61,7 @@ extern SpriteGroupPool _spritegroup_pool;
 enum SpriteGroupFlags : uint8 {
 	SGF_NONE                     = 0,
 	SGF_ACTION6                  = 1 << 0,
+	SGF_INLINING                 = 1 << 1,
 };
 DECLARE_ENUM_AS_BIT_SET(SpriteGroupFlags)
 
@@ -203,6 +204,7 @@ inline bool IsEvalAdjustWithZeroRemovable(DeterministicSpriteGroupAdjustOperatio
 		case DSGA_OP_SHL:
 		case DSGA_OP_SHR:
 		case DSGA_OP_SAR:
+		case DSGA_OP_UMAX:
 			return true;
 
 		default:
@@ -217,6 +219,19 @@ inline bool IsEvalAdjustWithZeroAlwaysZero(DeterministicSpriteGroupAdjustOperati
 		case DSGA_OP_MUL:
 		case DSGA_OP_AND:
 		case DSGA_OP_RST:
+			return true;
+
+		default:
+			return false;
+	}
+}
+
+inline bool IsEvalAdjustWithOneRemovable(DeterministicSpriteGroupAdjustOperation op)
+{
+	switch (op) {
+		case DSGA_OP_MUL:
+		case DSGA_OP_SDIV:
+		case DSGA_OP_UDIV:
 			return true;
 
 		default:
@@ -432,6 +447,7 @@ enum DeterministicSpriteGroupFlags : uint8 {
 	DSGF_CHECK_EXPENSIVE_VARS    = 1 << 4,
 	DSGF_CHECK_INSERT_JUMP       = 1 << 5,
 	DSGF_CB_HANDLER              = 1 << 6,
+	DSGF_INLINE_CANDIDATE        = 1 << 7,
 };
 DECLARE_ENUM_AS_BIT_SET(DeterministicSpriteGroupFlags)
 

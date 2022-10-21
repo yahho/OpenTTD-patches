@@ -742,6 +742,59 @@ void OptimiseVarAction2Adjust(VarAction2OptimiseState &state, const GrfSpecFeatu
 		}
 	};
 
+	auto try_inline_procedure = [&]() -> bool {
+		if (adjust.operation != DSGA_OP_RST || adjust.type != DSGA_TYPE_NONE || state.var_1C_present) return false;
+
+		const SpriteGroup *subroutine = adjust.subroutine;
+
+		if (subroutine == nullptr || subroutine->type != SGT_DETERMINISTIC || subroutine->feature != group->feature) {
+			return false;
+		}
+
+		const DeterministicSpriteGroup *dsg = (const DeterministicSpriteGroup*)subroutine;
+		if (!(dsg->dsg_flags & DSGF_INLINE_CANDIDATE) || dsg->var_scope != group->var_scope || dsg->size != group->size) return false;
+
+		std::vector<DeterministicSpriteGroupAdjust> *proc = _cur.GetInlinableGroupAdjusts(dsg, false);
+		if (proc == nullptr) return false;
+
+		byte shift_num = adjust.shift_num;
+		uint32 and_mask = adjust.and_mask;
+
+		// Initial value state is 0
+		replace_with_constant_load(0);
+
+		for (const DeterministicSpriteGroupAdjust &proc_adjust : *proc) {
+			group->adjusts.push_back(proc_adjust);
+			OptimiseVarAction2Adjust(state, feature, varsize, group, group->adjusts.back());
+		}
+		if (shift_num != 0) {
+			DeterministicSpriteGroupAdjust &adj = group->adjusts.emplace_back();
+			adj.operation = DSGA_OP_SHR;
+			adj.variable = 0x1A;
+			adj.shift_num = 0;
+			adj.type = DSGA_TYPE_NONE;
+			adj.and_mask = shift_num;
+			adj.add_val = 0;
+			adj.divmod_val = 0;
+			OptimiseVarAction2Adjust(state, feature, varsize, group, group->adjusts.back());
+		}
+		if (and_mask != 0xFFFFFFFF) {
+			DeterministicSpriteGroupAdjust &adj = group->adjusts.emplace_back();
+			adj.operation = DSGA_OP_AND;
+			adj.variable = 0x1A;
+			adj.shift_num = 0;
+			adj.type = DSGA_TYPE_NONE;
+			adj.and_mask = and_mask;
+			adj.add_val = 0;
+			adj.divmod_val = 0;
+			OptimiseVarAction2Adjust(state, feature, varsize, group, group->adjusts.back());
+		}
+
+		group->sg_flags |= SGF_INLINING;
+
+		return true;
+	};
+
 	/* Special handling of variable 7B, this uses the parameter as the variable number, and the last value as the variable's parameter.
 	 * If the last value is a known constant, it can be substituted immediately. */
 	if (adjust.variable == 0x7B) {
@@ -761,7 +814,9 @@ void OptimiseVarAction2Adjust(VarAction2OptimiseState &state, const GrfSpecFeatu
 	}
 
 	VarAction2AdjustInferenceFlags non_const_var_inference = VA2AIF_NONE;
-	while (adjust.variable == 0x7D) {
+	int iteration = 32;
+	while (adjust.variable == 0x7D && iteration > 0) {
+		iteration--;
 		non_const_var_inference = VA2AIF_NONE;
 		auto iter = state.temp_stores.find(adjust.parameter & 0xFF);
 		if (iter == state.temp_stores.end()) {
@@ -772,6 +827,7 @@ void OptimiseVarAction2Adjust(VarAction2OptimiseState &state, const GrfSpecFeatu
 			const VarAction2TempStoreInference &store = iter->second;
 			if (store.inference & VA2AIF_HAVE_CONSTANT) {
 				adjust.variable = 0x1A;
+				adjust.parameter = 0;
 				adjust.and_mask &= (store.store_constant >> adjust.shift_num);
 			} else if ((store.inference & VA2AIF_SINGLE_LOAD) && (store.var_source.variable == 0x7D || IsVariableVeryCheap(store.var_source.variable, feature))) {
 				if (adjust.type == DSGA_TYPE_NONE && adjust.shift_num == 0 && (adjust.and_mask == 0xFFFFFFFF || ((store.inference & VA2AIF_ONE_OR_ZERO) && (adjust.and_mask & 1)))) {
@@ -904,6 +960,8 @@ void OptimiseVarAction2Adjust(VarAction2OptimiseState &state, const GrfSpecFeatu
 		/* Procedure call or complex adjustment */
 		if (adjust.operation == DSGA_OP_STO) handle_unpredictable_temp_store();
 		if (adjust.variable == 0x7E) {
+			if (try_inline_procedure()) return;
+
 			std::bitset<256> seen_stores;
 			bool seen_unpredictable_store = false;
 			bool seen_special_store = false;
@@ -1039,6 +1097,10 @@ void OptimiseVarAction2Adjust(VarAction2OptimiseState &state, const GrfSpecFeatu
 		} else if (adjust.and_mask == 0 && IsEvalAdjustWithZeroAlwaysZero(adjust.operation)) {
 			/* Operation always returns 0, replace it and any useless prior operations */
 			replace_with_constant_load(0);
+		} else if (adjust.variable == 0x1A && adjust.shift_num == 0 && adjust.and_mask == 1 && IsEvalAdjustWithOneRemovable(adjust.operation)) {
+			/* Delete useless operations with a constant of 1 */
+			group->adjusts.pop_back();
+			state.inference = prev_inference;
 		} else {
 			if (adjust.variable == 0x7D && adjust.shift_num == 0 && adjust.and_mask == get_full_mask() && IsEvalAdjustOperationCommutative(adjust.operation) && group->adjusts.size() >= 2) {
 				DeterministicSpriteGroupAdjust &prev = group->adjusts[group->adjusts.size() - 2];
@@ -1395,6 +1457,19 @@ void OptimiseVarAction2Adjust(VarAction2OptimiseState &state, const GrfSpecFeatu
 					if (adjust.variable == 0x1A && adjust.shift_num == 0) {
 						state.inference |= VA2AIF_PREV_STORE_TMP;
 						if (adjust.and_mask < 0x100) {
+							bool invert_store = false;
+							const DeterministicSpriteGroupAdjust *prev_store = get_prev_single_store((prev_inference & VA2AIF_ONE_OR_ZERO) ? &invert_store : nullptr);
+							if (prev_store != nullptr && prev_store->and_mask == adjust.and_mask) {
+								if (invert_store) {
+									/* Inverted store of self, don't try to handle this */
+									invert_store = false;
+									prev_store = nullptr;
+								} else {
+									/* Duplicate store, don't make any changes */
+									break;
+								}
+							}
+
 							for (auto &it : state.temp_stores) {
 								/* Check if some other variable is marked as a copy of the one we are overwriting */
 								if ((it.second.inference & VA2AIF_SINGLE_LOAD) && it.second.var_source.variable == 0x7D && (it.second.var_source.parameter & 0xFF) == adjust.and_mask) {
@@ -1412,8 +1487,6 @@ void OptimiseVarAction2Adjust(VarAction2OptimiseState &state, const GrfSpecFeatu
 							store.inference = prev_inference & (~VA2AIF_PREV_MASK);
 							store.store_constant = state.current_constant;
 
-							bool invert_store = false;
-							const DeterministicSpriteGroupAdjust *prev_store = get_prev_single_store((prev_inference & VA2AIF_ONE_OR_ZERO) ? &invert_store : nullptr);
 							if (prev_store != nullptr) {
 								/* This store is a clone of the previous store, or inverted clone of the previous store (bool) */
 								store.inference |= VA2AIF_SINGLE_LOAD;
@@ -1431,6 +1504,10 @@ void OptimiseVarAction2Adjust(VarAction2OptimiseState &state, const GrfSpecFeatu
 								bool invert = false;
 								const DeterministicSpriteGroupAdjust *prev_load = get_prev_single_load(&invert);
 								if (prev_load != nullptr && (!invert || IsConstantComparisonAdjustType(prev_load->type))) {
+									if (prev_load->variable == 0x7D && (prev_load->parameter & 0xFF) == adjust.and_mask) {
+										/* Store to same variable as previous load, do not mark store as clone of itself */
+										break;
+									}
 									store.inference |= VA2AIF_SINGLE_LOAD;
 									store.var_source.type = prev_load->type;
 									if (invert) store.var_source.type = InvertConstantComparisonAdjustType(store.var_source.type);
@@ -2311,7 +2388,30 @@ static void OptimiseVarAction2DeterministicSpriteResolveJumps(DeterministicSprit
 	}
 }
 
-void OptimiseVarAction2DeterministicSpriteGroup(VarAction2OptimiseState &state, const GrfSpecFeature feature, const byte varsize, DeterministicSpriteGroup *group)
+static const size_t MAX_PROC_INLINE_ADJUST_COUNT = 5;
+
+static void OptimiseVarAction2CheckInliningCandidate(DeterministicSpriteGroup *group, std::vector<DeterministicSpriteGroupAdjust> &saved_adjusts)
+{
+	if (HasGrfOptimiserFlag(NGOF_NO_OPT_VARACT2_PROC_INLINE)) return;
+	if (group->adjusts.size() > MAX_PROC_INLINE_ADJUST_COUNT || !group->calculated_result || group->var_scope != VSG_SCOPE_SELF) return;
+
+	for (const DeterministicSpriteGroupAdjust &adjust : group->adjusts) {
+		uint variable = adjust.variable;
+		if (variable == 0x7B) variable = adjust.parameter;
+		if (variable == 0xC || variable == 0x10 || variable == 0x18 || variable == 0x1A || (variable >= 0x7D && variable <= 0x7F)) {
+			// OK
+		} else if (variable == 0x7C) {
+			if (group->feature != GSF_AIRPORTS && group->feature != GSF_INDUSTRIES) return;
+		} else {
+			return;
+		}
+	}
+
+	group->dsg_flags |= DSGF_INLINE_CANDIDATE;
+	*(_cur.GetInlinableGroupAdjusts(group, true)) = std::move(saved_adjusts);
+}
+
+void OptimiseVarAction2DeterministicSpriteGroup(VarAction2OptimiseState &state, const GrfSpecFeature feature, const byte varsize, DeterministicSpriteGroup *group, std::vector<DeterministicSpriteGroupAdjust> &saved_adjusts)
 {
 	if (unlikely(HasGrfOptimiserFlag(NGOF_NO_OPT_VARACT2))) return;
 
@@ -2400,13 +2500,16 @@ void OptimiseVarAction2DeterministicSpriteGroup(VarAction2OptimiseState &state, 
 						if (reg->flags & TLF_DODRAW) bits.set(reg->dodraw, true);
 						if (reg->flags & TLF_SPRITE) bits.set(reg->sprite, true);
 						if (reg->flags & TLF_PALETTE) bits.set(reg->palette, true);
-						if (reg->flags & TLF_BB_XY_OFFSET) {
-							bits.set(reg->delta.parent[0], true);
-							bits.set(reg->delta.parent[1], true);
+						if (element->IsParentSprite()) {
+							if (reg->flags & TLF_BB_XY_OFFSET) {
+								bits.set(reg->delta.parent[0], true);
+								bits.set(reg->delta.parent[1], true);
+							}
+							if (reg->flags & TLF_BB_Z_OFFSET) bits.set(reg->delta.parent[2], true);
+						} else {
+							if (reg->flags & TLF_CHILD_X_OFFSET) bits.set(reg->delta.child[0], true);
+							if (reg->flags & TLF_CHILD_Y_OFFSET) bits.set(reg->delta.child[1], true);
 						}
-						if (reg->flags & TLF_BB_Z_OFFSET) bits.set(reg->delta.parent[2], true);
-						if (reg->flags & TLF_CHILD_X_OFFSET) bits.set(reg->delta.child[0], true);
-						if (reg->flags & TLF_CHILD_Y_OFFSET) bits.set(reg->delta.child[1], true);
 					}
 				}
 			}
@@ -2502,6 +2605,8 @@ void OptimiseVarAction2DeterministicSpriteGroup(VarAction2OptimiseState &state, 
 		OptimiseVarAction2DeterministicSpriteGroupSimplifyStores(group);
 		OptimiseVarAction2DeterministicSpriteGroupAdjustOrdering(group);
 	}
+
+	OptimiseVarAction2CheckInliningCandidate(group, saved_adjusts);
 
 	if (state.check_expensive_vars && !HasGrfOptimiserFlag(NGOF_NO_OPT_VARACT2_EXPENSIVE_VARS)) {
 		if (dse_candidate) {

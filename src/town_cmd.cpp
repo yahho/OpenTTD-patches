@@ -1426,6 +1426,8 @@ static bool GrowTownWithTunnel(const Town *t, const TileIndex tile, const DiagDi
 {
 	assert(tunnel_dir < DIAGDIR_END);
 
+	if (_settings_game.economy.town_build_tunnels == TTM_FORBIDDEN) return false;
+
 	Slope slope = GetTileSlope(tile);
 
 	/* Only consider building a tunnel if the starting tile is sloped properly. */
@@ -1439,6 +1441,8 @@ static bool GrowTownWithTunnel(const Town *t, const TileIndex tile, const DiagDi
 
 	/* There are two conditions for building tunnels: Under a mountain and under an obstruction. */
 	if (CanRoadContinueIntoNextTile(t, tile, tunnel_dir)) {
+		if (_settings_game.economy.town_build_tunnels != TTM_ALLOWED) return false;
+
 		/* Only tunnel under a mountain if the slope is continuous for at least 4 tiles. We want tunneling to be a last resort for large hills. */
 		TileIndex slope_tile = tile;
 		for (uint8 tiles = 0; tiles < 4; tiles++) {
@@ -1586,6 +1590,35 @@ static void GrowTownInTile(TileIndex *tile_ptr, RoadBits cur_rb, DiagDirection t
 
 				rcmd = DiagDirToRoadBits(target_dir) | DiagDirToRoadBits(source_dir);
 				break;
+		}
+
+		if (_settings_game.economy.town_max_road_slope > 0 && ((rcmd == ROAD_X) || (rcmd == ROAD_Y))) {
+			/* Limit consecutive sloped road tiles */
+
+			auto get_road_slope = [rcmd](TileIndex t) -> Slope {
+				Slope slope = GetTileSlope(t);
+				extern Foundation GetRoadFoundation(Slope tileh, RoadBits bits);
+				ApplyFoundationToSlope(GetRoadFoundation(slope, rcmd), &slope);
+				return slope;
+			};
+
+			const Slope slope = get_road_slope(tile);
+			if (slope != SLOPE_FLAT) {
+				const int delta = TileOffsByDiagDir(ReverseDiagDir(target_dir));
+				bool ok = false;
+				TileIndex t = tile;
+				for (uint i = 0; i < _settings_game.economy.town_max_road_slope; i++) {
+					t += delta;
+					if (!IsValidTile(t) || !IsNormalRoadTile(t) || GetRoadBits(t, RTT_ROAD) != rcmd || get_road_slope(t) != slope) {
+						ok = true;
+						break;
+					}
+				}
+				if (!ok) {
+					/* All tested tiles had the same incline, disallow road */
+					return;
+				}
+			}
 		}
 
 	} else if (target_dir < DIAGDIR_END && !(cur_rb & DiagDirToRoadBits(ReverseDiagDir(target_dir)))) {

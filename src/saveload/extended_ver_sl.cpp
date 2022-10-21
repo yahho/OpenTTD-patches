@@ -99,7 +99,7 @@ const SlxiSubChunkInfo _sl_xv_sub_chunk_infos[] = {
 	{ XSLFI_INFRA_SHARING,          XSCF_NULL,                2,   2, "infra_sharing",             nullptr, nullptr, "CPDP"      },
 	{ XSLFI_VARIABLE_DAY_LENGTH,    XSCF_NULL,                2,   2, "variable_day_length",       nullptr, nullptr, nullptr        },
 	{ XSLFI_ORDER_OCCUPANCY,        XSCF_NULL,                2,   2, "order_occupancy",           nullptr, nullptr, nullptr        },
-	{ XSLFI_MORE_COND_ORDERS,       XSCF_NULL,               12,  12, "more_cond_orders",          nullptr, nullptr, nullptr        },
+	{ XSLFI_MORE_COND_ORDERS,       XSCF_NULL,               13,  13, "more_cond_orders",          nullptr, nullptr, nullptr        },
 	{ XSLFI_EXTRA_LARGE_MAP,        XSCF_NULL,                0,   1, "extra_large_map",           nullptr, nullptr, nullptr        },
 	{ XSLFI_REVERSE_AT_WAYPOINT,    XSCF_NULL,                1,   1, "reverse_at_waypoint",       nullptr, nullptr, nullptr        },
 	{ XSLFI_VEH_LIFETIME_PROFIT,    XSCF_NULL,                1,   1, "veh_lifetime_profit",       nullptr, nullptr, nullptr        },
@@ -174,7 +174,9 @@ const SlxiSubChunkInfo _sl_xv_sub_chunk_infos[] = {
 	{ XSLFI_GRF_ROADSTOPS,          XSCF_NULL,                1,   1, "grf_road_stops",            nullptr, nullptr, nullptr        },
 	{ XSLFI_INDUSTRY_ANIM_MASK,     XSCF_IGNORABLE_ALL,       1,   1, "industry_anim_mask",        nullptr, nullptr, nullptr        },
 	{ XSLFI_NEW_SIGNAL_STYLES,      XSCF_NULL,                2,   2, "new_signal_styles",         nullptr, nullptr, "XBST,NSID"    },
+	{ XSLFI_NO_TREE_COUNTER,        XSCF_IGNORABLE_ALL,       1,   1, "no_tree_counter",           nullptr, nullptr, nullptr        },
 	{ XSLFI_SCRIPT_INT64,           XSCF_NULL,                1,   1, "script_int64",              nullptr, nullptr, nullptr        },
+	{ XSLFI_U64_TICK_COUNTER,       XSCF_NULL,                1,   1, "u64_tick_counter",          nullptr, nullptr, nullptr        },
 	{ XSLFI_NULL, XSCF_NULL, 0, 0, nullptr, nullptr, nullptr, nullptr },// This is the end marker
 };
 

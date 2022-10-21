@@ -22,26 +22,35 @@ struct GRFFile;
  * a possible error message/state together.
  */
 class CommandCost {
-	ExpensesType expense_type; ///< the type of expence as shown on the finances view
 	Money cost;       ///< The cost of this action
-	StringID message; ///< Warning message for when success is unset
+	ExpensesType expense_type; ///< the type of expence as shown on the finances view
 	bool success;     ///< Whether the comment went fine up to this moment
-	const GRFFile *textref_stack_grffile; ///< NewGRF providing the #TextRefStack content.
-	uint textref_stack_size;   ///< Number of uint32 values to put on the #TextRefStack for the error message.
+	StringID message; ///< Warning message for when success is unset
 	StringID extra_message = INVALID_STRING_ID;    ///< Additional warning message for when success is unset
 
-	static uint32 textref_stack[16];
+	struct CommandCostAuxliaryData {
+		uint32 textref_stack[16] = {};
+		const GRFFile *textref_stack_grffile = nullptr; ///< NewGRF providing the #TextRefStack content.
+		uint textref_stack_size = 0;                    ///< Number of uint32 values to put on the #TextRefStack for the error message.
+		TileIndex tile = INVALID_TILE;
+	};
+	std::unique_ptr<CommandCostAuxliaryData> aux_data;
 
 public:
 	/**
 	 * Creates a command cost return with no cost and no error
 	 */
-	CommandCost() : expense_type(INVALID_EXPENSES), cost(0), message(INVALID_STRING_ID), success(true), textref_stack_grffile(nullptr), textref_stack_size(0) {}
+	CommandCost() : cost(0), expense_type(INVALID_EXPENSES), success(true), message(INVALID_STRING_ID) {}
 
 	/**
 	 * Creates a command return value the is failed with the given message
 	 */
-	explicit CommandCost(StringID msg) : expense_type(INVALID_EXPENSES), cost(0), message(msg), success(false), textref_stack_grffile(nullptr), textref_stack_size(0) {}
+	explicit CommandCost(StringID msg) : cost(0), expense_type(INVALID_EXPENSES), success(false), message(msg) {}
+
+	CommandCost(const CommandCost &other);
+	CommandCost(CommandCost &&other) = default;
+	CommandCost &operator=(const CommandCost &other);
+	CommandCost &operator=(CommandCost &&other) = default;
 
 	/**
 	 * Creates a command return value the is failed with the given message
@@ -57,14 +66,14 @@ public:
 	 * Creates a command cost with given expense type and start cost of 0
 	 * @param ex_t the expense type
 	 */
-	explicit CommandCost(ExpensesType ex_t) : expense_type(ex_t), cost(0), message(INVALID_STRING_ID), success(true), textref_stack_grffile(nullptr), textref_stack_size(0) {}
+	explicit CommandCost(ExpensesType ex_t) : cost(0), expense_type(ex_t), success(true), message(INVALID_STRING_ID) {}
 
 	/**
 	 * Creates a command return value with the given start cost and expense type
 	 * @param ex_t the expense type
 	 * @param cst the initial cost of this command
 	 */
-	CommandCost(ExpensesType ex_t, const Money &cst) : expense_type(ex_t), cost(cst), message(INVALID_STRING_ID), success(true), textref_stack_grffile(nullptr), textref_stack_size(0) {}
+	CommandCost(ExpensesType ex_t, const Money &cst) : cost(cst), expense_type(ex_t), success(true), message(INVALID_STRING_ID) {}
 
 
 	/**
@@ -125,7 +134,7 @@ public:
 	 */
 	const GRFFile *GetTextRefStackGRF() const
 	{
-		return this->textref_stack_grffile;
+		return this->aux_data != nullptr ? this->aux_data->textref_stack_grffile : 0;
 	}
 
 	/**
@@ -134,7 +143,7 @@ public:
 	 */
 	uint GetTextRefStackSize() const
 	{
-		return this->textref_stack_size;
+		return this->aux_data != nullptr ? this->aux_data->textref_stack_size : 0;
 	}
 
 	/**
@@ -143,7 +152,7 @@ public:
 	 */
 	const uint32 *GetTextRefStack() const
 	{
-		return textref_stack;
+		return this->aux_data != nullptr ? this->aux_data->textref_stack : nullptr;
 	}
 
 	/**
@@ -217,6 +226,13 @@ public:
 		res.success = false;
 		return res;
 	}
+
+	TileIndex GetTile() const
+	{
+		return this->aux_data != nullptr ? this->aux_data->tile : INVALID_TILE;
+	}
+
+	void SetTile(TileIndex tile);
 };
 
 /**
@@ -288,6 +304,7 @@ enum Commands {
 	CMD_SKIP_TO_ORDER,                ///< skip an order to the next of specific one
 	CMD_DELETE_ORDER,                 ///< delete an order
 	CMD_INSERT_ORDER,                 ///< insert a new order
+	CMD_DUPLICATE_ORDER,              ///< duplicate an order
 	CMD_MASS_CHANGE_ORDER,            ///< mass change the target of an order
 
 	CMD_CHANGE_SERVICE_INT,           ///< change the server interval of a vehicle

@@ -440,6 +440,10 @@ static char *DumpSpriteGroupAdjust(char *p, const char *last, const Deterministi
 		/* Temp storage load */
 		highlight_tag = (1 << 16) | (adjust.parameter & 0xFFFF);
 	}
+	if (adjust.variable == 0x7C) {
+		/* Perm storage load */
+		highlight_tag = (2 << 16) | (adjust.parameter & 0xFFFF);
+	}
 
 	p += seprintf(p, last, "%s", padding);
 	for (uint i = 0; i < conditional_indent; i++) {
@@ -495,6 +499,10 @@ static char *DumpSpriteGroupAdjust(char *p, const char *last, const Deterministi
 	if (adjust.operation == DSGA_OP_STO && adjust.type == DSGA_TYPE_NONE && adjust.variable == 0x1A && adjust.shift_num == 0) {
 		/* Temp storage store */
 		highlight_tag = (1 << 16) | (adjust.and_mask & 0xFFFF);
+	}
+	if (adjust.operation == DSGA_OP_STOP && adjust.type == DSGA_TYPE_NONE && adjust.variable == 0x1A && adjust.shift_num == 0) {
+		/* Perm storage store */
+		highlight_tag = (2 << 16) | (adjust.and_mask & 0xFFFF);
 	}
 	p += seprintf(p, last, "var: %X", adjust.variable);
 	if (adjust.variable == A2VRI_VEHICLE_CURRENT_SPEED_SCALED) {
@@ -561,6 +569,9 @@ void SpriteGroupDumper::DumpSpriteGroup(const SpriteGroup *sg, const char *paddi
 
 	char extra_info[64] = "";
 	if (sg->sg_flags & SGF_ACTION6) strecat(extra_info, " (action 6 modified)", lastof(extra_info));
+	if (HasBit(_misc_debug_flags, MDF_NEWGRF_SG_DUMP_MORE_DETAIL)) {
+		if (sg->sg_flags & SGF_INLINING) strecat(extra_info, " (inlining)", lastof(extra_info));
+	}
 
 	switch (sg->type) {
 		case SGT_REAL: {
@@ -648,6 +659,7 @@ void SpriteGroupDumper::DumpSpriteGroup(const SpriteGroup *sg, const char *paddi
 				if (dsg->dsg_flags & DSGF_CHECK_EXPENSIVE_VARS) p += seprintf(p, lastof(this->buffer), ", CHECK_EXP_VAR");
 				if (dsg->dsg_flags & DSGF_CHECK_INSERT_JUMP) p += seprintf(p, lastof(this->buffer), ", CHECK_INS_JMP");
 				if (dsg->dsg_flags & DSGF_CB_HANDLER) p += seprintf(p, lastof(this->buffer), ", CB_HANDLER");
+				if (dsg->dsg_flags & DSGF_INLINE_CANDIDATE) p += seprintf(p, lastof(this->buffer), ", INLINE_CANDIDATE");
 			}
 			print();
 			emit_start();
@@ -749,11 +761,14 @@ void SpriteGroupDumper::DumpSpriteGroup(const SpriteGroup *sg, const char *paddi
 					log_reg(TLF_DODRAW, "TLF_DODRAW", reg->dodraw);
 					log_reg(TLF_SPRITE, "TLF_SPRITE", reg->sprite);
 					log_reg(TLF_PALETTE, "TLF_PALETTE", reg->palette);
-					log_reg(TLF_BB_XY_OFFSET, "TLF_BB_XY_OFFSET x", reg->delta.parent[0]);
-					log_reg(TLF_BB_XY_OFFSET, "TLF_BB_XY_OFFSET y", reg->delta.parent[1]);
-					log_reg(TLF_BB_Z_OFFSET, "TLF_BB_Z_OFFSET", reg->delta.parent[2]);
-					log_reg(TLF_CHILD_X_OFFSET, "TLF_CHILD_X_OFFSET", reg->delta.child[0]);
-					log_reg(TLF_CHILD_Y_OFFSET, "TLF_CHILD_Y_OFFSET", reg->delta.child[1]);
+					if (element->IsParentSprite()) {
+						log_reg(TLF_BB_XY_OFFSET, "TLF_BB_XY_OFFSET x", reg->delta.parent[0]);
+						log_reg(TLF_BB_XY_OFFSET, "TLF_BB_XY_OFFSET y", reg->delta.parent[1]);
+						log_reg(TLF_BB_Z_OFFSET, "TLF_BB_Z_OFFSET", reg->delta.parent[2]);
+					} else {
+						log_reg(TLF_CHILD_X_OFFSET, "TLF_CHILD_X_OFFSET", reg->delta.child[0]);
+						log_reg(TLF_CHILD_Y_OFFSET, "TLF_CHILD_Y_OFFSET", reg->delta.child[1]);
+					}
 					if (reg->flags & TLF_SPRITE_VAR10) {
 						seprintf(this->buffer, lastof(this->buffer), "%s    TLF_SPRITE_VAR10 value: %X", padding, reg->sprite_var10);
 						print();

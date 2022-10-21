@@ -4267,7 +4267,7 @@ static ChangeInfoResult ObjectChangeInfo(uint id, int numinfo, int prop, const G
 				if (*ospec == nullptr) {
 					*ospec = CallocT<ObjectSpec>(1);
 					(*ospec)->views = 1; // Default for NewGRFs that don't set it.
-					(*ospec)->size = 0x11; // Default for NewGRFs that manage to not set it (1x1)
+					(*ospec)->size = OBJECT_SIZE_1X1; // Default for NewGRFs that manage to not set it (1x1)
 				}
 
 				/* Swap classid because we read it in BE. */
@@ -4295,7 +4295,7 @@ static ChangeInfoResult ObjectChangeInfo(uint id, int numinfo, int prop, const G
 				spec->size = buf->ReadByte();
 				if (GB(spec->size, 0, 4) == 0 || GB(spec->size, 4, 4) == 0) {
 					grfmsg(0, "ObjectChangeInfo: Invalid object size requested (0x%x) for object id %u. Ignoring.", spec->size, id + i);
-					spec->size = 0x11; // 1x1
+					spec->size = OBJECT_SIZE_1X1;
 				}
 				break;
 
@@ -5722,6 +5722,8 @@ static void NewSpriteGroup(ByteReader *buf)
 			if (unlikely(HasBit(_misc_debug_flags, MDF_NEWGRF_SG_SAVE_RAW))) {
 				shadow = &(_deterministic_sg_shadows[group]);
 			}
+			static std::vector<DeterministicSpriteGroupAdjust> current_adjusts;
+			current_adjusts.clear();
 
 			VarAction2OptimiseState va2_opt_state;
 			/* The initial value is always the constant 0 */
@@ -5731,7 +5733,7 @@ static void NewSpriteGroup(ByteReader *buf)
 			/* Loop through the var adjusts. Unfortunately we don't know how many we have
 			 * from the outset, so we shall have to keep reallocing. */
 			do {
-				DeterministicSpriteGroupAdjust &adjust = group->adjusts.emplace_back();
+				DeterministicSpriteGroupAdjust &adjust = current_adjusts.emplace_back();
 
 				/* The first var adjust doesn't have an operation specified, so we set it to add. */
 				adjust.operation = first_adjust ? DSGA_OP_ADD : (DeterministicSpriteGroupAdjustOperation)buf->ReadByte();
@@ -5784,10 +5786,15 @@ static void NewSpriteGroup(ByteReader *buf)
 					if (adjust.subroutine != nullptr) adjust.subroutine = PruneTargetSpriteGroup(adjust.subroutine);
 				}
 
-				OptimiseVarAction2Adjust(va2_opt_state, feature, varsize, group, adjust);
+				OptimiseVarAction2PreCheckAdjust(va2_opt_state, adjust);
 
 				/* Continue reading var adjusts while bit 5 is set. */
 			} while (HasBit(varadjust, 5));
+
+			for (const DeterministicSpriteGroupAdjust &adjust : current_adjusts) {
+				group->adjusts.push_back(adjust);
+				OptimiseVarAction2Adjust(va2_opt_state, feature, varsize, group, group->adjusts.back());
+			}
 
 			std::vector<DeterministicSpriteGroupRange> ranges;
 			ranges.resize(buf->ReadByte());
@@ -5817,7 +5824,7 @@ static void NewSpriteGroup(ByteReader *buf)
 
 			ProcessDeterministicSpriteGroupRanges(ranges, group->ranges, group->default_group);
 
-			OptimiseVarAction2DeterministicSpriteGroup(va2_opt_state, feature, varsize, group);
+			OptimiseVarAction2DeterministicSpriteGroup(va2_opt_state, feature, varsize, group, current_adjusts);
 			break;
 		}
 
@@ -7000,7 +7007,7 @@ static const Action5Type _action5_types[] = {
 	/* 0x11 */ { A5BLOCK_ALLOW_OFFSET, SPR_ROADSTOP_BASE,            1, ROADSTOP_SPRITE_COUNT,                       "Road stop graphics"       },
 	/* 0x12 */ { A5BLOCK_ALLOW_OFFSET, SPR_AQUEDUCT_BASE,            1, AQUEDUCT_SPRITE_COUNT,                       "Aqueduct graphics"        },
 	/* 0x13 */ { A5BLOCK_ALLOW_OFFSET, SPR_AUTORAIL_BASE,            1, AUTORAIL_SPRITE_COUNT,                       "Autorail graphics"        },
-	/* 0x14 */ { A5BLOCK_ALLOW_OFFSET, SPR_FLAGS_BASE,               1, FLAGS_SPRITE_COUNT,                          "Flag graphics"            },
+	/* 0x14 */ { A5BLOCK_INVALID,      0,                            1, 0,                                           "Flag graphics"            }, // deprecated, no longer used.
 	/* 0x15 */ { A5BLOCK_ALLOW_OFFSET, SPR_OPENTTD_BASE,             1, OPENTTD_SPRITE_COUNT,                        "OpenTTD GUI graphics"     },
 	/* 0x16 */ { A5BLOCK_ALLOW_OFFSET, SPR_AIRPORT_PREVIEW_BASE,     1, SPR_AIRPORT_PREVIEW_COUNT,                   "Airport preview graphics" },
 	/* 0x17 */ { A5BLOCK_ALLOW_OFFSET, SPR_RAILTYPE_TUNNEL_BASE,     1, RAILTYPE_TUNNEL_BASE_COUNT,                  "Railtype tunnel base"     },
@@ -7184,7 +7191,7 @@ bool GetGlobalVariable(byte param, uint32 *value, const GRFFile *grffile)
 			return true;
 
 		case 0x0A: // animation counter
-			*value = _tick_counter;
+			*value = GB(_tick_counter, 0, 16);
 			return true;
 
 		case 0x0B: { // TTDPatch version
@@ -11351,7 +11358,7 @@ void LoadNewGRF(uint load_index, uint num_baseset)
 	YearMonthDay date_ymd = _cur_date_ymd;
 	Date date            = _date;
 	DateFract date_fract = _date_fract;
-	uint16 tick_counter  = _tick_counter;
+	uint64 tick_counter  = _tick_counter;
 	uint8 tick_skip_counter = _tick_skip_counter;
 	byte display_opt     = _display_opt;
 

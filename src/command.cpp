@@ -110,6 +110,7 @@ CommandProcEx CmdModifyOrder;
 CommandProc CmdSkipToOrder;
 CommandProc CmdDeleteOrder;
 CommandProcEx CmdInsertOrder;
+CommandProc CmdDuplicateOrder;
 CommandProc CmdMassChangeOrder;
 CommandProc CmdChangeServiceInt;
 
@@ -354,6 +355,7 @@ static const Command _command_proc_table[] = {
 	DEF_CMD(CmdSkipToOrder,                                    0, CMDT_ROUTE_MANAGEMENT      ), // CMD_SKIP_TO_ORDER
 	DEF_CMD(CmdDeleteOrder,                                    0, CMDT_ROUTE_MANAGEMENT      ), // CMD_DELETE_ORDER
 	DEF_CMD(CmdInsertOrder,                                    0, CMDT_ROUTE_MANAGEMENT      ), // CMD_INSERT_ORDER
+	DEF_CMD(CmdDuplicateOrder,                                 0, CMDT_ROUTE_MANAGEMENT      ), // CMD_DUPLICATE_ORDER
 	DEF_CMD(CmdMassChangeOrder,                                0, CMDT_ROUTE_MANAGEMENT      ), // CMD_MASS_CHANGE_ORDER
 
 	DEF_CMD(CmdChangeServiceInt,                               0, CMDT_VEHICLE_MANAGEMENT    ), // CMD_CHANGE_SERVICE_INT
@@ -534,6 +536,7 @@ static const Command _command_proc_table[] = {
 	DEF_CMD(CmdDesyncCheck,                           CMD_SERVER, CMDT_SERVER_SETTING        ), // CMD_DESYNC_CHECK
 };
 
+ClientID _cmd_client_id = INVALID_CLIENT_ID;
 
 /**
  * List of flags for a command log entry
@@ -567,12 +570,13 @@ struct CommandLogEntry {
 	CompanyID current_company;
 	CompanyID local_company;
 	CommandLogEntryFlag log_flags;
+	ClientID client_id;
 
 	CommandLogEntry() { }
 
 	CommandLogEntry(TileIndex tile, uint32 p1, uint32 p2, uint64 p3, uint32 cmd, CommandLogEntryFlag log_flags, std::string text)
 			: text(text), tile(tile), p1(p1), p2(p2), cmd(cmd), p3(p3), date(_date), date_fract(_date_fract), tick_skip_counter(_tick_skip_counter),
-			current_company(_current_company), local_company(_local_company), log_flags(log_flags) { }
+			current_company(_current_company), local_company(_local_company), log_flags(log_flags), client_id(_cmd_client_id) { }
 };
 
 struct CommandLog {
@@ -629,8 +633,11 @@ static void DumpSubCommandLog(char *&buffer, const char *last, const CommandLog 
 		if (entry.p3 != 0) {
 			buffer += seprintf(buffer, last, "p3: 0x" OTTD_PRINTFHEX64PAD ", ", entry.p3);
 		}
-		buffer += seprintf(buffer, last, "cc: %3u, lc: %3u, cmd: 0x%08X (%s)",
-				(uint) entry.current_company, (uint) entry.local_company, entry.cmd, GetCommandName(entry.cmd));
+		buffer += seprintf(buffer, last, "cc: %3u, lc: %3u, ", (uint) entry.current_company, (uint) entry.local_company);
+		if (_network_server) {
+			buffer += seprintf(buffer, last, "client: %4u, ", entry.client_id);
+		}
+		buffer += seprintf(buffer, last, "cmd: 0x%08X (%s)", entry.cmd, GetCommandName(entry.cmd));
 
 		switch (entry.cmd & CMD_ID_MASK) {
 			case CMD_CHANGE_SETTING:
@@ -1188,6 +1195,23 @@ CommandCost DoCommandPInternal(TileIndex tile, uint32 p1, uint32 p2, uint64 p3, 
 }
 #undef return_dcpi
 
+CommandCost::CommandCost(const CommandCost &other)
+{
+	*this = other;
+}
+
+CommandCost &CommandCost::operator=(const CommandCost &other)
+{
+	this->cost = other.cost;
+	this->expense_type = other.expense_type;
+	this->success = other.success;
+	this->message = other.message;
+	this->extra_message = other.extra_message;
+	if (other.aux_data) {
+		this->aux_data.reset(new CommandCostAuxliaryData(*other.aux_data));
+	}
+	return *this;
+}
 
 /**
  * Adds the cost of the given command return value to this cost.
@@ -1204,13 +1228,6 @@ void CommandCost::AddCost(const CommandCost &ret)
 }
 
 /**
- * Values to put on the #TextRefStack for the error message.
- * There is only one static instance of the array, just like there is only one
- * instance of normal DParams.
- */
-uint32 CommandCost::textref_stack[16];
-
-/**
  * Activate usage of the NewGRF #TextRefStack for the error message.
  * @param grffile NewGRF that provides the #TextRefStack
  * @param num_registers number of entries to copy from the temporary NewGRF registers
@@ -1219,11 +1236,15 @@ void CommandCost::UseTextRefStack(const GRFFile *grffile, uint num_registers)
 {
 	extern TemporaryStorageArray<int32, 0x110> _temp_store;
 
-	assert(num_registers < lengthof(textref_stack));
-	this->textref_stack_grffile = grffile;
-	this->textref_stack_size = num_registers;
+	if (!this->aux_data) {
+		this->aux_data.reset(new CommandCostAuxliaryData());
+	}
+
+	assert(num_registers < lengthof(this->aux_data->textref_stack));
+	this->aux_data->textref_stack_grffile = grffile;
+	this->aux_data->textref_stack_size = num_registers;
 	for (uint i = 0; i < num_registers; i++) {
-		textref_stack[i] = _temp_store.GetValue(0x100 + i);
+		this->aux_data->textref_stack[i] = _temp_store.GetValue(0x100 + i);
 	}
 }
 
@@ -1239,7 +1260,8 @@ int CommandCost::WriteSummaryMessage(char *buf, char *last, StringID cmd_msg) co
 	if (this->Succeeded()) {
 		return seprintf(buf, last, "Success: cost: " OTTD_PRINTF64, (int64) this->GetCost());
 	} else {
-		if (this->textref_stack_size > 0) StartTextRefStackUsage(this->textref_stack_grffile, this->textref_stack_size, textref_stack);
+		const uint textref_stack_size = this->GetTextRefStackSize();
+		if (textref_stack_size > 0) StartTextRefStackUsage(this->GetTextRefStackGRF(), textref_stack_size, this->GetTextRefStack());
 
 		char *b = buf;
 		b += seprintf(b, last, "Failed: cost: " OTTD_PRINTF64, (int64) this->GetCost());
@@ -1252,8 +1274,18 @@ int CommandCost::WriteSummaryMessage(char *buf, char *last, StringID cmd_msg) co
 			b = GetString(b, this->message, last);
 		}
 
-		if (this->textref_stack_size > 0) StopTextRefStackUsage();
+		if (textref_stack_size > 0) StopTextRefStackUsage();
 
 		return b - buf;
 	}
+}
+
+void CommandCost::SetTile(TileIndex tile)
+{
+	if (tile == this->GetTile()) return;
+
+	if (!this->aux_data) {
+		this->aux_data.reset(new CommandCostAuxliaryData());
+	}
+	this->aux_data->tile = tile;
 }
