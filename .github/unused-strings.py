@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Script to scan the OpenTTD source-tree for STR_ entries that are defined but
 no longer used.
@@ -174,7 +175,7 @@ def scan_source_files(path, strings_found):
             p = subprocess.run(["g++", "-E", new_path], stdout=subprocess.PIPE)
             output = p.stdout.decode()
         else:
-            with open(new_path) as fp:
+            with open(new_path, encoding='utf-8') as fp:
                 output = fp.read()
 
         # Find all the string references.
