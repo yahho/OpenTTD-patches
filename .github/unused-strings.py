@@ -199,10 +199,10 @@ def main():
 
     # This string is added for completion, but never used.
     strings_defined.remove("STR_JUST_DATE_SHORT")
-    strings_defined.remove("STR_JUST_DATE_WALLCLOCK_SHORT")
-    strings_defined.remove("STR_JUST_DATE_WALLCLOCK_LONG")
-    strings_defined.remove("STR_JUST_DATE_WALLCLOCK_ISO")
-    strings_defined.remove("STR_JUST_TIME_HHMM")
+    #strings_defined.remove("STR_JUST_DATE_WALLCLOCK_SHORT")
+    #strings_defined.remove("STR_JUST_DATE_WALLCLOCK_LONG")
+    #strings_defined.remove("STR_JUST_DATE_WALLCLOCK_ISO")
+    #strings_defined.remove("STR_JUST_TIME_HHMM")
     strings_defined.remove("STR_WHITE_DATE_WALLCLOCK_SHORT")
 
     strings_defined = sorted(strings_defined)
