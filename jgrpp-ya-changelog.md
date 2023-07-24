@@ -2,6 +2,9 @@
 
 * * *
 
+### v0.54.4+2 (2023-07-25)
+* Add Zstd for Windows
+
 ### v0.54.4+1 (2023-07-25)
 * Fix Actions
 
