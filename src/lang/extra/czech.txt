@@ -384,7 +384,6 @@ STR_CONFIG_SETTING_SHOW_VEHICLE_LIST_COMPANY_COLOUR_HELPTEXT    :Vozidla vlastn�
 STR_CONFIG_SETTING_ENABLE_SINGLE_VEH_SHARED_ORDER_GUI           :Povolit samostatná vozidla v okně sdílených příkazů: {STRING}
 STR_CONFIG_SETTING_ENABLE_SINGLE_VEH_SHARED_ORDER_GUI_HELPTEXT  :Umožní použití okna sdílených příkazů pro správu jednotlivých vozidel i bez sdílených příkazů.
 
-STR_CONFIG_SETTING_VIEWPORT_MAP_SCAN_SURROUNDINGS               :Prohledat okolí (vhodné pro vysoké úrovně oddálení): {STRING}
 STR_CONFIG_SETTING_VIEWPORT_MAP_SHOW_SLOPES                     :Zobrazit svahy: {STRING}
 
 STR_CONFIG_SETTING_VIEWPORT_MAP_SHOW_HEIGHT                     :Zobrazit výšku: {STRING}
@@ -1397,7 +1396,7 @@ STR_INDUSTRY_VIEW_NAME_TOOLTIP                                  :{STRING}
 STR_INDUSTRY_VIEW_REQUIRED_TOOLTIP_FIRST                        :{STRING}{STRING}
 STR_INDUSTRY_VIEW_REQUIRED_TOOLTIP_NEXT                         :, {STRING}{STRING}
 STR_INDUSTRY_VIEW_STOCKPILED_TOOLTIP                            :{CARGO_LONG} čeká{STRING}
-STR_INDUSTRY_VIEW_TRANSPORTED_TOOLTIP_EXTENSION                 :{}{BLACK}{CARGO_LONG} ({COMMA}%)
+STR_INDUSTRY_VIEW_TRANSPORTED_TOOLTIP_EXTENSION                 :{CARGO_LONG}{STRING} ({COMMA}%)
 
 STR_DEPOT_VIEW_COUNT_TOOLTIP                                    :{BLACK}Uvnitř je {COMMA} vozid{P lo la el}
 STR_DEPOT_VIEW_COUNT_STOPPED_TOOLTIP                            :{BLACK}Uvnitř je {COMMA} {P "zastavené vozidlo" "zastavená vozidla" "zastavených vozidel"}
@@ -1737,7 +1736,7 @@ STR_CARGO_TYPE_UNLOAD_ORDERS_DROP_TOOLTIP                       :{BLACK}Změnit 
 STR_CARGO_TYPE_ORDERS_SET_TO_ALL_LABEL                          :{BLACK}Nastavit všem:
 STR_CARGO_TYPE_ORDERS_SET_TO_ALL_TOOLTIP                        :{BLACK}U všech druhů nákladu nastaví příkaz zvolený z rozevíracího seznamu
 
-##default-translation STR_SCREENSHOT_WORLD_SCREENSHOT
+
 STR_SCREENSHOT_WORLD_SCREENSHOT_DEFAULT_ZOOM                    :{BLACK}Snímek celé mapy ve výchozím přiblížení
 STR_SCREENSHOT_WORLD_SCREENSHOT_CURRENT_ZOOM                    :{BLACK}Snímek celé mapy v aktuálním přiblížení
 
