@@ -2,6 +2,9 @@
 
 * * *
 
+### v0.54.4+1 (2023-07-25)
+* Fix Actions
+
 ### v0.54.4+0 (2023-07-24)
 * Update base jgrpp to 0.54.4
 * Cherry-pick sjcl's chunnel restriction removal patch
