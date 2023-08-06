@@ -12,6 +12,7 @@
 
 #include "command_type.h"
 #include "company_type.h"
+#include <functional>
 
 /**
  * Define a default return value for a failed command.
