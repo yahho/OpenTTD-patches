@@ -2,6 +2,10 @@
 
 * * *
 
+### v0.54.5+1 (2023-08-06)
+* Update Japanese translation
+* Update base jgrpp to 5bcc71f2c2903facbacb7ead525f06f4081887f7
+
 ### v0.54.4+2 (2023-07-25)
 * Add Zstd for Windows
 
