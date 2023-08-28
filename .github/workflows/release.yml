@@ -83,14 +83,14 @@ jobs:
       - linux_distros
       - macos
       - windows
-    if: always() && (github.event_name == 'release' || github.event_name == 'push') && needs.linux.result == 'success' && (needs.linux_distros.result == 'success' || needs.linux_distros.result == 'skipped') && needs.macos.result == 'success' && needs.windows.result == 'success'
+    if: always() && (github.event_name == 'release' || github.event_name == 'push' || github.event_name == 'workflow_dispatch') && needs.linux.result == 'success' && (needs.linux_distros.result == 'success' || needs.linux_distros.result == 'skipped') && needs.macos.result == 'success' && needs.windows.result == 'success'
     runs-on: ubuntu-latest
 
     steps:
       - name: Download all bundles
         uses: actions/download-artifact@v2
 
-      - name: Prepair files for Release
+      - name: Prepare files for Release
         run: |
           echo "::group::Rip some files & Move bundles to a single folder"
           rm -rf openttd-docs
