@@ -26,6 +26,7 @@
 
 
 
+
 STR_CONFIG_SETTING_TREE_PLACER_PERFECT                          :完璧
 
 
@@ -84,6 +85,8 @@ STR_GAME_OPTIONS_AUTOSAVE_DROPDOWN_EVERY_DAYS_CUSTOM_LABEL      :カスタム間
 STR_GAME_OPTIONS_AUTOSAVE_DROPDOWN_EVERY_MINUTES_CUSTOM_LABEL   :カスタム間隔 (現実時間の分)
 
 
+
+STR_COMMA_SEPARATOR                                             :,{SP}
 
 STR_UNIT_NAME_VELOCITY_IMPERIAL                                 :mph
 STR_UNIT_NAME_VELOCITY_METRIC                                   :km/h
@@ -190,6 +193,9 @@ STR_CONFIG_SETTING_TRAIN_BRAKING_MODEL_HELPTEXT                 :列車のブレ
 
 STR_CONFIG_SETTING_REALISTIC_BRAKING_ASPECT_LIMITED             :アスペクト制限された現実的な列車ブレーキ: {STRING}
 STR_CONFIG_SETTING_REALISTIC_BRAKING_ASPECT_LIMITED_HELPTEXT    :現実的な列車ブレーキモデルで、列車の先読みを信号のアスペクトに限定します。(例: 無制限の数の信号を予約または先読みすることを許可しない)。{}これには多相信号を提供する NewGRF が必要です。{}{}これは信号の種類や配置により深い思考が要求され難易度が高くなる上級者向けの設定です。
+
+STR_CONFIG_SETTING_LIMIT_TRAIN_ACCELERATION                     :列車の加速を制限する: {STRING}
+STR_CONFIG_SETTING_LIMIT_TRAIN_ACCELERATION_HELPTEXT            :リアルな列車ブレーキモデルを利用する際、列車の最大加速度も制限します。列車の種類により急激に加速しすぎて乗客が飲み物をこぼしたりすることを防ぎます。
 
 STR_CONFIG_SETTING_THROUGH_LOAD_SPEED_LIMIT                     :列車スルー積載の最高速度: {STRING}
 STR_CONFIG_SETTING_THROUGH_LOAD_SPEED_LIMIT_HELPTEXT            :駅でのスルー積載が認められる列車の最高速度
@@ -702,6 +708,9 @@ STR_CONFIG_SETTING_NO_EXPIRE_OBJECTS_AFTER_ZERO                 :オフ
 
 STR_CONFIG_SETTING_IGNORE_OBJECT_INTRO_DATES                    :オブジェクトが利用可能になる日付を無視する: {STRING}
 STR_CONFIG_SETTING_IGNORE_OBJECT_INTRO_DATES_HELPTEXT           :利用可能になる前にプレイヤーがオブジェクトを建設することを許可します。{}この設定はマップ生成時には適用されません。
+
+STR_CONFIG_SETTING_ALLOW_CONVERT_TOWN_ROAD_NO_HOUSES            :街路を家屋ではない種類に変換することを許可する: {STRING}
+STR_CONFIG_SETTING_ALLOW_CONVERT_TOWN_ROAD_NO_HOUSES_HELPTEXT   :街が所有する道路を家屋を許可しない種類の道路に変更することをプレイヤーに許可します。{}悪用すると街に家屋を全く建設させないことができ、街の縮小につながるためデフォルトでこの設定は無効になっています。
 
 STR_PURCHASE_LAND_PERMITTED_NO                                  :しない
 STR_PURCHASE_LAND_PERMITTED_SINGLE                              :一度に1タイルで許可する
@@ -1558,13 +1567,6 @@ STR_ORDER_DROP_SELL_DEPOT                                       :売却
 
 STR_ORDER_CONDITIONAL_VEHICLE_IN_SLOT                           :スロット内の車両
 
-STR_ORDER_CONDITIONAL_REQUIRES_SERVICE_ORDER                    :点検が必要 {STRING}
-STR_ORDER_CONDITIONAL_CARGO_WAITING_ORDER                       :次駅 {STRING} {STRING} 待機中
-STR_ORDER_CONDITIONAL_ACCEPTANCE                                :次駅 {STRING} {STRING}
-
-STR_CONDITIONAL_FREE_PLATFORMS                                  :次駅の空きプラットフォームが {2:COMMA} つ {1:STRING} ならば指令{0:COMMA} へ飛ぶ
-STR_CONDITIONAL_PERCENT                                         :{1:COMMA} パーセントの回数で指令{0:COMMA} へ飛ぶ
-
 STR_ORDER_CONDITIONAL_NEXT_STATION                              :次の駅
 STR_ORDER_CONDITIONAL_CARGO_TOOLTIP                             :{BLACK}駅のデータと比較する値を指定します
 STR_ORDER_CONDITIONAL_SLOT_TOOLTIP                              :{BLACK}占有率を確認する列車スロットを指定します
@@ -1575,6 +1577,8 @@ STR_ORDER_CONDITIONAL_SCHED_SELECT_TOOLTIP                      :{BLACK}使用�
 STR_ORDER_CONDITIONAL_SCHED_TEST_TOOLTIP                        :{BLACK}判定に使用する運行計画の状態
 STR_ORDER_CONDITIONAL_VIA                                       :{BLACK}経由
 STR_ORDER_CONDITIONAL_VIA_TOOLTIP                               :{BLACK}待機貨物量を確認する経由駅を指定します
+STR_ORDER_CONDITIONAL_STATION                                   :{BLACK}駅
+STR_ORDER_CONDITIONAL_STATION_TOOLTIP                           :{BLACK}確認する駅を指定します
 
 STR_ORDER_CONDITIONAL_COMPARATOR_ACCEPTS                        :受け入れる
 STR_ORDER_CONDITIONAL_COMPARATOR_DOES_NOT_ACCEPT                :受け入れない
@@ -1663,15 +1667,19 @@ STR_ORDER_RV_DIR_SE                                             :[南東方面]
 STR_ORDER_RV_DIR_SW                                             :[南西方面]
 STR_ORDER_RV_DIR_NW                                             :[北西方面]
 
-STR_ORDER_CONDITIONAL_CARGO_ACCEPTANCE                          :次の駅が {2:STRING} を {1:STRING} 時、指令{0:COMMA}に飛ぶ
-STR_ORDER_CONDITIONAL_CARGO_WAITING_DISPLAY                     :次の駅が {2:STRING} の積み込み待ち {1:STRING} 時、指令{0:COMMA}に飛ぶ
+STR_ORDER_CONDITIONAL_UNDEFINED_STATION                         :{PUSH_COLOUR}{RED}不明な駅{POP_COLOUR}
+
+STR_ORDER_CONDITIONAL_FREE_PLATFORMS_DISPLAY                    :{1:STRING} の空きプラットフォームが {3:COMMA} つ {2:STRING} ならば指令{0:COMMA} へ飛ぶ
+STR_ORDER_CONDITIONAL_PERCENT_DISPLAY                           :{1:COMMA} パーセントの回数で指令{0:COMMA} へ飛ぶ
+STR_ORDER_CONDITIONAL_CARGO_ACCEPTANCE                          :{1:STRING} が {3:STRING} を {2:STRING} 時、指令{0:COMMA}に飛ぶ
+STR_ORDER_CONDITIONAL_CARGO_WAITING_DISPLAY                     :{1:STRING} が {3:STRING} の積み込み待ち {2:STRING} 時、指令{0:COMMA}に飛ぶ
 STR_ORDER_CONDITIONAL_SLOT                                      :{1:TRSLOT} が {2:STRING}時、指令{0:COMMA}に飛ぶ
 STR_ORDER_CONDITIONAL_INVALID_SLOT                              :{PUSH_COLOUR}{RED}{1:STRING}{POP_COLOUR} が {2:STRING}時、指令{0:COMMA}に飛ぶ
 STR_ORDER_CONDITIONAL_IN_SLOT                                   :スロット: {2:TRSLOT} に {1:STRING} 時、指令{0:COMMA}に飛ぶ
 STR_ORDER_CONDITIONAL_IN_INVALID_SLOT                           :{PUSH_COLOUR}{RED}{2:STRING}{POP_COLOUR} に {1:STRING} 時、指令{0:COMMA}に飛ぶ
 STR_ORDER_CONDITIONAL_LOAD_PERCENTAGE_DISPLAY                   :{1:STRING} の積載率が {3:COMMA} {2:STRING}時、指令{0:COMMA}に飛ぶ
-STR_ORDER_CONDITIONAL_CARGO_WAITING_AMOUNT_DISPLAY              :次の駅の {1:STRING} が {3:CARGO_SHORT} {2:STRING} 時、指令{0:COMMA}に飛ぶ
-STR_ORDER_CONDITIONAL_CARGO_WAITING_AMOUNT_VIA_DISPLAY          :{2:STATION}経由で次の駅の {1:STRING} が {4:CARGO_SHORT} {3:STRING} 時、指令{0:COMMA}に飛ぶ
+STR_ORDER_CONDITIONAL_CARGO_WAITING_AMOUNT_DISPLAY              :{2:STRING} の {1:STRING} が {4:CARGO_SHORT} {3:STRING} 時、指令{0:COMMA}に飛ぶ
+STR_ORDER_CONDITIONAL_CARGO_WAITING_AMOUNT_VIA_DISPLAY          :{3:STRING}経由で{2:STRING}の {1:STRING} が {5:CARGO_SHORT} {4:STRING} 時、指令{0:COMMA}に飛ぶ
 STR_ORDER_CONDITIONAL_COUNTER                                   :{1:TRCOUNTER} の値が {3:COMMA} {2:STRING} 時、指令{0:COMMA}に飛ぶ
 STR_ORDER_CONDITIONAL_INVALID_COUNTER                           :{PUSH_COLOUR}{RED}{1:STRING}{POP_COLOUR} の値が {3:COMMA} {2:STRING} 時、指令{0:COMMA}に飛ぶ
 STR_ORDER_CONDITIONAL_TIME_HHMM                                 :{1:STRING} {3:TIME_HHMM} {2:STRING}時、指令{0:COMMA}に飛ぶ
@@ -1962,20 +1970,27 @@ STR_TMPL_ADD_TOOLTIP                                            :{BLACK}ハイ�
 STR_TMPL_ADD_REFIT_TOOLTIP                                      :{BLACK}ハイライトされた車両をテンプレートに追加して改造
 
 STR_TMPL_SET_USEDEPOT                                           :{BLACK}列車庫の輸送機器を使う
-STR_TMPL_SET_USEDEPOT_TIP                                       :{BLACK}テンプレートの列車を構築するために列車庫にある中立でアイドル状態の輸送機器を利用して購入費用を節約します
-STR_TMPL_SET_KEEPREMAINDERS                                     :{BLACK}リマインダーを記憶
-STR_TMPL_SET_KEEPREMAINDERS_TIP                                 :{BLACK}テンプレート置換の完了後、後で使用できるように古い列車の残りの全ての輸送機器を中立でアイドルな状態に保ちます
-STR_TMPL_SET_REFIT                                              :{BLACK}改造を使用
-STR_TMPL_SET_REFIT_TIP                                          :{BLACK}設定するとテンプレートで指定されたとおりの貨物向けに改造を行い列車を構築します。列車庫から新たに購入または回収されるすべての客車が、古い客車と同じように再装着を*試みます*。不可能な場合は通常の改造を行います。
+STR_TMPL_SET_USEDEPOT_TIP                                       :{BLACK}テンプレートの列車を構築するために列車庫にある利用可能な輸送機器を利用して購入費用を節約します。{}利用可能な輸送機器は列車庫内で止まっている必要があります。動力車は指令や他の輸送機器との共有指令を持たずグループにも入っていないものが利用されます。
+STR_TMPL_SET_KEEPREMAINDERS                                     :{BLACK}置換した輸送機器を保管
+STR_TMPL_SET_KEEPREMAINDERS_TIP                                 :{BLACK}テンプレート置換の完了後、後で使用できるように古い列車の残りの全ての輸送機器を列車庫内に保管します
+STR_TMPL_SET_REFIT_AS_TEMPLATE                                  :{BLACK}テンプレート通り
+STR_TMPL_SET_REFIT_AS_TEMPLATE_TIP                              :{BLACK}テンプレートで指定されたとおりに改造を行います。不可能な場合は通常の改造を行います。
+STR_TMPL_SET_REFIT_AS_INCOMING                                  :{BLACK}対象の列車に合わせる
+STR_TMPL_SET_REFIT_AS_INCOMING_TIP                              :{BLACK}古い列車の最初の貨車に合わせて新しい列車のそれぞれの部分に改造を行います。不可能な場合は通常の改造を行います。
 STR_TMPL_SET_OLD_ONLY                                           :{BLACK}古いもののみ
 STR_TMPL_SET_OLD_ONLY_TIP                                       :{BLACK}設定すると古くて自動交換が必要な輸送機器のみを交換します
 
+STR_TMPL_CONFIG_REFIT_AS_TEMPLATE                               :{GREEN}改造: テンプレート
+STR_TMPL_CONFIG_REFIT_AS_INCOMING                               :{GOLD}改造: 対象
 STR_TMPL_CONFIG_USEDEPOT                                        :列車庫を使用
 STR_TMPL_CONFIG_KEEPREMAINDERS                                  :保存
-STR_TMPL_CONFIG_REFIT                                           :改造
 STR_TMPL_CONFIG_OLD_ONLY                                        :古いのだけ
 
-STR_TMPL_NUM_TRAINS_NEED_RPL                                    :# 置換される列車:
+STR_TMPL_SECTION_REFIT                                          :{BLACK}改造
+STR_TMPL_SECTION_DEPOT_VEHICLES                                 :{BLACK}列車庫の輸送機器
+STR_TMPL_SECTION_WHEN                                           :{BLACK}条件
+
+STR_TMPL_NUM_TRAINS_NEED_RPL                                    :置換対象の列車: {SET_COLOUR}{COMMA}
 
 STR_TMPL_CARGO_SUMMARY                                          :{CARGO_LONG}
 STR_TMPL_CARGO_SUMMARY_MULTI                                    :{CARGO_LONG} (x{NUM})
