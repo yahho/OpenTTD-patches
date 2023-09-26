@@ -2,6 +2,10 @@
 
 * * *
 
+### v0.55.3+0 (2023-09-26)
+* Update Japanese translation
+* Update base jgrpp to d4ed08849855b99b39fd95a83faad3c7cec4f2e0
+
 ### v0.54.5+1 (2023-08-06)
 * Update Japanese translation
 * Update base jgrpp to 5bcc71f2c2903facbacb7ead525f06f4081887f7

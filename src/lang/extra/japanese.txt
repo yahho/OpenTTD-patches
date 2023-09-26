@@ -25,8 +25,6 @@
 
 
 
-
-
 STR_CONFIG_SETTING_TREE_PLACER_PERFECT                          :完璧
 
 
@@ -202,6 +200,9 @@ STR_CONFIG_SETTING_THROUGH_LOAD_SPEED_LIMIT_HELPTEXT            :駅でのスル
 
 STR_CONFIG_SETTING_RAIL_DEPOT_SPEED_LIMIT                       :列車庫の最大速度: {STRING}
 STR_CONFIG_SETTING_RAIL_DEPOT_SPEED_LIMIT_HELPTEXT              :列車庫に入出庫するときの列車の最高速度を設定します
+
+STR_CONFIG_SETTING_NON_LEADING_ENGINES_KEEP_NAME                :動力車が牽引しない場合もカスタム名を保持する: {STRING}
+STR_CONFIG_SETTING_NON_LEADING_ENGINES_KEEP_NAME_HELPTEXT       :カスタム名が付いた牽引車を牽引しない位置に動かすときカスタム名を保持するかどうかを設定します
 
 STR_CONFIG_SETTING_BACK_ONE_WAY_PBS_SAFE_WAITING                :一方通行パス信号の後方まで経路探索する: {STRING}
 STR_CONFIG_SETTING_BACK_ONE_WAY_PBS_SAFE_WAITING_HELPTEXT       :有効にするとYAPF列車経路探索アルゴリズムは一方通行パス信号の後ろまで経路を探索するようになります。
@@ -1466,8 +1467,6 @@ STR_VEHICLE_LIST_CHANGE_ORDER_ROAD_VEHICLE_DEPOT                :指令を別の
 STR_VEHICLE_LIST_CHANGE_ORDER_SHIP_DEPOT                        :指令を別の造船所に移動
 STR_VEHICLE_LIST_CHANGE_ORDER_AIRCRAFT_HANGAR                   :指令を別の格納庫に移動
 
-STR_VEHICLE_LIST_CREATE_GROUP                                   :リストからグループを作成
-
 STR_GROUP_EXPAND_ALL                                            :{BLACK}すべて展開
 STR_GROUP_COLLAPSE_ALL                                          :{BLACK}すべて折りたたむ
 
@@ -1742,6 +1741,9 @@ STR_TIMETABLE_FILL_TIMETABLE_SUGGESTION_2                       :{BLACK}(代わ�
 
 STR_TIMETABLE_WARNINGS_OMITTED                                  :{BLACK}以下 {NUM} の警告が省略されました...
 
+STR_TIMETABLE_ARRIVAL_ABBREVIATION                              :着:
+STR_TIMETABLE_DEPARTURE_ABBREVIATION                            :発:
+
 STR_DATE_MINUTES_MINUTE_TOOLTIP                                 :{BLACK}分を選択
 STR_DATE_MINUTES_HOUR_TOOLTIP                                   :{BLACK}時を選択
 
@@ -1903,15 +1905,15 @@ STR_STATION_RATING_MAX_PERCENTAGE                               : (最大 {PLUS_
 STR_STATION_RATING_MAX_PERCENTAGE_COMMA                         :, 最大 {PLUS_NUM}%
 STR_STATION_RATING_PERCENTAGE_COMMA                             :, {PLUS_NUM}%
 
-STR_STATION_RATING_TOOLTIP_SPEED                                :最後の輸送機器{STRING}の最高速度: {SET_COLOUR}{VELOCITY}{STRING} ({STRING})
+STR_STATION_RATING_TOOLTIP_SPEED                                :最後の輸送機器{STRING}の最高速度: {COLOUR}{VELOCITY}{STRING} ({STRING})
 
-STR_STATION_RATING_TOOLTIP_AGE                                  :最後の輸送機器{STRING}の運用年数: {SET_COLOUR}{NUM}年{STRING}
+STR_STATION_RATING_TOOLTIP_AGE                                  :最後の輸送機器{STRING}の運用年数: {COLOUR}{NUM}年{STRING}
 
 STR_STATION_RATING_TOOLTIP_WAITTIME                             :最後の{STRING}積載からの時間: {STRING}
 STR_STATION_RATING_TOOLTIP_WAITTIME_SHIP                        :最後の{STRING}積載からの時間: {STRING} (運送による)
-STR_STATION_RATING_TOOLTIP_WAITTIME_VALUE                       :{SET_COLOUR}{NUM} 日{STRING}
+STR_STATION_RATING_TOOLTIP_WAITTIME_VALUE                       :{COLOUR}{NUM} 日{STRING}
 
-STR_STATION_RATING_TOOLTIP_WAITUNITS                            :待機貨物 (次の停留所{STRING}毎の平均): {SET_COLOUR}{NUM}{STRING}
+STR_STATION_RATING_TOOLTIP_WAITUNITS                            :待機貨物 (次の停留所{STRING}毎の平均): {COLOUR}{NUM}{STRING}
 
 STR_STATION_RATING_TOOLTIP_STATUE                               :銅像が街{STRING}に: {STRING}
 STR_STATION_RATING_TOOLTIP_STATUE_NO                            :{GOLD}ない{STRING}
@@ -1990,7 +1992,7 @@ STR_TMPL_SECTION_REFIT                                          :{BLACK}改造
 STR_TMPL_SECTION_DEPOT_VEHICLES                                 :{BLACK}列車庫の輸送機器
 STR_TMPL_SECTION_WHEN                                           :{BLACK}条件
 
-STR_TMPL_NUM_TRAINS_NEED_RPL                                    :置換対象の列車: {SET_COLOUR}{COMMA}
+STR_TMPL_NUM_TRAINS_NEED_RPL                                    :置換対象の列車: {COLOUR}{COMMA}
 
 STR_TMPL_CARGO_SUMMARY                                          :{CARGO_LONG}
 STR_TMPL_CARGO_SUMMARY_MULTI                                    :{CARGO_LONG} (x{NUM})
@@ -2059,6 +2061,7 @@ STR_SCHDISPATCH_NAMED_SCHEDULE_ID                               :{BLACK}{STRING}
 STR_SCHDISPATCH_RENAME_SCHEDULE_TOOLTIP                         :{BLACK}運行計画の名前を変更します
 STR_SCHDISPATCH_RENAME_SCHEDULE_CAPTION                         :{WHITE}運行計画の名前
 STR_ERROR_CAN_T_RENAME_SCHEDULE                                 :{WHITE}運行計画の名前を変更できません
+STR_SCHDISPATCH_MOVE_SCHEDULE                                   :{BLACK}運行計画リスト上の現在の運行計画の位置を変更します
 
 STR_SCHDISPATCH_SUMMARY_LAST_DEPARTURE_PAST                     :{BLACK}最終発車は {DATE_WALLCLOCK_TINY}です。
 STR_SCHDISPATCH_SUMMARY_LAST_DEPARTURE_FUTURE                   :{BLACK}最終発車はまだありません。{DATE_WALLCLOCK_TINY}に発車予定です。
@@ -2186,7 +2189,7 @@ STR_CONFIG_SETTING_CITY_IN_LABEL                                :町名ラベル
 STR_CONFIG_SETTING_CITY_IN_LABEL_HELPTEXT                       :町が市のときマップ上の町名ラベルに市の表記を表示します
 
 ###length 4
-STR_VIEWPORT_TOWN_COLOUR                                        :{1:SET_COLOUR}{0:TOWN}
-STR_VIEWPORT_TOWN_COLOUR_POP                                    :{WHITE}{TOWN} {SET_COLOUR}({COMMA})
-STR_VIEWPORT_TOWN_COLOUR_CITY                                   :{1:SET_COLOUR}{0:TOWN} (市)
-STR_VIEWPORT_TOWN_COLOUR_CITY_POP                               :{WHITE}{TOWN} {SET_COLOUR}(市, {COMMA})
+STR_VIEWPORT_TOWN_COLOUR                                        :{1:COLOUR}{0:TOWN}
+STR_VIEWPORT_TOWN_COLOUR_POP                                    :{WHITE}{TOWN} {COLOUR}({COMMA})
+STR_VIEWPORT_TOWN_COLOUR_CITY                                   :{1:COLOUR}{0:TOWN} (市)
+STR_VIEWPORT_TOWN_COLOUR_CITY_POP                               :{WHITE}{TOWN} {COLOUR}(市, {COMMA})

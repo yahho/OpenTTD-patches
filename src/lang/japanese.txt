@@ -951,49 +951,51 @@ STR_GAME_OPTIONS_VOLUME_100                                     :100%
 STR_GAME_OPTIONS_CURRENCY_UNITS_FRAME                           :{BLACK}通貨単位
 STR_GAME_OPTIONS_CURRENCY_UNITS_DROPDOWN_TOOLTIP                :{BLACK}通貨単位の選択
 
+STR_GAME_OPTIONS_CURRENCY_CODE                                  :{STRING} ({STRING})
+
 ###length 42
-STR_GAME_OPTIONS_CURRENCY_GBP                                   :英ポンド(£)
-STR_GAME_OPTIONS_CURRENCY_USD                                   :米ドル($)
-STR_GAME_OPTIONS_CURRENCY_EUR                                   :欧州連合・ユーロ(€)
-STR_GAME_OPTIONS_CURRENCY_JPY                                   :日本円(¥)
-STR_GAME_OPTIONS_CURRENCY_ATS                                   :オーストリアシリング(ATS)
-STR_GAME_OPTIONS_CURRENCY_BEF                                   :ベルギーフランク(BEF)
-STR_GAME_OPTIONS_CURRENCY_CHF                                   :スイスフランク(CHF)
-STR_GAME_OPTIONS_CURRENCY_CZK                                   :チェココルナ(CZK)
-STR_GAME_OPTIONS_CURRENCY_DEM                                   :ドイツマルク(DEM)
-STR_GAME_OPTIONS_CURRENCY_DKK                                   :デンマーククローネ(DKK)
-STR_GAME_OPTIONS_CURRENCY_ESP                                   :スペインペセタ(₧)
-STR_GAME_OPTIONS_CURRENCY_FIM                                   :フィンランドマーカ(FIM)
-STR_GAME_OPTIONS_CURRENCY_FRF                                   :フランスフラン(₣)
-STR_GAME_OPTIONS_CURRENCY_GRD                                   :ギリシアドラクマ(GRD)
-STR_GAME_OPTIONS_CURRENCY_HUF                                   :ハンガリーフォリント(HUF)
-STR_GAME_OPTIONS_CURRENCY_ISK                                   :アイスランドクローナ(ISK)
-STR_GAME_OPTIONS_CURRENCY_ITL                                   :イタリアリラ(ITL)
-STR_GAME_OPTIONS_CURRENCY_NLG                                   :オランダギルダー(NLG)
-STR_GAME_OPTIONS_CURRENCY_NOK                                   :ノルウェイクローネ(NOK)
-STR_GAME_OPTIONS_CURRENCY_PLN                                   :ポーランドズロティ(PLN)
-STR_GAME_OPTIONS_CURRENCY_RON                                   :ルーマニアレイ(RON)
-STR_GAME_OPTIONS_CURRENCY_RUR                                   :ロシアルーブル(RUR)
-STR_GAME_OPTIONS_CURRENCY_SIT                                   :スロベニアトラール(SIT)
-STR_GAME_OPTIONS_CURRENCY_SEK                                   :スウェーデンクローナ(SEK)
-STR_GAME_OPTIONS_CURRENCY_TRY                                   :トルコリラ(TRY)
-STR_GAME_OPTIONS_CURRENCY_SKK                                   :スロバキアコルナ(SKK)
-STR_GAME_OPTIONS_CURRENCY_BRL                                   :ブラジルレアル(BRL)
-STR_GAME_OPTIONS_CURRENCY_EEK                                   :エストニアクローン(EEK)
-STR_GAME_OPTIONS_CURRENCY_LTL                                   :リトアニアリタス(LTL)
-STR_GAME_OPTIONS_CURRENCY_KRW                                   :韓国ウォン(KRW)
-STR_GAME_OPTIONS_CURRENCY_ZAR                                   :南アフリカランド(ZAR)
+STR_GAME_OPTIONS_CURRENCY_GBP                                   :英ポンド
+STR_GAME_OPTIONS_CURRENCY_USD                                   :米ドル
+STR_GAME_OPTIONS_CURRENCY_EUR                                   :欧州連合・ユーロ
+STR_GAME_OPTIONS_CURRENCY_JPY                                   :日本円
+STR_GAME_OPTIONS_CURRENCY_ATS                                   :オーストリア・シリング
+STR_GAME_OPTIONS_CURRENCY_BEF                                   :ベルギー・フランク
+STR_GAME_OPTIONS_CURRENCY_CHF                                   :スイス・フランク
+STR_GAME_OPTIONS_CURRENCY_CZK                                   :チェコ・コルナ
+STR_GAME_OPTIONS_CURRENCY_DEM                                   :ドイツ・マルク
+STR_GAME_OPTIONS_CURRENCY_DKK                                   :デンマーク・クローネ
+STR_GAME_OPTIONS_CURRENCY_ESP                                   :スペイン・ペセタ
+STR_GAME_OPTIONS_CURRENCY_FIM                                   :フィンランド・マーカ
+STR_GAME_OPTIONS_CURRENCY_FRF                                   :フランス・フラン
+STR_GAME_OPTIONS_CURRENCY_GRD                                   :ギリシア・ドラクマ
+STR_GAME_OPTIONS_CURRENCY_HUF                                   :ハンガリー・フォリント
+STR_GAME_OPTIONS_CURRENCY_ISK                                   :アイスランド・クローナ
+STR_GAME_OPTIONS_CURRENCY_ITL                                   :イタリア・リラ
+STR_GAME_OPTIONS_CURRENCY_NLG                                   :オランダ・ギルダー
+STR_GAME_OPTIONS_CURRENCY_NOK                                   :ノルウェイ・クローネ
+STR_GAME_OPTIONS_CURRENCY_PLN                                   :ポーランド・ズロティ
+STR_GAME_OPTIONS_CURRENCY_RON                                   :ルーマニア・レイ
+STR_GAME_OPTIONS_CURRENCY_RUR                                   :ロシア・ルーブル
+STR_GAME_OPTIONS_CURRENCY_SIT                                   :スロベニア・トラール
+STR_GAME_OPTIONS_CURRENCY_SEK                                   :スウェーデン・クローナ
+STR_GAME_OPTIONS_CURRENCY_TRY                                   :トルコ・リラ
+STR_GAME_OPTIONS_CURRENCY_SKK                                   :スロバキア・コルナ
+STR_GAME_OPTIONS_CURRENCY_BRL                                   :ブラジル・レアル
+STR_GAME_OPTIONS_CURRENCY_EEK                                   :エストニア・クローン
+STR_GAME_OPTIONS_CURRENCY_LTL                                   :リトアニア・リタス
+STR_GAME_OPTIONS_CURRENCY_KRW                                   :韓国・ウォン
+STR_GAME_OPTIONS_CURRENCY_ZAR                                   :南アフリカ・ランド
 STR_GAME_OPTIONS_CURRENCY_CUSTOM                                :カスタム…
-STR_GAME_OPTIONS_CURRENCY_GEL                                   :グルジア ラリー(GEL)
-STR_GAME_OPTIONS_CURRENCY_IRR                                   :イラン リアル(IRR)
-STR_GAME_OPTIONS_CURRENCY_RUB                                   :新ロシアルーブル(RUB)
-STR_GAME_OPTIONS_CURRENCY_MXN                                   :メキシコペソ(MXN)
-STR_GAME_OPTIONS_CURRENCY_NTD                                   :新台湾ドル(NTD)
-STR_GAME_OPTIONS_CURRENCY_CNY                                   :人民元(CNY)
-STR_GAME_OPTIONS_CURRENCY_HKD                                   :香港ドル(HKD)
-STR_GAME_OPTIONS_CURRENCY_INR                                   :インドルピー(INR)
-STR_GAME_OPTIONS_CURRENCY_IDR                                   :インドネシアルピア(IDR)
-STR_GAME_OPTIONS_CURRENCY_MYR                                   :マレーシアリンギット(MYR)
+STR_GAME_OPTIONS_CURRENCY_GEL                                   :グルジア・ラリー
+STR_GAME_OPTIONS_CURRENCY_IRR                                   :イラン・リアル
+STR_GAME_OPTIONS_CURRENCY_RUB                                   :新ロシア・ルーブル
+STR_GAME_OPTIONS_CURRENCY_MXN                                   :メキシコ・ペソ
+STR_GAME_OPTIONS_CURRENCY_NTD                                   :新台湾ドル
+STR_GAME_OPTIONS_CURRENCY_CNY                                   :人民元
+STR_GAME_OPTIONS_CURRENCY_HKD                                   :香港ドル
+STR_GAME_OPTIONS_CURRENCY_INR                                   :インド・ルピー
+STR_GAME_OPTIONS_CURRENCY_IDR                                   :インドネシア・ルピア
+STR_GAME_OPTIONS_CURRENCY_MYR                                   :マレーシア・リンギット
 
 STR_GAME_OPTIONS_AUTOSAVE_FRAME                                 :{BLACK}オートセーブ
 STR_GAME_OPTIONS_AUTOSAVE_DROPDOWN_TOOLTIP                      :{BLACK}自動保存の間隔を選択します
@@ -3849,6 +3851,7 @@ STR_VEHICLE_LIST_MANAGE_LIST                                    :{BLACK}リス�
 STR_VEHICLE_LIST_MANAGE_LIST_TOOLTIP                            :{BLACK}このリスト内のすべての車両に指令を送信する
 STR_VEHICLE_LIST_REPLACE_VEHICLES                               :輸送機器更新
 STR_VEHICLE_LIST_SEND_FOR_SERVICING                             :回送して点検
+STR_VEHICLE_LIST_CREATE_GROUP                                   :リストからグループを作成
 STR_VEHICLE_LIST_PROFIT_THIS_YEAR_LAST_YEAR                     :{TINY_FONT}{BLACK}収益(今年): {CURRENCY_LONG} (収益(去年): {CURRENCY_LONG})
 STR_VEHICLE_LIST_CARGO                                          :[{CARGO_LIST}]
 STR_VEHICLE_LIST_NAME_AND_CARGO                                 :{STRING} {STRING}
@@ -4571,8 +4574,8 @@ STR_TIMETABLE_EXPECTED                                          :{BLACK}予想�
 STR_TIMETABLE_SCHEDULED                                         :{BLACK}定刻日時
 STR_TIMETABLE_EXPECTED_TOOLTIP                                  :{BLACK}予想日時(現状の運転時刻から推定される今後の発着日時)と定刻日時(ダイヤから割り出される定刻の発着日時)の表示を切り返えます
 
-STR_TIMETABLE_ARRIVAL_ABBREVIATION                              :着:
-STR_TIMETABLE_DEPARTURE_ABBREVIATION                            :発:
+STR_TIMETABLE_ARRIVAL                                           :着: {COLOUR}{DATE_TINY}
+STR_TIMETABLE_DEPARTURE                                         :発: {COLOUR}{DATE_TINY}
 
 
 # Date window (for timetable)
