@@ -2298,9 +2298,6 @@ STR_CONFIG_SETTING_CITY_IN_LABEL_HELPTEXT                       :町が市のと
 
 STR_CONFIG_SETTING_CYCLE_SIGNAL_PBS                             :パス信号のみ
 
-STR_CONFIG_SETTING_SCRIPT_DISABLE_PARAM_RANDOM                  :スクリプトパラメータの乱数化を無効化: {STRING}
-STR_CONFIG_SETTING_SCRIPT_DISABLE_PARAM_RANDOM_HELPTEXT         :AI/ゲームスクリプトのパラメータ乱数化を無効にします。
-
 STR_CONFIG_SETTING_RESTRICT_PATCH                               :バニラ OpenTTDに存在しない非標準の設定
 
 ###length 4
