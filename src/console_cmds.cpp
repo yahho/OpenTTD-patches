@@ -3948,30 +3948,27 @@ DEF_CONSOLE_CMD(ConDumpInfo)
 	return false;
 }
 
-void CcCreateTown(const CommandCost &result, TileIndex tile, uint32 p1, uint32 p2, uint64 p3, uint32 cmd)
+void CcCreateTown(const CommandCost &result, TileIndex tile, uint32_t p1, uint32_t p2, uint64_t p3, uint32_t cmd)
 {
-    if (result.Succeeded()) {
-        IConsolePrintF(TC_GREEN, "Successfully Created town '%s' at %#x(X: %d, Y: %d)", Town::Get(GetTownIndex(tile))->name.c_str(), tile, TileX(tile), TileY(tile));
-        return;
-    }
-    char parsed[ICON_MAX_STREAMSIZE - 64];
-    switch (result.GetErrorMessage()) {
-        case INVALID_STRING_ID:
-            IConsolePrint(CC_ERROR, "ERROR: Command execution failed");
-            break;
-        case STR_ERROR_NAME_MUST_BE_UNIQUE:
-        case STR_ERROR_TOO_MANY_TOWNS:
-            GetString(parsed, result.GetErrorMessage(), lastof(parsed));
-            IConsolePrintF(CC_ERROR, "ERROR: Couldn't create a town: %s", parsed);
-            break;
-        case STR_ERROR_TOO_CLOSE_TO_EDGE_OF_MAP_SUB:
-        case STR_ERROR_TOO_CLOSE_TO_ANOTHER_TOWN:
-        case STR_ERROR_SITE_UNSUITABLE:
-            GetString(parsed, result.GetErrorMessage(), lastof(parsed));
-            IConsolePrintF(CC_ERROR, "ERROR: Couldn't place a town at %#x(X: %d, Y: %d): %s", tile, TileX(tile), TileY(tile), parsed);
-            break;
-    }
-    SetRedErrorSquare(tile);
+	if (result.Succeeded()) {
+		IConsolePrintF(TC_GREEN, "Successfully Created town '%s' at %#x(X: %d, Y: %d)", Town::Get(GetTownIndex(tile))->name.c_str(), tile, TileX(tile), TileY(tile));
+		return;
+	}
+	switch (result.GetErrorMessage()) {
+		case INVALID_STRING_ID:
+			IConsolePrint(CC_ERROR, "ERROR: Command execution failed");
+			break;
+		case STR_ERROR_NAME_MUST_BE_UNIQUE:
+		case STR_ERROR_TOO_MANY_TOWNS:
+			IConsolePrintF(CC_ERROR, "ERROR: Couldn't create a town: %s", GetString(result.GetErrorMessage()).c_str());
+			break;
+		case STR_ERROR_TOO_CLOSE_TO_EDGE_OF_MAP_SUB:
+		case STR_ERROR_TOO_CLOSE_TO_ANOTHER_TOWN:
+		case STR_ERROR_SITE_UNSUITABLE:
+			IConsolePrintF(CC_ERROR, "ERROR: Couldn't place a town at %#x(X: %d, Y: %d): %s", tile, TileX(tile), TileY(tile), GetString(result.GetErrorMessage()).c_str());
+			break;
+	}
+	SetRedErrorSquare(tile);
 }
 
 DEF_CONSOLE_CMD(ConCreateTown)
@@ -3982,7 +3979,7 @@ DEF_CONSOLE_CMD(ConCreateTown)
 		return true;
 	}
 
-	uint32 x, y;
+	uint32_t x, y;
 	TileIndex tile;
 	if (GetArgumentInteger(&x, argv[1]) && GetArgumentInteger(&y, argv[2])) {
 		if (x >= MapSizeX() || y >= MapSizeY()) {
@@ -3991,10 +3988,10 @@ DEF_CONSOLE_CMD(ConCreateTown)
 		}
 
 		tile = TileXY(x, y);
-		uint32 townnameparts = 0;
+		uint32_t townnameparts = 0;
 		ScrollMainWindowToTile(tile);
 
-        DoCommandP(tile, TSZ_MEDIUM | 0 | TL_BETTER_ROADS << 3, townnameparts, CMD_FOUND_TOWN, CcCreateTown, argv[3]);
+		DoCommandP(tile, TSZ_MEDIUM | 0 | TL_BETTER_ROADS << 3, townnameparts, CMD_FOUND_TOWN, CcCreateTown, argv[3]);
 		return true;
 	}
 
