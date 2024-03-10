@@ -2,6 +2,11 @@
 
 * * *
 
+### v0.58.1+1 (2023-09-26)
+* Update Japanese translation
+* Fix town generate command
+* Update base jgrpp to 7796451b6c5ea1a507a3901e52d7001d53e80f15
+
 ### v0.55.3+0 (2023-09-26)
 * Update Japanese translation
 * Update base jgrpp to d4ed08849855b99b39fd95a83faad3c7cec4f2e0
