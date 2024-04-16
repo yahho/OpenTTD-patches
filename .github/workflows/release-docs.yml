@@ -11,17 +11,19 @@ jobs:
   docs:
     name: Docs
 
-    runs-on: ubuntu-20.04
+    runs-on: arc-runner-linux
+    container:
+      image: "docker.io/buildpack-deps:jammy-scm"
 
+    defaults:
+      run:
+        shell: bash
+  
     steps:
     - name: Download source
       uses: actions/download-artifact@v4
       with:
         name: internal-source
-
-    - name: Unpack source
-      run: |
-        tar -xf source.tar.gz --strip-components=1
 
     - name: Install dependencies
       run: |
@@ -30,12 +32,18 @@ jobs:
         echo "::endgroup::"
 
         echo "::group::Install dependencies"
-        sudo apt-get install -y --no-install-recommends \
+        apt install -y --no-install-recommends \
           doxygen \
+          cmake \
+          xz-utils\
           # EOF
         echo "::endgroup::"
       env:
         DEBIAN_FRONTEND: noninteractive
+
+    - name: Unpack source
+      run: |
+        tar -xf source.tar.gz --strip-components=1
 
     - name: Build
       run: |

@@ -16,36 +16,36 @@ jobs:
       fail-fast: false
       matrix:
         include:
-        - container_image: "ubuntu:20.04"
+        - container_image: "docker.io/ubuntu:20.04"
           bundle_name: "focal"
           compiler: "g++-10"
           c_compiler: "gcc-10"
-        - container_image: "ubuntu:22.04"
+        - container_image: "docker.io/ubuntu:22.04"
           bundle_name: "jammy"
           compiler: "g++"
           c_compiler: "gcc"
-        - container_image: "debian:bullseye"
+        - container_image: "docker.io/debian:bullseye"
           bundle_name: "bullseye"
           compiler: "g++"
           c_compiler: "gcc"
-        - container_image: "debian:bookworm"
+        - container_image: "docker.io/debian:bookworm"
           bundle_name: "bookworm"
           compiler: "g++"
           c_compiler: "gcc"
 
-    runs-on: ubuntu-20.04
+    runs-on: arc-runner-linux
     container:
       image: ${{ matrix.container_image }}
 
+    defaults:
+      run:
+        shell: bash
+  
     steps:
     - name: Download source
       uses: actions/download-artifact@v4
       with:
         name: internal-source
-
-    - name: Unpack source
-      run: |
-        tar -xf source.tar.gz --strip-components=1
 
     - name: Install dependencies
       run: |
@@ -55,6 +55,8 @@ jobs:
 
         echo "::group::Install dependencies"
         apt-get install -y --no-install-recommends \
+          xz-utils \
+          zip \
           cmake \
           debhelper \
           ${{ matrix.compiler }} \
@@ -77,6 +79,10 @@ jobs:
         echo "::endgroup::"
       env:
         DEBIAN_FRONTEND: noninteractive
+
+    - name: Unpack source
+      run: |
+        tar -xf source.tar.gz --strip-components=1
 
     - name: Install GCC problem matcher
       uses: ammaraskar/gcc-problem-matcher@master

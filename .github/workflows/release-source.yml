@@ -18,7 +18,13 @@ jobs:
   source:
     name: Source
 
-    runs-on: ubuntu-20.04
+    runs-on: arc-runner-linux
+    container:
+      image: "docker.io/buildpack-deps:jammy-scm"
+
+    defaults:
+      run:
+        shell: bash
 
     outputs:
       version: ${{ steps.metadata.outputs.version }}
@@ -59,6 +65,10 @@ jobs:
         # We generate a changelog; for this we need the full git log.
         fetch-depth: 0
 
+    - name: Makes git directory as trusted(on a container, checkout flow's one is not propagated.)
+      run: |
+        git config --global --add safe.directory "${GITHUB_WORKSPACE}"
+
     - name: Check valid branch name
       run: |
         if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
@@ -95,6 +105,15 @@ jobs:
           echo "Cancelling build, as without a version we cannot store the artifacts."
           exit 1
         fi
+
+    - name: Install cmake and xz-utils
+      run: |
+        echo "::group::Install CMake"
+        apt update
+        apt upgrade -y
+        apt install -y --no-install-recommends cmake xz-utils zip
+        echo "CMake installed. Ready for generating metadata!"
+        echo "::endgroup::"
 
     - name: Generate metadata
       id: metadata
