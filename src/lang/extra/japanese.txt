@@ -82,6 +82,7 @@ STR_UNIT_NAME_VELOCITY_IMPERIAL                                 :mph
 STR_UNIT_NAME_VELOCITY_METRIC                                   :km/h
 STR_UNIT_NAME_VELOCITY_SI                                       :m/s
 STR_UNIT_NAME_VELOCITY_GAMEUNITS                                :タイル/日
+STR_UNIT_NAME_VELOCITY_GAMEUNITS_WALLCLOCK                      :タイル/秒
 
 STR_UNITS_SECONDS_SHORT                                         :{COMMA}{NBSP}秒
 
@@ -732,6 +733,9 @@ STR_CONFIG_SETTING_IGNORE_OBJECT_INTRO_DATES_HELPTEXT           :利用可能に
 
 STR_CONFIG_SETTING_ALLOW_CONVERT_TOWN_ROAD_NO_HOUSES            :街路を家屋ではない種類に変換することを許可する: {STRING}
 STR_CONFIG_SETTING_ALLOW_CONVERT_TOWN_ROAD_NO_HOUSES_HELPTEXT   :街が所有する道路を家屋を許可しない種類の道路に変更することをプレイヤーに許可します。{}悪用すると街に家屋を全く建設させないことができ、街の縮小につながるためデフォルトでこの設定は無効になっています。
+
+STR_CONFIG_SETTING_PURCHASED_LAND_CLEAR_GROUND                  :購入済みの土地に更地のタイルを使用する: {STRING}
+STR_CONFIG_SETTING_PURCHASED_LAND_CLEAR_GROUND_HELPTEXT         :有効にすると、購入済みの土地を種類の同じ更地(草原、海岸、雪原、砂漠などの荒地)のタイルで描画します。
 
 STR_CONFIG_SETTING_SPAWN_PRIMARY_INDUSTRY_ONLY                  :一次産業のみ生成する: {STRING}
 STR_CONFIG_SETTING_SPAWN_PRIMARY_INDUSTRY_ONLY_HELPTEXT         :有効にすると、マップ生成時やプレイ中に一次産業のみ生成されるようになります。
@@ -1616,6 +1620,11 @@ STR_VEHICLE_DETAILS_TRAIN_WAGON_VALUE_AND_SPEED                 :{LTBLUE}{ENGINE
 STR_VEHICLE_DETAILS_TRAIN_TOTAL_WEIGHT                          :{BLACK}総重量: {LTBLUE}{WEIGHT_SHORT} {BLACK}(空荷) - {LTBLUE}{WEIGHT_SHORT} {BLACK}(積載)
 STR_VEHICLE_DETAILS_TRAIN_MAX_SPEED                             :{BLACK}最高速度: {LTBLUE}{VELOCITY} {BLACK}(空荷) - {LTBLUE}{VELOCITY} {BLACK}(積載)
 
+STR_VEHICLE_DETAILS_EXTRA_ACTIONS_TOOLTIP                       :{BLACK}追加の輸送機器アクション
+STR_VEHICLE_DETAILS_REMOVE_SPEED_RESTRICTION                    :速度制限を解除
+STR_VEHICLE_DETAILS_SET_SPEED_RESTRICTION                       :速度制限を設定
+STR_VEHICLE_DETAILS_REMOVE_FROM_SLOT                            :次のスロットから削除:
+
 STR_ORDER_DROP_CARGO_TYPE_LOAD                                  :貨物の種類により積載
 STR_ORDER_DROP_CARGO_TYPE_UNLOAD                                :貨物の種類により荷下ろし
 
@@ -1932,6 +1941,7 @@ STR_FORMAT_GROUP_VEHICLE_NAME_LONG                              :{GROUP} - {STRI
 
 STR_VIEWPORT_SHOW_VEHICLE_ROUTE_STEP                            :{BROWN}{NUM} {STRING}
 STR_VIEWPORT_SHOW_VEHICLE_ROUTE_STEP_STATION                    :{BLACK}駅
+STR_VIEWPORT_SHOW_VEHICLE_ROUTE_STEP_VIA_STATION                :{GRAY}経
 STR_VIEWPORT_SHOW_VEHICLE_ROUTE_STEP_WAYPOINT                   :{GRAY}中
 STR_VIEWPORT_SHOW_VEHICLE_ROUTE_STEP_IMPLICIT                   :{GRAY}黙
 STR_VIEWPORT_SHOW_VEHICLE_ROUTE_STEP_DEPOT                      :{RED}庫
@@ -2308,3 +2318,5 @@ STR_VIEWPORT_TOWN_COLOUR_CITY_POP                               :{WHITE}{TOWN} {
 
 STR_ABOUT_MENU_SHOW_PICKER_TOOL                                 :ピッカーツール
 STR_ABOUT_MENU_SHOW_TOGGLE_MODIFIER_KEYS                        :修飾キー ウィンドウ
+
+STR_ERROR_CAN_T_CHANGE_SPEED_RESTRICTION                        :{WHITE}輸送機器の側で制限を変更できません...
